@@ -7,9 +7,10 @@ import {
     Encoders,
     CoMap,
     co,
-    WasmCrypto,
+
     isControlledAccount,
 } from "../index.js";
+import { WasmCrypto } from "cojson/src/crypto/WasmCrypto.js";
 
 const Crypto = await WasmCrypto.create();
 

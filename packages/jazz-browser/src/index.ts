@@ -7,13 +7,9 @@ import {
     InviteSecret,
     Account,
     CoValueClass,
-    WasmCrypto,
     CryptoProvider,
 } from "jazz-tools";
-import {
-    AccountID,
-    LSMStorage,
-} from "cojson";
+import { AccountID, LSMStorage, PureJSCrypto } from "cojson";
 import { AuthProvider } from "./auth/auth.js";
 import { OPFSFilesystem } from "./OPFSFilesystem.js";
 import { IDBStorage } from "cojson-storage-indexeddb";
@@ -28,6 +24,7 @@ export type BrowserContext<Acc extends Account> = {
     done: () => void;
 };
 
+console.log("here we go");
 /** @category Context Creation */
 export async function createJazzBrowserContext<Acc extends Account>({
     auth,
@@ -42,7 +39,9 @@ export async function createJazzBrowserContext<Acc extends Account>({
     storage?: "indexedDB" | "experimentalOPFSdoNotUseOrYouWillBeFired";
     crypto?: CryptoProvider;
 }): Promise<BrowserContext<Acc>> {
-    const crypto = customCrypto || (await WasmCrypto.create());
+    console.log(`custom crypto`, customCrypto);
+
+    const crypto = customCrypto || (await PureJSCrypto.create());
     let sessionDone: () => void;
 
     const firstWsPeer = await Effect.runPromise(
@@ -78,7 +77,7 @@ export async function createJazzBrowserContext<Acc extends Account>({
                   }),
             firstWsPeer,
         ],
-        await WasmCrypto.create(),
+        crypto,
     );
 
     async function websocketReconnectLoop() {

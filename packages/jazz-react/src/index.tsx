@@ -8,6 +8,7 @@ import {
     Account,
     CoValue,
     CoValueClass,
+    CryptoProvider,
     DeeplyLoaded,
     DepthsIn,
     ID,
@@ -20,10 +21,12 @@ export function createJazzReactContext<Acc extends Account>({
     auth: useAuthHook,
     peer,
     storage = "indexedDB",
+    crypto
 }: {
     auth: ReactAuthHook<Acc>;
     peer: `wss://${string}` | `ws://${string}`;
     storage?: "indexedDB" | "experimentalOPFSdoNotUseOrYouWillBeFired";
+    crypto?: CryptoProvider;
 }): JazzReactContext<Acc> {
     const JazzContext = React.createContext<
         | {
@@ -49,6 +52,11 @@ export function createJazzReactContext<Acc extends Account>({
             let stop = false;
 
             (async () => {
+                    if(crypto ) {
+                        console.log('using crypto ', crypto)
+                    } else {
+                        console.log('using default crypto')
+                    }
                 const context = await createJazzBrowserContext<Acc>({
                     auth: auth,
                     peer:
@@ -56,6 +64,7 @@ export function createJazzReactContext<Acc extends Account>({
                             "peer",
                         ) as typeof peer) || peer,
                     storage,
+                    crypto,
                 });
 
                 if (stop) {

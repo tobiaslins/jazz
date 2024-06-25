@@ -1,7 +1,6 @@
 export {
     cojsonInternals,
     MAX_RECOMMENDED_TX_SIZE,
-    WasmCrypto,
     PureJSCrypto,
 } from "cojson";
 export type {

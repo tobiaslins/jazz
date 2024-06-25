@@ -1,7 +1,9 @@
 import { expect, describe, test } from "vitest";
-import { Account, CoMap, co, Group, WasmCrypto } from "../index.js";
+import { Account, CoMap, co, Group } from "../index.js";
+import { WasmCrypto } from "cojson/src/crypto/WasmCrypto.js";
 
 const Crypto = await WasmCrypto.create();
+
 
 describe("Custom accounts and groups", async () => {
     class CustomProfile extends CoMap {

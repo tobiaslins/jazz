@@ -7,13 +7,13 @@ import {
     CoMap,
     CoStream,
     SessionID,
-    WasmCrypto,
     co,
     Profile,
     isControlledAccount,
     ID,
 } from "../index.js";
 import { newRandomSessionID } from "cojson/src/coValueCore.js";
+import { WasmCrypto } from "cojson/src/crypto/WasmCrypto.js";
 import { Effect } from "effect";
 
 class TestMap extends CoMap {
@@ -39,10 +39,12 @@ describe("Deep loading with depth arg", async () => {
         crypto: Crypto,
     });
 
-    const [initialAsPeer, secondPeer] = await Effect.runPromise(connectedPeers("initial", "second", {
-        peer1role: "server",
-        peer2role: "client",
-    }));
+    const [initialAsPeer, secondPeer] = await Effect.runPromise(
+        connectedPeers("initial", "second", {
+            peer1role: "server",
+            peer2role: "client",
+        }),
+    );
     if (!isControlledAccount(me)) {
         throw "me is not a controlled account";
     }
@@ -252,10 +254,12 @@ test("Deep loading a record-like coMap", async () => {
         crypto: Crypto,
     });
 
-    const [initialAsPeer, secondPeer] = await Effect.runPromise(connectedPeers("initial", "second", {
-        peer1role: "server",
-        peer2role: "client",
-    }));
+    const [initialAsPeer, secondPeer] = await Effect.runPromise(
+        connectedPeers("initial", "second", {
+            peer1role: "server",
+            peer2role: "client",
+        }),
+    );
     if (!isControlledAccount(me)) {
         throw "me is not a controlled account";
     }

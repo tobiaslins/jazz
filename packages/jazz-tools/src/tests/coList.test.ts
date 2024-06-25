@@ -5,10 +5,10 @@ import { Effect, Queue } from "effect";
 import {
     Account,
     CoList,
-    WasmCrypto,
     co,
     isControlledAccount,
 } from "../index.js";
+import { WasmCrypto } from "cojson/src/crypto/WasmCrypto.js";
 
 const Crypto = await WasmCrypto.create();
 

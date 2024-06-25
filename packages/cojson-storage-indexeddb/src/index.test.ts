@@ -2,9 +2,10 @@ import { expect, test } from "vitest";
 import {
     ControlledAgent,
     LocalNode,
-    WasmCrypto,
+
     cojsonInternals,
 } from "cojson";
+import {WasmCrypto} from "cojson/src/crypto/WasmCrypto.js";
 import { IDBStorage } from "./index.js";
 
 const Crypto = await WasmCrypto.create();

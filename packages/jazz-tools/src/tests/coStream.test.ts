@@ -8,9 +8,10 @@ import {
     Account,
     CoStream,
     co,
-    WasmCrypto,
+
     isControlledAccount,
 } from "../index.js";
+import { WasmCrypto } from "cojson/src/crypto/WasmCrypto.js";
 
 const Crypto = await WasmCrypto.create();
 

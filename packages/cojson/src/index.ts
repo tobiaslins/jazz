@@ -16,7 +16,6 @@ import {
     StreamingHash,
     CryptoProvider,
 } from "./crypto/crypto.js";
-import { WasmCrypto } from "./crypto/WasmCrypto.js";
 import { PureJSCrypto } from "./crypto/PureJSCrypto.js";
 import { connectedPeers } from "./streamUtils.js";
 import { ControlledAgent, RawControlledAccount } from "./coValues/account.js";
@@ -118,7 +117,7 @@ export {
     AgentSecret,
     InviteSecret,
     CryptoProvider,
-    WasmCrypto,
+
     PureJSCrypto,
     SyncMessage,
     isRawCoID,
