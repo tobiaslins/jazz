@@ -1,5 +1,18 @@
 # jazz-autosub
 
+## 0.7.17
+
+### Patch Changes
+
+-   Updated dependencies
+    -   cojson@0.7.17
+
+## 0.7.16
+
+### Patch Changes
+
+-   Fix: allow null in encoded fields
+
 ## 0.7.14
 
 ### Patch Changes
