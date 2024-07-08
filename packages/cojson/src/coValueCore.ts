@@ -320,7 +320,7 @@ export class CoValueCore {
             return false;
         }
 
-        performance.mark("verifyStart" + this.id);
+        // performance.mark("verifyStart" + this.id);
         if (!this.crypto.verify(newSignature, expectedNewHash, signerID)) {
             console.warn(
                 "Invalid signature in",
@@ -332,12 +332,12 @@ export class CoValueCore {
             resolveDone();
             return false;
         }
-        performance.mark("verifyEnd" + this.id);
-        performance.measure(
-            "verify" + this.id,
-            "verifyStart" + this.id,
-            "verifyEnd" + this.id,
-        );
+        // performance.mark("verifyEnd" + this.id);
+        // performance.measure(
+        //     "verify" + this.id,
+        //     "verifyStart" + this.id,
+        //     "verifyEnd" + this.id,
+        // );
 
         this.doAddTransactions(
             sessionID,

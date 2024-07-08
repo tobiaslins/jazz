@@ -294,13 +294,17 @@ export abstract class CryptoProvider<Blake3State = any> {
 
 export type Hash = `hash_z${string}`;
 
+import { blake3 } from "@noble/hashes/blake3";
+
+type Blake3State = ReturnType<typeof blake3.create>;
+
 export class StreamingHash {
-    state: Uint8Array;
+    state: Blake3State;
     crypto: CryptoProvider;
 
-    constructor(crypto: CryptoProvider, fromClone?: Uint8Array) {
-        this.state = fromClone || crypto.emptyBlake3State();
+    constructor(crypto: CryptoProvider, fromClone?: Blake3State) {
         this.crypto = crypto;
+        this.state = fromClone || crypto.emptyBlake3State();
     }
 
     update(value: JsonValue): Uint8Array {
@@ -318,7 +322,8 @@ export class StreamingHash {
     }
 
     clone(): StreamingHash {
-        return new StreamingHash(this.crypto, new Uint8Array(this.state));
+        const clonedState = this.state.clone();
+        return new StreamingHash(this.crypto, clonedState);
     }
 }
 

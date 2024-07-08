@@ -21,7 +21,7 @@ export function createJazzReactContext<Acc extends Account>({
     auth: useAuthHook,
     peer,
     storage = "indexedDB",
-    crypto
+    crypto,
 }: {
     auth: ReactAuthHook<Acc>;
     peer: `wss://${string}` | `ws://${string}`;
@@ -52,17 +52,14 @@ export function createJazzReactContext<Acc extends Account>({
             let stop = false;
 
             (async () => {
-                    if(crypto ) {
-                        console.log('using crypto ', crypto)
-                    } else {
-                        console.log('using default crypto')
-                    }
+                if (crypto) {
+                    console.log("using crypto ", crypto);
+                } else {
+                    console.log("using default crypto");
+                }
                 const context = await createJazzBrowserContext<Acc>({
                     auth: auth,
-                    peer:
-                        (new URLSearchParams(window.location.search).get(
-                            "peer",
-                        ) as typeof peer) || peer,
+                    peer: peer,
                     storage,
                     crypto,
                 });

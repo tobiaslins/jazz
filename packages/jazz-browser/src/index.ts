@@ -9,10 +9,8 @@ import {
     CoValueClass,
     CryptoProvider,
 } from "jazz-tools";
-import { AccountID, LSMStorage, PureJSCrypto } from "cojson";
+import { AccountID, PureJSCrypto } from "cojson";
 import { AuthProvider } from "./auth/auth.js";
-import { OPFSFilesystem } from "./OPFSFilesystem.js";
-import { IDBStorage } from "cojson-storage-indexeddb";
 import { Effect, Queue } from "effect";
 import { createWebSocketPeer } from "cojson-transport-ws";
 export * from "./auth/auth.js";
@@ -25,12 +23,14 @@ export type BrowserContext<Acc extends Account> = {
 };
 
 console.log("here we go");
+const localStorage = {} as Storage;
+// typeof window !== "undefined" ? window.localStorage : ({} as Storage);
+
 /** @category Context Creation */
 export async function createJazzBrowserContext<Acc extends Account>({
     auth,
     peer: peerAddr,
     reconnectionTimeout: initialReconnectionTimeout = 500,
-    storage = "indexedDB",
     crypto: customCrypto,
 }: {
     auth: AuthProvider<Acc>;
@@ -60,7 +60,7 @@ export async function createJazzBrowserContext<Acc extends Account>({
         currentReconnectionTimeout = initialReconnectionTimeout;
     }
 
-    window.addEventListener("online", onOnline);
+    // window.addEventListener("online", onOnline);
 
     const me = await auth.createOrLoadAccount(
         (accountID) => {
@@ -69,12 +69,12 @@ export async function createJazzBrowserContext<Acc extends Account>({
             return sessionHandle.session;
         },
         [
-            storage === "indexedDB"
-                ? await IDBStorage.asPeer()
-                : await LSMStorage.asPeer({
-                      fs: new OPFSFilesystem(crypto),
-                      // trace: true,
-                  }),
+            // storage === "indexedDB"
+            //     ? await IDBStorage.asPeer()
+            //     : await LSMStorage.asPeer({
+            //           fs: new OPFSFilesystem(crypto),
+            //           // trace: true,
+            //       }),
             firstWsPeer,
         ],
         crypto,
@@ -101,16 +101,16 @@ export async function createJazzBrowserContext<Acc extends Account>({
                 );
                 await new Promise<void>((resolve) => {
                     setTimeout(resolve, currentReconnectionTimeout);
-                    window.addEventListener(
-                        "online",
-                        () => {
-                            console.log(
-                                "Online, trying to reconnect immediately",
-                            );
-                            resolve();
-                        },
-                        { once: true },
-                    );
+                    // window.addEventListener(
+                    //     "online",
+                    //     () => {
+                    //         console.log(
+                    //             "Online, trying to reconnect immediately",
+                    //         );
+                    //         resolve();
+                    //     },
+                    //     { once: true },
+                    // );
                 });
 
                 me._raw.core.node.syncManager.addPeer(
@@ -155,6 +155,69 @@ export type SessionHandle = {
     done: () => void;
 };
 
+type LockStorage = { [key: string]: boolean };
+type SessionStorage = { [key: string]: string };
+
+interface Storage {
+    locks: LockStorage;
+    sessions: SessionStorage;
+}
+
+// In-memory storage for locks and sessions
+// const storage: Storage = {
+//     locks: {},
+//     sessions: {},
+// };
+
+// const acquireLock = async (
+//     lockKey: string,
+//     timeout: number = 5000,
+// ): Promise<boolean> => {
+//     const startTime = Date.now();
+//     while (Date.now() - startTime < timeout) {
+//         if (!storage.locks[lockKey]) {
+//             storage.locks[lockKey] = true;
+//             return true;
+//         }
+//         await new Promise((resolve) => setTimeout(resolve, 100));
+//     }
+//     return false;
+// };
+
+// const releaseLock = (lockKey: string): void => {
+//     delete storage.locks[lockKey];
+// };
+
+// const performLockedOperation = async (
+//     accountID: string,
+//     idx: string,
+//     operation: (sessionID: string) => Promise<void>,
+// ): Promise<boolean> => {
+//     const lockKey = `${accountID}_${idx}_lock`;
+//     for (let retry = 0; retry < 2; retry++) {
+//         const acquired = await acquireLock(lockKey);
+//         if (acquired) {
+//             try {
+//                 const storageKey = `${accountID}_${idx}`;
+//                 let sessionID = storage.sessions[storageKey];
+
+//                 if (!sessionID) {
+//                     sessionID = cojsonInternals.newRandomSessionID(accountID);
+//                     storage.sessions[storageKey] = sessionID;
+//                 }
+
+//                 await operation(sessionID);
+
+//                 console.log("Done with lock", `${accountID}_${idx}`, sessionID);
+//                 return true;
+//             } finally {
+//                 releaseLock(lockKey);
+//             }
+//         }
+//     }
+//     return false;
+// };
+
 export function getSessionHandleFor(
     accountID: ID<Account> | AgentID,
 ): SessionHandle {
@@ -173,40 +236,28 @@ export function getSessionHandleFor(
             // To work better around StrictMode
             for (let retry = 0; retry < 2; retry++) {
                 // console.debug("Trying to get lock", accountID + "_" + idx);
-                const sessionFinishedOrNoLock = await navigator.locks.request(
-                    accountID + "_" + idx,
-                    { ifAvailable: true },
-                    async (lock) => {
-                        if (!lock) return "noLock";
+                const accId = accountID + "_" + idx;
+                const sessionID =
+                    // @ts-expect-error -- test
+                    localStorage[accId] ||
+                    cojsonInternals.newRandomSessionID(
+                        accountID as AccountID | AgentID,
+                    );
 
-                        const sessionID =
-                            localStorage[accountID + "_" + idx] ||
-                            cojsonInternals.newRandomSessionID(
-                                accountID as AccountID | AgentID,
-                            );
-                        localStorage[accountID + "_" + idx] = sessionID;
+                // @ts-expect-error -- test
+                localStorage[accId] = sessionID;
 
-                        // console.debug(
-                        //     "Got lock",
-                        //     accountID + "_" + idx,
-                        //     sessionID
-                        // );
+                // console.debug(
+                //     "Got lock",
+                //     accountID + "_" + idx,
+                //     sessionID
+                // );
+                // @ts-expect-error -- test
+                resolveSession(sessionID);
 
-                        resolveSession(sessionID);
-
-                        await donePromise;
-                        console.log(
-                            "Done with lock",
-                            accountID + "_" + idx,
-                            sessionID,
-                        );
-                        return "sessionFinished";
-                    },
-                );
-
-                if (sessionFinishedOrNoLock === "sessionFinished") {
-                    return;
-                }
+                await donePromise;
+                console.log("Done with lock", accountID + "_" + idx, sessionID);
+                return "sessionFinished";
             }
         }
         throw new Error("Couldn't get lock on session after 100x2 tries");

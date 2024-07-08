@@ -8,11 +8,6 @@
     "version": "0.7.17",
     "devDependencies": {
         "@types/jest": "^29.5.3",
-        "@typescript-eslint/eslint-plugin": "^6.2.1",
-        "@typescript-eslint/parser": "^6.2.1",
-        "eslint": "^8.46.0",
-        "eslint-config-prettier": "^9.1.0",
-        "eslint-plugin-require-extensions": "^0.1.3",
         "typescript": "5.0.2",
         "vitest": "^0.34.6"
     },
@@ -29,13 +24,11 @@
         "dev": "tsc --watch --sourceMap --outDir dist",
         "test": "vitest --run",
         "test-watch": "vitest",
-        "lint": "eslint . --ext ts,tsx",
         "format": "prettier --write './src/**/*.{ts,tsx}'",
-        "build": "npm run lint && rm -rf ./dist && tsc --sourceMap --outDir dist",
+        "build": "rm -rf ./dist && tsc --sourceMap --outDir dist",
         "prepublishOnly": "npm run build"
     },
     "lint-staged": {
-        "*.{ts,tsx}": "eslint --fix",
         "*.{js,jsx,mdx,json}": "prettier --write"
     },
     "gitHead": "33c27053293b4801b968c61d5c4c989f93a67d13"

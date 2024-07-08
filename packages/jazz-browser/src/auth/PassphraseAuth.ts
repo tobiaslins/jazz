@@ -11,6 +11,8 @@ type LocalStorageData = {
 
 const localStorageKey = "jazz-logged-in-secret";
 
+const localStorage = {} as Storage;
+
 export class BrowserPassphraseAuth<Acc extends Account>
     implements AuthProvider<Acc>
 {

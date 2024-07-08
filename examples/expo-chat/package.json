@@ -11,6 +11,7 @@
   "dependencies": {
     "expo": "~51.0.14",
     "expo-status-bar": "~1.12.1",
+    "fast-text-encoding": "^1.0.6",
     "jazz-react": "workspace:^",
     "jazz-tools": "workspace:^",
     "react": "18.2.0",

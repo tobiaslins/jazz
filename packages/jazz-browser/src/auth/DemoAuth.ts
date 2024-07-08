@@ -10,6 +10,9 @@ type StorageData = {
 
 const localStorageKey = "demo-auth-logged-in-secret";
 
+const localStorage = {} as Storage;
+// typeof window === "undefined" ? ({} as Storage) : window.localStorage;
+
 export class BrowserDemoAuth<Acc extends Account> implements AuthProvider<Acc> {
     constructor(
         public accountSchema: CoValueClass<Acc> & typeof Account,
