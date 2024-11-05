@@ -1,5 +1,11 @@
 # jazz-react
 
+## 0.9.0
+
+### Minor Changes
+
+-   244e5ee: Implemented Vue support for Jazz
+
 ## 0.8.5
 
 ### Patch Changes
