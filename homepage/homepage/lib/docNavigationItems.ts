@@ -141,6 +141,11 @@ export const docNavigationItems = [
     name: "Design patterns",
     items: [
       {
+        name: "Form",
+        href: "/docs/design-patterns/form",
+        done: 100,
+      },
+      {
         name: "Organization/Team",
         href: "/docs/design-patterns/organization",
         done: 80,
