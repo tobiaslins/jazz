@@ -492,12 +492,6 @@ export class CoRichText extends CoMap {
           ? splitNode(inOrAfter, range.end)
           : [undefined, undefined];
 
-        // console.log("split", range.start, range.end, {
-        //     before,
-        //     inside,
-        //     after,
-        // });
-
         return [
           ...(before ? [before] : []),
           ...(inside
