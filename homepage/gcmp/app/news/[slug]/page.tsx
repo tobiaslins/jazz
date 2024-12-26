@@ -41,7 +41,7 @@ export default async function Post({ params }: Params) {
             <Image
               width={100}
               height={100}
-              src={author.picture}
+              src={author.image}
               className="size-12 rounded-full"
               alt=""
             />
