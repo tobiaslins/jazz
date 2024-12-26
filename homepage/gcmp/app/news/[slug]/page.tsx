@@ -81,9 +81,13 @@ export function generateMetadata({ params }: Params): Metadata {
   const { title, subtitle, coverImage } = post.meta;
 
   return {
-    title: title + " " + subtitle,
+    title: title,
     description: subtitle,
     openGraph: {
+      title: title,
+      images: [coverImage],
+    },
+    twitter: {
       title: title + " " + subtitle,
       images: [coverImage],
     },
