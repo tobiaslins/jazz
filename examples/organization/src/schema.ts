@@ -38,9 +38,7 @@ export class JazzAccountRoot extends CoMap {
 export class JazzAccount extends Account {
   root = co.ref(JazzAccountRoot);
 
-  async migrate(creationProps?: { name: string }) {
-    super.migrate(creationProps);
-
+  async migrate() {
     if (!this._refs.root) {
       const draftOrganizationOwnership = {
         owner: Group.create({ owner: this }),

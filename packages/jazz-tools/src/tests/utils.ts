@@ -59,7 +59,7 @@ export async function setupTwoNodes() {
         fromRaw: rawAccount,
       });
 
-      await account.migrate?.(creationProps);
+      await account.applyMigration(creationProps);
     },
   });
 
@@ -72,7 +72,7 @@ export async function setupTwoNodes() {
         fromRaw: rawAccount,
       });
 
-      await account.migrate?.(creationProps);
+      await account.applyMigration(creationProps);
     },
   });
 
