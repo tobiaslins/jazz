@@ -51,9 +51,7 @@ export class JazzAccountRoot extends CoMap {
 export class JazzAccount extends Account {
   root = co.ref(JazzAccountRoot);
 
-  async migrate(creationProps?: { name: string }) {
-    super.migrate(creationProps);
-
+  async migrate() {
     if (!this._refs.root) {
       // Using a Group as an owner allows you to give access to other users
       const initialOrganizationOwnership = {

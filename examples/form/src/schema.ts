@@ -69,9 +69,7 @@ export class AccountRoot extends CoMap {
 export class JazzAccount extends Account {
   root = co.ref(AccountRoot);
 
-  migrate(this: JazzAccount, creationProps?: { name: string }) {
-    super.migrate(creationProps);
-
+  migrate(this: JazzAccount) {
     if (!this._refs.root) {
       const ownership = { owner: this };
       const orders = ListOfBubbleTeaOrders.create([], ownership);

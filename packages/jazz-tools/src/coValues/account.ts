@@ -185,7 +185,7 @@ export class Account extends CoValueBase implements CoValue {
           fromRaw: rawAccount,
         }) as A;
 
-        await account.migrate?.(creationProps);
+        await account.applyMigration?.(creationProps);
       },
     });
 
@@ -236,7 +236,7 @@ export class Account extends CoValueBase implements CoValue {
     return this.toJSON();
   }
 
-  migrate(this: Account, creationProps?: { name: string }) {
+  async applyMigration(creationProps?: { name: string }) {
     if (creationProps) {
       const profileGroup = RegisteredSchemas["Group"].create({ owner: this });
       profileGroup.addMember("everyone", "reader");
@@ -256,6 +256,13 @@ export class Account extends CoValueBase implements CoValue {
       profile.set("inbox", inboxRoot.id);
       profile.set("inboxInvite", inboxRoot.inviteLink);
     }
+
+    await this.migrate(creationProps);
+  }
+
+  // Placeholder method for subclasses to override
+  migrate(creationProps?: { name: string }) {
+    creationProps; // To avoid unused parameter warning
   }
 
   /** @category Subscription & Loading */
