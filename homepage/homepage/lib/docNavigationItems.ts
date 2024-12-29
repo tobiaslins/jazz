@@ -19,6 +19,11 @@ export const docNavigationItems = [
           svelte: 0,
         },
       },
+      {
+        name: "Example apps",
+        href: "/examples",
+        done: 30,
+      },
     ],
   },
   {
@@ -113,41 +118,11 @@ export const docNavigationItems = [
     ],
   },
   {
-    name: "Authentication methods",
+    name: "Authentication",
     items: [
       {
         name: "Overview",
         href: "/docs/authentication/auth-methods",
-        done: {
-          react: 50,
-          vue: 0,
-          "react-native": 0,
-          svelte: 0,
-        },
-      },
-      {
-        name: "Passphrase",
-        href: "/docs/authentication/auth-methods#passphrase",
-        done: {
-          react: 50,
-          vue: 0,
-          "react-native": 0,
-          svelte: 0,
-        },
-      },
-      {
-        name: "Passkey",
-        href: "/docs/authentication/auth-methods#passkey",
-        done: {
-          react: 50,
-          vue: 0,
-          "react-native": 0,
-          svelte: 0,
-        },
-      },
-      {
-        name: "Clerk",
-        href: "/docs/authentication/auth-methods#clerk",
         done: {
           react: 50,
           vue: 0,
@@ -175,11 +150,6 @@ export const docNavigationItems = [
   {
     name: "Resources",
     items: [
-      {
-        name: "Example apps",
-        href: "/examples",
-        done: 30,
-      },
       {
         name: "Jazz under the hood",
         href: "/docs/jazz-under-the-hood",
