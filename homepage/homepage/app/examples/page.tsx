@@ -23,7 +23,7 @@ import { clsx } from "clsx";
 import { Icon } from "gcmp-design-system/src/app/components/atoms/Icon";
 
 const MockButton = ({ children }: { children: React.ReactNode }) => (
-  <p className="bg-blue-100 text-blue-800 py-1 p-2 rounded-full font-medium text-center text-xs">
+  <p className="bg-blue-100 text-blue-800 py-1 px-3 rounded-full font-medium  text-xs inline-flex items-center justify-center">
     {children}
   </p>
 );
