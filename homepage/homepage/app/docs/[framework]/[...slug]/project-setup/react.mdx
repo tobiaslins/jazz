@@ -33,7 +33,7 @@ First you define a context providing component (typically called `JazzAndAuth`) 
         );
     }
 
-    // Use this snippet to register your app's Account schema so the Jazz hooks are typed with it
+    // Register the Account schema for type safety
     declare module "jazz-react" {
         interface Register {
             Account: MyAppAccount;
@@ -69,24 +69,26 @@ The easiest way to use Jazz with Next.JS is to only use it on the client side. Y
 <CodeGroup>
   {/* prettier-ignore */}
   ```tsx
-  "use client"
-  import { JazzProvider, PasskeyAuthBasicUI, usePasskeyAuth } from "jazz-react";// old
+    "use client"
+    import { JazzProvider } from "jazz-react"; // old
+    import { MyAppAccount } from "./schema"; // old
 
-  function JazzAndAuth({ children }: { children: React.ReactNode }) {// old
-  const [passkeyAuth, passKeyState] = usePasskeyAuth({ appName });// old
+    function JazzAndAuth({ children }: { children: React.ReactNode }) { // old
+        const [passkeyAuth, passKeyState] = usePasskeyAuth({ appName }); // old
 
-  return (// old
-  <>// old
-  <JazzProvider// old
-  auth={passkeyAuth}// old
-  peer="wss://cloud.jazz.tools/?key=you@example.com"// old
->// old
-  {children}// old
-</JazzProvider>// old
-<PasskeyAuthBasicUI state={passKeyState} />// old
-</>// old
-);// old
-}// old
+        return ( // old
+            <> // old
+                <JazzProvider // old    
+                    auth={passkeyAuth} // old
+                    peer="wss://cloud.jazz.tools/?key=you@example.com" // old
+                    AccountSchema={MyAppAccount} // old
+                >
+                    {children} // old
+                </JazzProvider> // old
+                <PasskeyAuthBasicUI state={passKeyState} /> // old
+            </> // old
+        ); // old
+    } // old
 ```
 </CodeGroup>
 
