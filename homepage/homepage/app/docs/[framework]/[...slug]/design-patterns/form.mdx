@@ -241,9 +241,7 @@ export class JazzAccount extends Account {
 ```
 </CodeGroup>
 
-We've also added the list of orders to the account root, so that we can show a list of orders.
-
-Make sure to update the `AccountSchema`.
+Let's not forget to update the `AccountSchema`.
 
 <CodeGroup>
 ```ts
@@ -331,7 +329,7 @@ export class DraftBubbleTeaOrder extends CoMap { // old
   } // old
 
   get hasChanges() {
-    return Object.keys(this._edits).length
+    return Object.keys(this._edits).length;
   }
 } // old
 ```
