@@ -1,11 +1,10 @@
 // @vitest-environment happy-dom
 
 import { CoMap, co } from "jazz-tools";
-import { act } from "react";
 import { describe, expect, it } from "vitest";
 import { useCoState } from "../index.js";
 import { createJazzTestAccount } from "../testing.js";
-import { renderHook, waitFor } from "./testUtils.js";
+import { act, renderHook } from "./testUtils.js";
 
 describe("useCoState", () => {
   it("should return the correct value", async () => {

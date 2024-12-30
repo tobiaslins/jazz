@@ -1,16 +1,33 @@
+import { AgentSecret } from "cojson";
 import { PureJSCrypto } from "cojson/crypto";
-import { Account, AccountClass } from "jazz-tools";
+import {
+  Account,
+  AccountClass,
+  CoValueClass,
+  CryptoProvider,
+  Peer,
+} from "jazz-tools";
 import { useMemo } from "react";
 import { RegisteredAccount } from "./provider.js";
 import { JazzContext } from "./provider.js";
 
+type TestAccountSchema<Acc extends RegisteredAccount> = CoValueClass<Acc> & {
+  fromNode: (typeof Account)["fromNode"];
+  create: (options: {
+    creationProps: { name: string };
+    initialAgentSecret?: AgentSecret;
+    peersToLoadFrom?: Peer[];
+    crypto: CryptoProvider;
+  }) => Promise<Acc>;
+};
+
 export async function createJazzTestAccount<
   Acc extends RegisteredAccount,
 >(options?: {
-  AccountSchema?: AccountClass<Acc>;
+  AccountSchema?: TestAccountSchema<Acc>;
 }): Promise<Acc> {
   const AccountSchema =
-    options?.AccountSchema ?? (Account as unknown as AccountClass<Acc>);
+    options?.AccountSchema ?? (Account as unknown as TestAccountSchema<Acc>);
   const account = await AccountSchema.create({
     creationProps: {
       name: "Test Account",

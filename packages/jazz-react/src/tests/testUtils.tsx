@@ -1,14 +1,12 @@
 import {
   RenderHookOptions,
-  RenderHookResult,
   RenderOptions,
-  RenderResult,
   render,
   renderHook,
 } from "@testing-library/react";
 import React from "react";
 import { RegisteredAccount } from "../provider.js";
-import { JazzTestProvider, createJazzTestAccount } from "../testing.js";
+import { JazzTestProvider } from "../testing.js";
 
 type JazzExtendedOptions = { account: RegisteredAccount };
 

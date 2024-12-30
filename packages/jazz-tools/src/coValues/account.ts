@@ -404,7 +404,6 @@ export function isControlledAccount(account: Account): account is Account & {
 
 export type AccountClass<Acc extends Account> = CoValueClass<Acc> & {
   fromNode: (typeof Account)["fromNode"];
-  create: (typeof Account)["create"];
 };
 
 RegisteredSchemas["Account"] = Account;
