@@ -1,5 +1,7 @@
+import { SiBluesky, SiX } from "@icons-pack/react-simple-icons";
 import { Card } from "gcmp-design-system/src/app/components/atoms/Card";
 import { H2 } from "gcmp-design-system/src/app/components/atoms/Headings";
+import { Prose } from "gcmp-design-system/src/app/components/molecules/Prose";
 import { NewsletterForm } from "gcmp-design-system/src/app/components/organisms/NewsletterForm";
 import Link from "next/link";
 
@@ -16,16 +18,34 @@ export function NewsletterCard() {
         </div>
 
         <p>
-          Follow <Link href="https://x.com/gardendotco">@gardendotco</Link> and{" "}
-          <Link href="https://x.com/jazz_tools">@jazz_tools</Link>.
+          <SiBluesky className="inline-block w-3.5 h-3.5 relative -top-px" />{" "}
+          follow{" "}
+          <Link className="underline" href="https://bsky.app/profile/garden.co">
+            @garden.co
+          </Link>{" "}
+          &{" "}
+          <Link
+            className="underline"
+            href="https://bsky.app/profile/jazz.tools"
+          >
+            @jazz.tools
+          </Link>
+          <br />
+          <SiX className="inline-block w-3 h-3 relative -top-px" /> follow{" "}
+          <Link className="underline" href="https://x.com/gardendotco">
+            @gardendotco
+          </Link>{" "}
+          &{" "}
+          <Link className="underline" href="https://x.com/jazz_tools">
+            @jazz_tools
+          </Link>
         </p>
 
         <p>
-          And if you want to build something with Jazz, you should definitely{" "}
-          <Link href="https://discord.gg/utDMjHYg42">
-            join the Jazz Discord
+          Want to build something with Jazz?{" "}
+          <Link className="underline" href="https://discord.gg/utDMjHYg42">
+            Join the Jazz Discord!
           </Link>
-          !
         </p>
       </div>
     </Card>

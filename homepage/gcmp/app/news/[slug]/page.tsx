@@ -24,10 +24,10 @@ export default async function Post({ params }: Params) {
     <>
       <PostJsonLd
         title={title}
-        image={coverImage}
+        subtitle={subtitle}
+        image={coverImage.replace(".svg", ".png")}
         author={author.name}
         datePublished={date}
-        description={subtitle}
       />
       <article className="container max-w-3xl flex flex-col gap-8 py-8 lg:py-16 lg:gap-12">
         <div>
@@ -81,11 +81,15 @@ export function generateMetadata({ params }: Params): Metadata {
   const { title, subtitle, coverImage } = post.meta;
 
   return {
-    title,
+    title: title,
     description: subtitle,
     openGraph: {
-      title,
-      images: [coverImage],
+      title: title,
+      images: [coverImage.replace(".svg", ".png")],
+    },
+    twitter: {
+      title: title + " " + subtitle,
+      images: [coverImage.replace(".svg", ".png")],
     },
   };
 }
