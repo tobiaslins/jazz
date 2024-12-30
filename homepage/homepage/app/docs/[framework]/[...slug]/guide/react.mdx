@@ -54,21 +54,21 @@ Collaborative Values (CoValues), build a UI and subscribe to changes, set permis
   DemoAuthBasicUI,
 } from "jazz-react";
   // old
-  function JazzAndAuth({ children }: { children: React.ReactNode }) {
+function JazzAndAuth({ children }: { children: React.ReactNode }) {
   const [auth, authState] = useDemoAuth();
 
   return (
-  <>
-  <JazzProvider
-  auth={auth}
-  // replace `you@example.com` with your email as a temporary API key
-  peer="wss://cloud.jazz.tools/?key=you@example.com"
->
-  {children}
-</JazzProvider>
-<DemoAuthBasicUI appName="Circular" state={authState} />
-</>
-);
+    <>
+      <JazzProvider
+        auth={auth}
+        // replace `you@example.com` with your email as a temporary API key
+        peer="wss://cloud.jazz.tools/?key=you@example.com"
+      >
+        {children}
+      </JazzProvider>
+      <DemoAuthBasicUI appName="Circular" state={authState} />
+    </>
+  );
 }
 
 // old
@@ -112,11 +112,11 @@ Create a new file `src/schema.ts` and add the following:
   import { CoMap, co } from "jazz-tools";
 
   export class Issue extends CoMap {
-  title = co.string;
-  description = co.string;
-  estimate = co.number;
-  status? = co.literal("backlog", "in progress", "done");
-}
+    title = co.string;
+    description = co.string;
+    estimate = co.number;
+    status? = co.literal("backlog", "in progress", "done");
+  }
   ```
 </CodeGroup>
 
@@ -134,15 +134,15 @@ Create a new file `src/components/Issue.tsx` and add the following:
   import { Issue } from "../schema";
 
   export function IssueComponent({ issue }: { issue: Issue }) {
-  return (
-  <div className="grid grid-cols-6 text-sm border-r border-b [&>*]:p-2 [&>*]:border-l [&>*]:border-t">
-  <h2>{issue.title}</h2>
-<p className="col-span-3">{issue.description}</p>
-<p>Estimate: {issue.estimate}</p>
-<p>Status: {issue.status}</p>
-</div>
-);
-}
+    return (
+      <div className="grid grid-cols-6 text-sm border-r border-b [&>*]:p-2 [&>*]:border-l [&>*]:border-t">
+        <h2>{issue.title}</h2>
+        <p className="col-span-3">{issue.description}</p>
+        <p>Estimate: {issue.estimate}</p>
+        <p>Status: {issue.status}</p>
+      </div>
+    );
+  }
 ```
 </CodeGroup>
 
@@ -162,14 +162,14 @@ Let's modify `src/App.tsx` to prepare for creating an Issue and then rendering i
   import { IssueComponent } from "./components/Issue.tsx";
   // old
   function App() {// old
-  const [issue, setIssue] = useState<Issue>();
-  // old
-  if (issue) {
-  return <IssueComponent issue={issue} />;
-} else {
-  return <button>Create Issue</button>;
-}
-} // old
+    const [issue, setIssue] = useState<Issue>();
+    // old
+    if (issue) {
+      return <IssueComponent issue={issue} />;
+    } else {
+      return <button>Create Issue</button>;
+    }
+  } // old
 // old
 export default App; // old
 ```
@@ -190,26 +190,26 @@ Now, finally, let's implement creating an issue:
   const [issue, setIssue] = useState<Issue>(); // old
   // old
   const createIssue = () => {
-  const newIssue = Issue.create(
-{
-  title: "Buy terrarium",
-  description: "Make sure it's big enough for 10 snails.",
-  estimate: 5,
-  status: "backlog",
-},
-{ owner: me },
-  );
-  setIssue(newIssue);
-};
+    const newIssue = Issue.create(
+      {
+        title: "Buy terrarium",
+        description: "Make sure it's big enough for 10 snails.",
+        estimate: 5,
+        status: "backlog",
+      },
+      { owner: me },
+    );
+    setIssue(newIssue);
+  };
   // old
   if (issue) {// old
-  return <IssueComponent issue={issue} />; // old
-} else { // old
-  return <button onClick={createIssue}>Create Issue</button>;
-} // old
-} // old
-// old
-export default App; // old
+      return <IssueComponent issue={issue} />; // old
+    } else { // old
+      return <button onClick={createIssue}>Create Issue</button>;
+    } // old
+  } // old
+  // old
+  export default App; // old
 ```
 </CodeGroup>
 
@@ -267,23 +267,23 @@ Let's modify `src/App.tsx`:
   const issue = useCoState(Issue, issueID);
   // old
   const createIssue = () => {// old
-  const newIssue = Issue.create(// old
-{ // old
-  title: "Buy terrarium", // old
-  description: "Make sure it's big enough for 10 snails.", // old
-  estimate: 5, // old
-  status: "backlog", // old
-}, // old
-{ owner: me }, // old
-  ); // old
-  setIssueID(newIssue.id);
-}; // old
+    const newIssue = Issue.create(// old
+      { // old
+        title: "Buy terrarium", // old
+        description: "Make sure it's big enough for 10 snails.", // old
+        estimate: 5, // old
+        status: "backlog", // old
+      }, // old
+      { owner: me }, // old
+    ); // old
+    setIssueID(newIssue.id);
+  }; // old
   // old
   if (issue) { // old
-  return <IssueComponent issue={issue} />; // old
-} else { // old
-  return <button onClick={createIssue}>Create Issue</button>; // old
-} // old
+    return <IssueComponent issue={issue} />; // old
+  } else { // old
+    return <button onClick={createIssue}>Create Issue</button>; // old
+  } // old
 } // old
 // old
 export default App; // old
@@ -298,33 +298,33 @@ And now for the exciting part! Let's make `src/components/Issue.tsx` an editing 
   import { Issue } from "../schema"; // old
   // old
   export function IssueComponent({ issue }: { issue: Issue }) { // old
-  return ( // old
-  <div className="grid grid-cols-6 text-sm border-r border-b [&>*]:p-2 [&>*]:border-l [&>*]:border-t"> // old
-  <input type="text"
-  value={issue.title}
-  onChange={(event) => { issue.title = event.target.value }}/>
-<textarea className="col-span-3"
+    return ( // old
+      <div className="grid grid-cols-6 text-sm border-r border-b [&>*]:p-2 [&>*]:border-l [&>*]:border-t"> // old
+        <input type="text"
+          value={issue.title}
+          onChange={(event) => { issue.title = event.target.value }}/>
+        <textarea className="col-span-3"
           value={issue.description}
           onChange={(event) => { issue.description = event.target.value }}/>
-<label className="flex">
-  Estimate:
-  <input type="number" className="text-right min-w-0"
-         value={issue.estimate}
-         onChange={(event) => { issue.estimate = Number(event.target.value) }}/>
-</label>
-<select
-  value={issue.status}
-  onChange={(event) => {
-    issue.status = event.target.value as "backlog" | "in progress" | "done"
-  }}
->
-  <option value="backlog">Backlog</option>
-  <option value="in progress">In Progress</option>
-  <option value="done">Done</option>
-</select>
-</div> // old
-); // old
-} // old
+        <label className="flex">
+          Estimate:
+          <input type="number" className="text-right min-w-0"
+                value={issue.estimate}
+                onChange={(event) => { issue.estimate = Number(event.target.value) }}/>
+        </label>
+        <select
+          value={issue.status}
+          onChange={(event) => {
+            issue.status = event.target.value as "backlog" | "in progress" | "done"
+          }}
+        >
+          <option value="backlog">Backlog</option>
+          <option value="in progress">In Progress</option>
+          <option value="done">Done</option>
+        </select>
+      </div>
+    );
+  }
 ```
 </CodeGroup>
 
@@ -435,24 +435,24 @@ So let's store the ID in the browser's URL and make sure our useState is in sync
   const issue = useCoState(Issue, issueID); // old
   // old
   const createIssue = () => {// old
-  const newIssue = Issue.create(// old
-{ // old
-  title: "Buy terrarium", // old
-  description: "Make sure it's big enough for 10 snails.", // old
-  estimate: 5, // old
-  status: "backlog", // old
-}, // old
-{ owner: me }, // old
-  ); // old
-  setIssueID(newIssue.id); // old
-  window.history.pushState({}, "", `?issue=${newIssue.id}`);
-}; // old
+    const newIssue = Issue.create(// old
+      { // old
+        title: "Buy terrarium", // old
+        description: "Make sure it's big enough for 10 snails.", // old
+        estimate: 5, // old
+        status: "backlog", // old
+      }, // old
+      { owner: me }, // old
+    ); // old
+    setIssueID(newIssue.id); // old
+    window.history.pushState({}, "", `?issue=${newIssue.id}`);
+  }; // old
   // old
   if (issue) { // old
-  return <IssueComponent issue={issue} />; // old
-} else { // old
-  return <button onClick={createIssue}>Create Issue</button>; // old
-} // old
+    return <IssueComponent issue={issue} />; // old
+  } else { // old
+    return <button onClick={createIssue}>Create Issue</button>; // old
+  } // old
 } // old
 // old
 export default App; // old
@@ -496,27 +496,27 @@ All we have to do is create a new group to own each new issue and add "everyone"
   const issue = useCoState(Issue, issueID); // old
   // old
   const createIssue = () => { // old
-  const group = Group.create({ owner: me });
-  group.addMember("everyone", "writer");
-  // old
-  const newIssue = Issue.create( // old
-{ // old
-  title: "Buy terrarium", // old
-  description: "Make sure it's big enough for 10 snails.", // old
-  estimate: 5, // old
-  status: "backlog", // old
-}, // old
-{ owner: group },
-  ); // old
-  setIssueID(newIssue.id); // old
-  window.history.pushState({}, "", `?issue=${newIssue.id}`); // old
-}; // old
+    const group = Group.create({ owner: me });
+    group.addMember("everyone", "writer");
+    // old
+    const newIssue = Issue.create( // old
+      { // old
+        title: "Buy terrarium", // old
+        description: "Make sure it's big enough for 10 snails.", // old
+        estimate: 5, // old
+        status: "backlog", // old
+      }, // old
+      { owner: group },
+    ); // old
+    setIssueID(newIssue.id); // old
+    window.history.pushState({}, "", `?issue=${newIssue.id}`); // old
+  }; // old
   // old
   if (issue) { // old
-  return <IssueComponent issue={issue} />; // old
-} else { // old
-  return <button onClick={createIssue}>Create Issue</button>; // old
-} // old
+    return <IssueComponent issue={issue} />; // old
+  } else { // old
+    return <button onClick={createIssue}>Create Issue</button>; // old
+  } // old
 } // old
 // old
 export default App; // old
@@ -553,11 +553,11 @@ Add the following to `src/schema.ts`:
   import { CoMap, CoList, co } from "jazz-tools";
   // old
   export class Issue extends CoMap { // old
-  title = co.string; // old
-  description = co.string; // old
-  estimate = co.number; // old
-  status? = co.literal("backlog", "in progress", "done"); // old
-} // old
+    title = co.string; // old
+    description = co.string; // old
+    estimate = co.number; // old
+    status? = co.literal("backlog", "in progress", "done"); // old
+  } // old
   // old
   export class ListOfIssues extends CoList.Of(co.ref(Issue)) {}
 
@@ -590,25 +590,25 @@ First, we'll change `App.tsx` to create and render `Project`s instead of `Issue`
   const issue = useCoState(Issue, issueID); // *bin*
   // old
   const createProject = () => {
-  const group = Group.create({ owner: me });
-  group.addMember("everyone", "writer");
+    const group = Group.create({ owner: me });
+    group.addMember("everyone", "writer");
 
-  const newProject = Project.create(
-{
-  name: "New Project",
-  issues: ListOfIssues.create([], { owner: group })
-},
-{ owner: group },
-  );
-  setProjectID(newProject.id);
-  window.history.pushState({}, "", `?project=${newProject.id}`);
-};
+    const newProject = Project.create(
+      {
+        name: "New Project",
+        issues: ListOfIssues.create([], { owner: group })
+      },
+      { owner: group },
+    );
+    setProjectID(newProject.id);
+    window.history.pushState({}, "", `?project=${newProject.id}`);
+  };
   // old
   if (projectID) {
-  return <ProjectComponent projectID={projectID} />;
-} else {
-  return <button onClick={createProject}>Create Project</button>;
-}
+    return <ProjectComponent projectID={projectID} />;
+  } else {
+    return <button onClick={createProject}>Create Project</button>;
+  }
 } // old
 // old
 export default App; // old
@@ -631,27 +631,27 @@ Create a new file `src/components/Project.tsx` and add the following:
   const project = useCoState(Project, projectID);
 
   const createAndAddIssue = () => {
-  project?.issues?.push(Issue.create({
-  title: "",
-  description: "",
-  estimate: 0,
-  status: "backlog",
-}, { owner: project._owner }));
-};
+    project?.issues?.push(Issue.create({
+      title: "",
+      description: "",
+      estimate: 0,
+      status: "backlog",
+    }, { owner: project._owner }));
+  };
 
   return project ? (
-  <div>
-  <h1>{project.name}</h1>
-<div className="border-r border-b">
-  {project.issues?.map((issue) => (
-    issue && <IssueComponent key={issue.id} issue={issue} />
-  ))}
-  <button onClick={createAndAddIssue}>Create Issue</button>
-</div>
-</div>
-) : (
-  <div>Loading project...</div>
-);
+      <div>
+        <h1>{project.name}</h1>
+        <div className="border-r border-b">
+          {project.issues?.map((issue) => (
+            issue && <IssueComponent key={issue.id} issue={issue} />
+          ))}
+          <button onClick={createAndAddIssue}>Create Issue</button>
+        </div>
+      </div>
+    ) : (
+      <div>Loading project...</div>
+    );
 }
 ```
 </CodeGroup>
@@ -682,27 +682,27 @@ But you can also take more precise control over loading by defining a minimum-de
   const project = useCoState(Project, projectID, { issues: [{}] });
 
   const createAndAddIssue = () => {// old
-  project?.issues.push(Issue.create({
-  title: "",// old
-  description: "",// old
-  estimate: 0,// old
-  status: "backlog",// old
-}, { owner: project._owner }));// old
-};// old
+    project?.issues.push(Issue.create({
+      title: "",// old
+      description: "",// old
+      estimate: 0,// old
+      status: "backlog",// old
+    }, { owner: project._owner }));// old
+  };// old
 // old
   return project ? (// old
-  <div>// old
-  <h1>{project.name}</h1>// old
-<div className="border-r border-b">// old
-  {project.issues.map((issue) => (
-    <IssueComponent key={issue.id} issue={issue} />
-  ))}// old
-  <button onClick={createAndAddIssue}>Create Issue</button>// old
-</div>// old
-</div>// old
-) : (// old
-  <div>Loading project...</div>// old
-);// old
+    <div>// old
+      <h1>{project.name}</h1>// old
+      <div className="border-r border-b">// old
+        {project.issues.map((issue) => (
+          <IssueComponent key={issue.id} issue={issue} />
+        ))}// old
+        <button onClick={createAndAddIssue}>Create Issue</button>// old
+      </div>// old
+    </div>// old
+  ) : (// old
+    <div>Loading project...</div>// old
+  );// old
 }// old
 ```
 </CodeGroup>
@@ -749,31 +749,31 @@ Turns out, we're already mostly there! First, let's remove making the Project pu
   import { ID, Group } from "jazz-tools" // old
   // old
   function App() { // old
-  const { me } = useAccount(); // old
-  const [projectID, setProjectID] = useState<ID<Project> | undefined>( // old
-  (window.location.search?.replace("?project=", "") || undefined) as ID<Project> | undefined, // old
-  ); // old
-  // old
-  const createProject = () => { // old
-  const group = Group.create({ owner: me }); // old
-  group.addMember("everyone", "writer"); // *bin*
-  // old
-  const newProject = Project.create( // old
-{ // old
-  name: "New Project", // old
-  issues: ListOfIssues.create([], { owner: group }) // old
-}, // old
-{ owner: group }, // old
-  ); // old
-  setProjectID(newProject.id); // old
-  window.history.pushState({}, "", `?project=${newProject.id}`); // old
-}; // old
-  // old
+    const { me } = useAccount(); // old
+    const [projectID, setProjectID] = useState<ID<Project> | undefined>( // old
+    (window.location.search?.replace("?project=", "") || undefined) as ID<Project> | undefined, // old
+    ); // old
+    // old
+    const createProject = () => { // old
+    const group = Group.create({ owner: me }); // old
+    group.addMember("everyone", "writer"); // *bin*
+    // old
+    const newProject = Project.create( // old
+      { // old
+        name: "New Project", // old
+        issues: ListOfIssues.create([], { owner: group }) // old
+      }, // old
+      { owner: group }, // old
+    ); // old
+    setProjectID(newProject.id); // old
+    window.history.pushState({}, "", `?project=${newProject.id}`); // old
+  }; // old
+    // old
   if (projectID) { // old
-  return <ProjectComponent projectID={projectID} />; // old
-} else { // old
-  return <button onClick={createProject}>Create Project</button>; // old
-} // old
+    return <ProjectComponent projectID={projectID} />; // old
+  } else { // old
+    return <button onClick={createProject}>Create Project</button>; // old
+  } // old
 } // old
 // old
 export default App; // old
@@ -793,41 +793,41 @@ Now, inside ProjectComponent, let's add a button to invite guests (read-only) or
   // old
 
   export function ProjectComponent({ projectID }: { projectID: ID<Project> }) {// old
-  const project = useCoState(Project, projectID, { issues: [{}] }); // old
+    const project = useCoState(Project, projectID, { issues: [{}] }); // old
 
-  const invite = (role: "reader" | "writer") => {
-  const link = createInviteLink(project, role, { valueHint: "project" });
-  navigator.clipboard.writeText(link);
-};
+    const invite = (role: "reader" | "writer") => {
+    const link = createInviteLink(project, role, { valueHint: "project" });
+    navigator.clipboard.writeText(link);
+  };
 
   const createAndAddIssue = () => {// old
-  project?.issues.push(Issue.create({ // old
-  title: "",// old
-  description: "",// old
-  estimate: 0,// old
-  status: "backlog",// old
-}, { owner: project._owner }));// old
-};// old
+    project?.issues.push(Issue.create({ // old
+      title: "",// old
+      description: "",// old
+      estimate: 0,// old
+      status: "backlog",// old
+    }, { owner: project._owner }));// old
+  };// old
 // old
   return project ? (// old
-  <div>// old
-  <h1>{project.name}</h1>// old
-{project._owner?.myRole() === "admin" && (
-  <>
-    <button onClick={() => invite("reader")}>Invite Guest</button>
-    <button onClick={() => invite("writer")}>Invite Member</button>
-  </>
-)}
-<div className="border-r border-b">// old
-  {project.issues.map((issue) => ( // old
-    <IssueComponent key={issue.id} issue={issue} /> // old
-  ))}// old
-  <button onClick={createAndAddIssue}>Create Issue</button>// old
-</div>// old
-</div>// old
-) : (// old
-  <div>Loading project...</div>// old
-);// old
+    <div>// old
+      <h1>{project.name}</h1>// old
+      {project._owner?.myRole() === "admin" && (
+        <>
+          <button onClick={() => invite("reader")}>Invite Guest</button>
+          <button onClick={() => invite("writer")}>Invite Member</button>
+        </>
+      )}
+      <div className="border-r border-b">// old
+        {project.issues.map((issue) => ( // old
+          <IssueComponent key={issue.id} issue={issue} /> // old
+        ))}// old
+        <button onClick={createAndAddIssue}>Create Issue</button>// old
+      </div>// old
+    </div>// old
+  ) : (// old
+    <div>Loading project...</div>// old
+  );// old
 }// old
 ```
 </CodeGroup>
