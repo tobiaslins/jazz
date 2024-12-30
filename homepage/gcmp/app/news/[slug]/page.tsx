@@ -25,7 +25,7 @@ export default async function Post({ params }: Params) {
       <PostJsonLd
         title={title}
         subtitle={subtitle}
-        image={coverImage}
+        image={coverImage.replace(".svg", ".png")}
         author={author.name}
         datePublished={date}
       />
@@ -85,11 +85,11 @@ export function generateMetadata({ params }: Params): Metadata {
     description: subtitle,
     openGraph: {
       title: title,
-      images: [coverImage],
+      images: [coverImage.replace(".svg", ".png")],
     },
     twitter: {
       title: title + " " + subtitle,
-      images: [coverImage],
+      images: [coverImage.replace(".svg", ".png")],
     },
   };
 }
