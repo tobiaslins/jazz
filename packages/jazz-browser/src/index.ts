@@ -2,6 +2,7 @@ import { LSMStorage, LocalNode, Peer, RawAccountID } from "cojson";
 import { IDBStorage } from "cojson-storage-indexeddb";
 import {
   Account,
+  AccountClass,
   AgentID,
   AnonymousJazzAgent,
   AuthMethod,
@@ -41,9 +42,7 @@ export type BrowserGuestContext = {
 
 export type BrowserContextOptions<Acc extends Account> = {
   auth: AuthMethod;
-  AccountSchema: CoValueClass<Acc> & {
-    fromNode: (typeof Account)["fromNode"];
-  };
+  AccountSchema: AccountClass<Acc>;
 } & BaseBrowserContextOptions;
 
 export type BaseBrowserContextOptions = {

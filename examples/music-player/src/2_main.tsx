@@ -10,7 +10,7 @@ import { PlayerControls } from "./components/PlayerControls";
 import "./index.css";
 
 import { MusicaAccount } from "@/1_schema";
-import { DemoAuthBasicUI, createJazzReactApp, useDemoAuth } from "jazz-react";
+import { DemoAuthBasicUI, JazzProvider, useDemoAuth } from "jazz-react";
 import { useUploadExampleData } from "./lib/useUploadExampleData";
 
 /**
@@ -23,12 +23,6 @@ import { useUploadExampleData } from "./lib/useUploadExampleData";
  *
  * `<Jazz.Provider/>` also runs our account migration
  */
-
-const Jazz = createJazzReactApp({
-  AccountSchema: MusicaAccount,
-});
-
-export const { useAccount, useCoState, useAcceptInvite } = Jazz;
 
 function Main() {
   const mediaPlayer = useMediaPlayer();
@@ -70,16 +64,23 @@ function JazzAndAuth({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <Jazz.Provider
+      <JazzProvider
         storage={["singleTabOPFS", "indexedDB"]}
         auth={auth}
         peer={peer}
+        AccountSchema={MusicaAccount}
       >
         {children}
-      </Jazz.Provider>
+      </JazzProvider>
       <DemoAuthBasicUI appName="Jazz Music Player" state={state} />
     </>
   );
+}
+
+declare module "jazz-react" {
+  interface Register {
+    Account: MusicaAccount;
+  }
 }
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
