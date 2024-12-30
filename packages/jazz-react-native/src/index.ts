@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Account,
+  AccountClass,
   AgentID,
   AnonymousJazzAgent,
   AuthMethod,
@@ -42,6 +43,7 @@ export type ReactNativeContextOptions<Acc extends Account> = {
   auth: AuthMethod;
   AccountSchema: CoValueClass<Acc> & {
     fromNode: (typeof Account)["fromNode"];
+    create: (typeof Account)["create"];
   };
 } & BaseReactNativeContextOptions;
 
