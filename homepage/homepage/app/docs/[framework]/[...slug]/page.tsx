@@ -51,12 +51,14 @@ export default async function Page({
     const mdxSource = await getMdxSource(slugPath, framework);
     const { default: Content, tableOfContents } = mdxSource;
 
+    const tocItems = (tableOfContents as Toc)?.[0]?.children;
+
     return (
       <>
         <Prose className="overflow-x-hidden lg:flex-1 py-8">
           <Content />
         </Prose>
-        {tableOfContents && <TableOfContents items={tableOfContents as Toc} />}
+        {tocItems && <TableOfContents items={tocItems} />}
       </>
     );
   } catch (error) {
