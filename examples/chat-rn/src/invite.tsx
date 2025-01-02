@@ -1,5 +1,5 @@
+import { useAcceptInvite } from "jazz-react-native";
 import React, { Text } from "react-native";
-import { useAcceptInvite } from "./jazz";
 import { Chat } from "./schema";
 
 type ChatScreenParams = {
