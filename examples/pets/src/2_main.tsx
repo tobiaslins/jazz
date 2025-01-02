@@ -8,7 +8,13 @@ import {
 } from "react-router-dom";
 import "./index.css";
 
-import { DemoAuthBasicUI, createJazzReactApp, useDemoAuth } from "jazz-react";
+import {
+  DemoAuthBasicUI,
+  JazzProvider,
+  useAcceptInvite,
+  useAccount,
+  useDemoAuth,
+} from "jazz-react";
 
 import { PetAccount, PetPost } from "./1_schema.ts";
 import { NewPetPostForm } from "./3_NewPetPostForm.tsx";
@@ -34,21 +40,23 @@ const peer =
 
 const appName = "Jazz Rate My Pet Example";
 
-const Jazz = createJazzReactApp({ AccountSchema: PetAccount });
-// eslint-disable-next-line react-refresh/only-export-components
-export const { useAccount, useCoState, useAcceptInvite } = Jazz;
-
 function JazzAndAuth({ children }: { children: React.ReactNode }) {
   const [auth, authState] = useDemoAuth();
 
   return (
     <>
-      <Jazz.Provider auth={auth} peer={peer}>
+      <JazzProvider auth={auth} peer={peer} AccountSchema={PetAccount}>
         {children}
-      </Jazz.Provider>
+      </JazzProvider>
       <DemoAuthBasicUI appName={appName} state={authState} />
     </>
   );
+}
+
+declare module "jazz-react" {
+  interface Register {
+    Account: PetAccount;
+  }
 }
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

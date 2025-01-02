@@ -1,28 +1,32 @@
 import { AgentSecret } from "cojson";
+import { cojsonInternals } from "cojson";
 import { PureJSCrypto } from "cojson/crypto";
 import {
   Account,
   AccountClass,
+  AnonymousJazzAgent,
   CoValueClass,
   CryptoProvider,
   Peer,
+  createAnonymousJazzContext,
 } from "jazz-tools";
 import { useMemo } from "react";
 import { RegisteredAccount } from "./provider.js";
 import { JazzContext } from "./provider.js";
 
-type TestAccountSchema<Acc extends RegisteredAccount> = CoValueClass<Acc> & {
-  fromNode: (typeof Account)["fromNode"];
-  create: (options: {
-    creationProps: { name: string };
-    initialAgentSecret?: AgentSecret;
-    peersToLoadFrom?: Peer[];
-    crypto: CryptoProvider;
-  }) => Promise<Acc>;
-};
+type TestAccountSchema<Acc extends Account = RegisteredAccount> =
+  CoValueClass<RegisteredAccount> & {
+    fromNode: (typeof Account)["fromNode"];
+    create: (options: {
+      creationProps: { name: string };
+      initialAgentSecret?: AgentSecret;
+      peersToLoadFrom?: Peer[];
+      crypto: CryptoProvider;
+    }) => Promise<Acc>;
+  };
 
 export async function createJazzTestAccount<
-  Acc extends RegisteredAccount,
+  Acc extends Account = RegisteredAccount,
 >(options?: {
   AccountSchema?: TestAccountSchema<Acc>;
 }): Promise<Acc> {
@@ -38,20 +42,34 @@ export async function createJazzTestAccount<
   return account;
 }
 
-export type JazzTestContext<Acc extends RegisteredAccount> = {
-  account: Acc;
-  done: () => void;
-  AccountSchema: AccountClass<Acc>;
-};
+export async function createJazzTestGuest() {
+  const ctx = await createAnonymousJazzContext({
+    crypto: await PureJSCrypto.create(),
+    peersToLoadFrom: [],
+  });
 
-export function JazzTestProvider<Acc extends RegisteredAccount>({
+  return {
+    guest: ctx.agent,
+  };
+}
+
+export function JazzTestProvider<Acc extends Account = RegisteredAccount>({
   children,
   account,
 }: {
   children: React.ReactNode;
-  account: Acc;
+  account: Acc | { guest: AnonymousJazzAgent };
 }) {
   const value = useMemo(() => {
+    if ("guest" in account) {
+      return {
+        guest: account.guest,
+        AccountSchema: Account,
+        logOut: () => account.guest.node.gracefulShutdown(),
+        done: () => account.guest.node.gracefulShutdown(),
+      };
+    }
+
     return {
       me: account,
       AccountSchema: account.constructor as AccountClass<Acc>,
@@ -61,4 +79,17 @@ export function JazzTestProvider<Acc extends RegisteredAccount>({
   }, [account]);
 
   return <JazzContext.Provider value={value}>{children}</JazzContext.Provider>;
+}
+
+export function linkAccounts<Acc extends Account = RegisteredAccount>(
+  a: Acc,
+  b: Acc,
+) {
+  const [aPeer, bPeer] = cojsonInternals.connectedPeers("a", "b", {
+    peer1role: "server",
+    peer2role: "server",
+  });
+
+  a._raw.core.node.syncManager.addPeer(aPeer);
+  b._raw.core.node.syncManager.addPeer(bPeer);
 }

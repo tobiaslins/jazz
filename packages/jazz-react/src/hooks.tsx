@@ -2,6 +2,7 @@ import { consumeInviteLinkFromWindowLocation } from "jazz-browser";
 import React, { useCallback, useEffect, useRef } from "react";
 
 import {
+  Account,
   AnonymousJazzAgent,
   CoValue,
   CoValueClass,
@@ -13,7 +14,7 @@ import {
 } from "jazz-tools";
 import { JazzContext, JazzContextType, RegisteredAccount } from "./provider.js";
 
-function useJazzContext<Acc extends RegisteredAccount>() {
+function useJazzContext<Acc extends Account = RegisteredAccount>() {
   const value = React.useContext(JazzContext) as JazzContextType<Acc>;
 
   if (!value) {
@@ -57,7 +58,7 @@ export function useCoState<V extends CoValue, D>(
   return value;
 }
 
-export function useAccount<Acc extends RegisteredAccount>(): {
+export function useAccount<Acc extends Account = RegisteredAccount>(): {
   me: Acc;
   logOut: () => void;
 };
@@ -87,7 +88,7 @@ export function useAccount<
   };
 }
 
-export function useAccountOrGuest<Acc extends RegisteredAccount>(): {
+export function useAccountOrGuest<Acc extends Account = RegisteredAccount>(): {
   me: Acc | AnonymousJazzAgent;
 };
 export function useAccountOrGuest<

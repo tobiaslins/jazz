@@ -1,5 +1,7 @@
 ---
-"jazz-react": patch
+"jazz-react": minor
 ---
 
-Simplify App creation and make the hooks available as top-level imports
+Change the way the JazzProvider is created and make the hooks available as top-level imports.
+
+This is a breaking change.

@@ -7,8 +7,10 @@ import {
 import "./index.css";
 
 import {
+  JazzProvider,
   PasskeyAuthBasicUI,
-  createJazzReactApp,
+  useAcceptInvite,
+  useAccount,
   usePasskeyAuth,
 } from "jazz-react";
 
@@ -35,26 +37,27 @@ import {
 
 const appName = "Jazz Todo List Example";
 
-const Jazz = createJazzReactApp<TodoAccount>({
-  AccountSchema: TodoAccount,
-});
-// eslint-disable-next-line react-refresh/only-export-components
-export const { useAccount, useCoState, useAcceptInvite } = Jazz;
-
 function JazzAndAuth({ children }: { children: React.ReactNode }) {
   const [passkeyAuth, passKeyState] = usePasskeyAuth({ appName });
 
   return (
     <>
-      <Jazz.Provider
+      <JazzProvider
+        AccountSchema={TodoAccount}
         auth={passkeyAuth}
         peer="wss://cloud.jazz.tools/?key=todo-example-jazz@garden.co"
       >
         {children}
-      </Jazz.Provider>
+      </JazzProvider>
       <PasskeyAuthBasicUI state={passKeyState} />
     </>
   );
+}
+
+declare module "jazz-react" {
+  interface Register {
+    Account: TodoAccount;
+  }
 }
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

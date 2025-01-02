@@ -7,7 +7,6 @@ export {
   useAcceptInvite,
   experimental_useInboxSender,
 } from "./hooks.js";
-export { createJazzReactApp } from "./legacy.js";
 
 export { createInviteLink, parseInviteLink } from "jazz-browser";
 

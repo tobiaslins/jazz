@@ -22,10 +22,10 @@ export type RegisteredAccount = Register extends { Account: infer Acc }
   : Account;
 
 export const JazzContext = React.createContext<
-  JazzContextType<RegisteredAccount> | undefined
+  JazzContextType<Account> | undefined
 >(undefined);
 
-export type JazzProviderProps<Acc extends RegisteredAccount> = {
+export type JazzProviderProps<Acc extends Account = RegisteredAccount> = {
   children: React.ReactNode;
   auth: AuthMethod | "guest";
   peer: `wss://${string}` | `ws://${string}`;
@@ -34,7 +34,7 @@ export type JazzProviderProps<Acc extends RegisteredAccount> = {
 };
 
 /** @category Context & Hooks */
-export function JazzProvider<Acc extends RegisteredAccount>({
+export function JazzProvider<Acc extends Account = RegisteredAccount>({
   children,
   auth,
   peer,
