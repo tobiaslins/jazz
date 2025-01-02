@@ -1,5 +1,14 @@
 # jazz-tools
 
+## 0.8.48
+
+### Patch Changes
+
+- 635e824: fix loading of CoMaps with an empty schema
+- 0a85982: Remove the requirement of calling super.migrate when defining the account migration
+- Updated dependencies [10ea733]
+  - cojson@0.8.48
+
 ## 0.8.45
 
 ### Patch Changes

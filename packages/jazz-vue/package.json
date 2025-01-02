@@ -1,6 +1,6 @@
 {
   "name": "jazz-vue",
-  "version": "0.8.45",
+  "version": "0.8.48",
   "type": "module",
   "main": "dist/index.js",
   "types": "src/index.ts",
