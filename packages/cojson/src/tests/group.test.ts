@@ -621,4 +621,21 @@ describe("writeOnly", () => {
 
     expect(map.get("test")).toEqual("Hello!");
   });
+
+  test("should not break when introducing extend cycles", async () => {
+    const { node1 } = await createTwoConnectedNodes("server", "server");
+
+    const group = node1.node.createGroup();
+    const group2 = node1.node.createGroup();
+    const group3 = node1.node.createGroup();
+
+    group.extend(group2);
+    group2.extend(group3);
+    group3.extend(group);
+
+    const map = group.createMap();
+    map.set("test", "Hello!");
+
+    expect(map.get("test")).toEqual("Hello!");
+  });
 });

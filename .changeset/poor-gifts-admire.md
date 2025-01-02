@@ -2,4 +2,5 @@
 "cojson": patch
 ---
 
-Fix groups self extension
+Handle circular references in group inheritance
+
