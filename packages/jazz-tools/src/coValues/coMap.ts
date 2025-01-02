@@ -43,6 +43,7 @@ type CoMapEdit<V> = {
   ref?: RefIfCoValue<V>;
   by?: Account;
   madeAt: Date;
+  key?: keyof V;
 };
 
 type LastAndAllCoMapEdits<V> = CoMapEdit<V> & { all: CoMapEdit<V>[] };
@@ -183,6 +184,7 @@ export class CoMap extends CoValueBase implements CoValue {
           optional: false,
         }).accessFrom(target, "_edits." + key + ".by"),
       madeAt: rawEdit.at,
+      key,
     };
   }
 
