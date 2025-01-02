@@ -1,5 +1,11 @@
 # cojson
 
+## 0.8.49
+
+### Patch Changes
+
+- 25dfd90: Fixes the transactions collection on permissions to avoid RangeError issues
+
 ## 0.8.48
 
 ### Patch Changes
