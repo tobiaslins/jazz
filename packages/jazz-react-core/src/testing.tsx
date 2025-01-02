@@ -11,7 +11,6 @@ import {
   createAnonymousJazzContext,
 } from "jazz-tools";
 import { useMemo } from "react";
-import { RegisteredAccount } from "./provider.js";
 import { JazzContext } from "./provider.js";
 
 type TestAccountSchema<Acc extends Account> = CoValueClass<Acc> & {
