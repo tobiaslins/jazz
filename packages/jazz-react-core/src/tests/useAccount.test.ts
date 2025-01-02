@@ -2,9 +2,11 @@
 
 import { Account, CoMap, co } from "jazz-tools";
 import { describe, expect, it } from "vitest";
-import { useAccount } from "../index.js";
+import { createUseAccountHooks } from "../hooks.js";
 import { createJazzTestAccount } from "../testing.js";
 import { renderHook } from "./testUtils.js";
+
+const { useAccount } = createUseAccountHooks<Account>();
 
 describe("useAccount", () => {
   it("should return the correct value", async () => {
@@ -32,6 +34,8 @@ describe("useAccount", () => {
       }
     }
 
+    const { useAccount } = createUseAccountHooks<AccountSchema>();
+
     const account = await createJazzTestAccount({ AccountSchema });
 
     const { result } = renderHook(
@@ -44,7 +48,6 @@ describe("useAccount", () => {
       },
     );
 
-    // @ts-expect-error˜
     expect(result.current?.me?.root?.value).toBe("123");
   });
 });

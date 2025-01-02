@@ -1,29 +1,17 @@
 import {
   BaseBrowserContextOptions,
-  BrowserContext,
-  BrowserGuestContext,
   createJazzBrowserContext,
 } from "jazz-browser";
 import React, { useEffect, useRef, useState } from "react";
 
+import { JazzContext, JazzContextType } from "jazz-react-core";
 import { Account, AccountClass, AuthMethod } from "jazz-tools";
-
-export type JazzContextType<Acc extends Account> = (
-  | BrowserContext<Acc>
-  | BrowserGuestContext
-) & {
-  AccountSchema: AccountClass<Acc>;
-};
 
 export interface Register {}
 
 export type RegisteredAccount = Register extends { Account: infer Acc }
   ? Acc
   : Account;
-
-export const JazzContext = React.createContext<
-  JazzContextType<Account> | undefined
->(undefined);
 
 export type JazzProviderProps<Acc extends Account = RegisteredAccount> = {
   children: React.ReactNode;

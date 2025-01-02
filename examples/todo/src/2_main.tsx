@@ -25,14 +25,14 @@ import {
 } from "./basicComponents/index.ts";
 
 /**
- * Walkthrough: The top-level provider `<Jazz.Provider/>`
+ * Walkthrough: The top-level provider `<JazzProvider/>`
  *
- * This shows how to use the top-level provider `<Jazz.Provider/>`,
+ * This shows how to use the top-level provider `<JazzProvider/>`,
  * which provides the rest of the app with a controlled account (used through `useAccount` later).
  * Here we use `PasskeyAuth`, which uses Passkeys (aka WebAuthn) to store a user's account secret
  * - no backend needed.
  *
- * `<Jazz.Provider/>` also runs our account migration
+ * `<JazzProvider/>` also runs our account migration
  */
 
 const appName = "Jazz Todo List Example";
@@ -82,7 +82,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
  * - which can also contain invite links.
  */
 export default function App() {
-  // logOut logs out the AuthProvider passed to `<Jazz.Provider/>` above.
+  // logOut logs out the AuthProvider passed to `<JazzProvider/>` above.
   const { logOut } = useAccount();
 
   const router = createHashRouter([

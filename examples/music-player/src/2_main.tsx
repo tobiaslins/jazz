@@ -14,14 +14,14 @@ import { DemoAuthBasicUI, JazzProvider, useDemoAuth } from "jazz-react";
 import { useUploadExampleData } from "./lib/useUploadExampleData";
 
 /**
- * Walkthrough: The top-level provider `<Jazz.Provider/>`
+ * Walkthrough: The top-level provider `<JazzProvider/>`
  *
- * This shows how to use the top-level provider `<Jazz.Provider/>`,
+ * This shows how to use the top-level provider `<JazzProvider/>`,
  * which provides the rest of the app with a controlled account (used through `useAccount` later).
  * Here we use `DemoAuth` which is great for prototyping you app without wasting time on figuring out
  * the best way to do auth.
  *
- * `<Jazz.Provider/>` also runs our account migration
+ * `<JazzProvider/>` also runs our account migration
  */
 
 function Main() {

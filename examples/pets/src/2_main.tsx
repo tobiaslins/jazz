@@ -31,9 +31,9 @@ const peer =
   ) as `ws://${string}`) ??
   "wss://cloud.jazz.tools/?key=pets-example-jazz@garden.co";
 
-/** Walkthrough: The top-level provider `<Jazz.Provider/>`
+/** Walkthrough: The top-level provider `<JazzProvider/>`
  *
- *  This shows how to use the top-level provider `<Jazz.Provider/>`,
+ *  This shows how to use the top-level provider `<JazzProvider/>`,
  *  which provides the rest of the app with a `LocalNode` (used through `useJazz` later),
  *  based on `LocalAuth` that uses PassKeys (aka WebAuthn) to store a user's account secret
  *  - no backend needed. */

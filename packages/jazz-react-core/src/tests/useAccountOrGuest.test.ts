@@ -2,9 +2,11 @@
 
 import { Account, CoMap, co } from "jazz-tools";
 import { describe, expect, it } from "vitest";
-import { useAccountOrGuest } from "../index.js";
+import { createUseAccountHooks } from "../index.js";
 import { createJazzTestAccount, createJazzTestGuest } from "../testing.js";
 import { renderHook } from "./testUtils.js";
+
+const { useAccountOrGuest } = createUseAccountHooks<Account>();
 
 describe("useAccountOrGuest", () => {
   it("should return the correct me value", async () => {

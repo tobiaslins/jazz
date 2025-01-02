@@ -1244,8 +1244,6 @@ importers:
         specifier: ^5.4.10
         version: 5.4.11(@types/node@22.10.2)(lightningcss@1.28.2)(terser@5.37.0)
 
-  examples/richtext: {}
-
   examples/todo:
     dependencies:
       '@radix-ui/react-checkbox':
@@ -1646,6 +1644,9 @@ importers:
       jazz-browser:
         specifier: workspace:0.8.45
         version: link:../jazz-browser
+      jazz-react-core:
+        specifier: workspace:*
+        version: link:../jazz-react-core
       jazz-tools:
         specifier: workspace:0.8.45
         version: link:../jazz-tools
@@ -1693,6 +1694,37 @@ importers:
       '@types/react':
         specifier: ^18.3.12
         version: 18.3.18
+      typescript:
+        specifier: ~5.6.2
+        version: 5.6.3
+
+  packages/jazz-react-core:
+    dependencies:
+      cojson:
+        specifier: workspace:0.8.45
+        version: link:../cojson
+      jazz-tools:
+        specifier: workspace:0.8.45
+        version: link:../jazz-tools
+    devDependencies:
+      '@testing-library/dom':
+        specifier: ^10.4.0
+        version: 10.4.0
+      '@testing-library/jest-dom':
+        specifier: ^6.6.3
+        version: 6.6.3
+      '@testing-library/react':
+        specifier: ^16.1.0
+        version: 16.1.0(@testing-library/dom@10.4.0)(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@types/react':
+        specifier: ^18.3.12
+        version: 18.3.18
+      react:
+        specifier: 18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: 18.3.1
+        version: 18.3.1(react@18.3.1)
       typescript:
         specifier: ~5.6.2
         version: 5.6.3

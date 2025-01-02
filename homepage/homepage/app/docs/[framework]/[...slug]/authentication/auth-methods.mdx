@@ -90,7 +90,7 @@ function JazzAndAuth({ children }: { children: React.ReactNode }) {
   return (
     <>
       {clerk.user && auth ? (
-        <Jazz.Provider auth={auth}></Jazz.Provider>
+        <JazzProvider auth={auth}></JazzProvider>
       ) : (
         <SignInButton />
       )}
