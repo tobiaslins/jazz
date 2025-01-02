@@ -1,5 +1,13 @@
 # chat-vue
 
+## 0.0.28
+
+### Patch Changes
+
+- jazz-browser@0.8.49
+- jazz-tools@0.8.49
+- jazz-vue@0.8.49
+
 ## 0.0.27
 
 ### Patch Changes
