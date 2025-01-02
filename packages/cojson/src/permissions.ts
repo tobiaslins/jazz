@@ -172,19 +172,17 @@ function determineValidTransactionsForGroup(
   coValue: CoValueCore,
   initialAdmin: RawAccountID | AgentID,
 ): { validTransactions: ValidTransactionsResult[]; memberState: MemberState } {
-  const allTransactionsSorted = [...coValue.sessionLogs.entries()].flatMap(
-    ([sessionID, sessionLog]) => {
-      return sessionLog.transactions.map((tx, txIndex) => ({
-        sessionID,
-        txIndex,
-        tx,
-      })) as {
-        sessionID: SessionID;
-        txIndex: number;
-        tx: Transaction;
-      }[];
-    },
-  );
+  const allTransactionsSorted: {
+    sessionID: SessionID;
+    txIndex: number;
+    tx: Transaction;
+  }[] = [];
+
+  for (const [sessionID, sessionLog] of coValue.sessionLogs.entries()) {
+    sessionLog.transactions.forEach((tx, txIndex) => {
+      allTransactionsSorted.push({ sessionID, txIndex, tx });
+    });
+  }
 
   allTransactionsSorted.sort((a, b) => {
     return a.tx.madeAt - b.tx.madeAt;
