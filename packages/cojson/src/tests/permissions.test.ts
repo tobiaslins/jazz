@@ -2854,3 +2854,15 @@ test("High-level permissions work correctly when a group is extended", async () 
 
   expect(mapAsReaderAfterRemove.get("foo")).not.toEqual("baz");
 });
+
+test("self-extensions should not break the permissions checks", () => {
+  const { group, node } = newGroupHighLevel();
+
+  group.set(`child_${group.id}`, "extend", "trusting");
+  group.set(`parent_${group.id}`, "extend", "trusting");
+
+  const map = group.createMap();
+  map.set("test", "Hello!");
+
+  expect(map.get("test")).toEqual("Hello!");
+});

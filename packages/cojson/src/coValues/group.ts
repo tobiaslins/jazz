@@ -518,6 +518,10 @@ export class RawGroup<
   }
 
   extend(parent: RawGroup) {
+    if (this.id === parent.id) {
+      return;
+    }
+
     if (this.myRole() !== "admin") {
       throw new Error(
         "To extend a group, the current account must be an admin in the child group",

@@ -609,4 +609,16 @@ describe("writeOnly", () => {
 
     expect(mapOnNode2.get("test")).toEqual("Written from node2");
   });
+
+  test("self-extend a group should not break anything", async () => {
+    const { node1 } = await createTwoConnectedNodes("server", "server");
+
+    const group = node1.node.createGroup();
+    group.extend(group);
+
+    const map = group.createMap();
+    map.set("test", "Hello!");
+
+    expect(map.get("test")).toEqual("Hello!");
+  });
 });
