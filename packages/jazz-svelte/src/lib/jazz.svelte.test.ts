@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getContext } from 'svelte';
 import { Account, type AuthMethod, type ID } from 'jazz-tools';
-import { getJazzContext, createJazzApp, JAZZ_CTX } from './jazz.svelte';
+import { getJazzContext, JAZZ_CTX } from './jazz.svelte.js';
 import { render, screen } from '@testing-library/svelte';
 import TestComponent from './tests/TestComponent.svelte';
 import ProviderTestComponent from './tests/ProviderTestComponent.svelte';
