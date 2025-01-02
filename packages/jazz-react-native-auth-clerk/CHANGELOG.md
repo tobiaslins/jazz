@@ -1,5 +1,16 @@
 # jazz-react-native-auth-clerk
 
+## 0.8.48
+
+### Patch Changes
+
+- Updated dependencies [635e824]
+- Updated dependencies [10ea733]
+- Updated dependencies [0a85982]
+  - jazz-tools@0.8.48
+  - cojson@0.8.48
+  - jazz-react-native@0.8.48
+
 ## 0.8.47
 
 ### Patch Changes
