@@ -10,6 +10,7 @@ import {
   RawCoID,
   SessionID,
   TransactionID,
+  getChildGroupId,
   getParentGroupId,
 } from "./ids.js";
 import { parseJSON } from "./jsonStringify.js";
@@ -305,6 +306,14 @@ function determineValidTransactionsForGroup(
         logPermissionError("Only admins can set parent extensions");
         continue;
       }
+
+      const parentGroupID = getParentGroupId(change.key);
+
+      if (parentGroupID === coValue.id) {
+        logPermissionError("Can't set parent extension to self");
+        continue;
+      }
+
       resolveMemberStateFromParentReference(coValue, memberState, change.key);
       validTransactions.push({ txID: { sessionID, txIndex }, tx });
       continue;
@@ -320,6 +329,14 @@ function determineValidTransactionsForGroup(
         );
         continue;
       }
+
+      const childGroupID = getChildGroupId(change.key);
+
+      if (childGroupID === coValue.id) {
+        logPermissionError("Can't set child extension to self");
+        continue;
+      }
+
       validTransactions.push({ txID: { sessionID, txIndex }, tx });
       continue;
     } else if (isWriteKeyForMember(change.key)) {
