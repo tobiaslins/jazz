@@ -51,6 +51,49 @@ describe("Inbox", () => {
     unsubscribe();
   });
 
+  it("should work with empty CoMaps", async () => {
+    const { clientAccount: sender, serverAccount: receiver } =
+      await setupTwoNodes();
+
+    class EmptyMessage extends CoMap {}
+
+    const receiverInbox = await Inbox.load(receiver);
+
+    // Create a message from sender
+    const message = EmptyMessage.create(
+      {},
+      {
+        owner: Group.create({ owner: sender }),
+      },
+    );
+
+    // Setup inbox sender
+    const inboxSender = await InboxSender.load(receiver.id, sender);
+    inboxSender.sendMessage(message);
+
+    // Track received messages
+    const receivedMessages: EmptyMessage[] = [];
+    let senderAccountID: unknown = undefined;
+
+    // Subscribe to inbox messages
+    const unsubscribe = receiverInbox.subscribe(
+      EmptyMessage,
+      async (message, id) => {
+        senderAccountID = id;
+        receivedMessages.push(message);
+      },
+    );
+
+    // Wait for message to be received
+    await waitFor(() => receivedMessages.length === 1);
+
+    expect(receivedMessages.length).toBe(1);
+    expect(receivedMessages[0]?.id).toBe(message.id);
+    expect(senderAccountID).toBe(sender.id);
+
+    unsubscribe();
+  });
+
   it("should return the result of the message", async () => {
     const { clientAccount: sender, serverAccount: receiver } =
       await setupTwoNodes();

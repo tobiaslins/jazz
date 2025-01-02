@@ -617,8 +617,14 @@ const CoMapProxyHandler: ProxyHandler<CoMap> = {
     } else if (key in target) {
       return Reflect.get(target, key, receiver);
     } else {
-      const descriptor = (target._schema[key as keyof CoMap["_schema"]] ||
-        target._schema[ItemsSym]) as Schema;
+      const schema = target._schema;
+
+      if (!schema) {
+        return undefined;
+      }
+
+      const descriptor = (schema[key as keyof CoMap["_schema"]] ||
+        schema[ItemsSym]) as Schema;
       if (descriptor && typeof key === "string") {
         const raw = target._raw.get(key);
 
