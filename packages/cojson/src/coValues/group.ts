@@ -513,12 +513,36 @@ export class RawGroup<
     }
 
     for (const child of childGroups) {
+      // Since child references are mantained only for the key rotation,
+      // circular references are skipped here because it's more performant
+      // than always checking for circular references in childs inside the permission checks
+      if (child.isSelfExtension(this)) {
+        continue;
+      }
+
       child.rotateReadKey();
     }
   }
 
+  /** Detect circular references in group inheritance */
+  isSelfExtension(parent: RawGroup) {
+    if (parent.id === this.id) {
+      return true;
+    }
+
+    const childGroups = this.getChildGroups();
+
+    for (const child of childGroups) {
+      if (child.isSelfExtension(parent)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   extend(parent: RawGroup) {
-    if (this.id === parent.id) {
+    if (this.isSelfExtension(parent)) {
       return;
     }
 
