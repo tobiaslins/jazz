@@ -1,42 +1,30 @@
-# Jazz React starter with Tailwind and Demo Auth
+# Jazz Version History Example
 
-A minimal starter template for building apps with **[Jazz](https://jazz.tools)**, React, TailwindCSS, and Demo Auth.
+A minimal example showing how to use Jazz's built-in version history to show and restore changes.
 
-## Creating an app
+## Installing & running the example locally
 
-Create a new Jazz app.
+(This requires `pnpm` to be installed, see [https://pnpm.io/installation](https://pnpm.io/installation))
+
+Start by downloading the [jazz repository](https://github.com/garden-co/jazz):
 ```bash
-npx create-jazz-app
+npx degit gardencmp/jazz jazz
 ```
 
-Then select "React + Jazz + Demo Auth + Tailwind".
-
-## Running locally
-
-Install dependencies:
-
+Go to the version-history example directory:
 ```bash
-npm i
-# or
-yarn
+cd jazz/examples/version-history
 ```
 
-Then, run the development server:
-
+Install and build dependencies:
 ```bash
-npm run dev
-# or
-yarn dev
+pnpm i && npx turbo build
 ```
 
-Open [http://localhost:5173](http://localhost:5173) with your browser to see the result.
-
-## Learning Jazz
-
-You can start by playing with the form, adding a new field in [./src/schema.ts](./src/schema.ts), 
-and seeing how easy it is to structure your data, and perform basic operations.
-
-To learn more, check out the [full tutorial](https://jazz.tools/docs/react/guide).
+Start the dev server:
+```bash
+pnpm dev
+```
 
 ## Questions / problems / feedback
 
@@ -45,6 +33,6 @@ If you have feedback, let us know on [Discord](https://discord.gg/utDMjHYg42) or
 
 ## Configuration: sync server
 
-By default, the app uses [Jazz Cloud](https://jazz.tools/cloud) (`wss://cloud.jazz.tools`) - so cross-device use, invites and collaboration should just work.
+By default, the example app uses [Jazz Cloud](https://jazz.tools/cloud) (`wss://cloud.jazz.tools`) - so cross-device use, invites and collaboration should just work.
 
-You can also run a local sync server by running `npx jazz-run sync` and adding the query param `?sync=ws://localhost:4200` to the URL of the example app (for example: `http://localhost:5173/?peer=ws://localhost:4200`), or by setting the `sync` parameter of the `<Jazz.Provider>` provider component in [./src/main.tsx](./src/main.tsx).
+You can also run a local sync server by running `npx jazz-run sync` and adding the query param `?sync=ws://localhost:4200` to the URL of the example app (for example: `http://localhost:5173/?peer=ws://localhost:4200`), or by setting the `sync` parameter of `JazzProvider` component in [./src/main.tsx](./src/main.tsx).
