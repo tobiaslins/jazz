@@ -2157,21 +2157,17 @@ test("Admins can set child extensions when the admin role is inherited", async (
   );
 });
 
-test("Writers, readers and invitees can not set child extensions", () => {
+test("Writers, readers and writeOnly can set child extensions", () => {
   const { group, node } = newGroupHighLevel();
   const childGroup = node.createGroup();
 
   const writer = node.createAccount();
   const reader = node.createAccount();
-  const adminInvite = node.createAccount();
-  const writerInvite = node.createAccount();
-  const readerInvite = node.createAccount();
+  const writeOnly = node.createAccount();
 
   group.addMember(writer, "writer");
   group.addMember(reader, "reader");
-  group.addMember(adminInvite, "adminInvite");
-  group.addMember(writerInvite, "writerInvite");
-  group.addMember(readerInvite, "readerInvite");
+  group.addMember(writeOnly, "writeOnly");
 
   const groupAsWriter = expectGroup(
     group.core
@@ -2180,7 +2176,7 @@ test("Writers, readers and invitees can not set child extensions", () => {
   );
 
   groupAsWriter.set(`child_${childGroup.id}`, "extend", "trusting");
-  expect(groupAsWriter.get(`child_${childGroup.id}`)).toBeUndefined();
+  expect(groupAsWriter.get(`child_${childGroup.id}`)).toEqual("extend");
 
   const groupAsReader = expectGroup(
     group.core
@@ -2189,7 +2185,20 @@ test("Writers, readers and invitees can not set child extensions", () => {
   );
 
   groupAsReader.set(`child_${childGroup.id}`, "extend", "trusting");
-  expect(groupAsReader.get(`child_${childGroup.id}`)).toBeUndefined();
+  expect(groupAsReader.get(`child_${childGroup.id}`)).toEqual("extend");
+});
+
+test("Invitees can not set child extensions", () => {
+  const { group, node } = newGroupHighLevel();
+  const childGroup = node.createGroup();
+
+  const adminInvite = node.createAccount();
+  const writerInvite = node.createAccount();
+  const readerInvite = node.createAccount();
+
+  group.addMember(adminInvite, "adminInvite");
+  group.addMember(writerInvite, "writerInvite");
+  group.addMember(readerInvite, "readerInvite");
 
   const groupAsAdminInvite = expectGroup(
     group.core

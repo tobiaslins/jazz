@@ -528,4 +528,85 @@ describe("writeOnly", () => {
     // The writer role should be able to see the edits from the admin
     expect(mapOnNode2.get("test")).toEqual("Written from the writeOnly member");
   });
+
+  test("a user should be able to extend a group when his role on the parent group is writer", async () => {
+    const { node1, node2 } = await createTwoConnectedNodes("server", "server");
+
+    const group = node1.node.createGroup();
+    group.addMember(
+      await loadCoValueOrFail(node1.node, node2.accountID),
+      "writer",
+    );
+
+    await group.core.waitForSync();
+
+    const groupOnNode2 = await loadCoValueOrFail(node2.node, group.id);
+
+    const childGroup = node2.node.createGroup();
+    childGroup.extend(groupOnNode2);
+
+    const map = childGroup.createMap();
+    map.set("test", "Written from node2");
+
+    await map.core.waitForSync();
+    await childGroup.core.waitForSync();
+
+    const mapOnNode2 = await loadCoValueOrFail(node2.node, map.id);
+
+    expect(mapOnNode2.get("test")).toEqual("Written from node2");
+  });
+
+  test("a user should be able to extend a group when his role on the parent group is reader", async () => {
+    const { node1, node2 } = await createTwoConnectedNodes("server", "server");
+
+    const group = node1.node.createGroup();
+    group.addMember(
+      await loadCoValueOrFail(node1.node, node2.accountID),
+      "reader",
+    );
+
+    await group.core.waitForSync();
+
+    const groupOnNode2 = await loadCoValueOrFail(node2.node, group.id);
+
+    const childGroup = node2.node.createGroup();
+    childGroup.extend(groupOnNode2);
+
+    const map = childGroup.createMap();
+    map.set("test", "Written from node2");
+
+    await map.core.waitForSync();
+    await childGroup.core.waitForSync();
+
+    const mapOnNode2 = await loadCoValueOrFail(node2.node, map.id);
+
+    expect(mapOnNode2.get("test")).toEqual("Written from node2");
+  });
+
+  test("a user should be able to extend a group when his role on the parent group is writeOnly", async () => {
+    const { node1, node2 } = await createTwoConnectedNodes("server", "server");
+
+    const group = node1.node.createGroup();
+    group.addMember(
+      await loadCoValueOrFail(node1.node, node2.accountID),
+      "writeOnly",
+    );
+
+    await group.core.waitForSync();
+
+    const groupOnNode2 = await loadCoValueOrFail(node2.node, group.id);
+
+    const childGroup = node2.node.createGroup();
+    childGroup.extend(groupOnNode2);
+
+    const map = childGroup.createMap();
+    map.set("test", "Written from node2");
+
+    await map.core.waitForSync();
+    await childGroup.core.waitForSync();
+
+    const mapOnNode2 = await loadCoValueOrFail(node2.node, map.id);
+
+    expect(mapOnNode2.get("test")).toEqual("Written from node2");
+  });
 });

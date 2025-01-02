@@ -518,9 +518,20 @@ export class RawGroup<
   }
 
   extend(parent: RawGroup) {
-    if (parent.myRole() !== "admin" || this.myRole() !== "admin") {
+    if (this.myRole() !== "admin") {
       throw new Error(
-        "To extend a group, the current account must have admin role in both groups",
+        "To extend a group, the current account must be an admin in the child group",
+      );
+    }
+
+    if (
+      parent.myRole() !== "admin" &&
+      parent.myRole() !== "writer" &&
+      parent.myRole() !== "reader" &&
+      parent.myRole() !== "writeOnly"
+    ) {
+      throw new Error(
+        "To extend a group, the current account must have access to the parent group",
       );
     }
 
