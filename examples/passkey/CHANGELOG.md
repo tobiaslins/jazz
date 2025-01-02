@@ -1,5 +1,12 @@
 # minimal-auth-passkey
 
+## 0.0.22
+
+### Patch Changes
+
+- jazz-react@0.8.50
+- jazz-tools@0.8.50
+
 ## 0.0.21
 
 ### Patch Changes
