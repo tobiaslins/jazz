@@ -1,5 +1,11 @@
 # cojson
 
+## 0.8.50
+
+### Patch Changes
+
+- 43378ef: Handle circular references in group inheritance
+
 ## 0.8.49
 
 ### Patch Changes
