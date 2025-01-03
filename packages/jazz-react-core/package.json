@@ -16,8 +16,8 @@
     }
   },
   "dependencies": {
-    "cojson": "workspace:0.8.45",
-    "jazz-tools": "workspace:0.8.45"
+    "cojson": "workspace:*",
+    "jazz-tools": "workspace:*"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.0",
