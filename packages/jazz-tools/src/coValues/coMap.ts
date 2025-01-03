@@ -30,6 +30,7 @@ import {
   isRefEncoded,
   loadCoValue,
   makeRefs,
+  parseCoValueCreateOptions,
   subscribeToCoValue,
   subscribeToExistingCoValue,
   subscriptionsScopes,
@@ -271,17 +272,19 @@ export class CoMap extends CoValueBase implements CoValue {
   static create<M extends CoMap>(
     this: CoValueClass<M>,
     init: Simplify<CoMapInit<M>>,
-    options: {
-      owner: Account | Group;
-      unique?: CoValueUniqueness["uniqueness"];
-    },
+    options:
+      | {
+          owner: Account | Group;
+          unique?: CoValueUniqueness["uniqueness"];
+        }
+      | Account
+      | Group,
   ) {
     const instance = new this();
-    const raw = instance.rawFromInit(
-      init,
-      options.owner,
-      options.unique === undefined ? undefined : { uniqueness: options.unique },
-    );
+
+    const { owner, uniqueness } = parseCoValueCreateOptions(options);
+    const raw = instance.rawFromInit(init, owner, uniqueness);
+
     Object.defineProperties(instance, {
       id: {
         value: raw.id,

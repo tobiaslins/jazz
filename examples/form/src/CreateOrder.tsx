@@ -32,9 +32,9 @@ export function CreateOrder() {
     // reset the draft
     me.root.draft = DraftBubbleTeaOrder.create(
       {
-        addOns: ListOfBubbleTeaAddOns.create([], { owner: me }),
+        addOns: ListOfBubbleTeaAddOns.create([], me),
       },
-      { owner: me },
+      me,
     );
 
     router.navigate("/");
