@@ -21,20 +21,12 @@ function UpgradeGuide({
     { year: "numeric", month: "long", day: "numeric" },
   );
   return (
-    <>
-      <div className="flex gap-3 items-center">
-        <h2 className="not-prose text-stone-500">
-          <span className="sr-only">Package updates from</span>
-          {date}
-        </h2>
-
-        <div className="h-px border-t flex-1" />
-      </div>
-
-      <div>
-        <Content />
-      </div>
-    </>
+    <div className="mb-10">
+      <h2 className="not-prose text-sm text-stone-600 dark:text-stone-400 mb-5 pb-2 border-b">
+        {date}
+      </h2>
+      <Content />
+    </div>
   );
 }
 
@@ -53,11 +45,9 @@ export default async function Page() {
     <>
       <h1>Upgrade guides for Jazz packages</h1>
 
-      <div className="space-y-12 mt-12">
-        {mdxSources.map(({ path, Content }) => (
-          <UpgradeGuide fileName={path} content={Content} />
-        ))}
-      </div>
+      {mdxSources.map(({ path, Content }) => (
+        <UpgradeGuide fileName={path} content={Content} />
+      ))}
     </>
   );
 }
