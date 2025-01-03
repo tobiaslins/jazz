@@ -9,17 +9,10 @@ import * as Linking from "expo-linking";
 import React, { StrictMode, useEffect, useState } from "react";
 import HandleInviteScreen from "./invite";
 
-import {
-  DemoAuthBasicUI,
-  JazzProvider,
-  setupKvStore,
-  useDemoAuth,
-} from "jazz-react-native";
+import { DemoAuthBasicUI, JazzProvider, useDemoAuth } from "jazz-react-native";
 import ChatScreen from "./chat";
 
 const Stack = createNativeStackNavigator();
-
-setupKvStore();
 
 const prefix = Linking.createURL("/");
 
@@ -40,6 +33,8 @@ function App() {
     "ChatScreen" | "HandleInviteScreen"
   >("ChatScreen");
   const navigationRef = useNavigationContainerRef();
+
+  console.log("auth", state);
 
   useEffect(() => {
     Linking.getInitialURL().then((url) => {

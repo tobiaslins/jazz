@@ -2,12 +2,6 @@ import { useAcceptInvite } from "jazz-react-native";
 import React, { Text } from "react-native";
 import { Chat } from "./schema";
 
-type ChatScreenParams = {
-  valueHint?: string;
-  valueID?: string;
-  inviteSecret?: string;
-};
-
 export default function HandleInviteScreen({
   navigation,
 }: {
