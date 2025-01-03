@@ -3,12 +3,13 @@ import { cojsonInternals } from "cojson";
 import { PureJSCrypto } from "cojson/crypto";
 import {
   Account,
+  AnonymousJazzAgent,
   type CoValueClass,
   type CryptoProvider,
   type Peer,
   createAnonymousJazzContext,
 } from "jazz-tools";
-import Provider from "./TestProvider.svelte";
+import { JAZZ_CTX, type JazzContext } from './jazz.svelte.js';
 
 type TestAccountSchema<Acc extends Account> = CoValueClass<Acc> & {
   fromNode: (typeof Account)["fromNode"];
@@ -21,10 +22,10 @@ type TestAccountSchema<Acc extends Account> = CoValueClass<Acc> & {
 };
 
 export async function createJazzTestAccount<Acc extends Account>(options?: {
-  AccountSchema?: TestAccountSchema<Acc>;
+  AccountSchema?: CoValueClass<Acc>;
 }): Promise<Acc> {
   const AccountSchema =
-    options?.AccountSchema ?? (Account as unknown as TestAccountSchema<Acc>);
+    (options?.AccountSchema ?? Account) as unknown as TestAccountSchema<Acc>;
   const account = await AccountSchema.create({
     creationProps: {
       name: "Test Account",
@@ -46,9 +47,31 @@ export async function createJazzTestGuest() {
   };
 }
 
+export function createJazzTestContext<Acc extends Account>({ account }: {
+  account: Acc | { guest: AnonymousJazzAgent };
+}) {
+  const ctx = new Map<typeof JAZZ_CTX, JazzContext<Acc>>();
 
-export { Provider as JazzTestProvider };
+  if ('guest' in account) {
+    ctx.set(JAZZ_CTX, {
+      current: {
+        guest: account.guest,
+        logOut: () => account.guest.node.gracefulShutdown(),
+        done: () => account.guest.node.gracefulShutdown()
+      }
+    });
+  } else {
+    ctx.set(JAZZ_CTX, {
+      current: {
+        me: account,
+        logOut: () => account._raw.core.node.gracefulShutdown(),
+        done: () => account._raw.core.node.gracefulShutdown()
+      }
+    });
+  } 
 
+  return ctx;
+}
 
 export function linkAccounts(a: Account, b: Account) {
   const [aPeer, bPeer] = cojsonInternals.connectedPeers("a", "b", {
