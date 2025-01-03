@@ -6,7 +6,7 @@ export default defineConfig(({ mode }) => ({
   test: {
     include: ['src/**/*.test.{js,ts,svelte}'],
     globals: true,
-    environment: 'happy-dom',
+    environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
   },
   resolve: {

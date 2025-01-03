@@ -1,4 +1,4 @@
-import type { AgentSecret } from "cojson";
+import type { AgentSecret, JsonValue } from "cojson";
 import { cojsonInternals } from "cojson";
 import { PureJSCrypto } from "cojson/crypto";
 import {
@@ -21,16 +21,42 @@ type TestAccountSchema<Acc extends Account> = CoValueClass<Acc> & {
   }) => Promise<Acc>;
 };
 
+class MockJSCrypto extends PureJSCrypto {
+  static async create() {
+    return new MockJSCrypto() as unknown as PureJSCrypto;
+  }
+
+  // @ts-expect-error Mocking crypto seal to make it work with JSDom
+  seal<T extends JsonValue>(options: { message: T }) {
+    return `sealed_U${cojsonInternals.stableStringify(options.message)}`
+  }
+
+  unseal(sealed: string) {
+    return JSON.parse(sealed.substring("sealed_U".length))
+  }
+
+  // @ts-expect-error Mocking crypto seal to make it work with JSDom
+  encrypt(message: JsonValue) {
+    return `encrypted_U${cojsonInternals.stableStringify(message)}`
+  }
+
+  // @ts-expect-error Mocking crypto seal to make it work with JSDom
+  decryptRaw(encrypted: string) {
+    return (encrypted.substring("encrypted_U".length))
+  }
+}
+
 export async function createJazzTestAccount<Acc extends Account>(options?: {
   AccountSchema?: CoValueClass<Acc>;
 }): Promise<Acc> {
   const AccountSchema =
     (options?.AccountSchema ?? Account) as unknown as TestAccountSchema<Acc>;
+
   const account = await AccountSchema.create({
     creationProps: {
       name: "Test Account",
     },
-    crypto: await PureJSCrypto.create(),
+    crypto: await MockJSCrypto.create(),
   });
 
   return account;
@@ -38,7 +64,7 @@ export async function createJazzTestAccount<Acc extends Account>(options?: {
 
 export async function createJazzTestGuest() {
   const ctx = await createAnonymousJazzContext({
-    crypto: await PureJSCrypto.create(),
+    crypto: await MockJSCrypto.create(),
     peersToLoadFrom: [],
   });
 
