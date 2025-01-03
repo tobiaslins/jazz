@@ -43,7 +43,7 @@ type CoMapEdit<V> = {
   ref?: RefIfCoValue<V>;
   by?: Account;
   madeAt: Date;
-  key?: keyof V;
+  key?: string;
 };
 
 type LastAndAllCoMapEdits<V> = CoMapEdit<V> & { all: CoMapEdit<V>[] };
