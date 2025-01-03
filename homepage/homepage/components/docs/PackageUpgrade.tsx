@@ -1,10 +1,13 @@
+import { ContentByFramework } from "@/components/docs/ContentByFramework";
+import { isValidFramework } from "@/lib/framework";
+
 export interface PackageUpgradeProps {
   packageName: string;
   version: string;
   children: React.ReactNode;
 }
 
-export function PackageUpgrade({
+function PackageUpgradeBody({
   packageName,
   version,
   children,
@@ -20,4 +23,18 @@ export function PackageUpgrade({
       </div>
     </>
   );
+}
+
+export function PackageUpgrade(props: PackageUpgradeProps) {
+  const frameworkPackage = props.packageName.replace("jazz-", "");
+
+  if (isValidFramework(frameworkPackage)) {
+    return (
+      <ContentByFramework framework={frameworkPackage}>
+        <PackageUpgradeBody {...props} />
+      </ContentByFramework>
+    );
+  }
+
+  return <PackageUpgradeBody {...props} />;
 }
