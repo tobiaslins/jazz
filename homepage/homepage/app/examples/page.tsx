@@ -1,26 +1,17 @@
+import { ExampleCard } from "@/components/examples/ExampleCard";
+import { ExampleDemo } from "@/components/examples/ExampleDemo";
 import { ClerkFullLogo } from "@/components/icons/ClerkFullLogo";
 import { NextjsLogo } from "@/components/icons/NextjsLogo";
 import { ReactLogo } from "@/components/icons/ReactLogo";
 import { ReactNativeLogo } from "@/components/icons/ReactNativeLogo";
-import { VueLogo } from "@/components/icons/VueLogo";
-import { H2 } from "gcmp-design-system/src/app/components/atoms/Headings";
-import { GappedGrid } from "gcmp-design-system/src/app/components/molecules/GappedGrid";
-import { HeroHeader } from "gcmp-design-system/src/app/components/molecules/HeroHeader";
-
-import {
-  Schema_ts as ImageUploadSchema,
-  ImageUpload_tsx,
-} from "@/codeSamples/examples/image-upload/src";
-import {
-  Schema_ts as ReactionsSchema,
-  ReactionsScreen_tsx,
-} from "@/codeSamples/examples/reactions/src";
-import { ExampleCard } from "@/components/examples/ExampleCard";
-import { ExampleDemo } from "@/components/examples/ExampleDemo";
 import { SvelteLogo } from "@/components/icons/SvelteLogo";
+import { VueLogo } from "@/components/icons/VueLogo";
 import { Example, features, tech } from "@/lib/example";
 import { clsx } from "clsx";
+import { H2 } from "gcmp-design-system/src/app/components/atoms/Headings";
 import { Icon } from "gcmp-design-system/src/app/components/atoms/Icon";
+import { GappedGrid } from "gcmp-design-system/src/app/components/molecules/GappedGrid";
+import { HeroHeader } from "gcmp-design-system/src/app/components/molecules/HeroHeader";
 
 const MockButton = ({ children }: { children: React.ReactNode }) => (
   <p className="bg-blue-100 text-blue-800 py-1 px-3 rounded-full font-medium  text-xs inline-flex items-center justify-center">
@@ -334,6 +325,24 @@ const reactExamples: Example[] = [
     illustration: <ChatIllustration />,
   },
   {
+    name: "Image upload",
+    slug: "image-upload",
+    description: "Learn how to upload and delete images",
+    tech: [tech.react],
+    features: [features.imageUpload],
+    demoUrl: "https://image-upload-demo.jazz.tools",
+    illustration: <ImageUploadIllustration />,
+  },
+  {
+    name: "Reactions",
+    slug: "reactions",
+    description: "Collect and render reactions from multiple users.",
+    tech: [tech.react],
+    features: [features.coFeed],
+    demoUrl: "https://reactions-demo.jazz.tools",
+    illustration: <ReactionsIllustration />,
+  },
+  {
     name: "Rate my pet",
     slug: "pets",
     description:
@@ -473,49 +482,6 @@ const vueExamples: Example[] = [
   },
 ];
 
-const demos = [
-  {
-    name: "Image upload",
-    slug: "image-upload",
-    description: "Learn how to upload and delete images",
-    tech: [tech.react],
-    features: [features.imageUpload],
-    demoUrl: "https://image-upload-demo.jazz.tools",
-    illustration: <ImageUploadIllustration />,
-    showDemo: true,
-    codeSamples: [
-      {
-        name: "image-upload.tsx",
-        content: <ImageUpload_tsx />,
-      },
-      {
-        name: "schema.ts",
-        content: <ImageUploadSchema />,
-      },
-    ],
-  },
-  {
-    name: "Reactions",
-    slug: "reactions",
-    description: "Collect and render reactions from multiple users.",
-    tech: [tech.react],
-    features: [features.coFeed],
-    demoUrl: "https://reactions-demo.jazz.tools",
-    illustration: <ReactionsIllustration />,
-    showDemo: true,
-    codeSamples: [
-      {
-        name: "reactions.tsx",
-        content: <ReactionsScreen_tsx />,
-      },
-      {
-        name: "schema.ts",
-        content: <ReactionsSchema />,
-      },
-    ],
-  },
-];
-
 const svelteExamples: Example[] = [
   {
     name: "Passkey",
@@ -575,14 +541,6 @@ export default function Page() {
         title="Example apps"
         slogan="Find an example app with code most similar to what you want to build"
       />
-
-      <div className="grid gap-8 mb-12 lg:gap-12">
-        <h2 className="sr-only">Example apps with demo and code</h2>
-        {demos.map(
-          (demo) =>
-            demo.showDemo && <ExampleDemo key={demo.slug} example={demo} />,
-        )}
-      </div>
 
       <div className="grid gap-12 lg:gap-20">
         {categories.map((category) => (
