@@ -9,7 +9,9 @@ import * as Linking from "expo-linking";
 import React, { StrictMode, useEffect, useState } from "react";
 import HandleInviteScreen from "./invite";
 
+import { SQLiteStorage } from "cojson-storage-rn-sqlite";
 import { DemoAuthBasicUI, useDemoAuth } from "jazz-react-native";
+import { Peer } from "jazz-tools";
 import ChatScreen from "./chat";
 import { Jazz } from "./jazz";
 
@@ -34,7 +36,7 @@ function App() {
     "ChatScreen" | "HandleInviteScreen"
   >("ChatScreen");
   const navigationRef = useNavigationContainerRef();
-
+  const [peers, setPeers] = useState<Peer[]>([]);
   useEffect(() => {
     Linking.getInitialURL().then((url) => {
       if (url) {
@@ -43,9 +45,23 @@ function App() {
         }
       }
     });
+
+    console.log("App constructor");
+
+    SQLiteStorage.asPeer({
+      filename: "test",
+      trace: true,
+    })
+      .then((peer) => {
+        console.log("asPeereeeee", peer);
+        setPeers([peer]);
+      })
+      .catch((e) => {
+        console.error("Error in asPeer", e);
+      });
   }, []);
 
-  if (!auth) {
+  if (!auth || peers.length === 0) {
     return null;
   }
 
@@ -54,7 +70,7 @@ function App() {
       <Jazz.Provider
         auth={auth}
         peer="wss://cloud.jazz.tools/?key=chat-rn-example-jazz@garden.co"
-        storage={undefined}
+        peers={peers}
       >
         <NavigationContainer linking={linking} ref={navigationRef}>
           <Stack.Navigator initialRouteName={initialRoute}>

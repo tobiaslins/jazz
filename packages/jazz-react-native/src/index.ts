@@ -15,7 +15,7 @@ import {
   createJazzContext,
 } from "jazz-tools";
 
-import { RawAccountID } from "cojson";
+import { Peer, RawAccountID } from "cojson";
 
 export { RNDemoAuth } from "./auth/DemoAuthMethod.js";
 
@@ -47,6 +47,7 @@ export type ReactNativeContextOptions<Acc extends Account> = {
 
 export type BaseReactNativeContextOptions = {
   peer: `wss://${string}` | `ws://${string}`;
+  peers?: Peer[];
   reconnectionTimeout?: number;
   storage?: "indexedDB" | "singleTabOPFS";
   CryptoProvider?: typeof PureJSCrypto | typeof RNQuickCrypto;
@@ -81,12 +82,12 @@ export async function createJazzRNContext<Acc extends Account>(
           AccountSchema: options.AccountSchema,
           auth: options.auth,
           crypto: await CryptoProvider.create(),
-          peersToLoadFrom: [websocketPeer.peer],
+          peersToLoadFrom: [websocketPeer.peer, ...(options.peers || [])],
           sessionProvider: provideLockSession,
         })
       : await createJazzContext({
           crypto: await CryptoProvider.create(),
-          peersToLoadFrom: [websocketPeer.peer],
+          peersToLoadFrom: [websocketPeer.peer, ...(options.peers || [])],
         });
 
   const node =

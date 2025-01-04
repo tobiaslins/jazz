@@ -10,6 +10,7 @@ import {
   DeeplyLoaded,
   DepthsIn,
   ID,
+  Peer,
   subscribeToCoValue,
 } from "jazz-tools";
 import { Linking } from "react-native";
@@ -48,11 +49,13 @@ export function createJazzRNApp<Acc extends Account>({
     children,
     auth,
     peer,
+    peers,
     storage,
   }: {
     children: React.ReactNode;
     auth: AuthMethod | "guest";
     peer: `wss://${string}` | `ws://${string}`;
+    peers?: Peer[];
     storage?: "indexedDB" | "singleTabOPFS";
   }) {
     const [ctx, setCtx] = useState<
@@ -66,6 +69,7 @@ export function createJazzRNApp<Acc extends Account>({
         auth === "guest"
           ? {
               peer,
+              peers,
               storage,
               CryptoProvider,
             }
@@ -73,6 +77,7 @@ export function createJazzRNApp<Acc extends Account>({
               AccountSchema,
               auth: auth,
               peer,
+              peers,
               storage,
               CryptoProvider,
             },
@@ -264,6 +269,7 @@ export interface JazzReactApp<Acc extends Account> {
     children: React.ReactNode;
     auth: AuthMethod | "guest";
     peer: `wss://${string}` | `ws://${string}`;
+    peers?: Peer[];
     storage?: "indexedDB" | "singleTabOPFS";
   }>;
 
