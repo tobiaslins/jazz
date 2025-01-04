@@ -187,7 +187,14 @@ export class SQLiteClient implements DBClientInterface {
   }
 
   unitOfWork(operationsCallback: () => any[]) {
-    // @ts-ignore
-    this.db.transaction(operationsCallback)();
+    console.log("unitOfWork");
+
+    return new Promise((resolve, reject) => {
+      try {
+        resolve(operationsCallback());
+      } catch (e) {
+        reject(e);
+      }
+    });
   }
 }

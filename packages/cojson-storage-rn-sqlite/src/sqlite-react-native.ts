@@ -56,6 +56,7 @@ export class SQLiteReactNative {
               { cause: e },
             ),
           );
+          console.error(e);
         }
       }
     };
