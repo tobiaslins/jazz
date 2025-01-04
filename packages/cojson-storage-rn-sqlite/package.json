@@ -6,6 +6,7 @@
   "types": "src/index.ts",
   "license": "MIT",
   "dependencies": {
+    "@op-engineering/op-sqlite": "^11.2.12",
     "cojson": "workspace:0.8.50",
     "cojson-storage": "workspace:*",
     "react-native-nitro-sqlite": "^9.1.1"
@@ -21,5 +22,8 @@
     "build": "rm -rf ./dist && tsc --sourceMap --outDir dist",
     "prepublishOnly": "npm run build"
   },
-  "gitHead": "33c27053293b4801b968c61d5c4c989f93a67d13"
+  "gitHead": "33c27053293b4801b968c61d5c4c989f93a67d13",
+  "op-sqlite": {
+    "libsql": true
+  }
 }

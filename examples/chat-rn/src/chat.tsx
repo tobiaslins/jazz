@@ -23,6 +23,8 @@ export default function ChatScreen({ navigation }: { navigation: any }) {
   const loadedChat = useCoState(Chat, chatId, [{}]);
   const [message, setMessage] = useState("");
 
+  console.log("loadedChat", loadedChat, chatId);
+
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => <Button onPress={logOut} title="Logout" />,

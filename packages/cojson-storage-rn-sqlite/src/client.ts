@@ -1,8 +1,8 @@
 import {
-  type NitroSQLiteConnection as DatabaseT,
-  NitroSQLite,
+  type DB as DatabaseT,
+  QueryResult,
   open,
-} from "react-native-nitro-sqlite";
+} from "@op-engineering/op-sqlite";
 
 import { CojsonInternalTypes, type OutgoingSyncQueue, SessionID } from "cojson";
 import RawCoID = CojsonInternalTypes.RawCoID;
@@ -40,14 +40,14 @@ export class SQLiteClient implements DBClientInterface {
 
   getCoValue(coValueId: RawCoID): StoredCoValueRow | undefined {
     console.log("getCoValue", coValueId);
-    const { rows } = this.db.execute<RawCoValueRow & { rowID: number }>(
+    const { rows } = this.db.executeSync(
       "SELECT * FROM coValues WHERE id = ?",
       [coValueId],
     );
 
     if (!rows || rows.length === 0) return;
 
-    const coValueRow = rows._array[0] as RawCoValueRow & { rowID: number };
+    const coValueRow = rows[0] as RawCoValueRow & { rowID: number };
     try {
       const parsedHeader = (coValueRow?.header &&
         JSON.parse(coValueRow.header)) as CojsonInternalTypes.CoValueHeader;
@@ -64,12 +64,12 @@ export class SQLiteClient implements DBClientInterface {
 
   getCoValueSessions(coValueRowId: number): StoredSessionRow[] {
     console.log("getCoValueSessions", coValueRowId);
-    const { rows } = this.db.execute<StoredSessionRow>(
+    const { rows } = this.db.executeSync(
       "SELECT * FROM sessions WHERE coValue = ?",
       [coValueRowId],
     );
 
-    return rows?._array as StoredSessionRow[];
+    return rows as StoredSessionRow[];
   }
 
   getNewTransactionInSession(
@@ -77,14 +77,14 @@ export class SQLiteClient implements DBClientInterface {
     firstNewTxIdx: number,
   ): TransactionRow[] {
     console.log("getNewTransactionInSession", sessionRowId, firstNewTxIdx);
-    const { rows } = this.db.execute<RawTransactionRow & { rowID: number }>(
+    const { rows } = this.db.executeSync(
       "SELECT * FROM transactions WHERE ses = ? AND idx >= ?",
       [sessionRowId, firstNewTxIdx],
     );
 
     if (!rows || rows.length === 0) return [];
 
-    const txs = rows._array as RawTransactionRow[];
+    const txs = rows as RawTransactionRow[];
 
     try {
       return txs.map((transactionRow) => ({
@@ -102,22 +102,22 @@ export class SQLiteClient implements DBClientInterface {
     firstNewTxIdx: number,
   ): SignatureAfterRow[] {
     console.log("getSignatures", sessionRowId, firstNewTxIdx);
-    const { rows } = this.db.execute<SignatureAfterRow>(
+    const { rows } = this.db.executeSync(
       "SELECT * FROM signatureAfter WHERE ses = ? AND idx >= ?",
       [sessionRowId, firstNewTxIdx],
     );
 
-    return rows?._array as SignatureAfterRow[];
+    return rows as SignatureAfterRow[];
   }
 
   addCoValue(msg: CojsonInternalTypes.NewContentMessage): number {
     console.log("addCoValue", msg.id);
-    const { rows } = this.db.execute(
+    const { rows } = this.db.executeSync(
       "INSERT INTO coValues (id, header) VALUES (?, ?)",
       [msg.id, JSON.stringify(msg.header)],
     );
 
-    return rows?._array[0]?.rowID as number;
+    return rows[0]?.rowID as number;
   }
 
   addSessionUpdate({
@@ -132,7 +132,7 @@ export class SQLiteClient implements DBClientInterface {
       sessionUpdate.coValue,
       sessionUpdate.sessionID,
     );
-    const { rows } = this.db.execute(
+    const { rows } = this.db.executeSync(
       `INSERT INTO sessions (coValue, sessionID, lastIdx, lastSignature, bytesSinceLastSignature) VALUES (?, ?, ?, ?, ?)
                             ON CONFLICT(coValue, sessionID) DO UPDATE SET lastIdx=excluded.lastIdx, lastSignature=excluded.lastSignature, bytesSinceLastSignature=excluded.bytesSinceLastSignature
                             RETURNING rowID`,
@@ -141,13 +141,13 @@ export class SQLiteClient implements DBClientInterface {
         sessionUpdate.sessionID,
         sessionUpdate.lastIdx,
         sessionUpdate.lastSignature,
-        sessionUpdate.bytesSinceLastSignature,
+        sessionUpdate.bytesSinceLastSignature!,
       ],
     );
 
     if (!rows || rows.length === 0) return 0;
 
-    return rows._array[0]?.rowID as number;
+    return rows[0]?.rowID as number;
   }
 
   addTransaction(
@@ -156,14 +156,14 @@ export class SQLiteClient implements DBClientInterface {
     newTransaction: Transaction,
   ): number {
     console.log("addTransaction", sessionRowID, nextIdx);
-    const { rows } = this.db.execute(
+    const { rows } = this.db.executeSync(
       "INSERT INTO transactions (ses, idx, tx) VALUES (?, ?, ?)",
       [sessionRowID, nextIdx, JSON.stringify(newTransaction)],
     );
 
     if (!rows || rows.length === 0) return 0;
 
-    return rows._array[0]?.rowID as number;
+    return rows[0]?.rowID as number;
   }
 
   addSignatureAfter({
@@ -176,14 +176,14 @@ export class SQLiteClient implements DBClientInterface {
     signature: Signature;
   }) {
     console.log("addSignatureAfter", sessionRowID, idx);
-    const { rows } = this.db.execute(
+    const { rows } = this.db.executeSync(
       "INSERT INTO signatureAfter (ses, idx, signature) VALUES (?, ?, ?)",
       [sessionRowID, idx, signature],
     );
 
     if (!rows || rows.length === 0) return 0;
 
-    return rows._array[0]?.rowID as number;
+    return rows[0]?.rowID as number;
   }
 
   unitOfWork(operationsCallback: () => any[]) {

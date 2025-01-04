@@ -1,8 +1,4 @@
-import {
-  NitroSQLite,
-  type NitroSQLiteConnection,
-  open,
-} from "react-native-nitro-sqlite";
+import { DB, open, openSync } from "@op-engineering/op-sqlite";
 
 import {
   type IncomingSyncStream,
@@ -18,7 +14,7 @@ export class SQLiteReactNative {
   private readonly dbClient: SQLiteClient;
 
   constructor(
-    db: NitroSQLiteConnection,
+    db: DB,
     fromLocalNode: IncomingSyncStream,
     toLocalNode: OutgoingSyncQueue,
   ) {
@@ -34,6 +30,8 @@ export class SQLiteReactNative {
           if (msg === "Disconnected" || msg === "PingTimeout") {
             throw new Error("Unexpected Disconnected message");
           }
+
+          console.log(`#### Handing ${msg.action}`);
           await this.syncManager.handleSyncMessage(msg);
 
           // Since better-sqlite3 is synchronous there may be the case
@@ -88,7 +86,7 @@ export class SQLiteReactNative {
       localNodeAsPeer.outgoing,
     );
 
-    return { ...storageAsPeer, priority: 100 };
+    return { ...storageAsPeer, priority: 90 };
   }
 
   static async open(
@@ -99,20 +97,20 @@ export class SQLiteReactNative {
     const db = open({
       name: filename,
     });
+    const path = db.getDbPath();
+    console.warn(path);
 
-    await db.executeAsync("PRAGMA journal_mode = WAL;"); // or OFF
+    await db.execute("PRAGMA journal_mode = WAL;"); // or OFF
 
     const oldVersion =
-      Number(
-        (await db.executeAsync("PRAGMA user_version")).rows?._array[0]
-          ?.user_version,
-      ) ?? 0;
+      Number((await db.execute("PRAGMA user_version")).rows[0]?.user_version) ??
+      0;
 
     console.log("DB version", oldVersion);
 
     if (oldVersion === 0) {
       console.log("Migration 0 -> 1: Basic schema");
-      db.executeAsync(
+      await db.execute(
         `CREATE TABLE IF NOT EXISTS transactions (
                     ses INTEGER,
                     idx INTEGER,
@@ -121,7 +119,7 @@ export class SQLiteReactNative {
                 ) WITHOUT ROWID;`,
       );
 
-      db.executeAsync(
+      await db.execute(
         `CREATE TABLE IF NOT EXISTS sessions (
                     rowID INTEGER PRIMARY KEY,
                     coValue INTEGER NOT NULL,
@@ -132,12 +130,11 @@ export class SQLiteReactNative {
                 );`,
       );
 
-      // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
-      db.executeAsync(
+      await db.execute(
         `CREATE INDEX IF NOT EXISTS sessionsByCoValue ON sessions (coValue);`,
       );
 
-      db.executeAsync(
+      await db.execute(
         `CREATE TABLE IF NOT EXISTS coValues (
                     rowID INTEGER PRIMARY KEY,
                     id TEXT NOT NULL UNIQUE,
@@ -145,12 +142,11 @@ export class SQLiteReactNative {
                 );`,
       );
 
-      // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
-      db.executeAsync(
+      await db.execute(
         `CREATE INDEX IF NOT EXISTS coValuesByID ON coValues (id);`,
       );
 
-      db.executeAsync("PRAGMA user_version = 1");
+      await db.execute("PRAGMA user_version = 1");
       console.log("Migration 0 -> 1: Basic schema - done");
     }
 
@@ -160,35 +156,33 @@ export class SQLiteReactNative {
         "Migration 1 -> 2: Fix off-by-one error for transaction indices",
       );
 
-      // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
-      const { rows } = await db.executeAsync("SELECT * FROM transactions");
+      const { rows } = await db.execute("SELECT * FROM transactions");
 
       if (!rows) return;
 
-      for (const tx of rows._array) {
-        // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
-        db.executeAsync(`DELETE FROM transactions WHERE ses = ? AND idx = ?`, [
-          tx.ses,
-          tx.idx,
+      for (const tx of rows) {
+        await db.execute(`DELETE FROM transactions WHERE ses = ? AND idx = ?`, [
+          tx.ses!,
+          tx.idx!,
         ]);
         tx.idx = Number(tx.idx) - 1;
-        // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
-        db.executeAsync(
+        await db.execute(
           `INSERT INTO transactions (ses, idx, tx) VALUES (?, ?, ?)`,
-          [tx.ses, tx.idx, tx.tx],
+          [tx.ses!, tx.idx!, tx.tx!],
         );
       }
 
-      db.executeAsync("PRAGMA user_version = 2");
+      await db.execute("PRAGMA user_version = 2");
       console.log(
         "Migration 1 -> 2: Fix off-by-one error for transaction indices - done",
       );
     }
 
+    console.log("oldVersion", oldVersion);
     if (oldVersion <= 2) {
       console.log("Migration 2 -> 3: Add signatureAfter");
 
-      db.executeAsync(
+      await db.execute(
         `CREATE TABLE IF NOT EXISTS signatureAfter (
                     ses INTEGER,
                     idx INTEGER,
@@ -197,12 +191,11 @@ export class SQLiteReactNative {
                 ) WITHOUT ROWID;`,
       );
 
-      // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
-      db.executeAsync(
+      await db.execute(
         `ALTER TABLE sessions ADD COLUMN bytesSinceLastSignature INTEGER;`,
       );
 
-      db.executeAsync("PRAGMA user_version = 3");
+      await db.execute("PRAGMA user_version = 3");
       console.log("Migration 2 -> 3: Add signatureAfter - done!!");
     }
 

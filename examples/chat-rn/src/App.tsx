@@ -49,7 +49,7 @@ function App() {
     console.log("App constructor");
 
     SQLiteStorage.asPeer({
-      filename: "test",
+      filename: "test3",
       trace: true,
     })
       .then((peer) => {
