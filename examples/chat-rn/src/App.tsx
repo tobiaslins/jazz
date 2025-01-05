@@ -50,7 +50,7 @@ function App() {
 
     SQLiteStorage.asPeer({
       filename: "abc333",
-      trace: true,
+      trace: false,
     })
       .then((peer) => {
         console.log("asPeereeeee", peer);
