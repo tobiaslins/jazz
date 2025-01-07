@@ -1,6 +1,5 @@
 import { clsx } from "clsx";
 import { HeroHeader } from "gcmp-design-system/src/app/components/molecules/HeroHeader";
-import { unstable_cache } from "next/cache";
 import dynamic from "next/dynamic";
 import { Fragment } from "react";
 
@@ -15,123 +14,123 @@ interface DataRow {
   p99Latency: number;
 }
 
-const query = unstable_cache(
-  async () => {
-    const res = await fetch("https://gcmp.grafana.net/api/ds/query", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.GRAFANA_SERVICE_ACCOUNT}`,
-      },
-      body: JSON.stringify({
-        from: "now-7d",
-        to: "now",
-        queries: [
-          {
-            datasource: {
-              type: "prometheus",
-              uid: "grafanacloud-prom",
-            },
-            expr: 'probe_success{instance="https://mesh.jazz.tools/self-sync-check", job="self-sync-check"}',
-            instant: true,
-            refId: "up",
+const query = async () => {
+  const res = await fetch("https://gcmp.grafana.net/api/ds/query", {
+    next: { revalidate: 300 },
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.GRAFANA_SERVICE_ACCOUNT}`,
+    },
+    body: JSON.stringify({
+      from: "now-7d",
+      to: "now",
+      queries: [
+        {
+          datasource: {
+            type: "prometheus",
+            uid: "grafanacloud-prom",
           },
-          {
-            datasource: {
-              type: "prometheus",
-              uid: "grafanacloud-prom",
-            },
-            expr: '1000 * avg_over_time(probe_duration_seconds{instance="https://mesh.jazz.tools/self-sync-check", job="self-sync-check"}[$__interval])',
-            instant: false,
-            range: true,
-            interval: "15m",
-            refId: "latency_over_time",
+          expr: 'probe_success{instance="https://mesh.jazz.tools/self-sync-check", job="self-sync-check"}',
+          instant: true,
+          refId: "up",
+        },
+        {
+          datasource: {
+            type: "prometheus",
+            uid: "grafanacloud-prom",
           },
-          {
-            datasource: {
-              type: "prometheus",
-              uid: "grafanacloud-prom",
-            },
-            expr: '1000 * avg(avg_over_time(probe_duration_seconds{instance="https://mesh.jazz.tools/self-sync-check", job="self-sync-check"}[$__range])) by (probe)',
-            instant: true,
-            refId: "avg_latency",
+          expr: '1000 * avg_over_time(probe_duration_seconds{instance="https://mesh.jazz.tools/self-sync-check", job="self-sync-check"}[$__interval])',
+          instant: false,
+          range: true,
+          interval: "15m",
+          refId: "latency_over_time",
+        },
+        {
+          datasource: {
+            type: "prometheus",
+            uid: "grafanacloud-prom",
           },
-          {
-            datasource: {
-              type: "prometheus",
-              uid: "grafanacloud-prom",
-            },
-            expr: '1000 * histogram_quantile(0.95, sum(rate(probe_all_duration_seconds_bucket{instance="https://mesh.jazz.tools/self-sync-check", job="self-sync-check"}[$__range])) by (le, probe))',
-            instant: true,
-            refId: "p99_latency",
+          expr: '1000 * avg(avg_over_time(probe_duration_seconds{instance="https://mesh.jazz.tools/self-sync-check", job="self-sync-check"}[$__range])) by (probe)',
+          instant: true,
+          refId: "avg_latency",
+        },
+        {
+          datasource: {
+            type: "prometheus",
+            uid: "grafanacloud-prom",
           },
-        ],
-      }),
-    });
+          expr: '1000 * histogram_quantile(0.95, sum(rate(probe_all_duration_seconds_bucket{instance="https://mesh.jazz.tools/self-sync-check", job="self-sync-check"}[$__range])) by (le, probe))',
+          instant: true,
+          refId: "p99_latency",
+        },
+      ],
+    }),
+  });
 
-    const responseData = await res.json();
+  if (!res.ok) {
+  }
 
-    const byProbe: Record<string, DataRow> = {};
+  const responseData = await res.json();
 
-    for (const frame of responseData.results.up.frames) {
-      const probe = startCase(frame.schema.fields[1].labels.probe);
-      byProbe[probe] = {
-        ...byProbe[probe],
-        up: frame.data.values[1][0] === 1,
-      };
+  const byProbe: Record<string, DataRow> = {};
+
+  for (const frame of responseData.results.up.frames) {
+    const probe = startCase(frame.schema.fields[1].labels.probe);
+    byProbe[probe] = {
+      ...byProbe[probe],
+      up: frame.data.values[1][0] === 1,
+    };
+  }
+
+  for (const frame of responseData.results.latency_over_time.frames) {
+    const probe = startCase(frame.schema.fields[1].labels.probe);
+
+    byProbe[probe].latencyOverTime = frame.data.values;
+  }
+
+  for (const frame of responseData.results.avg_latency.frames) {
+    const probe = startCase(frame.schema.fields[1].labels.probe);
+    byProbe[probe].avgLatency = frame.data.values[1];
+  }
+
+  for (const frame of responseData.results.p99_latency.frames) {
+    const probe = startCase(frame.schema.fields[1].labels.probe);
+    byProbe[probe].p99Latency = frame.data.values[1];
+  }
+
+  const byRegion = Object.entries(byProbe).reduce<
+    Record<string, Record<string, DataRow>>
+  >((acc, [label, row]) => {
+    switch (label) {
+      case "Amsterdam":
+      case "Frankfurt":
+      case "London":
+      case "Paris":
+      case "Cape Town":
+        return { ...acc, EMEA: { ...acc["EMEA"], [label]: row } };
+      case "Atlanta":
+      case "Dallas":
+      case "New York":
+      case "San Francisco":
+      case "North Virginia":
+      case "Ohio":
+      case "Oregon":
+      case "Sao Paulo":
+      case "Toronto":
+        return { ...acc, AMER: { ...acc["AMER"], [label]: row } };
+      default:
+      case "Sydney":
+      case "Tokyo":
+      case "Seoul":
+      case "Mumbai":
+      case "Bangalore":
+        return { ...acc, APAC: { ...acc["APAC"], [label]: row } };
     }
+  }, {});
 
-    for (const frame of responseData.results.latency_over_time.frames) {
-      const probe = startCase(frame.schema.fields[1].labels.probe);
-
-      byProbe[probe].latencyOverTime = frame.data.values;
-    }
-
-    for (const frame of responseData.results.avg_latency.frames) {
-      const probe = startCase(frame.schema.fields[1].labels.probe);
-      byProbe[probe].avgLatency = frame.data.values[1];
-    }
-
-    for (const frame of responseData.results.p99_latency.frames) {
-      const probe = startCase(frame.schema.fields[1].labels.probe);
-      byProbe[probe].p99Latency = frame.data.values[1];
-    }
-
-    const byRegion = Object.entries(byProbe).reduce<
-      Record<string, Record<string, DataRow>>
-    >((acc, [label, row]) => {
-      switch (label) {
-        case "Amsterdam":
-        case "Frankfurt":
-        case "London":
-        case "Paris":
-        case "Cape Town":
-          return { ...acc, EMEA: { ...acc["EMEA"], [label]: row } };
-        case "Atlanta":
-        case "Dallas":
-        case "New York":
-        case "San Francisco":
-        case "North Virginia":
-        case "Ohio":
-        case "Oregon":
-        case "Sao Paulo":
-        case "Toronto":
-          return { ...acc, AMER: { ...acc["AMER"], [label]: row } };
-        default:
-        case "Sydney":
-        case "Tokyo":
-        case "Seoul":
-        case "Mumbai":
-        case "Bangalore":
-          return { ...acc, APAC: { ...acc["APAC"], [label]: row } };
-      }
-    }, {});
-
-    return byRegion;
-  },
-  ["latency_data"],
-  { revalidate: 300, tags: ["latency_data"] },
-);
+  return byRegion;
+};
 
 export const metadata = {
   title: "Status",
