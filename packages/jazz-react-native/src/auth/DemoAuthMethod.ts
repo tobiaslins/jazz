@@ -140,6 +140,7 @@ export class RNDemoAuth implements AuthMethod {
             this.driver.onSignedIn({ logOut });
           },
           onError: (error: string | Error) => {
+            this.kvStore.delete(localStorageKey);
             this.driver.onError(error);
           },
           logOut: async () => {

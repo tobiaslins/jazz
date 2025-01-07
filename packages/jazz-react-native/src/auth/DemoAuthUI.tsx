@@ -126,7 +126,14 @@ export const DemoAuthBasicUI = ({
       ]}
     >
       {state.state === "loading" ? (
-        <Text style={styles.loadingText}>Loading...</Text>
+        <>
+          <Text style={styles.loadingText}>Loading...</Text>
+          {state.errors.map((error, index) => (
+            <Text key={index} style={styles.errorText}>
+              {error}
+            </Text>
+          ))}
+        </>
       ) : state.state === "ready" ? (
         <View style={styles.formContainer}>
           <Text
