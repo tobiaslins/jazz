@@ -1,6 +1,6 @@
-import { cn } from "@/lib/utils";
+import { LatencyChart } from "@/components/LatencyChart";
+import { clsx } from "clsx";
 import { HeroHeader } from "gcmp-design-system/src/app/components/molecules/HeroHeader";
-import { HeartIcon } from "lucide-react";
 
 export const metadata = {
   title: "Status",
@@ -30,10 +30,48 @@ export default async function Page() {
           intervalMs: 1000,
           refId: "A",
         },
+        {
+          datasource: {
+            type: "prometheus",
+            uid: "grafanacloud-prom",
+          },
+          editorMode: "code",
+          expr: '1000 / 2 * avg(probe_duration_seconds{probe=~".*", instance="https://mesh.jazz.tools/self-sync-check", job="self-sync-check"} * on (instance, job,probe,config_version) group_left probe_success{probe=~".*",instance="https://mesh.jazz.tools/self-sync-check", job="self-sync-check"} > 0) by (probe)',
+          instant: false,
+          interval: "",
+          intervalFactor: 1,
+          legendFormat: "{{probe}}",
+          refId: "B",
+        },
       ],
     }),
   });
+
   const responseData = await res.json();
+
+  if (!responseData.results?.A?.frames || !responseData.results?.B?.frames)
+    return;
+
+  const byProbe: any[] = [];
+
+  for (const frame of responseData.results.A.frames) {
+    const probe = frame.schema.fields[1].labels.probe;
+    byProbe[probe] = {
+      status: frame.data.values[1][0],
+      label: startCase(probe),
+    };
+  }
+
+  for (const frame of responseData.results.B.frames) {
+    const probe = frame.schema.fields[1].labels.probe;
+    if (!byProbe[probe]) {
+      byProbe[probe] = {
+        label: startCase(probe),
+      };
+    }
+
+    byProbe[probe].latencyOverTime = frame.data.values;
+  }
 
   return (
     <div className="container flex flex-col gap-6 pb-10 lg:pb-20">
@@ -42,29 +80,56 @@ export default async function Page() {
         slogan="Great system status spage by smart people."
       />
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-8">
-        {responseData.results.A.frames.map((frame) => (
-          <div key={frame.schema.fields[1].labels.probe}>
-            <h2 className="text-2xl">
-              {startCase(frame.schema.fields[1].labels.probe)}
-            </h2>
-            <div className="mt-2">
-              <HeartIcon
-                className={cn(
-                  "w-10 h-10",
-                  frame.data.values[1][0] === 1
-                    ? "text-green-500"
-                    : "text-red-500",
-                )}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {/* <pre>{JSON.stringify(responseData, null, 2)}</pre> */}
-      </div>
+      <table className="min-w-full">
+        <thead className="text-left text-sm font-semibold text-stone-900 dark:text-white">
+          <tr>
+            <th scope="col" className="py-3.5 pl-4 pr-3 sm:pl-3 w-3/5">
+              Latency
+            </th>
+            <th scope="col" className="px-3 py-3.5">
+              Average
+            </th>
+            <th scope="col" className="px-3 py-3.5 whitespace-nowrap">
+              99th %
+            </th>
+            <th scope="col" className="px-3 py-3.5">
+              Status
+            </th>
+            <th>
+              <span className="sr-only">Location</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.values(byProbe).map((row) => (
+            <tr key={row.label} className="border-t">
+              <td className="pr-3">
+                <LatencyChart data={row} />
+              </td>
+              <td className="whitespace-nowrap px-3 py-4 text-sm">100ms</td>
+              <td className="whitespace-nowrap px-3 py-4 text-sm">100ms</td>
+              <td className="whitespace-nowrap px-3 py-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <div
+                    className={clsx(
+                      "flex-none rounded-full p-1",
+                      row.status === 1
+                        ? "text-green-400 bg-green-400/10"
+                        : "text-rose-400 bg-rose-400/10",
+                    )}
+                  >
+                    <div className="size-1.5 rounded-full bg-current" />
+                  </div>
+                  {row.status === 1 ? "Up" : "Down"}
+                </div>
+              </td>
+              <td className="whitespace-nowrap px-3 py-4 text-sm">
+                {row.label}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
