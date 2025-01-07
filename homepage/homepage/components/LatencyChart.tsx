@@ -15,15 +15,15 @@ const ranges = [
     className: "bg-green-400",
   },
   {
-    from: 100,
+    from: 50,
     className: "bg-green-500",
   },
   {
-    from: 200,
+    from: 100,
     className: "bg-green-600",
   },
   {
-    from: 300,
+    from: 250,
     className: "bg-green-700",
   },
   {
@@ -35,7 +35,7 @@ const ranges = [
     className: "bg-green-900",
   },
   {
-    from: 1000,
+    from: 1500,
     className: "bg-green-950",
   },
   {
