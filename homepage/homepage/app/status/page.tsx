@@ -69,6 +69,7 @@ const query = async () => {
   });
 
   if (!res.ok) {
+    return;
   }
 
   const responseData = await res.json();
@@ -168,49 +169,57 @@ export default async function Page() {
           </tr>
         </thead>
         <tbody>
-          {Object.entries(byRegion).map(([region, byProbe]) => (
-            <Fragment key={region}>
-              <tr>
-                <th
-                  colSpan={5}
-                  className="py-4 px-3 text-sm font-semibold text-right"
-                >
-                  {region}
-                </th>
-              </tr>
-              {Object.entries(byProbe).map(([label, row]) => (
-                <tr key={label} className="border-t">
-                  <td className="px-3 py-4 hidden md:table-cell">
-                    <LatencyChart data={row.latencyOverTime} />
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-4 text-sm">
-                    {Math.round(row.avgLatency)} ms
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-4 text-sm">
-                    {Math.round(row.p99Latency)} ms
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-4 text-sm">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={clsx(
-                          "flex-none rounded-full p-1",
-                          row.up
-                            ? "text-green-400 bg-green-400/10"
-                            : "text-rose-400 bg-rose-400/10",
-                        )}
-                      >
-                        <div className="size-1.5 rounded-full bg-current" />
-                      </div>
-                      {row.up ? "Up" : "Down"}
-                    </div>
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-4 text-sm">
-                    {label}
-                  </td>
+          {!byRegion ? (
+            <tr>
+              <td colSpan={5} className="py-4 px-3 text-sm text-center">
+                No data. Please try again later.
+              </td>
+            </tr>
+          ) : (
+            Object.entries(byRegion).map(([region, byProbe]) => (
+              <Fragment key={region}>
+                <tr>
+                  <th
+                    colSpan={5}
+                    className="py-4 px-3 text-sm font-semibold text-right"
+                  >
+                    {region}
+                  </th>
                 </tr>
-              ))}
-            </Fragment>
-          ))}
+                {Object.entries(byProbe).map(([label, row]) => (
+                  <tr key={label} className="border-t">
+                    <td className="px-3 py-4 hidden md:table-cell">
+                      <LatencyChart data={row.latencyOverTime} />
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-4 text-sm">
+                      {Math.round(row.avgLatency)} ms
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-4 text-sm">
+                      {Math.round(row.p99Latency)} ms
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-4 text-sm">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={clsx(
+                            "flex-none rounded-full p-1",
+                            row.up
+                              ? "text-green-400 bg-green-400/10"
+                              : "text-rose-400 bg-rose-400/10",
+                          )}
+                        >
+                          <div className="size-1.5 rounded-full bg-current" />
+                        </div>
+                        {row.up ? "Up" : "Down"}
+                      </div>
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-4 text-sm">
+                      {label}
+                    </td>
+                  </tr>
+                ))}
+              </Fragment>
+            ))
+          )}
         </tbody>
       </table>
     </div>
