@@ -15,6 +15,10 @@
       "types": "./src/index.native.ts",
       "default": "./dist/index.native.js"
     },
+    "./testing": {
+      "types": "./src/testing.ts",
+      "default": "./dist/testing.js"
+    },
     "./src/*": "./src/*"
   },
   "type": "module",

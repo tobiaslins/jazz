@@ -61,10 +61,6 @@ describe("useAccountOrGuest", () => {
   });
 
   it("should not load nested values if the account is a guest", async () => {
-    class AccountRoot extends CoMap {
-      value = co.string;
-    }
-
     const account = await createJazzTestGuest();
 
     const { result } = renderHook(
