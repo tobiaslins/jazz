@@ -23,8 +23,15 @@ export namespace RNDemoAuth {
 
 const localStorageKey = "demo-auth-logged-in-secret";
 
+export function encodeUsername(username: string) {
+  return btoa(username)
+    .replace(/=/g, "-")
+    .replace(/\+/g, "_")
+    .replace(/\//g, ".");
+}
+
 function getUserStorageKey(username: string) {
-  return `demo-auth-existing-users-${btoa(username)}`;
+  return `demo-auth-existing-users-${encodeUsername(username)}`;
 }
 
 function getLegacyUserStorageKey(username: string) {
