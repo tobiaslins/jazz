@@ -2,6 +2,13 @@ import { LatencyChart } from "@/components/LatencyChart";
 import { clsx } from "clsx";
 import { HeroHeader } from "gcmp-design-system/src/app/components/molecules/HeroHeader";
 
+interface DataRow {
+  up: boolean;
+  latencyOverTime: [number[], number[]];
+  avgLatency: number;
+  p99Latency: number;
+}
+
 export const metadata = {
   title: "Status",
   description: "Great apps by smart people.",
@@ -15,7 +22,7 @@ export default async function Page() {
       Authorization: `Bearer ${process.env.GRAFANA_SERVICE_ACCOUNT}`,
     },
     body: JSON.stringify({
-      from: "now-5m",
+      from: "now-7d",
       to: "now",
       queries: [
         {
@@ -23,25 +30,39 @@ export default async function Page() {
             type: "prometheus",
             uid: "grafanacloud-prom",
           },
-          expr: 'avg(probe_success{instance="https://mesh.jazz.tools/self-sync-check", job="self-sync-check"}) by (probe)',
+          expr: 'probe_success{instance="https://mesh.jazz.tools/self-sync-check", job="self-sync-check"}',
           instant: true,
-          intervalFactor: 1,
-          maxDataPoints: 100,
-          intervalMs: 1000,
-          refId: "A",
+          refId: "up",
         },
         {
           datasource: {
             type: "prometheus",
             uid: "grafanacloud-prom",
           },
-          editorMode: "code",
-          expr: '1000 / 2 * avg(probe_duration_seconds{probe=~".*", instance="https://mesh.jazz.tools/self-sync-check", job="self-sync-check"} * on (instance, job,probe,config_version) group_left probe_success{probe=~".*",instance="https://mesh.jazz.tools/self-sync-check", job="self-sync-check"} > 0) by (probe)',
+          // This caluclates the average latency over time
+          expr: '1000 * avg_over_time(probe_duration_seconds{instance="https://mesh.jazz.tools/self-sync-check", job="self-sync-check"}[$__interval])',
           instant: false,
-          interval: "",
-          intervalFactor: 1,
-          legendFormat: "{{probe}}",
-          refId: "B",
+          range: true,
+          interval: "15m",
+          refId: "latency_over_time",
+        },
+        {
+          datasource: {
+            type: "prometheus",
+            uid: "grafanacloud-prom",
+          },
+          expr: '1000 * avg(avg_over_time(probe_duration_seconds{instance="https://mesh.jazz.tools/self-sync-check", job="self-sync-check"}[$__range])) by (probe)',
+          instant: true,
+          refId: "avg_latency",
+        },
+        {
+          datasource: {
+            type: "prometheus",
+            uid: "grafanacloud-prom",
+          },
+          expr: '1000 * histogram_quantile(0.95, sum(rate(probe_all_duration_seconds_bucket{instance="https://mesh.jazz.tools/self-sync-check", job="self-sync-check"}[$__range])) by (le, probe))',
+          instant: true,
+          refId: "p99_latency",
         },
       ],
     }),
@@ -49,28 +70,30 @@ export default async function Page() {
 
   const responseData = await res.json();
 
-  if (!responseData.results?.A?.frames || !responseData.results?.B?.frames)
-    return;
+  const byProbe: Record<string, DataRow> = {};
 
-  const byProbe: any[] = [];
-
-  for (const frame of responseData.results.A.frames) {
-    const probe = frame.schema.fields[1].labels.probe;
+  for (const frame of responseData.results.up.frames) {
+    const probe = startCase(frame.schema.fields[1].labels.probe);
     byProbe[probe] = {
-      status: frame.data.values[1][0],
-      label: startCase(probe),
+      ...byProbe[probe],
+      up: frame.data.values[1][0] === 1,
     };
   }
 
-  for (const frame of responseData.results.B.frames) {
-    const probe = frame.schema.fields[1].labels.probe;
-    if (!byProbe[probe]) {
-      byProbe[probe] = {
-        label: startCase(probe),
-      };
-    }
+  for (const frame of responseData.results.latency_over_time.frames) {
+    const probe = startCase(frame.schema.fields[1].labels.probe);
 
     byProbe[probe].latencyOverTime = frame.data.values;
+  }
+
+  for (const frame of responseData.results.avg_latency.frames) {
+    const probe = startCase(frame.schema.fields[1].labels.probe);
+    byProbe[probe].avgLatency = frame.data.values[1];
+  }
+
+  for (const frame of responseData.results.p99_latency.frames) {
+    const probe = startCase(frame.schema.fields[1].labels.probe);
+    byProbe[probe].p99Latency = frame.data.values[1];
   }
 
   return (
@@ -87,10 +110,10 @@ export default async function Page() {
               Latency
             </th>
             <th scope="col" className="px-3 py-3.5">
-              Average
+              Avg.
             </th>
             <th scope="col" className="px-3 py-3.5 whitespace-nowrap">
-              99th %
+              p99
             </th>
             <th scope="col" className="px-3 py-3.5">
               Status
@@ -101,31 +124,33 @@ export default async function Page() {
           </tr>
         </thead>
         <tbody>
-          {Object.values(byProbe).map((row) => (
-            <tr key={row.label} className="border-t">
+          {Object.entries(byProbe).map(([label, row]) => (
+            <tr key={label} className="border-t">
               <td className="pr-3">
-                <LatencyChart data={row} />
+                <LatencyChart data={row.latencyOverTime} />
               </td>
-              <td className="whitespace-nowrap px-3 py-4 text-sm">100ms</td>
-              <td className="whitespace-nowrap px-3 py-4 text-sm">100ms</td>
+              <td className="whitespace-nowrap px-3 py-4 text-sm">
+                {Math.round(row.avgLatency)} ms
+              </td>
+              <td className="whitespace-nowrap px-3 py-4 text-sm">
+                {Math.round(row.p99Latency)} ms
+              </td>
               <td className="whitespace-nowrap px-3 py-4 text-sm">
                 <div className="flex items-center gap-2">
                   <div
                     className={clsx(
                       "flex-none rounded-full p-1",
-                      row.status === 1
+                      row.up
                         ? "text-green-400 bg-green-400/10"
                         : "text-rose-400 bg-rose-400/10",
                     )}
                   >
                     <div className="size-1.5 rounded-full bg-current" />
                   </div>
-                  {row.status === 1 ? "Up" : "Down"}
+                  {row.up ? "Up" : "Down"}
                 </div>
               </td>
-              <td className="whitespace-nowrap px-3 py-4 text-sm">
-                {row.label}
-              </td>
+              <td className="whitespace-nowrap px-3 py-4 text-sm">{label}</td>
             </tr>
           ))}
         </tbody>

@@ -1,6 +1,6 @@
 "use client";
 
-import { ApexOptions } from "apexcharts";
+import type { ApexOptions } from "apexcharts";
 import dynamic from "next/dynamic";
 import { useMemo } from "react";
 
@@ -8,20 +8,18 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
 });
 
-export function LatencyChart({ data }: { data: any }) {
+interface Props {
+  data: [number[], number[]];
+}
+export function LatencyChart({ data }: Props) {
   const series = useMemo(() => {
     return {
       name: "Latency",
-      data: data.latencyOverTime[0].map(
-        (timestamp: number, latency: number) => ({
-          x: timestamp,
-          y: Math.round(data.latencyOverTime[1][latency]),
-        }),
-      ),
-    };
+      data: data[1].map((value) => Math.round(value)),
+    } satisfies ApexAxisChartSeries[number];
   }, [data]);
 
-  const options: ApexOptions = {
+  const options = {
     grid: {
       show: false,
     },
@@ -59,26 +57,17 @@ export function LatencyChart({ data }: { data: any }) {
     },
     yaxis: {
       show: false,
-      labels: {
-        formatter: function (value: number) {
-          return value + " milliseconds";
-        },
-      },
     },
-
     tooltip: {
       theme: "",
-      custom: function ({ series, seriesIndex, dataPointIndex, w }) {
+      custom: ({ series, seriesIndex, dataPointIndex, w }) => {
         const latency = series[seriesIndex][dataPointIndex];
-
-        const date = new Date(
-          w.globals.labels[dataPointIndex],
-        ).toLocaleString();
+        const date = new Date(data[0][dataPointIndex]).toLocaleString();
 
         return `
-<div class="">
+<div>
   <span class="text-xs">${date}</span><br/>
-  <span><span class="font-semibold text-stone-900 dark:text-white">${latency}</span> milliseconds</span><br/>
+  <span><span class="font-semibold text-stone-900 dark:text-white">${latency}</span> ms</span><br/>
 </div>
         `;
       },
@@ -141,13 +130,14 @@ export function LatencyChart({ data }: { data: any }) {
             },
             {
               from: 3000,
+              to: Number.POSITIVE_INFINITY,
               color: "#ff001e",
             },
           ],
         },
       },
     },
-  };
+  } satisfies ApexOptions;
 
   return (
     <ReactApexChart
