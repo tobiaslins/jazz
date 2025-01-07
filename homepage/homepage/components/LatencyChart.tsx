@@ -1,151 +1,108 @@
 "use client";
 
-import type { ApexOptions } from "apexcharts";
-import dynamic from "next/dynamic";
+import { cn } from "@/lib/utils";
 import { useMemo } from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "./tooltip";
 
-const ReactApexChart = dynamic(() => import("react-apexcharts"), {
-  ssr: false,
-});
-
+const ranges = [
+  {
+    from: 0,
+    className: "bg-green-400",
+  },
+  {
+    from: 100,
+    className: "bg-green-500",
+  },
+  {
+    from: 200,
+    className: "bg-green-600",
+  },
+  {
+    from: 300,
+    className: "bg-green-700",
+  },
+  {
+    from: 500,
+    className: "bg-green-800",
+  },
+  {
+    from: 750,
+    className: "bg-green-900",
+  },
+  {
+    from: 1000,
+    className: "bg-green-950",
+  },
+  {
+    from: 3000,
+    className: "bg-[#ff001e]",
+  },
+];
 interface Props {
   data: [number[], number[]];
 }
-export function LatencyChart({ data }: Props) {
+export default function LatencyChart({ data }: Props) {
   const series = useMemo(() => {
-    return {
-      name: "Latency",
-      data: data[1].map((value) => Math.round(value)),
-    } satisfies ApexAxisChartSeries[number];
+    return data[1].map((value, index) => ({
+      ts: data[0][index],
+      value: Math.round(value),
+    }));
   }, [data]);
 
-  const options = {
-    grid: {
-      show: false,
-    },
-    stroke: {
-      show: false,
-    },
-    chart: {
-      animations: {
-        enabled: false,
-      },
-      type: "heatmap",
-      toolbar: {
-        show: false,
-      },
-    },
-    dataLabels: {
-      enabled: false,
-    },
-    title: {
-      text: "",
-    },
-    xaxis: {
-      labels: {
-        show: false,
-      },
-      axisBorder: {
-        show: false,
-      },
-      axisTicks: {
-        show: false,
-      },
-      tooltip: {
-        enabled: false,
-      },
-    },
-    yaxis: {
-      show: false,
-    },
-    tooltip: {
-      theme: "",
-      custom: ({ series, seriesIndex, dataPointIndex, w }) => {
-        const latency = series[seriesIndex][dataPointIndex];
-        const date = new Date(data[0][dataPointIndex]).toLocaleString();
-
-        return `
-<div>
-  <span class="text-xs">${date}</span><br/>
-  <span><span class="font-semibold text-stone-900 dark:text-white">${latency}</span> ms</span><br/>
-</div>
-        `;
-      },
-      cssClass: "g-apexcharts-tooltip",
-    },
-    plotOptions: {
-      heatmap: {
-        radius: 0,
-        colorScale: {
-          ranges: [
-            {
-              from: 0,
-              to: 10,
-              color: "#1ae200",
-            },
-            {
-              from: 10,
-              to: 50,
-              color: "#32c119",
-            },
-            {
-              from: 50,
-              to: 100,
-              color: "#62bd56",
-            },
-            {
-              from: 100,
-              to: 200,
-              color: "#4c8944",
-            },
-            {
-              from: 200,
-              to: 300,
-              color: "#3b6537",
-            },
-            {
-              from: 300,
-              to: 400,
-              color: "#405b3d",
-            },
-            {
-              from: 400,
-              to: 500,
-              color: "#395335",
-            },
-            {
-              from: 500,
-              to: 750,
-              color: "#283e2b",
-            },
-            {
-              from: 750,
-              to: 1000,
-              color: "#1e2a1d",
-            },
-            {
-              from: 1000,
-              to: 3000,
-              color: "#162018",
-            },
-            {
-              from: 3000,
-              to: Number.POSITIVE_INFINITY,
-              color: "#ff001e",
-            },
-          ],
-        },
-      },
-    },
-  } satisfies ApexOptions;
-
   return (
-    <ReactApexChart
-      options={options}
-      series={[series]}
-      type="heatmap"
-      width={900}
-      height={100}
-    />
+    <>
+      <TooltipProvider delayDuration={0} skipDelayDuration={0}>
+        <figure className="flex items-stretch w-full gap-px">
+          {series.map(({ value, ts }) => {
+            const valueClass = getClassForValue(value);
+            return (
+              <Tooltip key={ts}>
+                <TooltipTrigger asChild>
+                  <div
+                    className={cn(
+                      "h-6 w-full rounded-md hover:opacity-50",
+                      valueClass,
+                    )}
+                  />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <time
+                    className="text-xs"
+                    dateTime={new Date(ts).toISOString()}
+                  >
+                    {new Date(ts).toLocaleString()}
+                  </time>
+                  <p className="text-sm text-right">
+                    <span
+                      className={cn(
+                        "rounded-md size-3 inline-block mr-1",
+                        valueClass,
+                      )}
+                    />
+                    <span className="font-semibold">{value}</span> ms
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            );
+          })}
+        </figure>
+      </TooltipProvider>
+    </>
   );
+}
+
+function getClassForValue(value: number) {
+  for (let i = 0; i < ranges.length; i++) {
+    const { from } = ranges[i];
+    if (value < from) {
+      return ranges[i - 1].className;
+    }
+  }
+
+  return ranges[ranges.length - 1].className;
 }
