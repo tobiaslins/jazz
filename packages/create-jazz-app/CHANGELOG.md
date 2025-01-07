@@ -1,5 +1,11 @@
 # create-jazz-app
 
+## 0.1.3
+
+### Patch Changes
+
+- d4d98c4: Simplify starter app for react demo auth
+
 ## 0.1.2
 
 ### Patch Changes
