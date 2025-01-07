@@ -143,10 +143,7 @@ export default async function Page() {
 
   return (
     <div className="container flex flex-col gap-6 pb-10 lg:pb-20">
-      <HeroHeader
-        title="Systems status"
-        slogan="Great system status spage by smart people."
-      />
+      <HeroHeader title="Systems status" />
 
       <table className="min-w-full">
         <thead className="text-left text-sm font-semibold text-stone-900 dark:text-white">
