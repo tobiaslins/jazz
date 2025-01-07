@@ -34,8 +34,6 @@ function App() {
   >("ChatScreen");
   const navigationRef = useNavigationContainerRef();
 
-  console.log("auth", state);
-
   useEffect(() => {
     Linking.getInitialURL().then((url) => {
       if (url) {
