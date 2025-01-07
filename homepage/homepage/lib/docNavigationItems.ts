@@ -51,8 +51,8 @@ export const docNavigationItems = [
         done: 80,
       },
       {
-        name: "Upgrade guides",
-        href: "/docs/upgrading",
+        name: "Upgrade to Jazz 0.9.0",
+        href: "/docs/upgrade/0-9-0",
         done: 100,
       },
     ],
