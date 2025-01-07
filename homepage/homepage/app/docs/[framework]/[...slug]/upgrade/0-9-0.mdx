@@ -13,7 +13,7 @@ export const metadata = { title: "Upgrade to Jazz 0.9.0" };
     Version 0.9.0 simplifies the application setup and makes Jazz more intellisense friendly by
     replacing the `createJazzReactApp` API with top-level imports.
 
-    We have also introduced some new API to make testing Jazz components like a breeze. 🌬️
+    We have also introduced some new API to make testing Jazz components a breeze. 🌬️
   </p>
 
   <h3>New provider setup</h3>
@@ -21,7 +21,10 @@ export const metadata = { title: "Upgrade to Jazz 0.9.0" };
   <p>
     The `JazzProvider` is now imported from `jazz-react` instead of `createJazzReactApp`.
 
-    To make Typescript happy when you define your own Account schema, you now need to declare it in the `jazz-react` namespace:
+    While `createJazzReactApp` was originally designed to setup strong typing for custom Account schemas in `useAccount`, 
+    we found that this approach made the Jazz setup awkward and confusing for some users.
+
+    So we decided to remove the `createJazzReactApp` step and to provide the types through namespace declarations:
   </p>
 
   <CodeGroup>
@@ -30,24 +33,23 @@ export const metadata = { title: "Upgrade to Jazz 0.9.0" };
       import { JazzProvider } from "jazz-react";
       import { MyAppAccount } from "./schema";
 
-      // Remove this:
-      // const Jazz = createJazzReactApp({ AccountSchema: MyAppAccount });
-      // export const { useAccount, useCoState } = Jazz;
+      // Remove these lines  // *bin*
+      const Jazz = createJazzReactApp({ AccountSchema: MyAppAccount }); // *bin*
+      export const { useAccount, useCoState } = Jazz; // *bin*
 
       export function JazzAndAuth({ children }: { children: React.ReactNode }) {  // old
           const [passkeyAuth, passKeyState] = usePasskeyAuth({ appName });  // old
 
           return (
               <>
-              {/* <Jazz.Provider> */}
-                  <JazzProvider {/* This now is imported from jazz-react */}
+                  {/* Replace Jazz.Provider with provider from jazz-react */}
+                  <JazzProvider
                       auth={passkeyAuth} // old
                       peer="wss://cloud.jazz.tools/?key=you@example.com" // old
                       AccountSchema={MyAppAccount} {/* The custom Account schema is passed here */}
                   >
                       {children} // old
                   </JazzProvider>
-              {/* </Jazz.Provider> */}
                   <PasskeyAuthBasicUI state={passKeyState} /> // old
               </> // old
           ); 
@@ -65,13 +67,16 @@ export const metadata = { title: "Upgrade to Jazz 0.9.0" };
   <h3>Top level imports for hooks</h3>
 
   <p>
-    Now you can import the Jazz hooks like `useAccount` and `useCoState` directly from `jazz-react`:
+    All Jazz hooks are now available as top-level imports from the `jazz-react` package. 
+    
+    This change improves IDE intellisense support and simplifies imports:
   </p>
 
   <CodeGroup>
     {/* prettier-ignore */}
     ```tsx
-    // import { useAccount } from "./main";
+    // Replace local imports with "jazz-react" imports
+    import { useAccount } from "./main"; // *bin*
     import { useAccount } from "jazz-react";
 
     export function Hello() {
@@ -89,9 +94,9 @@ export const metadata = { title: "Upgrade to Jazz 0.9.0" };
   <h3>New testing utilities</h3>
 
   <p>
-    Removing the setup through `createJazzTestApp` has made possible to bring your own provider.
+    Removing `createJazzTestApp` also makes testing way easier!
 
-    This makes testing way easier, so can now use `createJazzTestAccount` to setup fake accounts and testing data and pass it to
+    We can now use `createJazzTestAccount` to setup accounts and testing data and pass it to
     your components and hooks using `JazzTestProvider`:
   </p>
 
@@ -104,14 +109,15 @@ export const metadata = { title: "Upgrade to Jazz 0.9.0" };
       import { Playlist, MusicAccount } from "./schema"; // old
 
       test("should load the playlist", async () => {
-        // Create a test account with your custom schema
+        // ✅ Create a test account with your schema
         const account = await createJazzTestAccount({ AccountSchema: MusicAccount });
 
+        // ✅ Set up test data
         const playlist = Playlist.create({
           name: "My playlist",
         }, account);
 
-        // Render the hook while providing the test account through the wrapper
+        // ✅ Use JazzTestProvider in your tests
         const { result } = renderHook(() => usePlaylist(playlist.id), {
           wrapper: ({ children }) => (
             <JazzTestProvider account={account}>
