@@ -11,10 +11,10 @@ export function FakeGetStartedButton() {
         );
         window.location.pathname = "/docs";
       }}
-      size="md"
+      size="lg"
       variant="primary"
     >
-      Get started
+      Get Starter API Key
     </Button>
   );
 }
