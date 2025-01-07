@@ -662,9 +662,7 @@ export class RawGroup<
       .getCurrentContent() as M;
 
     if (init) {
-      for (const [key, value] of Object.entries(init)) {
-        map.set(key, value, initPrivacy);
-      }
+      map.assign(init, initPrivacy);
     }
 
     return map;
@@ -694,10 +692,8 @@ export class RawGroup<
       })
       .getCurrentContent() as L;
 
-    if (init) {
-      for (const item of init) {
-        list.append(item, undefined, initPrivacy);
-      }
+    if (init?.length) {
+      list.appendItems(init, undefined, initPrivacy);
     }
 
     return list;
