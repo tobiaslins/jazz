@@ -54,13 +54,13 @@ export function useDemoAuth({
       {
         onReady: async ({ signUp, getExistingUsers, logInAs }) => {
           const existingUsers = await getExistingUsers();
-          setState({
+          setState((current) => ({
             state: "ready",
             signUp,
             existingUsers,
             logInAs,
-            errors: [],
-          });
+            errors: current.errors,
+          }));
         },
         onSignedIn: ({ logOut }) => {
           setState({ state: "signedIn", logOut, errors: [] });
@@ -68,14 +68,14 @@ export function useDemoAuth({
         onError: (error) => {
           setState((current) => ({
             ...current,
-            errors: [...current.errors, error.toString()],
+            errors: [error.toString()],
           }));
         },
       },
       seedAccounts,
       store,
     );
-  }, [seedAccounts]);
+  }, [seedAccounts, state.errors]); // We reset the auth method when getting an error
 
   useEffect(() => {
     async function init() {
