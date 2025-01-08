@@ -44,7 +44,7 @@ export class MyAccount extends Account {
 ```svelte
 <!-- src/routes/+layout.svelte -->
  <script lang="ts" module>
-  // Register the Account schema for type safety
+  // Register the Account schema so `useAccount` returns our custom `MyAppAccount`
   declare module 'jazz-svelte' {
     interface Register {
       Account: MyAccount;
@@ -74,18 +74,20 @@ export class MyAccount extends Account {
 <!-- src/routes/+page.svelte -->
 <script lang="ts">
   import { useCoState, useAccount } from 'jazz-svelte';
+  import { MyProfile } from './schema';
 
   const { me } = useAccount();
 
-  const counter = $derived(useCoState(co.number, me.profile.counter));
+  const profile = $derived(useCoState(MyProfile, me._refs.profile.id));
 
   function increment() {
-    me.profile.counter = counter + 1;
+    if (!profile.current) return;
+    profile.current.counter = profile.current.counter + 1;
   }
 </script>
 
 <button on:click={increment}>
-  Count: {counter}
+  Count: {profile.current?.counter}
 </button>
 ```
 </CodeGroup>
