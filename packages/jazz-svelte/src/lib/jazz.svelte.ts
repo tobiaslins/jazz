@@ -11,7 +11,7 @@ import type {
   DepthsIn,
   ID
 } from 'jazz-tools';
-import { Account, createCoValueObservable } from 'jazz-tools';
+import { Account, createCoValueObservable, subscribeToCoValue } from 'jazz-tools';
 import { getContext, untrack } from 'svelte';
 import Provider from './Provider.svelte';
 
@@ -159,10 +159,8 @@ export function useCoState<V extends CoValue, D extends DepthsIn<V> = []>(
 
   // Create state and a stable observable
   let state = $state.raw<DeeplyLoaded<V, D> | undefined>(undefined);
-  const observable = $state.raw(createCoValueObservable());
 
   // Effect to handle subscription
-  // TODO: Possibly memoise this, to avoid re-subscribing
   $effect(() => {
     // Reset state when dependencies change
     state = undefined;
@@ -171,15 +169,17 @@ export function useCoState<V extends CoValue, D extends DepthsIn<V> = []>(
     if (!ctx?.current || !id) return;
 
     // Setup subscription with current values
-    return observable.subscribe(
+    return subscribeToCoValue(
       Schema,
       id,
       'me' in ctx.current ? ctx.current.me : ctx.current.guest,
       depth,
-      () => {
+      (value) => {
         // Get current value from our stable observable
-        state = observable.getCurrentValue();
-      }
+        state = value;
+      },
+      undefined,
+      true
     );
   });
 

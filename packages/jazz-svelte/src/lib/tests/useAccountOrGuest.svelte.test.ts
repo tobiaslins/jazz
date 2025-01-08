@@ -1,4 +1,4 @@
-import { render, waitFor } from "@testing-library/svelte";
+import { render } from "@testing-library/svelte";
 import { Account, AnonymousJazzAgent, CoMap, co, type DepthsIn } from "jazz-tools";
 import { describe, expect, it } from "vitest";
 import { useAccountOrGuest, type RegisteredAccount } from "../index.js";
@@ -54,9 +54,7 @@ describe("useAccountOrGuest", () => {
       account,
     });
 
-    await waitFor(() => {
       expect(result.current?.me).toEqual(account);
-    });
   });
 
 
@@ -67,9 +65,7 @@ describe("useAccountOrGuest", () => {
       account,
     });
 
-    await waitFor(() => {
       expect(result.current?.me).toEqual(account.guest);
-    });
   });
 
   it("should load nested values if requested", async () => {
@@ -84,9 +80,7 @@ describe("useAccountOrGuest", () => {
       }
     });
 
-    await waitFor(() => {
       // @ts-expect-error Skipping the guest check
       expect(result.current?.me?.root?.value).toBe("123");
-    });
   });
 });
