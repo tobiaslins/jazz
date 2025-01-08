@@ -192,11 +192,13 @@ export class MyAppAccount extends Account {
       } // old
 
       // We need to load the root field to check for the myContacts field
-      const { root } = await me.ensureLoaded({
+      const result = await me.ensureLoaded({
         root: {},
       });
 
-      if (!root) throw new Error("Root missing!"); // this should never happen
+      if (!result) throw new Error("Root missing!"); // this should never happen
+
+      const { root } = result;
 
       // we specifically need to check for undefined, 
       // because myBookmarks might simply be not loaded (`null`) yet 
