@@ -46,14 +46,11 @@ function App() {
       }
     });
 
-    console.log("App constructor");
-
     SQLiteStorage.asPeer({
-      filename: "abc333",
+      filename: "jazz-storage",
       trace: false,
     })
       .then((peer) => {
-        console.log("asPeereeeee", peer);
         setPeers([peer]);
       })
       .catch((e) => {
