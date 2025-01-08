@@ -1,5 +1,14 @@
 # jazz-tools
 
+## 0.9.0
+
+### Patch Changes
+
+- 8eda792: Optimize the subscribe to resolve the CoValues stored in memory synchronously
+- Updated dependencies [8eda792]
+- Updated dependencies [1ef3226]
+  - cojson@0.9.0
+
 ## 0.8.51
 
 ### Patch Changes
