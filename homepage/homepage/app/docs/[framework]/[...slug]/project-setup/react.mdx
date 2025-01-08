@@ -93,30 +93,31 @@ The easiest way to use Jazz with Next.JS is to only use it on the client side. Y
 - marking the `jazz.tsx` file as `"use client"`
 
 <CodeGroup>
-  {/* prettier-ignore */}
-  ```tsx
-  "use client"
-  import { createJazzReactApp } from "jazz-react";// old
+{/* prettier-ignore */}
+```tsx
+"use client";
 
-  const Jazz = createJazzReactApp();// old
-  export const { useAccount, useCoState } = Jazz;// old
+import { createJazzReactApp } from "jazz-react";// old
 
-  import { PasskeyAuthBasicUI, usePasskeyAuth } from "jazz-react";// old
+const Jazz = createJazzReactApp();// old
+export const { useAccount, useCoState } = Jazz;// old
 
-  function JazzAndAuth({ children }: { children: React.ReactNode }) {// old
+import { PasskeyAuthBasicUI, usePasskeyAuth } from "jazz-react";// old
+
+function JazzAndAuth({ children }: { children: React.ReactNode }) {// old
   const [passkeyAuth, passKeyState] = usePasskeyAuth({ appName });// old
 
   return (// old
-  <>// old
-  <Jazz.Provider// old
-  auth={passkeyAuth}// old
-  peer="wss://cloud.jazz.tools/?key=you@example.com"// old
->// old
-  {children}// old
-</Jazz.Provider>// old
-<PasskeyAuthBasicUI state={passKeyState} />// old
-</>// old
-);// old
+    <>// old
+      <Jazz.Provider// old
+        auth={passkeyAuth}// old
+        peer="wss://cloud.jazz.tools/?key=you@example.com"// old
+      >// old
+        {children}// old
+      </Jazz.Provider>// old
+      <PasskeyAuthBasicUI state={passKeyState} />// old
+    </>// old
+  );// old
 }// old
 ```
 </CodeGroup>
