@@ -1,3 +1,4 @@
+import { SQLiteStorage } from "cojson-storage-rn-sqlite";
 import {
   Account,
   AgentID,
@@ -74,18 +75,23 @@ export async function createJazzRNContext<Acc extends Account>(
 
   const CryptoProvider = options.CryptoProvider || PureJSCrypto;
 
+  const storage = await SQLiteStorage.asPeer({
+    filename: "jazz-storage",
+    trace: false,
+  });
+
   const context =
     "auth" in options
       ? await createJazzContext({
           AccountSchema: options.AccountSchema,
           auth: options.auth,
           crypto: await CryptoProvider.create(),
-          peersToLoadFrom: [websocketPeer.peer],
+          peersToLoadFrom: [websocketPeer.peer, storage],
           sessionProvider: provideLockSession,
         })
       : await createJazzContext({
           crypto: await CryptoProvider.create(),
-          peersToLoadFrom: [websocketPeer.peer],
+          peersToLoadFrom: [websocketPeer.peer, storage],
         });
 
   const node =

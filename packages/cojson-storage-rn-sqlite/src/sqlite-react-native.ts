@@ -1,4 +1,4 @@
-import { DB, open, openSync } from "@op-engineering/op-sqlite";
+import { type DB, open } from "@op-engineering/op-sqlite";
 
 import {
   type IncomingSyncStream,
@@ -6,7 +6,7 @@ import {
   type Peer,
   cojsonInternals,
 } from "cojson";
-import { SyncManager, type TransactionRow } from "cojson-storage";
+import { SyncManager } from "cojson-storage";
 import { SQLiteClient } from "./client.js";
 
 export class SQLiteReactNative {
@@ -18,7 +18,6 @@ export class SQLiteReactNative {
     fromLocalNode: IncomingSyncStream,
     toLocalNode: OutgoingSyncQueue,
   ) {
-    console.log("SQLiteReactNative constructor");
     this.dbClient = new SQLiteClient(db, toLocalNode);
     this.syncManager = new SyncManager(this.dbClient, toLocalNode);
 
@@ -31,7 +30,6 @@ export class SQLiteReactNative {
             throw new Error("Unexpected Disconnected message");
           }
 
-          console.log(`#### Handing ${msg.action}`);
           await this.syncManager.handleSyncMessage(msg);
 
           // Since better-sqlite3 is synchronous there may be the case
@@ -98,8 +96,6 @@ export class SQLiteReactNative {
     const db = open({
       name: filename,
     });
-    const path = db.getDbPath();
-    console.warn(path);
 
     await db.execute("PRAGMA journal_mode = WAL;"); // or OFF
 
@@ -107,10 +103,7 @@ export class SQLiteReactNative {
       Number((await db.execute("PRAGMA user_version")).rows[0]?.user_version) ??
       0;
 
-    console.log("DB version", oldVersion);
-
     if (oldVersion === 0) {
-      console.log("Migration 0 -> 1: Basic schema");
       await db.execute(
         `CREATE TABLE IF NOT EXISTS transactions (
                     ses INTEGER,
@@ -148,41 +141,9 @@ export class SQLiteReactNative {
       );
 
       await db.execute("PRAGMA user_version = 1");
-      console.log("Migration 0 -> 1: Basic schema - done");
     }
 
-    if (oldVersion <= 1) {
-      // fix embarrassing off-by-one error for transaction indices
-      console.log(
-        "Migration 1 -> 2: Fix off-by-one error for transaction indices",
-      );
-
-      const { rows } = await db.execute("SELECT * FROM transactions");
-
-      if (!rows) return;
-
-      for (const tx of rows) {
-        await db.execute(`DELETE FROM transactions WHERE ses = ? AND idx = ?`, [
-          tx.ses!,
-          tx.idx!,
-        ]);
-        tx.idx = Number(tx.idx) - 1;
-        await db.execute(
-          `INSERT INTO transactions (ses, idx, tx) VALUES (?, ?, ?)`,
-          [tx.ses!, tx.idx!, tx.tx!],
-        );
-      }
-
-      await db.execute("PRAGMA user_version = 2");
-      console.log(
-        "Migration 1 -> 2: Fix off-by-one error for transaction indices - done",
-      );
-    }
-
-    console.log("oldVersion", oldVersion);
     if (oldVersion <= 2) {
-      console.log("Migration 2 -> 3: Add signatureAfter");
-
       await db.execute(
         `CREATE TABLE IF NOT EXISTS signatureAfter (
                     ses INTEGER,
@@ -197,7 +158,6 @@ export class SQLiteReactNative {
       );
 
       await db.execute("PRAGMA user_version = 3");
-      console.log("Migration 2 -> 3: Add signatureAfter - done!!");
     }
 
     return new SQLiteReactNative(db, fromLocalNode, toLocalNode);

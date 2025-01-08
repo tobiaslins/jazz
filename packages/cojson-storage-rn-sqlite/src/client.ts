@@ -13,11 +13,9 @@ import { Signature } from "cojson/src/crypto/crypto.js";
 
 export class SQLiteClient implements DBClientInterface {
   private readonly db: DatabaseT;
-  private readonly toLocalNode: OutgoingSyncQueue;
 
-  constructor(db: DatabaseT, toLocalNode: OutgoingSyncQueue) {
+  constructor(db: DatabaseT, _: OutgoingSyncQueue) {
     this.db = db;
-    this.toLocalNode = toLocalNode;
   }
 
   async getCoValue(coValueId: RawCoID): Promise<StoredCoValueRow | undefined> {
@@ -98,10 +96,8 @@ export class SQLiteClient implements DBClientInterface {
 
   async addSessionUpdate({
     sessionUpdate,
-    sessionRow,
   }: {
     sessionUpdate: SessionRow;
-    sessionRow?: StoredSessionRow;
   }): Promise<number> {
     const { rows } = await this.db.execute(
       `INSERT INTO sessions (coValue, sessionID, lastIdx, lastSignature, bytesSinceLastSignature) 
