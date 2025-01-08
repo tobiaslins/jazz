@@ -90,7 +90,7 @@ export class MyAppRoot extends CoMap {// old
 
 export class MyAppProfile extends Profile {
   name = co.string; // compatible with default Profile schema
-  avatar = co.ref(ImageDefinition);
+  avatar = co.optional.ref(ImageDefinition);
 }
 ```
 </CodeGroup>
@@ -145,22 +145,21 @@ Jazz waits for the migration to finish before passing the account to your app's 
 {/* prettier-ignore */}
 ```ts
 export class MyAppAccount extends Account {
-  static async migrate(
-    me: MyAppAccount,
-    creationProps: { name: string } // from AuthMethod
-  ) {
-    // we specifically need to check for undefined, because the profile might simply be not loaded (`null`) yet
-    if (me.profile === undefined) {
-      // this is the default profile setup migration and if you don't need anything else, you can leave out this whole block
-      const publiclyReadableGroup = Group.create({ everyone: "reader" });
-      me.profile = Profile.create({ name: creationProps.name }, { owner: publiclyReadableGroup });
-    }
-    // we specifically need to check for undefined, because the profile might simply be not loaded (`null`) yet
+  root = co.ref(MyAppRoot);
+
+  async migrate() {
+    const me = this;
+
+    // we specifically need to check for undefined, 
+    // because the root might simply be not loaded (`null`) yet
     if (me.root === undefined) {
       me.root = MyAppRoot.create({
-        myChats: ListOfChats.create([], { owner: me }),
-        myContacts: ListOfAccounts.create([], { owner: me })
-      });
+        // Using a group to set the owner is always a good idea.
+        // This way if in the future we want to share 
+        // this coValue we can do so easily.
+        myChats: ListOfChats.create([], Group.create(me)),
+        myContacts: ListOfAccounts.create([], Group.create(me))
+      }, Group.create(me));
     }
   }
 }
@@ -174,8 +173,44 @@ and then implement a migration that will populate the new fields for existing us
 
 To do deeply nested migrations, you might need to use the asynchronous `ensureLoaded()` method before determining whether the field already exists, or is simply not loaded yet.
 
-TODO: code example of complex migration
+Now let's say we want to add a `myBookmarks` field to the `root` schema:
 
-### Best practice: only ever add fields
+<CodeGroup>
+{/* prettier-ignore */}
+```ts
+export class MyAppAccount extends Account {
+    root = co.ref(MyAppRoot);// old
 
-TODO: explain and reassure that there will be more guardrails in the future
+    async migrate() { // old
+      const me = this; // old
+
+      if (me.root === undefined) {  // old
+        me.root = MyAppRoot.create({  // old
+          myChats: ListOfChats.create([], Group.create(me)),  // old
+          myContacts: ListOfAccounts.create([], Group.create(me)) // old
+        }, Group.create(me)); // old
+      } // old
+
+      // We need to load the root field to check for the myContacts field
+      const { root } = await me.ensureLoaded({
+        root: {},
+      });
+
+      if (!root) throw new Error("Root missing!"); // this should never happen
+
+      // we specifically need to check for undefined, 
+      // because myBookmarks might simply be not loaded (`null`) yet 
+      if (root.myBookmarks === undefined) {
+        root.myBookmarks = ListOfBookmarks.create([], Group.create(me));
+      }
+    }
+  }
+```
+</CodeGroup>
+
+{/* 
+ TODO: Add best practice: only ever add fields  
+
+ Note: explain and reassure that there will be more guardrails in the future 
+ https://github.com/garden-co/jazz/issues/1160
+*/}
