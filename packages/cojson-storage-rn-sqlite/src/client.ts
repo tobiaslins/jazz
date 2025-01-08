@@ -1,4 +1,4 @@
-import { type DB as DatabaseT, QueryResult } from "@op-engineering/op-sqlite";
+import { type DB as DatabaseT } from "@op-engineering/op-sqlite";
 import { CojsonInternalTypes, type OutgoingSyncQueue, RawCoID } from "cojson";
 import type {
   DBClientInterface,
@@ -21,13 +21,11 @@ export class SQLiteClient implements DBClientInterface {
   }
 
   async getCoValue(coValueId: RawCoID): Promise<StoredCoValueRow | undefined> {
-    console.log("getCoValue", coValueId);
     const { rows } = await this.db.execute(
       "SELECT * FROM coValues WHERE id = ?",
       [coValueId],
     );
 
-    console.log("getCoValue", rows);
     if (!rows || rows.length === 0) return;
 
     const coValueRow = rows[0] as any & { rowID: number };
@@ -36,7 +34,6 @@ export class SQLiteClient implements DBClientInterface {
         coValueRow?.header &&
         (JSON.parse(coValueRow.header) as CojsonInternalTypes.CoValueHeader);
 
-      console.log("parsedHeader", parsedHeader, coValueRow);
       return {
         ...coValueRow,
         header: parsedHeader,
@@ -48,7 +45,6 @@ export class SQLiteClient implements DBClientInterface {
   }
 
   async getCoValueSessions(coValueRowId: number): Promise<StoredSessionRow[]> {
-    console.log("getCoValueSessions", coValueRowId);
     const { rows } = await this.db.execute(
       "SELECT * FROM sessions WHERE coValue = ?",
       [coValueRowId],
@@ -60,7 +56,6 @@ export class SQLiteClient implements DBClientInterface {
     sessionRowId: number,
     firstNewTxIdx: number,
   ): Promise<TransactionRow[]> {
-    console.log("getNewTransactionInSession", sessionRowId, firstNewTxIdx);
     const { rows } = await this.db.execute(
       "SELECT * FROM transactions WHERE ses = ? AND idx >= ?",
       [sessionRowId, firstNewTxIdx],
@@ -83,12 +78,10 @@ export class SQLiteClient implements DBClientInterface {
     sessionRowId: number,
     firstNewTxIdx: number,
   ): Promise<SignatureAfterRow[]> | SignatureAfterRow[] {
-    console.log("getSignatures", sessionRowId, firstNewTxIdx);
     const { rows } = this.db.executeSync(
       "SELECT * FROM signatureAfter WHERE ses = ? AND idx >= ?",
       [sessionRowId, firstNewTxIdx],
     );
-    console.log("getSignatures", rows);
     return rows as SignatureAfterRow[];
   }
 
@@ -149,7 +142,6 @@ export class SQLiteClient implements DBClientInterface {
     idx: number;
     signature: Signature;
   }): Promise<void> {
-    console.log("addSignatureAfter", sessionRowID, idx, signature);
     await this.db.execute(
       "INSERT INTO signatureAfter (ses, idx, signature) VALUES (?, ?, ?)",
       [sessionRowID, idx, signature],
