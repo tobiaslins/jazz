@@ -1,4 +1,4 @@
-import { render, waitFor } from "@testing-library/svelte";
+import { render } from "@testing-library/svelte";
 import { Account, CoMap, co, type DepthsIn } from "jazz-tools";
 import { describe, expect, it } from "vitest";
 import { useAccount, type RegisteredAccount } from "../index.js";
@@ -54,9 +54,7 @@ describe("useAccount", () => {
       account,
     });
 
-    await waitFor(() => {
       expect(result.current?.me).toEqual(account);
-    });
   });
 
   it("should load nested values if requested", async () => {
@@ -71,8 +69,6 @@ describe("useAccount", () => {
       }
     });
 
-    await waitFor(() => {
       expect(result.current?.me?.root?.value).toBe("123");
-    });
   });
 });

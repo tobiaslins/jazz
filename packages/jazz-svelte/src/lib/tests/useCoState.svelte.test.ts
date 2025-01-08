@@ -1,4 +1,4 @@
-import { render, waitFor } from "@testing-library/svelte";
+import { render } from "@testing-library/svelte";
 import { Account, CoMap, co, type CoValue, type CoValueClass, type DepthsIn } from "jazz-tools";
 import { describe, expect, it } from "vitest";
 import { createJazzTestAccount, createJazzTestContext } from "../testing.js";
@@ -46,9 +46,7 @@ describe("useCoState", () => {
       map,
     });
 
-    await waitFor(() => {
-      expect(result.current?.value).toBe("123");
-    });
+    expect(result.current?.value).toBe("123");
   });
 
   it("should update the value when the coValue changes", async () => {
@@ -70,15 +68,11 @@ describe("useCoState", () => {
       map,
     });
 
-    await waitFor(() => {
-      expect(result.current?.value).toBe("123");
-    });
+    expect(result.current?.value).toBe("123");
 
     map.value = "456";
 
-    await waitFor(() => {
-      expect(result.current?.value).toBe("456");
-    });
+    expect(result.current?.value).toBe("456");
   });
 
   it("should load nested values if requested", async () => {
@@ -114,10 +108,7 @@ describe("useCoState", () => {
       },
     });
 
-    await waitFor(() => {
-      expect(result.current?.value).toBe("123");
-    });
-
+    expect(result.current?.value).toBe("123");
     expect(result.current?.nested?.value).toBe("456");
   });
 
@@ -154,10 +145,7 @@ describe("useCoState", () => {
       },
     });
 
-    await waitFor(() => {
-      expect(result.current?.value).toBe("123");
-    });
-    
+    expect(result.current?.value).toBe("123");
     expect(result.current?.nested?.value).toBe("456");
   });
 });
