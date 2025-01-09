@@ -1,5 +1,14 @@
 # jazz-svelte
 
+## 0.9.1
+
+### Patch Changes
+
+- Updated dependencies [1b71969]
+- Updated dependencies [5d98189]
+  - jazz-browser@0.9.1
+  - jazz-tools@0.9.1
+
 ## 0.9.0
 
 ### Minor Changes

@@ -1,5 +1,14 @@
 # reactions
 
+## 0.0.24
+
+### Patch Changes
+
+- Updated dependencies [1b71969]
+  - jazz-react@0.9.1
+  - jazz-tools@0.9.1
+  - jazz-browser-media-images@0.9.1
+
 ## 0.0.23
 
 ### Patch Changes
