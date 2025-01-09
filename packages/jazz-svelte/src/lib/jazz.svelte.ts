@@ -11,7 +11,7 @@ import type {
   DepthsIn,
   ID
 } from 'jazz-tools';
-import { Account, createCoValueObservable, subscribeToCoValue } from 'jazz-tools';
+import { Account, subscribeToCoValue } from 'jazz-tools';
 import { getContext, untrack } from 'svelte';
 import Provider from './Provider.svelte';
 
@@ -44,8 +44,8 @@ export type RegisteredAccount = Register extends { Account: infer Acc }
   ? Acc
   : Account;
 
-export  function useAccount(): { me: RegisteredAccount; logOut: () => void };
-export  function useAccount<D extends DepthsIn<RegisteredAccount>>(
+export function useAccount(): { me: RegisteredAccount; logOut: () => void };
+export function useAccount<D extends DepthsIn<RegisteredAccount>>(
   depth: D
 ): { me: DeeplyLoaded<RegisteredAccount, D> | undefined; logOut: () => void };
 /**
