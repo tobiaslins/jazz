@@ -7,9 +7,9 @@ import { isCoValue } from "../typeUtils/isCoValue.js";
 import { RawAccountID } from "./account.js";
 import { RawGroup } from "./group.js";
 
-type OpID = TransactionID & { changeIdx: number };
+export type OpID = TransactionID & { changeIdx: number };
 
-type InsertionOpPayload<T extends JsonValue> =
+export type InsertionOpPayload<T extends JsonValue> =
   | {
       op: "pre";
       value: T;
@@ -21,7 +21,7 @@ type InsertionOpPayload<T extends JsonValue> =
       after: OpID | "start";
     };
 
-type DeletionOpPayload = {
+export type DeletionOpPayload = {
   op: "del";
   insertion: OpID;
 };
@@ -49,7 +49,7 @@ export class RawCoListView<
   /** @category 6. Meta */
   id: CoID<this>;
   /** @category 6. Meta */
-  type = "colist" as const;
+  type: "colist" | "coplaintext" = "colist" as const;
   /** @category 6. Meta */
   core: CoValueCore;
   /** @internal */
@@ -457,13 +457,7 @@ export class RawCoList<
 
     this.core.makeTransaction(changes, privacy);
 
-    const listAfter = new RawCoList(this.core) as this;
-
-    this.afterStart = listAfter.afterStart;
-    this.beforeEnd = listAfter.beforeEnd;
-    this.insertions = listAfter.insertions;
-    this.deletionsByInsertion = listAfter.deletionsByInsertion;
-    this._cachedEntries = undefined;
+    this.rebuildFromCore();
   }
 
   /**
@@ -510,13 +504,7 @@ export class RawCoList<
       privacy,
     );
 
-    const listAfter = new RawCoList(this.core) as this;
-
-    this.afterStart = listAfter.afterStart;
-    this.beforeEnd = listAfter.beforeEnd;
-    this.insertions = listAfter.insertions;
-    this.deletionsByInsertion = listAfter.deletionsByInsertion;
-    this._cachedEntries = undefined;
+    this.rebuildFromCore();
   }
 
   /** Deletes the item at index `at`.
@@ -543,13 +531,7 @@ export class RawCoList<
       privacy,
     );
 
-    const listAfter = new RawCoList(this.core) as this;
-
-    this.afterStart = listAfter.afterStart;
-    this.beforeEnd = listAfter.beforeEnd;
-    this.insertions = listAfter.insertions;
-    this.deletionsByInsertion = listAfter.deletionsByInsertion;
-    this._cachedEntries = undefined;
+    this.rebuildFromCore();
   }
 
   replace(
@@ -577,6 +559,11 @@ export class RawCoList<
       ],
       privacy,
     );
+    this.rebuildFromCore();
+  }
+
+  /** @internal */
+  rebuildFromCore() {
     const listAfter = new RawCoList(this.core) as this;
 
     this.afterStart = listAfter.afterStart;
