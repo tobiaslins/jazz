@@ -61,6 +61,7 @@ export class BrowserDemoAuth implements AuthMethod {
     )
       localStorage[localStorageKey] =
         localStorage["demo-auth-logged-in-secret"];
+
     if (localStorage[localStorageKey]) {
       const localStorageData = JSON.parse(
         localStorage[localStorageKey],
