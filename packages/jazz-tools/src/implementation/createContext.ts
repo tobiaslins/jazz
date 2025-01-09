@@ -23,6 +23,7 @@ export type Credentials = {
 export type AuthResult =
   | {
       type: "existing";
+      username?: string;
       credentials: Credentials;
       saveCredentials?: (credentials: Credentials) => Promise<void>;
       onSuccess: () => void;

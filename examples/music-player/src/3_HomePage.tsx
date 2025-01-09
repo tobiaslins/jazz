@@ -1,7 +1,13 @@
 import { useToast } from "@/hooks/use-toast";
-import { createInviteLink, useAccount, useCoState } from "jazz-react";
+import {
+  createInviteLink,
+  useAccount,
+  useCoState,
+  useIsUserOnboarding,
+} from "jazz-react";
 import { ID } from "jazz-tools";
 import { useNavigate, useParams } from "react-router";
+import { Link } from "react-router-dom";
 import { Playlist } from "./1_schema";
 import { createNewPlaylist, uploadMusicTracks } from "./4_actions";
 import { MediaPlayer } from "./5_useMediaPlayer";
@@ -66,6 +72,8 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
     });
   };
 
+  const isUserOnboarding = useIsUserOnboarding();
+
   return (
     <div className="flex flex-col h-screen text-gray-800 bg-blue-50">
       <div className="flex flex-1 overflow-hidden">
@@ -91,7 +99,11 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
                   Share playlist
                 </Button>
               )}
-              <LogoutButton />
+              {isUserOnboarding ? (
+                <Link to="/signup">Signup</Link>
+              ) : (
+                <LogoutButton />
+              )}
             </div>
           </div>
           <ul className="flex flex-col">

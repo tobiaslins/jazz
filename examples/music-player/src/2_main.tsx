@@ -10,7 +10,8 @@ import { PlayerControls } from "./components/PlayerControls";
 import "./index.css";
 
 import { MusicaAccount } from "@/1_schema";
-import { DemoAuthBasicUI, JazzProvider, useDemoAuth } from "jazz-react";
+import { JazzProvider, useOnboardingAuth } from "jazz-react";
+import { SignupPage } from "./7_SignupPage";
 import { useUploadExampleData } from "./lib/useUploadExampleData";
 
 /**
@@ -42,6 +43,10 @@ function Main() {
       path: "/invite/*",
       element: <InvitePage />,
     },
+    {
+      path: "/signup",
+      element: <SignupPage />,
+    },
   ]);
 
   return (
@@ -54,7 +59,7 @@ function Main() {
 }
 
 function JazzAndAuth({ children }: { children: React.ReactNode }) {
-  const [auth, state] = useDemoAuth();
+  const [auth] = useOnboardingAuth();
 
   const peer =
     (new URL(window.location.href).searchParams.get(
@@ -72,7 +77,6 @@ function JazzAndAuth({ children }: { children: React.ReactNode }) {
       >
         {children}
       </JazzProvider>
-      <DemoAuthBasicUI appName="Jazz Music Player" state={state} />
     </>
   );
 }

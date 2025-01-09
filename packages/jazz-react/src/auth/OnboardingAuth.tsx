@@ -1,5 +1,7 @@
 import { BrowserOnboardingAuth } from "jazz-browser";
-import { useMemo, useState } from "react";
+import { AuthMethod } from "jazz-tools";
+import { useEffect, useMemo, useState } from "react";
+import { useAccount } from "../hooks.js";
 
 type OnboardingAuthState = (
   | {
@@ -58,4 +60,55 @@ export function useOnboardingAuth(
   }, [defaultUserName]);
 
   return [authMethod, state] as const;
+}
+
+export function useOnboardingAuthUpgrade({
+  auth,
+  onUpgrade,
+}: {
+  auth: AuthMethod;
+  onUpgrade: (props: {
+    username: string;
+    isSignUp: boolean;
+    isLogIn: boolean;
+  }) => void;
+}) {
+  const { me, logOut } = useAccount();
+
+  useEffect(() => {
+    async function runAuth() {
+      const result = await auth.start(me._raw.core.node.crypto);
+
+      if (result.type === "new") {
+        throw new Error(
+          "An onboarding upgrade should not be called for a new user",
+        );
+      }
+
+      await result.saveCredentials?.({
+        accountID: result.credentials.accountID,
+        secret: result.credentials.secret,
+      });
+
+      result.onSuccess();
+
+      const isSignUp = result.credentials.accountID === me.id;
+
+      if (!isSignUp) {
+        logOut();
+      }
+
+      onUpgrade({
+        username: result.username ?? "",
+        isSignUp,
+        isLogIn: !isSignUp,
+      });
+    }
+
+    runAuth();
+  }, [auth]);
+}
+
+export function useIsUserOnboarding() {
+  return BrowserOnboardingAuth.isUserOnboarding();
 }
