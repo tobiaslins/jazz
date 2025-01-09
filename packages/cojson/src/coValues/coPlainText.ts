@@ -38,7 +38,7 @@ export class RawCoPlainText<
     this._cachedMapping = new WeakMap();
     if (!Intl.Segmenter) {
       throw new Error(
-        "Intl.Segmenter is not supported for this compilation target. Use a polyfill to get coPlainText support in Jazz. (eg. https://formatjs.github.io/docs/polyfills/intl-segmenter/)",
+        "Intl.Segmenter is not supported. Use a polyfill to get coPlainText support in Jazz. (eg. https://formatjs.github.io/docs/polyfills/intl-segmenter/)",
       );
     }
     this._segmenter = new Intl.Segmenter("en", {
