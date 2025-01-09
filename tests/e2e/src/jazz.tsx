@@ -1,5 +1,4 @@
-import { JazzProvider, useDemoAuth } from "jazz-react";
-import { useEffect, useRef } from "react";
+import { JazzProvider, useOnboardingAuth } from "jazz-react";
 
 const url = new URL(window.location.href);
 
@@ -22,23 +21,7 @@ function getUserInfo() {
 }
 
 export function AuthAndJazz({ children }: { children: React.ReactNode }) {
-  const [auth, state] = useDemoAuth();
-
-  const signedUp = useRef(false);
-
-  useEffect(() => {
-    if (state.state === "ready" && !signedUp.current) {
-      const userName = getUserInfo();
-
-      if (state.existingUsers.includes(userName)) {
-        state.logInAs(userName);
-      } else {
-        state.signUp(userName);
-      }
-
-      signedUp.current = true;
-    }
-  }, [state.state]);
+  const [auth] = useOnboardingAuth();
 
   return (
     <JazzProvider auth={auth} peer={`${peer}?key=${key}`}>
