@@ -54,6 +54,13 @@ export class BrowserDemoAuth implements AuthMethod {
    * @returns A `JazzAuth` object
    */
   async start() {
+    // migrate old localStorage key to new one
+    if (
+      localStorage["demo-auth-logged-in-secret"] &&
+      !localStorage[localStorageKey]
+    )
+      localStorage[localStorageKey] =
+        localStorage["demo-auth-logged-in-secret"];
     if (localStorage[localStorageKey]) {
       const localStorageData = JSON.parse(
         localStorage[localStorageKey],
