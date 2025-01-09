@@ -1,5 +1,16 @@
 # jazz-react
 
+## 0.9.1
+
+### Patch Changes
+
+- 1b71969: Add Onboarding auth to handle users onboarding without an auth screen
+- Updated dependencies [1b71969]
+- Updated dependencies [5d98189]
+  - jazz-browser@0.9.1
+  - jazz-tools@0.9.1
+  - jazz-react-core@0.8.47
+
 ## 0.9.0
 
 ### Minor Changes

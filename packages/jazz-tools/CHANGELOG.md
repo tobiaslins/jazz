@@ -1,5 +1,11 @@
 # jazz-tools
 
+## 0.9.1
+
+### Patch Changes
+
+- 1b71969: Add Onboarding auth to handle users onboarding without an auth screen
+
 ## 0.9.0
 
 ### Patch Changes

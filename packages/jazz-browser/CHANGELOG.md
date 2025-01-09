@@ -1,5 +1,14 @@
 # jazz-browser
 
+## 0.9.1
+
+### Patch Changes
+
+- 1b71969: Add Onboarding auth to handle users onboarding without an auth screen
+- 5d98189: Fixed DemoAuth localStorage key name
+- Updated dependencies [1b71969]
+  - jazz-tools@0.9.1
+
 ## 0.9.0
 
 ### Patch Changes
