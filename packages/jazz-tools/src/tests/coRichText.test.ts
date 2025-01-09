@@ -62,7 +62,7 @@ describe("CoRichText", async () => {
         expect(marks[0]).toMatchObject({
           startAfter: 0,
           startBefore: 1,
-          endAfter: 4,
+          endAfter: 3,
           endBefore: 5,
           tag: "strong",
         });
@@ -103,7 +103,7 @@ describe("CoRichText", async () => {
 
         expect(mark1!.startAfter).toBe(0);
         expect(mark1!.endBefore).toBe(6);
-        expect(mark2!.startAfter).toBe(6);
+        expect(mark2!.startAfter).toBe(5);
         expect(mark2!.endBefore).toBe(11);
       });
 
@@ -165,6 +165,111 @@ describe("CoRichText", async () => {
         const tree = text.toTree(["strong", "em", "link"]);
         // Verify the nesting structure is correct
         // Strong should contain Em which should contain Link
+        expect(tree).toEqual({
+          type: "node",
+          tag: "root",
+          start: 0,
+          end: 11,
+          children: [
+            {
+              type: "node",
+              tag: "strong",
+              start: 0,
+              end: 2,
+              children: [
+                {
+                  type: "leaf",
+                  start: 0,
+                  end: 2,
+                },
+              ],
+            },
+            {
+              type: "node",
+              tag: "strong",
+              start: 2,
+              end: 4,
+              children: [
+                {
+                  type: "node",
+                  tag: "em",
+                  start: 2,
+                  end: 4,
+                  children: [
+                    {
+                      type: "leaf",
+                      start: 2,
+                      end: 4,
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "node",
+              tag: "strong",
+              start: 4,
+              end: 6,
+              children: [
+                {
+                  type: "node",
+                  tag: "em",
+                  start: 4,
+                  end: 6,
+                  children: [
+                    {
+                      type: "node",
+                      tag: "link",
+                      start: 4,
+                      end: 6,
+                      children: [
+                        {
+                          type: "leaf",
+                          start: 4,
+                          end: 6,
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "node",
+              tag: "strong",
+              start: 6,
+              end: 8,
+              children: [
+                {
+                  type: "node",
+                  tag: "em",
+                  start: 6,
+                  end: 8,
+                  children: [
+                    {
+                      type: "leaf",
+                      start: 6,
+                      end: 8,
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "node",
+              tag: "strong",
+              start: 8,
+              end: 11,
+              children: [
+                {
+                  type: "leaf",
+                  start: 8,
+                  end: 11,
+                },
+              ],
+            },
+          ],
+        });
       });
     });
 
@@ -319,7 +424,7 @@ describe("CoRichText", async () => {
         expect(remainingMarks[0]!.endBefore).toBe(5);
 
         // Second mark should cover "rld"
-        expect(remainingMarks[1]!.startAfter).toBe(9);
+        expect(remainingMarks[1]!.startAfter).toBe(8);
         expect(remainingMarks[1]!.endAfter).toBe(10);
       });
     });

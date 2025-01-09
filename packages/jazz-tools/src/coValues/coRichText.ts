@@ -274,10 +274,10 @@ export class CoRichText extends CoMap {
     const range = RangeClass.create(
       {
         ...extraArgs,
-        startAfter: this.posAfter(start),
-        startBefore: this.posBefore(start),
-        endAfter: this.posAfter(end),
-        endBefore: this.posBefore(end + 1),
+        startAfter: this.posBefore(start),
+        startBefore: this.posAfter(start),
+        endAfter: this.posBefore(end),
+        endBefore: this.posAfter(end),
       },
       { owner },
     );
