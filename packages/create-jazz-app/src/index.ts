@@ -74,7 +74,7 @@ async function scaffoldProject({
     if (packageJson.dependencies) {
       Object.entries(packageJson.dependencies).forEach(([pkg, version]) => {
         if (typeof version === "string" && version.includes("workspace:")) {
-          packageJson.dependencies[pkg] = "0.8.51";
+          packageJson.dependencies[pkg] = "latest";
         }
       });
     }
