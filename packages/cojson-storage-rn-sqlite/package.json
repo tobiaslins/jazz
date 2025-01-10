@@ -10,10 +10,8 @@
     "cojson-storage": "workspace:*"
   },
   "devDependencies": {
+    "@op-engineering/op-sqlite": "^11.2.12",
     "typescript": "~5.6.2"
-  },
-  "peerDependencies": {
-    "@op-engineering/op-sqlite": ">=11"
   },
   "scripts": {
     "dev": "tsc --watch --sourceMap --outDir dist",

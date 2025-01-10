@@ -1,0 +1,41 @@
+import { ContentByFramework, CodeGroup } from '@/components/forMdx'
+
+export const metadata = { title: "Upgrade to Jazz 0.9.1" };
+
+# Upgrade to Jazz 0.9.1
+
+<h2 className="not-prose text-sm text-stone-600 dark:text-stone-400 mb-5 pb-2 border-b">
+  10 January 2025
+</h2>
+
+<ContentByFramework framework="react-native">
+  <div>
+    Version 0.9.1 introduces local persistence for React Native apps using SQLite.
+  </div>
+
+  <h3>Add the required dependencies</h3>
+
+  <div>
+    As SQLite package we now use `@op-engineering/op-sqlite`.
+
+    To get local persistence working, you need to add `@op-engineering/op-sqlite` as a direct dependency to your project.
+
+    If this causes issues on your project, please let us know.
+    
+    In the meantime, you can use the `disabled` storage option to disable local persistence.
+  </div>
+
+  <CodeGroup>
+    ```tsx
+    <JazzProvider 
+      auth={auto}
+      storage="disabled"
+      peer="wss://cloud.jazz.tools/?key=you@example.com"
+      AccountSchema={MyAppAccount}
+    >
+      <App />
+    </JazzProvider>
+    ```
+  </CodeGroup>
+</ContentByFramework>
+

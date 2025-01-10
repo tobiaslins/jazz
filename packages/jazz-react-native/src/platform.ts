@@ -48,7 +48,7 @@ export type ReactNativeContextOptions<Acc extends Account> = {
 export type BaseReactNativeContextOptions = {
   peer: `wss://${string}` | `ws://${string}`;
   reconnectionTimeout?: number;
-  storage?: "indexedDB" | "singleTabOPFS";
+  storage?: "sqlite" | "disabled";
   CryptoProvider?: typeof PureJSCrypto | typeof RNQuickCrypto;
 };
 
@@ -75,10 +75,15 @@ export async function createJazzRNContext<Acc extends Account>(
 
   const CryptoProvider = options.CryptoProvider || PureJSCrypto;
 
-  const storage = await SQLiteStorage.asPeer({
-    filename: "jazz-storage",
-    trace: false,
-  });
+  const peersToLoadFrom = [websocketPeer.peer];
+
+  if (options.storage !== "disabled") {
+    const storage = await SQLiteStorage.asPeer({
+      filename: "jazz-storage",
+      trace: false,
+    });
+    peersToLoadFrom.push(storage);
+  }
 
   const context =
     "auth" in options
@@ -86,12 +91,12 @@ export async function createJazzRNContext<Acc extends Account>(
           AccountSchema: options.AccountSchema,
           auth: options.auth,
           crypto: await CryptoProvider.create(),
-          peersToLoadFrom: [websocketPeer.peer, storage],
+          peersToLoadFrom,
           sessionProvider: provideLockSession,
         })
       : await createJazzContext({
           crypto: await CryptoProvider.create(),
-          peersToLoadFrom: [websocketPeer.peer, storage],
+          peersToLoadFrom,
         });
 
   const node =
