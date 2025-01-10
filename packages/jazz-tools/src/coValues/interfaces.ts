@@ -379,7 +379,7 @@ export function isAnonymousAgentInstance(
 export function parseCoValueCreateOptions(
   options:
     | {
-        owner: Account | Group;
+        owner?: Account | Group;
         unique?: CoValueUniqueness["uniqueness"];
       }
     | Account
@@ -394,7 +394,7 @@ export function parseCoValueCreateOptions(
     (options._type === "Account" || options._type === "Group")
     ? { owner: options, uniqueness: undefined }
     : {
-        owner: options.owner,
+        owner: options.owner ?? activeAccountContext.get(),
         uniqueness: options.unique ? { uniqueness: options.unique } : undefined,
       };
 }

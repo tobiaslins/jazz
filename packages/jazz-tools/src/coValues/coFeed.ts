@@ -710,7 +710,7 @@ export class FileStream extends CoValueBase implements CoValue {
 
   static create<S extends FileStream>(
     this: CoValueClass<S>,
-    options?: { owner: Account | Group } | Account | Group,
+    options?: { owner?: Account | Group } | Account | Group,
   ) {
     return new this(parseCoValueCreateOptions(options));
   }
@@ -823,16 +823,17 @@ export class FileStream extends CoValueBase implements CoValue {
    */
   static async createFromBlob(
     blob: Blob | File,
-    options:
+    options?:
       | {
-          owner: Group | Account;
+          owner?: Group | Account;
           onProgress?: (progress: number) => void;
         }
       | Account
       | Group,
   ): Promise<FileStream> {
     const stream = this.create(options);
-    const onProgress = "onProgress" in options ? options.onProgress : undefined;
+    const onProgress =
+      options && "onProgress" in options ? options.onProgress : undefined;
 
     const start = Date.now();
 
