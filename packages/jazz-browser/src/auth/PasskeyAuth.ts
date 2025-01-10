@@ -5,14 +5,13 @@ import {
   cojsonInternals,
 } from "cojson";
 import { Account, AuthMethod, AuthResult, ID } from "jazz-tools";
+import { AuthSecretStorage } from "./AuthSecretStorage.js";
 import { BrowserOnboardingAuth } from "./OnboardingAuth.js";
 
 type LocalStorageData = {
   accountID: ID<Account>;
   accountSecret: AgentSecret;
 };
-
-const localStorageKey = "jazz-logged-in-secret";
 
 /**
  * `BrowserPasskeyAuth` provides a `JazzAuth` object for passkey authentication.
@@ -37,16 +36,13 @@ export class BrowserPasskeyAuth implements AuthMethod {
    * @returns A `JazzAuth` object
    */
   async start(crypto: CryptoProvider): Promise<AuthResult> {
-    if (
-      localStorage.getItem(localStorageKey) &&
-      !BrowserOnboardingAuth.isUserOnboarding()
-    ) {
-      const localStorageData = JSON.parse(
-        localStorage.getItem(localStorageKey) ?? "{}",
-      ) as LocalStorageData;
+    AuthSecretStorage.migrate();
 
-      const accountID = localStorageData.accountID as ID<Account>;
-      const secret = localStorageData.accountSecret;
+    const existingUser = AuthSecretStorage.get();
+
+    if (existingUser && !BrowserOnboardingAuth.isUserOnboarding()) {
+      const accountID = existingUser.accountID;
+      const secret = existingUser.accountSecret;
 
       return {
         type: "existing",
@@ -58,7 +54,7 @@ export class BrowserPasskeyAuth implements AuthMethod {
           this.driver.onError(error);
         },
         logOut: () => {
-          localStorage.removeItem(localStorageKey);
+          AuthSecretStorage.clear();
         },
       } satisfies AuthResult;
     } else {
@@ -155,13 +151,10 @@ export class BrowserPasskeyAuth implements AuthMethod {
               type: "existing",
               credentials: { accountID, secret },
               saveCredentials: async ({ accountID, secret }) => {
-                localStorage.setItem(
-                  localStorageKey,
-                  JSON.stringify({
-                    accountID,
-                    accountSecret: secret,
-                  } satisfies LocalStorageData),
-                );
+                AuthSecretStorage.set({
+                  accountID,
+                  accountSecret: secret,
+                });
               },
               onSuccess: () => {
                 this.driver.onSignedIn({ logOut });
@@ -221,13 +214,10 @@ export class BrowserPasskeyAuth implements AuthMethod {
       },
     });
 
-    localStorage.setItem(
-      localStorageKey,
-      JSON.stringify({
-        accountID,
-        accountSecret: secret,
-      } satisfies LocalStorageData),
-    );
+    AuthSecretStorage.set({
+      accountID,
+      accountSecret: secret,
+    });
   }
 }
 
@@ -245,5 +235,5 @@ export namespace BrowserPasskeyAuth {
 }
 
 function logOut() {
-  localStorage.removeItem(localStorageKey);
+  AuthSecretStorage.clear();
 }

@@ -1,12 +1,11 @@
 import { AgentSecret } from "cojson";
 import { Account, AuthMethod, AuthResult, ID } from "jazz-tools";
+import { AuthSecretStorage } from "./AuthSecretStorage.js";
 
 type StorageData = {
   accountID: ID<Account>;
   accountSecret: AgentSecret;
 };
-
-const localStorageKey = "jazz-logged-in-secret";
 
 /**
  * `BrowserDemoAuth` provides a `JazzAuth` object for demo authentication.
@@ -54,22 +53,13 @@ export class BrowserDemoAuth implements AuthMethod {
    * @returns A `JazzAuth` object
    */
   async start() {
-    // migrate old localStorage key to new one
-    if (localStorage["demo-auth-logged-in-secret"]) {
-      if (!localStorage[localStorageKey]) {
-        localStorage[localStorageKey] =
-          localStorage["demo-auth-logged-in-secret"];
-      }
-      delete localStorage["demo-auth-logged-in-secret"];
-    }
+    AuthSecretStorage.migrate();
 
-    if (localStorage[localStorageKey]) {
-      const localStorageData = JSON.parse(
-        localStorage[localStorageKey],
-      ) as StorageData;
+    const credentials = AuthSecretStorage.get();
 
-      const accountID = localStorageData.accountID as ID<Account>;
-      const secret = localStorageData.accountSecret;
+    if (credentials) {
+      const accountID = credentials.accountID;
+      const secret = credentials.accountSecret;
 
       return {
         type: "existing",
@@ -81,7 +71,7 @@ export class BrowserDemoAuth implements AuthMethod {
           this.driver.onError(error);
         },
         logOut: () => {
-          delete localStorage[localStorageKey];
+          AuthSecretStorage.clear();
         },
       } satisfies AuthResult;
     } else {
@@ -100,7 +90,11 @@ export class BrowserDemoAuth implements AuthMethod {
                   accountSecret: credentials.secret,
                 } satisfies StorageData);
 
-                localStorage[localStorageKey] = storageData;
+                AuthSecretStorage.set({
+                  accountID: credentials.accountID,
+                  accountSecret: credentials.secret,
+                });
+
                 localStorage["demo-auth-existing-users-" + username] =
                   storageData;
 
@@ -117,7 +111,7 @@ export class BrowserDemoAuth implements AuthMethod {
                 this.driver.onError(error);
               },
               logOut: () => {
-                delete localStorage[localStorageKey];
+                AuthSecretStorage.clear();
               },
             });
           },
@@ -128,7 +122,7 @@ export class BrowserDemoAuth implements AuthMethod {
               localStorage["demo-auth-existing-users-" + existingUser],
             ) as StorageData;
 
-            localStorage[localStorageKey] = JSON.stringify(storageData);
+            AuthSecretStorage.set(storageData);
 
             resolve({
               type: "existing",
@@ -143,7 +137,7 @@ export class BrowserDemoAuth implements AuthMethod {
                 this.driver.onError(error);
               },
               logOut: () => {
-                delete localStorage[localStorageKey];
+                AuthSecretStorage.clear();
               },
             });
           },
@@ -168,5 +162,5 @@ export namespace BrowserDemoAuth {
 }
 
 function logOut() {
-  delete localStorage[localStorageKey];
+  AuthSecretStorage.clear();
 }

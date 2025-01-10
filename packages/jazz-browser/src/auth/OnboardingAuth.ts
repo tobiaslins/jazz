@@ -1,5 +1,6 @@
 import { AgentSecret, CryptoProvider } from "cojson";
 import { Account, AuthMethod, AuthResult, ID } from "jazz-tools";
+import { AuthSecretStorage } from "./AuthSecretStorage.js";
 
 export type OnboardingStorageData = {
   accountID: ID<Account>;
@@ -7,8 +8,6 @@ export type OnboardingStorageData = {
   secretSeed: number[];
   onboarding: true;
 };
-
-const STORAGE_KEY = "jazz-logged-in-secret";
 
 /**
  * `BrowserOnboardingAuth` provides a `JazzAuth` object for demo authentication.
@@ -33,15 +32,13 @@ export class BrowserOnboardingAuth implements AuthMethod {
    * @returns A `JazzAuth` object
    */
   async start(crypto: CryptoProvider) {
-    const existingUser = localStorage.getItem(STORAGE_KEY);
+    AuthSecretStorage.migrate();
+
+    const existingUser = AuthSecretStorage.get();
 
     if (existingUser) {
-      const existingUserData = JSON.parse(
-        existingUser,
-      ) as OnboardingStorageData;
-
-      const accountID = existingUserData.accountID as ID<Account>;
-      const secret = existingUserData.accountSecret;
+      const accountID = existingUser.accountID;
+      const secret = existingUser.accountSecret;
 
       return {
         type: "existing",
@@ -65,14 +62,12 @@ export class BrowserOnboardingAuth implements AuthMethod {
           accountID: ID<Account>;
           secret: AgentSecret;
         }) => {
-          const storageData = JSON.stringify({
+          AuthSecretStorage.set({
             accountID: credentials.accountID,
             accountSecret: credentials.secret,
             secretSeed: Array.from(secretSeed),
             onboarding: true,
           } satisfies OnboardingStorageData);
-
-          localStorage.setItem(STORAGE_KEY, storageData);
         },
         onSuccess: () => {
           this.driver.onSignedIn({ logOut });
@@ -86,9 +81,7 @@ export class BrowserOnboardingAuth implements AuthMethod {
   }
 
   static getUserOnboardingData() {
-    const localStorageData = JSON.parse(
-      localStorage.getItem(STORAGE_KEY) ?? "{}",
-    ) as OnboardingStorageData;
+    const localStorageData = AuthSecretStorage.get() as OnboardingStorageData;
 
     if (
       !localStorageData?.secretSeed ||
@@ -116,9 +109,9 @@ export class BrowserOnboardingAuth implements AuthMethod {
   }
 
   static isUserOnboarding() {
-    const existingUser = localStorage.getItem(STORAGE_KEY);
+    const existingUser = AuthSecretStorage.get() as OnboardingStorageData;
 
-    return existingUser && JSON.parse(existingUser).onboarding;
+    return existingUser && existingUser.onboarding;
   }
 }
 
@@ -132,5 +125,5 @@ export namespace BrowserOnboardingAuth {
 }
 
 function logOut() {
-  localStorage.removeItem(STORAGE_KEY);
+  AuthSecretStorage.clear();
 }

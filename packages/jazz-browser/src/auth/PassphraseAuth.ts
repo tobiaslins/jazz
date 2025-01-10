@@ -1,13 +1,12 @@
 import * as bip39 from "@scure/bip39";
 import { AgentSecret, CryptoProvider, cojsonInternals } from "cojson";
 import { Account, AuthMethod, AuthResult, ID } from "jazz-tools";
+import { AuthSecretStorage } from "./AuthSecretStorage.js";
 
 type LocalStorageData = {
   accountID: ID<Account>;
   accountSecret: AgentSecret;
 };
-
-const localStorageKey = "jazz-logged-in-secret";
 
 /**
  * `BrowserPassphraseAuth` provides a `JazzAuth` object for passphrase authentication.
@@ -33,13 +32,12 @@ export class BrowserPassphraseAuth implements AuthMethod {
    * @returns A `JazzAuth` object
    */
   async start(crypto: CryptoProvider): Promise<AuthResult> {
-    if (localStorage.getItem(localStorageKey)) {
-      const localStorageData = JSON.parse(
-        localStorage.getItem(localStorageKey) ?? "{}",
-      ) as LocalStorageData;
+    AuthSecretStorage.migrate();
 
-      const accountID = localStorageData.accountID as ID<Account>;
-      const secret = localStorageData.accountSecret;
+    const existingUser = AuthSecretStorage.get() as LocalStorageData;
+    if (existingUser) {
+      const accountID = existingUser.accountID;
+      const secret = existingUser.accountSecret;
 
       return {
         type: "existing",
@@ -51,7 +49,7 @@ export class BrowserPassphraseAuth implements AuthMethod {
           this.driver.onError(error);
         },
         logOut: () => {
-          localStorage.removeItem(localStorageKey);
+          AuthSecretStorage.clear();
         },
       } satisfies AuthResult;
     } else {
@@ -73,13 +71,10 @@ export class BrowserPassphraseAuth implements AuthMethod {
               creationProps: { name: username },
               initialSecret: accountSecret,
               saveCredentials: async (credentials) => {
-                localStorage.setItem(
-                  localStorageKey,
-                  JSON.stringify({
-                    accountID: credentials.accountID,
-                    accountSecret: credentials.secret,
-                  } satisfies LocalStorageData),
-                );
+                AuthSecretStorage.set({
+                  accountID: credentials.accountID,
+                  accountSecret: credentials.secret,
+                } satisfies LocalStorageData);
               },
               onSuccess: () => {
                 this.driver.onSignedIn({ logOut });
@@ -88,7 +83,7 @@ export class BrowserPassphraseAuth implements AuthMethod {
                 this.driver.onError(error);
               },
               logOut: () => {
-                localStorage.removeItem(localStorageKey);
+                AuthSecretStorage.clear();
               },
             });
           },
@@ -116,13 +111,10 @@ export class BrowserPassphraseAuth implements AuthMethod {
               type: "existing",
               credentials: { accountID, secret: accountSecret },
               saveCredentials: async ({ accountID, secret }) => {
-                localStorage.setItem(
-                  localStorageKey,
-                  JSON.stringify({
-                    accountID,
-                    accountSecret: secret,
-                  } satisfies LocalStorageData),
-                );
+                AuthSecretStorage.set({
+                  accountID,
+                  accountSecret: secret,
+                } satisfies LocalStorageData);
               },
               onSuccess: () => {
                 this.driver.onSignedIn({ logOut });
@@ -131,7 +123,7 @@ export class BrowserPassphraseAuth implements AuthMethod {
                 this.driver.onError(error);
               },
               logOut: () => {
-                localStorage.removeItem(localStorageKey);
+                AuthSecretStorage.clear();
               },
             });
           },
@@ -154,5 +146,5 @@ export namespace BrowserPassphraseAuth {
 }
 
 function logOut() {
-  localStorage.removeItem(localStorageKey);
+  AuthSecretStorage.clear();
 }

@@ -1,8 +1,6 @@
 import { AgentSecret } from "cojson";
-import { BrowserOnboardingAuth } from "jazz-browser";
+import { AuthSecretStorage, BrowserOnboardingAuth } from "jazz-browser";
 import { Account, AuthMethod, AuthResult, Credentials, ID } from "jazz-tools";
-
-const localStorageKey = "jazz-logged-in-secret";
 
 export type MinimalClerkClient = {
   user:
@@ -23,13 +21,10 @@ export type MinimalClerkClient = {
 };
 
 function saveCredentialsToLocalStorage(credentials: Credentials) {
-  localStorage.setItem(
-    localStorageKey,
-    JSON.stringify({
-      accountID: credentials.accountID,
-      secret: credentials.secret,
-    }),
-  );
+  AuthSecretStorage.set({
+    accountID: credentials.accountID,
+    accountSecret: credentials.secret,
+  });
 }
 
 export class BrowserClerkAuth implements AuthMethod {
@@ -39,26 +34,26 @@ export class BrowserClerkAuth implements AuthMethod {
   ) {}
 
   async start(): Promise<AuthResult> {
-    if (!localStorage[localStorageKey] && localStorage["jazz-clerk-auth"]) {
-      localStorage[localStorageKey] = localStorage["jazz-clerk-auth"];
-    }
+    AuthSecretStorage.migrate();
 
     // Check local storage for credentials
-    const locallyStoredCredentials = localStorage.getItem(localStorageKey);
+    const credentials = AuthSecretStorage.get();
 
-    if (locallyStoredCredentials && !BrowserOnboardingAuth.isUserOnboarding()) {
+    if (credentials && !BrowserOnboardingAuth.isUserOnboarding()) {
       try {
-        const credentials = JSON.parse(locallyStoredCredentials) as Credentials;
         return {
           type: "existing",
-          credentials,
+          credentials: {
+            accountID: credentials.accountID,
+            secret: credentials.accountSecret,
+          },
           saveCredentials: async () => {}, // No need to save credentials when recovering from local storage
           onSuccess: () => {},
           onError: (error: string | Error) => {
             this.driver.onError(error);
           },
           logOut: () => {
-            localStorage.removeItem(localStorageKey);
+            AuthSecretStorage.clear();
             void this.clerkClient.signOut();
           },
         };

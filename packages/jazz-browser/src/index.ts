@@ -18,6 +18,7 @@ import {
 import { OPFSFilesystem } from "./OPFSFilesystem.js";
 import { createWebSocketPeerWithReconnection } from "./createWebSocketPeerWithReconnection.js";
 import { StorageConfig, getStorageOptions } from "./storageOptions.js";
+export { AuthSecretStorage } from "./auth/AuthSecretStorage.js";
 export { BrowserDemoAuth } from "./auth/DemoAuth.js";
 export { BrowserPasskeyAuth } from "./auth/PasskeyAuth.js";
 export { BrowserPassphraseAuth } from "./auth/PassphraseAuth.js";
