@@ -55,6 +55,7 @@ export async function createImage(
 
       const binaryStream = await FileStream.createFromBlob(max256, owner);
 
+      console.log(`${width}x${height}`);
       imageDefinition[`${width}x${height}`] = binaryStream;
     }
 
