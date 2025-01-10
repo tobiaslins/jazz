@@ -1,5 +1,5 @@
 import { createImage } from "jazz-browser-media-images";
-import { useAccount, useCoState } from "jazz-react";
+import { useCoState } from "jazz-react";
 import { ID } from "jazz-tools";
 import { useState } from "react";
 import { Chat, Message } from "./schema.ts";
