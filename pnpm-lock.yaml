@@ -107,6 +107,9 @@ importers:
       '@azure/core-asynciterator-polyfill':
         specifier: ^1.0.2
         version: 1.0.2
+      '@op-engineering/op-sqlite':
+        specifier: ^11.2.12
+        version: 11.2.12(react-native@0.76.5(@babel/core@7.26.0)(@babel/preset-env@7.26.0(@babel/core@7.26.0))(@types/react@18.3.18)(react@18.3.1))(react@18.3.1)
       '@react-native-community/netinfo':
         specifier: ^11.4.1
         version: 11.4.1(react-native@0.76.5(@babel/core@7.26.0)(@babel/preset-env@7.26.0(@babel/core@7.26.0))(@types/react@18.3.18)(react@18.3.1))
@@ -219,6 +222,9 @@ importers:
       '@expo/vector-icons':
         specifier: ^14.0.2
         version: 14.0.4
+      '@op-engineering/op-sqlite':
+        specifier: ^11.2.12
+        version: 11.2.12(react-native@0.76.5(@babel/core@7.26.0)(@babel/preset-env@7.26.0(@babel/core@7.26.0))(@types/react@18.3.18)(react@18.3.1))(react@18.3.1)
       '@react-native-community/netinfo':
         specifier: ^11.4.1
         version: 11.4.1(react-native@0.76.5(@babel/core@7.26.0)(@babel/preset-env@7.26.0(@babel/core@7.26.0))(@types/react@18.3.18)(react@18.3.1))
@@ -1468,6 +1474,22 @@ importers:
         specifier: ^8.15.0
         version: 8.41.0
 
+  packages/cojson-storage-rn-sqlite:
+    dependencies:
+      cojson:
+        specifier: workspace:*
+        version: link:../cojson
+      cojson-storage:
+        specifier: workspace:*
+        version: link:../cojson-storage
+    devDependencies:
+      '@op-engineering/op-sqlite':
+        specifier: ^11.2.12
+        version: 11.2.12(react-native@0.76.5(@babel/core@7.26.0)(@babel/preset-env@7.26.0(@babel/core@7.26.0))(@types/react@18.3.18)(react@18.3.1))(react@18.3.1)
+      typescript:
+        specifier: ~5.6.2
+        version: 5.6.3
+
   packages/cojson-storage-sqlite:
     dependencies:
       better-sqlite3:
@@ -1737,6 +1759,9 @@ importers:
       cojson:
         specifier: workspace:*
         version: link:../cojson
+      cojson-storage-rn-sqlite:
+        specifier: workspace:*
+        version: link:../cojson-storage-rn-sqlite
       cojson-transport-ws:
         specifier: workspace:*
         version: link:../cojson-transport-ws
@@ -2088,6 +2113,9 @@ importers:
       '@azure/core-asynciterator-polyfill':
         specifier: ^1.0.2
         version: 1.0.2
+      '@op-engineering/op-sqlite':
+        specifier: ^11.2.12
+        version: 11.2.12(react-native@0.76.5(@babel/core@7.26.0)(@babel/preset-env@7.26.0(@babel/core@7.26.0))(@types/react@18.3.18)(react@18.3.1))(react@18.3.1)
       '@react-native-community/netinfo':
         specifier: ^11.4.1
         version: 11.4.1(react-native@0.76.5(@babel/core@7.26.0)(@babel/preset-env@7.26.0(@babel/core@7.26.0))(@types/react@18.3.18)(react@18.3.1))
@@ -3850,6 +3878,12 @@ packages:
   '@npmcli/fs@3.1.1':
     resolution: {integrity: sha512-q9CRWjpHCMIh5sVyefoD1cA7PkvILqCZsnSOEUUivORLjxCO/Irmue2DprETiNgEqktDBZaM1Bi+jrarx1XdCg==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
+
+  '@op-engineering/op-sqlite@11.2.12':
+    resolution: {integrity: sha512-X3qv/H8oCTkk0MyoaMa7Et+0Z8Rkbe8PTBAIBLwwocIc1b84T1Q6wn9DRrS346p2wOgP8j7EYLFqtm0+1tCtkA==}
+    peerDependencies:
+      react: 18.3.1
+      react-native: '*'
 
   '@opentelemetry/api@1.9.0':
     resolution: {integrity: sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg==}
@@ -13491,6 +13525,11 @@ snapshots:
   '@npmcli/fs@3.1.1':
     dependencies:
       semver: 7.6.3
+
+  '@op-engineering/op-sqlite@11.2.12(react-native@0.76.5(@babel/core@7.26.0)(@babel/preset-env@7.26.0(@babel/core@7.26.0))(@types/react@18.3.18)(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      react: 18.3.1
+      react-native: 0.76.5(@babel/core@7.26.0)(@babel/preset-env@7.26.0(@babel/core@7.26.0))(@types/react@18.3.18)(react@18.3.1)
 
   '@opentelemetry/api@1.9.0': {}
 

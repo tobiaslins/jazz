@@ -52,6 +52,13 @@ export const docNavigationItems = [
       },
       {
         // upgrade guides
+        name: "Enable local persistence",
+        href: "/docs/upgrade/react-native-local-persistence",
+        done: 100,
+        framework: "react-native",
+      },
+      {
+        // upgrade guides
         name: "Upgrade to Jazz 0.9.0",
         href: "/docs/upgrade/0-9-0",
         done: 100,
