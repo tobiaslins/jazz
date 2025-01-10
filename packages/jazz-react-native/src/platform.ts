@@ -77,7 +77,7 @@ export async function createJazzRNContext<Acc extends Account>(
 
   const peersToLoadFrom = [websocketPeer.peer];
 
-  if (options.storage !== "disabled") {
+  if (options.storage === "sqlite") {
     const storage = await SQLiteStorage.asPeer({
       filename: "jazz-storage",
       trace: false,
