@@ -28,7 +28,7 @@ export function DocNav({ className }: { className?: string }) {
             done,
           };
         })
-        .filter((item) => item !== null),
+        .filter((item): item is NonNullable<typeof item> => item !== null),
     };
   });
 
