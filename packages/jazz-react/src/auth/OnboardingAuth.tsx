@@ -1,4 +1,5 @@
 import { BrowserOnboardingAuth } from "jazz-browser";
+import { useJazzContext } from "jazz-react-core";
 import { AuthMethod } from "jazz-tools";
 import { useEffect, useMemo, useState } from "react";
 import { useAccount } from "../hooks.js";
@@ -73,7 +74,8 @@ export function useOnboardingAuthUpgrade({
     isLogIn: boolean;
   }) => void;
 }) {
-  const { me, logOut } = useAccount();
+  const { me } = useAccount();
+  const context = useJazzContext();
 
   useEffect(() => {
     async function runAuth() {
@@ -95,8 +97,10 @@ export function useOnboardingAuthUpgrade({
       const isSignUp = result.credentials.accountID === me.id;
 
       if (!isSignUp) {
-        logOut();
+        context.refreshContext?.();
       }
+
+      BrowserOnboardingAuth.emitUpdate();
 
       onUpgrade({
         username: result.username ?? "",
@@ -110,5 +114,17 @@ export function useOnboardingAuthUpgrade({
 }
 
 export function useIsUserOnboarding() {
-  return BrowserOnboardingAuth.isUserOnboarding();
+  const [isOnboarding, setIsOnboarding] = useState(() =>
+    BrowserOnboardingAuth.isUserOnboarding(),
+  );
+
+  useEffect(() => {
+    function handleUpdate() {
+      setIsOnboarding(BrowserOnboardingAuth.isUserOnboarding());
+    }
+
+    return BrowserOnboardingAuth.onUpdate(handleUpdate);
+  }, []);
+
+  return isOnboarding;
 }

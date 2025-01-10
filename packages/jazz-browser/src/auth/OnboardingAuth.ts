@@ -33,7 +33,7 @@ export class BrowserOnboardingAuth implements AuthMethod {
    * @returns A `JazzAuth` object
    */
   async start(crypto: CryptoProvider) {
-    const existingUser = localStorage[STORAGE_KEY];
+    const existingUser = localStorage.getItem(STORAGE_KEY);
 
     if (existingUser) {
       const existingUserData = JSON.parse(
@@ -72,7 +72,7 @@ export class BrowserOnboardingAuth implements AuthMethod {
             onboarding: true,
           } satisfies OnboardingStorageData);
 
-          localStorage[STORAGE_KEY] = storageData;
+          localStorage.setItem(STORAGE_KEY, storageData);
         },
         onSuccess: () => {
           this.driver.onSignedIn({ logOut });
@@ -87,7 +87,7 @@ export class BrowserOnboardingAuth implements AuthMethod {
 
   static getUserOnboardingData() {
     const localStorageData = JSON.parse(
-      localStorage[STORAGE_KEY] ?? null,
+      localStorage.getItem(STORAGE_KEY) ?? "{}",
     ) as OnboardingStorageData;
 
     if (
@@ -106,8 +106,17 @@ export class BrowserOnboardingAuth implements AuthMethod {
     };
   }
 
+  static onUpdate(handler: () => void) {
+    window.addEventListener("onboarding-auth-update", handler);
+    return () => window.removeEventListener("onboarding-auth-update", handler);
+  }
+
+  static emitUpdate() {
+    window.dispatchEvent(new Event("onboarding-auth-update"));
+  }
+
   static isUserOnboarding() {
-    const existingUser = localStorage[STORAGE_KEY];
+    const existingUser = localStorage.getItem(STORAGE_KEY);
 
     return existingUser && JSON.parse(existingUser).onboarding;
   }
@@ -123,5 +132,5 @@ export namespace BrowserOnboardingAuth {
 }
 
 function logOut() {
-  delete localStorage[STORAGE_KEY];
+  localStorage.removeItem(STORAGE_KEY);
 }

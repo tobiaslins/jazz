@@ -10,8 +10,11 @@ import { PlayerControls } from "./components/PlayerControls";
 import "./index.css";
 
 import { MusicaAccount } from "@/1_schema";
-import { JazzProvider, useOnboardingAuth } from "jazz-react";
-import { SignupPage } from "./7_SignupPage";
+import {
+  JazzProvider,
+  useIsUserOnboarding,
+  useOnboardingAuth,
+} from "jazz-react";
 import { useUploadExampleData } from "./lib/useUploadExampleData";
 
 /**
@@ -43,10 +46,6 @@ function Main() {
       path: "/invite/*",
       element: <InvitePage />,
     },
-    {
-      path: "/signup",
-      element: <SignupPage />,
-    },
   ]);
 
   return (
@@ -67,17 +66,18 @@ function JazzAndAuth({ children }: { children: React.ReactNode }) {
     ) as `ws://${string}`) ??
     "wss://cloud.jazz.tools/?key=music-player-example-jazz@garden.co";
 
+  const isUserOnboarding = useIsUserOnboarding();
+
   return (
-    <>
-      <JazzProvider
-        storage="indexedDB"
-        auth={auth}
-        peer={peer}
-        AccountSchema={MusicaAccount}
-      >
-        {children}
-      </JazzProvider>
-    </>
+    <JazzProvider
+      storage="indexedDB"
+      auth={auth}
+      peer={peer}
+      localOnly={isUserOnboarding}
+      AccountSchema={MusicaAccount}
+    >
+      {children}
+    </JazzProvider>
   );
 }
 

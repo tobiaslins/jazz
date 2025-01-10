@@ -7,12 +7,11 @@ import {
 } from "jazz-react";
 import { ID } from "jazz-tools";
 import { useNavigate, useParams } from "react-router";
-import { Link } from "react-router-dom";
 import { Playlist } from "./1_schema";
 import { createNewPlaylist, uploadMusicTracks } from "./4_actions";
 import { MediaPlayer } from "./5_useMediaPlayer";
+import { AuthButton } from "./components/AuthButton";
 import { FileUploadButton } from "./components/FileUploadButton";
-import { LogoutButton } from "./components/LogoutButton";
 import { MusicTrackRow } from "./components/MusicTrackRow";
 import { PlaylistTitleInput } from "./components/PlaylistTitleInput";
 import { SidePanel } from "./components/SidePanel";
@@ -94,16 +93,12 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
                   <Button onClick={handleCreatePlaylist}>New playlist</Button>
                 </>
               )}
-              {!isRootPlaylist && (
+              {!isRootPlaylist && !isUserOnboarding && (
                 <Button onClick={handlePlaylistShareClick}>
                   Share playlist
                 </Button>
               )}
-              {isUserOnboarding ? (
-                <Link to="/signup">Signup</Link>
-              ) : (
-                <LogoutButton />
-              )}
+              <AuthButton />
             </div>
           </div>
           <ul className="flex flex-col">

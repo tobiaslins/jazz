@@ -17,6 +17,7 @@ export type JazzProviderProps<Acc extends Account = RegisteredAccount> = {
   children: React.ReactNode;
   auth: AuthMethod | "guest";
   peer: `wss://${string}` | `ws://${string}`;
+  localOnly?: boolean;
   storage?: BaseBrowserContextOptions["storage"];
   AccountSchema?: AccountClass<Acc>;
 };
@@ -28,6 +29,7 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
   peer,
   storage,
   AccountSchema = Account as unknown as AccountClass<Acc>,
+  localOnly,
 }: JazzProviderProps<Acc>) {
   const [ctx, setCtx] = useState<JazzContextType<Acc> | undefined>();
 
@@ -62,12 +64,14 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
             ? {
                 peer,
                 storage,
+                localOnly,
               }
             : {
                 AccountSchema,
                 auth,
                 peer,
                 storage,
+                localOnly,
               },
         );
 
@@ -83,10 +87,22 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
           }
         };
 
+        const refresh = () => {
+          setCtx(undefined);
+          setSessionCount(sessionCount + 1);
+
+          if (process.env.NODE_ENV === "development") {
+            // In development mode we don't return a cleanup function
+            // so we mark the context as done here.
+            currentContext.done();
+          }
+        };
+
         setCtx({
           ...currentContext,
           AccountSchema,
           logOut,
+          refreshContext: refresh,
         });
 
         return currentContext;
@@ -106,6 +122,12 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
     },
     [AccountSchema, auth, peer, sessionCount].concat(storage as any),
   );
+
+  useEffect(() => {
+    if (ctx) {
+      ctx.toggleNetwork?.(!localOnly);
+    }
+  }, [ctx, localOnly]);
 
   return (
     <JazzContext.Provider value={ctx}>{ctx && children}</JazzContext.Provider>

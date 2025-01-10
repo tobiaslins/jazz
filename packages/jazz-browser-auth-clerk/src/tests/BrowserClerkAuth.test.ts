@@ -44,7 +44,7 @@ describe("BrowserClerkAuth", () => {
 
   describe("clerk credentials in localStorage", () => {
     it("should get credentials from localStorage when clerk user is not signed in", async () => {
-      mockLocalStorage["jazz-clerk-auth"] = JSON.stringify({
+      mockLocalStorage["jazz-logged-in-secret"] = JSON.stringify({
         accountID: "test-account-id",
         accountSecret: "test-secret",
       });
@@ -105,7 +105,7 @@ describe("BrowserClerkAuth", () => {
         });
       }
 
-      expect(mockLocalStorage["jazz-clerk-auth"]).toBeDefined();
+      expect(mockLocalStorage["jazz-logged-in-secret"]).toBeDefined();
     });
 
     it("should call clerk signOut when logging out", async () => {
