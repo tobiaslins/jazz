@@ -13,6 +13,7 @@ export function DocNav({ className }: { className?: string }) {
     return {
       ...headerItem,
       items: headerItem.items
+        .filter((item) => !item.framework || item.framework === framework)
         .map((item) => {
           if (!item.href?.startsWith("/docs")) return item;
 
@@ -20,15 +21,12 @@ export function DocNav({ className }: { className?: string }) {
             typeof item.done === "number" ? item.done : item.done[framework];
           let href = item.href.replace("/docs", `/docs/${framework}`);
 
-          if (item.framework && item.framework !== framework) return null;
-
           return {
             ...item,
             href,
             done,
           };
-        })
-        .filter((item): item is NonNullable<typeof item> => item !== null),
+        }),
     };
   });
 
