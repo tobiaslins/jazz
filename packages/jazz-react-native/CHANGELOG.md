@@ -1,5 +1,15 @@
 # jazz-browser
 
+## 0.9.2
+
+### Patch Changes
+
+- 80fd3e9: Add local persistence with "@op-engineering/op-sqlite".
+
+  Disabled by default, follow the upgrade guide to enable it.
+
+  https://jazz.tools/docs/react-native/upgrade/react-native-local-persistence
+
 ## 0.9.1
 
 ### Patch Changes
