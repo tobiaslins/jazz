@@ -85,7 +85,7 @@ export class SQLiteReactNative {
       localNodeAsPeer.outgoing,
     );
 
-    return { ...storageAsPeer, priority: 90 };
+    return { ...storageAsPeer, priority: 100 };
   }
 
   static async open(
