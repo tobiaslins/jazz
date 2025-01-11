@@ -1,5 +1,11 @@
 # cojson-storage-sqlite
 
+## 0.8.51
+
+### Patch Changes
+
+- 2be47d6: Fix priority of rn sqlite
+
 ## 0.8.50
 
 ### Patch Changes

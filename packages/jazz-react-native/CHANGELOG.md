@@ -1,5 +1,13 @@
 # jazz-browser
 
+## 0.9.3
+
+### Patch Changes
+
+- 7cd691f: Fix auth when using custom KV implementation
+- Updated dependencies [2be47d6]
+  - cojson-storage-rn-sqlite@0.8.51
+
 ## 0.9.2
 
 ### Patch Changes
