@@ -127,7 +127,7 @@ export function experimental_useInboxSender<
   }
 
   const me = context.me;
-  const inboxRef = useRef<Promise<InboxSender<I, O>> | undefined>();
+  const inboxRef = useRef<Promise<InboxSender<I, O>> | undefined>(undefined);
 
   const sendMessage = useCallback(
     async (message: I) => {
