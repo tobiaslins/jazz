@@ -1,5 +1,11 @@
 # jazz-browser
 
+## 0.9.6
+
+### Patch Changes
+
+- 8a390d2: Fix the account type registration using the sources for the typescript definitions
+
 ## 0.9.5
 
 ### Patch Changes
