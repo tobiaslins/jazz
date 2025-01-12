@@ -1,5 +1,11 @@
 # jazz-browser-media-images
 
+## 0.9.4
+
+### Patch Changes
+
+- jazz-react@0.9.4
+
 ## 0.9.1
 
 ### Patch Changes

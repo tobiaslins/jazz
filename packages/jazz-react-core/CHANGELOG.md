@@ -1,5 +1,11 @@
 # jazz-react-core
 
+## 0.8.48
+
+### Patch Changes
+
+- 0f57687: Fix useRef type
+
 ## 0.8.47
 
 ### Patch Changes

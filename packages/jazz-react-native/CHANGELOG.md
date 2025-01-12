@@ -1,5 +1,12 @@
 # jazz-browser
 
+## 0.9.4
+
+### Patch Changes
+
+- Updated dependencies [0f57687]
+  - jazz-react-core@0.8.48
+
 ## 0.9.3
 
 ### Patch Changes
