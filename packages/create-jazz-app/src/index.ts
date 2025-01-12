@@ -146,12 +146,16 @@ module.exports = withNativeWind(config, { input: "./src/global.css" });
   );
 }
 
-async function promptUser(): Promise<ScaffoldOptions> {
+async function promptUser(
+  partialOptions: Partial<ScaffoldOptions> = {},
+): Promise<ScaffoldOptions> {
   console.log("\n" + jazzGradient.multiline("Jazz App Creator\n"));
   console.log(chalk.blue.bold("Let's create your Jazz app! 🎷\n"));
 
-  const answers = (await inquirer.prompt([
-    {
+  const questions = [];
+
+  if (!partialOptions.starter) {
+    questions.push({
       type: "list",
       name: "starter",
       message: chalk.cyan("Choose a starter:"),
@@ -161,8 +165,11 @@ async function promptUser(): Promise<ScaffoldOptions> {
           name: chalk.white(value.name),
           value: key,
         })),
-    },
-    {
+    });
+  }
+
+  if (!partialOptions.packageManager) {
+    questions.push({
       type: "list",
       name: "packageManager",
       message: chalk.cyan("Choose a package manager:"),
@@ -174,17 +181,25 @@ async function promptUser(): Promise<ScaffoldOptions> {
         { name: chalk.white("deno"), value: "deno" },
       ],
       default: "npm",
-    },
-    {
+    });
+  }
+
+  if (!partialOptions.projectName) {
+    questions.push({
       type: "input",
       name: "projectName",
       message: chalk.cyan("Enter your project name:"),
       validate: (input: string) =>
         input ? true : chalk.red("Project name cannot be empty"),
-    },
-  ])) as ScaffoldOptions;
+    });
+  }
 
-  return answers;
+  const answers = await inquirer.prompt(questions);
+
+  return {
+    ...answers,
+    ...partialOptions,
+  } as ScaffoldOptions;
 }
 
 function validateOptions(
@@ -230,23 +245,21 @@ program
   )
   .action(async (options) => {
     try {
-      // If all required options are provided, use them directly
-      if (options.starter && options.projectName && options.packageManager) {
-        const nonInteractiveOptions = {
-          starter: options.starter as FrameworkAuthPair,
-          projectName: options.projectName,
-          packageManager:
-            options.packageManager as ScaffoldOptions["packageManager"],
-        };
+      const partialOptions: Partial<ScaffoldOptions> = {};
 
-        // Validate will throw if invalid
-        validateOptions(nonInteractiveOptions);
-        await scaffoldProject(nonInteractiveOptions);
-      } else {
-        // Otherwise, fall back to interactive mode
-        const scaffoldOptions = await promptUser();
-        await scaffoldProject(scaffoldOptions);
-      }
+      if (options.starter)
+        partialOptions.starter = options.starter as FrameworkAuthPair;
+      if (options.projectName) partialOptions.projectName = options.projectName;
+      if (options.packageManager)
+        partialOptions.packageManager =
+          options.packageManager as ScaffoldOptions["packageManager"];
+
+      // Get missing options through prompts
+      const scaffoldOptions = await promptUser(partialOptions);
+
+      // Validate will throw if invalid
+      validateOptions(scaffoldOptions);
+      await scaffoldProject(scaffoldOptions);
     } catch (error: any) {
       if (error instanceof Error && error.name === "ExitPromptError") {
         console.log(chalk.yellow("\n👋 Until next time!\n"));
