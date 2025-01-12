@@ -1,6 +1,6 @@
 import { JazzContext, JazzContextType } from "jazz-react-core";
 import { Account, AccountClass, AuthMethod } from "jazz-tools";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useEffect, useRef } from "react";
 import {
   BaseReactNativeContextOptions,
