@@ -1,5 +1,11 @@
 # jazz-browser
 
+## 0.9.5
+
+### Patch Changes
+
+- c871912: Add clearUserCredentials API to programmatically delete the current user stored credentials
+
 ## 0.9.4
 
 ### Patch Changes
