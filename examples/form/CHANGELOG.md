@@ -1,5 +1,11 @@
 # form
 
+## 0.0.23
+
+### Patch Changes
+
+- jazz-react@0.9.4
+
 ## 0.0.22
 
 ### Patch Changes

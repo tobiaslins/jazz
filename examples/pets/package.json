@@ -1,7 +1,7 @@
 {
   "name": "jazz-example-pets",
   "private": true,
-  "version": "0.0.144",
+  "version": "0.0.145",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -20,7 +20,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "jazz-browser-media-images": "workspace:0.9.1",
-    "jazz-react": "workspace:0.9.1",
+    "jazz-react": "workspace:0.9.4",
     "jazz-tools": "workspace:0.9.1",
     "lucide-react": "^0.274.0",
     "qrcode": "^1.5.3",

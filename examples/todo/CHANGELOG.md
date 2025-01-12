@@ -1,5 +1,11 @@
 # jazz-example-todo
 
+## 0.0.144
+
+### Patch Changes
+
+- jazz-react@0.9.4
+
 ## 0.0.143
 
 ### Patch Changes
