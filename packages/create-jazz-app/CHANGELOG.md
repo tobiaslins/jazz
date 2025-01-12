@@ -1,5 +1,11 @@
 # create-jazz-app
 
+## 0.1.5
+
+### Patch Changes
+
+- f78c234: Fix metro config for the RN starter
+
 ## 0.1.4
 
 ### Patch Changes
