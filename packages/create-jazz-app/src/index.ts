@@ -122,7 +122,7 @@ async function scaffoldProject({
 
       Object.entries(packageJson.dependencies).forEach(([pkg, version]) => {
         if (typeof version === "string" && version.includes("workspace:")) {
-          packageJson.dependencies[pkg] = latestVersions[pkg] || "latest";
+          packageJson.dependencies[pkg] = latestVersions[pkg];
         }
       });
     }
