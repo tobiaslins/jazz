@@ -53,17 +53,15 @@ async function getLatestPackageVersions(
   );
 
   if (failures.length > 0) {
-    versionsSpinner.warn(
-      chalk.yellow(
-        `Failed to fetch versions for some packages: ${failures.join(", ")}. Using 'latest' instead.`,
+    versionsSpinner.fail(
+      chalk.red(
+        `Failed to fetch versions for packages: ${failures.join(", ")}. Please check your internet connection and try again.`,
       ),
     );
-  } else {
-    versionsSpinner.succeed(
-      chalk.green("Package versions fetched successfully"),
-    );
+    throw new Error("Failed to fetch package versions");
   }
 
+  versionsSpinner.succeed(chalk.green("Package versions fetched successfully"));
   return versions;
 }
 
