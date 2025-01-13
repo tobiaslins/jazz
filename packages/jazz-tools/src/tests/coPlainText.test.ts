@@ -38,6 +38,9 @@ describe("CoPlainText", () => {
 
         text.insertAfter(5, " cruel");
         expect(text + "").toEqual("hello cruel world");
+
+        text.insertAfter(0, "Hello, ");
+        expect(text + "").toEqual("Hello, hello cruel world");
       });
 
       test("deletion", () => {
