@@ -386,15 +386,41 @@ export function parseCoValueCreateOptions(
     | Group
     | undefined,
 ) {
+  const Group = RegisteredSchemas["Group"];
+
   if (!options) {
-    return { owner: activeAccountContext.get(), uniqueness: undefined };
+    return { owner: Group.create(), uniqueness: undefined };
   }
 
-  return "_type" in options &&
-    (options._type === "Account" || options._type === "Group")
-    ? { owner: options, uniqueness: undefined }
-    : {
-        owner: options.owner ?? activeAccountContext.get(),
-        uniqueness: options.unique ? { uniqueness: options.unique } : undefined,
-      };
+  if ("_type" in options) {
+    if (options._type === "Account" || options._type === "Group") {
+      return { owner: options, uniqueness: undefined };
+    }
+  }
+
+  const uniqueness = options.unique
+    ? { uniqueness: options.unique }
+    : undefined;
+
+  return {
+    owner: options.owner ?? Group.create(),
+    uniqueness,
+  };
+}
+
+export function parseGroupCreateOptions(
+  options:
+    | {
+        owner?: Account;
+      }
+    | Account
+    | undefined,
+) {
+  if (!options) {
+    return { owner: activeAccountContext.get() };
+  }
+
+  return "_type" in options && isAccountInstance(options)
+    ? { owner: options }
+    : { owner: options.owner ?? activeAccountContext.get() };
 }
