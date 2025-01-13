@@ -17,7 +17,7 @@ class ActiveAccountContext {
     if (!this.activeAccount) {
       if (this.guestMode) {
         throw new Error(
-          "The current active account is a guest account. You cannot access the account's data.",
+          "Something that expects a full active account was called in guest mode.",
         );
       }
 
