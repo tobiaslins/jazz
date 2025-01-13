@@ -21,6 +21,50 @@ type ScaffoldOptions = {
   packageManager: "npm" | "yarn" | "pnpm" | "bun" | "deno";
 };
 
+async function getLatestPackageVersions(
+  dependencies: Record<string, string>,
+): Promise<Record<string, string>> {
+  const versionsSpinner = ora({
+    text: chalk.blue("Fetching package versions..."),
+    spinner: "dots",
+  }).start();
+
+  const versions: Record<string, string> = {};
+  const failures: string[] = [];
+
+  await Promise.all(
+    Object.keys(dependencies).map(async (pkg) => {
+      if (
+        typeof dependencies[pkg] === "string" &&
+        dependencies[pkg].includes("workspace:")
+      ) {
+        try {
+          const response = await fetch(
+            `https://registry.npmjs.org/${pkg}/latest`,
+          );
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+          versions[pkg] = `^${data.version}`; // Using caret for minor version updates
+        } catch (error) {
+          failures.push(pkg);
+        }
+      }
+    }),
+  );
+
+  if (failures.length > 0) {
+    versionsSpinner.fail(
+      chalk.red(
+        `Failed to fetch versions for packages: ${failures.join(", ")}. Please check your internet connection and try again.`,
+      ),
+    );
+    throw new Error("Failed to fetch package versions");
+  }
+
+  versionsSpinner.succeed(chalk.green("Package versions fetched successfully"));
+  return versions;
+}
+
 async function scaffoldProject({
   starter,
   projectName,
@@ -72,9 +116,13 @@ async function scaffoldProject({
 
     // Replace workspace: dependencies with latest
     if (packageJson.dependencies) {
+      const latestVersions = await getLatestPackageVersions(
+        packageJson.dependencies,
+      );
+
       Object.entries(packageJson.dependencies).forEach(([pkg, version]) => {
         if (typeof version === "string" && version.includes("workspace:")) {
-          packageJson.dependencies[pkg] = "latest";
+          packageJson.dependencies[pkg] = latestVersions[pkg];
         }
       });
     }
