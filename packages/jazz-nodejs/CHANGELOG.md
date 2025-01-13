@@ -1,5 +1,11 @@
 # jazz-autosub
 
+## 0.9.7
+
+### Patch Changes
+
+- a172f61: Cast the WebSocket type to any
+
 ## 0.9.1
 
 ### Patch Changes
