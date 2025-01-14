@@ -507,6 +507,9 @@ describe("waitForSync", async () => {
     });
 
     const stream = FileStream.create();
-    expect(stream._owner).toEqual(account);
+    expect(stream._owner._type).toEqual("Group");
+    expect(stream._owner.castAs(Group)._raw.roleOf(account._raw.id)).toEqual(
+      "admin",
+    );
   });
 });
