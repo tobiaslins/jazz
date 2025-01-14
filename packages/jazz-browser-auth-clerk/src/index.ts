@@ -20,6 +20,12 @@ export type MinimalClerkClient = {
   signOut: () => Promise<void>;
 };
 
+type ClerkCredentials = {
+  jazzAccountID: ID<Account>;
+  jazzAccountSecret: AgentSecret;
+  jazzAccountSeed?: number[];
+};
+
 export class BrowserClerkAuth implements AuthMethod {
   constructor(
     public driver: BrowserClerkAuth.Driver,
@@ -61,7 +67,8 @@ export class BrowserClerkAuth implements AuthMethod {
         this.clerkClient.user.username ||
         this.clerkClient.user.id;
       // Check clerk user metadata for credentials
-      const clerkCredentials = this.clerkClient.user.unsafeMetadata;
+      const clerkCredentials = this.clerkClient.user
+        .unsafeMetadata as ClerkCredentials;
       if (clerkCredentials.jazzAccountID) {
         if (!clerkCredentials.jazzAccountSecret) {
           throw new Error("No secret for existing user");
@@ -76,6 +83,9 @@ export class BrowserClerkAuth implements AuthMethod {
             AuthSecretStorage.set({
               accountID,
               accountSecret: secret,
+              secretSeed: clerkCredentials.jazzAccountSeed
+                ? Uint8Array.from(clerkCredentials.jazzAccountSeed)
+                : undefined,
             });
           },
           onSuccess: () => {},
@@ -104,7 +114,8 @@ export class BrowserClerkAuth implements AuthMethod {
               unsafeMetadata: {
                 jazzAccountID: accountID,
                 jazzAccountSecret: secret,
-              },
+                jazzAccountSeed: Array.from(credentials.secretSeed),
+              } satisfies ClerkCredentials,
             });
           },
           onSuccess: () => {},
@@ -134,7 +145,8 @@ export class BrowserClerkAuth implements AuthMethod {
               unsafeMetadata: {
                 jazzAccountID: accountID,
                 jazzAccountSecret: secret,
-              },
+                jazzAccountSeed: Array.from(secretSeed),
+              } satisfies ClerkCredentials,
             });
           },
           onSuccess: () => {},
