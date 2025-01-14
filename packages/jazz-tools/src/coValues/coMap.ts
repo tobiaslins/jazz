@@ -7,6 +7,7 @@ import {
   type RawCoMap,
   cojsonInternals,
 } from "cojson";
+import { activeAccountContext } from "../implementation/activeAccountContext.js";
 import type {
   AnonymousJazzAgent,
   CoValue,
@@ -28,10 +29,10 @@ import {
   ensureCoValueLoaded,
   inspect,
   isRefEncoded,
-  loadCoValue,
+  loadCoValueWithoutMe,
   makeRefs,
   parseCoValueCreateOptions,
-  subscribeToCoValue,
+  subscribeToCoValueWithoutMe,
   subscribeToExistingCoValue,
   subscriptionsScopes,
 } from "../internal.js";
@@ -274,7 +275,7 @@ export class CoMap extends CoValueBase implements CoValue {
   static create<M extends CoMap>(
     this: CoValueClass<M>,
     init: Simplify<CoMapInit<M>>,
-    options:
+    options?:
       | {
           owner: Account | Group;
           unique?: CoValueUniqueness["uniqueness"];
@@ -432,13 +433,24 @@ export class CoMap extends CoValueBase implements CoValue {
    *
    * @category Subscription & Loading
    */
-  static load<M extends CoMap, Depth>(
-    this: CoValueClass<M>,
-    id: ID<M>,
+  static load<C extends CoMap, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
+    depth: Depth & DepthsIn<C>,
+  ): Promise<DeeplyLoaded<C, Depth> | undefined>;
+  static load<C extends CoMap, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
     as: Account,
-    depth: Depth & DepthsIn<M>,
-  ): Promise<DeeplyLoaded<M, Depth> | undefined> {
-    return loadCoValue(this, id, as, depth);
+    depth: Depth & DepthsIn<C>,
+  ): Promise<DeeplyLoaded<C, Depth> | undefined>;
+  static load<C extends CoMap, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
+    asOrDepth: Account | (Depth & DepthsIn<C>),
+    depth?: Depth & DepthsIn<C>,
+  ): Promise<DeeplyLoaded<C, Depth> | undefined> {
+    return loadCoValueWithoutMe(this, id, asOrDepth, depth);
   }
 
   /**
@@ -469,22 +481,45 @@ export class CoMap extends CoValueBase implements CoValue {
    *
    * @category Subscription & Loading
    */
-  static subscribe<M extends CoMap, Depth>(
-    this: CoValueClass<M>,
-    id: ID<M>,
+  static subscribe<C extends CoMap, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
+    depth: Depth & DepthsIn<C>,
+    listener: (value: DeeplyLoaded<C, Depth>) => void,
+  ): () => void;
+  static subscribe<C extends CoMap, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
     as: Account,
-    depth: Depth & DepthsIn<M>,
-    listener: (value: DeeplyLoaded<M, Depth>) => void,
+    depth: Depth & DepthsIn<C>,
+    listener: (value: DeeplyLoaded<C, Depth>) => void,
+  ): () => void;
+  static subscribe<C extends CoMap, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
+    asOrDepth: Account | (Depth & DepthsIn<C>),
+    depthOrListener:
+      | (Depth & DepthsIn<C>)
+      | ((value: DeeplyLoaded<C, Depth>) => void),
+    listener?: (value: DeeplyLoaded<C, Depth>) => void,
   ): () => void {
-    return subscribeToCoValue<M, Depth>(this, id, as, depth, listener);
+    return subscribeToCoValueWithoutMe<C, Depth>(
+      this,
+      id,
+      asOrDepth,
+      depthOrListener,
+      listener,
+    );
   }
 
   static findUnique<M extends CoMap>(
     this: CoValueClass<M>,
     unique: CoValueUniqueness["uniqueness"],
     ownerID: ID<Account> | ID<Group>,
-    as: Account | Group | AnonymousJazzAgent,
+    as?: Account | Group | AnonymousJazzAgent,
   ) {
+    as ||= activeAccountContext.get();
+
     const header = {
       type: "comap" as const,
       ruleset: {

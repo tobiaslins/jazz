@@ -186,19 +186,40 @@ Lastly, ensure that the `"main"` field in your `package.json` points to `index.j
   ```
 </CodeGroup>
 
-## Using Jazz
+## Setting up the provider
 
-### `createJazzRNApp()`
-
-Create a file `jazz.tsx` with the following contents:
+Wrap your app components with the `JazzProvider:
 
 <CodeGroup>
-  ```tsx
-  import { createJazzRNApp } from "jazz-react-native";
+      ```tsx
+      import { JazzProvider, useDemoAuth, DemoAuthBasicUI } from "jazz-react-native";
+      import { MyAppAccount } from "./schema";
 
-  export const Jazz = createJazzRNApp();
-  export const { useAccount, useCoState, useAcceptInvite } = Jazz;
-  ```
+
+      export function JazzAndAuth({ children }: { children: React.ReactNode }) {
+          const [auth, state] = useDemoAuth();
+
+          return (
+              <>
+                  <JazzProvider
+                      auth={auth}
+                      peer="wss://cloud.jazz.tools/?key=you@example.com"
+                      AccountSchema={MyAppAccount}
+                  >
+                      {children}
+                  </JazzProvider>
+                  <DemoAuthBasicUI appName="My App" state={state} />
+              </>
+          ); 
+      }
+
+      // Register the Account schema so `useAccount` returns our custom `MyAppAccount`
+      declare module "jazz-react-native" {
+          interface Register {
+              Account: MyAppAccount;
+          }
+      }
+      ```
 </CodeGroup>
 
 You can optionally pass a custom `kvStore` and `AccountSchema` to `createJazzRNApp()`, otherwise, it defaults to `ExpoSecureStoreAdapter` and `Account`.

@@ -4,9 +4,11 @@ import {
   type RawCoPlainText,
   stringifyOpID,
 } from "cojson";
+import { activeAccountContext } from "../implementation/activeAccountContext.js";
 import type { CoValue, CoValueClass, ID } from "../internal.js";
 import {
   inspect,
+  isAccountInstance,
   loadCoValue,
   subscribeToCoValue,
   subscribeToExistingCoValue,
@@ -132,9 +134,9 @@ export class CoPlainText extends String implements CoValue {
   static load<T extends CoPlainText>(
     this: CoValueClass<T>,
     id: ID<T>,
-    as: Account,
+    as?: Account,
   ): Promise<T | undefined> {
-    return loadCoValue(this, id, as, []);
+    return loadCoValue(this, id, as ?? activeAccountContext.get(), []);
   }
 
   //   /**
@@ -182,10 +184,31 @@ export class CoPlainText extends String implements CoValue {
   static subscribe<T extends CoPlainText>(
     this: CoValueClass<T>,
     id: ID<T>,
+    listener: (value: T) => void,
+  ): () => void;
+  static subscribe<T extends CoPlainText>(
+    this: CoValueClass<T>,
+    id: ID<T>,
     as: Account,
     listener: (value: T) => void,
+  ): () => void;
+  static subscribe<T extends CoPlainText>(
+    this: CoValueClass<T>,
+    id: ID<T>,
+    asOrListener: Account | ((value: T) => void),
+    listener?: (value: T) => void,
   ): () => void {
-    return subscribeToCoValue(this, id, as, [], listener);
+    if (isAccountInstance(asOrListener)) {
+      return subscribeToCoValue(this, id, asOrListener, [], listener!);
+    }
+
+    return subscribeToCoValue(
+      this,
+      id,
+      activeAccountContext.get(),
+      [],
+      listener!,
+    );
   }
 
   //   /**
