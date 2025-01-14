@@ -1,5 +1,11 @@
 # create-jazz-app
 
+## 0.1.6
+
+### Patch Changes
+
+- 036fa1f: Fix fetching latest semver jazz-\* package versions from NPM when using create-jazz-app, instead of using "latest"
+
 ## 0.1.5
 
 ### Patch Changes

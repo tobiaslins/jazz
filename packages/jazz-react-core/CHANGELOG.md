@@ -1,5 +1,13 @@
 # jazz-react-core
 
+## 0.8.49
+
+### Patch Changes
+
+- f7f461d: Explicitly use useContext() instead of React.useContext()
+- Updated dependencies [d1d773b]
+  - jazz-tools@0.9.8
+
 ## 0.8.48
 
 ### Patch Changes

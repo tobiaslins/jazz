@@ -1,5 +1,12 @@
 # jazz-autosub
 
+## 0.9.8
+
+### Patch Changes
+
+- Updated dependencies [d1d773b]
+  - jazz-tools@0.9.8
+
 ## 0.9.7
 
 ### Patch Changes
