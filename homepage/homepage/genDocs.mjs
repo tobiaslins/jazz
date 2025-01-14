@@ -8,7 +8,7 @@ for (const { packageName, entryPoint, tsconfig, typedocOptions } of [
   },
   {
     packageName: "jazz-react",
-    entryPoint: "index.tsx",
+    entryPoint: "index.ts",
     typedocOptions: {
       skipErrorChecking: true, // TODO: remove this. Temporary workaround
     },
