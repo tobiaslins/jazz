@@ -13,7 +13,9 @@ export function DocNav({ className }: { className?: string }) {
     return {
       ...headerItem,
       items: headerItem.items
-        .filter((item) => !item.framework || item.framework === framework)
+        .filter(
+          (item) => !("framework" in item) || item.framework === framework,
+        )
         .map((item) => {
           if (!item.href?.startsWith("/docs")) return item;
 
