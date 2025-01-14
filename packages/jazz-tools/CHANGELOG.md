@@ -1,5 +1,11 @@
 # jazz-tools
 
+## 0.9.8
+
+### Patch Changes
+
+- d1d773b: Make possible to call the load/subscribe/create API without passing me
+
 ## 0.9.1
 
 ### Patch Changes
