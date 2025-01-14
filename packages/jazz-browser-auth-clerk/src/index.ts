@@ -1,5 +1,5 @@
-import { AgentSecret } from "cojson";
-import { AuthSecretStorage, BrowserOnboardingAuth } from "jazz-browser";
+import { AgentSecret, CryptoProvider } from "cojson";
+import { AuthSecretStorage } from "jazz-browser";
 import { Account, AuthMethod, AuthResult, Credentials, ID } from "jazz-tools";
 
 export type MinimalClerkClient = {
@@ -20,26 +20,19 @@ export type MinimalClerkClient = {
   signOut: () => Promise<void>;
 };
 
-function saveCredentialsToLocalStorage(credentials: Credentials) {
-  AuthSecretStorage.set({
-    accountID: credentials.accountID,
-    accountSecret: credentials.secret,
-  });
-}
-
 export class BrowserClerkAuth implements AuthMethod {
   constructor(
     public driver: BrowserClerkAuth.Driver,
     private readonly clerkClient: MinimalClerkClient,
   ) {}
 
-  async start(): Promise<AuthResult> {
+  async start(crypto: CryptoProvider): Promise<AuthResult> {
     AuthSecretStorage.migrate();
 
     // Check local storage for credentials
     const credentials = AuthSecretStorage.get();
 
-    if (credentials && !BrowserOnboardingAuth.isUserOnboarding()) {
+    if (credentials && !credentials.isAnonymous) {
       try {
         return {
           type: "existing",
@@ -68,21 +61,21 @@ export class BrowserClerkAuth implements AuthMethod {
         this.clerkClient.user.username ||
         this.clerkClient.user.id;
       // Check clerk user metadata for credentials
-      const storedCredentials = this.clerkClient.user.unsafeMetadata;
-      if (storedCredentials.jazzAccountID) {
-        if (!storedCredentials.jazzAccountSecret) {
+      const clerkCredentials = this.clerkClient.user.unsafeMetadata;
+      if (clerkCredentials.jazzAccountID) {
+        if (!clerkCredentials.jazzAccountSecret) {
           throw new Error("No secret for existing user");
         }
         return {
           type: "existing",
           credentials: {
-            accountID: storedCredentials.jazzAccountID as ID<Account>,
-            secret: storedCredentials.jazzAccountSecret as AgentSecret,
+            accountID: clerkCredentials.jazzAccountID as ID<Account>,
+            secret: clerkCredentials.jazzAccountSecret as AgentSecret,
           },
           saveCredentials: async ({ accountID, secret }: Credentials) => {
-            saveCredentialsToLocalStorage({
+            AuthSecretStorage.set({
               accountID,
-              secret,
+              accountSecret: secret,
             });
           },
           onSuccess: () => {},
@@ -93,21 +86,19 @@ export class BrowserClerkAuth implements AuthMethod {
             void this.clerkClient.signOut();
           },
         };
-      } else if (BrowserOnboardingAuth.isUserOnboarding()) {
-        const onboardingUserData =
-          BrowserOnboardingAuth.getUserOnboardingData();
-
+      } else if (credentials?.isAnonymous) {
         return {
           type: "existing",
           username,
           credentials: {
-            accountID: onboardingUserData.accountID,
-            secret: onboardingUserData.secret,
+            accountID: credentials.accountID,
+            secret: credentials.accountSecret,
           },
           saveCredentials: async ({ accountID, secret }: Credentials) => {
-            saveCredentialsToLocalStorage({
+            AuthSecretStorage.set({
               accountID,
-              secret,
+              accountSecret: secret,
+              secretSeed: credentials.secretSeed,
             });
             await this.clerkClient.user?.update({
               unsafeMetadata: {
@@ -125,16 +116,19 @@ export class BrowserClerkAuth implements AuthMethod {
           },
         };
       } else {
+        const secretSeed = crypto.newRandomSecretSeed();
         // No credentials found, so we need to create new credentials
         return {
           type: "new",
           creationProps: {
             name: username,
           },
+          initialSecret: crypto.agentSecretFromSecretSeed(secretSeed),
           saveCredentials: async ({ accountID, secret }: Credentials) => {
-            saveCredentialsToLocalStorage({
+            AuthSecretStorage.set({
               accountID,
-              secret,
+              secretSeed,
+              accountSecret: secret,
             });
             await this.clerkClient.user?.update({
               unsafeMetadata: {

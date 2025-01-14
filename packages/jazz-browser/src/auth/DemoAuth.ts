@@ -1,4 +1,4 @@
-import { AgentSecret } from "cojson";
+import { AgentSecret, CryptoProvider } from "cojson";
 import { Account, AuthMethod, AuthResult, ID } from "jazz-tools";
 import { AuthSecretStorage } from "./AuthSecretStorage.js";
 
@@ -52,7 +52,7 @@ export class BrowserDemoAuth implements AuthMethod {
   /**
    * @returns A `JazzAuth` object
    */
-  async start() {
+  async start(crypto: CryptoProvider) {
     AuthSecretStorage.migrate();
 
     const credentials = AuthSecretStorage.get();
@@ -65,7 +65,7 @@ export class BrowserDemoAuth implements AuthMethod {
         type: "existing",
         credentials: { accountID, secret },
         onSuccess: () => {
-          this.driver.onSignedIn({ logOut });
+          this.driver.onSignedIn({ logOut, isSignUp: false });
         },
         onError: (error: string | Error) => {
           this.driver.onError(error);
@@ -78,9 +78,13 @@ export class BrowserDemoAuth implements AuthMethod {
       return new Promise<AuthResult>((resolve) => {
         this.driver.onReady({
           signUp: async (username) => {
+            const secretSeed = crypto.newRandomSecretSeed();
+            const accountSecret = crypto.agentSecretFromSecretSeed(secretSeed);
+
             resolve({
               type: "new",
               creationProps: { name: username },
+              initialSecret: accountSecret,
               saveCredentials: async (credentials: {
                 accountID: ID<Account>;
                 secret: AgentSecret;
@@ -92,7 +96,8 @@ export class BrowserDemoAuth implements AuthMethod {
 
                 AuthSecretStorage.set({
                   accountID: credentials.accountID,
-                  accountSecret: credentials.secret,
+                  secretSeed,
+                  accountSecret,
                 });
 
                 localStorage["demo-auth-existing-users-" + username] =
@@ -105,7 +110,7 @@ export class BrowserDemoAuth implements AuthMethod {
                   : username;
               },
               onSuccess: () => {
-                this.driver.onSignedIn({ logOut });
+                this.driver.onSignedIn({ logOut, isSignUp: true });
               },
               onError: (error: string | Error) => {
                 this.driver.onError(error);
@@ -122,7 +127,10 @@ export class BrowserDemoAuth implements AuthMethod {
               localStorage["demo-auth-existing-users-" + existingUser],
             ) as StorageData;
 
-            AuthSecretStorage.set(storageData);
+            AuthSecretStorage.set({
+              accountID: storageData.accountID,
+              accountSecret: storageData.accountSecret,
+            });
 
             resolve({
               type: "existing",
@@ -131,7 +139,7 @@ export class BrowserDemoAuth implements AuthMethod {
                 secret: storageData.accountSecret,
               },
               onSuccess: () => {
-                this.driver.onSignedIn({ logOut });
+                this.driver.onSignedIn({ logOut, isSignUp: false });
               },
               onError: (error: string | Error) => {
                 this.driver.onError(error);
@@ -156,7 +164,10 @@ export namespace BrowserDemoAuth {
       existingUsers: string[];
       logInAs: (existingUser: string) => Promise<void>;
     }) => void;
-    onSignedIn: (next: { logOut: () => void }) => void;
+    onSignedIn: (next: {
+      logOut: () => void;
+      isSignUp: boolean;
+    }) => void;
     onError: (error: string | Error) => void;
   }
 }

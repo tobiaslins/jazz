@@ -2,13 +2,6 @@ import { AgentSecret, CryptoProvider } from "cojson";
 import { Account, AuthMethod, AuthResult, ID } from "jazz-tools";
 import { AuthSecretStorage } from "./AuthSecretStorage.js";
 
-export type OnboardingStorageData = {
-  accountID: ID<Account>;
-  accountSecret: AgentSecret;
-  secretSeed: number[];
-  onboarding: true;
-};
-
 /**
  * `BrowserOnboardingAuth` provides a `JazzAuth` object for demo authentication.
  *
@@ -22,7 +15,7 @@ export type OnboardingStorageData = {
  *
  * @category Auth Providers
  */
-export class BrowserOnboardingAuth implements AuthMethod {
+export class BrowserAnonymousAuth implements AuthMethod {
   constructor(
     public defaultUserName: string,
     public driver: BrowserOnboardingAuth.Driver,
@@ -64,10 +57,10 @@ export class BrowserOnboardingAuth implements AuthMethod {
         }) => {
           AuthSecretStorage.set({
             accountID: credentials.accountID,
+            secretSeed,
             accountSecret: credentials.secret,
-            secretSeed: Array.from(secretSeed),
-            onboarding: true,
-          } satisfies OnboardingStorageData);
+            isAnonymous: true,
+          });
         },
         onSuccess: () => {
           this.driver.onSignedIn({ logOut });
@@ -78,40 +71,6 @@ export class BrowserOnboardingAuth implements AuthMethod {
         logOut,
       } satisfies AuthResult;
     }
-  }
-
-  static getUserOnboardingData() {
-    const localStorageData = AuthSecretStorage.get() as OnboardingStorageData;
-
-    if (
-      !localStorageData?.secretSeed ||
-      !localStorageData?.accountID ||
-      !localStorageData?.accountSecret ||
-      !localStorageData?.onboarding
-    ) {
-      throw new Error("No onboarding user found");
-    }
-
-    return {
-      accountID: localStorageData.accountID,
-      secret: localStorageData.accountSecret,
-      secretSeed: new Uint8Array(localStorageData.secretSeed),
-    };
-  }
-
-  static onUpdate(handler: () => void) {
-    window.addEventListener("onboarding-auth-update", handler);
-    return () => window.removeEventListener("onboarding-auth-update", handler);
-  }
-
-  static emitUpdate() {
-    window.dispatchEvent(new Event("onboarding-auth-update"));
-  }
-
-  static isUserOnboarding() {
-    const existingUser = AuthSecretStorage.get() as OnboardingStorageData;
-
-    return existingUser && existingUser.onboarding;
   }
 }
 

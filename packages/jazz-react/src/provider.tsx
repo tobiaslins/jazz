@@ -15,7 +15,7 @@ export type RegisteredAccount = Register extends { Account: infer Acc }
 
 export type JazzProviderProps<Acc extends Account = RegisteredAccount> = {
   children: React.ReactNode;
-  auth: AuthMethod | "guest";
+  auth?: AuthMethod | "guest";
   peer: `wss://${string}` | `ws://${string}`;
   localOnly?: boolean;
   storage?: BaseBrowserContextOptions["storage"];
@@ -62,11 +62,13 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
         const currentContext = await createJazzBrowserContext<Acc>(
           auth === "guest"
             ? {
+                guest: true,
                 peer,
                 storage,
                 localOnly,
               }
             : {
+                guest: false,
                 AccountSchema,
                 auth,
                 peer,

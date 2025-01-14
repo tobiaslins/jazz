@@ -1,8 +1,8 @@
 export {
   useOnboardingAuth,
-  useOnboardingAuthUpgrade,
-  useIsUserOnboarding,
-} from "./OnboardingAuth.js";
+  useAnonymousUserUpgrade,
+  useIsAnonymousUser,
+} from "./AnonymousAuth.js";
 export { useDemoAuth, DemoAuthBasicUI } from "./DemoAuth.js";
 export {
   usePasskeyAuth,

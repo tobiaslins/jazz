@@ -1,12 +1,7 @@
 import * as bip39 from "@scure/bip39";
-import { AgentSecret, CryptoProvider, cojsonInternals } from "cojson";
+import { CryptoProvider, cojsonInternals } from "cojson";
 import { Account, AuthMethod, AuthResult, ID } from "jazz-tools";
 import { AuthSecretStorage } from "./AuthSecretStorage.js";
-
-type LocalStorageData = {
-  accountID: ID<Account>;
-  accountSecret: AgentSecret;
-};
 
 /**
  * `BrowserPassphraseAuth` provides a `JazzAuth` object for passphrase authentication.
@@ -14,7 +9,7 @@ type LocalStorageData = {
  * ```ts
  * import { BrowserPassphraseAuth } from "jazz-browser";
  *
- * const auth = new BrowserPassphraseAuth(driver, wordlist, appName);
+ * const auth = new BrowserPassphraseAuth(driver, wordlist);
  * ```
  *
  * @category Auth Providers
@@ -23,9 +18,6 @@ export class BrowserPassphraseAuth implements AuthMethod {
   constructor(
     public driver: BrowserPassphraseAuth.Driver,
     public wordlist: string[],
-    public appName: string,
-    // TODO: is this a safe default?
-    public appHostname: string = window.location.hostname,
   ) {}
 
   /**
@@ -34,10 +26,11 @@ export class BrowserPassphraseAuth implements AuthMethod {
   async start(crypto: CryptoProvider): Promise<AuthResult> {
     AuthSecretStorage.migrate();
 
-    const existingUser = AuthSecretStorage.get() as LocalStorageData;
-    if (existingUser) {
-      const accountID = existingUser.accountID;
-      const secret = existingUser.accountSecret;
+    const credentials = AuthSecretStorage.get();
+
+    if (credentials && !credentials.isAnonymous) {
+      const accountID = credentials.accountID;
+      const secret = credentials.accountSecret;
 
       return {
         type: "existing",
@@ -56,6 +49,12 @@ export class BrowserPassphraseAuth implements AuthMethod {
       return new Promise<AuthResult>((resolve) => {
         this.driver.onReady({
           signUp: async (username, passphrase) => {
+            if (credentials?.isAnonymous) {
+              console.warn(
+                "Anonymous user upgrade is currently not supported on passphrase auth",
+              );
+            }
+
             const secretSeed = bip39.mnemonicToEntropy(
               passphrase,
               this.wordlist,
@@ -73,8 +72,9 @@ export class BrowserPassphraseAuth implements AuthMethod {
               saveCredentials: async (credentials) => {
                 AuthSecretStorage.set({
                   accountID: credentials.accountID,
-                  accountSecret: credentials.secret,
-                } satisfies LocalStorageData);
+                  secretSeed,
+                  accountSecret,
+                });
               },
               onSuccess: () => {
                 this.driver.onSignedIn({ logOut });
@@ -110,11 +110,12 @@ export class BrowserPassphraseAuth implements AuthMethod {
             resolve({
               type: "existing",
               credentials: { accountID, secret: accountSecret },
-              saveCredentials: async ({ accountID, secret }) => {
+              saveCredentials: async ({ accountID }) => {
                 AuthSecretStorage.set({
                   accountID,
-                  accountSecret: secret,
-                } satisfies LocalStorageData);
+                  secretSeed,
+                  accountSecret,
+                });
               },
               onSuccess: () => {
                 this.driver.onSignedIn({ logOut });

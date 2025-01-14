@@ -8,11 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  useAccount,
-  useOnboardingAuthUpgrade,
-  usePasskeyAuth,
-} from "jazz-react";
+import { useAccount, usePasskeyAuth } from "jazz-react";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
@@ -25,15 +21,11 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const [username, setUsername] = useState("");
   const [isSignUp, setIsSignUp] = useState(true);
 
-  const [auth, authState] = usePasskeyAuth({
-    appName: "Jazz Music Player",
-  });
-
   const { me } = useAccount();
 
-  useOnboardingAuthUpgrade({
-    auth,
-    onUpgrade: ({ username, isSignUp }) => {
+  const [, authState] = usePasskeyAuth({
+    appName: "Jazz Music Player",
+    onAnonymousUserUpgrade: ({ username, isSignUp }) => {
       if (isSignUp) {
         me.profile!.name = username;
       }

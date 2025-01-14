@@ -22,7 +22,8 @@ export { AuthSecretStorage } from "./auth/AuthSecretStorage.js";
 export { BrowserDemoAuth } from "./auth/DemoAuth.js";
 export { BrowserPasskeyAuth } from "./auth/PasskeyAuth.js";
 export { BrowserPassphraseAuth } from "./auth/PassphraseAuth.js";
-export { BrowserOnboardingAuth } from "./auth/OnboardingAuth.js";
+export { BrowserAnonymousAuth } from "./auth/AnonymousAuth.js";
+import { BrowserAnonymousAuth } from "./auth/AnonymousAuth.js";
 import { setupInspector } from "./utils/export-account-inspector.js";
 
 setupInspector();
@@ -44,7 +45,6 @@ export type BrowserGuestContext = {
 };
 
 export type BrowserContextOptions<Acc extends Account> = {
-  auth: AuthMethod;
   AccountSchema: CoValueClass<Acc> & {
     fromNode: (typeof Account)["fromNode"];
   };
@@ -56,7 +56,18 @@ export type BaseBrowserContextOptions = {
   storage?: StorageConfig;
   crypto?: CryptoProvider;
   localOnly?: boolean;
+  guest: boolean;
+  auth?: AuthMethod;
 };
+
+function getAnonymousUserAuth() {
+  const auth = new BrowserAnonymousAuth("Anonymous user", {
+    onSignedIn: () => {},
+    onError: () => {},
+  });
+
+  return auth;
+}
 
 /** @category Context Creation */
 export async function createJazzBrowserContext<Acc extends Account>(
@@ -129,10 +140,11 @@ export async function createJazzBrowserContext<Acc extends Account>(
   toggleNetwork(!options.localOnly);
 
   const context =
-    "auth" in options
+    options.guest !== true
       ? await createJazzContext({
-          AccountSchema: options.AccountSchema,
-          auth: options.auth,
+          AccountSchema:
+            "AccountSchema" in options ? options.AccountSchema : undefined,
+          auth: options.auth ?? getAnonymousUserAuth(),
           crypto,
           peersToLoadFrom,
           sessionProvider: provideBrowserLockSession,

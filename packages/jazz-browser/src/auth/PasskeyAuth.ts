@@ -6,12 +6,6 @@ import {
 } from "cojson";
 import { Account, AuthMethod, AuthResult, ID } from "jazz-tools";
 import { AuthSecretStorage } from "./AuthSecretStorage.js";
-import { BrowserOnboardingAuth } from "./OnboardingAuth.js";
-
-type LocalStorageData = {
-  accountID: ID<Account>;
-  accountSecret: AgentSecret;
-};
 
 /**
  * `BrowserPasskeyAuth` provides a `JazzAuth` object for passkey authentication.
@@ -38,11 +32,11 @@ export class BrowserPasskeyAuth implements AuthMethod {
   async start(crypto: CryptoProvider): Promise<AuthResult> {
     AuthSecretStorage.migrate();
 
-    const existingUser = AuthSecretStorage.get();
+    const credentials = AuthSecretStorage.get();
 
-    if (existingUser && !BrowserOnboardingAuth.isUserOnboarding()) {
-      const accountID = existingUser.accountID;
-      const secret = existingUser.accountSecret;
+    if (credentials && !credentials.isAnonymous) {
+      const accountID = credentials.accountID;
+      const secret = credentials.accountSecret;
 
       return {
         type: "existing",
@@ -61,22 +55,19 @@ export class BrowserPasskeyAuth implements AuthMethod {
       return new Promise<AuthResult>((resolve) => {
         this.driver.onReady({
           signUp: async (username) => {
-            if (BrowserOnboardingAuth.isUserOnboarding()) {
-              const onboardingUserData =
-                BrowserOnboardingAuth.getUserOnboardingData();
-
+            if (credentials?.isAnonymous) {
               resolve({
                 type: "existing",
                 username,
                 credentials: {
-                  accountID: onboardingUserData.accountID,
-                  secret: onboardingUserData.secret,
+                  accountID: credentials.accountID,
+                  secret: credentials.accountSecret,
                 },
                 saveCredentials: async ({ accountID, secret }) => {
                   await this.saveCredentials({
                     accountID,
                     secret,
-                    secretSeed: onboardingUserData.secretSeed,
+                    secretSeed: credentials.secretSeed,
                     username,
                   });
                 },
@@ -216,6 +207,7 @@ export class BrowserPasskeyAuth implements AuthMethod {
 
     AuthSecretStorage.set({
       accountID,
+      secretSeed,
       accountSecret: secret,
     });
   }

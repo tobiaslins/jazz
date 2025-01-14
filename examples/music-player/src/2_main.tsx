@@ -10,11 +10,7 @@ import { PlayerControls } from "./components/PlayerControls";
 import "./index.css";
 
 import { MusicaAccount } from "@/1_schema";
-import {
-  JazzProvider,
-  useIsUserOnboarding,
-  useOnboardingAuth,
-} from "jazz-react";
+import { JazzProvider, useIsAnonymousUser } from "jazz-react";
 import { useUploadExampleData } from "./lib/useUploadExampleData";
 
 /**
@@ -58,22 +54,19 @@ function Main() {
 }
 
 function JazzAndAuth({ children }: { children: React.ReactNode }) {
-  const [auth] = useOnboardingAuth();
-
   const peer =
     (new URL(window.location.href).searchParams.get(
       "peer",
     ) as `ws://${string}`) ??
     "wss://cloud.jazz.tools/?key=music-player-example-jazz@garden.co";
 
-  const isUserOnboarding = useIsUserOnboarding();
+  const isAnonymous = useIsAnonymousUser();
 
   return (
     <JazzProvider
       storage="indexedDB"
-      auth={auth}
       peer={peer}
-      localOnly={isUserOnboarding}
+      localOnly={isAnonymous}
       AccountSchema={MusicaAccount}
     >
       {children}

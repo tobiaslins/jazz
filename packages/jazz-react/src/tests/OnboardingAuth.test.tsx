@@ -3,7 +3,7 @@ import { act, renderHook } from "@testing-library/react";
 import { PureJSCrypto } from "cojson/crypto";
 import { Account, ID } from "jazz-tools";
 import { beforeEach, describe, expect, it } from "vitest";
-import { useOnboardingAuth } from "../auth/OnboardingAuth";
+import { useOnboardingAuth } from "../auth/AnonymousAuth";
 
 const STORAGE_KEY = "jazz-logged-in-secret";
 

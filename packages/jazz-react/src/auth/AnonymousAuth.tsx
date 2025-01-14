@@ -1,10 +1,10 @@
-import { BrowserOnboardingAuth } from "jazz-browser";
-import { useJazzContext } from "jazz-react-core";
+import { AuthSecretStorage, BrowserAnonymousAuth } from "jazz-browser";
+import { JazzContext } from "jazz-react-core";
 import { AuthMethod } from "jazz-tools";
-import { useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { useAccount } from "../hooks.js";
 
-type OnboardingAuthState = (
+type AnonymousAuthState = (
   | {
       state: "uninitialized";
     }
@@ -41,13 +41,13 @@ export function useOnboardingAuth(
     defaultUserName: "Anonymous user",
   },
 ) {
-  const [state, setState] = useState<OnboardingAuthState>({
+  const [state, setState] = useState<AnonymousAuthState>({
     state: "loading",
     errors: [],
   });
 
   const authMethod = useMemo(() => {
-    return new BrowserOnboardingAuth(defaultUserName, {
+    return new BrowserAnonymousAuth(defaultUserName, {
       onSignedIn: ({ logOut }) => {
         setState({ state: "signedIn", logOut, errors: [] });
       },
@@ -63,22 +63,26 @@ export function useOnboardingAuth(
   return [authMethod, state] as const;
 }
 
-export function useOnboardingAuthUpgrade({
+export type AnonymousUserUpgradeProps = {
+  username: string;
+  isSignUp: boolean;
+  isLogIn: boolean;
+};
+
+export function useAnonymousUserUpgrade({
   auth,
   onUpgrade,
 }: {
   auth: AuthMethod;
-  onUpgrade: (props: {
-    username: string;
-    isSignUp: boolean;
-    isLogIn: boolean;
-  }) => void;
+  onUpgrade: (props: AnonymousUserUpgradeProps) => void;
 }) {
   const { me } = useAccount();
-  const context = useJazzContext();
+  const context = useContext(JazzContext);
 
   useEffect(() => {
-    async function runAuth() {
+    if (!context) return;
+
+    const runAuth = async () => {
       const result = await auth.start(me._raw.core.node.crypto);
 
       if (result.type === "new") {
@@ -100,31 +104,29 @@ export function useOnboardingAuthUpgrade({
         context.refreshContext?.();
       }
 
-      BrowserOnboardingAuth.emitUpdate();
-
       onUpgrade({
         username: result.username ?? "",
         isSignUp,
         isLogIn: !isSignUp,
       });
-    }
+    };
 
     runAuth();
   }, [auth]);
 }
 
-export function useIsUserOnboarding() {
-  const [isOnboarding, setIsOnboarding] = useState(() =>
-    BrowserOnboardingAuth.isUserOnboarding(),
+export function useIsAnonymousUser() {
+  const [isAnonymous, setIsAnonymous] = useState(() =>
+    AuthSecretStorage.isAnonymous(),
   );
 
   useEffect(() => {
     function handleUpdate() {
-      setIsOnboarding(BrowserOnboardingAuth.isUserOnboarding());
+      setIsAnonymous(AuthSecretStorage.isAnonymous());
     }
 
-    return BrowserOnboardingAuth.onUpdate(handleUpdate);
+    return AuthSecretStorage.onUpdate(handleUpdate);
   }, []);
 
-  return isOnboarding;
+  return isAnonymous;
 }
