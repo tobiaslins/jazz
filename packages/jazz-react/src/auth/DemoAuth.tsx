@@ -65,7 +65,7 @@ export function useDemoAuth({
         onError: (error) => {
           setState((current) => ({
             ...current,
-            errors: [...current.errors, error.toString()],
+            errors: [error.toString()],
           }));
         },
       },

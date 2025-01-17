@@ -54,7 +54,7 @@ export function useOnboardingAuth(
       onError: (error) => {
         setState((current) => ({
           ...current,
-          errors: [...current.errors, error.toString()],
+          errors: [error.toString()],
         }));
       },
     });
@@ -91,10 +91,15 @@ export function useAnonymousUserUpgrade({
         );
       }
 
-      await result.saveCredentials?.({
-        accountID: result.credentials.accountID,
-        secret: result.credentials.secret,
-      });
+      try {
+        await result.saveCredentials?.({
+          accountID: result.credentials.accountID,
+          secret: result.credentials.secret,
+        });
+      } catch (error) {
+        result.onError(error as string | Error);
+        return;
+      }
 
       result.onSuccess();
 

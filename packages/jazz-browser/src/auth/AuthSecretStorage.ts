@@ -1,4 +1,3 @@
-import { entropyToMnemonic } from "@scure/bip39";
 import { AgentSecret } from "cojson";
 import { Account, ID } from "jazz-tools";
 
@@ -128,13 +127,5 @@ export class AuthSecretStorage {
   static clear() {
     localStorage.removeItem(STORAGE_KEY);
     this.emitUpdate();
-  }
-
-  static showRecoveryKey(wordlist: string[]) {
-    const data = this.get();
-
-    if (!data || !data.secretSeed) return null;
-
-    return entropyToMnemonic(data.secretSeed, wordlist);
   }
 }

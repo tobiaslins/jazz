@@ -46,12 +46,12 @@ export function usePasskeyAuth({
     return new BrowserPasskeyAuth(
       {
         onReady(next) {
-          setState({
+          setState((state) => ({
             state: "ready",
             logIn: next.logIn,
             signUp: next.signUp,
-            errors: [],
-          });
+            errors: state.errors,
+          }));
         },
         onSignedIn(next) {
           setState({
@@ -66,7 +66,7 @@ export function usePasskeyAuth({
         onError(error) {
           setState((state) => ({
             ...state,
-            errors: [...state.errors, error.toString()],
+            errors: [error.toString()],
           }));
         },
       },

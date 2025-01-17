@@ -67,7 +67,7 @@ export function usePassphraseAuth({
         onError(error) {
           setState((state) => ({
             ...state,
-            errors: [...state.errors, error.toString()],
+            errors: [error.toString()],
           }));
         },
       },

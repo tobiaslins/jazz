@@ -71,6 +71,7 @@ export class BrowserClerkAuth implements AuthMethod {
         .unsafeMetadata as ClerkCredentials;
       if (clerkCredentials.jazzAccountID) {
         if (!clerkCredentials.jazzAccountSecret) {
+          this.driver.onError("No secret for existing user");
           throw new Error("No secret for existing user");
         }
         return {

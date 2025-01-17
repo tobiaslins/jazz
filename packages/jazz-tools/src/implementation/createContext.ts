@@ -181,10 +181,17 @@ export async function createJazzContext<Acc extends Account>(
           activeAccountContext.set(account);
 
           if (authResult.saveCredentials) {
-            await authResult.saveCredentials({
-              accountID: node.account.id as unknown as ID<Account>,
-              secret: node.account.agentSecret,
-            });
+            await authResult
+              .saveCredentials({
+                accountID: node.account.id as unknown as ID<Account>,
+                secret: node.account.agentSecret,
+              })
+              .catch((e) => {
+                authResult.onError(
+                  new Error("Error saving credentials", { cause: e }),
+                );
+                throw e;
+              });
           }
 
           authResult.onSuccess();

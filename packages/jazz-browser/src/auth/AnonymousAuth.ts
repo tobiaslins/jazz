@@ -3,14 +3,14 @@ import { Account, AuthMethod, AuthResult, ID } from "jazz-tools";
 import { AuthSecretStorage } from "./AuthSecretStorage.js";
 
 /**
- * `BrowserOnboardingAuth` provides a `JazzAuth` object for demo authentication.
+ * `BrowserAnonymousAuth` provides a `JazzAuth` object for demo authentication.
  *
  * Demo authentication is useful for quickly testing your app, as it allows you to create new accounts and log in as existing ones. The authentication persists across page reloads, with the credentials stored in `localStorage`.
  *
  * ```
- * import { BrowserOnboardingAuth } from "jazz-browser";
+ * import { BrowserAnonymousAuth } from "jazz-browser";
  *
- * const auth = new BrowserOnboardingAuth(driver);
+ * const auth = new BrowserAnonymousAuth(driver);
  * ```
  *
  * @category Auth Providers
@@ -18,7 +18,7 @@ import { AuthSecretStorage } from "./AuthSecretStorage.js";
 export class BrowserAnonymousAuth implements AuthMethod {
   constructor(
     public defaultUserName: string,
-    public driver: BrowserOnboardingAuth.Driver,
+    public driver: BrowserAnonymousAuth.Driver,
   ) {}
 
   /**
@@ -76,7 +76,7 @@ export class BrowserAnonymousAuth implements AuthMethod {
 
 /** @internal */
 // eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace BrowserOnboardingAuth {
+export namespace BrowserAnonymousAuth {
   export interface Driver {
     onSignedIn: (next: { logOut: () => void }) => void;
     onError: (error: string | Error) => void;
