@@ -13,3 +13,4 @@ export {
   PassphraseAuthBasicUI,
   type PassphraseAuthState,
 } from "./PassphraseAuth.js";
+export { useInJazzAuth } from "./useInJazzAuth.js";

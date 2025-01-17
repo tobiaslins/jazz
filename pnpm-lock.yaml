@@ -1597,6 +1597,10 @@ importers:
       jazz-tools:
         specifier: workspace:0.9.9
         version: link:../jazz-tools
+    devDependencies:
+      fake-indexeddb:
+        specifier: ^6.0.0
+        version: 6.0.0
       typescript:
         specifier: ~5.6.2
         version: 5.6.3

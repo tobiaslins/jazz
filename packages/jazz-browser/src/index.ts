@@ -45,9 +45,15 @@ export type BrowserGuestContext = {
 };
 
 export type BrowserContextOptions<Acc extends Account> = {
-  AccountSchema: CoValueClass<Acc> & {
+  auth?: AuthMethod;
+  AccountSchema?: CoValueClass<Acc> & {
     fromNode: (typeof Account)["fromNode"];
   };
+  guest: false;
+} & BaseBrowserContextOptions;
+
+export type BrowserGuestContextOptions = {
+  guest: true;
 } & BaseBrowserContextOptions;
 
 export type BaseBrowserContextOptions = {
@@ -56,8 +62,6 @@ export type BaseBrowserContextOptions = {
   storage?: StorageConfig;
   crypto?: CryptoProvider;
   localOnly?: boolean;
-  guest: boolean;
-  auth?: AuthMethod;
 };
 
 function getAnonymousUserAuth() {
@@ -71,16 +75,7 @@ function getAnonymousUserAuth() {
 
 /** @category Context Creation */
 export async function createJazzBrowserContext<Acc extends Account>(
-  options: BrowserContextOptions<Acc>,
-): Promise<BrowserContext<Acc>>;
-export async function createJazzBrowserContext(
-  options: BaseBrowserContextOptions,
-): Promise<BrowserGuestContext>;
-export async function createJazzBrowserContext<Acc extends Account>(
-  options: BrowserContextOptions<Acc> | BaseBrowserContextOptions,
-): Promise<BrowserContext<Acc> | BrowserGuestContext>;
-export async function createJazzBrowserContext<Acc extends Account>(
-  options: BrowserContextOptions<Acc> | BaseBrowserContextOptions,
+  options: BrowserContextOptions<Acc> | BrowserGuestContextOptions,
 ): Promise<BrowserContext<Acc> | BrowserGuestContext> {
   const crypto = options.crypto || (await WasmCrypto.create());
   let node: LocalNode | undefined = undefined;

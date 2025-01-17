@@ -2,7 +2,7 @@ import {
   BrowserClerkAuth,
   type MinimalClerkClient,
 } from "jazz-browser-auth-clerk";
-import { useAnonymousUserUpgrade } from "jazz-react";
+import { useInJazzAuth } from "jazz-react";
 import { useMemo, useState } from "react";
 
 export function useJazzClerkAuth(
@@ -32,9 +32,9 @@ export function useJazzClerkAuth(
     );
   }, [clerk.user]);
 
-  useAnonymousUserUpgrade({
+  useInJazzAuth({
     auth: authMethod,
-    onUpgrade: onAnonymousUserUpgrade,
+    onAuthChange: onAnonymousUserUpgrade,
   });
 
   return [authMethod, state] as const;
