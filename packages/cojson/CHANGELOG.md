@@ -1,5 +1,11 @@
 # cojson
 
+## 0.9.10
+
+### Patch Changes
+
+- 4aa377d: Handle unkown coValue content type and optimize content access
+
 ## 0.9.9
 
 ### Patch Changes
