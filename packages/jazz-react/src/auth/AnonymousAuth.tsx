@@ -1,8 +1,5 @@
 import { AuthSecretStorage, BrowserAnonymousAuth } from "jazz-browser";
-import { JazzContext } from "jazz-react-core";
-import { AuthMethod } from "jazz-tools";
-import { useContext, useEffect, useMemo, useState } from "react";
-import { useAccount } from "../hooks.js";
+import { useEffect, useMemo, useState } from "react";
 
 type AnonymousAuthState = (
   | {
@@ -61,63 +58,6 @@ export function useOnboardingAuth(
   }, [defaultUserName]);
 
   return [authMethod, state] as const;
-}
-
-export type AnonymousUserUpgradeProps = {
-  username: string;
-  isSignUp: boolean;
-  isLogIn: boolean;
-};
-
-export function useAnonymousUserUpgrade({
-  auth,
-  onUpgrade,
-}: {
-  auth: AuthMethod;
-  onUpgrade: (props: AnonymousUserUpgradeProps) => void;
-}) {
-  const { me } = useAccount();
-  const context = useContext(JazzContext);
-
-  useEffect(() => {
-    if (!context) return;
-
-    const runAuth = async () => {
-      const result = await auth.start(me._raw.core.node.crypto);
-
-      if (result.type === "new") {
-        throw new Error(
-          "An onboarding upgrade should not be called for a new user",
-        );
-      }
-
-      try {
-        await result.saveCredentials?.({
-          accountID: result.credentials.accountID,
-          secret: result.credentials.secret,
-        });
-      } catch (error) {
-        result.onError(error as string | Error);
-        return;
-      }
-
-      result.onSuccess();
-
-      const isSignUp = result.credentials.accountID === me.id;
-
-      if (!isSignUp) {
-        context.refreshContext?.();
-      }
-
-      onUpgrade({
-        username: result.username ?? "",
-        isSignUp,
-        isLogIn: !isSignUp,
-      });
-    };
-
-    runAuth();
-  }, [auth]);
 }
 
 export function useIsAnonymousUser() {
