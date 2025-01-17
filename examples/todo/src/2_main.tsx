@@ -6,7 +6,13 @@ import {
 } from "react-router-dom";
 import "./index.css";
 
-import { JazzProvider, useAcceptInvite, useAccount } from "jazz-react";
+import {
+  JazzProvider,
+  PasskeyAuthBasicUI,
+  useAcceptInvite,
+  useAccount,
+  usePasskeyAuth,
+} from "jazz-react";
 
 import React from "react";
 import { TodoAccount, TodoProject } from "./1_schema.ts";
@@ -17,7 +23,6 @@ import {
   ThemeProvider,
   TitleAndLogo,
 } from "./basicComponents/index.ts";
-import { AuthButton } from "./components/AuthButton.tsx";
 
 /**
  * Walkthrough: The top-level provider `<JazzProvider/>`
@@ -30,17 +35,21 @@ import { AuthButton } from "./components/AuthButton.tsx";
  * `<JazzProvider/>` also runs our account migration
  */
 
-export const appName = "Jazz Todo List Example";
+const appName = "Jazz Todo List Example";
 
 function JazzAndAuth({ children }: { children: React.ReactNode }) {
+  const [passkeyAuth, passKeyState] = usePasskeyAuth({ appName });
+
   return (
     <>
       <JazzProvider
         AccountSchema={TodoAccount}
+        auth={passkeyAuth}
         peer="wss://cloud.jazz.tools/?key=todo-example-jazz@garden.co"
       >
         {children}
       </JazzProvider>
+      <PasskeyAuthBasicUI state={passKeyState} />
     </>
   );
 }
@@ -57,7 +66,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <TitleAndLogo name={appName} />
       <div className="flex flex-col h-full items-center justify-start gap-10 pt-10 pb-10 px-5">
         <JazzAndAuth>
-          <AuthButton />
           <App />
         </JazzAndAuth>
       </div>
@@ -73,6 +81,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
  * - which can also contain invite links.
  */
 export default function App() {
+  // logOut logs out the AuthProvider passed to `<JazzProvider/>` above.
+  const { logOut } = useAccount();
+
   const router = createHashRouter([
     {
       path: "/",
@@ -96,7 +107,18 @@ export default function App() {
     onAccept: (projectID) => router.navigate("/project/" + projectID),
   });
 
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      <RouterProvider router={router} />
+
+      <Button
+        onClick={() => router.navigate("/").then(logOut)}
+        variant="outline"
+      >
+        Log out
+      </Button>
+    </>
+  );
 }
 
 function HomeScreen() {
