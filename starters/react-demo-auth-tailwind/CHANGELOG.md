@@ -1,5 +1,12 @@
 # jazz-tailwind-demo-auth-starter
 
+## 0.0.26
+
+### Patch Changes
+
+- jazz-react@0.9.11
+- jazz-tools@0.9.11
+
 ## 0.0.25
 
 ### Patch Changes

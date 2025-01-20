@@ -1,5 +1,14 @@
 # cojson-transport-nodejs-ws
 
+## 0.9.11
+
+### Patch Changes
+
+- 5863bad: Wrap all the console logs with a logger class to make possible to customize the logger
+- Updated dependencies [efbf3d8]
+- Updated dependencies [5863bad]
+  - cojson@0.9.11
+
 ## 0.9.10
 
 ### Patch Changes

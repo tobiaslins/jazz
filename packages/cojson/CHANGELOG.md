@@ -1,5 +1,12 @@
 # cojson
 
+## 0.9.11
+
+### Patch Changes
+
+- efbf3d8: Optimize queue management
+- 5863bad: Wrap all the console logs with a logger class to make possible to customize the logger
+
 ## 0.9.10
 
 ### Patch Changes
