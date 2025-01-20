@@ -12,9 +12,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "cojson": "workspace:0.9.10",
+    "cojson": "workspace:*",
     "jazz-react-core": "workspace:*",
-    "lucide-react": "^0.274.0"
+    "jazz-tools": "workspace:*"
   },
   "peerDependencies": {
     "react": "^17.0.0 || ^18.0.0"
