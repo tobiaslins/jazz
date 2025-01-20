@@ -1,5 +1,12 @@
 # jazz-browser-media-images
 
+## 0.9.10
+
+### Patch Changes
+
+- Updated dependencies [5e83864]
+  - jazz-tools@0.9.10
+
 ## 0.9.9
 
 ### Patch Changes

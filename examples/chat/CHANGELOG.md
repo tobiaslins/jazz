@@ -1,5 +1,15 @@
 # jazz-example-chat
 
+## 0.0.131
+
+### Patch Changes
+
+- f76274c: Fix image handling in react-native
+- Updated dependencies [5e83864]
+  - jazz-react@0.9.10
+  - jazz-tools@0.9.10
+  - jazz-browser-media-images@0.9.10
+
 ## 0.0.130
 
 ### Patch Changes

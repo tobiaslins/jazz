@@ -1,4 +1,5 @@
 import { Toaster } from "@/components/ui/toaster";
+import { JazzInspector } from "jazz-inspector";
 /* eslint-disable react-refresh/only-export-components */
 import React from "react";
 import ReactDOM from "react-dom/client";
@@ -70,6 +71,7 @@ function JazzAndAuth({ children }: { children: React.ReactNode }) {
       AccountSchema={MusicaAccount}
     >
       {children}
+      <JazzInspector />
     </JazzProvider>
   );
 }

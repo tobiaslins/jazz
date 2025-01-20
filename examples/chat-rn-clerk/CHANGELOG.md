@@ -1,5 +1,17 @@
 # chat-rn-clerk
 
+## 1.0.51
+
+### Patch Changes
+
+- f76274c: Fix image handling in react-native
+- Updated dependencies [f76274c]
+- Updated dependencies [5e83864]
+  - jazz-react-native@0.9.10
+  - jazz-tools@0.9.10
+  - jazz-react-native-auth-clerk@0.9.10
+  - jazz-react-native-media-images@0.9.10
+
 ## 1.0.50
 
 ### Patch Changes
