@@ -1589,16 +1589,16 @@ importers:
         specifier: ^1.3.0
         version: 1.5.0
       cojson:
-        specifier: workspace:0.9.10
+        specifier: workspace:*
         version: link:../cojson
       cojson-storage-indexeddb:
-        specifier: workspace:0.9.10
+        specifier: workspace:*
         version: link:../cojson-storage-indexeddb
       cojson-transport-ws:
-        specifier: workspace:0.9.10
+        specifier: workspace:*
         version: link:../cojson-transport-ws
       jazz-tools:
-        specifier: workspace:0.9.10
+        specifier: workspace:*
         version: link:../jazz-tools
     devDependencies:
       fake-indexeddb:
