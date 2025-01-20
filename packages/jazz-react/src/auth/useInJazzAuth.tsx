@@ -57,5 +57,5 @@ export function useInJazzAuth({
     };
 
     runAuth();
-  }, [auth]);
+  }, [auth, me]);
 }

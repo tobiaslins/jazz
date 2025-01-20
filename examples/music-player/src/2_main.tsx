@@ -11,7 +11,7 @@ import { PlayerControls } from "./components/PlayerControls";
 import "./index.css";
 
 import { MusicaAccount } from "@/1_schema";
-import { JazzProvider, useIsAnonymousUser } from "jazz-react";
+import { JazzProvider } from "jazz-react";
 import { useUploadExampleData } from "./lib/useUploadExampleData";
 
 /**
@@ -54,27 +54,11 @@ function Main() {
   );
 }
 
-function JazzAndAuth({ children }: { children: React.ReactNode }) {
-  const peer =
-    (new URL(window.location.href).searchParams.get(
-      "peer",
-    ) as `ws://${string}`) ??
-    "wss://cloud.jazz.tools/?key=music-player-example-jazz@garden.co";
-
-  const isAnonymous = useIsAnonymousUser();
-
-  return (
-    <JazzProvider
-      storage="indexedDB"
-      peer={peer}
-      localOnly={isAnonymous}
-      AccountSchema={MusicaAccount}
-    >
-      {children}
-      <JazzInspector />
-    </JazzProvider>
-  );
-}
+const peer =
+  (new URL(window.location.href).searchParams.get(
+    "peer",
+  ) as `ws://${string}`) ??
+  "wss://cloud.jazz.tools/?key=music-player-example-jazz@garden.co";
 
 declare module "jazz-react" {
   interface Register {
@@ -84,8 +68,14 @@ declare module "jazz-react" {
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <JazzAndAuth>
+    <JazzProvider
+      peer={peer}
+      storage="indexedDB"
+      localOnly="anonymous"
+      AccountSchema={MusicaAccount}
+    >
       <Main />
-    </JazzAndAuth>
+      <JazzInspector />
+    </JazzProvider>
   </React.StrictMode>,
 );

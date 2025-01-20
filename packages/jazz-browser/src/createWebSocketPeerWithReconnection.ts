@@ -1,17 +1,13 @@
-import { Peer } from "cojson";
 import { createWebSocketPeer } from "cojson-transport-ws";
+import type { Peer } from "jazz-tools";
 
 export function createWebSocketPeerWithReconnection(
   peer: string,
   reconnectionTimeout: number | undefined,
   addPeer: (peer: Peer) => void,
+  removePeer: (peer: Peer) => void,
 ) {
-  const firstWsPeer = createWebSocketPeer({
-    websocket: new WebSocket(peer),
-    id: peer,
-    role: "server",
-    onClose: reconnectWebSocket,
-  });
+  let currentPeer: Peer | undefined = undefined;
 
   let shouldTryToReconnect = true;
   let currentReconnectionTimeout = reconnectionTimeout || 500;
@@ -26,35 +22,49 @@ export function createWebSocketPeerWithReconnection(
   async function reconnectWebSocket() {
     if (!shouldTryToReconnect) return;
 
-    console.log(
-      "Websocket disconnected, trying to reconnect in " +
-        currentReconnectionTimeout +
-        "ms",
-    );
-    currentReconnectionTimeout = Math.min(
-      currentReconnectionTimeout * 2,
-      30000,
-    );
+    if (currentPeer) {
+      removePeer(currentPeer);
 
-    await waitForOnline(currentReconnectionTimeout);
+      console.log(
+        "Websocket disconnected, trying to reconnect in " +
+          currentReconnectionTimeout +
+          "ms",
+      );
+      currentReconnectionTimeout = Math.min(
+        currentReconnectionTimeout * 2,
+        30000,
+      );
+
+      await waitForOnline(currentReconnectionTimeout);
+    }
 
     if (!shouldTryToReconnect) return;
 
-    addPeer(
-      createWebSocketPeer({
-        websocket: new WebSocket(peer),
-        id: peer,
-        role: "server",
-        onClose: reconnectWebSocket,
-      }),
-    );
+    currentPeer = createWebSocketPeer({
+      websocket: new WebSocket(peer),
+      id: peer,
+      role: "server",
+      onClose: reconnectWebSocket,
+    });
+
+    addPeer(currentPeer);
   }
 
   return {
-    peer: firstWsPeer,
-    done: () => {
+    enable: () => {
+      shouldTryToReconnect = true;
+
+      if (!currentPeer) {
+        reconnectWebSocket();
+      }
+    },
+    disable: () => {
       shouldTryToReconnect = false;
       window.removeEventListener("online", onOnline);
+      if (currentPeer) {
+        removePeer(currentPeer);
+        currentPeer = undefined;
+      }
     },
   };
 }

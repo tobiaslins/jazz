@@ -80,10 +80,6 @@ export async function createJazzBrowserContext<Acc extends Account>(
   const crypto = options.crypto || (await WasmCrypto.create());
   let node: LocalNode | undefined = undefined;
 
-  let wsPeer:
-    | ReturnType<typeof createWebSocketPeerWithReconnection>
-    | undefined = undefined;
-
   const { useSingleTabOPFS, useIndexedDB } = getStorageOptions(options.storage);
 
   const peersToLoadFrom: Peer[] = [];
@@ -101,34 +97,26 @@ export async function createJazzBrowserContext<Acc extends Account>(
     peersToLoadFrom.push(await IDBStorage.asPeer());
   }
 
+  const wsPeer = createWebSocketPeerWithReconnection(
+    options.peer,
+    options.reconnectionTimeout,
+    (peer) => {
+      if (node) {
+        node.syncManager.addPeer(peer);
+      } else {
+        peersToLoadFrom.push(peer);
+      }
+    },
+    (peer) => {
+      peersToLoadFrom.splice(peersToLoadFrom.indexOf(peer), 1);
+    },
+  );
+
   function toggleNetwork(enabled: boolean) {
     if (enabled) {
-      if (wsPeer) {
-        return;
-      }
-
-      wsPeer = createWebSocketPeerWithReconnection(
-        options.peer,
-        options.reconnectionTimeout,
-        (peer) => {
-          if (node) {
-            node.syncManager.addPeer(peer);
-          }
-        },
-      );
-
-      if (node) {
-        node.syncManager.addPeer(wsPeer.peer);
-      } else {
-        peersToLoadFrom.push(wsPeer.peer);
-      }
+      wsPeer.enable();
     } else {
-      if (!wsPeer) {
-        return;
-      }
-
-      wsPeer.done();
-      wsPeer = undefined;
+      wsPeer.disable();
     }
   }
 
@@ -157,7 +145,7 @@ export async function createJazzBrowserContext<Acc extends Account>(
         me: context.account,
         toggleNetwork,
         done: () => {
-          wsPeer?.done();
+          wsPeer.disable();
           context.done();
         },
         logOut: () => {
@@ -168,7 +156,7 @@ export async function createJazzBrowserContext<Acc extends Account>(
         guest: context.agent,
         toggleNetwork,
         done: () => {
-          wsPeer?.done();
+          wsPeer.disable();
           context.done();
         },
         logOut: () => {

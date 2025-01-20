@@ -41,12 +41,15 @@ describe("createWebSocketPeerWithReconnection", () => {
   test("should reset reconnection timeout when coming online", async () => {
     vi.useFakeTimers();
     const addPeerMock = vi.fn();
+    const removePeerMock = vi.fn();
 
-    const { done } = createWebSocketPeerWithReconnection(
+    const connection = createWebSocketPeerWithReconnection(
       "ws://localhost:8080",
       500,
       addPeerMock,
+      removePeerMock,
     );
+    connection.enable();
 
     // Simulate multiple disconnections to increase timeout
     const initialPeer = vi.mocked(createWebSocketPeer).mock.results[0]!.value;
@@ -54,12 +57,12 @@ describe("createWebSocketPeerWithReconnection", () => {
 
     await vi.advanceTimersByTimeAsync(1000);
 
-    expect(addPeerMock).toHaveBeenCalledTimes(1);
+    expect(addPeerMock).toHaveBeenCalledTimes(2);
 
     vi.mocked(createWebSocketPeer).mock.results[1]!.value.onClose();
     await vi.advanceTimersByTimeAsync(2000);
 
-    expect(addPeerMock).toHaveBeenCalledTimes(2);
+    expect(addPeerMock).toHaveBeenCalledTimes(3);
 
     // Resets the timeout to initial value
     window.dispatchEvent(new Event("online"));
@@ -68,20 +71,23 @@ describe("createWebSocketPeerWithReconnection", () => {
     vi.mocked(createWebSocketPeer).mock.results[2]!.value.onClose();
     await vi.advanceTimersByTimeAsync(1000);
 
-    expect(addPeerMock).toHaveBeenCalledTimes(3);
+    expect(addPeerMock).toHaveBeenCalledTimes(4);
 
-    done();
+    connection.disable();
   });
 
   test("should wait for online event or timeout before reconnecting", async () => {
     vi.useFakeTimers();
 
     const addPeerMock = vi.fn();
-    const { done } = createWebSocketPeerWithReconnection(
+    const removePeerMock = vi.fn();
+    const connection = createWebSocketPeerWithReconnection(
       "ws://localhost:8080",
       500,
       addPeerMock,
+      removePeerMock,
     );
+    connection.enable();
 
     const initialPeer = vi.mocked(createWebSocketPeer).mock.results[0]!.value;
 
@@ -103,18 +109,20 @@ describe("createWebSocketPeerWithReconnection", () => {
     // Should reconnect immediately after coming online
     expect(createWebSocketPeer).toHaveBeenCalledTimes(2);
 
-    done();
+    connection.disable();
   });
 
-  test("should clean up event listeners when done", () => {
+  test("should clean up event listeners when disabled", () => {
     const addPeerMock = vi.fn();
-    const { done } = createWebSocketPeerWithReconnection(
+    const removePeerMock = vi.fn();
+    const connection = createWebSocketPeerWithReconnection(
       "ws://localhost:8080",
       1000,
       addPeerMock,
+      removePeerMock,
     );
-
-    done();
+    connection.enable();
+    connection.disable();
 
     expect(window.removeEventListener).toHaveBeenCalledWith(
       "online",
@@ -122,19 +130,22 @@ describe("createWebSocketPeerWithReconnection", () => {
     );
   });
 
-  test("should not attempt reconnection after done is called", async () => {
+  test("should not attempt reconnection after disable is called", async () => {
     vi.useFakeTimers();
 
     const addPeerMock = vi.fn();
-    const { done } = createWebSocketPeerWithReconnection(
+    const removePeerMock = vi.fn();
+    const connection = createWebSocketPeerWithReconnection(
       "ws://localhost:8080",
       500,
       addPeerMock,
+      removePeerMock,
     );
+    connection.enable();
 
     const initialPeer = vi.mocked(createWebSocketPeer).mock.results[0]!.value;
 
-    done();
+    connection.disable();
 
     initialPeer.onClose();
     await vi.advanceTimersByTimeAsync(1000);
