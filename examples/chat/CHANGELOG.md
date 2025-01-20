@@ -1,5 +1,13 @@
 # jazz-example-chat
 
+## 0.0.132
+
+### Patch Changes
+
+- jazz-react@0.9.11
+- jazz-tools@0.9.11
+- jazz-browser-media-images@0.9.11
+
 ## 0.0.131
 
 ### Patch Changes
