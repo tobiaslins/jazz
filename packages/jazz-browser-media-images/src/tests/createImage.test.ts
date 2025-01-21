@@ -44,6 +44,7 @@ vi.mock("image-blob-reduce", () => {
 
 describe("createImage", () => {
   it("should create an image definition with correct dimensions", async () => {
+    vi.useFakeTimers();
     // Create a test blob that simulates a 400x300 image
     const blob = new Blob(["fake-image-data"], { type: "image/jpeg" });
     Object.defineProperty(blob, "size", { value: 1024 * 50 }); // 50KB
