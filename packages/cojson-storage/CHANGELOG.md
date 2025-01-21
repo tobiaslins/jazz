@@ -1,5 +1,13 @@
 # cojson-storage
 
+## 0.9.12
+
+### Patch Changes
+
+- 15d4b2a: Revert the custom logger
+- Updated dependencies [15d4b2a]
+  - cojson@0.9.12
+
 ## 0.9.11
 
 ### Patch Changes
