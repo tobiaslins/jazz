@@ -1,5 +1,12 @@
 # jazz-browser-media-images
 
+## 0.9.12
+
+### Patch Changes
+
+- jazz-browser@0.9.12
+- jazz-tools@0.9.12
+
 ## 0.9.11
 
 ### Patch Changes
