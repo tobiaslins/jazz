@@ -1,6 +1,10 @@
 import { SyncMessage, logger } from "cojson";
 import { PingMsg } from "./types.js";
 
+export function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Unknown error";
+}
+
 export function addMessageToBacklog(backlog: string, message: SyncMessage) {
   if (!backlog) {
     return JSON.stringify(message);
@@ -24,7 +28,7 @@ export function deserializeMessages(messages: unknown) {
         | PingMsg[],
     } as const;
   } catch (e) {
-    logger.error("Error while deserializing messages", e);
+    logger.error("Error while deserializing messages: " + getErrorMessage(e));
     return {
       ok: false,
       error: e,

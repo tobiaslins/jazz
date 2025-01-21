@@ -7,7 +7,7 @@ import {
   logger,
 } from "cojson";
 import { BatchedOutgoingMessages } from "./BatchedOutgoingMessages.js";
-import { deserializeMessages } from "./serialization.js";
+import { deserializeMessages, getErrorMessage } from "./serialization.js";
 import { AnyWebSocket } from "./types.js";
 
 export const BUFFER_LIMIT = 100_000;
@@ -164,9 +164,7 @@ export function createWebSocketPeer({
 
     if (!result.ok) {
       logger.warn(
-        "Error while deserializing messages",
-        event.data,
-        result.error,
+        "Error while deserializing messages: " + getErrorMessage(result.error),
       );
       return;
     }

@@ -231,7 +231,7 @@ export class LocalNode {
 
       return node;
     } catch (e) {
-      logger.error("Error withLoadedAccount", e);
+      logger.error("Error withLoadedAccount: " + (e as Error)?.message);
       throw e;
     }
   }
@@ -270,7 +270,9 @@ export class LocalNode {
         this.syncManager.getServerAndStoragePeers(skipLoadingFromPeer);
 
       await entry.loadFromPeers(peers).catch((e) => {
-        logger.error("Error loading from peers", id, e);
+        logger.error("Error loading from peers: " + (e as Error)?.message, {
+          id,
+        });
       });
     }
 
@@ -324,7 +326,9 @@ export class LocalNode {
         unsubscribe = coValue.subscribe(callback);
       })
       .catch((e) => {
-        logger.error("Error subscribing to ", id, e);
+        logger.error(
+          "Error subscribing to " + id + ": " + (e as Error)?.message,
+        );
       });
 
     return () => {

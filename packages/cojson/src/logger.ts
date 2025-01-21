@@ -1,3 +1,5 @@
+import type { JsonValue } from "./jsonValue.js";
+
 export enum LogLevel {
   DEBUG = 0,
   INFO = 1,
@@ -7,25 +9,25 @@ export enum LogLevel {
 }
 
 export interface LogSystem {
-  debug(message: string, ...args: any[]): void;
-  info(message: string, ...args: any[]): void;
-  warn(message: string, ...args: any[]): void;
-  error(message: string, ...args: any[]): void;
+  debug(message: string, attributes?: Record<string, JsonValue>): void;
+  info(message: string, attributes?: Record<string, JsonValue>): void;
+  warn(message: string, attributes?: Record<string, JsonValue>): void;
+  error(message: string, attributes?: Record<string, JsonValue>): void;
 }
 
 // Default console-based logging system
 export class ConsoleLogSystem implements LogSystem {
-  debug(message: string, ...args: any[]) {
-    console.debug(message, ...args);
+  debug(message: string, attributes?: Record<string, JsonValue>) {
+    console.debug(message, attributes);
   }
-  info(message: string, ...args: any[]) {
-    console.info(message, ...args);
+  info(message: string, attributes?: Record<string, JsonValue>) {
+    console.info(message, attributes);
   }
-  warn(message: string, ...args: any[]) {
-    console.warn(message, ...args);
+  warn(message: string, attributes?: Record<string, JsonValue>) {
+    console.warn(message, attributes);
   }
-  error(message: string, ...args: any[]) {
-    console.error(message, ...args);
+  error(message: string, attributes?: Record<string, JsonValue>) {
+    console.error(message, attributes);
   }
 }
 
@@ -49,27 +51,27 @@ export class Logger {
     this.logSystem = logSystem;
   }
 
-  debug(message: string, ...args: any[]) {
+  debug(message: string, attributes?: Record<string, JsonValue>) {
     if (this.level <= LogLevel.DEBUG) {
-      this.logSystem.debug(message, ...args);
+      this.logSystem.debug(message, attributes);
     }
   }
 
-  info(message: string, ...args: any[]) {
+  info(message: string, attributes?: Record<string, JsonValue>) {
     if (this.level <= LogLevel.INFO) {
-      this.logSystem.info(message, ...args);
+      this.logSystem.info(message, attributes);
     }
   }
 
-  warn(message: string, ...args: any[]) {
+  warn(message: string, attributes?: Record<string, JsonValue>) {
     if (this.level <= LogLevel.WARN) {
-      this.logSystem.warn(message, ...args);
+      this.logSystem.warn(message, attributes);
     }
   }
 
-  error(message: string, ...args: any[]) {
+  error(message: string, attributes?: Record<string, JsonValue>) {
     if (this.level <= LogLevel.ERROR) {
-      this.logSystem.error(message, ...args);
+      this.logSystem.error(message, attributes);
     }
   }
 }

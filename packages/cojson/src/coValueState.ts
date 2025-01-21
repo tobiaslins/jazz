@@ -304,7 +304,10 @@ async function loadCoValueFromPeers(
     if (coValueEntry.state.type === "loading") {
       const timeout = setTimeout(() => {
         if (coValueEntry.state.type === "loading") {
-          logger.warn("Failed to load coValue from peer", peer.id);
+          logger.warn("Failed to load coValue from peer", {
+            peerId: peer.id,
+            peerRole: peer.role,
+          });
           coValueEntry.dispatch({
             type: "not-found-in-peer",
             peerId: peer.id,

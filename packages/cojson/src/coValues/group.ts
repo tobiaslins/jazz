@@ -322,7 +322,7 @@ export class RawGroup<
         const secret = this.core.getReadKey(keyID);
 
         if (!secret) {
-          logger.error("Can't find key", keyID);
+          logger.error("Can't find key " + keyID);
           continue;
         }
 
