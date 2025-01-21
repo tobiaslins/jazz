@@ -60,6 +60,7 @@ describe("BrowserPasskeyAuth", () => {
         accountID: "test123" as ID<Account>,
         secretSeed: new Uint8Array([1]),
         accountSecret: "fromAuthStorage" as AgentSecret,
+        provider: "passkey",
       });
 
       const mockCrypto = {
@@ -105,7 +106,7 @@ describe("BrowserPasskeyAuth", () => {
         accountID: "test123" as ID<Account>,
         secretSeed: new Uint8Array([1]),
         accountSecret: "fromAuthStorage" as AgentSecret,
-        isAnonymous: true,
+        provider: "anonymous",
       });
 
       const mockCrypto = {
@@ -143,7 +144,7 @@ describe("BrowserPasskeyAuth", () => {
         accountID: "test123" as ID<Account>,
         secretSeed: new Uint8Array([1]),
         accountSecret: "fromAuthStorage" as AgentSecret,
-        isAnonymous: true,
+        provider: "anonymous",
       });
 
       const mockCrypto = {
@@ -202,7 +203,7 @@ describe("BrowserPasskeyAuth", () => {
       expect(AuthSecretStorage.get()).toEqual({
         accountID: "test123" as ID<Account>,
         secretSeed: new Uint8Array([1, 2, 3]),
-        isAnonymous: false,
+        provider: "passkey",
         accountSecret: "mock-secret" as AgentSecret,
       });
     });
@@ -238,7 +239,7 @@ describe("BrowserPasskeyAuth", () => {
       expect(AuthSecretStorage.get()).toEqual({
         accountID: "test123" as ID<Account>,
         secretSeed: expect.any(Uint8Array),
-        isAnonymous: false,
+        provider: "passkey",
         accountSecret: "mock-secret" as AgentSecret,
       });
     });

@@ -59,7 +59,7 @@ export class BrowserAnonymousAuth implements AuthMethod {
             accountID: credentials.accountID,
             secretSeed,
             accountSecret: credentials.secret,
-            isAnonymous: true,
+            provider: "anonymous",
           });
         },
         onSuccess: () => {

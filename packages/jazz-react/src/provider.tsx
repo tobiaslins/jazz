@@ -36,7 +36,8 @@ class JazzContextManager<Acc extends Account = RegisteredAccount> {
 
   lastCallId: number = 0;
   async createContext(props: JazzContextManagerProps<Acc>) {
-    const callId = ++this.lastCallId;
+    const callId = ++this.lastCallId; // To avoid race conditions
+
     this.props = { ...props };
 
     const currentContext = await createJazzBrowserContext<Acc>(
@@ -89,10 +90,11 @@ class JazzContextManager<Acc extends Account = RegisteredAccount> {
       return true;
     }
 
-    return Object.keys(props).some((key) => {
-      // @ts-expect-error Dynamic compare
-      return this.props[key] !== props[key];
-    });
+    return (
+      props.auth !== this.props.auth ||
+      props.peer !== this.props.peer ||
+      props.storage !== this.props.storage
+    );
   }
 
   getCurrentValue() {
@@ -183,12 +185,14 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
   );
 
   useEffect(() => {
-    if (contextManager && process.env.NODE_ENV !== "development") {
-      return () => {
-        contextManager.done();
-      };
-    }
-  }, [contextManager]);
+    // In development mode we don't return a cleanup function because otherwise
+    // the double effect execution would mark the context as done immediately.
+    if (process.env.NODE_ENV === "development") return;
+
+    return () => {
+      contextManager.done();
+    };
+  }, []);
 
   useEffect(() => {
     if (contextManager) {

@@ -36,6 +36,7 @@ describe("BrowserClerkAuth", () => {
         accountID: "test123" as ID<Account>,
         secretSeed: new Uint8Array([1]),
         accountSecret: "fromAuthStorage" as AgentSecret,
+        provider: "clerk",
       });
 
       const mockCrypto = {
@@ -107,7 +108,7 @@ describe("BrowserClerkAuth", () => {
         accountID: "anon123" as ID<Account>,
         secretSeed: new Uint8Array([1]),
         accountSecret: "anonSecret" as AgentSecret,
-        isAnonymous: true,
+        provider: "anonymous",
       });
 
       const result = await auth.start({} as any);

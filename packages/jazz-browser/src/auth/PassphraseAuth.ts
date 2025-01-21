@@ -27,8 +27,9 @@ export class BrowserPassphraseAuth implements AuthMethod {
     AuthSecretStorage.migrate();
 
     const credentials = AuthSecretStorage.get();
+    const isAnonymous = AuthSecretStorage.isAnonymous();
 
-    if (credentials && !credentials.isAnonymous) {
+    if (credentials && !isAnonymous) {
       const accountID = credentials.accountID;
       const secret = credentials.accountSecret;
 
@@ -49,7 +50,7 @@ export class BrowserPassphraseAuth implements AuthMethod {
       return new Promise<AuthResult>((resolve) => {
         this.driver.onReady({
           signUp: async (username, passphrase) => {
-            if (credentials?.isAnonymous) {
+            if (credentials && isAnonymous) {
               console.warn(
                 "Anonymous user upgrade is currently not supported on passphrase auth",
               );
@@ -74,6 +75,7 @@ export class BrowserPassphraseAuth implements AuthMethod {
                   accountID: credentials.accountID,
                   secretSeed,
                   accountSecret,
+                  provider: "passphrase",
                 });
               },
               onSuccess: () => {
@@ -115,6 +117,7 @@ export class BrowserPassphraseAuth implements AuthMethod {
                   accountID,
                   secretSeed,
                   accountSecret,
+                  provider: "passphrase",
                 });
               },
               onSuccess: () => {

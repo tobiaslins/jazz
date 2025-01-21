@@ -57,12 +57,20 @@ describe("createJazzBrowserContext", () => {
 
     // Setup mock for WebSocket peer
     mockWebSocketPeer = {
-      peer: bPeer,
-      done: vi.fn(),
+      enable: vi.fn(),
+      disable: vi.fn(),
     };
 
-    vi.mocked(createWebSocketPeerWithReconnection).mockReturnValue(
-      mockWebSocketPeer,
+    vi.mocked(createWebSocketPeerWithReconnection).mockImplementation(
+      (peer, reconnectionTimeout, addPeer, removePeer) => {
+        mockWebSocketPeer.enable.mockImplementation(() => {
+          addPeer(bPeer);
+        });
+        mockWebSocketPeer.disable.mockImplementation(() => {
+          removePeer(bPeer);
+        });
+        return mockWebSocketPeer;
+      },
     );
   });
 
@@ -75,7 +83,7 @@ describe("createJazzBrowserContext", () => {
         crypto,
       });
 
-      expect(createWebSocketPeerWithReconnection).toHaveBeenCalledTimes(1);
+      expect(mockWebSocketPeer.enable).toHaveBeenCalledTimes(1);
 
       context.done();
     });
@@ -89,7 +97,7 @@ describe("createJazzBrowserContext", () => {
         crypto,
       });
 
-      expect(createWebSocketPeerWithReconnection).not.toHaveBeenCalled();
+      expect(mockWebSocketPeer.enable).not.toHaveBeenCalled();
       context.done();
     });
 
@@ -104,7 +112,7 @@ describe("createJazzBrowserContext", () => {
 
       context.toggleNetwork(true);
 
-      expect(createWebSocketPeerWithReconnection).toHaveBeenCalledTimes(1);
+      expect(mockWebSocketPeer.enable).toHaveBeenCalledTimes(1);
     });
 
     it("should disable network when toggled off", async () => {
@@ -117,7 +125,8 @@ describe("createJazzBrowserContext", () => {
 
       context.toggleNetwork(false);
 
-      expect(mockWebSocketPeer.done).toHaveBeenCalledTimes(1);
+      expect(mockWebSocketPeer.enable).toHaveBeenCalledTimes(1);
+      expect(mockWebSocketPeer.disable).toHaveBeenCalledTimes(1);
     });
 
     it("should sync with the server when network is enabled", async () => {

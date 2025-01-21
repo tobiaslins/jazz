@@ -55,7 +55,7 @@ describe("BrowserAnonymousAuth", () => {
       expect(AuthSecretStorage.get()).toEqual({
         accountID: "test123" as ID<Account>,
         secretSeed: new Uint8Array([1, 2, 3]),
-        isAnonymous: true,
+        provider: "anonymous",
         accountSecret: "mock-secret" as AgentSecret,
       });
     });
@@ -69,7 +69,7 @@ describe("BrowserAnonymousAuth", () => {
         accountID: "test123" as ID<Account>,
         secretSeed: new Uint8Array([1, 2, 3]),
         accountSecret: "mock-secret" as AgentSecret,
-        isAnonymous: true,
+        provider: "anonymous",
       });
 
       const mockCrypto = {
@@ -98,7 +98,7 @@ describe("BrowserAnonymousAuth", () => {
         accountID: "test123" as ID<Account>,
         secretSeed: new Uint8Array([1, 2, 3]),
         accountSecret: "mock-secret" as AgentSecret,
-        isAnonymous: true,
+        provider: "anonymous",
       });
 
       const mockCrypto = {
@@ -123,7 +123,7 @@ describe("BrowserAnonymousAuth", () => {
         accountID: "test123" as ID<Account>,
         secretSeed: new Uint8Array([1, 2, 3]),
         accountSecret: "mock-secret" as AgentSecret,
-        isAnonymous: true,
+        provider: "anonymous",
       });
 
       const mockCrypto = {

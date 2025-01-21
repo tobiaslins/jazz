@@ -98,6 +98,7 @@ export class BrowserDemoAuth implements AuthMethod {
                   accountID: credentials.accountID,
                   secretSeed,
                   accountSecret,
+                  provider: "demo",
                 });
 
                 localStorage["demo-auth-existing-users-" + username] =
@@ -130,6 +131,7 @@ export class BrowserDemoAuth implements AuthMethod {
             AuthSecretStorage.set({
               accountID: storageData.accountID,
               accountSecret: storageData.accountSecret,
+              provider: "demo",
             });
 
             resolve({

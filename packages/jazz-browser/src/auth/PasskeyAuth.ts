@@ -28,8 +28,9 @@ export class BrowserPasskeyAuth implements AuthMethod {
     AuthSecretStorage.migrate();
 
     const credentials = AuthSecretStorage.get();
+    const isAnonymous = AuthSecretStorage.isAnonymous();
 
-    if (credentials && !credentials.isAnonymous) {
+    if (credentials && !isAnonymous) {
       const accountID = credentials.accountID;
       const secret = credentials.accountSecret;
 
@@ -50,7 +51,9 @@ export class BrowserPasskeyAuth implements AuthMethod {
       return new Promise<AuthResult>((resolve) => {
         this.driver.onReady({
           signUp: async (username) => {
-            if (credentials?.isAnonymous) {
+            if (credentials && isAnonymous && credentials.secretSeed) {
+              const secretSeed = credentials.secretSeed;
+
               resolve({
                 type: "existing",
                 username,
@@ -61,14 +64,15 @@ export class BrowserPasskeyAuth implements AuthMethod {
                 saveCredentials: async ({ accountID, secret }) => {
                   await this.createPasskeyCredentials({
                     accountID,
-                    secretSeed: credentials.secretSeed,
+                    secretSeed,
                     username,
                   });
 
                   AuthSecretStorage.set({
                     accountID,
-                    secretSeed: credentials.secretSeed,
+                    secretSeed,
                     accountSecret: secret,
+                    provider: "passkey",
                   });
                 },
                 onSuccess: () => {
@@ -98,6 +102,7 @@ export class BrowserPasskeyAuth implements AuthMethod {
                     accountID,
                     secretSeed,
                     accountSecret: secret,
+                    provider: "passkey",
                   });
                 },
                 onSuccess: () => {
@@ -157,6 +162,7 @@ export class BrowserPasskeyAuth implements AuthMethod {
                   accountID,
                   accountSecret: secret,
                   secretSeed: accountSecretSeed,
+                  provider: "passkey",
                 });
               },
               onSuccess: () => {

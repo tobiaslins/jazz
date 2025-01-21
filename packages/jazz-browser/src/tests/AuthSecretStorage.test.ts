@@ -49,7 +49,7 @@ describe("AuthSecretStorage", () => {
         accountID: "test123",
         secretSeed: [1, 2, 3],
         accountSecret: "secret123",
-        isAnonymous: true,
+        provider: "anonymous",
       };
       localStorage.setItem(
         "jazz-logged-in-secret",
@@ -62,7 +62,7 @@ describe("AuthSecretStorage", () => {
         accountID: "test123",
         secretSeed: new Uint8Array([1, 2, 3]),
         accountSecret: "secret123",
-        isAnonymous: true,
+        provider: "anonymous",
       });
     });
 
@@ -70,6 +70,7 @@ describe("AuthSecretStorage", () => {
       const credentials = {
         accountID: "test123",
         accountSecret: "secret123",
+        provider: "passphrase",
       };
       localStorage.setItem(
         "jazz-logged-in-secret",
@@ -81,7 +82,7 @@ describe("AuthSecretStorage", () => {
       expect(result).toEqual({
         accountID: "test123",
         accountSecret: "secret123",
-        isAnonymous: false,
+        provider: "passphrase",
       });
     });
 
@@ -104,7 +105,7 @@ describe("AuthSecretStorage", () => {
         secretSeed: new Uint8Array([1, 2, 3]),
         accountSecret:
           "secret123" as `sealerSecret_z${string}/signerSecret_z${string}`,
-        isAnonymous: true,
+        provider: "passphrase",
       };
 
       AuthSecretStorage.set(payload);
@@ -114,7 +115,7 @@ describe("AuthSecretStorage", () => {
         accountID: "test123",
         secretSeed: [1, 2, 3],
         accountSecret: "secret123",
-        isAnonymous: true,
+        provider: "passphrase",
       });
     });
 
@@ -123,6 +124,7 @@ describe("AuthSecretStorage", () => {
         accountID: "test123" as ID<Account>,
         accountSecret:
           "secret123" as `sealerSecret_z${string}/signerSecret_z${string}`,
+        provider: "passphrase",
       };
 
       AuthSecretStorage.set(payload);
@@ -139,6 +141,7 @@ describe("AuthSecretStorage", () => {
         accountID: "test123" as ID<Account>,
         accountSecret:
           "secret123" as `sealerSecret_z${string}/signerSecret_z${string}`,
+        provider: "passphrase",
       });
 
       expect(handler).toHaveBeenCalled();
@@ -156,19 +159,9 @@ describe("AuthSecretStorage", () => {
         accountSecret:
           "secret123" as `sealerSecret_z${string}/signerSecret_z${string}`,
         secretSeed: new Uint8Array([1, 2, 3]),
-        isAnonymous: true,
+        provider: "anonymous",
       });
       expect(AuthSecretStorage.isAnonymous()).toBe(true);
-    });
-
-    it("should not set isAnonymous to true when secretSeed is missing", () => {
-      AuthSecretStorage.set({
-        accountID: "test123" as ID<Account>,
-        accountSecret:
-          "secret123" as `sealerSecret_z${string}/signerSecret_z${string}`,
-        isAnonymous: false,
-      });
-      expect(AuthSecretStorage.isAnonymous()).toBe(false);
     });
 
     it("should return false for non-anonymous credentials", () => {
@@ -177,7 +170,7 @@ describe("AuthSecretStorage", () => {
         accountSecret:
           "secret123" as `sealerSecret_z${string}/signerSecret_z${string}`,
         secretSeed: new Uint8Array([1, 2, 3]),
-        isAnonymous: false,
+        provider: "demo",
       });
       expect(AuthSecretStorage.isAnonymous()).toBe(false);
     });
@@ -206,7 +199,7 @@ describe("AuthSecretStorage", () => {
         accountID: "test123" as ID<Account>,
         accountSecret:
           "secret123" as `sealerSecret_z${string}/signerSecret_z${string}`,
-        isAnonymous: false,
+        provider: "passphrase",
       });
 
       AuthSecretStorage.clear();

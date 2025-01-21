@@ -11,14 +11,14 @@ export function AuthButton() {
   const { logOut } = useAccount();
   const navigate = useNavigate();
 
-  const isOnboarding = useIsAnonymousUser();
+  const isAnonymousUser = useIsAnonymousUser();
 
   function handleSignOut() {
     logOut();
     navigate("/");
   }
 
-  if (!isOnboarding) {
+  if (!isAnonymousUser) {
     return (
       <Button variant="outline" onClick={handleSignOut}>
         Sign out

@@ -37,8 +37,9 @@ export class BrowserClerkAuth implements AuthMethod {
 
     // Check local storage for credentials
     const credentials = AuthSecretStorage.get();
+    const isAnonymous = AuthSecretStorage.isAnonymous();
 
-    if (credentials && !credentials.isAnonymous) {
+    if (credentials && !isAnonymous) {
       try {
         return {
           type: "existing",
@@ -87,6 +88,7 @@ export class BrowserClerkAuth implements AuthMethod {
               secretSeed: clerkCredentials.jazzAccountSeed
                 ? Uint8Array.from(clerkCredentials.jazzAccountSeed)
                 : undefined,
+              provider: "clerk",
             });
           },
           onSuccess: () => {},
@@ -97,7 +99,7 @@ export class BrowserClerkAuth implements AuthMethod {
             void this.clerkClient.signOut();
           },
         };
-      } else if (credentials?.isAnonymous) {
+      } else if (credentials && isAnonymous) {
         return {
           type: "existing",
           username,
@@ -110,12 +112,15 @@ export class BrowserClerkAuth implements AuthMethod {
               accountID,
               accountSecret: secret,
               secretSeed: credentials.secretSeed,
+              provider: "clerk",
             });
             await this.clerkClient.user?.update({
               unsafeMetadata: {
                 jazzAccountID: accountID,
                 jazzAccountSecret: secret,
-                jazzAccountSeed: Array.from(credentials.secretSeed),
+                jazzAccountSeed: credentials.secretSeed
+                  ? Array.from(credentials.secretSeed)
+                  : undefined,
               } satisfies ClerkCredentials,
             });
           },
@@ -141,6 +146,7 @@ export class BrowserClerkAuth implements AuthMethod {
               accountID,
               secretSeed,
               accountSecret: secret,
+              provider: "clerk",
             });
             await this.clerkClient.user?.update({
               unsafeMetadata: {
