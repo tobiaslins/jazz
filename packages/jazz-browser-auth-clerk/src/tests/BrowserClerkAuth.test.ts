@@ -1,11 +1,13 @@
 import { AgentSecret } from "cojson";
 import { Account, ID } from "jazz-tools";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { BrowserClerkAuth, MinimalClerkClient } from "../index.js";
+import { BrowserClerkAuth } from "../index.js";
+
+import type { Clerk } from "@clerk/clerk-js";
 
 describe("BrowserClerkAuth", () => {
   let mockLocalStorage: { [key: string]: string };
-  let mockClerkClient: MinimalClerkClient;
+  let mockClerkClient: Clerk;
   let mockDriver: BrowserClerkAuth.Driver;
 
   beforeEach(() => {
@@ -34,7 +36,7 @@ describe("BrowserClerkAuth", () => {
         update: vi.fn(),
       },
       signOut: vi.fn(),
-    };
+    } as unknown as Clerk;
 
     // Mock driver
     mockDriver = {
@@ -52,7 +54,7 @@ describe("BrowserClerkAuth", () => {
       const auth = new BrowserClerkAuth(mockDriver, {
         ...mockClerkClient,
         user: null,
-      });
+      } as unknown as Clerk);
 
       const result = await auth.start();
       expect(result.type).toBe("existing");
@@ -79,7 +81,7 @@ describe("BrowserClerkAuth", () => {
           update: vi.fn(),
         },
         signOut: vi.fn(),
-      };
+      } as unknown as Clerk;
 
       const auth = new BrowserClerkAuth(mockDriver, mockClerkClient);
       const result = await auth.start();
@@ -90,7 +92,7 @@ describe("BrowserClerkAuth", () => {
       const auth = new BrowserClerkAuth(mockDriver, {
         ...mockClerkClient,
         user: null,
-      });
+      } as unknown as Clerk);
 
       await expect(auth.start()).rejects.toThrow("Not signed in");
     });

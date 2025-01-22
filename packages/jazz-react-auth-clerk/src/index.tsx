@@ -1,11 +1,10 @@
-import {
-  BrowserClerkAuth,
-  type MinimalClerkClient,
-} from "jazz-browser-auth-clerk";
+import { BrowserClerkAuth } from "jazz-browser-auth-clerk";
 import { useMemo, useState } from "react";
 
+import type { Clerk } from "@clerk/clerk-js";
+
 export function useJazzClerkAuth(
-  clerk: MinimalClerkClient & {
+  clerk: Clerk & {
     signOut: () => Promise<unknown>;
   },
 ) {

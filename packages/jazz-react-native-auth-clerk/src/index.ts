@@ -1,26 +1,9 @@
+import type { Clerk } from "@clerk/clerk-js";
 import { AgentSecret } from "cojson";
 import type { KvStore } from "jazz-react-native";
 import { Account, AuthMethod, AuthResult, Credentials, ID } from "jazz-tools";
 
 const localStorageKey = "jazz-clerk-auth";
-
-export type MinimalClerkClient = {
-  user:
-    | {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        unsafeMetadata: Record<string, any>;
-        fullName: string | null;
-        username: string | null;
-        id: string;
-        update: (args: {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          unsafeMetadata: Record<string, any>;
-        }) => Promise<unknown>;
-      }
-    | null
-    | undefined;
-  signOut: () => Promise<void>;
-};
 
 function saveCredentialsToStorage(kvStore: KvStore, credentials: Credentials) {
   kvStore.set(
@@ -35,7 +18,7 @@ function saveCredentialsToStorage(kvStore: KvStore, credentials: Credentials) {
 export class ReactNativeClerkAuth implements AuthMethod {
   constructor(
     public driver: ReactNativeClerkAuth.Driver,
-    private readonly clerkClient: MinimalClerkClient,
+    private readonly clerkClient: Clerk,
     private readonly kvStore: KvStore,
   ) {}
 
@@ -98,7 +81,11 @@ export class ReactNativeClerkAuth implements AuthMethod {
           creationProps: {
             name:
               this.clerkClient.user.fullName ||
+              this.clerkClient.user.firstName ||
               this.clerkClient.user.username ||
+              this.clerkClient.user.primaryEmailAddress?.emailAddress?.split(
+                "@",
+              )[0] ||
               this.clerkClient.user.id,
           },
           saveCredentials: async ({ accountID, secret }: Credentials) => {
@@ -141,7 +128,7 @@ export namespace ReactNativeClerkAuth {
 import { useMemo, useState } from "react";
 
 export function useJazzClerkAuth(
-  clerk: MinimalClerkClient & {
+  clerk: Clerk & {
     signOut: () => Promise<unknown>;
   },
   kvStore: KvStore,
