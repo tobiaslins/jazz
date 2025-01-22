@@ -1,5 +1,11 @@
 # jazz-tools
 
+## 0.9.14
+
+### Patch Changes
+
+- 3df93cc: Add API to setup a test sync in the test environment
+
 ## 0.9.13
 
 ### Patch Changes
