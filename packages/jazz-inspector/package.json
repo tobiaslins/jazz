@@ -1,6 +1,6 @@
 {
   "name": "jazz-inspector",
-  "version": "0.9.14",
+  "version": "0.9.15",
   "type": "module",
   "main": "./dist/jazz-inspector.js",
   "types": "./src/app.tsx",
