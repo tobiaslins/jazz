@@ -64,14 +64,29 @@ export async function createJazzTestAccount<Acc extends Account>(options?: {
     syncServer.current.syncManager.addPeer(aPeer);
     peers.push(bPeer);
   }
-  const account = await AccountSchema.create({
+
+  const { node } = await LocalNode.withNewlyCreatedAccount({
     creationProps: {
       name: "Test Account",
       ...options?.creationProps,
     },
     crypto: await TestJSCrypto.create(),
     peersToLoadFrom: peers,
+    migration: async (rawAccount, _node, creationProps) => {
+      const account = new AccountSchema({
+        fromRaw: rawAccount,
+      });
+
+      if (options?.isCurrentActiveAccount) {
+        activeAccountContext.set(account);
+      }
+
+      await account.applyMigration?.(creationProps);
+    },
   });
+
+  const account = AccountSchema.fromNode(node);
+
   if (options?.isCurrentActiveAccount) {
     activeAccountContext.set(account);
   }

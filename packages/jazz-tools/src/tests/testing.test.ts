@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import { CoMap, Group } from "../exports";
+import { Account, CoMap, Group, co } from "../exports";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing";
 
 describe("Jazz Test Sync", () => {
@@ -22,5 +22,30 @@ describe("Jazz Test Sync", () => {
     const loadedMap = await CoMap.load(map.id, account2, {});
     expect(loadedMap).toBeDefined();
     expect(loadedMap?._raw.get("test")).toBe("value");
+  });
+
+  test("correctly set the globalMe before starting the migration", async () => {
+    class MyRoot extends CoMap {
+      value = co.string;
+    }
+
+    class CustomAccount extends Account {
+      root = co.ref(MyRoot);
+
+      migrate() {
+        if (this.root === undefined) {
+          this.root = MyRoot.create({
+            value: "ok",
+          });
+        }
+      }
+    }
+
+    const account1 = await createJazzTestAccount({
+      AccountSchema: CustomAccount,
+      isCurrentActiveAccount: true,
+    });
+
+    expect(account1.root?.value).toBe("ok");
   });
 });
