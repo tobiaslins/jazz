@@ -1,5 +1,13 @@
 # cojson-storage
 
+## 0.9.13
+
+### Patch Changes
+
+- 8d29e50: Restore the logger wrapper and adapt the API to pino
+- Updated dependencies [8d29e50]
+  - cojson@0.9.13
+
 ## 0.9.12
 
 ### Patch Changes
