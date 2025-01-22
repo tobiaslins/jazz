@@ -1,4 +1,4 @@
-import { AgentSecret, CryptoProvider, Peer } from "cojson";
+import { AgentSecret, CryptoProvider, LocalNode, Peer } from "cojson";
 import { cojsonInternals } from "cojson";
 import { PureJSCrypto } from "cojson/crypto";
 import { Account, type AccountClass } from "./exports.js";
@@ -9,7 +9,7 @@ import {
   createAnonymousJazzContext,
 } from "./internal.js";
 
-let syncServer: Account | null = null;
+const syncServer: { current: LocalNode | null } = { current: null };
 
 type TestAccountSchema<Acc extends Account> = CoValueClass<Acc> & {
   fromNode: (typeof Account)["fromNode"];
@@ -52,7 +52,7 @@ export async function createJazzTestAccount<Acc extends Account>(options?: {
   const AccountSchema = (options?.AccountSchema ??
     Account) as unknown as TestAccountSchema<Acc>;
   const peers = [];
-  if (syncServer) {
+  if (syncServer.current) {
     const [aPeer, bPeer] = cojsonInternals.connectedPeers(
       Math.random().toString(),
       Math.random().toString(),
@@ -61,7 +61,7 @@ export async function createJazzTestAccount<Acc extends Account>(options?: {
         peer2role: "server",
       },
     );
-    syncServer._raw.core.node.syncManager.addPeer(aPeer);
+    syncServer.current.syncManager.addPeer(aPeer);
     peers.push(bPeer);
   }
   const account = await AccountSchema.create({
@@ -130,6 +130,10 @@ export function linkAccounts(
 }
 
 export async function setupJazzTestSync() {
+  if (syncServer.current) {
+    syncServer.current.gracefulShutdown();
+  }
+
   const account = await Account.create({
     creationProps: {
       name: "Test Account",
@@ -137,12 +141,7 @@ export async function setupJazzTestSync() {
     crypto: await TestJSCrypto.create(),
   });
 
-  syncServer = account;
+  syncServer.current = account._raw.core.node;
 
   return account;
-}
-
-export function cleanupJazzTestSync() {
-  syncServer?._raw.core.node.gracefulShutdown();
-  syncServer = null;
 }
