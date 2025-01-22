@@ -4,7 +4,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { JazzProvider } from "jazz-react";
+import { JazzProvider, useIsAnonymousUser } from "jazz-react";
 
 // Import your publishable key
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -15,33 +15,28 @@ if (!PUBLISHABLE_KEY) {
 
 function JazzAndAuth({ children }: { children: React.ReactNode }) {
   const clerk = useClerk();
-  const [auth, state] = useJazzClerkAuth(clerk);
+  useJazzClerkAuth(clerk);
+
+  const isAnonymous = useIsAnonymousUser();
 
   return (
     <main className="container">
-      {state?.errors?.map((error) => (
-        <div key={error}>{error}</div>
-      ))}
-      {clerk.user && auth ? (
-        <JazzProvider
-          auth={auth}
-          peer="wss://cloud.jazz.tools/?key=minimal-auth-clerk-example@garden.co"
-        >
-          {children}
-        </JazzProvider>
-      ) : (
-        <SignInButton />
-      )}
+      {isAnonymous ? <SignInButton /> : children}
     </main>
   );
 }
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
-      <JazzAndAuth>
-        <App />
-      </JazzAndAuth>
-    </ClerkProvider>
+    <JazzProvider
+      localOnly="anonymous"
+      peer="wss://cloud.jazz.tools/?key=minimal-auth-clerk-example@garden.co"
+    >
+      <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
+        <JazzAndAuth>
+          <App />
+        </JazzAndAuth>
+      </ClerkProvider>
+    </JazzProvider>
   </StrictMode>,
 );

@@ -4,8 +4,7 @@ import {
   AccountClass,
   ID,
   Inbox,
-  createJazzContext,
-  fixedCredentialsAuth,
+  createJazzContextFromExistingCredentials,
   randomSessionProvider,
 } from "jazz-tools";
 import { webSocketWithReconnection } from "./webSocketWithReconnection.js";
@@ -46,11 +45,11 @@ export async function startWorker<Acc extends Account>(
     throw new Error("Invalid accountSecret");
   }
 
-  const context = await createJazzContext({
-    auth: fixedCredentialsAuth({
+  const context = await createJazzContextFromExistingCredentials({
+    credentials: {
       accountID: accountID as ID<Acc>,
       secret: accountSecret as AgentSecret,
-    }),
+    },
     AccountSchema,
     // TODO: locked sessions similar to browser
     sessionProvider: randomSessionProvider,

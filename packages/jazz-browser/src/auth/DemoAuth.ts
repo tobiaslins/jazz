@@ -1,10 +1,11 @@
-import { AgentSecret, CryptoProvider } from "cojson";
-import { Account, AuthMethod, AuthResult, ID } from "jazz-tools";
+import { AgentSecret } from "cojson";
+import { Account, AuthenticateAccountFunction, ID } from "jazz-tools";
 import { AuthSecretStorage } from "./AuthSecretStorage.js";
 
 type StorageData = {
   accountID: ID<Account>;
   accountSecret: AgentSecret;
+  secretSeed?: number[];
 };
 
 /**
@@ -20,9 +21,9 @@ type StorageData = {
  *
  * @category Auth Providers
  */
-export class BrowserDemoAuth implements AuthMethod {
+export class BrowserDemoAuth {
   constructor(
-    public driver: BrowserDemoAuth.Driver,
+    private authenticate: AuthenticateAccountFunction,
     seedAccounts?: {
       [name: string]: {
         accountID: ID<Account>;
@@ -49,131 +50,58 @@ export class BrowserDemoAuth implements AuthMethod {
     }
   }
 
-  /**
-   * @returns A `JazzAuth` object
-   */
-  async start(crypto: CryptoProvider) {
-    AuthSecretStorage.migrate();
+  logIn(username: string) {
+    const storageData = JSON.parse(
+      localStorage["demo-auth-existing-users-" + username],
+    ) as StorageData;
 
+    if (!storageData) {
+      throw new Error("User not found");
+    }
+
+    this.authenticate({
+      accountID: storageData.accountID,
+      accountSecret: storageData.accountSecret,
+    });
+
+    AuthSecretStorage.set({
+      accountID: storageData.accountID,
+      accountSecret: storageData.accountSecret,
+      secretSeed: storageData.secretSeed
+        ? new Uint8Array(storageData.secretSeed)
+        : undefined,
+      provider: "demo",
+    });
+  }
+
+  signUp(username: string) {
     const credentials = AuthSecretStorage.get();
 
-    if (credentials) {
-      const accountID = credentials.accountID;
-      const secret = credentials.accountSecret;
-
-      return {
-        type: "existing",
-        credentials: { accountID, secret },
-        onSuccess: () => {
-          this.driver.onSignedIn({ logOut, isSignUp: false });
-        },
-        onError: (error: string | Error) => {
-          this.driver.onError(error);
-        },
-        logOut: () => {
-          AuthSecretStorage.clear();
-        },
-      } satisfies AuthResult;
-    } else {
-      return new Promise<AuthResult>((resolve) => {
-        this.driver.onReady({
-          signUp: async (username) => {
-            const secretSeed = crypto.newRandomSecretSeed();
-            const accountSecret = crypto.agentSecretFromSecretSeed(secretSeed);
-
-            resolve({
-              type: "new",
-              creationProps: { name: username },
-              initialSecret: accountSecret,
-              saveCredentials: async (credentials: {
-                accountID: ID<Account>;
-                secret: AgentSecret;
-              }) => {
-                const storageData = JSON.stringify({
-                  accountID: credentials.accountID,
-                  accountSecret: credentials.secret,
-                } satisfies StorageData);
-
-                AuthSecretStorage.set({
-                  accountID: credentials.accountID,
-                  secretSeed,
-                  accountSecret,
-                  provider: "demo",
-                });
-
-                localStorage["demo-auth-existing-users-" + username] =
-                  storageData;
-
-                localStorage["demo-auth-existing-users"] = localStorage[
-                  "demo-auth-existing-users"
-                ]
-                  ? localStorage["demo-auth-existing-users"] + "," + username
-                  : username;
-              },
-              onSuccess: () => {
-                this.driver.onSignedIn({ logOut, isSignUp: true });
-              },
-              onError: (error: string | Error) => {
-                this.driver.onError(error);
-              },
-              logOut: () => {
-                AuthSecretStorage.clear();
-              },
-            });
-          },
-          existingUsers:
-            localStorage["demo-auth-existing-users"]?.split(",") ?? [],
-          logInAs: async (existingUser) => {
-            const storageData = JSON.parse(
-              localStorage["demo-auth-existing-users-" + existingUser],
-            ) as StorageData;
-
-            AuthSecretStorage.set({
-              accountID: storageData.accountID,
-              accountSecret: storageData.accountSecret,
-              provider: "demo",
-            });
-
-            resolve({
-              type: "existing",
-              credentials: {
-                accountID: storageData.accountID,
-                secret: storageData.accountSecret,
-              },
-              onSuccess: () => {
-                this.driver.onSignedIn({ logOut, isSignUp: false });
-              },
-              onError: (error: string | Error) => {
-                this.driver.onError(error);
-              },
-              logOut: () => {
-                AuthSecretStorage.clear();
-              },
-            });
-          },
-        });
-      });
+    if (!credentials) {
+      throw new Error("User already registered");
     }
-  }
-}
 
-/** @internal */
-// eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace BrowserDemoAuth {
-  export interface Driver {
-    onReady: (next: {
-      signUp: (username: string) => Promise<void>;
-      existingUsers: string[];
-      logInAs: (existingUser: string) => Promise<void>;
-    }) => void;
-    onSignedIn: (next: {
-      logOut: () => void;
-      isSignUp: boolean;
-    }) => void;
-    onError: (error: string | Error) => void;
-  }
-}
+    const storageData = JSON.stringify({
+      accountID: credentials.accountID,
+      accountSecret: credentials.accountSecret,
+      secretSeed: credentials.secretSeed
+        ? Array.from(credentials.secretSeed)
+        : undefined,
+    } satisfies StorageData);
 
-function logOut() {
-  AuthSecretStorage.clear();
+    localStorage["demo-auth-existing-users-" + username] = storageData;
+    localStorage["demo-auth-existing-users"] = localStorage[
+      "demo-auth-existing-users"
+    ]
+      ? localStorage["demo-auth-existing-users"] + "," + username
+      : username;
+  }
+
+  getExistingUsers() {
+    return (
+      (localStorage["demo-auth-existing-users"]
+        ?.split(",")
+        .filter((user: string) => user !== "") as string[]) ?? []
+    );
+  }
 }

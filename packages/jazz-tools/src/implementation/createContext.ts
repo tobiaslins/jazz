@@ -20,6 +20,11 @@ export type Credentials = {
   secret: AgentSecret;
 };
 
+type SessionProvider = (
+  accountID: ID<Account>,
+  crypto: CryptoProvider,
+) => Promise<{ sessionID: SessionID; sessionDone: () => void }>;
+
 export type AuthResult =
   | {
       type: "existing";
@@ -40,39 +45,6 @@ export type AuthResult =
       logOut: () => void;
     };
 
-export interface AuthMethod {
-  start(crypto: CryptoProvider): Promise<AuthResult>;
-}
-
-export const fixedCredentialsAuth = (credentials: {
-  accountID: ID<Account>;
-  secret: AgentSecret;
-}): AuthMethod => {
-  return {
-    start: async () => ({
-      type: "existing",
-      credentials,
-      saveCredentials: async () => {},
-      onSuccess: () => {},
-      onError: () => {},
-      logOut: () => {},
-    }),
-  };
-};
-
-export const ephemeralCredentialsAuth = (): AuthMethod => {
-  return {
-    start: async () => ({
-      type: "new",
-      creationProps: { name: "Ephemeral" },
-      saveCredentials: async () => {},
-      onSuccess: () => {},
-      onError: () => {},
-      logOut: () => {},
-    }),
-  };
-};
-
 export async function randomSessionProvider(
   accountID: ID<Account>,
   crypto: CryptoProvider,
@@ -83,21 +55,8 @@ export async function randomSessionProvider(
   };
 }
 
-type ContextParamsWithAuth<Acc extends Account> = {
-  AccountSchema?: AccountClass<Acc>;
-  auth: AuthMethod;
-  sessionProvider: (
-    accountID: ID<Account>,
-    crypto: CryptoProvider,
-  ) => Promise<{ sessionID: SessionID; sessionDone: () => void }>;
-} & BaseContextParams;
-
-type BaseContextParams = {
-  peersToLoadFrom: Peer[];
-  crypto: CryptoProvider;
-};
-
 export type JazzContextWithAccount<Acc extends Account> = {
+  node: LocalNode;
   account: Acc;
   done: () => void;
   logOut: () => void;
@@ -113,122 +72,109 @@ export type JazzContext<Acc extends Account> =
   | JazzContextWithAccount<Acc>
   | JazzContextWithAgent;
 
-export async function createJazzContext<Acc extends Account>({
-  AccountSchema,
-  auth,
+export async function createJazzContextFromExistingCredentials<
+  Acc extends Account,
+>({
+  credentials,
+  peersToLoadFrom,
+  crypto,
+  AccountSchema: PropsAccountSchema,
   sessionProvider,
-  peersToLoadFrom,
-  crypto,
-}: ContextParamsWithAuth<Acc>): Promise<JazzContextWithAccount<Acc>>;
-export async function createJazzContext({
-  peersToLoadFrom,
-  crypto,
-}: BaseContextParams): Promise<JazzContextWithAgent>;
-export async function createJazzContext<Acc extends Account>(
-  options: ContextParamsWithAuth<Acc> | BaseContextParams,
-): Promise<JazzContext<Acc>>;
-export async function createJazzContext<Acc extends Account>(
-  options: ContextParamsWithAuth<Acc> | BaseContextParams,
-): Promise<JazzContext<Acc> | JazzContextWithAgent> {
-  if (!("auth" in options)) {
-    return createAnonymousJazzContext({
-      peersToLoadFrom: options.peersToLoadFrom,
-      crypto: options.crypto,
-    });
-  }
+  onLogOut,
+}: {
+  credentials: Credentials;
+  peersToLoadFrom: Peer[];
+  crypto: CryptoProvider;
+  AccountSchema?: AccountClass<Acc>;
+  sessionProvider: SessionProvider;
+  onLogOut?: () => void;
+}): Promise<JazzContextWithAccount<Acc>> {
+  const { sessionID, sessionDone } = await sessionProvider(
+    credentials.accountID,
+    crypto,
+  );
 
-  const { auth, sessionProvider, peersToLoadFrom, crypto } = options;
-  const AccountSchema =
-    options.AccountSchema ??
+  const CurrentAccountSchema =
+    PropsAccountSchema ??
     (RegisteredSchemas["Account"] as unknown as AccountClass<Acc>);
-  const authResult = await auth.start(crypto);
 
-  if (authResult.type === "existing") {
-    const { sessionID, sessionDone } = await sessionProvider(
-      authResult.credentials.accountID,
-      crypto,
-    );
+  const node = await LocalNode.withLoadedAccount({
+    accountID: credentials.accountID as unknown as CoID<RawAccount>,
+    accountSecret: credentials.secret,
+    sessionID: sessionID,
+    peersToLoadFrom: peersToLoadFrom,
+    crypto: crypto,
+  });
 
-    const node = await LocalNode.withLoadedAccount({
-      accountID: authResult.credentials
-        .accountID as unknown as CoID<RawAccount>,
-      accountSecret: authResult.credentials.secret,
-      sessionID: sessionID,
-      peersToLoadFrom: peersToLoadFrom,
-      crypto: crypto,
-      migration: async (rawAccount, _node, creationProps) => {
-        const account = new AccountSchema({
-          fromRaw: rawAccount,
-        }) as Acc;
+  const account = CurrentAccountSchema.fromNode(node);
+  activeAccountContext.set(account);
 
-        activeAccountContext.set(account);
+  // Running the migration outside of withLoadedAccount for better error management
+  await account.applyMigration();
 
-        await account.applyMigration(creationProps);
-      },
-    });
+  return {
+    node,
+    account,
+    done: () => {
+      node.gracefulShutdown();
+      sessionDone();
+    },
+    logOut: () => {
+      node.gracefulShutdown();
+      sessionDone();
+      onLogOut?.();
+    },
+  };
+}
 
-    const account = AccountSchema.fromNode(node);
-    activeAccountContext.set(account);
+export async function createJazzContextForNewAccount<Acc extends Account>({
+  creationProps,
+  initialAgentSecret,
+  peersToLoadFrom,
+  crypto,
+  AccountSchema: PropsAccountSchema,
+  onLogOut,
+}: {
+  creationProps: { name: string };
+  initialAgentSecret?: AgentSecret;
+  peersToLoadFrom: Peer[];
+  crypto: CryptoProvider;
+  AccountSchema?: AccountClass<Acc>;
+  onLogOut?: () => void;
+}): Promise<JazzContextWithAccount<Acc>> {
+  const CurrentAccountSchema =
+    PropsAccountSchema ??
+    (RegisteredSchemas["Account"] as unknown as AccountClass<Acc>);
 
-    if (authResult.saveCredentials) {
-      await authResult.saveCredentials({
-        accountID: node.account.id as unknown as ID<Account>,
-        secret: node.account.agentSecret,
-      });
-    }
+  const { node } = await LocalNode.withNewlyCreatedAccount({
+    creationProps,
+    peersToLoadFrom,
+    crypto,
+    initialAgentSecret,
+    migration: async (rawAccount, _node, creationProps) => {
+      const account = new CurrentAccountSchema({
+        fromRaw: rawAccount,
+      }) as Acc;
+      activeAccountContext.set(account);
 
-    authResult.onSuccess();
+      await account.applyMigration(creationProps);
+    },
+  });
 
-    return {
-      account,
-      done: () => {
-        node.gracefulShutdown();
-        sessionDone();
-      },
-      logOut: () => {
-        node.gracefulShutdown();
-        sessionDone();
-        authResult.logOut();
-      },
-    };
-  } else if (authResult.type === "new") {
-    const { node } = await LocalNode.withNewlyCreatedAccount({
-      creationProps: authResult.creationProps,
-      peersToLoadFrom: peersToLoadFrom,
-      crypto: crypto,
-      initialAgentSecret: authResult.initialSecret,
-      migration: async (rawAccount, _node, creationProps) => {
-        const account = new AccountSchema({
-          fromRaw: rawAccount,
-        }) as Acc;
-        activeAccountContext.set(account);
+  const account = CurrentAccountSchema.fromNode(node);
+  activeAccountContext.set(account);
 
-        await account.applyMigration(creationProps);
-      },
-    });
-
-    const account = AccountSchema.fromNode(node);
-    activeAccountContext.set(account);
-
-    await authResult.saveCredentials({
-      accountID: node.account.id as unknown as ID<Account>,
-      secret: node.account.agentSecret,
-    });
-
-    authResult.onSuccess();
-    return {
-      account,
-      done: () => {
-        node.gracefulShutdown();
-      },
-      logOut: () => {
-        node.gracefulShutdown();
-        authResult.logOut();
-      },
-    };
-  }
-
-  throw new Error("Invalid auth result");
+  return {
+    node,
+    account,
+    done: () => {
+      node.gracefulShutdown();
+    },
+    logOut: () => {
+      node.gracefulShutdown();
+      onLogOut?.();
+    },
+  };
 }
 
 export async function createAnonymousJazzContext({

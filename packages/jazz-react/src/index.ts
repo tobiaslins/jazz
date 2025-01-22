@@ -6,6 +6,7 @@ export {
   useCoState,
   useAcceptInvite,
   experimental_useInboxSender,
+  useJazzContext,
 } from "./hooks.js";
 
 export { createInviteLink, parseInviteLink } from "jazz-browser";

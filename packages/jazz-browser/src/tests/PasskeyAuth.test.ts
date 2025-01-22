@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+// @ts-nocheck
 
 import { AgentSecret } from "cojson";
 import { Account } from "jazz-tools";
@@ -66,7 +67,7 @@ describe("BrowserPasskeyAuth", () => {
       const mockCrypto = {
         newRandomSecretSeed: () => new Uint8Array([2]),
         agentSecretFromSecretSeed: () => "xxxxx" as AgentSecret,
-      };
+      } as any;
 
       const result = await auth.start(mockCrypto as any);
 

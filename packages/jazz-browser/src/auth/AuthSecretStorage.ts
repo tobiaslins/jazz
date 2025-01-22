@@ -1,14 +1,7 @@
 import { AgentSecret } from "cojson";
-import { Account, ID } from "jazz-tools";
+import { Account, AuthCredentials, ID } from "jazz-tools";
 
 const STORAGE_KEY = "jazz-logged-in-secret";
-
-export type AuthCredentials = {
-  accountID: ID<Account>;
-  secretSeed?: Uint8Array;
-  accountSecret: AgentSecret;
-  provider?: "anonymous" | "clerk" | "demo" | "passkey" | "passphrase" | string;
-};
 
 export type AuthSetPayload = {
   accountID: ID<Account>;

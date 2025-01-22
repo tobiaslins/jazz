@@ -1,22 +1,7 @@
-import { generateMnemonic } from "@scure/bip39";
-import { cojsonInternals } from "cojson";
 import { BrowserPassphraseAuth } from "jazz-browser";
-import { JazzContext } from "jazz-react-core";
-import { useContext, useMemo, useState } from "react";
-
-export type PassphraseAuthState = (
-  | { state: "uninitialized" }
-  | { state: "loading" }
-  | {
-      state: "ready";
-      logIn: (passphrase: string) => void;
-      signUp: (username: string, passphrase: string) => void;
-      generateRandomPassphrase: () => string;
-    }
-  | { state: "signedIn"; logOut: () => void }
-) & {
-  errors: string[];
-};
+import { useJazzContext } from "jazz-react-core";
+import { useMemo, useState } from "react";
+import { useIsAnonymousUser } from "./AnonymousAuth.js";
 
 /**
  * `usePassphraseAuth` hook provides a `JazzAuth` object for passphrase authentication.
@@ -33,69 +18,41 @@ export function usePassphraseAuth({
 }: {
   wordlist: string[];
 }) {
-  const [state, setState] = useState<PassphraseAuthState>({
-    state: "loading",
-    errors: [],
-  });
-
-  const generateRandomPassphrase = () => {
-    return generateMnemonic(wordlist, cojsonInternals.secretSeedLength * 8);
-  };
+  const context = useJazzContext();
 
   const authMethod = useMemo(() => {
     return new BrowserPassphraseAuth(
-      {
-        onReady(next) {
-          setState({
-            state: "ready",
-            logIn: next.logIn,
-            signUp: next.signUp,
-            generateRandomPassphrase,
-            errors: [],
-          });
-        },
-        onSignedIn(next) {
-          setState({
-            state: "signedIn",
-            logOut: () => {
-              next.logOut();
-              setState({ state: "loading", errors: [] });
-            },
-            errors: [],
-          });
-        },
-        onError(error) {
-          setState((state) => ({
-            ...state,
-            errors: [error.toString()],
-          }));
-        },
-      },
+      context.node.crypto,
+      context.authenticate,
+      context.register,
       wordlist,
     );
   }, [wordlist]);
 
-  const context = useContext(JazzContext);
-
-  if (context) {
-    throw new Error(
-      "PassphraseAuth can't be used inside a JazzContext or to upgrade anonymous users.",
-    );
-  }
-
-  return [authMethod, state] as const;
+  const isAnonymousUser = useIsAnonymousUser();
+  return {
+    state: isAnonymousUser ? "anonymous" : "signedIn",
+    logIn: authMethod.logIn,
+    signUp: authMethod.signUp,
+    generateRandomPassphrase: authMethod.generateRandomPassphrase,
+    getCurrentUserPassphrase: authMethod.getCurrentUserPassphrase,
+  } as const;
 }
 
-export const PassphraseAuthBasicUI = (state: PassphraseAuthState) => {
+export const PassphraseAuthBasicUI = (
+  props: ReturnType<typeof usePassphraseAuth>,
+) => {
+  const { logIn, signUp, generateRandomPassphrase } = props;
+
   const [username, setUsername] = useState<string>("");
-  const [passphrase, setPassphrase] = useState<string>("");
+  const [passphrase, setPassphrase] = useState<string>(
+    generateRandomPassphrase,
+  );
   const [loginPassphrase, setLoginPassphrase] = useState<string>("");
 
-  if (state.state !== "ready") {
-    return <div>Loading...</div>;
+  if (props.state === "signedIn") {
+    return null;
   }
-
-  const { logIn, signUp } = state;
 
   return (
     <div
@@ -115,13 +72,6 @@ export const PassphraseAuthBasicUI = (state: PassphraseAuthState) => {
           gap: "2rem",
         }}
       >
-        {state.errors.length > 0 && (
-          <div style={{ color: "red" }}>
-            {state.errors.map((error, index) => (
-              <div key={index}>{error}</div>
-            ))}
-          </div>
-        )}
         <form
           style={{
             width: "30rem",
@@ -152,7 +102,7 @@ export const PassphraseAuthBasicUI = (state: PassphraseAuthState) => {
             <button
               type="button"
               onClick={(e) => {
-                setPassphrase(state.generateRandomPassphrase());
+                setPassphrase(generateRandomPassphrase());
                 e.preventDefault();
               }}
               style={{

@@ -9,9 +9,10 @@ import {
   DepthsIn,
   ID,
   InboxSender,
+  JazzContextType,
   createCoValueObservable,
 } from "jazz-tools";
-import { JazzContext, JazzContextType } from "./provider.js";
+import { JazzContext } from "./provider.js";
 
 export function useJazzContext<Acc extends Account>() {
   const value = useContext(JazzContext) as JazzContextType<Acc>;
@@ -76,7 +77,11 @@ export function createUseAccountHooks<Acc extends Account>() {
       );
     }
 
-    const me = useCoState<Acc, D>(context.AccountSchema, context.me.id, depth);
+    const me = useCoState<Acc, D>(
+      context.me.constructor as CoValueClass<Acc>,
+      context.me.id,
+      depth,
+    );
 
     return {
       me: depth === undefined ? me || context.me : me,
@@ -96,8 +101,13 @@ export function createUseAccountHooks<Acc extends Account>() {
     const context = useJazzContext<Acc>();
 
     const contextMe = "me" in context ? context.me : undefined;
+    const AccountSchema = contextMe?.constructor ?? Account;
 
-    const me = useCoState<Acc, D>(context.AccountSchema, contextMe?.id, depth);
+    const me = useCoState<Acc, D>(
+      AccountSchema as CoValueClass<Acc>,
+      contextMe?.id,
+      depth,
+    );
 
     if ("me" in context) {
       return {

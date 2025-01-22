@@ -1,4 +1,4 @@
-import { AgentSecret, CryptoProvider, Peer } from "cojson";
+import { AgentSecret, CryptoProvider, LocalNode, Peer } from "cojson";
 import { cojsonInternals } from "cojson";
 import { PureJSCrypto } from "cojson/crypto";
 import { Account, type AccountClass } from "./exports.js";
@@ -6,8 +6,10 @@ import { activeAccountContext } from "./implementation/activeAccountContext.js";
 import {
   type AnonymousJazzAgent,
   type CoValueClass,
+  ID,
   createAnonymousJazzContext,
 } from "./internal.js";
+import { JazzAuthContext, JazzGuestContext } from "./types.js";
 
 type TestAccountSchema<Acc extends Account> = CoValueClass<Acc> & {
   fromNode: (typeof Account)["fromNode"];
@@ -82,18 +84,32 @@ export function getJazzContextShape<Acc extends Account>(
   if ("guest" in account) {
     return {
       guest: account.guest,
-      AccountSchema: Account,
+      node: account.guest.node,
+      authenticate: async () => {
+        throw new Error("Not implemented");
+      },
+      toggleNetwork: () => {},
+      register: async () => {
+        throw new Error("Not implemented");
+      },
       logOut: () => account.guest.node.gracefulShutdown(),
       done: () => account.guest.node.gracefulShutdown(),
-    };
+    } satisfies JazzGuestContext;
   }
 
   return {
     me: account,
-    AccountSchema: account.constructor as AccountClass<Acc>,
+    node: account._raw.core.node,
+    authenticate: async () => {
+      throw new Error("Not implemented");
+    },
+    toggleNetwork: () => {},
+    register: async () => {
+      throw new Error("Not implemented");
+    },
     logOut: () => account._raw.core.node.gracefulShutdown(),
     done: () => account._raw.core.node.gracefulShutdown(),
-  };
+  } satisfies JazzAuthContext<Acc>;
 }
 
 export function linkAccounts(
