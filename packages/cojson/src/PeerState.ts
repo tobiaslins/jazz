@@ -5,6 +5,7 @@ import {
 } from "./PriorityBasedMessageQueue.js";
 import { TryAddTransactionsError } from "./coValueCore.js";
 import { RawCoID } from "./ids.js";
+import { logger } from "./logger.js";
 import { CO_VALUE_PRIORITY } from "./priority.js";
 import { Peer, SyncMessage } from "./sync.js";
 
@@ -137,7 +138,10 @@ export class PeerState {
   }
 
   gracefulShutdown() {
-    console.debug("Gracefully closing", this.id);
+    logger.debug("Gracefully closing", {
+      peerId: this.id,
+      peerRole: this.role,
+    });
     this.closeQueue();
     this.peer.outgoing.close();
     this.closed = true;
