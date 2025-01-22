@@ -1,4 +1,4 @@
-import { AgentSecret, CryptoProvider, Peer } from "cojson";
+import { AgentSecret, CryptoProvider, LocalNode, Peer } from "cojson";
 import { cojsonInternals } from "cojson";
 import { PureJSCrypto } from "cojson/crypto";
 import { Account, type AccountClass } from "./exports.js";
@@ -8,6 +8,8 @@ import {
   type CoValueClass,
   createAnonymousJazzContext,
 } from "./internal.js";
+
+const syncServer: { current: LocalNode | null } = { current: null };
 
 type TestAccountSchema<Acc extends Account> = CoValueClass<Acc> & {
   fromNode: (typeof Account)["fromNode"];
@@ -45,14 +47,30 @@ class TestJSCrypto extends PureJSCrypto {
 export async function createJazzTestAccount<Acc extends Account>(options?: {
   isCurrentActiveAccount?: boolean;
   AccountSchema?: CoValueClass<Acc>;
+  creationProps?: Record<string, unknown>;
 }): Promise<Acc> {
   const AccountSchema = (options?.AccountSchema ??
     Account) as unknown as TestAccountSchema<Acc>;
+  const peers = [];
+  if (syncServer.current) {
+    const [aPeer, bPeer] = cojsonInternals.connectedPeers(
+      Math.random().toString(),
+      Math.random().toString(),
+      {
+        peer1role: "server",
+        peer2role: "server",
+      },
+    );
+    syncServer.current.syncManager.addPeer(aPeer);
+    peers.push(bPeer);
+  }
   const account = await AccountSchema.create({
     creationProps: {
       name: "Test Account",
+      ...options?.creationProps,
     },
     crypto: await TestJSCrypto.create(),
+    peersToLoadFrom: peers,
   });
   if (options?.isCurrentActiveAccount) {
     activeAccountContext.set(account);
@@ -109,4 +127,21 @@ export function linkAccounts(
 
   a._raw.core.node.syncManager.addPeer(aPeer);
   b._raw.core.node.syncManager.addPeer(bPeer);
+}
+
+export async function setupJazzTestSync() {
+  if (syncServer.current) {
+    syncServer.current.gracefulShutdown();
+  }
+
+  const account = await Account.create({
+    creationProps: {
+      name: "Test Account",
+    },
+    crypto: await TestJSCrypto.create(),
+  });
+
+  syncServer.current = account._raw.core.node;
+
+  return account;
 }
