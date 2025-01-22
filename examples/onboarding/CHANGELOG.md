@@ -1,5 +1,14 @@
 # jazz-example-onboarding
 
+## 0.0.37
+
+### Patch Changes
+
+- Updated dependencies [7491711]
+  - jazz-tools@0.9.15
+  - jazz-browser-media-images@0.9.15
+  - jazz-react@0.9.15
+
 ## 0.0.36
 
 ### Patch Changes

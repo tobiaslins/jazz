@@ -1,5 +1,11 @@
 # jazz-tools
 
+## 0.9.15
+
+### Patch Changes
+
+- 7491711: Testing: correctly set the globalMe before the migration when calling createJazzTestAccount
+
 ## 0.9.14
 
 ### Patch Changes
