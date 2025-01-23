@@ -104,13 +104,6 @@ export class BrowserClerkAuth {
       } satisfies ClerkCredentials,
     });
 
-    AuthSecretStorage.set({
-      accountID: credentials.accountID,
-      accountSecret: credentials.accountSecret,
-      secretSeed: credentials.secretSeed,
-      provider: "clerk",
-    });
-
     const currentAccount = await Account.getMe().ensureLoaded({
       profile: {},
     });
@@ -120,6 +113,13 @@ export class BrowserClerkAuth {
     if (username && currentAccount) {
       currentAccount.profile.name = username;
     }
+
+    AuthSecretStorage.set({
+      accountID: credentials.accountID,
+      accountSecret: credentials.accountSecret,
+      secretSeed: credentials.secretSeed,
+      provider: "clerk",
+    });
   };
 }
 

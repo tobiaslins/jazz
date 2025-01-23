@@ -64,26 +64,27 @@ export const JazzProvider = defineComponent({
 
     watch(
       () => ({
-        AccountSchema: props.AccountSchema,
-        guestMode: props.guestMode,
         peer: props.peer,
         storage: props.storage,
-        localOnly: localOnly.value,
       }),
-      async (newProps) => {
-        if (contextManager.propsChanged(newProps)) {
-          contextManager.createContext(newProps).catch((error) => {
+      async () => {
+        contextManager
+          .createContext({
+            peer: props.peer,
+            storage: props.storage,
+            guestMode: props.guestMode,
+            AccountSchema: props.AccountSchema,
+            localOnly: localOnly.value,
+          })
+          .catch((error) => {
             console.error("Error creating Jazz browser context:", error);
           });
-        }
       },
       { immediate: true },
     );
 
     watch(localOnly, (newLocalOnly) => {
-      if (contextManager) {
-        contextManager.toggleNetwork?.(!newLocalOnly);
-      }
+      contextManager.toggleNetwork(!newLocalOnly);
     });
 
     onMounted(() => {

@@ -73,6 +73,14 @@ export class BrowserDemoAuth {
       throw new Error("No credentials found");
     }
 
+    const currentAccount = await Account.getMe().ensureLoaded({
+      profile: {},
+    });
+
+    if (currentAccount) {
+      currentAccount.profile.name = username;
+    }
+
     AuthSecretStorage.set({
       accountID: credentials.accountID,
       accountSecret: credentials.accountSecret,
@@ -89,14 +97,6 @@ export class BrowserDemoAuth {
         ? Array.from(credentials.secretSeed)
         : undefined,
     });
-
-    const currentAccount = await Account.getMe().ensureLoaded({
-      profile: {},
-    });
-
-    if (currentAccount) {
-      currentAccount.profile.name = username;
-    }
   }
 
   private addToExistingUsers(username: string, data: StorageData) {

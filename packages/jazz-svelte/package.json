@@ -48,6 +48,7 @@
     "@sveltejs/vite-plugin-svelte": "^4.0.1",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/svelte": "^5.2.6",
+    "@testing-library/user-event": "^14.6.1",
     "@types/eslint": "^9.6.0",
     "@vitest/coverage-v8": "1.5.3",
     "eslint": "^9.7.0",

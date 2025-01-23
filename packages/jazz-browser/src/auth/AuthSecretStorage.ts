@@ -64,6 +64,8 @@ export const AuthSecretStorage = {
   },
 
   isAnonymous() {
+    if (typeof localStorage === "undefined") return false;
+
     const data = localStorage.getItem(STORAGE_KEY);
 
     if (!data) return false;
@@ -74,11 +76,15 @@ export const AuthSecretStorage = {
   },
 
   onUpdate(handler: () => void) {
+    if (typeof window === "undefined") return () => {};
+
     window.addEventListener("jazz-auth-update", handler);
     return () => window.removeEventListener("jazz-auth-update", handler);
   },
 
   emitUpdate() {
+    if (typeof window === "undefined") return;
+
     window.dispatchEvent(new Event("jazz-auth-update"));
   },
 

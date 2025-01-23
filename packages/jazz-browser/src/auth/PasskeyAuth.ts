@@ -77,13 +77,6 @@ export class BrowserPasskeyAuth {
       username,
     });
 
-    AuthSecretStorage.set({
-      accountID: credentials.accountID,
-      secretSeed: credentials.secretSeed,
-      accountSecret: credentials.accountSecret,
-      provider: "passkey",
-    });
-
     const currentAccount = await Account.getMe().ensureLoaded({
       profile: {},
     });
@@ -91,6 +84,13 @@ export class BrowserPasskeyAuth {
     if (currentAccount) {
       currentAccount.profile.name = username;
     }
+
+    AuthSecretStorage.set({
+      accountID: credentials.accountID,
+      secretSeed: credentials.secretSeed,
+      accountSecret: credentials.accountSecret,
+      provider: "passkey",
+    });
   };
 
   private async createPasskeyCredentials({

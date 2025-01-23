@@ -1,7 +1,8 @@
 <script lang="ts" module>
   export type Props<Acc extends Account = Account> = {
     children?: Snippet;
-    auth: AuthMethod | 'guest';
+    guestMode?: boolean;
+    localOnly?: 'always' | 'anonymous' | 'off';
     peer: `wss://${string}` | `ws://${string}`;
     storage?: 'indexedDB' | 'singleTabOPFS';
     AccountSchema?: AccountClass<Acc>;
@@ -9,58 +10,56 @@
 </script>
 
 <script lang="ts" generics="Acc extends Account">
-  import { createJazzBrowserContext } from 'jazz-browser';
-  import type { AccountClass, AuthMethod } from 'jazz-tools';
+  import { JazzContextManager } from 'jazz-browser';
+  import type { AccountClass } from 'jazz-tools';
   import { Account } from 'jazz-tools';
   import { type Snippet, setContext, untrack } from 'svelte';
   import { JAZZ_CTX, type JazzContext } from './jazz.svelte.js';
+  import { useIsAnonymousUser } from './auth/useAnonymousUser.svelte.js';
 
-  let { children, auth, peer, storage, AccountSchema }: Props<Acc> = $props();
+  let props: Props<Acc> = $props();
+
+  const contextManager = new JazzContextManager<Acc>();
 
   const ctx = $state<JazzContext<Acc>>({ current: undefined });
   setContext<JazzContext<Acc>>(JAZZ_CTX, ctx);
-  let sessionCount = $state(0);
+
+  const isAnonymousUser = useIsAnonymousUser();
+  const localOnly = $derived(
+    props.localOnly === 'anonymous' ? isAnonymousUser.value : props.localOnly === 'always'
+  );
 
   $effect(() => {
-    auth;
-    peer;
-    storage;
-    sessionCount;
+    props.peer;
+    props.storage;
     return untrack(() => {
-      if (!auth || !peer) return;
+      if (!props.peer) return;
 
-      const promiseWithDoneCallback = createJazzBrowserContext<Acc>(
-        auth === 'guest'
-          ? {
-              peer,
-              storage,
-              guest: true,
-            }
-          : {
-              AccountSchema: AccountSchema ?? Account as unknown as AccountClass<Acc>,
-              auth,
-              peer,
-              storage,
-              guest: false,
-            }
-      ).then((context) => {
-        ctx.current = {
-          ...context,
-          logOut: () => {
-            context.logOut();
-            ctx.current = undefined;
-            sessionCount = sessionCount + 1;
-          }
-        };
-        return context.done;
-      });
-      return () => {
-        void promiseWithDoneCallback.then((done) => done());
-      };
+      contextManager
+        .createContext({
+          peer: props.peer,
+          storage: props.storage,
+          guestMode: props.guestMode,
+          AccountSchema: props.AccountSchema,
+          localOnly: localOnly
+        })
+        .catch((error) => {
+          console.error('Error creating Jazz browser context:', error);
+        });
+    });
+  });
+
+  $effect(() => {
+    contextManager.toggleNetwork(!localOnly);
+  });
+
+  $effect(() => {
+    return contextManager.subscribe(() => {
+      ctx.current = contextManager.getCurrentValue();
     });
   });
 </script>
 
 {#if ctx.current}
-  {@render children?.()}
+  {@render props.children?.()}
 {/if}

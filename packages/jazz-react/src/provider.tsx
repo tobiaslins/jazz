@@ -62,9 +62,7 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
   }, []);
 
   useEffect(() => {
-    if (contextManager) {
-      contextManager.toggleNetwork?.(!localOnly);
-    }
+    contextManager.toggleNetwork(!localOnly);
   }, [value, localOnly]);
 
   return (
