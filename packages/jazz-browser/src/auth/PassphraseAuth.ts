@@ -75,6 +75,14 @@ export class BrowserPassphraseAuth {
       accountSecret,
       provider: "passphrase",
     });
+
+    const currentAccount = await Account.getMe().ensureLoaded({
+      profile: {},
+    });
+
+    if (currentAccount) {
+      currentAccount.profile.name = username;
+    }
   };
 
   generateRandomPassphrase = () => {

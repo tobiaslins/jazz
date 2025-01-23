@@ -13,7 +13,7 @@ export type RegisteredAccount = Register extends { Account: infer Acc }
 
 export type JazzProviderProps<Acc extends Account = RegisteredAccount> = {
   children: React.ReactNode;
-  localOnly?: boolean | "anonymous";
+  localOnly?: "always" | "anonymous" | "off";
 } & Omit<JazzContextManagerProps<Acc>, "localOnly">;
 
 /** @category Context & Hooks */
@@ -29,7 +29,9 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
 
   const isAnonymousUser = useIsAnonymousUser();
   const localOnly =
-    localOnlyProp === "anonymous" ? isAnonymousUser : localOnlyProp;
+    localOnlyProp === "anonymous"
+      ? isAnonymousUser
+      : localOnlyProp === "always";
 
   const value = React.useSyncExternalStore<JazzContextType<Acc> | undefined>(
     React.useCallback(

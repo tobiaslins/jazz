@@ -15,6 +15,8 @@ export type JazzContextManagerProps<Acc extends Account> = {
   localOnly?: boolean;
   storage?: BaseBrowserContextOptions["storage"];
   AccountSchema?: AccountClass<Acc>;
+  credentials?: AuthCredentials;
+  newAccountProps?: { secret: AgentSecret; creationProps: { name: string } };
 };
 
 export class JazzContextManager<Acc extends Account> {
@@ -23,17 +25,7 @@ export class JazzContextManager<Acc extends Account> {
   private props: JazzContextManagerProps<Acc> | undefined;
 
   lastCallId: number = 0;
-  async createContext(
-    props: JazzContextManagerProps<Acc> & {
-      credentials?: AuthCredentials;
-      newAccountProps?: {
-        secret: AgentSecret;
-        creationProps: {
-          name: string;
-        };
-      };
-    },
-  ) {
+  async createContext(props: JazzContextManagerProps<Acc>) {
     const callId = ++this.lastCallId; // To avoid race conditions
 
     this.props = { ...props };
@@ -113,6 +105,8 @@ export class JazzContextManager<Acc extends Account> {
     }
 
     this.context.logOut();
+    this.props.credentials = undefined;
+    this.props.newAccountProps = undefined;
     return this.createContext(this.props);
   };
 
@@ -129,9 +123,10 @@ export class JazzContextManager<Acc extends Account> {
       throw new Error("Props required");
     }
 
-    this.props.guestMode = false;
+    this.props.credentials = credentials;
+    this.props.newAccountProps = undefined;
 
-    return this.createContext({ ...this.props, credentials });
+    return this.createContext(this.props);
   };
 
   register = async (
@@ -142,7 +137,8 @@ export class JazzContextManager<Acc extends Account> {
       throw new Error("Props required");
     }
 
-    this.props.guestMode = false;
+    this.props.credentials = undefined;
+    this.props.newAccountProps = { secret: accountSecret, creationProps };
 
     await this.createContext({
       ...this.props,

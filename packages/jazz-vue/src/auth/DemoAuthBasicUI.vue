@@ -2,14 +2,11 @@
     <div
       :style="containerStyle"
     >
-      <div v-if="state.state === 'loading'">Loading...</div>
-      <template v-else-if="state.state === 'ready'">
+      <div v-if="auth.value.state === 'signedIn'"></div>
+      <template v-else>
         <h1 :style="{ color: darkMode ? '#fff' : '#000', textAlign: 'center' }">
           {{ appName }}
         </h1>
-        <div v-for="error in state.errors" :key="error" style="color: red">
-          {{ error }}
-        </div>
         <form
           @submit.prevent="signUp"
           style="display: flex; flex-direction: column; gap: 0.5rem;"
@@ -27,7 +24,7 @@
           />
         </form>
         <div
-          v-if="state.existingUsers.length > 0"
+          v-if="auth.value.existingUsers.length > 0"
           style="display: flex; flex-direction: column; gap: 0.5rem;"
         >
           <p
@@ -42,7 +39,7 @@
             Log in as
           </p>
           <button
-            v-for="user in state.existingUsers"
+            v-for="user in auth.value.existingUsers"
             :key="user"
             @click="logInAs(user)"
             type="button"
@@ -58,11 +55,11 @@
   
   <script setup lang="ts">
 import { computed, ref } from "vue";
-import { DemoAuthState } from "./useDemoAuth.js";
+import { useDemoAuth } from "./useDemoAuth.js";
 
 const props = defineProps<{
   appName: string;
-  state: DemoAuthState;
+  auth: ReturnType<typeof useDemoAuth>;
 }>();
 
 const username = ref("");
@@ -112,12 +109,12 @@ const loginButtonStyle = computed(() => ({
 }));
 
 const signUp = () => {
-  (props.state as DemoAuthState & { state: "ready" }).signUp(username.value);
+  props.auth.value.signUp(username.value);
   username.value = "";
 };
 
 const logInAs = (user: string) => {
-  (props.state as DemoAuthState & { state: "ready" }).logInAs(user);
+  props.auth.value.logIn(user);
 };
 </script>
   

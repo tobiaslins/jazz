@@ -14,7 +14,12 @@ export type MinimalClerkClient = {
         unsafeMetadata: Record<string, any>;
         fullName: string | null;
         username: string | null;
+        firstName: string | null;
+        lastName: string | null;
         id: string;
+        primaryEmailAddress: {
+          emailAddress: string | null;
+        } | null;
         update: (args: {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           unsafeMetadata: Record<string, any>;
@@ -105,6 +110,16 @@ export class BrowserClerkAuth {
       secretSeed: credentials.secretSeed,
       provider: "clerk",
     });
+
+    const currentAccount = await Account.getMe().ensureLoaded({
+      profile: {},
+    });
+
+    const username = getClerkUsername(clerkClient);
+
+    if (username && currentAccount) {
+      currentAccount.profile.name = username;
+    }
   };
 }
 
@@ -113,4 +128,37 @@ export namespace BrowserClerkAuth {
   export interface Driver {
     onError: (error: string | Error) => void;
   }
+}
+
+function getClerkUsername(clerkClient: MinimalClerkClient) {
+  if (!clerkClient.user) {
+    return null;
+  }
+
+  if (clerkClient.user.fullName) {
+    return clerkClient.user.fullName;
+  }
+
+  if (clerkClient.user.firstName) {
+    if (clerkClient.user.lastName) {
+      return `${clerkClient.user.firstName} ${clerkClient.user.lastName}`;
+    }
+
+    return clerkClient.user.firstName;
+  }
+
+  if (clerkClient.user.username) {
+    return clerkClient.user.username;
+  }
+
+  if (clerkClient.user.primaryEmailAddress?.emailAddress) {
+    const emailUsername =
+      clerkClient.user.primaryEmailAddress.emailAddress.split("@")[0];
+
+    if (emailUsername) {
+      return emailUsername;
+    }
+  }
+
+  return clerkClient.user.id;
 }

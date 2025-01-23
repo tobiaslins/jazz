@@ -33,7 +33,7 @@
     "vue": "^3.5.11"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "vite build --watch",
     "format-and-lint": "biome check .",
     "format-and-lint:fix": "biome check . --write",
     "build": "rm -rf ./dist && vite build",

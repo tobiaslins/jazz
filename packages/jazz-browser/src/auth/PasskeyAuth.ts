@@ -83,6 +83,14 @@ export class BrowserPasskeyAuth {
       accountSecret: credentials.accountSecret,
       provider: "passkey",
     });
+
+    const currentAccount = await Account.getMe().ensureLoaded({
+      profile: {},
+    });
+
+    if (currentAccount) {
+      currentAccount.profile.name = username;
+    }
   };
 
   private async createPasskeyCredentials({

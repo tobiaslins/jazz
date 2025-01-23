@@ -1,12 +1,9 @@
-import {
-  BrowserContext,
-  BrowserGuestContext,
-  createJazzBrowserContext,
-} from "jazz-browser";
-import { Account, AccountClass, AuthMethod } from "jazz-tools";
+import { JazzContextManager } from "jazz-browser";
+import { Account, AccountClass, JazzContextType } from "jazz-tools";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   PropType,
+  computed,
   defineComponent,
   onMounted,
   onUnmounted,
@@ -14,6 +11,7 @@ import {
   ref,
   watch,
 } from "vue";
+import { useIsAnonymousUser } from "./auth/useIsAnonymousUser.js";
 
 export const logoutHandler = ref<() => void>();
 
@@ -29,12 +27,16 @@ export const JazzContextSymbol = Symbol("JazzContext");
 export const JazzProvider = defineComponent({
   name: "JazzProvider",
   props: {
-    auth: {
-      type: [String, Object] as PropType<AuthMethod | "guest">,
-      required: true,
+    guestMode: {
+      type: Boolean,
+      default: false,
+    },
+    localOnly: {
+      type: String as PropType<"always" | "anonymous" | "off">,
+      default: "off",
     },
     AccountSchema: {
-      type: Object as PropType<AccountClass<RegisteredAccount>>,
+      type: Function as unknown as PropType<AccountClass<RegisteredAccount>>,
       required: false,
     },
     peer: {
@@ -47,56 +49,49 @@ export const JazzProvider = defineComponent({
     },
   },
   setup(props, { slots }) {
-    const ctx = ref<
-      BrowserContext<RegisteredAccount> | BrowserGuestContext | undefined
-    >(undefined);
-
-    const key = ref(0);
+    const contextManager = new JazzContextManager<RegisteredAccount>();
+    const ctx = ref<JazzContextType<RegisteredAccount>>();
 
     provide(JazzContextSymbol, ctx);
 
-    const initializeContext = async () => {
-      if (ctx.value) {
-        ctx.value.done?.();
-        ctx.value = undefined;
-      }
+    const isAnonymousUser = useIsAnonymousUser();
 
-      try {
-        const context = await createJazzBrowserContext<RegisteredAccount>(
-          props.auth === "guest"
-            ? { peer: props.peer, storage: props.storage, guest: true }
-            : {
-                AccountSchema: props.AccountSchema,
-                auth: props.auth,
-                peer: props.peer,
-                storage: props.storage,
-                guest: false,
-              },
-        );
-
-        ctx.value = {
-          ...context,
-          logOut: () => {
-            logoutHandler.value?.();
-            context.logOut();
-            key.value += 1;
-          },
-        };
-      } catch (e) {
-        console.error("Error creating Jazz browser context:", e);
-      }
-    };
-
-    onMounted(() => {
-      void initializeContext();
-    });
+    const localOnly = computed(() =>
+      props.localOnly === "anonymous"
+        ? isAnonymousUser.value
+        : props.localOnly === "always",
+    );
 
     watch(
-      () => key.value,
-      async () => {
-        await initializeContext();
+      () => ({
+        AccountSchema: props.AccountSchema,
+        guestMode: props.guestMode,
+        peer: props.peer,
+        storage: props.storage,
+        localOnly: localOnly.value,
+      }),
+      async (newProps) => {
+        if (contextManager.propsChanged(newProps)) {
+          contextManager.createContext(newProps).catch((error) => {
+            console.error("Error creating Jazz browser context:", error);
+          });
+        }
       },
+      { immediate: true },
     );
+
+    watch(localOnly, (newLocalOnly) => {
+      if (contextManager) {
+        contextManager.toggleNetwork?.(!newLocalOnly);
+      }
+    });
+
+    onMounted(() => {
+      const cleanup = contextManager.subscribe(() => {
+        ctx.value = contextManager.getCurrentValue();
+      });
+      onUnmounted(cleanup);
+    });
 
     onUnmounted(() => {
       if (ctx.value) ctx.value.done?.();

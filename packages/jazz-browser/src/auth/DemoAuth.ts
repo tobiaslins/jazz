@@ -32,21 +32,9 @@ export class BrowserDemoAuth {
     },
   ) {
     for (const [name, credentials] of Object.entries(seedAccounts || {})) {
-      const storageData = JSON.stringify(credentials satisfies StorageData);
-      if (
-        !(
-          localStorage["demo-auth-existing-users"]?.split(",") as
-            | string[]
-            | undefined
-        )?.includes(name)
-      ) {
-        localStorage["demo-auth-existing-users"] = localStorage[
-          "demo-auth-existing-users"
-        ]
-          ? localStorage["demo-auth-existing-users"] + "," + name
-          : name;
+      if (!this.getExistingUsers().includes(name)) {
+        this.addToExistingUsers(name, credentials);
       }
-      localStorage["demo-auth-existing-users-" + name] = storageData;
     }
   }
 
@@ -74,22 +62,45 @@ export class BrowserDemoAuth {
     });
   }
 
-  signUp(username: string) {
-    const credentials = AuthSecretStorage.get();
-
-    if (!credentials) {
+  async signUp(username: string) {
+    if (this.getExistingUsers().includes(username)) {
       throw new Error("User already registered");
     }
 
-    const storageData = JSON.stringify({
+    const credentials = AuthSecretStorage.get();
+
+    if (!credentials) {
+      throw new Error("No credentials found");
+    }
+
+    AuthSecretStorage.set({
+      accountID: credentials.accountID,
+      accountSecret: credentials.accountSecret,
+      secretSeed: credentials.secretSeed
+        ? new Uint8Array(credentials.secretSeed)
+        : undefined,
+      provider: "demo",
+    });
+
+    this.addToExistingUsers(username, {
       accountID: credentials.accountID,
       accountSecret: credentials.accountSecret,
       secretSeed: credentials.secretSeed
         ? Array.from(credentials.secretSeed)
         : undefined,
-    } satisfies StorageData);
+    });
 
-    localStorage["demo-auth-existing-users-" + username] = storageData;
+    const currentAccount = await Account.getMe().ensureLoaded({
+      profile: {},
+    });
+
+    if (currentAccount) {
+      currentAccount.profile.name = username;
+    }
+  }
+
+  private addToExistingUsers(username: string, data: StorageData) {
+    localStorage["demo-auth-existing-users-" + username] = JSON.stringify(data);
     localStorage["demo-auth-existing-users"] = localStorage[
       "demo-auth-existing-users"
     ]
