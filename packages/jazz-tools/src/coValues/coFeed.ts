@@ -708,6 +708,29 @@ export class FileStream extends CoValueBase implements CoValue {
     });
   }
 
+  /**
+   * Create a new empty `FileStream` instance.
+   *
+   * @param options - Configuration options for the new FileStream
+   * @param options.owner - The Account or Group that will own this FileStream and control access rights
+   *
+   * @example
+   * ```typescript
+   * // Create owned by an account
+   * const stream = FileStream.create({ owner: myAccount });
+   *
+   * // Create owned by a group
+   * const stream = FileStream.create({ owner: teamGroup });
+   *
+   * // Create with implicit owner
+   * const stream = FileStream.create(myAccount);
+   * ```
+   *
+   * @remarks
+   * For uploading an existing file or blob, use {@link FileStream.createFromBlob} instead.
+   *
+   * @category Creation
+   */
   static create<S extends FileStream>(
     this: CoValueClass<S>,
     options?: { owner?: Account | Group } | Account | Group,
