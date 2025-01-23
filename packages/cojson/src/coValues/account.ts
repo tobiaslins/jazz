@@ -60,7 +60,7 @@ export class RawAccount<
       );
 
     if (agents.length !== 1) {
-      logger.warn("Account has " + agents.length + " agents", this.id);
+      logger.warn("Account has " + agents.length + " agents", { id: this.id });
     }
 
     this._cachedCurrentAgentID = agents[0];

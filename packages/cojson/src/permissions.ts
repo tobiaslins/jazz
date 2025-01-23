@@ -42,12 +42,15 @@ export function disablePermissionErrors() {
   logPermissionErrors = false;
 }
 
-function logPermissionError(...args: unknown[]) {
+function logPermissionError(
+  message: string,
+  attributes?: Record<string, JsonValue>,
+) {
   if (logPermissionErrors === false) {
     return;
   }
 
-  logger.warn("Permission error", ...args);
+  logger.warn("Permission error: " + message, attributes);
 }
 
 export function determineValidTransactions(
@@ -227,17 +230,10 @@ function determineValidTransactionsForGroup(
     try {
       changes = parseJSON(tx.changes);
     } catch (e) {
-      logPermissionError(
-        coValue.id,
-        "Invalid JSON in transaction",
-        e,
+      logPermissionError("Invalid JSON in transaction", {
+        id: coValue.id,
         tx,
-        JSON.stringify(tx.changes, (k, v) =>
-          k === "changes" || k === "encryptedChanges"
-            ? v.slice(0, 20) + "..."
-            : v,
-        ),
-      );
+      });
       continue;
     }
 

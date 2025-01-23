@@ -241,8 +241,9 @@ export class WasmCrypto extends CryptoProvider<Uint8Array> {
     try {
       return JSON.parse(textDecoder.decode(plaintext));
     } catch (e) {
-      logger.error("Failed to decrypt/parse sealed message", e);
-      return undefined;
+      logger.error(
+        "Failed to decrypt/parse sealed message: " + (e as Error)?.message,
+      );
     }
   }
 }

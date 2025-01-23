@@ -23,6 +23,10 @@ export function emptyKnownState(id: RawCoID): CoValueKnownState {
   };
 }
 
+function getErrorMessage(e: unknown) {
+  return e instanceof Error ? e.message : "Unknown error";
+}
+
 export type SyncMessage =
   | LoadMessage
   | KnownStateMessage
@@ -183,7 +187,7 @@ export class SyncManager {
 
     if (entry.state.type !== "available") {
       entry.loadFromPeers([peer]).catch((e: unknown) => {
-        logger.error("Error sending load", e);
+        logger.error("Error sending load: " + getErrorMessage(e));
       });
       return;
     }
@@ -200,7 +204,7 @@ export class SyncManager {
         action: "load",
         ...coValue.knownState(),
       }).catch((e: unknown) => {
-        logger.error("Error sending load", e);
+        logger.error("Error sending load: " + getErrorMessage(e));
       });
     }
   }
@@ -230,7 +234,7 @@ export class SyncManager {
         asDependencyOf,
         ...coValue.knownState(),
       }).catch((e: unknown) => {
-        logger.error("Error sending known state", e);
+        logger.error("Error sending known state: " + getErrorMessage(e));
       });
 
       peer.toldKnownState.add(id);
@@ -258,7 +262,7 @@ export class SyncManager {
         let lastYield = performance.now();
         for (const [_i, piece] of newContentPieces.entries()) {
           this.trySendToPeer(peer, piece).catch((e: unknown) => {
-            logger.error("Error sending content piece", e);
+            logger.error("Error sending content piece: " + getErrorMessage(e));
           });
 
           if (performance.now() - lastYield > 10) {
@@ -331,7 +335,10 @@ export class SyncManager {
           return;
         }
         if (msg === "PingTimeout") {
-          logger.error("Ping timeout from peer", peer.id);
+          logger.error("Ping timeout from peer", {
+            peerId: peer.id,
+            peerRole: peer.role,
+          });
           return;
         }
         try {
@@ -354,13 +361,22 @@ export class SyncManager {
     processMessages()
       .then(() => {
         if (peer.crashOnClose) {
-          logger.warn("Unexepcted close from peer", peer.id);
+          logger.error("Unexepcted close from peer", {
+            peerId: peer.id,
+            peerRole: peer.role,
+          });
           this.local.crashed = new Error("Unexpected close from peer");
           throw new Error("Unexpected close from peer");
         }
       })
       .catch((e) => {
-        logger.error("Error processing messages from peer", peer.id, e);
+        logger.error(
+          "Error processing messages from peer: " + getErrorMessage(e),
+          {
+            peerId: peer.id,
+            peerRole: peer.role,
+          },
+        );
         if (peer.crashOnClose) {
           this.local.crashed = e;
           throw new Error(e);
@@ -596,17 +612,11 @@ export class SyncManager {
       // );
 
       if (result.isErr()) {
-        logger.error(
-          "Failed to add transactions from",
-          peer.id,
-          result.error,
-          msg.id,
-          newTransactions.length + " new transactions",
-          "after: " + newContentForSession.after,
-          "our last known tx idx initially: " + ourKnownTxIdx,
-          "our last known tx idx now: " +
-            coValue.sessionLogs.get(sessionID)?.transactions.length,
-        );
+        logger.error("Failed to add transactions: " + result.error.type, {
+          peerId: peer.id,
+          peerRole: peer.role,
+          id: msg.id,
+        });
         peer.erroredCoValues.set(msg.id, result.error);
         continue;
       }
@@ -627,7 +637,13 @@ export class SyncManager {
         isCorrection: true,
         ...coValue.knownState(),
       }).catch((e) => {
-        logger.error("Error sending known state correction", e);
+        logger.error(
+          "Error sending known state correction: " + getErrorMessage(e),
+          {
+            peerId: peer.id,
+            peerRole: peer.role,
+          },
+        );
       });
     } else {
       /**
@@ -641,7 +657,10 @@ export class SyncManager {
         action: "known",
         ...coValue.knownState(),
       }).catch((e: unknown) => {
-        logger.error("Error sending known state", e);
+        logger.error("Error sending known state: " + getErrorMessage(e), {
+          peerId: peer.id,
+          peerRole: peer.role,
+        });
       });
     }
 

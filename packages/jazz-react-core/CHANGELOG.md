@@ -1,5 +1,35 @@
 # jazz-react-core
 
+## 0.8.56
+
+### Patch Changes
+
+- Updated dependencies [7491711]
+  - jazz-tools@0.9.15
+
+## 0.8.55
+
+### Patch Changes
+
+- Updated dependencies [3df93cc]
+  - jazz-tools@0.9.14
+
+## 0.8.54
+
+### Patch Changes
+
+- Updated dependencies [8d29e50]
+  - cojson@0.9.13
+  - jazz-tools@0.9.13
+
+## 0.8.53
+
+### Patch Changes
+
+- Updated dependencies [15d4b2a]
+  - cojson@0.9.12
+  - jazz-tools@0.9.12
+
 ## 0.8.52
 
 ### Patch Changes

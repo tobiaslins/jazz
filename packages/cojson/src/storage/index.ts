@@ -90,8 +90,9 @@ export class LSMStorage<WH, RH, FS extends FileSystem<WH, RH>> {
                 k === "changes" || k === "encryptedChanges"
                   ? v.slice(0, 20) + "..."
                   : v,
-            )}`,
-            e,
+            )}
+            Error: ${e instanceof Error ? e.message : "Unknown error"},
+            `,
           );
         }
         nMsg++;
@@ -241,7 +242,7 @@ export class LSMStorage<WH, RH, FS extends FileSystem<WH, RH>> {
     } else {
       const merged = mergeChunks(coValue, newContentAsChunk);
       if (merged === "nonContigous") {
-        logger.warn(
+        console.warn(
           "Non-contigous new content for " + newContent.id,
           Object.entries(coValue.sessionEntries).map(([session, entries]) =>
             entries.map((entry) => ({
@@ -316,7 +317,7 @@ export class LSMStorage<WH, RH, FS extends FileSystem<WH, RH>> {
           const merged = mergeChunks(result, nextChunk);
 
           if (merged === "nonContigous") {
-            logger.warn(
+            console.warn(
               "Non-contigous chunks while loading " + id,
               result,
               nextChunk,
@@ -375,7 +376,7 @@ export class LSMStorage<WH, RH, FS extends FileSystem<WH, RH>> {
         if (existingChunk) {
           const merged = mergeChunks(existingChunk, chunk);
           if (merged === "nonContigous") {
-            logger.info(
+            console.log(
               "Non-contigous chunks in " + chunk.id + ", " + fileName,
               existingChunk,
               chunk,
@@ -449,7 +450,7 @@ export class LSMStorage<WH, RH, FS extends FileSystem<WH, RH>> {
             if (existingChunk) {
               const merged = mergeChunks(existingChunk, chunk);
               if (merged === "nonContigous") {
-                logger.info(
+                console.log(
                   "Non-contigous chunks in " + entry.id + ", " + blockFile,
                   existingChunk,
                   chunk,

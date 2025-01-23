@@ -138,7 +138,10 @@ export class PeerState {
   }
 
   gracefulShutdown() {
-    logger.debug("Gracefully closing", this.id);
+    logger.debug("Gracefully closing", {
+      peerId: this.id,
+      peerRole: this.role,
+    });
     this.closeQueue();
     this.peer.outgoing.close();
     this.closed = true;

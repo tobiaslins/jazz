@@ -1,5 +1,31 @@
 # jazz-tools
 
+## 0.9.15
+
+### Patch Changes
+
+- 7491711: Testing: correctly set the globalMe before the migration when calling createJazzTestAccount
+
+## 0.9.14
+
+### Patch Changes
+
+- 3df93cc: Add API to setup a test sync in the test environment
+
+## 0.9.13
+
+### Patch Changes
+
+- Updated dependencies [8d29e50]
+  - cojson@0.9.13
+
+## 0.9.12
+
+### Patch Changes
+
+- Updated dependencies [15d4b2a]
+  - cojson@0.9.12
+
 ## 0.9.11
 
 ### Patch Changes

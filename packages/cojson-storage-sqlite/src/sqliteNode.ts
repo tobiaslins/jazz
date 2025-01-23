@@ -49,15 +49,14 @@ export class SQLiteNode {
                   ? v.slice(0, 20) + "..."
                   : v,
             )}`,
-            e,
           );
         }
       }
-
-      processMessages().catch((e) =>
-        logger.error("Error in processMessages in sqlite", e),
-      );
     };
+
+    processMessages().catch((e) =>
+      logger.error("Error in processMessages in sqlite", e),
+    );
   }
 
   static async asPeer({

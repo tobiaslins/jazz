@@ -11,6 +11,8 @@ import {
 } from "./internal.js";
 import { JazzAuthContext, JazzGuestContext } from "./types.js";
 
+const syncServer: { current: LocalNode | null } = { current: null };
+
 type TestAccountSchema<Acc extends Account> = CoValueClass<Acc> & {
   fromNode: (typeof Account)["fromNode"];
   create: (options: {
@@ -47,15 +49,46 @@ export class TestJSCrypto extends PureJSCrypto {
 export async function createJazzTestAccount<Acc extends Account>(options?: {
   isCurrentActiveAccount?: boolean;
   AccountSchema?: CoValueClass<Acc>;
+  creationProps?: Record<string, unknown>;
 }): Promise<Acc> {
   const AccountSchema = (options?.AccountSchema ??
     Account) as unknown as TestAccountSchema<Acc>;
-  const account = await AccountSchema.create({
+  const peers = [];
+  if (syncServer.current) {
+    const [aPeer, bPeer] = cojsonInternals.connectedPeers(
+      Math.random().toString(),
+      Math.random().toString(),
+      {
+        peer1role: "server",
+        peer2role: "server",
+      },
+    );
+    syncServer.current.syncManager.addPeer(aPeer);
+    peers.push(bPeer);
+  }
+
+  const { node } = await LocalNode.withNewlyCreatedAccount({
     creationProps: {
       name: "Test Account",
+      ...options?.creationProps,
     },
     crypto: await TestJSCrypto.create(),
+    peersToLoadFrom: peers,
+    migration: async (rawAccount, _node, creationProps) => {
+      const account = new AccountSchema({
+        fromRaw: rawAccount,
+      });
+
+      if (options?.isCurrentActiveAccount) {
+        activeAccountContext.set(account);
+      }
+
+      await account.applyMigration?.(creationProps);
+    },
   });
+
+  const account = AccountSchema.fromNode(node);
+
   if (options?.isCurrentActiveAccount) {
     activeAccountContext.set(account);
   }
@@ -125,4 +158,21 @@ export function linkAccounts(
 
   a._raw.core.node.syncManager.addPeer(aPeer);
   b._raw.core.node.syncManager.addPeer(bPeer);
+}
+
+export async function setupJazzTestSync() {
+  if (syncServer.current) {
+    syncServer.current.gracefulShutdown();
+  }
+
+  const account = await Account.create({
+    creationProps: {
+      name: "Test Account",
+    },
+    crypto: await TestJSCrypto.create(),
+  });
+
+  syncServer.current = account._raw.core.node;
+
+  return account;
 }

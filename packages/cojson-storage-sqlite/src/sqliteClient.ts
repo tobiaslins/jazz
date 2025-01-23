@@ -28,6 +28,10 @@ export type RawTransactionRow = {
   tx: string;
 };
 
+export function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Unknown error";
+}
+
 export class SQLiteClient implements DBClientInterface {
   private readonly db: DatabaseT;
   private readonly toLocalNode: OutgoingSyncQueue;
@@ -53,7 +57,10 @@ export class SQLiteClient implements DBClientInterface {
         header: parsedHeader,
       };
     } catch (e) {
-      logger.warn(coValueId, "Invalid JSON in header", e, coValueRow?.header);
+      const headerValue = coValueRow?.header ?? "";
+      logger.warn("Invalid JSON in header: " + headerValue, {
+        id: coValueId,
+      });
       return;
     }
   }
@@ -80,7 +87,7 @@ export class SQLiteClient implements DBClientInterface {
         tx: JSON.parse(transactionRow.tx) as Transaction,
       }));
     } catch (e) {
-      logger.warn("Invalid JSON in transaction", e);
+      logger.warn("Invalid JSON in transaction");
       return [];
     }
   }

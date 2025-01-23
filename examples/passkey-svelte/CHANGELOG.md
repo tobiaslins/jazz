@@ -1,5 +1,29 @@
 # passkey-svelte
 
+## 0.0.24
+
+### Patch Changes
+
+- jazz-svelte@0.9.15
+
+## 0.0.23
+
+### Patch Changes
+
+- jazz-svelte@0.9.14
+
+## 0.0.22
+
+### Patch Changes
+
+- jazz-svelte@0.9.13
+
+## 0.0.21
+
+### Patch Changes
+
+- jazz-svelte@0.9.12
+
 ## 0.0.20
 
 ### Patch Changes

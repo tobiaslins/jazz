@@ -20,8 +20,14 @@ describe("Logger", () => {
 
       expect(mockLogSystem.debug).not.toHaveBeenCalled();
       expect(mockLogSystem.info).not.toHaveBeenCalled();
-      expect(mockLogSystem.warn).toHaveBeenCalledWith("Warning message");
-      expect(mockLogSystem.error).toHaveBeenCalledWith("Error message");
+      expect(mockLogSystem.warn).toHaveBeenCalledWith(
+        "Warning message",
+        undefined,
+      );
+      expect(mockLogSystem.error).toHaveBeenCalledWith(
+        "Error message",
+        undefined,
+      );
     });
 
     test("should pass additional arguments to log system", () => {
@@ -33,14 +39,12 @@ describe("Logger", () => {
       };
 
       const logger = new Logger(LogLevel.DEBUG, mockLogSystem);
-      const additionalArgs = [{ foo: "bar" }, 42, "extra"];
 
-      logger.debug("Debug message", ...additionalArgs);
+      logger.debug("Debug message", { foo: "bar" });
 
-      expect(mockLogSystem.debug).toHaveBeenCalledWith(
-        "Debug message",
-        ...additionalArgs,
-      );
+      expect(mockLogSystem.debug).toHaveBeenCalledWith("Debug message", {
+        foo: "bar",
+      });
     });
   });
 
@@ -60,7 +64,7 @@ describe("Logger", () => {
 
       logger.setLevel(LogLevel.WARN);
       logger.warn("Warning 2"); // Should log
-      expect(mockLogSystem.warn).toHaveBeenCalledWith("Warning 2");
+      expect(mockLogSystem.warn).toHaveBeenCalledWith("Warning 2", undefined);
     });
 
     test("should allow changing log system at runtime", () => {
@@ -81,12 +85,12 @@ describe("Logger", () => {
       const logger = new Logger(LogLevel.INFO, mockLogSystem1);
 
       logger.info("Message 1");
-      expect(mockLogSystem1.info).toHaveBeenCalledWith("Message 1");
+      expect(mockLogSystem1.info).toHaveBeenCalledWith("Message 1", undefined);
       expect(mockLogSystem2.info).not.toHaveBeenCalled();
 
       logger.setLogSystem(mockLogSystem2);
       logger.info("Message 2");
-      expect(mockLogSystem2.info).toHaveBeenCalledWith("Message 2");
+      expect(mockLogSystem2.info).toHaveBeenCalledWith("Message 2", undefined);
       expect(mockLogSystem1.info).toHaveBeenCalledTimes(1);
     });
   });
@@ -103,17 +107,17 @@ describe("Logger", () => {
       const logger = new Logger();
       logger.setLevel(LogLevel.DEBUG);
       const testMessage = "Test message";
-      const testArgs = [{ data: "test" }, 123];
+      const testArgs = { data: "test" };
 
-      logger.debug(testMessage, ...testArgs);
-      logger.info(testMessage, ...testArgs);
-      logger.warn(testMessage, ...testArgs);
-      logger.error(testMessage, ...testArgs);
+      logger.debug(testMessage, testArgs);
+      logger.info(testMessage, testArgs);
+      logger.warn(testMessage, testArgs);
+      logger.error(testMessage, testArgs);
 
-      expect(consoleSpy.debug).toHaveBeenCalledWith(testMessage, ...testArgs);
-      expect(consoleSpy.info).toHaveBeenCalledWith(testMessage, ...testArgs);
-      expect(consoleSpy.warn).toHaveBeenCalledWith(testMessage, ...testArgs);
-      expect(consoleSpy.error).toHaveBeenCalledWith(testMessage, ...testArgs);
+      expect(consoleSpy.debug).toHaveBeenCalledWith(testMessage, testArgs);
+      expect(consoleSpy.info).toHaveBeenCalledWith(testMessage, testArgs);
+      expect(consoleSpy.warn).toHaveBeenCalledWith(testMessage, testArgs);
+      expect(consoleSpy.error).toHaveBeenCalledWith(testMessage, testArgs);
 
       // Cleanup
       Object.values(consoleSpy).forEach((spy) => spy.mockRestore());
