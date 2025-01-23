@@ -158,11 +158,19 @@ function formatComment(comment) {
       .filter((tag) => tag.tag === "@param")
       .map((tag) => {
         const paramName = tag.param;
-        const description = tag.content
-          .map((part) => part.text)
-          .join("")
-          .trim();
-        return `@param ${paramName} - ${description}`;
+        let description = "";
+        let codeExample = "";
+
+        tag.content.forEach((part) => {
+          if (part.kind === "code") {
+            // Don't wrap in code blocks since examples are already wrapped
+            codeExample += "\n" + part.text + "\n";
+          } else {
+            description += part.text;
+          }
+        });
+
+        return `- ${paramName}: ${description.trim()}${codeExample}`;
       });
 
     if (params.length > 0) {
@@ -188,19 +196,19 @@ function formatComment(comment) {
       .filter((tag) => tag.tag === "@example")
       .map((tag) =>
         tag.content
-          .map((part) => part.text)
+          .map((part) => {
+            if (part.kind === "code") {
+              // Don't wrap in code blocks since examples are already wrapped
+              return "\n" + part.text + "\n";
+            }
+            return part.text;
+          })
           .join("")
-          .trim()
-          // Remove any existing code block markers
-          .replace(/^```(?:typescript|ts)\n?/, "")
-          .replace(/```$/, "")
           .trim(),
       );
 
     if (examples.length > 0) {
-      text +=
-        "\n\nExamples:\n" +
-        examples.map((ex) => "```typescript\n" + ex + "\n```").join("\n\n");
+      text += "\n\nExamples:\n" + examples.join("\n");
     }
   }
 
@@ -211,18 +219,45 @@ async function generateLLMDocs() {
   const output = [];
   const deserializer = new Deserializer();
 
+  // Project title
+  output.push("# Jazz\n");
+
+  // Project summary
+  output.push(
+    "> Jazz is a collaborative application framework that enables real-time sync, offline-first capabilities, and end-to-end encryption. It provides a set of tools and libraries for building collaborative web applications.\n\n",
+  );
+
+  // General information
+  output.push(
+    "Jazz consists of several packages that work together to provide a complete collaborative application framework:\n",
+  );
+  output.push("- jazz-tools: Core functionality and data structures\n");
+  output.push("- jazz-react: React hooks and components\n");
+  output.push("- jazz-browser: Browser-specific implementations\n");
+  output.push("- jazz-browser-media-images: Image handling utilities\n");
+  output.push("- jazz-nodejs: Node.js specific implementations\n\n");
+
+  // Process each package
   for (const [packageName, packageDocs] of Object.entries(docs)) {
     const project = deserializer.reviveProject(packageDocs, packageName);
 
-    output.push(`# ${packageName}\n`);
+    // Add package heading with description
+    output.push(`## ${packageName}\n`);
+    output.push(`${getPackageDescription(packageName)}\n\n`);
+    output.push(
+      `[API Reference](https://jazz.tools/api-reference/${packageName})\n\n`,
+    );
 
     // Process each category
     project.categories?.forEach((category) => {
-      output.push(`## ${category.title}\n`);
+      output.push(`### ${category.title}\n`);
 
       category.children.forEach((child) => {
-        // Add name and kind
-        output.push(`### ${child.name} (${ReflectionKind[child.kind]})\n`);
+        // Add name, kind, and API reference link
+        const apiLink = `[API Reference](https://jazz.tools/api-reference/${packageName}#${child.name})`;
+        output.push(
+          `#### ${child.name} (${ReflectionKind[child.kind]}) ${apiLink}\n`,
+        );
 
         // Add description if available
         const description = formatComment(child.comment);
@@ -230,9 +265,11 @@ async function generateLLMDocs() {
           output.push(`${description}\n`);
         }
 
+        output.push("\n");
+
         // Add properties for classes/interfaces
         if (child.children) {
-          output.push("\nProperties:\n");
+          output.push("Properties:\n");
 
           // Group overloaded methods by name
           const methodGroups = new Map();
@@ -272,13 +309,17 @@ async function generateLLMDocs() {
                 const params = sig.parameters
                   ?.map((p) => {
                     const paramType = formatType(p.type);
-                    const paramDesc = formatComment(p.comment);
-                    return `${p.name}: ${paramType}${paramDesc ? ` - ${paramDesc}` : ""}`;
+                    return `${p.name}: ${paramType}`;
                   })
                   .join(", ");
 
                 output.push(
-                  `    Method signature: (${params || ""}) => ${formatType(sig.type)}\n`,
+                  `    Method signature: \`(${params || ""}) => ${formatType(sig.type)}\`\n`,
+                );
+
+                // Add API reference URL for the method
+                output.push(
+                  `    [API Reference](https://jazz.tools/api-reference/${packageName}#${child.name}.${prop.name})\n`,
                 );
 
                 const methodDesc = formatComment(sig.comment);
@@ -309,13 +350,17 @@ async function generateLLMDocs() {
               const params = sig.parameters
                 ?.map((p) => {
                   const paramType = formatType(p.type);
-                  const paramDesc = formatComment(p.comment);
-                  return `${p.name}: ${paramType}${paramDesc ? ` - ${paramDesc}` : ""}`;
+                  return `${p.name}: ${paramType}`;
                 })
                 .join(", ");
 
               output.push(
-                `    Method signature: (${params || ""}) => ${formatType(sig.type)}\n`,
+                `    Method signature: \`(${params || ""}) => ${formatType(sig.type)}\`\n`,
+              );
+
+              // Add API reference URL for the overloaded method
+              output.push(
+                `    [API Reference](https://jazz.tools/api-reference/${packageName}#${child.name}.${name})\n`,
               );
 
               const methodDesc = formatComment(sig.comment);
@@ -370,12 +415,35 @@ async function generateLLMDocs() {
     });
   }
 
+  // Optional section for additional resources
+  output.push("## Optional\n\n");
+  output.push(
+    "- [Jazz Cloud Documentation](https://jazz.tools/docs): Detailed documentation about Jazz Cloud services\n",
+  );
+  output.push(
+    "- [Examples](https://jazz.tools/examples): Code examples and tutorials\n",
+  );
+
   await fs.writeFile(
     path.join(process.cwd(), "public", "llms.txt"),
     output.join("\n"),
   );
 
   console.log("LLM docs generated at 'public/llms.txt'");
+}
+
+// Helper function to get package descriptions
+function getPackageDescription(packageName) {
+  const descriptions = {
+    "jazz-tools":
+      "The base implementation for Jazz, a framework for distributed state. Provides a high-level API around the CoJSON protocol.",
+    "jazz-react": "React bindings for Jazz, a framework for distributed state.",
+    "jazz-browser": "Browser (Vanilla JavaScript) bindings for Jazz",
+    "jazz-browser-media-images":
+      "Image handling utilities for Jazz in the browser",
+    "jazz-nodejs": "NodeJS/Bun server worker bindings for Jazz",
+  };
+  return descriptions[packageName] || "";
 }
 
 generateLLMDocs().catch(console.error);
