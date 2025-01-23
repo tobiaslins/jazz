@@ -131,10 +131,12 @@ export async function createJazzBrowserGuestContext(
     node: context.agent.node,
     toggleNetwork,
     done: () => {
+      // TODO: Sync all the covalues before closing the connection & context
       toggleNetwork(false);
       context.done();
     },
     logOut: () => {
+      // TODO: Sync all the covalues before closing the connection & context
       toggleNetwork(false);
       context.logOut();
     },
@@ -218,10 +220,12 @@ export async function createJazzBrowserContext<Acc extends Account>(
     node: context.node,
     toggleNetwork,
     done: () => {
+      // TODO: Sync all the covalues before closing the connection & context
       toggleNetwork(false);
       context.done();
     },
     logOut: () => {
+      // TODO: Sync all the covalues before closing the connection & context
       toggleNetwork(false);
       context.logOut();
     },

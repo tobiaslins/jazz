@@ -66,7 +66,10 @@ test("create a new playlist and share", async ({
 
   await sleep(4000); // Wait for the sync to complete
 
-  const luigiPage = await (await browser.newContext()).newPage();
+  const luigiContext = await browser.newContext();
+  await mockAuthenticator(luigiContext);
+
+  const luigiPage = await luigiContext.newPage();
   await luigiPage.goto("/");
 
   const luigiHome = new HomePage(luigiPage);
