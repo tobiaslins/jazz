@@ -1,4 +1,5 @@
 import { Deserializer } from "typedoc";
+import { DOC_SECTIONS, PACKAGES } from "./utils/config.mjs";
 import {
   cleanDescription,
   loadTypedocFiles,
@@ -12,7 +13,17 @@ async function generateConciseDocs(docs) {
   // Project title
   output.push("# Jazz\n");
 
-  // Process each package
+  // Documentation sections
+  output.push("## Documentation\n");
+  DOC_SECTIONS.forEach((section) => {
+    output.push(`### ${section.title}\n`);
+    section.pages.forEach((page) => {
+      output.push(`- [${page.title}](https://jazz.tools${page.url})\n`);
+    });
+    output.push("\n");
+  });
+
+  // API Reference by package
   for (const [packageName, packageDocs] of Object.entries(docs)) {
     const project = deserializer.reviveProject(packageDocs, packageName);
 

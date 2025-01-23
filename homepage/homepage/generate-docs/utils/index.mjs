@@ -1,15 +1,8 @@
 import path from "path";
 import fs from "fs/promises";
+import { PACKAGES } from "./config.mjs";
 
 // Common configuration
-export const PACKAGES = [
-  "jazz-tools",
-  "jazz-react",
-  "jazz-browser",
-  "jazz-browser-media-images",
-  "jazz-nodejs",
-];
-
 export const PACKAGE_DESCRIPTIONS = {
   "jazz-tools":
     "The base implementation for Jazz, a framework for distributed state. Provides a high-level API around the CoJSON protocol.",
@@ -23,7 +16,7 @@ export const PACKAGE_DESCRIPTIONS = {
 // Helper functions
 export async function loadTypedocFiles() {
   const docs = {};
-  for (const packageName of PACKAGES) {
+  for (const { packageName } of PACKAGES) {
     docs[packageName] = JSON.parse(
       await fs.readFile(
         path.join(process.cwd(), "typedoc", packageName + ".json"),
@@ -35,7 +28,8 @@ export async function loadTypedocFiles() {
 }
 
 export function getPackageDescription(packageName) {
-  return PACKAGE_DESCRIPTIONS[packageName] || "";
+  const pkg = PACKAGES.find((p) => p.packageName === packageName);
+  return pkg?.description || "";
 }
 
 export function cleanDescription(description) {
