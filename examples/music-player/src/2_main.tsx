@@ -73,6 +73,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       storage="indexedDB"
       localOnly="anonymous" // This makes the app work in local mode when the user is anonymous
       AccountSchema={MusicaAccount}
+      defaultProfileName="Anonymous unicorn"
     >
       <Main />
       <JazzInspector />

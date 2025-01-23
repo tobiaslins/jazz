@@ -6,6 +6,7 @@
     peer: `wss://${string}` | `ws://${string}`;
     storage?: 'indexedDB' | 'singleTabOPFS';
     AccountSchema?: AccountClass<Acc>;
+    defaultProfileName?: string;
   };
 </script>
 
@@ -32,6 +33,7 @@
   $effect(() => {
     props.peer;
     props.storage;
+    props.guestMode;
     return untrack(() => {
       if (!props.peer) return;
 
@@ -41,7 +43,8 @@
           storage: props.storage,
           guestMode: props.guestMode,
           AccountSchema: props.AccountSchema,
-          localOnly: localOnly
+          localOnly: localOnly,
+          defaultProfileName: props.defaultProfileName
         })
         .catch((error) => {
           console.error('Error creating Jazz browser context:', error);

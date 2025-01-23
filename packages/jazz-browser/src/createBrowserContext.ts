@@ -156,6 +156,7 @@ export type BrowserContextOptions<Acc extends Account> = {
   };
   credentials?: AuthCredentials;
   newAccountProps?: NewAccountProps;
+  defaultProfileName?: string;
 } & BaseBrowserContextOptions;
 
 export async function createJazzBrowserContext<Acc extends Account>(
@@ -190,8 +191,9 @@ export async function createJazzBrowserContext<Acc extends Account>(
     const initialAgentSecret =
       options.newAccountProps?.secret ??
       crypto.agentSecretFromSecretSeed(secretSeed);
+
     const creationProps = options.newAccountProps?.creationProps ?? {
-      name: "Anonymous user",
+      name: options.defaultProfileName ?? "Anonymous user",
     };
 
     context = await createJazzContextForNewAccount({

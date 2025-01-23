@@ -24,6 +24,7 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
   storage,
   AccountSchema,
   localOnly: localOnlyProp,
+  defaultProfileName,
 }: JazzProviderProps<Acc>) {
   const [contextManager] = React.useState(() => new JazzContextManager<Acc>());
 
@@ -36,7 +37,14 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
   const value = React.useSyncExternalStore<JazzContextType<Acc> | undefined>(
     React.useCallback(
       (callback) => {
-        const props = { AccountSchema, guestMode, peer, storage, localOnly };
+        const props = {
+          AccountSchema,
+          guestMode,
+          peer,
+          storage,
+          localOnly,
+          defaultProfileName,
+        };
         if (contextManager.propsChanged(props)) {
           contextManager.createContext(props).catch((error) => {
             console.error("Error creating Jazz browser context:", error);
@@ -45,7 +53,7 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
 
         return contextManager.subscribe(callback);
       },
-      [peer].concat(storage as any),
+      [peer, guestMode].concat(storage as any),
     ),
     () => contextManager.getCurrentValue(),
     () => contextManager.getCurrentValue(),

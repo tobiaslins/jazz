@@ -47,6 +47,10 @@ export const JazzProvider = defineComponent({
       type: String as PropType<"indexedDB" | "singleTabOPFS">,
       default: undefined,
     },
+    defaultProfileName: {
+      type: String,
+      required: false,
+    },
   },
   setup(props, { slots }) {
     const contextManager = new JazzContextManager<RegisteredAccount>();
@@ -66,6 +70,7 @@ export const JazzProvider = defineComponent({
       () => ({
         peer: props.peer,
         storage: props.storage,
+        guestMode: props.guestMode,
       }),
       async () => {
         contextManager
@@ -75,6 +80,7 @@ export const JazzProvider = defineComponent({
             guestMode: props.guestMode,
             AccountSchema: props.AccountSchema,
             localOnly: localOnly.value,
+            defaultProfileName: props.defaultProfileName,
           })
           .catch((error) => {
             console.error("Error creating Jazz browser context:", error);

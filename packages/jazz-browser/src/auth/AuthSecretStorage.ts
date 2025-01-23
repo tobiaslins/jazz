@@ -64,11 +64,11 @@ export const AuthSecretStorage = {
   },
 
   isAnonymous() {
-    if (typeof localStorage === "undefined") return false;
+    if (typeof localStorage === "undefined") return true;
 
     const data = localStorage.getItem(STORAGE_KEY);
 
-    if (!data) return false;
+    if (!data) return true;
 
     const parsed = JSON.parse(data);
 
