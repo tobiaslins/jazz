@@ -1,23 +1,10 @@
-import path from "path";
-import fs from "fs/promises";
-import { Deserializer, JSONOutput, ReflectionKind } from "typedoc";
-
-// Import TypeDoc JSON files
-const docs = {};
-for (const packageName of [
-  "jazz-tools",
-  "jazz-react",
-  "jazz-browser",
-  "jazz-browser-media-images",
-  "jazz-nodejs",
-]) {
-  docs[packageName] = JSON.parse(
-    await fs.readFile(
-      path.join(process.cwd(), "typedoc", packageName + ".json"),
-      "utf-8",
-    ),
-  );
-}
+import { Deserializer, ReflectionKind } from "typedoc";
+import { PACKAGES } from "./utils/config.mjs";
+import {
+  getPackageDescription,
+  loadTypedocFiles,
+  writeDocsFile,
+} from "./utils/index.mjs";
 
 function formatType(type) {
   if (!type) return "unknown";
@@ -215,7 +202,7 @@ function formatComment(comment) {
   return text;
 }
 
-async function generateLLMDocs() {
+async function generateDetailedDocs(docs) {
   const output = [];
   const deserializer = new Deserializer();
 
@@ -231,11 +218,12 @@ async function generateLLMDocs() {
   output.push(
     "Jazz consists of several packages that work together to provide a complete collaborative application framework:\n",
   );
-  output.push("- jazz-tools: Core functionality and data structures\n");
-  output.push("- jazz-react: React hooks and components\n");
-  output.push("- jazz-browser: Browser-specific implementations\n");
-  output.push("- jazz-browser-media-images: Image handling utilities\n");
-  output.push("- jazz-nodejs: Node.js specific implementations\n\n");
+
+  // Generate package list from config
+  PACKAGES.forEach(({ packageName, description }) => {
+    output.push(`- ${packageName}: ${description}\n`);
+  });
+  output.push("\n");
 
   // Process each package
   for (const [packageName, packageDocs] of Object.entries(docs)) {
@@ -418,32 +406,20 @@ async function generateLLMDocs() {
   // Optional section for additional resources
   output.push("## Optional\n\n");
   output.push(
-    "- [Jazz Cloud Documentation](https://jazz.tools/docs): Detailed documentation about Jazz Cloud services\n",
+    "- [Documentation](https://jazz.tools/docs): Detailed documentation about Jazz\n",
   );
   output.push(
     "- [Examples](https://jazz.tools/examples): Code examples and tutorials\n",
   );
 
-  await fs.writeFile(
-    path.join(process.cwd(), "public", "llms.txt"),
-    output.join("\n"),
-  );
-
-  console.log("LLM docs generated at 'public/llms.txt'");
+  await writeDocsFile("llms-full.txt", output.join("\n"));
 }
 
-// Helper function to get package descriptions
-function getPackageDescription(packageName) {
-  const descriptions = {
-    "jazz-tools":
-      "The base implementation for Jazz, a framework for distributed state. Provides a high-level API around the CoJSON protocol.",
-    "jazz-react": "React bindings for Jazz, a framework for distributed state.",
-    "jazz-browser": "Browser (Vanilla JavaScript) bindings for Jazz",
-    "jazz-browser-media-images":
-      "Image handling utilities for Jazz in the browser",
-    "jazz-nodejs": "NodeJS/Bun server worker bindings for Jazz",
-  };
-  return descriptions[packageName] || "";
+// Main execution
+async function main() {
+  console.log("Generating detailed LLM docs...");
+  const docs = await loadTypedocFiles();
+  await generateDetailedDocs(docs);
 }
 
-generateLLMDocs().catch(console.error);
+main().catch(console.error);
