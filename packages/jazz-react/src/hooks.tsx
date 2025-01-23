@@ -50,4 +50,4 @@ export function useAcceptInvite<V extends CoValue>({
   }, [onAccept]);
 }
 
-export { experimental_useInboxSender } from "jazz-react-core";
+export { experimental_useInboxSender, useJazzContext } from "jazz-react-core";

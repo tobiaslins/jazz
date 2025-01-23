@@ -11,30 +11,36 @@ declare module "jazz-vue" {
   }
 }
 
+const AuthScreen = defineComponent({
+  name: "AuthScreen",
+  setup() {
+    const auth = useDemoAuth();
+
+    return () => [
+      auth.value.state === "anonymous"
+        ? h(DemoAuthBasicUI, {
+            appName: "Jazz Vue Todo",
+            auth,
+          })
+        : h(App),
+    ];
+  },
+});
+
 const RootComponent = defineComponent({
   name: "RootComponent",
   setup() {
-    const { authMethod, state } = useDemoAuth();
-
-    return () => [
+    return () =>
       h(
         JazzProvider,
         {
           AccountSchema: ToDoAccount,
-          auth: authMethod.value,
           peer: "wss://cloud.jazz.tools/?key=vue-todo-example-jazz@garden.co",
         },
         {
-          default: () => h(App),
+          default: () => h(AuthScreen),
         },
-      ),
-
-      state.state !== "signedIn" &&
-        h(DemoAuthBasicUI, {
-          appName: "Jazz Vue Todo",
-          state,
-        }),
-    ];
+      );
   },
 });
 

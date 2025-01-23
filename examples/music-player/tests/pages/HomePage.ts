@@ -101,6 +101,9 @@ export class HomePage {
     await this.page
       .getByRole("button", { name: "Sign up with passkey" })
       .click();
+    await expect(
+      this.page.getByRole("button", { name: "Sign out" }),
+    ).toBeVisible();
   }
 
   async logout() {

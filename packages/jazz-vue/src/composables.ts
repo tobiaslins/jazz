@@ -11,6 +11,8 @@ import {
   DeeplyLoaded,
   DepthsIn,
   ID,
+  JazzAuthContext,
+  JazzContextType,
   subscribeToCoValue,
 } from "jazz-tools";
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -33,12 +35,10 @@ import { JazzContextSymbol, RegisteredAccount } from "./provider.js";
 
 export const logoutHandler = ref<() => void>();
 
-function useJazzContext() {
+export function useJazzContext() {
   const context =
-    inject<Ref<BrowserContext<RegisteredAccount> | BrowserGuestContext>>(
-      JazzContextSymbol,
-    );
-  if (!context) {
+    inject<Ref<JazzContextType<RegisteredAccount>>>(JazzContextSymbol);
+  if (!context?.value) {
     throw new Error("useJazzContext must be used within a JazzProvider");
   }
   return context;
@@ -85,7 +85,7 @@ export function createUseAccountComposables<Acc extends Account>() {
       me: computed(() => {
         const value =
           depth === undefined
-            ? me.value || toRaw((context.value as BrowserContext<Acc>).me)
+            ? me.value || toRaw((context.value as JazzAuthContext<Acc>).me)
             : me.value;
 
         return value ? toRaw(value) : value;
@@ -129,7 +129,7 @@ export function createUseAccountComposables<Acc extends Account>() {
       return {
         me: computed(() =>
           depth === undefined
-            ? me.value || toRaw((context.value as BrowserContext<Acc>).me)
+            ? me.value || toRaw((context.value as JazzAuthContext<Acc>).me)
             : me.value,
         ),
       };

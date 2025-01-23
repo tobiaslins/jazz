@@ -1,19 +1,7 @@
 import { BrowserPasskeyAuth } from "jazz-browser";
+import { useJazzContext } from "jazz-react-core";
 import { useMemo, useState } from "react";
-import { AuthChangeProps, useInJazzAuth } from "./useInJazzAuth.js";
-
-export type PasskeyAuthState = (
-  | { state: "uninitialized" }
-  | { state: "loading" }
-  | {
-      state: "ready";
-      logIn: () => void;
-      signUp: (username: string) => void;
-    }
-  | { state: "signedIn"; logOut: () => void }
-) & {
-  errors: string[];
-};
+import { useIsAnonymousUser } from "./AnonymousAuth.js";
 
 /**
  * `usePasskeyAuth` hook provides a `JazzAuth` object for passkey authentication.
@@ -28,72 +16,41 @@ export type PasskeyAuthState = (
 export function usePasskeyAuth({
   appName,
   appHostname,
-  onAnonymousUserUpgrade,
 }: {
   appName: string;
   appHostname?: string;
-  onAnonymousUserUpgrade?: (props: AuthChangeProps) => void;
 }) {
-  const [state, setState] = useState<PasskeyAuthState>({
-    state: "loading",
-    errors: [],
-  });
+  const context = useJazzContext();
 
   const authMethod = useMemo(() => {
     return new BrowserPasskeyAuth(
-      {
-        onReady(next) {
-          setState((state) => ({
-            state: "ready",
-            logIn: next.logIn,
-            signUp: next.signUp,
-            errors: state.errors,
-          }));
-        },
-        onSignedIn(next) {
-          setState({
-            state: "signedIn",
-            logOut: () => {
-              next.logOut();
-              setState({ state: "loading", errors: [] });
-            },
-            errors: [],
-          });
-        },
-        onError(error) {
-          setState((state) => ({
-            ...state,
-            errors: [error.toString()],
-          }));
-        },
-      },
+      context.node.crypto,
+      context.authenticate,
       appName,
       appHostname,
     );
   }, [appName, appHostname]);
 
-  useInJazzAuth({
-    auth: authMethod,
-    onAuthChange: (props) => {
-      onAnonymousUserUpgrade?.(props);
-    },
-  });
+  const isAnonymousUser = useIsAnonymousUser();
 
-  return [authMethod, state] as const;
+  return {
+    state: isAnonymousUser ? "anonymous" : "signedIn",
+    logIn: authMethod.logIn,
+    signUp: authMethod.signUp,
+  } as const;
 }
 
-export const PasskeyAuthBasicUI = ({ state }: { state: PasskeyAuthState }) => {
+export const PasskeyAuthBasicUI = (
+  props: ReturnType<typeof usePasskeyAuth>,
+) => {
   const [username, setUsername] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
 
-  if (state.state === "signedIn") {
+  if (props.state === "signedIn") {
     return null;
   }
 
-  if (state.state !== "ready") {
-    return <div>Loading...</div>;
-  }
-
-  const { logIn, signUp } = state;
+  const { logIn, signUp } = props;
 
   return (
     <div
@@ -105,6 +62,7 @@ export const PasskeyAuthBasicUI = ({ state }: { state: PasskeyAuthState }) => {
         justifyContent: "center",
       }}
     >
+      {error && <div style={{ color: "red" }}>{error}</div>}
       <div
         style={{
           width: "18rem",
@@ -113,13 +71,6 @@ export const PasskeyAuthBasicUI = ({ state }: { state: PasskeyAuthState }) => {
           gap: "2rem",
         }}
       >
-        {state.errors.length > 0 && (
-          <div style={{ color: "red" }}>
-            {state.errors.map((error, index) => (
-              <div key={index}>{error}</div>
-            ))}
-          </div>
-        )}
         <form
           style={{
             width: "18rem",
@@ -129,7 +80,8 @@ export const PasskeyAuthBasicUI = ({ state }: { state: PasskeyAuthState }) => {
           }}
           onSubmit={(e) => {
             e.preventDefault();
-            signUp(username);
+            setError(null);
+            signUp(username).catch((error) => setError(error.message));
           }}
         >
           <input
@@ -157,7 +109,10 @@ export const PasskeyAuthBasicUI = ({ state }: { state: PasskeyAuthState }) => {
           />
         </form>
         <button
-          onClick={logIn}
+          onClick={() => {
+            setError(null);
+            logIn().catch((error) => setError(error.message));
+          }}
           style={{
             background: "#000",
             color: "#fff",

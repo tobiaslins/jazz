@@ -9,7 +9,8 @@ import type {
   CoValueClass,
   DeeplyLoaded,
   DepthsIn,
-  ID
+  ID,
+  JazzContextType
 } from 'jazz-tools';
 import { Account, subscribeToCoValue } from 'jazz-tools';
 import { getContext, untrack } from 'svelte';
@@ -26,7 +27,7 @@ export const JAZZ_CTX = {};
  * The Jazz context.
  */
 export type JazzContext<Acc extends Account> = {
-  current?: BrowserContext<Acc> | BrowserGuestContext;
+  current?: JazzContextType<Acc>;
 };
 
 /**
@@ -34,7 +35,19 @@ export type JazzContext<Acc extends Account> = {
  * @returns The current Jazz context.
  */
 export function getJazzContext<Acc extends Account>() {
-  return getContext<JazzContext<Acc>>(JAZZ_CTX);
+  const context = getContext<JazzContext<Acc>>(JAZZ_CTX);
+
+  if (!context) {
+    throw new Error('useJazzContext must be used within a JazzProvider');
+  }
+
+  if (!context.current) {
+    throw new Error('Jazz context is not initialized');
+  }
+
+  return context as {
+    current: JazzContextType<Acc>;
+  };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -219,6 +232,7 @@ export function useAcceptInvite<V extends CoValue>({
 
   // Subscribe to the onAccept function.
   $effect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     _onAccept;
     // Subscribe to the onAccept function.
     untrack(() => {

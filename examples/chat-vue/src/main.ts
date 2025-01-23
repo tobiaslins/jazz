@@ -4,29 +4,35 @@ import App from "./App.vue";
 import "./index.css";
 import router from "./router";
 
+const AuthScreen = defineComponent({
+  name: "AuthScreen",
+  setup() {
+    const auth = useDemoAuth();
+
+    return () => [
+      auth.value.state === "anonymous"
+        ? h(DemoAuthBasicUI, {
+            appName: "Jazz Vue Chat",
+            auth,
+          })
+        : h(App),
+    ];
+  },
+});
+
 const RootComponent = defineComponent({
   name: "RootComponent",
   setup() {
-    const { authMethod, state } = useDemoAuth();
-
-    return () => [
+    return () =>
       h(
         JazzProvider,
         {
-          auth: authMethod.value,
-          peer: "wss://cloud.jazz.tools/?key=chat-example-jazz@garden.co",
+          peer: "wss://cloud.jazz.tools/?key=vue-chat-example-jazz@garden.co",
         },
         {
-          default: () => h(App),
+          default: () => h(AuthScreen),
         },
-      ),
-
-      state.state !== "signedIn" &&
-        h(DemoAuthBasicUI, {
-          appName: "Jazz Chat",
-          state,
-        }),
-    ];
+      );
   },
 });
 

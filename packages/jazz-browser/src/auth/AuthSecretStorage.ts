@@ -1,14 +1,7 @@
 import { AgentSecret } from "cojson";
-import { Account, ID } from "jazz-tools";
+import { Account, AuthCredentials, ID } from "jazz-tools";
 
 const STORAGE_KEY = "jazz-logged-in-secret";
-
-export type AuthCredentials = {
-  accountID: ID<Account>;
-  secretSeed?: Uint8Array;
-  accountSecret: AgentSecret;
-  provider?: "anonymous" | "clerk" | "demo" | "passkey" | "passphrase" | string;
-};
 
 export type AuthSetPayload = {
   accountID: ID<Account>;
@@ -71,6 +64,8 @@ export const AuthSecretStorage = {
   },
 
   isAnonymous() {
+    if (typeof localStorage === "undefined") return false;
+
     const data = localStorage.getItem(STORAGE_KEY);
 
     if (!data) return false;
@@ -81,11 +76,15 @@ export const AuthSecretStorage = {
   },
 
   onUpdate(handler: () => void) {
+    if (typeof window === "undefined") return () => {};
+
     window.addEventListener("jazz-auth-update", handler);
     return () => window.removeEventListener("jazz-auth-update", handler);
   },
 
   emitUpdate() {
+    if (typeof window === "undefined") return;
+
     window.dispatchEvent(new Event("jazz-auth-update"));
   },
 

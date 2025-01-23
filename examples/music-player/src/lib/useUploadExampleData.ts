@@ -1,11 +1,14 @@
 import { MusicaAccount } from "@/1_schema";
+import { useAccount } from "jazz-react";
 import { useEffect } from "react";
 import { uploadMusicTracks } from "../4_actions";
 
 export function useUploadExampleData() {
+  const { me } = useAccount();
+
   useEffect(() => {
     uploadOnboardingData();
-  }, []);
+  }, [me.id]);
 }
 
 async function uploadOnboardingData() {

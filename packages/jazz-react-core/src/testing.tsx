@@ -11,10 +11,7 @@ export function JazzTestProvider<Acc extends Account>({
   account: Acc | { guest: AnonymousJazzAgent };
 }) {
   const value = useMemo(() => {
-    return {
-      ...getJazzContextShape(account),
-      toggleNetwork: () => {},
-    };
+    return getJazzContextShape(account);
   }, [account]);
 
   return <JazzContext.Provider value={value}>{children}</JazzContext.Provider>;

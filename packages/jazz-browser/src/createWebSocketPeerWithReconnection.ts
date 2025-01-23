@@ -62,6 +62,7 @@ export function createWebSocketPeerWithReconnection(
       shouldTryToReconnect = false;
       window.removeEventListener("online", onOnline);
       if (currentPeer) {
+        currentPeer.outgoing.close();
         removePeer(currentPeer);
         currentPeer = undefined;
       }

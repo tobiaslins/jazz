@@ -1,22 +1,10 @@
+import { getJazzContext } from "$lib/jazz.svelte.js";
 import { BrowserPasskeyAuth } from "jazz-browser";
-import { onMount } from "svelte";
-
-export type PasskeyAuthState = (
-  | { state: "uninitialized" }
-  | { state: "loading" }
-  | {
-      state: "ready";
-      logIn: () => void;
-      signUp: (username: string) => void;
-    }
-  | { state: "signedIn"; logOut: () => void }
-) & {
-  errors: string[];
-};
+import { useIsAnonymousUser } from "./useAnonymousUser.svelte.js";
 
 export type PasskeyAuth = {
-  current?: BrowserPasskeyAuth;
-  state: PasskeyAuthState;
+  current: BrowserPasskeyAuth;
+  state: "anonymous" | "signedIn";
 };
 
 /** @category Auth Providers */
@@ -27,59 +15,20 @@ export function usePasskeyAuth({
   appName: string;
   appHostname?: string;
 }): PasskeyAuth {
-  let instance = $state<BrowserPasskeyAuth>();
-  let state = $state<PasskeyAuthState>({
-    state: "loading",
-    errors: [],
-  });
-
-  // Function to create a new auth instance
-  function createAuthInstance() {
-    instance = new BrowserPasskeyAuth(
-      {
-        onReady(next) {
-          state = {
-            state: "ready",
-            logIn: next.logIn,
-            signUp: next.signUp,
-            errors: [],
-          };
-        },
-        onSignedIn(next) {
-          state = {
-            state: "signedIn",
-            logOut: () => {
-              // First set state to loading
-              state = { state: "loading", errors: [] };
-              // Then trigger logout
-              next.logOut();
-              // Create new instance to trigger onReady
-              createAuthInstance();
-            },
-            errors: [],
-          };
-        },
-        onError(error) {
-          state = {
-            ...state,
-            errors: [...state.errors, error.toString()],
-          };
-        },
-      },
-      appName,
-      appHostname,
-    );
-  }
-
-  // Initialize the auth instance on mount
-  onMount(() => {
-    createAuthInstance();
-  });
+  const context = getJazzContext();
+  const auth = new BrowserPasskeyAuth(
+    context.current.node.crypto,
+    context.current.authenticate,
+    appName,
+    appHostname
+  );
+  
+  const isAnonymousUser = useIsAnonymousUser();
+  
+  const state = $derived(isAnonymousUser.value ? "anonymous" : "signedIn");
 
   return {
-    get current() {
-      return instance;
-    },
+    current: auth,
     get state() {
       return state;
     },

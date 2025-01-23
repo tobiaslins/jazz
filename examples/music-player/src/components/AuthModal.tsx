@@ -8,8 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAccount, usePasskeyAuth } from "jazz-react";
-import { Loader2 } from "lucide-react";
+import { usePasskeyAuth } from "jazz-react";
 import { useState } from "react";
 
 interface AuthModalProps {
@@ -20,28 +19,28 @@ interface AuthModalProps {
 export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const [username, setUsername] = useState("");
   const [isSignUp, setIsSignUp] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const { me } = useAccount();
-
-  const [, authState] = usePasskeyAuth({
+  const auth = usePasskeyAuth({
     appName: "Jazz Music Player",
-    onAnonymousUserUpgrade: ({ username, isSignUp }) => {
-      if (isSignUp) {
-        me.profile!.name = username;
-      }
-
-      onOpenChange(false);
-    },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleViewChange = () => {
+    setIsSignUp(!isSignUp);
+    setError(null);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (authState.state === "ready") {
+
+    try {
       if (isSignUp) {
-        authState.signUp(username);
+        await auth.signUp(username);
       } else {
-        authState.logIn();
+        await auth.logIn();
       }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Unknown error");
     }
   };
 
@@ -52,13 +51,11 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
           <DialogTitle className="text-2xl font-bold">
             {isSignUp ? "Create account" : "Welcome back"}
           </DialogTitle>
-          {authState.state === "ready" && (
-            <DialogDescription>
-              {isSignUp
-                ? "Sign up to enable network sync and share your playlists with others"
-                : "Changes done before logging in will be lost"}
-            </DialogDescription>
-          )}
+          <DialogDescription>
+            {isSignUp
+              ? "Sign up to enable network sync and share your playlists with others"
+              : "Changes done before logging in will be lost"}
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           {isSignUp && (
@@ -73,32 +70,19 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
               />
             </div>
           )}
-          {authState.errors.length > 0 && (
-            <div className="text-sm text-red-500">
-              {authState.errors.map((error, i) => (
-                <p key={i}>{error}</p>
-              ))}
-            </div>
-          )}
+          {error && <div className="text-sm text-red-500">{error}</div>}
           <div className="space-y-4">
             <Button
               type="submit"
               className="w-full bg-blue-600 hover:bg-blue-700"
-              disabled={authState.state === "loading"}
             >
-              {authState.state === "loading" ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : isSignUp ? (
-                "Sign up with passkey"
-              ) : (
-                "Login with passkey"
-              )}
+              {isSignUp ? "Sign up with passkey" : "Login with passkey"}
             </Button>
             <div className="text-center text-sm">
               {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
               <button
                 type="button"
-                onClick={() => setIsSignUp(!isSignUp)}
+                onClick={handleViewChange}
                 className="text-blue-600 hover:underline"
               >
                 {isSignUp ? "Login" : "Sign up"}

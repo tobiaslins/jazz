@@ -4,6 +4,8 @@ import { Account, type AuthMethod } from 'jazz-tools';
 import { getJazzContext, JAZZ_CTX } from '../jazz.svelte.js';
 import { render, screen } from '@testing-library/svelte';
 import ProviderTestComponent from './components/ProviderTestComponent.svelte'
+import { createJazzTestAccount, getJazzContextShape } from 'jazz-tools/testing';
+import { JazzContextManager } from 'jazz-browser';
 
 vi.mock('svelte', async (importOriginal) => {
   return {
@@ -13,15 +15,29 @@ vi.mock('svelte', async (importOriginal) => {
   };
 });
 
+const account = await createJazzTestAccount();
+
+JazzContextManager.prototype.getCurrentValue = vi.fn(() => getJazzContextShape(account));
+const createContexSpy = vi.spyOn(JazzContextManager.prototype, 'createContext');
+
 // Mock jazz-browser as the browser context is not always available
 vi.mock('jazz-browser', () => ({
-  createJazzBrowserContext: vi.fn(() =>
-    Promise.resolve({
-      me: undefined,
-      logOut: vi.fn(),
-      done: vi.fn()
-    })
-  )
+  JazzContextManager: class {
+    async createContext() {}
+    toggleNetwork() {}
+    subscribe(fn: () => void) {
+      fn();
+
+      return () => {}
+    }
+    getCurrentValue() {
+      return undefined;
+    }
+  },
+  AuthSecretStorage: {
+    isAnonymous: () => false,
+    onUpdate: vi.fn().mockReturnValue(() => {})
+  }
 }));
 
 // Mocks for coValue observables
@@ -71,11 +87,10 @@ describe('jazz.svelte', () => {
       expect(getContext).toHaveBeenCalledWith(JAZZ_CTX);
     });
 
-    it('should return undefined if no context is set', () => {
+    it('should throw if no context is set', () => {
       (getContext as jest.Mock).mockReturnValue(undefined);
 
-      const result = getJazzContext();
-      expect(result).toBeUndefined();
+      expect(() => getJazzContext()).toThrow('useJazzContext must be used within a JazzProvider');
     });
   });
 
@@ -93,19 +108,19 @@ describe('jazz.svelte', () => {
         }
       });
 
-      const accountName = await screen.findByTestId('provider-auth-test');
-      expect(JSON.parse(accountName.textContent || '').account).toEqual(mockAccount);
+      expect( await screen.findByTestId('provider-auth-test')).toHaveTextContent('Hello')
     });
 
     it('should handle guest mode correctly', async () => {
       render(ProviderTestComponent, {
         props: {
-          auth: 'guest'
+          guestMode: true
         }
       });
 
-      const errorMessage = await screen.findByTestId('provider-auth-test');
-      expect(JSON.parse(errorMessage.textContent || '')).toBe('guest');
+      expect(createContexSpy).toHaveBeenCalledWith(expect.objectContaining({
+        guestMode: true
+      }));
     });
   });
 });

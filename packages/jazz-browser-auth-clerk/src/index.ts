@@ -1,6 +1,11 @@
-import { AgentSecret, CryptoProvider } from "cojson";
+import { AgentSecret } from "cojson";
 import { AuthSecretStorage } from "jazz-browser";
-import { Account, AuthMethod, AuthResult, Credentials, ID } from "jazz-tools";
+import {
+  Account,
+  AuthCredentials,
+  AuthenticateAccountFunction,
+  ID,
+} from "jazz-tools";
 
 export type MinimalClerkClient = {
   user:
@@ -9,7 +14,12 @@ export type MinimalClerkClient = {
         unsafeMetadata: Record<string, any>;
         fullName: string | null;
         username: string | null;
+        firstName: string | null;
+        lastName: string | null;
         id: string;
+        primaryEmailAddress: {
+          emailAddress: string | null;
+        } | null;
         update: (args: {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           unsafeMetadata: Record<string, any>;
@@ -26,150 +36,91 @@ type ClerkCredentials = {
   jazzAccountSeed?: number[];
 };
 
-export class BrowserClerkAuth implements AuthMethod {
-  constructor(
-    public driver: BrowserClerkAuth.Driver,
-    private readonly clerkClient: MinimalClerkClient,
-  ) {}
+export class BrowserClerkAuth {
+  constructor(private authenticate: AuthenticateAccountFunction) {}
 
-  async start(crypto: CryptoProvider): Promise<AuthResult> {
-    AuthSecretStorage.migrate();
+  onClerkUserChange = async (clerkClient: MinimalClerkClient) => {
+    if (!clerkClient.user) return;
 
-    // Check local storage for credentials
-    const credentials = AuthSecretStorage.get();
     const isAnonymous = AuthSecretStorage.isAnonymous();
 
-    if (credentials && !isAnonymous) {
-      try {
-        return {
-          type: "existing",
-          credentials: {
-            accountID: credentials.accountID,
-            secret: credentials.accountSecret,
-          },
-          saveCredentials: async () => {}, // No need to save credentials when recovering from local storage
-          onSuccess: () => {},
-          onError: (error: string | Error) => {
-            this.driver.onError(error);
-          },
-          logOut: () => {
-            AuthSecretStorage.clear();
-            void this.clerkClient.signOut();
-          },
-        };
-      } catch (e) {
-        console.error("Error parsing local storage credentials", e);
-      }
+    if (!isAnonymous) return;
+
+    const clerkCredentials = clerkClient.user
+      .unsafeMetadata as ClerkCredentials;
+
+    if (!clerkCredentials.jazzAccountID) {
+      await this.signIn(clerkClient);
+    } else {
+      await this.logIn(clerkClient);
     }
 
-    if (this.clerkClient.user) {
-      const username =
-        this.clerkClient.user.fullName ||
-        this.clerkClient.user.username ||
-        this.clerkClient.user.id;
-      // Check clerk user metadata for credentials
-      const clerkCredentials = this.clerkClient.user
-        .unsafeMetadata as ClerkCredentials;
-      if (clerkCredentials.jazzAccountID) {
-        if (!clerkCredentials.jazzAccountSecret) {
-          this.driver.onError("No secret for existing user");
-          throw new Error("No secret for existing user");
-        }
-        return {
-          type: "existing",
-          credentials: {
-            accountID: clerkCredentials.jazzAccountID as ID<Account>,
-            secret: clerkCredentials.jazzAccountSecret as AgentSecret,
-          },
-          saveCredentials: async ({ accountID, secret }: Credentials) => {
-            AuthSecretStorage.set({
-              accountID,
-              accountSecret: secret,
-              secretSeed: clerkCredentials.jazzAccountSeed
-                ? Uint8Array.from(clerkCredentials.jazzAccountSeed)
-                : undefined,
-              provider: "clerk",
-            });
-          },
-          onSuccess: () => {},
-          onError: (error: string | Error) => {
-            this.driver.onError(error);
-          },
-          logOut: () => {
-            void this.clerkClient.signOut();
-          },
-        };
-      } else if (credentials && isAnonymous) {
-        return {
-          type: "existing",
-          username,
-          credentials: {
-            accountID: credentials.accountID,
-            secret: credentials.accountSecret,
-          },
-          saveCredentials: async ({ accountID, secret }: Credentials) => {
-            AuthSecretStorage.set({
-              accountID,
-              accountSecret: secret,
-              secretSeed: credentials.secretSeed,
-              provider: "clerk",
-            });
-            await this.clerkClient.user?.update({
-              unsafeMetadata: {
-                jazzAccountID: accountID,
-                jazzAccountSecret: secret,
-                jazzAccountSeed: credentials.secretSeed
-                  ? Array.from(credentials.secretSeed)
-                  : undefined,
-              } satisfies ClerkCredentials,
-            });
-          },
-          onSuccess: () => {},
-          onError: (error: string | Error) => {
-            this.driver.onError(error);
-          },
-          logOut: () => {
-            void this.clerkClient.signOut();
-          },
-        };
-      } else {
-        const secretSeed = crypto.newRandomSecretSeed();
-        // No credentials found, so we need to create new credentials
-        return {
-          type: "new",
-          creationProps: {
-            name: username,
-          },
-          initialSecret: crypto.agentSecretFromSecretSeed(secretSeed),
-          saveCredentials: async ({ accountID, secret }: Credentials) => {
-            AuthSecretStorage.set({
-              accountID,
-              secretSeed,
-              accountSecret: secret,
-              provider: "clerk",
-            });
-            await this.clerkClient.user?.update({
-              unsafeMetadata: {
-                jazzAccountID: accountID,
-                jazzAccountSecret: secret,
-                jazzAccountSeed: Array.from(secretSeed),
-              } satisfies ClerkCredentials,
-            });
-          },
-          onSuccess: () => {},
-          onError: (error: string | Error) => {
-            this.driver.onError(error);
-          },
-          logOut: () => {
-            void this.clerkClient.signOut();
-          },
-        };
-      }
-    } else {
-      // Clerk user not found, so we can't authenticate
-      throw new Error("Not signed in");
+    await clerkClient.signOut();
+  };
+
+  logIn = async (clerkClient: MinimalClerkClient) => {
+    if (!clerkClient.user) {
+      throw new Error("Not signed in on Clerk");
     }
-  }
+
+    const clerkCredentials = clerkClient.user
+      .unsafeMetadata as ClerkCredentials;
+
+    if (
+      !clerkCredentials.jazzAccountID ||
+      !clerkCredentials.jazzAccountSecret
+    ) {
+      throw new Error("No credentials found on Clerk");
+    }
+
+    const credentials = {
+      accountID: clerkCredentials.jazzAccountID,
+      accountSecret: clerkCredentials.jazzAccountSecret,
+      secretSeed: clerkCredentials.jazzAccountSeed
+        ? Uint8Array.from(clerkCredentials.jazzAccountSeed)
+        : undefined,
+      provider: "clerk",
+    } satisfies AuthCredentials;
+
+    await this.authenticate(credentials);
+
+    AuthSecretStorage.set(credentials);
+  };
+
+  signIn = async (clerkClient: MinimalClerkClient) => {
+    const credentials = AuthSecretStorage.get();
+
+    if (!credentials) {
+      throw new Error("No credentials found");
+    }
+
+    await clerkClient.user?.update({
+      unsafeMetadata: {
+        jazzAccountID: credentials.accountID,
+        jazzAccountSecret: credentials.accountSecret,
+        jazzAccountSeed: credentials.secretSeed
+          ? Array.from(credentials.secretSeed)
+          : undefined,
+      } satisfies ClerkCredentials,
+    });
+
+    const currentAccount = await Account.getMe().ensureLoaded({
+      profile: {},
+    });
+
+    const username = getClerkUsername(clerkClient);
+
+    if (username && currentAccount) {
+      currentAccount.profile.name = username;
+    }
+
+    AuthSecretStorage.set({
+      accountID: credentials.accountID,
+      accountSecret: credentials.accountSecret,
+      secretSeed: credentials.secretSeed,
+      provider: "clerk",
+    });
+  };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -177,4 +128,37 @@ export namespace BrowserClerkAuth {
   export interface Driver {
     onError: (error: string | Error) => void;
   }
+}
+
+function getClerkUsername(clerkClient: MinimalClerkClient) {
+  if (!clerkClient.user) {
+    return null;
+  }
+
+  if (clerkClient.user.fullName) {
+    return clerkClient.user.fullName;
+  }
+
+  if (clerkClient.user.firstName) {
+    if (clerkClient.user.lastName) {
+      return `${clerkClient.user.firstName} ${clerkClient.user.lastName}`;
+    }
+
+    return clerkClient.user.firstName;
+  }
+
+  if (clerkClient.user.username) {
+    return clerkClient.user.username;
+  }
+
+  if (clerkClient.user.primaryEmailAddress?.emailAddress) {
+    const emailUsername =
+      clerkClient.user.primaryEmailAddress.emailAddress.split("@")[0];
+
+    if (emailUsername) {
+      return emailUsername;
+    }
+  }
+
+  return clerkClient.user.id;
 }
