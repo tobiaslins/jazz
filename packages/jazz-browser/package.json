@@ -1,6 +1,6 @@
 {
   "name": "jazz-browser",
-  "version": "0.9.16",
+  "version": "0.9.17",
   "type": "module",
   "main": "dist/index.js",
   "types": "src/index.ts",
@@ -10,7 +10,7 @@
     "cojson": "workspace:0.9.13",
     "cojson-storage-indexeddb": "workspace:0.9.13",
     "cojson-transport-ws": "workspace:0.9.13",
-    "jazz-tools": "workspace:0.9.16",
+    "jazz-tools": "workspace:0.9.17",
     "typescript": "~5.6.2"
   },
   "scripts": {
