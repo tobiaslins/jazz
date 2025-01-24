@@ -27,6 +27,10 @@ export class JazzBrowserContextManager<
   ) {
     let currentContext: BrowserGuestContext | BrowserContext<Acc>;
 
+    // We need to store the props here to block the double effect execution
+    // on React. Otherwise when calling propsChanged this.props is undefined.
+    this.props = props;
+
     if (props.guestMode) {
       currentContext = await createJazzBrowserGuestContext({
         peer: props.peer,

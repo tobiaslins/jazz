@@ -86,7 +86,7 @@ export class MusicaAccount extends Account {
    *  You can use it to set up the account root and any other initial CoValues you need.
    */
   migrate() {
-    if (!this._refs.root) {
+    if (this.root === undefined) {
       const ownership = { owner: this };
 
       const tracks = ListOfTracks.create([], ownership);
