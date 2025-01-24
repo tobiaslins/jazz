@@ -10,13 +10,10 @@ import {
   CryptoProvider,
   ID,
   InviteSecret,
-  JazzContextWithAccount,
   SessionID,
   WasmCrypto,
   cojsonInternals,
   createAnonymousJazzContext,
-  createJazzContextForNewAccount,
-  createJazzContextFromExistingCredentials,
 } from "jazz-tools";
 import { OPFSFilesystem } from "./OPFSFilesystem.js";
 import { createWebSocketPeerWithReconnection } from "./createWebSocketPeerWithReconnection.js";
@@ -25,6 +22,7 @@ export { AuthSecretStorage } from "./auth/AuthSecretStorage.js";
 export { BrowserDemoAuth } from "./auth/DemoAuth.js";
 export { BrowserPasskeyAuth } from "./auth/PasskeyAuth.js";
 export { BrowserPassphraseAuth } from "./auth/PassphraseAuth.js";
+import { createJazzContext } from "jazz-tools/src/implementation/createContext.js";
 import { AuthSecretStorage } from "./auth/AuthSecretStorage.js";
 import { setupInspector } from "./utils/export-account-inspector.js";
 
@@ -169,51 +167,31 @@ export async function createJazzBrowserContext<Acc extends Account>(
 
   const credentials = options.credentials ?? AuthSecretStorage.get();
 
-  let context: JazzContextWithAccount<Acc>;
-
-  if (credentials) {
-    context = await createJazzContextFromExistingCredentials({
-      credentials: {
-        accountID: credentials.accountID,
-        secret: credentials.accountSecret,
-      },
-      peersToLoadFrom,
-      crypto,
-      AccountSchema: options.AccountSchema,
-      sessionProvider: provideBrowserLockSession,
-      onLogOut: () => {
-        AuthSecretStorage.clear();
-      },
-    });
-  } else {
-    const secretSeed = crypto.newRandomSecretSeed();
-
-    const initialAgentSecret =
-      options.newAccountProps?.secret ??
-      crypto.agentSecretFromSecretSeed(secretSeed);
-
-    const creationProps = options.newAccountProps?.creationProps ?? {
-      name: options.defaultProfileName ?? "Anonymous user",
-    };
-
-    context = await createJazzContextForNewAccount({
-      creationProps,
-      initialAgentSecret,
-      peersToLoadFrom,
-      crypto,
-      AccountSchema: options.AccountSchema,
-      onLogOut: () => {
-        AuthSecretStorage.clear();
-      },
-    });
-
-    AuthSecretStorage.set({
-      accountID: context.account.id,
-      secretSeed,
-      accountSecret: context.node.account.agentSecret,
-      provider: "anonymous",
-    });
-  }
+  const context = await createJazzContext({
+    credentials: credentials
+      ? {
+          accountID: credentials.accountID,
+          secret: credentials.accountSecret,
+        }
+      : undefined,
+    newAccountProps: options.newAccountProps,
+    peersToLoadFrom,
+    crypto,
+    defaultProfileName: options.defaultProfileName,
+    AccountSchema: options.AccountSchema,
+    sessionProvider: provideBrowserLockSession,
+    onAnonymousAccountCreated: (account, secretSeed, secret) => {
+      AuthSecretStorage.set({
+        accountID: account.id,
+        secretSeed,
+        accountSecret: secret,
+        provider: "anonymous",
+      });
+    },
+    onLogOut: () => {
+      AuthSecretStorage.clear();
+    },
+  });
 
   setNode(context.node);
 

@@ -15,7 +15,7 @@ export { BrowserPassphraseAuth } from "./auth/PassphraseAuth.js";
 setupInspector();
 
 export * from "./createBrowserContext.js";
-export * from "./ContextManager.js";
+export * from "./BrowserContextManager.js";
 
 /** @category Invite Links */
 export function createInviteLink<C extends CoValue>(

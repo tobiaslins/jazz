@@ -50,11 +50,14 @@ export {
   subscribeToCoValue,
 } from "./internal.js";
 
+export { JazzContextManager } from "./implementation/ContextManager.js";
+
 export {
   AnonymousJazzAgent,
   createAnonymousJazzContext,
   createJazzContextFromExistingCredentials,
   createJazzContextForNewAccount,
+  createJazzContext,
   randomSessionProvider,
   type AuthResult,
   type Credentials,

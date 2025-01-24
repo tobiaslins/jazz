@@ -69,6 +69,7 @@ export function createWebSocketPeerWithReconnection(
     },
   };
 }
+
 function waitForOnline(timeout: number) {
   return new Promise<void>((resolve) => {
     function handleTimeoutOrOnline() {

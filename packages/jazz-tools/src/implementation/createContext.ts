@@ -177,6 +177,71 @@ export async function createJazzContextForNewAccount<Acc extends Account>({
   };
 }
 
+export async function createJazzContext<Acc extends Account>(options: {
+  credentials?: Credentials;
+  newAccountProps?: {
+    secret: AgentSecret;
+    creationProps: { name: string };
+  };
+  peersToLoadFrom: Peer[];
+  crypto: CryptoProvider;
+  defaultProfileName?: string;
+  AccountSchema?: AccountClass<Acc>;
+  sessionProvider: SessionProvider;
+  onAnonymousAccountCreated: (
+    account: Acc,
+    secretSeed: Uint8Array,
+    secret: AgentSecret,
+  ) => void;
+  onLogOut?: () => void;
+}) {
+  const credentials = options.credentials;
+  const crypto = options.crypto;
+
+  let context: JazzContextWithAccount<Acc>;
+
+  if (credentials) {
+    context = await createJazzContextFromExistingCredentials({
+      credentials: {
+        accountID: credentials.accountID,
+        secret: credentials.secret,
+      },
+      peersToLoadFrom: options.peersToLoadFrom,
+      crypto,
+      AccountSchema: options.AccountSchema,
+      sessionProvider: options.sessionProvider,
+      onLogOut: options.onLogOut,
+    });
+  } else {
+    const secretSeed = options.crypto.newRandomSecretSeed();
+
+    const initialAgentSecret =
+      options.newAccountProps?.secret ??
+      crypto.agentSecretFromSecretSeed(secretSeed);
+
+    const creationProps = options.newAccountProps?.creationProps ?? {
+      name: options.defaultProfileName ?? "Anonymous user",
+    };
+
+    context = await createJazzContextForNewAccount({
+      creationProps,
+      initialAgentSecret,
+      peersToLoadFrom: options.peersToLoadFrom,
+      crypto,
+      AccountSchema: options.AccountSchema,
+      onLogOut: options.onLogOut,
+    });
+
+    options.onAnonymousAccountCreated(
+      context.account,
+      secretSeed,
+      context.node.account.agentSecret,
+    );
+  }
+
+  return context;
+}
+
 export async function createAnonymousJazzContext({
   peersToLoadFrom,
   crypto,

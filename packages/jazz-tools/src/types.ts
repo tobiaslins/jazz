@@ -21,7 +21,7 @@ export type RegisterAccountFunction = (
 export type JazzAuthContext<Acc extends Account> = {
   me: Acc;
   node: LocalNode;
-  toggleNetwork?: (enabled: boolean) => void;
+  toggleNetwork: (enabled: boolean) => void;
   authenticate: AuthenticateAccountFunction;
   register: RegisterAccountFunction;
   logOut: () => void;
@@ -31,15 +31,9 @@ export type JazzAuthContext<Acc extends Account> = {
 export type JazzGuestContext = {
   guest: AnonymousJazzAgent;
   node: LocalNode;
-  toggleNetwork?: (enabled: boolean) => void;
-  authenticate: (credentials: {
-    accountID: ID<Account>;
-    accountSecret: AgentSecret;
-  }) => Promise<void>;
-  register: (
-    accountSecret: AgentSecret,
-    creationProps: { name: string },
-  ) => Promise<ID<Account>>;
+  toggleNetwork: (enabled: boolean) => void;
+  authenticate: AuthenticateAccountFunction;
+  register: RegisterAccountFunction;
   logOut: () => void;
   done: () => void;
 };

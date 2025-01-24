@@ -1,4 +1,7 @@
-import { JazzContextManager, JazzContextManagerProps } from "jazz-browser";
+import {
+  JazzBrowserContextManager,
+  JazzContextManagerProps,
+} from "jazz-browser";
 import React, { useEffect } from "react";
 
 import { JazzContext } from "jazz-react-core";
@@ -26,7 +29,9 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
   localOnly: localOnlyProp,
   defaultProfileName,
 }: JazzProviderProps<Acc>) {
-  const [contextManager] = React.useState(() => new JazzContextManager<Acc>());
+  const [contextManager] = React.useState(
+    () => new JazzBrowserContextManager<Acc>(),
+  );
 
   const isAnonymousUser = useIsAnonymousUser();
   const localOnly =
