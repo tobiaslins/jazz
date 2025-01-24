@@ -1,6 +1,27 @@
-import type { Clerk } from "@clerk/clerk-js";
 import { AgentSecret } from "cojson";
 import { Account, AuthMethod, AuthResult, Credentials, ID } from "jazz-tools";
+
+export type MinimalClerkClient = {
+  user:
+    | {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        unsafeMetadata: Record<string, any>;
+        fullName: string | null;
+        username: string | null;
+        firstName: string | null;
+        primaryEmailAddress: {
+          emailAddress: string;
+        } | null;
+        id: string;
+        update: (args: {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          unsafeMetadata: Record<string, any>;
+        }) => Promise<unknown>;
+      }
+    | null
+    | undefined;
+  signOut: () => Promise<void>;
+};
 
 const localStorageKey = "jazz-clerk-auth";
 
@@ -21,7 +42,7 @@ function clearStoredCredentials() {
 export class BrowserClerkAuth implements AuthMethod {
   constructor(
     public driver: BrowserClerkAuth.Driver,
-    private readonly clerkClient: Clerk,
+    private readonly clerkClient: MinimalClerkClient,
   ) {}
 
   async start(): Promise<AuthResult> {
@@ -104,6 +125,9 @@ export class BrowserClerkAuth implements AuthMethod {
                 "@",
               )[0] ||
               this.clerkClient.user.id,
+            other: {
+              email: this.clerkClient.user.primaryEmailAddress?.emailAddress,
+            },
           },
           saveCredentials: async ({ accountID, secret }: Credentials) => {
             saveCredentialsToLocalStorage({

@@ -1,13 +1,12 @@
-import type { Clerk } from "@clerk/clerk-js";
 import { AgentSecret } from "cojson";
 import type { KvStore } from "jazz-react-native";
 import { Account, ID } from "jazz-tools";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ReactNativeClerkAuth } from "../index.js";
+import { MinimalClerkClient, ReactNativeClerkAuth } from "../index.js";
 
 describe("ReactNativeClerkAuth", () => {
   let mockLocalStorage: { [key: string]: string };
-  let mockClerkClient: Clerk;
+  let mockClerkClient: MinimalClerkClient;
   let mockDriver: ReactNativeClerkAuth.Driver;
   let mockKvStore: KvStore;
 
@@ -33,11 +32,13 @@ describe("ReactNativeClerkAuth", () => {
         unsafeMetadata: {},
         fullName: "Test User",
         username: "testuser",
+        firstName: null,
+        primaryEmailAddress: null,
         id: "test-id",
         update: vi.fn(),
       },
       signOut: vi.fn(),
-    } as unknown as Clerk;
+    };
 
     // Mock driver
     mockDriver = {
@@ -60,7 +61,7 @@ describe("ReactNativeClerkAuth", () => {
         {
           ...mockClerkClient,
           user: null,
-        } as unknown as Clerk,
+        },
         mockKvStore,
       );
 
@@ -89,11 +90,13 @@ describe("ReactNativeClerkAuth", () => {
           },
           fullName: "Test User",
           username: "testuser",
+          firstName: null,
+          primaryEmailAddress: null,
           id: "test-id",
           update: vi.fn(),
         },
         signOut: vi.fn(),
-      } as unknown as Clerk;
+      };
 
       const auth = new ReactNativeClerkAuth(
         mockDriver,
@@ -110,7 +113,7 @@ describe("ReactNativeClerkAuth", () => {
         {
           ...mockClerkClient,
           user: null,
-        } as unknown as Clerk,
+        },
         mockKvStore,
       );
 

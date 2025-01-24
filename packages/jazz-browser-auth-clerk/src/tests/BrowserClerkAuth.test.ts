@@ -1,13 +1,11 @@
 import { AgentSecret } from "cojson";
 import { Account, ID } from "jazz-tools";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { BrowserClerkAuth } from "../index.js";
-
-import type { Clerk } from "@clerk/clerk-js";
+import { BrowserClerkAuth, MinimalClerkClient } from "../index.js";
 
 describe("BrowserClerkAuth", () => {
   let mockLocalStorage: { [key: string]: string };
-  let mockClerkClient: Clerk;
+  let mockClerkClient: MinimalClerkClient;
   let mockDriver: BrowserClerkAuth.Driver;
 
   beforeEach(() => {
@@ -32,11 +30,13 @@ describe("BrowserClerkAuth", () => {
         unsafeMetadata: {},
         fullName: "Test User",
         username: "testuser",
+        firstName: null,
+        primaryEmailAddress: null,
         id: "test-id",
         update: vi.fn(),
       },
       signOut: vi.fn(),
-    } as unknown as Clerk;
+    };
 
     // Mock driver
     mockDriver = {
@@ -54,7 +54,7 @@ describe("BrowserClerkAuth", () => {
       const auth = new BrowserClerkAuth(mockDriver, {
         ...mockClerkClient,
         user: null,
-      } as unknown as Clerk);
+      });
 
       const result = await auth.start();
       expect(result.type).toBe("existing");
@@ -77,11 +77,13 @@ describe("BrowserClerkAuth", () => {
           },
           fullName: "Test User",
           username: "testuser",
+          firstName: null,
+          primaryEmailAddress: null,
           id: "test-id",
           update: vi.fn(),
         },
         signOut: vi.fn(),
-      } as unknown as Clerk;
+      };
 
       const auth = new BrowserClerkAuth(mockDriver, mockClerkClient);
       const result = await auth.start();
@@ -92,7 +94,7 @@ describe("BrowserClerkAuth", () => {
       const auth = new BrowserClerkAuth(mockDriver, {
         ...mockClerkClient,
         user: null,
-      } as unknown as Clerk);
+      });
 
       await expect(auth.start()).rejects.toThrow("Not signed in");
     });
@@ -116,6 +118,69 @@ describe("BrowserClerkAuth", () => {
       result.logOut();
 
       expect(mockClerkClient.signOut).toHaveBeenCalled();
+    });
+
+    it("should resolve name from available user fields", async () => {
+      const testCases = [
+        {
+          user: {
+            unsafeMetadata: {},
+            fullName: "Full Name",
+            firstName: null,
+            username: null,
+            primaryEmailAddress: null,
+            id: "test-id",
+            update: vi.fn(),
+          },
+          expected: "Full Name",
+        },
+        {
+          user: {
+            unsafeMetadata: {},
+            fullName: null,
+            firstName: "First",
+            username: null,
+            primaryEmailAddress: null,
+            id: "test-id",
+            update: vi.fn(),
+          },
+          expected: "First",
+        },
+        {
+          user: {
+            unsafeMetadata: {},
+            fullName: null,
+            firstName: null,
+            username: "username123",
+            primaryEmailAddress: null,
+            id: "test-id",
+            update: vi.fn(),
+          },
+          expected: "username123",
+        },
+        {
+          user: {
+            unsafeMetadata: {},
+            fullName: null,
+            firstName: null,
+            username: null,
+            primaryEmailAddress: { emailAddress: "test@example.com" },
+            id: "test-id",
+            update: vi.fn(),
+          },
+          expected: "test",
+        },
+      ];
+
+      for (const { user, expected } of testCases) {
+        const auth = new BrowserClerkAuth(mockDriver, {
+          ...mockClerkClient,
+          user,
+        });
+        const result = await auth.start();
+        expect(result.type).toBe("new");
+        expect((result as any).creationProps.name).toBe(expected);
+      }
     });
   });
 });

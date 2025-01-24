@@ -1,7 +1,28 @@
-import type { Clerk } from "@clerk/clerk-js";
 import { AgentSecret } from "cojson";
 import type { KvStore } from "jazz-react-native";
 import { Account, AuthMethod, AuthResult, Credentials, ID } from "jazz-tools";
+
+export type MinimalClerkClient = {
+  user:
+    | {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        unsafeMetadata: Record<string, any>;
+        fullName: string | null;
+        username: string | null;
+        firstName: string | null;
+        primaryEmailAddress: {
+          emailAddress: string;
+        } | null;
+        id: string;
+        update: (args: {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          unsafeMetadata: Record<string, any>;
+        }) => Promise<unknown>;
+      }
+    | null
+    | undefined;
+  signOut: () => Promise<void>;
+};
 
 const localStorageKey = "jazz-clerk-auth";
 
@@ -22,7 +43,7 @@ async function clearStoredCredentials(kvStore: KvStore) {
 export class ReactNativeClerkAuth implements AuthMethod {
   constructor(
     public driver: ReactNativeClerkAuth.Driver,
-    private readonly clerkClient: Clerk,
+    private readonly clerkClient: MinimalClerkClient,
     private readonly kvStore: KvStore,
   ) {}
 
@@ -108,6 +129,9 @@ export class ReactNativeClerkAuth implements AuthMethod {
                 "@",
               )[0] ||
               this.clerkClient.user.id,
+            other: {
+              email: this.clerkClient.user.primaryEmailAddress?.emailAddress,
+            },
           },
           saveCredentials: async ({ accountID, secret }: Credentials) => {
             saveCredentialsToStorage(this.kvStore, {
@@ -149,12 +173,7 @@ export namespace ReactNativeClerkAuth {
 
 import { useMemo, useState } from "react";
 
-export function useJazzClerkAuth(
-  clerk: Clerk & {
-    signOut: () => Promise<unknown>;
-  },
-  kvStore: KvStore,
-) {
+export function useJazzClerkAuth(clerk: MinimalClerkClient, kvStore: KvStore) {
   const [state, setState] = useState<{ errors: string[] }>({ errors: [] });
 
   const authMethod = useMemo(() => {
