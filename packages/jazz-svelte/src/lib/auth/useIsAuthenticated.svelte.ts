@@ -1,11 +1,11 @@
 import { AuthSecretStorage } from "jazz-browser";
 import { onDestroy } from "svelte";
 
-export function useIsAnonymousUser() {
-    let isAnonymous = $state(AuthSecretStorage.isAnonymous());
+export function useIsAuthenticated() {
+    let isAuthenticated = $state(AuthSecretStorage.isAuthenticated());
 
     const unsubscribe = AuthSecretStorage.onUpdate(() => {
-        isAnonymous = AuthSecretStorage.isAnonymous();
+        isAuthenticated = AuthSecretStorage.isAuthenticated();
     });
 
     onDestroy(() => {
@@ -14,7 +14,7 @@ export function useIsAnonymousUser() {
 
     return {
         get value() {
-            return isAnonymous;
+            return isAuthenticated;
         }
     };
 }

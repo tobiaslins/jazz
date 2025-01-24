@@ -11,8 +11,7 @@ import {
   SessionID,
   WasmCrypto,
   co,
-  createJazzContext,
-  fixedCredentialsAuth,
+  createJazzContextFromExistingCredentials,
   isControlledAccount,
 } from "../index.web.js";
 import { randomSessionProvider } from "../internal.js";
@@ -49,15 +48,16 @@ describe("Deep loading with depth arg", async () => {
     throw "me is not a controlled account";
   }
   me._raw.core.node.syncManager.addPeer(secondPeer);
-  const { account: meOnSecondPeer } = await createJazzContext({
-    auth: fixedCredentialsAuth({
-      accountID: me.id,
-      secret: me._raw.agentSecret,
-    }),
-    sessionProvider: randomSessionProvider,
-    peersToLoadFrom: [initialAsPeer],
-    crypto: Crypto,
-  });
+  const { account: meOnSecondPeer } =
+    await createJazzContextFromExistingCredentials({
+      credentials: {
+        accountID: me.id,
+        secret: me._raw.agentSecret,
+      },
+      sessionProvider: randomSessionProvider,
+      peersToLoadFrom: [initialAsPeer],
+      crypto: Crypto,
+    });
 
   test("loading a deeply nested object will wait until all required refs are loaded", async () => {
     const ownership = { owner: me };
@@ -261,15 +261,16 @@ test("Deep loading a record-like coMap", async () => {
   }
 
   me._raw.core.node.syncManager.addPeer(secondPeer);
-  const { account: meOnSecondPeer } = await createJazzContext({
-    auth: fixedCredentialsAuth({
-      accountID: me.id,
-      secret: me._raw.agentSecret,
-    }),
-    sessionProvider: randomSessionProvider,
-    peersToLoadFrom: [initialAsPeer],
-    crypto: Crypto,
-  });
+  const { account: meOnSecondPeer } =
+    await createJazzContextFromExistingCredentials({
+      credentials: {
+        accountID: me.id,
+        secret: me._raw.agentSecret,
+      },
+      sessionProvider: randomSessionProvider,
+      peersToLoadFrom: [initialAsPeer],
+      crypto: Crypto,
+    });
 
   const record = RecordLike.create(
     {

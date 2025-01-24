@@ -1,7 +1,7 @@
 import { BrowserPasskeyAuth } from "jazz-browser";
 import { useJazzContext } from "jazz-react-core";
 import { useMemo, useState } from "react";
-import { useIsAnonymousUser } from "./AnonymousAuth.js";
+import { useIsAuthenticated } from "./useIsAuthenticated.js";
 
 /**
  * `usePasskeyAuth` hook provides a `JazzAuth` object for passkey authentication.
@@ -31,10 +31,10 @@ export function usePasskeyAuth({
     );
   }, [appName, appHostname]);
 
-  const isAnonymousUser = useIsAnonymousUser();
+  const isAuthenticated = useIsAuthenticated();
 
   return {
-    state: isAnonymousUser ? "anonymous" : "signedIn",
+    state: isAuthenticated ? "signedIn" : "anonymous",
     logIn: authMethod.logIn,
     signUp: authMethod.signUp,
   } as const;

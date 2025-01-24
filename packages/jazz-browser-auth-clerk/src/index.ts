@@ -6,29 +6,8 @@ import {
   AuthenticateAccountFunction,
   ID,
 } from "jazz-tools";
-
-export type MinimalClerkClient = {
-  user:
-    | {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        unsafeMetadata: Record<string, any>;
-        fullName: string | null;
-        username: string | null;
-        firstName: string | null;
-        lastName: string | null;
-        id: string;
-        primaryEmailAddress: {
-          emailAddress: string | null;
-        } | null;
-        update: (args: {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          unsafeMetadata: Record<string, any>;
-        }) => Promise<unknown>;
-      }
-    | null
-    | undefined;
-  signOut: () => Promise<void>;
-};
+import { getClerkUsername } from "./getClerkUsername.js";
+import { MinimalClerkClient } from "./types.js";
 
 type ClerkCredentials = {
   jazzAccountID: ID<Account>;
@@ -42,9 +21,9 @@ export class BrowserClerkAuth {
   onClerkUserChange = async (clerkClient: MinimalClerkClient) => {
     if (!clerkClient.user) return;
 
-    const isAnonymous = AuthSecretStorage.isAnonymous();
+    const isAuthenticated = AuthSecretStorage.isAuthenticated();
 
-    if (!isAnonymous) return;
+    if (isAuthenticated) return;
 
     const clerkCredentials = clerkClient.user
       .unsafeMetadata as ClerkCredentials;
@@ -128,37 +107,4 @@ export namespace BrowserClerkAuth {
   export interface Driver {
     onError: (error: string | Error) => void;
   }
-}
-
-function getClerkUsername(clerkClient: MinimalClerkClient) {
-  if (!clerkClient.user) {
-    return null;
-  }
-
-  if (clerkClient.user.fullName) {
-    return clerkClient.user.fullName;
-  }
-
-  if (clerkClient.user.firstName) {
-    if (clerkClient.user.lastName) {
-      return `${clerkClient.user.firstName} ${clerkClient.user.lastName}`;
-    }
-
-    return clerkClient.user.firstName;
-  }
-
-  if (clerkClient.user.username) {
-    return clerkClient.user.username;
-  }
-
-  if (clerkClient.user.primaryEmailAddress?.emailAddress) {
-    const emailUsername =
-      clerkClient.user.primaryEmailAddress.emailAddress.split("@")[0];
-
-    if (emailUsername) {
-      return emailUsername;
-    }
-  }
-
-  return clerkClient.user.id;
 }

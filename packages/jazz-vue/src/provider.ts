@@ -1,4 +1,4 @@
-import { JazzContextManager } from "jazz-browser";
+import { JazzBrowserContextManager } from "jazz-browser";
 import { Account, AccountClass, JazzContextType } from "jazz-tools";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
@@ -11,7 +11,7 @@ import {
   ref,
   watch,
 } from "vue";
-import { useIsAnonymousUser } from "./auth/useIsAnonymousUser.js";
+import { useIsAuthenticated } from "./auth/useIsAuthenticated.js";
 
 export const logoutHandler = ref<() => void>();
 
@@ -53,16 +53,16 @@ export const JazzProvider = defineComponent({
     },
   },
   setup(props, { slots }) {
-    const contextManager = new JazzContextManager<RegisteredAccount>();
+    const contextManager = new JazzBrowserContextManager<RegisteredAccount>();
     const ctx = ref<JazzContextType<RegisteredAccount>>();
 
     provide(JazzContextSymbol, ctx);
 
-    const isAnonymousUser = useIsAnonymousUser();
+    const isAuthenticated = useIsAuthenticated();
 
     const localOnly = computed(() =>
       props.localOnly === "anonymous"
-        ? isAnonymousUser.value
+        ? isAuthenticated.value === false
         : props.localOnly === "always",
     );
 

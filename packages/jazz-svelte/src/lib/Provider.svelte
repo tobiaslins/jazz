@@ -11,23 +11,23 @@
 </script>
 
 <script lang="ts" generics="Acc extends Account">
-  import { JazzContextManager } from 'jazz-browser';
+  import { JazzBrowserContextManager } from 'jazz-browser';
   import type { AccountClass } from 'jazz-tools';
   import { Account } from 'jazz-tools';
   import { type Snippet, setContext, untrack } from 'svelte';
   import { JAZZ_CTX, type JazzContext } from './jazz.svelte.js';
-  import { useIsAnonymousUser } from './auth/useAnonymousUser.svelte.js';
+  import { useIsAuthenticated } from './auth/useIsAuthenticated.svelte.js';
 
   let props: Props<Acc> = $props();
 
-  const contextManager = new JazzContextManager<Acc>();
+  const contextManager = new JazzBrowserContextManager<Acc>();
 
   const ctx = $state<JazzContext<Acc>>({ current: undefined });
   setContext<JazzContext<Acc>>(JAZZ_CTX, ctx);
 
-  const isAnonymousUser = useIsAnonymousUser();
+  const isAuthenticated = useIsAuthenticated();
   const localOnly = $derived(
-    props.localOnly === 'anonymous' ? isAnonymousUser.value : props.localOnly === 'always'
+    props.localOnly === 'anonymous' ? isAuthenticated.value === false : props.localOnly === 'always'
   );
 
   $effect(() => {

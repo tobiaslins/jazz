@@ -6,7 +6,7 @@ import React, { useEffect } from "react";
 
 import { JazzContext } from "jazz-react-core";
 import { Account, JazzContextType } from "jazz-tools";
-import { useIsAnonymousUser } from "./auth/AnonymousAuth.js";
+import { useIsAuthenticated } from "./auth/useIsAuthenticated.js";
 
 export interface Register {}
 
@@ -33,10 +33,10 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
     () => new JazzBrowserContextManager<Acc>(),
   );
 
-  const isAnonymousUser = useIsAnonymousUser();
+  const isAuthenticated = useIsAuthenticated();
   const localOnly =
     localOnlyProp === "anonymous"
-      ? isAnonymousUser
+      ? isAuthenticated === false
       : localOnlyProp === "always";
 
   const value = React.useSyncExternalStore<JazzContextType<Acc> | undefined>(

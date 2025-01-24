@@ -1,11 +1,11 @@
 import { AuthSecretStorage } from "jazz-browser";
 import { onMounted, onUnmounted, ref } from "vue";
 
-export function useIsAnonymousUser() {
-  const isAnonymous = ref(AuthSecretStorage.isAnonymous());
+export function useIsAuthenticated() {
+  const isAuthenticated = ref(AuthSecretStorage.isAuthenticated());
 
   const handleUpdate = () => {
-    isAnonymous.value = AuthSecretStorage.isAnonymous();
+    isAuthenticated.value = AuthSecretStorage.isAuthenticated();
   };
 
   onMounted(() => {
@@ -13,5 +13,5 @@ export function useIsAnonymousUser() {
     onUnmounted(cleanup);
   });
 
-  return isAnonymous;
+  return isAuthenticated;
 }

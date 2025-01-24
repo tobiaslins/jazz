@@ -3,7 +3,7 @@ import {
   createInviteLink,
   useAccount,
   useCoState,
-  useIsAnonymousUser,
+  useIsAuthenticated,
 } from "jazz-react";
 import { ID } from "jazz-tools";
 import { useNavigate, useParams } from "react-router";
@@ -71,7 +71,7 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
     });
   };
 
-  const isAnonymousUser = useIsAnonymousUser();
+  const isAuthenticated = useIsAuthenticated();
 
   return (
     <div className="flex flex-col h-screen text-gray-800 bg-blue-50">
@@ -93,7 +93,7 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
                   <Button onClick={handleCreatePlaylist}>New playlist</Button>
                 </>
               )}
-              {!isRootPlaylist && !isAnonymousUser && (
+              {!isRootPlaylist && isAuthenticated && (
                 <Button onClick={handlePlaylistShareClick}>
                   Share playlist
                 </Button>

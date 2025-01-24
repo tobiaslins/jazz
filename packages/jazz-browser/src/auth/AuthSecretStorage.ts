@@ -63,16 +63,16 @@ export const AuthSecretStorage = {
     this.emitUpdate();
   },
 
-  isAnonymous() {
-    if (typeof localStorage === "undefined") return true;
+  isAuthenticated() {
+    if (typeof localStorage === "undefined") return false;
 
     const data = localStorage.getItem(STORAGE_KEY);
 
-    if (!data) return true;
+    if (!data) return false;
 
     const parsed = JSON.parse(data);
 
-    return parsed.provider === "anonymous";
+    return parsed.provider !== "anonymous";
   },
 
   onUpdate(handler: () => void) {

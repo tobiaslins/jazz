@@ -1,4 +1,4 @@
-export { useIsAnonymousUser } from "./AnonymousAuth.js";
+export { useIsAuthenticated } from "./useIsAuthenticated.js";
 export { useDemoAuth, DemoAuthBasicUI } from "./DemoAuth.js";
 export {
   usePasskeyAuth,

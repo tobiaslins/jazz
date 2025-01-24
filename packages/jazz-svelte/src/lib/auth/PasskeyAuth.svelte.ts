@@ -1,6 +1,6 @@
 import { getJazzContext } from "$lib/jazz.svelte.js";
 import { BrowserPasskeyAuth } from "jazz-browser";
-import { useIsAnonymousUser } from "./useAnonymousUser.svelte.js";
+import { useIsAuthenticated } from "./useIsAuthenticated.svelte.js";
 
 export type PasskeyAuth = {
   current: BrowserPasskeyAuth;
@@ -23,9 +23,9 @@ export function usePasskeyAuth({
     appHostname
   );
   
-  const isAnonymousUser = useIsAnonymousUser();
+  const isAuthenticated = useIsAuthenticated();
   
-  const state = $derived(isAnonymousUser.value ? "anonymous" : "signedIn");
+  const state = $derived(isAuthenticated.value ? "signedIn" : "anonymous");
 
   return {
     current: auth,

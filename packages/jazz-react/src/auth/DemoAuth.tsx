@@ -3,7 +3,7 @@ import { BrowserDemoAuth } from "jazz-browser";
 import { useJazzContext } from "jazz-react-core";
 import { Account, ID } from "jazz-tools";
 import { useMemo, useState } from "react";
-import { useIsAnonymousUser } from "./AnonymousAuth.js";
+import { useIsAuthenticated } from "./useIsAuthenticated.js";
 
 /**
  * `useDemoAuth` is a hook that provides a `JazzAuth` object for demo authentication.
@@ -28,14 +28,14 @@ export function useDemoAuth({
     return new BrowserDemoAuth(context.authenticate, seedAccounts);
   }, [seedAccounts]);
 
-  const isAnonymousUser = useIsAnonymousUser();
+  const isAuthenticated = useIsAuthenticated();
   const existingUsers = useMemo(
     () => authMethod.getExistingUsers(),
     [authMethod],
   );
 
   return {
-    state: isAnonymousUser ? "anonymous" : "signedIn",
+    state: isAuthenticated ? "signedIn" : "anonymous",
     logIn: authMethod.logIn,
     signUp: authMethod.signUp,
     existingUsers,

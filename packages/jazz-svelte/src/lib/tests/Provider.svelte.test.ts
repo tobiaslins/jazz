@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getContext } from 'svelte';
-import { Account, type AuthMethod } from 'jazz-tools';
+import { Account } from 'jazz-tools';
 import { getJazzContext, JAZZ_CTX } from '../jazz.svelte.js';
 import { render, screen } from '@testing-library/svelte';
 import ProviderTestComponent from './components/ProviderTestComponent.svelte'
 import { createJazzTestAccount, getJazzContextShape } from 'jazz-tools/testing';
-import { JazzContextManager } from 'jazz-browser';
+import { JazzBrowserContextManager } from 'jazz-browser';
 
 vi.mock('svelte', async (importOriginal) => {
   return {
@@ -17,12 +17,12 @@ vi.mock('svelte', async (importOriginal) => {
 
 const account = await createJazzTestAccount();
 
-JazzContextManager.prototype.getCurrentValue = vi.fn(() => getJazzContextShape(account));
-const createContexSpy = vi.spyOn(JazzContextManager.prototype, 'createContext');
+JazzBrowserContextManager.prototype.getCurrentValue = vi.fn(() => getJazzContextShape(account));
+const createContexSpy = vi.spyOn(JazzBrowserContextManager.prototype, 'createContext');
 
 // Mock jazz-browser as the browser context is not always available
 vi.mock('jazz-browser', () => ({
-  JazzContextManager: class {
+  JazzBrowserContextManager: class {
     async createContext() {}
     toggleNetwork() {}
     subscribe(fn: () => void) {
@@ -35,7 +35,7 @@ vi.mock('jazz-browser', () => ({
     }
   },
   AuthSecretStorage: {
-    isAnonymous: () => false,
+    isAuthenticated: () => true,
     onUpdate: vi.fn().mockReturnValue(() => {})
   }
 }));
@@ -96,15 +96,9 @@ describe('jazz.svelte', () => {
 
   describe('Provider Component', () => {
     it('should provide jazz context to children', async () => {
-      const mockAuthState = {
-        type: 'account',
-        account: mockAccount,
-        signOut: vi.fn()
-      } as unknown as AuthMethod;
-
       render(ProviderTestComponent, {
         props: {
-          auth: mockAuthState
+          guestMode: false
         }
       });
 

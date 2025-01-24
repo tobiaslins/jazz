@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useAccount, useIsAnonymousUser } from "jazz-react";
+import { useAccount, useIsAuthenticated } from "jazz-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthModal } from "./AuthModal";
@@ -11,14 +11,14 @@ export function AuthButton() {
   const { logOut } = useAccount();
   const navigate = useNavigate();
 
-  const isAnonymousUser = useIsAnonymousUser();
+  const isAuthenticated = useIsAuthenticated();
 
   function handleSignOut() {
     logOut();
     navigate("/");
   }
 
-  if (!isAnonymousUser) {
+  if (isAuthenticated) {
     return (
       <Button variant="outline" onClick={handleSignOut}>
         Sign out

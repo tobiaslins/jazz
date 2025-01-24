@@ -1,4 +1,4 @@
-import { useAccount, useIsAnonymousUser } from "jazz-react";
+import { useAccount, useIsAuthenticated } from "jazz-react";
 import { AuthButton } from "./AuthButton.tsx";
 import { Form } from "./Form.tsx";
 import { Logo } from "./Logo.tsx";
@@ -6,18 +6,18 @@ import { Logo } from "./Logo.tsx";
 function App() {
   const { me } = useAccount({ profile: {}, root: {} });
 
-  const isAnonymousUser = useIsAnonymousUser();
+  const isAuthenticated = useIsAuthenticated();
 
   return (
     <>
       <header>
         <nav className="container flex justify-between items-center py-3">
-          {isAnonymousUser ? (
-            <span>Authenticate to share the data with another device.</span>
-          ) : (
+          {isAuthenticated ? (
             <span>
               You're logged in as <strong>{me?.profile?.name}</strong>
             </span>
+          ) : (
+            <span>Authenticate to share the data with another device.</span>
           )}
           <AuthButton />
         </nav>

@@ -3,7 +3,7 @@ import { BrowserDemoAuth } from "jazz-browser";
 import { Account, ID } from "jazz-tools";
 import { computed, watch } from "vue";
 import { useJazzContext } from "../composables.js";
-import { useIsAnonymousUser } from "./useIsAnonymousUser.js";
+import { useIsAuthenticated } from "./useIsAuthenticated.js";
 
 export function useDemoAuth(
   options: {
@@ -18,14 +18,14 @@ export function useDemoAuth(
     () => new BrowserDemoAuth(context.value.authenticate, options.seedAccounts),
   );
 
-  const isAnonymousUser = useIsAnonymousUser();
+  const isAuthenticated = useIsAuthenticated();
 
-  watch(isAnonymousUser, () => {
-    console.log("isAnonymousUser", isAnonymousUser.value);
+  watch(isAuthenticated, () => {
+    console.log("isAuthenticated", isAuthenticated.value);
   });
 
   return computed(() => ({
-    state: isAnonymousUser.value ? "anonymous" : "signedIn",
+    state: isAuthenticated.value ? "signedIn" : "anonymous",
     logIn(username: string) {
       authMethod.value.logIn(username);
     },

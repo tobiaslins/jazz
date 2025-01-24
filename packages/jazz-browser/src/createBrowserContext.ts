@@ -22,7 +22,7 @@ export { AuthSecretStorage } from "./auth/AuthSecretStorage.js";
 export { BrowserDemoAuth } from "./auth/DemoAuth.js";
 export { BrowserPasskeyAuth } from "./auth/PasskeyAuth.js";
 export { BrowserPassphraseAuth } from "./auth/PassphraseAuth.js";
-import { createJazzContext } from "jazz-tools/src/implementation/createContext.js";
+import { createJazzContext } from "jazz-tools";
 import { AuthSecretStorage } from "./auth/AuthSecretStorage.js";
 import { setupInspector } from "./utils/export-account-inspector.js";
 

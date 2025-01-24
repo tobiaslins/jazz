@@ -4,7 +4,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { JazzProvider, useIsAnonymousUser } from "jazz-react";
+import { JazzProvider, useIsAuthenticated } from "jazz-react";
 
 // Import your publishable key
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -17,11 +17,11 @@ function JazzAndAuth({ children }: { children: React.ReactNode }) {
   const clerk = useClerk();
   useJazzClerkAuth(clerk);
 
-  const isAnonymous = useIsAnonymousUser();
+  const isAuthenticated = useIsAuthenticated();
 
   return (
     <main className="container">
-      {isAnonymous ? <SignInButton /> : children}
+      {isAuthenticated ? children : <SignInButton />}
     </main>
   );
 }

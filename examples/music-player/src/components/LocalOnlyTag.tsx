@@ -5,13 +5,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useIsAnonymousUser } from "jazz-react";
+import { useIsAuthenticated } from "jazz-react";
 import { Info } from "lucide-react";
 
 export function LocalOnlyTag() {
-  const isAnonymousUser = useIsAnonymousUser();
+  const isAuthenticated = useIsAuthenticated();
 
-  if (!isAnonymousUser) {
+  if (isAuthenticated) {
     return null;
   }
 

@@ -148,12 +148,12 @@ describe("AuthSecretStorage", () => {
     });
   });
 
-  describe("isAnonymous", () => {
+  describe("isAuthenticated", () => {
     it("should return false when no data exists", () => {
-      expect(AuthSecretStorage.isAnonymous()).toBe(false);
+      expect(AuthSecretStorage.isAuthenticated()).toBe(false);
     });
 
-    it("should return true for anonymous credentials", () => {
+    it("should return false for anonymous credentials", () => {
       AuthSecretStorage.set({
         accountID: "test123" as ID<Account>,
         accountSecret:
@@ -161,10 +161,10 @@ describe("AuthSecretStorage", () => {
         secretSeed: new Uint8Array([1, 2, 3]),
         provider: "anonymous",
       });
-      expect(AuthSecretStorage.isAnonymous()).toBe(true);
+      expect(AuthSecretStorage.isAuthenticated()).toBe(false);
     });
 
-    it("should return false for non-anonymous credentials", () => {
+    it("should return true for non-anonymous credentials", () => {
       AuthSecretStorage.set({
         accountID: "test123" as ID<Account>,
         accountSecret:
@@ -172,7 +172,17 @@ describe("AuthSecretStorage", () => {
         secretSeed: new Uint8Array([1, 2, 3]),
         provider: "demo",
       });
-      expect(AuthSecretStorage.isAnonymous()).toBe(false);
+      expect(AuthSecretStorage.isAuthenticated()).toBe(true);
+    });
+
+    it("should return true when the provider is missing", () => {
+      AuthSecretStorage.set({
+        accountID: "test123" as ID<Account>,
+        accountSecret:
+          "secret123" as `sealerSecret_z${string}/signerSecret_z${string}`,
+        secretSeed: new Uint8Array([1, 2, 3]),
+      } as any);
+      expect(AuthSecretStorage.isAuthenticated()).toBe(true);
     });
   });
 
