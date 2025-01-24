@@ -58,9 +58,7 @@ export class JazzBrowserContextManager<
     }
 
     return (
-      props.peer !== this.props.peer ||
-      props.storage !== this.props.storage ||
-      props.guestMode !== this.props.guestMode
+      props.peer !== this.props.peer || props.guestMode !== this.props.guestMode
     );
   }
 }
