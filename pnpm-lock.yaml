@@ -1528,6 +1528,8 @@ importers:
         specifier: 8.5.10
         version: 8.5.10
 
+  packages/coverage: {}
+
   packages/create-jazz-app:
     dependencies:
       chalk:

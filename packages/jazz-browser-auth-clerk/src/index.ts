@@ -14,6 +14,10 @@ function saveCredentialsToLocalStorage(credentials: Credentials) {
   );
 }
 
+function clearStoredCredentials() {
+  localStorage.removeItem(localStorageKey);
+}
+
 export class BrowserClerkAuth implements AuthMethod {
   constructor(
     public driver: BrowserClerkAuth.Driver,
@@ -21,8 +25,22 @@ export class BrowserClerkAuth implements AuthMethod {
   ) {}
 
   async start(): Promise<AuthResult> {
+    // clear localStorage if the current Clerk user doesn't match stored credentials
+    let locallyStoredCredentials = localStorage.getItem(localStorageKey);
+    if (locallyStoredCredentials && this.clerkClient.user) {
+      try {
+        const stored = JSON.parse(locallyStoredCredentials);
+        const clerkMetadata = this.clerkClient.user.unsafeMetadata;
+        if (clerkMetadata.jazzAccountID !== stored.accountID) {
+          clearStoredCredentials();
+        }
+      } catch (e) {
+        clearStoredCredentials();
+      }
+    }
+
     // Check local storage for credentials
-    const locallyStoredCredentials = localStorage.getItem(localStorageKey);
+    locallyStoredCredentials = localStorage.getItem(localStorageKey);
 
     if (locallyStoredCredentials) {
       try {
@@ -36,7 +54,7 @@ export class BrowserClerkAuth implements AuthMethod {
             this.driver.onError(error);
           },
           logOut: () => {
-            localStorage.removeItem(localStorageKey);
+            clearStoredCredentials();
             void this.clerkClient.signOut();
           },
         };
@@ -69,6 +87,7 @@ export class BrowserClerkAuth implements AuthMethod {
             this.driver.onError(error);
           },
           logOut: () => {
+            clearStoredCredentials();
             void this.clerkClient.signOut();
           },
         };
@@ -103,6 +122,7 @@ export class BrowserClerkAuth implements AuthMethod {
             this.driver.onError(error);
           },
           logOut: () => {
+            clearStoredCredentials();
             void this.clerkClient.signOut();
           },
         };

@@ -15,6 +15,10 @@ function saveCredentialsToStorage(kvStore: KvStore, credentials: Credentials) {
   );
 }
 
+async function clearStoredCredentials(kvStore: KvStore) {
+  await kvStore.delete(localStorageKey);
+}
+
 export class ReactNativeClerkAuth implements AuthMethod {
   constructor(
     public driver: ReactNativeClerkAuth.Driver,
@@ -23,12 +27,28 @@ export class ReactNativeClerkAuth implements AuthMethod {
   ) {}
 
   async start(): Promise<AuthResult> {
-    // Check local storage for credentials
     const locallyStoredCredentials = await this.kvStore.get(localStorageKey);
-
-    if (locallyStoredCredentials) {
+    if (locallyStoredCredentials && this.clerkClient.user) {
       try {
-        const credentials = JSON.parse(locallyStoredCredentials) as Credentials;
+        const stored = JSON.parse(locallyStoredCredentials);
+        const clerkMetadata = this.clerkClient.user.unsafeMetadata;
+        if (clerkMetadata.jazzAccountID !== stored.accountID) {
+          await clearStoredCredentials(this.kvStore);
+        }
+      } catch (e) {
+        await clearStoredCredentials(this.kvStore);
+      }
+    }
+
+    // Check local storage for credentials
+    const locallyStoredCredentialsAgain =
+      await this.kvStore.get(localStorageKey);
+
+    if (locallyStoredCredentialsAgain) {
+      try {
+        const credentials = JSON.parse(
+          locallyStoredCredentialsAgain,
+        ) as Credentials;
         return {
           type: "existing",
           credentials,
@@ -38,7 +58,7 @@ export class ReactNativeClerkAuth implements AuthMethod {
             this.driver.onError(error);
           },
           logOut: () => {
-            void this.kvStore.delete(localStorageKey);
+            void clearStoredCredentials(this.kvStore);
             void this.clerkClient.signOut();
           },
         };
@@ -71,6 +91,7 @@ export class ReactNativeClerkAuth implements AuthMethod {
             this.driver.onError(error);
           },
           logOut: () => {
+            void clearStoredCredentials(this.kvStore);
             void this.clerkClient.signOut();
           },
         };
@@ -105,6 +126,7 @@ export class ReactNativeClerkAuth implements AuthMethod {
             this.driver.onError(error);
           },
           logOut: () => {
+            void clearStoredCredentials(this.kvStore);
             void this.clerkClient.signOut();
           },
         };

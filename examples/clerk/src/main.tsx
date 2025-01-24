@@ -4,6 +4,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import type { Clerk } from "@clerk/clerk-js";
 import { JazzProvider } from "jazz-react";
 
 // Import your publishable key
@@ -15,7 +16,9 @@ if (!PUBLISHABLE_KEY) {
 
 function JazzAndAuth({ children }: { children: React.ReactNode }) {
   const clerk = useClerk();
-  const [auth, state] = useJazzClerkAuth(clerk);
+  const [auth, state] = useJazzClerkAuth(
+    clerk as Clerk & { signOut: () => Promise<unknown> },
+  );
 
   return (
     <main className="container">
