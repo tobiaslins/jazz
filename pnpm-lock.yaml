@@ -1528,6 +1528,8 @@ importers:
         specifier: 8.5.10
         version: 8.5.10
 
+  packages/coverage: {}
+
   packages/create-jazz-app:
     dependencies:
       chalk:
@@ -3137,8 +3139,8 @@ packages:
       expo-secure-store:
         optional: true
 
-  '@clerk/clerk-js@5.43.3':
-    resolution: {integrity: sha512-F+ovIOOLEvgJJquGeRcxTUMeVThUYoN9cBUjWUAxpd25NVb2wcuZz/n6yxEaKuhv8lHXdww5m1rlVQIdi1R6cg==}
+  '@clerk/clerk-js@5.47.0':
+    resolution: {integrity: sha512-0S3xHJCJLIN2/EeiWF7uk+JstbL92dRbQ2ccEolnQiyMJUKHjwv3NGC5QxVizq1tEQrRcxVYWz46fb0DFamFVA==}
     engines: {node: '>=18.17.0'}
     peerDependencies:
       react: 18.3.1
@@ -3151,9 +3153,21 @@ packages:
       react: 18.3.1
       react-dom: 18.3.1
 
-  '@clerk/localizations@3.9.4':
-    resolution: {integrity: sha512-VvaSvvXRZuivJWFGPQ5IJI4hhusnS0NQKn5yTF8vd0Y3zv2wCoDcSHrzGsLB5KOj1Qd89GyWb4Pd/50Fh3YCwQ==}
+  '@clerk/localizations@3.9.13':
+    resolution: {integrity: sha512-Uw3DqK3Fwns6a6jw8cjM4B3UXAlNDgwMRpI93pOnZlWNeaP7jTGrsRPrq1sBDX8BDGcXYKDoUfM4o73caUoyfQ==}
     engines: {node: '>=18.17.0'}
+
+  '@clerk/shared@2.20.12':
+    resolution: {integrity: sha512-uy9Z2h0VXbQ4xwjj8mKuQSwm8MEFTAec+3gu4MSTyc1WboaPfX3MnO3qjqJEwu/oQkakocVI0P3nViYbXokZtQ==}
+    engines: {node: '>=18.17.0'}
+    peerDependencies:
+      react: 18.3.1
+      react-dom: 18.3.1
+    peerDependenciesMeta:
+      react:
+        optional: true
+      react-dom:
+        optional: true
 
   '@clerk/shared@2.20.4':
     resolution: {integrity: sha512-1ndGEO+NejIMFkl47DCeSpVv3nmKh9BHD6wt2Sl3X1wv7sj3eWzSVC14Exkag7D8Og2VcN4LXOFLErsCXHS+YQ==}
@@ -3169,6 +3183,10 @@ packages:
 
   '@clerk/types@4.40.0':
     resolution: {integrity: sha512-9QdllXYujsjYLbvPg9Kq1rWOemX5FB0r6Ijy8HOxwjKN+TPlxUnGcs+t7IwU+M5gdmZ2KV6aA6d1a2q2FlSoiA==}
+    engines: {node: '>=18.17.0'}
+
+  '@clerk/types@4.42.0':
+    resolution: {integrity: sha512-SPBRHdP+ZggeudncbSj8KLOZ5PdVmtgZhL+tXremVJrETi9WHpf1UOYgnIHl+clp6GZC2IQM4tq57RSrHf0Oew==}
     engines: {node: '>=18.17.0'}
 
   '@coinbase/wallet-sdk@4.0.4':
@@ -12500,7 +12518,7 @@ snapshots:
 
   '@clerk/clerk-expo@2.6.5(dxzpvinlcnpqlc4vkhiczb2xvi)':
     dependencies:
-      '@clerk/clerk-js': 5.43.3(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@clerk/clerk-js': 5.47.0(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@clerk/clerk-react': 5.20.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@clerk/shared': 2.20.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@clerk/types': 4.40.0
@@ -12518,11 +12536,11 @@ snapshots:
       - '@types/react'
       - supports-color
 
-  '@clerk/clerk-js@5.43.3(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@clerk/clerk-js@5.47.0(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
-      '@clerk/localizations': 3.9.4
-      '@clerk/shared': 2.20.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@clerk/types': 4.40.0
+      '@clerk/localizations': 3.9.13
+      '@clerk/shared': 2.20.12(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@clerk/types': 4.42.0
       '@coinbase/wallet-sdk': 4.0.4
       '@emotion/cache': 11.11.0
       '@emotion/react': 11.11.1(@types/react@18.3.18)(react@18.3.1)
@@ -12553,9 +12571,21 @@ snapshots:
       react-dom: 18.3.1(react@18.3.1)
       tslib: 2.4.1
 
-  '@clerk/localizations@3.9.4':
+  '@clerk/localizations@3.9.13':
     dependencies:
-      '@clerk/types': 4.40.0
+      '@clerk/types': 4.42.0
+
+  '@clerk/shared@2.20.12(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@clerk/types': 4.42.0
+      dequal: 2.0.3
+      glob-to-regexp: 0.4.1
+      js-cookie: 3.0.5
+      std-env: 3.8.0
+      swr: 2.2.5(react@18.3.1)
+    optionalDependencies:
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
   '@clerk/shared@2.20.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
@@ -12570,6 +12600,10 @@ snapshots:
       react-dom: 18.3.1(react@18.3.1)
 
   '@clerk/types@4.40.0':
+    dependencies:
+      csstype: 3.1.1
+
+  '@clerk/types@4.42.0':
     dependencies:
       csstype: 3.1.1
 
