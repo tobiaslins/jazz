@@ -1,5 +1,12 @@
 # jazz-tools
 
+## 0.9.17
+
+### Patch Changes
+
+- c2ca1fe: Add cross-platform invite API
+- 1227047: Improve typescript types for group.addMember
+
 ## 0.9.16
 
 ### Patch Changes
