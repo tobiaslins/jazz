@@ -15,6 +15,8 @@ type ClerkCredentials = {
   jazzAccountSeed?: number[];
 };
 
+export type { MinimalClerkClient };
+
 export class BrowserClerkAuth {
   constructor(private authenticate: AuthenticateAccountFunction) {}
 
@@ -33,8 +35,6 @@ export class BrowserClerkAuth {
     } else {
       await this.logIn(clerkClient);
     }
-
-    await clerkClient.signOut();
   };
 
   logIn = async (clerkClient: MinimalClerkClient) => {

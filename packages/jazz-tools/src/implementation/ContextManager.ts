@@ -9,6 +9,7 @@ export type JazzContextManagerAuthProps = {
 
 type Props = {
   localOnly?: boolean;
+  onLogOut?: () => void;
 };
 
 type PlatformSpecificAuthContext<Acc extends Account> = {
@@ -82,6 +83,7 @@ export class JazzContextManager<Acc extends Account, P extends Props> {
     }
 
     this.context.logOut();
+    this.props.onLogOut?.();
     return this.createContext(this.props);
   };
 

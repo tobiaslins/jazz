@@ -1766,6 +1766,9 @@ importers:
         specifier: 18.3.1
         version: 18.3.1
     devDependencies:
+      '@testing-library/react':
+        specifier: ^16.1.0
+        version: 16.1.0(@testing-library/dom@10.4.0)(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@types/react':
         specifier: ^18.3.12
         version: 18.3.18

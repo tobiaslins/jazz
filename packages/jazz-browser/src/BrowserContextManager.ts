@@ -12,6 +12,7 @@ export type JazzContextManagerProps<Acc extends Account> = {
   guestMode?: boolean;
   peer: `wss://${string}` | `ws://${string}`;
   localOnly?: boolean;
+  onLogOut?: () => void;
   storage?: BaseBrowserContextOptions["storage"];
   AccountSchema?: AccountClass<Acc>;
   defaultProfileName?: string;
