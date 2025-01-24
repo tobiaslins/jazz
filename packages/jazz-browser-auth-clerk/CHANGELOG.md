@@ -1,5 +1,16 @@
 # jazz-browser-media-images
 
+## 0.9.16
+
+### Patch Changes
+
+- 24b3b6a: Extract friendly user name for profile creation when authenticating using Clerk with a regular email address.
+  Email passed to creationProps when using Clerk auth
+  Clear stored Clerk credentials on logout
+- Updated dependencies [24b3b6a]
+  - jazz-tools@0.9.16
+  - jazz-browser@0.9.16
+
 ## 0.9.15
 
 ### Patch Changes
