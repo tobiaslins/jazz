@@ -50,6 +50,12 @@ export {
 } from "./internal.js";
 
 export {
+  createInviteLink,
+  parseInviteLink,
+  consumeInviteLink,
+} from "./implementation/invites.js";
+
+export {
   AnonymousJazzAgent,
   createAnonymousJazzContext,
   createJazzContext,
