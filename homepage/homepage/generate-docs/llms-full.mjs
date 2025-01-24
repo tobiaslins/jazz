@@ -1,5 +1,7 @@
+import { promises as fs } from "fs";
+import path from "path";
 import { Deserializer, ReflectionKind } from "typedoc";
-import { PACKAGES } from "./utils/config.mjs";
+import { DOC_SECTIONS, PACKAGES } from "./utils/config.mjs";
 import {
   getPackageDescription,
   loadTypedocFiles,
@@ -202,6 +204,87 @@ function formatComment(comment) {
   return text;
 }
 
+async function readMdxContent(url) {
+  try {
+    // Special case for the introduction
+    if (url === "/docs") {
+      const introPath = path.join(
+        process.cwd(),
+        "components/docs/docs-intro.mdx",
+      );
+      try {
+        const content = await fs.readFile(introPath, "utf8");
+        // Remove imports and exports
+        return content
+          .replace(/^import[^\n]*\n/gm, "")
+          .replace(/export const metadata[^;]*;/, "")
+          .trim();
+      } catch (err) {
+        if (err.code !== "ENOENT") throw err;
+      }
+    }
+
+    // Convert URL to file path
+    // Remove leading slash and 'docs' from URL
+    const relativePath = url.replace(/^\/docs\/?/, "");
+
+    // Base directory for docs
+    const baseDir = path.join(process.cwd(), "app/docs/[framework]/[...slug]");
+
+    // If it's a directory, try to read all framework variants
+    const fullPath = path.join(baseDir, relativePath);
+    try {
+      const stats = await fs.stat(fullPath);
+      if (stats.isDirectory()) {
+        // Read all MDX files in the directory
+        const files = await fs.readdir(fullPath);
+        const mdxFiles = files.filter((f) => f.endsWith(".mdx"));
+
+        if (mdxFiles.length === 0) return null;
+
+        // Combine content from all framework variants
+        const contents = await Promise.all(
+          mdxFiles.map(async (file) => {
+            const content = await fs.readFile(
+              path.join(fullPath, file),
+              "utf8",
+            );
+            // Remove imports and exports
+            const cleanContent = content
+              .replace(/^import[^\n]*\n/gm, "")
+              .replace(/export const metadata[^;]*;/, "")
+              .trim();
+            return `### ${path.basename(file, ".mdx")} Implementation\n\n${cleanContent}`;
+          }),
+        );
+
+        return contents.join("\n\n---\n\n");
+      }
+    } catch (err) {
+      if (err.code !== "ENOENT") throw err;
+    }
+
+    // Try as a single MDX file
+    const mdxPath = fullPath + ".mdx";
+    try {
+      const content = await fs.readFile(mdxPath, "utf8");
+      // Remove imports and exports
+      return content
+        .replace(/^import[^\n]*\n/gm, "")
+        .replace(/export const metadata[^;]*;/, "")
+        .trim();
+    } catch (err) {
+      if (err.code !== "ENOENT") throw err;
+    }
+
+    console.warn(`Could not find MDX content for ${url} at ${fullPath}`);
+    return null;
+  } catch (error) {
+    console.warn(`Error reading MDX content for ${url}:`, error);
+    return null;
+  }
+}
+
 async function generateDetailedDocs(docs) {
   const output = [];
   const deserializer = new Deserializer();
@@ -209,202 +292,205 @@ async function generateDetailedDocs(docs) {
   // Project title
   output.push("# Jazz\n");
 
-  // Project summary
-  output.push(
-    "> Jazz is a collaborative application framework that enables real-time sync, offline-first capabilities, and end-to-end encryption. It provides a set of tools and libraries for building collaborative web applications.\n\n",
-  );
+  // Documentation sections with full content
+  output.push("## Documentation\n");
+  for (const section of DOC_SECTIONS) {
+    output.push(`### ${section.title}\n`);
 
-  // General information
-  output.push(
-    "Jazz consists of several packages that work together to provide a complete collaborative application framework:\n",
-  );
-
-  // Generate package list from config
-  PACKAGES.forEach(({ packageName, description }) => {
-    output.push(`- ${packageName}: ${description}\n`);
-  });
-  output.push("\n");
-
-  // Process each package
-  for (const [packageName, packageDocs] of Object.entries(docs)) {
-    const project = deserializer.reviveProject(packageDocs, packageName);
-
-    // Add package heading with description
-    output.push(`## ${packageName}\n`);
-    output.push(`${getPackageDescription(packageName)}\n\n`);
-    output.push(
-      `[API Reference](https://jazz.tools/api-reference/${packageName})\n\n`,
-    );
-
-    // Process each category
-    project.categories?.forEach((category) => {
-      output.push(`### ${category.title}\n`);
-
-      category.children.forEach((child) => {
-        // Add name, kind, and API reference link
-        const apiLink = `[API Reference](https://jazz.tools/api-reference/${packageName}#${child.name})`;
-        output.push(
-          `#### ${child.name} (${ReflectionKind[child.kind]}) ${apiLink}\n`,
-        );
-
-        // Add description if available
-        const description = formatComment(child.comment);
-        if (description) {
-          output.push(`${description}\n`);
-        }
-
-        output.push("\n");
-
-        // Add properties for classes/interfaces
-        if (child.children) {
-          output.push("Properties:\n");
-
-          // Group overloaded methods by name
-          const methodGroups = new Map();
-          child.children.forEach((prop) => {
-            if (prop.signatures?.length > 0) {
-              const existing = methodGroups.get(prop.name) || [];
-              methodGroups.set(prop.name, [...existing, prop]);
-            }
-          });
-
-          child.children.forEach((prop) => {
-            // Skip if this is an overloaded method that we'll handle later
-            if (
-              prop.signatures?.length > 0 &&
-              methodGroups.get(prop.name)?.length > 1
-            ) {
-              return;
-            }
-
-            const type = formatType(prop.type);
-            const description = formatComment(prop.comment);
-
-            // Output the property name and type, but skip the type for methods since we'll show signatures
-            if (prop.signatures?.length > 0) {
-              output.push(
-                `- ${prop.name}${description ? ` - ${description}` : ""}\n`,
-              );
-            } else {
-              output.push(
-                `- ${prop.name}: ${type}${description ? ` - ${description}` : ""}\n`,
-              );
-            }
-
-            // Handle method signatures with proper indentation
-            if (prop.signatures) {
-              prop.signatures.forEach((sig) => {
-                const params = sig.parameters
-                  ?.map((p) => {
-                    const paramType = formatType(p.type);
-                    return `${p.name}: ${paramType}`;
-                  })
-                  .join(", ");
-
-                output.push(
-                  `    Method signature: \`(${params || ""}) => ${formatType(sig.type)}\`\n`,
-                );
-
-                // Add API reference URL for the method
-                output.push(
-                  `    [API Reference](https://jazz.tools/api-reference/${packageName}#${child.name}.${prop.name})\n`,
-                );
-
-                const methodDesc = formatComment(sig.comment);
-                if (methodDesc) {
-                  // Indent each line of the description
-                  const indentedDesc = methodDesc
-                    .split("\n")
-                    .map((line) => `    ${line}`)
-                    .join("\n");
-                  output.push(`${indentedDesc}\n`);
-                }
-              });
-            }
-          });
-
-          // Handle overloaded methods
-          methodGroups.forEach((props, name) => {
-            if (props.length <= 1) return;
-
-            const firstProp = props[0];
-            const description = formatComment(firstProp.comment);
-
-            output.push(`- ${name}${description ? ` - ${description}` : ""}\n`);
-
-            // Combine all signatures with proper indentation
-            const allSignatures = props.flatMap((p) => p.signatures || []);
-            allSignatures.forEach((sig) => {
-              const params = sig.parameters
-                ?.map((p) => {
-                  const paramType = formatType(p.type);
-                  return `${p.name}: ${paramType}`;
-                })
-                .join(", ");
-
-              output.push(
-                `    Method signature: \`(${params || ""}) => ${formatType(sig.type)}\`\n`,
-              );
-
-              // Add API reference URL for the overloaded method
-              output.push(
-                `    [API Reference](https://jazz.tools/api-reference/${packageName}#${child.name}.${name})\n`,
-              );
-
-              const methodDesc = formatComment(sig.comment);
-              if (methodDesc) {
-                // Indent each line of the description
-                const indentedDesc = methodDesc
-                  .split("\n")
-                  .map((line) => `    ${line}`)
-                  .join("\n");
-                output.push(`${indentedDesc}\n`);
-              }
-            });
-          });
-        }
-
-        // Add signatures for functions/methods
-        if (child.signatures) {
-          child.signatures.forEach((sig) => {
-            const params = sig.parameters
-              ?.map((p) => {
-                const type = formatType(p.type);
-                const desc = formatComment(p.comment);
-                return `${p.name}: ${type}${desc ? ` - ${desc}` : ""}`;
-              })
-              .join(", ");
-
-            output.push(`Signature: ${child.name}(${params || ""})`);
-
-            if (sig.type) {
-              output.push(`Returns: ${formatType(sig.type)}`);
-              if (sig.comment?.returns) {
-                output.push(
-                  `Return description: ${sig.comment.returns
-                    .map((part) => part.text)
-                    .join("")
-                    .trim()}`,
-                );
-              }
-            }
-
-            const sigComment = formatComment(sig.comment);
-            if (sigComment) {
-              output.push(`\n${sigComment}`);
-            }
-
-            output.push("\n");
-          });
-        }
-
-        output.push("\n");
-      });
-    });
+    for (const page of section.pages) {
+      output.push(`#### ${page.title}\n`);
+      const content = await readMdxContent(page.url);
+      console.log(content);
+      if (content) {
+        // If the content contains framework-specific implementations, they're already properly formatted
+        // Otherwise, just add the content directly
+        output.push(content + "\n");
+      }
+      output.push("\n");
+    }
   }
 
+  // API Reference by package
+  output.push("## API Reference\n\n");
+  // for (const [packageName, packageDocs] of Object.entries(docs)) {
+  //   const project = deserializer.reviveProject(packageDocs, packageName);
+
+  //   // Add package heading with description
+  //   output.push(`### ${packageName}\n`);
+  //   output.push(`${getPackageDescription(packageName)}\n\n`);
+  //   output.push(
+  //     `[API Reference](https://jazz.tools/api-reference/${packageName})\n\n`,
+  //   );
+
+  //   // Process each category
+  //   project.categories?.forEach((category) => {
+  //     output.push(`#### ${category.title}\n`);
+
+  //     category.children.forEach((child) => {
+  //       // Add name, kind, and API reference link
+  //       const apiLink = `[API Reference](https://jazz.tools/api-reference/${packageName}#${child.name})`;
+  //       output.push(
+  //         `##### ${child.name} (${ReflectionKind[child.kind]}) ${apiLink}\n`,
+  //       );
+
+  //       // Add description if available
+  //       const description = formatComment(child.comment);
+  //       if (description) {
+  //         output.push(`${description}\n`);
+  //       }
+
+  //       output.push("\n");
+
+  //       // Add properties for classes/interfaces
+  //       if (child.children) {
+  //         output.push("Properties:\n");
+
+  //         // Group overloaded methods by name
+  //         const methodGroups = new Map();
+  //         child.children.forEach((prop) => {
+  //           if (prop.signatures?.length > 0) {
+  //             const existing = methodGroups.get(prop.name) || [];
+  //             methodGroups.set(prop.name, [...existing, prop]);
+  //           }
+  //         });
+
+  //         child.children.forEach((prop) => {
+  //           // Skip if this is an overloaded method that we'll handle later
+  //           if (
+  //             prop.signatures?.length > 0 &&
+  //             methodGroups.get(prop.name)?.length > 1
+  //           ) {
+  //             return;
+  //           }
+
+  //           const type = formatType(prop.type);
+  //           const description = formatComment(prop.comment);
+
+  //           // Output the property name and type, but skip the type for methods since we'll show signatures
+  //           if (prop.signatures?.length > 0) {
+  //             output.push(
+  //               `- ${prop.name}${description ? ` - ${description}` : ""}\n`,
+  //             );
+  //           } else {
+  //             output.push(
+  //               `- ${prop.name}: ${type}${description ? ` - ${description}` : ""}\n`,
+  //             );
+  //           }
+
+  //           // Handle method signatures with proper indentation
+  //           if (prop.signatures) {
+  //             prop.signatures.forEach((sig) => {
+  //               const params = sig.parameters
+  //                 ?.map((p) => {
+  //                   const paramType = formatType(p.type);
+  //                   return `${p.name}: ${paramType}`;
+  //                 })
+  //                 .join(", ");
+
+  //               output.push(
+  //                 `    Method signature: \`(${params || ""}) => ${formatType(sig.type)}\`\n`,
+  //               );
+
+  //               // Add API reference URL for the method
+  //               output.push(
+  //                 `    [API Reference](https://jazz.tools/api-reference/${packageName}#${child.name}.${prop.name})\n`,
+  //               );
+
+  //               const methodDesc = formatComment(sig.comment);
+  //               if (methodDesc) {
+  //                 // Indent each line of the description
+  //                 const indentedDesc = methodDesc
+  //                   .split("\n")
+  //                   .map((line) => `    ${line}`)
+  //                   .join("\n");
+  //                 output.push(`${indentedDesc}\n`);
+  //               }
+  //             });
+  //           }
+  //         });
+
+  //         // Handle overloaded methods
+  //         methodGroups.forEach((props, name) => {
+  //           if (props.length <= 1) return;
+
+  //           const firstProp = props[0];
+  //           const description = formatComment(firstProp.comment);
+
+  //           output.push(`- ${name}${description ? ` - ${description}` : ""}\n`);
+
+  //           // Combine all signatures with proper indentation
+  //           const allSignatures = props.flatMap((p) => p.signatures || []);
+  //           allSignatures.forEach((sig) => {
+  //             const params = sig.parameters
+  //               ?.map((p) => {
+  //                 const paramType = formatType(p.type);
+  //                 return `${p.name}: ${paramType}`;
+  //               })
+  //               .join(", ");
+
+  //             output.push(
+  //               `    Method signature: \`(${params || ""}) => ${formatType(sig.type)}\`\n`,
+  //             );
+
+  //             // Add API reference URL for the overloaded method
+  //             output.push(
+  //               `    [API Reference](https://jazz.tools/api-reference/${packageName}#${child.name}.${name})\n`,
+  //             );
+
+  //             const methodDesc = formatComment(sig.comment);
+  //             if (methodDesc) {
+  //               // Indent each line of the description
+  //               const indentedDesc = methodDesc
+  //                 .split("\n")
+  //                 .map((line) => `    ${line}`)
+  //                 .join("\n");
+  //               output.push(`${indentedDesc}\n`);
+  //             }
+  //           });
+  //         });
+  //       }
+
+  //       // Add signatures for functions/methods
+  //       if (child.signatures) {
+  //         child.signatures.forEach((sig) => {
+  //           const params = sig.parameters
+  //             ?.map((p) => {
+  //               const type = formatType(p.type);
+  //               const desc = formatComment(p.comment);
+  //               return `${p.name}: ${type}${desc ? ` - ${desc}` : ""}`;
+  //             })
+  //             .join(", ");
+
+  //           output.push(`Signature: ${child.name}(${params || ""})`);
+
+  //           if (sig.type) {
+  //             output.push(`Returns: ${formatType(sig.type)}`);
+  //             if (sig.comment?.returns) {
+  //               output.push(
+  //                 `Return description: ${sig.comment.returns
+  //                   .map((part) => part.text)
+  //                   .join("")
+  //                   .trim()}`,
+  //               );
+  //             }
+  //           }
+
+  //           const sigComment = formatComment(sig.comment);
+  //           if (sigComment) {
+  //             output.push(`\n${sigComment}`);
+  //           }
+
+  //           output.push("\n");
+  //         });
+  //       }
+
+  //       output.push("\n");
+  //     });
+  //   });
+  // }
+
   // Optional section for additional resources
-  output.push("## Optional\n\n");
+  output.push("## Resources\n\n");
   output.push(
     "- [Documentation](https://jazz.tools/docs): Detailed documentation about Jazz\n",
   );
