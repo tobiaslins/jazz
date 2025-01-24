@@ -61,7 +61,6 @@ export class ReactNativeClerkAuth implements AuthMethod {
       }
     }
 
-    // Check local storage for credentials
     const locallyStoredCredentialsAgain =
       await this.kvStore.get(localStorageKey);
 

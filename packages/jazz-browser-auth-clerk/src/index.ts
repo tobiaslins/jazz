@@ -60,7 +60,6 @@ export class BrowserClerkAuth implements AuthMethod {
       }
     }
 
-    // Check local storage for credentials
     locallyStoredCredentials = localStorage.getItem(localStorageKey);
 
     if (locallyStoredCredentials) {
