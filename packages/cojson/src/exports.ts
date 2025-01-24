@@ -38,7 +38,7 @@ import {
 } from "./ids.js";
 import { Stringified, parseJSON, stableStringify } from "./jsonStringify.js";
 import { LocalNode } from "./localNode.js";
-import type { Role } from "./permissions.js";
+import type { AccountRole, Role } from "./permissions.js";
 import { Channel, connectedPeers } from "./streamUtils.js";
 import { accountOrAgentIDfromSessionID } from "./typeUtils/accountOrAgentIDfromSessionID.js";
 import { expectGroup } from "./typeUtils/expectGroup.js";
@@ -158,6 +158,7 @@ export type {
   Stringified,
   CoStreamItem,
   OpID,
+  AccountRole,
 };
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
