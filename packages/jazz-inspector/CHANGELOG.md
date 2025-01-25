@@ -1,5 +1,11 @@
 # jazz-inspector
 
+## 0.9.19
+
+### Patch Changes
+
+- 2faf22f: Fix published files config
+
 ## 0.9.18
 
 ### Patch Changes
