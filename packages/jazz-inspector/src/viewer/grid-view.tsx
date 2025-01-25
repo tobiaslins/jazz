@@ -1,8 +1,8 @@
 import { CoID, LocalNode, RawCoValue } from "cojson";
-import { JsonObject } from "cojson/src/jsonValue.ts";
-import { ResolveIcon } from "./type-icon.tsx";
-import { PageInfo, isCoId } from "./types.ts";
-import { CoMapPreview, ValueRenderer } from "./value-renderer.tsx";
+import { JsonObject } from "cojson/src/jsonValue.js";
+import { ResolveIcon } from "./type-icon.js";
+import { PageInfo, isCoId } from "./types.js";
+import { CoMapPreview, ValueRenderer } from "./value-renderer.js";
 
 export function GridView({
   data,
