@@ -1,5 +1,5 @@
 import { CoID, LocalNode, RawCoValue } from "cojson";
-import { JsonObject } from "cojson/src/jsonValue.js";
+import { JsonObject } from "cojson";
 import { ResolveIcon } from "./type-icon.js";
 import { PageInfo, isCoId } from "./types.js";
 import { CoMapPreview, ValueRenderer } from "./value-renderer.js";

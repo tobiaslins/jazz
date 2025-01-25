@@ -5,13 +5,9 @@ import {
   RawCoStream,
   RawCoValue,
 } from "cojson";
-import { base64URLtoBytes } from "cojson/src/base64url.js";
-import {
-  BinaryStreamItem,
-  BinaryStreamStart,
-  CoStreamItem,
-} from "cojson/src/coValues/coStream.js";
-import type { JsonObject, JsonValue } from "cojson/src/jsonValue.js";
+import { base64URLtoBytes } from "cojson";
+import { BinaryStreamItem, BinaryStreamStart, CoStreamItem } from "cojson";
+import type { JsonObject, JsonValue } from "cojson";
 import { useEffect, useState } from "react";
 import { PageInfo } from "./types.js";
 import { AccountOrGroupPreview } from "./value-renderer.js";
