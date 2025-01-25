@@ -17,6 +17,8 @@ import { OpID, RawCoList } from "./coValues/coList.js";
 import { RawCoMap } from "./coValues/coMap.js";
 import { RawCoPlainText, stringifyOpID } from "./coValues/coPlainText.js";
 import {
+  BinaryStreamItem,
+  BinaryStreamStart,
   CoStreamItem,
   RawBinaryCoStream,
   RawCoStream,
@@ -57,7 +59,7 @@ import type {
 import type { InviteSecret } from "./coValues/group.js";
 import type { AgentSecret } from "./crypto/crypto.js";
 import type { AgentID, RawCoID, SessionID } from "./ids.js";
-import type { JsonValue } from "./jsonValue.js";
+import type { JsonObject, JsonValue } from "./jsonValue.js";
 import type * as Media from "./media.js";
 import { disablePermissionErrors } from "./permissions.js";
 import type {
@@ -128,6 +130,7 @@ export {
   ControlledAgent,
   RawControlledAccount,
   MAX_RECOMMENDED_TX_SIZE,
+  JsonObject,
   JsonValue,
   Peer,
   BinaryStreamInfo,
@@ -143,6 +146,8 @@ export {
   RawCoPlainText,
   stringifyOpID,
   logger,
+  base64URLtoBytes,
+  bytesToBase64url,
 };
 
 export type {
@@ -157,6 +162,8 @@ export type {
   CoValueUniqueness,
   Stringified,
   CoStreamItem,
+  BinaryStreamItem,
+  BinaryStreamStart,
   OpID,
   AccountRole,
 };
