@@ -4,6 +4,7 @@
   "type": "module",
   "main": "./dist/jazz-inspector.js",
   "types": "./src/app.tsx",
+  "files": ["dist/**", "src"],
   "scripts": {
     "dev": "vite build --watch",
     "build": "tsc && vite build",
