@@ -1,5 +1,11 @@
 # jazz-tools
 
+## 0.9.20
+
+### Patch Changes
+
+- b01cc1f: Switches from symbols to prefixes strings for private properties
+
 ## 0.9.19
 
 ### Patch Changes

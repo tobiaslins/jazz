@@ -1,5 +1,12 @@
 # jazz-run
 
+## 0.9.20
+
+### Patch Changes
+
+- Updated dependencies [b01cc1f]
+  - jazz-tools@0.9.20
+
 ## 0.9.19
 
 ### Patch Changes
