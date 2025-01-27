@@ -14,6 +14,7 @@ import {
   blockMessageTypeOnOutgoingPeer,
   connectNodeToSyncServer,
   connectTwoPeers,
+  createConnectedTestAgentNode,
   createConnectedTestNode,
   createTestMetricReader,
   createTestNode,
@@ -870,14 +871,14 @@ test.skip("When loading a coValue on one node, the server node it is requested f
 });
 
 test("Can sync a coValue through a server to another client", async () => {
-  const client1 = await createConnectedTestNode();
+  const { node: client1 } = await createConnectedTestNode();
 
   const group = client1.createGroup();
 
   const map = group.createMap();
   map.set("hello", "world", "trusting");
 
-  const client2 = await createConnectedTestNode();
+  const { node: client2 } = await createConnectedTestNode();
 
   const mapOnClient2 = await loadCoValueOrFail(client2, map.id);
 
@@ -885,7 +886,7 @@ test("Can sync a coValue through a server to another client", async () => {
 });
 
 test("Can sync a coValue with private transactions through a server to another client", async () => {
-  const client1 = await createConnectedTestNode();
+  const { node: client1 } = await createConnectedTestNode();
 
   const group = client1.createGroup();
 
@@ -893,7 +894,7 @@ test("Can sync a coValue with private transactions through a server to another c
   map.set("hello", "world", "private");
   group.addMember("everyone", "reader");
 
-  const client2 = await createConnectedTestNode();
+  const { node: client2 } = await createConnectedTestNode();
 
   const mapOnClient2 = await loadCoValueOrFail(client2, map.id);
 
@@ -956,7 +957,7 @@ test.skip("When a peer's incoming/readable stream closes, we remove the peer", a
 });
 
 test("If we start loading a coValue before connecting to a peer that has it, it will load it once we connect", async () => {
-  const node1 = await createConnectedTestNode();
+  const { node: node1 } = await createConnectedTestNode();
 
   const group = node1.createGroup();
 
@@ -1475,29 +1476,6 @@ describe("sync - extra tests", () => {
   });
 });
 
-function createTwoConnectedNodes() {
-  // Setup nodes
-  const client = createTestNode();
-  const jazzCloud = createTestNode();
-
-  // Connect nodes initially
-  const [connectionWithClientAsPeer, jazzCloudConnectionAsPeer] =
-    connectedPeers("connectionWithClient", "jazzCloudConnection", {
-      peer1role: "client",
-      peer2role: "server",
-    });
-
-  client.syncManager.addPeer(jazzCloudConnectionAsPeer);
-  jazzCloud.syncManager.addPeer(connectionWithClientAsPeer);
-
-  return {
-    client,
-    jazzCloud,
-    connectionWithClientAsPeer,
-    jazzCloudConnectionAsPeer,
-  };
-}
-
 test("a value created on one node can be loaded on anotehr node even if not directly connected", async () => {
   const userA = createTestNode();
   const userB = createTestNode();
@@ -1522,7 +1500,7 @@ test("a value created on one node can be loaded on anotehr node even if not dire
 
 describe("SyncManager - knownStates vs optimisticKnownStates", () => {
   test("knownStates and optimisticKnownStates are the same when the coValue is fully synced", async () => {
-    const client = await createConnectedTestNode();
+    const { node: client } = await createConnectedTestNode();
 
     // Create test data
     const group = client.createGroup();
@@ -1549,9 +1527,7 @@ describe("SyncManager - knownStates vs optimisticKnownStates", () => {
   });
 
   test("optimisticKnownStates is updated as new transactions are sent, while knownStates only when the updates are acknowledged", async () => {
-    const client = createTestNode();
-
-    const { nodeToServerPeer } = connectNodeToSyncServer(client);
+    const { node: client, nodeToServerPeer } = await createConnectedTestNode();
 
     // Create test data and sync the first change
     // We want that both the nodes know about the coValue so we can test
@@ -1598,7 +1574,7 @@ describe("SyncManager - knownStates vs optimisticKnownStates", () => {
 
 describe("SyncManager.addPeer", () => {
   test("new peer gets a copy of previous peer's knownStates when replacing it", async () => {
-    const client = await createConnectedTestNode();
+    const { node: client } = await createConnectedTestNode();
 
     // Create test data
     const group = client.createGroup();
@@ -1636,7 +1612,7 @@ describe("SyncManager.addPeer", () => {
   });
 
   test("new peer with new ID starts with empty knownStates", async () => {
-    const client = await createConnectedTestNode();
+    const { node: client } = await createConnectedTestNode();
 
     // Create test data
     const group = client.createGroup();
@@ -1664,7 +1640,7 @@ describe("SyncManager.addPeer", () => {
   });
 
   test("when adding a peer with the same ID as a previous peer, the previous peer is closed", async () => {
-    const client = await createConnectedTestNode();
+    const { node: client } = await createConnectedTestNode();
 
     // Store reference to first peer
     const firstPeer = client.syncManager.getPeers()[0]!;
@@ -1684,7 +1660,7 @@ describe("SyncManager.addPeer", () => {
   });
 
   test("when adding a peer with the same ID as a previous peer and the previous peer is closed, do not attempt to close it again", async () => {
-    const client = await createConnectedTestNode();
+    const { node: client } = await createConnectedTestNode();
 
     // Store reference to first peer
     const firstPeer = client.syncManager.getPeers()[0]!;
@@ -1706,13 +1682,15 @@ describe("SyncManager.addPeer", () => {
   });
 
   test("when adding a server peer the local coValues should be sent to it", async () => {
-    const client = createTestNode();
+    const { node: client, addServerPeer } = await createConnectedTestNode({
+      connected: false,
+    });
 
     const group = client.createGroup();
     const map = group.createMap();
     map.set("key1", "value1", "trusting");
 
-    connectNodeToSyncServer(client);
+    addServerPeer();
 
     await map.core.waitForSync();
 
@@ -1722,8 +1700,8 @@ describe("SyncManager.addPeer", () => {
 
 describe("loadCoValueCore with retry", () => {
   test("should load the value if available on the server", async () => {
-    const client = await createConnectedTestNode();
-    const anotherClient = await createConnectedTestNode();
+    const { node: client } = await createConnectedTestNode();
+    const { node: anotherClient } = await createConnectedTestNode();
 
     const group = anotherClient.createGroup();
     const map = group.createMap();
@@ -1735,8 +1713,8 @@ describe("loadCoValueCore with retry", () => {
   });
 
   test("should handle correctly two subsequent loads", async () => {
-    const client = await createConnectedTestNode();
-    const anotherClient = await createConnectedTestNode();
+    const { node: client } = await createConnectedTestNode();
+    const { node: anotherClient } = await createConnectedTestNode();
 
     const group = anotherClient.createGroup();
     const map = group.createMap();
@@ -1752,7 +1730,7 @@ describe("loadCoValueCore with retry", () => {
 
 describe("waitForSyncWithPeer", () => {
   test("should resolve when the coValue is fully uploaded into the peer", async () => {
-    const client = await createConnectedTestNode();
+    const { node: client } = await createConnectedTestNode();
 
     // Create test data
     const group = client.createGroup();
@@ -1773,7 +1751,7 @@ describe("waitForSyncWithPeer", () => {
   });
 
   test("should not resolve when the coValue is not synced", async () => {
-    const client = await createConnectedTestNode();
+    const { node: client } = await createConnectedTestNode();
 
     const peer = client.syncManager.getPeers()[0];
 
@@ -1799,7 +1777,7 @@ describe("waitForSyncWithPeer", () => {
 });
 
 test("Should not crash when syncing an unknown coValue type", async () => {
-  const client = await createConnectedTestNode();
+  const { node: client } = await createConnectedTestNode();
 
   const coValue = client.createCoValue({
     type: "ooops" as any,
@@ -1810,7 +1788,7 @@ test("Should not crash when syncing an unknown coValue type", async () => {
 
   await coValue.waitForSync();
 
-  const anotherClient = await createConnectedTestNode();
+  const { node: anotherClient } = await createConnectedTestNode();
 
   const coValueOnTheOtherNode = await loadCoValueOrFail(
     anotherClient,
@@ -1907,17 +1885,167 @@ describe("metrics", () => {
   });
 });
 
+describe("sync protocol", () => {
+  test("should have the correct messages exchanged between client and server", async () => {
+    // Creating the account from agent to simplify the messages exchange
+    const { node: client, messages } = await createConnectedTestAgentNode();
+
+    const group = client.createGroup();
+    const map = group.createMap();
+    map.set("hello", "world", "trusting");
+
+    const mapOnJazzCloud = await loadCoValueOrFail(jazzCloud, map.id);
+    expect(mapOnJazzCloud.get("hello")).toEqual("world");
+
+    expect(messages).toEqual([
+      {
+        from: "client",
+        msg: {
+          action: "load",
+          header: true,
+          id: group.id,
+          sessions: {
+            [client.currentSessionID]: 3,
+          },
+        },
+      },
+      {
+        from: "server",
+        msg: {
+          action: "load",
+          header: false,
+          id: group.id,
+          sessions: {},
+        },
+      },
+      {
+        from: "client",
+        msg: {
+          action: "load",
+          header: true,
+          id: map.id,
+          sessions: {
+            [client.currentSessionID]: 1,
+          },
+        },
+      },
+      {
+        from: "server",
+        msg: {
+          action: "load",
+          header: false,
+          id: map.id,
+          sessions: {},
+        },
+      },
+      {
+        from: "client",
+        msg: {
+          action: "content",
+          header: {
+            createdAt: expect.any(String),
+            meta: null,
+            ruleset: {
+              initialAdmin: client.account.id,
+              type: "group",
+            },
+            type: "comap",
+            uniqueness: expect.any(String),
+          },
+          id: group.id,
+          new: {
+            [client.currentSessionID]: {
+              after: 0,
+              lastSignature: expect.any(String),
+              newTransactions: expect.any(Array),
+            },
+          },
+          priority: 0,
+        },
+      },
+      {
+        from: "client",
+        msg: {
+          action: "content",
+          header: {
+            createdAt: expect.any(String),
+            meta: null,
+            ruleset: {
+              group: group.id,
+              type: "ownedByGroup",
+            },
+            type: "comap",
+            uniqueness: expect.any(String),
+          },
+          id: map.id,
+          new: {
+            [client.currentSessionID]: {
+              after: 0,
+              lastSignature: expect.any(String),
+              newTransactions: expect.any(Array),
+            },
+          },
+          priority: 3,
+        },
+      },
+      {
+        from: "server",
+        msg: {
+          action: "known",
+          header: true,
+          id: group.id,
+          sessions: {
+            [client.currentSessionID]: 3,
+          },
+        },
+      },
+      {
+        // TODO: This is a redundant message, we should remove it
+        from: "client",
+        msg: {
+          action: "content",
+          header: {
+            createdAt: expect.any(String),
+            meta: null,
+            ruleset: {
+              group: group.id,
+              type: "ownedByGroup",
+            },
+            type: "comap",
+            uniqueness: expect.any(String),
+          },
+          id: map.id,
+          new: {
+            [client.currentSessionID]: {
+              after: 0,
+              lastSignature: expect.any(String),
+              newTransactions: expect.any(Array),
+            },
+          },
+          priority: 3,
+        },
+      },
+      {
+        // TODO: This is a redundant message, we should remove it
+        from: "server",
+        msg: {
+          action: "known",
+          asDependencyOf: undefined,
+          header: true,
+          id: group.id,
+          sessions: {
+            [client.currentSessionID]: 3,
+          },
+        },
+      },
+    ]);
+  });
+});
+
 function groupContentEx(group: RawGroup) {
   return {
     action: "content",
     id: group.core.id,
-  };
-}
-
-function _admContEx(adminID: RawAccountID) {
-  return {
-    action: "content",
-    id: adminID,
   };
 }
 
@@ -1926,15 +2054,4 @@ function groupStateEx(group: RawGroup) {
     action: "known",
     id: group.core.id,
   };
-}
-
-function _admStateEx(adminID: RawAccountID) {
-  return {
-    action: "known",
-    id: adminID,
-  };
-}
-
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
