@@ -1,5 +1,5 @@
 export { JazzProvider } from "./provider.js";
-export type { Register } from "./provider.js";
+export type { Register, JazzProviderProps } from "./provider.js";
 export {
   useAccount,
   useAccountOrGuest,

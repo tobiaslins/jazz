@@ -2,14 +2,10 @@ import {
   BrowserClerkAuth,
   type MinimalClerkClient,
 } from "jazz-browser-auth-clerk";
-import { useJazzContext } from "jazz-react";
+import { JazzProvider, JazzProviderProps, useJazzContext } from "jazz-react";
 import { useEffect, useMemo } from "react";
 
-export function useJazzClerkAuth(
-  clerk: MinimalClerkClient & {
-    signOut: () => Promise<unknown>;
-  },
-) {
+function useJazzClerkAuth(clerk: MinimalClerkClient) {
   const context = useJazzContext();
 
   const authMethod = useMemo(() => {
@@ -20,3 +16,24 @@ export function useJazzClerkAuth(
     authMethod.onClerkUserChange(clerk);
   }, [clerk.user]);
 }
+
+function RegisterClerkAuth(props: {
+  clerk: MinimalClerkClient;
+  children: React.ReactNode;
+}) {
+  useJazzClerkAuth(props.clerk);
+
+  return props.children;
+}
+
+export const JazzProviderWithClerk = (
+  props: { clerk: MinimalClerkClient } & JazzProviderProps,
+) => {
+  return (
+    <JazzProvider {...props} onLogOut={props.clerk.signOut}>
+      <RegisterClerkAuth clerk={props.clerk}>
+        {props.children}
+      </RegisterClerkAuth>
+    </JazzProvider>
+  );
+};

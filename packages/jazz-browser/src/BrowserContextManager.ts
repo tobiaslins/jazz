@@ -12,6 +12,7 @@ export type JazzContextManagerProps<Acc extends Account> = {
   guestMode?: boolean;
   peer: `wss://${string}` | `ws://${string}`;
   localOnly?: boolean;
+  onLogOut?: () => void;
   storage?: BaseBrowserContextOptions["storage"];
   AccountSchema?: AccountClass<Acc>;
   defaultProfileName?: string;
@@ -25,6 +26,10 @@ export class JazzBrowserContextManager<
     authProps?: JazzContextManagerAuthProps,
   ) {
     let currentContext: BrowserGuestContext | BrowserContext<Acc>;
+
+    // We need to store the props here to block the double effect execution
+    // on React. Otherwise when calling propsChanged this.props is undefined.
+    this.props = props;
 
     if (props.guestMode) {
       currentContext = await createJazzBrowserGuestContext({
@@ -53,9 +58,7 @@ export class JazzBrowserContextManager<
     }
 
     return (
-      props.peer !== this.props.peer ||
-      props.storage !== this.props.storage ||
-      props.guestMode !== this.props.guestMode
+      props.peer !== this.props.peer || props.guestMode !== this.props.guestMode
     );
   }
 }

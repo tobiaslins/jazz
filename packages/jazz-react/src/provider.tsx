@@ -2,7 +2,7 @@ import {
   JazzBrowserContextManager,
   JazzContextManagerProps,
 } from "jazz-browser";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 
 import { JazzContext } from "jazz-react-core";
 import { Account, JazzContextType } from "jazz-tools";
@@ -28,6 +28,7 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
   AccountSchema,
   localOnly: localOnlyProp,
   defaultProfileName,
+  onLogOut,
 }: JazzProviderProps<Acc>) {
   const [contextManager] = React.useState(
     () => new JazzBrowserContextManager<Acc>(),
@@ -39,6 +40,13 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
       ? isAuthenticated === false
       : localOnlyProp === "always";
 
+  const onLogOutRef = React.useRef(onLogOut);
+  onLogOutRef.current = onLogOut;
+  // To keep the function reference stable while calling the latest version of onLogOut
+  const onLogOutRefCallback = useRef(() => {
+    onLogOutRef.current?.();
+  }).current;
+
   const value = React.useSyncExternalStore<JazzContextType<Acc> | undefined>(
     React.useCallback(
       (callback) => {
@@ -49,6 +57,7 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
           storage,
           localOnly,
           defaultProfileName,
+          onLogOut: onLogOutRefCallback,
         };
         if (contextManager.propsChanged(props)) {
           contextManager.createContext(props).catch((error) => {

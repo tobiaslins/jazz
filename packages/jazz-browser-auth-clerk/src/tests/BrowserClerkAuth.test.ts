@@ -41,7 +41,6 @@ describe("BrowserClerkAuth", () => {
 
       await expect(auth.onClerkUserChange(mockClerk)).rejects.toThrow();
       expect(mockAuthenticate).not.toHaveBeenCalled();
-      expect(mockClerk.signOut).not.toHaveBeenCalled();
     });
 
     it("should call signIn for new users", async () => {
@@ -71,7 +70,6 @@ describe("BrowserClerkAuth", () => {
           jazzAccountSeed: [1, 2, 3],
         },
       });
-      expect(mockClerk.signOut).toHaveBeenCalled();
       expect(AuthSecretStorage.get()).toEqual({
         accountID: "test123",
         accountSecret: "secret123",
@@ -114,7 +112,6 @@ describe("BrowserClerkAuth", () => {
         secretSeed: new Uint8Array([1, 2, 3]),
         provider: "clerk",
       });
-      expect(mockClerk.signOut).toHaveBeenCalled();
     });
   });
 });
