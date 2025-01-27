@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { expectMap } from "../coValue.js";
 import type { CoValueHeader } from "../coValueCore.js";
 import type { RawAccountID } from "../coValues/account.js";
@@ -12,16 +12,25 @@ import { connectedPeers, newQueuePair } from "../streamUtils.js";
 import type { SyncMessage } from "../sync.js";
 import {
   blockMessageTypeOnOutgoingPeer,
+  connectNodeToSyncServer,
   connectTwoPeers,
+  createConnectedTestNode,
   createTestMetricReader,
   createTestNode,
   loadCoValueOrFail,
   randomAnonymousAccountAndSessionID,
+  setupSyncServer,
   tearDownTestMetricReader,
   waitFor,
 } from "./testUtils.js";
 
 const Crypto = await WasmCrypto.create();
+
+let jazzCloud = setupSyncServer();
+
+beforeEach(async () => {
+  jazzCloud = setupSyncServer();
+});
 
 test("Node replies with initial tx and header to empty subscribe", async () => {
   const [admin, session] = randomAnonymousAccountAndSessionID();
@@ -861,111 +870,34 @@ test.skip("When loading a coValue on one node, the server node it is requested f
 });
 
 test("Can sync a coValue through a server to another client", async () => {
-  const [admin, session] = randomAnonymousAccountAndSessionID();
-
-  const client1 = new LocalNode(admin, session, Crypto);
+  const client1 = await createConnectedTestNode();
 
   const group = client1.createGroup();
 
   const map = group.createMap();
   map.set("hello", "world", "trusting");
 
-  const [serverUser, serverSession] = randomAnonymousAccountAndSessionID();
+  const client2 = await createConnectedTestNode();
 
-  const server = new LocalNode(serverUser, serverSession, Crypto);
+  const mapOnClient2 = await loadCoValueOrFail(client2, map.id);
 
-  const [serverAsPeerForClient1, client1AsPeer] = connectedPeers(
-    "serverFor1",
-    "client1",
-    {
-      peer1role: "server",
-      peer2role: "client",
-      // trace: true,
-    },
-  );
-
-  client1.syncManager.addPeer(serverAsPeerForClient1);
-  server.syncManager.addPeer(client1AsPeer);
-
-  const client2 = new LocalNode(
-    admin,
-    Crypto.newRandomSessionID(admin.id),
-    Crypto,
-  );
-
-  const [serverAsPeerForClient2, client2AsPeer] = connectedPeers(
-    "serverFor2",
-    "client2",
-    {
-      peer1role: "server",
-      peer2role: "client",
-      // trace: true,
-    },
-  );
-
-  client2.syncManager.addPeer(serverAsPeerForClient2);
-  server.syncManager.addPeer(client2AsPeer);
-
-  const mapOnClient2 = await client2.loadCoValueCore(map.core.id);
-  if (mapOnClient2 === "unavailable") {
-    throw new Error("Map is unavailable");
-  }
-
-  expect(expectMap(mapOnClient2.getCurrentContent()).get("hello")).toEqual(
-    "world",
-  );
+  expect(mapOnClient2.get("hello")).toEqual("world");
 });
 
 test("Can sync a coValue with private transactions through a server to another client", async () => {
-  const [admin, session] = randomAnonymousAccountAndSessionID();
-
-  const client1 = new LocalNode(admin, session, Crypto);
+  const client1 = await createConnectedTestNode();
 
   const group = client1.createGroup();
 
   const map = group.createMap();
   map.set("hello", "world", "private");
+  group.addMember("everyone", "reader");
 
-  const [serverUser, serverSession] = randomAnonymousAccountAndSessionID();
+  const client2 = await createConnectedTestNode();
 
-  const server = new LocalNode(serverUser, serverSession, Crypto);
+  const mapOnClient2 = await loadCoValueOrFail(client2, map.id);
 
-  const [serverAsPeer, client1AsPeer] = connectedPeers("server", "client1", {
-    // trace: true,
-    peer1role: "server",
-    peer2role: "client",
-  });
-
-  client1.syncManager.addPeer(serverAsPeer);
-  server.syncManager.addPeer(client1AsPeer);
-
-  const client2 = new LocalNode(
-    admin,
-    client1.crypto.newRandomSessionID(admin.id),
-    Crypto,
-  );
-
-  const [serverAsOtherPeer, client2AsPeer] = connectedPeers(
-    "server",
-    "client2",
-    {
-      // trace: true,
-      peer1role: "server",
-      peer2role: "client",
-    },
-  );
-
-  client2.syncManager.addPeer(serverAsOtherPeer);
-  server.syncManager.addPeer(client2AsPeer);
-
-  const mapOnClient2 = await client2.loadCoValueCore(map.core.id);
-  if (mapOnClient2 === "unavailable") {
-    throw new Error("Map is unavailable");
-  }
-
-  expect(expectMap(mapOnClient2.getCurrentContent()).get("hello")).toEqual(
-    "world",
-  );
+  expect(mapOnClient2.get("hello")).toEqual("world");
 });
 
 test.skip("When a peer's incoming/readable stream closes, we remove the peer", async () => {
@@ -1023,111 +955,32 @@ test.skip("When a peer's incoming/readable stream closes, we remove the peer", a
     */
 });
 
-test.skip("When a peer's outgoing/writable stream closes, we remove the peer", async () => {
-  /*
-    const [admin, session] = randomAnonymousAccountAndSessionID();
-    const node = new LocalNode(admin, session, Crypto);
-
-    const group = node.createGroup();
-
-    const [inRx] = await Effect.runPromise(newStreamPair());
-    const [outRx, outTx] = await Effect.runPromise(newStreamPair());
-
-    node.syncManager.addPeer({
-        id: "test",
-        incoming: inRx,
-        outgoing: outTx,
-        role: "server",
-    });
-
-    // expect(yield* Queue.take(outRxQ)).toMatchObject({
-    //     action: "load",
-    //     id: admin.id,
-    // });
-    expect(yield * Queue.take(outRxQ)).toMatchObject({
-        action: "load",
-        id: group.core.id,
-    });
-
-    const map = group.createMap();
-
-    const mapSubscribeMsg = await reader.read();
-
-    expect(mapSubscribeMsg.value).toEqual({
-        action: "load",
-        ...map.core.knownState(),
-    } satisfies SyncMessage);
-
-    // expect(yield* Queue.take(outRxQ)).toMatchObject(admContEx(admin.id));
-    expect(yield * Queue.take(outRxQ)).toMatchObject(groupContentEx(group));
-
-    const mapContentMsg = await reader.read();
-
-    expect(mapContentMsg.value).toEqual({
-        action: "content",
-        id: map.core.id,
-        header: map.core.header,
-        new: {},
-    } satisfies SyncMessage);
-
-    reader.releaseLock();
-    await outRx.cancel();
-
-    map.set("hello", "world", "trusting");
-
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
-    expect(node.syncManager.peers["test"]).toBeUndefined();
-    */
-});
-
 test("If we start loading a coValue before connecting to a peer that has it, it will load it once we connect", async () => {
-  const [admin, session] = randomAnonymousAccountAndSessionID();
-
-  const node1 = new LocalNode(admin, session, Crypto);
+  const node1 = await createConnectedTestNode();
 
   const group = node1.createGroup();
 
   const map = group.createMap();
   map.set("hello", "world", "trusting");
 
-  const node2 = new LocalNode(
-    admin,
-    Crypto.newRandomSessionID(admin.id),
-    Crypto,
-  );
+  const node2 = createTestNode();
 
-  const [node1asPeer, node2asPeer] = connectedPeers("peer1", "peer2", {
-    peer1role: "server",
-    peer2role: "client",
-    // trace: true,
-  });
-
-  node1.syncManager.addPeer(node2asPeer);
-
-  const mapOnNode2Promise = node2.loadCoValueCore(map.core.id);
+  const mapOnNode2Promise = loadCoValueOrFail(node2, map.id);
 
   expect(node2.coValuesStore.get(map.core.id).state.type).toEqual("unknown");
 
-  node2.syncManager.addPeer(node1asPeer);
+  connectNodeToSyncServer(node2);
 
   const mapOnNode2 = await mapOnNode2Promise;
-  if (mapOnNode2 === "unavailable") {
-    throw new Error("Map is unavailable");
-  }
 
-  expect(expectMap(mapOnNode2.getCurrentContent()).get("hello")).toEqual(
-    "world",
-  );
+  expect(mapOnNode2.get("hello")).toEqual("world");
 });
 
 test("should keep the peer state when the peer closes", async () => {
-  const {
-    client,
-    jazzCloud,
-    jazzCloudConnectionAsPeer,
-    connectionWithClientAsPeer,
-  } = createTwoConnectedNodes();
+  const client = createTestNode();
+
+  const { nodeToServerPeer, serverToNodePeer } =
+    connectNodeToSyncServer(client);
 
   const group = jazzCloud.createGroup();
   const map = group.createMap();
@@ -1136,25 +989,23 @@ test("should keep the peer state when the peer closes", async () => {
   await client.loadCoValueCore(map.core.id);
 
   const syncManager = client.syncManager;
-  const peerState = syncManager.peers[jazzCloudConnectionAsPeer.id];
+  const peerState = syncManager.peers[nodeToServerPeer.id];
 
   // @ts-expect-error Simulating a peer closing, leveraging the direct connection between the client/server peers
-  await connectionWithClientAsPeer.outgoing.push("Disconnected");
+  await serverToNodePeer.outgoing.push("Disconnected");
 
   await waitFor(() => peerState?.closed);
 
-  expect(syncManager.peers[jazzCloudConnectionAsPeer.id]).not.toBeUndefined();
+  expect(syncManager.peers[nodeToServerPeer.id]).not.toBeUndefined();
 });
 
 test("should delete the peer state when the peer closes if deletePeerStateOnClose is true", async () => {
-  const {
-    client,
-    jazzCloud,
-    jazzCloudConnectionAsPeer,
-    connectionWithClientAsPeer,
-  } = createTwoConnectedNodes();
+  const client = createTestNode();
 
-  jazzCloudConnectionAsPeer.deletePeerStateOnClose = true;
+  const { nodeToServerPeer, serverToNodePeer } =
+    connectNodeToSyncServer(client);
+
+  nodeToServerPeer.deletePeerStateOnClose = true;
 
   const group = jazzCloud.createGroup();
   const map = group.createMap();
@@ -1164,14 +1015,14 @@ test("should delete the peer state when the peer closes if deletePeerStateOnClos
 
   const syncManager = client.syncManager;
 
-  const peerState = syncManager.peers[jazzCloudConnectionAsPeer.id];
+  const peerState = syncManager.peers[nodeToServerPeer.id];
 
   // @ts-expect-error Simulating a peer closing, leveraging the direct connection between the client/server peers
-  await connectionWithClientAsPeer.outgoing.push("Disconnected");
+  await serverToNodePeer.outgoing.push("Disconnected");
 
   await waitFor(() => peerState?.closed);
 
-  expect(syncManager.peers[jazzCloudConnectionAsPeer.id]).toBeUndefined();
+  expect(syncManager.peers[nodeToServerPeer.id]).toBeUndefined();
 });
 
 describe("sync - extra tests", () => {
@@ -1671,7 +1522,7 @@ test("a value created on one node can be loaded on anotehr node even if not dire
 
 describe("SyncManager - knownStates vs optimisticKnownStates", () => {
   test("knownStates and optimisticKnownStates are the same when the coValue is fully synced", async () => {
-    const { client, jazzCloud } = createTwoConnectedNodes();
+    const client = await createConnectedTestNode();
 
     // Create test data
     const group = client.createGroup();
@@ -1683,9 +1534,8 @@ describe("SyncManager - knownStates vs optimisticKnownStates", () => {
     // Wait for the full sync to complete
     await mapOnClient.core.waitForSync();
 
-    const peerStateClient = client.syncManager.peers["jazzCloudConnection"]!;
-    const peerStateJazzCloud =
-      jazzCloud.syncManager.peers["connectionWithClient"]!;
+    const peerStateClient = client.syncManager.getPeers()[0]!;
+    const peerStateJazzCloud = jazzCloud.syncManager.getPeers()[0]!;
 
     // The optimisticKnownStates should be the same as the knownStates after the full sync is complete
     expect(
@@ -1699,7 +1549,9 @@ describe("SyncManager - knownStates vs optimisticKnownStates", () => {
   });
 
   test("optimisticKnownStates is updated as new transactions are sent, while knownStates only when the updates are acknowledged", async () => {
-    const { client, jazzCloudConnectionAsPeer } = createTwoConnectedNodes();
+    const client = createTestNode();
+
+    const { nodeToServerPeer } = connectNodeToSyncServer(client);
 
     // Create test data and sync the first change
     // We want that both the nodes know about the coValue so we can test
@@ -1717,7 +1569,7 @@ describe("SyncManager - knownStates vs optimisticKnownStates", () => {
     // while knownStates is only updated when we receive the "known" messages
     // that are acknowledging the receipt of the content messages
     const outgoing = blockMessageTypeOnOutgoingPeer(
-      jazzCloudConnectionAsPeer,
+      nodeToServerPeer,
       "content",
     );
 
@@ -1725,8 +1577,7 @@ describe("SyncManager - knownStates vs optimisticKnownStates", () => {
 
     await client.syncManager.actuallySyncCoValue(map.core);
 
-    const peerState = client.syncManager.peers["jazzCloudConnection"]!;
-
+    const peerState = client.syncManager.peers[nodeToServerPeer.id]!;
     expect(peerState.optimisticKnownStates.get(map.core.id)).not.toEqual(
       peerState.knownStates.get(map.core.id),
     );
@@ -1747,7 +1598,7 @@ describe("SyncManager - knownStates vs optimisticKnownStates", () => {
 
 describe("SyncManager.addPeer", () => {
   test("new peer gets a copy of previous peer's knownStates when replacing it", async () => {
-    const { client } = createTwoConnectedNodes();
+    const client = await createConnectedTestNode();
 
     // Create test data
     const group = client.createGroup();
@@ -1759,26 +1610,24 @@ describe("SyncManager.addPeer", () => {
     // Wait for initial sync
     await map.core.waitForSync();
 
+    const firstPeerState = client.syncManager.getPeers()[0]!;
+
     // Store the initial known states
-    const initialKnownStates =
-      client.syncManager.peers["jazzCloudConnection"]!.knownStates;
+    const initialKnownStates = firstPeerState.knownStates;
 
     // Create new connection with same ID
-    const [jazzCloudConnectionAsPeer2] = connectedPeers(
-      "jazzCloudConnection",
-      "unusedPeer",
-      {
-        peer1role: "server",
-        peer2role: "client",
-      },
-    );
+    const [secondPeer] = connectedPeers(firstPeerState.id, "unusedPeer", {
+      peer1role: "server",
+      peer2role: "client",
+    });
 
     // Add new peer with same ID
-    client.syncManager.addPeer(jazzCloudConnectionAsPeer2);
+    client.syncManager.addPeer(secondPeer);
+
+    const newPeerState = client.syncManager.getPeers()[0]!;
 
     // Verify that the new peer has a copy of the previous known states
-    const newPeerKnownStates =
-      client.syncManager.peers["jazzCloudConnection"]!.knownStates;
+    const newPeerKnownStates = newPeerState.knownStates;
 
     expect(newPeerKnownStates).not.toBe(initialKnownStates); // Should be a different instance
     expect(newPeerKnownStates.get(map.core.id)).toEqual(
@@ -1787,7 +1636,7 @@ describe("SyncManager.addPeer", () => {
   });
 
   test("new peer with new ID starts with empty knownStates", async () => {
-    const { client } = createTwoConnectedNodes();
+    const client = await createConnectedTestNode();
 
     // Create test data
     const group = client.createGroup();
@@ -1815,23 +1664,19 @@ describe("SyncManager.addPeer", () => {
   });
 
   test("when adding a peer with the same ID as a previous peer, the previous peer is closed", async () => {
-    const { client } = createTwoConnectedNodes();
+    const client = await createConnectedTestNode();
 
     // Store reference to first peer
-    const firstPeer = client.syncManager.peers["jazzCloudConnection"]!;
+    const firstPeer = client.syncManager.getPeers()[0]!;
     const closeSpy = vi.spyOn(firstPeer, "gracefulShutdown");
 
     // Create and add replacement peer
-    const [jazzCloudConnectionAsPeer2] = connectedPeers(
-      "jazzCloudConnection",
-      "unusedPeer",
-      {
-        peer1role: "server",
-        peer2role: "client",
-      },
-    );
+    const [secondPeer] = connectedPeers(firstPeer.id, "unusedPeer", {
+      peer1role: "server",
+      peer2role: "client",
+    });
 
-    client.syncManager.addPeer(jazzCloudConnectionAsPeer2);
+    client.syncManager.addPeer(secondPeer);
 
     // Verify thet the first peer had ben closed correctly
     expect(closeSpy).toHaveBeenCalled();
@@ -1839,25 +1684,21 @@ describe("SyncManager.addPeer", () => {
   });
 
   test("when adding a peer with the same ID as a previous peer and the previous peer is closed, do not attempt to close it again", async () => {
-    const { client } = createTwoConnectedNodes();
+    const client = await createConnectedTestNode();
 
     // Store reference to first peer
-    const firstPeer = client.syncManager.peers["jazzCloudConnection"]!;
+    const firstPeer = client.syncManager.getPeers()[0]!;
 
     firstPeer.gracefulShutdown();
     const closeSpy = vi.spyOn(firstPeer, "gracefulShutdown");
 
     // Create and add replacement peer
-    const [jazzCloudConnectionAsPeer2] = connectedPeers(
-      "jazzCloudConnection",
-      "unusedPeer",
-      {
-        peer1role: "server",
-        peer2role: "client",
-      },
-    );
+    const [secondPeer] = connectedPeers(firstPeer.id, "unusedPeer", {
+      peer1role: "server",
+      peer2role: "client",
+    });
 
-    client.syncManager.addPeer(jazzCloudConnectionAsPeer2);
+    client.syncManager.addPeer(secondPeer);
 
     // Verify thet the first peer had not been closed again
     expect(closeSpy).not.toHaveBeenCalled();
@@ -1865,24 +1706,13 @@ describe("SyncManager.addPeer", () => {
   });
 
   test("when adding a server peer the local coValues should be sent to it", async () => {
-    // Setup nodes
     const client = createTestNode();
-    const jazzCloud = createTestNode();
-
-    // Connect nodes initially
-    const [connectionWithClientAsPeer, jazzCloudConnectionAsPeer] =
-      connectedPeers("connectionWithClient", "jazzCloudConnection", {
-        peer1role: "client",
-        peer2role: "server",
-      });
-
-    jazzCloud.syncManager.addPeer(connectionWithClientAsPeer);
 
     const group = client.createGroup();
     const map = group.createMap();
     map.set("key1", "value1", "trusting");
 
-    client.syncManager.addPeer(jazzCloudConnectionAsPeer);
+    connectNodeToSyncServer(client);
 
     await map.core.waitForSync();
 
@@ -1892,18 +1722,8 @@ describe("SyncManager.addPeer", () => {
 
 describe("loadCoValueCore with retry", () => {
   test("should load the value if available on the server", async () => {
-    const { client, jazzCloud } = createTwoConnectedNodes();
-
-    const anotherClient = createTestNode();
-    const [
-      connectionWithAnotherClientAsPeer,
-      jazzCloudConnectionAsPeerForAnotherClient,
-    ] = connectedPeers("connectionWithAnotherClient", "jazzCloudConnection", {
-      peer1role: "client",
-      peer2role: "server",
-    });
-
-    jazzCloud.syncManager.addPeer(connectionWithAnotherClientAsPeer);
+    const client = await createConnectedTestNode();
+    const anotherClient = await createConnectedTestNode();
 
     const group = anotherClient.createGroup();
     const map = group.createMap();
@@ -1911,25 +1731,12 @@ describe("loadCoValueCore with retry", () => {
 
     const promise = client.loadCoValueCore(map.id);
 
-    anotherClient.syncManager.addPeer(
-      jazzCloudConnectionAsPeerForAnotherClient,
-    );
     await expect(promise).resolves.not.toBe("unavailable");
   });
 
   test("should handle correctly two subsequent loads", async () => {
-    const { client, jazzCloud } = createTwoConnectedNodes();
-
-    const anotherClient = createTestNode();
-    const [
-      connectionWithAnotherClientAsPeer,
-      jazzCloudConnectionAsPeerForAnotherClient,
-    ] = connectedPeers("connectionWithAnotherClient", "jazzCloudConnection", {
-      peer1role: "client",
-      peer2role: "server",
-    });
-
-    jazzCloud.syncManager.addPeer(connectionWithAnotherClientAsPeer);
+    const client = await createConnectedTestNode();
+    const anotherClient = await createConnectedTestNode();
 
     const group = anotherClient.createGroup();
     const map = group.createMap();
@@ -1938,10 +1745,6 @@ describe("loadCoValueCore with retry", () => {
     const promise1 = client.loadCoValueCore(map.id);
     const promise2 = client.loadCoValueCore(map.id);
 
-    anotherClient.syncManager.addPeer(
-      jazzCloudConnectionAsPeerForAnotherClient,
-    );
-
     await expect(promise1).resolves.not.toBe("unavailable");
     await expect(promise2).resolves.not.toBe("unavailable");
   });
@@ -1949,8 +1752,7 @@ describe("loadCoValueCore with retry", () => {
 
 describe("waitForSyncWithPeer", () => {
   test("should resolve when the coValue is fully uploaded into the peer", async () => {
-    const { client, jazzCloudConnectionAsPeer: peer } =
-      createTwoConnectedNodes();
+    const client = await createConnectedTestNode();
 
     // Create test data
     const group = client.createGroup();
@@ -1959,21 +1761,32 @@ describe("waitForSyncWithPeer", () => {
 
     await client.syncManager.actuallySyncCoValue(map.core);
 
+    const peer = client.syncManager.getPeers()[0];
+
+    if (!peer) {
+      throw new Error("No peer found");
+    }
+
     await expect(
       client.syncManager.waitForSyncWithPeer(peer.id, map.core.id, 100),
     ).resolves.toBe(true);
   });
 
   test("should not resolve when the coValue is not synced", async () => {
-    const { client, jazzCloudConnectionAsPeer: peer } =
-      createTwoConnectedNodes();
+    const client = await createConnectedTestNode();
+
+    const peer = client.syncManager.getPeers()[0];
+
+    if (!peer) {
+      throw new Error("No peer found");
+    }
 
     // Create test data
     const group = client.createGroup();
     const map = group.createMap();
     map.set("key1", "value1", "trusting");
 
-    vi.spyOn(peer.outgoing, "push").mockImplementation(async () => {
+    vi.spyOn(peer, "pushOutgoingMessage").mockImplementation(async () => {
       return Promise.resolve();
     });
 
@@ -1986,7 +1799,7 @@ describe("waitForSyncWithPeer", () => {
 });
 
 test("Should not crash when syncing an unknown coValue type", async () => {
-  const { client, jazzCloud } = createTwoConnectedNodes();
+  const client = await createConnectedTestNode();
 
   const coValue = client.createCoValue({
     type: "ooops" as any,
@@ -1997,8 +1810,10 @@ test("Should not crash when syncing an unknown coValue type", async () => {
 
   await coValue.waitForSync();
 
+  const anotherClient = await createConnectedTestNode();
+
   const coValueOnTheOtherNode = await loadCoValueOrFail(
-    jazzCloud,
+    anotherClient,
     coValue.getCurrentContent().id,
   );
   expect(coValueOnTheOtherNode.id).toBe(coValue.id);
