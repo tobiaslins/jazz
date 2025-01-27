@@ -1,7 +1,7 @@
 import DocsLayout from "@/app/docs/[framework]/(others)/layout";
 import { TableOfContents } from "@/components/docs/TableOfContents";
 import ComingSoonPage from "@/components/docs/coming-soon.mdx";
-import { docNavigationItems } from "@/lib/docNavigationItems";
+import { docNavigationItems } from "@/lib/docNavigationItems.js";
 import { Framework, frameworks } from "@/lib/framework";
 import type { Toc } from "@stefanprobst/rehype-extract-toc";
 import { Prose } from "gcmp-design-system/src/app/components/molecules/Prose";

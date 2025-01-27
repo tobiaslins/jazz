@@ -40,3 +40,6 @@ codeSamples
 .turbo
 
 .env
+
+# LLM docs
+public/llms*.txt

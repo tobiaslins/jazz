@@ -5,11 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "NODE_OPTIONS=--max-old-space-size=8192 next dev",
-    "build:generate-docs": "node genDocs.mjs --build",
+    "build:generate-docs": "pnpm run generate:docs && pnpm run generate:llm-docs:all",
     "build": "next build",
     "start": "next start",
     "format-and-lint": "biome check .",
-    "format-and-lint:fix": "biome check . --write"
+    "format-and-lint:fix": "biome check . --write",
+    "generate:docs": "node generate-docs/typedocs.mjs --build",
+    "generate:llm-docs:all": "pnpm run generate:llm-docs:concise && pnpm run generate:llm-docs:full",
+    "generate:llm-docs:concise": "node generate-docs/llms.mjs",
+    "generate:llm-docs:full": "node generate-docs/llms-full.mjs"
   },
   "packageManager": "pnpm@9.14.0",
   "dependencies": {

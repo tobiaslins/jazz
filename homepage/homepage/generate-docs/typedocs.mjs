@@ -1,21 +1,7 @@
 import { Application } from "typedoc";
+import { PACKAGES } from "./utils/config.mjs";
 
-for (const { packageName, entryPoint, tsconfig, typedocOptions } of [
-  {
-    packageName: "jazz-tools",
-    entryPoint: "exports.ts",
-  },
-  {
-    packageName: "jazz-react",
-    entryPoint: "index.ts",
-    typedocOptions: {
-      skipErrorChecking: true, // TODO: remove this. Temporary workaround
-    },
-  },
-  { packageName: "jazz-browser" },
-  { packageName: "jazz-browser-media-images" },
-  { packageName: "jazz-nodejs" },
-]) {
+for (const { packageName, entryPoint, tsconfig, typedocOptions } of PACKAGES) {
   const app = await Application.bootstrapWithPlugins({
     entryPoints: [
       `../../packages/${packageName}/src/${entryPoint || "index.ts"}`,
