@@ -19,7 +19,7 @@ type StorageData = {
  * ```
  * import { DemoAuth } from "jazz-tools";
  *
- * const auth = new DemoAuth(jazzContext.authenticate);
+ * const auth = new DemoAuth(jazzContext.authenticate, new AuthSecretStorage());
  * ```
  *
  * @category Auth Providers

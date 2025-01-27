@@ -16,7 +16,7 @@ import { AuthSecretStorage } from "./AuthSecretStorage.js";
  * ```ts
  * import { PassphraseAuth } from "jazz-tools";
  *
- * const auth = new PassphraseAuth(driver, wordlist);
+ * const auth = new PassphraseAuth(crypto, jazzContext.authenticate, jazzContext.register, new AuthSecretStorage(), wordlist);
  * ```
  *
  * @category Auth Providers
@@ -33,12 +33,15 @@ export class PassphraseAuth {
   logIn = async (passphrase: string) => {
     const { crypto, authenticate } = this;
 
-    const secretSeed = bip39.mnemonicToEntropy(passphrase, this.wordlist);
-    const accountSecret = crypto.agentSecretFromSecretSeed(secretSeed);
+    let secretSeed;
 
-    if (!accountSecret) {
+    try {
+      secretSeed = bip39.mnemonicToEntropy(passphrase, this.wordlist);
+    } catch (e) {
       throw new Error("Invalid passphrase");
     }
+
+    const accountSecret = crypto.agentSecretFromSecretSeed(secretSeed);
 
     const accountID = cojsonInternals.idforHeader(
       cojsonInternals.accountHeaderForInitialAgentSecret(accountSecret, crypto),
@@ -61,12 +64,15 @@ export class PassphraseAuth {
   signUp = async (username: string, passphrase: string) => {
     const { crypto, register } = this;
 
-    const secretSeed = bip39.mnemonicToEntropy(passphrase, this.wordlist);
-    const accountSecret = crypto.agentSecretFromSecretSeed(secretSeed);
+    let secretSeed;
 
-    if (!accountSecret) {
+    try {
+      secretSeed = bip39.mnemonicToEntropy(passphrase, this.wordlist);
+    } catch (e) {
       throw new Error("Invalid passphrase");
     }
+
+    const accountSecret = crypto.agentSecretFromSecretSeed(secretSeed);
 
     const accountID = await register(accountSecret, { name: username });
 
