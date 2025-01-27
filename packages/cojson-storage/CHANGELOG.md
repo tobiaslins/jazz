@@ -1,5 +1,12 @@
 # cojson-storage
 
+## 0.9.19
+
+### Patch Changes
+
+- Updated dependencies [6ad0a9f]
+  - cojson@0.9.19
+
 ## 0.9.18
 
 ### Patch Changes

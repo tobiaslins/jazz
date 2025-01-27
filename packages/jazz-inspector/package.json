@@ -1,6 +1,6 @@
 {
   "name": "jazz-inspector",
-  "version": "0.9.19",
+  "version": "0.9.20",
   "type": "module",
   "main": "./dist/app.js",
   "types": "./dist/app.d.ts",
