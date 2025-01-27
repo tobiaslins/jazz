@@ -5,6 +5,7 @@ import {
 } from 'jazz-browser';
 import type {
   AnonymousJazzAgent,
+  AuthSecretStorage,
   CoValue,
   CoValueClass,
   DeeplyLoaded,
@@ -22,6 +23,7 @@ export { Provider as JazzProvider };
  * The key for the Jazz context.
  */
 export const JAZZ_CTX = {};
+export const JAZZ_AUTH_CTX = {};
 
 /**
  * The Jazz context.
@@ -50,8 +52,18 @@ export function getJazzContext<Acc extends Account>() {
   };
 }
 
+export function getAuthSecretStorage() {
+  const context = getContext<AuthSecretStorage>(JAZZ_AUTH_CTX);
+
+  if (!context) {
+    throw new Error('useJazzContext must be used within a JazzProvider');
+  }
+
+  return context;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface Register {}
+export interface Register { }
 
 export type RegisteredAccount = Register extends { Account: infer Acc }
   ? Acc

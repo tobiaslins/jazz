@@ -12,10 +12,22 @@ import {
   JazzContextType,
   createCoValueObservable,
 } from "jazz-tools";
-import { JazzContext } from "./provider.js";
+import { JazzAuthContext, JazzContext } from "./provider.js";
 
 export function useJazzContext<Acc extends Account>() {
   const value = useContext(JazzContext) as JazzContextType<Acc>;
+
+  if (!value) {
+    throw new Error(
+      "You need to set up a JazzProvider on top of your app to use this hook.",
+    );
+  }
+
+  return value;
+}
+
+export function useAuthSecretStorage() {
+  const value = useContext(JazzAuthContext);
 
   if (!value) {
     throw new Error(

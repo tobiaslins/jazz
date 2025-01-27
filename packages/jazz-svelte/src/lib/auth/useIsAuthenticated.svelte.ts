@@ -1,11 +1,13 @@
-import { AuthSecretStorage } from "jazz-browser";
+import { getAuthSecretStorage } from "$lib/jazz.svelte.js";
 import { onDestroy } from "svelte";
 
 export function useIsAuthenticated() {
-    let isAuthenticated = $state(AuthSecretStorage.isAuthenticated());
+    const authSecretStorage = getAuthSecretStorage();
 
-    const unsubscribe = AuthSecretStorage.onUpdate(() => {
-        isAuthenticated = AuthSecretStorage.isAuthenticated();
+    let isAuthenticated = $state(authSecretStorage.isAuthenticated);
+
+    const unsubscribe = authSecretStorage.onUpdate(() => {
+        isAuthenticated = authSecretStorage.isAuthenticated;
     });
 
     onDestroy(() => {

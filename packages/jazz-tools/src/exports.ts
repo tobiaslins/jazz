@@ -50,7 +50,16 @@ export {
   subscribeToCoValue,
 } from "./internal.js";
 
-export { JazzContextManager } from "./implementation/ContextManager.js";
+export {
+  JazzContextManager,
+  type JazzContextManagerAuthProps,
+} from "./implementation/ContextManager.js";
+
+export { AuthSecretStorage } from "./auth/AuthSecretStorage.js";
+export { KvStoreContext, type KvStore } from "./auth/KvStoreContext.js";
+export { InMemoryKVStore } from "./auth/InMemoryKVStore.js";
+export { DemoAuth } from "./auth/DemoAuth.js";
+export { PassphraseAuth } from "./auth/PassphraseAuth.js";
 
 export {
   createInviteLink,

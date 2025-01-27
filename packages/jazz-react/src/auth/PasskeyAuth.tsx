@@ -1,7 +1,10 @@
 import { BrowserPasskeyAuth } from "jazz-browser";
-import { useJazzContext } from "jazz-react-core";
+import {
+  useAuthSecretStorage,
+  useIsAuthenticated,
+  useJazzContext,
+} from "jazz-react-core";
 import { useMemo, useState } from "react";
-import { useIsAuthenticated } from "./useIsAuthenticated.js";
 
 /**
  * `usePasskeyAuth` hook provides a `JazzAuth` object for passkey authentication.
@@ -21,15 +24,17 @@ export function usePasskeyAuth({
   appHostname?: string;
 }) {
   const context = useJazzContext();
+  const authSecretStorage = useAuthSecretStorage();
 
   const authMethod = useMemo(() => {
     return new BrowserPasskeyAuth(
       context.node.crypto,
       context.authenticate,
+      authSecretStorage,
       appName,
       appHostname,
     );
-  }, [appName, appHostname]);
+  }, [appName, appHostname, authSecretStorage]);
 
   const isAuthenticated = useIsAuthenticated();
 

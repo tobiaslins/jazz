@@ -1,7 +1,8 @@
-import { AuthSecretStorage } from "../auth/AuthSecretStorage.js";
+import { AuthSecretStorage } from "jazz-tools";
 
-function exportAccountToInspector() {
-  const localStorageData = AuthSecretStorage.get();
+async function exportAccountToInspector() {
+  const authSecretStorage = new AuthSecretStorage();
+  const localStorageData = await authSecretStorage.get();
 
   if (!localStorageData) {
     console.error("No account data found in localStorage");

@@ -1,43 +1,5 @@
-import { BrowserPassphraseAuth } from "jazz-browser";
-import { useJazzContext } from "jazz-react-core";
-import { useMemo, useState } from "react";
-import { useIsAuthenticated } from "./useIsAuthenticated.js";
-
-/**
- * `usePassphraseAuth` hook provides a `JazzAuth` object for passphrase authentication.
- *
- * @example
- * ```ts
- * const [auth, state] = usePassphraseAuth({ appName, appHostname, wordlist });
- * ```
- *
- * @category Auth Providers
- */
-export function usePassphraseAuth({
-  wordlist,
-}: {
-  wordlist: string[];
-}) {
-  const context = useJazzContext();
-
-  const authMethod = useMemo(() => {
-    return new BrowserPassphraseAuth(
-      context.node.crypto,
-      context.authenticate,
-      context.register,
-      wordlist,
-    );
-  }, [wordlist]);
-
-  const isAuthenticated = useIsAuthenticated();
-  return {
-    state: isAuthenticated ? "signedIn" : "anonymous",
-    logIn: authMethod.logIn,
-    signUp: authMethod.signUp,
-    generateRandomPassphrase: authMethod.generateRandomPassphrase,
-    getCurrentUserPassphrase: authMethod.getCurrentUserPassphrase,
-  } as const;
-}
+import { usePassphraseAuth } from "jazz-react-core";
+import { useState } from "react";
 
 export const PassphraseAuthBasicUI = (
   props: ReturnType<typeof usePassphraseAuth>,

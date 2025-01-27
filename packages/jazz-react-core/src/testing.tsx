@@ -1,7 +1,7 @@
-import { Account, AnonymousJazzAgent } from "jazz-tools";
+import { Account, AnonymousJazzAgent, AuthSecretStorage } from "jazz-tools";
 import { getJazzContextShape } from "jazz-tools/testing";
 import { useMemo } from "react";
-import { JazzContext } from "./provider.js";
+import { JazzAuthContext, JazzContext } from "./provider.js";
 
 export function JazzTestProvider<Acc extends Account>({
   children,
@@ -14,7 +14,17 @@ export function JazzTestProvider<Acc extends Account>({
     return getJazzContextShape(account);
   }, [account]);
 
-  return <JazzContext.Provider value={value}>{children}</JazzContext.Provider>;
+  const authSecretStorage = useMemo(() => {
+    return new AuthSecretStorage();
+  }, []);
+
+  return (
+    <JazzContext.Provider value={value}>
+      <JazzAuthContext.Provider value={authSecretStorage}>
+        {children}
+      </JazzAuthContext.Provider>
+    </JazzContext.Provider>
+  );
 }
 
 export {

@@ -1,4 +1,4 @@
-import { getJazzContext } from "$lib/jazz.svelte.js";
+import { getAuthSecretStorage, getJazzContext } from "$lib/jazz.svelte.js";
 import { BrowserPasskeyAuth } from "jazz-browser";
 import { useIsAuthenticated } from "./useIsAuthenticated.svelte.js";
 
@@ -16,9 +16,11 @@ export function usePasskeyAuth({
   appHostname?: string;
 }): PasskeyAuth {
   const context = getJazzContext();
+  const authSecretStorage = getAuthSecretStorage();
   const auth = new BrowserPasskeyAuth(
     context.current.node.crypto,
     context.current.authenticate,
+    authSecretStorage,
     appName,
     appHostname
   );

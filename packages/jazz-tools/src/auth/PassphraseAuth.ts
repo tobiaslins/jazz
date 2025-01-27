@@ -2,30 +2,31 @@ import * as bip39 from "@scure/bip39";
 import { entropyToMnemonic } from "@scure/bip39";
 import { generateMnemonic } from "@scure/bip39";
 import { CryptoProvider, cojsonInternals } from "cojson";
-import {
-  Account,
+import { Account } from "../coValues/account.js";
+import type { ID } from "../internal.js";
+import type {
   AuthenticateAccountFunction,
-  ID,
   RegisterAccountFunction,
-} from "jazz-tools";
+} from "../types.js";
 import { AuthSecretStorage } from "./AuthSecretStorage.js";
 
 /**
- * `BrowserPassphraseAuth` provides a `JazzAuth` object for passphrase authentication.
+ * `PassphraseAuth` provides a `JazzAuth` object for passphrase authentication.
  *
  * ```ts
- * import { BrowserPassphraseAuth } from "jazz-browser";
+ * import { PassphraseAuth } from "jazz-tools";
  *
- * const auth = new BrowserPassphraseAuth(driver, wordlist);
+ * const auth = new PassphraseAuth(driver, wordlist);
  * ```
  *
  * @category Auth Providers
  */
-export class BrowserPassphraseAuth {
+export class PassphraseAuth {
   constructor(
     private crypto: CryptoProvider,
     private authenticate: AuthenticateAccountFunction,
     private register: RegisterAccountFunction,
+    private authSecretStorage: AuthSecretStorage,
     public wordlist: string[],
   ) {}
 
@@ -49,7 +50,7 @@ export class BrowserPassphraseAuth {
       accountSecret,
     });
 
-    AuthSecretStorage.set({
+    await this.authSecretStorage.set({
       accountID,
       secretSeed,
       accountSecret,
@@ -69,7 +70,7 @@ export class BrowserPassphraseAuth {
 
     const accountID = await register(accountSecret, { name: username });
 
-    AuthSecretStorage.set({
+    await this.authSecretStorage.set({
       accountID,
       secretSeed,
       accountSecret,
@@ -92,8 +93,8 @@ export class BrowserPassphraseAuth {
     );
   };
 
-  getCurrentUserPassphrase = () => {
-    const credentials = AuthSecretStorage.get();
+  getCurrentUserPassphrase = async () => {
+    const credentials = await this.authSecretStorage.get();
 
     if (!credentials || !credentials.secretSeed) {
       return null;

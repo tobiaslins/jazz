@@ -6,6 +6,7 @@ import {
 import {
   Account,
   AnonymousJazzAgent,
+  AuthSecretStorage,
   CoValue,
   CoValueClass,
   DeeplyLoaded,
@@ -31,7 +32,11 @@ import {
   unref,
   watch,
 } from "vue";
-import { JazzContextSymbol, RegisteredAccount } from "./provider.js";
+import {
+  JazzAuthContextSymbol,
+  JazzContextSymbol,
+  RegisteredAccount,
+} from "./provider.js";
 
 export const logoutHandler = ref<() => void>();
 
@@ -40,6 +45,14 @@ export function useJazzContext() {
     inject<Ref<JazzContextType<RegisteredAccount>>>(JazzContextSymbol);
   if (!context?.value) {
     throw new Error("useJazzContext must be used within a JazzProvider");
+  }
+  return context;
+}
+
+export function useAuthSecretStorage() {
+  const context = inject<AuthSecretStorage>(JazzAuthContextSymbol);
+  if (!context) {
+    throw new Error("useAuthSecretStorage must be used within a JazzProvider");
   }
   return context;
 }

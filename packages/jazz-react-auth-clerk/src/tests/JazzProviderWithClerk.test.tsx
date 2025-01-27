@@ -1,9 +1,8 @@
 // @vitest-environment happy-dom
 
-import { render, screen, waitFor } from "@testing-library/react";
-import { AuthSecretStorage } from "jazz-browser";
+import { render, waitFor } from "@testing-library/react";
 import type { MinimalClerkClient } from "jazz-browser-auth-clerk";
-import { Account, ID } from "jazz-tools";
+import { Account, AuthSecretStorage, ID } from "jazz-tools";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { JazzProviderWithClerk } from "../index";
 
@@ -28,10 +27,12 @@ vi.mock("jazz-react", async (importOriginal) => {
   };
 });
 
+const authSecretStorage = new AuthSecretStorage();
+
 describe("JazzProviderWithClerk", () => {
   beforeEach(async () => {
-    AuthSecretStorage.clear();
-    AuthSecretStorage.set({
+    await authSecretStorage.clear();
+    await authSecretStorage.set({
       accountID: "test123" as any as ID<Account>,
       secretSeed: new Uint8Array([1, 2, 3]),
       accountSecret: "secret123" as any,

@@ -1,10 +1,11 @@
-export { useIsAuthenticated } from "./useIsAuthenticated.js";
-export { useDemoAuth, DemoAuthBasicUI } from "./DemoAuth.js";
+export { DemoAuthBasicUI } from "./DemoAuth.js";
 export {
   usePasskeyAuth,
   PasskeyAuthBasicUI,
 } from "./PasskeyAuth.js";
+export { PassphraseAuthBasicUI } from "./PassphraseAuth.js";
 export {
+  useIsAuthenticated,
+  useDemoAuth,
   usePassphraseAuth,
-  PassphraseAuthBasicUI,
-} from "./PassphraseAuth.js";
+} from "jazz-react-core";

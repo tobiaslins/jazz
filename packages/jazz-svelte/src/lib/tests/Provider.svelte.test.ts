@@ -24,7 +24,6 @@ const createContexSpy = vi.spyOn(JazzBrowserContextManager.prototype, 'createCon
 vi.mock('jazz-browser', () => ({
   JazzBrowserContextManager: class {
     async createContext() {}
-    toggleNetwork() {}
     subscribe(fn: () => void) {
       fn();
 
@@ -34,10 +33,6 @@ vi.mock('jazz-browser', () => ({
       return undefined;
     }
   },
-  AuthSecretStorage: {
-    isAuthenticated: () => true,
-    onUpdate: vi.fn().mockReturnValue(() => {})
-  }
 }));
 
 // Mocks for coValue observables

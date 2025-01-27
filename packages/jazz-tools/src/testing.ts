@@ -1,7 +1,12 @@
 import { AgentSecret, CryptoProvider, LocalNode, Peer } from "cojson";
 import { cojsonInternals } from "cojson";
 import { PureJSCrypto } from "cojson/crypto";
-import { Account, type AccountClass } from "./exports.js";
+import {
+  Account,
+  type AccountClass,
+  InMemoryKVStore,
+  KvStoreContext,
+} from "./exports.js";
 import { activeAccountContext } from "./implementation/activeAccountContext.js";
 import {
   type AnonymousJazzAgent,
@@ -121,7 +126,6 @@ export function getJazzContextShape<Acc extends Account>(
       authenticate: async () => {
         throw new Error("Not implemented");
       },
-      toggleNetwork: () => {},
       register: async () => {
         throw new Error("Not implemented");
       },
@@ -136,7 +140,6 @@ export function getJazzContextShape<Acc extends Account>(
     authenticate: async () => {
       throw new Error("Not implemented");
     },
-    toggleNetwork: () => {},
     register: async () => {
       throw new Error("Not implemented");
     },

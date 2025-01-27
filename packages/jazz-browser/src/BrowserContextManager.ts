@@ -1,5 +1,11 @@
-import { Account, AccountClass, JazzContextManager } from "jazz-tools";
-import { JazzContextManagerAuthProps } from "jazz-tools/src/implementation/ContextManager.js";
+import {
+  Account,
+  AccountClass,
+  InMemoryKVStore,
+  JazzContextManager,
+} from "jazz-tools";
+import { JazzContextManagerAuthProps } from "jazz-tools";
+import { LocalStorageKVStore } from "./auth/LocalStorageKVStore.js";
 import {
   BaseBrowserContextOptions,
   BrowserContext,
@@ -11,7 +17,7 @@ import {
 export type JazzContextManagerProps<Acc extends Account> = {
   guestMode?: boolean;
   peer: `wss://${string}` | `ws://${string}`;
-  localOnly?: boolean;
+  localOnly?: "always" | "anonymous" | "off";
   onLogOut?: () => void;
   storage?: BaseBrowserContextOptions["storage"];
   AccountSchema?: AccountClass<Acc>;
@@ -21,6 +27,15 @@ export type JazzContextManagerProps<Acc extends Account> = {
 export class JazzBrowserContextManager<
   Acc extends Account,
 > extends JazzContextManager<Acc, JazzContextManagerProps<Acc>> {
+  getKvStore() {
+    if (typeof window === "undefined") {
+      // To handle running in SSR
+      return new InMemoryKVStore();
+    } else {
+      return new LocalStorageKVStore();
+    }
+  }
+
   async createContext(
     props: JazzContextManagerProps<Acc>,
     authProps?: JazzContextManagerAuthProps,
@@ -36,6 +51,7 @@ export class JazzBrowserContextManager<
         peer: props.peer,
         storage: props.storage,
         localOnly: props.localOnly,
+        authSecretStorage: this.authSecretStorage,
       });
     } else {
       currentContext = await createJazzBrowserContext<Acc>({
@@ -46,6 +62,7 @@ export class JazzBrowserContextManager<
         credentials: authProps?.credentials,
         newAccountProps: authProps?.newAccountProps,
         defaultProfileName: props.defaultProfileName,
+        authSecretStorage: this.authSecretStorage,
       });
     }
 
@@ -58,7 +75,9 @@ export class JazzBrowserContextManager<
     }
 
     return (
-      props.peer !== this.props.peer || props.guestMode !== this.props.guestMode
+      props.peer !== this.props.peer ||
+      props.guestMode !== this.props.guestMode ||
+      props.localOnly !== this.props.localOnly
     );
   }
 }
