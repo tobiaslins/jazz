@@ -1,6 +1,6 @@
 {
   "name": "jazz-react-core",
-  "version": "0.8.60",
+  "version": "0.9.19",
   "type": "module",
   "main": "dist/index.js",
   "types": "src/index.ts",
