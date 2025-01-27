@@ -1,5 +1,13 @@
 # jazz-example-onboarding
 
+## 0.0.41
+
+### Patch Changes
+
+- jazz-react@0.9.19
+- jazz-tools@0.9.19
+- jazz-browser-media-images@0.9.19
+
 ## 0.0.40
 
 ### Patch Changes
