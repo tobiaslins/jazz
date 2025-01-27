@@ -1,6 +1,6 @@
-import { useAuthSecretStorage, useJazzContext } from "jazz-react-core";
 import { PassphraseAuth } from "jazz-tools";
 import { useMemo } from "react";
+import { useAuthSecretStorage, useJazzContext } from "../hooks.js";
 import { useIsAuthenticated } from "./useIsAuthenticated.js";
 
 /**

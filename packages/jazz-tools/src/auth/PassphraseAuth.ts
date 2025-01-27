@@ -97,7 +97,7 @@ export class PassphraseAuth {
     const credentials = await this.authSecretStorage.get();
 
     if (!credentials || !credentials.secretSeed) {
-      return null;
+      throw new Error("No credentials found");
     }
 
     return entropyToMnemonic(credentials.secretSeed, this.wordlist);

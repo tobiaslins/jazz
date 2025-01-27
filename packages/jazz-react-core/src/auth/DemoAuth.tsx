@@ -1,6 +1,6 @@
-import { useAuthSecretStorage, useJazzContext } from "jazz-react-core";
 import { DemoAuth } from "jazz-tools";
 import { useEffect, useMemo, useState } from "react";
+import { useAuthSecretStorage, useJazzContext } from "../hooks.js";
 import { useIsAuthenticated } from "./useIsAuthenticated.js";
 
 /**
@@ -8,7 +8,7 @@ import { useIsAuthenticated } from "./useIsAuthenticated.js";
  *
  *
  * ```ts
- * const [auth, state] = useDemoAuth();
+ * const { state, logIn, signUp, existingUsers } = useDemoAuth();
  * ```
  *
  * @category Auth Providers
@@ -28,10 +28,16 @@ export function useDemoAuth() {
     authMethod.getExistingUsers().then(setExistingUsers);
   }, [authMethod]);
 
+  function handleSignUp(username: string) {
+    authMethod.signUp(username).then(() => {
+      setExistingUsers(existingUsers.concat([username]));
+    });
+  }
+
   return {
     state: isAuthenticated ? "signedIn" : "anonymous",
     logIn: authMethod.logIn,
-    signUp: authMethod.signUp,
+    signUp: handleSignUp,
     existingUsers,
   } as const;
 }

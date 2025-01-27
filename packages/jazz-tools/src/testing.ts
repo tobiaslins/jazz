@@ -137,11 +137,10 @@ export function getJazzContextShape<Acc extends Account>(
   return {
     me: account,
     node: account._raw.core.node,
-    authenticate: async () => {
-      throw new Error("Not implemented");
-    },
+    authenticate: async () => {},
     register: async () => {
-      throw new Error("Not implemented");
+      const account = await createJazzTestAccount();
+      return account.id;
     },
     logOut: () => account._raw.core.node.gracefulShutdown(),
     done: () => account._raw.core.node.gracefulShutdown(),

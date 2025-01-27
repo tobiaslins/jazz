@@ -30,7 +30,7 @@ export class DemoAuth {
     private authSecretStorage: AuthSecretStorage,
   ) {}
 
-  async logIn(username: string) {
+  logIn = async (username: string) => {
     const kvStore = KvStoreContext.getInstance().getStorage();
 
     const storageData = JSON.parse(
@@ -54,9 +54,9 @@ export class DemoAuth {
         : undefined,
       provider: "demo",
     });
-  }
+  };
 
-  async signUp(username: string) {
+  signUp = async (username: string) => {
     const existingUsers = await this.getExistingUsers();
     if (existingUsers.includes(username)) {
       throw new Error("User already registered");
@@ -92,7 +92,7 @@ export class DemoAuth {
         ? Array.from(credentials.secretSeed)
         : undefined,
     });
-  }
+  };
 
   private async addToExistingUsers(username: string, data: StorageData) {
     const kvStore = KvStoreContext.getInstance().getStorage();
@@ -108,9 +108,9 @@ export class DemoAuth {
     );
   }
 
-  async getExistingUsers() {
+  getExistingUsers = async () => {
     const kvStore = KvStoreContext.getInstance().getStorage();
     const existingUsers = await kvStore.get("demo-auth-existing-users");
     return existingUsers ? existingUsers.split(",") : [];
-  }
+  };
 }

@@ -10,9 +10,7 @@ import {
   CoValueClass,
   CryptoProvider,
   ID,
-  InMemoryKVStore,
   InviteSecret,
-  KvStoreContext,
   NewAccountProps,
   SessionID,
   WasmCrypto,
@@ -21,7 +19,6 @@ import {
 } from "jazz-tools";
 import { createJazzContext } from "jazz-tools";
 import { OPFSFilesystem } from "./OPFSFilesystem.js";
-import { LocalStorageKVStore } from "./auth/LocalStorageKVStore.js";
 import { createWebSocketPeerWithReconnection } from "./createWebSocketPeerWithReconnection.js";
 import { StorageConfig, getStorageOptions } from "./storageOptions.js";
 import { setupInspector } from "./utils/export-account-inspector.js";

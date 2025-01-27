@@ -1,26 +1,52 @@
-import { Account, AnonymousJazzAgent, AuthSecretStorage } from "jazz-tools";
+import {
+  Account,
+  AnonymousJazzAgent,
+  AuthSecretStorage,
+  InMemoryKVStore,
+  KvStoreContext,
+} from "jazz-tools";
 import { getJazzContextShape } from "jazz-tools/testing";
 import { useMemo } from "react";
 import { JazzAuthContext, JazzContext } from "./provider.js";
 
 export function JazzTestProvider<Acc extends Account>({
   children,
-  account,
+  account = Account.getMe() as Acc,
+  isAuthenticated,
 }: {
   children: React.ReactNode;
-  account: Acc | { guest: AnonymousJazzAgent };
+  account?: Acc | { guest: AnonymousJazzAgent };
+  isAuthenticated?: boolean;
 }) {
   const value = useMemo(() => {
     return getJazzContextShape(account);
   }, [account]);
 
-  const authSecretStorage = useMemo(() => {
-    return new AuthSecretStorage();
-  }, []);
+  const authSecretStorageValue = useMemo(() => {
+    KvStoreContext.getInstance().initialize(new InMemoryKVStore());
+    const storage = new AuthSecretStorage();
+
+    if ("guest" in account) {
+      return storage;
+    }
+
+    const accountID = account.id;
+    const accountSecret = account._raw.core.node.account.agentSecret;
+
+    storage.set({
+      accountID,
+      accountSecret,
+      secretSeed: new Uint8Array([1, 2, 3]),
+      provider: isAuthenticated ? "demo" : "anonymous",
+    });
+    storage.isAuthenticated = Boolean(isAuthenticated);
+
+    return storage;
+  }, [account, isAuthenticated]);
 
   return (
     <JazzContext.Provider value={value}>
-      <JazzAuthContext.Provider value={authSecretStorage}>
+      <JazzAuthContext.Provider value={authSecretStorageValue}>
         {children}
       </JazzAuthContext.Provider>
     </JazzContext.Provider>

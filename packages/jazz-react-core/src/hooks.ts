@@ -31,7 +31,7 @@ export function useAuthSecretStorage() {
 
   if (!value) {
     throw new Error(
-      "You need to set up a JazzProvider on top of your app to use this hook.",
+      "You need to set up a JazzProvider on top of your app to use this useAuthSecretStorage.",
     );
   }
 
