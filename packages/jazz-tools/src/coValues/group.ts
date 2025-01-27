@@ -1,4 +1,10 @@
-import type { Everyone, RawAccountID, RawGroup, Role } from "cojson";
+import type {
+  AccountRole,
+  Everyone,
+  RawAccountID,
+  RawGroup,
+  Role,
+} from "cojson";
 import type {
   CoValue,
   CoValueClass,
@@ -9,24 +15,20 @@ import type {
   Schema,
 } from "../internal.js";
 import {
-  Account,
-  AccountAndGroupProxyHandler,
-  CoMap,
   CoValueBase,
   MembersSym,
   Ref,
-  co,
   ensureCoValueLoaded,
-  isControlledAccount,
-  loadCoValue,
-  subscribeToCoValue,
+  loadCoValueWithoutMe,
+  parseGroupCreateOptions,
+  subscribeToCoValueWithoutMe,
   subscribeToExistingCoValue,
 } from "../internal.js";
-
-/** @category Identity & Permissions */
-export class Profile extends CoMap {
-  name = co.string;
-}
+import { AccountAndGroupProxyHandler, isControlledAccount } from "./account.js";
+import { type Account } from "./account.js";
+import { type CoMap } from "./coMap.js";
+import { type Profile } from "./profile.js";
+import { RegisteredSchemas } from "./registeredSchemas.js";
 
 /** @category Identity & Permissions */
 export class Group extends CoValueBase implements CoValue {
@@ -51,7 +53,7 @@ export class Group extends CoValueBase implements CoValue {
       profile: "json" satisfies Schema,
       root: "json" satisfies Schema,
       [MembersSym]: {
-        ref: () => Account,
+        ref: () => RegisteredSchemas["Account"],
         optional: false,
       } satisfies RefEncoded<Account>,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -128,16 +130,18 @@ export class Group extends CoValueBase implements CoValue {
 
   static create<G extends Group>(
     this: CoValueClass<G>,
-    options: { owner: Account },
+    options?: { owner: Account } | Account,
   ) {
-    return new this(options);
+    return new this(parseGroupCreateOptions(options));
   }
 
   myRole(): Role | undefined {
     return this._raw.myRole();
   }
 
-  addMember(member: Everyone | Account, role: Role) {
+  addMember(member: Everyone, role: "writer" | "reader"): Group;
+  addMember(member: Account, role: AccountRole): Group;
+  addMember(member: Everyone | Account, role: AccountRole) {
     this._raw.addMember(member === "everyone" ? member : member._raw, role);
     return this;
   }
@@ -183,27 +187,56 @@ export class Group extends CoValueBase implements CoValue {
   }
 
   /** @category Subscription & Loading */
-  static load<G extends Group, const O extends { resolve?: RefsToResolve<G> }>(
-    this: CoValueClass<G>,
-    id: ID<G>,
+  static load<C extends Group, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
+    depth: Depth & DepthsIn<C>,
+  ): Promise<DeeplyLoaded<C, Depth> | undefined>;
+  static load<C extends Group, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
     as: Account,
-    options?: O,
-  ): Promise<Resolved<G, O> | undefined> {
-    return loadCoValue(this, id, as, options);
+    depth: Depth & DepthsIn<C>,
+  ): Promise<DeeplyLoaded<C, Depth> | undefined>;
+  static load<C extends Group, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
+    asOrDepth: Account | (Depth & DepthsIn<C>),
+    depth?: Depth & DepthsIn<C>,
+  ): Promise<DeeplyLoaded<C, Depth> | undefined> {
+    return loadCoValueWithoutMe(this, id, asOrDepth, depth);
   }
 
   /** @category Subscription & Loading */
-  static subscribe<
-    G extends Group,
-    const O extends { resolve?: RefsToResolve<G> },
-  >(
-    this: CoValueClass<G>,
-    id: ID<G>,
+  static subscribe<C extends Group, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
+    depth: Depth & DepthsIn<C>,
+    listener: (value: DeeplyLoaded<C, Depth>) => void,
+  ): () => void;
+  static subscribe<C extends Group, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
     as: Account,
-    options: O,
-    listener: (value: Resolved<G, O>) => void,
+    depth: Depth & DepthsIn<C>,
+    listener: (value: DeeplyLoaded<C, Depth>) => void,
+  ): () => void;
+  static subscribe<C extends Group, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
+    asOrDepth: Account | (Depth & DepthsIn<C>),
+    depthOrListener:
+      | (Depth & DepthsIn<C>)
+      | ((value: DeeplyLoaded<C, Depth>) => void),
+    listener?: (value: DeeplyLoaded<C, Depth>) => void,
   ): () => void {
-    return subscribeToCoValue<G, O>(this, id, as, options, listener);
+    return subscribeToCoValueWithoutMe<C, Depth>(
+      this,
+      id,
+      asOrDepth,
+      depthOrListener,
+      listener,
+    );
   }
 
   /** @category Subscription & Loading */
@@ -232,3 +265,5 @@ export class Group extends CoValueBase implements CoValue {
     return this._raw.core.waitForSync(options);
   }
 }
+
+RegisteredSchemas["Group"] = Group;

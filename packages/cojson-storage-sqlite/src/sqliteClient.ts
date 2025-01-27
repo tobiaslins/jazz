@@ -1,5 +1,10 @@
 import { Database as DatabaseT } from "better-sqlite3";
-import { CojsonInternalTypes, OutgoingSyncQueue, SessionID } from "cojson";
+import {
+  CojsonInternalTypes,
+  OutgoingSyncQueue,
+  SessionID,
+  logger,
+} from "cojson";
 import RawCoID = CojsonInternalTypes.RawCoID;
 import Signature = CojsonInternalTypes.Signature;
 import Transaction = CojsonInternalTypes.Transaction;
@@ -22,6 +27,10 @@ export type RawTransactionRow = {
   idx: number;
   tx: string;
 };
+
+export function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Unknown error";
+}
 
 export class SQLiteClient implements DBClientInterface {
   private readonly db: DatabaseT;
@@ -48,7 +57,10 @@ export class SQLiteClient implements DBClientInterface {
         header: parsedHeader,
       };
     } catch (e) {
-      console.warn(coValueId, "Invalid JSON in header", e, coValueRow?.header);
+      const headerValue = coValueRow?.header ?? "";
+      logger.warn("Invalid JSON in header: " + headerValue, {
+        id: coValueId,
+      });
       return;
     }
   }
@@ -75,7 +87,7 @@ export class SQLiteClient implements DBClientInterface {
         tx: JSON.parse(transactionRow.tx) as Transaction,
       }));
     } catch (e) {
-      console.warn("Invalid JSON in transaction", e);
+      logger.warn("Invalid JSON in transaction");
       return [];
     }
   }

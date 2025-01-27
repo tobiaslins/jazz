@@ -6,7 +6,7 @@ type StorageData = {
   accountSecret: AgentSecret;
 };
 
-const localStorageKey = "demo-auth-logged-in-secret";
+const localStorageKey = "jazz-logged-in-secret";
 
 /**
  * `BrowserDemoAuth` provides a `JazzAuth` object for demo authentication.
@@ -54,7 +54,16 @@ export class BrowserDemoAuth implements AuthMethod {
    * @returns A `JazzAuth` object
    */
   async start() {
+    // migrate old localStorage key to new one
     if (localStorage["demo-auth-logged-in-secret"]) {
+      if (!localStorage[localStorageKey]) {
+        localStorage[localStorageKey] =
+          localStorage["demo-auth-logged-in-secret"];
+      }
+      delete localStorage["demo-auth-logged-in-secret"];
+    }
+
+    if (localStorage[localStorageKey]) {
       const localStorageData = JSON.parse(
         localStorage[localStorageKey],
       ) as StorageData;
@@ -91,7 +100,7 @@ export class BrowserDemoAuth implements AuthMethod {
                   accountSecret: credentials.secret,
                 } satisfies StorageData);
 
-                localStorage["demo-auth-logged-in-secret"] = storageData;
+                localStorage[localStorageKey] = storageData;
                 localStorage["demo-auth-existing-users-" + username] =
                   storageData;
 
@@ -119,8 +128,7 @@ export class BrowserDemoAuth implements AuthMethod {
               localStorage["demo-auth-existing-users-" + existingUser],
             ) as StorageData;
 
-            localStorage["demo-auth-logged-in-secret"] =
-              JSON.stringify(storageData);
+            localStorage[localStorageKey] = JSON.stringify(storageData);
 
             resolve({
               type: "existing",

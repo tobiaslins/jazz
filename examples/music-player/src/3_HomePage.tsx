@@ -1,9 +1,8 @@
 import { useToast } from "@/hooks/use-toast";
-import { createInviteLink } from "jazz-react";
+import { createInviteLink, useAccount, useCoState } from "jazz-react";
 import { ID } from "jazz-tools";
 import { useNavigate, useParams } from "react-router";
 import { Playlist } from "./1_schema";
-import { useAccount, useCoState } from "./2_main";
 import { createNewPlaylist, uploadMusicTracks } from "./4_actions";
 import { MediaPlayer } from "./5_useMediaPlayer";
 import { FileUploadButton } from "./components/FileUploadButton";
@@ -29,19 +28,15 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
   const { toast } = useToast();
 
   async function handleFileLoad(files: FileList) {
-    if (!me) return;
-
     /**
      * Follow this function definition to see how we update
      * values in Jazz and manage files!
      */
-    await uploadMusicTracks(me, files);
+    await uploadMusicTracks(files);
   }
 
   async function handleCreatePlaylist() {
-    if (!me) return;
-
-    const playlist = await createNewPlaylist(me);
+    const playlist = await createNewPlaylist();
 
     navigate(`/playlist/${playlist.id}`);
   }

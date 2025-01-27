@@ -1,12 +1,19 @@
-import { RawGroup } from "cojson";
-import { describe, expect, test } from "vitest";
-import { Account, CoMap, Group, WasmCrypto, co } from "../index.web.js";
-import { setupTwoNodes, waitFor } from "./utils.js";
+import { WasmCrypto } from "cojson";
+import { beforeEach, describe, expect, test } from "vitest";
+import { Account, CoMap, Group, Profile, co } from "../exports.js";
+import { createJazzTestAccount } from "../testing.js";
+import { setupTwoNodes } from "./utils.js";
 
 const Crypto = await WasmCrypto.create();
 
+beforeEach(async () => {
+  await createJazzTestAccount({
+    isCurrentActiveAccount: true,
+  });
+});
+
 describe("Custom accounts and groups", async () => {
-  class CustomProfile extends CoMap {
+  class CustomProfile extends Profile {
     name = co.string;
     color = co.string;
   }
@@ -166,68 +173,6 @@ describe("Group inheritance", () => {
     expect(mapAsReaderAfterUpdate?.title).toBe("In Grand Child");
   });
 
-  test("Group inheritance should fail if the current account doesn't have admin role in both groups", async () => {
-    const me = await Account.create({
-      creationProps: { name: "Hermes Puggington" },
-      crypto: Crypto,
-    });
-
-    const other = await Account.createAs(me, {
-      creationProps: { name: "Another user" },
-    });
-
-    const parentGroup = Group.create({ owner: me });
-    parentGroup.addMember(other, "writer");
-    const group = Group.create({ owner: me });
-    group.addMember(other, "admin");
-
-    const parentGroupOnTheOtherSide = await Group.load(
-      parentGroup.id,
-      other,
-      {},
-    );
-    const groupOnTheOtherSide = await Group.load(group.id, other, {});
-
-    if (!groupOnTheOtherSide || !parentGroupOnTheOtherSide) {
-      throw new Error("CoValue not available");
-    }
-
-    expect(() => groupOnTheOtherSide.extend(parentGroupOnTheOtherSide)).toThrow(
-      "To extend a group, the current account must have admin role in both groups",
-    );
-  });
-
-  test("Group inheritance should work if the current account has admin role in both groups", async () => {
-    const me = await Account.create({
-      creationProps: { name: "Hermes Puggington" },
-      crypto: Crypto,
-    });
-
-    const other = await Account.createAs(me, {
-      creationProps: { name: "Another user" },
-    });
-
-    const parentGroup = Group.create({ owner: me });
-    parentGroup.addMember(other, "admin");
-    const group = Group.create({ owner: me });
-    group.addMember(other, "admin");
-
-    const parentGroupOnTheOtherSide = await Group.load(
-      parentGroup.id,
-      other,
-      {},
-    );
-    const groupOnTheOtherSide = await Group.load(group.id, other, {});
-
-    if (!groupOnTheOtherSide || !parentGroupOnTheOtherSide) {
-      throw new Error("CoValue not available");
-    }
-
-    expect(() =>
-      groupOnTheOtherSide.extend(parentGroupOnTheOtherSide),
-    ).not.toThrow();
-  });
-
   test("waitForSync should resolve when the value is uploaded", async () => {
     const { clientNode, serverNode, clientAccount } = await setupTwoNodes();
 
@@ -241,5 +186,62 @@ describe("Group inheritance", () => {
     const loadedGroup = await serverNode.load(group._raw.id);
 
     expect(loadedGroup).not.toBe("unavailable");
+  });
+
+  test("everyone is valid only for reader and writer roles", () => {
+    const group = Group.create();
+    group.addMember("everyone", "reader");
+
+    expect(group.members).toContainEqual({
+      id: "everyone",
+      role: "reader",
+      account: undefined,
+      ref: undefined,
+    });
+
+    group.addMember("everyone", "writer");
+
+    expect(group.members).toContainEqual({
+      id: "everyone",
+      role: "writer",
+      account: undefined,
+      ref: undefined,
+    });
+
+    // @ts-expect-error - admin is not a valid role for everyone
+    expect(() => group.addMember("everyone", "admin")).toThrow();
+
+    expect(group.members).toContainEqual({
+      id: "everyone",
+      role: "writer",
+      account: undefined,
+      ref: undefined,
+    });
+
+    // @ts-expect-error - writeOnly is not a valid role for everyone
+    expect(() => group.addMember("everyone", "writeOnly")).toThrow();
+
+    expect(group.members).toContainEqual({
+      id: "everyone",
+      role: "writer",
+      account: undefined,
+      ref: undefined,
+    });
+  });
+
+  test("typescript should show an error when adding a member with a non-account role", async () => {
+    const account = await createJazzTestAccount({});
+
+    const group = Group.create();
+
+    // @ts-expect-error - Even though readerInvite is a valid role for an account, we don't allow it to not create confusion when using the intellisense
+    group.addMember(account, "readerInvite");
+
+    expect(group.members).toContainEqual(
+      expect.objectContaining({
+        id: account.id,
+        role: "readerInvite",
+      }),
+    );
   });
 });

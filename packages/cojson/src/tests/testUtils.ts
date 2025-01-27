@@ -33,6 +33,25 @@ export function createTestNode() {
   return new LocalNode(admin, session, Crypto);
 }
 
+export function connectTwoPeers(
+  a: LocalNode,
+  b: LocalNode,
+  aRole: "client" | "server",
+  bRole: "client" | "server",
+) {
+  const [aAsPeer, bAsPeer] = connectedPeers(
+    "peer:" + a.account.id,
+    "peer:" + b.account.id,
+    {
+      peer1role: aRole,
+      peer2role: bRole,
+    },
+  );
+
+  a.syncManager.addPeer(bAsPeer);
+  b.syncManager.addPeer(aAsPeer);
+}
+
 export async function createTwoConnectedNodes(
   node1Role: Peer["role"],
   node2Role: Peer["role"],
@@ -67,17 +86,11 @@ export async function createTwoConnectedNodes(
   };
 }
 
-export function createThreeConnectedNodes(
+export async function createThreeConnectedNodes(
   node1Role: Peer["role"],
   node2Role: Peer["role"],
   node3Role: Peer["role"],
 ) {
-  // Setup nodes
-  const node1 = createTestNode();
-  const node2 = createTestNode();
-  const node3 = createTestNode();
-
-  // Connect nodes initially
   const [node1ToNode2Peer, node2ToNode1Peer] = connectedPeers(
     "node1ToNode2",
     "node2ToNode1",
@@ -105,12 +118,23 @@ export function createThreeConnectedNodes(
     },
   );
 
-  node1.syncManager.addPeer(node1ToNode2Peer);
-  node1.syncManager.addPeer(node1ToNode3Peer);
-  node2.syncManager.addPeer(node2ToNode1Peer);
-  node2.syncManager.addPeer(node2ToNode3Peer);
-  node3.syncManager.addPeer(node3ToNode1Peer);
-  node3.syncManager.addPeer(node3ToNode2Peer);
+  const node1 = await LocalNode.withNewlyCreatedAccount({
+    peersToLoadFrom: [node1ToNode2Peer, node1ToNode3Peer],
+    crypto: Crypto,
+    creationProps: { name: "Node 1" },
+  });
+
+  const node2 = await LocalNode.withNewlyCreatedAccount({
+    peersToLoadFrom: [node2ToNode1Peer, node2ToNode3Peer],
+    crypto: Crypto,
+    creationProps: { name: "Node 2" },
+  });
+
+  const node3 = await LocalNode.withNewlyCreatedAccount({
+    peersToLoadFrom: [node3ToNode1Peer, node3ToNode2Peer],
+    crypto: Crypto,
+    creationProps: { name: "Node 3" },
+  });
 
   return {
     node1,

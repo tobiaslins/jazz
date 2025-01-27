@@ -1,5 +1,284 @@
 # jazz-browser
 
+## 0.9.20
+
+### Patch Changes
+
+- Updated dependencies [b01cc1f]
+  - jazz-tools@0.9.20
+  - jazz-react-core@0.9.20
+
+## 0.9.19
+
+### Patch Changes
+
+- Updated dependencies [6ad0a9f]
+  - cojson@0.9.19
+  - cojson-storage-rn-sqlite@0.8.58
+  - cojson-transport-ws@0.9.19
+  - jazz-react-core@0.8.60
+  - jazz-tools@0.9.19
+
+## 0.9.18
+
+### Patch Changes
+
+- Updated dependencies [8898b10]
+  - cojson@0.9.18
+  - cojson-storage-rn-sqlite@0.8.57
+  - cojson-transport-ws@0.9.18
+  - jazz-react-core@0.8.59
+  - jazz-tools@0.9.18
+
+## 0.9.17
+
+### Patch Changes
+
+- Updated dependencies [c2ca1fe]
+- Updated dependencies [1227047]
+  - jazz-tools@0.9.17
+  - jazz-react-core@0.8.58
+
+## 0.9.16
+
+### Patch Changes
+
+- Updated dependencies [24b3b6a]
+  - jazz-tools@0.9.16
+  - jazz-react-core@0.8.57
+
+## 0.9.15
+
+### Patch Changes
+
+- Updated dependencies [7491711]
+  - jazz-tools@0.9.15
+  - jazz-react-core@0.8.56
+
+## 0.9.14
+
+### Patch Changes
+
+- Updated dependencies [3df93cc]
+  - jazz-tools@0.9.14
+  - jazz-react-core@0.8.55
+
+## 0.9.13
+
+### Patch Changes
+
+- Updated dependencies [8d29e50]
+  - cojson-transport-ws@0.9.13
+  - cojson@0.9.13
+  - cojson-storage-rn-sqlite@0.8.56
+  - jazz-react-core@0.8.54
+  - jazz-tools@0.9.13
+
+## 0.9.12
+
+### Patch Changes
+
+- Updated dependencies [15d4b2a]
+  - cojson-transport-ws@0.9.12
+  - cojson@0.9.12
+  - cojson-storage-rn-sqlite@0.8.55
+  - jazz-react-core@0.8.53
+  - jazz-tools@0.9.12
+
+## 0.9.11
+
+### Patch Changes
+
+- Updated dependencies [efbf3d8]
+- Updated dependencies [5863bad]
+  - cojson@0.9.11
+  - cojson-transport-ws@0.9.11
+  - cojson-storage-rn-sqlite@0.8.54
+  - jazz-react-core@0.8.52
+  - jazz-tools@0.9.11
+
+## 0.9.10
+
+### Patch Changes
+
+- f76274c: Fix image handling in react-native
+- 5e83864: Improve error management on initial auth, fixed an infinite loop when migration fails
+- Updated dependencies [4aa377d]
+- Updated dependencies [5e83864]
+  - cojson@0.9.10
+  - jazz-tools@0.9.10
+  - cojson-storage-rn-sqlite@0.8.53
+  - cojson-transport-ws@0.9.10
+  - jazz-react-core@0.8.51
+
+## 0.9.9
+
+### Patch Changes
+
+- Updated dependencies [8eb9247]
+- Updated dependencies [8eb9247]
+  - jazz-tools@0.9.9
+  - cojson@0.9.9
+  - jazz-react-core@0.8.50
+  - cojson-storage-rn-sqlite@0.8.52
+  - cojson-transport-ws@0.9.9
+
+## 0.9.8
+
+### Patch Changes
+
+- Updated dependencies [f7f461d]
+- Updated dependencies [d1d773b]
+  - jazz-react-core@0.8.49
+  - jazz-tools@0.9.8
+
+## 0.9.6
+
+### Patch Changes
+
+- 8a390d2: Fix the account type registration using the sources for the typescript definitions
+
+## 0.9.5
+
+### Patch Changes
+
+- c871912: Add clearUserCredentials API to programmatically delete the current user stored credentials
+
+## 0.9.4
+
+### Patch Changes
+
+- Updated dependencies [0f57687]
+  - jazz-react-core@0.8.48
+
+## 0.9.3
+
+### Patch Changes
+
+- 7cd691f: Fix auth when using custom KV implementation
+- Updated dependencies [2be47d6]
+  - cojson-storage-rn-sqlite@0.8.51
+
+## 0.9.2
+
+### Patch Changes
+
+- 80fd3e9: Add local persistence with "@op-engineering/op-sqlite".
+
+  Disabled by default, follow the upgrade guide to enable it.
+
+  https://jazz.tools/docs/react-native/upgrade/react-native-local-persistence
+
+## 0.9.1
+
+### Patch Changes
+
+- Updated dependencies [1b71969]
+  - jazz-tools@0.9.1
+  - jazz-react-core@0.8.47
+
+## 0.9.0
+
+### Minor Changes
+
+- 1e5e3a1: Change the way the JazzProvider is created and make the hooks available as top-level imports.
+
+### Patch Changes
+
+- 1da4d55: Fix username key hashing in DemoAuth
+  Improve error handling when loading an existing account fails
+  Fix the double context creation in Reacc development mode
+- Updated dependencies [8eda792]
+- Updated dependencies [8eda792]
+- Updated dependencies [1ef3226]
+  - cojson@0.9.0
+  - jazz-tools@0.9.0
+  - cojson-transport-ws@0.9.0
+  - jazz-react-core@0.8.46
+
+## 0.8.51
+
+### Patch Changes
+
+- Updated dependencies [dc62b95]
+- Updated dependencies [1de26f8]
+  - jazz-tools@0.8.51
+
+## 0.8.50
+
+### Patch Changes
+
+- Updated dependencies [43378ef]
+  - cojson@0.8.50
+  - cojson-transport-ws@0.8.50
+  - jazz-tools@0.8.50
+
+## 0.8.49
+
+### Patch Changes
+
+- Updated dependencies [25dfd90]
+  - cojson@0.8.49
+  - cojson-transport-ws@0.8.49
+  - jazz-tools@0.8.49
+
+## 0.8.48
+
+### Patch Changes
+
+- Updated dependencies [635e824]
+- Updated dependencies [10ea733]
+- Updated dependencies [0a85982]
+  - jazz-tools@0.8.48
+  - cojson@0.8.48
+  - cojson-transport-ws@0.8.48
+
+## 0.8.47
+
+### Patch Changes
+
+- 33ef9c4: Bring Your Own Store to demo auth
+
+## 0.8.46
+
+### Patch Changes
+
+- ab4ffbd: Demo Auth: fix the user credentials storage when the username contains non aplhanumeric characters
+
+## 0.8.45
+
+### Patch Changes
+
+- 7701307: Added RNQuickCrypto, an optional crypto provider that provides faster signatures and removed expo-linking dependency
+- Updated dependencies [6f0bd7f]
+- Updated dependencies [fca6a0b]
+- Updated dependencies [fa41f8e]
+- Updated dependencies [88d7d9a]
+- Updated dependencies [60e35ea]
+  - cojson@0.8.45
+  - jazz-tools@0.8.45
+  - cojson-transport-ws@0.8.45
+
+## 0.8.44
+
+### Patch Changes
+
+- Updated dependencies [5d20c81]
+  - cojson@0.8.44
+  - cojson-transport-ws@0.8.44
+  - jazz-tools@0.8.44
+
+## 0.8.41
+
+### Patch Changes
+
+- Updated dependencies [3252502]
+- Updated dependencies [6370348]
+- Updated dependencies [ac216b9]
+  - cojson@0.8.41
+  - cojson-transport-ws@0.8.41
+  - jazz-tools@0.8.41
+
 ## 0.8.39
 
 ### Patch Changes

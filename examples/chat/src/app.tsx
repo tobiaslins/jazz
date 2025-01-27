@@ -1,9 +1,13 @@
 import { inIframe, onChatLoad } from "@/util.ts";
 import { useIframeHashRouter } from "hash-slash";
+import { useAccount } from "jazz-react";
 import { Group, ID } from "jazz-tools";
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
 import { ChatScreen } from "./chatScreen.tsx";
-import { useAccount } from "./main.tsx";
+import { JazzAndAuth } from "./jazz.tsx";
 import { Chat } from "./schema.ts";
+import { ThemeProvider } from "./themeProvider.tsx";
 import { AppContainer, TopBar } from "./ui.tsx";
 
 export function App() {
@@ -12,9 +16,9 @@ export function App() {
 
   const createChat = () => {
     if (!me) return;
-    const group = Group.create({ owner: me });
+    const group = Group.create();
     group.addMember("everyone", "writer");
-    const chat = Chat.create([], { owner: group });
+    const chat = Chat.create([], group);
     router.navigate("/#/chat/" + chat.id);
 
     // for https://jazz.tools marketing site demo only
@@ -34,3 +38,13 @@ export function App() {
     </AppContainer>
   );
 }
+
+createRoot(document.getElementById("root")!).render(
+  <ThemeProvider>
+    <StrictMode>
+      <JazzAndAuth>
+        <App />
+      </JazzAndAuth>
+    </StrictMode>
+  </ThemeProvider>,
+);

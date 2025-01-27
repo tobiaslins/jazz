@@ -1,7 +1,7 @@
 import { isControlledAccount } from "../coValues/account";
 
 import { CoID, LocalNode, RawCoValue } from "cojson";
-import { connectedPeers } from "cojson/src/streamUtils.js";
+import { cojsonInternals } from "cojson";
 import {
   Account,
   WasmCrypto,
@@ -18,10 +18,14 @@ export async function setupAccount() {
     crypto: Crypto,
   });
 
-  const [initialAsPeer, secondPeer] = connectedPeers("initial", "second", {
-    peer1role: "server",
-    peer2role: "client",
-  });
+  const [initialAsPeer, secondPeer] = cojsonInternals.connectedPeers(
+    "initial",
+    "second",
+    {
+      peer1role: "server",
+      peer2role: "client",
+    },
+  );
 
   if (!isControlledAccount(me)) {
     throw "me is not a controlled account";
@@ -41,7 +45,7 @@ export async function setupAccount() {
 }
 
 export async function setupTwoNodes() {
-  const [serverAsPeer, clientAsPeer] = connectedPeers(
+  const [serverAsPeer, clientAsPeer] = cojsonInternals.connectedPeers(
     "clientToServer",
     "serverToClient",
     {
@@ -54,12 +58,26 @@ export async function setupTwoNodes() {
     peersToLoadFrom: [serverAsPeer],
     crypto: Crypto,
     creationProps: { name: "Client" },
+    migration: async (rawAccount, _node, creationProps) => {
+      const account = new Account({
+        fromRaw: rawAccount,
+      });
+
+      await account.applyMigration(creationProps);
+    },
   });
 
   const server = await LocalNode.withNewlyCreatedAccount({
     peersToLoadFrom: [clientAsPeer],
     crypto: Crypto,
     creationProps: { name: "Server" },
+    migration: async (rawAccount, _node, creationProps) => {
+      const account = new Account({
+        fromRaw: rawAccount,
+      });
+
+      await account.applyMigration(creationProps);
+    },
   });
 
   return {

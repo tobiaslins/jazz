@@ -1,16 +1,22 @@
-import type { CojsonInternalTypes, RawCoValue } from "cojson";
+import type {
+  CoValueUniqueness,
+  CojsonInternalTypes,
+  RawCoValue,
+} from "cojson";
 import { RawAccount } from "cojson";
+import { activeAccountContext } from "../implementation/activeAccountContext.js";
+import { AnonymousJazzAgent } from "../implementation/anonymousJazzAgent.js";
 import {
-  Account,
-  AnonymousJazzAgent,
-  Group,
   Ref,
   SubscriptionScope,
   inspect,
   subscriptionsScopes,
 } from "../internal.js";
 import { coValuesCache } from "../lib/cache.js";
-import { RefsToResolve, Resolved, fulfillsDepth } from "./deepLoading.js";
+import { type Account } from "./account.js";
+import { fulfillsDepth } from "./deepLoading.js";
+import { type Group } from "./group.js";
+import { RegisteredSchemas } from "./registeredSchemas.js";
 
 /** @category Abstract interfaces */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -84,8 +90,8 @@ export class CoValueBase implements CoValue {
   get _owner(): Account | Group {
     const owner =
       this._raw.group instanceof RawAccount
-        ? Account.fromRaw(this._raw.group)
-        : Group.fromRaw(this._raw.group);
+        ? RegisteredSchemas["Account"].fromRaw(this._raw.group)
+        : RegisteredSchemas["Group"].fromRaw(this._raw.group);
 
     const subScope = subscriptionsScopes.get(this);
     if (subScope) {
@@ -101,7 +107,9 @@ export class CoValueBase implements CoValue {
     const rawAccount = this._raw.core.node.account;
 
     if (rawAccount instanceof RawAccount) {
-      return coValuesCache.get(rawAccount, () => Account.fromRaw(rawAccount));
+      return coValuesCache.get(rawAccount, () =>
+        RegisteredSchemas["Account"].fromRaw(rawAccount),
+      );
     }
 
     return new AnonymousJazzAgent(this._raw.core.node);
@@ -146,28 +154,42 @@ export class CoValueBase implements CoValue {
   }
 }
 
-export function loadCoValue<
-  V extends CoValue,
-  const O extends { resolve?: RefsToResolve<V> },
->(
+export function loadCoValueWithoutMe<V extends CoValue, Depth>(
+  cls: CoValueClass<V>,
+  id: ID<V>,
+  asOrDepth: Account | AnonymousJazzAgent | (Depth & DepthsIn<V>),
+  depth?: Depth & DepthsIn<V>,
+) {
+  if (isAccountInstance(asOrDepth) || isAnonymousAgentInstance(asOrDepth)) {
+    if (!depth) {
+      throw new Error(
+        "Depth is required when loading a CoValue as an Account or AnonymousJazzAgent",
+      );
+    }
+    return loadCoValue(cls, id, asOrDepth, depth);
+  }
+
+  return loadCoValue(cls, id, activeAccountContext.get(), asOrDepth);
+}
+
+export function loadCoValue<V extends CoValue, Depth>(
   cls: CoValueClass<V>,
   id: ID<V>,
   as: Account | AnonymousJazzAgent,
   options?: O | undefined,
 ): Promise<Resolved<V, O> | undefined> {
   return new Promise((resolve) => {
-    const unsubscribe = subscribeToCoValue(
+    subscribeToCoValue(
       cls,
       id,
       as,
-      options,
-      (value) => {
+      depth,
+      (value, unsubscribe) => {
         resolve(value);
         unsubscribe();
       },
       () => {
         resolve(undefined);
-        unsubscribe();
       },
     );
   });
@@ -185,45 +207,89 @@ export function ensureCoValueLoaded<
   );
 }
 
-export function subscribeToCoValue<
-  V extends CoValue,
-  const O extends { resolve?: RefsToResolve<V> },
->(
+export function subscribeToCoValueWithoutMe<V extends CoValue, Depth>(
+  cls: CoValueClass<V>,
+  id: ID<V>,
+  asOrDepth: Account | AnonymousJazzAgent | (Depth & DepthsIn<V>),
+  depthOrListener:
+    | (Depth & DepthsIn<V>)
+    | ((value: DeeplyLoaded<V, Depth>) => void),
+  listener?: (value: DeeplyLoaded<V, Depth>) => void,
+) {
+  if (isAccountInstance(asOrDepth) || isAnonymousAgentInstance(asOrDepth)) {
+    if (typeof depthOrListener !== "function") {
+      return subscribeToCoValue<V, Depth>(
+        cls,
+        id,
+        asOrDepth,
+        depthOrListener,
+        listener!,
+      );
+    }
+    throw new Error("Invalid arguments");
+  }
+
+  if (typeof depthOrListener !== "function") {
+    throw new Error("Invalid arguments");
+  }
+
+  return subscribeToCoValue<V, Depth>(
+    cls,
+    id,
+    activeAccountContext.get(),
+    asOrDepth,
+    depthOrListener,
+  );
+}
+
+export function subscribeToCoValue<V extends CoValue, Depth>(
   cls: CoValueClass<V>,
   id: ID<V>,
   as: Account | AnonymousJazzAgent,
-  options: O | undefined,
-  listener: (value: Resolved<V, O>) => void,
+  depth: Depth & DepthsIn<V>,
+  listener: (value: DeeplyLoaded<V, Depth>, unsubscribe: () => void) => void,
   onUnavailable?: () => void,
+  syncResolution?: boolean,
 ): () => void {
   const ref = new Ref(id, as, { ref: cls, optional: false });
 
   let unsubscribed = false;
   let unsubscribe: (() => void) | undefined;
 
-  ref
-    .load()
-    .then((value) => {
-      if (!value) {
-        onUnavailable && onUnavailable();
-        return;
-      }
-      if (unsubscribed) return;
-      const subscription = new SubscriptionScope(
-        value,
-        cls as CoValueClass<V> & CoValueFromRaw<V>,
-        (update) => {
-          if (fulfillsDepth(options?.resolve, update)) {
-            listener(update as Resolved<V, O>);
-          }
-        },
-      );
+  function subscribe(value: V | undefined) {
+    if (!value) {
+      onUnavailable && onUnavailable();
+      return;
+    }
+    if (unsubscribed) return;
+    const subscription = new SubscriptionScope(
+      value,
+      cls as CoValueClass<V> & CoValueFromRaw<V>,
+      (update, subscription) => {
+        if (fulfillsDepth(depth, update)) {
+          listener(
+            update as DeeplyLoaded<V, Depth>,
+            subscription.unsubscribeAll,
+          );
+        }
+      },
+    );
 
-      unsubscribe = () => subscription.unsubscribeAll();
-    })
-    .catch((e) => {
-      console.error("Failed to load / subscribe to CoValue", e);
-    });
+    unsubscribe = subscription.unsubscribeAll;
+  }
+
+  const sync = syncResolution ? ref.syncLoad() : undefined;
+
+  if (sync) {
+    subscribe(sync);
+  } else {
+    ref
+      .load()
+      .then((value) => subscribe(value))
+      .catch((e) => {
+        console.error("Failed to load / subscribe to CoValue", e);
+      });
+  }
 
   return function unsubscribeAtAnyPoint() {
     unsubscribed = true;
@@ -231,11 +297,10 @@ export function subscribeToCoValue<
   };
 }
 
-export function createCoValueObservable<
-  V extends CoValue,
-  const O extends { resolve?: RefsToResolve<V> },
->(cls: CoValueClass<V>, options?: O) {
-  let currentValue: Resolved<V, O> | undefined = undefined;
+export function createCoValueObservable<V extends CoValue, Depth>(options?: {
+  syncResolution?: boolean;
+}) {
+  let currentValue: DeeplyLoaded<V, Depth> | undefined = undefined;
   let subscriberCount = 0;
 
   function subscribe(
@@ -256,6 +321,7 @@ export function createCoValueObservable<
         listener();
       },
       onUnavailable,
+      options?.syncResolution,
     );
 
     return () => {
@@ -290,4 +356,71 @@ export function subscribeToExistingCoValue<
     options,
     listener,
   );
+}
+
+export function isAccountInstance(instance: unknown): instance is Account {
+  if (typeof instance !== "object" || instance === null) {
+    return false;
+  }
+
+  return "_type" in instance && instance._type === "Account";
+}
+
+export function isAnonymousAgentInstance(
+  instance: unknown,
+): instance is AnonymousJazzAgent {
+  if (typeof instance !== "object" || instance === null) {
+    return false;
+  }
+
+  return "_type" in instance && instance._type === "Anonymous";
+}
+
+export function parseCoValueCreateOptions(
+  options:
+    | {
+        owner?: Account | Group;
+        unique?: CoValueUniqueness["uniqueness"];
+      }
+    | Account
+    | Group
+    | undefined,
+) {
+  const Group = RegisteredSchemas["Group"];
+
+  if (!options) {
+    return { owner: Group.create(), uniqueness: undefined };
+  }
+
+  if ("_type" in options) {
+    if (options._type === "Account" || options._type === "Group") {
+      return { owner: options, uniqueness: undefined };
+    }
+  }
+
+  const uniqueness = options.unique
+    ? { uniqueness: options.unique }
+    : undefined;
+
+  return {
+    owner: options.owner ?? Group.create(),
+    uniqueness,
+  };
+}
+
+export function parseGroupCreateOptions(
+  options:
+    | {
+        owner?: Account;
+      }
+    | Account
+    | undefined,
+) {
+  if (!options) {
+    return { owner: activeAccountContext.get() };
+  }
+
+  return "_type" in options && isAccountInstance(options)
+    ? { owner: options }
+    : { owner: options.owner ?? activeAccountContext.get() };
 }

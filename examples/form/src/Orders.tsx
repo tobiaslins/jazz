@@ -1,10 +1,10 @@
+import { useAccount } from "jazz-react";
 import { DraftIndicator } from "./DraftIndicator.tsx";
 import { OrderThumbnail } from "./OrderThumbnail.tsx";
-import { useAccount } from "./main.tsx";
 
 export function Orders() {
   const { me } = useAccount({
-    resolve: { profile: { orders: true } },
+    resolve: { root: { orders: true } },
   });
 
   return (
@@ -22,8 +22,9 @@ export function Orders() {
           <h1 className="text-lg pb-2 border-b mb-3">
             <strong>Your orders 🧋</strong>
           </h1>
-          {me?.profile.orders.length ? (
-            me?.profile.orders.map((order) =>
+
+          {me?.root?.orders?.length ? (
+            me?.root?.orders.map((order) =>
               order ? <OrderThumbnail key={order.id} order={order} /> : null,
             )
           ) : (

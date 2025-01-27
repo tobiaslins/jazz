@@ -1,5 +1,169 @@
 # jazz-tools
 
+## 0.9.20
+
+### Patch Changes
+
+- b01cc1f: Switches from symbols to prefixes strings for private properties
+
+## 0.9.19
+
+### Patch Changes
+
+- Updated dependencies [6ad0a9f]
+  - cojson@0.9.19
+
+## 0.9.18
+
+### Patch Changes
+
+- Updated dependencies [8898b10]
+  - cojson@0.9.18
+
+## 0.9.17
+
+### Patch Changes
+
+- c2ca1fe: Add cross-platform invite API
+- 1227047: Improve typescript types for group.addMember
+
+## 0.9.16
+
+### Patch Changes
+
+- 24b3b6a: Extract friendly user name for profile creation when authenticating using Clerk with a regular email address.
+  Email passed to creationProps when using Clerk auth
+  Clear stored Clerk credentials on logout
+
+## 0.9.15
+
+### Patch Changes
+
+- 7491711: Testing: correctly set the globalMe before the migration when calling createJazzTestAccount
+
+## 0.9.14
+
+### Patch Changes
+
+- 3df93cc: Add API to setup a test sync in the test environment
+
+## 0.9.13
+
+### Patch Changes
+
+- Updated dependencies [8d29e50]
+  - cojson@0.9.13
+
+## 0.9.12
+
+### Patch Changes
+
+- Updated dependencies [15d4b2a]
+  - cojson@0.9.12
+
+## 0.9.11
+
+### Patch Changes
+
+- Updated dependencies [efbf3d8]
+- Updated dependencies [5863bad]
+  - cojson@0.9.11
+
+## 0.9.10
+
+### Patch Changes
+
+- 5e83864: Improve error management on initial auth, fixed an infinite loop when migration fails
+- Updated dependencies [4aa377d]
+  - cojson@0.9.10
+
+## 0.9.9
+
+### Patch Changes
+
+- 8eb9247: Add CoRichText support
+- Updated dependencies [8eb9247]
+  - cojson@0.9.9
+
+## 0.9.8
+
+### Patch Changes
+
+- d1d773b: Make possible to call the load/subscribe/create API without passing me
+
+## 0.9.1
+
+### Patch Changes
+
+- 1b71969: Add Onboarding auth to handle users onboarding without an auth screen
+
+## 0.9.0
+
+### Patch Changes
+
+- 8eda792: Optimize the subscribe to resolve the CoValues stored in memory synchronously
+- Updated dependencies [8eda792]
+- Updated dependencies [1ef3226]
+  - cojson@0.9.0
+
+## 0.8.51
+
+### Patch Changes
+
+- dc62b95: Return field name on \_edits
+- 1de26f8: Simplify the .create calls by accepting directly "Account | Group" as second param
+
+## 0.8.50
+
+### Patch Changes
+
+- Updated dependencies [43378ef]
+  - cojson@0.8.50
+
+## 0.8.49
+
+### Patch Changes
+
+- Updated dependencies [25dfd90]
+  - cojson@0.8.49
+
+## 0.8.48
+
+### Patch Changes
+
+- 635e824: fix loading of CoMaps with an empty schema
+- 0a85982: Remove the requirement of calling super.migrate when defining the account migration
+- Updated dependencies [10ea733]
+  - cojson@0.8.48
+
+## 0.8.45
+
+### Patch Changes
+
+- fa41f8e: Add a bundle step to not expose the circular deps to the lib consumers
+- 88d7d9a: Add Inbox a new experimental API to simplfy the initial handshake between accounts
+- 60e35ea: Reduce the amount of circular deps
+- Updated dependencies [6f0bd7f]
+- Updated dependencies [fca6a0b]
+- Updated dependencies [88d7d9a]
+  - cojson@0.8.45
+
+## 0.8.44
+
+### Patch Changes
+
+- Updated dependencies [5d20c81]
+  - cojson@0.8.44
+
+## 0.8.41
+
+### Patch Changes
+
+- Updated dependencies [3252502]
+- Updated dependencies [6370348]
+- Updated dependencies [ac216b9]
+  - cojson@0.8.41
+
 ## 0.8.39
 
 ### Patch Changes

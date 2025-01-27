@@ -12,16 +12,16 @@ import {
   SessionID,
   cojsonInternals,
 } from "cojson";
+import { activeAccountContext } from "../implementation/activeAccountContext.js";
 import {
   AnonymousJazzAgent,
-  CoMap,
   type CoValue,
   CoValueBase,
   CoValueClass,
-  Group,
+  DeeplyLoaded,
+  DepthsIn,
   ID,
   MembersSym,
-  Profile,
   Ref,
   type RefEncoded,
   RefIfCoValue,
@@ -32,11 +32,17 @@ import {
   ensureCoValueLoaded,
   inspect,
   loadCoValue,
-  subscribeToCoValue,
+  loadCoValueWithoutMe,
+  subscribeToCoValueWithoutMe,
   subscribeToExistingCoValue,
   subscriptionsScopes,
 } from "../internal.js";
 import { coValuesCache } from "../lib/cache.js";
+import { type CoMap } from "./coMap.js";
+import { type Group } from "./group.js";
+import { createInboxRoot } from "./inbox.js";
+import { Profile } from "./profile.js";
+import { RegisteredSchemas } from "./registeredSchemas.js";
 
 /** @category Identity & Permissions */
 export class Account extends CoValueBase implements CoValue {
@@ -59,7 +65,7 @@ export class Account extends CoValueBase implements CoValue {
         optional: false,
       } satisfies RefEncoded<Profile>,
       root: {
-        ref: () => CoMap,
+        ref: () => RegisteredSchemas["CoMap"],
         optional: true,
       } satisfies RefEncoded<CoMap>,
     };
@@ -185,11 +191,15 @@ export class Account extends CoValueBase implements CoValue {
           fromRaw: rawAccount,
         }) as A;
 
-        await account.migrate?.(creationProps);
+        await account.applyMigration?.(creationProps);
       },
     });
 
     return this.fromNode(node) as A;
+  }
+
+  static getMe<A extends Account>(this: CoValueClass<A> & typeof Account) {
+    return activeAccountContext.get() as A;
   }
 
   static async createAs<A extends Account>(
@@ -236,18 +246,33 @@ export class Account extends CoValueBase implements CoValue {
     return this.toJSON();
   }
 
-  migrate(
-    this: Account,
-    creationProps?: { name: string },
-  ): void | Promise<void> {
+  async applyMigration(creationProps?: { name: string; onboarding?: boolean }) {
     if (creationProps) {
-      const profileGroup = Group.create({ owner: this });
+      const profileGroup = RegisteredSchemas["Group"].create({ owner: this });
       profileGroup.addMember("everyone", "reader");
       this.profile = Profile.create(
         { name: creationProps.name },
         { owner: profileGroup },
       );
     }
+
+    const node = this._raw.core.node;
+    const profile = node
+      .expectCoValueLoaded(this._raw.get("profile")!)
+      .getCurrentContent() as RawCoMap;
+
+    if (!profile.get("inbox")) {
+      const inboxRoot = createInboxRoot(this);
+      profile.set("inbox", inboxRoot.id);
+      profile.set("inboxInvite", inboxRoot.inviteLink);
+    }
+
+    await this.migrate(creationProps);
+  }
+
+  // Placeholder method for subclasses to override
+  migrate(creationProps?: { name: string }) {
+    creationProps; // To avoid unused parameter warning
   }
 
   /** @category Subscription & Loading */
@@ -257,10 +282,21 @@ export class Account extends CoValueBase implements CoValue {
   >(
     this: CoValueClass<A>,
     id: ID<A>,
+    depth: Depth & DepthsIn<A>,
+  ): Promise<DeeplyLoaded<A, Depth> | undefined>;
+  static load<A extends Account, Depth>(
+    this: CoValueClass<A>,
+    id: ID<A>,
     as: Account,
-    options?: O,
-  ): Promise<Resolved<A, O> | undefined> {
-    return loadCoValue(this, id, as, options);
+    depth: Depth & DepthsIn<A>,
+  ): Promise<DeeplyLoaded<A, Depth> | undefined>;
+  static load<A extends Account, Depth>(
+    this: CoValueClass<A>,
+    id: ID<A>,
+    asOrDepth: Account | (Depth & DepthsIn<A>),
+    depth?: Depth & DepthsIn<A>,
+  ): Promise<DeeplyLoaded<A, Depth> | undefined> {
+    return loadCoValueWithoutMe(this, id, asOrDepth, depth);
   }
 
   /** @category Subscription & Loading */
@@ -270,11 +306,32 @@ export class Account extends CoValueBase implements CoValue {
   >(
     this: CoValueClass<A>,
     id: ID<A>,
+    depth: Depth & DepthsIn<A>,
+    listener: (value: DeeplyLoaded<A, Depth>) => void,
+  ): () => void;
+  static subscribe<A extends Account, Depth>(
+    this: CoValueClass<A>,
+    id: ID<A>,
     as: Account,
-    options: O,
-    listener: (value: Resolved<A, O>) => void,
+    depth: Depth & DepthsIn<A>,
+    listener: (value: DeeplyLoaded<A, Depth>) => void,
+  ): () => void;
+  static subscribe<A extends Account, Depth>(
+    this: CoValueClass<A>,
+    id: ID<A>,
+    asOrDepth: Account | (Depth & DepthsIn<A>),
+    depthOrListener:
+      | (Depth & DepthsIn<A>)
+      | ((value: DeeplyLoaded<A, Depth>) => void),
+    listener?: (value: DeeplyLoaded<A, Depth>) => void,
   ): () => void {
-    return subscribeToCoValue<A, O>(this, id, as, options, listener);
+    return subscribeToCoValueWithoutMe<A, Depth>(
+      this,
+      id,
+      asOrDepth,
+      depthOrListener,
+      listener!,
+    );
   }
 
   /** @category Subscription & Loading */
@@ -396,3 +453,5 @@ export function isControlledAccount(account: Account): account is Account & {
 export type AccountClass<Acc extends Account> = CoValueClass<Acc> & {
   fromNode: (typeof Account)["fromNode"];
 };
+
+RegisteredSchemas["Account"] = Account;

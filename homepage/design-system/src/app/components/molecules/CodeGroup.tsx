@@ -1,8 +1,8 @@
 "use client";
 
 import { clsx } from "clsx";
-import { Clipboard } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { Icon } from "../atoms/Icon";
 
 // TODO: add tabs feature, and remove CodeExampleTabs
 
@@ -44,11 +44,12 @@ function CopyButton({ code, size }: { code: string; size?: "sm" | "md" }) {
           copied && "-translate-y-1.5 opacity-0",
         )}
       >
-        <Clipboard
-          strokeWidth={1}
+        <Icon
+          name="copy"
+          size="xs"
           className={clsx(
-            size === "sm" ? "h-3 w-3" : "h-4 w-4",
-            "fill-stone-500/20 stroke-stone-500 transition-colors group-hover/button:stroke-stone-600 dark:group-hover/button:stroke-stone-400",
+            size === "sm" ? "size-2" : "size-3",
+            "stroke-stone-500 transition-colors group-hover/button:stroke-stone-600 dark:group-hover/button:stroke-stone-400",
           )}
         />
         Copy
@@ -88,7 +89,7 @@ export function CodeGroup({
     <div className={clsx(className, "group relative")}>
       <pre
         className={clsx(
-          "h-full border p-0 bg-stone-50 dark:bg-stone-900",
+          "h-full border p-0 bg-stone-50 dark:bg-stone-925",
           "text-black dark:text-white",
           {
             "text-sm": size === "sm",

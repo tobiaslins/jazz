@@ -19,19 +19,18 @@ export function waitForCoValue<
 ) {
   return new Promise<T>((resolve) => {
     function subscribe() {
-      const unsubscribe = subscribeToCoValue(
+      subscribeToCoValue(
         coMap,
         valueId,
         account,
         options,
-        (value) => {
+        (value, unsubscribe) => {
           if (predicate(value)) {
             resolve(value);
             unsubscribe();
           }
         },
         () => {
-          unsubscribe();
           setTimeout(subscribe, 100);
         },
       );

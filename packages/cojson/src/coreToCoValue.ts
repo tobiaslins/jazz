@@ -1,9 +1,10 @@
+import { RawUnknownCoValue } from "./coValue.js";
 import type { CoValueCore } from "./coValueCore.js";
 import { RawAccount, RawControlledAccount } from "./coValues/account.js";
 import { RawCoList } from "./coValues/coList.js";
 import { RawCoMap } from "./coValues/coMap.js";
-import { RawCoStream } from "./coValues/coStream.js";
-import { RawBinaryCoStream } from "./coValues/coStream.js";
+import { RawCoPlainText } from "./coValues/coPlainText.js";
+import { RawBinaryCoStream, RawCoStream } from "./coValues/coStream.js";
 import { RawGroup } from "./coValues/group.js";
 
 export function coreToCoValue(
@@ -27,6 +28,8 @@ export function coreToCoValue(
     } else {
       return new RawCoMap(core);
     }
+  } else if (core.header.type === "coplaintext") {
+    return new RawCoPlainText(core);
   } else if (core.header.type === "colist") {
     return new RawCoList(core);
   } else if (core.header.type === "costream") {
@@ -36,6 +39,6 @@ export function coreToCoValue(
       return new RawCoStream(core);
     }
   } else {
-    throw new Error(`Unknown coValue type ${core.header.type}`);
+    return new RawUnknownCoValue(core);
   }
 }

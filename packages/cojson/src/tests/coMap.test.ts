@@ -75,10 +75,10 @@ test("Can get CoMap entry values at different points in time", () => {
   expect(content.atTime(beforeB).get("hello")).toEqual("A");
   expect(content.atTime(beforeC).get("hello")).toEqual("B");
 
-  const ops = content.timeFilteredOps("hello");
+  const ops = content.ops["hello"]!;
 
   expect(content.atTime(beforeC).lastEditAt("hello")).toEqual(
-    operationToEditEntry(ops![1]!),
+    operationToEditEntry(ops[1]!),
   );
   expect(content.atTime(beforeC).nthEditAt("hello", 0)).toEqual(
     operationToEditEntry(ops![0]!),
@@ -174,4 +174,36 @@ test("Can get last tx ID for a key in CoMap", () => {
   expect(content.lastEditAt("hello")?.tx.txIndex).toEqual(1);
   content.set("hello", "C", "trusting");
   expect(content.lastEditAt("hello")?.tx.txIndex).toEqual(2);
+});
+
+test("Can set items in bulk with assign", () => {
+  const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+
+  const coValue = node.createCoValue({
+    type: "comap",
+    ruleset: { type: "unsafeAllowAll" },
+    meta: null,
+    ...Crypto.createdNowUnique(),
+  });
+
+  const content = expectMap(coValue.getCurrentContent());
+
+  expect(content.type).toEqual("comap");
+
+  content.set("key1", "set1", "trusting");
+
+  content.assign(
+    {
+      key1: "assign1",
+      key2: "assign2",
+      key3: "assign3",
+    },
+    "trusting",
+  );
+
+  expect(content.toJSON()).toEqual({
+    key1: "assign1",
+    key2: "assign2",
+    key3: "assign3",
+  });
 });

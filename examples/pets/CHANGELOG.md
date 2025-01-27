@@ -1,5 +1,206 @@
 # jazz-example-pets
 
+## 0.0.158
+
+### Patch Changes
+
+- Updated dependencies [b01cc1f]
+  - jazz-tools@0.9.20
+  - jazz-browser-media-images@0.9.20
+  - jazz-react@0.9.20
+
+## 0.0.157
+
+### Patch Changes
+
+- jazz-react@0.9.19
+- jazz-tools@0.9.19
+- jazz-browser-media-images@0.9.19
+
+## 0.0.156
+
+### Patch Changes
+
+- jazz-react@0.9.18
+- jazz-tools@0.9.18
+- jazz-browser-media-images@0.9.18
+
+## 0.0.155
+
+### Patch Changes
+
+- Updated dependencies [c2ca1fe]
+- Updated dependencies [1227047]
+  - jazz-tools@0.9.17
+  - jazz-browser-media-images@0.9.17
+  - jazz-react@0.9.17
+
+## 0.0.154
+
+### Patch Changes
+
+- Updated dependencies [24b3b6a]
+  - jazz-tools@0.9.16
+  - jazz-browser-media-images@0.9.16
+  - jazz-react@0.9.16
+
+## 0.0.153
+
+### Patch Changes
+
+- Updated dependencies [7491711]
+  - jazz-tools@0.9.15
+  - jazz-browser-media-images@0.9.15
+  - jazz-react@0.9.15
+
+## 0.0.152
+
+### Patch Changes
+
+- Updated dependencies [3df93cc]
+  - jazz-tools@0.9.14
+  - jazz-browser-media-images@0.9.14
+  - jazz-react@0.9.14
+
+## 0.0.151
+
+### Patch Changes
+
+- jazz-react@0.9.13
+- jazz-tools@0.9.13
+- jazz-browser-media-images@0.9.13
+
+## 0.0.150
+
+### Patch Changes
+
+- jazz-react@0.9.12
+- jazz-tools@0.9.12
+- jazz-browser-media-images@0.9.12
+
+## 0.0.149
+
+### Patch Changes
+
+- jazz-react@0.9.11
+- jazz-tools@0.9.11
+- jazz-browser-media-images@0.9.11
+
+## 0.0.148
+
+### Patch Changes
+
+- Updated dependencies [5e83864]
+  - jazz-react@0.9.10
+  - jazz-tools@0.9.10
+  - jazz-browser-media-images@0.9.10
+
+## 0.0.147
+
+### Patch Changes
+
+- Updated dependencies [8eb9247]
+  - jazz-tools@0.9.9
+  - jazz-browser-media-images@0.9.9
+  - jazz-react@0.9.9
+
+## 0.0.146
+
+### Patch Changes
+
+- Updated dependencies [d1d773b]
+  - jazz-tools@0.9.8
+  - jazz-react@0.9.8
+  - jazz-browser-media-images@0.9.8
+
+## 0.0.145
+
+### Patch Changes
+
+- jazz-react@0.9.4
+
+## 0.0.144
+
+### Patch Changes
+
+- Updated dependencies [1b71969]
+  - jazz-react@0.9.1
+  - jazz-tools@0.9.1
+  - jazz-browser-media-images@0.9.1
+
+## 0.0.143
+
+### Patch Changes
+
+- Updated dependencies [956a4d1]
+- Updated dependencies [8eda792]
+  - jazz-react@0.9.0
+  - jazz-tools@0.9.0
+  - jazz-browser-media-images@0.9.0
+
+## 0.0.142
+
+### Patch Changes
+
+- Updated dependencies [dc62b95]
+- Updated dependencies [1de26f8]
+  - jazz-tools@0.8.51
+  - jazz-browser-media-images@0.8.51
+  - jazz-react@0.8.51
+
+## 0.0.141
+
+### Patch Changes
+
+- jazz-react@0.8.50
+- jazz-tools@0.8.50
+- jazz-browser-media-images@0.8.50
+
+## 0.0.140
+
+### Patch Changes
+
+- jazz-react@0.8.49
+- jazz-tools@0.8.49
+- jazz-browser-media-images@0.8.49
+
+## 0.0.139
+
+### Patch Changes
+
+- Updated dependencies [635e824]
+- Updated dependencies [0a85982]
+  - jazz-tools@0.8.48
+  - jazz-browser-media-images@0.8.48
+  - jazz-react@0.8.48
+
+## 0.0.138
+
+### Patch Changes
+
+- Updated dependencies [fa41f8e]
+- Updated dependencies [88d7d9a]
+- Updated dependencies [60e35ea]
+  - jazz-tools@0.8.45
+  - jazz-react@0.8.45
+  - jazz-browser-media-images@0.8.45
+
+## 0.0.137
+
+### Patch Changes
+
+- jazz-react@0.8.44
+- jazz-tools@0.8.44
+- jazz-browser-media-images@0.8.44
+
+## 0.0.136
+
+### Patch Changes
+
+- jazz-react@0.8.41
+- jazz-tools@0.8.41
+- jazz-browser-media-images@0.8.41
+
 ## 0.0.135
 
 ### Patch Changes

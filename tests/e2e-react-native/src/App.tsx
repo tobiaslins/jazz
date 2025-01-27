@@ -5,11 +5,12 @@ import {
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React, { StrictMode, useEffect, useRef } from "react";
 
-import { DemoAuthBasicUI, useDemoAuth } from "jazz-react-native";
-import { Jazz } from "./jazz";
+import { JazzProvider, setupKvStore, useDemoAuth } from "jazz-react-native";
 import { SimpleSharing } from "./screens/SimpleSharing";
 
 const Stack = createNativeStackNavigator();
+
+setupKvStore();
 
 function App() {
   const [auth, state] = useDemoAuth();
@@ -18,10 +19,10 @@ function App() {
 
   useEffect(() => {
     if (state.state === "ready" && !signedUp.current) {
-      if (state.existingUsers.includes("Mister X")) {
-        state.logInAs("Mister X");
+      if (state.existingUsers.includes("MisterX")) {
+        state.logInAs("MisterX");
       } else {
-        state.signUp("Mister X");
+        state.signUp("MisterX");
       }
 
       signedUp.current = true;
@@ -34,17 +35,16 @@ function App() {
 
   return (
     <StrictMode>
-      <Jazz.Provider
+      <JazzProvider
         auth={auth}
         peer="wss://cloud.jazz.tools/?key=e2e-rn@garden.co"
-        storage={undefined}
       >
         <NavigationContainer ref={navigationRef}>
           <Stack.Navigator initialRouteName="SimpleSharing">
             <Stack.Screen name="SimpleSharing" component={SimpleSharing} />
           </Stack.Navigator>
         </NavigationContainer>
-      </Jazz.Provider>
+      </JazzProvider>
     </StrictMode>
   );
 }

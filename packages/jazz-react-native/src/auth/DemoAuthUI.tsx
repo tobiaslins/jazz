@@ -7,7 +7,9 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  useColorScheme,
 } from "react-native";
+import { KvStore } from "../storage/kv-store-context.js";
 import { RNDemoAuth } from "./DemoAuthMethod.js";
 
 type DemoAuthState = (
@@ -34,10 +36,12 @@ type DemoAuthState = (
 /** @category Auth Providers */
 export function useDemoAuth({
   seedAccounts,
+  store,
 }: {
   seedAccounts?: {
     [name: string]: { accountID: ID<Account>; accountSecret: AgentSecret };
   };
+  store?: KvStore;
 } = {}) {
   const [state, setState] = useState<DemoAuthState>({
     state: "loading",
@@ -51,13 +55,13 @@ export function useDemoAuth({
       {
         onReady: async ({ signUp, getExistingUsers, logInAs }) => {
           const existingUsers = await getExistingUsers();
-          setState({
+          setState((current) => ({
             state: "ready",
             signUp,
             existingUsers,
             logInAs,
-            errors: [],
-          });
+            errors: current.errors,
+          }));
         },
         onSignedIn: ({ logOut }) => {
           setState({ state: "signedIn", logOut, errors: [] });
@@ -65,18 +69,27 @@ export function useDemoAuth({
         onError: (error) => {
           setState((current) => ({
             ...current,
-            errors: [...current.errors, error.toString()],
+            errors: [error.toString()],
           }));
         },
       },
       seedAccounts,
+      store,
     );
-  }, [seedAccounts]);
+  }, [seedAccounts, state.errors]); // We reset the auth method when getting an error
 
   useEffect(() => {
     async function init() {
-      const auth = await authMethodPromise;
-      setAuthMethod(auth);
+      try {
+        const auth = await authMethodPromise;
+        setAuthMethod(auth);
+      } catch (e: unknown) {
+        const err = e as Error;
+        setState((current) => ({
+          ...current,
+          errors: [...current.errors, err.toString()],
+        }));
+      }
     }
     if (authMethod) return;
     void init();
@@ -92,7 +105,8 @@ export const DemoAuthBasicUI = ({
   appName: string;
   state: DemoAuthState;
 }) => {
-  const darkMode = false;
+  const colorScheme = useColorScheme();
+  const darkMode = colorScheme === "dark";
   const [username, setUsername] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -114,7 +128,14 @@ export const DemoAuthBasicUI = ({
       ]}
     >
       {state.state === "loading" ? (
-        <Text style={styles.loadingText}>Loading...</Text>
+        <>
+          <Text style={styles.loadingText}>Loading...</Text>
+          {state.errors.map((error, index) => (
+            <Text key={index} style={styles.errorText}>
+              {error}
+            </Text>
+          ))}
+        </>
       ) : state.state === "ready" ? (
         <View style={styles.formContainer}>
           <Text

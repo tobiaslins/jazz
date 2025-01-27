@@ -1,6 +1,6 @@
 import type { CoID, RawCoValue } from "cojson";
+import { type Account } from "../coValues/account.js";
 import type {
-  Account,
   AnonymousJazzAgent,
   CoValue,
   ID,
@@ -53,6 +53,23 @@ export class Ref<out V extends CoValue> {
     } else {
       return new Ref(this.id, this.controlledAccount, this.schema).value!;
     }
+  }
+
+  syncLoad(): V | undefined {
+    const node =
+      "node" in this.controlledAccount
+        ? this.controlledAccount.node
+        : this.controlledAccount._raw.core.node;
+
+    const entry = node.coValuesStore.get(
+      this.id as unknown as CoID<RawCoValue>,
+    );
+
+    if (entry.state.type === "available") {
+      return new Ref(this.id, this.controlledAccount, this.schema).value!;
+    }
+
+    return undefined;
   }
 
   async load(): Promise<V | undefined> {

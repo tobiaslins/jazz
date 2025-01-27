@@ -1,5 +1,95 @@
 # cojson
 
+## 0.9.19
+
+### Patch Changes
+
+- 6ad0a9f: Export Json types
+
+## 0.9.18
+
+### Patch Changes
+
+- 8898b10: Export AccountRole type
+
+## 0.9.13
+
+### Patch Changes
+
+- 8d29e50: Restore the logger wrapper and adapt the API to pino
+
+## 0.9.12
+
+### Patch Changes
+
+- 15d4b2a: Revert the custom logger
+
+## 0.9.11
+
+### Patch Changes
+
+- efbf3d8: Optimize queue management
+- 5863bad: Wrap all the console logs with a logger class to make possible to customize the logger
+
+## 0.9.10
+
+### Patch Changes
+
+- 4aa377d: Handle unkown coValue content type and optimize content access
+
+## 0.9.9
+
+### Patch Changes
+
+- 8eb9247: Add CoPlainText and CoRichText covalues
+
+## 0.9.0
+
+### Patch Changes
+
+- 8eda792: Add a crypto entry to optionally import the crypto modules
+- 1ef3226: Add the assign method to RawCoMap to create bulk transactions and optimize RawCoMap init
+
+## 0.8.50
+
+### Patch Changes
+
+- 43378ef: Handle circular references in group inheritance
+
+## 0.8.49
+
+### Patch Changes
+
+- 25dfd90: Fixes the transactions collection on permissions to avoid RangeError issues
+
+## 0.8.48
+
+### Patch Changes
+
+- 10ea733: Give the ability to extend a group to accounts with reader, writer and writeOnly access level to the parent group and not only admins. The account still needs to be an admin on the child group to be able to extend it.
+
+## 0.8.45
+
+### Patch Changes
+
+- 6f0bd7f: Throw an error if an invite is created from an account owned coValue
+- fca6a0b: skip verify step when creating a new local transaction
+- 88d7d9a: Add Inbox a new experimental API to simplfy the initial handshake between accounts
+
+## 0.8.44
+
+### Patch Changes
+
+- 5d20c81: Add an internal API to disable the permission errors logs
+
+## 0.8.41
+
+### Patch Changes
+
+- 3252502: Optimize the transactions processing on CoMap and CoStream
+- 6370348: Remove @opentelemetry/api as a peer dependency and add it as a dependency
+- ac216b9: Add a new writeOnly role, to limit access only to their own changes. Useful to push objects into lists of moderated content.
+
 ## 0.8.39
 
 ### Patch Changes

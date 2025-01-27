@@ -4,9 +4,10 @@ import {
   PingTimeoutError,
   SyncMessage,
   cojsonInternals,
+  logger,
 } from "cojson";
 import { BatchedOutgoingMessages } from "./BatchedOutgoingMessages.js";
-import { deserializeMessages } from "./serialization.js";
+import { deserializeMessages, getErrorMessage } from "./serialization.js";
 import { AnyWebSocket } from "./types.js";
 
 export const BUFFER_LIMIT = 100_000;
@@ -136,7 +137,7 @@ export function createWebSocketPeer({
   function handleClose() {
     incoming
       .push("Disconnected")
-      .catch((e) => console.error("Error while pushing disconnect msg", e));
+      .catch((e) => logger.error("Error while pushing disconnect msg", e));
     emitClosedEvent();
   }
 
@@ -145,7 +146,7 @@ export function createWebSocketPeer({
   const pingTimeout = createPingTimeoutListener(expectPings, () => {
     incoming
       .push("PingTimeout")
-      .catch((e) => console.error("Error while pushing ping timeout", e));
+      .catch((e) => logger.error("Error while pushing ping timeout", e));
     emitClosedEvent();
   });
 
@@ -156,17 +157,14 @@ export function createWebSocketPeer({
 
   function handleIncomingMsg(event: { data: unknown }) {
     if (event.data === "") {
-      console.log("client", id, "sent empty message");
       return;
     }
 
     const result = deserializeMessages(event.data);
 
     if (!result.ok) {
-      console.error(
-        "Error while deserializing messages",
-        event.data,
-        result.error,
+      logger.warn(
+        "Error while deserializing messages: " + getErrorMessage(result.error),
       );
       return;
     }
@@ -184,7 +182,7 @@ export function createWebSocketPeer({
       if (msg && "action" in msg) {
         incoming
           .push(msg)
-          .catch((e) => console.error("Error while pushing incoming msg", e));
+          .catch((e) => logger.error("Error while pushing incoming msg", e));
       }
     }
   }
@@ -197,7 +195,6 @@ export function createWebSocketPeer({
     outgoing: {
       push: outgoingMessages.sendMessage,
       close() {
-        console.log("Trying to close", id, websocket.readyState);
         outgoingMessages.close();
 
         websocket.removeEventListener("message", handleIncomingMsg);

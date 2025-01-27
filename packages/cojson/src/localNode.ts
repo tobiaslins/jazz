@@ -27,6 +27,7 @@ import {
 } from "./coValues/group.js";
 import { AgentSecret, CryptoProvider } from "./crypto/crypto.js";
 import { AgentID, RawCoID, SessionID, isAgentID } from "./ids.js";
+import { logger } from "./logger.js";
 import { Peer, PeerID, SyncManager } from "./sync.js";
 import { expectGroup } from "./typeUtils/expectGroup.js";
 
@@ -230,7 +231,7 @@ export class LocalNode {
 
       return node;
     } catch (e) {
-      console.error("Error withLoadedAccount", e);
+      logger.error("Error withLoadedAccount: " + (e as Error)?.message);
       throw e;
     }
   }
@@ -269,7 +270,9 @@ export class LocalNode {
         this.syncManager.getServerAndStoragePeers(skipLoadingFromPeer);
 
       await entry.loadFromPeers(peers).catch((e) => {
-        console.error("Error loading from peers", id, e);
+        logger.error("Error loading from peers: " + (e as Error)?.message, {
+          id,
+        });
       });
     }
 
@@ -311,8 +314,6 @@ export class LocalNode {
     let stopped = false;
     let unsubscribe!: () => void;
 
-    // console.log("Subscribing to " + id);
-
     this.load(id)
       .then((coValue) => {
         if (stopped) {
@@ -325,11 +326,12 @@ export class LocalNode {
         unsubscribe = coValue.subscribe(callback);
       })
       .catch((e) => {
-        console.error("Error subscribing to ", id, e);
+        logger.error(
+          "Error subscribing to " + id + ": " + (e as Error)?.message,
+        );
       });
 
     return () => {
-      console.log("Unsubscribing from " + id);
       stopped = true;
       unsubscribe?.();
     };
@@ -387,11 +389,10 @@ export class LocalNode {
       existingRole === "admin" ||
       (existingRole === "writer" && inviteRole === "writerInvite") ||
       (existingRole === "writer" && inviteRole === "reader") ||
-      (existingRole === "reader" && inviteRole === "readerInvite")
+      (existingRole === "reader" && inviteRole === "readerInvite") ||
+      (existingRole && inviteRole === "writeOnlyInvite")
     ) {
-      console.debug(
-        "Not accepting invite that would replace or downgrade role",
-      );
+      logger.debug("Not accepting invite that would replace or downgrade role");
       return;
     }
 
@@ -410,7 +411,9 @@ export class LocalNode {
         ? "admin"
         : inviteRole === "writerInvite"
           ? "writer"
-          : "reader",
+          : inviteRole === "writeOnlyInvite"
+            ? "writeOnly"
+            : "reader",
     );
 
     group.core._sessionLogs = groupAsInvite.core.sessionLogs;

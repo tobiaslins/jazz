@@ -1,5 +1,229 @@
 # chat-rn
 
+## 1.0.58
+
+### Patch Changes
+
+- Updated dependencies [b01cc1f]
+  - jazz-tools@0.9.20
+  - jazz-react-native@0.9.20
+
+## 1.0.57
+
+### Patch Changes
+
+- jazz-react-native@0.9.19
+- jazz-tools@0.9.19
+
+## 1.0.56
+
+### Patch Changes
+
+- jazz-react-native@0.9.18
+- jazz-tools@0.9.18
+
+## 1.0.55
+
+### Patch Changes
+
+- Updated dependencies [c2ca1fe]
+- Updated dependencies [1227047]
+  - jazz-tools@0.9.17
+  - jazz-react-native@0.9.17
+
+## 1.0.54
+
+### Patch Changes
+
+- Updated dependencies [24b3b6a]
+  - jazz-tools@0.9.16
+  - jazz-react-native@0.9.16
+
+## 1.0.53
+
+### Patch Changes
+
+- Updated dependencies [7491711]
+  - jazz-tools@0.9.15
+  - jazz-react-native@0.9.15
+
+## 1.0.52
+
+### Patch Changes
+
+- Updated dependencies [3df93cc]
+  - jazz-tools@0.9.14
+  - jazz-react-native@0.9.14
+
+## 1.0.51
+
+### Patch Changes
+
+- jazz-react-native@0.9.13
+- jazz-tools@0.9.13
+
+## 1.0.50
+
+### Patch Changes
+
+- jazz-react-native@0.9.12
+- jazz-tools@0.9.12
+
+## 1.0.49
+
+### Patch Changes
+
+- jazz-react-native@0.9.11
+- jazz-tools@0.9.11
+
+## 1.0.48
+
+### Patch Changes
+
+- Updated dependencies [f76274c]
+- Updated dependencies [5e83864]
+  - jazz-react-native@0.9.10
+  - jazz-tools@0.9.10
+
+## 1.0.47
+
+### Patch Changes
+
+- Updated dependencies [8eb9247]
+  - jazz-tools@0.9.9
+  - jazz-react-native@0.9.9
+
+## 1.0.46
+
+### Patch Changes
+
+- Updated dependencies [d1d773b]
+  - jazz-tools@0.9.8
+  - jazz-react-native@0.9.8
+
+## 1.0.45
+
+### Patch Changes
+
+- Updated dependencies [8a390d2]
+  - jazz-react-native@0.9.6
+
+## 1.0.44
+
+### Patch Changes
+
+- Updated dependencies [c871912]
+  - jazz-react-native@0.9.5
+
+## 1.0.43
+
+### Patch Changes
+
+- jazz-react-native@0.9.4
+
+## 1.0.42
+
+### Patch Changes
+
+- Updated dependencies [7cd691f]
+  - jazz-react-native@0.9.3
+
+## 1.0.41
+
+### Patch Changes
+
+- Updated dependencies [80fd3e9]
+  - jazz-react-native@0.9.2
+
+## 1.0.40
+
+### Patch Changes
+
+- Updated dependencies [1b71969]
+  - jazz-tools@0.9.1
+  - jazz-react-native@0.9.1
+
+## 1.0.39
+
+### Patch Changes
+
+- Updated dependencies [1da4d55]
+- Updated dependencies [8eda792]
+- Updated dependencies [1e5e3a1]
+  - jazz-react-native@0.9.0
+  - jazz-tools@0.9.0
+
+## 1.0.38
+
+### Patch Changes
+
+- Updated dependencies [dc62b95]
+- Updated dependencies [1de26f8]
+  - jazz-tools@0.8.51
+  - jazz-react-native@0.8.51
+
+## 1.0.37
+
+### Patch Changes
+
+- jazz-react-native@0.8.50
+- jazz-tools@0.8.50
+
+## 1.0.36
+
+### Patch Changes
+
+- jazz-react-native@0.8.49
+- jazz-tools@0.8.49
+
+## 1.0.35
+
+### Patch Changes
+
+- Updated dependencies [635e824]
+- Updated dependencies [0a85982]
+  - jazz-tools@0.8.48
+  - jazz-react-native@0.8.48
+
+## 1.0.34
+
+### Patch Changes
+
+- Updated dependencies [33ef9c4]
+  - jazz-react-native@0.8.47
+
+## 1.0.33
+
+### Patch Changes
+
+- Updated dependencies [ab4ffbd]
+  - jazz-react-native@0.8.46
+
+## 1.0.32
+
+### Patch Changes
+
+- Updated dependencies [7701307]
+- Updated dependencies [fa41f8e]
+- Updated dependencies [88d7d9a]
+- Updated dependencies [60e35ea]
+  - jazz-react-native@0.8.45
+  - jazz-tools@0.8.45
+
+## 1.0.31
+
+### Patch Changes
+
+- jazz-react-native@0.8.44
+- jazz-tools@0.8.44
+
+## 1.0.30
+
+### Patch Changes
+
+- jazz-react-native@0.8.41
+- jazz-tools@0.8.41
+
 ## 1.0.29
 
 ### Patch Changes

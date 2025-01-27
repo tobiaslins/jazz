@@ -1,12 +1,14 @@
 import { describe, expect, it, onTestFinished, vi } from "vitest";
-import { Account, CoFeed, CoList, CoMap, co } from "../index.web.js";
 import {
+  Account,
+  CoFeed,
+  CoList,
+  CoMap,
   FileStream,
   Group,
-  type RefsToResolve,
-  createCoValueObservable,
-  subscribeToCoValue,
-} from "../internal.js";
+  co,
+} from "../index.web.js";
+import { createCoValueObservable, subscribeToCoValue } from "../internal.js";
 import { setupAccount, waitFor } from "./utils.js";
 
 class ChatRoom extends CoMap {
@@ -64,6 +66,7 @@ describe("subscribeToCoValue", () => {
         messages: null,
         name: "General",
       }),
+      expect.any(Function),
     );
 
     updateFn.mockClear();
@@ -78,6 +81,7 @@ describe("subscribeToCoValue", () => {
         name: "General",
         messages: expect.any(Array),
       }),
+      expect.any(Function),
     );
 
     updateFn.mockClear();
@@ -93,6 +97,7 @@ describe("subscribeToCoValue", () => {
         name: "Lounge",
         messages: expect.any(Array),
       }),
+      expect.any(Function),
     );
   });
 
@@ -127,6 +132,7 @@ describe("subscribeToCoValue", () => {
         name: "General",
         messages: expect.any(Array),
       }),
+      expect.any(Function),
     );
   });
 
@@ -296,7 +302,6 @@ describe("subscribeToCoValue", () => {
     const lastValue = updateFn.mock.lastCall[0];
     expect(lastValue).not.toBe(initialValue);
     expect(lastValue.name).toBe("Me and Luigi");
-    expect(initialValue.name).toBe("General");
 
     expect(lastValue.messages).toBe(initialValue.messages);
     expect(lastValue.messages[0]).toBe(initialValue.messages[0]);

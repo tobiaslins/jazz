@@ -7,11 +7,13 @@ import {
   type RawCoMap,
   cojsonInternals,
 } from "cojson";
+import { activeAccountContext } from "../implementation/activeAccountContext.js";
 import type {
   AnonymousJazzAgent,
   CoValue,
   CoValueClass,
-  Group,
+  DeeplyLoaded,
+  DepthsIn,
   ID,
   IfCo,
   RefEncoded,
@@ -22,7 +24,6 @@ import type {
   co,
 } from "../internal.js";
 import {
-  Account,
   CoValueBase,
   ItemsSym,
   Ref,
@@ -30,18 +31,23 @@ import {
   ensureCoValueLoaded,
   inspect,
   isRefEncoded,
-  loadCoValue,
+  loadCoValueWithoutMe,
   makeRefs,
-  subscribeToCoValue,
+  parseCoValueCreateOptions,
+  subscribeToCoValueWithoutMe,
   subscribeToExistingCoValue,
   subscriptionsScopes,
 } from "../internal.js";
+import { type Account } from "./account.js";
+import { type Group } from "./group.js";
+import { RegisteredSchemas } from "./registeredSchemas.js";
 
 type CoMapEdit<V> = {
   value?: V;
   ref?: RefIfCoValue<V>;
   by?: Account;
   madeAt: Date;
+  key?: string;
 };
 
 type LastAndAllCoMapEdits<V> = CoMapEdit<V> & { all: CoMapEdit<V>[] };
@@ -178,10 +184,11 @@ export class CoMap extends CoValueBase implements CoValue {
       by:
         rawEdit.by &&
         new Ref<Account>(rawEdit.by as ID<Account>, target._loadedAs, {
-          ref: Account,
+          ref: RegisteredSchemas["Account"],
           optional: false,
         }).accessFrom(target, "_edits." + key + ".by"),
       madeAt: rawEdit.at,
+      key,
     };
   }
 
@@ -270,17 +277,19 @@ export class CoMap extends CoValueBase implements CoValue {
   static create<M extends CoMap>(
     this: CoValueClass<M>,
     init: Simplify<CoMapInit<M>>,
-    options: {
-      owner: Account | Group;
-      unique?: CoValueUniqueness["uniqueness"];
-    },
+    options?:
+      | {
+          owner: Account | Group;
+          unique?: CoValueUniqueness["uniqueness"];
+        }
+      | Account
+      | Group,
   ) {
     const instance = new this();
-    const raw = instance.rawFromInit(
-      init,
-      options.owner,
-      options.unique === undefined ? undefined : { uniqueness: options.unique },
-    );
+
+    const { owner, uniqueness } = parseCoValueCreateOptions(options);
+    const raw = instance.rawFromInit(init, owner, uniqueness);
+
     Object.defineProperties(instance, {
       id: {
         value: raw.id,
@@ -419,20 +428,30 @@ export class CoMap extends CoValueBase implements CoValue {
    * ```ts
    * const person = await Person.load(
    *   "co_zdsMhHtfG6VNKt7RqPUPvUtN2Ax",
-   *   me,
    *   { pet: {} }
    * );
    * ```
    *
    * @category Subscription & Loading
    */
-  static load<M extends CoMap, const O extends { resolve?: RefsToResolve<M> }>(
-    this: CoValueClass<M>,
-    id: ID<M>,
+  static load<C extends CoMap, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
+    depth: Depth & DepthsIn<C>,
+  ): Promise<DeeplyLoaded<C, Depth> | undefined>;
+  static load<C extends CoMap, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
     as: Account,
-    options?: O,
-  ): Promise<Resolved<M, O> | undefined> {
-    return loadCoValue(this, id, as, options);
+    depth: Depth & DepthsIn<C>,
+  ): Promise<DeeplyLoaded<C, Depth> | undefined>;
+  static load<C extends CoMap, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
+    asOrDepth: Account | (Depth & DepthsIn<C>),
+    depth?: Depth & DepthsIn<C>,
+  ): Promise<DeeplyLoaded<C, Depth> | undefined> {
+    return loadCoValueWithoutMe(this, id, asOrDepth, depth);
   }
 
   /**
@@ -455,7 +474,6 @@ export class CoMap extends CoValueBase implements CoValue {
    * ```ts
    * const unsub = Person.subscribe(
    *   "co_zdsMhHtfG6VNKt7RqPUPvUtN2Ax",
-   *   me,
    *   { pet: {} },
    *   (person) => console.log(person)
    * );
@@ -463,25 +481,45 @@ export class CoMap extends CoValueBase implements CoValue {
    *
    * @category Subscription & Loading
    */
-  static subscribe<
-    M extends CoMap,
-    const O extends { resolve?: RefsToResolve<M> },
-  >(
-    this: CoValueClass<M>,
-    id: ID<M>,
+  static subscribe<C extends CoMap, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
+    depth: Depth & DepthsIn<C>,
+    listener: (value: DeeplyLoaded<C, Depth>) => void,
+  ): () => void;
+  static subscribe<C extends CoMap, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
     as: Account,
-    options: O,
-    listener: (value: Resolved<M, O>) => void,
+    depth: Depth & DepthsIn<C>,
+    listener: (value: DeeplyLoaded<C, Depth>) => void,
+  ): () => void;
+  static subscribe<C extends CoMap, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
+    asOrDepth: Account | (Depth & DepthsIn<C>),
+    depthOrListener:
+      | (Depth & DepthsIn<C>)
+      | ((value: DeeplyLoaded<C, Depth>) => void),
+    listener?: (value: DeeplyLoaded<C, Depth>) => void,
   ): () => void {
-    return subscribeToCoValue<M, O>(this, id, as, options, listener);
+    return subscribeToCoValueWithoutMe<C, Depth>(
+      this,
+      id,
+      asOrDepth,
+      depthOrListener,
+      listener,
+    );
   }
 
   static findUnique<M extends CoMap>(
     this: CoValueClass<M>,
     unique: CoValueUniqueness["uniqueness"],
     ownerID: ID<Account> | ID<Group>,
-    as: Account | Group | AnonymousJazzAgent,
+    as?: Account | Group | AnonymousJazzAgent,
   ) {
+    as ||= activeAccountContext.get();
+
     const header = {
       type: "comap" as const,
       ruleset: {
@@ -619,8 +657,14 @@ const CoMapProxyHandler: ProxyHandler<CoMap> = {
     } else if (key in target) {
       return Reflect.get(target, key, receiver);
     } else {
-      const descriptor = (target._schema[key as keyof CoMap["_schema"]] ||
-        target._schema[ItemsSym]) as Schema;
+      const schema = target._schema;
+
+      if (!schema) {
+        return undefined;
+      }
+
+      const descriptor = (schema[key as keyof CoMap["_schema"]] ||
+        schema[ItemsSym]) as Schema;
       if (descriptor && typeof key === "string") {
         const raw = target._raw.get(key);
 
@@ -745,3 +789,5 @@ const CoMapProxyHandler: ProxyHandler<CoMap> = {
     }
   },
 };
+
+RegisteredSchemas["CoMap"] = CoMap;

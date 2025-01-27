@@ -4,6 +4,7 @@ import {
   Account,
   CoFeed,
   FileStream,
+  Group,
   ID,
   WasmCrypto,
   co,
@@ -13,6 +14,7 @@ import {
   isControlledAccount,
 } from "../index.web.js";
 import { randomSessionProvider } from "../internal.js";
+import { createJazzTestAccount } from "../testing.js";
 import { setupTwoNodes } from "./utils.js";
 
 const Crypto = await WasmCrypto.create();
@@ -30,6 +32,21 @@ describe("Simple CoFeed operations", async () => {
   const stream = TestStream.create(["milk"], { owner: me });
 
   test("Construction", () => {
+    expect(stream[me.id]?.value).toEqual("milk");
+    expect(stream.perSession[me.sessionID]?.value).toEqual("milk");
+  });
+
+  test("Construction with an Account", () => {
+    const stream = TestStream.create(["milk"], me);
+
+    expect(stream[me.id]?.value).toEqual("milk");
+    expect(stream.perSession[me.sessionID]?.value).toEqual("milk");
+  });
+
+  test("Construction with a Group", () => {
+    const group = Group.create(me);
+    const stream = TestStream.create(["milk"], group);
+
     expect(stream[me.id]?.value).toEqual("milk");
     expect(stream.perSession[me.sessionID]?.value).toEqual("milk");
   });
@@ -192,15 +209,6 @@ describe("CoFeed resolution", async () => {
     const queue = new cojsonInternals.Channel();
 
     TestStream.subscribe(stream.id, meOnSecondPeer, [], (subscribedStream) => {
-      console.log("subscribedStream[me.id]", subscribedStream[me.id]);
-      console.log(
-        "subscribedStream[me.id]?.value?.[me.id]?.value",
-        subscribedStream[me.id]?.value?.[me.id]?.value,
-      );
-      console.log(
-        "subscribedStream[me.id]?.value?.[me.id]?.value?.[me.id]?.value",
-        subscribedStream[me.id]?.value?.[me.id]?.value?.[me.id]?.value,
-      );
       void queue.push(subscribedStream);
     });
 
@@ -491,5 +499,17 @@ describe("waitForSync", async () => {
     const loadedStream = await serverNode.load(stream._raw.id);
 
     expect(loadedStream).not.toBe("unavailable");
+  });
+
+  test("should rely on the current active account if no account is provided", async () => {
+    const account = await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+    });
+
+    const stream = FileStream.create();
+    expect(stream._owner._type).toEqual("Group");
+    expect(stream._owner.castAs(Group)._raw.roleOf(account._raw.id)).toEqual(
+      "admin",
+    );
   });
 });

@@ -1,5 +1,123 @@
 # jazz-example-inspector
 
+## 0.0.100
+
+### Patch Changes
+
+- Updated dependencies [6ad0a9f]
+  - cojson@0.9.19
+  - cojson-transport-ws@0.9.19
+
+## 0.0.99
+
+### Patch Changes
+
+- Updated dependencies [8898b10]
+  - cojson@0.9.18
+  - cojson-transport-ws@0.9.18
+
+## 0.0.98
+
+### Patch Changes
+
+- Updated dependencies [8d29e50]
+  - cojson-transport-ws@0.9.13
+  - cojson@0.9.13
+
+## 0.0.97
+
+### Patch Changes
+
+- Updated dependencies [15d4b2a]
+  - cojson-transport-ws@0.9.12
+  - cojson@0.9.12
+
+## 0.0.96
+
+### Patch Changes
+
+- Updated dependencies [efbf3d8]
+- Updated dependencies [5863bad]
+  - cojson@0.9.11
+  - cojson-transport-ws@0.9.11
+
+## 0.0.95
+
+### Patch Changes
+
+- Updated dependencies [4aa377d]
+  - cojson@0.9.10
+  - cojson-transport-ws@0.9.10
+
+## 0.0.94
+
+### Patch Changes
+
+- Updated dependencies [8eb9247]
+  - cojson@0.9.9
+  - cojson-transport-ws@0.9.9
+
+## 0.0.93
+
+### Patch Changes
+
+- Updated dependencies [8eda792]
+- Updated dependencies [1ef3226]
+  - cojson@0.9.0
+  - cojson-transport-ws@0.9.0
+
+## 0.0.92
+
+### Patch Changes
+
+- Updated dependencies [43378ef]
+  - cojson@0.8.50
+  - cojson-transport-ws@0.8.50
+
+## 0.0.91
+
+### Patch Changes
+
+- Updated dependencies [25dfd90]
+  - cojson@0.8.49
+  - cojson-transport-ws@0.8.49
+
+## 0.0.90
+
+### Patch Changes
+
+- Updated dependencies [10ea733]
+  - cojson@0.8.48
+  - cojson-transport-ws@0.8.48
+
+## 0.0.89
+
+### Patch Changes
+
+- Updated dependencies [6f0bd7f]
+- Updated dependencies [fca6a0b]
+- Updated dependencies [88d7d9a]
+  - cojson@0.8.45
+  - cojson-transport-ws@0.8.45
+
+## 0.0.88
+
+### Patch Changes
+
+- Updated dependencies [5d20c81]
+  - cojson@0.8.44
+  - cojson-transport-ws@0.8.44
+
+## 0.0.87
+
+### Patch Changes
+
+- Updated dependencies [3252502]
+- Updated dependencies [6370348]
+- Updated dependencies [ac216b9]
+  - cojson@0.8.41
+  - cojson-transport-ws@0.8.41
+
 ## 0.0.86
 
 ### Patch Changes

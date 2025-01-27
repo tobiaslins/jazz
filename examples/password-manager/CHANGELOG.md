@@ -1,5 +1,184 @@
 # jazz-password-manager
 
+## 0.0.60
+
+### Patch Changes
+
+- Updated dependencies [b01cc1f]
+  - jazz-tools@0.9.20
+  - jazz-react@0.9.20
+
+## 0.0.59
+
+### Patch Changes
+
+- jazz-react@0.9.19
+- jazz-tools@0.9.19
+
+## 0.0.58
+
+### Patch Changes
+
+- jazz-react@0.9.18
+- jazz-tools@0.9.18
+
+## 0.0.57
+
+### Patch Changes
+
+- Updated dependencies [c2ca1fe]
+- Updated dependencies [1227047]
+  - jazz-tools@0.9.17
+  - jazz-react@0.9.17
+
+## 0.0.56
+
+### Patch Changes
+
+- Updated dependencies [24b3b6a]
+  - jazz-tools@0.9.16
+  - jazz-react@0.9.16
+
+## 0.0.55
+
+### Patch Changes
+
+- Updated dependencies [7491711]
+  - jazz-tools@0.9.15
+  - jazz-react@0.9.15
+
+## 0.0.54
+
+### Patch Changes
+
+- Updated dependencies [3df93cc]
+  - jazz-tools@0.9.14
+  - jazz-react@0.9.14
+
+## 0.0.53
+
+### Patch Changes
+
+- jazz-react@0.9.13
+- jazz-tools@0.9.13
+
+## 0.0.52
+
+### Patch Changes
+
+- jazz-react@0.9.12
+- jazz-tools@0.9.12
+
+## 0.0.51
+
+### Patch Changes
+
+- jazz-react@0.9.11
+- jazz-tools@0.9.11
+
+## 0.0.50
+
+### Patch Changes
+
+- Updated dependencies [5e83864]
+  - jazz-react@0.9.10
+  - jazz-tools@0.9.10
+
+## 0.0.49
+
+### Patch Changes
+
+- Updated dependencies [8eb9247]
+  - jazz-tools@0.9.9
+  - jazz-react@0.9.9
+
+## 0.0.48
+
+### Patch Changes
+
+- Updated dependencies [d1d773b]
+  - jazz-tools@0.9.8
+  - jazz-react@0.9.8
+
+## 0.0.47
+
+### Patch Changes
+
+- jazz-react@0.9.4
+
+## 0.0.46
+
+### Patch Changes
+
+- Updated dependencies [1b71969]
+  - jazz-react@0.9.1
+  - jazz-tools@0.9.1
+
+## 0.0.45
+
+### Patch Changes
+
+- Updated dependencies [956a4d1]
+- Updated dependencies [8eda792]
+  - jazz-react@0.9.0
+  - jazz-tools@0.9.0
+
+## 0.0.44
+
+### Patch Changes
+
+- Updated dependencies [dc62b95]
+- Updated dependencies [1de26f8]
+  - jazz-tools@0.8.51
+  - jazz-react@0.8.51
+
+## 0.0.43
+
+### Patch Changes
+
+- jazz-react@0.8.50
+- jazz-tools@0.8.50
+
+## 0.0.42
+
+### Patch Changes
+
+- jazz-react@0.8.49
+- jazz-tools@0.8.49
+
+## 0.0.41
+
+### Patch Changes
+
+- Updated dependencies [635e824]
+- Updated dependencies [0a85982]
+  - jazz-tools@0.8.48
+  - jazz-react@0.8.48
+
+## 0.0.40
+
+### Patch Changes
+
+- Updated dependencies [fa41f8e]
+- Updated dependencies [88d7d9a]
+- Updated dependencies [60e35ea]
+  - jazz-tools@0.8.45
+  - jazz-react@0.8.45
+
+## 0.0.39
+
+### Patch Changes
+
+- jazz-react@0.8.44
+- jazz-tools@0.8.44
+
+## 0.0.38
+
+### Patch Changes
+
+- jazz-react@0.8.41
+- jazz-tools@0.8.41
+
 ## 0.0.37
 
 ### Patch Changes

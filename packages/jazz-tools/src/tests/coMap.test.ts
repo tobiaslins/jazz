@@ -1,5 +1,6 @@
 import { connectedPeers } from "cojson/src/streamUtils.ts";
 import { describe, expect, expectTypeOf, test } from "vitest";
+import { Group, randomSessionProvider } from "../exports.js";
 import {
   Account,
   CoMap,
@@ -11,8 +12,7 @@ import {
   fixedCredentialsAuth,
   isControlledAccount,
 } from "../index.web.js";
-import { Group, randomSessionProvider } from "../internal.js";
-import { loadCoValueOrFail, setupTwoNodes } from "./utils.js";
+import { setupTwoNodes } from "./utils.js";
 
 const Crypto = await WasmCrypto.create();
 
@@ -37,8 +37,6 @@ describe("Simple CoMap operations", async () => {
     creationProps: { name: "Hermes Puggington" },
     crypto: Crypto,
   });
-
-  console.log("TestMap schema", TestMap.prototype._schema);
 
   const birthday = new Date();
 
@@ -66,6 +64,25 @@ describe("Simple CoMap operations", async () => {
     ]);
   });
 
+  test("Construction with an Account", () => {
+    const map = TestMap.create(
+      { color: "red", _height: 10, birthday: birthday },
+      me,
+    );
+
+    expect(map.color).toEqual("red");
+  });
+
+  test("Construction with a Group", () => {
+    const group = Group.create(me);
+    const map = TestMap.create(
+      { color: "red", _height: 10, birthday: birthday },
+      group,
+    );
+
+    expect(map.color).toEqual("red");
+  });
+
   test("Construction with too many things provided", () => {
     const mapWithExtra = TestMap.create(
       {
@@ -80,6 +97,13 @@ describe("Simple CoMap operations", async () => {
     );
 
     expect(mapWithExtra.color).toEqual("red");
+  });
+
+  test("Empty schema", () => {
+    const emptyMap = CoMap.create({}, { owner: me });
+
+    // @ts-expect-error
+    expect(emptyMap.color).toEqual(undefined);
   });
 
   describe("Mutation", () => {
@@ -468,10 +492,8 @@ describe("CoMap resolution", async () => {
     const queue = new cojsonInternals.Channel<TestMap>();
 
     TestMap.subscribe(map.id, meOnSecondPeer, {}, (subscribedMap) => {
-      console.log(
-        "subscribedMap.nested?.twiceNested?.taste",
-        subscribedMap.nested?.twiceNested?.taste,
-      );
+      // Read to property to trigger loading
+      subscribedMap.nested?.twiceNested?.taste;
       void queue.push(subscribedMap);
     });
 

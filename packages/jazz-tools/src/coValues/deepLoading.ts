@@ -1,16 +1,10 @@
 import { SessionID } from "cojson";
-import {
-  Account,
-  CoFeed,
-  CoFeedEntry,
-  CoList,
-  ItemsSym,
-  Ref,
-  RefEncoded,
-  UnCo,
-} from "../internal.js";
-import { CoKeys, CoMap } from "./coMap.js";
-import { CoValue, ID } from "./interfaces.js";
+import { ItemsSym, type Ref, RefEncoded, UnCo } from "../internal.js";
+import { type Account } from "./account.js";
+import { type CoFeed, CoFeedEntry } from "./coFeed.js";
+import { type CoList } from "./coList.js";
+import { type CoKeys, type CoMap } from "./coMap.js";
+import { type CoValue, type ID } from "./interfaces.js";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fulfillsDepth(depth: any, value: CoValue): boolean {
@@ -66,7 +60,10 @@ export function fulfillsDepth(depth: any, value: CoValue): boolean {
         ? entry.value && fulfillsDepth(itemDepth, entry.value)
         : ((value as CoFeed)._schema[ItemsSym] as RefEncoded<CoValue>).optional,
     );
-  } else if (value._type === "BinaryCoStream") {
+  } else if (
+    value._type === "BinaryCoStream" ||
+    value._type === "CoPlainText"
+  ) {
     return true;
   } else {
     console.error(value);
@@ -213,6 +210,11 @@ export type DeeplyLoaded<
                   _type: "BinaryCoStream";
                 },
               ]
-            ? // BinaryCoStream
-              V
-            : never;
+            ? V
+            : [V] extends [
+                  {
+                    _type: "CoPlainText";
+                  },
+                ]
+              ? V
+              : never;

@@ -12,8 +12,10 @@ import { connectedPeers, newQueuePair } from "../streamUtils.js";
 import type { SyncMessage } from "../sync.js";
 import {
   blockMessageTypeOnOutgoingPeer,
+  connectTwoPeers,
   createTestMetricReader,
   createTestNode,
+  loadCoValueOrFail,
   randomAnonymousAccountAndSessionID,
   tearDownTestMetricReader,
   waitFor,
@@ -1645,6 +1647,28 @@ function createTwoConnectedNodes() {
   };
 }
 
+test("a value created on one node can be loaded on anotehr node even if not directly connected", async () => {
+  const userA = createTestNode();
+  const userB = createTestNode();
+  const serverA = createTestNode();
+  const serverB = createTestNode();
+  const core = createTestNode();
+
+  connectTwoPeers(userA, serverA, "client", "server");
+  connectTwoPeers(userB, serverB, "client", "server");
+  connectTwoPeers(serverA, core, "client", "server");
+  connectTwoPeers(serverB, core, "client", "server");
+
+  const group = userA.createGroup();
+  const map = group.createMap();
+  map.set("key1", "value1", "trusting");
+
+  await map.core.waitForSync();
+
+  const mapOnUserB = await loadCoValueOrFail(userB, map.id);
+  expect(mapOnUserB.get("key1")).toBe("value1");
+});
+
 describe("SyncManager - knownStates vs optimisticKnownStates", () => {
   test("knownStates and optimisticKnownStates are the same when the coValue is fully synced", async () => {
     const { client, jazzCloud } = createTwoConnectedNodes();
@@ -1959,6 +1983,25 @@ describe("waitForSyncWithPeer", () => {
       client.syncManager.waitForSyncWithPeer(peer.id, map.core.id, 100),
     ).rejects.toThrow("Timeout");
   });
+});
+
+test("Should not crash when syncing an unknown coValue type", async () => {
+  const { client, jazzCloud } = createTwoConnectedNodes();
+
+  const coValue = client.createCoValue({
+    type: "ooops" as any,
+    ruleset: { type: "unsafeAllowAll" },
+    meta: null,
+    ...Crypto.createdNowUnique(),
+  });
+
+  await coValue.waitForSync();
+
+  const coValueOnTheOtherNode = await loadCoValueOrFail(
+    jazzCloud,
+    coValue.getCurrentContent().id,
+  );
+  expect(coValueOnTheOtherNode.id).toBe(coValue.id);
 });
 
 describe("metrics", () => {

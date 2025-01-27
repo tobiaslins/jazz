@@ -1,23 +1,27 @@
+import { useAcceptInvite } from "jazz-react";
 import { ID } from "jazz-tools";
 import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Playlist } from "./1_schema";
-import { useAcceptInvite, useAccount } from "./2_main";
+import { MusicaAccount, Playlist } from "./1_schema";
 
 export function InvitePage() {
   const navigate = useNavigate();
-
-  const { me } = useAccount({
-    resolve: { root: { playlists: true } },
-  });
 
   useAcceptInvite({
     invitedObjectSchema: Playlist,
     onAccept: useCallback(
       async (playlistId: ID<Playlist>) => {
-        if (!me) return;
+        const playlist = await Playlist.load(playlistId, {});
 
-        const playlist = await Playlist.load(playlistId, me, {});
+        const me = await MusicaAccount.getMe().ensureLoaded({
+          resolve: {
+            root: {
+              playlists: true,
+            },
+          },
+        });
+
+        if (!me) return;
 
         if (
           playlist &&
@@ -28,7 +32,7 @@ export function InvitePage() {
 
         navigate("/playlist/" + playlistId);
       },
-      [navigate, me],
+      [navigate],
     ),
   });
 

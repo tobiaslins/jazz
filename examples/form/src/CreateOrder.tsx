@@ -1,10 +1,10 @@
 import { useIframeHashRouter } from "hash-slash";
+import { useAccount, useCoState } from "jazz-react";
 import { ID } from "jazz-tools";
 import { useState } from "react";
 import { Errors } from "./Errors.tsx";
 import { LinkToHome } from "./LinkToHome.tsx";
 import { OrderForm } from "./OrderForm.tsx";
-import { useAccount, useCoState } from "./main.tsx";
 import {
   BubbleTeaOrder,
   DraftBubbleTeaOrder,
@@ -13,12 +13,12 @@ import {
 
 export function CreateOrder() {
   const { me } = useAccount({
-    resolve: { profile: { draft: true, orders: true } },
+    resolve: { root: { draft: true, orders: true } },
   });
   const router = useIframeHashRouter();
   const [errors, setErrors] = useState<string[]>([]);
 
-  if (!me?.profile) return;
+  if (!me?.root) return;
 
   const onSave = (draft: DraftBubbleTeaOrder) => {
     // validate if the draft is a valid order
@@ -29,15 +29,12 @@ export function CreateOrder() {
     }
 
     // turn the draft into a real order
-    me.profile.orders.push(draft as BubbleTeaOrder);
+    me.root.orders.push(draft as BubbleTeaOrder);
 
     // reset the draft
-    me.profile.draft = DraftBubbleTeaOrder.create(
-      {
-        addOns: ListOfBubbleTeaAddOns.create([], { owner: me.profile._owner }),
-      },
-      { owner: me.profile._owner },
-    );
+    me.root.draft = DraftBubbleTeaOrder.create({
+      addOns: ListOfBubbleTeaAddOns.create([]),
+    });
 
     router.navigate("/");
   };
@@ -52,7 +49,7 @@ export function CreateOrder() {
 
       <Errors errors={errors} />
 
-      <CreateOrderForm id={me?.profile?.draft.id} onSave={onSave} />
+      <CreateOrderForm id={me?.root?.draft.id} onSave={onSave} />
     </>
   );
 }

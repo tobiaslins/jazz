@@ -13,9 +13,7 @@ import type {
   UnCo,
 } from "../internal.js";
 import {
-  Account,
   AnonymousJazzAgent,
-  Group,
   ItemsSym,
   Ref,
   SchemaInit,
@@ -23,13 +21,17 @@ import {
   ensureCoValueLoaded,
   inspect,
   isRefEncoded,
-  loadCoValue,
+  loadCoValueWithoutMe,
   makeRefs,
-  subscribeToCoValue,
+  parseCoValueCreateOptions,
+  subscribeToCoValueWithoutMe,
   subscribeToExistingCoValue,
   subscriptionsScopes,
 } from "../internal.js";
 import { coValuesCache } from "../lib/cache.js";
+import { type Account } from "./account.js";
+import { type Group } from "./group.js";
+import { RegisteredSchemas } from "./registeredSchemas.js";
 
 /**
  * CoLists are collaborative versions of plain arrays.
@@ -108,8 +110,8 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
   /** @category Collaboration */
   get _owner(): Account | Group {
     return this._raw.group instanceof RawAccount
-      ? Account.fromRaw(this._raw.group)
-      : Group.fromRaw(this._raw.group);
+      ? RegisteredSchemas["Account"].fromRaw(this._raw.group)
+      : RegisteredSchemas["Group"].fromRaw(this._raw.group);
   }
 
   /**
@@ -162,7 +164,9 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
     const rawAccount = this._raw.core.node.account;
 
     if (rawAccount instanceof RawAccount) {
-      return coValuesCache.get(rawAccount, () => Account.fromRaw(rawAccount));
+      return coValuesCache.get(rawAccount, () =>
+        RegisteredSchemas["Account"].fromRaw(rawAccount),
+      );
     }
 
     return new AnonymousJazzAgent(this._raw.core.node);
@@ -217,10 +221,11 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
   static create<L extends CoList>(
     this: CoValueClass<L>,
     items: UnCo<L[number]>[],
-    options: { owner: Account | Group },
+    options?: { owner: Account | Group } | Account | Group,
   ) {
-    const instance = new this({ init: items, owner: options.owner });
-    const raw = options.owner._raw.createList(
+    const { owner } = parseCoValueCreateOptions(options);
+    const instance = new this({ init: items, owner });
+    const raw = owner._raw.createList(
       toRawItems(items, instance._schema[ItemsSym]),
     );
 
@@ -236,9 +241,11 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
   }
 
   push(...items: Item[]): number {
-    for (const item of toRawItems(items as Item[], this._schema[ItemsSym])) {
-      this._raw.append(item);
-    }
+    this._raw.appendItems(
+      toRawItems(items, this._schema[ItemsSym]),
+      undefined,
+      "private",
+    );
 
     return this._raw.entries().length;
   }
@@ -353,13 +360,24 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
    *
    * @category Subscription & Loading
    */
-  static load<L extends CoList, const O extends { resolve?: RefsToResolve<L> }>(
-    this: CoValueClass<L>,
-    id: ID<L>,
+  static load<C extends CoList, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
+    depth: Depth & DepthsIn<C>,
+  ): Promise<DeeplyLoaded<C, Depth> | undefined>;
+  static load<C extends CoList, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
     as: Account,
-    options?: O,
-  ): Promise<Resolved<L, O> | undefined> {
-    return loadCoValue(this, id, as, options);
+    depth: Depth & DepthsIn<C>,
+  ): Promise<DeeplyLoaded<C, Depth> | undefined>;
+  static load<C extends CoList, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
+    asOrDepth: Account | (Depth & DepthsIn<C>),
+    depth?: Depth & DepthsIn<C>,
+  ): Promise<DeeplyLoaded<C, Depth> | undefined> {
+    return loadCoValueWithoutMe(this, id, asOrDepth, depth);
   }
 
   /**
@@ -390,17 +408,35 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
    *
    * @category Subscription & Loading
    */
-  static subscribe<
-    L extends CoList,
-    const O extends { resolve?: RefsToResolve<L> },
-  >(
-    this: CoValueClass<L>,
-    id: ID<L>,
+  static subscribe<C extends CoList, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
+    depth: Depth & DepthsIn<C>,
+    listener: (value: DeeplyLoaded<C, Depth>) => void,
+  ): () => void;
+  static subscribe<C extends CoList, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
     as: Account,
-    options: O,
-    listener: (value: Resolved<L, O>) => void,
+    depth: Depth & DepthsIn<C>,
+    listener: (value: DeeplyLoaded<C, Depth>) => void,
+  ): () => void;
+  static subscribe<C extends CoList, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
+    asOrDepth: Account | (Depth & DepthsIn<C>),
+    depthOrListener:
+      | (Depth & DepthsIn<C>)
+      | ((value: DeeplyLoaded<C, Depth>) => void),
+    listener?: (value: DeeplyLoaded<C, Depth>) => void,
   ): () => void {
-    return subscribeToCoValue<L, O>(this, id, as, options, listener);
+    return subscribeToCoValueWithoutMe<C, Depth>(
+      this,
+      id,
+      asOrDepth,
+      depthOrListener,
+      listener,
+    );
   }
 
   /**
