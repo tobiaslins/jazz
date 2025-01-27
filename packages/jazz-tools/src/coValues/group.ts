@@ -1,4 +1,10 @@
-import type { Everyone, RawAccountID, RawGroup, Role } from "cojson";
+import type {
+  AccountRole,
+  Everyone,
+  RawAccountID,
+  RawGroup,
+  Role,
+} from "cojson";
 import type {
   CoValue,
   CoValueClass,
@@ -133,7 +139,9 @@ export class Group extends CoValueBase implements CoValue {
     return this._raw.myRole();
   }
 
-  addMember(member: Everyone | Account, role: Role) {
+  addMember(member: Everyone, role: "writer" | "reader"): Group;
+  addMember(member: Account, role: AccountRole): Group;
+  addMember(member: Everyone | Account, role: AccountRole) {
     this._raw.addMember(member === "everyone" ? member : member._raw, role);
     return this;
   }

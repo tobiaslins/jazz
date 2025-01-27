@@ -53,6 +53,12 @@ export {
 export { JazzContextManager } from "./implementation/ContextManager.js";
 
 export {
+  createInviteLink,
+  parseInviteLink,
+  consumeInviteLink,
+} from "./implementation/invites.js";
+
+export {
   AnonymousJazzAgent,
   createAnonymousJazzContext,
   createJazzContextFromExistingCredentials,
