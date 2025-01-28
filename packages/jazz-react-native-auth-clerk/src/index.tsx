@@ -4,7 +4,7 @@ import {
   JazzProviderProps,
   useAuthSecretStorage,
   useJazzContext,
-} from "jazz-react";
+} from "jazz-react-native";
 import { useEffect, useMemo } from "react";
 
 function useJazzClerkAuth(clerk: MinimalClerkClient) {
@@ -16,8 +16,10 @@ function useJazzClerkAuth(clerk: MinimalClerkClient) {
   }, []);
 
   useEffect(() => {
-    authMethod.onClerkUserChange(clerk);
-  }, [clerk.user]);
+    return clerk.addListener((event) => {
+      authMethod.onClerkUserChange(event as Pick<MinimalClerkClient, "user">);
+    });
+  }, [clerk]);
 }
 
 function RegisterClerkAuth(props: {

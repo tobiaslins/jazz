@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 
 import { render, waitFor } from "@testing-library/react";
-import type { MinimalClerkClient } from "jazz-browser-auth-clerk";
+import type { MinimalClerkClient } from "jazz-auth-clerk";
 import { AuthSecretStorage, InMemoryKVStore, KvStoreContext } from "jazz-tools";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { JazzProviderWithClerk } from "../index";

@@ -19,4 +19,5 @@ export type MinimalClerkClient = {
     | null
     | undefined;
   signOut: () => Promise<void>;
+  addListener: (listener: (data: unknown) => void) => void;
 };

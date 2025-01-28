@@ -5,15 +5,15 @@ import { AuthSecretStorage } from "jazz-tools";
 import { Account, ID, InMemoryKVStore, KvStoreContext } from "jazz-tools";
 import { createJazzTestAccount } from "jazz-tools/testing";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { BrowserClerkAuth } from "../index";
+import { JazzClerkAuth } from "../index";
 import type { MinimalClerkClient } from "../types";
 
 KvStoreContext.getInstance().initialize(new InMemoryKVStore());
 const authSecretStorage = new AuthSecretStorage();
 
-describe("BrowserClerkAuth", () => {
+describe("JazzClerkAuth", () => {
   const mockAuthenticate = vi.fn();
-  let auth: BrowserClerkAuth;
+  let auth: JazzClerkAuth;
 
   beforeEach(async () => {
     await authSecretStorage.clear();
@@ -21,7 +21,7 @@ describe("BrowserClerkAuth", () => {
     await createJazzTestAccount({
       isCurrentActiveAccount: true,
     });
-    auth = new BrowserClerkAuth(mockAuthenticate, authSecretStorage);
+    auth = new JazzClerkAuth(mockAuthenticate, authSecretStorage);
   });
 
   describe("onClerkUserChange", () => {
