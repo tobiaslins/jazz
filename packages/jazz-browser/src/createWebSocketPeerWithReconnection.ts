@@ -17,8 +17,6 @@ export function createWebSocketPeerWithReconnection(
     currentReconnectionTimeout = reconnectionTimeout || 500;
   }
 
-  window.addEventListener("online", onOnline);
-
   async function reconnectWebSocket() {
     if (!shouldTryToReconnect) return;
 
@@ -55,6 +53,7 @@ export function createWebSocketPeerWithReconnection(
       shouldTryToReconnect = true;
 
       if (!currentPeer) {
+        window.addEventListener("online", onOnline);
         reconnectWebSocket();
       }
     },

@@ -8,8 +8,6 @@ import { JazzContextManagerAuthProps } from "jazz-tools";
 import { LocalStorageKVStore } from "./auth/LocalStorageKVStore.js";
 import {
   BaseBrowserContextOptions,
-  BrowserContext,
-  BrowserGuestContext,
   createJazzBrowserContext,
   createJazzBrowserGuestContext,
 } from "./createBrowserContext.js";
@@ -40,7 +38,7 @@ export class JazzBrowserContextManager<
     props: JazzContextManagerProps<Acc>,
     authProps?: JazzContextManagerAuthProps,
   ) {
-    let currentContext: BrowserGuestContext | BrowserContext<Acc>;
+    let currentContext;
 
     // We need to store the props here to block the double effect execution
     // on React. Otherwise when calling propsChanged this.props is undefined.

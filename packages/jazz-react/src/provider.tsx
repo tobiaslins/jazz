@@ -14,8 +14,7 @@ export type RegisteredAccount = Register extends { Account: infer Acc }
 
 export type JazzProviderProps<Acc extends Account = RegisteredAccount> = {
   children: React.ReactNode;
-  localOnly?: "always" | "anonymous" | "off";
-} & Omit<JazzContextManagerProps<Acc>, "localOnly">;
+} & JazzContextManagerProps<Acc>;
 
 /** @category Context & Hooks */
 export function JazzProvider<Acc extends Account = RegisteredAccount>({

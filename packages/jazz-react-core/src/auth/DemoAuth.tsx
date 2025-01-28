@@ -29,7 +29,7 @@ export function useDemoAuth() {
   }, [authMethod]);
 
   function handleSignUp(username: string) {
-    authMethod.signUp(username).then(() => {
+    return authMethod.signUp(username).then(() => {
       setExistingUsers(existingUsers.concat([username]));
     });
   }

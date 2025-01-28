@@ -1,6 +1,4 @@
 import {
-  type BrowserContext,
-  type BrowserGuestContext,
   consumeInviteLinkFromWindowLocation
 } from 'jazz-browser';
 import type {
@@ -11,7 +9,9 @@ import type {
   DeeplyLoaded,
   DepthsIn,
   ID,
-  JazzContextType
+  JazzAuthContext,
+  JazzContextType,
+  JazzGuestContext
 } from 'jazz-tools';
 import { Account, subscribeToCoValue } from 'jazz-tools';
 import { getContext, untrack } from 'svelte';
@@ -95,7 +95,7 @@ export function useAccount<D extends DepthsIn<RegisteredAccount>>(
   if (depth === undefined) {
     return {
       get me() {
-        return (ctx.current as BrowserContext<RegisteredAccount>).me;
+        return (ctx.current as JazzAuthContext<RegisteredAccount>).me;
       },
       logOut() {
         return ctx.current?.logOut();
@@ -106,7 +106,7 @@ export function useAccount<D extends DepthsIn<RegisteredAccount>>(
   // If depth is specified, use useCoState to get the deeply loaded version
   const me = useCoState<RegisteredAccount, D>(
     ctx.current.me.constructor as CoValueClass<RegisteredAccount>,
-    (ctx.current as BrowserContext<RegisteredAccount>).me.id,
+    (ctx.current as JazzAuthContext<RegisteredAccount>).me.id,
     depth
   );
 
@@ -151,7 +151,7 @@ export function useAccountOrGuest<D extends DepthsIn<RegisteredAccount>>(
     return {
       get me() {
         return depth === undefined
-          ? me.current || (ctx.current as BrowserContext<RegisteredAccount>)?.me
+          ? me.current || (ctx.current as JazzAuthContext<RegisteredAccount>)?.me
           : me.current;
       }
     };
@@ -160,7 +160,7 @@ export function useAccountOrGuest<D extends DepthsIn<RegisteredAccount>>(
   else {
     return {
       get me() {
-        return (ctx.current as BrowserGuestContext)?.guest;
+        return (ctx.current as JazzGuestContext)?.guest;
       }
     };
   }
@@ -252,7 +252,7 @@ export function useAcceptInvite<V extends CoValue>({
       if (!ctx.current) return;
       // Consume the invite link from the window location.
       const result = consumeInviteLinkFromWindowLocation({
-        as: (ctx.current as BrowserContext<RegisteredAccount>).me,
+        as: (ctx.current as JazzAuthContext<RegisteredAccount>).me,
         invitedObjectSchema,
         forValueHint
       });

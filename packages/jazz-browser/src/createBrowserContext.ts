@@ -3,7 +3,6 @@ import { IDBStorage } from "cojson-storage-indexeddb";
 import {
   Account,
   AgentID,
-  AnonymousJazzAgent,
   AuthCredentials,
   AuthSecretStorage,
   CoValue,
@@ -24,21 +23,6 @@ import { StorageConfig, getStorageOptions } from "./storageOptions.js";
 import { setupInspector } from "./utils/export-account-inspector.js";
 
 setupInspector();
-
-/** @category Context Creation */
-export type BrowserContext<Acc extends Account> = {
-  me: Acc;
-  node: LocalNode;
-  logOut: () => void;
-  done: () => void;
-};
-
-export type BrowserGuestContext = {
-  guest: AnonymousJazzAgent;
-  node: LocalNode;
-  logOut: () => void;
-  done: () => void;
-};
 
 export type BaseBrowserContextOptions = {
   peer: `wss://${string}` | `ws://${string}`;
