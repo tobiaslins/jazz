@@ -1583,6 +1583,22 @@ importers:
         specifier: ~5.6.2
         version: 5.6.3
 
+  packages/jazz-auth-clerk:
+    dependencies:
+      cojson:
+        specifier: workspace:0.9.19
+        version: link:../cojson
+      jazz-browser:
+        specifier: workspace:0.9.20
+        version: link:../jazz-browser
+      jazz-tools:
+        specifier: workspace:0.9.20
+        version: link:../jazz-tools
+    devDependencies:
+      typescript:
+        specifier: ~5.6.2
+        version: 5.6.3
+
   packages/jazz-browser:
     dependencies:
       cojson:
@@ -1601,22 +1617,6 @@ importers:
       fake-indexeddb:
         specifier: ^6.0.0
         version: 6.0.0
-      typescript:
-        specifier: ~5.6.2
-        version: 5.6.3
-
-  packages/jazz-browser-auth-clerk:
-    dependencies:
-      cojson:
-        specifier: workspace:0.9.19
-        version: link:../cojson
-      jazz-browser:
-        specifier: workspace:0.9.20
-        version: link:../jazz-browser
-      jazz-tools:
-        specifier: workspace:0.9.20
-        version: link:../jazz-tools
-    devDependencies:
       typescript:
         specifier: ~5.6.2
         version: 5.6.3
@@ -1750,9 +1750,9 @@ importers:
       cojson:
         specifier: workspace:0.9.19
         version: link:../cojson
-      jazz-browser-auth-clerk:
+      jazz-auth-clerk:
         specifier: workspace:0.9.20
-        version: link:../jazz-browser-auth-clerk
+        version: link:../jazz-auth-clerk
       jazz-react:
         specifier: workspace:0.9.20
         version: link:../jazz-react
@@ -1849,6 +1849,9 @@ importers:
       cojson:
         specifier: workspace:*
         version: link:../cojson
+      jazz-auth-clerk:
+        specifier: workspace:*
+        version: link:../jazz-auth-clerk
       jazz-react-native:
         specifier: workspace:*
         version: link:../jazz-react-native
@@ -2015,6 +2018,9 @@ importers:
       cojson:
         specifier: workspace:*
         version: link:../cojson
+      cojson-transport-ws:
+        specifier: workspace:*
+        version: link:../cojson-transport-ws
     devDependencies:
       tsup:
         specifier: 8.3.5
@@ -2025,6 +2031,9 @@ importers:
       vitest:
         specifier: 1.5.3
         version: 1.5.3(@types/node@22.10.2)(@vitest/browser@0.34.6)(@vitest/ui@1.5.3)(happy-dom@15.11.7)(jsdom@25.0.1)(lightningcss@1.28.2)(terser@5.37.0)
+      ws:
+        specifier: ^8.14.2
+        version: 8.18.0
 
   packages/jazz-vue:
     dependencies:
