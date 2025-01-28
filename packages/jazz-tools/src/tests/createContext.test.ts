@@ -1,10 +1,11 @@
-import { WasmCrypto, cojsonInternals } from "cojson";
+import { AgentSecret, WasmCrypto, cojsonInternals } from "cojson";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import {
   Account,
   AnonymousJazzAgent,
   AuthSecretStorage,
   Credentials,
+  ID,
   InMemoryKVStore,
   KvStoreContext,
   createAnonymousJazzContext,
@@ -287,8 +288,18 @@ describe("createContext methods", () => {
 
       expect(context.account.profile?.name).toBe("Custom User");
     });
+
     test("uses initial agent secret when provided", async () => {
       const initialSecret = Crypto.newRandomAgentSecret();
+
+      const storage = new AuthSecretStorage();
+
+      await storage.set({
+        accountID: "test" as ID<Account>,
+        secretSeed: new Uint8Array([1, 2, 3]),
+        accountSecret: "secret123" as AgentSecret,
+        provider: "passkey",
+      });
 
       const context = await createJazzContext({
         newAccountProps: {
@@ -301,6 +312,12 @@ describe("createContext methods", () => {
       });
 
       expect(context.node.account.agentSecret).toBe(initialSecret);
+      expect(await storage.get()).toEqual({
+        accountID: "test" as ID<Account>,
+        secretSeed: new Uint8Array([1, 2, 3]),
+        accountSecret: "secret123" as AgentSecret,
+        provider: "passkey",
+      });
     });
 
     test("handles custom account schema", async () => {

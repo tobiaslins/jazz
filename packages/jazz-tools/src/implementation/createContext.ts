@@ -242,12 +242,14 @@ export async function createJazzContext<Acc extends Account>(options: {
       },
     });
 
-    await authSecretStorage.set({
-      accountID: context.account.id,
-      secretSeed,
-      accountSecret: context.node.account.agentSecret,
-      provider: "anonymous",
-    });
+    if (!options.newAccountProps) {
+      await authSecretStorage.set({
+        accountID: context.account.id,
+        secretSeed,
+        accountSecret: context.node.account.agentSecret,
+        provider: "anonymous",
+      });
+    }
   }
 
   return {
