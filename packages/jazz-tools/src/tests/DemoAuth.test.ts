@@ -38,30 +38,30 @@ describe("DemoAuth", () => {
   describe("logIn", () => {
     test("should successfully log in existing user", async () => {
       const testUser = "testUser";
-      const storageData = {
-        accountID: "test-account-id" as ID<Account>,
-        accountSecret: "test-secret" as AgentSecret,
-        secretSeed: [1, 2, 3],
+
+      const credentials = {
+        accountID: "new-account-id" as ID<Account>,
+        accountSecret: "new-secret" as AgentSecret,
+        secretSeed: new Uint8Array([1, 2, 3]),
+        provider: "anonymous",
       };
 
-      // Store test user data
-      await kvStore.set(
-        "demo-auth-existing-users-" + testUser,
-        JSON.stringify(storageData),
-      );
+      await authSecretStorage.set(credentials);
+
+      await demoAuth.signUp(testUser);
 
       await demoAuth.logIn(testUser);
 
       expect(mockAuthenticate).toHaveBeenCalledWith({
-        accountID: storageData.accountID,
-        accountSecret: storageData.accountSecret,
+        accountID: credentials.accountID,
+        accountSecret: credentials.accountSecret,
       });
 
       const storedData = await authSecretStorage.get();
       expect(storedData).toEqual({
-        accountID: storageData.accountID,
-        accountSecret: storageData.accountSecret,
-        secretSeed: new Uint8Array(storageData.secretSeed),
+        accountID: credentials.accountID,
+        accountSecret: credentials.accountSecret,
+        secretSeed: credentials.secretSeed,
         provider: "demo",
       });
     });
@@ -94,20 +94,21 @@ describe("DemoAuth", () => {
         ...credentials,
         provider: "demo",
       });
-
-      const storedUserData = await kvStore.get(
-        "demo-auth-existing-users-" + testUser,
-      );
-      expect(JSON.parse(storedUserData!)).toEqual({
-        accountID: credentials.accountID,
-        accountSecret: credentials.accountSecret,
-        secretSeed: Array.from(credentials.secretSeed),
-      });
     });
 
     test("should throw error for existing username", async () => {
       const testUser = "existingUser";
-      await kvStore.set("demo-auth-existing-users", testUser);
+      await kvStore.set("demo-auth-storage-version", "3");
+      await kvStore.set(
+        "demo-auth-users",
+        JSON.stringify({
+          [testUser]: {
+            accountID: "existing-account-id" as ID<Account>,
+            accountSecret: "existing-secret" as AgentSecret,
+            secretSeed: [1, 2, 3],
+          },
+        }),
+      );
 
       await expect(demoAuth.signUp(testUser)).rejects.toThrow(
         "User already registered",
@@ -121,18 +122,148 @@ describe("DemoAuth", () => {
     });
   });
 
-  describe("getExistingUsers", () => {
-    test("should return list of existing users", async () => {
-      const existingUsers = "user1,user2,user3";
-      await kvStore.set("demo-auth-existing-users", existingUsers);
+  describe("DemoAuth Storage Migration", () => {
+    test("should migrate from version 1 to version 3", async () => {
+      // Set up version 1 data
+      const testUser = "test@example.com";
+      const storageData = {
+        accountID: "test-account-id" as ID<Account>,
+        accountSecret: "test-secret" as AgentSecret,
+        secretSeed: [1, 2, 3],
+      };
 
-      const users = await demoAuth.getExistingUsers();
-      expect(users).toEqual(["user1", "user2", "user3"]);
+      // Store data in old format
+      await kvStore.set("demo-auth-existing-users", testUser);
+      await kvStore.set(
+        `demo-auth-existing-users-${testUser}`,
+        JSON.stringify(storageData),
+      );
+
+      // Trigger migration by getting existing users
+      await demoAuth.getExistingUsers();
+
+      // Verify migration
+      const version = await kvStore.get("demo-auth-storage-version");
+      expect(version).toBe("3");
+
+      // Old key should be deleted
+      const oldData = await kvStore.get(`demo-auth-existing-users-${testUser}`);
+      expect(oldData).toBeNull();
+
+      // New encoded key should exist
+      const newData = await kvStore.get("demo-auth-users");
+      expect(JSON.parse(newData!)).toEqual({
+        [testUser]: storageData,
+      });
     });
 
-    test("should return empty array when no users exist", async () => {
-      const users = await demoAuth.getExistingUsers();
-      expect(users).toEqual([]);
+    test("should migrate from version 2 to version 3 (new storage format)", async () => {
+      // Set up version 2 data
+      const testUser = "test@example.com";
+      const encodedUsername = btoa(testUser)
+        .replace(/=/g, "-")
+        .replace(/\+/g, "_")
+        .replace(/\//g, ".");
+
+      const storageData = {
+        accountID: "test-account-id" as ID<Account>,
+        accountSecret: "test-secret" as AgentSecret,
+        secretSeed: [1, 2, 3],
+      };
+
+      // Store data in version 2 format
+      await kvStore.set("demo-auth-storage-version", "2");
+      await kvStore.set("demo-auth-existing-users", testUser);
+      await kvStore.set(
+        `demo-auth-existing-users-${encodedUsername}`,
+        JSON.stringify(storageData),
+      );
+
+      // Trigger migration by getting existing users
+      await demoAuth.getExistingUsers();
+
+      // Verify migration
+      const version = await kvStore.get("demo-auth-storage-version");
+      expect(version).toBe("3");
+
+      // Old keys should be deleted
+      const oldListData = await kvStore.get("demo-auth-existing-users");
+      expect(oldListData).toBeNull();
+
+      const oldUserData = await kvStore.get(
+        `demo-auth-existing-users-${encodedUsername}`,
+      );
+      expect(oldUserData).toBeNull();
+
+      // New storage format should be used
+      const newData = await kvStore.get("demo-auth-users");
+      expect(JSON.parse(newData!)).toEqual({
+        [testUser]: storageData,
+      });
+    });
+
+    test("should handle new users management after migration", async () => {
+      // Add a test user
+      const testUser = "newuser";
+      await authSecretStorage.set({
+        accountID: "test-id" as ID<Account>,
+        accountSecret: "test-secret" as AgentSecret,
+        secretSeed: new Uint8Array([1, 2, 3]),
+        provider: "anonymous",
+      });
+
+      // Sign up new user
+      await demoAuth.signUp(testUser);
+
+      // Verify user is stored in new format
+      const usersData = await kvStore.get("demo-auth-users");
+      const users = JSON.parse(usersData!);
+
+      expect(Object.keys(users)).toContain(testUser);
+      expect(users[testUser]).toEqual({
+        accountID: "test-id",
+        accountSecret: "test-secret",
+        secretSeed: [1, 2, 3],
+      });
+
+      // Verify we can get existing users
+      const existingUsers = await demoAuth.getExistingUsers();
+      expect(existingUsers).toEqual([testUser]);
+
+      // Verify we can log in with the stored user
+      await demoAuth.logIn(testUser);
+      const storedAuth = await authSecretStorage.get();
+      expect(storedAuth).toEqual({
+        accountID: "test-id",
+        accountSecret: "test-secret",
+        secretSeed: new Uint8Array([1, 2, 3]),
+        provider: "demo",
+      });
+    });
+
+    test("should handle multiple users in new storage format", async () => {
+      // Set up initial auth data
+      await authSecretStorage.set({
+        accountID: "test-id" as ID<Account>,
+        accountSecret: "test-secret" as AgentSecret,
+        secretSeed: new Uint8Array([1, 2, 3]),
+        provider: "anonymous",
+      });
+
+      // Add multiple users
+      const users = ["user1", "user2", "user3"];
+      for (const user of users) {
+        await demoAuth.signUp(user);
+      }
+
+      // Verify all users are stored
+      const existingUsers = await demoAuth.getExistingUsers();
+      expect(existingUsers.sort()).toEqual(users.sort());
+
+      // Verify we can't add duplicate users
+      await expect(demoAuth.signUp("user1")).rejects.toThrow(
+        "User already registered",
+      );
     });
   });
 });
