@@ -12,7 +12,7 @@ export type JazzContextManagerAuthProps = {
   newAccountProps?: { secret: AgentSecret; creationProps: { name: string } };
 };
 
-type Props = {
+export type JazzContextManagerBaseProps = {
   localOnly?: "always" | "anonymous" | "off";
   onLogOut?: () => void;
 };
@@ -35,7 +35,10 @@ type PlatformSpecificContext<Acc extends Account> =
   | PlatformSpecificAuthContext<Acc>
   | PlatformSpecificGuestContext;
 
-export class JazzContextManager<Acc extends Account, P extends Props> {
+export class JazzContextManager<
+  Acc extends Account,
+  P extends JazzContextManagerBaseProps,
+> {
   protected value: JazzContextType<Acc> | undefined;
   protected context: PlatformSpecificContext<Acc> | undefined;
   protected props: P | undefined;

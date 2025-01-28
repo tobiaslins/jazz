@@ -41,6 +41,6 @@ export type JazzContextType<Acc extends Account> =
   | JazzGuestContext;
 
 export type NewAccountProps = {
-  secret: AgentSecret;
-  creationProps: { name: string };
+  secret?: AgentSecret;
+  creationProps?: { name: string };
 };

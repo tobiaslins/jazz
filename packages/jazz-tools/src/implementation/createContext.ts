@@ -203,7 +203,7 @@ export async function createJazzContext<Acc extends Account>(options: {
 
   const credentials = options.credentials ?? (await authSecretStorage.get());
 
-  if (credentials) {
+  if (credentials && !options.newAccountProps) {
     context = await createJazzContextFromExistingCredentials({
       credentials: {
         accountID: credentials.accountID,

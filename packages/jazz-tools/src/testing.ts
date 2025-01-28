@@ -51,6 +51,24 @@ export class TestJSCrypto extends PureJSCrypto {
   }
 }
 
+export function getPeerConnectedToTestSyncServer() {
+  if (!syncServer.current) {
+    throw new Error("Sync server not initialized");
+  }
+
+  const [aPeer, bPeer] = cojsonInternals.connectedPeers(
+    Math.random().toString(),
+    Math.random().toString(),
+    {
+      peer1role: "server",
+      peer2role: "server",
+    },
+  );
+  syncServer.current.syncManager.addPeer(aPeer);
+
+  return bPeer;
+}
+
 export async function createJazzTestAccount<Acc extends Account>(options?: {
   isCurrentActiveAccount?: boolean;
   AccountSchema?: CoValueClass<Acc>;
@@ -60,16 +78,7 @@ export async function createJazzTestAccount<Acc extends Account>(options?: {
     Account) as unknown as TestAccountSchema<Acc>;
   const peers = [];
   if (syncServer.current) {
-    const [aPeer, bPeer] = cojsonInternals.connectedPeers(
-      Math.random().toString(),
-      Math.random().toString(),
-      {
-        peer1role: "server",
-        peer2role: "server",
-      },
-    );
-    syncServer.current.syncManager.addPeer(aPeer);
-    peers.push(bPeer);
+    peers.push(getPeerConnectedToTestSyncServer());
   }
 
   const { node } = await LocalNode.withNewlyCreatedAccount({
