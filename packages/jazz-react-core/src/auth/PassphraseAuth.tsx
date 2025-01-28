@@ -25,7 +25,6 @@ export function usePassphraseAuth({
     return new PassphraseAuth(
       context.node.crypto,
       context.authenticate,
-      context.register,
       authSecretStorage,
       wordlist,
     );

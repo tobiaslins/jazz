@@ -16,7 +16,7 @@ import { AuthSecretStorage } from "./AuthSecretStorage.js";
  * ```ts
  * import { PassphraseAuth } from "jazz-tools";
  *
- * const auth = new PassphraseAuth(crypto, jazzContext.authenticate, jazzContext.register, new AuthSecretStorage(), wordlist);
+ * const auth = new PassphraseAuth(crypto, jazzContext.authenticate, new AuthSecretStorage(), wordlist);
  * ```
  *
  * @category Auth Providers
@@ -25,7 +25,6 @@ export class PassphraseAuth {
   constructor(
     private crypto: CryptoProvider,
     private authenticate: AuthenticateAccountFunction,
-    private register: RegisterAccountFunction,
     private authSecretStorage: AuthSecretStorage,
     public wordlist: string[],
   ) {}
@@ -61,35 +60,23 @@ export class PassphraseAuth {
     });
   };
 
-  signUp = async (username: string, passphrase: string) => {
-    const { crypto, register } = this;
+  signUp = async () => {
+    const credentials = await this.authSecretStorage.get();
 
-    let secretSeed;
-
-    try {
-      secretSeed = bip39.mnemonicToEntropy(passphrase, this.wordlist);
-    } catch (e) {
-      throw new Error("Invalid passphrase");
+    if (!credentials || !credentials.secretSeed) {
+      throw new Error("No credentials found");
     }
 
-    const accountSecret = crypto.agentSecretFromSecretSeed(secretSeed);
-
-    const accountID = await register(accountSecret, { name: username });
+    const passphrase = entropyToMnemonic(credentials.secretSeed, this.wordlist);
 
     await this.authSecretStorage.set({
-      accountID,
-      secretSeed,
-      accountSecret,
+      accountID: credentials.accountID,
+      secretSeed: credentials.secretSeed,
+      accountSecret: credentials.accountSecret,
       provider: "passphrase",
     });
 
-    const currentAccount = await Account.getMe().ensureLoaded({
-      profile: {},
-    });
-
-    if (currentAccount) {
-      currentAccount.profile.name = username;
-    }
+    return passphrase;
   };
 
   generateRandomPassphrase = () => {

@@ -5,6 +5,7 @@ import { AgentSecret } from "cojson";
 import {
   Account,
   AuthSecretStorage,
+  ID,
   InMemoryKVStore,
   KvStoreContext,
 } from "jazz-tools";
@@ -20,7 +21,6 @@ KvStoreContext.getInstance().initialize(new InMemoryKVStore());
 describe("PassphraseAuth", () => {
   let crypto: TestJSCrypto;
   let mockAuthenticate: any;
-  let mockRegister: any;
   let authSecretStorage: AuthSecretStorage;
   let passphraseAuth: PassphraseAuth;
 
@@ -31,10 +31,6 @@ describe("PassphraseAuth", () => {
     // Set up crypto and mocks
     crypto = await TestJSCrypto.create();
     mockAuthenticate = vi.fn();
-    mockRegister = vi.fn().mockImplementation(async (secret) => {
-      const accountID = crypto.getAgentID(secret);
-      return accountID;
-    });
     authSecretStorage = new AuthSecretStorage();
 
     await createJazzTestAccount({
@@ -45,7 +41,6 @@ describe("PassphraseAuth", () => {
     passphraseAuth = new PassphraseAuth(
       crypto,
       mockAuthenticate,
-      mockRegister,
       authSecretStorage,
       testWordlist,
     );
@@ -81,50 +76,53 @@ describe("PassphraseAuth", () => {
 
   describe("signUp", () => {
     it("should successfully sign up new user", async () => {
-      const username = "testUser";
-      const passphrase = passphraseAuth.generateRandomPassphrase();
+      const storageData = {
+        accountID: "test-account-id" as ID<Account>,
+        accountSecret: "test-secret" as AgentSecret,
+        secretSeed: new Uint8Array([
+          173, 58, 235, 40, 67, 188, 236, 11, 107, 237, 97, 23, 182, 49, 188,
+          63, 237, 52, 27, 84, 142, 66, 244, 149, 243, 114, 203, 164, 115, 239,
+          175, 194,
+        ]),
+        provider: "anonymous",
+      };
 
-      await passphraseAuth.signUp(username, passphrase);
+      await authSecretStorage.set(storageData);
 
-      expect(mockRegister).toHaveBeenCalledWith(expect.any(String), {
-        name: username,
-      });
+      const passphrase = await passphraseAuth.signUp();
 
       const storedData = await authSecretStorage.get();
       expect(storedData).toEqual({
-        accountID: expect.any(String),
-        accountSecret: expect.any(String),
-        secretSeed: expect.any(Uint8Array),
+        accountID: storageData.accountID,
+        accountSecret: storageData.accountSecret,
+        secretSeed: storageData.secretSeed,
         provider: "passphrase",
       });
+      expect(passphrase).toMatchInlineSnapshot(
+        `"pudding struggle skate manual solution aisle quick promote bless ranch humor lemon spy asset fall sign virus question syrup nuclear elbow water sample garden"`,
+      );
     });
 
-    it("should throw error with invalid passphrase during signup", async () => {
-      await expect(
-        passphraseAuth.signUp("testUser", "invalid words here"),
-      ).rejects.toThrow("Invalid passphrase");
-    });
-
-    it("should update account name after successful signup", async () => {
-      const username = "Arale!";
-      const passphrase = passphraseAuth.generateRandomPassphrase();
-
-      const account = await createJazzTestAccount({
-        isCurrentActiveAccount: true,
-      });
-
-      await passphraseAuth.signUp(username, passphrase);
-
-      expect(account.profile?.name).toBe(username);
+    it("should throw error when no credentials found", async () => {
+      await expect(passphraseAuth.signUp()).rejects.toThrow(
+        "No credentials found",
+      );
     });
   });
 
   describe("getCurrentUserPassphrase", () => {
     it("should return current user passphrase when credentials exist", async () => {
+      const storageData = {
+        accountID: "test-account-id" as ID<Account>,
+        accountSecret: "test-secret" as AgentSecret,
+        secretSeed: crypto.newRandomSecretSeed(),
+        provider: "anonymous",
+      };
+
+      await authSecretStorage.set(storageData);
+
       // First sign up to create valid credentials
-      const username = "testUser";
-      const originalPassphrase = passphraseAuth.generateRandomPassphrase();
-      await passphraseAuth.signUp(username, originalPassphrase);
+      const originalPassphrase = await passphraseAuth.signUp();
 
       // Then get the current passphrase
       const retrievedPassphrase =

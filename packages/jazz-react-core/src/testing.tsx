@@ -36,7 +36,7 @@ export function JazzTestProvider<Acc extends Account>({
     storage.set({
       accountID,
       accountSecret,
-      secretSeed: new Uint8Array([1, 2, 3]),
+      secretSeed: account._raw.core.crypto.newRandomSecretSeed(),
       provider: isAuthenticated ? "demo" : "anonymous",
     });
     storage.isAuthenticated = Boolean(isAuthenticated);
