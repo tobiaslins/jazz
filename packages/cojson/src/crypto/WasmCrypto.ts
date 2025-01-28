@@ -86,6 +86,14 @@ export class WasmCrypto extends CryptoProvider<Uint8Array> {
     return this.blake3Instance.load(state).digest("binary");
   }
 
+  generateNonce(input: Uint8Array): Uint8Array {
+    return this.blake3HashOnce(input).slice(0, 24);
+  }
+
+  private generateJsonNonce(material: JsonValue): Uint8Array {
+    return this.generateNonce(textEncoder.encode(stableStringify(material)));
+  }
+
   newEd25519SigningKey(): Uint8Array {
     return new Ed25519SigningKey().to_bytes().copyAndDispose();
   }
@@ -145,9 +153,7 @@ export class WasmCrypto extends CryptoProvider<Uint8Array> {
     const keySecretBytes = base58.decode(
       keySecret.substring("keySecret_z".length),
     );
-    const nOnce = this.blake3HashOnce(
-      textEncoder.encode(stableStringify(nOnceMaterial)),
-    ).slice(0, 24);
+    const nOnce = this.generateJsonNonce(nOnceMaterial);
 
     const plaintext = textEncoder.encode(stableStringify(value));
     const ciphertext = xsalsa20(keySecretBytes, nOnce, plaintext);
@@ -162,9 +168,7 @@ export class WasmCrypto extends CryptoProvider<Uint8Array> {
     const keySecretBytes = base58.decode(
       keySecret.substring("keySecret_z".length),
     );
-    const nOnce = this.blake3HashOnce(
-      textEncoder.encode(stableStringify(nOnceMaterial)),
-    ).slice(0, 24);
+    const nOnce = this.generateJsonNonce(nOnceMaterial);
 
     const ciphertext = base64URLtoBytes(
       encrypted.substring("encrypted_U".length),
@@ -185,9 +189,7 @@ export class WasmCrypto extends CryptoProvider<Uint8Array> {
     to: SealerID;
     nOnceMaterial: { in: RawCoID; tx: TransactionID };
   }): Sealed<T> {
-    const nOnce = this.blake3HashOnce(
-      textEncoder.encode(stableStringify(nOnceMaterial)),
-    ).slice(0, 24);
+    const nOnce = this.generateJsonNonce(nOnceMaterial);
 
     const sealerPub = base58.decode(to.substring("sealer_z".length));
 
@@ -213,9 +215,7 @@ export class WasmCrypto extends CryptoProvider<Uint8Array> {
     from: SealerID,
     nOnceMaterial: { in: RawCoID; tx: TransactionID },
   ): T | undefined {
-    const nOnce = this.blake3HashOnce(
-      textEncoder.encode(stableStringify(nOnceMaterial)),
-    ).slice(0, 24);
+    const nOnce = this.generateJsonNonce(nOnceMaterial);
 
     const sealerPriv = base58.decode(sealer.substring("sealerSecret_z".length));
 
