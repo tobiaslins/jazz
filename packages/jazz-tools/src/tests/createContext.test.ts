@@ -1,4 +1,4 @@
-import { AgentSecret, WasmCrypto, cojsonInternals } from "cojson";
+import { AgentSecret, WasmCrypto } from "cojson";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import {
   Account,

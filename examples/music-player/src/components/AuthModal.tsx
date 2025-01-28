@@ -39,6 +39,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
       } else {
         await auth.logIn();
       }
+      onOpenChange(false);
     } catch (error) {
       setError(error instanceof Error ? error.message : "Unknown error");
     }

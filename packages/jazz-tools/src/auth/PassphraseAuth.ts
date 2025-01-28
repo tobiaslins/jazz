@@ -4,10 +4,7 @@ import { generateMnemonic } from "@scure/bip39";
 import { CryptoProvider, cojsonInternals } from "cojson";
 import { Account } from "../coValues/account.js";
 import type { ID } from "../internal.js";
-import type {
-  AuthenticateAccountFunction,
-  RegisterAccountFunction,
-} from "../types.js";
+import type { AuthenticateAccountFunction } from "../types.js";
 import { AuthSecretStorage } from "./AuthSecretStorage.js";
 
 /**
