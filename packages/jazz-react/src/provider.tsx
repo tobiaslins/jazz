@@ -59,7 +59,7 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
 
         return contextManager.subscribe(callback);
       },
-      [peer, guestMode].concat(storage as any),
+      [peer, guestMode, localOnly].concat(storage as any),
     ),
     () => contextManager.getCurrentValue(),
     () => contextManager.getCurrentValue(),
