@@ -1,56 +1,36 @@
-import { AgentSecret, LSMStorage, LocalNode, Peer, RawAccountID } from "cojson";
+import { LSMStorage, LocalNode, Peer, RawAccountID } from "cojson";
 import { IDBStorage } from "cojson-storage-indexeddb";
 import {
   Account,
   AgentID,
-  AnonymousJazzAgent,
   AuthCredentials,
+  AuthSecretStorage,
   CoValue,
   CoValueClass,
   CryptoProvider,
   ID,
   InviteSecret,
+  NewAccountProps,
   SessionID,
   WasmCrypto,
   cojsonInternals,
   createAnonymousJazzContext,
 } from "jazz-tools";
+import { createJazzContext } from "jazz-tools";
 import { OPFSFilesystem } from "./OPFSFilesystem.js";
 import { createWebSocketPeerWithReconnection } from "./createWebSocketPeerWithReconnection.js";
 import { StorageConfig, getStorageOptions } from "./storageOptions.js";
-export { AuthSecretStorage } from "./auth/AuthSecretStorage.js";
-export { BrowserDemoAuth } from "./auth/DemoAuth.js";
-export { BrowserPasskeyAuth } from "./auth/PasskeyAuth.js";
-export { BrowserPassphraseAuth } from "./auth/PassphraseAuth.js";
-import { createJazzContext } from "jazz-tools";
-import { AuthSecretStorage } from "./auth/AuthSecretStorage.js";
 import { setupInspector } from "./utils/export-account-inspector.js";
 
 setupInspector();
-
-/** @category Context Creation */
-export type BrowserContext<Acc extends Account> = {
-  me: Acc;
-  node: LocalNode;
-  toggleNetwork: (enabled: boolean) => void;
-  logOut: () => void;
-  done: () => void;
-};
-
-export type BrowserGuestContext = {
-  guest: AnonymousJazzAgent;
-  node: LocalNode;
-  toggleNetwork: (enabled: boolean) => void;
-  logOut: () => void;
-  done: () => void;
-};
 
 export type BaseBrowserContextOptions = {
   peer: `wss://${string}` | `ws://${string}`;
   reconnectionTimeout?: number;
   storage?: StorageConfig;
   crypto?: CryptoProvider;
-  localOnly?: boolean;
+  localOnly?: "always" | "anonymous" | "off";
+  authSecretStorage: AuthSecretStorage;
 };
 
 async function setupPeers(options: BaseBrowserContextOptions) {
@@ -101,7 +81,9 @@ async function setupPeers(options: BaseBrowserContextOptions) {
     node = value;
   }
 
-  toggleNetwork(!options.localOnly);
+  if (options.localOnly === "off" || !options.localOnly) {
+    toggleNetwork(true);
+  }
 
   return {
     toggleNetwork,
@@ -124,35 +106,27 @@ export async function createJazzBrowserGuestContext(
 
   setNode(context.agent.node);
 
+  options.authSecretStorage.emitUpdate(null);
+
   return {
     guest: context.agent,
     node: context.agent.node,
-    toggleNetwork,
     done: () => {
       // TODO: Sync all the covalues before closing the connection & context
       toggleNetwork(false);
       context.done();
     },
     logOut: () => {
-      // TODO: Sync all the covalues before closing the connection & context
-      toggleNetwork(false);
       context.logOut();
     },
   };
 }
 
-export type NewAccountProps = {
-  secret: AgentSecret;
-  creationProps: {
-    name: string;
-  };
-};
-
 export type BrowserContextOptions<Acc extends Account> = {
+  credentials?: AuthCredentials;
   AccountSchema?: CoValueClass<Acc> & {
     fromNode: (typeof Account)["fromNode"];
   };
-  credentials?: AuthCredentials;
   newAccountProps?: NewAccountProps;
   defaultProfileName?: string;
 } & BaseBrowserContextOptions;
@@ -163,34 +137,35 @@ export async function createJazzBrowserContext<Acc extends Account>(
   const { toggleNetwork, peersToLoadFrom, setNode, crypto } =
     await setupPeers(options);
 
-  AuthSecretStorage.migrate();
+  let unsubscribeAuthUpdate = () => {};
 
-  const credentials = options.credentials ?? AuthSecretStorage.get();
+  if (options.localOnly === "anonymous") {
+    const authSecretStorage = options.authSecretStorage;
+    const credentials = options.credentials ?? (await authSecretStorage.get());
+
+    authSecretStorage.emitUpdate(credentials);
+
+    function handleAuthUpdate(isAuthenticated: boolean) {
+      if (isAuthenticated) {
+        toggleNetwork(true);
+      } else {
+        toggleNetwork(false);
+      }
+    }
+
+    unsubscribeAuthUpdate = authSecretStorage.onUpdate(handleAuthUpdate);
+    handleAuthUpdate(authSecretStorage.isAuthenticated);
+  }
 
   const context = await createJazzContext({
-    credentials: credentials
-      ? {
-          accountID: credentials.accountID,
-          secret: credentials.accountSecret,
-        }
-      : undefined,
+    credentials: options.credentials,
     newAccountProps: options.newAccountProps,
     peersToLoadFrom,
     crypto,
     defaultProfileName: options.defaultProfileName,
     AccountSchema: options.AccountSchema,
     sessionProvider: provideBrowserLockSession,
-    onAnonymousAccountCreated: (account, secretSeed, secret) => {
-      AuthSecretStorage.set({
-        accountID: account.id,
-        secretSeed,
-        accountSecret: secret,
-        provider: "anonymous",
-      });
-    },
-    onLogOut: () => {
-      AuthSecretStorage.clear();
-    },
+    authSecretStorage: options.authSecretStorage,
   });
 
   setNode(context.node);
@@ -198,15 +173,15 @@ export async function createJazzBrowserContext<Acc extends Account>(
   return {
     me: context.account,
     node: context.node,
-    toggleNetwork,
+    authSecretStorage: context.authSecretStorage,
     done: () => {
       // TODO: Sync all the covalues before closing the connection & context
       toggleNetwork(false);
+      unsubscribeAuthUpdate();
       context.done();
     },
     logOut: () => {
-      // TODO: Sync all the covalues before closing the connection & context
-      toggleNetwork(false);
+      unsubscribeAuthUpdate();
       context.logOut();
     },
   };

@@ -11,7 +11,6 @@ import {
   ref,
   watch,
 } from "vue";
-import { useIsAuthenticated } from "./auth/useIsAuthenticated.js";
 
 export const logoutHandler = ref<() => void>();
 
@@ -23,7 +22,7 @@ export type RegisteredAccount = Register extends { Account: infer Acc }
   : Account;
 
 export const JazzContextSymbol = Symbol("JazzContext");
-
+export const JazzAuthContextSymbol = Symbol("JazzAuthContext");
 export const JazzProvider = defineComponent({
   name: "JazzProvider",
   props: {
@@ -57,14 +56,7 @@ export const JazzProvider = defineComponent({
     const ctx = ref<JazzContextType<RegisteredAccount>>();
 
     provide(JazzContextSymbol, ctx);
-
-    const isAuthenticated = useIsAuthenticated();
-
-    const localOnly = computed(() =>
-      props.localOnly === "anonymous"
-        ? isAuthenticated.value === false
-        : props.localOnly === "always",
-    );
+    provide(JazzAuthContextSymbol, contextManager.getAuthSecretStorage());
 
     watch(
       () => ({
@@ -79,7 +71,7 @@ export const JazzProvider = defineComponent({
             storage: props.storage,
             guestMode: props.guestMode,
             AccountSchema: props.AccountSchema,
-            localOnly: localOnly.value,
+            localOnly: props.localOnly,
             defaultProfileName: props.defaultProfileName,
           })
           .catch((error) => {
@@ -88,10 +80,6 @@ export const JazzProvider = defineComponent({
       },
       { immediate: true },
     );
-
-    watch(localOnly, (newLocalOnly) => {
-      contextManager.toggleNetwork(!newLocalOnly);
-    });
 
     onMounted(() => {
       const cleanup = contextManager.subscribe(() => {

@@ -1,15 +1,18 @@
 // @vitest-environment happy-dom
 
 import { AgentSecret } from "cojson";
-import { Account } from "jazz-tools";
+import { Account, InMemoryKVStore, KvStoreContext } from "jazz-tools";
 import { ID } from "jazz-tools";
+import { AuthSecretStorage } from "jazz-tools";
 import { createJazzTestAccount } from "jazz-tools/testing";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AuthSecretStorage } from "../auth/AuthSecretStorage";
 import { BrowserPasskeyAuth } from "../auth/PasskeyAuth";
 
+KvStoreContext.getInstance().initialize(new InMemoryKVStore());
+const authSecretStorage = new AuthSecretStorage();
+
 beforeEach(async () => {
-  AuthSecretStorage.clear();
+  await authSecretStorage.clear();
 
   await createJazzTestAccount({
     isCurrentActiveAccount: true,
@@ -40,6 +43,7 @@ describe("BrowserPasskeyAuth", () => {
       const auth = new BrowserPasskeyAuth(
         mockCrypto,
         mockAuthenticate,
+        authSecretStorage,
         "Test App",
       );
       expect(auth.appName).toBe("Test App");
@@ -50,6 +54,7 @@ describe("BrowserPasskeyAuth", () => {
       const auth = new BrowserPasskeyAuth(
         mockCrypto,
         mockAuthenticate,
+        authSecretStorage,
         "Test App",
         "custom.host",
       );
@@ -62,6 +67,7 @@ describe("BrowserPasskeyAuth", () => {
       const auth = new BrowserPasskeyAuth(
         mockCrypto,
         mockAuthenticate,
+        authSecretStorage,
         "Test App",
       );
 
@@ -78,7 +84,7 @@ describe("BrowserPasskeyAuth", () => {
         accountSecret: "mock-secret",
       });
 
-      expect(AuthSecretStorage.get()).toEqual({
+      expect(await authSecretStorage.get()).toEqual({
         accountID: expect.any(String),
         secretSeed: expect.any(Uint8Array),
         provider: "passkey",
@@ -90,6 +96,7 @@ describe("BrowserPasskeyAuth", () => {
       const auth = new BrowserPasskeyAuth(
         mockCrypto,
         mockAuthenticate,
+        authSecretStorage,
         "Test App",
       );
 
@@ -99,7 +106,7 @@ describe("BrowserPasskeyAuth", () => {
       });
 
       // Set up existing credentials in storage
-      AuthSecretStorage.set({
+      await authSecretStorage.set({
         accountID: "test123" as ID<Account>,
         secretSeed: new Uint8Array([1, 2, 3]),
         accountSecret: "mock-secret" as AgentSecret,
@@ -120,7 +127,7 @@ describe("BrowserPasskeyAuth", () => {
         }),
       });
 
-      expect(AuthSecretStorage.get()).toEqual({
+      expect(await authSecretStorage.get()).toEqual({
         accountID: "test123",
         secretSeed: new Uint8Array([1, 2, 3]),
         accountSecret: "mock-secret",
@@ -132,6 +139,7 @@ describe("BrowserPasskeyAuth", () => {
       const auth = new BrowserPasskeyAuth(
         mockCrypto,
         mockAuthenticate,
+        authSecretStorage,
         "Test App",
       );
 
@@ -146,6 +154,7 @@ describe("BrowserPasskeyAuth", () => {
       const auth = new BrowserPasskeyAuth(
         mockCrypto,
         mockAuthenticate,
+        authSecretStorage,
         "Test App",
       );
 
@@ -154,7 +163,7 @@ describe("BrowserPasskeyAuth", () => {
       );
 
       // Set up existing credentials in storage
-      AuthSecretStorage.set({
+      await authSecretStorage.set({
         accountID: "test123" as ID<Account>,
         secretSeed: new Uint8Array([1, 2, 3]),
         accountSecret: "mock-secret" as AgentSecret,

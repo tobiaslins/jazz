@@ -1,46 +1,5 @@
-import { AgentSecret } from "cojson";
-import { BrowserDemoAuth } from "jazz-browser";
-import { useJazzContext } from "jazz-react-core";
-import { Account, ID } from "jazz-tools";
-import { useMemo, useState } from "react";
-import { useIsAuthenticated } from "./useIsAuthenticated.js";
-
-/**
- * `useDemoAuth` is a hook that provides a `JazzAuth` object for demo authentication.
- *
- *
- * ```ts
- * const [auth, state] = useDemoAuth();
- * ```
- *
- * @category Auth Providers
- */
-export function useDemoAuth({
-  seedAccounts,
-}: {
-  seedAccounts?: {
-    [name: string]: { accountID: ID<Account>; accountSecret: AgentSecret };
-  };
-} = {}) {
-  const context = useJazzContext();
-
-  const authMethod = useMemo(() => {
-    return new BrowserDemoAuth(context.authenticate, seedAccounts);
-  }, [seedAccounts]);
-
-  const isAuthenticated = useIsAuthenticated();
-  const existingUsers = useMemo(
-    () => authMethod.getExistingUsers(),
-    [authMethod],
-  );
-
-  return {
-    state: isAuthenticated ? "signedIn" : "anonymous",
-    logIn: authMethod.logIn,
-    signUp: authMethod.signUp,
-    existingUsers,
-  } as const;
-}
+import { useDemoAuth } from "jazz-react-core";
+import { useState } from "react";
 
 export const DemoAuthBasicUI = (
   props: ReturnType<typeof useDemoAuth> & { appName: string },

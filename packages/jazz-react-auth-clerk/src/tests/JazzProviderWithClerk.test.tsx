@@ -1,9 +1,8 @@
 // @vitest-environment happy-dom
 
-import { render, screen, waitFor } from "@testing-library/react";
-import { AuthSecretStorage } from "jazz-browser";
+import { render, waitFor } from "@testing-library/react";
 import type { MinimalClerkClient } from "jazz-browser-auth-clerk";
-import { Account, ID } from "jazz-tools";
+import { AuthSecretStorage, InMemoryKVStore, KvStoreContext } from "jazz-tools";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { JazzProviderWithClerk } from "../index";
 
@@ -28,15 +27,12 @@ vi.mock("jazz-react", async (importOriginal) => {
   };
 });
 
+const authSecretStorage = new AuthSecretStorage();
+KvStoreContext.getInstance().initialize(new InMemoryKVStore());
+
 describe("JazzProviderWithClerk", () => {
   beforeEach(async () => {
-    AuthSecretStorage.clear();
-    AuthSecretStorage.set({
-      accountID: "test123" as any as ID<Account>,
-      secretSeed: new Uint8Array([1, 2, 3]),
-      accountSecret: "secret123" as any,
-      provider: "anonymous",
-    });
+    await authSecretStorage.clear();
   });
 
   const setup = (
@@ -71,9 +67,9 @@ describe("JazzProviderWithClerk", () => {
     await waitFor(() => {
       expect(mockClerk.user?.update).toHaveBeenCalledWith({
         unsafeMetadata: {
-          jazzAccountID: "test123",
-          jazzAccountSecret: "secret123",
-          jazzAccountSeed: [1, 2, 3],
+          jazzAccountID: expect.any(String),
+          jazzAccountSecret: expect.any(String),
+          jazzAccountSeed: expect.any(Array),
         },
       });
     });

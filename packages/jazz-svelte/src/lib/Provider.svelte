@@ -12,11 +12,10 @@
 
 <script lang="ts" generics="Acc extends Account">
   import { JazzBrowserContextManager } from 'jazz-browser';
-  import type { AccountClass } from 'jazz-tools';
+  import type { AccountClass, AuthSecretStorage } from 'jazz-tools';
   import { Account } from 'jazz-tools';
   import { type Snippet, setContext, untrack } from 'svelte';
-  import { JAZZ_CTX, type JazzContext } from './jazz.svelte.js';
-  import { useIsAuthenticated } from './auth/useIsAuthenticated.svelte.js';
+  import { JAZZ_AUTH_CTX, JAZZ_CTX, type JazzContext } from './jazz.svelte.js';
 
   let props: Props<Acc> = $props();
 
@@ -24,16 +23,13 @@
 
   const ctx = $state<JazzContext<Acc>>({ current: undefined });
   setContext<JazzContext<Acc>>(JAZZ_CTX, ctx);
-
-  const isAuthenticated = useIsAuthenticated();
-  const localOnly = $derived(
-    props.localOnly === 'anonymous' ? isAuthenticated.value === false : props.localOnly === 'always'
-  );
+  setContext<AuthSecretStorage>(JAZZ_AUTH_CTX, contextManager.getAuthSecretStorage());
 
   $effect(() => {
     props.peer;
     props.storage;
     props.guestMode;
+    props.localOnly;
     return untrack(() => {
       if (!props.peer) return;
 
@@ -43,17 +39,13 @@
           storage: props.storage,
           guestMode: props.guestMode,
           AccountSchema: props.AccountSchema,
-          localOnly: localOnly,
+          localOnly: props.localOnly,
           defaultProfileName: props.defaultProfileName
         })
         .catch((error) => {
           console.error('Error creating Jazz browser context:', error);
         });
     });
-  });
-
-  $effect(() => {
-    contextManager.toggleNetwork(!localOnly);
   });
 
   $effect(() => {

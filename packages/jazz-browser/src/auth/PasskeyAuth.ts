@@ -1,6 +1,10 @@
 import { CryptoProvider, RawAccountID, cojsonInternals } from "cojson";
-import { Account, AuthenticateAccountFunction, ID } from "jazz-tools";
-import { AuthSecretStorage } from "./AuthSecretStorage.js";
+import {
+  Account,
+  AuthSecretStorage,
+  AuthenticateAccountFunction,
+  ID,
+} from "jazz-tools";
 
 /**
  * `BrowserPasskeyAuth` provides a `JazzAuth` object for passkey authentication.
@@ -17,6 +21,7 @@ export class BrowserPasskeyAuth {
   constructor(
     private crypto: CryptoProvider,
     private authenticate: AuthenticateAccountFunction,
+    private authSecretStorage: AuthSecretStorage,
     public appName: string,
     public appHostname: string = window.location.hostname,
   ) {}
@@ -54,7 +59,7 @@ export class BrowserPasskeyAuth {
       accountSecret: secret,
     });
 
-    AuthSecretStorage.set({
+    await this.authSecretStorage.set({
       accountID,
       secretSeed: accountSecretSeed,
       accountSecret: secret,
@@ -63,7 +68,7 @@ export class BrowserPasskeyAuth {
   };
 
   signUp = async (username: string) => {
-    const credentials = AuthSecretStorage.get();
+    const credentials = await this.authSecretStorage.get();
 
     if (!credentials?.secretSeed) {
       throw new Error(
@@ -85,7 +90,7 @@ export class BrowserPasskeyAuth {
       currentAccount.profile.name = username;
     }
 
-    AuthSecretStorage.set({
+    await this.authSecretStorage.set({
       accountID: credentials.accountID,
       secretSeed: credentials.secretSeed,
       accountSecret: credentials.accountSecret,

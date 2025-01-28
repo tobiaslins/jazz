@@ -1,16 +1,17 @@
 import {
-  type BrowserContext,
-  type BrowserGuestContext,
   consumeInviteLinkFromWindowLocation
 } from 'jazz-browser';
 import type {
   AnonymousJazzAgent,
+  AuthSecretStorage,
   CoValue,
   CoValueClass,
   DeeplyLoaded,
   DepthsIn,
   ID,
-  JazzContextType
+  JazzAuthContext,
+  JazzContextType,
+  JazzGuestContext
 } from 'jazz-tools';
 import { Account, subscribeToCoValue } from 'jazz-tools';
 import { getContext, untrack } from 'svelte';
@@ -22,6 +23,7 @@ export { Provider as JazzProvider };
  * The key for the Jazz context.
  */
 export const JAZZ_CTX = {};
+export const JAZZ_AUTH_CTX = {};
 
 /**
  * The Jazz context.
@@ -50,8 +52,18 @@ export function getJazzContext<Acc extends Account>() {
   };
 }
 
+export function getAuthSecretStorage() {
+  const context = getContext<AuthSecretStorage>(JAZZ_AUTH_CTX);
+
+  if (!context) {
+    throw new Error('useJazzContext must be used within a JazzProvider');
+  }
+
+  return context;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface Register {}
+export interface Register { }
 
 export type RegisteredAccount = Register extends { Account: infer Acc }
   ? Acc
@@ -83,7 +95,7 @@ export function useAccount<D extends DepthsIn<RegisteredAccount>>(
   if (depth === undefined) {
     return {
       get me() {
-        return (ctx.current as BrowserContext<RegisteredAccount>).me;
+        return (ctx.current as JazzAuthContext<RegisteredAccount>).me;
       },
       logOut() {
         return ctx.current?.logOut();
@@ -94,7 +106,7 @@ export function useAccount<D extends DepthsIn<RegisteredAccount>>(
   // If depth is specified, use useCoState to get the deeply loaded version
   const me = useCoState<RegisteredAccount, D>(
     ctx.current.me.constructor as CoValueClass<RegisteredAccount>,
-    (ctx.current as BrowserContext<RegisteredAccount>).me.id,
+    (ctx.current as JazzAuthContext<RegisteredAccount>).me.id,
     depth
   );
 
@@ -139,7 +151,7 @@ export function useAccountOrGuest<D extends DepthsIn<RegisteredAccount>>(
     return {
       get me() {
         return depth === undefined
-          ? me.current || (ctx.current as BrowserContext<RegisteredAccount>)?.me
+          ? me.current || (ctx.current as JazzAuthContext<RegisteredAccount>)?.me
           : me.current;
       }
     };
@@ -148,7 +160,7 @@ export function useAccountOrGuest<D extends DepthsIn<RegisteredAccount>>(
   else {
     return {
       get me() {
-        return (ctx.current as BrowserGuestContext)?.guest;
+        return (ctx.current as JazzGuestContext)?.guest;
       }
     };
   }
@@ -240,7 +252,7 @@ export function useAcceptInvite<V extends CoValue>({
       if (!ctx.current) return;
       // Consume the invite link from the window location.
       const result = consumeInviteLinkFromWindowLocation({
-        as: (ctx.current as BrowserContext<RegisteredAccount>).me,
+        as: (ctx.current as JazzAuthContext<RegisteredAccount>).me,
         invitedObjectSchema,
         forValueHint
       });

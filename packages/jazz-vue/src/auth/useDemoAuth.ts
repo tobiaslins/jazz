@@ -1,27 +1,23 @@
-import { AgentSecret } from "cojson";
-import { BrowserDemoAuth } from "jazz-browser";
-import { Account, ID } from "jazz-tools";
-import { computed, watch } from "vue";
-import { useJazzContext } from "../composables.js";
+import { DemoAuth } from "jazz-tools";
+import { computed, ref, watch } from "vue";
+import { useAuthSecretStorage, useJazzContext } from "../composables.js";
 import { useIsAuthenticated } from "./useIsAuthenticated.js";
 
-export function useDemoAuth(
-  options: {
-    seedAccounts?: {
-      [name: string]: { accountID: ID<Account>; accountSecret: AgentSecret };
-    };
-  } = {},
-) {
+export function useDemoAuth() {
   const context = useJazzContext();
+  const authSecretStorage = useAuthSecretStorage();
 
   const authMethod = computed(
-    () => new BrowserDemoAuth(context.value.authenticate, options.seedAccounts),
+    () => new DemoAuth(context.value.authenticate, authSecretStorage),
   );
 
+  const existingUsers = ref<string[]>([]);
   const isAuthenticated = useIsAuthenticated();
 
-  watch(isAuthenticated, () => {
-    console.log("isAuthenticated", isAuthenticated.value);
+  watch(authMethod, () => {
+    authMethod.value.getExistingUsers().then((users) => {
+      existingUsers.value = users;
+    });
   });
 
   return computed(() => ({
@@ -32,6 +28,6 @@ export function useDemoAuth(
     signUp(username: string) {
       authMethod.value.signUp(username);
     },
-    existingUsers: authMethod.value.getExistingUsers(),
+    existingUsers: existingUsers.value,
   }));
 }

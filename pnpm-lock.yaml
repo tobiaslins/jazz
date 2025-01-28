@@ -1585,9 +1585,6 @@ importers:
 
   packages/jazz-browser:
     dependencies:
-      '@scure/bip39':
-        specifier: ^1.3.0
-        version: 1.5.0
       cojson:
         specifier: workspace:*
         version: link:../cojson
@@ -1785,6 +1782,9 @@ importers:
         specifier: workspace:*
         version: link:../jazz-tools
     devDependencies:
+      '@scure/bip39':
+        specifier: ^1.3.0
+        version: 1.5.0
       '@testing-library/dom':
         specifier: ^10.4.0
         version: 10.4.0
@@ -2009,6 +2009,9 @@ importers:
 
   packages/jazz-tools:
     dependencies:
+      '@scure/bip39':
+        specifier: ^1.3.0
+        version: 1.5.0
       cojson:
         specifier: workspace:*
         version: link:../cojson

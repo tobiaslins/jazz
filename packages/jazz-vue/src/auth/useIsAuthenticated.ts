@@ -1,15 +1,16 @@
-import { AuthSecretStorage } from "jazz-browser";
 import { onMounted, onUnmounted, ref } from "vue";
+import { useAuthSecretStorage } from "../composables.js";
 
 export function useIsAuthenticated() {
-  const isAuthenticated = ref(AuthSecretStorage.isAuthenticated());
+  const authSecretStorage = useAuthSecretStorage();
+  const isAuthenticated = ref(authSecretStorage.isAuthenticated);
 
   const handleUpdate = () => {
-    isAuthenticated.value = AuthSecretStorage.isAuthenticated();
+    isAuthenticated.value = authSecretStorage.isAuthenticated;
   };
 
   onMounted(() => {
-    const cleanup = AuthSecretStorage.onUpdate(handleUpdate);
+    const cleanup = authSecretStorage.onUpdate(handleUpdate);
     onUnmounted(cleanup);
   });
 

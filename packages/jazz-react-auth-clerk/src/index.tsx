@@ -2,14 +2,20 @@ import {
   BrowserClerkAuth,
   type MinimalClerkClient,
 } from "jazz-browser-auth-clerk";
-import { JazzProvider, JazzProviderProps, useJazzContext } from "jazz-react";
+import {
+  JazzProvider,
+  JazzProviderProps,
+  useAuthSecretStorage,
+  useJazzContext,
+} from "jazz-react";
 import { useEffect, useMemo } from "react";
 
 function useJazzClerkAuth(clerk: MinimalClerkClient) {
   const context = useJazzContext();
+  const authSecretStorage = useAuthSecretStorage();
 
   const authMethod = useMemo(() => {
-    return new BrowserClerkAuth(context.authenticate);
+    return new BrowserClerkAuth(context.authenticate, authSecretStorage);
   }, []);
 
   useEffect(() => {

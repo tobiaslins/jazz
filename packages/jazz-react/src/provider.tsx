@@ -2,11 +2,9 @@ import {
   JazzBrowserContextManager,
   JazzContextManagerProps,
 } from "jazz-browser";
-import React, { useEffect, useRef } from "react";
-
-import { JazzContext } from "jazz-react-core";
+import { JazzAuthContext, JazzContext } from "jazz-react-core";
 import { Account, JazzContextType } from "jazz-tools";
-import { useIsAuthenticated } from "./auth/useIsAuthenticated.js";
+import React, { useEffect, useRef } from "react";
 
 export interface Register {}
 
@@ -16,8 +14,7 @@ export type RegisteredAccount = Register extends { Account: infer Acc }
 
 export type JazzProviderProps<Acc extends Account = RegisteredAccount> = {
   children: React.ReactNode;
-  localOnly?: "always" | "anonymous" | "off";
-} & Omit<JazzContextManagerProps<Acc>, "localOnly">;
+} & JazzContextManagerProps<Acc>;
 
 /** @category Context & Hooks */
 export function JazzProvider<Acc extends Account = RegisteredAccount>({
@@ -26,19 +23,13 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
   peer,
   storage,
   AccountSchema,
-  localOnly: localOnlyProp,
+  localOnly,
   defaultProfileName,
   onLogOut,
 }: JazzProviderProps<Acc>) {
   const [contextManager] = React.useState(
     () => new JazzBrowserContextManager<Acc>(),
   );
-
-  const isAuthenticated = useIsAuthenticated();
-  const localOnly =
-    localOnlyProp === "anonymous"
-      ? isAuthenticated === false
-      : localOnlyProp === "always";
 
   const onLogOutRef = React.useRef(onLogOut);
   onLogOutRef.current = onLogOut;
@@ -67,7 +58,7 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
 
         return contextManager.subscribe(callback);
       },
-      [peer, guestMode].concat(storage as any),
+      [peer, guestMode, localOnly].concat(storage as any),
     ),
     () => contextManager.getCurrentValue(),
     () => contextManager.getCurrentValue(),
@@ -83,13 +74,11 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
     };
   }, []);
 
-  useEffect(() => {
-    contextManager.toggleNetwork(!localOnly);
-  }, [value, localOnly]);
-
   return (
     <JazzContext.Provider value={value}>
-      {value && children}
+      <JazzAuthContext.Provider value={contextManager.getAuthSecretStorage()}>
+        {value && children}
+      </JazzAuthContext.Provider>
     </JazzContext.Provider>
   );
 }

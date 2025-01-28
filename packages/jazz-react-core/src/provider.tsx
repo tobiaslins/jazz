@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Account, JazzContextType } from "jazz-tools";
+import { Account, AuthSecretStorage, JazzContextType } from "jazz-tools";
 
 export interface Register {}
 
@@ -10,4 +10,8 @@ export type RegisteredAccount = Register extends { Account: infer Acc }
 
 export const JazzContext = React.createContext<
   JazzContextType<Account> | undefined
+>(undefined);
+
+export const JazzAuthContext = React.createContext<
+  AuthSecretStorage | undefined
 >(undefined);

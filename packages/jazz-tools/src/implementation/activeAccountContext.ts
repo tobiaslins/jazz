@@ -10,6 +10,7 @@ class ActiveAccountContext {
   }
 
   setGuestMode() {
+    this.activeAccount = null;
     this.guestMode = true;
   }
 

@@ -1,56 +1,31 @@
-import { BrowserPassphraseAuth } from "jazz-browser";
-import { useJazzContext } from "jazz-react-core";
-import { useMemo, useState } from "react";
-import { useIsAuthenticated } from "./useIsAuthenticated.js";
-
-/**
- * `usePassphraseAuth` hook provides a `JazzAuth` object for passphrase authentication.
- *
- * @example
- * ```ts
- * const [auth, state] = usePassphraseAuth({ appName, appHostname, wordlist });
- * ```
- *
- * @category Auth Providers
- */
-export function usePassphraseAuth({
-  wordlist,
-}: {
-  wordlist: string[];
-}) {
-  const context = useJazzContext();
-
-  const authMethod = useMemo(() => {
-    return new BrowserPassphraseAuth(
-      context.node.crypto,
-      context.authenticate,
-      context.register,
-      wordlist,
-    );
-  }, [wordlist]);
-
-  const isAuthenticated = useIsAuthenticated();
-  return {
-    state: isAuthenticated ? "signedIn" : "anonymous",
-    logIn: authMethod.logIn,
-    signUp: authMethod.signUp,
-    generateRandomPassphrase: authMethod.generateRandomPassphrase,
-    getCurrentUserPassphrase: authMethod.getCurrentUserPassphrase,
-  } as const;
-}
+import { usePassphraseAuth } from "jazz-react-core";
+import { useState } from "react";
 
 export const PassphraseAuthBasicUI = (
   props: ReturnType<typeof usePassphraseAuth>,
 ) => {
-  const { logIn, signUp, generateRandomPassphrase } = props;
+  const { logIn, signUp } = props;
 
-  const [username, setUsername] = useState<string>("");
-  const [passphrase, setPassphrase] = useState<string>(
-    generateRandomPassphrase,
-  );
+  const [passphrase, setPassphrase] = useState<string>();
   const [loginPassphrase, setLoginPassphrase] = useState<string>("");
 
   if (props.state === "signedIn") {
+    if (passphrase) {
+      return (
+        <textarea
+          placeholder="Passphrase"
+          value={passphrase}
+          disabled
+          style={{
+            border: "2px solid #000",
+            padding: "11px 8px",
+            borderRadius: "6px",
+            height: "7rem",
+          }}
+        />
+      );
+    }
+
     return null;
   }
 
@@ -72,71 +47,20 @@ export const PassphraseAuthBasicUI = (
           gap: "2rem",
         }}
       >
-        <form
-          style={{
-            width: "30rem",
-            display: "flex",
-            flexDirection: "column",
-            gap: "0.5rem",
-          }}
-          onSubmit={(e) => {
+        <button
+          type="button"
+          onClick={async (e) => {
             e.preventDefault();
-            signUp(username, passphrase);
-            setPassphrase("");
-            setUsername("");
+            setPassphrase(await signUp());
+          }}
+          style={{
+            padding: "11px 8px",
+            borderRadius: "6px",
+            background: "#eee",
           }}
         >
-          <div style={{ display: "flex", gap: "0.5rem" }}>
-            <textarea
-              placeholder="Passphrase"
-              value={passphrase}
-              onChange={(e) => setPassphrase(e.target.value)}
-              style={{
-                border: "2px solid #000",
-                padding: "11px 8px",
-                borderRadius: "6px",
-                height: "7rem",
-                flex: 1,
-              }}
-            />
-            <button
-              type="button"
-              onClick={(e) => {
-                setPassphrase(generateRandomPassphrase());
-                e.preventDefault();
-              }}
-              style={{
-                padding: "11px 8px",
-                borderRadius: "6px",
-                background: "#eee",
-              }}
-            >
-              Random
-            </button>
-          </div>
-          <input
-            placeholder="Display name"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            style={{
-              border: "2px solid #000",
-              padding: "11px 8px",
-              borderRadius: "6px",
-            }}
-          />
-          <input
-            type="submit"
-            value="Sign up"
-            style={{
-              background: "#000",
-              color: "#fff",
-              padding: "13px 5px",
-              border: "none",
-              borderRadius: "6px",
-              cursor: "pointer",
-            }}
-          />
-        </form>
+          Sign up
+        </button>
         <div style={{ textAlign: "center" }}>&mdash; or &mdash;</div>
         <form
           style={{

@@ -1,11 +1,8 @@
-import {
-  BrowserContext,
-  BrowserGuestContext,
-  consumeInviteLinkFromWindowLocation,
-} from "jazz-browser";
+import { consumeInviteLinkFromWindowLocation } from "jazz-browser";
 import {
   Account,
   AnonymousJazzAgent,
+  AuthSecretStorage,
   CoValue,
   CoValueClass,
   DeeplyLoaded,
@@ -13,6 +10,7 @@ import {
   ID,
   JazzAuthContext,
   JazzContextType,
+  JazzGuestContext,
   subscribeToCoValue,
 } from "jazz-tools";
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -31,7 +29,11 @@ import {
   unref,
   watch,
 } from "vue";
-import { JazzContextSymbol, RegisteredAccount } from "./provider.js";
+import {
+  JazzAuthContextSymbol,
+  JazzContextSymbol,
+  RegisteredAccount,
+} from "./provider.js";
 
 export const logoutHandler = ref<() => void>();
 
@@ -40,6 +42,14 @@ export function useJazzContext() {
     inject<Ref<JazzContextType<RegisteredAccount>>>(JazzContextSymbol);
   if (!context?.value) {
     throw new Error("useJazzContext must be used within a JazzProvider");
+  }
+  return context;
+}
+
+export function useAuthSecretStorage() {
+  const context = inject<AuthSecretStorage>(JazzAuthContextSymbol);
+  if (!context) {
+    throw new Error("useAuthSecretStorage must be used within a JazzProvider");
   }
   return context;
 }
@@ -135,7 +145,7 @@ export function createUseAccountComposables<Acc extends Account>() {
       };
     } else {
       return {
-        me: computed(() => toRaw((context.value as BrowserGuestContext).guest)),
+        me: computed(() => toRaw((context.value as JazzGuestContext).guest)),
       };
     }
   }
@@ -223,7 +233,7 @@ export function useAcceptInvite<V extends CoValue>({
 
   const runInviteAcceptance = () => {
     const result = consumeInviteLinkFromWindowLocation({
-      as: toRaw((context.value as BrowserContext<RegisteredAccount>).me),
+      as: toRaw((context.value as JazzAuthContext<RegisteredAccount>).me),
       invitedObjectSchema,
       forValueHint,
     });

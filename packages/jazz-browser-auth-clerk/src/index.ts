@@ -1,5 +1,5 @@
 import { AgentSecret } from "cojson";
-import { AuthSecretStorage } from "jazz-browser";
+import { AuthSecretStorage } from "jazz-tools";
 import {
   Account,
   AuthCredentials,
@@ -18,12 +18,15 @@ type ClerkCredentials = {
 export type { MinimalClerkClient };
 
 export class BrowserClerkAuth {
-  constructor(private authenticate: AuthenticateAccountFunction) {}
+  constructor(
+    private authenticate: AuthenticateAccountFunction,
+    private authSecretStorage: AuthSecretStorage,
+  ) {}
 
   onClerkUserChange = async (clerkClient: MinimalClerkClient) => {
     if (!clerkClient.user) return;
 
-    const isAuthenticated = AuthSecretStorage.isAuthenticated();
+    const isAuthenticated = this.authSecretStorage.isAuthenticated;
 
     if (isAuthenticated) return;
 
@@ -63,11 +66,11 @@ export class BrowserClerkAuth {
 
     await this.authenticate(credentials);
 
-    AuthSecretStorage.set(credentials);
+    await this.authSecretStorage.set(credentials);
   };
 
   signIn = async (clerkClient: MinimalClerkClient) => {
-    const credentials = AuthSecretStorage.get();
+    const credentials = await this.authSecretStorage.get();
 
     if (!credentials) {
       throw new Error("No credentials found");
@@ -93,7 +96,7 @@ export class BrowserClerkAuth {
       currentAccount.profile.name = username;
     }
 
-    AuthSecretStorage.set({
+    await this.authSecretStorage.set({
       accountID: credentials.accountID,
       accountSecret: credentials.accountSecret,
       secretSeed: credentials.secretSeed,

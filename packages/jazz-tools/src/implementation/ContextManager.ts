@@ -1,21 +1,25 @@
 import { AgentSecret, LocalNode } from "cojson";
-import { Account, AnonymousJazzAgent, AuthCredentials } from "jazz-tools";
-import { JazzContextType } from "jazz-tools";
+import { AuthSecretStorage } from "../auth/AuthSecretStorage.js";
+import { InMemoryKVStore } from "../auth/InMemoryKVStore.js";
+import { KvStore, KvStoreContext } from "../auth/KvStoreContext.js";
+import { Account } from "../coValues/account.js";
+import { AuthCredentials } from "../types.js";
+import { JazzContextType } from "../types.js";
+import { AnonymousJazzAgent } from "./anonymousJazzAgent.js";
 
 export type JazzContextManagerAuthProps = {
   credentials?: AuthCredentials;
   newAccountProps?: { secret: AgentSecret; creationProps: { name: string } };
 };
 
-type Props = {
-  localOnly?: boolean;
+export type JazzContextManagerBaseProps = {
+  localOnly?: "always" | "anonymous" | "off";
   onLogOut?: () => void;
 };
 
 type PlatformSpecificAuthContext<Acc extends Account> = {
   me: Acc;
   node: LocalNode;
-  toggleNetwork: (enabled: boolean) => void;
   logOut: () => void;
   done: () => void;
 };
@@ -23,7 +27,6 @@ type PlatformSpecificAuthContext<Acc extends Account> = {
 type PlatformSpecificGuestContext = {
   guest: AnonymousJazzAgent;
   node: LocalNode;
-  toggleNetwork: (enabled: boolean) => void;
   logOut: () => void;
   done: () => void;
 };
@@ -32,10 +35,22 @@ type PlatformSpecificContext<Acc extends Account> =
   | PlatformSpecificAuthContext<Acc>
   | PlatformSpecificGuestContext;
 
-export class JazzContextManager<Acc extends Account, P extends Props> {
+export class JazzContextManager<
+  Acc extends Account,
+  P extends JazzContextManagerBaseProps,
+> {
   protected value: JazzContextType<Acc> | undefined;
   protected context: PlatformSpecificContext<Acc> | undefined;
   protected props: P | undefined;
+  protected authSecretStorage = new AuthSecretStorage();
+
+  constructor() {
+    KvStoreContext.getInstance().initialize(this.getKvStore());
+  }
+
+  getKvStore(): KvStore {
+    return new InMemoryKVStore();
+  }
 
   async createContext(props: P, authProps?: JazzContextManagerAuthProps) {
     props;
@@ -68,14 +83,9 @@ export class JazzContextManager<Acc extends Account, P extends Props> {
     return this.value;
   }
 
-  toggleNetwork = (enabled: boolean) => {
-    if (!this.context || !this.props) {
-      return;
-    }
-
-    this.context.toggleNetwork(enabled);
-    this.props.localOnly = enabled;
-  };
+  getAuthSecretStorage() {
+    return this.authSecretStorage;
+  }
 
   logOut = () => {
     if (!this.context || !this.props) {

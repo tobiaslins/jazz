@@ -1,24 +1,27 @@
 // @vitest-environment happy-dom
 
 import { AgentSecret } from "cojson";
-import { AuthSecretStorage } from "jazz-browser";
-import { Account, ID } from "jazz-tools";
+import { AuthSecretStorage } from "jazz-tools";
+import { Account, ID, InMemoryKVStore, KvStoreContext } from "jazz-tools";
 import { createJazzTestAccount } from "jazz-tools/testing";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BrowserClerkAuth } from "../index";
 import type { MinimalClerkClient } from "../types";
+
+KvStoreContext.getInstance().initialize(new InMemoryKVStore());
+const authSecretStorage = new AuthSecretStorage();
 
 describe("BrowserClerkAuth", () => {
   const mockAuthenticate = vi.fn();
   let auth: BrowserClerkAuth;
 
   beforeEach(async () => {
-    AuthSecretStorage.clear();
+    await authSecretStorage.clear();
     mockAuthenticate.mockReset();
     await createJazzTestAccount({
       isCurrentActiveAccount: true,
     });
-    auth = new BrowserClerkAuth(mockAuthenticate);
+    auth = new BrowserClerkAuth(mockAuthenticate, authSecretStorage);
   });
 
   describe("onClerkUserChange", () => {
@@ -45,7 +48,7 @@ describe("BrowserClerkAuth", () => {
 
     it("should call signIn for new users", async () => {
       // Set up local auth
-      AuthSecretStorage.set({
+      await authSecretStorage.set({
         accountID: "test123" as ID<Account>,
         secretSeed: new Uint8Array([1, 2, 3]),
         accountSecret: "secret123" as AgentSecret,
@@ -70,7 +73,7 @@ describe("BrowserClerkAuth", () => {
           jazzAccountSeed: [1, 2, 3],
         },
       });
-      expect(AuthSecretStorage.get()).toEqual({
+      expect(await authSecretStorage.get()).toEqual({
         accountID: "test123",
         accountSecret: "secret123",
         secretSeed: new Uint8Array([1, 2, 3]),
@@ -85,7 +88,7 @@ describe("BrowserClerkAuth", () => {
 
     it("should call logIn for existing users", async () => {
       // Set up local auth
-      AuthSecretStorage.set({
+      await authSecretStorage.set({
         accountID: "xxxx" as ID<Account>,
         secretSeed: new Uint8Array([2, 2, 2]),
         accountSecret: "xxxx" as AgentSecret,

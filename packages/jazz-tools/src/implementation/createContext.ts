@@ -9,9 +9,11 @@ import {
   RawAccountID,
   SessionID,
 } from "cojson";
+import { AuthSecretStorage } from "../auth/AuthSecretStorage.js";
 import { type Account, type AccountClass } from "../coValues/account.js";
 import { RegisteredSchemas } from "../coValues/registeredSchemas.js";
 import type { ID } from "../internal.js";
+import { AuthCredentials, NewAccountProps } from "../types.js";
 import { activeAccountContext } from "./activeAccountContext.js";
 import { AnonymousJazzAgent } from "./anonymousJazzAgent.js";
 
@@ -182,40 +184,42 @@ export async function createJazzContextForNewAccount<Acc extends Account>({
 }
 
 export async function createJazzContext<Acc extends Account>(options: {
-  credentials?: Credentials;
-  newAccountProps?: {
-    secret: AgentSecret;
-    creationProps: { name: string };
-  };
+  credentials?: AuthCredentials;
+  newAccountProps?: NewAccountProps;
   peersToLoadFrom: Peer[];
   crypto: CryptoProvider;
   defaultProfileName?: string;
   AccountSchema?: AccountClass<Acc>;
   sessionProvider: SessionProvider;
-  onAnonymousAccountCreated: (
-    account: Acc,
-    secretSeed: Uint8Array,
-    secret: AgentSecret,
-  ) => void;
-  onLogOut?: () => void;
+  authSecretStorage: AuthSecretStorage;
 }) {
-  const credentials = options.credentials;
   const crypto = options.crypto;
 
   let context: JazzContextWithAccount<Acc>;
 
-  if (credentials) {
+  const authSecretStorage = options.authSecretStorage;
+
+  await authSecretStorage.migrate();
+
+  const credentials = options.credentials ?? (await authSecretStorage.get());
+
+  if (credentials && !options.newAccountProps) {
     context = await createJazzContextFromExistingCredentials({
       credentials: {
         accountID: credentials.accountID,
-        secret: credentials.secret,
+        secret: credentials.accountSecret,
       },
       peersToLoadFrom: options.peersToLoadFrom,
       crypto,
       AccountSchema: options.AccountSchema,
       sessionProvider: options.sessionProvider,
-      onLogOut: options.onLogOut,
+      onLogOut: () => {
+        authSecretStorage.clear();
+      },
     });
+
+    // To align the isAuthenticated state with the credentials
+    authSecretStorage.emitUpdate(credentials);
   } else {
     const secretSeed = options.crypto.newRandomSecretSeed();
 
@@ -233,17 +237,25 @@ export async function createJazzContext<Acc extends Account>(options: {
       peersToLoadFrom: options.peersToLoadFrom,
       crypto,
       AccountSchema: options.AccountSchema,
-      onLogOut: options.onLogOut,
+      onLogOut: () => {
+        authSecretStorage.clear();
+      },
     });
 
-    options.onAnonymousAccountCreated(
-      context.account,
-      secretSeed,
-      context.node.account.agentSecret,
-    );
+    if (!options.newAccountProps) {
+      await authSecretStorage.set({
+        accountID: context.account.id,
+        secretSeed,
+        accountSecret: context.node.account.agentSecret,
+        provider: "anonymous",
+      });
+    }
   }
 
-  return context;
+  return {
+    ...context,
+    authSecretStorage,
+  };
 }
 
 export async function createAnonymousJazzContext({
