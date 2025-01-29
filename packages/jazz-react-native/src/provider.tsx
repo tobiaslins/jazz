@@ -20,10 +20,9 @@ export type JazzProviderProps<Acc extends Account = RegisteredAccount> = {
 export function JazzProvider<Acc extends Account = RegisteredAccount>({
   children,
   guestMode,
-  peer,
+  sync,
   storage,
   AccountSchema,
-  localOnly,
   defaultProfileName,
   onLogOut,
   kvStore,
@@ -47,9 +46,8 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
         const props = {
           AccountSchema,
           guestMode,
-          peer,
+          sync,
           storage,
-          localOnly,
           defaultProfileName,
           onLogOut: onLogOutRefCallback,
         };
@@ -62,7 +60,7 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
 
         return contextManager.subscribe(callback);
       },
-      [peer, guestMode, localOnly].concat(storage as any),
+      [sync, guestMode].concat(storage as any),
     ),
     () => contextManager.getCurrentValue(),
     () => contextManager.getCurrentValue(),

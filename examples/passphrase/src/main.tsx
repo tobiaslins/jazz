@@ -7,7 +7,12 @@ import { wordlist } from "./wordlist.ts";
 
 function JazzAndAuth({ children }: { children: React.ReactNode }) {
   return (
-    <JazzProvider peer="wss://cloud.jazz.tools/?key=minimal-auth-passphrase-example@garden.co">
+    <JazzProvider
+      sync={{
+        peer: "wss://cloud.jazz.tools/?key=minimal-auth-passphrase-example@garden.co",
+        when: "signedUp",
+      }}
+    >
       <PassphraseAuthBasicUI
         appName="Jazz Minimal Auth Passphrase Example"
         wordlist={wordlist}

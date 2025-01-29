@@ -24,9 +24,12 @@
 
 <JazzProvider
   AccountSchema={FileShareAccount}
-  peer="wss://cloud.jazz.tools/?key=minimal-svelte-auth-passkey@garden.co"
+  sync={{
+    peer: "wss://cloud.jazz.tools/?key=minimal-svelte-auth-passkey@garden.co",
+    when: "signedUp",
+  }}
 >
-  <PasskeyAuthBasicUI auth={usePasskeyAuth({ appName: 'File Share' })}>
+  <PasskeyAuthBasicUI appName="File Share">
     <div class="min-h-screen bg-gray-100">
       {@render children()}
     </div>

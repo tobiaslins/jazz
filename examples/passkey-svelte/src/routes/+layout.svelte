@@ -4,7 +4,12 @@
   let { children } = $props();
 </script>
 
-<JazzProvider peer="wss://cloud.jazz.tools/?key=minimal-svelte-auth-passkey@garden.co">
+<JazzProvider
+  sync={{
+    peer: "wss://cloud.jazz.tools/?key=minimal-svelte-auth-passkey@garden.co",
+    when: "signedUp",
+  }}
+>
   <PasskeyAuthBasicUI appName="minimal-svelte-auth-passkey">
     {@render children?.()}
   </PasskeyAuthBasicUI>

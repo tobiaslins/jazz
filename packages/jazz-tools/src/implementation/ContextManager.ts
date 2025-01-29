@@ -13,7 +13,6 @@ export type JazzContextManagerAuthProps = {
 };
 
 export type JazzContextManagerBaseProps = {
-  localOnly?: "always" | "anonymous" | "off";
   onLogOut?: () => void;
 };
 

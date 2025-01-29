@@ -17,7 +17,10 @@ declare module "jazz-react" {
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <JazzProvider
-      peer="wss://cloud.jazz.tools/?key=react-demo-auth-tailwind@garden.co"
+      sync={{
+        peer: "wss://cloud.jazz.tools/?key=react-demo-auth-tailwind@garden.co",
+        when: "signedUp", // This way when the user hasn't signed up we store the data only locally
+      }}
       AccountSchema={JazzAccount}
     >
       <App />

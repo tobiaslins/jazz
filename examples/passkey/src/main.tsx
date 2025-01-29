@@ -6,7 +6,12 @@ import "./index.css";
 
 function JazzAndAuth({ children }: { children: React.ReactNode }) {
   return (
-    <JazzProvider peer="wss://cloud.jazz.tools/?key=minimal-auth-passkey-example@garden.co">
+    <JazzProvider
+      sync={{
+        peer: "wss://cloud.jazz.tools/?key=minimal-auth-passkey-example@garden.co",
+        when: "signedUp",
+      }}
+    >
       <PasskeyAuthBasicUI appName="Jazz Minimal Auth Passkey Example">
         {children}
       </PasskeyAuthBasicUI>

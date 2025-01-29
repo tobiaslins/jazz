@@ -44,3 +44,13 @@ export type NewAccountProps = {
   secret?: AgentSecret;
   creationProps?: { name: string };
 };
+
+export type SyncConfig =
+  | {
+      peer: `wss://${string}` | `ws://${string}`;
+      when?: "always" | "signedUp";
+    }
+  | {
+      peer?: `wss://${string}` | `ws://${string}`;
+      when: "never";
+    };
