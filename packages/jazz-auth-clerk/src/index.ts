@@ -17,13 +17,13 @@ type ClerkCredentials = {
 
 export type { MinimalClerkClient };
 
-export class BrowserClerkAuth {
+export class JazzClerkAuth {
   constructor(
     private authenticate: AuthenticateAccountFunction,
     private authSecretStorage: AuthSecretStorage,
   ) {}
 
-  onClerkUserChange = async (clerkClient: MinimalClerkClient) => {
+  onClerkUserChange = async (clerkClient: Pick<MinimalClerkClient, "user">) => {
     if (!clerkClient.user) return;
 
     const isAuthenticated = this.authSecretStorage.isAuthenticated;
@@ -40,7 +40,7 @@ export class BrowserClerkAuth {
     }
   };
 
-  logIn = async (clerkClient: MinimalClerkClient) => {
+  logIn = async (clerkClient: Pick<MinimalClerkClient, "user">) => {
     if (!clerkClient.user) {
       throw new Error("Not signed in on Clerk");
     }
@@ -69,7 +69,7 @@ export class BrowserClerkAuth {
     await this.authSecretStorage.set(credentials);
   };
 
-  signIn = async (clerkClient: MinimalClerkClient) => {
+  signIn = async (clerkClient: Pick<MinimalClerkClient, "user">) => {
     const credentials = await this.authSecretStorage.get();
 
     if (!credentials) {

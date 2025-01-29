@@ -1,6 +1,8 @@
 import type { MinimalClerkClient } from "./types.js";
 
-export function getClerkUsername(clerkClient: MinimalClerkClient) {
+export function getClerkUsername(
+  clerkClient: Pick<MinimalClerkClient, "user">,
+) {
   if (!clerkClient.user) {
     return null;
   }

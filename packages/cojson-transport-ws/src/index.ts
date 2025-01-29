@@ -21,6 +21,7 @@ export type CreateWebSocketPeerOpts = {
   batchingByDefault?: boolean;
   deletePeerStateOnClose?: boolean;
   onClose?: () => void;
+  onSuccess?: () => void;
 };
 
 function createPingTimeoutListener(enabled: boolean, callback: () => void) {
@@ -127,6 +128,7 @@ export function createWebSocketPeer({
   expectPings = true,
   batchingByDefault = true,
   deletePeerStateOnClose = false,
+  onSuccess,
   onClose,
 }: CreateWebSocketPeerOpts): Peer {
   const incoming = new cojsonInternals.Channel<
@@ -142,6 +144,7 @@ export function createWebSocketPeer({
   }
 
   websocket.addEventListener("close", handleClose);
+  websocket.addEventListener("error" as any, handleClose);
 
   const pingTimeout = createPingTimeoutListener(expectPings, () => {
     incoming
@@ -154,6 +157,7 @@ export function createWebSocketPeer({
     websocket,
     batchingByDefault,
   );
+  let isFirstMessage = true;
 
   function handleIncomingMsg(event: { data: unknown }) {
     if (event.data === "") {
@@ -167,6 +171,13 @@ export function createWebSocketPeer({
         "Error while deserializing messages: " + getErrorMessage(result.error),
       );
       return;
+    }
+
+    if (isFirstMessage) {
+      // The only way to know that the connection has been correctly established with our sync server
+      // is to track that we got a message from the server.
+      onSuccess?.();
+      isFirstMessage = false;
     }
 
     const { messages } = result;

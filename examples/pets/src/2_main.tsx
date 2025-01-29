@@ -8,13 +8,7 @@ import {
 } from "react-router-dom";
 import "./index.css";
 
-import {
-  DemoAuthBasicUI,
-  JazzProvider,
-  useAcceptInvite,
-  useAccount,
-  useDemoAuth,
-} from "jazz-react";
+import { JazzProvider, useAcceptInvite, useAccount } from "jazz-react";
 
 import { PetAccount, PetPost } from "./1_schema.ts";
 import { NewPetPostForm } from "./3_NewPetPostForm.tsx";
@@ -41,14 +35,15 @@ const peer =
 const appName = "Jazz Rate My Pet Example";
 
 function JazzAndAuth({ children }: { children: React.ReactNode }) {
-  const [auth, authState] = useDemoAuth();
-
   return (
     <>
-      <JazzProvider auth={auth} peer={peer} AccountSchema={PetAccount}>
+      <JazzProvider
+        peer={peer}
+        AccountSchema={PetAccount}
+        localOnly="anonymous"
+      >
         {children}
       </JazzProvider>
-      <DemoAuthBasicUI appName={appName} state={authState} />
     </>
   );
 }

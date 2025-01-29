@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import * as Clipboard from "expo-clipboard";
-import { Group, ID } from "jazz-tools";
+import { Group, ID, Profile } from "jazz-tools";
 import { useEffect, useState } from "react";
 import React, {
   Button,
@@ -22,10 +22,16 @@ export default function ChatScreen({ navigation }: { navigation: any }) {
   const [chatId, setChatId] = useState<ID<Chat>>();
   const loadedChat = useCoState(Chat, chatId, [{}]);
   const [message, setMessage] = useState("");
+  const profile = useCoState(Profile, me._refs.profile?.id, {});
+
+  function handleLogOut() {
+    setChatId(undefined);
+    logOut();
+  }
 
   useEffect(() => {
     navigation.setOptions({
-      headerRight: () => <Button onPress={logOut} title="Logout" />,
+      headerRight: () => <Button onPress={handleLogOut} title="Logout" />,
       headerLeft: () =>
         loadedChat ? (
           <Button
@@ -131,6 +137,18 @@ export default function ChatScreen({ navigation }: { navigation: any }) {
     <View className="flex flex-col h-full">
       {!loadedChat ? (
         <View className="flex flex-col h-full items-center justify-center">
+          <Text className="text-m font-bold mb-6">Username</Text>
+          <TextInput
+            className="rounded h-12 p-2 mb-12 w-40 border border-gray-200 block"
+            value={profile?.name ?? ""}
+            onChangeText={(value) => {
+              if (profile) {
+                profile.name = value;
+              }
+            }}
+            textAlignVertical="center"
+            onSubmitEditing={sendMessage}
+          />
           <TouchableOpacity
             onPress={createChat}
             className="bg-blue-500 p-4 rounded-md"

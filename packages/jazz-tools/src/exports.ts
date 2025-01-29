@@ -55,6 +55,8 @@ export {
   type JazzContextManagerAuthProps,
 } from "./implementation/ContextManager.js";
 
+export { WebSocketPeerWithReconnection } from "./implementation/WebSocketPeerWithReconnection.js";
+
 export { AuthSecretStorage } from "./auth/AuthSecretStorage.js";
 export { KvStoreContext, type KvStore } from "./auth/KvStoreContext.js";
 export { InMemoryKVStore } from "./auth/InMemoryKVStore.js";

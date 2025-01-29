@@ -13,12 +13,12 @@ import {
   NewAccountProps,
   SessionID,
   WasmCrypto,
+  WebSocketPeerWithReconnection,
   cojsonInternals,
   createAnonymousJazzContext,
 } from "jazz-tools";
 import { createJazzContext } from "jazz-tools";
 import { OPFSFilesystem } from "./OPFSFilesystem.js";
-import { createWebSocketPeerWithReconnection } from "./createWebSocketPeerWithReconnection.js";
 import { StorageConfig, getStorageOptions } from "./storageOptions.js";
 import { setupInspector } from "./utils/export-account-inspector.js";
 
@@ -32,6 +32,19 @@ export type BaseBrowserContextOptions = {
   localOnly?: "always" | "anonymous" | "off";
   authSecretStorage: AuthSecretStorage;
 };
+
+class BrowserWebSocketPeerWithReconnection extends WebSocketPeerWithReconnection {
+  onNetworkChange(callback: (connected: boolean) => void): () => void {
+    const handler = () => callback(navigator.onLine);
+    window.addEventListener("online", handler);
+    window.addEventListener("offline", handler);
+
+    return () => {
+      window.removeEventListener("online", handler);
+      window.removeEventListener("offline", handler);
+    };
+  }
+}
 
 async function setupPeers(options: BaseBrowserContextOptions) {
   const crypto = options.crypto || (await WasmCrypto.create());
@@ -54,20 +67,20 @@ async function setupPeers(options: BaseBrowserContextOptions) {
     peersToLoadFrom.push(await IDBStorage.asPeer());
   }
 
-  const wsPeer = createWebSocketPeerWithReconnection(
-    options.peer,
-    options.reconnectionTimeout,
-    (peer) => {
+  const wsPeer = new BrowserWebSocketPeerWithReconnection({
+    peer: options.peer,
+    reconnectionTimeout: options.reconnectionTimeout,
+    addPeer: (peer) => {
       if (node) {
         node.syncManager.addPeer(peer);
       } else {
         peersToLoadFrom.push(peer);
       }
     },
-    (peer) => {
+    removePeer: (peer) => {
       peersToLoadFrom.splice(peersToLoadFrom.indexOf(peer), 1);
     },
-  );
+  });
 
   function toggleNetwork(enabled: boolean) {
     if (enabled) {

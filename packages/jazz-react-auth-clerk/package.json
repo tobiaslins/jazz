@@ -7,7 +7,7 @@
   "license": "MIT",
   "dependencies": {
     "cojson": "workspace:0.9.19",
-    "jazz-browser-auth-clerk": "workspace:0.9.20",
+    "jazz-auth-clerk": "workspace:0.9.20",
     "jazz-react": "workspace:0.9.20",
     "jazz-tools": "workspace:0.9.20"
   },
