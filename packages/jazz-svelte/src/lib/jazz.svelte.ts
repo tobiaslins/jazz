@@ -72,7 +72,7 @@ export type RegisteredAccount = Register extends { Account: infer Acc }
 export function useAccount(): { me: RegisteredAccount; logOut: () => void };
 export function useAccount<D extends DepthsIn<RegisteredAccount>>(
   depth: D
-): { me: DeeplyLoaded<RegisteredAccount, D> | undefined; logOut: () => void };
+): { me: DeeplyLoaded<RegisteredAccount, D> | undefined | null; logOut: () => void };
 /**
  * Use the current account with a optional depth.
  * @param depth - The depth.
@@ -80,7 +80,7 @@ export function useAccount<D extends DepthsIn<RegisteredAccount>>(
  */
 export function useAccount<D extends DepthsIn<RegisteredAccount>>(
   depth?: D
-): { me: RegisteredAccount | DeeplyLoaded<RegisteredAccount, D> | undefined; logOut: () => void } {
+): { me: RegisteredAccount | DeeplyLoaded<RegisteredAccount, D> | undefined | null; logOut: () => void } {
   const ctx = getJazzContext<RegisteredAccount>();
   if (!ctx?.current) {
     throw new Error('useAccount must be used within a JazzProvider');
@@ -123,7 +123,7 @@ export function useAccount<D extends DepthsIn<RegisteredAccount>>(
 export function useAccountOrGuest(): { me: RegisteredAccount | AnonymousJazzAgent };
 export function useAccountOrGuest<D extends DepthsIn<RegisteredAccount>>(
   depth: D
-): { me: DeeplyLoaded<RegisteredAccount, D> | undefined | AnonymousJazzAgent };
+): { me: DeeplyLoaded<RegisteredAccount, D> | undefined | null | AnonymousJazzAgent };
 /**
  * Use the current account or guest with a optional depth.
  * @param depth - The depth.
@@ -131,7 +131,7 @@ export function useAccountOrGuest<D extends DepthsIn<RegisteredAccount>>(
  */
 export function useAccountOrGuest<D extends DepthsIn<RegisteredAccount>>(
   depth?: D
-): { me: RegisteredAccount | DeeplyLoaded<RegisteredAccount, D> | undefined | AnonymousJazzAgent } {
+): { me: RegisteredAccount | DeeplyLoaded<RegisteredAccount, D> | undefined | null | AnonymousJazzAgent } {
   const ctx = getJazzContext<RegisteredAccount>();
 
   if (!ctx?.current) {
@@ -178,12 +178,12 @@ export function useCoState<V extends CoValue, D extends DepthsIn<V> = []>(
   id: ID<V> | undefined,
   depth: D = [] as D
 ): {
-  current?: DeeplyLoaded<V, D>;
+  current?: DeeplyLoaded<V, D> | null;
 } {
   const ctx = getJazzContext<RegisteredAccount>();
 
   // Create state and a stable observable
-  let state = $state.raw<DeeplyLoaded<V, D> | undefined>(undefined);
+  let state = $state.raw<DeeplyLoaded<V, D> | undefined | null>(undefined);
 
   // Effect to handle subscription
   $effect(() => {
@@ -203,7 +203,9 @@ export function useCoState<V extends CoValue, D extends DepthsIn<V> = []>(
         // Get current value from our stable observable
         state = value;
       },
-      undefined,
+      () => {
+        state = null;
+      },
       true
     );
   });

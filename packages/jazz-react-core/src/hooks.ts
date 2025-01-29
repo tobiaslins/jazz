@@ -43,7 +43,7 @@ export function useCoState<V extends CoValue, D>(
   Schema: CoValueClass<V>,
   id: ID<V> | undefined,
   depth: D & DepthsIn<V> = [] as D & DepthsIn<V>,
-): DeeplyLoaded<V, D> | undefined {
+): DeeplyLoaded<V, D> | undefined | null {
   const context = useJazzContext();
 
   const [observable] = React.useState(() =>
@@ -52,20 +52,27 @@ export function useCoState<V extends CoValue, D>(
     }),
   );
 
-  const value = React.useSyncExternalStore<DeeplyLoaded<V, D> | undefined>(
+  const value = React.useSyncExternalStore<
+    DeeplyLoaded<V, D> | undefined | null
+  >(
     React.useCallback(
       (callback) => {
         if (!id) return () => {};
 
         const agent = "me" in context ? context.me : context.guest;
 
-        return observable.subscribe(Schema, id, agent, depth, callback);
+        return observable.subscribe(Schema, id, agent, depth, callback, () => {
+          console.log("unavailable");
+          callback();
+        });
       },
       [Schema, id, context],
     ),
     () => observable.getCurrentValue(),
     () => observable.getCurrentValue(),
   );
+
+  console.log("value", value);
 
   return value;
 }
@@ -77,10 +84,10 @@ export function createUseAccountHooks<Acc extends Account>() {
   };
   function useAccount<D extends DepthsIn<Acc>>(
     depth: D,
-  ): { me: DeeplyLoaded<Acc, D> | undefined; logOut: () => void };
+  ): { me: DeeplyLoaded<Acc, D> | undefined | null; logOut: () => void };
   function useAccount<D extends DepthsIn<Acc>>(
     depth?: D,
-  ): { me: Acc | DeeplyLoaded<Acc, D> | undefined; logOut: () => void } {
+  ): { me: Acc | DeeplyLoaded<Acc, D> | undefined | null; logOut: () => void } {
     const context = useJazzContext<Acc>();
 
     if (!("me" in context)) {
@@ -106,10 +113,12 @@ export function createUseAccountHooks<Acc extends Account>() {
   };
   function useAccountOrGuest<D extends DepthsIn<Acc>>(
     depth: D,
-  ): { me: DeeplyLoaded<Acc, D> | undefined | AnonymousJazzAgent };
+  ): { me: DeeplyLoaded<Acc, D> | undefined | null | AnonymousJazzAgent };
   function useAccountOrGuest<D extends DepthsIn<Acc>>(
     depth?: D,
-  ): { me: Acc | DeeplyLoaded<Acc, D> | undefined | AnonymousJazzAgent } {
+  ): {
+    me: Acc | DeeplyLoaded<Acc, D> | undefined | null | AnonymousJazzAgent;
+  } {
     const context = useJazzContext<Acc>();
 
     const contextMe = "me" in context ? context.me : undefined;

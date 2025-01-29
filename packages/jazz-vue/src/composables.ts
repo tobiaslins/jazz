@@ -62,13 +62,13 @@ export function createUseAccountComposables<Acc extends Account>() {
   function useAccount<D extends DepthsIn<Acc>>(
     depth: D,
   ): {
-    me: ComputedRef<DeeplyLoaded<Acc, D> | undefined>;
+    me: ComputedRef<DeeplyLoaded<Acc, D> | undefined | null>;
     logOut: () => void;
   };
   function useAccount<D extends DepthsIn<Acc>>(
     depth?: D,
   ): {
-    me: ComputedRef<Acc | DeeplyLoaded<Acc, D> | undefined>;
+    me: ComputedRef<Acc | DeeplyLoaded<Acc, D> | undefined | null>;
     logOut: () => void;
   } {
     const context = useJazzContext();
@@ -110,13 +110,15 @@ export function createUseAccountComposables<Acc extends Account>() {
   function useAccountOrGuest<D extends DepthsIn<Acc>>(
     depth: D,
   ): {
-    me: ComputedRef<DeeplyLoaded<Acc, D> | undefined | AnonymousJazzAgent>;
+    me: ComputedRef<
+      DeeplyLoaded<Acc, D> | undefined | null | AnonymousJazzAgent
+    >;
   };
   function useAccountOrGuest<D extends DepthsIn<Acc>>(
     depth?: D,
   ): {
     me: ComputedRef<
-      Acc | DeeplyLoaded<Acc, D> | undefined | AnonymousJazzAgent
+      Acc | DeeplyLoaded<Acc, D> | undefined | null | AnonymousJazzAgent
     >;
   } {
     const context = useJazzContext();
@@ -165,8 +167,8 @@ export function useCoState<V extends CoValue, D>(
   Schema: CoValueClass<V>,
   id: MaybeRef<ID<V> | undefined>,
   depth: D & DepthsIn<V> = [] as D & DepthsIn<V>,
-): Ref<DeeplyLoaded<V, D> | undefined> {
-  const state: ShallowRef<DeeplyLoaded<V, D> | undefined> =
+): Ref<DeeplyLoaded<V, D> | undefined | null> {
+  const state: ShallowRef<DeeplyLoaded<V, D> | undefined | null> =
     shallowRef(undefined);
   const context = useJazzContext();
 
@@ -194,7 +196,9 @@ export function useCoState<V extends CoValue, D>(
         (value) => {
           state.value = value;
         },
-        undefined,
+        () => {
+          state.value = null;
+        },
         true,
       );
     },
