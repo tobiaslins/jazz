@@ -1,11 +1,10 @@
-import { inIframe, onChatLoad } from "@/util.ts";
+import { getRandomUsername, inIframe, onChatLoad } from "@/util.ts";
 import { useIframeHashRouter } from "hash-slash";
-import { useAccount } from "jazz-react";
+import { JazzProvider, useAccount } from "jazz-react";
 import { Group, ID } from "jazz-tools";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { ChatScreen } from "./chatScreen.tsx";
-import { JazzAndAuth } from "./jazz.tsx";
 import { Chat } from "./schema.ts";
 import { ThemeProvider } from "./themeProvider.tsx";
 import { AppContainer, TopBar } from "./ui.tsx";
@@ -28,7 +27,15 @@ export function App() {
   return (
     <AppContainer>
       <TopBar>
-        <p>{me?.profile?.name}</p>
+        <input
+          type="text"
+          value={me?.profile?.name ?? ""}
+          onChange={(e) => {
+            if (!me?.profile) return;
+            me.profile.name = e.target.value;
+          }}
+          placeholder="Set username"
+        />
         {!inIframe && <button onClick={logOut}>Log out</button>}
       </TopBar>
       {router.route({
@@ -39,12 +46,18 @@ export function App() {
   );
 }
 
+const url = new URL(window.location.href);
+const defaultProfileName = url.searchParams.get("user") ?? getRandomUsername();
+
 createRoot(document.getElementById("root")!).render(
   <ThemeProvider>
     <StrictMode>
-      <JazzAndAuth>
+      <JazzProvider
+        peer="wss://cloud.jazz.tools/?key=chat-example-jazz@garden.co"
+        defaultProfileName={defaultProfileName}
+      >
         <App />
-      </JazzAndAuth>
+      </JazzProvider>
     </StrictMode>
   </ThemeProvider>,
 );
