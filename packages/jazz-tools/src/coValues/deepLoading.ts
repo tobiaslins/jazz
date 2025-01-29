@@ -131,10 +131,12 @@ export type RefsToResolve<
                 | boolean
             : boolean);
 
-export type Resolved<
+export type Resolved<T, R extends RefsToResolve<T> | undefined> = DeeplyLoaded<
   T,
-  O extends { resolve?: RefsToResolve<T> } | undefined,
-> = DeeplyLoaded<T, O extends { resolve: infer D } ? D : undefined, 5, []>;
+  R,
+  5,
+  []
+>;
 
 export type DeeplyLoaded<
   V,

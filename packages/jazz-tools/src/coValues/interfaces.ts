@@ -14,7 +14,7 @@ import {
 } from "../internal.js";
 import { coValuesCache } from "../lib/cache.js";
 import { type Account } from "./account.js";
-import { fulfillsDepth } from "./deepLoading.js";
+import { RefsToResolve, Resolved, fulfillsDepth } from "./deepLoading.js";
 import { type Group } from "./group.js";
 import { RegisteredSchemas } from "./registeredSchemas.js";
 
@@ -154,36 +154,33 @@ export class CoValueBase implements CoValue {
   }
 }
 
-export function loadCoValueWithoutMe<V extends CoValue, Depth>(
+export function loadCoValueWithoutMe<
+  V extends CoValue,
+  const R extends RefsToResolve<V>,
+>(
   cls: CoValueClass<V>,
   id: ID<V>,
-  asOrDepth: Account | AnonymousJazzAgent | (Depth & DepthsIn<V>),
-  depth?: Depth & DepthsIn<V>,
+  options?: { resolve?: R; loadAs?: Account | AnonymousJazzAgent },
 ) {
-  if (isAccountInstance(asOrDepth) || isAnonymousAgentInstance(asOrDepth)) {
-    if (!depth) {
-      throw new Error(
-        "Depth is required when loading a CoValue as an Account or AnonymousJazzAgent",
-      );
-    }
-    return loadCoValue(cls, id, asOrDepth, depth);
-  }
-
-  return loadCoValue(cls, id, activeAccountContext.get(), asOrDepth);
+  return loadCoValue(cls, id, {
+    ...options,
+    loadAs: options?.loadAs ?? activeAccountContext.get(),
+  });
 }
 
-export function loadCoValue<V extends CoValue, Depth>(
+export function loadCoValue<
+  V extends CoValue,
+  const R extends RefsToResolve<V>,
+>(
   cls: CoValueClass<V>,
   id: ID<V>,
-  as: Account | AnonymousJazzAgent,
-  options?: O | undefined,
-): Promise<Resolved<V, O> | undefined> {
+  options: { resolve?: R; loadAs: Account | AnonymousJazzAgent },
+): Promise<Resolved<V, R> | undefined> {
   return new Promise((resolve) => {
-    subscribeToCoValue(
+    subscribeToCoValue<V, R>(
       cls,
       id,
-      as,
-      depth,
+      options,
       (value, unsubscribe) => {
         resolve(value);
         unsubscribe();
@@ -197,61 +194,83 @@ export function loadCoValue<V extends CoValue, Depth>(
 
 export function ensureCoValueLoaded<
   V extends CoValue,
-  const O extends { resolve?: RefsToResolve<V> },
->(existing: V, options?: O | undefined): Promise<Resolved<V, O> | undefined> {
-  return loadCoValue(
-    existing.constructor as CoValueClass<V>,
-    existing.id,
-    existing._loadedAs,
-    options,
-  );
+  const R extends RefsToResolve<V>,
+>(
+  existing: V,
+  options?: { resolve?: R } | undefined,
+): Promise<Resolved<V, R> | undefined> {
+  return loadCoValue(existing.constructor as CoValueClass<V>, existing.id, {
+    loadAs: existing._loadedAs,
+    resolve: options?.resolve,
+  });
 }
 
-export function subscribeToCoValueWithoutMe<V extends CoValue, Depth>(
+type SubscribeListener<V extends CoValue, R extends RefsToResolve<V>> = (
+  value: Resolved<V, R>,
+  unsubscribe: () => void,
+) => void;
+
+export type SubscribeRestArgs<V extends CoValue, R extends RefsToResolve<V>> =
+  | [
+      options: { resolve?: R; loadAs?: Account | AnonymousJazzAgent },
+      listener: SubscribeListener<V, R>,
+    ]
+  | [listener: SubscribeListener<V, R>];
+
+export function parseSubscribeRestArgs<
+  V extends CoValue,
+  R extends RefsToResolve<V>,
+>(
+  args: SubscribeRestArgs<V, R>,
+): { options: { resolve?: R }; listener: SubscribeListener<V, R> } {
+  if (args.length === 2) {
+    if (
+      typeof args[0] === "object" &&
+      "resolve" in args[0] &&
+      typeof args[1] === "function"
+    ) {
+      return { options: { resolve: args[0].resolve }, listener: args[1] };
+    } else {
+      throw new Error("Invalid arguments");
+    }
+  } else {
+    if (typeof args[0] === "function") {
+      return { options: {}, listener: args[0] };
+    } else {
+      throw new Error("Invalid arguments");
+    }
+  }
+}
+
+export function subscribeToCoValueWithoutMe<
+  V extends CoValue,
+  const R extends RefsToResolve<V>,
+>(
   cls: CoValueClass<V>,
   id: ID<V>,
-  asOrDepth: Account | AnonymousJazzAgent | (Depth & DepthsIn<V>),
-  depthOrListener:
-    | (Depth & DepthsIn<V>)
-    | ((value: DeeplyLoaded<V, Depth>) => void),
-  listener?: (value: DeeplyLoaded<V, Depth>) => void,
+  options: { resolve?: R; loadAs?: Account | AnonymousJazzAgent },
+  listener: SubscribeListener<V, R>,
 ) {
-  if (isAccountInstance(asOrDepth) || isAnonymousAgentInstance(asOrDepth)) {
-    if (typeof depthOrListener !== "function") {
-      return subscribeToCoValue<V, Depth>(
-        cls,
-        id,
-        asOrDepth,
-        depthOrListener,
-        listener!,
-      );
-    }
-    throw new Error("Invalid arguments");
-  }
-
-  if (typeof depthOrListener !== "function") {
-    throw new Error("Invalid arguments");
-  }
-
-  return subscribeToCoValue<V, Depth>(
+  return subscribeToCoValue(
     cls,
     id,
-    activeAccountContext.get(),
-    asOrDepth,
-    depthOrListener,
+    { ...options, loadAs: options.loadAs ?? activeAccountContext.get() },
+    listener,
   );
 }
 
-export function subscribeToCoValue<V extends CoValue, Depth>(
+export function subscribeToCoValue<
+  V extends CoValue,
+  const R extends RefsToResolve<V>,
+>(
   cls: CoValueClass<V>,
   id: ID<V>,
-  as: Account | AnonymousJazzAgent,
-  depth: Depth & DepthsIn<V>,
-  listener: (value: DeeplyLoaded<V, Depth>, unsubscribe: () => void) => void,
+  options: { resolve?: R; loadAs: Account | AnonymousJazzAgent },
+  listener: SubscribeListener<V, R>,
   onUnavailable?: () => void,
   syncResolution?: boolean,
 ): () => void {
-  const ref = new Ref(id, as, { ref: cls, optional: false });
+  const ref = new Ref(id, options.loadAs, { ref: cls, optional: false });
 
   let unsubscribed = false;
   let unsubscribe: (() => void) | undefined;
@@ -266,11 +285,8 @@ export function subscribeToCoValue<V extends CoValue, Depth>(
       value,
       cls as CoValueClass<V> & CoValueFromRaw<V>,
       (update, subscription) => {
-        if (fulfillsDepth(depth, update)) {
-          listener(
-            update as DeeplyLoaded<V, Depth>,
-            subscription.unsubscribeAll,
-          );
+        if (fulfillsDepth(options.resolve, update)) {
+          listener(update as Resolved<V, R>, subscription.unsubscribeAll);
         }
       },
     );
@@ -297,15 +313,19 @@ export function subscribeToCoValue<V extends CoValue, Depth>(
   };
 }
 
-export function createCoValueObservable<V extends CoValue, Depth>(options?: {
+export function createCoValueObservable<
+  V extends CoValue,
+  const R extends RefsToResolve<V>,
+>(observableOptions?: {
   syncResolution?: boolean;
 }) {
-  let currentValue: DeeplyLoaded<V, Depth> | undefined = undefined;
+  let currentValue: Resolved<V, R> | undefined = undefined;
   let subscriberCount = 0;
 
   function subscribe(
+    cls: CoValueClass<V>,
     id: ID<V>,
-    as: Account | AnonymousJazzAgent,
+    options: { loadAs: Account | AnonymousJazzAgent; resolve?: R },
     listener: () => void,
     onUnavailable?: () => void,
   ) {
@@ -314,14 +334,13 @@ export function createCoValueObservable<V extends CoValue, Depth>(options?: {
     const unsubscribe = subscribeToCoValue(
       cls,
       id,
-      as,
       options,
       (value) => {
         currentValue = value;
         listener();
       },
       onUnavailable,
-      options?.syncResolution,
+      observableOptions?.syncResolution,
     );
 
     return () => {
@@ -343,17 +362,16 @@ export function createCoValueObservable<V extends CoValue, Depth>(options?: {
 
 export function subscribeToExistingCoValue<
   V extends CoValue,
-  const O extends { resolve?: RefsToResolve<V> },
+  const R extends RefsToResolve<V>,
 >(
   existing: V,
-  options: O | undefined,
-  listener: (value: Resolved<V, O>) => void,
+  options: { resolve?: R } | undefined,
+  listener: SubscribeListener<V, R>,
 ): () => void {
   return subscribeToCoValue(
     existing.constructor as CoValueClass<V>,
     existing.id,
-    existing._loadedAs,
-    options,
+    { loadAs: existing._loadedAs, resolve: options?.resolve },
     listener,
   );
 }

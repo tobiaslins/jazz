@@ -86,14 +86,15 @@ describe("Deep loading with depth arg", async () => {
       ownership,
     );
 
-    const map1 = await TestMap.load(map.id, meOnSecondPeer);
+    const map1 = await TestMap.load(map.id, { loadAs: meOnSecondPeer });
     expectTypeOf(map1).toEqualTypeOf<TestMap | undefined>();
     if (map1 === undefined) {
       throw new Error("map1 is undefined");
     }
     expect(map1.list).toBe(null);
 
-    const map2 = await TestMap.load(map.id, meOnSecondPeer, {
+    const map2 = await TestMap.load(map.id, {
+      loadAs: meOnSecondPeer,
       resolve: { list: true },
     });
     expectTypeOf(map2).toEqualTypeOf<
@@ -108,7 +109,8 @@ describe("Deep loading with depth arg", async () => {
     expect(map2.list).not.toBe(null);
     expect(map2.list[0]).toBe(null);
 
-    const map3 = await TestMap.load(map.id, meOnSecondPeer, {
+    const map3 = await TestMap.load(map.id, {
+      loadAs: meOnSecondPeer,
       resolve: { list: { $each: true } },
     });
     expectTypeOf(map3).toEqualTypeOf<
@@ -123,7 +125,8 @@ describe("Deep loading with depth arg", async () => {
     expect(map3.list[0]).not.toBe(null);
     expect(map3.list[0]?.stream).toBe(null);
 
-    const map3a = await TestMap.load(map.id, meOnSecondPeer, {
+    const map3a = await TestMap.load(map.id, {
+      loadAs: meOnSecondPeer,
       resolve: { optionalRef: true } as const,
     });
     expectTypeOf(map3a).toEqualTypeOf<
@@ -133,7 +136,8 @@ describe("Deep loading with depth arg", async () => {
       | undefined
     >();
 
-    const map4 = await TestMap.load(map.id, meOnSecondPeer, {
+    const map4 = await TestMap.load(map.id, {
+      loadAs: meOnSecondPeer,
       resolve: { list: { $each: { stream: true } } },
     });
     expectTypeOf(map4).toEqualTypeOf<
@@ -149,7 +153,8 @@ describe("Deep loading with depth arg", async () => {
     expect(map4.list[0]?.stream?.[me.id]).not.toBe(null);
     expect(map4.list[0]?.stream?.byMe?.value).toBe(null);
 
-    const map5 = await TestMap.load(map.id, meOnSecondPeer, {
+    const map5 = await TestMap.load(map.id, {
+      loadAs: meOnSecondPeer,
       resolve: { list: { $each: { stream: { $each: true } } } },
     });
     type ExpectedMap5 =
@@ -298,7 +303,8 @@ test("Deep loading a record-like coMap", async () => {
     { owner: me },
   );
 
-  const recordLoaded = await RecordLike.load(record.id, meOnSecondPeer, {
+  const recordLoaded = await RecordLike.load(record.id, {
+    loadAs: meOnSecondPeer,
     resolve: {
       $each: { list: { $each: true } },
     },

@@ -9,20 +9,18 @@ import {
 
 export function waitForCoValue<
   T extends CoValue,
-  const O extends { resolve?: RefsToResolve<T> },
+  const R extends RefsToResolve<T>,
 >(
   coMap: CoValueClass<T>,
   valueId: ID<T>,
-  account: Account,
   predicate: (value: T) => boolean,
-  options?: O,
+  options: { loadAs: Account; resolve?: R },
 ) {
   return new Promise<T>((resolve) => {
     function subscribe() {
       subscribeToCoValue(
         coMap,
         valueId,
-        account,
         options,
         (value, unsubscribe) => {
           if (predicate(value)) {

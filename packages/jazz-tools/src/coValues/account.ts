@@ -18,8 +18,6 @@ import {
   type CoValue,
   CoValueBase,
   CoValueClass,
-  DeeplyLoaded,
-  DepthsIn,
   ID,
   MembersSym,
   Ref,
@@ -29,10 +27,12 @@ import {
   Resolved,
   type Schema,
   SchemaInit,
+  SubscribeRestArgs,
   ensureCoValueLoaded,
   inspect,
   loadCoValue,
   loadCoValueWithoutMe,
+  parseSubscribeRestArgs,
   subscribeToCoValueWithoutMe,
   subscribeToExistingCoValue,
   subscriptionsScopes,
@@ -168,7 +168,8 @@ export class Account extends CoValueBase implements CoValue {
       inviteSecret,
     );
 
-    return loadCoValue(coValueClass, valueID, this as Account, {
+    return loadCoValue(coValueClass, valueID, {
+      loadAs: this,
       resolve: true,
     });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -276,78 +277,58 @@ export class Account extends CoValueBase implements CoValue {
   }
 
   /** @category Subscription & Loading */
-  static load<
-    A extends Account,
-    const O extends { resolve?: RefsToResolve<A> },
-  >(
+  static load<A extends Account, const R extends RefsToResolve<A> = true>(
     this: CoValueClass<A>,
     id: ID<A>,
-    depth: Depth & DepthsIn<A>,
-  ): Promise<DeeplyLoaded<A, Depth> | undefined>;
-  static load<A extends Account, Depth>(
-    this: CoValueClass<A>,
-    id: ID<A>,
-    as: Account,
-    depth: Depth & DepthsIn<A>,
-  ): Promise<DeeplyLoaded<A, Depth> | undefined>;
-  static load<A extends Account, Depth>(
-    this: CoValueClass<A>,
-    id: ID<A>,
-    asOrDepth: Account | (Depth & DepthsIn<A>),
-    depth?: Depth & DepthsIn<A>,
-  ): Promise<DeeplyLoaded<A, Depth> | undefined> {
-    return loadCoValueWithoutMe(this, id, asOrDepth, depth);
+    options?: { resolve?: R; loadAs?: Account | AnonymousJazzAgent },
+  ): Promise<Resolved<A, R> | undefined> {
+    return loadCoValueWithoutMe(this, id, options);
   }
 
   /** @category Subscription & Loading */
-  static subscribe<
-    A extends Account,
-    const O extends { resolve?: RefsToResolve<A> },
-  >(
+  static subscribe<A extends Account, const R extends RefsToResolve<A> = true>(
     this: CoValueClass<A>,
     id: ID<A>,
-    depth: Depth & DepthsIn<A>,
-    listener: (value: DeeplyLoaded<A, Depth>) => void,
+    listener: (value: Resolved<A, R>, unsubscribe: () => void) => void,
   ): () => void;
-  static subscribe<A extends Account, Depth>(
+  static subscribe<A extends Account, const R extends RefsToResolve<A> = true>(
     this: CoValueClass<A>,
     id: ID<A>,
-    as: Account,
-    depth: Depth & DepthsIn<A>,
-    listener: (value: DeeplyLoaded<A, Depth>) => void,
+    options: { resolve?: R; loadAs?: Account | AnonymousJazzAgent },
+    listener: (value: Resolved<A, R>, unsubscribe: () => void) => void,
   ): () => void;
-  static subscribe<A extends Account, Depth>(
+  static subscribe<A extends Account, const R extends RefsToResolve<A>>(
     this: CoValueClass<A>,
     id: ID<A>,
-    asOrDepth: Account | (Depth & DepthsIn<A>),
-    depthOrListener:
-      | (Depth & DepthsIn<A>)
-      | ((value: DeeplyLoaded<A, Depth>) => void),
-    listener?: (value: DeeplyLoaded<A, Depth>) => void,
+    ...args: SubscribeRestArgs<A, R>
   ): () => void {
-    return subscribeToCoValueWithoutMe<A, Depth>(
-      this,
-      id,
-      asOrDepth,
-      depthOrListener,
-      listener!,
-    );
+    const { options, listener } = parseSubscribeRestArgs(args);
+    return subscribeToCoValueWithoutMe<A, R>(this, id, options, listener);
   }
 
   /** @category Subscription & Loading */
-  ensureLoaded<
-    A extends Account,
-    const O extends { resolve?: RefsToResolve<A> },
-  >(this: A, options?: O): Promise<Resolved<A, O> | undefined> {
+  ensureLoaded<A extends Account, const R extends RefsToResolve<A>>(
+    this: A,
+    options: { resolve: R },
+  ): Promise<Resolved<A, R> | undefined> {
     return ensureCoValueLoaded(this, options);
   }
 
   /** @category Subscription & Loading */
-  subscribe<A extends Account, const O extends { resolve?: RefsToResolve<A> }>(
+  subscribe<A extends Account, const R extends RefsToResolve<A>>(
     this: A,
-    options: O,
-    listener: (value: Resolved<A, O>) => void,
+    listener: (value: Resolved<A, R>, unsubscribe: () => void) => void,
+  ): () => void;
+  subscribe<A extends Account, const R extends RefsToResolve<A>>(
+    this: A,
+    options: { resolve?: R },
+    listener: (value: Resolved<A, R>, unsubscribe: () => void) => void,
+  ): () => void;
+  subscribe<A extends Account, const R extends RefsToResolve<A>>(
+    this: A,
+    ...args: SubscribeRestArgs<A, R>
   ): () => void {
+    const { options, listener } = parseSubscribeRestArgs(args);
     return subscribeToExistingCoValue(this, options, listener);
   }
 
