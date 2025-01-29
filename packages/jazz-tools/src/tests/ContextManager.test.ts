@@ -78,7 +78,7 @@ describe("ContextManager", () => {
   });
 
   test("creates new context when initialized", async () => {
-    await manager.createContext({ localOnly: "off" });
+    await manager.createContext({});
 
     const context = getCurrentValue();
 
@@ -89,7 +89,6 @@ describe("ContextManager", () => {
 
   test("creates new context when initialized with default profile name", async () => {
     await manager.createContext({
-      localOnly: "off",
       defaultProfileName: "Test User",
     });
 
@@ -104,7 +103,7 @@ describe("ContextManager", () => {
     const account = await createJazzTestAccount();
 
     // First create an initial context to get credentials
-    await manager.createContext({ localOnly: "off" });
+    await manager.createContext({});
 
     const credentials = {
       accountID: account.id,
@@ -119,7 +118,7 @@ describe("ContextManager", () => {
   });
 
   test("handles registration with new account", async () => {
-    await manager.createContext({ localOnly: "off" });
+    await manager.createContext({});
 
     const secret = Crypto.newRandomAgentSecret();
     const accountId = await manager.register(secret, { name: "Test User" });
@@ -141,13 +140,13 @@ describe("ContextManager", () => {
     const listener = vi.fn();
     manager.subscribe(listener);
 
-    await manager.createContext({ localOnly: "off" });
+    await manager.createContext({});
 
     expect(listener).toHaveBeenCalled();
   });
 
   test("cleans up context when done", async () => {
-    await manager.createContext({ localOnly: "off" });
+    await manager.createContext({});
 
     const context = manager.getCurrentValue();
     expect(context).toBeDefined();

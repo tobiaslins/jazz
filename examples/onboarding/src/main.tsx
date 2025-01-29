@@ -11,14 +11,6 @@ const peer =
   ) as `ws://${string}`) ??
   "wss://cloud.jazz.tools/?key=onboarding-example-jazz@garden.co";
 
-function JazzAndAuth({ children }: { children: React.ReactNode }) {
-  return (
-    <JazzProvider AccountSchema={HRAccount} peer={peer}>
-      {children}
-    </JazzProvider>
-  );
-}
-
 declare module "jazz-react" {
   interface Register {
     Account: HRAccount;
@@ -27,8 +19,13 @@ declare module "jazz-react" {
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <JazzAndAuth>
+    <JazzProvider
+      AccountSchema={HRAccount}
+      sync={{
+        peer,
+      }}
+    >
       <App />
-    </JazzAndAuth>
+    </JazzProvider>
   </React.StrictMode>,
 );

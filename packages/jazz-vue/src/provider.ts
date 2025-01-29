@@ -1,5 +1,5 @@
 import { JazzBrowserContextManager } from "jazz-browser";
-import { Account, AccountClass, JazzContextType } from "jazz-tools";
+import { Account, AccountClass, JazzContextType, SyncConfig } from "jazz-tools";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   PropType,
@@ -30,17 +30,13 @@ export const JazzProvider = defineComponent({
       type: Boolean,
       default: false,
     },
-    localOnly: {
-      type: String as PropType<"always" | "anonymous" | "off">,
-      default: "off",
+    sync: {
+      type: Object as PropType<SyncConfig>,
+      required: true,
     },
     AccountSchema: {
       type: Function as unknown as PropType<AccountClass<RegisteredAccount>>,
       required: false,
-    },
-    peer: {
-      type: String as PropType<`wss://${string}` | `ws://${string}`>,
-      required: true,
     },
     storage: {
       type: String as PropType<"indexedDB" | "singleTabOPFS">,
@@ -60,18 +56,18 @@ export const JazzProvider = defineComponent({
 
     watch(
       () => ({
-        peer: props.peer,
+        peer: props.sync.peer,
+        syncWhen: props.sync.when,
         storage: props.storage,
         guestMode: props.guestMode,
       }),
       async () => {
         contextManager
           .createContext({
-            peer: props.peer,
+            sync: props.sync,
             storage: props.storage,
             guestMode: props.guestMode,
             AccountSchema: props.AccountSchema,
-            localOnly: props.localOnly,
             defaultProfileName: props.defaultProfileName,
           })
           .catch((error) => {

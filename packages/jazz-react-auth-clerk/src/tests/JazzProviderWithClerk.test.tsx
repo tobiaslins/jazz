@@ -50,7 +50,10 @@ describe("JazzProviderWithClerk", () => {
     } as unknown as MinimalClerkClient;
 
     const utils = render(
-      <JazzProviderWithClerk clerk={mockClerk} peer="wss://test.jazz.tools">
+      <JazzProviderWithClerk
+        clerk={mockClerk}
+        sync={{ peer: "wss://test.jazz.tools" }}
+      >
         {children}
       </JazzProviderWithClerk>,
     );

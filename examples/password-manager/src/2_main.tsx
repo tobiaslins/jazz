@@ -9,7 +9,10 @@ function JazzAndAuth({ children }: { children: React.ReactNode }) {
   return (
     <JazzProvider
       AccountSchema={PasswordManagerAccount}
-      peer="wss://cloud.jazz.tools/?key=password-manager-example-jazz@garden.co"
+      sync={{
+        peer: "wss://cloud.jazz.tools/?key=password-manager-example-jazz@garden.co",
+        when: "signedUp",
+      }}
     >
       <PasskeyAuthBasicUI appName="Jazz Password Manager">
         {children}

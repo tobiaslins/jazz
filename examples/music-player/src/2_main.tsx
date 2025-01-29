@@ -69,9 +69,11 @@ declare module "jazz-react" {
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <JazzProvider
-      peer={peer}
+      sync={{
+        peer,
+        when: "signedUp", // This makes the app work in local mode when the user is anonymous
+      }}
       storage="indexedDB"
-      localOnly="anonymous" // This makes the app work in local mode when the user is anonymous
       AccountSchema={MusicaAccount}
       defaultProfileName="Anonymous unicorn"
     >

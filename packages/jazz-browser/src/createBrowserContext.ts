@@ -12,6 +12,7 @@ import {
   InviteSecret,
   NewAccountProps,
   SessionID,
+  SyncConfig,
   WasmCrypto,
   WebSocketPeerWithReconnection,
   cojsonInternals,
@@ -25,11 +26,10 @@ import { setupInspector } from "./utils/export-account-inspector.js";
 setupInspector();
 
 export type BaseBrowserContextOptions = {
-  peer: `wss://${string}` | `ws://${string}`;
+  sync: SyncConfig;
   reconnectionTimeout?: number;
   storage?: StorageConfig;
   crypto?: CryptoProvider;
-  localOnly?: "always" | "anonymous" | "off";
   authSecretStorage: AuthSecretStorage;
 };
 
@@ -67,8 +67,17 @@ async function setupPeers(options: BaseBrowserContextOptions) {
     peersToLoadFrom.push(await IDBStorage.asPeer());
   }
 
+  if (options.sync.when === "never") {
+    return {
+      toggleNetwork: () => {},
+      peersToLoadFrom,
+      setNode: () => {},
+      crypto,
+    };
+  }
+
   const wsPeer = new BrowserWebSocketPeerWithReconnection({
-    peer: options.peer,
+    peer: options.sync.peer,
     reconnectionTimeout: options.reconnectionTimeout,
     addPeer: (peer) => {
       if (node) {
@@ -94,7 +103,7 @@ async function setupPeers(options: BaseBrowserContextOptions) {
     node = value;
   }
 
-  if (options.localOnly === "off" || !options.localOnly) {
+  if (options.sync.when === "always" || !options.sync.when) {
     toggleNetwork(true);
   }
 
@@ -152,7 +161,7 @@ export async function createJazzBrowserContext<Acc extends Account>(
 
   let unsubscribeAuthUpdate = () => {};
 
-  if (options.localOnly === "anonymous") {
+  if (options.sync.when === "signedUp") {
     const authSecretStorage = options.authSecretStorage;
     const credentials = options.credentials ?? (await authSecretStorage.get());
 

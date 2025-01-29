@@ -53,7 +53,9 @@ createRoot(document.getElementById("root")!).render(
   <ThemeProvider>
     <StrictMode>
       <JazzProvider
-        peer="wss://cloud.jazz.tools/?key=chat-example-jazz@garden.co"
+        sync={{
+          peer: "wss://cloud.jazz.tools/?key=chat-example-jazz@garden.co",
+        }}
         defaultProfileName={defaultProfileName}
       >
         <App />

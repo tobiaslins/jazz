@@ -19,7 +19,9 @@ const RootComponent = defineComponent({
         JazzProvider,
         {
           AccountSchema: ToDoAccount,
-          peer: "wss://cloud.jazz.tools/?key=vue-todo-example-jazz@garden.co",
+          sync: {
+            peer: "wss://cloud.jazz.tools/?key=vue-todo-example-jazz@garden.co",
+          },
         },
         h(
           DemoAuthBasicUI,

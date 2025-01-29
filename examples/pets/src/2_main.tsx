@@ -49,7 +49,13 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <ThemeProvider>
       <TitleAndLogo name={appName} />
       <div className="flex flex-col h-full items-center justify-start gap-10 pt-10 pb-10 px-5">
-        <JazzProvider peer={peer} AccountSchema={PetAccount}>
+        <JazzProvider
+          sync={{
+            peer,
+            when: "signedUp",
+          }}
+          AccountSchema={PetAccount}
+        >
           <PasskeyAuthBasicUI appName={appName}>
             <App />
           </PasskeyAuthBasicUI>

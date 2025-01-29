@@ -17,7 +17,11 @@ function App() {
 
   return (
     <StrictMode>
-      <JazzProvider peer="wss://cloud.jazz.tools/?key=e2e-rn@garden.co">
+      <JazzProvider
+        sync={{
+          peer: "wss://cloud.jazz.tools/?key=e2e-rn@garden.co",
+        }}
+      >
         <NavigationContainer ref={navigationRef}>
           <Stack.Navigator initialRouteName="SimpleSharing">
             <Stack.Screen name="SimpleSharing" component={SimpleSharing} />

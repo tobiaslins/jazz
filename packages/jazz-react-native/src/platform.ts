@@ -10,6 +10,7 @@ import {
   ID,
   NewAccountProps,
   SessionID,
+  SyncConfig,
   WebSocketPeerWithReconnection,
   createInviteLink as baseCreateInviteLink,
   createAnonymousJazzContext,
@@ -25,11 +26,10 @@ import { ExpoSecureStoreAdapter } from "./storage/expo-secure-store-adapter.js";
 import { KvStoreContext } from "./storage/kv-store-context.js";
 
 export type BaseReactNativeContextOptions = {
-  peer: `wss://${string}` | `ws://${string}`;
+  sync: SyncConfig;
   reconnectionTimeout?: number;
   storage?: "sqlite" | "disabled";
   CryptoProvider?: typeof PureJSCrypto | typeof RNQuickCrypto;
-  localOnly?: "always" | "anonymous" | "off";
   authSecretStorage: AuthSecretStorage;
 };
 
@@ -56,8 +56,17 @@ async function setupPeers(options: BaseReactNativeContextOptions) {
     peersToLoadFrom.push(storage);
   }
 
+  if (options.sync.when === "never") {
+    return {
+      toggleNetwork: () => {},
+      peersToLoadFrom,
+      setNode: () => {},
+      crypto,
+    };
+  }
+
   const wsPeer = new ReactNativeWebSocketPeerWithReconnection({
-    peer: options.peer,
+    peer: options.sync.peer,
     reconnectionTimeout: options.reconnectionTimeout,
     addPeer: (peer) => {
       if (node) {
@@ -83,7 +92,7 @@ async function setupPeers(options: BaseReactNativeContextOptions) {
     node = value;
   }
 
-  if (options.localOnly === "off" || !options.localOnly) {
+  if (options.sync.when === "always" || !options.sync.when) {
     toggleNetwork(true);
   }
 
@@ -141,7 +150,7 @@ export async function createJazzReactNativeContext<Acc extends Account>(
 
   let unsubscribeAuthUpdate = () => {};
 
-  if (options.localOnly === "anonymous") {
+  if (options.sync.when === "signedUp") {
     const authSecretStorage = options.authSecretStorage;
     const credentials = options.credentials ?? (await authSecretStorage.get());
 

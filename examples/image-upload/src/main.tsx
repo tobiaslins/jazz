@@ -14,7 +14,9 @@ declare module "jazz-react" {
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <JazzProvider
-      peer="wss://cloud.jazz.tools/?key=image-upload-example@garden.co"
+      sync={{
+        peer: "wss://cloud.jazz.tools/?key=image-upload-example@garden.co",
+      }}
       AccountSchema={JazzAccount}
     >
       <App />

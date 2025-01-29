@@ -1,4 +1,10 @@
-import { Account, AccountClass, JazzContextManager, KvStore } from "jazz-tools";
+import {
+  Account,
+  AccountClass,
+  JazzContextManager,
+  KvStore,
+  SyncConfig,
+} from "jazz-tools";
 import { JazzContextManagerAuthProps } from "jazz-tools";
 import {
   BaseReactNativeContextOptions,
@@ -8,8 +14,7 @@ import {
 
 export type JazzContextManagerProps<Acc extends Account> = {
   guestMode?: boolean;
-  peer: `wss://${string}` | `ws://${string}`;
-  localOnly?: "always" | "anonymous" | "off";
+  sync: SyncConfig;
   onLogOut?: () => void;
   storage?: BaseReactNativeContextOptions["storage"];
   AccountSchema?: AccountClass<Acc>;
@@ -31,16 +36,14 @@ export class ReactNativeContextManager<
 
     if (props.guestMode) {
       currentContext = await createJazzReactNativeGuestContext({
-        peer: props.peer,
+        sync: props.sync,
         storage: props.storage,
-        localOnly: props.localOnly,
         authSecretStorage: this.authSecretStorage,
       });
     } else {
       currentContext = await createJazzReactNativeContext<Acc>({
-        peer: props.peer,
+        sync: props.sync,
         storage: props.storage,
-        localOnly: props.localOnly,
         AccountSchema: props.AccountSchema,
         credentials: authProps?.credentials,
         newAccountProps: authProps?.newAccountProps,
@@ -58,9 +61,9 @@ export class ReactNativeContextManager<
     }
 
     return (
-      props.peer !== this.props.peer ||
-      props.guestMode !== this.props.guestMode ||
-      props.localOnly !== this.props.localOnly
+      this.props.sync.when !== props.sync.when ||
+      this.props.sync.peer !== props.sync.peer ||
+      this.props.guestMode !== props.guestMode
     );
   }
 }

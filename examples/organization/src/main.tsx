@@ -27,17 +27,6 @@ function Router() {
   return <RouterProvider router={router}></RouterProvider>;
 }
 
-function JazzAndAuth({ children }: { children: React.ReactNode }) {
-  return (
-    <JazzProvider
-      AccountSchema={JazzAccount}
-      peer="wss://cloud.jazz.tools/?key=organization-example@garden.co"
-    >
-      {children}
-    </JazzProvider>
-  );
-}
-
 declare module "jazz-react" {
   interface Register {
     Account: JazzAccount;
@@ -46,8 +35,13 @@ declare module "jazz-react" {
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <JazzAndAuth>
+    <JazzProvider
+      AccountSchema={JazzAccount}
+      sync={{
+        peer: "wss://cloud.jazz.tools/?key=organization-example@garden.co",
+      }}
+    >
       <Router />
-    </JazzAndAuth>
+    </JazzProvider>
   </StrictMode>,
 );

@@ -18,7 +18,10 @@ function JazzProvider({ children }: { children: React.ReactNode }) {
   return (
     <JazzProviderWithClerk
       clerk={clerk}
-      peer="wss://cloud.jazz.tools/?key=minimal-auth-clerk-example@garden.co"
+      sync={{
+        peer: "wss://cloud.jazz.tools/?key=minimal-auth-clerk-example@garden.co",
+        when: "signedUp", // This makes the app work in local mode when the user is not authenticated
+      }}
     >
       {children}
     </JazzProviderWithClerk>

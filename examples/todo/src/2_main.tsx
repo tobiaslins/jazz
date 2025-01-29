@@ -39,8 +39,11 @@ const appName = "Jazz Todo List Example";
 function JazzAndAuth({ children }: { children: React.ReactNode }) {
   return (
     <JazzProvider
+      sync={{
+        peer: "wss://cloud.jazz.tools/?key=todo-example-jazz@garden.co",
+        when: "signedUp",
+      }}
       AccountSchema={TodoAccount}
-      peer="wss://cloud.jazz.tools/?key=todo-example-jazz@garden.co"
     >
       <PassphraseAuthBasicUI appName={appName} wordlist={wordlist}>
         {children}
