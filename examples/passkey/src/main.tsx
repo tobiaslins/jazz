@@ -5,20 +5,15 @@ import App from "./App.tsx";
 import "./index.css";
 
 function JazzAndAuth({ children }: { children: React.ReactNode }) {
-  const [auth, state] = usePasskeyAuth({
+  const auth = usePasskeyAuth({
     appName: "Jazz Minimal Auth Passkey Example",
   });
 
   return (
-    <>
-      <JazzProvider
-        auth={auth}
-        peer="wss://cloud.jazz.tools/?key=minimal-auth-passkey-example@garden.co"
-      >
-        {children}
-      </JazzProvider>
-      <PasskeyAuthBasicUI state={state} />
-    </>
+    <JazzProvider peer="wss://cloud.jazz.tools/?key=minimal-auth-passkey-example@garden.co">
+      <PasskeyAuthBasicUI {...auth} />
+      {children}
+    </JazzProvider>
   );
 }
 
