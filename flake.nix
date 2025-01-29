@@ -18,11 +18,14 @@
           buildInputs = with pkgs; [
             nodejs_22
             nodePackages.pnpm
+            git
           ];
 
           shellHook = ''
+            echo ""
             echo "Welcome to the Jazz development environment!"
             echo "Run 'pnpm install' to install the dependencies."
+            echo ""
           '';
         };
       });

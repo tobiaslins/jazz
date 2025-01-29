@@ -28,7 +28,7 @@ export type InboxRoot = RawCoMap<{
 }>;
 
 export function createInboxRoot(account: Account) {
-  if (!account.isMe) {
+  if (!account.isLocalNodeOwner) {
     throw new Error("Account is not controlled");
   }
 
@@ -361,7 +361,7 @@ async function acceptInvite(invite: string, account?: Account) {
     throw new Error("Invalid inbox ticket");
   }
 
-  if (!account.isMe) {
+  if (!account.isLocalNodeOwner) {
     throw new Error("Account is not controlled");
   }
 
