@@ -5,20 +5,6 @@ import App from "./App.tsx";
 import "./index.css";
 import { JazzAccount } from "./schema.ts";
 
-function JazzAndAuth({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      <JazzProvider
-        peer="wss://cloud.jazz.tools/?key=image-upload-example@garden.co"
-        localOnly="anonymous"
-        AccountSchema={JazzAccount}
-      >
-        {children}
-      </JazzProvider>
-    </>
-  );
-}
-
 declare module "jazz-react" {
   interface Register {
     Account: JazzAccount;
@@ -27,8 +13,11 @@ declare module "jazz-react" {
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <JazzAndAuth>
+    <JazzProvider
+      peer="wss://cloud.jazz.tools/?key=image-upload-example@garden.co"
+      AccountSchema={JazzAccount}
+    >
       <App />
-    </JazzAndAuth>
+    </JazzProvider>
   </StrictMode>,
 );

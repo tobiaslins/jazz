@@ -4,23 +4,10 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 
-function JazzAndAuth({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      <JazzProvider
-        localOnly="anonymous"
-        peer="wss://cloud.jazz.tools/?key=reactions-example@garden.co"
-      >
-        {children}
-      </JazzProvider>
-    </>
-  );
-}
-
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <JazzAndAuth>
+    <JazzProvider peer="wss://cloud.jazz.tools/?key=reactions-example@garden.co">
       <App />
-    </JazzAndAuth>
+    </JazzProvider>
   </StrictMode>,
 );

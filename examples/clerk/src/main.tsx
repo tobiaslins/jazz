@@ -18,7 +18,6 @@ function JazzProvider({ children }: { children: React.ReactNode }) {
   return (
     <JazzProviderWithClerk
       clerk={clerk}
-      localOnly="anonymous"
       peer="wss://cloud.jazz.tools/?key=minimal-auth-clerk-example@garden.co"
     >
       {children}
