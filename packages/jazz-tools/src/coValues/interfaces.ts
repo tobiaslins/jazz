@@ -301,7 +301,7 @@ export function subscribeToCoValue<V extends CoValue, Depth>(
 export function createCoValueObservable<V extends CoValue, Depth>(options?: {
   syncResolution?: boolean;
 }) {
-  let currentValue: DeeplyLoaded<V, Depth> | undefined = undefined;
+  let currentValue: DeeplyLoaded<V, Depth> | undefined | null = undefined;
   let subscriberCount = 0;
 
   function subscribe(
@@ -323,7 +323,10 @@ export function createCoValueObservable<V extends CoValue, Depth>(options?: {
         currentValue = value;
         listener();
       },
-      onUnavailable,
+      () => {
+        currentValue = null;
+        onUnavailable?.();
+      },
       options?.syncResolution,
     );
 
