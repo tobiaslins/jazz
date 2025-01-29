@@ -8,10 +8,9 @@ import "./index.css";
 
 import {
   JazzProvider,
-  PasskeyAuthBasicUI,
+  PassphraseAuthBasicUI,
   useAcceptInvite,
   useAccount,
-  usePasskeyAuth,
 } from "jazz-react";
 
 import React from "react";
@@ -23,6 +22,7 @@ import {
   ThemeProvider,
   TitleAndLogo,
 } from "./basicComponents/index.ts";
+import { wordlist } from "./wordlist.ts";
 
 /**
  * Walkthrough: The top-level provider `<JazzProvider/>`
@@ -34,20 +34,18 @@ import {
  *
  * `<JazzProvider/>` also runs our account migration
  */
-
 const appName = "Jazz Todo List Example";
 
 function JazzAndAuth({ children }: { children: React.ReactNode }) {
-  const auth = usePasskeyAuth({ appName });
-
   return (
     <>
       <JazzProvider
         AccountSchema={TodoAccount}
         peer="wss://cloud.jazz.tools/?key=todo-example-jazz@garden.co"
       >
-        <PasskeyAuthBasicUI {...auth} />
-        {children}
+        <PassphraseAuthBasicUI appName={appName} wordlist={wordlist}>
+          {children}
+        </PassphraseAuthBasicUI>
       </JazzProvider>
     </>
   );

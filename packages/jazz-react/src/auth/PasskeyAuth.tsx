@@ -45,17 +45,24 @@ export function usePasskeyAuth({
   } as const;
 }
 
-export const PasskeyAuthBasicUI = (
-  props: ReturnType<typeof usePasskeyAuth>,
-) => {
+export const PasskeyAuthBasicUI = (props: {
+  appName: string;
+  appHostname?: string;
+  children?: React.ReactNode;
+}) => {
   const [username, setUsername] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
 
-  if (props.state === "signedIn") {
-    return null;
+  const auth = usePasskeyAuth({
+    appName: props.appName,
+    appHostname: props.appHostname,
+  });
+
+  if (auth.state === "signedIn") {
+    return props.children ?? null;
   }
 
-  const { logIn, signUp } = props;
+  const { logIn, signUp } = auth;
 
   return (
     <div

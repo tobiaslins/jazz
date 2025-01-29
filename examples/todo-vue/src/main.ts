@@ -11,22 +11,6 @@ declare module "jazz-vue" {
   }
 }
 
-const AuthScreen = defineComponent({
-  name: "AuthScreen",
-  setup() {
-    const auth = useDemoAuth();
-
-    return () => [
-      auth.value.state === "anonymous"
-        ? h(DemoAuthBasicUI, {
-            appName: "Jazz Vue Todo",
-            auth,
-          })
-        : h(App),
-    ];
-  },
-});
-
 const RootComponent = defineComponent({
   name: "RootComponent",
   setup() {
@@ -37,9 +21,15 @@ const RootComponent = defineComponent({
           AccountSchema: ToDoAccount,
           peer: "wss://cloud.jazz.tools/?key=vue-todo-example-jazz@garden.co",
         },
-        {
-          default: () => h(AuthScreen),
-        },
+        h(
+          DemoAuthBasicUI,
+          {
+            appName: "Jazz Vue Todo",
+          },
+          {
+            default: () => h(App),
+          },
+        ),
       );
   },
 });
