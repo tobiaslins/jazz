@@ -1,5 +1,12 @@
 # form
 
+## 0.0.38
+
+### Patch Changes
+
+- jazz-browser-media-images@0.9.22
+- jazz-react@0.9.22
+
 ## 0.0.37
 
 ### Patch Changes

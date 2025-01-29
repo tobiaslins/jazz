@@ -1,5 +1,12 @@
 # chat-rn-clerk
 
+## 1.0.63
+
+### Patch Changes
+
+- jazz-react-native@0.9.22
+- jazz-react-native-auth-clerk@0.9.22
+
 ## 1.0.62
 
 ### Patch Changes

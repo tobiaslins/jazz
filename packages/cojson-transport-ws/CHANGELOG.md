@@ -1,5 +1,11 @@
 # cojson-transport-nodejs-ws
 
+## 0.9.22
+
+### Patch Changes
+
+- 14b6149: Handle websocket errors and add an onSuccess callback
+
 ## 0.9.19
 
 ### Patch Changes
