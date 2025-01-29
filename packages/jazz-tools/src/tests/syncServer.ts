@@ -42,7 +42,7 @@ export const startSyncServer = async (port?: number) => {
     // ping/pong for the connection liveness
     const pinging = setInterval(sendPing, 100);
 
-    sendPing();
+    sendPing(); // Immediately send a ping to the client to signal that the connection is established
 
     ws.on("close", () => {
       clearInterval(pinging);

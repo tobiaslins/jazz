@@ -170,6 +170,31 @@ describe("createWebSocketPeer", () => {
     );
   });
 
+  test("should call onSuccess handler after receiving first message", () => {
+    const onSuccess = vi.fn();
+    const { listeners } = setup({ onSuccess });
+
+    const messageHandler = listeners.get("message");
+    const message: SyncMessage = {
+      action: "known",
+      id: "co_ztest",
+      header: false,
+      sessions: {},
+    };
+
+    // First message should trigger onSuccess
+    messageHandler?.(
+      new MessageEvent("message", { data: JSON.stringify(message) }),
+    );
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+
+    // Subsequent messages should not trigger onSuccess again
+    messageHandler?.(
+      new MessageEvent("message", { data: JSON.stringify(message) }),
+    );
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+  });
+
   describe("batchingByDefault = true", () => {
     test("should batch outgoing messages", async () => {
       const { peer, mockWebSocket } = setup();

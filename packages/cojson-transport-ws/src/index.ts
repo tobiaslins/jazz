@@ -157,7 +157,7 @@ export function createWebSocketPeer({
     websocket,
     batchingByDefault,
   );
-  let onSuccessCalled = false;
+  let isFirstMessage = true;
 
   function handleIncomingMsg(event: { data: unknown }) {
     if (event.data === "") {
@@ -173,9 +173,11 @@ export function createWebSocketPeer({
       return;
     }
 
-    if (!onSuccessCalled) {
+    if (isFirstMessage) {
+      // The only way to know that the connection has been correctly established with our sync server
+      // is to track that we got a message from the server.
       onSuccess?.();
-      onSuccessCalled = true;
+      isFirstMessage = false;
     }
 
     const { messages } = result;
