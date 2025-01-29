@@ -453,7 +453,7 @@ importers:
         specifier: workspace:*
         version: link:../../packages/jazz-react
       jazz-react-auth-clerk:
-        specifier: workspace:0.9.21
+        specifier: workspace:0.9.22
         version: link:../../packages/jazz-react-auth-clerk
       jazz-tools:
         specifier: workspace:*
@@ -685,7 +685,7 @@ importers:
         specifier: workspace:0.9.19
         version: link:../../packages/cojson
       cojson-transport-ws:
-        specifier: workspace:0.9.19
+        specifier: workspace:0.9.22
         version: link:../../packages/cojson-transport-ws
       hash-slash:
         specifier: workspace:0.2.1
@@ -770,7 +770,7 @@ importers:
         specifier: workspace:*
         version: link:../../packages/jazz-inspector
       jazz-react:
-        specifier: workspace:0.9.21
+        specifier: workspace:0.9.22
         version: link:../../packages/jazz-react
       jazz-tools:
         specifier: workspace:0.9.21
@@ -1027,7 +1027,7 @@ importers:
   examples/password-manager:
     dependencies:
       jazz-react:
-        specifier: workspace:0.9.21
+        specifier: workspace:0.9.22
         version: link:../../packages/jazz-react
       jazz-tools:
         specifier: workspace:0.9.21
@@ -1091,10 +1091,10 @@ importers:
         specifier: ^2.0.0
         version: 2.1.1
       jazz-browser-media-images:
-        specifier: workspace:0.9.21
+        specifier: workspace:0.9.22
         version: link:../../packages/jazz-browser-media-images
       jazz-react:
-        specifier: workspace:0.9.21
+        specifier: workspace:0.9.22
         version: link:../../packages/jazz-react
       jazz-tools:
         specifier: workspace:0.9.21
@@ -1152,7 +1152,7 @@ importers:
         specifier: ^3.0.1
         version: 3.0.1
       jazz-run:
-        specifier: workspace:0.9.21
+        specifier: workspace:0.9.22
         version: link:../../packages/jazz-run
       postcss:
         specifier: ^8.4.27
@@ -1231,7 +1231,7 @@ importers:
         specifier: ^2.0.0
         version: 2.1.1
       jazz-react:
-        specifier: workspace:0.9.21
+        specifier: workspace:0.9.22
         version: link:../../packages/jazz-react
       jazz-tools:
         specifier: workspace:0.9.21
@@ -1589,7 +1589,7 @@ importers:
         specifier: workspace:0.9.19
         version: link:../cojson-storage-indexeddb
       cojson-transport-ws:
-        specifier: workspace:0.9.19
+        specifier: workspace:0.9.22
         version: link:../cojson-transport-ws
       jazz-tools:
         specifier: workspace:0.9.21
@@ -1604,7 +1604,7 @@ importers:
         specifier: workspace:0.9.19
         version: link:../cojson
       jazz-browser:
-        specifier: workspace:0.9.21
+        specifier: workspace:0.9.22
         version: link:../jazz-browser
       jazz-tools:
         specifier: workspace:0.9.21
@@ -1623,7 +1623,7 @@ importers:
         specifier: ^4.1.0
         version: 4.1.0
       jazz-browser:
-        specifier: workspace:0.9.21
+        specifier: workspace:0.9.22
         version: link:../jazz-browser
       jazz-tools:
         specifier: workspace:0.9.21
@@ -1679,7 +1679,7 @@ importers:
         specifier: workspace:0.9.19
         version: link:../cojson
       cojson-transport-ws:
-        specifier: workspace:0.9.19
+        specifier: workspace:0.9.22
         version: link:../cojson-transport-ws
       jazz-tools:
         specifier: workspace:0.9.21
@@ -1707,7 +1707,7 @@ importers:
         specifier: workspace:0.9.19
         version: link:../cojson
       jazz-browser:
-        specifier: workspace:0.9.21
+        specifier: workspace:0.9.22
         version: link:../jazz-browser
       jazz-react-core:
         specifier: workspace:*
@@ -1744,10 +1744,10 @@ importers:
         specifier: workspace:0.9.19
         version: link:../cojson
       jazz-browser-auth-clerk:
-        specifier: workspace:0.9.21
+        specifier: workspace:0.9.22
         version: link:../jazz-browser-auth-clerk
       jazz-react:
-        specifier: workspace:0.9.21
+        specifier: workspace:0.9.22
         version: link:../jazz-react
       jazz-tools:
         specifier: workspace:0.9.21
@@ -1893,7 +1893,7 @@ importers:
         specifier: workspace:0.9.19
         version: link:../cojson-storage-sqlite
       cojson-transport-ws:
-        specifier: workspace:0.9.19
+        specifier: workspace:0.9.22
         version: link:../cojson-transport-ws
       effect:
         specifier: ^3.6.5
