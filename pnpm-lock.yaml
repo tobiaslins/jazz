@@ -1527,7 +1527,7 @@ importers:
   packages/cojson-transport-ws:
     dependencies:
       cojson:
-        specifier: workspace:0.9.19
+        specifier: workspace:*
         version: link:../cojson
       typescript:
         specifier: ~5.6.2
@@ -1536,6 +1536,9 @@ importers:
       '@types/ws':
         specifier: 8.5.10
         version: 8.5.10
+      ws:
+        specifier: ^8.14.2
+        version: 8.18.0
 
   packages/create-jazz-app:
     dependencies:
