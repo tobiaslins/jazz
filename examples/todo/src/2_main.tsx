@@ -38,18 +38,17 @@ import {
 const appName = "Jazz Todo List Example";
 
 function JazzAndAuth({ children }: { children: React.ReactNode }) {
-  const [passkeyAuth, passKeyState] = usePasskeyAuth({ appName });
+  const auth = usePasskeyAuth({ appName });
 
   return (
     <>
       <JazzProvider
         AccountSchema={TodoAccount}
-        auth={passkeyAuth}
         peer="wss://cloud.jazz.tools/?key=todo-example-jazz@garden.co"
       >
+        <PasskeyAuthBasicUI {...auth} />
         {children}
       </JazzProvider>
-      <PasskeyAuthBasicUI state={passKeyState} />
     </>
   );
 }

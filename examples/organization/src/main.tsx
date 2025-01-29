@@ -1,4 +1,4 @@
-import { DemoAuthBasicUI, JazzProvider, useDemoAuth } from "jazz-react";
+import { JazzProvider } from "jazz-react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
@@ -28,22 +28,13 @@ function Router() {
 }
 
 function JazzAndAuth({ children }: { children: React.ReactNode }) {
-  const [auth, authState] = useDemoAuth();
-
   return (
-    <>
-      <JazzProvider
-        AccountSchema={JazzAccount}
-        auth={auth}
-        peer="wss://cloud.jazz.tools/?key=organization-example@garden.co"
-      >
-        {children}
-      </JazzProvider>
-
-      {authState.state !== "signedIn" && (
-        <DemoAuthBasicUI appName="Organization" state={authState} />
-      )}
-    </>
+    <JazzProvider
+      AccountSchema={JazzAccount}
+      peer="wss://cloud.jazz.tools/?key=organization-example@garden.co"
+    >
+      {children}
+    </JazzProvider>
   );
 }
 

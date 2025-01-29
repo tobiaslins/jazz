@@ -11,7 +11,7 @@ import { useMemo, useState } from "react";
  *
  * @example
  * ```ts
- * const [auth, state] = usePasskeyAuth({ appName, appHostname });
+ * const auth = usePasskeyAuth({ appName, appHostname });
  * ```
  *
  * @category Auth Providers

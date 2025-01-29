@@ -6,21 +6,18 @@ import App from "./5_App.tsx";
 import "./index.css";
 
 function JazzAndAuth({ children }: { children: React.ReactNode }) {
-  const [auth, state] = usePasskeyAuth({
+  const auth = usePasskeyAuth({
     appName: "Jazz Password Manager",
   });
 
   return (
-    <>
-      <JazzProvider
-        AccountSchema={PasswordManagerAccount}
-        auth={auth}
-        peer="wss://cloud.jazz.tools/?key=password-manager-example-jazz@garden.co"
-      >
-        {children}
-      </JazzProvider>
-      <PasskeyAuthBasicUI state={state} />
-    </>
+    <JazzProvider
+      AccountSchema={PasswordManagerAccount}
+      peer="wss://cloud.jazz.tools/?key=password-manager-example-jazz@garden.co"
+    >
+      <PasskeyAuthBasicUI {...auth} />
+      {children}
+    </JazzProvider>
   );
 }
 
