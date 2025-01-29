@@ -73,7 +73,7 @@ export class Account extends CoValueBase implements CoValue {
     return this as Account;
   }
   get _loadedAs(): Account | AnonymousJazzAgent {
-    if (this.isMe) return this;
+    if (this.isLocalNodeOwner) return this;
 
     const rawAccount = this._raw.core.node.account;
 
@@ -120,7 +120,17 @@ export class Account extends CoValueBase implements CoValue {
     };
   }
 
-  isMe: boolean;
+  /**
+   * Whether this account is the currently active account.
+   */
+  get isMe() {
+    return activeAccountContext.get().id === this.id;
+  }
+
+  /**
+   * Whether this account is the owner of the local node.
+   */
+  isLocalNodeOwner: boolean;
   sessionID: SessionID | undefined;
 
   constructor(options: { fromRaw: RawAccount | RawControlledAccount }) {
@@ -128,7 +138,8 @@ export class Account extends CoValueBase implements CoValue {
     if (!("fromRaw" in options)) {
       throw new Error("Can only construct account from raw or with .create()");
     }
-    this.isMe = options.fromRaw.id == options.fromRaw.core.node.account.id;
+    this.isLocalNodeOwner =
+      options.fromRaw.id == options.fromRaw.core.node.account.id;
 
     Object.defineProperties(this, {
       id: {
@@ -139,7 +150,7 @@ export class Account extends CoValueBase implements CoValue {
       _type: { value: "Account", enumerable: false },
     });
 
-    if (this.isMe) {
+    if (this.isLocalNodeOwner) {
       this.sessionID = options.fromRaw.core.node.currentSessionID;
     }
 
@@ -147,7 +158,7 @@ export class Account extends CoValueBase implements CoValue {
   }
 
   myRole(): "admin" | undefined {
-    if (this.isMe) {
+    if (this.isLocalNodeOwner) {
       return "admin";
     }
   }
@@ -157,7 +168,7 @@ export class Account extends CoValueBase implements CoValue {
     inviteSecret: InviteSecret,
     coValueClass: CoValueClass<V>,
   ) {
-    if (!this.isMe) {
+    if (!this.isLocalNodeOwner) {
       throw new Error("Only a controlled account can accept invites");
     }
 
@@ -433,11 +444,11 @@ export const AccountAndGroupProxyHandler: ProxyHandler<Account | Group> = {
 
 /** @category Identity & Permissions */
 export function isControlledAccount(account: Account): account is Account & {
-  isMe: true;
+  isLocalNodeOwner: true;
   sessionID: SessionID;
   _raw: RawControlledAccount;
 } {
-  return account.isMe;
+  return account.isLocalNodeOwner;
 }
 
 export type AccountClass<Acc extends Account> = CoValueClass<Acc> & {
