@@ -1,8 +1,10 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
-  import { type PasskeyAuth } from './PasskeyAuth.svelte.js';
+  import { usePasskeyAuth } from './PasskeyAuth.svelte.js';
 
-  let { auth, children }: { auth: PasskeyAuth; children?: Snippet } = $props();
+  let { appName, children }: { appName: string; children?: Snippet } = $props();
+
+  const auth = usePasskeyAuth({ appName });
 
   let error = $state<string | undefined>(undefined);
 

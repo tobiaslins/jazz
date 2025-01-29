@@ -21,9 +21,5 @@ function getUserInfo() {
 }
 
 export function AuthAndJazz({ children }: { children: React.ReactNode }) {
-  return (
-    <JazzProvider peer={`${peer}?key=${key}`} localOnly="anonymous">
-      {children}
-    </JazzProvider>
-  );
+  return <JazzProvider peer={`${peer}?key=${key}`}>{children}</JazzProvider>;
 }

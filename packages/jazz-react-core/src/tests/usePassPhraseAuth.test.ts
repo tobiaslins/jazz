@@ -37,7 +37,6 @@ describe("usePassphraseAuth", () => {
     expect(result.current.state).toBe("anonymous");
     expect(typeof result.current.logIn).toBe("function");
     expect(typeof result.current.signUp).toBe("function");
-    expect(typeof result.current.generateRandomPassphrase).toBe("function");
     expect(typeof result.current.getCurrentUserPassphrase).toBe("function");
   });
 

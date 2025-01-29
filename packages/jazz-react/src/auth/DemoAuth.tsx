@@ -1,9 +1,12 @@
 import { useDemoAuth } from "jazz-react-core";
 import { useState } from "react";
 
-export const DemoAuthBasicUI = (
-  props: ReturnType<typeof useDemoAuth> & { appName: string },
-) => {
+export const DemoAuthBasicUI = (props: {
+  appName: string;
+  children?: React.ReactNode;
+}) => {
+  const auth = useDemoAuth();
+
   const [username, setUsername] = useState<string>("");
 
   const darkMode =
@@ -11,9 +14,9 @@ export const DemoAuthBasicUI = (
       ? window.matchMedia("(prefers-color-scheme: dark)").matches
       : false;
 
-  if (props.state === "signedIn") return null;
+  if (auth.state === "signedIn") return props.children ?? null;
 
-  const { signUp, logIn, existingUsers } = props;
+  const { signUp, logIn, existingUsers } = auth;
 
   return (
     <div

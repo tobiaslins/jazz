@@ -8,7 +8,7 @@ import { useIsAuthenticated } from "./useIsAuthenticated.js";
  *
  * @example
  * ```ts
- * const [auth, state] = usePassphraseAuth({ appName, appHostname, wordlist });
+ * const auth = usePassphraseAuth({ appName, appHostname, wordlist });
  * ```
  *
  * @category Auth Providers
@@ -35,7 +35,6 @@ export function usePassphraseAuth({
     state: isAuthenticated ? "signedIn" : "anonymous",
     logIn: authMethod.logIn,
     signUp: authMethod.signUp,
-    generateRandomPassphrase: authMethod.generateRandomPassphrase,
     getCurrentUserPassphrase: authMethod.getCurrentUserPassphrase,
   } as const;
 }

@@ -1,6 +1,5 @@
 import * as bip39 from "@scure/bip39";
 import { entropyToMnemonic } from "@scure/bip39";
-import { generateMnemonic } from "@scure/bip39";
 import { CryptoProvider, cojsonInternals } from "cojson";
 import { Account } from "../coValues/account.js";
 import type { ID } from "../internal.js";
@@ -74,13 +73,6 @@ export class PassphraseAuth {
     });
 
     return passphrase;
-  };
-
-  generateRandomPassphrase = () => {
-    return generateMnemonic(
-      this.wordlist,
-      cojsonInternals.secretSeedLength * 8,
-    );
   };
 
   getCurrentUserPassphrase = async () => {

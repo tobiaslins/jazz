@@ -48,8 +48,21 @@ describe("PassphraseAuth", () => {
 
   describe("logIn", () => {
     it("should successfully log in with valid passphrase", async () => {
+      const storageData = {
+        accountID: "test-account-id" as ID<Account>,
+        accountSecret: "test-secret" as AgentSecret,
+        secretSeed: new Uint8Array([
+          173, 58, 235, 40, 67, 188, 236, 11, 107, 237, 97, 23, 182, 49, 188,
+          63, 237, 52, 27, 84, 142, 66, 244, 149, 243, 114, 203, 164, 115, 239,
+          175, 194,
+        ]),
+        provider: "anonymous",
+      };
+
+      await authSecretStorage.set(storageData);
+
       // Generate a valid passphrase
-      const passphrase = passphraseAuth.generateRandomPassphrase();
+      const passphrase = await passphraseAuth.getCurrentUserPassphrase();
 
       await passphraseAuth.logIn(passphrase);
 
@@ -62,7 +75,7 @@ describe("PassphraseAuth", () => {
       expect(storedData).toEqual({
         accountID: expect.any(String),
         accountSecret: expect.any(String),
-        secretSeed: expect.any(Uint8Array),
+        secretSeed: storageData.secretSeed,
         provider: "passphrase",
       });
     });

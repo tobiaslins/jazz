@@ -8,10 +8,9 @@ import "./index.css";
 
 import {
   JazzProvider,
-  PasskeyAuthBasicUI,
+  PassphraseAuthBasicUI,
   useAcceptInvite,
   useAccount,
-  usePasskeyAuth,
 } from "jazz-react";
 
 import React from "react";
@@ -23,6 +22,7 @@ import {
   ThemeProvider,
   TitleAndLogo,
 } from "./basicComponents/index.ts";
+import { wordlist } from "./wordlist.ts";
 
 /**
  * Walkthrough: The top-level provider `<JazzProvider/>`
@@ -34,22 +34,18 @@ import {
  *
  * `<JazzProvider/>` also runs our account migration
  */
-
 const appName = "Jazz Todo List Example";
 
 function JazzAndAuth({ children }: { children: React.ReactNode }) {
-  const auth = usePasskeyAuth({ appName });
-
   return (
-    <>
-      <JazzProvider
-        AccountSchema={TodoAccount}
-        peer="wss://cloud.jazz.tools/?key=todo-example-jazz@garden.co"
-      >
-        <PasskeyAuthBasicUI {...auth} />
+    <JazzProvider
+      AccountSchema={TodoAccount}
+      peer="wss://cloud.jazz.tools/?key=todo-example-jazz@garden.co"
+    >
+      <PassphraseAuthBasicUI appName={appName} wordlist={wordlist}>
         {children}
-      </JazzProvider>
-    </>
+      </PassphraseAuthBasicUI>
+    </JazzProvider>
   );
 }
 
@@ -61,14 +57,14 @@ declare module "jazz-react" {
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ThemeProvider>
-      <TitleAndLogo name={appName} />
-      <div className="flex flex-col h-full items-center justify-start gap-10 pt-10 pb-10 px-5">
-        <JazzAndAuth>
+    <JazzAndAuth>
+      <ThemeProvider>
+        <TitleAndLogo name={appName} />
+        <div className="flex flex-col h-full items-center justify-start gap-10 pt-10 pb-10 px-5">
           <App />
-        </JazzAndAuth>
-      </div>
-    </ThemeProvider>
+        </div>
+      </ThemeProvider>
+    </JazzAndAuth>
   </React.StrictMode>,
 );
 
