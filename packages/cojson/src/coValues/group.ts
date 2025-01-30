@@ -383,8 +383,10 @@ export class RawGroup<
   }
 
   /** @internal */
-  rotateReadKey() {
-    const memberKeys = this.getMemberKeys();
+  rotateReadKey(removedMemberKey?: RawAccountID | AgentID | "everyone") {
+    const memberKeys = this.getMemberKeys().filter(
+      (key) => key !== removedMemberKey,
+    );
 
     const currentlyPermittedReaders = memberKeys.filter((key) => {
       const role = this.get(key);
@@ -522,7 +524,7 @@ export class RawGroup<
         continue;
       }
 
-      child.rotateReadKey();
+      child.rotateReadKey(removedMemberKey);
     }
   }
 
@@ -617,8 +619,9 @@ export class RawGroup<
     account: RawAccount | ControlledAccountOrAgent | AgentID | Everyone,
   ) {
     const memberKey = typeof account === "string" ? account : account.id;
+
+    this.rotateReadKey(memberKey);
     this.set(memberKey, "revoked", "trusting");
-    this.rotateReadKey();
   }
 
   /**
