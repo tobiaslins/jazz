@@ -7,19 +7,9 @@ import { PureJSCrypto } from "../crypto/PureJSCrypto.js";
 import { WasmCrypto } from "../crypto/WasmCrypto.js";
 import { SessionID } from "../ids.js";
 import { stableStringify } from "../jsonStringify.js";
-import { logger } from "../logger.js";
 
 const wasmCrypto = await WasmCrypto.create();
 const pureJSCrypto = await PureJSCrypto.create();
-
-// Spy on logger.error
-const originalError = logger.error;
-let lastErrorMessage = "";
-logger.error = function mockError(msg: string) {
-  lastErrorMessage = msg;
-  // Maintain the original logger's context
-  return originalError.call(this, msg);
-};
 
 [wasmCrypto, pureJSCrypto].forEach((crypto) => {
   const name = crypto.constructor.name;
