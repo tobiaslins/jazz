@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { usePasskeyAuth } from "jazz-react";
+import { useAccount, usePasskeyAuth } from "jazz-react";
 import { useState } from "react";
 
 interface AuthModalProps {
@@ -20,6 +20,14 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const [username, setUsername] = useState("");
   const [isSignUp, setIsSignUp] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const { me } = useAccount({
+    root: {
+      rootPlaylist: {
+        tracks: [{}],
+      },
+    },
+  });
 
   const auth = usePasskeyAuth({
     appName: "Jazz Music Player",
@@ -44,6 +52,10 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
       setError(error instanceof Error ? error.message : "Unknown error");
     }
   };
+
+  const shouldShowTransferRootPlaylist =
+    !isSignUp &&
+    me?.root.rootPlaylist.tracks.some((track) => !track.isExampleTrack);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -72,6 +84,13 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
             </div>
           )}
           {error && <div className="text-sm text-red-500">{error}</div>}
+          {shouldShowTransferRootPlaylist && (
+            <div className="text-sm text-red-500">
+              You have tracks in your root playlist that are not example tracks.
+              If you log in with a passkey, your playlists will be transferred
+              to your logged account.
+            </div>
+          )}
           <div className="space-y-4">
             <Button
               type="submit"

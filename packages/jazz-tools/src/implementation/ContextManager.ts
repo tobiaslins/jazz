@@ -1,4 +1,4 @@
-import { AgentSecret, LocalNode } from "cojson";
+import { AgentSecret, LocalNode, cojsonInternals } from "cojson";
 import { AuthSecretStorage } from "../auth/AuthSecretStorage.js";
 import { InMemoryKVStore } from "../auth/InMemoryKVStore.js";
 import { KvStore, KvStoreContext } from "../auth/KvStoreContext.js";
@@ -12,7 +12,8 @@ export type JazzContextManagerAuthProps = {
   newAccountProps?: { secret: AgentSecret; creationProps: { name: string } };
 };
 
-export type JazzContextManagerBaseProps = {
+export type JazzContextManagerBaseProps<Acc extends Account> = {
+  onAnonymousUserDiscarded?: (anonymousAccount: Acc) => Promise<void>;
   onLogOut?: () => void;
 };
 
@@ -36,12 +37,13 @@ type PlatformSpecificContext<Acc extends Account> =
 
 export class JazzContextManager<
   Acc extends Account,
-  P extends JazzContextManagerBaseProps,
+  P extends JazzContextManagerBaseProps<Acc>,
 > {
   protected value: JazzContextType<Acc> | undefined;
   protected context: PlatformSpecificContext<Acc> | undefined;
   protected props: P | undefined;
   protected authSecretStorage = new AuthSecretStorage();
+  protected authenticating = false;
 
   constructor() {
     KvStoreContext.getInstance().initialize(this.getKvStore());
@@ -58,7 +60,11 @@ export class JazzContextManager<
   }
 
   updateContext(props: P, context: PlatformSpecificContext<Acc>) {
-    this.context?.done();
+    // When authenticating we don't want to close the previous context
+    // because we might need to handle the onAnonymousUserDiscarded callback
+    if (!this.authenticating) {
+      this.context?.done();
+    }
 
     this.context = context;
     this.props = props;
@@ -66,7 +72,6 @@ export class JazzContextManager<
       ...context,
       node: context.node,
       authenticate: this.authenticate,
-      register: this.register,
       logOut: this.logOut,
     };
 
@@ -109,30 +114,51 @@ export class JazzContextManager<
       throw new Error("Props required");
     }
 
-    return this.createContext(this.props, { credentials });
-  };
+    const prevContext = this.context;
+    const prevCredentials = await this.authSecretStorage.get();
+    const wasAnonymous =
+      this.authSecretStorage.getIsAuthenticated(prevCredentials) === false;
 
-  register = async (
-    accountSecret: AgentSecret,
-    creationProps: { name: string },
-  ) => {
-    if (!this.props) {
-      throw new Error("Props required");
-    }
-
-    await this.createContext(this.props, {
-      newAccountProps: { secret: accountSecret, creationProps },
+    this.authenticating = true;
+    await this.createContext(this.props, { credentials }).finally(() => {
+      this.authenticating = false;
     });
 
-    if (!this.context) {
-      throw new Error("No context created");
+    const currentContext = this.context;
+
+    if (
+      prevContext &&
+      currentContext &&
+      "me" in prevContext &&
+      "me" in currentContext &&
+      wasAnonymous
+    ) {
+      // Using a direct connection to make coValue transfer almost synchronous
+      const [prevAccountAsPeer, currentAccountAsPeer] =
+        cojsonInternals.connectedPeers(
+          prevContext.me.id,
+          currentContext.me.id,
+          {
+            peer1role: "client",
+            peer2role: "server",
+          },
+        );
+
+      prevContext.node.syncManager.addPeer(currentAccountAsPeer);
+      currentContext.node.syncManager.addPeer(prevAccountAsPeer);
+
+      try {
+        await this.props.onAnonymousUserDiscarded?.(prevContext.me);
+        await prevContext.me.waitForAllCoValuesSync();
+      } catch (error) {
+        console.error("Error onAnonymousUserDiscarded", error);
+      }
+
+      prevAccountAsPeer.outgoing.close();
+      currentAccountAsPeer.outgoing.close();
     }
 
-    if ("me" in this.context) {
-      return this.context.me.id;
-    }
-
-    throw new Error("No account created");
+    prevContext?.done();
   };
 
   listeners = new Set<() => void>();

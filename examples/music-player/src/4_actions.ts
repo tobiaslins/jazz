@@ -22,7 +22,10 @@ import {
  * pattern that best fits your app.
  */
 
-export async function uploadMusicTracks(files: Iterable<File>) {
+export async function uploadMusicTracks(
+  files: Iterable<File>,
+  isExampleTrack: boolean = false,
+) {
   const me = await MusicaAccount.getMe().ensureLoaded({
     root: {
       rootPlaylist: {
@@ -52,6 +55,7 @@ export async function uploadMusicTracks(files: Iterable<File>) {
         duration: data.duration,
         waveform: MusicTrackWaveform.create({ data: data.waveform }, group),
         title: file.name,
+        isExampleTrack,
       },
       group,
     );
@@ -172,4 +176,40 @@ export async function updateActiveTrack(track: MusicTrack) {
   if (!me) return;
 
   me.root.activeTrack = track;
+}
+
+export async function onAnonymousUserDiscarded(
+  anonymousAccount: MusicaAccount,
+) {
+  const anonymousAccountWithPlaylist = await anonymousAccount.ensureLoaded({
+    root: {
+      rootPlaylist: {
+        tracks: [{}],
+      },
+    },
+  });
+
+  if (!anonymousAccountWithPlaylist)
+    throw new Error("Unable to load anonymous account with playlist");
+
+  const me = await MusicaAccount.getMe().ensureLoaded({
+    root: {
+      rootPlaylist: {
+        tracks: [],
+      },
+    },
+  });
+
+  if (!me) throw new Error("Me not resolved");
+
+  const rootPlaylist = anonymousAccountWithPlaylist.root.rootPlaylist;
+
+  for (const track of rootPlaylist.tracks) {
+    if (track.isExampleTrack) continue;
+
+    const trackGroup = track._owner.castAs(Group);
+    await trackGroup.addMember(me, "admin");
+
+    me.root.rootPlaylist.tracks.push(track);
+  }
 }

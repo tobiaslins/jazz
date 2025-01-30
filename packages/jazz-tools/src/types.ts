@@ -22,7 +22,6 @@ export type JazzAuthContext<Acc extends Account> = {
   me: Acc;
   node: LocalNode;
   authenticate: AuthenticateAccountFunction;
-  register: RegisterAccountFunction;
   logOut: () => void;
   done: () => void;
 };
@@ -31,7 +30,6 @@ export type JazzGuestContext = {
   guest: AnonymousJazzAgent;
   node: LocalNode;
   authenticate: AuthenticateAccountFunction;
-  register: RegisterAccountFunction;
   logOut: () => void;
   done: () => void;
 };

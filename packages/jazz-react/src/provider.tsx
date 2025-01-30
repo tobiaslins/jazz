@@ -25,17 +25,16 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
   AccountSchema,
   defaultProfileName,
   onLogOut,
+  onAnonymousUserDiscarded,
 }: JazzProviderProps<Acc>) {
   const [contextManager] = React.useState(
     () => new JazzBrowserContextManager<Acc>(),
   );
 
-  const onLogOutRef = React.useRef(onLogOut);
-  onLogOutRef.current = onLogOut;
-  // To keep the function reference stable while calling the latest version of onLogOut
-  const onLogOutRefCallback = useRef(() => {
-    onLogOutRef.current?.();
-  }).current;
+  const onLogOutRefCallback = useRefCallback(onLogOut);
+  const onAnonymousUserDiscardedRefCallback = useRefCallback(
+    onAnonymousUserDiscarded,
+  );
 
   const value = React.useSyncExternalStore<JazzContextType<Acc> | undefined>(
     React.useCallback(
@@ -47,6 +46,7 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
           storage,
           defaultProfileName,
           onLogOut: onLogOutRefCallback,
+          onAnonymousUserDiscarded: onAnonymousUserDiscardedRefCallback,
         };
         if (contextManager.propsChanged(props)) {
           contextManager.createContext(props).catch((error) => {
@@ -79,4 +79,12 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
       </JazzAuthContext.Provider>
     </JazzContext.Provider>
   );
+}
+
+function useRefCallback<T extends (...args: any[]) => any>(callback?: T) {
+  const callbackRef = React.useRef(callback);
+  callbackRef.current = callback;
+  return useRef(
+    (...args: Parameters<T>): ReturnType<T> => callbackRef.current?.(...args),
+  ).current;
 }

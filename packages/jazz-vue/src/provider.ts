@@ -46,6 +46,16 @@ export const JazzProvider = defineComponent({
       type: String,
       required: false,
     },
+    onAnonymousUserDiscarded: {
+      type: Function as PropType<
+        (anonymousAccount: RegisteredAccount) => Promise<void>
+      >,
+      required: false,
+    },
+    onLogOut: {
+      type: Function as PropType<() => void>,
+      required: false,
+    },
   },
   setup(props, { slots }) {
     const contextManager = new JazzBrowserContextManager<RegisteredAccount>();
@@ -69,6 +79,8 @@ export const JazzProvider = defineComponent({
             guestMode: props.guestMode,
             AccountSchema: props.AccountSchema,
             defaultProfileName: props.defaultProfileName,
+            onAnonymousUserDiscarded: props.onAnonymousUserDiscarded,
+            onLogOut: props.onLogOut,
           })
           .catch((error) => {
             console.error("Error creating Jazz browser context:", error);
