@@ -24,6 +24,10 @@ export function usePasskeyAuth({
   const authSecretStorage = useAuthSecretStorage();
   const isAuthenticated = useIsAuthenticated();
 
+  if ("guest" in context.value) {
+    throw new Error("Passkey auth is not supported in guest mode");
+  }
+
   const authMethod = computed(() => {
     return new BrowserPasskeyAuth(
       context.value.node.crypto,

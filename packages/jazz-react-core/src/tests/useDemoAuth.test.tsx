@@ -32,22 +32,17 @@ describe("useDemoAuth", () => {
     });
   });
 
-  it("should initialize with anonymous state when using guest account", async () => {
+  it("throws error when using guest account", async () => {
     const guestAccount = await createJazzTestGuest();
 
-    const { result } = renderHook(() => useDemoAuth(), {
-      account: guestAccount,
-    });
-
-    expect(result.current.state).toBe("anonymous");
-    expect(result.current.existingUsers).toEqual([]);
-    expect(typeof result.current.logIn).toBe("function");
-    expect(typeof result.current.signUp).toBe("function");
+    expect(() =>
+      renderHook(() => useDemoAuth(), {
+        account: guestAccount,
+      }),
+    ).toThrow();
   });
 
   it("should show signed in state with authenticated account", async () => {
-    const account = Account.getMe();
-
     const { result } = renderHook(() => useDemoAuth(), {
       isAuthenticated: true,
     });

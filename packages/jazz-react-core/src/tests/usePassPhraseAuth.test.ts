@@ -24,20 +24,14 @@ describe("usePassphraseAuth", () => {
     });
   });
 
-  it("should initialize with anonymous state when using guest account", async () => {
+  it("throws error when using guest account", async () => {
     const guestAccount = await createJazzTestGuest();
 
-    const { result } = renderHook(
-      () => usePassphraseAuth({ wordlist: testWordlist }),
-      {
+    expect(() =>
+      renderHook(() => usePassphraseAuth({ wordlist: testWordlist }), {
         account: guestAccount,
-      },
-    );
-
-    expect(result.current.state).toBe("anonymous");
-    expect(typeof result.current.logIn).toBe("function");
-    expect(typeof result.current.signUp).toBe("function");
-    expect(typeof result.current.getCurrentUserPassphrase).toBe("function");
+      }),
+    ).toThrow();
   });
 
   it("should show signed in state with authenticated account", async () => {

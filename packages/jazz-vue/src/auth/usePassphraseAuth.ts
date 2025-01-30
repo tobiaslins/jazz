@@ -22,6 +22,10 @@ export function usePassphraseAuth({
   const authSecretStorage = useAuthSecretStorage();
   const isAuthenticated = useIsAuthenticated();
 
+  if ("guest" in context.value) {
+    throw new Error("Passphrase auth is not supported in guest mode");
+  }
+
   const authMethod = computed(() => {
     return new PassphraseAuth(
       context.value.node.crypto,
