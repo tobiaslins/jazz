@@ -1,4 +1,3 @@
-import { base58 } from "@scure/base";
 import {
   blake3_digest_for_state,
   blake3_empty_state,
