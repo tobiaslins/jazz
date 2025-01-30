@@ -145,11 +145,11 @@ export function createWebSocketPeer({
 
   websocket.addEventListener("close", handleClose);
   websocket.addEventListener("error" as any, (err) => {
-    logger.warn(err.message);
-
-    if (err.message.includes("ECONNREFUSED")) {
-      websocket.close();
+    if (err.message) {
+      logger.warn(err.message);
     }
+
+    websocket.close();
   });
 
   const pingTimeout = createPingTimeoutListener(expectPings, () => {

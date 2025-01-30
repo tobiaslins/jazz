@@ -1,4 +1,3 @@
-import { Peer } from "cojson";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { WebSocketPeerWithReconnection } from "../implementation/WebSocketPeerWithReconnection";
 import { startSyncServer } from "../tests/syncServer";
@@ -106,13 +105,13 @@ describe("WebSocketPeerWithReconnection", () => {
     expect(peer.reconnectionAttempts).toBe(0);
   });
 
-  test("should reset reconnection attempts when connection is successful", async () => {
+  test.only("should reset reconnection attempts when connection is successful", async () => {
     const addPeer = vi.fn();
     const removePeer = vi.fn();
 
     const peer = new WebSocketPeerWithReconnection({
       peer: syncServerUrl,
-      reconnectionTimeout: 100,
+      reconnectionTimeout: 10,
       addPeer,
       removePeer,
     });

@@ -86,7 +86,6 @@ describe("WebSocket Peer Integration", () => {
 
     // Wait for sync
     await map.core.waitForSync();
-    console.log("synced");
 
     // Verify data reached the server
     const serverNode = server.localNode;
