@@ -46,13 +46,14 @@ export function unseal(
 ): Uint8Array;
 
 // Sign functions
-export function sign(message: Uint8Array, secret: Uint8Array): string;
+export function sign(message: Uint8Array, secret: Uint8Array): Uint8Array;
 export function verify(
   signature: Uint8Array,
   message: Uint8Array,
   id: Uint8Array,
 ): boolean;
-export function get_signer_id(secret: Uint8Array): string;
+export function get_signer_id(secret: Uint8Array): Uint8Array;
+export function get_sealer_id(secret: Uint8Array): Uint8Array;
 
 export class Blake3State {
   constructor();

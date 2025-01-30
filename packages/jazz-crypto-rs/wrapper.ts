@@ -11,7 +11,7 @@ if ("default" in wasmModule && typeof wasmModule.default === "function") {
 
 type Signature = `signature_z${string}`;
 type SignerID = `signer_z${string}`;
-type SignerSecret = `signerSecret_z${string}`;
+type SealerID = `sealer_z${string}`;
 
 // Handle both CommonJS and ES module exports
 interface WasmExports {
@@ -83,6 +83,7 @@ interface WasmExports {
     id: Uint8Array,
   ) => boolean;
   get_signer_id: (secret: Uint8Array) => SignerID;
+  get_sealer_id: (secret: Uint8Array) => SealerID;
 }
 
 const moduleExports = ("default" in wasmModule
@@ -113,6 +114,7 @@ export const {
   sign,
   verify,
   get_signer_id,
+  get_sealer_id,
 } = moduleExports;
 
 export class CryptoError extends Error {

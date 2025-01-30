@@ -9,6 +9,7 @@ import {
   ed25519_signing_key_from_bytes,
   ed25519_signing_key_to_public,
   encrypt_xsalsa20,
+  get_sealer_id,
   get_signer_id,
   new_ed25519_signing_key,
   new_x25519_private_key,
@@ -100,7 +101,7 @@ export class WasmCrypto extends CryptoProvider<Uint8Array> {
   }
 
   getSignerID(secret: SignerSecret): SignerID {
-    return get_signer_id(textEncoder.encode(secret)) as SignerID;
+    return get_signer_id(textEncoder.encode(secret));
   }
 
   sign(secret: SignerSecret, message: JsonValue): Signature {
@@ -123,11 +124,7 @@ export class WasmCrypto extends CryptoProvider<Uint8Array> {
   }
 
   getSealerID(secret: SealerSecret): SealerID {
-    const privateBytes = base58.decode(
-      secret.substring("sealerSecret_z".length),
-    );
-    const publicBytes = x25519_public_key(privateBytes);
-    return `sealer_z${base58.encode(publicBytes)}`;
+    return get_sealer_id(textEncoder.encode(secret));
   }
 
   encrypt<T extends JsonValue, N extends JsonValue>(
