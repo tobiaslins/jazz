@@ -105,7 +105,7 @@ describe("WebSocketPeerWithReconnection", () => {
     expect(peer.reconnectionAttempts).toBe(0);
   });
 
-  test.only("should reset reconnection attempts when connection is successful", async () => {
+  test("should reset reconnection attempts when connection is successful", async () => {
     const addPeer = vi.fn();
     const removePeer = vi.fn();
 
