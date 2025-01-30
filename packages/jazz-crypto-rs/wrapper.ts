@@ -9,6 +9,10 @@ if ("default" in wasmModule && typeof wasmModule.default === "function") {
   await wasmModule.default();
 }
 
+type Signature = `signature_z${string}`;
+type SignerID = `signer_z${string}`;
+type SignerSecret = `signerSecret_z${string}`;
+
 // Handle both CommonJS and ES module exports
 interface WasmExports {
   generate_nonce: (nonce_material: Uint8Array) => Uint8Array;
@@ -70,6 +74,15 @@ interface WasmExports {
     sender_public_key: Uint8Array,
     nonce_material: Uint8Array,
   ) => Uint8Array;
+
+  // Sign functions
+  sign: (message: Uint8Array, secret: Uint8Array) => Signature;
+  verify: (
+    signature: Uint8Array,
+    message: Uint8Array,
+    id: Uint8Array,
+  ) => boolean;
+  get_signer_id: (secret: Uint8Array) => SignerID;
 }
 
 const moduleExports = ("default" in wasmModule
@@ -97,6 +110,9 @@ export const {
   ed25519_verify,
   seal,
   unseal,
+  sign,
+  verify,
+  get_signer_id,
 } = moduleExports;
 
 export class CryptoError extends Error {

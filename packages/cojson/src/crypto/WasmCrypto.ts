@@ -6,17 +6,16 @@ import {
   blake3_hash_once_with_context,
   blake3_update_state,
   decrypt_xsalsa20,
-  ed25519_signature_from_bytes,
   ed25519_signing_key_from_bytes,
-  ed25519_signing_key_sign,
   ed25519_signing_key_to_public,
-  ed25519_verify,
-  ed25519_verifying_key_from_bytes,
   encrypt_xsalsa20,
+  get_signer_id,
   new_ed25519_signing_key,
   new_x25519_private_key,
   seal,
+  sign,
   unseal,
+  verify,
   x25519_public_key,
 } from "jazz-crypto-rs";
 import { base64URLtoBytes, bytesToBase64url } from "../base64url.js";
@@ -101,35 +100,21 @@ export class WasmCrypto extends CryptoProvider<Uint8Array> {
   }
 
   getSignerID(secret: SignerSecret): SignerID {
-    const signingKey = ed25519_signing_key_from_bytes(
-      base58.decode(secret.substring("signerSecret_z".length)),
-    );
-    const publicKey = ed25519_signing_key_to_public(signingKey);
-    return `signer_z${base58.encode(publicKey)}`;
+    return get_signer_id(textEncoder.encode(secret)) as SignerID;
   }
 
   sign(secret: SignerSecret, message: JsonValue): Signature {
-    const signingKey = ed25519_signing_key_from_bytes(
-      base58.decode(secret.substring("signerSecret_z".length)),
-    );
-    const signature = ed25519_signing_key_sign(
-      signingKey,
+    return sign(
       textEncoder.encode(stableStringify(message)),
+      textEncoder.encode(secret),
     );
-    return `signature_z${base58.encode(signature)}`;
   }
 
   verify(signature: Signature, message: JsonValue, id: SignerID): boolean {
-    const verifyingKey = ed25519_verifying_key_from_bytes(
-      base58.decode(id.substring("signer_z".length)),
-    );
-    const signatureBytes = ed25519_signature_from_bytes(
-      base58.decode(signature.substring("signature_z".length)),
-    );
-    return ed25519_verify(
-      verifyingKey,
+    return verify(
+      textEncoder.encode(signature),
       textEncoder.encode(stableStringify(message)),
-      signatureBytes,
+      textEncoder.encode(id),
     );
   }
 
@@ -154,17 +139,12 @@ export class WasmCrypto extends CryptoProvider<Uint8Array> {
       keySecret.substring("keySecret_z".length),
     );
     const plaintext = textEncoder.encode(stableStringify(value));
-    try {
-      const ciphertext = encrypt_xsalsa20(
-        keySecretBytes,
-        textEncoder.encode(stableStringify(nOnceMaterial)),
-        plaintext,
-      );
-      return `encrypted_U${bytesToBase64url(ciphertext)}` as Encrypted<T, N>;
-    } catch (e) {
-      logger.error("Failed to encrypt message: " + (e as Error)?.message);
-      throw e;
-    }
+    const ciphertext = encrypt_xsalsa20(
+      keySecretBytes,
+      textEncoder.encode(stableStringify(nOnceMaterial)),
+      plaintext,
+    );
+    return `encrypted_U${bytesToBase64url(ciphertext)}` as Encrypted<T, N>;
   }
 
   decryptRaw<T extends JsonValue, N extends JsonValue>(
@@ -179,17 +159,12 @@ export class WasmCrypto extends CryptoProvider<Uint8Array> {
     const ciphertext = base64URLtoBytes(
       encrypted.substring("encrypted_U".length),
     );
-    try {
-      const plaintext = decrypt_xsalsa20(
-        keySecretBytes,
-        textEncoder.encode(stableStringify(nOnceMaterial)),
-        ciphertext,
-      );
-      return textDecoder.decode(plaintext) as Stringified<T>;
-    } catch (e) {
-      logger.error("Failed to decrypt message: " + (e as Error)?.message);
-      throw e;
-    }
+    const plaintext = decrypt_xsalsa20(
+      keySecretBytes,
+      textEncoder.encode(stableStringify(nOnceMaterial)),
+      ciphertext,
+    );
+    return textDecoder.decode(plaintext) as Stringified<T>;
   }
 
   seal<T extends JsonValue>({

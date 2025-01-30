@@ -45,6 +45,15 @@ export function unseal(
   nonce_material: Uint8Array,
 ): Uint8Array;
 
+// Sign functions
+export function sign(message: Uint8Array, secret: Uint8Array): string;
+export function verify(
+  signature: Uint8Array,
+  message: Uint8Array,
+  id: Uint8Array,
+): boolean;
+export function get_signer_id(secret: Uint8Array): string;
+
 export class Blake3State {
   constructor();
   update(data: Uint8Array): void;
