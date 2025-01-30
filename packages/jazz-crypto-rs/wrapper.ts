@@ -84,6 +84,18 @@ interface WasmExports {
   ) => boolean;
   get_signer_id: (secret: Uint8Array) => SignerID;
   get_sealer_id: (secret: Uint8Array) => SealerID;
+
+  // Encrypt functions
+  encrypt: (
+    value: Uint8Array,
+    key_secret: string,
+    nonce_material: Uint8Array,
+  ) => Uint8Array;
+  decrypt: (
+    ciphertext: Uint8Array,
+    key_secret: string,
+    nonce_material: Uint8Array,
+  ) => Uint8Array;
 }
 
 const moduleExports = ("default" in wasmModule
@@ -115,6 +127,8 @@ export const {
   verify,
   get_signer_id,
   get_sealer_id,
+  encrypt,
+  decrypt,
 } = moduleExports;
 
 export class CryptoError extends Error {

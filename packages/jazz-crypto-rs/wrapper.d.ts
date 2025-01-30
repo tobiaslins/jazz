@@ -55,6 +55,18 @@ export function verify(
 export function get_signer_id(secret: Uint8Array): Uint8Array;
 export function get_sealer_id(secret: Uint8Array): Uint8Array;
 
+// Encrypt functions
+export function encrypt(
+  value: Uint8Array,
+  key_secret: Uint8Array,
+  nonce_material: Uint8Array,
+): Uint8Array;
+export function decrypt(
+  ciphertext: Uint8Array,
+  key_secret: Uint8Array,
+  nonce_material: Uint8Array,
+): Uint8Array;
+
 export class Blake3State {
   constructor();
   update(data: Uint8Array): void;

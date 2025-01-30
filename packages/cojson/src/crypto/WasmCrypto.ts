@@ -5,10 +5,8 @@ import {
   blake3_hash_once,
   blake3_hash_once_with_context,
   blake3_update_state,
-  decrypt_xsalsa20,
-  ed25519_signing_key_from_bytes,
-  ed25519_signing_key_to_public,
-  encrypt_xsalsa20,
+  decrypt,
+  encrypt,
   get_sealer_id,
   get_signer_id,
   new_ed25519_signing_key,
@@ -17,7 +15,6 @@ import {
   sign,
   unseal,
   verify,
-  x25519_public_key,
 } from "jazz-crypto-rs";
 import { base64URLtoBytes, bytesToBase64url } from "../base64url.js";
 import { RawCoID, TransactionID } from "../ids.js";
@@ -132,16 +129,13 @@ export class WasmCrypto extends CryptoProvider<Uint8Array> {
     keySecret: KeySecret,
     nOnceMaterial: N,
   ): Encrypted<T, N> {
-    const keySecretBytes = base58.decode(
-      keySecret.substring("keySecret_z".length),
-    );
-    const plaintext = textEncoder.encode(stableStringify(value));
-    const ciphertext = encrypt_xsalsa20(
-      keySecretBytes,
-      textEncoder.encode(stableStringify(nOnceMaterial)),
-      plaintext,
-    );
-    return `encrypted_U${bytesToBase64url(ciphertext)}` as Encrypted<T, N>;
+    return `encrypted_U${bytesToBase64url(
+      encrypt(
+        textEncoder.encode(stableStringify(value)),
+        keySecret,
+        textEncoder.encode(stableStringify(nOnceMaterial)),
+      ),
+    )}` as Encrypted<T, N>;
   }
 
   decryptRaw<T extends JsonValue, N extends JsonValue>(
@@ -149,19 +143,13 @@ export class WasmCrypto extends CryptoProvider<Uint8Array> {
     keySecret: KeySecret,
     nOnceMaterial: N,
   ): Stringified<T> {
-    const keySecretBytes = base58.decode(
-      keySecret.substring("keySecret_z".length),
-    );
-
-    const ciphertext = base64URLtoBytes(
-      encrypted.substring("encrypted_U".length),
-    );
-    const plaintext = decrypt_xsalsa20(
-      keySecretBytes,
-      textEncoder.encode(stableStringify(nOnceMaterial)),
-      ciphertext,
-    );
-    return textDecoder.decode(plaintext) as Stringified<T>;
+    return textDecoder.decode(
+      decrypt(
+        base64URLtoBytes(encrypted.substring("encrypted_U".length)),
+        keySecret,
+        textEncoder.encode(stableStringify(nOnceMaterial)),
+      ),
+    ) as Stringified<T>;
   }
 
   seal<T extends JsonValue>({
