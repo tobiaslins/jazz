@@ -43,6 +43,15 @@
   },
   "overrides": [
     {
+      "include": ["**/package.json"],
+      "linter": {
+        "enabled": false
+      },
+      "formatter": {
+        "enabled": false
+      }
+    },
+    {
       "include": ["packages/**/src/**"],
       "linter": {
         "enabled": true,
