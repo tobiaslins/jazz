@@ -1,6 +1,5 @@
 use crate::crypto::ed25519::{
     ed25519_sign_internal, ed25519_verify_internal, ed25519_verifying_key_internal,
-    new_ed25519_signing_key,
 };
 use bs58;
 use wasm_bindgen::prelude::*;
@@ -84,6 +83,7 @@ pub fn get_signer_id(secret: &[u8]) -> Result<String, JsError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::crypto::ed25519::new_ed25519_signing_key;
 
     #[test]
     fn test_sign_and_verify() {
