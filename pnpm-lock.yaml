@@ -1684,13 +1684,7 @@ importers:
       jazz-tools:
         specifier: workspace:0.9.21
         version: link:../jazz-tools
-      ws:
-        specifier: ^8.14.2
-        version: 8.18.0
     devDependencies:
-      '@types/ws':
-        specifier: 8.5.10
-        version: 8.5.10
       jazz-run:
         specifier: workspace:*
         version: link:../jazz-run
