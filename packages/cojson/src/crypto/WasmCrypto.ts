@@ -98,14 +98,14 @@ export class WasmCrypto extends CryptoProvider<Uint8Array> {
   }
 
   getSignerID(secret: SignerSecret): SignerID {
-    return get_signer_id(textEncoder.encode(secret));
+    return get_signer_id(textEncoder.encode(secret)) as SignerID;
   }
 
   sign(secret: SignerSecret, message: JsonValue): Signature {
     return sign(
       textEncoder.encode(stableStringify(message)),
       textEncoder.encode(secret),
-    );
+    ) as Signature;
   }
 
   verify(signature: Signature, message: JsonValue, id: SignerID): boolean {
@@ -121,7 +121,7 @@ export class WasmCrypto extends CryptoProvider<Uint8Array> {
   }
 
   getSealerID(secret: SealerSecret): SealerID {
-    return get_sealer_id(textEncoder.encode(secret));
+    return get_sealer_id(textEncoder.encode(secret)) as SealerID;
   }
 
   encrypt<T extends JsonValue, N extends JsonValue>(
@@ -163,14 +163,14 @@ export class WasmCrypto extends CryptoProvider<Uint8Array> {
     to: SealerID;
     nOnceMaterial: { in: RawCoID; tx: TransactionID };
   }): Sealed<T> {
-    const sealerPub = base58.decode(to.substring("sealer_z".length));
-    const senderPriv = base58.decode(from.substring("sealerSecret_z".length));
-    const plaintext = textEncoder.encode(stableStringify(message));
-    const nonceMaterial = textEncoder.encode(stableStringify(nOnceMaterial));
-
-    const sealedBytes = seal(plaintext, senderPriv, sealerPub, nonceMaterial);
-
-    return `sealed_U${bytesToBase64url(sealedBytes)}` as Sealed<T>;
+    return `sealed_U${bytesToBase64url(
+      seal(
+        textEncoder.encode(stableStringify(message)),
+        from,
+        to,
+        textEncoder.encode(stableStringify(nOnceMaterial)),
+      ),
+    )}` as Sealed<T>;
   }
 
   unseal<T extends JsonValue>(
@@ -179,31 +179,21 @@ export class WasmCrypto extends CryptoProvider<Uint8Array> {
     from: SealerID,
     nOnceMaterial: { in: RawCoID; tx: TransactionID },
   ): T | undefined {
-    const sealerPriv = base58.decode(sealer.substring("sealerSecret_z".length));
-    const senderPub = base58.decode(from.substring("sealer_z".length));
-    const sealedBytes = base64URLtoBytes(sealed.substring("sealed_U".length));
-    const nonceMaterial = textEncoder.encode(stableStringify(nOnceMaterial));
-
+    const plaintext = textDecoder.decode(
+      unseal(
+        base64URLtoBytes(sealed.substring("sealed_U".length)),
+        sealer,
+        from,
+        textEncoder.encode(stableStringify(nOnceMaterial)),
+      ),
+    );
     try {
-      const plaintext = unseal(
-        sealedBytes,
-        sealerPriv,
-        senderPub,
-        nonceMaterial,
-      );
-      try {
-        return JSON.parse(textDecoder.decode(plaintext));
-      } catch (e) {
-        logger.error(
-          "Failed to decrypt/parse sealed message: " + (e as Error)?.message,
-        );
-        return undefined;
-      }
+      return JSON.parse(plaintext) as T;
     } catch (e) {
       logger.error(
         "Failed to decrypt/parse sealed message: " + (e as Error)?.message,
       );
-      throw e;
+      return undefined;
     }
   }
 }
