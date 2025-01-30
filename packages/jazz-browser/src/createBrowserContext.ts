@@ -1,5 +1,6 @@
 import { LSMStorage, LocalNode, Peer, RawAccountID } from "cojson";
 import { IDBStorage } from "cojson-storage-indexeddb";
+import { WebSocketPeerWithReconnection } from "cojson-transport-ws";
 import {
   Account,
   AgentID,
@@ -14,7 +15,6 @@ import {
   SessionID,
   SyncConfig,
   WasmCrypto,
-  WebSocketPeerWithReconnection,
   cojsonInternals,
   createAnonymousJazzContext,
 } from "jazz-tools";

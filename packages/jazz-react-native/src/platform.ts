@@ -11,7 +11,6 @@ import {
   NewAccountProps,
   SessionID,
   SyncConfig,
-  WebSocketPeerWithReconnection,
   createInviteLink as baseCreateInviteLink,
   createAnonymousJazzContext,
   createJazzContext,
@@ -20,6 +19,7 @@ import {
 import NetInfo from "@react-native-community/netinfo";
 import { LocalNode, Peer, RawAccountID } from "cojson";
 
+import { WebSocketPeerWithReconnection } from "cojson-transport-ws";
 import { PureJSCrypto } from "cojson/native";
 import type { RNQuickCrypto } from "./crypto/RNQuickCrypto.js";
 import { ExpoSecureStoreAdapter } from "./storage/expo-secure-store-adapter.js";

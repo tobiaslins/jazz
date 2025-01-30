@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { WebSocketPeerWithReconnection } from "../implementation/WebSocketPeerWithReconnection";
-import { startSyncServer } from "../tests/syncServer";
+import { WebSocketPeerWithReconnection } from "../WebSocketPeerWithReconnection";
+import { startSyncServer } from "./syncServer";
 import { waitFor } from "./utils";
 
 describe("WebSocketPeerWithReconnection", () => {
