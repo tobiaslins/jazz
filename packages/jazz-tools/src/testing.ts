@@ -73,6 +73,7 @@ export function getPeerConnectedToTestSyncServer() {
 }
 
 const SecretSeedMap = new Map<string, Uint8Array>();
+let isMigrationActive = false;
 
 export async function createJazzTestAccount<Acc extends Account>(options?: {
   isCurrentActiveAccount?: boolean;
@@ -98,6 +99,14 @@ export async function createJazzTestAccount<Acc extends Account>(options?: {
     crypto,
     peersToLoadFrom: peers,
     migration: async (rawAccount, _node, creationProps) => {
+      if (isMigrationActive) {
+        throw new Error(
+          "It is not possible to create multiple accounts in parallel inside the test environment.",
+        );
+      }
+
+      isMigrationActive = true;
+
       const account = new AccountSchema({
         fromRaw: rawAccount,
       });
@@ -112,6 +121,8 @@ export async function createJazzTestAccount<Acc extends Account>(options?: {
       if (!options?.isCurrentActiveAccount) {
         activeAccountContext.set(prevActiveAccount);
       }
+
+      isMigrationActive = false;
     },
   });
 

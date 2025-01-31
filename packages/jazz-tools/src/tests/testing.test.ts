@@ -48,4 +48,27 @@ describe("Jazz Test Sync", () => {
 
     expect(account1.root?.value).toBe("ok");
   });
+
+  test("throws when running multiple migrations in parallel", async () => {
+    class CustomAccount extends Account {
+      async migrate() {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
+    }
+
+    const promise = Promise.all([
+      createJazzTestAccount({
+        AccountSchema: CustomAccount,
+        isCurrentActiveAccount: true,
+      }),
+      createJazzTestAccount({
+        AccountSchema: CustomAccount,
+        isCurrentActiveAccount: true,
+      }),
+    ]);
+
+    await expect(promise).rejects.toThrow(
+      "It is not possible to create multiple accounts in parallel inside the test environment.",
+    );
+  });
 });
