@@ -2,7 +2,7 @@ import { xsalsa20_poly1305 } from "@noble/ciphers/salsa";
 import { x25519 } from "@noble/curves/ed25519";
 import { blake3 } from "@noble/hashes/blake3";
 import { base58, base64url } from "@scure/base";
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import { PureJSCrypto } from "../crypto/PureJSCrypto.js";
 import { WasmCrypto } from "../crypto/WasmCrypto.js";
 import { SessionID } from "../ids.js";
@@ -192,6 +192,8 @@ const pureJSCrypto = await PureJSCrypto.create();
     const sender = crypto.newRandomSealer();
     const sealer = crypto.newRandomSealer();
 
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
     const nOnceMaterial = {
       in: "co_zTEST",
       tx: { sessionID: "co_zTEST_session_zTEST" as SessionID, txIndex: 0 },
@@ -222,6 +224,8 @@ const pureJSCrypto = await PureJSCrypto.create();
     );
 
     expect(result).toBeUndefined();
-    expect(lastErrorMessage).toMatch(/Failed to decrypt\/parse sealed message/);
+    expect(consoleSpy.mock.lastCall?.[0]).toContain(
+      "Failed to decrypt/parse sealed message",
+    );
   });
 });
