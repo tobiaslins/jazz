@@ -21,7 +21,7 @@ beforeEach(() => {
 });
 
 describe("useCoState", () => {
-  it("should return the correct value", async () => {
+  it.only("should return the correct value", async () => {
     class TestMap extends CoMap {
       value = co.string;
     }

@@ -1,35 +1,25 @@
 // @vitest-environment happy-dom
 
-import {
-  Account,
-  AuthSecretStorage,
-  InMemoryKVStore,
-  KvStoreContext,
-} from "jazz-tools";
-import { beforeEach, describe, expect, it } from "vitest";
+import { KvStoreContext } from "jazz-tools";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { useDemoAuth } from "../auth/DemoAuth";
-import { createJazzTestAccount, createJazzTestGuest } from "../testing";
+import {
+  createJazzTestAccount,
+  createJazzTestGuest,
+  setupJazzTestSync,
+} from "../testing";
 import { act, renderHook } from "./testUtils";
 
-KvStoreContext.getInstance().initialize(new InMemoryKVStore());
-
 describe("useDemoAuth", () => {
-  let authSecretStorage: AuthSecretStorage;
-
   beforeEach(async () => {
-    KvStoreContext.getInstance().getStorage().clearAll();
-    authSecretStorage = new AuthSecretStorage();
-
-    const account = await createJazzTestAccount({
+    await setupJazzTestSync();
+    await createJazzTestAccount({
       isCurrentActiveAccount: true,
     });
+  });
 
-    await authSecretStorage.set({
-      accountID: account.id,
-      secretSeed: new Uint8Array([1, 2, 3]),
-      accountSecret: "test-secret" as any,
-      provider: "anonymous",
-    });
+  afterEach(() => {
+    KvStoreContext.getInstance().getStorage().clearAll();
   });
 
   it("throws error when using guest account", async () => {

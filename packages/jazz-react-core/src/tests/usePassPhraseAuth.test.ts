@@ -1,28 +1,29 @@
 // @vitest-environment happy-dom
 
 import { mnemonicToEntropy } from "@scure/bip39";
-import {
-  Account,
-  AuthSecretStorage,
-  InMemoryKVStore,
-  KvStoreContext,
-} from "jazz-tools";
+import { AuthSecretStorage, KvStoreContext } from "jazz-tools";
 import { testWordlist } from "jazz-tools/src/tests/fixtures.js";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { usePassphraseAuth } from "../auth/PassphraseAuth";
-import { createJazzTestAccount, createJazzTestGuest } from "../testing";
+import {
+  createJazzTestAccount,
+  createJazzTestGuest,
+  setupJazzTestSync,
+} from "../testing";
 import { act, renderHook } from "./testUtils";
-
-KvStoreContext.getInstance().initialize(new InMemoryKVStore());
 
 describe("usePassphraseAuth", () => {
   beforeEach(async () => {
-    KvStoreContext.getInstance().getStorage().clearAll();
-
+    await setupJazzTestSync();
     await createJazzTestAccount({
       isCurrentActiveAccount: true,
     });
   });
+
+  afterEach(() => {
+    KvStoreContext.getInstance().getStorage().clearAll();
+  });
+
 
   it("throws error when using guest account", async () => {
     const guestAccount = await createJazzTestGuest();
@@ -89,7 +90,7 @@ describe("usePassphraseAuth", () => {
 
     expect(result.current.state).toBe("signedIn");
     expect(await authSecretStorage.get()).toMatchObject({
-      secretSeed: credentialsBefore?.secretSeed,
+      ...credentialsBefore,
       provider: "passphrase",
     });
   });
