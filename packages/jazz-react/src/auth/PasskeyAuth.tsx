@@ -26,6 +26,10 @@ export function usePasskeyAuth({
   const context = useJazzContext();
   const authSecretStorage = useAuthSecretStorage();
 
+  if ("guest" in context) {
+    throw new Error("Passkey auth is not supported in guest mode");
+  }
+
   const authMethod = useMemo(() => {
     return new BrowserPasskeyAuth(
       context.node.crypto,

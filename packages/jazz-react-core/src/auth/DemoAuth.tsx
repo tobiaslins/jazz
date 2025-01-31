@@ -17,6 +17,10 @@ export function useDemoAuth() {
   const context = useJazzContext();
   const authSecretStorage = useAuthSecretStorage();
 
+  if ("guest" in context) {
+    throw new Error("Demo auth is not supported in guest mode");
+  }
+
   const authMethod = useMemo(() => {
     return new DemoAuth(context.authenticate, authSecretStorage);
   }, []);

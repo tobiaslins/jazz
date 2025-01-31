@@ -24,9 +24,13 @@ export function usePasskeyAuth({
     appName,
     appHostname
   );
-  
+
+  if ("guest" in context.current) {
+    throw new Error("Passkey auth is not supported in guest mode");
+  }
+
   const isAuthenticated = useIsAuthenticated();
-  
+
   const state = $derived(isAuthenticated.value ? "signedIn" : "anonymous");
 
   return {
