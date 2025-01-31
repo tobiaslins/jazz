@@ -36,6 +36,8 @@ export class MusicTrack extends CoMap {
    */
   file = co.ref(FileStream);
   waveform = co.ref(MusicTrackWaveform);
+
+  isExampleTrack = co.optional.boolean;
 }
 
 export class MusicTrackWaveform extends CoMap {
@@ -87,27 +89,19 @@ export class MusicaAccount extends Account {
    */
   migrate() {
     if (this.root === undefined) {
-      const ownership = { owner: this };
+      const tracks = ListOfTracks.create([]);
+      const rootPlaylist = Playlist.create({
+        tracks,
+        title: "",
+      });
 
-      const tracks = ListOfTracks.create([], ownership);
-      const rootPlaylist = Playlist.create(
-        {
-          tracks,
-          title: "",
-        },
-        ownership,
-      );
-
-      this.root = MusicaAccountRoot.create(
-        {
-          rootPlaylist,
-          playlists: ListOfPlaylists.create([], ownership),
-          activeTrack: null,
-          activePlaylist: rootPlaylist,
-          exampleDataLoaded: false,
-        },
-        ownership,
-      );
+      this.root = MusicaAccountRoot.create({
+        rootPlaylist,
+        playlists: ListOfPlaylists.create([]),
+        activeTrack: null,
+        activePlaylist: rootPlaylist,
+        exampleDataLoaded: false,
+      });
     }
   }
 }

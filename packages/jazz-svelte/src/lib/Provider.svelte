@@ -33,7 +33,9 @@
           storage: props.storage,
           guestMode: props.guestMode,
           AccountSchema: props.AccountSchema,
-          defaultProfileName: props.defaultProfileName
+          defaultProfileName: props.defaultProfileName,
+          onAnonymousUserDiscarded: props.onAnonymousUserDiscarded,
+          onLogOut: props.onLogOut,
         })
         .catch((error) => {
           console.error('Error creating Jazz browser context:', error);

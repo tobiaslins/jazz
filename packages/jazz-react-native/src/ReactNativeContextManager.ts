@@ -19,6 +19,7 @@ export type JazzContextManagerProps<Acc extends Account> = {
   storage?: BaseReactNativeContextOptions["storage"];
   AccountSchema?: AccountClass<Acc>;
   defaultProfileName?: string;
+  onAnonymousUserDiscarded?: (anonymousAccount: Acc) => Promise<void>;
 };
 
 export class ReactNativeContextManager<

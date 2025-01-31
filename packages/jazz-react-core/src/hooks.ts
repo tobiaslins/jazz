@@ -72,8 +72,6 @@ export function useCoState<V extends CoValue, D>(
     () => observable.getCurrentValue(),
   );
 
-  console.log("value", value);
-
   return value;
 }
 

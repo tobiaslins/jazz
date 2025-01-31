@@ -25,7 +25,7 @@ async function uploadOnboardingData() {
   try {
     const trackFile = await (await fetch("/example.mp3")).blob();
 
-    await uploadMusicTracks([new File([trackFile], "Example song")]);
+    await uploadMusicTracks([new File([trackFile], "Example song")], true);
   } catch (error) {
     me.root.exampleDataLoaded = false;
     throw error;
