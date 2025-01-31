@@ -11,6 +11,7 @@ import { PlayerControls } from "./components/PlayerControls";
 import "./index.css";
 
 import { MusicaAccount } from "@/1_schema";
+import { apiKey } from "@/apiKey.ts";
 import { JazzProvider } from "jazz-react";
 import { onAnonymousUserDiscarded } from "./4_actions";
 import { useUploadExampleData } from "./lib/useUploadExampleData";
@@ -58,8 +59,7 @@ function Main() {
 const peer =
   (new URL(window.location.href).searchParams.get(
     "peer",
-  ) as `ws://${string}`) ??
-  "wss://cloud.jazz.tools/?key=music-player-example-jazz@garden.co";
+  ) as `ws://${string}`) ?? `wss://cloud.jazz.tools/?key=${apiKey}`;
 
 declare module "jazz-react" {
   interface Register {
