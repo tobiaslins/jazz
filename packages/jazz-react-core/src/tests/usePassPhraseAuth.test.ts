@@ -24,7 +24,6 @@ describe("usePassphraseAuth", () => {
     KvStoreContext.getInstance().getStorage().clearAll();
   });
 
-
   it("throws error when using guest account", async () => {
     const guestAccount = await createJazzTestGuest();
 
