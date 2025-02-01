@@ -1,0 +1,14 @@
+appId: com.jazz.chatrn
+---
+- copyTextFrom:
+   id: ${id}
+- repeat:
+    while:
+      true: ${maestro.copiedText.length > 0}
+      notVisible: "Paste"
+    commands:
+      - tapOn:
+          id: ${id}
+      - eraseText
+      - copyTextFrom:
+          id: ${id}

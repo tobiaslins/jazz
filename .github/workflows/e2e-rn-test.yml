@@ -1,0 +1,37 @@
+name: End-to-End Tests for React Native
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  e2e-tests:
+    runs-on: macos-latest
+
+    steps:
+      - name: Source
+        uses: ./.github/actions/source.yml
+
+      - name: iOS Simulator
+        uses: futureware-tech/simulator-action@v4
+        with:
+          os: ios
+
+      - name: install Maestro
+        run: |
+          curl -fsSL "https://get.maestro.mobile.dev" | bash
+
+      - name: chat-rn App Build
+        working-directory: ./examples/chat-rn-app
+        run: |
+          pnpm install
+          pnpm build
+          pnpm ios
+
+      - name: chat-rn App Test
+        working-directory: ./examples/chat-rn-app
+        run: |
+          maestro test test/e2e/flow.yml
