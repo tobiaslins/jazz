@@ -32,9 +32,9 @@ jobs:
           os: iOS
           wait_for_boot: true
 
-      # - name: Install Maestro
-      #   run: |
-      #     curl -fsSL "https://get.maestro.mobile.dev" | bash
+      - name: Install Maestro
+        run: |
+          curl -fsSL "https://get.maestro.mobile.dev" | bash
 
       - name: ${{ matrix.rnapp }} App Build
         working-directory: ./examples/${{ matrix.rnapp }}
