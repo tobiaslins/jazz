@@ -4,6 +4,7 @@ runs:
   using: "composite"
   steps:
     - name: Enable corepack
+      shell: bash
       run: corepack enable
 
     - name: Install Node.js
@@ -26,4 +27,5 @@ runs:
           ${{ runner.os }}-pnpm-store-
 
     - name: Install dependencies
+      shell: bash
       run: pnpm install --frozen-lockfile
