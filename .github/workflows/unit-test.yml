@@ -9,11 +9,16 @@ on:
 
 jobs:
   unit-tests:
-    runs-on: ubuntu-latest
-
+    runs-on: [self-hosted, macos-latest, ubuntu-latest]
     steps:
-      - name: Source
-        uses: ./.github/actions/source.yml
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Source Code
+        uses: ./.github/actions/source-code/
+
+      - name: Pnpm Build
+        run: pnpm turbo build --filter="./packages/*"
 
       - name: Install Playwright Browsers
         run: pnpm exec playwright install

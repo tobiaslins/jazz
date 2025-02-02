@@ -1,14 +1,20 @@
 appId: com.jazz.chatrn
 ---
 - launchApp
+
+# handle Expo screens
+- assertVisible: "Continue"
+- tapOn: "Continue"
+- assertVisible: "Reload"
+- tapOn: "Reload"
+
+# login
 - assertVisible: "Anonymous user"
 - runFlow:
     label: "Erase existing username"
     file: erase_text.yml
     env:
       id: "username-input"
-
-# login
 - inputText: "boorad"
 - assertVisible: "boorad"
 

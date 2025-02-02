@@ -12,17 +12,12 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
 
-      - name: Enable latestcorepack
-        run: |
-          echo "Before: corepack version => $(corepack --version || echo 'not installed')"
-          npm install -g corepack@latest
-          echo "After : corepack version => $(corepack --version)"
-          corepack enable
-          pnpm --version
+      - name: Enable corepack
+        run: corepack enable
 
       - name: Install Node.js
         uses: actions/setup-node@v3
@@ -42,7 +37,7 @@ jobs:
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
-      
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -53,4 +48,3 @@ jobs:
       - name: Run create account
         run: ./dist/index.js account create --name "Jazz Run CI test"
         working-directory: ./packages/jazz-run
-  

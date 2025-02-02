@@ -10,28 +10,40 @@ on:
 jobs:
   e2e-tests:
     runs-on: macos-latest
+    strategy:
+      matrix:
+        rnapp: [
+          "chat-rn",
+        ]
 
     steps:
-      - name: Source
-        uses: ./.github/actions/source.yml
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Source Code
+        uses: ./.github/actions/source-code/
+
+      - name: Pnpm Build
+        run: pnpm turbo build --filter="./packages/*"
 
       - name: iOS Simulator
         uses: futureware-tech/simulator-action@v4
         with:
-          os: ios
+          os: iOS
+          wait_for_boot: true
 
-      - name: install Maestro
-        run: |
-          curl -fsSL "https://get.maestro.mobile.dev" | bash
+      # - name: Install Maestro
+      #   run: |
+      #     curl -fsSL "https://get.maestro.mobile.dev" | bash
 
-      - name: chat-rn App Build
-        working-directory: ./examples/chat-rn-app
+      - name: ${{ matrix.rnapp }} App Build
+        working-directory: ./examples/${{ matrix.rnapp }}
         run: |
           pnpm install
           pnpm build
-          pnpm ios
+          pnpm ios &
 
-      - name: chat-rn App Test
-        working-directory: ./examples/chat-rn-app
+      - name: ${{ matrix.rnapp }} App Test
+        working-directory: ./examples/${{ matrix.rnapp }}
         run: |
           maestro test test/e2e/flow.yml
