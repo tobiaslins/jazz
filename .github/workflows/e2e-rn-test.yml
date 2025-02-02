@@ -32,16 +32,16 @@ jobs:
           os: iOS
           wait_for_boot: true
 
-      - name: Install Maestro
-        run: |
-          curl -fsSL "https://get.maestro.mobile.dev" | bash
-
       - name: ${{ matrix.rnapp }} App Build
         working-directory: ./examples/${{ matrix.rnapp }}
         run: |
           pnpm install
           pnpm build
           pnpm ios &
+
+      - name: Install Maestro
+        run: |
+          curl -fsSL "https://get.maestro.mobile.dev" | bash
 
       - name: ${{ matrix.rnapp }} App Test
         working-directory: ./examples/${{ matrix.rnapp }}
