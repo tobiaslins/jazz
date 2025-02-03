@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 
-import { CoMap, co, cojsonInternals } from "jazz-tools";
+import { CoMap, ID, co, cojsonInternals } from "jazz-tools";
 import { createJazzTestAccount, setupJazzTestSync } from "jazz-tools/testing";
 import { beforeEach, describe, expect, it } from "vitest";
 import { useCoState } from "../index.js";
@@ -139,13 +139,12 @@ describe("useCoState", () => {
       content = co.string;
     }
 
-    const account = await createJazzTestAccount();
+    await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+    });
 
-    const [result] = withJazzTestSetup(
-      () => useCoState(TestMap, "co_z123", {}),
-      {
-        account,
-      },
+    const [result] = withJazzTestSetup(() =>
+      useCoState(TestMap, "co_z123" as ID<TestMap>, {}),
     );
 
     expect(result.value).toBeUndefined();

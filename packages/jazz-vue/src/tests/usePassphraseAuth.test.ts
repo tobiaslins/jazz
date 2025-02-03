@@ -1,16 +1,12 @@
 // @vitest-environment happy-dom
 
 import { mnemonicToEntropy } from "@scure/bip39";
-import { AuthSecretStorage, KvStoreContext } from "jazz-tools";
-import { testWordlist } from "jazz-tools/src/tests/fixtures.js";
+import { AuthSecretStorage, CoMap, ID, KvStoreContext, co } from "jazz-tools";
+import { createJazzTestAccount, setupJazzTestSync } from "jazz-tools/testing";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { usePassphraseAuth } from "../auth/PassphraseAuth";
-import {
-  createJazzTestAccount,
-  createJazzTestGuest,
-  setupJazzTestSync,
-} from "../testing";
-import { act, renderHook } from "./testUtils";
+import { useCoState, usePassphraseAuth } from "../index.js";
+import { testWordlist } from "./fixtures.js";
+import { waitFor, withJazzTestSetup } from "./testUtils.js";
 
 describe("usePassphraseAuth", () => {
   beforeEach(async () => {
@@ -24,42 +20,39 @@ describe("usePassphraseAuth", () => {
     KvStoreContext.getInstance().getStorage().clearAll();
   });
 
-  it("throws error when using guest account", async () => {
-    const guestAccount = await createJazzTestGuest();
+  it("should show anonymous in state with non-authenticated account", async () => {
+    const [result] = withJazzTestSetup(
+      () => usePassphraseAuth({ wordlist: testWordlist }),
+      {
+        isAuthenticated: false,
+      },
+    );
 
-    expect(() =>
-      renderHook(() => usePassphraseAuth({ wordlist: testWordlist }), {
-        account: guestAccount,
-      }),
-    ).toThrow();
+    expect(result.value.state).toBe("anonymous");
   });
 
   it("should show signed in state with authenticated account", async () => {
-    const { result } = renderHook(
+    const [result] = withJazzTestSetup(
       () => usePassphraseAuth({ wordlist: testWordlist }),
       {
         isAuthenticated: true,
       },
     );
 
-    expect(result.current.state).toBe("signedIn");
+    expect(result.value.state).toBe("signedIn");
   });
 
   it("should sign up with the current credentials", async () => {
-    const { result } = renderHook(() =>
+    const [result] = withJazzTestSetup(() =>
       usePassphraseAuth({ wordlist: testWordlist }),
     );
 
     const authSecretStorage = new AuthSecretStorage();
     const credentialsBefore = await authSecretStorage.get();
 
-    let passphrase = "";
+    const passphrase = await result.value.signUp();
 
-    await act(async () => {
-      passphrase = await result.current.signUp();
-    });
-
-    expect(result.current.state).toBe("signedIn");
+    expect(result.value.state).toBe("signedIn");
     expect(await authSecretStorage.get()).toEqual({
       ...credentialsBefore,
       provider: "passphrase",
@@ -70,24 +63,18 @@ describe("usePassphraseAuth", () => {
   });
 
   it("should log in with the previous passphrase", async () => {
-    const { result } = renderHook(() =>
+    const [result] = withJazzTestSetup(() =>
       usePassphraseAuth({ wordlist: testWordlist }),
     );
 
     const authSecretStorage = new AuthSecretStorage();
     const credentialsBefore = await authSecretStorage.get();
 
-    let passphrase = "";
+    const passphrase = await result.value.signUp();
 
-    await act(async () => {
-      passphrase = await result.current.signUp();
-    });
+    await result.value.logIn(passphrase);
 
-    await act(async () => {
-      await result.current.logIn(passphrase);
-    });
-
-    expect(result.current.state).toBe("signedIn");
+    expect(result.value.state).toBe("signedIn");
     expect(await authSecretStorage.get()).toMatchObject({
       ...credentialsBefore,
       provider: "passphrase",

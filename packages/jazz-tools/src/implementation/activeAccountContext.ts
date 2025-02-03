@@ -4,7 +4,7 @@ class ActiveAccountContext {
   private activeAccount: Account | null = null;
   private guestMode: boolean = false;
 
-  set(account: Account) {
+  set(account: Account | null) {
     this.activeAccount = account;
     this.guestMode = false;
   }
@@ -12,6 +12,10 @@ class ActiveAccountContext {
   setGuestMode() {
     this.activeAccount = null;
     this.guestMode = true;
+  }
+
+  maybeGet() {
+    return this.activeAccount;
   }
 
   get() {

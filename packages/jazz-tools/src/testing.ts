@@ -3,18 +3,21 @@ import { cojsonInternals } from "cojson";
 import { PureJSCrypto } from "cojson/crypto";
 import {
   Account,
-  type AccountClass,
-  InMemoryKVStore,
-  KvStoreContext,
+  AccountClass,
+  JazzContextManagerAuthProps,
 } from "./exports.js";
+import {
+  JazzContextManager,
+  JazzContextManagerBaseProps,
+} from "./implementation/ContextManager.js";
 import { activeAccountContext } from "./implementation/activeAccountContext.js";
 import {
   type AnonymousJazzAgent,
   type CoValueClass,
-  ID,
   createAnonymousJazzContext,
+  createJazzContext,
+  randomSessionProvider,
 } from "./internal.js";
-import { JazzAuthContext, JazzGuestContext } from "./types.js";
 
 const syncServer: { current: LocalNode | null } = { current: null };
 
@@ -69,6 +72,9 @@ export function getPeerConnectedToTestSyncServer() {
   return bPeer;
 }
 
+const SecretSeedMap = new Map<string, Uint8Array>();
+let isMigrationActive = false;
+
 export async function createJazzTestAccount<Acc extends Account>(options?: {
   isCurrentActiveAccount?: boolean;
   AccountSchema?: CoValueClass<Acc>;
@@ -81,27 +87,47 @@ export async function createJazzTestAccount<Acc extends Account>(options?: {
     peers.push(getPeerConnectedToTestSyncServer());
   }
 
+  const crypto = await TestJSCrypto.create();
+  const secretSeed = crypto.newRandomSecretSeed();
+
   const { node } = await LocalNode.withNewlyCreatedAccount({
     creationProps: {
       name: "Test Account",
       ...options?.creationProps,
     },
-    crypto: await TestJSCrypto.create(),
+    initialAgentSecret: crypto.agentSecretFromSecretSeed(secretSeed),
+    crypto,
     peersToLoadFrom: peers,
     migration: async (rawAccount, _node, creationProps) => {
+      if (isMigrationActive) {
+        throw new Error(
+          "It is not possible to create multiple accounts in parallel inside the test environment.",
+        );
+      }
+
+      isMigrationActive = true;
+
       const account = new AccountSchema({
         fromRaw: rawAccount,
       });
 
-      if (options?.isCurrentActiveAccount) {
-        activeAccountContext.set(account);
-      }
+      // We need to set the account as current because the migration
+      // will probably rely on the global me
+      const prevActiveAccount = activeAccountContext.maybeGet();
+      activeAccountContext.set(account);
 
       await account.applyMigration?.(creationProps);
+
+      if (!options?.isCurrentActiveAccount) {
+        activeAccountContext.set(prevActiveAccount);
+      }
+
+      isMigrationActive = false;
     },
   });
 
   const account = AccountSchema.fromNode(node);
+  SecretSeedMap.set(account.id, secretSeed);
 
   if (options?.isCurrentActiveAccount) {
     activeAccountContext.set(account);
@@ -125,28 +151,120 @@ export async function createJazzTestGuest() {
   };
 }
 
-export function getJazzContextShape<Acc extends Account>(
-  account: Acc | { guest: AnonymousJazzAgent },
-) {
-  if ("guest" in account) {
-    return {
-      guest: account.guest,
-      node: account.guest.node,
-      authenticate: async () => {
-        throw new Error("Not implemented");
-      },
-      logOut: () => account.guest.node.gracefulShutdown(),
-      done: () => account.guest.node.gracefulShutdown(),
-    } satisfies JazzGuestContext;
+export type TestJazzContextManagerProps<Acc extends Account> =
+  JazzContextManagerBaseProps<Acc> & {
+    defaultProfileName?: string;
+    AccountSchema?: AccountClass<Acc>;
+    isAuthenticated?: boolean;
+  };
+
+export class TestJazzContextManager<
+  Acc extends Account,
+> extends JazzContextManager<Acc, TestJazzContextManagerProps<Acc>> {
+  static fromAccountOrGuest<Acc extends Account>(
+    account?: Acc | { guest: AnonymousJazzAgent },
+    props?: TestJazzContextManagerProps<Acc>,
+  ) {
+    if (account && "guest" in account) {
+      return this.fromGuest<Acc>(account, props);
+    }
+
+    return this.fromAccount<Acc>(account ?? (Account.getMe() as Acc), props);
   }
 
-  return {
-    me: account,
-    node: account._raw.core.node,
-    authenticate: async () => {},
-    logOut: () => account._raw.core.node.gracefulShutdown(),
-    done: () => account._raw.core.node.gracefulShutdown(),
-  } satisfies JazzAuthContext<Acc>;
+  static fromAccount<Acc extends Account>(
+    account: Acc,
+    props?: TestJazzContextManagerProps<Acc>,
+  ) {
+    const context = new TestJazzContextManager<Acc>();
+
+    const provider = props?.isAuthenticated ? "testProvider" : "anonymous";
+    const storage = context.getAuthSecretStorage();
+    const node = account._raw.core.node;
+
+    storage.set({
+      accountID: account.id,
+      accountSecret: node.account.agentSecret,
+      secretSeed: SecretSeedMap.get(account.id),
+      provider,
+    });
+    storage.isAuthenticated = Boolean(props?.isAuthenticated);
+
+    context.updateContext(
+      {
+        AccountSchema: account.constructor as AccountClass<Acc>,
+        ...props,
+      },
+      {
+        me: account,
+        node,
+        done: () => {
+          node.gracefulShutdown();
+        },
+        logOut: () => {
+          node.gracefulShutdown();
+        },
+      },
+    );
+
+    return context;
+  }
+
+  static fromGuest<Acc extends Account>(
+    { guest }: { guest: AnonymousJazzAgent },
+    props: TestJazzContextManagerProps<Acc> = {},
+  ) {
+    const context = new TestJazzContextManager<Acc>();
+    const node = guest.node;
+
+    context.updateContext(props, {
+      guest,
+      node,
+      done: () => {
+        node.gracefulShutdown();
+      },
+      logOut: () => {
+        node.gracefulShutdown();
+      },
+    });
+
+    return context;
+  }
+
+  async createContext(
+    props: TestJazzContextManagerProps<Acc>,
+    authProps?: JazzContextManagerAuthProps,
+  ) {
+    this.props = props;
+
+    if (!syncServer.current) {
+      throw new Error(
+        "You need to setup a test sync server with setupJazzTestSync to use the Auth functions",
+      );
+    }
+
+    const context = await createJazzContext<Acc>({
+      credentials: authProps?.credentials,
+      defaultProfileName: props.defaultProfileName,
+      newAccountProps: authProps?.newAccountProps,
+      peersToLoadFrom: [getPeerConnectedToTestSyncServer()],
+      crypto: await TestJSCrypto.create(),
+      sessionProvider: randomSessionProvider,
+      authSecretStorage: this.getAuthSecretStorage(),
+      AccountSchema: props.AccountSchema,
+    });
+
+    this.updateContext(props, {
+      me: context.account,
+      node: context.node,
+      done: () => {
+        context.done();
+      },
+      logOut: () => {
+        context.logOut();
+      },
+    });
+  }
 }
 
 export function linkAccounts(
