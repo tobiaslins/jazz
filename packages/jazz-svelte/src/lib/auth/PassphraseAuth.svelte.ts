@@ -1,4 +1,4 @@
-import { getAuthSecretStorage, getJazzContext } from "$lib/jazz.svelte.js";
+import { getAuthSecretStorage, getJazzContext } from "../jazz.svelte.js";
 import { useIsAuthenticated } from "./useIsAuthenticated.svelte.js";
 import { PassphraseAuth as PassphraseAuthProvider } from "jazz-tools";
 

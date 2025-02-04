@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { JazzProvider } from "$lib/jazz.svelte.js";
+  import { JazzProvider } from "../../jazz.svelte.js";
 
   const { guestMode } = $props();
 </script>

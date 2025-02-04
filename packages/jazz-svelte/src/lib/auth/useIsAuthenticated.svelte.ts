@@ -1,4 +1,4 @@
-import { getAuthSecretStorage } from "$lib/jazz.svelte.js";
+import { getAuthSecretStorage } from "../jazz.svelte.js";
 import { onDestroy } from "svelte";
 
 export function useIsAuthenticated() {
