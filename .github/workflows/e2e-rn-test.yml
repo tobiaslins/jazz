@@ -37,7 +37,17 @@ jobs:
         run: |
           pnpm install
           pnpm build
-          pnpm ios &
+          pnpm start &
+          cd ios
+          xcodebuild -scheme "jazzchatrn" \
+            -workspace jazzchatrn.xcworkspace \
+            -archivePath $RUNNER_TEMP/jazzchatrn.xcarchive \
+            -destination "id=${{ steps.ios-simulator.outputs.udid }}" \
+            -configuration Debug \
+            -sdk iphoneos \
+            build
+          xcrun simctl install booted build/Build/Products/Debug-iphonesimulator/jazzchatrn.app
+
 
       - name: Install Maestro
         run: |
