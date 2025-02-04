@@ -1,9 +1,8 @@
 import {
-  blake3_digest_for_state,
+  Blake3Hasher,
   blake3_empty_state,
   blake3_hash_once,
   blake3_hash_once_with_context,
-  blake3_update_state,
   decrypt,
   encrypt,
   get_sealer_id,
@@ -34,6 +33,8 @@ import {
   textEncoder,
 } from "./crypto.js";
 
+type Blake3State = Blake3Hasher;
+
 /**
  * WebAssembly implementation of the CryptoProvider interface using jazz-crypto-rs.
  * This provides the primary implementation using WebAssembly for optimal performance, offering:
@@ -42,7 +43,7 @@ import {
  * - Sealing/unsealing (X25519 + XSalsa20-Poly1305)
  * - Hashing (BLAKE3)
  */
-export class WasmCrypto extends CryptoProvider<Uint8Array> {
+export class WasmCrypto extends CryptoProvider<Blake3State> {
   private constructor() {
     super();
   }
@@ -65,12 +66,12 @@ export class WasmCrypto extends CryptoProvider<Uint8Array> {
     ]).then(() => new WasmCrypto());
   }
 
-  emptyBlake3State(): Uint8Array {
+  emptyBlake3State(): Blake3State {
     return blake3_empty_state();
   }
 
-  cloneBlake3State(state: Uint8Array): Uint8Array {
-    return new Uint8Array(state);
+  cloneBlake3State(state: Blake3State): Blake3State {
+    return state.clone();
   }
 
   blake3HashOnce(data: Uint8Array) {
@@ -84,12 +85,13 @@ export class WasmCrypto extends CryptoProvider<Uint8Array> {
     return blake3_hash_once_with_context(data, context);
   }
 
-  blake3IncrementalUpdate(state: Uint8Array, data: Uint8Array): Uint8Array {
-    return blake3_update_state(state, data);
+  blake3IncrementalUpdate(state: Blake3State, data: Uint8Array): Blake3State {
+    state.update(data);
+    return state;
   }
 
-  blake3DigestForState(state: Uint8Array): Uint8Array {
-    return blake3_digest_for_state(state);
+  blake3DigestForState(state: Blake3State): Uint8Array {
+    return state.finalize();
   }
 
   newEd25519SigningKey(): Uint8Array {
