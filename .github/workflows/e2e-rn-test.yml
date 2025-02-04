@@ -47,5 +47,5 @@ jobs:
         working-directory: ./examples/${{ matrix.rnapp }}
         run: |
           export PATH="$PATH":"$HOME/.maestro/bin"
-          export MAESTRO_DRIVER_STARTUP_TIMEOUT=60000 # setting 60 seconds
+          export MAESTRO_DRIVER_STARTUP_TIMEOUT=300000 # setting to 5 mins 👀
           maestro test test/e2e/flow.yml
