@@ -4,6 +4,7 @@ runs:
   using: "composite"
   steps:
     - name: Enable latest corepack
+      shell: bash
       run: |
         echo "Before: corepack version => $(corepack --version || echo 'not installed')"
         npm install -g corepack@latest
