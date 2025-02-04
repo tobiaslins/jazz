@@ -2,7 +2,7 @@
 
 import { $ } from "zx";
 
-const lsResult = await $`pnpm exec turbo ls --affected --output=json`;
+const lsResult = await $`pnpm exec turbo ls --output=json`;
 
 /**
  * @type {{ item: string; path: string }[]}
