@@ -1,5 +1,5 @@
 const Crypto = await WasmCrypto.create();
-import { connectedPeers } from "cojson/src/streamUtils.ts";
+import { cojsonInternals } from "cojson";
 import { describe, expect, expectTypeOf, test } from "vitest";
 import {
   Account,
@@ -15,6 +15,8 @@ import {
   isControlledAccount,
 } from "../index.web.js";
 import { randomSessionProvider } from "../internal.js";
+
+const { connectedPeers } = cojsonInternals;
 
 class TestMap extends CoMap {
   list = co.ref(TestList);
@@ -202,15 +204,14 @@ class CustomAccount extends Account {
       root: { list: [] },
     });
     expectTypeOf(thisLoaded).toEqualTypeOf<
-      | (CustomAccount & {
-          profile: CustomProfile & {
-            stream: TestStream;
-          };
-          root: TestMap & {
-            list: TestList;
-          };
-        })
-      | undefined
+      CustomAccount & {
+        profile: CustomProfile & {
+          stream: TestStream;
+        };
+        root: TestMap & {
+          list: TestList;
+        };
+      }
     >();
   }
 }
@@ -226,19 +227,16 @@ test("Deep loading within account", async () => {
     root: { list: [] },
   });
   expectTypeOf(meLoaded).toEqualTypeOf<
-    | (CustomAccount & {
-        profile: CustomProfile & {
-          stream: TestStream;
-        };
-        root: TestMap & {
-          list: TestList;
-        };
-      })
-    | undefined
+    CustomAccount & {
+      profile: CustomProfile & {
+        stream: TestStream;
+      };
+      root: TestMap & {
+        list: TestList;
+      };
+    }
   >();
-  if (meLoaded === undefined) {
-    throw new Error("meLoaded is undefined");
-  }
+
   expect(meLoaded.profile.stream).not.toBe(null);
   expect(meLoaded.root.list).not.toBe(null);
 });

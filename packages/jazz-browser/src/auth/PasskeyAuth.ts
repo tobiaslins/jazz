@@ -86,9 +86,7 @@ export class BrowserPasskeyAuth {
       profile: {},
     });
 
-    if (currentAccount) {
-      currentAccount.profile.name = username;
-    }
+    currentAccount.profile.name = username;
 
     await this.authSecretStorage.set({
       accountID: credentials.accountID,

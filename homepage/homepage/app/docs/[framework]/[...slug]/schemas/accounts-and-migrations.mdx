@@ -192,8 +192,6 @@ export class MyAppAccount extends Account {
         root: {},
       });
 
-      if (!result) throw new Error("Root missing!"); // this should never happen
-
       const { root } = result;
 
       // we specifically need to check for undefined, 

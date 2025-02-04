@@ -35,8 +35,6 @@ export async function uploadMusicTracks(
     },
   });
 
-  if (!me) return;
-
   for (const file of files) {
     // The ownership object defines the user that owns the created coValues
     // We are creating a group for each CoValue in order to be able to share them via Playlist
@@ -72,8 +70,6 @@ export async function createNewPlaylist() {
       playlists: [],
     },
   });
-
-  if (!me) throw new Error("Current playlist not resolved");
 
   // Since playlists are meant to be shared we associate them
   // to a group which will contain the keys required to get
@@ -163,8 +159,6 @@ export async function updateActivePlaylist(playlist?: Playlist) {
     },
   });
 
-  if (!me) return;
-
   me.root.activePlaylist = playlist ?? me.root.rootPlaylist;
 }
 
@@ -189,9 +183,6 @@ export async function onAnonymousUserDiscarded(
     },
   });
 
-  if (!anonymousAccountWithPlaylist)
-    throw new Error("Unable to load anonymous account with playlist");
-
   const me = await MusicaAccount.getMe().ensureLoaded({
     root: {
       rootPlaylist: {
@@ -199,8 +190,6 @@ export async function onAnonymousUserDiscarded(
       },
     },
   });
-
-  if (!me) throw new Error("Me not resolved");
 
   const rootPlaylist = anonymousAccountWithPlaylist.root.rootPlaylist;
 

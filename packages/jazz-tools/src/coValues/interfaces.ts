@@ -196,16 +196,22 @@ export function loadCoValue<V extends CoValue, Depth>(
   });
 }
 
-export function ensureCoValueLoaded<V extends CoValue, Depth>(
+export async function ensureCoValueLoaded<V extends CoValue, Depth>(
   existing: V,
   depth: Depth & DepthsIn<V>,
-): Promise<DeeplyLoaded<V, Depth> | undefined> {
-  return loadCoValue(
+): Promise<DeeplyLoaded<V, Depth>> {
+  const response = await loadCoValue(
     existing.constructor as CoValueClass<V>,
     existing.id,
     existing._loadedAs,
     depth,
   );
+
+  if (!response) {
+    throw new Error("Failed to deeply load CoValue " + existing.id);
+  }
+
+  return response;
 }
 
 export function subscribeToCoValueWithoutMe<V extends CoValue, Depth>(
