@@ -46,4 +46,6 @@ jobs:
       - name: ${{ matrix.rnapp }} App Test
         working-directory: ./examples/${{ matrix.rnapp }}
         run: |
-          $HOME/.maestro/bin/maestro test test/e2e/flow.yml
+          export PATH="$PATH":"$HOME/.maestro/bin"
+          export MAESTRO_DRIVER_STARTUP_TIMEOUT=60000 # setting 60 seconds
+          maestro test test/e2e/flow.yml
