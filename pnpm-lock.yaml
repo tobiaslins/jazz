@@ -1525,9 +1525,6 @@ importers:
       '@vitest/browser':
         specifier: ^3.0.5
         version: 3.0.5(@types/node@22.10.2)(playwright@1.50.1)(typescript@5.6.3)(vite@6.0.11(@types/node@22.10.2)(jiti@1.21.7)(lightningcss@1.28.2)(terser@5.37.0)(yaml@2.6.1))(vitest@3.0.5)(webdriverio@8.41.0)
-      fake-indexeddb:
-        specifier: ^6.0.0
-        version: 6.0.0
       typescript:
         specifier: ~5.6.2
         version: 5.6.3
