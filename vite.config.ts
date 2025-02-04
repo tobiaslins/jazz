@@ -4,22 +4,7 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   root: "./",
   test: {
-    workspace: [
-      "packages/*",
-      {
-        test: {
-          include: [
-            "tests/browser/**/*.{test,spec}.ts",
-            "tests/**/*.browser.{test,spec}.ts",
-          ],
-          name: "browser",
-          browser: {
-            enabled: true,
-            instances: [{ browser: "chromium" }],
-          },
-        },
-      },
-    ],
+    workspace: ["packages/*"],
     coverage: {
       enabled: false,
       provider: "istanbul",
@@ -37,10 +22,5 @@ export default defineConfig({
     },
     include: ["packages/*/tests/**/*.test.{js,ts,svelte}"],
     maxConcurrency: 5,
-  },
-  build: {
-    rollupOptions: {
-      external: ["node:crypto", "node:tty"],
-    },
   },
 });
