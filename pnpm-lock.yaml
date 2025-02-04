@@ -1478,8 +1478,8 @@ importers:
         specifier: 1.2.1
         version: 1.2.1
       jazz-crypto-rs:
-        specifier: 0.0.1-rc.5
-        version: 0.0.1-rc.5
+        specifier: 0.0.2
+        version: 0.0.2
       neverthrow:
         specifier: ^7.0.1
         version: 7.2.0
@@ -7914,8 +7914,8 @@ packages:
   jackspeak@3.4.3:
     resolution: {integrity: sha512-OGlZQpz2yfahA/Rd1Y8Cd9SIEsqvXkLVoSw/cgwhnhFMDbsQFeZYoJJ7bIZBS9BcamUW96asq/npPWugM+RQBw==}
 
-  jazz-crypto-rs@0.0.1-rc.5:
-    resolution: {integrity: sha512-iTjM6ewK+cQfBUF3Z+Uj4A8jRI1wcVtztOwTB/85eqk2u+Caxc7pUQeDyqyDHAlC/V0ecI+lrvIX7dm2ZSHsnA==}
+  jazz-crypto-rs@0.0.2:
+    resolution: {integrity: sha512-hMSHVE7y7oFx+AvX/QmtVjOzolQki7QScp0oNnKOM/EC6H9vuD4jwz1kGAiPMb7NxLeP9l5HBsl8qwdwgjfpYg==}
 
   jest-changed-files@29.7.0:
     resolution: {integrity: sha512-fEArFiwf1BpQ+4bXSprcDc3/x4HSzL4al2tozwVpDFpsxALjLYdyiIK4e5Vz66GQJIbXJ82+35PtysofptNX2w==}
@@ -18242,7 +18242,7 @@ snapshots:
     optionalDependencies:
       '@pkgjs/parseargs': 0.11.0
 
-  jazz-crypto-rs@0.0.1-rc.5: {}
+  jazz-crypto-rs@0.0.2: {}
 
   jest-changed-files@29.7.0:
     dependencies:
