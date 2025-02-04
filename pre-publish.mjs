@@ -15,4 +15,6 @@ const packagesToPublish = packages
   .map((path) => `"./${path}"`)
   .join(" ");
 
+console.log(`Publishing ${packagesToPublish}`);
+
 await $`pnpm exec pkg-pr-new publish ${packagesToPublish}`;
