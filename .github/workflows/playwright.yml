@@ -20,13 +20,13 @@ jobs:
         with:
           submodules: true
 
-    - name: Enable latestcorepack
-      run: |
-        echo "Before: corepack version => $(corepack --version || echo 'not installed')"
-        npm install -g corepack@latest
-        echo "After : corepack version => $(corepack --version)"
-        corepack enable
-        pnpm --version
+      - name: Enable latestcorepack
+        run: |
+          echo "Before: corepack version => $(corepack --version || echo 'not installed')"
+          npm install -g corepack@latest
+          echo "After : corepack version => $(corepack --version)"
+          corepack enable
+          pnpm --version
 
       - name: Install Node.js
         uses: actions/setup-node@v3
