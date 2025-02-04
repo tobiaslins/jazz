@@ -46,4 +46,4 @@ jobs:
       - name: ${{ matrix.rnapp }} App Test
         working-directory: ./examples/${{ matrix.rnapp }}
         run: |
-          maestro test test/e2e/flow.yml
+          $HOME/.maestro/bin/maestro test test/e2e/flow.yml
