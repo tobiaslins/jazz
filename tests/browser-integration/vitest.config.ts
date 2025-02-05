@@ -10,6 +10,5 @@ export default defineProject({
       instances: [{ browser: "chromium", headless: true }],
       commands: customCommands,
     },
-    setupFiles: ["./src/setup.ts"],
   },
 });

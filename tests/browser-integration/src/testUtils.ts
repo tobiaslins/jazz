@@ -1,8 +1,10 @@
+import { commands } from "@vitest/browser/context";
 import {
   JazzBrowserContextManager,
   JazzContextManagerProps,
 } from "jazz-browser";
 import { Account, JazzContextManagerAuthProps } from "jazz-tools";
+import { onTestFinished } from "vitest";
 
 export function waitFor(callback: () => boolean | void) {
   return new Promise<void>((resolve, reject) => {
@@ -32,10 +34,6 @@ export function waitFor(callback: () => boolean | void) {
   });
 }
 
-export function getSyncServerUrl() {
-  return globalThis.SYNC_SERVER_URL;
-}
-
 export async function createAccountContext<Acc extends Account>(
   props: JazzContextManagerProps<Acc>,
   authProps?: JazzContextManagerAuthProps,
@@ -50,5 +48,19 @@ export async function createAccountContext<Acc extends Account>(
     throw new Error("Account not found");
   }
 
+  onTestFinished(async () => {
+    contextManager.done();
+  });
+
   return { context: value, account: value.me, contextManager };
+}
+
+export async function startSyncServer() {
+  const { url } = await commands.startSyncServer();
+
+  return {
+    url,
+    disconnectAllClients: () => commands.disconnectAllClients(url),
+    setOffline: (active: boolean) => commands.setOffline(url, active),
+  };
 }

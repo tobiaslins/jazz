@@ -75,6 +75,8 @@ export class WebSocketPeerWithReconnection {
       role: "server",
       onClose: this.startConnection,
       onSuccess: () => {
+        logger.debug("Websocket connection successful");
+
         this.reconnectionAttempts = 0;
       },
     });

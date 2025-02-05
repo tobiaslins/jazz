@@ -1,26 +1,45 @@
 /// <reference types="@vitest/browser/providers/playwright" />
 
-import { startSyncServer } from "jazz-run/startSyncServer";
 import type { BrowserCommand } from "vitest/node";
+import { TestSyncServer, startSyncServer } from "./syncServer";
 
-let lastSyncServerUrl: `ws://localhost:${number}` = `ws://localhost:0`;
+const syncServers = new Map<string, TestSyncServer>();
 
 const startSyncServerCommand: BrowserCommand<
   [arg1: string, arg2: string]
 > = async () => {
-  const server = await startSyncServer({
-    port: "0",
-    inMemory: true,
-    db: "sqlite",
-  });
+  const syncServer = await startSyncServer(0);
 
-  const port = (server.address() as { port: number }).port;
-
-  lastSyncServerUrl = `ws://localhost:${port}`;
+  syncServers.set(syncServer.url, syncServer);
 
   return {
-    url: `ws://localhost:${port}`,
+    url: syncServer.url,
   };
+};
+
+const disconnectAllClientsCommand: BrowserCommand<[url: string]> = async (
+  ctx,
+  url,
+) => {
+  const syncServer = syncServers.get(url);
+
+  if (!syncServer) {
+    throw new Error(`Sync server not found for url: ${url}`);
+  }
+
+  syncServer.disconnectAllClients();
+};
+
+const setOfflineCommand: BrowserCommand<
+  [url: string, active: boolean]
+> = async (ctx, url, active) => {
+  const syncServer = syncServers.get(url);
+
+  if (!syncServer) {
+    throw new Error(`Sync server not found for url: ${url}`);
+  }
+
+  syncServer.setActive(active);
 };
 
 declare module "@vitest/browser/context" {
@@ -28,9 +47,13 @@ declare module "@vitest/browser/context" {
     startSyncServer: () => Promise<{
       url: `ws://localhost:${number}`;
     }>;
+    disconnectAllClients: (url: string) => Promise<void>;
+    setOffline: (url: string, active: boolean) => Promise<void>;
   }
 }
 
 export const customCommands = {
   startSyncServer: startSyncServerCommand,
+  disconnectAllClients: disconnectAllClientsCommand,
+  setOffline: setOfflineCommand,
 };

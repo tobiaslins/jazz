@@ -2178,9 +2178,6 @@ importers:
       jazz-browser:
         specifier: workspace:*
         version: link:../../packages/jazz-browser
-      jazz-run:
-        specifier: workspace:*
-        version: link:../../packages/jazz-run
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools
