@@ -10,5 +10,6 @@ export default defineProject({
       instances: [{ browser: "chromium", headless: true }],
       commands: customCommands,
     },
+    testTimeout: process.env.CI ? 60_000 : 10_000,
   },
 });
