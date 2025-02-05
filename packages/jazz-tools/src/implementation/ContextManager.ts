@@ -20,14 +20,14 @@ export type JazzContextManagerBaseProps<Acc extends Account> = {
 type PlatformSpecificAuthContext<Acc extends Account> = {
   me: Acc;
   node: LocalNode;
-  logOut: () => void;
+  logOut: () => Promise<void>;
   done: () => void;
 };
 
 type PlatformSpecificGuestContext = {
   guest: AnonymousJazzAgent;
   node: LocalNode;
-  logOut: () => void;
+  logOut: () => Promise<void>;
   done: () => void;
 };
 
@@ -91,12 +91,12 @@ export class JazzContextManager<
     return this.authSecretStorage;
   }
 
-  logOut = () => {
+  logOut = async () => {
     if (!this.context || !this.props) {
       return;
     }
 
-    this.context.logOut();
+    await this.context.logOut();
     this.props.onLogOut?.();
     return this.createContext(this.props);
   };

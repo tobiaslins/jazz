@@ -22,7 +22,7 @@ export type JazzAuthContext<Acc extends Account> = {
   me: Acc;
   node: LocalNode;
   authenticate: AuthenticateAccountFunction;
-  logOut: () => void;
+  logOut: () => Promise<void>;
   done: () => void;
 };
 

@@ -201,7 +201,7 @@ export class TestJazzContextManager<
         done: () => {
           node.gracefulShutdown();
         },
-        logOut: () => {
+        logOut: async () => {
           node.gracefulShutdown();
         },
       },
@@ -223,7 +223,7 @@ export class TestJazzContextManager<
       done: () => {
         node.gracefulShutdown();
       },
-      logOut: () => {
+      logOut: async () => {
         node.gracefulShutdown();
       },
     });
@@ -261,7 +261,7 @@ export class TestJazzContextManager<
         context.done();
       },
       logOut: () => {
-        context.logOut();
+        return context.logOut();
       },
     });
   }
