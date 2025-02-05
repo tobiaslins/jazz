@@ -1,4 +1,4 @@
-type StorageOption = "indexedDB" | "singleTabOPFS";
+type StorageOption = "indexedDB" | "singleTabOPFS" | "disabled";
 type CombinedStorageOption = ["singleTabOPFS", "indexedDB"];
 export type StorageConfig =
   | StorageOption
@@ -17,7 +17,7 @@ export function getStorageOptions(storage?: StorageConfig): {
     !storage ||
     (Array.isArray(storage) && storage.includes("indexedDB")) ||
     storage === "indexedDB" ||
-    !useSingleTabOPFS;
+    (!useSingleTabOPFS && storage !== "disabled");
 
   return { useSingleTabOPFS, useIndexedDB };
 }
