@@ -243,7 +243,7 @@ export class Group extends CoValueBase implements CoValue {
   ensureLoaded<G extends Group, Depth>(
     this: G,
     depth: Depth & DepthsIn<G>,
-  ): Promise<DeeplyLoaded<G, Depth> | undefined> {
+  ): Promise<DeeplyLoaded<G, Depth>> {
     return ensureCoValueLoaded(this, depth);
   }
 

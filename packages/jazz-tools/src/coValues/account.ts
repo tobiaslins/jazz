@@ -344,7 +344,7 @@ export class Account extends CoValueBase implements CoValue {
   ensureLoaded<A extends Account, Depth>(
     this: A,
     depth: Depth & DepthsIn<A>,
-  ): Promise<DeeplyLoaded<A, Depth> | undefined> {
+  ): Promise<DeeplyLoaded<A, Depth>> {
     return ensureCoValueLoaded(this, depth);
   }
 

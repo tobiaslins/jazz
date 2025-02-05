@@ -83,7 +83,7 @@ describe("JazzClerkAuth", () => {
       const me = await Account.getMe().ensureLoaded({
         profile: {},
       });
-      expect(me?.profile.name).toBe("Guido");
+      expect(me.profile.name).toBe("Guido");
     });
 
     it("should call logIn for existing users", async () => {

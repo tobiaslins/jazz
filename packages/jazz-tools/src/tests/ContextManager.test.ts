@@ -220,11 +220,8 @@ describe("ContextManager", () => {
       const anonymousAccountWithRoot = await anonymousAccount.ensureLoaded({
         root: {},
       });
-      if (!anonymousAccountWithRoot)
-        throw new Error("Anonymous account with root not found");
 
       const meWithRoot = await CustomAccount.getMe().ensureLoaded({ root: {} });
-      if (!meWithRoot) throw new Error("Me not found");
 
       const rootToTransfer = anonymousAccountWithRoot.root;
 
@@ -253,7 +250,6 @@ describe("ContextManager", () => {
     });
 
     const me = await CustomAccount.getMe().ensureLoaded({ root: {} });
-    if (!me) throw new Error("Me not found");
 
     expect(me.root.transferredRoot?.value).toBe("Hello");
   });

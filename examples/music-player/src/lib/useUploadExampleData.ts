@@ -16,8 +16,6 @@ async function uploadOnboardingData() {
     root: {},
   });
 
-  if (!me) throw new Error("Me not resolved");
-
   if (me.root.exampleDataLoaded) return;
 
   me.root.exampleDataLoaded = true;

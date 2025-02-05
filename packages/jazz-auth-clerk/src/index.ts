@@ -92,7 +92,7 @@ export class JazzClerkAuth {
 
     const username = getClerkUsername(clerkClient);
 
-    if (username && currentAccount) {
+    if (username) {
       currentAccount.profile.name = username;
     }
 
