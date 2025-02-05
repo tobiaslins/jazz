@@ -1,5 +1,10 @@
 /// <reference types="@vitest/browser/providers/playwright" />
 
+/**
+ * Vitest commands that we can run on the server side to generate chaos and spawn sync servers
+ * https://vitest.dev/guide/browser/commands.html
+ */
+
 import type { BrowserCommand } from "vitest/node";
 import { TestSyncServer, startSyncServer } from "./syncServer";
 
