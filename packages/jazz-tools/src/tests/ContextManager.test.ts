@@ -153,12 +153,12 @@ describe("ContextManager", () => {
     expect(manager.getCurrentValue()).toBe(context);
   });
 
-  test("calls onAnonymousUserDiscarded when authenticating from anonymous user", async () => {
-    const onAnonymousUserDiscarded = vi.fn();
+  test("calls onAnonymousAccountDiscarded when authenticating from anonymous user", async () => {
+    const onAnonymousAccountDiscarded = vi.fn();
     const account = await createJazzTestAccount();
 
     // Create initial anonymous context
-    await manager.createContext({ onAnonymousUserDiscarded });
+    await manager.createContext({ onAnonymousAccountDiscarded });
     const anonymousAccount = getCurrentValue().me;
 
     // Authenticate with credentials
@@ -169,11 +169,11 @@ describe("ContextManager", () => {
     });
 
     // Verify callback was called with the anonymous account
-    expect(onAnonymousUserDiscarded).toHaveBeenCalledWith(anonymousAccount);
+    expect(onAnonymousAccountDiscarded).toHaveBeenCalledWith(anonymousAccount);
   });
 
-  test("does not call onAnonymousUserDiscarded when authenticating from authenticated user", async () => {
-    const onAnonymousUserDiscarded = vi.fn();
+  test("does not call onAnonymousAccountDiscarded when authenticating from authenticated user", async () => {
+    const onAnonymousAccountDiscarded = vi.fn();
     const account = await createJazzTestAccount();
 
     await manager.getAuthSecretStorage().set({
@@ -183,7 +183,7 @@ describe("ContextManager", () => {
     });
 
     // Create initial authenticated context
-    await manager.createContext({ onAnonymousUserDiscarded });
+    await manager.createContext({ onAnonymousAccountDiscarded });
 
     // Authenticate with same credentials
     await manager.authenticate({
@@ -193,10 +193,10 @@ describe("ContextManager", () => {
     });
 
     // Verify callback was not called
-    expect(onAnonymousUserDiscarded).not.toHaveBeenCalled();
+    expect(onAnonymousAccountDiscarded).not.toHaveBeenCalled();
   });
 
-  test("onAnonymousUserDiscarded should work on transfering data between accounts", async () => {
+  test("onAnonymousAccountDiscarded should work on transfering data between accounts", async () => {
     class AccountRoot extends CoMap {
       value = co.string;
       transferredRoot = co.optional.ref(AccountRoot);
@@ -214,7 +214,7 @@ describe("ContextManager", () => {
       }
     }
 
-    const onAnonymousUserDiscarded = async (
+    const onAnonymousAccountDiscarded = async (
       anonymousAccount: CustomAccount,
     ) => {
       const anonymousAccountWithRoot = await anonymousAccount.ensureLoaded({
@@ -234,7 +234,7 @@ describe("ContextManager", () => {
 
     // Create initial anonymous context
     await customManager.createContext({
-      onAnonymousUserDiscarded,
+      onAnonymousAccountDiscarded,
       AccountSchema: CustomAccount,
     });
 

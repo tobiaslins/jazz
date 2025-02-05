@@ -34,7 +34,7 @@
           guestMode: props.guestMode,
           AccountSchema: props.AccountSchema,
           defaultProfileName: props.defaultProfileName,
-          onAnonymousUserDiscarded: props.onAnonymousUserDiscarded,
+          onAnonymousAccountDiscarded: props.onAnonymousAccountDiscarded,
           onLogOut: props.onLogOut,
         })
         .catch((error) => {

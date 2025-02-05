@@ -17,7 +17,7 @@ export type JazzContextManagerProps<Acc extends Account> = {
   guestMode?: boolean;
   sync: SyncConfig;
   onLogOut?: () => void;
-  onAnonymousUserDiscarded?: (anonymousAccount: Acc) => Promise<void>;
+  onAnonymousAccountDiscarded?: (anonymousAccount: Acc) => Promise<void>;
   storage?: BaseBrowserContextOptions["storage"];
   AccountSchema?: AccountClass<Acc>;
   defaultProfileName?: string;

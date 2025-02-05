@@ -172,10 +172,10 @@ export async function updateActiveTrack(track: MusicTrack) {
   me.root.activeTrack = track;
 }
 
-export async function onAnonymousUserDiscarded(
+export async function onAnonymousAccountDiscarded(
   anonymousAccount: MusicaAccount,
 ) {
-  const anonymousAccountWithPlaylist = await anonymousAccount.ensureLoaded({
+  const { root: anonymousAccountRoot } = await anonymousAccount.ensureLoaded({
     root: {
       rootPlaylist: {
         tracks: [{}],
@@ -191,13 +191,11 @@ export async function onAnonymousUserDiscarded(
     },
   });
 
-  const rootPlaylist = anonymousAccountWithPlaylist.root.rootPlaylist;
-
-  for (const track of rootPlaylist.tracks) {
+  for (const track of anonymousAccountRoot.rootPlaylist.tracks) {
     if (track.isExampleTrack) continue;
 
     const trackGroup = track._owner.castAs(Group);
-    await trackGroup.addMember(me, "admin");
+    trackGroup.addMember(me, "admin");
 
     me.root.rootPlaylist.tracks.push(track);
   }

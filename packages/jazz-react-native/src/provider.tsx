@@ -26,7 +26,7 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
   defaultProfileName,
   onLogOut,
   kvStore,
-  onAnonymousUserDiscarded,
+  onAnonymousAccountDiscarded,
 }: JazzProviderProps<Acc>) {
   setupKvStore(kvStore);
 
@@ -34,8 +34,8 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
     () => new ReactNativeContextManager<Acc>(),
   );
 
-  const onAnonymousUserDiscardedRefCallback = useRefCallback(
-    onAnonymousUserDiscarded,
+  const onAnonymousAccountDiscardedRefCallback = useRefCallback(
+    onAnonymousAccountDiscarded,
   );
   const onLogOutRefCallback = useRefCallback(onLogOut);
 
@@ -49,7 +49,7 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
           storage,
           defaultProfileName,
           onLogOut: onLogOutRefCallback,
-          onAnonymousUserDiscarded: onAnonymousUserDiscardedRefCallback,
+          onAnonymousAccountDiscarded: onAnonymousAccountDiscardedRefCallback,
         };
         if (contextManager.propsChanged(props)) {
           contextManager.createContext(props).catch((error) => {
