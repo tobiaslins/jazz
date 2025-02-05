@@ -101,6 +101,7 @@ describe("Browser sync", () => {
         when: "never",
       },
       storage: "indexedDB",
+      databaseName: "jazz-storage",
       AccountSchema: CustomAccount,
     });
 
@@ -118,6 +119,7 @@ describe("Browser sync", () => {
         when: "never",
       },
       storage: "indexedDB",
+      databaseName: "jazz-storage",
       AccountSchema: CustomAccount,
     });
 
@@ -136,6 +138,7 @@ describe("Browser sync", () => {
         peer: syncServer.url,
       },
       storage: "indexedDB",
+      databaseName: "jazz-storage",
       AccountSchema: CustomAccount,
     });
 
@@ -155,6 +158,7 @@ describe("Browser sync", () => {
         peer: newSyncServer.url,
       },
       storage: "indexedDB",
+      databaseName: "jazz-storage",
       AccountSchema: CustomAccount,
     });
 
@@ -173,6 +177,7 @@ describe("Browser sync", () => {
         peer: syncServer.url,
       },
       storage: "indexedDB",
+      databaseName: "jazz-storage",
       AccountSchema: CustomAccount,
     });
 
@@ -196,6 +201,7 @@ describe("Browser sync", () => {
         peer: syncServer.url,
       },
       storage: "indexedDB",
+      databaseName: "jazz-storage",
       AccountSchema: CustomAccount,
     });
 

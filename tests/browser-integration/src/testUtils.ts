@@ -1,4 +1,5 @@
 import { commands } from "@vitest/browser/context";
+import { internal_setDatabaseName } from "cojson-storage-indexeddb";
 import {
   JazzBrowserContextManager,
   JazzContextManagerProps,
@@ -35,9 +36,13 @@ export function waitFor(callback: () => boolean | void) {
 }
 
 export async function createAccountContext<Acc extends Account>(
-  props: JazzContextManagerProps<Acc>,
+  props: JazzContextManagerProps<Acc> & { databaseName?: string },
   authProps?: JazzContextManagerAuthProps,
 ) {
+  internal_setDatabaseName(
+    props.databaseName ?? Math.random().toString(36).substring(2, 15),
+  );
+
   const contextManager = new JazzBrowserContextManager<Acc>();
 
   await contextManager.createContext(props, authProps);

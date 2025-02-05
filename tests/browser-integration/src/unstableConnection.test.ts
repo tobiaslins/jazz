@@ -70,7 +70,7 @@ describe("Browser sync on unstable connection", () => {
       sync: {
         peer: syncServer.url,
       },
-      storage: "disabled",
+      storage: "indexedDB",
       AccountSchema: CustomAccount,
     });
 

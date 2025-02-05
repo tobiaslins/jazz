@@ -51,14 +51,6 @@ describe("getStorageOptions", () => {
     });
   });
 
-  test("should return all false when 'disabled' is provided", () => {
-    const result = getStorageOptions("disabled");
-    expect(result).toEqual({
-      useSingleTabOPFS: false,
-      useIndexedDB: false,
-    });
-  });
-
   test("should fallback to indexedDB when singleTabOPFS is not available", () => {
     // Testing the fallback behavior when storage is undefined
     const result = getStorageOptions(undefined);
