@@ -83,4 +83,46 @@ describe("Browser sync on unstable connection", () => {
 
     expect(fileOnSecondAccount?.size).toBe(bytes10MB);
   });
+
+  test("load files from storage correctly when pointing to different sync servers", async () => {
+    const { contextManager } = await createAccountContext({
+      sync: {
+        peer: syncServer.url,
+      },
+      storage: "indexedDB",
+      databaseName: "shared-database",
+      AccountSchema: CustomAccount,
+    });
+
+    const bytes10MB = 1e7;
+
+    const group = Group.create();
+    group.addMember("everyone", "reader");
+
+    const file = await FileStream.createFromBlob(
+      new Blob(["1".repeat(bytes10MB)], { type: "image/png" }),
+      group,
+    );
+
+    const fileStream = await file.waitForSync();
+
+    expect(fileStream).toBeDefined();
+
+    contextManager.done();
+
+    const anotherSyncServer = await startSyncServer();
+
+    await createAccountContext({
+      sync: {
+        peer: anotherSyncServer.url,
+      },
+      storage: "indexedDB",
+      databaseName: "shared-database",
+      AccountSchema: CustomAccount,
+    });
+
+    const fileOnSecondAccount = await FileStream.loadAsBlob(file.id);
+
+    expect(fileOnSecondAccount?.size).toBe(bytes10MB);
+  });
 });
