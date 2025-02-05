@@ -246,20 +246,14 @@ Let's not forget to update the `AccountSchema`.
 import { JazzProvider } from "jazz-react"; // old
 import { JazzAccount } from "./schema";
 
-function JazzAndAuth({ children }: { children: React.ReactNode }) { // old
-    const [passkeyAuth, passKeyState] = usePasskeyAuth({ appName }); // old
-
+export function MyJazzProvider({ children }: { children: React.ReactNode }) { // old
     return ( // old
-        <> // old
-            <JazzProvider // old
-                auth={passkeyAuth} // old
-                peer="wss://cloud.jazz.tools/?key=you@example.com" // old
-                AccountSchema={JazzAccount}
-            >// old
-                {children} // old
-            </JazzProvider> // old
-            <PasskeyAuthBasicUI state={passKeyState} /> // old
-        </> // old
+        <JazzProvider // old
+            sync={{ peer: "wss://cloud.jazz.tools/?key=you@example.com" }}
+            AccountSchema={JazzAccount}
+        >// old
+            {children} // old
+        </JazzProvider> // old
     ); // old
 } // old
 

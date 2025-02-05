@@ -146,7 +146,7 @@ export const docNavigationItems = [
     items: [
       {
         name: "Overview",
-        href: "/docs/authentication/auth-methods",
+        href: "/docs/authentication/",
         done: {
           react: 50,
           vue: 0,

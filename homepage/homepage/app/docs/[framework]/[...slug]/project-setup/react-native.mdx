@@ -192,24 +192,17 @@ Wrap your app components with the `JazzProvider:
 
 <CodeGroup>
       ```tsx
-      import { JazzProvider, useDemoAuth, DemoAuthBasicUI } from "jazz-react-native";
+      import { JazzProvider } from "jazz-react-native";
       import { MyAppAccount } from "./schema";
 
-
-      export function JazzAndAuth({ children }: { children: React.ReactNode }) {
-          const [auth, state] = useDemoAuth();
-
+      export function MyJazzProvider({ children }: { children: React.ReactNode }) {
           return (
-              <>
-                  <JazzProvider
-                      auth={auth}
-                      peer="wss://cloud.jazz.tools/?key=you@example.com"
-                      AccountSchema={MyAppAccount}
-                  >
-                      {children}
-                  </JazzProvider>
-                  <DemoAuthBasicUI appName="My App" state={state} />
-              </>
+              <JazzProvider
+                  sync={{ peer: "wss://cloud.jazz.tools/?key=you@example.com" }}
+                  AccountSchema={MyAppAccount}
+              >
+                  {children}
+              </JazzProvider>
           ); 
       }
 
