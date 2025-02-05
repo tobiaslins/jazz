@@ -24,7 +24,7 @@ function useJazzClerkAuth(clerk: MinimalClerkClient) {
     return clerk.addListener((event) => {
       authMethod.onClerkUserChange(event as Pick<MinimalClerkClient, "user">);
     });
-  }, [clerk]);
+  }, []);
 }
 
 function RegisterClerkAuth(props: {

@@ -20,8 +20,11 @@ function useJazzClerkAuth(clerk: MinimalClerkClient) {
   }, []);
 
   useEffect(() => {
-    authMethod.onClerkUserChange(clerk);
-  }, [clerk.user]);
+    // Need to use addListener because the clerk user object is not updated when the user logs in
+    return clerk.addListener((event) => {
+      authMethod.onClerkUserChange(event as Pick<MinimalClerkClient, "user">);
+    });
+  }, []);
 }
 
 function RegisterClerkAuth(props: {
