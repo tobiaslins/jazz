@@ -197,7 +197,7 @@ async function scaffoldProject({
   }).start();
 
   try {
-    execSync(`cd ${projectName} && ${packageManager} install`, {
+    execSync(`cd "${projectName}" && ${packageManager} install`, {
       stdio: "pipe",
     });
     installSpinner.succeed(chalk.green("Dependencies installed"));
@@ -214,8 +214,8 @@ async function scaffoldProject({
     }).start();
 
     try {
-      execSync(`cd ${projectName} && npx expo prebuild`, { stdio: "pipe" });
-      execSync(`cd ${projectName} && npx pod-install`, { stdio: "pipe" });
+      execSync(`cd "${projectName}" && npx expo prebuild`, { stdio: "pipe" });
+      execSync(`cd "${projectName}" && npx pod-install`, { stdio: "pipe" });
 
       // Update metro.config.js
       const metroConfigPath = `${projectName}/metro.config.js`;
