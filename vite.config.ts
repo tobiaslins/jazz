@@ -4,11 +4,12 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   root: "./",
   test: {
+    workspace: ["packages/*"],
     coverage: {
       enabled: false,
       provider: "istanbul",
       include: ["packages/*/src/**/*.ts"],
-      exclude: ["packages/*/src/tests", "packages/jazz-svelte/*"],
+      exclude: ["packages/*/src/tests", "packages/jazz-svelte/**"],
       reporter: ["html"],
       thresholds: {
         global: {
@@ -19,8 +20,7 @@ export default defineConfig({
         },
       },
     },
-    include: ["packages/*/tests/**/*.test.ts"],
-    watchExclude: ["**/node_modules/**", "**/dist/**"],
+    include: ["packages/*/tests/**/*.test.{js,ts,svelte}"],
     maxConcurrency: 5,
   },
 });

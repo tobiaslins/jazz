@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/svelte';
 import { userEvent } from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import PasskeyAuthBasicUI from './PasskeyAuthBasicUI.svelte';
-import { createJazzTestAccount, createJazzTestContext } from '$lib/testing.js';
+import { createJazzTestAccount, createJazzTestContext } from '../testing.js';
 import { BrowserPasskeyAuth } from 'jazz-browser';
 
 vi.mock('jazz-browser', () => ({
