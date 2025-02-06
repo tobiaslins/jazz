@@ -108,7 +108,7 @@ describe("Browser sync on unstable connection", () => {
 
     expect(fileStream).toBeDefined();
 
-    contextManager.done();
+    // contextManager.done();
 
     const anotherSyncServer = await startSyncServer();
 
