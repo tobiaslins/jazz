@@ -26,12 +26,11 @@ export async function uploadMusicTracks(
   files: Iterable<File>,
   isExampleTrack: boolean = false,
 ) {
-  const me = await MusicaAccount.getMe().ensureLoaded({
+  const { root } = await MusicaAccount.getMe().ensureLoaded({
     root: {
       rootPlaylist: {
         tracks: [],
       },
-      playlists: [],
     },
   });
 
@@ -60,12 +59,12 @@ export async function uploadMusicTracks(
 
     // The newly created musicTrack can be associated to the
     // user track list using a simple push call
-    me.root.rootPlaylist.tracks.push(musicTrack);
+    root.rootPlaylist.tracks.push(musicTrack);
   }
 }
 
 export async function createNewPlaylist() {
-  const me = await MusicaAccount.getMe().ensureLoaded({
+  const { root } = await MusicaAccount.getMe().ensureLoaded({
     root: {
       playlists: [],
     },
@@ -86,7 +85,7 @@ export async function createNewPlaylist() {
 
   // Again, we associate the new playlist to the
   // user by pushing it into the playlists CoList
-  me.root.playlists.push(playlist);
+  root.playlists.push(playlist);
 
   return playlist;
 }
@@ -152,24 +151,22 @@ export async function updateMusicTrackTitle(track: MusicTrack, title: string) {
 }
 
 export async function updateActivePlaylist(playlist?: Playlist) {
-  const me = await MusicaAccount.getMe().ensureLoaded({
+  const { root } = await MusicaAccount.getMe().ensureLoaded({
     root: {
       activePlaylist: {},
       rootPlaylist: {},
     },
   });
 
-  me.root.activePlaylist = playlist ?? me.root.rootPlaylist;
+  root.activePlaylist = playlist ?? root.rootPlaylist;
 }
 
 export async function updateActiveTrack(track: MusicTrack) {
-  const me = await MusicaAccount.getMe().ensureLoaded({
+  const { root } = await MusicaAccount.getMe().ensureLoaded({
     root: {},
   });
 
-  if (!me) return;
-
-  me.root.activeTrack = track;
+  root.activeTrack = track;
 }
 
 export async function onAnonymousAccountDiscarded(

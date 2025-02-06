@@ -19,10 +19,10 @@ export const metadata = { title: "Jazz 0.10.0 is out!" };
   Here is what's changed in this release:
   - [New authentication flow](/docs/upgrade/0-10-0#new-authentication-flow), redesigned to make Jazz easier to start with and be more flexible
   - [Local-only mode](/docs/upgrade/0-10-0#local-only-mode), now your users can play around with your app, even in local-only mode, before signing up
-  - [Improved loading API](/docs/upgrade/0-10-0#improved-loading-api), `ensureLoaded` now always returns a value and throws otherwise and useCoState now returns null if the value is not found
+  - [Improvements on the loading APIs](/docs/upgrade/0-10-0#improved-loading-api), ensureLoaded now always returns a value and useCoState now returns null if the value is not found
   - [Jazz Workers on native WebSocket](/docs/upgrade/0-10-0#native-websocket-for-jazz-workers), improving the compatibility with a wider set of Javascript runtimes
   - Support for Node 14 dropped on cojson
-  - fix: Group.removeMember now returns a promise
+  - Bugfix: Group.removeMember now returns a promise
 </div>
 
 <ContentByFramework framework="react">
@@ -156,15 +156,54 @@ With `sync.when` set to `signedUp` the app will work in local mode when the user
 ```
 </CodeGroup>
 
-You can control the activation of the local mode by switching the `when` config to `always` or `never`.
+You can control the the local mode by switching the `when` config to `always` or `never`.
 </div>
 
-<h3 id="improved-loading-api">Improved loading API</h3>
+<h3 id="improved-loading-api">Improvements on the loading APIs</h3>
 <div>
-  
+`ensureLoaded` now always returns a value, making it's usage leaner:
+<CodeGroup>
+```ts
+export async function updateActiveTrack(track: MusicTrack) { // No need to pass the account
+  const { root } = await MusicaAccount.getMe().ensureLoaded({
+    root: {},
+  });
+
+  // Null checks are no more required
+  root.activeTrack = track;
+}
+```
+</CodeGroup>
+
+It will throw if the value is not found, which can happen if the user tries to resolve a value that is not available.
+
+`useCoState` now returns `null` if the value is not found, making it now possible to check against not-found values:
+<CodeGroup>
+```ts
+const value = useCoState(MusicTrack, id, {});
+
+if (value === null) {
+  return <div>Track not found</div>;
+}
+```
+</CodeGroup> 
 </div>
 
 <h3 id="native-websocket-for-jazz-workers">Jazz Workers on native WebSocket</h3>
 <div>
-  
+  We have removed the dependency on `ws` and switched to the native WebSocket API for Jazz Workers.
+
+  This improves the compatibility with a wider set of Javascript runtimes adding drop-in support for Deno, Bun, Browsers and Cloudflare Durable Objects.
+
+  If you are using a Node.js version lower than 22 you will need to install the `ws` package and provide the WebSocket constructor:
+  <CodeGroup>
+```ts
+import { WebSocket } from "ws";
+import { startWorker } from "jazz-nodejs";
+
+const { worker } = await startWorker({
+  WebSocket,
+});
+```
+</CodeGroup> 
 </div>
