@@ -53,8 +53,14 @@ export const docNavigationItems = [
     ],
   },
   {
-    name: "Updates",
+    name: "Upgrade guides",
     items: [
+      {
+        // upgrade guides
+        name: "Jazz 0.10.0 - New authentication flow",
+        href: "/docs/upgrade/0-10-0",
+        done: 100,
+      },
       {
         // upgrade guides
         name: "Jazz 0.9.8 - Without me!",
@@ -70,7 +76,7 @@ export const docNavigationItems = [
       },
       {
         // upgrade guides
-        name: "Jazz 0.9.0 - Upgrade guide",
+        name: "Jazz 0.9.0 - Top level imports",
         href: "/docs/upgrade/0-9-0",
         done: 100,
       },

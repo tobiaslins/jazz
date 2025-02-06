@@ -1,0 +1,170 @@
+import { ContentByFramework, CodeGroup } from '@/components/forMdx'
+
+export const metadata = { title: "Jazz 0.10.0 is out!" };
+
+# Jazz 0.10.0 is out!
+
+<h2 className="not-prose text-sm text-stone-600 dark:text-stone-400 mb-5 pb-2 border-b">
+  11 February 2025
+</h2>
+
+<div>
+  On Jazz 0.10.0 we have been focusing on enhancing the authentication to make it optional and more flexible.
+
+  Now your users can play around with your app, even in local-only mode, before signing up.
+  
+  There are also some other minor improvements that will make your Jazz experience even better!
+
+  <h3>What's new?</h3>
+  Here is what's changed in this release:
+  - [New authentication flow](/docs/upgrade/0-10-0#new-authentication-flow), redesigned to make Jazz easier to start with and be more flexible
+  - [Local-only mode](/docs/upgrade/0-10-0#local-only-mode), now your users can play around with your app, even in local-only mode, before signing up
+  - [Improved loading API](/docs/upgrade/0-10-0#improved-loading-api), `ensureLoaded` now always returns a value and throws otherwise and useCoState now returns null if the value is not found
+  - [Jazz Workers on native WebSocket](/docs/upgrade/0-10-0#native-websocket-for-jazz-workers), improving the compatibility with a wider set of Javascript runtimes
+  - Support for Node 14 dropped on cojson
+  - fix: Group.removeMember now returns a promise
+</div>
+
+<ContentByFramework framework="react">
+  <h3 id="new-authentication-flow">New authentication flow</h3>
+  <div>
+    Since now the authentication was the first part to figure out when building a Jazz app, becoming a stumbling block for many.
+
+    Now is no more required and setting up a Jazz app is as easy as writing this:
+<CodeGroup>
+{/* prettier-ignore */}
+```tsx
+import { JazzProvider } from "jazz-react";
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+    <JazzProvider
+        auth={passkeyAuth} // removed  // *bin*
+        peer="wss://cloud.jazz.tools/?key=you@example.com"  // moved into sync // *bin*
+        sync={{ peer: "wss://cloud.jazz.tools/?key=you@example.com" }}  // *add*
+    >
+        <App />
+    </JazzProvider>
+);
+```
+</CodeGroup>
+
+New users are authenticated as "anonymous" and you can make them sign up with one of the Jazz providers.
+
+You auth code can now blend into your component tree:
+<CodeGroup>
+{/* prettier-ignore */}
+```tsx
+export function AuthModal({ open, onOpenChange }: AuthModalProps) {
+  const [username, setUsername] = useState("");
+  const [isSignUp, setIsSignUp] = useState(true);
+
+  const auth = usePasskeyAuth({ // Must be inside the JazzProvider!
+    appName: "My super-cool web app",
+  });
+
+  const handleViewChange = () => {
+    setIsSignUp(!isSignUp);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (isSignUp) {
+      await auth.signUp(username);
+    } else {
+      await auth.logIn();
+    }
+    onOpenChange(false);
+  };
+```
+</CodeGroup>
+
+When a user signs up with one of the providers we register the current anonymous account into it.
+
+To check if the user has done the registration you can use the `useIsAuthenticated` hook:
+<CodeGroup>
+{/* prettier-ignore */}
+```tsx
+export function AuthButton() {
+  const isAuthenticated = useIsAuthenticated();
+  const { logOut } = useAccount();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  function handleSignOut() {
+    logOut();
+    location.href = "/";
+  }
+
+  if (isAuthenticated) {
+    return (
+      <Button variant="outline" onClick={handleSignOut}>
+        Sign out
+      </Button>
+    );
+  }
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>
+        Sign up
+      </Button>
+      <AuthModal open={open} onOpenChange={setOpen} />
+    </>
+  );
+}
+```
+</CodeGroup>
+
+If you want to just keep your auth-wall you can do it by just moving the auth code inside the `JazzProvider` component like this:
+<CodeGroup>
+{/* prettier-ignore */}
+```tsx
+import { JazzProvider, PasskeyAuthBasicUI } from "jazz-react";
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+    <JazzProvider
+      sync={{ peer: "wss://cloud.jazz.tools/?key=you@example.com" }}
+    >
+      <PasskeyAuthBasicUI appName="My super-fast web app">
+        <App />
+      </PasskeyAuthBasicUI>
+    </JazzProvider>
+);
+```
+</CodeGroup>
+
+For the changes related to the specific auth providers see the updated [authentication docs](/docs/authentication).
+  </div>
+</ContentByFramework>
+
+<h3 id="local-only-mode">Local-only mode</h3>
+<div>
+A great way to get you users to try your app for free is to make it local-only for anonymous users.
+
+With `sync.when` set to `signedUp` the app will work in local mode when the user is anonymous and unlock the multiplayer features when they sign up:
+<CodeGroup>
+```ts
+<JazzProvider
+  sync={{
+    peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
+     // This makes the app work in local mode when the user is anonymous
+    when: "signedUp",
+  }}
+>
+  <App />
+</JazzProvider>
+```
+</CodeGroup>
+
+You can control the activation of the local mode by switching the `when` config to `always` or `never`.
+</div>
+
+<h3 id="improved-loading-api">Improved loading API</h3>
+<div>
+  
+</div>
+
+<h3 id="native-websocket-for-jazz-workers">Jazz Workers on native WebSocket</h3>
+<div>
+  
+</div>
