@@ -1,13 +1,6 @@
 import { commands } from "@vitest/browser/context";
 import { Account, AuthSecretStorage, CoMap, Group, co } from "jazz-tools";
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  onTestFinished,
-  test,
-} from "vitest";
+import { afterEach, describe, expect, onTestFinished, test } from "vitest";
 import { createAccountContext, startSyncServer } from "./testUtils";
 
 class TestMap extends CoMap {
@@ -24,18 +17,14 @@ class CustomAccount extends Account {
   }
 }
 
-let syncServer: Awaited<ReturnType<typeof startSyncServer>>;
-
-beforeEach(async () => {
-  syncServer = await startSyncServer();
-});
-
 describe("Browser sync", () => {
   afterEach(async () => {
     await new AuthSecretStorage().clear();
   });
 
   test("syncs data between accounts through sync server", async () => {
+    const syncServer = await startSyncServer();
+
     const { account: account1, contextManager } = await createAccountContext({
       sync: {
         peer: syncServer.url,
@@ -69,6 +58,8 @@ describe("Browser sync", () => {
   });
 
   test("loads the previous account through the sync server", async () => {
+    const syncServer = await startSyncServer();
+
     const { account: account1, contextManager } = await createAccountContext({
       sync: {
         peer: syncServer.url,
@@ -96,6 +87,8 @@ describe("Browser sync", () => {
   });
 
   test("syncs data between accounts through storage only", async () => {
+    const syncServer = await startSyncServer();
+
     const { context, contextManager } = await createAccountContext({
       sync: {
         when: "never",
@@ -133,6 +126,8 @@ describe("Browser sync", () => {
   });
 
   test("syncs data between accounts when the the storage is shared but the sync server is not", async () => {
+    const syncServer = await startSyncServer();
+
     const { context, contextManager } = await createAccountContext({
       sync: {
         peer: syncServer.url,
@@ -172,6 +167,8 @@ describe("Browser sync", () => {
   });
 
   test("syncs data between accounts when the the connection is down", async () => {
+    const syncServer = await startSyncServer();
+
     const { context, contextManager } = await createAccountContext({
       sync: {
         peer: syncServer.url,

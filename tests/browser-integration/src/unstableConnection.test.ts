@@ -6,7 +6,7 @@ import {
   Group,
   co,
 } from "jazz-tools";
-import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test } from "vitest";
 import { createAccountContext, startSyncServer } from "./testUtils";
 
 class TestMap extends CoMap {
@@ -23,18 +23,13 @@ class CustomAccount extends Account {
   }
 }
 
-let syncServer: Awaited<ReturnType<typeof startSyncServer>>;
-
-beforeEach(async () => {
-  syncServer = await startSyncServer();
-});
-
 describe("Browser sync on unstable connection", () => {
   afterEach(async () => {
     await new AuthSecretStorage().clear();
   });
 
   test("uploads the data to the sync server even with unstable connection", async () => {
+    const syncServer = await startSyncServer();
     const { contextManager } = await createAccountContext({
       sync: {
         peer: syncServer.url,
@@ -87,6 +82,7 @@ describe("Browser sync on unstable connection", () => {
   // TODO: This test is flaky, it fails when running it in CI. Related to an issue investigation
   // so it's probably flaky due some bugs.
   test.skip("load files from storage correctly when pointing to different sync servers", async () => {
+    const syncServer = await startSyncServer();
     const { contextManager } = await createAccountContext({
       sync: {
         peer: syncServer.url,
