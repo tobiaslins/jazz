@@ -128,7 +128,7 @@ export async function createJazzReactNativeGuestContext(
       context.done();
     },
     logOut: () => {
-      context.logOut();
+      return context.logOut();
     },
   };
 }
@@ -194,7 +194,7 @@ export async function createJazzReactNativeContext<Acc extends Account>(
     },
     logOut: () => {
       unsubscribeAuthUpdate();
-      context.logOut();
+      return context.logOut();
     },
   };
 }

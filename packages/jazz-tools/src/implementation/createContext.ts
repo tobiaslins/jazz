@@ -35,7 +35,7 @@ export type AuthResult =
       saveCredentials?: (credentials: Credentials) => Promise<void>;
       onSuccess: () => void;
       onError: (error: string | Error) => void;
-      logOut: () => void;
+      logOut: () => Promise<void>;
     }
   | {
       type: "new";
@@ -48,7 +48,7 @@ export type AuthResult =
       saveCredentials: (credentials: Credentials) => Promise<void>;
       onSuccess: () => void;
       onError: (error: string | Error) => void;
-      logOut: () => void;
+      logOut: () => Promise<void>;
     };
 
 export async function randomSessionProvider(
@@ -65,13 +65,13 @@ export type JazzContextWithAccount<Acc extends Account> = {
   node: LocalNode;
   account: Acc;
   done: () => void;
-  logOut: () => void;
+  logOut: () => Promise<void>;
 };
 
 export type JazzContextWithAgent = {
   agent: AnonymousJazzAgent;
   done: () => void;
-  logOut: () => void;
+  logOut: () => Promise<void>;
 };
 
 export type JazzContext<Acc extends Account> =
@@ -125,10 +125,10 @@ export async function createJazzContextFromExistingCredentials<
       node.gracefulShutdown();
       sessionDone();
     },
-    logOut: () => {
+    logOut: async () => {
       node.gracefulShutdown();
       sessionDone();
-      onLogOut?.();
+      await onLogOut?.();
     },
   };
 }
@@ -146,7 +146,7 @@ export async function createJazzContextForNewAccount<Acc extends Account>({
   peersToLoadFrom: Peer[];
   crypto: CryptoProvider;
   AccountSchema?: AccountClass<Acc>;
-  onLogOut?: () => void;
+  onLogOut?: () => Promise<void>;
 }): Promise<JazzContextWithAccount<Acc>> {
   const CurrentAccountSchema =
     PropsAccountSchema ??
@@ -176,9 +176,9 @@ export async function createJazzContextForNewAccount<Acc extends Account>({
     done: () => {
       node.gracefulShutdown();
     },
-    logOut: () => {
+    logOut: async () => {
       node.gracefulShutdown();
-      onLogOut?.();
+      await onLogOut?.();
     },
   };
 }
@@ -237,8 +237,8 @@ export async function createJazzContext<Acc extends Account>(options: {
       peersToLoadFrom: options.peersToLoadFrom,
       crypto,
       AccountSchema: options.AccountSchema,
-      onLogOut: () => {
-        authSecretStorage.clear();
+      onLogOut: async () => {
+        await authSecretStorage.clear();
       },
     });
 
@@ -283,6 +283,6 @@ export async function createAnonymousJazzContext({
   return {
     agent: new AnonymousJazzAgent(node),
     done: () => {},
-    logOut: () => {},
+    logOut: async () => {},
   };
 }

@@ -139,7 +139,7 @@ export async function createJazzBrowserGuestContext(
       context.done();
     },
     logOut: () => {
-      context.logOut();
+      return context.logOut();
     },
   };
 }
@@ -204,7 +204,7 @@ export async function createJazzBrowserContext<Acc extends Account>(
     },
     logOut: () => {
       unsubscribeAuthUpdate();
-      context.logOut();
+      return context.logOut();
     },
   };
 }

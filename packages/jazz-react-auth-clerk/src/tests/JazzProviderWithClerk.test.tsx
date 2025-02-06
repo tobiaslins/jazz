@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 
-import { render, waitFor } from "@testing-library/react";
+import { act, render, waitFor } from "@testing-library/react";
 import type { MinimalClerkClient } from "jazz-auth-clerk";
 import { AuthSecretStorage, InMemoryKVStore, KvStoreContext } from "jazz-tools";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -38,6 +38,8 @@ describe("JazzProviderWithClerk", () => {
   const setup = (
     children = <div data-testid="test-child">Test Content</div>,
   ) => {
+    let callbacks = new Set<(clerk: MinimalClerkClient) => void>();
+
     const mockClerk = {
       user: {
         fullName: "Test User",
@@ -46,6 +48,14 @@ describe("JazzProviderWithClerk", () => {
       },
       signOut: vi.fn().mockImplementation(() => {
         mockClerk.user = null;
+        Array.from(callbacks).map((callback) => callback(mockClerk));
+      }),
+      addListener: vi.fn((callback) => {
+        callbacks.add(callback);
+
+        return () => {
+          callbacks.delete(callback);
+        };
       }),
     } as unknown as MinimalClerkClient;
 
@@ -61,20 +71,27 @@ describe("JazzProviderWithClerk", () => {
     return {
       ...utils,
       mockClerk,
+      callbacks,
     };
   };
 
-  it("should handle clerk user changes", async () => {
-    const { mockClerk } = setup();
+  it("should push the local credentials to clerk", async () => {
+    const { mockClerk, callbacks } = setup();
 
-    await waitFor(() => {
-      expect(mockClerk.user?.update).toHaveBeenCalledWith({
-        unsafeMetadata: {
-          jazzAccountID: expect.any(String),
-          jazzAccountSecret: expect.any(String),
-          jazzAccountSeed: expect.any(Array),
-        },
-      });
+    expect(mockClerk.user?.update).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await Promise.all(
+        Array.from(callbacks).map((callback) => callback(mockClerk)),
+      );
+    });
+
+    expect(mockClerk.user?.update).toHaveBeenCalledWith({
+      unsafeMetadata: {
+        jazzAccountID: expect.any(String),
+        jazzAccountSecret: expect.any(String),
+        jazzAccountSeed: expect.any(Array),
+      },
     });
   });
 });
