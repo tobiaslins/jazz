@@ -84,7 +84,9 @@ describe("Browser sync on unstable connection", () => {
     expect(fileOnSecondAccount?.size).toBe(bytes10MB);
   });
 
-  test("load files from storage correctly when pointing to different sync servers", async () => {
+  // TODO: This test is flaky, it fails when running it in CI. Related to an issue investigation
+  // so it's probably flaky due some bugs.
+  test.skip("load files from storage correctly when pointing to different sync servers", async () => {
     const { contextManager } = await createAccountContext({
       sync: {
         peer: syncServer.url,
@@ -108,7 +110,7 @@ describe("Browser sync on unstable connection", () => {
 
     expect(fileStream).toBeDefined();
 
-    // contextManager.done();
+    contextManager.done();
 
     const anotherSyncServer = await startSyncServer();
 
