@@ -75,7 +75,7 @@ export class PassphraseAuth {
     return passphrase;
   };
 
-  getCurrentUserPassphrase = async () => {
+  getCurrentAccountPassphrase = async () => {
     const credentials = await this.authSecretStorage.get();
 
     if (!credentials || !credentials.secretSeed) {

@@ -39,6 +39,6 @@ export function usePassphraseAuth({
     state: isAuthenticated.value ? "signedIn" : "anonymous",
     logIn: authMethod.value.logIn,
     signUp: authMethod.value.signUp,
-    getCurrentUserPassphrase: authMethod.value.getCurrentUserPassphrase,
+    getCurrentAccountPassphrase: authMethod.value.getCurrentAccountPassphrase,
   }));
 }

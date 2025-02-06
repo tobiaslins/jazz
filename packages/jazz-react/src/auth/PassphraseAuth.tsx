@@ -20,7 +20,7 @@ export function PassphraseAuthBasicUI(props: {
   }
 
   const handleCreateAccount = async () => {
-    const passphrase = await auth.getCurrentUserPassphrase();
+    const passphrase = await auth.getCurrentAccountPassphrase();
     setPassphrase(passphrase);
     setStep("create");
   };
