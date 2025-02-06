@@ -6,7 +6,7 @@ import {
   Group,
   co,
 } from "jazz-tools";
-import { afterEach, beforeAll, describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { createAccountContext, startSyncServer } from "./testUtils";
 
 class TestMap extends CoMap {
@@ -25,7 +25,7 @@ class CustomAccount extends Account {
 
 let syncServer: Awaited<ReturnType<typeof startSyncServer>>;
 
-beforeAll(async () => {
+beforeEach(async () => {
   syncServer = await startSyncServer();
 });
 

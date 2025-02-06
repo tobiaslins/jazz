@@ -2,7 +2,7 @@ import { commands } from "@vitest/browser/context";
 import { Account, AuthSecretStorage, CoMap, Group, co } from "jazz-tools";
 import {
   afterEach,
-  beforeAll,
+  beforeEach,
   describe,
   expect,
   onTestFinished,
@@ -26,7 +26,7 @@ class CustomAccount extends Account {
 
 let syncServer: Awaited<ReturnType<typeof startSyncServer>>;
 
-beforeAll(async () => {
+beforeEach(async () => {
   syncServer = await startSyncServer();
 });
 

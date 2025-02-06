@@ -63,6 +63,10 @@ export async function createAccountContext<Acc extends Account>(
 export async function startSyncServer() {
   const { url } = await commands.startSyncServer();
 
+  onTestFinished(async () => {
+    await commands.closeSyncServer(url);
+  });
+
   return {
     url,
     disconnectAllClients: () => commands.disconnectAllClients(url),

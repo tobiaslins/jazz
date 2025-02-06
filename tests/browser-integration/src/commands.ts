@@ -47,6 +47,19 @@ const setOfflineCommand: BrowserCommand<
   syncServer.setActive(active);
 };
 
+const closeSyncServerCommand: BrowserCommand<[url: string]> = async (
+  ctx,
+  url,
+) => {
+  const syncServer = syncServers.get(url);
+
+  if (!syncServer) {
+    throw new Error(`Sync server not found for url: ${url}`);
+  }
+
+  syncServer.close();
+};
+
 declare module "@vitest/browser/context" {
   interface BrowserCommands {
     startSyncServer: () => Promise<{
@@ -54,6 +67,7 @@ declare module "@vitest/browser/context" {
     }>;
     disconnectAllClients: (url: string) => Promise<void>;
     setOffline: (url: string, active: boolean) => Promise<void>;
+    closeSyncServer: (url: string) => Promise<void>;
   }
 }
 
@@ -61,4 +75,5 @@ export const customCommands = {
   startSyncServer: startSyncServerCommand,
   disconnectAllClients: disconnectAllClientsCommand,
   setOffline: setOfflineCommand,
+  closeSyncServer: closeSyncServerCommand,
 };
