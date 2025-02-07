@@ -184,11 +184,9 @@ export function AuthButton() {
 
 ## Migrating data from anonymous to authenticated account
 
-You may want to make unauthenticated accounts to use your app normally.
+You may want allow your users to use your app without authenticating (a poll response for example). But they might make changes that they'd like to keep when they do authenticate.
 
-In this case it may happen that an user do some stuff before logging with their account.
-
-On login the unauthenticated account gets deleted and this may lead to data loss.
+When they log in, the anonymous account will be deleted and this could lead to unexpected data loss.
 
 To avoid this situation we provide the `onAnonymousAccountDiscarded` handler to migrate the data from the anonymous account to the authenticated one.
 
@@ -226,16 +224,15 @@ export async function onAnonymousAccountDiscarded(
 ```
 </CodeGroup>
 
-To see how this works in a realistic use case we suggest you to try 
+To see how this works in reality we suggest you to try 
 to upload a song in the [music player demo](https://music-demo.jazz.tools/) and then
-try to login with an existing account.
+try to log in with an existing account.
 
 ## Disable network sync for anonymous users
 
-Jazz provides a way to disable network sync so you can decide when it makes sense for your app to work only locally.
+You can disable network sync so you can decide when it makes sense for your app to work completely locally.
 
-For example you may want to give the opportunity to non-authenticated users to try your app only
-locally and enable the network sync only when the user is authenticated:
+For example, you may want to give the opportunity to non-authenticated users to try your pp locally first, then enable the network sync only when the user is authenticated:
 <CodeGroup>
 ```tsx
 <JazzProvider
@@ -250,4 +247,4 @@ locally and enable the network sync only when the user is authenticated:
 ```
 </CodeGroup>
 
-You can control manually the sync by switching the `when` option between `always` and `never`.
+You can manually control the sync by switching when between `"always"` and `"never"`.
