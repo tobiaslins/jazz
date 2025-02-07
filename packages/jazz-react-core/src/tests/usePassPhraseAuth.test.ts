@@ -10,7 +10,7 @@ import {
   createJazzTestGuest,
   setupJazzTestSync,
 } from "../testing";
-import { act, renderHook } from "./testUtils";
+import { act, renderHook, waitFor } from "./testUtils";
 
 describe("usePassphraseAuth", () => {
   beforeEach(async () => {
@@ -92,5 +92,17 @@ describe("usePassphraseAuth", () => {
       ...credentialsBefore,
       provider: "passphrase",
     });
+  });
+
+  it("should return the current account passphrase", async () => {
+    const { result } = renderHook(() =>
+      usePassphraseAuth({ wordlist: testWordlist }),
+    );
+
+    await waitFor(() => result.current.passphrase !== "");
+
+    const passphrase = result.current.passphrase;
+
+    expect(await result.current.signUp()).toBe(passphrase);
   });
 });

@@ -4,101 +4,134 @@ import { CodeGroup } from "@/components/forMdx";
 
 # Authentication in Jazz
 
-When a user loads a Jazz application for the first time an anoymous account is created.
+Jazz authentication is based on cryptographic keys that are stored locally on the user device.
 
-The users can do everything normally, but the account credentials are stored only locally.
+When a user loads a Jazz application for the first time, we generate those keys and store them locally.
 
-To give users the ability of use the same account on multiple devices they need to be authenticated with
-one of Jazz authentication providers:
-- Passkey
-- Passphrase
-- Clerk
+Without any additional steps the user can use Jazz normally, but they would be limited to use on only one device.
 
-The registration process will keep the user credentials intact and just safely store them on the selected provider.
+For an account to use multiple devices, and back up their credentials, you can set up a you can setup an authentication method using one of the Jazz providers.
 
-Schematically the authentication flow works like this:
-- The user loads the app:
-    - If it's the first time a new anonymous account is created
-    - Otherwise the last used account is loaded from the local storage
-- The user tries to authenticate:
-    - When the user performs a signIn, the current account credentials are registered in the selected provider
-    - If instead logs-in the local credentials are deleted and the authenticated account is loaded
+## Authentication with passkeys
 
-When the credentials of an anonymous account are deleted they are forever lost, 
-but data can be migrated to the authenticated account using the `onAnonymousAccountDiscarded` handler (docs below).
+Passkey authentication is fully local-first and the most secure of the auth methods that Jazz provides.
 
-## Passkey
+It is based on the [Web Authentication API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Authentication_API) and is both very easy to use and widely supported.
 
-The passkey authentication is fully local-first and the most secure of the auth methods that Jazz provides.
-
-It is based on the [Web Authentication API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Authentication_API) and also very easy to use and widely supported.
-
-For this reasons this is the recommended authentication method to use with Jazz.
-
-### How to use
-
-1. Setup up Jazz as described in the [setup guide](/docs/project-setup)
-
-2. Use the `usePasskeyAuth` hook to authenticate (must be used inside `JazzProvider`)
-
+Using passkeys in Jazz is as easy as this:
 <CodeGroup>
-```ts
-import { usePasskeyAuth } from "jazz-react";
+{/* prettier-ignore */}
+```tsx
+export function AuthModal({ open, onOpenChange }: AuthModalProps) {
+  const [username, setUsername] = useState("");
 
-// ...
+  const auth = usePasskeyAuth({ // Must be inside the JazzProvider!
+    appName: "My super-cool web app",
+  });
 
-const { state, logIn, signUp } = usePasskeyAuth({ appName });
+  if (auth.state === "signedIn") { // You can also use `useIsAuthenticated()`
+    return <div>You are already signed in</div>;
+  }
+
+  const handleSignUp = async () => {
+    await auth.signUp(username);
+    onOpenChange(false);
+  };
+
+  const handleLogIn = async () => {
+    await auth.logIn();
+    onOpenChange(false);
+  };
+
+  return (
+    <div>
+      <button onClick={handleLogIn}>Log in</button>
+      <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
+      <button onClick={handleSignUp}>Sign up</button>
+    </div>
+  );
+}
 ```
 </CodeGroup>
 
-Take a look at our [example](https://github.com/garden-co/jazz/tree/main/examples/passkey) to see how it works.
+You can try our passkey authentication using our [passkey example](https://passkey-demo.jazz.tools/) or the [music player demo](https://music-demo.jazz.tools/).
 
-## Passphrase
+## Passphrase-based authentication
 
-Passphrase authentication generates a menemonic password from the local account certificate that can be used to logIn.
+Passphrase authentication gives the user a passphrase to log into another device.
 
-The storage of such password is left to the user and so it's security.
+The passphrase is generated from the local account certificate using a wordlist of your choice.
 
-### How to use
+You can find a set of ready-to-use wordlists in the [bip39](https://github.com/bitcoinjs/bip39/tree/a7ecbfe2e60d0214ce17163d610cad9f7b23140c/src/wordlists) repository.
 
-1. Setup up Jazz as described in the [setup guide](/docs/project-setup).
-
-2. Use the `usePassphraseAuth` hook to show the current account passphrase, sign up or to log in. (must be used inside `JazzProvider`)
-
+For example:
 <CodeGroup>
-```ts
-import { usePassphraseAuth } from "jazz-react";
+{/* prettier-ignore */}
+```tsx
+import { englishWordlist } from "./wordlist"
 
-// ...
+export function AuthModal({ open, onOpenChange }: AuthModalProps) {
+  const [loginPassphrase, setLoginPassphrase] = useState("");
 
-const { state, logIn, signUp, getCurrentAccountPassphrase } = usePassphraseAuth({ wordlist });
+  const auth = usePassphraseAuth({ // Must be inside the JazzProvider!
+    wordlist: englishWordlist,
+  });
+
+  if (auth.state === "signedIn") { // You can also use `useIsAuthenticated()`
+    return <div>You are already signed in</div>;
+  }
+
+  const handleSignUp = async () => {
+    await auth.signUp();
+    onOpenChange(false);
+  };
+
+  const handleLogIn = async () => {
+    await auth.logIn(loginPassphrase);
+    onOpenChange(false);
+  };
+
+  return (
+    <div>
+      <label>
+        Your current passphrase
+        <textarea
+          readOnly
+          value={auth.passphrase}
+          rows={5}
+        />
+      </label>
+      <button onClick={handleSignUp}>I have stored my passphrase</button>
+      <label>
+        Log in with your passphrase
+        <textarea
+          value={loginPassphrase}
+          onChange={(e) => setLoginPassphrase(e.target.value)}
+          placeholder="Enter your passphrase"
+          rows={5}
+          required
+        />
+      </label>
+      <button onClick={handleLogIn}>Log in</button>
+    </div>
+  );
+}
 ```
 </CodeGroup>
 
-The `signUp` function can be used to track that the user has registered the passphrase and is not anymore anonymous.
+You can try our passphrase authentication using our [passphrase example](https://passphrase-demo.jazz.tools/) or the [todo list demo](https://todo-demo.jazz.tools/).
 
-The wordlist is a list of 2048 words, you can find one for your language [here](https://github.com/bitcoinjs/bip39/tree/a7ecbfe2e60d0214ce17163d610cad9f7b23140c/src/wordlists).
-
-Take a look at our [example](https://github.com/garden-co/jazz/tree/main/examples/passphrase) to see how it works.
-
-## Clerk
+## Integration with Clerk
 
 Jazz can be used with [Clerk](https://clerk.com/) to authenticate users.
 
 This authentication method is not fully local-first, because the login and signup need to be done while online.
 
-However, once authenticated the user won't need anymore to interact with Clerk and use the rest of the Jazz features without being online.
+However, once authenticated, your users won't need to interact with Clerk anymore, and are able to use all of Jazz's features without needing to be online.
 
-### How to use
+The clerk provider is not built into `jazz-react` and needs the `jazz-react-auth-clerk` package to be installed.
 
-1. Setup up Jazz as described in the [setup guide](/docs/project-setup).
-
-2. Install Clerk as described in the [Clerk docs](https://clerk.com/docs/components/overview).
-
-3. Add `jazz-react-auth-clerk` to your project.
-
-4. Use the `JazzProviderWithClerk` component to wrap your app:
-
+After installing the package you can use the `JazzProviderWithClerk` component to wrap your app:
 <CodeGroup>
 ```tsx
 import { JazzProviderWithClerk } from "jazz-react-auth-clerk";
@@ -119,26 +152,43 @@ function JazzProvider({ children }: { children: React.ReactNode }) {
 }
 
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
-      <JazzProvider>
-        <App />
-      </JazzProvider>
-    </ClerkProvider>
-  </StrictMode>,
+  <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
+    <JazzProvider>
+      <App />
+    </JazzProvider>
+  </ClerkProvider>
 );
 ```
 </CodeGroup>
 
-5. Use the [Clerk auth methods](https://clerk.com/docs/references/react/overview) to log in and sign up.
+Then you can use the [Clerk auth methods](https://clerk.com/docs/references/react/overview) to log in and sign up:
+<CodeGroup>
+{/* prettier-ignore */}
+```tsx
+import { SignInButton } from "@clerk/clerk-react";
+import { useAccount, useIsAuthenticated } from "jazz-react";
+
+export function AuthButton() {
+  const { logOut } = useAccount();
+
+  const isAuthenticated = useIsAuthenticated();
+
+  if (isAuthenticated) {
+    return <button onClick={() => logOut()}>Logout</button>;
+  }
+
+  return <SignInButton />;
+}
+```
+</CodeGroup>
 
 ## Migrating data from anonymous to authenticated account
 
-With Jazz is possible to make anonymous accounts to use the app normally, but when the user logs in with an existing account the anonymous account gets replaced by the authenticated one.
+You may want allow your users to use your app without authenticating (a poll response for example). But they might make changes that they'd like to keep when they do authenticate.
 
-It may be that the user didn't recognize that it was using an anonymous account and might create stuff while anonymous that they don't want to lose.
+When they log in, the anonymous account will be deleted and this could lead to unexpected data loss.
 
-To avoid this situation is possible to use the `onAnonymousAccountDiscarded` handler to migrate the data from the anonymous account to the authenticated one.
+To avoid this situation we provide the `onAnonymousAccountDiscarded` handler to migrate the data from the anonymous account to the authenticated one.
 
 This is an example from our [music player](https://github.com/garden-co/jazz/tree/main/examples/music-player):
 <CodeGroup>
@@ -174,14 +224,17 @@ export async function onAnonymousAccountDiscarded(
 ```
 </CodeGroup>
 
+To see how this works in reality we suggest you to try 
+to upload a song in the [music player demo](https://music-demo.jazz.tools/) and then
+try to log in with an existing account.
+
 ## Disable network sync for anonymous users
 
-A great way to get you users to try your app for free is to make it local-only for anonymous users.
+You can disable network sync so you can decide when it makes sense for your app to work completely locally.
 
-With `sync.when` set to `signedUp` the app will work in local mode when the user is anonymous and the user will unlock the multiplayer & multi-device features when they sign up.
-
+For example, you may want to give the opportunity to non-authenticated users to try your app locally first, then enable the network sync only when the user is authenticated:
 <CodeGroup>
-```ts
+```tsx
 <JazzProvider
   sync={{
     peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
@@ -193,3 +246,5 @@ With `sync.when` set to `signedUp` the app will work in local mode when the user
 </JazzProvider>
 ```
 </CodeGroup>
+
+You can manually control the sync by switching when between `"always"` and `"never"`.
