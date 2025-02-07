@@ -175,7 +175,7 @@ describe("subscribeToCoValue", () => {
     onTestFinished(unsubscribe);
 
     await waitFor(() => {
-      const lastValue = updateFn.mock.lastCall[0];
+      const lastValue = updateFn.mock.lastCall?.[0];
 
       expect(lastValue?.messages?.[0]?.text).toBe(message.text);
     });
@@ -187,7 +187,7 @@ describe("subscribeToCoValue", () => {
       expect(updateFn).toHaveBeenCalled();
     });
 
-    const lastValue = updateFn.mock.lastCall[0];
+    const lastValue = updateFn.mock.lastCall?.[0];
     expect(lastValue?.messages?.[0]?.text).toBe(
       "Nevermind, she was gone to the supermarket",
     );
@@ -224,12 +224,12 @@ describe("subscribeToCoValue", () => {
     onTestFinished(unsubscribe);
 
     await waitFor(() => {
-      const lastValue = updateFn.mock.lastCall[0];
+      const lastValue = updateFn.mock.lastCall?.[0];
 
       expect(lastValue?.messages?.[0]?.text).toBe(message.text);
     });
 
-    const initialValue = updateFn.mock.lastCall[0];
+    const initialValue = updateFn.mock.lastCall?.[0];
     const initialMessagesList = initialValue?.messages;
     const initialMessage1 = initialValue?.messages[0];
     const initialMessage2 = initialValue?.messages[1];
@@ -243,7 +243,7 @@ describe("subscribeToCoValue", () => {
       expect(updateFn).toHaveBeenCalled();
     });
 
-    const lastValue = updateFn.mock.lastCall[0];
+    const lastValue = updateFn.mock.lastCall?.[0];
     expect(lastValue).not.toBe(initialValue);
     expect(lastValue.messages).not.toBe(initialMessagesList);
     expect(lastValue.messages[0]).not.toBe(initialMessage1);
@@ -290,13 +290,13 @@ describe("subscribeToCoValue", () => {
     onTestFinished(unsubscribe);
 
     await waitFor(() => {
-      const lastValue = updateFn.mock.lastCall[0];
+      const lastValue = updateFn.mock.lastCall?.[0];
 
       expect(lastValue?.messages?.[0]?.text).toBe(message.text);
       expect(lastValue?.messages?.[1]?.text).toBe(message2.text);
     });
 
-    const initialValue = updateFn.mock.lastCall[0];
+    const initialValue = updateFn.mock.lastCall?.[0];
     chatRoom.name = "Me and Luigi";
 
     updateFn.mockClear();
@@ -305,7 +305,7 @@ describe("subscribeToCoValue", () => {
       expect(updateFn).toHaveBeenCalled();
     });
 
-    const lastValue = updateFn.mock.lastCall[0];
+    const lastValue = updateFn.mock.lastCall?.[0];
     expect(lastValue).not.toBe(initialValue);
     expect(lastValue.name).toBe("Me and Luigi");
 
