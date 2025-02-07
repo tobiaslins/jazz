@@ -1,9 +1,23 @@
-import { describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, onTestFinished, test, vi } from "vitest";
 import { PeerState } from "../PeerState";
 import { CoValueCore } from "../coValueCore";
 import { CO_VALUE_LOADING_CONFIG, CoValueState } from "../coValueState";
 import { RawCoID } from "../ids";
 import { Peer } from "../sync";
+
+const initialMaxRetries = CO_VALUE_LOADING_CONFIG.MAX_RETRIES;
+
+function mockMaxRetries(maxRetries: number) {
+  CO_VALUE_LOADING_CONFIG.MAX_RETRIES = maxRetries;
+
+  onTestFinished(() => {
+    CO_VALUE_LOADING_CONFIG.MAX_RETRIES = initialMaxRetries;
+  });
+}
+
+beforeEach(() => {
+  mockMaxRetries(5);
+});
 
 describe("CoValueState", () => {
   const mockCoValueId = "co_test123" as RawCoID;
@@ -214,6 +228,8 @@ describe("CoValueState", () => {
   test("should handle the coValues that become available in between of the retries", async () => {
     vi.useFakeTimers();
 
+    mockMaxRetries(5);
+
     let retries = 0;
 
     const peer1 = createMockPeerState(
@@ -290,7 +306,9 @@ describe("CoValueState", () => {
 
     await loadPromise;
 
-    expect(peer1.pushOutgoingMessage).toHaveBeenCalledTimes(5);
+    expect(peer1.pushOutgoingMessage).toHaveBeenCalledTimes(
+      CO_VALUE_LOADING_CONFIG.MAX_RETRIES,
+    );
     expect(state.state.type).toBe("available");
     await expect(state.getCoValue()).resolves.toEqual({ id: mockCoValueId });
 
@@ -299,6 +317,8 @@ describe("CoValueState", () => {
 
   test("should stop retrying when value becomes available", async () => {
     vi.useFakeTimers();
+
+    mockMaxRetries(5);
 
     let run = 1;
 
@@ -454,7 +474,9 @@ describe("CoValueState", () => {
     }
     await loadPromise;
 
-    expect(peer1.pushOutgoingMessage).toHaveBeenCalledTimes(5);
+    expect(peer1.pushOutgoingMessage).toHaveBeenCalledTimes(
+      CO_VALUE_LOADING_CONFIG.MAX_RETRIES,
+    );
 
     expect(state.state.type).toBe("unavailable");
     await expect(state.getCoValue()).resolves.toEqual("unavailable");
