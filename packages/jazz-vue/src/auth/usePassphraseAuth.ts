@@ -1,5 +1,5 @@
 import { PassphraseAuth } from "jazz-tools";
-import { computed } from "vue";
+import { computed, ref, watchEffect } from "vue";
 import { useAuthSecretStorage, useJazzContext } from "../composables.js";
 import { useIsAuthenticated } from "./useIsAuthenticated.js";
 
@@ -35,10 +35,22 @@ export function usePassphraseAuth({
     );
   });
 
+  const passphrase = ref(authMethod.value.passphrase);
+
+  watchEffect((onCleanup) => {
+    authMethod.value.loadCurrentAccountPassphrase();
+
+    const unsubscribe = authMethod.value.subscribe(() => {
+      passphrase.value = authMethod.value.passphrase;
+    });
+
+    onCleanup(unsubscribe);
+  });
+
   return computed(() => ({
     state: isAuthenticated.value ? "signedIn" : "anonymous",
     logIn: authMethod.value.logIn,
     signUp: authMethod.value.signUp,
-    getCurrentAccountPassphrase: authMethod.value.getCurrentAccountPassphrase,
+    passphrase: passphrase.value,
   }));
 }

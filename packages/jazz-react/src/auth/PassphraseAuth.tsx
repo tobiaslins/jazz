@@ -11,7 +11,6 @@ export function PassphraseAuthBasicUI(props: {
   });
 
   const [step, setStep] = useState<"initial" | "create" | "login">("initial");
-  const [passphrase, setPassphrase] = useState("");
   const [loginPassphrase, setLoginPassphrase] = useState("");
   const [isCopied, setIsCopied] = useState(false);
 
@@ -20,8 +19,6 @@ export function PassphraseAuthBasicUI(props: {
   }
 
   const handleCreateAccount = async () => {
-    const passphrase = await auth.getCurrentAccountPassphrase();
-    setPassphrase(passphrase);
     setStep("create");
   };
 
@@ -31,12 +28,11 @@ export function PassphraseAuthBasicUI(props: {
 
   const handleBack = () => {
     setStep("initial");
-    setPassphrase("");
     setLoginPassphrase("");
   };
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(passphrase);
+    await navigator.clipboard.writeText(auth.passphrase);
     setIsCopied(true);
   };
 
@@ -45,7 +41,6 @@ export function PassphraseAuthBasicUI(props: {
 
     // Reset the state in case of logout
     setStep("initial");
-    setPassphrase("");
     setLoginPassphrase("");
   };
 
@@ -54,7 +49,6 @@ export function PassphraseAuthBasicUI(props: {
 
     // Reset the state in case of logout
     setStep("initial");
-    setPassphrase("");
     setLoginPassphrase("");
   };
 
@@ -89,7 +83,7 @@ export function PassphraseAuthBasicUI(props: {
             </p>
             <textarea
               readOnly
-              value={passphrase}
+              value={auth.passphrase}
               style={textareaStyle}
               rows={5}
             />

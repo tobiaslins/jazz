@@ -1,10 +1,10 @@
 // @vitest-environment happy-dom
 
 import { mnemonicToEntropy } from "@scure/bip39";
-import { AuthSecretStorage, CoMap, ID, KvStoreContext, co } from "jazz-tools";
+import { AuthSecretStorage, KvStoreContext } from "jazz-tools";
 import { createJazzTestAccount, setupJazzTestSync } from "jazz-tools/testing";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { useCoState, usePassphraseAuth } from "../index.js";
+import { usePassphraseAuth } from "../index.js";
 import { testWordlist } from "./fixtures.js";
 import { waitFor, withJazzTestSetup } from "./testUtils.js";
 
@@ -79,5 +79,17 @@ describe("usePassphraseAuth", () => {
       ...credentialsBefore,
       provider: "passphrase",
     });
+  });
+
+  it("should return the current account passphrase", async () => {
+    const [result] = withJazzTestSetup(() =>
+      usePassphraseAuth({ wordlist: testWordlist }),
+    );
+
+    await waitFor(() => result.value.passphrase !== "");
+
+    const passphrase = result.value.passphrase;
+
+    expect(await result.value.signUp()).toBe(passphrase);
   });
 });
