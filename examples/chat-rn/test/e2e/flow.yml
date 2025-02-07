@@ -2,11 +2,11 @@ appId: com.jazz.chatrn
 ---
 - launchApp
 
-# handle Expo screens
-- assertVisible: "Continue"
-- tapOn: "Continue"
-- assertVisible: "Reload"
-- tapOn: "Reload"
+# # handle Expo screens (for local dev)
+# - assertVisible: "Continue"
+# - tapOn: "Continue"
+# - assertVisible: "Reload"
+# - tapOn: "Reload"
 
 # login
 - assertVisible: "Anonymous user"
