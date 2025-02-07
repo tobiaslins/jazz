@@ -5,7 +5,7 @@ import { logger } from "./logger.js";
 import { PeerID } from "./sync.js";
 
 export const CO_VALUE_LOADING_CONFIG = {
-  MAX_RETRIES: 5,
+  MAX_RETRIES: 2,
   TIMEOUT: 30_000,
 };
 
