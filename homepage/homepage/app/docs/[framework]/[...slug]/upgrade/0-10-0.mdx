@@ -17,7 +17,7 @@ export const metadata = { title: "Jazz 0.10.0 is out!" };
 
   <h3>What's new?</h3>
   Here is what's changed in this release:
-  - [New authentication flow](/docs/upgrade/0-10-0#new-authentication-flow), redesigned to make Jazz easier to start with and be more flexible
+  - [New authentication flow](/docs/upgrade/0-10-0#new-authentication-flow), now with anonymous auth, redesigned to make Jazz easier to start with and be more flexible
   - [Local-only mode](/docs/upgrade/0-10-0#local-only-mode), now your users can play around with your app, even in local-only mode, before signing up
   - [Improvements on the loading APIs](/docs/upgrade/0-10-0#improved-loading-api), ensureLoaded now always returns a value and useCoState now returns null if the value is not found
   - [Jazz Workers on native WebSockets](/docs/upgrade/0-10-0#native-websocket-for-jazz-workers), improving the compatibility with a wider set of Javascript runtimes
@@ -48,7 +48,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 ```
 </CodeGroup>
 
-New users are initially authenticated as "anonymous" and you can you can sign them up with one of the Jazz providers.
+New users are initially authenticated as "anonymous" and you can sign them up with one of the Jazz providers.
 
 Your auth code can now blend into your component tree:
 <CodeGroup>
@@ -139,7 +139,7 @@ For the changes related to the specific auth providers see the updated [authenti
 
 <h3 id="local-only-mode">Local-only mode</h3>
 <div>
-A great way to get you users to try your app for free is to make it local-only for anonymous users.
+A great way to get your users to try your app for free is to make it local-only for anonymous users.
 
 With `sync.when` set to `"signedUp"` the app will work in local mode when the user is anonymous and unlock the multiplayer features when they sign up:
 <CodeGroup>
@@ -169,7 +169,7 @@ export async function updateActiveTrack(track: MusicTrack) { // No need to pass 
     root: {},
   });
 
-  if (!me) { //Techncally can never happen
+  if (!me) { // Technically can never happen
     throw new Error("User not found");
   }
 
