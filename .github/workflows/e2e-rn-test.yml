@@ -26,6 +26,7 @@ jobs:
         run: pnpm turbo build --filter="./packages/*"
 
       - name: iOS Simulator
+        id: ios-simulator
         uses: futureware-tech/simulator-action@v4
         with:
           os: iOS
