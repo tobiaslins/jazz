@@ -20,7 +20,7 @@ export const metadata = { title: "Jazz 0.10.0 is out!" };
   - [New authentication flow](/docs/upgrade/0-10-0#new-authentication-flow), redesigned to make Jazz easier to start with and be more flexible
   - [Local-only mode](/docs/upgrade/0-10-0#local-only-mode), now your users can play around with your app, even in local-only mode, before signing up
   - [Improvements on the loading APIs](/docs/upgrade/0-10-0#improved-loading-api), ensureLoaded now always returns a value and useCoState now returns null if the value is not found
-  - [Jazz Workers on native WebSocket](/docs/upgrade/0-10-0#native-websocket-for-jazz-workers), improving the compatibility with a wider set of Javascript runtimes
+  - [Jazz Workers on native WebSockets](/docs/upgrade/0-10-0#native-websocket-for-jazz-workers), improving the compatibility with a wider set of Javascript runtimes
   - Support for Node 14 dropped on cojson
   - Bugfix: Group.removeMember now returns a promise
 </div>
@@ -28,7 +28,7 @@ export const metadata = { title: "Jazz 0.10.0 is out!" };
 <ContentByFramework framework="react">
   <h3 id="new-authentication-flow">New authentication flow</h3>
   <div>
-    Since now the authentication was the first part to figure out when building a Jazz app, becoming a stumbling block for many.
+    Until now authentication has been the first part to figure out when building a Jazz app, and this was a stumbling block for many.
 
     Now is no more required and setting up a Jazz app is as easy as writing this:
 <CodeGroup>
@@ -48,9 +48,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 ```
 </CodeGroup>
 
-New users are authenticated as "anonymous" and you can make them sign up with one of the Jazz providers.
+New users are initially authenticated as "anonymous" and you can you can sign them up with one of the Jazz providers.
 
-You auth code can now blend into your component tree:
+Your auth code can now blend into your component tree:
 <CodeGroup>
 {/* prettier-ignore */}
 ```tsx
@@ -81,7 +81,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
 
 When a user signs up with one of the providers we register the current anonymous account into it.
 
-To check if the user has done the registration you can use the `useIsAuthenticated` hook:
+To check if the user has registered you can use the new `useIsAuthenticated` hook:
 <CodeGroup>
 {/* prettier-ignore */}
 ```tsx
@@ -115,7 +115,7 @@ export function AuthButton() {
 ```
 </CodeGroup>
 
-If you want to just keep your auth-wall you can do it by just moving the auth code inside the `JazzProvider` component like this:
+If you do want to require your users to register before using your app, you can do it by just moving the auth code inside the `JazzProvider` component like this:
 <CodeGroup>
 {/* prettier-ignore */}
 ```tsx
@@ -141,7 +141,7 @@ For the changes related to the specific auth providers see the updated [authenti
 <div>
 A great way to get you users to try your app for free is to make it local-only for anonymous users.
 
-With `sync.when` set to `signedUp` the app will work in local mode when the user is anonymous and unlock the multiplayer features when they sign up:
+With `sync.when` set to `"signedUp"` the app will work in local mode when the user is anonymous and unlock the multiplayer features when they sign up:
 <CodeGroup>
 ```ts
 <JazzProvider
@@ -156,12 +156,29 @@ With `sync.when` set to `signedUp` the app will work in local mode when the user
 ```
 </CodeGroup>
 
-You can control the the local mode by switching the `when` config to `always` or `never`.
+You can control when Jazz will sync by switching the `when` config to `"always"` or `"never"`.
 </div>
 
 <h3 id="improved-loading-api">Improvements on the loading APIs</h3>
 <div>
-`ensureLoaded` now always returns a value, making it's usage leaner:
+Before 0.10.0 `ensureLoaded` was returning a nullable value forcing the Typescript code to always include null checks:
+<CodeGroup>
+```ts
+export async function updateActiveTrack(track: MusicTrack) { // No need to pass the account
+  const me = await MusicaAccount.getMe().ensureLoaded({
+    root: {},
+  });
+
+  if (!me) { //Techncally can never happen
+    throw new Error("User not found");
+  }
+
+  me.root.activeTrack = track;
+}
+```
+</CodeGroup>
+
+Now `ensureLoaded` always returns a value, making it's usage leaner:
 <CodeGroup>
 ```ts
 export async function updateActiveTrack(track: MusicTrack) { // No need to pass the account
@@ -189,7 +206,7 @@ if (value === null) {
 </CodeGroup> 
 </div>
 
-<h3 id="native-websocket-for-jazz-workers">Jazz Workers on native WebSocket</h3>
+<h3 id="native-websocket-for-jazz-workers">Jazz Workers on native WebSockets</h3>
 <div>
   We have removed the dependency on `ws` and switched to the native WebSocket API for Jazz Workers.
 
