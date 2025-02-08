@@ -18,6 +18,8 @@ import { AuthSecretStorage } from "./AuthSecretStorage.js";
  * @category Auth Providers
  */
 export class PassphraseAuth {
+  passphrase: string = "";
+
   constructor(
     private crypto: CryptoProvider,
     private authenticate: AuthenticateAccountFunction,
@@ -54,6 +56,9 @@ export class PassphraseAuth {
       accountSecret,
       provider: "passphrase",
     });
+
+    this.passphrase = passphrase;
+    this.notify();
   };
 
   signUp = async () => {
@@ -75,7 +80,7 @@ export class PassphraseAuth {
     return passphrase;
   };
 
-  getCurrentUserPassphrase = async () => {
+  getCurrentAccountPassphrase = async () => {
     const credentials = await this.authSecretStorage.get();
 
     if (!credentials || !credentials.secretSeed) {
@@ -84,4 +89,25 @@ export class PassphraseAuth {
 
     return entropyToMnemonic(credentials.secretSeed, this.wordlist);
   };
+
+  loadCurrentAccountPassphrase = async () => {
+    const passphrase = await this.getCurrentAccountPassphrase();
+    this.passphrase = passphrase;
+    this.notify();
+  };
+
+  listeners = new Set<() => void>();
+  subscribe = (callback: () => void) => {
+    this.listeners.add(callback);
+
+    return () => {
+      this.listeners.delete(callback);
+    };
+  };
+
+  notify() {
+    for (const listener of this.listeners) {
+      listener();
+    }
+  }
 }

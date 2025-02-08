@@ -62,7 +62,7 @@ describe("PassphraseAuth", () => {
       await authSecretStorage.set(storageData);
 
       // Generate a valid passphrase
-      const passphrase = await passphraseAuth.getCurrentUserPassphrase();
+      const passphrase = await passphraseAuth.getCurrentAccountPassphrase();
 
       await passphraseAuth.logIn(passphrase);
 
@@ -123,7 +123,7 @@ describe("PassphraseAuth", () => {
     });
   });
 
-  describe("getCurrentUserPassphrase", () => {
+  describe("getCurrentAccountPassphrase", () => {
     it("should return current user passphrase when credentials exist", async () => {
       const storageData = {
         accountID: "test-account-id" as ID<Account>,
@@ -139,14 +139,14 @@ describe("PassphraseAuth", () => {
 
       // Then get the current passphrase
       const retrievedPassphrase =
-        await passphraseAuth.getCurrentUserPassphrase();
+        await passphraseAuth.getCurrentAccountPassphrase();
       expect(retrievedPassphrase).toBe(originalPassphrase);
     });
 
     it("should throw error when no credentials found", async () => {
-      await expect(passphraseAuth.getCurrentUserPassphrase()).rejects.toThrow(
-        "No credentials found",
-      );
+      await expect(
+        passphraseAuth.getCurrentAccountPassphrase(),
+      ).rejects.toThrow("No credentials found");
     });
   });
 });

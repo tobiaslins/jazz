@@ -46,7 +46,7 @@ export const JazzProvider = defineComponent({
       type: String,
       required: false,
     },
-    onAnonymousUserDiscarded: {
+    onAnonymousAccountDiscarded: {
       type: Function as PropType<
         (anonymousAccount: RegisteredAccount) => Promise<void>
       >,
@@ -79,7 +79,7 @@ export const JazzProvider = defineComponent({
             guestMode: props.guestMode,
             AccountSchema: props.AccountSchema,
             defaultProfileName: props.defaultProfileName,
-            onAnonymousUserDiscarded: props.onAnonymousUserDiscarded,
+            onAnonymousAccountDiscarded: props.onAnonymousAccountDiscarded,
             onLogOut: props.onLogOut,
           })
           .catch((error) => {

@@ -22,7 +22,9 @@ function JazzProvider({ children }: { children: React.ReactNode }) {
   return (
     <JazzProviderWithClerk
       clerk={clerk}
-      peer="wss://cloud.jazz.tools/?key=your-email-address"
+      sync={{
+        peer: "wss://cloud.jazz.tools/?key=your-email-address",
+      }}
     >
       {children}
     </JazzProviderWithClerk>

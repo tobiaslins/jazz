@@ -1,5 +1,5 @@
 import { PassphraseAuth } from "jazz-tools";
-import { useMemo } from "react";
+import { useCallback, useMemo, useSyncExternalStore } from "react";
 import { useAuthSecretStorage, useJazzContext } from "../hooks.js";
 import { useIsAuthenticated } from "./useIsAuthenticated.js";
 
@@ -34,11 +34,22 @@ export function usePassphraseAuth({
     );
   }, [wordlist]);
 
+  const passphrase = useSyncExternalStore(
+    useCallback(
+      (callback) => {
+        authMethod.loadCurrentAccountPassphrase();
+        return authMethod.subscribe(callback);
+      },
+      [authMethod],
+    ),
+    () => authMethod.passphrase,
+  );
+
   const isAuthenticated = useIsAuthenticated();
   return {
     state: isAuthenticated ? "signedIn" : "anonymous",
     logIn: authMethod.logIn,
     signUp: authMethod.signUp,
-    getCurrentUserPassphrase: authMethod.getCurrentUserPassphrase,
+    passphrase,
   } as const;
 }

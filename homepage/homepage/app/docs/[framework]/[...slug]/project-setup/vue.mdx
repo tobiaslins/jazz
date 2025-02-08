@@ -108,7 +108,7 @@ Update the `src/main.ts` file to integrate Jazz:
 <CodeGroup>
 ```typescript
 import "./assets/main.css";
-import { DemoAuthBasicUI, useDemoAuth, JazzProvider } from "jazz-vue";
+import { JazzProvider } from "jazz-vue";
 import { createApp, defineComponent, h } from "vue";
 import App from "./App.vue";
 import router from "./router";
@@ -123,8 +123,6 @@ declare module "jazz-vue" {
 const RootComponent = defineComponent({
   name: "RootComponent",
   setup() {
-    const { authMethod, state } = useDemoAuth();
-
     return () => [
       h(
         JazzProvider,
@@ -137,12 +135,6 @@ const RootComponent = defineComponent({
           default: () => h(App),
         },
       ),
-
-      state.state !== "signedIn" &&
-        h(DemoAuthBasicUI, {
-          appName: "Jazz Vue Todo",
-          state,
-        }),
     ];
   },
 });

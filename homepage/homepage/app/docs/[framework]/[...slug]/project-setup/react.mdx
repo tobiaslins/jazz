@@ -4,60 +4,32 @@ import { CodeGroup } from "@/components/forMdx";
 
 # <span id="react">React</span>
 
-First you define a context providing component (typically called `JazzAndAuth`) that uses:
-
-    - the Jazz context provider with your app configs
-
-    - the hooks and default/custom UI of one of the [Auth Methods](/docs/react/authentication/auth-methods).
-
-    This is also where you specify the sync & storage server to connect to (see [Sync and storage](/docs/react/sync-and-storage)).
-
-    <CodeGroup>
-    {/* prettier-ignore */}
-    ```tsx
-    import { JazzProvider } from "jazz-react";// old
-    import { MyAppAccount } from "./schema";
-
-    function JazzAndAuth({ children }: { children: React.ReactNode }) {
-        const [passkeyAuth, passKeyState] = usePasskeyAuth({ appName });
-
-        return (
-            <>
-                <JazzProvider
-                    auth={passkeyAuth}
-                    peer="wss://cloud.jazz.tools/?key=you@example.com"
-                    AccountSchema={MyAppAccount}
-                >
-                    {children}
-                </JazzProvider>
-                <PasskeyAuthBasicUI state={passKeyState} />
-            </>
-        );
-    }
-
-    // Register the Account schema so `useAccount` returns our custom `MyAppAccount`
-    declare module "jazz-react" {
-        interface Register {
-            Account: MyAppAccount;
-        }
-    }
-    ```
-    </CodeGroup>
-
-With `JazzAndAuth` defined, you can wrap your app in it and then use the hooks within your App.
+Wrap your application with JazzProvider, this is where you specify the sync & storage server to connect to (see [Sync and storage](/docs/react/sync-and-storage)).
 
 <CodeGroup>
 {/* prettier-ignore */}
 ```tsx
+import { JazzProvider } from "jazz-react";
+import { MyAppAccount } from "./schema";
+
 ReactDOM.createRoot(document.getElementById("root")!).render( // old
-    <React.StrictMode> // old
-        <JazzAndAuth>
-            <App />
-        </JazzAndAuth>
-    </React.StrictMode>// old
+    <JazzProvider
+        sync={{ peer: "wss://cloud.jazz.tools/?key=you@example.com" }}
+        AccountSchema={MyAppAccount}
+    >
+        <App />
+    </JazzProvider>
 );// old
+
+// Register the Account schema so `useAccount` returns our custom `MyAppAccount`
+declare module "jazz-react" {
+    interface Register {
+        Account: MyAppAccount;
+    }
+}
 ```
 </CodeGroup>
+
 
 
 ## Next.js
@@ -73,25 +45,18 @@ The easiest way to use Jazz with Next.JS is to only use it on the client side. Y
   ```tsx
     "use client"
     import { JazzProvider } from "jazz-react"; // old
-    import { PasskeyAuthBasicUI, usePasskeyAuth } from "jazz-react";// old
     import { MyAppAccount } from "./schema"; // old
 
-    function JazzAndAuth({ children }: { children: React.ReactNode }) { // old
-        const [passkeyAuth, passKeyState] = usePasskeyAuth({ appName }); // old
-
-        return ( // old
-            <> // old
-                <JazzProvider // old    
-                    auth={passkeyAuth} // old
-                    peer="wss://cloud.jazz.tools/?key=you@example.com" // old
-                    AccountSchema={MyAppAccount} // old
-                >
-                    {children} // old
-                </JazzProvider> // old
-                <PasskeyAuthBasicUI state={passKeyState} /> // old
-            </> // old
-        ); // old
-    } // old
+    export function MyJazzProvider(props: { children: React.ReactNode }) { 
+        return ( 
+            <JazzProvider   
+                sync={{ peer: "wss://cloud.jazz.tools/?key=you@example.com" }}
+                AccountSchema={MyAppAccount}
+            >
+                {props.children}
+            </JazzProvider> 
+        ); 
+    } 
 ```
 </CodeGroup>
 

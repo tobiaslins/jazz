@@ -13,7 +13,7 @@ export type JazzContextManagerAuthProps = {
 };
 
 export type JazzContextManagerBaseProps<Acc extends Account> = {
-  onAnonymousUserDiscarded?: (anonymousAccount: Acc) => Promise<void>;
+  onAnonymousAccountDiscarded?: (anonymousAccount: Acc) => Promise<void>;
   onLogOut?: () => void;
 };
 
@@ -61,7 +61,7 @@ export class JazzContextManager<
 
   updateContext(props: P, context: PlatformSpecificContext<Acc>) {
     // When authenticating we don't want to close the previous context
-    // because we might need to handle the onAnonymousUserDiscarded callback
+    // because we might need to handle the onAnonymousAccountDiscarded callback
     if (!this.authenticating) {
       this.context?.done();
     }
@@ -148,10 +148,10 @@ export class JazzContextManager<
       currentContext.node.syncManager.addPeer(prevAccountAsPeer);
 
       try {
-        await this.props.onAnonymousUserDiscarded?.(prevContext.me);
+        await this.props.onAnonymousAccountDiscarded?.(prevContext.me);
         await prevContext.me.waitForAllCoValuesSync();
       } catch (error) {
-        console.error("Error onAnonymousUserDiscarded", error);
+        console.error("Error onAnonymousAccountDiscarded", error);
       }
 
       prevAccountAsPeer.outgoing.close();

@@ -13,7 +13,7 @@ import "./index.css";
 import { MusicaAccount } from "@/1_schema";
 import { apiKey } from "@/apiKey.ts";
 import { JazzProvider } from "jazz-react";
-import { onAnonymousUserDiscarded } from "./4_actions";
+import { onAnonymousAccountDiscarded } from "./4_actions";
 import { useUploadExampleData } from "./lib/useUploadExampleData";
 
 /**
@@ -77,7 +77,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       storage="indexedDB"
       AccountSchema={MusicaAccount}
       defaultProfileName="Anonymous unicorn"
-      onAnonymousUserDiscarded={onAnonymousUserDiscarded}
+      onAnonymousAccountDiscarded={onAnonymousAccountDiscarded}
     >
       <Main />
       <JazzInspector />
