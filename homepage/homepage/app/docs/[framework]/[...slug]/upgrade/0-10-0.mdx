@@ -25,32 +25,28 @@ export const metadata = { title: "Jazz 0.10.0 is out!" };
   - Bugfix: Group.removeMember now returns a promise
 </div>
 
-<ContentByFramework framework="react">
   <h3 id="new-authentication-flow">New authentication flow</h3>
   <div>
     Until now authentication has been the first part to figure out when building a Jazz app, and this was a stumbling block for many.
 
-    Now is no more required and setting up a Jazz app is as easy as writing this:
+    Now it is no longer required and setting up a Jazz app is as easy as writing this:
 <CodeGroup>
 {/* prettier-ignore */}
 ```tsx
-import { JazzProvider } from "jazz-react";
-
-ReactDOM.createRoot(document.getElementById("root")!).render(
-    <JazzProvider
-        auth={passkeyAuth} // removed  // *bin*
-        peer="wss://cloud.jazz.tools/?key=you@example.com"  // moved into sync // *bin*
-        sync={{ peer: "wss://cloud.jazz.tools/?key=you@example.com" }}  // *add*
-    >
-        <App />
-    </JazzProvider>
-);
+<JazzProvider
+    auth={authMethod} // removed  // *bin*
+    peer="wss://cloud.jazz.tools/?key=you@example.com"  // moved into sync // *bin*
+    sync={{ peer: "wss://cloud.jazz.tools/?key=you@example.com" }}  // *add*
+>
+    <App />
+</JazzProvider>
 ```
 </CodeGroup>
 
 New users are initially authenticated as "anonymous" and you can sign them up with one of the Jazz providers.
 
 Your auth code can now blend into your component tree:
+<ContentByFramework framework="react">
 <CodeGroup>
 {/* prettier-ignore */}
 ```tsx
@@ -75,12 +71,113 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
       await auth.logIn();
     }
     onOpenChange(false);
-  };
+};
 ```
 </CodeGroup>
+</ContentByFramework>
+<ContentByFramework framework="react-native">
+<CodeGroup>
+{/* prettier-ignore */}
+```tsx
+export function AuthModal({ open, onOpenChange }: AuthModalProps) {
+  const [username, setUsername] = useState("");
+  const [isSignUp, setIsSignUp] = useState(true);
+  const [loginPassphrase, setLoginPassphrase] = useState("");
+
+  const auth = usePassphraseAuth({ // Must be inside the JazzProvider!
+    wordlist,
+  });
+
+  const handleViewChange = () => {
+    setIsSignUp(!isSignUp);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (isSignUp) {
+      await auth.signUp();
+    } else {
+      await auth.logIn(loginPassphrase);
+    }
+    onOpenChange(false);
+};
+```
+</CodeGroup>
+</ContentByFramework>
+<ContentByFramework framework="svelte">
+<CodeGroup>
+{/* prettier-ignore */}
+```tsx
+import { usePasskeyAuth } from 'jazz-svelte';
+
+const auth = usePasskeyAuth({ appName: "My super-cool web app" });
+
+let error = $state<string | undefined>(undefined);
+
+function signUp(e: Event) {
+  const formData = new FormData(e.currentTarget as HTMLFormElement);
+  const name = formData.get('name') as string;
+
+  if (!name) {
+    error = 'Name is required';
+    return;
+  }
+  e.preventDefault();
+  error = undefined;
+  auth.current.signUp(name).catch((e) => {
+    error = e.message;
+  });
+}
+
+function logIn() {
+  error = undefined;
+  auth.current.logIn().catch((e) => {
+    error = e.message;
+  });
+}
+```
+</CodeGroup>
+</ContentByFramework>
+<ContentByFramework framework="vue">
+<CodeGroup>
+{/* prettier-ignore */}
+```tsx
+import { usePasskeyAuth } from 'jazz-vue';
+import { ref } from 'vue';
+
+const auth = usePasskeyAuth({ appName: "My super-cool web app" });
+const error = ref<string | undefined>(undefined);
+
+function signUp(e: Event) {
+  const formData = new FormData(e.currentTarget as HTMLFormElement);
+  const name = formData.get('name') as string;
+
+  if (!name) {
+    error.value = 'Name is required';
+    return;
+  }
+  e.preventDefault();
+  error.value = undefined;
+  auth.value.signUp(name).catch((e) => {
+    error.value = e.message;
+  });
+}
+
+function logIn(e: Event) {
+  error.value = undefined;
+  e.preventDefault();
+  auth.value.logIn().catch((e) => {
+    error.value = e.message;
+  });
+}
+```
+</CodeGroup>
+</ContentByFramework>
 
 When a user signs up with one of the providers we register the current anonymous account into it.
 
+<ContentByFramework framework={["react"]}>
 To check if the user has registered you can use the new `useIsAuthenticated` hook:
 <CodeGroup>
 {/* prettier-ignore */}
@@ -88,16 +185,14 @@ To check if the user has registered you can use the new `useIsAuthenticated` hoo
 export function AuthButton() {
   const isAuthenticated = useIsAuthenticated();
   const { logOut } = useAccount();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  function handleSignOut() {
-    logOut();
-    location.href = "/";
-  }
+  const [open, setOpen] = useState(false);
 
   if (isAuthenticated) {
     return (
-      <Button variant="outline" onClick={handleSignOut}>
+      <Button 
+        variant="outline" 
+        onClick={logOut}
+      >
         Sign out
       </Button>
     );
@@ -114,7 +209,42 @@ export function AuthButton() {
 }
 ```
 </CodeGroup>
+</ContentByFramework>
+<ContentByFramework framework={["react-native"]}>
+To check if the user has registered you can use the new `useIsAuthenticated` hook:
+<CodeGroup>
+{/* prettier-ignore */}
+```tsx
+export function AuthButton() {
+  const isAuthenticated = useIsAuthenticated();
+  const { logOut } = useAccount();
+  const [open, setOpen] = useState(false);
 
+  if (isAuthenticated) {
+    return (
+      <Button 
+        variant="outline" 
+        onPress={logOut}
+      >
+        Sign out
+      </Button>
+    );
+  }
+
+  return (
+    <>
+      <Button onPress={() => setOpen(true)}>
+        Sign up
+      </Button>
+      <AuthModal open={open} onOpenChange={setOpen} />
+    </>
+  );
+}
+```
+</CodeGroup>
+</ContentByFramework>
+
+<ContentByFramework framework={["react"]}>
 If you do want to require your users to register before using your app, you can do it by just moving the auth code inside the `JazzProvider` component like this:
 <CodeGroup>
 {/* prettier-ignore */}
@@ -125,17 +255,16 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <JazzProvider
       sync={{ peer: "wss://cloud.jazz.tools/?key=you@example.com" }}
     >
-      <PasskeyAuthBasicUI appName="My super-fast web app">
+      <PasskeyAuthBasicUI appName="My super-cool web app">
         <App />
       </PasskeyAuthBasicUI>
     </JazzProvider>
 );
 ```
 </CodeGroup>
-
-For the changes related to the specific auth providers see the updated [authentication docs](/docs/authentication).
-  </div>
 </ContentByFramework>
+For the changes related to the specific auth providers see the updated [authentication docs](/docs/authentication/overview).
+  </div>
 
 <h3 id="local-only-mode">Local-only mode</h3>
 <div>

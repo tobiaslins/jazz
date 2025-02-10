@@ -152,12 +152,12 @@ export const docNavigationItems = [
     items: [
       {
         name: "Overview",
-        href: "/docs/authentication/",
+        href: "/docs/authentication/overview",
         done: {
-          react: 50,
-          vue: 0,
-          "react-native": 0,
-          svelte: 0,
+          react: 100,
+          vue: 50,
+          "react-native": 100,
+          svelte: 50,
         },
       },
       {
