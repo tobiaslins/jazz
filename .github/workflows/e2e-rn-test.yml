@@ -32,12 +32,15 @@ jobs:
           os: iOS
           wait_for_boot: true
 
-      - name: chat-rn App Build
+      - name: chat-rn App Pre Build
         working-directory: ./examples/chat-rn
         run: |
           pnpm build
           pnpm expo prebuild --clean
-          cd ios
+
+      - name: chat-rn App Build
+        working-directory: ./examples/chat-rn/ios
+        run: |
           xcodebuild -scheme "jazzchatrn" \
             -workspace jazzchatrn.xcworkspace \
             -archivePath $RUNNER_TEMP/jazzchatrn.xcarchive \
