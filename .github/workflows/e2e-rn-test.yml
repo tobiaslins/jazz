@@ -4,6 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
+      - ".github/workflows/e2e-rn-test.yml"
       - "examples/chat-rn/**"
       - "examples/chat-rn-clerk/**"
       - "packages/jazz-react-native*/**"
