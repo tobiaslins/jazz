@@ -3,9 +3,10 @@ name: End-to-End Tests for React Native
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-  push:
-    branches:
-      - 'main'
+    paths:
+      - "examples/chat-rn/**"
+      - "examples/chat-rn-clerk/**"
+      - "packages/jazz-react-native*/**"
 
 jobs:
   e2e-tests:
