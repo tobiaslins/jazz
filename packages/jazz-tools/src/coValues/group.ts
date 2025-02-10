@@ -179,8 +179,11 @@ export class Group extends CoValueBase implements CoValue {
       });
   }
 
-  extend(parent: Group) {
-    this._raw.extend(parent._raw);
+  extend(
+    parent: Group,
+    roleMapping?: "reader" | "writer" | "admin" | "inherit",
+  ) {
+    this._raw.extend(parent._raw, roleMapping);
     return this;
   }
 
