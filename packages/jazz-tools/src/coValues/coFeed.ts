@@ -17,6 +17,7 @@ import type {
   ID,
   IfCo,
   RefsToResolve,
+  RefsToResolveStrict,
   Resolved,
   Schema,
   SchemaFor,
@@ -328,7 +329,10 @@ export class CoFeed<Item = any> extends CoValueBase implements CoValue {
   static load<F extends CoFeed, const R extends RefsToResolve<F> = true>(
     this: CoValueClass<F>,
     id: ID<F>,
-    options: { resolve?: R; loadAs?: Account | AnonymousJazzAgent },
+    options: {
+      resolve?: RefsToResolveStrict<F, R>;
+      loadAs?: Account | AnonymousJazzAgent;
+    },
   ): Promise<Resolved<F, R> | undefined> {
     return loadCoValueWithoutMe(this, id, options);
   }
@@ -345,7 +349,10 @@ export class CoFeed<Item = any> extends CoValueBase implements CoValue {
   static subscribe<F extends CoFeed, const R extends RefsToResolve<F> = true>(
     this: CoValueClass<F>,
     id: ID<F>,
-    options: { resolve?: R; loadAs?: Account | AnonymousJazzAgent },
+    options: {
+      resolve?: RefsToResolveStrict<F, R>;
+      loadAs?: Account | AnonymousJazzAgent;
+    },
     listener: (value: Resolved<F, R>, unsubscribe: () => void) => void,
   ): () => void;
   static subscribe<F extends CoFeed, const R extends RefsToResolve<F>>(
@@ -366,7 +373,7 @@ export class CoFeed<Item = any> extends CoValueBase implements CoValue {
    */
   ensureLoaded<F extends CoFeed, const R extends RefsToResolve<F>>(
     this: F,
-    options?: { resolve?: R },
+    options?: { resolve?: RefsToResolveStrict<F, R> },
   ): Promise<Resolved<F, R> | undefined> {
     return ensureCoValueLoaded(this, options);
   }
@@ -383,7 +390,7 @@ export class CoFeed<Item = any> extends CoValueBase implements CoValue {
   ): () => void;
   subscribe<F extends CoFeed, const R extends RefsToResolve<F>>(
     this: F,
-    options: { resolve?: R },
+    options: { resolve?: RefsToResolveStrict<F, R> },
     listener: (value: Resolved<F, R>, unsubscribe: () => void) => void,
   ): () => void;
   subscribe<F extends CoFeed, const R extends RefsToResolve<F>>(

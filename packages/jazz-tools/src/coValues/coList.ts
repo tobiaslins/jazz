@@ -7,6 +7,7 @@ import type {
   ID,
   RefEncoded,
   RefsToResolve,
+  RefsToResolveStrict,
   Resolved,
   Schema,
   SchemaFor,
@@ -365,7 +366,10 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
   static load<L extends CoList, const R extends RefsToResolve<L> = true>(
     this: CoValueClass<L>,
     id: ID<L>,
-    options?: { resolve?: R; loadAs?: Account | AnonymousJazzAgent },
+    options?: {
+      resolve?: RefsToResolveStrict<L, R>;
+      loadAs?: Account | AnonymousJazzAgent;
+    },
   ): Promise<Resolved<L, R> | undefined> {
     return loadCoValueWithoutMe(this, id, options);
   }
@@ -406,7 +410,10 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
   static subscribe<L extends CoList, const R extends RefsToResolve<L> = true>(
     this: CoValueClass<L>,
     id: ID<L>,
-    options: { resolve?: R; loadAs?: Account | AnonymousJazzAgent },
+    options: {
+      resolve?: RefsToResolveStrict<L, R>;
+      loadAs?: Account | AnonymousJazzAgent;
+    },
     listener: (value: Resolved<L, R>, unsubscribe: () => void) => void,
   ): () => void;
   static subscribe<L extends CoList, const R extends RefsToResolve<L>>(
@@ -427,7 +434,7 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
    */
   ensureLoaded<L extends CoList, const R extends RefsToResolve<L>>(
     this: L,
-    options: { resolve: R },
+    options: { resolve: RefsToResolveStrict<L, R> },
   ): Promise<Resolved<L, R> | undefined> {
     return ensureCoValueLoaded(this, options);
   }
@@ -447,7 +454,7 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
   ): () => void;
   subscribe<L extends CoList, const R extends RefsToResolve<L> = true>(
     this: L,
-    options: { resolve?: R },
+    options: { resolve?: RefsToResolveStrict<L, R> },
     listener: (value: Resolved<L, R>, unsubscribe: () => void) => void,
   ): () => void;
   subscribe<L extends CoList, const R extends RefsToResolve<L>>(

@@ -1,5 +1,5 @@
 const Crypto = await WasmCrypto.create();
-import { connectedPeers } from "cojson/src/streamUtils.ts";
+import { cojsonInternals } from "cojson";
 import { describe, expect, expectTypeOf, test } from "vitest";
 import {
   Account,
@@ -15,12 +15,9 @@ import {
   fixedCredentialsAuth,
   isControlledAccount,
 } from "../index.web.js";
-import {
-  Clean,
-  DeeplyLoaded,
-  UnCo,
-  randomSessionProvider,
-} from "../internal.js";
+import { randomSessionProvider } from "../internal.js";
+
+const { connectedPeers } = cojsonInternals;
 
 class TestMap extends CoMap {
   list = co.ref(TestList);
@@ -324,4 +321,54 @@ test("Deep loading a record-like coMap", async () => {
   expect(recordLoaded.key1?.list).not.toBe(undefined);
   expect(recordLoaded.key2?.list).not.toBe(null);
   expect(recordLoaded.key2?.list).not.toBe(undefined);
+});
+
+test("The resolve type doesn't accept extra keys", async () => {
+  const me = await CustomAccount.create({
+    creationProps: { name: "Hermes Puggington" },
+    crypto: Crypto,
+  });
+
+  const meLoaded = await me.ensureLoaded({
+    resolve: {
+      // @ts-expect-error
+      profile: { stream: true, extraKey: true },
+      // @ts-expect-error
+      root: { list: true, extraKey: true },
+    },
+  });
+
+  await me.ensureLoaded({
+    resolve: {
+      // @ts-expect-error
+      root: { list: { $each: true, extraKey: true } },
+    },
+  });
+
+  await me.ensureLoaded({
+    resolve: {
+      root: { list: true },
+      // @ts-expect-error
+      extraKey: true,
+    },
+  });
+
+  expectTypeOf(meLoaded).toEqualTypeOf<
+    | (CustomAccount & {
+        profile: CustomProfile & {
+          stream: TestStream;
+          extraKey: never;
+        };
+        root: TestMap & {
+          list: TestList;
+          extraKey: never;
+        };
+      })
+    | undefined
+  >();
+  if (meLoaded === undefined) {
+    throw new Error("meLoaded is undefined");
+  }
+  expect(meLoaded.profile.stream).not.toBe(null);
+  expect(meLoaded.root.list).not.toBe(null);
 });

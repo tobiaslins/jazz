@@ -24,6 +24,7 @@ import {
   type RefEncoded,
   RefIfCoValue,
   RefsToResolve,
+  RefsToResolveStrict,
   Resolved,
   type Schema,
   SchemaInit,
@@ -170,7 +171,6 @@ export class Account extends CoValueBase implements CoValue {
 
     return loadCoValue(coValueClass, valueID, {
       loadAs: this,
-      resolve: true,
     });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   }
@@ -280,7 +280,10 @@ export class Account extends CoValueBase implements CoValue {
   static load<A extends Account, const R extends RefsToResolve<A> = true>(
     this: CoValueClass<A>,
     id: ID<A>,
-    options?: { resolve?: R; loadAs?: Account | AnonymousJazzAgent },
+    options?: {
+      resolve?: RefsToResolveStrict<A, R>;
+      loadAs?: Account | AnonymousJazzAgent;
+    },
   ): Promise<Resolved<A, R> | undefined> {
     return loadCoValueWithoutMe(this, id, options);
   }
@@ -294,7 +297,10 @@ export class Account extends CoValueBase implements CoValue {
   static subscribe<A extends Account, const R extends RefsToResolve<A> = true>(
     this: CoValueClass<A>,
     id: ID<A>,
-    options: { resolve?: R; loadAs?: Account | AnonymousJazzAgent },
+    options: {
+      resolve?: RefsToResolveStrict<A, R>;
+      loadAs?: Account | AnonymousJazzAgent;
+    },
     listener: (value: Resolved<A, R>, unsubscribe: () => void) => void,
   ): () => void;
   static subscribe<A extends Account, const R extends RefsToResolve<A>>(
@@ -309,7 +315,7 @@ export class Account extends CoValueBase implements CoValue {
   /** @category Subscription & Loading */
   ensureLoaded<A extends Account, const R extends RefsToResolve<A>>(
     this: A,
-    options: { resolve: R },
+    options: { resolve: RefsToResolveStrict<A, R> },
   ): Promise<Resolved<A, R> | undefined> {
     return ensureCoValueLoaded(this, options);
   }
@@ -321,7 +327,7 @@ export class Account extends CoValueBase implements CoValue {
   ): () => void;
   subscribe<A extends Account, const R extends RefsToResolve<A>>(
     this: A,
-    options: { resolve?: R },
+    options: { resolve?: RefsToResolveStrict<A, R> },
     listener: (value: Resolved<A, R>, unsubscribe: () => void) => void,
   ): () => void;
   subscribe<A extends Account, const R extends RefsToResolve<A>>(
