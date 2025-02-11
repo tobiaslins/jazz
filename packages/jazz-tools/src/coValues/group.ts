@@ -11,6 +11,7 @@ import type {
   ID,
   RefEncoded,
   RefsToResolve,
+  RefsToResolveStrict,
   Resolved,
   Schema,
   SubscribeRestArgs,
@@ -192,7 +193,7 @@ export class Group extends CoValueBase implements CoValue {
   static load<G extends Group, const R extends RefsToResolve<G>>(
     this: CoValueClass<G>,
     id: ID<G>,
-    options?: { resolve?: R; loadAs?: Account },
+    options?: { resolve?: RefsToResolveStrict<G, R>; loadAs?: Account },
   ): Promise<Resolved<G, R> | undefined> {
     return loadCoValueWithoutMe(this, id, options);
   }
@@ -206,7 +207,7 @@ export class Group extends CoValueBase implements CoValue {
   static subscribe<G extends Group, const R extends RefsToResolve<G>>(
     this: CoValueClass<G>,
     id: ID<G>,
-    options: { resolve?: R; loadAs?: Account },
+    options: { resolve?: RefsToResolveStrict<G, R>; loadAs?: Account },
     listener: (value: Resolved<G, R>, unsubscribe: () => void) => void,
   ): () => void;
   static subscribe<G extends Group, const R extends RefsToResolve<G>>(
@@ -221,7 +222,7 @@ export class Group extends CoValueBase implements CoValue {
   /** @category Subscription & Loading */
   ensureLoaded<G extends Group, const R extends RefsToResolve<G>>(
     this: G,
-    options?: { resolve?: R },
+    options?: { resolve?: RefsToResolveStrict<G, R> },
   ): Promise<Resolved<G, R> | undefined> {
     return ensureCoValueLoaded(this, options);
   }
@@ -233,7 +234,7 @@ export class Group extends CoValueBase implements CoValue {
   ): () => void;
   subscribe<G extends Group, const R extends RefsToResolve<G>>(
     this: G,
-    options: { resolve?: R },
+    options: { resolve?: RefsToResolveStrict<G, R> },
     listener: (value: Resolved<G, R>, unsubscribe: () => void) => void,
   ): () => void;
   subscribe<G extends Group, const R extends RefsToResolve<G>>(

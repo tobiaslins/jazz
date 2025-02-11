@@ -11,6 +11,7 @@ import {
   Resolved,
   createCoValueObservable,
 } from "jazz-tools";
+import { RefsToResolveStrict } from "jazz-tools";
 import { JazzContext, JazzContextType } from "./provider.js";
 
 export function useJazzContext<Acc extends Account>() {
@@ -32,7 +33,7 @@ export function useCoState<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Schema: CoValueClass<V>,
   id: ID<V> | undefined,
-  options?: { resolve?: R },
+  options?: { resolve?: RefsToResolveStrict<V, R> },
 ): Resolved<V, R> | undefined {
   const context = useJazzContext();
 
@@ -74,10 +75,10 @@ export function createUseAccountHooks<Acc extends Account>() {
     logOut: () => void;
   };
   function useAccount<const R extends RefsToResolve<Acc> = true>(options?: {
-    resolve?: R;
+    resolve?: RefsToResolveStrict<Acc, R>;
   }): { me: Resolved<Acc, R> | undefined; logOut: () => void };
   function useAccount<const R extends RefsToResolve<Acc>>(options?: {
-    resolve?: R;
+    resolve?: RefsToResolveStrict<Acc, R>;
   }): { me: Acc | Resolved<Acc, R> | undefined; logOut: () => void } {
     const context = useJazzContext<Acc>();
 
@@ -105,10 +106,10 @@ export function createUseAccountHooks<Acc extends Account>() {
   function useAccountOrGuest<
     const R extends RefsToResolve<Acc> = true,
   >(options?: {
-    resolve?: R;
+    resolve?: RefsToResolveStrict<Acc, R>;
   }): { me: Resolved<Acc, R> | undefined | AnonymousJazzAgent };
   function useAccountOrGuest<const R extends RefsToResolve<Acc>>(options?: {
-    resolve?: R;
+    resolve?: RefsToResolveStrict<Acc, R>;
   }): { me: Acc | Resolved<Acc, R> | undefined | AnonymousJazzAgent } {
     const context = useJazzContext<Acc>();
 

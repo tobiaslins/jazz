@@ -131,6 +131,10 @@ export type RefsToResolve<
                 | boolean
             : boolean);
 
+export type RefsToResolveStrict<T, V> = V extends RefsToResolve<T>
+  ? RefsToResolve<T>
+  : V;
+
 export type Resolved<T, R extends RefsToResolve<T> | undefined> = DeeplyLoaded<
   T,
   R,
@@ -145,7 +149,7 @@ export type DeeplyLoaded<
   CurrentDepth extends number[] = [],
 > = DepthLimit extends CurrentDepth["length"]
   ? V
-  : Depth extends true | undefined
+  : Depth extends boolean | undefined // Checking against boolean instead of true because the inference from RefsToResolveStrict transforms true into boolean
     ? V
     : // Basically V extends CoList - but if we used that we'd introduce circularity into the definition of CoList itself
       [V] extends [Array<infer Item>]

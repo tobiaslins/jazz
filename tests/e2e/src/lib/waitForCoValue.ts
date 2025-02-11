@@ -4,6 +4,7 @@ import {
   CoValueClass,
   ID,
   RefsToResolve,
+  RefsToResolveStrict,
   subscribeToCoValue,
 } from "jazz-tools";
 
@@ -14,7 +15,7 @@ export function waitForCoValue<
   coMap: CoValueClass<T>,
   valueId: ID<T>,
   predicate: (value: T) => boolean,
-  options: { loadAs: Account; resolve?: R },
+  options: { loadAs: Account; resolve?: RefsToResolveStrict<T, R> },
 ) {
   return new Promise<T>((resolve) => {
     function subscribe() {

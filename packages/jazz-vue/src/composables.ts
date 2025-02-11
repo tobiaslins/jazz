@@ -11,6 +11,7 @@ import {
   DeeplyLoaded,
   ID,
   RefsToResolve,
+  RefsToResolveStrict,
   Resolved,
   subscribeToCoValue,
 } from "jazz-tools";
@@ -51,13 +52,13 @@ export function createUseAccountComposables<Acc extends Account>() {
     logOut: () => void;
   };
   function useAccount<const R extends RefsToResolve<Acc>>(options?: {
-    resolve?: R;
+    resolve?: RefsToResolveStrict<Acc, R>;
   }): {
     me: ComputedRef<Resolved<Acc, R> | undefined>;
     logOut: () => void;
   };
   function useAccount<const R extends RefsToResolve<Acc>>(options?: {
-    resolve?: R;
+    resolve?: RefsToResolveStrict<Acc, R>;
   }): {
     me: ComputedRef<Acc | Resolved<Acc, R> | undefined>;
     logOut: () => void;
@@ -99,12 +100,12 @@ export function createUseAccountComposables<Acc extends Account>() {
     me: ComputedRef<Acc | AnonymousJazzAgent>;
   };
   function useAccountOrGuest<const R extends RefsToResolve<Acc>>(options?: {
-    resolve?: R;
+    resolve?: RefsToResolveStrict<Acc, R>;
   }): {
     me: ComputedRef<Resolved<Acc, R> | undefined | AnonymousJazzAgent>;
   };
   function useAccountOrGuest<const R extends RefsToResolve<Acc>>(options?: {
-    resolve?: R;
+    resolve?: RefsToResolveStrict<Acc, R>;
   }): {
     me: ComputedRef<Acc | Resolved<Acc, R> | undefined | AnonymousJazzAgent>;
   } {
@@ -153,7 +154,7 @@ export { useAccount, useAccountOrGuest };
 export function useCoState<V extends CoValue, const R extends RefsToResolve<V>>(
   Schema: CoValueClass<V>,
   id: MaybeRef<ID<V> | undefined>,
-  options?: { resolve?: R },
+  options?: { resolve?: RefsToResolveStrict<V, R> },
 ): Ref<Resolved<V, R> | undefined> {
   const state: ShallowRef<Resolved<V, R> | undefined> = shallowRef(undefined);
   const context = useJazzContext();

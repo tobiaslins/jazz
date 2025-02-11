@@ -14,7 +14,12 @@ import {
 } from "../internal.js";
 import { coValuesCache } from "../lib/cache.js";
 import { type Account } from "./account.js";
-import { RefsToResolve, Resolved, fulfillsDepth } from "./deepLoading.js";
+import {
+  RefsToResolve,
+  RefsToResolveStrict,
+  Resolved,
+  fulfillsDepth,
+} from "./deepLoading.js";
 import { type Group } from "./group.js";
 import { RegisteredSchemas } from "./registeredSchemas.js";
 
@@ -160,8 +165,11 @@ export function loadCoValueWithoutMe<
 >(
   cls: CoValueClass<V>,
   id: ID<V>,
-  options?: { resolve?: R; loadAs?: Account | AnonymousJazzAgent },
-) {
+  options?: {
+    resolve?: RefsToResolveStrict<V, R>;
+    loadAs?: Account | AnonymousJazzAgent;
+  },
+): Promise<Resolved<V, R> | undefined> {
   return loadCoValue(cls, id, {
     ...options,
     loadAs: options?.loadAs ?? activeAccountContext.get(),
@@ -174,7 +182,10 @@ export function loadCoValue<
 >(
   cls: CoValueClass<V>,
   id: ID<V>,
-  options: { resolve?: R; loadAs: Account | AnonymousJazzAgent },
+  options: {
+    resolve?: RefsToResolveStrict<V, R>;
+    loadAs: Account | AnonymousJazzAgent;
+  },
 ): Promise<Resolved<V, R> | undefined> {
   return new Promise((resolve) => {
     subscribeToCoValue<V, R>(
@@ -197,7 +208,7 @@ export function ensureCoValueLoaded<
   const R extends RefsToResolve<V>,
 >(
   existing: V,
-  options?: { resolve?: R } | undefined,
+  options?: { resolve?: RefsToResolveStrict<V, R> } | undefined,
 ): Promise<Resolved<V, R> | undefined> {
   return loadCoValue(existing.constructor as CoValueClass<V>, existing.id, {
     loadAs: existing._loadedAs,
@@ -212,7 +223,10 @@ type SubscribeListener<V extends CoValue, R extends RefsToResolve<V>> = (
 
 export type SubscribeRestArgs<V extends CoValue, R extends RefsToResolve<V>> =
   | [
-      options: { resolve?: R; loadAs?: Account | AnonymousJazzAgent },
+      options: {
+        resolve?: RefsToResolveStrict<V, R>;
+        loadAs?: Account | AnonymousJazzAgent;
+      },
       listener: SubscribeListener<V, R>,
     ]
   | [listener: SubscribeListener<V, R>];
@@ -222,7 +236,10 @@ export function parseSubscribeRestArgs<
   R extends RefsToResolve<V>,
 >(
   args: SubscribeRestArgs<V, R>,
-): { options: { resolve?: R }; listener: SubscribeListener<V, R> } {
+): {
+  options: { resolve?: RefsToResolveStrict<V, R> };
+  listener: SubscribeListener<V, R>;
+} {
   if (args.length === 2) {
     if (
       typeof args[0] === "object" &&
@@ -248,7 +265,10 @@ export function subscribeToCoValueWithoutMe<
 >(
   cls: CoValueClass<V>,
   id: ID<V>,
-  options: { resolve?: R; loadAs?: Account | AnonymousJazzAgent },
+  options: {
+    resolve?: RefsToResolveStrict<V, R>;
+    loadAs?: Account | AnonymousJazzAgent;
+  },
   listener: SubscribeListener<V, R>,
 ) {
   return subscribeToCoValue(
@@ -265,7 +285,10 @@ export function subscribeToCoValue<
 >(
   cls: CoValueClass<V>,
   id: ID<V>,
-  options: { resolve?: R; loadAs: Account | AnonymousJazzAgent },
+  options: {
+    resolve?: RefsToResolveStrict<V, R>;
+    loadAs: Account | AnonymousJazzAgent;
+  },
   listener: SubscribeListener<V, R>,
   onUnavailable?: () => void,
   syncResolution?: boolean,
@@ -325,7 +348,10 @@ export function createCoValueObservable<
   function subscribe(
     cls: CoValueClass<V>,
     id: ID<V>,
-    options: { loadAs: Account | AnonymousJazzAgent; resolve?: R },
+    options: {
+      loadAs: Account | AnonymousJazzAgent;
+      resolve?: RefsToResolveStrict<V, R>;
+    },
     listener: () => void,
     onUnavailable?: () => void,
   ) {
@@ -365,7 +391,7 @@ export function subscribeToExistingCoValue<
   const R extends RefsToResolve<V>,
 >(
   existing: V,
-  options: { resolve?: R } | undefined,
+  options: { resolve?: RefsToResolveStrict<V, R> } | undefined,
   listener: SubscribeListener<V, R>,
 ): () => void {
   return subscribeToCoValue(

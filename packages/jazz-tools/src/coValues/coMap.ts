@@ -17,6 +17,7 @@ import type {
   RefEncoded,
   RefIfCoValue,
   RefsToResolve,
+  RefsToResolveStrict,
   Resolved,
   Schema,
   SubscribeRestArgs,
@@ -437,7 +438,10 @@ export class CoMap extends CoValueBase implements CoValue {
   static load<M extends CoMap, const R extends RefsToResolve<M> = true>(
     this: CoValueClass<M>,
     id: ID<M>,
-    options?: { resolve?: R; loadAs?: Account | AnonymousJazzAgent },
+    options?: {
+      resolve?: RefsToResolveStrict<M, R>;
+      loadAs?: Account | AnonymousJazzAgent;
+    },
   ): Promise<Resolved<M, R> | undefined> {
     return loadCoValueWithoutMe(this, id, options);
   }
@@ -477,7 +481,10 @@ export class CoMap extends CoValueBase implements CoValue {
   static subscribe<M extends CoMap, const R extends RefsToResolve<M> = true>(
     this: CoValueClass<M>,
     id: ID<M>,
-    options: { resolve?: R; loadAs?: Account | AnonymousJazzAgent },
+    options: {
+      resolve?: RefsToResolveStrict<M, R>;
+      loadAs?: Account | AnonymousJazzAgent;
+    },
     listener: (value: Resolved<M, R>, unsubscribe: () => void) => void,
   ): () => void;
   static subscribe<M extends CoMap, const R extends RefsToResolve<M>>(
@@ -520,7 +527,7 @@ export class CoMap extends CoValueBase implements CoValue {
    */
   ensureLoaded<M extends CoMap, const R extends RefsToResolve<M>>(
     this: M,
-    options: { resolve: R },
+    options: { resolve: RefsToResolveStrict<M, R> },
   ): Promise<Resolved<M, R> | undefined> {
     return ensureCoValueLoaded(this, options);
   }
@@ -540,7 +547,7 @@ export class CoMap extends CoValueBase implements CoValue {
   ): () => void;
   subscribe<M extends CoMap, const R extends RefsToResolve<M> = true>(
     this: M,
-    options: { resolve?: R },
+    options: { resolve?: RefsToResolveStrict<M, R> },
     listener: (value: Resolved<M, R>, unsubscribe: () => void) => void,
   ): () => void;
   subscribe<M extends CoMap, const R extends RefsToResolve<M>>(

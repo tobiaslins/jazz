@@ -46,6 +46,7 @@ export type {
   DeeplyLoaded,
   Resolved,
   RefsToResolve,
+  RefsToResolveStrict,
 } from "./internal.js";
 
 export {
