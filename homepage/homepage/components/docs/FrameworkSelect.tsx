@@ -1,11 +1,32 @@
 "use client";
 
-import { Framework, frameworkNames, frameworks } from "@/lib/framework";
+import { Framework } from "@/lib/framework";
 import { useFramework } from "@/lib/use-framework";
 import { clsx } from "clsx";
 import { Select } from "gcmp-design-system/src/app/components/molecules/Select";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
+
+const frameworks = [
+  {
+    value: Framework.React,
+    label: "React",
+  },
+  {
+    value: Framework.ReactNative,
+    label: "React Native",
+  },
+  {
+    value: Framework.Svelte,
+    label: "Svelte",
+    experimental: true,
+  },
+  {
+    value: Framework.Vue,
+    label: "Vue",
+    experimental: true,
+  },
+];
 
 export function FrameworkSelect({ className }: { className?: string }) {
   const router = useRouter();
@@ -31,8 +52,8 @@ export function FrameworkSelect({ className }: { className?: string }) {
       className={clsx("label:sr-only", className)}
     >
       {frameworks.map((framework) => (
-        <option key={framework} value={framework}>
-          {frameworkNames[framework]}
+        <option key={framework.value} value={framework.value}>
+          {framework.label} {framework.experimental && "(experimental)"}
         </option>
       ))}
     </Select>
