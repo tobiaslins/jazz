@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.0.4",
-    "@radix-ui/react-slot": "^1.0.2",
+    "@radix-ui/react-slot": "^1.1.1",
     "@radix-ui/react-toast": "^1.1.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
@@ -43,7 +43,7 @@
     "is-ci": "^3.0.1",
     "jazz-run": "workspace:0.9.23",
     "postcss": "^8.4.27",
-    "tailwindcss": "^3.4.15",
+    "tailwindcss": "^3.4.17",
     "typescript": "~5.6.2",
     "vite": "^6.0.11",
     "vite-plugin-top-level-await": "^1.4.4"
