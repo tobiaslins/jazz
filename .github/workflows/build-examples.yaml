@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-examples:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2204
     strategy:
       matrix:
         example: [
@@ -36,7 +36,7 @@ jobs:
         pnpm --version
 
     - name: Install Node.js
-      uses: actions/setup-node@v3
+      uses: useblacksmith/setup-node@v5
       with:
         node-version-file: '.node-version'
         cache: 'pnpm'
@@ -46,7 +46,7 @@ jobs:
       run: |
         echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-    - uses: actions/cache@v3
+    - uses: useblacksmith/cache@v5
       name: Setup pnpm cache
       with:
         path: ${{ env.STORE_PATH }}

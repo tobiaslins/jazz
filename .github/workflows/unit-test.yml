@@ -9,7 +9,7 @@ on:
 
 jobs:
   unit-tests:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2204
 
     steps:
       - name: Checkout
@@ -24,7 +24,7 @@ jobs:
           pnpm --version
 
       - name: Install Node.js
-        uses: actions/setup-node@v4
+        uses: useblacksmith/setup-node@v5
         with:
           node-version-file: '.node-version'
           cache: 'pnpm'
@@ -34,7 +34,7 @@ jobs:
         run: |
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-      - uses: actions/cache@v4
+      - uses: useblacksmith/cache@v5
         name: Setup pnpm cache
         with:
           path: ${{ env.STORE_PATH }}
