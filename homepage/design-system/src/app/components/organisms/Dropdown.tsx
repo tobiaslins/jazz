@@ -62,7 +62,7 @@ export function DropdownItem({
     // Base styles
     "group rounded-lg space-x-2 px-3.5 py-2.5 focus:outline-none sm:px-3 sm:py-1.5",
     // Text styles
-    "text-left text-base/6 text-stone-600 sm:text-sm/6 dark:text-white forced-colors:text-[CanvasText]",
+    "text-left text-stone-600 text-sm/6 dark:text-white forced-colors:text-[CanvasText]",
     // Focus
     "data-[focus]:bg-stone-100 dark:data-[focus]:bg-stone-900 ",
     // Disabled state
@@ -70,7 +70,7 @@ export function DropdownItem({
     // Forced colors mode
     "forced-color-adjust-none forced-colors:data-[focus]:bg-[Highlight] forced-colors:data-[focus]:text-[HighlightText] forced-colors:[&>[data-slot=icon]]:data-[focus]:text-[HighlightText]",
     // Use subgrid when available but fallback to an explicit grid layout if not
-    "col-span-full grid grid-cols-[auto_1fr_1.5rem_0.5rem_auto] items-center supports-[grid-template-columns:subgrid]:grid-cols-subgrid",
+    "col-span-full grid grid-cols-[auto_1fr_1.5rem_0.5rem_auto] items-center",
     // Icons
     "[&>[data-slot=icon]]:col-start-1 [&>[data-slot=icon]]:row-start-1 [&>[data-slot=icon]]:-ml-0.5 [&>[data-slot=icon]]:mr-2.5 [&>[data-slot=icon]]:size-5 sm:[&>[data-slot=icon]]:mr-2 [&>[data-slot=icon]]:sm:size-4",
     "[&>[data-slot=icon]]:text-stone-500 [&>[data-slot=icon]]:data-[focus]:text-white [&>[data-slot=icon]]:dark:text-stone-400 [&>[data-slot=icon]]:data-[focus]:dark:text-white",
