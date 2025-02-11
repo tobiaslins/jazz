@@ -1,5 +1,25 @@
 # jazz-react
 
+## 0.10.0
+
+### Minor Changes
+
+- b426342: Return null when a coValue is not found
+
+### Patch Changes
+
+- Updated dependencies [b426342]
+- Updated dependencies [498954f]
+- Updated dependencies [8217981]
+- Updated dependencies [d42c2aa]
+- Updated dependencies [dd03464]
+- Updated dependencies [b426342]
+- Updated dependencies [ac3d9fa]
+- Updated dependencies [610543c]
+  - cojson@0.10.0
+  - jazz-browser@0.10.0
+  - jazz-tools@0.10.0
+
 ## 0.9.23
 
 ### Patch Changes
