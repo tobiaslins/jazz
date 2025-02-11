@@ -21,6 +21,7 @@ export const metadata = { title: "Jazz 0.10.0 is out!" };
   - [Local-only mode](/docs/upgrade/0-10-0#local-only-mode), now your users can play around with your app, even in local-only mode, before signing up
   - [Improvements on the loading APIs](/docs/upgrade/0-10-0#improved-loading-api), ensureLoaded now always returns a value and useCoState now returns null if the value is not found
   - [Jazz Workers on native WebSockets](/docs/upgrade/0-10-0#native-websocket-for-jazz-workers), improving the compatibility with a wider set of Javascript runtimes
+  - [Group inheritance with role mapping](/docs/upgrade/0-10-0#group-inheritance), now you make groups extend other groups with a fixed role setting
   - Support for Node 14 dropped on cojson
   - Bugfix: Group.removeMember now returns a promise
 </div>
@@ -352,4 +353,23 @@ const { worker } = await startWorker({
 });
 ```
 </CodeGroup> 
+</div>
+
+<h3 id="group-inheritance">Group inheritance with role mapping</h3>
+<div>
+  You can set the extension role by passing a second argument to `extend`.
+
+  This can be used to give users limited access to a child group:
+  <CodeGroup>
+  ```ts
+  const organization = Group.create();
+  const billing = Group.create();
+
+  billing.extend(organization, "reader");
+  ```
+  </CodeGroup>
+
+  This way the members of the organization can only read the billing data, even if they are admins in the organization group.
+
+  More about the group inheritance can be found in the [dedicated docs page](/docs/groups/inheritance).
 </div>
