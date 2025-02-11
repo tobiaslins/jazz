@@ -14,11 +14,11 @@ Here's how to extend a group:
 
 <CodeGroup>
 ```typescript
-const playlist = Group.create();
-const track = Group.create();
+const playlistGroup = Group.create();
+const trackGroup = Group.create();
 
 // This way track becomes visible to the members of playlist
-track.extend(playlist);
+trackGroup.extend(playlistGroup);
 ```
 </CodeGroup>
 
@@ -33,26 +33,28 @@ In some cases you might want to inherit all members from a parent group but over
 
 <CodeGroup>
 ```typescript
-const organization = Group.create();
+const organizationGroup = Group.create();
+organizationGroup.addMember(bob, "admin");
 
-const billing = Group.create();
+const billingGroup = Group.create();
 
 // This way the members of the organization can only read the billing data
-billing.extend(organization, "reader"); 
+billingGroup.extend(organizationGroup, "reader"); 
 ```
 </CodeGroup>
 
-The extension role always overrides the role of the accounts in the parent group:
+The "override role" works in both directions:
 
 <CodeGroup>
 ```typescript
 const parentGroup = Group.create();
 parentGroup.addMember(bob, "reader");
+parentGroup.addMember(alice, "admin");
 
 const childGroup = Group.create();
 childGroup.extend(parentGroup, "writer");
 
-// Bob is now a writer in the child group
+// Bob and Alice are now writers in the child group
 ```
 </CodeGroup>
 
@@ -138,19 +140,19 @@ Here's a practical example of using group inheritance for team permissions:
 <CodeGroup>
 ```typescript
 // Company-wide group
-const company = Group.create();
-company.addMember(CEO, "admin");
+const companyGroup = Group.create();
+companyGroup.addMember(CEO, "admin");
 
 // Team group with elevated permissions
-const team = Group.create();
-team.extend(company); // Inherits company-wide access
-team.addMember(teamLead, "admin");
-team.addMember(developer, "writer");
+const teamGroup = Group.create();
+teamGroup.extend(companyGroup); // Inherits company-wide access
+teamGroup.addMember(teamLead, "admin");
+teamGroup.addMember(developer, "writer");
 
 // Project group with specific permissions
-const project = Group.create();
-project.extend(team); // Inherits team permissions
-project.addMember(client, "reader"); // Client can only read project items
+const projectGroup = Group.create();
+projectGroup.extend(teamGroup); // Inherits team permissions
+projectGroup.addMember(client, "reader"); // Client can only read project items
 ```
 </CodeGroup>
 
