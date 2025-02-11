@@ -27,9 +27,9 @@ When you extend a group:
 - Their roles are inherited (with some exceptions, see [below](#role-inheritance-rules))
 - Removing a member from the parent group also removes their access to child groups
 
-## Setting the extension role
+## Inheriting members but overriding their role
 
-You can set the extension role by passing a second argument to `extend`:
+In some cases you might want to inherit all members from a parent group but override/flatten their roles to the same specific role in the child group. You can do so by passing an "override role" as a second argument to `extend`:
 
 <CodeGroup>
 ```typescript
@@ -88,7 +88,7 @@ await parentGroup.removeMember(bob);
 
 ## Role Inheritance Rules
 
-If the account is already a member of the child group, it will get the highest possible role:
+If the account is already a member of the child group, it will get the more permissive role:
 <CodeGroup>
 ```typescript
 const parentGroup = Group.create();
