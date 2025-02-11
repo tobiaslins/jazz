@@ -59,8 +59,8 @@ class TestJazzContextManager<Acc extends Account> extends JazzContextManager<
       done: () => {
         context.done();
       },
-      logOut: () => {
-        context.logOut();
+      logOut: async () => {
+        await context.logOut();
       },
     });
   }
