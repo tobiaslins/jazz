@@ -9,7 +9,7 @@ export const metadata = { title: "Jazz 0.10.0 is out!" };
 </h2>
 
 <div>
-  On Jazz 0.10.0 we have been focusing on enhancing the authentication to make it optional and more flexible.
+  For Jazz 0.10.0 we have been focusing on enhancing authentication to make it optional and more flexible.
 
   Now your users can play around with your app, even in local-only mode, before signing up.
   
@@ -17,17 +17,17 @@ export const metadata = { title: "Jazz 0.10.0 is out!" };
 
   <h3>What's new?</h3>
   Here is what's changed in this release:
-  - [New authentication flow](/docs/upgrade/0-10-0#new-authentication-flow), now with anonymous auth, redesigned to make Jazz easier to start with and be more flexible
-  - [Local-only mode](/docs/upgrade/0-10-0#local-only-mode), now your users can play around with your app, even in local-only mode, before signing up
-  - [Improvements on the loading APIs](/docs/upgrade/0-10-0#improved-loading-api), ensureLoaded now always returns a value and useCoState now returns null if the value is not found
-  - [Jazz Workers on native WebSockets](/docs/upgrade/0-10-0#native-websocket-for-jazz-workers), improving the compatibility with a wider set of Javascript runtimes
-  - Support for Node 14 dropped on cojson
-  - Bugfix: Group.removeMember now returns a promise
+  - [New authentication flow](/docs/upgrade/0-10-0#new-authentication-flow): Now with anonymous auth, redesigned to make Jazz easier to start with and be more flexible.
+  - [Local-only mode](/docs/upgrade/0-10-0#local-only-mode): Users can now explore your app in local-only mode before signing up.
+  - [Improvements on the loading APIs](/docs/upgrade/0-10-0#improved-loading-api); `ensureLoaded` now always returns a value and `useCoState` now returns `null` if the value is not found.
+  - [Jazz Workers on native WebSockets](/docs/upgrade/0-10-0#native-websocket-for-jazz-workers): Improves compatibility with a wider set of Javascript runtimes.
+  - Support for Node 14 dropped on cojson.
+  - Bugfix: `Group.removeMember` now returns a promise.
 </div>
 
   <h3 id="new-authentication-flow">New authentication flow</h3>
   <div>
-    Until now authentication has been the first part to figure out when building a Jazz app, and this was a stumbling block for many.
+    Up until now authentication has been the first part to figure out when building a Jazz app, and this was a stumbling block for many.
 
     Now it is no longer required and setting up a Jazz app is as easy as writing this:
 <CodeGroup>
