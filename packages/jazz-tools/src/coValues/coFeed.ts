@@ -367,14 +367,13 @@ export class CoFeed<Item = any> extends CoValueBase implements CoValue {
   /**
    * Ensure a `CoFeed` is loaded to the specified depth
    *
-   * @returns A new instance of the same CoFeed that's loaded to the specified depth,
-   * or undefined if it cannot be loaded that deeply
+   * @returns A new instance of the same CoFeed that's loaded to the specified depth
    * @category Subscription & Loading
    */
   ensureLoaded<F extends CoFeed, const R extends RefsToResolve<F>>(
     this: F,
     options?: { resolve?: RefsToResolveStrict<F, R> },
-  ): Promise<Resolved<F, R> | undefined> {
+  ): Promise<Resolved<F, R>> {
     return ensureCoValueLoaded(this, options);
   }
 
@@ -700,6 +699,29 @@ export class FileStream extends CoValueBase implements CoValue {
     });
   }
 
+  /**
+   * Create a new empty `FileStream` instance.
+   *
+   * @param options - Configuration options for the new FileStream
+   * @param options.owner - The Account or Group that will own this FileStream and control access rights
+   *
+   * @example
+   * ```typescript
+   * // Create owned by an account
+   * const stream = FileStream.create({ owner: myAccount });
+   *
+   * // Create owned by a group
+   * const stream = FileStream.create({ owner: teamGroup });
+   *
+   * // Create with implicit owner
+   * const stream = FileStream.create(myAccount);
+   * ```
+   *
+   * @remarks
+   * For uploading an existing file or blob, use {@link FileStream.createFromBlob} instead.
+   *
+   * @category Creation
+   */
   static create<S extends FileStream>(
     this: CoValueClass<S>,
     options?: { owner?: Account | Group } | Account | Group,

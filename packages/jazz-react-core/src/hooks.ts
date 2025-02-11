@@ -7,12 +7,13 @@ import {
   CoValueClass,
   ID,
   InboxSender,
+  JazzContextType,
   RefsToResolve,
+  RefsToResolveStrict,
   Resolved,
   createCoValueObservable,
 } from "jazz-tools";
-import { RefsToResolveStrict } from "jazz-tools";
-import { JazzContext, JazzContextType } from "./provider.js";
+import { JazzAuthContext, JazzContext } from "./provider.js";
 
 export function useJazzContext<Acc extends Account>() {
   const value = useContext(JazzContext) as JazzContextType<Acc>;
@@ -20,6 +21,18 @@ export function useJazzContext<Acc extends Account>() {
   if (!value) {
     throw new Error(
       "You need to set up a JazzProvider on top of your app to use this hook.",
+    );
+  }
+
+  return value;
+}
+
+export function useAuthSecretStorage() {
+  const value = useContext(JazzAuthContext);
+
+  if (!value) {
+    throw new Error(
+      "You need to set up a JazzProvider on top of your app to use this useAuthSecretStorage.",
     );
   }
 
@@ -34,7 +47,7 @@ export function useCoState<
   Schema: CoValueClass<V>,
   id: ID<V> | undefined,
   options?: { resolve?: RefsToResolveStrict<V, R> },
-): Resolved<V, R> | undefined {
+): Resolved<V, R> | undefined | null {
   const context = useJazzContext();
 
   const [observable] = React.useState(() =>
@@ -43,7 +56,7 @@ export function useCoState<
     }),
   );
 
-  const value = React.useSyncExternalStore<Resolved<V, R> | undefined>(
+  const value = React.useSyncExternalStore<Resolved<V, R> | undefined | null>(
     React.useCallback(
       (callback) => {
         if (!id) return () => {};
@@ -57,6 +70,7 @@ export function useCoState<
             loadAs: agent,
             resolve: options?.resolve,
           },
+          callback,
           callback,
         );
       },
@@ -76,10 +90,10 @@ export function createUseAccountHooks<Acc extends Account>() {
   };
   function useAccount<const R extends RefsToResolve<Acc> = true>(options?: {
     resolve?: RefsToResolveStrict<Acc, R>;
-  }): { me: Resolved<Acc, R> | undefined; logOut: () => void };
+  }): { me: Resolved<Acc, R> | undefined | null; logOut: () => void };
   function useAccount<const R extends RefsToResolve<Acc>>(options?: {
     resolve?: RefsToResolveStrict<Acc, R>;
-  }): { me: Acc | Resolved<Acc, R> | undefined; logOut: () => void } {
+  }): { me: Acc | Resolved<Acc, R> | undefined | null; logOut: () => void } {
     const context = useJazzContext<Acc>();
 
     if (!("me" in context)) {
@@ -89,7 +103,7 @@ export function createUseAccountHooks<Acc extends Account>() {
     }
 
     const me = useCoState<Acc, R>(
-      context.AccountSchema,
+      context.me.constructor as CoValueClass<Acc>,
       context.me.id,
       options,
     );
@@ -107,16 +121,17 @@ export function createUseAccountHooks<Acc extends Account>() {
     const R extends RefsToResolve<Acc> = true,
   >(options?: {
     resolve?: RefsToResolveStrict<Acc, R>;
-  }): { me: Resolved<Acc, R> | undefined | AnonymousJazzAgent };
+  }): { me: Resolved<Acc, R> | undefined | null | AnonymousJazzAgent };
   function useAccountOrGuest<const R extends RefsToResolve<Acc>>(options?: {
     resolve?: RefsToResolveStrict<Acc, R>;
-  }): { me: Acc | Resolved<Acc, R> | undefined | AnonymousJazzAgent } {
+  }): { me: Acc | Resolved<Acc, R> | undefined | null | AnonymousJazzAgent } {
     const context = useJazzContext<Acc>();
 
     const contextMe = "me" in context ? context.me : undefined;
+    const AccountSchema = contextMe?.constructor ?? Account;
 
     const me = useCoState<Acc, R>(
-      context.AccountSchema,
+      AccountSchema as CoValueClass<Acc>,
       contextMe?.id,
       options,
     );

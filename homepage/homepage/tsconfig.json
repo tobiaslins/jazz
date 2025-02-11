@@ -27,7 +27,8 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "mdx.d.ts"
+    "mdx.d.ts",
+    "lib/docNavigationItems.js"
   ],
   "exclude": ["node_modules"]
 }

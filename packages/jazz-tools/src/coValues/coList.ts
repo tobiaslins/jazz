@@ -435,7 +435,7 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
   ensureLoaded<L extends CoList, const R extends RefsToResolve<L>>(
     this: L,
     options: { resolve: RefsToResolveStrict<L, R> },
-  ): Promise<Resolved<L, R> | undefined> {
+  ): Promise<Resolved<L, R>> {
     return ensureCoValueLoaded(this, options);
   }
 

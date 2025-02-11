@@ -17,6 +17,12 @@ import { expectGroup } from "../typeUtils/expectGroup.js";
 
 const Crypto = await WasmCrypto.create();
 
+const syncServer: {
+  current: undefined | LocalNode;
+} = {
+  current: undefined,
+};
+
 export function randomAnonymousAccountAndSessionID(): [
   ControlledAgent,
   SessionID,
@@ -31,25 +37,6 @@ export function randomAnonymousAccountAndSessionID(): [
 export function createTestNode() {
   const [admin, session] = randomAnonymousAccountAndSessionID();
   return new LocalNode(admin, session, Crypto);
-}
-
-export function connectTwoPeers(
-  a: LocalNode,
-  b: LocalNode,
-  aRole: "client" | "server",
-  bRole: "client" | "server",
-) {
-  const [aAsPeer, bAsPeer] = connectedPeers(
-    "peer:" + a.account.id,
-    "peer:" + b.account.id,
-    {
-      peer1role: aRole,
-      peer2role: bRole,
-    },
-  );
-
-  a.syncManager.addPeer(bAsPeer);
-  b.syncManager.addPeer(aAsPeer);
 }
 
 export async function createTwoConnectedNodes(
@@ -147,6 +134,25 @@ export async function createThreeConnectedNodes(
     node2ToNode3Peer,
     node3ToNode2Peer,
   };
+}
+
+export function connectTwoPeers(
+  a: LocalNode,
+  b: LocalNode,
+  aRole: "client" | "server",
+  bRole: "client" | "server",
+) {
+  const [aAsPeer, bAsPeer] = connectedPeers(
+    "peer:" + a.account.id,
+    "peer:" + b.account.id,
+    {
+      peer1role: aRole,
+      peer2role: bRole,
+    },
+  );
+
+  a.syncManager.addPeer(bAsPeer);
+  b.syncManager.addPeer(aAsPeer);
 }
 
 export function newGroup() {
@@ -367,4 +373,91 @@ export function createTestMetricReader() {
 
 export function tearDownTestMetricReader() {
   metrics.disable();
+}
+
+export function setupSyncServer() {
+  syncServer.current = createTestNode();
+  return syncServer.current;
+}
+
+export async function createConnectedTestAgentNode(opts = { connected: true }) {
+  if (!syncServer.current) {
+    throw new Error("Sync server not initialized");
+  }
+
+  const [admin, session] = randomAnonymousAccountAndSessionID();
+  const node = new LocalNode(admin, session, Crypto);
+
+  const { nodeToServerPeer, serverToNodePeer, messages, addServerPeer } =
+    connectNodeToSyncServer(node, opts.connected);
+
+  return { node, nodeToServerPeer, serverToNodePeer, messages, addServerPeer };
+}
+
+export async function createConnectedTestNode(opts = { connected: true }) {
+  if (!syncServer.current) {
+    throw new Error("Sync server not initialized");
+  }
+
+  const ctx = await LocalNode.withNewlyCreatedAccount({
+    peersToLoadFrom: [],
+    crypto: Crypto,
+    creationProps: { name: "Client" },
+  });
+
+  const { nodeToServerPeer, serverToNodePeer, messages, addServerPeer } =
+    connectNodeToSyncServer(ctx.node, opts.connected);
+
+  return {
+    node: ctx.node,
+    accountID: ctx.accountID,
+    nodeToServerPeer,
+    serverToNodePeer,
+    messages,
+    addServerPeer,
+  };
+}
+
+export function connectNodeToSyncServer(node: LocalNode, connected = true) {
+  if (!syncServer.current) {
+    throw new Error("Sync server not initialized");
+  }
+
+  const [nodeToServerPeer, serverToNodePeer] = connectedPeers(
+    syncServer.current.account.id,
+    node.account.id,
+    {
+      peer1role: "server",
+      peer2role: "client",
+    },
+  );
+
+  const messages: {
+    from: "client" | "server";
+    msg: SyncMessage;
+  }[] = [];
+
+  const serverPush = serverToNodePeer.outgoing.push;
+  serverToNodePeer.outgoing.push = (msg) => {
+    messages.push({ from: "server", msg });
+    return serverPush.call(serverToNodePeer.outgoing, msg);
+  };
+
+  const clientPush = nodeToServerPeer.outgoing.push;
+  nodeToServerPeer.outgoing.push = (msg) => {
+    messages.push({ from: "client", msg });
+    return clientPush.call(nodeToServerPeer.outgoing, msg);
+  };
+
+  syncServer.current.syncManager.addPeer(serverToNodePeer);
+  if (connected) {
+    node.syncManager.addPeer(nodeToServerPeer);
+  }
+
+  return {
+    nodeToServerPeer,
+    serverToNodePeer,
+    messages,
+    addServerPeer: () => node.syncManager.addPeer(nodeToServerPeer),
+  };
 }

@@ -1,4 +1,3 @@
-import { connectedPeers } from "cojson/src/streamUtils.ts";
 import { describe, expect, expectTypeOf, test } from "vitest";
 import { Group, randomSessionProvider } from "../exports.js";
 import {
@@ -8,11 +7,12 @@ import {
   WasmCrypto,
   co,
   cojsonInternals,
-  createJazzContext,
-  fixedCredentialsAuth,
+  createJazzContextFromExistingCredentials,
   isControlledAccount,
 } from "../index.web.js";
 import { setupTwoNodes } from "./utils.js";
+
+const { connectedPeers } = cojsonInternals;
 
 const Crypto = await WasmCrypto.create();
 
@@ -408,15 +408,16 @@ describe("CoMap resolution", async () => {
       throw "me is not a controlled account";
     }
     me._raw.core.node.syncManager.addPeer(secondPeer);
-    const { account: meOnSecondPeer } = await createJazzContext({
-      auth: fixedCredentialsAuth({
-        accountID: me.id,
-        secret: me._raw.agentSecret,
-      }),
-      sessionProvider: randomSessionProvider,
-      peersToLoadFrom: [initialAsPeer],
-      crypto: Crypto,
-    });
+    const { account: meOnSecondPeer } =
+      await createJazzContextFromExistingCredentials({
+        credentials: {
+          accountID: me.id,
+          secret: me._raw.agentSecret,
+        },
+        sessionProvider: randomSessionProvider,
+        peersToLoadFrom: [initialAsPeer],
+        crypto: Crypto,
+      });
 
     const loadedMap = await TestMap.load(map.id, { loadAs: meOnSecondPeer });
 
@@ -476,15 +477,16 @@ describe("CoMap resolution", async () => {
       throw "me is not a controlled account";
     }
     me._raw.core.node.syncManager.addPeer(secondAsPeer);
-    const { account: meOnSecondPeer } = await createJazzContext({
-      auth: fixedCredentialsAuth({
-        accountID: me.id,
-        secret: me._raw.agentSecret,
-      }),
-      sessionProvider: randomSessionProvider,
-      peersToLoadFrom: [initialAsPeer],
-      crypto: Crypto,
-    });
+    const { account: meOnSecondPeer } =
+      await createJazzContextFromExistingCredentials({
+        credentials: {
+          accountID: me.id,
+          secret: me._raw.agentSecret,
+        },
+        sessionProvider: randomSessionProvider,
+        peersToLoadFrom: [initialAsPeer],
+        crypto: Crypto,
+      });
 
     const queue = new cojsonInternals.Channel<TestMap>();
 

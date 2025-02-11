@@ -1,13 +1,15 @@
 import {
-  type BrowserContext,
-  type BrowserGuestContext,
   consumeInviteLinkFromWindowLocation
 } from 'jazz-browser';
 import type {
   AnonymousJazzAgent,
+  AuthSecretStorage,
   CoValue,
   CoValueClass,
   ID,
+  JazzAuthContext,
+  JazzContextType,
+  JazzGuestContext,
   RefsToResolve,
   Resolved
 } from 'jazz-tools';
@@ -22,12 +24,13 @@ export { Provider as JazzProvider };
  * The key for the Jazz context.
  */
 export const JAZZ_CTX = {};
+export const JAZZ_AUTH_CTX = {};
 
 /**
  * The Jazz context.
  */
 export type JazzContext<Acc extends Account> = {
-  current?: BrowserContext<Acc> | BrowserGuestContext;
+  current?: JazzContextType<Acc>;
 };
 
 /**
@@ -35,11 +38,33 @@ export type JazzContext<Acc extends Account> = {
  * @returns The current Jazz context.
  */
 export function getJazzContext<Acc extends Account>() {
-  return getContext<JazzContext<Acc>>(JAZZ_CTX);
+  const context = getContext<JazzContext<Acc>>(JAZZ_CTX);
+
+  if (!context) {
+    throw new Error('useJazzContext must be used within a JazzProvider');
+  }
+
+  if (!context.current) {
+    throw new Error('Jazz context is not initialized');
+  }
+
+  return context as {
+    current: JazzContextType<Acc>;
+  };
+}
+
+export function getAuthSecretStorage() {
+  const context = getContext<AuthSecretStorage>(JAZZ_AUTH_CTX);
+
+  if (!context) {
+    throw new Error('useJazzContext must be used within a JazzProvider');
+  }
+
+  return context;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface Register {}
+export interface Register { }
 
 export type RegisteredAccount = Register extends { Account: infer Acc }
   ? Acc
@@ -47,10 +72,10 @@ export type RegisteredAccount = Register extends { Account: infer Acc }
 
   export function useAccount<const R extends RefsToResolve<RegisteredAccount>>(
     options?: { resolve?: RefsToResolveStrict<RegisteredAccount, R> }
-  ): { me: Resolved<RegisteredAccount, R> | undefined; logOut: () => void };
+  ): { me: Resolved<RegisteredAccount, R> | undefined | null; logOut: () => void };
   export function useAccount<const R extends RefsToResolve<RegisteredAccount>>(
     options?: { resolve?: RefsToResolveStrict<RegisteredAccount, R> }
-  ): { me: RegisteredAccount | Resolved<RegisteredAccount, R> | undefined; logOut: () => void } {
+  ): { me: RegisteredAccount | Resolved<RegisteredAccount, R> | undefined | null; logOut: () => void } {
   const ctx = getJazzContext<RegisteredAccount>();
   if (!ctx?.current) {
     throw new Error('useAccount must be used within a JazzProvider');
@@ -65,7 +90,7 @@ export type RegisteredAccount = Register extends { Account: infer Acc }
   if (options?.resolve === undefined) {
     return {
       get me() {
-        return (ctx.current as BrowserContext<RegisteredAccount>).me;
+        return (ctx.current as JazzAuthContext<RegisteredAccount>).me;
       },
       logOut() {
         return ctx.current?.logOut();
@@ -76,7 +101,7 @@ export type RegisteredAccount = Register extends { Account: infer Acc }
   // If depth is specified, use useCoState to get the deeply loaded version
   const me = useCoState<RegisteredAccount, R>(
     ctx.current.me.constructor as CoValueClass<RegisteredAccount>,
-    (ctx.current as BrowserContext<RegisteredAccount>).me.id,
+    (ctx.current as JazzAuthContext<RegisteredAccount>).me.id,
     options
   );
 
@@ -93,10 +118,10 @@ export type RegisteredAccount = Register extends { Account: infer Acc }
 export function useAccountOrGuest(): { me: RegisteredAccount | AnonymousJazzAgent };
 export function useAccountOrGuest<R extends RefsToResolve<RegisteredAccount>>(
   options?: { resolve?: RefsToResolveStrict<RegisteredAccount, R> }
-): { me: Resolved<RegisteredAccount, R> | undefined | AnonymousJazzAgent };
+): { me: Resolved<RegisteredAccount, R> | undefined  | null| AnonymousJazzAgent };
 export function useAccountOrGuest<R extends RefsToResolve<RegisteredAccount>>(
   options?: { resolve?: RefsToResolveStrict<RegisteredAccount, R> }
-): { me: RegisteredAccount | Resolved<RegisteredAccount, R> | undefined | AnonymousJazzAgent } {
+): { me: RegisteredAccount | Resolved<RegisteredAccount, R> | undefined  | null| AnonymousJazzAgent } {
   const ctx = getJazzContext<RegisteredAccount>();
 
   if (!ctx?.current) {
@@ -116,7 +141,7 @@ export function useAccountOrGuest<R extends RefsToResolve<RegisteredAccount>>(
     return {
       get me() {
         return options?.resolve === undefined
-          ? me.current || (ctx.current as BrowserContext<RegisteredAccount>)?.me
+          ? me.current || (ctx.current as JazzAuthContext<RegisteredAccount>)?.me
           : me.current;
       }
     };
@@ -125,7 +150,7 @@ export function useAccountOrGuest<R extends RefsToResolve<RegisteredAccount>>(
   else {
     return {
       get me() {
-        return (ctx.current as BrowserGuestContext)?.guest;
+        return (ctx.current as JazzGuestContext)?.guest;
       }
     };
   }
@@ -136,12 +161,12 @@ export function useCoState<V extends CoValue, R extends RefsToResolve<V>>(
   id: ID<V> | undefined,
   options?: { resolve?: RefsToResolveStrict<V, R> }
 ): {
-  current?: Resolved<V, R>;
+  current: Resolved<V, R> | undefined | null;
 } {
   const ctx = getJazzContext<RegisteredAccount>();
 
   // Create state and a stable observable
-  let state = $state.raw<Resolved<V, R> | undefined>(undefined);
+  let state = $state.raw<Resolved<V, R> | undefined | null>(undefined);
 
   // Effect to handle subscription
   $effect(() => {
@@ -162,7 +187,9 @@ export function useCoState<V extends CoValue, R extends RefsToResolve<V>>(
         // Get current value from our stable observable
         state = value;
       },
-      undefined,
+      () => {
+        state = null;
+      },
       true
     );
   });
@@ -211,7 +238,7 @@ export function useAcceptInvite<V extends CoValue>({
       if (!ctx.current) return;
       // Consume the invite link from the window location.
       const result = consumeInviteLinkFromWindowLocation({
-        as: (ctx.current as BrowserContext<RegisteredAccount>).me,
+        as: (ctx.current as JazzAuthContext<RegisteredAccount>).me,
         invitedObjectSchema,
         forValueHint
       });

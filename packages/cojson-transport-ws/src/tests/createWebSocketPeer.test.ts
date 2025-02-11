@@ -7,7 +7,7 @@ import {
   BUFFER_LIMIT_POLLING_INTERVAL,
   CreateWebSocketPeerOpts,
   createWebSocketPeer,
-} from "../index.js";
+} from "../createWebSocketPeer.js";
 import { AnyWebSocket } from "../types.js";
 
 function setup(opts: Partial<CreateWebSocketPeerOpts> = {}) {
@@ -168,6 +168,31 @@ describe("createWebSocketPeer", () => {
     await expect(peer.outgoing.push(message)).rejects.toThrow(
       "WebSocket closed",
     );
+  });
+
+  test("should call onSuccess handler after receiving first message", () => {
+    const onSuccess = vi.fn();
+    const { listeners } = setup({ onSuccess });
+
+    const messageHandler = listeners.get("message");
+    const message: SyncMessage = {
+      action: "known",
+      id: "co_ztest",
+      header: false,
+      sessions: {},
+    };
+
+    // First message should trigger onSuccess
+    messageHandler?.(
+      new MessageEvent("message", { data: JSON.stringify(message) }),
+    );
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+
+    // Subsequent messages should not trigger onSuccess again
+    messageHandler?.(
+      new MessageEvent("message", { data: JSON.stringify(message) }),
+    );
+    expect(onSuccess).toHaveBeenCalledTimes(1);
   });
 
   describe("batchingByDefault = true", () => {

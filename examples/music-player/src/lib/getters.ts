@@ -11,8 +11,6 @@ export async function getNextTrack() {
     },
   });
 
-  if (!me) return;
-
   const tracks = me.root.activePlaylist.tracks;
   const activeTrack = me.root._refs.activeTrack;
 
@@ -33,8 +31,6 @@ export async function getPrevTrack() {
       },
     },
   });
-
-  if (!me) return;
 
   const tracks = me.root.activePlaylist.tracks;
   const activeTrack = me.root._refs.activeTrack;

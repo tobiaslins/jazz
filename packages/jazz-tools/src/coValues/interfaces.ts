@@ -203,17 +203,27 @@ export function loadCoValue<
   });
 }
 
-export function ensureCoValueLoaded<
+export async function ensureCoValueLoaded<
   V extends CoValue,
   const R extends RefsToResolve<V>,
 >(
   existing: V,
   options?: { resolve?: RefsToResolveStrict<V, R> } | undefined,
-): Promise<Resolved<V, R> | undefined> {
-  return loadCoValue(existing.constructor as CoValueClass<V>, existing.id, {
-    loadAs: existing._loadedAs,
-    resolve: options?.resolve,
-  });
+): Promise<Resolved<V, R>> {
+  const response = await loadCoValue(
+    existing.constructor as CoValueClass<V>,
+    existing.id,
+    {
+      loadAs: existing._loadedAs,
+      resolve: options?.resolve,
+    },
+  );
+
+  if (!response) {
+    throw new Error("Failed to deeply load CoValue " + existing.id);
+  }
+
+  return response;
 }
 
 type SubscribeListener<V extends CoValue, R extends RefsToResolve<V>> = (
@@ -237,16 +247,25 @@ export function parseSubscribeRestArgs<
 >(
   args: SubscribeRestArgs<V, R>,
 ): {
-  options: { resolve?: RefsToResolveStrict<V, R> };
+  options: {
+    resolve?: RefsToResolveStrict<V, R>;
+    loadAs?: Account | AnonymousJazzAgent;
+  };
   listener: SubscribeListener<V, R>;
 } {
   if (args.length === 2) {
     if (
       typeof args[0] === "object" &&
-      "resolve" in args[0] &&
+      args[0] &&
       typeof args[1] === "function"
     ) {
-      return { options: { resolve: args[0].resolve }, listener: args[1] };
+      return {
+        options: {
+          resolve: args[0].resolve,
+          loadAs: args[0].loadAs,
+        },
+        listener: args[1],
+      };
     } else {
       throw new Error("Invalid arguments");
     }
@@ -342,7 +361,7 @@ export function createCoValueObservable<
 >(observableOptions?: {
   syncResolution?: boolean;
 }) {
-  let currentValue: Resolved<V, R> | undefined = undefined;
+  let currentValue: Resolved<V, R> | undefined | null = undefined;
   let subscriberCount = 0;
 
   function subscribe(
@@ -365,7 +384,10 @@ export function createCoValueObservable<
         currentValue = value;
         listener();
       },
-      onUnavailable,
+      () => {
+        currentValue = null;
+        onUnavailable?.();
+      },
       observableOptions?.syncResolution,
     );
 

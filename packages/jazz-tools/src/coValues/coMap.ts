@@ -528,7 +528,7 @@ export class CoMap extends CoValueBase implements CoValue {
   ensureLoaded<M extends CoMap, const R extends RefsToResolve<M>>(
     this: M,
     options: { resolve: RefsToResolveStrict<M, R> },
-  ): Promise<Resolved<M, R> | undefined> {
+  ): Promise<Resolved<M, R>> {
     return ensureCoValueLoaded(this, options);
   }
 

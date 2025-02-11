@@ -45,6 +45,11 @@ import { createInboxRoot } from "./inbox.js";
 import { Profile } from "./profile.js";
 import { RegisteredSchemas } from "./registeredSchemas.js";
 
+export type AccountCreationProps = {
+  name: string;
+  onboarding?: boolean;
+};
+
 /** @category Identity & Permissions */
 export class Account extends CoValueBase implements CoValue {
   declare id: ID<this>;
@@ -76,7 +81,7 @@ export class Account extends CoValueBase implements CoValue {
     return this as Account;
   }
   get _loadedAs(): Account | AnonymousJazzAgent {
-    if (this.isMe) return this;
+    if (this.isLocalNodeOwner) return this;
 
     const rawAccount = this._raw.core.node.account;
 
@@ -123,7 +128,17 @@ export class Account extends CoValueBase implements CoValue {
     };
   }
 
-  isMe: boolean;
+  /**
+   * Whether this account is the currently active account.
+   */
+  get isMe() {
+    return activeAccountContext.get().id === this.id;
+  }
+
+  /**
+   * Whether this account is the owner of the local node.
+   */
+  isLocalNodeOwner: boolean;
   sessionID: SessionID | undefined;
 
   constructor(options: { fromRaw: RawAccount | RawControlledAccount }) {
@@ -131,7 +146,8 @@ export class Account extends CoValueBase implements CoValue {
     if (!("fromRaw" in options)) {
       throw new Error("Can only construct account from raw or with .create()");
     }
-    this.isMe = options.fromRaw.id == options.fromRaw.core.node.account.id;
+    this.isLocalNodeOwner =
+      options.fromRaw.id == options.fromRaw.core.node.account.id;
 
     Object.defineProperties(this, {
       id: {
@@ -142,7 +158,7 @@ export class Account extends CoValueBase implements CoValue {
       _type: { value: "Account", enumerable: false },
     });
 
-    if (this.isMe) {
+    if (this.isLocalNodeOwner) {
       this.sessionID = options.fromRaw.core.node.currentSessionID;
     }
 
@@ -150,7 +166,7 @@ export class Account extends CoValueBase implements CoValue {
   }
 
   myRole(): "admin" | undefined {
-    if (this.isMe) {
+    if (this.isLocalNodeOwner) {
       return "admin";
     }
   }
@@ -160,7 +176,7 @@ export class Account extends CoValueBase implements CoValue {
     inviteSecret: InviteSecret,
     coValueClass: CoValueClass<V>,
   ) {
-    if (!this.isMe) {
+    if (!this.isLocalNodeOwner) {
       throw new Error("Only a controlled account can accept invites");
     }
 
@@ -247,7 +263,7 @@ export class Account extends CoValueBase implements CoValue {
     return this.toJSON();
   }
 
-  async applyMigration(creationProps?: { name: string; onboarding?: boolean }) {
+  async applyMigration(creationProps?: AccountCreationProps) {
     if (creationProps) {
       const profileGroup = RegisteredSchemas["Group"].create({ owner: this });
       profileGroup.addMember("everyone", "reader");
@@ -272,7 +288,7 @@ export class Account extends CoValueBase implements CoValue {
   }
 
   // Placeholder method for subclasses to override
-  migrate(creationProps?: { name: string }) {
+  migrate(creationProps?: AccountCreationProps) {
     creationProps; // To avoid unused parameter warning
   }
 
@@ -316,7 +332,7 @@ export class Account extends CoValueBase implements CoValue {
   ensureLoaded<A extends Account, const R extends RefsToResolve<A>>(
     this: A,
     options: { resolve: RefsToResolveStrict<A, R> },
-  ): Promise<Resolved<A, R> | undefined> {
+  ): Promise<Resolved<A, R>> {
     return ensureCoValueLoaded(this, options);
   }
 
@@ -430,11 +446,11 @@ export const AccountAndGroupProxyHandler: ProxyHandler<Account | Group> = {
 
 /** @category Identity & Permissions */
 export function isControlledAccount(account: Account): account is Account & {
-  isMe: true;
+  isLocalNodeOwner: true;
   sessionID: SessionID;
   _raw: RawControlledAccount;
 } {
-  return account.isMe;
+  return account.isLocalNodeOwner;
 }
 
 export type AccountClass<Acc extends Account> = CoValueClass<Acc> & {

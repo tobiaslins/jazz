@@ -34,6 +34,11 @@ export function fulfillsDepth(depth: any, value: CoValue): boolean {
           [key: string]: any;
           _refs: { [key: string]: Ref<CoValue> | undefined };
         };
+
+        if (!map._schema[key]) {
+          continue;
+        }
+
         if (!map._refs[key] && map._schema[key].optional) {
           continue;
         }

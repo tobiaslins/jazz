@@ -1,4 +1,3 @@
-import { connectedPeers } from "cojson/src/streamUtils.ts";
 import { describe, expect, test } from "vitest";
 import {
   Account,
@@ -9,13 +8,16 @@ import {
   WasmCrypto,
   co,
   cojsonInternals,
-  createJazzContext,
-  fixedCredentialsAuth,
   isControlledAccount,
 } from "../index.web.js";
-import { randomSessionProvider } from "../internal.js";
+import {
+  createJazzContextFromExistingCredentials,
+  randomSessionProvider,
+} from "../internal.js";
 import { createJazzTestAccount } from "../testing.js";
 import { setupTwoNodes } from "./utils.js";
+
+const { connectedPeers } = cojsonInternals;
 
 const Crypto = await WasmCrypto.create();
 
@@ -111,15 +113,16 @@ describe("CoFeed resolution", async () => {
       throw "me is not a controlled account";
     }
     me._raw.core.node.syncManager.addPeer(secondPeer);
-    const { account: meOnSecondPeer } = await createJazzContext({
-      auth: fixedCredentialsAuth({
-        accountID: me.id,
-        secret: me._raw.agentSecret,
-      }),
-      sessionProvider: randomSessionProvider,
-      peersToLoadFrom: [initialAsPeer],
-      crypto: Crypto,
-    });
+    const { account: meOnSecondPeer } =
+      await createJazzContextFromExistingCredentials({
+        credentials: {
+          accountID: me.id,
+          secret: me._raw.agentSecret,
+        },
+        sessionProvider: randomSessionProvider,
+        peersToLoadFrom: [initialAsPeer],
+        crypto: Crypto,
+      });
 
     const loadedStream = await TestStream.load(stream.id, {
       loadAs: meOnSecondPeer,
@@ -196,15 +199,16 @@ describe("CoFeed resolution", async () => {
     if (!isControlledAccount(me)) {
       throw "me is not a controlled account";
     }
-    const { account: meOnSecondPeer } = await createJazzContext({
-      auth: fixedCredentialsAuth({
-        accountID: me.id,
-        secret: me._raw.agentSecret,
-      }),
-      sessionProvider: randomSessionProvider,
-      peersToLoadFrom: [initialAsPeer],
-      crypto: Crypto,
-    });
+    const { account: meOnSecondPeer } =
+      await createJazzContextFromExistingCredentials({
+        credentials: {
+          accountID: me.id,
+          secret: me._raw.agentSecret,
+        },
+        sessionProvider: randomSessionProvider,
+        peersToLoadFrom: [initialAsPeer],
+        crypto: Crypto,
+      });
 
     const queue = new cojsonInternals.Channel();
 
@@ -319,15 +323,16 @@ describe("FileStream loading & Subscription", async () => {
       throw "me is not a controlled account";
     }
     me._raw.core.node.syncManager.addPeer(secondAsPeer);
-    const { account: meOnSecondPeer } = await createJazzContext({
-      auth: fixedCredentialsAuth({
-        accountID: me.id,
-        secret: me._raw.agentSecret,
-      }),
-      sessionProvider: randomSessionProvider,
-      peersToLoadFrom: [initialAsPeer],
-      crypto: Crypto,
-    });
+    const { account: meOnSecondPeer } =
+      await createJazzContextFromExistingCredentials({
+        credentials: {
+          accountID: me.id,
+          secret: me._raw.agentSecret,
+        },
+        sessionProvider: randomSessionProvider,
+        peersToLoadFrom: [initialAsPeer],
+        crypto: Crypto,
+      });
 
     const loadedStream = await FileStream.load(stream.id, {
       loadAs: meOnSecondPeer,
@@ -352,15 +357,16 @@ describe("FileStream loading & Subscription", async () => {
     if (!isControlledAccount(me)) {
       throw "me is not a controlled account";
     }
-    const { account: meOnSecondPeer } = await createJazzContext({
-      auth: fixedCredentialsAuth({
-        accountID: me.id,
-        secret: me._raw.agentSecret,
-      }),
-      sessionProvider: randomSessionProvider,
-      peersToLoadFrom: [initialAsPeer],
-      crypto: Crypto,
-    });
+    const { account: meOnSecondPeer } =
+      await createJazzContextFromExistingCredentials({
+        credentials: {
+          accountID: me.id,
+          secret: me._raw.agentSecret,
+        },
+        sessionProvider: randomSessionProvider,
+        peersToLoadFrom: [initialAsPeer],
+        crypto: Crypto,
+      });
 
     const queue = new cojsonInternals.Channel();
 
@@ -460,10 +466,10 @@ describe("FileStream.loadAsBlob", async () => {
       allowUnfinished: true,
     });
 
+    const blob = await promise;
+
     stream.push(new Uint8Array([2]));
     stream.end();
-
-    const blob = await promise;
 
     // The promise resolves before the stream is ended
     // so we get a blob only with the first chunk

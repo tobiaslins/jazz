@@ -65,7 +65,7 @@ describe("Custom accounts and groups", async () => {
     expect(group.nMembers).toBe(2);
 
     await new Promise<void>((resolve) => {
-      group.subscribe({}, (update) => {
+      group.subscribe((update) => {
         const meAsMember = update.members.find((member) => {
           return member.id === me.id && member.account?.profile;
         });
@@ -122,7 +122,7 @@ describe("Group inheritance", () => {
     const mapAsReader = await TestMap.load(mapInChild.id, { loadAs: reader });
     expect(mapAsReader?.title).toBe("In Child");
 
-    parentGroup.removeMember(reader);
+    await parentGroup.removeMember(reader);
 
     mapInChild.title = "In Child (updated)";
 
@@ -161,7 +161,7 @@ describe("Group inheritance", () => {
     });
     expect(mapAsReader?.title).toBe("In Grand Child");
 
-    grandParentGroup.removeMember(reader);
+    await grandParentGroup.removeMember(reader);
 
     mapInGrandChild.title = "In Grand Child (updated)";
 

@@ -1,5 +1,18 @@
 # jazz-tools
 
+## 0.9.23
+
+### Patch Changes
+
+- Updated dependencies [70c9a5d]
+  - cojson@0.9.23
+
+## 0.9.21
+
+### Patch Changes
+
+- 1be017d: Account.isMe now indicates whether an account is the currently active account. To check if an account is the owner of the local node use isLocalNodeOwner instead.
+
 ## 0.9.20
 
 ### Patch Changes
