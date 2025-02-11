@@ -148,6 +148,7 @@ export default function ChatScreen({ navigation }: { navigation: any }) {
             }}
             textAlignVertical="center"
             onSubmitEditing={sendMessage}
+            testID="username-input"
           />
           <TouchableOpacity
             onPress={createChat}
@@ -190,10 +191,12 @@ export default function ChatScreen({ navigation }: { navigation: any }) {
                 placeholder="Type a message..."
                 textAlignVertical="center"
                 onSubmitEditing={sendMessage}
+                testID="message-input"
               />
               <TouchableOpacity
                 onPress={sendMessage}
                 className="bg-gray-300 text-white rounded-full h-8 w-8 items-center justify-center"
+                testID="send-button"
               >
                 <Text>↑</Text>
               </TouchableOpacity>
