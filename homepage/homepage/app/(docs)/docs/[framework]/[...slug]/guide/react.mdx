@@ -329,7 +329,7 @@ This works because CoValues
 
     1.  Directly on an instance:
 
-  <CodeGroup size="sm">
+  <CodeGroup>
         ```ts
         const unsub = issue.subscribe([], (updatedIssue) => console.log(updatedIssue));
         ```
@@ -337,7 +337,7 @@ This works because CoValues
 
     2.  If you only have an ID (this will load the issue if needed):
 
-  <CodeGroup size="sm">
+  <CodeGroup>
         ```ts
         const unsub = Issue.subscribe(issueID, me, [], (updatedIssue) => {
             console.log(updatedIssue);
@@ -353,7 +353,7 @@ This works because CoValues
 
 
             By the way, `useCoState` is basically just an optimized version of
-  <CodeGroup size="sm">
+  <CodeGroup>
             ```ts
             function useCoState<V extends CoValue>(Schema: CoValueClass<V>, id?: ID<V>): V | undefined {
                 const [value, setValue] = useState<V>();

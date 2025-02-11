@@ -1,4 +1,4 @@
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import { expectMap } from "../coValue.js";
 import { ControlledAgent } from "../coValues/account.js";
 import { WasmCrypto } from "../crypto/WasmCrypto.js";
@@ -2907,4 +2907,62 @@ test("extend cycles should not break the keys rotation", () => {
   map.set("test", "Hello!");
 
   expect(map.get("test")).toEqual("Hello!");
+});
+
+test("Admin can remove themselves from a group", async () => {
+  const warnSpy = vi.spyOn(console, "warn");
+  const { group, admin } = newGroupHighLevel();
+
+  // Admin removes themselves
+  await group.removeMember(admin);
+
+  expect(group.myRole()).toBeUndefined();
+  expect(warnSpy).not.toHaveBeenCalled();
+});
+
+test("Can revoke read permission from 'everyone'", async () => {
+  const { group } = newGroupHighLevel();
+  const childObject = group.createMap();
+
+  // Give everyone read access
+  group.addMember("everyone", "reader");
+
+  childObject.set("foo", "bar", "private");
+  expect(childObject.get("foo")).toEqual("bar");
+
+  // Create a new account to verify access
+  const newAccount = new ControlledAgent(Crypto.newRandomAgentSecret(), Crypto);
+  const childContent = expectMap(
+    childObject.core
+      .testWithDifferentAccount(
+        newAccount,
+        Crypto.newRandomSessionID(newAccount.currentAgentID()._unsafeUnwrap()),
+      )
+      .getCurrentContent(),
+  );
+
+  // Verify the new account can read
+  expect(childContent.get("foo")).toEqual("bar");
+
+  // Revoke everyone's access
+  await group.removeMember("everyone");
+
+  childObject.set("foo", "updated after revoke", "private");
+
+  // Create another new account to verify access is revoked
+  const newAccount2 = new ControlledAgent(
+    Crypto.newRandomAgentSecret(),
+    Crypto,
+  );
+  const childContent2 = expectMap(
+    childObject.core
+      .testWithDifferentAccount(
+        newAccount2,
+        Crypto.newRandomSessionID(newAccount2.currentAgentID()._unsafeUnwrap()),
+      )
+      .getCurrentContent(),
+  );
+
+  // Verify the new account cannot read after revocation
+  expect(childContent2.get("foo")).toEqual("bar");
 });

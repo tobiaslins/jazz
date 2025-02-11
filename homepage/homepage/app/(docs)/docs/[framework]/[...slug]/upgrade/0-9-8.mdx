@@ -17,12 +17,12 @@ export const metadata = { title: "Upgrade to Jazz 0.9.0" };
 <CodeGroup>
     {/* prettier-ignore */}
     ```ts
-    import { useState } from "react"; 
-    import { Issue } from "./schema"; 
-    import { IssueComponent } from "./components/Issue.tsx"; 
+    import { useState } from "react";
+    import { Issue } from "./schema";
+    import { IssueComponent } from "./components/Issue.tsx";
     function App() {
-        const [issue, setIssue] = useState<Issue>(); 
-        
+        const [issue, setIssue] = useState<Issue>();
+
         const createIssue = () => {
             setIssue(Issue.create(
                 {
@@ -33,13 +33,13 @@ export const metadata = { title: "Upgrade to Jazz 0.9.0" };
                 }, // The owner defaults now to a group managed by the current user!
             ));
         };
-        
+
         if (issue) {
-            return <IssueComponent issue={issue} />; 
-        } else { 
+            return <IssueComponent issue={issue} />;
+        } else {
             return <button onClick={createIssue}>Create Issue</button>;
-        } 
-    } 
+        }
+    }
     ```
 </CodeGroup>
 
