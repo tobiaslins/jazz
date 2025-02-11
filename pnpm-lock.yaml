@@ -108,7 +108,7 @@ importers:
         specifier: ^8.4.27
         version: 8.4.49
       tailwindcss:
-        specifier: ^3.4.15
+        specifier: ^3.4.17
         version: 3.4.17(ts-node@10.9.2(@swc/core@1.10.1(@swc/helpers@0.5.15))(@types/node@22.10.2)(typescript@5.6.3))
       typescript:
         specifier: ~5.6.2
@@ -217,7 +217,7 @@ importers:
         specifier: ^18.3.12
         version: 18.3.18
       tailwindcss:
-        specifier: ^3.4.15
+        specifier: ^3.4.17
         version: 3.4.17(ts-node@10.9.2(@swc/core@1.10.1(@swc/helpers@0.5.15))(@types/node@22.10.2)(typescript@5.6.3))
       typescript:
         specifier: ~5.6.2
@@ -389,7 +389,7 @@ importers:
         specifier: 18.2.0
         version: 18.2.0(react@18.3.1)
       tailwindcss:
-        specifier: ^3.4.15
+        specifier: ^3.4.17
         version: 3.4.17(ts-node@10.9.2(@swc/core@1.10.1(@swc/helpers@0.5.15))(@types/node@22.10.2)(typescript@5.6.3))
       typescript:
         specifier: ~5.6.2
@@ -444,7 +444,7 @@ importers:
         specifier: ^8.4.27
         version: 8.4.49
       tailwindcss:
-        specifier: ^3.4.15
+        specifier: ^3.4.17
         version: 3.4.17(ts-node@10.9.2(@swc/core@1.10.1(@swc/helpers@0.5.15))(@types/node@22.10.2)(typescript@5.6.3))
       typescript:
         specifier: ~5.6.2
@@ -468,7 +468,7 @@ importers:
         specifier: workspace:*
         version: link:../../packages/jazz-react
       jazz-react-auth-clerk:
-        specifier: workspace:0.9.22
+        specifier: workspace:0.9.23
         version: link:../../packages/jazz-react-auth-clerk
       jazz-tools:
         specifier: workspace:*
@@ -522,10 +522,10 @@ importers:
     devDependencies:
       '@sveltejs/adapter-vercel':
         specifier: ^5.5.0
-        version: 5.5.2(@sveltejs/kit@2.13.0(@sveltejs/vite-plugin-svelte@5.0.3(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1)))(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1)))(rollup@4.28.1)
+        version: 5.5.2(@sveltejs/kit@2.17.1(@sveltejs/vite-plugin-svelte@5.0.3(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1)))(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1)))(rollup@4.28.1)
       '@sveltejs/kit':
-        specifier: ^2.0.0
-        version: 2.13.0(@sveltejs/vite-plugin-svelte@5.0.3(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1)))(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1))
+        specifier: ^2.16.0
+        version: 2.17.1(@sveltejs/vite-plugin-svelte@5.0.3(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1)))(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1))
       '@sveltejs/vite-plugin-svelte':
         specifier: ^5.0.0
         version: 5.0.3(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1))
@@ -566,7 +566,7 @@ importers:
         specifier: ^4.0.0
         version: 4.1.1(picomatch@4.0.2)(svelte@5.15.0)(typescript@5.6.3)
       tailwindcss:
-        specifier: ^3.4.15
+        specifier: ^3.4.17
         version: 3.4.17(ts-node@10.9.2(@swc/core@1.10.1(@swc/helpers@0.5.15))(@types/node@22.10.2)(typescript@5.6.3))
       typescript:
         specifier: ~5.6.2
@@ -630,7 +630,7 @@ importers:
         specifier: ^8.4.27
         version: 8.4.49
       tailwindcss:
-        specifier: ^3.4.15
+        specifier: ^3.4.17
         version: 3.4.17(ts-node@10.9.2(@swc/core@1.10.1(@swc/helpers@0.5.15))(@types/node@22.10.2)(typescript@5.6.3))
       typescript:
         specifier: ~5.6.2
@@ -685,7 +685,7 @@ importers:
         specifier: ^1.0.4
         version: 1.1.3(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@radix-ui/react-slot':
-        specifier: ^1.0.2
+        specifier: ^1.1.1
         version: 1.1.1(@types/react@18.3.18)(react@18.3.1)
       '@radix-ui/react-toast':
         specifier: ^1.1.4
@@ -697,10 +697,10 @@ importers:
         specifier: ^2.0.0
         version: 2.1.1
       cojson:
-        specifier: workspace:0.9.19
+        specifier: workspace:0.9.23
         version: link:../../packages/cojson
       cojson-transport-ws:
-        specifier: workspace:0.9.22
+        specifier: workspace:0.9.23
         version: link:../../packages/cojson-transport-ws
       hash-slash:
         specifier: workspace:0.2.1
@@ -755,7 +755,7 @@ importers:
         specifier: ^8.4.27
         version: 8.4.49
       tailwindcss:
-        specifier: ^3.4.15
+        specifier: ^3.4.17
         version: 3.4.17(ts-node@10.9.2(@swc/core@1.10.1(@swc/helpers@0.5.15))(@types/node@22.10.2)(typescript@5.6.3))
       typescript:
         specifier: ~5.6.2
@@ -794,10 +794,10 @@ importers:
         specifier: workspace:*
         version: link:../../packages/jazz-inspector
       jazz-react:
-        specifier: workspace:0.9.22
+        specifier: workspace:0.9.23
         version: link:../../packages/jazz-react
       jazz-tools:
-        specifier: workspace:0.9.21
+        specifier: workspace:0.9.23
         version: link:../../packages/jazz-tools
       lucide-react:
         specifier: ^0.274.0
@@ -840,7 +840,7 @@ importers:
         specifier: ^8.4.27
         version: 8.4.49
       tailwindcss:
-        specifier: ^3.4.15
+        specifier: ^3.4.17
         version: 3.4.17(ts-node@10.9.2(@swc/core@1.10.1(@swc/helpers@0.5.15))(@types/node@22.10.2)(typescript@5.6.3))
       typescript:
         specifier: ~5.6.2
@@ -892,7 +892,7 @@ importers:
         specifier: ^8.4.27
         version: 8.4.49
       tailwindcss:
-        specifier: ^3.4.15
+        specifier: ^3.4.17
         version: 3.4.17(ts-node@10.9.2(@swc/core@1.10.1(@swc/helpers@0.5.15))(@types/node@22.10.2)(typescript@5.6.3))
       typescript:
         specifier: ~5.6.2
@@ -950,7 +950,7 @@ importers:
         specifier: ^8.4.27
         version: 8.4.49
       tailwindcss:
-        specifier: ^3.4.15
+        specifier: ^3.4.17
         version: 3.4.17(ts-node@10.9.2(@swc/core@1.10.1(@swc/helpers@0.5.15))(@types/node@22.10.2)(typescript@5.6.3))
       typescript:
         specifier: ~5.6.2
@@ -1004,10 +1004,10 @@ importers:
     devDependencies:
       '@sveltejs/adapter-auto':
         specifier: ^3.0.0
-        version: 3.3.1(@sveltejs/kit@2.13.0(@sveltejs/vite-plugin-svelte@5.0.3(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1)))(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1)))
+        version: 3.3.1(@sveltejs/kit@2.17.1(@sveltejs/vite-plugin-svelte@5.0.3(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1)))(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1)))
       '@sveltejs/kit':
-        specifier: ^2.0.0
-        version: 2.13.0(@sveltejs/vite-plugin-svelte@5.0.3(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1)))(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1))
+        specifier: ^2.16.0
+        version: 2.17.1(@sveltejs/vite-plugin-svelte@5.0.3(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1)))(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1))
       '@sveltejs/vite-plugin-svelte':
         specifier: ^5.0.0
         version: 5.0.3(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1))
@@ -1088,10 +1088,10 @@ importers:
   examples/password-manager:
     dependencies:
       jazz-react:
-        specifier: workspace:0.9.22
+        specifier: workspace:0.9.23
         version: link:../../packages/jazz-react
       jazz-tools:
-        specifier: workspace:0.9.21
+        specifier: workspace:0.9.23
         version: link:../../packages/jazz-tools
       react:
         specifier: 18.3.1
@@ -1125,7 +1125,7 @@ importers:
         specifier: ^8.4.27
         version: 8.4.49
       tailwindcss:
-        specifier: ^3.4.15
+        specifier: ^3.4.17
         version: 3.4.17(ts-node@10.9.2(@swc/core@1.10.1(@swc/helpers@0.5.15))(@types/node@22.10.2)(typescript@5.6.3))
       typescript:
         specifier: ~5.6.2
@@ -1140,7 +1140,7 @@ importers:
         specifier: ^1.0.4
         version: 1.1.3(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@radix-ui/react-slot':
-        specifier: ^1.0.2
+        specifier: ^1.1.1
         version: 1.1.1(@types/react@18.3.18)(react@18.3.1)
       '@radix-ui/react-toast':
         specifier: ^1.1.4
@@ -1152,13 +1152,13 @@ importers:
         specifier: ^2.0.0
         version: 2.1.1
       jazz-browser-media-images:
-        specifier: workspace:0.9.22
+        specifier: workspace:0.9.23
         version: link:../../packages/jazz-browser-media-images
       jazz-react:
-        specifier: workspace:0.9.22
+        specifier: workspace:0.9.23
         version: link:../../packages/jazz-react
       jazz-tools:
-        specifier: workspace:0.9.21
+        specifier: workspace:0.9.23
         version: link:../../packages/jazz-tools
       lucide-react:
         specifier: ^0.274.0
@@ -1213,13 +1213,13 @@ importers:
         specifier: ^3.0.1
         version: 3.0.1
       jazz-run:
-        specifier: workspace:0.9.22
+        specifier: workspace:0.9.23
         version: link:../../packages/jazz-run
       postcss:
         specifier: ^8.4.27
         version: 8.4.49
       tailwindcss:
-        specifier: ^3.4.15
+        specifier: ^3.4.17
         version: 3.4.17(ts-node@10.9.2(@swc/core@1.10.1(@swc/helpers@0.5.15))(@types/node@22.10.2)(typescript@5.6.3))
       typescript:
         specifier: ~5.6.2
@@ -1280,7 +1280,7 @@ importers:
         specifier: ^1.0.4
         version: 1.1.3(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@radix-ui/react-slot':
-        specifier: ^1.0.2
+        specifier: ^1.1.1
         version: 1.1.1(@types/react@18.3.18)(react@18.3.1)
       '@radix-ui/react-toast':
         specifier: ^1.1.4
@@ -1292,10 +1292,10 @@ importers:
         specifier: ^2.0.0
         version: 2.1.1
       jazz-react:
-        specifier: workspace:0.9.22
+        specifier: workspace:0.9.23
         version: link:../../packages/jazz-react
       jazz-tools:
-        specifier: workspace:0.9.21
+        specifier: workspace:0.9.23
         version: link:../../packages/jazz-tools
       lucide-react:
         specifier: ^0.274.0
@@ -1344,7 +1344,7 @@ importers:
         specifier: ^8.4.27
         version: 8.4.49
       tailwindcss:
-        specifier: ^3.4.15
+        specifier: ^3.4.17
         version: 3.4.17(ts-node@10.9.2(@swc/core@1.10.1(@swc/helpers@0.5.15))(@types/node@22.10.2)(typescript@5.6.3))
       typescript:
         specifier: ~5.6.2
@@ -1402,7 +1402,7 @@ importers:
         specifier: ^8.4.27
         version: 8.4.49
       tailwindcss:
-        specifier: ^3.4.15
+        specifier: ^3.4.17
         version: 3.4.17(ts-node@10.9.2(@swc/core@1.10.1(@swc/helpers@0.5.15))(@types/node@22.10.2)(typescript@5.6.3))
       typescript:
         specifier: ~5.6.2
@@ -1478,7 +1478,7 @@ importers:
         specifier: ^1.0.0
         version: 1.9.0
       '@scure/base':
-        specifier: ^1.1.1
+        specifier: 1.2.1
         version: 1.2.1
       hash-wasm:
         specifier: ^4.9.0
@@ -1557,7 +1557,7 @@ importers:
         specifier: ^11.7.0
         version: 11.7.0
       cojson:
-        specifier: workspace:0.9.19
+        specifier: workspace:0.9.23
         version: link:../cojson
       cojson-storage:
         specifier: workspace:*
@@ -1635,13 +1635,13 @@ importers:
   packages/jazz-auth-clerk:
     dependencies:
       cojson:
-        specifier: workspace:0.9.19
+        specifier: workspace:0.9.23
         version: link:../cojson
       jazz-browser:
-        specifier: workspace:0.9.22
+        specifier: workspace:0.9.23
         version: link:../jazz-browser
       jazz-tools:
-        specifier: workspace:0.9.21
+        specifier: workspace:0.9.23
         version: link:../jazz-tools
     devDependencies:
       typescript:
@@ -1670,6 +1670,8 @@ importers:
         specifier: ~5.6.2
         version: 5.6.3
 
+  packages/jazz-browser-auth-clerk: {}
+
   packages/jazz-browser-media-images:
     dependencies:
       '@types/image-blob-reduce':
@@ -1679,10 +1681,10 @@ importers:
         specifier: ^4.1.0
         version: 4.1.0
       jazz-browser:
-        specifier: workspace:0.9.22
+        specifier: workspace:0.9.23
         version: link:../jazz-browser
       jazz-tools:
-        specifier: workspace:0.9.21
+        specifier: workspace:0.9.23
         version: link:../jazz-tools
       pica:
         specifier: ^9.0.1
@@ -1732,13 +1734,13 @@ importers:
   packages/jazz-nodejs:
     dependencies:
       cojson:
-        specifier: workspace:0.9.19
+        specifier: workspace:*
         version: link:../cojson
       cojson-transport-ws:
-        specifier: workspace:0.9.22
+        specifier: workspace:*
         version: link:../cojson-transport-ws
       jazz-tools:
-        specifier: workspace:0.9.21
+        specifier: workspace:*
         version: link:../jazz-tools
     devDependencies:
       jazz-run:
@@ -1754,16 +1756,16 @@ importers:
         specifier: ^1.3.0
         version: 1.5.0
       cojson:
-        specifier: workspace:0.9.19
+        specifier: workspace:0.9.23
         version: link:../cojson
       jazz-browser:
-        specifier: workspace:0.9.22
+        specifier: workspace:0.9.23
         version: link:../jazz-browser
       jazz-react-core:
         specifier: workspace:*
         version: link:../jazz-react-core
       jazz-tools:
-        specifier: workspace:0.9.21
+        specifier: workspace:0.9.23
         version: link:../jazz-tools
     devDependencies:
       '@testing-library/dom':
@@ -1946,19 +1948,19 @@ importers:
         specifier: ^0.25.5
         version: 0.25.8(effect@3.11.9)
       cojson:
-        specifier: workspace:0.9.19
+        specifier: workspace:0.9.23
         version: link:../cojson
       cojson-storage-sqlite:
-        specifier: workspace:0.9.19
+        specifier: workspace:0.9.23
         version: link:../cojson-storage-sqlite
       cojson-transport-ws:
-        specifier: workspace:0.9.22
+        specifier: workspace:0.9.23
         version: link:../cojson-transport-ws
       effect:
         specifier: ^3.6.5
         version: 3.11.9
       jazz-tools:
-        specifier: workspace:0.9.21
+        specifier: workspace:0.9.23
         version: link:../jazz-tools
       ws:
         specifier: ^8.14.2
@@ -2112,6 +2114,8 @@ importers:
         specifier: ^2.1.6
         version: 2.1.10(typescript@5.6.3)
 
+  packages/jazz-worker: {}
+
   starters/react-demo-auth-tailwind:
     dependencies:
       jazz-react:
@@ -2155,7 +2159,7 @@ importers:
         specifier: ^8.4.27
         version: 8.4.49
       tailwindcss:
-        specifier: ^3.4.15
+        specifier: ^3.4.17
         version: 3.4.17(ts-node@10.9.2(@swc/core@1.10.1(@swc/helpers@0.5.15))(@types/node@22.10.2)(typescript@5.6.3))
       typescript:
         specifier: ~5.6.2
@@ -4846,15 +4850,6 @@ packages:
     peerDependencies:
       '@sveltejs/kit': ^2.4.0
 
-  '@sveltejs/kit@2.13.0':
-    resolution: {integrity: sha512-6t6ne00vZx/TjD6s0Jvwt8wRLKBwbSAN1nhlOzcLUSTYX1hTp4eCBaTPB5Yz/lu+tYcvz4YPEEuPv3yfsNp2gw==}
-    engines: {node: '>=18.13'}
-    hasBin: true
-    peerDependencies:
-      '@sveltejs/vite-plugin-svelte': ^3.0.0 || ^4.0.0-next.1 || ^5.0.0
-      svelte: ^4.0.0 || ^5.0.0-next.0
-      vite: ^5.0.3 || ^6.0.0
-
   '@sveltejs/kit@2.17.1':
     resolution: {integrity: sha512-CpoGSLqE2MCmcQwA2CWJvOsZ9vW+p/1H3itrFykdgajUNAEyQPbsaSn7fZb6PLHQwe+07njxje9ss0fjZoCAyw==}
     engines: {node: '>=18.13'}
@@ -7481,15 +7476,9 @@ packages:
     resolution: {integrity: sha512-OkToC372DtlQeje9/zHIo5CT8lRP/FUgEOKBEhU4e0abL7J7CD24fD9ohiLN5hagG/kWCYj4K5oaxxtj2Z0Dig==}
     engines: {node: '>=18'}
 
-  globalyzer@0.1.0:
-    resolution: {integrity: sha512-40oNTM9UfG6aBmuKxk/giHn5nQ8RVz/SS4Ir6zgzOv9/qC3kKZ9v4etGTcJbEl/NyVQH7FGU7d+X1egr57Md2Q==}
-
   globby@11.1.0:
     resolution: {integrity: sha512-jhIXaOzy1sb8IyocaruWSn1TjmnBVs8Ayhcy83rmxNJ8q2uWKCAj3CnJY+KpGSXCueAPc0i05kVvVKtP1t9S3g==}
     engines: {node: '>=10'}
-
-  globrex@0.1.2:
-    resolution: {integrity: sha512-uHJgbwAMwNFf5mLst7IWLNg14x1CkeqglJb/K3doi4dw6q2IvAAmM/Y81kevy83wP+Sst+nutFTYOGg3d1lsxg==}
 
   glur@1.1.2:
     resolution: {integrity: sha512-l+8esYHTKOx2G/Aao4lEQ0bnHWg4fWtJbVoZZT9Knxi01pB8C80BR85nONLFwkkQoFRCmXY+BUcGZN3yZ2QsRA==}
@@ -10790,9 +10779,6 @@ packages:
 
   through@2.3.8:
     resolution: {integrity: sha512-w89qg7PI8wAdvX60bMDP+bFoD5Dvhm9oLheFp5O4a2QF0cSBGsBX4qZmadPMvVqlLJBBci+WqGGOAPvcDeNSVg==}
-
-  tiny-glob@0.2.9:
-    resolution: {integrity: sha512-g/55ssRPUjShh+xkfx9UPDXqhckHEsHr4Vd9zX55oSdGZc/MD0m3sferOkwWtp98bv+kcVfEHtRJgBVJzelrzg==}
 
   tinybench@2.9.0:
     resolution: {integrity: sha512-0+DUvqWMValLmha6lr4kD8iAMK1HzV0/aKnCtWb9v9641TnP/MFb7Pc2bxoxQjTXAErryXVgUOfv2YqNllqGeg==}
@@ -14866,20 +14852,10 @@ snapshots:
     dependencies:
       '@sinonjs/commons': 3.0.1
 
-  '@sveltejs/adapter-auto@3.3.1(@sveltejs/kit@2.13.0(@sveltejs/vite-plugin-svelte@5.0.3(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1)))(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1)))':
+  '@sveltejs/adapter-auto@3.3.1(@sveltejs/kit@2.17.1(@sveltejs/vite-plugin-svelte@5.0.3(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1)))(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1)))':
     dependencies:
-      '@sveltejs/kit': 2.13.0(@sveltejs/vite-plugin-svelte@5.0.3(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1)))(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1))
+      '@sveltejs/kit': 2.17.1(@sveltejs/vite-plugin-svelte@5.0.3(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1)))(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1))
       import-meta-resolve: 4.1.0
-
-  '@sveltejs/adapter-vercel@5.5.2(@sveltejs/kit@2.13.0(@sveltejs/vite-plugin-svelte@5.0.3(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1)))(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1)))(rollup@4.28.1)':
-    dependencies:
-      '@sveltejs/kit': 2.13.0(@sveltejs/vite-plugin-svelte@5.0.3(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1)))(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1))
-      '@vercel/nft': 0.27.10(rollup@4.28.1)
-      esbuild: 0.24.0
-    transitivePeerDependencies:
-      - encoding
-      - rollup
-      - supports-color
 
   '@sveltejs/adapter-vercel@5.5.2(@sveltejs/kit@2.17.1(@sveltejs/vite-plugin-svelte@5.0.3(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1)))(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1)))(rollup@4.28.1)':
     dependencies:
@@ -14890,24 +14866,6 @@ snapshots:
       - encoding
       - rollup
       - supports-color
-
-  '@sveltejs/kit@2.13.0(@sveltejs/vite-plugin-svelte@5.0.3(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1)))(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1))':
-    dependencies:
-      '@sveltejs/vite-plugin-svelte': 5.0.3(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1))
-      '@types/cookie': 0.6.0
-      cookie: 0.6.0
-      devalue: 5.1.1
-      esm-env: 1.2.1
-      import-meta-resolve: 4.1.0
-      kleur: 4.1.5
-      magic-string: 0.30.17
-      mrmime: 2.0.0
-      sade: 1.8.1
-      set-cookie-parser: 2.7.1
-      sirv: 3.0.0
-      svelte: 5.15.0
-      tiny-glob: 0.2.9
-      vite: 6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1)
 
   '@sveltejs/kit@2.17.1(@sveltejs/vite-plugin-svelte@5.0.3(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1)))(svelte@5.15.0)(vite@6.0.11(@types/node@22.10.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.6.1))':
     dependencies:
@@ -17886,8 +17844,6 @@ snapshots:
 
   globals@15.14.0: {}
 
-  globalyzer@0.1.0: {}
-
   globby@11.1.0:
     dependencies:
       array-union: 2.1.0
@@ -17896,8 +17852,6 @@ snapshots:
       ignore: 5.3.2
       merge2: 1.4.1
       slash: 3.0.0
-
-  globrex@0.1.2: {}
 
   glur@1.1.2: {}
 
@@ -21542,11 +21496,6 @@ snapshots:
       xtend: 4.0.2
 
   through@2.3.8: {}
-
-  tiny-glob@0.2.9:
-    dependencies:
-      globalyzer: 0.1.0
-      globrex: 0.1.2
 
   tinybench@2.9.0: {}
 

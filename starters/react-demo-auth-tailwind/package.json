@@ -1,7 +1,7 @@
 {
   "name": "jazz-tailwind-demo-auth-starter",
   "private": true,
-  "version": "0.0.37",
+  "version": "0.0.38",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -24,12 +24,12 @@
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.3",
+    "autoprefixer": "^10.4.20",
     "globals": "^15.11.0",
     "is-ci": "^3.0.1",
-    "typescript": "~5.6.2",
-    "vite": "^6.0.11",
     "postcss": "^8.4.27",
-    "tailwindcss": "^3.4.15",
-    "autoprefixer": "^10.4.20"
+    "tailwindcss": "^3.4.17",
+    "typescript": "~5.6.2",
+    "vite": "^6.0.11"
   }
 }
