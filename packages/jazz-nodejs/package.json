@@ -7,13 +7,11 @@
   "license": "MIT",
   "version": "0.9.23",
   "dependencies": {
-    "cojson": "workspace:0.9.23",
-    "cojson-transport-ws": "workspace:0.9.23",
-    "jazz-tools": "workspace:0.9.23",
-    "ws": "^8.14.2"
+    "cojson": "workspace:*",
+    "cojson-transport-ws": "workspace:*",
+    "jazz-tools": "workspace:*"
   },
   "devDependencies": {
-    "@types/ws": "8.5.10",
     "jazz-run": "workspace:*",
     "typescript": "~5.6.2"
   },

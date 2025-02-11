@@ -6,10 +6,10 @@
   "types": "src/index.tsx",
   "license": "MIT",
   "dependencies": {
-    "cojson": "workspace:0.9.23",
-    "jazz-browser-auth-clerk": "workspace:0.9.23",
-    "jazz-react": "workspace:0.9.23",
-    "jazz-tools": "workspace:0.9.23"
+    "cojson": "workspace:*",
+    "jazz-auth-clerk": "workspace:*",
+    "jazz-react": "workspace:*",
+    "jazz-tools": "workspace:*"
   },
   "peerDependencies": {
     "react": "^18.2.0"
@@ -21,6 +21,7 @@
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
+    "@testing-library/react": "^16.1.0",
     "@types/react": "^18.3.12",
     "typescript": "~5.6.2"
   }

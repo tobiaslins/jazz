@@ -104,8 +104,6 @@ const onAccept = async (organizationId: ID<Organization>) => {
     },
   });
 
-  if (!me) throw new Error("Failed to load account data");
-
   const organization = await Organization.load(organizationId, []);
 
   if (!organization) throw new Error("Failed to load organization data");

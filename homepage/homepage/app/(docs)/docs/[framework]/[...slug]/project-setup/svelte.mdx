@@ -56,12 +56,11 @@ export class MyAccount extends Account {
   import { JazzProvider } from 'jazz-svelte';
 
   // Example configuration for authentication and peer connection
-  let auth = null; // Replace with your auth implementation
-  let peer = "wss://your-peer-endpoint";
+  let sync = { peer: "wss://cloud.jazz.tools/?key=you@example.com" };
   let AccountSchema = MyAccount;
 </script>
 
-<JazzProvider {auth} {peer} {AccountSchema}>
+<JazzProvider {sync} {AccountSchema}>
   <App />
 </JazzProvider>
 ```
