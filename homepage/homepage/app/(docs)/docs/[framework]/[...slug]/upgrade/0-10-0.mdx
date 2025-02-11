@@ -9,9 +9,9 @@ export const metadata = { title: "Jazz 0.10.0 is out!" };
 </h2>
 
 <div>
-  For Jazz 0.10.0 we have been focusing on enhancing authentication to make it optional and more flexible.
+  For Jazz 0.10.0 we have been focusing on enhancing authentication to make it optional, more flexible and easier to use.
 
-  Now your users can play around with your app, even in local-only mode, before signing up.
+  The default is now anonymous auth, which means that you can build the functionality of your app first and figure out auth later. For users this means that they can start using your app right away on one device -- and once you integrate an auth method, users can sign up and their anonymous accounts are transparently upgraded to authenticated accounts that work across devices.
   
   There are also some other minor improvements that will make your Jazz experience even better!
 
@@ -43,7 +43,7 @@ export const metadata = { title: "Jazz 0.10.0 is out!" };
 ```
 </CodeGroup>
 
-New users are initially authenticated as "anonymous" and you can sign them up with one of the Jazz providers.
+New users are initially authenticated as "anonymous" and you can sign them up later with the hooks/providers of your chosen auth method.
 
 Your auth code can now blend into your component tree:
 <ContentByFramework framework="react">
@@ -175,7 +175,7 @@ function logIn(e: Event) {
 </CodeGroup>
 </ContentByFramework>
 
-When a user signs up with one of the providers we register the current anonymous account into it.
+When a user signs up with one of the auth methods we upgrade the current anonymous account to an authenticated account by storing the account's secret keys in the auth method.
 
 <ContentByFramework framework={["react"]}>
 To check if the user has registered you can use the new `useIsAuthenticated` hook:
@@ -245,7 +245,9 @@ export function AuthButton() {
 </ContentByFramework>
 
 <ContentByFramework framework={["react"]}>
-If you do want to require your users to register before using your app, you can do it by just moving the auth code inside the `JazzProvider` component like this:
+If you do want to require your users to register before using your app, you can do it by moving the auth code outside of your app and conditionally rendering your app as a child -- or apply this pattern for specific parts of the app you'd like to gate behind authentication.
+
+Our provided "Basic UIs" for the different auth methods render their children conditionally by default, so you can either nest them in your app without children, or nest your app or gated parts of your app inside *them*, depending on the desired behavior.
 <CodeGroup>
 {/* prettier-ignore */}
 ```tsx
@@ -268,9 +270,9 @@ For the changes related to the specific auth providers see the updated [authenti
 
 <h3 id="local-only-mode">Local-only mode</h3>
 <div>
-A great way to get your users to try your app for free is to make it local-only for anonymous users.
+If you are ok with data not being persisted on the sync server for anonymous users, you can now set your app to local-only depending on the user's authentication state.
 
-With `sync.when` set to `"signedUp"` the app will work in local mode when the user is anonymous and unlock the multiplayer features when they sign up:
+With `sync.when` set to `"signedUp"` the app will work in local-only mode when the user is anonymous and unlock the multiplayer/multi-device features and cloud persistence when they sign up:
 <CodeGroup>
 ```ts
 <JazzProvider
