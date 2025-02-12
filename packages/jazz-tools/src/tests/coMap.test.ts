@@ -25,7 +25,7 @@ class TestMap extends CoMap {
     encode: (value: string | undefined) => value || null,
     decode: (value: unknown) => (value as string) || undefined,
   });
-  optionalDate = co.optional.encoded(Encoders.Date);
+  optionalDate = co.optional.Date;
 
   get roughColor() {
     return this.color + "ish";
@@ -104,6 +104,32 @@ describe("Simple CoMap operations", async () => {
 
     // @ts-expect-error
     expect(emptyMap.color).toEqual(undefined);
+  });
+
+  test("setting date as undefined should throw", () => {
+    expect(() =>
+      TestMap.create(
+        {
+          color: "red",
+          _height: 10,
+          birthday: undefined!,
+        },
+        { owner: me },
+      ),
+    ).toThrow();
+  });
+
+  test("setting optional date as undefined should not throw", () => {
+    const map = TestMap.create(
+      {
+        color: "red",
+        _height: 10,
+        birthday,
+        optionalDate: undefined,
+      },
+      { owner: me },
+    );
+    expect(map.optionalDate).toBeUndefined();
   });
 
   describe("Mutation", () => {
