@@ -1,5 +1,11 @@
 # cojson
 
+## 0.10.2
+
+### Patch Changes
+
+- cae3a9e: Add debug info to load failure end missing header errors
+
 ## 0.10.1
 
 ### Patch Changes
