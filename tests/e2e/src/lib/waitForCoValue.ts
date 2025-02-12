@@ -17,20 +17,26 @@ export function waitForCoValue<
   predicate: (value: T) => boolean,
   options: { loadAs: Account; resolve?: RefsToResolveStrict<T, R> },
 ) {
-  return new Promise<T>((resolve) => {
+  return new Promise<T>((resolve, reject) => {
     function subscribe() {
       subscribeToCoValue(
         coMap,
         valueId,
-        options,
+        {
+          loadAs: options.loadAs,
+          resolve: options.resolve,
+          onUnavailable: () => {
+            setTimeout(subscribe, 100);
+          },
+          onUnauthorized: () => {
+            reject(new Error("Unauthorized"));
+          },
+        },
         (value, unsubscribe) => {
           if (predicate(value)) {
             resolve(value);
             unsubscribe();
           }
-        },
-        () => {
-          setTimeout(subscribe, 100);
         },
       );
     }

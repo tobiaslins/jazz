@@ -114,7 +114,7 @@ describe("SchemaUnion", () => {
     const unsubscribe = subscribeToCoValue(
       WidgetUnion,
       buttonWidget.id,
-      { loadAs: me },
+      { loadAs: me, syncResolution: true },
       (value: BaseWidget) => {
         if (value instanceof BlueButtonWidget) {
           expect(value.label).toBe(currentValue);
@@ -122,8 +122,6 @@ describe("SchemaUnion", () => {
           throw new Error("Unexpected widget type");
         }
       },
-      () => {},
-      true,
     );
     currentValue = "Changed";
     buttonWidget.label = "Changed";

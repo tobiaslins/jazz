@@ -20,6 +20,7 @@ import type {
   RefsToResolveStrict,
   Resolved,
   Schema,
+  SubscribeListenerOptions,
   SubscribeRestArgs,
   co,
 } from "../internal.js";
@@ -481,10 +482,7 @@ export class CoMap extends CoValueBase implements CoValue {
   static subscribe<M extends CoMap, const R extends RefsToResolve<M> = true>(
     this: CoValueClass<M>,
     id: ID<M>,
-    options: {
-      resolve?: RefsToResolveStrict<M, R>;
-      loadAs?: Account | AnonymousJazzAgent;
-    },
+    options: SubscribeListenerOptions<M, R>,
     listener: (value: Resolved<M, R>, unsubscribe: () => void) => void,
   ): () => void;
   static subscribe<M extends CoMap, const R extends RefsToResolve<M>>(

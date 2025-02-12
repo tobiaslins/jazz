@@ -10,6 +10,7 @@ import type {
   CoValueClass,
   ID,
   Resolved,
+  SubscribeListenerOptions,
   SubscribeRestArgs,
 } from "../internal.js";
 import {
@@ -168,7 +169,7 @@ export class CoPlainText extends String implements CoValue {
   static subscribe<T extends CoPlainText>(
     this: CoValueClass<T>,
     id: ID<T>,
-    options: { loadAs?: Account | AnonymousJazzAgent },
+    options: Omit<SubscribeListenerOptions<T, true>, "resolve">,
     listener: (value: Resolved<T, true>, unsubscribe: () => void) => void,
   ): () => void;
   static subscribe<T extends CoPlainText>(

@@ -194,14 +194,17 @@ export function useCoState<V extends CoValue, const R extends RefsToResolve<V>>(
             "me" in context.value
               ? toRaw(context.value.me)
               : toRaw(context.value.guest),
+          onUnavailable: () => {
+            state.value = null;
+          },
+          onUnauthorized: () => {
+            state.value = null;
+          },
+          syncResolution: true,
         },
         (value) => {
           state.value = value;
         },
-        () => {
-          state.value = null;
-        },
-        true,
       );
     },
     { deep: true, immediate: true },

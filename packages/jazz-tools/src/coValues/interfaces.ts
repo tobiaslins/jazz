@@ -191,13 +191,19 @@ export function loadCoValue<
     subscribeToCoValue<V, R>(
       cls,
       id,
-      options,
+      {
+        resolve: options.resolve,
+        loadAs: options.loadAs,
+        onUnavailable: () => {
+          resolve(undefined);
+        },
+        onUnauthorized: () => {
+          resolve(undefined);
+        },
+      },
       (value, unsubscribe) => {
         resolve(value);
         unsubscribe();
-      },
-      () => {
-        resolve(undefined);
       },
     );
   });
@@ -231,14 +237,18 @@ type SubscribeListener<V extends CoValue, R extends RefsToResolve<V>> = (
   unsubscribe: () => void,
 ) => void;
 
+export type SubscribeListenerOptions<
+  V extends CoValue,
+  R extends RefsToResolve<V>,
+> = {
+  resolve?: RefsToResolveStrict<V, R>;
+  loadAs?: Account | AnonymousJazzAgent;
+  onUnauthorized?: () => void;
+  onUnavailable?: () => void;
+};
+
 export type SubscribeRestArgs<V extends CoValue, R extends RefsToResolve<V>> =
-  | [
-      options: {
-        resolve?: RefsToResolveStrict<V, R>;
-        loadAs?: Account | AnonymousJazzAgent;
-      },
-      listener: SubscribeListener<V, R>,
-    ]
+  | [options: SubscribeListenerOptions<V, R>, listener: SubscribeListener<V, R>]
   | [listener: SubscribeListener<V, R>];
 
 export function parseSubscribeRestArgs<
@@ -247,10 +257,7 @@ export function parseSubscribeRestArgs<
 >(
   args: SubscribeRestArgs<V, R>,
 ): {
-  options: {
-    resolve?: RefsToResolveStrict<V, R>;
-    loadAs?: Account | AnonymousJazzAgent;
-  };
+  options: SubscribeListenerOptions<V, R>;
   listener: SubscribeListener<V, R>;
 } {
   if (args.length === 2) {
@@ -263,6 +270,8 @@ export function parseSubscribeRestArgs<
         options: {
           resolve: args[0].resolve,
           loadAs: args[0].loadAs,
+          onUnauthorized: args[0].onUnauthorized,
+          onUnavailable: args[0].onUnavailable,
         },
         listener: args[1],
       };
@@ -284,16 +293,16 @@ export function subscribeToCoValueWithoutMe<
 >(
   cls: CoValueClass<V>,
   id: ID<V>,
-  options: {
-    resolve?: RefsToResolveStrict<V, R>;
-    loadAs?: Account | AnonymousJazzAgent;
-  },
+  options: SubscribeListenerOptions<V, R>,
   listener: SubscribeListener<V, R>,
 ) {
   return subscribeToCoValue(
     cls,
     id,
-    { ...options, loadAs: options.loadAs ?? activeAccountContext.get() },
+    {
+      ...options,
+      loadAs: options.loadAs ?? activeAccountContext.get(),
+    },
     listener,
   );
 }
@@ -307,10 +316,11 @@ export function subscribeToCoValue<
   options: {
     resolve?: RefsToResolveStrict<V, R>;
     loadAs: Account | AnonymousJazzAgent;
+    onUnavailable?: () => void;
+    onUnauthorized?: () => void;
+    syncResolution?: boolean;
   },
   listener: SubscribeListener<V, R>,
-  onUnavailable?: () => void,
-  syncResolution?: boolean,
 ): () => void {
   const ref = new Ref(id, options.loadAs, { ref: cls, optional: false });
 
@@ -319,7 +329,7 @@ export function subscribeToCoValue<
 
   function subscribe(value: V | undefined) {
     if (!value) {
-      onUnavailable && onUnavailable();
+      options.onUnavailable?.();
       return;
     }
     if (unsubscribed) return;
@@ -327,7 +337,14 @@ export function subscribeToCoValue<
       value,
       cls as CoValueClass<V> & CoValueFromRaw<V>,
       (update, subscription) => {
-        if (fulfillsDepth(options.resolve, update)) {
+        const result = fulfillsDepth(options.resolve, update);
+
+        if (result === "unauthorized") {
+          options.onUnauthorized?.();
+          return;
+        }
+
+        if (result === "fulfilled") {
           listener(update as Resolved<V, R>, subscription.unsubscribeAll);
         }
       },
@@ -336,7 +353,7 @@ export function subscribeToCoValue<
     unsubscribe = subscription.unsubscribeAll;
   }
 
-  const sync = syncResolution ? ref.syncLoad() : undefined;
+  const sync = options.syncResolution ? ref.syncLoad() : undefined;
 
   if (sync) {
     subscribe(sync);
@@ -358,9 +375,7 @@ export function subscribeToCoValue<
 export function createCoValueObservable<
   V extends CoValue,
   const R extends RefsToResolve<V>,
->(observableOptions?: {
-  syncResolution?: boolean;
-}) {
+>() {
   let currentValue: Resolved<V, R> | undefined | null = undefined;
   let subscriberCount = 0;
 
@@ -370,25 +385,34 @@ export function createCoValueObservable<
     options: {
       loadAs: Account | AnonymousJazzAgent;
       resolve?: RefsToResolveStrict<V, R>;
+      onUnavailable?: () => void;
+      onUnauthorized?: () => void;
+      syncResolution?: boolean;
     },
     listener: () => void,
-    onUnavailable?: () => void,
   ) {
     subscriberCount++;
 
     const unsubscribe = subscribeToCoValue(
       cls,
       id,
-      options,
+      {
+        loadAs: options.loadAs,
+        resolve: options.resolve,
+        onUnavailable: () => {
+          currentValue = null;
+          options.onUnavailable?.();
+        },
+        onUnauthorized: () => {
+          currentValue = null;
+          options.onUnauthorized?.();
+        },
+        syncResolution: options.syncResolution,
+      },
       (value) => {
         currentValue = value;
         listener();
       },
-      () => {
-        currentValue = null;
-        onUnavailable?.();
-      },
-      observableOptions?.syncResolution,
     );
 
     return () => {
@@ -413,13 +437,24 @@ export function subscribeToExistingCoValue<
   const R extends RefsToResolve<V>,
 >(
   existing: V,
-  options: { resolve?: RefsToResolveStrict<V, R> } | undefined,
+  options:
+    | {
+        resolve?: RefsToResolveStrict<V, R>;
+        onUnavailable?: () => void;
+        onUnauthorized?: () => void;
+      }
+    | undefined,
   listener: SubscribeListener<V, R>,
 ): () => void {
   return subscribeToCoValue(
     existing.constructor as CoValueClass<V>,
     existing.id,
-    { loadAs: existing._loadedAs, resolve: options?.resolve },
+    {
+      loadAs: existing._loadedAs,
+      resolve: options?.resolve,
+      onUnavailable: options?.onUnavailable,
+      onUnauthorized: options?.onUnauthorized,
+    },
     listener,
   );
 }
