@@ -1,4 +1,4 @@
-import { connectedPeers } from "cojson/src/streamUtils.ts";
+import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { describe, expect, test } from "vitest";
 import {
   Account,
@@ -6,11 +6,10 @@ import {
   FileStream,
   Group,
   ID,
-  WasmCrypto,
   co,
   cojsonInternals,
   isControlledAccount,
-} from "../index.web.js";
+} from "../index.js";
 import {
   createJazzContextFromExistingCredentials,
   randomSessionProvider,
@@ -19,6 +18,8 @@ import { createJazzTestAccount } from "../testing.js";
 import { setupTwoNodes } from "./utils.js";
 
 const Crypto = await WasmCrypto.create();
+
+const connectedPeers = cojsonInternals.connectedPeers;
 
 describe("Simple CoFeed operations", async () => {
   const me = await Account.create({

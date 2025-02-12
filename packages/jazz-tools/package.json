@@ -1,24 +1,18 @@
 {
   "name": "jazz-tools",
-  "module": "dist/web/index.web.js",
-  "main": "dist/web/index.web.js",
-  "types": "src/index.web.ts",
-  "react-native": "dist/native/index.native.js",
+  "module": "dist/index.js",
+  "main": "dist/index.js",
+  "types": "src/index.ts",
   "exports": {
     ".": {
-      "react-native": "./dist/index.native.js",
-      "types": "./src/index.web.ts",
-      "default": "./dist/index.web.js"
-    },
-    "./native": {
-      "react-native": "./dist/index.native.js",
-      "types": "./src/index.native.ts",
-      "default": "./dist/index.native.js"
+      "types": "./src/index.ts",
+      "default": "./dist/index.js"
     },
     "./testing": {
       "types": "./src/testing.ts",
       "default": "./dist/testing.js"
     },
+    "./dist/*": "./dist/*",
     "./src/*": "./src/*"
   },
   "type": "module",

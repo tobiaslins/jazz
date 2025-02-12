@@ -1,4 +1,4 @@
-import { connectedPeers } from "cojson/src/streamUtils.ts";
+import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { describe, expect, test } from "vitest";
 import { splitNode } from "../coValues/coRichText.js";
 import {
@@ -7,13 +7,13 @@ import {
   Marks,
   type TextPos,
   type TreeNode,
-  WasmCrypto,
   cojsonInternals,
   createJazzContextFromExistingCredentials,
   isControlledAccount,
-} from "../index.web.js";
+} from "../index.js";
 import { randomSessionProvider } from "../internal.js";
 
+const connectedPeers = cojsonInternals.connectedPeers;
 const Crypto = await WasmCrypto.create();
 
 describe("CoRichText", async () => {

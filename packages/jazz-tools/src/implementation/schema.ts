@@ -1,5 +1,5 @@
 import type { JsonValue, RawCoValue } from "cojson";
-import { CoJsonValue } from "cojson/src/jsonValue.js";
+import { CojsonInternalTypes } from "cojson";
 import {
   type CoValue,
   type CoValueClass,
@@ -33,7 +33,7 @@ export type UnCo<T> = T extends co<infer A> ? A : T;
 
 const optional = {
   ref: optionalRef,
-  json<T extends CoJsonValue<T>>(): co<T | undefined> {
+  json<T extends CojsonInternalTypes.CoJsonValue<T>>(): co<T | undefined> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return { [SchemaInit]: "json" satisfies Schema } as any;
   },
@@ -85,7 +85,7 @@ export const co = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return { [SchemaInit]: "json" satisfies Schema } as any;
   },
-  json<T extends CoJsonValue<T>>(): co<T> {
+  json<T extends CojsonInternalTypes.CoJsonValue<T>>(): co<T> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return { [SchemaInit]: "json" satisfies Schema } as any;
   },

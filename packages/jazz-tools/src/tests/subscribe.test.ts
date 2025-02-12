@@ -8,7 +8,7 @@ import {
   Group,
   co,
   cojsonInternals,
-} from "../index.web.js";
+} from "../index.js";
 import {
   type DepthsIn,
   ID,
