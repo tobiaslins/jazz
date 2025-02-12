@@ -1,4 +1,4 @@
-import { WasmCrypto } from "cojson";
+import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { beforeEach, describe, expect, test } from "vitest";
 import { Account, CoMap, Group, Profile, co } from "../exports.js";
 import { createJazzTestAccount } from "../testing.js";

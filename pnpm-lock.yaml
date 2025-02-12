@@ -1670,8 +1670,6 @@ importers:
         specifier: ~5.6.2
         version: 5.6.3
 
-  packages/jazz-browser-auth-clerk: {}
-
   packages/jazz-browser-media-images:
     dependencies:
       '@types/image-blob-reduce':
@@ -2113,8 +2111,6 @@ importers:
       vue-tsc:
         specifier: ^2.1.6
         version: 2.1.10(typescript@5.6.3)
-
-  packages/jazz-worker: {}
 
   starters/react-demo-auth-tailwind:
     dependencies:
