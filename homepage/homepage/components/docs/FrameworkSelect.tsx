@@ -54,13 +54,13 @@ export function FrameworkSelect({ className }: { className?: string }) {
     <Dropdown>
       <DropdownButton
         icon="chevronDown"
-        className="flex-row-reverse w-full justify-between"
+        className="w-full flex-row-reverse justify-between"
         as={Button}
         variant="secondary"
       >
         {frameworks[selectedFramework].label}
       </DropdownButton>
-      <DropdownMenu anchor="bottom start" className="z-50">
+      <DropdownMenu className="w-[--button-width] z-50" anchor="bottom start">
         {Object.entries(frameworks).map(([key, framework]) => (
           <DropdownItem
             className="items-baseline"
