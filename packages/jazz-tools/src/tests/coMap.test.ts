@@ -106,7 +106,7 @@ describe("Simple CoMap operations", async () => {
     expect(emptyMap.color).toEqual(undefined);
   });
 
-  test("optional date as undefined doesn't throw", () => {
+  test("setting optional date as undefined should not throw", () => {
     const map = TestMap.create(
       {
         color: "red",

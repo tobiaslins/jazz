@@ -14,8 +14,9 @@ import {
 /** @category Schema definition */
 export const Encoders = {
   Date: {
-    encode: (value: Date) => value.toISOString(),
-    decode: (value: JsonValue) => new Date(value as string),
+    encode: (value: Date | undefined) => value?.toISOString() || null,
+    decode: (value: JsonValue) =>
+      value === null ? undefined : new Date(value as string),
   },
 };
 
