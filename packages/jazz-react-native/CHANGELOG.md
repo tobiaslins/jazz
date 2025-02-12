@@ -1,5 +1,17 @@
 # jazz-browser
 
+## 0.10.1
+
+### Patch Changes
+
+- Updated dependencies [5a63cba]
+- Updated dependencies [5a63cba]
+  - jazz-tools@0.10.1
+  - cojson@0.10.1
+  - jazz-react-core@0.10.1
+  - cojson-storage-rn-sqlite@0.8.61
+  - cojson-transport-ws@0.10.1
+
 ## 0.10.0
 
 ### Minor Changes

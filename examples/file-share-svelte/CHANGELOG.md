@@ -1,5 +1,13 @@
 # file-share-svelte
 
+## 0.0.30
+
+### Patch Changes
+
+- Updated dependencies [5a63cba]
+  - jazz-tools@0.10.1
+  - jazz-svelte@0.10.1
+
 ## 0.0.29
 
 ### Patch Changes

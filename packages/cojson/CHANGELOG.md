@@ -1,5 +1,12 @@
 # cojson
 
+## 0.10.1
+
+### Patch Changes
+
+- 5a63cba: Crypto packages must now be imported from cojson/crypto/WasmCrypto or cojson/crypto/PureJSCrypto
+  Removed the separated dists for React Native.
+
 ## 0.10.0
 
 ### Minor Changes

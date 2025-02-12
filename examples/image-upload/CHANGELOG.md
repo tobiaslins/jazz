@@ -1,5 +1,14 @@
 # image-upload
 
+## 0.0.43
+
+### Patch Changes
+
+- Updated dependencies [5a63cba]
+  - jazz-tools@0.10.1
+  - jazz-browser-media-images@0.10.1
+  - jazz-react@0.10.1
+
 ## 0.0.42
 
 ### Patch Changes
