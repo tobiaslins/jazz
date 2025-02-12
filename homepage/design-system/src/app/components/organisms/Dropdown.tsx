@@ -30,9 +30,9 @@ export function DropdownMenu({
       className={clsx(
         className,
         // Anchor positioning
-        "[--anchor-gap:theme(spacing.2)] [--anchor-padding:theme(spacing.1)]",
+        "[--anchor-gap:theme(spacing.2)] [--anchor-padding:theme(spacing.1.5)]",
         // Base styles
-        "isolate rounded-lg p-1",
+        "isolate rounded-lg p-1.5",
         // Invisible border that is only visible in `forced-colors` mode for accessibility purposes
         "outline outline-1 outline-transparent focus:outline-none",
         // Handle scrolling when menu won't fit in viewport
@@ -60,7 +60,7 @@ export function DropdownItem({
   let classes = clsx(
     className,
     // Base styles
-    "group rounded-lg space-x-2 px-3.5 py-2.5 focus:outline-none sm:px-3 sm:py-1.5",
+    "group rounded-md space-x-2  focus:outline-none px-2.5 py-1.5",
     // Text styles
     "text-left text-sm/6 dark:text-white forced-colors:text-[CanvasText]",
     // Focus
