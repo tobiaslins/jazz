@@ -49,21 +49,7 @@ export class WasmCrypto extends CryptoProvider<Blake3State> {
   }
 
   static async create(): Promise<WasmCrypto> {
-    return Promise.all([
-      new Promise<void>((resolve) => {
-        if ("crypto" in globalThis) {
-          resolve();
-        } else {
-          return import(/*webpackIgnore: true*/ "node:crypto").then(
-            ({ webcrypto }) => {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (globalThis as any).crypto = webcrypto;
-              resolve();
-            },
-          );
-        }
-      }),
-    ]).then(() => new WasmCrypto());
+    return new WasmCrypto();
   }
 
   emptyBlake3State(): Blake3State {
