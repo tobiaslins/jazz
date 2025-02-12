@@ -106,12 +106,25 @@ describe("Simple CoMap operations", async () => {
     expect(emptyMap.color).toEqual(undefined);
   });
 
+  test("setting date as undefined should throw", () => {
+    expect(() =>
+      TestMap.create(
+        {
+          color: "red",
+          _height: 10,
+          birthday: undefined!,
+        },
+        { owner: me },
+      ),
+    ).toThrow();
+  });
+
   test("setting optional date as undefined should not throw", () => {
     const map = TestMap.create(
       {
         color: "red",
         _height: 10,
-        birthday: birthday,
+        birthday,
         optionalDate: undefined,
       },
       { owner: me },

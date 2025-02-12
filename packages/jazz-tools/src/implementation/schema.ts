@@ -14,6 +14,10 @@ import {
 /** @category Schema definition */
 export const Encoders = {
   Date: {
+    encode: (value: Date) => value.toISOString(),
+    decode: (value: JsonValue) => new Date(value as string),
+  },
+  OptionalDate: {
     encode: (value: Date | undefined) => value?.toISOString() || null,
     decode: (value: JsonValue) =>
       value === null ? undefined : new Date(value as string),
@@ -55,7 +59,7 @@ const optional = {
     [SchemaInit]: "json" satisfies Schema,
   } as unknown as co<null | undefined>,
   Date: {
-    [SchemaInit]: { encoded: Encoders.Date } satisfies Schema,
+    [SchemaInit]: { encoded: Encoders.OptionalDate } satisfies Schema,
   } as unknown as co<Date | undefined>,
   literal<T extends (string | number | boolean)[]>(
     ..._lit: T
