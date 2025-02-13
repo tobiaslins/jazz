@@ -9,7 +9,7 @@ on:
       - ".github/workflows/e2e-rn-test.yml"
       - "examples/chat-rn/**"
       - "examples/chat-rn-clerk/**"
-      - "packages/jazz-react-native*/**"
+      - "packages/**"
 
 jobs:
   e2e-tests:
