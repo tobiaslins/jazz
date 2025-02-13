@@ -87,7 +87,7 @@ const map = await CoMap.load(id, account);
 
 // After (explicit error handling)
 try {
-  const map = CoMap.load(id, { 
+  const map = await CoMap.load(id, { 
     loadAs: account,
     resolve: { nested: true } 
   });
