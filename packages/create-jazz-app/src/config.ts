@@ -106,7 +106,7 @@ export const frameworkToAuthExamples: Partial<
     platform: PLATFORM.WEB,
   },
   "rn-clerk-auth": {
-    name: "React Native Expo + Clerk auth",
+    name: "Clerk auth",
     repo: "garden-co/jazz/examples/chat-rn-clerk",
     platform: PLATFORM.REACT_NATIVE,
   },
