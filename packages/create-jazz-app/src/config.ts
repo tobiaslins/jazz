@@ -86,7 +86,7 @@ export const frameworkToAuthExamples: Partial<
   >
 > = {
   "react-passkey-auth": {
-    name: "Passkey auth",
+    name: "Passkey auth (easiest to start with)",
     repo: "garden-co/jazz/starters/react-passkey-auth",
     platform: PLATFORM.WEB,
   },

@@ -294,7 +294,7 @@ async function promptUser(
     questions.push({
       type: "list",
       name: "starter",
-      message: chalk.cyan("Choose a starter:"),
+      message: chalk.cyan("Choose an authentication method:"),
       choices: choices.map(([key, value]) => ({
         name: chalk.white(value.name),
         value: key,
