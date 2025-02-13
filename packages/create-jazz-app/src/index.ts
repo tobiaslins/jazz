@@ -5,7 +5,6 @@ import fs from "fs";
 import chalk from "chalk";
 import { Command } from "commander";
 import degit from "degit";
-import gradient from "gradient-string";
 import inquirer from "inquirer";
 import ora from "ora";
 
@@ -18,8 +17,6 @@ import {
 } from "./config.js";
 
 const program = new Command();
-
-const jazzGradient = gradient(["#FF4D4D", "#FF9900", "#FFD700"]);
 
 type PackageManager = "npm" | "yarn" | "pnpm" | "bun" | "deno";
 
@@ -93,8 +90,6 @@ async function scaffoldProject({
   packageManager,
   apiKey,
 }: ScaffoldOptions): Promise<void> {
-  console.log("\n" + jazzGradient.multiline("Jazz App Creator\n"));
-
   const starterConfig = frameworkToAuthExamples[
     template as FrameworkAuthPair
   ] || {
@@ -255,7 +250,6 @@ module.exports = withNativeWind(config, { input: "./src/global.css" });
 async function promptUser(
   partialOptions: PromptOptions,
 ): Promise<ScaffoldOptions> {
-  console.log("\n" + jazzGradient.multiline("Jazz App Creator\n"));
   console.log(chalk.blue.bold("Let's create your Jazz app! 🎷\n"));
 
   const questions = [];
@@ -426,7 +420,7 @@ program
 
 // Add help text to show available starters
 program.on("--help", () => {
-  console.log("\n" + jazzGradient.multiline("Available starters:\n"));
+  console.log(chalk.blue("Available starters:\n"));
   Object.entries(frameworkToAuthExamples).forEach(([key, value]) => {
     if (value.repo) {
       // Only show implemented starters
