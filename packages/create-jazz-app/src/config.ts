@@ -85,14 +85,9 @@ export const frameworkToAuthExamples: Partial<
     }
   >
 > = {
-  "react-demo-auth": {
-    name: "Demo auth",
-    repo: "garden-co/jazz/starters/react-demo-auth-tailwind",
-    platform: PLATFORM.WEB,
-  },
   "react-passkey-auth": {
     name: "Passkey auth",
-    repo: "garden-co/jazz/examples/passkey",
+    repo: "garden-co/jazz/starters/react-passkey-auth",
     platform: PLATFORM.WEB,
   },
   "react-clerk-auth": {

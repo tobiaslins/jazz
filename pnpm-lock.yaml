@@ -2109,7 +2109,7 @@ importers:
         specifier: ^2.1.6
         version: 2.1.10(typescript@5.6.3)
 
-  starters/react-demo-auth-tailwind:
+  starters/react-passkey-auth:
     dependencies:
       jazz-react:
         specifier: workspace:*
