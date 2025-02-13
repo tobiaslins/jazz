@@ -16,7 +16,10 @@ export type EngineConfig = {
   };
 };
 
-export const frameworks = [
+export const frameworks: {
+  name: string;
+  value: Framework;
+}[] = [
   {
     name: "React",
     value: "react",

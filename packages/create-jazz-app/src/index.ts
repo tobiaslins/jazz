@@ -369,9 +369,16 @@ function validateOptions(options: PromptOptions): options is ScaffoldOptions {
   return true;
 }
 
+const frameworkOptions = frameworks.map((f) => f.name).join(", ");
+
 program
-  .description(chalk.blue("CLI to generate Jazz starter projects"))
-  .option("-f, --framework <framework>", chalk.cyan("Framework to use"))
+  .description(
+    chalk.blue("CLI to generate Jazz projects using starter templates"),
+  )
+  .option(
+    "-f, --framework <framework>",
+    chalk.cyan(`Framework to use (${frameworkOptions})`),
+  )
   .option("-s, --starter <starter>", chalk.cyan("Starter template to use"))
   .option("-e, --example <name>", chalk.cyan("Example project to use"))
   .option("-n, --project-name <name>", chalk.cyan("Name of the project"))
@@ -420,7 +427,7 @@ program
 
 // Add help text to show available starters
 program.on("--help", () => {
-  console.log(chalk.blue("Available starters:\n"));
+  console.log(chalk.blue("\nAvailable starters:\n"));
   Object.entries(frameworkToAuthExamples).forEach(([key, value]) => {
     if (value.repo) {
       // Only show implemented starters
@@ -434,13 +441,19 @@ program.on("--help", () => {
   console.log(chalk.blue("\nExample usage:"));
   console.log(
     chalk.white(
-      "  create-jazz-app --starter react-demo-auth --project-name my-app --package-manager npm\n",
+      "npx create-jazz-app@latest --project-name my-app --framework react\n",
+    ),
+  );
+  console.log(chalk.blue("With example app as a template:"));
+  console.log(
+    chalk.white(
+      "npx create-jazz-app@latest --example chat --project-name my-chat-app\n",
     ),
   );
   console.log(chalk.blue("With API key:"));
   console.log(
     chalk.white(
-      "  create-jazz-app --starter react-demo-auth --project-name my-app --api-key your-api-key@garden.co\n",
+      "npx create-jazz-app@latest --project-name my-app --api-key your-api-key@garden.co\n",
     ),
   );
 });
