@@ -14,6 +14,7 @@ import type {
   RefsToResolveStrict,
   Resolved,
   Schema,
+  SubscribeListenerOptions,
   SubscribeRestArgs,
 } from "../internal.js";
 import {
@@ -208,7 +209,7 @@ export class Group extends CoValueBase implements CoValue {
   static subscribe<G extends Group, const R extends RefsToResolve<G>>(
     this: CoValueClass<G>,
     id: ID<G>,
-    options: { resolve?: RefsToResolveStrict<G, R>; loadAs?: Account },
+    options: SubscribeListenerOptions<G, R>,
     listener: (value: Resolved<G, R>, unsubscribe: () => void) => void,
   ): () => void;
   static subscribe<G extends Group, const R extends RefsToResolve<G>>(

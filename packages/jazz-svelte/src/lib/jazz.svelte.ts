@@ -182,15 +182,21 @@ export function useCoState<V extends CoValue, R extends RefsToResolve<V>>(
     return subscribeToCoValue<V, R>(
       Schema,
       id,
-      { resolve: options?.resolve, loadAs: agent },
+      {
+        resolve: options?.resolve,
+        loadAs: agent,
+        onUnavailable: () => {
+          state = null;
+        },
+        onUnauthorized: () => {
+          state = null;
+        },
+        syncResolution: true,
+      },
       (value) => {
         // Get current value from our stable observable
         state = value;
       },
-      () => {
-        state = null;
-      },
-      true
     );
   });
 

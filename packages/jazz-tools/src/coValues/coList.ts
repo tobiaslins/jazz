@@ -11,6 +11,7 @@ import type {
   Resolved,
   Schema,
   SchemaFor,
+  SubscribeListenerOptions,
   SubscribeRestArgs,
   UnCo,
 } from "../internal.js";
@@ -410,10 +411,7 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
   static subscribe<L extends CoList, const R extends RefsToResolve<L> = true>(
     this: CoValueClass<L>,
     id: ID<L>,
-    options: {
-      resolve?: RefsToResolveStrict<L, R>;
-      loadAs?: Account | AnonymousJazzAgent;
-    },
+    options: SubscribeListenerOptions<L, R>,
     listener: (value: Resolved<L, R>, unsubscribe: () => void) => void,
   ): () => void;
   static subscribe<L extends CoList, const R extends RefsToResolve<L>>(

@@ -6,6 +6,7 @@ import {
   CoFeed,
   CoList,
   CoMap,
+  Group,
   ID,
   Profile,
   SessionID,
@@ -14,6 +15,7 @@ import {
   isControlledAccount,
 } from "../index.js";
 import { randomSessionProvider } from "../internal.js";
+import { createJazzTestAccount, linkAccounts } from "../testing.js";
 
 const Crypto = await WasmCrypto.create();
 const { connectedPeers } = cojsonInternals;
@@ -61,35 +63,37 @@ describe("Deep loading with depth arg", async () => {
       crypto: Crypto,
     });
 
-  test("loading a deeply nested object will wait until all required refs are loaded", async () => {
-    const ownership = { owner: me };
-    const map = TestMap.create(
-      {
-        list: TestList.create(
-          [
-            InnerMap.create(
-              {
-                stream: TestStream.create(
-                  [InnermostMap.create({ value: "hello" }, ownership)],
-                  ownership,
-                ),
-              },
-              ownership,
-            ),
-          ],
-          ownership,
-        ),
-      },
-      ownership,
-    );
+  const ownership = { owner: me };
+  const map = TestMap.create(
+    {
+      list: TestList.create(
+        [
+          InnerMap.create(
+            {
+              stream: TestStream.create(
+                [InnermostMap.create({ value: "hello" }, ownership)],
+                ownership,
+              ),
+            },
+            ownership,
+          ),
+        ],
+        ownership,
+      ),
+    },
+    ownership,
+  );
 
+  test("load without resolve", async () => {
     const map1 = await TestMap.load(map.id, { loadAs: meOnSecondPeer });
     expectTypeOf(map1).toEqualTypeOf<TestMap | undefined>();
     if (map1 === undefined) {
       throw new Error("map1 is undefined");
     }
     expect(map1.list).toBe(null);
+  });
 
+  test("load with resolve { list: true }", async () => {
     const map2 = await TestMap.load(map.id, {
       loadAs: meOnSecondPeer,
       resolve: { list: true },
@@ -103,9 +107,11 @@ describe("Deep loading with depth arg", async () => {
     if (map2 === undefined) {
       throw new Error("map2 is undefined");
     }
-    expect(map2.list).not.toBe(null);
+    expect(map2.list).toBeTruthy();
     expect(map2.list[0]).toBe(null);
+  });
 
+  test("load with resolve { list: { $each: true } }", async () => {
     const map3 = await TestMap.load(map.id, {
       loadAs: meOnSecondPeer,
       resolve: { list: { $each: true } },
@@ -119,9 +125,11 @@ describe("Deep loading with depth arg", async () => {
     if (map3 === undefined) {
       throw new Error("map3 is undefined");
     }
-    expect(map3.list[0]).not.toBe(null);
+    expect(map3.list[0]).toBeTruthy();
     expect(map3.list[0]?.stream).toBe(null);
+  });
 
+  test("load with resolve { optionalRef: true }", async () => {
     const map3a = await TestMap.load(map.id, {
       loadAs: meOnSecondPeer,
       resolve: { optionalRef: true } as const,
@@ -132,7 +140,10 @@ describe("Deep loading with depth arg", async () => {
         })
       | undefined
     >();
+    expect(map3a).toBeTruthy();
+  });
 
+  test("load with resolve { list: { $each: { stream: true } } }", async () => {
     const map4 = await TestMap.load(map.id, {
       loadAs: meOnSecondPeer,
       resolve: { list: { $each: { stream: true } } },
@@ -146,10 +157,12 @@ describe("Deep loading with depth arg", async () => {
     if (map4 === undefined) {
       throw new Error("map4 is undefined");
     }
-    expect(map4.list[0]?.stream).not.toBe(null);
-    expect(map4.list[0]?.stream?.[me.id]).not.toBe(null);
+    expect(map4.list[0]?.stream).toBeTruthy();
+    expect(map4.list[0]?.stream?.[me.id]).toBeTruthy();
     expect(map4.list[0]?.stream?.byMe?.value).toBe(null);
+  });
 
+  test("load with resolve { list: { $each: { stream: { $each: true } } } }", async () => {
     const map5 = await TestMap.load(map.id, {
       loadAs: meOnSecondPeer,
       resolve: { list: { $each: { stream: { $each: true } } } },
@@ -172,13 +185,13 @@ describe("Deep loading with depth arg", async () => {
             })[];
         })
       | undefined;
-
     expectTypeOf(map5).toEqualTypeOf<ExpectedMap5>();
     if (map5 === undefined) {
       throw new Error("map5 is undefined");
     }
-    expect(map5.list[0]?.stream?.[me.id]?.value).not.toBe(null);
-    expect(map5.list[0]?.stream?.byMe?.value).not.toBe(null);
+
+    expect(map5.list[0]?.stream?.[me.id]?.value).toBeTruthy();
+    expect(map5.list[0]?.stream?.byMe?.value).toBeTruthy();
   });
 });
 
@@ -250,8 +263,8 @@ test("Deep loading within account", async () => {
     }
   >();
 
-  expect(meLoaded.profile.stream).not.toBe(null);
-  expect(meLoaded.root.list).not.toBe(null);
+  expect(meLoaded.profile.stream).toBeTruthy();
+  expect(meLoaded.root.list).toBeTruthy();
 });
 
 class RecordLike extends CoMap.Record(co.ref(TestMap)) {}
@@ -315,9 +328,9 @@ test("Deep loading a record-like coMap", async () => {
     throw new Error("recordLoaded is undefined");
   }
   expect(recordLoaded.key1?.list).not.toBe(null);
-  expect(recordLoaded.key1?.list).not.toBe(undefined);
+  expect(recordLoaded.key1?.list).toBeTruthy();
   expect(recordLoaded.key2?.list).not.toBe(null);
-  expect(recordLoaded.key2?.list).not.toBe(undefined);
+  expect(recordLoaded.key2?.list).toBeTruthy();
 });
 
 test("The resolve type doesn't accept extra keys", async () => {
@@ -351,21 +364,157 @@ test("The resolve type doesn't accept extra keys", async () => {
   });
 
   expectTypeOf(meLoaded).toEqualTypeOf<
-    | (CustomAccount & {
-        profile: CustomProfile & {
-          stream: TestStream;
-          extraKey: never;
-        };
-        root: TestMap & {
-          list: TestList;
-          extraKey: never;
-        };
-      })
-    | undefined
+    CustomAccount & {
+      profile: CustomProfile & {
+        stream: TestStream;
+        extraKey: never;
+      };
+      root: TestMap & {
+        list: TestList;
+        extraKey: never;
+      };
+    }
   >();
-  if (meLoaded === undefined) {
-    throw new Error("meLoaded is undefined");
-  }
-  expect(meLoaded.profile.stream).not.toBe(null);
-  expect(meLoaded.root.list).not.toBe(null);
+});
+
+describe("Deep loading with unauthorized account", async () => {
+  const bob = await createJazzTestAccount({
+    creationProps: { name: "Bob" },
+  });
+
+  const alice = await createJazzTestAccount({
+    creationProps: { name: "Alice" },
+  });
+
+  linkAccounts(bob, alice);
+
+  await alice.waitForAllCoValuesSync();
+
+  const onlyBob = bob;
+  const group = Group.create(bob);
+
+  group.addMember(alice, "reader");
+
+  test("unaccessible root", async () => {
+    const map = TestMap.create({ list: TestList.create([], group) }, onlyBob);
+
+    const mapOnAlice = await TestMap.load(map.id, { loadAs: alice });
+
+    expect(mapOnAlice).toBe(undefined);
+  });
+
+  test("unaccessible list", async () => {
+    const map = TestMap.create({ list: TestList.create([], onlyBob) }, group);
+
+    const mapOnAlice = await TestMap.load(map.id, { loadAs: alice });
+    expect(mapOnAlice).toBeTruthy();
+
+    const mapWithListOnAlice = await TestMap.load(map.id, {
+      resolve: { list: true },
+      loadAs: alice,
+    });
+
+    expect(mapWithListOnAlice).toBe(undefined);
+  });
+
+  test("unaccessible list element", async () => {
+    const map = TestMap.create(
+      {
+        list: TestList.create(
+          [
+            InnerMap.create(
+              {
+                stream: TestStream.create([], group),
+              },
+              onlyBob,
+            ),
+          ],
+          group,
+        ),
+      },
+      group,
+    );
+
+    const mapOnAlice = await TestMap.load(map.id, {
+      resolve: { list: { $each: true } },
+      loadAs: alice,
+    });
+
+    expect(mapOnAlice).toBe(undefined);
+  });
+
+  test("unaccessible optional element", async () => {
+    const map = TestMap.create(
+      {
+        list: TestList.create([], group),
+        optionalRef: InnermostMap.create({ value: "hello" }, onlyBob),
+      },
+      group,
+    );
+
+    const mapOnAlice = await TestMap.load(map.id, {
+      loadAs: alice,
+      resolve: { optionalRef: true } as const,
+    });
+    expect(mapOnAlice).not.toBe(undefined);
+
+    // TODO: We should make the whole inaccessble map undefined
+    expect(mapOnAlice?.optionalRef).not.toBe(undefined);
+    expect(mapOnAlice?.optionalRef?.value).toBe(undefined);
+  });
+
+  test("unaccessible stream", async () => {
+    const map = TestMap.create(
+      {
+        list: TestList.create(
+          [
+            InnerMap.create(
+              {
+                stream: TestStream.create([], onlyBob),
+              },
+              group,
+            ),
+          ],
+          group,
+        ),
+      },
+      group,
+    );
+
+    const mapOnAlice = await TestMap.load(map.id, {
+      resolve: { list: { $each: { stream: true } } },
+      loadAs: alice,
+    });
+
+    expect(mapOnAlice).toBe(undefined);
+  });
+
+  test("unaccessible stream element", async () => {
+    const map = TestMap.create(
+      {
+        list: TestList.create(
+          [
+            InnerMap.create(
+              {
+                stream: TestStream.create(
+                  [InnermostMap.create({ value: "hello" }, onlyBob)],
+                  group,
+                ),
+              },
+              group,
+            ),
+          ],
+          group,
+        ),
+      },
+      group,
+    );
+
+    const mapOnAlice = await TestMap.load(map.id, {
+      resolve: { list: { $each: { stream: { $each: true } } } },
+      loadAs: alice,
+    });
+
+    expect(mapOnAlice).toBe(undefined);
+  });
 });

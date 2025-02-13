@@ -28,6 +28,7 @@ import {
   Resolved,
   type Schema,
   SchemaInit,
+  SubscribeListenerOptions,
   SubscribeRestArgs,
   ensureCoValueLoaded,
   inspect,
@@ -313,10 +314,7 @@ export class Account extends CoValueBase implements CoValue {
   static subscribe<A extends Account, const R extends RefsToResolve<A> = true>(
     this: CoValueClass<A>,
     id: ID<A>,
-    options: {
-      resolve?: RefsToResolveStrict<A, R>;
-      loadAs?: Account | AnonymousJazzAgent;
-    },
+    options: SubscribeListenerOptions<A, R>,
     listener: (value: Resolved<A, R>, unsubscribe: () => void) => void,
   ): () => void;
   static subscribe<A extends Account, const R extends RefsToResolve<A>>(

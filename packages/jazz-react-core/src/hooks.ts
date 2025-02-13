@@ -50,11 +50,7 @@ export function useCoState<
 ): Resolved<V, R> | undefined | null {
   const context = useJazzContext();
 
-  const [observable] = React.useState(() =>
-    createCoValueObservable<V, R>({
-      syncResolution: true,
-    }),
-  );
+  const [observable] = React.useState(() => createCoValueObservable<V, R>());
 
   const value = React.useSyncExternalStore<Resolved<V, R> | undefined | null>(
     React.useCallback(
@@ -69,8 +65,10 @@ export function useCoState<
           {
             loadAs: agent,
             resolve: options?.resolve,
+            onUnauthorized: callback,
+            onUnavailable: callback,
+            syncResolution: true,
           },
-          callback,
           callback,
         );
       },
