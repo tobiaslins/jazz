@@ -1,5 +1,11 @@
 # jazz-tools
 
+## 0.10.3
+
+### Patch Changes
+
+- d8582fc: Fixes co.optional.Date throwing when assigned undefined
+
 ## 0.10.2
 
 ### Patch Changes

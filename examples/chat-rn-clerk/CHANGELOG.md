@@ -1,5 +1,15 @@
 # chat-rn-clerk
 
+## 1.0.68
+
+### Patch Changes
+
+- Updated dependencies [d8582fc]
+  - jazz-tools@0.10.3
+  - jazz-react-native@0.10.3
+  - jazz-react-native-auth-clerk@0.10.3
+  - jazz-react-native-media-images@0.10.3
+
 ## 1.0.67
 
 ### Patch Changes
