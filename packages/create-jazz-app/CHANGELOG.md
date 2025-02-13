@@ -1,5 +1,11 @@
 # create-jazz-app
 
+## 0.1.10
+
+### Patch Changes
+
+- 48ac92b: Correctly setup the metro config on React Native templates
+
 ## 0.1.9
 
 ### Patch Changes

@@ -1,5 +1,5 @@
-const Crypto = await WasmCrypto.create();
 import { cojsonInternals } from "cojson";
+import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { describe, expect, expectTypeOf, test } from "vitest";
 import {
   Account,
@@ -9,13 +9,13 @@ import {
   ID,
   Profile,
   SessionID,
-  WasmCrypto,
   co,
   createJazzContextFromExistingCredentials,
   isControlledAccount,
-} from "../index.web.js";
+} from "../index.js";
 import { randomSessionProvider } from "../internal.js";
 
+const Crypto = await WasmCrypto.create();
 const { connectedPeers } = cojsonInternals;
 
 class TestMap extends CoMap {

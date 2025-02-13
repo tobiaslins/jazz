@@ -1,5 +1,5 @@
-import { WasmCrypto } from "cojson";
-import { beforeAll, describe, expect, expectTypeOf, it } from "vitest";
+import { WasmCrypto } from "cojson/crypto/WasmCrypto";
+import { beforeAll, describe, expect, it } from "vitest";
 import { SchemaUnion } from "../coValues/schemaUnion.js";
 import {
   Account,

@@ -1,5 +1,20 @@
 # jazz-tools
 
+## 0.10.2
+
+### Patch Changes
+
+- Updated dependencies [cae3a9e]
+  - cojson@0.10.2
+
+## 0.10.1
+
+### Patch Changes
+
+- 5a63cba: Not re-export Crypto providers from cojson. Removed the separated bundle for React Native.
+- Updated dependencies [5a63cba]
+  - cojson@0.10.1
+
 ## 0.10.0
 
 ### Minor Changes
