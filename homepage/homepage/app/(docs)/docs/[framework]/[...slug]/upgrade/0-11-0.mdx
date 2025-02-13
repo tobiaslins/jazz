@@ -83,7 +83,7 @@ Core APIs throw errors for unauthorized access:
 {/* prettier-ignore */}
 ```ts
 // Before (silent failure)
-const map = CoMap.load(id, account);
+const map = await CoMap.load(id, account);
 
 // After (explicit error handling)
 try {
