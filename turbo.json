@@ -17,6 +17,7 @@
       "dependsOn": ["build"]
     },
     "test": {
+      "env": ["CI"],
       "dependsOn": ["build"]
     },
     "type-check": {},
