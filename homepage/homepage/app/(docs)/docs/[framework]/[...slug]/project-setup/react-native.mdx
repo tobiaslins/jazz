@@ -193,7 +193,7 @@ Wrap your app components with the `JazzProvider:
               >
                   {children}
               </JazzProvider>
-          ); 
+          );
       }
 
       // Register the Account schema so `useAccount` returns our custom `MyAppAccount`
@@ -205,7 +205,15 @@ Wrap your app components with the `JazzProvider:
       ```
 </CodeGroup>
 
-You can optionally pass a custom `kvStore` and `AccountSchema` to `createJazzRNApp()`, otherwise, it defaults to `ExpoSecureStoreAdapter` and `Account`.
+You can optionally pass a few custom attributes to `<JazzProvider>`:
+- `kvStore`
+  - `ExpoSecureStoreAdapter` (default)
+  - example: `MMKVStore` - roll your own, using MMKV
+- `AccountSchema`
+  - `Account` (default)
+- `CryptoProvider`
+  - `PureJSCrypto` (default)
+  - `RNQuickCrypto` - C++ accelerated crypto provider
 
 ### Choosing an auth method
 
