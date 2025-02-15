@@ -1,5 +1,12 @@
 # jazz-tools
 
+## 0.10.4
+
+### Patch Changes
+
+- Updated dependencies [1af6072]
+  - cojson@0.10.4
+
 ## 0.10.3
 
 ### Patch Changes
