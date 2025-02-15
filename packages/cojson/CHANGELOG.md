@@ -1,5 +1,11 @@
 # cojson
 
+## 0.10.4
+
+### Patch Changes
+
+- 1af6072: Revert PriorityBasedMessageQueue to use an array-based queue
+
 ## 0.10.2
 
 ### Patch Changes
