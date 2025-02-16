@@ -6,8 +6,10 @@
 set -e
 
 # build and install the app
+echo "Building and installing Android app."
+echo "If it fails, its output will be in artifact: android-install.log..."
 cd ./android/
-./gradlew installRelease
+./gradlew installRelease >> ~/output/android-install.log 2>&1
 cd ..
 
 # run the e2e tests

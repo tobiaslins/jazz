@@ -27,6 +27,7 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
   onLogOut,
   kvStore,
   onAnonymousAccountDiscarded,
+  CryptoProvider,
 }: JazzProviderProps<Acc>) {
   setupKvStore(kvStore);
 
@@ -50,6 +51,7 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
           defaultProfileName,
           onLogOut: onLogOutRefCallback,
           onAnonymousAccountDiscarded: onAnonymousAccountDiscardedRefCallback,
+          CryptoProvider,
         };
         if (contextManager.propsChanged(props)) {
           contextManager.createContext(props).catch((error) => {
