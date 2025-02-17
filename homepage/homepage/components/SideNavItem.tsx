@@ -26,10 +26,9 @@ export function SideNavItem({
         href={href}
         className={clsx(
           classes,
-          href && "hover:text-stone-900 dark:hover:text-stone-200",
-          {
-            "text-stone-900  bg-stone-100 dark:text-white": path === href,
-          },
+          path === href
+            ? "text-stone-900 font-medium  bg-stone-100 dark:text-white dark:bg-stone-900"
+            : "hover:text-stone-900 dark:hover:text-stone-200",
         )}
       >
         {children}

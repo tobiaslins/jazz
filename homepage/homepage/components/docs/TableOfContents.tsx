@@ -28,7 +28,7 @@ const TocList = ({
               href={`#${item.id}`}
               className={clsx(
                 isActive(item)
-                  ? "text-stone-900 dark:text-white"
+                  ? "text-stone-900 font-medium dark:text-white"
                   : "text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-white",
               )}
             >
