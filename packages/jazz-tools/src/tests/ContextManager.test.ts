@@ -199,7 +199,6 @@ describe("ContextManager", () => {
   test("the migration should be applied correctly on existing accounts ", async () => {
     class AccountRoot extends CoMap {
       value = co.string;
-      transferredRoot = co.optional.ref(AccountRoot);
     }
 
     let lastRootId: string | undefined;
@@ -234,6 +233,48 @@ describe("ContextManager", () => {
     const me = await CustomAccount.getMe().ensureLoaded({ root: {} });
 
     expect(me.root.id).toBe(lastRootId);
+  });
+
+  test("the migration should be applied correctly on existing accounts (2)", async () => {
+    class AccountRoot extends CoMap {
+      value = co.number;
+    }
+
+    class CustomAccount extends Account {
+      root = co.ref(AccountRoot);
+
+      async migrate(this: CustomAccount) {
+        if (this.root === undefined) {
+          this.root = AccountRoot.create({
+            value: 1,
+          });
+        } else {
+          const { root } = await this.ensureLoaded({ root: {} });
+
+          root.value = 2;
+        }
+      }
+    }
+    const customManager = new TestJazzContextManager<CustomAccount>();
+
+    // Create initial anonymous context
+    await customManager.createContext({
+      AccountSchema: CustomAccount,
+    });
+
+    const account = (
+      customManager.getCurrentValue() as JazzAuthContext<CustomAccount>
+    ).me;
+
+    await customManager.authenticate({
+      accountID: account.id,
+      accountSecret: account._raw.core.node.account.agentSecret,
+      provider: "test",
+    });
+
+    const me = await CustomAccount.getMe().ensureLoaded({ root: {} });
+
+    expect(me.root.value).toBe(2);
   });
 
   test("onAnonymousAccountDiscarded should work on transfering data between accounts", async () => {
