@@ -1,5 +1,16 @@
 # form
 
+## 0.0.46
+
+### Patch Changes
+
+- Updated dependencies [1d71ca1]
+- Updated dependencies [ada802b]
+  - hash-slash@0.2.2
+  - jazz-react@0.10.6
+  - jazz-tools@0.10.6
+  - jazz-browser-media-images@0.10.6
+
 ## 0.0.45
 
 ### Patch Changes
