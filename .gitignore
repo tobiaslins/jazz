@@ -12,6 +12,7 @@ coverage
 
 # Vite output
 **/dist
+__screenshots__
 
 # Playwright
 test-results
