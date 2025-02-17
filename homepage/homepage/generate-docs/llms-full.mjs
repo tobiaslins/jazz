@@ -229,7 +229,10 @@ async function readMdxContent(url) {
     const relativePath = url.replace(/^\/docs\/?/, "");
 
     // Base directory for docs
-    const baseDir = path.join(process.cwd(), "app/docs/[framework]/[...slug]");
+    const baseDir = path.join(
+      process.cwd(),
+      "app/(docs)/docs/[framework]/[...slug]",
+    );
 
     // If it's a directory, try to read all framework variants
     const fullPath = path.join(baseDir, relativePath);
