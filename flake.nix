@@ -18,6 +18,7 @@
           buildInputs = with pkgs; [
             # General development
             git
+            turbo
             
             # JS development
             nodejs_22
