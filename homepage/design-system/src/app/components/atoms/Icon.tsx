@@ -8,7 +8,6 @@ import {
   ChevronRight,
   CodeIcon,
   CopyIcon,
-  FileLock2Icon,
   FileTextIcon,
   FingerprintIcon,
   FolderArchiveIcon,
@@ -24,21 +23,18 @@ import {
   MonitorSmartphoneIcon,
   MoonIcon,
   MousePointerSquareDashedIcon,
-  PencilLineIcon,
   ScanFace,
   ScrollIcon,
   SunIcon,
   TrashIcon,
   UploadCloudIcon,
   UserIcon,
-  UserPlusIcon,
   UsersIcon,
   WifiOffIcon,
   XIcon,
 } from "lucide-react";
 
 const icons = {
-  addUser: UserPlusIcon,
   arrowDown: ArrowDownIcon,
   arrowRight: ArrowRightIcon,
   auth: UserIcon,
@@ -65,13 +61,11 @@ const icons = {
   newsletter: MailIcon,
   offline: WifiOffIcon,
   package: BoxIcon,
-  permissions: FileLock2Icon,
   social: UsersIcon,
   spatialPresence: MousePointerSquareDashedIcon,
   tableOfContents: ScrollIcon,
   touchId: FingerprintIcon,
   upload: UploadCloudIcon,
-  write: PencilLineIcon,
   zip: FolderArchiveIcon,
 };
 
