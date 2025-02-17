@@ -28,20 +28,52 @@ describe("AuthSecretStorage", () => {
 
       await authSecretStorage.migrate();
 
-      expect(await kvStore.get("jazz-logged-in-secret")).toBe(demoSecret);
+      expect(await kvStore.get("jazz-logged-in-secret")).toBe(
+        JSON.stringify({
+          accountID: "demo123",
+          accountSecret: "secret123",
+          provider: "demo",
+        }),
+      );
       expect(await kvStore.get("demo-auth-logged-in-secret")).toBeNull();
     });
 
     it("should migrate clerk auth secret", async () => {
       const clerkSecret = JSON.stringify({
         accountID: "clerk123",
-        accountSecret: "secret123",
+        secret: "secret123",
       });
       await kvStore.set("jazz-clerk-auth", clerkSecret);
 
       await authSecretStorage.migrate();
 
-      expect(await kvStore.get("jazz-logged-in-secret")).toBe(clerkSecret);
+      expect(await kvStore.get("jazz-logged-in-secret")).toBe(
+        JSON.stringify({
+          accountID: "clerk123",
+          accountSecret: "secret123",
+          provider: "clerk",
+        }),
+      );
+      expect(await kvStore.get("jazz-clerk-auth")).toBeNull();
+    });
+
+    it("should migrate auth wrong secret key to accountSecret", async () => {
+      const clerkSecret = JSON.stringify({
+        accountID: "clerk123",
+        secret: "secret123",
+        provider: "clerk",
+      });
+      await kvStore.set("jazz-logged-in-secret", clerkSecret);
+
+      await authSecretStorage.migrate();
+
+      expect(await kvStore.get("jazz-logged-in-secret")).toBe(
+        JSON.stringify({
+          accountID: "clerk123",
+          accountSecret: "secret123",
+          provider: "clerk",
+        }),
+      );
       expect(await kvStore.get("jazz-clerk-auth")).toBeNull();
     });
   });
