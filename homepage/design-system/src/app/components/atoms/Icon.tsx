@@ -8,6 +8,7 @@ import {
   ChevronRight,
   CodeIcon,
   CopyIcon,
+  FileLock2Icon,
   FileTextIcon,
   FingerprintIcon,
   FolderArchiveIcon,
@@ -61,6 +62,7 @@ const icons = {
   newsletter: MailIcon,
   offline: WifiOffIcon,
   package: BoxIcon,
+  permissions: FileLock2Icon,
   social: UsersIcon,
   spatialPresence: MousePointerSquareDashedIcon,
   tableOfContents: ScrollIcon,
@@ -117,7 +119,7 @@ export function Icon({
   className?: string;
 } & React.SVGProps<SVGSVGElement>) {
   if (!icon && (!name || !icons.hasOwnProperty(name))) {
-    throw new Error(`Icon not found`);
+    throw new Error(`Icon not found: ${name}`);
   }
 
   // @ts-ignore
