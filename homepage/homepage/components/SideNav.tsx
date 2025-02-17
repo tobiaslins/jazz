@@ -26,10 +26,10 @@ export function SideNav({
   footer?: React.ReactNode;
 }) {
   return (
-    <div className={clsx(className, "text-sm space-y-5")}>
+    <div className={clsx(className, "text-sm space-y-5 px-2")}>
       {children}
 
-      <div className="flex items-center gap-2 px-2">
+      <div className="flex items-center gap-2">
         <span className="inline-block size-2 rounded-full bg-yellow-400"></span>{" "}
         Documentation coming soon
       </div>
