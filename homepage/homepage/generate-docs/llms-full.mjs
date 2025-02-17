@@ -303,7 +303,6 @@ async function generateDetailedDocs(docs) {
     for (const page of section.pages) {
       output.push(`#### ${page.title}\n`);
       const content = await readMdxContent(page.url);
-      console.log(content);
       if (content) {
         // If the content contains framework-specific implementations, they're already properly formatted
         // Otherwise, just add the content directly
