@@ -1,5 +1,11 @@
 # jazz-tools
 
+## 0.10.5
+
+### Patch Changes
+
+- 59ff77e: Critical fix: move the Account migration code execution in the right place to ensure that the changes applied to the right Jazz node.
+
 ## 0.10.4
 
 ### Patch Changes

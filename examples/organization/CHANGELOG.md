@@ -1,5 +1,13 @@
 # organization
 
+## 0.0.43
+
+### Patch Changes
+
+- Updated dependencies [59ff77e]
+  - jazz-tools@0.10.5
+  - jazz-react@0.10.5
+
 ## 0.0.42
 
 ### Patch Changes
