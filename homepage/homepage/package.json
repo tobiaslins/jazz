@@ -13,7 +13,8 @@
     "generate:docs": "node generate-docs/typedocs.mjs --build",
     "generate:llm-docs:all": "pnpm run generate:llm-docs:concise && pnpm run generate:llm-docs:full",
     "generate:llm-docs:concise": "node generate-docs/llms.mjs",
-    "generate:llm-docs:full": "node generate-docs/llms-full.mjs"
+    "generate:llm-docs:full": "node generate-docs/llms-full.mjs",
+    "test:llm-docs": "node generate-docs/llms-full.test.mjs"
   },
   "packageManager": "pnpm@9.14.0",
   "dependencies": {
