@@ -1,4 +1,3 @@
-import { Pizzazz } from "@/components/Pizzazz";
 import { JazzNav } from "@/components/nav";
 
 export default function RootLayout({
@@ -10,7 +9,6 @@ export default function RootLayout({
     <div className="flex-1 w-full">
       <JazzNav />
       <main>{children}</main>
-      <Pizzazz />
     </div>
   );
 }
