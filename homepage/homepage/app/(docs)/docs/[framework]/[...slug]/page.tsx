@@ -1,5 +1,4 @@
 import DocsLayout from "@/components/docs/DocsLayout";
-import { TableOfContents } from "@/components/docs/TableOfContents";
 import ComingSoonPage from "@/components/docs/coming-soon.mdx";
 import { DocNav } from "@/components/docs/nav";
 import { docNavigationItems } from "@/lib/docNavigationItems.js";
