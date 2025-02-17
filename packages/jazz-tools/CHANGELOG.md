@@ -1,5 +1,13 @@
 # jazz-tools
 
+## 0.10.6
+
+### Patch Changes
+
+- ada802b: Fix Clerk credentials migration
+- Updated dependencies [5c76e37]
+  - cojson@0.10.6
+
 ## 0.10.5
 
 ### Patch Changes

@@ -1,5 +1,16 @@
 # jazz-inspector
 
+## 0.10.6
+
+### Patch Changes
+
+- Updated dependencies [1d71ca1]
+- Updated dependencies [5c76e37]
+- Updated dependencies [ada802b]
+  - jazz-react-core@0.10.6
+  - cojson@0.10.6
+  - jazz-tools@0.10.6
+
 ## 0.10.5
 
 ### Patch Changes

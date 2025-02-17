@@ -1,5 +1,11 @@
 # cojson
 
+## 0.10.6
+
+### Patch Changes
+
+- 5c76e37: Ports Wasm crypto functions to use exported library `jazz-crypto-rs`
+
 ## 0.10.4
 
 ### Patch Changes

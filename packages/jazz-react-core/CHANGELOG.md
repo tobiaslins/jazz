@@ -1,5 +1,15 @@
 # jazz-react-core
 
+## 0.10.6
+
+### Patch Changes
+
+- 1d71ca1: Add React 19 to the peer dependencies
+- Updated dependencies [5c76e37]
+- Updated dependencies [ada802b]
+  - cojson@0.10.6
+  - jazz-tools@0.10.6
+
 ## 0.10.5
 
 ### Patch Changes
