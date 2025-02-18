@@ -17,6 +17,7 @@ export class IDBClient implements DBClientInterface {
   private db;
 
   activeTransaction: CoJsonIDBTransaction | undefined;
+  autoBatchingTransaction: CoJsonIDBTransaction | undefined;
 
   constructor(db: IDBDatabase) {
     this.db = db;
@@ -24,36 +25,34 @@ export class IDBClient implements DBClientInterface {
 
   makeRequest<T>(
     handler: (txEntry: CoJsonIDBTransaction) => IDBRequest<T>,
-    store: StoreName | "all" = "all",
-    mode: IDBTransactionMode = "readwrite",
   ): Promise<T> {
     if (this.activeTransaction) {
       return this.activeTransaction.handleRequest<T>(handler);
     }
 
-    const tx = new CoJsonIDBTransaction(this.db, store, mode);
+    if (this.autoBatchingTransaction?.isReusable()) {
+      return this.autoBatchingTransaction.handleRequest<T>(handler);
+    }
+
+    const tx = new CoJsonIDBTransaction(this.db);
+
+    this.autoBatchingTransaction = tx;
 
     return tx.handleRequest<T>(handler);
   }
 
   async getCoValue(coValueId: RawCoID): Promise<StoredCoValueRow | undefined> {
-    return this.makeRequest<StoredCoValueRow | undefined>(
-      (tx) =>
-        tx.getObjectStore("coValues").index("coValuesById").get(coValueId),
-      "coValues",
-      "readonly",
+    return this.makeRequest<StoredCoValueRow | undefined>((tx) =>
+      tx.getObjectStore("coValues").index("coValuesById").get(coValueId),
     );
   }
 
   async getCoValueSessions(coValueRowId: number): Promise<StoredSessionRow[]> {
-    return this.makeRequest<StoredSessionRow[]>(
-      (tx) =>
-        tx
-          .getObjectStore("sessions")
-          .index("sessionsByCoValue")
-          .getAll(coValueRowId),
-      "sessions",
-      "readonly",
+    return this.makeRequest<StoredSessionRow[]>((tx) =>
+      tx
+        .getObjectStore("sessions")
+        .index("sessionsByCoValue")
+        .getAll(coValueRowId),
     );
   }
 
@@ -61,14 +60,11 @@ export class IDBClient implements DBClientInterface {
     coValueRowId: number,
     sessionID: SessionID,
   ): Promise<StoredSessionRow | undefined> {
-    const sessions = await this.makeRequest<StoredSessionRow[]>(
-      (tx) =>
-        tx
-          .getObjectStore("sessions")
-          .index("sessionsByCoValue")
-          .getAll(coValueRowId),
-      "sessions",
-      "readonly",
+    const sessions = await this.makeRequest<StoredSessionRow[]>((tx) =>
+      tx
+        .getObjectStore("sessions")
+        .index("sessionsByCoValue")
+        .getAll(coValueRowId),
     );
 
     return sessions.find((session) => session.sessionID === sessionID);
@@ -78,18 +74,15 @@ export class IDBClient implements DBClientInterface {
     sessionRowId: number,
     firstNewTxIdx: number,
   ): Promise<TransactionRow[]> {
-    return this.makeRequest<TransactionRow[]>(
-      (tx) =>
-        tx
-          .getObjectStore("transactions")
-          .getAll(
-            IDBKeyRange.bound(
-              [sessionRowId, firstNewTxIdx],
-              [sessionRowId, Number.POSITIVE_INFINITY],
-            ),
+    return this.makeRequest<TransactionRow[]>((tx) =>
+      tx
+        .getObjectStore("transactions")
+        .getAll(
+          IDBKeyRange.bound(
+            [sessionRowId, firstNewTxIdx],
+            [sessionRowId, Number.POSITIVE_INFINITY],
           ),
-      "transactions",
-      "readonly",
+        ),
     );
   }
 
@@ -97,18 +90,15 @@ export class IDBClient implements DBClientInterface {
     sessionRowId: number,
     firstNewTxIdx: number,
   ): Promise<SignatureAfterRow[]> {
-    return this.makeRequest<SignatureAfterRow[]>(
-      (tx) =>
-        tx
-          .getObjectStore("signatureAfter")
-          .getAll(
-            IDBKeyRange.bound(
-              [sessionRowId, firstNewTxIdx],
-              [sessionRowId, Number.POSITIVE_INFINITY],
-            ),
+    return this.makeRequest<SignatureAfterRow[]>((tx) =>
+      tx
+        .getObjectStore("signatureAfter")
+        .getAll(
+          IDBKeyRange.bound(
+            [sessionRowId, firstNewTxIdx],
+            [sessionRowId, Number.POSITIVE_INFINITY],
           ),
-      "signatureAfter",
-      "readonly",
+        ),
     );
   }
 
@@ -189,7 +179,7 @@ export class IDBClient implements DBClientInterface {
   }
 
   async transaction(operationsCallback: () => unknown) {
-    const tx = new CoJsonIDBTransaction(this.db, "all", "readwrite");
+    const tx = new CoJsonIDBTransaction(this.db);
 
     this.activeTransaction = tx;
 

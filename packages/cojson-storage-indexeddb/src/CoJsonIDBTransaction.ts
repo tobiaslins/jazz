@@ -11,26 +11,35 @@ export class CoJsonIDBTransaction {
   db: IDBDatabase;
   tx: IDBTransaction;
 
-  running = false;
   pendingRequests: ((txEntry: this) => void)[] = [];
   rejectHandlers: (() => void)[] = [];
 
   id = Math.random();
-  failed = false;
 
-  constructor(
-    db: IDBDatabase,
-    store: StoreName | "all",
-    mode: IDBTransactionMode,
-  ) {
+  running = false;
+  failed = false;
+  done = false;
+
+  constructor(db: IDBDatabase) {
     this.db = db;
 
-    const storeNames =
-      store === "all"
-        ? ["coValues", "sessions", "transactions", "signatureAfter"]
-        : [store];
+    this.tx = this.db.transaction(
+      ["coValues", "sessions", "transactions", "signatureAfter"],
+      "readwrite",
+    );
 
-    this.tx = this.db.transaction(storeNames, mode);
+    this.tx.oncomplete = () => {
+      this.done = true;
+    };
+    this.tx.onabort = () => {
+      this.done = true;
+    };
+  }
+
+  startedAt = performance.now();
+  isReusable() {
+    const delta = performance.now() - this.startedAt;
+    return !this.done && delta <= 20;
   }
 
   getObjectStore(name: StoreName) {
@@ -47,6 +56,7 @@ export class CoJsonIDBTransaction {
         next(this);
       } else {
         this.running = false;
+        this.done = true;
       }
     };
 
@@ -94,7 +104,7 @@ export class CoJsonIDBTransaction {
   }
 
   commit() {
-    if (!this.failed) {
+    if (!this.done) {
       this.tx.commit();
     }
   }

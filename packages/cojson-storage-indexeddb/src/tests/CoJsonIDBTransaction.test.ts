@@ -43,7 +43,7 @@ describe("CoJsonIDBTransaction", () => {
   });
 
   test("handles successful write and read operations", async () => {
-    const tx = new CoJsonIDBTransaction(db, "coValues", "readwrite");
+    const tx = new CoJsonIDBTransaction(db);
 
     // Write test
     await tx.handleRequest((tx) =>
@@ -54,7 +54,7 @@ describe("CoJsonIDBTransaction", () => {
     );
 
     // Read test
-    const readTx = new CoJsonIDBTransaction(db, "coValues", "readonly");
+    const readTx = new CoJsonIDBTransaction(db);
     const result = await readTx.handleRequest((tx) =>
       tx.getObjectStore("coValues").get("test1"),
     );
@@ -66,7 +66,7 @@ describe("CoJsonIDBTransaction", () => {
   });
 
   test("handles multiple operations in single transaction", async () => {
-    const tx = new CoJsonIDBTransaction(db, "coValues", "readwrite");
+    const tx = new CoJsonIDBTransaction(db);
 
     // Multiple writes
     await Promise.all([
@@ -85,7 +85,7 @@ describe("CoJsonIDBTransaction", () => {
     ]);
 
     // Read results
-    const readTx = new CoJsonIDBTransaction(db, "coValues", "readonly");
+    const readTx = new CoJsonIDBTransaction(db);
     const [result1, result2] = await Promise.all([
       readTx.handleRequest((tx) => tx.getObjectStore("coValues").get("test1")),
       readTx.handleRequest((tx) => tx.getObjectStore("coValues").get("test2")),
@@ -102,7 +102,7 @@ describe("CoJsonIDBTransaction", () => {
   });
 
   test("handles transaction across multiple stores", async () => {
-    const tx = new CoJsonIDBTransaction(db, "all", "readwrite");
+    const tx = new CoJsonIDBTransaction(db);
 
     await Promise.all([
       tx.handleRequest((tx) =>
@@ -119,7 +119,7 @@ describe("CoJsonIDBTransaction", () => {
       ),
     ]);
 
-    const readTx = new CoJsonIDBTransaction(db, "all", "readonly");
+    const readTx = new CoJsonIDBTransaction(db);
     const [valueResult, sessionResult] = await Promise.all([
       readTx.handleRequest((tx) => tx.getObjectStore("coValues").get("value1")),
       readTx.handleRequest((tx) =>
@@ -138,7 +138,7 @@ describe("CoJsonIDBTransaction", () => {
   });
 
   test("handles failed transactions", async () => {
-    const tx = new CoJsonIDBTransaction(db, "sessions", "readwrite");
+    const tx = new CoJsonIDBTransaction(db);
 
     await expect(
       tx.handleRequest((tx) =>
@@ -153,7 +153,7 @@ describe("CoJsonIDBTransaction", () => {
 
     expect(tx.failed).toBe(false);
 
-    const badTx = new CoJsonIDBTransaction(db, "all", "readwrite");
+    const badTx = new CoJsonIDBTransaction(db);
     await expect(
       badTx.handleRequest((tx) =>
         tx.getObjectStore("sessions").put({
