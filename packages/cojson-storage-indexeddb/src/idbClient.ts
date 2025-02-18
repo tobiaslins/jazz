@@ -8,10 +8,7 @@ import type {
   StoredSessionRow,
   TransactionRow,
 } from "cojson-storage";
-import {
-  CoJsonIDBTransaction,
-  type StoreName,
-} from "./CoJsonIDBTransaction.js";
+import { CoJsonIDBTransaction } from "./CoJsonIDBTransaction.js";
 
 export class IDBClient implements DBClientInterface {
   private db;
@@ -60,14 +57,12 @@ export class IDBClient implements DBClientInterface {
     coValueRowId: number,
     sessionID: SessionID,
   ): Promise<StoredSessionRow | undefined> {
-    const sessions = await this.makeRequest<StoredSessionRow[]>((tx) =>
+    return this.makeRequest<StoredSessionRow>((tx) =>
       tx
         .getObjectStore("sessions")
-        .index("sessionsByCoValue")
-        .getAll(coValueRowId),
+        .index("uniqueSessions")
+        .get([coValueRowId, sessionID]),
     );
-
-    return sessions.find((session) => session.sessionID === sessionID);
   }
 
   async getNewTransactionInSession(
