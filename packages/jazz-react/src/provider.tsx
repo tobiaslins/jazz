@@ -47,7 +47,8 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
           defaultProfileName,
           onLogOut: onLogOutRefCallback,
           onAnonymousAccountDiscarded: onAnonymousAccountDiscardedRefCallback,
-        };
+        } satisfies JazzContextManagerProps<Acc>;
+
         if (contextManager.propsChanged(props)) {
           contextManager.createContext(props).catch((error) => {
             console.error("Error creating Jazz browser context:", error);
