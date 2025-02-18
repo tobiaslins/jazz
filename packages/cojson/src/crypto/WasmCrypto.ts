@@ -7,6 +7,7 @@ import {
   encrypt,
   get_sealer_id,
   get_signer_id,
+  initialize,
   new_ed25519_signing_key,
   new_x25519_private_key,
   seal,
@@ -49,6 +50,7 @@ export class WasmCrypto extends CryptoProvider<Blake3State> {
   }
 
   static async create(): Promise<WasmCrypto> {
+    await initialize();
     return new WasmCrypto();
   }
 
