@@ -142,12 +142,10 @@ export class SQLiteClient implements DBClientInterface {
     );
   }
 
-  async unitOfWork(
-    operationsCallback: () => Promise<unknown>[],
-  ): Promise<void> {
+  async transaction(operationsCallback: () => unknown) {
     try {
       await this.db.transaction(async () => {
-        await Promise.all(operationsCallback());
+        await operationsCallback();
       });
     } catch (e) {
       console.error("Transaction failed:", e);

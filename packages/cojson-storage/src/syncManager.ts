@@ -217,8 +217,8 @@ export class SyncManager {
 
     let invalidAssumptions = false;
 
-    await this.dbClient.unitOfWork(() =>
-      (Object.keys(msg.new) as SessionID[]).map((sessionID) => {
+    for (const sessionID of Object.keys(msg.new) as SessionID[]) {
+      await this.dbClient.transaction(async () => {
         const sessionRow = allOurSessions[sessionID];
         if (sessionRow) {
           ourKnown.sessions[sessionRow.sessionID] = sessionRow.lastIdx;
@@ -229,8 +229,8 @@ export class SyncManager {
         } else {
           return this.putNewTxs(msg, sessionID, sessionRow, storedCoValueRowID);
         }
-      }),
-    );
+      });
+    }
 
     if (invalidAssumptions) {
       this.sendStateMessage({

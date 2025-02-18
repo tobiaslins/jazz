@@ -79,5 +79,5 @@ export interface DBClientInterface {
     signature: Signature;
   }): Promise<number> | void | unknown;
 
-  unitOfWork(operationsCallback: () => unknown[]): Promise<unknown> | void;
+  transaction(callback: () => unknown): Promise<unknown> | void;
 }

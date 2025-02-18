@@ -47,7 +47,7 @@ describe("DB sync manager", () => {
   DBClient.prototype.getCoValueSessions = vi.fn();
   DBClient.prototype.addSessionUpdate = vi.fn();
   DBClient.prototype.addTransaction = vi.fn();
-  DBClient.prototype.unitOfWork = vi.fn((callback) => Promise.all(callback()));
+  DBClient.prototype.transaction = vi.fn((callback) => callback());
 
   beforeEach(async () => {
     const idbClient = new DBClient() as unknown as Mocked<DBClientInterface>;

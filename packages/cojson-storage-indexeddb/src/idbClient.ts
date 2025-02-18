@@ -10,30 +10,25 @@ import type {
 } from "cojson-storage";
 import { SyncPromise } from "./syncPromises.js";
 
+type TxEntry = {
+  id: number;
+  tx: IDBTransaction;
+  stores: {
+    coValues: IDBObjectStore;
+    sessions: IDBObjectStore;
+    transactions: IDBObjectStore;
+    signatureAfter: IDBObjectStore;
+  };
+  running: boolean;
+  startedAt: number;
+  isControlledTransaction?: boolean;
+  pendingRequests: ((txEntry: TxEntry) => void)[];
+};
+
 export class IDBClient implements DBClientInterface {
   private db;
 
-  currentTx:
-    | {
-        id: number;
-        tx: IDBTransaction;
-        stores: {
-          coValues: IDBObjectStore;
-          sessions: IDBObjectStore;
-          transactions: IDBObjectStore;
-          signatureAfter: IDBObjectStore;
-        };
-        startedAt: number;
-        pendingRequests: ((txEntry: {
-          stores: {
-            coValues: IDBObjectStore;
-            sessions: IDBObjectStore;
-            transactions: IDBObjectStore;
-            signatureAfter: IDBObjectStore;
-          };
-        }) => void)[];
-      }
-    | undefined;
+  currentTx: TxEntry | undefined;
 
   currentTxID = 0;
 
@@ -52,20 +47,15 @@ export class IDBClient implements DBClientInterface {
     return new SyncPromise((resolve, reject) => {
       let txEntry = this.currentTx;
 
-      const requestEntry = ({
-        stores,
-      }: {
-        stores: {
-          coValues: IDBObjectStore;
-          sessions: IDBObjectStore;
-          transactions: IDBObjectStore;
-          signatureAfter: IDBObjectStore;
-        };
-      }) => {
-        const request = handler(stores);
+      const requestEntry = (txEntry: TxEntry) => {
+        txEntry.running = true;
+        const request = handler(txEntry.stores);
         request.onerror = () => {
           console.error("Error in request", request.error);
-          this.currentTx = undefined;
+          txEntry.running = false;
+          if (txEntry === this.currentTx) {
+            this.currentTx = undefined;
+          }
           reject(request.error);
         };
         request.onsuccess = () => {
@@ -75,17 +65,21 @@ export class IDBClient implements DBClientInterface {
           const next = txEntry?.pendingRequests.shift();
 
           if (next) {
-            next({ stores });
+            next(txEntry);
           } else {
-            if (this.currentTx === txEntry) {
+            txEntry.running = false;
+
+            if (txEntry === this.currentTx) {
               this.currentTx = undefined;
             }
           }
         };
       };
 
-      // Transaction batching
-      if (!txEntry || performance.now() - txEntry.startedAt > 20) {
+      // Do we have an active transaction?
+      // If yes, reuse it.
+      // If no, create a new one.
+      if (!txEntry?.isControlledTransaction) {
         const tx = this.db.transaction(
           ["coValues", "sessions", "transactions", "signatureAfter"],
           "readwrite",
@@ -101,15 +95,50 @@ export class IDBClient implements DBClientInterface {
           },
           startedAt: performance.now(),
           pendingRequests: [],
-        };
-
-        this.currentTx = txEntry;
+          running: false,
+        } satisfies TxEntry;
 
         requestEntry(txEntry);
       } else {
-        txEntry.pendingRequests.push(requestEntry);
+        if (txEntry.running) {
+          txEntry.pendingRequests.push(requestEntry);
+        } else {
+          requestEntry(txEntry);
+        }
       }
     });
+  }
+
+  startTransaction() {
+    const tx = this.db.transaction(
+      ["coValues", "sessions", "transactions", "signatureAfter"],
+      "readwrite",
+    );
+
+    const txEntry = {
+      id: this.currentTxID++,
+      tx,
+      stores: {
+        coValues: tx.objectStore("coValues"),
+        sessions: tx.objectStore("sessions"),
+        transactions: tx.objectStore("transactions"),
+        signatureAfter: tx.objectStore("signatureAfter"),
+      },
+      isControlledTransaction: true,
+      startedAt: performance.now(),
+      pendingRequests: [],
+      running: false,
+    } satisfies TxEntry;
+
+    this.currentTx = txEntry;
+
+    return txEntry;
+  }
+
+  closeTransaction(txEntry: TxEntry) {
+    if (txEntry === this.currentTx) {
+      this.currentTx = undefined;
+    }
   }
 
   async getCoValue(coValueId: RawCoID): Promise<StoredCoValueRow | undefined> {
@@ -220,7 +249,15 @@ export class IDBClient implements DBClientInterface {
     );
   }
 
-  async unitOfWork(operationsCallback: () => unknown[]) {
-    return Promise.all(operationsCallback());
+  async transaction(operationsCallback: () => unknown) {
+    const txEntry = this.startTransaction();
+    try {
+      await operationsCallback();
+      this.closeTransaction(txEntry);
+    } catch (error) {
+      txEntry.tx.abort();
+      this.closeTransaction(txEntry);
+      throw error;
+    }
   }
 }

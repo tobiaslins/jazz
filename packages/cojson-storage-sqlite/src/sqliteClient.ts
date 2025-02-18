@@ -159,7 +159,7 @@ export class SQLiteClient implements DBClientInterface {
       .run(sessionRowID, idx, signature);
   }
 
-  unitOfWork(operationsCallback: () => any[]) {
+  transaction(operationsCallback: () => unknown) {
     this.db.transaction(operationsCallback)();
   }
 }
