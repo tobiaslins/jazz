@@ -42,6 +42,10 @@ export function ConcurrentChanges() {
     window.open(`?id=${id}`, "_blank");
   };
 
+  const done = Object.entries(counter?.perSession ?? {}).every(
+    ([_, entry]) => entry.value.value === 300,
+  );
+
   return (
     <div>
       <h1>Concurrent Changes</h1>
@@ -54,6 +58,7 @@ export function ConcurrentChanges() {
         ))}
       </p>
       <button onClick={createCounter}>Create a new value!</button>
+      {done && <p data-testid="done">Done!</p>}
     </div>
   );
 }
@@ -63,14 +68,8 @@ async function count(counter: Counter) {
 
   let value = counter.byMe.value?.value ?? 0;
 
-  while (value <= 300) {
-    if (value === 200) {
-      counter.push({ value: value++ });
-      counter.push({ value: value++ });
-      window.location.reload();
-    }
-
+  while (value < 300) {
     await new Promise((resolve) => setTimeout(resolve, 10));
-    counter.push({ value: value++ });
+    counter.push({ value: ++value });
   }
 }

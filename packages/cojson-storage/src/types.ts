@@ -41,6 +41,11 @@ export interface DBClientInterface {
     coValueRowId: number,
   ): Promise<StoredSessionRow[]> | StoredSessionRow[];
 
+  getSingleCoValueSession(
+    coValueRowId: number,
+    sessionID: SessionID,
+  ): Promise<StoredSessionRow | undefined> | StoredSessionRow | undefined;
+
   getNewTransactionInSession(
     sessionRowId: number,
     firstNewTxIdx: number,

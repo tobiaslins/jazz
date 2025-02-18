@@ -200,15 +200,6 @@ export class SyncManager {
       ? coValueRow.rowID
       : await this.dbClient.addCoValue(msg);
 
-    const allOurSessionsEntries =
-      await this.dbClient.getCoValueSessions(storedCoValueRowID);
-
-    const allOurSessions: {
-      [sessionID: SessionID]: StoredSessionRow;
-    } = Object.fromEntries(
-      allOurSessionsEntries.map((row) => [row.sessionID, row]),
-    );
-
     const ourKnown: CojsonInternalTypes.CoValueKnownState = {
       id: msg.id,
       header: true,
@@ -219,7 +210,11 @@ export class SyncManager {
 
     for (const sessionID of Object.keys(msg.new) as SessionID[]) {
       await this.dbClient.transaction(async () => {
-        const sessionRow = allOurSessions[sessionID];
+        const sessionRow = await this.dbClient.getSingleCoValueSession(
+          storedCoValueRowID,
+          sessionID,
+        );
+
         if (sessionRow) {
           ourKnown.sessions[sessionRow.sessionID] = sessionRow.lastIdx;
         }

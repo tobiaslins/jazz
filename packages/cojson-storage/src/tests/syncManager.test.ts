@@ -45,6 +45,8 @@ describe("DB sync manager", () => {
   const DBClient = vi.fn();
   DBClient.prototype.getCoValue = vi.fn();
   DBClient.prototype.getCoValueSessions = vi.fn();
+  DBClient.prototype.getSingleCoValueSession = vi.fn();
+  DBClient.prototype.getNewTransactionInSession = vi.fn();
   DBClient.prototype.addSessionUpdate = vi.fn();
   DBClient.prototype.addTransaction = vi.fn();
   DBClient.prototype.transaction = vi.fn((callback) => callback());
