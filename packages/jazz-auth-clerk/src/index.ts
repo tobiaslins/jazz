@@ -11,8 +11,9 @@ import {
   isClerkCredentials,
 } from "./types.js";
 
-export { MinimalClerkClient };
+export type { MinimalClerkClient };
 export { isClerkCredentials };
+
 export class JazzClerkAuth {
   constructor(
     private authenticate: AuthenticateAccountFunction,
