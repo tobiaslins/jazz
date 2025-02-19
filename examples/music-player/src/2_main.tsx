@@ -12,7 +12,7 @@ import "./index.css";
 
 import { MusicaAccount } from "@/1_schema";
 import { apiKey } from "@/apiKey.ts";
-import { JazzProvider } from "jazz-react";
+import { JazzProvider, useAccount, useIsAuthenticated } from "jazz-react";
 import { onAnonymousAccountDiscarded } from "./4_actions";
 import { useUploadExampleData } from "./lib/useUploadExampleData";
 
@@ -31,6 +31,13 @@ function Main() {
   const mediaPlayer = useMediaPlayer();
 
   useUploadExampleData();
+
+  const { me } = useAccount({ root: {} });
+  const isAuthenticated = useIsAuthenticated();
+
+  const id = me?.id;
+
+  console.log({ me, isAuthenticated, id });
 
   const router = createHashRouter([
     {

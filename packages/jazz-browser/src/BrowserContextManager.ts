@@ -64,6 +64,12 @@ export class JazzBrowserContextManager<
       });
     }
 
+    if (authProps?.credentials) {
+      this.authSecretStorage.emitUpdate(authProps.credentials);
+    } else {
+      this.authSecretStorage.emitUpdate(await this.authSecretStorage.get());
+    }
+
     this.updateContext(props, currentContext);
   }
 

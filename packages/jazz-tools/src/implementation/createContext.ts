@@ -222,9 +222,6 @@ export async function createJazzContext<Acc extends Account>(options: {
         authSecretStorage.clear();
       },
     });
-
-    // To align the isAuthenticated state with the credentials
-    authSecretStorage.emitUpdate(credentials);
   } else {
     const secretSeed = options.crypto.newRandomSecretSeed();
 
@@ -248,12 +245,15 @@ export async function createJazzContext<Acc extends Account>(options: {
     });
 
     if (!options.newAccountProps) {
-      await authSecretStorage.set({
-        accountID: context.account.id,
-        secretSeed,
-        accountSecret: context.node.account.agentSecret,
-        provider: "anonymous",
-      });
+      await authSecretStorage.set(
+        {
+          accountID: context.account.id,
+          secretSeed,
+          accountSecret: context.node.account.agentSecret,
+          provider: "anonymous",
+        },
+        false,
+      );
     }
   }
 

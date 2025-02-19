@@ -2,7 +2,7 @@ import {
   JazzBrowserContextManager,
   JazzContextManagerProps,
 } from "jazz-browser";
-import { JazzAuthContext, JazzContext } from "jazz-react-core";
+import { JazzContext, JazzContextManagerContext } from "jazz-react-core";
 import { Account, JazzContextType } from "jazz-tools";
 import React, { useEffect, useRef } from "react";
 
@@ -75,9 +75,9 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
 
   return (
     <JazzContext.Provider value={value}>
-      <JazzAuthContext.Provider value={contextManager.getAuthSecretStorage()}>
+      <JazzContextManagerContext.Provider value={contextManager}>
         {value && children}
-      </JazzAuthContext.Provider>
+      </JazzContextManagerContext.Provider>
     </JazzContext.Provider>
   );
 }

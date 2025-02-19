@@ -96,7 +96,7 @@ export class AuthSecretStorage {
     };
   }
 
-  async set(payload: AuthSetPayload) {
+  async set(payload: AuthSetPayload, notify = true) {
     const kvStore = KvStoreContext.getInstance().getStorage();
     await kvStore.set(
       STORAGE_KEY,
@@ -109,7 +109,10 @@ export class AuthSecretStorage {
         provider: payload.provider,
       }),
     );
-    this.emitUpdate(payload);
+
+    if (notify) {
+      this.emitUpdate(payload);
+    }
   }
 
   getIsAuthenticated(data: AuthCredentials | null): boolean {
@@ -130,6 +133,7 @@ export class AuthSecretStorage {
     if (this.isAuthenticated === isAuthenticated) return;
 
     this.isAuthenticated = isAuthenticated;
+    console.log("emitUpdate", this.isAuthenticated);
     for (const listener of this.listeners) {
       listener(this.isAuthenticated);
     }
@@ -138,6 +142,6 @@ export class AuthSecretStorage {
   async clear() {
     const kvStore = KvStoreContext.getInstance().getStorage();
     await kvStore.delete(STORAGE_KEY);
-    this.emitUpdate(null);
+    // this.emitUpdate(null);
   }
 }

@@ -202,6 +202,7 @@ export class TestJazzContextManager<
           node.gracefulShutdown();
         },
         logOut: async () => {
+          await storage.clear();
           node.gracefulShutdown();
         },
       },

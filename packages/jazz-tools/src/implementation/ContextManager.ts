@@ -109,6 +109,9 @@ export class JazzContextManager<
     this.context.done();
   };
 
+  /**
+   * Authenticates the user with the given credentials
+   */
   authenticate = async (credentials: AuthCredentials) => {
     if (!this.props) {
       throw new Error("Props required");
