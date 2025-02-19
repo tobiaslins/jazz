@@ -2128,11 +2128,11 @@ importers:
         specifier: ^4.7.2
         version: 4.7.2
       jazz-nodejs:
-        specifier: ^0.10.1
-        version: 0.10.6
+        specifier: workspace:*
+        version: link:../../packages/jazz-nodejs
       jazz-tools:
-        specifier: ^0.10.1
-        version: 0.10.6
+        specifier: workspace:*
+        version: link:../../packages/jazz-tools
     devDependencies:
       '@cloudflare/vitest-pool-workers':
         specifier: ^0.6.4
@@ -6379,12 +6379,6 @@ packages:
     resolution: {integrity: sha512-QVb0dM5HvG+uaxitm8wONl7jltx8dqhfU33DcqtOZcLSVIKSDDLDi7+0LbAKiyI8hD9u42m2YxXSkMGWThaecQ==}
     engines: {iojs: '>= 1.0.0', node: '>= 0.12.0'}
 
-  cojson-transport-ws@0.10.6:
-    resolution: {integrity: sha512-8oiNFajgnRO9AWZkKsWVAeO1PoLS5tLoE2ohpb7vX7ptBbUlV8wqfdiDTgmRQ4y1iLxRJ4ErUIJh2C8VKQNj0w==}
-
-  cojson@0.10.6:
-    resolution: {integrity: sha512-ZNLTC8g/kZmnXYA4ZQvzL+LC6TDuyGYdHif6V0aMVjK10AtFCz2QUxUNoKfVAfZ/M+v8req6XecoPOPvgItgIg==}
-
   collect-v8-coverage@1.0.2:
     resolution: {integrity: sha512-lHl4d5/ONEbLlJvaJNtsF/Lz+WvB07u2ycqTYbdrq7UypDXailES4valYb2eWiJFxZlVmpGekfqoxQhzyFdT4Q==}
 
@@ -8146,12 +8140,6 @@ packages:
 
   jazz-crypto-rs@0.0.3:
     resolution: {integrity: sha512-b8yDOUQCRoOdH1KrIQsAIdhZqXcOgpCLGY93/NZEWqimFeGGKAQY7KRXNQtXndKN0jC1y/TH8a8Vxsf0T0+yqQ==}
-
-  jazz-nodejs@0.10.6:
-    resolution: {integrity: sha512-Jix7vUCNiOhgvK0OjRtFqMSsZJ+3tE1es/ldigdCYUm63TSgTkfoUqTjAyqxpH9/vIHzCQWEd0wLqCRFKRindg==}
-
-  jazz-tools@0.10.6:
-    resolution: {integrity: sha512-Da4tjKu4LNgYs9OkSFTcqWw3MqerNVlIyXBuoRRGkaZ3DcEV8H213X9t7kLFYlfc0KjwPEVmXuk/EoCf+TBvGA==}
 
   jest-changed-files@29.7.0:
     resolution: {integrity: sha512-fEArFiwf1BpQ+4bXSprcDc3/x4HSzL4al2tozwVpDFpsxALjLYdyiIK4e5Vz66GQJIbXJ82+35PtysofptNX2w==}
@@ -16991,22 +16979,6 @@ snapshots:
 
   co@4.6.0: {}
 
-  cojson-transport-ws@0.10.6:
-    dependencies:
-      cojson: 0.10.6
-      typescript: 5.6.3
-
-  cojson@0.10.6:
-    dependencies:
-      '@noble/ciphers': 0.1.4
-      '@noble/curves': 1.7.0
-      '@noble/hashes': 1.6.1
-      '@opentelemetry/api': 1.9.0
-      '@scure/base': 1.2.1
-      jazz-crypto-rs: 0.0.3
-      neverthrow: 7.2.0
-      queueueue: 4.1.2
-
   collect-v8-coverage@1.0.2: {}
 
   color-convert@1.9.3:
@@ -18814,17 +18786,6 @@ snapshots:
       '@pkgjs/parseargs': 0.11.0
 
   jazz-crypto-rs@0.0.3: {}
-
-  jazz-nodejs@0.10.6:
-    dependencies:
-      cojson: 0.10.6
-      cojson-transport-ws: 0.10.6
-      jazz-tools: 0.10.6
-
-  jazz-tools@0.10.6:
-    dependencies:
-      '@scure/bip39': 1.5.0
-      cojson: 0.10.6
 
   jest-changed-files@29.7.0:
     dependencies:
