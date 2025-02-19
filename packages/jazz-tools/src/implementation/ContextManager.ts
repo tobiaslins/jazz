@@ -105,6 +105,8 @@ export class JazzContextManager<
     if (!this.context) {
       return;
     }
+
+    this.context.done();
   };
 
   authenticate = async (credentials: AuthCredentials) => {
