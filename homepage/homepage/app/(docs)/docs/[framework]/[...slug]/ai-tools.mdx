@@ -7,26 +7,16 @@ However, for these tools to work effectively and provide better results, they ne
 
 ## LLM docs
 
-To provide AI tools, like Cursor, with access to Jazz docs, we've compressed the docs into a single file that is
+To provide AI tools, like Cursor, with access to Jazz docs, we've compressed the docs into a single txt file that is
 more LLM-readable than a full website, which you can easily upload to your tool of choice.
 
-<ContentByFramework framework="react">
-[Download jazz-react-docs.txt](/jazz-react-docs.txt)
-</ContentByFramework>
+## Adding docs to Cursor and v0
 
-<ContentByFramework framework="react-native">
-  [Download jazz-react-native-docs.txt](/jazz-react-native-docs.txt)
-</ContentByFramework>
+<a href="/llms-full.txt" download>Download llms-full.txt</a>
 
-<ContentByFramework framework="vue">
-  [Download jazz-vue-docs.txt](/jazz-vue-docs.txt)
-</ContentByFramework>
+Upload the txt file in your prompt.
 
-<ContentByFramework framework="svelte">
-  [Download jazz-svelte-docs.txt](/jazz-svelte-docs.txt)
-</ContentByFramework>
-
-Upload the txt file in your prompt. This works in ChatGPT, Claude, Lovable, and v0.
+![ChatGPT prompt with llms-full.txt attached](/chatgpt-with-llms-full-txt.jpg)
 
 ## Adding docs to Cursor
 
@@ -35,29 +25,8 @@ Upload the txt file in your prompt. This works in ChatGPT, Claude, Lovable, and 
 3. Enter the following URL:
 
 <CodeGroup>
-
-<ContentByFramework framework="react">
 ```
-https://jazz.tools/jazz-react-docs.txt
+https://jazz.tools/llms-full.txt
 ```
-</ContentByFramework>
-
-<ContentByFramework framework="react-native">
-```
-https://jazz.tools/jazz-react-native-docs.txt
-```
-</ContentByFramework>
-
-<ContentByFramework framework="vue">
-```
-https://jazz.tools/jazz-vue-docs.txt
-```
-</ContentByFramework>
-
-<ContentByFramework framework="svelte">
-```
-https://jazz.tools/jazz-svelte-docs.txt
-```
-</ContentByFramework>
 </CodeGroup>
 
