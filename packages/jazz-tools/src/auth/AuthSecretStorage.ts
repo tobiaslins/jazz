@@ -133,7 +133,6 @@ export class AuthSecretStorage {
     if (this.isAuthenticated === isAuthenticated) return;
 
     this.isAuthenticated = isAuthenticated;
-    console.log("emitUpdate", this.isAuthenticated);
     for (const listener of this.listeners) {
       listener(this.isAuthenticated);
     }

@@ -255,6 +255,12 @@ export class TestJazzContextManager<
       AccountSchema: props.AccountSchema,
     });
 
+    if (authProps?.credentials) {
+      this.authSecretStorage.emitUpdate(authProps.credentials);
+    } else {
+      this.authSecretStorage.emitUpdate(await this.authSecretStorage.get());
+    }
+
     this.updateContext(props, {
       me: context.account,
       node: context.node,
