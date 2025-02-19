@@ -40,9 +40,6 @@ export class JazzBrowserContextManager<
     props: JazzContextManagerProps<Acc>,
     authProps?: JazzContextManagerAuthProps,
   ) {
-    const { promise, resolve } = promiseWithResolvers<void>();
-    this.prevContextCreation = promise;
-
     let currentContext;
 
     // We need to store the props here to block the double effect execution
@@ -68,7 +65,6 @@ export class JazzBrowserContextManager<
     }
 
     this.updateContext(props, currentContext);
-    resolve();
   }
 
   propsChanged(props: JazzContextManagerProps<Acc>) {
@@ -82,20 +78,4 @@ export class JazzBrowserContextManager<
       this.props.guestMode !== props.guestMode
     );
   }
-}
-
-function promiseWithResolvers<R>() {
-  let resolve = (_: R) => {};
-  let reject = (_: unknown) => {};
-
-  const promise = new Promise<R>((_resolve, _reject) => {
-    resolve = _resolve;
-    reject = _reject;
-  });
-
-  return {
-    promise,
-    resolve,
-    reject,
-  };
 }

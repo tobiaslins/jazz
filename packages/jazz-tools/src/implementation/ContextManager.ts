@@ -44,7 +44,6 @@ export class JazzContextManager<
   protected props: P | undefined;
   protected authSecretStorage = new AuthSecretStorage();
   protected authenticating = false;
-  protected prevContextCreation?: Promise<void>;
 
   constructor() {
     KvStoreContext.getInstance().initialize(this.getKvStore());
@@ -109,7 +108,6 @@ export class JazzContextManager<
   };
 
   authenticate = async (credentials: AuthCredentials) => {
-    await this.prevContextCreation;
     if (!this.props) {
       throw new Error("Props required");
     }
