@@ -57,7 +57,6 @@ export function useCoState<V extends CoValue, D>(
   >(
     React.useCallback(
       (callback) => {
-        observable.reset();
         if (!id) return () => {};
 
         const agent = "me" in context ? context.me : context.guest;

@@ -347,7 +347,6 @@ export function createCoValueObservable<V extends CoValue, Depth>(options?: {
 
   const observable = {
     getCurrentValue: () => currentValue,
-    reset: () => (currentValue = undefined),
     subscribe,
   };
 
