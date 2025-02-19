@@ -19,6 +19,8 @@ import {
   createCoValueObservable,
 } from "jazz-tools";
 import { JazzContext, JazzContextManagerContext } from "./provider.js";
+import { getCurrentAccountFromContextManager } from "./utils.js";
+import { subscribeToContextManager } from "./utils.js";
 
 export function useJazzContext<Acc extends Account>() {
   const value = useContext(JazzContext) as JazzContextType<Acc>;
@@ -74,20 +76,38 @@ export function useIsAuthenticated() {
   );
 }
 
+function useCoValueObservable<V extends CoValue, D>() {
+  const [initialValue] = React.useState(() =>
+    createCoValueObservable<V, D>({
+      syncResolution: true,
+    }),
+  );
+  const ref = useRef(initialValue);
+
+  return {
+    getCurrentValue() {
+      return ref.current.getCurrentValue();
+    },
+    getCurrentObservable() {
+      return ref.current;
+    },
+    reset() {
+      ref.current = createCoValueObservable<V, D>({
+        syncResolution: true,
+      });
+    },
+  };
+}
+
 export function useCoState<V extends CoValue, D>(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Schema: CoValueClass<V>,
   id: ID<V> | undefined,
   depth: D & DepthsIn<V> = [] as D & DepthsIn<V>,
 ): DeeplyLoaded<V, D> | undefined | null {
-  const context = useJazzContext();
+  const contextManager = useJazzContextManager();
 
-  const [x] = React.useState(() =>
-    createCoValueObservable({
-      syncResolution: true,
-    }),
-  );
-  const ref = useRef(x);
+  const observable = useCoValueObservable<V, D>();
 
   const value = React.useSyncExternalStore<
     DeeplyLoaded<V, D> | undefined | null
@@ -96,21 +116,25 @@ export function useCoState<V extends CoValue, D>(
       (callback) => {
         if (!id) return () => {};
 
-        const agent = "me" in context ? context.me : context.guest;
+        // We subscribe to the context manager to react to the account updates
+        // faster than the useSyncExternalStore callback update to keep the isAuthenticated state
+        // up to date with the data when logging in and out.
+        return subscribeToContextManager(contextManager, () => {
+          const agent = getCurrentAccountFromContextManager(contextManager);
 
-        ref.current = createCoValueObservable({
-          syncResolution: true,
-        });
+          observable.reset();
 
-        return ref.current.subscribe(Schema, id, agent, depth, callback, () => {
-          console.log("unavailable");
-          callback();
+          return observable
+            .getCurrentObservable()
+            .subscribe(Schema, id, agent, depth, callback, () => {
+              callback();
+            });
         });
       },
-      [Schema, id, context],
+      [Schema, id, contextManager],
     ),
-    () => ref.current.getCurrentValue(),
-    () => ref.current.getCurrentValue(),
+    () => observable.getCurrentValue(),
+    () => observable.getCurrentValue(),
   );
 
   return value;
@@ -136,70 +160,48 @@ export function createUseAccountHooks<Acc extends Account>() {
       );
     }
 
-    // const me = useCoState<Acc, D>(
-    //   context.me.constructor as CoValueClass<Acc>,
-    //   context.me.id,
-    //   depth,
-    // );
-
-    const [x] = React.useState(() =>
-      createCoValueObservable({
-        syncResolution: true,
-      }),
-    );
-    const ref = useRef(x);
+    const observable = useCoValueObservable<Acc, D>();
 
     const me = React.useSyncExternalStore<
       DeeplyLoaded<Acc, D> | undefined | null
     >(
       React.useCallback(
         (callback) => {
-          let unsub = () => {};
+          return subscribeToContextManager(contextManager, () => {
+            const agent = getCurrentAccountFromContextManager(contextManager);
 
-          const handler = () => {
-            unsub();
-
-            const context = contextManager.getCurrentValue();
-
-            if (!context || !("me" in context)) {
+            if (agent._type === "Anonymous") {
               throw new Error(
                 "useAccount can't be used in a JazzProvider with auth === 'guest' - consider using useAccountOrGuest()",
               );
             }
 
-            const agent = context.me;
-            const Schema = context.me.constructor as CoValueClass<Acc>;
-            const id = context.me.id;
+            observable.reset();
 
-            ref.current = createCoValueObservable({
-              syncResolution: true,
-            });
+            const Schema = agent.constructor as CoValueClass<Acc>;
 
-            unsub = ref.current.subscribe(
-              Schema,
-              id,
-              agent,
-              (depth as any) ?? [],
-              () => {
-                callback();
-              },
-              () => {
-                callback();
-              },
-            );
-          };
-
-          handler();
-          return contextManager.subscribe(handler);
+            return observable
+              .getCurrentObservable()
+              .subscribe(
+                Schema,
+                agent.id,
+                agent,
+                depth ?? ([] as D),
+                callback,
+                () => {
+                  callback();
+                },
+              );
+          });
         },
         [contextManager],
       ),
-      () => ref.current.getCurrentValue(),
-      () => ref.current.getCurrentValue(),
+      () => observable.getCurrentValue(),
+      () => observable.getCurrentValue(),
     );
 
     return {
-      me: depth === undefined ? context.me : me,
+      me: depth === undefined ? me || context.me : me,
       logOut: context.logOut,
     };
   }
@@ -216,14 +218,44 @@ export function createUseAccountHooks<Acc extends Account>() {
     me: Acc | DeeplyLoaded<Acc, D> | undefined | null | AnonymousJazzAgent;
   } {
     const context = useJazzContext<Acc>();
+    const contextManager = useJazzContextManager<Acc>();
 
-    const contextMe = "me" in context ? context.me : undefined;
-    const AccountSchema = contextMe?.constructor ?? Account;
+    const observable = useCoValueObservable<Acc, D>();
 
-    const me = useCoState<Acc, D>(
-      AccountSchema as CoValueClass<Acc>,
-      contextMe?.id,
-      depth,
+    const me = React.useSyncExternalStore<
+      DeeplyLoaded<Acc, D> | undefined | null
+    >(
+      React.useCallback(
+        (callback) => {
+          return subscribeToContextManager(contextManager, () => {
+            const agent = getCurrentAccountFromContextManager(contextManager);
+
+            if (agent._type === "Anonymous") {
+              return () => {};
+            }
+
+            observable.reset();
+
+            const Schema = agent.constructor as CoValueClass<Acc>;
+
+            return observable
+              .getCurrentObservable()
+              .subscribe(
+                Schema,
+                agent.id,
+                agent,
+                depth ?? ([] as D),
+                callback,
+                () => {
+                  callback();
+                },
+              );
+          });
+        },
+        [contextManager],
+      ),
+      () => observable.getCurrentValue(),
+      () => observable.getCurrentValue(),
     );
 
     if ("me" in context) {
