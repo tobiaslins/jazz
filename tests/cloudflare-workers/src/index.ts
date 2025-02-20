@@ -48,11 +48,9 @@ app.get("/", async (c) => {
     crypto,
   });
 
-  await admin.worker.waitForAllCoValuesSync();
+  const { root } = await admin.worker.ensureLoaded({ root: {} });
 
   await admin.done();
-
-  const { root } = await admin.worker.ensureLoaded({ root: {} });
 
   return c.json({
     text: root.text,
