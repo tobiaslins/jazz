@@ -1,11 +1,6 @@
 import React from "react";
 
-import {
-  Account,
-  AuthSecretStorage,
-  JazzContextManager,
-  JazzContextType,
-} from "jazz-tools";
+import { Account, JazzContextManager, JazzContextType } from "jazz-tools";
 
 export interface Register {}
 

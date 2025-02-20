@@ -43,6 +43,10 @@ export class JazzContextManager<
   protected context: PlatformSpecificContext<Acc> | undefined;
   protected props: P | undefined;
   protected authSecretStorage = new AuthSecretStorage();
+  protected authSecretStorageWithNotify = Object.assign(
+    Object.create(this.authSecretStorage),
+    { notify: true },
+  );
   protected authenticating = false;
 
   constructor() {
@@ -59,7 +63,11 @@ export class JazzContextManager<
     throw new Error("Not implemented");
   }
 
-  updateContext(props: P, context: PlatformSpecificContext<Acc>) {
+  async updateContext(
+    props: P,
+    context: PlatformSpecificContext<Acc>,
+    authProps?: JazzContextManagerAuthProps,
+  ) {
     // When authenticating we don't want to close the previous context
     // because we might need to handle the onAnonymousAccountDiscarded callback
     if (!this.authenticating) {
@@ -75,6 +83,12 @@ export class JazzContextManager<
       logOut: this.logOut,
     };
 
+    if (authProps?.credentials) {
+      this.authSecretStorage.emitUpdate(authProps.credentials);
+    } else {
+      this.authSecretStorage.emitUpdate(await this.authSecretStorage.get());
+    }
+
     this.notify();
   }
 
@@ -88,7 +102,9 @@ export class JazzContextManager<
   }
 
   getAuthSecretStorage() {
-    return this.authSecretStorage;
+    // External updates of the auth secret storage are notified by default (e.g. when registering a new Auth provider)
+    // We skip internal notify to ensure that the isAuthenticated changes are notified along with the context updates
+    return this.authSecretStorageWithNotify;
   }
 
   logOut = async () => {
