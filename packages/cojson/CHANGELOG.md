@@ -1,5 +1,12 @@
 # cojson
 
+## 0.10.7
+
+### Patch Changes
+
+- 0f83320: Use jazz-crypto-rs isomorphic bundle
+- 012022d: Improve error logging on sync errors
+
 ## 0.10.6
 
 ### Patch Changes

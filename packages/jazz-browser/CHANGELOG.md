@@ -1,5 +1,22 @@
 # jazz-browser
 
+## 0.10.7
+
+### Patch Changes
+
+- 1136d9b: Fixed isAuthenticated out-of-sync with the account state during the logOut and authenticate flows
+- bf76d79: enable Cmd+J by default to launch inspector on dev
+- 0eed228: Fixes clerk auth flow
+- Updated dependencies [0f83320]
+- Updated dependencies [012022d]
+- Updated dependencies [1136d9b]
+- Updated dependencies [1e625f3]
+- Updated dependencies [0eed228]
+  - cojson@0.10.7
+  - jazz-tools@0.10.7
+  - cojson-storage-indexeddb@0.10.7
+  - cojson-transport-ws@0.10.7
+
 ## 0.10.6
 
 ### Patch Changes

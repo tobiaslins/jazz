@@ -1,5 +1,18 @@
 # jazz-autosub
 
+## 0.10.7
+
+### Patch Changes
+
+- b0c5572: Add crypto option to provide PureJSCrypto on the runtimes where wasm is not supported
+- Updated dependencies [0f83320]
+- Updated dependencies [012022d]
+- Updated dependencies [1136d9b]
+- Updated dependencies [0eed228]
+  - cojson@0.10.7
+  - jazz-tools@0.10.7
+  - cojson-transport-ws@0.10.7
+
 ## 0.10.6
 
 ### Patch Changes
