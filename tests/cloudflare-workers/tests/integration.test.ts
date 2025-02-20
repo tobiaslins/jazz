@@ -1,12 +1,22 @@
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
 import { execa } from "execa";
 import { expect, test } from "vitest";
 
+// @ts-ignore
+const packageRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
+const projectRoot = join(packageRoot, "../..");
+
 test("server responds with hello world", async () => {
   // Start the dev server
-  const server = execa("pnpm", ["dev"], {
-    cwd: process.cwd(),
-    stderr: "inherit",
-  });
+  const server = execa(
+    join(projectRoot, "node_modules/.bin/wrangler"),
+    ["dev"],
+    {
+      cwd: packageRoot,
+      stderr: "inherit",
+    },
+  );
 
   try {
     // Wait for server to be ready
