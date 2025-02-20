@@ -500,7 +500,9 @@ async function generateDetailedDocs(docs) {
     "- [Examples](https://jazz.tools/examples): Code examples and tutorials\n",
   );
 
-  await writeDocsFile("llms-full.txt", output.join("\n"));
+  const content = output.join("\n");
+  await writeDocsFile("llms.txt", content);
+  await writeDocsFile("llms-full.txt", content);
 }
 
 // Main execution
