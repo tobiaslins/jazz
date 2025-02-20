@@ -13,9 +13,7 @@ function App() {
       <header>
         <nav className="container flex justify-between items-center py-3">
           {isAuthenticated ? (
-            <span>
-              You're logged in as <strong>{me?.profile?.name}</strong>
-            </span>
+            <span>You're logged in.</span>
           ) : (
             <span>Authenticate to share the data with another device.</span>
           )}
@@ -26,7 +24,10 @@ function App() {
         <Logo />
 
         <div className="text-center">
-          <h1>Welcome{me?.profile.name ? <>, {me?.profile.name}</> : ""}!</h1>
+          <h1>
+            Welcome{me?.profile.firstName ? <>, {me?.profile.firstName}</> : ""}
+            !
+          </h1>
           {!!me?.root.age && (
             <p>As of today, you are {me.root.age} years old.</p>
           )}
