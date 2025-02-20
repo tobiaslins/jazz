@@ -126,9 +126,7 @@ export function useCoState<V extends CoValue, D>(
 
           return observable
             .getCurrentObservable()
-            .subscribe(Schema, id, agent, depth, callback, () => {
-              callback();
-            });
+            .subscribe(Schema, id, agent, depth, callback, callback);
         });
       },
       [Schema, id, contextManager],
@@ -188,9 +186,7 @@ export function createUseAccountHooks<Acc extends Account>() {
                 agent,
                 depth ?? ([] as D),
                 callback,
-                () => {
-                  callback();
-                },
+                callback,
               );
           });
         },
@@ -246,9 +242,7 @@ export function createUseAccountHooks<Acc extends Account>() {
                 agent,
                 depth ?? ([] as D),
                 callback,
-                () => {
-                  callback();
-                },
+                callback,
               );
           });
         },
