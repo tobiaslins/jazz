@@ -64,7 +64,7 @@ export class JazzBrowserContextManager<
       });
     }
 
-    this.updateContext(props, currentContext);
+    await this.updateContext(props, currentContext, authProps);
   }
 
   propsChanged(props: JazzContextManagerProps<Acc>) {

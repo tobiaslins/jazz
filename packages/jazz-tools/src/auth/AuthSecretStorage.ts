@@ -16,6 +16,7 @@ export type AuthSetPayload = {
 export class AuthSecretStorage {
   private listeners: Set<(isAuthenticated: boolean) => void>;
   public isAuthenticated: boolean;
+  notify = false;
 
   constructor() {
     this.listeners = new Set();
@@ -109,7 +110,10 @@ export class AuthSecretStorage {
         provider: payload.provider,
       }),
     );
-    this.emitUpdate(payload);
+
+    if (this.notify) {
+      this.emitUpdate(payload);
+    }
   }
 
   getIsAuthenticated(data: AuthCredentials | null): boolean {
@@ -138,6 +142,9 @@ export class AuthSecretStorage {
   async clear() {
     const kvStore = KvStoreContext.getInstance().getStorage();
     await kvStore.delete(STORAGE_KEY);
-    this.emitUpdate(null);
+
+    if (this.notify) {
+      this.emitUpdate(null);
+    }
   }
 }

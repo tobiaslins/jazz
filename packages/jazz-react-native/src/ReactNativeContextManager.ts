@@ -56,7 +56,7 @@ export class ReactNativeContextManager<
       });
     }
 
-    this.updateContext(props, currentContext);
+    await this.updateContext(props, currentContext, authProps);
   }
 
   propsChanged(props: JazzContextManagerProps<Acc>) {

@@ -222,9 +222,6 @@ export async function createJazzContext<Acc extends Account>(options: {
         authSecretStorage.clear();
       },
     });
-
-    // To align the isAuthenticated state with the credentials
-    authSecretStorage.emitUpdate(credentials);
   } else {
     const secretSeed = options.crypto.newRandomSecretSeed();
 

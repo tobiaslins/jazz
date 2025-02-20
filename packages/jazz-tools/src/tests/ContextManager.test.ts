@@ -26,6 +26,7 @@ import {
   setupJazzTestSync,
 } from "../testing";
 
+// @ts-ignore Typescript in VSCode doesn't like top level await
 const Crypto = await WasmCrypto.create();
 
 class TestJazzContextManager<Acc extends Account> extends JazzContextManager<
@@ -53,16 +54,20 @@ class TestJazzContextManager<Acc extends Account> extends JazzContextManager<
       AccountSchema: props.AccountSchema,
     });
 
-    this.updateContext(props, {
-      me: context.account,
-      node: context.node,
-      done: () => {
-        context.done();
+    await this.updateContext(
+      props,
+      {
+        me: context.account,
+        node: context.node,
+        done: () => {
+          context.done();
+        },
+        logOut: async () => {
+          await context.logOut();
+        },
       },
-      logOut: async () => {
-        await context.logOut();
-      },
-    });
+      authProps,
+    );
   }
 }
 
