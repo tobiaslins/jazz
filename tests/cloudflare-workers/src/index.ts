@@ -1,3 +1,5 @@
+import { createWebSocketPeer } from "cojson-transport-ws";
+import { PureJSCrypto } from "cojson/crypto/PureJSCrypto";
 import { Hono } from "hono";
 import { startWorker } from "jazz-nodejs";
 import { CoMap, co } from "jazz-tools";
@@ -15,28 +17,46 @@ class MyAccount extends Account {
   migrate(): void {
     if (this.root === undefined) {
       this.root = MyAccountRoot.create({
-        text: "Hello, world!",
+        text: "Hello world!",
       });
     }
   }
 }
 
+const syncServer = "wss://cloud.jazz.tools/?key=jazz@jazz.tools";
+
+const crypto = await PureJSCrypto.create();
+
 app.get("/", async (c) => {
+  const peer = createWebSocketPeer({
+    id: "upstream",
+    websocket: new WebSocket(syncServer),
+    role: "server",
+  });
+
+  const account = await Account.create({
+    creationProps: { name: "Cloudflare test account" },
+    peersToLoadFrom: [peer],
+    crypto,
+  });
+
   const admin = await startWorker({
-    accountID: "co_z5LYz3a1ZVmWUJ8h5RbMmXHdd3T",
-    accountSecret:
-      "sealerSecret_zHS7tUv8UDyCaXr2fzNJVtFCnTXVESgYuq1KcZEgPB4P9/signerSecret_zAXTogfyFXgzLW3sAUSRZhWap8BJXCfUq9DahZFLyRJZB",
+    accountID: account.id,
+    accountSecret: account._raw.core.node.account.agentSecret,
     AccountSchema: MyAccount,
-    syncServer: "wss://cloud.jazz.tools/?key=jazz@jazz.tools",
+    syncServer,
+    crypto,
   });
 
   await admin.worker.waitForAllCoValuesSync();
 
   await admin.done();
 
-  const root = admin.worker.root?.toJSON();
+  const { root } = await admin.worker.ensureLoaded({ root: {} });
 
-  return c.json(root);
+  return c.json({
+    text: root.text,
+  });
 });
 
 export default app;
