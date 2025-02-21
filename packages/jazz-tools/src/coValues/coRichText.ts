@@ -1,4 +1,4 @@
-import { co } from "../implementation/schema.js";
+import { co } from "../internal.js";
 import type { Account } from "./account.js";
 import { CoList } from "./coList.js";
 import { CoMap, type CoMapInit } from "./coMap.js";
