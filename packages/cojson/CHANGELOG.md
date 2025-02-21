@@ -1,5 +1,11 @@
 # cojson
 
+## 0.10.8
+
+### Patch Changes
+
+- 153dc99: Catch errors on CoValueCore subscribers to avoid effects on the sync
+
 ## 0.10.7
 
 ### Patch Changes

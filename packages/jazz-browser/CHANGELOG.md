@@ -1,5 +1,17 @@
 # jazz-browser
 
+## 0.10.8
+
+### Patch Changes
+
+- 1e87fc7: Support external authenticators on passkey auth
+- Updated dependencies [153dc99]
+- Updated dependencies [2fb6428]
+  - cojson@0.10.8
+  - jazz-tools@0.10.8
+  - cojson-storage-indexeddb@0.10.8
+  - cojson-transport-ws@0.10.8
+
 ## 0.10.7
 
 ### Patch Changes

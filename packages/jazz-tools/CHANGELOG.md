@@ -1,5 +1,13 @@
 # jazz-tools
 
+## 0.10.8
+
+### Patch Changes
+
+- 2fb6428: Allow explicit keys when loading values from a CoMap.Record and throw when a required ref is undefined
+- Updated dependencies [153dc99]
+  - cojson@0.10.8
+
 ## 0.10.7
 
 ### Patch Changes
