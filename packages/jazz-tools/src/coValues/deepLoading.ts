@@ -33,19 +33,15 @@ export function fulfillsDepth(depth: any, value: CoValue): boolean {
         };
 
         if (map._raw.get(key) === undefined) {
-          if (!map._schema[key]) {
-            if (map._schema[ItemsSym]) {
+          if (!map._schema?.[key]) {
+            if (map._schema?.[ItemsSym]) {
               // CoMap.Record
               if (map._schema[ItemsSym].optional) {
                 continue;
               } else {
-                // We are logging the error here and not throwing because throwing here might stop the sync of the coValue
-                console.error(
-                  new Error(
-                    `The ref ${key} requested on ${map.constructor.name} is missing`,
-                  ),
+                throw new Error(
+                  `The ref ${key} requested on ${map.constructor.name} is missing`,
                 );
-                continue;
               }
             } else {
               throw new Error(
