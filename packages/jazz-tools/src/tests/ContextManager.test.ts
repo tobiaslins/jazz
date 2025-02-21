@@ -26,7 +26,6 @@ import {
   setupJazzTestSync,
 } from "../testing";
 
-// @ts-ignore Typescript in VSCode doesn't like top level await
 const Crypto = await WasmCrypto.create();
 
 class TestJazzContextManager<Acc extends Account> extends JazzContextManager<
