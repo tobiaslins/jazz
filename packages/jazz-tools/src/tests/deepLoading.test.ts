@@ -388,7 +388,7 @@ test("throw when calling ensureLoaded on a ref that is not defined in the schema
   ).rejects.toThrow("Failed to deeply load CoValue " + root.id);
 });
 
-test.only("should not throw when calling ensureLoaded a record with a deleted ref", async () => {
+test("should not throw when calling ensureLoaded a record with a deleted ref", async () => {
   class JazzProfile extends CoMap {
     firstName = co.string;
   }
