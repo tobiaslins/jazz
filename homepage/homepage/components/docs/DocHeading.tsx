@@ -1,6 +1,5 @@
 "use client";
-import { Icon } from "gcmp-design-system/src/app/components/atoms/Icon";
-import { HashIcon } from "lucide-react";
+
 import { type ReactNode, useRef } from "react";
 
 interface HeadingProps extends React.HTMLAttributes<HTMLHeadingElement> {
