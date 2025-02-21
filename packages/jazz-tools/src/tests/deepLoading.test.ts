@@ -387,3 +387,47 @@ test("throw when calling ensureLoaded on a ref that is not defined in the schema
     }),
   ).rejects.toThrow("Failed to deeply load CoValue " + root.id);
 });
+
+test.only("should not throw when calling ensureLoaded a record with a deleted ref", async () => {
+  class JazzProfile extends CoMap {
+    firstName = co.string;
+  }
+
+  class JazzySnapStore extends CoMap.Record(co.ref(JazzProfile)) {}
+
+  const me = await Account.create({
+    creationProps: { name: "Tester McTesterson" },
+    crypto: Crypto,
+  });
+
+  const root = JazzySnapStore.create(
+    {
+      profile: JazzProfile.create({ firstName: "John" }, me),
+    },
+    me,
+  );
+
+  let value: any;
+  let unsub = root.subscribe([{}], (v) => {
+    value = v;
+  });
+
+  await waitFor(() => expect(value.profile).toBeDefined());
+
+  delete root.profile;
+
+  await waitFor(() => expect(value.profile).toBeUndefined());
+
+  unsub();
+
+  value = undefined;
+  unsub = root.subscribe([{}], (v) => {
+    value = v;
+  });
+
+  await waitFor(() => expect(value).toBeDefined());
+
+  expect(value.profile).toBeUndefined();
+
+  unsub();
+});

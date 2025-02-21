@@ -29,7 +29,6 @@ export function fulfillsDepth(depth: any, value: CoValue): boolean {
         const map = value as unknown as {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           [key: string]: any;
-          _refs: { [key: string]: Ref<CoValue> | undefined };
         };
 
         if (map._raw.get(key) === undefined) {
