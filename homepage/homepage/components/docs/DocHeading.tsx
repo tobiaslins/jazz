@@ -12,16 +12,15 @@ export const Heading = ({ children, tag: Tag, ...props }: HeadingProps) => {
 
   return (
     <Tag {...props} className="group">
-      <div className="absolute hidden sm:block">
-        <a
-          href={`#${props.id}`}
-          className="-ml-6 mt-1.5 flex items-center opacity-0 group-hover:opacity-100 transition-opacity"
-          aria-label="Navigate to header"
-          ref={linkRef}
-        >
-          <Icon name="hash" size="sm" />
-        </a>
-      </div>
+      <a
+        href={`#${props.id}`}
+        className="no-underline float-left absolute -ml-[1.25em] hidden sm:block opacity-0 group-hover:opacity-100 transition-opacity"
+        aria-label="Navigate to header"
+        ref={linkRef}
+      >
+        <span aria-hidden="true">#</span>
+      </a>
+
       <span className="cursor-pointer" onClick={() => linkRef.current?.click()}>
         {children}
       </span>
