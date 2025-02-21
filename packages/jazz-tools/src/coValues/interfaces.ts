@@ -337,7 +337,14 @@ export function subscribeToCoValue<
       value,
       cls as CoValueClass<V> & CoValueFromRaw<V>,
       (update, subscription) => {
-        const result = fulfillsDepth(options.resolve, update);
+        let result;
+
+        try {
+          result = fulfillsDepth(options.resolve, update);
+        } catch (e) {
+          options.onUnauthorized?.();
+          return;
+        }
 
         if (result === "unauthorized") {
           options.onUnauthorized?.();
@@ -363,6 +370,7 @@ export function subscribeToCoValue<
       .then((value) => subscribe(value))
       .catch((e) => {
         console.error("Failed to load / subscribe to CoValue", e);
+        options.onUnavailable?.();
       });
   }
 
