@@ -10,7 +10,8 @@
     "jsx": "react-jsx",
     "forceConsistentCasingInFileNames": true,
     "noUncheckedIndexedAccess": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "declaration": true
   },
   "include": ["./src/**/*"]
 }

@@ -149,14 +149,19 @@ export class Group extends CoValueBase implements CoValue {
     return this._raw.removeMember(member === "everyone" ? member : member._raw);
   }
 
-  get members() {
+  get members(): Array<{
+    id: Everyone | ID<Account>;
+    role: Role;
+    ref: Ref<Account> | undefined;
+    account: Account | undefined;
+  }> {
     return this._raw
       .keys()
       .filter((key) => {
         return key === "everyone" || key.startsWith("co_");
       })
       .map((id) => {
-        const role = this._raw.get(id as Everyone | RawAccountID);
+        const role = this._raw.get(id as Everyone | RawAccountID) as Role;
         const accountID =
           id === "everyone" ? undefined : (id as unknown as ID<Account>);
         const ref =
@@ -166,10 +171,11 @@ export class Group extends CoValueBase implements CoValue {
             this._loadedAs,
             this._schema[MembersSym],
           );
-        const accessRef = () => ref?.accessFrom(this, "members." + id);
+        const accessRef = () =>
+          ref?.accessFrom(this, "members." + id) as Account | undefined;
 
         return {
-          id: id as unknown as Everyone | ID<this[MembersSym]>,
+          id: id === "everyone" ? "everyone" : (id as unknown as ID<Account>),
           role,
           ref,
           get account() {

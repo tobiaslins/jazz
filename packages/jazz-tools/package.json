@@ -2,14 +2,14 @@
   "name": "jazz-tools",
   "module": "dist/index.js",
   "main": "dist/index.js",
-  "types": "src/index.ts",
+  "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
+      "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
     "./testing": {
-      "types": "./src/testing.ts",
+      "types": "./dist/testing.d.ts",
       "default": "./dist/testing.js"
     },
     "./dist/*": "./dist/*",
@@ -28,6 +28,7 @@
     "dev": "tsup --watch",
     "test": "vitest --run --root ../../ --project jazz-tools",
     "test:watch": "vitest --watch --root ../../ --project jazz-tools",
+    "types": "tsc --emitDeclarationOnly --outDir dist",
     "build": "tsup",
     "prepublishOnly": "npm run build"
   },

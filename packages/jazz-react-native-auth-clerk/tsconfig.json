@@ -10,7 +10,8 @@
     "jsx": "react-native",
     "forceConsistentCasingInFileNames": true,
     "noUncheckedIndexedAccess": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "declaration": true
   },
   "include": ["./src/**/*"],
   "exclude": ["./node_modules", "./src/tests"]
