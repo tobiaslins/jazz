@@ -136,6 +136,7 @@ const config = {
               padding: "0.15rem 0.25rem",
               borderRadius: "2px",
               whiteSpace: "nowrap",
+              fontWeight: 400,
             },
             p: {
               marginBottom: theme("spacing.3"),
