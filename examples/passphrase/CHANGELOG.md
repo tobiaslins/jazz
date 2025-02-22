@@ -1,5 +1,11 @@
 # passphrase
 
+## 0.0.49
+
+### Patch Changes
+
+- jazz-react@0.10.9
+
 ## 0.0.48
 
 ### Patch Changes
