@@ -11,6 +11,7 @@ import {
   createJazzReactNativeContext,
   createJazzReactNativeGuestContext,
 } from "./platform.js";
+import { KvStoreContext } from "./storage/kv-store-context.js";
 
 export type JazzContextManagerProps<Acc extends Account> = {
   guestMode?: boolean;
@@ -57,6 +58,10 @@ export class ReactNativeContextManager<
     }
 
     await this.updateContext(props, currentContext, authProps);
+  }
+
+  getKvStore(): KvStore {
+    return KvStoreContext.getInstance().getStorage();
   }
 
   propsChanged(props: JazzContextManagerProps<Acc>) {
