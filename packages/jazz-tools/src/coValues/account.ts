@@ -1,7 +1,9 @@
 import {
+  AccountRole,
   AgentSecret,
   CoID,
   CryptoProvider,
+  Everyone,
   InviteSecret,
   LocalNode,
   Peer,
@@ -166,6 +168,30 @@ export class Account extends CoValueBase implements CoValue {
     if (this.isLocalNodeOwner) {
       return "admin";
     }
+  }
+
+  getRoleOf(member: Everyone | ID<Account> | "me") {
+    if (member === "me") {
+      return this.isMe ? "admin" : undefined;
+    }
+
+    if (member === this.id) {
+      return "admin";
+    }
+
+    return undefined;
+  }
+
+  get members() {
+    return [{ id: this.id, role: "admin", account: this }];
+  }
+
+  hasPermissions(
+    member: Everyone | ID<Account> | "me",
+    permissions: AccountRole,
+  ) {
+    permissions;
+    return this.getRoleOf(member) === "admin";
   }
 
   async acceptInvite<V extends CoValue>(

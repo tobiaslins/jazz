@@ -77,7 +77,7 @@ export class RawGroup<
    *
    * @category 1. Role reading
    */
-  roleOf(accountID: RawAccountID): Role | undefined {
+  roleOf(accountID: RawAccountID | typeof EVERYONE): Role | undefined {
     return this.roleOfInternal(accountID)?.role;
   }
 
@@ -385,6 +385,18 @@ export class RawGroup<
     return this.keys().filter((key): key is RawAccountID | AgentID => {
       return key.startsWith("co_") || isAgentID(key);
     });
+  }
+
+  getAllMemberKeysSet() {
+    const memberKeys = new Set(this.getMemberKeys());
+
+    for (const { group } of this.getParentGroups()) {
+      for (const key of group.getAllMemberKeysSet()) {
+        memberKeys.add(key);
+      }
+    }
+
+    return memberKeys;
   }
 
   /** @internal */
