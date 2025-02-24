@@ -333,9 +333,9 @@ export class InboxSender<I extends CoValue, O extends CoValue | undefined> {
     }
 
     if (
-      inboxOwnerProfileRaw.group.myRole() !== "reader" &&
-      inboxOwnerProfileRaw.group.myRole() !== "writer" &&
-      inboxOwnerProfileRaw.group.myRole() !== "admin"
+      inboxOwnerProfileRaw.group.roleOf(currentAccount._raw.id) !== "reader" &&
+      inboxOwnerProfileRaw.group.roleOf(currentAccount._raw.id) !== "writer" &&
+      inboxOwnerProfileRaw.group.roleOf(currentAccount._raw.id) !== "admin"
     ) {
       throw new Error(
         "Insufficient permissions to access the inbox, make sure its user profile is publicly readable.",

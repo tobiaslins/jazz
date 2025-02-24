@@ -114,6 +114,12 @@ export class RawGroup<
       }
     }
 
+    if (!roleInfo && accountID !== "everyone") {
+      const everyoneRole = this.get("everyone");
+
+      if (everyoneRole) return { role: everyoneRole, via: undefined };
+    }
+
     return roleInfo;
   }
 
