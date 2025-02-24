@@ -187,13 +187,10 @@ class CustomAccount extends Account {
     creationProps?: { name: string } | undefined,
   ) {
     if (creationProps) {
-      this.profile = CustomProfile.create(
-        {
-          name: creationProps.name,
-          stream: TestStream.create([], { owner: this }),
-        },
-        { owner: this },
-      );
+      this.profile = CustomProfile.create({
+        name: creationProps.name,
+        stream: TestStream.create([], { owner: this }),
+      });
       this.root = TestMap.create(
         { list: TestList.create([], { owner: this }) },
         { owner: this },

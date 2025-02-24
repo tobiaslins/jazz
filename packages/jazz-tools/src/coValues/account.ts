@@ -285,13 +285,29 @@ export class Account extends CoValueBase implements CoValue {
   }
 
   async applyMigration(creationProps?: AccountCreationProps) {
-    if (creationProps) {
+    await this.migrate(creationProps);
+
+    // if the user has not defined a profile themselves, we create one
+    if (this.profile === undefined && creationProps) {
       const profileGroup = RegisteredSchemas["Group"].create({ owner: this });
-      profileGroup.addMember("everyone", "reader");
-      this.profile = Profile.create(
-        { name: creationProps.name },
-        { owner: profileGroup },
-      );
+
+      this.profile = Profile.create({ name: creationProps.name }, profileGroup);
+      this.profile._owner.addMember("everyone", "reader");
+    } else if (this.profile && creationProps) {
+      // We enforce the name to be set to the creationProps.name, as the user may have created the profile with a different name
+      this.profile.name = creationProps.name;
+
+      // by convention, the profile must be owned by a publicly readable group, in case the user
+      // created the profile themselves and has not set the owner group to be (at least) publicly readable,
+      // we add the everyone as a reader.
+      if (
+        !this.profile._owner.members.some(
+          (m) =>
+            m.id === "everyone" && (m.role === "reader" || m.role === "writer"),
+        )
+      ) {
+        this.profile._owner.addMember("everyone", "reader");
+      }
     }
 
     const node = this._raw.core.node;
@@ -304,8 +320,6 @@ export class Account extends CoValueBase implements CoValue {
       profile.set("inbox", inboxRoot.id);
       profile.set("inboxInvite", inboxRoot.inviteLink);
     }
-
-    await this.migrate(creationProps);
   }
 
   // Placeholder method for subclasses to override
