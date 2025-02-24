@@ -240,7 +240,7 @@ module.exports = withNativeWind(config, { input: "./src/global.css" });
 
   // Step 5: Clone cursor-docs
   const docsSpinner = ora({
-    text: chalk.blue(`Adding cursor-docs...`),
+    text: chalk.blue(`Adding .cursor directory...`),
     spinner: "dots",
   }).start();
 
@@ -256,15 +256,21 @@ module.exports = withNativeWind(config, { input: "./src/global.css" });
     // Clone cursor-docs to temp directory
     await emitter.clone(tempDocsDir);
 
-    // Copy contents to project root
-    fs.cpSync(tempDocsDir, projectName, { recursive: true });
+    // Copy only the .cursor directory to project root
+    const cursorDirSource = `${tempDocsDir}/.cursor`;
+    const cursorDirTarget = `${projectName}/.cursor`;
+
+    if (fs.existsSync(cursorDirSource)) {
+      fs.cpSync(cursorDirSource, cursorDirTarget, { recursive: true });
+      docsSpinner.succeed(chalk.green(".cursor directory added successfully"));
+    } else {
+      docsSpinner.fail(chalk.red(".cursor directory not found in cursor-docs"));
+    }
 
     // Clean up temp directory
     fs.rmSync(tempDocsDir, { recursive: true, force: true });
-
-    docsSpinner.succeed(chalk.green("Cursor docs added successfully"));
   } catch (error) {
-    docsSpinner.fail(chalk.red("Failed to add cursor docs"));
+    docsSpinner.fail(chalk.red("Failed to add .cursor directory"));
     throw error;
   }
 
