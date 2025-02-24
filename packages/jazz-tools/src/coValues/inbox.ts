@@ -332,6 +332,16 @@ export class InboxSender<I extends CoValue, O extends CoValue | undefined> {
       throw new Error("Failed to load the inbox owner profile");
     }
 
+    if (
+      inboxOwnerProfileRaw.group.myRole() !== "reader" &&
+      inboxOwnerProfileRaw.group.myRole() !== "writer" &&
+      inboxOwnerProfileRaw.group.myRole() !== "admin"
+    ) {
+      throw new Error(
+        "Insufficient permissions to access the inbox, make sure its user profile is publicly readable.",
+      );
+    }
+
     const inboxInvite = inboxOwnerProfileRaw.get("inboxInvite");
 
     if (!inboxInvite) {

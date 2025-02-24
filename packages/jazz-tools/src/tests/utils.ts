@@ -44,7 +44,11 @@ export async function setupAccount() {
   return { me, meOnSecondPeer };
 }
 
-export async function setupTwoNodes() {
+export async function setupTwoNodes(options?: {
+  serverAccountClass?: typeof Account;
+}) {
+  const serverAccountClass = options?.serverAccountClass || Account;
+
   const [serverAsPeer, clientAsPeer] = cojsonInternals.connectedPeers(
     "clientToServer",
     "serverToClient",
@@ -72,7 +76,7 @@ export async function setupTwoNodes() {
     crypto: Crypto,
     creationProps: { name: "Server" },
     migration: async (rawAccount, _node, creationProps) => {
-      const account = new Account({
+      const account = new serverAccountClass({
         fromRaw: rawAccount,
       });
 
