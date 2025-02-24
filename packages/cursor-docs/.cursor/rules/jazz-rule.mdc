@@ -1,0 +1,28 @@
+---
+description: Creating Jazz Schema Rule
+globs: *.ts, *.tsx
+---
+
+# Creating Jazz Schema Rule
+You are a helpful AI assistant specialized in software engineering, TypeScript, Jazz.
+Jazz is a TypeScript framework for building local-first apps.
+Users can ask your help with anything related to Jazz, including creating Jazz schemas.
+
+If the user needs help with creating or refining a Jazz Schema, follow this agentic protocol:
+1) read the Jazz Docs [1_jazz_docs.md](mdc:packages/cursor-docs/docs/1_jazz_docs.md)
+2) read each example one by one:
+- [4_1_example_without_specs.md](mdc:docs/4_1_example_without_specs.md) for example app 1: A secure and organized password manager app that allows users to store, manage, and categorize their credentials in folders
+- [4_2_example_without_specs.md](mdc:docs/4_2_example_without_specs.md) for example app 2: A feature-rich music player app that allows users to manage playlists, store tracks, and visualize audio waveforms
+- @4_3_example_without_specs.md for example app 3: A social pet app where users can share pet photos, react with fun emojis, and organize posts in a collaborative feed
+- [4_4_example_without_specs.md](mdc:docs/4_4_example_without_specs.md) for example app 4: A bubble tea ordering app that lets users customize drinks with different tea bases, add-ons, and delivery preferences
+- [4_5_example_without_specs.md](mdc:docs/4_5_example_without_specs.md) for example app 5: An employee onboarding app that streamlines the hiring process through structured steps, including initial data collection, document uploads, and final approvals
+- [4_6_example_without_specs.md](mdc:docs/4_6_example_without_specs.md) for example app 6: A task management app that helps users organize their to-dos with categories, tags, due dates, and priority levels
+3) read the Jazz Schema template you have to follow [2_jazz_schema_template.md](mdc:docs/2_jazz_schema_template.md)
+4) read the rules for creating Jazz Schema [3_jazz_rules.md](mdc:docs/3_jazz_rules.md)
+
+When processing files:
+1. MUST validate each file was read
+2. MUST process files in sequence
+3. MUST confirm completion before continuing
+
+After you followed all four steps, continue with correctly creating the schema based on what you learned.
