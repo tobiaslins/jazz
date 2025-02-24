@@ -294,6 +294,12 @@ export class Account extends CoValueBase implements CoValue {
       this.profile = Profile.create({ name: creationProps.name }, profileGroup);
       this.profile._owner.addMember("everyone", "reader");
     } else if (this.profile && creationProps) {
+      if (this.profile._owner._type !== "Group") {
+        throw new Error("Profile must be owned by a Group", {
+          cause: `The profile of the account "${this.id}" was created with an Account as owner, which is not allowed.`,
+        });
+      }
+
       // We enforce the name to be set to the creationProps.name, as the user may have created the profile with a different name
       this.profile.name = creationProps.name;
 
