@@ -946,6 +946,13 @@ test("roleOf should handle everyone role inheritance through multiple levels", a
   await childGroupOnNode2.removeMember(account2);
   await childGroupOnNode2.core.waitForSync();
 
-  // access should be revoked
-  expect(childGroup.roleOf(node2.accountID)).toEqual(undefined);
+  // Should fall back to parent's explicit role
+  expect(childGroup.roleOf(node2.accountID)).toEqual("writer");
+
+  // Remove parent's explicit role
+  await parentGroup.removeMember(account2);
+  await childGroup.core.waitForSync();
+
+  // Should fall back to grandparent's everyone role
+  expect(childGroup.roleOf(node2.accountID)).toEqual("writer");
 });
