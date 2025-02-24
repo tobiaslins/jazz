@@ -299,21 +299,8 @@ export class Account extends CoValueBase implements CoValue {
           cause: `The profile of the account "${this.id}" was created with an Account as owner, which is not allowed.`,
         });
       }
-
       // We enforce the name to be set to the creationProps.name, as the user may have created the profile with a different name
       this.profile.name = creationProps.name;
-
-      // by convention, the profile must be owned by a publicly readable group, in case the user
-      // created the profile themselves and has not set the owner group to be (at least) publicly readable,
-      // we add the everyone as a reader.
-      if (
-        !this.profile._owner.members.some(
-          (m) =>
-            m.id === "everyone" && (m.role === "reader" || m.role === "writer"),
-        )
-      ) {
-        this.profile._owner.addMember("everyone", "reader");
-      }
     }
 
     const node = this._raw.core.node;
