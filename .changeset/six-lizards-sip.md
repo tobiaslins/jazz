@@ -3,4 +3,4 @@
 "form": minor
 ---
 
-Sets `profile.name` only if a non-empty username is passed to `signUp`
+PasskeyAuth: Sets `profile.name` only if a non-empty username is passed to `signUp`
