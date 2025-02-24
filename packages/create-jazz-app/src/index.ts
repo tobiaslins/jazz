@@ -268,6 +268,20 @@ module.exports = withNativeWind(config, { input: "./src/global.css" });
     throw error;
   }
 
+  // Step 6: Git init
+  const gitSpinner = ora({
+    text: chalk.blue("Initializing git repository..."),
+    spinner: "dots",
+  }).start();
+
+  try {
+    execSync(`cd "${projectName}" && git init`, { stdio: "pipe" });
+    gitSpinner.succeed(chalk.green("Git repository initialized"));
+  } catch (error) {
+    gitSpinner.fail(chalk.red("Failed to initialize git repository"));
+    throw error;
+  }
+
   // Final success message
   console.log("\n" + chalk.green.bold("✨ Project setup completed! ✨\n"));
   console.log(chalk.cyan("To get started:"));
