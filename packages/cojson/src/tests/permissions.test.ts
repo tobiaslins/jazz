@@ -2866,6 +2866,110 @@ test("revoking access on a child group doesn't block access to that group if a m
   expect(childContentAsWriter.get("foo")).toEqual("baz");
 });
 
+test("revoking access on a parent group doesn't block access to the child group if the same role is inheritable from a grand-parent group", async () => {
+  const { group, node } = newGroupHighLevel();
+  const parentGroup = node.createGroup();
+  const grandParentGroup = node.createGroup();
+
+  group.extend(parentGroup);
+  parentGroup.extend(grandParentGroup);
+
+  const writer = node.createAccount();
+  grandParentGroup.addMember(writer, "writer");
+  parentGroup.addMember(writer, "writer");
+  await parentGroup.removeMember(writer);
+
+  const childObject = node.createCoValue({
+    type: "comap",
+    ruleset: { type: "ownedByGroup", group: group.id },
+    meta: null,
+    ...Crypto.createdNowUnique(),
+  });
+  const childMap = expectMap(childObject.getCurrentContent());
+
+  childMap.set("foo", "bar", "private");
+
+  const childContentAsWriter = expectMap(
+    childObject
+      .testWithDifferentAccount(writer, Crypto.newRandomSessionID(writer.id))
+      .getCurrentContent(),
+  );
+
+  childContentAsWriter.set("foo", "baz", "private");
+
+  expect(childContentAsWriter.get("foo")).toEqual("baz");
+});
+
+test("revoking access on a parent group doesn't block access to the child group if the same role is inheritable from another parent group", async () => {
+  const { group, node } = newGroupHighLevel();
+  const parentGroup1 = node.createGroup();
+  const parentGroup2 = node.createGroup();
+
+  group.extend(parentGroup1);
+  group.extend(parentGroup2);
+
+  const writer = node.createAccount();
+  parentGroup1.addMember(writer, "writer");
+  parentGroup2.addMember(writer, "writer");
+  await parentGroup1.removeMember(writer);
+
+  const childObject = node.createCoValue({
+    type: "comap",
+    ruleset: { type: "ownedByGroup", group: group.id },
+    meta: null,
+    ...Crypto.createdNowUnique(),
+  });
+  const childMap = expectMap(childObject.getCurrentContent());
+
+  childMap.set("foo", "bar", "private");
+
+  const childContentAsWriter = expectMap(
+    childObject
+      .testWithDifferentAccount(writer, Crypto.newRandomSessionID(writer.id))
+      .getCurrentContent(),
+  );
+
+  childContentAsWriter.set("foo", "baz", "private");
+
+  expect(childContentAsWriter.get("foo")).toEqual("baz");
+});
+
+test("a user should have write access if the parent group has everyone as a writer", async () => {
+  const { group, node } = newGroupHighLevel();
+  const parentGroup = node.createGroup();
+
+  group.extend(parentGroup);
+
+  parentGroup.addMember("everyone", "writer");
+
+  const randomUser = node.createAccount();
+
+  group.addMember(randomUser, "reader");
+
+  const childObject = node.createCoValue({
+    type: "comap",
+    ruleset: { type: "ownedByGroup", group: group.id },
+    meta: null,
+    ...Crypto.createdNowUnique(),
+  });
+  const childMap = expectMap(childObject.getCurrentContent());
+
+  childMap.set("foo", "bar", "private");
+
+  const childContentAsRandomUser = expectMap(
+    childObject
+      .testWithDifferentAccount(
+        randomUser,
+        Crypto.newRandomSessionID(randomUser.id),
+      )
+      .getCurrentContent(),
+  );
+
+  childContentAsRandomUser.set("foo", "baz", "private");
+
+  expect(childContentAsRandomUser.get("foo")).toEqual("baz");
+});
+
 test("High-level permissions work correctly when a group is extended", async () => {
   const { group, node } = newGroupHighLevel();
   const parentGroup = node.createGroup();
