@@ -85,10 +85,10 @@ export class RawGroup<
   roleOfInternal(
     accountID: RawAccountID | AgentID | typeof EVERYONE,
   ): { role: Role; via: CoID<RawGroup> | undefined } | undefined {
-    const roleHere = this.get(accountID);
+    let roleHere = this.get(accountID);
 
     if (roleHere === "revoked") {
-      return undefined;
+      roleHere = undefined;
     }
 
     let roleInfo:
@@ -112,6 +112,12 @@ export class RawGroup<
       if (isMorePermissiveAndShouldInherit(roleToInherit, roleInfo?.role)) {
         roleInfo = { role: roleToInherit, via: group.id };
       }
+    }
+
+    if (!roleInfo && accountID !== "everyone") {
+      const everyoneRole = this.get("everyone");
+
+      if (everyoneRole) return { role: everyoneRole, via: undefined };
     }
 
     return roleInfo;

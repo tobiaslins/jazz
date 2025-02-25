@@ -14,38 +14,37 @@ beforeEach(async () => {
 });
 
 describe("Custom accounts and groups", async () => {
-  class CustomProfile extends Profile {
-    name = co.string;
-    color = co.string;
-  }
+  test("Custom account and group", async () => {
+    class CustomProfile extends Profile {
+      name = co.string;
+      color = co.string;
+    }
 
-  class CustomAccount extends Account {
-    profile = co.ref(CustomProfile);
-    root = co.ref(CoMap);
+    class CustomAccount extends Account {
+      profile = co.ref(CustomProfile);
+      root = co.ref(CoMap);
 
-    migrate(this: CustomAccount, creationProps?: { name: string }) {
-      if (creationProps) {
-        const profileGroup = Group.create({ owner: this });
-        profileGroup.addMember("everyone", "reader");
-        this.profile = CustomProfile.create(
-          { name: creationProps.name, color: "blue" },
-          { owner: this },
-        );
+      migrate(this: CustomAccount, creationProps?: { name: string }) {
+        if (creationProps) {
+          const profileGroup = Group.create({ owner: this });
+          profileGroup.addMember("everyone", "reader");
+          this.profile = CustomProfile.create(
+            { name: creationProps.name, color: "blue" },
+            profileGroup,
+          );
+        }
       }
     }
-  }
 
-  class CustomGroup extends Group {
-    profile = co.null;
-    root = co.null;
-    [co.members] = co.ref(CustomAccount);
+    class CustomGroup extends Group {
+      profile = co.null;
+      root = co.null;
+      [co.members] = co.ref(CustomAccount);
 
-    get nMembers() {
-      return this.members.length;
+      get nMembers() {
+        return this.members.length;
+      }
     }
-  }
-
-  test("Custom account and group", async () => {
     const me = await CustomAccount.create({
       creationProps: { name: "Hermes Puggington" },
       crypto: Crypto,
@@ -55,7 +54,7 @@ describe("Custom accounts and groups", async () => {
     expect(me.profile?.name).toBe("Hermes Puggington");
     expect(me.profile?.color).toBe("blue");
 
-    const group = new CustomGroup({ owner: me });
+    const group = CustomGroup.create({ owner: me });
     group.addMember("everyone", "reader");
 
     expect(group.members).toMatchObject([
@@ -93,6 +92,27 @@ describe("Custom accounts and groups", async () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((map._owner as any).nMembers).toBeUndefined();
     expect(map._owner.castAs(CustomGroup).nMembers).toBe(2);
+  });
+
+  test("Should throw when creating a profile with an account as owner", async () => {
+    class CustomAccount extends Account {
+      migrate(this: CustomAccount, creationProps?: { name: string }) {
+        if (creationProps) {
+          this.profile = Profile.create(
+            { name: creationProps.name },
+            // @ts-expect-error - only groups can own profiles, but we want to also perform a runtime check
+            this,
+          );
+        }
+      }
+    }
+
+    expect(() =>
+      CustomAccount.create({
+        creationProps: { name: "Hermes Puggington" },
+        crypto: Crypto,
+      }),
+    ).rejects.toThrowError("Profiles should be owned by a group");
   });
 });
 

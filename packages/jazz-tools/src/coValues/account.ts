@@ -285,13 +285,20 @@ export class Account extends CoValueBase implements CoValue {
   }
 
   async applyMigration(creationProps?: AccountCreationProps) {
-    if (creationProps) {
+    await this.migrate(creationProps);
+
+    // if the user has not defined a profile themselves, we create one
+    if (this.profile === undefined && creationProps) {
       const profileGroup = RegisteredSchemas["Group"].create({ owner: this });
-      profileGroup.addMember("everyone", "reader");
-      this.profile = Profile.create(
-        { name: creationProps.name },
-        { owner: profileGroup },
-      );
+
+      this.profile = Profile.create({ name: creationProps.name }, profileGroup);
+      this.profile._owner.addMember("everyone", "reader");
+    } else if (this.profile && creationProps) {
+      if (this.profile._owner._type !== "Group") {
+        throw new Error("Profile must be owned by a Group", {
+          cause: `The profile of the account "${this.id}" was created with an Account as owner, which is not allowed.`,
+        });
+      }
     }
 
     const node = this._raw.core.node;
@@ -304,8 +311,6 @@ export class Account extends CoValueBase implements CoValue {
       profile.set("inbox", inboxRoot.id);
       profile.set("inboxInvite", inboxRoot.inviteLink);
     }
-
-    await this.migrate(creationProps);
   }
 
   // Placeholder method for subclasses to override
