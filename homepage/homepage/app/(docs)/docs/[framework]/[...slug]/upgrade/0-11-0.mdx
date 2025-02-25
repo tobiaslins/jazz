@@ -1,27 +1,125 @@
 import { ContentByFramework, CodeGroup } from '@/components/forMdx'
+import { Alert } from "gcmp-design-system/src/app/components/atoms/Alert";
 
 export const metadata = { title: "Upgrade to Jazz 0.11.0" };
 
 # Jazz 0.11.0 is out!
 
-Jazz 0.11.0 brings several improvements to the roles and permissions system, making it more powerful and easier to use.
+Jazz 0.11.0 brings several improvements to member handling, roles, and permissions management. This guide will help you upgrade your application to the latest version.
 
 ## Breaking Changes
 
-- The `members` method now returns inherited members
-- `usePasskeyAuth` now doesn't update `profile.name` if the given username is empty
+### Member Inheritance Changes
+
+The behavior of groups' `members` getter method has been updated to return both direct members and inherited ones from acestor froups. 
+This might affect your application if you were relying on only direct members being returned.
+
+<CodeGroup>
+{/* prettier-ignore */}
+```ts
+/**
+ *  The following pseudocode only illustrates the inheritance logic, 
+ *  the actual implementation is different.
+*/
+
+const parentGroup = Group.create();
+parentGroup.addMember(John, "admin");
+
+const childGroup = Group.create();
+childGroup.addMember(Eve, "admin");
+
+childGroup.extend(parentGroup);
+
+console.log(childGroup.members);
+// Before 0.11.0
+// [Eve]
+
+// After 0.11.0
+// [Eve, John]
+```
+</CodeGroup>
+
+#### Migration Steps
+
+1. Review your member querying logic to account for inherited members
+2. Update your permission checking code to utilize the new [`hasPermissions` and `getRoleOf`](#enhanced-permission-management) method
+4. Consider implementing `"everyone"` role checks where appropriate
+
+### Dropped support for Accounts owning Profiles
+
+Starting from `0.11.0` `Profile`s can only be owned by `Group`s.
+
+By default, if you don't provide a custom `Profile` in your `Account` schema and migration, 
+a default one will be created with a `Group` owner having `everyone` as member with `reader` role.
 
 
 ## New Features
 
-### Enhanced Member Management
+### Enhanced Permission Management
 
-The `members` getter now also returns inherited members from parent groups instead of only direct members, providing a more complete view of all users who have access to a resource.
+Two new methods have been added to both `Account` and `Group` classes to improve permission handling:
 
-### New Permission Methods
+#### hasPermissions
 
-Two new methods have been added to both `Account` and `Group` classes:
+The new `hasPermissions` method allows you to check if an account or group has specific permissions,
+correctly following the permissions hierarchy (`admin` > `writer` > `reader/writeOnly`):
 
-- `hasPermissions`: Check if an account or group has specific permissions
-- `getRoleOf`: Get the role assigned to a specific member
+<CodeGroup>
+{/* prettier-ignore */}
+```typescript
+const group = Group.create();
+group.hasPermissions("everyone", "reader"); // false
+
+group.addMember("everyone", "writer");
+group.hasPermissions("everyone", "reader"); // true
+```
+</CodeGroup>
+
+#### getRoleOf
+
+The `getRoleOf` method has been added to query the role of specific entities:
+
+<CodeGroup>
+{/* prettier-ignore */}
+```typescript
+const group = Group.create();
+group.roleOf(me); // admin
+group.roleOf(Eve); // undefined
+
+group.addMember(Eve, "writer");
+group.roleOf(Eve); // writer
+```
+</CodeGroup>
+
+
+
+## Account Profile & Migrations
+
+We fixed a bug where custom accounts profiles could not be migrated.
+You can now provide your own Profile type and have it correctly migrate through schema changes.
+
+<CodeGroup>
+{/* prettier-ignore */}
+```ts
+export class MyAppAccount extends Account {
+  profile = co.ref(MyAppProfile);
+
+  async migrate() {
+    if (this.profile === undefined) {
+      const profileGroup = Group.create();
+      profileGroup.addMember("everyone", "reader");
+
+      this.profile = MyAppProfile.create({
+        name: "John Doe",
+      }, profileGroup);
+    }
+  }
+}
+```
+</CodeGroup>
+
+<br />
+<Alert variant="warning" title="Warning">
+If you provide a custom `Profile` in your `Account` schema and migration for a Worker account, make sure to also add  `everyone` as member with `reader` role to the owning group. Failing to do so will prevent any account from sending messages to the Worker's Inbox.
+</Alert>
 
