@@ -1,5 +1,11 @@
 # jazz-browser
 
+## 0.10.11
+
+### Patch Changes
+
+- 5a54e4a: Don't export RNQuickCrypto to avoid install errors
+
 ## 0.10.10
 
 ### Patch Changes
