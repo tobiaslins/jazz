@@ -184,9 +184,7 @@ export class CoValueCore {
       this.header.meta?.type === "account"
         ? (this.node.currentSessionID.replace(
             this.node.account.id,
-            this.node.account
-              .currentAgentID()
-              ._unsafeUnwrap({ withStackTrace: true }),
+            this.node.account.currentAgentID(),
           ) as SessionID)
         : this.node.currentSessionID;
 
@@ -455,9 +453,7 @@ export class CoValueCore {
       this.header.meta?.type === "account"
         ? (this.node.currentSessionID.replace(
             this.node.account.id,
-            this.node.account
-              .currentAgentID()
-              ._unsafeUnwrap({ withStackTrace: true }),
+            this.node.account.currentAgentID(),
           ) as SessionID)
         : this.node.currentSessionID;
 
@@ -639,9 +635,7 @@ export class CoValueCore {
       // Try to find key revelation for us
       const lookupAccountOrAgentID =
         this.header.meta?.type === "account"
-          ? this.node.account
-              .currentAgentID()
-              ._unsafeUnwrap({ withStackTrace: true })
+          ? this.node.account.currentAgentID()
           : this.node.account.id;
 
       const lastReadyKeyEdit = content.lastEditAt(

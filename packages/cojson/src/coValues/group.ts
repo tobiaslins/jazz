@@ -251,9 +251,7 @@ export class RawGroup<
 
     const memberKey = typeof account === "string" ? account : account.id;
     const agent =
-      typeof account === "string"
-        ? account
-        : account.currentAgentID()._unsafeUnwrap({ withStackTrace: true });
+      typeof account === "string" ? account : account.currentAgentID();
 
     /**
      * WriteOnly members can only see their own changes.
