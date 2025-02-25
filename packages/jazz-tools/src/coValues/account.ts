@@ -299,8 +299,6 @@ export class Account extends CoValueBase implements CoValue {
           cause: `The profile of the account "${this.id}" was created with an Account as owner, which is not allowed.`,
         });
       }
-      // We enforce the name to be set to the creationProps.name, as the user may have created the profile with a different name
-      this.profile.name = creationProps.name;
     }
 
     const node = this._raw.core.node;

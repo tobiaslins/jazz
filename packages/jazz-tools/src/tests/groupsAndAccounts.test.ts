@@ -114,28 +114,6 @@ describe("Custom accounts and groups", async () => {
       }),
     ).rejects.toThrowError("Profiles should be owned by a group");
   });
-
-  test("Should enforce 'name' to be set to the creationProps.name if it exists", async () => {
-    class CustomAccount extends Account {
-      migrate(this: CustomAccount, creationProps?: { name: string }) {
-        if (creationProps) {
-          const profileGroup = Group.create({ owner: this });
-
-          this.profile = Profile.create(
-            { name: "Stephen Hawking" },
-            profileGroup,
-          );
-        }
-      }
-    }
-
-    const me = await CustomAccount.create({
-      creationProps: { name: "Hermes Puggington" },
-      crypto: Crypto,
-    });
-
-    expect(me.profile?.name).toBe("Hermes Puggington");
-  });
 });
 
 describe("Group inheritance", () => {

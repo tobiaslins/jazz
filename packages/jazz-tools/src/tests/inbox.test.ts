@@ -25,7 +25,7 @@ describe("Inbox", () => {
 
       const { clientAccount: sender, serverAccount: receiver } =
         await setupTwoNodes({
-          serverAccountClass: WorkerAccount,
+          ServerAccountSchema: WorkerAccount,
         });
 
       await expect(() => InboxSender.load(receiver.id, sender)).rejects.toThrow(
