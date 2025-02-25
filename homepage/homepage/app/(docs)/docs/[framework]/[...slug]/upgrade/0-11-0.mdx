@@ -1,0 +1,27 @@
+import { ContentByFramework, CodeGroup } from '@/components/forMdx'
+
+export const metadata = { title: "Upgrade to Jazz 0.11.0" };
+
+# Jazz 0.11.0 is out!
+
+Jazz 0.11.0 brings several improvements to the roles and permissions system, making it more powerful and easier to use.
+
+## Breaking Changes
+
+- The `members` method now returns inherited members
+- `usePasskeyAuth` now doesn't update `profile.name` if the given username is empty
+
+
+## New Features
+
+### Enhanced Member Management
+
+The `members` getter now also returns inherited members from parent groups instead of only direct members, providing a more complete view of all users who have access to a resource.
+
+### New Permission Methods
+
+Two new methods have been added to both `Account` and `Group` classes:
+
+- `hasPermissions`: Check if an account or group has specific permissions
+- `getRoleOf`: Get the role assigned to a specific member
+
