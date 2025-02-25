@@ -1,5 +1,12 @@
 # reactions
 
+## 0.0.51
+
+### Patch Changes
+
+- jazz-browser-media-images@0.10.9
+- jazz-react@0.10.9
+
 ## 0.0.50
 
 ### Patch Changes

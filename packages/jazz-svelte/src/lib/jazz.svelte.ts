@@ -1,6 +1,4 @@
-import {
-  consumeInviteLinkFromWindowLocation
-} from 'jazz-browser';
+import { consumeInviteLinkFromWindowLocation } from 'jazz-browser';
 import type {
   AnonymousJazzAgent,
   AuthSecretStorage,
@@ -64,11 +62,9 @@ export function getAuthSecretStorage() {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface Register { }
+export interface Register {}
 
-export type RegisteredAccount = Register extends { Account: infer Acc }
-  ? Acc
-  : Account;
+export type RegisteredAccount = Register extends { Account: infer Acc } ? Acc : Account;
 
   export function useAccount<const R extends RefsToResolve<RegisteredAccount>>(
     options?: { resolve?: RefsToResolveStrict<RegisteredAccount, R> }
@@ -158,7 +154,7 @@ export function useAccountOrGuest<R extends RefsToResolve<RegisteredAccount>>(
 
 export function useCoState<V extends CoValue, R extends RefsToResolve<V>>(
   Schema: CoValueClass<V>,
-  id: ID<V> | undefined,
+  id: ID<CoValue> | undefined,
   options?: { resolve?: RefsToResolveStrict<V, R> }
 ): {
   current: Resolved<V, R> | undefined | null;
@@ -257,4 +253,3 @@ export function useAcceptInvite<V extends CoValue>({
     });
   });
 }
-

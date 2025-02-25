@@ -137,7 +137,6 @@ export class BrowserPasskeyAuth {
             { alg: -257, type: "public-key" },
           ],
           authenticatorSelection: {
-            authenticatorAttachment: "cross-platform",
             requireResidentKey: true,
             residentKey: "required",
             userVerification: "preferred",

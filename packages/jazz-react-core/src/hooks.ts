@@ -103,7 +103,7 @@ export function useCoState<
 >(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Schema: CoValueClass<V>,
-  id: ID<V> | undefined,
+  id: ID<CoValue> | undefined,
   options?: { resolve?: RefsToResolveStrict<V, R> },
 ): Resolved<V, R> | undefined | null {
   const contextManager = useJazzContextManager();

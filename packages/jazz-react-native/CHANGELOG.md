@@ -1,5 +1,17 @@
 # jazz-browser
 
+## 0.10.11
+
+### Patch Changes
+
+- 5a54e4a: Don't export RNQuickCrypto to avoid install errors
+
+## 0.10.10
+
+### Patch Changes
+
+- 3405d8f: read provided kvStore instead of falling back to the default in-memory store
+
 ## 0.10.8
 
 ### Patch Changes
