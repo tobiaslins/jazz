@@ -153,3 +153,8 @@ export class MyAppAccount extends Account {
 <Alert variant="info" title="Note" className="mt-4">
 Existing profiles owned by `Account`s will still work, but you will get incorrect types when accessing a `Profile`'s `_owner`.
 </Alert>
+
+### Removed auto-update of `profile.name` in `usePasskeyAuth`
+
+The `usePasskeyAuth` hook now doesn't update the `profile.name` if the provided username is empty.
+
