@@ -136,18 +136,29 @@ async function scaffoldProject({
     const packageJsonPath = `${projectName}/package.json`;
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
 
-    // Replace workspace: dependencies with latest
-    if (packageJson.dependencies) {
-      const latestVersions = await getLatestPackageVersions(
-        packageJson.dependencies,
-      );
+    // Helper function to update workspace dependencies
+    async function updateWorkspaceDependencies(
+      dependencyType: "dependencies" | "devDependencies",
+    ) {
+      if (packageJson[dependencyType]) {
+        const latestVersions = await getLatestPackageVersions(
+          packageJson[dependencyType],
+        );
 
-      Object.entries(packageJson.dependencies).forEach(([pkg, version]) => {
-        if (typeof version === "string" && version.includes("workspace:")) {
-          packageJson.dependencies[pkg] = latestVersions[pkg];
-        }
-      });
+        Object.entries(packageJson[dependencyType]).forEach(
+          ([pkg, version]) => {
+            if (typeof version === "string" && version.includes("workspace:")) {
+              packageJson[dependencyType][pkg] = latestVersions[pkg];
+            }
+          },
+        );
+      }
     }
+
+    await Promise.all([
+      updateWorkspaceDependencies("dependencies"),
+      updateWorkspaceDependencies("devDependencies"),
+    ]);
 
     packageJson.name = projectName;
     fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
