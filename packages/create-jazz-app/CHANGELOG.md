@@ -1,5 +1,11 @@
 # create-jazz-app
 
+## 0.1.12
+
+### Patch Changes
+
+- e2e0af3: Handle workspace devDependencies of cloned apps when using create-jazz-app
+
 ## 0.1.11
 
 ### Patch Changes
