@@ -201,39 +201,6 @@ export class Group extends CoValueBase implements CoValue {
     );
   }
 
-  hasPermissions(
-    member: Everyone | ID<Account> | "me",
-    permissions: AccountRole,
-  ) {
-    const role = this.getRoleOf(member);
-
-    if (!role) {
-      return false;
-    }
-
-    if (role === "admin") {
-      return true;
-    }
-
-    if (role === "writer") {
-      return (
-        permissions === "writer" ||
-        permissions === "writeOnly" ||
-        permissions === "reader"
-      );
-    }
-
-    if (role === "reader") {
-      return permissions === "reader";
-    }
-
-    if (role === "writeOnly") {
-      return permissions === "writeOnly";
-    }
-
-    return false;
-  }
-
   extend(
     parent: Group,
     roleMapping?: "reader" | "writer" | "admin" | "inherit",

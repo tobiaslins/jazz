@@ -1,5 +1,4 @@
 import {
-  AccountRole,
   AgentSecret,
   CoID,
   CryptoProvider,
@@ -186,12 +185,25 @@ export class Account extends CoValueBase implements CoValue {
     return [{ id: this.id, role: "admin", account: this }];
   }
 
-  hasPermissions(
-    member: Everyone | ID<Account> | "me",
-    permissions: AccountRole,
-  ) {
-    permissions;
-    return this.getRoleOf(member) === "admin";
+  canRead(value: CoValue) {
+    const role = value._owner.getRoleOf(this.id);
+
+    return (
+      role === "admin" ||
+      role === "writer" ||
+      role === "reader" ||
+      role === "writeOnly"
+    );
+  }
+
+  canWrite(value: CoValue) {
+    const role = value._owner.getRoleOf(this.id);
+
+    return role === "admin" || role === "writer" || role === "writeOnly";
+  }
+
+  canAdmin(value: CoValue) {
+    return value._owner.getRoleOf(this.id) === "admin";
   }
 
   async acceptInvite<V extends CoValue>(
