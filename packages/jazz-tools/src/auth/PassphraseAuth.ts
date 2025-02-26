@@ -23,25 +23,13 @@ import { AuthSecretStorage } from "./AuthSecretStorage.js";
 export class PassphraseAuth {
   passphrase: string = "";
 
-  private crypto: CryptoProvider;
-  private authenticate: AuthenticateAccountFunction;
-  private register: RegisterAccountFunction;
-  private authSecretStorage: AuthSecretStorage;
-  public wordlist: string[];
-
   constructor(
-    crypto: CryptoProvider,
-    authenticate: AuthenticateAccountFunction,
-    register: RegisterAccountFunction,
-    authSecretStorage: AuthSecretStorage,
-    wordlist: string[],
-  ) {
-    this.crypto = crypto;
-    this.authenticate = authenticate;
-    this.register = register;
-    this.authSecretStorage = authSecretStorage;
-    this.wordlist = wordlist;
-  }
+    private crypto: CryptoProvider,
+    private authenticate: AuthenticateAccountFunction,
+    private register: RegisterAccountFunction,
+    private authSecretStorage: AuthSecretStorage,
+    public wordlist: string[],
+  ) {}
 
   logIn = async (passphrase: string) => {
     const { crypto, authenticate } = this;
