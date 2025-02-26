@@ -172,30 +172,34 @@ CoMaps support computed properties and methods:
 
 <CodeGroup>
 ```ts
-class Project extends CoMap {
-    name = co.string;
-    startDate = co.Date;
-    endDate = co.optional.Date;
-    
-    get isActive() {
-        const now = new Date();
-        return now >= this.startDate && (!this.endDate || now <= this.endDate);
+class ComputedProject extends CoMap {
+  name = co.string;
+  startDate = co.Date;
+  endDate = co.optional.Date;
+
+  get isActive() {
+    const now = new Date();
+    return now >= this.startDate && (!this.endDate || now <= this.endDate);
+  }
+
+  formatDuration(format: "short" | "full") {
+    const start = this.startDate.toLocaleDateString();
+    if (!this.endDate) {
+      return format === "full"
+        ? `Started on ${start}, ongoing`
+        : `From ${start}`;
     }
-    
-    formatDuration(format: "short" | "full") {
-        const start = this.startDate.toLocaleDateString();
-        if (!this.endDate) {
-            return format === "full" 
-                ? `Started on ${start}, ongoing`
-                : `From ${start}`;
-        }
-        
-        const end = this.endDate.toLocaleDateString();
-        return format === "full" 
-            ? `From ${start} to ${end}`
-            : `${start} - ${end}`;
-    }
+
+    const end = this.endDate.toLocaleDateString();
+    return format === "full"
+      ? `From ${start} to ${end}`
+      : `${(this.endDate.getTime() - this.startDate.getTime()) / 86400000} days`;
+  }
 }
+
+// ...
+
+console.log(computedProject.isActive); // false
+console.log(computedProject.formatDuration("short")); // "3 days"
 ```
 </CodeGroup>
-
