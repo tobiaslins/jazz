@@ -116,6 +116,11 @@ export const docNavigationItems = [
         done: 80,
       },
       {
+        name: "CoLists",
+        href: "/docs/using-covalues/colists",
+        done: 80,
+      },
+      {
         name: "Reading",
         href: "/docs/using-covalues/reading",
         done: 80,
