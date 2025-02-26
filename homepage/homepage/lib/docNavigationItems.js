@@ -121,24 +121,29 @@ export const docNavigationItems = [
         done: 80,
       },
       {
+        name: "CoFeeds",
+        href: "/docs/using-covalues/cofeeds",
+        done: 80,
+      },
+      {
         name: "Reading",
         href: "/docs/using-covalues/reading",
-        done: 80,
+        done: 0,
       },
       {
         name: "Subscribing & deep loading",
         href: "/docs/using-covalues/subscription-and-loading",
-        done: 80,
+        done: 0,
       },
       {
         name: "Writing & deleting",
         href: "/docs/using-covalues/writing",
-        done: 80,
+        done: 0,
       },
       {
         name: "Metadata & time-travel",
         href: "/docs/using-covalues/metadata",
-        done: 80,
+        done: 0,
       },
     ],
   },
