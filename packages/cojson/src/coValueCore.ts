@@ -35,6 +35,7 @@ import { CoValueKnownState, NewContentMessage } from "./sync.js";
 import { accountOrAgentIDfromSessionID } from "./typeUtils/accountOrAgentIDfromSessionID.js";
 import { expectGroup } from "./typeUtils/expectGroup.js";
 import { isAccountID } from "./typeUtils/isAccountID.js";
+import { parseError } from "./utils.js";
 
 /**
     In order to not block other concurrently syncing CoValues we introduce a maximum size of transactions,
@@ -183,9 +184,7 @@ export class CoValueCore {
       this.header.meta?.type === "account"
         ? (this.node.currentSessionID.replace(
             this.node.account.id,
-            this.node.account
-              .currentAgentID()
-              ._unsafeUnwrap({ withStackTrace: true }),
+            this.node.account.currentAgentID(),
           ) as SessionID)
         : this.node.currentSessionID;
 
@@ -326,7 +325,14 @@ export class CoValueCore {
     if (notifyMode === "immediate") {
       const content = this.getCurrentContent();
       for (const listener of this.listeners) {
-        listener(content);
+        try {
+          listener(content);
+        } catch (e) {
+          logger.error(
+            "Error in listener for coValue " + this.id,
+            parseError(e),
+          );
+        }
       }
     } else {
       if (!this.nextDeferredNotify) {
@@ -336,7 +342,14 @@ export class CoValueCore {
             this.deferredUpdates = 0;
             const content = this.getCurrentContent();
             for (const listener of this.listeners) {
-              listener(content);
+              try {
+                listener(content);
+              } catch (e) {
+                logger.error(
+                  "Error in listener for coValue " + this.id,
+                  parseError(e),
+                );
+              }
             }
             resolve();
           }, 0);
@@ -440,9 +453,7 @@ export class CoValueCore {
       this.header.meta?.type === "account"
         ? (this.node.currentSessionID.replace(
             this.node.account.id,
-            this.node.account
-              .currentAgentID()
-              ._unsafeUnwrap({ withStackTrace: true }),
+            this.node.account.currentAgentID(),
           ) as SessionID)
         : this.node.currentSessionID;
 
@@ -624,9 +635,7 @@ export class CoValueCore {
       // Try to find key revelation for us
       const lookupAccountOrAgentID =
         this.header.meta?.type === "account"
-          ? this.node.account
-              .currentAgentID()
-              ._unsafeUnwrap({ withStackTrace: true })
+          ? this.node.account.currentAgentID()
           : this.node.account.id;
 
       const lastReadyKeyEdit = content.lastEditAt(

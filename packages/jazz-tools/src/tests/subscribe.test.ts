@@ -151,6 +151,49 @@ describe("subscribeToCoValue", () => {
     );
   });
 
+  it("shouldn't fire updates after unsubscribing", async () => {
+    const { me, meOnSecondPeer } = await setupAccount();
+
+    const chatRoom = createChatRoom(me, "General");
+    const updateFn = vi.fn();
+
+    const { messages } = await chatRoom.ensureLoaded({
+      resolve: { messages: { $each: true } },
+    });
+
+    messages.push(createMessage(me, "Hello"));
+
+    const unsubscribe = subscribeToCoValue(
+      ChatRoom,
+      chatRoom.id,
+      {
+        loadAs: meOnSecondPeer,
+        resolve: {
+          messages: { $each: true },
+        },
+      },
+      updateFn,
+    );
+
+    await waitFor(() => {
+      expect(updateFn).toHaveBeenCalled();
+    });
+
+    unsubscribe();
+    chatRoom.name = "Lounge";
+    messages.push(createMessage(me, "Hello 2"));
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    expect(updateFn).toHaveBeenCalledTimes(1);
+    expect(updateFn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: chatRoom.id,
+      }),
+      expect.any(Function),
+    );
+  });
+
   it("should fire updates when a ref entity is updates", async () => {
     const { me, meOnSecondPeer } = await setupAccount();
 

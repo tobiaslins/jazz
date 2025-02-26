@@ -164,7 +164,7 @@ export function loadCoValueWithoutMe<
   const R extends RefsToResolve<V>,
 >(
   cls: CoValueClass<V>,
-  id: ID<V>,
+  id: ID<CoValue>,
   options?: {
     resolve?: RefsToResolveStrict<V, R>;
     loadAs?: Account | AnonymousJazzAgent;
@@ -181,7 +181,7 @@ export function loadCoValue<
   const R extends RefsToResolve<V>,
 >(
   cls: CoValueClass<V>,
-  id: ID<V>,
+  id: ID<CoValue>,
   options: {
     resolve?: RefsToResolveStrict<V, R>;
     loadAs: Account | AnonymousJazzAgent;
@@ -292,7 +292,7 @@ export function subscribeToCoValueWithoutMe<
   const R extends RefsToResolve<V>,
 >(
   cls: CoValueClass<V>,
-  id: ID<V>,
+  id: ID<CoValue>,
   options: SubscribeListenerOptions<V, R>,
   listener: SubscribeListener<V, R>,
 ) {
@@ -312,7 +312,7 @@ export function subscribeToCoValue<
   const R extends RefsToResolve<V>,
 >(
   cls: CoValueClass<V>,
-  id: ID<V>,
+  id: ID<CoValue>,
   options: {
     resolve?: RefsToResolveStrict<V, R>;
     loadAs: Account | AnonymousJazzAgent;
@@ -327,7 +327,7 @@ export function subscribeToCoValue<
   let unsubscribed = false;
   let unsubscribe: (() => void) | undefined;
 
-  function subscribe(value: V | undefined) {
+  function subscribe(value: CoValue | undefined) {
     if (!value) {
       options.onUnavailable?.();
       return;
@@ -337,7 +337,14 @@ export function subscribeToCoValue<
       value,
       cls as CoValueClass<V> & CoValueFromRaw<V>,
       (update, subscription) => {
-        const result = fulfillsDepth(options.resolve, update);
+        let result;
+
+        try {
+          result = fulfillsDepth(options.resolve, update);
+        } catch (e) {
+          options.onUnauthorized?.();
+          return;
+        }
 
         if (result === "unauthorized") {
           options.onUnauthorized?.();
@@ -363,6 +370,7 @@ export function subscribeToCoValue<
       .then((value) => subscribe(value))
       .catch((e) => {
         console.error("Failed to load / subscribe to CoValue", e);
+        options.onUnavailable?.();
       });
   }
 
@@ -381,7 +389,7 @@ export function createCoValueObservable<
 
   function subscribe(
     cls: CoValueClass<V>,
-    id: ID<V>,
+    id: ID<CoValue>,
     options: {
       loadAs: Account | AnonymousJazzAgent;
       resolve?: RefsToResolveStrict<V, R>;

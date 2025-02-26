@@ -48,11 +48,13 @@ export function fulfillsDepth(depth: any, value: CoValue): FulfillsDepthResult {
     value._type === "Group" ||
     value._type === "Account"
   ) {
+    const map = value as CoMap;
+
     if ("$each" in depth) {
       let result: FulfillsDepthResult = "fulfilled";
 
       for (const [key, item] of Object.entries(value)) {
-        if (hasRefValue(value, key)) {
+        if (map._raw.get(key) !== undefined) {
           if (!item) {
             result = "unfulfilled";
             continue;
@@ -78,11 +80,34 @@ export function fulfillsDepth(depth: any, value: CoValue): FulfillsDepthResult {
       let result: FulfillsDepthResult = "fulfilled";
 
       for (const key of Object.keys(depth)) {
-        if ((value as CoMap)._schema[key] === undefined) {
-          continue;
-        }
-
-        if (hasRefValue(value, key)) {
+        if (map._raw.get(key) === undefined) {
+          if (!map._schema?.[key]) {
+            // Field not defined in schema
+            if (map._schema?.[ItemsSym]) {
+              // CoMap.Record
+              if (isOptionalField(map, ItemsSym)) {
+                continue;
+              } else {
+                // All fields are required, so the returned type is not optional and we must comply
+                throw new Error(
+                  `The ref ${key} requested on ${map.constructor.name} is missing`,
+                );
+              }
+            } else {
+              // Field not defined in CoMap schema
+              throw new Error(
+                `The ref ${key} requested on ${map.constructor.name} is not defined in the schema`,
+              );
+            }
+          } else if (isOptionalField(map, key)) {
+            continue;
+          } else {
+            // Field is required but has never been set
+            throw new Error(
+              `The ref ${key} on ${map.constructor.name} is required but missing`,
+            );
+          }
+        } else {
           const item = (value as Record<string, any>)[key];
 
           if (!item) {
@@ -100,8 +125,6 @@ export function fulfillsDepth(depth: any, value: CoValue): FulfillsDepthResult {
           ) {
             return "unauthorized"; // If any item is unauthorized, the whole thing is unauthorized
           }
-        } else if (!isOptionalField(value, key)) {
-          return "unfulfilled";
         }
       }
 

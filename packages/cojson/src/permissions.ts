@@ -475,16 +475,7 @@ function agentInAccountOrMemberInGroup(
   groupAtTime: RawGroup,
 ): RawAccountID | AgentID | undefined {
   if (transactor === groupAtTime.id && groupAtTime instanceof RawAccount) {
-    return groupAtTime.currentAgentID().match(
-      (agentID) => agentID,
-      (e) => {
-        logger.error(
-          "Error while determining current agent ID in valid transactions",
-          e,
-        );
-        return undefined;
-      },
-    );
+    return groupAtTime.currentAgentID();
   }
   return transactor;
 }

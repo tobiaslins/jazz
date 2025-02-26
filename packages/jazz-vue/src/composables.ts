@@ -164,7 +164,7 @@ export { useAccount, useAccountOrGuest };
 
 export function useCoState<V extends CoValue, const R extends RefsToResolve<V>>(
   Schema: CoValueClass<V>,
-  id: MaybeRef<ID<V> | undefined>,
+  id: MaybeRef<ID<CoValue> | undefined>,
   options?: { resolve?: RefsToResolveStrict<V, R> },
 ): Ref<Resolved<V, R> | undefined | null> {
   const state: ShallowRef<Resolved<V, R> | undefined | null> =

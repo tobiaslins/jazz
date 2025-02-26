@@ -530,7 +530,7 @@ export class LocalNode {
       } satisfies UnexpectedlyNotAccountError);
     }
 
-    return (coValue.getCurrentContent() as RawAccount).currentAgentID();
+    return ok((coValue.getCurrentContent() as RawAccount).currentAgentID());
   }
 
   resolveAccountAgentAsync(
@@ -573,7 +573,7 @@ export class LocalNode {
         } satisfies UnexpectedlyNotAccountError);
       }
 
-      return (coValue.getCurrentContent() as RawAccount).currentAgentID();
+      return ok((coValue.getCurrentContent() as RawAccount).currentAgentID());
     });
   }
 
@@ -601,9 +601,7 @@ export class LocalNode {
       this.crypto.seal({
         message: readKey.secret,
         from: this.account.currentSealerSecret(),
-        to: this.account
-          .currentSealerID()
-          ._unsafeUnwrap({ withStackTrace: true }),
+        to: this.account.currentSealerID(),
         nOnceMaterial: {
           in: groupCoValue.id,
           tx: groupCoValue.nextTransactionID(),
