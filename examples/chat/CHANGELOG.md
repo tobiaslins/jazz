@@ -1,5 +1,14 @@
 # jazz-example-chat
 
+## 0.0.155
+
+### Patch Changes
+
+- Updated dependencies [4612e05]
+  - jazz-tools@0.10.12
+  - jazz-react@0.10.12
+  - jazz-browser-media-images@0.10.12
+
 ## 0.0.154
 
 ### Patch Changes

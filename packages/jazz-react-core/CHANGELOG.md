@@ -1,5 +1,13 @@
 # jazz-react-core
 
+## 0.10.9
+
+### Patch Changes
+
+- 4612e05: Fix type inference on `useCoState`
+- Updated dependencies [4612e05]
+  - jazz-tools@0.10.12
+
 ## 0.10.8
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # jazz-tools
 
+## 0.10.12
+
+### Patch Changes
+
+- 4612e05: Fix type inference on `useCoState`
+
 ## 0.10.8
 
 ### Patch Changes

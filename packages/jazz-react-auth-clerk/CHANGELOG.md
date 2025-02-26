@@ -1,5 +1,15 @@
 # jazz-browser-media-images
 
+## 0.10.12
+
+### Patch Changes
+
+- Updated dependencies [4612e05]
+  - jazz-tools@0.10.12
+  - jazz-react@0.10.12
+  - jazz-auth-clerk@0.10.12
+  - jazz-browser@0.10.12
+
 ## 0.10.9
 
 ### Patch Changes
