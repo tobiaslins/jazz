@@ -111,8 +111,8 @@ export const docNavigationItems = [
     name: "Using CoValues",
     items: [
       {
-        name: "Creation & ownership",
-        href: "/docs/using-covalues/creation",
+        name: "CoMaps",
+        href: "/docs/using-covalues/comaps",
         done: 80,
       },
       {
