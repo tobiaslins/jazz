@@ -7,53 +7,40 @@ export const metadata = { title: "Upgrade to Jazz 0.11.0" };
 
 Jazz 0.11.0 brings several improvements to member handling, roles, and permissions management. This guide will help you upgrade your application to the latest version.
 
-## Breaking Changes
+## New Features
 
-### Member Inheritance Changes
 
-The behavior of groups' `members` getter method has been updated to return both direct members and inherited ones from acestor froups. 
-This might affect your application if you were relying on only direct members being returned.
+### Account Profile & Migrations
+
+We fixed a bug where custom accounts profiles could not be migrated.
+You can now provide your own Profile type and have it correctly migrate through schema changes.
 
 <CodeGroup>
 {/* prettier-ignore */}
 ```ts
-/**
- *  The following pseudocode only illustrates the inheritance logic, 
- *  the actual implementation is different.
-*/
+export class MyAppAccount extends Account {
+  profile = co.ref(MyAppProfile);
 
-const parentGroup = Group.create();
-parentGroup.addMember(John, "admin");
+  async migrate() {
+    if (this.profile === undefined) {
+      const profileGroup = Group.create();
+      profileGroup.addMember("everyone", "reader");
 
-const childGroup = Group.create();
-childGroup.addMember(Eve, "admin");
-
-childGroup.extend(parentGroup);
-
-console.log(childGroup.members);
-// Before 0.11.0
-// [Eve]
-
-// After 0.11.0
-// [Eve, John]
+      this.profile = MyAppProfile.create({
+        name: "John Doe",
+      }, profileGroup);
+    }
+  }
+}
 ```
 </CodeGroup>
 
-#### Migration Steps
+<Alert variant="warning" title="Warning" className="mt-4">
+If you provide a custom `Profile` in your `Account` schema and migration for a Worker account, 
+make sure to also add  `everyone` as member with `reader` role to the owning group. 
+Failing to do so will prevent any account from sending messages to the Worker's Inbox.
+</Alert>
 
-1. Review your member querying logic to account for inherited members
-2. Update your permission checking code to utilize the new [`hasPermissions` and `getRoleOf`](#enhanced-permission-management) method
-4. Consider implementing `"everyone"` role checks where appropriate
-
-### Dropped support for Accounts owning Profiles
-
-Starting from `0.11.0` `Profile`s can only be owned by `Group`s.
-
-By default, if you don't provide a custom `Profile` in your `Account` schema and migration, 
-a default one will be created with a `Group` owner having `everyone` as member with `reader` role.
-
-
-## New Features
 
 ### Enhanced Permission Management
 
@@ -93,33 +80,46 @@ group.roleOf(Eve); // writer
 
 
 
-## Account Profile & Migrations
 
-We fixed a bug where custom accounts profiles could not be migrated.
-You can now provide your own Profile type and have it correctly migrate through schema changes.
+
+## Breaking Changes
+
+### Member Inheritance Changes
+
+The behavior of groups' `members` getter method has been updated to return both direct members and inherited ones from acestor froups. 
+This might affect your application if you were relying on only direct members being returned.
 
 <CodeGroup>
 {/* prettier-ignore */}
 ```ts
-export class MyAppAccount extends Account {
-  profile = co.ref(MyAppProfile);
+/**
+ *  The following pseudocode only illustrates the inheritance logic, 
+ *  the actual implementation is different.
+*/
 
-  async migrate() {
-    if (this.profile === undefined) {
-      const profileGroup = Group.create();
-      profileGroup.addMember("everyone", "reader");
+const parentGroup = Group.create();
+parentGroup.addMember(John, "admin");
 
-      this.profile = MyAppProfile.create({
-        name: "John Doe",
-      }, profileGroup);
-    }
-  }
-}
+const childGroup = Group.create();
+childGroup.addMember(Eve, "admin");
+
+childGroup.extend(parentGroup);
+
+console.log(childGroup.members);
+// Before 0.11.0
+// [Eve]
+
+// After 0.11.0
+// [Eve, John]
 ```
 </CodeGroup>
 
-<br />
-<Alert variant="warning" title="Warning">
-If you provide a custom `Profile` in your `Account` schema and migration for a Worker account, make sure to also add  `everyone` as member with `reader` role to the owning group. Failing to do so will prevent any account from sending messages to the Worker's Inbox.
-</Alert>
+#### Migration Steps
 
+1. Review your member querying logic to account for inherited members.
+2. Update your permission checking code to utilize the new [`hasPermissions` and `getRoleOf`](#enhanced-permission-management) methods.
+4. Consider implementing `"everyone"` role checks where appropriate.
+
+### Dropped support for Accounts owning Profiles
+
+Starting from `0.11.0` `Profile`s can only be owned by `Group`s.

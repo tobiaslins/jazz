@@ -6,15 +6,22 @@ interface Props {
   children: ReactNode;
   variant?: "warning";
   title: string;
+  className?: string;
 }
 
-export function Alert({ children, variant = "warning", title }: Props) {
+export function Alert({
+  children,
+  variant = "warning",
+  title,
+  className,
+}: Props) {
   return (
     <div
       className={clsx(
         "border-l-4 p-4 pl-6 dark:bg-red-200/5 ",
         variant === "warning" &&
           "border-yellow-400 bg-yellow-50 dark:border-yellow-500 dark:bg-yellow-200/5",
+        className,
       )}
     >
       <span className="text-sm font-bold flex items-center gap-1">
