@@ -1,17 +1,13 @@
-import DocsLayout from "@/components/docs/DocsLayout";
 import { TocItemsSetter } from "@/components/docs/TocItemsSetter";
 import ComingSoonPage from "@/components/docs/coming-soon.mdx";
-import { DocNav } from "@/components/docs/nav";
 import { docNavigationItems } from "@/lib/docNavigationItems.js";
 import { Framework, frameworks } from "@/lib/framework";
 import type { Toc } from "@stefanprobst/rehype-extract-toc";
-import { Prose } from "gcmp-design-system/src/app/components/molecules/Prose";
 
 export default async function Page({
   params: { slug, framework },
 }: { params: { slug: string[]; framework: string } }) {
   const slugPath = slug.join("/");
-  const bodyClassName = "overflow-x-hidden lg:flex-1 py-10  max-w-3xl mx-auto";
 
   try {
     let mdxSource;
