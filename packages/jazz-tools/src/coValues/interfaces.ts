@@ -327,22 +327,35 @@ export function subscribeToCoValue<
   let unsubscribed = false;
   let unsubscribe: (() => void) | undefined;
 
-  function subscribe(value: CoValue | undefined) {
+  function subscribe() {
+    const value = ref.getValueWithoutAccessCheck();
+
     if (!value) {
       options.onUnavailable?.();
       return;
     }
+
     if (unsubscribed) return;
     const subscription = new SubscriptionScope(
       value,
       cls as CoValueClass<V> & CoValueFromRaw<V>,
       (update, subscription) => {
+        if (!ref.hasReadAccess()) {
+          options.onUnauthorized?.();
+          return;
+        }
+
         let result;
 
         try {
           result = fulfillsDepth(options.resolve, update);
         } catch (e) {
-          options.onUnauthorized?.();
+          console.error(
+            "Failed to load / subscribe to CoValue",
+            e,
+            e instanceof Error ? e.stack : undefined,
+          );
+          options.onUnavailable?.();
           return;
         }
 
@@ -363,13 +376,17 @@ export function subscribeToCoValue<
   const sync = options.syncResolution ? ref.syncLoad() : undefined;
 
   if (sync) {
-    subscribe(sync);
+    subscribe();
   } else {
     ref
       .load()
-      .then((value) => subscribe(value))
+      .then(() => subscribe())
       .catch((e) => {
-        console.error("Failed to load / subscribe to CoValue", e);
+        console.error(
+          "Failed to load / subscribe to CoValue",
+          e,
+          e instanceof Error ? e.stack : undefined,
+        );
         options.onUnavailable?.();
       });
   }

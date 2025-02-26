@@ -225,6 +225,103 @@ describe("useCoState", () => {
     });
   });
 
+  it("should return a value when the coValue becomes accessible", async () => {
+    class TestMap extends CoMap {
+      value = co.string;
+    }
+
+    const someoneElse = await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+    });
+
+    const group = Group.create(someoneElse);
+
+    const map = TestMap.create(
+      {
+        value: "123",
+      },
+      group,
+    );
+
+    const account = await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+    });
+
+    const { result } = renderHook(() => useCoState(TestMap, map.id), {
+      account,
+    });
+
+    expect(result.current).toBeUndefined();
+
+    await waitFor(() => {
+      expect(result.current).toBeNull();
+    });
+
+    group.addMember("everyone", "reader");
+
+    await waitFor(() => {
+      expect(result.current).not.toBeNull();
+      expect(result.current?.value).toBe("123");
+    });
+  });
+
+  it("should update when an inner coValue is updated", async () => {
+    class TestMap extends CoMap {
+      value = co.string;
+      nested = co.optional.ref(TestMap);
+    }
+
+    const someoneElse = await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+    });
+
+    const everyone = Group.create(someoneElse);
+    everyone.addMember("everyone", "reader");
+    const group = Group.create(someoneElse);
+
+    const map = TestMap.create(
+      {
+        value: "123",
+        nested: TestMap.create(
+          {
+            value: "456",
+          },
+          group,
+        ),
+      },
+      everyone,
+    );
+
+    const account = await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+    });
+
+    const { result } = renderHook(
+      () =>
+        useCoState(TestMap, map.id, {
+          resolve: {
+            nested: true,
+          },
+        }),
+      {
+        account,
+      },
+    );
+
+    expect(result.current).toBeUndefined();
+
+    await waitFor(() => {
+      expect(result.current).not.toBeUndefined();
+    });
+
+    expect(result.current?.nested).toBeUndefined();
+    group.addMember("everyone", "reader");
+
+    await waitFor(() => {
+      expect(result.current?.nested?.value).toBe("456");
+    });
+  });
+
   it("should return the same type as Schema", () => {
     class TestMap extends CoMap {
       value = co.string;

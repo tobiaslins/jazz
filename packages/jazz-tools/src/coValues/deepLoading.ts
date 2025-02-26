@@ -1,4 +1,4 @@
-import { RawAccount, SessionID } from "cojson";
+import { SessionID } from "cojson";
 import { ItemsSym, type Ref, RefEncoded, UnCo } from "../internal.js";
 import { type Account } from "./account.js";
 import { type CoFeed, CoFeedEntry } from "./coFeed.js";
@@ -16,6 +16,16 @@ function hasRefValue(value: CoValue, key: string | number) {
   );
 }
 
+function hasReadAccess(value: CoValue, key: string | number) {
+  return Boolean(
+    (
+      value as unknown as {
+        _refs: { [key: string]: Ref<CoValue> | undefined };
+      }
+    )._refs?.[key]?.hasReadAccess(),
+  );
+}
+
 function isOptionalField(value: CoValue, key: string): boolean {
   return (
     ((value as CoMap)._schema[key] as RefEncoded<CoValue>)?.optional ?? false
@@ -26,19 +36,6 @@ type FulfillsDepthResult = "unauthorized" | "fulfilled" | "unfulfilled";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fulfillsDepth(depth: any, value: CoValue): FulfillsDepthResult {
-  if (value._type !== "Group" && value._type !== "Account") {
-    const core = value._raw.core;
-    const group = core.getGroup();
-
-    if (group instanceof RawAccount) {
-      if (core.node.account.id !== group.id) {
-        return "unauthorized";
-      }
-    } else if (group.myRole() === undefined) {
-      return "unauthorized";
-    }
-  }
-
   if (depth === true || depth === undefined) {
     return "fulfilled";
   }
@@ -56,8 +53,12 @@ export function fulfillsDepth(depth: any, value: CoValue): FulfillsDepthResult {
       for (const [key, item] of Object.entries(value)) {
         if (map._raw.get(key) !== undefined) {
           if (!item) {
-            result = "unfulfilled";
-            continue;
+            if (hasReadAccess(map, key)) {
+              result = "unfulfilled";
+              continue;
+            } else {
+              return "unauthorized";
+            }
           }
 
           const innerResult = fulfillsDepth(depth.$each, item);
@@ -111,8 +112,12 @@ export function fulfillsDepth(depth: any, value: CoValue): FulfillsDepthResult {
           const item = (value as Record<string, any>)[key];
 
           if (!item) {
-            result = "unfulfilled";
-            continue;
+            if (hasReadAccess(map, key)) {
+              result = "unfulfilled";
+              continue;
+            } else {
+              return "unauthorized";
+            }
           }
 
           const innerResult = fulfillsDepth(depth[key], item);
@@ -137,8 +142,12 @@ export function fulfillsDepth(depth: any, value: CoValue): FulfillsDepthResult {
       for (const [key, item] of (value as CoList).entries()) {
         if (hasRefValue(value, key)) {
           if (!item) {
-            result = "unfulfilled";
-            continue;
+            if (hasReadAccess(value, key)) {
+              result = "unfulfilled";
+              continue;
+            } else {
+              return "unauthorized";
+            }
           }
 
           const innerResult = fulfillsDepth(depth.$each, item);
@@ -167,8 +176,12 @@ export function fulfillsDepth(depth: any, value: CoValue): FulfillsDepthResult {
       for (const item of Object.values((value as CoFeed).perSession)) {
         if (item.ref) {
           if (!item.value) {
-            result = "unfulfilled";
-            continue;
+            if (item.ref.hasReadAccess()) {
+              result = "unfulfilled";
+              continue;
+            } else {
+              return "unauthorized";
+            }
           }
 
           const innerResult = fulfillsDepth(depth.$each, item.value);

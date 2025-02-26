@@ -463,10 +463,9 @@ describe("Deep loading with unauthorized account", async () => {
       loadAs: alice,
       resolve: { optionalRef: true } as const,
     });
-    expect(mapOnAlice).not.toBe(undefined);
+    expect(mapOnAlice).toBe(undefined);
 
-    // TODO: We should make the whole inaccessble map undefined
-    expect(mapOnAlice?.optionalRef).not.toBe(undefined);
+    expect(mapOnAlice?.optionalRef).toBe(undefined);
     expect(mapOnAlice?.optionalRef?.value).toBe(undefined);
   });
 
