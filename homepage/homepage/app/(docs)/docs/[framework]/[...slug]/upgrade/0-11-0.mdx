@@ -43,35 +43,41 @@ Failing to do so will prevent any account from sending messages to the Worker's 
 
 ### Enhanced Permission Management
 
-Two new methods have been added to both `Account` and `Group` classes to improve permission handling:
+New methods have been added to both `Account` and `Group` classes to improve permission handling:
 
-#### hasPermissions
+#### Permission checks
 
-The new `hasPermissions` method allows you to check if an account or group has specific permissions,
-correctly following the permissions hierarchy (`admin` > `writer` > `reader/writeOnly`):
+The new `canRead`, `canWrite` and `canAdmin` methods on `Account` allow you to easily check if the account has specific permissions on a CoValue:
 
 <CodeGroup>
+{/* prettier-ignore */}
 ```typescript
-const group = Group.create();
-group.hasPermissions("everyone", "reader"); // false
+const me = Account.getMe();
 
-group.addMember("everyone", "writer");
-group.hasPermissions("everyone", "reader"); // true
+if (me.canAdmin(value)) {
+  console.log("I can share value with others"); 
+} else if (me.canWrite(value)) {
+  console.log("I can edit value");
+} else if (me.canRead(value)) {
+  console.log("I can view value");
+} else {
+  console.log("I cannot access value");
+}
 ```
 </CodeGroup>
 
-#### getRoleOf
+#### Getting the role of an account
 
 The `getRoleOf` method has been added to query the role of specific entities:
 
 <CodeGroup>
 ```typescript
 const group = Group.create();
-group.roleOf(me); // admin
-group.roleOf(Eve); // undefined
+group.getRoleOf(me); // admin
+group.getRoleOf(Eve); // undefined
 
 group.addMember(Eve, "writer");
-group.roleOf(Eve); // writer
+group.getRoleOf(Eve); // writer
 ```
 </CodeGroup>
 
@@ -79,7 +85,7 @@ group.roleOf(Eve); // writer
 
 ### Member Inheritance Changes
 
-The behavior of groups' `members` getter method has been updated to return both direct members and inherited ones from acestor froups. 
+The behavior of groups' `members` getter method has been updated to return both direct members and inherited ones from acestor groups. 
 This might affect your application if you were relying on only direct members being returned.
 
 <CodeGroup>
@@ -110,7 +116,7 @@ console.log(childGroup.members);
 
 1. Review your member querying logic to account for inherited members.
 2. Update your permission checking code to utilize the new [`hasPermissions` and `getRoleOf`](#enhanced-permission-management) methods.
-4. Consider implementing `"everyone"` role checks where appropriate.
+3. Consider implementing `"everyone"` role checks where appropriate.
 
 ### Dropped support for Accounts owning Profiles
 
