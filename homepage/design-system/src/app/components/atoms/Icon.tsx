@@ -75,6 +75,7 @@ const icons = {
   upload: UploadCloudIcon,
   zip: FolderArchiveIcon,
   warning: AlertTriangleIcon,
+  info: InfoIcon,
 };
 
 // copied from tailwind line height https://tailwindcss.com/docs/font-size

@@ -16,12 +16,11 @@ We fixed a bug where custom accounts profiles could not be migrated.
 You can now provide your own Profile type and have it correctly migrate through schema changes.
 
 <CodeGroup>
-{/* prettier-ignore */}
 ```ts
 export class MyAppAccount extends Account {
   profile = co.ref(MyAppProfile);
 
-  async migrate() {
+  override async migrate() {
     if (this.profile === undefined) {
       const profileGroup = Group.create();
       profileGroup.addMember("everyone", "reader");
@@ -52,7 +51,6 @@ The new `hasPermissions` method allows you to check if an account or group has s
 correctly following the permissions hierarchy (`admin` > `writer` > `reader/writeOnly`):
 
 <CodeGroup>
-{/* prettier-ignore */}
 ```typescript
 const group = Group.create();
 group.hasPermissions("everyone", "reader"); // false
@@ -67,7 +65,6 @@ group.hasPermissions("everyone", "reader"); // true
 The `getRoleOf` method has been added to query the role of specific entities:
 
 <CodeGroup>
-{/* prettier-ignore */}
 ```typescript
 const group = Group.create();
 group.roleOf(me); // admin
@@ -78,10 +75,6 @@ group.roleOf(Eve); // writer
 ```
 </CodeGroup>
 
-
-
-
-
 ## Breaking Changes
 
 ### Member Inheritance Changes
@@ -90,7 +83,6 @@ The behavior of groups' `members` getter method has been updated to return both 
 This might affect your application if you were relying on only direct members being returned.
 
 <CodeGroup>
-{/* prettier-ignore */}
 ```ts
 /**
  *  The following pseudocode only illustrates the inheritance logic, 
@@ -123,3 +115,41 @@ console.log(childGroup.members);
 ### Dropped support for Accounts owning Profiles
 
 Starting from `0.11.0` `Profile`s can only be owned by `Group`s.
+
+#### Migration Steps
+
+If you previously forced a migration of your `Account` schema to include a custom `Profile`, 
+and assigned its ownership to an `Account`, you need to recreate your profile code and assign it to a `Group` instead.
+
+<CodeGroup>
+```ts
+export class MyAppAccount extends Account {
+  profile = co.ref(MyAppProfile);
+
+  override async migrate() {
+    // ...
+
+    const me = await this.ensureLoaded({
+      profile: {},
+    });
+
+    if ((me.profile._owner as Group | Account)._type === "Account") {
+      const profileGroup = Group.create();
+      profileGroup.addMember("everyone", "reader");
+
+      // recreate your profile here...
+      me.profile = Profile.create(
+        {
+          name: me.profile.name,
+        },
+        profileGroup,
+      );
+    }
+  }
+}
+```
+</CodeGroup>
+
+<Alert variant="info" title="Note" className="mt-4">
+Existing profiles owned by `Account`s will still work, but you will get incorrect types when accessing a `Profile`'s `_owner`.
+</Alert>
