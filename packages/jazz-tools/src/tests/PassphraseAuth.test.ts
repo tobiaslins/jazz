@@ -316,8 +316,9 @@ describe("PassphraseAuth with TestJazzContextManager", () => {
       expect(authSecretStorage.isAuthenticated).toBe(true);
 
       const credentials = await authSecretStorage.get();
-      expect(credentials?.accountID).toBe(accountId);
-      expect(credentials?.provider).toBe("passphrase");
+      assert(credentials);
+      expect(credentials.accountID).toBe(accountId);
+      expect(credentials.provider).toBe("passphrase");
     });
 
     it("should throw error with invalid passphrase during registration", async () => {
