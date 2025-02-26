@@ -1,14 +1,14 @@
 {
   "name": "jazz-auth-clerk",
-  "version": "0.10.12",
+  "version": "0.10.13",
   "type": "module",
   "main": "dist/index.js",
   "types": "src/index.ts",
   "license": "MIT",
   "dependencies": {
     "cojson": "workspace:0.10.8",
-    "jazz-browser": "workspace:0.10.12",
-    "jazz-tools": "workspace:0.10.12"
+    "jazz-browser": "workspace:0.10.13",
+    "jazz-tools": "workspace:0.10.13"
   },
   "scripts": {
     "format-and-lint": "biome check .",

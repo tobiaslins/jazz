@@ -1,5 +1,11 @@
 # jazz-tools
 
+## 0.10.13
+
+### Patch Changes
+
+- 07feedd: Add registerNewUser and generateRandomPassphrase methods to PasskeyAuth and accept the username param on the signUp function
+
 ## 0.10.12
 
 ### Patch Changes
