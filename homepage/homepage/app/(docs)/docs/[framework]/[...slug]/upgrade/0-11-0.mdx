@@ -85,7 +85,7 @@ group.getRoleOf(Eve); // writer
 
 ### Member Inheritance Changes
 
-The behavior of groups' `members` getter method has been updated to return both direct members and inherited ones from acestor froups. 
+The behavior of groups' `members` getter method has been updated to return both direct members and inherited ones from acestor groups. 
 This might affect your application if you were relying on only direct members being returned.
 
 <CodeGroup>
@@ -116,7 +116,7 @@ console.log(childGroup.members);
 
 1. Review your member querying logic to account for inherited members.
 2. Update your permission checking code to utilize the new [`hasPermissions` and `getRoleOf`](#enhanced-permission-management) methods.
-4. Consider implementing `"everyone"` role checks where appropriate.
+3. Consider implementing `"everyone"` role checks where appropriate.
 
 ### Dropped support for Accounts owning Profiles
 
