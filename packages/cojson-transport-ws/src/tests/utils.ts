@@ -1,4 +1,4 @@
-export function waitFor(callback: () => boolean | void) {
+export function waitFor(callback: () => boolean | undefined) {
   return new Promise<void>((resolve, reject) => {
     const checkPassed = () => {
       try {
