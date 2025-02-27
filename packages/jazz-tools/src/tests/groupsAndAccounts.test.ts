@@ -310,77 +310,6 @@ describe("Group.getRoleOf", () => {
   });
 });
 
-describe("Group.hasPermissions", () => {
-  beforeEach(async () => {
-    await createJazzTestAccount({ isCurrentActiveAccount: true });
-  });
-
-  test("admin has all permissions", async () => {
-    const group = Group.create();
-    const admin = await createJazzTestAccount({});
-    group.addMember(admin, "admin");
-    const roles: AccountRole[] = ["admin", "writer", "reader", "writeOnly"];
-
-    roles.forEach((role) => {
-      expect(group.hasPermissions(admin.id, role)).toBe(true);
-      expect(group.hasPermissions("me", role)).toBe(true);
-    });
-  });
-
-  test("writer has correct permission subset", async () => {
-    const group = Group.create();
-    const writer = await createJazzTestAccount({});
-    group.addMember(writer, "writer");
-
-    expect(group.hasPermissions(writer.id, "admin")).toBe(false);
-    expect(group.hasPermissions(writer.id, "writer")).toBe(true);
-    expect(group.hasPermissions(writer.id, "writeOnly")).toBe(true);
-    expect(group.hasPermissions(writer.id, "reader")).toBe(true);
-  });
-
-  test("reader has only reader permissions", async () => {
-    const group = Group.create();
-    const reader = await createJazzTestAccount({});
-    group.addMember(reader, "reader");
-
-    expect(group.hasPermissions(reader.id, "admin")).toBe(false);
-    expect(group.hasPermissions(reader.id, "writer")).toBe(false);
-    expect(group.hasPermissions(reader.id, "writeOnly")).toBe(false);
-    expect(group.hasPermissions(reader.id, "reader")).toBe(true);
-  });
-
-  test("writeOnly has only writeOnly permissions", async () => {
-    const group = Group.create();
-    const writeOnly = await createJazzTestAccount({});
-    group.addMember(writeOnly, "writeOnly");
-
-    expect(group.hasPermissions(writeOnly.id, "admin")).toBe(false);
-    expect(group.hasPermissions(writeOnly.id, "writer")).toBe(false);
-    expect(group.hasPermissions(writeOnly.id, "writeOnly")).toBe(true);
-    expect(group.hasPermissions(writeOnly.id, "reader")).toBe(false);
-  });
-
-  test("everyone role has correct permissions", () => {
-    const group = Group.create();
-    group.addMember("everyone", "reader");
-
-    expect(group.hasPermissions("everyone", "admin")).toBe(false);
-    expect(group.hasPermissions("everyone", "writer")).toBe(false);
-    expect(group.hasPermissions("everyone", "writeOnly")).toBe(false);
-    expect(group.hasPermissions("everyone", "reader")).toBe(true);
-  });
-
-  test("non-member has no permissions", async () => {
-    const group = Group.create();
-    const nonMember = await createJazzTestAccount({});
-    const roles: AccountRole[] = ["admin", "writer", "reader", "writeOnly"];
-
-    roles.forEach((role) => {
-      expect(group.hasPermissions(nonMember.id, role)).toBe(false);
-    });
-  });
-});
-
 describe("Group.getRoleOf with 'me' parameter", () => {
   beforeEach(async () => {
     await createJazzTestAccount({ isCurrentActiveAccount: true });
@@ -417,55 +346,6 @@ describe("Group.getRoleOf with 'me' parameter", () => {
   });
 });
 
-describe("Group.hasPermissions with 'me' parameter", () => {
-  beforeEach(async () => {
-    await createJazzTestAccount({ isCurrentActiveAccount: true });
-  });
-
-  test("'me' has all permissions when admin", () => {
-    const group = Group.create();
-    const roles: AccountRole[] = ["admin", "writer", "reader", "writeOnly"];
-
-    roles.forEach((role) => {
-      expect(group.hasPermissions("me", role)).toBe(true);
-    });
-  });
-
-  test("'me' has correct permission subset when writer", async () => {
-    const account = await createJazzTestAccount();
-    const group = Group.create({ owner: account });
-
-    group.addMember(Account.getMe(), "writer");
-
-    expect(group.hasPermissions("me", "admin")).toBe(false);
-    expect(group.hasPermissions("me", "writer")).toBe(true);
-    expect(group.hasPermissions("me", "writeOnly")).toBe(true);
-    expect(group.hasPermissions("me", "reader")).toBe(true);
-  });
-
-  test("'me' has only reader permissions when reader", async () => {
-    const account = await createJazzTestAccount();
-    const group = Group.create({ owner: account });
-
-    group.addMember(Account.getMe(), "reader");
-
-    expect(group.hasPermissions("me", "admin")).toBe(false);
-    expect(group.hasPermissions("me", "writer")).toBe(false);
-    expect(group.hasPermissions("me", "writeOnly")).toBe(false);
-    expect(group.hasPermissions("me", "reader")).toBe(true);
-  });
-
-  test("'me' has no permissions when not a member", async () => {
-    const account = await createJazzTestAccount();
-    const group = Group.create({ owner: account });
-
-    const roles: AccountRole[] = ["admin", "writer", "reader", "writeOnly"];
-    roles.forEach((role) => {
-      expect(group.hasPermissions("me", role)).toBe(false);
-    });
-  });
-});
-
 describe("Account permissions", () => {
   beforeEach(async () => {
     await createJazzTestAccount({ isCurrentActiveAccount: true });
@@ -495,38 +375,6 @@ describe("Account permissions", () => {
     expect(account.getRoleOf("everyone")).toBeUndefined();
   });
 
-  test("hasPermissions only allows admin permissions for self", async () => {
-    const account = await Account.create({
-      creationProps: { name: "Test Account" },
-      crypto: Crypto,
-    });
-
-    // Account should have admin permissions for itself
-    expect(account.hasPermissions(account.id, "admin")).toBe(true);
-    expect(account.hasPermissions(account.id, "writer")).toBe(true);
-    expect(account.hasPermissions(account.id, "reader")).toBe(true);
-    expect(account.hasPermissions(account.id, "writeOnly")).toBe(true);
-
-    // Current account should have admin permissions via "me" if it's the same account
-    expect(account.hasPermissions("me", "admin")).toBe(account.isMe);
-
-    // Other accounts should have no permissions
-    const otherAccount = await Account.create({
-      creationProps: { name: "Other Account" },
-      crypto: Crypto,
-    });
-    expect(account.hasPermissions(otherAccount.id, "admin")).toBe(false);
-    expect(account.hasPermissions(otherAccount.id, "writer")).toBe(false);
-    expect(account.hasPermissions(otherAccount.id, "reader")).toBe(false);
-    expect(account.hasPermissions(otherAccount.id, "writeOnly")).toBe(false);
-
-    // Everyone should have no permissions
-    expect(account.hasPermissions("everyone", "admin")).toBe(false);
-    expect(account.hasPermissions("everyone", "writer")).toBe(false);
-    expect(account.hasPermissions("everyone", "reader")).toBe(false);
-    expect(account.hasPermissions("everyone", "writeOnly")).toBe(false);
-  });
-
   test("members array only contains self as admin", async () => {
     const account = await Account.create({
       creationProps: { name: "Test Account" },
@@ -536,5 +384,122 @@ describe("Account permissions", () => {
     expect(account.members).toEqual([
       { id: account.id, role: "admin", account: account },
     ]);
+  });
+});
+
+describe("Account permissions", () => {
+  test("canRead permissions for different roles", async () => {
+    // Create test accounts
+    const admin = await Account.create({
+      creationProps: { name: "Admin" },
+      crypto: Crypto,
+    });
+
+    const group = Group.create({ owner: admin });
+    const testObject = CoMap.create({}, { owner: group });
+
+    const writer = await Account.createAs(admin, {
+      creationProps: { name: "Writer" },
+    });
+    const reader = await Account.createAs(admin, {
+      creationProps: { name: "Reader" },
+    });
+    const writeOnly = await Account.createAs(admin, {
+      creationProps: { name: "WriteOnly" },
+    });
+
+    // Set up roles
+    group.addMember(writer, "writer");
+    group.addMember(reader, "reader");
+    group.addMember(writeOnly, "writeOnly");
+
+    // Test canRead permissions
+    expect(admin.canRead(testObject)).toBe(true);
+    expect(writer.canRead(testObject)).toBe(true);
+    expect(reader.canRead(testObject)).toBe(true);
+    expect(writeOnly.canRead(testObject)).toBe(true);
+  });
+
+  test("canWrite permissions for different roles", async () => {
+    // Create test accounts
+    const admin = await Account.create({
+      creationProps: { name: "Admin" },
+      crypto: Crypto,
+    });
+
+    const group = Group.create({ owner: admin });
+    const testObject = CoMap.create({}, { owner: group });
+
+    const writer = await Account.createAs(admin, {
+      creationProps: { name: "Writer" },
+    });
+    const reader = await Account.createAs(admin, {
+      creationProps: { name: "Reader" },
+    });
+    const writeOnly = await Account.createAs(admin, {
+      creationProps: { name: "WriteOnly" },
+    });
+
+    // Set up roles
+    group.addMember(writer, "writer");
+    group.addMember(reader, "reader");
+    group.addMember(writeOnly, "writeOnly");
+
+    // Test canWrite permissions
+    expect(admin.canWrite(testObject)).toBe(true);
+    expect(writer.canWrite(testObject)).toBe(true);
+    expect(reader.canWrite(testObject)).toBe(false);
+    expect(writeOnly.canWrite(testObject)).toBe(true);
+  });
+
+  test("canAdmin permissions for different roles", async () => {
+    // Create test accounts
+    const admin = await Account.create({
+      creationProps: { name: "Admin" },
+      crypto: Crypto,
+    });
+
+    const group = Group.create({ owner: admin });
+    const testObject = CoMap.create({}, { owner: group });
+
+    const writer = await Account.createAs(admin, {
+      creationProps: { name: "Writer" },
+    });
+    const reader = await Account.createAs(admin, {
+      creationProps: { name: "Reader" },
+    });
+    const writeOnly = await Account.createAs(admin, {
+      creationProps: { name: "WriteOnly" },
+    });
+
+    // Set up roles
+    group.addMember(writer, "writer");
+    group.addMember(reader, "reader");
+    group.addMember(writeOnly, "writeOnly");
+
+    // Test canAdmin permissions
+    expect(admin.canAdmin(testObject)).toBe(true);
+    expect(writer.canAdmin(testObject)).toBe(false);
+    expect(reader.canAdmin(testObject)).toBe(false);
+    expect(writeOnly.canAdmin(testObject)).toBe(false);
+  });
+
+  test("permissions for non-members", async () => {
+    const admin = await Account.create({
+      creationProps: { name: "Admin" },
+      crypto: Crypto,
+    });
+
+    const group = Group.create({ owner: admin });
+    const testObject = CoMap.create({}, { owner: group });
+
+    const nonMember = await Account.createAs(admin, {
+      creationProps: { name: "NonMember" },
+    });
+
+    // Test permissions for non-member
+    expect(nonMember.canRead(testObject)).toBe(false);
+    expect(nonMember.canWrite(testObject)).toBe(false);
+    expect(nonMember.canAdmin(testObject)).toBe(false);
   });
 });
