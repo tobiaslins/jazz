@@ -69,6 +69,12 @@ export type RegisteredAccount = Register extends { Account: infer Acc }
   ? Acc
   : Account;
 
+declare module "jazz-tools" {
+  export interface Register {
+    Account: RegisteredAccount;
+  }
+}
+
 export function useAccount(): { me: RegisteredAccount; logOut: () => void };
 export function useAccount<D extends DepthsIn<RegisteredAccount>>(
   depth: D

@@ -1,16 +1,15 @@
 // @vitest-environment happy-dom
 
-import { mnemonicToEntropy } from "@scure/bip39";
 import { AgentSecret } from "cojson";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { PassphraseAuth } from "../auth/PassphraseAuth";
 import {
   Account,
   AuthSecretStorage,
   ID,
   InMemoryKVStore,
   KvStoreContext,
-} from "jazz-tools";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { PassphraseAuth } from "../auth/PassphraseAuth";
+} from "../exports";
 import { createJazzTestAccount } from "../testing";
 import { TestJSCrypto } from "../testing";
 import { testWordlist } from "./fixtures";
