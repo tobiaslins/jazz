@@ -4,9 +4,11 @@ import { CodeGroup, ComingSoon, ContentByFramework } from "@/components/forMdx";
 
 # CoFeeds
 
-CoFeeds are collaborative, append-only data structures that allow multiple accounts and sessions to contribute entries. Unlike CoMaps and CoLists which provide shared collaborative state, CoFeeds organize data by user and session, making them ideal for tracking user presence, activity logs,  notifications, and other session-based information.
+CoFeeds are append-only data structures that track entries from different user sessions and accounts. Unlike other CoValues where everyone edits the same data, CoFeeds maintain separate streams for each session.
 
-Each account can have multiple sessions (different browser tabs, devices, or app instances), and each session maintains its view of the feed. This design allows you to track what different users are doing across their various devices and sessions.
+Each account can have multiple sessions (different browser tabs, devices, or app instances), making CoFeeds ideal for building features like activity logs, presence indicators, and notification systems.
+
+The [Reactions example](https://github.com/garden-co/jazz/tree/main/examples/reactions) demonstrates a practical use of CoFeeds.
 
 ## Creating CoFeeds
 
@@ -146,7 +148,7 @@ Each item is automatically associated with the current user's session. You don't
 
 ### Understanding Session Context
 
-Items are always added to the current session's feed. If a user has multiple sessions open (e.g., mobile app and web browser), each will maintain its own feed:
+Each entry is automatically added to the current session's feed. When a user has multiple open sessions (like both a mobile app and web browser), each session creates its own separate entries:
 
 <CodeGroup>
 ```ts
@@ -209,9 +211,9 @@ for (const entry of accountFeed.all) {
 ### When to Use CoFeeds
 
 - **Use CoFeeds when**:
-  - You need to track per-user or per-session data
-  - Information has a strong temporal component (activity logs, presence)
+  - You need to track per-user/per-session data
+  - Time-based information matters (activity logs, presence)
 
 - **Consider alternatives when**:
   - Data needs to be collaboratively edited (use CoMaps or CoLists)
-  - You need structured relationships (use CoMaps with references)
+  - You need structured relationships (use CoMaps/CoLists with references)
