@@ -52,7 +52,7 @@ function waitForWebSocketOpen(websocket: AnyWebSocket) {
     if (websocket.readyState === 1) {
       resolve();
     } else {
-      websocket.addEventListener("open", resolve, { once: true });
+      websocket.addEventListener("open", () => resolve(), { once: true });
     }
   });
 }

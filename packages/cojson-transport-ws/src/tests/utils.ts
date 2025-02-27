@@ -1,4 +1,5 @@
-export function waitFor(callback: () => boolean | undefined) {
+// biome-ignore lint/suspicious/noConfusingVoidType: Test helper
+export function waitFor(callback: () => boolean | void) {
   return new Promise<void>((resolve, reject) => {
     const checkPassed = () => {
       try {
