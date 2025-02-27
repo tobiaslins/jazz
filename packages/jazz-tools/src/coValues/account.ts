@@ -10,6 +10,7 @@ import {
   RawCoMap,
   RawCoValue,
   RawControlledAccount,
+  Role,
   SessionID,
   cojsonInternals,
 } from "cojson";
@@ -22,7 +23,6 @@ import {
   DeeplyLoaded,
   DepthsIn,
   ID,
-  MembersSym,
   Ref,
   type RefEncoded,
   RefIfCoValue,
@@ -37,6 +37,7 @@ import {
   subscriptionsScopes,
 } from "../internal.js";
 import { coValuesCache } from "../lib/cache.js";
+import { RegisteredAccount } from "../types.js";
 import { type CoMap } from "./coMap.js";
 import { type Group } from "./group.js";
 import { createInboxRoot } from "./inbox.js";
@@ -181,8 +182,18 @@ export class Account extends CoValueBase implements CoValue {
     return undefined;
   }
 
-  get members() {
-    return [{ id: this.id, role: "admin", account: this }];
+  get members(): Array<{
+    id: ID<RegisteredAccount> | "everyone";
+    role: Role;
+    ref: Ref<RegisteredAccount> | undefined;
+    account: RegisteredAccount | null | undefined;
+  }> {
+    const ref = new Ref<RegisteredAccount>(this.id, this._loadedAs, {
+      ref: () => this.constructor as typeof Account,
+      optional: false,
+    });
+
+    return [{ id: this.id, role: "admin", ref, account: this }];
   }
 
   canRead(value: CoValue) {
@@ -443,7 +454,7 @@ export const AccountAndGroupProxyHandler: ProxyHandler<Account | Group> = {
   },
   set(target, key, value, receiver) {
     if (
-      (key === "profile" || key === "root" || key === MembersSym) &&
+      (key === "profile" || key === "root") &&
       typeof value === "object" &&
       SchemaInit in value
     ) {
@@ -476,7 +487,7 @@ export const AccountAndGroupProxyHandler: ProxyHandler<Account | Group> = {
   },
   defineProperty(target, key, descriptor) {
     if (
-      (key === "profile" || key === "root" || key === MembersSym) &&
+      (key === "profile" || key === "root") &&
       typeof descriptor.value === "object" &&
       SchemaInit in descriptor.value
     ) {
