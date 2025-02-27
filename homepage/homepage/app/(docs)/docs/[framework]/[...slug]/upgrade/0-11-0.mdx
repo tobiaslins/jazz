@@ -112,6 +112,20 @@ console.log(childGroup.members);
 ```
 </CodeGroup>
 
+Additionally:
+- now `Group.members` doesn't include the `everyone` member anymore
+- the account type in `Group.members` is now the globally registered Account schema and we have removed the `co.members` way to define an AccountSchema for members
+
+If you need to explicitly check if "everyone" is a member of a group, you can use the `getRoleOf` method instead:
+<CodeGroup>
+```ts
+if (group.getRoleOf("everyone")) {
+  console.log("Everyone has access to the group");
+}
+```
+</CodeGroup>
+
+
 #### Migration Steps
 
 1. Review your member querying logic to account for inherited members.
