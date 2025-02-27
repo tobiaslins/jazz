@@ -62,7 +62,16 @@
       }
     },
     {
-      "include": ["packages/**/src/tests/**", "packages/**/src/test/**"],
+      "include": ["packages/cojson-storage*/**"],
+      "linter": {
+        "enabled": true,
+        "rules": {
+          "recommended": true
+        }
+      }
+    },
+    {
+      "include": ["packages/**/src/tests/**"],
       "linter": {
         "rules": {
           "correctness": {
@@ -71,23 +80,6 @@
           "style": {
             "noNonNullAssertion": "off"
           },
-          "suspicious": {
-            "noExplicitAny": "info"
-          }
-        }
-      }
-    },
-    {
-      "include": [
-        "packages/cojson-storage/**",
-        "packages/cojson-storage-indexeddb/**",
-        "packages/cojson-storage-rn-sqlite/**",
-        "packages/cojson-storage-localstorage/**"
-      ],
-      "linter": {
-        "enabled": true,
-        "rules": {
-          "recommended": true,
           "suspicious": {
             "noExplicitAny": "info"
           }

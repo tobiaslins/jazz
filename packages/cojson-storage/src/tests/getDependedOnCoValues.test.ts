@@ -163,7 +163,6 @@ describe("getDependedOnCoValues", () => {
           type: "group",
         },
       },
-      // biome-ignore lint/suspicious/noExplicitAny: Test file
     } as any;
 
     const result = getDependedOnCoValues({
