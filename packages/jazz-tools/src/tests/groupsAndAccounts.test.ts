@@ -1,7 +1,7 @@
-import { AccountRole } from "cojson";
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { beforeEach, describe, expect, test } from "vitest";
 import { Account, CoMap, Group, Profile, co } from "../exports.js";
+import { Ref } from "../internal.js";
 import { createJazzTestAccount } from "../testing.js";
 import { setupTwoNodes } from "./utils.js";
 
@@ -36,62 +36,26 @@ describe("Custom accounts and groups", async () => {
       }
     }
 
-    class CustomGroup extends Group {
-      profile = co.null;
-      root = co.null;
-      [co.members] = co.ref(CustomAccount);
-
-      get nMembers() {
-        return this.members.length;
-      }
-    }
-    const me = await CustomAccount.create({
+    const me = await createJazzTestAccount({
       creationProps: { name: "Hermes Puggington" },
-      crypto: Crypto,
+      isCurrentActiveAccount: true,
+      AccountSchema: CustomAccount,
     });
 
     expect(me.profile).toBeDefined();
     expect(me.profile?.name).toBe("Hermes Puggington");
     expect(me.profile?.color).toBe("blue");
 
-    const group = CustomGroup.create({ owner: me });
+    const group = Group.create({ owner: me });
     group.addMember("everyone", "reader");
 
-    expect(group.members).toMatchObject([
-      { id: me.id, role: "admin" },
-      { id: "everyone", role: "reader" },
-    ]);
+    expect(group.members).toMatchObject([{ id: me.id, role: "admin" }]);
 
-    expect(group.nMembers).toBe(2);
-
-    await new Promise<void>((resolve) => {
-      group.subscribe({}, (update) => {
-        const meAsMember = update.members.find((member) => {
-          return member.id === me.id && member.account?.profile;
-        });
-        if (meAsMember) {
-          expect(meAsMember.account?.profile?.name).toBe("Hermes Puggington");
-          expect(meAsMember.account?.profile?.color).toBe("blue");
-          resolve();
-        }
-      });
-    });
-
-    class MyMap extends CoMap {
-      name = co.string;
-    }
-
-    const map = MyMap.create({ name: "test" }, { owner: group });
-
-    const meAsCastMember = map._owner
-      .castAs(CustomGroup)
-      .members.find((member) => member.id === me.id);
-    expect(meAsCastMember?.account?.profile?.name).toBe("Hermes Puggington");
-    expect(meAsCastMember?.account?.profile?.color).toBe("blue");
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((map._owner as any).nMembers).toBeUndefined();
-    expect(map._owner.castAs(CustomGroup).nMembers).toBe(2);
+    const meAsMember = group.members.find((member) => member.id === me.id);
+    expect((meAsMember?.account as CustomAccount).profile?.name).toBe(
+      "Hermes Puggington",
+    );
+    expect((meAsMember?.account as CustomAccount).profile?.color).toBe("blue");
   });
 
   test("Should throw when creating a profile with an account as owner", async () => {
@@ -213,41 +177,21 @@ describe("Group inheritance", () => {
     const group = Group.create();
     group.addMember("everyone", "reader");
 
-    expect(group.members).toContainEqual({
-      id: "everyone",
-      role: "reader",
-      account: undefined,
-      ref: undefined,
-    });
+    expect(group.getRoleOf("everyone")).toBe("reader");
 
     group.addMember("everyone", "writer");
 
-    expect(group.members).toContainEqual({
-      id: "everyone",
-      role: "writer",
-      account: undefined,
-      ref: undefined,
-    });
+    expect(group.getRoleOf("everyone")).toBe("writer");
 
     // @ts-expect-error - admin is not a valid role for everyone
     expect(() => group.addMember("everyone", "admin")).toThrow();
 
-    expect(group.members).toContainEqual({
-      id: "everyone",
-      role: "writer",
-      account: undefined,
-      ref: undefined,
-    });
+    expect(group.getRoleOf("everyone")).toBe("writer");
 
     // @ts-expect-error - writeOnly is not a valid role for everyone
     expect(() => group.addMember("everyone", "writeOnly")).toThrow();
 
-    expect(group.members).toContainEqual({
-      id: "everyone",
-      role: "writer",
-      account: undefined,
-      ref: undefined,
-    });
+    expect(group.getRoleOf("everyone")).toBe("writer");
   });
 
   test("typescript should show an error when adding a member with a non-account role", async () => {
@@ -258,16 +202,16 @@ describe("Group inheritance", () => {
     // @ts-expect-error - Even though readerInvite is a valid role for an account, we don't allow it to not create confusion when using the intellisense
     group.addMember(account, "readerInvite");
 
-    expect(group.members).toContainEqual(
+    expect(group.members).not.toContainEqual(
       expect.objectContaining({
         id: account.id,
         role: "readerInvite",
       }),
     );
+
+    expect(group.getRoleOf(account.id)).toBe("readerInvite");
   });
 });
-
-// ... existing code ...
 
 describe("Group.getRoleOf", () => {
   beforeEach(async () => {
@@ -382,7 +326,7 @@ describe("Account permissions", () => {
     });
 
     expect(account.members).toEqual([
-      { id: account.id, role: "admin", account: account },
+      { id: account.id, role: "admin", account: account, ref: expect.any(Ref) },
     ]);
   });
 });
