@@ -180,7 +180,7 @@ describe("co.json TypeScript validation", () => {
     class MapWithOptionalJSON extends CoMap {
       data1 = co.optional.json<ValidInterface0>();
       data2 = co.optional.json<ValidInterface1>();
-      data3 = co.optional.json<InvalidInterface>();
+      data3 = co.optional.json<InterfaceWithOptionalTypes>();
     }
 
     expectTypeOf(MapWithOptionalJSON.create<MapWithOptionalJSON>)
@@ -188,7 +188,7 @@ describe("co.json TypeScript validation", () => {
       .toEqualTypeOf<{
         data1?: valueWithCoMarker<ValidInterface0> | null;
         data2?: valueWithCoMarker<ValidInterface1> | null;
-        data3?: valueWithCoMarker<InvalidInterface> | null;
+        data3?: valueWithCoMarker<InterfaceWithOptionalTypes> | null;
       }>();
   });
 
