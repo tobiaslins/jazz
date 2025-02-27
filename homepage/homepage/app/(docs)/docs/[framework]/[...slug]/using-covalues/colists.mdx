@@ -174,11 +174,19 @@ class Project extends CoMap {
   tasks = co.ref(ListOfTasks);
 }
 
-// Add a task to a garden project
-project.tasks.push(Task.create({ 
+// ...
+
+const task = Task.create({ 
   title: "Plant seedlings",
-  status: "todo"
-}));
+  status: "todo",
+  project: project, // Add a reference to the project
+});
+
+// Add a task to a garden project
+project.tasks.push(task);
+
+// Access the project from the task
+console.log(task.project); // { name: "Garden Project", tasks: [task] }
 ```
 </CodeGroup>
 
