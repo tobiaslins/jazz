@@ -12,7 +12,8 @@
       "**/ios/**",
       "**/android/**",
       "packages/jazz-svelte/**",
-      "examples/*svelte*/**"
+      "examples/*svelte*/**",
+      "homepage/homepage/**"
     ]
   },
   "formatter": {
@@ -61,21 +62,24 @@
       }
     },
     {
-      "include": ["packages/**/src/tests/**", "packages/**/src/test/**"],
+      "include": ["packages/cojson-storage*/**"],
       "linter": {
+        "enabled": true,
         "rules": {
-          "correctness": {
-            "useImportExtensions": "off"
-          }
+          "recommended": true
         }
       }
     },
     {
-      "include": ["packages/cojson-storage-indexeddb/**"],
+      "include": ["packages/**/src/tests/**"],
       "linter": {
-        "enabled": true,
         "rules": {
-          "recommended": true,
+          "correctness": {
+            "useImportExtensions": "off"
+          },
+          "style": {
+            "noNonNullAssertion": "off"
+          },
           "suspicious": {
             "noExplicitAny": "info"
           }
