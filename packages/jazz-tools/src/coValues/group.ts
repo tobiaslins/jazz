@@ -180,7 +180,10 @@ export class Group extends CoValueBase implements CoValue {
         );
         const accessRef = () => ref.accessFrom(this, "members." + accountID);
 
-        ref.syncLoad();
+        if (!ref.syncLoad()) {
+          console.warn("Account not loaded", accountID);
+        }
+
         members.push({
           id: accountID as unknown as ID<Account>,
           role,
