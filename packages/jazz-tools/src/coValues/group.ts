@@ -1,10 +1,12 @@
 import type {
   AccountRole,
+  AgentID,
   Everyone,
   RawAccountID,
   RawGroup,
   Role,
 } from "cojson";
+import { activeAccountContext } from "../implementation/activeAccountContext.js";
 import type {
   CoValue,
   CoValueClass,
@@ -150,39 +152,58 @@ export class Group extends CoValueBase implements CoValue {
   }
 
   get members(): Array<{
-    id: Everyone | ID<Account>;
+    id: ID<Account> | "everyone";
     role: Role;
     ref: Ref<Account> | undefined;
-    account: Account | undefined;
+    account: Account | null | undefined;
   }> {
-    return this._raw
-      .keys()
-      .filter((key) => {
-        return key === "everyone" || key.startsWith("co_");
-      })
-      .map((id) => {
-        const role = this._raw.get(id as Everyone | RawAccountID) as Role;
-        const accountID =
-          id === "everyone" ? undefined : (id as unknown as ID<Account>);
-        const ref =
-          accountID &&
-          new Ref<NonNullable<this[MembersSym]>>(
-            accountID,
-            this._loadedAs,
-            this._schema[MembersSym],
-          );
-        const accessRef = () =>
-          ref?.accessFrom(this, "members." + id) as Account | undefined;
+    const members = [];
 
-        return {
-          id: id === "everyone" ? "everyone" : (id as unknown as ID<Account>),
-          role,
-          ref,
-          get account() {
-            return accessRef();
-          },
-        };
+    for (const accountID of this._raw.getAllMemberKeysSet()) {
+      if (!isAccountID(accountID)) continue;
+
+      const role = this._raw.roleOf(accountID);
+      const ref = new Ref<Account>(
+        accountID as unknown as ID<Account>,
+        this._loadedAs,
+        this._schema[MembersSym],
+      );
+      const accessRef = () => ref?.accessFrom(this, "members." + accountID);
+
+      members.push({
+        id: accountID as unknown as ID<Account>,
+        role,
+        ref,
+        get account() {
+          return accessRef();
+        },
       });
+    }
+
+    const everyoneRole = this._raw.roleOf("everyone");
+
+    if (everyoneRole) {
+      members.push({
+        id: "everyone",
+        role: everyoneRole,
+        ref: undefined,
+        account: undefined,
+      });
+    }
+
+    return members;
+  }
+
+  getRoleOf(member: Everyone | ID<Account> | "me") {
+    if (member === "me") {
+      return this._raw.roleOf(
+        activeAccountContext.get().id as unknown as RawAccountID,
+      );
+    }
+
+    return this._raw.roleOf(
+      member === "everyone" ? member : (member as unknown as RawAccountID),
+    );
   }
 
   extend(
@@ -274,3 +295,7 @@ export class Group extends CoValueBase implements CoValue {
 }
 
 RegisteredSchemas["Group"] = Group;
+
+export function isAccountID(id: RawAccountID | AgentID): id is RawAccountID {
+  return id.startsWith("co_");
+}

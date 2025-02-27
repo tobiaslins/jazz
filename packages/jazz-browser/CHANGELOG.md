@@ -1,5 +1,11 @@
 # jazz-browser
 
+## 0.10.9
+
+### Patch Changes
+
+- 834203f: Fix the attachment setting to restore the faceid login
+
 ## 0.10.8
 
 ### Patch Changes

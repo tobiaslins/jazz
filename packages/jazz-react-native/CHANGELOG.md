@@ -1,5 +1,11 @@
 # jazz-browser
 
+## 0.10.10
+
+### Patch Changes
+
+- 3405d8f: read provided kvStore instead of falling back to the default in-memory store
+
 ## 0.10.8
 
 ### Patch Changes

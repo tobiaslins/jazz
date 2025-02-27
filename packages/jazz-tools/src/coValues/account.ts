@@ -2,6 +2,7 @@ import {
   AgentSecret,
   CoID,
   CryptoProvider,
+  Everyone,
   InviteSecret,
   LocalNode,
   Peer,
@@ -168,6 +169,43 @@ export class Account extends CoValueBase implements CoValue {
     }
   }
 
+  getRoleOf(member: Everyone | ID<Account> | "me") {
+    if (member === "me") {
+      return this.isMe ? "admin" : undefined;
+    }
+
+    if (member === this.id) {
+      return "admin";
+    }
+
+    return undefined;
+  }
+
+  get members() {
+    return [{ id: this.id, role: "admin", account: this }];
+  }
+
+  canRead(value: CoValue) {
+    const role = value._owner.getRoleOf(this.id);
+
+    return (
+      role === "admin" ||
+      role === "writer" ||
+      role === "reader" ||
+      role === "writeOnly"
+    );
+  }
+
+  canWrite(value: CoValue) {
+    const role = value._owner.getRoleOf(this.id);
+
+    return role === "admin" || role === "writer" || role === "writeOnly";
+  }
+
+  canAdmin(value: CoValue) {
+    return value._owner.getRoleOf(this.id) === "admin";
+  }
+
   async acceptInvite<V extends CoValue>(
     valueID: ID<V>,
     inviteSecret: InviteSecret,
@@ -259,13 +297,20 @@ export class Account extends CoValueBase implements CoValue {
   }
 
   async applyMigration(creationProps?: AccountCreationProps) {
-    if (creationProps) {
+    await this.migrate(creationProps);
+
+    // if the user has not defined a profile themselves, we create one
+    if (this.profile === undefined && creationProps) {
       const profileGroup = RegisteredSchemas["Group"].create({ owner: this });
-      profileGroup.addMember("everyone", "reader");
-      this.profile = Profile.create(
-        { name: creationProps.name },
-        { owner: profileGroup },
-      );
+
+      this.profile = Profile.create({ name: creationProps.name }, profileGroup);
+      this.profile._owner.addMember("everyone", "reader");
+    } else if (this.profile && creationProps) {
+      if (this.profile._owner._type !== "Group") {
+        throw new Error("Profile must be owned by a Group", {
+          cause: `The profile of the account "${this.id}" was created with an Account as owner, which is not allowed.`,
+        });
+      }
     }
 
     const node = this._raw.core.node;
@@ -278,8 +323,6 @@ export class Account extends CoValueBase implements CoValue {
       profile.set("inbox", inboxRoot.id);
       profile.set("inboxInvite", inboxRoot.inviteLink);
     }
-
-    await this.migrate(creationProps);
   }
 
   // Placeholder method for subclasses to override
