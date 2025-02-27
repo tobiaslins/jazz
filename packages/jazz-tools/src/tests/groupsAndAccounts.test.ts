@@ -2,12 +2,14 @@ import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { beforeEach, describe, expect, test } from "vitest";
 import { Account, CoMap, Group, Profile, co } from "../exports.js";
 import { Ref } from "../internal.js";
-import { createJazzTestAccount } from "../testing.js";
+import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 import { setupTwoNodes } from "./utils.js";
 
 const Crypto = await WasmCrypto.create();
 
 beforeEach(async () => {
+  await setupJazzTestSync();
+
   await createJazzTestAccount({
     isCurrentActiveAccount: true,
   });
@@ -196,6 +198,7 @@ describe("Group inheritance", () => {
 
   test("typescript should show an error when adding a member with a non-account role", async () => {
     const account = await createJazzTestAccount({});
+    await account.waitForAllCoValuesSync();
 
     const group = Group.create();
 
@@ -221,6 +224,7 @@ describe("Group.getRoleOf", () => {
   test("returns correct role for admin", async () => {
     const group = Group.create();
     const admin = await createJazzTestAccount({});
+    await admin.waitForAllCoValuesSync();
     group.addMember(admin, "admin");
     expect(group.getRoleOf(admin.id)).toBe("admin");
     expect(group.getRoleOf("me")).toBe("admin");
@@ -229,6 +233,7 @@ describe("Group.getRoleOf", () => {
   test("returns correct role for writer", async () => {
     const group = Group.create();
     const writer = await createJazzTestAccount({});
+    await writer.waitForAllCoValuesSync();
     group.addMember(writer, "writer");
     expect(group.getRoleOf(writer.id)).toBe("writer");
   });
@@ -236,6 +241,7 @@ describe("Group.getRoleOf", () => {
   test("returns correct role for reader", async () => {
     const group = Group.create();
     const reader = await createJazzTestAccount({});
+    await reader.waitForAllCoValuesSync();
     group.addMember(reader, "reader");
     expect(group.getRoleOf(reader.id)).toBe("reader");
   });
@@ -243,6 +249,7 @@ describe("Group.getRoleOf", () => {
   test("returns correct role for writeOnly", async () => {
     const group = Group.create();
     const writeOnly = await createJazzTestAccount({});
+    await writeOnly.waitForAllCoValuesSync();
     group.addMember(writeOnly, "writeOnly");
     expect(group.getRoleOf(writeOnly.id)).toBe("writeOnly");
   });
@@ -266,6 +273,7 @@ describe("Group.getRoleOf with 'me' parameter", () => {
 
   test("returns correct role for 'me' when current account is writer", async () => {
     const account = await createJazzTestAccount();
+    await account.waitForAllCoValuesSync();
     const group = Group.create({ owner: account });
 
     group.addMember(Account.getMe(), "writer");
@@ -275,6 +283,7 @@ describe("Group.getRoleOf with 'me' parameter", () => {
 
   test("returns correct role for 'me' when current account is reader", async () => {
     const account = await createJazzTestAccount();
+    await account.waitForAllCoValuesSync();
     const group = Group.create({ owner: account });
 
     group.addMember(Account.getMe(), "reader");
@@ -284,6 +293,7 @@ describe("Group.getRoleOf with 'me' parameter", () => {
 
   test("returns undefined for 'me' when current account has no role", async () => {
     const account = await createJazzTestAccount();
+    await account.waitForAllCoValuesSync();
     const group = Group.create({ owner: account });
 
     expect(group.getRoleOf("me")).toBeUndefined();
@@ -445,5 +455,97 @@ describe("Account permissions", () => {
     expect(nonMember.canRead(testObject)).toBe(false);
     expect(nonMember.canWrite(testObject)).toBe(false);
     expect(nonMember.canAdmin(testObject)).toBe(false);
+  });
+});
+
+describe("Group.members", () => {
+  test("should return the members of the group", async () => {
+    const childGroup = Group.create();
+
+    const bob = await createJazzTestAccount({});
+    await bob.waitForAllCoValuesSync();
+
+    childGroup.addMember(bob, "reader");
+    expect(childGroup.getRoleOf(bob.id)).toBe("reader");
+
+    expect(childGroup.members).toEqual([
+      expect.objectContaining({
+        account: expect.objectContaining({
+          id: Account.getMe().id,
+        }),
+        role: "admin",
+      }),
+      expect.objectContaining({
+        account: expect.objectContaining({
+          id: bob.id,
+        }),
+        role: "reader",
+      }),
+    ]);
+  });
+
+  test("should return the members of the parent group", async () => {
+    const childGroup = Group.create();
+    const parentGroup = Group.create();
+
+    const bob = await createJazzTestAccount({});
+    await bob.waitForAllCoValuesSync();
+
+    parentGroup.addMember(bob, "writer");
+    childGroup.extend(parentGroup, "reader");
+
+    expect(childGroup.getRoleOf(bob.id)).toBe("reader");
+
+    expect(childGroup.members).toEqual([
+      expect.objectContaining({
+        account: expect.objectContaining({
+          id: Account.getMe().id,
+        }),
+        role: "admin",
+      }),
+      expect.objectContaining({
+        account: expect.objectContaining({
+          id: bob.id,
+        }),
+        role: "reader",
+      }),
+    ]);
+  });
+
+  test("should not return everyone", async () => {
+    const childGroup = Group.create();
+
+    childGroup.addMember("everyone", "reader");
+    expect(childGroup.getRoleOf("everyone")).toBe("reader");
+
+    expect(childGroup.members).toEqual([
+      expect.objectContaining({
+        account: expect.objectContaining({
+          id: Account.getMe().id,
+        }),
+        role: "admin",
+      }),
+    ]);
+  });
+
+  test("should not return revoked members", async () => {
+    const childGroup = Group.create();
+
+    const bob = await createJazzTestAccount({});
+    await bob.waitForAllCoValuesSync();
+
+    childGroup.addMember(bob, "reader");
+    await childGroup.removeMember(bob);
+
+    expect(childGroup.getRoleOf(bob.id)).toBeUndefined();
+
+    expect(childGroup.members).toEqual([
+      expect.objectContaining({
+        account: expect.objectContaining({
+          id: Account.getMe().id,
+        }),
+        role: "admin",
+      }),
+    ]);
   });
 });
