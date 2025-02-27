@@ -249,6 +249,56 @@ module.exports = withNativeWind(config, { input: "./src/global.css" });
     }
   }
 
+  // Step 5: Clone cursor-docs
+  const docsSpinner = ora({
+    text: chalk.blue(`Adding .cursor directory...`),
+    spinner: "dots",
+  }).start();
+
+  try {
+    // Create a temporary directory for cursor-docs
+    const tempDocsDir = `${projectName}-cursor-docs-temp`;
+    const emitter = degit("garden-co/jazz/packages/cursor-docs", {
+      cache: false,
+      force: true,
+      verbose: true,
+    });
+
+    // Clone cursor-docs to temp directory
+    await emitter.clone(tempDocsDir);
+
+    // Copy only the .cursor directory to project root
+    const cursorDirSource = `${tempDocsDir}/.cursor`;
+    const cursorDirTarget = `${projectName}/.cursor`;
+
+    if (fs.existsSync(cursorDirSource)) {
+      fs.cpSync(cursorDirSource, cursorDirTarget, { recursive: true });
+      docsSpinner.succeed(chalk.green(".cursor directory added successfully"));
+    } else {
+      docsSpinner.fail(chalk.red(".cursor directory not found in cursor-docs"));
+    }
+
+    // Clean up temp directory
+    fs.rmSync(tempDocsDir, { recursive: true, force: true });
+  } catch (error) {
+    docsSpinner.fail(chalk.red("Failed to add .cursor directory"));
+    throw error;
+  }
+
+  // Step 6: Git init
+  const gitSpinner = ora({
+    text: chalk.blue("Initializing git repository..."),
+    spinner: "dots",
+  }).start();
+
+  try {
+    execSync(`cd "${projectName}" && git init`, { stdio: "pipe" });
+    gitSpinner.succeed(chalk.green("Git repository initialized"));
+  } catch (error) {
+    gitSpinner.fail(chalk.red("Failed to initialize git repository"));
+    throw error;
+  }
+
   // Final success message
   console.log("\n" + chalk.green.bold("✨ Project setup completed! ✨\n"));
   console.log(chalk.cyan("To get started:"));
