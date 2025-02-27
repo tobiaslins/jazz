@@ -144,6 +144,8 @@ export function createWebSocketPeer({
   }
 
   websocket.addEventListener("close", handleClose);
+  // TODO (#1537): Remove this any once the WebSocket error event type is fixed
+  // biome-ignore lint/suspicious/noExplicitAny: WebSocket error event type
   websocket.addEventListener("error" as any, (err) => {
     if (err.message) {
       logger.warn(err.message);
