@@ -171,7 +171,8 @@ export class SQLiteClient implements DBClientInterface {
       .run(sessionRowID, idx, signature);
   }
 
-  async transaction(operationsCallback: () => Promise<unknown>) {
-    await this.db.transaction(operationsCallback)();
+  transaction(operationsCallback: () => unknown) {
+    this.db.transaction(operationsCallback)();
+    return undefined;
   }
 }
