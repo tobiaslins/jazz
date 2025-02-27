@@ -1,5 +1,12 @@
 # jazz-browser
 
+## 0.10.13
+
+### Patch Changes
+
+- Updated dependencies [07feedd]
+  - jazz-tools@0.10.13
+
 ## 0.10.12
 
 ### Patch Changes
