@@ -1,5 +1,11 @@
 # create-jazz-app
 
+## 0.1.13
+
+### Patch Changes
+
+- b063ccc: Added Cursor docs to create-jazz-app
+
 ## 0.1.12
 
 ### Patch Changes

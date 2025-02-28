@@ -1,5 +1,11 @@
 # jazz-tools
 
+## 0.10.14
+
+### Patch Changes
+
+- 75211e3: Fixes invalid authentication state when logging out after signUp
+
 ## 0.10.13
 
 ### Patch Changes
