@@ -124,6 +124,12 @@ const latestEntry = activityFeed.byMe;
 
 console.log(`My last action was ${latestEntry.value.action}`); 
   // "My last action was harvesting"
+
+// Get the latest entry from each account
+const latestEntriesByAccount = Object.values(activityFeed).map(entry => ({
+  accountName: entry.by?.profile?.name,
+  value: entry.value,
+}));
 ```
 </CodeGroup>
 
