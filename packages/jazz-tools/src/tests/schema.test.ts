@@ -173,7 +173,7 @@ describe("co.json TypeScript validation", () => {
     interface ValidInterface1 {
       value: string | undefined;
     }
-    interface InvalidInterface {
+    interface InterfaceWithOptionalTypes {
       value?: string;
     }
 
