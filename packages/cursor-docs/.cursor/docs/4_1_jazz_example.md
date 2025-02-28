@@ -223,3 +223,7 @@ export class PasswordManagerAccount extends Account {
   // }
 }
 ```
+
+---
+
+Continue: 4_2_jazz_example.md

@@ -1,14 +1,14 @@
 import {
-  DisconnectedError,
-  Peer,
-  PingTimeoutError,
-  SyncMessage,
+  type DisconnectedError,
+  type Peer,
+  type PingTimeoutError,
+  type SyncMessage,
   cojsonInternals,
   logger,
 } from "cojson";
 import { BatchedOutgoingMessages } from "./BatchedOutgoingMessages.js";
 import { deserializeMessages, getErrorMessage } from "./serialization.js";
-import { AnyWebSocket } from "./types.js";
+import type { AnyWebSocket } from "./types.js";
 
 export const BUFFER_LIMIT = 100_000;
 export const BUFFER_LIMIT_POLLING_INTERVAL = 10;
@@ -52,7 +52,7 @@ function waitForWebSocketOpen(websocket: AnyWebSocket) {
     if (websocket.readyState === 1) {
       resolve();
     } else {
-      websocket.addEventListener("open", resolve, { once: true });
+      websocket.addEventListener("open", () => resolve(), { once: true });
     }
   });
 }
@@ -144,6 +144,8 @@ export function createWebSocketPeer({
   }
 
   websocket.addEventListener("close", handleClose);
+  // TODO (#1537): Remove this any once the WebSocket error event type is fixed
+  // biome-ignore lint/suspicious/noExplicitAny: WebSocket error event type
   websocket.addEventListener("error" as any, (err) => {
     if (err.message) {
       logger.warn(err.message);
@@ -174,7 +176,7 @@ export function createWebSocketPeer({
 
     if (!result.ok) {
       logger.warn(
-        "Error while deserializing messages: " + getErrorMessage(result.error),
+        `Error while deserializing messages: ${getErrorMessage(result.error)}`,
       );
       return;
     }
@@ -227,7 +229,7 @@ export function createWebSocketPeer({
             },
             { once: true },
           );
-        } else if (websocket.readyState == 1) {
+        } else if (websocket.readyState === 1) {
           websocket.close();
         }
       },

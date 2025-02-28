@@ -212,3 +212,5 @@ export class JazzAccount extends Account {
 }
 
 ---
+
+Continue: 3_jazz_rules.md

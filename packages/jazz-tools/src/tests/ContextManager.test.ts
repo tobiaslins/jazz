@@ -338,4 +338,53 @@ describe("ContextManager", () => {
 
     expect(me.root.transferredRoot?.value).toBe("Hello");
   });
+
+  test("handles registration of new account", async () => {
+    const onAnonymousAccountDiscarded = vi.fn();
+    await manager.createContext({ onAnonymousAccountDiscarded });
+
+    const secret = Crypto.newRandomAgentSecret();
+    const accountId = await manager.register(secret, { name: "Test User" });
+
+    expect(accountId).toBeDefined();
+    const context = getCurrentValue();
+    expect(context.me.profile?.name).toBe("Test User");
+    expect(context.me.id).toBe(accountId);
+  });
+
+  test("calls onAnonymousAccountDiscarded when registering from anonymous user", async () => {
+    const onAnonymousAccountDiscarded = vi.fn();
+    await manager.createContext({ onAnonymousAccountDiscarded });
+    const anonymousAccount = getCurrentValue().me;
+
+    const secret = Crypto.newRandomAgentSecret();
+    await manager.register(secret, { name: "Test User" });
+
+    expect(onAnonymousAccountDiscarded).toHaveBeenCalledWith(anonymousAccount);
+  });
+
+  test("does not call onAnonymousAccountDiscarded when registering from authenticated user", async () => {
+    const onAnonymousAccountDiscarded = vi.fn();
+    const account = await createJazzTestAccount();
+
+    await manager.getAuthSecretStorage().set({
+      accountID: account.id,
+      accountSecret: account._raw.core.node.account.agentSecret,
+      provider: "test",
+    });
+
+    await manager.createContext({ onAnonymousAccountDiscarded });
+
+    const secret = Crypto.newRandomAgentSecret();
+    await manager.register(secret, { name: "New User" });
+
+    expect(onAnonymousAccountDiscarded).not.toHaveBeenCalled();
+  });
+
+  test("throws error when registering without props", async () => {
+    const secret = Crypto.newRandomAgentSecret();
+    await expect(
+      manager.register(secret, { name: "Test User" }),
+    ).rejects.toThrow("Props required");
+  });
 });

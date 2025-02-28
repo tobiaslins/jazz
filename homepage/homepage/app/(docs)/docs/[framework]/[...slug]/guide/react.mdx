@@ -442,11 +442,11 @@ All we have to do is create a new group to own each new issue and add "everyone"
 import { useState } from "react"; // old
 import { Issue } from "./schema"; // old
 import { IssueComponent } from "./components/Issue.tsx"; // old
-import { useCoState } from "jazz-react"; // old
+import { useAccount, useCoState } from "jazz-react";
 import { ID, Group } from "jazz-tools"
 // old
 function App() { // old
-    const { me } = useAccount(); // old
+    const { me } = useAccount();
     const [issueID, setIssueID] = useState<ID<Issue> | undefined>(// old
         (window.location.search?.replace("?issue=", "") || undefined) as ID<Issue> | undefined,// old
     ); // old
