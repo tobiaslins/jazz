@@ -3,15 +3,15 @@
   "bin": "./dist/index.js",
   "type": "module",
   "license": "MIT",
-  "version": "0.10.8",
+  "version": "0.10.13",
   "exports": {
     "./startSyncServer": {
       "import": "./dist/startSyncServer.js",
-      "types": "./src/startSyncServer.ts"
+      "types": "./dist/startSyncServer.d.ts"
     },
     "./createWorkerAccount": {
       "import": "./dist/createWorkerAccount.js",
-      "types": "./src/createWorkerAccount.ts"
+      "types": "./dist/createWorkerAccount.d.ts"
     }
   },
   "scripts": {
@@ -32,7 +32,7 @@
     "cojson-storage-sqlite": "workspace:0.10.8",
     "cojson-transport-ws": "workspace:0.10.8",
     "effect": "^3.6.5",
-    "jazz-tools": "workspace:0.10.8",
+    "jazz-tools": "workspace:0.10.13",
     "ws": "^8.14.2"
   },
   "devDependencies": {

@@ -77,7 +77,7 @@ export class RawGroup<
    *
    * @category 1. Role reading
    */
-  roleOf(accountID: RawAccountID): Role | undefined {
+  roleOf(accountID: RawAccountID | typeof EVERYONE): Role | undefined {
     return this.roleOfInternal(accountID)?.role;
   }
 
@@ -87,16 +87,8 @@ export class RawGroup<
   ): { role: Role; via: CoID<RawGroup> | undefined } | undefined {
     let roleHere = this.get(accountID);
 
-    if (!roleHere) {
-      const everyoneRole = this.get(EVERYONE);
-
-      if (everyoneRole && everyoneRole !== "revoked") {
-        roleHere = everyoneRole;
-      }
-    }
-
     if (roleHere === "revoked") {
-      return undefined;
+      roleHere = undefined;
     }
 
     let roleInfo:
@@ -120,6 +112,13 @@ export class RawGroup<
       if (isMorePermissiveAndShouldInherit(roleToInherit, roleInfo?.role)) {
         roleInfo = { role: roleToInherit, via: group.id };
       }
+    }
+
+    if (!roleInfo && accountID !== "everyone") {
+      const everyoneRole = this.get("everyone");
+
+      if (everyoneRole && everyoneRole !== "revoked")
+        return { role: everyoneRole, via: undefined };
     }
 
     return roleInfo;
@@ -391,6 +390,18 @@ export class RawGroup<
     return this.keys().filter((key): key is RawAccountID | AgentID => {
       return key.startsWith("co_") || isAgentID(key);
     });
+  }
+
+  getAllMemberKeysSet() {
+    const memberKeys = new Set(this.getMemberKeys());
+
+    for (const { group } of this.getParentGroups()) {
+      for (const key of group.getAllMemberKeysSet()) {
+        memberKeys.add(key);
+      }
+    }
+
+    return memberKeys;
   }
 
   /** @internal */

@@ -66,6 +66,12 @@ export interface Register {}
 
 export type RegisteredAccount = Register extends { Account: infer Acc } ? Acc : Account;
 
+declare module "jazz-tools" {
+  export interface Register {
+    Account: RegisteredAccount;
+  }
+}
+
   export function useAccount<const R extends RefsToResolve<RegisteredAccount>>(
     options?: { resolve?: RefsToResolveStrict<RegisteredAccount, R> }
   ): { me: Resolved<RegisteredAccount, R> | undefined | null; logOut: () => void };
