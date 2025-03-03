@@ -56,7 +56,7 @@ function logPermissionError(
     return;
   }
 
-  logger.warn("Permission error: " + message, attributes);
+  logger.debug("Permission error: " + message, attributes);
 }
 
 export function determineValidTransactions(
