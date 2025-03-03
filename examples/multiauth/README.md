@@ -1,6 +1,6 @@
-# Counter example with Jazz and React
+# Multi-auth example with Jazz and React
 
-This example of a counter demonstrates using Jazz with multiple authentication methods; in this case, Clerk and passphrases are able to be used.
+This example demonstrates using Jazz with multiple authentication methods; in this case, Clerk and passphrases are able to be used.
 
 ## Getting started
 
