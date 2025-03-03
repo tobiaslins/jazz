@@ -34,6 +34,7 @@ export const docNavigationItems = [
         href: "/docs/inspector",
         done: 100,
       },
+      { name: "FAQ", href: "/docs/faq", done: 100 },
     ],
   },
   {
