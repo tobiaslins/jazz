@@ -35,7 +35,7 @@ class TestJazzContextManager<Acc extends Account> extends JazzContextManager<
     AccountSchema?: AccountClass<Acc>;
   }
 > {
-  async createContext(
+  async getNewContext(
     props: JazzContextManagerBaseProps<Acc> & {
       defaultProfileName?: string;
       AccountSchema?: AccountClass<Acc>;
@@ -53,20 +53,16 @@ class TestJazzContextManager<Acc extends Account> extends JazzContextManager<
       AccountSchema: props.AccountSchema,
     });
 
-    await this.updateContext(
-      props,
-      {
-        me: context.account,
-        node: context.node,
-        done: () => {
-          context.done();
-        },
-        logOut: async () => {
-          await context.logOut();
-        },
+    return {
+      me: context.account,
+      node: context.node,
+      done: () => {
+        context.done();
       },
-      authProps,
-    );
+      logOut: async () => {
+        await context.logOut();
+      },
+    };
   }
 }
 
@@ -122,6 +118,23 @@ describe("ContextManager", () => {
     };
 
     // Authenticate with those credentials
+    await manager.authenticate(credentials);
+
+    expect(getCurrentValue().me.id).toBe(credentials.accountID);
+  });
+
+  test("handles race conditions on the context creation", async () => {
+    const account = await createJazzTestAccount();
+
+    manager.createContext({});
+
+    const credentials = {
+      accountID: account.id,
+      accountSecret: account._raw.core.node.account.agentSecret,
+      provider: "test",
+    };
+
+    // Authenticate without waiting for the previous context to be created
     await manager.authenticate(credentials);
 
     expect(getCurrentValue().me.id).toBe(credentials.accountID);
