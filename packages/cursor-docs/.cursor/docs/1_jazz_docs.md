@@ -942,3 +942,5 @@ useAcceptInvite({ invitedObjectSchema:Project, onAccept:(id)=>navigate(`/project
 ```
 
 ---
+
+Continue: 2_jazz_schema_template.md

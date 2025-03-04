@@ -80,6 +80,7 @@ export class JazzContextManager<
       ...context,
       node: context.node,
       authenticate: this.authenticate,
+      register: this.register,
       logOut: this.logOut,
     };
 
@@ -143,14 +144,59 @@ export class JazzContextManager<
       this.authenticating = false;
     });
 
+    if (wasAnonymous) {
+      await this.handleAnonymousAccountMigration(prevContext);
+    }
+  };
+
+  register = async (
+    accountSecret: AgentSecret,
+    creationProps: { name: string },
+  ) => {
+    if (!this.props) {
+      throw new Error("Props required");
+    }
+
+    const prevContext = this.context;
+    const prevCredentials = await this.authSecretStorage.get();
+    const wasAnonymous =
+      this.authSecretStorage.getIsAuthenticated(prevCredentials) === false;
+
+    this.authenticating = true;
+    await this.createContext(this.props, {
+      newAccountProps: {
+        secret: accountSecret,
+        creationProps,
+      },
+    }).finally(() => {
+      this.authenticating = false;
+    });
+
+    if (wasAnonymous) {
+      await this.handleAnonymousAccountMigration(prevContext);
+    }
+
+    if (this.context && "me" in this.context) {
+      return this.context.me.id;
+    }
+
+    throw new Error("The registration hasn't created a new account");
+  };
+
+  private async handleAnonymousAccountMigration(
+    prevContext: PlatformSpecificContext<Acc> | undefined,
+  ) {
+    if (!this.props) {
+      throw new Error("Props required");
+    }
+
     const currentContext = this.context;
 
     if (
       prevContext &&
       currentContext &&
       "me" in prevContext &&
-      "me" in currentContext &&
-      wasAnonymous
+      "me" in currentContext
     ) {
       // Using a direct connection to make coValue transfer almost synchronous
       const [prevAccountAsPeer, currentAccountAsPeer] =
@@ -178,7 +224,7 @@ export class JazzContextManager<
     }
 
     prevContext?.done();
-  };
+  }
 
   listeners = new Set<() => void>();
   subscribe = (callback: () => void) => {

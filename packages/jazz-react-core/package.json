@@ -1,17 +1,17 @@
 {
   "name": "jazz-react-core",
-  "version": "0.10.8",
+  "version": "0.10.10",
   "type": "module",
   "main": "dist/index.js",
-  "types": "src/index.ts",
+  "types": "dist/index.d.ts",
   "license": "MIT",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
+      "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
     "./testing": {
-      "types": "./src/testing.tsx",
+      "types": "./dist/testing.d.ts",
       "default": "./dist/testing.js"
     }
   },

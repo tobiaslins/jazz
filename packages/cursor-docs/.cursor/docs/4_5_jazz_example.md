@@ -209,3 +209,7 @@ export class HRAccount extends Account {
   // }
 }
 ```
+
+---
+
+Continue: 4_6_jazz_example.md

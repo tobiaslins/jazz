@@ -18,14 +18,15 @@ import type {
 } from "../internal.js";
 import {
   CoValueBase,
-  MembersSym,
   Ref,
+  co,
   ensureCoValueLoaded,
   loadCoValueWithoutMe,
   parseGroupCreateOptions,
   subscribeToCoValueWithoutMe,
   subscribeToExistingCoValue,
 } from "../internal.js";
+import { RegisteredAccount } from "../types.js";
 import { AccountAndGroupProxyHandler, isControlledAccount } from "./account.js";
 import { type Account } from "./account.js";
 import { type CoMap } from "./coMap.js";
@@ -46,7 +47,6 @@ export class Group extends CoValueBase implements CoValue {
   get _schema(): {
     profile: Schema;
     root: Schema;
-    [MembersSym]: RefEncoded<Account>;
   } {
     return (this.constructor as typeof Group)._schema;
   }
@@ -54,10 +54,6 @@ export class Group extends CoValueBase implements CoValue {
     this._schema = {
       profile: "json" satisfies Schema,
       root: "json" satisfies Schema,
-      [MembersSym]: {
-        ref: () => RegisteredSchemas["Account"],
-        optional: false,
-      } satisfies RefEncoded<Account>,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
     Object.defineProperty(this.prototype, "_schema", {
@@ -67,7 +63,6 @@ export class Group extends CoValueBase implements CoValue {
 
   declare profile: Profile | null;
   declare root: CoMap | null;
-  declare [MembersSym]: Account | null;
 
   get _refs(): {
     profile: Ref<Profile> | undefined;
@@ -151,39 +146,54 @@ export class Group extends CoValueBase implements CoValue {
     return this._raw.removeMember(member === "everyone" ? member : member._raw);
   }
 
-  get members() {
+  get members(): Array<{
+    id: ID<RegisteredAccount>;
+    role: AccountRole;
+    ref: Ref<RegisteredAccount>;
+    account: RegisteredAccount;
+  }> {
     const members = [];
+
+    const BaseAccountSchema =
+      (activeAccountContext.maybeGet()?.constructor as typeof Account) ||
+      RegisteredSchemas["Account"];
+    const refEncodedAccountSchema = {
+      ref: () => BaseAccountSchema,
+      optional: false,
+    } satisfies RefEncoded<RegisteredAccount>;
 
     for (const accountID of this._raw.getAllMemberKeysSet()) {
       if (!isAccountID(accountID)) continue;
 
       const role = this._raw.roleOf(accountID);
-      const ref = new Ref<NonNullable<this[MembersSym]>>(
-        accountID as unknown as ID<Account>,
-        this._loadedAs,
-        this._schema[MembersSym],
-      );
-      const accessRef = () => ref?.accessFrom(this, "members." + accountID);
 
-      members.push({
-        id: accountID as unknown as ID<Account>,
-        role,
-        ref,
-        get account() {
-          return accessRef();
-        },
-      });
-    }
+      if (
+        role === "admin" ||
+        role === "writer" ||
+        role === "reader" ||
+        role === "writeOnly"
+      ) {
+        const ref = new Ref<RegisteredAccount>(
+          accountID as unknown as ID<RegisteredAccount>,
+          this._loadedAs,
+          refEncodedAccountSchema,
+        );
+        const accessRef = () => ref.accessFrom(this, "members." + accountID);
 
-    const everyoneRole = this._raw.roleOf("everyone");
+        if (!ref.syncLoad()) {
+          console.warn("Account not loaded", accountID);
+        }
 
-    if (everyoneRole) {
-      members.push({
-        id: "everyone",
-        role: everyoneRole,
-        ref: undefined,
-        account: undefined,
-      });
+        members.push({
+          id: accountID as unknown as ID<Account>,
+          role,
+          ref,
+          get account() {
+            // Accounts values are non-nullable because are loaded as dependencies
+            return accessRef() as RegisteredAccount;
+          },
+        });
+      }
     }
 
     return members;
@@ -206,6 +216,11 @@ export class Group extends CoValueBase implements CoValue {
     roleMapping?: "reader" | "writer" | "admin" | "inherit",
   ) {
     this._raw.extend(parent._raw, roleMapping);
+    return this;
+  }
+
+  async revokeExtend(parent: Group) {
+    await this._raw.revokeExtend(parent._raw);
     return this;
   }
 
