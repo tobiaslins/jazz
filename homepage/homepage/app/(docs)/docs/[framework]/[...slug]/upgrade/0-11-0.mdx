@@ -9,38 +9,6 @@ Jazz 0.11.0 brings several improvements to member handling, roles, and permissio
 
 ## New Features
 
-
-### Account Profile & Migrations
-
-We fixed a bug where custom accounts profiles could not be migrated.
-You can now provide your own Profile type and have it correctly migrate through schema changes.
-
-<CodeGroup>
-```ts
-export class MyAppAccount extends Account {
-  profile = co.ref(MyAppProfile);
-
-  override async migrate() {
-    if (this.profile === undefined) {
-      const profileGroup = Group.create();
-      profileGroup.addMember("everyone", "reader");
-
-      this.profile = MyAppProfile.create({
-        name: "John Doe",
-      }, profileGroup);
-    }
-  }
-}
-```
-</CodeGroup>
-
-<Alert variant="warning" title="Warning" className="mt-4">
-If you provide a custom `Profile` in your `Account` schema and migration for a Worker account, 
-make sure to also add  `everyone` as member with `reader` role to the owning group. 
-Failing to do so will prevent any account from sending messages to the Worker's Inbox.
-</Alert>
-
-
 ### Enhanced Permission Management
 
 New methods have been added to both `Account` and `Group` classes to improve permission handling:
@@ -81,7 +49,68 @@ group.getRoleOf(Eve); // writer
 ```
 </CodeGroup>
 
+#### Group.revokeExtend
+
+We added a new method to revoke the extend of a Group:
+<CodeGroup>
+```typescript
+function addTrackToPlaylist(playlist: Playlist, track: MusicTrack) {
+  const trackGroup = track._owner.castAs(Group);
+  trackGroup.extend(playlist._owner, "reader"); // Grant read access to the track to the playlist accounts
+
+  playlist.tracks.push(track);
+}
+
+function removeTrackFromPlaylist(playlist: Playlist, track: MusicTrack) {
+  const trackGroup = track._owner.castAs(Group);
+  trackGroup.revokeExtend(playlist._owner); // Revoke access to the track to the playlist accounts
+  
+  const index = playlist.tracks.findIndex(t => t.id === track.id);
+  if (index !== -1) {
+    playlist.tracks.splice(index, 1);
+  }
+}
+```
+</CodeGroup>
+
 ## Breaking Changes
+
+### Account Profile & Migrations
+
+We fixed a bug where custom accounts profiles could not be migrated.
+You can now provide your own Profile type and have it correctly migrate through schema changes.
+
+<CodeGroup>
+```ts
+export class MyAppAccount extends Account {
+  profile = co.ref(MyAppProfile);
+
+  override async migrate() {
+    if (this.profile === undefined) {
+      const profileGroup = Group.create();
+      profileGroup.addMember("everyone", "reader");
+
+      this.profile = MyAppProfile.create({
+        name: "John Doe",
+      }, profileGroup);
+    }
+  }
+}
+```
+</CodeGroup>
+
+<Alert variant="warning" title="Warning" className="mt-4">
+If you provide a custom `Profile` in your `Account` schema and migration for a Worker account, 
+make sure to also add  `everyone` as member with `reader` role to the owning group. 
+Failing to do so will prevent any account from sending messages to the Worker's Inbox.
+</Alert>
+
+### Dropped support for Accounts owning Profiles
+Starting from `0.11.0` `Profile`s can only be owned by `Group`s.
+
+<Alert variant="info" title="Note" className="mt-4">
+Existing profiles owned by `Account`s will still work, but you will get incorrect types when accessing a `Profile`'s `_owner`.
+</Alert>
 
 ### Member Inheritance Changes
 
@@ -132,11 +161,13 @@ if (group.getRoleOf("everyone")) {
 2. Update your permission checking code to utilize the new [`hasPermissions` and `getRoleOf`](#enhanced-permission-management) methods.
 3. Consider implementing `"everyone"` role checks where appropriate.
 
-### Dropped support for Accounts owning Profiles
+### Removed auto-update of `profile.name` in `usePasskeyAuth`
 
-Starting from `0.11.0` `Profile`s can only be owned by `Group`s.
+The `usePasskeyAuth` hook now doesn't update the `profile.name` if the provided username is empty.
 
-#### Migration Steps
+## Troubleshooting
+
+** I'm getting the following error: `Error: Profile must be owned by a Group` **
 
 If you previously forced a migration of your `Account` schema to include a custom `Profile`, 
 and assigned its ownership to an `Account`, you need to recreate your profile code and assign it to a `Group` instead.
@@ -169,12 +200,3 @@ export class MyAppAccount extends Account {
 }
 ```
 </CodeGroup>
-
-<Alert variant="info" title="Note" className="mt-4">
-Existing profiles owned by `Account`s will still work, but you will get incorrect types when accessing a `Profile`'s `_owner`.
-</Alert>
-
-### Removed auto-update of `profile.name` in `usePasskeyAuth`
-
-The `usePasskeyAuth` hook now doesn't update the `profile.name` if the provided username is empty.
-
