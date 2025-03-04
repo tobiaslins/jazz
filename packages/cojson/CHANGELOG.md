@@ -1,5 +1,11 @@
 # cojson
 
+## 0.10.15
+
+### Patch Changes
+
+- f86e278: Downgrade the permissions error logs to debug
+
 ## 0.10.8
 
 ### Patch Changes

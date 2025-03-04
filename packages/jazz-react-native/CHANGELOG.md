@@ -1,5 +1,17 @@
 # jazz-browser
 
+## 0.10.15
+
+### Patch Changes
+
+- Updated dependencies [2f99de0]
+- Updated dependencies [f86e278]
+  - jazz-tools@0.10.15
+  - cojson@0.10.15
+  - jazz-react-core@0.10.12
+  - cojson-storage-rn-sqlite@0.8.67
+  - cojson-transport-ws@0.10.15
+
 ## 0.10.14
 
 ### Patch Changes
