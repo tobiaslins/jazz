@@ -1,5 +1,16 @@
 # jazz-browser
 
+## 0.10.15
+
+### Patch Changes
+
+- Updated dependencies [2f99de0]
+- Updated dependencies [f86e278]
+  - jazz-tools@0.10.15
+  - cojson@0.10.15
+  - cojson-storage-indexeddb@0.10.15
+  - cojson-transport-ws@0.10.15
+
 ## 0.10.14
 
 ### Patch Changes
