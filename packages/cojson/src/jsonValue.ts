@@ -9,7 +9,7 @@ type AtLeastOne<T, U = { [K in keyof T]: Pick<T, K> }> = Partial<T> &
   U[keyof U];
 type ExcludeEmpty<T> = T extends AtLeastOne<T> ? T : never;
 
-export type CoJsonValue<T> = keyof T extends never
+export type CoJsonValue<T> = [T] extends [Function]
   ? "Functions are not allowed"
   : keyof T extends symbol
     ? "Only string or number keys are allowed"
