@@ -5,22 +5,17 @@ export type JsonValue = JsonAtom | JsonArray | JsonObject | RawCoID;
 export type JsonArray = JsonValue[] | readonly JsonValue[];
 export type JsonObject = { [key: string]: JsonValue | undefined };
 
-export type CoJsonObjectWithOptional<T> = {
-  [K in keyof T]?: T[K] extends (...args: any[]) => any
-    ? never
-    : CoJsonValue<T[K]>;
-};
-
 type AtLeastOne<T, U = { [K in keyof T]: Pick<T, K> }> = Partial<T> &
   U[keyof U];
 type ExcludeEmpty<T> = T extends AtLeastOne<T> ? T : never;
 
-export type CoJsonValue<T> =
-  | JsonValue
-  | CoJsonObjectWithIndex<T>
-  | CoJsonObjectWithOptional<T>
-  | CoJsonArray<T>;
-export type CoJsonArray<T> = CoJsonValue<T>[] | readonly CoJsonValue<T>[];
+export type CoJsonValue<T> = keyof T extends never
+  ? "Functions are not allowed"
+  : keyof T extends symbol
+    ? "Only string or number keys are allowed"
+    : CoJsonValueInt<T>;
+type CoJsonValueInt<T> = JsonValue | CoJsonObjectWithIndex<T> | CoJsonArray<T>;
+export type CoJsonArray<T> = CoJsonValueInt<T>[] | readonly CoJsonValueInt<T>[];
 
 /**
  * Since we are forcing Typescript to elaborate the indexes from the given type passing
@@ -32,7 +27,7 @@ export type CoJsonArray<T> = CoJsonValue<T>[] | readonly CoJsonValue<T>[];
  * Applying the ExcludeEmpty type here to make sure we don't accept functions or non-serializable values
  */
 export type CoJsonObjectWithIndex<T> = ExcludeEmpty<{
-  [K in keyof T & string]: CoJsonValue1L<T[K]> | undefined;
+  [K in keyof T]: CoJsonValue1L<T[K]> | undefined;
 }>;
 
 /**

@@ -140,6 +140,15 @@ describe("co.json TypeScript validation", () => {
       }>();
   });
 
+  it("should flag types with symbol keys as invalid", async () => {
+    type InvalidType = { [key: symbol]: string };
+
+    class InvalidFunctionMap extends CoMap {
+      // @ts-expect-error Should not be considered valid
+      data = co.json<InvalidType>();
+    }
+  });
+
   it("should apply the same validation to optional json", async () => {
     type ValidType = {
       value: string;
@@ -174,6 +183,7 @@ describe("co.json TypeScript validation", () => {
       value: string | undefined;
     }
     interface InterfaceWithOptionalTypes {
+      requiredValue: string;
       value?: string;
     }
 
@@ -194,14 +204,16 @@ describe("co.json TypeScript validation", () => {
 
   it("should not accept functions", async () => {
     class InvalidFunctionMap extends CoMap {
+      // @ts-expect-error Should not be considered valid
       data = co.json<() => void>();
     }
+  });
 
-    expectTypeOf(InvalidFunctionMap.create<InvalidFunctionMap>)
-      .parameter(0)
-      .toEqualTypeOf<{
-        data: valueWithCoMarker<() => void>;
-      }>();
+  it("should not accept functions in nested properties", async () => {
+    class InvalidFunctionMap extends CoMap {
+      // @ts-expect-error Should not be considered valid
+      data = co.json<{ func: () => void }>();
+    }
   });
 
   it("should not accept RegExp", async () => {
