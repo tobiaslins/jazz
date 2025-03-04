@@ -69,6 +69,8 @@ const optional = {
   },
 };
 
+type ExcludeFunctions<T> = T extends (...args: any[]) => any ? never : T;
+
 /** @category Schema definition */
 export const co = {
   string: {
@@ -90,7 +92,9 @@ export const co = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return { [SchemaInit]: "json" satisfies Schema } as any;
   },
-  json<T extends CojsonInternalTypes.CoJsonValue<T>>(): co<T> {
+  json<T extends CojsonInternalTypes.CoJsonValue<T>>(): co<
+    ExcludeFunctions<T>
+  > {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return { [SchemaInit]: "json" satisfies Schema } as any;
   },

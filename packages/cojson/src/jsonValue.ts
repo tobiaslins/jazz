@@ -5,6 +5,12 @@ export type JsonValue = JsonAtom | JsonArray | JsonObject | RawCoID;
 export type JsonArray = JsonValue[] | readonly JsonValue[];
 export type JsonObject = { [key: string]: JsonValue | undefined };
 
+export type CoJsonObjectWithOptional<T> = {
+  [K in keyof T]?: T[K] extends (...args: any[]) => any
+    ? never
+    : CoJsonValue<T[K]>;
+};
+
 type AtLeastOne<T, U = { [K in keyof T]: Pick<T, K> }> = Partial<T> &
   U[keyof U];
 type ExcludeEmpty<T> = T extends AtLeastOne<T> ? T : never;
@@ -12,6 +18,7 @@ type ExcludeEmpty<T> = T extends AtLeastOne<T> ? T : never;
 export type CoJsonValue<T> =
   | JsonValue
   | CoJsonObjectWithIndex<T>
+  | CoJsonObjectWithOptional<T>
   | CoJsonArray<T>;
 export type CoJsonArray<T> = CoJsonValue<T>[] | readonly CoJsonValue<T>[];
 

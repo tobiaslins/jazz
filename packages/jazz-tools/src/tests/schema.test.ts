@@ -194,7 +194,6 @@ describe("co.json TypeScript validation", () => {
 
   it("should not accept functions", async () => {
     class InvalidFunctionMap extends CoMap {
-      // @ts-expect-error Should not be considered valid
       data = co.json<() => void>();
     }
 
