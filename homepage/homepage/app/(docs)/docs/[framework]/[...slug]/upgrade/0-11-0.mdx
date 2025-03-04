@@ -7,9 +7,17 @@ export const metadata = { title: "Upgrade to Jazz 0.11.0" };
 
 Jazz 0.11.0 brings several improvements to member handling, roles, and permissions management. This guide will help you upgrade your application to the latest version.
 
+## What's new?
+Here is what's changed in this release:
+- [New permissions check APIs](#new-permissions-check-apis): New methods like `canRead`, `canWrite`, `canAdmin`, and `getRoleOf` to simplify permission checks.
+- [Group.revokeExtend](#grouprevokeextend): New method to revoke group extension permissions.
+- [Account Profile & Migrations](#account-profile--migrations): Fixed bug with custom account profile migrations.
+- [Dropped support for Accounts owning Profiles](#dropped-support-for-accounts-owning-profiles): Profiles can now only be owned by Groups.
+- [Member Inheritance Changes](#member-inheritance-changes): Updated behavior for the `members` getter method.
+
 ## New Features
 
-### Enhanced Permission Management
+### New permissions check APIs
 
 New methods have been added to both `Account` and `Group` classes to improve permission handling:
 
@@ -114,7 +122,7 @@ Existing profiles owned by `Account`s will still work, but you will get incorrec
 
 ### Member Inheritance Changes
 
-The behavior of groups' `members` getter method has been updated to return both direct members and inherited ones from acestor groups. 
+The behavior of groups' `members` getter method has been updated to return both direct members and inherited ones from ancestor groups. 
 This might affect your application if you were relying on only direct members being returned.
 
 <CodeGroup>
@@ -167,7 +175,7 @@ The `usePasskeyAuth` hook now doesn't update the `profile.name` if the provided 
 
 ## Troubleshooting
 
-** I'm getting the following error: `Error: Profile must be owned by a Group` **
+> I'm getting the following error: `Error: Profile must be owned by a Group`
 
 If you previously forced a migration of your `Account` schema to include a custom `Profile`, 
 and assigned its ownership to an `Account`, you need to recreate your profile code and assign it to a `Group` instead.
