@@ -1,5 +1,21 @@
 # version-history
 
+## 0.0.52
+
+### Patch Changes
+
+- Updated dependencies [2f99de0]
+  - jazz-tools@0.10.15
+  - jazz-react@0.10.15
+
+## 0.0.51
+
+### Patch Changes
+
+- Updated dependencies [75211e3]
+  - jazz-tools@0.10.14
+  - jazz-react@0.10.14
+
 ## 0.0.50
 
 ### Patch Changes

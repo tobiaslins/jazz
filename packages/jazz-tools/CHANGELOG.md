@@ -1,5 +1,19 @@
 # jazz-tools
 
+## 0.10.15
+
+### Patch Changes
+
+- 2f99de0: Avoid race conditions on context creation and run the anonymous migration only when the hook is provided
+- Updated dependencies [f86e278]
+  - cojson@0.10.15
+
+## 0.10.14
+
+### Patch Changes
+
+- 75211e3: Fixes invalid authentication state when logging out after signUp
+
 ## 0.10.13
 
 ### Patch Changes
