@@ -147,7 +147,7 @@ Jazz waits for the migration to finish before passing the account to your app's 
 export class MyAppAccount extends Account {
   root = co.ref(MyAppRoot);
 
-  async migrate() {
+  async migrate(this: MyAppAccount) {
     // we specifically need to check for undefined, 
     // because the root might simply be not loaded (`null`) yet
     if (this.root === undefined) {
@@ -179,7 +179,7 @@ Now let's say we want to add a `myBookmarks` field to the `root` schema:
 export class MyAppAccount extends Account {
     root = co.ref(MyAppRoot);// old
 
-    async migrate() { // old
+    async migrate(this: MyAppAccount) {
       if (this.root === undefined) {  // old
         this.root = MyAppRoot.create({  // old
           myChats: ListOfChats.create([], Group.create()),  // old
@@ -188,11 +188,9 @@ export class MyAppAccount extends Account {
       } // old
 
       // We need to load the root field to check for the myContacts field
-      const result = await this.ensureLoaded({
+      const { root } = await this.ensureLoaded({
         root: {},
       });
-
-      const { root } = result;
 
       // we specifically need to check for undefined, 
       // because myBookmarks might simply be not loaded (`null`) yet 
