@@ -8,14 +8,16 @@ export type JsonObject = { [key: string]: JsonValue | undefined };
 type AtLeastOne<T, U = { [K in keyof T]: Pick<T, K> }> = Partial<T> &
   U[keyof U];
 type ExcludeEmpty<T> = T extends AtLeastOne<T> ? T : never;
+type ExcludeNull<T> = T extends null ? never : T;
+type IsFunction<T> = T extends (...args: any[]) => any ? true : false;
+type ContainsSymbolKeys<T> = keyof ExcludeNull<T> extends symbol ? true : false;
 
-export type CoJsonValue<T> = keyof T extends never
+export type CoJsonValue<T> = IsFunction<T> extends true
   ? "Functions are not allowed"
-  : keyof T extends symbol
+  : ContainsSymbolKeys<T> extends true
     ? "Only string or number keys are allowed"
-    : CoJsonValueInt<T>;
-type CoJsonValueInt<T> = JsonValue | CoJsonObjectWithIndex<T> | CoJsonArray<T>;
-export type CoJsonArray<T> = CoJsonValueInt<T>[] | readonly CoJsonValueInt<T>[];
+    : JsonValue | CoJsonObjectWithIndex<T> | CoJsonArray<T>;
+export type CoJsonArray<T> = CoJsonValue<T>[] | readonly CoJsonValue<T>[];
 
 /**
  * Since we are forcing Typescript to elaborate the indexes from the given type passing
