@@ -657,6 +657,13 @@ export class RawGroup<
       );
     }
 
+    if (
+      !this.get(`parent_${parent.id}`) ||
+      this.get(`parent_${parent.id}`) === "revoked"
+    ) {
+      return;
+    }
+
     // Set the parent key on the child group to `revoked`
     this.set(`parent_${parent.id}`, "revoked", "trusting");
 

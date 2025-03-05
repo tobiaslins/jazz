@@ -73,7 +73,7 @@ describe("Custom accounts and groups", async () => {
       }
     }
 
-    expect(() =>
+    await expect(() =>
       CustomAccount.create({
         creationProps: { name: "Hermes Puggington" },
         crypto: Crypto,

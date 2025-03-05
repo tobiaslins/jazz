@@ -688,6 +688,46 @@ describe("unextend", () => {
     expect(childGroup.roleOf(bob.id)).toBe("reader");
     expect(childGroup.roleOf(alice.id)).toBe(undefined);
   });
+
+  test("should do nothing if applied to a group that is not extended", async () => {
+    const { node1, node2, node3 } = await createThreeConnectedNodes(
+      "server",
+      "server",
+      "server",
+    );
+
+    const parentGroup = node1.node.createGroup();
+    const alice = await loadCoValueOrFail(node1.node, node2.accountID);
+    parentGroup.addMember(alice, "writer");
+    const childGroup = node1.node.createGroup();
+    const bob = await loadCoValueOrFail(node1.node, node3.accountID);
+    childGroup.addMember(bob, "reader");
+    await childGroup.revokeExtend(parentGroup);
+    expect(childGroup.roleOf(bob.id)).toBe("reader");
+    expect(childGroup.roleOf(alice.id)).toBe(undefined);
+  });
+
+  test("should not throw if the revokeExtend is called twice", async () => {
+    const { node1, node2, node3 } = await createThreeConnectedNodes(
+      "server",
+      "server",
+      "server",
+    );
+
+    const parentGroup = node1.node.createGroup();
+    const alice = await loadCoValueOrFail(node1.node, node2.accountID);
+    parentGroup.addMember(alice, "writer");
+    const childGroup = node1.node.createGroup();
+    const bob = await loadCoValueOrFail(node1.node, node3.accountID);
+    childGroup.addMember(bob, "reader");
+
+    childGroup.extend(parentGroup);
+
+    await childGroup.revokeExtend(parentGroup);
+    await childGroup.revokeExtend(parentGroup);
+    expect(childGroup.roleOf(bob.id)).toBe("reader");
+    expect(childGroup.roleOf(alice.id)).toBe(undefined);
+  });
 });
 
 describe("extend with role mapping", () => {
