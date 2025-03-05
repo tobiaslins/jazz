@@ -148,7 +148,7 @@ export class MyAppAccount extends Account {
   root = co.ref(MyAppRoot);
   profile = co.ref(MyAppProfile);
 
-  async migrate(this: MyAppAccount) {
+  async migrate(this: MyAppAccount, creationProps?: { name: string }) {
     // we specifically need to check for undefined, 
     // because the root might simply be not loaded (`null`) yet
     if (this.root === undefined) {
@@ -167,7 +167,8 @@ export class MyAppAccount extends Account {
       profileGroup.addMember("everyone", "reader");
 
       this.profile = MyAppProfile.create({
-        name: "John Doe",
+        name: creationProps?.name,
+        bookmarks: ListOfBookmarks.create([], profileGroup),
       }, profileGroup);
     }
   }
