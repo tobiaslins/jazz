@@ -18,8 +18,7 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <JazzProvider
       sync={{
-        peer: "ws://127.0.0.1:4300/?key=react-filestream-example@garden.co",
-        //peer: "wss://cloud.jazz.tools/?key=react-filestream-example@garden.co",
+        peer: "wss://cloud.jazz.tools/?key=react-filestream-example@garden.co",
       }}
       AccountSchema={JazzAccount}
     >
