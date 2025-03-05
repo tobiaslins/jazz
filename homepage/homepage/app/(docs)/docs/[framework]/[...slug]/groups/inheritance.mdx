@@ -149,6 +149,20 @@ await childGroup.revokeExtend(parentGroup);
 ```
 </CodeGroup>
 
+## Getting all parent groups
+
+You can get all the parent groups of a group by calling the `getParentGroups` method:
+
+<CodeGroup>
+```typescript
+const childGroup = Group.create();
+const parentGroup = Group.create();
+childGroup.extend(parentGroup);
+
+console.log(childGroup.getParentGroups()); // [parentGroup]
+```
+</CodeGroup>
+
 ## Example: Team Hierarchy
 
 Here's a practical example of using group inheritance for team permissions:

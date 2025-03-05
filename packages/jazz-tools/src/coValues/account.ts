@@ -182,6 +182,10 @@ export class Account extends CoValueBase implements CoValue {
     return undefined;
   }
 
+  getParentGroups(): Array<Group> {
+    return [];
+  }
+
   get members(): Array<{
     id: ID<RegisteredAccount> | "everyone";
     role: Role;

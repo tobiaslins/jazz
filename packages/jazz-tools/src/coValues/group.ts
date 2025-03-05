@@ -211,6 +211,10 @@ export class Group extends CoValueBase implements CoValue {
     );
   }
 
+  getParentGroups(): Array<Group> {
+    return this._raw.getParentGroups().map(({ group }) => Group.fromRaw(group));
+  }
+
   extend(
     parent: Group,
     roleMapping?: "reader" | "writer" | "admin" | "inherit",
