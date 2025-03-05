@@ -85,21 +85,43 @@ function removeTrackFromPlaylist(playlist: Playlist, track: MusicTrack) {
 
 ### Account Profile & Migrations
 
-We fixed a bug where custom accounts profiles could not be migrated.
-You can now provide your own Profile type and have it correctly migrate through schema changes.
+The previous way of making the `Profile` migration work was to assume that the profile was always already there:
 
 <CodeGroup>
 ```ts
 export class MyAppAccount extends Account {
   profile = co.ref(MyAppProfile);
 
-  override async migrate() {
+  async migrate(this: MyAppAccount, creationProps: { name: string, lastName: string }) {
+    if (creationProps) {
+      const { profile } = await this.ensureLoaded({ profile: {} });
+
+      profile.name = creationProps.name;
+      profile.bookmarks = ListOfBookmarks.create([], profileGroup);
+    }
+  }
+}
+```
+</CodeGroup>
+
+This was kind-of tricky to picture, and having different migration strategies for different CoValues was confusing.
+
+We changed the logic so the default profile is created only if you didn't provide one in your migration.
+
+This way you can use the same pattern for both `root` and `profile` migrations:
+<CodeGroup>
+```ts
+export class MyAppAccount extends Account {
+  profile = co.ref(MyAppProfile);
+
+  async migrate(this: MyAppAccount, creationProps?: { name: string }) {
     if (this.profile === undefined) {
       const profileGroup = Group.create();
       profileGroup.addMember("everyone", "reader");
 
       this.profile = MyAppProfile.create({
-        name: "John Doe",
+        name: creationProps?.name,
+        bookmarks: ListOfBookmarks.create([], profileGroup),
       }, profileGroup);
     }
   }
