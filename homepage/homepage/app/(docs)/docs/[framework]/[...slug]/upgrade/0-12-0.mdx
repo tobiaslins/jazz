@@ -64,6 +64,8 @@ Playlist.load(id, {
 
   Previously, `useCoState` would return `undefined` if the current user lacked permissions, making it hard to tell if the value is loading or if it's missing.
 
+  Now `undefined` means that the value is definitely loading, and `null` means that the value is temporarily missing.
+
   We also have implemented a more granular permission checking, where if an optional coValue cannot be accessed, useCoState will return the data stripped of that coValue.
 
 <CodeGroup>
