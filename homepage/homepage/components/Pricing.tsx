@@ -1,31 +1,17 @@
 import { clsx } from "clsx";
 import { Button } from "gcmp-design-system/src/app/components/atoms/Button";
-import { H2, H3 } from "gcmp-design-system/src/app/components/atoms/Headings";
 import {
   CircleCheckIcon,
   LucideBuilding2,
-  LucideCheck,
   LucideChevronUp,
   LucideChevronsUp,
   LucideCloudDownload,
-  LucideCrown,
   LucideDatabase,
-  LucideDatabaseZap,
-  LucideGlobe,
-  LucideHammer,
   LucideHandshake,
   LucideIcon,
   LucideInfinity,
-  LucideMessageCircle,
-  LucideMicroscope,
-  LucidePhone,
-  LucideScanSearch,
-  LucideSearch,
   LucideServer,
-  LucideTicketCheck,
-  LucideUserSearch,
   LucideUsers,
-  LucideZap,
 } from "lucide-react";
 import { FakeGetStartedButton } from "./FakeGetStartedButton";
 import { IndieTierLogo, ProTierLogo, StarterTierLogo } from "./TierLogos";
@@ -204,7 +190,7 @@ export function Pricing() {
           </p>
         </div>
       </div>
-      <H3>Add-ons</H3>
+      {/* <H3>Add-ons</H3>
       <div className="flex flex-col sm:max-w-lg mx-auto md:max-w-none md:flex-row md:items-start gap-4 mb-10">
         <div className="md:flex-[2] flex flex-col gap-1 overflow-hidden rounded-xl px-6 py-4 shadow-lg shadow-gray-900/5 bg-white dark:bg-stone-925">
           <h4 className="flex justify-between items-center font-semibold text-stone-900 text-lg dark:text-white">
@@ -281,7 +267,7 @@ export function Pricing() {
             White-labeled & friendly with complex CORS setups.
           </p>
         </div>
-      </div>
+      </div> */}
     </>
   );
 }
