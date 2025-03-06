@@ -442,11 +442,11 @@ All we have to do is create a new group to own each new issue and add "everyone"
 import { useState } from "react"; // old
 import { Issue } from "./schema"; // old
 import { IssueComponent } from "./components/Issue.tsx"; // old
-import { useCoState } from "jazz-react"; // old
+import { useAccount, useCoState } from "jazz-react";
 import { ID, Group } from "jazz-tools"
 // old
 function App() { // old
-    const { me } = useAccount(); // old
+    const { me } = useAccount();
     const [issueID, setIssueID] = useState<ID<Issue> | undefined>(// old
         (window.location.search?.replace("?issue=", "") || undefined) as ID<Issue> | undefined,// old
     ); // old
@@ -667,7 +667,7 @@ export function ProjectComponent({ projectID }: { projectID: ID<Project> }) {// 
 
 The loading-depth spec `{ resolve: { issues: { $each: true } } }` means "in `Project`, load `issues` and load each item in `issues` deeply". (Since an `Issue` doesn't have any further references, "deeply" actually means all its properties will be available).
 
--   Now, we can get rid of a lot of coniditional accesses because we know that once `project` is loaded, `project.issues` and each `Issue` in it will be loaded as well.
+-   Now, we can get rid of a lot of conditional accesses because we know that once `project` is loaded, `project.issues` and each `Issue` in it will be loaded as well.
 -   This also results in only one rerender and visual update when everything is loaded, which is faster (especially for long lists) and gives you more control over the loading UX.
 
 {/* TODO: explain about not loaded vs not set/defined and `_refs` basics */}
@@ -751,6 +751,8 @@ import { createInviteLink } from "jazz-react";
 export function ProjectComponent({ projectID }: { projectID: ID<Project> }) {// old
     const project = useCoState(Project, projectID, { resolve: { issues:  { $each: true } } }); // old
 
+    const { me } = useAccount();
+
     const invite = (role: "reader" | "writer") => {
         const link = createInviteLink(project, role, { valueHint: "project" });
         navigator.clipboard.writeText(link);
@@ -768,7 +770,7 @@ export function ProjectComponent({ projectID }: { projectID: ID<Project> }) {// 
     return project ? (// old
         <div>// old
             <h1>{project.name}</h1>// old
-            {project._owner?.myRole() === "admin" && (
+            {me.canAdmin(project) && (
                 <>
                     <button onClick={() => invite("reader")}>Invite Guest</button>
                     <button onClick={() => invite("writer")}>Invite Member</button>

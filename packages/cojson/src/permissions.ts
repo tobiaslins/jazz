@@ -56,7 +56,7 @@ function logPermissionError(
     return;
   }
 
-  logger.warn("Permission error: " + message, attributes);
+  logger.debug("Permission error: " + message, attributes);
 }
 
 export function determineValidTransactions(
@@ -134,8 +134,8 @@ export function determineValidTransactions(
 }
 
 function isHigherRole(a: Role, b: Role | undefined) {
-  if (a === undefined) return false;
-  if (b === undefined) return true;
+  if (a === undefined || a === "revoked") return false;
+  if (b === undefined || b === "revoked") return true;
   if (b === "admin") return false;
   if (a === "admin") return true;
 

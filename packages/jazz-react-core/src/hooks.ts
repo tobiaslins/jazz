@@ -19,7 +19,11 @@ import {
   Resolved,
   createCoValueObservable,
 } from "jazz-tools";
-import { JazzContext, JazzContextManagerContext } from "./provider.js";
+import {
+  JazzContext,
+  JazzContextManagerContext,
+  RegisteredAccount,
+} from "./provider.js";
 import { getCurrentAccountFromContextManager } from "./utils.js";
 import { subscribeToContextManager } from "./utils.js";
 
@@ -145,139 +149,144 @@ export function useCoState<
   return value;
 }
 
-export function createUseAccountHooks<Acc extends Account>() {
-  function useAccount(): {
-    me: Acc;
-    logOut: () => void;
-  };
-  function useAccount<const R extends RefsToResolve<Acc> = true>(options?: {
-    resolve?: RefsToResolveStrict<Acc, R>;
-  }): { me: Resolved<Acc, R> | undefined | null; logOut: () => void };
-  function useAccount<const R extends RefsToResolve<Acc>>(options?: {
-    resolve?: RefsToResolveStrict<Acc, R>;
-  }): { me: Acc | Resolved<Acc, R> | undefined | null; logOut: () => void } {
-    const context = useJazzContext<Acc>();
-    const contextManager = useJazzContextManager<Acc>();
+function useAccount<A extends RegisteredAccount>(): {
+  me: A;
+  logOut: () => void;
+};
+function useAccount<
+  A extends RegisteredAccount,
+  R extends RefsToResolve<A>,
+>(options?: {
+  resolve?: RefsToResolveStrict<A, R>;
+}): { me: Resolved<A, R> | undefined | null; logOut: () => void };
+function useAccount<
+  A extends RegisteredAccount,
+  R extends RefsToResolve<A>,
+>(options?: {
+  resolve?: RefsToResolveStrict<A, R>;
+}): { me: A | Resolved<A, R> | undefined | null; logOut: () => void } {
+  const context = useJazzContext<A>();
+  const contextManager = useJazzContextManager<A>();
 
-    if (!("me" in context)) {
-      throw new Error(
-        "useAccount can't be used in a JazzProvider with auth === 'guest' - consider using useAccountOrGuest()",
-      );
-    }
-
-    const observable = useCoValueObservable<Acc, R>();
-
-    const me = React.useSyncExternalStore<Resolved<Acc, R> | undefined | null>(
-      React.useCallback(
-        (callback) => {
-          return subscribeToContextManager(contextManager, () => {
-            const agent = getCurrentAccountFromContextManager(contextManager);
-
-            if (agent._type === "Anonymous") {
-              throw new Error(
-                "useAccount can't be used in a JazzProvider with auth === 'guest' - consider using useAccountOrGuest()",
-              );
-            }
-
-            observable.reset();
-
-            const Schema = agent.constructor as CoValueClass<Acc>;
-
-            return observable.getCurrentObservable().subscribe(
-              Schema,
-              agent.id,
-              {
-                loadAs: agent,
-                resolve: options?.resolve,
-                onUnauthorized: callback,
-                onUnavailable: callback,
-                syncResolution: true,
-              },
-              callback,
-            );
-          });
-        },
-        [contextManager],
-      ),
-      () => observable.getCurrentValue(),
-      () => observable.getCurrentValue(),
+  if (!("me" in context)) {
+    throw new Error(
+      "useAccount can't be used in a JazzProvider with auth === 'guest' - consider using useAccountOrGuest()",
     );
-
-    return {
-      me: options?.resolve === undefined ? me || context.me : me,
-      logOut: context.logOut,
-    };
   }
 
-  function useAccountOrGuest(): {
-    me: Acc | AnonymousJazzAgent;
-  };
-  function useAccountOrGuest<
-    const R extends RefsToResolve<Acc> = true,
-  >(options?: {
-    resolve?: RefsToResolveStrict<Acc, R>;
-  }): { me: Resolved<Acc, R> | undefined | null | AnonymousJazzAgent };
-  function useAccountOrGuest<const R extends RefsToResolve<Acc>>(options?: {
-    resolve?: RefsToResolveStrict<Acc, R>;
-  }): { me: Acc | Resolved<Acc, R> | undefined | null | AnonymousJazzAgent } {
-    const context = useJazzContext<Acc>();
-    const contextManager = useJazzContextManager<Acc>();
+  const observable = useCoValueObservable<A, R>();
 
-    const observable = useCoValueObservable<Acc, R>();
+  const me = React.useSyncExternalStore<Resolved<A, R> | undefined | null>(
+    React.useCallback(
+      (callback) => {
+        return subscribeToContextManager(contextManager, () => {
+          const agent = getCurrentAccountFromContextManager(contextManager);
 
-    const me = React.useSyncExternalStore<Resolved<Acc, R> | undefined | null>(
-      React.useCallback(
-        (callback) => {
-          return subscribeToContextManager(contextManager, () => {
-            const agent = getCurrentAccountFromContextManager(contextManager);
-
-            if (agent._type === "Anonymous") {
-              return () => {};
-            }
-
-            observable.reset();
-
-            const Schema = agent.constructor as CoValueClass<Acc>;
-
-            return observable.getCurrentObservable().subscribe(
-              Schema,
-              agent.id,
-              {
-                loadAs: agent,
-                resolve: options?.resolve,
-                onUnauthorized: callback,
-                onUnavailable: callback,
-                syncResolution: true,
-              },
-              callback,
+          if (agent._type === "Anonymous") {
+            throw new Error(
+              "useAccount can't be used in a JazzProvider with auth === 'guest' - consider using useAccountOrGuest()",
             );
-          });
-        },
-        [contextManager],
-      ),
-      () => observable.getCurrentValue(),
-      () => observable.getCurrentValue(),
-    );
+          }
 
-    if ("me" in context) {
-      return {
-        me: options?.resolve === undefined ? me || context.me : me,
-      };
-    } else {
-      return { me: context.guest };
-    }
-  }
+          observable.reset();
+
+          const Schema = agent.constructor as CoValueClass<A>;
+
+          return observable.getCurrentObservable().subscribe(
+            Schema,
+            (agent as A).id,
+            {
+              loadAs: agent,
+              resolve: options?.resolve,
+              onUnauthorized: callback,
+              onUnavailable: callback,
+              syncResolution: true,
+            },
+            callback,
+          );
+        });
+      },
+      [contextManager],
+    ),
+    () => observable.getCurrentValue(),
+    () => observable.getCurrentValue(),
+  );
 
   return {
-    useAccount,
-    useAccountOrGuest,
+    me: options?.resolve === undefined ? me || context.me : me,
+    logOut: contextManager.logOut,
   };
 }
+
+function useAccountOrGuest<A extends RegisteredAccount>(): {
+  me: A | AnonymousJazzAgent;
+};
+function useAccountOrGuest<
+  A extends RegisteredAccount,
+  R extends RefsToResolve<A>,
+>(options?: { resolve?: RefsToResolveStrict<A, R> }): {
+  me: Resolved<A, R> | undefined | null | AnonymousJazzAgent;
+};
+function useAccountOrGuest<
+  A extends RegisteredAccount,
+  R extends RefsToResolve<A>,
+>(options?: { resolve?: RefsToResolveStrict<A, R> }): {
+  me: A | Resolved<A, R> | undefined | null | AnonymousJazzAgent;
+} {
+  const context = useJazzContext<A>();
+  const contextManager = useJazzContextManager<A>();
+
+  const observable = useCoValueObservable<A, R>();
+
+  const me = React.useSyncExternalStore<Resolved<A, R> | undefined | null>(
+    React.useCallback(
+      (callback) => {
+        return subscribeToContextManager(contextManager, () => {
+          const agent = getCurrentAccountFromContextManager(contextManager);
+
+          if (agent._type === "Anonymous") {
+            return () => {};
+          }
+
+          observable.reset();
+
+          const Schema = agent.constructor as CoValueClass<A>;
+
+          return observable.getCurrentObservable().subscribe(
+            Schema,
+            (agent as A).id,
+            {
+              loadAs: agent,
+              resolve: options?.resolve,
+              onUnauthorized: callback,
+              onUnavailable: callback,
+              syncResolution: true,
+            },
+            callback,
+          );
+        });
+      },
+      [contextManager],
+    ),
+    () => observable.getCurrentValue(),
+    () => observable.getCurrentValue(),
+  );
+
+  if ("me" in context) {
+    return {
+      me: options?.resolve === undefined ? me || context.me : me,
+    };
+  } else {
+    return { me: context.guest };
+  }
+}
+
+export { useAccount, useAccountOrGuest };
 
 export function experimental_useInboxSender<
   I extends CoValue,
   O extends CoValue | undefined,
->(inboxOwnerID: ID<Account> | undefined) {
+>(inboxOwnerID: ID<RegisteredAccount> | undefined) {
   const context = useJazzContext();
 
   if (!("me" in context)) {

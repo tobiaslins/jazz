@@ -209,17 +209,15 @@ class CustomAccount extends Account {
     creationProps?: { name: string } | undefined,
   ) {
     if (creationProps) {
+      const profileGroup = Group.create(this);
       this.profile = CustomProfile.create(
         {
           name: creationProps.name,
-          stream: TestStream.create([], { owner: this }),
+          stream: TestStream.create([], this),
         },
-        { owner: this },
+        profileGroup,
       );
-      this.root = TestMap.create(
-        { list: TestList.create([], { owner: this }) },
-        { owner: this },
-      );
+      this.root = TestMap.create({ list: TestList.create([], this) }, this);
     }
 
     const thisLoaded = await this.ensureLoaded({
@@ -463,10 +461,9 @@ describe("Deep loading with unauthorized account", async () => {
       loadAs: alice,
       resolve: { optionalRef: true } as const,
     });
-    expect(mapOnAlice).not.toBe(undefined);
+    expect(mapOnAlice).toBe(undefined);
 
-    // TODO: We should make the whole inaccessble map undefined
-    expect(mapOnAlice?.optionalRef).not.toBe(undefined);
+    expect(mapOnAlice?.optionalRef).toBe(undefined);
     expect(mapOnAlice?.optionalRef?.value).toBe(undefined);
   });
 
@@ -533,18 +530,10 @@ test("doesn't break on Map.Record key deletion when the key is referenced in the
 
   class JazzySnapStore extends CoMap.Record(co.ref(JazzProfile)) {}
 
-  const me = await Account.create({
-    creationProps: { name: "Tester McTesterson" },
-    crypto: Crypto,
+  const snapStore = JazzySnapStore.create({
+    profile1: JazzProfile.create({ firstName: "John" }),
+    profile2: JazzProfile.create({ firstName: "John" }),
   });
-
-  const snapStore = JazzySnapStore.create(
-    {
-      profile1: JazzProfile.create({ firstName: "John" }, { owner: me }),
-      profile2: JazzProfile.create({ firstName: "John" }, { owner: me }),
-    },
-    { owner: me },
-  );
 
   const spy = vi.fn();
   const unsub = snapStore.subscribe(
