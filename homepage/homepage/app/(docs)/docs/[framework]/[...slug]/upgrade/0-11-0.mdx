@@ -12,9 +12,9 @@ Here is what's changed in this release:
 - [New permissions check APIs](#new-permissions-check-apis): New methods like `canRead`, `canWrite`, `canAdmin`, and `getRoleOf` to simplify permission checks.
 - [Group.revokeExtend](#grouprevokeextend): New method to revoke group extension permissions.
 - [Group.getParentGroups](#accountgetparentgroups): New method to get all the parent groups of an account.
-- [Account Profile & Migrations](#account-profile--migrations): Fixed bug with custom account profile migrations.
+- [Account Profile & Migrations](#account-profile--migrations): Fixed issues with custom account profile migrations for a more consistent experience
 - [Dropped support for Accounts owning Profiles](#dropped-support-for-accounts-owning-profiles): Profiles can now only be owned by Groups.
-- [Member Inheritance Changes](#member-inheritance-changes): Updated behavior for the `members` getter method.
+- [Group.members now includes inherited members](#member-inheritance-changes): Updated behavior for the `members` getter method to include inherited members and have a more intuitive type definition.
 
 ## New Features
 
