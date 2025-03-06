@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 
 export function FileWidget() {
   const inputRef = useRef<HTMLInputElement>(null);
+  const dragAndDropElementRef = useRef<HTMLDivElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -73,17 +74,89 @@ export function FileWidget() {
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
   }
 
+  const onDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragAndDropElementRef?.current?.classList.replace(
+      "border-stone-400",
+      "border-blue-700",
+    );
+  };
+
+  const onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragAndDropElementRef?.current?.classList.replace(
+      "border-stone-400",
+      "border-blue-700",
+    );
+  };
+
+  const onDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragAndDropElementRef?.current?.classList.replace(
+      "border-blue-700",
+      "border-stone-400",
+    );
+  };
+
+  const onDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragAndDropElementRef?.current?.classList.replace(
+      "border-blue-700",
+      "border-stone-400",
+    );
+
+    if (!me?.profile) {
+      setError("User profile not found");
+      return;
+    }
+
+    const droppedFiles = e.dataTransfer.files;
+    if (!droppedFiles || droppedFiles.length === 0) {
+      return;
+    }
+
+    const file = droppedFiles[0];
+    setProgress(0);
+
+    try {
+      setIsUploading(true);
+      me.profile.file = await FileStream.createFromBlob(file, {
+        onProgress: (p) => setProgress(Math.round(p * 100)),
+      });
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Failed to upload file",
+      );
+      console.error("Error uploading file:", error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   if (me?.profile?.file == null) {
     return (
       <div className="flex flex-col gap-4">
+        <div
+          className="flex flex-col border border-dashed border-2 border-stone-400 h-48 items-center justify-center bg-stone-100 m-5 rounded-md"
+          ref={dragAndDropElementRef}
+          onDragEnter={onDragEnter}
+          onDragOver={onDragOver}
+          onDragLeave={onDragLeave}
+          onDrop={onDrop}
+        >
+          <p>Drag & drop your file here</p>
+        </div>
         <form onSubmit={handleUpload} className="flex gap-2">
           <input
-            className="bg-stone-100 py-1.5 px-3 text-sm rounded-md w-4/5"
+            className="bg-stone-100 py-1.5 px-2 text-sm rounded-md w-4/5"
             ref={inputRef}
             type="file"
             accept="file"
             onChange={() => setError(null)}
-            aria-label="Choose file"
             disabled={isUploading}
           />
 
@@ -95,7 +168,6 @@ export function FileWidget() {
             {isUploading ? `Uploading...` : "Upload file"}
           </button>
         </form>
-
         {error && (
           <div className="text-red-800 text-sm pl-4" role="alert">
             {error}
