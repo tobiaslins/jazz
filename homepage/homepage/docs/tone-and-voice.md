@@ -2,13 +2,13 @@
 
 ## Core Principles
 
-Write like you're helping a teammate understand a new tool. Be clear, direct, and practical. Assume your reader is smart but busy.
+Write like you're helping a friend understand a new tool. Be clear, direct, and practical. Assume your reader is smart but busy.
 
 ## Voice
 
 - **Direct**: Say what you mean simply
 - **Practical**: Focus on getting things done
-- **Friendly**: Write like you're talking to a colleague
+- **Friendly**: Write like you're talking to a friend
 - **Knowledgeable**: Show depth through examples, not jargon
 - **Progressive**: Build concepts step by step
 
@@ -79,4 +79,4 @@ unsubscribe();
 2. Show, don't tell
 3. Build concepts progressively
 4. Let examples do the work
-5. Write like you're helping a teammate
+5. Write like you're helping a friend
