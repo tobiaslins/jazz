@@ -1,18 +1,18 @@
 "use client";
 
 import { clsx } from "clsx";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Icon } from "../atoms/Icon";
 
 // TODO: add tabs feature, and remove CodeExampleTabs
 
-function CopyButton({ code, size }: { code: string; size?: "sm" | "md" }) {
-  let [copyCount, setCopyCount] = useState(0);
-  let copied = copyCount > 0;
+function CopyButton({ code, size }: { code: string; size: "md" | "lg" }) {
+  const [copyCount, setCopyCount] = useState(0);
+  const copied = copyCount > 0;
 
   useEffect(() => {
     if (copyCount > 0) {
-      let timeout = setTimeout(() => setCopyCount(0), 1000);
+      const timeout = setTimeout(() => setCopyCount(0), 1000);
       return () => {
         clearTimeout(timeout);
       };
@@ -23,12 +23,12 @@ function CopyButton({ code, size }: { code: string; size?: "sm" | "md" }) {
     <button
       type="button"
       className={clsx(
-        "group/button absolute overflow-hidden rounded text-2xs font-medium opacity-0 backdrop-blur transition focus:opacity-100 group-hover:opacity-100",
+        "group/button absolute overflow-hidden rounded text-2xs font-medium md:opacity-0 backdrop-blur transition md:focus:opacity-100 group-hover:opacity-100",
         copied
           ? "bg-emerald-400/10 ring-1 ring-inset ring-emerald-400/20"
           : "bg-white/5 hover:bg-white/7.5 dark:bg-white/2.5 dark:hover:bg-white/5",
-        size == "sm"
-          ? "right-1.5 top-1.5 py-[2px] pl-1 pr-2"
+        size == "md"
+          ? "right-[8.5px] top-[8.5px] py-[2px] pl-1 pr-2"
           : "right-2 top-2 py-1 pl-2 pr-3 ",
       )}
       onClick={() => {
@@ -48,7 +48,7 @@ function CopyButton({ code, size }: { code: string; size?: "sm" | "md" }) {
           name="copy"
           size="xs"
           className={clsx(
-            size === "sm" ? "size-2" : "size-3",
+            size === "md" ? "size-3" : "size-4",
             "stroke-stone-500 transition-colors group-hover/button:stroke-stone-600 dark:group-hover/button:stroke-stone-400",
           )}
         />
@@ -69,16 +69,16 @@ function CopyButton({ code, size }: { code: string; size?: "sm" | "md" }) {
 
 export function CodeGroup({
   children,
-  size,
+  size = "md",
   className,
 }: {
-  children: React.ReactNode;
-  size?: "sm" | "md";
+  children?: React.ReactNode;
+  text?: string;
+  size?: "md" | "lg";
   className?: string;
 }) {
   const textRef = useRef<HTMLPreElement | null>(null);
   const [code, setCode] = useState<string>();
-
   useEffect(() => {
     if (textRef.current) {
       setCode(textRef.current.innerText);
@@ -86,13 +86,14 @@ export function CodeGroup({
   }, [children]);
 
   return (
-    <div className={clsx(className, "group relative")}>
+    <div className={clsx(className, "not-prose group relative")}>
       <pre
         className={clsx(
-          "h-full border p-0 bg-stone-50 dark:bg-stone-900",
+          "h-full overflow-x-auto",
+          "border rounded-md p-0 bg-stone-50 dark:bg-stone-925",
           "text-black dark:text-white",
           {
-            "text-sm": size === "sm",
+            "text-sm": size === "md",
           },
         )}
         ref={textRef}

@@ -1,4 +1,4 @@
-import { connectedPeers } from "cojson/src/streamUtils.ts";
+import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { describe, expect, test } from "vitest";
 import {
   Account,
@@ -6,17 +6,20 @@ import {
   FileStream,
   Group,
   ID,
-  WasmCrypto,
   co,
   cojsonInternals,
-  createJazzContext,
-  fixedCredentialsAuth,
   isControlledAccount,
-} from "../index.web.js";
-import { randomSessionProvider } from "../internal.js";
+} from "../index.js";
+import {
+  createJazzContextFromExistingCredentials,
+  randomSessionProvider,
+} from "../internal.js";
+import { createJazzTestAccount } from "../testing.js";
 import { setupTwoNodes } from "./utils.js";
 
 const Crypto = await WasmCrypto.create();
+
+const connectedPeers = cojsonInternals.connectedPeers;
 
 describe("Simple CoFeed operations", async () => {
   const me = await Account.create({
@@ -110,15 +113,16 @@ describe("CoFeed resolution", async () => {
       throw "me is not a controlled account";
     }
     me._raw.core.node.syncManager.addPeer(secondPeer);
-    const { account: meOnSecondPeer } = await createJazzContext({
-      auth: fixedCredentialsAuth({
-        accountID: me.id,
-        secret: me._raw.agentSecret,
-      }),
-      sessionProvider: randomSessionProvider,
-      peersToLoadFrom: [initialAsPeer],
-      crypto: Crypto,
-    });
+    const { account: meOnSecondPeer } =
+      await createJazzContextFromExistingCredentials({
+        credentials: {
+          accountID: me.id,
+          secret: me._raw.agentSecret,
+        },
+        sessionProvider: randomSessionProvider,
+        peersToLoadFrom: [initialAsPeer],
+        crypto: Crypto,
+      });
 
     const loadedStream = await TestStream.load(stream.id, meOnSecondPeer, []);
 
@@ -195,15 +199,16 @@ describe("CoFeed resolution", async () => {
     if (!isControlledAccount(me)) {
       throw "me is not a controlled account";
     }
-    const { account: meOnSecondPeer } = await createJazzContext({
-      auth: fixedCredentialsAuth({
-        accountID: me.id,
-        secret: me._raw.agentSecret,
-      }),
-      sessionProvider: randomSessionProvider,
-      peersToLoadFrom: [initialAsPeer],
-      crypto: Crypto,
-    });
+    const { account: meOnSecondPeer } =
+      await createJazzContextFromExistingCredentials({
+        credentials: {
+          accountID: me.id,
+          secret: me._raw.agentSecret,
+        },
+        sessionProvider: randomSessionProvider,
+        peersToLoadFrom: [initialAsPeer],
+        crypto: Crypto,
+      });
 
     const queue = new cojsonInternals.Channel();
 
@@ -314,15 +319,16 @@ describe("FileStream loading & Subscription", async () => {
       throw "me is not a controlled account";
     }
     me._raw.core.node.syncManager.addPeer(secondAsPeer);
-    const { account: meOnSecondPeer } = await createJazzContext({
-      auth: fixedCredentialsAuth({
-        accountID: me.id,
-        secret: me._raw.agentSecret,
-      }),
-      sessionProvider: randomSessionProvider,
-      peersToLoadFrom: [initialAsPeer],
-      crypto: Crypto,
-    });
+    const { account: meOnSecondPeer } =
+      await createJazzContextFromExistingCredentials({
+        credentials: {
+          accountID: me.id,
+          secret: me._raw.agentSecret,
+        },
+        sessionProvider: randomSessionProvider,
+        peersToLoadFrom: [initialAsPeer],
+        crypto: Crypto,
+      });
 
     const loadedStream = await FileStream.load(stream.id, meOnSecondPeer, []);
 
@@ -345,15 +351,16 @@ describe("FileStream loading & Subscription", async () => {
     if (!isControlledAccount(me)) {
       throw "me is not a controlled account";
     }
-    const { account: meOnSecondPeer } = await createJazzContext({
-      auth: fixedCredentialsAuth({
-        accountID: me.id,
-        secret: me._raw.agentSecret,
-      }),
-      sessionProvider: randomSessionProvider,
-      peersToLoadFrom: [initialAsPeer],
-      crypto: Crypto,
-    });
+    const { account: meOnSecondPeer } =
+      await createJazzContextFromExistingCredentials({
+        credentials: {
+          accountID: me.id,
+          secret: me._raw.agentSecret,
+        },
+        sessionProvider: randomSessionProvider,
+        peersToLoadFrom: [initialAsPeer],
+        crypto: Crypto,
+      });
 
     const queue = new cojsonInternals.Channel();
 
@@ -498,5 +505,17 @@ describe("waitForSync", async () => {
     const loadedStream = await serverNode.load(stream._raw.id);
 
     expect(loadedStream).not.toBe("unavailable");
+  });
+
+  test("should rely on the current active account if no account is provided", async () => {
+    const account = await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+    });
+
+    const stream = FileStream.create();
+    expect(stream._owner._type).toEqual("Group");
+    expect(stream._owner.castAs(Group)._raw.roleOf(account._raw.id)).toEqual(
+      "admin",
+    );
   });
 });

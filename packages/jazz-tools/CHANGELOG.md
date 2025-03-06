@@ -1,5 +1,222 @@
 # jazz-tools
 
+## 0.10.13
+
+### Patch Changes
+
+- 07feedd: Add registerNewUser and generateRandomPassphrase methods to PasskeyAuth and accept the username param on the signUp function
+
+## 0.10.12
+
+### Patch Changes
+
+- 4612e05: Fix type inference on `useCoState`
+
+## 0.10.8
+
+### Patch Changes
+
+- 2fb6428: Allow explicit keys when loading values from a CoMap.Record and throw when a required ref is undefined
+- Updated dependencies [153dc99]
+  - cojson@0.10.8
+
+## 0.10.7
+
+### Patch Changes
+
+- 1136d9b: Fixed isAuthenticated out-of-sync with the account state during the logOut and authenticate flows
+- 0eed228: Fixes clerk auth flow
+- Updated dependencies [0f83320]
+- Updated dependencies [012022d]
+  - cojson@0.10.7
+
+## 0.10.6
+
+### Patch Changes
+
+- ada802b: Fix Clerk credentials migration
+- Updated dependencies [5c76e37]
+  - cojson@0.10.6
+
+## 0.10.5
+
+### Patch Changes
+
+- 59ff77e: Critical fix: move the Account migration code execution in the right place to ensure that the changes applied to the right Jazz node.
+
+## 0.10.4
+
+### Patch Changes
+
+- Updated dependencies [1af6072]
+  - cojson@0.10.4
+
+## 0.10.3
+
+### Patch Changes
+
+- d8582fc: Fixes co.optional.Date throwing when assigned undefined
+
+## 0.10.2
+
+### Patch Changes
+
+- Updated dependencies [cae3a9e]
+  - cojson@0.10.2
+
+## 0.10.1
+
+### Patch Changes
+
+- 5a63cba: Not re-export Crypto providers from cojson. Removed the separated bundle for React Native.
+- Updated dependencies [5a63cba]
+  - cojson@0.10.1
+
+## 0.10.0
+
+### Minor Changes
+
+- 498954f: Introducing the new auth system!
+- dd03464: Group.addMember and Group.removeMember are not chainable anymore.
+  Group.removeMember now returns the internal promise.
+- b426342: Return null when a coValue is not found
+
+### Patch Changes
+
+- d42c2aa: Make ensureLoaded throw when the resolved value is undefined
+- Updated dependencies [b426342]
+- Updated dependencies [498954f]
+- Updated dependencies [8217981]
+- Updated dependencies [ac3d9fa]
+- Updated dependencies [610543c]
+  - cojson@0.10.0
+
+## 0.9.23
+
+### Patch Changes
+
+- Updated dependencies [70c9a5d]
+  - cojson@0.9.23
+
+## 0.9.21
+
+### Patch Changes
+
+- 1be017d: Account.isMe now indicates whether an account is the currently active account. To check if an account is the owner of the local node use isLocalNodeOwner instead.
+
+## 0.9.20
+
+### Patch Changes
+
+- b01cc1f: Switches from symbols to prefixes strings for private properties
+
+## 0.9.19
+
+### Patch Changes
+
+- Updated dependencies [6ad0a9f]
+  - cojson@0.9.19
+
+## 0.9.18
+
+### Patch Changes
+
+- Updated dependencies [8898b10]
+  - cojson@0.9.18
+
+## 0.9.17
+
+### Patch Changes
+
+- c2ca1fe: Add cross-platform invite API
+- 1227047: Improve typescript types for group.addMember
+
+## 0.9.16
+
+### Patch Changes
+
+- 24b3b6a: Extract friendly user name for profile creation when authenticating using Clerk with a regular email address.
+  Email passed to creationProps when using Clerk auth
+  Clear stored Clerk credentials on logout
+
+## 0.9.15
+
+### Patch Changes
+
+- 7491711: Testing: correctly set the globalMe before the migration when calling createJazzTestAccount
+
+## 0.9.14
+
+### Patch Changes
+
+- 3df93cc: Add API to setup a test sync in the test environment
+
+## 0.9.13
+
+### Patch Changes
+
+- Updated dependencies [8d29e50]
+  - cojson@0.9.13
+
+## 0.9.12
+
+### Patch Changes
+
+- Updated dependencies [15d4b2a]
+  - cojson@0.9.12
+
+## 0.9.11
+
+### Patch Changes
+
+- Updated dependencies [efbf3d8]
+- Updated dependencies [5863bad]
+  - cojson@0.9.11
+
+## 0.9.10
+
+### Patch Changes
+
+- 5e83864: Improve error management on initial auth, fixed an infinite loop when migration fails
+- Updated dependencies [4aa377d]
+  - cojson@0.9.10
+
+## 0.9.9
+
+### Patch Changes
+
+- 8eb9247: Add CoRichText support
+- Updated dependencies [8eb9247]
+  - cojson@0.9.9
+
+## 0.9.8
+
+### Patch Changes
+
+- d1d773b: Make possible to call the load/subscribe/create API without passing me
+
+## 0.9.1
+
+### Patch Changes
+
+- 1b71969: Add Onboarding auth to handle users onboarding without an auth screen
+
+## 0.9.0
+
+### Patch Changes
+
+- 8eda792: Optimize the subscribe to resolve the CoValues stored in memory synchronously
+- Updated dependencies [8eda792]
+- Updated dependencies [1ef3226]
+  - cojson@0.9.0
+
+## 0.8.51
+
+### Patch Changes
+
+- dc62b95: Return field name on \_edits
+- 1de26f8: Simplify the .create calls by accepting directly "Account | Group" as second param
+
 ## 0.8.50
 
 ### Patch Changes

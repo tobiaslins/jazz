@@ -1,4 +1,5 @@
 import { Toaster } from "@/components/ui/toaster";
+import { JazzInspector } from "jazz-inspector";
 /* eslint-disable react-refresh/only-export-components */
 import React from "react";
 import ReactDOM from "react-dom/client";
@@ -10,25 +11,21 @@ import { PlayerControls } from "./components/PlayerControls";
 import "./index.css";
 
 import { MusicaAccount } from "@/1_schema";
-import { DemoAuthBasicUI, createJazzReactApp, useDemoAuth } from "jazz-react";
+import { apiKey } from "@/apiKey.ts";
+import { JazzProvider } from "jazz-react";
+import { onAnonymousAccountDiscarded } from "./4_actions";
 import { useUploadExampleData } from "./lib/useUploadExampleData";
 
 /**
- * Walkthrough: The top-level provider `<Jazz.Provider/>`
+ * Walkthrough: The top-level provider `<JazzProvider/>`
  *
- * This shows how to use the top-level provider `<Jazz.Provider/>`,
+ * This shows how to use the top-level provider `<JazzProvider/>`,
  * which provides the rest of the app with a controlled account (used through `useAccount` later).
  * Here we use `DemoAuth` which is great for prototyping you app without wasting time on figuring out
  * the best way to do auth.
  *
- * `<Jazz.Provider/>` also runs our account migration
+ * `<JazzProvider/>` also runs our account migration
  */
-
-const Jazz = createJazzReactApp({
-  AccountSchema: MusicaAccount,
-});
-
-export const { useAccount, useCoState, useAcceptInvite } = Jazz;
 
 function Main() {
   const mediaPlayer = useMediaPlayer();
@@ -59,33 +56,31 @@ function Main() {
   );
 }
 
-function JazzAndAuth({ children }: { children: React.ReactNode }) {
-  const [auth, state] = useDemoAuth();
+const peer =
+  (new URL(window.location.href).searchParams.get(
+    "peer",
+  ) as `ws://${string}`) ?? `wss://cloud.jazz.tools/?key=${apiKey}`;
 
-  const peer =
-    (new URL(window.location.href).searchParams.get(
-      "peer",
-    ) as `ws://${string}`) ??
-    "wss://cloud.jazz.tools/?key=music-player-example-jazz@garden.co";
-
-  return (
-    <>
-      <Jazz.Provider
-        storage={["singleTabOPFS", "indexedDB"]}
-        auth={auth}
-        peer={peer}
-      >
-        {children}
-      </Jazz.Provider>
-      <DemoAuthBasicUI appName="Jazz Music Player" state={state} />
-    </>
-  );
+declare module "jazz-react" {
+  interface Register {
+    Account: MusicaAccount;
+  }
 }
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <JazzAndAuth>
+    <JazzProvider
+      sync={{
+        peer,
+        when: "signedUp", // This makes the app work in local mode when the user is anonymous
+      }}
+      storage="indexedDB"
+      AccountSchema={MusicaAccount}
+      defaultProfileName="Anonymous unicorn"
+      onAnonymousAccountDiscarded={onAnonymousAccountDiscarded}
+    >
       <Main />
-    </JazzAndAuth>
+      <JazzInspector />
+    </JazzProvider>
   </React.StrictMode>,
 );

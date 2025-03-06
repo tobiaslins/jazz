@@ -1,10 +1,10 @@
-import { LocalNode, WasmCrypto } from "cojson";
+import { LocalNode } from "cojson";
 import { createWebSocketPeer } from "cojson-transport-ws";
+import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { WebSocket } from "ws";
-
 const invite = process.argv[2];
 
-const [id, inviteSecret] = invite.replace("/invite/", "").split("/");
+const [id, inviteSecret] = invite.replace("#/invite/", "").split("/");
 
 const { node, account } = await createLocalNode();
 

@@ -1,40 +1,86 @@
 "use client";
 
-import { Framework, frameworkNames, frameworks } from "@/lib/framework";
+import { Framework } from "@/lib/framework";
 import { useFramework } from "@/lib/use-framework";
-import { clsx } from "clsx";
-import { Select } from "gcmp-design-system/src/app/components/molecules/Select";
+import { Button } from "gcmp-design-system/src/app/components/atoms/Button";
+import { Icon } from "gcmp-design-system/src/app/components/atoms/Icon";
+import {
+  Dropdown,
+  DropdownButton,
+  DropdownItem,
+  DropdownMenu,
+} from "gcmp-design-system/src/app/components/organisms/Dropdown";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function FrameworkSelect({ className }: { className?: string }) {
+const frameworks: Record<
+  Framework,
+  {
+    label: string;
+    experimental: boolean;
+  }
+> = {
+  [Framework.React]: {
+    label: "React",
+    experimental: false,
+  },
+  [Framework.ReactNative]: {
+    label: "React Native",
+    experimental: false,
+  },
+  [Framework.Svelte]: {
+    label: "Svelte",
+    experimental: true,
+  },
+  [Framework.Vue]: {
+    label: "Vue",
+    experimental: true,
+  },
+};
+
+export function FrameworkSelect() {
   const router = useRouter();
   const defaultFramework = useFramework();
-  const [framework, setFramework] = useState(defaultFramework);
+  const [selectedFramework, setSelectedFramework] =
+    useState<Framework>(defaultFramework);
 
   const path = usePathname();
 
-  const onChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    e.preventDefault();
-
-    const newFramework = e.target.value as Framework;
-    setFramework(newFramework);
-
+  const selectFramework = (newFramework: Framework) => {
+    setSelectedFramework(newFramework);
     router.push(path.replace(defaultFramework, newFramework));
   };
 
   return (
-    <Select
-      label="Framework"
-      value={framework}
-      onChange={onChange}
-      className={clsx("label:sr-only", className)}
-    >
-      {frameworks.map((framework) => (
-        <option key={framework} value={framework}>
-          {frameworkNames[framework]}
-        </option>
-      ))}
-    </Select>
+    <Dropdown>
+      <DropdownButton
+        className="w-full justify-between"
+        as={Button}
+        variant="secondary"
+      >
+        {frameworks[selectedFramework].label}
+        <Icon
+          name="chevronDown"
+          size="sm"
+          className="text-stone-400 dark:text-stone-600"
+        />
+      </DropdownButton>
+      <DropdownMenu className="w-[--button-width] z-50" anchor="bottom start">
+        {Object.entries(frameworks).map(([key, framework]) => (
+          <DropdownItem
+            className="items-baseline"
+            key={key}
+            onClick={() => selectFramework(key as Framework)}
+          >
+            {framework.label}
+            {framework.experimental && (
+              <span className="ml-1 text-xs text-stone-500">
+                (experimental)
+              </span>
+            )}
+          </DropdownItem>
+        ))}
+      </DropdownMenu>
+    </Dropdown>
   );
 }

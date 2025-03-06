@@ -1,39 +1,26 @@
-import { DemoAuthBasicUI, createJazzReactApp, useDemoAuth } from "jazz-react";
+import { JazzProvider } from "jazz-react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { apiKey } from "./apiKey.ts";
 import { JazzAccount } from "./schema.ts";
 
-const Jazz = createJazzReactApp({
-  AccountSchema: JazzAccount,
-});
-
-export const { useAccount, useCoState } = Jazz;
-
-function JazzAndAuth({ children }: { children: React.ReactNode }) {
-  const [auth, authState] = useDemoAuth();
-
-  return (
-    <>
-      <Jazz.Provider
-        auth={auth}
-        peer="wss://cloud.jazz.tools/?key=image-upload-example@garden.co"
-      >
-        {children}
-      </Jazz.Provider>
-
-      {authState.state !== "signedIn" && (
-        <DemoAuthBasicUI appName="Image upload" state={authState} />
-      )}
-    </>
-  );
+declare module "jazz-react" {
+  interface Register {
+    Account: JazzAccount;
+  }
 }
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <JazzAndAuth>
+    <JazzProvider
+      sync={{
+        peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
+      }}
+      AccountSchema={JazzAccount}
+    >
       <App />
-    </JazzAndAuth>
+    </JazzProvider>
   </StrictMode>,
 );

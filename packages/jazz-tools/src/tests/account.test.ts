@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
-import { CoMap, co } from "../exports.js";
+import { Account, CoMap, co } from "../exports.js";
+import { createJazzTestAccount, setActiveAccount } from "../testing.js";
 import { setupTwoNodes } from "./utils.js";
 
 test("waitForAllCoValuesSync should resolve when all the values are synced", async () => {
@@ -37,4 +38,39 @@ test("waitForSync should resolve when the value is uploaded", async () => {
   const loadedAccount = await serverNode.load(clientAccount._raw.id);
 
   expect(loadedAccount).not.toBe("unavailable");
+});
+
+test("isMe gets updated correctly when switching accounts", async () => {
+  const oldMe = await createJazzTestAccount({
+    isCurrentActiveAccount: true,
+  });
+
+  expect(oldMe.isMe).toBe(true);
+
+  const newMe = await createJazzTestAccount({
+    isCurrentActiveAccount: false,
+  });
+
+  expect(newMe.isMe).toBe(false);
+  expect(oldMe.isMe).toBe(true);
+
+  setActiveAccount(newMe);
+
+  expect(newMe.isMe).toBe(true);
+  expect(oldMe.isMe).toBe(false);
+});
+
+test("Me gets updated correctly when creating a new account as active", async () => {
+  const oldMe = await createJazzTestAccount({
+    isCurrentActiveAccount: true,
+  });
+
+  expect(oldMe.isMe).toBe(true);
+
+  const newMe = await createJazzTestAccount({
+    isCurrentActiveAccount: true,
+  });
+
+  expect(newMe.isMe).toBe(true);
+  expect(oldMe.isMe).toBe(false);
 });

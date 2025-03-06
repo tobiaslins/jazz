@@ -1,5 +1,251 @@
 # jazz-browser-media-images
 
+## 0.10.13
+
+### Patch Changes
+
+- Updated dependencies [07feedd]
+  - jazz-tools@0.10.13
+  - jazz-browser@0.10.13
+
+## 0.10.12
+
+### Patch Changes
+
+- Updated dependencies [4612e05]
+  - jazz-tools@0.10.12
+  - jazz-browser@0.10.12
+
+## 0.10.9
+
+### Patch Changes
+
+- Updated dependencies [834203f]
+  - jazz-browser@0.10.9
+
+## 0.10.8
+
+### Patch Changes
+
+- Updated dependencies [1e87fc7]
+- Updated dependencies [2fb6428]
+  - jazz-browser@0.10.8
+  - jazz-tools@0.10.8
+
+## 0.10.7
+
+### Patch Changes
+
+- Updated dependencies [1136d9b]
+- Updated dependencies [bf76d79]
+- Updated dependencies [0eed228]
+  - jazz-browser@0.10.7
+  - jazz-tools@0.10.7
+
+## 0.10.6
+
+### Patch Changes
+
+- Updated dependencies [ada802b]
+  - jazz-tools@0.10.6
+  - jazz-browser@0.10.6
+
+## 0.10.5
+
+### Patch Changes
+
+- Updated dependencies [59ff77e]
+  - jazz-tools@0.10.5
+  - jazz-browser@0.10.5
+
+## 0.10.4
+
+### Patch Changes
+
+- jazz-browser@0.10.4
+- jazz-tools@0.10.4
+
+## 0.10.3
+
+### Patch Changes
+
+- Updated dependencies [d8582fc]
+  - jazz-tools@0.10.3
+  - jazz-browser@0.10.3
+
+## 0.10.2
+
+### Patch Changes
+
+- jazz-browser@0.10.2
+- jazz-tools@0.10.2
+
+## 0.10.1
+
+### Patch Changes
+
+- Updated dependencies [5a63cba]
+  - jazz-tools@0.10.1
+  - jazz-browser@0.10.1
+
+## 0.10.0
+
+### Patch Changes
+
+- Updated dependencies [498954f]
+- Updated dependencies [d42c2aa]
+- Updated dependencies [dd03464]
+- Updated dependencies [b426342]
+  - jazz-browser@0.10.0
+  - jazz-tools@0.10.0
+
+## 0.9.23
+
+### Patch Changes
+
+- jazz-browser@0.9.23
+- jazz-tools@0.9.23
+
+## 0.9.22
+
+### Patch Changes
+
+- jazz-browser@0.9.22
+
+## 0.9.21
+
+### Patch Changes
+
+- Updated dependencies [1be017d]
+  - jazz-tools@0.9.21
+  - jazz-browser@0.9.21
+
+## 0.9.20
+
+### Patch Changes
+
+- Updated dependencies [b01cc1f]
+  - jazz-tools@0.9.20
+  - jazz-browser@0.9.20
+
+## 0.9.19
+
+### Patch Changes
+
+- jazz-browser@0.9.19
+- jazz-tools@0.9.19
+
+## 0.9.18
+
+### Patch Changes
+
+- jazz-browser@0.9.18
+- jazz-tools@0.9.18
+
+## 0.9.17
+
+### Patch Changes
+
+- Updated dependencies [c2ca1fe]
+- Updated dependencies [1227047]
+  - jazz-tools@0.9.17
+  - jazz-browser@0.9.17
+
+## 0.9.16
+
+### Patch Changes
+
+- Updated dependencies [24b3b6a]
+  - jazz-tools@0.9.16
+  - jazz-browser@0.9.16
+
+## 0.9.15
+
+### Patch Changes
+
+- Updated dependencies [7491711]
+  - jazz-tools@0.9.15
+  - jazz-browser@0.9.15
+
+## 0.9.14
+
+### Patch Changes
+
+- Updated dependencies [3df93cc]
+  - jazz-tools@0.9.14
+  - jazz-browser@0.9.14
+
+## 0.9.13
+
+### Patch Changes
+
+- jazz-browser@0.9.13
+- jazz-tools@0.9.13
+
+## 0.9.12
+
+### Patch Changes
+
+- jazz-browser@0.9.12
+- jazz-tools@0.9.12
+
+## 0.9.11
+
+### Patch Changes
+
+- jazz-browser@0.9.11
+- jazz-tools@0.9.11
+
+## 0.9.10
+
+### Patch Changes
+
+- Updated dependencies [5e83864]
+  - jazz-tools@0.9.10
+  - jazz-browser@0.9.10
+
+## 0.9.9
+
+### Patch Changes
+
+- Updated dependencies [8eb9247]
+  - jazz-tools@0.9.9
+  - jazz-browser@0.9.9
+
+## 0.9.8
+
+### Patch Changes
+
+- Updated dependencies [d1d773b]
+  - jazz-tools@0.9.8
+  - jazz-browser@0.9.8
+
+## 0.9.1
+
+### Patch Changes
+
+- Updated dependencies [1b71969]
+- Updated dependencies [5d98189]
+  - jazz-browser@0.9.1
+  - jazz-tools@0.9.1
+
+## 0.9.0
+
+### Patch Changes
+
+- Updated dependencies [8eda792]
+  - jazz-tools@0.9.0
+  - jazz-browser@0.9.0
+
+## 0.8.51
+
+### Patch Changes
+
+- Updated dependencies [dc62b95]
+- Updated dependencies [1de26f8]
+  - jazz-tools@0.8.51
+  - jazz-browser@0.8.51
+
 ## 0.8.50
 
 ### Patch Changes

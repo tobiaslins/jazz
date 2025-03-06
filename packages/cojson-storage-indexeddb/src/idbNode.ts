@@ -7,6 +7,12 @@ import {
 import { SyncManager } from "cojson-storage";
 import { IDBClient } from "./idbClient.js";
 
+let DATABASE_NAME = "jazz-storage";
+
+export function internal_setDatabaseName(name: string) {
+  DATABASE_NAME = name;
+}
+
 export class IDBNode {
   private readonly dbClient: IDBClient;
   private readonly syncManager: SyncManager;
@@ -27,18 +33,7 @@ export class IDBNode {
           }
           await this.syncManager.handleSyncMessage(msg);
         } catch (e) {
-          console.error(
-            new Error(
-              `Error reading from localNode, handling msg\n\n${JSON.stringify(
-                msg,
-                (k, v) =>
-                  k === "changes" || k === "encryptedChanges"
-                    ? `${v.slice(0, 20)}...`
-                    : v,
-              )}`,
-              { cause: e },
-            ),
-          );
+          console.error(e);
         }
       }
     };
@@ -77,7 +72,7 @@ export class IDBNode {
     toLocalNode: OutgoingSyncQueue,
   ) {
     const dbPromise = new Promise<IDBDatabase>((resolve, reject) => {
-      const request = indexedDB.open("jazz-storage", 4);
+      const request = indexedDB.open(DATABASE_NAME, 4);
       request.onerror = () => {
         reject(request.error);
       };

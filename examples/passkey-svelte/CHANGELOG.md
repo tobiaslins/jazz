@@ -1,5 +1,195 @@
 # passkey-svelte
 
+## 0.0.44
+
+### Patch Changes
+
+- jazz-svelte@0.10.13
+
+## 0.0.43
+
+### Patch Changes
+
+- Updated dependencies [4612e05]
+  - jazz-svelte@0.10.12
+
+## 0.0.42
+
+### Patch Changes
+
+- jazz-svelte@0.10.9
+
+## 0.0.41
+
+### Patch Changes
+
+- jazz-svelte@0.10.8
+
+## 0.0.40
+
+### Patch Changes
+
+- Updated dependencies [1136d9b]
+  - jazz-svelte@0.10.7
+
+## 0.0.39
+
+### Patch Changes
+
+- jazz-svelte@0.10.6
+
+## 0.0.38
+
+### Patch Changes
+
+- jazz-svelte@0.10.5
+
+## 0.0.37
+
+### Patch Changes
+
+- jazz-svelte@0.10.4
+
+## 0.0.36
+
+### Patch Changes
+
+- jazz-svelte@0.10.3
+
+## 0.0.35
+
+### Patch Changes
+
+- jazz-svelte@0.10.2
+
+## 0.0.34
+
+### Patch Changes
+
+- jazz-svelte@0.10.1
+
+## 0.0.33
+
+### Patch Changes
+
+- Updated dependencies [b426342]
+  - jazz-svelte@0.10.0
+
+## 0.0.32
+
+### Patch Changes
+
+- jazz-svelte@0.9.23
+
+## 0.0.31
+
+### Patch Changes
+
+- jazz-svelte@0.9.22
+
+## 0.0.30
+
+### Patch Changes
+
+- jazz-svelte@0.9.21
+
+## 0.0.29
+
+### Patch Changes
+
+- jazz-svelte@0.9.20
+
+## 0.0.28
+
+### Patch Changes
+
+- jazz-svelte@0.9.19
+
+## 0.0.27
+
+### Patch Changes
+
+- jazz-svelte@0.9.18
+
+## 0.0.26
+
+### Patch Changes
+
+- jazz-svelte@0.9.17
+
+## 0.0.25
+
+### Patch Changes
+
+- jazz-svelte@0.9.16
+
+## 0.0.24
+
+### Patch Changes
+
+- jazz-svelte@0.9.15
+
+## 0.0.23
+
+### Patch Changes
+
+- jazz-svelte@0.9.14
+
+## 0.0.22
+
+### Patch Changes
+
+- jazz-svelte@0.9.13
+
+## 0.0.21
+
+### Patch Changes
+
+- jazz-svelte@0.9.12
+
+## 0.0.20
+
+### Patch Changes
+
+- jazz-svelte@0.9.11
+
+## 0.0.19
+
+### Patch Changes
+
+- jazz-svelte@0.9.10
+
+## 0.0.18
+
+### Patch Changes
+
+- jazz-svelte@0.9.9
+
+## 0.0.17
+
+### Patch Changes
+
+- jazz-svelte@0.9.8
+
+## 0.0.16
+
+### Patch Changes
+
+- jazz-svelte@0.9.1
+
+## 0.0.15
+
+### Patch Changes
+
+- Updated dependencies [9dd8d95]
+  - jazz-svelte@0.9.0
+
+## 0.0.14
+
+### Patch Changes
+
+- jazz-svelte@0.8.51
+
 ## 0.0.13
 
 ### Patch Changes

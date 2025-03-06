@@ -1,17 +1,17 @@
-import { connectedPeers } from "cojson/src/streamUtils.ts";
+import { cojsonInternals } from "cojson";
+import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { describe, expect, test } from "vitest";
 import {
   Account,
   CoList,
   Group,
-  WasmCrypto,
   co,
-  cojsonInternals,
-  createJazzContext,
-  fixedCredentialsAuth,
+  createJazzContextFromExistingCredentials,
   isControlledAccount,
-} from "../index.web.js";
+} from "../index.js";
 import { randomSessionProvider } from "../internal.js";
+
+const connectedPeers = cojsonInternals.connectedPeers;
 
 const Crypto = await WasmCrypto.create();
 
@@ -170,15 +170,16 @@ describe("CoList resolution", async () => {
       throw "me is not a controlled account";
     }
     me._raw.core.node.syncManager.addPeer(secondPeer);
-    const { account: meOnSecondPeer } = await createJazzContext({
-      auth: fixedCredentialsAuth({
-        accountID: me.id,
-        secret: me._raw.agentSecret,
-      }),
-      sessionProvider: randomSessionProvider,
-      peersToLoadFrom: [initialAsPeer],
-      crypto: Crypto,
-    });
+    const { account: meOnSecondPeer } =
+      await createJazzContextFromExistingCredentials({
+        credentials: {
+          accountID: me.id,
+          secret: me._raw.agentSecret,
+        },
+        sessionProvider: randomSessionProvider,
+        peersToLoadFrom: [initialAsPeer],
+        crypto: Crypto,
+      });
 
     const loadedList = await TestList.load(list.id, meOnSecondPeer, []);
 
@@ -241,15 +242,16 @@ describe("CoList resolution", async () => {
       throw "me is not a controlled account";
     }
     me._raw.core.node.syncManager.addPeer(secondPeer);
-    const { account: meOnSecondPeer } = await createJazzContext({
-      auth: fixedCredentialsAuth({
-        accountID: me.id,
-        secret: me._raw.agentSecret,
-      }),
-      sessionProvider: randomSessionProvider,
-      peersToLoadFrom: [initialAsPeer],
-      crypto: Crypto,
-    });
+    const { account: meOnSecondPeer } =
+      await createJazzContextFromExistingCredentials({
+        credentials: {
+          accountID: me.id,
+          secret: me._raw.agentSecret,
+        },
+        sessionProvider: randomSessionProvider,
+        peersToLoadFrom: [initialAsPeer],
+        crypto: Crypto,
+      });
 
     const queue = new cojsonInternals.Channel();
 

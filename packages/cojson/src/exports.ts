@@ -6,15 +6,19 @@ import {
   MAX_RECOMMENDED_TX_SIZE,
   idforHeader,
 } from "./coValueCore.js";
-import { ControlledAgent, RawControlledAccount } from "./coValues/account.js";
 import {
+  ControlledAgent,
   RawAccount,
+  RawControlledAccount,
   RawProfile,
   accountHeaderForInitialAgentSecret,
 } from "./coValues/account.js";
-import { RawCoList } from "./coValues/coList.js";
+import { OpID, RawCoList } from "./coValues/coList.js";
 import { RawCoMap } from "./coValues/coMap.js";
+import { RawCoPlainText, stringifyOpID } from "./coValues/coPlainText.js";
 import {
+  BinaryStreamItem,
+  BinaryStreamStart,
   CoStreamItem,
   RawBinaryCoStream,
   RawCoStream,
@@ -36,7 +40,7 @@ import {
 } from "./ids.js";
 import { Stringified, parseJSON, stableStringify } from "./jsonStringify.js";
 import { LocalNode } from "./localNode.js";
-import type { Role } from "./permissions.js";
+import type { AccountRole, Role } from "./permissions.js";
 import { Channel, connectedPeers } from "./streamUtils.js";
 import { accountOrAgentIDfromSessionID } from "./typeUtils/accountOrAgentIDfromSessionID.js";
 import { expectGroup } from "./typeUtils/expectGroup.js";
@@ -55,7 +59,7 @@ import type {
 import type { InviteSecret } from "./coValues/group.js";
 import type { AgentSecret } from "./crypto/crypto.js";
 import type { AgentID, RawCoID, SessionID } from "./ids.js";
-import type { JsonValue } from "./jsonValue.js";
+import type { JsonObject, JsonValue } from "./jsonValue.js";
 import type * as Media from "./media.js";
 import { disablePermissionErrors } from "./permissions.js";
 import type {
@@ -72,6 +76,8 @@ import {
 
 type Value = JsonValue | AnyRawCoValue;
 
+import { CO_VALUE_LOADING_CONFIG } from "./coValueState.js";
+import { logger } from "./logger.js";
 import { getPriorityFromHeader } from "./priority.js";
 import { FileSystem } from "./storage/FileSystem.js";
 import { BlockFilename, LSMStorage, WalFilename } from "./storage/index.js";
@@ -98,6 +104,7 @@ export const cojsonInternals = {
   getGroupDependentKeyList,
   getGroupDependentKey,
   disablePermissionErrors,
+  CO_VALUE_LOADING_CONFIG,
 };
 
 export {
@@ -125,6 +132,7 @@ export {
   ControlledAgent,
   RawControlledAccount,
   MAX_RECOMMENDED_TX_SIZE,
+  JsonObject,
   JsonValue,
   Peer,
   BinaryStreamInfo,
@@ -137,6 +145,11 @@ export {
   isRawCoID,
   LSMStorage,
   emptyKnownState,
+  RawCoPlainText,
+  stringifyOpID,
+  logger,
+  base64URLtoBytes,
+  bytesToBase64url,
 };
 
 export type {
@@ -151,11 +164,16 @@ export type {
   CoValueUniqueness,
   Stringified,
   CoStreamItem,
+  BinaryStreamItem,
+  BinaryStreamStart,
+  OpID,
+  AccountRole,
 };
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace CojsonInternalTypes {
   export type CoValueKnownState = import("./sync.js").CoValueKnownState;
+  export type CoJsonValue<T> = import("./jsonValue.js").CoJsonValue<T>;
   export type DoneMessage = import("./sync.js").DoneMessage;
   export type KnownStateMessage = import("./sync.js").KnownStateMessage;
   export type LoadMessage = import("./sync.js").LoadMessage;

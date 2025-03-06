@@ -1,9 +1,11 @@
+import { randomBytes } from "@noble/ciphers/webcrypto/utils";
 import { base58 } from "@scure/base";
 import { RawAccountID } from "../coValues/account.js";
 import { AgentID, RawCoID, TransactionID } from "../ids.js";
 import { SessionID } from "../ids.js";
 import { Stringified, parseJSON, stableStringify } from "../jsonStringify.js";
 import { JsonValue } from "../jsonValue.js";
+import { logger } from "../logger.js";
 
 export type SignerSecret = `signerSecret_z${string}`;
 export type SignerID = `signer_z${string}`;
@@ -20,7 +22,9 @@ export const textDecoder = new TextDecoder();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export abstract class CryptoProvider<Blake3State = any> {
-  abstract randomBytes(length: number): Uint8Array;
+  randomBytes(length: number): Uint8Array {
+    return randomBytes(length);
+  }
 
   abstract newEd25519SigningKey(): Uint8Array;
 
@@ -159,7 +163,7 @@ export abstract class CryptoProvider<Blake3State = any> {
     try {
       return parseJSON(this.decryptRaw(encrypted, keySecret, nOnceMaterial));
     } catch (e) {
-      console.error("Decryption error", e);
+      logger.error("Decryption error: " + (e as Error)?.message);
       return undefined;
     }
   }
@@ -305,10 +309,7 @@ export class StreamingHash {
 
   update(value: JsonValue): Uint8Array {
     const encoded = textEncoder.encode(stableStringify(value));
-    // const before = performance.now();
     this.state = this.crypto.blake3IncrementalUpdate(this.state, encoded);
-    // const after = performance.now();
-    // console.log(`Hashing throughput in MB/s`, 1000 * (encoded.length / (after - before)) / (1024 * 1024));
     return encoded;
   }
 

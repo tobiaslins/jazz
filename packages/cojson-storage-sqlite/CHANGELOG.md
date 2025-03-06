@@ -1,5 +1,145 @@
 # cojson-storage-sqlite
 
+## 0.10.8
+
+### Patch Changes
+
+- Updated dependencies [153dc99]
+  - cojson@0.10.8
+  - cojson-storage@0.10.8
+
+## 0.10.7
+
+### Patch Changes
+
+- 1e625f3: Improve rollback on error when failing to add new content
+- Updated dependencies [0f83320]
+- Updated dependencies [012022d]
+- Updated dependencies [1e625f3]
+  - cojson@0.10.7
+  - cojson-storage@0.10.7
+
+## 0.10.6
+
+### Patch Changes
+
+- Updated dependencies [5c76e37]
+  - cojson@0.10.6
+  - cojson-storage@0.10.6
+
+## 0.10.4
+
+### Patch Changes
+
+- Updated dependencies [1af6072]
+  - cojson@0.10.4
+  - cojson-storage@0.10.4
+
+## 0.10.2
+
+### Patch Changes
+
+- Updated dependencies [cae3a9e]
+  - cojson@0.10.2
+  - cojson-storage@0.10.2
+
+## 0.10.1
+
+### Patch Changes
+
+- Updated dependencies [5a63cba]
+  - cojson@0.10.1
+  - cojson-storage@0.10.1
+
+## 0.10.0
+
+### Patch Changes
+
+- Updated dependencies [b426342]
+- Updated dependencies [498954f]
+- Updated dependencies [8217981]
+- Updated dependencies [ac3d9fa]
+- Updated dependencies [610543c]
+  - cojson@0.10.0
+  - cojson-storage@0.10.0
+
+## 0.9.23
+
+### Patch Changes
+
+- Updated dependencies [70c9a5d]
+  - cojson@0.9.23
+  - cojson-storage@0.9.23
+
+## 0.9.19
+
+### Patch Changes
+
+- Updated dependencies [6ad0a9f]
+  - cojson@0.9.19
+  - cojson-storage@0.9.19
+
+## 0.9.18
+
+### Patch Changes
+
+- Updated dependencies [8898b10]
+  - cojson@0.9.18
+  - cojson-storage@0.9.18
+
+## 0.9.13
+
+### Patch Changes
+
+- 8d29e50: Restore the logger wrapper and adapt the API to pino
+- Updated dependencies [8d29e50]
+  - cojson-storage@0.9.13
+  - cojson@0.9.13
+
+## 0.9.12
+
+### Patch Changes
+
+- 15d4b2a: Revert the custom logger
+- Updated dependencies [15d4b2a]
+  - cojson-storage@0.9.12
+  - cojson@0.9.12
+
+## 0.9.11
+
+### Patch Changes
+
+- 5863bad: Wrap all the console logs with a logger class to make possible to customize the logger
+- Updated dependencies [efbf3d8]
+- Updated dependencies [5863bad]
+  - cojson@0.9.11
+  - cojson-storage@0.9.11
+
+## 0.9.10
+
+### Patch Changes
+
+- Updated dependencies [4aa377d]
+  - cojson@0.9.10
+  - cojson-storage@0.9.10
+
+## 0.9.9
+
+### Patch Changes
+
+- Updated dependencies [8eb9247]
+  - cojson@0.9.9
+  - cojson-storage@0.9.9
+
+## 0.9.0
+
+### Patch Changes
+
+- Updated dependencies [8eda792]
+- Updated dependencies [1ef3226]
+  - cojson@0.9.0
+  - cojson-storage@0.9.0
+
 ## 0.8.50
 
 ### Patch Changes

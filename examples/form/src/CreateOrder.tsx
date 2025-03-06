@@ -1,10 +1,10 @@
 import { useIframeHashRouter } from "hash-slash";
+import { useAccount, useCoState } from "jazz-react";
 import { ID } from "jazz-tools";
 import { useState } from "react";
 import { Errors } from "./Errors.tsx";
 import { LinkToHome } from "./LinkToHome.tsx";
 import { OrderForm } from "./OrderForm.tsx";
-import { useAccount, useCoState } from "./main.tsx";
 import {
   BubbleTeaOrder,
   DraftBubbleTeaOrder,
@@ -30,12 +30,9 @@ export function CreateOrder() {
     me.root.orders.push(draft as BubbleTeaOrder);
 
     // reset the draft
-    me.root.draft = DraftBubbleTeaOrder.create(
-      {
-        addOns: ListOfBubbleTeaAddOns.create([], me),
-      },
-      me,
-    );
+    me.root.draft = DraftBubbleTeaOrder.create({
+      addOns: ListOfBubbleTeaAddOns.create([]),
+    });
 
     router.navigate("/");
   };

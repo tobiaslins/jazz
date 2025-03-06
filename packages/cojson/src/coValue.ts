@@ -2,6 +2,7 @@ import { CoValueCore } from "./coValueCore.js";
 import { RawProfile as Profile, RawAccount } from "./coValues/account.js";
 import { RawCoList } from "./coValues/coList.js";
 import { RawCoMap } from "./coValues/coMap.js";
+import { RawCoPlainText } from "./coValues/coPlainText.js";
 import { RawBinaryCoStream, RawCoStream } from "./coValues/coStream.js";
 import { RawGroup } from "./coValues/group.js";
 import { RawCoID } from "./ids.js";
@@ -34,12 +35,50 @@ export interface RawCoValue {
   subscribe(listener: (coValue: this) => void): () => void;
 }
 
+export class RawUnknownCoValue implements RawCoValue {
+  id: CoID<this>;
+  core: CoValueCore;
+
+  constructor(core: CoValueCore) {
+    this.id = core.id as CoID<this>;
+    this.core = core;
+  }
+
+  get type() {
+    return this.core.header.type;
+  }
+
+  get headerMeta() {
+    return this.core.header.meta as JsonObject;
+  }
+
+  /** @category 6. Meta */
+  get group(): RawGroup {
+    return this.core.getGroup();
+  }
+
+  toJSON() {
+    return {};
+  }
+
+  atTime() {
+    return this;
+  }
+
+  subscribe(listener: (value: this) => void): () => void {
+    return this.core.subscribe((content) => {
+      listener(content as this);
+    });
+  }
+}
+
 export type AnyRawCoValue =
   | RawCoMap
   | RawGroup
   | RawAccount
   | Profile
   | RawCoList
+  | RawCoPlainText
   | RawCoStream
   | RawBinaryCoStream;
 
@@ -65,4 +104,12 @@ export function expectStream(content: RawCoValue): RawCoStream {
   }
 
   return content as RawCoStream;
+}
+
+export function expectPlainText(content: RawCoValue): RawCoPlainText {
+  if (content.type !== "coplaintext") {
+    throw new Error("Expected plaintext");
+  }
+
+  return content as RawCoPlainText;
 }

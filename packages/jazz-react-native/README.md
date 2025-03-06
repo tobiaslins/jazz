@@ -25,15 +25,18 @@ npx expo prebuild
 ### Install dependencies
 
 ```bash
-npx expo install expo-linking expo-secure-store expo-file-system @react-native-community/netinfo @bam.tech/react-native-image-resizer @azure/core-asynciterator-polyfill
+npx expo install expo-linking expo-secure-store expo-file-system @react-native-community/netinfo @bam.tech/react-native-image-resizer
 
-npm i -S react-native-polyfill-globals react-native-url-polyfill web-streams-polyfill base-64 text-encoding react-native-fetch-api react-native-get-random-values buffer
+  npm i -S @azure/core-asynciterator-polyfill react-native-url-polyfill readable-stream react-native-get-random-values @craftzdog/react-native-buffer @op-engineering/op-sqlite
+
 
 npm i -D @babel/plugin-transform-class-static-block
 
 npm i -S jazz-tools jazz-react-native jazz-react-native-media-images
 
 ```
+
+> note: Hermes has added support for `atob` and `btoa` in React Native 0.74.  If you are using earlier versions, you may also need to polyfill `atob` and `btoa` in your `package.json` . Packages to try include `text-encoding` and `base-64`, and you can drop `@bacons/text-decoder`.
 
 ### Fix Incompatible Dependencies
 
@@ -58,16 +61,9 @@ const { getDefaultConfig } = require("expo/metro-config");
 const path = require("path");
 const workspaceRoot = path.resolve(__dirname);
 const config = getDefaultConfig(projectRoot);
-config.resolver.unstable_enablePackageExports = true; // important setting
 config.resolver.sourceExts = ["mjs", "js", "json", "ts", "tsx"];
 config.resolver.requireCycleIgnorePatterns = [/(^|\/|\\)node_modules($|\/|\\)/];
 module.exports = config;
-```
-
-If you created the project using the command npx create-expo-app -e with-router-tailwind my-jazz-app, then metro.config.js is already present. In that case, simply add this setting to the existing file:
-
-```js
-config.resolver.unstable_enablePackageExports = true
 ```
 
 #### Monorepos
@@ -91,7 +87,6 @@ config.resolver.nodeModulesPaths = [
     path.resolve(workspaceRoot, "node_modules"),
 ];
 config.resolver.sourceExts = ["mjs", "js", "json", "ts", "tsx"];
-config.resolver.unstable_enablePackageExports = true;
 config.resolver.requireCycleIgnorePatterns = [/(^|\/|\\)node_modules($|\/|\\)/];
 config.cacheStores = [
     new FileStore({
@@ -143,14 +138,19 @@ module.exports = function (api) {
 Create a file `polyfills.js` at the project root with the following content:
 
 ```js
-import "react-native-polyfill-globals/auto";
-import "@azure/core-asynciterator-polyfill";
-import { ReadableStream } from "web-streams-polyfill/ponyfill/es6";
-import { polyfillGlobal } from "react-native/Libraries/Utilities/PolyfillFunctions";
-import { Buffer } from "buffer";
+import { polyfillGlobal } from 'react-native/Libraries/Utilities/PolyfillFunctions';
 
-polyfillGlobal("Buffer", () => Buffer);
-polyfillGlobal("ReadableStream", () => ReadableStream);
+import { Buffer } from '@craftzdog/react-native-buffer';
+polyfillGlobal('Buffer', () => Buffer);
+
+import { ReadableStream } from 'readable-stream';
+polyfillGlobal('ReadableStream', () => ReadableStream);
+
+import '@azure/core-asynciterator-polyfill';
+
+import '@bacons/text-decoder/install';
+
+import 'react-native-get-random-values';
 ```
 
 Update `index.js` based on whether you are using expo-router or not:
@@ -201,7 +201,7 @@ Refer to the Jazz + React Native demo projects for implementing authentication:
 
 In the demos, you'll find details on:
 
-- Using Jazz.Provider with your chosen authentication method
+- Using JazzProvider with your chosen authentication method
 - Defining a Jazz schema
 - Creating and subscribing to covalues
 - Handling invites

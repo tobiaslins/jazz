@@ -73,7 +73,7 @@ export function ClassOrInterface({
     <div className="relative not-prose">
       <div
         id={name}
-        className="peer sticky top-0 mt-4 md:top-[65px] md:pt-8 bg-white dark:bg-stone-950 z-20"
+        className="peer sticky top-0 mt-4 md:top-[72px] md:pt-8 bg-white dark:bg-stone-950 z-20"
       >
         <Link
           href={"#" + name}
@@ -156,8 +156,14 @@ export function FnDecl({
   doc: ReactNode;
   example: ReactNode;
 }) {
+  // Extract the method name from the signature (everything before the first parenthesis or type parameter)
+  const methodName = signature.match(/^[^(<]+/)?.[0];
+
   return (
-    <div className="text-sm flex flex-col gap-3 my-2 p-3 rounded bg-stone-50 dark:bg-stone-925">
+    <div
+      id={methodName}
+      className="text-sm flex flex-col gap-3 my-2 p-3 rounded bg-stone-50 dark:bg-stone-925"
+    >
       <div className="flex flex-col gap-2">
         <div>
           {<Highlight>{signature + ":"}</Highlight>}{" "}

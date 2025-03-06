@@ -1,4 +1,10 @@
-import type { Everyone, RawAccountID, RawGroup, Role } from "cojson";
+import type {
+  AccountRole,
+  Everyone,
+  RawAccountID,
+  RawGroup,
+  Role,
+} from "cojson";
 import type {
   CoValue,
   CoValueClass,
@@ -13,9 +19,9 @@ import {
   MembersSym,
   Ref,
   ensureCoValueLoaded,
-  loadCoValue,
-  parseCoValueCreateOptions,
-  subscribeToCoValue,
+  loadCoValueWithoutMe,
+  parseGroupCreateOptions,
+  subscribeToCoValueWithoutMe,
   subscribeToExistingCoValue,
 } from "../internal.js";
 import { AccountAndGroupProxyHandler, isControlledAccount } from "./account.js";
@@ -124,23 +130,23 @@ export class Group extends CoValueBase implements CoValue {
 
   static create<G extends Group>(
     this: CoValueClass<G>,
-    options: { owner: Account } | Account,
+    options?: { owner: Account } | Account,
   ) {
-    return new this(parseCoValueCreateOptions(options));
+    return new this(parseGroupCreateOptions(options));
   }
 
   myRole(): Role | undefined {
     return this._raw.myRole();
   }
 
-  addMember(member: Everyone | Account, role: Role) {
+  addMember(member: Everyone, role: "writer" | "reader"): void;
+  addMember(member: Account, role: AccountRole): void;
+  addMember(member: Everyone | Account, role: AccountRole) {
     this._raw.addMember(member === "everyone" ? member : member._raw, role);
-    return this;
   }
 
   removeMember(member: Everyone | Account) {
-    this._raw.removeMember(member === "everyone" ? member : member._raw);
-    return this;
+    return this._raw.removeMember(member === "everyone" ? member : member._raw);
   }
 
   get members() {
@@ -173,37 +179,72 @@ export class Group extends CoValueBase implements CoValue {
       });
   }
 
-  extend(parent: Group) {
-    this._raw.extend(parent._raw);
+  extend(
+    parent: Group,
+    roleMapping?: "reader" | "writer" | "admin" | "inherit",
+  ) {
+    this._raw.extend(parent._raw, roleMapping);
     return this;
   }
 
   /** @category Subscription & Loading */
-  static load<G extends Group, Depth>(
-    this: CoValueClass<G>,
-    id: ID<G>,
+  static load<C extends Group, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
+    depth: Depth & DepthsIn<C>,
+  ): Promise<DeeplyLoaded<C, Depth> | undefined>;
+  static load<C extends Group, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
     as: Account,
-    depth: Depth & DepthsIn<G>,
-  ): Promise<DeeplyLoaded<G, Depth> | undefined> {
-    return loadCoValue(this, id, as, depth);
+    depth: Depth & DepthsIn<C>,
+  ): Promise<DeeplyLoaded<C, Depth> | undefined>;
+  static load<C extends Group, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
+    asOrDepth: Account | (Depth & DepthsIn<C>),
+    depth?: Depth & DepthsIn<C>,
+  ): Promise<DeeplyLoaded<C, Depth> | undefined> {
+    return loadCoValueWithoutMe(this, id, asOrDepth, depth);
   }
 
   /** @category Subscription & Loading */
-  static subscribe<G extends Group, Depth>(
-    this: CoValueClass<G>,
-    id: ID<G>,
+  static subscribe<C extends Group, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
+    depth: Depth & DepthsIn<C>,
+    listener: (value: DeeplyLoaded<C, Depth>) => void,
+  ): () => void;
+  static subscribe<C extends Group, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
     as: Account,
-    depth: Depth & DepthsIn<G>,
-    listener: (value: DeeplyLoaded<G, Depth>) => void,
+    depth: Depth & DepthsIn<C>,
+    listener: (value: DeeplyLoaded<C, Depth>) => void,
+  ): () => void;
+  static subscribe<C extends Group, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
+    asOrDepth: Account | (Depth & DepthsIn<C>),
+    depthOrListener:
+      | (Depth & DepthsIn<C>)
+      | ((value: DeeplyLoaded<C, Depth>) => void),
+    listener?: (value: DeeplyLoaded<C, Depth>) => void,
   ): () => void {
-    return subscribeToCoValue<G, Depth>(this, id, as, depth, listener);
+    return subscribeToCoValueWithoutMe<C, Depth>(
+      this,
+      id,
+      asOrDepth,
+      depthOrListener,
+      listener,
+    );
   }
 
   /** @category Subscription & Loading */
   ensureLoaded<G extends Group, Depth>(
     this: G,
     depth: Depth & DepthsIn<G>,
-  ): Promise<DeeplyLoaded<G, Depth> | undefined> {
+  ): Promise<DeeplyLoaded<G, Depth>> {
     return ensureCoValueLoaded(this, depth);
   }
 

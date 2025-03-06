@@ -38,3 +38,8 @@ typedoc
 codeSamples
 # Turborepo
 .turbo
+
+.env
+
+# LLM docs
+public/llms*.txt

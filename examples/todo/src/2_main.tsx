@@ -7,67 +7,68 @@ import {
 import "./index.css";
 
 import {
-  PasskeyAuthBasicUI,
-  createJazzReactApp,
-  usePasskeyAuth,
+  JazzProvider,
+  PassphraseAuthBasicUI,
+  useAcceptInvite,
+  useAccount,
 } from "jazz-react";
 
 import React from "react";
 import { TodoAccount, TodoProject } from "./1_schema.ts";
 import { NewProjectForm } from "./3_NewProjectForm.tsx";
 import { ProjectTodoTable } from "./4_ProjectTodoTable.tsx";
+import { apiKey } from "./apiKey";
 import {
   Button,
   ThemeProvider,
   TitleAndLogo,
 } from "./basicComponents/index.ts";
+import { wordlist } from "./wordlist.ts";
 
 /**
- * Walkthrough: The top-level provider `<Jazz.Provider/>`
+ * Walkthrough: The top-level provider `<JazzProvider/>`
  *
- * This shows how to use the top-level provider `<Jazz.Provider/>`,
+ * This shows how to use the top-level provider `<JazzProvider/>`,
  * which provides the rest of the app with a controlled account (used through `useAccount` later).
  * Here we use `PasskeyAuth`, which uses Passkeys (aka WebAuthn) to store a user's account secret
  * - no backend needed.
  *
- * `<Jazz.Provider/>` also runs our account migration
+ * `<JazzProvider/>` also runs our account migration
  */
-
 const appName = "Jazz Todo List Example";
 
-const Jazz = createJazzReactApp<TodoAccount>({
-  AccountSchema: TodoAccount,
-});
-// eslint-disable-next-line react-refresh/only-export-components
-export const { useAccount, useCoState, useAcceptInvite } = Jazz;
-
 function JazzAndAuth({ children }: { children: React.ReactNode }) {
-  const [passkeyAuth, passKeyState] = usePasskeyAuth({ appName });
-
   return (
-    <>
-      <Jazz.Provider
-        auth={passkeyAuth}
-        peer="wss://cloud.jazz.tools/?key=todo-example-jazz@garden.co"
-      >
+    <JazzProvider
+      sync={{
+        peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
+        when: "signedUp",
+      }}
+      AccountSchema={TodoAccount}
+    >
+      <PassphraseAuthBasicUI appName={appName} wordlist={wordlist}>
         {children}
-      </Jazz.Provider>
-      <PasskeyAuthBasicUI state={passKeyState} />
-    </>
+      </PassphraseAuthBasicUI>
+    </JazzProvider>
   );
+}
+
+declare module "jazz-react" {
+  interface Register {
+    Account: TodoAccount;
+  }
 }
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ThemeProvider>
-      <TitleAndLogo name={appName} />
-      <div className="flex flex-col h-full items-center justify-start gap-10 pt-10 pb-10 px-5">
-        <JazzAndAuth>
+    <JazzAndAuth>
+      <ThemeProvider>
+        <TitleAndLogo name={appName} />
+        <div className="flex flex-col h-full items-center justify-start gap-10 pt-10 pb-10 px-5">
           <App />
-        </JazzAndAuth>
-      </div>
-    </ThemeProvider>
-    ,
+        </div>
+      </ThemeProvider>
+    </JazzAndAuth>
   </React.StrictMode>,
 );
 
@@ -79,7 +80,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
  * - which can also contain invite links.
  */
 export default function App() {
-  // logOut logs out the AuthProvider passed to `<Jazz.Provider/>` above.
+  // logOut logs out the AuthProvider passed to `<JazzProvider/>` above.
   const { logOut } = useAccount();
 
   const router = createHashRouter([

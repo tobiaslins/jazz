@@ -1,13 +1,17 @@
 import { useToast } from "@/hooks/use-toast";
-import { createInviteLink } from "jazz-react";
+import {
+  createInviteLink,
+  useAccount,
+  useCoState,
+  useIsAuthenticated,
+} from "jazz-react";
 import { ID } from "jazz-tools";
 import { useNavigate, useParams } from "react-router";
 import { Playlist } from "./1_schema";
-import { useAccount, useCoState } from "./2_main";
 import { createNewPlaylist, uploadMusicTracks } from "./4_actions";
 import { MediaPlayer } from "./5_useMediaPlayer";
+import { AuthButton } from "./components/AuthButton";
 import { FileUploadButton } from "./components/FileUploadButton";
-import { LogoutButton } from "./components/LogoutButton";
 import { MusicTrackRow } from "./components/MusicTrackRow";
 import { PlaylistTitleInput } from "./components/PlaylistTitleInput";
 import { SidePanel } from "./components/SidePanel";
@@ -32,19 +36,15 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
   const { toast } = useToast();
 
   async function handleFileLoad(files: FileList) {
-    if (!me) return;
-
     /**
      * Follow this function definition to see how we update
      * values in Jazz and manage files!
      */
-    await uploadMusicTracks(me, files);
+    await uploadMusicTracks(files);
   }
 
   async function handleCreatePlaylist() {
-    if (!me) return;
-
-    const playlist = await createNewPlaylist(me);
+    const playlist = await createNewPlaylist();
 
     navigate(`/playlist/${playlist.id}`);
   }
@@ -71,6 +71,8 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
     });
   };
 
+  const isAuthenticated = useIsAuthenticated();
+
   return (
     <div className="flex flex-col h-screen text-gray-800 bg-blue-50">
       <div className="flex flex-1 overflow-hidden">
@@ -91,12 +93,12 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
                   <Button onClick={handleCreatePlaylist}>New playlist</Button>
                 </>
               )}
-              {!isRootPlaylist && (
+              {!isRootPlaylist && isAuthenticated && (
                 <Button onClick={handlePlaylistShareClick}>
                   Share playlist
                 </Button>
               )}
-              <LogoutButton />
+              <AuthButton />
             </div>
           </div>
           <ul className="flex flex-col">

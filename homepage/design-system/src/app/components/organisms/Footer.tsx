@@ -4,6 +4,8 @@ import clsx from "clsx";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ComponentType, ReactNode } from "react";
+import { isActive } from "../../utils/nav";
+import { Copyright } from "../atoms/Copyright";
 import { NewsletterForm } from "./NewsletterForm";
 import { SocialLinks, SocialLinksProps } from "./SocialLinks";
 
@@ -18,39 +20,25 @@ type FooterSection = {
 
 type FooterProps = {
   logo: ReactNode;
-  companyName: string;
   sections: FooterSection[];
   socials: SocialLinksProps;
   themeToggle: ComponentType<{ className?: string }>;
 };
 
-function Copyright({
-  className,
-  companyName,
-}: {
-  companyName: string;
-  className?: string;
-}) {
-  return (
-    <p className={clsx(className, "text-sm")}>
-      © {new Date().getFullYear()} {companyName}
-    </p>
-  );
-}
-
 export function Footer({
   logo,
-  companyName,
   sections,
   socials,
   themeToggle: ThemeToggle,
 }: FooterProps) {
   return (
-    <footer className="w-full py-8 mt-12 md:mt-20">
+    <footer className="w-full pt-8 pb-20 mt-12 md:mt-20 md:pb-8">
       <div className="container grid gap-8 md:gap-12">
         <div className="grid grid-cols-12 gap-y-3 sm:items-center pb-8 border-b">
           <div className="col-span-full sm:col-span-6 md:col-span-8">
-            {logo}
+            <Link href="https://garden.co" target="_blank">
+              {logo}
+            </Link>
           </div>
           <p className="col-span-full sm:col-span-6 md:col-span-4 text-sm sm:text-base">
             Playful software for serious problems.
@@ -82,10 +70,7 @@ export function Footer({
             </div>
           ))}
 
-          <Copyright
-            className="order-last col-span-full self-center md:col-span-10 md:order-none"
-            companyName={companyName}
-          />
+          <Copyright className="text-sm order-last col-span-full self-center md:col-span-10 md:order-none" />
 
           <div className="col-span-full flex items-center justify-between gap-6 md:col-span-2">
             <SocialLinks {...socials}></SocialLinks>
@@ -118,7 +103,7 @@ function FooterLink({
       className={clsx(
         "py-0.5 px-0 text-sm",
         className,
-        path === href
+        isActive(href)
           ? "font-medium text-black dark:text-white cursor-default"
           : "text-stone-600 dark:text-stone-400 hover:text-black dark:hover:text-white transition-colors hover:transition-none",
       )}

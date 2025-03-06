@@ -1,10 +1,16 @@
 import { MusicaAccount } from "../1_schema";
 
-export async function getNextTrack(account: MusicaAccount) {
-  if (!account.root?.activePlaylist?.tracks) return;
+export async function getNextTrack() {
+  const me = await MusicaAccount.getMe().ensureLoaded({
+    root: {
+      activePlaylist: {
+        tracks: [],
+      },
+    },
+  });
 
-  const tracks = account.root.activePlaylist.tracks;
-  const activeTrack = account.root._refs.activeTrack;
+  const tracks = me.root.activePlaylist.tracks;
+  const activeTrack = me.root._refs.activeTrack;
 
   const currentIndex = tracks.findIndex((item) => item?.id === activeTrack.id);
 
@@ -13,11 +19,17 @@ export async function getNextTrack(account: MusicaAccount) {
   return tracks[nextIndex];
 }
 
-export async function getPrevTrack(account: MusicaAccount) {
-  if (!account.root?.activePlaylist?.tracks) return;
+export async function getPrevTrack() {
+  const me = await MusicaAccount.getMe().ensureLoaded({
+    root: {
+      activePlaylist: {
+        tracks: [],
+      },
+    },
+  });
 
-  const tracks = account.root.activePlaylist.tracks;
-  const activeTrack = account.root._refs.activeTrack;
+  const tracks = me.root.activePlaylist.tracks;
+  const activeTrack = me.root._refs.activeTrack;
 
   const currentIndex = tracks.findIndex((item) => item?.id === activeTrack.id);
 

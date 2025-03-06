@@ -14,6 +14,7 @@ import {
   FolderArchiveIcon,
   GaugeIcon,
   GlobeIcon,
+  HashIcon,
   ImageIcon,
   LinkIcon,
   LockKeyholeIcon,
@@ -24,20 +25,18 @@ import {
   MonitorSmartphoneIcon,
   MoonIcon,
   MousePointerSquareDashedIcon,
-  PencilLineIcon,
   ScanFace,
+  ScrollIcon,
   SunIcon,
   TrashIcon,
   UploadCloudIcon,
   UserIcon,
-  UserPlusIcon,
   UsersIcon,
   WifiOffIcon,
   XIcon,
 } from "lucide-react";
 
 const icons = {
-  addUser: UserPlusIcon,
   arrowDown: ArrowDownIcon,
   arrowRight: ArrowRightIcon,
   auth: UserIcon,
@@ -55,6 +54,7 @@ const icons = {
   encryption: LockKeyholeIcon,
   faceId: ScanFace,
   file: FileTextIcon,
+  hash: HashIcon,
   help: MessageCircleQuestionIcon,
   image: ImageIcon,
   instant: GaugeIcon,
@@ -67,14 +67,15 @@ const icons = {
   permissions: FileLock2Icon,
   social: UsersIcon,
   spatialPresence: MousePointerSquareDashedIcon,
+  tableOfContents: ScrollIcon,
   touchId: FingerprintIcon,
   upload: UploadCloudIcon,
-  write: PencilLineIcon,
   zip: FolderArchiveIcon,
 };
 
 // copied from tailwind line height https://tailwindcss.com/docs/font-size
 const sizes = {
+  "2xs": 14,
   xs: 16,
   sm: 20,
   md: 24,
@@ -91,6 +92,7 @@ const sizes = {
 };
 
 const strokeWidths = {
+  "2xs": 2.5,
   xs: 2,
   sm: 2,
   md: 1.5,
@@ -119,7 +121,7 @@ export function Icon({
   className?: string;
 } & React.SVGProps<SVGSVGElement>) {
   if (!icon && (!name || !icons.hasOwnProperty(name))) {
-    throw new Error(`Icon not found`);
+    throw new Error(`Icon not found: ${name}`);
   }
 
   // @ts-ignore
@@ -130,7 +132,7 @@ export function Icon({
       aria-hidden="true"
       size={sizes[size]}
       strokeWidth={strokeWidths[size]}
-      strokeLinecap="butt"
+      strokeLinecap="round"
       className={className}
       {...svgProps}
     />

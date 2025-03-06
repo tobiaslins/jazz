@@ -1,10 +1,11 @@
 import type { JsonValue, RawCoValue } from "cojson";
-import { CoJsonValue } from "cojson/src/jsonValue.js";
+import { CojsonInternalTypes } from "cojson";
 import {
   type CoValue,
   type CoValueClass,
   CoValueFromRaw,
   ItemsSym,
+  JazzToolsSymbol,
   MembersSym,
   SchemaInit,
   isCoValueClass,
@@ -16,6 +17,11 @@ export const Encoders = {
     encode: (value: Date) => value.toISOString(),
     decode: (value: JsonValue) => new Date(value as string),
   },
+  OptionalDate: {
+    encode: (value: Date | undefined) => value?.toISOString() || null,
+    decode: (value: JsonValue) =>
+      value === null ? undefined : new Date(value as string),
+  },
 };
 
 export type CoMarker = { readonly __co: unique symbol };
@@ -23,14 +29,16 @@ export type CoMarker = { readonly __co: unique symbol };
 export type co<T> = T | (T & CoMarker);
 export type IfCo<C, R> = C extends infer _A | infer B
   ? B extends CoMarker
-    ? R
+    ? R extends JazzToolsSymbol // Exclude symbol properties like co.items or co.members from the refs/init types
+      ? never
+      : R
     : never
   : never;
 export type UnCo<T> = T extends co<infer A> ? A : T;
 
 const optional = {
   ref: optionalRef,
-  json<T extends CoJsonValue<T>>(): co<T | undefined> {
+  json<T extends CojsonInternalTypes.CoJsonValue<T>>(): co<T | undefined> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return { [SchemaInit]: "json" satisfies Schema } as any;
   },
@@ -51,7 +59,7 @@ const optional = {
     [SchemaInit]: "json" satisfies Schema,
   } as unknown as co<null | undefined>,
   Date: {
-    [SchemaInit]: { encoded: Encoders.Date } satisfies Schema,
+    [SchemaInit]: { encoded: Encoders.OptionalDate } satisfies Schema,
   } as unknown as co<Date | undefined>,
   literal<T extends (string | number | boolean)[]>(
     ..._lit: T
@@ -82,7 +90,7 @@ export const co = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return { [SchemaInit]: "json" satisfies Schema } as any;
   },
-  json<T extends CoJsonValue<T>>(): co<T> {
+  json<T extends CojsonInternalTypes.CoJsonValue<T>>(): co<T> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return { [SchemaInit]: "json" satisfies Schema } as any;
   },

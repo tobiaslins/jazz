@@ -2,7 +2,13 @@ import { CoID } from "./coValue.js";
 import { CoValueCore, Transaction } from "./coValueCore.js";
 import { RawAccount, RawAccountID, RawProfile } from "./coValues/account.js";
 import { MapOpPayload } from "./coValues/coMap.js";
-import { EVERYONE, Everyone, RawGroup } from "./coValues/group.js";
+import {
+  EVERYONE,
+  Everyone,
+  ParentGroupReferenceRole,
+  RawGroup,
+  isInheritableRole,
+} from "./coValues/group.js";
 import { KeyID } from "./crypto/crypto.js";
 import {
   AgentID,
@@ -14,6 +20,7 @@ import {
 } from "./ids.js";
 import { parseJSON } from "./jsonStringify.js";
 import { JsonValue } from "./jsonValue.js";
+import { logger } from "./logger.js";
 import { accountOrAgentIDfromSessionID } from "./typeUtils/accountOrAgentIDfromSessionID.js";
 import { expectGroup } from "./typeUtils/expectGroup.js";
 
@@ -41,12 +48,15 @@ export function disablePermissionErrors() {
   logPermissionErrors = false;
 }
 
-function logPermissionError(...args: unknown[]) {
+function logPermissionError(
+  message: string,
+  attributes?: Record<string, JsonValue>,
+) {
   if (logPermissionErrors === false) {
     return;
   }
 
-  console.warn(...args);
+  logger.warn("Permission error: " + message, attributes);
 }
 
 export function determineValidTransactions(
@@ -137,6 +147,7 @@ function resolveMemberStateFromParentReference(
   coValue: CoValueCore,
   memberState: MemberState,
   parentReference: ParentGroupReference,
+  roleMapping: ParentGroupReferenceRole,
   extendChain: Set<CoValueCore["id"]>,
 ) {
   const parentGroup = coValue.node.expectCoValueLoaded(
@@ -170,8 +181,12 @@ function resolveMemberStateFromParentReference(
     const parentRole = parentGroupMemberState[agent];
     const currentRole = memberState[agent];
 
-    if (parentRole && isHigherRole(parentRole, currentRole)) {
-      memberState[agent] = parentRole;
+    if (isInheritableRole(parentRole)) {
+      if (roleMapping !== "extend" && isHigherRole(roleMapping, currentRole)) {
+        memberState[agent] = roleMapping;
+      } else if (isHigherRole(parentRole, currentRole)) {
+        memberState[agent] = parentRole;
+      }
     }
   }
 }
@@ -204,7 +219,6 @@ function determineValidTransactionsForGroup(
   const writeKeys = new Set<string>();
 
   for (const { sessionID, txIndex, tx } of allTransactionsSorted) {
-    // console.log("before", { memberState, validTransactions });
     const transactor = accountOrAgentIDfromSessionID(sessionID);
 
     if (tx.privacy === "private") {
@@ -227,17 +241,10 @@ function determineValidTransactionsForGroup(
     try {
       changes = parseJSON(tx.changes);
     } catch (e) {
-      logPermissionError(
-        coValue.id,
-        "Invalid JSON in transaction",
-        e,
+      logPermissionError("Invalid JSON in transaction", {
+        id: coValue.id,
         tx,
-        JSON.stringify(tx.changes, (k, v) =>
-          k === "changes" || k === "encryptedChanges"
-            ? v.slice(0, 20) + "..."
-            : v,
-        ),
-      );
+      });
       continue;
     }
 
@@ -321,6 +328,7 @@ function determineValidTransactionsForGroup(
         coValue,
         memberState,
         change.key,
+        change.value as ParentGroupReferenceRole,
         extendChain,
       );
 
@@ -458,8 +466,6 @@ function determineValidTransactionsForGroup(
 
     memberState[affectedMember] = change.value;
     validTransactions.push({ txID: { sessionID, txIndex }, tx });
-
-    // console.log("after", { memberState, validTransactions });
   }
 
   return { validTransactions, memberState };
@@ -470,16 +476,7 @@ function agentInAccountOrMemberInGroup(
   groupAtTime: RawGroup,
 ): RawAccountID | AgentID | undefined {
   if (transactor === groupAtTime.id && groupAtTime instanceof RawAccount) {
-    return groupAtTime.currentAgentID().match(
-      (agentID) => agentID,
-      (e) => {
-        console.error(
-          "Error while determining current agent ID in valid transactions",
-          e,
-        );
-        return undefined;
-      },
-    );
+    return groupAtTime.currentAgentID();
   }
   return transactor;
 }

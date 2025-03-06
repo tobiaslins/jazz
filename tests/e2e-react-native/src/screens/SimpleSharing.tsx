@@ -1,9 +1,9 @@
 import * as Clipboard from "expo-clipboard";
 import { createInviteLink } from "jazz-react-native";
+import { useAccount, useCoState } from "jazz-react-native";
 import { Group, ID } from "jazz-tools";
 import { useState } from "react";
 import { Alert, Button, Text, View } from "react-native";
-import { useAccount, useCoState } from "../jazz";
 import { CoMapWithText } from "../schema";
 
 export function SimpleSharing() {
@@ -26,8 +26,10 @@ export function SimpleSharing() {
 
     setId(coMap.id);
 
-    Clipboard.setStringAsync(`node validateCoValue.mjs ${invite}`);
-    Alert.alert("Validate command copied to clipboard");
+    Clipboard.setStringAsync(`node validateCoValue.mjs "${invite}"`);
+    Alert.alert(
+      "Validate command copied to clipboard, paste it in your terminal to check if the sync works!",
+    );
 
     setInvite(invite);
   }

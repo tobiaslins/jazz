@@ -1,5 +1,112 @@
 # cojson
 
+## 0.10.8
+
+### Patch Changes
+
+- 153dc99: Catch errors on CoValueCore subscribers to avoid effects on the sync
+
+## 0.10.7
+
+### Patch Changes
+
+- 0f83320: Use jazz-crypto-rs isomorphic bundle
+- 012022d: Improve error logging on sync errors
+
+## 0.10.6
+
+### Patch Changes
+
+- 5c76e37: Ports Wasm crypto functions to use exported library `jazz-crypto-rs`
+
+## 0.10.4
+
+### Patch Changes
+
+- 1af6072: Revert PriorityBasedMessageQueue to use an array-based queue
+
+## 0.10.2
+
+### Patch Changes
+
+- cae3a9e: Add debug info to load failure end missing header errors
+
+## 0.10.1
+
+### Patch Changes
+
+- 5a63cba: Crypto packages must now be imported from cojson/crypto/WasmCrypto or cojson/crypto/PureJSCrypto
+  Removed the separated dists for React Native.
+
+## 0.10.0
+
+### Minor Changes
+
+- 498954f: Introducing the new auth system!
+
+### Patch Changes
+
+- b426342: Export the coValue loading config to reduce the timeout on tests
+- 8217981: Drop node 14 polyfill for globalThis.crypto
+- ac3d9fa: Reduce the retries on coValue not found to two
+- 610543c: Add role mapping to Group.extend
+
+## 0.9.23
+
+### Patch Changes
+
+- 70c9a5d: Rotate keys before revoking access, so when admins remove themselves the keys are successfully rotated
+
+## 0.9.19
+
+### Patch Changes
+
+- 6ad0a9f: Export Json types
+
+## 0.9.18
+
+### Patch Changes
+
+- 8898b10: Export AccountRole type
+
+## 0.9.13
+
+### Patch Changes
+
+- 8d29e50: Restore the logger wrapper and adapt the API to pino
+
+## 0.9.12
+
+### Patch Changes
+
+- 15d4b2a: Revert the custom logger
+
+## 0.9.11
+
+### Patch Changes
+
+- efbf3d8: Optimize queue management
+- 5863bad: Wrap all the console logs with a logger class to make possible to customize the logger
+
+## 0.9.10
+
+### Patch Changes
+
+- 4aa377d: Handle unkown coValue content type and optimize content access
+
+## 0.9.9
+
+### Patch Changes
+
+- 8eb9247: Add CoPlainText and CoRichText covalues
+
+## 0.9.0
+
+### Patch Changes
+
+- 8eda792: Add a crypto entry to optionally import the crypto modules
+- 1ef3226: Add the assign method to RawCoMap to create bulk transactions and optimize RawCoMap init
+
 ## 0.8.50
 
 ### Patch Changes

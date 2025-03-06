@@ -1,7 +1,7 @@
 {
   "name": "jazz-example-music-player",
   "private": true,
-  "version": "0.0.44",
+  "version": "0.0.77",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,17 +9,21 @@
     "format-and-lint": "biome check .",
     "format-and-lint:fix": "biome check . --write",
     "preview": "vite preview",
-    "test": "playwright test",
-    "test:ui": "playwright test --ui"
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.4",
     "@radix-ui/react-dropdown-menu": "^2.1.1",
-    "@radix-ui/react-slot": "^1.0.2",
+    "@radix-ui/react-label": "^2.1.1",
+    "@radix-ui/react-slot": "^1.1.1",
     "@radix-ui/react-toast": "^1.1.4",
+    "@radix-ui/react-tooltip": "^1.1.6",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
-    "jazz-react": "workspace:0.8.50",
-    "jazz-tools": "workspace:0.8.50",
+    "jazz-inspector": "workspace:*",
+    "jazz-react": "workspace:0.10.13",
+    "jazz-tools": "workspace:0.10.13",
     "lucide-react": "^0.274.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -29,14 +33,14 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
-    "@playwright/test": "^1.46.1",
+    "@playwright/test": "^1.50.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react-swc": "^3.3.2",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.27",
-    "tailwindcss": "^3.4.15",
+    "tailwindcss": "^3.4.17",
     "typescript": "~5.6.2",
-    "vite": "^5.4.10"
+    "vite": "^6.0.11"
   }
 }

@@ -1,9 +1,13 @@
-import { inIframe, onChatLoad } from "@/util.ts";
+import { apiKey } from "@/apiKey.ts";
+import { getRandomUsername, inIframe, onChatLoad } from "@/util.ts";
 import { useIframeHashRouter } from "hash-slash";
+import { JazzProvider, useAccount } from "jazz-react";
 import { Group, ID } from "jazz-tools";
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
 import { ChatScreen } from "./chatScreen.tsx";
-import { useAccount } from "./main.tsx";
 import { Chat } from "./schema.ts";
+import { ThemeProvider } from "./themeProvider.tsx";
 import { AppContainer, TopBar } from "./ui.tsx";
 
 export function App() {
@@ -12,9 +16,9 @@ export function App() {
 
   const createChat = () => {
     if (!me) return;
-    const group = Group.create({ owner: me });
+    const group = Group.create();
     group.addMember("everyone", "writer");
-    const chat = Chat.create([], { owner: group });
+    const chat = Chat.create([], group);
     router.navigate("/#/chat/" + chat.id);
 
     // for https://jazz.tools marketing site demo only
@@ -24,7 +28,16 @@ export function App() {
   return (
     <AppContainer>
       <TopBar>
-        <p>{me?.profile?.name}</p>
+        <input
+          type="text"
+          value={me?.profile?.name ?? ""}
+          className="bg-transparent"
+          onChange={(e) => {
+            if (!me?.profile) return;
+            me.profile.name = e.target.value;
+          }}
+          placeholder="Set username"
+        />
         {!inIframe && <button onClick={logOut}>Log out</button>}
       </TopBar>
       {router.route({
@@ -34,3 +47,21 @@ export function App() {
     </AppContainer>
   );
 }
+
+const url = new URL(window.location.href);
+const defaultProfileName = url.searchParams.get("user") ?? getRandomUsername();
+
+createRoot(document.getElementById("root")!).render(
+  <ThemeProvider>
+    <StrictMode>
+      <JazzProvider
+        sync={{
+          peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
+        }}
+        defaultProfileName={defaultProfileName}
+      >
+        <App />
+      </JazzProvider>
+    </StrictMode>
+  </ThemeProvider>,
+);

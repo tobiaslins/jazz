@@ -1,14 +1,14 @@
-import { SyncMessage } from "cojson";
+import type { SyncMessage } from "cojson";
 import type { Channel } from "queueueue";
-import { Mocked, describe, expect, test, vi } from "vitest";
+import { type Mocked, describe, expect, test, vi } from "vitest";
 import { MAX_OUTGOING_MESSAGES_CHUNK_BYTES } from "../BatchedOutgoingMessages.js";
 import {
   BUFFER_LIMIT,
   BUFFER_LIMIT_POLLING_INTERVAL,
-  CreateWebSocketPeerOpts,
+  type CreateWebSocketPeerOpts,
   createWebSocketPeer,
-} from "../index.js";
-import { AnyWebSocket } from "../types.js";
+} from "../createWebSocketPeer.js";
+import type { AnyWebSocket } from "../types.js";
 
 function setup(opts: Partial<CreateWebSocketPeerOpts> = {}) {
   const listeners = new Map<string, (event: MessageEvent) => void>();
@@ -168,6 +168,31 @@ describe("createWebSocketPeer", () => {
     await expect(peer.outgoing.push(message)).rejects.toThrow(
       "WebSocket closed",
     );
+  });
+
+  test("should call onSuccess handler after receiving first message", () => {
+    const onSuccess = vi.fn();
+    const { listeners } = setup({ onSuccess });
+
+    const messageHandler = listeners.get("message");
+    const message: SyncMessage = {
+      action: "known",
+      id: "co_ztest",
+      header: false,
+      sessions: {},
+    };
+
+    // First message should trigger onSuccess
+    messageHandler?.(
+      new MessageEvent("message", { data: JSON.stringify(message) }),
+    );
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+
+    // Subsequent messages should not trigger onSuccess again
+    messageHandler?.(
+      new MessageEvent("message", { data: JSON.stringify(message) }),
+    );
+    expect(onSuccess).toHaveBeenCalledTimes(1);
   });
 
   describe("batchingByDefault = true", () => {
@@ -447,6 +472,7 @@ describe("createWebSocketPeer", () => {
   });
 });
 
+// biome-ignore lint/suspicious/noConfusingVoidType: Test helper
 function waitFor(callback: () => boolean | void) {
   return new Promise<void>((resolve, reject) => {
     const checkPassed = () => {

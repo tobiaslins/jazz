@@ -8,11 +8,17 @@ import {
 } from "react-router-dom";
 import "./index.css";
 
-import { DemoAuthBasicUI, createJazzReactApp, useDemoAuth } from "jazz-react";
+import {
+  JazzProvider,
+  PasskeyAuthBasicUI,
+  useAcceptInvite,
+  useAccount,
+} from "jazz-react";
 
 import { PetAccount, PetPost } from "./1_schema.ts";
 import { NewPetPostForm } from "./3_NewPetPostForm.tsx";
 import { RatePetPostUI } from "./4_RatePetPostUI.tsx";
+import { apiKey } from "./apiKey.ts";
 import {
   Button,
   ThemeProvider,
@@ -22,43 +28,38 @@ import {
 const peer =
   (new URL(window.location.href).searchParams.get(
     "peer",
-  ) as `ws://${string}`) ??
-  "wss://cloud.jazz.tools/?key=pets-example-jazz@garden.co";
-
-/** Walkthrough: The top-level provider `<Jazz.Provider/>`
- *
- *  This shows how to use the top-level provider `<Jazz.Provider/>`,
- *  which provides the rest of the app with a `LocalNode` (used through `useJazz` later),
- *  based on `LocalAuth` that uses PassKeys (aka WebAuthn) to store a user's account secret
- *  - no backend needed. */
+  ) as `ws://${string}`) ?? `wss://cloud.jazz.tools/?key=${apiKey}`;
 
 const appName = "Jazz Rate My Pet Example";
 
-const Jazz = createJazzReactApp({ AccountSchema: PetAccount });
-// eslint-disable-next-line react-refresh/only-export-components
-export const { useAccount, useCoState, useAcceptInvite } = Jazz;
-
-function JazzAndAuth({ children }: { children: React.ReactNode }) {
-  const [auth, authState] = useDemoAuth();
-
-  return (
-    <>
-      <Jazz.Provider auth={auth} peer={peer}>
-        {children}
-      </Jazz.Provider>
-      <DemoAuthBasicUI appName={appName} state={authState} />
-    </>
-  );
+declare module "jazz-react" {
+  interface Register {
+    Account: PetAccount;
+  }
 }
 
+/** Walkthrough: The top-level provider `<JazzProvider/>`
+ *
+ *  This shows how to use the top-level provider `<JazzProvider/>`,
+ *  which provides the rest of the app with a `LocalNode` (used through `useCoState` later),
+ *  based on `PasskeyAuth` that uses PassKeys (aka WebAuthn) to store a user's account secret
+ *  - no backend needed. */
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ThemeProvider>
       <TitleAndLogo name={appName} />
       <div className="flex flex-col h-full items-center justify-start gap-10 pt-10 pb-10 px-5">
-        <JazzAndAuth>
-          <App />
-        </JazzAndAuth>
+        <JazzProvider
+          sync={{
+            peer,
+            when: "signedUp",
+          }}
+          AccountSchema={PetAccount}
+        >
+          <PasskeyAuthBasicUI appName={appName}>
+            <App />
+          </PasskeyAuthBasicUI>
+        </JazzProvider>
       </div>
     </ThemeProvider>
   </React.StrictMode>,
@@ -70,7 +71,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
  *  on the CoValue ID (CoID) of our PetPost, stored in the URL hash
  *  - which can also contain invite links.
  */
-
 export default function App() {
   const { logOut } = useAccount();
 

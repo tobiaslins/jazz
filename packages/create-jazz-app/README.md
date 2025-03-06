@@ -14,16 +14,9 @@
 
 You can create a new Jazz app in two ways:
 
-### Interactive Mode
+### Interactive mode
 
 Simply run:
-
-```bash
-npm create jazz-app@latest
-```
-
-or
-
 ```bash
 npx create-jazz-app@latest
 ```
@@ -33,15 +26,26 @@ Then follow the interactive prompts to select your:
 - Package manager
 - Project name
 
-### Command Line Mode
+### Command line mode
 
 Or specify all options directly:
 
 ```bash
-npm create jazz-app@latest -- --starter react-demo-auth --project-name my-app --package-manager npm
+npx create-jazz-app@latest --starter react-demo-auth --project-name my-app --package-manager npm
 ```
 
-## Available Starters
+### Start with an example app
+
+You can use any of our example apps as a template for your own app, instead of choosing one of the starters.
+
+Use the `--example` parameter, and pass
+the directory name of the example app found [here](https://github.com/garden-co/jazz/tree/main/examples).
+
+```bash
+npm create jazz-app@latest --example chat
+```
+
+## Available starters
 
 Currently implemented starters:
 
@@ -55,12 +59,12 @@ Currently implemented starters:
 
 More starters coming soon! Check the help menu (`create-jazz-app --help`) for the latest list.
 
-## System Requirements
+## System requirements
 
 - Node.js 14.0.0 or later
 - Package manager of your choice (npm, yarn, pnpm, bun, or deno)
 
-## What Happens When You Run It?
+## What happens when you run it?
 
 1. 🎭 Prompts for your preferences (or uses command line arguments)
 2. 📥 Clones the appropriate starter template

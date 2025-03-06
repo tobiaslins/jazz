@@ -1,8 +1,7 @@
 import { createImage } from "jazz-browser-media-images";
-import { ProgressiveImg } from "jazz-react";
+import { ProgressiveImg, useAccount } from "jazz-react";
 import { ImageDefinition } from "jazz-tools";
 import { ChangeEvent, useRef } from "react";
-import { useAccount } from "./main.tsx";
 
 function Image({ image }: { image: ImageDefinition }) {
   return (
@@ -47,7 +46,12 @@ export default function ImageUpload() {
         ) : (
           <div>
             <label>Upload image</label>
-            <input ref={inputRef} type="file" onChange={onImageChange} />
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/png, image/jpeg, image/gif"
+              onChange={onImageChange}
+            />
           </div>
         )}
       </div>

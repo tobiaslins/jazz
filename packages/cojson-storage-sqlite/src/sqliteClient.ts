@@ -1,9 +1,11 @@
-import { Database as DatabaseT } from "better-sqlite3";
-import { CojsonInternalTypes, OutgoingSyncQueue, SessionID } from "cojson";
-import RawCoID = CojsonInternalTypes.RawCoID;
-import Signature = CojsonInternalTypes.Signature;
-import Transaction = CojsonInternalTypes.Transaction;
+import type { Database as DatabaseT } from "better-sqlite3";
 import {
+  type CojsonInternalTypes,
+  type OutgoingSyncQueue,
+  type SessionID,
+  logger,
+} from "cojson";
+import type {
   DBClientInterface,
   SessionRow,
   SignatureAfterRow,
@@ -11,6 +13,10 @@ import {
   StoredSessionRow,
   TransactionRow,
 } from "cojson-storage";
+
+type RawCoID = CojsonInternalTypes.RawCoID;
+type Signature = CojsonInternalTypes.Signature;
+type Transaction = CojsonInternalTypes.Transaction;
 
 export type RawCoValueRow = {
   id: CojsonInternalTypes.RawCoID;
@@ -23,6 +29,10 @@ export type RawTransactionRow = {
   tx: string;
 };
 
+export function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Unknown error";
+}
+
 export class SQLiteClient implements DBClientInterface {
   private readonly db: DatabaseT;
   private readonly toLocalNode: OutgoingSyncQueue;
@@ -34,7 +44,7 @@ export class SQLiteClient implements DBClientInterface {
 
   getCoValue(coValueId: RawCoID): StoredCoValueRow | undefined {
     const coValueRow = this.db
-      .prepare(`SELECT * FROM coValues WHERE id = ?`)
+      .prepare("SELECT * FROM coValues WHERE id = ?")
       .get(coValueId) as RawCoValueRow & { rowID: number };
 
     if (!coValueRow) return;
@@ -48,15 +58,29 @@ export class SQLiteClient implements DBClientInterface {
         header: parsedHeader,
       };
     } catch (e) {
-      console.warn(coValueId, "Invalid JSON in header", e, coValueRow?.header);
+      const headerValue = coValueRow?.header ?? "";
+      logger.warn(`Invalid JSON in header: ${headerValue}`, {
+        id: coValueId,
+      });
       return;
     }
   }
 
   getCoValueSessions(coValueRowId: number): StoredSessionRow[] {
     return this.db
-      .prepare<number>(`SELECT * FROM sessions WHERE coValue = ?`)
+      .prepare<number>("SELECT * FROM sessions WHERE coValue = ?")
       .all(coValueRowId) as StoredSessionRow[];
+  }
+
+  getSingleCoValueSession(
+    coValueRowId: number,
+    sessionID: SessionID,
+  ): StoredSessionRow | undefined {
+    return this.db
+      .prepare<[number, string]>(
+        "SELECT * FROM sessions WHERE coValue = ? AND sessionID = ?",
+      )
+      .get(coValueRowId, sessionID) as StoredSessionRow | undefined;
   }
 
   getNewTransactionInSession(
@@ -65,7 +89,7 @@ export class SQLiteClient implements DBClientInterface {
   ): TransactionRow[] {
     const txs = this.db
       .prepare<[number, number]>(
-        `SELECT * FROM transactions WHERE ses = ? AND idx >= ?`,
+        "SELECT * FROM transactions WHERE ses = ? AND idx >= ?",
       )
       .all(sessionRowId, firstNewTxIdx) as RawTransactionRow[];
 
@@ -75,7 +99,7 @@ export class SQLiteClient implements DBClientInterface {
         tx: JSON.parse(transactionRow.tx) as Transaction,
       }));
     } catch (e) {
-      console.warn("Invalid JSON in transaction", e);
+      logger.warn("Invalid JSON in transaction");
       return [];
     }
   }
@@ -86,7 +110,7 @@ export class SQLiteClient implements DBClientInterface {
   ): SignatureAfterRow[] {
     return this.db
       .prepare<[number, number]>(
-        `SELECT * FROM signatureAfter WHERE ses = ? AND idx >= ?`,
+        "SELECT * FROM signatureAfter WHERE ses = ? AND idx >= ?",
       )
       .all(sessionRowId, firstNewTxIdx) as SignatureAfterRow[];
   }
@@ -94,7 +118,7 @@ export class SQLiteClient implements DBClientInterface {
   addCoValue(msg: CojsonInternalTypes.NewContentMessage): number {
     return this.db
       .prepare<[CojsonInternalTypes.RawCoID, string]>(
-        `INSERT INTO coValues (id, header) VALUES (?, ?)`,
+        "INSERT INTO coValues (id, header) VALUES (?, ?)",
       )
       .run(msg.id, JSON.stringify(msg.header)).lastInsertRowid as number;
   }
@@ -130,7 +154,7 @@ export class SQLiteClient implements DBClientInterface {
   ) {
     this.db
       .prepare<[number, number, string]>(
-        `INSERT INTO transactions (ses, idx, tx) VALUES (?, ?, ?)`,
+        "INSERT INTO transactions (ses, idx, tx) VALUES (?, ?, ?)",
       )
       .run(sessionRowID, nextIdx, JSON.stringify(newTransaction));
   }
@@ -142,12 +166,13 @@ export class SQLiteClient implements DBClientInterface {
   }: { sessionRowID: number; idx: number; signature: Signature }) {
     this.db
       .prepare<[number, number, string]>(
-        `INSERT INTO signatureAfter (ses, idx, signature) VALUES (?, ?, ?)`,
+        "INSERT INTO signatureAfter (ses, idx, signature) VALUES (?, ?, ?)",
       )
       .run(sessionRowID, idx, signature);
   }
 
-  unitOfWork(operationsCallback: () => any[]) {
+  transaction(operationsCallback: () => unknown) {
     this.db.transaction(operationsCallback)();
+    return undefined;
   }
 }

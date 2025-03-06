@@ -1,18 +1,18 @@
-import { connectedPeers } from "cojson/src/streamUtils.ts";
-import { describe, expect, expectTypeOf, test } from "vitest";
+import { WasmCrypto } from "cojson/crypto/WasmCrypto";
+import { describe, expect, expectTypeOf, test, vi } from "vitest";
 import { Group, randomSessionProvider } from "../exports.js";
 import {
   Account,
   CoMap,
   Encoders,
-  WasmCrypto,
   co,
   cojsonInternals,
-  createJazzContext,
-  fixedCredentialsAuth,
+  createJazzContextFromExistingCredentials,
   isControlledAccount,
-} from "../index.web.js";
-import { setupTwoNodes } from "./utils.js";
+} from "../index.js";
+import { setupTwoNodes, waitFor } from "./utils.js";
+
+const connectedPeers = cojsonInternals.connectedPeers;
 
 const Crypto = await WasmCrypto.create();
 
@@ -25,7 +25,7 @@ class TestMap extends CoMap {
     encode: (value: string | undefined) => value || null,
     decode: (value: unknown) => (value as string) || undefined,
   });
-  optionalDate = co.optional.encoded(Encoders.Date);
+  optionalDate = co.optional.Date;
 
   get roughColor() {
     return this.color + "ish";
@@ -104,6 +104,32 @@ describe("Simple CoMap operations", async () => {
 
     // @ts-expect-error
     expect(emptyMap.color).toEqual(undefined);
+  });
+
+  test("setting date as undefined should throw", () => {
+    expect(() =>
+      TestMap.create(
+        {
+          color: "red",
+          _height: 10,
+          birthday: undefined!,
+        },
+        { owner: me },
+      ),
+    ).toThrow();
+  });
+
+  test("setting optional date as undefined should not throw", () => {
+    const map = TestMap.create(
+      {
+        color: "red",
+        _height: 10,
+        birthday,
+        optionalDate: undefined,
+      },
+      { owner: me },
+    );
+    expect(map.optionalDate).toBeUndefined();
   });
 
   describe("Mutation", () => {
@@ -408,15 +434,16 @@ describe("CoMap resolution", async () => {
       throw "me is not a controlled account";
     }
     me._raw.core.node.syncManager.addPeer(secondPeer);
-    const { account: meOnSecondPeer } = await createJazzContext({
-      auth: fixedCredentialsAuth({
-        accountID: me.id,
-        secret: me._raw.agentSecret,
-      }),
-      sessionProvider: randomSessionProvider,
-      peersToLoadFrom: [initialAsPeer],
-      crypto: Crypto,
-    });
+    const { account: meOnSecondPeer } =
+      await createJazzContextFromExistingCredentials({
+        credentials: {
+          accountID: me.id,
+          secret: me._raw.agentSecret,
+        },
+        sessionProvider: randomSessionProvider,
+        peersToLoadFrom: [initialAsPeer],
+        crypto: Crypto,
+      });
 
     const loadedMap = await TestMap.load(map.id, meOnSecondPeer, {});
 
@@ -479,15 +506,16 @@ describe("CoMap resolution", async () => {
       throw "me is not a controlled account";
     }
     me._raw.core.node.syncManager.addPeer(secondAsPeer);
-    const { account: meOnSecondPeer } = await createJazzContext({
-      auth: fixedCredentialsAuth({
-        accountID: me.id,
-        secret: me._raw.agentSecret,
-      }),
-      sessionProvider: randomSessionProvider,
-      peersToLoadFrom: [initialAsPeer],
-      crypto: Crypto,
-    });
+    const { account: meOnSecondPeer } =
+      await createJazzContextFromExistingCredentials({
+        credentials: {
+          accountID: me.id,
+          secret: me._raw.agentSecret,
+        },
+        sessionProvider: randomSessionProvider,
+        peersToLoadFrom: [initialAsPeer],
+        crypto: Crypto,
+      });
 
     const queue = new cojsonInternals.Channel<TestMap>();
 

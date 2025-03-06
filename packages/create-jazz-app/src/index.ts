@@ -5,35 +5,101 @@ import fs from "fs";
 import chalk from "chalk";
 import { Command } from "commander";
 import degit from "degit";
-import gradient from "gradient-string";
 import inquirer from "inquirer";
 import ora from "ora";
 
-import { type FrameworkAuthPair, frameworkToAuthExamples } from "./config.js";
+import {
+  Framework,
+  type FrameworkAuthPair,
+  PLATFORM,
+  frameworkToAuthExamples,
+  frameworks,
+} from "./config.js";
 
 const program = new Command();
 
-const jazzGradient = gradient(["#FF4D4D", "#FF9900", "#FFD700"]);
+type PackageManager = "npm" | "yarn" | "pnpm" | "bun" | "deno";
 
 type ScaffoldOptions = {
-  starter: FrameworkAuthPair;
+  template: FrameworkAuthPair | string;
   projectName: string;
-  packageManager: "npm" | "yarn" | "pnpm" | "bun" | "deno";
+  packageManager: PackageManager;
+  apiKey?: string;
 };
 
-async function scaffoldProject({
-  starter,
-  projectName,
-  packageManager,
-}: ScaffoldOptions): Promise<void> {
-  console.log("\n" + jazzGradient.multiline("Jazz App Creator\n"));
+type PromptOptions = {
+  framework?: Framework;
+  starter?: FrameworkAuthPair;
+  example?: string;
+  projectName?: string;
+  packageManager?: PackageManager;
+  apiKey?: string;
+};
 
-  const starterConfig = frameworkToAuthExamples[starter];
-  if (!starterConfig) {
-    throw new Error(`Invalid starter: ${starter}`);
+async function getLatestPackageVersions(
+  dependencies: Record<string, string>,
+): Promise<Record<string, string>> {
+  const versionsSpinner = ora({
+    text: chalk.blue("Fetching package versions..."),
+    spinner: "dots",
+  }).start();
+
+  const versions: Record<string, string> = {};
+  const failures: string[] = [];
+
+  await Promise.all(
+    Object.keys(dependencies).map(async (pkg) => {
+      if (
+        typeof dependencies[pkg] === "string" &&
+        dependencies[pkg].includes("workspace:")
+      ) {
+        try {
+          const response = await fetch(
+            `https://registry.npmjs.org/${pkg}/latest`,
+          );
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+          versions[pkg] = `^${data.version}`; // Using caret for minor version updates
+        } catch (error) {
+          failures.push(pkg);
+        }
+      }
+    }),
+  );
+
+  if (failures.length > 0) {
+    versionsSpinner.fail(
+      chalk.red(
+        `Failed to fetch versions for packages: ${failures.join(", ")}. Please check your internet connection and try again.`,
+      ),
+    );
+    throw new Error("Failed to fetch package versions");
   }
 
-  const devCommand = starter === "react-native-expo-clerk-auth" ? "ios" : "dev";
+  versionsSpinner.succeed(chalk.green("Package versions fetched successfully"));
+  return versions;
+}
+
+function getPlatformFromTemplateName(template: string) {
+  return template.includes("-rn") ? PLATFORM.REACT_NATIVE : PLATFORM.WEB;
+}
+
+async function scaffoldProject({
+  template,
+  projectName,
+  packageManager,
+  apiKey,
+}: ScaffoldOptions): Promise<void> {
+  const starterConfig = frameworkToAuthExamples[
+    template as FrameworkAuthPair
+  ] || {
+    name: template,
+    repo: "garden-co/jazz/examples/" + template,
+    platform: getPlatformFromTemplateName(template),
+  };
+
+  const devCommand =
+    starterConfig.platform === PLATFORM.REACT_NATIVE ? "ios" : "dev";
 
   if (!starterConfig.repo) {
     throw new Error(
@@ -43,7 +109,7 @@ async function scaffoldProject({
 
   // Step 2: Clone starter
   const cloneSpinner = ora({
-    text: chalk.blue(`Cloning starter: ${chalk.bold(starterConfig.name)}`),
+    text: chalk.blue(`Cloning template: ${chalk.bold(starterConfig.name)}`),
     spinner: "dots",
   }).start();
 
@@ -70,14 +136,29 @@ async function scaffoldProject({
     const packageJsonPath = `${projectName}/package.json`;
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
 
-    // Replace workspace: dependencies with latest
-    if (packageJson.dependencies) {
-      Object.entries(packageJson.dependencies).forEach(([pkg, version]) => {
-        if (typeof version === "string" && version.includes("workspace:")) {
-          packageJson.dependencies[pkg] = "latest";
-        }
-      });
+    // Helper function to update workspace dependencies
+    async function updateWorkspaceDependencies(
+      dependencyType: "dependencies" | "devDependencies",
+    ) {
+      if (packageJson[dependencyType]) {
+        const latestVersions = await getLatestPackageVersions(
+          packageJson[dependencyType],
+        );
+
+        Object.entries(packageJson[dependencyType]).forEach(
+          ([pkg, version]) => {
+            if (typeof version === "string" && version.includes("workspace:")) {
+              packageJson[dependencyType][pkg] = latestVersions[pkg];
+            }
+          },
+        );
+      }
     }
+
+    await Promise.all([
+      updateWorkspaceDependencies("dependencies"),
+      updateWorkspaceDependencies("devDependencies"),
+    ]);
 
     packageJson.name = projectName;
     fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
@@ -85,6 +166,39 @@ async function scaffoldProject({
   } catch (error) {
     depsSpinner.fail(chalk.red("Failed to update dependencies"));
     throw error;
+  }
+
+  // Replace API key if provided
+  if (apiKey) {
+    const replaceSpinner = ora({
+      text: chalk.blue("Updating API key..."),
+      spinner: "dots",
+    }).start();
+
+    try {
+      const apiKeyPath = `${projectName}/src/apiKey.ts`;
+      if (fs.existsSync(apiKeyPath)) {
+        let content = fs.readFileSync(apiKeyPath, "utf8");
+        // Replace the apiKey export value
+        const keyPattern = /export const apiKey = ["']([^"']+)["']/;
+        const updatedContent = content.replace(
+          keyPattern,
+          `export const apiKey = "${apiKey}"`,
+        );
+
+        if (content !== updatedContent) {
+          fs.writeFileSync(apiKeyPath, updatedContent);
+        }
+      }
+      replaceSpinner.succeed(chalk.green("API key updated"));
+    } catch (error) {
+      replaceSpinner.fail(chalk.red("Failed to update API key"));
+      console.warn(
+        chalk.yellow(
+          "You may need to manually update the API key in your Jazz Provider.",
+        ),
+      );
+    }
   }
 
   // Step 4: Install dependencies
@@ -96,7 +210,7 @@ async function scaffoldProject({
   }).start();
 
   try {
-    execSync(`cd ${projectName} && ${packageManager} install`, {
+    execSync(`cd "${projectName}" && ${packageManager} install`, {
       stdio: "pipe",
     });
     installSpinner.succeed(chalk.green("Dependencies installed"));
@@ -106,15 +220,15 @@ async function scaffoldProject({
   }
 
   // Additional setup for React Native
-  if (starter === "react-native-expo-clerk-auth") {
+  if (starterConfig.platform === PLATFORM.REACT_NATIVE) {
     const rnSpinner = ora({
       text: chalk.blue("Setting up React Native project..."),
       spinner: "dots",
     }).start();
 
     try {
-      execSync(`cd ${projectName} && npx expo prebuild`, { stdio: "pipe" });
-      execSync(`cd ${projectName} && npx pod-install`, { stdio: "pipe" });
+      execSync(`cd "${projectName}" && npx expo prebuild`, { stdio: "pipe" });
+      execSync(`cd "${projectName}" && npx pod-install`, { stdio: "pipe" });
 
       // Update metro.config.js
       const metroConfigPath = `${projectName}/metro.config.js`;
@@ -135,6 +249,56 @@ module.exports = withNativeWind(config, { input: "./src/global.css" });
     }
   }
 
+  // Step 5: Clone cursor-docs
+  const docsSpinner = ora({
+    text: chalk.blue(`Adding .cursor directory...`),
+    spinner: "dots",
+  }).start();
+
+  try {
+    // Create a temporary directory for cursor-docs
+    const tempDocsDir = `${projectName}-cursor-docs-temp`;
+    const emitter = degit("garden-co/jazz/packages/cursor-docs", {
+      cache: false,
+      force: true,
+      verbose: true,
+    });
+
+    // Clone cursor-docs to temp directory
+    await emitter.clone(tempDocsDir);
+
+    // Copy only the .cursor directory to project root
+    const cursorDirSource = `${tempDocsDir}/.cursor`;
+    const cursorDirTarget = `${projectName}/.cursor`;
+
+    if (fs.existsSync(cursorDirSource)) {
+      fs.cpSync(cursorDirSource, cursorDirTarget, { recursive: true });
+      docsSpinner.succeed(chalk.green(".cursor directory added successfully"));
+    } else {
+      docsSpinner.fail(chalk.red(".cursor directory not found in cursor-docs"));
+    }
+
+    // Clean up temp directory
+    fs.rmSync(tempDocsDir, { recursive: true, force: true });
+  } catch (error) {
+    docsSpinner.fail(chalk.red("Failed to add .cursor directory"));
+    throw error;
+  }
+
+  // Step 6: Git init
+  const gitSpinner = ora({
+    text: chalk.blue("Initializing git repository..."),
+    spinner: "dots",
+  }).start();
+
+  try {
+    execSync(`cd "${projectName}" && git init`, { stdio: "pipe" });
+    gitSpinner.succeed(chalk.green("Git repository initialized"));
+  } catch (error) {
+    gitSpinner.fail(chalk.red("Failed to initialize git repository"));
+    throw error;
+  }
+
   // Final success message
   console.log("\n" + chalk.green.bold("✨ Project setup completed! ✨\n"));
   console.log(chalk.cyan("To get started:"));
@@ -144,23 +308,63 @@ module.exports = withNativeWind(config, { input: "./src/global.css" });
   );
 }
 
-async function promptUser(): Promise<ScaffoldOptions> {
-  console.log("\n" + jazzGradient.multiline("Jazz App Creator\n"));
+async function promptUser(
+  partialOptions: PromptOptions,
+): Promise<ScaffoldOptions> {
   console.log(chalk.blue.bold("Let's create your Jazz app! 🎷\n"));
 
-  const answers = (await inquirer.prompt([
-    {
+  const questions = [];
+
+  if (
+    partialOptions.framework &&
+    !frameworks.find(
+      (framework) => framework.value === partialOptions.framework,
+    )
+  ) {
+    throw new Error(`Invalid framework: ${partialOptions.framework}`);
+  }
+
+  if (partialOptions.starter && partialOptions.example) {
+    throw new Error("Please specify either a starter or an example, not both.");
+  }
+
+  if (!partialOptions.example && !partialOptions.starter) {
+    let framework = partialOptions.framework;
+
+    if (!partialOptions.framework) {
+      const answers = await inquirer.prompt([
+        {
+          type: "list",
+          name: "framework",
+          message: chalk.cyan("Choose a framework:"),
+          choices: Array.from(frameworks).map((framework) => ({
+            name: chalk.white(framework.name),
+            value: framework.value,
+          })),
+        },
+      ]);
+      framework = answers.framework;
+    }
+
+    let choices = Object.entries(frameworkToAuthExamples);
+
+    if (framework) {
+      choices = choices.filter(([key, value]) => key.startsWith(framework));
+    }
+
+    questions.push({
       type: "list",
       name: "starter",
-      message: chalk.cyan("Choose a starter:"),
-      choices: Object.entries(frameworkToAuthExamples)
-        .filter(([_, value]) => value.repo) // Only show implemented starters
-        .map(([key, value]) => ({
-          name: chalk.white(value.name),
-          value: key,
-        })),
-    },
-    {
+      message: chalk.cyan("Choose an authentication method:"),
+      choices: choices.map(([key, value]) => ({
+        name: chalk.white(value.name),
+        value: key,
+      })),
+    });
+  }
+
+  if (!partialOptions.packageManager) {
+    questions.push({
       type: "list",
       name: "packageManager",
       message: chalk.cyan("Choose a package manager:"),
@@ -172,26 +376,34 @@ async function promptUser(): Promise<ScaffoldOptions> {
         { name: chalk.white("deno"), value: "deno" },
       ],
       default: "npm",
-    },
-    {
+    });
+  }
+
+  if (!partialOptions.projectName) {
+    questions.push({
       type: "input",
       name: "projectName",
       message: chalk.cyan("Enter your project name:"),
       validate: (input: string) =>
         input ? true : chalk.red("Project name cannot be empty"),
-    },
-  ])) as ScaffoldOptions;
+    });
+  }
 
-  return answers;
+  const answers = await inquirer.prompt(questions);
+
+  return {
+    ...answers,
+    ...partialOptions,
+    template:
+      answers.starter || partialOptions.starter || partialOptions.example,
+  } as ScaffoldOptions;
 }
 
-function validateOptions(
-  options: Partial<ScaffoldOptions>,
-): options is ScaffoldOptions {
+function validateOptions(options: PromptOptions): options is ScaffoldOptions {
   const errors: string[] = [];
 
-  if (!options.starter) {
-    errors.push("Starter template is required");
+  if (!options.starter && !options.example) {
+    errors.push("Starter or example template is required");
   }
   if (!options.projectName) {
     errors.push("Project name is required");
@@ -218,33 +430,52 @@ function validateOptions(
   return true;
 }
 
+const frameworkOptions = frameworks.map((f) => f.name).join(", ");
+
 program
-  .description(chalk.blue("CLI to generate Jazz starter projects"))
+  .description(
+    chalk.blue("CLI to generate Jazz projects using starter templates"),
+  )
+  .option(
+    "-f, --framework <framework>",
+    chalk.cyan(`Framework to use (${frameworkOptions})`),
+  )
   .option("-s, --starter <starter>", chalk.cyan("Starter template to use"))
+  .option("-e, --example <name>", chalk.cyan("Example project to use"))
   .option("-n, --project-name <name>", chalk.cyan("Name of the project"))
   .option(
     "-p, --package-manager <manager>",
     chalk.cyan("Package manager to use (npm, yarn, pnpm, bun, deno)"),
   )
+  .option("-k, --api-key <key>", chalk.cyan("Jazz Cloud API key"))
   .action(async (options) => {
     try {
-      // If all required options are provided, use them directly
-      if (options.starter && options.projectName && options.packageManager) {
-        const nonInteractiveOptions = {
-          starter: options.starter as FrameworkAuthPair,
-          projectName: options.projectName,
-          packageManager:
-            options.packageManager as ScaffoldOptions["packageManager"],
-        };
+      const partialOptions: PromptOptions = {};
 
-        // Validate will throw if invalid
-        validateOptions(nonInteractiveOptions);
-        await scaffoldProject(nonInteractiveOptions);
-      } else {
-        // Otherwise, fall back to interactive mode
-        const scaffoldOptions = await promptUser();
-        await scaffoldProject(scaffoldOptions);
+      if (options.starter && options.example) {
+        throw new Error(
+          chalk.red(
+            "Cannot specify both starter and example. Please choose one.",
+          ),
+        );
       }
+
+      if (options.starter)
+        partialOptions.starter = options.starter as FrameworkAuthPair;
+      if (options.example) partialOptions.example = options.example;
+      if (options.projectName) partialOptions.projectName = options.projectName;
+      if (options.packageManager)
+        partialOptions.packageManager =
+          options.packageManager as ScaffoldOptions["packageManager"];
+      if (options.framework) partialOptions.framework = options.framework;
+      if (options.apiKey) partialOptions.apiKey = options.apiKey;
+
+      // Get missing options through prompts
+      const scaffoldOptions = await promptUser(partialOptions);
+
+      // Validate will throw if invalid
+      validateOptions(scaffoldOptions);
+      await scaffoldProject(scaffoldOptions);
     } catch (error: any) {
       if (error instanceof Error && error.name === "ExitPromptError") {
         console.log(chalk.yellow("\n👋 Until next time!\n"));
@@ -257,7 +488,7 @@ program
 
 // Add help text to show available starters
 program.on("--help", () => {
-  console.log("\n" + jazzGradient.multiline("Available starters:\n"));
+  console.log(chalk.blue("\nAvailable starters:\n"));
   Object.entries(frameworkToAuthExamples).forEach(([key, value]) => {
     if (value.repo) {
       // Only show implemented starters
@@ -271,7 +502,19 @@ program.on("--help", () => {
   console.log(chalk.blue("\nExample usage:"));
   console.log(
     chalk.white(
-      "  create-jazz-app --starter react-demo-auth --project-name my-app --package-manager npm\n",
+      "npx create-jazz-app@latest --project-name my-app --framework react\n",
+    ),
+  );
+  console.log(chalk.blue("With example app as a template:"));
+  console.log(
+    chalk.white(
+      "npx create-jazz-app@latest --example chat --project-name my-chat-app\n",
+    ),
+  );
+  console.log(chalk.blue("With API key:"));
+  console.log(
+    chalk.white(
+      "npx create-jazz-app@latest --project-name my-app --api-key your-api-key@garden.co\n",
     ),
   );
 });

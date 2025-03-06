@@ -11,7 +11,7 @@ import React, {
 } from "react-native";
 
 import { useUser } from "@clerk/clerk-expo";
-import { useAccount } from "../../src/jazz";
+import { useAccount } from "jazz-react-native";
 import { Chat } from "../../src/schema";
 
 export default function ChatScreen() {
@@ -20,10 +20,15 @@ export default function ChatScreen() {
   const navigation = useNavigation();
   const { user } = useUser();
 
+  function handleLogOut() {
+    logOut();
+    router.navigate("/");
+  }
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: "Chat",
-      headerRight: () => <Button onPress={logOut} title="Logout" />,
+      headerRight: () => <Button onPress={handleLogOut} title="Logout" />,
     });
   }, [navigation]);
 

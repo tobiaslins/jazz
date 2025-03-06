@@ -1,7 +1,7 @@
 import { createImage } from "jazz-browser-media-images";
+import { useCoState } from "jazz-react";
 import { ID } from "jazz-tools";
 import { useState } from "react";
-import { useAccount, useCoState } from "./main.tsx";
 import { Chat, Message } from "./schema.ts";
 import {
   BubbleBody,
@@ -18,7 +18,6 @@ import {
 
 export function ChatScreen(props: { chatID: ID<Chat> }) {
   const chat = useCoState(Chat, props.chatID, [{}]);
-  const { me } = useAccount();
   const [showNLastMessages, setShowNLastMessages] = useState(30);
 
   if (!chat)
@@ -27,8 +26,6 @@ export function ChatScreen(props: { chatID: ID<Chat> }) {
     );
 
   const sendImage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!me?.profile) return;
-
     const file = event.currentTarget.files?.[0];
 
     if (!file) return;
@@ -39,12 +36,7 @@ export function ChatScreen(props: { chatID: ID<Chat> }) {
     }
 
     createImage(file, { owner: chat._owner }).then((image) => {
-      chat.push(
-        Message.create(
-          { text: file.name, image: image },
-          { owner: chat._owner },
-        ),
-      );
+      chat.push(Message.create({ text: file.name, image: image }, chat._owner));
     });
   };
 

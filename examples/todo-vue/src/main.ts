@@ -1,37 +1,39 @@
-import { DemoAuthBasicUI, createJazzVueApp, useDemoAuth } from "jazz-vue";
+import { DemoAuthBasicUI, JazzProvider, useDemoAuth } from "jazz-vue";
 import { createApp, defineComponent, h } from "vue";
 import App from "./App.vue";
 import "./assets/main.css";
+import { apiKey } from "./apiKey";
 import router from "./router";
 import { ToDoAccount } from "./schema";
 
-const Jazz = createJazzVueApp<ToDoAccount>({ AccountSchema: ToDoAccount });
-export const { useAccount, useCoState } = Jazz;
-const { JazzProvider } = Jazz;
+declare module "jazz-vue" {
+  interface Register {
+    Account: ToDoAccount;
+  }
+}
 
 const RootComponent = defineComponent({
   name: "RootComponent",
   setup() {
-    const { authMethod, state } = useDemoAuth();
-
-    return () => [
+    return () =>
       h(
         JazzProvider,
         {
-          auth: authMethod.value,
-          peer: "wss://cloud.jazz.tools/?key=vue-todo-example-jazz@garden.co",
+          AccountSchema: ToDoAccount,
+          sync: {
+            peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
+          },
         },
-        {
-          default: () => h(App),
-        },
-      ),
-
-      state.state !== "signedIn" &&
-        h(DemoAuthBasicUI, {
-          appName: "Jazz Vue Todo",
-          state,
-        }),
-    ];
+        h(
+          DemoAuthBasicUI,
+          {
+            appName: "Jazz Vue Todo",
+          },
+          {
+            default: () => h(App),
+          },
+        ),
+      );
   },
 });
 

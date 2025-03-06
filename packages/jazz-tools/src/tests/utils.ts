@@ -1,14 +1,13 @@
 import { isControlledAccount } from "../coValues/account";
 
 import { CoID, LocalNode, RawCoValue } from "cojson";
-import { connectedPeers } from "cojson/src/streamUtils.js";
+import { cojsonInternals } from "cojson";
+import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import {
   Account,
-  WasmCrypto,
-  createJazzContext,
-  fixedCredentialsAuth,
+  createJazzContextFromExistingCredentials,
   randomSessionProvider,
-} from "../index.web";
+} from "../index";
 
 const Crypto = await WasmCrypto.create();
 
@@ -18,30 +17,35 @@ export async function setupAccount() {
     crypto: Crypto,
   });
 
-  const [initialAsPeer, secondPeer] = connectedPeers("initial", "second", {
-    peer1role: "server",
-    peer2role: "client",
-  });
+  const [initialAsPeer, secondPeer] = cojsonInternals.connectedPeers(
+    "initial",
+    "second",
+    {
+      peer1role: "server",
+      peer2role: "client",
+    },
+  );
 
   if (!isControlledAccount(me)) {
     throw "me is not a controlled account";
   }
   me._raw.core.node.syncManager.addPeer(secondPeer);
-  const { account: meOnSecondPeer } = await createJazzContext({
-    auth: fixedCredentialsAuth({
-      accountID: me.id,
-      secret: me._raw.agentSecret,
-    }),
-    sessionProvider: randomSessionProvider,
-    peersToLoadFrom: [initialAsPeer],
-    crypto: Crypto,
-  });
+  const { account: meOnSecondPeer } =
+    await createJazzContextFromExistingCredentials({
+      credentials: {
+        accountID: me.id,
+        secret: me._raw.agentSecret,
+      },
+      sessionProvider: randomSessionProvider,
+      peersToLoadFrom: [initialAsPeer],
+      crypto: Crypto,
+    });
 
   return { me, meOnSecondPeer };
 }
 
 export async function setupTwoNodes() {
-  const [serverAsPeer, clientAsPeer] = connectedPeers(
+  const [serverAsPeer, clientAsPeer] = cojsonInternals.connectedPeers(
     "clientToServer",
     "serverToClient",
     {

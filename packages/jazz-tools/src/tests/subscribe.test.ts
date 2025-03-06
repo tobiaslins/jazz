@@ -1,12 +1,21 @@
-import { describe, expect, it, onTestFinished, vi } from "vitest";
-import { Account, CoFeed, CoList, CoMap, co } from "../index.web.js";
+import { beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
 import {
-  type DepthsIn,
+  Account,
+  CoFeed,
+  CoList,
+  CoMap,
   FileStream,
   Group,
+  co,
+  cojsonInternals,
+} from "../index.js";
+import {
+  type DepthsIn,
+  ID,
   createCoValueObservable,
   subscribeToCoValue,
 } from "../internal.js";
+import { setupJazzTestSync } from "../testing.js";
 import { setupAccount, waitFor } from "./utils.js";
 
 class ChatRoom extends CoMap {
@@ -37,6 +46,15 @@ function createMessage(me: Account | Group, text: string) {
   );
 }
 
+beforeEach(async () => {
+  await setupJazzTestSync();
+});
+
+beforeEach(() => {
+  cojsonInternals.CO_VALUE_LOADING_CONFIG.MAX_RETRIES = 1;
+  cojsonInternals.CO_VALUE_LOADING_CONFIG.TIMEOUT = 1;
+});
+
 describe("subscribeToCoValue", () => {
   it("subscribes to a CoMap", async () => {
     const { me, meOnSecondPeer } = await setupAccount();
@@ -64,6 +82,7 @@ describe("subscribeToCoValue", () => {
         messages: null,
         name: "General",
       }),
+      expect.any(Function),
     );
 
     updateFn.mockClear();
@@ -78,6 +97,7 @@ describe("subscribeToCoValue", () => {
         name: "General",
         messages: expect.any(Array),
       }),
+      expect.any(Function),
     );
 
     updateFn.mockClear();
@@ -93,6 +113,7 @@ describe("subscribeToCoValue", () => {
         name: "Lounge",
         messages: expect.any(Array),
       }),
+      expect.any(Function),
     );
   });
 
@@ -125,6 +146,46 @@ describe("subscribeToCoValue", () => {
         name: "General",
         messages: expect.any(Array),
       }),
+      expect.any(Function),
+    );
+  });
+
+  it("shouldn't fire updates after unsubscribing", async () => {
+    const { me, meOnSecondPeer } = await setupAccount();
+
+    const chatRoom = createChatRoom(me, "General");
+    const updateFn = vi.fn();
+
+    const { messages } = await chatRoom.ensureLoaded({ messages: [{}] });
+
+    messages.push(createMessage(me, "Hello"));
+
+    const unsubscribe = subscribeToCoValue(
+      ChatRoom,
+      chatRoom.id,
+      meOnSecondPeer,
+      {
+        messages: [{}],
+      },
+      updateFn,
+    );
+
+    await waitFor(() => {
+      expect(updateFn).toHaveBeenCalled();
+    });
+
+    unsubscribe();
+    chatRoom.name = "Lounge";
+    messages.push(createMessage(me, "Hello 2"));
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    expect(updateFn).toHaveBeenCalledTimes(1);
+    expect(updateFn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: chatRoom.id,
+      }),
+      expect.any(Function),
     );
   });
 
@@ -153,7 +214,7 @@ describe("subscribeToCoValue", () => {
     onTestFinished(unsubscribe);
 
     await waitFor(() => {
-      const lastValue = updateFn.mock.lastCall[0];
+      const lastValue = updateFn.mock.lastCall?.[0];
 
       expect(lastValue?.messages?.[0]?.text).toBe(message.text);
     });
@@ -165,7 +226,7 @@ describe("subscribeToCoValue", () => {
       expect(updateFn).toHaveBeenCalled();
     });
 
-    const lastValue = updateFn.mock.lastCall[0];
+    const lastValue = updateFn.mock.lastCall?.[0];
     expect(lastValue?.messages?.[0]?.text).toBe(
       "Nevermind, she was gone to the supermarket",
     );
@@ -202,12 +263,12 @@ describe("subscribeToCoValue", () => {
     onTestFinished(unsubscribe);
 
     await waitFor(() => {
-      const lastValue = updateFn.mock.lastCall[0];
+      const lastValue = updateFn.mock.lastCall?.[0];
 
       expect(lastValue?.messages?.[0]?.text).toBe(message.text);
     });
 
-    const initialValue = updateFn.mock.lastCall[0];
+    const initialValue = updateFn.mock.lastCall?.[0];
     const initialMessagesList = initialValue?.messages;
     const initialMessage1 = initialValue?.messages[0];
     const initialMessage2 = initialValue?.messages[1];
@@ -221,7 +282,7 @@ describe("subscribeToCoValue", () => {
       expect(updateFn).toHaveBeenCalled();
     });
 
-    const lastValue = updateFn.mock.lastCall[0];
+    const lastValue = updateFn.mock.lastCall?.[0];
     expect(lastValue).not.toBe(initialValue);
     expect(lastValue.messages).not.toBe(initialMessagesList);
     expect(lastValue.messages[0]).not.toBe(initialMessage1);
@@ -268,13 +329,13 @@ describe("subscribeToCoValue", () => {
     onTestFinished(unsubscribe);
 
     await waitFor(() => {
-      const lastValue = updateFn.mock.lastCall[0];
+      const lastValue = updateFn.mock.lastCall?.[0];
 
       expect(lastValue?.messages?.[0]?.text).toBe(message.text);
       expect(lastValue?.messages?.[1]?.text).toBe(message2.text);
     });
 
-    const initialValue = updateFn.mock.lastCall[0];
+    const initialValue = updateFn.mock.lastCall?.[0];
     chatRoom.name = "Me and Luigi";
 
     updateFn.mockClear();
@@ -283,7 +344,7 @@ describe("subscribeToCoValue", () => {
       expect(updateFn).toHaveBeenCalled();
     });
 
-    const lastValue = updateFn.mock.lastCall[0];
+    const lastValue = updateFn.mock.lastCall?.[0];
     expect(lastValue).not.toBe(initialValue);
     expect(lastValue.name).toBe("Me and Luigi");
 
@@ -357,5 +418,26 @@ describe("createCoValueObservable", () => {
 
     unsubscribe();
     expect(observable.getCurrentValue()).toBeUndefined();
+  });
+
+  it("should return null if the coValue is not found", async () => {
+    const { meOnSecondPeer } = await setupAccount();
+    const observable = createCoValueObservable<TestMap, DepthsIn<TestMap>>();
+
+    const unsubscribe = observable.subscribe(
+      TestMap,
+      "co_z123" as ID<TestMap>,
+      meOnSecondPeer,
+      {},
+      () => {},
+    );
+
+    expect(observable.getCurrentValue()).toBeUndefined();
+
+    await waitFor(() => {
+      expect(observable.getCurrentValue()).toBeNull();
+    });
+
+    unsubscribe();
   });
 });

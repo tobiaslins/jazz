@@ -21,10 +21,10 @@ import {
   ensureCoValueLoaded,
   inspect,
   isRefEncoded,
-  loadCoValue,
+  loadCoValueWithoutMe,
   makeRefs,
   parseCoValueCreateOptions,
-  subscribeToCoValue,
+  subscribeToCoValueWithoutMe,
   subscribeToExistingCoValue,
   subscriptionsScopes,
 } from "../internal.js";
@@ -221,7 +221,7 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
   static create<L extends CoList>(
     this: CoValueClass<L>,
     items: UnCo<L[number]>[],
-    options: { owner: Account | Group } | Account | Group,
+    options?: { owner: Account | Group } | Account | Group,
   ) {
     const { owner } = parseCoValueCreateOptions(options);
     const instance = new this({ init: items, owner });
@@ -241,9 +241,11 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
   }
 
   push(...items: Item[]): number {
-    for (const item of toRawItems(items as Item[], this._schema[ItemsSym])) {
-      this._raw.append(item);
-    }
+    this._raw.appendItems(
+      toRawItems(items, this._schema[ItemsSym]),
+      undefined,
+      "private",
+    );
 
     return this._raw.entries().length;
   }
@@ -358,13 +360,24 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
    *
    * @category Subscription & Loading
    */
-  static load<L extends CoList, Depth>(
-    this: CoValueClass<L>,
-    id: ID<L>,
+  static load<C extends CoList, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
+    depth: Depth & DepthsIn<C>,
+  ): Promise<DeeplyLoaded<C, Depth> | undefined>;
+  static load<C extends CoList, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
     as: Account,
-    depth: Depth & DepthsIn<L>,
-  ): Promise<DeeplyLoaded<L, Depth> | undefined> {
-    return loadCoValue(this, id, as, depth);
+    depth: Depth & DepthsIn<C>,
+  ): Promise<DeeplyLoaded<C, Depth> | undefined>;
+  static load<C extends CoList, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
+    asOrDepth: Account | (Depth & DepthsIn<C>),
+    depth?: Depth & DepthsIn<C>,
+  ): Promise<DeeplyLoaded<C, Depth> | undefined> {
+    return loadCoValueWithoutMe(this, id, asOrDepth, depth);
   }
 
   /**
@@ -395,14 +408,35 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
    *
    * @category Subscription & Loading
    */
-  static subscribe<L extends CoList, Depth>(
-    this: CoValueClass<L>,
-    id: ID<L>,
+  static subscribe<C extends CoList, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
+    depth: Depth & DepthsIn<C>,
+    listener: (value: DeeplyLoaded<C, Depth>) => void,
+  ): () => void;
+  static subscribe<C extends CoList, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
     as: Account,
-    depth: Depth & DepthsIn<L>,
-    listener: (value: DeeplyLoaded<L, Depth>) => void,
+    depth: Depth & DepthsIn<C>,
+    listener: (value: DeeplyLoaded<C, Depth>) => void,
+  ): () => void;
+  static subscribe<C extends CoList, Depth>(
+    this: CoValueClass<C>,
+    id: ID<C>,
+    asOrDepth: Account | (Depth & DepthsIn<C>),
+    depthOrListener:
+      | (Depth & DepthsIn<C>)
+      | ((value: DeeplyLoaded<C, Depth>) => void),
+    listener?: (value: DeeplyLoaded<C, Depth>) => void,
   ): () => void {
-    return subscribeToCoValue<L, Depth>(this, id, as, depth, listener);
+    return subscribeToCoValueWithoutMe<C, Depth>(
+      this,
+      id,
+      asOrDepth,
+      depthOrListener,
+      listener,
+    );
   }
 
   /**
@@ -415,7 +449,7 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
   ensureLoaded<L extends CoList, Depth>(
     this: L,
     depth: Depth & DepthsIn<L>,
-  ): Promise<DeeplyLoaded<L, Depth> | undefined> {
+  ): Promise<DeeplyLoaded<L, Depth>> {
     return ensureCoValueLoaded(this, depth);
   }
 

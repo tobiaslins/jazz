@@ -1,30 +1,31 @@
-// eslint-disable-next-line react-compiler/react-compiler
-/* eslint-disable react-hooks/exhaustive-deps */
+import { MusicaAccount } from "@/1_schema";
+import { useAccount } from "jazz-react";
 import { useEffect } from "react";
-import { MusicaAccount } from "../1_schema";
-import { useAccount } from "../2_main";
 import { uploadMusicTracks } from "../4_actions";
 
 export function useUploadExampleData() {
-  const { me } = useAccount({
+  const { me } = useAccount();
+
+  useEffect(() => {
+    uploadOnboardingData();
+  }, [me.id]);
+}
+
+async function uploadOnboardingData() {
+  const me = await MusicaAccount.getMe().ensureLoaded({
     root: {},
   });
 
-  const shouldUploadOnboardingData = me?.root?.exampleDataLoaded === false;
+  if (me.root.exampleDataLoaded) return;
 
-  useEffect(() => {
-    if (me?.root && shouldUploadOnboardingData) {
-      me.root.exampleDataLoaded = true;
+  me.root.exampleDataLoaded = true;
 
-      uploadOnboardingData(me).then(() => {
-        me.root.exampleDataLoaded = true;
-      });
-    }
-  }, [shouldUploadOnboardingData]);
-}
+  try {
+    const trackFile = await (await fetch("/example.mp3")).blob();
 
-async function uploadOnboardingData(me: MusicaAccount) {
-  const trackFile = await (await fetch("/example.mp3")).blob();
-
-  return uploadMusicTracks(me, [new File([trackFile], "Example song")]);
+    await uploadMusicTracks([new File([trackFile], "Example song")], true);
+  } catch (error) {
+    me.root.exampleDataLoaded = false;
+    throw error;
+  }
 }
