@@ -256,11 +256,10 @@ describe("AuthSecretStorage", () => {
     });
   });
 
-  describe("notify=true", () => {
+  describe("notify", () => {
     beforeEach(() => {
       kvStore.clearAll();
       authSecretStorage = new AuthSecretStorage();
-      authSecretStorage.notify = true;
     });
 
     describe("set", () => {
@@ -336,7 +335,7 @@ describe("AuthSecretStorage", () => {
     });
   });
 
-  describe("notify=false", () => {
+  describe("without notify", () => {
     beforeEach(() => {
       kvStore.clearAll();
       authSecretStorage = new AuthSecretStorage();
@@ -347,7 +346,7 @@ describe("AuthSecretStorage", () => {
         const handler = vi.fn();
         authSecretStorage.onUpdate(handler);
 
-        await authSecretStorage.set({
+        await authSecretStorage.setWithoutNotify({
           accountID: "test123" as ID<Account>,
           accountSecret:
             "secret123" as `sealerSecret_z${string}/signerSecret_z${string}`,
@@ -364,7 +363,7 @@ describe("AuthSecretStorage", () => {
       });
 
       it("should return false for anonymous credentials", async () => {
-        await authSecretStorage.set({
+        await authSecretStorage.setWithoutNotify({
           accountID: "test123" as ID<Account>,
           accountSecret:
             "secret123" as `sealerSecret_z${string}/signerSecret_z${string}`,
@@ -375,7 +374,7 @@ describe("AuthSecretStorage", () => {
       });
 
       it("should return true for non-anonymous credentials", async () => {
-        await authSecretStorage.set({
+        await authSecretStorage.setWithoutNotify({
           accountID: "test123" as ID<Account>,
           accountSecret:
             "secret123" as `sealerSecret_z${string}/signerSecret_z${string}`,
@@ -394,7 +393,7 @@ describe("AuthSecretStorage", () => {
       });
 
       it("should return true when the provider is missing", async () => {
-        await authSecretStorage.set({
+        await authSecretStorage.setWithoutNotify({
           accountID: "test123" as ID<Account>,
           accountSecret:
             "secret123" as `sealerSecret_z${string}/signerSecret_z${string}`,
@@ -413,7 +412,7 @@ describe("AuthSecretStorage", () => {
 
     describe("clear", () => {
       it("should not emit update event when clearing", async () => {
-        await authSecretStorage.set({
+        await authSecretStorage.setWithoutNotify({
           accountID: "test123" as ID<Account>,
           accountSecret:
             "secret123" as `sealerSecret_z${string}/signerSecret_z${string}`,
@@ -423,7 +422,7 @@ describe("AuthSecretStorage", () => {
         const handler = vi.fn();
         authSecretStorage.onUpdate(handler);
 
-        await authSecretStorage.clear();
+        await authSecretStorage.clearWithoutNotify();
 
         expect(handler).not.toHaveBeenCalled();
       });

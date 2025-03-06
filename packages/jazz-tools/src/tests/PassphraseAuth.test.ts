@@ -304,6 +304,10 @@ describe("PassphraseAuth with TestJazzContextManager", () => {
       // Verify account was created
       expect(accountId).toBeDefined();
 
+      await contextManager
+        .getCurrentValue()
+        ?.node.syncManager.waitForAllCoValuesSync();
+
       // Verify we can log in with the passphrase
       await contextManager.logOut();
       await passphraseAuth.logIn(passphrase);

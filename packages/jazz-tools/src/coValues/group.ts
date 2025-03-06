@@ -215,11 +215,20 @@ export class Group extends CoValueBase implements CoValue {
     );
   }
 
+  getParentGroups(): Array<Group> {
+    return this._raw.getParentGroups().map(({ group }) => Group.fromRaw(group));
+  }
+
   extend(
     parent: Group,
     roleMapping?: "reader" | "writer" | "admin" | "inherit",
   ) {
     this._raw.extend(parent._raw, roleMapping);
+    return this;
+  }
+
+  async revokeExtend(parent: Group) {
+    await this._raw.revokeExtend(parent._raw);
     return this;
   }
 

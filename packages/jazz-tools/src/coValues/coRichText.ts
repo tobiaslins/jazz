@@ -612,32 +612,46 @@ export function splitNode(
 }
 
 /**
- * Collection of predefined mark types for common text formatting.
- * Includes marks for headings, paragraphs, links, and text styling.
+ * Heading mark for rich text formatting.
  */
-// Define mark classes outside the object
-class Heading extends Mark {
+export class Heading extends Mark {
   tag = co.literal("heading");
   level = co.number;
 }
 
-class Paragraph extends Mark {
+/**
+ * Paragraph mark for rich text formatting.
+ */
+export class Paragraph extends Mark {
   tag = co.literal("paragraph");
 }
 
-class Link extends Mark {
+/**
+ * Link mark for rich text formatting.
+ */
+export class Link extends Mark {
   tag = co.literal("link");
   url = co.string;
 }
 
-class Strong extends Mark {
+/**
+ * Strong (bold) mark for rich text formatting.
+ */
+export class Strong extends Mark {
   tag = co.literal("strong");
 }
 
-class Em extends Mark {
+/**
+ * Emphasis (italic) mark for rich text formatting.
+ */
+export class Em extends Mark {
   tag = co.literal("em");
 }
 
+/**
+ * Collection of predefined mark types for common text formatting.
+ * Includes marks for headings, paragraphs, links, and text styling.
+ */
 export const Marks = {
   Heading,
   Paragraph,

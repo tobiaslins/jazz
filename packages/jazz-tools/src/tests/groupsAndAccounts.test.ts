@@ -1,5 +1,5 @@
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
-import { beforeEach, describe, expect, test } from "vitest";
+import { assert, beforeEach, describe, expect, test } from "vitest";
 import { Account, CoMap, Group, Profile, co } from "../exports.js";
 import { Ref } from "../internal.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
@@ -73,7 +73,7 @@ describe("Custom accounts and groups", async () => {
       }
     }
 
-    expect(() =>
+    await expect(() =>
       CustomAccount.create({
         creationProps: { name: "Hermes Puggington" },
         crypto: Crypto,
@@ -156,6 +156,42 @@ describe("Group inheritance", () => {
       loadAs: reader,
     });
     expect(mapAsReaderAfterUpdate?.title).toBe("In Grand Child");
+  });
+
+  test("Group.getParentGroups should return the parent groups", async () => {
+    const me = await Account.create({
+      creationProps: { name: "Test Owner" },
+      crypto: Crypto,
+    });
+
+    const grandParentGroup = Group.create({ owner: me });
+    const parentGroup = Group.create({ owner: me });
+    const childGroup = Group.create({ owner: me });
+
+    childGroup.extend(parentGroup);
+    parentGroup.extend(grandParentGroup);
+
+    const parentGroups = childGroup.getParentGroups();
+
+    expect(parentGroups).toHaveLength(1);
+    expect(parentGroups).toContainEqual(
+      expect.objectContaining({ id: parentGroup.id }),
+    );
+
+    expect(parentGroups[0]?.getParentGroups()).toContainEqual(
+      expect.objectContaining({ id: grandParentGroup.id }),
+    );
+  });
+
+  test("Account.getParentGroups should return an empty array", async () => {
+    const account = await Account.create({
+      creationProps: { name: "Test Account" },
+      crypto: Crypto,
+    });
+
+    const parentGroups = account.getParentGroups();
+
+    expect(parentGroups).toEqual([]);
   });
 
   test("waitForSync should resolve when the value is uploaded", async () => {
