@@ -1,5 +1,11 @@
 # jazz-react-native-auth-clerk
 
+## 0.11.1
+
+### Patch Changes
+
+- jazz-react-native@0.11.1
+
 ## 0.11.0
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # organization
 
+## 0.0.53
+
+### Patch Changes
+
+- jazz-react@0.11.1
+
 ## 0.0.52
 
 ### Patch Changes

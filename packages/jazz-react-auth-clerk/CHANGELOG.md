@@ -1,5 +1,11 @@
 # jazz-browser-media-images
 
+## 0.11.1
+
+### Patch Changes
+
+- jazz-react@0.11.1
+
 ## 0.11.0
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # form
 
+## 0.1.1
+
+### Patch Changes
+
+- jazz-react@0.11.1
+
 ## 0.1.0
 
 ### Minor Changes
