@@ -1,5 +1,13 @@
 # jazz-inspector
 
+## 0.11.1
+
+### Patch Changes
+
+- 7b00a81: Version bump
+- Updated dependencies [7b00a81]
+  - jazz-react-core@0.11.1
+
 ## 0.10.13
 
 ### Patch Changes

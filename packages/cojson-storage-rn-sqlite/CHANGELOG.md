@@ -1,5 +1,11 @@
 # cojson-storage-sqlite
 
+## 0.11.1
+
+### Patch Changes
+
+- 7b00a81: Version bump
+
 ## 0.8.68
 
 ### Patch Changes
