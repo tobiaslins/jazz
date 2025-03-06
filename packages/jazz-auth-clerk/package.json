@@ -14,7 +14,6 @@
     "format-and-lint": "biome check .",
     "format-and-lint:fix": "biome check . --write",
     "build": "rm -rf ./dist && tsc --sourceMap --outDir dist",
-    "prepublishOnly": "npm run build",
     "test": "vitest --run --root ../../ --project jazz-auth-clerk",
     "test:watch": "vitest --watch --root ../../ --project jazz-auth-clerk"
   },

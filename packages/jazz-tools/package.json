@@ -29,8 +29,7 @@
     "test": "vitest --run --root ../../ --project jazz-tools",
     "test:watch": "vitest --watch --root ../../ --project jazz-tools",
     "types": "tsc --outDir dist",
-    "build": "tsup && pnpm types",
-    "prepublishOnly": "npm run build"
+    "build": "tsup && pnpm types"
   },
   "devDependencies": {
     "tsup": "8.3.5",

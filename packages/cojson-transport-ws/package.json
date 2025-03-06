@@ -15,8 +15,7 @@
     "format-and-lint:fix": "biome check . --write",
     "test": "vitest --run --root ../../ --project cojson-transport-ws",
     "test:watch": "vitest --watch --root ../../ --project cojson-transport-ws",
-    "build": "rm -rf ./dist && tsc --sourceMap --outDir dist",
-    "prepublishOnly": "npm run build"
+    "build": "rm -rf ./dist && tsc --sourceMap --outDir dist"
   },
   "devDependencies": {
     "@types/ws": "8.5.10",
