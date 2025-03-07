@@ -11,8 +11,7 @@ export function FakeGetStartedButton() {
         );
         window.location.pathname = "/docs";
       }}
-      size="lg"
-      variant="primary"
+      variant="secondary"
     >
       Get Starter API Key
     </Button>

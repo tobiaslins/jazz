@@ -30,11 +30,11 @@ export function ListItem({
   const iconSize = 16;
 
   const iconVariants = {
-    gray: <Icon size={iconSize} className="text-stone-500 shrink-0" />,
+    gray: <Icon size={iconSize} className="text-stone-500 shrink-0 mt-1" />,
     blue: (
       <Icon
         size={iconSize}
-        className="text-blue-500 dark:text-white shrink-0"
+        className="text-blue dark:text-white shrink-0 mt-1"
       />
     ),
   };
@@ -42,7 +42,7 @@ export function ListItem({
   return (
     <li
       className={clsx(
-        "inline-flex items-center gap-2 text-stone-800 dark:text-stone-200 py-2",
+        "inline-flex gap-3 text-stone-800 dark:text-stone-200 py-2",
         className,
       )}
     >
@@ -56,7 +56,7 @@ export function Pricing() {
   return (
     <>
       <div className="flex flex-col sm:max-w-lg mx-auto md:max-w-none md:flex-row md:items-start gap-4 mb-10">
-        <div className="md:flex-[2] flex flex-col gap-3 overflow-hidden rounded-xl p-6 shadow-lg shadow-gray-900/5 bg-white dark:bg-stone-925">
+        <div className="flex-1 flex flex-col gap-3 overflow-hidden rounded-xl p-6 shadow-lg shadow-gray-900/5 bg-white dark:bg-stone-925">
           <h3 className="flex justify-between items-center font-semibold text-stone-900 text-xl dark:text-white">
             <div className="flex items-center gap-1.5">
               <StarterTierLogo />
@@ -93,7 +93,7 @@ export function Pricing() {
 
           <p className="text-sm">No credit card required. Takes 20s.</p>
         </div>
-        <div className="md:flex-[3] flex flex-col gap-3 overflow-hidden rounded-xl p-6 shadow-lg shadow-gray-900/5 bg-white dark:bg-stone-925">
+        <div className="flex-1 flex flex-col gap-3 overflow-hidden rounded-xl p-6 shadow-lg shadow-gray-900/5 bg-white dark:bg-stone-925">
           <div>
             <h3 className="flex justify-between items-center font-semibold text-stone-900 text-xl dark:text-white">
               <div className="flex items-center gap-1.5">
@@ -123,27 +123,27 @@ export function Pricing() {
               </ListItem>
               <ListItem icon={LucideDatabase}>
                 <span className="tabular-nums">100</span> GB storage incl.{" "}
-                <span className="text-sm text-stone-900 dark:text-white">
+                <p className="text-sm">
                   (then $0.02 per GB)
-                </span>
+                </p>
               </ListItem>
               <ListItem icon={LucideCloudDownload}>
                 <span className="tabular-nums">20</span> GB egress/mo incl.{" "}
-                <span className="text-sm text-stone-900 dark:text-white">
+                <p className="text-sm">
                   (then $0.1 per GB)
-                </span>
+                </p>
               </ListItem>
               <ListItem icon={LucideChevronsUp}>High-priority sync</ListItem>
             </ul>
           </div>
 
-          <Button size="lg">Get Indie API Key</Button>
+          <Button>Get Indie API Key</Button>
 
           <p className="text-sm">
             One month free trial. Unlimited projects. Takes 1min.
           </p>
         </div>
-        <div className="md:flex-[3] flex flex-col gap-3 overflow-hidden rounded-xl p-6 shadow-lg shadow-gray-900/5 bg-white dark:bg-stone-925 pb-6">
+        <div className="flex-1 flex flex-col gap-3 overflow-hidden rounded-xl p-6 shadow-lg shadow-gray-900/5 bg-white dark:bg-stone-925 pb-6">
           <h3 className="flex justify-between items-center font-semibold text-stone-900 text-xl dark:text-white">
             <div className="flex items-center gap-1.5">
               <ProTierLogo />
@@ -166,8 +166,14 @@ export function Pricing() {
 
           <div>
             <ul className="flex flex-col my-4 text-sm lg:text-base">
-              <ListItem icon={LucideInfinity}>
-                Custom users, storage & egress
+              <ListItem icon={LucideUsers}>
+                Custom monthly active users
+              </ListItem>
+              <ListItem icon={LucideDatabase}>
+                Custom storage
+              </ListItem>
+              <ListItem icon={LucideCloudDownload}>
+                Custom egress/mo
               </ListItem>
               <ListItem icon={LucideHandshake}>
                 Rapid integration & premium onboarding
@@ -181,7 +187,7 @@ export function Pricing() {
             </ul>
           </div>
 
-          <Button href="https://cal.com/anselm-io/cloud-pro-intro" size="lg">
+          <Button href="https://cal.com/anselm-io/cloud-pro-intro">
             Schedule intro call
           </Button>
 
