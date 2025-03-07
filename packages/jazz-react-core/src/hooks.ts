@@ -118,6 +118,8 @@ export function useCoState<V extends CoValue, D>(
   >(
     React.useCallback(
       (callback) => {
+        observable.reset();
+
         if (!id) return () => {};
 
         // We subscribe to the context manager to react to the account updates
