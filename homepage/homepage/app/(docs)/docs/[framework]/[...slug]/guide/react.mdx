@@ -98,7 +98,7 @@ export class Issue extends CoMap {
     title = co.string;
     description = co.string;
     estimate = co.number;
-    status? = co.literal("backlog", "in progress", "done");
+    status = co.optional.literal("backlog", "in progress", "done");
 }
 ```
 </CodeGroup>
@@ -514,7 +514,7 @@ export class Issue extends CoMap { // old
     title = co.string; // old
     description = co.string; // old
     estimate = co.number; // old
-    status? = co.literal("backlog", "in progress", "done"); // old
+    status? = co.optional.literal("backlog", "in progress", "done"); // old
 } // old
 // old
 export class ListOfIssues extends CoList.Of(co.ref(Issue)) {}
