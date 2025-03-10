@@ -9,8 +9,8 @@ export default function ProblemStatementSection() {
     <div className="container grid gap-4 lg:gap-8">
       <SectionHeader
         className="sm:text-center sm:mx-auto"
-        title="A perspective shift worth months of work."
-        slogan=""
+        title={"Introducing the “flat stack”"}
+        slogan="A perspective shift worth 10,000 hours"
       />
 
       <div className="grid sm:grid-cols-2 border rounded-lg shadow-sm md:rounded-xl overflow-hidden dark:border-stone-900">
@@ -27,7 +27,7 @@ export default function ProblemStatementSection() {
           </span>
           <Prose>
             <p className="font-display text-lg md:text-xl font-semibold text-stone-900 dark:text-white">
-            Every &ldquo;stack&rdquo; is a re-invention of shared state.
+              Every stack is a re-invention of shared state.
             </p>
           </Prose>
           <div className="relative flex items-center flex-1">
@@ -41,14 +41,13 @@ export default function ProblemStatementSection() {
           <Prose>
             <p>
               For each new app you tackle a{" "}
-              <strong>
-                mess of moving parts, tech choices &amp; deployment woes.
-              </strong>{" "}
-              Your code? <strong>All over the place.</strong>
+              <strong>mess of moving parts and infra worries.</strong> Or, you
+              haven't even tried because "you're not full-stack".
             </p>
             <p>
-              <strong>It’s holding you back</strong> from shipping{" "}
-              <strong>what your app could be.</strong>
+              Want to build a <strong>modern app</strong> with multiplayer or
+              offline-support? <strong>Figma, Notion and Linear</strong> all had
+              to spend <strong>years</strong> on completely custom stacks.
             </p>
           </Prose>
         </div>
@@ -64,12 +63,15 @@ export default function ProblemStatementSection() {
           <Prose>
             <p>
               Jazz gives you <strong>local state</strong> that’s{" "}
-              <strong>instantly synced and stored in the cloud.</strong> Including binary blobs.{" "}
+              <strong>instantly synced and stored in the cloud.</strong>{" "}
+              Including images and files.{" "}
               <strong>With users &amp; permissions built-in.</strong>
             </p>
             <p>
-              All that’s left is{" "}
-              <strong>building the UX that makes your app special.</strong>
+              You get to focus on{" "}
+              <strong>building the app your users want.</strong> You'll notice
+              that <strong>90% of the work is now the UI,</strong> which you'll
+              vibe-code in <strong>a few hours.</strong>
             </p>
           </Prose>
         </div>
