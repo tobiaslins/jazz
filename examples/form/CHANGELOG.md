@@ -1,5 +1,13 @@
 # form
 
+## 0.1.3
+
+### Patch Changes
+
+- jazz-react@0.11.3
+- jazz-tools@0.11.3
+- jazz-browser-media-images@0.11.3
+
 ## 0.1.2
 
 ### Patch Changes
