@@ -30,6 +30,7 @@ import {
   subscriptionsScopes,
 } from "../internal.js";
 import { coValuesCache } from "../lib/cache.js";
+import { RegisteredAccount } from "../types.js";
 import { type Account } from "./account.js";
 import { type Group } from "./group.js";
 import { RegisteredSchemas } from "./registeredSchemas.js";
@@ -154,7 +155,7 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
     [idx: number]: {
       value?: Item;
       ref?: Item extends CoValue ? Ref<Item> : never;
-      by?: Account;
+      by?: RegisteredAccount;
       madeAt: Date;
     };
   } {
