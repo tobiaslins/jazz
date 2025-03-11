@@ -1,19 +1,21 @@
 "use client";
 
 import { Button } from "gcmp-design-system/src/app/components/atoms/Button";
+import { track } from '@vercel/analytics';
 
-export function FakeGetStartedButton() {
+export function FakeGetStartedButton({ tier }: { tier: "starter" | "indie" }) {
   return (
     <Button
       onClick={() => {
+        track("FakeSignUp", { tier });
         alert(
-          "During the public alpha, please use your email address as the API key, as shown in the docs!",
+          "During the public alpha, all limits are lifted. Please use your email address as the API key, as shown in the docs!",
         );
         window.location.pathname = "/docs";
       }}
-      variant="secondary"
+      variant={tier === "starter" ? "secondary" : "primary"}
     >
-      Get Starter API Key
+      Get {tier === "starter" ? "Starter" : "Indie"} API Key
     </Button>
   );
 }

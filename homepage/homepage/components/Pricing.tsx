@@ -85,11 +85,10 @@ export function Pricing() {
               <ListItem icon={LucideCloudDownload}>
                 <span className="tabular-nums">2</span> GB egress/mo
               </ListItem>
-              <ListItem icon={LucideChevronUp}>Base-priority sync</ListItem>
             </ul>
           </div>
 
-          <FakeGetStartedButton />
+          <FakeGetStartedButton tier="starter"/>
 
           <p className="text-sm">No credit card required. Takes 20s.</p>
         </div>
@@ -123,21 +122,22 @@ export function Pricing() {
               </ListItem>
               <ListItem icon={LucideDatabase}>
                 <span className="tabular-nums">100</span> GB storage incl.{" "}
-                <p className="text-sm">
+                <span className="text-sm">
                   (then $0.02 per GB)
-                </p>
+                </span>
               </ListItem>
               <ListItem icon={LucideCloudDownload}>
                 <span className="tabular-nums">20</span> GB egress/mo incl.{" "}
-                <p className="text-sm">
+                <span className="text-sm">
                   (then $0.1 per GB)
-                </p>
+                </span>
               </ListItem>
+              <hr className="my-2 border-stone-200 dark:border-stone-800" />
               <ListItem icon={LucideChevronsUp}>High-priority sync</ListItem>
             </ul>
           </div>
 
-          <Button>Get Indie API Key</Button>
+          <FakeGetStartedButton tier="indie"/>
 
           <p className="text-sm">
             One month free trial. Unlimited projects. Takes 1min.
@@ -175,6 +175,7 @@ export function Pricing() {
               <ListItem icon={LucideCloudDownload}>
                 Custom egress/mo
               </ListItem>
+              <hr className="my-2 border-stone-200 dark:border-stone-800" />
               <ListItem icon={LucideHandshake}>
                 Rapid integration & premium onboarding
               </ListItem>
