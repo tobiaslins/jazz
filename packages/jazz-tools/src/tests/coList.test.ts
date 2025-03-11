@@ -157,6 +157,14 @@ describe("Simple CoList operations", async () => {
 
       chat.sort((a, b) => a!.text.localeCompare(b!.text));
       expect(chat.map((m) => m!.text)).toEqual(["hello", "world"]);
+
+      chat.push(Message.create({ text: "beans on toast" }, { owner: me }));
+      chat.sort((a, b) => a!.text.localeCompare(b!.text));
+      expect(chat.map((m) => m!.text)).toEqual([
+        "beans on toast",
+        "hello",
+        "world",
+      ]);
     });
 
     test("applyDiff", () => {
