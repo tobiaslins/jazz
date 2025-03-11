@@ -349,7 +349,7 @@ describe("useCoState", () => {
     });
 
     const { result, rerender } = renderHook(
-      (props) => useCoState(TestMap, props.id, []),
+      (props) => useCoState(TestMap, props.id),
       {
         initialProps: { id: map.id } as { id: ID<CoValue> | undefined },
       },
