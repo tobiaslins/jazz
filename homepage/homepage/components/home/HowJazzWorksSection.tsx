@@ -104,7 +104,7 @@ export function HowJazzWorksSection() {
         </Step>
         <Step
           step={3}
-          description="Create a CoValues, and it will be synced and persisted automatically."
+          description="Create and edit CoValues, and they will be synced and persisted automatically."
         >
           <Code fileName="sendMessage.ts">
             <CodeStepAction />
@@ -112,7 +112,7 @@ export function HowJazzWorksSection() {
         </Step>
         <Step
           step={4}
-          description="Read your data like simple local state. Get instant sync and UI updates across all devices and users. 🎉"
+          description="Use CoValues like reactive local state. Get instant UI updates on every edit &mdash; across all devices and users. 🎉"
         >
           <Code fileName="ChatScreen.tsx">
             <CodeStepRender />
