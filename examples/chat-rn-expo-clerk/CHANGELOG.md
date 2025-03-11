@@ -1,4 +1,4 @@
-# chat-rn-clerk
+# chat-rn-expo-clerk
 
 ## 1.0.92
 

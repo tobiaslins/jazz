@@ -1,4 +1,4 @@
-# chat-rn
+# chat-rn-expo
 
 ## 1.0.88
 
