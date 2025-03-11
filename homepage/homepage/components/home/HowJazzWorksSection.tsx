@@ -94,7 +94,7 @@ export function HowJazzWorksSection() {
       <GappedGrid>
         <Step
           step={1}
-          description="Define the shape of your app’s data with Collaborative Values, your new cloud-synced building-blocks."
+          description="Define the shape of your app’s data with Collaborative Values, your new cloud-synced building blocks."
         >
           <Code fileName="schema.ts">
             <CodeStepSchema />

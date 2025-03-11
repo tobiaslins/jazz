@@ -70,8 +70,7 @@ export default function ProblemStatementSection() {
             <p>
               You get to focus on{" "}
               <strong>building the app your users want.</strong> You'll notice
-              that <strong>90% of the work is now the UI,</strong> which you'll
-              vibe-code in <strong>a few hours.</strong>
+              that <strong>90% of the work is now the UI.</strong>
             </p>
           </Prose>
         </div>

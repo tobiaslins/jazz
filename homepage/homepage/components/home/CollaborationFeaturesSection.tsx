@@ -21,7 +21,7 @@ const data = [
   {
     title: "By Invitation",
     description:
-      "Works for users with no account yet.",
+      "Create links that allow anyone to join.",
     codeSample: CollaborationInvite,
   },
 ];
