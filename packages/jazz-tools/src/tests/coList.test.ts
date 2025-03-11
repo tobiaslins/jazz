@@ -4,6 +4,7 @@ import { describe, expect, test } from "vitest";
 import {
   Account,
   CoList,
+  CoMap,
   Group,
   co,
   createJazzContextFromExistingCredentials,
@@ -59,6 +60,69 @@ describe("Simple CoList operations", async () => {
       list[1] = "margarine";
       expect(list._raw.asArray()).toEqual(["bread", "margarine", "onion"]);
       expect(list[1]).toBe("margarine");
+    });
+
+    test("assignment with ref", () => {
+      class Ingredient extends CoMap {
+        name = co.string;
+      }
+
+      class Recipe extends CoList.Of(co.ref(Ingredient)) {}
+
+      const recipe = Recipe.create(
+        [
+          Ingredient.create({ name: "bread" }, me),
+          Ingredient.create({ name: "butter" }, me),
+          Ingredient.create({ name: "onion" }, me),
+        ],
+        { owner: me },
+      );
+
+      recipe[1] = Ingredient.create({ name: "margarine" }, me);
+      expect(recipe[1]?.name).toBe("margarine");
+    });
+
+    test("assign null on a required ref", () => {
+      class Ingredient extends CoMap {
+        name = co.string;
+      }
+
+      class Recipe extends CoList.Of(co.ref(Ingredient)) {}
+
+      const recipe = Recipe.create(
+        [
+          Ingredient.create({ name: "bread" }, me),
+          Ingredient.create({ name: "butter" }, me),
+          Ingredient.create({ name: "onion" }, me),
+        ],
+        { owner: me },
+      );
+
+      expect(() => {
+        recipe[1] = null;
+      }).toThrow("Cannot set required reference 1 to null");
+
+      expect(recipe[1]?.name).toBe("butter");
+    });
+
+    test("assign null on an optional ref", () => {
+      class Ingredient extends CoMap {
+        name = co.string;
+      }
+
+      class Recipe extends CoList.Of(co.optional.ref(Ingredient)) {}
+
+      const recipe = Recipe.create(
+        [
+          Ingredient.create({ name: "bread" }, me),
+          Ingredient.create({ name: "butter" }, me),
+          Ingredient.create({ name: "onion" }, me),
+        ],
+        { owner: me },
+      );
+
+      recipe[1] = null;
+      expect(recipe[1]).toBe(null);
     });
 
     test("push", () => {
@@ -134,6 +198,48 @@ describe("Simple CoList operations", async () => {
         "onion",
         "cheese",
       ]);
+    });
+
+    test("filter + assign to coMap", () => {
+      class TestMap extends CoMap {
+        list = co.ref(TestList);
+      }
+
+      const map = TestMap.create(
+        {
+          list: TestList.create(["bread", "butter", "onion"], {
+            owner: me,
+          }),
+        },
+        { owner: me },
+      );
+
+      expect(() => {
+        // @ts-expect-error
+        map.list = map.list?.filter((item) => item !== "butter");
+      }).toThrow("Cannot set reference list to a non-CoValue. Got bread,onion");
+
+      expect(map.list?._raw.asArray()).toEqual(["bread", "butter", "onion"]);
+    });
+
+    test("filter + assign to CoList", () => {
+      class TestListOfLists extends CoList.Of(co.ref(TestList)) {}
+
+      const list = TestListOfLists.create(
+        [
+          TestList.create(["bread", "butter", "onion"], {
+            owner: me,
+          }),
+        ],
+        { owner: me },
+      );
+
+      expect(() => {
+        // @ts-expect-error
+        list[0] = list[0]?.filter((item) => item !== "butter");
+      }).toThrow("Cannot set reference 0 to a non-CoValue. Got bread,onion");
+
+      expect(list[0]?._raw.asArray()).toEqual(["bread", "butter", "onion"]);
     });
   });
 });
