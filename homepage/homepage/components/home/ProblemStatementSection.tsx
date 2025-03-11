@@ -9,7 +9,7 @@ export default function ProblemStatementSection() {
     <div className="container grid gap-4 lg:gap-8">
       <SectionHeader
         className="sm:text-center sm:mx-auto"
-        title={"Introducing the “flat stack”"}
+        title={"Powered by the first “flat stack”"}
         slogan="A perspective shift worth 10,000 hours"
       />
 
@@ -68,7 +68,7 @@ export default function ProblemStatementSection() {
               <strong>With users &amp; permissions built-in.</strong>
             </p>
             <p>
-              You get to focus on{" "}
+              With completely <strong>app-independent infra,</strong> you get to focus on{" "}
               <strong>building the app your users want.</strong> You'll notice
               that <strong>90% of the work is now the UI.</strong>
             </p>
