@@ -17,8 +17,9 @@ async function getMdxSource(slugPath: string, framework: string) {
 }
 
 export async function generateMetadata({
-  params: { slug, framework },
-}: { params: { slug: string[]; framework: string } }) {
+  params,
+}: { params: Promise<{ slug: string[]; framework: string }> }) {
+  const { slug, framework } = await params;
   const slugPath = slug.join("/");
   try {
     const mdxSource = await getMdxSource(slugPath, framework);
@@ -41,8 +42,9 @@ export async function generateMetadata({
 }
 
 export default async function Page({
-  params: { slug, framework },
-}: { params: { slug: string[]; framework: string } }) {
+  params,
+}: { params: Promise<{ slug: string[]; framework: string }> }) {
+  const { slug, framework } = await params;
   const slugPath = slug.join("/");
   const bodyClassName = "overflow-x-hidden lg:flex-1 py-10  max-w-3xl mx-auto";
 
