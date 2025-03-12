@@ -171,13 +171,65 @@ describe("Simple CoList operations", async () => {
       expect(list._raw.asArray()).toEqual(["butter", "onion"]);
     });
 
-    test("splice", () => {
-      const list = TestList.create(["bread", "butter", "onion"], {
-        owner: me,
+    describe("splice", () => {
+      test("insert after 1st item with 1 item removed", () => {
+        const list = TestList.create(["bread", "butter", "onion"], {
+          owner: me,
+        });
+        list.splice(1, 1, "salt", "pepper");
+        expect(list.length).toBe(4);
+        expect(list._raw.asArray()).toEqual([
+          "bread",
+          "salt",
+          "pepper",
+          "onion",
+        ]);
       });
-      list.splice(1, 1, "salt", "pepper");
-      expect(list.length).toBe(4);
-      expect(list._raw.asArray()).toEqual(["bread", "salt", "pepper", "onion"]);
+
+      test("insert before 1st item", () => {
+        const list = TestList.create(["bread", "butter", "onion"], {
+          owner: me,
+        });
+        list.splice(0, 0, "salt", "pepper");
+        expect(list.length).toBe(5);
+        expect(list._raw.asArray()).toEqual([
+          "salt",
+          "pepper",
+          "bread",
+          "butter",
+          "onion",
+        ]);
+      });
+
+      test("insert after 1st item", () => {
+        const list = TestList.create(["bread", "butter", "onion"], {
+          owner: me,
+        });
+        list.splice(1, 0, "salt", "pepper");
+        expect(list.length).toBe(5);
+        expect(list._raw.asArray()).toEqual([
+          "bread",
+          "salt",
+          "pepper",
+          "butter",
+          "onion",
+        ]);
+      });
+
+      test("insert after 2nd item", () => {
+        const list = TestList.create(["bread", "butter", "onion"], {
+          owner: me,
+        });
+        list.splice(2, 0, "salt", "pepper");
+        expect(list.length).toBe(5);
+        expect(list._raw.asArray()).toEqual([
+          "bread",
+          "butter",
+          "salt",
+          "pepper",
+          "onion",
+        ]);
+      });
     });
 
     test("sort", () => {
@@ -291,6 +343,105 @@ describe("Simple CoList operations", async () => {
 
       expect(list[0]?._raw.asArray()).toEqual(["bread", "butter", "onion"]);
     });
+  });
+});
+
+describe("CoList applyDiff operations", async () => {
+  const me = await Account.create({
+    creationProps: { name: "Hermes Puggington" },
+    crypto: Crypto,
+  });
+
+  test("applyDiff with primitive values", () => {
+    class StringList extends CoList.Of(co.string) {}
+    const list = StringList.create(["a", "b", "c"], { owner: me });
+
+    // Test adding items
+    list.applyDiff(["a", "b", "c", "d", "e"]);
+    expect(list._raw.asArray()).toEqual(["a", "b", "c", "d", "e"]);
+
+    // Test removing items
+    list.applyDiff(["a", "c", "e"]);
+    expect(list._raw.asArray()).toEqual(["a", "c", "e"]);
+
+    // Test replacing items
+    list.applyDiff(["x", "y", "z"]);
+    expect(list._raw.asArray()).toEqual(["x", "y", "z"]);
+
+    // Test empty list
+    list.applyDiff([]);
+    expect(list._raw.asArray()).toEqual([]);
+  });
+
+  test("applyDiff with reference values", () => {
+    class NestedItem extends CoList.Of(co.string) {
+      get value() {
+        return this[0];
+      }
+    }
+    class RefList extends CoList.Of(co.ref(NestedItem)) {}
+
+    const item1 = NestedItem.create(["item1"], { owner: me });
+    const item2 = NestedItem.create(["item2"], { owner: me });
+    const item3 = NestedItem.create(["item3"], { owner: me });
+    const item4 = NestedItem.create(["item4"], { owner: me });
+
+    const list = RefList.create([item1, item2], { owner: me });
+
+    // Test adding reference items
+    list.applyDiff([item1, item2, item3]);
+    expect(list.length).toBe(3);
+    expect(list[2]?.value).toBe("item3");
+
+    // Test removing reference items
+    list.applyDiff([item1, item3]);
+    expect(list.length).toBe(2);
+    expect(list[0]?.value).toBe("item1");
+    expect(list[1]?.value).toBe("item3");
+
+    // Test replacing reference items
+    list.applyDiff([item4]);
+    expect(list.length).toBe(1);
+    expect(list[0]?.value).toBe("item4");
+
+    // Test empty list
+    list.applyDiff([]);
+    expect(list._raw.asArray()).toEqual([]);
+  });
+
+  test("applyDiff with refs + filter", () => {
+    class TestMap extends CoMap {
+      type = co.string;
+    }
+
+    class TestList extends CoList.Of(co.ref(TestMap)) {}
+
+    const bread = TestMap.create({ type: "bread" }, me);
+    const butter = TestMap.create({ type: "butter" }, me);
+    const onion = TestMap.create({ type: "onion" }, me);
+
+    const list = TestList.create([bread, butter, onion], me);
+
+    list.applyDiff(list.filter((item) => item?.type !== "butter"));
+
+    expect(list._raw.asArray()).toEqual([bread.id, onion.id]);
+  });
+
+  test("applyDiff with mixed operations", () => {
+    class StringList extends CoList.Of(co.string) {}
+    const list = StringList.create(["a", "b", "c", "d", "e"], { owner: me });
+
+    // Test multiple operations at once
+    list.applyDiff(["a", "x", "c", "y", "e"]);
+    expect(list._raw.asArray()).toEqual(["a", "x", "c", "y", "e"]);
+
+    // Test reordering
+    list.applyDiff(["e", "c", "a", "y", "x"]);
+    expect(list._raw.asArray()).toEqual(["e", "c", "a", "y", "x"]);
+
+    // Test partial update
+    list.applyDiff(["e", "c", "new", "y", "x"]);
+    expect(list._raw.asArray()).toEqual(["e", "c", "new", "y", "x"]);
   });
 });
 
