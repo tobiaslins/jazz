@@ -561,7 +561,19 @@ const CoListProxyHandler: ProxyHandler<CoList> = {
       } else if ("encoded" in itemDescriptor) {
         rawValue = itemDescriptor.encoded.encode(value);
       } else if (isRefEncoded(itemDescriptor)) {
-        rawValue = value.id;
+        if (value === null) {
+          if (itemDescriptor.optional) {
+            rawValue = null;
+          } else {
+            throw new Error(`Cannot set required reference ${key} to null`);
+          }
+        } else if (value?.id) {
+          rawValue = value.id;
+        } else {
+          throw new Error(
+            `Cannot set reference ${key} to a non-CoValue. Got ${value}`,
+          );
+        }
       }
       target._raw.replace(Number(key), rawValue);
       return true;
