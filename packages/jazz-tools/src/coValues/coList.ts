@@ -296,16 +296,15 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
 
     const rawItems = toRawItems(items as Item[], this._schema[ItemsSym]);
 
+    // If there are no items to insert, return the deleted items
     if (rawItems.length === 0) {
       return deleted;
     }
 
+    // Fast path for single item insertion
     if (rawItems.length === 1) {
-      // Fast path for single item insertion
       const item = rawItems[0];
-      if (item === undefined) {
-        return deleted;
-      }
+      if (item === undefined) return deleted;
       if (start === 0) {
         this._raw.prepend(item);
       } else {
