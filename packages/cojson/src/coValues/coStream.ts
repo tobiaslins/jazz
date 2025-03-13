@@ -86,7 +86,11 @@ export class RawCoStreamView<
   ): number {
     return (
       a.madeAt - b.madeAt ||
-      a.tx.sessionID.localeCompare(b.tx.sessionID) ||
+      (a.tx.sessionID === b.tx.sessionID
+        ? 0
+        : a.tx.sessionID < b.tx.sessionID
+          ? -1
+          : 1) ||
       a.tx.txIndex - b.tx.txIndex
     );
   }
