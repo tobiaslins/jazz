@@ -25,11 +25,8 @@ appId: com.jazz.chatrn
 - assertVisible: "Logout"
 
 # send a message
-- runFlow:
-    label: "Erase existing message"
-    file: erase_text.yml
-    env:
-      id: "message-input"
+- tapOn:
+    id: "message-input"
 - inputText: "bro, low key, it do be like that tho"
 - tapOn:
     id: "send-button"
@@ -44,5 +41,8 @@ appId: com.jazz.chatrn
 
 # logout
 - tapOn: "Logout"
+- tapOn: "Join chat"
+- inputText: "co_zFs6KFyhxPw4xtw83tcEMzeHUNv" # Use a static id because maestro doesn't have access to the system clipboard
+- pressKey: "enter"
 - assertVisible: "boorad"
 - assertVisible: "bro, low key, it do be like that tho"
