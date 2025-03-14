@@ -211,8 +211,10 @@ export async function onAnonymousAccountDiscarded(
 
 export async function deletePlaylist(playlistId: string) {
   const { root } = await MusicaAccount.getMe().ensureLoaded({
-    root: {
-      playlists: [],
+    resolve: {
+      root: {
+        playlists: true,
+      },
     },
   });
 
