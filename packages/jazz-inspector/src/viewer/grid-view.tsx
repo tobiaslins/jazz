@@ -1,6 +1,6 @@
 import { CoID, LocalNode, RawCoValue } from "cojson";
 import { JsonObject } from "cojson";
-import { Button } from "./button.js";
+import { Button } from "../ui/button.js";
 import { ResolveIcon } from "./type-icon.js";
 import { PageInfo, isCoId } from "./types.js";
 import { CoMapPreview, ValueRenderer } from "./value-renderer.js";
@@ -37,7 +37,7 @@ export function GridView({
               <span className="font-medium flex justify-between">
                 {key}
 
-                <div className="py-1 px-2 text-xs bg-gray-100 rounded dark:bg-gray-900">
+                <div className="py-1 px-2 text-sm bg-gray-100 rounded dark:bg-gray-900">
                   <ResolveIcon coId={child as CoID<RawCoValue>} node={node} />
                 </div>
               </span>
@@ -54,7 +54,6 @@ export function GridView({
                 onCoIDClick={(coId) => {
                   onNavigate([{ coId, name: key }]);
                 }}
-                compact
               />
             )}
           </div>

@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { CoID, JsonValue, LocalNode, RawCoValue } from "cojson";
 import React, { useEffect, useState } from "react";
 import { LinkIcon } from "../link-icon.js";
-import { Button } from "./button.js";
+import { Button } from "../ui/button.js";
 import {
   isBrowserImage,
   resolveCoValue,
@@ -12,11 +12,9 @@ import {
 // Is there a chance we can pass the actual CoValue here?
 export function ValueRenderer({
   json,
-  compact,
   onCoIDClick,
 }: {
   json: JsonValue | undefined;
-  compact?: boolean;
   onCoIDClick?: (childNode: CoID<RawCoValue>) => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -88,45 +86,28 @@ export function ValueRenderer({
     );
   }
 
-  if (Array.isArray(json)) {
-    return (
-      <span title={JSON.stringify(json)}>
-        Array <span className="text-gray-500">({json.length})</span>
-      </span>
-    );
-  }
-
   if (typeof json === "object") {
     return (
       <span
         title={JSON.stringify(json, null, 2)}
         className="inline-block max-w-64"
       >
-        {compact ? (
-          <span>
-            Object{" "}
-            <span className="text-gray-500">({Object.keys(json).length})</span>
-            <pre className="mt-1 text-sm whitespace-pre-wrap">
-              {isExpanded
-                ? JSON.stringify(json, null, 2)
-                : JSON.stringify(json, null, 2)
-                    .split("\n")
-                    .slice(0, 3)
-                    .join("\n") + (Object.keys(json).length > 2 ? "\n..." : "")}
-            </pre>
-            <Button
-              variant="plain"
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="text-xs text-gray-500 hover:text-gray-700"
-            >
-              {isExpanded ? "Show less" : "Show more"}
-            </Button>
-          </span>
-        ) : (
-          <pre className="whitespace-pre-wrap">
-            {JSON.stringify(json, null, 2)}
-          </pre>
-        )}
+        <span className="text-gray-600">
+          {Array.isArray(json) ? <>Array ({json.length})</> : <>Object</>}
+        </span>
+        <pre className="mt-1.5 text-sm whitespace-pre-wrap">
+          {isExpanded
+            ? JSON.stringify(json, null, 2)
+            : JSON.stringify(json, null, 2).split("\n").slice(0, 3).join("\n") +
+              (Object.keys(json).length > 2 ? "\n..." : "")}
+        </pre>
+        <Button
+          variant="plain"
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="mt-1.5 text-sm text-gray-600 hover:text-gray-700"
+        >
+          {isExpanded ? "Show less" : "Show more"}
+        </Button>
       </span>
     );
   }
@@ -214,7 +195,7 @@ export const CoMapPreview = ({
           ))}
       </div>
       {Object.entries(snapshot).length > limit && (
-        <div className="text-left text-xs text-gray-500 mt-2">
+        <div className="text-left text-sm text-gray-500 mt-2">
           {Object.entries(snapshot).length - limit} more
         </div>
       )}
