@@ -1,5 +1,5 @@
-import { clsx } from "clsx";
 import { forwardRef } from "react";
+import { classNames } from "../utils.js";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "tertiary" | "destructive" | "plain";
@@ -38,10 +38,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         "bg-red-600 border-red-600 text-white font-medium hover:bg-red-700 hover:border-red-700",
     };
 
-    const classNames =
+    const classes =
       variant === "plain"
         ? className
-        : clsx(
+        : classNames(
             className,
             "inline-flex items-center justify-center gap-2 rounded-lg text-center transition-colors",
             "disabled:pointer-events-none disabled:opacity-70",
@@ -55,7 +55,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         {...buttonProps}
         disabled={disabled}
-        className={classNames}
+        className={classes}
         type={type}
       >
         {children}
