@@ -1,10 +1,14 @@
 import { useAccount } from "jazz-react";
 import { Group, type ID } from "jazz-tools";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Logo } from "./Logo";
 import Canvas from "./components/Canvas";
-import { CursorContainer, CursorFeed } from "./schema";
+import { CursorFeed } from "./schema";
+import { loadCursorContainer } from "./utils/loadCursorContainer";
 import { hashedColor } from "./utils/mappedColors";
+
+const cursorFeedID = import.meta.env.VITE_CURSOR_FEED_ID;
+const groupID = import.meta.env.VITE_GROUP_ID;
 
 function App() {
   const { me } = useAccount();
@@ -19,54 +23,14 @@ function App() {
     }[]
   >([]);
 
-  async function loadCursorContainer() {
-    if (!me) return;
-    const group = await Group.load(
-      "co_zLBGe35kD91bKhmtpjjDeo9VQYc" as ID<Group>,
-      {},
-    );
-    if (group === undefined) return;
-    group?.addMember("everyone", "reader");
-
-    const cursorContainerID = CursorContainer.findUnique(
-      "multi-cursors",
-      group?.id as ID<Group>,
-    );
-    const cursorContainer = await CursorContainer.load(
-      cursorContainerID as ID<CursorContainer>,
-      { cursorFeed: [] },
-    );
-    if (cursorContainer === undefined) {
-      console.log("Global cursors does not exist, creating...");
-      const cursorContainer = CursorContainer.create(
-        {
-          cursorFeed: CursorFeed.create([], {
-            owner: group,
-          }),
-        },
-        {
-          owner: group,
-          unique: "multi-cursors",
-        },
-      );
-      console.log("Created global cursors", cursorContainer.id);
-      if (cursorContainer.cursorFeed === null) {
-        throw new Error("cursorFeed is null");
-      }
-      setCursorFeed(cursorContainer.cursorFeed);
-    } else {
-      console.log(
-        "Global cursors already exists, loading...",
-        cursorContainer.id,
-      );
-      setCursorFeed(cursorContainer.cursorFeed);
-    }
-  }
-
   useEffect(() => {
     if (!me) return;
-    console.log("My session ID", me.sessionID);
-    loadCursorContainer();
+    loadCursorContainer(
+      me,
+      cursorFeedID as ID<CursorFeed>,
+      groupID as ID<Group>,
+      setCursorFeed,
+    );
   }, [me]);
 
   const handleCursorMove = useCallback(
@@ -84,7 +48,7 @@ function App() {
 
   useEffect(() => {
     if (!cursorFeed) return;
-    cursorFeed.subscribe([], (feed) => {
+    const unsubscribe = cursorFeed.subscribe([], (feed) => {
       const cursors = Object.values(feed.perSession)
         .filter((entry) => entry.tx.sessionID !== me?.sessionID)
         .map((entry) => ({
@@ -98,7 +62,8 @@ function App() {
         }));
       setRemoteCursors(cursors);
     });
-  }, [cursorFeed]);
+    return () => unsubscribe();
+  }, [cursorFeed, me]);
 
   return (
     <>
