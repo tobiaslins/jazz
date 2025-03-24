@@ -1,5 +1,17 @@
 # jazz-inspector
 
+## 0.11.6
+
+### Patch Changes
+
+- 09f0a98: UI and JSON display improvements
+- 11da4d1: isolate class name hashing on inspector
+- Updated dependencies [e7c85b7]
+- Updated dependencies [8ed144e]
+  - jazz-tools@0.11.6
+  - cojson@0.11.6
+  - jazz-react-core@0.11.6
+
 ## 0.11.5
 
 ### Patch Changes

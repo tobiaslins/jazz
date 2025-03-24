@@ -1,5 +1,17 @@
 # jazz-react
 
+## 0.11.6
+
+### Patch Changes
+
+- e7c85b7: Add targetWidth to highestResAvailable to add a way to fetch the next size up
+- Updated dependencies [e7c85b7]
+- Updated dependencies [8ed144e]
+  - jazz-tools@0.11.6
+  - cojson@0.11.6
+  - jazz-browser@0.11.6
+  - jazz-react-core@0.11.6
+
 ## 0.11.5
 
 ### Patch Changes

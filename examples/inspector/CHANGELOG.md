@@ -1,5 +1,18 @@
 # jazz-example-inspector
 
+## 0.0.115
+
+### Patch Changes
+
+- 09f0a98: UI and JSON display improvements
+- 11da4d1: isolate class name hashing on inspector
+- Updated dependencies [09f0a98]
+- Updated dependencies [11da4d1]
+- Updated dependencies [8ed144e]
+  - jazz-inspector@0.11.6
+  - cojson@0.11.6
+  - cojson-transport-ws@0.11.6
+
 ## 0.0.114
 
 ### Patch Changes

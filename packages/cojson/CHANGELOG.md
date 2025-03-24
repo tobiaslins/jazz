@@ -1,5 +1,11 @@
 # cojson
 
+## 0.11.6
+
+### Patch Changes
+
+- 8ed144e: Fix transaction sorting when the timestamps are equal
+
 ## 0.11.5
 
 ### Patch Changes

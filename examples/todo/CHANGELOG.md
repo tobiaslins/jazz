@@ -1,5 +1,14 @@
 # jazz-example-todo
 
+## 0.0.181
+
+### Patch Changes
+
+- 1bfa9bb: Removed when="singedUp" from examples apps' Jazz providers. This is a really niche use-case option and can lead to broken-feeling experiences when anonymous users try to load something.
+- Updated dependencies [e7c85b7]
+  - jazz-react@0.11.6
+  - jazz-tools@0.11.6
+
 ## 0.0.180
 
 ### Patch Changes
