@@ -1,15 +1,23 @@
 import { useAccount } from "jazz-react";
+import { Group, type ID } from "jazz-tools";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Logo } from "./Logo";
 import Canvas from "./components/Canvas";
-import { useState, useCallback, useEffect, useMemo } from "react";
 import { CursorContainer, CursorFeed } from "./schema";
-import { Group, type ID } from "jazz-tools";
 import { hashedColor } from "./utils/mappedColors";
 
 function App() {
   const { me } = useAccount();
 
   const [cursorFeed, setCursorFeed] = useState<CursorFeed | null>(null);
+  const [remoteCursors, setRemoteCursors] = useState<
+    {
+      id: string;
+      position: { x: number; y: number };
+      color: string;
+      isDragging: boolean;
+    }[]
+  >([]);
 
   async function loadCursorContainer() {
     if (!me) return;
@@ -64,9 +72,6 @@ function App() {
   const handleCursorMove = useCallback(
     (move: { position: { x: number; y: number } }) => {
       if (!(cursorFeed && me)) return;
-      console.log("My cursor feed ID", cursorFeed.id);
-      console.log("My session ID", me.sessionID);
-      console.log(move.position);
       cursorFeed.push({
         position: {
           x: move.position.x,
@@ -77,34 +82,21 @@ function App() {
     [me, cursorFeed],
   );
 
-  const remoteCursors = useMemo(
-    () =>
-      Object.values(cursorFeed?.perSession || {})
-        .filter((entry) => entry.by?.id !== me?.sessionID)
-        .map((entry) => {
-          const id = entry.tx.sessionID;
-          return {
-            id,
-            position: {
-              x: entry.value.position.x,
-              y: entry.value.position.y,
-            },
-            // Use the hashedColor function to generate a unique color based on the user ID
-            color: hashedColor(id),
-            isDragging: false,
-          };
-        }),
-    [cursorFeed, me],
-  );
-
-  // Debugging multiple cursors
   useEffect(() => {
     if (!cursorFeed) return;
     cursorFeed.subscribe([], (feed) => {
-      console.log(
-        "feed",
-        Object.values(feed.perSession).map((entry) => entry.tx.sessionID),
-      );
+      const cursors = Object.values(feed.perSession)
+        .filter((entry) => entry.tx.sessionID !== me?.sessionID)
+        .map((entry) => ({
+          id: entry.tx.sessionID,
+          position: {
+            x: entry.value.position.x,
+            y: entry.value.position.y,
+          },
+          color: hashedColor(entry.tx.sessionID),
+          isDragging: false,
+        }));
+      setRemoteCursors(cursors);
     });
   }, [cursorFeed]);
 
