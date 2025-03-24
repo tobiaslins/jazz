@@ -9,14 +9,16 @@ interface UserCursor {
   color: string;
   isDragging: boolean;
   isRemote: boolean;
+  name: string;
 }
 
 interface CanvasProps {
   remoteCursors: UserCursor[];
   onCursorMove: (move: CursorMoveEvent) => void;
+  name: string;
 }
 
-function Canvas({ remoteCursors, onCursorMove }: CanvasProps) {
+function Canvas({ remoteCursors, onCursorMove, name }: CanvasProps) {
   const {
     svgProps,
     isDragging,
@@ -42,6 +44,7 @@ function Canvas({ remoteCursors, onCursorMove }: CanvasProps) {
           color={cursor.color}
           isDragging={cursor.isDragging}
           isRemote={cursor.isRemote}
+          name={cursor.name}
         />
       ))}
 
@@ -51,6 +54,7 @@ function Canvas({ remoteCursors, onCursorMove }: CanvasProps) {
           color="#FF69B4"
           isDragging={isDragging}
           isRemote={false}
+          name={name}
         />
       ) : null}
     </svg>

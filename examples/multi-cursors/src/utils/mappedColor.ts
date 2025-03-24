@@ -4,7 +4,7 @@
  * @param str - The string to convert to a color (typically a coID)
  * @returns An Oklch color string
  */
-export const hashedColor = (str: string): string => {
+export const mappedColor = (str: string): string => {
   // Simple hash function to get a number from a string
   let hash = 0;
   for (let i = 0; i < str.length; i++) {

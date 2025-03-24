@@ -4,9 +4,10 @@ import { useCallback, useEffect, useState } from "react";
 import { Logo } from "./Logo";
 import Canvas from "./components/Canvas";
 import { CursorFeed } from "./schema";
+import { RemoteCursor } from "./types";
 import { loadCursorContainer } from "./utils/loadCursorContainer";
-import { hashedColor } from "./utils/mappedColors";
-
+import { mappedColor } from "./utils/mappedColor";
+import { getRandomUsername } from "./utils/mappedNickname";
 const cursorFeedID = import.meta.env.VITE_CURSOR_FEED_ID;
 const groupID = import.meta.env.VITE_GROUP_ID;
 
@@ -14,14 +15,7 @@ function App() {
   const { me } = useAccount();
 
   const [cursorFeed, setCursorFeed] = useState<CursorFeed | null>(null);
-  const [remoteCursors, setRemoteCursors] = useState<
-    {
-      id: string;
-      position: { x: number; y: number };
-      color: string;
-      isDragging: boolean;
-    }[]
-  >([]);
+  const [remoteCursors, setRemoteCursors] = useState<RemoteCursor[]>([]);
 
   useEffect(() => {
     if (!me) return;
@@ -49,7 +43,7 @@ function App() {
   useEffect(() => {
     if (!cursorFeed) return;
     const unsubscribe = cursorFeed.subscribe([], (feed) => {
-      const cursors = Object.values(feed.perSession)
+      const cursors: RemoteCursor[] = Object.values(feed.perSession)
         .filter((entry) => entry.tx.sessionID !== me?.sessionID)
         .map((entry) => ({
           id: entry.tx.sessionID,
@@ -57,9 +51,13 @@ function App() {
             x: entry.value.position.x,
             y: entry.value.position.y,
           },
-          color: hashedColor(entry.tx.sessionID),
+          color: mappedColor(entry.tx.sessionID),
           isDragging: false,
           isRemote: true,
+          name:
+            entry.by?.profile?.name === "Anonymous user"
+              ? getRandomUsername(entry.tx.sessionID)
+              : entry.by?.profile?.name,
         }));
       setRemoteCursors(cursors);
     });
@@ -69,7 +67,11 @@ function App() {
   return (
     <>
       <main className="h-screen">
-        <Canvas onCursorMove={handleCursorMove} remoteCursors={remoteCursors} />
+        <Canvas
+          onCursorMove={handleCursorMove}
+          remoteCursors={remoteCursors}
+          name={me?.profile?.name ?? getRandomUsername(me?.sessionID ?? "")}
+        />
       </main>
 
       <footer className="fixed bottom-4 right-4 pointer-events-none">
