@@ -4,13 +4,19 @@ import { ID } from "jazz-tools";
 import { useEffect, useState } from "react";
 import { Logo } from "./Logo";
 import Canvas from "./components/Canvas";
-import { Cursor, CursorContainer, CursorFeed, Vec2 } from "./schema";
+import { CursorContainer, CursorFeed } from "./schema";
+
+const debugProxy = (proxy: any) => {
+  return JSON.parse(JSON.stringify(proxy));
+};
 
 function App() {
-  const { me } = useAccount();
+  const { me } = useAccount({ root: { cursors: [] } });
   const [cursorFeed, setCursorFeed] = useState<CursorFeed | null>(null);
+  const [container, setContainer] = useState<CursorContainer | null>(null);
 
   async function loadCursorContainer() {
+    if (!me) return;
     const group = await Group.load(
       "co_zLBGe35kD91bKhmtpjjDeo9VQYc" as ID<Group>,
       {},
@@ -24,7 +30,7 @@ function App() {
     );
     const cursorContainer = await CursorContainer.load(
       cursorContainerID as ID<CursorContainer>,
-      {},
+      { cursorFeed: [] },
     );
     if (cursorContainer === undefined) {
       console.log("Global cursors does not exist, creating...");
@@ -40,19 +46,19 @@ function App() {
         },
       );
       console.log("Created global cursors", cursorContainer.id);
+      if (cursorContainer.cursorFeed === null) {
+        throw new Error("cursorFeed is null");
+      }
+      if (me?.root) {
+        me.root.cursors = cursorContainer.cursorFeed;
+      }
     } else {
       console.log("Global cursors already exists, loading...");
-      setCursorFeed(cursorContainer.cursorFeed);
-
-      if (me.sessionID) {
-        const unsubscribe = cursorContainer.cursorFeed?.subscribe(
-          [{}],
-          (feed) => {
-            console.log(feed);
-            console.log(feed[me.id]);
-            console.log(feed?.perSession[me.sessionID]);
-          },
-        );
+      if (me?.root) {
+        cursorContainer.cursorFeed.push({
+          position: { x: 0, y: 0 },
+        });
+        me.root.cursors = cursorContainer.cursorFeed;
       }
     }
   }
@@ -67,16 +73,7 @@ function App() {
         <Canvas
           onCursorMove={(_move) => {
             const { x, y } = _move.position;
-            cursorFeed?.push(
-              Cursor.create(
-                {
-                  position: Vec2.create({ x, y }),
-                },
-                {
-                  owner: cursorFeed._owner,
-                },
-              ),
-            );
+            console.log("onCursorMove", x, y);
           }}
           remoteCursors={[
             {

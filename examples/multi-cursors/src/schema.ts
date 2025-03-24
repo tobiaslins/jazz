@@ -1,27 +1,16 @@
 import { Account, CoFeed, CoMap, Group, Profile, co } from "jazz-tools";
+import type { Camera, Cursor } from "./types";
 
-export class Vec2 extends CoMap {
-  x = co.number;
-  y = co.number;
-}
-
-export class Cursor extends CoMap {
-  position = co.ref(Vec2);
-}
+export class CursorFeed extends CoFeed.Of(co.json<Cursor>()) {}
 
 export class CursorProfile extends Profile {
   name = co.string;
 }
 
-export class Camera extends CoMap {
-  position = co.ref(Vec2);
-}
-
 export class CursorRoot extends CoMap {
-  camera = co.ref(Camera);
+  camera = co.json<Camera>();
+  cursors = co.ref(CursorFeed);
 }
-
-export class CursorFeed extends CoFeed.Of(co.ref(Cursor)) {}
 
 export class CursorContainer extends CoMap {
   cursorFeed = co.ref(CursorFeed);
@@ -37,12 +26,13 @@ export class CursorAccount extends Account {
   migrate(this: CursorAccount) {
     if (this.root === undefined) {
       this.root = CursorRoot.create({
-        camera: Camera.create({
-          position: Vec2.create({
+        camera: {
+          position: {
             x: 0,
             y: 0,
-          }),
-        }),
+          },
+        },
+        cursors: CursorFeed.create([]),
       });
     }
 
@@ -53,13 +43,6 @@ export class CursorAccount extends Account {
       this.profile = CursorProfile.create(
         {
           name: "Anonymous user",
-          position: Vec2.create(
-            {
-              x: 0,
-              y: 0,
-            },
-            { owner: group },
-          ),
         },
         group,
       );
