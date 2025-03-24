@@ -1,5 +1,37 @@
 # chat-rn-clerk
 
+## 1.0.87
+
+### Patch Changes
+
+- 1bfa9bb: Removed when="singedUp" from examples apps' Jazz providers. This is a really niche use-case option and can lead to broken-feeling experiences when anonymous users try to load something.
+- Updated dependencies [e7c85b7]
+  - jazz-react-native@0.11.6
+  - jazz-tools@0.11.6
+  - jazz-react-native-auth-clerk@0.11.6
+  - jazz-react-native-media-images@0.11.6
+
+## 1.0.86
+
+### Patch Changes
+
+- jazz-react-native@0.11.5
+- jazz-react-native-auth-clerk@0.11.5
+- jazz-tools@0.11.5
+- jazz-react-native-media-images@0.11.5
+
+## 1.0.85
+
+### Patch Changes
+
+- Updated dependencies [57a3dbe]
+- Updated dependencies [a717754]
+- Updated dependencies [a91f343]
+  - jazz-tools@0.11.4
+  - jazz-react-native@0.11.4
+  - jazz-react-native-auth-clerk@0.11.4
+  - jazz-react-native-media-images@0.11.4
+
 ## 1.0.84
 
 ### Patch Changes

@@ -1,5 +1,34 @@
 # minimal-auth-clerk
 
+## 0.0.64
+
+### Patch Changes
+
+- 1bfa9bb: Removed when="singedUp" from examples apps' Jazz providers. This is a really niche use-case option and can lead to broken-feeling experiences when anonymous users try to load something.
+- Updated dependencies [e7c85b7]
+  - jazz-react@0.11.6
+  - jazz-tools@0.11.6
+  - jazz-react-auth-clerk@0.11.6
+
+## 0.0.63
+
+### Patch Changes
+
+- jazz-react@0.11.5
+- jazz-react-auth-clerk@0.11.5
+- jazz-tools@0.11.5
+
+## 0.0.62
+
+### Patch Changes
+
+- Updated dependencies [57a3dbe]
+- Updated dependencies [a717754]
+- Updated dependencies [a91f343]
+  - jazz-tools@0.11.4
+  - jazz-react@0.11.4
+  - jazz-react-auth-clerk@0.11.4
+
 ## 0.0.61
 
 ### Patch Changes

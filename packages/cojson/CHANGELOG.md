@@ -1,5 +1,23 @@
 # cojson
 
+## 0.11.6
+
+### Patch Changes
+
+- 8ed144e: Fix transaction sorting when the timestamps are equal
+
+## 0.11.5
+
+### Patch Changes
+
+- 60f5b3f: Downgrade the WasmCrypto initialization error logging to a warning
+
+## 0.11.4
+
+### Patch Changes
+
+- 7f036c1: Use PureJSCrypto as fallback when WasmCrypto fails to initialize
+
 ## 0.11.3
 
 ### Patch Changes
