@@ -1,17 +1,14 @@
-import { useAccount } from "jazz-react";
-import { Group } from "jazz-tools";
-import { ID } from "jazz-tools";
-import { useEffect, useState } from "react";
+import { useAccountOrGuest } from "jazz-react";
 import { Logo } from "./Logo";
 import Canvas from "./components/Canvas";
+import { useState, useCallback, useEffect } from "react";
 import { CursorContainer, CursorFeed } from "./schema";
-
-const debugProxy = (proxy: any) => {
-  return JSON.parse(JSON.stringify(proxy));
-};
+import { Group, type ID } from "jazz-tools";
+import { hashedColor } from "./utils/mappedColors";
 
 function App() {
-  const { me } = useAccount({ root: { cursors: [] } });
+  const { me } = useAccountOrGuest();
+
   const [cursorFeed, setCursorFeed] = useState<CursorFeed | null>(null);
   const [container, setContainer] = useState<CursorContainer | null>(null);
 
@@ -49,52 +46,59 @@ function App() {
       if (cursorContainer.cursorFeed === null) {
         throw new Error("cursorFeed is null");
       }
-      if (me?.root) {
-        me.root.cursors = cursorContainer.cursorFeed;
-      }
+      setContainer(cursorContainer);
+      setCursorFeed(cursorContainer.cursorFeed);
     } else {
-      console.log("Global cursors already exists, loading...");
-      if (me?.root) {
-        cursorContainer.cursorFeed.push({
-          position: { x: 0, y: 0 },
-        });
-        me.root.cursors = cursorContainer.cursorFeed;
-      }
+      console.log(
+        "Global cursors already exists, loading...",
+        cursorContainer.id,
+      );
+      setContainer(cursorContainer);
+      setCursorFeed(cursorContainer.cursorFeed);
     }
   }
 
   useEffect(() => {
+    if (!me) return;
     loadCursorContainer();
-  }, []);
+  }, [me]);
+
+  useEffect(() => {
+    console.log("container", container);
+  }, [container]);
+
+  const handleCursorMove = useCallback(
+    (move: { position: { x: number; y: number } }) => {
+      console.log("cursorFeed", cursorFeed);
+      if (!(cursorFeed && me)) return;
+      cursorFeed.push({
+        position: move.position,
+      });
+    },
+    [me, cursorFeed],
+  );
+
+  const remoteCursors = useCallback(
+    () =>
+      Object.values(cursorFeed?.perSession || {}).map((entry) => {
+        const id = entry.by?.id || "";
+        return {
+          id,
+          position: entry.value.position,
+          // Use the hashedColor function to generate a unique color based on the user ID
+          color: hashedColor(id),
+          isDragging: false,
+        };
+      }),
+    [cursorFeed, me],
+  );
 
   return (
     <>
       <main className="h-screen">
         <Canvas
-          onCursorMove={(_move) => {
-            const { x, y } = _move.position;
-            console.log("onCursorMove", x, y);
-          }}
-          remoteCursors={[
-            {
-              id: "1",
-              position: { x: -40, y: 60 },
-              color: "#dd0000",
-              isDragging: false,
-            },
-            {
-              id: "2",
-              position: { x: 40, y: 80 },
-              color: "#00dd00",
-              isDragging: false,
-            },
-            {
-              id: "3",
-              position: { x: -10, y: 120 },
-              color: "#0000dd",
-              isDragging: false,
-            },
-          ]}
+          onCursorMove={handleCursorMove}
+          remoteCursors={remoteCursors()}
         />
       </main>
 

@@ -8,7 +8,9 @@ export function UserCursor({ position, color, isDragging }: UserCursorProps) {
   return (
     <polygon
       points="0,0 0,20 14.3,14.3"
-      fill={isDragging ? color : `${color}44`}
+      fill={
+        isDragging ? color : `color-mix(in oklch, ${color}, transparent 56%)`
+      }
       stroke={color}
       strokeWidth="3"
       strokeLinecap="round"
