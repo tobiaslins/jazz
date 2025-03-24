@@ -1,7 +1,7 @@
 /**
  * Converts a string (like a coID) to a consistent color with controlled brightness
  * Uses Oklch color model for better perceptual uniformity
- * @param str - The string to convert to a color (typically a co_id)
+ * @param str - The string to convert to a color (typically a coID)
  * @returns An Oklch color string
  */
 export const hashedColor = (str: string): string => {
