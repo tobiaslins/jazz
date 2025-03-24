@@ -2,16 +2,9 @@ import ImageBlobReduce from "image-blob-reduce";
 import { Account, FileStream, Group, ImageDefinition } from "jazz-tools";
 import Pica from "pica";
 
-const pica = new Pica();
+let pica: Pica.Pica | undefined;
 
 /** @category Image creation */
-/**
- * Creates an ImageDefinition from a Blob or File.
- *
- * @param imageBlobOrFile - The Blob or File to create the ImageDefinition from.
- * @param options - Optional options for the ImageDefinition.
- * @returns A Promise that resolves to the created ImageDefinition.
- */
 export async function createImage(
   imageBlobOrFile: Blob | File,
   options?: {
@@ -19,6 +12,11 @@ export async function createImage(
     maxSize?: 256 | 1024 | 2048;
   },
 ): Promise<ImageDefinition> {
+  // Inizialize Pica here to not have module side effects
+  if (!pica) {
+    pica = new Pica();
+  }
+
   const owner = options?.owner;
 
   let originalWidth!: number;
@@ -48,89 +46,80 @@ export async function createImage(
     owner,
   );
 
-  return new Promise((resolve) => {
-    setTimeout(async () => {
-      const max256 = await Reducer.toBlob(imageBlobOrFile, { max: 256 });
+  const fillImageResolutions = async () => {
+    const max256 = await Reducer.toBlob(imageBlobOrFile, { max: 256 });
 
-      if (originalWidth > 256 || originalHeight > 256) {
-        const width =
-          originalWidth > originalHeight
-            ? 256
-            : Math.round(256 * (originalWidth / originalHeight));
-        const height =
-          originalHeight > originalWidth
-            ? 256
-            : Math.round(256 * (originalHeight / originalWidth));
+    if (originalWidth > 256 || originalHeight > 256) {
+      const width =
+        originalWidth > originalHeight
+          ? 256
+          : Math.round(256 * (originalWidth / originalHeight));
+      const height =
+        originalHeight > originalWidth
+          ? 256
+          : Math.round(256 * (originalHeight / originalWidth));
 
-        const binaryStream = await FileStream.createFromBlob(max256, owner);
+      const binaryStream = await FileStream.createFromBlob(max256, owner);
 
-        imageDefinition[`${width}x${height}`] = binaryStream;
-      }
+      imageDefinition[`${width}x${height}`] = binaryStream;
+    }
 
-      await new Promise((r) => setTimeout(r, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
-      if (options?.maxSize === 256) {
-        resolve(imageDefinition);
-        return;
-      }
+    if (options?.maxSize === 256) return;
 
-      const max1024 = await Reducer.toBlob(imageBlobOrFile, { max: 1024 });
+    const max1024 = await Reducer.toBlob(imageBlobOrFile, { max: 1024 });
 
-      if (originalWidth > 1024 || originalHeight > 1024) {
-        const width =
-          originalWidth > originalHeight
-            ? 1024
-            : Math.round(1024 * (originalWidth / originalHeight));
-        const height =
-          originalHeight > originalWidth
-            ? 1024
-            : Math.round(1024 * (originalHeight / originalWidth));
+    if (originalWidth > 1024 || originalHeight > 1024) {
+      const width =
+        originalWidth > originalHeight
+          ? 1024
+          : Math.round(1024 * (originalWidth / originalHeight));
+      const height =
+        originalHeight > originalWidth
+          ? 1024
+          : Math.round(1024 * (originalHeight / originalWidth));
 
-        const binaryStream = await FileStream.createFromBlob(max1024, owner);
+      const binaryStream = await FileStream.createFromBlob(max1024, owner);
 
-        imageDefinition[`${width}x${height}`] = binaryStream;
-      }
+      imageDefinition[`${width}x${height}`] = binaryStream;
+    }
 
-      await new Promise((r) => setTimeout(r, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
-      if (options?.maxSize === 1024) {
-        resolve(imageDefinition);
-        return;
-      }
+    if (options?.maxSize === 1024) return;
 
-      const max2048 = await Reducer.toBlob(imageBlobOrFile, { max: 2048 });
+    const max2048 = await Reducer.toBlob(imageBlobOrFile, { max: 2048 });
 
-      if (originalWidth > 2048 || originalHeight > 2048) {
-        const width =
-          originalWidth > originalHeight
-            ? 2048
-            : Math.round(2048 * (originalWidth / originalHeight));
-        const height =
-          originalHeight > originalWidth
-            ? 2048
-            : Math.round(2048 * (originalHeight / originalWidth));
+    if (originalWidth > 2048 || originalHeight > 2048) {
+      const width =
+        originalWidth > originalHeight
+          ? 2048
+          : Math.round(2048 * (originalWidth / originalHeight));
+      const height =
+        originalHeight > originalWidth
+          ? 2048
+          : Math.round(2048 * (originalHeight / originalWidth));
 
-        const binaryStream = await FileStream.createFromBlob(max2048, owner);
+      const binaryStream = await FileStream.createFromBlob(max2048, owner);
 
-        imageDefinition[`${width}x${height}`] = binaryStream;
-      }
+      imageDefinition[`${width}x${height}`] = binaryStream;
+    }
 
-      await new Promise((r) => setTimeout(r, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
-      if (options?.maxSize === 2048) {
-        resolve(imageDefinition);
-        return;
-      }
+    if (options?.maxSize === 2048) return;
 
-      const originalBinaryStream = await FileStream.createFromBlob(
-        imageBlobOrFile,
-        owner,
-      );
+    const originalBinaryStream = await FileStream.createFromBlob(
+      imageBlobOrFile,
+      owner,
+    );
 
-      imageDefinition[`${originalWidth}x${originalHeight}`] =
-        originalBinaryStream;
+    imageDefinition[`${originalWidth}x${originalHeight}`] =
+      originalBinaryStream;
+  };
 
-      resolve(imageDefinition);
-    }, 0);
-  });
+  await fillImageResolutions();
+
+  return imageDefinition;
 }
