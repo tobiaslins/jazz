@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { throttleTime } from "../utils/throttleTime";
 
 export interface CursorMoveEvent {
@@ -24,9 +24,10 @@ export function useCanvas({
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
-  const onCursorMoveThrottled = useRef(
+  const onCursorMoveThrottled = useCallback(
     throttleTime((move: CursorMoveEvent) => onCursorMove(move), throttleMs),
-  ).current;
+    [onCursorMove, throttleMs],
+  );
 
   useEffect(() => {
     const handleResize = () => {
