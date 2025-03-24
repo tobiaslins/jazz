@@ -8,6 +8,7 @@ interface UserCursor {
   position: { x: number; y: number };
   color: string;
   isDragging: boolean;
+  isRemote: boolean;
 }
 
 interface CanvasProps {
@@ -40,6 +41,7 @@ function Canvas({ remoteCursors, onCursorMove }: CanvasProps) {
           position={cursor.position}
           color={cursor.color}
           isDragging={cursor.isDragging}
+          isRemote={cursor.isRemote}
         />
       ))}
 
@@ -48,6 +50,7 @@ function Canvas({ remoteCursors, onCursorMove }: CanvasProps) {
           position={mousePosition}
           color="#FF69B4"
           isDragging={isDragging}
+          isRemote={false}
         />
       ) : null}
     </svg>

@@ -13,6 +13,7 @@
     "format-and-lint:fix": "biome check . --write"
   },
   "dependencies": {
+    "@react-spring/web": "^9.7.5",
     "jazz-react": "workspace:*",
     "jazz-tools": "workspace:*",
     "react": "^18.3.1",

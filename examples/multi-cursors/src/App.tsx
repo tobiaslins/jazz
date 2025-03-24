@@ -59,6 +59,7 @@ function App() {
           },
           color: hashedColor(entry.tx.sessionID),
           isDragging: false,
+          isRemote: true,
         }));
       setRemoteCursors(cursors);
     });
