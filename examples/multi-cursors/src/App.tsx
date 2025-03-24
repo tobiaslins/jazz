@@ -55,9 +55,10 @@ function App() {
           isDragging: false,
           isRemote: true,
           name:
-            entry.by?.profile?.name === "Anonymous user"
+            entry.by?.profile?.name === "Anonymous user" ||
+            !entry.by?.profile?.name
               ? getRandomUsername(entry.tx.sessionID)
-              : entry.by?.profile?.name,
+              : entry.by.profile.name,
         }));
       setRemoteCursors(cursors);
     });
