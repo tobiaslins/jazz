@@ -64,9 +64,6 @@ importers:
       hash-slash:
         specifier: workspace:*
         version: link:../../packages/hash-slash
-      jazz-browser-media-images:
-        specifier: workspace:*
-        version: link:../../packages/jazz-browser-media-images
       jazz-inspector:
         specifier: workspace:*
         version: link:../../packages/jazz-inspector
@@ -611,9 +608,6 @@ importers:
       hash-slash:
         specifier: workspace:*
         version: link:../../packages/hash-slash
-      jazz-browser-media-images:
-        specifier: workspace:*
-        version: link:../../packages/jazz-browser-media-images
       jazz-react:
         specifier: workspace:*
         version: link:../../packages/jazz-react
@@ -669,9 +663,6 @@ importers:
 
   examples/image-upload:
     dependencies:
-      jazz-browser-media-images:
-        specifier: workspace:*
-        version: link:../../packages/jazz-browser-media-images
       jazz-react:
         specifier: workspace:*
         version: link:../../packages/jazz-react
@@ -1207,9 +1198,6 @@ importers:
       clsx:
         specifier: ^2.0.0
         version: 2.1.1
-      jazz-browser-media-images:
-        specifier: workspace:0.11.6
-        version: link:../../packages/jazz-browser-media-images
       jazz-react:
         specifier: workspace:0.11.6
         version: link:../../packages/jazz-react
@@ -1292,9 +1280,6 @@ importers:
       hash-slash:
         specifier: workspace:*
         version: link:../../packages/hash-slash
-      jazz-browser-media-images:
-        specifier: workspace:*
-        version: link:../../packages/jazz-browser-media-images
       jazz-react:
         specifier: workspace:*
         version: link:../../packages/jazz-react
@@ -1826,8 +1811,11 @@ importers:
       jazz-browser:
         specifier: workspace:0.11.6
         version: link:../jazz-browser
+      jazz-browser-media-images:
+        specifier: workspace:0.11.6
+        version: link:../jazz-browser-media-images
       jazz-react-core:
-        specifier: workspace:*
+        specifier: workspace:0.11.6
         version: link:../jazz-react-core
       jazz-tools:
         specifier: workspace:0.11.6
@@ -1937,6 +1925,9 @@ importers:
       jazz-react-core:
         specifier: workspace:*
         version: link:../jazz-react-core
+      jazz-react-native-media-images:
+        specifier: workspace:*
+        version: link:../jazz-react-native-media-images
       jazz-tools:
         specifier: workspace:*
         version: link:../jazz-tools

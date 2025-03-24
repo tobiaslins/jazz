@@ -15,7 +15,6 @@
   "dependencies": {
     "clsx": "^2.0.0",
     "hash-slash": "workspace:*",
-    "jazz-browser-media-images": "workspace:*",
     "jazz-inspector": "workspace:*",
     "jazz-react": "workspace:*",
     "jazz-tools": "workspace:*",
