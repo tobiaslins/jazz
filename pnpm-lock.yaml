@@ -2202,6 +2202,9 @@ importers:
       jazz-browser:
         specifier: workspace:*
         version: link:../../packages/jazz-browser
+      jazz-browser-media-images:
+        specifier: workspace:*
+        version: link:../../packages/jazz-browser-media-images
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools
