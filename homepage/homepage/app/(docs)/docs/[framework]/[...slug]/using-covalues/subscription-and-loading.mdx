@@ -443,14 +443,13 @@ class ListOfTasks extends CoList.Of(co.ref(Task)) {}
 // ---cut-before---
 // Define a type that includes resolved nested data
 type ProjectWithTasks = Resolved<Project, {
-  tasks: true
+  tasks: { $each: true }
 }>;
 
 // Function that expects resolved data
 async function taskList({project}: {project: ProjectWithTasks}) {
   // TypeScript knows tasks are loaded, so this is type-safe
   return project.tasks
-    .filter(task => task !== null)
     .map(task => task.title)
     .join(`\n - `);
 }
