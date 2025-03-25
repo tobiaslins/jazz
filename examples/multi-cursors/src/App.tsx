@@ -1,6 +1,6 @@
 import { useAccount } from "jazz-react";
 import { Group, type ID } from "jazz-tools";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Logo } from "./Logo";
 import Container from "./components/Container";
 import { CursorFeed } from "./schema";
@@ -16,7 +16,7 @@ function App() {
   const [cursorFeedID, setCursorFeedID] = useState<ID<CursorFeed> | null>(null);
 
   useEffect(() => {
-    if (!me) return;
+    if (!me?.id) return;
     const loadCursorFeed = async () => {
       const id = await loadCursorContainer(
         me,
@@ -29,16 +29,7 @@ function App() {
       }
     };
     loadCursorFeed();
-  }, [me]);
-
-  const handleNameChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (!me?.profile) return;
-      const newName = e.target.value;
-      me.profile.name = newName;
-    },
-    [me],
-  );
+  }, [me?.id]);
 
   return (
     <>
@@ -54,7 +45,10 @@ function App() {
         <input
           type="text"
           value={getName(me?.profile?.name, me?.sessionID)}
-          onChange={handleNameChange}
+          onChange={(e) => {
+            if (!me?.profile) return;
+            me.profile.name = e.target.value;
+          }}
           placeholder="Your name"
           className="px-2 py-1 rounded border pointer-events-auto"
           autoComplete="off"
