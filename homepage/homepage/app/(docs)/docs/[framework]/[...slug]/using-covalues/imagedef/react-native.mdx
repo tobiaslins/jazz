@@ -91,7 +91,7 @@ function GalleryView({ image }) {
   return (
     <ProgressiveImg
       image={image}  // The image definition to load
-      maxWidth={800} // Limit to resolutions up to 800px wide
+      targetWidth={800} //  Looks for the best available resolution for a 800px image
     >
       {({ src }) => (
         <Image 
@@ -137,7 +137,7 @@ function CustomImageComponent({ image }) {
     originalSize // The original size of the image
   } = useProgressiveImg({
     image: image,  // The image definition to load
-    maxWidth: 800  // Limit to resolutions up to 800px wide
+    targetWidth: 800  // Limit to resolutions up to 800px wide
   });
 
   // When image is not available yet
