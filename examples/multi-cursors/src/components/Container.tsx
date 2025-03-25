@@ -2,8 +2,8 @@ import { useAccount, useCoState } from "jazz-react";
 import { ID } from "jazz-tools";
 import { useCallback, useMemo } from "react";
 import { CursorFeed } from "../schema";
-import { mappedColor } from "../utils/mappedColor";
-import { getName } from "../utils/mappedNickname";
+import { getColor } from "../utils/getColor";
+import { getName } from "../utils/getName";
 import Canvas from "./Canvas";
 
 /** A higher order component that wraps the canvas. */
@@ -21,7 +21,7 @@ function Container({ cursorFeedID }: { cursorFeedID: ID<CursorFeed> }) {
           x: entry.value.position.x,
           y: entry.value.position.y,
         },
-        color: mappedColor(entry.tx.sessionID),
+        color: getColor(entry.tx.sessionID),
         isDragging: false,
         isRemote: true,
         name: getName(entry.by?.profile?.name, entry.tx.sessionID),

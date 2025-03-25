@@ -4,8 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { Logo } from "./Logo";
 import Container from "./components/Container";
 import { CursorFeed } from "./schema";
+import { getName } from "./utils/getName";
 import { loadCursorContainer } from "./utils/loadCursorContainer";
-import { getName } from "./utils/mappedNickname";
 
 const cursorFeedIDToLoad = import.meta.env.VITE_CURSOR_FEED_ID;
 const groupIDToLoad = import.meta.env.VITE_GROUP_ID;
