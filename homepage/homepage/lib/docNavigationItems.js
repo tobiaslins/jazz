@@ -167,7 +167,7 @@ export const docNavigationItems = [
       {
         name: "History & time travel",
         href: "/docs/using-covalues/history",
-        done: 80,
+        done: 0,
       },
     ],
   },
