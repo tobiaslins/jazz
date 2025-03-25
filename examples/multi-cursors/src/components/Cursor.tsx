@@ -1,6 +1,6 @@
 import { animated, to, useSpring } from "@react-spring/web";
 
-interface UserCursorProps {
+interface CursorProps {
   position: { x: number; y: number };
   color: string;
   isDragging: boolean;
@@ -8,13 +8,13 @@ interface UserCursorProps {
   name: string;
 }
 
-export function UserCursor({
+export function Cursor({
   position,
   color,
   isDragging,
   isRemote,
-  name = "Guest",
-}: UserCursorProps) {
+  name,
+}: CursorProps) {
   const springs = useSpring({
     x: position.x,
     y: position.y,

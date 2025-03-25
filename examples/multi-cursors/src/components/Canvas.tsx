@@ -1,7 +1,7 @@
 import { CursorMoveEvent, useCanvas } from "../hooks/useCanvas";
 import { CanvasBackground } from "./CanvasBackground";
 import { CanvasDemoContent } from "./CanvasDemoContent";
-import { UserCursor } from "./UserCursor";
+import { Cursor } from "./Cursor";
 
 interface UserCursor {
   id: string;
@@ -38,7 +38,7 @@ function Canvas({ remoteCursors, onCursorMove, name }: CanvasProps) {
       <CanvasDemoContent />
 
       {remoteCursors.map((cursor) => (
-        <UserCursor
+        <Cursor
           key={cursor.id}
           position={cursor.position}
           color={cursor.color}
@@ -49,7 +49,7 @@ function Canvas({ remoteCursors, onCursorMove, name }: CanvasProps) {
       ))}
 
       {isMouseOver ? (
-        <UserCursor
+        <Cursor
           position={mousePosition}
           color="#FF69B4"
           isDragging={isDragging}
