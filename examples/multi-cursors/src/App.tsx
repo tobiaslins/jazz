@@ -65,18 +65,45 @@ function App() {
     return () => unsubscribe();
   }, [cursorFeed, me]);
 
+  const handleNameChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (!me?.profile) return;
+      const newName = e.target.value;
+      me.profile.name = newName;
+    },
+    [me],
+  );
+
   return (
     <>
       <main className="h-screen">
         <Canvas
           onCursorMove={handleCursorMove}
           remoteCursors={remoteCursors}
-          name={me?.profile?.name ?? getRandomUsername(me?.sessionID ?? "")}
+          name={
+            me?.profile?.name === "Anonymous user" || !me?.profile?.name
+              ? getRandomUsername(me?.sessionID ?? "")
+              : me?.profile?.name
+          }
         />
       </main>
 
-      <footer className="fixed bottom-4 right-4 pointer-events-none">
-        <Logo />
+      <footer className="fixed bottom-4 right-4 flex items-center gap-4">
+        <input
+          type="text"
+          value={
+            me?.profile?.name === "Anonymous user" || !me?.profile?.name
+              ? getRandomUsername(me?.sessionID ?? "")
+              : me?.profile?.name
+          }
+          onChange={handleNameChange}
+          placeholder="Your name"
+          className="px-2 py-1 rounded border pointer-events-auto"
+          autoComplete="off"
+        />
+        <div className="pointer-events-none">
+          <Logo />
+        </div>
       </footer>
     </>
   );
