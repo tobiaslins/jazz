@@ -216,7 +216,14 @@ When subscribing to or loading a CoValue, you need to handle three possible stat
 This allows you to handle loading, error, and success states in your application:
 
 <CodeGroup>
-```ts
+```ts twoslash
+import { ID, CoMap, co } from "jazz-tools";
+class Task extends CoMap {
+  title = co.string;
+}
+
+const taskId = "co_123" as ID<Task>;
+// ---cut-before---
 Task.subscribe(taskId, (task) => {
   if (task === undefined) {
     console.log("Task is loading...");
@@ -238,16 +245,25 @@ When working with related CoValues (like tasks in a project), you often need to 
 Resolve queries let you declare exactly which references to load and how deep to go using the `resolve` property:
 
 <CodeGroup>
-```ts
+```ts twoslash
+import { ID, CoMap, co, CoList } from "jazz-tools";
+const projectId = "co_123" as ID<Project>;
+
+// ---cut-before---
 class Project extends CoMap {
   name = co.string;
   tasks = co.ref(ListOfTasks);
+  owner = co.ref(TeamMember);
 }
 
 class Task extends CoMap {
   title = co.string;
   subtasks = co.ref(ListOfTasks);
   assignee = co.optional.ref(TeamMember);
+}
+
+class TeamMember extends CoMap {
+  name = co.string;
 }
 
 class ListOfTasks extends CoList.Of(co.ref(Task)) {}
@@ -334,7 +350,30 @@ The `Resolved` type is especially useful when passing data between components, a
 
 <ContentByFramework framework="react">
 <CodeGroup>
-```ts
+```tsx twoslash
+import React from "react";
+import { ID, CoMap, co, CoList, Resolved } from "jazz-tools";
+
+class Project extends CoMap {
+  name = co.string;
+  tasks = co.ref(ListOfTasks);
+  owner = co.ref(TeamMember);
+}
+
+class Task extends CoMap {
+  title = co.string;
+  subtasks = co.ref(ListOfTasks);
+  assignee = co.optional.ref(TeamMember);
+}
+
+class TeamMember extends CoMap {
+  name = co.string;
+}
+
+class ListOfTasks extends CoList.Of(co.ref(Task)) {}
+
+
+// ---cut-before---
 // Define a type that includes resolved nested data
 type ProjectWithTasks = Resolved<Project, {
   tasks: { $each: true }
@@ -379,7 +418,29 @@ function processProject(project: FullyLoadedProject) {
 
 <ContentByFramework framework="vanilla">
 <CodeGroup>
-```ts
+```ts twoslash
+import { ID, CoMap, co, CoList, Resolved } from "jazz-tools";
+
+class Project extends CoMap {
+  name = co.string;
+  tasks = co.ref(ListOfTasks);
+  owner = co.ref(TeamMember);
+}
+
+class Task extends CoMap {
+  title = co.string;
+  subtasks = co.ref(ListOfTasks);
+  assignee = co.optional.ref(TeamMember);
+}
+
+class TeamMember extends CoMap {
+  name = co.string;
+}
+
+class ListOfTasks extends CoList.Of(co.ref(Task)) {}
+
+
+// ---cut-before---
 // Define a type that includes resolved nested data
 type ProjectWithTasks = Resolved<Project, {
   tasks: true
@@ -427,16 +488,40 @@ Using the `Resolved` type helps catch errors at compile time rather than runtime
 Sometimes you need to make sure data is loaded before proceeding with an operation. The `ensureLoaded` method lets you guarantee that a CoValue and its referenced data are loaded to a specific depth:
 
 <CodeGroup>
-```ts
+```ts twoslash
+import { ID, CoMap, co, CoList, Resolved } from "jazz-tools";
+
+class Project extends CoMap {
+  name = co.string;
+  tasks = co.ref(ListOfTasks);
+  owner = co.ref(TeamMember);
+}
+
+class Task extends CoMap {
+  title = co.string;
+  status = co.literal("todo", "in-progress", "completed");
+  subtasks = co.ref(ListOfTasks);
+  assignee = co.optional.ref(TeamMember);
+}
+
+class TeamMember extends CoMap {
+  name = co.string;
+}
+
+class ListOfTasks extends CoList.Of(co.ref(Task)) {}
+
+// ---cut-before---
 async function completeAllTasks(projectId: ID<Project>) {
   // Ensure the project is loaded
-  const project = await Project.load(projectId, { resolve: {} });
+  const project = await Project.load(projectId, { resolve: true });
   if (!project) return;
 
   // Ensure tasks are loaded
   const loadedProject = await project.ensureLoaded({
     resolve: {
-      tasks: true
+      tasks: {
+        $each: true
+      }
     }
   });
 
