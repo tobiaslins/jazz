@@ -21,14 +21,12 @@ export async function loadGroup(me: Account, groupID: ID<Group>) {
  * @param me - The account of the current user.
  * @param cursorFeedID - The ID of the cursor feed.
  * @param groupID - The ID of the group.
- * @param setCursorFeed - The function to set the cursor feed.
  */
 export async function loadCursorContainer(
   me: Account,
   cursorFeedID: ID<CursorFeed>,
   groupID: ID<Group>,
-  setCursorFeed: (cursorFeed: CursorFeed) => void,
-) {
+): Promise<ID<CursorFeed> | undefined> {
   if (!me) return;
   const group = await loadGroup(me, groupID);
 
@@ -56,12 +54,12 @@ export async function loadCursorContainer(
     if (cursorContainer.cursorFeed === null) {
       throw new Error("cursorFeed is null");
     }
-    setCursorFeed(cursorContainer.cursorFeed);
+    return cursorContainer.cursorFeed.id;
   } else {
     console.log(
       "Global cursors already exists, loading...",
       cursorContainer.id,
     );
-    setCursorFeed(cursorContainer.cursorFeed);
+    return cursorContainer.cursorFeed.id;
   }
 }
