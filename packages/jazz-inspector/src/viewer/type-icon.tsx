@@ -22,6 +22,7 @@ export const TypeIcon = ({
     colist: "☰ CoList",
     account: "👤 Account",
     group: "👥 Group",
+    file: "📃 FileStream",
   };
 
   const iconKey = extendedType || type;
