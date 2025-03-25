@@ -448,80 +448,12 @@ async function completeAllTasks(projectId: ID<Project>) {
 ```
 </CodeGroup>
 
-## Performance Considerations
-
-Resolution depth is directly related to performance. Loading too much data can slow down your application, while loading too little can lead to unnecessary auto-loading delays. Finding the right balance is crucial for a responsive user experience.
-
-Here are some practical guidelines:
-
-- **Load only what you need** for the current view or operation
-- **Preload data** that will be needed soon to improve perceived performance
-- Use **caching** to avoid reloading data that hasn't changed
-- **Be explicit** about loading patterns in performance-critical code
-
-<CodeGroup>
-```ts
-// Bad: Loading everything deeply
-const project = await Project.load(projectId, {
-  resolve: {
-    tasks: {
-      $each: {
-        subtasks: {
-          $each: {
-            comments: {
-              $each: true
-            }
-          }
-        }
-      }
-    },
-    members: {
-      $each: true
-    },
-    resources: {
-      $each: true
-    }
-  }
-});
-
-// Better: Loading only what's needed for the current view
-const project = await Project.load(projectId, {
-  resolve: {
-    tasks: true  // Just load the tasks shallowly
-  }
-});
-
-// Later, when a task is selected:
-const task = await Task.load(selectedTaskId, {
-  resolve: {
-    subtasks: true  // Now load its subtasks
-  }
-});
-```
-</CodeGroup>
-
-## Using the Load Cache
-
-By default, Jazz maintains a cache of loaded CoValues to avoid unnecessary network requests. This means that if you've already loaded a CoValue, subsequent load requests will use the cached version unless you explicitly request a refresh.
-
-<CodeGroup>
-```ts
-// First load: fetches from network or local storage
-const project = await Project.load(projectId, { resolve: {} });
-
-// Later loads: uses cached version if available
-const sameProject = await Project.load(projectId, { resolve: {} });
-```
-</CodeGroup>
-
 
 
 ## Best Practices
 
 1. **Be explicit about resolution depths**: Always specify exactly what you need
-2. **Clean up subscriptions**: Always store and call the unsubscribe function when you're done
-3. **Handle all loading states**: Check for undefined (loading), null (not found), and success states
-4. **Use framework integrations**: They handle subscription lifecycle automatically
-5. **Balance depth and performance**: Load only what you need for the current view
-6. **Take advantage of auto-loading**: For simpler use cases, rely on automatic loading of nested references
-7. **Use the Resolved type**: Add compile-time type safety for components that require specific resolution patterns
+2. **Use framework integrations**: They handle subscription lifecycle automatically
+3. **Clean up subscriptions**: Always store and call the unsubscribe function when you're done
+4. **Handle all loading states**: Check for undefined (loading), null (not found), and success states
+5. **Use the Resolved type**: Add compile-time type safety for components that require specific resolution patterns
