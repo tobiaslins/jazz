@@ -6,6 +6,10 @@ import { getColor } from "../utils/getColor";
 import { getName } from "../utils/getName";
 import Canvas from "./Canvas";
 
+const OLD_CURSOR_AGE_SECONDS = Number(
+  import.meta.env.VITE_OLD_CURSOR_AGE_SECONDS,
+);
+
 /** A higher order component that wraps the canvas. */
 function Container({ cursorFeedID }: { cursorFeedID: ID<CursorFeed> }) {
   const { me } = useAccount();
@@ -14,7 +18,15 @@ function Container({ cursorFeedID }: { cursorFeedID: ID<CursorFeed> }) {
   const remoteCursors = useMemo(() => {
     if (!cursors) return [];
     return Object.values(cursors.perSession)
-      .filter((entry) => entry.tx.sessionID !== me?.sessionID)
+      .filter((entry) => {
+        if (entry.tx.sessionID === me?.sessionID) return false;
+        if (
+          OLD_CURSOR_AGE_SECONDS &&
+          entry.madeAt < new Date(Date.now() - 1000 * OLD_CURSOR_AGE_SECONDS)
+        )
+          return false;
+        return true;
+      })
       .map((entry) => ({
         id: entry.tx.sessionID,
         position: {
