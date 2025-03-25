@@ -18,7 +18,7 @@ export const TypeIcon = ({
     record: "{} Record",
     image: "🖼️ Image",
     comap: "{} CoMap",
-    costream: "≋ CoStream",
+    costream: "≋ CoFeed",
     colist: "☰ CoList",
     account: "👤 Account",
     group: "👥 Group",
