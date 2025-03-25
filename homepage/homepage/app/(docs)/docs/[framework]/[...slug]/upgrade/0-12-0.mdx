@@ -50,10 +50,16 @@ const { me } = useAccount({ // [!code ++]
 For a `CoList`:
 
 <CodeGroup>
-```tsx
+```tsx twoslash
+// @noErrors: 2451
+import { CoList, co } from "jazz-tools";
+import { useCoState } from "jazz-react";
+
+// ---cut-before---
 class ListOfTasks extends CoList.Of(co.ref(Task)) {}
 
 // Before
+// @ts-expect-error
 const tasks = useCoState(ListOfTasks, id, [{}]); // [!code --]
 
 // After
@@ -64,10 +70,17 @@ const tasks = useCoState(ListOfTasks, id, { resolve: { $each: true } }); // [!co
 For a `CoMap.Record`:
 
 <CodeGroup>
-```tsx
+```tsx twoslash
+// @noErrors: 2451
+import { CoMap, co, Account } from "jazz-tools";
+import { useCoState } from "jazz-react";
+class MyAppAccount extends Account {}
+
+// ---cut-before---
 class UsersByUsername extends CoMap.Record(co.ref(MyAppAccount)) {}
 
 // Before
+// @ts-expect-error
 const usersByUsername = useCoState(UsersByUsername, id, [{}]); // [!code --]
 
 // After
@@ -77,10 +90,19 @@ const usersByUsername = useCoState(UsersByUsername, id, { // [!code ++]
 ```
 </CodeGroup>
 
-Nested loading &mdash; note how it's now less terse, but more readable and auto-complete friendly:
+Nested loading &mdash; note how it's now less terse, but more readable:
 
 <CodeGroup>
-```tsx
+```tsx twoslash
+// @noErrors: 2451
+import { CoList, CoMap, co } from "jazz-tools";
+import { useCoState } from "jazz-react";
+
+// ---cut-before---
+class ListOfTasks extends CoList.Of(co.ref(Task)) {}
+class Task extends CoMap { assignees = co.ref(ListOfAccounts); org = co.ref(CoMap.Record(co.string)); }
+class ListOfAccounts extends CoList.Of(co.ref(Account)) {}
+
 // Before
 const tasksWithAssigneesAndTheirOrgs = useCoState(ListOfTasks, id, [{ // [!code --]
   assignees: [{ org: {}}]} // [!code --]
@@ -96,6 +118,32 @@ const tasksWithAssigneesAndTheirOrgs = useCoState(ListOfTasks, id, { // [!code +
     } // [!code ++]
   } // [!code ++]
 }); // [!code ++]
+```
+</CodeGroup>
+
+It's also a lot more auto-complete friendly:
+
+<CodeGroup>
+```tsx twoslash
+// @noErrors: 2451
+import { CoList, CoMap, co } from "jazz-tools";
+import { useCoState } from "jazz-react";
+
+// ---cut-before---
+class ListOfTasks extends CoList.Of(co.ref(Task)) {}
+class Task extends CoMap { assignees = co.ref(ListOfAccounts); org = co.ref(CoMap.Record(co.string)); }
+class ListOfAccounts extends CoList.Of(co.ref(Account)) {}
+
+const tasksWithAssigneesAndTheirOrgs = useCoState(ListOfTasks, id, {
+  resolve: {
+    $each: {
+      assignees: {
+        
+//      ^|
+      }
+    }
+  }
+});
 ```
 </CodeGroup>
 
