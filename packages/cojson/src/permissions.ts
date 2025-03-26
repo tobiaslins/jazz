@@ -101,7 +101,7 @@ export function determineValidTransactions(
         }
 
         const transactorRoleAtTxTime =
-          groupAtTime.roleOfInternal(effectiveTransactor)?.role;
+          groupAtTime.roleOfInternal(effectiveTransactor);
 
         if (
           transactorRoleAtTxTime !== "admin" &&
