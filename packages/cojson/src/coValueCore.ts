@@ -35,7 +35,6 @@ import { CoValueKnownState, NewContentMessage } from "./sync.js";
 import { accountOrAgentIDfromSessionID } from "./typeUtils/accountOrAgentIDfromSessionID.js";
 import { expectGroup } from "./typeUtils/expectGroup.js";
 import { isAccountID } from "./typeUtils/isAccountID.js";
-import { parseError } from "./utils.js";
 
 /**
     In order to not block other concurrently syncing CoValues we introduce a maximum size of transactions,

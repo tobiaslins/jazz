@@ -90,9 +90,10 @@ export function determineValidTransactions(
 
     for (const [sessionID, sessionLog] of coValue.sessionLogs.entries()) {
       const transactor = accountOrAgentIDfromSessionID(sessionID);
+      const knownTransactionsForSession = knownTransactions?.[sessionID] ?? -1;
 
       sessionLog.transactions.forEach((tx, txIndex) => {
-        if (knownTransactions?.[sessionID]! >= txIndex) {
+        if (knownTransactionsForSession >= txIndex) {
           return;
         }
 
@@ -126,8 +127,10 @@ export function determineValidTransactions(
     const validTransactions: ValidTransactionsResult[] = [];
 
     for (const [sessionID, sessionLog] of coValue.sessionLogs.entries()) {
+      const knownTransactionsForSession = knownTransactions?.[sessionID] ?? -1;
+
       sessionLog.transactions.forEach((tx, txIndex) => {
-        if (knownTransactions?.[sessionID]! >= txIndex) {
+        if (knownTransactionsForSession >= txIndex) {
           return;
         }
 
