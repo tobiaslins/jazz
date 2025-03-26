@@ -269,11 +269,22 @@ export function subscribeToCoValue<V extends CoValue, Depth>(
       return;
     }
     if (unsubscribed) return;
+
+    let checkingDepth = false;
+
     const subscription = new SubscriptionScope(
       value,
       cls as CoValueClass<V> & CoValueFromRaw<V>,
       (update, subscription) => {
-        if (fulfillsDepth(depth, update)) {
+        // fullfillsDepth may trigger a syncronous update while accessing values
+        // we want to discard those to avoid invalid updates
+        if (checkingDepth) return false;
+
+        checkingDepth = true;
+        const isLoaded = fulfillsDepth(depth, update);
+        checkingDepth = false;
+
+        if (isLoaded) {
           listener(
             update as DeeplyLoaded<V, Depth>,
             subscription.unsubscribeAll,

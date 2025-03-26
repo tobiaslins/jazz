@@ -1,4 +1,4 @@
-import type { RawCoValue } from "cojson";
+import type { CoValueCore, LocalNode, RawCoValue } from "cojson";
 import { type Account } from "../coValues/account.js";
 import type {
   AnonymousJazzAgent,
@@ -13,8 +13,6 @@ export const subscriptionsScopes = new WeakMap<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   SubscriptionScope<any>
 >();
-
-const TRACE_INVALIDATIONS = false;
 
 export class SubscriptionScope<Root extends CoValue> {
   scopeID: string = `scope-${Math.random().toString(36).slice(2)}`;
@@ -49,6 +47,7 @@ export class SubscriptionScope<Root extends CoValue> {
     subscriptionsScopes.set(root, this);
 
     this.subscriber = root._loadedAs;
+
     this.scheduleUpdate = () => {
       const value = rootSchema.fromRaw(this.rootEntry.value) as Root;
       subscriptionsScopes.set(value, this);
@@ -86,7 +85,8 @@ export class SubscriptionScope<Root extends CoValue> {
         this.subscriber._type === "Account"
           ? this.subscriber._raw.core.node
           : this.subscriber.node;
-      void node.loadCoValueCore(accessedOrSetId).then((core) => {
+
+      loadCoValue(node, accessedOrSetId, (core) => {
         if (loadingEntry.state === "loading" && loadingEntry.immediatelyUnsub) {
           return;
         }
@@ -98,8 +98,8 @@ export class SubscriptionScope<Root extends CoValue> {
           this.entries.set(accessedOrSetId, entry);
 
           const rawUnsub = core.subscribe((rawUpdate) => {
-            // console.log("ref update", this.scopeID, accessedOrSetId, JSON.stringify(rawUpdate))
             if (!rawUpdate) return;
+
             this.invalidate(accessedOrSetId);
             this.scheduleUpdate();
           });
@@ -110,18 +110,13 @@ export class SubscriptionScope<Root extends CoValue> {
     }
   }
 
-  invalidate(
-    id: ID<CoValue>,
-    fromChild?: ID<CoValue>,
-    seen: Set<ID<CoValue>> = new Set(),
-  ) {
+  invalidate(id: ID<CoValue>, seen: Set<ID<CoValue>> = new Set()) {
     if (seen.has(id)) return;
-    TRACE_INVALIDATIONS &&
-      console.log("invalidating", fromChild, "->", id, this.cachedValues[id]);
+
     delete this.cachedValues[id];
     seen.add(id);
     for (const parent of this.parents[id] || []) {
-      this.invalidate(parent, id, seen);
+      this.invalidate(parent, seen);
     }
   }
 
@@ -135,4 +130,26 @@ export class SubscriptionScope<Root extends CoValue> {
     }
     this.entries.clear();
   };
+}
+
+/**
+ * Loads a CoValue from the node and calls the callback with the result.
+
+ * If the CoValue is already loaded, the callback is called synchronously.
+ * If the CoValue is not loaded, the callback is called asynchronously.
+ */
+function loadCoValue(
+  node: LocalNode,
+  id: ID<CoValue>,
+  callback: (value: CoValueCore | "unavailable") => void,
+) {
+  const entry = node.coValuesStore.get(id);
+
+  if (entry.state.type === "available") {
+    callback(entry.state.coValue);
+  } else {
+    void node.loadCoValueCore(id).then((core) => {
+      callback(core);
+    });
+  }
 }
