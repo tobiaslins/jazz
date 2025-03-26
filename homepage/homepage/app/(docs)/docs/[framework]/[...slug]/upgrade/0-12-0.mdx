@@ -243,6 +243,33 @@ function TrackListComponent({ id }: { id: ID<ListOfTracks> }) {
 ```
 </CodeGroup>
 
+The same change is applied to the load function, so now it returns `null` instead of `undefined` when the value is missing.
+
+<CodeGroup>
+```tsx twoslash
+// @noErrors: 2451
+import { CoMap, co, ID } from "jazz-tools";
+import { useAccount } from "jazz-react";
+
+class MyCoMap extends CoMap {}
+const id = "co_123" as ID<MyCoMap>;
+
+// ---cut-before---
+// Before
+// @ts-expect-error
+const map = await MyCoMap.load(id);
+if (map === undefined) {
+  throw new Error("Map not found");
+}
+
+// After
+const map = await MyCoMap.load(id);
+if (map === null) {
+  throw new Error("Map not found or access denied");
+}
+```
+</CodeGroup>
+
 ## New Features
 
 ### The `Resolved` type helper

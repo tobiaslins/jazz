@@ -376,10 +376,10 @@ const task = await Task.load(taskId, {
   resolve: { assignee: true }
 });
 
-task // => undefined
+task // => null
 ```
 </CodeGroup>
-The load operation will fail and return `undefined` if any requested reference is inaccessible. This maintains data consistency by ensuring all requested references are available before returning the object.
+The load operation will fail and return `null` if any requested reference is inaccessible. This maintains data consistency by ensuring all requested references are available before returning the object.
 
 The behavior is the same for optional and required references.
 
@@ -416,12 +416,12 @@ const project = await Project.load(projectId, {
   resolve: { tasks: { $each: true } }
 });
 
-project // => undefined
+project // => null
 ```
 </CodeGroup>
-If any item in a list is inaccessible to the user, the entire load operation will fail and return `undefined`. This is because lists expect all their items to be accessible - a partially loaded list could lead to data inconsistencies.
+If any item in a list is inaccessible to the user, the entire load operation will fail and return `null`. This is because lists expect all their items to be accessible - a partially loaded list could lead to data inconsistencies.
 
-#### Accessing an inaccessible reference via autoload
+#### Reading a non-resolved inaccessible reference
 
 When trying to load an object with an inaccessible reference without directly resolving it:
 
