@@ -1,6 +1,6 @@
 import { cojsonInternals } from "cojson";
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
-import { describe, expect, expectTypeOf, test, vi } from "vitest";
+import { assert, describe, expect, expectTypeOf, test, vi } from "vitest";
 import {
   Account,
   CoFeed,
@@ -465,6 +465,27 @@ describe("Deep loading with unauthorized account", async () => {
 
     expect(mapOnAlice?.optionalRef).toBe(undefined);
     expect(mapOnAlice?.optionalRef?.value).toBe(undefined);
+  });
+
+  test("unaccessible optional element via autoload", async () => {
+    const map = TestMap.create(
+      {
+        list: TestList.create([], group),
+        optionalRef: InnermostMap.create({ value: "hello" }, onlyBob),
+      },
+      group,
+    );
+
+    const mapOnAlice = await TestMap.load(map.id, {
+      loadAs: alice,
+      resolve: { list: true } as const,
+    });
+
+    assert(mapOnAlice, "Alice isn't able to load the map");
+
+    mapOnAlice.subscribe((value) => {
+      expect(value.optionalRef).toBe(undefined);
+    });
   });
 
   test("unaccessible stream", async () => {
