@@ -483,9 +483,14 @@ describe("Deep loading with unauthorized account", async () => {
 
     assert(mapOnAlice, "Alice isn't able to load the map");
 
-    mapOnAlice.subscribe((value) => {
-      expect(value.optionalRef).toBe(undefined);
+    const result = await new Promise((resolve) => {
+      const unsub = mapOnAlice.subscribe((value) => {
+        resolve(value.optionalRef);
+        unsub();
+      });
     });
+
+    expect(result).toBe(null);
   });
 
   test("unaccessible stream", async () => {
