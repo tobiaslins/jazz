@@ -52,6 +52,7 @@ function App() {
           placeholder="Your name"
           className="px-2 py-1 rounded border pointer-events-auto"
           autoComplete="off"
+          maxLength={32}
         />
         <div className="pointer-events-none">
           <Logo />
