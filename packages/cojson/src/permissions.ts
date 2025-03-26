@@ -21,6 +21,7 @@ import {
 import { parseJSON } from "./jsonStringify.js";
 import { JsonValue } from "./jsonValue.js";
 import { logger } from "./logger.js";
+import { CoValueKnownState } from "./sync.js";
 import { accountOrAgentIDfromSessionID } from "./typeUtils/accountOrAgentIDfromSessionID.js";
 import { expectGroup } from "./typeUtils/expectGroup.js";
 
@@ -61,6 +62,7 @@ function logPermissionError(
 
 export function determineValidTransactions(
   coValue: CoValueCore,
+  knownTransactions?: CoValueKnownState["sessions"],
 ): { txID: TransactionID; tx: Transaction }[] {
   if (coValue.header.ruleset.type === "group") {
     const initialAdmin = coValue.header.ruleset.initialAdmin;
@@ -90,6 +92,10 @@ export function determineValidTransactions(
       const transactor = accountOrAgentIDfromSessionID(sessionID);
 
       sessionLog.transactions.forEach((tx, txIndex) => {
+        if (knownTransactions?.[sessionID]! >= txIndex) {
+          return;
+        }
+
         const groupAtTime = groupContent.atTime(tx.madeAt);
         const effectiveTransactor = agentInAccountOrMemberInGroup(
           transactor,
@@ -121,6 +127,10 @@ export function determineValidTransactions(
 
     for (const [sessionID, sessionLog] of coValue.sessionLogs.entries()) {
       sessionLog.transactions.forEach((tx, txIndex) => {
+        if (knownTransactions?.[sessionID]! >= txIndex) {
+          return;
+        }
+
         validTransactions.push({ txID: { sessionID, txIndex }, tx });
       });
     }

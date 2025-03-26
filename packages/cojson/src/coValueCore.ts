@@ -497,7 +497,10 @@ export class CoValueCore {
     ignorePrivateTransactions: boolean;
     knownTransactions?: CoValueKnownState["sessions"];
   }): DecryptedTransaction[] {
-    const validTransactions = determineValidTransactions(this);
+    const validTransactions = determineValidTransactions(
+      this,
+      options?.knownTransactions,
+    );
 
     const allTransactions: DecryptedTransaction[] = [];
 
