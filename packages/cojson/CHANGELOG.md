@@ -1,5 +1,12 @@
 # cojson
 
+## 0.11.8
+
+### Patch Changes
+
+- 6c86c4f: Fix "Expected header to be sent in first message error" on sync
+- 9d0c9dc: Update @opentelemetry/api dependency
+
 ## 0.11.7
 
 ### Patch Changes

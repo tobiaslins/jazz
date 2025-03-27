@@ -1,5 +1,12 @@
 # jazz-example-pets
 
+## 0.0.184
+
+### Patch Changes
+
+- jazz-react@0.11.8
+- jazz-tools@0.11.8
+
 ## 0.0.183
 
 ### Patch Changes
