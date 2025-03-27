@@ -237,7 +237,7 @@ export class Group extends CoValueBase implements CoValue {
     this: CoValueClass<G>,
     id: ID<G>,
     options?: { resolve?: RefsToResolveStrict<G, R>; loadAs?: Account },
-  ): Promise<Resolved<G, R> | undefined> {
+  ): Promise<Resolved<G, R> | null> {
     return loadCoValueWithoutMe(this, id, options);
   }
 

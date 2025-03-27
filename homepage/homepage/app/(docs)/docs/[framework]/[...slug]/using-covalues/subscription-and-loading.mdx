@@ -338,9 +338,130 @@ projectDeep.tasks[0].assignee;
 
 The resolve query defines which parts of the graph you want to load, making it intuitive to express complex loading patterns.
 
-### Loading states and permissions in collections and optional references
+### Loading states and permissions
 
-TODO
+When loading data with references, the load operation will fail if one of the references is unavailable or if the user doesn't have read access to it. Let's explore what happens in various scenarios:
+
+#### Resolved References
+
+When a user tries to load a reference they don't have access to:
+
+<CodeGroup>
+```typescript twoslash
+import { ID, CoMap, co, CoList } from "jazz-tools";
+
+class Project extends CoMap {
+  name = co.string;
+  tasks = co.ref(ListOfTasks);
+  owner = co.ref(TeamMember);
+}
+
+class Task extends CoMap {
+  title = co.string;
+  subtasks = co.ref(ListOfTasks);
+  assignee = co.optional.ref(TeamMember);
+}
+
+class TeamMember extends CoMap {
+  name = co.string;
+}
+
+class ListOfTasks extends CoList.Of(co.ref(Task)) {}
+
+const taskId = "co_123" as ID<Task>;
+
+// ---cut-before---
+// If assignee is not accessible to the user:
+const task = await Task.load(taskId, {
+  resolve: { assignee: true }
+});
+
+task // => null
+```
+</CodeGroup>
+The load operation will fail and return `null` if any requested reference is inaccessible. This maintains data consistency by ensuring all requested references are available before returning the object.
+
+The behavior is the same for optional and required references.
+
+#### List References
+
+When a list contains references to items the user can't access:
+
+<CodeGroup>
+```typescript twoslash
+import { ID, CoMap, co, CoList } from "jazz-tools";
+
+class Project extends CoMap {
+  name = co.string;
+  tasks = co.ref(ListOfTasks);
+  owner = co.ref(TeamMember);
+}
+
+class Task extends CoMap {
+  title = co.string;
+  subtasks = co.ref(ListOfTasks);
+  assignee = co.optional.ref(TeamMember);
+}
+
+class TeamMember extends CoMap {
+  name = co.string;
+}
+
+class ListOfTasks extends CoList.Of(co.ref(Task)) {}
+
+const projectId = "co_123" as ID<Project>;
+// ---cut-before---
+// If any item in the list is not accessible:
+const project = await Project.load(projectId, {
+  resolve: { tasks: { $each: true } }
+});
+
+project // => null
+```
+</CodeGroup>
+If any item in a list is inaccessible to the user, the entire load operation will fail and return `null`. This is because lists expect all their items to be accessible - a partially loaded list could lead to data inconsistencies.
+
+#### Reading a non-resolved inaccessible reference
+
+When trying to load an object with an inaccessible reference without directly resolving it:
+
+<CodeGroup>
+```typescript twoslash
+import { ID, CoMap, co, CoList } from "jazz-tools";
+
+class Project extends CoMap {
+  name = co.string;
+  tasks = co.ref(ListOfTasks);
+  owner = co.ref(TeamMember);
+}
+
+class Task extends CoMap {
+  title = co.string;
+  subtasks = co.ref(ListOfTasks);
+  assignee = co.optional.ref(TeamMember);
+}
+
+class TeamMember extends CoMap {
+  name = co.string;
+}
+
+class ListOfTasks extends CoList.Of(co.ref(Task)) {}
+
+const projectId = "co_123" as ID<Project>;
+// ---cut-before---
+const project = await Project.load(projectId, {
+  resolve: true
+});
+
+project // => Project
+
+// The user doesn't have access to the owner
+project?.owner // => always null
+```
+</CodeGroup>
+
+The load operation will succeed and return the object, but the inaccessible reference will always be `null`.
+
 
 ## Type Safety with Resolved Type
 

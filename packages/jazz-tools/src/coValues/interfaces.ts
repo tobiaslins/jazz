@@ -169,7 +169,7 @@ export function loadCoValueWithoutMe<
     resolve?: RefsToResolveStrict<V, R>;
     loadAs?: Account | AnonymousJazzAgent;
   },
-): Promise<Resolved<V, R> | undefined> {
+): Promise<Resolved<V, R> | null> {
   return loadCoValue(cls, id, {
     ...options,
     loadAs: options?.loadAs ?? activeAccountContext.get(),
@@ -186,7 +186,7 @@ export function loadCoValue<
     resolve?: RefsToResolveStrict<V, R>;
     loadAs: Account | AnonymousJazzAgent;
   },
-): Promise<Resolved<V, R> | undefined> {
+): Promise<Resolved<V, R> | null> {
   return new Promise((resolve) => {
     subscribeToCoValue<V, R>(
       cls,
@@ -195,10 +195,10 @@ export function loadCoValue<
         resolve: options.resolve,
         loadAs: options.loadAs,
         onUnavailable: () => {
-          resolve(undefined);
+          resolve(null);
         },
         onUnauthorized: () => {
-          resolve(undefined);
+          resolve(null);
         },
       },
       (value, unsubscribe) => {
