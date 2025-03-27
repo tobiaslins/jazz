@@ -2239,6 +2239,9 @@ importers:
       cojson-storage-indexeddb:
         specifier: workspace:*
         version: link:../../packages/cojson-storage-indexeddb
+      cojson-storage-sqlite:
+        specifier: workspace:*
+        version: link:../../packages/cojson-storage-sqlite
       cojson-transport-ws:
         specifier: workspace:*
         version: link:../../packages/cojson-transport-ws
