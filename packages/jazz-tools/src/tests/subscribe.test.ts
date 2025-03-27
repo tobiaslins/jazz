@@ -398,11 +398,13 @@ describe("subscribeToCoValue", () => {
     const unsubscribe = subscribeToCoValue(
       TestList,
       list.id,
-      account,
-      [{}],
-      (value) => {
-        updateFn(value);
+      {
+        loadAs: account,
+        resolve: {
+          $each: true,
+        },
       },
+      updateFn,
     );
 
     onTestFinished(unsubscribe);
