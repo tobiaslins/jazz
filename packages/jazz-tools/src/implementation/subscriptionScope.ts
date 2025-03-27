@@ -31,6 +31,7 @@ export class SubscriptionScope<Root extends CoValue> {
   scheduledUpdate: boolean = false;
   cachedValues: { [id: ID<CoValue>]: CoValue } = {};
   parents: { [id: ID<CoValue>]: Set<ID<CoValue>> } = {};
+  syncResolution: boolean = false;
 
   constructor(
     root: Root,
@@ -86,27 +87,35 @@ export class SubscriptionScope<Root extends CoValue> {
           ? this.subscriber._raw.core.node
           : this.subscriber.node;
 
-      loadCoValue(node, accessedOrSetId, (core) => {
-        if (loadingEntry.state === "loading" && loadingEntry.immediatelyUnsub) {
-          return;
-        }
-        if (core !== "unavailable") {
-          const entry = {
-            state: "loaded" as const,
-            rawUnsub: () => {}, // placeholder
-          };
-          this.entries.set(accessedOrSetId, entry);
+      loadCoValue(
+        node,
+        accessedOrSetId,
+        (core) => {
+          if (
+            loadingEntry.state === "loading" &&
+            loadingEntry.immediatelyUnsub
+          ) {
+            return;
+          }
+          if (core !== "unavailable") {
+            const entry = {
+              state: "loaded" as const,
+              rawUnsub: () => {}, // placeholder
+            };
+            this.entries.set(accessedOrSetId, entry);
 
-          const rawUnsub = core.subscribe((rawUpdate) => {
-            if (!rawUpdate) return;
+            const rawUnsub = core.subscribe((rawUpdate) => {
+              if (!rawUpdate) return;
 
-            this.invalidate(accessedOrSetId);
-            this.scheduleUpdate();
-          });
+              this.invalidate(accessedOrSetId);
+              this.scheduleUpdate();
+            });
 
-          entry.rawUnsub = rawUnsub;
-        }
-      });
+            entry.rawUnsub = rawUnsub;
+          }
+        },
+        this.syncResolution,
+      );
     }
   }
 
@@ -142,10 +151,11 @@ function loadCoValue(
   node: LocalNode,
   id: ID<CoValue>,
   callback: (value: CoValueCore | "unavailable") => void,
+  syncResolution: boolean,
 ) {
   const entry = node.coValuesStore.get(id);
 
-  if (entry.state.type === "available") {
+  if (entry.state.type === "available" && syncResolution) {
     callback(entry.state.coValue);
   } else {
     void node.loadCoValueCore(id).then((core) => {
