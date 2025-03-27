@@ -1,5 +1,16 @@
 # jazz-inspector
 
+## 0.11.8
+
+### Patch Changes
+
+- 71b9390: install clsx, remove lucide-react
+- Updated dependencies [6c86c4f]
+- Updated dependencies [9d0c9dc]
+  - cojson@0.11.8
+  - jazz-react-core@0.11.8
+  - jazz-tools@0.11.8
+
 ## 0.11.7
 
 ### Patch Changes

@@ -1,5 +1,17 @@
 # jazz-browser-media-images
 
+## 0.11.8
+
+### Patch Changes
+
+- Updated dependencies [6c86c4f]
+- Updated dependencies [9d0c9dc]
+  - cojson@0.11.8
+  - jazz-auth-clerk@0.11.8
+  - jazz-browser@0.11.8
+  - jazz-react@0.11.8
+  - jazz-tools@0.11.8
+
 ## 0.11.7
 
 ### Patch Changes
