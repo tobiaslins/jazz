@@ -152,8 +152,8 @@ if (highestRes) {
 }
 
 // Or constrain by maximum width
-const maxWidth = window.innerWidth;
-const appropriateRes = image.highestResAvailable({ maxWidth });
+const targetWidth = window.innerWidth;
+const appropriateRes = image.highestResAvailable({ targetWidth });
 ```
 </CodeGroup>
 
@@ -188,7 +188,7 @@ if (image.placeholderDataURL) {
 
 // Then load the best resolution for the current display
 const screenWidth = window.innerWidth;
-const bestRes = image.highestResAvailable({ maxWidth: screenWidth });
+const bestRes = image.highestResAvailable({ targetWidth: screenWidth });
 
 if (bestRes) {
   const blob = bestRes.stream.toBlob();

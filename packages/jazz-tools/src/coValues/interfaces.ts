@@ -336,10 +336,13 @@ export function subscribeToCoValue<
     }
 
     if (unsubscribed) return;
+
     const subscription = new SubscriptionScope(
       value,
       cls as CoValueClass<V> & CoValueFromRaw<V>,
       (update, subscription) => {
+        if (subscription.syncResolution) return;
+
         if (!ref.hasReadAccess()) {
           options.onUnauthorized?.();
           return;
@@ -348,6 +351,7 @@ export function subscribeToCoValue<
         let result;
 
         try {
+          subscription.syncResolution = true;
           result = fulfillsDepth(options.resolve, update);
         } catch (e) {
           console.error(
@@ -357,6 +361,8 @@ export function subscribeToCoValue<
           );
           options.onUnavailable?.();
           return;
+        } finally {
+          subscription.syncResolution = false;
         }
 
         if (result === "unauthorized") {
