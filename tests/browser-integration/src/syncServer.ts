@@ -110,7 +110,7 @@ export const startSyncServer = async (port?: number, dbName?: string) => {
       connections.forEach((ws) => ws.close());
       server.close();
     },
-    deleteDb: () => unlink(db),
+    deleteDb: () => unlink(db).catch(() => {}),
     disconnectAllClients: () => {
       connections.forEach((ws) => ws.close());
     },
