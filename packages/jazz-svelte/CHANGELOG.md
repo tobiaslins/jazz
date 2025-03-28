@@ -1,5 +1,14 @@
 # jazz-svelte
 
+## 0.12.1
+
+### Patch Changes
+
+- Updated dependencies [5a00fe0]
+  - cojson@0.12.1
+  - jazz-browser@0.12.1
+  - jazz-tools@0.12.1
+
 ## 0.12.0
 
 ### Patch Changes
