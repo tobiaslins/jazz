@@ -1,5 +1,11 @@
 # cojson
 
+## 0.12.1
+
+### Patch Changes
+
+- 5a00fe0: Re-introducing linked lists on PriorityBasedMessageQueue
+
 ## 0.12.0
 
 ### Minor Changes
