@@ -1,5 +1,12 @@
 # cojson
 
+## 0.12.0
+
+### Minor Changes
+
+- 01523dc: Check CoValue access permissions when loading
+- 01523dc: Return the EVERYONE role if the account is not direct a member of the group
+
 ## 0.11.8
 
 ### Patch Changes
