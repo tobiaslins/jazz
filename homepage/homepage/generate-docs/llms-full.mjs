@@ -229,7 +229,7 @@ async function readMdxContent(url) {
     // Base directory for docs
     const baseDir = path.join(
       process.cwd(),
-      "app/(docs)/docs/[framework]/[...slug]",
+      "app/(docs)/docs/[framework]/[[...slug]]",
     );
 
     // If it's a directory, try to read all framework variants
