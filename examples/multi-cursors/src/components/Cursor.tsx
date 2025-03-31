@@ -16,6 +16,7 @@ interface CursorProps {
 }
 
 const PADDING = 32;
+const GRACE_VALUE = 20;
 
 export function Cursor({
   position,
@@ -81,7 +82,7 @@ export function Cursor({
         {isCursorOutOfBounds ? (
           <circle cx={0} cy={0} r={4} fill={color} />
         ) : null}
-        {!isOutOfBounds(position, bounds, 20) ? (
+        {!isOutOfBounds(position, bounds, GRACE_VALUE) ? (
           <polygon
             points="0,0 0,20 14.3,14.3"
             fill={

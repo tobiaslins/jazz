@@ -22,7 +22,7 @@ export async function loadGroup(me: Account, groupID: ID<Group>) {
     return createGroup(me);
   }
   const group = await Group.load(groupID, {});
-  if (group === null) {
+  if (group === null || group === undefined) {
     console.log("Group not found, creating group...");
     return createGroup(me);
   }
@@ -57,7 +57,7 @@ export async function loadCursorContainer(
     },
   });
 
-  if (cursorContainer === null) {
+  if (cursorContainer === null || cursorContainer === undefined) {
     console.log("Global cursors does not exist, creating...");
     const cursorContainer = CursorContainer.create(
       {
@@ -78,6 +78,6 @@ export async function loadCursorContainer(
       "Global cursors already exists, loading...",
       cursorContainer.id,
     );
-    return cursorContainer.cursorFeed.id;
+    return cursorContainer.cursorFeed?.id;
   }
 }

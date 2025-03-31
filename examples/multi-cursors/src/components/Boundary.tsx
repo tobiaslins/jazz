@@ -11,9 +11,6 @@ export function Boundary({ bounds }: { bounds: ViewBox }) {
         stroke="red"
         fill="none"
       />
-      {/* <text x={bounds.x} y={bounds.y} fill="red" fontSize="8">
-        {bounds.x}, {bounds.y}
-      </text> */}
     </>
   );
 }

@@ -70,19 +70,17 @@ function Canvas({ remoteCursors, onCursorMove, name }: CanvasProps) {
         const age = new Date().getTime() - new Date(entry.madeAt).getTime();
 
         return (
-          <>
-            <Cursor
-              key={entry.tx.sessionID}
-              position={entry.value.position}
-              color={color}
-              isDragging={false}
-              isRemote={true}
-              name={name}
-              age={age}
-              centerOfBounds={center}
-              bounds={bounds}
-            />
-          </>
+          <Cursor
+            key={entry.tx.sessionID}
+            position={entry.value.position}
+            color={color}
+            isDragging={false}
+            isRemote={true}
+            name={name}
+            age={age}
+            centerOfBounds={center}
+            bounds={bounds}
+          />
         );
       })}
 
