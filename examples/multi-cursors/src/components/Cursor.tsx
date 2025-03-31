@@ -27,10 +27,7 @@ export function Cursor({
   centerOfBounds,
   bounds,
 }: CursorProps) {
-  if (!bounds) {
-    console.log("Boundless!");
-    return null;
-  }
+  if (!bounds) return null;
 
   const intersectionPoint = calculateBoundaryIntersection(
     centerOfBounds,
