@@ -15,8 +15,8 @@ interface CursorProps {
   bounds?: ViewBox;
 }
 
-const PADDING = 32;
-const GRACE_VALUE = 20;
+const LABEL_BOUNDS_PADDING = 32;
+const CURSOR_VISIBILITY_OFFSET = 20;
 
 export function Cursor({
   position,
@@ -37,10 +37,10 @@ export function Cursor({
   );
 
   const labelBounds = {
-    x: bounds.x + PADDING / 2,
-    y: bounds.y + PADDING / 2,
-    width: bounds.width - PADDING,
-    height: bounds.height - PADDING,
+    x: bounds.x + LABEL_BOUNDS_PADDING / 2,
+    y: bounds.y + LABEL_BOUNDS_PADDING / 2,
+    width: bounds.width - LABEL_BOUNDS_PADDING,
+    height: bounds.height - LABEL_BOUNDS_PADDING,
   };
 
   const cursorIntersectionPoint = calculateBoundaryIntersection(
@@ -49,7 +49,12 @@ export function Cursor({
     labelBounds,
   );
 
-  const isCursorOutOfBounds = isOutOfBounds(position, bounds);
+  const isStrictlyOutOfBounds = isOutOfBounds(position, bounds);
+  const shouldHideCursor = isOutOfBounds(
+    position,
+    bounds,
+    CURSOR_VISIBILITY_OFFSET,
+  );
 
   const springs = useSpring({
     x: position.x,
@@ -79,10 +84,10 @@ export function Cursor({
           (x: number, y: number) => `translate(${x}, ${y})`,
         )}
       >
-        {isCursorOutOfBounds ? (
+        {isStrictlyOutOfBounds ? (
           <circle cx={0} cy={0} r={4} fill={color} />
         ) : null}
-        {!isOutOfBounds(position, bounds, GRACE_VALUE) ? (
+        {!shouldHideCursor ? (
           <polygon
             points="0,0 0,20 14.3,14.3"
             fill={
@@ -105,9 +110,9 @@ export function Cursor({
             color={color}
             position={cursorIntersectionPoint}
             bounds={bounds}
-            isOutOfBounds={isCursorOutOfBounds}
+            isOutOfBounds={isStrictlyOutOfBounds}
           />
-          {isCursorOutOfBounds ? (
+          {isStrictlyOutOfBounds ? (
             <animated.g
               transform={to(
                 [intersectionSprings.x, intersectionSprings.y],
