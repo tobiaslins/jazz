@@ -208,7 +208,7 @@ async function readMdxContent(url) {
     if (url === "/docs") {
       const introPath = path.join(
         process.cwd(),
-        "components/docs/docs-intro.mdx",
+        "app/(docs)/docs/[framework]/[[...slug]]/index.mdx",
       );
       try {
         const content = await fs.readFile(introPath, "utf8");
