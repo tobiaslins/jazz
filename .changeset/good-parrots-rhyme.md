@@ -1,5 +1,5 @@
 ---
-"multiauth": major
+"multiauth": patch
 ---
 
 Use the new Resolve API
