@@ -23,10 +23,6 @@ export function emptyKnownState(id: RawCoID): CoValueKnownState {
   };
 }
 
-function getErrorMessage(e: unknown) {
-  return e instanceof Error ? e.message : "Unknown error";
-}
-
 export type SyncMessage =
   | LoadMessage
   | KnownStateMessage
@@ -604,39 +600,12 @@ export class SyncManager {
         continue;
       }
 
-      const before = performance.now();
-      // eslint-disable-next-line neverthrow/must-use-result
       const result = coValue.tryAddTransactions(
         sessionID,
         newTransactions,
         undefined,
         newContentForSession.lastSignature,
       );
-      const after = performance.now();
-      if (after - before > 80) {
-        const totalTxLength = newTransactions
-          .map((t) =>
-            t.privacy === "private"
-              ? t.encryptedChanges.length
-              : t.changes.length,
-          )
-          .reduce((a, b) => a + b, 0);
-        logger.debug(
-          `Adding incoming transactions took ${(after - before).toFixed(
-            2,
-          )}ms for ${totalTxLength} bytes = bandwidth: ${(
-            (1000 * totalTxLength) / (after - before) / (1024 * 1024)
-          ).toFixed(2)} MB/s`,
-        );
-      }
-
-      // const theirTotalnTxs = Object.values(
-      //     peer.optimisticKnownStates[msg.id]?.sessions || {},
-      // ).reduce((sum, nTxs) => sum + nTxs, 0);
-      // const ourTotalnTxs = [...coValue.sessionLogs.values()].reduce(
-      //     (sum, session) => sum + session.transactions.length,
-      //     0,
-      // );
 
       if (result.isErr()) {
         logger.error("Failed to add transactions", {
@@ -735,16 +704,10 @@ export class SyncManager {
   }
 
   async actuallySyncCoValue(coValue: CoValueCore) {
-    // let blockingSince = performance.now();
     for (const peer of this.peersInPriorityOrder()) {
       if (peer.closed) continue;
       if (peer.erroredCoValues.has(coValue.id)) continue;
-      // if (performance.now() - blockingSince > 5) {
-      //     await new Promise<void>((resolve) => {
-      //         setTimeout(resolve, 0);
-      //     });
-      //     blockingSince = performance.now();
-      // }
+
       if (peer.optimisticKnownStates.has(coValue.id)) {
         await this.tellUntoldKnownStateIncludingDependencies(coValue.id, peer);
         await this.sendNewContentIncludingDependencies(coValue.id, peer);
