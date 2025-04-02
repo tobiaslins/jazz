@@ -411,7 +411,20 @@ export class SyncManager {
           entry.loadFromPeers([peer]).catch((e) => {
             logger.error("Error loading coValue in handleLoad", { err: e });
           });
+        } else {
+          // We don't have any eligible peers to load the coValue from
+          // so we send a known state back to the sender to let it know
+          // that the coValue is unavailable
+          this.trySendToPeer(peer, {
+            action: "known",
+            id: msg.id,
+            header: false,
+            sessions: {},
+          }).catch((e) => {
+            logger.error("Error sending known state back", { err: e });
+          });
         }
+
         return;
       } else {
         this.local.loadCoValueCore(msg.id, peer.id).catch((e) => {
@@ -456,6 +469,13 @@ export class SyncManager {
             err: e,
           });
         });
+    } else if (entry.state.type === "unavailable") {
+      this.trySendToPeer(peer, {
+        action: "known",
+        id: msg.id,
+        header: false,
+        sessions: {},
+      });
     }
 
     if (entry.state.type === "available") {
