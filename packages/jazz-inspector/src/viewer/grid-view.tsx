@@ -6,46 +6,21 @@ import { PageInfo, isCoId } from "./types.js";
 import { CoMapPreview, ValueRenderer } from "./value-renderer.js";
 
 import { Badge } from "../ui/badge.js";
+import { Card } from "../ui/card.js";
 import { Text } from "../ui/text.js";
 
 const GridContainer = styled("div")`
   display: grid;
-  grid-template-columns: repeat(1, 1fr);
+  grid-template-columns: repeat(1, minmax(0, 1fr));
   gap: 1rem;
 
   @media (min-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   @media (min-width: 1280px) {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-`;
-
-const GridItem = styled(
-  ({
-    isCoId,
-    ...rest
-  }: { isCoId: boolean } & React.ButtonHTMLAttributes<HTMLButtonElement>) => (
-    <button {...rest} />
-  ),
-)`
-  padding: 0.75rem;
-  text-align: left;
-  border-radius: var(--j-radius-lg);
-  overflow: hidden;
-  transition: background-color 0.2s;
-  cursor: ${(props) => (props.isCoId ? "pointer" : "default")};
-
-  ${(props) =>
-    props.isCoId
-      ? `
-    border: 1px solid var(--j-border-color);
-    box-shadow: var(--j-shadow-sm);
-  `
-      : `
-    background-color: var(--j-foreground);
-  `}
 `;
 
 const TitleContainer = styled("h3")`
@@ -76,13 +51,18 @@ export function GridView({
   return (
     <GridContainer>
       {entries.map(([key, child], childIndex) => (
-        <GridItem
+        <Card
+          as={isCoId(child) ? "button" : "div"}
           key={childIndex}
-          isCoId={isCoId(child)}
           onClick={() =>
             isCoId(child) &&
             onNavigate([{ coId: child as CoID<RawCoValue>, name: key }])
           }
+          style={{
+            backgroundColor: isCoId(child)
+              ? "var(--j-background)"
+              : "var(--j-foreground)",
+          }}
         >
           <TitleContainer>
             {isCoId(child) ? (
@@ -108,7 +88,7 @@ export function GridView({
               />
             )}
           </ContentContainer>
-        </GridItem>
+        </Card>
       ))}
     </GridContainer>
   );

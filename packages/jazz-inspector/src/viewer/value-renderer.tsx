@@ -62,11 +62,6 @@ const BooleanText = styled("span")<{ value: boolean }>`
   `}
 `;
 
-const ObjectContainer = styled("span")`
-  display: inline-block;
-  max-width: 16rem;
-`;
-
 const ObjectType = styled("span")`
   color: #57534e;
 `;
@@ -75,11 +70,6 @@ const ObjectContent = styled("pre")`
   margin-top: 0.375rem;
   font-size: 0.875rem;
   white-space: pre-wrap;
-`;
-
-const ShowMoreButton = styled("button")`
-  margin-top: 0.375rem;
-  font-size: 0.875rem;
 `;
 
 const PreviewContainer = styled("div")`
@@ -136,9 +126,11 @@ const ListText = styled("div")`
 export function ValueRenderer({
   json,
   onCoIDClick,
+  compact,
 }: {
   json: JsonValue | undefined;
   onCoIDClick?: (childNode: CoID<RawCoValue>) => void;
+  compact?: boolean;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -188,20 +180,23 @@ export function ValueRenderer({
 
   if (typeof json === "object") {
     return (
-      <ObjectContainer title={JSON.stringify(json, null, 2)}>
+      <>
         <ObjectType>
           {Array.isArray(json) ? <>Array ({json.length})</> : <>Object</>}
         </ObjectType>
         <ObjectContent>
           {isExpanded
             ? JSON.stringify(json, null, 2)
-            : JSON.stringify(json, null, 2).split("\n").slice(0, 3).join("\n") +
+            : JSON.stringify(json, null, 2).split("\n").slice(0, 8).join("\n") +
               (Object.keys(json).length > 2 ? "\n..." : "")}
         </ObjectContent>
-        <ShowMoreButton onClick={() => setIsExpanded(!isExpanded)}>
-          {isExpanded ? "Show less" : "Show more"}
-        </ShowMoreButton>
-      </ObjectContainer>
+
+        {!compact && (
+          <Button variant="link" onClick={() => setIsExpanded(!isExpanded)}>
+            {isExpanded ? "Show less" : "Show more"}
+          </Button>
+        )}
+      </>
     );
   }
 
@@ -288,7 +283,7 @@ export const CoMapPreview = ({
             <React.Fragment key={key}>
               <Text strong>{key}: </Text>
               <Text inline>
-                <ValueRenderer json={value} />
+                <ValueRenderer compact json={value} />
               </Text>
             </React.Fragment>
           ))}
