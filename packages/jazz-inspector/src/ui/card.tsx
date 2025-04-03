@@ -7,4 +7,17 @@ export const Card = styled("div")`
   padding: 1rem;
   text-align: left;
   overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+export const CardHeader = styled("div")`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+export const CardBody = styled("div")`
+  flex: 1;
 `;
