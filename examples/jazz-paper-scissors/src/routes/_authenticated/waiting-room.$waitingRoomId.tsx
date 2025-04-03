@@ -26,16 +26,16 @@ export const Route = createFileRoute(
   loader: async ({ context: { me }, params: { waitingRoomId } }) => {
     const waitingRoom = await WaitingRoom.load(
       waitingRoomId as ID<WaitingRoom>,
+      {
+        resolve: {
+          game: true,
+        },
+      },
     );
 
     if (!waitingRoom) {
       throw redirect({ to: "/" });
     }
-    // If the waiting room already has a game, redirect to the game
-    if (waitingRoom?.game) {
-      throw redirect({ to: `/game/${waitingRoom.game.id}` as string });
-    }
-    console.log("account1: ", waitingRoom?.account1?.isMe);
     if (!waitingRoom?.account1?.isMe) {
       const sender = await InboxSender.load<JoinGameRequest, WaitingRoom>(
         WORKER_ID,
@@ -48,6 +48,10 @@ export const Route = createFileRoute(
           { owner: Group.create({ owner: me }) },
         ),
       );
+      // If the waiting room already has a game, redirect to the game
+      if (waitingRoom?.game) {
+        throw redirect({ to: `/game/${waitingRoom.game.id}` as string });
+      }
     }
 
     return { waitingRoom };
@@ -67,8 +71,9 @@ function RouteComponent() {
       {
         // game: {}
       },
-      () => {
-        console.log(JSON.stringify(waitingRoom));
+      async () => {
+        // this isn't updating when the game is added... need to reload the player 2 waiting room, then both players are redirected.
+        // console.log(JSON.parse(JSON.stringify(waitingRoom)));
         if (waitingRoom.game) {
           navigate({ to: `/game/${waitingRoom.game.id}` });
         }

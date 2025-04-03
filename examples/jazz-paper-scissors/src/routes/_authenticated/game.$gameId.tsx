@@ -4,7 +4,7 @@ import { WORKER_ID } from "@/constants";
 import { Game, PlayIntent, Player } from "@/schema";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Group, type ID, InboxSender } from "jazz-tools";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 const playIcon = (selection: string) => {
   switch (selection) {
@@ -44,15 +44,13 @@ function RouteComponent() {
   const [opponentSelection, setOpponentSelection] = useState("");
   const [playSubmitted, setPlaySubmitted] = useState(false);
   const [gameComplete, setGameComplete] = useState(false);
-  const [playerReady, setPlayerReady] = useState(false);
 
   const isPlayer1 = game.player1?.account?.isMe;
 
   const player = isPlayer1 ? "player1" : "player2";
-  console.log({ isPlayer1 });
 
   const onSubmit = async (playSelection: string) => {
-    const sender = await InboxSender.load<PlayIntent, Game>(WORKER_ID);
+    const sender = await InboxSender.load<PlayIntent, Game>(WORKER_ID, me);
     sender.sendMessage(
       PlayIntent.create(
         { type: "play", gameId, player, playSelection },
@@ -62,6 +60,14 @@ function RouteComponent() {
     setPlaySubmitted(true);
   };
 
+  // should we allow for rounds of play? best 2/3? if so, add a scoreboard?
+  //   const onRematch = () => {
+  //     setPlaySelection("");
+  //     setOpponentSelection("");
+  //     setPlaySubmitted(false);
+  //     setGameComplete(false);
+  //   };
+
   useEffect(() => {
     if (!game) {
       return;
@@ -70,11 +76,16 @@ function RouteComponent() {
       {
         // player1: {}, player2: {}, activePlayer: {}, outcome
       },
-      () => {
-        // console.log({ game });
+      async () => {
         if (game.outcome) {
-          console.log(game.outcome);
           setGameComplete(true);
+          const currentPlayer = game[player];
+          if (!currentPlayer) {
+            console.error("Current player not found");
+            return;
+          }
+          const opponent: Player = await game.getOpponent(currentPlayer);
+          setOpponentSelection(opponent.playSelection || "");
         }
       },
     );
@@ -87,6 +98,9 @@ function RouteComponent() {
           <CardTitle>Jazz, Paper, Scissors!</CardTitle>
           <span>Welcome {isPlayer1 ? "Player 1" : "Player 2"}</span>
         </CardHeader>
+        {gameComplete ? (
+          <div className="border">Game Over, {game?.outcome}</div>
+        ) : null}
         <CardContent>
           <div>
             {playSelection === "" ? "Make Your Selection" : "Your Selection: "}
@@ -94,38 +108,41 @@ function RouteComponent() {
           <div className="sm-card flex flex-col gap-6 rounded-xl border py-6 shadow-sm m-4">
             {playIcon(playSelection)}
           </div>
-          <dl className="grid grid-cols-1 gap-x-8 gap-y-16 text-center lg:grid-cols-3">
-            <Button
-              variant={"outline"}
-              size={"icon"}
-              onClick={() => setPlaySelection("jazz")}
-            >
-              🎷
-            </Button>
-            <Button
-              variant={"outline"}
-              size={"icon"}
-              onClick={() => setPlaySelection("paper")}
-            >
-              📃
-            </Button>
-            <Button
-              variant={"outline"}
-              size={"icon"}
-              onClick={() => setPlaySelection("scissors")}
-            >
-              ✂️
-            </Button>
-          </dl>
-          <div className="m-4">
-            <Button
-              disabled={playSelection === "" || playSubmitted}
-              onClick={() => onSubmit(playSelection)}
-            >
-              Go!
-            </Button>
-          </div>
-          {/* <div>{playerReady ? "it's your turn!" : "your opponent is choosing..."}</div> */}
+          {gameComplete ? null : ( // <Button onClick={onRematch}>Rematch?</Button>
+            <>
+              <dl className="grid grid-cols-1 gap-x-8 gap-y-16 text-center lg:grid-cols-3">
+                <Button
+                  variant={"outline"}
+                  size={"icon"}
+                  onClick={() => setPlaySelection("jazz")}
+                >
+                  🎷
+                </Button>
+                <Button
+                  variant={"outline"}
+                  size={"icon"}
+                  onClick={() => setPlaySelection("paper")}
+                >
+                  📃
+                </Button>
+                <Button
+                  variant={"outline"}
+                  size={"icon"}
+                  onClick={() => setPlaySelection("scissors")}
+                >
+                  ✂️
+                </Button>
+              </dl>
+              <div className="m-4">
+                <Button
+                  disabled={playSelection === "" || playSubmitted}
+                  onClick={() => onSubmit(playSelection)}
+                >
+                  Go!
+                </Button>
+              </div>
+            </>
+          )}
           <div>Your Opponent Selected:</div>
           <div className="sm-card flex flex-col gap-6 rounded-xl border py-6 shadow-sm m-4">
             {playIcon(opponentSelection)}

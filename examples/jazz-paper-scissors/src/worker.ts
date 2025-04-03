@@ -63,7 +63,7 @@ inbox.subscribe(
         console.log("game created with id:", game.id);
 
         joinGameRequest.waitingRoom.game = game;
-        return joinGameRequest.waitingRoom;
+        return joinGameRequest.waitingRoom.game;
     }
   },
   { retries: 3 },
@@ -116,7 +116,6 @@ function createPlayer({ account }: CreatePlayerParams) {
 
 async function handlePlayIntent(senderID: ID<Account>, message: PlayIntent) {
   // determine current player, update game with outcome
-  console.log({ message });
   const gameId = message.gameId;
   if (!gameId) {
     console.error("Game not found");
@@ -130,7 +129,6 @@ async function handlePlayIntent(senderID: ID<Account>, message: PlayIntent) {
       player2: true,
     },
   });
-  console.log(senderID, { game });
   if (!game?.activePlayer) {
     console.error("No active player");
     return;
@@ -150,7 +148,6 @@ async function handlePlayIntent(senderID: ID<Account>, message: PlayIntent) {
     player2Selection !== ""
   ) {
     const outcome = determineWinner(player1Selection, player2Selection);
-    console.log(outcome);
-    // game.outcome = outcome
+    game.outcome = outcome;
   }
 }
