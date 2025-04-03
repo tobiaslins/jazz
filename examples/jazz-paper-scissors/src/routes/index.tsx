@@ -17,6 +17,7 @@ export const Route = createFileRoute("/")({
 });
 
 function HomeComponent() {
+  console.log("WORKER_ID: ", WORKER_ID);
   const createGame = useInboxSender(WORKER_ID);
   const navigate = useNavigate({ from: "/" });
   const [isLoading, setIsLoading] = useState(false);
@@ -29,12 +30,11 @@ function HomeComponent() {
         type: "createGame",
       }),
     );
-
     if (!waitingRoomId) {
       setIsLoading(false);
       return;
     }
-
+    console.log("navigating...");
     navigate({ to: `/waiting-room/$waitingRoomId`, params: { waitingRoomId } });
   };
 
@@ -42,7 +42,7 @@ function HomeComponent() {
     <div className="h-screen flex flex-col w-full place-items-center justify-center p-2">
       <Card className="w-[500px]">
         <CardHeader>
-          <CardTitle>Welcome to Jazz Paper Scissors!</CardTitle>
+          <CardTitle>Welcome to Jazz, Paper, Scissors!</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="flex items-center p-4">

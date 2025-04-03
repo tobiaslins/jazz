@@ -11,8 +11,13 @@ import { WORKER_ID } from "@/constants";
 import { JoinGameRequest, WaitingRoom } from "@/schema";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Group, type ID, InboxSender } from "jazz-tools";
+import type { Account } from "jazz-tools";
 import { ClipboardCopyIcon, Loader2Icon } from "lucide-react";
 import { useEffect } from "react";
+
+interface RouterContext {
+  me: Account;
+}
 
 export const Route = createFileRoute(
   "/_authenticated/waiting-room/$waitingRoomId",
@@ -21,23 +26,21 @@ export const Route = createFileRoute(
   loader: async ({ context: { me }, params: { waitingRoomId } }) => {
     const waitingRoom = await WaitingRoom.load(
       waitingRoomId as ID<WaitingRoom>,
-      me,
-      { account1: {}, account2: {}, game: {} },
     );
 
     if (!waitingRoom) {
       throw redirect({ to: "/" });
     }
-
     // If the waiting room already has a game, redirect to the game
-    // if (waitingRoom?.game) {
-    //   throw redirect({ to: `/game/${waitingRoom.game.id}` });
-    // }
-
+    if (waitingRoom?.game) {
+      throw redirect({ to: `/game/${waitingRoom.game.id}` as string });
+    }
+    console.log("account1: ", waitingRoom?.account1?.isMe);
     if (!waitingRoom?.account1?.isMe) {
       const sender = await InboxSender.load<JoinGameRequest, WaitingRoom>(
         WORKER_ID,
         me,
+        // { account1: {}, account2: {}, me, game: {} },
       );
       sender.sendMessage(
         JoinGameRequest.create(
@@ -46,6 +49,7 @@ export const Route = createFileRoute(
         ),
       );
     }
+
     return { waitingRoom };
   },
 });
@@ -59,11 +63,16 @@ function RouteComponent() {
       return;
     }
 
-    return waitingRoom?.subscribe({ game: {} }, () => {
-      if (waitingRoom.game) {
-        navigate({ to: `/game/${waitingRoom.game.id}` });
-      }
-    });
+    return waitingRoom?.subscribe(
+      {
+        // game: {}
+      },
+      () => {
+        if (waitingRoom.game) {
+          navigate({ to: `/game/${waitingRoom.game.id}` });
+        }
+      },
+    );
   }, [waitingRoom]);
 
   const onCopyClick = () => {

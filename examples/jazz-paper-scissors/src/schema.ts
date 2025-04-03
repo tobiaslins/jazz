@@ -3,7 +3,8 @@ import { Account, CoMap, SchemaUnion, co } from "jazz-tools";
 export class Game extends CoMap {
   activePlayer = co.ref(Player);
   player1 = co.ref(Player);
-  player2 = co.ref(Player);
+  player2? = co.ref(Player);
+  outcome? = co.string;
 
   /**
    * Given a player, returns the opponent in the current game.
@@ -20,13 +21,15 @@ export class Game extends CoMap {
     }
 
     return opponent.ensureLoaded({
-      account: {},
+      // account: {},
+      resolve: {},
     });
   }
 }
 
 export class Player extends CoMap {
   account = co.ref(Account);
+  playSelection? = co.string;
 }
 
 export class WaitingRoom extends CoMap {
@@ -41,7 +44,9 @@ class BaseInboxMessage extends CoMap {
 
 export class PlayIntent extends BaseInboxMessage {
   type = co.literal("play");
-  game = co.ref(Game);
+  gameId = co.string;
+  player = co.literal("player1", "player2");
+  playSelection = co.string;
 }
 
 export class CreateGameRequest extends BaseInboxMessage {

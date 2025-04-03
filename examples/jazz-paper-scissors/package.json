@@ -6,7 +6,8 @@
     "start": "vite --port 3000",
     "start:worker": "tsx --env-file=.env ./src/worker.ts",
     "build": "vite build && tsc",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "prettier:fix": "pnpm exec prettier . --write"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.2",
@@ -35,6 +36,7 @@
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
     "jsdom": "^26.0.0",
+    "prettier": "3.5.2",
     "tsx": "^4.19.3",
     "typescript": "~5.6.2",
     "vite": "^6.2.4",

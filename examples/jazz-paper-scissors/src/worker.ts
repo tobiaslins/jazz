@@ -2,36 +2,38 @@ import {
   Game,
   InboxMessage,
   JoinGameRequest,
+  PlayIntent,
   Player,
   WaitingRoom,
 } from "@/schema";
 import { startWorker } from "jazz-nodejs";
-import { Account, Group } from "jazz-tools";
+import { Account, Group, type ID } from "jazz-tools";
+import { determineWinner } from "./lib/utils";
 
 const {
   worker,
   experimental: { inbox },
 } = await startWorker({
   accountID: process.env.VITE_JAZZ_WORKER_ACCOUNT,
-  syncServer: "wss://cloud.jazz.tools/?key=you@example.com",
+  syncServer: "wss://cloud.jazz.tools/?key=jazz-paper-scissors@garden.co ",
 });
-
 inbox.subscribe(
   InboxMessage,
   async (message, senderID) => {
-    const playerAccount = await Account.load(senderID, worker, {});
+    const playerAccount = await Account.load(senderID, { loadAs: worker });
     if (!playerAccount) {
       return;
     }
 
     switch (message.type) {
       case "play":
-        console.log("play message from", senderID);
-        // handlePlayIntent(senderID, message.castAs(PlayIntent));
+        console.log("play message: ", { message });
+        // Send active player with selection
+        handlePlayIntent(senderID, message.castAs(PlayIntent));
         break;
+
       case "createGame":
         console.log("create game message from", senderID);
-
         const waitingRoomGroup = Group.create({ owner: worker });
         waitingRoomGroup.addMember("everyone", "reader");
         const waitingRoom = WaitingRoom.create(
@@ -40,8 +42,8 @@ inbox.subscribe(
         );
 
         console.log("waiting room created with id:", waitingRoom.id);
-
         return waitingRoom;
+
       case "joinGame":
         console.log("join game message from", senderID);
         const joinGameRequest = message.castAs(JoinGameRequest);
@@ -71,6 +73,7 @@ interface CreateGameParams {
   account1: Account;
   account2: Account;
 }
+
 async function createGame({ account1, account2 }: CreateGameParams) {
   const publicReadOnly = Group.create({ owner: worker });
   publicReadOnly.addMember(account1, "reader");
@@ -96,6 +99,7 @@ async function createGame({ account1, account2 }: CreateGameParams) {
 interface CreatePlayerParams {
   account: Account;
 }
+
 function createPlayer({ account }: CreatePlayerParams) {
   const publicRead = Group.create({ owner: worker });
   publicRead.addMember("everyone", "reader");
@@ -108,4 +112,44 @@ function createPlayer({ account }: CreatePlayerParams) {
   );
 
   return player;
+}
+
+async function handlePlayIntent(senderID: ID<Account>, message: PlayIntent) {
+  // determine current player, update game with outcome
+  console.log({ message });
+  const gameId = message.gameId;
+  if (!gameId) {
+    console.error("Game not found");
+    return;
+  }
+
+  const game = await Game.load(gameId as ID<Game>, {
+    loadAs: worker,
+    resolve: {
+      player1: true,
+      player2: true,
+    },
+  });
+  console.log(senderID, { game });
+  if (!game?.activePlayer) {
+    console.error("No active player");
+    return;
+  }
+  const opponent = await game?.getOpponent(game?.activePlayer);
+  console.log({ opponent });
+  // set the player selection
+
+  // game[`${message.player}`].playSelection = message.playSelection
+  // game.activePlayer = opponent
+
+  const player1Selection = game?.player1.playSelection;
+  const player2Selection = game?.player2?.playSelection;
+
+  // once both players have a selection, determine the winner
+
+  // if ((!!player1Selection && player1Selection !== "") && (!!player2Selection && player2Selection !== "")) {
+  //   const outcome = determineWinner(player1Selection, player2Selection)
+  //   console.log(outcome)
+  //   game.outcome = outcome
+  // }
 }
