@@ -116,8 +116,12 @@ export function ChatScreen({ navigation }: { navigation: any }) {
               !isMe ? styles.timestampOther : styles.timestampMy,
             ]}
           >
-            {item?._edits?.text?.madeAt?.getHours()}:
-            {item?._edits?.text?.madeAt?.getMinutes()}
+            {item?._edits?.text?.madeAt?.getHours().toString().padStart(2, "0")}
+            :
+            {item?._edits?.text?.madeAt
+              ?.getMinutes()
+              .toString()
+              .padStart(2, "0")}
           </Text>
         </View>
       </View>

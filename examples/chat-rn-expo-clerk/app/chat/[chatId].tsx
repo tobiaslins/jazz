@@ -165,8 +165,8 @@ export default function Conversation() {
               !isMe ? "mt-2 text-gray-500" : "mt-1 text-gray-200",
             )}
           >
-            {item._edits.text.madeAt.getHours()}:
-            {item._edits.text.madeAt.getMinutes()}
+            {item._edits.text.madeAt?.getHours().toString().padStart(2, "0")}:
+            {item._edits.text.madeAt?.getMinutes().toString().padStart(2, "0")}
           </Text>
         </View>
       </View>
