@@ -142,8 +142,10 @@ export function ValueRenderer({
         <ObjectContent>
           {isExpanded
             ? JSON.stringify(json, null, 2)
-            : JSON.stringify(json, null, 2).split("\n").slice(0, 8).join("\n") +
-              (Object.keys(json).length > 2 ? "\n..." : "")}
+            : JSON.stringify(json, null, 2)
+                .split("\n")
+                .slice(0, compact ? 3 : 8)
+                .join("\n") + (Object.keys(json).length > 2 ? "\n..." : "")}
         </ObjectContent>
 
         {!compact && (
