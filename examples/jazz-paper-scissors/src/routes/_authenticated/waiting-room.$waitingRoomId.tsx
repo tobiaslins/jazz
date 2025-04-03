@@ -68,6 +68,7 @@ function RouteComponent() {
         // game: {}
       },
       () => {
+        console.log(JSON.stringify(waitingRoom));
         if (waitingRoom.game) {
           navigate({ to: `/game/${waitingRoom.game.id}` });
         }

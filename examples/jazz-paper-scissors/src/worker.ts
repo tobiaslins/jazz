@@ -135,21 +135,22 @@ async function handlePlayIntent(senderID: ID<Account>, message: PlayIntent) {
     console.error("No active player");
     return;
   }
-  const opponent = await game?.getOpponent(game?.activePlayer);
-  console.log({ opponent });
-  // set the player selection
 
-  // game[`${message.player}`].playSelection = message.playSelection
-  // game.activePlayer = opponent
+  game[`${message.player}`].playSelection = message.playSelection;
 
   const player1Selection = game?.player1.playSelection;
   const player2Selection = game?.player2?.playSelection;
 
   // once both players have a selection, determine the winner
 
-  // if ((!!player1Selection && player1Selection !== "") && (!!player2Selection && player2Selection !== "")) {
-  //   const outcome = determineWinner(player1Selection, player2Selection)
-  //   console.log(outcome)
-  //   game.outcome = outcome
-  // }
+  if (
+    !!player1Selection &&
+    player1Selection !== "" &&
+    !!player2Selection &&
+    player2Selection !== ""
+  ) {
+    const outcome = determineWinner(player1Selection, player2Selection);
+    console.log(outcome);
+    // game.outcome = outcome
+  }
 }

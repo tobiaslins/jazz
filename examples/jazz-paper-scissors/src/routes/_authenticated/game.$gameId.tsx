@@ -1,11 +1,5 @@
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { WORKER_ID } from "@/constants";
 import { Game, PlayIntent, Player } from "@/schema";
 import { createFileRoute, redirect } from "@tanstack/react-router";
@@ -77,14 +71,9 @@ function RouteComponent() {
         // player1: {}, player2: {}, activePlayer: {}, outcome
       },
       () => {
-        console.log({ game });
-        if (game.activePlayer?.account?.isMe) {
-          setPlayerReady(true);
-        }
+        // console.log({ game });
         if (game.outcome) {
           console.log(game.outcome);
-          const opponent = game?.getOpponent(game[player]);
-          console.log(opponent);
           setGameComplete(true);
         }
       },
