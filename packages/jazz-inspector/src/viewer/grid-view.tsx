@@ -48,7 +48,7 @@ function GridItem({
           <Text strong>{key}</Text>
         )}
       </CardHeader>
-      <CardBody>
+      <CardBody style={{ wordBreak: "break-word" }}>
         {isCoValue ? (
           <CoMapPreview coId={value as CoID<RawCoValue>} node={node} />
         ) : (
