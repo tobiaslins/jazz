@@ -11,13 +11,8 @@ import { WORKER_ID } from "@/constants";
 import { JoinGameRequest, WaitingRoom } from "@/schema";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Group, type ID, InboxSender } from "jazz-tools";
-import type { Account } from "jazz-tools";
 import { ClipboardCopyIcon, Loader2Icon } from "lucide-react";
 import { useEffect, useState } from "react";
-
-interface RouterContext {
-  me: Account;
-}
 
 export const Route = createFileRoute(
   "/_authenticated/waiting-room/$waitingRoomId",
@@ -75,7 +70,6 @@ function RouteComponent() {
         },
       },
       async () => {
-        // this isn't updating when the game is added... need to reload the player 2 waiting room, then both players are redirected.
         if (waitingRoom.game) {
           navigate({ to: `/game/${waitingRoom.game.id}` });
         }
@@ -114,7 +108,7 @@ function RouteComponent() {
               ) : (
                 <>
                   <ClipboardCopyIcon className="w-5 h-5" />
-                  Copy{" "}
+                  Copy
                 </>
               )}
             </Button>

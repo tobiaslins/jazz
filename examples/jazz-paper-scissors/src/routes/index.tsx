@@ -17,7 +17,6 @@ export const Route = createFileRoute("/")({
 });
 
 function HomeComponent() {
-  console.log("WORKER_ID: ", WORKER_ID);
   const createGame = useInboxSender(WORKER_ID);
   const navigate = useNavigate({ from: "/" });
   const [isLoading, setIsLoading] = useState(false);
@@ -34,7 +33,6 @@ function HomeComponent() {
       setIsLoading(false);
       return;
     }
-    console.log("navigating...");
     navigate({ to: `/waiting-room/$waitingRoomId`, params: { waitingRoomId } });
   };
 

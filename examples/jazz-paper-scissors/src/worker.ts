@@ -31,7 +31,6 @@ inbox.subscribe(
         break;
 
       case "createGame":
-        console.log("create game message from", senderID);
         const waitingRoomGroup = Group.create({ owner: worker });
         waitingRoomGroup.addMember("everyone", "reader");
         const waitingRoom = WaitingRoom.create(
@@ -43,7 +42,6 @@ inbox.subscribe(
         return waitingRoom;
 
       case "joinGame":
-        console.log("join game message from", senderID);
         const joinGameRequest = message.castAs(JoinGameRequest);
         if (
           !joinGameRequest.waitingRoom ||
@@ -127,13 +125,12 @@ async function handlePlayIntent(senderID: ID<Account>, message: PlayIntent) {
     },
   });
 
-  game[`${message.player}`].playSelection = message.playSelection;
+  game[message.player].playSelection = message.playSelection;
 
   const player1Selection = game?.player1.playSelection;
   const player2Selection = game?.player2?.playSelection;
 
   // once both players have a selection, determine the winner
-
   if (
     !!player1Selection &&
     player1Selection !== "" &&
