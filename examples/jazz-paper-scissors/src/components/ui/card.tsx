@@ -61,6 +61,19 @@ function CardAction({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+function CardSmall({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card-small"
+      className={cn(
+        "sm-card grid grid-flow-col justify-items-center gap-6 rounded-xl border py-6 shadow-sm m-4",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
 function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -92,4 +105,5 @@ export {
   CardAction,
   CardDescription,
   CardContent,
+  CardSmall,
 };

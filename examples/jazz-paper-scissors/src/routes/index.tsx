@@ -56,9 +56,9 @@ function HomeComponent() {
             </Button>
           </div>
         </CardContent>
-        <CardFooter>
+        {/* <CardFooter>
           <Button variant="link">How to play?</Button>
-        </CardFooter>
+        </CardFooter> */}
       </Card>
     </div>
   );

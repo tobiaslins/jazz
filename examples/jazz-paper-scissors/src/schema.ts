@@ -1,7 +1,6 @@
 import { Account, CoMap, SchemaUnion, co } from "jazz-tools";
 
 export class Game extends CoMap {
-  activePlayer = co.ref(Player);
   player1 = co.ref(Player);
   player2? = co.ref(Player);
   outcome? = co.string;

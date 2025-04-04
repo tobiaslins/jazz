@@ -1,21 +1,28 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardSmall,
+  CardTitle,
+} from "@/components/ui/card";
 import { WORKER_ID } from "@/constants";
 import { Game, PlayIntent, Player } from "@/schema";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Group, type ID, InboxSender } from "jazz-tools";
+import { CircleHelp, Music2, Scissors, ScrollText } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const playIcon = (selection: string) => {
   switch (selection) {
     case "jazz":
-      return "🎷";
+      return <Music2 className="w-5 h-5" />;
     case "paper":
-      return "📃";
+      return <ScrollText className="w-5 h-5" />;
     case "scissors":
-      return "✂️";
+      return <Scissors className="w-5 h-5" />;
     default:
-      return "❓";
+      return <CircleHelp className="w-5 h-5" />;
   }
 };
 
@@ -26,7 +33,6 @@ export const Route = createFileRoute("/_authenticated/game/$gameId")({
       resolve: {
         player1: true,
         player2: true,
-        activePlayer: true,
       },
     });
     if (!game) {
@@ -60,21 +66,13 @@ function RouteComponent() {
     setPlaySubmitted(true);
   };
 
-  // should we allow for rounds of play? best 2/3? if so, add a scoreboard?
-  //   const onRematch = () => {
-  //     setPlaySelection("");
-  //     setOpponentSelection("");
-  //     setPlaySubmitted(false);
-  //     setGameComplete(false);
-  //   };
-
   useEffect(() => {
     if (!game) {
       return;
     }
     return game.subscribe(
       {
-        // player1: {}, player2: {}, activePlayer: {}, outcome
+        // player1: {}, player2: {}, outcome
       },
       async () => {
         if (game.outcome) {
@@ -105,32 +103,30 @@ function RouteComponent() {
           <div>
             {playSelection === "" ? "Make Your Selection" : "Your Selection: "}
           </div>
-          <div className="sm-card flex flex-col gap-6 rounded-xl border py-6 shadow-sm m-4">
-            {playIcon(playSelection)}
-          </div>
-          {gameComplete ? null : ( // <Button onClick={onRematch}>Rematch?</Button>
+          <CardSmall>{playIcon(playSelection)}</CardSmall>
+          {gameComplete ? null : (
             <>
-              <dl className="grid grid-cols-1 gap-x-8 gap-y-16 text-center lg:grid-cols-3">
+              <dl className="grid grid-cols-3 gap-x-8 gap-y-16 text-center">
                 <Button
                   variant={"outline"}
                   size={"icon"}
                   onClick={() => setPlaySelection("jazz")}
                 >
-                  🎷
+                  <Music2 className="w-5 h-5" />
                 </Button>
                 <Button
                   variant={"outline"}
                   size={"icon"}
                   onClick={() => setPlaySelection("paper")}
                 >
-                  📃
+                  <ScrollText className="w-5 h-5" />
                 </Button>
                 <Button
                   variant={"outline"}
                   size={"icon"}
                   onClick={() => setPlaySelection("scissors")}
                 >
-                  ✂️
+                  <Scissors className="w-5 h-5" />
                 </Button>
               </dl>
               <div className="m-4">
@@ -144,9 +140,7 @@ function RouteComponent() {
             </>
           )}
           <div>Your Opponent Selected:</div>
-          <div className="sm-card flex flex-col gap-6 rounded-xl border py-6 shadow-sm m-4">
-            {playIcon(opponentSelection)}
-          </div>
+          <CardSmall>{playIcon(opponentSelection)}</CardSmall>
         </CardContent>
       </div>
     </Card>

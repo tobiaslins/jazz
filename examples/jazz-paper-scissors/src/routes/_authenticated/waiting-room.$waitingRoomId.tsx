@@ -13,7 +13,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Group, type ID, InboxSender } from "jazz-tools";
 import type { Account } from "jazz-tools";
 import { ClipboardCopyIcon, Loader2Icon } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface RouterContext {
   me: Account;
@@ -61,6 +61,7 @@ export const Route = createFileRoute(
 function RouteComponent() {
   const { waitingRoom } = Route.useLoaderData();
   const navigate = Route.useNavigate();
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!waitingRoom) {
@@ -83,6 +84,7 @@ function RouteComponent() {
 
   const onCopyClick = () => {
     navigator.clipboard.writeText(window.location.toString());
+    setCopied(true);
   };
 
   return (
@@ -105,9 +107,15 @@ function RouteComponent() {
               readOnly
               value={`${window.location}`}
             />
-            <Button onClick={onCopyClick} className="rounded-s-none">
-              <ClipboardCopyIcon className="w-5 h-5" />
-              Copy
+            <Button onClick={onCopyClick} className="rounded-s-none w-25">
+              {copied ? (
+                "Copied!"
+              ) : (
+                <>
+                  <ClipboardCopyIcon className="w-5 h-5" />
+                  Copy{" "}
+                </>
+              )}
             </Button>
           </div>
         </CardContent>

@@ -27,8 +27,6 @@ inbox.subscribe(
 
     switch (message.type) {
       case "play":
-        console.log("play message: ", { message });
-        // Send active player with selection
         handlePlayIntent(senderID, message.castAs(PlayIntent));
         break;
 
@@ -84,7 +82,6 @@ async function createGame({ account1, account2 }: CreateGameParams) {
 
   const game = Game.create(
     {
-      activePlayer: player1,
       player1: player1,
       player2: player2,
     },
@@ -129,10 +126,6 @@ async function handlePlayIntent(senderID: ID<Account>, message: PlayIntent) {
       player2: true,
     },
   });
-  if (!game?.activePlayer) {
-    console.error("No active player");
-    return;
-  }
 
   game[`${message.player}`].playSelection = message.playSelection;
 
