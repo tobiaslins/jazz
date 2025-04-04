@@ -68,13 +68,14 @@ function RouteComponent() {
       return;
     }
 
-    return waitingRoom?.subscribe(
+    return waitingRoom.subscribe(
       {
-        // game: {}
+        resolve: {
+          game: true,
+        },
       },
       async () => {
         // this isn't updating when the game is added... need to reload the player 2 waiting room, then both players are redirected.
-        // console.log(JSON.parse(JSON.stringify(waitingRoom)));
         if (waitingRoom.game) {
           navigate({ to: `/game/${waitingRoom.game.id}` });
         }
