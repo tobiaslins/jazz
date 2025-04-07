@@ -209,13 +209,14 @@ However, once authenticated, your users won't need to interact with Clerk anymor
 
 <ContentByFramework framework="react">
 The clerk provider is not built into `jazz-react` and needs the `jazz-react-auth-clerk` package to be installed.
+
+After installing the package you can use the `JazzProviderWithClerk` component to wrap your app:
 </ContentByFramework>
 
 <ContentByFramework framework="react-native-expo">
-The clerk provider is not built into `jazz-expo` and needs the `jazz-expo/auth/clerk` import to be installed.  Note the `__experimental_resourceCache` option.  This helps render Clerk components when offline.
+You can use the `JazzProviderWithClerk` component to wrap your app.  Note the `__experimental_resourceCache` option.  This helps render Clerk components when offline.
 </ContentByFramework>
 
-After installing the package you can use the `JazzProviderWithClerk` component to wrap your app:
 <ContentByFramework framework="react">
 <CodeGroup>
 ```tsx
