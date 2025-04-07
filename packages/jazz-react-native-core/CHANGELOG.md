@@ -1,5 +1,25 @@
 # jazz-browser
 
+## 0.13.0
+
+### Minor Changes
+
+- bce3bcc: Introduce jazz-expo and use only vanilla deps for jazz-react-native
+
+  Upgrade guide: https://jazz.tools/docs/react/upgrade/0-13-0
+
+### Patch Changes
+
+- Updated dependencies [a013538]
+- Updated dependencies [afd1374]
+- Updated dependencies [afd1374]
+- Updated dependencies [bce3bcc]
+  - cojson@0.13.0
+  - jazz-tools@0.13.0
+  - jazz-react-core@0.13.0
+  - cojson-storage@0.13.0
+  - cojson-transport-ws@0.13.0
+
 ## 0.10.15
 
 ### Patch Changes
