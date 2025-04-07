@@ -134,31 +134,6 @@ declare module "jazz-expo" { // [!code ++:5]
 
 The `jazz-expo` implementation supports the Expo New Architecture.
 
-## Styling with NativeWind
-
-For Expo projects, remember to use NativeWind CSS for styling, which is the recommended approach for Jazz applications built with Expo:
-
-<CodeGroup>
-```tsx twoslash
-// @noErrors: 2305 2686
-import { View, Text } from "react-native";
-import { styled } from "nativewind";
-
-const StyledView = styled(View);
-const StyledText = styled(Text);
-
-export function MyComponent() {
-  return (
-    <StyledView className="p-4 bg-white dark:bg-slate-800">
-      <StyledText className="text-black dark:text-white text-lg font-bold">
-        Hello, Jazz with Expo!
-      </StyledText>
-    </StyledView>
-  );
-}
-```
-</CodeGroup>
-
 ## For More Information
 
 For detailed setup instructions, refer to the [React Native Expo Setup Guide](/docs/react-native-expo/project-setup)
