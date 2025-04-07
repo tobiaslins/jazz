@@ -79,10 +79,10 @@ If you're using Clerk auth in your Expo application, you'll need to:
 ```tsx twoslash
 // @noErrors: 2300 2307
 // Before
-import { ClerkAuthProvider, useClerkAuth } from "jazz-react-native-clerk"; // [!code --]
+import { JazzProviderWithClerk } from "jazz-react-native-clerk"; // [!code --]
 
 // After
-import { ClerkAuthProvider, useClerkAuth } from "jazz-expo/auth/clerk"; // [!code ++]
+import { JazzProviderWithClerk } from "jazz-expo/auth/clerk"; // [!code ++]
 ```
 </CodeGroup>
 
