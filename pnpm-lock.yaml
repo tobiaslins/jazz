@@ -556,6 +556,9 @@ importers:
 
   examples/filestream:
     dependencies:
+      jazz-inspector:
+        specifier: workspace:*
+        version: link:../../packages/jazz-inspector
       jazz-react:
         specifier: workspace:*
         version: link:../../packages/jazz-react
