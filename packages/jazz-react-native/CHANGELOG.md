@@ -1,5 +1,11 @@
 # jazz-browser
 
+## 0.13.1
+
+### Patch Changes
+
+- 63a7aa0: Add exports for clerk and crypto to make import shortcuts work everywhere
+
 ## 0.13.0
 
 ### Minor Changes
