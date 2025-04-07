@@ -56,8 +56,8 @@ export const docNavigationItems = [
           "react-native": 100,
           "react-native-expo": 100,
         },
-      }
-    ]
+      },
+    ],
   },
   {
     name: "Tools",
@@ -82,7 +82,7 @@ export const docNavigationItems = [
       {
         name: "0.13.0 - React Native Split",
         href: "/docs/upgrade/0-13-0",
-        done: 100
+        done: 100,
       },
       {
         // upgrade guides
