@@ -27,7 +27,7 @@ export default async function Image() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'flex-start',
-          padding: '20px',
+          margin: '20px',
         }}
       >
         Whip up an app
