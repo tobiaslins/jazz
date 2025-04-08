@@ -63,13 +63,13 @@ export const metadata: Metadata = {
     description: metaTags.description,
     url: metaTags.url,
     siteName: "Jazz",
-    images: [
-      {
-        url: "/social-image.png",
-        width: 1200,
-        height: 630,
-      },
-    ],
+    // images: [
+    //   {
+    //     url: "/social-image.png",
+    //     width: 1200,
+    //     height: 630,
+    //   },
+    // ],
   },
 };
 
