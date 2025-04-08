@@ -68,6 +68,11 @@ export const docNavigationItems = [
         done: 100,
       },
       {
+        name: "create-jazz-app",
+        href: "/docs/tools/create-jazz-app",
+        done: 100,
+      },
+      {
         name: "Inspector",
         href: "/docs/inspector",
         done: 100,
