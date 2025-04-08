@@ -20,18 +20,19 @@ export default async function Image() {
     (
       <div
         style={{
-          fontSize: 128,
+          fontSize: 111,
           background: 'white',
           width: '100%',
           height: '100%',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'flex-start',
+          padding: '20px',
         }}
       >
         Whip up an app
         <div style={{ display: 'flex', position: 'absolute', bottom: 0, right: 0 }}>
-          <JazzLogo className="w-20 md:w-24" />
+          <JazzLogo className="w-20" />
         </div>
       </div>
     ),
