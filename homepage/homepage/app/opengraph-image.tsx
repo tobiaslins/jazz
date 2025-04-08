@@ -3,7 +3,7 @@ import { ImageResponse } from 'next/og'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
-export const alt = 'Let\'s start riffing. Find out more about Jazz Tools now.'
+export const alt = 'Whip up an app'
 export const size = {
   width: 1200,
   height: 630,
@@ -29,7 +29,7 @@ export default async function Image() {
           justifyContent: 'flex-start',
         }}
       >
-        Let's start riffing. Find out more about Jazz Tools now.
+        Whip up an app
         <div style={{ display: 'flex', position: 'absolute', bottom: 0, right: 0 }}>
           <JazzLogo className="w-20 md:w-24" />
         </div>
