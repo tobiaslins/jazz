@@ -30,7 +30,7 @@ export default async function Image() {
         }}
       >
         Let's start riffing. Find out more about Jazz Tools now.
-        <div style={{ position: 'absolute', bottom: 0, right: 0 }}>
+        <div style={{ display: 'flex', position: 'absolute', bottom: 0, right: 0 }}>
           <JazzLogo className="w-20 md:w-24" />
         </div>
       </div>
