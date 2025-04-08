@@ -17,7 +17,7 @@ Create a new Jazz app from a starter template in seconds:
 
 <CodeGroup>
 ```bash
-npx create-jazz-app@latest
+npx create-jazz-app@latest --api-key you@example.com
 ```
 </CodeGroup>
 
@@ -25,18 +25,34 @@ This launches an interactive CLI that guides you through selecting:
 - Pre-configured frameworks and authentication methods (See [Available Starters](#available-starters))
 - Package manager
 - Project name
+- Jazz Cloud API key (optional) - Provides seamless sync and storage for your app
 
-## One-liner
+## Command Line Options
 
-If you know what you want, specify everything in one go:
+If you know what you want, you can specify options directly from the command line:
 
 <CodeGroup>
 ```bash
-npx create-jazz-app@latest my-app\
-  --starter react-passkey-auth\
-  --package-manager npm
+# Basic usage with project name
+npx create-jazz-app@latest my-app --framework react --api-key you@example.com
+
+# Specify a starter template
+npx create-jazz-app@latest my-app --starter react-passkey-auth --api-key you@example.com
+
+# Specify example app
+npx create-jazz-app@latest my-app --example chat --api-key you@example.com
 ```
 </CodeGroup>
+
+### Available Options
+
+- `directory` - Directory to create the project in (defaults to project name)
+- `-f, --framework` - Framework to use (React, React Native, Svelte, Vue)
+- `-s, --starter` - Starter template to use
+- `-e, --example` - Example project to use
+- `-p, --package-manager` - Package manager to use (npm, yarn, pnpm, bun, deno)
+- `-k, --api-key` - Jazz Cloud API key
+- `-h, --help` - Display help information
 
 ## Start From an Example App
 
