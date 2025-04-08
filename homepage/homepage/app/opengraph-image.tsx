@@ -27,12 +27,12 @@ export default async function Image() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'flex-start',
-          margin: '20px',
+          padding: '25px',
         }}
       >
         Whip up an app
-        <div style={{ display: 'flex', position: 'absolute', bottom: 0, right: 0 }}>
-          <JazzLogo className="w-20" />
+        <div style={{ display: 'flex', position: 'absolute', bottom: 10, right: 10 }}>
+          <JazzLogo className="w-15" />
         </div>
       </div>
     ),
