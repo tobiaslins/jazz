@@ -22,6 +22,12 @@ Without additional authentication steps beyond Anonymous Authentication, users c
 
 When a user logs out of an Authenticated Account, they return to the Anonymous Authentication state with a new local account.
 
+Here's what happens during registration and login:
+
+- **Register**: When a user registers with an authentication provider, their Anonymous account credentials are stored in the auth provider, and the account is marked as Authenticated. The user keeps all their existing data.
+
+- **Login**: When a user logs in with an authentication provider, their Anonymous account is discarded and the credentials are loaded from the auth provider. Data from the Anonymous account [can be transferred to the authenticated account](./overview#migrating-data-from-anonymous-to-authenticated-account).
+
 ## Authentication States
 
 Jazz provides three distinct authentication states: **Anonymous Authentication**, **Guest Mode**, and **Authenticated Account**.
