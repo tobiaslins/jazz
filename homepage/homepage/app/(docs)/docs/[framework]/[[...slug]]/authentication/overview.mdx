@@ -6,11 +6,64 @@ import { CodeGroup, ContentByFramework } from "@/components/forMdx";
 
 Jazz authentication is based on cryptographic keys ("Account keys"). Their public part represents a user's identity, their secret part lets you act as that user.
 
-When a user loads a Jazz application for the first time, we create a new Account by generating keys and storing them locally.
+## Authentication States
 
-Without any additional steps the user can use Jazz normally, but they would be limited to use on only one device.
+Jazz has two distinct states for users without traditional sign-in: **Anonymous Authentication** and **Guest Mode**.
+
+### Anonymous Authentication
+
+When a user loads a Jazz application for the first time, we create a new Account by generating keys and storing them locally. This is **Anonymous Authentication**:
+
+- Users have full accounts with unique IDs
+- Data persists between sessions on the same device
+- Can be upgraded to a full account (passkey, passphrase, etc.)
+- Data syncs across the network (if enabled)
+
+### Guest Mode
+
+**Guest Mode** provides a completely accountless context:
+
+- No persistent identity or account
+- Only provides access to publicly readable content
+- Cannot save or sync user-specific data
+- Suitable for read-only access to public resources
+
+Without additional authentication steps beyond Anonymous Authentication, users can use Jazz normally but would be limited to using the application on only one device.
 
 To make Accounts work across devices, you can store/retrieve the account keys from an authentication method by using the corresponding hooks and providers.
+
+## Detecting Authentication State
+
+<ContentByFramework framework="react">
+You can detect the current authentication state using the following hooks:
+
+<CodeGroup>
+```tsx twoslash
+import * as React from "react";
+// ---cut---
+import { useAccount, useIsAuthenticated } from "jazz-react";
+
+function AuthStateIndicator() {
+  const { me } = useAccount();
+  const isAuthenticated = useIsAuthenticated();
+
+  // Check if guest mode is enabled in JazzProvider
+  const isGuest = !me && !isAuthenticated;
+
+  // Anonymous authentication: has an account but not fully authenticated
+  const isAnonymous = !!me && !isAuthenticated;
+  return (
+    <div>
+      {isGuest && <span>Guest Mode</span>}
+      {isAnonymous && <span>Anonymous Account</span>}
+      {isAuthenticated && <span>Authenticated</span>}
+    </div>
+  );
+}
+```
+</CodeGroup>
+For more examples, see the [Authentication States Guide](./auth-states-guide.mdx).
+</ContentByFramework>
 
 <ContentByFramework framework={["react", "vue", "svelte"]}>
 ## Authentication with passkeys [!framework=react,vue,svelte]
@@ -373,7 +426,8 @@ export function AuthButton() {
 Then you can use the [Clerk auth methods](https://clerk.com/docs/references/expo/overview) to log in and sign up:
 <CodeGroup>
 ```tsx twoslash
-// @noErrors: 2686
+import * as React from "react";
+// ---cut---
 import { useSignIn } from "@clerk/clerk-expo";
 import { useAccount, useIsAuthenticated } from "jazz-expo";
 import { Button, Text } from 'react-native';
@@ -462,7 +516,14 @@ You can disable network sync to make your app local-only under specific circumst
 
 For example, you may want to give users with Anonymous Authentication the opportunity to try your app locally-only (incurring no sync traffic), then enable network sync only when the user is fully authenticated:
 <CodeGroup>
-```tsx
+```tsx twoslash
+import * as React from "react";
+import { JazzProvider } from "jazz-react";
+const apiKey = "example@garden.co";
+function App() {
+  return <div>Hello World</div>;
+}
+// ---cut---
 <JazzProvider
   sync={{
     peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
@@ -479,12 +540,18 @@ For example, you may want to give users with Anonymous Authentication the opport
 
 To implement Guest Mode (completely accountless):
 
-```tsx
+<CodeGroup>
+```tsx twoslash
+import * as React from "react";
+import { JazzProvider } from "jazz-react";
+const apiKey = "example@garden.co";
+function App() {
+  return <div>Hello World</div>;
+}
+// ---cut---
 <JazzProvider
   // Enable Guest Mode for public content
   guestMode={true}
-  // Optional: Configure collections accessible in guest mode
-  publicCollections={['publicContent', 'readOnlyResources']}
   sync={{
     peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
     // Only sync for authenticated users
@@ -494,5 +561,5 @@ To implement Guest Mode (completely accountless):
   <App />
 </JazzProvider>
 ```
-
+</CodeGroup>
 For more complex behaviours, you can manually control sync by statefully switching when between `"always"` and `"never"`.
