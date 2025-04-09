@@ -2,8 +2,8 @@ import { clsx } from "clsx";
 
 export function JazzLogo({
   className,
-  width = 386,
-  height = 146,
+  width = undefined,
+  height = undefined,
 }: { className?: string; width?: number; height?: number }) {
   return (
     <svg
