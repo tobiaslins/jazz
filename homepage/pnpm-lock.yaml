@@ -256,6 +256,9 @@ importers:
       jazz-react-auth-clerk:
         specifier: link:../../packages/jazz-react-auth-clerk
         version: link:../../packages/jazz-react-auth-clerk
+      jazz-react-native:
+        specifier: link:../../packages/jazz-react-native
+        version: link:../../packages/jazz-react-native
       jazz-tools:
         specifier: link:../../packages/jazz-tools
         version: link:../../packages/jazz-tools

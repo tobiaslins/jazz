@@ -43,6 +43,7 @@
     "jazz-nodejs": "link:../../packages/jazz-nodejs",
     "jazz-react": "link:../../packages/jazz-react",
     "jazz-react-auth-clerk": "link:../../packages/jazz-react-auth-clerk",
+    "jazz-react-native": "link:../../packages/jazz-react-native",
     "jazz-tools": "link:../../packages/jazz-tools",
     "lucide-react": "^0.436.0",
     "mdast-util-from-markdown": "^2.0.0",
