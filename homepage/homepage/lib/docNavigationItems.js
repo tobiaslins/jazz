@@ -226,12 +226,27 @@ export const docNavigationItems = [
       {
         name: "Overview",
         href: "/docs/authentication/overview",
-        done: {
-          react: 100,
-          vue: 50,
-          "react-native": 100,
-          svelte: 50,
-        },
+        done: 100,
+      },
+      {
+        name: "Authentication States",
+        href: "/docs/authentication/authentication-states",
+        done: 100,
+      },
+      {
+        name: "Passkey",
+        href: "/docs/authentication/passkey",
+        done: 100,
+      },
+      {
+        name: "Passphrase",
+        href: "/docs/authentication/passphrase",
+        done: 100,
+      },
+      {
+        name: "Clerk",
+        href: "/docs/authentication/clerk",
+        done: 100,
       },
       {
         name: "Writing your own",
