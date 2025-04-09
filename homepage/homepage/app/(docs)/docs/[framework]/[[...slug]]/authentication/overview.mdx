@@ -23,7 +23,7 @@ It is based on the [Web Authentication API](https://developer.mozilla.org/en-US/
 Using passkeys in Jazz is as easy as this:
 <CodeGroup>
 ```tsx twoslash
-// @noErrors: 2686
+import * as React from "react";
 import { useState } from "react";
 import { usePasskeyAuth } from "jazz-react";
 type AuthModalProps = {
@@ -84,7 +84,7 @@ For example:
 // @filename: wordlist.ts
 export const wordlist = ["apple", "banana", "cherry", "date", "elderberry", "fig", "grape", "honeydew", "kiwi", "lemon", "mango", "orange", "pear", "quince", "raspberry", "strawberry", "tangerine", "uva", "watermelon", "xigua", "yuzu", "zucchini"];
 // @filename: AuthModal.tsx
-// @noErrors: 2686
+import * as React from "react";
 import { useState } from "react";
 import { usePassphraseAuth } from "jazz-react";
 type AuthModalProps = {
@@ -151,7 +151,7 @@ For example:
 // @filename: wordlist.ts
 export const wordlist = ["apple", "banana", "cherry", "date", "elderberry", "fig", "grape", "honeydew", "kiwi", "lemon", "mango", "orange", "pear", "quince", "raspberry", "strawberry", "tangerine", "uva", "watermelon", "xigua", "yuzu", "zucchini"];
 // @filename: AuthModal.tsx
-// @noErrors: 2686
+import * as React from "react";
 import { View, TextInput, Button, Text } from 'react-native';
 import { useState } from "react";
 import { usePassphraseAuth } from "jazz-react";
@@ -248,7 +248,7 @@ You can use the `JazzProviderWithClerk` component to wrap your app.  Note the `_
 <ContentByFramework framework="react">
 <CodeGroup>
 ```tsx twoslash
-// @noErrors: 2686
+import * as React from "react";
 import { createRoot } from "react-dom/client";
 const apiKey = "example@garden.co";
 const PUBLISHABLE_KEY = "fake_key";
@@ -288,7 +288,7 @@ createRoot(document.getElementById("root")!).render(
 <ContentByFramework framework="react-native-expo">
 <CodeGroup>
 ```tsx twoslash
-// @noErrors: 2686
+import * as React from "react";
 import { Slot } from "expo-router";
 const apiKey = "example@garden.co";
 const tokenCache = {
@@ -349,6 +349,8 @@ export default function RootLayout() {
 Then you can use the [Clerk auth methods](https://clerk.com/docs/references/react/overview) to log in and sign up:
 <CodeGroup>
 ```tsx twoslash
+import * as React from "react";
+// ---cut---
 import { SignInButton } from "@clerk/clerk-react";
 import { useAccount, useIsAuthenticated } from "jazz-react";
 
@@ -372,20 +374,31 @@ Then you can use the [Clerk auth methods](https://clerk.com/docs/references/expo
 <CodeGroup>
 ```tsx twoslash
 // @noErrors: 2686
-import { SignInButton, useSignIn } from "@clerk/clerk-expo";
+import { useSignIn } from "@clerk/clerk-expo";
 import { useAccount, useIsAuthenticated } from "jazz-expo";
+import { Button, Text } from 'react-native';
 
 export function AuthButton() {
   const { logOut } = useAccount();
   const { signIn, setActive, isLoaded } = useSignIn();
-
   const isAuthenticated = useIsAuthenticated();
 
   if (isAuthenticated) {
-    return <button onClick={() => logOut()}>Logout</button>;
+    return <Button title="Logout" onPress={() => logOut()} />;
   }
 
-  // Login code with Clerk Expo
+  const onSignInPress = async () => {
+    if (!isLoaded) return;
+    const signInAttempt = await signIn.create({
+      identifier: "user@example.com",
+      password: "password",
+    });
+    if (signInAttempt.status === "complete") {
+      await setActive({ session: signInAttempt.createdSessionId });
+    }
+  };
+
+  return <Button title="Sign In" onPress={onSignInPress} />;
 }
 ```
 </CodeGroup>
