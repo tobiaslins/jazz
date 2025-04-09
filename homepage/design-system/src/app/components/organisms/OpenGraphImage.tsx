@@ -32,7 +32,7 @@ export default async function OpenGraphImage({ title }: { title: string }) {
       <div
         style={{ display: "flex", position: "absolute", bottom: 10, right: 27 }}
       >
-        <JazzLogo width={193} height={73} />
+        <JazzLogo />
       </div>
     </div>,
     {
