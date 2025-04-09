@@ -22,8 +22,15 @@ It is based on the [Web Authentication API](https://developer.mozilla.org/en-US/
 <ContentByFramework framework="react">
 Using passkeys in Jazz is as easy as this:
 <CodeGroup>
-{/* prettier-ignore */}
-```tsx
+```tsx twoslash
+// @noErrors: 2686
+import { useState } from "react";
+import { usePasskeyAuth } from "jazz-react";
+type AuthModalProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+// ---cut---
 export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const [username, setUsername] = useState("");
 
@@ -73,15 +80,25 @@ You can find a set of ready-to-use wordlists in the [bip39](https://github.com/b
 <ContentByFramework framework="react">
 For example:
 <CodeGroup>
-{/* prettier-ignore */}
-```tsx
-import { englishWordlist } from "./wordlist"
+```tsx twoslash
+// @filename: wordlist.ts
+export const wordlist = ["apple", "banana", "cherry", "date", "elderberry", "fig", "grape", "honeydew", "kiwi", "lemon", "mango", "orange", "pear", "quince", "raspberry", "strawberry", "tangerine", "uva", "watermelon", "xigua", "yuzu", "zucchini"];
+// @filename: AuthModal.tsx
+// @noErrors: 2686
+import { useState } from "react";
+import { usePassphraseAuth } from "jazz-react";
+type AuthModalProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+// ---cut---
+import { wordlist } from "./wordlist"
 
 export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const [loginPassphrase, setLoginPassphrase] = useState("");
 
   const auth = usePassphraseAuth({ // Must be inside the JazzProvider!
-    wordlist: englishWordlist,
+    wordlist: wordlist,
   });
 
   if (auth.state === "signedIn") { // You can also use `useIsAuthenticated()`
@@ -130,15 +147,27 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
 <ContentByFramework framework={["react-native", "react-native-expo"]}>
 For example:
 <CodeGroup>
-{/* prettier-ignore */}
-```tsx
+```tsx twoslash
+// @filename: wordlist.ts
+export const wordlist = ["apple", "banana", "cherry", "date", "elderberry", "fig", "grape", "honeydew", "kiwi", "lemon", "mango", "orange", "pear", "quince", "raspberry", "strawberry", "tangerine", "uva", "watermelon", "xigua", "yuzu", "zucchini"];
+// @filename: AuthModal.tsx
+// @noErrors: 2686
 import { View, TextInput, Button, Text } from 'react-native';
+import { useState } from "react";
+import { usePassphraseAuth } from "jazz-react";
+
+type AuthModalProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+// ---cut---
+import { wordlist } from "./wordlist"
 
 export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const [loginPassphrase, setLoginPassphrase] = useState("");
 
   const auth = usePassphraseAuth({
-    wordlist: englishWordlist,
+    wordlist: wordlist,
   });
 
   if (auth.state === "signedIn") {
@@ -180,7 +209,6 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
           placeholder="Enter your passphrase"
           multiline
           numberOfLines={5}
-          required
         />
       </View>
 
@@ -219,7 +247,16 @@ You can use the `JazzProviderWithClerk` component to wrap your app.  Note the `_
 
 <ContentByFramework framework="react">
 <CodeGroup>
-```tsx
+```tsx twoslash
+// @noErrors: 2686
+import { createRoot } from "react-dom/client";
+const apiKey = "example@garden.co";
+const PUBLISHABLE_KEY = "fake_key";
+function App() {
+  return <div>Hello World</div>;
+}
+// ---cut---
+import { useClerk, ClerkProvider } from '@clerk/clerk-react';
 import { JazzProviderWithClerk } from "jazz-react-auth-clerk";
 
 function JazzProvider({ children }: { children: React.ReactNode }) {
@@ -250,9 +287,21 @@ createRoot(document.getElementById("root")!).render(
 
 <ContentByFramework framework="react-native-expo">
 <CodeGroup>
-```tsx
-import { JazzProviderWithClerk } from "jazz-expo/auth/clerk";
+```tsx twoslash
+// @noErrors: 2686
+import { Slot } from "expo-router";
+const apiKey = "example@garden.co";
+const tokenCache = {
+  getToken: async (key: string) => {
+    return null;
+  },
+  saveToken: async (key: string, token: string) => {},
+  clearToken: async (key: string) => {},
+};
+// ---cut---
+import { useClerk, ClerkProvider, ClerkLoaded } from '@clerk/clerk-expo';
 import { secureStore } from "@clerk/clerk-expo/secure-store";
+import { JazzProviderWithClerk } from "jazz-expo/auth/clerk";
 
 function JazzAndAuth({ children }: { children: React.ReactNode }) {
   const clerk = useClerk();
@@ -299,8 +348,7 @@ export default function RootLayout() {
 <ContentByFramework framework="react">
 Then you can use the [Clerk auth methods](https://clerk.com/docs/references/react/overview) to log in and sign up:
 <CodeGroup>
-{/* prettier-ignore */}
-```tsx
+```tsx twoslash
 import { SignInButton } from "@clerk/clerk-react";
 import { useAccount, useIsAuthenticated } from "jazz-react";
 
@@ -322,9 +370,9 @@ export function AuthButton() {
 <ContentByFramework framework="react-native-expo">
 Then you can use the [Clerk auth methods](https://clerk.com/docs/references/expo/overview) to log in and sign up:
 <CodeGroup>
-{/* prettier-ignore */}
-```tsx
-import { SignInButton } from "@clerk/clerk-expo";
+```tsx twoslash
+// @noErrors: 2686
+import { SignInButton, useSignIn } from "@clerk/clerk-expo";
 import { useAccount, useIsAuthenticated } from "jazz-expo";
 
 export function AuthButton() {
@@ -345,7 +393,7 @@ export function AuthButton() {
 
 ## Migrating data from anonymous to authenticated account
 
-You may want allow your users to use your app without authenticating (a poll response for example). When *signing up* their anonymous account is transparently upgraded using the provided auth method, keeping the data stored in the account intact.
+You may want to allow your users to use your app with Anonymous Authentication (for poll responses, quick trials, etc.). When *signing up*, their anonymous account is transparently upgraded using the provided auth method, keeping the data stored in the account intact.
 
 However, a user may realise that they already have an existing account *after using the app anonymously and having already stored data in the anonymous account*.
 
@@ -391,17 +439,21 @@ To see how this works in reality we suggest you to try
 to upload a song in the [music player demo](https://music-demo.jazz.tools/) and then
 try to log in with an existing account.
 
-## Disable network sync for anonymous users
+## Controlling sync for different authentication states
+
+You can control network sync based on authentication state:
+
+### Disable sync for Anonymous Authentication
 
 You can disable network sync to make your app local-only under specific circumstances.
 
-For example, you may want to give the opportunity to non-authenticated users to try your app locally-only (incurring no sync traffic), then enable the network sync only when the user is authenticated:
+For example, you may want to give users with Anonymous Authentication the opportunity to try your app locally-only (incurring no sync traffic), then enable network sync only when the user is fully authenticated:
 <CodeGroup>
 ```tsx
 <JazzProvider
   sync={{
     peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
-     // This makes the app work in local mode when the user is anonymous
+     // This makes the app work in local mode when using Anonymous Authentication
     when: "signedUp",
   }}
 >
@@ -409,5 +461,25 @@ For example, you may want to give the opportunity to non-authenticated users to 
 </JazzProvider>
 ```
 </CodeGroup>
+
+### Configuring Guest Mode Access
+
+To implement Guest Mode (completely accountless):
+
+```tsx
+<JazzProvider
+  // Enable Guest Mode for public content
+  guestMode={true}
+  // Optional: Configure collections accessible in guest mode
+  publicCollections={['publicContent', 'readOnlyResources']}
+  sync={{
+    peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
+    // Only sync for authenticated users
+    when: "signedUp",
+  }}
+>
+  <App />
+</JazzProvider>
+```
 
 For more complex behaviours, you can manually control sync by statefully switching when between `"always"` and `"never"`.
