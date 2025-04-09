@@ -64,17 +64,17 @@ You can detect the current authentication state using the following hooks:
 ```tsx twoslash
 import * as React from "react";
 // ---cut---
-import { useAccount, useIsAuthenticated } from "jazz-react";
+import { useAccountOrGuest, useIsAuthenticated } from "jazz-react";
 
 function AuthStateIndicator() {
-  const { me } = useAccount();
+  const { me } = useAccountOrGuest();
   const isAuthenticated = useIsAuthenticated();
 
   // Check if guest mode is enabled in JazzProvider
-  const isGuest = !me && !isAuthenticated;
+  const isGuest = me._type !== "Account"
 
   // Anonymous authentication: has an account but not fully authenticated
-  const isAnonymous = !!me && !isAuthenticated;
+  const isAnonymous = !isGuest && !isAuthenticated;
   return (
     <div>
       {isGuest && <span>Guest Mode</span>}
