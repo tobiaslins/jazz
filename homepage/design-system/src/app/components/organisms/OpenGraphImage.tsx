@@ -12,7 +12,7 @@ export const imageContentType = "image/png";
 
 export default async function OpenGraphImage({ title }: { title: string }) {
   const manropeSemiBold = await readFile(
-    join(process.cwd(), "design-system/fonts/Manrope-SemiBold.ttf"),
+    join(process.cwd(), "public/fonts/Manrope-SemiBold.ttf"),
   );
 
   return new ImageResponse(
