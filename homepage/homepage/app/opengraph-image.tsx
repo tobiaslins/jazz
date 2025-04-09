@@ -27,11 +27,11 @@ export default async function Image() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'flex-start',
-          padding: '50px',
+          padding: '77px',
         }}
       >
         {alt}
-        <div style={{ display: 'flex', position: 'absolute', bottom: 10, right: 10 }}>
+        <div style={{ display: 'flex', position: 'absolute', bottom: 10, right: 27 }}>
           <JazzLogo className="w-15" />
         </div>
       </div>
