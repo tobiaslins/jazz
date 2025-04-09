@@ -4,11 +4,17 @@ import { CodeGroup, ContentByFramework } from "@/components/forMdx";
 
 # Passphrase Authentication
 
-Passphrase authentication lets users log into any device using a Bitcoin-style passphrase. Users are responsible for storing the passphrase safely.
+Passphrase authentication lets users log into any device using a recovery phrase consisting of multiple words (similar to cryptocurrency wallets). Users are responsible for storing this passphrase safely.
 
 ## How it works
 
-The passphrase is generated from the local account certificate using a wordlist of your choice. You can use a ready-to-use wordlist, for example  [bip39](https://github.com/bitcoinjs/bip39/tree/a7ecbfe2e60d0214ce17163d610cad9f7b23140c/src/wordlists) offers lists in many languages.
+When a user creates an account with passphrase authentication:
+
+1. Jazz generates a unique recovery phrase derived from the user's cryptographic keys
+2. This phrase consists of words from a wordlist
+3. Users save this phrase and enter it when logging in on new devices
+
+You can use one of the ready-to-use wordlists from the [BIP39 repository](https://github.com/bitcoinjs/bip39/tree/a7ecbfe2e60d0214ce17163d610cad9f7b23140c/src/wordlists) or create your own.
 
 ## Key benefits
 
