@@ -18,7 +18,7 @@ export default async function OpenGraphImage({ title }: { title: string }) {
   return new ImageResponse(
     <div
       style={{
-        fontSize: 111,
+        fontSize: "7rem",
         background: "white",
         width: "100%",
         height: "100%",
@@ -26,13 +26,14 @@ export default async function OpenGraphImage({ title }: { title: string }) {
         alignItems: "center",
         justifyContent: "flex-start",
         padding: "77px",
+        letterSpacing: "-0.02em",
       }}
     >
       {title}
       <div
-        style={{ display: "flex", position: "absolute", bottom: 10, right: 27 }}
+        style={{ display: "flex", position: "absolute", bottom: 25, right: 30 }}
       >
-        <JazzLogo />
+        <JazzLogo width={193} height={73} />
       </div>
     </div>,
     {
