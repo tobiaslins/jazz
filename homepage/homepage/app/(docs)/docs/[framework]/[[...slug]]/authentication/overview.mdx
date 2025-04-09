@@ -18,6 +18,10 @@ When a user first opens your app, they'll be in one of these states:
 
 Anonymous Authentication can be [upgraded to an Authenticated Account](./overview#migrating-data-from-anonymous-to-authenticated-account), preserving user data. Once authenticated, users can access their account across multiple devices.
 
+Without additional authentication steps beyond Anonymous Authentication, users can use Jazz normally but are limited to using the application on only one device.
+
+When a user logs out of an Authenticated Account, they return to the Anonymous Authentication state with a new local account.
+
 ## Authentication States
 
 Jazz provides three distinct authentication states: **Anonymous Authentication**, **Guest Mode**, and **Authenticated Account**.
@@ -48,8 +52,6 @@ When a user loads a Jazz application for the first time, we create a new Account
 - Full access to all application features
 - Data can sync across all user devices
 - Multiple authentication methods available
-
-Without additional authentication steps beyond Anonymous Authentication, users can use Jazz normally but would be limited to using the application on only one device.
 
 To make Accounts work across devices, you can store/retrieve the account keys from an authentication method by using the corresponding hooks and providers.
 
