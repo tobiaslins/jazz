@@ -1,9 +1,12 @@
 import { clsx } from "clsx";
 
-export function JazzLogo({ className }: { className?: string }) {
+export function JazzLogo({
+  className,
+  viewBoxSize = "0 0 386 146",
+}: { className?: string; viewBoxSize?: string }) {
   return (
     <svg
-      viewBox="0 0 386 146"
+      viewBox={viewBoxSize}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={clsx(className, "text-black dark:text-white")}
