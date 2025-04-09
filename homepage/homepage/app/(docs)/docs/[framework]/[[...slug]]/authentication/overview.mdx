@@ -61,11 +61,10 @@ When a user loads a Jazz application for the first time, we create a new Account
 
 To make Accounts work across devices, you can store/retrieve the account keys from an authentication method by using the corresponding hooks and providers.
 
-## Detecting Authentication State [!framework=react]
+## Detecting Authentication State
+You can detect the current authentication state using `useAccountOrGuest` and `useIsAuthenticated`.
 
 <ContentByFramework framework="react">
-You can detect the current authentication state using the following hooks:
-
 <CodeGroup>
 ```tsx twoslash
 import * as React from "react";
@@ -91,7 +90,6 @@ function AuthStateIndicator() {
 }
 ```
 </CodeGroup>
-For more examples, see the [Authentication States Guide](./auth-states-guide.mdx).
 </ContentByFramework>
 
 <ContentByFramework framework={["react", "vue", "svelte", "vanilla"]}>
@@ -145,7 +143,6 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
 ```
 </CodeGroup>
 </ContentByFramework>
-
 
 You can try our passkey authentication using our [passkey example](https://passkey-demo.jazz.tools/) or the [music player demo](https://music-demo.jazz.tools/).
 
@@ -236,7 +233,7 @@ export const wordlist = ["apple", "banana", "cherry", "date", "elderberry", "fig
 import * as React from "react";
 import { View, TextInput, Button, Text } from 'react-native';
 import { useState } from "react";
-import { usePassphraseAuth } from "jazz-react";
+import { usePassphraseAuth } from "jazz-react-native";
 
 type AuthModalProps = {
   open: boolean;
@@ -305,10 +302,14 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
 </CodeGroup>
 </ContentByFramework>
 
-You can try our passphrase authentication using our [passphrase example](https://passphrase-demo.jazz.tools/) or the [todo list demo](https://todo-demo.jazz.tools/).
+You can see passphrase authentication in our [passphrase example](https://passphrase-demo.jazz.tools/) or the [todo list demo](https://todo-demo.jazz.tools/).
 
-<ContentByFramework framework={["react", "react-native-expo"]}>
-## Integration with Clerk [!framework=react,react-native-expo]
+## Integration with Clerk
+<ContentByFramework framework="react-native">
+We do not currently support Clerk in React Native, but we do in [React Native Expo](/docs/react-native-expo/authentication/overview#integration-with-clerk).
+</ContentByFramework>
+
+<ContentByFramework framework={["react", "react-native-expo", "svelte", "vue", "vanilla"]}>
 
 Jazz can be used with [Clerk](https://clerk.com/) to authenticate users.
 
@@ -317,22 +318,20 @@ This authentication method is not fully local-first, because the login and signu
 However, once authenticated, your users won't need to interact with Clerk anymore, and are able to use all of Jazz's features without needing to be online.
 </ContentByFramework>
 
-<ContentByFramework framework="react">
-The clerk provider is not built into `jazz-react` and needs the `jazz-react-auth-clerk` package to be installed.
-
-After installing the package you can use the `JazzProviderWithClerk` component to wrap your app:
-</ContentByFramework>
-
 <ContentByFramework framework="react-native-expo">
 You can use the `JazzProviderWithClerk` component to wrap your app.  Note the `__experimental_resourceCache` option.  This helps render Clerk components when offline.
 </ContentByFramework>
 
 <ContentByFramework framework="react">
+We offer Clerk integration through our package: [`jazz-react-auth-clerk`](https://npmjs.com/package/jazz-react-auth-clerk).
+
+After installing, you can use `<JazzProviderWithClerk />` to wrap your app.
+
 <CodeGroup>
 ```tsx twoslash
 import * as React from "react";
 import { createRoot } from "react-dom/client";
-const apiKey = "example@garden.co";
+const apiKey = "you@example.com";
 const PUBLISHABLE_KEY = "fake_key";
 function App() {
   return <div>Hello World</div>;
@@ -372,7 +371,7 @@ createRoot(document.getElementById("root")!).render(
 ```tsx twoslash
 import * as React from "react";
 import { Slot } from "expo-router";
-const apiKey = "example@garden.co";
+const apiKey = "you@example.com";
 const tokenCache = {
   getToken: async (key: string) => {
     return null;
@@ -473,7 +472,7 @@ export function AuthButton() {
   const onSignInPress = async () => {
     if (!isLoaded) return;
     const signInAttempt = await signIn.create({
-      identifier: "user@example.com",
+      identifier: "you@example.com",
       password: "password",
     });
     if (signInAttempt.status === "complete") {
@@ -574,7 +573,7 @@ You can control network sync with [Providers](/docs/project-setup/providers) bas
 ```tsx twoslash
 import * as React from "react";
 import { JazzProvider } from "jazz-react";
-const apiKey = "example@garden.co";
+const apiKey = "you@example.com";
 function App() {
   return <div>Hello World</div>;
 }
@@ -593,17 +592,18 @@ function App() {
 </CodeGroup>
 </ContentByFramework>
 
-
 ### Disable sync for Anonymous Authentication
 
 You can disable network sync to make your app local-only under specific circumstances.
 
-For example, you may want to give users with Anonymous Authentication the opportunity to try your app locally-only (incurring no sync traffic), then enable network sync only when the user is fully authenticated:
+For example, you may want to give users with Anonymous Authentication the opportunity to try your app locally-only (incurring no sync traffic), then enable network sync only when the user is fully authenticated.
+
+<ContentByFramework framework="react">
 <CodeGroup>
 ```tsx twoslash
 import * as React from "react";
 import { JazzProvider } from "jazz-react";
-const apiKey = "example@garden.co";
+const apiKey = "you@example.com";
 function App() {
   return <div>Hello World</div>;
 }
@@ -619,16 +619,17 @@ function App() {
 </JazzProvider>
 ```
 </CodeGroup>
-
+</ContentByFramework>
 ### Configuring Guest Mode Access
 
-To implement Guest Mode (completely accountless):
+You can configure Guest Mode access with the `guestMode` prop for [Providers](/docs/project-setup/providers).
 
+<ContentByFramework framework="react">
 <CodeGroup>
 ```tsx twoslash
 import * as React from "react";
 import { JazzProvider } from "jazz-react";
-const apiKey = "example@garden.co";
+const apiKey = "you@example.com";
 function App() {
   return <div>Hello World</div>;
 }
@@ -646,4 +647,6 @@ function App() {
 </JazzProvider>
 ```
 </CodeGroup>
+</ContentByFramework>
+
 For more complex behaviours, you can manually control sync by statefully switching when between `"always"` and `"never"`.
