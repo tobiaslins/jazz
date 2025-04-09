@@ -29,12 +29,6 @@ const PaginationContainer = styled("div")`
   gap: 0.5rem;
 `;
 
-const ListItem = styled("li")`
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-`;
-
 function CoValuesTableView({
   data,
   node,
@@ -171,14 +165,26 @@ export function TableView({
 
   // if data is a list of primitives, we can render those values directly
   return (
-    <ul>
-      {Array.isArray(data) &&
-        data?.map((value, index) => (
-          <ListItem key={index}>
-            <Text mono>[{index}]</Text>
-            <ValueRenderer json={value} />
-          </ListItem>
-        ))}
-    </ul>
+    <Table>
+      <TableHead>
+        <TableRow>
+          <TableHeader style={{ width: "5rem" }}>Index</TableHeader>
+          <TableHeader>Value</TableHeader>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {Array.isArray(data) &&
+          data?.map((value, index) => (
+            <TableRow key={index}>
+              <TableCell>
+                <Text mono>{index}</Text>
+              </TableCell>
+              <TableCell>
+                <ValueRenderer json={value} />
+              </TableCell>
+            </TableRow>
+          ))}
+      </TableBody>
+    </Table>
   );
 }
