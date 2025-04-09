@@ -16,9 +16,9 @@ When a user first opens your app, they'll be in one of these states:
 
 - **Authenticated Account**: Full account accessible across multiple devices using [passkeys](./overview#authentication-with-passkeys), [passphrases](./overview#passphrase-based-authentication), or third-party authentications, such as [Clerk](./overview#integration-with-clerk).
 
-Anonymous Authentication can be [upgraded to an Authenticated Account](./overview#migrating-data-from-anonymous-to-authenticated-account), preserving user data. Once authenticated, users can access their account across multiple devices.
+Anonymous Authentication can be [upgraded to an Authenticated Account](./overview#migrating-data-from-anonymous-to-authenticated-account), preserving user data.
 
-Without additional authentication steps beyond Anonymous Authentication, users can use Jazz normally but are limited to using the application on only one device.
+Without authentication, users are limited to using the application on only one device.
 
 When a user logs out of an Authenticated Account, they return to the Anonymous Authentication state with a new local account.
 
@@ -26,7 +26,7 @@ Here's what happens during registration and login:
 
 - **Register**: When a user registers with an authentication provider, their Anonymous account credentials are stored in the auth provider, and the account is marked as Authenticated. The user keeps all their existing data.
 
-- **Login**: When a user logs in with an authentication provider, their Anonymous account is discarded and the credentials are loaded from the auth provider. Data from the Anonymous account [can be transferred to the authenticated account](./overview#migrating-data-from-anonymous-to-authenticated-account).
+- **Login**: When a user logs in with an authentication provider, their Anonymous account is discarded and the credentials are loaded from the auth provider. Data from the Anonymous account can be transferred using the [onAnonymousAccountDiscarded handler](./overview#migrating-data-from-anonymous-to-authenticated-account).
 
 ## Authentication States
 
@@ -61,7 +61,7 @@ When a user loads a Jazz application for the first time, we create a new Account
 
 To make Accounts work across devices, you can store/retrieve the account keys from an authentication method by using the corresponding hooks and providers.
 
-## Detecting Authentication State
+## Detecting Authentication State [!framework=react]
 
 <ContentByFramework framework="react">
 You can detect the current authentication state using the following hooks:
@@ -94,8 +94,8 @@ function AuthStateIndicator() {
 For more examples, see the [Authentication States Guide](./auth-states-guide.mdx).
 </ContentByFramework>
 
-<ContentByFramework framework={["react", "vue", "svelte"]}>
-## Authentication with passkeys [!framework=react,vue,svelte]
+<ContentByFramework framework={["react", "vue", "svelte", "vanilla"]}>
+## Authentication with passkeys [!framework=react,vue,svelte,vanilla]
 
 Passkey authentication is fully local-first and the most secure of the auth methods that Jazz provides (because keys are managed by the device/operating system itself).
 
@@ -308,7 +308,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
 You can try our passphrase authentication using our [passphrase example](https://passphrase-demo.jazz.tools/) or the [todo list demo](https://todo-demo.jazz.tools/).
 
 <ContentByFramework framework={["react", "react-native-expo"]}>
-## Integration with Clerk
+## Integration with Clerk [!framework=react,react-native-expo]
 
 Jazz can be used with [Clerk](https://clerk.com/) to authenticate users.
 
@@ -563,7 +563,36 @@ try to log in with an existing account.
 
 ## Controlling sync for different authentication states
 
-You can control network sync based on authentication state:
+You can control network sync with [Providers](/docs/project-setup/providers) based on authentication state:
+
+- `when: "always"`: Sync is enabled for both Anonymous Authentication and Authenticated Account
+- `when: "signedUp"`: Sync is enabled when the user is authenticated
+- `when: "never"`: Sync is disabled, content stays local
+
+<ContentByFramework framework="react">
+<CodeGroup>
+```tsx twoslash
+import * as React from "react";
+import { JazzProvider } from "jazz-react";
+const apiKey = "example@garden.co";
+function App() {
+  return <div>Hello World</div>;
+}
+// ---cut---
+<JazzProvider
+  sync={{
+    peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
+     // Controls when sync is enabled for
+     // both Anonymous Authentication and Authenticated Account
+    when: "always", // or "signedUp" or "never"
+  }}
+>
+  <App />
+</JazzProvider>
+```
+</CodeGroup>
+</ContentByFramework>
+
 
 ### Disable sync for Anonymous Authentication
 
