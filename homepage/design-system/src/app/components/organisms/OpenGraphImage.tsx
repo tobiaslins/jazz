@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { JazzLogo } from "@components/atoms/logos/JazzLogo";
 import { ImageResponse } from "next/og";
+import { JazzLogo } from "../atoms/logos/JazzLogo";
 
 export const imageSize = {
   width: 1200,
