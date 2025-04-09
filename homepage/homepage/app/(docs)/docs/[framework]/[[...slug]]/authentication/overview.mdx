@@ -468,24 +468,50 @@ When they now *log in*, by default the anonymous account will be discarded and t
 
 To avoid this situation we provide the `onAnonymousAccountDiscarded` handler to migrate the data from the anonymous account to the existing authenticated one.
 
-This is an example from our [music player](https://github.com/garden-co/jazz/tree/main/examples/music-player):
+This is an example from our [music player example app](https://github.com/garden-co/jazz/tree/main/examples/music-player):
 <CodeGroup>
-```ts
+```ts twoslash
+import { Account, Group, CoMap, co, CoList } from "jazz-tools";
+
+class MusicTrack extends CoMap {
+  title = co.string;
+  duration = co.number;
+  isExampleTrack = co.optional.boolean;
+}
+class ListOfTracks extends CoList.Of(co.ref(MusicTrack)) {}
+class Playlist extends CoMap {
+  title = co.string;
+  tracks = co.ref(ListOfTracks);
+}
+class MusicaAccountRoot extends CoMap {
+  rootPlaylist = co.ref(Playlist);
+}
+class MusicaAccount extends Account {
+  root = co.ref(MusicaAccountRoot);
+}
+
+// ---cut---
 export async function onAnonymousAccountDiscarded(
   anonymousAccount: MusicaAccount,
 ) {
   const { root: anonymousAccountRoot } = await anonymousAccount.ensureLoaded({
-    root: {
-      rootPlaylist: {
-        tracks: [{}],
+    resolve: {
+      root: {
+        rootPlaylist: {
+          tracks: {
+            $each: true,
+          },
+        },
       },
     },
   });
 
   const me = await MusicaAccount.getMe().ensureLoaded({
-    root: {
-      rootPlaylist: {
-        tracks: [],
+    resolve: {
+      root: {
+        rootPlaylist: {
+          tracks: true,
+        },
       },
     },
   });
