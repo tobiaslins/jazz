@@ -2,10 +2,11 @@ import LatencyChart from "@/components/LatencyChart";
 import { clsx } from "clsx";
 import { HeroHeader } from "gcmp-design-system/src/app/components/molecules/HeroHeader";
 import type { Metadata } from "next";
-import dynamic from "next/dynamic";
 import { Fragment } from "react";
 
 const title = "Status";
+
+export const dynamic = "force-static";
 
 export const metadata: Metadata = {
   title,
