@@ -1,5 +1,15 @@
 # jazz-inspector
 
+## 0.13.3
+
+### Patch Changes
+
+- 017f6c8: handle displaying a CoList of primitives
+- Updated dependencies [12f8bfa]
+- Updated dependencies [bd57177]
+  - jazz-tools@0.13.3
+  - jazz-react-core@0.13.3
+
 ## 0.13.2
 
 ### Patch Changes

@@ -1,5 +1,12 @@
 # jazz-tools
 
+## 0.13.3
+
+### Patch Changes
+
+- 12f8bfa: Log permission errors when loading or subscribing to values
+- bd57177: Handle null properties in the CoMap deep loading
+
 ## 0.13.2
 
 ### Patch Changes
