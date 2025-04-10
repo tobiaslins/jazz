@@ -1,5 +1,13 @@
 # form
 
+## 0.1.15
+
+### Patch Changes
+
+- Updated dependencies [3129982]
+  - jazz-react@0.13.4
+  - jazz-tools@0.13.4
+
 ## 0.1.14
 
 ### Patch Changes
