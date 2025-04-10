@@ -375,7 +375,7 @@ export function subscribeToCoValue<
             id,
             "on path",
             result.path.join("."),
-            "unaccesible value:",
+            "unaccessible value:",
             result.id,
           );
           options.onUnauthorized?.(result.path);

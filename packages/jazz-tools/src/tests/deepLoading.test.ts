@@ -428,7 +428,7 @@ describe("Deep loading with unauthorized account", async () => {
       map.id,
       "on path",
       "list",
-      "unaccesible value:",
+      "unaccessible value:",
       map.list?.id,
     );
 
@@ -467,7 +467,7 @@ describe("Deep loading with unauthorized account", async () => {
       map.id,
       "on path",
       "list.0",
-      "unaccesible value:",
+      "unaccessible value:",
       map.list?.[0]?.id,
     );
 
@@ -499,7 +499,7 @@ describe("Deep loading with unauthorized account", async () => {
       map.id,
       "on path",
       "optionalRef",
-      "unaccesible value:",
+      "unaccessible value:",
       map.optionalRef?.id,
     );
 
@@ -563,7 +563,7 @@ describe("Deep loading with unauthorized account", async () => {
       map.id,
       "on path",
       "list.0.stream",
-      "unaccesible value:",
+      "unaccessible value:",
       map.list?.[0]?.stream?.id,
     );
 
@@ -604,7 +604,7 @@ describe("Deep loading with unauthorized account", async () => {
       map.id,
       "on path",
       "list.0.stream." + value.id,
-      "unaccesible value:",
+      "unaccessible value:",
       value.id,
     );
 
