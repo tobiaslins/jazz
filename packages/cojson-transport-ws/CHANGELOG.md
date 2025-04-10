@@ -1,5 +1,11 @@
 # cojson-transport-nodejs-ws
 
+## 0.13.3
+
+### Patch Changes
+
+- b19cab7: Relax the WebSocket types on jazz-nodejs
+
 ## 0.13.2
 
 ### Patch Changes
