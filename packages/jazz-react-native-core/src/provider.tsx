@@ -28,6 +28,7 @@ export function JazzProviderCore<Acc extends Account = RegisteredAccount>({
   kvStore,
   onAnonymousAccountDiscarded,
   CryptoProvider,
+  logOutReplacement,
 }: JazzProviderProps<Acc>) {
   setupKvStore(kvStore);
 
@@ -39,6 +40,7 @@ export function JazzProviderCore<Acc extends Account = RegisteredAccount>({
     onAnonymousAccountDiscarded,
   );
   const onLogOutRefCallback = useRefCallback(onLogOut);
+  const logOutReplacementRefCallback = useRefCallback(logOutReplacement);
 
   const value = React.useSyncExternalStore<JazzContextType<Acc> | undefined>(
     React.useCallback(
@@ -50,6 +52,7 @@ export function JazzProviderCore<Acc extends Account = RegisteredAccount>({
           storage,
           defaultProfileName,
           onLogOut: onLogOutRefCallback,
+          logOutReplacement: logOutReplacementRefCallback,
           onAnonymousAccountDiscarded: onAnonymousAccountDiscardedRefCallback,
           CryptoProvider,
         };
