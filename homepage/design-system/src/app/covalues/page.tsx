@@ -19,6 +19,7 @@ export default function Playground() {
       <div className="mb-8">
         <h2 className="text-xl font-semibold mb-2">CoMap</h2>
         <CoMapVisualizer data={examplePerson} />
+        <CoMapVisualizer data={examplePerson} showMetadata={true} />
       </div>
     </div>
   );
