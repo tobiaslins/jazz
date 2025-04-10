@@ -610,6 +610,34 @@ describe("Deep loading with unauthorized account", async () => {
 
     errorSpy.mockReset();
   });
+
+  test("setting null via proxy", async () => {
+    class Lv1 extends CoMap {
+      lv2 = co.ref(Lv2);
+    }
+
+    class Lv2 extends CoMap {
+      lv3 = co.optional.ref(Lv3);
+    }
+
+    class Lv3 extends CoMap {
+      string = co.string;
+    }
+
+    const map = Lv1.create(
+      { lv2: Lv2.create({ lv3: Lv3.create({ string: "hello" }, bob) }, bob) },
+      bob,
+    );
+
+    map.lv2!.lv3 = null;
+
+    const loadedMap = await Lv1.load(map.id, {
+      resolve: { lv2: { lv3: true } },
+      loadAs: bob,
+    });
+
+    expect(loadedMap?.id).toBe(map.id);
+  });
 });
 
 test("doesn't break on Map.Record key deletion when the key is referenced in the depth", async () => {
