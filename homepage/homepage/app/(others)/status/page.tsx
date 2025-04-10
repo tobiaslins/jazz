@@ -7,8 +7,6 @@ import { Fragment } from "react";
 
 const title = "Status";
 
-export const revalidate = 300;
-
 export const metadata: Metadata = {
   title,
   openGraph: {
@@ -41,6 +39,10 @@ interface DataRow {
 
 const query = async () => {
   const res = await fetch("https://gcmp.grafana.net/api/ds/query", {
+    cache: "force-cache",
+    next: {
+      revalidate: 300,
+    },
     method: "POST",
     headers: {
       "Content-Type": "application/json",
