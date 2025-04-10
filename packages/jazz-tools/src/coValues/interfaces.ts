@@ -373,8 +373,10 @@ export function subscribeToCoValue<
           console.error(
             "Not enough permissions to load / subscribe to CoValue",
             id,
-            "On path",
+            "on path",
             result.path.join("."),
+            "unaccesible value:",
+            result.id,
           );
           options.onUnauthorized?.(result.path);
           return;

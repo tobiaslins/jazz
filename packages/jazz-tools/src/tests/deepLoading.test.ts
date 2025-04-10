@@ -392,14 +392,25 @@ describe("Deep loading with unauthorized account", async () => {
   group.addMember(alice, "reader");
 
   test("unaccessible root", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
     const map = TestMap.create({ list: TestList.create([], group) }, onlyBob);
 
     const mapOnAlice = await TestMap.load(map.id, { loadAs: alice });
 
     expect(mapOnAlice).toBe(null);
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Not enough permissions to load / subscribe to CoValue",
+      map.id,
+    );
+
+    errorSpy.mockReset();
   });
 
   test("unaccessible list", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
     const map = TestMap.create({ list: TestList.create([], onlyBob) }, group);
 
     const mapOnAlice = await TestMap.load(map.id, { loadAs: alice });
@@ -411,9 +422,22 @@ describe("Deep loading with unauthorized account", async () => {
     });
 
     expect(mapWithListOnAlice).toBe(null);
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Not enough permissions to load / subscribe to CoValue",
+      map.id,
+      "on path",
+      "list",
+      "unaccesible value:",
+      map.list?.id,
+    );
+
+    errorSpy.mockReset();
   });
 
   test("unaccessible list element", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
     const map = TestMap.create(
       {
         list: TestList.create(
@@ -437,9 +461,22 @@ describe("Deep loading with unauthorized account", async () => {
     });
 
     expect(mapOnAlice).toBe(null);
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Not enough permissions to load / subscribe to CoValue",
+      map.id,
+      "on path",
+      "list.0",
+      "unaccesible value:",
+      map.list?.[0]?.id,
+    );
+
+    errorSpy.mockReset();
   });
 
   test("unaccessible optional element", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
     const map = TestMap.create(
       {
         list: TestList.create([], group),
@@ -456,6 +493,17 @@ describe("Deep loading with unauthorized account", async () => {
 
     expect(mapOnAlice?.optionalRef).toBe(undefined);
     expect(mapOnAlice?.optionalRef?.value).toBe(undefined);
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Not enough permissions to load / subscribe to CoValue",
+      map.id,
+      "on path",
+      "optionalRef",
+      "unaccesible value:",
+      map.optionalRef?.id,
+    );
+
+    errorSpy.mockReset();
   });
 
   test("unaccessible optional element via autoload", async () => {
@@ -485,6 +533,7 @@ describe("Deep loading with unauthorized account", async () => {
   });
 
   test("unaccessible stream", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     const map = TestMap.create(
       {
         list: TestList.create(
@@ -508,19 +557,31 @@ describe("Deep loading with unauthorized account", async () => {
     });
 
     expect(mapOnAlice).toBe(null);
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Not enough permissions to load / subscribe to CoValue",
+      map.id,
+      "on path",
+      "list.0.stream",
+      "unaccesible value:",
+      map.list?.[0]?.stream?.id,
+    );
+
+    errorSpy.mockReset();
   });
 
   test("unaccessible stream element", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const value = InnermostMap.create({ value: "hello" }, onlyBob);
+
     const map = TestMap.create(
       {
         list: TestList.create(
           [
             InnerMap.create(
               {
-                stream: TestStream.create(
-                  [InnermostMap.create({ value: "hello" }, onlyBob)],
-                  group,
-                ),
+                stream: TestStream.create([value], group),
               },
               group,
             ),
@@ -537,6 +598,17 @@ describe("Deep loading with unauthorized account", async () => {
     });
 
     expect(mapOnAlice).toBe(null);
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Not enough permissions to load / subscribe to CoValue",
+      map.id,
+      "on path",
+      "list.0.stream." + value.id,
+      "unaccesible value:",
+      value.id,
+    );
+
+    errorSpy.mockReset();
   });
 });
 

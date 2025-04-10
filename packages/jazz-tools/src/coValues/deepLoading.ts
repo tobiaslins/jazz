@@ -1,4 +1,4 @@
-import { SessionID } from "cojson";
+import { JsonValue, RawCoList, SessionID } from "cojson";
 import { ItemsSym, type Ref, RefEncoded, UnCo } from "../internal.js";
 import { type Account } from "./account.js";
 import { type CoFeed, CoFeedEntry } from "./coFeed.js";
@@ -39,6 +39,7 @@ type FulfillsDepthResult =
   | {
       status: "unauthorized";
       path: string[];
+      id: JsonValue;
     };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -60,7 +61,9 @@ export function fulfillsDepth(depth: any, value: CoValue): FulfillsDepthResult {
       const result: FulfillsDepthResult = { status: "fulfilled" };
 
       for (const [key, item] of Object.entries(value)) {
-        if (map._raw.get(key) !== undefined) {
+        const rawValue = map._raw.get(key);
+
+        if (rawValue !== undefined) {
           if (!item) {
             if (hasReadAccess(map, key)) {
               result.status = "unfulfilled";
@@ -69,6 +72,7 @@ export function fulfillsDepth(depth: any, value: CoValue): FulfillsDepthResult {
               return {
                 status: "unauthorized",
                 path: [key],
+                id: rawValue,
               };
             }
           }
@@ -97,7 +101,9 @@ export function fulfillsDepth(depth: any, value: CoValue): FulfillsDepthResult {
       const result: FulfillsDepthResult = { status: "fulfilled" };
 
       for (const key of Object.keys(depth)) {
-        if (map._raw.get(key) === undefined) {
+        const rawValue = map._raw.get(key);
+
+        if (rawValue === undefined) {
           if (!map._schema?.[key]) {
             // Field not defined in schema
             if (map._schema?.[ItemsSym]) {
@@ -135,6 +141,7 @@ export function fulfillsDepth(depth: any, value: CoValue): FulfillsDepthResult {
               return {
                 status: "unauthorized",
                 path: [key],
+                id: rawValue,
               };
             }
           }
@@ -170,6 +177,7 @@ export function fulfillsDepth(depth: any, value: CoValue): FulfillsDepthResult {
               return {
                 status: "unauthorized",
                 path: [key.toString()],
+                id: (value._raw as RawCoList).get(key) ?? "undefined",
               };
             }
           }
@@ -213,6 +221,7 @@ export function fulfillsDepth(depth: any, value: CoValue): FulfillsDepthResult {
               return {
                 status: "unauthorized",
                 path: [item.ref.id],
+                id: item.ref.id,
               };
             }
           }
