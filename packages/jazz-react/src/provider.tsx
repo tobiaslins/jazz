@@ -37,6 +37,8 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
   const onAnonymousAccountDiscardedRefCallback = useRefCallback(
     onAnonymousAccountDiscarded,
   );
+  const logoutReplacementActiveRef = useRef(false);
+  logoutReplacementActiveRef.current = Boolean(logOutReplacement);
 
   const value = React.useSyncExternalStore<JazzContextType<Acc> | undefined>(
     React.useCallback(
@@ -48,7 +50,9 @@ export function JazzProvider<Acc extends Account = RegisteredAccount>({
           storage,
           defaultProfileName,
           onLogOut: onLogOutRefCallback,
-          logOutReplacement: logOutReplacementRefCallback,
+          logOutReplacement: logoutReplacementActiveRef.current
+            ? logOutReplacementRefCallback
+            : undefined,
           onAnonymousAccountDiscarded: onAnonymousAccountDiscardedRefCallback,
         } satisfies JazzContextManagerProps<Acc>;
 
