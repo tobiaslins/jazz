@@ -64,21 +64,31 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
 </CodeGroup>
 </ContentByFramework>
 
-## Demo Examples
+## Examples
 
 You can try passkey authentication using our [passkey example](https://passkey-demo.jazz.tools/) or the [music player demo](https://music-demo.jazz.tools/).
 
-## Browser Support
+## When to use Passkeys
 
-Passkeys are supported in:
-- Chrome (version 108+)
-- Safari (version 16+)
-- Firefox (version 117+)
-- Edge (version 108+)
+Passkeys are ideal when:
+- Security is a top priority
+- You want the most user-friendly authentication experience
+- You're targeting modern browsers and devices
+- You want to eliminate the risk of password-based attacks
 
-For older browsers, we recommend using [passphrase authentication](/docs/react/authentication/overview#passphrase-based-authentication) as a fallback.
+## Limitations and considerations
 
-## More About Passkeys
+- Requires hardware/OS support for biometric authentication
+- Not supported in older browsers (see browser support below)
+- Requires a fallback method for unsupported environments
+
+### Browser Support
+
+[Passkeys are supported in most modern browsers](https://caniuse.com/passkeys).
+
+For older browsers, we recommend using [passphrase authentication](./passphrase) as a fallback.
+
+## Additional resources
 
 For more information about the Web Authentication API and passkeys:
 - [WebAuthn.io](https://webauthn.io/)

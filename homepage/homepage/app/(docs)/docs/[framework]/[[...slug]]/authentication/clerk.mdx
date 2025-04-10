@@ -4,20 +4,30 @@ import { CodeGroup, ContentByFramework } from "@/components/forMdx";
 
 # Clerk Authentication
 
-Jazz can be used with [Clerk](https://clerk.com/) to authenticate users. This method isn't fully local-first, as login and signup need to be done online.
+Jazz can be integrated with [Clerk](https://clerk.com/) to authenticate users. This method combines Clerk's comprehensive authentication services with Jazz's local-first capabilities.
 
+<ContentByFramework framework="react-native">
+We do not currently support Clerk in React Native, but we do have support for [React Native Expo](/docs/react-native-expo/authentication/clerk).
+</ContentByFramework>
+
+<ContentByFramework framework={["react", "react-native-expo", "svelte", "vue", "vanilla"]}>
 ## How it works
 
 When using Clerk authentication:
-- Clerk and your app admins hold the user's key secret
-- Once authenticated, users can use Jazz offline
-- Jazz's features work without needing to be online
+1. Users sign up or sign in through Clerk's authentication system
+2. Jazz securely stores the user's account keys with Clerk
+3. When logging in, Jazz retrieves these keys from Clerk
+4. Once authenticated, users can work offline with full Jazz functionality
 
-## Platform support
+This authentication method is not fully local-first, as login and signup need to be done online, but once authenticated, users can use all of Jazz's features without needing to be online.
 
-<ContentByFramework framework="react-native">
-We do not currently support Clerk in React Native, but we do in [React Native Expo](/docs/react-native-expo/authentication/clerk).
-</ContentByFramework>
+## Key benefits
+
+- **Rich auth options**: Email/password, social logins, multi-factor authentication
+- **User management**: Complete user administration dashboard
+- **Familiar sign-in**: Standard auth flows users already know
+- **OAuth providers**: Google, GitHub, and other popular providers
+- **Enterprise features**: SSO, SAML, and other advanced options
 
 ## Implementation
 
@@ -66,6 +76,10 @@ createRoot(document.getElementById("root")!).render(
 </ContentByFramework>
 
 <ContentByFramework framework="react-native-expo">
+We offer Clerk integration through our package: [`jazz-expo`](https://npmjs.com/package/jazz-expo).
+
+After installing, use `<JazzProviderWithClerk />` to wrap your app.
+
 <CodeGroup>
 ```tsx twoslash
 import * as React from "react";
@@ -125,11 +139,9 @@ export default function RootLayout() {
 </CodeGroup>
 </ContentByFramework>
 
-## Using Clerk auth methods
-
-<ContentByFramework framework="react">
 Once set up, you can use Clerk's auth methods for login and signup:
 
+<ContentByFramework framework="react">
 <CodeGroup>
 ```tsx twoslash
 import * as React from "react";
@@ -153,8 +165,6 @@ export function AuthButton() {
 </ContentByFramework>
 
 <ContentByFramework framework="react-native-expo">
-Once set up, you can use Clerk's auth methods for login and signup:
-
 <CodeGroup>
 ```tsx twoslash
 import * as React from "react";
@@ -189,7 +199,11 @@ export function AuthButton() {
 </CodeGroup>
 </ContentByFramework>
 
-## When to choose Clerk authentication
+## Examples
+
+You can explore Jazz with Clerk integration in our [example projects](/docs/examples). For more Clerk-specific demos, visit [Clerk's documentation](https://clerk.com/docs).
+
+## When to use Clerk
 
 Clerk authentication is ideal when:
 
@@ -199,8 +213,15 @@ Clerk authentication is ideal when:
 - You need OAuth providers (Google, GitHub, etc.)
 - You want to avoid users having to manage passphrases
 
-## Limitations to consider
+## Limitations and considerations
 
-- Requires internet connection for signup/login
-- Clerk admins have access to user keys
-- Not fully local-first (initial auth requires a server)
+- **Online requirement**: Initial signup/login requires internet connectivity
+- **Third-party dependency**: Relies on Clerk's services for authentication
+- **Not fully local-first**: Initial authentication requires a server
+- **Platform support**: Not available on all platforms
+
+## Additional resources
+
+- [Clerk Documentation](https://clerk.com/docs)
+- [Jazz React Auth Clerk Package](https://npmjs.com/package/jazz-react-auth-clerk)
+</ContentByFramework>

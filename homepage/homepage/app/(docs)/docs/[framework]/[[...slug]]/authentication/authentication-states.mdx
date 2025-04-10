@@ -52,7 +52,7 @@ function AuthStateIndicator() {
   const isGuest = me._type !== "Account"
 
   // Anonymous authentication: has an account but not fully authenticated
-  const isAnonymous = !isGuest && !isAuthenticated;
+  const isAnonymous =  me._type === "Account" && !isAuthenticated;
   return (
     <div>
       {isGuest && <span>Guest Mode</span>}
