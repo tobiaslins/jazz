@@ -3,8 +3,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**"],
-      "env": ["GRAFANA_SERVICE_ACCOUNT"]
+      "outputs": [".next/**", "!.next/cache/**"]
     },
     "dev": {
       "cache": false,
