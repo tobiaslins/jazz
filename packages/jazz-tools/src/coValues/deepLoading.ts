@@ -103,7 +103,7 @@ export function fulfillsDepth(depth: any, value: CoValue): FulfillsDepthResult {
       for (const key of Object.keys(depth)) {
         const rawValue = map._raw.get(key);
 
-        if (rawValue === undefined) {
+        if (rawValue === undefined || rawValue === null) {
           if (!map._schema?.[key]) {
             // Field not defined in schema
             if (map._schema?.[ItemsSym]) {
