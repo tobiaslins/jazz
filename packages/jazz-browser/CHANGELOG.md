@@ -1,5 +1,13 @@
 # jazz-browser
 
+## 0.13.4
+
+### Patch Changes
+
+- 3129982: Add logOutReplacement hook to replace the Jazz logout function with a custom one
+- Updated dependencies [3129982]
+  - jazz-tools@0.13.4
+
 ## 0.13.3
 
 ### Patch Changes

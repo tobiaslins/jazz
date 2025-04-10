@@ -1,5 +1,18 @@
 # jazz-browser
 
+## 0.13.4
+
+### Patch Changes
+
+- 3129982: Rewrite the auth management making Clerk the source of truth. This fixes the logOut issues as well as making the logout work from the Clerk APIs. When the Clerk session expires now the user is correctly logged out from Jazz\
+- 3129982: Add logOutReplacement hook to replace the Jazz logout function with a custom one
+- Updated dependencies [3129982]
+- Updated dependencies [3129982]
+  - jazz-auth-clerk@0.13.4
+  - jazz-react-native-core@0.13.4
+  - jazz-tools@0.13.4
+  - jazz-react-core@0.13.4
+
 ## 0.13.3
 
 ### Patch Changes
