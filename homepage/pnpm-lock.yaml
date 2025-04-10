@@ -244,12 +244,21 @@ importers:
       jazz-browser-media-images:
         specifier: link:../../packages/jazz-browser-media-images
         version: link:../../packages/jazz-browser-media-images
+      jazz-expo:
+        specifier: link:../../packages/jazz-expo
+        version: link:../../packages/jazz-expo
       jazz-nodejs:
         specifier: link:../../packages/jazz-nodejs
         version: link:../../packages/jazz-nodejs
       jazz-react:
         specifier: link:../../packages/jazz-react
         version: link:../../packages/jazz-react
+      jazz-react-auth-clerk:
+        specifier: link:../../packages/jazz-react-auth-clerk
+        version: link:../../packages/jazz-react-auth-clerk
+      jazz-react-native:
+        specifier: link:../../packages/jazz-react-native
+        version: link:../../packages/jazz-react-native
       jazz-tools:
         specifier: link:../../packages/jazz-tools
         version: link:../../packages/jazz-tools
