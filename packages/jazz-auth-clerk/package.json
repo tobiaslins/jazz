@@ -15,7 +15,8 @@
     "format-and-lint:fix": "biome check . --write",
     "build": "rm -rf ./dist && tsc --sourceMap --outDir dist",
     "test": "vitest --run --root ../../ --project jazz-auth-clerk",
-    "test:watch": "vitest --watch --root ../../ --project jazz-auth-clerk"
+    "test:watch": "vitest --watch --root ../../ --project jazz-auth-clerk",
+    "dev": " tsc --sourceMap --outDir dist --watch"
   },
   "devDependencies": {
     "typescript": "~5.6.2"
