@@ -1,4 +1,4 @@
-import { CoMap, co } from "jazz-tools";
+import { CoList, CoMap, co } from "jazz-tools";
 
 // Example CoMap class
 export class Person extends CoMap {
@@ -7,3 +7,5 @@ export class Person extends CoMap {
   height = co.number;
   weight = co.number;
 }
+
+export class ListOfPeople extends CoList.Of(co.ref(Person)) {}

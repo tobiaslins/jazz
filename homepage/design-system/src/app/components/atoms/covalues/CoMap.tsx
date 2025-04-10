@@ -1,28 +1,28 @@
 import { CoMap } from "jazz-tools";
 
-interface CoMapVisualizerProps {
-  data: InstanceType<typeof CoMap>;
+interface CoMapVisualizerProps<T extends CoMap> {
+  instance: T;
   showMetadata?: boolean;
 }
 
-export function CoMapVisualizer({
-  data,
+export function CoMapVisualizer<T extends CoMap>({
+  instance,
   showMetadata = false,
-}: CoMapVisualizerProps) {
+}: CoMapVisualizerProps<T>) {
   return (
-    <div className="flex justify-center p-4">
-      <div className="bg-black rounded-lg p-6 min-w-[200px] shadow-md">
+    <div className="flex justify-center">
+      <div className="bg-black rounded p-2 min-w-[200px] shadow-md">
         {showMetadata && (
-          <div className="text-white/50 text-xs mb-4">coId: {data.id}</div>
+          <div className="text-white/50 text-xs mb-1">coId: {instance.id}</div>
         )}
         <ul className="list-none p-0 m-0">
-          {Object.entries(data).map(([key, value]) => (
+          {Object.entries(instance).map(([key, value]) => (
             <li
               key={key}
-              className="text-white font-mono py-2 flex justify-between border-b border-white/10 last:border-b-0"
+              className="text-white font-mono py-0.5 flex justify-between border-b border-white/10 last:border-b-0 text-sm"
             >
-              <span className="font-bold mr-4">{key}:</span>
-              <span className="text-white">{value.toString()}</span>
+              <span className="font-bold mr-2">{key}:</span>
+              <span>{String(value)}</span>
             </li>
           ))}
         </ul>
