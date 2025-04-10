@@ -88,7 +88,6 @@ function getPlatformFromTemplateName(template: string) {
 // Function to check if the project is inside an existing git repository (monorepo)
 function isInsideGitRepository(projectPath: string): boolean {
   try {
-    // Normalize path to handle relative paths like "."
     const absolutePath = path.resolve(projectPath);
 
     // Check if .git exists in the current or any parent directory
