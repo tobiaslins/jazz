@@ -1,5 +1,56 @@
 # jazz-browser
 
+## 0.13.4
+
+### Patch Changes
+
+- 3129982: Add logOutReplacement hook to replace the Jazz logout function with a custom one
+- Updated dependencies [3129982]
+  - jazz-tools@0.13.4
+  - jazz-react-core@0.13.4
+
+## 0.13.3
+
+### Patch Changes
+
+- Updated dependencies [12f8bfa]
+- Updated dependencies [b19cab7]
+- Updated dependencies [bd57177]
+  - jazz-tools@0.13.3
+  - cojson-transport-ws@0.13.3
+  - jazz-react-core@0.13.3
+
+## 0.13.2
+
+### Patch Changes
+
+- Updated dependencies [c551839]
+  - cojson@0.13.2
+  - cojson-storage@0.13.2
+  - cojson-transport-ws@0.13.2
+  - jazz-react-core@0.13.2
+  - jazz-tools@0.13.2
+
+## 0.13.0
+
+### Minor Changes
+
+- bce3bcc: Introduce jazz-expo and use only vanilla deps for jazz-react-native
+
+  Upgrade guide: https://jazz.tools/docs/react/upgrade/0-13-0
+
+### Patch Changes
+
+- Updated dependencies [a013538]
+- Updated dependencies [afd1374]
+- Updated dependencies [afd1374]
+- Updated dependencies [bce3bcc]
+  - cojson@0.13.0
+  - jazz-tools@0.13.0
+  - jazz-react-core@0.13.0
+  - cojson-storage@0.13.0
+  - cojson-transport-ws@0.13.0
+
 ## 0.10.15
 
 ### Patch Changes

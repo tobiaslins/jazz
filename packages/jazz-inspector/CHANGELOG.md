@@ -1,5 +1,47 @@
 # jazz-inspector
 
+## 0.13.4
+
+### Patch Changes
+
+- Updated dependencies [3129982]
+  - jazz-tools@0.13.4
+  - jazz-react-core@0.13.4
+
+## 0.13.3
+
+### Patch Changes
+
+- 017f6c8: handle displaying a CoList of primitives
+- Updated dependencies [12f8bfa]
+- Updated dependencies [bd57177]
+  - jazz-tools@0.13.3
+  - jazz-react-core@0.13.3
+
+## 0.13.2
+
+### Patch Changes
+
+- ae4be2b: fix: comaps showing in a table instead of grid
+- Updated dependencies [c551839]
+  - cojson@0.13.2
+  - jazz-react-core@0.13.2
+  - jazz-tools@0.13.2
+
+## 0.13.0
+
+### Patch Changes
+
+- 2796689: various fixes and css refactoring
+- 2224ed4: show unknown mime type instead of application/octet-stream
+- Updated dependencies [a013538]
+- Updated dependencies [afd1374]
+- Updated dependencies [afd1374]
+- Updated dependencies [bce3bcc]
+  - cojson@0.13.0
+  - jazz-tools@0.13.0
+  - jazz-react-core@0.13.0
+
 ## 0.12.2
 
 ### Patch Changes

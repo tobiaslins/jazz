@@ -22,7 +22,6 @@ function JazzProvider({ children }: { children: React.ReactNode }) {
   return (
     <JazzProviderWithClerk
       clerk={clerk}
-      storage="sqlite"
       sync={{
         peer: "wss://cloud.jazz.tools/?key=chat-rn-expo-clerk-example-jazz@garden.co",
       }}

@@ -1,5 +1,71 @@
 # jazz-browser
 
+## 0.13.4
+
+### Patch Changes
+
+- 3129982: Rewrite the auth management making Clerk the source of truth. This fixes the logOut issues as well as making the logout work from the Clerk APIs. When the Clerk session expires now the user is correctly logged out from Jazz\
+- 3129982: Add logOutReplacement hook to replace the Jazz logout function with a custom one
+- Updated dependencies [3129982]
+- Updated dependencies [3129982]
+  - jazz-auth-clerk@0.13.4
+  - jazz-react-native-core@0.13.4
+  - jazz-tools@0.13.4
+  - jazz-react-core@0.13.4
+
+## 0.13.3
+
+### Patch Changes
+
+- Updated dependencies [12f8bfa]
+- Updated dependencies [b19cab7]
+- Updated dependencies [bd57177]
+  - jazz-tools@0.13.3
+  - cojson-transport-ws@0.13.3
+  - jazz-auth-clerk@0.13.3
+  - jazz-react-core@0.13.3
+  - jazz-react-native-core@0.13.3
+
+## 0.13.2
+
+### Patch Changes
+
+- Updated dependencies [c551839]
+  - cojson@0.13.2
+  - cojson-transport-ws@0.13.2
+  - jazz-auth-clerk@0.13.2
+  - jazz-react-core@0.13.2
+  - jazz-react-native-core@0.13.2
+  - jazz-tools@0.13.2
+
+## 0.13.1
+
+### Patch Changes
+
+- 63a7aa0: Add exports for clerk and crypto to make import shortcuts work everywhere
+
+## 0.13.0
+
+### Minor Changes
+
+- bce3bcc: Introduce jazz-expo and use only vanilla deps for jazz-react-native
+
+  Upgrade guide: https://jazz.tools/docs/react/upgrade/0-13-0
+
+### Patch Changes
+
+- Updated dependencies [a013538]
+- Updated dependencies [bce3bcc]
+- Updated dependencies [afd1374]
+- Updated dependencies [afd1374]
+- Updated dependencies [bce3bcc]
+  - cojson@0.13.0
+  - jazz-react-native-core@0.13.0
+  - jazz-tools@0.13.0
+  - jazz-react-core@0.13.0
+  - cojson-transport-ws@0.13.0
+  - jazz-auth-clerk@0.13.0
+
 ## 0.10.15
 
 ### Patch Changes

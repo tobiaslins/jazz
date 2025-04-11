@@ -1,6 +1,6 @@
 {
   "name": "jazz-expo",
-  "version": "0.10.15",
+  "version": "0.13.4",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -21,6 +21,11 @@
       "react-native": "./dist/auth/clerk/index.js",
       "types": "./dist/auth/clerk/index.d.ts",
       "default": "./dist/auth/clerk/index.js"
+    },
+    "./crypto": {
+      "react-native": "./crypto/index.js",
+      "types": "./crypto/index.d.ts",
+      "default": "./crypto/index.js"
     },
     "./testing": {
       "react-native": "./dist/testing.js",
