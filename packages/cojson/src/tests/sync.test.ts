@@ -1,4 +1,12 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import {
+  assert,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  test,
+  vi,
+} from "vitest";
 import { expectMap } from "../coValue.js";
 import type { CoValueHeader, TryAddTransactionsError } from "../coValueCore.js";
 import type { RawAccountID } from "../coValues/account.js";
@@ -654,32 +662,228 @@ test("When we connect a new server peer, we try to sync all existing coValues to
 
   const map = group.createMap();
 
-  const [inRx, _inTx] = newQueuePair();
-  const [outRx, outTx] = newQueuePair();
-  const outRxQ = outRx[Symbol.asyncIterator]();
+  map.set("hello", "world", "trusting");
 
-  node.syncManager.addPeer({
-    id: "test",
-    incoming: inRx,
-    outgoing: outTx,
-    role: "server",
-    crashOnClose: true,
-  });
+  const { messages } = connectNodeToSyncServer(node, true);
 
-  // const _adminSubscribeMessage = await outRxQ.next();
-  const groupSubscribeMessage = (await outRxQ.next()).value;
+  await new Promise((resolve) => setTimeout(resolve, 100));
 
-  expect(groupSubscribeMessage).toEqual({
-    action: "load",
-    ...group.core.knownState(),
-  } satisfies SyncMessage);
+  await map.core.waitForSync();
 
-  const secondMessage = (await outRxQ.next()).value;
+  expect(messages).toEqual([
+    {
+      from: "client",
+      msg: {
+        action: "load",
+        ...group.core.knownState(),
+      },
+    },
+    {
+      from: "server",
+      msg: {
+        action: "load",
+        header: false,
+        id: group.id,
+        sessions: {},
+      },
+    },
+    {
+      from: "client",
+      msg: {
+        action: "known",
+        asDependencyOf: undefined,
+        ...group.core.knownState(),
+      },
+    },
+    {
+      from: "client",
+      msg: {
+        action: "load",
+        ...map.core.knownState(),
+      },
+    },
+    {
+      from: "server",
+      msg: {
+        action: "load",
+        header: false,
+        id: map.id,
+        sessions: {},
+      },
+    },
+    {
+      from: "client",
+      msg: group.core.newContentSince(undefined)?.[0],
+    },
+    {
+      from: "server",
+      msg: {
+        action: "known",
+        ...group.core.knownState(),
+      },
+    },
+    {
+      from: "client",
+      msg: {
+        action: "known",
+        asDependencyOf: undefined,
+        ...map.core.knownState(),
+      },
+    },
+    {
+      from: "client",
+      msg: map.core.newContentSince(undefined)?.[0],
+    },
+    {
+      from: "server",
+      msg: {
+        action: "known",
+        asDependencyOf: undefined,
+        ...group.core.knownState(),
+      },
+    },
+    {
+      from: "client",
+      msg: map.core.newContentSince(undefined)?.[0],
+    },
+    {
+      from: "server",
+      msg: {
+        action: "known",
+        ...map.core.knownState(),
+      },
+    },
+    {
+      from: "server",
+      msg: {
+        action: "known",
+        asDependencyOf: undefined,
+        ...map.core.knownState(),
+      },
+    },
+    {
+      from: "server",
+      msg: {
+        action: "known",
+        ...map.core.knownState(),
+      },
+    },
+  ]);
+});
 
-  expect(secondMessage).toEqual({
-    action: "load",
-    ...map.core.knownState(),
-  } satisfies SyncMessage);
+test("When we re-connect a server peer, we sync all the coValues to it", async () => {
+  const [admin, session] = randomAnonymousAccountAndSessionID();
+  const node = new LocalNode(admin, session, Crypto);
+
+  const group = node.createGroup();
+
+  const map = group.createMap();
+
+  map.set("hello", "world", "trusting");
+
+  connectNodeToSyncServer(node, true);
+
+  await map.core.waitForSync();
+
+  node.syncManager.getPeers()[0]?.gracefulShutdown();
+
+  const knownStateBefore = map.core.knownState();
+
+  map.set("hello", "updated", "trusting");
+
+  const { messages } = connectNodeToSyncServer(node, true);
+
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+
+  const mapOnSyncServer = jazzCloud.coValuesStore.get(map.id);
+
+  assert(mapOnSyncServer.state.type === "available");
+
+  expect(
+    expectMap(mapOnSyncServer.state.coValue.getCurrentContent()).get("hello"),
+  ).toEqual("updated");
+
+  expect(messages).toEqual([
+    {
+      from: "client",
+      msg: {
+        action: "load",
+        ...group.core.knownState(),
+      },
+    },
+    {
+      from: "server",
+      msg: {
+        action: "known",
+        asDependencyOf: map.core.id,
+        ...group.core.knownState(),
+      },
+    },
+    {
+      from: "server",
+      msg: {
+        action: "known",
+        ...knownStateBefore,
+      },
+    },
+    {
+      from: "client",
+      msg: {
+        action: "known",
+        asDependencyOf: map.core.id,
+        ...group.core.knownState(),
+      },
+    },
+    {
+      from: "client",
+      msg: {
+        action: "known",
+        ...map.core.knownState(),
+      },
+    },
+    {
+      from: "client",
+      msg: {
+        action: "load",
+        ...map.core.knownState(),
+      },
+    },
+    {
+      from: "client",
+      msg: {
+        action: "content",
+        ...map.core.newContentSince(knownStateBefore)?.[0],
+      },
+    },
+    {
+      from: "server",
+      msg: {
+        action: "load",
+        ...knownStateBefore,
+      },
+    },
+    {
+      from: "server",
+      msg: {
+        action: "known",
+        ...map.core.knownState(),
+      },
+    },
+    {
+      from: "client",
+      msg: {
+        action: "content",
+        ...map.core.newContentSince(knownStateBefore)?.[0],
+      },
+    },
+    {
+      from: "server",
+      msg: {
+        action: "known",
+        ...map.core.knownState(),
+      },
+    },
+  ]);
 });
 
 test("When receiving a subscribe with a known state that is ahead of our own, peers should respond with a corresponding subscribe response message", async () => {
