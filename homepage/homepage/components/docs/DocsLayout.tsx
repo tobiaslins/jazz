@@ -12,7 +12,7 @@ export default function DocsLayout({
   nav,
   navName,
   navIcon,
-  tocItems
+  tocItems,
 }: {
   children: React.ReactNode;
   nav?: React.ReactNode;

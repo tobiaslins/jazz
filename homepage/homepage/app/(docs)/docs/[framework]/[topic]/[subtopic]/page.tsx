@@ -1,6 +1,6 @@
 import { docNavigationItems } from "@/content/docs/docNavigationItems.js";
 import { Framework, frameworks } from "@/content/framework";
-import { getDocMetadata, DocPage } from "@/lib/docMdxContent";
+import { DocPage, getDocMetadata } from "@/lib/docMdxContent";
 
 export async function generateMetadata({
   params,
