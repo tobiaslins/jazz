@@ -3,7 +3,7 @@ import typography from "@tailwindcss/typography";
 import tailwindCSSAnimate from "tailwindcss-animate";
 const colors = require("tailwindcss/colors");
 const plugin = require("tailwindcss/plugin");
-
+const { COLORS } = require("./colors/colors");
 const stonePalette = {
   50: "oklch(0.988281 0.002 75)",
   100: "oklch(0.980563 0.002 75)",
@@ -19,13 +19,25 @@ const stonePalette = {
   950: "oklch(0.193359 0.002 75)",
 };
 
-const stonePaletteWithAlpha = { ...stonePalette };
+const jazzBlue = {
+  ...colors.indigo,
+  500: "#5870F1",
+  600: "#3651E7",
+  700: "#3313F7",
+  800: "#2A12BE",
+  900: "#12046A",
+  // DEFAULT: "#146AFF",
+  DEFAULT: COLORS.BLUE,
+};
+
+const coreColors = {
+  ...harmonyPalette,
+  blue: jazzBlue,
+  stone: { ...stonePalette },
+};
 
 Object.keys(stonePalette).forEach((key) => {
-  stonePaletteWithAlpha[key] = stonePaletteWithAlpha[key].replace(
-    ")",
-    "/ <alpha-value>)",
-  );
+  stonePalette[key] = stonePalette[key].replace(")", "/ <alpha-value>)");
 });
 
 /** @type {import('tailwindcss').Config} */
@@ -36,41 +48,29 @@ const config = {
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    colors: {
-      ...harmonyPalette,
-      stone: stonePaletteWithAlpha,
-      blue: {
-        ...colors.indigo,
-        500: "#5870F1",
-        600: "#3651E7",
-        700: "#3313F7",
-        800: "#2A12BE",
-        900: "#12046A",
-        DEFAULT: "#3313F7",
-      },
-      green: colors.green,
-      red: colors.red,
-      primary: "var(--color-primary)",
-      secondary: "var(--color-secondary)",
-      highlight: "var(--color-highlight)",
-      success: "var(--color-success)",
-      info: "var(--color-info)",
-      warning: "var(--color-warning)",
-      tip: "var(--color-tip)",
-      green: "var(--color-green)",
-      pink: "var(--color-pink)",
-    },
-    textColor: {
-      ...colors,
-      default: "var(--color-default)",
-      highlight: "var(--color-highlight)",
-      muted: "var(--color-muted)",
-    },
-    backgroundColor: {
-      highlight: "var(--color-bg-highlight)",
-      muted: "var(--color-bg-muted)",
-    },
     extend: {
+      colors: {
+        ...coreColors,
+        primary: "var(--color-primary)",
+        secondary: "var(--color-secondary)",
+        highlight: "var(--color-highlight)",
+        success: "var(--color-success)",
+        info: "var(--color-info)",
+        warning: "var(--color-warning)",
+        tip: "var(--color-tip)",
+        green: {
+          DEFAULT: "var(--color-green)",
+        },
+      },
+      textColor: {
+        default: "var(--color-default)",
+        highlight: "var(--color-highlight)",
+        muted: "var(--color-muted)",
+      },
+      backgroundColor: {
+        highlight: "var(--color-bg-highlight)",
+        muted: "var(--color-bg-muted)",
+      },
       fontFamily: {
         display: ["var(--font-manrope)"],
         mono: ["var(--font-commit-mono)"],
