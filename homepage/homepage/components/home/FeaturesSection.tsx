@@ -30,9 +30,9 @@ const features = [
           <Icon
             size="2xl"
             name="file"
-            className="text-blue dark:text-blue-500"
+            className="text-blue"
           />
-          <div className="text-2xl flex-1 text-blue dark:text-blue-500">
+          <div className="text-2xl flex-1 text-blue">
             file.pdf
           </div>
           <Icon size="2xl" name="delete" className="text-stone-500" />
@@ -169,7 +169,7 @@ export function FeaturesSection() {
                   key={feature}
                   className="flex items-center gap-1.5 whitespace-nowrap"
                 >
-                  <span className="text-blue p-1 rounded-full bg-highlight dark:text-blue-500">
+                  <span className="text-blue p-1 rounded-full bg-highlight">
                     <Icon name="check" size="xs" />
                   </span>
                   {feature}

@@ -51,14 +51,14 @@ function Illustration() {
       <Icon
         name="encryption"
         size="3xl"
-        className="z-30 text-blue p-1.5 rounded-lg bg-highlight dark:text-blue-500 dark:bg-stone-900"
+        className="z-30 text-blue p-1.5 rounded-lg bg-highlight dark:bg-stone-900"
       />
 
       {/*<LockKeyholeIcon*/}
       {/*  strokeWidth={1.5}*/}
       {/*  strokeLinecap="butt"*/}
       {/*  size={80}*/}
-      {/*  className="z-30 size-8 text-blue p-1.5 rounded-lg bg-highlight dark:text-blue-500 dark:bg-stone-900 md:size-10"*/}
+      {/*  className="z-30 size-8 text-blue p-1.5 rounded-lg bg-highlight dark:bg-stone-900 md:size-10"*/}
       {/*/>*/}
 
       <div className="w-20 h-full bg-gradient-to-r from-white to-transparent absolute top-0 left-0 z-10 dark:from-stone-925"></div>
