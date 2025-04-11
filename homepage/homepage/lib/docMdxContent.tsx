@@ -1,4 +1,3 @@
-import { ComingSoon } from "@/components/docs/ComingSoon";
 import DocsLayout from "@/components/docs/DocsLayout";
 import { DocNav } from "@/components/docs/nav";
 import { Toc } from "@stefanprobst/rehype-extract-toc";
@@ -78,6 +77,9 @@ export async function DocPage({
       </DocsLayout>
     );
   } catch (error) {
+    const { default: ComingSoon } = await import(
+      "../content/docs/coming-soon.mdx"
+    );
     return (
       <DocsLayout nav={<DocNav />} tocItems={[]}>
         <Prose className="overflow-x-hidden lg:flex-1 py-10  max-w-3xl mx-auto">
