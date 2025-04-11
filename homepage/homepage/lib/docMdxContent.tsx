@@ -5,18 +5,15 @@ import { Prose } from "gcmp-design-system/src/app/components/molecules/Prose";
 
 export async function getMdxSource(framework: string, slugPath?: string) {
   // Try to import the framework-specific file first
-  console.log(framework, slugPath);
   try {
     if (!slugPath) {
       return await import("../content/docs/index.mdx");
     }
-    console.log(`../content/docs/${slugPath}/${framework}.mdx`);
     const source = await import(`../content/docs/${slugPath}/${framework}.mdx`);
-    console.log(source);
     return source;
   } catch (error) {
     // Fallback to vanilla
-    console.log(error);
+    console.log(`Falling back to vanilla for ${slugPath}`);
     return await import(`../content/docs/${slugPath}.mdx`);
   }
 }
