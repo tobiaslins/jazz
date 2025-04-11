@@ -1,5 +1,5 @@
 :root {
-  --color-primary: #3313F7;
+  --color-primary: #146AFF;
   --color-secondary: #000000;
   --color-highlight: #2DC9C9;
   --color-success: #42BB69;
@@ -8,27 +8,21 @@
   --color-tip: #B441EB;
   --color-green: #8BDA27;
   --color-pink: #EF478E;
-  --color-default: #B441EB;
-  /* --color-default: theme("colors.stone.700") */
-  --color-highlight: #EF478E;
-  /* --color-highlight: theme("colors.stone.900") */
-  --color-muted: #8BDA27;
-  /* --color-muted: theme("colors.stone.300") */
+  
+  --color-default: theme("colors.stone.700");
+  --color-highlight: theme("colors.stone.900");
+  --color-muted: theme("colors.stone.300");
 
-  /* --color-transparent-white: rgba(255, 255, 255, 0.1); */
-  /* --color-bg-highlight: rgba(255, 255, 255, 0.1); */
+  --color-transparent-white: rgba(255, 255, 255, 0.1);
   --color-bg-highlight: theme("colors.blue.50");
 }
 
 .dark {
-  /* --color-default: #8BDA27; */
   --color-default: theme("colors.stone.400");
   --color-highlight: theme("colors.white");
-  /* --color-muted: #B441EB; */
-  --color-muted: theme("colors.stone.700")
+  --color-muted: theme("colors.stone.700");
 
-  /* --color-bg-highlight: rgba(255, 255, 255, 0.01); */
-  --color-bg-highlight: rgba(255,20,147, 1);
+  --color-bg-highlight: rgba(255, 255, 255, 0.1);
 }
 
 @tailwind base;
