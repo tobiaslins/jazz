@@ -12,7 +12,7 @@ export class HomePage {
   });
 
   loginButton = this.page.getByRole("button", {
-    name: "Sign in",
+    name: "Sign up",
   });
 
   logoutButton = this.page.getByRole("button", {
