@@ -50,6 +50,15 @@ const config = {
       },
       green: colors.green,
       red: colors.red,
+      primary: "var(--color-primary)",
+      secondary: "var(--color-secondary)",
+      highlight: "var(--color-highlight)",
+      success: "var(--color-success)",
+      info: "var(--color-info)",
+      warning: "var(--color-warning)",
+      tip: "var(--color-tip)",
+      green: "var(--color-green)",
+      pink: "var(--color-pink)",
     },
     extend: {
       fontFamily: {
