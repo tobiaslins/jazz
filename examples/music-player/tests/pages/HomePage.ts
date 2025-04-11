@@ -135,11 +135,20 @@ export class HomePage {
     await this.page
       .getByRole("button", { name: "Sign up with passkey" })
       .click();
+
+    await this.logoutButton.waitFor({
+      state: "visible",
+    });
+
     await expect(this.logoutButton).toBeVisible();
   }
 
   async logOut() {
     await this.logoutButton.click();
+
+    await this.loginButton.waitFor({
+      state: "visible",
+    });
 
     await expect(this.loginButton).toBeVisible();
   }
