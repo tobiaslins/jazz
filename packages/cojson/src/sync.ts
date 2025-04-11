@@ -364,13 +364,15 @@ export class SyncManager {
 
   async addPeer(peer: Peer) {
     const prevPeer = this.peers[peer.id];
-    const peerState = new PeerState(peer, prevPeer?.knownStates);
-    this.peers[peer.id] = peerState;
 
     if (prevPeer && !prevPeer.closed) {
       prevPeer.gracefulShutdown();
       await prevPeer.processMessages?.catch((e) => {});
     }
+
+    // TODO: Handle cancelation when a new peer with the same id is added before this one setted
+    const peerState = new PeerState(peer, prevPeer?.knownStates);
+    this.peers[peer.id] = peerState;
 
     this.peersCounter.add(1, { role: peer.role });
 
@@ -450,27 +452,17 @@ export class SyncManager {
       const eligiblePeers = this.getServerAndStoragePeers(peer.id);
 
       if (eligiblePeers.length === 0) {
-        // If the load request contains a header or any session data
-        // and we don't have any eligible peers to load the coValue from
-        // we try to load it from the sender because it is the only place
-        // where we can get informations about the coValue
-        if (msg.header || Object.keys(msg.sessions).length > 0) {
-          entry.loadFromPeers([peer]).catch((e) => {
-            logger.error("Error loading coValue in handleLoad", { err: e });
-          });
-        } else {
-          // We don't have any eligible peers to load the coValue from
-          // so we send a known state back to the sender to let it know
-          // that the coValue is unavailable
-          this.trySendToPeer(peer, {
-            action: "known",
-            id: msg.id,
-            header: false,
-            sessions: {},
-          }).catch((e) => {
-            logger.error("Error sending known state back", { err: e });
-          });
-        }
+        // We don't have any eligible peers to load the coValue from
+        // so we send a known state back to the sender to let it know
+        // that the coValue is unavailable
+        this.trySendToPeer(peer, {
+          action: "known",
+          id: msg.id,
+          header: false,
+          sessions: {},
+        }).catch((e) => {
+          logger.error("Error sending known state back", { err: e });
+        });
 
         return;
       } else {
@@ -528,19 +520,6 @@ export class SyncManager {
     if (entry.state.type === "available") {
       await this.tellUntoldKnownStateIncludingDependencies(msg.id, peer);
       await this.sendNewContentIncludingDependencies(msg.id, peer);
-
-      if (
-        msg.header &&
-        getWeNeedToPullData(
-          msg.sessions,
-          entry.state.coValue.knownState().sessions,
-        )
-      ) {
-        this.trySendToPeer(peer, {
-          action: "load",
-          ...entry.state.coValue.knownState(),
-        });
-      }
     }
   }
 

@@ -681,7 +681,7 @@ test("When we connect a new server peer, we try to sync all existing coValues to
     {
       from: "server",
       msg: {
-        action: "load",
+        action: "known",
         header: false,
         id: group.id,
         sessions: {},
@@ -705,7 +705,7 @@ test("When we connect a new server peer, we try to sync all existing coValues to
     {
       from: "server",
       msg: {
-        action: "load",
+        action: "known",
         header: false,
         id: map.id,
         sessions: {},
@@ -743,10 +743,6 @@ test("When we connect a new server peer, we try to sync all existing coValues to
       },
     },
     {
-      from: "client",
-      msg: map.core.newContentSince(undefined)?.[0],
-    },
-    {
       from: "server",
       msg: {
         action: "known",
@@ -758,13 +754,6 @@ test("When we connect a new server peer, we try to sync all existing coValues to
       msg: {
         action: "known",
         asDependencyOf: undefined,
-        ...map.core.knownState(),
-      },
-    },
-    {
-      from: "server",
-      msg: {
-        action: "known",
         ...map.core.knownState(),
       },
     },
@@ -793,7 +782,7 @@ test("When we re-connect a server peer, we sync all the coValues to it", async (
 
   const { messages } = connectNodeToSyncServer(node, true);
 
-  await new Promise((resolve) => setTimeout(resolve, 3000));
+  await map.core.waitForSync();
 
   const mapOnSyncServer = jazzCloud.coValuesStore.get(map.id);
 
@@ -815,15 +804,8 @@ test("When we re-connect a server peer, we sync all the coValues to it", async (
       from: "server",
       msg: {
         action: "known",
-        asDependencyOf: map.core.id,
+        asDependencyOf: undefined,
         ...group.core.knownState(),
-      },
-    },
-    {
-      from: "server",
-      msg: {
-        action: "known",
-        ...knownStateBefore,
       },
     },
     {
@@ -838,6 +820,7 @@ test("When we re-connect a server peer, we sync all the coValues to it", async (
       from: "client",
       msg: {
         action: "known",
+        asDependencyOf: undefined,
         ...map.core.knownState(),
       },
     },
@@ -846,27 +829,14 @@ test("When we re-connect a server peer, we sync all the coValues to it", async (
       msg: {
         action: "load",
         ...map.core.knownState(),
-      },
-    },
-    {
-      from: "client",
-      msg: {
-        action: "content",
-        ...map.core.newContentSince(knownStateBefore)?.[0],
-      },
-    },
-    {
-      from: "server",
-      msg: {
-        action: "load",
-        ...knownStateBefore,
       },
     },
     {
       from: "server",
       msg: {
         action: "known",
-        ...map.core.knownState(),
+        asDependencyOf: undefined,
+        ...knownStateBefore,
       },
     },
     {
@@ -1781,7 +1751,7 @@ describe("SyncManager.addPeer", () => {
     });
 
     // Add new peer with same ID
-    client.syncManager.addPeer(secondPeer);
+    await client.syncManager.addPeer(secondPeer);
 
     const newPeerState = client.syncManager.getPeers()[0]!;
 
@@ -2126,17 +2096,13 @@ describe("sync protocol", () => {
         from: "client",
         msg: {
           action: "load",
-          header: true,
-          id: group.id,
-          sessions: {
-            [client.currentSessionID]: 3,
-          },
+          ...group.core.knownState(),
         },
       },
       {
         from: "server",
         msg: {
-          action: "load",
+          action: "known",
           header: false,
           id: group.id,
           sessions: {},
@@ -2146,17 +2112,13 @@ describe("sync protocol", () => {
         from: "client",
         msg: {
           action: "load",
-          header: true,
-          id: map.id,
-          sessions: {
-            [client.currentSessionID]: 1,
-          },
+          ...map.core.knownState(),
         },
       },
       {
         from: "server",
         msg: {
-          action: "load",
+          action: "known",
           header: false,
           id: map.id,
           sessions: {},
@@ -2164,113 +2126,17 @@ describe("sync protocol", () => {
       },
       {
         from: "client",
-        msg: {
-          action: "content",
-          header: {
-            createdAt: expect.any(String),
-            meta: null,
-            ruleset: {
-              initialAdmin: client.account.id,
-              type: "group",
-            },
-            type: "comap",
-            uniqueness: expect.any(String),
-          },
-          id: group.id,
-          new: {
-            [client.currentSessionID]: {
-              after: 0,
-              lastSignature: expect.any(String),
-              newTransactions: expect.any(Array),
-            },
-          },
-          priority: 0,
-        },
+        msg: group.core.newContentSince(undefined)?.[0],
       },
       {
         from: "client",
-        msg: {
-          action: "content",
-          header: {
-            createdAt: expect.any(String),
-            meta: null,
-            ruleset: {
-              group: group.id,
-              type: "ownedByGroup",
-            },
-            type: "comap",
-            uniqueness: expect.any(String),
-          },
-          id: map.id,
-          new: {
-            [client.currentSessionID]: {
-              after: 0,
-              lastSignature: expect.any(String),
-              newTransactions: expect.any(Array),
-            },
-          },
-          priority: 3,
-        },
+        msg: map.core.newContentSince(undefined)?.[0],
       },
       {
         from: "server",
         msg: {
           action: "known",
-          header: true,
-          id: group.id,
-          sessions: {
-            [client.currentSessionID]: 3,
-          },
-        },
-      },
-      {
-        // TODO: This is a redundant message, we should remove it
-        from: "client",
-        msg: {
-          action: "content",
-          header: {
-            createdAt: expect.any(String),
-            meta: null,
-            ruleset: {
-              group: group.id,
-              type: "ownedByGroup",
-            },
-            type: "comap",
-            uniqueness: expect.any(String),
-          },
-          id: map.id,
-          new: {
-            [client.currentSessionID]: {
-              after: 0,
-              lastSignature: expect.any(String),
-              newTransactions: expect.any(Array),
-            },
-          },
-          priority: 3,
-        },
-      },
-      {
-        // TODO: This is a redundant message, we should remove it
-        from: "server",
-        msg: {
-          action: "known",
-          asDependencyOf: undefined,
-          header: true,
-          id: group.id,
-          sessions: {
-            [client.currentSessionID]: 3,
-          },
-        },
-      },
-      {
-        from: "server",
-        msg: {
-          action: "known",
-          header: true,
-          id: map.id,
-          sessions: {
-            [client.currentSessionID]: 1,
-          },
+          ...group.core.knownState(),
         },
       },
       {
@@ -2278,11 +2144,22 @@ describe("sync protocol", () => {
         msg: {
           action: "known",
           asDependencyOf: undefined,
-          header: true,
-          id: map.id,
-          sessions: {
-            [client.currentSessionID]: 1,
-          },
+          ...group.core.knownState(),
+        },
+      },
+      {
+        from: "server",
+        msg: {
+          action: "known",
+          ...map.core.knownState(),
+        },
+      },
+      {
+        from: "server",
+        msg: {
+          action: "known",
+          asDependencyOf: undefined,
+          ...map.core.knownState(),
         },
       },
     ]);
