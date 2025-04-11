@@ -86,7 +86,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           <ButtonIcon icon={icon} loading={loading} />
           {children}
           {newTab ? (
-            <span className="inline-block text-stone-300 dark:text-stone-700 relative -top-0.5 -left-2 -mr-2">
+            <span className="inline-block text-muted relative -top-0.5 -left-2 -mr-2">
               ⌝
             </span>
           ) : (

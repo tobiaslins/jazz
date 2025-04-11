@@ -60,6 +60,16 @@ const config = {
       green: "var(--color-green)",
       pink: "var(--color-pink)",
     },
+    textColor: {
+      ...colors,
+      default: "var(--color-default)",
+      highlight: "var(--color-highlight)",
+      muted: "var(--color-muted)",
+    },
+    backgroundColor: {
+      highlight: "var(--color-bg-highlight)",
+      muted: "var(--color-bg-muted)",
+    },
     extend: {
       fontFamily: {
         display: ["var(--font-manrope)"],

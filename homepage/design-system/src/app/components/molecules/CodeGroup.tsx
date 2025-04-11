@@ -34,7 +34,7 @@ export function CopyButton({
           : "bg-white/5 hover:bg-white/7.5 dark:bg-white/2.5 dark:hover:bg-white/5",
         size == "md"
           ? "right-[8.5px] top-[8.5px] py-[2px] pl-1 pr-2"
-          : "right-2 top-2 py-1 pl-2 pr-3 ",
+          : "right-2 top-2 py-1 pl-2 pr-3",
       )}
       onClick={() => {
         window.navigator.clipboard.writeText(code).then(() => {
@@ -45,7 +45,7 @@ export function CopyButton({
       <span
         aria-hidden={copied}
         className={clsx(
-          "pointer-events-none flex items-center gap-1 text-stone-500 dark:text-stone-400 transition duration-300 group-hover/button:text-stone-600 dark:group-hover/button:text-stone-300",
+          "pointer-events-none flex items-center gap-1 text-stone-500  transition duration-300 group-hover/button:text-stone-600 dark:group-hover/button:text-stone-300",
           copied && "-translate-y-1.5 opacity-0",
         )}
       >

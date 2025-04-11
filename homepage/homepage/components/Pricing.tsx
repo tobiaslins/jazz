@@ -62,7 +62,7 @@ export function Pricing() {
               <StarterTierLogo />
               Starter
             </div>
-            <div className="text-stone-900 dark:text-white">
+            <div className="text-highlight">
               <span className="text-2xl font-light tabular-nums tracking-tighter">
                 $0
               </span>
@@ -99,7 +99,7 @@ export function Pricing() {
                 <IndieTierLogo />
                 Indie
               </div>
-              <div className="text-stone-900 dark:text-white">
+              <div className="text-highlight">
                 <span className="text-2xl font-light tabular-nums tracking-tighter">
                   $4
                 </span>
@@ -145,7 +145,7 @@ export function Pricing() {
               <ProTierLogo />
               Pro
             </div>
-            <div className="text-stone-900 dark:text-white">
+            <div className="text-highlight">
               <span className="text-lg font-normal">from</span>{" "}
               <span className="text-2xl font-light tabular-nums tracking-tighter">
                 $199
@@ -194,7 +194,7 @@ export function Pricing() {
         <div className="md:flex-[2] flex flex-col gap-1 overflow-hidden rounded-xl px-6 py-4 shadow-lg shadow-gray-900/5 bg-white dark:bg-stone-925">
           <h4 className="flex justify-between items-center font-semibold text-stone-900 text-lg dark:text-white">
             <div className="flex items-center gap-1.5">Simple Analytics</div>
-            <div className="text-stone-900 dark:text-white">
+            <div className="text-highlight">
               <span className="text-xl font-light tabular-nums tracking-tighter">
                 $10
               </span>
@@ -207,7 +207,7 @@ export function Pricing() {
             <ul className="flex flex-col text-sm lg:text-base">
               <ListItem icon={LucideScanSearch}>
                 <span className="tabular-nums">100</span> inspected users{" "}
-                <span className="text-sm text-stone-900 dark:text-white">
+                <span className="text-sm text-highlight">
                   (then $0.01 per user)
                 </span>
               </ListItem>
@@ -220,7 +220,7 @@ export function Pricing() {
         <div className="md:flex-[2] flex flex-col gap-1 overflow-hidden rounded-xl px-6 py-4 shadow-lg shadow-gray-900/5 bg-white dark:bg-stone-925">
           <h4 className="flex justify-between items-center font-semibold text-stone-900 text-lg dark:text-white">
             <div className="flex items-center gap-1.5">Advanced Analytics</div>
-            <div className="text-stone-900 dark:text-white">
+            <div className="text-highlight">
               <span className="text-xl font-light tabular-nums tracking-tighter">
                 $50
               </span>
@@ -233,7 +233,7 @@ export function Pricing() {
             <ul className="flex flex-col text-sm lg:text-base">
               <ListItem icon={LucideMicroscope}>
                 <span className="tabular-nums">1,000</span> inspected users{" "}
-                <span className="text-sm text-stone-900 dark:text-white">
+                <span className="text-sm text-highlight">
                   (then $0.05 per user)
                 </span>
               </ListItem>
@@ -246,7 +246,7 @@ export function Pricing() {
         <div className="md:flex-[2] flex flex-col gap-1 overflow-hidden rounded-xl px-6 py-4 shadow-lg shadow-gray-900/5 bg-white dark:bg-stone-925">
           <h4 className="flex justify-between items-center font-semibold text-stone-900 text-lg dark:text-white">
             <div className="flex items-center gap-1.5">Custom Sync Domain</div>
-            <div className="text-stone-900 dark:text-white">
+            <div className="text-highlight">
               <span className="text-xl font-light tabular-nums tracking-tighter">
                 $50
               </span>

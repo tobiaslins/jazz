@@ -46,9 +46,7 @@ export function Footer({
         </div>
         <div className="grid gap-y-8 grid-cols-12">
           <div className="flex flex-col gap-4 col-span-full md:col-span-8">
-            <p className="font-medium text-stone-900 dark:text-white">
-              Stay up to date
-            </p>
+            <p className="font-medium text-highlight">Stay up to date</p>
             <NewsletterForm />
           </div>
 
@@ -57,7 +55,7 @@ export function Footer({
               key={index}
               className="flex flex-col gap-2 text-sm col-span-6 md:col-span-2"
             >
-              <h2 className="font-medium dark:text-stone-700 cursor-default">
+              <h2 className="font-medium dark:text-muted cursor-default">
                 {section.title}
               </h2>
               {section.links.map((link, linkIndex) => (
@@ -107,14 +105,14 @@ function FooterLink({
         className,
         isActive(href)
           ? "font-medium text-black dark:text-white cursor-default"
-          : "text-stone-600 dark:text-stone-400 hover:text-black dark:hover:text-white transition-colors hover:transition-none",
+          : "text-stone-600  hover:text-black dark:hover:text-white transition-colors hover:transition-none",
       )}
       onClick={onClick}
       target={newTab ? "_blank" : undefined}
     >
       {children}
       {newTab ? (
-        <span className="inline-block text-stone-300 dark:text-stone-700 relative -top-0.5 -left-0.5 -mr-2">
+        <span className="inline-block text-muted relative -top-0.5 -left-0.5 -mr-2">
           ⌝
         </span>
       ) : (

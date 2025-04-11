@@ -26,7 +26,7 @@ export default function ProblemStatementSection() {
             </span>
           </span>
           <Prose>
-            <p className="font-display text-lg md:text-xl font-semibold text-stone-900 dark:text-white">
+            <p className="font-display text-lg md:text-xl font-semibold text-highlight">
               Every stack is a re-invention of shared state.
             </p>
           </Prose>
@@ -53,7 +53,7 @@ export default function ProblemStatementSection() {
         </div>
         <div className="flex flex-col gap-3 p-4 pt-8 md:p-8 md:gap-5">
           <Prose>
-            <p className="font-display text-lg md:text-xl font-semibold text-stone-900 dark:text-white">
+            <p className="font-display text-lg md:text-xl font-semibold text-highlight">
               What if we started from shared state?
             </p>
           </Prose>

@@ -29,7 +29,7 @@ const TocList = ({
               className={clsx(
                 isActive(item)
                   ? "text-stone-900 font-medium dark:text-white"
-                  : "text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-white",
+                  : "text-stone-600 hover:text-stone-900  dark:hover:text-white",
               )}
             >
               {item.value}
@@ -113,7 +113,7 @@ export function TableOfContents({
 
   return (
     <div className={className}>
-      <p className="font-medium text-stone-900 dark:text-white mb-3">
+      <p className="font-medium text-highlight mb-3">
         On this page
       </p>
       <TocList items={items} level={0} currentId={currentId} />

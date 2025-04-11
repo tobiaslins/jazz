@@ -34,7 +34,7 @@ pre.shiki div.line::before {
 }
 
 pre.shiki div.line:hover::before {
-  @apply text-stone-400 dark:text-stone-600;
+  @apply text-muted;
 }
 
 /** Don't show the language identifiers */
