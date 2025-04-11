@@ -1,3 +1,15 @@
+:root {
+  --color-primary: #3313F7;
+  --color-secondary: #000000;
+  --color-highlight: #2DC9C9;
+  --color-success: #42BB69;
+  --color-info: #FBC400;
+  --color-warning: #FF601C;
+  --color-tip: #B441EB;
+  --color-green: #8BDA27;
+  --color-pink: #EF478E;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
