@@ -1,11 +1,5 @@
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { WORKER_ID } from "@/constants";
 import { CreateGameRequest } from "@/schema";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -54,9 +48,6 @@ function HomeComponent() {
             </Button>
           </div>
         </CardContent>
-        {/* <CardFooter>
-          <Button variant="link">How to play?</Button>
-        </CardFooter> */}
       </Card>
     </div>
   );

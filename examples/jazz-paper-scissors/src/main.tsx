@@ -1,3 +1,4 @@
+import { JazzInspector } from "jazz-inspector";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 
@@ -15,6 +16,7 @@ if (rootElement && !rootElement.innerHTML) {
           peer: "wss://cloud.jazz.tools/?key=jazz-paper-scissors@garden.co",
         }}
       >
+        <JazzInspector />
         <App />
       </JazzProvider>
     </StrictMode>,

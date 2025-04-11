@@ -3,8 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "vite --port 3000",
-    "start:worker": "tsx --env-file=.env ./src/worker.ts",
+    "dev": "vite",
+    "dev:worker": "tsx --watch --env-file=.env ./src/worker.ts",
+    "postinstall": "tsx generate-env.ts",
     "build": "vite build && tsc",
     "serve": "vite preview",
     "prettier:fix": "pnpm exec prettier . --write"
@@ -19,6 +20,7 @@
     "@tanstack/router-plugin": "^1.114.30",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "jazz-inspector": "workspace:*",
     "jazz-nodejs": "workspace:*",
     "jazz-react": "workspace:*",
     "jazz-tools": "workspace:*",
@@ -30,6 +32,7 @@
     "tw-animate-css": "^1.2.5"
   },
   "devDependencies": {
+    "jazz-run": "workspace:*",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.2.0",
     "@types/react": "^18.3.12",

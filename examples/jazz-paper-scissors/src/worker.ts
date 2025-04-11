@@ -2,6 +2,7 @@ import {
   Game,
   InboxMessage,
   JoinGameRequest,
+  NewGameIntent,
   PlayIntent,
   Player,
   WaitingRoom,
@@ -17,6 +18,7 @@ const {
   accountID: process.env.VITE_JAZZ_WORKER_ACCOUNT,
   syncServer: "wss://cloud.jazz.tools/?key=jazz-paper-scissors@garden.co ",
 });
+
 inbox.subscribe(
   InboxMessage,
   async (message, senderID) => {
@@ -28,6 +30,10 @@ inbox.subscribe(
     switch (message.type) {
       case "play":
         handlePlayIntent(senderID, message.castAs(PlayIntent));
+        break;
+
+      case "newGame":
+        handleNewGameIntent(senderID, message.castAs(NewGameIntent));
         break;
 
       case "createGame":
@@ -65,6 +71,8 @@ inbox.subscribe(
   { retries: 3 },
 );
 
+console.log("worker", worker.id, "started");
+
 interface CreateGameParams {
   account1: Account;
   account2: Account;
@@ -82,6 +90,8 @@ async function createGame({ account1, account2 }: CreateGameParams) {
     {
       player1: player1,
       player2: player2,
+      player1Score: 0,
+      player2Score: 0,
     },
     { owner: publicReadOnly },
   );
@@ -109,7 +119,32 @@ function createPlayer({ account }: CreatePlayerParams) {
   return player;
 }
 
-async function handlePlayIntent(senderID: ID<Account>, message: PlayIntent) {
+async function handleNewGameIntent(_: ID<Account>, message: NewGameIntent) {
+  const gameId = message.gameId;
+
+  const game = await Game.load(gameId as ID<Game>, {
+    loadAs: worker,
+    resolve: {
+      player1: true,
+      player2: true,
+    },
+  });
+
+  if (!game) {
+    throw new Error("Game not found");
+  }
+
+  if (game.outcome) {
+    game.outcome = undefined;
+    game.player1.playSelection = undefined;
+
+    if (game.player2) {
+      game.player2.playSelection = undefined;
+    }
+  }
+}
+
+async function handlePlayIntent(_: ID<Account>, message: PlayIntent) {
   // determine current player, update game with outcome
   const gameId = message.gameId;
   if (!gameId) {
@@ -125,7 +160,21 @@ async function handlePlayIntent(senderID: ID<Account>, message: PlayIntent) {
     },
   });
 
-  game[message.player].playSelection = message.playSelection;
+  if (!game) {
+    throw new Error("Game not found");
+  }
+
+  const currentPlayer = game[message.player as "player1" | "player2"];
+
+  if (!currentPlayer) {
+    throw new Error("Player not found");
+  }
+
+  if (currentPlayer.playSelection) {
+    throw new Error("Player already made a selection");
+  }
+
+  currentPlayer.playSelection = message.playSelection;
 
   const player1Selection = game?.player1.playSelection;
   const player2Selection = game?.player2?.playSelection;
@@ -139,5 +188,10 @@ async function handlePlayIntent(senderID: ID<Account>, message: PlayIntent) {
   ) {
     const outcome = determineWinner(player1Selection, player2Selection);
     game.outcome = outcome;
+    if (outcome === "player1") {
+      game.player1Score += 1;
+    } else if (outcome === "player2") {
+      game.player2Score += 1;
+    }
   }
 }

@@ -7,16 +7,17 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { WORKER_ID } from "@/constants";
-import { Game, PlayIntent, Player } from "@/schema";
+import { Game, NewGameIntent, PlayIntent } from "@/schema";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { Group, type ID, InboxSender } from "jazz-tools";
-import { CircleHelp, Music2, Scissors, ScrollText } from "lucide-react";
+import { experimental_useInboxSender, useCoState } from "jazz-react";
+import { Group, type ID } from "jazz-tools";
+import { Badge, CircleHelp, Scissors, ScrollText } from "lucide-react";
 import { useEffect, useState } from "react";
 
-const playIcon = (selection: string) => {
+const playIcon = (selection: string | undefined) => {
   switch (selection) {
-    case "jazz":
-      return <Music2 className="w-5 h-5" />;
+    case "rock":
+      return <Badge className="w-5 h-5" />;
     case "paper":
       return <ScrollText className="w-5 h-5" />;
     case "scissors":
@@ -39,55 +40,57 @@ export const Route = createFileRoute("/_authenticated/game/$gameId")({
       throw redirect({ to: "/" });
     }
 
-    return { game, gameId, me };
+    return { gameId, me, loaderGame: game };
   },
 });
 
 function RouteComponent() {
-  const { game, gameId, me } = Route.useLoaderData();
+  const { gameId, me, loaderGame } = Route.useLoaderData();
 
-  const [playSelection, setPlaySelection] = useState("");
-  const [opponentSelection, setOpponentSelection] = useState("");
-  const [playSubmitted, setPlaySubmitted] = useState(false);
-  const [gameComplete, setGameComplete] = useState(false);
-
-  const isPlayer1 = game.player1?.account?.isMe;
-
+  const isPlayer1 = loaderGame.player1?.account?.isMe;
   const player = isPlayer1 ? "player1" : "player2";
 
-  const onSubmit = async (playSelection: string) => {
-    const sender = await InboxSender.load<PlayIntent, Game>(WORKER_ID, me);
-    sender.sendMessage(
-      PlayIntent.create(
-        { type: "play", gameId, player, playSelection },
-        { owner: Group.create({ owner: me }) },
-      ),
-    );
-    setPlaySubmitted(true);
-  };
+  const [playSelection, setPlaySelection] = useState(
+    loaderGame[player]?.playSelection ?? "",
+  );
+  const sendInboxMessage = experimental_useInboxSender(WORKER_ID);
+
+  const game = useCoState(Game, gameId as ID<Game>);
 
   useEffect(() => {
-    if (!game) {
-      return;
-    }
-    return game.subscribe(
-      {
-        // player1: {}, player2: {}, outcome
-      },
-      async () => {
-        if (game.outcome) {
-          setGameComplete(true);
-          const currentPlayer = game[player];
-          if (!currentPlayer) {
-            console.error("Current player not found");
-            return;
-          }
-          const opponent: Player = await game.getOpponent(currentPlayer);
-          setOpponentSelection(opponent.playSelection || "");
-        }
-      },
+    let gameCompleted = Boolean(loaderGame.outcome);
+
+    return loaderGame.subscribe((game) => {
+      if (gameCompleted && !game.outcome) {
+        setPlaySelection(""); // Reset play selection when one player clicks on "Start a new game"
+      }
+
+      gameCompleted = Boolean(game.outcome);
+    });
+  }, []);
+
+  if (!game) {
+    return null;
+  }
+
+  const gameComplete = game.outcome !== undefined;
+
+  const opponent = isPlayer1 ? "player2" : "player1";
+
+  const currentPlayer = game[player];
+  const opponentPlayer = game[opponent];
+
+  const opponentSelection = opponentPlayer?.playSelection;
+
+  const onSubmit = async (playSelection: string) => {
+    sendInboxMessage(
+      PlayIntent.create({ type: "play", gameId, player, playSelection }),
     );
-  }, [game, isPlayer1]);
+  };
+
+  const onNewGame = async () => {
+    sendInboxMessage(NewGameIntent.create({ type: "newGame", gameId }));
+  };
 
   return (
     <Card className="mx-auto max-w-5xl">
@@ -95,9 +98,22 @@ function RouteComponent() {
         <CardHeader>
           <CardTitle>Jazz, Paper, Scissors!</CardTitle>
           <span>Welcome {isPlayer1 ? "Player 1" : "Player 2"}</span>
+          <span>
+            {game?.player1Score ?? 0} - {game?.player2Score ?? 0}
+          </span>
         </CardHeader>
         {gameComplete ? (
-          <div className="border">Game Over, {game?.outcome}</div>
+          <>
+            <div className="border">
+              Game Over,{" "}
+              {game?.outcome === player
+                ? "You Win!"
+                : game?.outcome === "draw"
+                  ? "It's a Draw!"
+                  : "You Lose!"}
+            </div>
+            <Button onClick={onNewGame}>Start a new game</Button>
+          </>
         ) : null}
         <CardContent>
           <div>
@@ -110,9 +126,9 @@ function RouteComponent() {
                 <Button
                   variant={"outline"}
                   size={"icon"}
-                  onClick={() => setPlaySelection("jazz")}
+                  onClick={() => setPlaySelection("rock")}
                 >
-                  <Music2 className="w-5 h-5" />
+                  <Badge className="w-5 h-5" />
                 </Button>
                 <Button
                   variant={"outline"}
@@ -131,7 +147,10 @@ function RouteComponent() {
               </dl>
               <div className="m-4">
                 <Button
-                  disabled={playSelection === "" || playSubmitted}
+                  disabled={
+                    playSelection === "" ||
+                    Boolean(currentPlayer?.playSelection)
+                  }
                   onClick={() => onSubmit(playSelection)}
                 >
                   Go!

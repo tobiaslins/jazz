@@ -3,7 +3,9 @@ import { Account, CoMap, SchemaUnion, co } from "jazz-tools";
 export class Game extends CoMap {
   player1 = co.ref(Player);
   player2? = co.ref(Player);
-  outcome? = co.string;
+  outcome? = co.literal("player1", "player2", "draw");
+  player1Score = co.number;
+  player2Score = co.number;
 
   /**
    * Given a player, returns the opponent in the current game.
@@ -37,35 +39,27 @@ export class WaitingRoom extends CoMap {
   game = co.optional.ref(Game);
 }
 
-class BaseInboxMessage extends CoMap {
-  type = co.literal("play", "createGame", "joinGame");
+export class InboxMessage extends CoMap {
+  type = co.literal("play", "createGame", "joinGame", "newGame");
 }
 
-export class PlayIntent extends BaseInboxMessage {
+export class PlayIntent extends InboxMessage {
   type = co.literal("play");
   gameId = co.string;
   player = co.literal("player1", "player2");
   playSelection = co.string;
 }
 
-export class CreateGameRequest extends BaseInboxMessage {
+export class NewGameIntent extends InboxMessage {
+  type = co.literal("newGame");
+  gameId = co.string;
+}
+
+export class CreateGameRequest extends InboxMessage {
   type = co.literal("createGame");
 }
 
-export class JoinGameRequest extends BaseInboxMessage {
+export class JoinGameRequest extends InboxMessage {
   type = co.literal("joinGame");
   waitingRoom = co.ref(WaitingRoom);
 }
-
-export const InboxMessage = SchemaUnion.Of<BaseInboxMessage>((raw) => {
-  switch (raw.get("type")) {
-    case "play":
-      return PlayIntent;
-    case "createGame":
-      return CreateGameRequest;
-    case "joinGame":
-      return JoinGameRequest;
-    default:
-      throw new Error("Unknown request type");
-  }
-});

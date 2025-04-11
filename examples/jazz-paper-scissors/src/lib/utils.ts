@@ -10,14 +10,14 @@ export function cn(...inputs: ClassValue[]) {
  */
 export function determineWinner(player1Choice: string, player2Choice: string) {
   if (player1Choice === player2Choice) {
-    return "It's a tie!";
+    return "draw";
   } else if (
-    (player1Choice === "jazz" && player2Choice === "scissors") ||
-    (player1Choice === "paper" && player2Choice === "jazz") ||
+    (player1Choice === "rock" && player2Choice === "scissors") ||
+    (player1Choice === "paper" && player2Choice === "rock") ||
     (player1Choice === "scissors" && player2Choice === "paper")
   ) {
-    return "Player 1 wins!";
+    return "player1";
   } else {
-    return "Player 2 wins!";
+    return "player2";
   }
 }
