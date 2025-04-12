@@ -176,7 +176,7 @@ export function ChatDemoSection() {
                   />
                   <button
                     type="button"
-                    className="text-blue dark:text-blue-400"
+                    className="text-primary dark:text-blue-400"
                     onClick={copyUrl}
                   >
                     {copied ? (

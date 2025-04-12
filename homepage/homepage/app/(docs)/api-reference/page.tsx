@@ -76,7 +76,7 @@ export default function Page() {
                 name="package"
                 className="text-stone-500"
               />
-              <CardHeading className="group-hover:text-blue dark:group-hover:text-blue-600">
+              <CardHeading className="group-hover:text-primary dark:group-hover:text-blue-600">
                 {name}
               </CardHeading>
               <CardBody>{description}</CardBody>

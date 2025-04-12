@@ -34,7 +34,7 @@ export function ListItem({
     blue: (
       <Icon
         size={iconSize}
-        className="text-blue dark:text-white shrink-0 mt-1"
+        className="text-primary dark:text-white shrink-0 mt-1"
       />
     ),
   };
