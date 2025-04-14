@@ -550,14 +550,14 @@ export class SyncManager {
 
   recordTransactionsSize(newTransactions: Transaction[], source: string) {
     for (const tx of newTransactions) {
-      this.transactionsSizeHistogram.record(
+      const txLength =
         tx.privacy === "private"
           ? tx.encryptedChanges.length
-          : tx.changes.length,
-        {
-          source,
-        },
-      );
+          : tx.changes.length;
+
+      this.transactionsSizeHistogram.record(txLength, {
+        source,
+      });
     }
   }
 
