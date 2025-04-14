@@ -30,8 +30,13 @@ const jazzBlue = {
   DEFAULT: COLORS.BLUE,
 };
 
+const stonePaletteWithAlpha = { ...stonePalette };
+
 Object.keys(stonePalette).forEach((key) => {
-  stonePalette[key] = stonePalette[key].replace(")", "/ <alpha-value>)");
+  stonePaletteWithAlpha[key] = stonePaletteWithAlpha[key].replace(
+    ")",
+    "/ <alpha-value>)",
+  );
 });
 
 /** @type {import('tailwindcss').Config} */
@@ -45,8 +50,8 @@ const config = {
     extend: {
       colors: {
         ...harmonyPalette,
+        stone: stonePaletteWithAlpha,
         blue: jazzBlue,
-        stone: stonePalette,
         primary: "var(--color-primary)",
         secondary: "var(--color-secondary)",
         highlight: "var(--color-transparent-primary)",
