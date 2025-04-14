@@ -175,7 +175,6 @@ export class CoValueState {
       state: this.state.type,
     });
 
-    // TODO Handle state changes
     if (!this.resolve) {
       return;
     }
