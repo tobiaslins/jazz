@@ -16,7 +16,7 @@ export function Testimonial({
   return (
     <figure className={clsx("max-w-2xl", className)}>
       <svg
-        className={clsx("text-blue", {
+        className={clsx("text-primary", {
           "size-8": size === "md",
           "size-6": size === "sm",
         })}
