@@ -34,7 +34,7 @@ pre.shiki div.line::before {
 }
 
 pre.shiki div.line:hover::before {
-  @apply text-muted;
+  @apply text-stone-400 dark:text-stone-600;
 }
 
 /** Don't show the language identifiers */
@@ -44,7 +44,7 @@ pre.shiki .language-id {
 
 /** When you mouse over the pre, show the underlines */
 pre.twoslash:hover data-lsp {
-  @apply border-dotted border-b border-muted;
+  @apply border-dotted border-b border-stone-300 dark:border-stone-700;
 }
 
 /** The tooltip-like which provides the LSP response */
