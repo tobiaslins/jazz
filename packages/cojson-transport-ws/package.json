@@ -7,7 +7,7 @@
   "license": "MIT",
   "dependencies": {
     "cojson": "workspace:*",
-    "typescript": "~5.6.2"
+    "typescript": "catalog:"
   },
   "scripts": {
     "dev": "tsc --watch --sourceMap --outDir dist",
