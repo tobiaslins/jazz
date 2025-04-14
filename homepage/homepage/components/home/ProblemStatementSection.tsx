@@ -13,8 +13,8 @@ export default function ProblemStatementSection() {
         slogan="A perspective shift worth 10,000 hours"
       />
 
-      <div className="grid sm:grid-cols-2 border rounded-lg shadow-sm md:rounded-xl overflow-hidden dark:border-stone-900">
-        <div className="flex flex-col bg-stone-50 relative gap-3 p-4 pb-8 md:p-8 md:gap-5 border-b sm:border-b-0 sm:border-r dark:bg-transparent dark:border-stone-900">
+      <div className="grid sm:grid-cols-2 border rounded-lg shadow-sm md:rounded-xl overflow-hidden">
+        <div className="flex flex-col bg-stone-50 relative gap-3 p-4 pb-8 md:p-8 md:gap-5 border-b sm:border-b-0 sm:border-r dark:bg-transparent">
           <span className="hidden absolute top-0 -right-4 md:-right-6 sm:flex items-center h-full">
             <span className="p-1 md:p-3 bg-stone-200 rounded-full dark:bg-stone-900 dark:text-white">
               <Icon name="arrowRight" />

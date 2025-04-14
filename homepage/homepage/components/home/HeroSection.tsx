@@ -95,7 +95,7 @@ export function HeroSection() {
           className="md:col-span-2 lg:sr-only"
           title="Get a Jazz app running in minutes."
         />
-        <div className="overflow-hidden sm:rounded-xl sm:border  h-full sm:px-8 sm:pt-6 bg-stone-50 dark:bg-stone-950">
+        <div className="overflow-hidden sm:rounded-xl sm:border h-full sm:px-8 sm:pt-6 bg-stone-50 dark:bg-stone-950">
           <div className="rounded-lg bg-white dark:bg-stone-925 sm:ring-4 ring-stone-400/20 sm:shadow-xl sm:shadow-blue/20 border relative sm:top-2 h-full w-full">
             <div className="py-4 flex items-center gap-2.5 px-6 border-b">
               <span className="rounded-full size-3 bg-stone-200 dark:bg-stone-900" />

@@ -128,7 +128,7 @@ export function Pricing() {
                 <span className="tabular-nums">20</span> GB egress/mo incl.{" "}
                 <span className="text-sm">(then $0.1 per GB)</span>
               </ListItem>
-              <hr className="my-2 border-stone-200 dark:border-stone-800" />
+              <hr className="my-2 border" />
               <ListItem icon={LucideChevronsUp}>High-priority sync</ListItem>
             </ul>
           </div>
@@ -167,7 +167,7 @@ export function Pricing() {
               </ListItem>
               <ListItem icon={LucideDatabase}>Custom storage</ListItem>
               <ListItem icon={LucideCloudDownload}>Custom egress/mo</ListItem>
-              <hr className="my-2 border-stone-200 dark:border-stone-800" />
+              <hr className="my-2 border" />
               <ListItem icon={LucideHandshake}>
                 Rapid integration & premium onboarding
               </ListItem>
