@@ -49,7 +49,6 @@ const config = {
         stone: stonePalette,
         primary: "var(--color-primary)",
         secondary: "var(--color-secondary)",
-        // highlight: "var(--color-highlight)",
         highlight: "var(--color-transparent-primary)",
         success: "var(--color-success)",
         info: "var(--color-info)",

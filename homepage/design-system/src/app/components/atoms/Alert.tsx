@@ -22,7 +22,7 @@ export function Alert({
         {
           "border-yellow-400 bg-yellow-50 dark:border-yellow-500 dark:bg-yellow-200/5":
             variant === "warning",
-          "border-blue-400 bg-highlight dark:border-blue-500 dark:bg-blue-200/5":
+          "border-blue-400 bg-blue-50 dark:border-blue-500 dark:bg-blue-200/5":
             variant === "info",
         },
         className,
