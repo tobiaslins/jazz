@@ -125,8 +125,8 @@ export class CoValueCore {
     this.node = node;
     this.transactionsSizeHistogram = metrics
       .getMeter("cojson")
-      .createHistogram("transactions_size", {
-        description: "The size of transactions in a covalue",
+      .createHistogram("jazz.transactions.size", {
+        description: "Transactions size in bytes",
         unit: "bytes",
         valueType: ValueType.INT,
       });
@@ -285,6 +285,12 @@ export class CoValueCore {
     const transactions = this.sessionLogs.get(sessionID)?.transactions ?? [];
 
     for (const tx of newTransactions) {
+      this.transactionsSizeHistogram.record(
+        tx.privacy === "private"
+          ? tx.encryptedChanges.length
+          : tx.changes.length,
+      );
+
       transactions.push(tx);
     }
 
@@ -471,6 +477,7 @@ export class CoValueCore {
     )._unsafeUnwrap({ withStackTrace: true });
 
     if (success) {
+      this.node.syncManager.recordTransactionsSize([transaction], "local");
       void this.node.syncManager.syncCoValue(this);
     }
 
