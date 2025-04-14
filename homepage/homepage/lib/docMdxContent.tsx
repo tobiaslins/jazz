@@ -1,5 +1,5 @@
 import DocsLayout from "@/components/docs/DocsLayout";
-import { DocNav } from "@/components/docs/nav";
+import { DocNav } from "@/components/docs/DocsNav";
 import { Toc } from "@stefanprobst/rehype-extract-toc";
 import { Prose } from "gcmp-design-system/src/app/components/molecules/Prose";
 

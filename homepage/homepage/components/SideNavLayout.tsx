@@ -1,4 +1,3 @@
-import { DocNav } from "@/components/docs/nav";
 import { JazzNav } from "@/components/nav";
 import { clsx } from "clsx";
 import { NavSection } from "gcmp-design-system/src/app/components/organisms/Nav";
@@ -19,7 +18,7 @@ export function SideNavLayout({
         <div className="container relative md:grid md:grid-cols-12 md:gap-12">
           <div
             className={clsx(
-              "pr-3 md:col-span-4 lg:col-span-3",
+              "pr-3 pt-3 md:pt-8 md:col-span-4 lg:col-span-3",
               "sticky align-start top-[61px] h-[calc(100vh-61px)] overflow-y-auto",
               "hidden md:block",
             )}
