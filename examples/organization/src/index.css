@@ -1,3 +1,5 @@
+@import "gcmp-design-system/src/app/globals.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -12,10 +14,6 @@
 
   [type="text"],
   select {
-    border-color: var(--gcmp-border-color);
-
-    @media (prefers-color-scheme: dark) {
-      border-color: var(--gcmp-invert-border-color);
-    }
+    border-color: var(--color-border-default);
   }
 }
