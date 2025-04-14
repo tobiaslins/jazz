@@ -11,6 +11,7 @@ import clsx from "clsx";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ComponentType, ReactNode, useEffect, useState } from "react";
+import React from "react";
 import { isActive } from "../../utils/nav";
 import { Icon } from "../atoms/Icon";
 import type { IconName } from "../atoms/Icon";
@@ -237,7 +238,11 @@ export function MobileNav({
             )}
           >
             {navSections.map((section) =>
-              section.name == active ? section.content : null,
+              section.name == active ? (
+                <React.Fragment key={section.name}>
+                  {section.content}
+                </React.Fragment>
+              ) : null,
             )}
           </div>
         )}
