@@ -1,5 +1,5 @@
 :root {
-  --color-primary: #146AFF;
+  --color-primary: #146aff;
   --color-primary-dark: lch(
     from var(--color-primary) calc(l - 15) calc(c - 1) calc(h + 10)
   );
