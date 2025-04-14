@@ -124,7 +124,6 @@ const config = {
               fontWeight: theme("fontWeight.normal"),
               textUnderlineOffset: "4px",
               "&:hover": {
-                // color: theme("colors.success"),
                 color: "var(--color-dark-primary)",
               },
             },
