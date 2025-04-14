@@ -4,6 +4,7 @@ import tailwindCSSAnimate from "tailwindcss-animate";
 const colors = require("tailwindcss/colors");
 const plugin = require("tailwindcss/plugin");
 const { COLORS } = require("./colors/colors");
+
 const stonePalette = {
   50: "oklch(0.988281 0.002 75)",
   100: "oklch(0.980563 0.002 75)",
@@ -26,14 +27,7 @@ const jazzBlue = {
   700: "#3313F7",
   800: "#2A12BE",
   900: "#12046A",
-  // DEFAULT: "#146AFF",
   DEFAULT: COLORS.BLUE,
-};
-
-const coreColors = {
-  ...harmonyPalette,
-  blue: jazzBlue,
-  stone: { ...stonePalette },
 };
 
 Object.keys(stonePalette).forEach((key) => {
@@ -50,10 +44,13 @@ const config = {
   theme: {
     extend: {
       colors: {
-        ...coreColors,
+        ...harmonyPalette,
+        blue: jazzBlue,
+        stone: stonePalette,
         primary: "var(--color-primary)",
         secondary: "var(--color-secondary)",
-        highlight: "var(--color-highlight)",
+        // highlight: "var(--color-highlight)",
+        highlight: "var(--color-transparent-primary)",
         success: "var(--color-success)",
         info: "var(--color-info)",
         warning: "var(--color-warning)",
@@ -67,8 +64,11 @@ const config = {
         highlight: "var(--color-highlight)",
         muted: "var(--color-muted)",
       },
+      borderColor: {
+        DEFAULT: "var(--color-border-default)",
+      },
       backgroundColor: {
-        highlight: "var(--color-bg-highlight)",
+        highlight: "var(--color-transparent-primary)",
         muted: "var(--color-bg-muted)",
       },
       fontFamily: {
@@ -105,8 +105,8 @@ const config = {
             "--tw-prose-invert-headings": theme("colors.white"),
             "--tw-prose-code": stonePalette[900],
             "--tw-prose-invert-code": stonePalette[50],
-            "--tw-prose-links": theme("colors.blue.DEFAULT"),
-            "--tw-prose-invert-links": theme("colors.blue.500"),
+            "--tw-prose-links": theme("colors.primary"),
+            "--tw-prose-invert-links": theme("colors.primary"),
             maxWidth: null,
             strong: {
               color: "var(--tw-prose-bold)",
@@ -119,6 +119,10 @@ const config = {
             a: {
               fontWeight: theme("fontWeight.normal"),
               textUnderlineOffset: "4px",
+              "&:hover": {
+                // color: theme("colors.success"),
+                color: "var(--color-dark-primary)",
+              },
             },
             h1: {
               fontFamily: theme("fontFamily.display"),
@@ -183,23 +187,6 @@ const config = {
         ".text-reset, .text-reset:hover, .text-reset:focus": {
           color: "inherit",
           textDecoration: "none",
-        },
-      }),
-    ),
-    plugin(({ addBase }) =>
-      addBase({
-        ":root": {
-          "--gcmp-border-color": stonePalette[200],
-          "--gcmp-invert-border-color": stonePalette[900],
-        },
-        "*": {
-          borderColor: "var(--gcmp-border-color)",
-        },
-        ".dark *": {
-          borderColor: "var(--gcmp-invert-border-color)",
-        },
-        "*:focus": {
-          outline: "none",
         },
       }),
     ),
