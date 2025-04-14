@@ -152,16 +152,3 @@ function getIsUploaded(
 
   return true;
 }
-
-export function getWeNeedToPullData(
-  source: Record<string, number>,
-  target: Record<string, number>,
-) {
-  for (const [sessionId, sourceCounter] of Object.entries(source)) {
-    const targetCounter = target[sessionId] ?? 0;
-
-    if (sourceCounter > targetCounter) {
-      return true;
-    }
-  }
-}

@@ -1,6 +1,6 @@
 import { ValueType, metrics } from "@opentelemetry/api";
 import { PeerState } from "./PeerState.js";
-import { SyncStateManager, getWeNeedToPullData } from "./SyncStateManager.js";
+import { SyncStateManager } from "./SyncStateManager.js";
 import { CoValueHeader, Transaction } from "./coValueCore.js";
 import { CoValueCore } from "./coValueCore.js";
 import { CoValueState } from "./coValueState.js";
@@ -362,15 +362,28 @@ export class SyncManager {
     }
   }
 
+  nextPeer: Map<PeerID, Peer> = new Map();
+
   async addPeer(peer: Peer) {
     const prevPeer = this.peers[peer.id];
 
+    this.nextPeer.set(peer.id, peer);
+
     if (prevPeer && !prevPeer.closed) {
       prevPeer.gracefulShutdown();
-      await prevPeer.processMessages?.catch((e) => {});
     }
 
-    // TODO: Handle cancelation when a new peer with the same id is added before this one setted
+    if (prevPeer) {
+      await prevPeer.processMessagesPromise?.catch((e) => {});
+    }
+
+    const nextPeer = this.nextPeer.get(peer.id);
+
+    if (nextPeer !== peer) {
+      peer.outgoing.close();
+      return;
+    }
+
     const peerState = new PeerState(peer, prevPeer?.knownStates);
     this.peers[peer.id] = peerState;
 
@@ -403,7 +416,7 @@ export class SyncManager {
       }
     };
 
-    peerState.processMessages = processMessages()
+    peerState.processMessagesPromise = processMessages()
       .then(() => {
         if (peer.crashOnClose) {
           logger.error("Unexepcted close from peer", {
@@ -455,6 +468,8 @@ export class SyncManager {
         // We don't have any eligible peers to load the coValue from
         // so we send a known state back to the sender to let it know
         // that the coValue is unavailable
+        peer.toldKnownState.add(msg.id);
+
         this.trySendToPeer(peer, {
           action: "known",
           id: msg.id,
@@ -466,6 +481,7 @@ export class SyncManager {
 
         return;
       } else {
+        // Should move the state to loading
         this.local.loadCoValueCore(msg.id, peer.id).catch((e) => {
           logger.error("Error loading coValue in handleLoad", { err: e });
         });
@@ -481,11 +497,6 @@ export class SyncManager {
         .getCoValue()
         .then(async (value) => {
           if (value === "unavailable") {
-            peer.dispatchToKnownStates({
-              type: "SET",
-              id: msg.id,
-              value: knownStateIn(msg),
-            });
             peer.toldKnownState.add(msg.id);
 
             this.trySendToPeer(peer, {
@@ -508,18 +519,16 @@ export class SyncManager {
             err: e,
           });
         });
-    } else if (entry.state.type === "unavailable") {
+    } else if (entry.state.type === "available") {
+      await this.tellUntoldKnownStateIncludingDependencies(msg.id, peer);
+      await this.sendNewContentIncludingDependencies(msg.id, peer);
+    } else {
       this.trySendToPeer(peer, {
         action: "known",
         id: msg.id,
         header: false,
         sessions: {},
       });
-    }
-
-    if (entry.state.type === "available") {
-      await this.tellUntoldKnownStateIncludingDependencies(msg.id, peer);
-      await this.sendNewContentIncludingDependencies(msg.id, peer);
     }
   }
 
@@ -531,31 +540,6 @@ export class SyncManager {
       id: msg.id,
       value: knownStateIn(msg),
     });
-
-    if (entry.state.type === "unknown" || entry.state.type === "unavailable") {
-      if (msg.asDependencyOf) {
-        const dependencyEntry = this.local.coValuesStore.get(
-          msg.asDependencyOf,
-        );
-
-        if (
-          dependencyEntry.state.type === "available" ||
-          dependencyEntry.state.type === "loading"
-        ) {
-          this.local
-            .loadCoValueCore(
-              msg.id,
-              peer.role === "storage" ? undefined : peer.id,
-            )
-            .catch((e) => {
-              logger.error(
-                `Error loading coValue ${msg.id} to create loading state, as dependency of ${msg.asDependencyOf}`,
-                { err: e },
-              );
-            });
-        }
-      }
-    }
 
     // The header is a boolean value that tells us if the other peer do have information about the header.
     // If it's false in this point it means that the coValue is unavailable on the other peer.

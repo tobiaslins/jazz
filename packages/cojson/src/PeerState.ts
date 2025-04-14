@@ -17,7 +17,7 @@ import {
 export class PeerState {
   private queue: PriorityBasedMessageQueue;
 
-  processMessages: Promise<void> | undefined;
+  processMessagesPromise: Promise<void> | undefined;
 
   constructor(
     private peer: Peer,
@@ -96,29 +96,6 @@ export class PeerState {
 
   private processing = false;
   public closed = false;
-
-  isInSyncWith(knownState: CoValueKnownState) {
-    const optimisticKnownState =
-      this.optimisticKnownStates.get(knownState.id) ??
-      emptyKnownState(knownState.id);
-
-    const sessions = Object.entries(optimisticKnownState.sessions) as [
-      SessionID,
-      number,
-    ][];
-
-    if (sessions.length !== Object.keys(knownState.sessions).length) {
-      return false;
-    }
-
-    for (const [sessionId, counter] of sessions) {
-      if (counter !== knownState.sessions[sessionId]) {
-        return false;
-      }
-    }
-
-    return true;
-  }
 
   async processQueue() {
     if (this.processing) {
