@@ -1,12 +1,16 @@
 :root {
-  --color-primary: #146AFF;
-  --color-secondary: #000000;
+  /* --color-primary: #146AFF; */
+  --color-primary: #EF478E;
+  --color-dark-primary: lch(from var(--color-primary) calc(l - 15) calc(c - 1) calc(h + 10));
+  --color-light-primary: lch(from var(--color-primary) calc(l + 15) calc(c + 1) calc(h - 10));
+
+  --color-secondary: var(--color-dark-primary);
   --color-highlight: #2DC9C9;
   --color-success: #42BB69;
   --color-info: #FBC400;
   --color-warning: #FF601C;
   --color-tip: #B441EB;
-  --color-green: #8BDA27;
+  --color-success: #8BDA27;
   --color-pink: #EF478E;
   
   --color-default: theme("colors.stone.700");
@@ -14,15 +18,25 @@
   --color-muted: theme("colors.stone.300");
 
   --color-transparent-white: rgba(255, 255, 255, 0.1);
-  --color-bg-highlight: theme("colors.blue.50");
+  --color-transparent-primary: lch(from var(--color-dark-primary) l c h / 0.1);
+  
+  --color-border-default: theme("colors.stone.200");
 }
 
 .dark {
+  --color-secondary: var(--color-light-primary);
+
   --color-default: theme("colors.stone.400");
   --color-highlight: theme("colors.white");
   --color-muted: theme("colors.stone.700");
 
-  --color-bg-highlight: rgba(255, 255, 255, 0.1);
+  --color-transparent-primary: lch(from var(--color-light-primary) l c h / 0.2);
+
+  --color-border-default: theme("colors.stone.900");
+}
+
+*:focus {
+  outline: none;
 }
 
 @tailwind base;
