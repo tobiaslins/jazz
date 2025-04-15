@@ -30,13 +30,11 @@ export class PeerKnownStates {
     this.triggerUpdate(id);
   }
 
-  setAsEmpty(id: RawCoID) {
-    this.coValues.set(id, emptyKnownState(id));
-    this.triggerUpdate(id);
-  }
-
-  set(id: RawCoID, knownState: CoValueKnownState) {
-    this.coValues.set(id, knownState);
+  set(id: RawCoID, knownState: CoValueKnownState | "empty") {
+    this.coValues.set(
+      id,
+      knownState === "empty" ? emptyKnownState(id) : knownState,
+    );
     this.triggerUpdate(id);
   }
 

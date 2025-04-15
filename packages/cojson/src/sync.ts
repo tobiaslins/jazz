@@ -321,7 +321,7 @@ export class SyncManager {
           }
 
           if (!peerState.optimisticKnownStates.has(entry.id)) {
-            peerState.setOptimisticKnownStateAsEmpty(entry.id);
+            peerState.setOptimisticKnownState(entry.id, "empty");
           }
         }
       };

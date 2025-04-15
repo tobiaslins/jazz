@@ -67,7 +67,7 @@ describe("PeerKnownStates", () => {
     };
 
     peerKnownStates.set(id, initialState);
-    peerKnownStates.setAsEmpty(id);
+    peerKnownStates.set(id, "empty");
 
     const result = peerKnownStates.get(id);
     expect(result).toEqual(emptyKnownState(id));
@@ -79,7 +79,7 @@ describe("PeerKnownStates", () => {
     const listener = vi.fn();
 
     peerKnownStates.subscribe(listener);
-    peerKnownStates.setAsEmpty(id);
+    peerKnownStates.set(id, "empty");
 
     expect(listener).toHaveBeenCalledWith(id, emptyKnownState(id));
   });
@@ -92,7 +92,7 @@ describe("PeerKnownStates", () => {
     const unsubscribe = peerKnownStates.subscribe(listener);
     unsubscribe();
 
-    peerKnownStates.setAsEmpty(id);
+    peerKnownStates.set(id, "empty");
 
     expect(listener).not.toHaveBeenCalled();
   });

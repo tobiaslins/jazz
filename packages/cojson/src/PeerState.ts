@@ -100,15 +100,7 @@ export class PeerState {
     }
   }
 
-  setKnownStateAsEmpty(id: RawCoID) {
-    this._knownStates.setAsEmpty(id);
-
-    if (this._optimisticKnownStates !== "assumeInfallible") {
-      this._optimisticKnownStates.setAsEmpty(id);
-    }
-  }
-
-  setKnownState(id: RawCoID, knownState: CoValueKnownState) {
+  setKnownState(id: RawCoID, knownState: CoValueKnownState | "empty") {
     this._knownStates.set(id, knownState);
 
     if (this._optimisticKnownStates !== "assumeInfallible") {
@@ -116,19 +108,14 @@ export class PeerState {
     }
   }
 
-  setOptimisticKnownState(id: RawCoID, knownState: CoValueKnownState) {
+  setOptimisticKnownState(
+    id: RawCoID,
+    knownState: CoValueKnownState | "empty",
+  ) {
     if (this._optimisticKnownStates === "assumeInfallible") {
       this._knownStates.set(id, knownState);
     } else {
       this._optimisticKnownStates.set(id, knownState);
-    }
-  }
-
-  setOptimisticKnownStateAsEmpty(id: RawCoID) {
-    if (this._optimisticKnownStates === "assumeInfallible") {
-      this._knownStates.setAsEmpty(id);
-    } else {
-      this._optimisticKnownStates.setAsEmpty(id);
     }
   }
 
