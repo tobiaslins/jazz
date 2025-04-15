@@ -36,7 +36,6 @@ export type LoadMessage = {
 
 export type KnownStateMessage = {
   action: "known";
-  asDependencyOf?: RawCoID;
   isCorrection?: boolean;
 } & CoValueKnownState;
 
@@ -617,6 +616,7 @@ export class SyncManager {
           err: e,
         });
       });
+      peer.toldKnownState.add(msg.id);
     } else {
       /**
        * We are sending a known state message to the peer to acknowledge the
@@ -635,6 +635,7 @@ export class SyncManager {
           err: e,
         });
       });
+      peer.toldKnownState.add(msg.id);
     }
 
     /**
