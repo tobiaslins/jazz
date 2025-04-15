@@ -159,9 +159,13 @@ describe("PeerState", () => {
 
   test("should dispatch to both states", () => {
     const { peerState } = setup();
-    const knownStatesSpy = vi.spyOn(peerState.knownStates, "set");
+    const knownStatesSpy = vi.spyOn(peerState._knownStates, "set");
+    if (peerState._optimisticKnownStates === "assumeInfallible") {
+      throw new Error("Expected normal optimisticKnownStates");
+    }
+
     const optimisticKnownStatesSpy = vi.spyOn(
-      peerState.optimisticKnownStates,
+      peerState._optimisticKnownStates,
       "set",
     );
 
@@ -195,11 +199,8 @@ describe("PeerState", () => {
     expect(peerState.knownStates).toBe(peerState.optimisticKnownStates);
 
     // Verify that dispatching only updates one state
-    const knownStatesSpy = vi.spyOn(peerState.knownStates, "set");
-    const optimisticKnownStatesSpy = vi.spyOn(
-      peerState.optimisticKnownStates,
-      "set",
-    );
+    const knownStatesSpy = vi.spyOn(peerState._knownStates, "set");
+    expect(peerState._optimisticKnownStates).toBe("assumeInfallible");
 
     const state: CoValueKnownState = {
       id: "co_z1",
@@ -212,8 +213,6 @@ describe("PeerState", () => {
     // Only one dispatch should happen since they're the same reference
     expect(knownStatesSpy).toHaveBeenCalledTimes(1);
     expect(knownStatesSpy).toHaveBeenCalledWith("co_z1", state);
-    expect(optimisticKnownStatesSpy).toHaveBeenCalledTimes(1);
-    expect(optimisticKnownStatesSpy).toHaveBeenCalledWith("co_z1", state);
   });
 
   test("should use separate references for knownStates and optimisticKnownStates for non-storage peers", () => {

@@ -74,3 +74,8 @@ export class PeerKnownStates {
     };
   }
 }
+
+export type ReadonlyPeerKnownStates = Pick<
+  PeerKnownStates,
+  "get" | "has" | "clone" | "subscribe"
+>;

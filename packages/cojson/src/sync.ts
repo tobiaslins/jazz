@@ -283,14 +283,14 @@ export class SyncManager {
 
       sendPieces().catch((e) => {
         logger.error("Error sending new content piece, retrying", { err: e });
-        peer.optimisticKnownStates.set(
+        peer.setOptimisticKnownState(
           id,
           optimisticKnownStateBefore ?? emptyKnownState(id),
         );
         return this.sendNewContentIncludingDependencies(id, peer);
       });
 
-      peer.optimisticKnownStates.combineWith(id, coValue.knownState());
+      peer.combineOptimisticWith(id, coValue.knownState());
     }
   }
 
@@ -321,7 +321,7 @@ export class SyncManager {
           }
 
           if (!peerState.optimisticKnownStates.has(entry.id)) {
-            peerState.optimisticKnownStates.setAsEmpty(entry.id);
+            peerState.setOptimisticKnownStateAsEmpty(entry.id);
           }
         }
       };
