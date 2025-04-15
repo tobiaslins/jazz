@@ -3,7 +3,7 @@ import { Table, TableCell, TableHead, TableRow } from "@/ui/table";
 import { Text } from "@/ui/text";
 import { ValueRenderer } from "@/viewer/value-renderer";
 import { JsonObject, JsonValue } from "cojson";
-import { PageInfo } from "./types.js";
+import { PageInfo, isCoId } from "./types.js";
 
 function TeamMember({
   entry,
@@ -38,9 +38,7 @@ export function GroupView({
   data: JsonObject;
   onNavigate: (pages: PageInfo[]) => void;
 }) {
-  const entries = Object.entries(data).filter((entry) =>
-    entry[0].startsWith("co_"),
-  );
+  const entries = Object.entries(data).filter((entry) => isCoId(entry[0]));
 
   return (
     <>

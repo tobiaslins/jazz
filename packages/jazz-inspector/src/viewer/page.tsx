@@ -66,10 +66,9 @@ const BadgeContainer = styled("div")`
 
 const ContentContainer = styled("div")`
   overflow: auto;
-`;
-
-const OwnerText = styled(Text)`
-  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 `;
 
 type PageProps = {
@@ -172,7 +171,7 @@ export function Page(props: PageProps) {
       <ContentContainer>
         <View {...props} coValue={coValue} />
         {extendedType !== "account" && extendedType !== "group" && (
-          <OwnerText muted>
+          <Text muted>
             Owned by{" "}
             <AccountOrGroupPreview
               coId={value.group.id}
@@ -182,7 +181,7 @@ export function Page(props: PageProps) {
                 onNavigate([{ coId: value.group.id, name: "owner" }]);
               }}
             />
-          </OwnerText>
+          </Text>
         )}
       </ContentContainer>
     </PageContainer>
