@@ -205,14 +205,18 @@ export class Inbox {
                 const stringifiedError = String(error);
                 errors.push(stringifiedError);
 
-                const inboxMessage = node
-                  .expectCoValueLoaded(item.value)
-                  .getCurrentContent() as RawCoMap;
+                let inboxMessage: RawCoMap | undefined;
 
-                inboxMessage.set("error", stringifiedError);
+                try {
+                  inboxMessage = node
+                    .expectCoValueLoaded(item.value)
+                    .getCurrentContent() as RawCoMap;
+
+                  inboxMessage.set("error", stringifiedError);
+                } catch (error) {}
 
                 if (errors.length > retries) {
-                  inboxMessage.set("processed", true);
+                  inboxMessage?.set("processed", true);
                   this.processed.push(txKey);
                   this.failed.push({ errors, value: item.value });
                 } else {
@@ -230,7 +234,12 @@ export class Inbox {
       }
     };
 
-    return this.messages.subscribe(handleNewMessages);
+    const unsubscribe = this.messages.subscribe(handleNewMessages);
+
+    return () => {
+      unsubscribe();
+      clearFailTimer();
+    };
   }
 
   static async load(account: Account) {
