@@ -1,9 +1,15 @@
-import { Card, CardBody, CardHeader } from "@/ui/card";
-import { Table, TableCell, TableHead, TableRow } from "@/ui/table";
-import { Text } from "@/ui/text";
-import { ValueRenderer } from "@/viewer/value-renderer";
 import { JsonObject, JsonValue } from "cojson";
+import { Card, CardBody, CardHeader } from "../ui/card.js";
+import {
+  Table,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../ui/table.js";
+import { Text } from "../ui/text.js";
 import { PageInfo, isCoId } from "./types.js";
+import { ValueRenderer } from "./value-renderer.js";
 
 function TeamMember({
   entry,
@@ -47,8 +53,8 @@ export function GroupView({
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell>Account</TableCell>
-            <TableCell>Permission</TableCell>
+            <TableHeader>Account</TableHeader>
+            <TableHeader>Permission</TableHeader>
           </TableRow>
         </TableHead>
         {entries.map((entry, childIndex) => (

@@ -1,4 +1,3 @@
-import { GroupView } from "@/viewer/group-view";
 import { CoID, LocalNode, RawCoStream, RawCoValue } from "cojson";
 import { styled } from "goober";
 import React from "react";
@@ -7,6 +6,7 @@ import { Heading } from "../ui/heading.js";
 import { Text } from "../ui/text.js";
 import { CoStreamView } from "./co-stream-view.js";
 import { GridView } from "./grid-view.js";
+import { GroupView } from "./group-view.js";
 import { TableView } from "./table-viewer.js";
 import { TypeIcon } from "./type-icon.js";
 import { PageInfo } from "./types.js";
