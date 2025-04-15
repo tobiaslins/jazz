@@ -44,7 +44,7 @@ export function toSimplifiedMessages(
   function toDebugString(from: "client" | "server", msg: SyncMessage) {
     switch (msg.action) {
       case "known":
-        return `${from} -> KNOWN ${getCoValue(msg.id)} sessions: ${simplifySessions(msg)}`;
+        return `${from} -> KNOWN ${msg.isCorrection ? "CORRECTION " : ""}${getCoValue(msg.id)} sessions: ${simplifySessions(msg)}`;
       case "load":
         return `${from} -> LOAD ${getCoValue(msg.id)} sessions: ${simplifySessions(msg)}`;
       case "done":
