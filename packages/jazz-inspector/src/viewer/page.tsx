@@ -69,6 +69,7 @@ const ContentContainer = styled("div")`
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  padding-bottom: 2rem;
 `;
 
 type PageProps = {
@@ -103,7 +104,7 @@ function View(
   }
 
   if (extendedType === "group") {
-    return <GroupView data={snapshot} onNavigate={onNavigate} />;
+    return <GroupView data={snapshot} node={node} onNavigate={onNavigate} />;
   }
 
   if (type === "colist" || extendedType === "record") {
