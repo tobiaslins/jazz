@@ -310,7 +310,7 @@ export class SyncManager {
 
     const requested = new Set<string>();
 
-    const navigateDeps = (coValue: CoValueCore) => {
+    const buildOrderedCoValueList = (coValue: CoValueCore) => {
       if (requested.has(coValue.id)) {
         return;
       }
@@ -321,7 +321,7 @@ export class SyncManager {
         const entry = this.local.coValuesStore.get(id);
 
         if (entry.state.type === "available") {
-          navigateDeps(entry.state.coValue);
+          buildOrderedCoValueList(entry.state.coValue);
         }
       }
 
@@ -331,6 +331,8 @@ export class SyncManager {
     for (const entry of this.local.coValuesStore.getValues()) {
       switch (entry.state.type) {
         case "unavailable":
+          // If the coValue is unavailable and we never tried this peer
+          // we try to load it from the peer
           if (!peer.toldKnownState.has(entry.id)) {
             await entry.loadFromPeers([peer]).catch((e: unknown) => {
               logger.error("Error sending load", { err: e });
@@ -340,10 +342,13 @@ export class SyncManager {
         case "available":
           const coValue = entry.state.coValue;
 
-          navigateDeps(coValue);
+          // Build the list of coValues ordered by dependency
+          // so we can send the load message in the correct order
+          buildOrderedCoValueList(coValue);
           break;
       }
 
+      // Fill the missing known states with empty known states
       if (!peer.optimisticKnownStates.has(entry.id)) {
         peer.optimisticKnownStates.dispatch({
           type: "SET_AS_EMPTY",
@@ -353,6 +358,12 @@ export class SyncManager {
     }
 
     for (const coValue of coValuesOrderedByDependency) {
+      /**
+       * We send the load messages to:
+       * - Subscribe to the coValue updates
+       * - Start the sync process in case we or the other peer
+       *   lacks some transactions
+       */
       peer.toldKnownState.add(coValue.id);
       await this.trySendToPeer(peer, {
         action: "load",
@@ -368,21 +379,22 @@ export class SyncManager {
   async addPeer(peer: Peer) {
     const prevPeer = this.peers[peer.id];
 
-    this.nextPeer.set(peer.id, peer);
-
-    if (prevPeer && !prevPeer.closed) {
-      prevPeer.gracefulShutdown();
-    }
-
     if (prevPeer) {
-      await prevPeer.processMessagesPromise?.catch((e) => {});
-    }
+      // Assign to nextPeer to check against race conditions
+      prevPeer.nextPeer = peer;
 
-    const nextPeer = this.nextPeer.get(peer.id);
+      if (!prevPeer.closed) {
+        prevPeer.gracefulShutdown();
+      }
 
-    if (nextPeer !== peer) {
-      peer.outgoing.close();
-      return;
+      // Wait for the previous peer to finish processing the incoming messages
+      await prevPeer.incomingMessagesProcessingPromise?.catch((e) => {});
+
+      // If another peer was added in the meantime, we close this peer
+      if (prevPeer.nextPeer !== peer) {
+        peer.outgoing.close();
+        return;
+      }
     }
 
     const peerState = new PeerState(peer, prevPeer?.knownStates);
@@ -400,24 +412,10 @@ export class SyncManager {
       void this.startPeerReconciliation(peerState);
     }
 
-    const processMessages = async () => {
-      for await (const msg of peerState.incoming) {
-        if (msg === "Disconnected") {
-          return;
-        }
-        if (msg === "PingTimeout") {
-          logger.error("Ping timeout from peer", {
-            peerId: peer.id,
-            peerRole: peer.role,
-          });
-          return;
-        }
-
+    peerState
+      .processIncomingMessages(async (msg) => {
         await this.handleSyncMessage(msg, peerState);
-      }
-    };
-
-    peerState.processMessagesPromise = processMessages()
+      })
       .then(() => {
         if (peer.crashOnClose) {
           logger.error("Unexepcted close from peer", {
@@ -434,6 +432,7 @@ export class SyncManager {
           peerId: peer.id,
           peerRole: peer.role,
         });
+
         if (peer.crashOnClose) {
           this.local.crashed = e;
           throw new Error(e);
@@ -454,7 +453,21 @@ export class SyncManager {
     return peer.pushOutgoingMessage(msg);
   }
 
+  /**
+   * Handles the load message from a peer.
+   *
+   * Differences with the known state message:
+   * - The load message triggers the CoValue loading process on the other peer
+   * - The peer known state is stored as-is instead of being merged
+   * - The load message always replies with a known state message
+   */
   async handleLoad(msg: LoadMessage, peer: PeerState) {
+    /**
+     * We use the msg sessions as source of truth for the known states
+     *
+     * This way we can track part of the data loss that may occur when the other peer is restarted
+     *
+     */
     peer.dispatchToKnownStates({
       type: "SET",
       id: msg.id,
