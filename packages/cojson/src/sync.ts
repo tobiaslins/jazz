@@ -37,6 +37,7 @@ export type LoadMessage = {
 export type KnownStateMessage = {
   action: "known";
   isCorrection?: boolean;
+  asDependencyOf?: RawCoID;
 } & CoValueKnownState;
 
 export type NewContentMessage = {
