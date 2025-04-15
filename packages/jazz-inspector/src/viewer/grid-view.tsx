@@ -73,7 +73,6 @@ export function GridView({
   onNavigate: (pages: PageInfo[]) => void;
   node: LocalNode;
 }) {
-  // console.log(data)
   const entries = Object.entries(data);
 
   return (
