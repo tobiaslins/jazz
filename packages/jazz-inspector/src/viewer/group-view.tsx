@@ -57,6 +57,12 @@ export function GroupView({
             <TableHeader>Permission</TableHeader>
           </TableRow>
         </TableHead>
+        {"everyone" in data && typeof data.everyone === "string" ? (
+          <TableRow>
+            <TableCell>everyone</TableCell>
+            <TableCell>{data.everyone}</TableCell>
+          </TableRow>
+        ) : null}
         {entries.map((entry, childIndex) => (
           <TeamMember entry={entry} onNavigate={onNavigate} key={childIndex} />
         ))}
