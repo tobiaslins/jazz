@@ -19,7 +19,7 @@ export function Orders() {
         </a>
 
         <div className="space-y-3">
-          <h1 className="text-lg pb-2 border-b mb-3">
+          <h1 className="text-lg pb-2 border-b mb-3 border-stone-300 dark:border-stone-700">
             <strong>Your orders 🧋</strong>
           </h1>
 
