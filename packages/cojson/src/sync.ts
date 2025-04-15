@@ -190,65 +190,6 @@ export class SyncManager {
     }
   }
 
-  async subscribeToIncludingDependencies(id: RawCoID, peer: PeerState) {
-    const entry = this.local.coValuesStore.get(id);
-
-    if (entry.state.type !== "available") {
-      entry.loadFromPeers([peer]).catch((e: unknown) => {
-        logger.error("Error sending load", { err: e });
-      });
-      return;
-    }
-
-    const coValue = entry.state.coValue;
-
-    for (const id of coValue.getDependedOnCoValues()) {
-      await this.subscribeToIncludingDependencies(id, peer);
-    }
-
-    if (!peer.toldKnownState.has(id)) {
-      peer.toldKnownState.add(id);
-      this.trySendToPeer(peer, {
-        action: "load",
-        ...coValue.knownState(),
-      }).catch((e: unknown) => {
-        logger.error("Error sending load", { err: e });
-      });
-    }
-  }
-
-  async tellUntoldKnownStateIncludingDependencies(
-    id: RawCoID,
-    peer: PeerState,
-    asDependencyOf?: RawCoID,
-  ) {
-    const coValue = this.local.expectCoValueLoaded(id);
-
-    await Promise.all(
-      coValue
-        .getDependedOnCoValues()
-        .map((dependentCoID) =>
-          this.tellUntoldKnownStateIncludingDependencies(
-            dependentCoID,
-            peer,
-            asDependencyOf || id,
-          ),
-        ),
-    );
-
-    if (!peer.toldKnownState.has(id)) {
-      this.trySendToPeer(peer, {
-        action: "known",
-        asDependencyOf,
-        ...coValue.knownState(),
-      }).catch((e: unknown) => {
-        logger.error("Error sending known state", { err: e });
-      });
-
-      peer.toldKnownState.add(id);
-    }
-  }
-
   async sendNewContentIncludingDependencies(id: RawCoID, peer: PeerState) {
     const coValue = this.local.expectCoValueLoaded(id);
 
@@ -297,11 +238,21 @@ export class SyncManager {
         return this.sendNewContent(coValue, peer);
       });
 
+      peer.toldKnownState.add(coValue.id);
       peer.optimisticKnownStates.dispatch({
         type: "COMBINE_WITH",
         id: coValue.id,
         value: coValue.knownState(),
       });
+    } else if (!peer.toldKnownState.has(coValue.id)) {
+      this.trySendToPeer(peer, {
+        action: "known",
+        ...coValue.knownState(),
+      }).catch((e: unknown) => {
+        logger.error("Error sending known state", { err: e });
+      });
+
+      peer.toldKnownState.add(coValue.id);
     }
   }
 
@@ -525,7 +476,6 @@ export class SyncManager {
             return;
           }
 
-          await this.tellUntoldKnownStateIncludingDependencies(msg.id, peer);
           await this.sendNewContentIncludingDependencies(msg.id, peer);
         })
         .catch((e) => {
@@ -534,7 +484,6 @@ export class SyncManager {
           });
         });
     } else if (entry.state.type === "available") {
-      await this.tellUntoldKnownStateIncludingDependencies(msg.id, peer);
       await this.sendNewContentIncludingDependencies(msg.id, peer);
     } else {
       this.trySendToPeer(peer, {
@@ -571,7 +520,6 @@ export class SyncManager {
     }
 
     if (entry.state.type === "available") {
-      await this.tellUntoldKnownStateIncludingDependencies(msg.id, peer);
       await this.sendNewContentIncludingDependencies(msg.id, peer);
     }
   }
@@ -766,10 +714,8 @@ export class SyncManager {
       if (peer.erroredCoValues.has(coValue.id)) continue;
 
       if (peer.optimisticKnownStates.has(coValue.id)) {
-        await this.tellUntoldKnownStateIncludingDependencies(coValue.id, peer);
         await this.sendNewContentIncludingDependencies(coValue.id, peer);
       } else if (peer.isServerOrStoragePeer()) {
-        await this.subscribeToIncludingDependencies(coValue.id, peer);
         await this.sendNewContentIncludingDependencies(coValue.id, peer);
       }
     }
