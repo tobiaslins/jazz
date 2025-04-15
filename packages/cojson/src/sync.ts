@@ -1,4 +1,4 @@
-import { ValueType, metrics } from "@opentelemetry/api";
+import { Histogram, ValueType, metrics } from "@opentelemetry/api";
 import { PeerState } from "./PeerState.js";
 import { SyncStateManager } from "./SyncStateManager.js";
 import { CoValueHeader, Transaction } from "./coValueCore.js";
@@ -123,10 +123,19 @@ export class SyncManager {
     valueType: ValueType.INT,
     unit: "peer",
   });
+  private transactionsSizeHistogram: Histogram;
 
   constructor(local: LocalNode) {
     this.local = local;
     this.syncState = new SyncStateManager(this);
+
+    this.transactionsSizeHistogram = metrics
+      .getMeter("cojson")
+      .createHistogram("jazz.transactions.size", {
+        description: "The size of transactions in a covalue",
+        unit: "bytes",
+        valueType: ValueType.INT,
+      });
   }
 
   syncState: SyncStateManager;
@@ -496,6 +505,19 @@ export class SyncManager {
     }
   }
 
+  recordTransactionsSize(newTransactions: Transaction[], source: string) {
+    for (const tx of newTransactions) {
+      const txLength =
+        tx.privacy === "private"
+          ? tx.encryptedChanges.length
+          : tx.changes.length;
+
+      this.transactionsSizeHistogram.record(txLength, {
+        source,
+      });
+    }
+  }
+
   async handleNewContent(msg: NewContentMessage, peer: PeerState) {
     const entry = this.local.coValuesStore.get(msg.id);
 
@@ -594,6 +616,8 @@ export class SyncManager {
         peer.erroredCoValues.set(msg.id, result.error);
         continue;
       }
+
+      this.recordTransactionsSize(newTransactions, peer.role);
 
       peer.dispatchToKnownStates({
         type: "UPDATE_SESSION_COUNTER",
