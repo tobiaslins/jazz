@@ -18,10 +18,7 @@ export class CoValuesStore {
 
   setAsAvailable(id: RawCoID, coValue: CoValueCore) {
     const entry = this.get(id);
-    entry.dispatch({
-      type: "available",
-      coValue,
-    });
+    entry.markAvailable(coValue);
   }
 
   getEntries() {

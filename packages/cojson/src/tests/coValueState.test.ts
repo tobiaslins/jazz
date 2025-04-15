@@ -53,10 +53,7 @@ describe("CoValueState", () => {
 
     const stateValuePromise = state.getCoValue();
 
-    state.dispatch({
-      type: "available",
-      coValue: mockCoValue,
-    });
+    state.markAvailable(mockCoValue);
 
     const result = await state.getCoValue();
     expect(result).toBe(mockCoValue);
@@ -66,10 +63,7 @@ describe("CoValueState", () => {
   test("should ignore actions when not in loading state", () => {
     const state = CoValueState.Unknown(mockCoValueId);
 
-    state.dispatch({
-      type: "not-found-in-peer",
-      peerId: "peer1",
-    });
+    state.markNotFoundInPeer("peer1");
 
     expect(state.state.type).toBe("unknown");
   });
@@ -83,10 +77,7 @@ describe("CoValueState", () => {
         role: "server",
       },
       async () => {
-        state.dispatch({
-          type: "not-found-in-peer",
-          peerId: "peer1",
-        });
+        state.markNotFoundInPeer("peer1");
       },
     );
     const peer2 = createMockPeerState(
@@ -95,10 +86,7 @@ describe("CoValueState", () => {
         role: "server",
       },
       async () => {
-        state.dispatch({
-          type: "not-found-in-peer",
-          peerId: "peer2",
-        });
+        state.markNotFoundInPeer("peer2");
       },
     );
     const mockPeers = [peer1, peer2] as unknown as PeerState[];
@@ -135,10 +123,7 @@ describe("CoValueState", () => {
       },
       async () => {
         peer1.erroredCoValues.set(mockCoValueId, new Error("test") as any);
-        state.dispatch({
-          type: "not-found-in-peer",
-          peerId: "peer1",
-        });
+        state.markNotFoundInPeer("peer1");
       },
     );
     const peer2 = createMockPeerState(
@@ -147,10 +132,7 @@ describe("CoValueState", () => {
         role: "server",
       },
       async () => {
-        state.dispatch({
-          type: "not-found-in-peer",
-          peerId: "peer2",
-        });
+        state.markNotFoundInPeer("peer2");
       },
     );
 
@@ -185,10 +167,7 @@ describe("CoValueState", () => {
         role: "storage",
       },
       async () => {
-        state.dispatch({
-          type: "not-found-in-peer",
-          peerId: "peer1",
-        });
+        state.markNotFoundInPeer("peer1");
       },
     );
     const peer2 = createMockPeerState(
@@ -197,10 +176,7 @@ describe("CoValueState", () => {
         role: "server",
       },
       async () => {
-        state.dispatch({
-          type: "not-found-in-peer",
-          peerId: "peer2",
-        });
+        state.markNotFoundInPeer("peer2");
       },
     );
     const mockPeers = [peer1, peer2] as unknown as PeerState[];
@@ -239,17 +215,11 @@ describe("CoValueState", () => {
       },
       async () => {
         retries++;
-        state.dispatch({
-          type: "not-found-in-peer",
-          peerId: "peer1",
-        });
+        state.markNotFoundInPeer("peer1");
 
         if (retries === 2) {
           setTimeout(() => {
-            state.dispatch({
-              type: "available",
-              coValue: createMockCoValueCore(mockCoValueId),
-            });
+            state.markAvailable(createMockCoValueCore(mockCoValueId));
           }, 100);
         }
       },
@@ -282,10 +252,7 @@ describe("CoValueState", () => {
         role: "server",
       },
       async () => {
-        state.dispatch({
-          type: "not-found-in-peer",
-          peerId: "peer1",
-        });
+        state.markNotFoundInPeer("peer1");
       },
     );
 
@@ -299,10 +266,7 @@ describe("CoValueState", () => {
       await vi.runAllTimersAsync();
     }
 
-    state.dispatch({
-      type: "available",
-      coValue: createMockCoValueCore(mockCoValueId),
-    });
+    state.markAvailable(createMockCoValueCore(mockCoValueId));
 
     await loadPromise;
 
@@ -329,15 +293,9 @@ describe("CoValueState", () => {
       },
       async () => {
         if (run > 2) {
-          state.dispatch({
-            type: "available",
-            coValue: createMockCoValueCore(mockCoValueId),
-          });
+          state.markAvailable(createMockCoValueCore(mockCoValueId));
         }
-        state.dispatch({
-          type: "not-found-in-peer",
-          peerId: "peer1",
-        });
+        state.markNotFoundInPeer("peer1");
         run++;
       },
     );
@@ -370,10 +328,7 @@ describe("CoValueState", () => {
         role: "storage",
       },
       async () => {
-        state.dispatch({
-          type: "available",
-          coValue: mockCoValue,
-        });
+        state.markAvailable(mockCoValue);
       },
     );
     const peer2 = createMockPeerState(
@@ -382,10 +337,7 @@ describe("CoValueState", () => {
         role: "server",
       },
       async () => {
-        state.dispatch({
-          type: "not-found-in-peer",
-          peerId: "peer2",
-        });
+        state.markNotFoundInPeer("peer2");
       },
     );
 
@@ -429,10 +381,7 @@ describe("CoValueState", () => {
         role: "server",
       },
       async () => {
-        state.dispatch({
-          type: "available",
-          coValue: mockCoValue,
-        });
+        state.markAvailable(mockCoValue);
       },
     );
 

@@ -83,20 +83,6 @@ export class CoValueUnavailableState {
   type = "unavailable" as const;
 }
 
-type CoValueStateAction =
-  | {
-      type: "load-requested";
-      peersIds: PeerID[];
-    }
-  | {
-      type: "not-found-in-peer";
-      peerId: PeerID;
-    }
-  | {
-      type: "available";
-      coValue: CoValueCore;
-    };
-
 type CoValueStateType =
   | CoValueUnknownState
   | CoValueLoadingState
@@ -245,25 +231,18 @@ export class CoValueState {
     }
   }
 
-  dispatch(action: CoValueStateAction) {
-    const currentState = this.state;
+  markAvailable(coValue: CoValueCore) {
+    if (this.state.type === "loading") {
+      this.state.resolve(coValue);
+    }
 
-    switch (action.type) {
-      case "available":
-        if (currentState.type === "loading") {
-          currentState.resolve(action.coValue);
-        }
+    // It should be always possible to move to the available state
+    this.moveToState(new CoValueAvailableState(coValue));
+  }
 
-        // It should be always possible to move to the available state
-        this.moveToState(new CoValueAvailableState(action.coValue));
-
-        break;
-      case "not-found-in-peer":
-        if (currentState.type === "loading") {
-          currentState.markAsUnavailable(action.peerId);
-        }
-
-        break;
+  markNotFoundInPeer(peerId: PeerID) {
+    if (this.state.type === "loading") {
+      this.state.markAsUnavailable(peerId);
     }
   }
 }
@@ -333,10 +312,7 @@ async function loadCoValueFromPeers(
             peerId: peer.id,
             peerRole: peer.role,
           });
-          coValueEntry.dispatch({
-            type: "not-found-in-peer",
-            peerId: peer.id,
-          });
+          coValueEntry.markNotFoundInPeer(peer.id);
           resolve();
         }
       }, timeoutDuration);

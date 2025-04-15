@@ -467,10 +467,7 @@ export class SyncManager {
       const availableOnPeer = peer.optimisticKnownStates.get(msg.id)?.header;
 
       if (!availableOnPeer) {
-        entry.dispatch({
-          type: "not-found-in-peer",
-          peerId: peer.id,
-        });
+        entry.markNotFoundInPeer(peer.id);
       }
 
       return;
@@ -524,10 +521,7 @@ export class SyncManager {
 
       coValue = new CoValueCore(msg.header, this.local);
 
-      entry.dispatch({
-        type: "available",
-        coValue,
-      });
+      entry.markAvailable(coValue);
     } else {
       coValue = entry.state.coValue;
     }
