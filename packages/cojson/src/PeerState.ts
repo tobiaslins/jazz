@@ -1,13 +1,13 @@
-import { PeerKnownStateActions, PeerKnownStates } from "./PeerKnownStates.js";
+import { PeerKnownStates } from "./PeerKnownStates.js";
 import {
   PriorityBasedMessageQueue,
   QueueEntry,
 } from "./PriorityBasedMessageQueue.js";
 import { TryAddTransactionsError } from "./coValueCore.js";
-import { RawCoID } from "./ids.js";
+import { RawCoID, SessionID } from "./ids.js";
 import { logger } from "./logger.js";
 import { CO_VALUE_PRIORITY } from "./priority.js";
-import { Peer, SyncMessage } from "./sync.js";
+import { CoValueKnownState, Peer, SyncMessage } from "./sync.js";
 
 export class PeerState {
   private queue: PriorityBasedMessageQueue;
@@ -53,11 +53,43 @@ export class PeerState {
   readonly optimisticKnownStates: PeerKnownStates;
   readonly toldKnownState: Set<RawCoID> = new Set();
 
-  dispatchToKnownStates(action: PeerKnownStateActions) {
-    this.knownStates.dispatch(action);
+  updateHeader(id: RawCoID, header: boolean) {
+    this.knownStates.updateHeader(id, header);
 
     if (this.role !== "storage") {
-      this.optimisticKnownStates.dispatch(action);
+      this.optimisticKnownStates.updateHeader(id, header);
+    }
+  }
+
+  combineWith(id: RawCoID, value: CoValueKnownState) {
+    this.knownStates.combineWith(id, value);
+
+    if (this.role !== "storage") {
+      this.optimisticKnownStates.combineWith(id, value);
+    }
+  }
+
+  updateSessionCounter(id: RawCoID, sessionId: SessionID, value: number) {
+    this.knownStates.updateSessionCounter(id, sessionId, value);
+
+    if (this.role !== "storage") {
+      this.optimisticKnownStates.updateSessionCounter(id, sessionId, value);
+    }
+  }
+
+  setKnownStateAsEmpty(id: RawCoID) {
+    this.knownStates.setAsEmpty(id);
+
+    if (this.role !== "storage") {
+      this.optimisticKnownStates.setAsEmpty(id);
+    }
+  }
+
+  setKnownState(id: RawCoID, knownState: CoValueKnownState) {
+    this.knownStates.set(id, knownState);
+
+    if (this.role !== "storage") {
+      this.optimisticKnownStates.set(id, knownState);
     }
   }
 
