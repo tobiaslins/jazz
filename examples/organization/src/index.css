@@ -1,5 +1,3 @@
-@import "gcmp-design-system/src/app/globals.css";
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -14,6 +12,6 @@
 
   [type="text"],
   select {
-    border-color: var(--color-border-default);
+    border-color: theme("colors.stone.200");
   }
 }

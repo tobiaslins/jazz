@@ -34,6 +34,9 @@ const config: Config = {
       colors: {
         stone: stonePaletteWithAlpha,
       },
+      borderColor: {
+        default: "var(--border-default)",
+      },
       container: {
         center: true,
         padding: {
