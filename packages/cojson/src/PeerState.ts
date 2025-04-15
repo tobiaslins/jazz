@@ -156,7 +156,7 @@ export class PeerState {
 
   async processIncomingMessages(callback: (msg: SyncMessage) => Promise<void>) {
     if (this.closed) {
-      return;
+      throw new Error("Peer is closed");
     }
 
     if (this.incomingMessagesProcessingPromise) {

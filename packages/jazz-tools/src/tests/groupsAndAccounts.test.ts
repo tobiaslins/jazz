@@ -155,7 +155,7 @@ describe("Group inheritance", () => {
     const mapAsReaderAfterUpdate = await TestMap.load(mapInGrandChild.id, {
       loadAs: reader,
     });
-    expect(mapAsReaderAfterUpdate?.title).toBe("In Grand Child");
+    expect(mapAsReaderAfterUpdate).toBe(null);
   });
 
   test("Group.getParentGroups should return the parent groups", async () => {

@@ -199,52 +199,24 @@ export class SyncManager {
         .map((id) => this.sendNewContentIncludingDependencies(id, peer)),
     );
 
-    await this.sendNewContent(coValue, peer);
-  }
-
-  async sendNewContent(coValue: CoValueCore, peer: PeerState) {
     const newContentPieces = coValue.newContentSince(
-      peer.optimisticKnownStates.get(coValue.id),
+      peer.optimisticKnownStates.get(id),
     );
 
     if (newContentPieces) {
-      const optimisticKnownStateBefore =
-        peer.optimisticKnownStates.get(coValue.id) ||
-        emptyKnownState(coValue.id);
-
-      const sendPieces = async () => {
-        let lastYield = performance.now();
-        for (const [_i, piece] of newContentPieces.entries()) {
-          this.trySendToPeer(peer, piece).catch((e: unknown) => {
-            logger.error("Error sending content piece", { err: e });
-          });
-
-          if (performance.now() - lastYield > 10) {
-            await new Promise<void>((resolve) => {
-              setTimeout(resolve, 0);
-            });
-            lastYield = performance.now();
-          }
-        }
-      };
-
-      sendPieces().catch((e) => {
-        logger.error("Error sending new content piece, retrying", { err: e });
-        peer.optimisticKnownStates.dispatch({
-          type: "SET",
-          id: coValue.id,
-          value: optimisticKnownStateBefore ?? emptyKnownState(coValue.id),
+      for (const piece of newContentPieces) {
+        this.trySendToPeer(peer, piece).catch((e: unknown) => {
+          logger.error("Error sending content piece", { err: e });
         });
-        return this.sendNewContent(coValue, peer);
-      });
+      }
 
-      peer.toldKnownState.add(coValue.id);
+      peer.toldKnownState.add(id);
       peer.optimisticKnownStates.dispatch({
         type: "COMBINE_WITH",
-        id: coValue.id,
+        id: id,
         value: coValue.knownState(),
       });
-    } else if (!peer.toldKnownState.has(coValue.id)) {
+    } else if (!peer.toldKnownState.has(id)) {
       this.trySendToPeer(peer, {
         action: "known",
         ...coValue.knownState(),
@@ -252,7 +224,7 @@ export class SyncManager {
         logger.error("Error sending known state", { err: e });
       });
 
-      peer.toldKnownState.add(coValue.id);
+      peer.toldKnownState.add(id);
     }
   }
 
