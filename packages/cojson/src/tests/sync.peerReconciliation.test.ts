@@ -46,13 +46,11 @@ describe("peer reconciliation", () => {
       [
         "client -> LOAD Group sessions: header/3",
         "server -> KNOWN Group sessions: empty",
-        "client -> KNOWN Group sessions: header/3",
         "client -> LOAD Map sessions: header/1",
         "server -> KNOWN Map sessions: empty",
         "client -> CONTENT Group header: true new: After: 0 New: 3",
-        "server -> KNOWN Group sessions: header/3",
-        "client -> KNOWN Map sessions: header/1",
         "client -> CONTENT Map header: true new: After: 0 New: 1",
+        "server -> KNOWN Group sessions: header/3",
         "server -> KNOWN Map sessions: header/1",
       ]
     `);
@@ -100,9 +98,7 @@ describe("peer reconciliation", () => {
         "client -> LOAD Group sessions: header/3",
         "server -> KNOWN Group sessions: header/3",
         "client -> LOAD Map sessions: header/2",
-        "client -> KNOWN Group sessions: header/3",
         "server -> KNOWN Map sessions: header/1",
-        "client -> KNOWN Map sessions: header/2",
         "client -> CONTENT Map header: false new: After: 1 New: 1",
         "server -> KNOWN Map sessions: header/2",
       ]
@@ -164,9 +160,7 @@ describe("peer reconciliation", () => {
         "client -> LOAD Group sessions: header/3",
         "server -> KNOWN Group sessions: header/3",
         "client -> LOAD Map sessions: header/2",
-        "client -> KNOWN Group sessions: header/3",
         "server -> KNOWN Map sessions: header/1",
-        "client -> KNOWN Map sessions: header/2",
         "client -> CONTENT Map header: false new: After: 1 New: 1",
         "server -> KNOWN Map sessions: header/2",
       ]

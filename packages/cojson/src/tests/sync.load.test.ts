@@ -1,19 +1,12 @@
-import { assert, beforeEach, describe, expect, test } from "vitest";
-import { expectMap } from "../coValue";
-import { WasmCrypto } from "../crypto/WasmCrypto";
-import { LocalNode } from "../localNode";
+import { beforeEach, describe, expect, test } from "vitest";
+
 import { toSimplifiedMessages } from "./messagesTestUtils";
 import {
   connectNodeToSyncServer,
   createConnectedTestAgentNode,
-  createTestNode,
   loadCoValueOrFail,
-  randomAnonymousAccountAndSessionID,
   setupSyncServer,
-  waitFor,
 } from "./testUtils";
-
-const Crypto = await WasmCrypto.create();
 
 let jazzCloud = setupSyncServer();
 
@@ -130,10 +123,8 @@ describe("sync protocol", () => {
         "client -> LOAD Group sessions: header/3",
         "server -> KNOWN Group sessions: header/3",
         "client -> LOAD Map sessions: header/1",
-        "client -> KNOWN Group sessions: header/3",
         "server -> KNOWN Map sessions: header/2",
         "server -> CONTENT Map header: false new: After: 1 New: 1",
-        "client -> KNOWN Map sessions: header/1",
         "client -> KNOWN Map sessions: header/2",
       ]
     `);
@@ -177,12 +168,10 @@ describe("sync protocol", () => {
         "client -> LOAD Group sessions: header/5",
         "server -> KNOWN Group sessions: header/5",
         "client -> LOAD Map sessions: header/2",
-        "client -> KNOWN Group sessions: header/5",
         "server -> KNOWN Map sessions: header/2",
         "server -> CONTENT Map header: false new: After: 1 New: 1",
-        "client -> KNOWN Map sessions: header/2",
-        "client -> KNOWN Map sessions: header/3",
         "client -> CONTENT Map header: false new: After: 0 New: 1",
+        "client -> KNOWN Map sessions: header/3",
         "server -> KNOWN Map sessions: header/3",
       ]
     `);

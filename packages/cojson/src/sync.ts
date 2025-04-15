@@ -353,6 +353,7 @@ export class SyncManager {
     }
 
     for (const coValue of coValuesOrderedByDependency) {
+      peer.toldKnownState.add(coValue.id);
       await this.trySendToPeer(peer, {
         action: "load",
         ...coValue.knownState(),
