@@ -12,7 +12,7 @@ export function Orders() {
       <section className="space-y-5">
         <a
           href={`/#/order`}
-          className="block relative p-3 bg-white border text-center rounded-md dark:bg-stone-900"
+          className="block relative p-3 bg-white border-stone-200 text-center rounded-md dark:bg-stone-900 dark:border-stone-900"
         >
           <strong>Add new order</strong>
           <DraftIndicator />
