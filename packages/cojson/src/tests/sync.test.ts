@@ -934,7 +934,7 @@ test("should keep the peer state when the peer closes", async () => {
   const { nodeToServerPeer, serverToNodePeer } =
     connectNodeToSyncServer(client);
 
-  const group = jazzCloud.createGroup();
+  const group = jazzCloud.node.createGroup();
   const map = group.createMap();
   map.set("hello", "world", "trusting");
 
@@ -959,7 +959,7 @@ test("should delete the peer state when the peer closes if deletePeerStateOnClos
 
   nodeToServerPeer.deletePeerStateOnClose = true;
 
-  const group = jazzCloud.createGroup();
+  const group = jazzCloud.node.createGroup();
   const map = group.createMap();
   map.set("hello", "world", "trusting");
 
@@ -1464,7 +1464,7 @@ describe("SyncManager - knownStates vs optimisticKnownStates", () => {
     await mapOnClient.core.waitForSync();
 
     const peerStateClient = client.syncManager.getPeers()[0]!;
-    const peerStateJazzCloud = jazzCloud.syncManager.getPeers()[0]!;
+    const peerStateJazzCloud = jazzCloud.node.syncManager.getPeers()[0]!;
 
     // The optimisticKnownStates should be the same as the knownStates after the full sync is complete
     expect(
@@ -1645,7 +1645,9 @@ describe("SyncManager.addPeer", () => {
 
     await map.core.waitForSync();
 
-    expect(jazzCloud.coValuesStore.get(map.id).state.type).toBe("available");
+    expect(jazzCloud.node.coValuesStore.get(map.id).state.type).toBe(
+      "available",
+    );
   });
 });
 
