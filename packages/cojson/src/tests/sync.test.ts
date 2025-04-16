@@ -752,9 +752,7 @@ describe("SyncManager.addPeer", () => {
 
     await map.core.waitForSync();
 
-    expect(jazzCloud.node.coValuesStore.get(map.id).state.type).toBe(
-      "available",
-    );
+    expect(jazzCloud.node.coValuesStore.get(map.id).isAvailable()).toBe(true);
   });
 });
 
@@ -1063,10 +1061,9 @@ describe("SyncManager.handleSyncMessage", () => {
 
     // Add a coValue to the errored set
     const erroredId = "co_z123" as const;
-    peer.erroredCoValues.set(
-      erroredId,
-      new Error("Test error") as unknown as TryAddTransactionsError,
-    );
+    client.coValuesStore.get(erroredId).markErrored(peer.id, {
+      message: "Test error",
+    } as any);
 
     const message = {
       action: "load" as const,

@@ -16,6 +16,11 @@ export class CoValuesStore {
     return entry;
   }
 
+  setAsAvailable(id: RawCoID, coValue: CoValueCore) {
+    const entry = this.get(id);
+    entry.markAvailable(coValue);
+  }
+
   getEntries() {
     return this.coValues.entries();
   }

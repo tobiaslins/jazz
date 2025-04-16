@@ -469,17 +469,13 @@ export class SyncManager {
 
     // The header is a boolean value that tells us if the other peer do have information about the header.
     // If it's false in this point it means that the coValue is unavailable on the other peer.
-    if (entry.state.type !== "available") {
-      const availableOnPeer = peer.optimisticKnownStates.get(msg.id)?.header;
+    const availableOnPeer = peer.optimisticKnownStates.get(msg.id)?.header;
 
-      if (!availableOnPeer) {
-        entry.markNotFoundInPeer(peer.id);
-      }
-
-      return;
+    if (!availableOnPeer) {
+      entry.markNotFoundInPeer(peer.id);
     }
 
-    if (entry.state.type === "available") {
+    if (entry.isAvailable()) {
       await this.sendNewContentIncludingDependencies(msg.id, peer);
     }
   }
@@ -514,11 +510,11 @@ export class SyncManager {
      * If this load fails we send a correction request, because the client has the wrong assumption that
      * we have the coValue while we don't.
      */
-    if (entry.state.type !== "available" && !msg.header) {
+    if (!entry.isAvailable() && !msg.header) {
       await this.local.loadCoValueCore(msg.id, peer.id);
     }
 
-    if (entry.state.type !== "available") {
+    if (!entry.isAvailable()) {
       if (!msg.header) {
         this.trySendToPeer(peer, {
           action: "known",
@@ -542,7 +538,7 @@ export class SyncManager {
 
       entry.markAvailable(coValue);
     } else {
-      coValue = entry.state.coValue;
+      coValue = entry.core;
     }
 
     let invalidStateAssumed = false;
@@ -585,7 +581,7 @@ export class SyncManager {
           id: msg.id,
           err: result.error,
         });
-        peer.erroredCoValues.set(msg.id, result.error);
+        entry.markErrored(peer.id, result.error);
         continue;
       }
 
@@ -675,7 +671,8 @@ export class SyncManager {
   async actuallySyncCoValue(coValue: CoValueCore) {
     for (const peer of this.peersInPriorityOrder()) {
       if (peer.closed) continue;
-      if (peer.erroredCoValues.has(coValue.id)) continue;
+      if (this.local.coValuesStore.get(coValue.id).isErroredInPeer(peer.id))
+        continue;
 
       if (peer.optimisticKnownStates.has(coValue.id)) {
         await this.sendNewContentIncludingDependencies(coValue.id, peer);
@@ -729,8 +726,7 @@ export class SyncManager {
   async waitForAllCoValuesSync(timeout = 60_000) {
     const coValues = this.local.coValuesStore.getValues();
     const validCoValues = Array.from(coValues).filter(
-      (coValue) =>
-        coValue.state.type === "available" || coValue.state.type === "loading",
+      (coValue) => coValue.isAvailable() || coValue.isLoading(),
     );
 
     return Promise.all(

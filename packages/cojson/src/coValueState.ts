@@ -1,7 +1,7 @@
 import { ValueType } from "@opentelemetry/api";
 import { UpDownCounter, metrics } from "@opentelemetry/api";
 import { PeerState } from "./PeerState.js";
-import { CoValueCore } from "./coValueCore.js";
+import { CoValueCore, TryAddTransactionsError } from "./coValueCore.js";
 import { RawCoID } from "./ids.js";
 import { logger } from "./logger.js";
 import { PeerID, emptyKnownState } from "./sync.js";
@@ -15,7 +15,7 @@ export class CoValueState {
   private peers = new Map<
     PeerID,
     | { type: "unknown" | "pending" | "available" | "unavailable" }
-    | { type: "errored"; error: Error }
+    | { type: "errored"; error: TryAddTransactionsError }
   >();
 
   core: CoValueCore | null = null;
@@ -43,6 +43,10 @@ export class CoValueState {
   }
 
   async getCoValue() {
+    if (this.isDefinitelyUnavailable()) {
+      return "unavailable";
+    }
+
     return new Promise<CoValueCore>((resolve) => {
       const listener = (state: CoValueState) => {
         if (state.core) {
@@ -123,6 +127,17 @@ export class CoValueState {
 
   markNotFoundInPeer(peerId: PeerID) {
     this.peers.set(peerId, { type: "unavailable" });
+    this.notifyListeners();
+  }
+
+  markAvailable(coValue: CoValueCore) {
+    this.core = coValue;
+    this.notifyListeners();
+  }
+
+  markErrored(peerId: PeerID, error: TryAddTransactionsError) {
+    this.peers.set(peerId, { type: "errored", error });
+    this.notifyListeners();
   }
 
   isErroredInPeer(peerId: PeerID) {
