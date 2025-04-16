@@ -240,14 +240,14 @@ export class SyncManager {
   async startPeerReconciliation(peer: PeerState) {
     const coValuesOrderedByDependency: CoValueCore[] = [];
 
-    const requested = new Set<string>();
+    const gathered = new Set<string>();
 
     const buildOrderedCoValueList = (coValue: CoValueCore) => {
-      if (requested.has(coValue.id)) {
+      if (gathered.has(coValue.id)) {
         return;
       }
 
-      requested.add(coValue.id);
+      gathered.add(coValue.id);
 
       for (const id of coValue.getDependedOnCoValues()) {
         const entry = this.local.coValuesStore.get(id);
