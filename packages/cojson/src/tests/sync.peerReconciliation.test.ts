@@ -44,14 +44,14 @@ describe("peer reconciliation", () => {
       ),
     ).toMatchInlineSnapshot(`
       [
-        "client -> LOAD Group sessions: header/3",
-        "server -> KNOWN Group sessions: empty",
-        "client -> CONTENT Group header: true new: After: 0 New: 3",
-        "server -> KNOWN Group sessions: header/3",
-        "client -> LOAD Map sessions: header/1",
-        "server -> KNOWN Map sessions: empty",
-        "client -> CONTENT Map header: true new: After: 0 New: 1",
-        "server -> KNOWN Map sessions: header/1",
+        "client -> server | LOAD Group sessions: header/3",
+        "server -> client | KNOWN Group sessions: empty",
+        "client -> server | CONTENT Group header: true new: After: 0 New: 3",
+        "server -> client | KNOWN Group sessions: header/3",
+        "client -> server | LOAD Map sessions: header/1",
+        "server -> client | KNOWN Map sessions: empty",
+        "client -> server | CONTENT Map header: true new: After: 0 New: 1",
+        "server -> client | KNOWN Map sessions: header/1",
       ]
     `);
   });
@@ -95,12 +95,12 @@ describe("peer reconciliation", () => {
       ),
     ).toMatchInlineSnapshot(`
       [
-        "client -> LOAD Group sessions: header/3",
-        "server -> KNOWN Group sessions: header/3",
-        "client -> LOAD Map sessions: header/2",
-        "server -> KNOWN Map sessions: header/1",
-        "client -> CONTENT Map header: false new: After: 1 New: 1",
-        "server -> KNOWN Map sessions: header/2",
+        "client -> server | LOAD Group sessions: header/3",
+        "server -> client | KNOWN Group sessions: header/3",
+        "client -> server | LOAD Map sessions: header/2",
+        "server -> client | KNOWN Map sessions: header/1",
+        "client -> server | CONTENT Map header: false new: After: 1 New: 1",
+        "server -> client | KNOWN Map sessions: header/2",
       ]
     `);
   });
@@ -157,12 +157,12 @@ describe("peer reconciliation", () => {
       ),
     ).toMatchInlineSnapshot(`
       [
-        "client -> LOAD Group sessions: header/3",
-        "server -> KNOWN Group sessions: header/3",
-        "client -> LOAD Map sessions: header/2",
-        "server -> KNOWN Map sessions: header/1",
-        "client -> CONTENT Map header: false new: After: 1 New: 1",
-        "server -> KNOWN Map sessions: header/2",
+        "client -> server | LOAD Group sessions: header/3",
+        "server -> client | KNOWN Group sessions: header/3",
+        "client -> server | LOAD Map sessions: header/2",
+        "server -> client | KNOWN Map sessions: header/1",
+        "client -> server | CONTENT Map header: false new: After: 1 New: 1",
+        "server -> client | KNOWN Map sessions: header/2",
       ]
     `);
   });

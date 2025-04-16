@@ -402,7 +402,18 @@ export async function createConnectedTestAgentNode(opts = { connected: true }) {
   const { nodeToServerPeer, serverToNodePeer, messages, addServerPeer } =
     connectNodeToSyncServer(node, opts.connected);
 
-  return { node, nodeToServerPeer, serverToNodePeer, messages, addServerPeer };
+  const createNewNode = () => {
+    return new LocalNode(admin, session, Crypto);
+  };
+
+  return {
+    node,
+    nodeToServerPeer,
+    serverToNodePeer,
+    messages,
+    addServerPeer,
+    createNewNode,
+  };
 }
 
 export async function createConnectedTestNode(opts = { connected: true }) {
@@ -429,46 +440,101 @@ export async function createConnectedTestNode(opts = { connected: true }) {
   };
 }
 
-export function connectNodeToSyncServer(node: LocalNode, connected = true) {
+export function connectedPeersWithMessagesTracking(opts: {
+  initialMessages?: {
+    from: Peer["role"];
+    to: Peer["role"];
+    msg: SyncMessage;
+  }[];
+  peer1: { id: string; role: Peer["role"] };
+  peer2: { id: string; role: Peer["role"] };
+}) {
+  const [peer1, peer2] = connectedPeers(opts.peer1.id, opts.peer2.id, {
+    peer1role: opts.peer1.role,
+    peer2role: opts.peer2.role,
+  });
+
+  const messages = opts.initialMessages ?? [];
+
+  const peer1Push = peer1.outgoing.push;
+  peer1.outgoing.push = (msg) => {
+    messages.push({ from: opts.peer2.role, to: opts.peer1.role, msg });
+    return peer1Push.call(peer1.outgoing, msg);
+  };
+
+  const peer2Push = peer2.outgoing.push;
+  peer2.outgoing.push = (msg) => {
+    messages.push({ from: opts.peer1.role, to: opts.peer2.role, msg });
+    return peer2Push.call(peer2.outgoing, msg);
+  };
+
+  return {
+    peer1,
+    peer2,
+    messages,
+  };
+}
+
+export function connectNodeToSyncServer(
+  node: LocalNode,
+  connected = true,
+  initialMessages?: {
+    from: Peer["role"];
+    to: Peer["role"];
+    msg: SyncMessage;
+  }[],
+) {
   if (!syncServer.current) {
     throw new Error("Sync server not initialized");
   }
 
-  const [nodeToServerPeer, serverToNodePeer] = connectedPeers(
-    syncServer.current.account.id,
-    node.account.id,
-    {
-      peer1role: "server",
-      peer2role: "client",
-    },
-  );
+  const { peer1, peer2, messages } = connectedPeersWithMessagesTracking({
+    peer1: { id: syncServer.current.account.id, role: "server" },
+    peer2: { id: node.account.id, role: "client" },
+    initialMessages,
+  });
 
-  const messages: {
-    from: "client" | "server";
-    msg: SyncMessage;
-  }[] = [];
-
-  const serverPush = serverToNodePeer.outgoing.push;
-  serverToNodePeer.outgoing.push = (msg) => {
-    messages.push({ from: "server", msg });
-    return serverPush.call(serverToNodePeer.outgoing, msg);
-  };
-
-  const clientPush = nodeToServerPeer.outgoing.push;
-  nodeToServerPeer.outgoing.push = (msg) => {
-    messages.push({ from: "client", msg });
-    return clientPush.call(nodeToServerPeer.outgoing, msg);
-  };
-
-  syncServer.current.syncManager.addPeer(serverToNodePeer);
+  syncServer.current.syncManager.addPeer(peer2);
   if (connected) {
-    node.syncManager.addPeer(nodeToServerPeer);
+    node.syncManager.addPeer(peer1);
   }
 
   return {
-    nodeToServerPeer,
-    serverToNodePeer,
+    nodeToServerPeer: peer1,
+    serverToNodePeer: peer2,
+    closeConnection: () => {
+      node.syncManager.peers[peer1.id]?.gracefulShutdown();
+    },
     messages,
-    addServerPeer: () => node.syncManager.addPeer(nodeToServerPeer),
+    addServerPeer: () => node.syncManager.addPeer(peer1),
+  };
+}
+
+export function connectToStoragePeer(
+  node: LocalNode,
+  initialMessages?: {
+    from: Peer["role"];
+    to: Peer["role"];
+    msg: SyncMessage;
+  }[],
+) {
+  const storage = createTestNode();
+
+  const { peer1, peer2, messages } = connectedPeersWithMessagesTracking({
+    peer1: { id: storage.account.id, role: "storage" },
+    peer2: { id: node.account.id, role: "client" },
+    initialMessages,
+  });
+
+  peer1.priority = 100;
+
+  node.syncManager.addPeer(peer1);
+  storage.syncManager.addPeer(peer2);
+
+  return {
+    storage,
+    nodeToStoragePeer: peer1,
+    storageToNodePeer: peer2,
+    messages,
   };
 }
