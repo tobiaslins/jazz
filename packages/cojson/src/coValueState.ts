@@ -1,3 +1,5 @@
+import { ValueType } from "@opentelemetry/api";
+import { UpDownCounter, metrics } from "@opentelemetry/api";
 import { PeerState } from "./PeerState.js";
 import { CoValueCore } from "./coValueCore.js";
 import { RawCoID } from "./ids.js";

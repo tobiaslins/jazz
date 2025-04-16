@@ -1,4 +1,4 @@
-import { ValueType, metrics } from "@opentelemetry/api";
+import { Histogram, ValueType, metrics } from "@opentelemetry/api";
 import { PeerState } from "./PeerState.js";
 import { SyncStateManager } from "./SyncStateManager.js";
 import { CoValueHeader, Transaction } from "./coValueCore.js";
@@ -36,8 +36,8 @@ export type LoadMessage = {
 
 export type KnownStateMessage = {
   action: "known";
-  asDependencyOf?: RawCoID;
   isCorrection?: boolean;
+  asDependencyOf?: RawCoID;
 } & CoValueKnownState;
 
 export type NewContentMessage = {
@@ -123,10 +123,19 @@ export class SyncManager {
     valueType: ValueType.INT,
     unit: "peer",
   });
+  private transactionsSizeHistogram: Histogram;
 
   constructor(local: LocalNode) {
     this.local = local;
     this.syncState = new SyncStateManager(this);
+
+    this.transactionsSizeHistogram = metrics
+      .getMeter("cojson")
+      .createHistogram("jazz.transactions.size", {
+        description: "The size of transactions in a covalue",
+        unit: "bytes",
+        valueType: ValueType.INT,
+      });
   }
 
   syncState: SyncStateManager;
@@ -227,14 +236,14 @@ export class SyncManager {
   async startPeerReconciliation(peer: PeerState) {
     const coValuesOrderedByDependency: CoValueCore[] = [];
 
-    const requested = new Set<string>();
+    const gathered = new Set<string>();
 
     const buildOrderedCoValueList = (coValue: CoValueCore) => {
-      if (requested.has(coValue.id)) {
+      if (gathered.has(coValue.id)) {
         return;
       }
 
-      requested.add(coValue.id);
+      gathered.add(coValue.id);
 
       for (const id of coValue.getDependedOnCoValues()) {
         const entry = this.local.coValuesStore.get(id);
@@ -475,6 +484,19 @@ export class SyncManager {
     }
   }
 
+  recordTransactionsSize(newTransactions: Transaction[], source: string) {
+    for (const tx of newTransactions) {
+      const txLength =
+        tx.privacy === "private"
+          ? tx.encryptedChanges.length
+          : tx.changes.length;
+
+      this.transactionsSizeHistogram.record(txLength, {
+        source,
+      });
+    }
+  }
+
   async handleNewContent(msg: NewContentMessage, peer: PeerState) {
     const entry = this.local.coValuesStore.get(msg.id);
 
@@ -567,6 +589,8 @@ export class SyncManager {
         continue;
       }
 
+      this.recordTransactionsSize(newTransactions, peer.role);
+
       peer.updateSessionCounter(
         msg.id,
         sessionID,
@@ -587,6 +611,7 @@ export class SyncManager {
           err: e,
         });
       });
+      peer.toldKnownState.add(msg.id);
     } else {
       /**
        * We are sending a known state message to the peer to acknowledge the
@@ -605,6 +630,7 @@ export class SyncManager {
           err: e,
         });
       });
+      peer.toldKnownState.add(msg.id);
     }
 
     /**
