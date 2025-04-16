@@ -21,11 +21,11 @@ use these to create a `.env` file based on the `.env.example` file and fill in t
 We can then start the dealer worker:
 
 ```bash
-pnpm start:worker
+pnpm dev:worker
 ```
 
 and the client:
 
 ```bash
-pnpm start
+pnpm dev
 ```
