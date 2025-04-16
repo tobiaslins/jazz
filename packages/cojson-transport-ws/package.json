@@ -17,7 +17,7 @@
     "build": "rm -rf ./dist && tsc --sourceMap --outDir dist"
   },
   "devDependencies": {
-    "typescript": "catalog:*",
+    "typescript": "catalog:",
     "@types/ws": "8.5.10",
     "ws": "^8.14.2"
   }
