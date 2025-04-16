@@ -37,11 +37,11 @@ describe("sync protocol", () => {
       ),
     ).toMatchInlineSnapshot(`
       [
-        "client -> LOAD Map sessions: empty",
-        "server -> CONTENT Group header: true new: After: 0 New: 3",
-        "client -> KNOWN Group sessions: header/3",
-        "server -> CONTENT Map header: true new: After: 0 New: 1",
-        "client -> KNOWN Map sessions: header/1",
+        "client -> server | LOAD Map sessions: empty",
+        "server -> client | CONTENT Group header: true new: After: 0 New: 3",
+        "client -> server | KNOWN Group sessions: header/3",
+        "server -> client | CONTENT Map header: true new: After: 0 New: 1",
+        "client -> server | KNOWN Map sessions: header/1",
       ]
     `);
   });
@@ -72,13 +72,13 @@ describe("sync protocol", () => {
       ),
     ).toMatchInlineSnapshot(`
       [
-        "client -> LOAD Map sessions: empty",
-        "server -> CONTENT ParentGroup header: true new: After: 0 New: 6",
-        "client -> KNOWN ParentGroup sessions: header/6",
-        "server -> CONTENT Group header: true new: After: 0 New: 5",
-        "client -> KNOWN Group sessions: header/5",
-        "server -> CONTENT Map header: true new: After: 0 New: 1",
-        "client -> KNOWN Map sessions: header/1",
+        "client -> server | LOAD Map sessions: empty",
+        "server -> client | CONTENT ParentGroup header: true new: After: 0 New: 6",
+        "client -> server | KNOWN ParentGroup sessions: header/6",
+        "server -> client | CONTENT Group header: true new: After: 0 New: 5",
+        "client -> server | KNOWN Group sessions: header/5",
+        "server -> client | CONTENT Map header: true new: After: 0 New: 1",
+        "client -> server | KNOWN Map sessions: header/1",
       ]
     `);
   });
@@ -113,11 +113,11 @@ describe("sync protocol", () => {
       ),
     ).toMatchInlineSnapshot(`
       [
-        "client -> LOAD Group sessions: header/3",
-        "server -> KNOWN Group sessions: header/3",
-        "client -> LOAD Map sessions: header/1",
-        "server -> CONTENT Map header: false new: After: 1 New: 1",
-        "client -> KNOWN Map sessions: header/2",
+        "client -> server | LOAD Group sessions: header/3",
+        "server -> client | KNOWN Group sessions: header/3",
+        "client -> server | LOAD Map sessions: header/1",
+        "server -> client | CONTENT Map header: false new: After: 1 New: 1",
+        "client -> server | KNOWN Map sessions: header/2",
       ]
     `);
   });
@@ -157,13 +157,13 @@ describe("sync protocol", () => {
       ),
     ).toMatchInlineSnapshot(`
       [
-        "client -> LOAD Group sessions: header/5",
-        "server -> KNOWN Group sessions: header/5",
-        "client -> LOAD Map sessions: header/2",
-        "server -> CONTENT Map header: false new: After: 1 New: 1",
-        "client -> KNOWN Map sessions: header/3",
-        "client -> CONTENT Map header: false new: After: 0 New: 1",
-        "server -> KNOWN Map sessions: header/3",
+        "client -> server | LOAD Group sessions: header/5",
+        "server -> client | KNOWN Group sessions: header/5",
+        "client -> server | LOAD Map sessions: header/2",
+        "server -> client | CONTENT Map header: false new: After: 1 New: 1",
+        "client -> server | KNOWN Map sessions: header/3",
+        "client -> server | CONTENT Map header: false new: After: 0 New: 1",
+        "server -> client | KNOWN Map sessions: header/3",
       ]
     `);
   });
@@ -204,15 +204,15 @@ describe("sync protocol", () => {
       ),
     ).toMatchInlineSnapshot(`
       [
-        "client -> LOAD Map sessions: empty",
-        "server -> CONTENT Group header: true new: After: 0 New: 5",
-        "client -> KNOWN Group sessions: header/5",
-        "server -> CONTENT Map header: true new: After: 0 New: 1",
-        "client -> KNOWN Map sessions: header/1",
-        "server -> CONTENT Map header: false new: After: 1 New: 1",
-        "client -> KNOWN CORRECTION Map sessions: empty",
-        "server -> CONTENT Map header: true new: After: 0 New: 2",
-        "client -> KNOWN Map sessions: header/2",
+        "client -> server | LOAD Map sessions: empty",
+        "server -> client | CONTENT Group header: true new: After: 0 New: 5",
+        "client -> server | KNOWN Group sessions: header/5",
+        "server -> client | CONTENT Map header: true new: After: 0 New: 1",
+        "client -> server | KNOWN Map sessions: header/1",
+        "server -> client | CONTENT Map header: false new: After: 1 New: 1",
+        "client -> server | KNOWN CORRECTION Map sessions: empty",
+        "server -> client | CONTENT Map header: true new: After: 0 New: 2",
+        "client -> server | KNOWN Map sessions: header/2",
       ]
     `);
   });
@@ -245,10 +245,10 @@ describe("sync protocol", () => {
       ),
     ).toMatchInlineSnapshot(`
       [
-        "client -> LOAD Map sessions: empty",
-        "server -> KNOWN Map sessions: empty",
-        "client -> LOAD Map sessions: empty",
-        "server -> KNOWN Map sessions: empty",
+        "client -> server | LOAD Map sessions: empty",
+        "server -> client | KNOWN Map sessions: empty",
+        "client -> server | LOAD Map sessions: empty",
+        "server -> client | KNOWN Map sessions: empty",
       ]
     `);
   });
@@ -287,41 +287,41 @@ describe("sync protocol", () => {
       ),
     ).toMatchInlineSnapshot(`
       [
-        "client -> LOAD Map sessions: empty",
-        "server -> CONTENT Group header: true new: After: 0 New: 5",
-        "client -> KNOWN Group sessions: header/5",
-        "server -> CONTENT Map header: true new: ",
-        "client -> KNOWN Map sessions: header/0",
-        "server -> CONTENT Map header: false new: After: 0 New: 73",
-        "client -> KNOWN Map sessions: header/73",
-        "server -> CONTENT Map header: false new: After: 73 New: 73",
-        "client -> KNOWN Map sessions: header/146",
-        "server -> CONTENT Map header: false new: After: 146 New: 73",
-        "client -> KNOWN Map sessions: header/219",
-        "server -> CONTENT Map header: false new: After: 219 New: 73",
-        "client -> KNOWN Map sessions: header/292",
-        "server -> CONTENT Map header: false new: After: 292 New: 73",
-        "client -> KNOWN Map sessions: header/365",
-        "server -> CONTENT Map header: false new: After: 365 New: 73",
-        "client -> KNOWN Map sessions: header/438",
-        "server -> CONTENT Map header: false new: After: 438 New: 73",
-        "client -> KNOWN Map sessions: header/511",
-        "server -> CONTENT Map header: false new: After: 511 New: 73",
-        "client -> KNOWN Map sessions: header/584",
-        "server -> CONTENT Map header: false new: After: 584 New: 73",
-        "client -> KNOWN Map sessions: header/657",
-        "server -> CONTENT Map header: false new: After: 657 New: 73",
-        "client -> KNOWN Map sessions: header/730",
-        "server -> CONTENT Map header: false new: After: 730 New: 73",
-        "client -> KNOWN Map sessions: header/803",
-        "server -> CONTENT Map header: false new: After: 803 New: 73",
-        "client -> KNOWN Map sessions: header/876",
-        "server -> CONTENT Map header: false new: After: 876 New: 73",
-        "client -> KNOWN Map sessions: header/949",
-        "server -> CONTENT Map header: false new: After: 949 New: 73",
-        "client -> KNOWN Map sessions: header/1022",
-        "server -> CONTENT Map header: false new: After: 1022 New: 2",
-        "client -> KNOWN Map sessions: header/1024",
+        "client -> server | LOAD Map sessions: empty",
+        "server -> client | CONTENT Group header: true new: After: 0 New: 5",
+        "client -> server | KNOWN Group sessions: header/5",
+        "server -> client | CONTENT Map header: true new: ",
+        "client -> server | KNOWN Map sessions: header/0",
+        "server -> client | CONTENT Map header: false new: After: 0 New: 73",
+        "client -> server | KNOWN Map sessions: header/73",
+        "server -> client | CONTENT Map header: false new: After: 73 New: 73",
+        "client -> server | KNOWN Map sessions: header/146",
+        "server -> client | CONTENT Map header: false new: After: 146 New: 73",
+        "client -> server | KNOWN Map sessions: header/219",
+        "server -> client | CONTENT Map header: false new: After: 219 New: 73",
+        "client -> server | KNOWN Map sessions: header/292",
+        "server -> client | CONTENT Map header: false new: After: 292 New: 73",
+        "client -> server | KNOWN Map sessions: header/365",
+        "server -> client | CONTENT Map header: false new: After: 365 New: 73",
+        "client -> server | KNOWN Map sessions: header/438",
+        "server -> client | CONTENT Map header: false new: After: 438 New: 73",
+        "client -> server | KNOWN Map sessions: header/511",
+        "server -> client | CONTENT Map header: false new: After: 511 New: 73",
+        "client -> server | KNOWN Map sessions: header/584",
+        "server -> client | CONTENT Map header: false new: After: 584 New: 73",
+        "client -> server | KNOWN Map sessions: header/657",
+        "server -> client | CONTENT Map header: false new: After: 657 New: 73",
+        "client -> server | KNOWN Map sessions: header/730",
+        "server -> client | CONTENT Map header: false new: After: 730 New: 73",
+        "client -> server | KNOWN Map sessions: header/803",
+        "server -> client | CONTENT Map header: false new: After: 803 New: 73",
+        "client -> server | KNOWN Map sessions: header/876",
+        "server -> client | CONTENT Map header: false new: After: 876 New: 73",
+        "client -> server | KNOWN Map sessions: header/949",
+        "server -> client | CONTENT Map header: false new: After: 949 New: 73",
+        "client -> server | KNOWN Map sessions: header/1022",
+        "server -> client | CONTENT Map header: false new: After: 1022 New: 2",
+        "client -> server | KNOWN Map sessions: header/1024",
       ]
     `);
   });
