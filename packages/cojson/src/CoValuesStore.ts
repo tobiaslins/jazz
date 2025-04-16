@@ -9,16 +9,11 @@ export class CoValuesStore {
     let entry = this.coValues.get(id);
 
     if (!entry) {
-      entry = CoValueState.Unknown(id);
+      entry = new CoValueState(id);
       this.coValues.set(id, entry);
     }
 
     return entry;
-  }
-
-  setAsAvailable(id: RawCoID, coValue: CoValueCore) {
-    const entry = this.get(id);
-    entry.markAvailable(coValue);
   }
 
   getEntries() {

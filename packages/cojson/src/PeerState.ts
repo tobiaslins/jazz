@@ -122,8 +122,6 @@ export class PeerState {
     }
   }
 
-  readonly erroredCoValues: Map<RawCoID, TryAddTransactionsError> = new Map();
-
   get id() {
     return this.peer.id;
   }

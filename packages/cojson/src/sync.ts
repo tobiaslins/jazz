@@ -151,7 +151,7 @@ export class SyncManager {
   }
 
   async handleSyncMessage(msg: SyncMessage, peer: PeerState) {
-    if (peer.erroredCoValues.has(msg.id)) {
+    if (this.local.coValuesStore.get(msg.id).isErroredInPeer(peer.id)) {
       logger.warn(
         `Skipping message ${msg.action} on errored coValue ${msg.id} from peer ${peer.id}`,
       );
@@ -239,8 +239,8 @@ export class SyncManager {
       for (const id of coValue.getDependedOnCoValues()) {
         const entry = this.local.coValuesStore.get(id);
 
-        if (entry.state.type === "available") {
-          buildOrderedCoValueList(entry.state.coValue);
+        if (entry.isAvailable()) {
+          buildOrderedCoValueList(entry.core);
         }
       }
 
@@ -248,23 +248,20 @@ export class SyncManager {
     };
 
     for (const entry of this.local.coValuesStore.getValues()) {
-      switch (entry.state.type) {
-        case "unavailable":
-          // If the coValue is unavailable and we never tried this peer
-          // we try to load it from the peer
-          if (!peer.toldKnownState.has(entry.id)) {
-            await entry.loadFromPeers([peer]).catch((e: unknown) => {
-              logger.error("Error sending load", { err: e });
-            });
-          }
-          break;
-        case "available":
-          const coValue = entry.state.coValue;
+      if (!entry.isAvailable()) {
+        // If the coValue is unavailable and we never tried this peer
+        // we try to load it from the peer
+        if (!peer.toldKnownState.has(entry.id)) {
+          await entry.loadFromPeers([peer]).catch((e: unknown) => {
+            logger.error("Error sending load", { err: e });
+          });
+        }
+      } else {
+        const coValue = entry.core;
 
-          // Build the list of coValues ordered by dependency
-          // so we can send the load message in the correct order
-          buildOrderedCoValueList(coValue);
-          break;
+        // Build the list of coValues ordered by dependency
+        // so we can send the load message in the correct order
+        buildOrderedCoValueList(coValue);
       }
 
       // Fill the missing known states with empty known states
@@ -387,7 +384,7 @@ export class SyncManager {
     peer.setKnownState(msg.id, knownStateIn(msg));
     const entry = this.local.coValuesStore.get(msg.id);
 
-    if (entry.state.type === "unknown" || entry.state.type === "unavailable") {
+    if (entry.isUnknown() || entry.isDefinitelyUnavailable()) {
       const eligiblePeers = this.getServerAndStoragePeers(peer.id);
 
       if (eligiblePeers.length === 0) {
@@ -414,7 +411,7 @@ export class SyncManager {
       }
     }
 
-    if (entry.state.type === "loading") {
+    if (entry.isLoading()) {
       // We need to return from handleLoad immediately and wait for the CoValue to be loaded
       // in a new task, otherwise we might block further incoming content messages that would
       // resolve the CoValue as available. This can happen when we receive fresh
@@ -444,7 +441,7 @@ export class SyncManager {
             err: e,
           });
         });
-    } else if (entry.state.type === "available") {
+    } else if (entry.isAvailable()) {
       await this.sendNewContentIncludingDependencies(msg.id, peer);
     } else {
       this.trySendToPeer(peer, {
