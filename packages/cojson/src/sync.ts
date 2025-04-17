@@ -536,7 +536,7 @@ export class SyncManager {
 
       coValue = new CoValueCore(msg.header, this.local);
 
-      entry.markAvailable(coValue);
+      entry.markAvailable(coValue, peer.id);
     } else {
       coValue = entry.core;
     }

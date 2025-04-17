@@ -15,7 +15,10 @@ export class CoValueState {
   private peers = new Map<
     PeerID,
     | { type: "unknown" | "pending" | "available" | "unavailable" }
-    | { type: "errored"; error: TryAddTransactionsError }
+    | {
+        type: "errored";
+        error: TryAddTransactionsError | { type: "PeerClosed" };
+      }
   >();
 
   core: CoValueCore | null = null;
@@ -61,10 +64,6 @@ export class CoValueState {
 
   async loadFromPeers(peers: PeerState[]) {
     const loadAttempt = async (peersToLoadFrom: PeerState[]) => {
-      if (this.isAvailable()) {
-        return;
-      }
-
       const peersToActuallyLoadFrom = [];
       for (const peer of peersToLoadFrom) {
         const currentState = this.peers.get(peer.id);
@@ -97,6 +96,11 @@ export class CoValueState {
       }
 
       for (const peer of peersToActuallyLoadFrom) {
+        if (peer.closed) {
+          this.markErrored(peer.id, { type: "PeerClosed" });
+          continue;
+        }
+
         peer
           .pushOutgoingMessage({
             action: "load",
@@ -112,7 +116,7 @@ export class CoValueState {
           const listener = (state: CoValueState) => {
             const peerState = state.peers.get(peer.id);
             if (
-              state.isAvailable() ||
+              peerState?.type === "available" ||
               peerState?.type === "errored" ||
               peerState?.type === "unavailable"
             ) {
@@ -174,12 +178,22 @@ export class CoValueState {
     this.notifyListeners();
   }
 
-  markAvailable(coValue: CoValueCore) {
+  // TODO: rename to "provided"
+  markAvailable(coValue: CoValueCore, fromPeerId: PeerID) {
+    this.core = coValue;
+    this.peers.set(fromPeerId, { type: "available" });
+    this.notifyListeners();
+  }
+
+  internalMarkMagicallyAvailable(coValue: CoValueCore) {
     this.core = coValue;
     this.notifyListeners();
   }
 
-  markErrored(peerId: PeerID, error: TryAddTransactionsError) {
+  markErrored(
+    peerId: PeerID,
+    error: TryAddTransactionsError | { type: "PeerClosed" },
+  ) {
     this.peers.set(peerId, { type: "errored", error });
     this.notifyListeners();
   }

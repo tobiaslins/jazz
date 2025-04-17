@@ -126,7 +126,7 @@ export class LocalNode {
     );
 
     nodeWithAccount.account = controlledAccount;
-    nodeWithAccount.coValuesStore.setAsAvailable(
+    nodeWithAccount.coValuesStore.internalMarkMagicallyAvailable(
       controlledAccount.id,
       controlledAccount.core,
     );
@@ -206,7 +206,10 @@ export class LocalNode {
       node.syncManager.local = node;
 
       controlledAccount.core.node = node;
-      node.coValuesStore.setAsAvailable(accountID, controlledAccount.core);
+      node.coValuesStore.internalMarkMagicallyAvailable(
+        accountID,
+        controlledAccount.core,
+      );
       controlledAccount.core._cachedContent = undefined;
 
       const profileID = account.get("profile");
@@ -243,7 +246,7 @@ export class LocalNode {
     }
 
     const coValue = new CoValueCore(header, this);
-    this.coValuesStore.setAsAvailable(coValue.id, coValue);
+    this.coValuesStore.internalMarkMagicallyAvailable(coValue.id, coValue);
 
     void this.syncManager.syncCoValue(coValue);
 
@@ -656,7 +659,10 @@ export class LocalNode {
           new Map(entry.core.sessionLogs),
         );
 
-        newNode.coValuesStore.setAsAvailable(coValueID, newCoValue);
+        newNode.coValuesStore.internalMarkMagicallyAvailable(
+          coValueID,
+          newCoValue,
+        );
 
         coValuesToCopy.pop();
       }

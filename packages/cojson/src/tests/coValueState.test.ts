@@ -70,7 +70,7 @@ describe("CoValueState", () => {
   test("should create available state", async () => {
     const mockCoValue = createMockCoValueCore(mockCoValueId);
     const state = new CoValueState(mockCoValueId);
-    state.markAvailable(mockCoValue);
+    state.internalMarkMagicallyAvailable(mockCoValue);
 
     expect(state.id).toBe(mockCoValueId);
     expect(state.isAvailable()).toBe(true);
@@ -104,7 +104,7 @@ describe("CoValueState", () => {
 
     const stateValuePromise = state.getCoValue();
 
-    state.markAvailable(mockCoValue);
+    state.internalMarkMagicallyAvailable(mockCoValue);
 
     const result = await state.getCoValue();
     expect(result).toBe(mockCoValue);
@@ -272,7 +272,7 @@ describe("CoValueState", () => {
 
         if (retries === 2) {
           setTimeout(() => {
-            state.markAvailable(createMockCoValueCore(mockCoValueId));
+            state.markAvailable(createMockCoValueCore(mockCoValueId), "peer1");
           }, 100);
         }
       },
@@ -319,7 +319,7 @@ describe("CoValueState", () => {
       await vi.runAllTimersAsync();
     }
 
-    state.markAvailable(createMockCoValueCore(mockCoValueId));
+    state.internalMarkMagicallyAvailable(createMockCoValueCore(mockCoValueId));
 
     await loadPromise;
 
@@ -346,7 +346,7 @@ describe("CoValueState", () => {
       },
       async () => {
         if (run > 2) {
-          state.markAvailable(createMockCoValueCore(mockCoValueId));
+          state.markAvailable(createMockCoValueCore(mockCoValueId), "peer1");
         }
         state.markNotFoundInPeer("peer1");
         run++;
@@ -381,12 +381,12 @@ describe("CoValueState", () => {
         role: "storage",
       },
       async () => {
-        state.markAvailable(mockCoValue);
+        state.markAvailable(mockCoValue, "peer1");
       },
     );
     const peer2 = createMockPeerState(
       {
-        id: "peer1",
+        id: "peer2",
         role: "server",
       },
       async () => {
@@ -430,11 +430,11 @@ describe("CoValueState", () => {
     );
     const peer2 = createMockPeerState(
       {
-        id: "peer1",
+        id: "peer2",
         role: "server",
       },
       async () => {
-        state.markAvailable(mockCoValue);
+        state.markAvailable(mockCoValue, "peer2");
       },
     );
 
