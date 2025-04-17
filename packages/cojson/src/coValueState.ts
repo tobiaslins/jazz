@@ -25,9 +25,47 @@ export class CoValueState {
   id: RawCoID;
 
   listeners: Set<(state: CoValueState) => void> = new Set();
+  counter: UpDownCounter;
 
   constructor(id: RawCoID) {
     this.id = id;
+
+    this.counter = metrics
+      .getMeter("cojson")
+      .createUpDownCounter("jazz.covalues.loaded", {
+        description: "The number of covalues in the system",
+        unit: "covalue",
+        valueType: ValueType.INT,
+      });
+
+    this.updateCounter(null);
+  }
+
+  get highLevelState() {
+    if (this.core) {
+      return "available";
+    } else {
+      if (
+        this.peers.size > 0 &&
+        this.peers
+          .values()
+          .every((p) => p.type === "unavailable" || p.type === "errored")
+      ) {
+        return "unavailable";
+      } else if (this.peers.values().some((p) => p.type === "pending")) {
+        return "loading";
+      } else {
+        return "unknown";
+      }
+    }
+  }
+
+  isErroredInPeer(peerId: PeerID) {
+    return this.peers.get(peerId)?.type === "errored";
+  }
+
+  isAvailable(): this is { type: "available"; core: CoValueCore } {
+    return !!this.core;
   }
 
   addListener(listener: (state: CoValueState) => void) {
@@ -46,7 +84,7 @@ export class CoValueState {
   }
 
   async getCoValue() {
-    if (this.isDefinitelyUnavailable()) {
+    if (this.highLevelState === "unavailable") {
       return "unavailable";
     }
 
@@ -82,7 +120,7 @@ export class CoValueState {
 
         if (currentState?.type === "unavailable") {
           if (peer.shouldRetryUnavailableCoValues()) {
-            this.peers.set(peer.id, { type: "pending" });
+            this.markPending(peer.id);
             peersToActuallyLoadFrom.push(peer);
           }
 
@@ -90,7 +128,7 @@ export class CoValueState {
         }
 
         if (!currentState || currentState?.type === "unknown") {
-          this.peers.set(peer.id, { type: "pending" });
+          this.markPending(peer.id);
           peersToActuallyLoadFrom.push(peer);
         }
       }
@@ -173,20 +211,37 @@ export class CoValueState {
     }
   }
 
+  private updateCounter(previousState: string | null) {
+    const newState = this.highLevelState;
+
+    if (previousState !== newState) {
+      if (previousState) {
+        this.counter.add(-1, { state: previousState });
+      }
+      this.counter.add(1, { state: newState });
+    }
+  }
+
   markNotFoundInPeer(peerId: PeerID) {
+    const previousState = this.highLevelState;
     this.peers.set(peerId, { type: "unavailable" });
+    this.updateCounter(previousState);
     this.notifyListeners();
   }
 
   // TODO: rename to "provided"
   markAvailable(coValue: CoValueCore, fromPeerId: PeerID) {
+    const previousState = this.highLevelState;
     this.core = coValue;
     this.peers.set(fromPeerId, { type: "available" });
+    this.updateCounter(previousState);
     this.notifyListeners();
   }
 
   internalMarkMagicallyAvailable(coValue: CoValueCore) {
+    const previousState = this.highLevelState;
     this.core = coValue;
+    this.updateCounter(previousState);
     this.notifyListeners();
   }
 
@@ -194,36 +249,17 @@ export class CoValueState {
     peerId: PeerID,
     error: TryAddTransactionsError | { type: "PeerClosed" },
   ) {
+    const previousState = this.highLevelState;
     this.peers.set(peerId, { type: "errored", error });
+    this.updateCounter(previousState);
     this.notifyListeners();
   }
 
-  isErroredInPeer(peerId: PeerID) {
-    return this.peers.get(peerId)?.type === "errored";
-  }
-
-  isAvailable(): this is { type: "available"; core: CoValueCore } {
-    return !!this.core;
-  }
-
-  isUnknown() {
-    return (
-      this.peers.values().every((p) => p.type === "unknown") &&
-      !this.isAvailable()
-    );
-  }
-
-  isLoading() {
-    return this.peers.values().some((p) => p.type === "pending");
-  }
-
-  isDefinitelyUnavailable() {
-    return (
-      this.peers
-        .values()
-        .every((p) => p.type === "unavailable" || p.type === "errored") &&
-      !this.isAvailable()
-    );
+  private markPending(peerId: PeerID) {
+    const previousState = this.highLevelState;
+    this.peers.set(peerId, { type: "pending" });
+    this.updateCounter(previousState);
+    this.notifyListeners();
   }
 }
 

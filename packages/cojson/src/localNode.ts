@@ -266,7 +266,10 @@ export class LocalNode {
 
     const entry = this.coValuesStore.get(id);
 
-    if (entry.isUnknown() || entry.isDefinitelyUnavailable()) {
+    if (
+      entry.highLevelState === "unknown" ||
+      entry.highLevelState === "unavailable"
+    ) {
       const peers =
         this.syncManager.getServerAndStoragePeers(skipLoadingFromPeer);
 

@@ -43,7 +43,7 @@ describe("CoValueState", () => {
     const state = new CoValueState(mockCoValueId);
 
     expect(state.id).toBe(mockCoValueId);
-    expect(state.isUnknown()).toBe(true);
+    expect(state.highLevelState).toBe("unknown");
     expect(
       await metricReader.getMetricValue("jazz.covalues.loaded", {
         state: "unknown",
@@ -59,7 +59,7 @@ describe("CoValueState", () => {
     ]);
 
     expect(state.id).toBe(mockCoValueId);
-    expect(state.isLoading()).toBe(true);
+    expect(state.highLevelState).toBe("loading");
     expect(
       await metricReader.getMetricValue("jazz.covalues.loaded", {
         state: "loading",
@@ -73,7 +73,7 @@ describe("CoValueState", () => {
     state.internalMarkMagicallyAvailable(mockCoValue);
 
     expect(state.id).toBe(mockCoValueId);
-    expect(state.isAvailable()).toBe(true);
+    expect(state.highLevelState).toBe("available");
     expect(state.core).toBe(mockCoValue);
     await expect(state.getCoValue()).resolves.toEqual(mockCoValue);
     expect(
@@ -161,7 +161,7 @@ describe("CoValueState", () => {
     expect(peer2.pushOutgoingMessage).toHaveBeenCalledTimes(
       CO_VALUE_LOADING_CONFIG.MAX_RETRIES,
     );
-    expect(state.isDefinitelyUnavailable()).toBe(true);
+    expect(state.highLevelState).toBe("unavailable");
     await expect(state.getCoValue()).resolves.toBe("unavailable");
 
     vi.useRealTimers();
@@ -205,7 +205,7 @@ describe("CoValueState", () => {
     expect(peer2.pushOutgoingMessage).toHaveBeenCalledTimes(
       CO_VALUE_LOADING_CONFIG.MAX_RETRIES,
     );
-    expect(state.isDefinitelyUnavailable()).toBe(true);
+    expect(state.highLevelState).toBe("unavailable");
     await expect(state.getCoValue()).resolves.toBe("unavailable");
 
     vi.useRealTimers();
@@ -248,7 +248,7 @@ describe("CoValueState", () => {
     expect(peer2.pushOutgoingMessage).toHaveBeenCalledTimes(
       CO_VALUE_LOADING_CONFIG.MAX_RETRIES,
     );
-    expect(state.isDefinitelyUnavailable()).toBe(true);
+    expect(state.highLevelState).toBe("unavailable");
     await expect(state.getCoValue()).resolves.toEqual("unavailable");
 
     vi.useRealTimers();
@@ -291,7 +291,7 @@ describe("CoValueState", () => {
     await loadPromise;
 
     expect(peer1.pushOutgoingMessage).toHaveBeenCalledTimes(2);
-    expect(state.isAvailable()).toBe(true);
+    expect(state.highLevelState).toBe("available");
     await expect(state.getCoValue()).resolves.toEqual({ id: mockCoValueId });
     vi.useRealTimers();
   });
@@ -326,7 +326,7 @@ describe("CoValueState", () => {
     expect(peer1.pushOutgoingMessage).toHaveBeenCalledTimes(
       CO_VALUE_LOADING_CONFIG.MAX_RETRIES,
     );
-    expect(state.isAvailable()).toBe(true);
+    expect(state.highLevelState).toBe("available");
     await expect(state.getCoValue()).resolves.toEqual({ id: mockCoValueId });
 
     vi.useRealTimers();
@@ -364,7 +364,7 @@ describe("CoValueState", () => {
     await loadPromise;
 
     expect(peer1.pushOutgoingMessage).toHaveBeenCalledTimes(3);
-    expect(state.isAvailable()).toBe(true);
+    expect(state.highLevelState).toBe("available");
     await expect(state.getCoValue()).resolves.toEqual({ id: mockCoValueId });
 
     vi.useRealTimers();
@@ -408,7 +408,7 @@ describe("CoValueState", () => {
       action: "load",
       ...mockCoValue.knownState(),
     });
-    expect(state.isAvailable()).toBe(true);
+    expect(state.highLevelState).toBe("available");
     await expect(state.getCoValue()).resolves.toEqual({ id: mockCoValueId });
 
     vi.useRealTimers();
@@ -451,7 +451,7 @@ describe("CoValueState", () => {
     expect(peer1.pushOutgoingMessage).toHaveBeenCalledTimes(0);
     expect(peer2.pushOutgoingMessage).toHaveBeenCalledTimes(1);
 
-    expect(state.isAvailable()).toBe(true);
+    expect(state.highLevelState).toBe("available");
     await expect(state.getCoValue()).resolves.toEqual({ id: mockCoValueId });
 
     vi.useRealTimers();
@@ -480,7 +480,7 @@ describe("CoValueState", () => {
       CO_VALUE_LOADING_CONFIG.MAX_RETRIES,
     );
 
-    expect(state.isDefinitelyUnavailable()).toBe(true);
+    expect(state.highLevelState).toBe("unavailable");
     await expect(state.getCoValue()).resolves.toEqual("unavailable");
 
     vi.useRealTimers();

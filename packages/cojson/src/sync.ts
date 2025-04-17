@@ -393,7 +393,10 @@ export class SyncManager {
     peer.setKnownState(msg.id, knownStateIn(msg));
     const entry = this.local.coValuesStore.get(msg.id);
 
-    if (entry.isUnknown() || entry.isDefinitelyUnavailable()) {
+    if (
+      entry.highLevelState === "unknown" ||
+      entry.highLevelState === "unavailable"
+    ) {
       const eligiblePeers = this.getServerAndStoragePeers(peer.id);
 
       if (eligiblePeers.length === 0) {
@@ -420,7 +423,7 @@ export class SyncManager {
       }
     }
 
-    if (entry.isLoading()) {
+    if (entry.highLevelState === "loading") {
       // We need to return from handleLoad immediately and wait for the CoValue to be loaded
       // in a new task, otherwise we might block further incoming content messages that would
       // resolve the CoValue as available. This can happen when we receive fresh
@@ -726,7 +729,9 @@ export class SyncManager {
   async waitForAllCoValuesSync(timeout = 60_000) {
     const coValues = this.local.coValuesStore.getValues();
     const validCoValues = Array.from(coValues).filter(
-      (coValue) => coValue.isAvailable() || coValue.isLoading(),
+      (coValue) =>
+        coValue.highLevelState === "available" ||
+        coValue.highLevelState === "loading",
     );
 
     return Promise.all(
