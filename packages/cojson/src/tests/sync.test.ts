@@ -9,7 +9,10 @@ import {
 } from "vitest";
 import { expectMap } from "../coValue.js";
 import type { CoValueHeader, TryAddTransactionsError } from "../coValueCore.js";
-import type { RawAccountID } from "../coValues/account.js";
+import type {
+  RawAccountID,
+  RawControlledAccount,
+} from "../coValues/account.js";
 import { type MapOpPayload, RawCoMap } from "../coValues/coMap.js";
 import type { RawGroup } from "../coValues/group.js";
 import { WasmCrypto } from "../crypto/WasmCrypto.js";
@@ -18,6 +21,10 @@ import { LocalNode } from "../localNode.js";
 import { getPriorityFromHeader } from "../priority.js";
 import { connectedPeers, newQueuePair } from "../streamUtils.js";
 import type { LoadMessage, SyncMessage } from "../sync.js";
+import {
+  nodeRelatedKnownCoValues,
+  toSimplifiedMessages,
+} from "./messagesTestUtils.js";
 import {
   blockMessageTypeOnOutgoingPeer,
   connectNodeToSyncServer,
@@ -758,8 +765,9 @@ describe("SyncManager.addPeer", () => {
 
 describe("loadCoValueCore with retry", () => {
   test("should load the value if available on the server", async () => {
-    const { node: client } = await createConnectedTestNode();
-    const { node: anotherClient } = await createConnectedTestNode();
+    const { node: client, messages } = await createConnectedTestNode();
+    const { node: anotherClient, messages: otherMessages } =
+      await createConnectedTestNode();
 
     const group = anotherClient.createGroup();
     const map = group.createMap();
@@ -767,7 +775,34 @@ describe("loadCoValueCore with retry", () => {
 
     const promise = client.loadCoValueCore(map.id);
 
-    await expect(promise).resolves.not.toBe("unavailable");
+    try {
+      await expect(promise).resolves.not.toBe("unavailable");
+    } finally {
+      console.log("Messages from other client to server");
+      console.log(
+        toSimplifiedMessages(
+          {
+            ...nodeRelatedKnownCoValues(client, "client"),
+            ...nodeRelatedKnownCoValues(anotherClient, "anotherClient"),
+            Group: group.core,
+            Map: map.core,
+          },
+          otherMessages,
+        ).join("\n"),
+      );
+      console.log("Messages from client to server");
+      console.log(
+        toSimplifiedMessages(
+          {
+            ...nodeRelatedKnownCoValues(client, "client"),
+            ...nodeRelatedKnownCoValues(anotherClient, "anotherClient"),
+            Group: group.core,
+            Map: map.core,
+          },
+          messages,
+        ).join("\n"),
+      );
+    }
   });
 
   test("should handle correctly two subsequent loads", async () => {

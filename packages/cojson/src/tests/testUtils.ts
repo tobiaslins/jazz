@@ -489,8 +489,11 @@ export function connectNodeToSyncServer(
   }
 
   const { peer1, peer2, messages } = connectedPeersWithMessagesTracking({
-    peer1: { id: syncServer.current.account.id, role: "server" },
-    peer2: { id: node.account.id, role: "client" },
+    peer1: {
+      id: "syncServer (" + syncServer.current.account.id + ")",
+      role: "server",
+    },
+    peer2: { id: "client (" + node.account.id + ")", role: "client" },
     initialMessages,
   });
 

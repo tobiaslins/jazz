@@ -491,9 +491,7 @@ describe("writeOnly", () => {
     );
 
     node2.node.coValuesStore.coValues.delete(map.id);
-    expect(node2.node.coValuesStore.get(map.id)).toEqual(
-      CoValueState.Unknown(map.id),
-    );
+    expect(node2.node.coValuesStore.get(map.id)?.isUnknown()).toBe(true);
 
     const mapOnNode2 = await loadCoValueOrFail(node2.node, map.id);
 

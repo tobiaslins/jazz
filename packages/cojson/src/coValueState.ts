@@ -103,6 +103,35 @@ export class CoValueState {
               err,
             });
           });
+
+        const waitingForPeer = new Promise<void>((resolve) => {
+          const listener = (state: CoValueState) => {
+            const peerState = state.peers.get(peer.id);
+            if (
+              state.isAvailable() ||
+              peerState?.type === "errored" ||
+              peerState?.type === "unavailable"
+            ) {
+              resolve();
+              state.removeListener(listener);
+            }
+          };
+
+          this.addListener(listener);
+        });
+
+        /**
+         * Use a very long timeout for storage peers, because under pressure
+         * they may take a long time to consume the messages queue
+         *
+         * TODO: Track errors on storage and do not rely on timeout
+         */
+        const timeoutDuration =
+          peer.role === "storage"
+            ? CO_VALUE_LOADING_CONFIG.TIMEOUT * 10
+            : CO_VALUE_LOADING_CONFIG.TIMEOUT;
+
+        await Promise.race([waitingForPeer, sleep(timeoutDuration)]);
       }
     };
 
@@ -149,7 +178,10 @@ export class CoValueState {
   }
 
   isUnknown() {
-    return this.peers.values().every((p) => p.type === "unknown");
+    return (
+      this.peers.values().every((p) => p.type === "unknown") &&
+      !this.isAvailable()
+    );
   }
 
   isLoading() {
