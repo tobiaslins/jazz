@@ -38,7 +38,7 @@ export const team: Array<TeamMember> = [
   },
   {
     name: "Trisha Lim",
-    titles: ["Frontend Dev"],
+    titles: ["Frontend Dev", "Marketing"],
     image: "trisha.png",
     location: "Lisbon, Portugal ",
     github: "trishalim",
@@ -88,7 +88,7 @@ export const team: Array<TeamMember> = [
   {
     name: "James Vickery",
     location: "Birmingham, UK",
-    titles: ["Full-Stack Dev"],
+    titles: ["Full-Stack Dev", "Support Dev"],
     github: "jmsv",
     bluesky: "jmsv.bsky.social",
     image: "james.jpg",
