@@ -347,9 +347,10 @@ describe("CoValueState", () => {
       async () => {
         if (run > 2) {
           state.markAvailable(createMockCoValueCore(mockCoValueId), "peer1");
+        } else {
+          state.markNotFoundInPeer("peer1");
+          run++;
         }
-        state.markNotFoundInPeer("peer1");
-        run++;
       },
     );
 
