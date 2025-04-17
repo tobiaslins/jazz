@@ -192,6 +192,10 @@ export class CoValueState {
 
     await loadAttempt(peers);
 
+    if (this.isAvailable()) {
+      return;
+    }
+
     // Retry loading from peers that have the retry flag enabled
     const peersWithRetry = peers.filter((p) =>
       p.shouldRetryUnavailableCoValues(),
