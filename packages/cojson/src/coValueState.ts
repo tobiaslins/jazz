@@ -17,15 +17,15 @@ export class CoValueState {
     | { type: "unknown" | "pending" | "available" | "unavailable" }
     | {
         type: "errored";
-        error: TryAddTransactionsError | { type: "PeerClosed" };
+        error: TryAddTransactionsError;
       }
   >();
 
   core: CoValueCore | null = null;
   id: RawCoID;
 
-  listeners: Set<(state: CoValueState) => void> = new Set();
-  counter: UpDownCounter;
+  private listeners: Set<(state: CoValueState) => void> = new Set();
+  private counter: UpDownCounter;
 
   constructor(id: RawCoID) {
     this.id = id;
@@ -45,8 +45,9 @@ export class CoValueState {
     if (this.core) {
       return "available";
     } else {
-      if (
-        this.peers.size > 0 &&
+      if (this.peers.size === 0) {
+        return "unknown";
+      } else if (
         this.peers
           .values()
           .every((p) => p.type === "unavailable" || p.type === "errored")
@@ -114,11 +115,10 @@ export class CoValueState {
           continue;
         }
 
-        if (currentState?.type === "pending") {
-          continue;
-        }
-
-        if (currentState?.type === "unavailable") {
+        if (
+          currentState?.type === "unavailable" ||
+          currentState?.type === "pending"
+        ) {
           if (peer.shouldRetryUnavailableCoValues()) {
             this.markPending(peer.id);
             peersToActuallyLoadFrom.push(peer);
@@ -135,7 +135,7 @@ export class CoValueState {
 
       for (const peer of peersToActuallyLoadFrom) {
         if (peer.closed) {
-          this.markErrored(peer.id, { type: "PeerClosed" });
+          this.markNotFoundInPeer(peer.id);
           continue;
         }
 
@@ -154,6 +154,7 @@ export class CoValueState {
           const listener = (state: CoValueState) => {
             const peerState = state.peers.get(peer.id);
             if (
+              state.isAvailable() || // might have become available from another peer (how?)
               peerState?.type === "available" ||
               peerState?.type === "errored" ||
               peerState?.type === "unavailable"
@@ -177,7 +178,15 @@ export class CoValueState {
             ? CO_VALUE_LOADING_CONFIG.TIMEOUT * 10
             : CO_VALUE_LOADING_CONFIG.TIMEOUT;
 
-        await Promise.race([waitingForPeer, sleep(timeoutDuration)]);
+        const giveUp = async () => {
+          await sleep(timeoutDuration);
+
+          if (this.peers.get(peer.id)?.type === "pending") {
+            this.markNotFoundInPeer(peer.id);
+          }
+        };
+
+        await Promise.race([waitingForPeer, giveUp()]);
       }
     };
 
@@ -245,10 +254,7 @@ export class CoValueState {
     this.notifyListeners();
   }
 
-  markErrored(
-    peerId: PeerID,
-    error: TryAddTransactionsError | { type: "PeerClosed" },
-  ) {
+  markErrored(peerId: PeerID, error: TryAddTransactionsError) {
     const previousState = this.highLevelState;
     this.peers.set(peerId, { type: "errored", error });
     this.updateCounter(previousState);
