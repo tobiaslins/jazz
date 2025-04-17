@@ -1,30 +1,11 @@
-import {
-  assert,
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  test,
-  vi,
-} from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { expectMap } from "../coValue.js";
-import type { CoValueHeader, TryAddTransactionsError } from "../coValueCore.js";
-import type {
-  RawAccountID,
-  RawControlledAccount,
-} from "../coValues/account.js";
-import { type MapOpPayload, RawCoMap } from "../coValues/coMap.js";
+import { RawCoMap } from "../coValues/coMap.js";
 import type { RawGroup } from "../coValues/group.js";
 import { WasmCrypto } from "../crypto/WasmCrypto.js";
-import { stableStringify } from "../jsonStringify.js";
 import { LocalNode } from "../localNode.js";
-import { getPriorityFromHeader } from "../priority.js";
 import { connectedPeers, newQueuePair } from "../streamUtils.js";
-import type { LoadMessage, SyncMessage } from "../sync.js";
-import {
-  nodeRelatedKnownCoValues,
-  toSimplifiedMessages,
-} from "./messagesTestUtils.js";
+import type { LoadMessage } from "../sync.js";
 import {
   blockMessageTypeOnOutgoingPeer,
   connectNodeToSyncServer,
@@ -775,34 +756,7 @@ describe("loadCoValueCore with retry", () => {
 
     const promise = client.loadCoValueCore(map.id);
 
-    try {
-      await expect(promise).resolves.not.toBe("unavailable");
-    } finally {
-      console.log("Messages from other client to server");
-      console.log(
-        toSimplifiedMessages(
-          {
-            ...nodeRelatedKnownCoValues(client, "client"),
-            ...nodeRelatedKnownCoValues(anotherClient, "anotherClient"),
-            Group: group.core,
-            Map: map.core,
-          },
-          otherMessages,
-        ).join("\n"),
-      );
-      console.log("Messages from client to server");
-      console.log(
-        toSimplifiedMessages(
-          {
-            ...nodeRelatedKnownCoValues(client, "client"),
-            ...nodeRelatedKnownCoValues(anotherClient, "anotherClient"),
-            Group: group.core,
-            Map: map.core,
-          },
-          messages,
-        ).join("\n"),
-      );
-    }
+    await expect(promise).resolves.not.toBe("unavailable");
   });
 
   test("should handle correctly two subsequent loads", async () => {

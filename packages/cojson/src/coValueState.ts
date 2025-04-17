@@ -61,6 +61,10 @@ export class CoValueState {
 
   async loadFromPeers(peers: PeerState[]) {
     const loadAttempt = async (peersToLoadFrom: PeerState[]) => {
+      if (this.isAvailable()) {
+        return;
+      }
+
       const peersToActuallyLoadFrom = [];
       for (const peer of peersToLoadFrom) {
         const currentState = this.peers.get(peer.id);
@@ -143,9 +147,20 @@ export class CoValueState {
     );
 
     if (peersWithRetry.length > 0) {
+      const waitingForCoValue = new Promise<void>((resolve) => {
+        const listener = (state: CoValueState) => {
+          if (state.isAvailable()) {
+            resolve();
+            this.removeListener(listener);
+          }
+        };
+
+        this.addListener(listener);
+      });
+
       // We want to exit early if the coValue becomes available in between the retries
       await Promise.race([
-        this.getCoValue(), // TODO: avoid leaving hanging promise?
+        waitingForCoValue,
         runWithRetry(
           () => loadAttempt(peersWithRetry),
           CO_VALUE_LOADING_CONFIG.MAX_RETRIES,
