@@ -1,12 +1,9 @@
 import type { Config } from "tailwindcss";
-import { pingColorMap } from './components/cloud/pingColorThresholds';
+import { pingColorMap } from "./components/cloud/pingColorThresholds";
 
 export const colourSafelist = Object.values(pingColorMap).flatMap((value) => {
   const { light, dark } = value as { light: string; dark: string };
-  return [
-    `bg-[${light}]`,
-    `dark:bg-[${dark}]`,
-  ];
+  return [`bg-[${light}]`, `dark:bg-[${dark}]`];
 });
 
 const config: Config = {
@@ -22,8 +19,6 @@ const config: Config = {
     "./next.config.mjs",
     "./node_modules/gcmp-design-system/src/**/*.{js,ts,jsx,tsx,mdx}",
   ],
-  safelist: [
-    ...colourSafelist,
-  ],
+  safelist: [...colourSafelist],
 };
 export default config;

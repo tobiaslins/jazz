@@ -1,6 +1,6 @@
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { socials } from "@/content/socials";
 import { navigationItems } from "@/content/navigation-items";
+import { socials } from "@/content/socials";
 import { JazzLogo } from "gcmp-design-system/src/app/components/atoms/logos/JazzLogo";
 import {
   MobileNav,
