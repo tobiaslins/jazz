@@ -92,3 +92,83 @@ useAcceptInvite({
 });
 ```
 </CodeGroup>
+
+
+### Requesting Invites
+
+To allow a non-group member to request an invitation to a group you can use the `writeOnly` role.
+
+In your app, handle creating the queue of requests
+
+<CodeGroup>
+```ts twoslash
+import { Group, co, CoList, CoMap, createInviteLink  } from "jazz-tools";
+
+class Request extends CoMap {
+  project = co.ref(Project);
+}
+
+class RequestsList extends CoList.Of(Request) {}
+
+class RequestsToJoin extends CoMap {
+  writeOnlyInvite = co.string
+  requests = co.ref(Project);
+}
+
+class Project extends CoMap {
+  title = co.string;
+}
+// ---cut-before---
+function createRequestsToJoin() {
+  const everyoneReaderGroup = Group.create()
+  everyoneReaderGroup.addMember("everyone", "reader")
+
+  const requestsGroup = Group.create()
+  const writeOnlyInvite = createInviteLink(requestsGroup, "writeOnly")
+  
+  return RequestsToJoin.create({ writeOnlyInvite, requests: RequestsList.create([], requestsGroup)
+  },  everyoneReaderGroup)
+}
+```
+</CodeGroup>
+
+Users can then send a request to join a specific organization 
+
+<CodeGroup>
+```ts twoslash
+import { co, CoList, CoMap, Account, ID, createInviteLink } from "jazz-tools";
+
+class Request extends CoMap {
+  project = co.ref(Project);
+}
+
+class RequestsList extends CoList.Of(Request) {}
+
+class RequestsToJoin extends CoMap {
+  writeOnlyInvite = co.string
+  requests = co.ref(Project);
+}
+
+class Project extends CoMap {
+  title = co.string;
+}
+
+const id: ID<Project>; = "co_123" as ID<Project>;
+// ---cut-before---
+
+async function requestToJoin(id) {
+   const requestsToJoin = await RequestsToJoin.load(id)
+
+   const result = await consumeInviteLink({ 
+    inviteURL: requestsToJoin.writeOnlyInvite, 
+    invitedObjectSchema: RequestsList 
+  })
+   
+   if (!result) throw new Error("Failed to accept the requests writeOnly invitation")
+
+   const requests = await RequestsList(result.valueID)
+
+   requests.push(RequestToJoin.create({ account: Account.getMe() }, requests._owner));
+}
+```
+</CodeGroup>
