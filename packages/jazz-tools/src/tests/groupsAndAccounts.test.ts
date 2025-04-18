@@ -150,6 +150,8 @@ describe("Group inheritance", () => {
 
     await grandParentGroup.removeMember(reader);
 
+    await grandParentGroup.waitForSync();
+
     mapInGrandChild.title = "In Grand Child (updated)";
 
     const mapAsReaderAfterUpdate = await TestMap.load(mapInGrandChild.id, {
