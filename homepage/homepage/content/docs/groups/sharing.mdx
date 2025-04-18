@@ -108,16 +108,12 @@ class Request extends CoMap {
   project = co.ref(Project);
 }
 
-class RequestsList extends CoList.Of(Request) {}
-
-class RequestsToJoin extends CoMap {
-  writeOnlyInvite = co.string
-  requests = co.ref(Project);
-}
-
 class Project extends CoMap {
   title = co.string;
 }
+
+const RequestsList = []
+const RequestToJoin = {id: "co_123"}
 // ---cut-before---
 function createRequestsToJoin() {
   const everyoneReaderGroup = Group.create()
@@ -126,7 +122,7 @@ function createRequestsToJoin() {
   const requestsGroup = Group.create()
   const writeOnlyInvite = createInviteLink(requestsGroup, "writeOnly")
   
-  return RequestsToJoin.create({ writeOnlyInvite, requests: RequestsList.create([], requestsGroup)
+  return RequestToJoin.create({ writeOnlyInvite, requests: RequestsList.create([], requestsGroup)
   },  everyoneReaderGroup)
 }
 ```
@@ -142,22 +138,22 @@ class Request extends CoMap {
   project = co.ref(Project);
 }
 
-class RequestsList extends CoList.Of(Request) {}
-
-class RequestsToJoin extends CoMap {
-  writeOnlyInvite = co.string
-  requests = co.ref(Project);
-}
-
 class Project extends CoMap {
   title = co.string;
 }
+
+
+const RequestsList = [
+  {id: "co_123"}
+]
+const RequestToJoin = {id: "co_123"}
+
 
 const id: ID<Project>; = "co_123" as ID<Project>;
 // ---cut-before---
 
 async function requestToJoin(id) {
-   const requestsToJoin = await RequestsToJoin.load(id)
+   const requestsToJoin = await RequestToJoin.load(id)
 
    const result = await consumeInviteLink({ 
     inviteURL: requestsToJoin.writeOnlyInvite, 
