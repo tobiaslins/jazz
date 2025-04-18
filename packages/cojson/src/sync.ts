@@ -297,7 +297,7 @@ export class SyncManager {
        *   lacks some transactions
        */
       peer.toldKnownState.add(coValue.id);
-      await this.trySendToPeer(peer, {
+      this.trySendToPeer(peer, {
         action: "load",
         ...coValue.knownState(),
       }).catch((e: unknown) => {
@@ -668,7 +668,7 @@ export class SyncManager {
      * response to the peers that are waiting for confirmation that a coValue is
      * fully synced
      */
-    await this.syncCoValue(coValue);
+    this.syncCoValue(coValue);
   }
 
   async handleCorrection(msg: KnownStateMessage, peer: PeerState) {
