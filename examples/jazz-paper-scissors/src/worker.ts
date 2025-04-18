@@ -11,6 +11,10 @@ import { startWorker } from "jazz-nodejs";
 import { Account, Group, type ID } from "jazz-tools";
 import { determineWinner } from "./lib/utils";
 
+if (!process.env.VITE_JAZZ_WORKER_ACCOUNT || !process.env.JAZZ_WORKER_SECRET) {
+  throw new Error(".env missing, run `pnpm generate-env`");
+}
+
 const {
   worker,
   experimental: { inbox },
