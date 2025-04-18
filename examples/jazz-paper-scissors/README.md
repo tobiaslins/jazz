@@ -5,18 +5,17 @@
 First of we need to create a new account for the dealer:
 
 ```bash
-pnpx jazz-run account create --name "Worker"
+pnpm generate-env
 ```
 
-This will print an account ID and a secret key:
+This will generate a .env file like this one
 
 ```
-# Credentials for Jazz account "Dealer":
-JAZZ_WORKER_ACCOUNT=co_xxxx
-JAZZ_WORKER_SECRET=sealerSecret_xxx
+VITE_JAZZ_WORKER_ACCOUNT=co_zn95yzQd1z24DJCgayN53ShyuMR
+JAZZ_WORKER_SECRET=sealerSecret_z3Tcq41gtELJRHk3SzQutR2DhkpvEScQQP8DG8yeSh7zJ/signerSecret_zDsLhoNRSxjXrX6oSGzGH3XQQHDyp8QS292p28RToANYq
 ```
 
-use these to create a `.env` file based on the `.env.example` file and fill in the `VITE_JAZZ_WORKER_ACCOUNT` and `JAZZ_WORKER_SECRET` fields.
+This should be enough the setup everything
 
 We can then start the dealer worker:
 
