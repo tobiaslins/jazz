@@ -14,8 +14,7 @@
       "packages/jazz-svelte/**",
       "examples/*svelte*/**",
       "examples/jazz-paper-scissors/src/routeTree.gen.ts",
-      "homepage/homepage/**",
-      "**/package.json"
+      "homepage/homepage/**"
     ]
   },
   "formatter": {
