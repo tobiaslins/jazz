@@ -296,6 +296,10 @@ async function loadCoValueFromPeers(
 ) {
   for (const peer of peers) {
     if (peer.closed) {
+      coValueEntry.dispatch({
+        type: "not-found-in-peer",
+        peerId: peer.id,
+      });
       continue;
     }
 
