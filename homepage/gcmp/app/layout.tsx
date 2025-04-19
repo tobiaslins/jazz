@@ -5,7 +5,7 @@ import { fontClasses } from "@garden-co/design-system/src/fonts.js";
 
 import { GcmpNav } from "@/components/Nav";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Copyright } from "@garden-co/design-system/src/app/components/atoms/Copyright";
+import { Copyright } from "@garden-co/design-system/src/components/atoms/Copyright";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 

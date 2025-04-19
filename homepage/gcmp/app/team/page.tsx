@@ -1,5 +1,5 @@
 import { TeamMember, team } from "@/app/team/members";
-import { HeroHeader } from "@garden-co/design-system/src/app/components/molecules/HeroHeader";
+import { HeroHeader } from "@garden-co/design-system/src/components/molecules/HeroHeader";
 import {
   SiBluesky,
   SiGithub,
