@@ -1,7 +1,10 @@
-import { GridCard } from "gcmp-design-system/src/app/components/atoms/GridCard";
-import { H2, H3 } from "gcmp-design-system/src/app/components/atoms/Headings";
-import { P } from "gcmp-design-system/src/app/components/atoms/Paragraph";
-import { GappedGrid } from "gcmp-design-system/src/app/components/molecules/GappedGrid";
+import { GridCard } from "@garden-co/design-system/src/app/components/atoms/GridCard";
+import {
+  H2,
+  H3,
+} from "@garden-co/design-system/src/app/components/atoms/Headings";
+import { P } from "@garden-co/design-system/src/app/components/atoms/Paragraph";
+import { GappedGrid } from "@garden-co/design-system/src/app/components/molecules/GappedGrid";
 
 export default function Approach() {
   return (

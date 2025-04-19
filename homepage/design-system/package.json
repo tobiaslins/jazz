@@ -1,7 +1,6 @@
 {
-  "name": "gcmp-design-system",
+  "name": "@garden-co/design-system",
   "version": "0.1.0",
-  "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",

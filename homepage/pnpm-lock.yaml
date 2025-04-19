@@ -111,7 +111,7 @@ importers:
       feed:
         specifier: ^4.2.2
         version: 4.2.2
-      gcmp-design-system:
+      @garden-co/design-system:
         specifier: workspace:*
         version: link:../design-system
       lucide-react:
@@ -232,7 +232,7 @@ importers:
       estree-util-value-to-estree:
         specifier: ^3.3.2
         version: 3.3.2
-      gcmp-design-system:
+      @garden-co/design-system:
         specifier: workspace:*
         version: link:../design-system
       github-slugger:

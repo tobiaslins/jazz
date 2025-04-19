@@ -4,8 +4,11 @@ import PostCoverImage from "@/components/blog/PostCoverImage";
 import { PostJsonLd } from "@/components/blog/PostJsonLd";
 import { BigGrass } from "@/components/blog/Swishes";
 import { getPostBySlug, posts } from "@/lib/posts";
-import { H1, H2 } from "gcmp-design-system/src/app/components/atoms/Headings";
-import { Prose } from "gcmp-design-system/src/app/components/molecules/Prose";
+import {
+  H1,
+  H2,
+} from "@garden-co/design-system/src/app/components/atoms/Headings";
+import { Prose } from "@garden-co/design-system/src/app/components/molecules/Prose";
 import { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
