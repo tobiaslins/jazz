@@ -237,13 +237,13 @@ export const CoMapPreview = ({
   const limitedProperties =
     extendedType === "account"
       ? properties
-          .slice(0, limit)
           .filter(
             ([key]) =>
               !key.startsWith("key_z") &&
               !key.startsWith("sealer_z") &&
               key !== "readKey",
           )
+          .slice(0, limit)
       : properties.slice(0, limit);
 
   return (
