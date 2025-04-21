@@ -7,6 +7,7 @@ import { Text } from "../ui/text.js";
 import { CoStreamView } from "./co-stream-view.js";
 import { GridView } from "./grid-view.js";
 import { GroupView } from "./group-view.js";
+import { RoleDisplay } from "./role-display.js";
 import { TableView } from "./table-viewer.js";
 import { TypeIcon } from "./type-icon.js";
 import { PageInfo } from "./types.js";
@@ -172,17 +173,20 @@ export function Page(props: PageProps) {
       <ContentContainer>
         <View {...props} coValue={coValue} />
         {extendedType !== "account" && extendedType !== "group" && (
-          <Text muted>
-            Owned by{" "}
-            <AccountOrGroupPreview
-              coId={value.group.id}
-              node={node}
-              showId
-              onClick={() => {
-                onNavigate([{ coId: value.group.id, name: "owner" }]);
-              }}
-            />
-          </Text>
+          <>
+            <RoleDisplay node={node} value={value} />
+            <Text muted>
+              Owned by{" "}
+              <AccountOrGroupPreview
+                coId={value.group.id}
+                node={node}
+                showId
+                onClick={() => {
+                  onNavigate([{ coId: value.group.id, name: "owner" }]);
+                }}
+              />
+            </Text>
+          </>
         )}
       </ContentContainer>
     </PageContainer>
