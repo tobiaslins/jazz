@@ -237,21 +237,32 @@ export const CoMapPreview = ({
     );
   }
 
+  const properties = Object.entries(snapshot);
+  const limitedProperties =
+    extendedType === "account"
+      ? properties
+          .slice(0, limit)
+          .filter(
+            ([key]) =>
+              !key.startsWith("key_z") &&
+              !key.startsWith("sealer_z") &&
+              key !== "readKey",
+          )
+      : properties.slice(0, limit);
+
   return (
     <PreviewContainer>
       <PreviewGrid>
-        {Object.entries(snapshot)
-          .slice(0, limit)
-          .map(([key, value]) => (
-            <React.Fragment key={key}>
-              <Text strong>{key}: </Text>
-              <ValueRenderer compact json={value} />
-            </React.Fragment>
-          ))}
+        {limitedProperties.map(([key, value]) => (
+          <React.Fragment key={key}>
+            <Text strong>{key}: </Text>
+            <ValueRenderer compact json={value} />
+          </React.Fragment>
+        ))}
       </PreviewGrid>
-      {Object.entries(snapshot).length > limit && (
+      {properties.length > limit && (
         <PreviewMoreText muted small>
-          {Object.entries(snapshot).length - limit} more
+          {properties.length - limit} more
         </PreviewMoreText>
       )}
     </PreviewContainer>
