@@ -4,6 +4,7 @@ import React from "react";
 import { Badge } from "../ui/badge.js";
 import { Heading } from "../ui/heading.js";
 import { Text } from "../ui/text.js";
+import { AccountOrGroupText } from "./account-or-group-text.js";
 import { CoStreamView } from "./co-stream-view.js";
 import { GridView } from "./grid-view.js";
 import { GroupView } from "./group-view.js";
@@ -12,7 +13,6 @@ import { TableView } from "./table-viewer.js";
 import { TypeIcon } from "./type-icon.js";
 import { PageInfo } from "./types.js";
 import { resolveCoValue, useResolvedCoValue } from "./use-resolve-covalue.js";
-import { AccountOrGroupPreview } from "./value-renderer.js";
 
 interface PageContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   isTopLevel?: boolean;
@@ -177,7 +177,7 @@ export function Page(props: PageProps) {
             <RoleDisplay node={node} value={value} />
             <Text muted>
               Owned by{" "}
-              <AccountOrGroupPreview
+              <AccountOrGroupText
                 coId={value.group.id}
                 node={node}
                 showId
