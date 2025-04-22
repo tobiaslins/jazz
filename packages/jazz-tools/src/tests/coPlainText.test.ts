@@ -49,6 +49,24 @@ describe("CoPlainText", () => {
         text.deleteRange({ from: 3, to: 8 });
         expect(text + "").toEqual("helrld");
       });
+
+      test("applyDiff", () => {
+        const text = CoPlainText.create("hello world", { owner: me });
+        text.applyDiff("hello cruel world");
+        expect(text.toString()).toEqual("hello cruel world");
+      });
+    });
+
+    describe("Properties", () => {
+      test("length", () => {
+        const text = CoPlainText.create("hello world", { owner: me });
+        expect(text.length).toBe(11);
+      });
+
+      test("toString", () => {
+        const text = CoPlainText.create("hello world", { owner: me });
+        expect(text.toString()).toBe("hello world");
+      });
     });
 
     describe("Position operations", () => {

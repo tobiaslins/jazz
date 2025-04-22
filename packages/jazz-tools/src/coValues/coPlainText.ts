@@ -46,7 +46,7 @@ export class CoPlainText extends String implements CoValue {
       | { fromRaw: RawCoPlainText }
       | { text: string; owner: Account | Group },
   ) {
-    super();
+    super("fromRaw" in options ? options.fromRaw.toString() : options.text);
 
     let raw;
 
