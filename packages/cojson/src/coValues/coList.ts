@@ -322,6 +322,7 @@ export class RawCoListView<
         });
       }
 
+      // traverse successors in reverse for correct insertion behavior
       for (const successor of entry.successors) {
         list.prepend(successor);
       }
