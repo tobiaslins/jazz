@@ -539,18 +539,7 @@ export class SyncManager {
      * we have the coValue while we don't.
      */
     if (entry.state.type !== "available" && !msg.header) {
-      const result = await Promise.race([
-        this.local.loadCoValueCore(msg.id, peer.id),
-        new Promise((resolve) =>
-          setTimeout(() => resolve(new Error("timeout")), 30_000),
-        ), // 60 seconds timeout
-      ]);
-
-      if (result instanceof Error) {
-        logger.error("Timeout reached loading coValue in handleNewContent", {
-          err: result,
-        });
-      }
+      await this.local.loadCoValueCore(msg.id, peer.id);
     }
 
     if (entry.state.type !== "available") {
