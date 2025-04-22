@@ -323,22 +323,7 @@ export class SyncManager {
       }
 
       // Wait for the previous peer to finish processing the incoming messages
-      const result = await Promise.race([
-        prevPeer.incomingMessagesProcessingPromise,
-        new Promise((resolve) =>
-          setTimeout(() => resolve(new Error("timeout")), 60_000),
-        ), // 60 seconds timeout
-      ]);
-
-      if (result instanceof Error) {
-        logger.error(
-          "Timeout waiting for previous peer to finish processing messages",
-          {
-            peerId: prevPeer.id,
-            peerRole: prevPeer.role,
-          },
-        );
-      }
+      await prevPeer.incomingMessagesProcessingPromise?.catch((e) => {});
 
       // If another peer was added in the meantime, we close this peer
       if (prevPeer.nextPeer !== peer) {
