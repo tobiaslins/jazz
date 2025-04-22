@@ -17,13 +17,7 @@ JAZZ_WORKER_SECRET=sealerSecret_z3Tcq41gtELJRHk3SzQutR2DhkpvEScQQP8DG8yeSh7zJ/si
 
 This should be enough the setup everything
 
-We can then start the dealer worker:
-
-```bash
-pnpm dev:worker
-```
-
-and the client:
+Then run pnpm dev to start both the local build and the worker
 
 ```bash
 pnpm dev
