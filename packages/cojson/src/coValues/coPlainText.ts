@@ -123,6 +123,6 @@ export class RawCoPlainText<
     }
     this.core.makeTransaction(ops, privacy);
 
-    this.rebuildFromCore();
+    this.processNewTransactions();
   }
 }
