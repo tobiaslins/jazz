@@ -1,6 +1,7 @@
+import { recreateTransform } from "@manuscripts/prosemirror-recreate-steps";
 import { CoRichText } from "jazz-tools";
 import { Slice } from "prosemirror-model";
-import { Transaction } from "prosemirror-state";
+import { TextSelection, Transaction } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { htmlToProseMirror, proseMirrorToHtml } from "./converter.js";
 
@@ -50,11 +51,16 @@ export function createSyncHandlers(coRichText: CoRichText | undefined) {
     if (!view || !newText) return;
 
     const pmDoc = htmlToProseMirror(newText.toString());
-    const tr = view.state.tr.replace(
-      0,
-      view.state.doc.content.size,
-      new Slice(pmDoc.content, 0, 0),
-    );
+    const transform = recreateTransform(view.state.doc, pmDoc);
+
+    // Create a new transaction
+    const tr = view.state.tr;
+
+    // Apply all steps from the transform to the transaction
+    transform.steps.forEach((step) => {
+      tr.step(step);
+    });
+
     tr.setMeta(META_KEY, true);
     view.dispatch(tr);
   }

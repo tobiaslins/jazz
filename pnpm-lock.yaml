@@ -2323,6 +2323,9 @@ importers:
 
   packages/jazz-richtext-prosemirror:
     dependencies:
+      '@manuscripts/prosemirror-recreate-steps':
+        specifier: ^0.1.4
+        version: 0.1.4
       jazz-browser:
         specifier: workspace:*
         version: link:../jazz-browser
@@ -4573,6 +4576,9 @@ packages:
     resolution: {integrity: sha512-f5DRIOZf7wxogefH03RjMPMdBF7ADTWUMoOs9kaJo06EfwF+aFhMZMDZxHg/Xe12hptN9xoZjGso2fdjapBRIA==}
     engines: {node: '>=10'}
 
+  '@manuscripts/prosemirror-recreate-steps@0.1.4':
+    resolution: {integrity: sha512-z3/PGcWB3SbOzhUkiZKAAMeWVz3jR1uacUXuYfJfSE+XgTUCtxB/xnbmx7SpTvtBEtw9EFXomTqjoG6DGlC2nQ==}
+
   '@manypkg/find-root@1.1.0':
     resolution: {integrity: sha512-mki5uBvhHzO8kYYix/WRy2WX8S3B5wdVSc9D6KcU5lQNglP2yt58/VfLuAK49glRXChosY8ap2oJ1qgma3GUVA==}
 
@@ -6186,6 +6192,26 @@ packages:
   '@types/prop-types@15.7.14':
     resolution: {integrity: sha512-gNMvNH49DJ7OJYv+KAKn0Xp45p8PLl6zo2YnvDIbTd4J6MER2BmWN49TG7n9LvkyihINxeKW8+3bfS2yDC9dzQ==}
 
+  '@types/prosemirror-model@1.17.0':
+    resolution: {integrity: sha512-lG5xEMkE8r8Soa80KdWPTbCLUaSHBHVHpTIEsQiebfONpvmS5061IMGzHUdb1oWjgrwh8EJq0GgMNwXHUx5mVg==}
+    deprecated: This is a stub types definition. prosemirror-model provides its own type definitions, so you do not need this installed.
+
+  '@types/prosemirror-schema-basic@1.2.0':
+    resolution: {integrity: sha512-WrQLRv3Ss48e2XBnocoZNMLw3xZwiW2cSjPvrZ/Ui6PicAMsabkb6EKTdLU0B52LuQjShNPtq0tFejrbLOMbpQ==}
+    deprecated: This is a stub types definition. prosemirror-schema-basic provides its own type definitions, so you do not need this installed.
+
+  '@types/prosemirror-schema-list@1.2.0':
+    resolution: {integrity: sha512-njvba73mgBanQOt2/piYMeP+nsu8lzomA350Lh7/sdr6NPsRvYPggwJDIZEG0Cb/MB0fnv4PdRaTi93PoLHArw==}
+    deprecated: This is a stub types definition. prosemirror-schema-list provides its own type definitions, so you do not need this installed.
+
+  '@types/prosemirror-state@1.4.0':
+    resolution: {integrity: sha512-71epLy1HD2H7Qn6iOoQrFdbdFP32Cg5U7OvlCXMuYO8ygUdz07dfqA1lNj1y+KLf3HkRCXVkfvi3OnNa/tFZ3A==}
+    deprecated: This is a stub types definition. prosemirror-state provides its own type definitions, so you do not need this installed.
+
+  '@types/prosemirror-transform@1.5.0':
+    resolution: {integrity: sha512-++krMS5bt3SxNOqjrftispPLRkvfXXw2BtVq4VPJ8Vpf+Sne1MhxVoj0EFCM+14MFlX0EHYQvX3k9AaQzob9ZQ==}
+    deprecated: This is a stub types definition. prosemirror-transform provides its own type definitions, so you do not need this installed.
+
   '@types/qrcode@1.5.5':
     resolution: {integrity: sha512-CdfBi/e3Qk+3Z/fXYShipBT13OJ2fDO2Q2w5CIP5anLTLIndQG9z6P1cnm+8zCWSpm5dnxMFd/uREtb0EXuQzg==}
 
@@ -7784,6 +7810,10 @@ packages:
   diff-sequences@29.6.3:
     resolution: {integrity: sha512-EjePK1srD3P08o2j4f0ExnylqRs5B9tJjcp9t1krH2qRi8CCdsYfwe9JgSLurFBWwq4uOlipzfk5fHNvwFKr8Q==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
+
+  diff@3.5.0:
+    resolution: {integrity: sha512-A46qtFgd+g7pDZinpnwiRJtxbC1hpgf0uzP3iG89scHk0AUC7A1TGxf5OiiOUv/JMZR8GOt8hL900hV0bOy5xA==}
+    engines: {node: '>=0.3.1'}
 
   diff@4.0.2:
     resolution: {integrity: sha512-58lmxKSA4BNyLz+HHMUzlOEpg09FV+ev6ZMe3vJihgdxzgcwZ8VoEEPmALCZG9LmqfVoNMMKpttIYTVG6uDY7A==}
@@ -11159,6 +11189,9 @@ packages:
   prop-types@15.8.1:
     resolution: {integrity: sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==}
 
+  prosemirror-changeset@1.2.1:
+    resolution: {integrity: sha512-qqwG1z8z+KkM3PZWmANYhqvoZdstFmzfkr7FPJ6suBwKs/UvZbvnRvDBvJC5eDbXbE7MhIGO+LY1Dq29zBAbIw==}
+
   prosemirror-commands@1.7.1:
     resolution: {integrity: sha512-rT7qZnQtx5c0/y/KlYaGvtG411S97UaL6gdp6RIZ23DLHanMYLyfGBV5DtSnZdthQql7W+lEVbpSfwtO8T+L2w==}
 
@@ -11724,6 +11757,9 @@ packages:
   reusify@1.0.4:
     resolution: {integrity: sha512-U9nH88a3fc/ekCF1l0/UP1IosiuIjyTh7hBvXVMHYgVcfGvt897Xguj2UOLDeI5BG2m7/uwyaLVT6fbtCwTyzw==}
     engines: {iojs: '>=1.0.0', node: '>=0.10.0'}
+
+  rfc6902@3.1.1:
+    resolution: {integrity: sha512-aHiEm2S4mQSyyIaK7NVotfmVkgOOn1K9iuuSCIKJ8eIAte/8o06Vp06Z2NcLrmMahDmA+2F6oHx33P4NOQ1JnQ==}
 
   rfdc@1.4.1:
     resolution: {integrity: sha512-q1b3N5QkRUWUl7iyylaaj3kOpIT0N2i9MqIEQXP73GVsN9cw3fdx8X63cEmWhJGi2PPCF23Ijp7ktmd39rawIA==}
@@ -16578,6 +16614,24 @@ snapshots:
       string-argv: 0.3.2
       type-detect: 4.1.0
 
+  '@manuscripts/prosemirror-recreate-steps@0.1.4':
+    dependencies:
+      '@types/prosemirror-model': 1.17.0
+      '@types/prosemirror-schema-basic': 1.2.0
+      '@types/prosemirror-schema-list': 1.2.0
+      '@types/prosemirror-state': 1.4.0
+      '@types/prosemirror-transform': 1.5.0
+      diff: 3.5.0
+      prosemirror-changeset: 1.2.1
+      prosemirror-example-setup: 1.2.3
+      prosemirror-model: 1.25.1
+      prosemirror-schema-basic: 1.2.4
+      prosemirror-schema-list: 1.5.1
+      prosemirror-state: 1.4.3
+      prosemirror-transform: 1.10.4
+      prosemirror-view: 1.39.2
+      rfc6902: 3.1.1
+
   '@manypkg/find-root@1.1.0':
     dependencies:
       '@babel/runtime': 7.26.0
@@ -18659,6 +18713,26 @@ snapshots:
 
   '@types/prop-types@15.7.14': {}
 
+  '@types/prosemirror-model@1.17.0':
+    dependencies:
+      prosemirror-model: 1.25.1
+
+  '@types/prosemirror-schema-basic@1.2.0':
+    dependencies:
+      prosemirror-schema-basic: 1.2.4
+
+  '@types/prosemirror-schema-list@1.2.0':
+    dependencies:
+      prosemirror-schema-list: 1.5.1
+
+  '@types/prosemirror-state@1.4.0':
+    dependencies:
+      prosemirror-state: 1.4.3
+
+  '@types/prosemirror-transform@1.5.0':
+    dependencies:
+      prosemirror-transform: 1.10.4
+
   '@types/qrcode@1.5.5':
     dependencies:
       '@types/node': 22.10.2
@@ -20633,6 +20707,8 @@ snapshots:
 
   diff-sequences@29.6.3:
     optional: true
+
+  diff@3.5.0: {}
 
   diff@4.0.2:
     optional: true
@@ -24667,6 +24743,10 @@ snapshots:
       object-assign: 4.1.1
       react-is: 16.13.1
 
+  prosemirror-changeset@1.2.1:
+    dependencies:
+      prosemirror-transform: 1.10.4
+
   prosemirror-commands@1.7.1:
     dependencies:
       prosemirror-model: 1.25.1
@@ -25530,6 +25610,8 @@ snapshots:
       signal-exit: 3.0.7
 
   reusify@1.0.4: {}
+
+  rfc6902@3.1.1: {}
 
   rfdc@1.4.1: {}
 

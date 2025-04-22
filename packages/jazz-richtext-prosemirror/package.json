@@ -16,6 +16,7 @@
   "author": "Garden Computing, Inc.",
   "license": "MIT",
   "dependencies": {
+    "@manuscripts/prosemirror-recreate-steps": "^0.1.4",
     "jazz-browser": "workspace:*",
     "jazz-tools": "workspace:*",
     "prosemirror-example-setup": "^1.2.2",
