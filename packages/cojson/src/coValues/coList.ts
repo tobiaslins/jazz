@@ -315,35 +315,36 @@ export class RawCoListView<
         throw new Error("Missing op " + currentOpID);
       }
 
-      if (
-        entry.predecessors.length > 0 &&
-        !predecessorsVisited.has(currentOpID)
-      ) {
+      const shouldTraversePredecessors =
+        entry.predecessors.length > 0 && !predecessorsVisited.has(currentOpID);
+
+      // We navigate the predecessors before processing the current opID in the list
+      if (shouldTraversePredecessors) {
         for (let i = entry.predecessors.length - 1; i >= 0; i--) {
           list.prepend(entry.predecessors[i]!);
         }
         predecessorsVisited.add(currentOpID);
-        continue;
-      }
+      } else {
+        // Remove the current opID from the linked list to consider it processed.
+        list.shift();
 
-      // Remove the current opID from the linked list to consider it processed.
-      list.shift();
+        const deleted =
+          (this.deletionsByInsertion[currentOpID.sessionID]?.[
+            currentOpID.txIndex
+          ]?.[currentOpID.changeIdx]?.length || 0) > 0;
 
-      const deleted =
-        (this.deletionsByInsertion[currentOpID.sessionID]?.[
-          currentOpID.txIndex
-        ]?.[currentOpID.changeIdx]?.length || 0) > 0;
+        if (!deleted) {
+          arr.push({
+            value: entry.value,
+            madeAt: entry.madeAt,
+            opID: currentOpID,
+          });
+        }
 
-      if (!deleted) {
-        arr.push({
-          value: entry.value,
-          madeAt: entry.madeAt,
-          opID: currentOpID,
-        });
-      }
-
-      for (const successor of entry.successors) {
-        list.prepend(successor);
+        // traverse successors in reverse for correct insertion behavior
+        for (const successor of entry.successors) {
+          list.prepend(successor);
+        }
       }
     }
   }
