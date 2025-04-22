@@ -126,6 +126,11 @@ export class CoPlainText extends String implements CoValue {
     return new this({ fromRaw: raw });
   }
 
+  /**
+   * Apply text, modifying the text in place. Calculates the diff and applies it to the CoValue.
+   *
+   * @category Mutation
+   */
   applyDiff(other: string) {
     const current = this._raw.toString();
     for (const [from, to, insert] of [...calcPatch(current, other)].reverse()) {
