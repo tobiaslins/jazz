@@ -279,30 +279,52 @@ export class RawCoListView<
       opID: OpID;
     }[],
   ) {
-    const entry =
-      this.insertions[opID.sessionID]?.[opID.txIndex]?.[opID.changeIdx];
+    const list = new LinkedList(opID);
+    const predecessorsVisited = new Set<OpID>();
 
-    if (!entry) {
-      throw new Error("Missing op " + opID);
-    }
-    for (const predecessor of entry.predecessors) {
-      this.fillArrayFromOpID(predecessor, arr);
-    }
-    const deleted =
-      (this.deletionsByInsertion[opID.sessionID]?.[opID.txIndex]?.[
-        opID.changeIdx
-      ]?.length || 0) > 0;
-    if (!deleted) {
-      arr.push({
-        value: entry.value,
-        madeAt: entry.madeAt,
-        opID,
-      });
-    }
-    // traverse successors in reverse for correct insertion behavior
-    for (let i = entry.successors.length - 1; i >= 0; i--) {
-      const successor = entry.successors[i]!;
-      this.fillArrayFromOpID(successor, arr);
+    while (!list.isEmpty()) {
+      const head = list.getCurrentHead();
+      const currentOpID = head.value;
+
+      const entry =
+        this.insertions[currentOpID.sessionID]?.[currentOpID.txIndex]?.[
+          currentOpID.changeIdx
+        ];
+
+      if (!entry) {
+        throw new Error("Missing op " + currentOpID);
+      }
+
+      if (
+        entry.predecessors.length > 0 &&
+        !predecessorsVisited.has(currentOpID)
+      ) {
+        for (let i = entry.predecessors.length - 1; i >= 0; i--) {
+          list.prepend(entry.predecessors[i]!);
+        }
+        predecessorsVisited.add(currentOpID);
+        continue;
+      }
+
+      // Remove the current opID from the linked list to consider it processed.
+      list.shift();
+
+      const deleted =
+        (this.deletionsByInsertion[currentOpID.sessionID]?.[
+          currentOpID.txIndex
+        ]?.[currentOpID.changeIdx]?.length || 0) > 0;
+
+      if (!deleted) {
+        arr.push({
+          value: entry.value,
+          madeAt: entry.madeAt,
+          opID: currentOpID,
+        });
+      }
+
+      for (const successor of entry.successors) {
+        list.prepend(successor);
+      }
     }
   }
 
@@ -566,3 +588,62 @@ export class RawCoList<
     this._cachedEntries = undefined;
   }
 }
+
+/** @internal */
+class LinkedList<T> {
+  head: LinkedListNode<T> | null = null;
+  tail: LinkedListNode<T> | null = null;
+
+  constructor(value: T | null = null) {
+    if (value) {
+      this.head = { value, next: null };
+      this.tail = this.head;
+    }
+  }
+
+  getCurrentHead() {
+    if (!this.head) {
+      throw new Error("Linked list is empty");
+    }
+
+    return this.head;
+  }
+
+  prepend(value: T) {
+    const newNode = { value, next: this.head };
+    this.head = newNode;
+    if (!this.tail) {
+      this.tail = newNode;
+    }
+  }
+
+  append(value: T) {
+    const newNode = { value, next: null };
+    if (!this.head) {
+      this.head = newNode;
+      this.tail = newNode;
+    } else {
+      this.tail!.next = newNode;
+      this.tail = newNode;
+    }
+  }
+
+  shift(): T | null {
+    if (!this.head) return null;
+    const value = this.head.value;
+    this.head = this.head.next;
+    if (!this.head) {
+      this.tail = null;
+    }
+    return value;
+  }
+
+  isEmpty(): boolean {
+    return this.head === null;
+  }
+}
+
+type LinkedListNode<T> = {
+  value: T;
+  next: LinkedListNode<T> | null;
+};
