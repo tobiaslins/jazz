@@ -1,7 +1,6 @@
 import { recreateTransform } from "@manuscripts/prosemirror-recreate-steps";
 import { CoRichText } from "jazz-tools";
-import { Slice } from "prosemirror-model";
-import { TextSelection, Transaction } from "prosemirror-state";
+import { Transaction } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { htmlToProseMirror, proseMirrorToHtml } from "./converter.js";
 
