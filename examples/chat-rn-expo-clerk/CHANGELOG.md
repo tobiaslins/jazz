@@ -1,5 +1,11 @@
 # chat-rn-expo-clerk
 
+## 1.0.100
+
+### Patch Changes
+
+- jazz-expo@0.13.8
+
 ## 1.0.99
 
 ### Patch Changes
