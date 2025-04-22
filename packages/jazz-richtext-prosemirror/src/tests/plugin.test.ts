@@ -1,7 +1,7 @@
 import { Account, CoRichText } from "jazz-tools";
 import { createJazzTestAccount, setupJazzTestSync } from "jazz-tools/testing";
 import { schema } from "prosemirror-schema-basic";
-import { EditorState } from "prosemirror-state";
+import { EditorState, TextSelection } from "prosemirror-state";
 import { Plugin } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -102,5 +102,24 @@ describe("createJazzPlugin", () => {
 
     // Verify CoRichText was NOT updated (to prevent infinite loop)
     expect(coRichText.toString()).not.toContain("Loop");
+  });
+
+  it("preserves selection when CoRichText changes", () => {
+    // Set a selection in the editor
+    const tr = view.state.tr.setSelection(
+      TextSelection.create(view.state.doc, 2, 5),
+    );
+    view.dispatch(tr);
+
+    // Verify initial selection is set
+    expect(view.state.selection.from).toBe(2);
+    expect(view.state.selection.to).toBe(5);
+
+    // Update CoRichText content
+    coRichText.applyDiff("<p>Updated content</p>");
+
+    // Verify selection is preserved after content update
+    expect(view.state.selection.from).toBe(2);
+    expect(view.state.selection.to).toBe(5);
   });
 });
