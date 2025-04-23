@@ -273,6 +273,10 @@ export class LocalNode {
       const peers =
         this.syncManager.getServerAndStoragePeers(skipLoadingFromPeer);
 
+      if (peers.length === 0) {
+        return "unavailable";
+      }
+
       await entry.loadFromPeers(peers).catch((e) => {
         logger.error("Error loading from peers", {
           id,
