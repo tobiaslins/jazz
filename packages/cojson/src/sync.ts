@@ -155,7 +155,10 @@ export class SyncManager {
 
   getServerAndStoragePeers(excludePeerId?: PeerID): PeerState[] {
     return this.peersInPriorityOrder().filter(
-      (peer) => peer.isServerOrStoragePeer() && peer.id !== excludePeerId,
+      (peer) =>
+        peer.isServerOrStoragePeer() &&
+        peer.id !== excludePeerId &&
+        !peer.closed,
     );
   }
 
