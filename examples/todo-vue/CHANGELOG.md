@@ -1,5 +1,13 @@
 # todo-vue
 
+## 0.0.82
+
+### Patch Changes
+
+- jazz-browser@0.13.13
+- jazz-tools@0.13.13
+- jazz-vue@0.13.13
+
 ## 0.0.81
 
 ### Patch Changes

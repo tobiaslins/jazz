@@ -1,5 +1,13 @@
 # richtext
 
+## 0.0.68
+
+### Patch Changes
+
+- jazz-react@0.13.13
+- jazz-tools@0.13.13
+- jazz-richtext-prosemirror@0.1.2
+
 ## 0.0.67
 
 ### Patch Changes
