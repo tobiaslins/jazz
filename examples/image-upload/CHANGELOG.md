@@ -1,5 +1,12 @@
 # image-upload
 
+## 0.0.75
+
+### Patch Changes
+
+- jazz-react@0.13.10
+- jazz-tools@0.13.10
+
 ## 0.0.74
 
 ### Patch Changes

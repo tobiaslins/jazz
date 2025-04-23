@@ -1,5 +1,15 @@
 # jazz-browser
 
+## 0.13.10
+
+### Patch Changes
+
+- Updated dependencies [f837cfe]
+  - cojson@0.13.10
+  - cojson-storage-indexeddb@0.13.10
+  - cojson-transport-ws@0.13.10
+  - jazz-tools@0.13.10
+
 ## 0.13.9
 
 ### Patch Changes

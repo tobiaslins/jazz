@@ -1,5 +1,11 @@
 # cojson
 
+## 0.13.10
+
+### Patch Changes
+
+- f837cfe: Fix fatal errors happening when loading a CoValueCore without having the dependencies
+
 ## 0.13.7
 
 ### Patch Changes

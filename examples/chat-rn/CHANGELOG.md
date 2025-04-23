@@ -1,5 +1,15 @@
 # chat-rn
 
+## 1.0.97
+
+### Patch Changes
+
+- Updated dependencies [f837cfe]
+  - cojson@0.13.10
+  - cojson-transport-ws@0.13.10
+  - jazz-react-native@0.13.10
+  - jazz-tools@0.13.10
+
 ## 1.0.96
 
 ### Patch Changes
