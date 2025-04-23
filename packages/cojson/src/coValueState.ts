@@ -154,23 +154,6 @@ export class CoValueState {
             });
           });
 
-        const waitingForPeer = new Promise<void>((resolve) => {
-          const listener = (state: CoValueState) => {
-            const peerState = state.peers.get(peer.id);
-            if (
-              state.isAvailable() || // might have become available from another peer (how?)
-              peerState?.type === "available" ||
-              peerState?.type === "errored" ||
-              peerState?.type === "unavailable"
-            ) {
-              resolve();
-              state.removeListener(listener);
-            }
-          };
-
-          this.addListener(listener);
-        });
-
         /**
          * Use a very long timeout for storage peers, because under pressure
          * they may take a long time to consume the messages queue
@@ -182,15 +165,35 @@ export class CoValueState {
             ? CO_VALUE_LOADING_CONFIG.TIMEOUT * 10
             : CO_VALUE_LOADING_CONFIG.TIMEOUT;
 
-        const giveUp = async () => {
-          await sleep(timeoutDuration);
+        const waitingForPeer = new Promise<void>((resolve) => {
+          const markNotFound = () => {
+            if (this.peers.get(peer.id)?.type === "pending") {
+              this.markNotFoundInPeer(peer.id);
+            }
+          };
 
-          if (this.peers.get(peer.id)?.type === "pending") {
-            this.markNotFoundInPeer(peer.id);
-          }
-        };
+          const timeout = setTimeout(markNotFound, timeoutDuration);
+          const removeCloseListener = peer.addCloseListener(markNotFound);
 
-        await Promise.race([waitingForPeer, giveUp()]);
+          const listener = (state: CoValueState) => {
+            const peerState = state.peers.get(peer.id);
+            if (
+              state.isAvailable() || // might have become available from another peer e.g. through handleNewContent
+              peerState?.type === "available" ||
+              peerState?.type === "errored" ||
+              peerState?.type === "unavailable"
+            ) {
+              state.removeListener(listener);
+              removeCloseListener();
+              clearTimeout(timeout);
+              resolve();
+            }
+          };
+
+          this.addListener(listener);
+        });
+
+        await waitingForPeer;
       }
     };
 
