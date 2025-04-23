@@ -1,5 +1,14 @@
 # jazz-browser-media-images
 
+## 0.13.12
+
+### Patch Changes
+
+- Updated dependencies [4547525]
+- Updated dependencies [29e05c4]
+  - jazz-tools@0.13.12
+  - jazz-browser@0.13.12
+
 ## 0.13.11
 
 ### Patch Changes

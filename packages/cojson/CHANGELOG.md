@@ -1,5 +1,11 @@
 # cojson
 
+## 0.13.12
+
+### Patch Changes
+
+- 65719f2: Simplified CoValue loading state management
+
 ## 0.13.11
 
 ### Patch Changes
