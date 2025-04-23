@@ -1,6 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { fontClasses } from "@garden-co/design-system/src/fonts.js";
+import { fontClasses } from "@garden-co/design-system/src/fonts";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { JazzFooter } from "@/components/footer";
 import { marketingCopy } from "@/content/marketingCopy";

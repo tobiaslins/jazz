@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { fontClasses } from "../fonts.js";
+import { fontClasses } from "../fonts";
 
 export const metadata: Metadata = {
   title: "Jazz Design System by Garden Computing, Inc",

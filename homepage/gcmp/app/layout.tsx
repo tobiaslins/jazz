@@ -1,7 +1,7 @@
 import { ThemeProvider } from "@/components/ThemeProvider";
 import type { Metadata } from "next";
 import "./globals.css";
-import { fontClasses } from "@garden-co/design-system/src/fonts.js";
+import { fontClasses } from "@garden-co/design-system/src/fonts";
 
 import { GcmpNav } from "@/components/Nav";
 import { ThemeToggle } from "@/components/ThemeToggle";
