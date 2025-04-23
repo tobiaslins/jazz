@@ -279,12 +279,11 @@ export class RawCoListView<
       opID: OpID;
     }[],
   ) {
-    const list = new LinkedList(opID);
+    const todo = [opID]; // a stack with the next item to do at the end
     const predecessorsVisited = new Set<OpID>();
 
-    while (!list.isEmpty()) {
-      const head = list.getCurrentHead();
-      const currentOpID = head.value;
+    while (todo.length > 0) {
+      const currentOpID = todo[todo.length - 1]!;
 
       const entry =
         this.insertions[currentOpID.sessionID]?.[currentOpID.txIndex]?.[
@@ -301,12 +300,12 @@ export class RawCoListView<
       // We navigate the predecessors before processing the current opID in the list
       if (shouldTraversePredecessors) {
         for (let i = entry.predecessors.length - 1; i >= 0; i--) {
-          list.prepend(entry.predecessors[i]!);
+          todo.push(entry.predecessors[i]!);
         }
         predecessorsVisited.add(currentOpID);
       } else {
         // Remove the current opID from the linked list to consider it processed.
-        list.shift();
+        todo.pop();
 
         const deleted =
           (this.deletionsByInsertion[currentOpID.sessionID]?.[
@@ -323,7 +322,7 @@ export class RawCoListView<
 
         // traverse successors in reverse for correct insertion behavior
         for (const successor of entry.successors) {
-          list.prepend(successor);
+          todo.push(successor);
         }
       }
     }
@@ -589,62 +588,3 @@ export class RawCoList<
     this._cachedEntries = undefined;
   }
 }
-
-/** @internal */
-class LinkedList<T> {
-  head: LinkedListNode<T> | null = null;
-  tail: LinkedListNode<T> | null = null;
-
-  constructor(value: T | null = null) {
-    if (value) {
-      this.head = { value, next: null };
-      this.tail = this.head;
-    }
-  }
-
-  getCurrentHead() {
-    if (!this.head) {
-      throw new Error("Linked list is empty");
-    }
-
-    return this.head;
-  }
-
-  prepend(value: T) {
-    const newNode = { value, next: this.head };
-    this.head = newNode;
-    if (!this.tail) {
-      this.tail = newNode;
-    }
-  }
-
-  append(value: T) {
-    const newNode = { value, next: null };
-    if (!this.head) {
-      this.head = newNode;
-      this.tail = newNode;
-    } else {
-      this.tail!.next = newNode;
-      this.tail = newNode;
-    }
-  }
-
-  shift(): T | null {
-    if (!this.head) return null;
-    const value = this.head.value;
-    this.head = this.head.next;
-    if (!this.head) {
-      this.tail = null;
-    }
-    return value;
-  }
-
-  isEmpty(): boolean {
-    return this.head === null;
-  }
-}
-
-type LinkedListNode<T> = {
-  value: T;
-  next: LinkedListNode<T> | null;
-};
