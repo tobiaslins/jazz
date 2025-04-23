@@ -188,10 +188,13 @@ describe("sync protocol", () => {
     map.set("fromServer", "updated", "trusting");
 
     await waitFor(() => {
-      const coValue = expectMap(
-        client.expectCoValueLoaded(map.id).getCurrentContent(),
-      );
-      expect(coValue.get("fromServer")).toEqual("updated");
+      try {
+        const coValue = client.expectCoValueLoaded(map.id).getCurrentContent();
+        expect(expectMap(coValue).get("fromServer")).toEqual("updated");
+      } catch (e) {
+        console.log(e);
+        throw e;
+      }
     });
 
     expect(

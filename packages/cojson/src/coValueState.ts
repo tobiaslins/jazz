@@ -102,6 +102,10 @@ export class CoValueState {
   }
 
   async loadFromPeers(peers: PeerState[]) {
+    if (peers.length === 0) {
+      return;
+    }
+
     const loadAttempt = async (peersToLoadFrom: PeerState[]) => {
       const peersToActuallyLoadFrom = [];
       for (const peer of peersToLoadFrom) {
