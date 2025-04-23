@@ -5,6 +5,14 @@ import { htmlToProseMirror } from "./converter.js";
 import { createSyncHandlers } from "./sync.js";
 
 /**
+ * Configuration options for the Jazz plugin
+ */
+export interface JazzPluginConfig {
+  /** Whether to show caret and selection decorations */
+  showDecorations?: boolean;
+}
+
+/**
  * Unique key for the Jazz plugin to identify it in the ProseMirror state.
  * This key is used to access the plugin's state and view from the editor.
  */
@@ -22,19 +30,23 @@ export const jazzPluginKey = new PluginKey("jazz");
  *
  * @param coRichText - The CoRichText instance to synchronize with the editor.
  *                     If undefined, the plugin will still work but won't sync with CoRichText.
+ * @param config - Optional configuration for the plugin
  * @returns A ProseMirror plugin instance that can be added to an editor
  *
  * @example
  * ```typescript
  * const coRichText = new CoRichText({ text: "<p>Hello</p>", owner: account });
- * const plugin = createJazzPlugin(coRichText);
+ * const plugin = createJazzPlugin(coRichText, { showDecorations: true });
  * const state = EditorState.create({
  *   schema,
  *   plugins: [plugin],
  * });
  * ```
  */
-export function createJazzPlugin(coRichText: CoRichText | undefined) {
+export function createJazzPlugin(
+  coRichText: CoRichText | undefined,
+  config: JazzPluginConfig = {},
+) {
   const { setView, handleCoRichTextChange, handleProseMirrorChange } =
     createSyncHandlers(coRichText);
 
@@ -72,6 +84,10 @@ export function createJazzPlugin(coRichText: CoRichText | undefined) {
 
     props: {
       decorations(state) {
+        if (!config.showDecorations) {
+          return null;
+        }
+
         const selection = state.selection;
 
         if (selection.empty) {
