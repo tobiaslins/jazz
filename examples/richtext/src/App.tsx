@@ -1,6 +1,6 @@
 import { useAccount, useIsAuthenticated } from "jazz-react";
 import { AuthButton } from "./AuthButton.tsx";
-import { Form } from "./Form.tsx";
+import { Editor } from "./Editor.tsx";
 import { Logo } from "./Logo.tsx";
 
 function App() {
@@ -30,7 +30,7 @@ function App() {
           </h1>
         </div>
 
-        <Form />
+        <Editor />
       </main>
     </>
   );
