@@ -304,7 +304,7 @@ export class RawCoListView<
         }
         predecessorsVisited.add(currentOpID);
       } else {
-        // Remove the current opID from the linked list to consider it processed.
+        // Remove the current opID from the todo stack to consider it processed.
         todo.pop();
 
         const deleted =
