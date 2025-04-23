@@ -1,5 +1,17 @@
 # jazz-browser
 
+## 0.13.12
+
+### Patch Changes
+
+- 29e05c4: Removed singleTabOPFS storage type
+- Updated dependencies [4547525]
+- Updated dependencies [65719f2]
+  - jazz-tools@0.13.12
+  - cojson@0.13.12
+  - cojson-storage-indexeddb@0.13.12
+  - cojson-transport-ws@0.13.12
+
 ## 0.13.11
 
 ### Patch Changes

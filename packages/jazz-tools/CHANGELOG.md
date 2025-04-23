@@ -1,5 +1,13 @@
 # jazz-tools
 
+## 0.13.12
+
+### Patch Changes
+
+- 4547525: Skip non-schema related keys when calling CoMap.toJSON
+- Updated dependencies [65719f2]
+  - cojson@0.13.12
+
 ## 0.13.11
 
 ### Patch Changes
