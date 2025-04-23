@@ -2,6 +2,12 @@ import { CoValueCore } from "../coValueCore.js";
 import { JsonObject } from "../jsonValue.js";
 import { DeletionOpPayload, OpID, RawCoList } from "./coList.js";
 
+declare const navigator:
+  | {
+      language: string;
+    }
+  | undefined;
+
 export type StringifiedOpID = string & { __stringifiedOpID: true };
 
 export function stringifyOpID(opID: OpID): StringifiedOpID {
