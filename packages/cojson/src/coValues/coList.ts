@@ -279,30 +279,52 @@ export class RawCoListView<
       opID: OpID;
     }[],
   ) {
-    const entry =
-      this.insertions[opID.sessionID]?.[opID.txIndex]?.[opID.changeIdx];
+    const todo = [opID]; // a stack with the next item to do at the end
+    const predecessorsVisited = new Set<OpID>();
 
-    if (!entry) {
-      throw new Error("Missing op " + opID);
-    }
-    for (const predecessor of entry.predecessors) {
-      this.fillArrayFromOpID(predecessor, arr);
-    }
-    const deleted =
-      (this.deletionsByInsertion[opID.sessionID]?.[opID.txIndex]?.[
-        opID.changeIdx
-      ]?.length || 0) > 0;
-    if (!deleted) {
-      arr.push({
-        value: entry.value,
-        madeAt: entry.madeAt,
-        opID,
-      });
-    }
-    // traverse successors in reverse for correct insertion behavior
-    for (let i = entry.successors.length - 1; i >= 0; i--) {
-      const successor = entry.successors[i]!;
-      this.fillArrayFromOpID(successor, arr);
+    while (todo.length > 0) {
+      const currentOpID = todo[todo.length - 1]!;
+
+      const entry =
+        this.insertions[currentOpID.sessionID]?.[currentOpID.txIndex]?.[
+          currentOpID.changeIdx
+        ];
+
+      if (!entry) {
+        throw new Error("Missing op " + currentOpID);
+      }
+
+      const shouldTraversePredecessors =
+        entry.predecessors.length > 0 && !predecessorsVisited.has(currentOpID);
+
+      // We navigate the predecessors before processing the current opID in the list
+      if (shouldTraversePredecessors) {
+        for (let i = entry.predecessors.length - 1; i >= 0; i--) {
+          todo.push(entry.predecessors[i]!);
+        }
+        predecessorsVisited.add(currentOpID);
+      } else {
+        // Remove the current opID from the todo stack to consider it processed.
+        todo.pop();
+
+        const deleted =
+          (this.deletionsByInsertion[currentOpID.sessionID]?.[
+            currentOpID.txIndex
+          ]?.[currentOpID.changeIdx]?.length || 0) > 0;
+
+        if (!deleted) {
+          arr.push({
+            value: entry.value,
+            madeAt: entry.madeAt,
+            opID: currentOpID,
+          });
+        }
+
+        // traverse successors in reverse for correct insertion behavior
+        for (const successor of entry.successors) {
+          todo.push(successor);
+        }
+      }
     }
   }
 
