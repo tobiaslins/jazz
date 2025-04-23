@@ -1,5 +1,11 @@
 # cojson
 
+## 0.13.13
+
+### Patch Changes
+
+- ec9cb40: Remove .every() call on iterator to fix compat issues with React Native
+
 ## 0.13.12
 
 ### Patch Changes

@@ -1,5 +1,12 @@
 # jazz-password-manager
 
+## 0.0.100
+
+### Patch Changes
+
+- jazz-react@0.13.13
+- jazz-tools@0.13.13
+
 ## 0.0.99
 
 ### Patch Changes
