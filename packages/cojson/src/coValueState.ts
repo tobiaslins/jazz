@@ -44,21 +44,19 @@ export class CoValueState {
   get highLevelState() {
     if (this.core) {
       return "available";
-    } else {
-      if (this.peers.size === 0) {
-        return "unknown";
-      } else if (
-        this.peers
-          .values()
-          .every((p) => p.type === "unavailable" || p.type === "errored")
-      ) {
-        return "unavailable";
-      } else if (this.peers.values().some((p) => p.type === "pending")) {
+    } else if (this.peers.size === 0) {
+      return "unknown";
+    }
+
+    for (const peer of this.peers.values()) {
+      if (peer.type === "pending") {
         return "loading";
-      } else {
+      } else if (peer.type === "unknown") {
         return "unknown";
       }
     }
+
+    return "unavailable";
   }
 
   isErroredInPeer(peerId: PeerID) {
