@@ -5,11 +5,11 @@ Integration between [ProseMirror](https://prosemirror.net/) and Jazz's collabora
 ## Installation
 
 ```bash
+pnpm add jazz-richtext-prosemirror prosemirror-view prosemirror-state prosemirror-schema-basic
+# or
 npm install jazz-richtext-prosemirror prosemirror-view prosemirror-state prosemirror-schema-basic
 # or
 yarn add jazz-richtext-prosemirror prosemirror-view prosemirror-state prosemirror-schema-basic
-# or
-pnpm install jazz-richtext-prosemirror prosemirror-view prosemirror-state prosemirror-schema-basic
 ```
 
 ## Features
