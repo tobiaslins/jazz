@@ -1,5 +1,14 @@
 # jazz-inspector
 
+## 0.13.10
+
+### Patch Changes
+
+- Updated dependencies [f837cfe]
+  - cojson@0.13.10
+  - jazz-react-core@0.13.10
+  - jazz-tools@0.13.10
+
 ## 0.13.9
 
 ### Patch Changes

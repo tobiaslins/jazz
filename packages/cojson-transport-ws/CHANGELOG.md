@@ -1,5 +1,12 @@
 # cojson-transport-nodejs-ws
 
+## 0.13.10
+
+### Patch Changes
+
+- Updated dependencies [f837cfe]
+  - cojson@0.13.10
+
 ## 0.13.7
 
 ### Patch Changes
