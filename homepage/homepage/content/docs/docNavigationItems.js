@@ -169,6 +169,11 @@ export const docNavigationItems = [
         done: 100,
       },
       {
+        name: "CoTexts",
+        href: "/docs/using-covalues/cotexts",
+        done: 100,
+      },
+      {
         name: "FileStreams",
         href: "/docs/using-covalues/filestreams",
         done: 80,
