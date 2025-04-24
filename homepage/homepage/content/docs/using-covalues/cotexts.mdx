@@ -31,6 +31,17 @@ console.log(note.toString());  // "Meeting notes for Tuesday"
 
 For a full example of CoTexts in action, see [our Richtext example app](https://github.com/garden-co/jazz/tree/main/examples/richtext), which shows plain text and rich text editing.
 
+## CoPlainText vs co.string
+
+While `co.string` is perfect for simple text fields that don't need collaboration, `CoPlainText` is the right choice when you need:
+
+- Multiple users editing the same text simultaneously
+- History tracking of text changes
+- Fine-grained control over text edits (inserting, deleting at specific positions)
+- Real-time updates across clients
+
+Think of `CoPlainText` as a collaborative upgrade to `co.string` fields.
+
 ## Creating CoText Values
 
 CoText values are typically used as fields in your schemas:
