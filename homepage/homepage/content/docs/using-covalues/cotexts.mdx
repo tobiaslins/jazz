@@ -11,7 +11,7 @@ Jazz provides two CoValue types for collaborative text editing, collectively ref
 
 Both types enable real-time collaborative editing of text content while maintaining consistency across multiple users.
 
-If you're looking for a quick way to add rich text editing to your app, check out [jazz-richtext-prosemirror](#using-rich-text-with-prosemirror).
+**Note:** If you're looking for a quick way to add rich text editing to your app, check out [jazz-richtext-prosemirror](#using-rich-text-with-prosemirror).
 
 <CodeGroup>
 ```ts twoslash
@@ -33,14 +33,14 @@ For a full example of CoTexts in action, see [our Richtext example app](https://
 
 ## CoPlainText vs co.string
 
-While `co.string` is perfect for simple text fields that don't need collaboration, `CoPlainText` is the right choice when you need:
+While `co.string` is perfect for simple text fields, `CoPlainText` is the right choice when you need:
 
 - Multiple users editing the same text simultaneously
-- History tracking of text changes
 - Fine-grained control over text edits (inserting, deleting at specific positions)
-- Real-time updates across clients
+- Character-by-character collaboration
+- Efficient merging of concurrent changes
 
-Think of `CoPlainText` as a collaborative upgrade to `co.string` fields.
+Both support real-time updates, but `CoPlainText` provides specialized tools for collaborative editing scenarios.
 
 ## Creating CoText Values
 
