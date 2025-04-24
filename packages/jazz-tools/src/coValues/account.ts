@@ -443,13 +443,13 @@ export const AccountAndGroupProxyHandler: ProxyHandler<Account | Group> = {
     if (key === "profile") {
       const ref = target._refs.profile;
       return ref
-        ? ref.accessFrom(receiver, "profile")
+        ? ref.accessFrom(receiver)
         : // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (undefined as any);
     } else if (key === "root") {
       const ref = target._refs.root;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return ref ? ref.accessFrom(receiver, "root") : (undefined as any);
+      return ref ? ref.accessFrom(receiver) : (undefined as any);
     } else {
       return Reflect.get(target, key, receiver);
     }

@@ -182,7 +182,7 @@ export class Group extends CoValueBase implements CoValue {
           this._loadedAs,
           refEncodedAccountSchema,
         );
-        const accessRef = () => ref.accessFrom(this, "members." + accountID);
+        const accessRef = () => ref.accessFrom(this);
 
         if (!ref.syncLoad()) {
           console.warn("Account not loaded", accountID);

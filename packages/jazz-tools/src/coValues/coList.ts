@@ -586,7 +586,7 @@ const CoListProxyHandler: ProxyHandler<CoList> = {
               rawValue as unknown as ID<CoValue>,
               target._loadedAs,
               itemDescriptor,
-            ).accessFrom(receiver, Number(key));
+            ).accessFrom(receiver);
       }
     } else if (key === "length") {
       return target._raw.entries().length;

@@ -14,8 +14,6 @@ import {
 } from "../internal.js";
 import { coValuesCache } from "../lib/cache.js";
 
-const TRACE_ACCESSES = false;
-
 export class Ref<out V extends CoValue> {
   constructor(
     readonly id: ID<V>,
@@ -119,12 +117,10 @@ export class Ref<out V extends CoValue> {
     }
   }
 
-  accessFrom(fromScopeValue: CoValue, key: string | number | symbol): V | null {
+  accessFrom(fromScopeValue: CoValue): V | null {
     const subScope = subscriptionsScopes.get(fromScopeValue);
 
     subScope?.onRefAccessedOrSet(fromScopeValue.id, this.id);
-    TRACE_ACCESSES &&
-      console.log(subScope?.scopeID, "accessing", fromScopeValue, key, this.id);
 
     if (this.value && subScope) {
       subscriptionsScopes.set(this.value, subScope);
@@ -133,14 +129,12 @@ export class Ref<out V extends CoValue> {
     if (subScope) {
       const cached = subScope.cachedValues[this.id];
       if (cached) {
-        TRACE_ACCESSES && console.log("cached", cached);
         return cached as V;
       } else if (this.value !== null) {
         const freshValueInstance = instantiateRefEncoded(
           this.schema,
           this.value._raw,
         );
-        TRACE_ACCESSES && console.log("freshValueInstance", freshValueInstance);
         subScope.cachedValues[this.id] = freshValueInstance;
         subscriptionsScopes.set(freshValueInstance, subScope);
         return freshValueInstance as V;

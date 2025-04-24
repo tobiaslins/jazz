@@ -440,7 +440,6 @@ function entryFromRawEntry<Item>(
       } else if (isRefEncoded(itemField)) {
         return this.ref?.accessFrom(
           accessFrom,
-          rawEntry.by + rawEntry.tx.sessionID + rawEntry.tx.txIndex + ".value",
         ) as NonNullable<Item> extends CoValue ? (CoValue & Item) | null : Item;
       } else {
         throw new Error("Invalid item field schema");
@@ -466,10 +465,7 @@ function entryFromRawEntry<Item>(
         new Ref<Account>(accountID as unknown as ID<Account>, loadedAs, {
           ref: RegisteredSchemas["Account"],
           optional: false,
-        })?.accessFrom(
-          accessFrom,
-          rawEntry.by + rawEntry.tx.sessionID + rawEntry.tx.txIndex + ".by",
-        )
+        })?.accessFrom(accessFrom)
       );
     },
     madeAt: rawEntry.at,
