@@ -13,6 +13,8 @@ Both types enable real-time collaborative editing of text content while maintain
 
 If you're looking for a quick way to add rich text editing to your app, check out [jazz-richtext-prosemirror](#using-rich-text-with-prosemirror).
 
+For an example use of CoTexts see [our Richtext example app](https://github.com/garden-co/jazz/tree/main/examples/richtext), which shows plain text and rich text editing in action.
+
 ## Creating CoText Values
 
 CoText values are typically used as fields in your schemas:
@@ -149,6 +151,7 @@ Under the hood, `applyDiff` uses a diff algorithm to:
 
 This approach is perfect for handling user input in form controls:
 
+<ContentByFramework framework="react">
 <CodeGroup>
 ```tsx twoslash
 import { CoPlainText, Account } from "jazz-tools";
@@ -172,71 +175,52 @@ function TextEditor() {
 }
 ```
 </CodeGroup>
+</ContentByFramework>
 
-## Integration
+<ContentByFramework framework={["vanilla", "vue"]}>
+<CodeGroup>
+```ts twoslash
+import { CoPlainText, Account } from "jazz-tools";
+import { createJazzTestAccount } from 'jazz-tools/testing';
+const me = await createJazzTestAccount();
 
-<ContentByFramework>
-```tsx react
-import { useAccount, useCoState } from "jazz-react";
-import { CoPlainText } from "jazz-tools";
-import React from "react";
+// ---cut---
+const note = CoPlainText.create("", { owner: me });
 
-// Using React with hooks
-function TextEditor() {
-  // Access the bio text from a user profile 
-  const { me } = useAccount({ resolve: { profile: true } });
-  const bioText = useCoState(CoPlainText, me?.profile.bio?.id);
-  
-  if (!bioText) return null;
-  
-  return (
-    <div className="flex flex-col">
-      <textarea
-        className="border rounded p-2 font-mono"
-        value={bioText.toString()}
-        onChange={(e) => bioText.applyDiff(e.target.value)}
-        rows={5}
-      />
-    </div>
-  );
-}
+// Create and set up the textarea
+const textarea = document.createElement('textarea');
+textarea.value = note.toString();
+
+// Add event listener for changes
+textarea.addEventListener('input', (e: Event) => {
+  const target = e.target as HTMLTextAreaElement;
+  // Efficiently update only what the user changed
+  note.applyDiff(target.value);
+});
+
+// Add the textarea to the document
+document.body.appendChild(textarea);
 ```
-```js vanilla
-import { CoPlainText } from "jazz-tools";
+</CodeGroup>
+</ContentByFramework>
 
-// Vanilla JavaScript integration
-function setupTextEditor(coPlainText, elementId) {
-  const textArea = document.getElementById(elementId);
-  
-  // Initial value
-  textArea.value = coPlainText.toString();
-  
-  // Listen for changes
-  textArea.addEventListener('input', (event) => {
-    coPlainText.applyDiff(event.target.value);
-  });
-  
-  // Subscribe to changes from the CoPlainText
-  const unsubscribe = coPlainText.subscribe((updatedText) => {
-    if (textArea.value !== updatedText.toString()) {
-      textArea.value = updatedText.toString();
-    }
-  });
-  
-  return () => {
-    // Cleanup function
-    textArea.removeEventListener('input', handleInput);
-    unsubscribe();
-  };
-}
+<ContentByFramework framework="svelte">
+<CodeGroup>
+```svelte twoslash
+<script lang="ts">
+import { CoPlainText, Account } from "jazz-tools";
+import { createJazzTestAccount } from 'jazz-tools/testing';
+const me = await createJazzTestAccount();
 
-// Usage
-const note = CoPlainText.create("Initial text", { owner: me });
-const cleanup = setupTextEditor(note, "editor-textarea");
+const note = CoPlainText.create("", { owner: me });
+</script>
 
-// Later when you're done with the editor
-cleanup();
+<textarea
+  value={note.toString()}
+  oninput={e => note.applyDiff(e.target.value)}
+/>
 ```
+</CodeGroup>
 </ContentByFramework>
 
 ## Using Rich Text with ProseMirror
