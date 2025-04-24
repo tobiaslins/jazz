@@ -102,19 +102,27 @@ In your app, handle creating the queue of requests
 
 <CodeGroup>
 ```ts twoslash
-import { Group, co, CoList, CoMap, createInviteLink  } from "jazz-tools";
+import { Group, co, CoList, CoMap} from "jazz-tools";
+import {createInviteLink} from jazz-react;
+
+class Project extends CoMap {
+  title = co.string;
+  account = co.ref(Account);
+}
 
 class Request extends CoMap {
   project = co.ref(Project);
 }
 
-class Project extends CoMap {
-  title = co.string;
+export class RequestsList extends CoMap.Record(co.ref(Request)) {}
+
+export class RequestsToJoin extends CoMap {
+  writeOnlyInvite = co.string;
+  requests = co.ref(RequestsList);
 }
 
-const RequestsList = []
-const RequestToJoin = {id: "co_123"}
 // ---cut-before---
+
 function createRequestsToJoin() {
   const everyoneReaderGroup = Group.create()
   everyoneReaderGroup.addMember("everyone", "reader")
@@ -122,43 +130,47 @@ function createRequestsToJoin() {
   const requestsGroup = Group.create()
   const writeOnlyInvite = createInviteLink(requestsGroup, "writeOnly")
   
-  return RequestToJoin.create({ writeOnlyInvite, requests: RequestsList.create([], requestsGroup)
-  },  everyoneReaderGroup)
+  return RequestsToJoin.create({ 
+    writeOnlyInvite, 
+    requests: RequestsList.create({}, requestsGroup)
+  }, everyoneReaderGroup)
 }
 ```
 </CodeGroup>
 
-Users can then send a request to join a specific organization 
+Users can then send a request to join a specific organization. 
+Example is coming soon!
 
 <CodeGroup>
 ```ts twoslash
-import { co, CoList, CoMap, Account, ID, createInviteLink } from "jazz-tools";
-
-class Request extends CoMap {
-  project = co.ref(Project);
-}
+import { co, CoList, CoMap, ID } from "jazz-tools";
+import {createInviteLink, consumeInviteLink, Account } from jazz-react;
 
 class Project extends CoMap {
   title = co.string;
 }
 
+class Request extends CoMap {
+  project = co.ref(Project);
+  account = co.ref(Account);
+}
 
-const RequestsList = [
-  {id: "co_123"}
-]
-const RequestToJoin = {id: "co_123"}
+export class RequestsList extends CoMap.Record(co.ref(Request)) {}
 
+export class RequestsToJoin extends CoMap {
+  writeOnlyInvite = co.string;
+  requests = co.ref(RequestsList);
+}
 
-const id: ID<Project>; = "co_123" as ID<Project>;
 // ---cut-before---
 
-async function requestToJoin(id) {
-   const requestsToJoin = await RequestToJoin.load(id)
+async function requestToJoin(projectId: ID<Project>) {
+   const requestsToJoin = await RequestsToJoin.load(projectId)
 
    const result = await consumeInviteLink({ 
     inviteURL: requestsToJoin.writeOnlyInvite, 
     invitedObjectSchema: RequestsList 
-  })
+   })
    
    if (!result) throw new Error("Failed to accept the requests writeOnly invitation")
 
