@@ -187,7 +187,7 @@ function TextEditor() {
 </CodeGroup>
 </ContentByFramework>
 
-<ContentByFramework framework={["vanilla", "vue"]}>
+<ContentByFramework framework="vanilla">
 <CodeGroup>
 ```ts twoslash
 import { CoPlainText, Account } from "jazz-tools";
@@ -210,6 +210,41 @@ textarea.addEventListener('input', (e: Event) => {
 
 // Add the textarea to the document
 document.body.appendChild(textarea);
+```
+</CodeGroup>
+</ContentByFramework>
+
+<ContentByFramework framework="vue">
+<CodeGroup>
+```vue twoslash
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import { CoPlainText } from "jazz-tools";
+import { createJazzTestAccount } from 'jazz-tools/testing';
+
+const note = ref(null);
+const textContent = ref("");
+
+onMounted(async () => {
+  const me = await createJazzTestAccount();
+  note.value = CoPlainText.create("", { owner: me });
+  textContent.value = note.value.toString();
+});
+
+function updateText(e) {
+  if (note.value) {
+    note.value.applyDiff(e.target.value);
+    textContent.value = note.value.toString();
+  }
+}
+</script>
+
+<template>
+  <textarea 
+    :value="textContent"
+    @input="updateText"
+  />
+</template>
 ```
 </CodeGroup>
 </ContentByFramework>
