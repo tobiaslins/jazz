@@ -12,6 +12,7 @@ import { CodeGroup as CodeGroupClient } from "@garden-co/design-system/src/compo
 import { AnchorHTMLAttributes, DetailedHTMLProps } from "react";
 import { FileDownloadLink as FileDownloadLinkClient } from "./FileDownloadLink";
 import { ComingSoon as ComingSoonClient } from "./docs/ComingSoon";
+import { Framework as FrameworkClient } from "./docs/Framework";
 import { IssueTrackerPreview as IssueTrackerPreviewClient } from "./docs/IssueTrackerPreview";
 
 export function CodeExampleTabs(props: CodeExampleTabsProps) {
@@ -45,4 +46,8 @@ export function FileDownloadLink(
   >,
 ) {
   return <FileDownloadLinkClient {...props} />;
+}
+
+export function Framework() {
+  return <FrameworkClient />;
 }
