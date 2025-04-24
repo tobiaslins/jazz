@@ -13,7 +13,23 @@ Both types enable real-time collaborative editing of text content while maintain
 
 If you're looking for a quick way to add rich text editing to your app, check out [jazz-richtext-prosemirror](#using-rich-text-with-prosemirror).
 
-For an example use of CoTexts see [our Richtext example app](https://github.com/garden-co/jazz/tree/main/examples/richtext), which shows plain text and rich text editing in action.
+<CodeGroup>
+```ts twoslash
+import { CoPlainText } from "jazz-tools";
+import { createJazzTestAccount } from 'jazz-tools/testing';
+const me = await createJazzTestAccount();
+
+// ---cut---
+const note = CoPlainText.create("Meeting notes", { owner: me });
+
+// Update the text
+note.applyDiff("Meeting notes for Tuesday");
+
+console.log(note.toString());  // "Meeting notes for Tuesday"
+```
+</CodeGroup>
+
+For a full example of CoTexts in action, see [our Richtext example app](https://github.com/garden-co/jazz/tree/main/examples/richtext), which shows plain text and rich text editing.
 
 ## Creating CoText Values
 
@@ -26,7 +42,7 @@ import { CoMap, CoPlainText, CoRichText, co } from "jazz-tools";
 // ---cut---
 class Profile extends CoMap {
   name = co.string;
-  bio = co.ref(CoPlainText);        // Plain text field
+  bio = co.ref(CoPlainText);         // Plain text field
   description = co.ref(CoRichText);  // Rich text with formatting
 }
 ```
@@ -45,7 +61,9 @@ const me = await createJazzTestAccount();
 const note = CoPlainText.create("Meeting notes", { owner: me });
 
 // Create rich text with HTML content
-const document = CoRichText.create("<p>Project <strong>overview</strong></p>", { owner: me });
+const document = CoRichText.create("<p>Project <strong>overview</strong></p>",
+  { owner: me }
+);
 ```
 </CodeGroup>
 
@@ -119,7 +137,7 @@ note.applyDiff("Team meeting notes for Tuesday");
 
 ### Applying Diffs
 
-The `applyDiff` method offers an efficient way to update text by automatically calculating and applying the minimal changes needed:
+Use `applyDiff` to efficiently update text with minimal changes:
 
 <CodeGroup>
 ```ts twoslash
@@ -141,15 +159,7 @@ minutes.applyDiff(text);  // Efficiently updates only what changed
 ```
 </CodeGroup>
 
-Under the hood, `applyDiff` uses a diff algorithm to:
-
-1. Compute the optimal set of changes between the current text and the new text
-2. Apply these changes in reverse order (to maintain stable indices)
-3. For each change:
-   - Delete text ranges that need to be removed
-   - Insert new text where needed
-
-This approach is perfect for handling user input in form controls:
+Perfect for handling user input in form controls:
 
 <ContentByFramework framework="react">
 <CodeGroup>
@@ -237,11 +247,10 @@ Jazz provides a dedicated plugin for integrating CoRichText with the popular Pro
 
 <CodeGroup>
 ```bash
-pnpm add jazz-richtext-prosemirror prosemirror-view prosemirror-state prosemirror-schema-basic
-# or
-npm install jazz-richtext-prosemirror prosemirror-view prosemirror-state prosemirror-schema-basic
-# or
-yarn add jazz-richtext-prosemirror prosemirror-view prosemirror-state prosemirror-schema-basic
+pnpm add jazz-richtext-prosemirror \
+  prosemirror-view \
+  prosemirror-state \
+  prosemirror-schema-basic
 ```
 </CodeGroup>
 
