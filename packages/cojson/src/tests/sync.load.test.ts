@@ -163,11 +163,11 @@ describe("loading coValues from server", () => {
         "server -> client | KNOWN Group sessions: header/5",
         "client -> server | LOAD Map sessions: header/2",
         "server -> client | CONTENT Map header: false new: After: 1 New: 1",
-        "client -> server | KNOWN Map sessions: header/3",
+        "client -> server | CONTENT Map header: false new: After: 0 New: 1",
         "server -> client | CONTENT Map header: false new: After: 1 New: 1",
         "client -> server | KNOWN Map sessions: header/3",
-        "client -> server | CONTENT Map header: false new: After: 0 New: 1",
         "server -> client | KNOWN Map sessions: header/3",
+        "client -> server | KNOWN Map sessions: header/3",
       ]
     `);
   });

@@ -214,9 +214,7 @@ export class SyncManager {
 
     if (newContentPieces) {
       for (const piece of newContentPieces) {
-        this.trySendToPeer(peer, piece).catch((e: unknown) => {
-          logger.error("Error sending content piece", { err: e });
-        });
+        this.trySendToPeer(peer, piece);
       }
 
       peer.toldKnownState.add(id);
@@ -225,8 +223,6 @@ export class SyncManager {
       this.trySendToPeer(peer, {
         action: "known",
         ...coValue.knownState(),
-      }).catch((e: unknown) => {
-        logger.error("Error sending known state", { err: e });
       });
 
       peer.toldKnownState.add(id);
@@ -290,8 +286,6 @@ export class SyncManager {
       this.trySendToPeer(peer, {
         action: "load",
         ...coValue.knownState(),
-      }).catch((e: unknown) => {
-        logger.error("Error sending load", { err: e });
       });
     }
   }
@@ -396,8 +390,6 @@ export class SyncManager {
           id: msg.id,
           header: false,
           sessions: {},
-        }).catch((e) => {
-          logger.error("Error sending known state back", { err: e });
         });
 
         return;
@@ -425,8 +417,6 @@ export class SyncManager {
               id: msg.id,
               header: false,
               sessions: {},
-            }).catch((e) => {
-              logger.error("Error sending known state back", { err: e });
             });
 
             return;
@@ -495,12 +485,6 @@ export class SyncManager {
           id: msg.id,
           header: false,
           sessions: {},
-        }).catch((e) => {
-          logger.error("Error sending known state correction", {
-            peerId: peer.id,
-            peerRole: peer.role,
-            err: e,
-          });
         });
         return;
       }
@@ -573,12 +557,6 @@ export class SyncManager {
         action: "known",
         isCorrection: true,
         ...coValue.knownState(),
-      }).catch((e) => {
-        logger.error("Error sending known state correction", {
-          peerId: peer.id,
-          peerRole: peer.role,
-          err: e,
-        });
       });
       peer.toldKnownState.add(msg.id);
     } else {
@@ -592,12 +570,6 @@ export class SyncManager {
       this.trySendToPeer(peer, {
         action: "known",
         ...coValue.knownState(),
-      }).catch((e: unknown) => {
-        logger.error("Error sending known state", {
-          peerId: peer.id,
-          peerRole: peer.role,
-          err: e,
-        });
       });
       peer.toldKnownState.add(msg.id);
     }
