@@ -78,7 +78,7 @@ export interface Peer {
   id: PeerID;
   incoming: IncomingSyncStream;
   outgoing: OutgoingSyncQueue;
-  role: "peer" | "server" | "client" | "storage";
+  role: "server" | "client" | "storage";
   priority?: number;
   crashOnClose: boolean;
   deletePeerStateOnClose?: boolean;
@@ -112,11 +112,6 @@ export function combinedKnownStates(
 export class SyncManager {
   peers: { [key: PeerID]: PeerState } = {};
   local: LocalNode;
-  requestedSyncs: {
-    [id: RawCoID]:
-      | { done: Promise<void>; nRequestsThisTick: number }
-      | undefined;
-  } = {};
 
   peersCounter = metrics.getMeter("cojson").createUpDownCounter("jazz.peers", {
     description: "Amount of connected peers",
@@ -579,7 +574,7 @@ export class SyncManager {
      * response to the peers that are waiting for confirmation that a coValue is
      * fully synced
      */
-    this.syncCoValue(coValue);
+    this.requestCoValueSync(coValue);
   }
 
   handleCorrection(msg: KnownStateMessage, peer: PeerState) {
@@ -590,38 +585,43 @@ export class SyncManager {
 
   handleUnsubscribe(_msg: DoneMessage) {}
 
-  async syncCoValue(coValue: CoValueCore) {
-    if (this.requestedSyncs[coValue.id]) {
-      this.requestedSyncs[coValue.id]!.nRequestsThisTick++;
-      return this.requestedSyncs[coValue.id]!.done;
+  requestedSyncs = new Map<RawCoID, Promise<void>>();
+
+  async requestCoValueSync(coValue: CoValueCore) {
+    const promise = this.requestedSyncs.get(coValue.id);
+
+    if (promise) {
+      return promise;
     } else {
-      const done = new Promise<void>((resolve) => {
-        queueMicrotask(async () => {
-          delete this.requestedSyncs[coValue.id];
-          await this.actuallySyncCoValue(coValue);
+      const promise = new Promise<void>((resolve) => {
+        queueMicrotask(() => {
+          this.requestedSyncs.delete(coValue.id);
+          this.syncCoValue(coValue);
           resolve();
         });
       });
-      const entry = {
-        done,
-        nRequestsThisTick: 1,
-      };
-      this.requestedSyncs[coValue.id] = entry;
-      return done;
+
+      this.requestedSyncs.set(coValue.id, promise);
+      return promise;
     }
   }
 
-  async actuallySyncCoValue(coValue: CoValueCore) {
+  async syncCoValue(coValue: CoValueCore) {
+    const entry = this.local.coValuesStore.get(coValue.id);
+
     for (const peer of this.peersInPriorityOrder()) {
       if (peer.closed) continue;
-      if (this.local.coValuesStore.get(coValue.id).isErroredInPeer(peer.id))
-        continue;
+      if (entry.isErroredInPeer(peer.id)) continue;
 
-      if (peer.optimisticKnownStates.has(coValue.id)) {
-        await this.sendNewContentIncludingDependencies(coValue.id, peer);
-      } else if (peer.isServerOrStoragePeer()) {
-        await this.sendNewContentIncludingDependencies(coValue.id, peer);
+      // Only subscribed CoValues are synced to clients
+      if (
+        peer.role === "client" &&
+        !peer.optimisticKnownStates.has(coValue.id)
+      ) {
+        continue;
       }
+
+      this.sendNewContentIncludingDependencies(coValue.id, peer);
     }
 
     for (const peer of this.getPeers()) {
