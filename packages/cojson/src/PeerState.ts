@@ -12,9 +12,6 @@ import { CoValueKnownState, Peer, SyncMessage } from "./sync.js";
 export class PeerState {
   private queue: PriorityBasedMessageQueue;
 
-  incomingMessagesProcessingPromise: Promise<void> | undefined;
-  nextPeer: Peer | undefined;
-
   constructor(
     private peer: Peer,
     knownStates: ReadonlyPeerKnownStates | undefined,
@@ -234,34 +231,33 @@ export class PeerState {
     this.emitClose();
   }
 
-  async processIncomingMessages(callback: (msg: SyncMessage) => Promise<void>) {
+  async processIncomingMessages(callback: (msg: SyncMessage) => void) {
     if (this.closed) {
       throw new Error("Peer is closed");
     }
 
-    if (this.incomingMessagesProcessingPromise) {
-      throw new Error("Incoming messages processing already in progress");
-    }
-
     const processIncomingMessages = async () => {
       for await (const msg of this.incoming) {
-        if (msg === "Disconnected") {
-          break;
+        if (this.closed) {
+          return;
         }
+
+        if (msg === "Disconnected") {
+          return;
+        }
+
         if (msg === "PingTimeout") {
           logger.error("Ping timeout from peer", {
             peerId: this.id,
             peerRole: this.role,
           });
-          break;
+          return;
         }
 
-        await callback(msg);
+        callback(msg);
       }
     };
 
-    this.incomingMessagesProcessingPromise = processIncomingMessages();
-
-    return this.incomingMessagesProcessingPromise;
+    return processIncomingMessages();
   }
 }

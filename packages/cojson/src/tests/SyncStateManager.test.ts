@@ -7,8 +7,6 @@ import { connectedPeers } from "../streamUtils.js";
 import { emptyKnownState } from "../sync.js";
 import {
   SyncMessagesLog,
-  blockMessageTypeOnOutgoingPeer,
-  createTestNode,
   loadCoValueOrFail,
   setupTestNode,
   waitFor,
@@ -217,9 +215,6 @@ describe("SyncStateManager", () => {
 
     const mapOnServer = await loadCoValueOrFail(serverNode, map.id);
 
-    // Block the content messages so the client won't fully sync immediately
-    const outgoing = blockMessageTypeOnOutgoingPeer(peerOnServer, "content");
-
     mapOnServer.set("key2", "value2", "trusting");
 
     expect(
@@ -235,9 +230,6 @@ describe("SyncStateManager", () => {
         map.core.id,
       ),
     ).toEqual({ uploaded: false });
-
-    await outgoing.sendBlockedMessages();
-    outgoing.unblock();
 
     await mapOnServer.core.waitForSync();
 

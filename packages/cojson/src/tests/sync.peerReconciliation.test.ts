@@ -148,6 +148,7 @@ describe("peer reconciliation", () => {
     ).toMatchInlineSnapshot(`
       [
         "client -> server | LOAD Group sessions: header/3",
+        "client -> server | LOAD Group sessions: header/3",
         "server -> client | KNOWN Group sessions: header/3",
         "client -> server | LOAD Map sessions: header/2",
         "server -> client | KNOWN Map sessions: header/1",

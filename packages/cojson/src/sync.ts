@@ -162,7 +162,7 @@ export class SyncManager {
     );
   }
 
-  async handleSyncMessage(msg: SyncMessage, peer: PeerState) {
+  handleSyncMessage(msg: SyncMessage, peer: PeerState) {
     if (this.local.coValuesStore.get(msg.id).isErroredInPeer(peer.id)) {
       logger.warn(
         `Skipping message ${msg.action} on errored coValue ${msg.id} from peer ${peer.id}`,
@@ -183,18 +183,17 @@ export class SyncManager {
     // TODO: validate
     switch (msg.action) {
       case "load":
-        return await this.handleLoad(msg, peer);
+        return this.handleLoad(msg, peer);
       case "known":
         if (msg.isCorrection) {
-          return await this.handleCorrection(msg, peer);
+          return this.handleCorrection(msg, peer);
         } else {
-          return await this.handleKnownState(msg, peer);
+          return this.handleKnownState(msg, peer);
         }
       case "content":
-        // await new Promise<void>((resolve) => setTimeout(resolve, 0));
-        return await this.handleNewContent(msg, peer);
+        return this.handleNewContent(msg, peer);
       case "done":
-        return await this.handleUnsubscribe(msg);
+        return this.handleUnsubscribe(msg);
       default:
         throw new Error(
           `Unknown message type ${(msg as { action: "string" }).action}`,
@@ -202,14 +201,12 @@ export class SyncManager {
     }
   }
 
-  async sendNewContentIncludingDependencies(id: RawCoID, peer: PeerState) {
+  sendNewContentIncludingDependencies(id: RawCoID, peer: PeerState) {
     const coValue = this.local.expectCoValueLoaded(id);
 
-    await Promise.all(
-      coValue
-        .getDependedOnCoValues()
-        .map((id) => this.sendNewContentIncludingDependencies(id, peer)),
-    );
+    coValue
+      .getDependedOnCoValues()
+      .map((id) => this.sendNewContentIncludingDependencies(id, peer));
 
     const newContentPieces = coValue.newContentSince(
       peer.optimisticKnownStates.get(id),
@@ -304,22 +301,8 @@ export class SyncManager {
   async addPeer(peer: Peer) {
     const prevPeer = this.peers[peer.id];
 
-    if (prevPeer) {
-      // Assign to nextPeer to check against race conditions
-      prevPeer.nextPeer = peer;
-
-      if (!prevPeer.closed) {
-        prevPeer.gracefulShutdown();
-      }
-
-      // Wait for the previous peer to finish processing the incoming messages
-      await prevPeer.incomingMessagesProcessingPromise?.catch((e) => {});
-
-      // If another peer was added in the meantime, we close this peer
-      if (prevPeer.nextPeer !== peer) {
-        peer.outgoing.close();
-        return;
-      }
+    if (prevPeer && !prevPeer.closed) {
+      prevPeer.gracefulShutdown();
     }
 
     const peerState = new PeerState(peer, prevPeer?.knownStates);
@@ -338,8 +321,8 @@ export class SyncManager {
     }
 
     peerState
-      .processIncomingMessages(async (msg) => {
-        await this.handleSyncMessage(msg, peerState);
+      .processIncomingMessages((msg) => {
+        this.handleSyncMessage(msg, peerState);
       })
       .then(() => {
         if (peer.crashOnClose) {
@@ -386,7 +369,7 @@ export class SyncManager {
    * - The peer known state is stored as-is instead of being merged
    * - The load message always replies with a known state message
    */
-  async handleLoad(msg: LoadMessage, peer: PeerState) {
+  handleLoad(msg: LoadMessage, peer: PeerState) {
     /**
      * We use the msg sessions as source of truth for the known states
      *
@@ -457,7 +440,7 @@ export class SyncManager {
           });
         });
     } else if (entry.isAvailable()) {
-      await this.sendNewContentIncludingDependencies(msg.id, peer);
+      this.sendNewContentIncludingDependencies(msg.id, peer);
     } else {
       this.trySendToPeer(peer, {
         action: "known",
@@ -468,7 +451,7 @@ export class SyncManager {
     }
   }
 
-  async handleKnownState(msg: KnownStateMessage, peer: PeerState) {
+  handleKnownState(msg: KnownStateMessage, peer: PeerState) {
     const entry = this.local.coValuesStore.get(msg.id);
 
     peer.combineWith(msg.id, knownStateIn(msg));
@@ -482,7 +465,7 @@ export class SyncManager {
     }
 
     if (entry.isAvailable()) {
-      await this.sendNewContentIncludingDependencies(msg.id, peer);
+      this.sendNewContentIncludingDependencies(msg.id, peer);
     }
   }
 
@@ -499,7 +482,7 @@ export class SyncManager {
     }
   }
 
-  async handleNewContent(msg: NewContentMessage, peer: PeerState) {
+  handleNewContent(msg: NewContentMessage, peer: PeerState) {
     const entry = this.local.coValuesStore.get(msg.id);
 
     let coValue: CoValueCore;
@@ -627,15 +610,13 @@ export class SyncManager {
     this.syncCoValue(coValue);
   }
 
-  async handleCorrection(msg: KnownStateMessage, peer: PeerState) {
+  handleCorrection(msg: KnownStateMessage, peer: PeerState) {
     peer.setKnownState(msg.id, knownStateIn(msg));
 
     return this.sendNewContentIncludingDependencies(msg.id, peer);
   }
 
-  handleUnsubscribe(_msg: DoneMessage) {
-    throw new Error("Method not implemented.");
-  }
+  handleUnsubscribe(_msg: DoneMessage) {}
 
   async syncCoValue(coValue: CoValueCore) {
     if (this.requestedSyncs[coValue.id]) {
