@@ -224,7 +224,7 @@ export class SyncManager {
     }
   }
 
-  async startPeerReconciliation(peer: PeerState) {
+  startPeerReconciliation(peer: PeerState) {
     const coValuesOrderedByDependency: CoValueCore[] = [];
 
     const gathered = new Set<string>();
@@ -252,8 +252,12 @@ export class SyncManager {
         // If the coValue is unavailable and we never tried this peer
         // we try to load it from the peer
         if (!peer.toldKnownState.has(entry.id)) {
-          await entry.loadFromPeers([peer]).catch((e: unknown) => {
-            logger.error("Error sending load", { err: e });
+          peer.toldKnownState.add(entry.id);
+          this.trySendToPeer(peer, {
+            action: "load",
+            header: false,
+            id: entry.id,
+            sessions: {},
           });
         }
       } else {
@@ -284,8 +288,6 @@ export class SyncManager {
       });
     }
   }
-
-  nextPeer: Map<PeerID, Peer> = new Map();
 
   async addPeer(peer: Peer) {
     const prevPeer = this.peers[peer.id];
@@ -417,7 +419,7 @@ export class SyncManager {
             return;
           }
 
-          await this.sendNewContentIncludingDependencies(msg.id, peer);
+          this.sendNewContentIncludingDependencies(msg.id, peer);
         })
         .catch((e) => {
           logger.error("Error loading coValue in handleLoad loading state", {

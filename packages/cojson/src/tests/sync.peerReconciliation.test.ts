@@ -1,18 +1,7 @@
 import { assert, beforeEach, describe, expect, test } from "vitest";
 import { expectMap } from "../coValue";
 import { WasmCrypto } from "../crypto/WasmCrypto";
-import { CoValueCore, RawCoMap } from "../exports";
-import { LocalNode } from "../localNode";
-import { toSimplifiedMessages } from "./messagesTestUtils";
-import {
-  SyncMessagesLog,
-  createTestNode,
-  randomAnonymousAccountAndSessionID,
-  setupTestNode,
-  waitFor,
-} from "./testUtils";
-
-const Crypto = await WasmCrypto.create();
+import { SyncMessagesLog, setupTestNode, waitFor } from "./testUtils";
 
 let jazzCloud = setupTestNode({ isSyncServer: true });
 
@@ -31,8 +20,6 @@ describe("peer reconciliation", () => {
     map.set("hello", "world", "trusting");
 
     client.connectToSyncServer();
-
-    await new Promise((resolve) => setTimeout(resolve, 100));
 
     await map.core.waitForSync();
 
