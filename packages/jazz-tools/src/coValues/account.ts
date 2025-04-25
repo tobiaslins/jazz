@@ -38,7 +38,6 @@ import {
   parseSubscribeRestArgs,
   subscribeToCoValueWithoutMe,
   subscribeToExistingCoValue,
-  subscriptionsScopes,
 } from "../internal.js";
 import { coValuesCache } from "../lib/cache.js";
 import { RegisteredAccount } from "../types.js";
@@ -118,6 +117,7 @@ export class Account extends CoValueBase implements CoValue {
           this._schema.profile as RefEncoded<
             NonNullable<this["profile"]> & CoValue
           >,
+          this,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ) as any as RefIfCoValue<this["profile"]>),
       root:
@@ -126,6 +126,7 @@ export class Account extends CoValueBase implements CoValue {
           rootID,
           this._loadedAs,
           this._schema.root as RefEncoded<NonNullable<this["root"]> & CoValue>,
+          this,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ) as any as RefIfCoValue<this["root"]>),
     };
@@ -196,10 +197,15 @@ export class Account extends CoValueBase implements CoValue {
     ref: Ref<RegisteredAccount> | undefined;
     account: RegisteredAccount | null | undefined;
   }> {
-    const ref = new Ref<RegisteredAccount>(this.id, this._loadedAs, {
-      ref: () => this.constructor as typeof Account,
-      optional: false,
-    });
+    const ref = new Ref<RegisteredAccount>(
+      this.id,
+      this._loadedAs,
+      {
+        ref: () => this.constructor as typeof Account,
+        optional: false,
+      },
+      this,
+    );
 
     return [{ id: this.id, role: "admin", ref, account: this }];
   }
@@ -443,13 +449,13 @@ export const AccountAndGroupProxyHandler: ProxyHandler<Account | Group> = {
     if (key === "profile") {
       const ref = target._refs.profile;
       return ref
-        ? ref.accessFrom(receiver)
+        ? ref.accessById()
         : // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (undefined as any);
     } else if (key === "root") {
       const ref = target._refs.root;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return ref ? ref.accessFrom(receiver) : (undefined as any);
+      return ref ? ref.accessById() : (undefined as any);
     } else {
       return Reflect.get(target, key, receiver);
     }
@@ -465,23 +471,32 @@ export const AccountAndGroupProxyHandler: ProxyHandler<Account | Group> = {
       return true;
     } else if (key === "profile") {
       if (value) {
+        const ref = new Ref<Profile>(
+          value.id,
+          target._loadedAs,
+          target._schema.profile as RefEncoded<Profile>,
+          target,
+        );
+        target._refs.profile = ref;
         target._raw.set(
           "profile",
           value.id as unknown as CoID<RawCoMap>,
           "trusting",
         );
       }
-      subscriptionsScopes
-        .get(receiver)
-        ?.onRefAccessedOrSet(target.id, value.id);
+
       return true;
     } else if (key === "root") {
       if (value) {
+        const ref = new Ref<CoMap>(
+          value.id,
+          target._loadedAs,
+          target._schema.root as RefEncoded<CoMap>,
+          target,
+        );
+        target._refs.root = ref;
         target._raw.set("root", value.id as unknown as CoID<RawCoMap>);
       }
-      subscriptionsScopes
-        .get(receiver)
-        ?.onRefAccessedOrSet(target.id, value.id);
       return true;
     } else {
       return Reflect.set(target, key, value, receiver);

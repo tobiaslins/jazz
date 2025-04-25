@@ -60,6 +60,9 @@ export class RawCoMapView<
   /** @category 6. Meta */
   readonly _shape!: Shape;
 
+  totalKnownTransactions = 0;
+  totalValidTransactions = 0;
+
   /** @internal */
   constructor(
     core: CoValueCore,
@@ -77,6 +80,10 @@ export class RawCoMapView<
     this.knownTransactions = {};
 
     this.processNewTransactions();
+  }
+
+  get processedChangesId() {
+    return `${this.totalKnownTransactions}/${this.totalValidTransactions}`;
   }
 
   processNewTransactions() {
@@ -131,6 +138,7 @@ export class RawCoMapView<
           txID.txIndex,
         );
       }
+      this.totalValidTransactions++;
     }
 
     for (const entries of changedEntries.values()) {
@@ -139,6 +147,12 @@ export class RawCoMapView<
 
     for (const [key, entries] of changedEntries.entries()) {
       this.latest[key] = entries[entries.length - 1];
+    }
+
+    this.totalKnownTransactions = 0;
+
+    for (const count of Object.values(this.knownTransactions)) {
+      this.totalKnownTransactions += count;
     }
   }
 

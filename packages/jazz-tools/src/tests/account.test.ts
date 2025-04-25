@@ -95,6 +95,6 @@ test("accounts should sync correctly", async () => {
 
   const { members } = group;
 
-  expect(members[0]?.account.profile!.name).toBe("test 1");
-  expect(members[1]?.account.profile!.name).toBe("test 2");
+  expect(members[0]?.account?.profile!.name).toBe("test 1");
+  expect(members[1]?.account?.profile!.name).toBe("test 2");
 });

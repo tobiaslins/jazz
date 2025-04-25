@@ -38,7 +38,6 @@ import {
   parseSubscribeRestArgs,
   subscribeToCoValueWithoutMe,
   subscribeToExistingCoValue,
-  subscriptionsScopes,
 } from "../internal.js";
 import { RegisteredAccount } from "../types.js";
 import { type Account } from "./account.js";
@@ -137,6 +136,7 @@ export class CoMap extends CoValueBase implements CoValue {
     [Key in CoKeys<this>]: IfCo<this[Key], RefIfCoValue<this[Key]>>;
   } {
     return makeRefs<CoKeys<this>>(
+      this,
       (key) => this._raw.get(key as string) as unknown as ID<CoValue>,
       () => {
         const keys = this._raw.keys().filter((key) => {
@@ -179,17 +179,28 @@ export class CoMap extends CoValueBase implements CoValue {
                 rawEdit.value as ID<CoValue>,
                 target._loadedAs,
                 descriptor,
-              ).accessFrom(target, "_edits." + key + ".value"),
+                target,
+              ).accessById(),
       ref:
         descriptor !== "json" && isRefEncoded(descriptor)
-          ? new Ref(rawEdit.value as ID<CoValue>, target._loadedAs, descriptor)
+          ? new Ref(
+              rawEdit.value as ID<CoValue>,
+              target._loadedAs,
+              descriptor,
+              target,
+            )
           : undefined,
       by:
         rawEdit.by &&
-        new Ref<Account>(rawEdit.by as ID<Account>, target._loadedAs, {
-          ref: RegisteredSchemas["Account"],
-          optional: false,
-        }).accessFrom(target, "_edits." + key + ".by"),
+        new Ref<Account>(
+          rawEdit.by as ID<Account>,
+          target._loadedAs,
+          {
+            ref: RegisteredSchemas["Account"],
+            optional: false,
+          },
+          target,
+        ).accessById(),
       madeAt: rawEdit.at,
       key,
     };
@@ -300,6 +311,7 @@ export class CoMap extends CoValueBase implements CoValue {
       },
       _raw: { value: raw, enumerable: false },
     });
+
     return instance;
   }
 
@@ -401,6 +413,10 @@ export class CoMap extends CoValueBase implements CoValue {
       }
 
     return rawOwner.createMap(rawInit, null, "private", uniqueness);
+  }
+
+  getDescriptor(key: string) {
+    return this._schema?.[key] || this._schema?.[ItemsSym];
   }
 
   /**
@@ -664,32 +680,31 @@ const CoMapProxyHandler: ProxyHandler<CoMap> = {
     } else if (key in target) {
       return Reflect.get(target, key, receiver);
     } else {
-      const schema = target._schema;
-
-      if (!schema) {
+      if (typeof key !== "string") {
         return undefined;
       }
 
-      const descriptor = (schema[key as keyof CoMap["_schema"]] ||
-        schema[ItemsSym]) as Schema;
-      if (descriptor && typeof key === "string") {
-        const raw = target._raw.get(key);
+      const descriptor = target.getDescriptor(key as string);
 
-        if (descriptor === "json") {
-          return raw;
-        } else if ("encoded" in descriptor) {
-          return raw === undefined ? undefined : descriptor.encoded.decode(raw);
-        } else if (isRefEncoded(descriptor)) {
-          return raw === undefined
-            ? undefined
-            : new Ref(
-                raw as unknown as ID<CoValue>,
-                target._loadedAs,
-                descriptor,
-              ).accessFrom(receiver, key);
-        }
-      } else {
+      if (!descriptor) {
         return undefined;
+      }
+
+      const raw = target._raw.get(key);
+
+      if (descriptor === "json") {
+        return raw;
+      } else if ("encoded" in descriptor) {
+        return raw === undefined ? undefined : descriptor.encoded.decode(raw);
+      } else if (isRefEncoded(descriptor)) {
+        return raw === undefined
+          ? undefined
+          : new Ref(
+              raw as unknown as ID<CoValue>,
+              target._loadedAs,
+              descriptor,
+              target,
+            ).accessByKey(key);
       }
     }
   },
@@ -721,9 +736,6 @@ const CoMapProxyHandler: ProxyHandler<CoMap> = {
           }
         } else if (value?.id) {
           target._raw.set(key, value.id);
-          subscriptionsScopes
-            .get(target)
-            ?.onRefAccessedOrSet(target.id, value.id);
         } else {
           throw new Error(
             `Cannot set reference ${key} to a non-CoValue. Got ${value}`,

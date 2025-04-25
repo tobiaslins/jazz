@@ -56,6 +56,8 @@ export class RawCoStreamView<
   };
   /** @internal */
   knownTransactions: CoValueKnownState["sessions"];
+  totalKnownTransactions = 0;
+  totalValidTransactions = 0;
   readonly _item!: Item;
 
   constructor(core: CoValueCore) {
@@ -95,6 +97,10 @@ export class RawCoStreamView<
     );
   }
 
+  get processedChangesId() {
+    return `${this.totalKnownTransactions}/${this.totalValidTransactions}`;
+  }
+
   /** @internal */
   protected processNewTransactions() {
     const changeEntries = new Set<CoStreamItem<Item>[]>();
@@ -109,6 +115,7 @@ export class RawCoStreamView<
     }
 
     for (const { txID, madeAt, changes } of newValidTransactions) {
+      this.totalValidTransactions++;
       for (const changeUntyped of changes) {
         const change = changeUntyped as Item;
         let entries = this.items[txID.sessionID];
@@ -127,6 +134,11 @@ export class RawCoStreamView<
 
     for (const entries of changeEntries) {
       entries.sort(this.compareStreamItems);
+    }
+
+    this.totalKnownTransactions = 0;
+    for (const count of Object.values(this.knownTransactions)) {
+      this.totalKnownTransactions += count;
     }
   }
 

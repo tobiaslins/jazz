@@ -33,6 +33,8 @@ export interface RawCoValue {
    *
    * Used internally by `useTelepathicData()` for reactive updates on changes to a `CoValue`. */
   subscribe(listener: (coValue: this) => void): () => void;
+
+  processedChangesId: string;
 }
 
 export class RawUnknownCoValue implements RawCoValue {
@@ -42,6 +44,10 @@ export class RawUnknownCoValue implements RawCoValue {
   constructor(core: CoValueCore) {
     this.id = core.id as CoID<this>;
     this.core = core;
+  }
+
+  get processedChangesId() {
+    return "0/0";
   }
 
   get type() {

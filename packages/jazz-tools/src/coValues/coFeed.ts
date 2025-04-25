@@ -230,6 +230,10 @@ export class CoFeed<Item = any> extends CoValueBase implements CoValue {
     return instance;
   }
 
+  getItemsDescriptor() {
+    return this._schema?.[ItemsSym];
+  }
+
   /**
    * Push items to this `CoFeed`
    *
@@ -438,9 +442,9 @@ function entryFromRawEntry<Item>(
       } else if ("encoded" in itemField) {
         return itemField.encoded.decode(rawEntry.value);
       } else if (isRefEncoded(itemField)) {
-        return this.ref?.accessFrom(
-          accessFrom,
-        ) as NonNullable<Item> extends CoValue ? (CoValue & Item) | null : Item;
+        return this.ref?.accessById() as NonNullable<Item> extends CoValue
+          ? (CoValue & Item) | null
+          : Item;
       } else {
         throw new Error("Invalid item field schema");
       }
@@ -454,6 +458,7 @@ function entryFromRawEntry<Item>(
           rawId as unknown as ID<CoValue>,
           loadedAs,
           itemField,
+          accessFrom,
         ) as NonNullable<Item> extends CoValue ? Ref<NonNullable<Item>> : never;
       } else {
         return undefined as never;
@@ -462,10 +467,15 @@ function entryFromRawEntry<Item>(
     get by() {
       return (
         accountID &&
-        new Ref<Account>(accountID as unknown as ID<Account>, loadedAs, {
-          ref: RegisteredSchemas["Account"],
-          optional: false,
-        })?.accessFrom(accessFrom)
+        new Ref<Account>(
+          accountID as unknown as ID<Account>,
+          loadedAs,
+          {
+            ref: RegisteredSchemas["Account"],
+            optional: false,
+          },
+          accessFrom,
+        )?.accessById()
       );
     },
     madeAt: rawEntry.at,

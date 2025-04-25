@@ -70,11 +70,16 @@ describe("subscribeToCoValue", () => {
     const chatRoom = createChatRoom(me, "General");
     const updateFn = vi.fn();
 
+    let result = null as Resolved<ChatRoom, {}> | null;
+
     const unsubscribe = subscribeToCoValue(
       ChatRoom,
       chatRoom.id,
       { loadAs: meOnSecondPeer },
-      updateFn,
+      (value) => {
+        result = value;
+        updateFn();
+      },
     );
 
     onTestFinished(unsubscribe);
@@ -83,14 +88,10 @@ describe("subscribeToCoValue", () => {
       expect(updateFn).toHaveBeenCalled();
     });
 
-    expect(updateFn).toHaveBeenCalledWith(
-      expect.objectContaining({
-        id: chatRoom.id,
-        messages: null,
-        name: "General",
-      }),
-      expect.any(Function),
-    );
+    expect(result).not.toBeNull();
+    expect(result?.id).toBe(chatRoom.id);
+    expect(result?.messages).toEqual(null);
+    expect(result?.name).toBe("General");
 
     updateFn.mockClear();
 
@@ -98,14 +99,7 @@ describe("subscribeToCoValue", () => {
       expect(updateFn).toHaveBeenCalled();
     });
 
-    expect(updateFn).toHaveBeenCalledWith(
-      expect.objectContaining({
-        id: chatRoom.id,
-        name: "General",
-        messages: expect.any(Array),
-      }),
-      expect.any(Function),
-    );
+    expect(result?.messages).toEqual([]);
 
     updateFn.mockClear();
     chatRoom.name = "Lounge";
@@ -114,14 +108,7 @@ describe("subscribeToCoValue", () => {
       expect(updateFn).toHaveBeenCalled();
     });
 
-    expect(updateFn).toHaveBeenCalledWith(
-      expect.objectContaining({
-        id: chatRoom.id,
-        name: "Lounge",
-        messages: expect.any(Array),
-      }),
-      expect.any(Function),
-    );
+    expect(result?.name).toBe("Lounge");
   });
 
   it("shouldn't fire updates until the declared load depth isn't reached", async () => {
@@ -129,6 +116,8 @@ describe("subscribeToCoValue", () => {
 
     const chatRoom = createChatRoom(me, "General");
     const updateFn = vi.fn();
+
+    let result = null as Resolved<ChatRoom, {}> | null;
 
     const unsubscribe = subscribeToCoValue(
       ChatRoom,
@@ -139,7 +128,10 @@ describe("subscribeToCoValue", () => {
           messages: true,
         },
       },
-      updateFn,
+      (value) => {
+        result = value;
+        updateFn();
+      },
     );
 
     onTestFinished(unsubscribe);
@@ -149,14 +141,11 @@ describe("subscribeToCoValue", () => {
     });
 
     expect(updateFn).toHaveBeenCalledTimes(1);
-    expect(updateFn).toHaveBeenCalledWith(
-      expect.objectContaining({
-        id: chatRoom.id,
-        name: "General",
-        messages: expect.any(Array),
-      }),
-      expect.any(Function),
-    );
+    expect(result).toMatchObject({
+      id: chatRoom.id,
+      name: "General",
+      messages: [],
+    });
   });
 
   it("shouldn't fire updates after unsubscribing", async () => {
@@ -263,6 +252,17 @@ describe("subscribeToCoValue", () => {
 
     const updateFn = vi.fn();
 
+    const updates = [] as Resolved<
+      ChatRoom,
+      {
+        messages: {
+          $each: {
+            reactions: true;
+          };
+        };
+      }
+    >[];
+
     const unsubscribe = subscribeToCoValue(
       ChatRoom,
       chatRoom.id,
@@ -276,22 +276,25 @@ describe("subscribeToCoValue", () => {
           },
         },
       },
-      updateFn,
+      (value) => {
+        updates.push(value);
+        updateFn();
+      },
     );
 
     onTestFinished(unsubscribe);
 
     await waitFor(() => {
-      const lastValue = updateFn.mock.lastCall?.[0];
+      const lastValue = updates.at(-1);
 
       expect(lastValue?.messages?.[0]?.text).toBe(message.text);
     });
 
-    const initialValue = updateFn.mock.lastCall?.[0];
+    const initialValue = updates.at(0);
     const initialMessagesList = initialValue?.messages;
     const initialMessage1 = initialValue?.messages[0];
     const initialMessage2 = initialValue?.messages[1];
-    const initialMessageReactions = initialValue?.messages[0].reactions;
+    const initialMessageReactions = initialValue?.messages[0]?.reactions;
 
     message.reactions?.push("👍");
 
@@ -301,11 +304,11 @@ describe("subscribeToCoValue", () => {
       expect(updateFn).toHaveBeenCalled();
     });
 
-    const lastValue = updateFn.mock.lastCall?.[0];
+    const lastValue = updates.at(-1)!;
     expect(lastValue).not.toBe(initialValue);
     expect(lastValue.messages).not.toBe(initialMessagesList);
     expect(lastValue.messages[0]).not.toBe(initialMessage1);
-    expect(lastValue.messages[0].reactions).not.toBe(initialMessageReactions);
+    expect(lastValue.messages[0]?.reactions).not.toBe(initialMessageReactions);
 
     // This shouldn't change
     expect(lastValue.messages[1]).toBe(initialMessage2);

@@ -84,6 +84,8 @@ export class RawCoListView<
   }[];
   /** @internal */
   knownTransactions: CoValueKnownState["sessions"];
+  totalKnownTransactions = 0;
+  totalValidTransactions = 0;
 
   /** @internal */
   constructor(core: CoValueCore) {
@@ -116,6 +118,7 @@ export class RawCoListView<
     this._cachedEntries = undefined;
 
     for (const { txID, changes, madeAt } of newTransactions) {
+      this.totalValidTransactions++;
       for (const [changeIdx, changeUntyped] of changes.entries()) {
         const change = changeUntyped as ListOpPayload<Item>;
 
@@ -213,6 +216,15 @@ export class RawCoListView<
         txID.txIndex,
       );
     }
+
+    this.totalKnownTransactions = 0;
+    for (const count of Object.values(this.knownTransactions)) {
+      this.totalKnownTransactions += count;
+    }
+  }
+
+  get processedChangesId() {
+    return `${this.totalKnownTransactions}/${this.totalValidTransactions}`;
   }
 
   /** @category 6. Meta */

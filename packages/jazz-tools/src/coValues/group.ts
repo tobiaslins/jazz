@@ -85,6 +85,7 @@ export class Group extends CoValueBase implements CoValue {
           profileID,
           this._loadedAs,
           this._schema.profile as RefEncoded<NonNullable<this["profile"]>>,
+          this,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ) as any as this["profile"] extends Profile
           ? Ref<this["profile"]>
@@ -95,6 +96,7 @@ export class Group extends CoValueBase implements CoValue {
           rootID,
           this._loadedAs,
           this._schema.root as RefEncoded<NonNullable<this["root"]>>,
+          this,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ) as any as this["root"] extends CoMap ? Ref<this["root"]> : never),
     };
@@ -154,7 +156,7 @@ export class Group extends CoValueBase implements CoValue {
     id: ID<RegisteredAccount>;
     role: AccountRole;
     ref: Ref<RegisteredAccount>;
-    account: RegisteredAccount;
+    account: RegisteredAccount | null | undefined;
   }> {
     const members = [];
 
@@ -181,12 +183,9 @@ export class Group extends CoValueBase implements CoValue {
           accountID as unknown as ID<RegisteredAccount>,
           this._loadedAs,
           refEncodedAccountSchema,
+          this,
         );
-        const accessRef = () => ref.accessFrom(this);
-
-        if (!ref.syncLoad()) {
-          console.warn("Account not loaded", accountID);
-        }
+        const accessRef = () => ref.accessById();
 
         members.push({
           id: accountID as unknown as ID<Account>,
