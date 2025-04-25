@@ -35,7 +35,7 @@ describe("SyncStateManager", () => {
     const updateSpy: GlobalSyncStateListenerCallback = vi.fn();
     const unsubscribe = subscriptionManager.subscribeToUpdates(updateSpy);
 
-    await client.node.syncManager.actuallySyncCoValue(map.core);
+    await client.node.syncManager.syncCoValue(map.core);
 
     expect(updateSpy).toHaveBeenCalledWith(
       peerState.id,
@@ -95,7 +95,7 @@ describe("SyncStateManager", () => {
       unsubscribe2();
     });
 
-    await client.node.syncManager.actuallySyncCoValue(map.core);
+    await client.node.syncManager.syncCoValue(map.core);
 
     expect(updateToJazzCloudSpy).toHaveBeenCalledWith(
       emptyKnownState(map.core.id),
@@ -130,7 +130,7 @@ describe("SyncStateManager", () => {
     const map = group.createMap();
     map.set("key1", "value1", "trusting");
 
-    await client.node.syncManager.actuallySyncCoValue(map.core);
+    await client.node.syncManager.syncCoValue(map.core);
 
     const subscriptionManager = client.node.syncManager.syncState;
 
@@ -171,7 +171,7 @@ describe("SyncStateManager", () => {
     unsubscribe1();
     unsubscribe2();
 
-    await client.node.syncManager.actuallySyncCoValue(map.core);
+    await client.node.syncManager.syncCoValue(map.core);
 
     anyUpdateSpy.mockClear();
 

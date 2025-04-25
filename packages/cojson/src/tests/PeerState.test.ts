@@ -7,7 +7,7 @@ import { waitFor } from "./testUtils.js";
 function setup() {
   const mockPeer: Peer = {
     id: "test-peer",
-    role: "peer",
+    role: "client",
     priority: 1,
     crashOnClose: false,
     incoming: (async function* () {})(),
