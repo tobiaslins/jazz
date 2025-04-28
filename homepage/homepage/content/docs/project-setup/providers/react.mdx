@@ -33,7 +33,7 @@ import * as React from "react";
 import { JazzProvider } from "jazz-react";
 import { MyAppAccount } from "./schema";
 
-export function MyJazzProvider({ children }: { children: React.ReactNode }) {
+export function MyApp({ children }: { children: React.ReactNode }) {
   return (
     <JazzProvider
       sync={{ 
@@ -119,7 +119,7 @@ export function MyApp ({ children }: { children: React.ReactNode }) {
     <JazzProvider 
       sync={syncConfig}
  
-      AccountSchema={MyAppAccount} // [!code ++]
+      AccountSchema={MyAppAccount}
     >
       {children}
     </JazzProvider>
@@ -127,11 +127,11 @@ export function MyApp ({ children }: { children: React.ReactNode }) {
 }
 
 // Register type for useAccount
-declare module "jazz-react" { // [!code ++]
-  interface Register { // [!code ++]
-    Account: MyAppAccount; // [!code ++]  
-  } // [!code ++]
-} // [!code ++]
+declare module "jazz-react" {
+  interface Register {
+    Account: MyAppAccount;
+  }
+}
 ```
 </CodeGroup>
 
