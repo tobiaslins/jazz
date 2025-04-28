@@ -98,12 +98,12 @@ useAcceptInvite({
 
 To allow a non-group member to request an invitation to a group you can use the `writeOnly` role.
 
-In your app, handle creating the queue of requests
+In your app, handle creating the queue of requests:
 
 <CodeGroup>
 ```ts twoslash
-import { Group, co, CoList, CoMap} from "jazz-tools";
-import {createInviteLink} from jazz-react;
+import { Group, co, CoList, CoMap, Account } from "jazz-tools";
+import { createInviteLink } from "jazz-react";
 
 class Project extends CoMap {
   title = co.string;
@@ -122,18 +122,17 @@ export class RequestsToJoin extends CoMap {
 }
 
 // ---cut-before---
-
 function createRequestsToJoin() {
-  const everyoneReaderGroup = Group.create()
-  everyoneReaderGroup.addMember("everyone", "reader")
+  const everyoneReaderGroup = Group.create();
+  everyoneReaderGroup.addMember("everyone", "reader");
 
-  const requestsGroup = Group.create()
-  const writeOnlyInvite = createInviteLink(requestsGroup, "writeOnly")
-  
+  const requestsGroup = Group.create();
+  const writeOnlyInvite = createInviteLink(requestsGroup, "writeOnly");
+
   return RequestsToJoin.create({ 
     writeOnlyInvite, 
     requests: RequestsList.create({}, requestsGroup)
-  }, everyoneReaderGroup)
+  }, everyoneReaderGroup);
 }
 ```
 </CodeGroup>
