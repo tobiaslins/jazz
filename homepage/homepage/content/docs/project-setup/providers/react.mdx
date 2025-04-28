@@ -36,9 +36,12 @@ import { MyAppAccount } from "./schema";
 export function MyJazzProvider({ children }: { children: React.ReactNode }) {
   return (
     <JazzProvider
-      sync={{ peer: "wss://cloud.jazz.tools/?key=your-api-key" }}
-  AccountSchema={MyAppAccount}
->
+      sync={{ 
+        peer: "wss://cloud.jazz.tools/?key=your-api-key",
+        when: "always" // When to sync: "always", "never", or "signedUp"
+      }}
+      AccountSchema={MyAppAccount}
+    >
       {children}
     </JazzProvider>
   );
@@ -60,55 +63,126 @@ declare module "jazz-react" {
 The `sync` property configures how your application connects to the Jazz network:
 
 <CodeGroup>
-```tsx
-sync={{
-  // Required: Connection to Jazz Cloud or your own sync server
+```tsx twoslash
+import { type SyncConfig } from "jazz-tools";
+
+const syncConfig: SyncConfig = {
+  // Connection to Jazz Cloud or your own sync server
   peer: "wss://cloud.jazz.tools/?key=your-api-key",
   
-  // Optional: Additional peers to connect to
-  peers: ["wss://other-peer.example.com"],
-  
-  // Optional: Reconnection configuration
-  reconnect: {
-    maxAttempts: 5,
-    initialDelay: 1000,
-    maxDelay: 30000
-  }
-}}
+  // When to sync: "always" (default), "never", or "signedUp"
+  when: "always",
+}
 ```
 </CodeGroup>
+
+See [Authentication States](/docs/authentication/authentication-states#controlling-sync-for-different-authentication-states) for more details on how the `when` property affects synchronization based on authentication state.
 
 ### Account Schema
 
 The `AccountSchema` property defines your application's account structure:
 
 <CodeGroup>
-```tsx
-import { Account } from "jazz-tools";
-import { co } from "jazz-tools";
+```tsx twoslash
 
-// Define your custom account schema
-class MyAppAccount extends Account {
-  name = co.string;
-  preferences = co.object({
-    theme: co.string,
-    notifications: co.boolean
-  });
+// @filename: schema.ts
+import { Account, CoMap, co } from "jazz-tools";
+// schema.ts
+class Preferences extends CoMap {
+  theme = co.string;
+  notifications = co.boolean;
 }
 
-// Use in provider
-<JazzProvider AccountSchema={MyAppAccount}>
-  {children}
-</JazzProvider>
+// Define your custom account schema
+export class MyAppAccount extends Account {
+  name = co.string;
+  preferences = co.ref(Preferences);
+}
+
+// @filename: app.tsx
+import * as React from "react";
+import { JazzProvider } from "jazz-react";
+import { SyncConfig } from "jazz-tools";
+
+const syncConfig: SyncConfig = {
+  peer: "wss://cloud.jazz.tools/?key=your-api-key",
+  when: "always",
+}
+
+// ---cut---
+// app.tsx
+import { MyAppAccount } from "./schema";
+
+export function MyApp ({ children }: { children: React.ReactNode }) {
+  // Use in provider
+  return (
+    <JazzProvider 
+      sync={syncConfig}
+ 
+      AccountSchema={MyAppAccount} // [!code ++]
+    >
+      {children}
+    </JazzProvider>
+  );
+}
 
 // Register type for useAccount
-declare module "jazz-react" {
-  interface Register {
-    Account: MyAppAccount;
-  }
+declare module "jazz-react" { // [!code ++]
+  interface Register { // [!code ++]
+    Account: MyAppAccount; // [!code ++]  
+  } // [!code ++]
+} // [!code ++]
+```
+</CodeGroup>
+
+### Additional Options
+
+The provider accepts these additional options:
+
+<CodeGroup>
+```tsx twoslash
+import * as React from "react";
+import { JazzProvider } from "jazz-react";
+import { SyncConfig } from "jazz-tools";
+
+const syncConfig: SyncConfig = {
+  peer: "wss://cloud.jazz.tools/?key=your-api-key",
+  when: "always",
+}
+
+// ---cut---
+// app.tsx
+export function MyApp ({ children }: { children: React.ReactNode }) {
+  return (
+    <JazzProvider
+      sync={syncConfig}
+
+      // Enable guest mode for account-less access
+      guestMode={false}
+  
+      // Set default name for new user profiles
+      defaultProfileName="New User"
+  
+      // Handle user logout
+      onLogOut={() => {
+        console.log("User logged out");
+      }}
+      
+      // Handle anonymous account data when user logs in to existing account
+      onAnonymousAccountDiscarded={(account) => {
+        console.log("Anonymous account discarded", account.id);
+        // Migrate data here
+        return Promise.resolve();
+      }}
+    >
+      {children}
+    </JazzProvider>
+  );
 }
 ```
 </CodeGroup>
+
+See [Authentication States](/docs/authentication/authentication-states) for more information on authentication states, guest mode, and handling anonymous accounts.
 
 ## Authentication
 
