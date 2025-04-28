@@ -452,11 +452,7 @@ export class CoValueResolutionNode<D extends CoValue> {
     // Track all the ids that are not part of the subscriptions anymore
 
     if (Object.keys(depth).length > 0) {
-      if (
-        coValueType === "CoMap" ||
-        coValueType === "Group" ||
-        coValueType === "Account"
-      ) {
+      if (coValueType === "CoMap" || coValueType === "Account") {
         const map = value as CoMap;
         const keys = "$each" in depth ? map._raw.keys() : Object.keys(depth);
 
@@ -464,7 +460,7 @@ export class CoValueResolutionNode<D extends CoValue> {
           const id = map._raw.get(key) as string | undefined;
           const descriptor = map.getDescriptor(key);
 
-          if (!descriptor || !isRefEncoded(descriptor)) {
+          if (!descriptor) {
             this.childErrors.set(
               key,
               getErrorState(undefined, "unavailable", [
@@ -476,6 +472,8 @@ export class CoValueResolutionNode<D extends CoValue> {
                 },
               ]),
             );
+          } else if (!isRefEncoded(descriptor)) {
+            continue;
           } else if (id) {
             idsToLoad.add(id);
             childrenToLoad.set(id, {

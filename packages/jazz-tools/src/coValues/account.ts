@@ -97,6 +97,16 @@ export class Account extends CoValueBase implements CoValue {
   declare profile: Profile | null;
   declare root: CoMap | null;
 
+  getDescriptor(key: string) {
+    if (key === "profile") {
+      return this._schema.profile;
+    } else if (key === "root") {
+      return this._schema.root;
+    }
+
+    return undefined;
+  }
+
   get _refs(): {
     profile: RefIfCoValue<Profile> | undefined;
     root: RefIfCoValue<CoMap> | undefined;
