@@ -464,7 +464,7 @@ const reactExamples: Example[] = [
     description:
       "Handle multiple users editing the same text, integrated with a ProseMirror editor for rich text.",
     tech: [tech.react],
-    features: [features.coRichText],
+    features: [features.coRichText, features.coPlainText],
     demoUrl: "https://richtext-demo.jazz.tools",
     illustration: <CoTextIllustration />,
   },
