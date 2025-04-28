@@ -149,11 +149,7 @@ export class RawCoMapView<
       this.latest[key] = entries[entries.length - 1];
     }
 
-    this.totalKnownTransactions = 0;
-
-    for (const count of Object.values(this.knownTransactions)) {
-      this.totalKnownTransactions += count;
-    }
+    this.totalKnownTransactions = this.core.totalKnownTransactions();
   }
 
   isTimeTravelEntity() {

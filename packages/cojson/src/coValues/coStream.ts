@@ -136,10 +136,7 @@ export class RawCoStreamView<
       entries.sort(this.compareStreamItems);
     }
 
-    this.totalKnownTransactions = 0;
-    for (const count of Object.values(this.knownTransactions)) {
-      this.totalKnownTransactions += count;
-    }
+    this.totalKnownTransactions = this.core.totalKnownTransactions();
   }
 
   getSingleStream(): Item[] | undefined {

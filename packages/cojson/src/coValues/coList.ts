@@ -2,7 +2,6 @@ import { CoID, RawCoValue } from "../coValue.js";
 import { CoValueCore } from "../coValueCore.js";
 import { AgentID, SessionID, TransactionID } from "../ids.js";
 import { JsonObject, JsonValue } from "../jsonValue.js";
-import { CoValueKnownState } from "../sync.js";
 import { accountOrAgentIDfromSessionID } from "../typeUtils/accountOrAgentIDfromSessionID.js";
 import { isCoValue } from "../typeUtils/isCoValue.js";
 import { RawAccountID } from "./account.js";
@@ -83,7 +82,6 @@ export class RawCoListView<
     opID: OpID;
   }[];
   /** @internal */
-  knownTransactions: CoValueKnownState["sessions"];
   totalKnownTransactions = 0;
   totalValidTransactions = 0;
 
@@ -100,25 +98,11 @@ export class RawCoListView<
     this.deletionsByInsertion = {};
     this.afterStart = [];
     this.beforeEnd = [];
-    this.knownTransactions = {};
 
-    this.processNewTransactions();
-  }
+    const transactions = this.core.getValidSortedTransactions();
+    this.totalValidTransactions = transactions.length;
 
-  processNewTransactions() {
-    const newTransactions = this.core.getValidTransactions({
-      ignorePrivateTransactions: false,
-      knownTransactions: this.knownTransactions,
-    });
-
-    if (newTransactions.length === 0) {
-      return;
-    }
-
-    this._cachedEntries = undefined;
-
-    for (const { txID, changes, madeAt } of newTransactions) {
-      this.totalValidTransactions++;
+    for (const { txID, changes, madeAt } of transactions) {
       for (const [changeIdx, changeUntyped] of changes.entries()) {
         const change = changeUntyped as ListOpPayload<Item>;
 
@@ -210,17 +194,9 @@ export class RawCoListView<
           );
         }
       }
-
-      this.knownTransactions[txID.sessionID] = Math.max(
-        this.knownTransactions[txID.sessionID] ?? 0,
-        txID.txIndex,
-      );
     }
 
-    this.totalKnownTransactions = 0;
-    for (const count of Object.values(this.knownTransactions)) {
-      this.totalKnownTransactions += count;
-    }
+    this.totalKnownTransactions = this.core.totalKnownTransactions();
   }
 
   get processedChangesId() {
@@ -513,7 +489,7 @@ export class RawCoList<
 
     this.core.makeTransaction(changes, privacy);
 
-    this.processNewTransactions();
+    this.rebuildFromCore();
   }
 
   /**
@@ -560,7 +536,7 @@ export class RawCoList<
       privacy,
     );
 
-    this.processNewTransactions();
+    this.rebuildFromCore();
   }
 
   /** Deletes the item at index `at`.
@@ -587,7 +563,7 @@ export class RawCoList<
       privacy,
     );
 
-    this.processNewTransactions();
+    this.rebuildFromCore();
   }
 
   replace(
@@ -615,6 +591,19 @@ export class RawCoList<
       ],
       privacy,
     );
-    this.processNewTransactions();
+    this.rebuildFromCore();
+  }
+
+  /** @internal */
+  rebuildFromCore() {
+    const listAfter = new RawCoList(this.core) as this;
+
+    this.afterStart = listAfter.afterStart;
+    this.beforeEnd = listAfter.beforeEnd;
+    this.insertions = listAfter.insertions;
+    this.deletionsByInsertion = listAfter.deletionsByInsertion;
+    this.totalKnownTransactions = listAfter.totalKnownTransactions;
+    this.totalValidTransactions = listAfter.totalValidTransactions;
+    this._cachedEntries = undefined;
   }
 }
