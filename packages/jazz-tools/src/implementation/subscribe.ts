@@ -228,8 +228,8 @@ export class CoValueResolutionNode<D extends CoValue> {
 
     this.processedChangesId = update.processedChangesId;
 
-    const hasAccess =
-      update instanceof RawGroup ? true : owner.myRole() !== undefined;
+    const ruleset = update.core.header.ruleset;
+    const hasAccess = ruleset.type === "group" || owner.myRole() !== undefined;
 
     if (!hasAccess) {
       if (this.value.type !== "unauthorized") {
