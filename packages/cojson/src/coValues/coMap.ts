@@ -138,8 +138,9 @@ export class RawCoMapView<
           txID.txIndex,
         );
       }
-      this.totalValidTransactions++;
     }
+
+    this.totalValidTransactions += newValidTransactions.length;
 
     for (const entries of changedEntries.values()) {
       entries.sort(this.core.compareTransactions);

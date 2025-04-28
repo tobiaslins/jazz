@@ -1,4 +1,5 @@
 import { LocalNode, RawAccount, RawCoMap, RawCoValue, RawGroup } from "cojson";
+import { V } from "vitest/dist/chunks/reporters.d.CfRkRKN2.js";
 import { RegisteredSchemas } from "../coValues/registeredSchemas.js";
 import { CoFeed, CoList, CoMap } from "../exports.js";
 import {
@@ -182,6 +183,7 @@ export class CoValueResolutionNode<D extends CoValue> {
   resolve: RefsToResolve<any>;
   idsSubscribed = new Set<string>();
   processedChangesId = "0/0";
+  batchingUpdates = false;
 
   constructor(
     public node: LocalNode,
@@ -189,11 +191,11 @@ export class CoValueResolutionNode<D extends CoValue> {
     public id: ID<D>,
     public schema: RefEncoded<D>,
   ) {
+    this.resolve = resolve;
     this.value = { type: "unloaded", id };
     this.subscription = new Subscription(node, id, (value) => {
       this.handleUpdate(value);
     });
-    this.resolve = resolve;
   }
 
   updateValue(value: SubscriptionValue<D, any>) {
@@ -251,6 +253,8 @@ export class CoValueResolutionNode<D extends CoValue> {
       return;
     }
 
+    this.batchingUpdates = true;
+
     if (this.value.type !== "loaded") {
       this.updateValue(createCoValue(this.schema, update, this));
       this.loadChildren();
@@ -261,6 +265,8 @@ export class CoValueResolutionNode<D extends CoValue> {
         this.updateValue(createCoValue(this.schema, update, this));
       }
     }
+
+    this.batchingUpdates = false;
 
     this.triggerUpdate();
   }
@@ -342,6 +348,7 @@ export class CoValueResolutionNode<D extends CoValue> {
     if (!this.shouldSendUpdates()) return;
     if (!this.dirty) return;
     if (!this.listener) return;
+    if (this.batchingUpdates) return;
 
     const error = this.errorFromChildren;
     const value = this.value;
@@ -434,7 +441,6 @@ export class CoValueResolutionNode<D extends CoValue> {
     >();
 
     const coValueType = value._type;
-    let errorsFound = false;
 
     // TODO: Phase 1: Abstract the depth -> subscription
     //    Track all the subscribed keys in depth
@@ -476,6 +482,7 @@ export class CoValueResolutionNode<D extends CoValue> {
               query: depth[key] ?? depth.$each,
               descriptor,
             });
+            this.childErrors.delete(key);
           } else if (!descriptor.optional) {
             this.childErrors.set(
               key,
@@ -488,11 +495,13 @@ export class CoValueResolutionNode<D extends CoValue> {
                 },
               ]),
             );
-            errorsFound = true;
           }
         }
       } else if (value._type === "CoList") {
         const list = value as CoList;
+
+        // TODO: Rename into processNewTransactions?
+        list._raw.rebuildFromCore();
         const entries = list._raw.entries();
         const keys =
           "$each" in depth ? Object.keys(entries) : Object.keys(depth);
@@ -519,7 +528,9 @@ export class CoValueResolutionNode<D extends CoValue> {
               query: depth[key] ?? depth.$each,
               descriptor,
             });
+            this.childErrors.delete(key);
           } else if (!descriptor.optional) {
+            // TODO: Switch to validation errors
             this.childErrors.set(
               key,
               getErrorState(undefined, "unavailable", [
@@ -561,6 +572,7 @@ export class CoValueResolutionNode<D extends CoValue> {
                 query: depth[key] ?? depth.$each,
                 descriptor,
               });
+              this.childErrors.delete(key);
             } else if (!descriptor.optional) {
               this.childErrors.set(
                 key,
@@ -573,16 +585,13 @@ export class CoValueResolutionNode<D extends CoValue> {
                   },
                 ]),
               );
-              errorsFound = true;
             }
           }
         }
       }
     }
 
-    if (errorsFound) {
-      this.errorFromChildren = this.computeChildErrors();
-    }
+    this.errorFromChildren = this.computeChildErrors();
 
     // Collect all the deleted ids
     for (const id of this.childNodes.keys()) {
