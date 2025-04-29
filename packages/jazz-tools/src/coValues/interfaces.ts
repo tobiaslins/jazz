@@ -326,11 +326,11 @@ export function subscribeToCoValue<
     if (value.type === "unavailable") {
       options.onUnavailable?.();
 
-      console.error(value.issues);
+      console.error(value.toString());
     } else if (value.type === "unauthorized") {
       options.onUnauthorized?.();
 
-      console.error(value.issues);
+      console.error(value.toString());
     } else if (value.type === "loaded") {
       listener(value.value as Resolved<V, R>, unsubscribe);
     }

@@ -53,6 +53,11 @@ export class Ref<out V extends CoValue> {
       });
     }
   }
+
+  get value(): V | null | undefined {
+    return this.accessById();
+  }
+
   accessById(): V | null | undefined {
     const resolutionNode = getResolutionNode(this.parent);
 

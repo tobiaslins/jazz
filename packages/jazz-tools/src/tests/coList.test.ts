@@ -517,7 +517,7 @@ describe("CoList resolution", async () => {
       loadAs: meOnSecondPeer,
     });
 
-    expect(loadedList?.[0]).toBeDefined();
+    expect(loadedList?.[0]).toBeTruthy();
     expect(loadedList?.[0]?.[0]).toBe(null);
     expect(loadedList?.[0]?._refs[0]?.id).toEqual(list[0]![0]!.id);
     // TODO: this should be ref equal

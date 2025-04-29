@@ -1,5 +1,4 @@
 import { LocalNode, RawAccount, RawCoMap, RawCoValue, RawGroup } from "cojson";
-import { V } from "vitest/dist/chunks/reporters.d.CfRkRKN2.js";
 import { RegisteredSchemas } from "../coValues/registeredSchemas.js";
 import { CoFeed, CoList, CoMap } from "../exports.js";
 import {
@@ -9,51 +8,47 @@ import {
   RefEncoded,
   RefsToResolve,
   Resolved,
-  co,
   instantiateRefEncoded,
   isRefEncoded,
 } from "../internal.js";
 import { coValuesCache } from "../lib/cache.js";
 
-type SubscriptionErrorIssue = {
+type JazzErrorIssue = {
   code: "unavailable" | "unauthorized" | "validationError";
   message: string;
   params: Record<string, any>;
   path: string[];
 };
 
-type SubscriptionError =
-  | { type: "unavailable"; issues: SubscriptionErrorIssue[]; id?: string }
-  | { type: "unauthorized"; issues: SubscriptionErrorIssue[]; id?: string };
 type SubscriptionValue<D extends CoValue, R extends RefsToResolve<D>> =
   | { type: "loaded"; value: Resolved<D, R>; id: string }
-  | SubscriptionError;
+  | JazzError;
 type Unloaded = { type: "unloaded"; id: string };
 
-function createResolvablePromise<T>() {
-  let resolve!: (value: T) => void;
-  let reject!: (reason?: any) => void;
+class JazzError {
+  constructor(
+    public id: ID<CoValue> | undefined,
+    public type: "unavailable" | "unauthorized",
+    public issues: JazzErrorIssue[],
+  ) {}
 
-  const promise = new Promise<T>((res, rej) => {
-    resolve = res;
-    reject = rej;
-  });
+  toString() {
+    return this.issues
+      .map((issue) => {
+        let message = `${issue.message}`;
 
-  return { promise, resolve, reject };
-}
+        if (this.id) {
+          message += ` from ${this.id}`;
+        }
 
-type ResolvablePromise<T> = ReturnType<typeof createResolvablePromise<T>>;
+        if (issue.path.length > 0) {
+          message += ` on path ${issue.path.join(".")}`;
+        }
 
-function getErrorState(
-  id: ID<CoValue> | undefined,
-  type: "unavailable" | "unauthorized",
-  issues: SubscriptionErrorIssue[],
-): SubscriptionError {
-  return {
-    id,
-    type,
-    issues,
-  };
+        return message;
+      })
+      .join("\n");
+  }
 }
 
 export function getOwnerFromRawValue(raw: RawCoValue) {
@@ -86,13 +81,13 @@ class Subscription {
       this.subscribe(value.core.getCurrentContent());
     } else {
       this.status = "loading";
-      this.node.load(this.id as any).then((value) => {
+      this.node.loadCoValueCore(this.id as any).then((value) => {
         if (this.unsubscribed) return;
 
         // TODO handle the error states which should be transitive
         if (value !== "unavailable") {
           this.status = "loaded";
-          this.subscribe(value);
+          this.subscribe(value.getCurrentContent());
         } else {
           this.status = "unavailable";
           this.listener("unavailable");
@@ -171,17 +166,15 @@ export class CoValueResolutionNode<D extends CoValue> {
     SubscriptionValue<D, any>
   >();
   value: SubscriptionValue<D, any> | Unloaded;
-  childErrors: Map<string, SubscriptionError> = new Map<
-    string,
-    SubscriptionError
-  >();
-  errorFromChildren: SubscriptionError | undefined;
-  promise: ResolvablePromise<void> | undefined;
+  childErrors: Map<string, JazzError> = new Map();
+  validationErrors: Map<string, JazzError> = new Map();
+  errorFromChildren: JazzError | undefined;
   subscription: Subscription;
   listener: ((value: SubscriptionValue<D, any>) => void) | undefined;
   dirty = false;
   resolve: RefsToResolve<any>;
   idsSubscribed = new Set<string>();
+  autoloaded = new Set<string>();
   processedChangesId = "0/0";
   batchingUpdates = false;
 
@@ -209,7 +202,7 @@ export class CoValueResolutionNode<D extends CoValue> {
     if (update === "unavailable") {
       if (this.value.type !== "unavailable") {
         this.updateValue(
-          getErrorState(this.id, "unavailable", [
+          new JazzError(this.id, "unavailable", [
             {
               code: "unavailable",
               message: "The value is unavailable",
@@ -236,7 +229,7 @@ export class CoValueResolutionNode<D extends CoValue> {
     if (!hasAccess) {
       if (this.value.type !== "unauthorized") {
         this.updateValue(
-          getErrorState(this.id, "unauthorized", [
+          new JazzError(this.id, "unauthorized", [
             {
               code: "unauthorized",
               message:
@@ -253,8 +246,6 @@ export class CoValueResolutionNode<D extends CoValue> {
       return;
     }
 
-    this.batchingUpdates = true;
-
     if (this.value.type !== "loaded") {
       this.updateValue(createCoValue(this.schema, update, this));
       this.loadChildren();
@@ -266,56 +257,62 @@ export class CoValueResolutionNode<D extends CoValue> {
       }
     }
 
-    this.batchingUpdates = false;
-
     this.triggerUpdate();
   }
 
   computeChildErrors() {
-    let errors: SubscriptionErrorIssue[] = [];
-    let errorType: SubscriptionError["type"] = "unavailable";
+    let issues: JazzErrorIssue[] = [];
+    let errorType: JazzError["type"] = "unavailable";
 
-    if (this.childErrors.size === 0) {
+    if (this.childErrors.size === 0 && this.validationErrors.size === 0) {
       return undefined;
     }
 
     for (const value of this.childErrors.values()) {
       errorType = value.type;
       if (value.issues) {
-        errors.push(...value.issues);
+        issues.push(...value.issues);
       }
     }
 
-    if (errors.length > 0) {
-      return getErrorState(this.id, errorType, errors);
+    for (const value of this.validationErrors.values()) {
+      errorType = value.type;
+      if (value.issues) {
+        issues.push(...value.issues);
+      }
     }
 
-    return getErrorState(this.id, errorType, []);
+    if (issues.length > 0) {
+      return new JazzError(this.id, errorType, issues);
+    }
+
+    return new JazzError(this.id, errorType, []);
   }
 
   handleChildUpdate = (
-    key: string,
+    id: string,
     value: SubscriptionValue<any, any> | Unloaded,
+    key?: string,
   ) => {
     if (value.type === "unloaded") {
       return;
     }
 
-    this.childValues.set(key, value);
+    this.childValues.set(id, value);
 
     if (value.type === "unavailable" || value.type === "unauthorized") {
       const error = value;
-      this.childErrors.set(key, error);
+      this.childErrors.set(id, error);
 
       if (error.issues) {
         error.issues.forEach((issue) => {
-          issue.path.unshift(key);
+          issue.path.unshift(key ?? id);
         });
       }
 
       this.errorFromChildren = this.computeChildErrors();
-    } else if (this.errorFromChildren && this.childErrors.has(key)) {
-      this.childErrors.delete(key);
+    } else if (this.errorFromChildren && this.childErrors.has(id)) {
+      this.childErrors.delete(id);
 
       this.errorFromChildren = this.computeChildErrors();
     }
@@ -336,7 +333,7 @@ export class CoValueResolutionNode<D extends CoValue> {
     if (this.value.type !== "loaded") return true;
 
     for (const value of this.childValues.values()) {
-      if (value.type === "unloaded") {
+      if (value.type === "unloaded" && !this.autoloaded.has(value.id)) {
         return false;
       }
     }
@@ -380,9 +377,7 @@ export class CoValueResolutionNode<D extends CoValue> {
 
   subscribeToKey(key: string) {
     if (this.resolve === true || !this.resolve) {
-      this.resolve = { [key]: true };
-      this.loadChildren();
-      return;
+      this.resolve = {};
     }
 
     if (this.resolve.$each || key in this.resolve) {
@@ -391,15 +386,38 @@ export class CoValueResolutionNode<D extends CoValue> {
 
     this.resolve[key as keyof typeof this.resolve] = true;
 
-    this.loadChildren();
+    if (this.value.type !== "loaded") {
+      return;
+    }
+
+    const value = this.value.value;
+
+    if (value._type === "CoMap" || value._type === "Account") {
+      const map = value as CoMap;
+
+      const id = this.loadCoMapKey(map, key, true);
+
+      if (id) {
+        this.autoloaded.add(id);
+      }
+    } else if (value._type === "CoList") {
+      const list = value as CoList;
+
+      const id = this.loadCoListKey(list, key, true);
+
+      if (id) {
+        this.autoloaded.add(id);
+      }
+    }
   }
 
   subscribeToId(id: string, descriptor: RefEncoded<any>) {
-    if (this.idsSubscribed.has(id)) {
+    if (this.idsSubscribed.has(id) || this.childValues.has(id)) {
       return;
     }
 
     this.idsSubscribed.add(id);
+    this.autoloaded.add(id);
 
     this.childValues.set(id, { type: "unloaded", id });
     const child = new CoValueResolutionNode(
@@ -413,18 +431,15 @@ export class CoValueResolutionNode<D extends CoValue> {
   }
 
   loadChildren() {
-    const { node, resolve } = this;
+    this.batchingUpdates = true;
+
+    const { resolve } = this;
 
     if (this.value.type !== "loaded") {
       return false;
     }
 
     const value = this.value.value;
-    const raw = value._raw;
-
-    if (raw === undefined) {
-      throw new Error("RefNode is not initialized");
-    }
 
     const depth =
       typeof resolve !== "object" || resolve === null ? {} : (resolve as any);
@@ -432,24 +447,8 @@ export class CoValueResolutionNode<D extends CoValue> {
     let hasChanged = false;
 
     const idsToLoad = new Set<string>(this.idsSubscribed);
-    const childrenToLoad = new Map<
-      string,
-      {
-        query: RefsToResolve<any>;
-        descriptor: RefEncoded<any>;
-      }
-    >();
 
     const coValueType = value._type;
-
-    // TODO: Phase 1: Abstract the depth -> subscription
-    //    Track all the subscribed keys in depth
-    //    Navigate the depth tree, collect descriptor, errors and ids
-
-    // Subscription tracking is by key
-    // Nodes is by id
-
-    // Track all the ids that are not part of the subscriptions anymore
 
     if (Object.keys(depth).length > 0) {
       if (coValueType === "CoMap" || coValueType === "Account") {
@@ -457,132 +456,65 @@ export class CoValueResolutionNode<D extends CoValue> {
         const keys = "$each" in depth ? map._raw.keys() : Object.keys(depth);
 
         for (const key of keys) {
-          const id = map._raw.get(key) as string | undefined;
-          const descriptor = map.getDescriptor(key);
+          const id = this.loadCoMapKey(map, key, depth[key] ?? depth.$each);
 
-          if (!descriptor) {
-            this.childErrors.set(
-              key,
-              getErrorState(undefined, "unavailable", [
-                {
-                  code: "validationError",
-                  message: `The ref ${key} requested on ${map.constructor.name} is not defined in the schema`,
-                  params: {},
-                  path: [key],
-                },
-              ]),
-            );
-          } else if (!isRefEncoded(descriptor)) {
-            continue;
-          } else if (id) {
+          if (id) {
             idsToLoad.add(id);
-            childrenToLoad.set(id, {
-              query: depth[key] ?? depth.$each,
-              descriptor,
-            });
-            this.childErrors.delete(key);
-          } else if (!descriptor.optional) {
-            this.childErrors.set(
-              key,
-              getErrorState(undefined, "unavailable", [
-                {
-                  code: "validationError",
-                  message: `The ref ${key} requested on ${map.constructor.name} is missing`,
-                  params: {},
-                  path: [key],
-                },
-              ]),
-            );
           }
         }
       } else if (value._type === "CoList") {
         const list = value as CoList;
 
-        // TODO: Rename into processNewTransactions?
-        list._raw.rebuildFromCore();
-        const entries = list._raw.entries();
-        const keys =
-          "$each" in depth ? Object.keys(entries) : Object.keys(depth);
         const descriptor = list.getItemsDescriptor();
 
-        if (!descriptor || !isRefEncoded(descriptor)) {
-          // The list doesn't have ref items
-          // TODO: do not early return here, we should still load the stream
-          return false;
-        }
+        if (descriptor && isRefEncoded(descriptor)) {
+          list._raw.processNewTransactions();
+          const entries = list._raw.entries();
+          const keys =
+            "$each" in depth ? Object.keys(entries) : Object.keys(depth);
 
-        for (const key of keys) {
-          const entry = entries[Number(key)];
+          for (const key of keys) {
+            const id = this.loadCoListKey(list, key, depth[key] ?? depth.$each);
 
-          if (!entry) {
-            continue;
-          }
-
-          const id = entry.value as string | undefined;
-
-          if (id) {
-            idsToLoad.add(id);
-            childrenToLoad.set(id, {
-              query: depth[key] ?? depth.$each,
-              descriptor,
-            });
-            this.childErrors.delete(key);
-          } else if (!descriptor.optional) {
-            // TODO: Switch to validation errors
-            this.childErrors.set(
-              key,
-              getErrorState(undefined, "unavailable", [
-                {
-                  code: "validationError",
-                  message: `The ref on position ${key} requested on ${list.constructor.name} is missing`,
-                  params: {},
-                  path: [key],
-                },
-              ]),
-            );
+            if (id) {
+              idsToLoad.add(id);
+            }
           }
         }
       } else if (value._type === "CoStream") {
         const stream = value as CoFeed;
         const descriptor = stream.getItemsDescriptor();
 
-        if (!descriptor || !isRefEncoded(descriptor)) {
-          // The stream doesn't have ref items
-          // TODO: do not early return here, we should still load the stream
-          return false;
-        }
+        if (descriptor && isRefEncoded(descriptor)) {
+          for (const session of stream._raw.sessions()) {
+            const values = stream._raw.items[session] ?? [];
 
-        for (const session of stream._raw.sessions()) {
-          const values = stream._raw.items[session] ?? [];
+            for (const [i, item] of values.entries()) {
+              const key = `${session}/${i}`;
 
-          for (const [i, item] of values.entries()) {
-            const key = `${session}/${i}`;
+              if (!depth.$each && !depth[key]) {
+                continue;
+              }
 
-            if (!depth.$each && !depth[key]) {
-              continue;
-            }
+              const id = item.value as string | undefined;
 
-            const id = item.value as string | undefined;
-
-            if (id) {
-              idsToLoad.add(id);
-              childrenToLoad.set(id, {
-                query: depth[key] ?? depth.$each,
-                descriptor,
-              });
-              this.childErrors.delete(key);
-            } else if (!descriptor.optional) {
-              this.childErrors.set(
-                key,
-                getErrorState(undefined, "unavailable", [
-                  {
-                    code: "validationError",
-                    message: `The ref on position ${key} requested on ${stream.constructor.name} is missing`,
-                    params: {},
-                    path: [key],
-                  },
-                ]),
-              );
+              if (id) {
+                idsToLoad.add(id);
+                this.loadChildNode(id, depth[key] ?? depth.$each, descriptor);
+                this.validationErrors.delete(key);
+              } else if (!descriptor.optional) {
+                this.validationErrors.set(
+                  key,
+                  new JazzError(undefined, "unavailable", [
+                    {
+                      code: "validationError",
+                      message: `The ref on position ${key} requested on ${stream.constructor.name} is missing`,
+                      params: {},
+                      path: [key],
+                    },
+                  ]),
+                );
+              }
             }
           }
         }
@@ -606,35 +538,111 @@ export class CoValueResolutionNode<D extends CoValue> {
       }
     }
 
-    // Create all the new nodes
-    const newNodes = new Map<string, CoValueResolutionNode<any>>();
-
-    for (const [id, { query, descriptor }] of childrenToLoad) {
-      if (this.childNodes.has(id)) {
-        continue;
-      }
-
-      hasChanged = true;
-
-      this.childValues.set(id, { type: "unloaded", id });
-      const child = new CoValueResolutionNode(
-        node,
-        query,
-        id as ID<any>,
-        descriptor,
-      );
-      this.childNodes.set(id, child);
-      newNodes.set(id, child);
-    }
-
-    // Adding listeners after that all the child nodes are created
-    // to resolving the loaded state too early beacause setListener
-    // may invoke syncrounously invoke the listener if the child is already loaded
-    for (const [key, child] of newNodes) {
-      child.setListener((value) => this.handleChildUpdate(key, value));
-    }
+    this.batchingUpdates = false;
 
     return hasChanged;
+  }
+
+  loadCoMapKey(map: CoMap, key: string, depth: Record<string, any> | true) {
+    const id = map._raw.get(key) as string | undefined;
+    const descriptor = map.getDescriptor(key);
+
+    if (!descriptor) {
+      this.childErrors.set(
+        key,
+        new JazzError(undefined, "unavailable", [
+          {
+            code: "validationError",
+            message: `The ref ${key} requested on ${map.constructor.name} is not defined in the schema`,
+            params: {},
+            path: [key],
+          },
+        ]),
+      );
+      return undefined;
+    }
+
+    if (isRefEncoded(descriptor)) {
+      if (id) {
+        this.loadChildNode(id, depth, descriptor, key);
+        this.validationErrors.delete(key);
+
+        return id;
+      } else if (!descriptor.optional) {
+        this.validationErrors.set(
+          key,
+          new JazzError(undefined, "unavailable", [
+            {
+              code: "validationError",
+              message: `The ref ${key} requested on ${map.constructor.name} is missing`,
+              params: {},
+              path: [key],
+            },
+          ]),
+        );
+      }
+    }
+
+    return undefined;
+  }
+
+  loadCoListKey(list: CoList, key: string, depth: Record<string, any> | true) {
+    const descriptor = list.getItemsDescriptor();
+
+    if (!descriptor || !isRefEncoded(descriptor)) {
+      return undefined;
+    }
+
+    const entries = list._raw.entries();
+    const entry = entries[Number(key)];
+
+    if (!entry) {
+      return undefined;
+    }
+
+    const id = entry.value as string | undefined;
+
+    if (id) {
+      this.loadChildNode(id, depth, descriptor, key);
+      this.validationErrors.delete(key);
+
+      return id;
+    } else if (!descriptor.optional) {
+      this.validationErrors.set(
+        key,
+        new JazzError(undefined, "unavailable", [
+          {
+            code: "validationError",
+            message: `The ref on position ${key} requested on ${list.constructor.name} is missing`,
+            params: {},
+            path: [key],
+          },
+        ]),
+      );
+    }
+
+    return undefined;
+  }
+
+  loadChildNode(
+    id: string,
+    query: RefsToResolve<any>,
+    descriptor: RefEncoded<any>,
+    key?: string,
+  ) {
+    if (this.childValues.has(id)) {
+      return;
+    }
+
+    this.childValues.set(id, { type: "unloaded", id });
+    const child = new CoValueResolutionNode(
+      this.node,
+      query,
+      id as ID<any>,
+      descriptor,
+    );
+    this.childNodes.set(id, child);
+    child.setListener((value) => this.handleChildUpdate(id, value, key));
   }
 
   destroy() {
