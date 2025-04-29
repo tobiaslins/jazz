@@ -200,7 +200,7 @@ export class CoValueResolutionNode<D extends CoValue> {
 
   handleUpdate(update: RawCoValue | "unavailable") {
     if (update === "unavailable") {
-      if (this.value.type !== "unavailable") {
+      if (this.value.type === "unloaded") {
         this.updateValue(
           new JazzError(this.id, "unavailable", [
             {
@@ -305,6 +305,7 @@ export class CoValueResolutionNode<D extends CoValue> {
       this.childErrors.set(id, error);
 
       if (error.issues) {
+        // TODO: Immutable updates
         error.issues.forEach((issue) => {
           issue.path.unshift(key ?? id);
         });
