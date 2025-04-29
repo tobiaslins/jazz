@@ -2,6 +2,7 @@ import { CoID, RawCoValue } from "../coValue.js";
 import { CoValueCore } from "../coValueCore.js";
 import { AgentID, SessionID, TransactionID } from "../ids.js";
 import { JsonObject, JsonValue } from "../jsonValue.js";
+import { CoValueKnownState } from "../sync.js";
 import { accountOrAgentIDfromSessionID } from "../typeUtils/accountOrAgentIDfromSessionID.js";
 import { isCoValue } from "../typeUtils/isCoValue.js";
 import { RawAccountID } from "./account.js";
@@ -41,7 +42,7 @@ type DeletionEntry = {
   deletionID: OpID;
 } & DeletionOpPayload;
 
-export class RawCoListView<
+export class RawCoList<
   Item extends JsonValue = JsonValue,
   Meta extends JsonObject | null = null,
 > implements RawCoValue
@@ -84,6 +85,8 @@ export class RawCoListView<
   /** @internal */
   totalKnownTransactions = 0;
   totalValidTransactions = 0;
+  knownTransactions: CoValueKnownState["sessions"] = {};
+  lastValidTransaction: number | undefined;
 
   /** @internal */
   constructor(core: CoValueCore) {
@@ -98,11 +101,38 @@ export class RawCoListView<
     this.deletionsByInsertion = {};
     this.afterStart = [];
     this.beforeEnd = [];
+    this.knownTransactions = {};
 
-    const transactions = this.core.getValidSortedTransactions();
-    this.totalValidTransactions = transactions.length;
+    this.processNewTransactions();
+  }
+
+  processNewTransactions() {
+    const transactions = this.core.getValidSortedTransactions({
+      ignorePrivateTransactions: false,
+      knownTransactions: this.knownTransactions,
+    });
+
+    if (transactions.length === 0) {
+      return;
+    }
+
+    this.totalValidTransactions += transactions.length;
+    let lastValidTransaction: number | undefined = undefined;
+    let oldestValidTransaction: number | undefined = undefined;
+    this._cachedEntries = undefined;
 
     for (const { txID, changes, madeAt } of transactions) {
+      lastValidTransaction = Math.max(lastValidTransaction ?? 0, madeAt);
+      oldestValidTransaction = Math.min(
+        oldestValidTransaction ?? Infinity,
+        madeAt,
+      );
+
+      this.knownTransactions[txID.sessionID] = Math.max(
+        this.knownTransactions[txID.sessionID] ?? 0,
+        txID.txIndex,
+      );
+
       for (const [changeIdx, changeUntyped] of changes.entries()) {
         const change = changeUntyped as ListOpPayload<Item>;
 
@@ -196,7 +226,16 @@ export class RawCoListView<
       }
     }
 
-    this.totalKnownTransactions = this.core.totalKnownTransactions();
+    if (
+      this.lastValidTransaction &&
+      oldestValidTransaction &&
+      oldestValidTransaction < this.lastValidTransaction
+    ) {
+      this.rebuildFromCore();
+    } else {
+      this.totalKnownTransactions = this.core.totalKnownTransactions();
+      this.lastValidTransaction = lastValidTransaction;
+    }
   }
 
   get processedChangesId() {
@@ -415,15 +454,7 @@ export class RawCoListView<
       listener(content as this);
     });
   }
-}
 
-export class RawCoList<
-    Item extends JsonValue = JsonValue,
-    Meta extends JsonObject | null = JsonObject | null,
-  >
-  extends RawCoListView<Item, Meta>
-  implements RawCoValue
-{
   /** Appends `item` after the item currently at index `after`.
    *
    * If `privacy` is `"private"` **(default)**, `item` is encrypted in the transaction, only readable by other members of the group this `CoList` belongs to. Not even sync servers can see the content in plaintext.
@@ -488,8 +519,7 @@ export class RawCoList<
     }
 
     this.core.makeTransaction(changes, privacy);
-
-    this.rebuildFromCore();
+    this.processNewTransactions();
   }
 
   /**
@@ -536,7 +566,7 @@ export class RawCoList<
       privacy,
     );
 
-    this.rebuildFromCore();
+    this.processNewTransactions();
   }
 
   /** Deletes the item at index `at`.
@@ -563,7 +593,7 @@ export class RawCoList<
       privacy,
     );
 
-    this.rebuildFromCore();
+    this.processNewTransactions();
   }
 
   replace(
@@ -591,7 +621,7 @@ export class RawCoList<
       ],
       privacy,
     );
-    this.rebuildFromCore();
+    this.processNewTransactions();
   }
 
   /** @internal */
@@ -604,6 +634,8 @@ export class RawCoList<
     this.deletionsByInsertion = listAfter.deletionsByInsertion;
     this.totalKnownTransactions = listAfter.totalKnownTransactions;
     this.totalValidTransactions = listAfter.totalValidTransactions;
+    this.lastValidTransaction = listAfter.lastValidTransaction;
+    this.knownTransactions = listAfter.knownTransactions;
     this._cachedEntries = undefined;
   }
 }
