@@ -279,7 +279,7 @@ export class LocalNode {
         return "unavailable";
       }
 
-      await entry.loadFromPeers(peers).catch((e) => {
+      entry.loadFromPeers(peers).catch((e) => {
         logger.error("Error loading from peers", {
           id,
           err: e,
@@ -288,7 +288,28 @@ export class LocalNode {
     }
 
     // TODO: What if the loading fails because in the previous loadCoValueCore call the Peer with the covalue was skipped?
-    return entry.getCoValue();
+    const result = await entry.getCoValue();
+
+    if (result === "unavailable") {
+      const peers =
+        this.syncManager.getServerAndStoragePeers(skipLoadingFromPeer);
+
+      if (peers.length === 0) {
+        return "unavailable";
+      }
+
+      // Retry
+      entry.loadFromPeers(peers).catch((e) => {
+        logger.error("Error loading from peers", {
+          id,
+          err: e,
+        });
+      });
+
+      return entry.getCoValue();
+    }
+
+    return result;
   }
 
   /**
