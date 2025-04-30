@@ -11,10 +11,8 @@ import {
 
 const Crypto = await WasmCrypto.create();
 
-let jazzCloud = setupTestNode({ isSyncServer: true });
-
 beforeEach(async () => {
-  jazzCloud = setupTestNode({ isSyncServer: true });
+  setupTestNode({ isSyncServer: true });
 });
 
 test("Empty CoList works", () => {
@@ -252,7 +250,7 @@ test("mixing prepend and append", () => {
   expect(list.toJSON()).toEqual([1, 2, 3]);
 });
 
-test.skip("Items appended to start", () => {
+test("Items appended to start", () => {
   const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
 
   const coValue = node.createCoValue({
@@ -268,10 +266,12 @@ test.skip("Items appended to start", () => {
   content.append("second", 0, "trusting");
   content.append("third", 0, "trusting");
 
-  expect(content.toJSON()).toEqual(["first", "second", "third"]);
+  // This result is correct because "third" is appended after "first"
+  // Using the Array methods this would be the same as doing content.splice(1, 0, "third")
+  expect(content.toJSON()).toEqual(["first", "third", "second"]);
 });
 
-test.skip("syncing changes with an older timestamp", async () => {
+test("syncing appends with an older timestamp", async () => {
   const client = setupTestNode({
     connected: true,
   });
@@ -297,23 +297,109 @@ test.skip("syncing changes with an older timestamp", async () => {
 
   listOnOtherClient.append(3, undefined, "trusting");
 
-  await new Promise((resolve) => setTimeout(resolve, 1));
+  await new Promise((resolve) => setTimeout(resolve, 50));
 
   list.append(4, undefined, "trusting");
 
-  await new Promise((resolve) => setTimeout(resolve, 1));
+  await new Promise((resolve) => setTimeout(resolve, 50));
 
   listOnOtherClient.append(5, undefined, "trusting");
 
-  await new Promise((resolve) => setTimeout(resolve, 1));
+  await new Promise((resolve) => setTimeout(resolve, 50));
 
   list.append(6, undefined, "trusting");
 
   otherClient.connectToSyncServer();
 
   await waitFor(() => {
-    expect(list.toJSON()).toEqual([1, 2, 3, 5, 4, 6]);
+    expect(list.toJSON()).toEqual([1, 2, 4, 6, 3, 5]);
   });
 
   expect(listOnOtherClient.toJSON()).toEqual(list.toJSON());
+});
+
+test("syncing prepends with an older timestamp", async () => {
+  const client = setupTestNode({
+    connected: true,
+  });
+  const otherClient = setupTestNode({});
+
+  const otherClientConnection = otherClient.connectToSyncServer();
+
+  const coValue = client.node.createCoValue({
+    type: "colist",
+    ruleset: { type: "unsafeAllowAll" },
+    meta: null,
+    ...Crypto.createdNowUnique(),
+  });
+
+  const list = expectList(coValue.getCurrentContent());
+
+  list.prepend(1, undefined, "trusting");
+  list.prepend(2, undefined, "trusting");
+
+  const listOnOtherClient = await loadCoValueOrFail(otherClient.node, list.id);
+
+  otherClientConnection.peerState.gracefulShutdown();
+
+  listOnOtherClient.prepend(3, undefined, "trusting");
+
+  await new Promise((resolve) => setTimeout(resolve, 50));
+
+  list.prepend(4, undefined, "trusting");
+
+  await new Promise((resolve) => setTimeout(resolve, 50));
+
+  listOnOtherClient.prepend(5, undefined, "trusting");
+
+  await new Promise((resolve) => setTimeout(resolve, 50));
+
+  list.prepend(6, undefined, "trusting");
+
+  otherClient.connectToSyncServer();
+
+  await waitFor(() => {
+    expect(list.toJSON()).toEqual([6, 4, 5, 3, 2, 1]);
+  });
+
+  expect(listOnOtherClient.toJSON()).toEqual(list.toJSON());
+});
+
+test("totalValidTransactions should return the number of valid transactions processed", async () => {
+  const client = setupTestNode({
+    connected: true,
+  });
+  const otherClient = setupTestNode({});
+
+  const otherClientConnection = otherClient.connectToSyncServer();
+
+  const group = client.node.createGroup();
+  group.addMember("everyone", "reader");
+
+  const list = group.createList([1, 2]);
+
+  const listOnOtherClient = await loadCoValueOrFail(otherClient.node, list.id);
+
+  otherClientConnection.peerState.gracefulShutdown();
+
+  group.addMember("everyone", "writer");
+
+  await new Promise((resolve) => setTimeout(resolve, 50));
+
+  listOnOtherClient.append(3, undefined, "trusting");
+
+  expect(listOnOtherClient.toJSON()).toEqual([1, 2]);
+  expect(listOnOtherClient.totalValidTransactions).toEqual(1);
+
+  otherClient.connectToSyncServer();
+
+  await waitFor(() => {
+    expect(listOnOtherClient.core.getCurrentContent().toJSON()).toEqual([
+      1, 2, 3,
+    ]);
+  });
+
+  expect(
+    listOnOtherClient.core.getCurrentContent().totalValidTransactions,
+  ).toEqual(2);
 });
