@@ -1,10 +1,21 @@
-import { expect, test } from "vitest";
+import { beforeEach, expect, test } from "vitest";
 import { expectList } from "../coValue.js";
 import { WasmCrypto } from "../crypto/WasmCrypto.js";
 import { LocalNode } from "../localNode.js";
-import { randomAnonymousAccountAndSessionID } from "./testUtils.js";
+import {
+  loadCoValueOrFail,
+  randomAnonymousAccountAndSessionID,
+  setupTestNode,
+  waitFor,
+} from "./testUtils.js";
 
 const Crypto = await WasmCrypto.create();
+
+let jazzCloud = setupTestNode({ isSyncServer: true });
+
+beforeEach(async () => {
+  jazzCloud = setupTestNode({ isSyncServer: true });
+});
 
 test("Empty CoList works", () => {
   const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
@@ -220,4 +231,89 @@ test("Items prepended to start appear with latest first", () => {
   content.prepend("third", 0, "trusting");
 
   expect(content.toJSON()).toEqual(["third", "second", "first"]);
+});
+
+test("mixing prepend and append", () => {
+  const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+
+  const coValue = node.createCoValue({
+    type: "colist",
+    ruleset: { type: "unsafeAllowAll" },
+    meta: null,
+    ...Crypto.createdNowUnique(),
+  });
+
+  const list = expectList(coValue.getCurrentContent());
+
+  list.append(2, undefined, "trusting");
+  list.prepend(1, undefined, "trusting");
+  list.append(3, undefined, "trusting");
+
+  expect(list.toJSON()).toEqual([1, 2, 3]);
+});
+
+test.skip("Items appended to start", () => {
+  const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+
+  const coValue = node.createCoValue({
+    type: "colist",
+    ruleset: { type: "unsafeAllowAll" },
+    meta: null,
+    ...Crypto.createdNowUnique(),
+  });
+
+  const content = expectList(coValue.getCurrentContent());
+
+  content.append("first", 0, "trusting");
+  content.append("second", 0, "trusting");
+  content.append("third", 0, "trusting");
+
+  expect(content.toJSON()).toEqual(["first", "second", "third"]);
+});
+
+test.skip("syncing changes with an older timestamp", async () => {
+  const client = setupTestNode({
+    connected: true,
+  });
+  const otherClient = setupTestNode({});
+
+  const otherClientConnection = otherClient.connectToSyncServer();
+
+  const coValue = client.node.createCoValue({
+    type: "colist",
+    ruleset: { type: "unsafeAllowAll" },
+    meta: null,
+    ...Crypto.createdNowUnique(),
+  });
+
+  const list = expectList(coValue.getCurrentContent());
+
+  list.append(1, undefined, "trusting");
+  list.append(2, undefined, "trusting");
+
+  const listOnOtherClient = await loadCoValueOrFail(otherClient.node, list.id);
+
+  otherClientConnection.peerState.gracefulShutdown();
+
+  listOnOtherClient.append(3, undefined, "trusting");
+
+  await new Promise((resolve) => setTimeout(resolve, 1));
+
+  list.append(4, undefined, "trusting");
+
+  await new Promise((resolve) => setTimeout(resolve, 1));
+
+  listOnOtherClient.append(5, undefined, "trusting");
+
+  await new Promise((resolve) => setTimeout(resolve, 1));
+
+  list.append(6, undefined, "trusting");
+
+  otherClient.connectToSyncServer();
+
+  await waitFor(() => {
+    expect(list.toJSON()).toEqual([1, 2, 3, 5, 4, 6]);
+  });
+
+  expect(listOnOtherClient.toJSON()).toEqual(list.toJSON());
 });
