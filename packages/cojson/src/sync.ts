@@ -571,12 +571,36 @@ export class SyncManager {
       peer.toldKnownState.add(msg.id);
     }
 
-    /**
-     * We do send a correction/ack message before syncing to give an immediate
-     * response to the peers that are waiting for confirmation that a coValue is
-     * fully synced
-     */
-    this.requestCoValueSync(coValue);
+    const syncedPeers = [];
+
+    for (const peer of this.peersInPriorityOrder()) {
+      if (peer.closed) continue;
+      if (entry.isErroredInPeer(peer.id)) continue;
+
+      // We directly forward the new content to peers that have an active subscription
+      if (peer.optimisticKnownStates.has(coValue.id)) {
+        this.sendNewContentIncludingDependencies(coValue.id, peer);
+        syncedPeers.push(peer);
+      } else if (
+        peer.isServerOrStoragePeer() &&
+        !peer.toldKnownState.has(msg.id)
+      ) {
+        const state = entry.getStateForPeer(peer.id)?.type;
+
+        if (state === "unknown" || state === undefined) {
+          this.trySendToPeer(peer, {
+            action: "load",
+            ...coValue.knownState(),
+          });
+          peer.toldKnownState.add(msg.id);
+          syncedPeers.push(peer);
+        }
+      }
+    }
+
+    for (const peer of syncedPeers) {
+      this.syncState.triggerUpdate(peer.id, coValue.id);
+    }
   }
 
   handleCorrection(msg: KnownStateMessage, peer: PeerState) {
