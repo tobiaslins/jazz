@@ -78,3 +78,26 @@ export async function DocPage({
     );
   }
 }
+
+export async function getMdxWithToc(framework: string, slug?: string[]) {
+  const slugPath = slug?.join("/");
+  const mdxSource = await getMdxSource(framework, slugPath);
+
+  const {
+    default: Content,
+    tableOfContents,
+    headingsFrameworkVisibility,
+  } = mdxSource;
+
+  // Remove items that should not be shown for the current framework
+  const tocItems = (tableOfContents as Toc).filter(({ id }) =>
+    id && id in headingsFrameworkVisibility
+      ? headingsFrameworkVisibility[id]?.includes(framework)
+      : true,
+  );
+
+  return {
+    Content,
+    tocItems,
+  };
+}

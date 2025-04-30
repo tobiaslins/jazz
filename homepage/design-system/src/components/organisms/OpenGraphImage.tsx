@@ -14,10 +14,14 @@ export async function OpenGraphImage({
   title,
   framework,
   contents,
+  topic,
+  subtopic,
 }: {
   title: string;
-  framework: string;
-  contents: string[];
+  framework?: string;
+  contents?: string[];
+  topic?: string;
+  subtopic?: string;
 }) {
   const manropeSemiBold = await readFile(
     join(process.cwd(), "public/fonts/Manrope-SemiBold.ttf"),
@@ -26,14 +30,13 @@ export async function OpenGraphImage({
   return new ImageResponse(
     <div
       style={{
-        fontSize: "6.5rem",
         background: "white",
         width: "100%",
         height: "100%",
         display: "flex",
         flexDirection: "column",
         alignItems: "flex-start",
-        justifyContent: "flex-start",
+        justifyContent: "center",
         padding: "77px",
         letterSpacing: "-0.05em",
       }}
@@ -41,13 +44,36 @@ export async function OpenGraphImage({
       <div
         style={{
           display: "flex",
-          flexDirection: "row",
+          flexDirection: "column",
           alignItems: "center",
           gap: "1rem",
+          fontSize: "4rem",
         }}
       >
         {title}
-        <span style={{ color: "#DDDDDD" }}>({framework})</span>
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          right: 15,
+          top: 10,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-start",
+          fontSize: "3rem",
+          color: "#888888",
+          letterSpacing: "-0.03em",
+        }}
+      >
+        <div style={{ display: "flex", color: "#BBB", paddingRight: "0.5rem" }}>
+          {framework}
+        </div>
+        {topic && (
+          <span style={{ color: "#CCC", paddingRight: "0.5rem" }}>
+            / {topic}
+          </span>
+        )}
+        {subtopic && <span style={{ color: "#DDD" }}>/ {subtopic}</span>}
       </div>
       <div
         style={{
@@ -60,7 +86,7 @@ export async function OpenGraphImage({
           letterSpacing: "-0.03em",
         }}
       >
-        {contents.map((content) => (
+        {contents?.map((content) => (
           <div key={content}>{content}</div>
         ))}
       </div>

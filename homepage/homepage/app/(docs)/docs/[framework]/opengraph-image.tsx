@@ -3,7 +3,7 @@ import {
   OpenGraphImage,
   imageSize,
   imageContentType,
-} from "gcmp-design-system/src/app/components/organisms/OpenGraphImage";
+} from "@garden-co/design-system/src/components/organisms/OpenGraphImage";
 
 export const title = "Quickstart";
 export const size = imageSize;
