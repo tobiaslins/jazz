@@ -1,5 +1,143 @@
 # jazz-browser-media-images
 
+## 0.13.16
+
+### Patch Changes
+
+- Updated dependencies [c6fb8dc]
+  - cojson@0.13.16
+  - jazz-auth-clerk@0.13.16
+  - jazz-browser@0.13.16
+  - jazz-react@0.13.16
+  - jazz-tools@0.13.16
+
+## 0.13.15
+
+### Patch Changes
+
+- Updated dependencies [c712ef2]
+  - cojson@0.13.15
+  - jazz-auth-clerk@0.13.15
+  - jazz-browser@0.13.15
+  - jazz-react@0.13.15
+  - jazz-tools@0.13.15
+
+## 0.13.14
+
+### Patch Changes
+
+- Updated dependencies [5c2c7d4]
+  - cojson@0.13.14
+  - jazz-auth-clerk@0.13.14
+  - jazz-browser@0.13.14
+  - jazz-react@0.13.14
+  - jazz-tools@0.13.14
+
+## 0.13.13
+
+### Patch Changes
+
+- Updated dependencies [ec9cb40]
+  - cojson@0.13.13
+  - jazz-auth-clerk@0.13.13
+  - jazz-browser@0.13.13
+  - jazz-react@0.13.13
+  - jazz-tools@0.13.13
+
+## 0.13.12
+
+### Patch Changes
+
+- Updated dependencies [4547525]
+- Updated dependencies [29e05c4]
+- Updated dependencies [65719f2]
+  - jazz-tools@0.13.12
+  - jazz-browser@0.13.12
+  - cojson@0.13.12
+  - jazz-auth-clerk@0.13.12
+  - jazz-react@0.13.12
+
+## 0.13.11
+
+### Patch Changes
+
+- Updated dependencies [17273a6]
+- Updated dependencies [3396ed4]
+- Updated dependencies [17273a6]
+- Updated dependencies [267ea4c]
+  - cojson@0.13.11
+  - jazz-tools@0.13.11
+  - jazz-auth-clerk@0.13.11
+  - jazz-browser@0.13.11
+  - jazz-react@0.13.11
+
+## 0.13.10
+
+### Patch Changes
+
+- Updated dependencies [f837cfe]
+  - cojson@0.13.10
+  - jazz-auth-clerk@0.13.10
+  - jazz-browser@0.13.10
+  - jazz-react@0.13.10
+  - jazz-tools@0.13.10
+
+## 0.13.9
+
+### Patch Changes
+
+- Updated dependencies [a6cf01f]
+  - jazz-tools@0.13.9
+  - jazz-auth-clerk@0.13.9
+  - jazz-browser@0.13.9
+  - jazz-react@0.13.9
+
+## 0.13.8
+
+### Patch Changes
+
+- Updated dependencies [de19a6d]
+  - jazz-auth-clerk@0.13.8
+
+## 0.13.7
+
+### Patch Changes
+
+- Updated dependencies [bc3d7bb]
+- Updated dependencies [4e9aae1]
+- Updated dependencies [21c935c]
+- Updated dependencies [aa1c80e]
+- Updated dependencies [13074be]
+  - jazz-tools@0.13.7
+  - cojson@0.13.7
+  - jazz-auth-clerk@0.13.7
+  - jazz-browser@0.13.7
+  - jazz-react@0.13.7
+
+## 0.13.5
+
+### Patch Changes
+
+- Updated dependencies [e090b39]
+- Updated dependencies [fe6f561]
+  - cojson@0.13.5
+  - jazz-tools@0.13.5
+  - jazz-auth-clerk@0.13.5
+  - jazz-browser@0.13.5
+  - jazz-react@0.13.5
+
+## 0.13.4
+
+### Patch Changes
+
+- 3129982: Rewrite the auth management making Clerk the source of truth. This fixes the logOut issues as well as making the logout work from the Clerk APIs. When the Clerk session expires now the user is correctly logged out from Jazz\
+- Updated dependencies [3129982]
+- Updated dependencies [3129982]
+  - jazz-auth-clerk@0.13.4
+  - jazz-browser@0.13.4
+  - jazz-react@0.13.4
+  - jazz-tools@0.13.4
+
 ## 0.13.3
 
 ### Patch Changes

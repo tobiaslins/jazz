@@ -279,30 +279,52 @@ export class RawCoListView<
       opID: OpID;
     }[],
   ) {
-    const entry =
-      this.insertions[opID.sessionID]?.[opID.txIndex]?.[opID.changeIdx];
+    const todo = [opID]; // a stack with the next item to do at the end
+    const predecessorsVisited = new Set<OpID>();
 
-    if (!entry) {
-      throw new Error("Missing op " + opID);
-    }
-    for (const predecessor of entry.predecessors) {
-      this.fillArrayFromOpID(predecessor, arr);
-    }
-    const deleted =
-      (this.deletionsByInsertion[opID.sessionID]?.[opID.txIndex]?.[
-        opID.changeIdx
-      ]?.length || 0) > 0;
-    if (!deleted) {
-      arr.push({
-        value: entry.value,
-        madeAt: entry.madeAt,
-        opID,
-      });
-    }
-    // traverse successors in reverse for correct insertion behavior
-    for (let i = entry.successors.length - 1; i >= 0; i--) {
-      const successor = entry.successors[i]!;
-      this.fillArrayFromOpID(successor, arr);
+    while (todo.length > 0) {
+      const currentOpID = todo[todo.length - 1]!;
+
+      const entry =
+        this.insertions[currentOpID.sessionID]?.[currentOpID.txIndex]?.[
+          currentOpID.changeIdx
+        ];
+
+      if (!entry) {
+        throw new Error("Missing op " + currentOpID);
+      }
+
+      const shouldTraversePredecessors =
+        entry.predecessors.length > 0 && !predecessorsVisited.has(currentOpID);
+
+      // We navigate the predecessors before processing the current opID in the list
+      if (shouldTraversePredecessors) {
+        for (let i = entry.predecessors.length - 1; i >= 0; i--) {
+          todo.push(entry.predecessors[i]!);
+        }
+        predecessorsVisited.add(currentOpID);
+      } else {
+        // Remove the current opID from the todo stack to consider it processed.
+        todo.pop();
+
+        const deleted =
+          (this.deletionsByInsertion[currentOpID.sessionID]?.[
+            currentOpID.txIndex
+          ]?.[currentOpID.changeIdx]?.length || 0) > 0;
+
+        if (!deleted) {
+          arr.push({
+            value: entry.value,
+            madeAt: entry.madeAt,
+            opID: currentOpID,
+          });
+        }
+
+        // traverse successors in reverse for correct insertion behavior
+        for (const successor of entry.successors) {
+          todo.push(successor);
+        }
+      }
     }
   }
 
@@ -410,6 +432,15 @@ export class RawCoList<
     this.appendItems([item], after, privacy);
   }
 
+  /**
+   * Appends `items` to the list at index `after`. If `after` is negative, it is treated as `0`.
+   *
+   * If `privacy` is `"private"` **(default)**, `items` are encrypted in the transaction, only readable by other members of the group this `CoList` belongs to. Not even sync servers can see the content in plaintext.
+   *
+   * If `privacy` is `"trusting"`, `items` are stored in plaintext in the transaction, visible to everyone who gets a hold of it, including sync servers.
+   *
+   * @category 2. Editing
+   */
   appendItems(
     items: Item[],
     after?: number,
@@ -421,7 +452,7 @@ export class RawCoList<
         ? entries.length > 0
           ? entries.length - 1
           : 0
-        : after;
+        : Math.max(0, after);
     let opIDBefore: OpID | "start";
     if (entries.length > 0) {
       const entryBefore = entries[after];

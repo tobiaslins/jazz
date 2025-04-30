@@ -116,10 +116,8 @@ export function TableOfContents({
 
   return (
     <div className={className}>
-      <p className="font-medium text-stone-900 dark:text-white mb-3">
-        On this page
-      </p>
-      <TocList items={itemsUnderH1} level={0} currentId={currentId} />
+      <p className="font-medium text-highlight mb-3">On this page</p>
+      <TocList items={items} level={0} currentId={currentId} />
     </div>
   );
 }

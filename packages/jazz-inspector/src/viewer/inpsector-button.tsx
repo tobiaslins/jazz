@@ -19,6 +19,7 @@ const StyledInspectorButton = styled("button")<{ position: Position }>`
   padding: 0.5rem !important;
   border: 1px solid #e5e3e4;
   border-radius: 0.375rem;
+  z-index: 999;
   
   ${(props) => {
     switch (props.position) {
@@ -45,7 +46,7 @@ const JazzIcon = styled("svg")`
   height: auto;
   position: relative;
   left: -1px;
-  color: #3313F7;
+  color: #146AFF;
 `;
 
 export function InspectorButton({

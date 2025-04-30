@@ -1,5 +1,77 @@
 # jazz-browser-media-images
 
+## 0.13.16
+
+### Patch Changes
+
+- jazz-tools@0.13.16
+
+## 0.13.15
+
+### Patch Changes
+
+- jazz-tools@0.13.15
+
+## 0.13.14
+
+### Patch Changes
+
+- jazz-tools@0.13.14
+
+## 0.13.13
+
+### Patch Changes
+
+- jazz-tools@0.13.13
+
+## 0.13.12
+
+### Patch Changes
+
+- Updated dependencies [4547525]
+  - jazz-tools@0.13.12
+
+## 0.13.11
+
+### Patch Changes
+
+- Updated dependencies [17273a6]
+  - jazz-tools@0.13.11
+
+## 0.13.10
+
+### Patch Changes
+
+- jazz-tools@0.13.10
+
+## 0.13.9
+
+### Patch Changes
+
+- Updated dependencies [a6cf01f]
+  - jazz-tools@0.13.9
+
+## 0.13.7
+
+### Patch Changes
+
+- Updated dependencies [bc3d7bb]
+  - jazz-tools@0.13.7
+
+## 0.13.5
+
+### Patch Changes
+
+- Updated dependencies [fe6f561]
+  - jazz-tools@0.13.5
+
+## 0.13.4
+
+### Patch Changes
+
+- Updated dependencies [3129982]
+  - jazz-tools@0.13.4
+
 ## 0.13.3
 
 ### Patch Changes

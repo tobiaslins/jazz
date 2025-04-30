@@ -1,7 +1,7 @@
 import DocsLayout from "@/components/docs/DocsLayout";
-import { DocNav } from "@/components/docs/nav";
+import { DocNav } from "@/components/docs/DocsNav";
+import { Prose } from "@garden-co/design-system/src/components/molecules/Prose";
 import { Toc } from "@stefanprobst/rehype-extract-toc";
-import { Prose } from "gcmp-design-system/src/app/components/molecules/Prose";
 
 export async function getMdxSource(framework: string, slugPath?: string) {
   // Try to import the framework-specific file first
@@ -9,8 +9,7 @@ export async function getMdxSource(framework: string, slugPath?: string) {
     if (!slugPath) {
       return await import("../content/docs/index.mdx");
     }
-    const source = await import(`../content/docs/${slugPath}/${framework}.mdx`);
-    return source;
+    return await import(`../content/docs/${slugPath}/${framework}.mdx`);
   } catch (error) {
     // Fallback to vanilla
     console.log(`Falling back to vanilla for ${slugPath}`);
@@ -41,27 +40,12 @@ export async function getDocMetadata(framework: string, slug?: string[]) {
   }
 }
 
-export async function getMdxWithToc(framework: string, slug?: string[]) {
-  const slugPath = slug?.join("/");
-  const mdxSource = await getMdxSource(framework, slugPath);
-
-  const {
-    default: Content,
-    tableOfContents,
-    headingsFrameworkVisibility,
-  } = mdxSource;
-
-  // Remove items that should not be shown for the current framework
-  const tocItems = (tableOfContents as Toc).filter(({ id }) =>
-    id && id in headingsFrameworkVisibility
-      ? headingsFrameworkVisibility[id]?.includes(framework)
-      : true,
+function DocProse({ children }: { children: React.ReactNode }) {
+  return (
+    <Prose className="overflow-x-hidden lg:overflow-x-visible lg:flex-1 pb-8 pt-[calc(61px+2rem)] md:pt-8 md:max-w-3xl mx-auto">
+      {children}
+    </Prose>
   );
-
-  return {
-    Content,
-    tocItems,
-  };
 }
 
 export async function DocPage({
@@ -76,9 +60,9 @@ export async function DocPage({
 
     return (
       <DocsLayout nav={<DocNav />} tocItems={tocItems}>
-        <Prose className="overflow-x-hidden lg:flex-1 py-10  max-w-3xl mx-auto">
+        <DocProse>
           <Content />
-        </Prose>
+        </DocProse>
       </DocsLayout>
     );
   } catch (error) {
@@ -87,9 +71,9 @@ export async function DocPage({
     );
     return (
       <DocsLayout nav={<DocNav />} tocItems={[]}>
-        <Prose className="overflow-x-hidden lg:flex-1 py-10  max-w-3xl mx-auto">
+        <DocProse>
           <ComingSoon />
-        </Prose>
+        </DocProse>
       </DocsLayout>
     );
   }
