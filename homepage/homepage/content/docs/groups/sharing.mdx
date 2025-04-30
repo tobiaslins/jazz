@@ -142,40 +142,42 @@ Example is coming soon!
 
 <CodeGroup>
 ```ts twoslash
-import { co, CoList, CoMap, ID } from "jazz-tools";
-import {createInviteLink, consumeInviteLink, Account } from jazz-react;
+import { co, CoList, CoMap, ID, Account } from "jazz-tools";
+import { createInviteLink, consumeInviteLink } from jazz-react;
 
 class Project extends CoMap {
   title = co.string;
-}
+  account = co.ref(Account);
+};
 
 class Request extends CoMap {
   project = co.ref(Project);
   account = co.ref(Account);
-}
+};
 
-export class RequestsList extends CoMap.Record(co.ref(Request)) {}
+export class RequestsList extends CoMap.Record(co.ref(Request)) {};
 
 export class RequestsToJoin extends CoMap {
+  id: ID<Project>
   writeOnlyInvite = co.string;
   requests = co.ref(RequestsList);
-}
+};
 
 // ---cut-before---
 
 async function requestToJoin(projectId: ID<Project>) {
-   const requestsToJoin = await RequestsToJoin.load(projectId)
+   const requestsToJoin = await RequestsToJoin.load(projectId);
 
    const result = await consumeInviteLink({ 
     inviteURL: requestsToJoin.writeOnlyInvite, 
     invitedObjectSchema: RequestsList 
-   })
+   });
    
-   if (!result) throw new Error("Failed to accept the requests writeOnly invitation")
+   if (!result) throw new Error("Failed to accept the requests writeOnly invitation");
 
-   const requests = await RequestsList(result.valueID)
+   const requests = await RequestsList(result.valueID);
 
-   requests.push(RequestToJoin.create({ account: Account.getMe() }, requests._owner));
+   requests.push(RequestsToJoin?.create({ account: Account.getMe() }, requests._owner));
 }
 ```
 </CodeGroup>
