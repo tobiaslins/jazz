@@ -226,6 +226,7 @@ export class PeerState {
       peerId: this.id,
       peerRole: this.role,
     });
+    this.peer.crashOnClose = false;
     this.peer.outgoing.close();
     this.closed = true;
     this.emitClose();
