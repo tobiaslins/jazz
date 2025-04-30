@@ -1,12 +1,16 @@
-export const metadata = { title: "React" };
+export const metadata = { title: "Installation" };
 
 import { CodeGroup } from "@/components/forMdx";
 
-# Getting Started with React
+# Installation
 
 Add Jazz to your React application in minutes. This guide covers standard React apps, Next.js, and experimental SSR approaches.
 
-## Basic Installation
+1. Install dependencies
+2. Write your schema
+3. Wrap your app in `<JazzProvider />`
+
+## Install dependencies
 
 First, install the required packages:
 
@@ -134,12 +138,12 @@ export function Profile() {
 
 For server-side rendering, Jazz offers experimental approaches:
 
-- [Pure SSR](#pure-ssr)
-- [Hybrid SSR + Client Hydration](#hybrid-ssr--client-hydration)
+- Pure SSR
+- Hybrid SSR + Client Hydration
 
 #### Pure SSR
 
-Use Jazz in Server Components by directly loading data with `CoValue.load()`.
+Use Jazz in server components by directly loading data with `CoValue.load()`.
 
 {/*
 <CodeGroup>
@@ -349,8 +353,8 @@ This approach gives you the best of both worlds: fast initial loading with serve
 
 ## Next Steps
 
-- [Provider Configuration](/docs/project-setup/providers/react) - Complete provider options
-- [Authentication](/docs/authentication/overview) - Set up user accounts
-- [Sync and Storage](/docs/react/sync-and-storage) - Configure data persistence
-- [Schemas](/docs/schemas/overview) - Define your data model
+- [Schemas](/docs/schemas/covalues) - Define your data model
+- [Provider Configuration](/docs/project-setup/providers) - Complete provider options
+- [Authentication](/docs/authentication/overview) - Set up user authentication
+- [Sync and Storage](/docs/sync-and-storage) - Configure data persistence
 
