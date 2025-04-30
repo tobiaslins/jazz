@@ -1,6 +1,6 @@
 import { getMdxWithToc } from "@/lib/docMdxContent";
 import {
-  DocsOpenGraphImage,
+  OpenGraphImage,
   imageSize,
   imageContentType,
 } from "gcmp-design-system/src/app/components/organisms/OpenGraphImage";
@@ -8,7 +8,7 @@ import {
 export const title = "Quickstart";
 export const size = imageSize;
 export const contentType = imageContentType;
-export const alt = "Quickstart";
+export const alt = "Jazz Docs | Quickstart";
 
 export default async function Image({
   params,
@@ -20,7 +20,7 @@ export default async function Image({
 
   const title = tocItems[0].value;
 
-  return DocsOpenGraphImage({
+  return OpenGraphImage({
     title: title,
     framework,
     contents: tocItems[0].children?.map((child) => child.value) ?? [],

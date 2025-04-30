@@ -1,5 +1,5 @@
-import { DocsOpenGraphImage, imageSize, imageContentType } from 'gcmp-design-system/src/app/components/organisms/OpenGraphImage';
-import { getDocMetadata, getMdxWithToc } from '@/lib/docMdxContent';
+import { OpenGraphImage, imageSize, imageContentType } from 'gcmp-design-system/src/app/components/organisms/OpenGraphImage';
+import { getMdxWithToc } from '@/lib/docMdxContent';
 export const title = "Quickstart";
 export const size = imageSize;
 export const contentType = imageContentType;
@@ -11,7 +11,7 @@ export default async function Image({ params }: { params: Promise<{ framework: s
 
   const title = tocItems[0].value;
 
-  return DocsOpenGraphImage({
+  return OpenGraphImage({
     title: title,
     framework,
     contents: tocItems[0].children?.map((child) => child.value) ?? [],
