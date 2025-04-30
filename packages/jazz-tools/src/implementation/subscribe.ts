@@ -175,7 +175,7 @@ export class CoValueResolutionNode<D extends CoValue> {
   resolve: RefsToResolve<any>;
   idsSubscribed = new Set<string>();
   autoloaded = new Set<string>();
-  processedChangesId = "0/0";
+  totalValidTransactions = 0;
   batchingUpdates = false;
 
   constructor(
@@ -219,9 +219,10 @@ export class CoValueResolutionNode<D extends CoValue> {
     }
 
     const owner = getOwnerFromRawValue(update);
-    const hasChanged = update.processedChangesId !== this.processedChangesId;
+    const hasChanged =
+      update.totalValidTransactions !== this.totalValidTransactions;
 
-    this.processedChangesId = update.processedChangesId;
+    this.totalValidTransactions = update.totalValidTransactions;
 
     const ruleset = update.core.header.ruleset;
     const hasAccess = ruleset.type === "group" || owner.myRole() !== undefined;

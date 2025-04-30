@@ -83,7 +83,6 @@ export class RawCoList<
     opID: OpID;
   }[];
   /** @internal */
-  totalKnownTransactions = 0;
   totalValidTransactions = 0;
   knownTransactions: CoValueKnownState["sessions"] = {};
   lastValidTransaction: number | undefined;
@@ -92,10 +91,6 @@ export class RawCoList<
   constructor(core: CoValueCore) {
     this.id = core.id as CoID<this>;
     this.core = core;
-    this.afterStart = [];
-    this.beforeEnd = [];
-    this.insertions = {};
-    this.deletionsByInsertion = {};
 
     this.insertions = {};
     this.deletionsByInsertion = {};
@@ -233,13 +228,8 @@ export class RawCoList<
     ) {
       this.rebuildFromCore();
     } else {
-      this.totalKnownTransactions = this.core.totalKnownTransactions();
       this.lastValidTransaction = lastValidTransaction;
     }
-  }
-
-  get processedChangesId() {
-    return `${this.totalKnownTransactions}/${this.totalValidTransactions}`;
   }
 
   /** @category 6. Meta */

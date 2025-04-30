@@ -56,7 +56,6 @@ export class RawCoStreamView<
   };
   /** @internal */
   knownTransactions: CoValueKnownState["sessions"];
-  totalKnownTransactions = 0;
   totalValidTransactions = 0;
   readonly _item!: Item;
 
@@ -102,7 +101,7 @@ export class RawCoStreamView<
   }
 
   /** @internal */
-  protected processNewTransactions() {
+  processNewTransactions() {
     const changeEntries = new Set<CoStreamItem<Item>[]>();
 
     const newValidTransactions = this.core.getValidTransactions({

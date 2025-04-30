@@ -83,6 +83,10 @@ export class CoValueState {
   }
 
   async getCoValue() {
+    if (this.core) {
+      return this.core;
+    }
+
     if (this.highLevelState === "unavailable") {
       return "unavailable";
     }
@@ -238,31 +242,4 @@ export class CoValueState {
     this.updateCounter(previousState);
     this.notifyListeners();
   }
-}
-
-async function runWithRetry<T>(fn: () => Promise<T>, maxRetries: number) {
-  let retries = 1;
-
-  while (retries < maxRetries) {
-    /**
-     * With maxRetries of 5 we should wait:
-     * 300ms
-     * 900ms
-     * 2700ms
-     * 8100ms
-     */
-    await sleep(3 ** retries * 100);
-
-    const result = await fn();
-
-    if (result === true) {
-      return;
-    }
-
-    retries++;
-  }
-}
-
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }

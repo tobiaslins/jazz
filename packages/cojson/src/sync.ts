@@ -164,7 +164,7 @@ export class SyncManager {
       );
       return;
     } else if (msg.id === undefined || msg.id === null) {
-      logger.warn("Received sync message with an empty id", {
+      logger.warn("Received sync message with undefined id", {
         msg,
       });
       return;

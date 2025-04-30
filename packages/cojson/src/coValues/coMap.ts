@@ -60,7 +60,6 @@ export class RawCoMapView<
   /** @category 6. Meta */
   readonly _shape!: Shape;
 
-  totalKnownTransactions = 0;
   totalValidTransactions = 0;
 
   /** @internal */
