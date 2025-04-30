@@ -96,10 +96,6 @@ export class RawCoStreamView<
     );
   }
 
-  get processedChangesId() {
-    return `${this.totalKnownTransactions}/${this.totalValidTransactions}`;
-  }
-
   /** @internal */
   processNewTransactions() {
     const changeEntries = new Set<CoStreamItem<Item>[]>();
@@ -134,8 +130,6 @@ export class RawCoStreamView<
     for (const entries of changeEntries) {
       entries.sort(this.compareStreamItems);
     }
-
-    this.totalKnownTransactions = this.core.totalKnownTransactions();
   }
 
   getSingleStream(): Item[] | undefined {

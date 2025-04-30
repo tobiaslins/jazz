@@ -622,7 +622,6 @@ export class RawCoList<
     this.beforeEnd = listAfter.beforeEnd;
     this.insertions = listAfter.insertions;
     this.deletionsByInsertion = listAfter.deletionsByInsertion;
-    this.totalKnownTransactions = listAfter.totalKnownTransactions;
     this.totalValidTransactions = listAfter.totalValidTransactions;
     this.lastValidTransaction = listAfter.lastValidTransaction;
     this.knownTransactions = listAfter.knownTransactions;

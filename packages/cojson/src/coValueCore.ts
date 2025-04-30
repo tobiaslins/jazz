@@ -194,14 +194,6 @@ export class CoValueCore {
     };
   }
 
-  totalKnownTransactions(): number {
-    let total = 0;
-    for (const sessionLog of this.sessionLogs.values()) {
-      total += sessionLog.transactions.length;
-    }
-    return total;
-  }
-
   get meta(): JsonValue {
     return this.header?.meta ?? null;
   }

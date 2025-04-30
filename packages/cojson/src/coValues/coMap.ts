@@ -81,10 +81,6 @@ export class RawCoMapView<
     this.processNewTransactions();
   }
 
-  get processedChangesId() {
-    return `${this.totalKnownTransactions}/${this.totalValidTransactions}`;
-  }
-
   processNewTransactions() {
     if (this.isTimeTravelEntity()) {
       throw new Error("Cannot process transactions on a time travel entity");
@@ -148,8 +144,6 @@ export class RawCoMapView<
     for (const [key, entries] of changedEntries.entries()) {
       this.latest[key] = entries[entries.length - 1];
     }
-
-    this.totalKnownTransactions = this.core.totalKnownTransactions();
   }
 
   isTimeTravelEntity() {
