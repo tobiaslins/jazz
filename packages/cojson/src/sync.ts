@@ -587,6 +587,8 @@ export class SyncManager {
       ) {
         const state = entry.getStateForPeer(peer.id)?.type;
 
+        // Check if there is a loading operation in progress
+        // on this peer but we haven't sent the load request yet
         if (state === "unknown" || state === undefined) {
           this.trySendToPeer(peer, {
             action: "load",
