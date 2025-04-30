@@ -4,13 +4,15 @@ import { CodeGroup } from "@/components/forMdx";
 
 # Installation and Setup
 
-Add Jazz to your React application in minutes. This setup covers standard React apps, Next.js, and gives an overview of experimental SSR approaches.
+Add Jazz to your React application in minutes. This setup covers standard React apps, Next.js, and gives an overview of experimental SSR approaches. 
 
-1. Install dependencies
-2. Write your schema
-3. Wrap your app in `<JazzProvider />`
+Integrating Jazz with React is straightforward. You'll define data schemas that describe your application's structure, then wrap your app with a provider that handles sync and storage. The whole process takes just three steps:
 
+1. [Install dependencies](#install-dependencies)
+2. [Write your schema](#write-your-schema)
+3. [Wrap your app in `<JazzProvider />`](#standard-react-setup)
 
+Looking for complete examples? Check out our [example applications](/examples) for chat apps, collaborative editors, and more.
 
 ## Install dependencies
 
@@ -21,6 +23,23 @@ First, install the required packages:
 pnpm install jazz-react jazz-tools
 ```
 </CodeGroup>
+
+## Write your schema
+
+Define your data schema using [CoValues](/docs/schemas/covalues) from `jazz-tools`.
+
+<CodeGroup>
+```tsx twoslash
+// schema.ts
+import { Account, co } from "jazz-tools";
+
+export class MyAppAccount extends Account {
+  name = co.string;
+}
+```
+</CodeGroup>
+
+See [CoValues](/docs/schemas/covalues) for more information on how to define your schema.
 
 ## Standard React Setup
 
@@ -359,4 +378,3 @@ This approach gives you the best of both worlds: fast initial loading with serve
 - [Provider Configuration](/docs/project-setup/providers) - Complete provider options
 - [Authentication](/docs/authentication/overview) - Set up user authentication
 - [Sync and Storage](/docs/sync-and-storage) - Configure data persistence
-
