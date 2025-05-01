@@ -1570,6 +1570,9 @@ importers:
       prosemirror-schema-basic:
         specifier: ^1.2.4
         version: 1.2.4
+      prosemirror-schema-list:
+        specifier: ^1.5.1
+        version: 1.5.1
       prosemirror-state:
         specifier: ^1.4.3
         version: 1.4.3
