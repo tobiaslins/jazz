@@ -1,4 +1,4 @@
-import { CoValueCore } from "./coValueCore.js";
+import { CoValueCore } from "./coValueCore/coValueCore.js";
 import { CoValueState } from "./coValueState.js";
 import { RawCoID } from "./ids.js";
 import { PeerID } from "./sync.js";

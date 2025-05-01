@@ -1,6 +1,6 @@
 import { base58 } from "@scure/base";
 import { CoID } from "../coValue.js";
-import { CoValueUniqueness } from "../coValueCore.js";
+import { CoValueUniqueness } from "../coValueCore/coValueCore.js";
 import { Encrypted, KeyID, KeySecret, Sealed } from "../crypto/crypto.js";
 import {
   AgentID,

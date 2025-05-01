@@ -1,8 +1,8 @@
 import { Result, err, ok } from "neverthrow";
-import { AnyRawCoValue, RawCoValue } from "./coValue.js";
-import { ControlledAccountOrAgent, RawAccountID } from "./coValues/account.js";
-import { RawGroup } from "./coValues/group.js";
-import { coreToCoValue } from "./coreToCoValue.js";
+import { AnyRawCoValue, RawCoValue } from "../coValue.js";
+import { ControlledAccountOrAgent, RawAccountID } from "../coValues/account.js";
+import { RawGroup } from "../coValues/group.js";
+import { coreToCoValue } from "../coreToCoValue.js";
 import {
   CryptoProvider,
   Encrypted,
@@ -12,7 +12,7 @@ import {
   Signature,
   SignerID,
   StreamingHash,
-} from "./crypto/crypto.js";
+} from "../crypto/crypto.js";
 import {
   RawCoID,
   SessionID,
@@ -20,21 +20,21 @@ import {
   getGroupDependentKeyList,
   getParentGroupId,
   isParentGroupReference,
-} from "./ids.js";
-import { Stringified, parseJSON, stableStringify } from "./jsonStringify.js";
-import { JsonObject, JsonValue } from "./jsonValue.js";
-import { LocalNode, ResolveAccountAgentError } from "./localNode.js";
-import { logger } from "./logger.js";
+} from "../ids.js";
+import { Stringified, parseJSON, stableStringify } from "../jsonStringify.js";
+import { JsonObject, JsonValue } from "../jsonValue.js";
+import { LocalNode, ResolveAccountAgentError } from "../localNode.js";
+import { logger } from "../logger.js";
 import {
   PermissionsDef as RulesetDef,
   determineValidTransactions,
   isKeyForKeyField,
-} from "./permissions.js";
-import { getPriorityFromHeader } from "./priority.js";
-import { CoValueKnownState, NewContentMessage } from "./sync.js";
-import { accountOrAgentIDfromSessionID } from "./typeUtils/accountOrAgentIDfromSessionID.js";
-import { expectGroup } from "./typeUtils/expectGroup.js";
-import { isAccountID } from "./typeUtils/isAccountID.js";
+} from "../permissions.js";
+import { getPriorityFromHeader } from "../priority.js";
+import { CoValueKnownState, NewContentMessage } from "../sync.js";
+import { accountOrAgentIDfromSessionID } from "../typeUtils/accountOrAgentIDfromSessionID.js";
+import { expectGroup } from "../typeUtils/expectGroup.js";
+import { isAccountID } from "../typeUtils/isAccountID.js";
 
 /**
     In order to not block other concurrently syncing CoValues we introduce a maximum size of transactions,

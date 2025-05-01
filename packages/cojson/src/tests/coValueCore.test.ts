@@ -1,5 +1,5 @@
 import { assert, afterEach, beforeEach, expect, test, vi } from "vitest";
-import { CoValueCore, Transaction } from "../coValueCore.js";
+import { CoValueCore, Transaction } from "../coValueCore/coValueCore.js";
 import { MapOpPayload } from "../coValues/coMap.js";
 import { WasmCrypto } from "../crypto/WasmCrypto.js";
 import { stableStringify } from "../jsonStringify.js";

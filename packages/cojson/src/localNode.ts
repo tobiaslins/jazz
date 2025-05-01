@@ -6,7 +6,7 @@ import {
   CoValueCore,
   CoValueHeader,
   CoValueUniqueness,
-} from "./coValueCore.js";
+} from "./coValueCore/coValueCore.js";
 import {
   AccountMeta,
   ControlledAccountOrAgent,

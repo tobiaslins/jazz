@@ -1,6 +1,6 @@
 import { base64URLtoBytes, bytesToBase64url } from "../base64url.js";
 import { CoID, RawCoValue } from "../coValue.js";
-import { CoValueCore } from "../coValueCore.js";
+import { CoValueCore } from "../coValueCore/coValueCore.js";
 import { AgentID, SessionID, TransactionID } from "../ids.js";
 import { JsonObject, JsonValue } from "../jsonValue.js";
 import { logger } from "../logger.js";

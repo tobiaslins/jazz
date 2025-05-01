@@ -9,7 +9,7 @@ import {
   vi,
 } from "vitest";
 import { PeerState } from "../PeerState";
-import { CoValueCore } from "../coValueCore";
+import { CoValueCore } from "../coValueCore/coValueCore";
 import { CoValueState } from "../coValueState";
 import { RawCoID } from "../ids";
 import { Peer } from "../sync";

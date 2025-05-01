@@ -5,7 +5,7 @@ import {
   type CoValueUniqueness,
   MAX_RECOMMENDED_TX_SIZE,
   idforHeader,
-} from "./coValueCore.js";
+} from "./coValueCore/coValueCore.js";
 import {
   ControlledAgent,
   RawAccount,
@@ -173,8 +173,10 @@ export namespace CojsonInternalTypes {
   export type LoadMessage = import("./sync.js").LoadMessage;
   export type NewContentMessage = import("./sync.js").NewContentMessage;
   export type SessionNewContent = import("./sync.js").SessionNewContent;
-  export type CoValueHeader = import("./coValueCore.js").CoValueHeader;
-  export type Transaction = import("./coValueCore.js").Transaction;
+  export type CoValueHeader = import(
+    "./coValueCore/coValueCore.js",
+  ).CoValueHeader;
+  export type Transaction = import("./coValueCore/coValueCore.js").Transaction;
   export type TransactionID = import("./ids.js").TransactionID;
   export type Signature = import("./crypto/crypto.js").Signature;
   export type RawCoID = import("./ids.js").RawCoID;

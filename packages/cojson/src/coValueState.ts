@@ -1,7 +1,10 @@
 import { ValueType } from "@opentelemetry/api";
 import { UpDownCounter, metrics } from "@opentelemetry/api";
 import { PeerState } from "./PeerState.js";
-import { CoValueCore, TryAddTransactionsError } from "./coValueCore.js";
+import {
+  CoValueCore,
+  TryAddTransactionsError,
+} from "./coValueCore/coValueCore.js";
 import { RawCoID } from "./ids.js";
 import { logger } from "./logger.js";
 import { PeerID, emptyKnownState } from "./sync.js";

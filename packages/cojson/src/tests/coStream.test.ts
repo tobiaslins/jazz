@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { expectStream } from "../coValue.js";
-import { MAX_RECOMMENDED_TX_SIZE } from "../coValueCore.js";
+import { MAX_RECOMMENDED_TX_SIZE } from "../coValueCore/coValueCore.js";
 import {
   BinaryStreamItem,
   CoStreamItem,

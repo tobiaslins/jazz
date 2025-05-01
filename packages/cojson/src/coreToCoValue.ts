@@ -1,5 +1,5 @@
 import { RawUnknownCoValue } from "./coValue.js";
-import type { CoValueCore } from "./coValueCore.js";
+import type { CoValueCore } from "./coValueCore/coValueCore.js";
 import { RawAccount, RawControlledAccount } from "./coValues/account.js";
 import { RawCoList } from "./coValues/coList.js";
 import { RawCoMap } from "./coValues/coMap.js";

@@ -1,4 +1,4 @@
-import { type CoValueHeader } from "./coValueCore.js";
+import { type CoValueHeader } from "./coValueCore/coValueCore.js";
 
 /**
  * The priority of a `CoValue` determines how much priority is given

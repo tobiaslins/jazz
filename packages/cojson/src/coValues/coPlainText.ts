@@ -1,4 +1,4 @@
-import { CoValueCore } from "../coValueCore.js";
+import { CoValueCore } from "../coValueCore/coValueCore.js";
 import { JsonObject } from "../jsonValue.js";
 import { DeletionOpPayload, OpID, RawCoList } from "./coList.js";
 
