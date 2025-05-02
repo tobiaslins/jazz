@@ -571,9 +571,12 @@ export class SyncManager {
       peer.trackToldKnownState(msg.id);
     }
 
+    const sourcePeer = peer;
     const syncedPeers = [];
 
     for (const peer of this.peersInPriorityOrder()) {
+      // TODO: Document this and add an issue about the missing content reconciliation
+      if (peer.id === sourcePeer.id && sourcePeer.role === "storage") continue;
       if (peer.closed) continue;
       if (entry.isErroredInPeer(peer.id)) continue;
 
