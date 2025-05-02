@@ -23,6 +23,8 @@ export class SyncManager {
   private readonly toLocalNode: OutgoingSyncQueue;
   private readonly dbClient: DBClientInterface;
 
+  private loadedCoValues = new Set<RawCoID>();
+
   constructor(dbClient: DBClientInterface, toLocalNode: OutgoingSyncQueue) {
     this.toLocalNode = toLocalNode;
     this.dbClient = dbClient;
@@ -149,6 +151,8 @@ export class SyncManager {
       }),
     );
 
+    this.loadedCoValues.add(coValueRow.id);
+
     const dependedOnCoValuesList = getDependedOnCoValues({
       coValueRow,
       newContentMessages,
@@ -167,8 +171,12 @@ export class SyncManager {
     };
 
     await Promise.all(
-      dependedOnCoValuesList.map((dependedOnCoValue) =>
-        this.collectCoValueData(
+      dependedOnCoValuesList.map((dependedOnCoValue) => {
+        if (this.loadedCoValues.has(dependedOnCoValue)) {
+          return;
+        }
+
+        return this.collectCoValueData(
           {
             id: dependedOnCoValue,
             header: false,
@@ -176,8 +184,8 @@ export class SyncManager {
           },
           messageMap,
           asDependencyOf || coValueRow.id,
-        ),
-      ),
+        );
+      }),
     );
 
     return messageMap;
