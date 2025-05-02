@@ -63,6 +63,16 @@ export class PeerState {
   }
 
   readonly toldKnownState: Set<RawCoID> = new Set();
+  readonly loadRequestSent: Set<RawCoID> = new Set();
+
+  trackLoadRequestSent(id: RawCoID) {
+    this.toldKnownState.add(id);
+    this.loadRequestSent.add(id);
+  }
+
+  trackToldKnownState(id: RawCoID) {
+    this.toldKnownState.add(id);
+  }
 
   updateHeader(id: RawCoID, header: boolean) {
     this._knownStates.updateHeader(id, header);

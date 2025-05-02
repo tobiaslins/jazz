@@ -155,7 +155,7 @@ export class CoValueState {
         action: "load",
         ...(this.core ? this.core.knownState() : emptyKnownState(this.id)),
       });
-      peer.toldKnownState.add(this.id);
+      peer.trackLoadRequestSent(this.id);
 
       /**
        * Use a very long timeout for storage peers, because under pressure
