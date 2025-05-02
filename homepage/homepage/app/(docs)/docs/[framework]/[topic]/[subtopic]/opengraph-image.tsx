@@ -9,12 +9,16 @@ export default async function Image({ params }: { params: Promise<{ framework: s
   const { framework, topic, subtopic } = await params;
   const { tocItems } = await getMdxWithToc(framework, [topic, subtopic]);
 
-  const title = tocItems[0].value;
+  const title = tocItems[0]?.value;
+
+  if (!title) {
+    throw new Error(`No title from tocItems in opengraph-image.tsx ${framework} ${topic} ${subtopic}`);
+  }
 
   return OpenGraphImage({
     title: title,
     framework,
-    contents: tocItems[0].children?.map((child) => child.value) ?? [],
+    contents: tocItems[0]?.children?.map((child) => child.value) ?? [],
     topic,
     subtopic,
   });

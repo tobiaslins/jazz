@@ -58,7 +58,7 @@ export function TableOfContents({
 }) {
   const [currentId, setCurrentId] = useState<string>("");
 
-  const itemsUnderH1 = useMemo(() => items[0].children || [], [items]);
+  const itemsUnderH1 = useMemo(() => items[0]?.children || [], [items]);
 
   const getHeadings = useCallback(() => {
     return itemsUnderH1
@@ -91,7 +91,7 @@ export function TableOfContents({
       if (headings.length === 0) return;
 
       const top = window.scrollY;
-      let current = headings[0].id;
+      let current = headings[0]?.id;
 
       for (const heading of headings) {
         if (top >= heading.top - 500) {
@@ -101,7 +101,7 @@ export function TableOfContents({
         }
       }
 
-      setCurrentId(current);
+      current && setCurrentId(current);
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -117,7 +117,7 @@ export function TableOfContents({
   return (
     <div className={className}>
       <p className="font-medium text-highlight mb-3">On this page</p>
-      <TocList items={items} level={0} currentId={currentId} />
+      <TocList items={itemsUnderH1} level={0} currentId={currentId} />
     </div>
   );
 }
