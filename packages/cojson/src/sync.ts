@@ -1,8 +1,8 @@
 import { Histogram, ValueType, metrics } from "@opentelemetry/api";
 import { PeerState } from "./PeerState.js";
 import { SyncStateManager } from "./SyncStateManager.js";
-import { CoValueHeader, Transaction } from "./coValueCore/coValueCore.js";
 import { CoValueCore } from "./coValueCore/coValueCore.js";
+import { CoValueHeader, Transaction } from "./coValueCore/verifiedState.js";
 import { CoValueState } from "./coValueState.js";
 import { Signature } from "./crypto/crypto.js";
 import { RawCoID, SessionID } from "./ids.js";
@@ -203,7 +203,7 @@ export class SyncManager {
       .getDependedOnCoValues()
       .map((id) => this.sendNewContentIncludingDependencies(id, peer));
 
-    const newContentPieces = coValue.newContentSince(
+    const newContentPieces = coValue.verified.newContentSince(
       peer.optimisticKnownStates.get(id),
     );
 
@@ -502,7 +502,7 @@ export class SyncManager {
       SessionNewContent,
     ][]) {
       const ourKnownTxIdx =
-        coValue.sessionLogs.get(sessionID)?.transactions.length;
+        coValue.verified.sessions.get(sessionID)?.transactions.length;
       const theirFirstNewTxIdx = newContentForSession.after;
 
       if ((ourKnownTxIdx || 0) < theirFirstNewTxIdx) {
@@ -526,6 +526,7 @@ export class SyncManager {
         newTransactions,
         undefined,
         newContentForSession.lastSignature,
+        "immediate", // TODO: can we change this to deferred?
       );
 
       if (result.isErr()) {

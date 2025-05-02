@@ -68,7 +68,7 @@ export class RawCoStreamView<
   }
 
   get headerMeta(): Meta {
-    return this.core.header.meta as Meta;
+    return this.core.verified.header.meta as Meta;
   }
 
   get group(): RawGroup {

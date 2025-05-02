@@ -1,5 +1,6 @@
 import { assert, afterEach, beforeEach, expect, test, vi } from "vitest";
-import { CoValueCore, Transaction } from "../coValueCore/coValueCore.js";
+import { CoValueCore } from "../coValueCore/coValueCore.js";
+import { Transaction } from "../coValueCore/verifiedState.js";
 import { MapOpPayload } from "../coValues/coMap.js";
 import { WasmCrypto } from "../crypto/WasmCrypto.js";
 import { stableStringify } from "../jsonStringify.js";
@@ -47,7 +48,7 @@ test("Can create coValue with new agent credentials and add transaction to it", 
     ]),
   };
 
-  const { expectedNewHash } = coValue.expectedNewHashAfter(
+  const { expectedNewHash } = coValue.verified.expectedNewHashAfter(
     node.currentSessionID,
     [transaction],
   );
@@ -59,6 +60,7 @@ test("Can create coValue with new agent credentials and add transaction to it", 
         [transaction],
         expectedNewHash,
         Crypto.sign(account.currentSignerSecret(), expectedNewHash),
+        "immediate",
       )
       ._unsafeUnwrap(),
   ).toBe(true);
@@ -86,7 +88,7 @@ test("transactions with wrong signature are rejected", () => {
     ]),
   };
 
-  const { expectedNewHash } = coValue.expectedNewHashAfter(
+  const { expectedNewHash } = coValue.verified.expectedNewHashAfter(
     node.currentSessionID,
     [transaction],
   );
@@ -98,6 +100,7 @@ test("transactions with wrong signature are rejected", () => {
       [transaction],
       expectedNewHash,
       Crypto.sign(Crypto.getAgentSignerSecret(wrongAgent), expectedNewHash),
+      "immediate",
     )
     ._unsafeUnwrapErr({ withStackTrace: true });
 });
@@ -123,7 +126,7 @@ test("transactions with correctly signed, but wrong hash are rejected", () => {
     ]),
   };
 
-  const { expectedNewHash } = coValue.expectedNewHashAfter(
+  const { expectedNewHash } = coValue.verified.expectedNewHashAfter(
     node.currentSessionID,
     [
       {
@@ -145,6 +148,7 @@ test("transactions with correctly signed, but wrong hash are rejected", () => {
       [transaction],
       expectedNewHash,
       Crypto.sign(account.currentSignerSecret(), expectedNewHash),
+      "immediate",
     )
     ._unsafeUnwrapErr({ withStackTrace: true });
 });
@@ -181,9 +185,10 @@ test("New transactions in a group correctly update owned values, including subsc
     ]),
   } satisfies Transaction;
 
-  const { expectedNewHash } = group.core.expectedNewHashAfter(sessionID, [
-    resignationThatWeJustLearnedAbout,
-  ]);
+  const { expectedNewHash } = group.core.verified.expectedNewHashAfter(
+    sessionID,
+    [resignationThatWeJustLearnedAbout],
+  );
 
   const signature = Crypto.sign(
     node.account.currentSignerSecret(),
@@ -198,6 +203,7 @@ test("New transactions in a group correctly update owned values, including subsc
       [resignationThatWeJustLearnedAbout],
       expectedNewHash,
       signature,
+      "immediate",
     )
     ._unsafeUnwrap({ withStackTrace: true });
 

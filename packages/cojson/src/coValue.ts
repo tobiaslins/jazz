@@ -48,11 +48,11 @@ export class RawUnknownCoValue implements RawCoValue {
   }
 
   get type() {
-    return this.core.header.type;
+    return this.core.verified.header.type;
   }
 
   get headerMeta() {
-    return this.core.header.meta as JsonObject;
+    return this.core.verified.header.meta as JsonObject;
   }
 
   /** @category 6. Meta */

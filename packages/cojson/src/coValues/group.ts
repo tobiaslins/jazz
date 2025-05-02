@@ -1,7 +1,14 @@
 import { base58 } from "@scure/base";
 import { CoID } from "../coValue.js";
-import { CoValueUniqueness } from "../coValueCore/coValueCore.js";
-import { Encrypted, KeyID, KeySecret, Sealed } from "../crypto/crypto.js";
+import { CoValueCore } from "../coValueCore/coValueCore.js";
+import { CoValueUniqueness } from "../coValueCore/verifiedState.js";
+import {
+  CryptoProvider,
+  Encrypted,
+  KeyID,
+  KeySecret,
+  Sealed,
+} from "../crypto/crypto.js";
 import {
   AgentID,
   ChildGroupReference,
@@ -77,6 +84,18 @@ export type GroupShape = {
 export class RawGroup<
   Meta extends JsonObject | null = JsonObject | null,
 > extends RawCoMap<GroupShape, Meta> {
+  protected readonly crypto: CryptoProvider;
+
+  constructor(
+    core: CoValueCore,
+    options?: {
+      ignorePrivateTransactions: boolean;
+    },
+  ) {
+    super(core, options);
+    this.crypto = core.node.crypto;
+  }
+
   /**
    * Returns the current role of a given account.
    *
@@ -357,7 +376,7 @@ export class RawGroup<
     memberKey: RawAccountID | AgentID,
     agent: AgentID,
   ) {
-    const writeKeyForNewMember = this.core.crypto.newRandomKeySecret();
+    const writeKeyForNewMember = this.crypto.newRandomKeySecret();
 
     this.set(`writeKeyFor_${memberKey}`, writeKeyForNewMember.id, "trusting");
 
@@ -404,10 +423,10 @@ export class RawGroup<
   ) {
     this.set(
       `${keyID}_for_${memberKey}`,
-      this.core.crypto.seal({
+      this.crypto.seal({
         message: secret,
         from: this.core.node.account.currentSealerSecret(),
-        to: this.core.crypto.getAgentSealerID(agent),
+        to: this.crypto.getAgentSealerID(agent),
         nOnceMaterial: {
           in: this.id,
           tx: this.core.nextTransactionID(),
@@ -509,7 +528,7 @@ export class RawGroup<
       secret: maybeCurrentReadKey.secret,
     };
 
-    const newReadKey = this.core.crypto.newRandomKeySecret();
+    const newReadKey = this.crypto.newRandomKeySecret();
 
     for (const readerID of currentlyPermittedReaders) {
       const agent = this.core.node
@@ -539,7 +558,7 @@ export class RawGroup<
         )
         ._unsafeUnwrap({ withStackTrace: true });
 
-      const writeOnlyKey = this.core.crypto.newRandomKeySecret();
+      const writeOnlyKey = this.crypto.newRandomKeySecret();
 
       this.storeKeyRevelationForMember(
         writeOnlyMemberID,
@@ -568,7 +587,7 @@ export class RawGroup<
 
     this.set(
       `${currentReadKey.id}_for_${newReadKey.id}`,
-      this.core.crypto.encryptKeySecret({
+      this.crypto.encryptKeySecret({
         encrypting: newReadKey,
         toEncrypt: currentReadKey,
       }).encrypted,
@@ -594,7 +613,7 @@ export class RawGroup<
 
       this.set(
         `${newReadKey.id}_for_${parentReadKeyID}`,
-        this.core.crypto.encryptKeySecret({
+        this.crypto.encryptKeySecret({
           encrypting: {
             id: parentReadKeyID,
             secret: parentReadKeySecret,
@@ -678,7 +697,7 @@ export class RawGroup<
 
     this.set(
       `${childReadKeyID}_for_${parentReadKeyID}`,
-      this.core.crypto.encryptKeySecret({
+      this.crypto.encryptKeySecret({
         encrypting: {
           id: parentReadKeyID,
           secret: parentReadKeySecret,
@@ -763,10 +782,10 @@ export class RawGroup<
    * @category 2. Role changing
    */
   createInvite(role: AccountRole): InviteSecret {
-    const secretSeed = this.core.crypto.newRandomSecretSeed();
+    const secretSeed = this.crypto.newRandomSecretSeed();
 
-    const inviteSecret = this.core.crypto.agentSecretFromSecretSeed(secretSeed);
-    const inviteID = this.core.crypto.getAgentID(inviteSecret);
+    const inviteSecret = this.crypto.agentSecretFromSecretSeed(secretSeed);
+    const inviteID = this.crypto.getAgentID(inviteSecret);
 
     this.addMemberInternal(inviteID, `${role}Invite` as Role);
 
@@ -783,7 +802,7 @@ export class RawGroup<
     init?: M["_shape"],
     meta?: M["headerMeta"],
     initPrivacy: "trusting" | "private" = "private",
-    uniqueness: CoValueUniqueness = this.core.crypto.createdNowUnique(),
+    uniqueness: CoValueUniqueness = this.crypto.createdNowUnique(),
   ): M {
     const map = this.core.node
       .createCoValue({
@@ -814,7 +833,7 @@ export class RawGroup<
     init?: L["_item"][],
     meta?: L["headerMeta"],
     initPrivacy: "trusting" | "private" = "private",
-    uniqueness: CoValueUniqueness = this.core.crypto.createdNowUnique(),
+    uniqueness: CoValueUniqueness = this.crypto.createdNowUnique(),
   ): L {
     const list = this.core.node
       .createCoValue({
@@ -854,7 +873,7 @@ export class RawGroup<
           group: this.id,
         },
         meta: meta || null,
-        ...this.core.crypto.createdNowUnique(),
+        ...this.crypto.createdNowUnique(),
       })
       .getCurrentContent() as T;
 
@@ -868,7 +887,7 @@ export class RawGroup<
   /** @category 3. Value creation */
   createStream<C extends RawCoStream>(
     meta?: C["headerMeta"],
-    uniqueness: CoValueUniqueness = this.core.crypto.createdNowUnique(),
+    uniqueness: CoValueUniqueness = this.crypto.createdNowUnique(),
   ): C {
     return this.core.node
       .createCoValue({
@@ -886,7 +905,7 @@ export class RawGroup<
   /** @category 3. Value creation */
   createBinaryStream<C extends RawBinaryCoStream>(
     meta: C["headerMeta"] = { type: "binary" },
-    uniqueness: CoValueUniqueness = this.core.crypto.createdNowUnique(),
+    uniqueness: CoValueUniqueness = this.crypto.createdNowUnique(),
   ): C {
     return this.core.node
       .createCoValue({

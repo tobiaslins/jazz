@@ -22,7 +22,7 @@ describe("getPriorityFromHeader", () => {
       ...Crypto.createdNowUnique(),
     });
 
-    expect(getPriorityFromHeader(costream.header)).toEqual(
+    expect(getPriorityFromHeader(costream.verified.header)).toEqual(
       CO_VALUE_PRIORITY.MEDIUM,
     );
   });
@@ -36,7 +36,7 @@ describe("getPriorityFromHeader", () => {
       ...Crypto.createdNowUnique(),
     });
 
-    expect(getPriorityFromHeader(costream.header)).toEqual(
+    expect(getPriorityFromHeader(costream.verified.header)).toEqual(
       CO_VALUE_PRIORITY.LOW,
     );
   });
@@ -46,7 +46,7 @@ describe("getPriorityFromHeader", () => {
 
     const account = node.createAccount(node.crypto.newRandomAgentSecret());
 
-    expect(getPriorityFromHeader(account.core.header)).toEqual(
+    expect(getPriorityFromHeader(account.core.verified.header)).toEqual(
       CO_VALUE_PRIORITY.HIGH,
     );
   });
@@ -55,7 +55,7 @@ describe("getPriorityFromHeader", () => {
     const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
     const group = node.createGroup();
 
-    expect(getPriorityFromHeader(group.core.header)).toEqual(
+    expect(getPriorityFromHeader(group.core.verified.header)).toEqual(
       CO_VALUE_PRIORITY.HIGH,
     );
   });
@@ -77,10 +77,10 @@ describe("getPriorityFromHeader", () => {
       ...Crypto.createdNowUnique(),
     });
 
-    expect(getPriorityFromHeader(comap.header)).toEqual(
+    expect(getPriorityFromHeader(comap.verified.header)).toEqual(
       CO_VALUE_PRIORITY.MEDIUM,
     );
-    expect(getPriorityFromHeader(colist.header)).toEqual(
+    expect(getPriorityFromHeader(colist.verified.header)).toEqual(
       CO_VALUE_PRIORITY.MEDIUM,
     );
   });

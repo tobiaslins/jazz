@@ -72,10 +72,10 @@ export class RawCoPlainText<
 
     // Use locale from meta if provided, fallback to browser locale, or 'en' as last resort
     const effectiveLocale =
-      (core.header.meta &&
-      typeof core.header.meta === "object" &&
-      "locale" in core.header.meta
-        ? (core.header.meta.locale as string)
+      (core.verified.header.meta &&
+      typeof core.verified.header.meta === "object" &&
+      "locale" in core.verified.header.meta
+        ? (core.verified.header.meta.locale as string)
         : undefined) ||
       (typeof navigator !== "undefined" ? navigator.language : "en");
 

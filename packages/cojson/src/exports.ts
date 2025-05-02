@@ -2,10 +2,10 @@ import { base64URLtoBytes, bytesToBase64url } from "./base64url.js";
 import { type RawCoValue } from "./coValue.js";
 import {
   CoValueCore,
-  type CoValueUniqueness,
   MAX_RECOMMENDED_TX_SIZE,
   idforHeader,
 } from "./coValueCore/coValueCore.js";
+import { CoValueUniqueness } from "./coValueCore/verifiedState.js";
 import {
   ControlledAgent,
   RawAccount,
@@ -174,9 +174,11 @@ export namespace CojsonInternalTypes {
   export type NewContentMessage = import("./sync.js").NewContentMessage;
   export type SessionNewContent = import("./sync.js").SessionNewContent;
   export type CoValueHeader = import(
-    "./coValueCore/coValueCore.js",
+    "./coValueCore/verifiedState.js",
   ).CoValueHeader;
-  export type Transaction = import("./coValueCore/coValueCore.js").Transaction;
+  export type Transaction = import(
+    "./coValueCore/verifiedState.js",
+  ).Transaction;
   export type TransactionID = import("./ids.js").TransactionID;
   export type Signature = import("./crypto/crypto.js").Signature;
   export type RawCoID = import("./ids.js").RawCoID;

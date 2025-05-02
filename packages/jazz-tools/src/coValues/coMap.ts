@@ -528,7 +528,7 @@ export class CoMap extends CoValueBase implements CoValue {
       uniqueness: unique,
     };
     const crypto =
-      as._type === "Anonymous" ? as.node.crypto : as._raw.core.crypto;
+      as._type === "Anonymous" ? as.node.crypto : as._raw.core.node.crypto;
     return cojsonInternals.idforHeader(header, crypto) as ID<M>;
   }
 

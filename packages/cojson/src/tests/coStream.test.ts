@@ -161,7 +161,7 @@ test("When adding large transactions (small fraction of MAX_RECOMMENDED_TX_SIZE)
 
   content.endBinaryStream("trusting");
 
-  const sessionEntry = coValue.sessionLogs.get(node.currentSessionID)!;
+  const sessionEntry = coValue.verified.sessions.get(node.currentSessionID)!;
   expect(sessionEntry.transactions.length).toEqual(12);
   expect(sessionEntry.signatureAfter[0]).not.toBeDefined();
   expect(sessionEntry.signatureAfter[1]).not.toBeDefined();
@@ -176,7 +176,7 @@ test("When adding large transactions (small fraction of MAX_RECOMMENDED_TX_SIZE)
   expect(sessionEntry.signatureAfter[10]).not.toBeDefined();
   expect(sessionEntry.signatureAfter[11]).not.toBeDefined();
 
-  const newContent = coValue.newContentSince({
+  const newContent = coValue.verified.newContentSince({
     id: coValue.id,
     header: false,
     sessions: {},
@@ -231,7 +231,7 @@ test("When adding large transactions (bigger than MAX_RECOMMENDED_TX_SIZE), we s
 
   content.endBinaryStream("trusting");
 
-  const sessionEntry = coValue.sessionLogs.get(node.currentSessionID)!;
+  const sessionEntry = coValue.verified.sessions.get(node.currentSessionID)!;
   expect(sessionEntry.transactions.length).toEqual(5);
   expect(sessionEntry.signatureAfter[0]).not.toBeDefined();
   expect(sessionEntry.signatureAfter[1]).toBeDefined();
@@ -239,7 +239,7 @@ test("When adding large transactions (bigger than MAX_RECOMMENDED_TX_SIZE), we s
   expect(sessionEntry.signatureAfter[3]).toBeDefined();
   expect(sessionEntry.signatureAfter[4]).not.toBeDefined();
 
-  const newContent = coValue.newContentSince({
+  const newContent = coValue.verified.newContentSince({
     id: coValue.id,
     header: false,
     sessions: {},

@@ -2,11 +2,11 @@ import { Result, ResultAsync, err, ok, okAsync } from "neverthrow";
 import { CoValuesStore } from "./CoValuesStore.js";
 import { CoID } from "./coValue.js";
 import { RawCoValue } from "./coValue.js";
+import { CoValueCore } from "./coValueCore/coValueCore.js";
 import {
-  CoValueCore,
   CoValueHeader,
   CoValueUniqueness,
-} from "./coValueCore/coValueCore.js";
+} from "./coValueCore/verifiedState.js";
 import {
   AccountMeta,
   ControlledAccountOrAgent,
@@ -130,7 +130,8 @@ export class LocalNode {
       controlledAccount.id,
       controlledAccount.core,
     );
-    controlledAccount.core._cachedContent = undefined;
+    // TODO: is this still needed?
+    // controlledAccount.core._cachedContent = undefined;
 
     if (!controlledAccount.get("profile")) {
       throw new Error("Must set account profile in initial migration");
@@ -207,12 +208,15 @@ export class LocalNode {
       node.syncManager = loadingNode.syncManager;
       node.syncManager.local = node;
 
+      // this is horrible
+      // @ts-expect-error
       controlledAccount.core.node = node;
       node.coValuesStore.internalMarkMagicallyAvailable(
         accountID,
         controlledAccount.core,
       );
-      controlledAccount.core._cachedContent = undefined;
+      // TODO: is this still needed?
+      // controlledAccount.core._cachedContent = undefined;
 
       const profileID = account.get("profile");
       if (!profileID) {
@@ -382,12 +386,16 @@ export class LocalNode {
       );
     }
 
-    if (groupOrOwnedValue.core.header.ruleset.type === "ownedByGroup") {
+    if (
+      groupOrOwnedValue.core.verified.header.ruleset.type === "ownedByGroup"
+    ) {
       return this.acceptInvite(
-        groupOrOwnedValue.core.header.ruleset.group as CoID<RawGroup>,
+        groupOrOwnedValue.core.verified.header.ruleset.group as CoID<RawGroup>,
         inviteSecret,
       );
-    } else if (groupOrOwnedValue.core.header.ruleset.type !== "group") {
+    } else if (
+      groupOrOwnedValue.core.verified.header.ruleset.type !== "group"
+    ) {
       throw new Error("Can only accept invites to groups");
     }
 
@@ -448,12 +456,11 @@ export class LocalNode {
             : "reader",
     );
 
-    group.core._sessionLogs = groupAsInvite.core.sessionLogs;
-    group.core._cachedContent = undefined;
+    group.core.internalShamefullyCloneVerifiedStateFrom(
+      groupAsInvite.core.verified,
+    );
 
-    for (const groupListener of group.core.listeners) {
-      groupListener(group.core.getCurrentContent());
-    }
+    group.core.notifyUpdate("immediate");
   }
 
   /** @internal */
@@ -519,9 +526,9 @@ export class LocalNode {
 
     const accountOnThisNode = this.expectCoValueLoaded(account.id);
 
-    accountOnThisNode._sessionLogs = new Map(account.core.sessionLogs);
-
-    accountOnThisNode._cachedContent = undefined;
+    accountOnThisNode.internalShamefullyCloneVerifiedStateFrom(
+      account.core.verified,
+    );
 
     return new RawControlledAccount(accountOnThisNode, agentSecret);
   }
@@ -549,11 +556,11 @@ export class LocalNode {
     }
 
     if (
-      coValue.header.type !== "comap" ||
-      coValue.header.ruleset.type !== "group" ||
-      !coValue.header.meta ||
-      !("type" in coValue.header.meta) ||
-      coValue.header.meta.type !== "account"
+      coValue.verified.header.type !== "comap" ||
+      coValue.verified.header.ruleset.type !== "group" ||
+      !coValue.verified.header.meta ||
+      !("type" in coValue.verified.header.meta) ||
+      coValue.verified.header.meta.type !== "account"
     ) {
       return err({
         type: "UnexpectedlyNotAccount",
@@ -592,11 +599,11 @@ export class LocalNode {
       }
 
       if (
-        coValue.header.type !== "comap" ||
-        coValue.header.ruleset.type !== "group" ||
-        !coValue.header.meta ||
-        !("type" in coValue.header.meta) ||
-        coValue.header.meta.type !== "account"
+        coValue.verified.header.type !== "comap" ||
+        coValue.verified.header.ruleset.type !== "group" ||
+        !coValue.verified.header.meta ||
+        !("type" in coValue.verified.header.meta) ||
+        coValue.verified.header.meta.type !== "account"
       ) {
         return err({
           type: "UnexpectedlyNotAccount" as const,
@@ -674,9 +681,9 @@ export class LocalNode {
         }
 
         const newCoValue = new CoValueCore(
-          entry.core.header,
+          entry.core.verified.header,
           newNode,
-          new Map(entry.core.sessionLogs),
+          entry.core.verified.clone().sessions,
         );
 
         newNode.coValuesStore.internalMarkMagicallyAvailable(

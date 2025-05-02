@@ -152,7 +152,7 @@ export class RawCoMapView<
 
   /** @category 6. Meta */
   get headerMeta(): Meta {
-    return this.core.header.meta as Meta;
+    return this.core.verified.header.meta as Meta;
   }
 
   /** @category 6. Meta */

@@ -1,9 +1,9 @@
 import { CoID, RawCoValue } from "../coValue.js";
+import { CoValueCore } from "../coValueCore/coValueCore.js";
 import {
-  CoValueCore,
   CoValueHeader,
   CoValueUniqueness,
-} from "../coValueCore/coValueCore.js";
+} from "../coValueCore/verifiedState.js";
 import {
   AgentSecret,
   CryptoProvider,
@@ -90,22 +90,17 @@ export class RawControlledAccount<Meta extends AccountMeta = AccountMeta>
   implements ControlledAccountOrAgent
 {
   agentSecret: AgentSecret;
-  crypto: CryptoProvider;
 
   constructor(core: CoValueCore, agentSecret: AgentSecret) {
     super(core);
-
     this.agentSecret = agentSecret;
-    this.crypto = core.node.crypto;
   }
 
   /**
    * Creates a new group (with the current account as the group's first admin).
    * @category 1. High-level
    */
-  createGroup(
-    uniqueness: CoValueUniqueness = this.core.crypto.createdNowUnique(),
-  ) {
+  createGroup(uniqueness: CoValueUniqueness = this.crypto.createdNowUnique()) {
     return this.core.node.createGroup(uniqueness);
   }
 

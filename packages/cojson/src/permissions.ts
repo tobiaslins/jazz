@@ -1,5 +1,6 @@
 import { CoID } from "./coValue.js";
-import { CoValueCore, Transaction } from "./coValueCore/coValueCore.js";
+import { CoValueCore } from "./coValueCore/coValueCore.js";
+import { Transaction } from "./coValueCore/verifiedState.js";
 import { RawAccount, RawAccountID, RawProfile } from "./coValues/account.js";
 import { MapOpPayload } from "./coValues/coMap.js";
 import {
@@ -64,19 +65,19 @@ export function determineValidTransactions(
   coValue: CoValueCore,
   knownTransactions?: CoValueKnownState["sessions"],
 ): { txID: TransactionID; tx: Transaction }[] {
-  if (coValue.header.ruleset.type === "group") {
-    const initialAdmin = coValue.header.ruleset.initialAdmin;
+  if (coValue.verified.header.ruleset.type === "group") {
+    const initialAdmin = coValue.verified.header.ruleset.initialAdmin;
     if (!initialAdmin) {
       throw new Error("Group must have initialAdmin");
     }
 
     return determineValidTransactionsForGroup(coValue, initialAdmin)
       .validTransactions;
-  } else if (coValue.header.ruleset.type === "ownedByGroup") {
+  } else if (coValue.verified.header.ruleset.type === "ownedByGroup") {
     const groupContent = expectGroup(
       coValue.node
         .expectCoValueLoaded(
-          coValue.header.ruleset.group,
+          coValue.verified.header.ruleset.group,
           "Determining valid transaction in owned object but its group wasn't loaded",
         )
         .getCurrentContent(),
@@ -88,7 +89,7 @@ export function determineValidTransactions(
 
     const validTransactions: ValidTransactionsResult[] = [];
 
-    for (const [sessionID, sessionLog] of coValue.sessionLogs.entries()) {
+    for (const [sessionID, sessionLog] of coValue.verified.sessions.entries()) {
       const transactor = accountOrAgentIDfromSessionID(sessionID);
       const knownTransactionsForSession = knownTransactions?.[sessionID] ?? -1;
 
@@ -123,10 +124,10 @@ export function determineValidTransactions(
     }
 
     return validTransactions;
-  } else if (coValue.header.ruleset.type === "unsafeAllowAll") {
+  } else if (coValue.verified.header.ruleset.type === "unsafeAllowAll") {
     const validTransactions: ValidTransactionsResult[] = [];
 
-    for (const [sessionID, sessionLog] of coValue.sessionLogs.entries()) {
+    for (const [sessionID, sessionLog] of coValue.verified.sessions.entries()) {
       const knownTransactionsForSession = knownTransactions?.[sessionID] ?? -1;
 
       sessionLog.transactions.forEach((tx, txIndex) => {
@@ -141,7 +142,7 @@ export function determineValidTransactions(
   } else {
     throw new Error(
       "Unknown ruleset type " +
-        (coValue.header.ruleset as { type: string }).type,
+        (coValue.verified.header.ruleset as { type: string }).type,
     );
   }
 }
@@ -167,7 +168,7 @@ function resolveMemberStateFromParentReference(
     "Expected parent group to be loaded",
   );
 
-  if (parentGroup.header.ruleset.type !== "group") {
+  if (parentGroup.verified.header.ruleset.type !== "group") {
     return;
   }
 
@@ -176,7 +177,7 @@ function resolveMemberStateFromParentReference(
     return;
   }
 
-  const initialAdmin = parentGroup.header.ruleset.initialAdmin;
+  const initialAdmin = parentGroup.verified.header.ruleset.initialAdmin;
 
   if (!initialAdmin) {
     throw new Error("Group must have initialAdmin");
@@ -214,7 +215,7 @@ function determineValidTransactionsForGroup(
     tx: Transaction;
   }[] = [];
 
-  for (const [sessionID, sessionLog] of coValue.sessionLogs.entries()) {
+  for (const [sessionID, sessionLog] of coValue.verified.sessions.entries()) {
     sessionLog.transactions.forEach((tx, txIndex) => {
       allTransactionsSorted.push({ sessionID, txIndex, tx });
     });

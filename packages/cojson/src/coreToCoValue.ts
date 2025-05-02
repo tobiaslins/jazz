@@ -11,10 +11,10 @@ export function coreToCoValue(
   core: CoValueCore,
   options?: { ignorePrivateTransactions: true },
 ) {
-  if (core.header.type === "comap") {
-    if (core.header.ruleset.type === "group") {
+  if (core.verified.header.type === "comap") {
+    if (core.verified.header.ruleset.type === "group") {
       if (
-        core.header.meta?.type === "account" &&
+        core.verified.header.meta?.type === "account" &&
         !options?.ignorePrivateTransactions
       ) {
         if (core.id === core.node.account.id) {
@@ -28,12 +28,15 @@ export function coreToCoValue(
     } else {
       return new RawCoMap(core);
     }
-  } else if (core.header.type === "coplaintext") {
+  } else if (core.verified.header.type === "coplaintext") {
     return new RawCoPlainText(core);
-  } else if (core.header.type === "colist") {
+  } else if (core.verified.header.type === "colist") {
     return new RawCoList(core);
-  } else if (core.header.type === "costream") {
-    if (core.header.meta && core.header.meta.type === "binary") {
+  } else if (core.verified.header.type === "costream") {
+    if (
+      core.verified.header.meta &&
+      core.verified.header.meta.type === "binary"
+    ) {
       return new RawBinaryCoStream(core);
     } else {
       return new RawCoStream(core);
