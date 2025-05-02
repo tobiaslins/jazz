@@ -219,10 +219,6 @@ export class CoValueResolutionNode<D extends CoValue> {
     }
 
     const owner = getOwnerFromRawValue(update);
-    const hasChanged =
-      update.totalValidTransactions !== this.totalValidTransactions;
-
-    this.totalValidTransactions = update.totalValidTransactions;
 
     const ruleset = update.core.header.ruleset;
     const hasAccess = ruleset.type === "group" || owner.myRole() !== undefined;
@@ -251,12 +247,18 @@ export class CoValueResolutionNode<D extends CoValue> {
       this.updateValue(createCoValue(this.schema, update, this));
       this.loadChildren();
     } else {
+      const hasChanged =
+        update.totalValidTransactions !== this.totalValidTransactions ||
+        this.value.value._raw !== update;
+
       if (this.loadChildren()) {
         this.updateValue(createCoValue(this.schema, update, this));
       } else if (hasChanged) {
         this.updateValue(createCoValue(this.schema, update, this));
       }
     }
+
+    this.totalValidTransactions = update.totalValidTransactions;
 
     this.triggerUpdate();
   }
