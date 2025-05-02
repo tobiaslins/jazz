@@ -50,6 +50,21 @@ class JazzError {
       })
       .join("\n");
   }
+
+  prependPath(item: string) {
+    if (this.issues.length === 0) {
+      return this;
+    }
+
+    const issues = this.issues.map((issue) => {
+      return {
+        ...issue,
+        path: [item].concat(issue.path),
+      };
+    });
+
+    return new JazzError(this.id, this.type, issues);
+  }
 }
 
 export function getOwnerFromRawValue(raw: RawCoValue) {
@@ -191,7 +206,6 @@ export class CoValueResolutionNode<D extends CoValue> {
   validationErrors: Map<string, JazzError> = new Map();
   errorFromChildren: JazzError | undefined;
   subscription: Subscription;
-  listener: ((value: SubscriptionValue<D, any>) => void) | undefined;
   dirty = false;
   resolve: RefsToResolve<any>;
   idsSubscribed = new Set<string>();
@@ -266,6 +280,12 @@ export class CoValueResolutionNode<D extends CoValue> {
       return;
     }
 
+    if (this.batchingUpdates) {
+      throw new Error("handleUpdate called while batching updates");
+    }
+
+    this.batchingUpdates = true;
+
     if (this.value.type !== "loaded") {
       this.updateValue(createCoValue(this.schema, update, this));
       this.loadChildren();
@@ -283,6 +303,7 @@ export class CoValueResolutionNode<D extends CoValue> {
 
     this.totalValidTransactions = update.totalValidTransactions;
 
+    this.batchingUpdates = false;
     this.triggerUpdate();
   }
 
@@ -327,15 +348,7 @@ export class CoValueResolutionNode<D extends CoValue> {
     this.childValues.set(id, value);
 
     if (value.type === "unavailable" || value.type === "unauthorized") {
-      const error = value;
-      this.childErrors.set(id, error);
-
-      if (error.issues) {
-        // TODO: Immutable updates
-        error.issues.forEach((issue) => {
-          issue.path.unshift(key ?? id);
-        });
-      }
+      this.childErrors.set(id, value.prependPath(key ?? id));
 
       this.errorFromChildren = this.computeChildErrors();
     } else if (this.errorFromChildren && this.childErrors.has(id)) {
@@ -371,17 +384,15 @@ export class CoValueResolutionNode<D extends CoValue> {
   triggerUpdate() {
     if (!this.shouldSendUpdates()) return;
     if (!this.dirty) return;
-    if (!this.listener) return;
+    if (this.subscribers.size === 0) return;
     if (this.batchingUpdates) return;
 
     const error = this.errorFromChildren;
     const value = this.value;
 
     if (error) {
-      this.listener(error);
       this.subscribers.forEach((listener) => listener(error));
     } else if (value.type !== "unloaded") {
-      this.listener(value);
       this.subscribers.forEach((listener) => listener(value));
     }
 
@@ -398,7 +409,7 @@ export class CoValueResolutionNode<D extends CoValue> {
   }
 
   setListener(listener: (value: SubscriptionValue<D, any> | Unloaded) => void) {
-    this.listener = listener;
+    this.subscribers.add(listener);
     this.triggerUpdate();
   }
 
@@ -458,8 +469,6 @@ export class CoValueResolutionNode<D extends CoValue> {
   }
 
   loadChildren() {
-    this.batchingUpdates = true;
-
     const { resolve } = this;
 
     if (this.value.type !== "loaded") {
@@ -564,8 +573,6 @@ export class CoValueResolutionNode<D extends CoValue> {
         this.childValues.delete(id);
       }
     }
-
-    this.batchingUpdates = false;
 
     return hasChanged;
   }
@@ -674,6 +681,7 @@ export class CoValueResolutionNode<D extends CoValue> {
 
   destroy() {
     this.subscription.unsubscribe();
+    this.subscribers.clear();
     this.childNodes.forEach((child) => child.destroy());
   }
 }
