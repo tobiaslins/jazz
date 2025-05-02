@@ -173,12 +173,10 @@ export namespace CojsonInternalTypes {
   export type LoadMessage = import("./sync.js").LoadMessage;
   export type NewContentMessage = import("./sync.js").NewContentMessage;
   export type SessionNewContent = import("./sync.js").SessionNewContent;
-  export type CoValueHeader = import(
-    "./coValueCore/verifiedState.js",
-  ).CoValueHeader;
-  export type Transaction = import(
-    "./coValueCore/verifiedState.js",
-  ).Transaction;
+  // biome-ignore format: inserts spurious trialing comma that breaks some parsers
+  export type CoValueHeader = import("./coValueCore/verifiedState.js").CoValueHeader;
+  // biome-ignore format: inserts spurious trialing comma that breaks some parsers
+  export type Transaction = import("./coValueCore/verifiedState.js").Transaction;
   export type TransactionID = import("./ids.js").TransactionID;
   export type Signature = import("./crypto/crypto.js").Signature;
   export type RawCoID = import("./ids.js").RawCoID;
