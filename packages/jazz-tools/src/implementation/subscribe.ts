@@ -1,4 +1,5 @@
 import { LocalNode, RawAccount, RawCoMap, RawCoValue, RawGroup } from "cojson";
+import { CoValueState } from "cojson/dist/coValueState.js";
 import { RegisteredSchemas } from "../coValues/registeredSchemas.js";
 import { CoFeed, CoList, CoMap } from "../exports.js";
 import {
@@ -66,34 +67,53 @@ class Subscription {
   unsubscribed = false;
 
   value: RawCoMap | undefined;
-  status: "unknown" | "loading" | "loaded" | "unauthorized" | "unavailable" =
-    "unknown";
 
   constructor(
     public node: LocalNode,
     public id: string,
     public listener: (value: RawCoValue | "unavailable") => void,
   ) {
-    const value = this.node.coValuesStore.get(this.id as any);
+    const entry = this.node.coValuesStore.get(this.id as any);
 
-    if (value.core) {
-      this.status = "loaded";
-      this.subscribe(value.core.getCurrentContent());
+    if (entry?.core) {
+      this.subscribe(entry.core.getCurrentContent());
     } else {
-      this.status = "loading";
       this.node.loadCoValueCore(this.id as any).then((value) => {
         if (this.unsubscribed) return;
 
-        // TODO handle the error states which should be transitive
         if (value !== "unavailable") {
-          this.status = "loaded";
           this.subscribe(value.getCurrentContent());
         } else {
-          this.status = "unavailable";
           this.listener("unavailable");
+
+          // Wait for the state to become loaded
+          this.subscribeToState();
         }
       });
     }
+  }
+
+  subscribeToState() {
+    const entry = this.node.coValuesStore.get(this.id as any);
+    const handleStateChange = (entry: CoValueState) => {
+      if (this.unsubscribed) {
+        entry.removeListener(handleStateChange);
+        return;
+      }
+
+      if (entry.core) {
+        const core = entry.core;
+
+        this.subscribe(core.getCurrentContent());
+        entry.removeListener(handleStateChange);
+      }
+    };
+
+    entry.addListener(handleStateChange);
+
+    this._unsubscribe = () => {
+      entry.removeListener(handleStateChange);
+    };
   }
 
   subscribe(value: RawCoValue) {
@@ -102,6 +122,7 @@ class Subscription {
     this._unsubscribe = value.subscribe((value) => {
       this.listener(value);
     });
+
     this.listener(value);
   }
 
@@ -176,6 +197,8 @@ export class CoValueResolutionNode<D extends CoValue> {
   idsSubscribed = new Set<string>();
   autoloaded = new Set<string>();
   totalValidTransactions = 0;
+
+  // TODO: Find a better solution
   batchingUpdates = false;
 
   constructor(

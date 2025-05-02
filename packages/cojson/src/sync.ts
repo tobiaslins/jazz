@@ -487,8 +487,6 @@ export class SyncManager {
       peer.updateHeader(msg.id, true);
 
       coValue = new CoValueCore(msg.header, this.local);
-
-      entry.markAvailable(coValue, peer.id);
     } else {
       coValue = entry.core;
     }
@@ -545,6 +543,10 @@ export class SyncManager {
         newContentForSession.after +
           newContentForSession.newTransactions.length,
       );
+    }
+
+    if (!entry.core) {
+      entry.markAvailable(coValue, peer.id);
     }
 
     if (invalidStateAssumed) {

@@ -23,7 +23,11 @@ import {
   createCoValueObservable,
   subscribeToCoValue,
 } from "../internal.js";
-import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
+import {
+  createJazzTestAccount,
+  getPeerConnectedToTestSyncServer,
+  setupJazzTestSync,
+} from "../testing.js";
 import { setupAccount, waitFor } from "./utils.js";
 
 class ChatRoom extends CoMap {
@@ -421,7 +425,7 @@ describe("subscribeToCoValue", () => {
     expect(updateFn).toHaveBeenCalledTimes(1);
   });
 
-  it("should emit when all the items become available", async () => {
+  it("should emit when all the items become accessible", async () => {
     class TestMap extends CoMap {
       value = co.string;
     }
@@ -479,6 +483,80 @@ describe("subscribeToCoValue", () => {
     });
 
     group.addMember("everyone", "reader");
+
+    await waitFor(() => {
+      expect(updateFn).toHaveBeenCalled();
+    });
+
+    assert(result);
+
+    expect(result[0]?.value).toBe("1");
+
+    expect(updateFn).toHaveBeenCalledTimes(1);
+  });
+
+  it("should emit when all the items become available", async () => {
+    class TestMap extends CoMap {
+      value = co.string;
+    }
+
+    class TestList extends CoList.Of(co.ref(TestMap)) {}
+
+    const reader = await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+    });
+
+    const creator = await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+    });
+
+    // Disconnect the creator from the sync server
+    creator._raw.core.node.syncManager.getPeers().forEach((peer) => {
+      peer.gracefulShutdown();
+    });
+
+    const everyone = Group.create(creator);
+    everyone.addMember("everyone", "reader");
+
+    const list = TestList.create(
+      [
+        TestMap.create({ value: "1" }, everyone),
+        TestMap.create({ value: "2" }, everyone),
+      ],
+      everyone,
+    );
+
+    let result = null as Resolved<TestList, { $each: true }> | null;
+
+    const updateFn = vi.fn().mockImplementation((value) => {
+      result = value;
+    });
+    const onUnauthorized = vi.fn();
+    const onUnavailable = vi.fn();
+
+    const unsubscribe = subscribeToCoValue(
+      TestList,
+      list.id,
+      {
+        loadAs: reader,
+        resolve: {
+          $each: true,
+        },
+        onUnauthorized,
+        onUnavailable,
+      },
+      updateFn,
+    );
+
+    onTestFinished(unsubscribe);
+
+    await waitFor(() => {
+      expect(onUnavailable).toHaveBeenCalled();
+    });
+
+    creator._raw.core.node.syncManager.addPeer(
+      getPeerConnectedToTestSyncServer(),
+    );
 
     await waitFor(() => {
       expect(updateFn).toHaveBeenCalled();
