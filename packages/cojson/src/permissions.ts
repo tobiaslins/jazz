@@ -65,6 +65,10 @@ export function determineValidTransactions(
   coValue: CoValueCore,
   knownTransactions?: CoValueKnownState["sessions"],
 ): { txID: TransactionID; tx: Transaction }[] {
+  if (!coValue.isAvailable()) {
+    throw new Error("determineValidTransactions CoValue is not available");
+  }
+
   if (coValue.verified.header.ruleset.type === "group") {
     const initialAdmin = coValue.verified.header.ruleset.initialAdmin;
     if (!initialAdmin) {
@@ -215,7 +219,8 @@ function determineValidTransactionsForGroup(
     tx: Transaction;
   }[] = [];
 
-  for (const [sessionID, sessionLog] of coValue.verified.sessions.entries()) {
+  for (const [sessionID, sessionLog] of coValue.verified?.sessions.entries() ??
+    []) {
     sessionLog.transactions.forEach((tx, txIndex) => {
       allTransactionsSorted.push({ sessionID, txIndex, tx });
     });

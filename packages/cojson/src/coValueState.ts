@@ -2,11 +2,13 @@ import { ValueType } from "@opentelemetry/api";
 import { UpDownCounter, metrics } from "@opentelemetry/api";
 import { PeerState } from "./PeerState.js";
 import {
+  AvailableCoValueCore,
   CoValueCore,
   TryAddTransactionsError,
 } from "./coValueCore/coValueCore.js";
+import { CoValueHeader, VerifiedState } from "./coValueCore/verifiedState.js";
 import { RawCoID } from "./ids.js";
-import { logger } from "./logger.js";
+import { LocalNode } from "./localNode.js";
 import { PeerID, emptyKnownState } from "./sync.js";
 
 export const CO_VALUE_LOADING_CONFIG = {
@@ -15,7 +17,7 @@ export const CO_VALUE_LOADING_CONFIG = {
 };
 
 export class CoValueState {
-  private peers = new Map<
+  private readonly peers = new Map<
     PeerID,
     | { type: "unknown" | "pending" | "available" | "unavailable" }
     | {
@@ -24,14 +26,18 @@ export class CoValueState {
       }
   >();
 
-  core: CoValueCore | null = null;
-  id: RawCoID;
+  readonly node: LocalNode;
+  readonly core: CoValueCore;
+  readonly id: RawCoID;
 
   private listeners: Set<(state: CoValueState) => void> = new Set();
   private counter: UpDownCounter;
 
-  constructor(id: RawCoID) {
+  constructor(id: RawCoID, node: LocalNode) {
     this.id = id;
+    this.node = node;
+
+    this.core = CoValueCore.fromID(id, node);
 
     this.counter = metrics
       .getMeter("cojson")
@@ -45,7 +51,7 @@ export class CoValueState {
   }
 
   get highLevelState() {
-    if (this.core) {
+    if (this.core.verified) {
       return "available";
     } else if (this.peers.size === 0) {
       return "unknown";
@@ -66,8 +72,8 @@ export class CoValueState {
     return this.peers.get(peerId)?.type === "errored";
   }
 
-  isAvailable(): this is { type: "available"; core: CoValueCore } {
-    return !!this.core;
+  isAvailable(): this is { type: "available"; core: AvailableCoValueCore } {
+    return this.core.isAvailable();
   }
 
   addListener(listener: (state: CoValueState) => void) {
@@ -85,22 +91,14 @@ export class CoValueState {
     }
   }
 
-  async getCoValue() {
-    if (this.core) {
-      return this.core;
-    }
-
-    if (this.highLevelState === "unavailable") {
-      return "unavailable";
-    }
-
-    return new Promise<CoValueCore | "unavailable">((resolve) => {
+  async getCoValue(): Promise<CoValueCore> {
+    return new Promise<CoValueCore>((resolve) => {
       const listener = (state: CoValueState) => {
-        if (state.core) {
+        if (
+          state.core.isAvailable() ||
+          state.highLevelState === "unavailable"
+        ) {
           resolve(state.core);
-          this.removeListener(listener);
-        } else if (state.highLevelState === "unavailable") {
-          resolve("unavailable");
           this.removeListener(listener);
         }
       };
@@ -156,7 +154,7 @@ export class CoValueState {
 
       peer.pushOutgoingMessage({
         action: "load",
-        ...(this.core ? this.core.knownState() : emptyKnownState(this.id)),
+        ...this.core.knownState(),
       });
       peer.trackLoadRequestSent(this.id);
 
@@ -222,17 +220,22 @@ export class CoValueState {
   }
 
   // TODO: rename to "provided"
-  markAvailable(coValue: CoValueCore, fromPeerId: PeerID) {
+  markAvailable(header: CoValueHeader, fromPeerId: PeerID) {
     const previousState = this.highLevelState;
-    this.core = coValue;
+    this.core.markAvailable(header);
     this.peers.set(fromPeerId, { type: "available" });
     this.updateCounter(previousState);
     this.notifyListeners();
   }
 
-  internalMarkMagicallyAvailable(coValue: CoValueCore) {
+  internalMarkMagicallyAvailable(
+    verified: VerifiedState,
+    { forceOverwrite = false }: { forceOverwrite?: boolean } = {},
+  ) {
     const previousState = this.highLevelState;
-    this.core = coValue;
+    this.core.internalShamefullyCloneVerifiedStateFrom(verified, {
+      forceOverwrite,
+    });
     this.updateCounter(previousState);
     this.notifyListeners();
   }

@@ -2,6 +2,7 @@ import { beforeEach, expect, test } from "vitest";
 import { expectList } from "../coValue.js";
 import { WasmCrypto } from "../crypto/WasmCrypto.js";
 import { LocalNode } from "../localNode.js";
+import { expectGroup } from "../typeUtils/expectGroup.js";
 import {
   loadCoValueOrFail,
   randomAnonymousAccountAndSessionID,

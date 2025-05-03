@@ -185,7 +185,7 @@ describe("sync - extra tests", () => {
 
     // Verify that node2 has received the map
     const mapOnNode2 = await node2.loadCoValueCore(map.core.id);
-    if (mapOnNode2 === "unavailable") {
+    if (!mapOnNode2.isAvailable()) {
       throw new Error("Map is unavailable on node2");
     }
 
@@ -219,7 +219,7 @@ describe("sync - extra tests", () => {
 
     // Verify that node2 has received the changes made during disconnection
     const updatedMapOnNode2 = await node2.loadCoValueCore(map.core.id);
-    if (updatedMapOnNode2 === "unavailable") {
+    if (!updatedMapOnNode2.isAvailable()) {
       throw new Error("Updated map is unavailable on node2");
     }
 
@@ -229,7 +229,7 @@ describe("sync - extra tests", () => {
 
     // Make a new change on node2 to verify two-way sync
     const mapOnNode2ForEdit = await node2.loadCoValueCore(map.core.id);
-    if (mapOnNode2ForEdit === "unavailable") {
+    if (!mapOnNode2ForEdit.isAvailable()) {
       throw new Error("Updated map is unavailable on node2");
     }
 
@@ -252,7 +252,7 @@ describe("sync - extra tests", () => {
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     const mapOnNode1 = await node1.loadCoValueCore(map.core.id);
-    if (mapOnNode1 === "unavailable") {
+    if (!mapOnNode1.isAvailable()) {
       throw new Error("Updated map is unavailable on node1");
     }
 
@@ -324,9 +324,9 @@ describe("sync - extra tests", () => {
     const mapOnNode3 = await node3.loadCoValueCore(map.core.id);
 
     if (
-      mapOnNode1 === "unavailable" ||
-      mapOnNode2 === "unavailable" ||
-      mapOnNode3 === "unavailable"
+      !mapOnNode1.isAvailable() ||
+      !mapOnNode2.isAvailable() ||
+      !mapOnNode3.isAvailable()
     ) {
       throw new Error("Map is unavailable on node2 or node3");
     }
@@ -419,9 +419,9 @@ describe("sync - extra tests", () => {
     const mapOnNode3Core = await node3.loadCoValueCore(map.core.id);
 
     if (
-      mapOnNode1Core === "unavailable" ||
-      mapOnNode2Core === "unavailable" ||
-      mapOnNode3Core === "unavailable"
+      !mapOnNode1Core.isAvailable() ||
+      !mapOnNode2Core.isAvailable() ||
+      !mapOnNode3Core.isAvailable()
     ) {
       throw new Error("Map is unavailable on node2 or node3");
     }
@@ -816,13 +816,13 @@ describe("loadCoValueCore with retry", () => {
     // Start loading before syncing
     const result = await bob.loadCoValueCore(map.id);
 
-    expect(result).toBe("unavailable");
+    expect(result.isAvailable()).toBe(false);
 
     connectTwoPeers(alice, bob, "server", "server");
 
     const result2 = await bob.loadCoValueCore(map.id);
 
-    expect(result2).not.toBe("unavailable");
+    expect(result2.isAvailable()).toBe(true);
   });
 
   test("should successfully mark a coValue as unavailable if the server does not have it", async () => {
@@ -840,7 +840,7 @@ describe("loadCoValueCore with retry", () => {
     // Start loading before syncing
     const result = await bob.loadCoValueCore(map.id);
 
-    expect(result).toBe("unavailable");
+    expect(result.isAvailable()).toBe(false);
   });
 });
 

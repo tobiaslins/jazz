@@ -253,6 +253,8 @@ describe("ContextManager", () => {
       customManager.getCurrentValue() as JazzAuthContext<CustomAccount>
     ).me;
 
+    console.log("before", account._refs.root?.id);
+
     await customManager.authenticate({
       accountID: account.id,
       accountSecret: account._raw.core.node.account.agentSecret,
@@ -262,6 +264,8 @@ describe("ContextManager", () => {
     const me = await CustomAccount.getMe().ensureLoaded({
       resolve: { root: true },
     });
+
+    console.log("after", me._refs.root?.id);
 
     expect(me.root.id).toBe(lastRootId);
   });

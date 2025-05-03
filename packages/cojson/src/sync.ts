@@ -1,7 +1,10 @@
 import { Histogram, ValueType, metrics } from "@opentelemetry/api";
 import { PeerState } from "./PeerState.js";
 import { SyncStateManager } from "./SyncStateManager.js";
-import { CoValueCore } from "./coValueCore/coValueCore.js";
+import {
+  AvailableCoValueCore,
+  CoValueCore,
+} from "./coValueCore/coValueCore.js";
 import { CoValueHeader, Transaction } from "./coValueCore/verifiedState.js";
 import { CoValueState } from "./coValueState.js";
 import { Signature } from "./crypto/crypto.js";
@@ -404,7 +407,7 @@ export class SyncManager {
       entry
         .getCoValue()
         .then(async (value) => {
-          if (value === "unavailable") {
+          if (!value.isAvailable()) {
             peer.trackToldKnownState(msg.id);
             this.trySendToPeer(peer, {
               action: "known",
@@ -470,7 +473,7 @@ export class SyncManager {
   handleNewContent(msg: NewContentMessage, peer: PeerState) {
     const entry = this.local.coValuesStore.get(msg.id);
 
-    let coValue: CoValueCore;
+    let coValue: AvailableCoValueCore;
 
     if (!entry.isAvailable()) {
       if (!msg.header) {
@@ -486,9 +489,8 @@ export class SyncManager {
 
       peer.updateHeader(msg.id, true);
 
-      coValue = new CoValueCore(msg.header, this.local);
-
-      entry.markAvailable(coValue, peer.id);
+      entry.markAvailable(msg.header, peer.id);
+      coValue = entry.core as AvailableCoValueCore;
     } else {
       coValue = entry.core;
     }
@@ -528,7 +530,7 @@ export class SyncManager {
       );
 
       if (result.isErr()) {
-        logger.error("Failed to add transactions", {
+        console.error("Failed to add transactions", {
           peerId: peer.id,
           peerRole: peer.role,
           id: msg.id,

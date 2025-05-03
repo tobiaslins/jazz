@@ -161,6 +161,10 @@ test("When adding large transactions (small fraction of MAX_RECOMMENDED_TX_SIZE)
 
   content.endBinaryStream("trusting");
 
+  if (!coValue.isAvailable()) {
+    throw new Error("CoValue is not available");
+  }
+
   const sessionEntry = coValue.verified.sessions.get(node.currentSessionID)!;
   expect(sessionEntry.transactions.length).toEqual(12);
   expect(sessionEntry.signatureAfter[0]).not.toBeDefined();
@@ -230,6 +234,10 @@ test("When adding large transactions (bigger than MAX_RECOMMENDED_TX_SIZE), we s
   }
 
   content.endBinaryStream("trusting");
+
+  if (!coValue.isAvailable()) {
+    throw new Error("CoValue is not available");
+  }
 
   const sessionEntry = coValue.verified.sessions.get(node.currentSessionID)!;
   expect(sessionEntry.transactions.length).toEqual(5);

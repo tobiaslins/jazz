@@ -1,6 +1,9 @@
 import { base58 } from "@scure/base";
 import { CoID } from "../coValue.js";
-import { CoValueCore } from "../coValueCore/coValueCore.js";
+import {
+  AvailableCoValueCore,
+  CoValueCore,
+} from "../coValueCore/coValueCore.js";
 import { CoValueUniqueness } from "../coValueCore/verifiedState.js";
 import {
   CryptoProvider,
@@ -87,7 +90,7 @@ export class RawGroup<
   protected readonly crypto: CryptoProvider;
 
   constructor(
-    core: CoValueCore,
+    core: AvailableCoValueCore,
     options?: {
       ignorePrivateTransactions: boolean;
     },
@@ -215,7 +218,7 @@ export class RawGroup<
 
       requests.push(
         child.getCoValue().then((coValue) => {
-          if (coValue === "unavailable") {
+          if (!coValue.isAvailable()) {
             throw new Error(`Child group ${child.id} is unavailable`);
           }
 

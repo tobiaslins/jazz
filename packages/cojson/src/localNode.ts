@@ -2,10 +2,15 @@ import { Result, ResultAsync, err, ok, okAsync } from "neverthrow";
 import { CoValuesStore } from "./CoValuesStore.js";
 import { CoID } from "./coValue.js";
 import { RawCoValue } from "./coValue.js";
-import { CoValueCore } from "./coValueCore/coValueCore.js";
+import {
+  AvailableCoValueCore,
+  CoValueCore,
+  idforHeader,
+} from "./coValueCore/coValueCore.js";
 import {
   CoValueHeader,
   CoValueUniqueness,
+  VerifiedState,
 } from "./coValueCore/verifiedState.js";
 import {
   AccountMeta,
@@ -46,7 +51,7 @@ export class LocalNode {
   /** @internal */
   crypto: CryptoProvider;
   /** @internal */
-  coValuesStore = new CoValuesStore();
+  coValuesStore = new CoValuesStore(this);
   /** @category 3. Low-level */
   account: ControlledAccountOrAgent;
   /** @category 3. Low-level */
@@ -128,10 +133,11 @@ export class LocalNode {
     nodeWithAccount.account = controlledAccount;
     nodeWithAccount.coValuesStore.internalMarkMagicallyAvailable(
       controlledAccount.id,
-      controlledAccount.core,
+      controlledAccount.core.verified,
+      { forceOverwrite: true },
     );
     // TODO: is this still needed?
-    // controlledAccount.core._cachedContent = undefined;
+    controlledAccount.core.internalShamefullyResetCachedContent();
 
     if (!controlledAccount.get("profile")) {
       throw new Error("Must set account profile in initial migration");
@@ -208,15 +214,14 @@ export class LocalNode {
       node.syncManager = loadingNode.syncManager;
       node.syncManager.local = node;
 
-      // this is horrible
-      // @ts-expect-error
-      controlledAccount.core.node = node;
+      controlledAccount.core.internalShamefullyReassignNode(node);
       node.coValuesStore.internalMarkMagicallyAvailable(
         accountID,
-        controlledAccount.core,
+        controlledAccount.core.verified,
+        { forceOverwrite: true },
       );
       // TODO: is this still needed?
-      // controlledAccount.core._cachedContent = undefined;
+      controlledAccount.core.internalShamefullyResetCachedContent();
 
       const profileID = account.get("profile");
       if (!profileID) {
@@ -244,26 +249,30 @@ export class LocalNode {
   }
 
   /** @internal */
-  createCoValue(header: CoValueHeader): CoValueCore {
+  createCoValue(header: CoValueHeader): AvailableCoValueCore {
     if (this.crashed) {
       throw new Error("Trying to create CoValue after node has crashed", {
         cause: this.crashed,
       });
     }
 
-    const coValue = new CoValueCore(header, this);
-    this.coValuesStore.internalMarkMagicallyAvailable(coValue.id, coValue);
+    const id = idforHeader(header, this.crypto);
 
-    void this.syncManager.requestCoValueSync(coValue);
+    const entry = this.coValuesStore.internalMarkMagicallyAvailable(
+      id,
+      new VerifiedState(id, this.crypto, header, new Map()),
+    );
 
-    return coValue;
+    void this.syncManager.requestCoValueSync(entry.core);
+
+    return entry.core;
   }
 
   /** @internal */
   async loadCoValueCore(
     id: RawCoID,
     skipLoadingFromPeer?: PeerID,
-  ): Promise<CoValueCore | "unavailable"> {
+  ): Promise<CoValueCore> {
     if (this.crashed) {
       throw new Error("Trying to load CoValue after node has crashed", {
         cause: this.crashed,
@@ -283,7 +292,7 @@ export class LocalNode {
           this.syncManager.getServerAndStoragePeers(skipLoadingFromPeer);
 
         if (peers.length === 0) {
-          return "unavailable";
+          return entry.core;
         }
 
         entry.loadFromPeers(peers).catch((e) => {
@@ -296,7 +305,7 @@ export class LocalNode {
 
       const result = await entry.getCoValue();
 
-      if (result !== "unavailable" || retries >= 1) {
+      if (result.isAvailable() || retries >= 1) {
         return result;
       }
 
@@ -324,7 +333,7 @@ export class LocalNode {
 
     const core = await this.loadCoValueCore(id);
 
-    if (core === "unavailable") {
+    if (!core.isAvailable()) {
       return "unavailable";
     }
 
@@ -458,13 +467,14 @@ export class LocalNode {
 
     group.core.internalShamefullyCloneVerifiedStateFrom(
       groupAsInvite.core.verified,
+      { forceOverwrite: true },
     );
 
     group.core.notifyUpdate("immediate");
   }
 
   /** @internal */
-  expectCoValueLoaded(id: RawCoID, expectation?: string): CoValueCore {
+  expectCoValueLoaded(id: RawCoID, expectation?: string): AvailableCoValueCore {
     const entry = this.coValuesStore.get(id);
 
     if (!entry.isAvailable()) {
@@ -542,7 +552,7 @@ export class LocalNode {
       return ok(id);
     }
 
-    let coValue: CoValueCore;
+    let coValue: AvailableCoValueCore;
 
     try {
       coValue = this.expectCoValueLoaded(id, expectation);
@@ -590,7 +600,7 @@ export class LocalNode {
           error: e,
         }) satisfies LoadCoValueCoreError,
     ).andThen((coValue) => {
-      if (coValue === "unavailable") {
+      if (!coValue.isAvailable()) {
         return err({
           type: "AccountUnavailableFromAllPeers" as const,
           expectation,
@@ -680,15 +690,9 @@ export class LocalNode {
           continue;
         }
 
-        const newCoValue = new CoValueCore(
-          entry.core.verified.header,
-          newNode,
-          entry.core.verified.clone().sessions,
-        );
-
         newNode.coValuesStore.internalMarkMagicallyAvailable(
           coValueID,
-          newCoValue,
+          entry.core.verified,
         );
 
         coValuesToCopy.pop();

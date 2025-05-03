@@ -1,5 +1,5 @@
-import { Result, err, ok } from "neverthrow";
-import { AnyRawCoValue, RawCoValue } from "../coValue.js";
+import { Result, err } from "neverthrow";
+import { RawCoValue } from "../coValue.js";
 import { ControlledAccountOrAgent, RawAccountID } from "../coValues/account.js";
 import { RawGroup } from "../coValues/group.js";
 import { coreToCoValue } from "../coreToCoValue.js";
@@ -21,17 +21,15 @@ import {
   getParentGroupId,
   isParentGroupReference,
 } from "../ids.js";
-import { Stringified, parseJSON, stableStringify } from "../jsonStringify.js";
-import { JsonObject, JsonValue } from "../jsonValue.js";
+import { parseJSON, stableStringify } from "../jsonStringify.js";
+import { JsonValue } from "../jsonValue.js";
 import { LocalNode, ResolveAccountAgentError } from "../localNode.js";
 import { logger } from "../logger.js";
 import {
-  PermissionsDef as RulesetDef,
   determineValidTransactions,
   isKeyForKeyField,
 } from "../permissions.js";
-import { getPriorityFromHeader } from "../priority.js";
-import { CoValueKnownState, NewContentMessage } from "../sync.js";
+import { CoValueKnownState, emptyKnownState } from "../sync.js";
 import { accountOrAgentIDfromSessionID } from "../typeUtils/accountOrAgentIDfromSessionID.js";
 import { expectGroup } from "../typeUtils/expectGroup.js";
 import { isAccountID } from "../typeUtils/isAccountID.js";
@@ -67,46 +65,97 @@ export type DecryptedTransaction = {
 
 const readKeyCache = new WeakMap<CoValueCore, { [id: KeyID]: KeySecret }>();
 
+export type AvailableCoValueCore = CoValueCore & { verified: VerifiedState };
+
 export class CoValueCore {
   id: RawCoID;
   readonly node: LocalNode;
   private readonly crypto: CryptoProvider;
-  readonly verified: VerifiedState;
+  private _verified: VerifiedState | null;
+  get verified() {
+    return this._verified;
+  }
   private _cachedContent?: RawCoValue;
   private readonly listeners: Set<(content?: RawCoValue) => void> = new Set();
   private readonly _decryptionCache: {
     [key: Encrypted<JsonValue[], JsonValue>]: JsonValue[] | undefined;
   } = {};
-  private _cachedKnownState?: CoValueKnownState;
   private _cachedDependentOn?: RawCoID[];
 
-  constructor(
-    header: CoValueHeader,
+  private constructor(
+    init: { header: CoValueHeader } | { id: RawCoID },
     node: LocalNode,
-    internalInitSessions: ValidatedSessions = new Map(),
   ) {
     this.crypto = node.crypto;
-    this.id = idforHeader(header, node.crypto);
-    this.verified = new VerifiedState(
-      this.id,
-      node.crypto,
-      header,
-      internalInitSessions,
-    );
+    this.id =
+      "header" in init ? idforHeader(init.header, node.crypto) : init.id;
+    this._verified =
+      "header" in init
+        ? new VerifiedState(this.id, node.crypto, init.header, new Map())
+        : null;
     this.node = node;
   }
 
-  internalShamefullyCloneVerifiedStateFrom(state: VerifiedState) {
-    // @ts-ignore
-    this.verified = state.clone();
+  static fromID(id: RawCoID, node: LocalNode): CoValueCore {
+    return new CoValueCore({ id }, node);
+  }
+
+  static fromHeader(
+    header: CoValueHeader,
+    node: LocalNode,
+  ): AvailableCoValueCore {
+    return new CoValueCore({ header }, node) as AvailableCoValueCore;
+  }
+
+  isAvailable(): this is AvailableCoValueCore {
+    return !!this.verified;
+  }
+
+  markAvailable(header: CoValueHeader) {
+    if (this._verified?.sessions.size) {
+      throw new Error(
+        "CoValueCore: markAvailable called on coValue with verified sessions present!",
+      );
+    }
+    this._verified = new VerifiedState(
+      this.id,
+      this.node.crypto,
+      header,
+      new Map(),
+    );
+  }
+
+  internalShamefullyCloneVerifiedStateFrom(
+    state: VerifiedState,
+    { forceOverwrite = false }: { forceOverwrite?: boolean } = {},
+  ) {
+    if (!forceOverwrite && this._verified?.sessions.size) {
+      throw new Error(
+        "CoValueCore: internalShamefullyCloneVerifiedStateFrom called on coValue with verified sessions present!",
+      );
+    }
+    this._verified = state.clone();
     this._cachedContent = undefined;
-    this._cachedKnownState = undefined;
     this._cachedDependentOn = undefined;
+  }
+
+  internalShamefullyResetCachedContent() {
+    this._cachedContent = undefined;
+    this._cachedDependentOn = undefined;
+  }
+
+  internalShamefullyReassignNode(node: LocalNode) {
+    // @ts-expect-error
+    this.node = node;
   }
 
   groupInvalidationSubscription?: () => void;
 
   subscribeToGroupInvalidation() {
+    if (!this.verified) {
+      return;
+    }
+
     if (this.groupInvalidationSubscription) {
       return;
     }
@@ -147,35 +196,24 @@ export class CoValueCore {
   }
 
   knownState(): CoValueKnownState {
-    if (this._cachedKnownState) {
-      return this._cachedKnownState;
+    if (this.isAvailable()) {
+      return this.verified.knownState();
     } else {
-      const knownState = this.knownStateUncached();
-      this._cachedKnownState = knownState;
-      return knownState;
+      return emptyKnownState(this.id);
     }
-  }
-
-  /** @internal */
-  knownStateUncached(): CoValueKnownState {
-    const sessions: CoValueKnownState["sessions"] = {};
-
-    for (const [sessionID, sessionLog] of this.verified.sessions.entries()) {
-      sessions[sessionID] = sessionLog.transactions.length;
-    }
-
-    return {
-      id: this.id,
-      header: true,
-      sessions,
-    };
   }
 
   get meta(): JsonValue {
-    return this.verified.header.meta ?? null;
+    return this.verified?.header.meta ?? null;
   }
 
   nextTransactionID(): TransactionID {
+    if (!this.verified) {
+      throw new Error(
+        "CoValueCore: nextTransactionID called on coValue without verified state",
+      );
+    }
+
     // This is an ugly hack to get a unique but stable session ID for editing the current account
     const sessionID =
       this.verified.header.meta?.type === "account"
@@ -206,6 +244,13 @@ export class CoValueCore {
         "Expected to know signer of transaction",
       )
       .andThen((agent) => {
+        if (!this.verified) {
+          return err({
+            type: "TriedToAddTransactionsWithoutVerifiedState",
+            id: this.id,
+          } satisfies TriedToAddTransactionsWithoutVerifiedStateErrpr);
+        }
+
         const signerID = this.crypto.getAgentSignerID(agent);
 
         const result = this.verified.tryAddTransactions(
@@ -229,7 +274,6 @@ export class CoValueCore {
             this._cachedContent = undefined;
           }
 
-          this._cachedKnownState = undefined;
           this._cachedDependentOn = undefined;
 
           this.notifyUpdate(notifyMode);
@@ -299,6 +343,12 @@ export class CoValueCore {
     changes: JsonValue[],
     privacy: "private" | "trusting",
   ): boolean {
+    if (!this.verified) {
+      throw new Error(
+        "CoValueCore: makeTransaction called on coValue without verified state",
+      );
+    }
+
     const madeAt = Date.now();
 
     let transaction: Transaction;
@@ -369,13 +419,19 @@ export class CoValueCore {
   getCurrentContent(options?: {
     ignorePrivateTransactions: true;
   }): RawCoValue {
+    if (!this.verified) {
+      throw new Error(
+        "CoValueCore: getCurrentContent called on coValue without verified state",
+      );
+    }
+
     if (!options?.ignorePrivateTransactions && this._cachedContent) {
       return this._cachedContent;
     }
 
     this.subscribeToGroupInvalidation();
 
-    const newContent = coreToCoValue(this, options);
+    const newContent = coreToCoValue(this as AvailableCoValueCore, options);
 
     if (!options?.ignorePrivateTransactions) {
       this._cachedContent = newContent;
@@ -478,6 +534,12 @@ export class CoValueCore {
   }
 
   getCurrentReadKey(): { secret: KeySecret | undefined; id: KeyID } {
+    if (!this.verified) {
+      throw new Error(
+        "CoValueCore: getCurrentReadKey called on coValue without verified state",
+      );
+    }
+
     if (this.verified.header.ruleset.type === "group") {
       const content = expectGroup(this.getCurrentContent());
 
@@ -521,6 +583,12 @@ export class CoValueCore {
   }
 
   getUncachedReadKey(keyID: KeyID): KeySecret | undefined {
+    if (!this.verified) {
+      throw new Error(
+        "CoValueCore: getUncachedReadKey called on coValue without verified state",
+      );
+    }
+
     if (this.verified.header.ruleset.type === "group") {
       const content = expectGroup(
         this.getCurrentContent({ ignorePrivateTransactions: true }),
@@ -669,6 +737,12 @@ export class CoValueCore {
   }
 
   getGroup(): RawGroup {
+    if (!this.verified) {
+      throw new Error(
+        "CoValueCore: getGroup called on coValue without verified state",
+      );
+    }
+
     if (this.verified.header.ruleset.type !== "ownedByGroup") {
       throw new Error("Only values owned by groups have groups");
     }
@@ -681,7 +755,7 @@ export class CoValueCore {
   }
 
   getTx(txID: TransactionID): Transaction | undefined {
-    return this.verified.sessions.get(txID.sessionID)?.transactions[
+    return this.verified?.sessions.get(txID.sessionID)?.transactions[
       txID.txIndex
     ];
   }
@@ -698,6 +772,10 @@ export class CoValueCore {
 
   /** @internal */
   getDependedOnCoValuesUncached(): RawCoID[] {
+    if (!this.verified) {
+      return [];
+    }
+
     return this.verified.header.ruleset.type === "group"
       ? getGroupDependentKeyList(expectGroup(this.getCurrentContent()).keys())
       : this.verified.header.ruleset.type === "ownedByGroup"
@@ -739,7 +817,13 @@ export type InvalidSignatureError = {
   signerID: SignerID;
 };
 
+export type TriedToAddTransactionsWithoutVerifiedStateErrpr = {
+  type: "TriedToAddTransactionsWithoutVerifiedState";
+  id: RawCoID;
+};
+
 export type TryAddTransactionsError =
+  | TriedToAddTransactionsWithoutVerifiedStateErrpr
   | ResolveAccountAgentError
   | InvalidHashError
   | InvalidSignatureError;

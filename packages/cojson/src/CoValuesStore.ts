@@ -1,30 +1,37 @@
-import { CoValueCore } from "./coValueCore/coValueCore.js";
+import { AvailableCoValueCore } from "./coValueCore/coValueCore.js";
+import { VerifiedState } from "./coValueCore/verifiedState.js";
 import { CoValueState } from "./coValueState.js";
 import { RawCoID } from "./ids.js";
+import { LocalNode } from "./localNode.js";
 import { PeerID } from "./sync.js";
 
 export class CoValuesStore {
+  node: LocalNode;
   coValues = new Map<RawCoID, CoValueState>();
+
+  constructor(node: LocalNode) {
+    this.node = node;
+  }
 
   get(id: RawCoID) {
     let entry = this.coValues.get(id);
 
     if (!entry) {
-      entry = new CoValueState(id);
+      entry = new CoValueState(id, this.node);
       this.coValues.set(id, entry);
     }
 
     return entry;
   }
 
-  markAsAvailable(id: RawCoID, coValue: CoValueCore, fromPeerId: PeerID) {
+  internalMarkMagicallyAvailable(
+    id: RawCoID,
+    verified: VerifiedState,
+    { forceOverwrite = false }: { forceOverwrite?: boolean } = {},
+  ): CoValueState & { core: AvailableCoValueCore } {
     const entry = this.get(id);
-    entry.markAvailable(coValue, fromPeerId);
-  }
-
-  internalMarkMagicallyAvailable(id: RawCoID, coValue: CoValueCore) {
-    const entry = this.get(id);
-    entry.internalMarkMagicallyAvailable(coValue);
+    entry.internalMarkMagicallyAvailable(verified, { forceOverwrite });
+    return entry as CoValueState & { core: AvailableCoValueCore };
   }
 
   getEntries() {

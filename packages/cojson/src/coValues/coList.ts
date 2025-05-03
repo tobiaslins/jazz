@@ -1,5 +1,8 @@
 import { CoID, RawCoValue } from "../coValue.js";
-import { CoValueCore } from "../coValueCore/coValueCore.js";
+import {
+  AvailableCoValueCore,
+  CoValueCore,
+} from "../coValueCore/coValueCore.js";
 import { AgentID, SessionID, TransactionID } from "../ids.js";
 import { JsonObject, JsonValue } from "../jsonValue.js";
 import { CoValueKnownState } from "../sync.js";
@@ -52,7 +55,7 @@ export class RawCoList<
   /** @category 6. Meta */
   type: "colist" | "coplaintext" = "colist" as const;
   /** @category 6. Meta */
-  core: CoValueCore;
+  core: AvailableCoValueCore;
   /** @internal */
   afterStart: OpID[];
   /** @internal */
@@ -88,7 +91,7 @@ export class RawCoList<
   lastValidTransaction: number | undefined;
 
   /** @internal */
-  constructor(core: CoValueCore) {
+  constructor(core: AvailableCoValueCore) {
     this.id = core.id as CoID<this>;
     this.core = core;
 

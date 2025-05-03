@@ -1,5 +1,8 @@
 import { CoID, RawCoValue } from "../coValue.js";
-import { CoValueCore } from "../coValueCore/coValueCore.js";
+import {
+  AvailableCoValueCore,
+  CoValueCore,
+} from "../coValueCore/coValueCore.js";
 import {
   CoValueHeader,
   CoValueUniqueness,
@@ -91,7 +94,7 @@ export class RawControlledAccount<Meta extends AccountMeta = AccountMeta>
 {
   agentSecret: AgentSecret;
 
-  constructor(core: CoValueCore, agentSecret: AgentSecret) {
+  constructor(core: AvailableCoValueCore, agentSecret: AgentSecret) {
     super(core);
     this.agentSecret = agentSecret;
   }

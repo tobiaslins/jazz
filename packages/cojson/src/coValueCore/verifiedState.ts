@@ -49,21 +49,22 @@ export type TrustingTransaction = {
 export type Transaction = PrivateTransaction | TrustingTransaction;
 
 type SessionLog = {
-  transactions: Transaction[];
+  readonly transactions: Transaction[];
   lastHash?: Hash;
   streamingHash: StreamingHash;
-  signatureAfter: { [txIdx: number]: Signature | undefined };
+  readonly signatureAfter: { [txIdx: number]: Signature | undefined };
   lastSignature: Signature;
 };
 
 export type ValidatedSessions = Map<SessionID, SessionLog>;
 
 export class VerifiedState {
-  id: RawCoID;
-  crypto: CryptoProvider;
-  header: CoValueHeader;
-  sessions: ValidatedSessions;
-  _cachedNewContentSinceEmpty: NewContentMessage[] | undefined;
+  readonly id: RawCoID;
+  readonly crypto: CryptoProvider;
+  readonly header: CoValueHeader;
+  readonly sessions: ValidatedSessions;
+  private _cachedKnownState?: CoValueKnownState;
+  private _cachedNewContentSinceEmpty: NewContentMessage[] | undefined;
 
   constructor(
     id: RawCoID,
@@ -196,6 +197,7 @@ export class VerifiedState {
     });
 
     this._cachedNewContentSinceEmpty = undefined;
+    this._cachedKnownState = undefined;
   }
 
   expectedNewHashAfter(
@@ -338,6 +340,31 @@ export class VerifiedState {
     }
 
     return piecesWithContent;
+  }
+
+  knownState(): CoValueKnownState {
+    if (this._cachedKnownState) {
+      return this._cachedKnownState;
+    } else {
+      const knownState = this.knownStateUncached();
+      this._cachedKnownState = knownState;
+      return knownState;
+    }
+  }
+
+  /** @internal */
+  knownStateUncached(): CoValueKnownState {
+    const sessions: CoValueKnownState["sessions"] = {};
+
+    for (const [sessionID, sessionLog] of this.sessions.entries()) {
+      sessions[sessionID] = sessionLog.transactions.length;
+    }
+
+    return {
+      id: this.id,
+      header: true,
+      sessions,
+    };
   }
 }
 
