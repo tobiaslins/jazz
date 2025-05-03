@@ -20,7 +20,8 @@ import {
   createTestMetricReader,
   createTestNode,
   loadCoValueOrFail,
-  randomAnonymousAccountAndSessionID,
+  nodeWithRandomAgentAndSessionID,
+  randomAgentAndSessionID,
   setupTestAccount,
   setupTestNode,
   tearDownTestMetricReader,
@@ -40,8 +41,7 @@ beforeEach(async () => {
 });
 
 test("If we add a client peer, but it never subscribes to a coValue, it won't get any messages", async () => {
-  const [admin, session] = randomAnonymousAccountAndSessionID();
-  const node = new LocalNode(admin, session, Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const group = node.createGroup();
 
@@ -159,11 +159,8 @@ test("should delete the peer state when the peer closes if deletePeerStateOnClos
 describe("sync - extra tests", () => {
   test("Node handles disconnection and reconnection of a peer gracefully", async () => {
     // Create two nodes
-    const [admin1, session1] = randomAnonymousAccountAndSessionID();
-    const node1 = new LocalNode(admin1, session1, Crypto);
-
-    const [admin2, session2] = randomAnonymousAccountAndSessionID();
-    const node2 = new LocalNode(admin2, session2, Crypto);
+    const node1 = nodeWithRandomAgentAndSessionID();
+    const node2 = nodeWithRandomAgentAndSessionID();
 
     // Create a group and a map on node1
     const group = node1.createGroup();
@@ -263,14 +260,9 @@ describe("sync - extra tests", () => {
   });
   test("Concurrent modifications on multiple nodes are resolved correctly", async () => {
     // Create three nodes
-    const [admin1, session1] = randomAnonymousAccountAndSessionID();
-    const node1 = new LocalNode(admin1, session1, Crypto);
-
-    const [admin2, session2] = randomAnonymousAccountAndSessionID();
-    const node2 = new LocalNode(admin2, session2, Crypto);
-
-    const [admin3, session3] = randomAnonymousAccountAndSessionID();
-    const node3 = new LocalNode(admin3, session3, Crypto);
+    const node1 = nodeWithRandomAgentAndSessionID();
+    const node2 = nodeWithRandomAgentAndSessionID();
+    const node3 = nodeWithRandomAgentAndSessionID();
 
     // Create a group and a map on node1
     const group = node1.createGroup();
@@ -357,14 +349,9 @@ describe("sync - extra tests", () => {
 
   test("Node correctly handles and recovers from network partitions", async () => {
     // Create three nodes
-    const [admin1, session1] = randomAnonymousAccountAndSessionID();
-    const node1 = new LocalNode(admin1, session1, Crypto);
-
-    const [admin2, session2] = randomAnonymousAccountAndSessionID();
-    const node2 = new LocalNode(admin2, session2, Crypto);
-
-    const [admin3, session3] = randomAnonymousAccountAndSessionID();
-    const node3 = new LocalNode(admin3, session3, Crypto);
+    const node1 = nodeWithRandomAgentAndSessionID();
+    const node2 = nodeWithRandomAgentAndSessionID();
+    const node3 = nodeWithRandomAgentAndSessionID();
 
     // Create a group and a map on node1
     const group = node1.createGroup();
@@ -924,8 +911,7 @@ describe("metrics", () => {
 
   test("should correctly track the number of connected peers", async () => {
     const metricReader = createTestMetricReader();
-    const [admin, session] = randomAnonymousAccountAndSessionID();
-    const node = new LocalNode(admin, session, Crypto);
+    const node = nodeWithRandomAgentAndSessionID();
 
     let connectedPeers = await metricReader.getMetricValue("jazz.peers", {
       role: "client",

@@ -12,7 +12,8 @@ import { SessionID } from "../ids.js";
 import { LocalNode } from "../localNode.js";
 import {
   loadCoValueOrFail,
-  randomAnonymousAccountAndSessionID,
+  nodeWithRandomAgentAndSessionID,
+  randomAgentAndSessionID,
   setupTestNode,
   waitFor,
 } from "./testUtils.js";
@@ -24,7 +25,7 @@ beforeEach(async () => {
 });
 
 test("Empty CoStream works", () => {
-  const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "costream",
@@ -41,7 +42,7 @@ test("Empty CoStream works", () => {
 });
 
 test("Can push into CoStream", () => {
-  const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "costream",
@@ -67,7 +68,7 @@ test("Can push into CoStream", () => {
 });
 
 test("Empty RawBinaryCoStream works", () => {
-  const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "costream",
@@ -93,7 +94,7 @@ test("Empty RawBinaryCoStream works", () => {
 });
 
 test("Can push into RawBinaryCoStream", () => {
-  const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "costream",
@@ -129,7 +130,7 @@ test("Can push into RawBinaryCoStream", () => {
 });
 
 test("When adding large transactions (small fraction of MAX_RECOMMENDED_TX_SIZE), we store an inbetween signature every time we reach MAX_RECOMMENDED_TX_SIZE and split up newContentSince accordingly", () => {
-  const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "costream",
@@ -203,7 +204,7 @@ test("When adding large transactions (small fraction of MAX_RECOMMENDED_TX_SIZE)
 });
 
 test("When adding large transactions (bigger than MAX_RECOMMENDED_TX_SIZE), we store an inbetween signature after every large transaction and split up newContentSince accordingly", () => {
-  const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "costream",
@@ -316,7 +317,7 @@ test("totalValidTransactions should return the number of valid transactions proc
 
 describe("isBinaryStreamEnded", () => {
   function setup() {
-    const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+    const node = nodeWithRandomAgentAndSessionID();
 
     const coValue = node.createCoValue({
       type: "costream",
@@ -379,7 +380,7 @@ describe("Binary stream order", () => {
   }
 
   test("sorts by madeAt timestamp first", () => {
-    const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+    const node = nodeWithRandomAgentAndSessionID();
     const coValue = node.createCoValue({
       type: "costream",
       ruleset: { type: "unsafeAllowAll" },
@@ -411,7 +412,7 @@ describe("Binary stream order", () => {
   });
 
   test("sorts by sessionID when timestamps are equal", () => {
-    const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+    const node = nodeWithRandomAgentAndSessionID();
     const coValue = node.createCoValue({
       type: "costream",
       ruleset: { type: "unsafeAllowAll" },
@@ -444,7 +445,7 @@ describe("Binary stream order", () => {
   });
 
   test("sorts by txIndex when timestamps and sessionIDs are equal", () => {
-    const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+    const node = nodeWithRandomAgentAndSessionID();
     const coValue = node.createCoValue({
       type: "costream",
       ruleset: { type: "unsafeAllowAll" },

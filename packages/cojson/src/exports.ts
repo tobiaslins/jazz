@@ -9,7 +9,6 @@ import { CoValueUniqueness } from "./coValueCore/verifiedState.js";
 import {
   ControlledAgent,
   RawAccount,
-  RawControlledAccount,
   RawProfile,
   accountHeaderForInitialAgentSecret,
 } from "./coValues/account.js";
@@ -128,7 +127,6 @@ export {
   Media,
   CoValueCore,
   ControlledAgent,
-  RawControlledAccount,
   MAX_RECOMMENDED_TX_SIZE,
   JsonObject,
   JsonValue,

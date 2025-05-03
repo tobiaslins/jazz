@@ -2,7 +2,10 @@ import { describe, expect, test } from "vitest";
 import { WasmCrypto } from "../crypto/WasmCrypto.js";
 import { LocalNode } from "../localNode.js";
 import { CO_VALUE_PRIORITY, getPriorityFromHeader } from "../priority.js";
-import { randomAnonymousAccountAndSessionID } from "./testUtils.js";
+import {
+  nodeWithRandomAgentAndSessionID,
+  randomAgentAndSessionID,
+} from "./testUtils.js";
 
 const Crypto = await WasmCrypto.create();
 
@@ -14,7 +17,7 @@ describe("getPriorityFromHeader", () => {
   });
 
   test("returns MEDIUM priority for costream type", () => {
-    const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+    const node = nodeWithRandomAgentAndSessionID();
     const costream = node.createCoValue({
       type: "costream",
       ruleset: { type: "unsafeAllowAll" },
@@ -28,7 +31,7 @@ describe("getPriorityFromHeader", () => {
   });
 
   test("returns LOW priority for binary costream type", () => {
-    const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+    const node = nodeWithRandomAgentAndSessionID();
     const costream = node.createCoValue({
       type: "costream",
       ruleset: { type: "unsafeAllowAll" },
@@ -42,17 +45,17 @@ describe("getPriorityFromHeader", () => {
   });
 
   test("returns HIGH priority for account type", async () => {
-    const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+    const node = nodeWithRandomAgentAndSessionID();
 
     const account = node.createAccount(node.crypto.newRandomAgentSecret());
 
-    expect(getPriorityFromHeader(account.core.verified.header)).toEqual(
+    expect(getPriorityFromHeader(account.account.core.verified.header)).toEqual(
       CO_VALUE_PRIORITY.HIGH,
     );
   });
 
   test("returns HIGH priority for group type", () => {
-    const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+    const node = nodeWithRandomAgentAndSessionID();
     const group = node.createGroup();
 
     expect(getPriorityFromHeader(group.core.verified.header)).toEqual(
@@ -61,7 +64,7 @@ describe("getPriorityFromHeader", () => {
   });
 
   test("returns MEDIUM priority for other types", () => {
-    const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+    const node = nodeWithRandomAgentAndSessionID();
 
     const comap = node.createCoValue({
       type: "comap",

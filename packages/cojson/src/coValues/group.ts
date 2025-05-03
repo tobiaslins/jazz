@@ -27,6 +27,7 @@ import { logger } from "../logger.js";
 import { AccountRole, Role } from "../permissions.js";
 import { expectGroup } from "../typeUtils/expectGroup.js";
 import {
+  ControlledAccount,
   ControlledAccountOrAgent,
   RawAccount,
   RawAccountID,
@@ -258,7 +259,7 @@ export class RawGroup<
    * @category 1. Role reading
    */
   myRole(): Role | undefined {
-    return this.roleOfInternal(this.core.node.account.id);
+    return this.roleOfInternal(this.core.node.getCurrentAgent().id);
   }
 
   /**
@@ -428,7 +429,7 @@ export class RawGroup<
       `${keyID}_for_${memberKey}`,
       this.crypto.seal({
         message: secret,
-        from: this.core.node.account.currentSealerSecret(),
+        from: this.core.node.getCurrentAgent().currentSealerSecret(),
         to: this.crypto.getAgentSealerID(agent),
         nOnceMaterial: {
           in: this.id,
@@ -455,7 +456,7 @@ export class RawGroup<
 
   getCurrentReadKeyId() {
     if (this.myRole() === "writeOnly") {
-      const accountId = this.core.node.account.id;
+      const accountId = this.core.node.getCurrentAgent().id;
 
       const key = this.get(`writeKeyFor_${accountId}`) as KeyID;
 
@@ -463,7 +464,7 @@ export class RawGroup<
       if (!key && this.get("everyone") === "writeOnly") {
         this.internalCreateWriteOnlyKeyForMember(
           accountId,
-          this.core.node.account.currentAgentID(),
+          this.core.node.getCurrentAgent().currentAgentID(),
         );
 
         return this.get(`writeKeyFor_${accountId}`) as KeyID;
