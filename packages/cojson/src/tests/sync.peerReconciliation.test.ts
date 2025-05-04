@@ -68,9 +68,9 @@ describe("peer reconciliation", () => {
 
     assert(mapOnSyncServer.isAvailable());
 
-    expect(
-      expectMap(mapOnSyncServer.core.getCurrentContent()).get("hello"),
-    ).toEqual("updated");
+    expect(expectMap(mapOnSyncServer.getCurrentContent()).get("hello")).toEqual(
+      "updated",
+    );
 
     expect(
       SyncMessagesLog.getMessages({
@@ -115,9 +115,9 @@ describe("peer reconciliation", () => {
 
     assert(mapOnSyncServer.isAvailable());
 
-    expect(
-      expectMap(mapOnSyncServer.core.getCurrentContent()).get("hello"),
-    ).toEqual("updated");
+    expect(expectMap(mapOnSyncServer.getCurrentContent()).get("hello")).toEqual(
+      "updated",
+    );
 
     expect(peer.outgoing).toMatchObject({
       closed: true,
@@ -168,7 +168,7 @@ describe("peer reconciliation", () => {
     await waitFor(() => {
       const mapOnSyncServer = jazzCloud.node.coValuesStore.get(map.id);
 
-      expect(mapOnSyncServer.highLevelState).toBe("available");
+      expect(mapOnSyncServer.loadingState).toBe("available");
     });
 
     expect(
@@ -232,8 +232,8 @@ describe("peer reconciliation", () => {
       ]
     `);
 
-    expect(
-      expectMap(mapOnSyncServer.core.getCurrentContent()).get("hello"),
-    ).toEqual("updated");
+    expect(expectMap(mapOnSyncServer.getCurrentContent()).get("hello")).toEqual(
+      "updated",
+    );
   });
 });

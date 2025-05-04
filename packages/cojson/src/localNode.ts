@@ -86,7 +86,7 @@ export class LocalNode {
 
     for (const coValueEntry of this.coValuesStore.getValues()) {
       if (coValueEntry.isAvailable()) {
-        coValueEntry.core.internalShamefullyResetCachedContent();
+        coValueEntry.internalShamefullyResetCachedContent();
       }
     }
 
@@ -186,7 +186,7 @@ export class LocalNode {
     function syncAllCoValuesAfterCreateAccount() {
       for (const coValueEntry of node.coValuesStore.getValues()) {
         if (coValueEntry.isAvailable()) {
-          void node.syncManager.requestCoValueSync(coValueEntry.core);
+          void node.syncManager.requestCoValueSync(coValueEntry);
         }
       }
     }
@@ -269,14 +269,14 @@ export class LocalNode {
 
     const id = idforHeader(header, this.crypto);
 
-    const entry = this.coValuesStore.internalMarkMagicallyAvailable(
+    const coValue = this.coValuesStore.internalMarkMagicallyAvailable(
       id,
       new VerifiedState(id, this.crypto, header, new Map()),
     );
 
-    void this.syncManager.requestCoValueSync(entry.core);
+    void this.syncManager.requestCoValueSync(coValue);
 
-    return entry.core;
+    return coValue;
   }
 
   /** @internal */
@@ -293,20 +293,20 @@ export class LocalNode {
     let retries = 0;
 
     while (true) {
-      const entry = this.coValuesStore.get(id);
+      const coValue = this.coValuesStore.get(id);
 
       if (
-        entry.highLevelState === "unknown" ||
-        entry.highLevelState === "unavailable"
+        coValue.loadingState === "unknown" ||
+        coValue.loadingState === "unavailable"
       ) {
         const peers =
           this.syncManager.getServerAndStoragePeers(skipLoadingFromPeer);
 
         if (peers.length === 0) {
-          return entry.core;
+          return coValue;
         }
 
-        entry.loadFromPeers(peers).catch((e) => {
+        coValue.loadFromPeers(peers).catch((e) => {
           logger.error("Error loading from peers", {
             id,
             err: e,
@@ -314,8 +314,7 @@ export class LocalNode {
         });
       }
 
-      const result = await entry.getCoValue();
-
+      const result = await coValue.waitForAvailableOrUnavailable();
       if (result.isAvailable() || retries >= 1) {
         return result;
       }
@@ -352,10 +351,10 @@ export class LocalNode {
   }
 
   getLoaded<T extends RawCoValue>(id: CoID<T>): T | undefined {
-    const entry = this.coValuesStore.get(id);
+    const coValue = this.coValuesStore.get(id);
 
-    if (entry.isAvailable()) {
-      return entry.core.getCurrentContent() as T;
+    if (coValue.isAvailable()) {
+      return coValue.getCurrentContent() as T;
     }
 
     return undefined;
@@ -482,14 +481,14 @@ export class LocalNode {
 
   /** @internal */
   expectCoValueLoaded(id: RawCoID, expectation?: string): AvailableCoValueCore {
-    const entry = this.coValuesStore.get(id);
+    const coValue = this.coValuesStore.get(id);
 
-    if (!entry.isAvailable()) {
+    if (!coValue.isAvailable()) {
       throw new Error(
-        `${expectation ? expectation + ": " : ""}CoValue ${id} not yet loaded. Current state: ${JSON.stringify(entry)}`,
+        `${expectation ? expectation + ": " : ""}CoValue ${id} not yet loaded. Current state: ${JSON.stringify(coValue)}`,
       );
     }
-    return entry.core;
+    return coValue;
   }
 
   /** @internal */
@@ -679,13 +678,13 @@ export class LocalNode {
     const coValuesToCopy = Array.from(this.coValuesStore.getEntries());
 
     while (coValuesToCopy.length > 0) {
-      const [coValueID, entry] = coValuesToCopy[coValuesToCopy.length - 1]!;
+      const [coValueID, coValue] = coValuesToCopy[coValuesToCopy.length - 1]!;
 
-      if (!entry.isAvailable()) {
+      if (!coValue.isAvailable()) {
         coValuesToCopy.pop();
         continue;
       } else {
-        const allDepsCopied = entry.core
+        const allDepsCopied = coValue
           .getDependedOnCoValues()
           .every((dep) => newNode.coValuesStore.get(dep).isAvailable());
 
@@ -697,7 +696,7 @@ export class LocalNode {
 
         newNode.coValuesStore.internalMarkMagicallyAvailable(
           coValueID,
-          entry.core.verified,
+          coValue.verified,
         );
 
         coValuesToCopy.pop();

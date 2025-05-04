@@ -209,8 +209,8 @@ export class RawGroup<
       const child = store.get(id);
 
       if (
-        child.highLevelState === "unknown" ||
-        child.highLevelState === "unavailable"
+        child.loadingState === "unknown" ||
+        child.loadingState === "unavailable"
       ) {
         child.loadFromPeers(peers).catch(() => {
           logger.error(`Failed to load child group ${id}`);
@@ -218,7 +218,7 @@ export class RawGroup<
       }
 
       requests.push(
-        child.getCoValue().then((coValue) => {
+        child.waitForAvailableOrUnavailable().then((coValue) => {
           if (!coValue.isAvailable()) {
             throw new Error(`Child group ${child.id} is unavailable`);
           }

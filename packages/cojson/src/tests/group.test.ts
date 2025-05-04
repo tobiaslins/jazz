@@ -1,12 +1,10 @@
 import { describe, expect, test } from "vitest";
-import { CoValueState } from "../coValueState.js";
 import { RawCoList } from "../coValues/coList.js";
 import { RawCoMap } from "../coValues/coMap.js";
 import { RawCoStream } from "../coValues/coStream.js";
 import { RawBinaryCoStream } from "../coValues/coStream.js";
 import { WasmCrypto } from "../crypto/WasmCrypto.js";
 import { RawAccountID } from "../exports.js";
-import { LocalNode } from "../localNode.js";
 import {
   createThreeConnectedNodes,
   createTwoConnectedNodes,
@@ -493,9 +491,7 @@ describe("writeOnly", () => {
     );
 
     node2.node.coValuesStore.coValues.delete(map.id);
-    expect(node2.node.coValuesStore.get(map.id)?.highLevelState).toBe(
-      "unknown",
-    );
+    expect(node2.node.coValuesStore.get(map.id)?.loadingState).toBe("unknown");
 
     const mapOnNode2 = await loadCoValueOrFail(node2.node, map.id);
 

@@ -120,8 +120,7 @@ export class SyncStateManager {
       return undefined;
     }
 
-    const coValue = entry.core;
-    const coValueSessions = coValue.knownState().sessions;
+    const coValueSessions = entry.knownState().sessions;
 
     return {
       peer: peerSessions,
