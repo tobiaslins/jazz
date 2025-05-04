@@ -1,6 +1,10 @@
 import { Result, err } from "neverthrow";
 import { RawCoValue } from "../coValue.js";
-import { ControlledAccountOrAgent, RawAccountID } from "../coValues/account.js";
+import {
+  ControlledAccount,
+  ControlledAccountOrAgent,
+  RawAccountID,
+} from "../coValues/account.js";
 import { RawGroup } from "../coValues/group.js";
 import { coreToCoValue } from "../coreToCoValue.js";
 import {
@@ -447,6 +451,11 @@ export class CoValueCore {
     knownTransactions?: CoValueKnownState["sessions"];
     trace?: boolean;
   }): DecryptedTransaction[] {
+    console.log(
+      "getValidTransactions",
+      this.id,
+      options?.ignorePrivateTransactions,
+    );
     const validTransactions = determineValidTransactions(
       this,
       options?.knownTransactions,
@@ -617,10 +626,11 @@ export class CoValueCore {
           group: this.id,
         });
       }
+      console.log("before group public content", this.id);
       const content = expectGroup(
-        this.getCurrentContent({ ignorePrivateTransactions: true }),
+        this.getCurrentContent({ ignorePrivateTransactions: true }), // to prevent recursion
       );
-
+      console.log("after group public content", this.id);
       const keyForEveryone = content.get(`${keyID}_for_everyone`);
       if (keyForEveryone) {
         if (trace) {
@@ -633,7 +643,16 @@ export class CoValueCore {
       }
 
       // Try to find key revelation for us
-      const lookupAccountOrAgentID = this.node.getCurrentAgent().id;
+      const currentAgentOrAccountID = accountOrAgentIDfromSessionID(
+        this.node.currentSessionID,
+      );
+
+      // being careful here to avoid recursion
+      const lookupAccountOrAgentID = isAccountID(currentAgentOrAccountID)
+        ? this.id === currentAgentOrAccountID
+          ? this.crypto.getAgentID(this.node.agentSecret) // in accounts, the read key is revealed for the primitive agent
+          : currentAgentOrAccountID // current account ID
+        : currentAgentOrAccountID; // current agent ID
 
       const lastReadyKeyEdit = content.lastEditAt(
         `${keyID}_for_${lookupAccountOrAgentID}`,
@@ -647,7 +666,7 @@ export class CoValueCore {
 
         const secret = this.crypto.unseal(
           lastReadyKeyEdit.value,
-          this.node.getCurrentAgent().currentSealerSecret(),
+          this.crypto.getAgentSealerSecret(this.node.agentSecret), // being careful here to avoid recursion
           this.crypto.getAgentSealerID(revealerAgent),
           {
             in: this.id,

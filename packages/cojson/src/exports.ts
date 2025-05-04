@@ -7,6 +7,7 @@ import {
 } from "./coValueCore/coValueCore.js";
 import { CoValueUniqueness } from "./coValueCore/verifiedState.js";
 import {
+  ControlledAccount,
   ControlledAgent,
   RawAccount,
   RawProfile,
@@ -120,6 +121,7 @@ export {
   AnyRawCoValue,
   RawAccount,
   RawAccountID,
+  ControlledAccount,
   AccountMeta,
   RawAccountMigration,
   RawProfile as Profile,

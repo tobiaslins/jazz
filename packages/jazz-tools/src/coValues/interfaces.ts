@@ -3,7 +3,7 @@ import type {
   CojsonInternalTypes,
   RawCoValue,
 } from "cojson";
-import { RawAccount } from "cojson";
+import { ControlledAccount, RawAccount } from "cojson";
 import { activeAccountContext } from "../implementation/activeAccountContext.js";
 import { AnonymousJazzAgent } from "../implementation/anonymousJazzAgent.js";
 import {
@@ -109,11 +109,11 @@ export class CoValueBase implements CoValue {
 
   /** @private */
   get _loadedAs() {
-    const rawAccount = this._raw.core.node.getCurrentAgent();
+    const agent = this._raw.core.node.getCurrentAgent();
 
-    if (rawAccount instanceof RawAccount) {
-      return coValuesCache.get(rawAccount, () =>
-        RegisteredSchemas["Account"].fromRaw(rawAccount),
+    if (agent instanceof ControlledAccount) {
+      return coValuesCache.get(agent.account, () =>
+        RegisteredSchemas["Account"].fromRaw(agent.account),
       );
     }
 

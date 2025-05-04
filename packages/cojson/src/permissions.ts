@@ -66,11 +66,14 @@ export function determineValidTransactions(
   knownTransactions?: CoValueKnownState["sessions"],
   trace?: boolean,
 ): { txID: TransactionID; tx: Transaction }[] {
+  console.log("determineValidTransactions", coValue.id);
+
   if (!coValue.isAvailable()) {
     throw new Error("determineValidTransactions CoValue is not available");
   }
 
   if (coValue.verified.header.ruleset.type === "group") {
+    console.log("in group!", coValue.id);
     const initialAdmin = coValue.verified.header.ruleset.initialAdmin;
     if (!initialAdmin) {
       throw new Error("Group must have initialAdmin");
@@ -250,6 +253,7 @@ function determineValidTransactionsForGroup(
   initialAdmin: RawAccountID | AgentID,
   extendChain?: Set<CoValueCore["id"]>,
 ): { validTransactions: ValidTransactionsResult[]; memberState: MemberState } {
+  console.log("determineValidTransactionsForGroup", coValue.id);
   const allTransactionsSorted: {
     sessionID: SessionID;
     txIndex: number;

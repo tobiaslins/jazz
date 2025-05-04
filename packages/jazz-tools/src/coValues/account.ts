@@ -1,6 +1,7 @@
 import {
   AgentSecret,
   CoID,
+  ControlledAccount,
   CryptoProvider,
   Everyone,
   InviteSecret,
@@ -85,10 +86,12 @@ export class Account extends CoValueBase implements CoValue {
   get _loadedAs(): Account | AnonymousJazzAgent {
     if (this.isLocalNodeOwner) return this;
 
-    const rawAccount = this._raw.core.node.getCurrentAgent();
+    const agent = this._raw.core.node.getCurrentAgent();
 
-    if (rawAccount instanceof RawAccount) {
-      return coValuesCache.get(rawAccount, () => Account.fromRaw(rawAccount));
+    if (agent instanceof ControlledAccount) {
+      return coValuesCache.get(agent.account, () =>
+        Account.fromRaw(agent.account),
+      );
     }
 
     return new AnonymousJazzAgent(this._raw.core.node);
