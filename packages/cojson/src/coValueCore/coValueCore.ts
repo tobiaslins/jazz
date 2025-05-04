@@ -449,17 +449,10 @@ export class CoValueCore {
   getValidTransactions(options?: {
     ignorePrivateTransactions: boolean;
     knownTransactions?: CoValueKnownState["sessions"];
-    trace?: boolean;
   }): DecryptedTransaction[] {
-    console.log(
-      "getValidTransactions",
-      this.id,
-      options?.ignorePrivateTransactions,
-    );
     const validTransactions = determineValidTransactions(
       this,
       options?.knownTransactions,
-      options?.trace,
     );
 
     const allTransactions: DecryptedTransaction[] = [];
@@ -479,25 +472,12 @@ export class CoValueCore {
       }
 
       if (options?.ignorePrivateTransactions) {
-        if (options?.trace) {
-          console.log(
-            "Skipping tx: private and ignorePrivateTransactions is true",
-            {
-              txID,
-            },
-          );
-        }
         continue;
       }
 
-      const readKey = this.getReadKey(tx.keyUsed, options?.trace);
+      const readKey = this.getReadKey(tx.keyUsed);
 
       if (!readKey) {
-        if (options?.trace) {
-          console.log("Skipping tx: no read key", {
-            txID,
-          });
-        }
         continue;
       }
 
@@ -536,7 +516,6 @@ export class CoValueCore {
   getValidSortedTransactions(options?: {
     ignorePrivateTransactions: boolean;
     knownTransactions: CoValueKnownState["sessions"];
-    trace?: boolean;
   }): DecryptedTransaction[] {
     const allTransactions = this.getValidTransactions(options);
 
@@ -560,7 +539,7 @@ export class CoValueCore {
     );
   }
 
-  getCurrentReadKey(trace?: boolean): {
+  getCurrentReadKey(): {
     secret: KeySecret | undefined;
     id: KeyID;
   } {
@@ -579,7 +558,7 @@ export class CoValueCore {
         throw new Error("No readKey set");
       }
 
-      const secret = this.getReadKey(currentKeyId, trace);
+      const secret = this.getReadKey(currentKeyId);
 
       return {
         secret: secret,
@@ -588,7 +567,7 @@ export class CoValueCore {
     } else if (this.verified.header.ruleset.type === "ownedByGroup") {
       return this.node
         .expectCoValueLoaded(this.verified.header.ruleset.group)
-        .getCurrentReadKey(trace);
+        .getCurrentReadKey();
     } else {
       throw new Error(
         "Only groups or values owned by groups have read secrets",
@@ -596,10 +575,10 @@ export class CoValueCore {
     }
   }
 
-  getReadKey(keyID: KeyID, trace?: boolean): KeySecret | undefined {
+  getReadKey(keyID: KeyID): KeySecret | undefined {
     let key = readKeyCache.get(this)?.[keyID];
-    if (!key || trace) {
-      key = this.getUncachedReadKey(keyID, trace);
+    if (!key) {
+      key = this.getUncachedReadKey(keyID);
       if (key) {
         let cache = readKeyCache.get(this);
         if (!cache) {
@@ -612,7 +591,7 @@ export class CoValueCore {
     return key;
   }
 
-  getUncachedReadKey(keyID: KeyID, trace?: boolean): KeySecret | undefined {
+  getUncachedReadKey(keyID: KeyID): KeySecret | undefined {
     if (!this.verified) {
       throw new Error(
         "CoValueCore: getUncachedReadKey called on coValue without verified state",
@@ -620,25 +599,11 @@ export class CoValueCore {
     }
 
     if (this.verified.header.ruleset.type === "group") {
-      if (trace) {
-        console.log("Getting read key in group", {
-          keyID,
-          group: this.id,
-        });
-      }
-      console.log("before group public content", this.id);
       const content = expectGroup(
         this.getCurrentContent({ ignorePrivateTransactions: true }), // to prevent recursion
       );
-      console.log("after group public content", this.id);
       const keyForEveryone = content.get(`${keyID}_for_everyone`);
       if (keyForEveryone) {
-        if (trace) {
-          console.log("Found key for everyone", {
-            keyID,
-            keyForEveryone,
-          });
-        }
         return keyForEveryone;
       }
 
@@ -675,13 +640,6 @@ export class CoValueCore {
         );
 
         if (secret) {
-          if (trace) {
-            console.log("Found key for account/agent", {
-              keyID,
-              lookupAccountOrAgentID,
-              secret,
-            });
-          }
           return secret as KeySecret;
         }
       }
@@ -691,7 +649,7 @@ export class CoValueCore {
       for (const co of content.keys()) {
         if (isKeyForKeyField(co) && co.startsWith(keyID)) {
           const encryptingKeyID = co.split("_for_")[1] as KeyID;
-          const encryptingKeySecret = this.getReadKey(encryptingKeyID, trace);
+          const encryptingKeySecret = this.getReadKey(encryptingKeyID);
 
           if (!encryptingKeySecret) {
             continue;
@@ -709,13 +667,6 @@ export class CoValueCore {
           );
 
           if (secret) {
-            if (trace) {
-              console.log("Found key for previous key", {
-                keyID,
-                encryptingKeyID,
-                secret,
-              });
-            }
             return secret as KeySecret;
           } else {
             logger.warn(
@@ -738,7 +689,6 @@ export class CoValueCore {
             keyID,
             content,
             parentGroup,
-            trace,
           );
 
           for (const parentKey of parentKeys) {
@@ -757,13 +707,6 @@ export class CoValueCore {
               );
 
               if (secret) {
-                if (trace) {
-                  console.log("Found key for parent key", {
-                    keyID,
-                    parentKeyID: parentKey.id,
-                    secret,
-                  });
-                }
                 return secret as KeySecret;
               } else {
                 logger.warn(
@@ -775,22 +718,11 @@ export class CoValueCore {
         }
       }
 
-      if (trace) {
-        console.log("No key found", {
-          keyID,
-        });
-      }
       return undefined;
     } else if (this.verified.header.ruleset.type === "ownedByGroup") {
-      if (trace) {
-        console.log("Getting read key in CoValue", {
-          keyID,
-          coValue: this.id,
-        });
-      }
       return this.node
         .expectCoValueLoaded(this.verified.header.ruleset.group)
-        .getReadKey(keyID, trace);
+        .getReadKey(keyID);
     } else {
       throw new Error(
         "Only groups or values owned by groups have read secrets",
@@ -798,21 +730,13 @@ export class CoValueCore {
     }
   }
 
-  findValidParentKeys(
-    keyID: KeyID,
-    group: RawGroup,
-    parentGroup: CoValueCore,
-    trace?: boolean,
-  ) {
+  findValidParentKeys(keyID: KeyID, group: RawGroup, parentGroup: CoValueCore) {
     const validParentKeys: { id: KeyID; secret: KeySecret }[] = [];
 
     for (const co of group.keys()) {
       if (isKeyForKeyField(co) && co.startsWith(keyID)) {
         const encryptingKeyID = co.split("_for_")[1] as KeyID;
-        const encryptingKeySecret = parentGroup.getReadKey(
-          encryptingKeyID,
-          trace,
-        );
+        const encryptingKeySecret = parentGroup.getReadKey(encryptingKeyID);
 
         if (!encryptingKeySecret) {
           continue;

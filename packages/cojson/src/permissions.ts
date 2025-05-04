@@ -64,16 +64,12 @@ function logPermissionError(
 export function determineValidTransactions(
   coValue: CoValueCore,
   knownTransactions?: CoValueKnownState["sessions"],
-  trace?: boolean,
 ): { txID: TransactionID; tx: Transaction }[] {
-  console.log("determineValidTransactions", coValue.id);
-
   if (!coValue.isAvailable()) {
     throw new Error("determineValidTransactions CoValue is not available");
   }
 
   if (coValue.verified.header.ruleset.type === "group") {
-    console.log("in group!", coValue.id);
     const initialAdmin = coValue.verified.header.ruleset.initialAdmin;
     if (!initialAdmin) {
       throw new Error("Group must have initialAdmin");
@@ -102,22 +98,7 @@ export function determineValidTransactions(
       const knownTransactionsForSession = knownTransactions?.[sessionID] ?? -1;
 
       sessionLog.transactions.forEach((tx, txIndex) => {
-        if (trace) {
-          console.log("Checking tx", {
-            sessionID,
-            txIndex,
-            tx,
-          });
-        }
-
         if (knownTransactionsForSession >= txIndex) {
-          if (trace) {
-            console.log("Skipping tx: already known", {
-              sessionID,
-              txIndex,
-              tx,
-            });
-          }
           return;
         }
 
@@ -128,13 +109,6 @@ export function determineValidTransactions(
         );
 
         if (!effectiveTransactor) {
-          if (trace) {
-            console.log("Invalid tx: no effective transactor", {
-              sessionID,
-              txIndex,
-              tx,
-            });
-          }
           return;
         }
 
@@ -146,25 +120,11 @@ export function determineValidTransactions(
           transactorRoleAtTxTime !== "writer" &&
           transactorRoleAtTxTime !== "writeOnly"
         ) {
-          if (trace) {
-            console.log(
-              "Invalid tx: transactor role is not admin, writer or writeOnly",
-              {
-                sessionID,
-                txIndex,
-                tx,
-              },
-            );
-          }
           return;
         }
 
         validTransactions.push({ txID: { sessionID, txIndex }, tx });
       });
-    }
-
-    if (trace) {
-      console.log("Valid transactions", validTransactions);
     }
 
     return validTransactions;
@@ -253,7 +213,6 @@ function determineValidTransactionsForGroup(
   initialAdmin: RawAccountID | AgentID,
   extendChain?: Set<CoValueCore["id"]>,
 ): { validTransactions: ValidTransactionsResult[]; memberState: MemberState } {
-  console.log("determineValidTransactionsForGroup", coValue.id);
   const allTransactionsSorted: {
     sessionID: SessionID;
     txIndex: number;
