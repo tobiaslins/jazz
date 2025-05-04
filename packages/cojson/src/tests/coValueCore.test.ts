@@ -11,6 +11,7 @@ import {
   createTestNode,
   createTwoConnectedNodes,
   loadCoValueOrFail,
+  nodeWithRandomAgentAndSessionID,
   randomAgentAndSessionID,
   tearDownTestMetricReader,
 } from "./testUtils.js";
@@ -68,8 +69,7 @@ test("Can create coValue with new agent credentials and add transaction to it", 
 
 test("transactions with wrong signature are rejected", () => {
   const wrongAgent = Crypto.newRandomAgentSecret();
-  const [agent, sessionID] = randomAgentAndSessionID();
-  const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "costream",
@@ -216,8 +216,7 @@ test("New transactions in a group correctly update owned values, including subsc
 });
 
 test("correctly records transactions", async () => {
-  const [agent, sessionID] = randomAgentAndSessionID();
-  const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const changes1 = stableStringify([{ hello: "world" }]);
   node.syncManager.recordTransactionsSize(
@@ -259,8 +258,7 @@ test("correctly records transactions", async () => {
 });
 
 test("(smoke test) records transactions from local node", async () => {
-  const [agent, sessionID] = randomAgentAndSessionID();
-  const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   node.createGroup();
 
@@ -300,8 +298,7 @@ test("creating a coValue with a group should't trigger automatically a content c
 });
 
 test("loading a coValue core without having the owner group available doesn't crash", () => {
-  const [agent, sessionID] = randomAgentAndSessionID();
-  const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const otherNode = createTestNode();
 

@@ -5,6 +5,7 @@ import { LocalNode } from "../localNode.js";
 import { expectGroup } from "../typeUtils/expectGroup.js";
 import {
   loadCoValueOrFail,
+  nodeWithRandomAgentAndSessionID,
   randomAgentAndSessionID,
   setupTestNode,
   waitFor,
@@ -17,8 +18,7 @@ beforeEach(async () => {
 });
 
 test("Empty CoList works", () => {
-  const [agent, sessionID] = randomAgentAndSessionID();
-  const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "colist",
@@ -34,8 +34,7 @@ test("Empty CoList works", () => {
 });
 
 test("Can append, prepend, delete and replace items in CoList", () => {
-  const [agent, sessionID] = randomAgentAndSessionID();
-  const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "colist",
@@ -66,8 +65,7 @@ test("Can append, prepend, delete and replace items in CoList", () => {
 });
 
 test("Push is equivalent to append after last item", () => {
-  const [agent, sessionID] = randomAgentAndSessionID();
-  const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "colist",
@@ -89,8 +87,7 @@ test("Push is equivalent to append after last item", () => {
 });
 
 test("appendItems add an array of items at the end of the list", () => {
-  const [agent, sessionID] = randomAgentAndSessionID();
-  const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "colist",
@@ -110,8 +107,7 @@ test("appendItems add an array of items at the end of the list", () => {
 });
 
 test("appendItems at index", () => {
-  const [agent, sessionID] = randomAgentAndSessionID();
-  const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "colist",
@@ -141,8 +137,7 @@ test("appendItems at index", () => {
 });
 
 test("appendItems at index", () => {
-  const [agent, sessionID] = randomAgentAndSessionID();
-  const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "colist",
@@ -164,8 +159,7 @@ test("appendItems at index", () => {
 });
 
 test("appendItems with negative index", () => {
-  const [agent, sessionID] = randomAgentAndSessionID();
-  const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "colist",
@@ -183,8 +177,7 @@ test("appendItems with negative index", () => {
 });
 
 test("Can push into empty list", () => {
-  const [agent, sessionID] = randomAgentAndSessionID();
-  const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "colist",
@@ -202,8 +195,7 @@ test("Can push into empty list", () => {
 });
 
 test("init the list correctly", () => {
-  const [agent, sessionID] = randomAgentAndSessionID();
-  const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const group = node.createGroup();
 
@@ -223,8 +215,7 @@ test("init the list correctly", () => {
 });
 
 test("Items prepended to start appear with latest first", () => {
-  const [agent, sessionID] = randomAgentAndSessionID();
-  const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "colist",
@@ -243,8 +234,7 @@ test("Items prepended to start appear with latest first", () => {
 });
 
 test("mixing prepend and append", () => {
-  const [agent, sessionID] = randomAgentAndSessionID();
-  const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "colist",
@@ -263,8 +253,7 @@ test("mixing prepend and append", () => {
 });
 
 test("Items appended to start", () => {
-  const [agent, sessionID] = randomAgentAndSessionID();
-  const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "colist",

@@ -11,6 +11,7 @@ import {
   createThreeConnectedNodes,
   createTwoConnectedNodes,
   loadCoValueOrFail,
+  nodeWithRandomAgentAndSessionID,
   randomAgentAndSessionID,
   waitFor,
 } from "./testUtils.js";
@@ -18,8 +19,7 @@ import {
 const Crypto = await WasmCrypto.create();
 
 test("Can create a RawCoMap in a group", () => {
-  const [agent, sessionID] = randomAgentAndSessionID();
-  const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const group = node.createGroup();
 
@@ -30,8 +30,7 @@ test("Can create a RawCoMap in a group", () => {
 });
 
 test("Can create a CoList in a group", () => {
-  const [agent, sessionID] = randomAgentAndSessionID();
-  const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const group = node.createGroup();
 
@@ -42,8 +41,7 @@ test("Can create a CoList in a group", () => {
 });
 
 test("Can create a CoStream in a group", () => {
-  const [agent, sessionID] = randomAgentAndSessionID();
-  const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const group = node.createGroup();
 
@@ -54,8 +52,7 @@ test("Can create a CoStream in a group", () => {
 });
 
 test("Can create a FileStream in a group", () => {
-  const [agent, sessionID] = randomAgentAndSessionID();
-  const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const group = node.createGroup();
 
@@ -922,8 +919,7 @@ describe("extend with role mapping", () => {
 
 describe("roleOf", () => {
   test("returns direct role assignments", () => {
-    const [agent, sessionID] = randomAgentAndSessionID();
-    const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+    const node = nodeWithRandomAgentAndSessionID();
     const group = node.createGroup();
     const [agent2] = randomAgentAndSessionID();
 
@@ -932,8 +928,7 @@ describe("roleOf", () => {
   });
 
   test("returns undefined for non-members", () => {
-    const [agent, sessionID] = randomAgentAndSessionID();
-    const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+    const node = nodeWithRandomAgentAndSessionID();
     const group = node.createGroup();
     const [agent2] = randomAgentAndSessionID();
 
@@ -941,8 +936,7 @@ describe("roleOf", () => {
   });
 
   test("revoked roles return undefined", () => {
-    const [agent, sessionID] = randomAgentAndSessionID();
-    const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+    const node = nodeWithRandomAgentAndSessionID();
     const group = node.createGroup();
     const [agent2] = randomAgentAndSessionID();
 
@@ -952,8 +946,7 @@ describe("roleOf", () => {
   });
 
   test("everyone role applies to all accounts", () => {
-    const [agent, sessionID] = randomAgentAndSessionID();
-    const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+    const node = nodeWithRandomAgentAndSessionID();
     const group = node.createGroup();
     const [agent2, sessionID2] = randomAgentAndSessionID();
 
@@ -962,8 +955,7 @@ describe("roleOf", () => {
   });
 
   test("account role overrides everyone role", () => {
-    const [agent, sessionID] = randomAgentAndSessionID();
-    const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+    const node = nodeWithRandomAgentAndSessionID();
     const group = node.createGroup();
     const [agent2, sessionID2] = randomAgentAndSessionID();
 
@@ -973,8 +965,7 @@ describe("roleOf", () => {
   });
 
   test("Revoking access on everyone role should not affect existing members", () => {
-    const [agent, sessionID] = randomAgentAndSessionID();
-    const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+    const node = nodeWithRandomAgentAndSessionID();
     const group = node.createGroup();
     const [agent2, sessionID2] = randomAgentAndSessionID();
 
@@ -986,8 +977,7 @@ describe("roleOf", () => {
   });
 
   test("Everyone role is inherited following the most permissive algorithm", () => {
-    const [agent, sessionID] = randomAgentAndSessionID();
-    const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+    const node = nodeWithRandomAgentAndSessionID();
     const group = node.createGroup();
     const [agent2, sessionID2] = randomAgentAndSessionID();
 
