@@ -34,7 +34,7 @@ export async function setupAccount() {
     await createJazzContextFromExistingCredentials({
       credentials: {
         accountID: me.id,
-        secret: me._raw.agentSecret,
+        secret: me._raw.core.node.getCurrentAgent().agentSecret,
       },
       sessionProvider: randomSessionProvider,
       peersToLoadFrom: [initialAsPeer],

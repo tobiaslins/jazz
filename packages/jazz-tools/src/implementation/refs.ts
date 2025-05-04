@@ -49,7 +49,7 @@ export class Ref<out V extends CoValue> {
     const group = raw.core.getGroup();
 
     if (group instanceof RawAccount) {
-      if (node.account.id !== group.id) {
+      if (node.getCurrentAgent().id !== group.id) {
         return false;
       }
     } else if (group.myRole() === undefined) {

@@ -109,7 +109,7 @@ export class CoValueBase implements CoValue {
 
   /** @private */
   get _loadedAs() {
-    const rawAccount = this._raw.core.node.account;
+    const rawAccount = this._raw.core.node.getCurrentAgent();
 
     if (rawAccount instanceof RawAccount) {
       return coValuesCache.get(rawAccount, () =>

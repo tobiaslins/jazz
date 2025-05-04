@@ -167,7 +167,7 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
   }
 
   get _loadedAs() {
-    const rawAccount = this._raw.core.node.account;
+    const rawAccount = this._raw.core.node.getCurrentAgent();
 
     if (rawAccount instanceof RawAccount) {
       return coValuesCache.get(rawAccount, () =>
