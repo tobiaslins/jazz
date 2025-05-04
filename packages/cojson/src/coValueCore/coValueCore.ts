@@ -286,7 +286,7 @@ export class CoValueCore {
 
     if (header.ruleset.type == "ownedByGroup") {
       const groupId = header.ruleset.group;
-      const entry = this.node.coValuesStore.get(groupId);
+      const entry = this.node.getCoValue(groupId);
 
       if (entry.isAvailable()) {
         this.groupInvalidationSubscription = entry.subscribe((_groupUpdate) => {

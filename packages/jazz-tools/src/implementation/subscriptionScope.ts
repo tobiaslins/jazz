@@ -152,7 +152,7 @@ function loadCoValue(
   callback: (value: CoValueCore | "unavailable") => void,
   syncResolution: boolean,
 ) {
-  const coValue = node.coValuesStore.get(id);
+  const coValue = node.getCoValue(id);
 
   if (coValue.isAvailable() && syncResolution) {
     callback(coValue);

@@ -490,8 +490,8 @@ describe("writeOnly", () => {
       "writer",
     );
 
-    node2.node.coValuesStore.coValues.delete(map.id);
-    expect(node2.node.coValuesStore.get(map.id)?.loadingState).toBe("unknown");
+    node2.node.internalDeleteCoValue(map.id);
+    expect(node2.node.getCoValue(map.id)?.loadingState).toBe("unknown");
 
     const mapOnNode2 = await loadCoValueOrFail(node2.node, map.id);
 

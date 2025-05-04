@@ -101,7 +101,7 @@ describe("client to server upload", () => {
     await map.core.waitForSync();
 
     // Forcefully delete the coValue from the client (simulating some data loss)
-    jazzCloud.node.coValuesStore.coValues.delete(map.id);
+    jazzCloud.node.internalDeleteCoValue(map.id);
 
     map.set("fromClient", "updated", "trusting");
 

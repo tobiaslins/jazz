@@ -64,7 +64,7 @@ describe("peer reconciliation", () => {
 
     await map.core.waitForSync();
 
-    const mapOnSyncServer = jazzCloud.node.coValuesStore.get(map.id);
+    const mapOnSyncServer = jazzCloud.node.getCoValue(map.id);
 
     assert(mapOnSyncServer.isAvailable());
 
@@ -111,7 +111,7 @@ describe("peer reconciliation", () => {
 
     await map.core.waitForSync();
 
-    const mapOnSyncServer = jazzCloud.node.coValuesStore.get(map.id);
+    const mapOnSyncServer = jazzCloud.node.getCoValue(map.id);
 
     assert(mapOnSyncServer.isAvailable());
 
@@ -166,7 +166,7 @@ describe("peer reconciliation", () => {
     client.connectToSyncServer();
 
     await waitFor(() => {
-      const mapOnSyncServer = jazzCloud.node.coValuesStore.get(map.id);
+      const mapOnSyncServer = jazzCloud.node.getCoValue(map.id);
 
       expect(mapOnSyncServer.loadingState).toBe("available");
     });
@@ -210,7 +210,7 @@ describe("peer reconciliation", () => {
 
     SyncMessagesLog.clear();
     client.connectToSyncServer();
-    const mapOnSyncServer = jazzCloud.node.coValuesStore.get(map.id);
+    const mapOnSyncServer = jazzCloud.node.getCoValue(map.id);
 
     await waitFor(() => {
       expect(mapOnSyncServer.isAvailable()).toBe(true);

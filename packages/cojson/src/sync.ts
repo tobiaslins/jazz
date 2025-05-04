@@ -160,7 +160,7 @@ export class SyncManager {
   }
 
   handleSyncMessage(msg: SyncMessage, peer: PeerState) {
-    if (this.local.coValuesStore.get(msg.id).isErroredInPeer(peer.id)) {
+    if (this.local.getCoValue(msg.id).isErroredInPeer(peer.id)) {
       logger.warn(
         `Skipping message ${msg.action} on errored coValue ${msg.id} from peer ${peer.id}`,
       );
@@ -238,7 +238,7 @@ export class SyncManager {
       gathered.add(coValue.id);
 
       for (const id of coValue.getDependedOnCoValues()) {
-        const coValue = this.local.coValuesStore.get(id);
+        const coValue = this.local.getCoValue(id);
 
         if (coValue.isAvailable()) {
           buildOrderedCoValueList(coValue);
@@ -248,7 +248,7 @@ export class SyncManager {
       coValuesOrderedByDependency.push(coValue);
     };
 
-    for (const coValue of this.local.coValuesStore.getValues()) {
+    for (const coValue of this.local.allCoValues()) {
       if (!coValue.isAvailable()) {
         // If the coValue is unavailable and we never tried this peer
         // we try to load it from the peer
@@ -367,7 +367,7 @@ export class SyncManager {
      *
      */
     peer.setKnownState(msg.id, knownStateIn(msg));
-    const coValue = this.local.coValuesStore.get(msg.id);
+    const coValue = this.local.getCoValue(msg.id);
 
     if (
       coValue.loadingState === "unknown" ||
@@ -437,7 +437,7 @@ export class SyncManager {
   }
 
   handleKnownState(msg: KnownStateMessage, peer: PeerState) {
-    const coValue = this.local.coValuesStore.get(msg.id);
+    const coValue = this.local.getCoValue(msg.id);
 
     peer.combineWith(msg.id, knownStateIn(msg));
 
@@ -468,7 +468,7 @@ export class SyncManager {
   }
 
   handleNewContent(msg: NewContentMessage, peer: PeerState) {
-    const coValue = this.local.coValuesStore.get(msg.id);
+    const coValue = this.local.getCoValue(msg.id);
 
     if (!coValue.isAvailable()) {
       if (!msg.header) {
@@ -689,7 +689,7 @@ export class SyncManager {
   }
 
   async waitForAllCoValuesSync(timeout = 60_000) {
-    const coValues = this.local.coValuesStore.getValues();
+    const coValues = this.local.allCoValues();
     const validCoValues = Array.from(coValues).filter(
       (coValue) =>
         coValue.loadingState === "available" ||

@@ -1,5 +1,4 @@
 import { Result, ResultAsync, err, ok, okAsync } from "neverthrow";
-import { CoValuesStore } from "./CoValuesStore.js";
 import { CoID } from "./coValue.js";
 import { RawCoValue } from "./coValue.js";
 import {
@@ -53,7 +52,7 @@ export class LocalNode {
   /** @internal */
   crypto: CryptoProvider;
   /** @internal */
-  coValuesStore = new CoValuesStore(this);
+  private readonly coValues = new Map<RawCoID, CoValueCore>();
 
   /** @category 3. Low-level */
   readonly currentSessionID: SessionID;
@@ -75,6 +74,35 @@ export class LocalNode {
     this.crypto = crypto;
   }
 
+  getCoValue(id: RawCoID) {
+    let entry = this.coValues.get(id);
+
+    if (!entry) {
+      entry = CoValueCore.fromID(id, this);
+      this.coValues.set(id, entry);
+    }
+
+    return entry;
+  }
+
+  allCoValues() {
+    return this.coValues.values();
+  }
+
+  private putCoValue(
+    id: RawCoID,
+    verified: VerifiedState,
+    { forceOverwrite = false }: { forceOverwrite?: boolean } = {},
+  ): AvailableCoValueCore {
+    const entry = this.getCoValue(id);
+    entry.internalMarkMagicallyAvailable(verified, { forceOverwrite });
+    return entry as AvailableCoValueCore;
+  }
+
+  internalDeleteCoValue(id: RawCoID) {
+    this.coValues.delete(id);
+  }
+
   switchControl(agentSecret: AgentSecret, currentSessionID: SessionID) {
     const oldAgentSecret = this.agentSecret;
     const oldSessionID = this.currentSessionID;
@@ -84,7 +112,7 @@ export class LocalNode {
     // @ts-expect-error
     this.currentSessionID = currentSessionID;
 
-    for (const coValueEntry of this.coValuesStore.getValues()) {
+    for (const coValueEntry of this.coValues.values()) {
       if (coValueEntry.isAvailable()) {
         coValueEntry.internalShamefullyResetCachedContent();
       }
@@ -184,7 +212,7 @@ export class LocalNode {
 
     // we shouldn't need this, but it fixes account data not syncing for new accounts
     function syncAllCoValuesAfterCreateAccount() {
-      for (const coValueEntry of node.coValuesStore.getValues()) {
+      for (const coValueEntry of node.coValues.values()) {
         if (coValueEntry.isAvailable()) {
           void node.syncManager.requestCoValueSync(coValueEntry);
         }
@@ -269,7 +297,7 @@ export class LocalNode {
 
     const id = idforHeader(header, this.crypto);
 
-    const coValue = this.coValuesStore.internalMarkMagicallyAvailable(
+    const coValue = this.putCoValue(
       id,
       new VerifiedState(id, this.crypto, header, new Map()),
     );
@@ -293,7 +321,7 @@ export class LocalNode {
     let retries = 0;
 
     while (true) {
-      const coValue = this.coValuesStore.get(id);
+      const coValue = this.getCoValue(id);
 
       if (
         coValue.loadingState === "unknown" ||
@@ -351,7 +379,7 @@ export class LocalNode {
   }
 
   getLoaded<T extends RawCoValue>(id: CoID<T>): T | undefined {
-    const coValue = this.coValuesStore.get(id);
+    const coValue = this.getCoValue(id);
 
     if (coValue.isAvailable()) {
       return coValue.getCurrentContent() as T;
@@ -481,7 +509,7 @@ export class LocalNode {
 
   /** @internal */
   expectCoValueLoaded(id: RawCoID, expectation?: string): AvailableCoValueCore {
-    const coValue = this.coValuesStore.get(id);
+    const coValue = this.getCoValue(id);
 
     if (!coValue.isAvailable()) {
       throw new Error(
@@ -675,7 +703,7 @@ export class LocalNode {
       this.crypto,
     );
 
-    const coValuesToCopy = Array.from(this.coValuesStore.getEntries());
+    const coValuesToCopy = Array.from(this.coValues.entries());
 
     while (coValuesToCopy.length > 0) {
       const [coValueID, coValue] = coValuesToCopy[coValuesToCopy.length - 1]!;
@@ -686,7 +714,7 @@ export class LocalNode {
       } else {
         const allDepsCopied = coValue
           .getDependedOnCoValues()
-          .every((dep) => newNode.coValuesStore.get(dep).isAvailable());
+          .every((dep) => newNode.getCoValue(dep).isAvailable());
 
         if (!allDepsCopied) {
           // move to end of queue
@@ -694,10 +722,7 @@ export class LocalNode {
           continue;
         }
 
-        newNode.coValuesStore.internalMarkMagicallyAvailable(
-          coValueID,
-          coValue.verified,
-        );
+        newNode.putCoValue(coValueID, coValue.verified);
 
         coValuesToCopy.pop();
       }

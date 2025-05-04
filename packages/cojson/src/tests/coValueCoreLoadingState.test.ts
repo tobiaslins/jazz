@@ -137,11 +137,7 @@ describe("CoValueCore loading state", () => {
     const loadPromise = state.loadFromPeers(mockPeers);
 
     await vi.runAllTimersAsync();
-
-    console.log("loadPromise");
     await loadPromise;
-
-    console.log("loadPromise done");
 
     expect(peer1.pushOutgoingMessage).toHaveBeenCalledTimes(1);
     expect(peer2.pushOutgoingMessage).toHaveBeenCalledTimes(1);

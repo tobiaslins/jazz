@@ -197,7 +197,6 @@ export class RawGroup<
 
   loadAllChildGroups() {
     const requests: Promise<unknown>[] = [];
-    const store = this.core.node.coValuesStore;
     const peers = this.core.node.syncManager.getServerAndStoragePeers();
 
     for (const key of this.keys()) {
@@ -206,7 +205,7 @@ export class RawGroup<
       }
 
       const id = getChildGroupId(key);
-      const child = store.get(id);
+      const child = this.core.node.getCoValue(id);
 
       if (
         child.loadingState === "unknown" ||
