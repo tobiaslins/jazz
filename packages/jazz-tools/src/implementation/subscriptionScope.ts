@@ -56,9 +56,8 @@ export class SubscriptionScope<Root extends CoValue> {
     };
 
     this.rootEntry.rawUnsub = root._raw.core.subscribe(
-      (rawUpdate: RawCoValue | undefined) => {
-        if (!rawUpdate) return;
-        this.rootEntry.value = rawUpdate;
+      (rawUpdate: CoValueCore) => {
+        this.rootEntry.value = rawUpdate.getCurrentContent();
         this.scheduleUpdate();
       },
     );

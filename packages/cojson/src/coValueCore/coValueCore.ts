@@ -80,7 +80,7 @@ export class CoValueCore {
     return this._verified;
   }
   private _cachedContent?: RawCoValue;
-  private readonly listeners: Set<(content?: RawCoValue) => void> = new Set();
+  private readonly listeners: Set<(core: CoValueCore) => void> = new Set();
   private readonly _decryptionCache: {
     [key: Encrypted<JsonValue[], JsonValue>]: JsonValue[] | undefined;
   } = {};
@@ -298,10 +298,9 @@ export class CoValueCore {
     }
 
     if (notifyMode === "immediate") {
-      const content = this.getCurrentContent();
       for (const listener of this.listeners) {
         try {
-          listener(content);
+          listener(this);
         } catch (e) {
           logger.error("Error in listener for coValue " + this.id, { err: e });
         }
@@ -312,10 +311,9 @@ export class CoValueCore {
           setTimeout(() => {
             this.nextDeferredNotify = undefined;
             this.deferredUpdates = 0;
-            const content = this.getCurrentContent();
             for (const listener of this.listeners) {
               try {
-                listener(content);
+                listener(this);
               } catch (e) {
                 logger.error("Error in listener for coValue " + this.id, {
                   err: e,
@@ -331,13 +329,13 @@ export class CoValueCore {
   }
 
   subscribe(
-    listener: (content?: RawCoValue) => void,
+    listener: (core: CoValueCore) => void,
     immediateInvoke = true,
   ): () => void {
     this.listeners.add(listener);
 
     if (immediateInvoke) {
-      listener(this.getCurrentContent());
+      listener(this);
     }
 
     return () => {

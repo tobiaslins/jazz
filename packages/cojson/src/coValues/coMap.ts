@@ -347,8 +347,8 @@ export class RawCoMapView<
 
   /** @category 3. Subscription */
   subscribe(listener: (coMap: this) => void): () => void {
-    return this.core.subscribe((content) => {
-      listener(content as this);
+    return this.core.subscribe((core) => {
+      listener(core.getCurrentContent() as this);
     });
   }
 }
