@@ -47,10 +47,6 @@ export class RawUnknownCoValue implements RawCoValue {
     this.core = core;
   }
 
-  get processedChangesId() {
-    return "0/0";
-  }
-
   get type() {
     return this.core.header.type;
   }

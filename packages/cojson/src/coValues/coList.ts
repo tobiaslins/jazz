@@ -625,9 +625,6 @@ export class RawCoList<
     this.lastValidTransaction = listAfter.lastValidTransaction;
     this.knownTransactions = listAfter.knownTransactions;
     this.deletionsByInsertion = listAfter.deletionsByInsertion;
-    this.totalValidTransactions = listAfter.totalValidTransactions;
-    this.lastValidTransaction = listAfter.lastValidTransaction;
-    this.knownTransactions = listAfter.knownTransactions;
     this._cachedEntries = undefined;
   }
 }
