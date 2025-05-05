@@ -5,7 +5,7 @@ import type {
   CoValue,
   ID,
   RefEncoded,
-  UnCo,
+  UnCoField,
 } from "../internal.js";
 import {
   instantiateRefEncoded,
@@ -208,5 +208,5 @@ export function makeRefs<Keys extends string | number>(
 }
 
 export type RefIfCoValue<V> = NonNullable<V> extends CoValue
-  ? Ref<UnCo<NonNullable<V>>>
+  ? Ref<UnCoField<NonNullable<V>>>
   : never;

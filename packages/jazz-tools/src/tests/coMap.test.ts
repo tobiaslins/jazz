@@ -5,7 +5,7 @@ import {
   Account,
   CoMap,
   Encoders,
-  co,
+  coField,
   cojsonInternals,
   createJazzContextFromExistingCredentials,
   isControlledAccount,
@@ -17,15 +17,15 @@ const { connectedPeers } = cojsonInternals;
 const Crypto = await WasmCrypto.create();
 
 class TestMap extends CoMap {
-  color = co.string;
-  _height = co.number;
-  birthday = co.Date;
-  name? = co.string;
-  nullable = co.optional.encoded<string | undefined>({
+  color = coField.string;
+  _height = coField.number;
+  birthday = coField.Date;
+  name? = coField.string;
+  nullable = coField.optional.encoded<string | undefined>({
     encode: (value: string | undefined) => value || null,
     decode: (value: unknown) => (value as string) || undefined,
   });
-  optionalDate = co.optional.Date;
+  optionalDate = coField.optional.Date;
 
   get roughColor() {
     return this.color + "ish";
@@ -121,8 +121,8 @@ describe("Simple CoMap operations", async () => {
 
   test("toJSON should not fail when there is a key in the raw value not represented in the schema", () => {
     class TestMap extends CoMap {
-      color = co.string;
-      height = co.number;
+      color = coField.string;
+      height = coField.number;
     }
 
     const map = TestMap.create({ color: "red", height: 10 }, { owner: me });
@@ -139,9 +139,9 @@ describe("Simple CoMap operations", async () => {
 
   test("toJSON should handle references", () => {
     class TestMap extends CoMap {
-      color = co.string;
-      height = co.number;
-      nested = co.optional.ref(TestMap);
+      color = coField.string;
+      height = coField.number;
+      nested = coField.optional.ref(TestMap);
     }
 
     const map = TestMap.create({ color: "red", height: 10 }, { owner: me });
@@ -164,9 +164,9 @@ describe("Simple CoMap operations", async () => {
 
   test("toJSON should handle circular references", () => {
     class TestMap extends CoMap {
-      color = co.string;
-      height = co.number;
-      nested = co.optional.ref(TestMap);
+      color = coField.string;
+      height = coField.number;
+      nested = coField.optional.ref(TestMap);
     }
 
     const map = TestMap.create({ color: "red", height: 10 }, { owner: me });
@@ -337,7 +337,7 @@ describe("Simple CoMap operations", async () => {
   });
 
   describe("property existence", () => {
-    class TestMap extends CoMap.Record(co.string) {}
+    class TestMap extends CoMap.Record(coField.string) {}
     test("CoMap", () => {
       const map = TestMap.create(
         { name: "test" },
@@ -352,8 +352,8 @@ describe("Simple CoMap operations", async () => {
   });
 
   class RecursiveMap extends CoMap {
-    name = co.string;
-    next?: co<RecursiveMap | null> = co.ref(RecursiveMap);
+    name = coField.string;
+    next?: coField<RecursiveMap | null> = coField.ref(RecursiveMap);
   }
 
   const recursiveMap = RecursiveMap.create(
@@ -384,20 +384,20 @@ describe("Simple CoMap operations", async () => {
   });
 
   class MapWithEnumOfMaps extends CoMap {
-    name = co.string;
-    child = co.ref<typeof ChildA | typeof ChildB>((raw) =>
+    name = coField.string;
+    child = coField.ref<typeof ChildA | typeof ChildB>((raw) =>
       raw.get("type") === "a" ? ChildA : ChildB,
     );
   }
 
   class ChildA extends CoMap {
-    type = co.literal("a");
-    value = co.number;
+    type = coField.literal("a");
+    value = coField.number;
   }
 
   class ChildB extends CoMap {
-    type = co.literal("b");
-    value = co.string;
+    type = coField.literal("b");
+    value = coField.string;
   }
 
   const mapWithEnum = MapWithEnumOfMaps.create(
@@ -424,12 +424,12 @@ describe("Simple CoMap operations", async () => {
 
 describe("CoMap resolution", async () => {
   class TwiceNestedMap extends CoMap {
-    taste = co.string;
+    taste = coField.string;
   }
 
   class NestedMap extends CoMap {
-    name = co.string;
-    twiceNested = co.ref(TwiceNestedMap);
+    name = coField.string;
+    twiceNested = coField.ref(TwiceNestedMap);
 
     get _fancyName() {
       return "Sir " + this.name;
@@ -437,9 +437,9 @@ describe("CoMap resolution", async () => {
   }
 
   class TestMap extends CoMap {
-    color = co.string;
-    height = co.number;
-    nested = co.ref(NestedMap);
+    color = coField.string;
+    height = coField.number;
+    nested = coField.ref(NestedMap);
 
     get _roughColor() {
       return this.color + "ish";
@@ -688,8 +688,8 @@ describe("CoMap resolution", async () => {
   });
 
   class TestMapWithOptionalRef extends CoMap {
-    color = co.string;
-    nested = co.optional.ref(NestedMap);
+    color = coField.string;
+    nested = coField.optional.ref(NestedMap);
   }
 
   test("Construction with optional", async () => {
@@ -733,7 +733,7 @@ describe("CoMap resolution", async () => {
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
   class TestRecord extends CoMap {
-    [co.items] = co.number;
+    [coField.items] = coField.number;
   }
   // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
   interface TestRecord extends Record<string, number> {}
@@ -765,7 +765,7 @@ describe("CoMap resolution", async () => {
     });
   });
 
-  class TestRecord2 extends CoMap.Record(co.number) {}
+  class TestRecord2 extends CoMap.Record(coField.number) {}
 
   test("Construction with index signature (shorthand)", async () => {
     const me = await Account.create({
@@ -788,7 +788,7 @@ describe("CoMap resolution", async () => {
     expect(Object.keys(record)).toEqual(["height", "other"]);
   });
 
-  class TestRecordRef extends CoMap.Record(co.ref(TwiceNestedMap)) {}
+  class TestRecordRef extends CoMap.Record(coField.ref(TwiceNestedMap)) {}
 
   test("Construction with index signature ref", async () => {
     const me = await Account.create({
@@ -820,17 +820,17 @@ describe("CoMap applyDiff", async () => {
   });
 
   class TestMap extends CoMap {
-    name = co.string;
-    age = co.number;
-    isActive = co.boolean;
-    birthday = co.encoded(Encoders.Date);
-    nested = co.ref(NestedMap);
-    optionalField = co.optional.string;
-    optionalNested = co.optional.ref(NestedMap);
+    name = coField.string;
+    age = coField.number;
+    isActive = coField.boolean;
+    birthday = coField.encoded(Encoders.Date);
+    nested = coField.ref(NestedMap);
+    optionalField = coField.optional.string;
+    optionalNested = coField.optional.ref(NestedMap);
   }
 
   class NestedMap extends CoMap {
-    value = co.string;
+    value = coField.string;
   }
 
   test("Basic applyDiff", () => {
@@ -1026,12 +1026,12 @@ describe("CoMap Typescript validation", async () => {
 
   test("Is not ok to pass null into a required ref", () => {
     class TestMap extends CoMap {
-      required = co.ref(NestedMap);
-      optional = co.optional.ref(NestedMap);
+      required = coField.ref(NestedMap);
+      optional = coField.optional.ref(NestedMap);
     }
 
     class NestedMap extends CoMap {
-      value = co.string;
+      value = coField.string;
     }
 
     expectTypeOf<typeof TestMap.create<TestMap>>().toBeCallableWith(
@@ -1046,12 +1046,12 @@ describe("CoMap Typescript validation", async () => {
 
   test("Is not ok if a required ref is omitted", () => {
     class TestMap extends CoMap {
-      required = co.ref(NestedMap);
-      optional = co.ref(NestedMap, { optional: true });
+      required = coField.ref(NestedMap);
+      optional = coField.ref(NestedMap, { optional: true });
     }
 
     class NestedMap extends CoMap {
-      value = co.string;
+      value = coField.string;
     }
 
     expectTypeOf<typeof TestMap.create<TestMap>>().toBeCallableWith(
@@ -1063,12 +1063,12 @@ describe("CoMap Typescript validation", async () => {
 
   test("Is ok to omit optional fields", () => {
     class TestMap extends CoMap {
-      required = co.ref(NestedMap);
-      optional = co.ref(NestedMap, { optional: true });
+      required = coField.ref(NestedMap);
+      optional = coField.ref(NestedMap, { optional: true });
     }
 
     class NestedMap extends CoMap {
-      value = co.string;
+      value = coField.string;
     }
 
     expectTypeOf<typeof TestMap.create<TestMap>>().toBeCallableWith(
@@ -1089,12 +1089,12 @@ describe("CoMap Typescript validation", async () => {
 
   test("the required refs should be nullable", () => {
     class TestMap extends CoMap {
-      required = co.ref(NestedMap);
-      optional = co.ref(NestedMap, { optional: true });
+      required = coField.ref(NestedMap);
+      optional = coField.ref(NestedMap, { optional: true });
     }
 
     class NestedMap extends CoMap {
-      value = co.string;
+      value = coField.string;
     }
 
     const map = TestMap.create(
@@ -1109,7 +1109,7 @@ describe("CoMap Typescript validation", async () => {
 
   test("waitForSync should resolve when the value is uploaded", async () => {
     class TestMap extends CoMap {
-      name = co.string;
+      name = coField.string;
     }
 
     const { clientNode, serverNode, clientAccount } = await setupTwoNodes();

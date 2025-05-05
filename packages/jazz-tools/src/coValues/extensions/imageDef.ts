@@ -1,14 +1,14 @@
-import { co, subscriptionsScopes } from "../../internal.js";
+import { coField, subscriptionsScopes } from "../../internal.js";
 import { FileStream } from "../coFeed.js";
 import { CoMap } from "../coMap.js";
 
 /** @category Media */
 export class ImageDefinition extends CoMap {
-  originalSize = co.json<[number, number]>();
-  placeholderDataURL? = co.string;
+  originalSize = coField.json<[number, number]>();
+  placeholderDataURL? = coField.string;
 
-  [co.items] = co.ref(FileStream);
-  [res: `${number}x${number}`]: co<FileStream | null>;
+  [coField.items] = coField.ref(FileStream);
+  [res: `${number}x${number}`]: coField<FileStream | null>;
 
   highestResAvailable(options?: {
     maxWidth?: number;

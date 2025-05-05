@@ -6,7 +6,7 @@ import {
   FileStream,
   Group,
   ID,
-  co,
+  coField,
   cojsonInternals,
   isControlledAccount,
 } from "../index.js";
@@ -29,7 +29,7 @@ describe("Simple CoFeed operations", async () => {
   if (!isControlledAccount(me)) {
     throw "me is not a controlled account";
   }
-  class TestStream extends CoFeed.Of(co.string) {}
+  class TestStream extends CoFeed.Of(coField.string) {}
 
   const stream = TestStream.create(["milk"], { owner: me });
 
@@ -67,15 +67,15 @@ describe("Simple CoFeed operations", async () => {
 });
 
 describe("CoFeed resolution", async () => {
-  class TwiceNestedStream extends CoFeed.Of(co.string) {
+  class TwiceNestedStream extends CoFeed.Of(coField.string) {
     fancyValueOf(account: ID<Account>) {
       return "Sir " + this[account]?.value;
     }
   }
 
-  class NestedStream extends CoFeed.Of(co.ref(TwiceNestedStream)) {}
+  class NestedStream extends CoFeed.Of(coField.ref(TwiceNestedStream)) {}
 
-  class TestStream extends CoFeed.Of(co.ref(NestedStream)) {}
+  class TestStream extends CoFeed.Of(coField.ref(NestedStream)) {}
 
   const initNodeAndStream = async () => {
     const me = await Account.create({
@@ -611,7 +611,7 @@ describe("FileStream progress tracking", async () => {
 
 describe("waitForSync", async () => {
   test("CoFeed: should resolve when the value is uploaded", async () => {
-    class TestStream extends CoFeed.Of(co.string) {}
+    class TestStream extends CoFeed.Of(coField.string) {}
 
     const { clientNode, serverNode, clientAccount } = await setupTwoNodes();
 

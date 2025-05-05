@@ -1,5 +1,5 @@
 import { JsonValue, RawCoList, SessionID } from "cojson";
-import { ItemsSym, type Ref, RefEncoded, UnCo } from "../internal.js";
+import { ItemsSym, type Ref, RefEncoded, UnCoField } from "../internal.js";
 import { type Account } from "./account.js";
 import { type CoFeed, CoFeedEntry } from "./coFeed.js";
 import { type CoList } from "./coList.js";
@@ -278,8 +278,8 @@ export function fulfillsDepth(depth: any, value: CoValue): FulfillsDepthResult {
   }
 }
 
-type UnCoNotNull<T> = UnCo<Exclude<T, null>>;
-export type Clean<T> = UnCo<NonNullable<T>>;
+type UnCoNotNull<T> = UnCoField<Exclude<T, null>>;
+export type Clean<T> = UnCoField<NonNullable<T>>;
 
 export type RefsToResolve<
   V,

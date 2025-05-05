@@ -6,7 +6,7 @@ import {
   CoList,
   CoMap,
   Group,
-  co,
+  coField,
   createJazzContextFromExistingCredentials,
   isControlledAccount,
 } from "../index.js";
@@ -22,7 +22,7 @@ describe("Simple CoList operations", async () => {
     crypto: Crypto,
   });
 
-  class TestList extends CoList.Of(co.string) {}
+  class TestList extends CoList.Of(coField.string) {}
 
   const list = TestList.create(["bread", "butter", "onion"], { owner: me });
 
@@ -64,10 +64,10 @@ describe("Simple CoList operations", async () => {
 
     test("assignment with ref", () => {
       class Ingredient extends CoMap {
-        name = co.string;
+        name = coField.string;
       }
 
-      class Recipe extends CoList.Of(co.ref(Ingredient)) {}
+      class Recipe extends CoList.Of(coField.ref(Ingredient)) {}
 
       const recipe = Recipe.create(
         [
@@ -84,10 +84,10 @@ describe("Simple CoList operations", async () => {
 
     test("assign null on a required ref", () => {
       class Ingredient extends CoMap {
-        name = co.string;
+        name = coField.string;
       }
 
-      class Recipe extends CoList.Of(co.ref(Ingredient)) {}
+      class Recipe extends CoList.Of(coField.ref(Ingredient)) {}
 
       const recipe = Recipe.create(
         [
@@ -107,10 +107,10 @@ describe("Simple CoList operations", async () => {
 
     test("assign null on an optional ref", () => {
       class Ingredient extends CoMap {
-        name = co.string;
+        name = coField.string;
       }
 
-      class Recipe extends CoList.Of(co.optional.ref(Ingredient)) {}
+      class Recipe extends CoList.Of(coField.optional.ref(Ingredient)) {}
 
       const recipe = Recipe.create(
         [
@@ -257,10 +257,10 @@ describe("Simple CoList operations", async () => {
 
     test("sort list of refs", async () => {
       class Message extends CoMap {
-        text = co.string;
+        text = coField.string;
       }
 
-      class Chat extends CoList.Of(co.ref(Message)) {}
+      class Chat extends CoList.Of(coField.ref(Message)) {}
 
       const chat = Chat.create(
         [
@@ -304,7 +304,7 @@ describe("Simple CoList operations", async () => {
 
     test("filter + assign to coMap", () => {
       class TestMap extends CoMap {
-        list = co.ref(TestList);
+        list = coField.ref(TestList);
       }
 
       const map = TestMap.create(
@@ -325,7 +325,7 @@ describe("Simple CoList operations", async () => {
     });
 
     test("filter + assign to CoList", () => {
-      class TestListOfLists extends CoList.Of(co.ref(TestList)) {}
+      class TestListOfLists extends CoList.Of(coField.ref(TestList)) {}
 
       const list = TestListOfLists.create(
         [
@@ -353,7 +353,7 @@ describe("CoList applyDiff operations", async () => {
   });
 
   test("applyDiff with primitive values", () => {
-    class StringList extends CoList.Of(co.string) {}
+    class StringList extends CoList.Of(coField.string) {}
     const list = StringList.create(["a", "b", "c"], { owner: me });
 
     // Test adding items
@@ -374,12 +374,12 @@ describe("CoList applyDiff operations", async () => {
   });
 
   test("applyDiff with reference values", () => {
-    class NestedItem extends CoList.Of(co.string) {
+    class NestedItem extends CoList.Of(coField.string) {
       get value() {
         return this[0];
       }
     }
-    class RefList extends CoList.Of(co.ref(NestedItem)) {}
+    class RefList extends CoList.Of(coField.ref(NestedItem)) {}
 
     const item1 = NestedItem.create(["item1"], { owner: me });
     const item2 = NestedItem.create(["item2"], { owner: me });
@@ -411,10 +411,10 @@ describe("CoList applyDiff operations", async () => {
 
   test("applyDiff with refs + filter", () => {
     class TestMap extends CoMap {
-      type = co.string;
+      type = coField.string;
     }
 
-    class TestList extends CoList.Of(co.ref(TestMap)) {}
+    class TestList extends CoList.Of(coField.ref(TestMap)) {}
 
     const bread = TestMap.create({ type: "bread" }, me);
     const butter = TestMap.create({ type: "butter" }, me);
@@ -428,7 +428,7 @@ describe("CoList applyDiff operations", async () => {
   });
 
   test("applyDiff with mixed operations", () => {
-    class StringList extends CoList.Of(co.string) {}
+    class StringList extends CoList.Of(coField.string) {}
     const list = StringList.create(["a", "b", "c", "d", "e"], { owner: me });
 
     // Test multiple operations at once
@@ -446,15 +446,15 @@ describe("CoList applyDiff operations", async () => {
 });
 
 describe("CoList resolution", async () => {
-  class TwiceNestedList extends CoList.Of(co.string) {
+  class TwiceNestedList extends CoList.Of(coField.string) {
     joined() {
       return this.join(",");
     }
   }
 
-  class NestedList extends CoList.Of(co.ref(TwiceNestedList)) {}
+  class NestedList extends CoList.Of(coField.ref(TwiceNestedList)) {}
 
-  class TestList extends CoList.Of(co.ref(NestedList)) {}
+  class TestList extends CoList.Of(coField.ref(NestedList)) {}
 
   const initNodeAndList = async () => {
     const me = await Account.create({

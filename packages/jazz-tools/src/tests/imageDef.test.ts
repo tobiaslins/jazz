@@ -1,6 +1,6 @@
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { describe, expect, test } from "vitest";
-import { Account, FileStream, ImageDefinition, co } from "../exports.js";
+import { Account, FileStream, ImageDefinition } from "../exports.js";
 
 const Crypto = await WasmCrypto.create();
 

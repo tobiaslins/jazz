@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { Account, CoMap, Group, co } from "../exports.js";
+import { Account, CoMap, Group, coField } from "../exports.js";
 import {
   createJazzTestAccount,
   linkAccounts,
@@ -9,7 +9,7 @@ import { setupTwoNodes } from "./utils.js";
 
 test("waitForAllCoValuesSync should resolve when all the values are synced", async () => {
   class TestMap extends CoMap {
-    name = co.string;
+    name = coField.string;
   }
 
   const { clientNode, serverNode, clientAccount } = await setupTwoNodes();

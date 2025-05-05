@@ -1,6 +1,6 @@
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { assert, beforeEach, describe, expect, test } from "vitest";
-import { Account, CoMap, Group, Profile, co } from "../exports.js";
+import { Account, CoMap, Group, Profile, coField } from "../exports.js";
 import { Ref } from "../internal.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 import { setupTwoNodes } from "./utils.js";
@@ -18,13 +18,13 @@ beforeEach(async () => {
 describe("Custom accounts and groups", async () => {
   test("Custom account and group", async () => {
     class CustomProfile extends Profile {
-      name = co.string;
-      color = co.string;
+      name = coField.string;
+      color = coField.string;
     }
 
     class CustomAccount extends Account {
-      profile = co.ref(CustomProfile);
-      root = co.ref(CoMap);
+      profile = coField.ref(CustomProfile);
+      root = coField.ref(CoMap);
 
       migrate(this: CustomAccount, creationProps?: { name: string }) {
         if (creationProps) {
@@ -84,7 +84,7 @@ describe("Custom accounts and groups", async () => {
 
 describe("Group inheritance", () => {
   class TestMap extends CoMap {
-    title = co.string;
+    title = coField.string;
   }
 
   test("Group inheritance", async () => {

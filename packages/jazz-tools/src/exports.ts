@@ -10,7 +10,7 @@ export type {
 
 export type { CoValue, ID } from "./internal.js";
 
-export { Encoders, co } from "./internal.js";
+export { Encoders, coField } from "./internal.js";
 
 export { Inbox, InboxSender } from "./coValues/inbox.js";
 

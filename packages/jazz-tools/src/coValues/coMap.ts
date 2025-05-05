@@ -13,7 +13,7 @@ import type {
   CoValue,
   CoValueClass,
   ID,
-  IfCo,
+  IfCoField,
   RefEncoded,
   RefIfCoValue,
   RefsToResolve,
@@ -22,7 +22,7 @@ import type {
   Schema,
   SubscribeListenerOptions,
   SubscribeRestArgs,
-  co,
+  coField,
 } from "../internal.js";
 import {
   CoValueBase,
@@ -134,7 +134,7 @@ export class CoMap extends CoValueBase implements CoValue {
    * @category Content
    **/
   get _refs(): {
-    [Key in CoKeys<this>]: IfCo<this[Key], RefIfCoValue<this[Key]>>;
+    [Key in CoKeys<this>]: IfCoField<this[Key], RefIfCoValue<this[Key]>>;
   } {
     return makeRefs<CoKeys<this>>(
       (key) => this._raw.get(key as string) as unknown as ID<CoValue>,
@@ -231,7 +231,10 @@ export class CoMap extends CoValueBase implements CoValue {
         },
       },
     ) as {
-      [Key in CoKeys<this>]: IfCo<this[Key], LastAndAllCoMapEdits<this[Key]>>;
+      [Key in CoKeys<this>]: IfCoField<
+        this[Key],
+        LastAndAllCoMapEdits<this[Key]>
+      >;
     };
   }
 
@@ -421,7 +424,7 @@ export class CoMap extends CoValueBase implements CoValue {
    *
    * @category Declaration
    */
-  static Record<Value>(value: IfCo<Value, Value>) {
+  static Record<Value>(value: IfCoField<Value, Value>) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
     class RecordLikeCoMap extends CoMap {
       [ItemsSym] = value;
@@ -642,18 +645,18 @@ export type CoKeys<Map extends object> = Exclude<
  *
  * map.requiredRef // this value is still nullable
  */
-type ForceRequiredRef<V> = V extends co<InstanceType<CoValueClass> | null>
+type ForceRequiredRef<V> = V extends coField<InstanceType<CoValueClass> | null>
   ? NonNullable<V>
-  : V extends co<InstanceType<CoValueClass> | undefined>
+  : V extends coField<InstanceType<CoValueClass> | undefined>
     ? V | null
     : V;
 
 export type CoMapInit<Map extends object> = {
   [Key in CoKeys<Map> as undefined extends Map[Key]
     ? never
-    : IfCo<Map[Key], Key>]: ForceRequiredRef<Map[Key]>;
+    : IfCoField<Map[Key], Key>]: ForceRequiredRef<Map[Key]>;
 } & {
-  [Key in CoKeys<Map> as IfCo<Map[Key], Key>]?: ForceRequiredRef<Map[Key]>;
+  [Key in CoKeys<Map> as IfCoField<Map[Key], Key>]?: ForceRequiredRef<Map[Key]>;
 };
 
 // TODO: cache handlers per descriptor for performance?

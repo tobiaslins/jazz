@@ -5,25 +5,25 @@ import {
   Account,
   CoMap,
   CryptoProvider,
-  co,
+  coField,
   loadCoValue,
   subscribeToCoValue,
 } from "../exports.js";
 
 class BaseWidget extends CoMap {
-  type = co.string;
+  type = coField.string;
 }
 
 class RedButtonWidget extends BaseWidget {
-  type = co.literal("button");
-  color = co.literal("red");
-  label = co.string;
+  type = coField.literal("button");
+  color = coField.literal("red");
+  label = coField.string;
 }
 
 class BlueButtonWidget extends BaseWidget {
-  type = co.literal("button");
-  color = co.literal("blue");
-  label = co.string;
+  type = coField.literal("button");
+  color = coField.literal("blue");
+  label = coField.string;
 }
 
 const ButtonWidget = SchemaUnion.Of<BaseWidget>((raw) => {
@@ -38,14 +38,14 @@ const ButtonWidget = SchemaUnion.Of<BaseWidget>((raw) => {
 });
 
 class SliderWidget extends BaseWidget {
-  type = co.literal("slider");
-  min = co.number;
-  max = co.number;
+  type = coField.literal("slider");
+  min = coField.number;
+  max = coField.number;
 }
 
 class CheckboxWidget extends BaseWidget {
-  type = co.literal("checkbox");
-  checked = co.boolean;
+  type = coField.literal("checkbox");
+  checked = coField.boolean;
 }
 
 const getWidgetSchemaFromRaw = (raw: BaseWidget["_raw"]) => {

@@ -14,7 +14,7 @@ import {
   CoMap,
   FileStream,
   Group,
-  co,
+  coField,
   cojsonInternals,
 } from "../index.js";
 import {
@@ -27,18 +27,18 @@ import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 import { setupAccount, waitFor } from "./utils.js";
 
 class ChatRoom extends CoMap {
-  messages = co.ref(MessagesList);
-  name = co.string;
+  messages = coField.ref(MessagesList);
+  name = coField.string;
 }
 
 class Message extends CoMap {
-  text = co.string;
-  reactions = co.ref(ReactionsStream);
-  attachment = co.optional.ref(FileStream);
+  text = coField.string;
+  reactions = coField.ref(ReactionsStream);
+  attachment = coField.optional.ref(FileStream);
 }
 
-class MessagesList extends CoList.Of(co.ref(Message)) {}
-class ReactionsStream extends CoFeed.Of(co.string) {}
+class MessagesList extends CoList.Of(coField.ref(Message)) {}
+class ReactionsStream extends CoFeed.Of(coField.string) {}
 
 function createChatRoom(me: Account | Group, name: string) {
   return ChatRoom.create(
@@ -376,10 +376,10 @@ describe("subscribeToCoValue", () => {
 
   it("should emit only once when loading a list of values", async () => {
     class TestMap extends CoMap {
-      value = co.string;
+      value = coField.string;
     }
 
-    class TestList extends CoList.Of(co.ref(TestMap)) {}
+    class TestList extends CoList.Of(coField.ref(TestMap)) {}
 
     const account = await createJazzTestAccount({
       isCurrentActiveAccount: true,
@@ -420,10 +420,10 @@ describe("subscribeToCoValue", () => {
 
   it("should emit when all the items become available", async () => {
     class TestMap extends CoMap {
-      value = co.string;
+      value = coField.string;
     }
 
-    class TestList extends CoList.Of(co.ref(TestMap)) {}
+    class TestList extends CoList.Of(coField.ref(TestMap)) {}
 
     const reader = await createJazzTestAccount({
       isCurrentActiveAccount: true,
@@ -490,10 +490,10 @@ describe("subscribeToCoValue", () => {
 
   it("should handle null values in lists with required refs", async () => {
     class TestMap extends CoMap {
-      value = co.string;
+      value = coField.string;
     }
 
-    class TestList extends CoList.Of(co.ref(TestMap)) {}
+    class TestList extends CoList.Of(coField.ref(TestMap)) {}
 
     const reader = await createJazzTestAccount({
       isCurrentActiveAccount: true,
@@ -561,10 +561,10 @@ describe("subscribeToCoValue", () => {
 
   it("should handle null values in lists with optional refs", async () => {
     class TestMap extends CoMap {
-      value = co.string;
+      value = coField.string;
     }
 
-    class TestList extends CoList.Of(co.optional.ref(TestMap)) {}
+    class TestList extends CoList.Of(coField.optional.ref(TestMap)) {}
 
     const reader = await createJazzTestAccount({
       isCurrentActiveAccount: true,
@@ -626,7 +626,7 @@ describe("subscribeToCoValue", () => {
 
 describe("createCoValueObservable", () => {
   class TestMap extends CoMap {
-    color = co.string;
+    color = coField.string;
   }
 
   function createTestMap(me: Account | Group) {

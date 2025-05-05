@@ -1,26 +1,26 @@
 import { assert, describe, expect, test } from "vitest";
-import { Account, CoList, CoMap, Group, ID, co } from "../../exports";
+import { Account, CoList, CoMap, Group, ID, coField } from "../../exports";
 import { createJazzTestAccount, linkAccounts } from "../../testing";
 
 class RequestToJoin extends CoMap {
-  account = co.ref(Account);
-  status = co.literal("pending", "approved", "rejected");
+  account = coField.ref(Account);
+  status = coField.literal("pending", "approved", "rejected");
 }
 
-class ProjectsList extends CoList.Of(co.string) {}
+class ProjectsList extends CoList.Of(coField.string) {}
 
-class RequestsMap extends CoMap.Record(co.ref(RequestToJoin)) {}
+class RequestsMap extends CoMap.Record(coField.ref(RequestToJoin)) {}
 
 class RequestsStatus extends CoMap.Record(
-  co.literal("pending", "approved", "rejected"),
+  coField.literal("pending", "approved", "rejected"),
 ) {}
 
 class Organization extends CoMap {
-  name = co.string;
-  requests = co.ref(RequestsMap);
-  statuses = co.ref(RequestsStatus);
-  projects = co.ref(ProjectsList);
-  mainGroup = co.ref(Group);
+  name = coField.string;
+  requests = coField.ref(RequestsMap);
+  statuses = coField.ref(RequestsStatus);
+  projects = coField.ref(ProjectsList);
+  mainGroup = coField.ref(Group);
 }
 
 async function setup() {

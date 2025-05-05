@@ -22,7 +22,7 @@ import type {
 import {
   CoValueBase,
   Ref,
-  co,
+  coField,
   ensureCoValueLoaded,
   loadCoValueWithoutMe,
   parseGroupCreateOptions,

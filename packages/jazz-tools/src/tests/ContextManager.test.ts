@@ -9,7 +9,7 @@ import {
   InMemoryKVStore,
   JazzAuthContext,
   KvStoreContext,
-  co,
+  coField,
 } from "../exports";
 import {
   JazzContextManager,
@@ -227,13 +227,13 @@ describe("ContextManager", () => {
 
   test("the migration should be applied correctly on existing accounts", async () => {
     class AccountRoot extends CoMap {
-      value = co.string;
+      value = coField.string;
     }
 
     let lastRootId: string | undefined;
 
     class CustomAccount extends Account {
-      root = co.ref(AccountRoot);
+      root = coField.ref(AccountRoot);
 
       migrate() {
         this.root = AccountRoot.create({
@@ -272,11 +272,11 @@ describe("ContextManager", () => {
 
   test("the migration should be applied correctly on existing accounts (2)", async () => {
     class AccountRoot extends CoMap {
-      value = co.number;
+      value = coField.number;
     }
 
     class CustomAccount extends Account {
-      root = co.ref(AccountRoot);
+      root = coField.ref(AccountRoot);
 
       async migrate(this: CustomAccount) {
         if (this.root === undefined) {
@@ -316,12 +316,12 @@ describe("ContextManager", () => {
 
   test("onAnonymousAccountDiscarded should work on transfering data between accounts", async () => {
     class AccountRoot extends CoMap {
-      value = co.string;
-      transferredRoot = co.optional.ref(AccountRoot);
+      value = coField.string;
+      transferredRoot = coField.optional.ref(AccountRoot);
     }
 
     class CustomAccount extends Account {
-      root = co.ref(AccountRoot);
+      root = coField.ref(AccountRoot);
 
       migrate() {
         if (this.root === undefined) {

@@ -14,14 +14,14 @@ import type {
   SchemaFor,
   SubscribeListenerOptions,
   SubscribeRestArgs,
-  UnCo,
+  UnCoField,
 } from "../internal.js";
 import {
   AnonymousJazzAgent,
   ItemsSym,
   Ref,
   SchemaInit,
-  co,
+  coField,
   ensureCoValueLoaded,
   inspect,
   isRefEncoded,
@@ -76,7 +76,7 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
   static Of<Item>(item: Item): typeof CoList<Item> {
     // TODO: cache superclass for item class
     return class CoListOf extends CoList<Item> {
-      [co.items] = item;
+      [coField.items] = item;
     };
   }
 
@@ -138,7 +138,7 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
    **/
   get _refs(): {
     [idx: number]: Exclude<Item, null> extends CoValue
-      ? Ref<UnCo<Exclude<Item, null>>>
+      ? Ref<UnCoField<Exclude<Item, null>>>
       : never;
   } & {
     length: number;
@@ -226,7 +226,7 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
    **/
   static create<L extends CoList>(
     this: CoValueClass<L>,
-    items: UnCo<L[number]>[],
+    items: UnCoField<L[number]>[],
     options?: { owner: Account | Group } | Account | Group,
   ) {
     const { owner } = parseCoValueCreateOptions(options);

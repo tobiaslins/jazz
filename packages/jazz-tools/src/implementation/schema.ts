@@ -23,77 +23,79 @@ export const Encoders = {
   },
 };
 
-export type CoMarker = { readonly __co: unique symbol };
+export type CoFieldMarker = { readonly __co: unique symbol };
 /** @category Schema definition */
-export type co<T> = T | (T & CoMarker);
-export type IfCo<C, R> = C extends infer _A | infer B
-  ? B extends CoMarker
+export type coField<T> = T | (T & CoFieldMarker);
+export type IfCoField<C, R> = C extends infer _A | infer B
+  ? B extends CoFieldMarker
     ? R extends JazzToolsSymbol // Exclude symbol properties like co.items from the refs/init types
       ? never
       : R
     : never
   : never;
-export type UnCo<T> = T extends co<infer A> ? A : T;
+export type UnCoField<T> = T extends coField<infer A> ? A : T;
 
 const optional = {
   ref: optionalRef,
-  json<T extends CojsonInternalTypes.CoJsonValue<T>>(): co<T | undefined> {
+  json<T extends CojsonInternalTypes.CoJsonValue<T>>(): coField<T | undefined> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return { [SchemaInit]: "json" satisfies Schema } as any;
   },
-  encoded<T>(arg: OptionalEncoder<T>): co<T | undefined> {
+  encoded<T>(arg: OptionalEncoder<T>): coField<T | undefined> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return { [SchemaInit]: { encoded: arg } satisfies Schema } as any;
   },
   string: {
     [SchemaInit]: "json" satisfies Schema,
-  } as unknown as co<string | undefined>,
+  } as unknown as coField<string | undefined>,
   number: {
     [SchemaInit]: "json" satisfies Schema,
-  } as unknown as co<number | undefined>,
+  } as unknown as coField<number | undefined>,
   boolean: {
     [SchemaInit]: "json" satisfies Schema,
-  } as unknown as co<boolean | undefined>,
+  } as unknown as coField<boolean | undefined>,
   null: {
     [SchemaInit]: "json" satisfies Schema,
-  } as unknown as co<null | undefined>,
+  } as unknown as coField<null | undefined>,
   Date: {
     [SchemaInit]: { encoded: Encoders.OptionalDate } satisfies Schema,
-  } as unknown as co<Date | undefined>,
+  } as unknown as coField<Date | undefined>,
   literal<T extends (string | number | boolean)[]>(
     ..._lit: T
-  ): co<T[number] | undefined> {
+  ): coField<T[number] | undefined> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return { [SchemaInit]: "json" satisfies Schema } as any;
   },
 };
 
 /** @category Schema definition */
-export const co = {
+export const coField = {
   string: {
     [SchemaInit]: "json" satisfies Schema,
-  } as unknown as co<string>,
+  } as unknown as coField<string>,
   number: {
     [SchemaInit]: "json" satisfies Schema,
-  } as unknown as co<number>,
+  } as unknown as coField<number>,
   boolean: {
     [SchemaInit]: "json" satisfies Schema,
-  } as unknown as co<boolean>,
+  } as unknown as coField<boolean>,
   null: {
     [SchemaInit]: "json" satisfies Schema,
-  } as unknown as co<null>,
+  } as unknown as coField<null>,
   Date: {
     [SchemaInit]: { encoded: Encoders.Date } satisfies Schema,
-  } as unknown as co<Date>,
-  literal<T extends (string | number | boolean)[]>(..._lit: T): co<T[number]> {
+  } as unknown as coField<Date>,
+  literal<T extends (string | number | boolean)[]>(
+    ..._lit: T
+  ): coField<T[number]> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return { [SchemaInit]: "json" satisfies Schema } as any;
   },
-  json<T extends CojsonInternalTypes.CoJsonValue<T>>(): co<T> {
+  json<T extends CojsonInternalTypes.CoJsonValue<T>>(): coField<T> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return { [SchemaInit]: "json" satisfies Schema } as any;
   },
-  encoded<T>(arg: Encoder<T>): co<T> {
+  encoded<T>(arg: Encoder<T>): coField<T> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return { [SchemaInit]: { encoded: arg } satisfies Schema } as any;
   },
@@ -104,18 +106,18 @@ export const co = {
 
 function optionalRef<C extends CoValueClass>(
   arg: C | ((_raw: InstanceType<C>["_raw"]) => C),
-): co<InstanceType<C> | null | undefined> {
+): coField<InstanceType<C> | null | undefined> {
   return ref(arg, { optional: true });
 }
 
 function ref<C extends CoValueClass>(
   arg: C | ((_raw: InstanceType<C>["_raw"]) => C),
   options?: never,
-): co<InstanceType<C> | null>;
+): coField<InstanceType<C> | null>;
 function ref<C extends CoValueClass>(
   arg: C | ((_raw: InstanceType<C>["_raw"]) => C),
   options: { optional: true },
-): co<InstanceType<C> | null | undefined>;
+): coField<InstanceType<C> | null | undefined>;
 function ref<
   C extends CoValueClass,
   Options extends { optional?: boolean } | undefined,
@@ -123,8 +125,8 @@ function ref<
   arg: C | ((_raw: InstanceType<C>["_raw"]) => C),
   options?: Options,
 ): Options extends { optional: true }
-  ? co<InstanceType<C> | null | undefined>
-  : co<InstanceType<C> | null> {
+  ? coField<InstanceType<C> | null | undefined>
+  : coField<InstanceType<C> | null> {
   return {
     [SchemaInit]: {
       ref: arg,

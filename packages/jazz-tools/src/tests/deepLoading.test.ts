@@ -10,7 +10,7 @@ import {
   ID,
   Profile,
   SessionID,
-  co,
+  coField,
   createJazzContextFromExistingCredentials,
   isControlledAccount,
 } from "../index.js";
@@ -22,20 +22,20 @@ const Crypto = await WasmCrypto.create();
 const { connectedPeers } = cojsonInternals;
 
 class TestMap extends CoMap {
-  list = co.ref(TestList);
-  optionalRef = co.ref(InnermostMap, { optional: true });
+  list = coField.ref(TestList);
+  optionalRef = coField.ref(InnermostMap, { optional: true });
 }
 
-class TestList extends CoList.Of(co.ref(() => InnerMap)) {}
+class TestList extends CoList.Of(coField.ref(() => InnerMap)) {}
 
 class InnerMap extends CoMap {
-  stream = co.ref(TestStream);
+  stream = coField.ref(TestStream);
 }
 
-class TestStream extends CoFeed.Of(co.ref(() => InnermostMap)) {}
+class TestStream extends CoFeed.Of(coField.ref(() => InnermostMap)) {}
 
 class InnermostMap extends CoMap {
-  value = co.string;
+  value = coField.string;
 }
 
 describe("Deep loading with depth arg", async () => {
@@ -190,12 +190,12 @@ describe("Deep loading with depth arg", async () => {
 });
 
 class CustomProfile extends Profile {
-  stream = co.ref(TestStream);
+  stream = coField.ref(TestStream);
 }
 
 class CustomAccount extends Account {
-  profile = co.ref(CustomProfile);
-  root = co.ref(TestMap);
+  profile = coField.ref(CustomProfile);
+  root = coField.ref(TestMap);
 
   async migrate(
     this: CustomAccount,
@@ -259,7 +259,7 @@ test("Deep loading within account", async () => {
   expect(meLoaded.root.list).toBeTruthy();
 });
 
-class RecordLike extends CoMap.Record(co.ref(TestMap)) {}
+class RecordLike extends CoMap.Record(coField.ref(TestMap)) {}
 
 test("Deep loading a record-like coMap", async () => {
   const me = await Account.create({
@@ -613,15 +613,15 @@ describe("Deep loading with unauthorized account", async () => {
 
   test("setting null via proxy", async () => {
     class Lv1 extends CoMap {
-      lv2 = co.ref(Lv2);
+      lv2 = coField.ref(Lv2);
     }
 
     class Lv2 extends CoMap {
-      lv3 = co.optional.ref(Lv3);
+      lv3 = coField.optional.ref(Lv3);
     }
 
     class Lv3 extends CoMap {
-      string = co.string;
+      string = coField.string;
     }
 
     const map = Lv1.create(
@@ -642,10 +642,10 @@ describe("Deep loading with unauthorized account", async () => {
 
 test("doesn't break on Map.Record key deletion when the key is referenced in the depth", async () => {
   class JazzProfile extends CoMap {
-    firstName = co.string;
+    firstName = coField.string;
   }
 
-  class JazzySnapStore extends CoMap.Record(co.ref(JazzProfile)) {}
+  class JazzySnapStore extends CoMap.Record(coField.ref(JazzProfile)) {}
 
   const snapStore = JazzySnapStore.create({
     profile1: JazzProfile.create({ firstName: "John" }),
@@ -678,11 +678,11 @@ test("doesn't break on Map.Record key deletion when the key is referenced in the
 
 test("throw when calling ensureLoaded on a ref that's required but missing", async () => {
   class JazzProfile extends CoMap {
-    firstName = co.string;
+    firstName = coField.string;
   }
 
   class JazzRoot extends CoMap {
-    profile = co.ref(JazzProfile);
+    profile = coField.ref(JazzProfile);
   }
 
   const me = await Account.create({
@@ -722,10 +722,10 @@ test("throw when calling ensureLoaded on a ref that is not defined in the schema
 
 test("should not throw when calling ensureLoaded a record with a deleted ref", async () => {
   class JazzProfile extends CoMap {
-    firstName = co.string;
+    firstName = coField.string;
   }
 
-  class JazzySnapStore extends CoMap.Record(co.ref(JazzProfile)) {}
+  class JazzySnapStore extends CoMap.Record(coField.ref(JazzProfile)) {}
 
   const me = await Account.create({
     creationProps: { name: "Tester McTesterson" },

@@ -4,11 +4,11 @@ import { CoMap } from "../coValues/coMap";
 import { Group } from "../coValues/group";
 import { Inbox, InboxSender } from "../coValues/inbox";
 import { Profile } from "../exports";
-import { co } from "../internal";
+import { coField } from "../internal";
 import { setupTwoNodes, waitFor } from "./utils";
 
 class Message extends CoMap {
-  text = co.string;
+  text = coField.string;
 }
 
 describe("Inbox", () => {

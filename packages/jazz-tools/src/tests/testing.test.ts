@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import { Account, CoMap, Group, co } from "../exports";
+import { Account, CoMap, Group, coField } from "../exports";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing";
 
 describe("Jazz Test Sync", () => {
@@ -26,11 +26,11 @@ describe("Jazz Test Sync", () => {
 
   test("correctly set the globalMe before starting the migration", async () => {
     class MyRoot extends CoMap {
-      value = co.string;
+      value = coField.string;
     }
 
     class CustomAccount extends Account {
-      root = co.ref(MyRoot);
+      root = coField.ref(MyRoot);
 
       migrate() {
         if (this.root === undefined) {
@@ -51,11 +51,11 @@ describe("Jazz Test Sync", () => {
 
   test("correctly manages the global me during the migrations", async () => {
     class MyRoot extends CoMap {
-      value = co.string;
+      value = coField.string;
     }
 
     class CustomAccount extends Account {
-      root = co.ref(MyRoot);
+      root = coField.ref(MyRoot);
 
       migrate() {
         if (this.root === undefined) {
