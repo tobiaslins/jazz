@@ -170,15 +170,39 @@ export function useCoState<V extends CoValue, R extends RefsToResolve<V>>(
   // Create state and a stable observable
   let state = $state.raw<Resolved<V, R> | undefined | null>(undefined);
 
+  function resetState() {
+    state = undefined;
+  }
+
+  function setState(value: Resolved<V, R> | undefined | null) {
+    state = value;
+  }
+
   // Effect to handle subscription
   $effect(() => {
     // Reset state when dependencies change
-    state = undefined;
+    resetState();
+    let stateSet = false;
 
     // Return early if no context or id, effectively cleaning up any previous subscription
     if (!ctx?.current || !id) return;
 
     const agent = "me" in ctx.current ? ctx.current.me : ctx.current.guest;
+
+    let nextState: Resolved<V, R> | undefined | null = undefined;
+    let updateScheduled = false;
+
+    function scheduleUpdate(value: Resolved<V, R>) {
+      nextState = value;
+
+      if (!updateScheduled) {
+        updateScheduled = true;
+        queueMicrotask(() => {
+          updateScheduled = false;
+          setState(nextState);
+        });
+      }
+    }
 
     // Setup subscription with current values
     return subscribeToCoValue<V, R>(
@@ -196,8 +220,12 @@ export function useCoState<V extends CoValue, R extends RefsToResolve<V>>(
         syncResolution: true,
       },
       (value) => {
-        // Get current value from our stable observable
-        state = value;
+        if (!stateSet) {
+          setState(value);
+          stateSet = true;
+        } else {
+          scheduleUpdate(value);
+        }
       },
     );
   });
