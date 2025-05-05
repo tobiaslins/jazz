@@ -7,7 +7,7 @@ import type {
   UnCo,
 } from "../internal.js";
 import { isRefEncoded } from "../internal.js";
-import { getResolutionNode } from "./subscribe.js";
+import { accessChildById, getResolutionNode } from "./subscribe.js";
 
 export class Ref<out V extends CoValue> {
   constructor(
@@ -55,35 +55,7 @@ export class Ref<out V extends CoValue> {
   }
 
   get value(): V | null | undefined {
-    return this.accessById();
-  }
-
-  accessById(): V | null | undefined {
-    const resolutionNode = getResolutionNode(this.parent);
-
-    resolutionNode.subscribeToId(this.id, this.schema);
-
-    const value = resolutionNode.childValues.get(this.id);
-
-    if (value?.type === "loaded") {
-      return value.value as V;
-    } else {
-      return null;
-    }
-  }
-
-  accessByKey(key: string): V | null | undefined {
-    const resolutionNode = getResolutionNode(this.parent);
-
-    resolutionNode.subscribeToKey(key);
-
-    const value = resolutionNode.childValues.get(this.id);
-
-    if (value?.type === "loaded") {
-      return value.value as V;
-    } else {
-      return null;
-    }
+    return accessChildById(this.parent, this.id, this.schema);
   }
 }
 

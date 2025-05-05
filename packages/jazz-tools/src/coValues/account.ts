@@ -31,6 +31,7 @@ import {
   SchemaInit,
   SubscribeListenerOptions,
   SubscribeRestArgs,
+  accessChildByKey,
   ensureCoValueLoaded,
   inspect,
   loadCoValue,
@@ -456,16 +457,14 @@ export class Account extends CoValueBase implements CoValue {
 
 export const AccountAndGroupProxyHandler: ProxyHandler<Account | Group> = {
   get(target, key, receiver) {
-    if (key === "profile") {
-      const ref = target._refs.profile;
-      return ref
-        ? ref.accessById()
-        : // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (undefined as any);
-    } else if (key === "root") {
-      const ref = target._refs.root;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return ref ? ref.accessById() : (undefined as any);
+    if (key === "profile" || key === "root") {
+      const id = target._raw.get(key);
+
+      if (id) {
+        return accessChildByKey(target, id, key);
+      } else {
+        return undefined;
+      }
     } else {
       return Reflect.get(target, key, receiver);
     }

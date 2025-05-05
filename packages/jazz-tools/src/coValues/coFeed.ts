@@ -30,6 +30,7 @@ import {
   ItemsSym,
   Ref,
   SchemaInit,
+  accessChildById,
   co,
   ensureCoValueLoaded,
   inspect,
@@ -442,9 +443,11 @@ function entryFromRawEntry<Item>(
       } else if ("encoded" in itemField) {
         return itemField.encoded.decode(rawEntry.value);
       } else if (isRefEncoded(itemField)) {
-        return this.ref?.accessById() as NonNullable<Item> extends CoValue
-          ? (CoValue & Item) | null
-          : Item;
+        return accessChildById(
+          accessFrom,
+          rawEntry.value as string,
+          itemField,
+        ) as NonNullable<Item> extends CoValue ? (CoValue & Item) | null : Item;
       } else {
         throw new Error("Invalid item field schema");
       }
@@ -467,15 +470,10 @@ function entryFromRawEntry<Item>(
     get by() {
       return (
         accountID &&
-        new Ref<Account>(
-          accountID as unknown as ID<Account>,
-          loadedAs,
-          {
-            ref: RegisteredSchemas["Account"],
-            optional: false,
-          },
-          accessFrom,
-        )?.accessById()
+        accessChildById(accessFrom, rawEntry.value as string, {
+          ref: RegisteredSchemas["Account"],
+          optional: false,
+        })
       );
     },
     madeAt: rawEntry.at,

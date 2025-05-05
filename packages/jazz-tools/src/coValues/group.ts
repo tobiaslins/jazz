@@ -22,6 +22,7 @@ import type {
 import {
   CoValueBase,
   Ref,
+  accessChildById,
   co,
   ensureCoValueLoaded,
   loadCoValueWithoutMe,
@@ -185,7 +186,8 @@ export class Group extends CoValueBase implements CoValue {
           refEncodedAccountSchema,
           this,
         );
-        const accessRef = () => ref.accessById();
+
+        const group = this;
 
         members.push({
           id: accountID as unknown as ID<Account>,
@@ -193,7 +195,7 @@ export class Group extends CoValueBase implements CoValue {
           ref,
           get account() {
             // Accounts values are non-nullable because are loaded as dependencies
-            return accessRef() as RegisteredAccount;
+            return accessChildById(group, accountID, refEncodedAccountSchema);
           },
         });
       }

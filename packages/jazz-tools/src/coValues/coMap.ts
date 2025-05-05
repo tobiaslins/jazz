@@ -29,6 +29,8 @@ import {
   ItemsSym,
   Ref,
   SchemaInit,
+  accessChildById,
+  accessChildByKey,
   ensureCoValueLoaded,
   inspect,
   isRefEncoded,
@@ -175,12 +177,7 @@ export class CoMap extends CoValueBase implements CoValue {
             ? rawEdit.value === null || rawEdit.value === undefined
               ? rawEdit.value
               : descriptor.encoded.decode(rawEdit.value)
-            : new Ref(
-                rawEdit.value as ID<CoValue>,
-                target._loadedAs,
-                descriptor,
-                target,
-              ).accessById(),
+            : accessChildById(target, rawEdit.value as string, descriptor),
       ref:
         descriptor !== "json" && isRefEncoded(descriptor)
           ? new Ref(
@@ -192,15 +189,10 @@ export class CoMap extends CoValueBase implements CoValue {
           : undefined,
       by:
         rawEdit.by &&
-        new Ref<Account>(
-          rawEdit.by as ID<Account>,
-          target._loadedAs,
-          {
-            ref: RegisteredSchemas["Account"],
-            optional: false,
-          },
-          target,
-        ).accessById(),
+        accessChildById(target, rawEdit.by, {
+          ref: RegisteredSchemas["Account"],
+          optional: false,
+        }),
       madeAt: rawEdit.at,
       key,
     };
@@ -699,12 +691,7 @@ const CoMapProxyHandler: ProxyHandler<CoMap> = {
       } else if (isRefEncoded(descriptor)) {
         return raw === undefined
           ? undefined
-          : new Ref(
-              raw as unknown as ID<CoValue>,
-              target._loadedAs,
-              descriptor,
-              target,
-            ).accessByKey(key);
+          : accessChildByKey(target, raw as string, key);
       }
     }
   },

@@ -195,6 +195,43 @@ export function getResolutionNode<D extends CoValue>(value: D) {
   return newResolutionNode;
 }
 
+/** Autoload internals */
+export function accessChildByKey<D extends CoValue>(
+  parent: D,
+  childId: string,
+  key: string,
+) {
+  const resolutionNode = getResolutionNode(parent);
+
+  resolutionNode.subscribeToKey(key);
+
+  const value = resolutionNode.childValues.get(childId);
+
+  if (value?.type === "loaded") {
+    return value.value;
+  } else {
+    return null;
+  }
+}
+
+export function accessChildById<D extends CoValue>(
+  parent: D,
+  childId: string,
+  schema: RefEncoded<CoValue>,
+) {
+  const resolutionNode = getResolutionNode(parent);
+
+  resolutionNode.subscribeToId(childId, schema);
+
+  const value = resolutionNode.childValues.get(childId);
+
+  if (value?.type === "loaded") {
+    return value.value;
+  } else {
+    return null;
+  }
+}
+
 export class CoValueResolutionNode<D extends CoValue> {
   childNodes = new Map<string, CoValueResolutionNode<CoValue>>();
   childValues: Map<string, SubscriptionValue<any, any> | Unloaded> = new Map<
@@ -212,7 +249,6 @@ export class CoValueResolutionNode<D extends CoValue> {
   autoloaded = new Set<string>();
   totalValidTransactions = 0;
 
-  // TODO: Find a better solution
   batchingUpdates = false;
 
   constructor(

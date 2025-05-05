@@ -21,6 +21,7 @@ import {
   ItemsSym,
   Ref,
   SchemaInit,
+  accessChildByKey,
   co,
   ensureCoValueLoaded,
   inspect,
@@ -581,12 +582,7 @@ const CoListProxyHandler: ProxyHandler<CoList> = {
       } else if (isRefEncoded(itemDescriptor)) {
         return rawValue === undefined
           ? undefined
-          : new Ref(
-              rawValue as unknown as ID<CoValue>,
-              target._loadedAs,
-              itemDescriptor,
-              target,
-            ).accessByKey(key);
+          : accessChildByKey(target, rawValue as string, key);
       }
     } else if (key === "length") {
       return target._raw.entries().length;
