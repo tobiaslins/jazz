@@ -61,9 +61,7 @@ test('can login with passkey and upload file', async ({ page, browser }) => {
   // Verify the uploaded file appears in the list
   await expect(page.getByText('test-file.txt')).toBeVisible();
 
-  await page.getByRole('button', { name: 'Share file' }).click({
-    timeout: 60_000,
-  });
+  await page.getByRole('button', { name: 'Share file' }).click();
   const inviteLink = await page.evaluate(() => navigator.clipboard.readText());
 
   // Create a new incognito instance and try to load the shared file
