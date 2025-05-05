@@ -7,7 +7,7 @@ export * from "./implementation/anonymousJazzAgent.js";
 export * from "./implementation/errors.js";
 export * from "./implementation/refs.js";
 export * from "./implementation/schema.js";
-export * from "./implementation/subscribe.js";
+export * from "./subscribe/index.js";
 export * from "./implementation/createContext.js";
 
 import "./implementation/devtoolsFormatters.js";

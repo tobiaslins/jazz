@@ -1,236 +1,16 @@
-import { LocalNode, RawAccount, RawCoMap, RawCoValue, RawGroup } from "cojson";
-import { CoValueState } from "cojson/dist/coValueState.js";
-import { RegisteredSchemas } from "../coValues/registeredSchemas.js";
-import { CoFeed, CoList, CoMap } from "../exports.js";
+import type { LocalNode, RawCoValue } from "cojson";
+import type { CoFeed, CoList, CoMap } from "../exports.js";
 import {
-  CoValue,
-  CoValueClass,
-  ID,
-  RefEncoded,
-  RefsToResolve,
-  Resolved,
-  instantiateRefEncoded,
+  type CoValue,
+  type ID,
+  type RefEncoded,
+  type RefsToResolve,
   isRefEncoded,
 } from "../internal.js";
-import { coValuesCache } from "../lib/cache.js";
-
-type JazzErrorIssue = {
-  code: "unavailable" | "unauthorized" | "validationError";
-  message: string;
-  params: Record<string, any>;
-  path: string[];
-};
-
-type SubscriptionValue<D extends CoValue, R extends RefsToResolve<D>> =
-  | { type: "loaded"; value: Resolved<D, R>; id: string }
-  | JazzError;
-type Unloaded = { type: "unloaded"; id: string };
-
-class JazzError {
-  constructor(
-    public id: ID<CoValue> | undefined,
-    public type: "unavailable" | "unauthorized",
-    public issues: JazzErrorIssue[],
-  ) {}
-
-  toString() {
-    return this.issues
-      .map((issue) => {
-        let message = `${issue.message}`;
-
-        if (this.id) {
-          message += ` from ${this.id}`;
-        }
-
-        if (issue.path.length > 0) {
-          message += ` on path ${issue.path.join(".")}`;
-        }
-
-        return message;
-      })
-      .join("\n");
-  }
-
-  prependPath(item: string) {
-    if (this.issues.length === 0) {
-      return this;
-    }
-
-    const issues = this.issues.map((issue) => {
-      return {
-        ...issue,
-        path: [item].concat(issue.path),
-      };
-    });
-
-    return new JazzError(this.id, this.type, issues);
-  }
-}
-
-export function getOwnerFromRawValue(raw: RawCoValue) {
-  let owner = raw instanceof RawGroup ? raw : raw.group;
-
-  return coValuesCache.get(owner as any, () =>
-    owner instanceof RawAccount
-      ? RegisteredSchemas["Account"].fromRaw(owner)
-      : RegisteredSchemas["Group"].fromRaw(owner as any),
-  );
-}
-
-class Subscription {
-  _unsubscribe: () => void = () => {};
-  unsubscribed = false;
-
-  value: RawCoMap | undefined;
-
-  constructor(
-    public node: LocalNode,
-    public id: string,
-    public listener: (value: RawCoValue | "unavailable") => void,
-  ) {
-    const entry = this.node.coValuesStore.get(this.id as any);
-
-    if (entry?.core) {
-      this.subscribe(entry.core.getCurrentContent());
-    } else {
-      this.node.loadCoValueCore(this.id as any).then((value) => {
-        if (this.unsubscribed) return;
-
-        if (value !== "unavailable") {
-          this.subscribe(value.getCurrentContent());
-        } else {
-          this.listener("unavailable");
-
-          // Wait for the state to become loaded
-          this.subscribeToState();
-        }
-      });
-    }
-  }
-
-  subscribeToState() {
-    const entry = this.node.coValuesStore.get(this.id as any);
-    const handleStateChange = (entry: CoValueState) => {
-      if (this.unsubscribed) {
-        entry.removeListener(handleStateChange);
-        return;
-      }
-
-      if (entry.core) {
-        const core = entry.core;
-
-        this.subscribe(core.getCurrentContent());
-        entry.removeListener(handleStateChange);
-      }
-    };
-
-    entry.addListener(handleStateChange);
-
-    this._unsubscribe = () => {
-      entry.removeListener(handleStateChange);
-    };
-  }
-
-  subscribe(value: RawCoValue) {
-    if (this.unsubscribed) return;
-
-    this._unsubscribe = value.subscribe((value) => {
-      this.listener(value);
-    });
-
-    this.listener(value);
-  }
-
-  unsubscribe() {
-    if (this.unsubscribed) return;
-    this.unsubscribed = true;
-    this._unsubscribe();
-  }
-}
-
-function createCoValue<D extends CoValue>(
-  ref: RefEncoded<D>,
-  raw: RawCoValue,
-  resolutionNode: CoValueResolutionNode<D>,
-) {
-  const freshValueInstance = instantiateRefEncoded(ref, raw);
-
-  Object.defineProperty(freshValueInstance, "_resolutionNode", {
-    value: resolutionNode,
-    writable: false,
-    enumerable: false,
-    configurable: false,
-  });
-
-  return {
-    type: "loaded" as const,
-    value: freshValueInstance,
-    id: resolutionNode.id,
-  };
-}
-
-export function getResolutionNode<D extends CoValue>(value: D) {
-  const resolutionNode = value._resolutionNode;
-
-  if (resolutionNode) {
-    return resolutionNode;
-  }
-
-  const node = value._raw.core.node;
-  const resolve = true;
-  const id = value.id;
-
-  const newResolutionNode = new CoValueResolutionNode(node, resolve, id, {
-    ref: value.constructor as CoValueClass<D>,
-    optional: false,
-  });
-
-  Object.defineProperty(value, "_resolutionNode", {
-    value: resolutionNode,
-    writable: false,
-    enumerable: false,
-    configurable: false,
-  });
-
-  return newResolutionNode;
-}
-
-/** Autoload internals */
-export function accessChildByKey<D extends CoValue>(
-  parent: D,
-  childId: string,
-  key: string,
-) {
-  const resolutionNode = getResolutionNode(parent);
-
-  resolutionNode.subscribeToKey(key);
-
-  const value = resolutionNode.childValues.get(childId);
-
-  if (value?.type === "loaded") {
-    return value.value;
-  } else {
-    return null;
-  }
-}
-
-export function accessChildById<D extends CoValue>(
-  parent: D,
-  childId: string,
-  schema: RefEncoded<CoValue>,
-) {
-  const resolutionNode = getResolutionNode(parent);
-
-  resolutionNode.subscribeToId(childId, schema);
-
-  const value = resolutionNode.childValues.get(childId);
-
-  if (value?.type === "loaded") {
-    return value.value;
-  } else {
-    return null;
-  }
-}
+import { CoValueCoreSubscription } from "./CoValueCoreSubscription.js";
+import { JazzError, type JazzErrorIssue } from "./JazzError.js";
+import type { SubscriptionValue, Unloaded } from "./types.js";
+import { createCoValue, getOwnerFromRawValue } from "./utils.js";
 
 export class CoValueResolutionNode<D extends CoValue> {
   childNodes = new Map<string, CoValueResolutionNode<CoValue>>();
@@ -242,7 +22,7 @@ export class CoValueResolutionNode<D extends CoValue> {
   childErrors: Map<string, JazzError> = new Map();
   validationErrors: Map<string, JazzError> = new Map();
   errorFromChildren: JazzError | undefined;
-  subscription: Subscription;
+  subscription: CoValueCoreSubscription;
   dirty = false;
   resolve: RefsToResolve<any>;
   idsSubscribed = new Set<string>();
@@ -259,7 +39,7 @@ export class CoValueResolutionNode<D extends CoValue> {
   ) {
     this.resolve = resolve;
     this.value = { type: "unloaded", id };
-    this.subscription = new Subscription(node, id, (value) => {
+    this.subscription = new CoValueCoreSubscription(node, id, (value) => {
       this.handleUpdate(value);
     });
   }

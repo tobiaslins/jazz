@@ -7,7 +7,7 @@ import type {
   UnCo,
 } from "../internal.js";
 import { isRefEncoded } from "../internal.js";
-import { accessChildById, getResolutionNode } from "./subscribe.js";
+import { accessChildById, getResolutionNode } from "../subscribe/index.js";
 
 export class Ref<out V extends CoValue> {
   constructor(
