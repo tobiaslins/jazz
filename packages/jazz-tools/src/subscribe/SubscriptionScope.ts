@@ -224,7 +224,7 @@ export class SubscriptionScope<D extends CoValue> {
     };
   }
 
-  setListener(listener: (value: SubscriptionValue<D, any> | Unloaded) => void) {
+  setListener(listener: (value: SubscriptionValue<D, any>) => void) {
     this.subscribers.add(listener);
     this.triggerUpdate();
   }

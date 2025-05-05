@@ -9,6 +9,7 @@ import { AnonymousJazzAgent } from "../implementation/anonymousJazzAgent.js";
 import { inspect } from "../internal.js";
 import { coValuesCache } from "../lib/cache.js";
 import { SubscriptionScope } from "../subscribe/SubscriptionScope.js";
+import { SubscriptionValue } from "../subscribe/types.js";
 import { type Account } from "./account.js";
 import { RefsToResolve, RefsToResolveStrict, Resolved } from "./deepLoading.js";
 import { type Group } from "./group.js";
@@ -179,6 +180,7 @@ export function loadCoValue<
       {
         resolve: options.resolve,
         loadAs: options.loadAs,
+        syncResolution: true,
         onUnavailable: () => {
           resolve(null);
         },
@@ -319,10 +321,9 @@ export function subscribeToCoValue<
     optional: false,
   });
 
-  rootNode.setListener((value) => {
+  const handleUpdate = (value: SubscriptionValue<V, any>) => {
     if (unsubscribed) return;
 
-    // TODO: Pass errors
     if (value.type === "unavailable") {
       options.onUnavailable?.();
 
@@ -333,6 +334,19 @@ export function subscribeToCoValue<
       console.error(value.toString());
     } else if (value.type === "loaded") {
       listener(value.value as Resolved<V, R>, unsubscribe);
+    }
+  };
+
+  let shouldDefer = !options.syncResolution;
+
+  rootNode.setListener((value) => {
+    if (shouldDefer) {
+      shouldDefer = false;
+      Promise.resolve().then(() => {
+        handleUpdate(value);
+      });
+    } else {
+      handleUpdate(value);
     }
   });
 

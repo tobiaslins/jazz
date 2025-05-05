@@ -157,7 +157,7 @@ export class Group extends CoValueBase implements CoValue {
     id: ID<RegisteredAccount>;
     role: AccountRole;
     ref: Ref<RegisteredAccount>;
-    account: RegisteredAccount | null | undefined;
+    account: RegisteredAccount;
   }> {
     const members = [];
 

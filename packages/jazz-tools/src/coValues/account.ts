@@ -480,13 +480,6 @@ export const AccountAndGroupProxyHandler: ProxyHandler<Account | Group> = {
       return true;
     } else if (key === "profile") {
       if (value) {
-        const ref = new Ref<Profile>(
-          value.id,
-          target._loadedAs,
-          target._schema.profile as RefEncoded<Profile>,
-          target,
-        );
-        target._refs.profile = ref;
         target._raw.set(
           "profile",
           value.id as unknown as CoID<RawCoMap>,
@@ -497,13 +490,6 @@ export const AccountAndGroupProxyHandler: ProxyHandler<Account | Group> = {
       return true;
     } else if (key === "root") {
       if (value) {
-        const ref = new Ref<CoMap>(
-          value.id,
-          target._loadedAs,
-          target._schema.root as RefEncoded<CoMap>,
-          target,
-        );
-        target._refs.root = ref;
         target._raw.set("root", value.id as unknown as CoID<RawCoMap>);
       }
       return true;
