@@ -13,10 +13,10 @@ CoMaps are typically defined by extending the `CoMap` class and specifying primi
 <CodeGroup>
 ```ts
 class Project extends CoMap {
-  name = co.string;
-  startDate = co.Date;
-  status = co.literal("planning", "active", "completed");
-  coordinator = co.optional.ref(Member);
+  name = coField.string;
+  startDate = coField.Date;
+  status = coField.literal("planning", "active", "completed");
+  coordinator = coField.optional.ref(Member);
 }
 ```
 </CodeGroup>
@@ -25,7 +25,7 @@ You can create either struct-like CoMaps with fixed fields (as above) or record-
 
 <CodeGroup>
 ```ts
-class Inventory extends CoMap.Record(co.number) {}
+class Inventory extends CoMap.Record(coField.number) {}
 ```
 </CodeGroup>
 
@@ -53,20 +53,20 @@ When creating CoMaps, you can specify ownership to control access:
 
 <CodeGroup>
 ```ts twoslash
-import { Group, co, CoMap } from "jazz-tools";
+import { Group, coField, CoMap } from "jazz-tools";
 import { createJazzTestAccount } from 'jazz-tools/testing';
 const me = await createJazzTestAccount();
 const memberAccount = await createJazzTestAccount();
 
 class Member extends CoMap {
-  name = co.string;
+  name = coField.string;
 }
 
 class Project extends CoMap {
-  name = co.string;
-  startDate = co.Date;
-  status = co.literal("planning", "active", "completed");
-  coordinator = co.optional.ref(Member);
+  name = coField.string;
+  startDate = coField.Date;
+  status = coField.literal("planning", "active", "completed");
+  coordinator = coField.optional.ref(Member);
 }
 
 // ---cut---
@@ -186,9 +186,9 @@ CoMaps support computed properties and methods:
 <CodeGroup>
 ```ts
 class ComputedProject extends CoMap {
-  name = co.string;
-  startDate = co.Date;
-  endDate = co.optional.Date;
+  name = coField.string;
+  startDate = coField.Date;
+  endDate = coField.optional.Date;
 
   get isActive() {
     const now = new Date();

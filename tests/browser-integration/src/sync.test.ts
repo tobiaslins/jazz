@@ -1,5 +1,5 @@
 import { commands } from "@vitest/browser/context";
-import { Account, AuthSecretStorage, CoMap, Group, co } from "jazz-tools";
+import { Account, AuthSecretStorage, CoMap, Group, coField } from "jazz-tools";
 import {
   assert,
   afterAll,
@@ -12,11 +12,11 @@ import {
 import { createAccountContext, startSyncServer } from "./testUtils";
 
 class TestMap extends CoMap {
-  value = co.string;
+  value = coField.string;
 }
 
 class CustomAccount extends Account {
-  root = co.ref(TestMap);
+  root = coField.ref(TestMap);
 
   migrate() {
     if (!this.root) {

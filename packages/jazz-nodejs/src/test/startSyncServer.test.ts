@@ -3,12 +3,12 @@ import { tmpdir } from "os";
 import { join } from "path";
 import { createWorkerAccount } from "jazz-run/createWorkerAccount";
 import { startSyncServer } from "jazz-run/startSyncServer";
-import { CoMap, co } from "jazz-tools";
+import { CoMap, coField } from "jazz-tools";
 import { describe, expect, test } from "vitest";
 import { startWorker } from "../index.js";
 
 class TestMap extends CoMap {
-  value = co.string;
+  value = coField.string;
 }
 
 describe("startSyncServer", () => {

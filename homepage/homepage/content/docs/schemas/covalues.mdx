@@ -34,8 +34,8 @@ Jazz makes it quick to declare schemas, since they are simple TypeScript classes
 {/* prettier-ignore */}
 ```ts
 export class TodoProject extends CoMap {
-    title = co.string;
-    tasks = co.ref(ListOfTasks);
+    title = coField.string;
+    tasks = coField.ref(ListOfTasks);
 }
 ```
 </CodeGroup>
@@ -71,9 +71,9 @@ You can either declare struct-like CoMaps:
 {/* prettier-ignore */}
 ```ts
 class Person extends CoMap {
-    name = co.string;
-    age = co.number;
-    pet = co.optional.ref(Pet);
+    name = coField.string;
+    age = coField.number;
+    pet = coField.optional.ref(Pet);
 }
 ```
 </CodeGroup>
@@ -83,9 +83,9 @@ Or record-like CoMaps (key-value pairs, where keys are always `string`):
 <CodeGroup>
 {/* prettier-ignore */}
 ```ts
-class ColorToHex extends CoMap.Record(co.string) {}
+class ColorToHex extends CoMap.Record(coField.string) {}
 
-class ColorToFruit extends CoMap.Record(co.ref(Fruit)) {}
+class ColorToFruit extends CoMap.Record(coField.ref(Fruit)) {}
 ```
 </CodeGroup>
 
@@ -104,9 +104,9 @@ You define them by specifying the type of the items they contain:
 <CodeGroup>
 {/* prettier-ignore */}
 ```ts
-class ListOfColors extends CoList.Of(co.string) {}
+class ListOfColors extends CoList.Of(coField.string) {}
 
-class ListOfTasks extends CoList.Of(co.ref(Task)) {}
+class ListOfTasks extends CoList.Of(coField.ref(Task)) {}
 ```
 </CodeGroup>
 
@@ -126,7 +126,7 @@ You define them by specifying the type of feed item:
 <CodeGroup>
 {/* prettier-ignore */}
 ```ts
-class FeedOfTasks extends CoFeed.Of(co.ref(Task)) {}
+class FeedOfTasks extends CoFeed.Of(coField.ref(Task)) {}
 ```
 </CodeGroup>
 
@@ -149,8 +149,8 @@ You typically don't need to declare or extend them yourself, you simply refer to
 import { FileStream } from "jazz-tools";
 
 class UserProfile extends CoMap {
-    name = co.string;
-    avatar = co.ref(FileStream);
+    name = coField.string;
+    avatar = coField.ref(FileStream);
 }
 ```
 </CodeGroup>
@@ -172,18 +172,18 @@ You declare them with a base class type and discriminating lambda, in which you 
 import { SchemaUnion, CoMap } from "jazz-tools";
 
 class BaseWidget extends CoMap {
-  type = co.string;
+  type = coField.string;
 }
 
 class ButtonWidget extends BaseWidget {
-  type = co.literal("button");
-  label = co.string;
+  type = coField.literal("button");
+  label = coField.string;
 }
 
 class SliderWidget extends BaseWidget {
-  type = co.literal("slider");
-  min = co.number;
-  max = co.number;
+  type = coField.literal("slider");
+  min = coField.number;
+  max = coField.number;
 }
 
 const WidgetUnion = SchemaUnion.Of<BaseWidget>((raw) => {
@@ -214,10 +214,10 @@ You can declare primitive field types using the `co` declarer:
 import { co } from "jazz-tools";
 
 export class Person extends CoMap {
-    title = co.string;
+    title = coField.string;
 }
 
-export class ListOfColors extends CoList.Of(co.string) {}
+export class ListOfColors extends CoList.Of(coField.string) {}
 ```
 </CodeGroup>
 
@@ -226,21 +226,21 @@ Here's a quick overview of the primitive types you can use:
 <CodeGroup>
 {/* prettier-ignore */}
 ```ts
-co.string;
-co.number;
-co.boolean;
+coField.string;
+coField.number;
+coField.boolean;
 co.null;
-co.Date;
-co.literal("waiting", "ready");
+coField.Date;
+coField.literal("waiting", "ready");
 ```
 </CodeGroup>
 
-Finally, for more complex JSON data, that you *don't want to be collaborative internally* (but only ever update as a whole), you can use `co.json<T>()`:
+Finally, for more complex JSON data, that you *don't want to be collaborative internally* (but only ever update as a whole), you can use `coField.json<T>()`:
 
 <CodeGroup>
 {/* prettier-ignore */}
 ```ts
-co.json<{ name: string }>();
+coField.json<{ name: string }>();
 ```
 </CodeGroup>
 
@@ -254,28 +254,28 @@ Internally, this is represented by storing the IDs of the referenced CoValues in
 
 The important caveat here is that **a referenced CoValue might or might not be loaded yet,** but we'll see what exactly that means in [Subscribing and Deep Loading](/docs/using-covalues/subscription-and-loading).
 
-In Schemas, you declare Refs using the `co.ref<T>()` declarer:
+In Schemas, you declare Refs using the `coField.ref<T>()` declarer:
 
 <CodeGroup>
 {/* prettier-ignore */}
 ```ts
 class Company extends CoMap {
-    members = co.ref(ListOfPeople);
+    members = coField.ref(ListOfPeople);
 }
 
-class ListOfPeople extends CoList.Of(co.ref(Person)) {}
+class ListOfPeople extends CoList.Of(coField.ref(Person)) {}
 ```
 </CodeGroup>
 
 #### Optional Refs
 
-⚠️ If you want to make a referenced CoValue field optional, you *have to* use `co.optional.ref<T>()`: ⚠️
+⚠️ If you want to make a referenced CoValue field optional, you *have to* use `coField.optional.ref<T>()`: ⚠️
 
 <CodeGroup>
 {/* prettier-ignore */}
 ```ts
 class Person extends CoMap {
-    pet = co.optional.ref(Pet);
+    pet = coField.optional.ref(Pet);
 }
 ```
 </CodeGroup>
@@ -288,9 +288,9 @@ Since CoValue schemas are based on classes, you can easily add computed fields a
 {/* prettier-ignore */}
 ```ts
 class Person extends CoMap {
-    firstName = co.string;
-    lastName = co.string;
-    dateOfBirth = co.Date;
+    firstName = coField.string;
+    lastName = coField.string;
+    dateOfBirth = coField.Date;
 
     get name() {
         return `${this.firstName} ${this.lastName}`;

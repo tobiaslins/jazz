@@ -64,10 +64,10 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
    * @example
    * ```ts
    * class ColorList extends CoList.Of(
-   *   co.string
+   *   coField.string
    * ) {}
    * class AnimalList extends CoList.Of(
-   *   co.ref(Animal)
+   *   coField.ref(Animal)
    * ) {}
    * ```
    *
@@ -121,7 +121,7 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
   }
 
   /**
-   * If a `CoList`'s items are a `co.ref(...)`, you can use `coList._refs[i]` to access
+   * If a `CoList`'s items are a `coField.ref(...)`, you can use `coList._refs[i]` to access
    * the `Ref` instead of the potentially loaded/null value.
    *
    * This allows you to always get the ID or load the value manually.

@@ -105,7 +105,7 @@ The previous way of making the `Profile` migration work was to assume that the p
 <CodeGroup>
 ```ts
 export class MyAppAccount extends Account {
-  profile = co.ref(MyAppProfile);
+  profile = coField.ref(MyAppProfile);
 
   async migrate(this: MyAppAccount, creationProps: { name: string, lastName: string }) {
     if (creationProps) {
@@ -127,7 +127,7 @@ This way you can use the same pattern for both `root` and `profile` migrations:
 <CodeGroup>
 ```ts
 export class MyAppAccount extends Account {
-  profile = co.ref(MyAppProfile);
+  profile = coField.ref(MyAppProfile);
 
   async migrate(this: MyAppAccount, creationProps?: { name: string }) {
     if (this.profile === undefined) {
@@ -220,7 +220,7 @@ and assigned its ownership to an `Account`, you need to recreate your profile co
 <CodeGroup>
 ```ts
 export class MyAppAccount extends Account {
-  profile = co.ref(MyAppProfile);
+  profile = coField.ref(MyAppProfile);
 
   override async migrate() {
     // ...

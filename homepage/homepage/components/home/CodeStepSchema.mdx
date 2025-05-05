@@ -1,8 +1,8 @@
 ```ts
 class Message extends CoMap {
-  text = co.string;
+  text = coField.string;
 }
 
-class Chat extends CoList.Of(co.ref(Message)) {}
+class Chat extends CoList.Of(coField.ref(Message)) {}
 ```
 

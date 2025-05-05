@@ -1,19 +1,19 @@
-import { Account, CoList, CoMap, Group, co } from "jazz-tools";
+import { Account, CoList, CoMap, Group, coField } from "jazz-tools";
 
 export class Project extends CoMap {
-  name = co.string;
+  name = coField.string;
 }
 
-export class ListOfProjects extends CoList.Of(co.ref(Project)) {}
+export class ListOfProjects extends CoList.Of(coField.ref(Project)) {}
 
 export class Organization extends CoMap {
-  name = co.string;
-  projects = co.ref(ListOfProjects);
+  name = coField.string;
+  projects = coField.ref(ListOfProjects);
 }
 
 export class DraftOrganization extends CoMap {
-  name = co.optional.string;
-  projects = co.ref(ListOfProjects);
+  name = coField.optional.string;
+  projects = coField.ref(ListOfProjects);
 
   validate() {
     const errors: string[] = [];
@@ -28,15 +28,15 @@ export class DraftOrganization extends CoMap {
   }
 }
 
-export class ListOfOrganizations extends CoList.Of(co.ref(Organization)) {}
+export class ListOfOrganizations extends CoList.Of(coField.ref(Organization)) {}
 
 export class JazzAccountRoot extends CoMap {
-  organizations = co.ref(ListOfOrganizations);
-  draftOrganization = co.ref(DraftOrganization);
+  organizations = coField.ref(ListOfOrganizations);
+  draftOrganization = coField.ref(DraftOrganization);
 }
 
 export class JazzAccount extends Account {
-  root = co.ref(JazzAccountRoot);
+  root = coField.ref(JazzAccountRoot);
 
   async migrate() {
     if (!this._refs.root) {

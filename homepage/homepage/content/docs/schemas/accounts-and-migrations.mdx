@@ -25,12 +25,12 @@ Every Jazz app that wants to refer to per-user data needs to define a custom roo
 import { Account, CoMap } from "jazz-tools";
 
 export class MyAppAccount extends Account {
-  root = co.ref(MyAppRoot);
+  root = coField.ref(MyAppRoot);
 }
 
 export class MyAppRoot extends CoMap {
-  myChats = co.ref(ListOfChats);
-  myContacts = co.ref(ListOfAccounts);
+  myChats = coField.ref(ListOfChats);
+  myContacts = coField.ref(ListOfAccounts);
 }
 
 // Register the Account schema so `useAccount` returns our custom `MyAppAccount`
@@ -54,11 +54,11 @@ Their pre-defined schemas roughly look like this:
 ```ts
 // ...somehwere in jazz-tools itself...
 export class Account extends Group {
-  profile = co.ref(Profile);
+  profile = coField.ref(Profile);
 }
 
 export class Profile extends CoMap {
-  name = co.string;
+  name = coField.string;
 }
 ```
 </CodeGroup>
@@ -73,8 +73,8 @@ If you want to keep the default `Profile` schema, but customise your account's p
 import { Account, Profile } from "jazz-tools";
 
 export class MyAppAccount extends Account {
-  profile = co.ref(Profile);
-  root = co.ref(MyAppRoot);
+  profile = coField.ref(Profile);
+  root = coField.ref(MyAppRoot);
 }
 ```
 </CodeGroup>
@@ -86,21 +86,21 @@ If you want to extend the `profile` to contain additional fields (such as an ava
 import { Account, Profile, ImageDefinition } from "jazz-tools"; // [!code ++]
 
 export class MyAppAccount extends Account {
-  profile = co.ref(MyAppProfile); // [!code ++]
-  root = co.ref(MyAppRoot);
+  profile = coField.ref(MyAppProfile); // [!code ++]
+  root = coField.ref(MyAppRoot);
 }
 
 export class MyAppRoot extends CoMap {
-  myChats = co.ref(ListOfChats);
-  myContacts = co.ref(ListOfAccounts);
+  myChats = coField.ref(ListOfChats);
+  myContacts = coField.ref(ListOfAccounts);
 }
 
 export class MyAppProfile extends Profile { // [!code ++:4]
-  name = co.string; // compatible with default Profile schema
-  avatar = co.optional.ref(ImageDefinition);
+  name = coField.string; // compatible with default Profile schema
+  avatar = coField.optional.ref(ImageDefinition);
 }
 
-// Register the Account schema so `useAccount` returns our custom `MyAppAccount` 
+// Register the Account schema so `useAccount` returns our custom `MyAppAccount`
 declare module "jazz-react" {
     interface Register {
         Account: MyAppAccount;
@@ -159,8 +159,8 @@ Jazz waits for the migration to finish before passing the account to your app's 
 {/* prettier-ignore */}
 ```ts
 export class MyAppAccount extends Account {
-  root = co.ref(MyAppRoot);
-  profile = co.ref(MyAppProfile);
+  root = coField.ref(MyAppRoot);
+  profile = coField.ref(MyAppProfile);
 
   async migrate(this: MyAppAccount, creationProps?: { name: string }) {
     // we specifically need to check for undefined,
@@ -203,15 +203,15 @@ Now let's say we want to add a `myBookmarks` field to the `root` schema:
 {/* prettier-ignore */}
 ```ts
 export class MyAppAccount extends Account {
-    root = co.ref(MyAppRoot);
+    root = coField.ref(MyAppRoot);
 
     async migrate(this: MyAppAccount) {
-      if (this.root === undefined) {  
-        this.root = MyAppRoot.create({  
-          myChats: ListOfChats.create([], Group.create()),  
-          myContacts: ListOfAccounts.create([], Group.create()) 
-        }); 
-      } 
+      if (this.root === undefined) {
+        this.root = MyAppRoot.create({
+          myChats: ListOfChats.create([], Group.create()),
+          myContacts: ListOfAccounts.create([], Group.create())
+        });
+      }
 
       // We need to load the root field to check for the myContacts field
       const { root } = await this.ensureLoaded({

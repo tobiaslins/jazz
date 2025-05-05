@@ -15,17 +15,17 @@ import { CodeGroup } from "@/components/forMdx";
 
 Our [Chat example app](https://jazz.tools/examples#chat) provides a complete implementation of JazzProvider with authentication and real-time data sync.
 
-## Setting up the Provider 
+## Setting up the Provider
 
 The `<JazzProvider />` accepts several configuration options:
 
 <CodeGroup>
 ```tsx twoslash
 // @filename: schema.ts
-import { Account, co } from "jazz-tools";
+import { Account, coField } from "jazz-tools";
 
 export class MyAppAccount extends Account {
-  name = co.string;
+  name = coField.string;
 }
 
 // @filename: app.tsx
@@ -38,7 +38,7 @@ import { MyAppAccount } from "./schema";
 export function MyApp({ children }: { children: React.ReactNode }) {
   return (
     <JazzProvider
-      sync={{ 
+      sync={{
         peer: "wss://cloud.jazz.tools/?key=your-api-key",
         when: "always" // When to sync: "always", "never", or "signedUp"
       }}
@@ -71,7 +71,7 @@ import { type SyncConfig } from "jazz-tools";
 const syncConfig: SyncConfig = {
   // Connection to Jazz Cloud or your own sync server
   peer: "wss://cloud.jazz.tools/?key=your-api-key",
-  
+
   // When to sync: "always" (default), "never", or "signedUp"
   when: "always",
 }
@@ -88,17 +88,17 @@ The `AccountSchema` property defines your application's account structure:
 ```tsx twoslash
 
 // @filename: schema.ts
-import { Account, CoMap, co } from "jazz-tools";
+import { Account, CoMap, coField } from "jazz-tools";
 // schema.ts
 class Preferences extends CoMap {
-  theme = co.string;
-  notifications = co.boolean;
+  theme = coField.string;
+  notifications = coField.boolean;
 }
 
 // Define your custom account schema
 export class MyAppAccount extends Account {
-  name = co.string;
-  preferences = co.ref(Preferences);
+  name = coField.string;
+  preferences = coField.ref(Preferences);
 }
 
 // @filename: app.tsx
@@ -118,9 +118,9 @@ import { MyAppAccount } from "./schema";
 export function MyApp ({ children }: { children: React.ReactNode }) {
   // Use in provider
   return (
-    <JazzProvider 
+    <JazzProvider
       sync={syncConfig}
- 
+
       AccountSchema={MyAppAccount}
     >
       {children}
@@ -161,15 +161,15 @@ export function MyApp ({ children }: { children: React.ReactNode }) {
 
       // Enable guest mode for account-less access
       guestMode={false}
-  
+
       // Set default name for new user profiles
       defaultProfileName="New User"
-  
+
       // Handle user logout
       onLogOut={() => {
         console.log("User logged out");
       }}
-      
+
       // Handle anonymous account data when user logs in to existing account
       onAnonymousAccountDiscarded={(account) => {
         console.log("Anonymous account discarded", account.id);

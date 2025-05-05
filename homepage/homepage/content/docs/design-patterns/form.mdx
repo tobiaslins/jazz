@@ -49,11 +49,11 @@ A `DraftBubbleTeaOrder` is essentially a copy of `BubbleTeaOrder`, but with all 
 ```tsx
 // schema.ts
 export class BubbleTeaOrder extends CoMap {
-  name = co.string;
+  name = coField.string;
 }
 
 export class DraftBubbleTeaOrder extends CoMap {
-  name = co.optional.string;
+  name = coField.optional.string;
 }
 ```
 </CodeGroup>
@@ -154,7 +154,7 @@ Update the schema to include a `validate` method.
 ```ts
 // schema.ts
 export class DraftBubbleTeaOrder extends CoMap {
-  name = co.optional.string;
+  name = coField.optional.string;
 
   validate() {  // [!code ++:9]
     const errors: string[] = [];
@@ -214,19 +214,19 @@ By storing the draft in the user's account, they can come back to it anytime wit
 ```ts
 // schema.ts
 export class BubbleTeaOrder extends CoMap {
-  name = co.string;
+  name = coField.string;
 }
 
 export class DraftBubbleTeaOrder extends CoMap {
-  name = co.optional.string;
+  name = coField.optional.string;
 }
 
 export class AccountRoot extends CoMap { // [!code ++:15]
-  draft = co.ref(DraftBubbleTeaOrder);
+  draft = coField.ref(DraftBubbleTeaOrder);
 }
 
 export class JazzAccount extends Account {
-  root = co.ref(AccountRoot);
+  root = coField.ref(AccountRoot);
 
   migrate(this: JazzAccount, creationProps?: { name: string }) {
     if (this.root === undefined) {
@@ -331,7 +331,7 @@ Simply add a `hasChanges` checker to your schema.
 ```ts
 // schema.ts
 export class DraftBubbleTeaOrder extends CoMap {
-  name = co.optional.string;
+  name = coField.optional.string;
 
   validate() {
     const errors: string[] = [];
@@ -392,11 +392,11 @@ how to handle single-select, multi-select, date, and boolean inputs.
 <CodeGroup>
 ```tsx
 export class BubbleTeaOrder extends CoMap {
-  baseTea = co.literal(...BubbleTeaBaseTeaTypes);
-  addOns = co.ref(ListOfBubbleTeaAddOns);
-  deliveryDate = co.Date;
-  withMilk = co.boolean;
-  instructions = co.optional.string;
+  baseTea = coField.literal(...BubbleTeaBaseTeaTypes);
+  addOns = coField.ref(ListOfBubbleTeaAddOns);
+  deliveryDate = coField.Date;
+  withMilk = coField.boolean;
+  instructions = coField.optional.string;
 }
   ```
 </CodeGroup>

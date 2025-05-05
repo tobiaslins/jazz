@@ -84,12 +84,12 @@ export { CoFeed as CoStream };
  */
 export class CoFeed<Item = any> extends CoValueBase implements CoValue {
   /**
-   * Declare a `CoFeed` by subclassing `CoFeed.Of(...)` and passing the item schema using a `co` primitive or a `co.ref`.
+   * Declare a `CoFeed` by subclassing `CoFeed.Of(...)` and passing the item schema using a `co` primitive or a `coField.ref`.
    *
    * @example
    * ```ts
-   * class ColorFeed extends CoFeed.Of(co.string) {}
-   * class AnimalFeed extends CoFeed.Of(co.ref(Animal)) {}
+   * class ColorFeed extends CoFeed.Of(coField.string) {}
+   * class AnimalFeed extends CoFeed.Of(coField.ref(Animal)) {}
    * ```
    *
    * @category Declaration
@@ -648,10 +648,10 @@ export { FileStream as BinaryCoStream };
  * `FileStream` can be referenced in schemas.
  *
  * ```ts
- * import { co, FileStream } from "jazz-tools";
+ * import { coField, FileStream } from "jazz-tools";
  *
  * class MyCoMap extends CoMap {
- *   file = co.ref(FileStream);
+ *   file = coField.ref(FileStream);
  * }
  * ```
  *
@@ -809,7 +809,7 @@ export class FileStream extends CoValueBase implements CoValue {
    *
    * @example
    * ```ts
-   * import { co, FileStream } from "jazz-tools";
+   * import { coField, FileStream } from "jazz-tools";
    *
    * const fileStream = await FileStream.createFromBlob(file, {owner: group})
    * ```

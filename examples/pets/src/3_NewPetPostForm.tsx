@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 
 import { ProgressiveImg } from "jazz-react";
 import { createImage, useAccount, useCoState } from "jazz-react";
-import { CoMap, Group, ID, ImageDefinition, co } from "jazz-tools";
+import { CoMap, Group, ID, ImageDefinition, coField } from "jazz-tools";
 import { PetPost, PetReactions } from "./1_schema";
 import { Button, Input } from "./basicComponents";
 
@@ -11,9 +11,9 @@ import { Button, Input } from "./basicComponents";
  */
 
 class PartialPetPost extends CoMap {
-  name = co.string;
-  image = co.ref(ImageDefinition, { optional: true });
-  reactions = co.ref(PetReactions);
+  name = coField.string;
+  image = coField.ref(ImageDefinition, { optional: true });
+  reactions = coField.ref(PetReactions);
 }
 
 export function NewPetPostForm() {

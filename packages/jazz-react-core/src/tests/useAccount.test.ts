@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 
-import { Account, CoMap, RefsToResolve, Resolved, co } from "jazz-tools";
+import { Account, CoMap, RefsToResolve, Resolved, coField } from "jazz-tools";
 import { beforeEach, describe, expect, it } from "vitest";
 import { useAccount, useJazzContextManager } from "../hooks.js";
 import { useIsAuthenticated } from "../index.js";
@@ -24,11 +24,11 @@ describe("useAccount", () => {
 
   it("should load nested values if requested", async () => {
     class AccountRoot extends CoMap {
-      value = co.string;
+      value = coField.string;
     }
 
     class AccountSchema extends Account {
-      root = co.ref(AccountRoot);
+      root = coField.ref(AccountRoot);
 
       migrate() {
         if (!this._refs.root) {

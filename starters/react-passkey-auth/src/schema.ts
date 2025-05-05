@@ -3,7 +3,7 @@
  * https://jazz.tools/docs/react/schemas/covalues
  */
 
-import { Account, CoMap, Group, Profile, co } from "jazz-tools";
+import { Account, CoMap, Group, Profile, coField } from "jazz-tools";
 
 /** The account profile is an app-specific per-user public `CoMap`
  *  where you can store top-level objects for that user */
@@ -12,7 +12,7 @@ export class JazzProfile extends Profile {
    * Learn about CoValue field/item types here:
    * https://jazz.tools/docs/react/schemas/covalues#covalue-fielditem-types
    */
-  firstName = co.string;
+  firstName = coField.string;
 
   // Add public fields here
 }
@@ -20,7 +20,7 @@ export class JazzProfile extends Profile {
 /** The account root is an app-specific per-user private `CoMap`
  *  where you can store top-level objects for that user */
 export class AccountRoot extends CoMap {
-  dateOfBirth = co.Date;
+  dateOfBirth = coField.Date;
 
   // Add private fields here
 
@@ -32,8 +32,8 @@ export class AccountRoot extends CoMap {
 }
 
 export class JazzAccount extends Account {
-  profile = co.ref(JazzProfile);
-  root = co.ref(AccountRoot);
+  profile = coField.ref(JazzProfile);
+  root = coField.ref(AccountRoot);
 
   /** The account migration is run on account creation and on every log-in.
    *  You can use it to set up the account root and any other initial CoValues you need.

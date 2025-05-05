@@ -1,4 +1,4 @@
-import { Account, CoList, CoMap, co } from "jazz-tools";
+import { Account, CoList, CoMap, coField } from "jazz-tools";
 
 export const BubbleTeaAddOnTypes = [
   "Pearl",
@@ -16,7 +16,7 @@ export const BubbleTeaBaseTeaTypes = [
 ] as const;
 
 export class ListOfBubbleTeaAddOns extends CoList.Of(
-  co.literal(...BubbleTeaAddOnTypes),
+  coField.literal(...BubbleTeaAddOnTypes),
 ) {
   get hasChanges() {
     return Object.entries(this._raw.insertions).length > 0;
@@ -24,19 +24,19 @@ export class ListOfBubbleTeaAddOns extends CoList.Of(
 }
 
 export class BubbleTeaOrder extends CoMap {
-  baseTea = co.literal(...BubbleTeaBaseTeaTypes);
-  addOns = co.ref(ListOfBubbleTeaAddOns);
-  deliveryDate = co.Date;
-  withMilk = co.boolean;
-  instructions = co.optional.string;
+  baseTea = coField.literal(...BubbleTeaBaseTeaTypes);
+  addOns = coField.ref(ListOfBubbleTeaAddOns);
+  deliveryDate = coField.Date;
+  withMilk = coField.boolean;
+  instructions = coField.optional.string;
 }
 
 export class DraftBubbleTeaOrder extends CoMap {
-  baseTea = co.optional.literal(...BubbleTeaBaseTeaTypes);
-  addOns = co.optional.ref(ListOfBubbleTeaAddOns);
-  deliveryDate = co.optional.Date;
-  withMilk = co.optional.boolean;
-  instructions = co.optional.string;
+  baseTea = coField.optional.literal(...BubbleTeaBaseTeaTypes);
+  addOns = coField.optional.ref(ListOfBubbleTeaAddOns);
+  deliveryDate = coField.optional.Date;
+  withMilk = coField.optional.boolean;
+  instructions = coField.optional.string;
 
   get hasChanges() {
     return Object.keys(this._edits).length > 1 || this.addOns?.hasChanges;
@@ -57,17 +57,19 @@ export class DraftBubbleTeaOrder extends CoMap {
   }
 }
 
-export class ListOfBubbleTeaOrders extends CoList.Of(co.ref(BubbleTeaOrder)) {}
+export class ListOfBubbleTeaOrders extends CoList.Of(
+  coField.ref(BubbleTeaOrder),
+) {}
 
 /** The root is an app-specific per-user private `CoMap`
  *  where you can store top-level objects for that user */
 export class AccountRoot extends CoMap {
-  draft = co.ref(DraftBubbleTeaOrder);
-  orders = co.ref(ListOfBubbleTeaOrders);
+  draft = coField.ref(DraftBubbleTeaOrder);
+  orders = coField.ref(ListOfBubbleTeaOrders);
 }
 
 export class JazzAccount extends Account {
-  root = co.ref(AccountRoot);
+  root = coField.ref(AccountRoot);
 
   migrate() {
     const account = this;

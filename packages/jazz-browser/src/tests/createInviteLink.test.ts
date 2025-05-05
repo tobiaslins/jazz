@@ -1,11 +1,11 @@
-import { CoMap, co } from "jazz-tools";
+import { CoMap, coField } from "jazz-tools";
 import { expect, test } from "vitest";
 import { createInviteLink } from "../index.js";
 import { setupTwoNodes } from "./utils.js";
 
 test("throws an error if the user tried to create an invite from an account owned coValue", async () => {
   class TestMap extends CoMap {
-    name = co.string;
+    name = coField.string;
   }
 
   const { clientAccount } = await setupTwoNodes();

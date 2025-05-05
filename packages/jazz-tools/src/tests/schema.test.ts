@@ -2,7 +2,7 @@ import { describe, expectTypeOf, it } from "vitest";
 import { CoMap, coField } from "../index.js";
 import { coField as valueWithCoMarker } from "../internal.js";
 
-describe("co.json TypeScript validation", () => {
+describe("coField.json TypeScript validation", () => {
   it("should accept serializable types", async () => {
     type ValidType = { str: string; num: number; bool: boolean };
 

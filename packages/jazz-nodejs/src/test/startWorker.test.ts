@@ -6,7 +6,7 @@ import {
   CoMap,
   Group,
   InboxSender,
-  co,
+  coField,
 } from "jazz-tools";
 import { describe, expect, onTestFinished, test } from "vitest";
 import { startWorker } from "../index.js";
@@ -55,7 +55,7 @@ async function setupWorker<Acc extends Account>(
 }
 
 class TestMap extends CoMap {
-  value = co.string;
+  value = coField.string;
 }
 
 describe("startWorker integration", () => {
@@ -85,13 +85,13 @@ describe("startWorker integration", () => {
 
   test("worker handles successfully the custom account migration", async () => {
     class AccountRoot extends CoMap {
-      value = co.string;
+      value = coField.string;
     }
 
     let shouldReloadPreviousAccount = false;
 
     class CustomAccount extends Account {
-      root = co.ref(AccountRoot);
+      root = coField.ref(AccountRoot);
 
       migrate() {
         if (this.root === undefined) {

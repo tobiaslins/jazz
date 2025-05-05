@@ -67,16 +67,16 @@ export type Simplify<A> = {
  * @categoryDescription Declaration
  * Declare your own CoMap schemas by subclassing `CoMap` and assigning field schemas with `co`.
  *
- * Optional `co.ref(...)` fields must be marked with `{ optional: true }`.
+ * Optional `coField.ref(...)` fields must be marked with `{ optional: true }`.
  *
  * ```ts
- * import { co, CoMap } from "jazz-tools";
+ * import { coField, CoMap } from "jazz-tools";
  *
  * class Person extends CoMap {
- *   name = co.string;
- *   age = co.number;
- *   pet = co.ref(Animal);
- *   car = co.ref(Car, { optional: true });
+ *   name = coField.string;
+ *   age = coField.number;
+ *   pet = coField.ref(Animal);
+ *   car = coField.ref(Car, { optional: true });
  * }
  * ```
  *
@@ -118,7 +118,7 @@ export class CoMap extends CoValueBase implements CoValue {
   }
 
   /**
-   * If property `prop` is a `co.ref(...)`, you can use `coMaps._refs.prop` to access
+   * If property `prop` is a `coField.ref(...)`, you can use `coMaps._refs.prop` to access
    * the `Ref` instead of the potentially loaded/null value.
    *
    * This allows you to always get the ID or load the value manually.
@@ -411,10 +411,10 @@ export class CoMap extends CoValueBase implements CoValue {
    *
    * @example
    * ```ts
-   * import { co, CoMap } from "jazz-tools";
+   * import { coField, CoMap } from "jazz-tools";
    *
    * class ColorToFruitMap extends CoMap.Record(
-   *  co.ref(Fruit)
+   *  coField.ref(Fruit)
    * ) {}
    *
    * // assume we have map: ColorToFruitMap
@@ -624,8 +624,8 @@ export type CoKeys<Map extends object> = Exclude<
  * Force required ref fields to be non nullable
  *
  * Considering that:
- * - Optional refs are typed as co<InstanceType<CoValueClass> | null | undefined>
- * - Required refs are typed as co<InstanceType<CoValueClass> | null>
+ * - Optional refs are typed as coField<InstanceType<CoValueClass> | null | undefined>
+ * - Required refs are typed as coField<InstanceType<CoValueClass> | null>
  *
  * This type works in two steps:
  * - Remove the null from both types
