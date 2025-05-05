@@ -2,7 +2,7 @@ import { RawAccount, RawCoValue, RawGroup } from "cojson";
 import { RegisteredSchemas } from "../coValues/registeredSchemas.js";
 import { CoValue, RefEncoded, instantiateRefEncoded } from "../internal.js";
 import { coValuesCache } from "../lib/cache.js";
-import { CoValueResolutionNode } from "./CoValueResolutionNode.js";
+import { SubscriptionScope } from "./SubscriptionScope.js";
 
 export function getOwnerFromRawValue(raw: RawCoValue) {
   let owner = raw instanceof RawGroup ? raw : raw.group;
@@ -17,12 +17,12 @@ export function getOwnerFromRawValue(raw: RawCoValue) {
 export function createCoValue<D extends CoValue>(
   ref: RefEncoded<D>,
   raw: RawCoValue,
-  resolutionNode: CoValueResolutionNode<D>,
+  subscriptionScope: SubscriptionScope<D>,
 ) {
   const freshValueInstance = instantiateRefEncoded(ref, raw);
 
-  Object.defineProperty(freshValueInstance, "_resolutionNode", {
-    value: resolutionNode,
+  Object.defineProperty(freshValueInstance, "_subscriptionScope", {
+    value: subscriptionScope,
     writable: false,
     enumerable: false,
     configurable: false,
@@ -31,6 +31,6 @@ export function createCoValue<D extends CoValue>(
   return {
     type: "loaded" as const,
     value: freshValueInstance,
-    id: resolutionNode.id,
+    id: subscriptionScope.id,
   };
 }

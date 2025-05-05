@@ -7,7 +7,7 @@ import type {
   UnCo,
 } from "../internal.js";
 import { isRefEncoded } from "../internal.js";
-import { accessChildById, getResolutionNode } from "../subscribe/index.js";
+import { accessChildById, getSubscriptionScope } from "../subscribe/index.js";
 
 export class Ref<out V extends CoValue> {
   constructor(
@@ -22,11 +22,11 @@ export class Ref<out V extends CoValue> {
   }
 
   async load(): Promise<V | null> {
-    const resolutionNode = getResolutionNode(this.parent);
+    const subscriptionScope = getSubscriptionScope(this.parent);
 
-    resolutionNode.subscribeToId(this.id, this.schema);
+    subscriptionScope.subscribeToId(this.id, this.schema);
 
-    const node = resolutionNode.childNodes.get(this.id);
+    const node = subscriptionScope.childNodes.get(this.id);
 
     if (!node) {
       return null;

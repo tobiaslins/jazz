@@ -8,7 +8,7 @@ import { activeAccountContext } from "../implementation/activeAccountContext.js"
 import { AnonymousJazzAgent } from "../implementation/anonymousJazzAgent.js";
 import { inspect } from "../internal.js";
 import { coValuesCache } from "../lib/cache.js";
-import { CoValueResolutionNode } from "../subscribe/CoValueResolutionNode.js";
+import { SubscriptionScope } from "../subscribe/SubscriptionScope.js";
 import { type Account } from "./account.js";
 import { RefsToResolve, RefsToResolveStrict, Resolved } from "./deepLoading.js";
 import { type Group } from "./group.js";
@@ -39,7 +39,7 @@ export interface CoValue {
   _raw: RawCoValue;
 
   /** @internal */
-  _resolutionNode?: CoValueResolutionNode<this>;
+  _subscriptionScope?: SubscriptionScope<this>;
 
   /** @internal */
   readonly _loadedAs: Account | AnonymousJazzAgent;
@@ -314,7 +314,7 @@ export function subscribeToCoValue<
 
   let unsubscribed = false;
 
-  const rootNode = new CoValueResolutionNode<V>(node, resolve, id as ID<V>, {
+  const rootNode = new SubscriptionScope<V>(node, resolve, id as ID<V>, {
     ref: cls,
     optional: false,
   });

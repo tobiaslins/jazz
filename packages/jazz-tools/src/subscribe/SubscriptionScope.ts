@@ -12,8 +12,8 @@ import { JazzError, type JazzErrorIssue } from "./JazzError.js";
 import type { SubscriptionValue, Unloaded } from "./types.js";
 import { createCoValue, getOwnerFromRawValue } from "./utils.js";
 
-export class CoValueResolutionNode<D extends CoValue> {
-  childNodes = new Map<string, CoValueResolutionNode<CoValue>>();
+export class SubscriptionScope<D extends CoValue> {
+  childNodes = new Map<string, SubscriptionScope<CoValue>>();
   childValues: Map<string, SubscriptionValue<any, any> | Unloaded> = new Map<
     string,
     SubscriptionValue<D, any>
@@ -274,7 +274,7 @@ export class CoValueResolutionNode<D extends CoValue> {
     this.autoloaded.add(id);
 
     this.childValues.set(id, { type: "unloaded", id });
-    const child = new CoValueResolutionNode(
+    const child = new SubscriptionScope(
       this.node,
       true,
       id as ID<any>,
@@ -485,7 +485,7 @@ export class CoValueResolutionNode<D extends CoValue> {
     }
 
     this.childValues.set(id, { type: "unloaded", id });
-    const child = new CoValueResolutionNode(
+    const child = new SubscriptionScope(
       this.node,
       query,
       id as ID<any>,

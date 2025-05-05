@@ -1,30 +1,30 @@
 import type { CoValue, CoValueClass, RefEncoded } from "../internal.js";
-import { CoValueResolutionNode } from "./CoValueResolutionNode.js";
+import { SubscriptionScope } from "./SubscriptionScope.js";
 
-export function getResolutionNode<D extends CoValue>(value: D) {
-  const resolutionNode = value._resolutionNode;
+export function getSubscriptionScope<D extends CoValue>(value: D) {
+  const subscriptionScope = value._subscriptionScope;
 
-  if (resolutionNode) {
-    return resolutionNode;
+  if (subscriptionScope) {
+    return subscriptionScope;
   }
 
   const node = value._raw.core.node;
   const resolve = true;
   const id = value.id;
 
-  const newResolutionNode = new CoValueResolutionNode(node, resolve, id, {
+  const newSubscriptionScope = new SubscriptionScope(node, resolve, id, {
     ref: value.constructor as CoValueClass<D>,
     optional: false,
   });
 
-  Object.defineProperty(value, "_resolutionNode", {
-    value: resolutionNode,
+  Object.defineProperty(value, "_subscriptionScope", {
+    value: subscriptionScope,
     writable: false,
     enumerable: false,
     configurable: false,
   });
 
-  return newResolutionNode;
+  return newSubscriptionScope;
 }
 
 /** Autoload internals */
@@ -33,11 +33,11 @@ export function accessChildByKey<D extends CoValue>(
   childId: string,
   key: string,
 ) {
-  const resolutionNode = getResolutionNode(parent);
+  const subscriptionScope = getSubscriptionScope(parent);
 
-  resolutionNode.subscribeToKey(key);
+  subscriptionScope.subscribeToKey(key);
 
-  const value = resolutionNode.childValues.get(childId);
+  const value = subscriptionScope.childValues.get(childId);
 
   if (value?.type === "loaded") {
     return value.value;
@@ -51,11 +51,11 @@ export function accessChildById<D extends CoValue>(
   childId: string,
   schema: RefEncoded<CoValue>,
 ) {
-  const resolutionNode = getResolutionNode(parent);
+  const subscriptionScope = getSubscriptionScope(parent);
 
-  resolutionNode.subscribeToId(childId, schema);
+  subscriptionScope.subscribeToId(childId, schema);
 
-  const value = resolutionNode.childValues.get(childId);
+  const value = subscriptionScope.childValues.get(childId);
 
   if (value?.type === "loaded") {
     return value.value;
