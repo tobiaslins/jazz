@@ -72,6 +72,17 @@ export class CoValueCore {
   readonly node: LocalNode;
   private readonly crypto: CryptoProvider;
   private _verified: VerifiedState | null;
+  /** Holds the fundamental syncable content of a CoValue,
+   * consisting of the header (verified by hash -> RawCoID)
+   * and the sessions (verified by signature).
+   *
+   * It does not do any *validation* or *decryption* and as such doesn't
+   * depend on other CoValues or the LocalNode.
+   *
+   * `CoValueCore.verified` may be null when a CoValue is requested to be
+   * loaded but no content has been received from storage or peers yet.
+   * In this case, it acts as a centralised entry to keep track of peer loading
+   * state and to subscribe to its content when it does become available. */
   get verified() {
     return this._verified;
   }
