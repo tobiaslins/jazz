@@ -199,8 +199,9 @@ SchemaUnion is a helper type that allows you to load and refer to multiple subcl
 You declare them with a base class type and discriminating lambda, in which you have access to the `RawCoMap`, on which you can call `get` with the field name to get the discriminating value.
 
 <CodeGroup>
-{/* prettier-ignore */}
-```ts
+```ts twoslash
+import { co } from "jazz-tools";
+// ---cut---
 import { SchemaUnion, CoMap } from "jazz-tools";
 
 class BaseWidget extends CoMap {
@@ -228,9 +229,9 @@ const WidgetUnion = SchemaUnion.Of<BaseWidget>((raw) => {
 ```
 </CodeGroup>
 
-See the corresponding sections for [creating](/docs/using-covalues/creation#schemaunion-creation),
+See the corresponding sections for [creating](/docs/using-covalues/schemaunions#creating-schemaunions),
 [subscribing/loading](/docs/using-covalues/subscription-and-loading) and
-[narrowing](/docs/using-covalues/reading#schemaunion-narrowing) SchemaUnions.
+[narrowing](/docs/using-covalues/schemaunions#narrowing) SchemaUnions.
 
 ## CoValue field/item types
 
