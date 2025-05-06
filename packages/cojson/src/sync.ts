@@ -487,6 +487,8 @@ export class SyncManager {
       peer.updateHeader(msg.id, true);
 
       coValue = new CoValueCore(msg.header, this.local);
+
+      entry.markAvailable(coValue, peer.id);
     } else {
       coValue = entry.core;
     }
@@ -545,10 +547,6 @@ export class SyncManager {
       );
     }
 
-    if (!entry.core) {
-      entry.markAvailable(coValue, peer.id);
-    }
-
     if (invalidStateAssumed) {
       this.trySendToPeer(peer, {
         action: "known",
@@ -571,12 +569,9 @@ export class SyncManager {
       peer.trackToldKnownState(msg.id);
     }
 
-    const sourcePeer = peer;
     const syncedPeers = [];
 
     for (const peer of this.peersInPriorityOrder()) {
-      // TODO: Document this and add an issue about the missing content reconciliation
-      if (peer.id === sourcePeer.id && sourcePeer.role === "storage") continue;
       if (peer.closed) continue;
       if (entry.isErroredInPeer(peer.id)) continue;
 

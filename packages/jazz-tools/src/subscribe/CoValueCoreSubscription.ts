@@ -24,8 +24,6 @@ export class CoValueCoreSubscription {
           this.subscribe(value.getCurrentContent());
         } else {
           this.listener("unavailable");
-
-          // Wait for the state to become loaded
           this.subscribeToState();
         }
       });
