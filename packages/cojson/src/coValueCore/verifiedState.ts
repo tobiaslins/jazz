@@ -80,23 +80,17 @@ export class VerifiedState {
 
   clone(): VerifiedState {
     // do a deep clone, including the sessions
-    return new VerifiedState(
-      this.id,
-      this.crypto,
-      this.header,
-      new Map(
-        [...this.sessions.entries()].map(([sessionID, sessionLog]) => [
-          sessionID,
-          {
-            lastSignature: sessionLog.lastSignature,
-            lastHash: sessionLog.lastHash,
-            streamingHash: sessionLog.streamingHash.clone(),
-            signatureAfter: { ...sessionLog.signatureAfter },
-            transactions: [...sessionLog.transactions],
-          } satisfies SessionLog,
-        ]),
-      ),
-    );
+    const clonedSessions = new Map();
+    for (let [sessionID, sessionLog] of this.sessions) {
+      clonedSessions.set(sessionID, {
+        lastSignature: sessionLog.lastSignature,
+        lastHash: sessionLog.lastHash,
+        streamingHash: sessionLog.streamingHash.clone(),
+        signatureAfter: { ...sessionLog.signatureAfter },
+        transactions: sessionLog.transactions.slice(),
+      } satisfies SessionLog);
+    }
+    return new VerifiedState(this.id, this.crypto, this.header, clonedSessions);
   }
 
   tryAddTransactions(
