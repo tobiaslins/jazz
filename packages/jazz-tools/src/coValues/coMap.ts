@@ -142,17 +142,16 @@ export class CoMap extends CoValueBase implements CoValue {
       (key) => this._raw.get(key as string) as unknown as ID<CoValue>,
       () => {
         const keys = this._raw.keys().filter((key) => {
-          const schema =
-            this._schema[key as keyof typeof this._schema] ||
-            (this._schema[ItemsSym] as Schema | undefined);
-          return schema && schema !== "json" && isRefEncoded(schema);
+          const descriptor = this.getDescriptor(key as string);
+          return (
+            descriptor && descriptor !== "json" && isRefEncoded(descriptor)
+          );
         }) as CoKeys<this>[];
 
         return keys;
       },
       this._loadedAs,
-      (key) =>
-        (this._schema[key] || this._schema[ItemsSym]) as RefEncoded<CoValue>,
+      (key) => this.getDescriptor(key as string) as RefEncoded<CoValue>,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ) as any;
   }
@@ -208,9 +207,9 @@ export class CoMap extends CoValueBase implements CoValue {
           const rawEdit = map._raw.lastEditAt(key as string);
           if (!rawEdit) return undefined;
 
-          const descriptor = map._schema[
-            key as keyof typeof map._schema
-          ] as Schema;
+          const descriptor = map.getDescriptor(key as string);
+
+          if (!descriptor) return undefined;
 
           return {
             ...map.getEditFromRaw(map, rawEdit, descriptor, key as string),
@@ -320,8 +319,7 @@ export class CoMap extends CoValueBase implements CoValue {
 
     for (const key of this._raw.keys()) {
       const tKey = key as CoKeys<this>;
-      const descriptor = (this._schema[tKey] ||
-        this._schema[ItemsSym]) as Schema;
+      const descriptor = this.getDescriptor(tKey);
 
       if (!descriptor) {
         continue;
@@ -383,8 +381,7 @@ export class CoMap extends CoValueBase implements CoValue {
       for (const key of Object.keys(init) as (keyof Fields)[]) {
         const initValue = init[key as keyof typeof init];
 
-        const descriptor = (this._schema[key as keyof typeof this._schema] ||
-          this._schema[ItemsSym]) as Schema;
+        const descriptor = this.getDescriptor(key as string);
 
         if (!descriptor) {
           continue;
@@ -584,25 +581,24 @@ export class CoMap extends CoValueBase implements CoValue {
     for (const key in newValues) {
       if (Object.prototype.hasOwnProperty.call(newValues, key)) {
         const tKey = key as keyof typeof newValues & keyof this;
-        const descriptor = (this._schema[tKey as string] ||
-          this._schema[ItemsSym]) as Schema;
+        const descriptor = this.getDescriptor(key);
 
-        if (tKey in this._schema) {
-          const newValue = newValues[tKey];
-          const currentValue = (this as unknown as N)[tKey];
+        if (!descriptor) continue;
 
-          if (descriptor === "json" || "encoded" in descriptor) {
-            if (currentValue !== newValue) {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (this as any)[tKey] = newValue;
-            }
-          } else if (isRefEncoded(descriptor)) {
-            const currentId = (currentValue as CoValue | undefined)?.id;
-            const newId = (newValue as CoValue | undefined)?.id;
-            if (currentId !== newId) {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (this as any)[tKey] = newValue;
-            }
+        const newValue = newValues[tKey];
+        const currentValue = (this as unknown as N)[tKey];
+
+        if (descriptor === "json" || "encoded" in descriptor) {
+          if (currentValue !== newValue) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (this as any)[tKey] = newValue;
+          }
+        } else if (isRefEncoded(descriptor)) {
+          const currentId = (currentValue as CoValue | undefined)?.id;
+          const newId = (newValue as CoValue | undefined)?.id;
+          if (currentId !== newId) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (this as any)[tKey] = newValue;
           }
         }
       }
@@ -707,9 +703,11 @@ const CoMapProxyHandler: ProxyHandler<CoMap> = {
       return true;
     }
 
-    const descriptor = (target._schema[key as keyof CoMap["_schema"]] ||
-      target._schema[ItemsSym]) as Schema;
-    if (descriptor && typeof key === "string") {
+    const descriptor = target.getDescriptor(key as string);
+
+    if (!descriptor) return false;
+
+    if (typeof key === "string") {
       if (descriptor === "json") {
         target._raw.set(key, value);
       } else if ("encoded" in descriptor) {
@@ -750,11 +748,7 @@ const CoMapProxyHandler: ProxyHandler<CoMap> = {
   },
   ownKeys(target) {
     const keys = Reflect.ownKeys(target).filter((k) => k !== ItemsSym);
-    // for (const key of Reflect.ownKeys(target._schema)) {
-    //     if (key !== ItemsSym && !keys.includes(key)) {
-    //         keys.push(key);
-    //     }
-    // }
+
     for (const key of target._raw.keys()) {
       if (!keys.includes(key)) {
         keys.push(key);
@@ -767,8 +761,8 @@ const CoMapProxyHandler: ProxyHandler<CoMap> = {
     if (key in target) {
       return Reflect.getOwnPropertyDescriptor(target, key);
     } else {
-      const descriptor = (target._schema[key as keyof CoMap["_schema"]] ||
-        target._schema[ItemsSym]) as Schema;
+      const descriptor = target.getDescriptor(key as string);
+
       if (descriptor || key in target._raw.latest) {
         return {
           enumerable: true,
@@ -779,8 +773,7 @@ const CoMapProxyHandler: ProxyHandler<CoMap> = {
     }
   },
   has(target, key) {
-    const descriptor = (target._schema?.[key as keyof CoMap["_schema"]] ||
-      target._schema?.[ItemsSym]) as Schema;
+    const descriptor = target.getDescriptor(key as string);
 
     if (target._raw && typeof key === "string" && descriptor) {
       return target._raw.get(key) !== undefined;
@@ -789,8 +782,8 @@ const CoMapProxyHandler: ProxyHandler<CoMap> = {
     }
   },
   deleteProperty(target, key) {
-    const descriptor = (target._schema[key as keyof CoMap["_schema"]] ||
-      target._schema[ItemsSym]) as Schema;
+    const descriptor = target.getDescriptor(key as string);
+
     if (typeof key === "string" && descriptor) {
       target._raw.delete(key);
       return true;

@@ -45,10 +45,10 @@ export class SubscriptionScope<D extends CoValue> {
   }
 
   updateValue(value: SubscriptionValue<D, any>) {
-    if (this.value !== value) {
-      this.value = value;
-      this.dirty = true;
-    }
+    this.value = value;
+
+    // Flags that the value has changed and we need to trigger an update
+    this.dirty = true;
   }
 
   handleUpdate(update: RawCoValue | "unavailable") {
@@ -74,6 +74,8 @@ export class SubscriptionScope<D extends CoValue> {
     const owner = getOwnerFromRawValue(update);
 
     const ruleset = update.core.header.ruleset;
+
+    // Groups and accounts are accessible by everyone, for the other coValues we use the role to check access
     const hasAccess = ruleset.type === "group" || owner.myRole() !== undefined;
 
     if (!hasAccess) {
@@ -106,6 +108,8 @@ export class SubscriptionScope<D extends CoValue> {
     } else {
       const hasChanged =
         update.totalValidTransactions !== this.totalValidTransactions ||
+        // Checking the identity of the _raw value makes us cover the cases where the group
+        // has been updated and the coValues that don't update the totalValidTransactions value (e.g. FileStream)
         this.value.value._raw !== update;
 
       if (this.loadChildren()) {
@@ -143,11 +147,7 @@ export class SubscriptionScope<D extends CoValue> {
       }
     }
 
-    if (issues.length > 0) {
-      return new JazzError(this.id, errorType, issues);
-    }
-
-    return new JazzError(this.id, errorType, []);
+    return new JazzError(this.id, errorType, issues);
   }
 
   handleChildUpdate = (
@@ -173,6 +173,8 @@ export class SubscriptionScope<D extends CoValue> {
 
     if (this.shouldSendUpdates()) {
       if (this.value.type === "loaded") {
+        // On child updates, we re-create the value instance to make the updates
+        // seamless-immutable and so be compatible with React and the React compiler
         this.updateValue(
           createCoValue(this.schema, this.value.value._raw, this),
         );
@@ -184,9 +186,13 @@ export class SubscriptionScope<D extends CoValue> {
 
   shouldSendUpdates() {
     if (this.value.type === "unloaded") return false;
+
+    // If the value is in error, we send the update regardless of the children statuses
     if (this.value.type !== "loaded") return true;
 
     for (const value of this.childValues.values()) {
+      // We don't wait for autoloaded values to be loaded, in order to stream updates
+      // on autoloaded lists or records
       if (value.type === "unloaded" && !this.autoloaded.has(value.id)) {
         return false;
       }

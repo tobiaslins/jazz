@@ -42,7 +42,9 @@ export function accessChildByKey<D extends CoValue>(
 ) {
   const subscriptionScope = getSubscriptionScope(parent);
 
-  subscriptionScope.subscribeToKey(key);
+  if (!subscriptionScope.childValues.has(childId)) {
+    subscriptionScope.subscribeToKey(key);
+  }
 
   const value = subscriptionScope.childValues.get(childId);
 
