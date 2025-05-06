@@ -1,6 +1,7 @@
 import { base64URLtoBytes, bytesToBase64url } from "./base64url.js";
 import { type RawCoValue } from "./coValue.js";
 import {
+  CO_VALUE_LOADING_CONFIG,
   CoValueCore,
   MAX_RECOMMENDED_TX_SIZE,
   idforHeader,
@@ -76,7 +77,6 @@ import {
 
 type Value = JsonValue | AnyRawCoValue;
 
-import { CO_VALUE_LOADING_CONFIG } from "./coValueState.js";
 import { logger } from "./logger.js";
 import { getPriorityFromHeader } from "./priority.js";
 

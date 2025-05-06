@@ -443,8 +443,8 @@ export class RawCoList<
 
   /** @category 3. Subscription */
   subscribe(listener: (coList: this) => void): () => void {
-    return this.core.subscribe((content) => {
-      listener(content as this);
+    return this.core.subscribe((core) => {
+      listener(core.getCurrentContent() as this);
     });
   }
 

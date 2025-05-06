@@ -1,4 +1,6 @@
+import { UpDownCounter, ValueType, metrics } from "@opentelemetry/api";
 import { Result, err } from "neverthrow";
+import { PeerState } from "../PeerState.js";
 import { RawCoValue } from "../coValue.js";
 import {
   ControlledAccount,
@@ -33,16 +35,11 @@ import {
   determineValidTransactions,
   isKeyForKeyField,
 } from "../permissions.js";
-import { CoValueKnownState, emptyKnownState } from "../sync.js";
+import { CoValueKnownState, PeerID, emptyKnownState } from "../sync.js";
 import { accountOrAgentIDfromSessionID } from "../typeUtils/accountOrAgentIDfromSessionID.js";
 import { expectGroup } from "../typeUtils/expectGroup.js";
 import { isAccountID } from "../typeUtils/isAccountID.js";
-import {
-  CoValueHeader,
-  Transaction,
-  ValidatedSessions,
-  VerifiedState,
-} from "./verifiedState.js";
+import { CoValueHeader, Transaction, VerifiedState } from "./verifiedState.js";
 
 /**
     In order to not block other concurrently syncing CoValues we introduce a maximum size of transactions,
@@ -71,10 +68,18 @@ const readKeyCache = new WeakMap<CoValueCore, { [id: KeyID]: KeySecret }>();
 
 export type AvailableCoValueCore = CoValueCore & { verified: VerifiedState };
 
+export const CO_VALUE_LOADING_CONFIG = {
+  MAX_RETRIES: 2,
+  TIMEOUT: 30_000,
+};
+
 export class CoValueCore {
-  id: RawCoID;
+  // context
   readonly node: LocalNode;
   private readonly crypto: CryptoProvider;
+
+  // state
+  id: RawCoID;
   private _verified: VerifiedState | null;
   /** Holds the fundamental syncable content of a CoValue,
    * consisting of the header (verified by hash -> RawCoID)
@@ -90,25 +95,52 @@ export class CoValueCore {
   get verified() {
     return this._verified;
   }
+  private readonly peers = new Map<
+    PeerID,
+    | { type: "unknown" | "pending" | "available" | "unavailable" }
+    | {
+        type: "errored";
+        error: TryAddTransactionsError;
+      }
+  >();
+
+  // cached state and listeners
   private _cachedContent?: RawCoValue;
-  private readonly listeners: Set<(content?: RawCoValue) => void> = new Set();
+  private readonly listeners: Set<(core: CoValueCore) => void> = new Set();
   private readonly _decryptionCache: {
     [key: Encrypted<JsonValue[], JsonValue>]: JsonValue[] | undefined;
   } = {};
   private _cachedDependentOn?: RawCoID[];
+  private counter: UpDownCounter;
 
   private constructor(
     init: { header: CoValueHeader } | { id: RawCoID },
     node: LocalNode,
   ) {
     this.crypto = node.crypto;
-    this.id =
-      "header" in init ? idforHeader(init.header, node.crypto) : init.id;
-    this._verified =
-      "header" in init
-        ? new VerifiedState(this.id, node.crypto, init.header, new Map())
-        : null;
+    if ("header" in init) {
+      this.id = idforHeader(init.header, node.crypto);
+      this._verified = new VerifiedState(
+        this.id,
+        node.crypto,
+        init.header,
+        new Map(),
+      );
+    } else {
+      this.id = init.id;
+      this._verified = null;
+    }
     this.node = node;
+
+    this.counter = metrics
+      .getMeter("cojson")
+      .createUpDownCounter("jazz.covalues.loaded", {
+        description: "The number of covalues in the system",
+        unit: "covalue",
+        valueType: ValueType.INT,
+      });
+
+    this.updateCounter(null);
   }
 
   static fromID(id: RawCoID, node: LocalNode): CoValueCore {
@@ -122,11 +154,72 @@ export class CoValueCore {
     return new CoValueCore({ header }, node) as AvailableCoValueCore;
   }
 
+  get loadingState() {
+    if (this.verified) {
+      return "available";
+    } else if (this.peers.size === 0) {
+      return "unknown";
+    }
+
+    for (const peer of this.peers.values()) {
+      if (peer.type === "pending") {
+        return "loading";
+      } else if (peer.type === "unknown") {
+        return "unknown";
+      }
+    }
+
+    return "unavailable";
+  }
+
   isAvailable(): this is AvailableCoValueCore {
     return !!this.verified;
   }
 
-  markAvailable(header: CoValueHeader) {
+  isErroredInPeer(peerId: PeerID) {
+    return this.peers.get(peerId)?.type === "errored";
+  }
+
+  waitForAvailableOrUnavailable(): Promise<CoValueCore> {
+    return new Promise<CoValueCore>((resolve) => {
+      const listener = (core: CoValueCore) => {
+        if (core.isAvailable() || core.loadingState === "unavailable") {
+          resolve(core);
+          this.listeners.delete(listener);
+        }
+      };
+
+      this.listeners.add(listener);
+      listener(this);
+    });
+  }
+
+  getStateForPeer(peerId: PeerID) {
+    return this.peers.get(peerId);
+  }
+
+  private updateCounter(previousState: string | null) {
+    const newState = this.loadingState;
+
+    if (previousState !== newState) {
+      if (previousState) {
+        this.counter.add(-1, { state: previousState });
+      }
+      this.counter.add(1, { state: newState });
+    }
+  }
+
+  markNotFoundInPeer(peerId: PeerID) {
+    const previousState = this.loadingState;
+    this.peers.set(peerId, { type: "unavailable" });
+    this.updateCounter(previousState);
+    this.notifyUpdate("immediate");
+  }
+
+  // TODO: rename to "provided"
+  markAvailable(header: CoValueHeader, fromPeerId: PeerID) {
+    const previousState = this.loadingState;
+
     if (this._verified?.sessions.size) {
       throw new Error(
         "CoValueCore: markAvailable called on coValue with verified sessions present!",
@@ -138,6 +231,36 @@ export class CoValueCore {
       header,
       new Map(),
     );
+
+    this.peers.set(fromPeerId, { type: "available" });
+    this.updateCounter(previousState);
+    this.notifyUpdate("immediate");
+  }
+
+  internalMarkMagicallyAvailable(
+    verified: VerifiedState,
+    { forceOverwrite = false }: { forceOverwrite?: boolean } = {},
+  ) {
+    const previousState = this.loadingState;
+    this.internalShamefullyCloneVerifiedStateFrom(verified, {
+      forceOverwrite,
+    });
+    this.updateCounter(previousState);
+    this.notifyUpdate("immediate");
+  }
+
+  markErrored(peerId: PeerID, error: TryAddTransactionsError) {
+    const previousState = this.loadingState;
+    this.peers.set(peerId, { type: "errored", error });
+    this.updateCounter(previousState);
+    this.notifyUpdate("immediate");
+  }
+
+  private markPending(peerId: PeerID) {
+    const previousState = this.loadingState;
+    this.peers.set(peerId, { type: "pending" });
+    this.updateCounter(previousState);
+    this.notifyUpdate("immediate");
   }
 
   internalShamefullyCloneVerifiedStateFrom(
@@ -174,16 +297,13 @@ export class CoValueCore {
 
     if (header.ruleset.type == "ownedByGroup") {
       const groupId = header.ruleset.group;
-      const entry = this.node.coValuesStore.get(groupId);
+      const entry = this.node.getCoValue(groupId);
 
       if (entry.isAvailable()) {
-        this.groupInvalidationSubscription = entry.core.subscribe(
-          (_groupUpdate) => {
-            this._cachedContent = undefined;
-            this.notifyUpdate("immediate");
-          },
-          false,
-        );
+        this.groupInvalidationSubscription = entry.subscribe((_groupUpdate) => {
+          this._cachedContent = undefined;
+          this.notifyUpdate("immediate");
+        }, false);
       } else {
         logger.error("CoValueCore: Owner group not available", {
           id: this.id,
@@ -300,10 +420,9 @@ export class CoValueCore {
     }
 
     if (notifyMode === "immediate") {
-      const content = this.getCurrentContent();
       for (const listener of this.listeners) {
         try {
-          listener(content);
+          listener(this);
         } catch (e) {
           logger.error("Error in listener for coValue " + this.id, { err: e });
         }
@@ -314,10 +433,9 @@ export class CoValueCore {
           setTimeout(() => {
             this.nextDeferredNotify = undefined;
             this.deferredUpdates = 0;
-            const content = this.getCurrentContent();
             for (const listener of this.listeners) {
               try {
-                listener(content);
+                listener(this);
               } catch (e) {
                 logger.error("Error in listener for coValue " + this.id, {
                   err: e,
@@ -333,13 +451,13 @@ export class CoValueCore {
   }
 
   subscribe(
-    listener: (content?: RawCoValue) => void,
+    listener: (core: CoValueCore) => void,
     immediateInvoke = true,
   ): () => void {
     this.listeners.add(listener);
 
     if (immediateInvoke) {
-      listener(this.getCurrentContent());
+      listener(this);
     }
 
     return () => {
@@ -817,6 +935,99 @@ export class CoValueCore {
     timeout?: number;
   }) {
     return this.node.syncManager.waitForSync(this.id, options?.timeout);
+  }
+
+  async loadFromPeers(peers: PeerState[]) {
+    if (peers.length === 0) {
+      return;
+    }
+
+    const peersToActuallyLoadFrom = [];
+    for (const peer of peers) {
+      const currentState = this.peers.get(peer.id);
+
+      if (
+        currentState?.type === "available" ||
+        currentState?.type === "pending"
+      ) {
+        continue;
+      }
+
+      if (currentState?.type === "errored") {
+        continue;
+      }
+
+      if (currentState?.type === "unavailable") {
+        if (peer.shouldRetryUnavailableCoValues()) {
+          this.markPending(peer.id);
+          peersToActuallyLoadFrom.push(peer);
+        }
+
+        continue;
+      }
+
+      if (!currentState || currentState?.type === "unknown") {
+        this.markPending(peer.id);
+        peersToActuallyLoadFrom.push(peer);
+      }
+    }
+
+    for (const peer of peersToActuallyLoadFrom) {
+      if (peer.closed) {
+        this.markNotFoundInPeer(peer.id);
+        continue;
+      }
+
+      peer.pushOutgoingMessage({
+        action: "load",
+        ...this.knownState(),
+      });
+      peer.trackLoadRequestSent(this.id);
+
+      /**
+       * Use a very long timeout for storage peers, because under pressure
+       * they may take a long time to consume the messages queue
+       *
+       * TODO: Track errors on storage and do not rely on timeout
+       */
+      const timeoutDuration =
+        peer.role === "storage"
+          ? CO_VALUE_LOADING_CONFIG.TIMEOUT * 10
+          : CO_VALUE_LOADING_CONFIG.TIMEOUT;
+
+      const waitingForPeer = new Promise<void>((resolve) => {
+        const markNotFound = () => {
+          if (this.peers.get(peer.id)?.type === "pending") {
+            this.markNotFoundInPeer(peer.id);
+          }
+        };
+
+        const timeout = setTimeout(markNotFound, timeoutDuration);
+        const removeCloseListener = peer.addCloseListener(markNotFound);
+
+        const listener = (state: CoValueCore) => {
+          const peerState = state.peers.get(peer.id);
+          if (
+            state.isAvailable() || // might have become available from another peer e.g. through handleNewContent
+            peerState?.type === "available" ||
+            peerState?.type === "errored" ||
+            peerState?.type === "unavailable"
+          ) {
+            this.listeners.delete(listener);
+            removeCloseListener();
+            clearTimeout(timeout);
+            resolve();
+          } else {
+            console.log("still not available", this.id, peerState?.type);
+          }
+        };
+
+        this.listeners.add(listener);
+        listener(this);
+      });
+
+      await waitingForPeer;
+    }
   }
 }
 

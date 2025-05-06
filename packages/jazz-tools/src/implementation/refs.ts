@@ -99,11 +99,9 @@ export class Ref<out V extends CoValue> {
         ? this.controlledAccount.node
         : this.controlledAccount._raw.core.node;
 
-    const entry = node.coValuesStore.get(
-      this.id as unknown as CoID<RawCoValue>,
-    );
+    const entry = node.getCoValue(this.id as unknown as CoID<RawCoValue>);
 
-    if (entry.highLevelState === "available") {
+    if (entry.isAvailable()) {
       return new Ref(this.id, this.controlledAccount, this.schema).value!;
     }
 

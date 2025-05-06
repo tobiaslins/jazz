@@ -56,9 +56,8 @@ export class SubscriptionScope<Root extends CoValue> {
     };
 
     this.rootEntry.rawUnsub = root._raw.core.subscribe(
-      (rawUpdate: RawCoValue | undefined) => {
-        if (!rawUpdate) return;
-        this.rootEntry.value = rawUpdate;
+      (rawUpdate: CoValueCore) => {
+        this.rootEntry.value = rawUpdate.getCurrentContent();
         this.scheduleUpdate();
       },
     );
@@ -153,10 +152,10 @@ function loadCoValue(
   callback: (value: CoValueCore | "unavailable") => void,
   syncResolution: boolean,
 ) {
-  const entry = node.coValuesStore.get(id);
+  const coValue = node.getCoValue(id);
 
-  if (entry.isAvailable() && syncResolution) {
-    callback(entry.core);
+  if (coValue.isAvailable() && syncResolution) {
+    callback(coValue);
   } else {
     void node.loadCoValueCore(id).then((core) => {
       callback(core);

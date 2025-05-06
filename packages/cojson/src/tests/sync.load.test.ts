@@ -236,7 +236,7 @@ describe("loading coValues from server", () => {
     await loadCoValueOrFail(client.node, map.id);
 
     // Forcefully delete the coValue from the client (simulating some data loss)
-    client.node.coValuesStore.coValues.delete(map.id);
+    client.node.internalDeleteCoValue(map.id);
 
     map.set("fromServer", "updated", "trusting");
 
