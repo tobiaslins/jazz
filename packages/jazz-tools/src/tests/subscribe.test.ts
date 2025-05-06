@@ -703,6 +703,147 @@ describe("subscribeToCoValue", () => {
 
     expect(updateFn).toHaveBeenCalledTimes(1);
   });
+
+  it("should unsubscribe from a nested ref when the value is set to null", async () => {
+    class TestMap extends CoMap {
+      value = co.string;
+    }
+
+    class TestList extends CoList.Of(co.optional.ref(TestMap)) {}
+
+    const creator = await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+    });
+
+    const list = TestList.create(
+      [
+        TestMap.create({ value: "1" }, creator),
+        TestMap.create({ value: "2" }, creator),
+      ],
+      creator,
+    );
+
+    let result = null as Resolved<TestList, { $each: true }> | null;
+
+    const updateFn = vi.fn().mockImplementation((value) => {
+      result = value;
+    });
+
+    const unsubscribe = subscribeToCoValue(
+      TestList,
+      list.id,
+      {
+        loadAs: creator,
+        resolve: {
+          $each: true,
+        },
+      },
+      updateFn,
+    );
+
+    onTestFinished(unsubscribe);
+
+    await waitFor(() => {
+      expect(updateFn).toHaveBeenCalled();
+    });
+
+    assert(result);
+    expect(result[0]?.value).toBe("1");
+    expect(result[1]?.value).toBe("2");
+
+    const firstItem = result[0]!;
+
+    updateFn.mockClear();
+
+    list[0] = null;
+
+    await waitFor(() => {
+      expect(updateFn).toHaveBeenCalled();
+    });
+
+    assert(result);
+    expect(result[0]).toBeNull();
+
+    updateFn.mockClear();
+
+    firstItem.value = "3";
+
+    expect(updateFn).not.toHaveBeenCalled();
+  });
+
+  it("should unsubscribe from a nested ref when the value is changed to a different ref", async () => {
+    class TestMap extends CoMap {
+      value = co.string;
+    }
+
+    class TestList extends CoList.Of(co.ref(TestMap)) {}
+
+    const creator = await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+    });
+
+    const list = TestList.create(
+      [
+        TestMap.create({ value: "1" }, creator),
+        TestMap.create({ value: "2" }, creator),
+      ],
+      creator,
+    );
+
+    let result = null as Resolved<TestList, { $each: true }> | null;
+
+    const updateFn = vi.fn().mockImplementation((value) => {
+      result = value;
+    });
+
+    const unsubscribe = subscribeToCoValue(
+      TestList,
+      list.id,
+      {
+        loadAs: creator,
+        resolve: {
+          $each: true,
+        },
+      },
+      updateFn,
+    );
+
+    onTestFinished(unsubscribe);
+
+    await waitFor(() => {
+      expect(updateFn).toHaveBeenCalled();
+    });
+
+    assert(result);
+    expect(result[0]?.value).toBe("1");
+    expect(result[1]?.value).toBe("2");
+
+    updateFn.mockClear();
+    const firstItem = result[0]!;
+
+    // Replace the first item with a new map
+    const newMap = TestMap.create({ value: "3" }, creator);
+    list[0] = newMap;
+
+    await waitFor(() => {
+      expect(updateFn).toHaveBeenCalled();
+    });
+
+    assert(result);
+    expect(result[0]?.value).toBe("3");
+    expect(result[1]?.value).toBe("2");
+
+    updateFn.mockClear();
+
+    firstItem.value = "4";
+
+    expect(updateFn).not.toHaveBeenCalled();
+
+    newMap.value = "5";
+
+    expect(updateFn).toHaveBeenCalled();
+    expect(result[0]?.value).toBe("5");
+  });
 });
 
 describe("createCoValueObservable", () => {
