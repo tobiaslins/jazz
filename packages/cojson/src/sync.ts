@@ -199,7 +199,11 @@ export class SyncManager {
   }
 
   sendNewContentIncludingDependencies(id: RawCoID, peer: PeerState) {
-    const coValue = this.local.expectCoValueLoaded(id);
+    const coValue = this.local.getCoValue(id);
+
+    if (!coValue.isAvailable()) {
+      return;
+    }
 
     coValue
       .getDependedOnCoValues()
