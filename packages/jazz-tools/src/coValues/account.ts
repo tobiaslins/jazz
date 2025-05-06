@@ -1,6 +1,7 @@
 import {
   AgentSecret,
   CoID,
+  ControlledAccount,
   CryptoProvider,
   Everyone,
   InviteSecret,
@@ -9,7 +10,6 @@ import {
   RawAccount,
   RawCoMap,
   RawCoValue,
-  RawControlledAccount,
   Role,
   SessionID,
   cojsonInternals,
@@ -57,7 +57,7 @@ export type AccountCreationProps = {
 export class Account extends CoValueBase implements CoValue {
   declare id: ID<this>;
   declare _type: "Account";
-  declare _raw: RawAccount | RawControlledAccount;
+  declare _raw: RawAccount;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static _schema: any;
@@ -86,10 +86,12 @@ export class Account extends CoValueBase implements CoValue {
   get _loadedAs(): Account | AnonymousJazzAgent {
     if (this.isLocalNodeOwner) return this;
 
-    const rawAccount = this._raw.core.node.account;
+    const agent = this._raw.core.node.getCurrentAgent();
 
-    if (rawAccount instanceof RawAccount) {
-      return coValuesCache.get(rawAccount, () => Account.fromRaw(rawAccount));
+    if (agent instanceof ControlledAccount) {
+      return coValuesCache.get(agent.account, () =>
+        Account.fromRaw(agent.account),
+      );
     }
 
     return new AnonymousJazzAgent(this._raw.core.node);
@@ -156,13 +158,13 @@ export class Account extends CoValueBase implements CoValue {
   isLocalNodeOwner: boolean;
   sessionID: SessionID | undefined;
 
-  constructor(options: { fromRaw: RawAccount | RawControlledAccount }) {
+  constructor(options: { fromRaw: RawAccount }) {
     super();
     if (!("fromRaw" in options)) {
       throw new Error("Can only construct account from raw or with .create()");
     }
     this.isLocalNodeOwner =
-      options.fromRaw.id == options.fromRaw.core.node.account.id;
+      options.fromRaw.id == options.fromRaw.core.node.getCurrentAgent().id;
 
     Object.defineProperties(this, {
       id: {
@@ -251,7 +253,7 @@ export class Account extends CoValueBase implements CoValue {
       throw new Error("Only a controlled account can accept invites");
     }
 
-    await (this._raw as RawControlledAccount).acceptInvite(
+    await this._raw.core.node.acceptInvite(
       valueID as unknown as CoID<RawCoValue>,
       inviteSecret,
     );
@@ -321,7 +323,7 @@ export class Account extends CoValueBase implements CoValue {
     node: LocalNode,
   ): A {
     return new this({
-      fromRaw: node.account as RawControlledAccount,
+      fromRaw: node.expectCurrentAccount("jazz-tools/Account.fromNode"),
     }) as A;
   }
 
@@ -517,7 +519,7 @@ export const AccountAndGroupProxyHandler: ProxyHandler<Account | Group> = {
 export function isControlledAccount(account: Account): account is Account & {
   isLocalNodeOwner: true;
   sessionID: SessionID;
-  _raw: RawControlledAccount;
+  _raw: RawAccount;
 } {
   return account.isLocalNodeOwner;
 }

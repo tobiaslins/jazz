@@ -1,5 +1,4 @@
-import { LocalNode, RawCoMap, RawCoValue } from "cojson";
-import { CoValueState } from "cojson/dist/coValueState.js";
+import { CoValueCore, LocalNode, RawCoMap, RawCoValue } from "cojson";
 
 export class CoValueCoreSubscription {
   _unsubscribe: () => void = () => {};
@@ -12,15 +11,15 @@ export class CoValueCoreSubscription {
     public id: string,
     public listener: (value: RawCoValue | "unavailable") => void,
   ) {
-    const entry = this.node.coValuesStore.get(this.id as any);
+    const entry = this.node.getCoValue(this.id as any);
 
-    if (entry?.core) {
-      this.subscribe(entry.core.getCurrentContent());
+    if (entry?.isAvailable()) {
+      this.subscribe(entry.getCurrentContent());
     } else {
       this.node.loadCoValueCore(this.id as any).then((value) => {
         if (this.unsubscribed) return;
 
-        if (value !== "unavailable") {
+        if (value.isAvailable()) {
           this.subscribe(value.getCurrentContent());
         } else {
           this.listener("unavailable");
@@ -31,25 +30,23 @@ export class CoValueCoreSubscription {
   }
 
   subscribeToState() {
-    const entry = this.node.coValuesStore.get(this.id as any);
-    const handleStateChange = (entry: CoValueState) => {
+    const entry = this.node.getCoValue(this.id as any);
+    const handleStateChange = (core: CoValueCore) => {
       if (this.unsubscribed) {
-        entry.removeListener(handleStateChange);
+        // TODO: unsub imediately?
         return;
       }
 
-      if (entry.core) {
-        const core = entry.core;
-
+      if (core.isAvailable()) {
         this.subscribe(core.getCurrentContent());
-        entry.removeListener(handleStateChange);
+        // TODO: unsub imediately?
       }
     };
 
-    entry.addListener(handleStateChange);
+    const unsubFromStateChange = entry.subscribe(handleStateChange);
 
     this._unsubscribe = () => {
-      entry.removeListener(handleStateChange);
+      unsubFromStateChange();
     };
   }
 

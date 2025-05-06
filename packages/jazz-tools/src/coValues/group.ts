@@ -115,7 +115,7 @@ export class Group extends CoValueBase implements CoValue {
       if (!initOwner) throw new Error("No owner provided");
       if (initOwner._type === "Account" && isControlledAccount(initOwner)) {
         const rawOwner = initOwner._raw;
-        raw = rawOwner.createGroup();
+        raw = rawOwner.core.node.createGroup();
       } else {
         throw new Error("Can only construct group as a controlled account");
       }

@@ -13,6 +13,11 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./dist/crypto": {
+      "react-native": "./dist/crypto/index.js",
+      "types": "./dist/crypto/index.d.ts",
+      "default": "./dist/crypto/index.js"
+    },
     "./crypto": {
       "react-native": "./dist/crypto/index.js",
       "types": "./dist/crypto/index.d.ts",
