@@ -175,21 +175,22 @@ They allow you to upload and reference files, images, etc.
 You typically don't need to declare or extend them yourself, you simply refer to the built-in `FileStream` from another CoValue:
 
 <CodeGroup>
-{/* prettier-ignore */}
-```ts
+```ts twoslash
+import { co, CoMap } from "jazz-tools";
+// ---cut---
 import { FileStream } from "jazz-tools";
 
-class UserProfile extends CoMap {
-    name = co.string;
-    avatar = co.ref(FileStream);
+class Document extends CoMap {
+  title = co.string;
+  file = co.ref(FileStream);
 }
 ```
 </CodeGroup>
 
-See the corresponding sections for [creating](/docs/using-covalues/creation#filestream-creation),
+See the corresponding sections for [creating](/docs/using-covalues/filestreams#creating-filestreams),
 [subscribing/loading](/docs/using-covalues/subscription-and-loading),
-[reading from](/docs/using-covalues/reading#filestream-reading) and
-[writing to](/docs/using-covalues/writing#filestream-writing) FileStreams.
+[reading from](/docs/using-covalues/filestreams#reading-from-filestreams) and
+[writing to](/docs/using-covalues/filestreams#writing-to-filestreams) FileStreams.
 
 ### `SchemaUnion` (declaration)
 
