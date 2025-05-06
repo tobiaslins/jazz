@@ -80,9 +80,7 @@ export function isCoValueClass<V extends CoValue>(
  *
  * @category CoValues
  */
-export type ID<T> = CojsonInternalTypes.RawCoID & IDMarker<T>;
-
-type IDMarker<out T> = { __type(_: never): T };
+export type ID<T> = string;
 
 /** @internal */
 export class CoValueBase implements CoValue {

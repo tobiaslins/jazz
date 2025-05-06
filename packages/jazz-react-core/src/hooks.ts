@@ -315,7 +315,6 @@ export function experimental_useInboxSender<
 
       let inbox = await inboxRef.current;
 
-      // @ts-expect-error inbox.owner.id is typed as RawAccount id
       if (inbox.owner.id !== inboxOwnerID) {
         const req = InboxSender.load<I, O>(inboxOwnerID, me);
         inboxRef.current = req;

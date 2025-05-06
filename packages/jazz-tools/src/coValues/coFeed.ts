@@ -146,7 +146,7 @@ export class CoFeed<Item = any> extends CoValueBase implements CoValue {
    *
    * @category Content
    */
-  [key: ID<Account>]: CoFeedEntry<Item>;
+  [key: ID<Account>]: CoFeedEntry<Item> | any;
 
   /**
    * The current account's view of this `CoFeed`
@@ -461,16 +461,15 @@ function entryFromRawEntry<Item>(
       }
     },
     get by() {
-      return (
-        accountID &&
-        new Ref<Account>(accountID as unknown as ID<Account>, loadedAs, {
-          ref: RegisteredSchemas["Account"],
-          optional: false,
-        })?.accessFrom(
-          accessFrom,
-          rawEntry.by + rawEntry.tx.sessionID + rawEntry.tx.txIndex + ".by",
-        )
-      );
+      return accountID
+        ? new Ref<Account>(accountID as unknown as ID<Account>, loadedAs, {
+            ref: RegisteredSchemas["Account"],
+            optional: false,
+          })?.accessFrom(
+            accessFrom,
+            rawEntry.by + rawEntry.tx.sessionID + rawEntry.tx.txIndex + ".by",
+          )
+        : undefined;
     },
     madeAt: rawEntry.at,
     tx: rawEntry.tx,

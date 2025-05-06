@@ -112,24 +112,26 @@ export class Account extends CoValueBase implements CoValue {
       | undefined;
 
     return {
-      profile:
-        profileID &&
-        (new Ref(
-          profileID,
-          this._loadedAs,
-          this._schema.profile as RefEncoded<
-            NonNullable<this["profile"]> & CoValue
-          >,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ) as any as RefIfCoValue<this["profile"]>),
-      root:
-        rootID &&
-        (new Ref(
-          rootID,
-          this._loadedAs,
-          this._schema.root as RefEncoded<NonNullable<this["root"]> & CoValue>,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ) as any as RefIfCoValue<this["root"]>),
+      profile: profileID
+        ? (new Ref(
+            profileID,
+            this._loadedAs,
+            this._schema.profile as RefEncoded<
+              NonNullable<this["profile"]> & CoValue
+            >,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ) as any as RefIfCoValue<this["profile"]>)
+        : undefined,
+      root: rootID
+        ? (new Ref(
+            rootID,
+            this._loadedAs,
+            this._schema.root as RefEncoded<
+              NonNullable<this["root"]> & CoValue
+            >,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ) as any as RefIfCoValue<this["root"]>)
+        : undefined,
     };
   }
 

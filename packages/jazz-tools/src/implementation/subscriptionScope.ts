@@ -1,4 +1,4 @@
-import type { CoValueCore, LocalNode, RawCoValue } from "cojson";
+import type { CoValueCore, LocalNode, RawCoID, RawCoValue } from "cojson";
 import { type Account } from "../coValues/account.js";
 import type {
   AnonymousJazzAgent,
@@ -152,12 +152,12 @@ function loadCoValue(
   callback: (value: CoValueCore | "unavailable") => void,
   syncResolution: boolean,
 ) {
-  const coValue = node.getCoValue(id);
+  const coValue = node.getCoValue(id as RawCoID);
 
   if (coValue.isAvailable() && syncResolution) {
     callback(coValue);
   } else {
-    void node.loadCoValueCore(id).then((core) => {
+    void node.loadCoValueCore(id as RawCoID).then((core) => {
       callback(core);
     });
   }

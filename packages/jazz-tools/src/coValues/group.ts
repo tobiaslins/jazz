@@ -79,24 +79,24 @@ export class Group extends CoValueBase implements CoValue {
       | ID<NonNullable<this["root"]>>
       | undefined;
     return {
-      profile:
-        profileID &&
-        (new Ref(
-          profileID,
-          this._loadedAs,
-          this._schema.profile as RefEncoded<NonNullable<this["profile"]>>,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ) as any as this["profile"] extends Profile
-          ? Ref<this["profile"]>
-          : never),
-      root:
-        rootID &&
-        (new Ref(
-          rootID,
-          this._loadedAs,
-          this._schema.root as RefEncoded<NonNullable<this["root"]>>,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ) as any as this["root"] extends CoMap ? Ref<this["root"]> : never),
+      profile: profileID
+        ? (new Ref(
+            profileID,
+            this._loadedAs,
+            this._schema.profile as RefEncoded<NonNullable<this["profile"]>>,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ) as any as this["profile"] extends Profile
+            ? Ref<this["profile"]>
+            : never)
+        : undefined,
+      root: rootID
+        ? (new Ref(
+            rootID,
+            this._loadedAs,
+            this._schema.root as RefEncoded<NonNullable<this["root"]>>,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ) as any as this["root"] extends CoMap ? Ref<this["root"]> : never)
+        : undefined,
     };
   }
 

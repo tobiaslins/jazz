@@ -4,6 +4,7 @@ import {
   CojsonInternalTypes,
   type JsonValue,
   RawAccountID,
+  RawCoID,
   type RawCoMap,
   cojsonInternals,
 } from "cojson";
@@ -525,7 +526,7 @@ export class CoMap extends CoValueBase implements CoValue {
       type: "comap" as const,
       ruleset: {
         type: "ownedByGroup" as const,
-        group: ownerID,
+        group: ownerID as RawCoID,
       },
       meta: null,
       uniqueness: unique,
