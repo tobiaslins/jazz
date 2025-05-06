@@ -12,7 +12,7 @@ As their name suggests, CoValues are inherently collaborative, meaning **multipl
 
 - CoValues keep their full edit histories, from which they derive their "current state".
 - The fact that this happens in an eventually-consistent way makes them [CRDTs](https://en.wikipedia.org/wiki/Conflict-free_replicated_data_type).
-- Having the full history also means that you often don't need explicit timestamps and author info - you get this for free as part of a CoValue's [edit metadata](/docs/using-covalues/metadata).
+- Having the full history also means that you often don't need explicit timestamps and author info - you get this for free as part of a CoValue's [edit metadata](/docs/using-covalues/history).
 
 CoValues model JSON with CoMaps and CoLists, but also offer CoFeeds for simple per-user value feeds, and let you represent binary data with FileStreams.
 
@@ -31,11 +31,14 @@ Even before you know the details of how your app will work, you'll probably know
 Jazz makes it quick to declare schemas, since they are simple TypeScript classes:
 
 <CodeGroup>
-{/* prettier-ignore */}
-```ts
+```ts twoslash
+import { co, CoMap, CoList } from "jazz-tools";
+class ListOfTasks extends CoList.Of(co.string) {}
+// ---cut---
+// schema.ts
 export class TodoProject extends CoMap {
-    title = co.string;
-    tasks = co.ref(ListOfTasks);
+  title = co.string;
+  tasks = co.ref(ListOfTasks);
 }
 ```
 </CodeGroup>
@@ -45,16 +48,28 @@ Here you can see how we extend a CoValue type and use `co` for declaring (collab
 Classes might look old-fashioned, but Jazz makes use of them being both types and values in TypeScript, letting you refer to either with a single definition and import.
 
 <CodeGroup>
-{/* prettier-ignore */}
-```ts
+```ts twoslash
+// @filename: schema.ts
+import { co, CoMap, CoList } from "jazz-tools";
+
+export class ListOfTasks extends CoList.Of(co.string) {}
+
+export class TodoProject extends CoMap {
+  title = co.string;
+  tasks = co.ref(ListOfTasks);
+}
+// @filename: app.ts
+import { Group } from "jazz-tools";
+// ---cut---
+// app.ts
 import { TodoProject, ListOfTasks } from "./schema";
 
 const project: TodoProject = TodoProject.create(
-    {
-        title: "New Project",
-        tasks: ListOfTasks.create([], Group.create()),
-    },
-    Group.create()
+  {
+    title: "New Project",
+    tasks: ListOfTasks.create([], Group.create()),
+  },
+  Group.create()
 );
 ```
 </CodeGroup>
@@ -63,17 +78,24 @@ const project: TodoProject = TodoProject.create(
 
 ### `CoMap` (declaration)
 
-CoMaps are the most commonly used type of CoValue. They are the equivalent of JSON objects. (Collaborative editing follows a last-write-wins strategy per-key.)
+CoMaps are the most commonly used type of CoValue. They are the equivalent of JSON objects (Collaborative editing follows a last-write-wins strategy per-key).
 
 You can either declare struct-like CoMaps:
 
 <CodeGroup>
-{/* prettier-ignore */}
-```ts
-class Person extends CoMap {
-    name = co.string;
-    age = co.number;
-    pet = co.optional.ref(Pet);
+```ts twoslash
+// schema.ts
+import { co, CoMap } from "jazz-tools";
+
+export class Pet extends CoMap {
+  name = co.string;
+  breed = co.string;
+}
+// ---cut---
+export class Person extends CoMap {
+  name = co.string;
+  age = co.number;
+  pet = co.optional.ref(Pet);
 }
 ```
 </CodeGroup>
@@ -81,8 +103,13 @@ class Person extends CoMap {
 Or record-like CoMaps (key-value pairs, where keys are always `string`):
 
 <CodeGroup>
-{/* prettier-ignore */}
-```ts
+```ts twoslash
+import { co, CoMap } from "jazz-tools";
+class Fruit extends CoMap {
+  name = co.string;
+  color = co.string;
+}
+// ---cut---
 class ColorToHex extends CoMap.Record(co.string) {}
 
 class ColorToFruit extends CoMap.Record(co.ref(Fruit)) {}
@@ -90,10 +117,10 @@ class ColorToFruit extends CoMap.Record(co.ref(Fruit)) {}
 </CodeGroup>
 
 
-See the corresponding sections for [creating](/docs/using-covalues/creation#comap-creation),
+See the corresponding sections for [creating](/docs/using-covalues/comaps#creating-comaps),
 [subscribing/loading](/docs/using-covalues/subscription-and-loading),
-[reading from](/docs/using-covalues/reading#comap-reading) and
-[writing to](/docs/using-covalues/writing#comap-writing) CoMaps.
+[reading from](/docs/using-covalues/comaps#reading-from-comaps) and
+[updating](/docs/using-covalues/comaps#updating-comaps) CoMaps.
 
 ### `CoList` (declaration)
 
