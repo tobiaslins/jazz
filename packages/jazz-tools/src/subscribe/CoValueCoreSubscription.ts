@@ -31,15 +31,18 @@ export class CoValueCoreSubscription {
 
   subscribeToState() {
     const entry = this.node.getCoValue(this.id as any);
-    const handleStateChange = (core: CoValueCore) => {
+    const handleStateChange = (
+      core: CoValueCore,
+      unsubFromStateChange: () => void,
+    ) => {
       if (this.unsubscribed) {
-        // TODO: unsub imediately?
+        unsubFromStateChange();
         return;
       }
 
       if (core.isAvailable()) {
         this.subscribe(core.getCurrentContent());
-        // TODO: unsub imediately?
+        unsubFromStateChange();
       }
     };
 
