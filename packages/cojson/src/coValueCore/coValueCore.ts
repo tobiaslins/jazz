@@ -1025,8 +1025,6 @@ export class CoValueCore {
             removeCloseListener();
             clearTimeout(timeout);
             resolve();
-          } else {
-            console.log("still not available", this.id, peerState?.type);
           }
         };
 
