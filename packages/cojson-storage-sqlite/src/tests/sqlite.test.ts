@@ -218,7 +218,7 @@ test("should not send the same dependency value twice", async () => {
   const agentSecret = Crypto.newRandomAgentSecret();
 
   const node1 = new LocalNode(
-    new ControlledAgent(agentSecret, Crypto),
+    agentSecret,
     Crypto.newRandomSessionID(Crypto.getAgentID(agentSecret)),
     Crypto,
   );
@@ -245,7 +245,7 @@ test("should not send the same dependency value twice", async () => {
   node1Sync.restore();
 
   const node2 = new LocalNode(
-    new ControlledAgent(agentSecret, Crypto),
+    agentSecret,
     Crypto.newRandomSessionID(Crypto.getAgentID(agentSecret)),
     Crypto,
   );
