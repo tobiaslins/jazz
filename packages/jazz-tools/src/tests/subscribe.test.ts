@@ -844,6 +844,97 @@ describe("subscribeToCoValue", () => {
     expect(updateFn).toHaveBeenCalled();
     expect(result[0]?.value).toBe("5");
   });
+
+  it("should emit on group changes, even when the amount of totalValidTransactions doesn't change but the content does", async () => {
+    class Person extends CoMap {
+      name = co.string;
+    }
+
+    const creator = await createJazzTestAccount();
+
+    const writer1 = await createJazzTestAccount();
+    const writer2 = await createJazzTestAccount();
+
+    const reader = await createJazzTestAccount();
+
+    await Promise.all([
+      writer1.waitForAllCoValuesSync(),
+      writer2.waitForAllCoValuesSync(),
+      reader.waitForAllCoValuesSync(),
+    ]);
+
+    const group = Group.create(creator);
+    group.addMember(writer1, "writer");
+    group.addMember(writer2, "reader");
+    group.addMember(reader, "reader");
+
+    const person = Person.create({ name: "creator" }, group);
+
+    await person.waitForSync();
+
+    // Disconnect from the sync server, so we can change permissions but not sync them
+    creator._raw.core.node.syncManager.getPeers().forEach((peer) => {
+      peer.gracefulShutdown();
+    });
+
+    group.removeMember(writer1);
+    group.addMember(writer2, "writer");
+
+    let value: Resolved<Person, {}> | null = null as Resolved<
+      Person,
+      {}
+    > | null;
+    const spy = vi.fn((update) => {
+      value = update;
+    });
+
+    const unsubscribe = subscribeToCoValue(
+      Person,
+      person.id,
+      {
+        loadAs: reader,
+      },
+      spy,
+    );
+
+    onTestFinished(unsubscribe);
+
+    await waitFor(() => expect(spy).toHaveBeenCalled());
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(value?.name).toBe("creator");
+
+    const personOnWriter1 = await Person.load(person.id, {
+      loadAs: writer1,
+    });
+
+    const personOnWriter2 = await Person.load(person.id, {
+      loadAs: writer2,
+    });
+
+    spy.mockClear();
+
+    assert(personOnWriter1);
+    assert(personOnWriter2);
+    personOnWriter1.name = "writer1";
+    personOnWriter2.name = "writer2";
+
+    await waitFor(() => expect(spy).toHaveBeenCalled());
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(value?.name).toBe("writer1");
+    expect(value?._raw.totalValidTransactions).toBe(2);
+
+    spy.mockClear();
+
+    // Reconnect to the sync server
+    creator._raw.core.node.syncManager.addPeer(
+      getPeerConnectedToTestSyncServer(),
+    );
+
+    await waitFor(() => expect(spy).toHaveBeenCalled());
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(value?.name).toBe("writer2");
+    expect(value?._raw.totalValidTransactions).toBe(2);
+  });
 });
 
 describe("createCoValueObservable", () => {
