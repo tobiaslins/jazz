@@ -5,7 +5,8 @@ import { LocalNode } from "../localNode.js";
 import { expectGroup } from "../typeUtils/expectGroup.js";
 import {
   loadCoValueOrFail,
-  randomAnonymousAccountAndSessionID,
+  nodeWithRandomAgentAndSessionID,
+  randomAgentAndSessionID,
   setupTestNode,
   waitFor,
 } from "./testUtils.js";
@@ -17,7 +18,7 @@ beforeEach(async () => {
 });
 
 test("Empty CoList works", () => {
-  const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "colist",
@@ -33,7 +34,7 @@ test("Empty CoList works", () => {
 });
 
 test("Can append, prepend, delete and replace items in CoList", () => {
-  const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "colist",
@@ -64,7 +65,7 @@ test("Can append, prepend, delete and replace items in CoList", () => {
 });
 
 test("Push is equivalent to append after last item", () => {
-  const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "colist",
@@ -86,7 +87,7 @@ test("Push is equivalent to append after last item", () => {
 });
 
 test("appendItems add an array of items at the end of the list", () => {
-  const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "colist",
@@ -106,7 +107,7 @@ test("appendItems add an array of items at the end of the list", () => {
 });
 
 test("appendItems at index", () => {
-  const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "colist",
@@ -136,7 +137,7 @@ test("appendItems at index", () => {
 });
 
 test("appendItems at index", () => {
-  const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "colist",
@@ -158,7 +159,7 @@ test("appendItems at index", () => {
 });
 
 test("appendItems with negative index", () => {
-  const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "colist",
@@ -176,7 +177,7 @@ test("appendItems with negative index", () => {
 });
 
 test("Can push into empty list", () => {
-  const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "colist",
@@ -194,7 +195,7 @@ test("Can push into empty list", () => {
 });
 
 test("init the list correctly", () => {
-  const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const group = node.createGroup();
 
@@ -214,7 +215,7 @@ test("init the list correctly", () => {
 });
 
 test("Items prepended to start appear with latest first", () => {
-  const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "colist",
@@ -233,7 +234,7 @@ test("Items prepended to start appear with latest first", () => {
 });
 
 test("mixing prepend and append", () => {
-  const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "colist",
@@ -252,7 +253,7 @@ test("mixing prepend and append", () => {
 });
 
 test("Items appended to start", () => {
-  const node = new LocalNode(...randomAnonymousAccountAndSessionID(), Crypto);
+  const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
     type: "colist",

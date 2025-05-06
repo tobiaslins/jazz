@@ -1,11 +1,12 @@
 import {
+  ControlledAccount,
   type OpID,
   RawAccount,
   type RawCoPlainText,
   stringifyOpID,
 } from "cojson";
 import { calcPatch } from "fast-myers-diff";
-import type {
+import {
   AnonymousJazzAgent,
   CoValue,
   CoValueClass,
@@ -21,8 +22,10 @@ import {
   subscribeToCoValueWithoutMe,
   subscribeToExistingCoValue,
 } from "../internal.js";
+import { coValuesCache } from "../lib/cache.js";
 import { Account } from "./account.js";
 import { Group } from "./group.js";
+import { RegisteredSchemas } from "./registeredSchemas.js";
 
 export type TextPos = OpID;
 
@@ -38,7 +41,15 @@ export class CoPlainText extends String implements CoValue {
   }
 
   get _loadedAs() {
-    return Account.fromNode(this._raw.core.node);
+    const agent = this._raw.core.node.getCurrentAgent();
+
+    if (agent instanceof ControlledAccount) {
+      return coValuesCache.get(agent.account, () =>
+        RegisteredSchemas["Account"].fromRaw(agent.account),
+      );
+    }
+
+    return new AnonymousJazzAgent(this._raw.core.node);
   }
 
   constructor(

@@ -1,15 +1,16 @@
 import { base64URLtoBytes, bytesToBase64url } from "./base64url.js";
 import { type RawCoValue } from "./coValue.js";
 import {
+  CO_VALUE_LOADING_CONFIG,
   CoValueCore,
   MAX_RECOMMENDED_TX_SIZE,
   idforHeader,
 } from "./coValueCore/coValueCore.js";
 import { CoValueUniqueness } from "./coValueCore/verifiedState.js";
 import {
+  ControlledAccount,
   ControlledAgent,
   RawAccount,
-  RawControlledAccount,
   RawProfile,
   accountHeaderForInitialAgentSecret,
 } from "./coValues/account.js";
@@ -76,7 +77,6 @@ import {
 
 type Value = JsonValue | AnyRawCoValue;
 
-import { CO_VALUE_LOADING_CONFIG } from "./coValueState.js";
 import { logger } from "./logger.js";
 import { getPriorityFromHeader } from "./priority.js";
 
@@ -121,6 +121,7 @@ export {
   AnyRawCoValue,
   RawAccount,
   RawAccountID,
+  ControlledAccount,
   AccountMeta,
   RawAccountMigration,
   RawProfile as Profile,
@@ -128,7 +129,6 @@ export {
   Media,
   CoValueCore,
   ControlledAgent,
-  RawControlledAccount,
   MAX_RECOMMENDED_TX_SIZE,
   JsonObject,
   JsonValue,

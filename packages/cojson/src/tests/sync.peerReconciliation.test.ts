@@ -64,13 +64,13 @@ describe("peer reconciliation", () => {
 
     await map.core.waitForSync();
 
-    const mapOnSyncServer = jazzCloud.node.coValuesStore.get(map.id);
+    const mapOnSyncServer = jazzCloud.node.getCoValue(map.id);
 
     assert(mapOnSyncServer.isAvailable());
 
-    expect(
-      expectMap(mapOnSyncServer.core.getCurrentContent()).get("hello"),
-    ).toEqual("updated");
+    expect(expectMap(mapOnSyncServer.getCurrentContent()).get("hello")).toEqual(
+      "updated",
+    );
 
     expect(
       SyncMessagesLog.getMessages({
@@ -111,13 +111,13 @@ describe("peer reconciliation", () => {
 
     await map.core.waitForSync();
 
-    const mapOnSyncServer = jazzCloud.node.coValuesStore.get(map.id);
+    const mapOnSyncServer = jazzCloud.node.getCoValue(map.id);
 
     assert(mapOnSyncServer.isAvailable());
 
-    expect(
-      expectMap(mapOnSyncServer.core.getCurrentContent()).get("hello"),
-    ).toEqual("updated");
+    expect(expectMap(mapOnSyncServer.getCurrentContent()).get("hello")).toEqual(
+      "updated",
+    );
 
     expect(peer.outgoing).toMatchObject({
       closed: true,
@@ -166,9 +166,9 @@ describe("peer reconciliation", () => {
     client.connectToSyncServer();
 
     await waitFor(() => {
-      const mapOnSyncServer = jazzCloud.node.coValuesStore.get(map.id);
+      const mapOnSyncServer = jazzCloud.node.getCoValue(map.id);
 
-      expect(mapOnSyncServer.highLevelState).toBe("available");
+      expect(mapOnSyncServer.loadingState).toBe("available");
     });
 
     expect(
@@ -210,7 +210,7 @@ describe("peer reconciliation", () => {
 
     SyncMessagesLog.clear();
     client.connectToSyncServer();
-    const mapOnSyncServer = jazzCloud.node.coValuesStore.get(map.id);
+    const mapOnSyncServer = jazzCloud.node.getCoValue(map.id);
 
     await waitFor(() => {
       expect(mapOnSyncServer.isAvailable()).toBe(true);
@@ -232,8 +232,8 @@ describe("peer reconciliation", () => {
       ]
     `);
 
-    expect(
-      expectMap(mapOnSyncServer.core.getCurrentContent()).get("hello"),
-    ).toEqual("updated");
+    expect(expectMap(mapOnSyncServer.getCurrentContent()).get("hello")).toEqual(
+      "updated",
+    );
   });
 });

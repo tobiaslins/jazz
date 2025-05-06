@@ -88,30 +88,20 @@ export interface ControlledAccountOrAgent {
 }
 
 /** @hidden */
-export class RawControlledAccount<Meta extends AccountMeta = AccountMeta>
-  extends RawAccount<Meta>
-  implements ControlledAccountOrAgent
-{
+export class ControlledAccount implements ControlledAccountOrAgent {
+  account: RawAccount<AccountMeta>;
   agentSecret: AgentSecret;
+  _cachedCurrentAgentID: AgentID | undefined;
+  crypto: CryptoProvider;
 
-  constructor(core: AvailableCoValueCore, agentSecret: AgentSecret) {
-    super(core);
+  constructor(account: RawAccount<AccountMeta>, agentSecret: AgentSecret) {
+    this.account = account;
     this.agentSecret = agentSecret;
+    this.crypto = account.core.node.crypto;
   }
 
-  /**
-   * Creates a new group (with the current account as the group's first admin).
-   * @category 1. High-level
-   */
-  createGroup(uniqueness: CoValueUniqueness = this.crypto.createdNowUnique()) {
-    return this.core.node.createGroup(uniqueness);
-  }
-
-  async acceptInvite<T extends RawCoValue>(
-    groupOrOwnedValueID: CoID<T>,
-    inviteSecret: InviteSecret,
-  ): Promise<void> {
-    return this.core.node.acceptInvite(groupOrOwnedValueID, inviteSecret);
+  get id(): RawAccountID {
+    return this.account.id;
   }
 
   currentAgentID(): AgentID {
@@ -184,7 +174,14 @@ export class RawProfile<
 > extends RawCoMap<Shape, Meta> {}
 
 export type RawAccountMigration<Meta extends AccountMeta = AccountMeta> = (
-  account: RawControlledAccount<Meta>,
+  account: RawAccount<Meta>,
   localNode: LocalNode,
   creationProps?: { name: string },
 ) => void | Promise<void>;
+
+export function expectAccount(content: RawCoValue): RawAccount {
+  if (!(content instanceof RawAccount)) {
+    throw new Error("Expected an account");
+  }
+  return content;
+}
