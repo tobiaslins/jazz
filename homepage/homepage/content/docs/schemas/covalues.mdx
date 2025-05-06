@@ -241,12 +241,11 @@ Now that we've seen the different types of CoValues, let's see more precisely ho
 You can declare primitive field types using the `co` declarer:
 
 <CodeGroup>
-{/* prettier-ignore */}
-```ts
-import { co } from "jazz-tools";
+```ts twoslash
+import { co, CoMap, CoList } from "jazz-tools";
 
 export class Person extends CoMap {
-    title = co.string;
+  title = co.string;
 }
 
 export class ListOfColors extends CoList.Of(co.string) {}
@@ -256,23 +255,25 @@ export class ListOfColors extends CoList.Of(co.string) {}
 Here's a quick overview of the primitive types you can use:
 
 <CodeGroup>
-{/* prettier-ignore */}
-```ts
-co.string;
-co.number;
-co.boolean;
-co.null;
-co.Date;
-co.literal("waiting", "ready");
+```ts twoslash
+import { co } from "jazz-tools";
+// ---cut---
+co.string;  // For simple strings
+co.number;  // For numbers
+co.boolean; // For booleans
+co.null;    // For null
+co.Date;    // For dates
+co.literal("waiting", "ready"); // For enums
 ```
 </CodeGroup>
 
 Finally, for more complex JSON data, that you *don't want to be collaborative internally* (but only ever update as a whole), you can use `co.json<T>()`:
 
 <CodeGroup>
-{/* prettier-ignore */}
-```ts
-co.json<{ name: string }>();
+```ts twoslash
+import { co } from "jazz-tools";
+// ---cut---
+co.json<{ name: string }>(); // For JSON objects
 ```
 </CodeGroup>
 
@@ -289,13 +290,18 @@ The important caveat here is that **a referenced CoValue might or might not be l
 In Schemas, you declare Refs using the `co.ref<T>()` declarer:
 
 <CodeGroup>
-{/* prettier-ignore */}
-```ts
-class Company extends CoMap {
-    members = co.ref(ListOfPeople);
+```ts twoslash
+import { co, CoMap, CoList } from "jazz-tools";
+class Person extends CoMap {
+  name = co.string;
 }
-
+// ---cut---
+// schema.ts
 class ListOfPeople extends CoList.Of(co.ref(Person)) {}
+
+class Company extends CoMap {
+  members = co.ref(ListOfPeople);
+}
 ```
 </CodeGroup>
 
@@ -304,10 +310,14 @@ class ListOfPeople extends CoList.Of(co.ref(Person)) {}
 ⚠️ If you want to make a referenced CoValue field optional, you *have to* use `co.optional.ref<T>()`: ⚠️
 
 <CodeGroup>
-{/* prettier-ignore */}
-```ts
+```ts twoslash
+import { co, CoMap } from "jazz-tools";
+class Pet extends CoMap {
+  name = co.string;
+}
+// ---cut---
 class Person extends CoMap {
-    pet = co.optional.ref(Pet);
+  pet = co.optional.ref(Pet);
 }
 ```
 </CodeGroup>
@@ -317,20 +327,25 @@ class Person extends CoMap {
 Since CoValue schemas are based on classes, you can easily add computed fields and methods:
 
 <CodeGroup>
-{/* prettier-ignore */}
-```ts
+```ts twoslash
+import { co, CoMap } from "jazz-tools";
+function differenceInYears(date1: Date, date2: Date) {
+  const diffTime = Math.abs(date1.getTime() - date2.getTime());
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 365.25));
+}
+// ---cut---
 class Person extends CoMap {
-    firstName = co.string;
-    lastName = co.string;
-    dateOfBirth = co.Date;
+  firstName = co.string;
+  lastName = co.string;
+  dateOfBirth = co.Date;
 
-    get name() {
-        return `${this.firstName} ${this.lastName}`;
-    }
+  get name() {
+    return `${this.firstName} ${this.lastName}`;
+  }
 
-    ageAsOf(date: Date) {
-        return differenceInYears(date, this.dateOfBirth);
-    }
+  ageAsOf(date: Date) {
+    return differenceInYears(date, this.dateOfBirth);
+  }
 }
 ```
 </CodeGroup>
