@@ -86,16 +86,10 @@ You can either declare struct-like CoMaps:
 ```ts twoslash
 // schema.ts
 import { co, CoMap } from "jazz-tools";
-
-export class Pet extends CoMap {
-  name = co.string;
-  breed = co.string;
-}
 // ---cut---
-export class Person extends CoMap {
-  name = co.string;
-  age = co.number;
-  pet = co.optional.ref(Pet);
+export class Task extends CoMap {
+  title = co.string;
+  completed = co.boolean;
 }
 ```
 </CodeGroup>
@@ -149,23 +143,28 @@ See the corresponding sections for [creating](/docs/using-covalues/colists#creat
 
 ### `CoFeed` (declaration)
 
-CoFeeds are a special CoValue type that represent a feed of values for a set of users / sessions. (Each session of a user gets its own append-only feed.)
+CoFeeds are a special CoValue type that represent a feed of values for a set of users/sessions (Each session of a user gets its own append-only feed).
 
 They allow easy access of the latest or all items belonging to a user or their sessions. This makes them particularly useful for user presence, reactions, notifications, etc.
 
 You define them by specifying the type of feed item:
 
 <CodeGroup>
-{/* prettier-ignore */}
-```ts
+```ts twoslash
+import { co, CoFeed, CoMap } from "jazz-tools";
+class Task extends CoMap {
+  title = co.string;
+  completed = co.boolean;
+}
+// ---cut---
 class FeedOfTasks extends CoFeed.Of(co.ref(Task)) {}
 ```
 </CodeGroup>
 
-See the corresponding sections for [creating](/docs/using-covalues/creation#cofeed-creation),
+See the corresponding sections for [creating](/docs/using-covalues/cofeeds#creating-cofeeds),
 [subscribing/loading](/docs/using-covalues/subscription-and-loading),
-[reading from](/docs/using-covalues/reading#cofeed-reading) and
-[writing to](/docs/using-covalues/writing#cofeed-writing) CoFeeds.
+[reading from](/docs/using-covalues/cofeeds#reading-from-cofeeds) and
+[writing to](/docs/using-covalues/cofeeds#writing-to-cofeeds) CoFeeds.
 
 ### `FileStream` (declaration)
 
