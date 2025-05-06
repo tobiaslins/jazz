@@ -96,6 +96,8 @@ export class SubscriptionScope<D extends CoValue> {
       return;
     }
 
+    // When resolving a CoValue with available children, we want to trigger a single update
+    // after loading all the children, not one per children
     this.silenceUpdates = true;
 
     if (this.value.type !== "loaded") {
@@ -242,6 +244,10 @@ export class SubscriptionScope<D extends CoValue> {
 
     const value = this.value.value;
 
+    // We don't want to trigger an update when autoloading available children
+    // because on userland it looks like nothing has changed since the value
+    // is available on the first access
+    // This helps alot with correctness when triggering the autoloading while rendering components (on React and Svelte)
     this.silenceUpdates = true;
 
     if (value._type === "CoMap" || value._type === "Account") {
@@ -273,6 +279,10 @@ export class SubscriptionScope<D extends CoValue> {
     this.idsSubscribed.add(id);
     this.autoloaded.add(id);
 
+    // We don't want to trigger an update when autoloading available children
+    // because on userland it looks like nothing has changed since the value
+    // is available on the first access
+    // This helps alot with correctness when triggering the autoloading while rendering components (on React and Svelte)
     this.silenceUpdates = true;
 
     this.childValues.set(id, { type: "unloaded", id });
