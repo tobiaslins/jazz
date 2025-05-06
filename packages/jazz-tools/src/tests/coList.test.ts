@@ -765,4 +765,56 @@ describe("CoList subscription", async () => {
 
     expect(spy).toHaveBeenCalledTimes(2);
   });
+
+  test("pushing a new item triggers updates correctly", async () => {
+    class Item extends CoMap {
+      name = co.string;
+    }
+
+    class TestList extends CoList.Of(co.ref(Item)) {}
+
+    const group = Group.create();
+    group.addMember("everyone", "writer");
+
+    const list = TestList.create(
+      [
+        Item.create({ name: "Item 1" }, group),
+        Item.create({ name: "Item 2" }, group),
+      ],
+      group,
+    );
+
+    const updates: TestList[] = [];
+    const spy = vi.fn((list) => updates.push(list));
+
+    const userB = await createJazzTestAccount();
+
+    TestList.subscribe(
+      list.id,
+      {
+        loadAs: userB,
+        resolve: {
+          $each: true,
+        },
+      },
+      (update) => {
+        spy(update);
+
+        // The update should be triggered only when the new item is loaded
+        for (const item of update) {
+          expect(item).toBeDefined();
+        }
+      },
+    );
+
+    await waitFor(() => expect(spy).toHaveBeenCalled());
+
+    expect(spy).toHaveBeenCalledTimes(1);
+
+    list.push(Item.create({ name: "Item 3" }, group));
+
+    await waitFor(() => expect(spy).toHaveBeenCalledTimes(2));
+
+    expect(spy).toHaveBeenCalledTimes(2);
+  });
 });
