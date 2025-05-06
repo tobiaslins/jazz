@@ -571,9 +571,18 @@ export class SyncManager {
       peer.trackToldKnownState(msg.id);
     }
 
+    const sourcePeer = peer;
     const syncedPeers = [];
 
     for (const peer of this.peersInPriorityOrder()) {
+      /**
+       * We sync the content against the source peer if it is a client or server peers
+       * to upload any content that is available on the current node and not on the source peer.
+       *
+       * We don't need to do this with storage peers because we don't get updates from those peers,
+       * only load and store content.
+       */
+      if (peer.id === sourcePeer.id && sourcePeer.role === "storage") continue;
       if (peer.closed) continue;
       if (coValue.isErroredInPeer(peer.id)) continue;
 
