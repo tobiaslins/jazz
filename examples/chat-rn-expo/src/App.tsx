@@ -6,10 +6,11 @@ import {
 } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import * as Linking from "expo-linking";
+import { RNQuickCrypto } from "jazz-expo/crypto";
 import React, { StrictMode, useEffect, useState } from "react";
 import HandleInviteScreen from "./invite";
 
-import { JazzProvider } from "jazz-expo";
+import { JazzProvider, clearUserCredentials } from "jazz-expo";
 import { apiKey } from "./apiKey";
 import ChatScreen from "./chat";
 
@@ -46,6 +47,7 @@ function App() {
   return (
     <StrictMode>
       <JazzProvider
+        CryptoProvider={RNQuickCrypto}
         sync={{
           peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
         }}
