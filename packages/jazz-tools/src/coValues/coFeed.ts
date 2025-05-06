@@ -470,7 +470,7 @@ function entryFromRawEntry<Item>(
     get by() {
       return (
         accountID &&
-        accessChildById(accessFrom, rawEntry.value as string, {
+        accessChildById(accessFrom, accountID, {
           ref: RegisteredSchemas["Account"],
           optional: false,
         })
