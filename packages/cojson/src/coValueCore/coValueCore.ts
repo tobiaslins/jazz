@@ -1007,6 +1007,7 @@ export class CoValueCore {
 
         const listener = (state: CoValueCore) => {
           const peerState = state.peers.get(peer.id);
+
           if (
             state.isAvailable() || // might have become available from another peer e.g. through handleNewContent
             peerState?.type === "available" ||
@@ -1017,8 +1018,6 @@ export class CoValueCore {
             removeCloseListener();
             clearTimeout(timeout);
             resolve();
-          } else {
-            console.log("still not available", this.id, peerState?.type);
           }
         };
 
