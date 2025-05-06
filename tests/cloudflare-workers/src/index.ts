@@ -42,13 +42,15 @@ app.get("/", async (c) => {
 
   const admin = await startWorker({
     accountID: account.id,
-    accountSecret: account._raw.core.node.account.agentSecret,
+    accountSecret: account._raw.core.node.getCurrentAgent().agentSecret,
     AccountSchema: MyAccount,
     syncServer,
     crypto,
   });
 
-  const { root } = await admin.worker.ensureLoaded({ root: {} });
+  const { root } = await admin.worker.ensureLoaded({
+    resolve: { root: true },
+  });
 
   await admin.done();
 

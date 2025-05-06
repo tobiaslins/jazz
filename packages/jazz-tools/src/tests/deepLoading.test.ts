@@ -57,7 +57,7 @@ describe("Deep loading with depth arg", async () => {
     await createJazzContextFromExistingCredentials({
       credentials: {
         accountID: me.id,
-        secret: me._raw.agentSecret,
+        secret: me._raw.core.node.getCurrentAgent().agentSecret,
       },
       sessionProvider: randomSessionProvider,
       peersToLoadFrom: [initialAsPeer],
@@ -281,7 +281,7 @@ test("Deep loading a record-like coMap", async () => {
     await createJazzContextFromExistingCredentials({
       credentials: {
         accountID: me.id,
-        secret: me._raw.agentSecret,
+        secret: me._raw.core.node.getCurrentAgent().agentSecret,
       },
       sessionProvider: randomSessionProvider,
       peersToLoadFrom: [initialAsPeer],
