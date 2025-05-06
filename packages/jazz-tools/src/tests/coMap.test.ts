@@ -621,11 +621,7 @@ describe("CoMap resolution", async () => {
   test("replacing nested object triggers updates", async () => {
     const { meOnSecondPeer, queue } = await setupTest();
 
-    // Skip initial updates
-    await queue.next();
-    await queue.next();
-
-    const update3 = (await queue.next()).value;
+    const update = (await queue.next()).value;
 
     const newTwiceNested = TwiceNestedMap.create(
       {
@@ -642,26 +638,26 @@ describe("CoMap resolution", async () => {
       { owner: meOnSecondPeer },
     );
 
-    update3.nested = newNested;
+    update.nested = newNested;
 
-    await queue.next(); // Skip intermediate update
-    const update4 = (await queue.next()).value;
+    const update2 = (await queue.next()).value;
 
-    expect(update4.nested?.name).toEqual("newNested");
-    expect(update4.nested?.twiceNested?.taste).toEqual("sweet");
+    expect(update2.nested?.name).toEqual("newNested");
+    expect(update2.nested?.twiceNested?.taste).toEqual("sweet");
   });
 
   test("updates to deeply nested properties are received", async () => {
     const { queue } = await setupTest();
 
-    // Skip to the point where we have the nested object
-    await queue.next();
-    await queue.next();
-    const update3 = (await queue.next()).value;
+    const update = (await queue.next()).value;
+
+    update.nested; // Trigger nested autoload
+
+    const update2 = (await queue.next()).value;
 
     const newTwiceNested = TwiceNestedMap.create(
       { taste: "sweet" },
-      { owner: update3.nested!._raw.owner },
+      { owner: update2.nested!._raw.owner },
     );
 
     const newNested = NestedMap.create(
@@ -669,22 +665,18 @@ describe("CoMap resolution", async () => {
         name: "newNested",
         twiceNested: newTwiceNested,
       },
-      { owner: update3.nested!._raw.owner },
+      { owner: update2.nested!._raw.owner },
     );
 
-    update3.nested = newNested;
-
-    // Skip intermediate updates
-    await queue.next();
-    await queue.next();
+    update2.nested = newNested;
 
     newTwiceNested.taste = "salty";
-    const update5 = (await queue.next()).value;
-    expect(update5.nested?.twiceNested?.taste).toEqual("salty");
+    const update3 = (await queue.next()).value;
+    expect(update3.nested?.twiceNested?.taste).toEqual("salty");
 
     newTwiceNested.taste = "umami";
-    const update6 = (await queue.next()).value;
-    expect(update6.nested?.twiceNested?.taste).toEqual("umami");
+    const update4 = (await queue.next()).value;
+    expect(update4.nested?.twiceNested?.taste).toEqual("umami");
   });
 
   class TestMapWithOptionalRef extends CoMap {

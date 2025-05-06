@@ -29,7 +29,7 @@ export class SubscriptionScope<D extends CoValue> {
   autoloaded = new Set<string>();
   totalValidTransactions = 0;
 
-  batchingUpdates = false;
+  silenceUpdates = false;
 
   constructor(
     public node: LocalNode,
@@ -96,11 +96,7 @@ export class SubscriptionScope<D extends CoValue> {
       return;
     }
 
-    if (this.batchingUpdates) {
-      throw new Error("handleUpdate called while batching updates");
-    }
-
-    this.batchingUpdates = true;
+    this.silenceUpdates = true;
 
     if (this.value.type !== "loaded") {
       this.updateValue(createCoValue(this.schema, update, this));
@@ -119,7 +115,7 @@ export class SubscriptionScope<D extends CoValue> {
 
     this.totalValidTransactions = update.totalValidTransactions;
 
-    this.batchingUpdates = false;
+    this.silenceUpdates = false;
     this.triggerUpdate();
   }
 
@@ -201,7 +197,7 @@ export class SubscriptionScope<D extends CoValue> {
     if (!this.shouldSendUpdates()) return;
     if (!this.dirty) return;
     if (this.subscribers.size === 0) return;
-    if (this.batchingUpdates) return;
+    if (this.silenceUpdates) return;
 
     const error = this.errorFromChildren;
     const value = this.value;
@@ -246,6 +242,8 @@ export class SubscriptionScope<D extends CoValue> {
 
     const value = this.value.value;
 
+    this.silenceUpdates = true;
+
     if (value._type === "CoMap" || value._type === "Account") {
       const map = value as CoMap;
 
@@ -263,6 +261,8 @@ export class SubscriptionScope<D extends CoValue> {
         this.autoloaded.add(id);
       }
     }
+
+    this.silenceUpdates = false;
   }
 
   subscribeToId(id: string, descriptor: RefEncoded<any>) {
@@ -273,6 +273,8 @@ export class SubscriptionScope<D extends CoValue> {
     this.idsSubscribed.add(id);
     this.autoloaded.add(id);
 
+    this.silenceUpdates = true;
+
     this.childValues.set(id, { type: "unloaded", id });
     const child = new SubscriptionScope(
       this.node,
@@ -282,6 +284,8 @@ export class SubscriptionScope<D extends CoValue> {
     );
     this.childNodes.set(id, child);
     child.setListener((value) => this.handleChildUpdate(id, value));
+
+    this.silenceUpdates = false;
   }
 
   loadChildren() {
