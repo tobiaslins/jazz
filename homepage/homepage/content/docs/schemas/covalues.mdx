@@ -129,18 +129,23 @@ CoLists are ordered lists and are the equivalent of JSON arrays. (They support c
 You define them by specifying the type of the items they contain:
 
 <CodeGroup>
-{/* prettier-ignore */}
-```ts
+```ts twoslash
+import { co, CoList, CoMap } from "jazz-tools";
+class Task extends CoMap {
+  title = co.string;
+  completed = co.boolean;
+}
+// ---cut---
 class ListOfColors extends CoList.Of(co.string) {}
 
 class ListOfTasks extends CoList.Of(co.ref(Task)) {}
 ```
 </CodeGroup>
 
-See the corresponding sections for [creating](/docs/using-covalues/creation#colist-creation),
+See the corresponding sections for [creating](/docs/using-covalues/colists#creating-colists),
 [subscribing/loading](/docs/using-covalues/subscription-and-loading),
-[reading from](/docs/using-covalues/reading#colist-reading) and
-[writing to](/docs/using-covalues/writing#colist-writing) CoLists.
+[reading from](/docs/using-covalues/colists#reading-from-colists) and
+[updating](/docs/using-covalues/colists#updating-colists) CoLists.
 
 ### `CoFeed` (declaration)
 
