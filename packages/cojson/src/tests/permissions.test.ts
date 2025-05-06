@@ -29,7 +29,7 @@ test("Added admin can add a third admin to a group", () => {
   const { groupCore, otherAdmin, node } = groupWithTwoAdmins();
 
   const groupAsOtherAdmin = expectGroup(
-    groupCore.testGetCurrentContentAs(otherAdmin),
+    groupCore.contentInClonedNodeWithDifferentAccount(otherAdmin),
   );
 
   expect(groupAsOtherAdmin.get(otherAdmin.id)).toEqual("admin");
@@ -44,7 +44,7 @@ test("Added adming can add a third admin to a group (high level)", () => {
   const { group, otherAdmin } = groupWithTwoAdminsHighLevel();
 
   const groupAsOtherAdmin = expectGroup(
-    group.core.testGetCurrentContentAs(otherAdmin),
+    group.core.contentInClonedNodeWithDifferentAccount(otherAdmin),
   );
 
   const thirdAdmin = groupAsOtherAdmin.core.node.createAccount();
@@ -65,7 +65,7 @@ test("Admins can't demote other admins in a group", () => {
   expect(groupContent.get(otherAdmin.id)).toEqual("admin");
 
   const groupAsOtherAdmin = expectGroup(
-    groupCore.testGetCurrentContentAs(otherAdmin),
+    groupCore.contentInClonedNodeWithDifferentAccount(otherAdmin),
   );
 
   groupAsOtherAdmin.set(admin.id, "writer", "trusting");
@@ -76,7 +76,7 @@ test("Admins can't demote other admins in a group (high level)", () => {
   const { group, admin, otherAdmin } = groupWithTwoAdminsHighLevel();
 
   const groupAsOtherAdmin = expectGroup(
-    group.core.testGetCurrentContentAs(otherAdmin),
+    group.core.contentInClonedNodeWithDifferentAccount(otherAdmin),
   );
 
   expect(() => groupAsOtherAdmin.addMemberInternal(admin.id, "writer")).toThrow(
@@ -97,7 +97,9 @@ test("Admins an add writers to a group, who can't add admins, writers, or reader
 
   expect(groupContent.get(writer.id)).toEqual("writer");
 
-  const groupAsWriter = expectGroup(groupCore.testGetCurrentContentAs(writer));
+  const groupAsWriter = expectGroup(
+    groupCore.contentInClonedNodeWithDifferentAccount(writer),
+  );
 
   expect(groupAsWriter.get(writer.id)).toEqual("writer");
 
@@ -121,7 +123,9 @@ test("Admins an add writers to a group, who can't add admins, writers, or reader
   group.addMember(writer, "writer");
   expect(group.get(writer.id)).toEqual("writer");
 
-  const groupAsWriter = expectGroup(group.core.testGetCurrentContentAs(writer));
+  const groupAsWriter = expectGroup(
+    group.core.contentInClonedNodeWithDifferentAccount(writer),
+  );
 
   expect(groupAsWriter.get(writer.id)).toEqual("writer");
 
@@ -149,7 +153,9 @@ test("Admins can add readers to a group, who can't add admins, writers, or reade
   groupContent.set(reader.id, "reader", "trusting");
   expect(groupContent.get(reader.id)).toEqual("reader");
 
-  const groupAsReader = expectGroup(groupCore.testGetCurrentContentAs(reader));
+  const groupAsReader = expectGroup(
+    groupCore.contentInClonedNodeWithDifferentAccount(reader),
+  );
 
   expect(groupAsReader.get(reader.id)).toEqual("reader");
 
@@ -174,7 +180,9 @@ test("Admins can add readers to a group, who can't add admins, writers, or reade
   group.addMember(reader, "reader");
   expect(group.get(reader.id)).toEqual("reader");
 
-  const groupAsReader = expectGroup(group.core.testGetCurrentContentAs(reader));
+  const groupAsReader = expectGroup(
+    group.core.contentInClonedNodeWithDifferentAccount(reader),
+  );
 
   expect(groupAsReader.get(reader.id)).toEqual("reader");
 
@@ -235,7 +243,7 @@ test("Writers can write to an object that is owned by their group", () => {
   });
 
   const childObjectAsWriter = expectMap(
-    childObject.testGetCurrentContentAs(writer),
+    childObject.contentInClonedNodeWithDifferentAccount(writer),
   );
 
   childObjectAsWriter.set("foo", "bar", "trusting");
@@ -252,7 +260,7 @@ test("Writers can write to an object that is owned by their group (high level)",
   const childObject = group.createMap();
 
   const childObjectAsWriter = expectMap(
-    childObject.core.testGetCurrentContentAs(writer),
+    childObject.core.contentInClonedNodeWithDifferentAccount(writer),
   );
 
   childObjectAsWriter.set("foo", "bar", "trusting");
@@ -276,7 +284,7 @@ test("Readers can not write to an object that is owned by their group", () => {
   });
 
   const childObjectAsReader = expectMap(
-    childObject.testGetCurrentContentAs(reader),
+    childObject.contentInClonedNodeWithDifferentAccount(reader),
   );
 
   childObjectAsReader.set("foo", "bar", "trusting");
@@ -294,7 +302,7 @@ test("Readers can not write to an object that is owned by their group (high leve
   const childObject = group.createMap();
 
   const childObjectAsReader = expectMap(
-    childObject.core.testGetCurrentContentAs(reader),
+    childObject.core.contentInClonedNodeWithDifferentAccount(reader),
   );
 
   childObjectAsReader.set("foo", "bar", "trusting");
@@ -395,7 +403,7 @@ test("Admins can set group read key and then writers can use it to create and re
   });
 
   const childObjectAsWriter = expectMap(
-    childObject.testGetCurrentContentAs(writer),
+    childObject.contentInClonedNodeWithDifferentAccount(writer),
   );
 
   expect(childObject.getCurrentReadKey().secret).toEqual(readKey);
@@ -415,7 +423,7 @@ test("Admins can set group read key and then writers can use it to create and re
   const childObject = group.createMap();
 
   const childObjectAsWriter = expectMap(
-    childObject.core.testGetCurrentContentAs(writer),
+    childObject.core.contentInClonedNodeWithDifferentAccount(writer),
   );
 
   childObjectAsWriter.set("foo", "bar", "private");
@@ -473,7 +481,7 @@ test("Admins can set group read key and then use it to create private transactio
   expect(childContent.get("foo")).toEqual("bar");
 
   const childObjectAsReader = expectMap(
-    childObject.testGetCurrentContentAs(reader),
+    childObject.contentInClonedNodeWithDifferentAccount(reader),
   );
 
   expect(childObjectAsReader.core.getCurrentReadKey().secret).toEqual(readKey);
@@ -493,7 +501,7 @@ test("Admins can set group read key and then use it to create private transactio
   expect(childObject.get("foo")).toEqual("bar");
 
   const childContentAsReader = expectMap(
-    childObject.core.testGetCurrentContentAs(reader),
+    childObject.core.contentInClonedNodeWithDifferentAccount(reader),
   );
 
   expect(childContentAsReader.get("foo")).toEqual("bar");
@@ -552,7 +560,7 @@ test("Admins can set group read key and then use it to create private transactio
   expect(childContent.get("foo")).toEqual("bar");
 
   const childObjectAsReader1 = expectMap(
-    childObject.testGetCurrentContentAs(reader1),
+    childObject.contentInClonedNodeWithDifferentAccount(reader1),
   );
 
   expect(childObjectAsReader1.core.getCurrentReadKey().secret).toEqual(readKey);
@@ -571,7 +579,7 @@ test("Admins can set group read key and then use it to create private transactio
   groupContent.set(`${readKeyID}_for_${reader2.id}`, revelation3, "trusting");
 
   const childObjectAsReader2 = expectMap(
-    childObject.testGetCurrentContentAs(reader2),
+    childObject.contentInClonedNodeWithDifferentAccount(reader2),
   );
 
   expect(childObjectAsReader2.core.getCurrentReadKey().secret).toEqual(readKey);
@@ -593,14 +601,14 @@ test("Admins can set group read key and then use it to create private transactio
   expect(childObject.get("foo")).toEqual("bar");
 
   const childContentAsReader1 = expectMap(
-    childObject.core.testGetCurrentContentAs(reader1),
+    childObject.core.contentInClonedNodeWithDifferentAccount(reader1),
   );
   expect(childContentAsReader1.get("foo")).toEqual("bar");
 
   group.addMember(reader2, "reader");
 
   const childContentAsReader2 = expectMap(
-    childObject.core.testGetCurrentContentAs(reader2),
+    childObject.core.contentInClonedNodeWithDifferentAccount(reader2),
   );
   expect(childContentAsReader2.get("foo")).toEqual("bar");
 });
@@ -766,7 +774,7 @@ test("Admins can set group read key, make a private transaction in an owned obje
   expect(childContent.get("foo2")).toEqual("bar2");
 
   const childObjectAsReader = expectMap(
-    childObject.testGetCurrentContentAs(reader),
+    childObject.contentInClonedNodeWithDifferentAccount(reader),
   );
 
   expect(childObjectAsReader.core.getCurrentReadKey().secret).toEqual(readKey2);
@@ -798,7 +806,7 @@ test("Admins can set group read key, make a private transaction in an owned obje
   expect(childObject.get("foo2")).toEqual("bar2");
 
   const childContentAsReader = expectMap(
-    childObject.core.testGetCurrentContentAs(reader),
+    childObject.core.contentInClonedNodeWithDifferentAccount(reader),
   );
 
   expect(childContentAsReader.get("foo")).toEqual("bar");
@@ -812,7 +820,7 @@ test("only admins can add agent ids", () => {
   const inviteID = Crypto.getAgentID(inviteSecret);
 
   const groupAsInvite = expectGroup(
-    groupCore.testGetCurrentContentAs(
+    groupCore.contentInClonedNodeWithDifferentAccount(
       new ControlledAgent(inviteSecret, Crypto),
     ),
   );
@@ -889,13 +897,13 @@ test("Admins can set group read rey, make a private transaction in an owned obje
   expect(childContent.get("foo")).toEqual("bar");
 
   let childObjectAsReader = expectMap(
-    childObject.testGetCurrentContentAs(reader),
+    childObject.contentInClonedNodeWithDifferentAccount(reader),
   );
 
   expect(childObjectAsReader.get("foo")).toEqual("bar");
 
   let childObjectAsReader2 = expectMap(
-    childObject.testGetCurrentContentAs(reader2),
+    childObject.contentInClonedNodeWithDifferentAccount(reader2),
   );
 
   expect(childObjectAsReader2.get("foo")).toEqual("bar");
@@ -943,9 +951,11 @@ test("Admins can set group read rey, make a private transaction in an owned obje
   expect(childContent.get("foo2")).toEqual("bar2");
 
   // TODO: make sure these instances of coValues sync between each other so this isn't necessary?
-  childObjectAsReader = expectMap(childObject.testGetCurrentContentAs(reader));
+  childObjectAsReader = expectMap(
+    childObject.contentInClonedNodeWithDifferentAccount(reader),
+  );
   childObjectAsReader2 = expectMap(
-    childObject.testGetCurrentContentAs(reader2),
+    childObject.contentInClonedNodeWithDifferentAccount(reader2),
   );
 
   expect(childObjectAsReader.get("foo2")).toBeUndefined();
@@ -984,7 +994,7 @@ test("Admins can set group read rey, make a private transaction in an owned obje
   expect(childObject.get("foo3")).toEqual("bar3");
 
   const childContentAsReader2 = expectMap(
-    childObject.core.testGetCurrentContentAs(reader2),
+    childObject.core.contentInClonedNodeWithDifferentAccount(reader2),
   );
 
   expect(childContentAsReader2.get("foo")).toEqual("bar");
@@ -992,7 +1002,9 @@ test("Admins can set group read rey, make a private transaction in an owned obje
   expect(childContentAsReader2.get("foo3")).toEqual("bar3");
 
   expect(
-    expectMap(childObject.core.testGetCurrentContentAs(reader)).get("foo3"),
+    expectMap(
+      childObject.core.contentInClonedNodeWithDifferentAccount(reader),
+    ).get("foo3"),
   ).toBeUndefined();
 });
 
@@ -1055,7 +1067,7 @@ test("Admins can create an adminInvite, which can add an admin", () => {
   group.set(`${readKeyID}_for_${inviteID}`, revelationForInvite, "trusting");
 
   const groupAsInvite = expectGroup(
-    groupCore.testGetCurrentContentAs(
+    groupCore.contentInClonedNodeWithDifferentAccount(
       new ControlledAgent(inviteSecret, Crypto),
     ),
   );
@@ -1100,7 +1112,7 @@ test("Admins can create an adminInvite, which can add an admin (high-level)", as
   const invitedAdminSecret = Crypto.newRandomAgentSecret();
   const invitedAdminID = Crypto.getAgentID(invitedAdminSecret);
 
-  const nodeAsInvitedAdmin = node.testWithDifferentAccount(
+  const nodeAsInvitedAdmin = node.cloneWithDifferentAccount(
     new ControlledAgent(invitedAdminSecret, Crypto),
   );
 
@@ -1161,7 +1173,7 @@ test("Admins can create a writerInvite, which can add a writer", () => {
   group.set(`${readKeyID}_for_${inviteID}`, revelationForInvite, "trusting");
 
   const groupAsInvite = expectGroup(
-    groupCore.testGetCurrentContentAs(
+    groupCore.contentInClonedNodeWithDifferentAccount(
       new ControlledAgent(inviteSecret, Crypto),
     ),
   );
@@ -1206,7 +1218,7 @@ test("Admins can create a writerInvite, which can add a writer (high-level)", as
   const invitedWriterSecret = Crypto.newRandomAgentSecret();
   const invitedWriterID = Crypto.getAgentID(invitedWriterSecret);
 
-  const nodeAsInvitedWriter = node.testWithDifferentAccount(
+  const nodeAsInvitedWriter = node.cloneWithDifferentAccount(
     new ControlledAgent(invitedWriterSecret, Crypto),
   );
 
@@ -1260,7 +1272,7 @@ test("Admins can create a readerInvite, which can add a reader", () => {
   group.set(`${readKeyID}_for_${inviteID}`, revelationForInvite, "trusting");
 
   const groupAsInvite = expectGroup(
-    groupCore.testGetCurrentContentAs(
+    groupCore.contentInClonedNodeWithDifferentAccount(
       new ControlledAgent(inviteSecret, Crypto),
     ),
   );
@@ -1295,7 +1307,7 @@ test("Admins can create a readerInvite, which can add a reader (high-level)", as
   const invitedReaderSecret = Crypto.newRandomAgentSecret();
   const invitedReaderID = Crypto.getAgentID(invitedReaderSecret);
 
-  const nodeAsInvitedReader = node.testWithDifferentAccount(
+  const nodeAsInvitedReader = node.cloneWithDifferentAccount(
     new ControlledAgent(invitedReaderSecret, Crypto),
   );
 
@@ -1349,7 +1361,7 @@ test("WriterInvites can not invite admins", () => {
   group.set(`${readKeyID}_for_${inviteID}`, revelationForInvite, "trusting");
 
   const groupAsInvite = expectGroup(
-    groupCore.testGetCurrentContentAs(
+    groupCore.contentInClonedNodeWithDifferentAccount(
       new ControlledAgent(inviteSecret, Crypto),
     ),
   );
@@ -1400,7 +1412,7 @@ test("ReaderInvites can not invite admins", () => {
   group.set(`${readKeyID}_for_${inviteID}`, revelationForInvite, "trusting");
 
   const groupAsInvite = expectGroup(
-    groupCore.testGetCurrentContentAs(
+    groupCore.contentInClonedNodeWithDifferentAccount(
       new ControlledAgent(inviteSecret, Crypto),
     ),
   );
@@ -1451,7 +1463,7 @@ test("ReaderInvites can not invite writers", () => {
   group.set(`${readKeyID}_for_${inviteID}`, revelationForInvite, "trusting");
 
   const groupAsInvite = expectGroup(
-    groupCore.testGetCurrentContentAs(
+    groupCore.contentInClonedNodeWithDifferentAccount(
       new ControlledAgent(inviteSecret, Crypto),
     ),
   );
@@ -1502,7 +1514,7 @@ test("WriteOnlyInvites can not invite writers", () => {
   group.set(`${readKeyID}_for_${inviteID}`, revelationForInvite, "trusting");
 
   const groupAsInvite = expectGroup(
-    groupCore.testGetCurrentContentAs(
+    groupCore.contentInClonedNodeWithDifferentAccount(
       new ControlledAgent(inviteSecret, Crypto),
     ),
   );
@@ -1553,7 +1565,7 @@ test("WriteOnlyInvites can not invite admins", () => {
   group.set(`${readKeyID}_for_${inviteID}`, revelationForInvite, "trusting");
 
   const groupAsInvite = expectGroup(
-    groupCore.testGetCurrentContentAs(
+    groupCore.contentInClonedNodeWithDifferentAccount(
       new ControlledAgent(inviteSecret, Crypto),
     ),
   );
@@ -1604,7 +1616,7 @@ test("WriteOnlyInvites can invite writeOnly", () => {
   group.set(`${readKeyID}_for_${inviteID}`, revelationForInvite, "trusting");
 
   const groupAsInvite = expectGroup(
-    groupCore.testGetCurrentContentAs(
+    groupCore.contentInClonedNodeWithDifferentAccount(
       new ControlledAgent(inviteSecret, Crypto),
     ),
   );
@@ -1655,7 +1667,7 @@ test("WriteOnlyInvites can set writeKeys", () => {
   group.set(`${readKeyID}_for_${inviteID}`, revelationForInvite, "trusting");
 
   const groupAsInvite = expectGroup(
-    groupCore.testGetCurrentContentAs(
+    groupCore.contentInClonedNodeWithDifferentAccount(
       new ControlledAgent(inviteSecret, Crypto),
     ),
   );
@@ -1703,7 +1715,7 @@ test("Invites can't override key revelations", () => {
   group.set(`${readKeyID}_for_${inviteID}`, revelationForInvite, "trusting");
 
   const groupAsInvite = expectGroup(
-    groupCore.testGetCurrentContentAs(
+    groupCore.contentInClonedNodeWithDifferentAccount(
       new ControlledAgent(inviteSecret, Crypto),
     ),
   );
@@ -1755,7 +1767,7 @@ test("WriteOnlyInvites can't override writeKeys", () => {
   group.set(`${readKeyID}_for_${inviteID}`, revelationForInvite, "trusting");
 
   const groupAsInvite = expectGroup(
-    groupCore.testGetCurrentContentAs(
+    groupCore.contentInClonedNodeWithDifferentAccount(
       new ControlledAgent(inviteSecret, Crypto),
     ),
   );
@@ -1796,7 +1808,7 @@ test("Can give read permission to 'everyone'", () => {
   const newAccount = new ControlledAgent(Crypto.newRandomAgentSecret(), Crypto);
 
   const childContent2 = expectMap(
-    childObject.testGetCurrentContentAs(newAccount),
+    childObject.contentInClonedNodeWithDifferentAccount(newAccount),
   );
 
   expect(childContent2.get("foo")).toEqual("bar");
@@ -1817,7 +1829,7 @@ test("Can give read permissions to 'everyone' (high-level)", async () => {
   const newAccount = new ControlledAgent(Crypto.newRandomAgentSecret(), Crypto);
 
   const childContent2 = expectMap(
-    childObject.core.testGetCurrentContentAs(newAccount),
+    childObject.core.contentInClonedNodeWithDifferentAccount(newAccount),
   );
 
   expect(childContent2.get("foo")).toEqual("bar");
@@ -1850,7 +1862,7 @@ test("Can give write permission to 'everyone'", async () => {
   const newAccount = new ControlledAgent(Crypto.newRandomAgentSecret(), Crypto);
 
   const childContent2 = expectMap(
-    childObject.testGetCurrentContentAs(newAccount),
+    childObject.contentInClonedNodeWithDifferentAccount(newAccount),
   );
 
   // TODO: resolve race condition
@@ -1877,7 +1889,7 @@ test("Can give write permissions to 'everyone' (high-level)", async () => {
   const newAccount = new ControlledAgent(Crypto.newRandomAgentSecret(), Crypto);
 
   const childContent2 = expectMap(
-    childObject.core.testGetCurrentContentAs(newAccount),
+    childObject.core.contentInClonedNodeWithDifferentAccount(newAccount),
   );
 
   connectTwoPeers(group.core.node, childContent2.core.node, "server", "server");
@@ -1915,32 +1927,36 @@ test("Writers, readers and invitees can not set parent extensions", () => {
   group.addMember(writerInvite, "writerInvite");
   group.addMember(readerInvite, "readerInvite");
 
-  const groupAsWriter = expectGroup(group.core.testGetCurrentContentAs(writer));
+  const groupAsWriter = expectGroup(
+    group.core.contentInClonedNodeWithDifferentAccount(writer),
+  );
 
   groupAsWriter.set(`parent_${parentGroup.id}`, "extend", "trusting");
   expect(groupAsWriter.get(`parent_${parentGroup.id}`)).toBeUndefined();
 
-  const groupAsReader = expectGroup(group.core.testGetCurrentContentAs(reader));
+  const groupAsReader = expectGroup(
+    group.core.contentInClonedNodeWithDifferentAccount(reader),
+  );
 
   groupAsReader.set(`parent_${parentGroup.id}`, "extend", "trusting");
   expect(groupAsReader.get(`parent_${parentGroup.id}`)).toBeUndefined();
 
   const groupAsAdminInvite = expectGroup(
-    group.core.testGetCurrentContentAs(adminInvite),
+    group.core.contentInClonedNodeWithDifferentAccount(adminInvite),
   );
 
   groupAsAdminInvite.set(`parent_${parentGroup.id}`, "extend", "trusting");
   expect(groupAsAdminInvite.get(`parent_${parentGroup.id}`)).toBeUndefined();
 
   const groupAsWriterInvite = expectGroup(
-    group.core.testGetCurrentContentAs(writerInvite),
+    group.core.contentInClonedNodeWithDifferentAccount(writerInvite),
   );
 
   groupAsWriterInvite.set(`parent_${parentGroup.id}`, "extend", "trusting");
   expect(groupAsWriterInvite.get(`parent_${parentGroup.id}`)).toBeUndefined();
 
   const groupAsReaderInvite = expectGroup(
-    group.core.testGetCurrentContentAs(readerInvite),
+    group.core.contentInClonedNodeWithDifferentAccount(readerInvite),
   );
 
   groupAsReaderInvite.set(`parent_${parentGroup.id}`, "extend", "trusting");
@@ -1997,12 +2013,16 @@ test("Writers, readers and writeOnly can set child extensions", () => {
   group.addMember(reader, "reader");
   group.addMember(writeOnly, "writeOnly");
 
-  const groupAsWriter = expectGroup(group.core.testGetCurrentContentAs(writer));
+  const groupAsWriter = expectGroup(
+    group.core.contentInClonedNodeWithDifferentAccount(writer),
+  );
 
   groupAsWriter.set(`child_${childGroup.id}`, "extend", "trusting");
   expect(groupAsWriter.get(`child_${childGroup.id}`)).toEqual("extend");
 
-  const groupAsReader = expectGroup(group.core.testGetCurrentContentAs(reader));
+  const groupAsReader = expectGroup(
+    group.core.contentInClonedNodeWithDifferentAccount(reader),
+  );
 
   groupAsReader.set(`child_${childGroup.id}`, "extend", "trusting");
   expect(groupAsReader.get(`child_${childGroup.id}`)).toEqual("extend");
@@ -2021,21 +2041,21 @@ test("Invitees can not set child extensions", () => {
   group.addMember(readerInvite, "readerInvite");
 
   const groupAsAdminInvite = expectGroup(
-    group.core.testGetCurrentContentAs(adminInvite),
+    group.core.contentInClonedNodeWithDifferentAccount(adminInvite),
   );
 
   groupAsAdminInvite.set(`child_${childGroup.id}`, "extend", "trusting");
   expect(groupAsAdminInvite.get(`child_${childGroup.id}`)).toBeUndefined();
 
   const groupAsWriterInvite = expectGroup(
-    group.core.testGetCurrentContentAs(writerInvite),
+    group.core.contentInClonedNodeWithDifferentAccount(writerInvite),
   );
 
   groupAsWriterInvite.set(`child_${childGroup.id}`, "extend", "trusting");
   expect(groupAsWriterInvite.get(`child_${childGroup.id}`)).toBeUndefined();
 
   const groupAsReaderInvite = expectGroup(
-    group.core.testGetCurrentContentAs(readerInvite),
+    group.core.contentInClonedNodeWithDifferentAccount(readerInvite),
   );
 
   groupAsReaderInvite.set(`child_${childGroup.id}`, "extend", "trusting");
@@ -2147,7 +2167,9 @@ test("Writers can't reveal parent read keys to child groups", () => {
   const writer = node.createAccount();
   group.addMember(writer, "writer");
 
-  const groupAsWriter = expectGroup(group.core.testGetCurrentContentAs(writer));
+  const groupAsWriter = expectGroup(
+    group.core.contentInClonedNodeWithDifferentAccount(writer),
+  );
 
   groupAsWriter.set(
     `${readKeyID}_for_${parentReadKeyID}`,
@@ -2179,7 +2201,9 @@ test("Readers can't reveal parent read keys to child groups", () => {
   const reader = node.createAccount();
   group.addMember(reader, "reader");
 
-  const groupAsReader = expectGroup(group.core.testGetCurrentContentAs(reader));
+  const groupAsReader = expectGroup(
+    group.core.contentInClonedNodeWithDifferentAccount(reader),
+  );
 
   groupAsReader.set(
     `${readKeyID}_for_${parentReadKeyID}`,
@@ -2212,7 +2236,7 @@ test.skip("Admin invites can't reveal parent read keys to child groups", () => {
   group.addMember(adminInvite, "adminInvite");
 
   const groupAsAdminInvite = expectGroup(
-    group.core.testGetCurrentContentAs(adminInvite),
+    group.core.contentInClonedNodeWithDifferentAccount(adminInvite),
   );
 
   groupAsAdminInvite.set(
@@ -2246,7 +2270,7 @@ test.skip("Writer invites can't reveal parent read keys to child groups", () => 
   group.addMember(writerInvite, "writerInvite");
 
   const groupAsWriterInvite = expectGroup(
-    group.core.testGetCurrentContentAs(writerInvite),
+    group.core.contentInClonedNodeWithDifferentAccount(writerInvite),
   );
 
   groupAsWriterInvite.set(
@@ -2280,7 +2304,7 @@ test.skip("Reader invites can't reveal parent read keys to child groups", () => 
   group.addMember(readerInvite, "readerInvite");
 
   const groupAsReaderInvite = expectGroup(
-    group.core.testGetCurrentContentAs(readerInvite),
+    group.core.contentInClonedNodeWithDifferentAccount(readerInvite),
   );
 
   groupAsReaderInvite.set(
@@ -2343,13 +2367,13 @@ test("Writers and readers in a parent group can read from an object owned by a c
   expect(childContent.get("foo")).toEqual("bar");
 
   const childContentAsWriter = expectMap(
-    childObject.testGetCurrentContentAs(writer),
+    childObject.contentInClonedNodeWithDifferentAccount(writer),
   );
 
   expect(childContentAsWriter.get("foo")).toEqual("bar");
 
   const childContentAsReader = expectMap(
-    childObject.testGetCurrentContentAs(reader),
+    childObject.contentInClonedNodeWithDifferentAccount(reader),
   );
 
   expect(childContentAsReader.get("foo")).toEqual("bar");
@@ -2398,7 +2422,7 @@ test("Writers in a parent group can write to an object owned by a child group", 
   });
 
   const childContentAsWriter = expectMap(
-    childObject.testGetCurrentContentAs(writer),
+    childObject.contentInClonedNodeWithDifferentAccount(writer),
   );
 
   childContentAsWriter.set("foo", "bar", "private");
@@ -2581,7 +2605,7 @@ test("Calling extend on group sets up parent and child references and reveals ch
   childMap.set("foo", "bar", "private");
 
   const childContentAsReader = expectMap(
-    childObject.testGetCurrentContentAs(reader),
+    childObject.contentInClonedNodeWithDifferentAccount(reader),
   );
 
   expect(childContentAsReader.get("foo")).toEqual("bar");
@@ -2614,7 +2638,7 @@ test("Calling extend to create grand-child groups parent and child references an
   childMap.set("foo", "bar", "private");
 
   const childContentAsReader = expectMap(
-    childObject.testGetCurrentContentAs(reader),
+    childObject.contentInClonedNodeWithDifferentAccount(reader),
   );
 
   expect(childContentAsReader.get("foo")).toEqual("bar");
@@ -2721,14 +2745,18 @@ test("revoking write access to parent group", async () => {
     meta: null,
     ...Crypto.createdNowUnique(),
   });
-  const bobMap = expectMap(mapCore.testGetCurrentContentAs(bob));
+  const bobMap = expectMap(
+    mapCore.contentInClonedNodeWithDifferentAccount(bob),
+  );
 
   // `bob` sets `foo` to `bar`
   bobMap.set("foo", "bar", "private");
   // `bob`'s change is made successfully
   expect(bobMap.get("foo")).toEqual("bar");
 
-  const aliceMap = expectMap(mapCore.testGetCurrentContentAs(alice));
+  const aliceMap = expectMap(
+    mapCore.contentInClonedNodeWithDifferentAccount(alice),
+  );
   // `alice` sets `foo` to `baz`
   aliceMap.set("foo", "baz", "private");
   // `alice`'s change is made successfully
@@ -2743,7 +2771,7 @@ test("revoking write access to parent group", async () => {
   expect(bobMap.get("foo")).toEqual("abc");
 
   const aliceMapAfterUnextend = expectMap(
-    mapCore.testGetCurrentContentAs(alice),
+    mapCore.contentInClonedNodeWithDifferentAccount(alice),
   );
   // `alice` attempts to set `foo` to `def`, but fails
   expect(() => aliceMapAfterUnextend.set("foo", "def", "private")).toThrow(
@@ -2898,7 +2926,9 @@ test("High-level permissions work correctly when a group is extended", async () 
 
   map.set("foo", "bar", "private");
 
-  const mapAsReader = expectMap(mapCore.testGetCurrentContentAs(reader));
+  const mapAsReader = expectMap(
+    mapCore.contentInClonedNodeWithDifferentAccount(reader),
+  );
 
   expect(mapAsReader.get("foo")).toEqual("bar");
 
@@ -2912,7 +2942,7 @@ test("High-level permissions work correctly when a group is extended", async () 
   map.set("foo", "baz", "private");
 
   const mapAsReaderAfterRemove = expectMap(
-    mapCore.testGetCurrentContentAs(reader),
+    mapCore.contentInClonedNodeWithDifferentAccount(reader),
   );
 
   expect(mapAsReaderAfterRemove.get("foo")).not.toEqual("baz");
@@ -2996,7 +3026,7 @@ test("Can revoke read permission from 'everyone'", async () => {
   // Create a new account to verify access
   const newAccount = new ControlledAgent(Crypto.newRandomAgentSecret(), Crypto);
   const childContent = expectMap(
-    childObject.core.testGetCurrentContentAs(newAccount),
+    childObject.core.contentInClonedNodeWithDifferentAccount(newAccount),
   );
 
   // Verify the new account can read
@@ -3013,7 +3043,7 @@ test("Can revoke read permission from 'everyone'", async () => {
     Crypto,
   );
   const childContent2 = expectMap(
-    childObject.core.testGetCurrentContentAs(newAccount2),
+    childObject.core.contentInClonedNodeWithDifferentAccount(newAccount2),
   );
 
   // Verify the new account cannot read after revocation

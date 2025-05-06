@@ -75,27 +75,6 @@ export class LocalNode {
     this.crypto = crypto;
   }
 
-  switchControl(agentSecret: AgentSecret, currentSessionID: SessionID) {
-    const oldAgentSecret = this.agentSecret;
-    const oldSessionID = this.currentSessionID;
-
-    // @ts-expect-error
-    this.agentSecret = agentSecret;
-    // @ts-expect-error
-    this.currentSessionID = currentSessionID;
-
-    for (const coValueEntry of this.coValuesStore.getValues()) {
-      if (coValueEntry.isAvailable()) {
-        coValueEntry.core.internalShamefullyResetCachedContent();
-      }
-    }
-
-    return {
-      oldAgentSecret,
-      oldSessionID,
-    };
-  }
-
   getCurrentAgent(): ControlledAccountOrAgent {
     const accountOrAgent = accountOrAgentIDfromSessionID(this.currentSessionID);
     if (isAgentID(accountOrAgent)) {
@@ -146,18 +125,21 @@ export class LocalNode {
     sessionID: SessionID;
   }> {
     const throwawayAgent = crypto.newRandomAgentSecret();
-    const node = new LocalNode(
+    const setupNode = new LocalNode(
       throwawayAgent,
       crypto.newRandomSessionID(crypto.getAgentID(throwawayAgent)),
       crypto,
     );
 
-    const createdAccount = node.createAccount(initialAgentSecret);
+    const createdAccount = setupNode.createAccount(initialAgentSecret);
 
-    node.switchControl(
+    const node = new LocalNode(
       initialAgentSecret,
       crypto.newRandomSessionID(createdAccount.id),
+      crypto,
     );
+
+    node.cloneVerifiedStateFrom(setupNode);
 
     const account = node.expectCurrentAccount("after creation");
 
@@ -456,14 +438,13 @@ export class LocalNode {
       return;
     }
 
-    const { oldAgentSecret, oldSessionID } = this.switchControl(
-      inviteAgentSecret,
-      this.crypto.newRandomSessionID(inviteAgentID),
+    const groupAsInvite = expectGroup(
+      group.core.contentInClonedNodeWithDifferentAccount(
+        new ControlledAgent(inviteAgentSecret, this.crypto),
+      ),
     );
 
-    group.core.suspendUpdates();
-
-    group.addMemberInternal(
+    groupAsInvite.addMemberInternal(
       account,
       inviteRole === "adminInvite"
         ? "admin"
@@ -474,9 +455,12 @@ export class LocalNode {
             : "reader",
     );
 
-    this.switchControl(oldAgentSecret, oldSessionID);
+    group.core.internalShamefullyCloneVerifiedStateFrom(
+      groupAsInvite.core.verified,
+      { forceOverwrite: true },
+    );
+    group.core.internalShamefullyResetCachedContent();
 
-    group.core.resumeUpdates();
     group.core.notifyUpdate("immediate");
   }
 
@@ -513,17 +497,19 @@ export class LocalNode {
   ): ControlledAccount {
     const accountAgentID = this.crypto.getAgentID(agentSecret);
 
-    const { oldAgentSecret, oldSessionID } = this.switchControl(
-      agentSecret,
-      this.crypto.newRandomSessionID(accountAgentID),
-    );
-    const account = expectGroup(
-      this.createCoValue(
-        accountHeaderForInitialAgentSecret(agentSecret, this.crypto),
-      ).getCurrentContent(),
+    const temporaryNode = this.cloneWithDifferentAccount(
+      new ControlledAgent(agentSecret, this.crypto),
     );
 
-    account.set(accountAgentID, "admin", "trusting");
+    const accountOnTempNode = expectGroup(
+      temporaryNode
+        .createCoValue(
+          accountHeaderForInitialAgentSecret(agentSecret, this.crypto),
+        )
+        .getCurrentContent(),
+    );
+
+    accountOnTempNode.set(accountAgentID, "admin", "trusting");
 
     const readKey = this.crypto.newRandomKeySecret();
 
@@ -532,18 +518,30 @@ export class LocalNode {
       from: this.crypto.getAgentSealerSecret(agentSecret),
       to: this.crypto.getAgentSealerID(accountAgentID),
       nOnceMaterial: {
-        in: account.id,
-        tx: account.core.nextTransactionID(),
+        in: accountOnTempNode.id,
+        tx: accountOnTempNode.core.nextTransactionID(),
       },
     });
 
-    account.set(`${readKey.id}_for_${accountAgentID}`, sealed, "trusting");
+    accountOnTempNode.set(
+      `${readKey.id}_for_${accountAgentID}`,
+      sealed,
+      "trusting",
+    );
 
-    account.set("readKey", readKey.id, "trusting");
+    accountOnTempNode.set("readKey", readKey.id, "trusting");
 
-    this.switchControl(oldAgentSecret, oldSessionID);
+    const accountCoreEntry = this.coValuesStore.get(accountOnTempNode.id);
+    accountCoreEntry.internalMarkMagicallyAvailable(
+      accountOnTempNode.core.verified,
+    );
 
-    return new ControlledAccount(account as RawAccount, agentSecret);
+    const account = new ControlledAccount(
+      accountCoreEntry.core.getCurrentContent() as RawAccount,
+      agentSecret,
+    );
+
+    return account;
   }
 
   /** @internal */
@@ -667,7 +665,7 @@ export class LocalNode {
   }
 
   /** @internal */
-  testWithDifferentAccount(
+  cloneWithDifferentAccount(
     controlledAccountOrAgent: ControlledAccountOrAgent,
   ): LocalNode {
     const newNode = new LocalNode(
@@ -676,7 +674,14 @@ export class LocalNode {
       this.crypto,
     );
 
-    const coValuesToCopy = Array.from(this.coValuesStore.getEntries());
+    newNode.cloneVerifiedStateFrom(this);
+
+    return newNode;
+  }
+
+  /** @internal */
+  cloneVerifiedStateFrom(otherNode: LocalNode) {
+    const coValuesToCopy = Array.from(otherNode.coValuesStore.getEntries());
 
     while (coValuesToCopy.length > 0) {
       const [coValueID, entry] = coValuesToCopy[coValuesToCopy.length - 1]!;
@@ -687,7 +692,7 @@ export class LocalNode {
       } else {
         const allDepsCopied = entry.core
           .getDependedOnCoValues()
-          .every((dep) => newNode.coValuesStore.get(dep).isAvailable());
+          .every((dep) => this.coValuesStore.get(dep).isAvailable());
 
         if (!allDepsCopied) {
           // move to end of queue
@@ -695,7 +700,7 @@ export class LocalNode {
           continue;
         }
 
-        newNode.coValuesStore.internalMarkMagicallyAvailable(
+        this.coValuesStore.internalMarkMagicallyAvailable(
           coValueID,
           entry.core.verified,
         );
@@ -703,8 +708,6 @@ export class LocalNode {
         coValuesToCopy.pop();
       }
     }
-
-    return newNode;
   }
 
   gracefulShutdown() {

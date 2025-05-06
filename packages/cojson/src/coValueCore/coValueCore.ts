@@ -193,10 +193,10 @@ export class CoValueCore {
     }
   }
 
-  testGetCurrentContentAs(
+  contentInClonedNodeWithDifferentAccount(
     controlledAccountOrAgent: ControlledAccountOrAgent,
   ): RawCoValue {
-    const newNode = this.node.testWithDifferentAccount(
+    const newNode = this.node.cloneWithDifferentAccount(
       controlledAccountOrAgent,
     );
 
@@ -293,18 +293,9 @@ export class CoValueCore {
 
   deferredUpdates = 0;
   nextDeferredNotify: Promise<void> | undefined;
-  private updateSuspended = false;
-
-  suspendUpdates() {
-    this.updateSuspended = true;
-  }
-
-  resumeUpdates() {
-    this.updateSuspended = false;
-  }
 
   notifyUpdate(notifyMode: "immediate" | "deferred") {
-    if (this.listeners.size === 0 || this.updateSuspended) {
+    if (this.listeners.size === 0) {
       return;
     }
 
