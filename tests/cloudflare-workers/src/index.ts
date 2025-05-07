@@ -2,6 +2,7 @@ import { createWebSocketPeer } from "cojson-transport-ws";
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { Hono } from "hono";
 import { startWorker } from "jazz-nodejs";
+import { startSyncServer } from "jazz-run/startSyncServer";
 import { CoMap, co } from "jazz-tools";
 import { Account } from "jazz-tools";
 
@@ -39,6 +40,8 @@ app.get("/", async (c) => {
     peersToLoadFrom: [peer],
     crypto,
   });
+
+  await account.waitForAllCoValuesSync();
 
   const admin = await startWorker({
     accountID: account.id,
