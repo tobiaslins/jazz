@@ -106,7 +106,9 @@ export class CoValueCore {
 
   // cached state and listeners
   private _cachedContent?: RawCoValue;
-  private readonly listeners: Set<(core: CoValueCore) => void> = new Set();
+  private readonly listeners: Set<
+    (core: CoValueCore, unsub: () => void) => void
+  > = new Set();
   private readonly _decryptionCache: {
     [key: Encrypted<JsonValue[], JsonValue>]: JsonValue[] | undefined;
   } = {};
@@ -422,7 +424,9 @@ export class CoValueCore {
     if (notifyMode === "immediate") {
       for (const listener of this.listeners) {
         try {
-          listener(this);
+          listener(this, () => {
+            this.listeners.delete(listener);
+          });
         } catch (e) {
           logger.error("Error in listener for coValue " + this.id, { err: e });
         }
@@ -435,7 +439,9 @@ export class CoValueCore {
             this.deferredUpdates = 0;
             for (const listener of this.listeners) {
               try {
-                listener(this);
+                listener(this, () => {
+                  this.listeners.delete(listener);
+                });
               } catch (e) {
                 logger.error("Error in listener for coValue " + this.id, {
                   err: e,
@@ -451,13 +457,15 @@ export class CoValueCore {
   }
 
   subscribe(
-    listener: (core: CoValueCore) => void,
+    listener: (core: CoValueCore, unsub: () => void) => void,
     immediateInvoke = true,
   ): () => void {
     this.listeners.add(listener);
 
     if (immediateInvoke) {
-      listener(this);
+      listener(this, () => {
+        this.listeners.delete(listener);
+      });
     }
 
     return () => {
@@ -1017,8 +1025,6 @@ export class CoValueCore {
             removeCloseListener();
             clearTimeout(timeout);
             resolve();
-          } else {
-            console.log("still not available", this.id, peerState?.type);
           }
         };
 

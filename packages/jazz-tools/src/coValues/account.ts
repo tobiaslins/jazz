@@ -31,6 +31,7 @@ import {
   SchemaInit,
   SubscribeListenerOptions,
   SubscribeRestArgs,
+  accessChildByKey,
   ensureCoValueLoaded,
   inspect,
   loadCoValue,
@@ -38,7 +39,6 @@ import {
   parseSubscribeRestArgs,
   subscribeToCoValueWithoutMe,
   subscribeToExistingCoValue,
-  subscriptionsScopes,
 } from "../internal.js";
 import { coValuesCache } from "../lib/cache.js";
 import { RegisteredAccount } from "../types.js";
@@ -100,6 +100,16 @@ export class Account extends CoValueBase implements CoValue {
   declare profile: Profile | null;
   declare root: CoMap | null;
 
+  getDescriptor(key: string) {
+    if (key === "profile") {
+      return this._schema.profile;
+    } else if (key === "root") {
+      return this._schema.root;
+    }
+
+    return undefined;
+  }
+
   get _refs(): {
     profile: RefIfCoValue<Profile> | undefined;
     root: RefIfCoValue<CoMap> | undefined;
@@ -119,6 +129,7 @@ export class Account extends CoValueBase implements CoValue {
             this._schema.profile as RefEncoded<
               NonNullable<this["profile"]> & CoValue
             >,
+            this,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
           ) as any as RefIfCoValue<this["profile"]>)
         : undefined,
@@ -129,6 +140,7 @@ export class Account extends CoValueBase implements CoValue {
             this._schema.root as RefEncoded<
               NonNullable<this["root"]> & CoValue
             >,
+            this,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
           ) as any as RefIfCoValue<this["root"]>)
         : undefined,
@@ -200,10 +212,15 @@ export class Account extends CoValueBase implements CoValue {
     ref: Ref<RegisteredAccount> | undefined;
     account: RegisteredAccount | null | undefined;
   }> {
-    const ref = new Ref<RegisteredAccount>(this.id, this._loadedAs, {
-      ref: () => this.constructor as typeof Account,
-      optional: false,
-    });
+    const ref = new Ref<RegisteredAccount>(
+      this.id,
+      this._loadedAs,
+      {
+        ref: () => this.constructor as typeof Account,
+        optional: false,
+      },
+      this,
+    );
 
     return [{ id: this.id, role: "admin", ref, account: this }];
   }
@@ -444,16 +461,14 @@ export class Account extends CoValueBase implements CoValue {
 
 export const AccountAndGroupProxyHandler: ProxyHandler<Account | Group> = {
   get(target, key, receiver) {
-    if (key === "profile") {
-      const ref = target._refs.profile;
-      return ref
-        ? ref.accessFrom(receiver, "profile")
-        : // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (undefined as any);
-    } else if (key === "root") {
-      const ref = target._refs.root;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return ref ? ref.accessFrom(receiver, "root") : (undefined as any);
+    if (key === "profile" || key === "root") {
+      const id = target._raw.get(key);
+
+      if (id) {
+        return accessChildByKey(target, id, key);
+      } else {
+        return undefined;
+      }
     } else {
       return Reflect.get(target, key, receiver);
     }
@@ -475,17 +490,12 @@ export const AccountAndGroupProxyHandler: ProxyHandler<Account | Group> = {
           "trusting",
         );
       }
-      subscriptionsScopes
-        .get(receiver)
-        ?.onRefAccessedOrSet(target.id, value.id);
+
       return true;
     } else if (key === "root") {
       if (value) {
         target._raw.set("root", value.id as unknown as CoID<RawCoMap>);
       }
-      subscriptionsScopes
-        .get(receiver)
-        ?.onRefAccessedOrSet(target.id, value.id);
       return true;
     } else {
       return Reflect.set(target, key, value, receiver);

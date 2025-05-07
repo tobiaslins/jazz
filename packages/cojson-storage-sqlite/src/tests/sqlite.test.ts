@@ -214,6 +214,86 @@ test("should load dependencies correctly (group inheritance)", async () => {
   `);
 });
 
+test("should not send the same dependency value twice", async () => {
+  const agentSecret = Crypto.newRandomAgentSecret();
+
+  const node1 = new LocalNode(
+    agentSecret,
+    Crypto.newRandomSessionID(Crypto.getAgentID(agentSecret)),
+    Crypto,
+  );
+
+  const node1Sync = trackMessages(node1);
+
+  const { peer, dbPath } = await createSQLiteStorage();
+
+  node1.syncManager.addPeer(peer);
+
+  const group = node1.createGroup();
+  const parentGroup = node1.createGroup();
+
+  group.extend(parentGroup);
+
+  const mapFromParent = parentGroup.createMap();
+  const map = group.createMap();
+
+  map.set("hello", "world");
+  mapFromParent.set("hello", "world");
+
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  node1Sync.restore();
+
+  const node2 = new LocalNode(
+    agentSecret,
+    Crypto.newRandomSessionID(Crypto.getAgentID(agentSecret)),
+    Crypto,
+  );
+
+  const node2Sync = trackMessages(node2);
+
+  const { peer: peer2 } = await createSQLiteStorage(dbPath);
+
+  node2.syncManager.addPeer(peer2);
+
+  await node2.load(map.id);
+  await node2.load(mapFromParent.id);
+
+  expect(node2.expectCoValueLoaded(map.id)).toBeTruthy();
+  expect(node2.expectCoValueLoaded(mapFromParent.id)).toBeTruthy();
+  expect(node2.expectCoValueLoaded(group.id)).toBeTruthy();
+  expect(node2.expectCoValueLoaded(parentGroup.id)).toBeTruthy();
+
+  expect(
+    toSimplifiedMessages(
+      {
+        Map: map.core,
+        Group: group.core,
+        ParentGroup: parentGroup.core,
+        MapFromParent: mapFromParent.core,
+      },
+      node2Sync.messages,
+    ),
+  ).toMatchInlineSnapshot(`
+    [
+      "client -> LOAD Map sessions: empty",
+      "storage -> KNOWN ParentGroup sessions: header/4",
+      "storage -> CONTENT ParentGroup header: true new: After: 0 New: 4",
+      "storage -> KNOWN Group sessions: header/5",
+      "storage -> CONTENT Group header: true new: After: 0 New: 5",
+      "client -> KNOWN ParentGroup sessions: header/4",
+      "storage -> KNOWN Map sessions: header/1",
+      "storage -> CONTENT Map header: true new: After: 0 New: 1",
+      "client -> KNOWN Group sessions: header/5",
+      "client -> KNOWN Map sessions: header/1",
+      "client -> LOAD MapFromParent sessions: empty",
+      "storage -> KNOWN MapFromParent sessions: header/1",
+      "storage -> CONTENT MapFromParent header: true new: After: 0 New: 1",
+      "client -> KNOWN MapFromParent sessions: header/1",
+    ]
+  `);
+});
+
 test("should recover from data loss", async () => {
   const agentSecret = Crypto.newRandomAgentSecret();
 
