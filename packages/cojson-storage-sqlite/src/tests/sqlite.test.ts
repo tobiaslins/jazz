@@ -1,4 +1,3 @@
-import { assert } from "node:console";
 import { randomUUID } from "node:crypto";
 import { unlinkSync } from "node:fs";
 import { tmpdir } from "node:os";

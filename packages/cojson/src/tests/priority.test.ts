@@ -3,6 +3,7 @@ import { WasmCrypto } from "../crypto/WasmCrypto.js";
 import { LocalNode } from "../localNode.js";
 import { CO_VALUE_PRIORITY, getPriorityFromHeader } from "../priority.js";
 import {
+  createAccountInNode,
   nodeWithRandomAgentAndSessionID,
   randomAgentAndSessionID,
 } from "./testUtils.js";
@@ -47,7 +48,7 @@ describe("getPriorityFromHeader", () => {
   test("returns HIGH priority for account type", async () => {
     const node = nodeWithRandomAgentAndSessionID();
 
-    const account = node.createAccount(node.crypto.newRandomAgentSecret());
+    const account = createAccountInNode(node);
 
     expect(getPriorityFromHeader(account.account.core.verified.header)).toEqual(
       CO_VALUE_PRIORITY.HIGH,

@@ -133,6 +133,59 @@ export class LocalNode {
     );
   }
 
+  static internalCreateAccount(opts: {
+    crypto: CryptoProvider;
+    initialAgentSecret?: AgentSecret;
+    peersToLoadFrom?: Peer[];
+  }): RawAccount {
+    const {
+      crypto,
+      initialAgentSecret = crypto.newRandomAgentSecret(),
+      peersToLoadFrom = [],
+    } = opts;
+    const accountHeader = accountHeaderForInitialAgentSecret(
+      initialAgentSecret,
+      crypto,
+    );
+    const accountID = idforHeader(accountHeader, crypto);
+
+    const node = new LocalNode(
+      initialAgentSecret,
+      crypto.newRandomSessionID(accountID as RawAccountID),
+      crypto,
+    );
+
+    for (const peer of peersToLoadFrom) {
+      node.syncManager.addPeer(peer);
+    }
+
+    const accountAgentID = crypto.getAgentID(initialAgentSecret);
+
+    const rawAccount = expectGroup(
+      node.createCoValue(accountHeader).getCurrentContent(),
+    );
+
+    rawAccount.set(accountAgentID, "admin", "trusting");
+
+    const readKey = crypto.newRandomKeySecret();
+
+    const sealed = crypto.seal({
+      message: readKey.secret,
+      from: crypto.getAgentSealerSecret(initialAgentSecret),
+      to: crypto.getAgentSealerID(accountAgentID),
+      nOnceMaterial: {
+        in: rawAccount.id,
+        tx: rawAccount.core.nextTransactionID(),
+      },
+    });
+
+    rawAccount.set(`${readKey.id}_for_${accountAgentID}`, sealed, "trusting");
+
+    rawAccount.set("readKey", readKey.id, "trusting");
+
+    return node.expectCurrentAccount("after creation");
+  }
+
   /** @category 2. Node Creation */
   static async withNewlyCreatedAccount({
     creationProps,
@@ -152,30 +205,12 @@ export class LocalNode {
     accountSecret: AgentSecret;
     sessionID: SessionID;
   }> {
-    const throwawayAgent = crypto.newRandomAgentSecret();
-    const setupNode = new LocalNode(
-      throwawayAgent,
-      crypto.newRandomSessionID(crypto.getAgentID(throwawayAgent)),
+    const account = LocalNode.internalCreateAccount({
       crypto,
-    );
-
-    const createdAccount = setupNode.createAccount(initialAgentSecret);
-
-    const node = new LocalNode(
       initialAgentSecret,
-      crypto.newRandomSessionID(createdAccount.id),
-      crypto,
-    );
-
-    node.cloneVerifiedStateFrom(setupNode);
-
-    const account = node.expectCurrentAccount("after creation");
-
-    if (peersToLoadFrom) {
-      for (const peer of peersToLoadFrom) {
-        node.syncManager.addPeer(peer);
-      }
-    }
+      peersToLoadFrom,
+    });
+    const node = account.core.node;
 
     if (migration) {
       await migration(account, node, creationProps);
@@ -191,19 +226,6 @@ export class LocalNode {
     if (!account.get("profile")) {
       throw new Error("Must set account profile in initial migration");
     }
-
-    // we shouldn't need this, but it fixes account data not syncing for new accounts
-    function syncAllCoValuesAfterCreateAccount() {
-      for (const coValueEntry of node.coValues.values()) {
-        if (coValueEntry.isAvailable()) {
-          void node.syncManager.requestCoValueSync(coValueEntry);
-        }
-      }
-    }
-
-    syncAllCoValuesAfterCreateAccount();
-
-    setTimeout(syncAllCoValuesAfterCreateAccount, 500);
 
     return {
       node,
@@ -240,9 +262,7 @@ export class LocalNode {
         node.syncManager.addPeer(peer);
       }
 
-      const accountPromise = node.load(accountID);
-
-      const account = await accountPromise;
+      const account = await node.load(accountID);
 
       if (account === "unavailable") {
         throw new Error("Account unavailable from all peers");
@@ -519,59 +539,6 @@ export class LocalNode {
   }
 
   /** @internal */
-  createAccount(
-    agentSecret = this.crypto.newRandomAgentSecret(),
-  ): ControlledAccount {
-    const accountAgentID = this.crypto.getAgentID(agentSecret);
-
-    const temporaryNode = this.cloneWithDifferentAccount(
-      new ControlledAgent(agentSecret, this.crypto),
-    );
-
-    const accountOnTempNode = expectGroup(
-      temporaryNode
-        .createCoValue(
-          accountHeaderForInitialAgentSecret(agentSecret, this.crypto),
-        )
-        .getCurrentContent(),
-    );
-
-    accountOnTempNode.set(accountAgentID, "admin", "trusting");
-
-    const readKey = this.crypto.newRandomKeySecret();
-
-    const sealed = this.crypto.seal({
-      message: readKey.secret,
-      from: this.crypto.getAgentSealerSecret(agentSecret),
-      to: this.crypto.getAgentSealerID(accountAgentID),
-      nOnceMaterial: {
-        in: accountOnTempNode.id,
-        tx: accountOnTempNode.core.nextTransactionID(),
-      },
-    });
-
-    accountOnTempNode.set(
-      `${readKey.id}_for_${accountAgentID}`,
-      sealed,
-      "trusting",
-    );
-
-    accountOnTempNode.set("readKey", readKey.id, "trusting");
-
-    const accountCoreEntry = this.getCoValue(accountOnTempNode.id);
-    accountCoreEntry.internalMarkMagicallyAvailable(
-      accountOnTempNode.core.verified,
-    );
-
-    const account = new ControlledAccount(
-      accountCoreEntry.getCurrentContent() as RawAccount,
-      agentSecret,
-    );
-
-    return account;
-  }
-
-  /** @internal */
   resolveAccountAgent(
     id: RawAccountID | AgentID,
     expectation?: string,
@@ -608,50 +575,6 @@ export class LocalNode {
     }
 
     return ok((coValue.getCurrentContent() as RawAccount).currentAgentID());
-  }
-
-  resolveAccountAgentAsync(
-    id: RawAccountID | AgentID,
-    expectation?: string,
-  ): ResultAsync<AgentID, ResolveAccountAgentError> {
-    if (isAgentID(id)) {
-      return okAsync(id);
-    }
-
-    return ResultAsync.fromPromise(
-      this.loadCoValueCore(id),
-      (e) =>
-        ({
-          type: "ErrorLoadingCoValueCore",
-          expectation,
-          id,
-          error: e,
-        }) satisfies LoadCoValueCoreError,
-    ).andThen((coValue) => {
-      if (!coValue.isAvailable()) {
-        return err({
-          type: "AccountUnavailableFromAllPeers" as const,
-          expectation,
-          id,
-        } satisfies AccountUnavailableFromAllPeersError);
-      }
-
-      if (
-        coValue.verified.header.type !== "comap" ||
-        coValue.verified.header.ruleset.type !== "group" ||
-        !coValue.verified.header.meta ||
-        !("type" in coValue.verified.header.meta) ||
-        coValue.verified.header.meta.type !== "account"
-      ) {
-        return err({
-          type: "UnexpectedlyNotAccount" as const,
-          expectation,
-          id,
-        } satisfies UnexpectedlyNotAccountError);
-      }
-
-      return ok((coValue.getCurrentContent() as RawAccount).currentAgentID());
-    });
   }
 
   createGroup(
