@@ -426,32 +426,44 @@ export class LocalNode {
     groupOrOwnedValueID: CoID<T>,
     inviteSecret: InviteSecret,
   ): Promise<void> {
-    const groupOrOwnedValue = await this.load(groupOrOwnedValueID);
+    const value = await this.load(groupOrOwnedValueID);
 
-    if (groupOrOwnedValue === "unavailable") {
+    if (value === "unavailable") {
       throw new Error(
         "Trying to accept invite: Group/owned value unavailable from all peers",
       );
     }
 
-    if (
-      groupOrOwnedValue.core.verified.header.ruleset.type === "ownedByGroup"
-    ) {
-      return this.acceptInvite(
-        groupOrOwnedValue.core.verified.header.ruleset.group as CoID<RawGroup>,
-        inviteSecret,
-      );
-    } else if (
-      groupOrOwnedValue.core.verified.header.ruleset.type !== "group"
-    ) {
-      throw new Error("Can only accept invites to groups");
+    const ruleset = value.core.verified.header.ruleset;
+
+    let group: RawGroup;
+
+    if (ruleset.type === "unsafeAllowAll") {
+      throw new Error("Can only accept invites to values owned by groups");
     }
 
-    const group = expectGroup(groupOrOwnedValue);
+    if (ruleset.type === "ownedByGroup") {
+      const owner = await this.load(ruleset.group as CoID<RawGroup>);
+
+      if (owner === "unavailable") {
+        throw new Error(
+          "Trying to accept invite: CoValue owner unavailable from all peers",
+        );
+      }
+
+      group = expectGroup(owner);
+    } else {
+      group = expectGroup(value);
+    }
+
+    if (group.core.verified.header.meta?.type === "account") {
+      throw new Error("Can't accept invites to values owned by accounts");
+    }
 
     const inviteAgentSecret = this.crypto.agentSecretFromSecretSeed(
       secretSeedFromInviteSecret(inviteSecret),
     );
+
     const inviteAgentID = this.crypto.getAgentID(inviteAgentSecret);
 
     const inviteRole = await new Promise((resolve, reject) => {
@@ -486,9 +498,10 @@ export class LocalNode {
     }
 
     const groupAsInvite = expectGroup(
-      group.core.contentInClonedNodeWithDifferentAccount(
-        new ControlledAgent(inviteAgentSecret, this.crypto),
-      ),
+      this.loadCoValueAsDifferentAgent(
+        group.id,
+        inviteAgentSecret,
+      ).getCurrentContent(),
     );
 
     groupAsInvite.addMemberInternal(
@@ -517,7 +530,7 @@ export class LocalNode {
 
     if (!coValue.isAvailable()) {
       throw new Error(
-        `${expectation ? expectation + ": " : ""}CoValue ${id} not yet loaded. Current state: ${JSON.stringify(coValue)}`,
+        `${expectation ? expectation + ": " : ""}CoValue ${id} not yet loaded`,
       );
     }
     return coValue;
@@ -614,46 +627,56 @@ export class LocalNode {
     return group;
   }
 
-  /** @internal */
-  cloneWithDifferentAccount(
-    controlledAccountOrAgent: ControlledAccountOrAgent,
-  ): LocalNode {
+  loadCoValueAsDifferentAgent(
+    id: RawCoID,
+    secret: AgentSecret,
+    accountId?: RawAccountID | AgentID,
+  ) {
+    const agent = new ControlledAgent(secret, this.crypto);
+
     const newNode = new LocalNode(
-      controlledAccountOrAgent.agentSecret,
-      this.crypto.newRandomSessionID(controlledAccountOrAgent.id),
+      secret,
+      this.crypto.newRandomSessionID(accountId || agent.id),
       this.crypto,
     );
 
-    newNode.cloneVerifiedStateFrom(this);
+    newNode.cloneVerifiedStateFrom(this, id);
 
-    return newNode;
+    return newNode.expectCoValueLoaded(id);
   }
 
   /** @internal */
-  cloneVerifiedStateFrom(otherNode: LocalNode) {
-    const coValuesToCopy = Array.from(otherNode.coValues.entries());
+  cloneVerifiedStateFrom(otherNode: LocalNode, id: RawCoID) {
+    const coValuesIdsToCopy = [id];
 
-    while (coValuesToCopy.length > 0) {
-      const [coValueID, coValue] = coValuesToCopy[coValuesToCopy.length - 1]!;
+    // Scan all the dependencies and add them to the list
+    for (let i = 0; i < coValuesIdsToCopy.length; i++) {
+      const coValueID = coValuesIdsToCopy[i]!;
+      const coValue = otherNode.getCoValue(coValueID);
 
       if (!coValue.isAvailable()) {
-        coValuesToCopy.pop();
         continue;
-      } else {
-        const allDepsCopied = coValue
-          .getDependedOnCoValues()
-          .every((dep) => this.coValues.get(dep)?.isAvailable());
-
-        if (!allDepsCopied) {
-          // move to end of queue
-          coValuesToCopy.unshift(coValuesToCopy.pop()!);
-          continue;
-        }
-
-        this.putCoValue(coValueID, coValue.verified);
-
-        coValuesToCopy.pop();
       }
+
+      for (const dep of coValue.getDependedOnCoValues()) {
+        coValuesIdsToCopy.push(dep);
+      }
+    }
+
+    // Copy the coValue all the dependencies by following the dependency order
+    while (coValuesIdsToCopy.length > 0) {
+      const coValueID = coValuesIdsToCopy.pop()!;
+      const coValue = otherNode.getCoValue(coValueID);
+
+      if (!coValue.isAvailable()) {
+        continue;
+      }
+
+      if (this.coValues.get(coValueID)?.isAvailable()) {
+        continue;
+      }
+
+      this.putCoValue(coValueID, coValue.verified);
     }
   }
 

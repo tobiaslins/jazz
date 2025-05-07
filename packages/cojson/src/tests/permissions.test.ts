@@ -512,7 +512,6 @@ test("Admins can set group read key and then use it to create private transactio
   const { node, groupCore, admin } = newGroup();
 
   const reader1 = createAccountInNode(node);
-
   const reader2 = createAccountInNode(node);
 
   const { secret: readKey, id: readKeyID } = Crypto.newRandomKeySecret();
@@ -582,6 +581,9 @@ test("Admins can set group read key and then use it to create private transactio
   const childObjectAsReader2 = expectMap(
     childObject.contentInClonedNodeWithDifferentAccount(reader2),
   );
+
+  // Need to copy the account coValue to the new node to be able to read the readKey
+  childObjectAsReader2.core.node.cloneVerifiedStateFrom(node, reader2.id);
 
   expect(childObjectAsReader2.core.getCurrentReadKey().secret).toEqual(readKey);
   expect(childObjectAsReader2.get("foo")).toEqual("bar");
@@ -1113,9 +1115,10 @@ test("Admins can create an adminInvite, which can add an admin (high-level)", as
   const invitedAdminSecret = Crypto.newRandomAgentSecret();
   const invitedAdminID = Crypto.getAgentID(invitedAdminSecret);
 
-  const nodeAsInvitedAdmin = node.cloneWithDifferentAccount(
-    new ControlledAgent(invitedAdminSecret, Crypto),
-  );
+  const nodeAsInvitedAdmin = node.loadCoValueAsDifferentAgent(
+    group.id,
+    invitedAdminSecret,
+  ).node;
 
   await nodeAsInvitedAdmin.acceptInvite(group.id, inviteSecret);
 
@@ -1219,9 +1222,10 @@ test("Admins can create a writerInvite, which can add a writer (high-level)", as
   const invitedWriterSecret = Crypto.newRandomAgentSecret();
   const invitedWriterID = Crypto.getAgentID(invitedWriterSecret);
 
-  const nodeAsInvitedWriter = node.cloneWithDifferentAccount(
-    new ControlledAgent(invitedWriterSecret, Crypto),
-  );
+  const nodeAsInvitedWriter = node.loadCoValueAsDifferentAgent(
+    group.id,
+    invitedWriterSecret,
+  ).node;
 
   await nodeAsInvitedWriter.acceptInvite(group.id, inviteSecret);
 
@@ -1308,9 +1312,10 @@ test("Admins can create a readerInvite, which can add a reader (high-level)", as
   const invitedReaderSecret = Crypto.newRandomAgentSecret();
   const invitedReaderID = Crypto.getAgentID(invitedReaderSecret);
 
-  const nodeAsInvitedReader = node.cloneWithDifferentAccount(
-    new ControlledAgent(invitedReaderSecret, Crypto),
-  );
+  const nodeAsInvitedReader = node.loadCoValueAsDifferentAgent(
+    group.id,
+    invitedReaderSecret,
+  ).node;
 
   await nodeAsInvitedReader.acceptInvite(group.id, inviteSecret);
 
