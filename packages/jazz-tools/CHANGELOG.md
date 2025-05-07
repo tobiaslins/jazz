@@ -1,5 +1,16 @@
 # jazz-tools
 
+## 0.13.18
+
+### Patch Changes
+
+- 761759c: Full rewrite of the subscription engine, bringing more stability and better performance.
+- Updated dependencies [9089252]
+- Updated dependencies [b470f63]
+- Updated dependencies [66373ba]
+- Updated dependencies [f24cad1]
+  - cojson@0.13.18
+
 ## 0.13.17
 
 ### Patch Changes

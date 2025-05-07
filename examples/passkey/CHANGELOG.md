@@ -1,5 +1,13 @@
 # minimal-auth-passkey
 
+## 0.0.84
+
+### Patch Changes
+
+- Updated dependencies [761759c]
+  - jazz-tools@0.13.18
+  - jazz-react@0.13.18
+
 ## 0.0.83
 
 ### Patch Changes
