@@ -4,17 +4,13 @@ import { PureJSCrypto } from "cojson/dist/crypto/PureJSCrypto";
 import {
   Account,
   AccountClass,
-  AuthCredentials,
-  JazzContextManagerAuthProps,
-} from "./exports.js";
-import {
-  JazzContextManager,
-  JazzContextManagerBaseProps,
-} from "./implementation/ContextManager.js";
-import { activeAccountContext } from "./implementation/activeAccountContext.js";
-import {
   type AnonymousJazzAgent,
+  AuthCredentials,
   type CoValueClass,
+  JazzContextManager,
+  JazzContextManagerAuthProps,
+  JazzContextManagerBaseProps,
+  activeAccountContext,
   createAnonymousJazzContext,
   createJazzContext,
   randomSessionProvider,

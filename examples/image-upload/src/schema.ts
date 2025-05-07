@@ -1,7 +1,13 @@
-import { Account, ImageDefinition, Profile, coField } from "jazz-tools";
+import {
+  Account,
+  ImageDefinition,
+  Profile,
+  coField,
+  zodSchemaToCoSchema,
+} from "jazz-tools";
 
 export class JazzProfile extends Profile {
-  image = coField.ref(ImageDefinition, { optional: true });
+  image = coField.ref(zodSchemaToCoSchema(ImageDefinition), { optional: true });
 }
 
 export class JazzAccount extends Account {

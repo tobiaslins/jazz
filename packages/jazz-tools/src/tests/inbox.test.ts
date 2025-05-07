@@ -1,9 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { Account } from "../coValues/account";
-import { CoMap } from "../coValues/coMap";
-import { Group } from "../coValues/group";
-import { Inbox, InboxSender } from "../coValues/inbox";
-import { Profile } from "../exports";
+import { Account, CoMap, Group, Inbox, InboxSender, Profile } from "../exports";
 import { coField } from "../internal";
 import { setupTwoNodes, waitFor } from "./utils";
 
