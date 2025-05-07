@@ -1,4 +1,3 @@
-import { ed25519, x25519 } from "@noble/curves/ed25519";
 import { base58 } from "@scure/base";
 import { JsonValue } from "cojson";
 import { CojsonInternalTypes, cojsonInternals } from "cojson";
@@ -24,15 +23,6 @@ export class RNQuickCrypto extends PureJSCrypto {
     this.ed.generateKeyPairSync();
     return new Uint8Array(this.ed.getPrivateKey());
   }
-
-  // TODO: The commented code lacks of the signerSecret_z -> public key conversion
-  // getSignerID(
-  //   secret: CojsonInternalTypes.SignerSecret,
-  // ): CojsonInternalTypes.SignerID {
-  //   return `signer_z${base58.encode(
-  //     base58.decode(secret.substring("signerSecret_z".length)),
-  //   )}`;
-  // }
 
   sign(
     secret: CojsonInternalTypes.SignerSecret,
