@@ -14,24 +14,31 @@ import {
   SessionID,
   cojsonInternals,
 } from "cojson";
-import { activeAccountContext } from "../implementation/activeAccountContext.js";
 import {
   AnonymousJazzAgent,
+  type CoMap,
   type CoValue,
   CoValueBase,
   CoValueClass,
+  type Group,
   ID,
+  Profile,
   Ref,
   type RefEncoded,
   RefIfCoValue,
   RefsToResolve,
   RefsToResolveStrict,
+  RegisteredAccount,
+  RegisteredSchemas,
   Resolved,
   type Schema,
   SchemaInit,
   SubscribeListenerOptions,
   SubscribeRestArgs,
   accessChildByKey,
+  activeAccountContext,
+  coValuesCache,
+  createInboxRoot,
   ensureCoValueLoaded,
   inspect,
   loadCoValue,
@@ -40,13 +47,6 @@ import {
   subscribeToCoValueWithoutMe,
   subscribeToExistingCoValue,
 } from "../internal.js";
-import { coValuesCache } from "../lib/cache.js";
-import { RegisteredAccount } from "../types.js";
-import { type CoMap } from "./coMap.js";
-import { type Group } from "./group.js";
-import { createInboxRoot } from "./inbox.js";
-import { Profile } from "./profile.js";
-import { RegisteredSchemas } from "./registeredSchemas.js";
 
 export type AccountCreationProps = {
   name: string;

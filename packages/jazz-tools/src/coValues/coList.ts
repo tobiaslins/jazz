@@ -2,9 +2,11 @@ import type { JsonValue, RawCoList } from "cojson";
 import { ControlledAccount, RawAccount } from "cojson";
 import { calcPatch } from "fast-myers-diff";
 import type {
+  Account,
   CoValue,
   CoValueClass,
   CoValueFromRaw,
+  Group,
   ID,
   RefEncoded,
   RefsToResolve,
@@ -20,9 +22,12 @@ import {
   AnonymousJazzAgent,
   ItemsSym,
   Ref,
+  RegisteredAccount,
+  RegisteredSchemas,
   SchemaInit,
   accessChildByKey,
   coField,
+  coValuesCache,
   ensureCoValueLoaded,
   inspect,
   isRefEncoded,
@@ -33,11 +38,6 @@ import {
   subscribeToCoValueWithoutMe,
   subscribeToExistingCoValue,
 } from "../internal.js";
-import { coValuesCache } from "../lib/cache.js";
-import { RegisteredAccount } from "../types.js";
-import { type Account } from "./account.js";
-import { type Group } from "./group.js";
-import { RegisteredSchemas } from "./registeredSchemas.js";
 
 /**
  * CoLists are collaborative versions of plain arrays.

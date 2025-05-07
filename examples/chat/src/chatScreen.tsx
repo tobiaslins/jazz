@@ -25,20 +25,24 @@ export function ChatScreen(props: { chatID: string }) {
       <div className="flex-1 flex justify-center items-center">Loading...</div>
     );
 
-  // const sendImage = (event: React.ChangeEvent<HTMLInputElement>) => {
-  //   const file = event.currentTarget.files?.[0];
+  const sendImage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.currentTarget.files?.[0];
 
-  //   if (!file) return;
+    if (!file) return;
 
-  //   if (file.size > 5000000) {
-  //     alert("Please upload an image less than 5MB.");
-  //     return;
-  //   }
+    if (file.size > 5000000) {
+      alert("Please upload an image less than 5MB.");
+      return;
+    }
 
-  //   createImage(file, { owner: chat._owner }).then((image) => {
-  //     chat.push(Message.create({ text: file.name, image: image }, chat._owner));
-  //   });
-  // };
+    createImage(file, { owner: chat._owner }).then((image) => {
+      const msg = Message.create(
+        { text: file.name, image: image },
+        chat._owner,
+      );
+      chat.push(msg);
+    });
+  };
 
   return (
     <>
@@ -62,7 +66,7 @@ export function ChatScreen(props: { chatID: string }) {
       </ChatBody>
 
       <InputBar>
-        {/* <ImageInput onImageChange={sendImage} /> */}
+        <ImageInput onImageChange={sendImage} />
 
         <TextInput
           onSubmit={(text) => {
@@ -90,12 +94,12 @@ function ChatBubble(props: { me: Account; msg: Loaded<typeof Message> }) {
 
   const lastEdit = props.msg._edits.text;
   const fromMe = lastEdit.by?.isMe;
-  const { text /*image */ } = props.msg;
+  const { text, image } = props.msg;
 
   return (
     <BubbleContainer fromMe={fromMe}>
       <BubbleBody fromMe={fromMe}>
-        {/* {image && <BubbleImage image={image} />} */}
+        {image && <BubbleImage image={image} />}
         <BubbleText text={text} />
       </BubbleBody>
       <BubbleInfo by={lastEdit.by?.profile?.name} madeAt={lastEdit.madeAt} />

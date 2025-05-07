@@ -1,9 +1,15 @@
 import { CoID } from "cojson";
-import { CoValueClass, coField } from "../internal.js";
-import { Account } from "./account.js";
-import { CoMap, CoMapInit, Simplify } from "./coMap.js";
-import { Group } from "./group.js";
-import { InboxInvite, InboxRoot } from "./inbox.js";
+import {
+  Account,
+  CoMap,
+  CoMapInit,
+  CoValueClass,
+  Group,
+  InboxInvite,
+  InboxRoot,
+  Simplify,
+  coField,
+} from "../internal.js";
 
 /** @category Identity & Permissions */
 export class Profile extends CoMap {

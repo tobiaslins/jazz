@@ -11,9 +11,11 @@ import type {
 } from "cojson";
 import { MAX_RECOMMENDED_TX_SIZE, cojsonInternals } from "cojson";
 import type {
+  Account,
   AnonymousJazzAgent,
   CoValue,
   CoValueClass,
+  Group,
   ID,
   IfCoField,
   RefsToResolve,
@@ -29,6 +31,8 @@ import {
   CoValueBase,
   ItemsSym,
   Ref,
+  RegisteredAccount,
+  RegisteredSchemas,
   SchemaInit,
   accessChildById,
   coField,
@@ -41,10 +45,6 @@ import {
   subscribeToCoValueWithoutMe,
   subscribeToExistingCoValue,
 } from "../internal.js";
-import { RegisteredAccount } from "../types.js";
-import { type Account } from "./account.js";
-import { type Group } from "./group.js";
-import { RegisteredSchemas } from "./registeredSchemas.js";
 
 /** @deprecated Use CoFeedEntry instead */
 export type CoStreamEntry<Item> = CoFeedEntry<Item>;

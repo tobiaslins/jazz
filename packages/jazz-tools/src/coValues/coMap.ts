@@ -8,11 +8,12 @@ import {
   type RawCoMap,
   cojsonInternals,
 } from "cojson";
-import { activeAccountContext } from "../implementation/activeAccountContext.js";
 import type {
+  Account,
   AnonymousJazzAgent,
   CoValue,
   CoValueClass,
+  Group,
   ID,
   IfCoField,
   RefEncoded,
@@ -29,9 +30,12 @@ import {
   CoValueBase,
   ItemsSym,
   Ref,
+  RegisteredAccount,
+  RegisteredSchemas,
   SchemaInit,
   accessChildById,
   accessChildByKey,
+  activeAccountContext,
   ensureCoValueLoaded,
   inspect,
   isRefEncoded,
@@ -42,10 +46,6 @@ import {
   subscribeToCoValueWithoutMe,
   subscribeToExistingCoValue,
 } from "../internal.js";
-import { RegisteredAccount } from "../types.js";
-import { type Account } from "./account.js";
-import { type Group } from "./group.js";
-import { RegisteredSchemas } from "./registeredSchemas.js";
 
 type CoMapEdit<V> = {
   value?: V;

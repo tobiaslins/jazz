@@ -6,8 +6,11 @@ import type {
   RefEncoded,
   UnCoField,
 } from "../internal.js";
-import { isRefEncoded } from "../internal.js";
-import { accessChildById, getSubscriptionScope } from "../subscribe/index.js";
+import {
+  accessChildById,
+  getSubscriptionScope,
+  isRefEncoded,
+} from "../internal.js";
 
 export class Ref<out V extends CoValue> {
   constructor(

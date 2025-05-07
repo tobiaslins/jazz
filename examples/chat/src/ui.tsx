@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { ProgressiveImg } from "jazz-react";
-import { ImageDefinition } from "jazz-tools";
+import { ImageDefinition, Loaded } from "jazz-tools";
 import { ImageIcon } from "lucide-react";
 import { useId, useRef } from "react";
 
@@ -78,7 +78,7 @@ export function BubbleText(props: { text: string; className?: string }) {
   );
 }
 
-export function BubbleImage(props: { image: ImageDefinition }) {
+export function BubbleImage(props: { image: Loaded<typeof ImageDefinition> }) {
   return (
     <ProgressiveImg image={props.image}>
       {({ src }) => (

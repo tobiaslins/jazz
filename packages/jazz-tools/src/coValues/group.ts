@@ -6,8 +6,9 @@ import type {
   RawGroup,
   Role,
 } from "cojson";
-import { activeAccountContext } from "../implementation/activeAccountContext.js";
 import type {
+  Account,
+  CoMap,
   CoValue,
   CoValueClass,
   ID,
@@ -20,23 +21,22 @@ import type {
   SubscribeRestArgs,
 } from "../internal.js";
 import {
+  AccountAndGroupProxyHandler,
   CoValueBase,
+  Profile,
   Ref,
+  RegisteredAccount,
+  RegisteredSchemas,
   accessChildById,
-  coField,
+  activeAccountContext,
   ensureCoValueLoaded,
+  isControlledAccount,
   loadCoValueWithoutMe,
   parseGroupCreateOptions,
   parseSubscribeRestArgs,
   subscribeToCoValueWithoutMe,
   subscribeToExistingCoValue,
 } from "../internal.js";
-import { RegisteredAccount } from "../types.js";
-import { AccountAndGroupProxyHandler, isControlledAccount } from "./account.js";
-import { type Account } from "./account.js";
-import { type CoMap } from "./coMap.js";
-import { type Profile } from "./profile.js";
-import { RegisteredSchemas } from "./registeredSchemas.js";
 
 /** @category Identity & Permissions */
 export class Group extends CoValueBase implements CoValue {

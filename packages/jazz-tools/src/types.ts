@@ -1,6 +1,5 @@
 import type { AgentSecret, LocalNode } from "cojson";
-import type { Account } from "./exports.js";
-import type { AnonymousJazzAgent, ID } from "./internal.js";
+import type { Account, AnonymousJazzAgent, ID } from "./internal.js";
 
 export type AuthCredentials = {
   accountID: ID<Account>;

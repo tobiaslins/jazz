@@ -1,8 +1,13 @@
 import { CoID, InviteSecret, RawAccount, RawCoMap, SessionID } from "cojson";
 import { CoStreamItem, RawCoStream } from "cojson";
-import { activeAccountContext } from "../implementation/activeAccountContext.js";
-import { type Account } from "./account.js";
-import { CoValue, CoValueClass, ID, loadCoValue } from "./interfaces.js";
+import {
+  type Account,
+  CoValue,
+  CoValueClass,
+  ID,
+  activeAccountContext,
+  loadCoValue,
+} from "../internal.js";
 
 export type InboxInvite = `${CoID<MessagesStream>}/${InviteSecret}`;
 type TxKey = `${SessionID}/${number}`;

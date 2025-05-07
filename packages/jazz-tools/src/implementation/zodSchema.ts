@@ -1,17 +1,19 @@
-import { CoValueUniqueness, JsonValue, RawCoList, RawCoMap } from "cojson";
+import { CoValueUniqueness, RawCoList, RawCoMap } from "cojson";
 import z from "zod";
-import { Account } from "../coValues/account.js";
-import { CoList } from "../coValues/coList.js";
-import { CoMap, CoMapInit, Simplify } from "../coValues/coMap.js";
-import { Group } from "../coValues/group.js";
 import {
+  Account,
   AnonymousJazzAgent,
-  CoValue,
+  CoList,
+  CoMap,
+  CoMapInit,
   CoValueClass,
+  FileStream,
+  Group,
   ID,
   RefsToResolve,
   RefsToResolveStrict,
   Resolved,
+  Simplify,
   SubscribeListenerOptions,
   SubscribeRestArgs,
   coField,
@@ -20,67 +22,43 @@ import {
 
 // conversion from zod to old jazz-tools schemas
 
-export const co = {
-  map: <Shape extends z.core.$ZodLooseShape>(
-    shape: Shape,
-  ): CoMapSchema<Shape> => {
-    const objectSchema = z.object(shape).meta({
-      collaborative: true,
-    });
-
-    type CleanedType = Pick<typeof objectSchema, "_zod" | "def" | "~standard">;
-
-    const coMapSchema = objectSchema as unknown as CleanedType & {
-      collaborative: true;
-      create: CoMapClass<Shape>["create"];
-    };
-
-    coMapSchema.collaborative = true;
-    coMapSchema.create = ((init: any, options: any) => {
-      return (zodSchemaToCoSchema(coMapSchema) as any).create(init, options);
-    }) as CoMapClass<Shape>["create"];
-
-    return coMapSchema;
-  },
-  list: <T extends z.core.$ZodType>(element: T): CoListSchema<T> => {
-    const arraySchema = z.array(element).meta({
-      collaborative: true,
-    });
-
-    type CleanedType = Pick<typeof arraySchema, "_zod" | "def" | "~standard">;
-
-    const coListSchema = arraySchema as unknown as CleanedType & {
-      collaborative: true;
-      create: CoListClass<T>["create"];
-    };
-
-    coListSchema.collaborative = true;
-    coListSchema.create = ((items: any, options: any) => {
-      return (zodSchemaToCoSchema(coListSchema) as any).create(items, options);
-    }) as CoListClass<T>["create"];
-
-    return coListSchema;
-  },
+export type CoMapSchema<
+  Shape extends z.core.$ZodLooseShape,
+  OutExtra extends Record<string, unknown> = Record<string, unknown>,
+> = z.core.$ZodObject<Shape, OutExtra> & {
+  create: (
+    init: Simplify<
+      {
+        [key in keyof Shape as Shape[key] extends z.ZodOptional<any>
+          ? key
+          : never]?: coField<InstanceOrPrimitive<Shape[key]>>;
+      } & {
+        [key in keyof Shape as Shape[key] extends z.ZodOptional<any>
+          ? never
+          : key]: coField<InstanceOrPrimitive<Shape[key]>>;
+      }
+    >,
+    options?:
+      | {
+          owner: Account | Group;
+          unique?: CoValueUniqueness["uniqueness"];
+        }
+      | Account
+      | Group,
+  ) => {
+    [key in keyof Shape]: coField<InstanceOrPrimitive<Shape[key]>>;
+  } & (unknown extends OutExtra[string]
+    ? {}
+    : {
+        [key: string]: coField<OutExtra[string]>;
+      }) &
+    CoMap;
+  collaborative: true;
+  catchall<T extends z.core.$ZodType>(
+    schema: T,
+  ): CoMapSchema<Shape, Record<string, T["_zod"]["output"]>>;
+  withHelpers<T extends object>(helpers: T): CoMapSchema<Shape, OutExtra> & T;
 };
-
-export type CoMapSchema<Shape extends z.core.$ZodLooseShape> =
-  z.core.$ZodObject<Shape> & {
-    create: (
-      init: Simplify<{
-        [key in keyof Shape]: coField<InstanceOrPrimitive<Shape[key]>>;
-      }>,
-      options?:
-        | {
-            owner: Account | Group;
-            unique?: CoValueUniqueness["uniqueness"];
-          }
-        | Account
-        | Group,
-    ) => {
-      [key in keyof Shape]: coField<InstanceOrPrimitive<Shape[key]>>;
-    } & CoMap;
-    collaborative: true;
-  };
 export type CoListSchema<T extends z.core.$ZodType> = z.core.$ZodArray<T> & {
   collaborative: true;
   create: (
@@ -88,12 +66,18 @@ export type CoListSchema<T extends z.core.$ZodType> = z.core.$ZodArray<T> & {
     options?: { owner: Account | Group } | Account | Group,
   ) => CoList<coField<InstanceOrPrimitive<T>>>;
 };
+export type FileStreamSchema = z.core.$ZodCustom<FileStream, unknown> & {
+  collaborative: true;
+  create: (typeof FileStream)["create"];
+};
 
 let coSchemasForZodSchemas = new Map<z.core.$ZodType, CoValueClass>();
 
-export function zodSchemaToCoSchema<S extends z.core.$ZodType>(
-  schema: S,
-): CoValueClassOrPrimitiveFromZodSchema<S> {
+export function zodSchemaToCoSchema<
+  S extends
+    | z.core.$ZodType
+    | (z.core.$ZodCustom<any, any> & { builtin: CoValueClass }),
+>(schema: S): CoValueClassOrPrimitiveFromZodSchema<S> {
   if ("collaborative" in schema && schema.collaborative) {
     if (coSchemasForZodSchemas.has(schema)) {
       return coSchemasForZodSchemas.get(
@@ -132,27 +116,64 @@ export function zodSchemaToCoSchema<S extends z.core.$ZodType>(
 
       coSchemasForZodSchemas.set(schema, coSchema);
       return coSchema as unknown as CoValueClassOrPrimitiveFromZodSchema<S>;
+    } else if (schema._zod.def.type === "custom") {
+      if ("builtin" in schema) {
+        return schema.builtin as CoValueClassOrPrimitiveFromZodSchema<S>;
+      } else {
+        throw new Error(`Unsupported custom zod type`);
+      }
     } else {
-      throw new Error(`Unsupported zod CoValue type: ${schema._zod.def.type}`);
+      throw new Error(
+        `Unsupported zod CoValue type for top-level schema: ${schema._zod.def.type}`,
+      );
     }
   } else {
-    if (schema._zod.def.type === "string") {
-      return schema as CoValueClassOrPrimitiveFromZodSchema<S>;
-    } else {
-      throw new Error(`Unsupported zod type: ${schema._zod.def.type}`);
-    }
+    return schema as CoValueClassOrPrimitiveFromZodSchema<S>;
   }
 }
 
-export function fieldDef(schema: CoValueClass | z.core.$ZodString) {
+export function fieldDef(
+  schema:
+    | CoValueClass
+    | z.core.$ZodString
+    | z.core.$ZodNumber
+    | z.core.$ZodBoolean
+    | z.core.$ZodNull
+    | z.core.$ZodOptional<z.core.$ZodType>
+    | z.core.$ZodTuple<z.core.$ZodType[]>
+    | (z.core.$ZodCustom<any, any> & { builtin: any }),
+) {
   if (isCoValueClass(schema)) {
     return coField.ref(schema);
   } else {
     if ("_zod" in schema) {
-      if (schema._zod.def.type === "string") {
+      if (schema._zod.def.type === "optional") {
+        const inner = zodSchemaToCoSchema(schema._zod.def.innerType);
+        if (isCoValueClass(inner)) {
+          return coField.ref(inner, { optional: true });
+        } else {
+          return fieldDef(inner);
+        }
+      } else if (schema._zod.def.type === "string") {
         return coField.string;
+      } else if (schema._zod.def.type === "number") {
+        return coField.number;
+      } else if (schema._zod.def.type === "boolean") {
+        return coField.boolean;
+      } else if (schema._zod.def.type === "null") {
+        return coField.null;
+      } else if (schema._zod.def.type === "tuple") {
+        return coField.json();
+      } else if (schema._zod.def.type === "custom") {
+        if ("builtin" in schema) {
+          return fieldDef(schema.builtin);
+        } else {
+          throw new Error(`Unsupported custom zod type`);
+        }
       } else {
-        throw new Error(`Unsupported zod type: ${schema._zod.def.type}`);
+        throw new Error(
+          `Unsupported zod type: ${(schema._zod.def as any).type}`,
+        );
       }
     } else {
       throw new Error(`Unsupported zod type: ${schema}`);
@@ -277,12 +298,23 @@ export type InstanceOrPrimitive<S extends CoValueClass | z.core.$ZodType> =
           [key in keyof S["_zod"]["def"]["shape"]]: coField<
             InstanceOrPrimitive<S["_zod"]["def"]["shape"][key]>
           >;
-        } & CoMap
+        } & (unknown extends S["_zod"]["outextra"][string]
+          ? {}
+          : {
+              [key: string]: coField<S["_zod"]["outextra"][string]>;
+            }) &
+          CoMap
       : S extends zCoListType
         ? CoList<coField<InstanceOrPrimitive<S["_zod"]["def"]["element"]>>>
-        : S extends z.core.$ZodString
-          ? string
-          : never;
+        : S extends z.core.$ZodOptional<infer Inner>
+          ? InstanceOrPrimitive<Inner> | undefined
+          : S extends z.core.$ZodString
+            ? string
+            : S extends z.core.$ZodNumber
+              ? number
+              : S extends z.core.$ZodTuple<infer Items>
+                ? { [key in keyof Items]: InstanceOrPrimitive<Items[key]> }
+                : never;
 
 export type Loaded<T extends zCoMapType | zCoListType> = Resolved<
   InstanceOrPrimitive<T>
