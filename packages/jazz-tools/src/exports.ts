@@ -8,6 +8,8 @@ export type {
   SyncMessage,
 } from "cojson";
 
+export { z } from "zod";
+
 export type { CoValue, ID } from "./internal.js";
 
 export { Encoders, coField } from "./internal.js";
@@ -81,3 +83,11 @@ export {
 } from "./internal.js";
 
 export type * from "./types.js";
+
+export {
+  co,
+  zodSchemaToCoSchema,
+  type CoValueOrZodSchema,
+  type InstanceOrPrimitive,
+  type Loaded,
+} from "./implementation/zodSchema.js";

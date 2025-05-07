@@ -1,5 +1,5 @@
 import { createImage, useAccount, useCoState } from "jazz-react";
-import { Account, ID } from "jazz-tools";
+import { Account, ID, Loaded, Resolved } from "jazz-tools";
 import { useState } from "react";
 import { Chat, Message } from "./schema.ts";
 import {
@@ -15,7 +15,7 @@ import {
   TextInput,
 } from "./ui.tsx";
 
-export function ChatScreen(props: { chatID: ID<Chat> }) {
+export function ChatScreen(props: { chatID: string }) {
   const chat = useCoState(Chat, props.chatID, { resolve: { $each: true } });
   const account = useAccount();
   const [showNLastMessages, setShowNLastMessages] = useState(30);
@@ -25,20 +25,20 @@ export function ChatScreen(props: { chatID: ID<Chat> }) {
       <div className="flex-1 flex justify-center items-center">Loading...</div>
     );
 
-  const sendImage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.currentTarget.files?.[0];
+  // const sendImage = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = event.currentTarget.files?.[0];
 
-    if (!file) return;
+  //   if (!file) return;
 
-    if (file.size > 5000000) {
-      alert("Please upload an image less than 5MB.");
-      return;
-    }
+  //   if (file.size > 5000000) {
+  //     alert("Please upload an image less than 5MB.");
+  //     return;
+  //   }
 
-    createImage(file, { owner: chat._owner }).then((image) => {
-      chat.push(Message.create({ text: file.name, image: image }, chat._owner));
-    });
-  };
+  //   createImage(file, { owner: chat._owner }).then((image) => {
+  //     chat.push(Message.create({ text: file.name, image: image }, chat._owner));
+  //   });
+  // };
 
   return (
     <>
@@ -62,11 +62,11 @@ export function ChatScreen(props: { chatID: ID<Chat> }) {
       </ChatBody>
 
       <InputBar>
-        <ImageInput onImageChange={sendImage} />
+        {/* <ImageInput onImageChange={sendImage} /> */}
 
         <TextInput
           onSubmit={(text) => {
-            chat.push(Message.create({ text }, { owner: chat._owner }));
+            chat.push(Message.create({ text }, chat._owner));
           }}
         />
       </InputBar>
@@ -74,7 +74,7 @@ export function ChatScreen(props: { chatID: ID<Chat> }) {
   );
 }
 
-function ChatBubble(props: { me: Account; msg: Message }) {
+function ChatBubble(props: { me: Account; msg: Loaded<typeof Message> }) {
   if (!props.me.canRead(props.msg)) {
     return (
       <BubbleContainer fromMe={false}>
@@ -90,12 +90,12 @@ function ChatBubble(props: { me: Account; msg: Message }) {
 
   const lastEdit = props.msg._edits.text;
   const fromMe = lastEdit.by?.isMe;
-  const { text, image } = props.msg;
+  const { text /*image */ } = props.msg;
 
   return (
     <BubbleContainer fromMe={fromMe}>
       <BubbleBody fromMe={fromMe}>
-        {image && <BubbleImage image={image} />}
+        {/* {image && <BubbleImage image={image} />} */}
         <BubbleText text={text} />
       </BubbleBody>
       <BubbleInfo by={lastEdit.by?.profile?.name} madeAt={lastEdit.madeAt} />

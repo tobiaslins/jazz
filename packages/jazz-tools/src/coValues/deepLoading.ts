@@ -69,12 +69,10 @@ export type RefsToResolveStrict<T, V> = V extends RefsToResolve<T>
   ? RefsToResolve<T>
   : V;
 
-export type Resolved<T, R extends RefsToResolve<T> | undefined> = DeeplyLoaded<
+export type Resolved<
   T,
-  R,
-  10,
-  []
->;
+  R extends RefsToResolve<T> | undefined = true,
+> = DeeplyLoaded<T, R, 10, []>;
 
 export type DeeplyLoaded<
   V,

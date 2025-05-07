@@ -10,14 +10,18 @@ import {
   AnonymousJazzAgent,
   CoValue,
   CoValueClass,
+  CoValueOrZodSchema,
   ID,
   InboxSender,
+  InstanceOrPrimitive,
   JazzContextManager,
   JazzContextType,
   RefsToResolve,
   RefsToResolveStrict,
   Resolved,
   createCoValueObservable,
+  z,
+  zodSchemaToCoSchema,
 } from "jazz-tools";
 import {
   JazzContext,
@@ -102,19 +106,21 @@ function useCoValueObservable<
 }
 
 export function useCoState<
-  V extends CoValue,
-  const R extends RefsToResolve<V> = true,
+  S extends CoValueOrZodSchema,
+  const R extends RefsToResolve<InstanceOrPrimitive<S>> = true,
 >(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  Schema: CoValueClass<V>,
-  id: ID<CoValue> | undefined,
-  options?: { resolve?: RefsToResolveStrict<V, R> },
-): Resolved<V, R> | undefined | null {
+  Schema: S,
+  id: string | undefined,
+  options?: { resolve?: RefsToResolveStrict<InstanceOrPrimitive<S>, R> },
+): Resolved<InstanceOrPrimitive<S>, R> | undefined | null {
   const contextManager = useJazzContextManager();
 
-  const observable = useCoValueObservable<V, R>();
+  const observable = useCoValueObservable<InstanceOrPrimitive<S>, R>();
 
-  const value = React.useSyncExternalStore<Resolved<V, R> | undefined | null>(
+  const value = React.useSyncExternalStore<
+    Resolved<InstanceOrPrimitive<S>, R> | undefined | null
+  >(
     React.useCallback(
       (callback) => {
         if (!id) {
@@ -133,7 +139,9 @@ export function useCoState<
           observable.reset();
 
           return observable.getCurrentObservable().subscribe(
-            Schema,
+            "_zod" in Schema
+              ? zodSchemaToCoSchema(Schema)
+              : (Schema as CoValueClass<InstanceOrPrimitive<S>>),
             id,
             {
               loadAs: agent,
