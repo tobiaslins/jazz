@@ -1,5 +1,14 @@
 # cojson
 
+## 0.13.18
+
+### Patch Changes
+
+- 9089252: Optimized and simplified LocalNode account creation flow
+- b470f63: Optimize the sync protocol to reduce the amount of messages exchanged during the applications bootstrap
+- 66373ba: Fix an error when trying to call sendNewContentIncludingDependencies without all the dependencies loaded
+- f24cad1: Skip self-sync on storage peers when getting new content
+
 ## 0.13.17
 
 ### Patch Changes
