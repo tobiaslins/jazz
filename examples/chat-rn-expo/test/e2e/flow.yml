@@ -9,6 +9,8 @@ appId: com.jazz.chatrn
 # - tapOn: "Reload"
 
 # login
+- assertVisible: "Logout"
+- tapOn: "Logout"
 - assertVisible: "Anonymous user"
 - runFlow:
     label: "Erase existing username"
