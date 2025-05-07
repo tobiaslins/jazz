@@ -937,6 +937,263 @@ describe("subscribeToCoValue", () => {
     expect(value?.name).toBe("writer2");
     expect(value?._raw.totalValidTransactions).toBe(2);
   });
+
+  it("errors on autoloaded values shouldn't block updates", async () => {
+    class TestMap extends CoMap {
+      value = co.string;
+    }
+
+    class TestList extends CoList.Of(co.ref(TestMap)) {}
+
+    const reader = await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+    });
+
+    const creator = await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+    });
+
+    const everyone = Group.create(creator);
+    everyone.addMember("everyone", "reader");
+
+    const group = Group.create(creator);
+
+    const list = TestList.create(
+      [
+        TestMap.create({ value: "1" }, group),
+        TestMap.create({ value: "2" }, everyone),
+        TestMap.create({ value: "3" }, everyone),
+        TestMap.create({ value: "4" }, everyone),
+        TestMap.create({ value: "5" }, everyone),
+      ],
+      everyone,
+    );
+
+    let result = null as Resolved<TestList, { $each: true }> | null;
+
+    const updateFn = vi.fn().mockImplementation((value) => {
+      result = value;
+    });
+    const onUnauthorized = vi.fn();
+    const onUnavailable = vi.fn();
+
+    const unsubscribe = subscribeToCoValue(
+      TestList,
+      list.id,
+      {
+        loadAs: reader,
+        resolve: true,
+        onUnauthorized,
+        onUnavailable,
+      },
+      updateFn,
+    );
+
+    onTestFinished(unsubscribe);
+
+    await waitFor(() => {
+      expect(updateFn).toHaveBeenCalled();
+    });
+
+    await waitFor(() => {
+      assert(result);
+      expect(result[1]?.value).toBe("2");
+    });
+
+    assert(result);
+    expect(result[0]).toBe(null);
+
+    updateFn.mockClear();
+
+    list[1] = TestMap.create({ value: "updated" }, everyone);
+
+    await waitFor(() => {
+      expect(result?.[1]?.value).toBe("updated");
+    });
+
+    expect(onUnavailable).not.toHaveBeenCalled();
+    expect(onUnauthorized).not.toHaveBeenCalled();
+  });
+
+  it("errors on autoloaded values shouldn't block updates, even when the error comes from a new ref", async () => {
+    class Dog extends CoMap {
+      name = co.string;
+    }
+
+    class Person extends CoMap {
+      name = co.string;
+      dog = co.ref(Dog);
+    }
+
+    class PersonList extends CoList.Of(co.ref(Person)) {}
+
+    const reader = await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+    });
+
+    const creator = await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+    });
+
+    const everyone = Group.create(creator);
+    everyone.addMember("everyone", "reader");
+
+    const list = PersonList.create(
+      [
+        Person.create(
+          { name: "Guido", dog: Dog.create({ name: "Giggino" }, everyone) },
+          everyone,
+        ),
+        Person.create(
+          { name: "John", dog: Dog.create({ name: "Rex" }, everyone) },
+          everyone,
+        ),
+        Person.create(
+          { name: "Jane", dog: Dog.create({ name: "Bella" }, everyone) },
+          everyone,
+        ),
+      ],
+      everyone,
+    );
+
+    let result = null as Resolved<PersonList, { $each: true }> | null;
+
+    const updateFn = vi.fn().mockImplementation((value) => {
+      result = value;
+    });
+    const onUnauthorized = vi.fn();
+    const onUnavailable = vi.fn();
+
+    const unsubscribe = subscribeToCoValue(
+      PersonList,
+      list.id,
+      {
+        loadAs: reader,
+        resolve: {
+          $each: true,
+        },
+        onUnauthorized,
+        onUnavailable,
+      },
+      updateFn,
+    );
+
+    onTestFinished(unsubscribe);
+
+    await waitFor(() => {
+      expect(result?.[0]?.name).toBe("Guido");
+      expect(result?.[0]?.dog?.name).toBe("Giggino");
+    });
+
+    await waitFor(() => {
+      expect(result?.[1]?.name).toBe("John");
+      expect(result?.[1]?.dog?.name).toBe("Rex");
+    });
+
+    await waitFor(() => {
+      expect(result?.[2]?.name).toBe("Jane");
+      expect(result?.[2]?.dog?.name).toBe("Bella");
+    });
+
+    list[0]!.dog = Dog.create({ name: "Ninja" });
+
+    await waitFor(() => {
+      expect(result?.[0]?.dog).toBe(null);
+    });
+
+    list[1]!.dog = Dog.create({ name: "Pinkie" }, everyone);
+
+    await waitFor(() => {
+      expect(result?.[1]?.dog?.name).toBe("Pinkie");
+    });
+
+    expect(onUnavailable).not.toHaveBeenCalled();
+    expect(onUnauthorized).not.toHaveBeenCalled();
+  });
+
+  it("autoload on $each resolve should work on all items", async () => {
+    class Dog extends CoMap {
+      name = co.string;
+    }
+
+    class Person extends CoMap {
+      name = co.string;
+      dog = co.ref(Dog);
+    }
+
+    class PersonList extends CoList.Of(co.ref(Person)) {}
+
+    const reader = await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+    });
+
+    const creator = await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+    });
+
+    const everyone = Group.create(creator);
+    everyone.addMember("everyone", "reader");
+
+    const list = PersonList.create(
+      [
+        Person.create(
+          { name: "Guido", dog: Dog.create({ name: "Giggino" }, everyone) },
+          everyone,
+        ),
+        Person.create(
+          { name: "John", dog: Dog.create({ name: "Rex" }, everyone) },
+          everyone,
+        ),
+        Person.create(
+          { name: "Jane", dog: Dog.create({ name: "Bella" }, everyone) },
+          everyone,
+        ),
+      ],
+      everyone,
+    );
+
+    let result = null as Resolved<PersonList, { $each: true }> | null;
+
+    const updateFn = vi.fn().mockImplementation((value) => {
+      result = value;
+    });
+    const onUnauthorized = vi.fn();
+    const onUnavailable = vi.fn();
+
+    const unsubscribe = subscribeToCoValue(
+      PersonList,
+      list.id,
+      {
+        loadAs: reader,
+        resolve: {
+          $each: true,
+        },
+        onUnauthorized,
+        onUnavailable,
+      },
+      updateFn,
+    );
+
+    onTestFinished(unsubscribe);
+
+    await waitFor(() => {
+      expect(result?.[0]?.name).toBe("Guido");
+      expect(result?.[0]?.dog?.name).toBe("Giggino");
+    });
+
+    await waitFor(() => {
+      expect(result?.[1]?.name).toBe("John");
+      expect(result?.[1]?.dog?.name).toBe("Rex");
+    });
+
+    await waitFor(() => {
+      expect(result?.[2]?.name).toBe("Jane");
+      expect(result?.[2]?.dog?.name).toBe("Bella");
+    });
+
+    expect(onUnavailable).not.toHaveBeenCalled();
+    expect(onUnauthorized).not.toHaveBeenCalled();
+  });
 });
 
 describe("createCoValueObservable", () => {
