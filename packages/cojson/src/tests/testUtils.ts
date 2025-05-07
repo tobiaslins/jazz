@@ -6,9 +6,15 @@ import {
   MetricReader,
 } from "@opentelemetry/sdk-metrics";
 import { expect, onTestFinished, vi } from "vitest";
-import { ControlledAgent } from "../coValues/account.js";
+import { ControlledAccount, ControlledAgent } from "../coValues/account.js";
 import { WasmCrypto } from "../crypto/WasmCrypto.js";
-import type { AgentSecret, CoID, CoValueCore, RawCoValue } from "../exports.js";
+import type {
+  AgentSecret,
+  CoID,
+  CoValueCore,
+  RawAccount,
+  RawCoValue,
+} from "../exports.js";
 import type { SessionID } from "../ids.js";
 import { LocalNode } from "../localNode.js";
 import { connectedPeers } from "../streamUtils.js";
@@ -181,7 +187,7 @@ export function newGroup() {
 export function groupWithTwoAdmins() {
   const { groupCore, admin, node } = newGroup();
 
-  const otherAdmin = node.createAccount();
+  const otherAdmin = createAccountInNode(node);
 
   const group = expectGroup(groupCore.getCurrentContent());
 
@@ -212,7 +218,7 @@ export function newGroupHighLevel() {
 export function groupWithTwoAdminsHighLevel() {
   const { admin, node, group } = newGroupHighLevel();
 
-  const otherAdmin = node.createAccount();
+  const otherAdmin = createAccountInNode(node);
 
   group.addMember(otherAdmin, "admin");
 
@@ -404,6 +410,44 @@ export class SyncMessagesLog {
   }
 }
 
+export function getSyncServerConnectedPeer(opts: {
+  syncServerName?: string;
+  ourName?: string;
+  syncServer?: LocalNode;
+  peerId: string;
+}) {
+  const currentSyncServer = opts?.syncServer ?? syncServer.current;
+
+  if (!currentSyncServer) {
+    throw new Error("Sync server not initialized");
+  }
+
+  if (currentSyncServer.getCurrentAgent().id === opts.peerId) {
+    throw new Error("Cannot connect to self");
+  }
+
+  const { peer1, peer2 } = connectedPeersWithMessagesTracking({
+    peer1: {
+      id: currentSyncServer.getCurrentAgent().id,
+      role: "server",
+      name: opts.syncServerName,
+    },
+    peer2: {
+      id: opts.peerId,
+      role: "client",
+      name: opts.ourName,
+    },
+  });
+
+  currentSyncServer.syncManager.addPeer(peer2);
+
+  return {
+    peer: peer1,
+    peerStateOnServer: currentSyncServer.syncManager.peers[peer2.id]!,
+    peerOnServer: peer2,
+  };
+}
+
 export function setupTestNode(
   opts: {
     isSyncServer?: boolean;
@@ -422,37 +466,21 @@ export function setupTestNode(
     ourName?: string;
     syncServer?: LocalNode;
   }) {
-    const currentSyncServer = opts?.syncServer ?? syncServer.current;
+    const { peer, peerStateOnServer, peerOnServer } =
+      getSyncServerConnectedPeer({
+        peerId: node.getCurrentAgent().id,
+        syncServerName: opts?.syncServerName,
+        ourName: opts?.ourName,
+        syncServer: opts?.syncServer,
+      });
 
-    if (!currentSyncServer) {
-      throw new Error("Sync server not initialized");
-    }
-
-    if (currentSyncServer.getCurrentAgent().id === node.getCurrentAgent().id) {
-      throw new Error("Cannot connect to self");
-    }
-
-    const { peer1, peer2 } = connectedPeersWithMessagesTracking({
-      peer1: {
-        id: currentSyncServer.getCurrentAgent().id,
-        role: "server",
-        name: opts?.syncServerName,
-      },
-      peer2: {
-        id: node.getCurrentAgent().id,
-        role: "client",
-        name: opts?.ourName,
-      },
-    });
-
-    node.syncManager.addPeer(peer1);
-    currentSyncServer.syncManager.addPeer(peer2);
+    node.syncManager.addPeer(peer);
 
     return {
-      peerState: node.syncManager.peers[peer1.id]!,
-      peer: peer1,
-      peerStateOnServer: currentSyncServer.syncManager.peers[peer2.id]!,
-      peerOnServer: peer2,
+      peerState: node.syncManager.peers[peer.id]!,
+      peer: peer,
+      peerStateOnServer: peerStateOnServer,
+      peerOnServer: peerOnServer,
     };
   }
 
@@ -523,43 +551,25 @@ export async function setupTestAccount(
     ourName?: string;
     syncServer?: LocalNode;
   }) {
-    const currentSyncServer = opts?.syncServer ?? syncServer.current;
+    const { peer, peerStateOnServer, peerOnServer } =
+      getSyncServerConnectedPeer({
+        peerId: ctx.node.getCurrentAgent().id,
+        syncServerName: opts?.syncServerName,
+        ourName: opts?.ourName,
+        syncServer: opts?.syncServer,
+      });
 
-    if (!currentSyncServer) {
-      throw new Error("Sync server not initialized");
-    }
-
-    if (
-      currentSyncServer.getCurrentAgent().id === ctx.node.getCurrentAgent().id
-    ) {
-      throw new Error("Cannot connect to self");
-    }
-
-    const { peer1, peer2 } = connectedPeersWithMessagesTracking({
-      peer1: {
-        id: currentSyncServer.getCurrentAgent().id,
-        role: "server",
-        name: opts?.syncServerName,
-      },
-      peer2: {
-        id: ctx.node.getCurrentAgent().id,
-        role: "client",
-        name: opts?.ourName,
-      },
-    });
-
-    ctx.node.syncManager.addPeer(peer1);
-    currentSyncServer.syncManager.addPeer(peer2);
+    ctx.node.syncManager.addPeer(peer);
 
     function getCurrentPeerState() {
-      return ctx.node.syncManager.peers[peer1.id]!;
+      return ctx.node.syncManager.peers[peer.id]!;
     }
 
     return {
       peerState: getCurrentPeerState(),
-      peer: peer1,
-      peerStateOnServer: currentSyncServer.syncManager.peers[peer2.id]!,
-      peerOnServer: peer2,
+      peer,
+      peerStateOnServer: peerStateOnServer,
+      peerOnServer: peerOnServer,
       getCurrentPeerState,
     };
   }
@@ -638,4 +648,20 @@ export function connectedPeersWithMessagesTracking(opts: {
     peer1,
     peer2,
   };
+}
+
+export function createAccountInNode(node: LocalNode) {
+  const accountOnTempNode = LocalNode.internalCreateAccount({
+    crypto: node.crypto,
+  });
+
+  const accountCoreEntry = node.getCoValue(accountOnTempNode.id);
+  accountCoreEntry.internalMarkMagicallyAvailable(
+    accountOnTempNode.core.verified,
+  );
+
+  return new ControlledAccount(
+    accountCoreEntry.getCurrentContent() as RawAccount,
+    accountOnTempNode.core.node.agentSecret,
+  );
 }
