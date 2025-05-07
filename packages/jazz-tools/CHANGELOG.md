@@ -1,5 +1,11 @@
 # jazz-tools
 
+## 0.13.19
+
+### Patch Changes
+
+- 80530a4: Improve error management for autoloaded values and fix autoloading on $each resolve
+
 ## 0.13.18
 
 ### Patch Changes
