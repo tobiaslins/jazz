@@ -17,6 +17,7 @@ import {
   coField,
   cojsonInternals,
 } from "../index.js";
+import { Loaded, UnCoField } from "../internal.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 import { setupTwoNodes, waitFor } from "./utils.js";
 
@@ -424,6 +425,11 @@ describe("CoMap", async () => {
     expect(mapWithEnum.child?.type).toEqual("a");
     expect(mapWithEnum.child?.value).toEqual(5);
     expect(mapWithEnum.child?.id).toBeDefined();
+
+    // TODO: properly support narrowing once we get rid of the coField marker
+    // if (mapWithEnum.child?.type === "a") {
+    //   expectTypeOf(mapWithEnum.child).toEqualTypeOf<Loaded<typeof ChildA>>();
+    // }
   });
 });
 
