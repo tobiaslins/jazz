@@ -159,6 +159,12 @@ export class SyncManager {
     );
   }
 
+  hasStoragePeers(): boolean {
+    return this.getPeers().some(
+      (peer) => peer.role === "storage" && !peer.closed,
+    );
+  }
+
   handleSyncMessage(msg: SyncMessage, peer: PeerState) {
     if (this.local.getCoValue(msg.id).isErroredInPeer(peer.id)) {
       logger.warn(
@@ -393,10 +399,12 @@ export class SyncManager {
 
         return;
       } else {
-        // Should move the state to loading
-        this.local.loadCoValueCore(msg.id, peer.id).catch((e) => {
-          logger.error("Error loading coValue in handleLoad", { err: e });
-        });
+        // Syncronously updates the state loading is possible
+        coValue
+          .loadFromPeers(this.getServerAndStoragePeers(peer.id))
+          .catch((e) => {
+            logger.error("Error loading coValue in handleLoad", { err: e });
+          });
       }
     }
 
@@ -622,28 +630,24 @@ export class SyncManager {
 
   handleUnsubscribe(_msg: DoneMessage) {}
 
-  requestedSyncs = new Map<RawCoID, Promise<void>>();
-
-  async requestCoValueSync(coValue: CoValueCore) {
-    const promise = this.requestedSyncs.get(coValue.id);
-
-    if (promise) {
-      return promise;
-    } else {
-      const promise = new Promise<void>((resolve) => {
-        queueMicrotask(() => {
-          this.requestedSyncs.delete(coValue.id);
-          this.syncCoValue(coValue);
-          resolve();
-        });
-      });
-
-      this.requestedSyncs.set(coValue.id, promise);
-      return promise;
+  requestedSyncs = new Set<RawCoID>();
+  requestCoValueSync(coValue: CoValueCore) {
+    if (this.requestedSyncs.has(coValue.id)) {
+      return;
     }
+
+    queueMicrotask(() => {
+      if (this.requestedSyncs.has(coValue.id)) {
+        this.syncCoValue(coValue);
+      }
+    });
+
+    this.requestedSyncs.add(coValue.id);
   }
 
   async syncCoValue(coValue: CoValueCore) {
+    this.requestedSyncs.delete(coValue.id);
+
     for (const peer of this.peersInPriorityOrder()) {
       if (peer.closed) continue;
       if (coValue.isErroredInPeer(peer.id)) continue;
@@ -674,6 +678,21 @@ export class SyncManager {
       return true;
     }
 
+    const peerState = this.peers[peerId];
+
+    // The peer has been closed, so it isn't possible to sync
+    if (!peerState || peerState.closed) {
+      return true;
+    }
+
+    // The client isn't subscribed to the coValue, so we won't sync it
+    if (
+      peerState.role === "client" &&
+      !peerState.optimisticKnownStates.has(id)
+    ) {
+      return true;
+    }
+
     return new Promise((resolve, reject) => {
       const unsubscribe = this.syncState.subscribeToPeerUpdates(
         peerId,
@@ -693,10 +712,20 @@ export class SyncManager {
     });
   }
 
+  async waitForStorageSync(id: RawCoID, timeout = 30_000) {
+    const peers = this.getPeers();
+
+    await Promise.all(
+      peers
+        .filter((peer) => peer.role === "storage")
+        .map((peer) => this.waitForSyncWithPeer(peer.id, id, timeout)),
+    );
+  }
+
   async waitForSync(id: RawCoID, timeout = 30_000) {
     const peers = this.getPeers();
 
-    return Promise.all(
+    await Promise.all(
       peers.map((peer) => this.waitForSyncWithPeer(peer.id, id, timeout)),
     );
   }

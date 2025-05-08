@@ -197,8 +197,6 @@ describe("loading coValues from server", () => {
     await map.core.waitForSync();
     await mapOnClient.core.waitForSync();
 
-    expect(mapOnClient.get("fromServer")).toEqual("updated");
-    expect(mapOnClient.get("fromClient")).toEqual("updated");
     expect(
       SyncMessagesLog.getMessages({
         Group: group.core,
@@ -217,6 +215,9 @@ describe("loading coValues from server", () => {
         "client -> server | KNOWN Map sessions: header/3",
       ]
     `);
+
+    expect(mapOnClient.get("fromServer")).toEqual("updated");
+    expect(mapOnClient.get("fromClient")).toEqual("updated");
   });
 
   test("wrong optimistic known state should be corrected", async () => {

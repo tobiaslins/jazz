@@ -1,5 +1,14 @@
 # cojson
 
+## 0.13.20
+
+### Patch Changes
+
+- adfc9a6: Make waitForSync work on storage peers by handling optimistic/known states
+- 1389207: Removed throw error when the profile is unavailable after a login
+- d6e143e: Wait for storage sync before resolving new account creation
+- 3e6229d: Skip closed and unsubscribed peers when calling waitForSync
+
 ## 0.13.18
 
 ### Patch Changes

@@ -1,4 +1,4 @@
-import { Result, ResultAsync, err, ok, okAsync } from "neverthrow";
+import { Result, err, ok } from "neverthrow";
 import { CoID } from "./coValue.js";
 import { RawCoValue } from "./coValue.js";
 import {
@@ -223,8 +223,17 @@ export class LocalNode {
       account.set("profile", profile.id, "trusting");
     }
 
-    if (!account.get("profile")) {
+    const profileId = account.get("profile");
+
+    if (!profileId) {
       throw new Error("Must set account profile in initial migration");
+    }
+
+    if (node.syncManager.hasStoragePeers()) {
+      await Promise.all([
+        node.syncManager.waitForStorageSync(account.id),
+        node.syncManager.waitForStorageSync(profileId),
+      ]);
     }
 
     return {
@@ -272,11 +281,9 @@ export class LocalNode {
       if (!profileID) {
         throw new Error("Account has no profile");
       }
-      const profile = await node.load(profileID);
 
-      if (profile === "unavailable") {
-        throw new Error("Profile unavailable from all peers");
-      }
+      // Preload the profile
+      await node.load(profileID);
 
       if (migration) {
         await migration(account, node);
@@ -530,7 +537,7 @@ export class LocalNode {
 
     if (!coValue.isAvailable()) {
       throw new Error(
-        `${expectation ? expectation + ": " : ""}CoValue ${id} not yet loaded`,
+        `${expectation ? expectation + ": " : ""}CoValue ${id} not yet loaded.`,
       );
     }
     return coValue;

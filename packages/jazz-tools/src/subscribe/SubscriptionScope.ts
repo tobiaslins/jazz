@@ -27,6 +27,7 @@ export class SubscriptionScope<D extends CoValue> {
   resolve: RefsToResolve<any>;
   idsSubscribed = new Set<string>();
   autoloaded = new Set<string>();
+  autoloadedKeys = new Set<string>();
   totalValidTransactions = 0;
 
   silenceUpdates = false;
@@ -133,7 +134,12 @@ export class SubscriptionScope<D extends CoValue> {
       return undefined;
     }
 
-    for (const value of this.childErrors.values()) {
+    for (const [key, value] of this.childErrors.entries()) {
+      // We don't want to block updates if the error is on an autoloaded value
+      if (this.autoloaded.has(key)) {
+        continue;
+      }
+
       errorType = value.type;
       if (value.issues) {
         issues.push(...value.issues);
@@ -147,7 +153,11 @@ export class SubscriptionScope<D extends CoValue> {
       }
     }
 
-    return new JazzError(this.id, errorType, issues);
+    if (issues.length) {
+      return new JazzError(this.id, errorType, issues);
+    }
+
+    return undefined;
   }
 
   handleChildUpdate = (
@@ -242,7 +252,10 @@ export class SubscriptionScope<D extends CoValue> {
       return;
     }
 
+    // Adding the key to the resolve object to resolve the key when calling loadChildren
     this.resolve[key as keyof typeof this.resolve] = true;
+    // Track the keys that are autoloaded to flag any id on that key as autoloaded
+    this.autoloadedKeys.add(key);
 
     if (this.value.type !== "loaded") {
       return;
@@ -259,19 +272,11 @@ export class SubscriptionScope<D extends CoValue> {
     if (value._type === "CoMap" || value._type === "Account") {
       const map = value as CoMap;
 
-      const id = this.loadCoMapKey(map, key, true);
-
-      if (id) {
-        this.autoloaded.add(id);
-      }
+      this.loadCoMapKey(map, key, true);
     } else if (value._type === "CoList") {
       const list = value as CoList;
 
-      const id = this.loadCoListKey(list, key, true);
-
-      if (id) {
-        this.autoloaded.add(id);
-      }
+      this.loadCoListKey(list, key, true);
     }
 
     this.silenceUpdates = false;
@@ -504,10 +509,18 @@ export class SubscriptionScope<D extends CoValue> {
       return;
     }
 
+    if (key && this.autoloadedKeys.has(key)) {
+      this.autoloaded.add(id);
+    }
+
+    // Cloning the resolve objects to avoid mutating the original object when tracking autoloaded values
+    const resolve =
+      typeof query === "object" && query !== null ? { ...query } : query;
+
     this.childValues.set(id, { type: "unloaded", id });
     const child = new SubscriptionScope(
       this.node,
-      query,
+      resolve,
       id as ID<any>,
       descriptor,
     );

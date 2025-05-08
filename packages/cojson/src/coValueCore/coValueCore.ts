@@ -2,12 +2,7 @@ import { UpDownCounter, ValueType, metrics } from "@opentelemetry/api";
 import { Result, err } from "neverthrow";
 import { PeerState } from "../PeerState.js";
 import { RawCoValue } from "../coValue.js";
-import {
-  ControlledAccount,
-  ControlledAccountOrAgent,
-  ControlledAgent,
-  RawAccountID,
-} from "../coValues/account.js";
+import { ControlledAccountOrAgent, RawAccountID } from "../coValues/account.js";
 import { RawGroup } from "../coValues/group.js";
 import { coreToCoValue } from "../coreToCoValue.js";
 import {
@@ -653,15 +648,15 @@ export class CoValueCore {
     a: Pick<DecryptedTransaction, "madeAt" | "txID">,
     b: Pick<DecryptedTransaction, "madeAt" | "txID">,
   ) {
-    return (
-      a.madeAt - b.madeAt ||
-      (a.txID.sessionID === b.txID.sessionID
-        ? 0
-        : a.txID.sessionID < b.txID.sessionID
-          ? -1
-          : 1) ||
-      a.txID.txIndex - b.txID.txIndex
-    );
+    if (a.madeAt !== b.madeAt) {
+      return a.madeAt - b.madeAt;
+    }
+
+    if (a.txID.sessionID === b.txID.sessionID) {
+      return a.txID.txIndex - b.txID.txIndex;
+    }
+
+    return 0;
   }
 
   getCurrentReadKey(): {
@@ -1003,6 +998,10 @@ export class CoValueCore {
       const waitingForPeer = new Promise<void>((resolve) => {
         const markNotFound = () => {
           if (this.peers.get(peer.id)?.type === "pending") {
+            logger.warn("Timeout waiting for peer to load coValue", {
+              id: this.id,
+              peerID: peer.id,
+            });
             this.markNotFoundInPeer(peer.id);
           }
         };
