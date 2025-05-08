@@ -39,7 +39,7 @@ export function ChatScreen(props: { chatID: ID<Chat> }) {
       chat.push(
         Message.create(
           {
-            text: CoPlainText.create(file.name, { owner: chat._owner }),
+            text: CoPlainText.create(file.name, chat._owner),
             image: image,
           },
           chat._owner,
@@ -76,7 +76,7 @@ export function ChatScreen(props: { chatID: ID<Chat> }) {
           onSubmit={(text) => {
             chat.push(
               Message.create(
-                { text: CoPlainText.create(text, { owner: chat._owner }) },
+                { text: CoPlainText.create(text, chat._owner) },
                 chat._owner,
               ),
             );
@@ -109,7 +109,7 @@ function ChatBubble(props: { me: Account; msg: Message }) {
     <BubbleContainer fromMe={fromMe}>
       <BubbleBody fromMe={fromMe}>
         {image && <BubbleImage image={image} />}
-        <BubbleText text={text.toString()} />
+        <BubbleText text={text} />
       </BubbleBody>
       <BubbleInfo by={lastEdit.by?.profile?.name} madeAt={lastEdit.madeAt} />
     </BubbleContainer>

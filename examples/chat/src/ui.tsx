@@ -76,7 +76,7 @@ export function BubbleText(props: {
 }) {
   return (
     <p className={clsx("px-2 leading-relaxed", props.className)}>
-      {props.text.toString()}
+      {props.text}
     </p>
   );
 }
