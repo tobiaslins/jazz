@@ -448,6 +448,31 @@ export function getSyncServerConnectedPeer(opts: {
   };
 }
 
+export function createMockStoragePeer(opts: {
+  ourName?: string;
+  peerId: string;
+}) {
+  const storage = createTestNode();
+
+  const { peer1, peer2 } = connectedPeersWithMessagesTracking({
+    peer1: { id: storage.getCurrentAgent().id, role: "storage" },
+    peer2: {
+      id: opts.peerId,
+      role: "client",
+      name: opts.ourName,
+    },
+  });
+
+  peer1.priority = 100;
+
+  storage.syncManager.addPeer(peer2);
+
+  return {
+    storage,
+    peer: peer1,
+  };
+}
+
 export function setupTestNode(
   opts: {
     isSyncServer?: boolean;
@@ -485,26 +510,14 @@ export function setupTestNode(
   }
 
   function addStoragePeer(opts: { ourName?: string } = {}) {
-    const storage = createTestNode();
-
-    const { peer1, peer2 } = connectedPeersWithMessagesTracking({
-      peer1: { id: storage.getCurrentAgent().id, role: "storage" },
-      peer2: {
-        id: node.getCurrentAgent().id,
-        role: "client",
-        name: opts.ourName,
-      },
+    const { peer, storage } = createMockStoragePeer({
+      peerId: node.getCurrentAgent().id,
+      ourName: opts.ourName,
     });
 
-    peer1.priority = 100;
+    node.syncManager.addPeer(peer);
 
-    node.syncManager.addPeer(peer1);
-    storage.syncManager.addPeer(peer2);
-
-    return {
-      storage,
-      peer: node.syncManager.peers[peer1.id]!,
-    };
+    return { peer, peerState: node.syncManager.peers[peer.id]!, storage };
   }
 
   if (opts.connected) {
@@ -575,26 +588,14 @@ export async function setupTestAccount(
   }
 
   function addStoragePeer(opts: { ourName?: string } = {}) {
-    const storage = createTestNode();
-
-    const { peer1, peer2 } = connectedPeersWithMessagesTracking({
-      peer1: { id: storage.getCurrentAgent().id, role: "storage" },
-      peer2: {
-        id: ctx.node.getCurrentAgent().id,
-        role: "client",
-        name: opts.ourName,
-      },
+    const { peer, storage } = createMockStoragePeer({
+      peerId: ctx.node.getCurrentAgent().id,
+      ourName: opts.ourName,
     });
 
-    peer1.priority = 100;
+    ctx.node.syncManager.addPeer(peer);
 
-    ctx.node.syncManager.addPeer(peer1);
-    storage.syncManager.addPeer(peer2);
-
-    return {
-      storage,
-      peer: ctx.node.syncManager.peers[peer1.id]!,
-    };
+    return { peer, peerState: ctx.node.syncManager.peers[peer.id]!, storage };
   }
 
   if (opts.connected) {
