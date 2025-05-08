@@ -19,7 +19,7 @@ export function ProjectComponent({ projectID }: { projectID: ID<Project> }) {
       Issue.create(
         {
           title: "",
-          description: CoPlainText.create("", { owner: project._owner }),
+          description: CoPlainText.create("", project._owner),
           estimate: 0,
           status: "backlog",
         },

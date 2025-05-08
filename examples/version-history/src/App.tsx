@@ -23,14 +23,12 @@ function App() {
         title: "Buy terrarium",
         description: CoPlainText.create(
           "Make sure it's big enough for 10 snails.",
-          {
-            owner: group,
-          },
+          group,
         ),
         estimate: 5,
         status: "backlog",
       },
-      { owner: group },
+      group,
     );
     setIssueID(newIssue.id);
     window.history.pushState({}, "", `?issue=${newIssue.id}`);

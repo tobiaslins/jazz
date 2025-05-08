@@ -17,11 +17,12 @@ export function IssueComponent({ issue }: { issue: Issue }) {
       <label className="flex flex-col gap-2">
         Description
         <textarea
-          value={issue.description?.toString() || ""}
+          value={`${issue.description}`}
           onChange={(event) => {
-            issue.description = CoPlainText.create(event.target.value, {
-              owner: issue._owner,
-            });
+            issue.description = CoPlainText.create(
+              event.target.value,
+              issue._owner,
+            );
           }}
         />
       </label>
