@@ -14,6 +14,7 @@ import {
   Resolved,
   SubscribeListenerOptions,
   SubscribeRestArgs,
+  parseCoValueCreateOptions,
 } from "../internal.js";
 import {
   inspect,
@@ -52,34 +53,64 @@ export class CoPlainText extends String implements CoValue {
     return new AnonymousJazzAgent(this._raw.core.node);
   }
 
+  /** @internal */
   constructor(
     options:
       | { fromRaw: RawCoPlainText }
-      | { text: string; owner: Account | Group },
+      | { text: string; owner: Account | Group }
+      | undefined,
   ) {
-    super("fromRaw" in options ? options.fromRaw.toString() : options.text);
-
-    let raw;
-
-    if ("fromRaw" in options) {
-      raw = options.fromRaw;
-    } else {
-      raw = options.owner._raw.createPlainText(options.text);
+    if (!options) {
+      super(""); // Intialise as empty string
+      return;
     }
 
-    Object.defineProperties(this, {
-      id: { value: raw.id, enumerable: false },
-      _type: { value: "CoPlainText", enumerable: false },
-      _raw: { value: raw, enumerable: false },
-    });
+    if ("fromRaw" in options) {
+      super(options.fromRaw.toString());
+      const raw = options.fromRaw;
+      Object.defineProperties(this, {
+        id: { value: raw.id, enumerable: false },
+        _type: { value: "CoPlainText", enumerable: false },
+        _raw: { value: raw, enumerable: false },
+      });
+      return;
+    }
+
+    if ("text" in options && "owner" in options) {
+      super(options.text);
+      const raw = options.owner._raw.createPlainText(options.text);
+      Object.defineProperties(this, {
+        id: { value: raw.id, enumerable: false },
+        _type: { value: "CoPlainText", enumerable: false },
+        _raw: { value: raw, enumerable: false },
+      });
+      return;
+    }
+
+    throw new Error("Invalid constructor arguments");
   }
 
+  /**
+   * Create a new `CoPlainText` with the given text and owner.
+   *
+   * The owner (a Group or Account) determines access rights to the CoPlainText.
+   *
+   * The CoPlainText will immediately be persisted and synced to connected peers.
+   *
+   * @example
+   * ```ts
+   * const text = CoPlainText.create("Hello, world!", { owner: me });
+   * ```
+   *
+   * @category Creation
+   */
   static create<T extends CoPlainText>(
     this: CoValueClass<T>,
     text: string,
-    options: { owner: Account | Group },
+    options?: { owner: Account | Group } | Account | Group,
   ) {
-    return new this({ text, owner: options.owner });
+    const { owner } = parseCoValueCreateOptions(options);
+    return new this({ text, owner });
   }
 
   get length() {
