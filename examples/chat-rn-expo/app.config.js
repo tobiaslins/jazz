@@ -18,14 +18,19 @@ function withCustomIosMod(config) {
         "Podfile",
       );
       let contents = await fs.readFile(podfilePath, "utf-8");
-      contents = contents.replace(
-        /platform\s+:ios,\s*podfile_properties\['ios\.deploymentTarget'\]\s*\|\|\s*'.*'/,
-        "platform :ios, podfile_properties['ios.deploymentTarget'] || '16.0'",
-      );
-      // inject post_install snippet to force pod targets to iOS 16
-      contents = contents.replace(
-        /(post_install do \|installer\|[\s\S]*?)([\r\n]  end)/,
-        `$1
+
+      // Check if the IPHONEOS_DEPLOYMENT_TARGET setting is already present
+      // We search for the key being assigned, e.g., config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] =
+      const deploymentTargetSettingExists =
+        /\.build_settings\s*\[\s*['"]IPHONEOS_DEPLOYMENT_TARGET['"]\s*\]\s*=/.test(
+          contents,
+        );
+
+      if (!deploymentTargetSettingExists) {
+        // IPHONEOS_DEPLOYMENT_TARGET setting not found, proceed to add it.
+        contents = contents.replace(
+          /(post_install\s+do\s+\|installer\|[\s\S]*?)(\r?\n\s  end\s*)$/m,
+          `$1
 
     # Expo Build Properties: force deployment target
     # https://github.com/mrousavy/nitro/issues/422#issuecomment-2545988256
@@ -35,7 +40,9 @@ function withCustomIosMod(config) {
       end
     end
 $2`,
-      );
+        );
+      }
+
       await fs.writeFile(podfilePath, contents);
       return modConfig;
     },
