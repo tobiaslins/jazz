@@ -1,16 +1,11 @@
 import { assert, beforeEach, describe, expect, test } from "vitest";
 
-import { expectMap } from "../coValue";
-import { expectAccount } from "../coValues/account";
 import { WasmCrypto } from "../crypto/WasmCrypto";
 import { LocalNode } from "../localNode";
-import { toSimplifiedMessages } from "./messagesTestUtils";
 import {
   SyncMessagesLog,
   getSyncServerConnectedPeer,
-  loadCoValueOrFail,
   setupTestNode,
-  waitFor,
 } from "./testUtils";
 
 const Crypto = await WasmCrypto.create();
@@ -27,7 +22,7 @@ describe("LocalNode auth sync", () => {
       peerId: "new-account",
     });
 
-    const { accountID, node } = await LocalNode.withNewlyCreatedAccount({
+    const { node } = await LocalNode.withNewlyCreatedAccount({
       creationProps: {
         name: "new-account",
       },
@@ -128,6 +123,7 @@ describe("LocalNode auth sync", () => {
   test("authenticate to an existing account", async () => {
     const { peer: newAccountPeer } = getSyncServerConnectedPeer({
       peerId: "new-account",
+      ourName: "creation-node",
     });
 
     const { accountID, accountSecret } =
@@ -141,9 +137,8 @@ describe("LocalNode auth sync", () => {
 
     const { peer: existingAccountPeer } = getSyncServerConnectedPeer({
       peerId: "existing-account",
+      ourName: "auth-node",
     });
-
-    SyncMessagesLog.clear();
 
     const node = await LocalNode.withLoadedAccount({
       accountID,
@@ -169,19 +164,82 @@ describe("LocalNode auth sync", () => {
       }),
     ).toMatchInlineSnapshot(`
       [
-        "client -> server | LOAD Account sessions: empty",
-        "server -> client | KNOWN Account sessions: header/4",
-        "client -> server | CONTENT ProfileGroup header: true new: After: 0 New: 5",
-        "server -> client | CONTENT Account header: true new: After: 0 New: 4",
-        "server -> client | KNOWN ProfileGroup sessions: header/5",
-        "client -> server | CONTENT Profile header: true new: After: 0 New: 1",
-        "client -> server | KNOWN Account sessions: header/4",
-        "server -> client | KNOWN Profile sessions: header/1",
-        "client -> server | LOAD Profile sessions: empty",
-        "server -> client | CONTENT ProfileGroup header: true new: After: 0 New: 5",
-        "client -> server | KNOWN ProfileGroup sessions: header/5",
-        "server -> client | CONTENT Profile header: true new: After: 0 New: 1",
-        "client -> server | KNOWN Profile sessions: header/1",
+        "creation-node -> server | CONTENT Account header: true new: After: 0 New: 4",
+        "auth-node -> server | LOAD Account sessions: empty",
+        "server -> creation-node | KNOWN Account sessions: header/4",
+        "creation-node -> server | CONTENT ProfileGroup header: true new: After: 0 New: 5",
+        "server -> auth-node | CONTENT Account header: true new: After: 0 New: 4",
+        "server -> creation-node | KNOWN ProfileGroup sessions: header/5",
+        "creation-node -> server | CONTENT Profile header: true new: After: 0 New: 1",
+        "auth-node -> server | KNOWN Account sessions: header/4",
+        "server -> creation-node | KNOWN Profile sessions: header/1",
+        "auth-node -> server | LOAD Profile sessions: empty",
+        "server -> auth-node | CONTENT ProfileGroup header: true new: After: 0 New: 5",
+        "auth-node -> server | KNOWN ProfileGroup sessions: header/5",
+        "server -> auth-node | CONTENT Profile header: true new: After: 0 New: 1",
+        "auth-node -> server | KNOWN Profile sessions: header/1",
+      ]
+    `);
+  });
+
+  test("authenticate to an existing account after immediately close the creation node", async () => {
+    const { peer: newAccountPeer } = getSyncServerConnectedPeer({
+      peerId: "new-account",
+      ourName: "creation-node",
+    });
+
+    const {
+      accountID,
+      accountSecret,
+      node: creationNode,
+    } = await LocalNode.withNewlyCreatedAccount({
+      creationProps: {
+        name: "new-account",
+      },
+      peersToLoadFrom: [newAccountPeer],
+      crypto: Crypto,
+    });
+
+    creationNode.gracefulShutdown();
+
+    const { peer: existingAccountPeer } = getSyncServerConnectedPeer({
+      peerId: "existing-account",
+      ourName: "auth-node",
+    });
+
+    const node = await LocalNode.withLoadedAccount({
+      accountID,
+      accountSecret,
+      peersToLoadFrom: [existingAccountPeer],
+      sessionID: undefined,
+      crypto: Crypto,
+    });
+
+    const account = node.expectCurrentAccount("after login");
+    const profile = creationNode.getCoValue(account.get("profile")!);
+
+    assert(profile.isAvailable());
+
+    expect(account.id).toBe(accountID);
+    expect(node.agentSecret).toBe(accountSecret);
+
+    expect(
+      SyncMessagesLog.getMessages({
+        Account: account.core,
+        Profile: profile,
+        ProfileGroup: profile.getGroup().core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "creation-node -> server | CONTENT Account header: true new: After: 0 New: 4",
+        "auth-node -> server | LOAD Account sessions: empty",
+        "server -> creation-node | KNOWN Account sessions: header/4",
+        "server -> auth-node | CONTENT Account header: true new: After: 0 New: 4",
+        "auth-node -> server | KNOWN Account sessions: header/4",
+        "auth-node -> server | LOAD Profile sessions: empty",
+        "server -> auth-node | KNOWN Profile sessions: empty",
+        "auth-node -> server | LOAD Profile sessions: empty",
+        "server -> auth-node | KNOWN Profile sessions: empty",
       ]
     `);
   });

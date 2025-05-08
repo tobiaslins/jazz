@@ -237,7 +237,13 @@ export class SyncManager {
         if ((sessionRow?.lastIdx || 0) < (msg.new[sessionID]?.after || 0)) {
           invalidAssumptions = true;
         } else {
-          return this.putNewTxs(msg, sessionID, sessionRow, storedCoValueRowID);
+          const newLastIdx = await this.putNewTxs(
+            msg,
+            sessionID,
+            sessionRow,
+            storedCoValueRowID,
+          );
+          ourKnown.sessions[sessionID] = newLastIdx;
         }
       });
     }
@@ -247,6 +253,11 @@ export class SyncManager {
         action: "known",
         ...ourKnown,
         isCorrection: invalidAssumptions,
+      });
+    } else {
+      this.sendStateMessage({
+        action: "known",
+        ...ourKnown,
       });
     }
   }
@@ -310,11 +321,13 @@ export class SyncManager {
       });
     }
 
-    return Promise.all(
+    await Promise.all(
       actuallyNewTransactions.map((newTransaction, i) =>
         this.dbClient.addTransaction(sessionRowID, nextIdx + i, newTransaction),
       ),
     );
+
+    return newLastIdx;
   }
 
   handleKnown(_msg: CojsonInternalTypes.KnownStateMessage) {
