@@ -245,6 +245,10 @@ describe("Browser sync", () => {
 
     contextManager.done();
 
+    // Adding a delay to avoid flakiness on CI
+    // probably on slow environments, data can't be immediately read from IndexedDB after writing
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     const { account } = await createAccountContext({
       sync: {
         peer: syncServer.url,
