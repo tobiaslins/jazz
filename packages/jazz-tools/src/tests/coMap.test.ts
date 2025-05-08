@@ -17,7 +17,7 @@ import {
   coField,
   cojsonInternals,
 } from "../index.js";
-import { Loaded, UnCoField } from "../internal.js";
+import { Loaded, UnCoField, zodSchemaToCoSchema } from "../internal.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 import { setupTwoNodes, waitFor } from "./utils.js";
 
@@ -435,16 +435,16 @@ describe("CoMap", async () => {
 
 describe("CoMap resolution", async () => {
   test("loading a locally available map with deep resolve", async () => {
-    class Dog extends CoMap {
-      name = coField.string;
-      breed = coField.string;
-    }
+    const Dog = co.map({
+      name: z.string(),
+      breed: z.string(),
+    });
 
-    class Person extends CoMap {
-      name = coField.string;
-      age = coField.number;
-      dog = coField.ref(Dog);
-    }
+    const Person = co.map({
+      name: z.string(),
+      age: z.number(),
+      dog: Dog,
+    });
 
     const person = Person.create({
       name: "John",
@@ -463,16 +463,16 @@ describe("CoMap resolution", async () => {
   });
 
   test("loading a locally available map using autoload for the refs", async () => {
-    class Dog extends CoMap {
-      name = coField.string;
-      breed = coField.string;
-    }
+    const Dog = co.map({
+      name: z.string(),
+      breed: z.string(),
+    });
 
-    class Person extends CoMap {
-      name = coField.string;
-      age = coField.number;
-      dog = coField.ref(Dog);
-    }
+    const Person = co.map({
+      name: z.string(),
+      age: z.number(),
+      dog: Dog,
+    });
 
     const person = Person.create({
       name: "John",
@@ -487,16 +487,16 @@ describe("CoMap resolution", async () => {
   });
 
   test("loading a remotely available map with deep resolve", async () => {
-    class Dog extends CoMap {
-      name = coField.string;
-      breed = coField.string;
-    }
+    const Dog = co.map({
+      name: z.string(),
+      breed: z.string(),
+    });
 
-    class Person extends CoMap {
-      name = coField.string;
-      age = coField.number;
-      dog = coField.ref(Dog);
-    }
+    const Person = co.map({
+      name: z.string(),
+      age: z.number(),
+      dog: Dog,
+    });
 
     const group = Group.create();
     group.addMember("everyone", "writer");
@@ -524,16 +524,16 @@ describe("CoMap resolution", async () => {
   });
 
   test("loading a remotely available map using autoload for the refs", async () => {
-    class Dog extends CoMap {
-      name = coField.string;
-      breed = coField.string;
-    }
+    const Dog = co.map({
+      name: z.string(),
+      breed: z.string(),
+    });
 
-    class Person extends CoMap {
-      name = coField.string;
-      age = coField.number;
-      dog = coField.ref(Dog);
-    }
+    const Person = co.map({
+      name: z.string(),
+      age: z.number(),
+      dog: Dog,
+    });
 
     const group = Group.create();
     group.addMember("everyone", "writer");
@@ -561,16 +561,16 @@ describe("CoMap resolution", async () => {
   });
 
   test("accessing the value refs", async () => {
-    class Dog extends CoMap {
-      name = coField.string;
-      breed = coField.string;
-    }
+    const Dog = co.map({
+      name: z.string(),
+      breed: z.string(),
+    });
 
-    class Person extends CoMap {
-      name = coField.string;
-      age = coField.number;
-      dog = coField.ref(Dog);
-    }
+    const Person = co.map({
+      name: z.string(),
+      age: z.number(),
+      dog: Dog,
+    });
 
     const group = Group.create();
     group.addMember("everyone", "writer");
@@ -601,16 +601,16 @@ describe("CoMap resolution", async () => {
   });
 
   test("subscription on a locally available map with deep resolve", async () => {
-    class Dog extends CoMap {
-      name = coField.string;
-      breed = coField.string;
-    }
+    const Dog = co.map({
+      name: z.string(),
+      breed: z.string(),
+    });
 
-    class Person extends CoMap {
-      name = coField.string;
-      age = coField.number;
-      dog = coField.ref(Dog);
-    }
+    const Person = co.map({
+      name: z.string(),
+      age: z.number(),
+      dog: Dog,
+    });
 
     const person = Person.create({
       name: "John",
@@ -618,7 +618,7 @@ describe("CoMap resolution", async () => {
       dog: Dog.create({ name: "Rex", breed: "Labrador" }),
     });
 
-    const updates: Resolved<Person, { dog: true }>[] = [];
+    const updates: Loaded<typeof Person, { dog: true }>[] = [];
     const spy = vi.fn((person) => updates.push(person));
 
     Person.subscribe(
@@ -649,16 +649,16 @@ describe("CoMap resolution", async () => {
   });
 
   test("subscription on a locally available map with autoload", async () => {
-    class Dog extends CoMap {
-      name = coField.string;
-      breed = coField.string;
-    }
+    const Dog = co.map({
+      name: z.string(),
+      breed: z.string(),
+    });
 
-    class Person extends CoMap {
-      name = coField.string;
-      age = coField.number;
-      dog = coField.ref(Dog);
-    }
+    const Person = co.map({
+      name: z.string(),
+      age: z.number(),
+      dog: Dog,
+    });
 
     const person = Person.create({
       name: "John",
@@ -666,7 +666,7 @@ describe("CoMap resolution", async () => {
       dog: Dog.create({ name: "Rex", breed: "Labrador" }),
     });
 
-    const updates: Person[] = [];
+    const updates: Loaded<typeof Person>[] = [];
     const spy = vi.fn((person) => updates.push(person));
 
     Person.subscribe(person.id, {}, spy);
@@ -689,16 +689,16 @@ describe("CoMap resolution", async () => {
   });
 
   test("subscription on a locally available map with syncResolution", async () => {
-    class Dog extends CoMap {
-      name = coField.string;
-      breed = coField.string;
-    }
+    const Dog = co.map({
+      name: z.string(),
+      breed: z.string(),
+    });
 
-    class Person extends CoMap {
-      name = coField.string;
-      age = coField.number;
-      dog = coField.ref(Dog);
-    }
+    const Person = co.map({
+      name: z.string(),
+      age: z.number(),
+      dog: Dog,
+    });
 
     const person = Person.create({
       name: "John",
@@ -706,11 +706,11 @@ describe("CoMap resolution", async () => {
       dog: Dog.create({ name: "Rex", breed: "Labrador" }),
     });
 
-    const updates: Person[] = [];
+    const updates: Loaded<typeof Person>[] = [];
     const spy = vi.fn((person) => updates.push(person));
 
     subscribeToCoValue(
-      Person,
+      zodSchemaToCoSchema(Person), // TODO: we should get rid of the conversion in the future
       person.id,
       {
         syncResolution: true,
@@ -736,16 +736,16 @@ describe("CoMap resolution", async () => {
   });
 
   test("subscription on a remotely available map with deep resolve", async () => {
-    class Dog extends CoMap {
-      name = coField.string;
-      breed = coField.string;
-    }
+    const Dog = co.map({
+      name: z.string(),
+      breed: z.string(),
+    });
 
-    class Person extends CoMap {
-      name = coField.string;
-      age = coField.number;
-      dog = coField.ref(Dog);
-    }
+    const Person = co.map({
+      name: z.string(),
+      age: z.number(),
+      dog: Dog,
+    });
 
     const group = Group.create();
     group.addMember("everyone", "writer");
@@ -761,7 +761,7 @@ describe("CoMap resolution", async () => {
 
     const userB = await createJazzTestAccount();
 
-    const updates: Resolved<Person, { dog: true }>[] = [];
+    const updates: Loaded<typeof Person, { dog: true }>[] = [];
     const spy = vi.fn((person) => updates.push(person));
 
     Person.subscribe(
@@ -793,16 +793,16 @@ describe("CoMap resolution", async () => {
   });
 
   test("subscription on a remotely available map with autoload", async () => {
-    class Dog extends CoMap {
-      name = coField.string;
-      breed = coField.string;
-    }
+    const Dog = co.map({
+      name: z.string(),
+      breed: z.string(),
+    });
 
-    class Person extends CoMap {
-      name = coField.string;
-      age = coField.number;
-      dog = coField.ref(Dog);
-    }
+    const Person = co.map({
+      name: z.string(),
+      age: z.number(),
+      dog: Dog,
+    });
 
     const group = Group.create();
     group.addMember("everyone", "writer");
@@ -816,7 +816,7 @@ describe("CoMap resolution", async () => {
       group,
     );
 
-    const updates: Person[] = [];
+    const updates: Loaded<typeof Person>[] = [];
     const spy = vi.fn((person) => updates.push(person));
 
     const userB = await createJazzTestAccount();
@@ -847,16 +847,16 @@ describe("CoMap resolution", async () => {
   });
 
   test("replacing nested object triggers updates", async () => {
-    class Dog extends CoMap {
-      name = coField.string;
-      breed = coField.string;
-    }
+    const Dog = co.map({
+      name: z.string(),
+      breed: z.string(),
+    });
 
-    class Person extends CoMap {
-      name = coField.string;
-      age = coField.number;
-      dog = coField.ref(Dog);
-    }
+    const Person = co.map({
+      name: z.string(),
+      age: z.number(),
+      dog: Dog,
+    });
 
     const person = Person.create({
       name: "John",
@@ -864,7 +864,7 @@ describe("CoMap resolution", async () => {
       dog: Dog.create({ name: "Rex", breed: "Labrador" }),
     });
 
-    const updates: Resolved<Person, { dog: true }>[] = [];
+    const updates: Loaded<typeof Person, { dog: true }>[] = [];
     const spy = vi.fn((person) => updates.push(person));
 
     Person.subscribe(
@@ -901,19 +901,19 @@ describe("CoMap applyDiff", async () => {
     crypto: Crypto,
   });
 
-  class TestMap extends CoMap {
-    name = coField.string;
-    age = coField.number;
-    isActive = coField.boolean;
-    birthday = coField.encoded(Encoders.Date);
-    nested = coField.ref(NestedMap);
-    optionalField = coField.optional.string;
-    optionalNested = coField.optional.ref(NestedMap);
-  }
+  const NestedMap = co.map({
+    value: z.string(),
+  });
 
-  class NestedMap extends CoMap {
-    value = coField.string;
-  }
+  const TestMap = co.map({
+    name: z.string(),
+    age: z.number(),
+    isActive: z.boolean(),
+    birthday: z.date(),
+    nested: NestedMap,
+    optionalField: z.string().optional(),
+    optionalNested: z.optional(NestedMap),
+  });
 
   test("Basic applyDiff", () => {
     const map = TestMap.create(
@@ -1107,16 +1107,16 @@ describe("CoMap Typescript validation", async () => {
   });
 
   test("Is not ok to pass null into a required ref", () => {
-    class TestMap extends CoMap {
-      required = coField.ref(NestedMap);
-      optional = coField.optional.ref(NestedMap);
-    }
+    const NestedMap = co.map({
+      value: z.string(),
+    });
 
-    class NestedMap extends CoMap {
-      value = coField.string;
-    }
+    const TestMap = co.map({
+      required: NestedMap,
+      optional: NestedMap.optional(),
+    });
 
-    expectTypeOf<typeof TestMap.create<TestMap>>().toBeCallableWith(
+    expectTypeOf<typeof TestMap.create>().toBeCallableWith(
       {
         optional: NestedMap.create({ value: "" }, { owner: me }),
         // @ts-expect-error null can't be passed to a non-optional field
@@ -1127,16 +1127,16 @@ describe("CoMap Typescript validation", async () => {
   });
 
   test("Is not ok if a required ref is omitted", () => {
-    class TestMap extends CoMap {
-      required = coField.ref(NestedMap);
-      optional = coField.ref(NestedMap, { optional: true });
-    }
+    const NestedMap = co.map({
+      value: z.string(),
+    });
 
-    class NestedMap extends CoMap {
-      value = coField.string;
-    }
+    const TestMap = co.map({
+      required: NestedMap,
+      optional: NestedMap.optional(),
+    });
 
-    expectTypeOf<typeof TestMap.create<TestMap>>().toBeCallableWith(
+    expectTypeOf<typeof TestMap.create>().toBeCallableWith(
       // @ts-expect-error non-optional fields can't be omitted
       {},
       { owner: me },
@@ -1144,55 +1144,35 @@ describe("CoMap Typescript validation", async () => {
   });
 
   test("Is ok to omit optional fields", () => {
-    class TestMap extends CoMap {
-      required = coField.ref(NestedMap);
-      optional = coField.ref(NestedMap, { optional: true });
-    }
+    const NestedMap = co.map({
+      value: z.string(),
+    });
 
-    class NestedMap extends CoMap {
-      value = coField.string;
-    }
+    const TestMap = co.map({
+      required: NestedMap,
+      optional: NestedMap.optional(),
+    });
 
-    expectTypeOf<typeof TestMap.create<TestMap>>().toBeCallableWith(
+    expectTypeOf<typeof TestMap.create>().toBeCallableWith(
       {
         required: NestedMap.create({ value: "" }, { owner: me }),
       },
       { owner: me },
     );
 
-    expectTypeOf<typeof TestMap.create<TestMap>>().toBeCallableWith(
+    expectTypeOf<typeof TestMap.create>().toBeCallableWith(
       {
         required: NestedMap.create({ value: "" }, { owner: me }),
-        optional: null,
+        optional: undefined, // TODO: should we allow null here? zod is stricter about this than we were before
       },
       { owner: me },
     );
-  });
-
-  test("the required refs should be nullable", () => {
-    class TestMap extends CoMap {
-      required = coField.ref(NestedMap);
-      optional = coField.ref(NestedMap, { optional: true });
-    }
-
-    class NestedMap extends CoMap {
-      value = coField.string;
-    }
-
-    const map = TestMap.create(
-      {
-        required: NestedMap.create({ value: "" }, { owner: me }),
-      },
-      { owner: me },
-    );
-
-    expectTypeOf(map.required).toBeNullable();
   });
 
   test("waitForSync should resolve when the value is uploaded", async () => {
-    class TestMap extends CoMap {
-      name = coField.string;
-    }
+    const TestMap = co.map({
+      name: z.string(),
+    });
 
     const { clientNode, serverNode, clientAccount } = await setupTwoNodes();
 
@@ -1218,12 +1198,12 @@ describe("Creating and finding unique CoMaps", async () => {
   test("Creating and finding unique CoMaps", async () => {
     const group = Group.create();
 
-    class Person extends CoMap {
-      name = coField.string;
-      _height = coField.number;
-      birthday = coField.Date;
-      color = coField.string;
-    }
+    const Person = co.map({
+      name: z.string(),
+      _height: z.number(),
+      birthday: z.date(),
+      color: z.string(),
+    });
 
     const alice = Person.create(
       {

@@ -27,6 +27,8 @@ export type CoMapSchema<
   OutExtra extends Record<string, unknown> = Record<string, unknown>,
 > = z.core.$ZodObject<Shape, OutExtra> &
   z.$ZodTypeDiscriminable & {
+    collaborative: true;
+
     create: (
       init: Simplify<
         {
@@ -54,12 +56,47 @@ export type CoMapSchema<
           [key: string]: coField<OutExtra[string]>;
         }) &
       CoMap;
-    collaborative: true;
+
+    load<const R extends RefsToResolve<CoMapInstance<Shape>> = true>(
+      id: ID<CoMapInstance<Shape>>,
+      options?: {
+        resolve?: RefsToResolveStrict<CoMapInstance<Shape>, R>;
+        loadAs?: Account | AnonymousJazzAgent;
+      },
+    ): Promise<Resolved<CoMapInstance<Shape>, R> | null>;
+
+    subscribe<const R extends RefsToResolve<CoMapInstance<Shape>> = true>(
+      id: ID<CoMapInstance<Shape>>,
+      options: SubscribeListenerOptions<CoMapInstance<Shape>, R>,
+      listener: (
+        value: Resolved<CoMapInstance<Shape>, R>,
+        unsubscribe: () => void,
+      ) => void,
+    ): () => void;
+
+    findUnique(
+      unique: CoValueUniqueness["uniqueness"],
+      ownerID: ID<Account> | ID<Group>,
+      as?: Account | Group | AnonymousJazzAgent,
+    ): ID<CoMapInstance<Shape>>;
+
     catchall<T extends z.core.$ZodType>(
       schema: T,
     ): CoMapSchema<Shape, Record<string, T["_zod"]["output"]>>;
-    withHelpers<T extends object>(helpers: T): CoMapSchema<Shape, OutExtra> & T;
+
+    withHelpers<T extends object>(
+      helpers: T,
+    ): CoMapSchemaWithHelpers<Shape, OutExtra, T>;
   };
+
+// defining an extra type for this, otherwise CoMapSchema<...> & {...} often
+// gets expanded into a n inferred type that's too long for typescript to print
+export type CoMapSchemaWithHelpers<
+  Shape extends z.core.$ZodLooseShape,
+  OutExtra extends Record<string, unknown>,
+  Helpers extends object,
+> = CoMapSchema<Shape, OutExtra> & Helpers;
+
 export type CoListSchema<T extends z.core.$ZodType> = z.core.$ZodArray<T> & {
   collaborative: true;
   create: (
@@ -67,6 +104,7 @@ export type CoListSchema<T extends z.core.$ZodType> = z.core.$ZodArray<T> & {
     options?: { owner: Account | Group } | Account | Group,
   ) => CoList<coField<InstanceOrPrimitive<T>>>;
 };
+
 export type FileStreamSchema = z.core.$ZodCustom<FileStream, unknown> & {
   collaborative: true;
   create: (typeof FileStream)["create"];
@@ -413,16 +451,21 @@ export type InstanceOrPrimitive<S extends CoValueClass | z.core.$ZodType> =
             ? string
             : S extends z.core.$ZodNumber
               ? number
-              : S extends z.core.$ZodLiteral<infer Literal>
-                ? Literal
-                : S extends z.core.$ZodDate
-                  ? Date
-                  : S extends z.core.$ZodTuple<infer Items>
-                    ? { [key in keyof Items]: InstanceOrPrimitive<Items[key]> }
-                    : S extends z.core.$ZodUnion<infer Members>
-                      ? InstanceOrPrimitive<Members[number]>
-                      : never;
+              : S extends z.core.$ZodBoolean
+                ? boolean
+                : S extends z.core.$ZodLiteral<infer Literal>
+                  ? Literal
+                  : S extends z.core.$ZodDate
+                    ? Date
+                    : S extends z.core.$ZodTuple<infer Items>
+                      ? {
+                          [key in keyof Items]: InstanceOrPrimitive<Items[key]>;
+                        }
+                      : S extends z.core.$ZodUnion<infer Members>
+                        ? InstanceOrPrimitive<Members[number]>
+                        : never;
 
-export type Loaded<T extends zCoMapType | zCoListType> = Resolved<
-  InstanceOrPrimitive<T>
->;
+export type Loaded<
+  T extends zCoMapType | zCoListType,
+  R extends RefsToResolve<InstanceOrPrimitive<T>> = true,
+> = Resolved<InstanceOrPrimitive<T>, R>;
