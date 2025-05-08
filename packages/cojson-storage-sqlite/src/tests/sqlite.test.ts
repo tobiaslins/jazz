@@ -79,7 +79,9 @@ test("should sync and load data from storage", async () => {
   ).toMatchInlineSnapshot(`
     [
       "client -> CONTENT Group header: true new: After: 0 New: 3",
+      "storage -> KNOWN Group sessions: header/3",
       "client -> CONTENT Map header: true new: After: 0 New: 1",
+      "storage -> KNOWN Map sessions: header/1",
     ]
   `);
 
@@ -164,8 +166,11 @@ test("should load dependencies correctly (group inheritance)", async () => {
   ).toMatchInlineSnapshot(`
     [
       "client -> CONTENT ParentGroup header: true new: After: 0 New: 4",
+      "storage -> KNOWN ParentGroup sessions: header/4",
       "client -> CONTENT Group header: true new: After: 0 New: 5",
+      "storage -> KNOWN Group sessions: header/5",
       "client -> CONTENT Map header: true new: After: 0 New: 1",
+      "storage -> KNOWN Map sessions: header/1",
     ]
   `);
 
@@ -342,10 +347,13 @@ test("should recover from data loss", async () => {
   ).toMatchInlineSnapshot(`
     [
       "client -> CONTENT Group header: true new: After: 0 New: 3",
+      "storage -> KNOWN Group sessions: header/3",
       "client -> CONTENT Map header: true new: After: 0 New: 1",
+      "storage -> KNOWN Map sessions: header/1",
       "client -> CONTENT Map header: false new: After: 3 New: 1",
       "storage -> KNOWN CORRECTION Map sessions: header/1",
       "client -> CONTENT Map header: false new: After: 1 New: 3",
+      "storage -> KNOWN Map sessions: header/4",
     ]
   `);
 

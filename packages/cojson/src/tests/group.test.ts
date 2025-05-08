@@ -750,7 +750,6 @@ describe("extend with role mapping", () => {
     const mapOnNode2 = await loadCoValueOrFail(node2.node, map.id);
 
     expect(mapOnNode2.get("test")).toEqual("Written from the admin");
-
     mapOnNode2.set("test", "Written from the inherited role");
     expect(mapOnNode2.get("test")).toEqual("Written from the inherited role");
 
