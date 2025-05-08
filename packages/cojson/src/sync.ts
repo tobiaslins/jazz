@@ -674,6 +674,21 @@ export class SyncManager {
       return true;
     }
 
+    const peerState = this.peers[peerId];
+
+    // The peer has been closed, so it isn't possible to sync
+    if (!peerState || peerState.closed) {
+      return true;
+    }
+
+    // The client isn't subscribed to the coValue, so we won't sync it
+    if (
+      peerState.role === "client" &&
+      !peerState.optimisticKnownStates.has(id)
+    ) {
+      return true;
+    }
+
     return new Promise((resolve, reject) => {
       const unsubscribe = this.syncState.subscribeToPeerUpdates(
         peerId,
