@@ -397,22 +397,20 @@ describe("CoMap", async () => {
   });
 
   test("Enum of maps", () => {
-    class MapWithEnumOfMaps extends CoMap {
-      name = coField.string;
-      child = coField.ref<typeof ChildA | typeof ChildB>((raw) =>
-        raw.get("type") === "a" ? ChildA : ChildB,
-      );
-    }
+    const ChildA = co.map({
+      type: z.literal("a"),
+      value: z.number(),
+    });
 
-    class ChildA extends CoMap {
-      type = coField.literal("a");
-      value = coField.number;
-    }
+    const ChildB = co.map({
+      type: z.literal("b"),
+      value: z.string(),
+    });
 
-    class ChildB extends CoMap {
-      type = coField.literal("b");
-      value = coField.string;
-    }
+    const MapWithEnumOfMaps = co.map({
+      name: z.string(),
+      child: z.discriminatedUnion([ChildA, ChildB]),
+    });
 
     const mapWithEnum = MapWithEnumOfMaps.create({
       name: "enum",

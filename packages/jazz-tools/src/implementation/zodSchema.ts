@@ -1,4 +1,4 @@
-import { CoValueUniqueness, RawCoList, RawCoMap } from "cojson";
+import { CoValueUniqueness, RawCoList, RawCoMap, RawCoValue } from "cojson";
 import z from "zod";
 import {
   Account,
@@ -25,40 +25,41 @@ import {
 export type CoMapSchema<
   Shape extends z.core.$ZodLooseShape,
   OutExtra extends Record<string, unknown> = Record<string, unknown>,
-> = z.core.$ZodObject<Shape, OutExtra> & {
-  create: (
-    init: Simplify<
-      {
-        [key in keyof Shape as Shape[key] extends z.ZodOptional<any>
-          ? key
-          : never]?: coField<InstanceOrPrimitive<Shape[key]>>;
-      } & {
-        [key in keyof Shape as Shape[key] extends z.ZodOptional<any>
-          ? never
-          : key]: coField<InstanceOrPrimitive<Shape[key]>>;
-      }
-    >,
-    options?:
-      | {
-          owner: Account | Group;
-          unique?: CoValueUniqueness["uniqueness"];
+> = z.core.$ZodObject<Shape, OutExtra> &
+  z.$ZodTypeDiscriminable & {
+    create: (
+      init: Simplify<
+        {
+          [key in keyof Shape as Shape[key] extends z.ZodOptional<any>
+            ? key
+            : never]?: coField<InstanceOrPrimitive<Shape[key]>>;
+        } & {
+          [key in keyof Shape as Shape[key] extends z.ZodOptional<any>
+            ? never
+            : key]: coField<InstanceOrPrimitive<Shape[key]>>;
         }
-      | Account
-      | Group,
-  ) => {
-    -readonly [key in keyof Shape]: coField<InstanceOrPrimitive<Shape[key]>>;
-  } & (unknown extends OutExtra[string]
-    ? {}
-    : {
-        [key: string]: coField<OutExtra[string]>;
-      }) &
-    CoMap;
-  collaborative: true;
-  catchall<T extends z.core.$ZodType>(
-    schema: T,
-  ): CoMapSchema<Shape, Record<string, T["_zod"]["output"]>>;
-  withHelpers<T extends object>(helpers: T): CoMapSchema<Shape, OutExtra> & T;
-};
+      >,
+      options?:
+        | {
+            owner: Account | Group;
+            unique?: CoValueUniqueness["uniqueness"];
+          }
+        | Account
+        | Group,
+    ) => {
+      -readonly [key in keyof Shape]: coField<InstanceOrPrimitive<Shape[key]>>;
+    } & (unknown extends OutExtra[string]
+      ? {}
+      : {
+          [key: string]: coField<OutExtra[string]>;
+        }) &
+      CoMap;
+    collaborative: true;
+    catchall<T extends z.core.$ZodType>(
+      schema: T,
+    ): CoMapSchema<Shape, Record<string, T["_zod"]["output"]>>;
+    withHelpers<T extends object>(helpers: T): CoMapSchema<Shape, OutExtra> & T;
+  };
 export type CoListSchema<T extends z.core.$ZodType> = z.core.$ZodArray<T> & {
   collaborative: true;
   create: (
@@ -140,8 +141,10 @@ export function fieldDef(
     | z.core.$ZodBoolean
     | z.core.$ZodNull
     | z.core.$ZodDate
+    | z.core.$ZodLiteral
     | z.core.$ZodOptional<z.core.$ZodType>
     | z.core.$ZodTuple<z.core.$ZodType[]>
+    | z.core.$ZodUnion<z.core.$ZodType[]>
     | (z.core.$ZodCustom<any, any> & { builtin: any }),
 ) {
   if (isCoValueClass(schema)) {
@@ -165,6 +168,28 @@ export function fieldDef(
         return coField.null;
       } else if (schema._zod.def.type === "date") {
         return coField.Date;
+      } else if (schema._zod.def.type === "literal") {
+        if (
+          schema._zod.def.values.some(
+            (literal) => typeof literal === "undefined",
+          )
+        ) {
+          throw new Error("z.literal() with undefined is not supported");
+        }
+        if (schema._zod.def.values.some((literal) => literal === null)) {
+          throw new Error("z.literal() with null is not supported");
+        }
+        if (
+          schema._zod.def.values.some((literal) => typeof literal === "bigint")
+        ) {
+          throw new Error("z.literal() with bigint is not supported");
+        }
+        return coField.literal(
+          ...(schema._zod.def.values as Exclude<
+            (typeof schema._zod.def.values)[number],
+            undefined | null | bigint
+          >[]),
+        );
       } else if (schema._zod.def.type === "tuple") {
         return coField.json();
       } else if (schema._zod.def.type === "custom") {
@@ -172,6 +197,79 @@ export function fieldDef(
           return fieldDef(schema.builtin);
         } else {
           throw new Error(`Unsupported custom zod type`);
+        }
+      } else if (schema._zod.def.type === "union") {
+        if (
+          schema._zod.def.options.every(
+            (o) => "collaborative" in o && o.collaborative,
+          )
+        ) {
+          if (!schema._zod.disc || schema._zod.disc.size == 0) {
+            throw new Error(
+              "z.union() of collaborative types is not supported, use z.discriminatedUnion() instead",
+            );
+          } else if (schema._zod.disc.size > 1) {
+            throw new Error(
+              "z.discriminatedUnion() of collaborative types with more than one discriminator is not supported",
+            );
+          }
+          const discriminatorKey = schema._zod.disc.keys().next().value!;
+          if (typeof discriminatorKey !== "string") {
+            throw new Error(
+              "z.discriminatedUnion() of collaborative types with non-string discriminator is not supported",
+            );
+          }
+
+          const optionsAsCoValueClassesByDiscriminator = new Map<
+            string,
+            CoValueClass<CoMap>
+          >();
+
+          for (const option of schema._zod.def.options) {
+            const optionCoValueClass = zodSchemaToCoSchema(option);
+            const schemaForDiscriminator = (option as z.core.$ZodObject)._zod
+              .def.shape[discriminatorKey];
+            const discriminatorDef = schemaForDiscriminator?._zod.def;
+            if (!discriminatorDef || discriminatorDef.type !== "literal") {
+              throw new Error("Discriminator must be a string literal");
+            }
+            if (
+              (discriminatorDef as z.core.$ZodLiteralDef).values.length !== 1
+            ) {
+              throw new Error("Discriminator must have exactly one value");
+            }
+            const discriminatorValue = (
+              discriminatorDef as z.core.$ZodLiteralDef
+            ).values[0];
+            if (typeof discriminatorValue !== "string") {
+              throw new Error("Discriminator must be a string literal");
+            }
+            optionsAsCoValueClassesByDiscriminator.set(
+              discriminatorValue,
+              optionCoValueClass,
+            );
+          }
+
+          return coField.ref<CoValueClass<CoMap>>((_raw: RawCoMap) => {
+            const discriminator = _raw.get(discriminatorKey);
+            if (typeof discriminator !== "string") {
+              throw new Error("Discriminator must be a string");
+            }
+            const coValueClass =
+              optionsAsCoValueClassesByDiscriminator.get(discriminator);
+            if (!coValueClass) {
+              throw new Error("Discriminator value not found");
+            }
+            return coValueClass;
+          });
+        } else if (
+          schema._zod.def.options.every((o) => !("collaborative" in o))
+        ) {
+          return coField.json();
+        } else {
+          throw new Error(
+            "z.union()/z.discriminatedUnion() of mixed collaborative and non-collaborative types is not supported",
+          );
         }
       } else {
         throw new Error(
@@ -315,11 +413,15 @@ export type InstanceOrPrimitive<S extends CoValueClass | z.core.$ZodType> =
             ? string
             : S extends z.core.$ZodNumber
               ? number
-              : S extends z.core.$ZodDate
-                ? Date
-                : S extends z.core.$ZodTuple<infer Items>
-                  ? { [key in keyof Items]: InstanceOrPrimitive<Items[key]> }
-                  : never;
+              : S extends z.core.$ZodLiteral<infer Literal>
+                ? Literal
+                : S extends z.core.$ZodDate
+                  ? Date
+                  : S extends z.core.$ZodTuple<infer Items>
+                    ? { [key in keyof Items]: InstanceOrPrimitive<Items[key]> }
+                    : S extends z.core.$ZodUnion<infer Members>
+                      ? InstanceOrPrimitive<Members[number]>
+                      : never;
 
 export type Loaded<T extends zCoMapType | zCoListType> = Resolved<
   InstanceOrPrimitive<T>
