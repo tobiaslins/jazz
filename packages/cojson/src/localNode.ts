@@ -277,13 +277,14 @@ export class LocalNode {
         throw new Error("Account unavailable from all peers");
       }
 
+      console.log("accountID", account.id);
+
       const profileID = account.get("profile");
-      if (!profileID) {
-        throw new Error("Account has no profile");
-      }
 
       // Preload the profile
-      await node.load(profileID);
+      if (profileID) {
+        await node.load(profileID);
+      }
 
       if (migration) {
         await migration(account, node);
