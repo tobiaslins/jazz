@@ -277,8 +277,6 @@ export class LocalNode {
         throw new Error("Account unavailable from all peers");
       }
 
-      console.log("accountID", account.id);
-
       const profileID = account.get("profile");
 
       // Preload the profile

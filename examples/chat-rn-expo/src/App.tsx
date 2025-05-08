@@ -10,7 +10,7 @@ import { RNQuickCrypto } from "jazz-expo/crypto";
 import React, { StrictMode, useEffect, useState } from "react";
 import HandleInviteScreen from "./invite";
 
-import { JazzProvider, clearUserCredentials } from "jazz-expo";
+import { JazzProvider } from "jazz-expo";
 import { apiKey } from "./apiKey";
 import ChatScreen from "./chat";
 
@@ -35,7 +35,6 @@ function App() {
   >("ChatScreen");
   const navigationRef = useNavigationContainerRef();
   useEffect(() => {
-    clearUserCredentials();
     Linking.getInitialURL().then((url) => {
       if (url) {
         if (url && url.includes("invite")) {
