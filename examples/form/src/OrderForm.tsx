@@ -22,9 +22,7 @@ export function OrderForm({
     if (order.instructions) {
       return order.instructions.applyDiff(e.target.value);
     }
-    order.instructions = CoPlainText.create(e.target.value, {
-      owner: order._owner,
-    });
+    order.instructions = CoPlainText.create(e.target.value, order._owner);
   };
 
   return (
@@ -103,7 +101,7 @@ export function OrderForm({
         <textarea
           name="instructions"
           id="instructions"
-          value={order.instructions?.toString() || ""}
+          value={`${order.instructions}`}
           className="dark:bg-transparent"
           onChange={handleInstructionsChange}
         ></textarea>
