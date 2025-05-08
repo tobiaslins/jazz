@@ -50,9 +50,9 @@ export function ProjectTodoTable() {
       const task = Task.create(
         {
           done: false,
-          text: CoPlainText.create(text, { owner: project._owner }),
+          text: CoPlainText.create(text, project._owner),
         },
-        { owner: project._owner },
+        project._owner,
       );
 
       // push will cause useCoState to rerender this component, both here and on other devices

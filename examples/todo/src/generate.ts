@@ -13,9 +13,10 @@ export function generateRandomProject(numTasks: number): TodoProject {
   for (let i = 0; i < numTasks; i++) {
     const task = Task.create({
       done: faker.datatype.boolean(),
-      text: CoPlainText.create(faker.lorem.sentence({ min: 3, max: 8 }), {
-        owner: tasks._owner,
-      }),
+      text: CoPlainText.create(
+        faker.lorem.sentence({ min: 3, max: 8 }),
+        tasks._owner,
+      ),
     });
     tasks.push(task);
   }
