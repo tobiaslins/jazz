@@ -84,8 +84,8 @@ export function ChatScreen({ navigation }: { navigation: any }) {
     if (message.trim()) {
       loadedChat.push(
         Message.create(
-          { text: CoPlainText.create(message, { owner: loadedChat?._owner }) },
-          { owner: loadedChat?._owner },
+          { text: CoPlainText.create(message, loadedChat?._owner) },
+          loadedChat?._owner,
         ),
       );
       setMessage("");
@@ -112,7 +112,7 @@ export function ChatScreen({ navigation }: { navigation: any }) {
           </Text>
         ) : null}
         <View style={styles.messageContent}>
-          <Text style={styles.messageText}>{item.text?.toString()}</Text>
+          <Text style={styles.messageText}>{item.text}</Text>
           <Text
             style={[
               styles.timestamp,
