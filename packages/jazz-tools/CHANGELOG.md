@@ -1,5 +1,16 @@
 # jazz-tools
 
+## 0.13.20
+
+### Patch Changes
+
+- 439f0fe: Adds creation owner and consume-as-string shorthands to `CoPlainText`
+- Updated dependencies [adfc9a6]
+- Updated dependencies [1389207]
+- Updated dependencies [d6e143e]
+- Updated dependencies [3e6229d]
+  - cojson@0.13.20
+
 ## 0.13.19
 
 ### Patch Changes
