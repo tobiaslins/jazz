@@ -524,7 +524,7 @@ export class LocalNode {
 
     if (!coValue.isAvailable()) {
       throw new Error(
-        `${expectation ? expectation + ": " : ""}CoValue ${id} not yet loaded. Current state: ${JSON.stringify(coValue)}`,
+        `${expectation ? expectation + ": " : ""}CoValue ${id} not yet loaded.`,
       );
     }
     return coValue;
