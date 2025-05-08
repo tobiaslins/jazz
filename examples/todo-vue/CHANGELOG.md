@@ -1,5 +1,14 @@
 # todo-vue
 
+## 0.0.89
+
+### Patch Changes
+
+- Updated dependencies [439f0fe]
+  - jazz-tools@0.13.20
+  - jazz-browser@0.13.20
+  - jazz-vue@0.13.20
+
 ## 0.0.88
 
 ### Patch Changes
