@@ -35,6 +35,7 @@ function App() {
   >("ChatScreen");
   const navigationRef = useNavigationContainerRef();
   useEffect(() => {
+    clearUserCredentials();
     Linking.getInitialURL().then((url) => {
       if (url) {
         if (url && url.includes("invite")) {
