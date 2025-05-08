@@ -13,6 +13,9 @@ export function OrderForm({
   order: BubbleTeaOrder | DraftBubbleTeaOrder;
   onSave?: (e: React.FormEvent<HTMLFormElement>) => void;
 }) {
+  // Handles updates to the instructions field of the order.
+  // If instructions already exist, applyDiff updates them incrementally.
+  // Otherwise, creates a new CoPlainText instance for the instructions.
   const handleInstructionsChange = (
     e: React.ChangeEvent<HTMLTextAreaElement>,
   ) => {
