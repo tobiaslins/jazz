@@ -118,6 +118,21 @@ describe("CoPlainText", () => {
         expect(`${text}`).toBe("hello world");
       });
 
+      test("as number", () => {
+        const text = CoPlainText.create("hello world", { owner: me });
+        expect(Number(text)).toBe(NaN);
+      });
+
+      test("as number", () => {
+        const text = CoPlainText.create("123", { owner: me });
+        expect(Number(text)).toBe(123);
+      });
+
+      test("toJSON", () => {
+        const text = CoPlainText.create("hello world", { owner: me });
+        expect(text.toJSON()).toBe("hello world");
+      });
+
       test("toString", () => {
         const text = CoPlainText.create("hello world", { owner: me });
         expect(text.toString()).toBe("hello world");

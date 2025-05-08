@@ -274,7 +274,7 @@ export class CoPlainText extends String implements CoValue {
   [Symbol.toPrimitive](hint: string) {
     if (hint === "number") {
       // Not meaningful for text, but required for completeness
-      return NaN;
+      return Number(this._raw.toString());
     }
     // For 'string' and 'default', return the string representation
     return this._raw.toString();
