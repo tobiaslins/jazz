@@ -272,11 +272,9 @@ export class LocalNode {
       if (!profileID) {
         throw new Error("Account has no profile");
       }
-      const profile = await node.load(profileID);
 
-      if (profile === "unavailable") {
-        throw new Error("Profile unavailable from all peers");
-      }
+      // Preload the profile
+      await node.load(profileID);
 
       if (migration) {
         await migration(account, node);
