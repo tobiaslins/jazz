@@ -9,7 +9,7 @@ import {
   test,
   vi,
 } from "vitest";
-import { Group, Resolved, subscribeToCoValue } from "../exports.js";
+import { Group, Resolved, co, subscribeToCoValue, z } from "../exports.js";
 import {
   Account,
   CoMap,
@@ -36,21 +36,17 @@ beforeEach(async () => {
 describe("CoMap", async () => {
   describe("init", () => {
     test("create a CoMap with basic property access", () => {
-      class Person extends CoMap {
-        color = coField.string;
-        _height = coField.number;
-        birthday = coField.Date;
-        name = coField.string;
-        nullable = coField.optional.encoded<string | undefined>({
-          encode: (value: string | undefined) => value || null,
-          decode: (value: unknown) => (value as string) || undefined,
-        });
-        optionalDate = coField.optional.Date;
-
-        get roughColor() {
-          return this.color + "ish";
-        }
-      }
+      const Person = co.map({
+        color: z.string(),
+        _height: z.number(),
+        birthday: z.date(),
+        name: z.string(),
+        // nullable: z.optional.encoded<string | undefined>({
+        //   encode: (value: string | undefined) => value || null,
+        //   decode: (value: unknown) => (value as string) || undefined,
+        // })
+        optionalDate: z.date().optional(),
+      });
 
       const birthday = new Date("1989-11-27");
 
@@ -62,7 +58,6 @@ describe("CoMap", async () => {
       });
 
       expect(john.color).toEqual("red");
-      expect(john.roughColor).toEqual("redish");
       expect(john._height).toEqual(10);
       expect(john.birthday).toEqual(birthday);
       expect(john._raw.get("birthday")).toEqual(birthday.toISOString());
@@ -75,9 +70,9 @@ describe("CoMap", async () => {
     });
 
     test("property existence", () => {
-      class Person extends CoMap {
-        name = coField.string;
-      }
+      const Person = co.map({
+        name: z.string(),
+      });
 
       const john = Person.create({ name: "John" });
 
@@ -86,9 +81,9 @@ describe("CoMap", async () => {
     });
 
     test("create a CoMap with an account as owner", () => {
-      class Person extends CoMap {
-        name = coField.string;
-      }
+      const Person = co.map({
+        name: z.string(),
+      });
 
       const john = Person.create({ name: "John" }, Account.getMe());
 
@@ -97,9 +92,9 @@ describe("CoMap", async () => {
     });
 
     test("create a CoMap with a group as owner", () => {
-      class Person extends CoMap {
-        name = coField.string;
-      }
+      const Person = co.map({
+        name: z.string(),
+      });
 
       const john = Person.create({ name: "John" }, Group.create());
 
@@ -108,28 +103,24 @@ describe("CoMap", async () => {
     });
 
     test("Empty schema", () => {
-      const emptyMap = CoMap.create({});
+      const emptyMap = co.map({}).create({});
 
       // @ts-expect-error
       expect(emptyMap.color).toEqual(undefined);
     });
 
     test("setting date as undefined should throw", () => {
-      class Person extends CoMap {
-        color = coField.string;
-        _height = coField.number;
-        birthday = coField.Date;
-        name = coField.string;
-        nullable = coField.optional.encoded<string | undefined>({
-          encode: (value: string | undefined) => value || null,
-          decode: (value: unknown) => (value as string) || undefined,
-        });
-        optionalDate = coField.optional.Date;
-
-        get roughColor() {
-          return this.color + "ish";
-        }
-      }
+      const Person = co.map({
+        color: z.string(),
+        _height: z.number(),
+        birthday: z.date(),
+        name: z.string(),
+        // nullable: z.optional.encoded<string | undefined>({
+        //   encode: (value: string | undefined) => value || null,
+        //   decode: (value: unknown) => (value as string) || undefined,
+        // });
+        optionalDate: z.date().optional(),
+      });
 
       expect(() =>
         Person.create({
@@ -142,16 +133,16 @@ describe("CoMap", async () => {
     });
 
     test("CoMap with reference", () => {
-      class Dog extends CoMap {
-        name = coField.string;
-        breed = coField.string;
-      }
+      const Dog = co.map({
+        name: z.string(),
+        breed: z.string(),
+      });
 
-      class Person extends CoMap {
-        name = coField.string;
-        age = coField.number;
-        dog = coField.ref(Dog);
-      }
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+        dog: Dog,
+      });
 
       const person = Person.create({
         name: "John",
@@ -164,11 +155,14 @@ describe("CoMap", async () => {
     });
 
     test("CoMap with self reference", () => {
-      class Person extends CoMap {
-        name = coField.string;
-        age = coField.number;
-        friend = coField.optional.ref(Person);
-      }
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+        // TODO: would be nice if this didn't need a type annotation
+        get friend(): z.ZodOptional<typeof Person> {
+          return z.optional(Person);
+        },
+      });
 
       const person = Person.create({
         name: "John",
@@ -181,10 +175,10 @@ describe("CoMap", async () => {
     });
 
     test("toJSON should not fail when there is a key in the raw value not represented in the schema", () => {
-      class Person extends CoMap {
-        name = coField.string;
-        age = coField.number;
-      }
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+      });
 
       const person = Person.create({ name: "John", age: 20 });
 
@@ -199,11 +193,13 @@ describe("CoMap", async () => {
     });
 
     test("toJSON should handle references", () => {
-      class Person extends CoMap {
-        name = coField.string;
-        age = coField.number;
-        friend = coField.optional.ref(Person);
-      }
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+        get friend(): z.ZodOptional<typeof Person> {
+          return z.optional(Person);
+        },
+      });
 
       const person = Person.create({
         name: "John",
@@ -226,11 +222,13 @@ describe("CoMap", async () => {
     });
 
     test("toJSON should handle circular references", () => {
-      class Person extends CoMap {
-        name = coField.string;
-        age = coField.number;
-        friend = coField.optional.ref(Person);
-      }
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+        get friend(): z.ZodOptional<typeof Person> {
+          return z.optional(Person);
+        },
+      });
 
       const person = Person.create({
         name: "John",
@@ -251,11 +249,11 @@ describe("CoMap", async () => {
     });
 
     test("testing toJSON on a CoMap with a Date field", () => {
-      class Person extends CoMap {
-        name = coField.string;
-        age = coField.number;
-        birthday = coField.Date;
-      }
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+        birthday: z.date(),
+      });
 
       const birthday = new Date();
 
@@ -275,11 +273,11 @@ describe("CoMap", async () => {
     });
 
     test("setting optional date as undefined should not throw", () => {
-      class Person extends CoMap {
-        name = coField.string;
-        age = coField.number;
-        birthday = coField.optional.Date;
-      }
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+        birthday: z.date().optional(),
+      });
 
       const john = Person.create({
         name: "John",
@@ -293,10 +291,10 @@ describe("CoMap", async () => {
     });
 
     it("should disallow extra properties", () => {
-      class Person extends CoMap {
-        name = coField.string;
-        age = coField.number;
-      }
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+      });
 
       // @ts-expect-error - x is not a valid property
       const john = Person.create({ name: "John", age: 30, x: 1 });
@@ -312,10 +310,10 @@ describe("CoMap", async () => {
 
   describe("Mutation", () => {
     test("change a primitive value", () => {
-      class Person extends CoMap {
-        name = coField.string;
-        age = coField.number;
-      }
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+      });
 
       const john = Person.create({ name: "John", age: 20 });
 
@@ -326,10 +324,10 @@ describe("CoMap", async () => {
     });
 
     test("delete an optional value", () => {
-      class Person extends CoMap {
-        name = coField.string;
-        age = coField.optional.number;
-      }
+      const Person = co.map({
+        name: z.string(),
+        age: z.number().optional(),
+      });
 
       const john = Person.create({ name: "John", age: 20 });
 
@@ -346,15 +344,15 @@ describe("CoMap", async () => {
     });
 
     test("update a reference", () => {
-      class Dog extends CoMap {
-        name = coField.string;
-      }
+      const Dog = co.map({
+        name: z.string(),
+      });
 
-      class Person extends CoMap {
-        name = coField.string;
-        age = coField.number;
-        dog = coField.ref(Dog);
-      }
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+        dog: Dog,
+      });
 
       const john = Person.create({
         name: "John",
@@ -368,10 +366,10 @@ describe("CoMap", async () => {
     });
 
     test("changes should be listed in _edits", () => {
-      class Person extends CoMap {
-        name = coField.string;
-        age = coField.number;
-      }
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+      });
 
       const john = Person.create({ name: "John", age: 20 });
 

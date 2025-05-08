@@ -46,7 +46,7 @@ export type CoMapSchema<
       | Account
       | Group,
   ) => {
-    [key in keyof Shape]: coField<InstanceOrPrimitive<Shape[key]>>;
+    -readonly [key in keyof Shape]: coField<InstanceOrPrimitive<Shape[key]>>;
   } & (unknown extends OutExtra[string]
     ? {}
     : {
@@ -139,6 +139,7 @@ export function fieldDef(
     | z.core.$ZodNumber
     | z.core.$ZodBoolean
     | z.core.$ZodNull
+    | z.core.$ZodDate
     | z.core.$ZodOptional<z.core.$ZodType>
     | z.core.$ZodTuple<z.core.$ZodType[]>
     | (z.core.$ZodCustom<any, any> & { builtin: any }),
@@ -162,6 +163,8 @@ export function fieldDef(
         return coField.boolean;
       } else if (schema._zod.def.type === "null") {
         return coField.null;
+      } else if (schema._zod.def.type === "date") {
+        return coField.Date;
       } else if (schema._zod.def.type === "tuple") {
         return coField.json();
       } else if (schema._zod.def.type === "custom") {
@@ -194,7 +197,7 @@ export type CoValueClassOrPrimitiveFromZodSchema<S extends z.core.$ZodType> =
         : never;
 
 export type CoMapInstance<Shape extends z.core.$ZodLooseShape> = {
-  [key in keyof Shape]: coField<InstanceOrPrimitive<Shape[key]>>;
+  -readonly [key in keyof Shape]: coField<InstanceOrPrimitive<Shape[key]>>;
 } & CoMap;
 
 export type CoMapClass<Shape extends z.core.$ZodLooseShape> = typeof CoMap &
@@ -312,9 +315,11 @@ export type InstanceOrPrimitive<S extends CoValueClass | z.core.$ZodType> =
             ? string
             : S extends z.core.$ZodNumber
               ? number
-              : S extends z.core.$ZodTuple<infer Items>
-                ? { [key in keyof Items]: InstanceOrPrimitive<Items[key]> }
-                : never;
+              : S extends z.core.$ZodDate
+                ? Date
+                : S extends z.core.$ZodTuple<infer Items>
+                  ? { [key in keyof Items]: InstanceOrPrimitive<Items[key]> }
+                  : never;
 
 export type Loaded<T extends zCoMapType | zCoListType> = Resolved<
   InstanceOrPrimitive<T>
