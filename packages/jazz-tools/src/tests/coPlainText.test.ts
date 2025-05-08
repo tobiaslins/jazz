@@ -113,6 +113,11 @@ describe("CoPlainText", () => {
         expect(text.length).toBe(11);
       });
 
+      test("as string", () => {
+        const text = CoPlainText.create("hello world", { owner: me });
+        expect(`${text}`).toBe("hello world");
+      });
+
       test("toString", () => {
         const text = CoPlainText.create("hello world", { owner: me });
         expect(text.toString()).toBe("hello world");

@@ -260,4 +260,23 @@ export class CoPlainText extends String implements CoValue {
   ): () => void {
     return subscribeToExistingCoValue(this, {}, listener);
   }
+
+  /**
+   * Allow CoPlainText to behave like a primitive string in most contexts (e.g.,
+   * string concatenation, template literals, React rendering, etc.) by implementing
+   * Symbol.toPrimitive. This eliminates the need to call .toString() explicitly.
+   *
+   * The 'hint' parameter indicates the preferred type of conversion:
+   * - 'string': prefer string conversion
+   * - 'number': prefer number conversion (not meaningful for text, so return NaN)
+   * - 'default': usually treat as string
+   */
+  [Symbol.toPrimitive](hint: string) {
+    if (hint === "number") {
+      // Not meaningful for text, but required for completeness
+      return NaN;
+    }
+    // For 'string' and 'default', return the string representation
+    return this._raw.toString();
+  }
 }
