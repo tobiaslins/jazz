@@ -63,8 +63,8 @@ export default defineComponent({
     function handleSubmit(text: string) {
       chat?.value?.push(
         Message.create(
-          { text: CoPlainText.create(text, { owner: chat.value._owner }) },
-          { owner: chat.value._owner },
+          { text: CoPlainText.create(text,chat.value._owner) },
+          chat.value._owner,
         ),
       );
     }

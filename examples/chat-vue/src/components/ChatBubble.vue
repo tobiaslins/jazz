@@ -1,6 +1,6 @@
 <template>
   <BubbleContainer :fromMe="lastEdit.by?.isMe">
-    <BubbleBody>{{ msg.text?.toString() }}</BubbleBody>
+    <BubbleBody>{{ msg.text }}</BubbleBody>
     <BubbleInfo :by="lastEdit.by?.profile?.name" :madeAt="lastEdit.madeAt" />
   </BubbleContainer>
 </template>
