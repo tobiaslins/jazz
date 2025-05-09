@@ -29,14 +29,6 @@ export class JazzProfile extends Profile {
  *  where you can store top-level objects for that user */
 export class AccountRoot extends CoMap {
   dateOfBirth = coField.Date;
-
-  // Add private fields here
-
-  get age() {
-    if (!this.dateOfBirth) return null;
-
-    return new Date().getFullYear() - this.dateOfBirth.getFullYear();
-  }
 }
 
 export class JazzAccount extends Account {

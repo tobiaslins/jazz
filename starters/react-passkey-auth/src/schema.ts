@@ -24,10 +24,10 @@ export class AccountRoot extends CoMap {
 
   // Add private fields here
 
-  get age() {
-    if (!this.dateOfBirth) return null;
+  static age(root: AccountRoot) {
+    if (!root?.dateOfBirth) return null;
 
-    return new Date().getFullYear() - this.dateOfBirth.getFullYear();
+    return new Date().getFullYear() - root.dateOfBirth.getFullYear();
   }
 }
 

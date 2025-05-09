@@ -16,7 +16,6 @@ import type {
   SchemaFor,
   SubscribeListenerOptions,
   SubscribeRestArgs,
-  UnCoField,
 } from "../internal.js";
 import {
   AnonymousJazzAgent,
@@ -138,7 +137,7 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
    **/
   get _refs(): {
     [idx: number]: Exclude<Item, null> extends CoValue
-      ? Ref<UnCoField<Exclude<Item, null>>>
+      ? Ref<Exclude<Item, null>>
       : never;
   } & {
     length: number;
@@ -231,7 +230,7 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
    **/
   static create<L extends CoList>(
     this: CoValueClass<L>,
-    items: UnCoField<L[number]>[],
+    items: L[number][],
     options?: { owner: Account | Group } | Account | Group,
   ) {
     const { owner } = parseCoValueCreateOptions(options);

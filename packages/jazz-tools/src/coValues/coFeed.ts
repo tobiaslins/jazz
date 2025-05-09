@@ -17,7 +17,6 @@ import type {
   CoValueClass,
   Group,
   ID,
-  IfCoField,
   RefsToResolve,
   RefsToResolveStrict,
   Resolved,
@@ -25,7 +24,6 @@ import type {
   SchemaFor,
   SubscribeListenerOptions,
   SubscribeRestArgs,
-  UnCoField,
 } from "../internal.js";
 import {
   CoValueBase,
@@ -95,7 +93,7 @@ export class CoFeed<Item = any> extends CoValueBase implements CoValue {
    *
    * @category Declaration
    */
-  static Of<Item>(item: IfCoField<Item, Item>): typeof CoFeed<Item> {
+  static Of<Item>(item: Item): typeof CoFeed<Item> {
     return class CoFeedOf extends CoFeed<Item> {
       [coField.items] = item;
     };
@@ -210,7 +208,7 @@ export class CoFeed<Item = any> extends CoValueBase implements CoValue {
    */
   static create<S extends CoFeed>(
     this: CoValueClass<S>,
-    init: S extends CoFeed<infer Item> ? UnCoField<Item>[] : never,
+    init: S extends CoFeed<infer Item> ? Item[] : never,
     options?: { owner: Account | Group } | Account | Group,
   ) {
     const { owner } = parseCoValueCreateOptions(options);

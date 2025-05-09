@@ -1,12 +1,11 @@
 import { SessionID } from "cojson";
-import { ItemsSym, UnCoField } from "../internal.js";
+import { ItemsSym } from "../internal.js";
 import { type Account } from "./account.js";
 import { CoFeedEntry } from "./coFeed.js";
 import { type CoKeys } from "./coMap.js";
 import { type CoValue, type ID } from "./interfaces.js";
 
-type UnCoNotNull<T> = UnCoField<Exclude<T, null>>;
-export type Clean<T> = UnCoField<NonNullable<T>>;
+type NotNull<T> = Exclude<T, null>;
 
 export type RefsToResolve<
   V,
@@ -22,7 +21,7 @@ export type RefsToResolve<
         ?
             | {
                 $each: RefsToResolve<
-                  UnCoNotNull<Item>,
+                  NotNull<Item>,
                   DepthLimit,
                   [0, ...CurrentDepth]
                 >;
@@ -32,10 +31,10 @@ export type RefsToResolve<
           V extends { _type: "CoMap" | "Group" | "Account" }
           ?
               | {
-                  [Key in CoKeys<V> as Clean<V[Key]> extends CoValue
+                  [Key in CoKeys<V> as NonNullable<V[Key]> extends CoValue
                     ? Key
                     : never]?: RefsToResolve<
-                    Clean<V[Key]>,
+                    NonNullable<V[Key]>,
                     DepthLimit,
                     [0, ...CurrentDepth]
                   >;
@@ -43,7 +42,7 @@ export type RefsToResolve<
               | (ItemsSym extends keyof V
                   ? {
                       $each: RefsToResolve<
-                        Clean<V[ItemsSym]>,
+                        NonNullable<V[ItemsSym]>,
                         DepthLimit,
                         [0, ...CurrentDepth]
                       >;
@@ -57,7 +56,7 @@ export type RefsToResolve<
             ?
                 | {
                     $each: RefsToResolve<
-                      UnCoNotNull<Item>,
+                      NotNull<Item>,
                       DepthLimit,
                       [0, ...CurrentDepth]
                     >;
@@ -85,12 +84,12 @@ export type DeeplyLoaded<
     ? V
     : // Basically V extends CoList - but if we used that we'd introduce circularity into the definition of CoList itself
       [V] extends [Array<infer Item>]
-      ? UnCoNotNull<Item> extends CoValue
+      ? NotNull<Item> extends CoValue
         ? Depth extends { $each: infer ItemDepth }
           ? // Deeply loaded CoList
-            (UnCoNotNull<Item> &
+            (NotNull<Item> &
               DeeplyLoaded<
-                UnCoNotNull<Item>,
+                NotNull<Item>,
                 ItemDepth,
                 DepthLimit,
                 [0, ...CurrentDepth]
@@ -105,7 +104,7 @@ export type DeeplyLoaded<
             ? // Deeply loaded Record-like CoMap
               {
                 [key: string]: DeeplyLoaded<
-                  Clean<V[ItemsSym]>,
+                  NonNullable<V[ItemsSym]>,
                   ItemDepth,
                   DepthLimit,
                   [0, ...CurrentDepth]
@@ -117,10 +116,10 @@ export type DeeplyLoaded<
             : // Deeply loaded CoMap
               {
                 -readonly [Key in keyof Depth]-?: Key extends CoKeys<V>
-                  ? Clean<V[Key]> extends CoValue
+                  ? NonNullable<V[Key]> extends CoValue
                     ?
                         | DeeplyLoaded<
-                            Clean<V[Key]>,
+                            NonNullable<V[Key]>,
                             Depth[Key],
                             DepthLimit,
                             [0, ...CurrentDepth]
@@ -137,12 +136,12 @@ export type DeeplyLoaded<
             ]
           ? // Deeply loaded CoStream
             {
-              byMe?: { value: UnCoNotNull<Item> };
-              inCurrentSession?: { value: UnCoNotNull<Item> };
+              byMe?: { value: NotNull<Item> };
+              inCurrentSession?: { value: NotNull<Item> };
               perSession: {
-                [key: SessionID]: { value: UnCoNotNull<Item> };
+                [key: SessionID]: { value: NotNull<Item> };
               };
-            } & { [key: ID<Account>]: { value: UnCoNotNull<Item> } } & V // same reason as in CoList
+            } & { [key: ID<Account>]: { value: NotNull<Item> } } & V // same reason as in CoList
           : [V] extends [
                 {
                   _type: "BinaryCoStream";

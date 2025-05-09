@@ -22,7 +22,7 @@ export function CreateOrder() {
 
   const onSave = (draft: DraftBubbleTeaOrder) => {
     // validate if the draft is a valid order
-    const validation = draft.validate();
+    const validation = DraftBubbleTeaOrder.validate(draft);
     setErrors(validation.errors);
     if (validation.errors.length > 0) {
       return;

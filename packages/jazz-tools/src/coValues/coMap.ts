@@ -15,7 +15,6 @@ import type {
   CoValueClass,
   Group,
   ID,
-  IfCoField,
   RefEncoded,
   RefIfCoValue,
   RefsToResolve,
@@ -136,7 +135,7 @@ export class CoMap extends CoValueBase implements CoValue {
    * @category Content
    **/
   get _refs(): {
-    [Key in CoKeys<this>]: IfCoField<this[Key], RefIfCoValue<this[Key]>>;
+    [Key in CoKeys<this>]: RefIfCoValue<this[Key]>;
   } {
     return makeRefs<CoKeys<this>>(
       this,
@@ -234,10 +233,7 @@ export class CoMap extends CoValueBase implements CoValue {
         },
       },
     ) as {
-      [Key in CoKeys<this>]: IfCoField<
-        this[Key],
-        LastAndAllCoMapEdits<this[Key]>
-      >;
+      [Key in CoKeys<this>]: LastAndAllCoMapEdits<this[Key]>;
     };
   }
 
@@ -430,7 +426,7 @@ export class CoMap extends CoValueBase implements CoValue {
    *
    * @category Declaration
    */
-  static Record<Value>(value: IfCoField<Value, Value>) {
+  static Record<Value>(value: Value) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
     class RecordLikeCoMap extends CoMap {
       [ItemsSym] = value;
@@ -650,18 +646,18 @@ export type CoKeys<Map extends object> = Exclude<
  *
  * map.requiredRef // this value is still nullable
  */
-type ForceRequiredRef<V> = V extends coField<InstanceType<CoValueClass> | null>
+type ForceRequiredRef<V> = V extends InstanceType<CoValueClass> | null
   ? NonNullable<V>
-  : V extends coField<InstanceType<CoValueClass> | undefined>
+  : V extends InstanceType<CoValueClass> | undefined
     ? V | null
     : V;
 
 export type CoMapInit<Map extends object> = {
   [Key in CoKeys<Map> as undefined extends Map[Key]
     ? never
-    : IfCoField<Map[Key], Key>]: ForceRequiredRef<Map[Key]>;
+    : Key]: ForceRequiredRef<Map[Key]>;
 } & {
-  [Key in CoKeys<Map> as IfCoField<Map[Key], Key>]?: ForceRequiredRef<Map[Key]>;
+  [Key in CoKeys<Map>]?: ForceRequiredRef<Map[Key]>;
 };
 
 // TODO: cache handlers per descriptor for performance?

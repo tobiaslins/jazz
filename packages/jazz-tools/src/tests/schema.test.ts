@@ -1,6 +1,5 @@
 import { describe, expectTypeOf, it } from "vitest";
 import { CoMap, coField } from "../index.js";
-import { coField as valueWithCoMarker } from "../internal.js";
 
 describe("coField.json TypeScript validation", () => {
   it("should accept serializable types", async () => {
@@ -13,7 +12,7 @@ describe("coField.json TypeScript validation", () => {
     expectTypeOf(ValidPrimitiveMap.create<ValidPrimitiveMap>)
       .parameter(0)
       .toEqualTypeOf<{
-        data: valueWithCoMarker<ValidType>;
+        data: ValidType;
       }>();
   });
 
@@ -33,7 +32,7 @@ describe("coField.json TypeScript validation", () => {
     expectTypeOf(ValidNestedMap.create<ValidNestedMap>)
       .parameter(0)
       .toEqualTypeOf<{
-        data: valueWithCoMarker<NestedType>;
+        data: NestedType;
       }>();
   });
 
@@ -50,7 +49,7 @@ describe("coField.json TypeScript validation", () => {
     expectTypeOf(ValidMap.create<ValidMap>)
       .parameter(0)
       .toEqualTypeOf<{
-        data: valueWithCoMarker<TypeWithOptional>;
+        data: TypeWithOptional;
       }>();
   });
 
@@ -72,7 +71,7 @@ describe("coField.json TypeScript validation", () => {
     expectTypeOf(ValidNestedMap.create<ValidNestedMap>)
       .parameter(0)
       .toEqualTypeOf<{
-        data: valueWithCoMarker<NestedInterface>;
+        data: NestedInterface;
       }>();
   });
 
@@ -89,7 +88,7 @@ describe("coField.json TypeScript validation", () => {
     expectTypeOf(ValidArrayMap.create<ValidArrayMap>)
       .parameter(0)
       .toEqualTypeOf<{
-        data: valueWithCoMarker<ArrayInterface>;
+        data: ArrayInterface;
       }>();
   });
 
@@ -106,7 +105,7 @@ describe("coField.json TypeScript validation", () => {
     expectTypeOf(InvalidFunctionMap.create<InvalidFunctionMap>)
       .parameter(0)
       .toEqualTypeOf<{
-        data: valueWithCoMarker<InvalidInterface>;
+        data: InvalidInterface;
       }>();
   });
 
@@ -121,7 +120,7 @@ describe("coField.json TypeScript validation", () => {
     expectTypeOf(InvalidFunctionMap.create<InvalidFunctionMap>)
       .parameter(0)
       .toEqualTypeOf<{
-        data: valueWithCoMarker<InvalidType>;
+        data: InvalidType;
       }>();
   });
 
@@ -136,7 +135,7 @@ describe("coField.json TypeScript validation", () => {
     expectTypeOf(InvalidFunctionMap.create<InvalidFunctionMap>)
       .parameter(0)
       .toEqualTypeOf<{
-        data: valueWithCoMarker<InvalidType>;
+        data: InvalidType;
       }>();
   });
 
@@ -167,8 +166,8 @@ describe("coField.json TypeScript validation", () => {
     expectTypeOf(MapWithOptionalJSON.create<MapWithOptionalJSON>)
       .parameter(0)
       .toEqualTypeOf<{
-        data?: valueWithCoMarker<ValidType> | null;
-        data2?: valueWithCoMarker<InvalidType> | null;
+        data?: ValidType | null;
+        data2?: InvalidType | null;
       }>();
   });
 
@@ -196,9 +195,9 @@ describe("coField.json TypeScript validation", () => {
     expectTypeOf(MapWithOptionalJSON.create<MapWithOptionalJSON>)
       .parameter(0)
       .toEqualTypeOf<{
-        data1?: valueWithCoMarker<ValidInterface0> | null;
-        data2?: valueWithCoMarker<ValidInterface1> | null;
-        data3?: valueWithCoMarker<InterfaceWithOptionalTypes> | null;
+        data1?: ValidInterface0 | null;
+        data2?: ValidInterface1 | null;
+        data3?: InterfaceWithOptionalTypes | null;
       }>();
   });
 
@@ -225,7 +224,7 @@ describe("coField.json TypeScript validation", () => {
     expectTypeOf(InvalidFunctionMap.create<InvalidFunctionMap>)
       .parameter(0)
       .toEqualTypeOf<{
-        data: valueWithCoMarker<RegExp>;
+        data: RegExp;
       }>();
   });
 
@@ -238,8 +237,8 @@ describe("coField.json TypeScript validation", () => {
     expectTypeOf(InvalidFunctionMap.create<InvalidFunctionMap>)
       .parameter(0)
       .toEqualTypeOf<{
-        str: valueWithCoMarker<string>;
-        num: valueWithCoMarker<number>;
+        str: string;
+        num: number;
       }>();
   });
 });

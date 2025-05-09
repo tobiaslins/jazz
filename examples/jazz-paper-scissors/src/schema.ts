@@ -10,12 +10,12 @@ export class Game extends CoMap {
   /**
    * Given a player, returns the opponent in the current game.
    */
-  getOpponent(player: Player) {
+  static getOpponent(game: Game, player: Player) {
     // TODO: player may be unrelated to this game
     const opponent =
-      player.account?.id === this.player1?.account?.id
-        ? this.player2
-        : this.player1;
+      player.account?.id === game.player1?.account?.id
+        ? game.player2
+        : game.player1;
 
     if (!opponent) {
       throw new Error("Opponent not found");

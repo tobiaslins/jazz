@@ -4,7 +4,6 @@ import type {
   CoValue,
   ID,
   RefEncoded,
-  UnCoField,
 } from "../internal.js";
 import {
   accessChildById,
@@ -122,5 +121,5 @@ export function makeRefs<Keys extends string | number>(
 }
 
 export type RefIfCoValue<V> = NonNullable<V> extends CoValue
-  ? Ref<UnCoField<NonNullable<V>>>
+  ? Ref<NonNullable<V>>
   : never;

@@ -38,18 +38,20 @@ export class DraftBubbleTeaOrder extends CoMap {
   withMilk = coField.optional.boolean;
   instructions = coField.optional.string;
 
-  get hasChanges() {
-    return Object.keys(this._edits).length > 1 || this.addOns?.hasChanges;
+  static hasChanges(order: DraftBubbleTeaOrder | undefined) {
+    return (
+      !!order &&
+      (Object.keys(order._edits).length > 1 || order.addOns?.hasChanges)
+    );
   }
 
-  // validate if the draft is a valid order
-  validate() {
+  static validate(order: DraftBubbleTeaOrder) {
     const errors: string[] = [];
 
-    if (!this.baseTea) {
+    if (!order.baseTea) {
       errors.push("Please select your preferred base tea.");
     }
-    if (!this.deliveryDate) {
+    if (!order.deliveryDate) {
       errors.push("Plese select a delivery date.");
     }
 
