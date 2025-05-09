@@ -10,12 +10,10 @@ import {
   vi,
 } from "vitest";
 import { Group, co, subscribeToCoValue, z } from "../exports.js";
-import { Account, cojsonInternals } from "../index.js";
+import { Account } from "../index.js";
 import { Loaded, zodSchemaToCoSchema } from "../internal.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 import { setupTwoNodes, waitFor } from "./utils.js";
-
-const { connectedPeers } = cojsonInternals;
 
 const Crypto = await WasmCrypto.create();
 

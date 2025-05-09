@@ -155,10 +155,28 @@ export type CoRecordSchemaWithHelpers<
 
 export type CoListSchema<T extends z.core.$ZodType> = z.core.$ZodArray<T> & {
   collaborative: true;
+
   create: (
     items: InstanceOrPrimitive<T>[],
     options?: { owner: Account | Group } | Account | Group,
   ) => CoList<InstanceOrPrimitive<T>>;
+
+  load<const R extends RefsToResolve<CoListInstance<T>> = true>(
+    id: ID<CoListInstance<T>>,
+    options?: {
+      resolve?: RefsToResolveStrict<CoListInstance<T>, R>;
+      loadAs?: Account | AnonymousJazzAgent;
+    },
+  ): Promise<Resolved<CoListInstance<T>, R> | null>;
+
+  subscribe<const R extends RefsToResolve<CoListInstance<T>> = true>(
+    id: ID<CoListInstance<T>>,
+    options: SubscribeListenerOptions<CoListInstance<T>, R>,
+    listener: (
+      value: Resolved<CoListInstance<T>, R>,
+      unsubscribe: () => void,
+    ) => void,
+  ): () => void;
 };
 
 export type FileStreamSchema = z.core.$ZodCustom<FileStream, unknown> & {

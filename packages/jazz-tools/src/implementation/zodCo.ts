@@ -3,6 +3,7 @@ import z from "zod";
 import {
   Account,
   AnonymousJazzAgent,
+  CoListInstance,
   CoListSchema,
   CoMapInstance,
   CoMapSchema,
@@ -129,6 +130,8 @@ const coListDefiner = <T extends z.core.$ZodType>(
   const coListSchema = arraySchema as unknown as CleanedType & {
     collaborative: true;
     create: CoListSchema<T>["create"];
+    load: CoListSchema<T>["load"];
+    subscribe: CoListSchema<T>["subscribe"];
   };
 
   coListSchema.collaborative = true;
@@ -140,6 +143,33 @@ const coListDefiner = <T extends z.core.$ZodType>(
   ) {
     return (zodSchemaToCoSchema(this) as any).create(items, options);
   } as CoListSchema<T>["create"];
+
+  coListSchema.load = function <
+    R extends RefsToResolve<CoListInstance<T>> = true,
+  >(
+    this: CoListSchema<T>,
+    id: string,
+    options?: {
+      resolve?: RefsToResolveStrict<CoListInstance<T>, R>;
+      loadAs?: Account | AnonymousJazzAgent;
+    },
+  ) {
+    return (zodSchemaToCoSchema(this) as any).load(id, options);
+  } as CoListSchema<T>["load"];
+
+  coListSchema.subscribe = function <
+    R extends RefsToResolve<CoListInstance<T>> = true,
+  >(
+    this: CoListSchema<T>,
+    id: string,
+    options: SubscribeListenerOptions<CoListInstance<T>, R>,
+    listener: (
+      value: Resolved<CoListInstance<T>, R>,
+      unsubscribe: () => void,
+    ) => void,
+  ) {
+    return (zodSchemaToCoSchema(this) as any).subscribe(id, options, listener);
+  } as CoListSchema<T>["subscribe"];
 
   return coListSchema;
 };

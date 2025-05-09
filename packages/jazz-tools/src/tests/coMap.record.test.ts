@@ -5,23 +5,14 @@ import {
   describe,
   expect,
   expectTypeOf,
-  it,
   test,
   vi,
 } from "vitest";
-import { RefsToResolve } from "../coValues/deepLoading.js";
-import { ID } from "../coValues/interfaces.js";
-import { Group, Resolved, co, subscribeToCoValue, z } from "../exports.js";
-import {
-  CoMapSchema,
-  InstanceOrPrimitive,
-  Loaded,
-} from "../implementation/zodSchema.js";
-import { Account, CoMap, coField, cojsonInternals } from "../index.js";
+import { Group, co, z } from "../exports.js";
+import { InstanceOrPrimitive, Loaded } from "../implementation/zodSchema.js";
+import { Account } from "../index.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 import { waitFor } from "./utils.js";
-
-const { connectedPeers } = cojsonInternals;
 
 const Crypto = await WasmCrypto.create();
 
@@ -273,36 +264,12 @@ describe("CoMap.Record", async () => {
       crypto: Crypto,
     });
 
-    class NestedRecord extends CoMap {
-      value = coField.string;
-    }
-
-    test("Is not ok to pass null into a required ref", () => {
-      class TestRecord
-        extends CoMap.Record(coField.ref(NestedRecord))
-        implements Record<string, NestedRecord | null> {}
-
-      expectTypeOf<typeof TestRecord.create>().toBeCallableWith(
-        {
-          key1: NestedRecord.create({ value: "" }, { owner: me }),
-          key2: NestedRecord.create({ value: "" }, { owner: me }),
-        },
-        { owner: me },
-      );
-
-      expectTypeOf<typeof TestRecord.create>().toBeCallableWith(
-        {
-          key1: NestedRecord.create({ value: "" }, { owner: me }),
-          key2: null,
-        },
-        { owner: me },
-      );
+    const NestedRecord = co.map({
+      value: z.string(),
     });
 
     test("Is ok to omit optional fields", () => {
-      class TestRecord
-        extends CoMap.Record(coField.ref(NestedRecord, { optional: true }))
-        implements Record<string, NestedRecord | null | undefined> {}
+      const TestRecord = co.record(z.string(), z.optional(NestedRecord));
 
       expectTypeOf<typeof TestRecord.create>().toBeCallableWith(
         {
@@ -314,7 +281,7 @@ describe("CoMap.Record", async () => {
       expectTypeOf<typeof TestRecord.create>().toBeCallableWith(
         {
           key1: NestedRecord.create({ value: "" }, { owner: me }),
-          key2: null,
+          key2: undefined,
         },
         { owner: me },
       );

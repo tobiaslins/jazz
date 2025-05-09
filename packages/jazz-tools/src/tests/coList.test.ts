@@ -1,4 +1,3 @@
-import { cojsonInternals } from "cojson";
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import {
@@ -6,17 +5,13 @@ import {
   CoList,
   CoMap,
   Group,
-  Resolved,
   coField,
-  createJazzContextFromExistingCredentials,
-  isControlledAccount,
   subscribeToCoValue,
+  z,
 } from "../index.js";
-import { randomSessionProvider } from "../internal.js";
+import { Loaded, co, zodSchemaToCoSchema } from "../internal.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 import { waitFor } from "./utils.js";
-
-const connectedPeers = cojsonInternals.connectedPeers;
 
 const Crypto = await WasmCrypto.create();
 
@@ -497,18 +492,18 @@ describe("CoList resolution", async () => {
 
 describe("CoList subscription", async () => {
   test("subscription on a locally available list with deep resolve", async () => {
-    class Item extends CoMap {
-      name = coField.string;
-    }
+    const Item = co.map({
+      name: z.string(),
+    });
 
-    class TestList extends CoList.Of(coField.ref(Item)) {}
+    const TestList = co.list(Item);
 
     const list = TestList.create(
       [Item.create({ name: "Item 1" }), Item.create({ name: "Item 2" })],
       { owner: me },
     );
 
-    const updates: Resolved<TestList, { $each: true }>[] = [];
+    const updates: Loaded<typeof TestList, { $each: true }>[] = [];
     const spy = vi.fn((list) => updates.push(list));
 
     TestList.subscribe(
@@ -541,18 +536,18 @@ describe("CoList subscription", async () => {
   });
 
   test("subscription on a locally available list with autoload", async () => {
-    class Item extends CoMap {
-      name = coField.string;
-    }
+    const Item = co.map({
+      name: z.string(),
+    });
 
-    class TestList extends CoList.Of(coField.ref(Item)) {}
+    const TestList = co.list(Item);
 
     const list = TestList.create(
       [Item.create({ name: "Item 1" }), Item.create({ name: "Item 2" })],
       { owner: me },
     );
 
-    const updates: TestList[] = [];
+    const updates: Loaded<typeof TestList>[] = [];
     const spy = vi.fn((list) => updates.push(list));
 
     TestList.subscribe(list.id, {}, spy);
@@ -577,22 +572,22 @@ describe("CoList subscription", async () => {
   });
 
   test("subscription on a locally available list with syncResolution", async () => {
-    class Item extends CoMap {
-      name = coField.string;
-    }
+    const Item = co.map({
+      name: z.string(),
+    });
 
-    class TestList extends CoList.Of(coField.ref(Item)) {}
+    const TestList = co.list(Item);
 
     const list = TestList.create(
       [Item.create({ name: "Item 1" }), Item.create({ name: "Item 2" })],
       { owner: me },
     );
 
-    const updates: TestList[] = [];
+    const updates: Loaded<typeof TestList>[] = [];
     const spy = vi.fn((list) => updates.push(list));
 
     subscribeToCoValue(
-      TestList,
+      zodSchemaToCoSchema(TestList),
       list.id,
       {
         syncResolution: true,
@@ -620,11 +615,11 @@ describe("CoList subscription", async () => {
   });
 
   test("subscription on a remotely available list with deep resolve", async () => {
-    class Item extends CoMap {
-      name = coField.string;
-    }
+    const Item = co.map({
+      name: z.string(),
+    });
 
-    class TestList extends CoList.Of(coField.ref(Item)) {}
+    const TestList = co.list(Item);
 
     const group = Group.create();
     group.addMember("everyone", "writer");
@@ -639,7 +634,7 @@ describe("CoList subscription", async () => {
 
     const userB = await createJazzTestAccount();
 
-    const updates: Resolved<TestList, { $each: true }>[] = [];
+    const updates: Loaded<typeof TestList, { $each: true }>[] = [];
     const spy = vi.fn((list) => updates.push(list));
 
     TestList.subscribe(
@@ -673,11 +668,11 @@ describe("CoList subscription", async () => {
   });
 
   test("subscription on a remotely available list with autoload", async () => {
-    class Item extends CoMap {
-      name = coField.string;
-    }
+    const Item = co.map({
+      name: z.string(),
+    });
 
-    class TestList extends CoList.Of(coField.ref(Item)) {}
+    const TestList = co.list(Item);
 
     const group = Group.create();
     group.addMember("everyone", "writer");
@@ -690,7 +685,7 @@ describe("CoList subscription", async () => {
       group,
     );
 
-    const updates: TestList[] = [];
+    const updates: Loaded<typeof TestList>[] = [];
     const spy = vi.fn((list) => updates.push(list));
 
     const userB = await createJazzTestAccount();
@@ -723,18 +718,18 @@ describe("CoList subscription", async () => {
   });
 
   test("replacing list items triggers updates", async () => {
-    class Item extends CoMap {
-      name = coField.string;
-    }
+    const Item = co.map({
+      name: z.string(),
+    });
 
-    class TestList extends CoList.Of(coField.ref(Item)) {}
+    const TestList = co.list(Item);
 
     const list = TestList.create(
       [Item.create({ name: "Item 1" }), Item.create({ name: "Item 2" })],
       { owner: me },
     );
 
-    const updates: Resolved<TestList, { $each: true }>[] = [];
+    const updates: Loaded<typeof TestList, { $each: true }>[] = [];
     const spy = vi.fn((list) => updates.push(list));
 
     TestList.subscribe(
@@ -767,11 +762,11 @@ describe("CoList subscription", async () => {
   });
 
   test("pushing a new item triggers updates correctly", async () => {
-    class Item extends CoMap {
-      name = coField.string;
-    }
+    const Item = co.map({
+      name: z.string(),
+    });
 
-    class TestList extends CoList.Of(coField.ref(Item)) {}
+    const TestList = co.list(Item);
 
     const group = Group.create();
     group.addMember("everyone", "writer");
@@ -784,7 +779,7 @@ describe("CoList subscription", async () => {
       group,
     );
 
-    const updates: TestList[] = [];
+    const updates: Loaded<typeof TestList, { $each: true }>[] = [];
     const spy = vi.fn((list) => updates.push(list));
 
     const userB = await createJazzTestAccount();
