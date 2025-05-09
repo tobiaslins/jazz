@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import * as Clipboard from "expo-clipboard";
 import { Group, ID, Profile } from "jazz-tools";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import React, {
   Button,
   FlatList,
@@ -25,19 +25,12 @@ export default function ChatScreen({ navigation }: { navigation: any }) {
   const [message, setMessage] = useState("");
   const profile = useCoState(Profile, me._refs.profile?.id, {});
 
-  const start = useRef(performance.now());
-
   function handleLogOut() {
     setChatId(undefined);
     logOut();
   }
 
   useEffect(() => {
-    console.log(
-      "loadedChat",
-      loadedChat?.id,
-      performance.now() - start.current,
-    );
     navigation.setOptions({
       headerRight: () => <Button onPress={handleLogOut} title="Logout" />,
       headerLeft: () =>
@@ -55,7 +48,7 @@ export default function ChatScreen({ navigation }: { navigation: any }) {
           />
         ) : null,
     });
-  }, [loadedChat?.id]);
+  }, [navigation, loadedChat]);
 
   const createChat = () => {
     const group = Group.create({ owner: me });
@@ -66,7 +59,6 @@ export default function ChatScreen({ navigation }: { navigation: any }) {
 
   const joinChat = () => {
     if (chatIdInput) {
-      start.current = performance.now();
       setChatId(chatIdInput as ID<Chat>);
     } else {
       Alert.alert("Error", "Chat ID cannot be empty.");
