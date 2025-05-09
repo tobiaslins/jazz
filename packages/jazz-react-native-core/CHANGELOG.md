@@ -1,5 +1,11 @@
 # jazz-browser
 
+## 0.13.22
+
+### Patch Changes
+
+- b0c2a5a: Fix the InvalidSignature errors on RNQuickCrypto
+
 ## 0.13.21
 
 ### Patch Changes
