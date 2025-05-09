@@ -1,5 +1,12 @@
 # jazz-browser
 
+## 0.13.22
+
+### Patch Changes
+
+- Updated dependencies [b0c2a5a]
+  - jazz-react-native-core@0.13.22
+
 ## 0.13.21
 
 ### Patch Changes
