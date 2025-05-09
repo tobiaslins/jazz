@@ -11,7 +11,12 @@ import {
 } from "vitest";
 import { RefsToResolve } from "../coValues/deepLoading.js";
 import { ID } from "../coValues/interfaces.js";
-import { Group, Resolved, subscribeToCoValue } from "../exports.js";
+import { Group, Resolved, co, subscribeToCoValue, z } from "../exports.js";
+import {
+  CoMapSchema,
+  InstanceOrPrimitive,
+  Loaded,
+} from "../implementation/zodSchema.js";
 import { Account, CoMap, coField, cojsonInternals } from "../index.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 import { waitFor } from "./utils.js";
@@ -32,7 +37,7 @@ beforeEach(async () => {
 describe("CoMap.Record", async () => {
   describe("init", () => {
     test("create a Record with basic property access", () => {
-      class Person extends CoMap.Record(coField.string) {}
+      const Person = co.record(z.string(), z.string());
 
       const person = Person.create({
         name: "John",
@@ -45,7 +50,7 @@ describe("CoMap.Record", async () => {
     });
 
     test("property existence", () => {
-      class Person extends CoMap.Record(coField.string) {}
+      const Person = co.record(z.string(), z.string());
 
       const person = Person.create({ name: "John" });
 
@@ -54,7 +59,7 @@ describe("CoMap.Record", async () => {
     });
 
     test("create a Record with an account as owner", () => {
-      class Person extends CoMap.Record(coField.string) {}
+      const Person = co.record(z.string(), z.string());
 
       const person = Person.create({ name: "John" }, Account.getMe());
 
@@ -63,7 +68,7 @@ describe("CoMap.Record", async () => {
     });
 
     test("create a Record with a group as owner", () => {
-      class Person extends CoMap.Record(coField.string) {}
+      const Person = co.record(z.string(), z.string());
 
       const person = Person.create({ name: "John" }, Group.create());
 
@@ -72,21 +77,19 @@ describe("CoMap.Record", async () => {
     });
 
     test("Empty schema", () => {
-      class EmptyRecord extends CoMap.Record(coField.string) {}
+      const EmptyRecord = co.record(z.string(), z.string());
       const emptyRecord = EmptyRecord.create({});
 
       expect(Object.keys(emptyRecord)).toEqual([]);
     });
 
     test("Record with reference", () => {
-      class Dog extends CoMap {
-        name = coField.string;
-        breed = coField.string;
-      }
+      const Dog = co.map({
+        name: z.string(),
+        breed: z.string(),
+      });
 
-      class Person
-        extends CoMap.Record(coField.ref(Dog, { optional: true }))
-        implements Record<string, Dog | null | undefined> {}
+      const Person = co.record(z.string(), Dog);
 
       const person = Person.create({
         pet1: Dog.create({ name: "Rex", breed: "Labrador" }),
@@ -102,7 +105,7 @@ describe("CoMap.Record", async () => {
 
   describe("Mutation", () => {
     test("change a primitive value", () => {
-      class Person extends CoMap.Record(coField.string) {}
+      const Person = co.record(z.string(), z.string());
 
       const person = Person.create({ name: "John" });
 
@@ -112,7 +115,7 @@ describe("CoMap.Record", async () => {
     });
 
     test("delete a value", () => {
-      class Person extends CoMap.Record(coField.string) {}
+      const Person = co.record(z.string(), z.string());
 
       const person = Person.create({ name: "John", age: "20" });
 
@@ -129,13 +132,11 @@ describe("CoMap.Record", async () => {
     });
 
     test("update a reference", () => {
-      class Dog extends CoMap {
-        name = coField.string;
-      }
+      const Dog = co.map({
+        name: z.string(),
+      });
 
-      class Person
-        extends CoMap.Record(coField.ref(Dog, { optional: true }))
-        implements Record<string, Dog | null | undefined> {}
+      const Person = co.record(z.string(), Dog);
 
       const person = Person.create({
         pet1: Dog.create({ name: "Rex" }),
@@ -147,7 +148,7 @@ describe("CoMap.Record", async () => {
     });
 
     test("changes should be listed in _edits", () => {
-      class Person extends CoMap.Record(coField.string) {}
+      const Person = co.record(z.string(), z.string());
 
       const person = Person.create({ name: "John" });
 
@@ -177,21 +178,19 @@ describe("CoMap.Record", async () => {
 
   describe("Record resolution", async () => {
     test("loading a locally available record with deep resolve", async () => {
-      class Dog extends CoMap {
-        name = coField.string;
-        breed = coField.string;
-      }
+      const Dog = co.map({
+        name: z.string(),
+        breed: z.string(),
+      });
 
-      class Person
-        extends CoMap.Record(coField.ref(Dog, { optional: true }))
-        implements Record<string, Dog | null | undefined> {}
+      const Person = co.record(z.string(), Dog);
 
       const person = Person.create({
         pet1: Dog.create({ name: "Rex", breed: "Labrador" }),
         pet2: Dog.create({ name: "Fido", breed: "Poodle" }),
       });
 
-      const loadedPerson = await Person.load(person.id as ID<Person>, {
+      const loadedPerson = await Person.load(person.id, {
         resolve: {
           $each: true,
         },
@@ -203,21 +202,19 @@ describe("CoMap.Record", async () => {
     });
 
     test("loading a locally available record using autoload for the refs", async () => {
-      class Dog extends CoMap {
-        name = coField.string;
-        breed = coField.string;
-      }
+      const Dog = co.map({
+        name: z.string(),
+        breed: z.string(),
+      });
 
-      class Person
-        extends CoMap.Record(coField.ref(Dog, { optional: true }))
-        implements Record<string, Dog | null | undefined> {}
+      const Person = co.record(z.string(), Dog);
 
       const person = Person.create({
         pet1: Dog.create({ name: "Rex", breed: "Labrador" }),
         pet2: Dog.create({ name: "Fido", breed: "Poodle" }),
       });
 
-      const loadedPerson = await Person.load(person.id as ID<Person>);
+      const loadedPerson = await Person.load(person.id);
 
       assert(loadedPerson);
       expect(loadedPerson.pet1?.name).toEqual("Rex");
@@ -225,24 +222,25 @@ describe("CoMap.Record", async () => {
     });
 
     test("subscription on a locally available record with deep resolve", async () => {
-      class Dog extends CoMap {
-        name = coField.string;
-        breed = coField.string;
-      }
+      const Dog = co.map({
+        name: z.string(),
+        breed: z.string(),
+      });
 
-      class Person
-        extends CoMap.Record(coField.ref(Dog, { optional: true }))
-        implements Record<string, Dog | null | undefined> {}
+      const Person = co.record(z.string(), Dog);
 
       const person = Person.create({
         pet1: Dog.create({ name: "Rex", breed: "Labrador" }),
       });
 
-      const updates: Resolved<Person, { $each: true }>[] = [];
+      type V = (typeof Person)["_zod"]["def"]["valueType"];
+      type T = InstanceOrPrimitive<typeof Person>;
+
+      const updates: Loaded<typeof Person, { $each: true }>[] = [];
       const spy = vi.fn((person) => updates.push(person));
 
       Person.subscribe(
-        person.id as ID<Person>,
+        person.id,
         {
           resolve: {
             $each: true,

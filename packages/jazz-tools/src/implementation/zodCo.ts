@@ -6,6 +6,7 @@ import {
   CoListSchema,
   CoMapInstance,
   CoMapSchema,
+  CoRecordSchema,
   FileStream,
   FileStreamSchema,
   Group,
@@ -103,6 +104,19 @@ export const coMapDefiner = <Shape extends z.core.$ZodLooseShape>(
   return coMapSchema as unknown as CoMapSchema<Shape>;
 };
 
+const coRecordDefiner = <
+  K extends z.core.$ZodString<string>,
+  V extends z.core.$ZodType,
+>(
+  _keyType: K,
+  valueType: V,
+): CoRecordSchema<K, V> => {
+  return coMapDefiner({}).catchall(valueType) as unknown as CoRecordSchema<
+    K,
+    V
+  >;
+};
+
 const coListDefiner = <T extends z.core.$ZodType>(
   element: T,
 ): CoListSchema<T> => {
@@ -155,6 +169,7 @@ export const coFileStreamDefiner = (): FileStreamSchema => {
 
 export const co = {
   map: coMapDefiner,
+  record: coRecordDefiner,
   list: coListDefiner,
   fileStream: coFileStreamDefiner,
   image: (): typeof ImageDefinition => {
