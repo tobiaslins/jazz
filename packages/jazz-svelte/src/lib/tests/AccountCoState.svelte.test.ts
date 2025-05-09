@@ -26,7 +26,7 @@ function setup() {
     personDogNameOutput: screen.getByTestId('person-dog-name')
   };
 }
-describe('CoState', () => {
+describe('AccountCoState', () => {
   it('should show the and update properties', async () => {
     const me = MyAccount.getMe()
 

@@ -12,13 +12,11 @@
 
   let props: Props = $props();
 
-  const person = $derived(
-    new CoState(Person, props.id, {
-      resolve: {
-        dog: true
-      }
-    })
-  );
+  const person = new CoState(Person, () => props.id, {
+    resolve: {
+      dog: true
+    }
+  })
 </script>
 
 <!-- Using non-null assertions because we want to test that locally available values are never null -->
