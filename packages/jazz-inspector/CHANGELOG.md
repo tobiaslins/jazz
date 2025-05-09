@@ -1,5 +1,28 @@
 # jazz-inspector
 
+## 0.13.21
+
+### Patch Changes
+
+- 7de210f: Export JazzInspectorInternal component to be used for jazz-inspector-element
+- Updated dependencies [e14e61f]
+  - cojson@0.13.21
+  - jazz-react-core@0.13.21
+  - jazz-tools@0.13.21
+
+## 0.13.20
+
+### Patch Changes
+
+- Updated dependencies [adfc9a6]
+- Updated dependencies [1389207]
+- Updated dependencies [d6e143e]
+- Updated dependencies [439f0fe]
+- Updated dependencies [3e6229d]
+  - cojson@0.13.20
+  - jazz-tools@0.13.20
+  - jazz-react-core@0.13.20
+
 ## 0.13.19
 
 ### Patch Changes

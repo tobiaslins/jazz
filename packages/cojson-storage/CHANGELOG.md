@@ -1,5 +1,23 @@
 # cojson-storage
 
+## 0.13.21
+
+### Patch Changes
+
+- Updated dependencies [e14e61f]
+  - cojson@0.13.21
+
+## 0.13.20
+
+### Patch Changes
+
+- adfc9a6: Make waitForSync work on storage peers by handling optimistic/known states
+- Updated dependencies [adfc9a6]
+- Updated dependencies [1389207]
+- Updated dependencies [d6e143e]
+- Updated dependencies [3e6229d]
+  - cojson@0.13.20
+
 ## 0.13.18
 
 ### Patch Changes

@@ -311,14 +311,10 @@ export class CoValueCore {
     }
   }
 
-  contentInClonedNodeWithDifferentAccount(
-    controlledAccountOrAgent: ControlledAccountOrAgent,
-  ): RawCoValue {
-    const newNode = this.node.cloneWithDifferentAccount(
-      controlledAccountOrAgent,
-    );
-
-    return newNode.expectCoValueLoaded(this.id).getCurrentContent();
+  contentInClonedNodeWithDifferentAccount(account: ControlledAccountOrAgent) {
+    return this.node
+      .loadCoValueAsDifferentAgent(this.id, account.agentSecret, account.id)
+      .getCurrentContent();
   }
 
   knownState(): CoValueKnownState {
