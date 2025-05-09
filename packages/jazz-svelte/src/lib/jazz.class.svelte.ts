@@ -16,7 +16,7 @@ export class CoState<V extends CoValue, R extends RefsToResolve<V> = true> {
 
     constructor(
         Schema: CoValueClass<V>,
-        id: ID<CoValue> | undefined | null | (() => ID<CoValue>),
+        id: ID<CoValue> | undefined | null | (() => ID<CoValue> | undefined | null),
         options?: { resolve?: RefsToResolveStrict<V, R> }
     ) {
         this.#Schema = Schema;
@@ -127,7 +127,7 @@ export class AccountCoState<A extends Account = RegisteredAccount, R extends Ref
             );
         }
 
-        const me = this.#ctx.current.me;
+        const me = ctx.current.me;
 
         // Setup subscription with current values
         this.#unsubscribe = subscribeToCoValue<A, R>(
@@ -145,7 +145,7 @@ export class AccountCoState<A extends Account = RegisteredAccount, R extends Ref
                 syncResolution: true,
             },
             (value) => {
-                this.updateValue(value as Resolved<V, R>);
+                this.updateValue(value as Resolved<A, R>);
             },
         );
     }

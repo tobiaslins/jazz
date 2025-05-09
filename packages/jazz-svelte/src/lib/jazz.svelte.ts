@@ -160,7 +160,7 @@ export function useAccountOrGuest<R extends RefsToResolve<RegisteredAccount>>(
 
 export function useCoState<V extends CoValue, R extends RefsToResolve<V>>(
   Schema: CoValueClass<V>,
-  id: ID<CoValue> | undefined | (() => ID<CoValue>),
+  id: ID<CoValue> | undefined | (() => ID<CoValue> | undefined),
   options?: { resolve?: RefsToResolveStrict<V, R> }
 ): {
   current: Resolved<V, R> | undefined | null;
