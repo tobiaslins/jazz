@@ -3,11 +3,15 @@ import z from "zod";
 import {
   Account,
   AnonymousJazzAgent,
+  CoFeed,
+  CoFeedInstance,
+  CoFeedSchema,
   CoListInstance,
   CoListSchema,
   CoMapInstance,
   CoMapSchema,
   CoRecordSchema,
+  CoValueClass,
   FileStream,
   FileStreamSchema,
   Group,
@@ -43,39 +47,16 @@ export const coMapDefiner = <Shape extends z.core.$ZodLooseShape>(
 
   coMapSchema.collaborative = true;
 
-  coMapSchema.create = function (
-    this: CoMapSchema<Shape>,
-    init: any,
-    options: any,
-  ) {
-    return (zodSchemaToCoSchema(this) as any).create(init, options);
+  coMapSchema.create = function (this: CoMapSchema<Shape>, ...args: any[]) {
+    return (zodSchemaToCoSchema(this) as any).create(...args);
   } as CoMapSchema<Shape>["create"];
 
-  coMapSchema.load = function <
-    R extends RefsToResolve<CoMapInstance<Shape>> = true,
-  >(
-    this: CoMapSchema<Shape>,
-    id: string,
-    options?: {
-      resolve?: RefsToResolveStrict<CoMapInstance<Shape>, R>;
-      loadAs?: Account | AnonymousJazzAgent;
-    },
-  ) {
-    return (zodSchemaToCoSchema(this) as any).load(id, options);
+  coMapSchema.load = function (this: CoMapSchema<Shape>, ...args: any[]) {
+    return (zodSchemaToCoSchema(this) as any).load(...args);
   } as CoMapSchema<Shape>["load"];
 
-  coMapSchema.subscribe = function <
-    R extends RefsToResolve<CoMapInstance<Shape>> = true,
-  >(
-    this: CoMapSchema<Shape>,
-    id: string,
-    options: SubscribeListenerOptions<CoMapInstance<Shape>, R>,
-    listener: (
-      value: Resolved<CoMapInstance<Shape>, R>,
-      unsubscribe: () => void,
-    ) => void,
-  ) {
-    return (zodSchemaToCoSchema(this) as any).subscribe(id, options, listener);
+  coMapSchema.subscribe = function (this: CoMapSchema<Shape>, ...args: any[]) {
+    return (zodSchemaToCoSchema(this) as any).subscribe(...args);
   } as CoMapSchema<Shape>["subscribe"];
 
   coMapSchema.findUnique = function (
@@ -136,42 +117,55 @@ const coListDefiner = <T extends z.core.$ZodType>(
 
   coListSchema.collaborative = true;
 
-  coListSchema.create = function (
-    this: CoListSchema<T>,
-    items: any,
-    options: any,
-  ) {
-    return (zodSchemaToCoSchema(this) as any).create(items, options);
+  coListSchema.create = function (this: CoListSchema<T>, ...args: any[]) {
+    return (zodSchemaToCoSchema(this) as any).create(...args);
   } as CoListSchema<T>["create"];
 
-  coListSchema.load = function <
-    R extends RefsToResolve<CoListInstance<T>> = true,
-  >(
-    this: CoListSchema<T>,
-    id: string,
-    options?: {
-      resolve?: RefsToResolveStrict<CoListInstance<T>, R>;
-      loadAs?: Account | AnonymousJazzAgent;
-    },
-  ) {
-    return (zodSchemaToCoSchema(this) as any).load(id, options);
+  coListSchema.load = function (this: CoListSchema<T>, ...args: any[]) {
+    return (zodSchemaToCoSchema(this) as any).load(...args);
   } as CoListSchema<T>["load"];
 
-  coListSchema.subscribe = function <
-    R extends RefsToResolve<CoListInstance<T>> = true,
-  >(
-    this: CoListSchema<T>,
-    id: string,
-    options: SubscribeListenerOptions<CoListInstance<T>, R>,
-    listener: (
-      value: Resolved<CoListInstance<T>, R>,
-      unsubscribe: () => void,
-    ) => void,
-  ) {
-    return (zodSchemaToCoSchema(this) as any).subscribe(id, options, listener);
+  coListSchema.subscribe = function (this: CoListSchema<T>, ...args: any[]) {
+    return (zodSchemaToCoSchema(this) as any).subscribe(...args);
   } as CoListSchema<T>["subscribe"];
 
   return coListSchema;
+};
+
+const coFeedDefiner = <T extends z.core.$ZodType>(
+  element: T,
+): CoFeedSchema<T> => {
+  const placeholderSchema = z.instanceof(CoFeed);
+
+  const coFeedSchema = placeholderSchema as unknown as Pick<
+    typeof placeholderSchema,
+    "_zod" | "def" | "~standard"
+  > & {
+    collaborative: true;
+    builtin: "CoFeed";
+    element: T;
+    create: CoFeedSchema<T>["create"];
+    load: CoFeedSchema<T>["load"];
+    subscribe: CoFeedSchema<T>["subscribe"];
+  };
+
+  coFeedSchema.collaborative = true;
+  coFeedSchema.builtin = "CoFeed";
+  coFeedSchema.element = element;
+
+  coFeedSchema.create = function (this: CoFeedSchema<T>, ...args: any[]) {
+    return (zodSchemaToCoSchema(this) as any).create(...args);
+  } as CoFeedSchema<T>["create"];
+
+  coFeedSchema.load = function (this: CoFeedSchema<T>, ...args: any[]) {
+    return (zodSchemaToCoSchema(this) as any).load(...args);
+  } as CoFeedSchema<T>["load"];
+
+  coFeedSchema.subscribe = function (this: CoFeedSchema<T>, ...args: any[]) {
+    return (zodSchemaToCoSchema(this) as any).subscribe(...args);
+  } as CoFeedSchema<T>["subscribe"];
+
+  return coFeedSchema as unknown as CoFeedSchema<T>;
 };
 
 export const coFileStreamDefiner = (): FileStreamSchema => {
@@ -182,17 +176,16 @@ export const coFileStreamDefiner = (): FileStreamSchema => {
     "_zod" | "def" | "~standard"
   > & {
     collaborative: true;
-    builtin: typeof FileStream;
+    builtin: "FileStream";
     create: (typeof FileStream)["create"];
   };
 
   fileStreamSchema.collaborative = true;
+  fileStreamSchema.builtin = "FileStream";
 
   fileStreamSchema.create = function (options: any) {
     return FileStream.create(options);
   } as (typeof FileStream)["create"];
-
-  fileStreamSchema.builtin = FileStream;
 
   return fileStreamSchema;
 };
@@ -201,6 +194,7 @@ export const co = {
   map: coMapDefiner,
   record: coRecordDefiner,
   list: coListDefiner,
+  feed: coFeedDefiner,
   fileStream: coFileStreamDefiner,
   image: (): typeof ImageDefinition => {
     return ImageDefinition;

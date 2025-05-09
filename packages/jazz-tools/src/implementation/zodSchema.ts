@@ -3,6 +3,7 @@ import z from "zod";
 import {
   Account,
   AnonymousJazzAgent,
+  CoFeed,
   CoList,
   CoMap,
   CoMapInit,
@@ -162,7 +163,7 @@ export type CoListSchema<T extends z.core.$ZodType> = z.core.$ZodArray<T> & {
   ) => CoList<InstanceOrPrimitive<T>>;
 
   load<const R extends RefsToResolve<CoListInstance<T>> = true>(
-    id: ID<CoListInstance<T>>,
+    id: string,
     options?: {
       resolve?: RefsToResolveStrict<CoListInstance<T>, R>;
       loadAs?: Account | AnonymousJazzAgent;
@@ -170,10 +171,47 @@ export type CoListSchema<T extends z.core.$ZodType> = z.core.$ZodArray<T> & {
   ): Promise<Resolved<CoListInstance<T>, R> | null>;
 
   subscribe<const R extends RefsToResolve<CoListInstance<T>> = true>(
-    id: ID<CoListInstance<T>>,
+    id: string,
     options: SubscribeListenerOptions<CoListInstance<T>, R>,
     listener: (
       value: Resolved<CoListInstance<T>, R>,
+      unsubscribe: () => void,
+    ) => void,
+  ): () => void;
+};
+
+export type CoFeedSchema<T extends z.core.$ZodType> = z.core.$ZodCustom<
+  CoFeed<T>,
+  unknown
+> & {
+  collaborative: true;
+  element: T;
+
+  create(
+    init: InstanceOrPrimitive<T>[],
+    options?: { owner: Account | Group } | Account | Group,
+  ): CoFeedInstance<T>;
+
+  load<const R extends RefsToResolve<CoFeedInstance<T>> = true>(
+    id: string,
+    options?: {
+      resolve?: RefsToResolveStrict<CoFeedInstance<T>, R>;
+      loadAs?: Account | AnonymousJazzAgent;
+    },
+  ): Promise<Resolved<CoFeedInstance<T>, R> | null>;
+
+  subscribe(
+    id: string,
+    listener: (
+      value: Resolved<CoFeedInstance<T>, true>,
+      unsubscribe: () => void,
+    ) => void,
+  ): () => void;
+  subscribe<const R extends RefsToResolve<CoFeedInstance<T>> = true>(
+    id: string,
+    options: SubscribeListenerOptions<CoFeedInstance<T>, R>,
+    listener: (
+      value: Resolved<CoFeedInstance<T>, R>,
       unsubscribe: () => void,
     ) => void,
   ): () => void;
@@ -189,7 +227,11 @@ let coSchemasForZodSchemas = new Map<z.core.$ZodType, CoValueClass>();
 export function zodSchemaToCoSchema<
   S extends
     | z.core.$ZodType
-    | (z.core.$ZodCustom<any, any> & { builtin: CoValueClass }),
+    | (z.core.$ZodCustom<any, any> & { builtin: "FileStream" })
+    | (z.core.$ZodCustom<any, any> & {
+        builtin: "CoFeed";
+        element: z.core.$ZodType;
+      }),
 >(schema: S): CoValueClassOrPrimitiveFromZodSchema<S> {
   if ("collaborative" in schema && schema.collaborative) {
     if (coSchemasForZodSchemas.has(schema)) {
@@ -231,7 +273,15 @@ export function zodSchemaToCoSchema<
       return coSchema as unknown as CoValueClassOrPrimitiveFromZodSchema<S>;
     } else if (schema._zod.def.type === "custom") {
       if ("builtin" in schema) {
-        return schema.builtin as CoValueClassOrPrimitiveFromZodSchema<S>;
+        if (schema.builtin === "CoFeed") {
+          return CoFeed.Of(
+            fieldDef(zodSchemaToCoSchema(schema.element)),
+          ) as unknown as CoValueClassOrPrimitiveFromZodSchema<S>;
+        } else if (schema.builtin === "FileStream") {
+          return FileStream as unknown as CoValueClassOrPrimitiveFromZodSchema<S>;
+        } else {
+          throw new Error(`Unsupported builtin type: ${schema.builtin}`);
+        }
       } else {
         throw new Error(`Unsupported custom zod type`);
       }
@@ -411,6 +461,9 @@ export type AnyCoRecordSchema<
 export type AnyCoListSchema<T extends z.core.$ZodType = z.core.$ZodType> =
   z.core.$ZodArray<T> & { collaborative: true };
 
+export type AnyCoFeedSchema<T extends z.core.$ZodType = z.core.$ZodType> =
+  z.core.$ZodCustom<CoFeed<T>, unknown> & { collaborative: true };
+
 export type CoValueClassOrPrimitiveFromZodSchema<S extends z.core.$ZodType> =
   S extends AnyCoMapSchema
     ? CoMapClass<S["_zod"]["def"]["shape"]>
@@ -496,21 +549,21 @@ export type CoListClass<T extends z.core.$ZodType> = typeof CoList<
       options?: { owner: Account | Group } | Account | Group,
     ): CoListInstance<T>;
     load<const R extends RefsToResolve<CoListInstance<T>> = true>(
-      id: ID<CoListInstance<T>>,
+      id: string,
       options?: {
         resolve?: RefsToResolveStrict<CoListInstance<T>, R>;
         loadAs?: Account | AnonymousJazzAgent;
       },
     ): Promise<Resolved<CoListInstance<T>, R> | null>;
     subscribe<const R extends RefsToResolve<CoListInstance<T>> = true>(
-      id: ID<CoListInstance<T>>,
+      id: string,
       listener: (
         value: Resolved<CoListInstance<T>, R>,
         unsubscribe: () => void,
       ) => void,
     ): () => void;
     subscribe<const R extends RefsToResolve<CoListInstance<T>> = true>(
-      id: ID<CoListInstance<T>>,
+      id: string,
       options: SubscribeListenerOptions<CoListInstance<T>, R>,
       listener: (
         value: Resolved<CoListInstance<T>, R>,
@@ -518,16 +571,21 @@ export type CoListClass<T extends z.core.$ZodType> = typeof CoList<
       ) => void,
     ): () => void;
     subscribe<const R extends RefsToResolve<CoListInstance<T>>>(
-      id: ID<CoListInstance<T>>,
+      id: string,
       ...args: SubscribeRestArgs<CoListInstance<T>, R>
     ): () => void;
   };
+
+export type CoFeedInstance<T extends z.core.$ZodType> = CoFeed<
+  InstanceOrPrimitive<T>
+>;
 
 export type CoValueOrZodSchema =
   | CoValueClass
   | AnyCoMapSchema
   | AnyCoRecordSchema
-  | AnyCoListSchema;
+  | AnyCoListSchema
+  | AnyCoFeedSchema;
 
 export type InstanceOrPrimitive<S extends CoValueClass | z.core.$ZodType> =
   S extends z.core.$ZodType
@@ -546,25 +604,27 @@ export type InstanceOrPrimitive<S extends CoValueClass | z.core.$ZodType> =
             CoMap
         : S extends AnyCoListSchema<infer T>
           ? CoList<InstanceOrPrimitive<T>>
-          : S extends z.core.$ZodOptional<infer Inner>
-            ? InstanceOrPrimitive<Inner> | undefined
-            : S extends z.core.$ZodTuple<infer Items>
-              ? {
-                  [key in keyof Items]: InstanceOrPrimitive<Items[key]>;
-                }
-              : S extends z.core.$ZodUnion<infer Members>
-                ? InstanceOrPrimitive<Members[number]>
-                : S extends z.core.$ZodString
-                  ? string
-                  : S extends z.core.$ZodNumber
-                    ? number
-                    : S extends z.core.$ZodBoolean
-                      ? boolean
-                      : S extends z.core.$ZodLiteral<infer Literal>
-                        ? Literal
-                        : S extends z.core.$ZodDate
-                          ? Date
-                          : never
+          : S extends AnyCoFeedSchema<infer T>
+            ? CoFeed<InstanceOrPrimitive<T>>
+            : S extends z.core.$ZodOptional<infer Inner>
+              ? InstanceOrPrimitive<Inner> | undefined
+              : S extends z.core.$ZodTuple<infer Items>
+                ? {
+                    [key in keyof Items]: InstanceOrPrimitive<Items[key]>;
+                  }
+                : S extends z.core.$ZodUnion<infer Members>
+                  ? InstanceOrPrimitive<Members[number]>
+                  : S extends z.core.$ZodString
+                    ? string
+                    : S extends z.core.$ZodNumber
+                      ? number
+                      : S extends z.core.$ZodBoolean
+                        ? boolean
+                        : S extends z.core.$ZodLiteral<infer Literal>
+                          ? Literal
+                          : S extends z.core.$ZodDate
+                            ? Date
+                            : never
     : S extends CoValueClass
       ? InstanceType<S>
       : never;
