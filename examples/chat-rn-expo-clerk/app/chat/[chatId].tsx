@@ -84,8 +84,8 @@ export default function Conversation() {
     if (message.trim()) {
       chat.push(
         Message.create(
-          { text: CoPlainText.create(message, { owner: chat._owner }) },
-          { owner: chat._owner },
+          { text: CoPlainText.create(message, chat._owner) },
+          chat._owner,
         ),
       );
       setMessage("");
@@ -111,8 +111,8 @@ export default function Conversation() {
 
         chat.push(
           Message.create(
-            { text: CoPlainText.create("", { owner: chat._owner }), image },
-            { owner: chat._owner },
+            { text: CoPlainText.create("", chat._owner), image },
+            chat._owner,
           ),
         );
       }
