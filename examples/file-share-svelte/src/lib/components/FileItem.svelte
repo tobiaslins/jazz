@@ -61,6 +61,8 @@
     </div>
     <div class="flex-grow">
       {#if isAdmin}
+        <!-- Jazz values are reactive, but they are not recognized as reactive by Svelte -->
+        <!-- svelte-ignore binding_property_non_reactive -->
         <input  class="font-medium text-gray-900 w-full py-1" type="text" bind:value={file.name} />
       {:else}
         <h3 class="font-medium text-gray-900">{file.name}</h3>
