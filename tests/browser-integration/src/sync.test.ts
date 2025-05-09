@@ -257,6 +257,6 @@ describe("Browser sync", () => {
 
       expect(account).toBeDefined();
     },
-    { skip: process.env.CI },
+    { skip: import.meta.env.CI },
   );
 });
