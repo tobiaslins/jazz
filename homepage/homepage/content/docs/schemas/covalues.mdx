@@ -28,43 +28,45 @@ Thinking about the shape of your data is also a great first step to model your a
 
 Even before you know the details of how your app will work, you'll probably know which kinds of objects it will deal with, and how they relate to each other.
 
-Jazz makes it quick to declare schemas, since they are simple TypeScript classes:
+TODO: UPDATE THIS Jazz makes it quick to declare schemas, since they are simple TypeScript classes:
 
 <CodeGroup>
 ```ts twoslash
-import { co, CoMap, CoList } from "jazz-tools";
-class ListOfTasks extends CoList.Of(co.string) {}
+import { co, z, CoMap, CoList } from "jazz-tools";
 // ---cut---
 // schema.ts
-export class TodoProject extends CoMap {
-  title = coField.string;
-  tasks = coField.ref(ListOfTasks);
-}
+const ListOfTasks = co.list(z.string());
+
+export const TodoProject = co.map({
+  title: z.string(),
+  tasks: ListOfTasks,
+});
 ```
 </CodeGroup>
 
-Here you can see how we extend a CoValue type and use `co` for declaring (collaboratively) editable fields. This means that schema info is available for type inference *and* at runtime.
+TODO: UPDATE THIS Here you can see how we extend a CoValue type and use `co` for declaring (collaboratively) editable fields. This means that schema info is available for type inference *and* at runtime.
 
-Classes might look old-fashioned, but Jazz makes use of them being both types and values in TypeScript, letting you refer to either with a single definition and import.
+TODO: UPDATE THIS Classes might look old-fashioned, but Jazz makes use of them being both types and values in TypeScript, letting you refer to either with a single definition and import.
 
 <CodeGroup>
 ```ts twoslash
 // @filename: schema.ts
-import { co, CoMap, CoList } from "jazz-tools";
+import { co, z, CoMap, CoList } from "jazz-tools";
 
-export class ListOfTasks extends CoList.Of(co.string) {}
+export const ListOfTasks = co.list(z.string());
 
-export class TodoProject extends CoMap {
-  title = co.string;
-  tasks = co.ref(ListOfTasks);
-}
+export const TodoProject = co.map({
+  title: z.string(),
+  tasks: ListOfTasks,
+});
+
 // @filename: app.ts
 import { Group } from "jazz-tools";
 // ---cut---
 // app.ts
 import { TodoProject, ListOfTasks } from "./schema";
 
-const project: TodoProject = TodoProject.create(
+const project = TodoProject.create(
   {
     title: "New Project",
     tasks: ListOfTasks.create([], Group.create()),
@@ -85,12 +87,12 @@ You can either declare struct-like CoMaps:
 <CodeGroup>
 ```ts twoslash
 // schema.ts
-import { coField, CoMap } from "jazz-tools";
+import { co, z } from "jazz-tools";
 // ---cut---
-export class Task extends CoMap {
-  title = coField.string;
-  completed = coField.boolean;
-}
+const Task = co.map({
+  title: z.string(),
+  completed: z.boolean(),
+});
 ```
 </CodeGroup>
 
@@ -98,15 +100,15 @@ Or record-like CoMaps (key-value pairs, where keys are always `string`):
 
 <CodeGroup>
 ```ts twoslash
-import { coField, CoMap } from "jazz-tools";
-class Fruit extends CoMap {
-  name = coField.string;
-  color = coField.string;
-}
+import { co, z } from "jazz-tools";
+const Fruit = co.map({
+  name: z.string(),
+  color: z.string(),
+});
 // ---cut---
-class ColorToHex extends CoMap.Record(coField.string) {}
+const ColorToHex = co.record(z.string(), z.string());
 
-class ColorToFruit extends CoMap.Record(coField.ref(Fruit)) {}
+const ColorToFruit = co.record(z.string(), Fruit);
 ```
 </CodeGroup>
 
@@ -124,15 +126,14 @@ You define them by specifying the type of the items they contain:
 
 <CodeGroup>
 ```ts twoslash
-import { coField, CoList, CoMap } from "jazz-tools";
-class Task extends CoMap {
-  title = coField.string;
-  completed = coField.boolean;
-}
+import { co, z } from "jazz-tools";
+const Task = co.map({
+  title: z.string(),
+  completed: z.boolean(),
+});
 // ---cut---
-class ListOfColors extends CoList.Of(coField.string) {}
-
-class ListOfTasks extends CoList.Of(coField.ref(Task)) {}
+const ListOfColors = co.list(z.string());
+const ListOfTasks = co.list(Task);
 ```
 </CodeGroup>
 
@@ -151,11 +152,11 @@ You define them by specifying the type of feed item:
 
 <CodeGroup>
 ```ts twoslash
-import { coField, CoFeed, CoMap } from "jazz-tools";
-class Task extends CoMap {
-  title = coField.string;
-  completed = coField.boolean;
-}
+import { co, z, CoFeed } from "jazz-tools";
+const Task = co.map({
+  title: z.string(),
+  completed: z.boolean(),
+});
 // ---cut---
 class FeedOfTasks extends CoFeed.Of(coField.ref(Task)) {}
 ```
@@ -176,14 +177,12 @@ You typically don't need to declare or extend them yourself, you simply refer to
 
 <CodeGroup>
 ```ts twoslash
-import { coField, CoMap } from "jazz-tools";
+import { co, z } from "jazz-tools";
 // ---cut---
-import { FileStream } from "jazz-tools";
-
-class Document extends CoMap {
-  title = coField.string;
-  file = coField.ref(FileStream);
-}
+const Document = co.map({
+  title: z.string(),
+  file: co.file(),
+});
 ```
 </CodeGroup>
 
@@ -325,28 +324,38 @@ class Person extends CoMap {
 
 ### Computed fields & methods
 
-Since CoValue schemas are based on classes, you can easily add computed fields and methods:
+You can use the `withHelpers` method on CoValue schemas to add helper functions to the schema itself.
+
+These typically take a parameter of a loaded CoValue of the schema.
 
 <CodeGroup>
 ```ts twoslash
-import { co, CoMap } from "jazz-tools";
+import { co, z, CoMap, Loaded } from "jazz-tools";
 function differenceInYears(date1: Date, date2: Date) {
   const diffTime = Math.abs(date1.getTime() - date2.getTime());
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 365.25));
 }
 // ---cut---
-class Person extends CoMap {
-  firstName = coField.string;
-  lastName = coField.string;
-  dateOfBirth = coField.Date;
-
-  get name() {
-    return `${this.firstName} ${this.lastName}`;
+const Person = co.map({
+  firstName: z.string(),
+  lastName: z.string(),
+  dateOfBirth: z.Date(),
+}).withHelpers({
+  name(person: Loaded<typeof Person>) {
+    return `${person.firstName} ${person.lastName}`;
   }
 
-  ageAsOf(date: Date) {
-    return differenceInYears(date, this.dateOfBirth);
+  ageAsOf(person: Loaded<typeof Person>, date: Date) {
+    return differenceInYears(date, person.dateOfBirth);
   }
-}
+});
+
+const person = Person.create({
+  firstName: "John",
+  lastName: "Doe",
+  dateOfBirth: new Date("1990-01-01"),
+});
+
+const age = Person.ageAsOf(person, new Date());
 ```
 </CodeGroup>
