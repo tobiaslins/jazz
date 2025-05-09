@@ -1,5 +1,11 @@
 # jazz-svelte
 
+## 0.13.24
+
+### Patch Changes
+
+- ec546b4: Fix return type of the id callback to accept undefined values
+
 ## 0.13.23
 
 ### Patch Changes
