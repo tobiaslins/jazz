@@ -61,9 +61,10 @@
     </div>
     <div class="flex-grow">
       {#if isAdmin}
+        <label class="sr-only" for={`file-name-${file.id}`}>File name</label>
         <!-- Jazz values are reactive, but they are not recognized as reactive by Svelte -->
         <!-- svelte-ignore binding_property_non_reactive -->
-        <input  class="font-medium text-gray-900 w-full py-1" type="text" bind:value={file.name} />
+        <input class="font-medium text-gray-900 w-full py-1" type="text" bind:value={file.name} id={`file-name-${file.id}`} />
       {:else}
         <h3 class="font-medium text-gray-900">{file.name}</h3>
       {/if}
