@@ -91,7 +91,7 @@ export class RawCoPlainText<
     let idxBefore = 0;
 
     for (const entry of entries) {
-      const idxAfter = idxBefore + entry.value.length;
+      const idxAfter = idxBefore + 1;
 
       mapping.opIDafterIdx[idxBefore] = entry.opID;
       mapping.opIDbeforeIdx[idxAfter] = entry.opID;
@@ -151,8 +151,12 @@ export class RawCoPlainText<
     text: string,
     privacy: "private" | "trusting" = "private",
   ) {
-    const graphemes = [...this._segmenter.segment(text)].map((g) => g.segment);
-    this.appendItems(graphemes, idx, privacy);
+    const graphemes = [...splitGraphemes(text)];
+    if (idx >= this.entries().length) {
+      this.appendItems(graphemes, idx - 1, privacy);
+    } else {
+      this.appendItems(graphemes, idx, privacy);
+    }
   }
 
   deleteRange(
