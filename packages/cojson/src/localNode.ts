@@ -322,6 +322,14 @@ export class LocalNode {
     id: RawCoID,
     skipLoadingFromPeer?: PeerID,
   ): Promise<CoValueCore> {
+    if (!id) {
+      throw new Error("Trying to load CoValue with undefined id");
+    }
+
+    if (!id.startsWith("co_z")) {
+      throw new Error(`Trying to load CoValue with invalid id ${id}`);
+    }
+
     if (this.crashed) {
       throw new Error("Trying to load CoValue after node has crashed", {
         cause: this.crashed,
@@ -376,14 +384,6 @@ export class LocalNode {
    * @category 3. Low-level
    */
   async load<T extends RawCoValue>(id: CoID<T>): Promise<T | "unavailable"> {
-    if (!id) {
-      throw new Error("Trying to load CoValue with undefined id");
-    }
-
-    if (!id.startsWith("co_z")) {
-      throw new Error(`Trying to load CoValue with invalid id ${id}`);
-    }
-
     const core = await this.loadCoValueCore(id);
 
     if (!core.isAvailable()) {
