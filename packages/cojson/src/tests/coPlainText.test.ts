@@ -204,3 +204,42 @@ test("insertBefore and insertAfter work as expected", () => {
   content.insertBefore(0, "!", "trusting"); // "!hey"
   expect(content.toString()).toEqual("!hey");
 });
+
+test("Handles complex grapheme clusters correctly", () => {
+  const node = nodeWithRandomAgentAndSessionID();
+  const coValue = node.createCoValue({
+    type: "coplaintext",
+    ruleset: { type: "unsafeAllowAll" },
+    meta: null,
+    ...Crypto.createdNowUnique(),
+  });
+  const content = expectPlainText(coValue.getCurrentContent());
+
+  // Combining marks (should be treated as one grapheme each)
+  const combining = "a̐éö̲"; // 3 graphemes: [a̐][é][ö̲]
+  content.insertAfter(0, combining, "trusting");
+  expect(content.toString()).toEqual(combining);
+  content.deleteRange({ from: 1, to: 2 }, "trusting");
+  expect(content.toString()).toEqual("a̐ö̲");
+
+  // ZWJ emoji (family)
+  const family = "👨‍👩‍👧‍👦"; // 1 grapheme
+  content.insertAfter(2, family, "trusting");
+  expect(content.toString()).toEqual("a̐ö̲👨‍👩‍👧‍👦");
+  content.deleteRange({ from: 2, to: 3 }, "trusting");
+  expect(content.toString()).toEqual("a̐ö̲");
+
+  // Flag emoji (regional indicators)
+  const flag = "🇺🇸"; // 1 grapheme
+  content.insertAfter(2, flag, "trusting");
+  expect(content.toString()).toEqual("a̐ö̲🇺🇸");
+  content.deleteRange({ from: 2, to: 3 }, "trusting");
+  expect(content.toString()).toEqual("a̐ö̲");
+
+  // Emoji with skin tone modifier
+  const thumbsUp = "👍🏽"; // 1 grapheme
+  content.insertAfter(2, thumbsUp, "trusting");
+  expect(content.toString()).toEqual("a̐ö̲👍🏽");
+  content.deleteRange({ from: 2, to: 3 }, "trusting");
+  expect(content.toString()).toEqual("a̐ö̲");
+});
