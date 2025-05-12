@@ -3,7 +3,7 @@ import { unlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { LocalNode, cojsonInternals } from "cojson";
-import { SyncManager } from "cojson-storage";
+import { StorageManagerSync } from "cojson-storage";
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { expect, onTestFinished, test, vi } from "vitest";
 import { SQLiteNode } from "../index.js";
@@ -322,7 +322,7 @@ test("should recover from data loss", async () => {
   await new Promise((resolve) => setTimeout(resolve, 200));
 
   const mock = vi
-    .spyOn(SyncManager.prototype, "handleSyncMessage")
+    .spyOn(StorageManagerSync.prototype, "handleSyncMessage")
     .mockImplementation(() => Promise.resolve());
 
   map.set("1", 1);

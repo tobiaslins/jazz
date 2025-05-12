@@ -6,11 +6,11 @@ import {
   cojsonInternals,
   logger,
 } from "cojson";
-import { SyncManager, type TransactionRow } from "cojson-storage";
+import { StorageManagerSync, type TransactionRow } from "cojson-storage";
 import { SQLiteClient } from "./sqliteClient.js";
 
 export class SQLiteNode {
-  private readonly syncManager: SyncManager;
+  private readonly syncManager: StorageManagerSync;
   private readonly dbClient: SQLiteClient;
 
   constructor(
@@ -19,7 +19,7 @@ export class SQLiteNode {
     toLocalNode: OutgoingSyncQueue,
   ) {
     this.dbClient = new SQLiteClient(db, toLocalNode);
-    this.syncManager = new SyncManager(this.dbClient, toLocalNode);
+    this.syncManager = new StorageManagerSync(this.dbClient, toLocalNode);
 
     const processMessages = async () => {
       let lastTimer = performance.now();
