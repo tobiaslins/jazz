@@ -3,6 +3,7 @@ import { CoID } from "./coValue.js";
 import { RawCoValue } from "./coValue.js";
 import {
   AvailableCoValueCore,
+  CO_VALUE_LOADING_CONFIG,
   CoValueCore,
   idforHeader,
 } from "./coValueCore/coValueCore.js";
@@ -352,11 +353,16 @@ export class LocalNode {
       }
 
       const result = await coValue.waitForAvailableOrUnavailable();
-      if (result.isAvailable() || retries >= 1) {
+      if (
+        result.isAvailable() ||
+        retries >= CO_VALUE_LOADING_CONFIG.MAX_RETRIES
+      ) {
         return result;
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await new Promise((resolve) =>
+        setTimeout(resolve, CO_VALUE_LOADING_CONFIG.RETRY_DELAY),
+      );
 
       retries++;
     }
