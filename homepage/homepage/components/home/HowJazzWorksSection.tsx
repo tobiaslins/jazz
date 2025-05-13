@@ -1,8 +1,8 @@
-import { clsx } from "clsx";
 import { Card } from "@garden-co/design-system/src/components/atoms/Card";
 import { H2 } from "@garden-co/design-system/src/components/atoms/Headings";
 import { Kicker } from "@garden-co/design-system/src/components/atoms/Kicker";
 import { GappedGrid } from "@garden-co/design-system/src/components/molecules/GappedGrid";
+import { clsx } from "clsx";
 import CodeStepAction from "./CodeStepAction.mdx";
 import CodeStepCloud from "./CodeStepCloud.mdx";
 import CodeStepRender from "./CodeStepRender.mdx";
@@ -21,7 +21,7 @@ function Code({
     <div
       className={clsx(
         className,
-        "w-full h-full relative -right-2 -bottom-1 max-w-full lg:max-w-[480px] overflow-x-auto ml-auto overflow-hidden",
+        "w-full h-full relative -right-2 -bottom-1 max-w-full lg:max-w-[500px] ml-auto",
         "shadow-xl shadow-blue/20",
         "rounded-tl-lg border",
         "flex-1 bg-white ring ring-4 ring-stone-400/20",
@@ -33,7 +33,9 @@ function Code({
           {fileName}
         </span>
       </div>
-      <pre className="text-xs lg:text-sm p-1 pb-2">{children}</pre>
+      <pre className="text-xs lg:text-sm p-1 pb-2 overflow-x-auto">
+        {children}
+      </pre>
     </div>
   );
 }

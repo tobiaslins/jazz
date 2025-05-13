@@ -1,5 +1,98 @@
 # todo-vue
 
+## 0.0.94
+
+### Patch Changes
+
+- jazz-browser@0.13.27
+- jazz-tools@0.13.27
+- jazz-vue@0.13.27
+
+## 0.0.93
+
+### Patch Changes
+
+- Updated dependencies [ff846d9]
+  - jazz-tools@0.13.26
+  - jazz-browser@0.13.26
+  - jazz-vue@0.13.26
+
+## 0.0.92
+
+### Patch Changes
+
+- jazz-browser@0.13.25
+- jazz-tools@0.13.25
+- jazz-vue@0.13.25
+
+## 0.0.91
+
+### Patch Changes
+
+- Updated dependencies [02a240c]
+  - jazz-tools@0.13.23
+  - jazz-browser@0.13.23
+  - jazz-vue@0.13.23
+
+## 0.0.90
+
+### Patch Changes
+
+- jazz-browser@0.13.21
+- jazz-tools@0.13.21
+- jazz-vue@0.13.21
+
+## 0.0.89
+
+### Patch Changes
+
+- Updated dependencies [439f0fe]
+  - jazz-tools@0.13.20
+  - jazz-browser@0.13.20
+  - jazz-vue@0.13.20
+
+## 0.0.88
+
+### Patch Changes
+
+- Updated dependencies [80530a4]
+  - jazz-tools@0.13.19
+  - jazz-browser@0.13.19
+  - jazz-vue@0.13.19
+
+## 0.0.87
+
+### Patch Changes
+
+- Updated dependencies [761759c]
+  - jazz-tools@0.13.18
+  - jazz-browser@0.13.18
+  - jazz-vue@0.13.18
+
+## 0.0.86
+
+### Patch Changes
+
+- jazz-browser@0.13.17
+- jazz-tools@0.13.17
+- jazz-vue@0.13.17
+
+## 0.0.85
+
+### Patch Changes
+
+- jazz-browser@0.13.16
+- jazz-tools@0.13.16
+- jazz-vue@0.13.16
+
+## 0.0.84
+
+### Patch Changes
+
+- jazz-browser@0.13.15
+- jazz-tools@0.13.15
+- jazz-vue@0.13.15
+
 ## 0.0.83
 
 ### Patch Changes
