@@ -2,7 +2,11 @@ import { CoValueUniqueness } from "cojson";
 import z from "zod";
 import {
   Account,
+  AccountCreationProps,
+  AccountInstance,
+  AccountSchema,
   AnonymousJazzAgent,
+  AnyCoMapSchema,
   CoFeed,
   CoFeedInstance,
   CoFeedSchema,
@@ -16,6 +20,7 @@ import {
   FileStreamSchema,
   Group,
   ImageDefinition,
+  ProfileSchema,
   RefsToResolve,
   RefsToResolveStrict,
   Resolved,
@@ -84,6 +89,71 @@ export const coMapDefiner = <Shape extends z.core.$ZodLooseShape>(
   } as CoMapSchema<Shape>["withHelpers"];
 
   return coMapSchema as unknown as CoMapSchema<Shape>;
+};
+
+const coAccountDefiner = <
+  Shape extends {
+    profile: AnyCoMapSchema<{ name: z.core.$ZodString<string> }>;
+    root: AnyCoMapSchema;
+  },
+>(
+  shape: Shape,
+): AccountSchema<Shape> => {
+  const objectSchema = z.object(shape).meta({
+    collaborative: true,
+  });
+
+  type CleanedType = Pick<
+    typeof objectSchema,
+    "_zod" | "def" | "~standard" | "catchall"
+  >;
+
+  const accountSchema = objectSchema as unknown as CleanedType & {
+    collaborative: true;
+    builtin: "Account";
+    migration?: (
+      account: AccountInstance<Shape>,
+      creationProps?: AccountCreationProps,
+    ) => void;
+
+    load: AccountSchema<Shape>["load"];
+    subscribe: AccountSchema<Shape>["subscribe"];
+    withHelpers: AccountSchema<Shape>["withHelpers"];
+    withMigration: AccountSchema<Shape>["withMigration"];
+  };
+
+  accountSchema.collaborative = true;
+  accountSchema.builtin = "Account";
+
+  accountSchema.load = function (this: AccountSchema<Shape>, ...args: any[]) {
+    return (zodSchemaToCoSchema(this) as any).load(...args);
+  } as AccountSchema<Shape>["load"];
+
+  accountSchema.subscribe = function (
+    this: AccountSchema<Shape>,
+    ...args: any[]
+  ) {
+    return (zodSchemaToCoSchema(this) as any).subscribe(...args);
+  } as AccountSchema<Shape>["subscribe"];
+
+  accountSchema.withHelpers = function (
+    this: CoMapSchema<Shape>,
+    helpers: object,
+  ) {
+    return { ...this, ...helpers };
+  } as CoMapSchema<Shape>["withHelpers"];
+
+  accountSchema.withMigration = function (
+    this: AccountSchema<Shape>,
+    migration: (
+      account: AccountInstance<Shape>,
+      creationProps?: AccountCreationProps,
+    ) => void,
+  ) {
+    return { ...this, migration };
+  } as AccountSchema<Shape>["withMigration"];
+
+  return accountSchema as unknown as AccountSchema<Shape>;
 };
 
 const coRecordDefiner = <
@@ -199,4 +269,5 @@ export const co = {
   image: (): typeof ImageDefinition => {
     return ImageDefinition;
   },
+  account: coAccountDefiner,
 };

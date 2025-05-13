@@ -1,7 +1,7 @@
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { assert, beforeEach, describe, expect, test } from "vitest";
-import { Account, CoMap, Group, Profile, coField } from "../exports.js";
-import { Ref } from "../internal.js";
+import { Account, CoMap, Group, Profile, coField, z } from "../exports.js";
+import { Loaded, Ref, co } from "../internal.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 import { setupTwoNodes, waitFor } from "./utils.js";
 
@@ -17,26 +17,31 @@ beforeEach(async () => {
 
 describe("Custom accounts and groups", async () => {
   test("Custom account and group", async () => {
-    class CustomProfile extends Profile {
-      name = coField.string;
-      color = coField.string;
-    }
+    const CustomProfile = co.map({
+      name: z.string(),
+      color: z.string(),
+    });
 
-    class CustomAccount extends Account {
-      profile = coField.ref(CustomProfile);
-      root = coField.ref(CoMap);
-
-      migrate(this: CustomAccount, creationProps?: { name: string }) {
-        if (creationProps) {
-          const profileGroup = Group.create({ owner: this });
-          profileGroup.addMember("everyone", "reader");
-          this.profile = CustomProfile.create(
-            { name: creationProps.name, color: "blue" },
-            profileGroup,
-          );
-        }
-      }
-    }
+    const CustomAccount = co
+      .account({
+        profile: CustomProfile,
+        root: co.map({}),
+      })
+      .withMigration(
+        (
+          account: Loaded<typeof CustomAccount>,
+          creationProps?: { name: string },
+        ) => {
+          if (creationProps) {
+            const profileGroup = Group.create({ owner: account });
+            profileGroup.addMember("everyone", "reader");
+            account.profile = CustomProfile.create(
+              { name: creationProps.name, color: "blue" },
+              profileGroup,
+            );
+          }
+        },
+      );
 
     const me = await createJazzTestAccount({
       creationProps: { name: "Hermes Puggington" },

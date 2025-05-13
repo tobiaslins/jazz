@@ -4,6 +4,7 @@ import { PureJSCrypto } from "cojson/dist/crypto/PureJSCrypto";
 import {
   Account,
   AccountClass,
+  AccountSchema,
   type AnonymousJazzAgent,
   AuthCredentials,
   type CoValueClass,
@@ -74,11 +75,21 @@ let isMigrationActive = false;
 
 export async function createJazzTestAccount<Acc extends Account>(options?: {
   isCurrentActiveAccount?: boolean;
-  AccountSchema?: CoValueClass<Acc>;
+  AccountSchema?: CoValueClass<Acc> | AccountSchema;
   creationProps?: Record<string, unknown>;
-}): Promise<Acc> {
+}): Promise<Acc>;
+export async function createJazzTestAccount<Acc extends Account>(options?: {
+  isCurrentActiveAccount?: boolean;
+  AccountSchema?: CoValueClass<Acc> | AccountSchema;
+  creationProps?: Record<string, unknown>;
+}): Promise<Acc>;
+export async function createJazzTestAccount(options?: {
+  isCurrentActiveAccount?: boolean;
+  AccountSchema?: CoValueClass<Account> | AccountSchema;
+  creationProps?: Record<string, unknown>;
+}): Promise<Account> {
   const AccountSchema = (options?.AccountSchema ??
-    Account) as unknown as TestAccountSchema<Acc>;
+    Account) as unknown as TestAccountSchema<Account>;
   const peers = [];
   if (syncServer.current) {
     peers.push(getPeerConnectedToTestSyncServer());
@@ -103,6 +114,8 @@ export async function createJazzTestAccount<Acc extends Account>(options?: {
       }
 
       isMigrationActive = true;
+
+      console.log(AccountSchema);
 
       const account = new AccountSchema({
         fromRaw: rawAccount,
