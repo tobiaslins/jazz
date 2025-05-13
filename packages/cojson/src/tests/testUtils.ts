@@ -463,6 +463,7 @@ export function createMockStoragePeer(opts: {
     },
   });
 
+  peer1.role = "storage";
   peer1.priority = 100;
 
   storage.syncManager.addPeer(peer2);
