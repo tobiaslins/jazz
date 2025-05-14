@@ -294,6 +294,7 @@ class Task extends CoMap {
   priority = co.literal("low", "medium", "high");
 }
 
+// ---cut---
 // Create and change a task
 const task = Task.create({
   title: "Plant vegetables",
@@ -339,7 +340,7 @@ class Project extends CoMap {
   status = co.literal("planning", "active", "completed");
 }
 
-  // ---cut---
+// ---cut---
 // Find when a project became active
 function findStatusChange(project: Project, targetStatus: Status) {
   // Skip if no status edits
@@ -389,6 +390,7 @@ class Task extends CoMap {
   priority = co.literal("low", "medium", "high");
 }
 
+// ---cut---
 // Create and change a task over time
 const task = Task.create({
   title: "Plant vegetables",
@@ -435,9 +437,7 @@ setTimeout(() => {
 ## Best Practices
 
 - Always check if edits exist before accessing them: `if (task._edits.fieldName)`
-- Access the latest edit directly with `_edits.fieldName` (not `.latest`)
-- Cache historical queries if showing them in UI
-- Be specific about time ranges you care about
+- Access the latest edit directly with `_edits.fieldName`
 - Remember that accessing history requires loading the CoValue
 - Consider using timestamps from your data rather than scanning all edits
 
