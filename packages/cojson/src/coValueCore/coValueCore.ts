@@ -109,7 +109,7 @@ export class CoValueCore {
   private readonly _decryptionCache: {
     [key: Encrypted<JsonValue[], JsonValue>]: JsonValue[] | undefined;
   } = {};
-  private _cachedDependentOn?: RawCoID[];
+  private _cachedDependentOn?: Set<RawCoID>;
   private counter: UpDownCounter;
 
   private constructor(
@@ -897,39 +897,57 @@ export class CoValueCore {
     ];
   }
 
-  getDependedOnCoValues(): RawCoID[] {
+  getDependedOnCoValues(): Set<RawCoID> {
     if (this._cachedDependentOn) {
       return this._cachedDependentOn;
     } else {
-      const dependentOn = this.getDependedOnCoValuesUncached();
+      if (!this.verified) {
+        return new Set();
+      }
+
+      const dependentOn = this.getDependedOnCoValuesFromHeaderAndSessions(
+        this.verified.header,
+        this.verified.sessions.keys(),
+      );
       this._cachedDependentOn = dependentOn;
       return dependentOn;
     }
   }
 
   /** @internal */
-  getDependedOnCoValuesUncached(): RawCoID[] {
-    if (!this.verified) {
-      return [];
+  getDependedOnCoValuesFromHeaderAndSessions(
+    header: CoValueHeader,
+    sessions: Iterable<SessionID>,
+  ): Set<RawCoID> {
+    const deps = new Set<RawCoID>();
+
+    for (const session of sessions) {
+      const accountId = accountOrAgentIDfromSessionID(session);
+
+      if (isAccountID(accountId) && accountId !== this.id) {
+        deps.add(accountId);
+      }
     }
 
-    return this.verified.header.ruleset.type === "group"
-      ? getGroupDependentKeyList(expectGroup(this.getCurrentContent()).keys())
-      : this.verified.header.ruleset.type === "ownedByGroup"
-        ? [
-            this.verified.header.ruleset.group,
-            ...new Set(
-              [...this.verified.sessions.keys()]
-                .map((sessionID) =>
-                  accountOrAgentIDfromSessionID(sessionID as SessionID),
-                )
-                .filter(
-                  (session): session is RawAccountID =>
-                    isAccountID(session) && session !== this.id,
-                ),
-            ),
-          ]
-        : [];
+    if (header.ruleset.type === "group") {
+      if (isAccountID(header.ruleset.initialAdmin)) {
+        deps.add(header.ruleset.initialAdmin);
+      }
+
+      if (this.verified) {
+        for (const id of getGroupDependentKeyList(
+          expectGroup(this.getCurrentContent()).keys(),
+        )) {
+          deps.add(id);
+        }
+      }
+    }
+
+    if (header.ruleset.type === "ownedByGroup") {
+      deps.add(header.ruleset.group);
+    }
+
+    return deps;
   }
 
   waitForSync(options?: {

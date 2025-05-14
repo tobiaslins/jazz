@@ -11,6 +11,8 @@ import { RawCoID, SessionID } from "./ids.js";
 import { LocalNode } from "./localNode.js";
 import { logger } from "./logger.js";
 import { CoValuePriority } from "./priority.js";
+import { accountOrAgentIDfromSessionID } from "./typeUtils/accountOrAgentIDfromSessionID.js";
+import { isAccountID } from "./typeUtils/isAccountID.js";
 
 export type CoValueKnownState = {
   id: RawCoID;
@@ -211,9 +213,9 @@ export class SyncManager {
       return;
     }
 
-    coValue
-      .getDependedOnCoValues()
-      .map((id) => this.sendNewContentIncludingDependencies(id, peer));
+    for (const dependency of coValue.getDependedOnCoValues()) {
+      this.sendNewContentIncludingDependencies(dependency, peer);
+    }
 
     const newContentPieces = coValue.verified.newContentSince(
       peer.optimisticKnownStates.get(id),
@@ -432,7 +434,6 @@ export class SyncManager {
         });
       });
   }
-
   handleKnownState(msg: KnownStateMessage, peer: PeerState) {
     const coValue = this.local.getCoValue(msg.id);
 
@@ -479,6 +480,52 @@ export class SyncManager {
         return;
       }
 
+      let dependencyMissing = false;
+      const sessionIDs = Object.keys(msg.new) as SessionID[];
+      for (const dependency of coValue.getDependedOnCoValuesFromHeaderAndSessions(
+        msg.header,
+        sessionIDs,
+      )) {
+        const dependencyCoValue = this.local.getCoValue(dependency);
+
+        if (!dependencyCoValue.isAvailable()) {
+          if (peer.role !== "storage") {
+            this.trySendToPeer(peer, {
+              action: "load",
+              id: dependency,
+              header: false,
+              sessions: {},
+            });
+          }
+
+          dependencyMissing = true;
+        }
+      }
+
+      if (dependencyMissing) {
+        if (peer.role !== "storage") {
+          /**
+           * If we have missing dependencies, we send a known state message to the peer
+           * to let it know that we need a correction update.
+           *
+           * Sync-wise is sub-optimal, but it gives us correctness until
+           * https://github.com/garden-co/jazz/issues/1917 is implemented.
+           */
+          this.trySendToPeer(peer, {
+            action: "known",
+            isCorrection: true,
+            id: msg.id,
+            header: false,
+            sessions: {},
+          });
+        } else {
+          /** Cases of broken deps from storage are recovered by falling back to the server peers */
+          coValue.loadFromPeers(this.getServerAndStoragePeers(peer.id));
+        }
+
+        return;
+      }
+
       peer.updateHeader(msg.id, true);
       coValue.markAvailable(msg.header, peer.id);
     }
@@ -511,6 +558,18 @@ export class SyncManager {
 
       if (newTransactions.length === 0) {
         continue;
+      }
+
+      const accountId = accountOrAgentIDfromSessionID(sessionID);
+
+      if (isAccountID(accountId)) {
+        const account = this.local.getCoValue(accountId);
+
+        if (!account.isAvailable()) {
+          account.loadFromPeers([peer]);
+          invalidStateAssumed = true;
+          continue;
+        }
       }
 
       const result = coValue.tryAddTransactions(
