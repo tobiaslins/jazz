@@ -243,6 +243,85 @@ function createRequestsToJoin() {
 ```
 </CodeGroup>
 Then, administrators can review and approve requests.
+<CodeGroup>
+```ts twoslash
+// @errors: 2339 2345 18047 2769
+import { co, CoMap, ID, Account, Group } from "jazz-tools";
+
+// Reusing the same types from previous examples
+class Project extends CoMap {
+  title = co.string;
+}
+
+class Request extends CoMap {
+  project = co.ref(Project);
+  account = co.ref(Account);
+  message = co.string;
+  status = co.string; // Can be "pending", "approved", "rejected"
+}
+
+export class RequestsList extends CoMap {
+  // Use mockArrayType helper instead of non-existent co.list
+  items = mockArrayType(co.ref(Request));
+}
+
+// Helper function to mock the co.list functionality
+const mockArrayType = (type: any) => type;
+
+export class RequestsToJoin extends CoMap {
+  writeOnlyInvite = co.string;
+  requests = co.ref(RequestsList);
+}
+
+// ---cut-before---
+async function reviewJoinRequests(requestsToJoinId: ID<RequestsToJoin>) {
+  const requestsToJoin = await RequestsToJoin.load(requestsToJoinId);
+  
+  if (!requestsToJoin || !requestsToJoin.requests) {
+    throw new Error("Requests container not found");
+  }
+  
+  const requestsList = await RequestsList.load(requestsToJoin.requests.id);
+  if (!requestsList) {
+    throw new Error("Requests list not found");
+  }
+    return requestsList.items;
+}
+
+async function approveJoinRequest(requestsToJoinId: ID<RequestsToJoin>, requestId: ID<Request>, targetGroup: ID<Group>) {
+  const requestsToJoin = await RequestsToJoin.load(requestsToJoinId);
+  
+  if (!requestsToJoin || !requestsToJoin.requests) {
+    throw new Error("Requests container not found");
+  }
+  
+  const requestsList = await RequestsList.load(requestsToJoin.requests.id);
+  
+  const request = await Request.load(requestId);
+  
+  if (!request) {
+    throw new Error("Request not found");
+  }
+    request.status = "approved";
+  
+  const group = await Group.load(targetGroup);
+  
+  if (!group) {
+    throw new Error("Target group not found");
+  }
+  
+  if (request.account) {
+    const account = await Account.load(request.account.id);
+    if (account) {
+      // Now add the member and update the access
+      group.addMember(account, "reader");
+    }
+  }
+  
+  return true;
+}
+```
+</CodeGroup>
 <br />
 Example App coming soon!
 
