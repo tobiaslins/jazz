@@ -943,7 +943,11 @@ export class CoValueCore {
       return;
     }
 
-    const peersToActuallyLoadFrom = [];
+    const peersToActuallyLoadFrom = {
+      storage: [] as PeerState[],
+      server: [] as PeerState[],
+    };
+
     for (const peer of peers) {
       const currentState = this.peers.get(peer.id);
 
@@ -959,78 +963,87 @@ export class CoValueCore {
       }
 
       if (currentState?.type === "unavailable") {
-        if (peer.shouldRetryUnavailableCoValues()) {
+        if (peer.role === "server") {
+          peersToActuallyLoadFrom.server.push(peer);
           this.markPending(peer.id);
-          peersToActuallyLoadFrom.push(peer);
         }
 
         continue;
       }
 
       if (!currentState || currentState?.type === "unknown") {
+        if (peer.role === "storage") {
+          peersToActuallyLoadFrom.storage.push(peer);
+        } else {
+          peersToActuallyLoadFrom.server.push(peer);
+        }
+
         this.markPending(peer.id);
-        peersToActuallyLoadFrom.push(peer);
       }
     }
 
-    for (const peer of peersToActuallyLoadFrom) {
-      if (peer.closed) {
-        this.markNotFoundInPeer(peer.id);
-        continue;
-      }
-
-      peer.pushOutgoingMessage({
-        action: "load",
-        ...this.knownState(),
-      });
-      peer.trackLoadRequestSent(this.id);
-
-      /**
-       * Use a very long timeout for storage peers, because under pressure
-       * they may take a long time to consume the messages queue
-       *
-       * TODO: Track errors on storage and do not rely on timeout
-       */
-      const timeoutDuration =
-        peer.role === "storage"
-          ? CO_VALUE_LOADING_CONFIG.TIMEOUT * 10
-          : CO_VALUE_LOADING_CONFIG.TIMEOUT;
-
-      const waitingForPeer = new Promise<void>((resolve) => {
-        const markNotFound = () => {
-          if (this.peers.get(peer.id)?.type === "pending") {
-            logger.warn("Timeout waiting for peer to load coValue", {
-              id: this.id,
-              peerID: peer.id,
-            });
-            this.markNotFoundInPeer(peer.id);
-          }
-        };
-
-        const timeout = setTimeout(markNotFound, timeoutDuration);
-        const removeCloseListener = peer.addCloseListener(markNotFound);
-
-        const listener = (state: CoValueCore) => {
-          const peerState = state.peers.get(peer.id);
-          if (
-            state.isAvailable() || // might have become available from another peer e.g. through handleNewContent
-            peerState?.type === "available" ||
-            peerState?.type === "errored" ||
-            peerState?.type === "unavailable"
-          ) {
-            this.listeners.delete(listener);
-            removeCloseListener();
-            clearTimeout(timeout);
-            resolve();
-          }
-        };
-
-        this.listeners.add(listener);
-        listener(this);
-      });
-
-      await waitingForPeer;
+    // Load from storage peers first, then from server peers
+    if (peersToActuallyLoadFrom.storage.length > 0) {
+      await Promise.all(
+        peersToActuallyLoadFrom.storage.map((peer) =>
+          this.internalLoadFromPeer(peer),
+        ),
+      );
     }
+
+    if (peersToActuallyLoadFrom.server.length > 0) {
+      await Promise.all(
+        peersToActuallyLoadFrom.server.map((peer) =>
+          this.internalLoadFromPeer(peer),
+        ),
+      );
+    }
+  }
+
+  internalLoadFromPeer(peer: PeerState) {
+    if (peer.closed) {
+      this.markNotFoundInPeer(peer.id);
+      return;
+    }
+
+    peer.pushOutgoingMessage({
+      action: "load",
+      ...this.knownState(),
+    });
+    peer.trackLoadRequestSent(this.id);
+
+    return new Promise<void>((resolve) => {
+      const markNotFound = () => {
+        if (this.peers.get(peer.id)?.type === "pending") {
+          logger.warn("Timeout waiting for peer to load coValue", {
+            id: this.id,
+            peerID: peer.id,
+          });
+          this.markNotFoundInPeer(peer.id);
+        }
+      };
+
+      const timeout = setTimeout(markNotFound, CO_VALUE_LOADING_CONFIG.TIMEOUT);
+      const removeCloseListener = peer.addCloseListener(markNotFound);
+
+      const listener = (state: CoValueCore) => {
+        const peerState = state.peers.get(peer.id);
+        if (
+          state.isAvailable() || // might have become available from another peer e.g. through handleNewContent
+          peerState?.type === "available" ||
+          peerState?.type === "errored" ||
+          peerState?.type === "unavailable"
+        ) {
+          this.listeners.delete(listener);
+          removeCloseListener();
+          clearTimeout(timeout);
+          resolve();
+        }
+      };
+
+      this.listeners.add(listener);
+      listener(this);
+    });
   }
 }
 
