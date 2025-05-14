@@ -93,7 +93,7 @@ export async function getMdxWithToc(framework: string, slug?: string[]) {
   const tocItems = filterTocItemsForFramework(
     tableOfContents as Toc,
     framework,
-    headingsFrameworkVisibility
+    headingsFrameworkVisibility,
   );
 
   return {
@@ -104,18 +104,23 @@ export async function getMdxWithToc(framework: string, slug?: string[]) {
 function filterTocItemsForFramework(
   tocItems: Toc,
   framework: string,
-  headingsFrameworkVisibility: Record<string, string[]>
+  headingsFrameworkVisibility: Record<string, string[]>,
 ): Toc {
   return tocItems
-    .map(item => {
+    .map((item) => {
       const isVisible =
-        !item.id || !(item.id in headingsFrameworkVisibility) ||
+        !item.id ||
+        !(item.id in headingsFrameworkVisibility) ||
         headingsFrameworkVisibility[item.id]?.includes(framework);
 
       if (!isVisible) return null;
 
       const filteredChildren = item.children
-        ? filterTocItemsForFramework(item.children, framework, headingsFrameworkVisibility)
+        ? filterTocItemsForFramework(
+            item.children,
+            framework,
+            headingsFrameworkVisibility,
+          )
         : [];
 
       return {

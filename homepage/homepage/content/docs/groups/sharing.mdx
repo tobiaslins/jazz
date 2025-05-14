@@ -272,8 +272,6 @@ export class RequestsToJoin extends CoMap {
   writeOnlyInvite = co.string;
   requests = co.ref(RequestsList);
 }
-
-// ---cut-before---
 async function reviewJoinRequests(requestsToJoinId: ID<RequestsToJoin>) {
   const requestsToJoin = await RequestsToJoin.load(requestsToJoinId);
   
@@ -287,6 +285,8 @@ async function reviewJoinRequests(requestsToJoinId: ID<RequestsToJoin>) {
   }
     return requestsList.items;
 }
+
+// ---cut-before---
 
 async function approveJoinRequest(requestsToJoinId: ID<RequestsToJoin>, requestId: ID<Request>, targetGroup: ID<Group>) {
   const requestsToJoin = await RequestsToJoin.load(requestsToJoinId);
