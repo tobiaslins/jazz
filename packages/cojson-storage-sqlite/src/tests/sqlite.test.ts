@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { unlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { LocalNode } from "cojson";
+import { LocalNode, cojsonInternals } from "cojson";
 import { SyncManager } from "cojson-storage";
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { expect, onTestFinished, test, vi } from "vitest";
@@ -402,4 +402,93 @@ test("should recover from data loss", async () => {
       "client -> KNOWN Group sessions: header/3",
     ]
   `);
+});
+
+test("should recover missing dependencies from storage", async () => {
+  const agentSecret = Crypto.newRandomAgentSecret();
+
+  const account = LocalNode.internalCreateAccount({
+    crypto: Crypto,
+  });
+  const node1 = account.core.node;
+
+  const serverNode = new LocalNode(
+    agentSecret,
+    Crypto.newRandomSessionID(Crypto.getAgentID(agentSecret)),
+    Crypto,
+  );
+
+  const [serverPeer, clientPeer] = cojsonInternals.connectedPeers(
+    node1.agentSecret,
+    serverNode.agentSecret,
+    {
+      peer1role: "server",
+      peer2role: "client",
+    },
+  );
+
+  node1.syncManager.addPeer(serverPeer);
+  serverNode.syncManager.addPeer(clientPeer);
+
+  const handleSyncMessage = SyncManager.prototype.handleSyncMessage;
+
+  const mock = vi
+    .spyOn(SyncManager.prototype, "handleSyncMessage")
+    .mockImplementation(function (this: SyncManager, msg) {
+      if (
+        msg.action === "content" &&
+        [group.core.id, account.core.id].includes(msg.id)
+      ) {
+        return Promise.resolve();
+      }
+
+      return handleSyncMessage.call(this, msg);
+    });
+
+  const { peer, dbPath } = await createSQLiteStorage();
+
+  node1.syncManager.addPeer(peer);
+
+  const group = node1.createGroup();
+  group.addMember("everyone", "writer");
+
+  const map = group.createMap();
+
+  map.set("0", 0);
+
+  mock.mockReset();
+
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  const node2 = new LocalNode(
+    Crypto.newRandomAgentSecret(),
+    Crypto.newRandomSessionID(Crypto.getAgentID(agentSecret)),
+    Crypto,
+  );
+
+  const [serverPeer2, clientPeer2] = cojsonInternals.connectedPeers(
+    node1.agentSecret,
+    serverNode.agentSecret,
+    {
+      peer1role: "server",
+      peer2role: "client",
+    },
+  );
+
+  node2.syncManager.addPeer(serverPeer2);
+  serverNode.syncManager.addPeer(clientPeer2);
+
+  const { peer: peer2 } = await createSQLiteStorage(dbPath);
+
+  node2.syncManager.addPeer(peer2);
+
+  const map2 = await node2.load(map.id);
+
+  if (map2 === "unavailable") {
+    throw new Error("Map is unavailable");
+  }
+
+  expect(map2.toJSON()).toEqual({
+    "0": 0,
+  });
 });
