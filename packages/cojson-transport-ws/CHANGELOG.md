@@ -1,5 +1,13 @@
 # cojson-transport-nodejs-ws
 
+## 0.13.28
+
+### Patch Changes
+
+- 422dbc4: Add waitUntilConnected and subscribe APIs on WebSocketPeerWithReconnection
+- Updated dependencies [e7ccb2c]
+  - cojson@0.13.28
+
 ## 0.13.27
 
 ### Patch Changes
