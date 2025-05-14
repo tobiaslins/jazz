@@ -1,5 +1,11 @@
 # cojson
 
+## 0.13.28
+
+### Patch Changes
+
+- e7ccb2c: Recover missing dependencies when getting new content
+
 ## 0.13.27
 
 ### Patch Changes
