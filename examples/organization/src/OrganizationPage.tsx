@@ -16,7 +16,21 @@ export function OrganizationPage() {
     resolve: { projects: true },
   });
 
-  if (!organization) return <p>Loading organization...</p>;
+  if (organization === undefined) return <p>Loading organization...</p>;
+  if (organization === null) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold">
+            You don't have access to this organization
+          </h1>
+          <a href="/#" className="text-blue-500">
+            Go back to home
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Layout>
