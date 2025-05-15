@@ -1,11 +1,11 @@
-import { LoginForm } from "@/components/login-form";
+import { SigninForm } from "@/components/signin-form";
 
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Log in",
+  title: "Sign in | Jazz Example: Better Auth",
 };
 
 export default function LoginPage() {
-  return <LoginForm />;
+  return <SigninForm />;
 }

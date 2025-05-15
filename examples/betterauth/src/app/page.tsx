@@ -1,8 +1,8 @@
 "use client";
 
+import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
-import { useAccount, useIsAuthenticated } from "jazz-react";
-import { useAuth } from "jazz-react-auth-betterauth";
+import { useAccount } from "jazz-react";
 import {
   AppWindowMacIcon,
   FileTextIcon,
@@ -10,51 +10,20 @@ import {
   WrenchIcon,
 } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
-import { useCallback } from "react";
 
 export default function Home() {
-  const { authClient, account, state } = useAuth();
-  const hasCredentials = state !== "anonymous";
-  const { me, logOut } = useAccount({ resolve: { profile: {} } });
-  const isAuthenticated = useIsAuthenticated();
-  const signOut = useCallback(() => {
-    authClient.signOut().catch(console.error).finally(logOut);
-  }, [logOut, authClient]);
-  console.log("me", me);
-  console.log("account", account);
-  console.log("state", state);
-  console.log("hasCredentials", hasCredentials);
-  console.log("isAuthenticated", isAuthenticated);
+  const { me } = useAccount({ resolve: { profile: {} } });
+
+  if (!me) {
+    return null;
+  }
 
   return (
     <>
-      <header className="absolute p-4 top-0 left-0 w-full z-10 flex items-center justify-between gap-4">
-        <div className="float-start flex gap-4">
-          {me && hasCredentials && isAuthenticated && (
-            <>
-              <Button onClick={signOut}>Sign out</Button>
-              <Button asChild>
-                <Link href="/settings">Settings</Link>
-              </Button>
-            </>
-          )}
-        </div>
-        <div className="float-end flex gap-4">
-          {!hasCredentials && !isAuthenticated && (
-            <>
-              <Button asChild variant="secondary">
-                <Link href="/auth/sign-in">Sign in</Link>
-              </Button>
-              <Button asChild>
-                <Link href="/auth/sign-up">Sign up</Link>
-              </Button>
-            </>
-          )}
-        </div>
-      </header>
+      <Navbar />
+
       <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-        <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
+        <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
           <Image
             src="/jazz-logo.svg"
             alt="Jazz logo"
@@ -63,22 +32,14 @@ export default function Home() {
             priority
           />
           <p className="text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-            {me && hasCredentials && isAuthenticated && (
-              <>
-                {"Signed in as "}
-                <span className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-                  {me.profile.name}
-                </span>
-                .
-              </>
-            )}
-            {!hasCredentials && !isAuthenticated && <>Not signed in.</>}
-            {!hasCredentials && isAuthenticated && (
-              <>Not connected to the authentication server.</>
-            )}
-            {hasCredentials && !isAuthenticated && (
-              <>Authenticated, but not logged in. Try refreshing.</>
-            )}
+            Signed in as{" "}
+            <span className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
+              {me.profile.name}
+            </span>{" "}
+            with id{" "}
+            <span className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
+              {me.id}
+            </span>
           </p>
 
           <div className="flex gap-4 items-center flex-col sm:flex-row">

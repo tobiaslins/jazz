@@ -1,57 +1,32 @@
-import { appName } from "@/components/emails";
 import { betterAuth } from "better-auth";
 import { getMigrations } from "better-auth/db";
-import { emailOTP, haveIBeenPwned, magicLink } from "better-auth/plugins";
 import Database from "better-sqlite3";
 import { jazzPlugin } from "jazz-betterauth-server-plugin";
-import {
-  sendEmailOtpCb,
-  sendMagicLinkCb,
-  sendResetPasswordCb,
-  sendVerificationEmailCb,
-  sendWelcomeEmailCb,
-} from "./auth-email";
-import { socialProviders } from "./socialProviders";
 
 export const auth = await (async () => {
   // Configure Better Auth server
   const auth = betterAuth({
-    appName: appName,
+    appName: "Jazz Example: Better Auth",
     database: new Database("sqlite.db"),
     emailAndPassword: {
       enabled: true,
-      sendResetPassword: sendResetPasswordCb,
     },
-    emailVerification: {
-      sendVerificationEmail: sendVerificationEmailCb,
-    },
-    socialProviders: socialProviders,
-    account: {
-      accountLinking: {
-        allowDifferentEmails: true,
-        allowUnlinkingAll: true,
-      },
+
+    socialProviders: {
+      ...(process.env.GITHUB_CLIENT_ID &&
+        process.env.GITHUB_CLIENT_SECRET && {
+          github: {
+            clientId: process.env.GITHUB_CLIENT_ID,
+            clientSecret: process.env.GITHUB_CLIENT_SECRET,
+          },
+        }),
     },
     user: {
       deleteUser: {
         enabled: true,
       },
     },
-    plugins: [
-      haveIBeenPwned(),
-      jazzPlugin(),
-      magicLink({
-        sendMagicLink: sendMagicLinkCb,
-      }),
-      emailOTP({ sendVerificationOTP: sendEmailOtpCb }),
-    ],
-    databaseHooks: {
-      user: {
-        create: {
-          after: sendWelcomeEmailCb,
-        },
-      },
-    },
+    plugins: [jazzPlugin()],
   });
 
   // Run database migrations

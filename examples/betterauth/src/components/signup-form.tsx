@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,12 +12,53 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { SiGithub } from "@icons-pack/react-simple-icons";
+import { useAuth } from "jazz-react-auth-betterauth";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export function SignupForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const router = useRouter();
+  const auth = useAuth();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (password !== confirmPassword) {
+      toast.error("Error", {
+        description: "Passwords do not match",
+      });
+      return;
+    }
+
+    await auth.authClient.signUp.email(
+      {
+        email,
+        password,
+        name,
+      },
+      {
+        onSuccess: async () => {
+          await auth.signIn();
+          router.push("/");
+        },
+        onError: (error) => {
+          toast.error("Sign up error", {
+            description: error.error.message,
+          });
+        },
+      },
+    );
+  };
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
@@ -26,12 +69,12 @@ export function SignupForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
+          <form onSubmit={handleSubmit}>
             <div className="grid gap-6">
               <div className="flex flex-col gap-4">
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full" type="button">
                   <SiGithub />
-                  Sign up with Github
+                  Sign up with GitHub
                 </Button>
               </div>
               <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
@@ -47,6 +90,8 @@ export function SignupForm({
                     type="text"
                     placeholder="John Doe"
                     required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                   />
                 </div>
                 <div className="grid gap-3">
@@ -54,8 +99,10 @@ export function SignupForm({
                   <Input
                     id="email"
                     type="email"
-                    placeholder="you@jazz.tools"
+                    placeholder="you@example.com"
                     required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
                 <div className="grid gap-3">
@@ -65,11 +112,19 @@ export function SignupForm({
                     type="password"
                     placeholder="********"
                     required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                   />
                 </div>
                 <div className="grid gap-3">
-                  <Label htmlFor="confirmPassword">Confirm Password</Label>
-                  <Input id="confirmPassword" type="password" required />
+                  <Label htmlFor="confirmPassword">Confirm password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
                 </div>
                 <Button type="submit" className="w-full">
                   Sign up
