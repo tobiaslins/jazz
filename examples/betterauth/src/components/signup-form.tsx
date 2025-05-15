@@ -10,18 +10,18 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
-import { SiGithub } from "@icons-pack/react-simple-icons";
-import { useAuth } from "jazz-react-auth-betterauth";
+import { type SSOProviderType, useAuth } from "jazz-react-auth-betterauth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { SSOButton } from "./SSOButton";
 
-export function SignupForm({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
+interface Props {
+  providers: SSOProviderType[];
+}
+
+export function SignupForm({ providers }: Props) {
   const router = useRouter();
   const auth = useAuth();
   const [name, setName] = useState("");
@@ -60,10 +60,10 @@ export function SignupForm({
   };
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div className="flex flex-col gap-6">
       <Card>
         <CardHeader className="text-center">
-          <CardTitle className="text-xl">Create an account</CardTitle>
+          <CardTitle className="text-xl">Welcome</CardTitle>
           <CardDescription>
             Sign up with one of the following providers
           </CardDescription>
@@ -71,17 +71,20 @@ export function SignupForm({
         <CardContent>
           <form onSubmit={handleSubmit}>
             <div className="grid gap-6">
-              <div className="flex flex-col gap-4">
-                <Button variant="outline" className="w-full" type="button">
-                  <SiGithub />
-                  Sign up with GitHub
-                </Button>
-              </div>
-              <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-                <span className="bg-card text-muted-foreground relative z-10 px-2">
-                  Or continue with
-                </span>
-              </div>
+              {providers.length > 0 && (
+                <>
+                  <div className="flex flex-col gap-4">
+                    {providers?.map((provider) => (
+                      <SSOButton key={provider} provider={provider} />
+                    ))}
+                  </div>
+                  <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
+                    <span className="bg-card text-muted-foreground relative z-10 px-2">
+                      Or continue with
+                    </span>
+                  </div>
+                </>
+              )}
               <div className="grid gap-6">
                 <div className="grid gap-3">
                   <Label htmlFor="name">Name</Label>

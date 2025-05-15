@@ -22,7 +22,7 @@ export default function Home() {
     <>
       <Navbar />
 
-      <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+      <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
         <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
           <Image
             src="/jazz-logo.svg"
@@ -31,13 +31,13 @@ export default function Home() {
             height={38}
             priority
           />
-          <p className="text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
+          <p className="text-sm/6 text-center sm:text-left">
             Signed in as{" "}
-            <span className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
+            <span className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-mono font-semibold">
               {me.profile.name}
             </span>{" "}
             with id{" "}
-            <span className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
+            <span className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-mono font-semibold">
               {me.id}
             </span>
           </p>

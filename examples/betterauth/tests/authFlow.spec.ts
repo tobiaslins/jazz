@@ -12,7 +12,6 @@ test("should sign up, sign in, and logout", async ({ page }) => {
   const homePage = new HomePage(page);
   await homePage.expectLoggedOut();
   await homePage.signUpLink.click();
-
   await homePage.signUpEmail(username, email, password);
   await homePage.expectLoggedIn(username);
 

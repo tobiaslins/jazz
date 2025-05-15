@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { getMigrations } from "better-auth/db";
 import Database from "better-sqlite3";
 import { jazzPlugin } from "jazz-betterauth-server-plugin";
+import { socialProviders } from "./socialProviders";
 
 export const auth = await (async () => {
   // Configure Better Auth server
@@ -11,16 +12,7 @@ export const auth = await (async () => {
     emailAndPassword: {
       enabled: true,
     },
-
-    socialProviders: {
-      ...(process.env.GITHUB_CLIENT_ID &&
-        process.env.GITHUB_CLIENT_SECRET && {
-          github: {
-            clientId: process.env.GITHUB_CLIENT_ID,
-            clientSecret: process.env.GITHUB_CLIENT_SECRET,
-          },
-        }),
-    },
+    socialProviders,
     user: {
       deleteUser: {
         enabled: true,

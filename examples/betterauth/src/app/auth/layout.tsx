@@ -1,4 +1,4 @@
-import { GalleryVerticalEndIcon } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 interface Props {
@@ -13,9 +13,7 @@ export default function AuthLayout({ children }: Props) {
           href="/"
           className="flex items-center gap-2 self-center font-medium"
         >
-          <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
-            <GalleryVerticalEndIcon className="size-4" />
-          </div>
+          <Image src="/jazz.svg" alt="Jazz Logo" width={24} height={24} />
           Jazz BetterAuth Demo
         </Link>
         {children}
