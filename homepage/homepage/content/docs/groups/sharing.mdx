@@ -94,3 +94,115 @@ useAcceptInvite({
 });
 ```
 </CodeGroup>
+
+
+### Requesting Invites
+
+To allow a non-group member to request an invitation to a group you can use the `writeOnly` role.
+This means that users only have write access to a specific requests list (they can't read other requests). 
+However, Administrators can review and approve these requests.
+
+Create the data models.
+
+<CodeGroup>
+```ts twoslash
+import { CoMap, co, CoValue, Account, CoList } from "jazz-tools";
+
+class JoinRequest extends CoMap {
+  account = co.ref(Account);
+  status = co.string;
+}
+
+export class RequestsList extends CoList.Of(co.ref(JoinRequest)) {};
+
+// ---cut-before---
+class RequestsToJoin extends CoMap {
+  writeOnlyInvite = co.string;
+  requests = co.ref(RequestsList);
+}
+```
+</CodeGroup>
+
+Set up the request system with appropriate access controls.
+
+<CodeGroup>
+```ts twoslash
+import { Group, co, CoList, CoMap, Account } from "jazz-tools";
+import { createInviteLink } from "jazz-react";
+
+export class JoinRequest extends CoMap {
+  account = co.ref(Account);
+  status = co.string;
+}
+
+export class RequestsList extends CoList.Of(co.ref(JoinRequest)) {};
+
+export class RequestsToJoin extends CoMap {
+  writeOnlyInvite = co.string;
+  requests = co.ref(RequestsList);
+}
+
+// ---cut-before---
+function createRequestsToJoin() {
+  const requestsGroup = Group.create();
+  requestsGroup.addMember("everyone", "writeOnly");
+
+  return RequestsList.create([], requestsGroup);
+}
+
+async function sendJoinRequest(
+  requestsList: RequestsList,
+  account: Account,
+) {
+  const request = JoinRequest.create(
+    {
+      account,
+      status: "pending",
+    },
+    requestsList._owner // Inherit the access controls of the requestsList
+  );
+
+  requestsList.push(request);
+
+  return request;
+}
+```
+</CodeGroup>
+
+Using the write-only invitation link, users can submit requests and administrators can review and approve requests.
+
+<CodeGroup>
+```ts twoslash
+import { co, CoMap, CoList, ID, Account, Group } from "jazz-tools";
+
+
+class JoinRequest extends CoMap {
+  account = co.ref(Account);
+  status = co.string; // Can be "pending", "approved", "rejected"
+}
+
+export class RequestsList extends CoList.Of(co.ref(JoinRequest)) {};
+
+export class RequestsToJoin extends CoMap {
+  writeOnlyInvite = co.string;
+  requests = co.ref(RequestsList);
+}
+
+// ---cut-before---
+
+async function approveJoinRequest(joinRequest: JoinRequest, targetGroup: Group) {
+  const account = joinRequest.account && await Account.load(joinRequest.account.id);
+
+    if (account) {
+      targetGroup.addMember(account, "reader");
+      joinRequest.status = "approved";
+      
+      return true;
+    } else {
+     return false;
+   }
+}
+
+```
+</CodeGroup>
+
