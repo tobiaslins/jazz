@@ -1,5 +1,17 @@
 # jazz-inspector
 
+## 0.13.29
+
+### Patch Changes
+
+- 8e5ff13: fix: colist shows too many items after navigating from a longer colist
+- Updated dependencies [eef1a5d]
+- Updated dependencies [191ae38]
+- Updated dependencies [daee7b9]
+  - cojson@0.13.29
+  - jazz-react-core@0.13.29
+  - jazz-tools@0.13.29
+
 ## 0.13.28
 
 ### Patch Changes
