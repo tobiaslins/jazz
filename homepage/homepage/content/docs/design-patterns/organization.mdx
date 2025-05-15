@@ -150,7 +150,9 @@ declare module "jazz-react" {
 }
 // ---cut---
 export function AcceptInvitePage() {
-  const { me } = useAccount({ resolve: { root: { organizations: true } } });
+  const { me } = useAccount({
+    resolve: { root: { organizations: { $each: true, $skipInvalid: true } } },
+  });
 
   const onAccept = (organizationId: ID<Organization>) => {
     if (me?.root?.organizations) {

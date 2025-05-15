@@ -455,15 +455,139 @@ const project = await Project.load(projectId, {
   resolve: true
 });
 
-project // => Project
-
-// The user doesn't have access to the owner
-project?.owner // => always null
+project // => Project is null if the user doesn't have access
 ```
 </CodeGroup>
 
 The load operation will succeed and return the object, but the inaccessible reference will always be `null`.
 
+The same behavoir applies when one of the deeply loaded items is inaccessible.
+
+<CodeGroup>
+```typescript twoslash
+import { ID, CoMap, co, CoList } from "jazz-tools";
+
+class Project extends CoMap {
+  name = co.string;
+  tasks = co.ref(ListOfTasks);
+  owner = co.ref(TeamMember);
+}
+
+class Task extends CoMap {
+  title = co.string;
+  subtasks = co.ref(ListOfTasks);
+  assignee = co.optional.ref(TeamMember);
+}
+
+class TeamMember extends CoMap {
+  name = co.string;
+}
+
+class ListOfTasks extends CoList.Of(co.ref(Task)) {}
+
+const projectId = "co_123" as ID<Project>;
+// ---cut-before---
+const project = await Project.load(projectId, {
+  resolve: { tasks: { $each: true } }
+});
+
+/**
+ * Project is null if the user doesn't have access
+ * to project or to any of the tasks
+*/ 
+project 
+```
+</CodeGroup>
+
+## Deep loading lists with shared items
+
+When loading a list with shared items, you can use the `$skipInvalid` to safely load the list skipping any inaccessible items.
+
+This is especially useful when in your app access to these items might be revoked.
+
+This way, when encountering an inaccessible item, the inaccessible items are replaced with `null` in the returned list.
+
+<CodeGroup>
+```typescript twoslash
+import { ID, CoMap, co, CoList } from "jazz-tools";
+
+class Project extends CoMap {
+  name = co.string;
+  tasks = co.ref(ListOfTasks);
+}
+
+class Task extends CoMap {
+  title = co.string;
+}
+
+class ListOfTasks extends CoList.Of(co.ref(Task)) {}  
+
+const projectId = "co_123" as ID<Project>;
+
+function assert<T>(value: T | null | undefined): asserts value is T {
+  if (!value) {
+    throw new Error("Value is null or undefined");
+  }
+}
+
+// ---cut-before---
+const project = await Project.load(projectId, {
+  resolve: { tasks: { $each: true, $skipInvalid: true } }
+});
+
+assert(project);
+
+const [task1, task2] = project.tasks ?? [];
+
+task1 // => Task
+task2 // => null because the task is inaccessible
+```
+</CodeGroup>
+
+The `$skipInvalid` works as a "catch" clause option to block any error in the childs resolve.
+
+<CodeGroup>
+```typescript twoslash
+import { ID, CoMap, co, CoList } from "jazz-tools";
+
+class Project extends CoMap {
+  name = co.string;
+  tasks = co.ref(ListOfTasks);
+  owner = co.ref(TeamMember);
+}
+
+class Task extends CoMap {
+  title = co.string;
+  subtasks = co.ref(ListOfTasks);
+  assignee = co.optional.ref(TeamMember);
+}
+
+class TeamMember extends CoMap {
+  name = co.string;
+}
+
+class ListOfTasks extends CoList.Of(co.ref(Task)) {}
+
+function assert<T>(value: T | null | undefined): asserts value is T {
+  if (!value) {
+    throw new Error("Value is null or undefined");
+  }
+}
+
+const projectId = "co_123" as ID<Project>;
+// ---cut-before---
+const project = await Project.load(projectId, {
+  resolve: { tasks: { $each: { subtasks: { $each: true } }, $skipInvalid: true } }
+});
+
+assert(project);
+
+const [task1, task2] = project.tasks ?? [];
+
+task1 // => Task, everything inside is loaded
+task2 // => null because the one of the task2 subtasks is inaccessible
+```
+</CodeGroup>
 
 ## Type Safety with Resolved Type
 
