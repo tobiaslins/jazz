@@ -613,7 +613,7 @@ describe("Deep loading with unauthorized account", async () => {
     expect(loadedMap?.id).toBe(map.id);
   });
 
-  test("unaccessible record element with $skipInvalid", async () => {
+  test("unaccessible record element with $onError", async () => {
     class Person extends CoMap {
       name = co.string;
     }
@@ -628,7 +628,7 @@ describe("Deep loading with unauthorized account", async () => {
     );
 
     const friendsOnAlice = await Friends.load(map.id, {
-      resolve: { $each: true, $skipInvalid: true },
+      resolve: { $each: { $onError: null } },
       loadAs: alice,
     });
 
@@ -638,7 +638,7 @@ describe("Deep loading with unauthorized account", async () => {
     expect(friendsOnAlice.alice).not.toBeNull();
   });
 
-  test("unaccessible nested record element with $skipInvalid", async () => {
+  test("unaccessible nested record element with $onError", async () => {
     class Person extends CoMap {
       name = co.string;
     }
@@ -664,7 +664,7 @@ describe("Deep loading with unauthorized account", async () => {
     );
 
     const user = await User.load(map.id, {
-      resolve: { friends: { $each: true, $skipInvalid: true } },
+      resolve: { friends: { $each: { $onError: null } } },
       loadAs: alice,
     });
 
@@ -674,7 +674,7 @@ describe("Deep loading with unauthorized account", async () => {
     expect(user.friends.alice).not.toBeNull();
   });
 
-  test("unaccessible element down the chain with $skipInvalid on a record", async () => {
+  test("unaccessible element down the chain with $onError on a record", async () => {
     class Person extends CoMap {
       name = co.string;
       dog = co.ref(Dog);
@@ -713,7 +713,7 @@ describe("Deep loading with unauthorized account", async () => {
     );
 
     const user = await User.load(map.id, {
-      resolve: { friends: { $each: { dog: true }, $skipInvalid: true } },
+      resolve: { friends: { $each: { dog: true, $onError: null } } },
       loadAs: alice,
     });
 
@@ -723,7 +723,7 @@ describe("Deep loading with unauthorized account", async () => {
     expect(user.friends.alice?.dog).not.toBeNull(); // alice is not null because we have read access to her and her dog
   });
 
-  test("unaccessible list element with $skipInvalid and $each with depth", async () => {
+  test("unaccessible list element with $onError and $each with depth", async () => {
     class Person extends CoMap {
       name = co.string;
       friends = co.optional.ref(Friends);
@@ -759,7 +759,7 @@ describe("Deep loading with unauthorized account", async () => {
     // The error List -> Jane -> Bob should be propagated to the list element Jane
     // and we should have [null, Alice]
     const listOnAlice = await Friends.load(list.id, {
-      resolve: { $each: { friends: { $each: true } }, $skipInvalid: true },
+      resolve: { $each: { friends: { $each: true }, $onError: null } },
       loadAs: alice,
     });
 
@@ -773,7 +773,7 @@ describe("Deep loading with unauthorized account", async () => {
     expect(listOnAlice).toHaveLength(2);
   });
 
-  test("unaccessible record element with $skipInvalid", async () => {
+  test("unaccessible record element with $onError", async () => {
     class Person extends CoMap {
       name = co.string;
     }
@@ -788,7 +788,7 @@ describe("Deep loading with unauthorized account", async () => {
     );
 
     const friendsOnAlice = await Friend.load(map.id, {
-      resolve: { $each: true, $skipInvalid: true },
+      resolve: { $each: { $onError: null } },
       loadAs: alice,
     });
 
@@ -874,6 +874,7 @@ test("throw when calling ensureLoaded on a ref that is not defined in the schema
 
   await expect(
     root.ensureLoaded({
+      // @ts-expect-error missing required ref
       resolve: { profile: true },
     }),
   ).rejects.toThrow("Failed to deeply load CoValue " + root.id);

@@ -126,11 +126,11 @@ describe("Deep loading with depth arg", async () => {
     expectTypeOf(map5).toEqualTypeOf<ExpectedMap5>();
   });
 
-  test("should handle $skipInvalid on CoList", async () => {
+  test("should handle $onError on CoList items", async () => {
     class List extends CoList.Of(co.ref(() => InnerMap)) {}
 
     const result = await List.load("x" as ID<List>, {
-      resolve: { $each: true, $skipInvalid: true },
+      resolve: { $each: { $onError: null } },
     });
     function validateType(map: ((InnerMap | null)[] & List) | null) {
       map;
@@ -140,7 +140,7 @@ describe("Deep loading with depth arg", async () => {
     expectTypeOf(result).toEqualTypeOf<((InnerMap | null)[] & List) | null>();
   });
 
-  test("should handle $skipInvalid on a child CoList", async () => {
+  test("should handle $onError on a child CoList", async () => {
     class InnerMap extends CoMap {
       value = co.string;
     }
@@ -150,7 +150,7 @@ describe("Deep loading with depth arg", async () => {
     }
 
     const result = await MyMap.load("x" as ID<MyMap>, {
-      resolve: { list: { $each: true, $skipInvalid: true } },
+      resolve: { list: { $each: { $onError: null } } },
     });
 
     function validateType(map: (InnerMap | null)[] & List) {
@@ -162,11 +162,11 @@ describe("Deep loading with depth arg", async () => {
     validateType(result.list);
   });
 
-  test("should handle $skipInvalid on CoMap.Record", async () => {
+  test("should handle $onError on CoMap.Record", async () => {
     class Record extends CoMap.Record(co.ref(() => InnerMap)) {}
 
     const result = await Record.load("x" as ID<Record>, {
-      resolve: { $each: true, $skipInvalid: true },
+      resolve: { $each: { $onError: null } },
     });
 
     type ExpectedResult =
@@ -183,25 +183,57 @@ describe("Deep loading with depth arg", async () => {
     expectTypeOf(result).toEqualTypeOf<ExpectedResult>();
   });
 
-  test("should handle $skipInvalid on a child CoMap.Record", async () => {
+  test("should handle $onError on a child CoMap.Record", async () => {
     class Record extends CoMap.Record(co.ref(() => InnerMap)) {}
     class MyMap extends CoMap {
       record = co.ref(Record);
     }
 
     const result = await MyMap.load("x" as ID<MyMap>, {
-      resolve: { record: { $each: true, $skipInvalid: true } },
+      resolve: { record: { $each: { $onError: null } } },
     });
 
     type ExpectedResult = {
       [key: string]: InnerMap | null;
-    } & Record;
+    } & Record &
+      co<Record | null>;
 
     function validateType(map: ExpectedResult) {
       map;
     }
 
-    validateType(result!.record);
+    assert(result);
+
+    validateType(result.record);
+    expectTypeOf(result.record).toEqualTypeOf<ExpectedResult>();
+  });
+
+  test("should handle $onError on a ref", async () => {
+    class Person extends CoMap {
+      name = co.string;
+      dog = co.ref(Dog);
+    }
+
+    class Dog extends CoMap {
+      name = co.string;
+    }
+
+    const result = await Person.load("x" as ID<Person>, {
+      resolve: { dog: { $onError: null } },
+    });
+
+    type ExpectedResult =
+      | (Person & {
+          dog: Dog | null;
+        })
+      | null;
+
+    function validateType(map: ExpectedResult) {
+      map;
+    }
+
+    validateType(result);
+    expectTypeOf(result).toEqualTypeOf<ExpectedResult>();
   });
 });
 

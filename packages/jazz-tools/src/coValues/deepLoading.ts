@@ -2,7 +2,7 @@ import { SessionID } from "cojson";
 import { ItemsSym, UnCo } from "../internal.js";
 import { type Account } from "./account.js";
 import { CoFeedEntry } from "./coFeed.js";
-import { type CoKeys } from "./coMap.js";
+import { type CoKeys, type CoMap } from "./coMap.js";
 import { type CoValue, type ID } from "./interfaces.js";
 
 type UnCoNotNull<T> = UnCo<Exclude<T, null>>;
@@ -26,13 +26,13 @@ export type RefsToResolve<
                   DepthLimit,
                   [0, ...CurrentDepth]
                 >;
-                $skipInvalid?: boolean;
+                $onError?: null;
               }
             | boolean
         : // Basically V extends CoMap | Group | Account - but if we used that we'd introduce circularity into the definition of CoMap itself
           V extends { _type: "CoMap" | "Group" | "Account" }
           ?
-              | {
+              | ({
                   [Key in CoKeys<V> as Clean<V[Key]> extends CoValue
                     ? Key
                     : never]?: RefsToResolve<
@@ -40,7 +40,7 @@ export type RefsToResolve<
                     DepthLimit,
                     [0, ...CurrentDepth]
                   >;
-                }
+                } & { $onError?: null })
               | (ItemsSym extends keyof V
                   ? {
                       $each: RefsToResolve<
@@ -48,7 +48,7 @@ export type RefsToResolve<
                         DepthLimit,
                         [0, ...CurrentDepth]
                       >;
-                      $skipInvalid?: boolean;
+                      $onError?: null;
                     }
                   : never)
               | boolean
@@ -63,7 +63,7 @@ export type RefsToResolve<
                       DepthLimit,
                       [0, ...CurrentDepth]
                     >;
-                    $skipInvalid?: boolean;
+                    $onError?: null;
                   }
                 | boolean
             : boolean);
@@ -79,7 +79,9 @@ export type Resolved<T, R extends RefsToResolve<T> | undefined> = DeeplyLoaded<
   []
 >;
 
-type isNullable<Depth> = Depth extends { $skipInvalid: boolean } ? null : never;
+type onErrorNullEnabled<Depth> = Depth extends { $onError: null }
+  ? null
+  : never;
 
 export type DeeplyLoaded<
   V,
@@ -103,7 +105,7 @@ export type DeeplyLoaded<
                     DepthLimit,
                     [0, ...CurrentDepth]
                   >)
-              | isNullable<Depth>
+              | onErrorNullEnabled<Depth["$each"]>
             )[] &
               V // the CoList base type needs to be intersected after so that built-in methods return the correct narrowed array type
           : never
@@ -121,26 +123,32 @@ export type DeeplyLoaded<
                       DepthLimit,
                       [0, ...CurrentDepth]
                     >
-                  | isNullable<Depth>;
+                  | onErrorNullEnabled<ItemDepth>;
               } & V // same reason as in CoList
             : never
           : keyof Depth extends never // Depth = {}
             ? V
-            : // Deeply loaded CoMap
-              {
-                -readonly [Key in keyof Depth]-?: Key extends CoKeys<V>
-                  ? Clean<V[Key]> extends CoValue
-                    ?
-                        | DeeplyLoaded<
-                            Clean<V[Key]>,
-                            Depth[Key],
-                            DepthLimit,
-                            [0, ...CurrentDepth]
-                          >
-                        | (undefined extends V[Key] ? undefined : never)
-                    : never
-                  : never;
-              } & V // same reason as in CoList
+            : Depth extends { $onError: null }
+              ? V
+              : // Deeply loaded CoMap
+                {
+                  -readonly [Key in Exclude<
+                    keyof Depth,
+                    "$onError"
+                  >]-?: Key extends CoKeys<V>
+                    ? Clean<V[Key]> extends CoValue
+                      ?
+                          | DeeplyLoaded<
+                              Clean<V[Key]>,
+                              Depth[Key],
+                              DepthLimit,
+                              [0, ...CurrentDepth]
+                            >
+                          | (undefined extends V[Key] ? undefined : never)
+                          | onErrorNullEnabled<Depth[Key]>
+                      : never
+                    : never;
+                } & V // same reason as in CoList
         : [V] extends [
               {
                 _type: "CoStream";

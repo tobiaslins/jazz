@@ -151,11 +151,11 @@ declare module "jazz-react" {
 // ---cut---
 export function AcceptInvitePage() {
   const { me } = useAccount({
-    resolve: { root: { organizations: { $each: true, $skipInvalid: true } } },
+    resolve: { root: { organizations: { $each: { $onError: null } } } },
   });
 
   const onAccept = (organizationId: ID<Organization>) => {
-    if (me?.root?.organizations) {
+    if (me) {
       Organization.load(organizationId).then((organization) => {
         if (organization) {
           // avoid duplicates

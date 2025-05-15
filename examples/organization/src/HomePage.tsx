@@ -8,8 +8,7 @@ export function HomePage() {
     resolve: {
       root: {
         organizations: {
-          $each: true,
-          $skipInvalid: true,
+          $each: { $onError: null },
         },
       },
     },

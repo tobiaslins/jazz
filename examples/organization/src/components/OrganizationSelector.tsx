@@ -7,7 +7,7 @@ import { Organization } from "../schema.ts";
 
 export function OrganizationSelector({ className }: { className?: string }) {
   const { me } = useAccount({
-    resolve: { root: { organizations: { $each: true, $skipInvalid: true } } },
+    resolve: { root: { organizations: { $each: { $onError: null } } } },
   });
 
   const navigate = useNavigate();
