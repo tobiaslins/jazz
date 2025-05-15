@@ -1,5 +1,5 @@
 import type { LocalNode, SyncMessage } from "cojson";
-import { StorageManagerSync } from "cojson-storage";
+import { StorageManagerAsync } from "cojson-storage";
 import { onTestFinished } from "vitest";
 
 export function trackMessages(node: LocalNode) {
@@ -9,10 +9,10 @@ export function trackMessages(node: LocalNode) {
   }[] = [];
 
   const originalHandleSyncMessage =
-    StorageManagerSync.prototype.handleSyncMessage;
+    StorageManagerAsync.prototype.handleSyncMessage;
   const originalNodeSyncMessage = node.syncManager.handleSyncMessage;
 
-  StorageManagerSync.prototype.handleSyncMessage = async function (msg) {
+  StorageManagerAsync.prototype.handleSyncMessage = async function (msg) {
     messages.push({
       from: "client",
       msg,
@@ -29,7 +29,7 @@ export function trackMessages(node: LocalNode) {
   };
 
   const restore = () => {
-    StorageManagerSync.prototype.handleSyncMessage = originalHandleSyncMessage;
+    StorageManagerAsync.prototype.handleSyncMessage = originalHandleSyncMessage;
     node.syncManager.handleSyncMessage = originalNodeSyncMessage;
   };
 

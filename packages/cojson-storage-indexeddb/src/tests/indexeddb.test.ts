@@ -1,33 +1,12 @@
-import { randomUUID } from "node:crypto";
-import { unlinkSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { LocalNode, cojsonInternals } from "cojson";
-import { StorageManagerSync } from "cojson-storage";
+import { LocalNode } from "cojson";
+import { StorageManagerAsync } from "cojson-storage";
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
-import { expect, onTestFinished, test, vi } from "vitest";
-import { SQLiteNode } from "../index.js";
+import { expect, test, vi } from "vitest";
+import { IDBStorage } from "../index.js";
 import { toSimplifiedMessages } from "./messagesTestUtils.js";
 import { trackMessages } from "./testUtils.js";
 
 const Crypto = await WasmCrypto.create();
-
-async function createSQLiteStorage(defaultDbPath?: string) {
-  const dbPath = defaultDbPath ?? join(tmpdir(), `test-${randomUUID()}.db`);
-
-  if (!defaultDbPath) {
-    onTestFinished(() => {
-      unlinkSync(dbPath);
-    });
-  }
-
-  return {
-    peer: await SQLiteNode.asPeer({
-      filename: dbPath,
-    }),
-    dbPath,
-  };
-}
 
 test("Should be able to initialize and load from empty DB", async () => {
   const agentSecret = Crypto.newRandomAgentSecret();
@@ -38,11 +17,11 @@ test("Should be able to initialize and load from empty DB", async () => {
     Crypto,
   );
 
-  node.syncManager.addPeer((await createSQLiteStorage()).peer);
+  node.syncManager.addPeer(await IDBStorage.asPeer());
 
   await new Promise((resolve) => setTimeout(resolve, 200));
 
-  expect(node.syncManager.peers.storage).toBeDefined();
+  expect(node.syncManager.peers.indexedDB).toBeDefined();
 });
 
 test("should sync and load data from storage", async () => {
@@ -56,7 +35,7 @@ test("should sync and load data from storage", async () => {
 
   const node1Sync = trackMessages(node1);
 
-  const { peer, dbPath } = await createSQLiteStorage();
+  const peer = await IDBStorage.asPeer();
 
   node1.syncManager.addPeer(peer);
 
@@ -95,7 +74,7 @@ test("should sync and load data from storage", async () => {
 
   const node2Sync = trackMessages(node2);
 
-  const { peer: peer2 } = await createSQLiteStorage(dbPath);
+  const peer2 = await IDBStorage.asPeer();
 
   node2.syncManager.addPeer(peer2);
 
@@ -119,10 +98,9 @@ test("should sync and load data from storage", async () => {
       "client -> LOAD Map sessions: empty",
       "storage -> KNOWN Group sessions: header/3",
       "storage -> CONTENT Group header: true new: After: 0 New: 3",
-      "client -> KNOWN Group sessions: header/3",
       "storage -> KNOWN Map sessions: header/1",
       "storage -> CONTENT Map header: true new: After: 0 New: 1",
-      "client -> KNOWN Map sessions: header/1",
+      "client -> KNOWN Group sessions: header/3",
     ]
   `);
 
@@ -140,7 +118,7 @@ test("should load dependencies correctly (group inheritance)", async () => {
 
   const node1Sync = trackMessages(node1);
 
-  const { peer, dbPath } = await createSQLiteStorage();
+  const peer = await IDBStorage.asPeer();
 
   node1.syncManager.addPeer(peer);
 
@@ -185,7 +163,7 @@ test("should load dependencies correctly (group inheritance)", async () => {
 
   const node2Sync = trackMessages(node2);
 
-  const { peer: peer2 } = await createSQLiteStorage(dbPath);
+  const peer2 = await IDBStorage.asPeer();
 
   node2.syncManager.addPeer(peer2);
 
@@ -209,13 +187,12 @@ test("should load dependencies correctly (group inheritance)", async () => {
       "client -> LOAD Map sessions: empty",
       "storage -> KNOWN ParentGroup sessions: header/4",
       "storage -> CONTENT ParentGroup header: true new: After: 0 New: 4",
-      "client -> KNOWN ParentGroup sessions: header/4",
       "storage -> KNOWN Group sessions: header/5",
       "storage -> CONTENT Group header: true new: After: 0 New: 5",
-      "client -> KNOWN Group sessions: header/5",
+      "client -> KNOWN ParentGroup sessions: header/4",
       "storage -> KNOWN Map sessions: header/1",
       "storage -> CONTENT Map header: true new: After: 0 New: 1",
-      "client -> KNOWN Map sessions: header/1",
+      "client -> KNOWN Group sessions: header/5",
     ]
   `);
 });
@@ -231,7 +208,7 @@ test("should not send the same dependency value twice", async () => {
 
   const node1Sync = trackMessages(node1);
 
-  const { peer, dbPath } = await createSQLiteStorage();
+  const peer = await IDBStorage.asPeer();
 
   node1.syncManager.addPeer(peer);
 
@@ -258,7 +235,7 @@ test("should not send the same dependency value twice", async () => {
 
   const node2Sync = trackMessages(node2);
 
-  const { peer: peer2 } = await createSQLiteStorage(dbPath);
+  const peer2 = await IDBStorage.asPeer();
 
   node2.syncManager.addPeer(peer2);
 
@@ -285,12 +262,12 @@ test("should not send the same dependency value twice", async () => {
       "client -> LOAD Map sessions: empty",
       "storage -> KNOWN ParentGroup sessions: header/4",
       "storage -> CONTENT ParentGroup header: true new: After: 0 New: 4",
-      "client -> KNOWN ParentGroup sessions: header/4",
       "storage -> KNOWN Group sessions: header/5",
       "storage -> CONTENT Group header: true new: After: 0 New: 5",
-      "client -> KNOWN Group sessions: header/5",
+      "client -> KNOWN ParentGroup sessions: header/4",
       "storage -> KNOWN Map sessions: header/1",
       "storage -> CONTENT Map header: true new: After: 0 New: 1",
+      "client -> KNOWN Group sessions: header/5",
       "client -> KNOWN Map sessions: header/1",
       "client -> LOAD MapFromParent sessions: empty",
       "storage -> KNOWN MapFromParent sessions: header/1",
@@ -311,7 +288,7 @@ test("should recover from data loss", async () => {
 
   const node1Sync = trackMessages(node1);
 
-  const { peer, dbPath } = await createSQLiteStorage();
+  const peer = await IDBStorage.asPeer();
 
   node1.syncManager.addPeer(peer);
 
@@ -324,7 +301,7 @@ test("should recover from data loss", async () => {
   await new Promise((resolve) => setTimeout(resolve, 200));
 
   const mock = vi
-    .spyOn(StorageManagerSync.prototype, "handleSyncMessage")
+    .spyOn(StorageManagerAsync.prototype, "handleSyncMessage")
     .mockImplementation(() => Promise.resolve());
 
   map.set("1", 1);
@@ -369,7 +346,7 @@ test("should recover from data loss", async () => {
 
   const node2Sync = trackMessages(node2);
 
-  const { peer: peer2 } = await createSQLiteStorage(dbPath);
+  const peer2 = await IDBStorage.asPeer();
 
   node2.syncManager.addPeer(peer2);
 
@@ -399,99 +376,9 @@ test("should recover from data loss", async () => {
       "client -> LOAD Map sessions: empty",
       "storage -> KNOWN Group sessions: header/3",
       "storage -> CONTENT Group header: true new: After: 0 New: 3",
-      "client -> KNOWN Group sessions: header/3",
       "storage -> KNOWN Map sessions: header/4",
       "storage -> CONTENT Map header: true new: After: 0 New: 4",
-      "client -> KNOWN Map sessions: header/4",
+      "client -> KNOWN Group sessions: header/3",
     ]
   `);
-});
-
-test("should recover missing dependencies from storage", async () => {
-  const agentSecret = Crypto.newRandomAgentSecret();
-
-  const account = LocalNode.internalCreateAccount({
-    crypto: Crypto,
-  });
-  const node1 = account.core.node;
-
-  const serverNode = new LocalNode(
-    agentSecret,
-    Crypto.newRandomSessionID(Crypto.getAgentID(agentSecret)),
-    Crypto,
-  );
-
-  const [serverPeer, clientPeer] = cojsonInternals.connectedPeers(
-    node1.agentSecret,
-    serverNode.agentSecret,
-    {
-      peer1role: "server",
-      peer2role: "client",
-    },
-  );
-
-  node1.syncManager.addPeer(serverPeer);
-  serverNode.syncManager.addPeer(clientPeer);
-
-  const handleSyncMessage = StorageManagerSync.prototype.handleSyncMessage;
-
-  const mock = vi
-    .spyOn(StorageManagerSync.prototype, "handleSyncMessage")
-    .mockImplementation(function (this: StorageManagerSync, msg) {
-      if (
-        msg.action === "content" &&
-        [group.core.id, account.core.id].includes(msg.id)
-      ) {
-        return Promise.resolve();
-      }
-
-      return handleSyncMessage.call(this, msg);
-    });
-
-  const { peer, dbPath } = await createSQLiteStorage();
-
-  node1.syncManager.addPeer(peer);
-
-  const group = node1.createGroup();
-  group.addMember("everyone", "writer");
-
-  const map = group.createMap();
-
-  map.set("0", 0);
-
-  mock.mockReset();
-
-  await new Promise((resolve) => setTimeout(resolve, 200));
-
-  const node2 = new LocalNode(
-    Crypto.newRandomAgentSecret(),
-    Crypto.newRandomSessionID(Crypto.getAgentID(agentSecret)),
-    Crypto,
-  );
-
-  const [serverPeer2, clientPeer2] = cojsonInternals.connectedPeers(
-    node1.agentSecret,
-    serverNode.agentSecret,
-    {
-      peer1role: "server",
-      peer2role: "client",
-    },
-  );
-
-  node2.syncManager.addPeer(serverPeer2);
-  serverNode.syncManager.addPeer(clientPeer2);
-
-  const { peer: peer2 } = await createSQLiteStorage(dbPath);
-
-  node2.syncManager.addPeer(peer2);
-
-  const map2 = await node2.load(map.id);
-
-  if (map2 === "unavailable") {
-    throw new Error("Map is unavailable");
-  }
-
-  expect(map2.toJSON()).toEqual({
-    "0": 0,
-  });
 });
