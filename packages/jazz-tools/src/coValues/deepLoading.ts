@@ -26,6 +26,7 @@ export type RefsToResolve<
                   DepthLimit,
                   [0, ...CurrentDepth]
                 >;
+                $skipInvalid?: true;
               }
             | boolean
         : // Basically V extends CoMap | Group | Account - but if we used that we'd introduce circularity into the definition of CoMap itself
@@ -47,6 +48,7 @@ export type RefsToResolve<
                         DepthLimit,
                         [0, ...CurrentDepth]
                       >;
+                      $skipInvalid?: true;
                     }
                   : never)
               | boolean
@@ -61,6 +63,7 @@ export type RefsToResolve<
                       DepthLimit,
                       [0, ...CurrentDepth]
                     >;
+                    $skipInvalid?: true;
                   }
                 | boolean
             : boolean);
@@ -76,6 +79,8 @@ export type Resolved<T, R extends RefsToResolve<T> | undefined> = DeeplyLoaded<
   []
 >;
 
+type isNullable<Depth> = Depth extends { $skipInvalid: boolean } ? null : never;
+
 export type DeeplyLoaded<
   V,
   Depth,
@@ -90,13 +95,16 @@ export type DeeplyLoaded<
       ? UnCoNotNull<Item> extends CoValue
         ? Depth extends { $each: infer ItemDepth }
           ? // Deeply loaded CoList
-            (UnCoNotNull<Item> &
-              DeeplyLoaded<
-                UnCoNotNull<Item>,
-                ItemDepth,
-                DepthLimit,
-                [0, ...CurrentDepth]
-              >)[] &
+            (
+              | (Clean<Item> &
+                  DeeplyLoaded<
+                    Clean<Item>,
+                    ItemDepth,
+                    DepthLimit,
+                    [0, ...CurrentDepth]
+                  >)
+              | isNullable<Depth>
+            )[] &
               V // the CoList base type needs to be intersected after so that built-in methods return the correct narrowed array type
           : never
         : V
@@ -106,12 +114,14 @@ export type DeeplyLoaded<
           ? Depth extends { $each: infer ItemDepth }
             ? // Deeply loaded Record-like CoMap
               {
-                [key: string]: DeeplyLoaded<
-                  Clean<V[ItemsSym]>,
-                  ItemDepth,
-                  DepthLimit,
-                  [0, ...CurrentDepth]
-                >;
+                [key: string]:
+                  | DeeplyLoaded<
+                      Clean<V[ItemsSym]>,
+                      ItemDepth,
+                      DepthLimit,
+                      [0, ...CurrentDepth]
+                    >
+                  | isNullable<Depth>;
               } & V // same reason as in CoList
             : never
           : keyof Depth extends never // Depth = {}

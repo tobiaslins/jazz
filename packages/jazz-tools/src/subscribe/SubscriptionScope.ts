@@ -28,6 +28,7 @@ export class SubscriptionScope<D extends CoValue> {
   idsSubscribed = new Set<string>();
   autoloaded = new Set<string>();
   autoloadedKeys = new Set<string>();
+  skipInvalidEnabled = false;
   totalValidTransactions = 0;
 
   silenceUpdates = false;
@@ -43,6 +44,9 @@ export class SubscriptionScope<D extends CoValue> {
     this.subscription = new CoValueCoreSubscription(node, id, (value) => {
       this.handleUpdate(value);
     });
+    this.skipInvalidEnabled = Boolean(
+      (resolve as unknown as Record<string, any>)?.$skipInvalid,
+    );
   }
 
   updateValue(value: SubscriptionValue<D, any>) {
@@ -220,7 +224,7 @@ export class SubscriptionScope<D extends CoValue> {
     const error = this.errorFromChildren;
     const value = this.value;
 
-    if (error) {
+    if (error && !this.skipInvalidEnabled) {
       this.subscribers.forEach((listener) => listener(error));
     } else if (value.type !== "unloaded") {
       this.subscribers.forEach((listener) => listener(value));
