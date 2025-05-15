@@ -1,5 +1,12 @@
 # jazz-inspector-element
 
+## 0.13.30
+
+### Patch Changes
+
+- jazz-inspector@0.13.30
+- jazz-tools@0.13.30
+
 ## 0.13.29
 
 ### Patch Changes
