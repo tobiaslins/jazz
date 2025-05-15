@@ -100,20 +100,19 @@ To allow a non-group member to request an invitation to a group you can use the 
 This means that users only have write access to a specific requests list (they can't read other requests). 
 However, Administrators can review and approve these requests.
 
-First, your data models
+First, create the data models
 
 <CodeGroup>
 ```ts twoslash
 // @errors: 2345;
-import { CoMap, co, CoValue } from "jazz-tools";
+import { CoMap, co, CoValue, Account, CoList } from "jazz-tools";
 
-class Request extends CoMap {
-  // Add properties as needed for your Request class
-  message = co.string;
+class JoinRequest extends CoMap {
+  account = co.ref(Account);
   status = co.string;
 }
 
-export class RequestsList extends CoMap.Record(co.ref(Request)) {};
+export class RequestsList extends CoList.Of(co.ref(JoinRequest)) {};
 
 // ---cut-before---
 class RequestsToJoin extends CoMap {
@@ -127,143 +126,63 @@ Next, set up the request system with appropriate access controls
 
 <CodeGroup>
 ```ts twoslash
+// @errors: 2721
 import { Group, co, CoList, CoMap, Account } from "jazz-tools";
 import { createInviteLink } from "jazz-react";
 
-class Project extends CoMap {
-  title = co.string;
-  account = co.ref(Account);
+export class JoinRequest extends CoMap {
+  account = co.ref(Account);
+  status = co.string;
 }
 
-class Request extends CoMap {
-  message = co.string;
-  status = co.string;
-}
-
-export class RequestsList extends CoMap.Record(co.ref(Request)) {};
+export class RequestsList extends CoList.Of(co.ref(JoinRequest)) {};
 
 export class RequestsToJoin extends CoMap {
-  writeOnlyInvite = co.string;
-  requests = co.ref(RequestsList);
+  writeOnlyInvite = co.string;
+  requests = co.ref(RequestsList);
 }
 
 // ---cut-before---
 function createRequestsToJoin() {
-  const everyoneReaderGroup = Group.create();
-  everyoneReaderGroup.addMember("everyone", "reader");
+  const requestsGroup = Group.create();
+  requestsGroup.addMember("everyone", "writeOnly");
 
-  const requestsGroup = Group.create();
-  const writeOnlyInvite = createInviteLink(requestsGroup, "writeOnly");
+  return RequestsList.create([], requestsGroup);
+}
 
-  return RequestsToJoin.create({ 
-    writeOnlyInvite, 
-    requests: RequestsList.create({}, requestsGroup)
-  }, everyoneReaderGroup);
+async function sendJoinRequest(
+  requestsList: RequestsList,
+  account: Account,
+) {
+  const request = JoinRequest.create(
+    {
+      account,
+      status: "pending",
+    },
+    requestsList._owner // Inherit the access controls of the requestsList
+  );
+
+  requestsList.push(request);
+
+  return request;
 }
 ```
 </CodeGroup>
 
-Using the write-only invitation link, users can submit requests.
+Using the write-only invitation link, users can submit requests and administrators can review and approve requests.
 
-<CodeGroup>
-```ts twoslash
-// @errors: 2554 2559
-import { co, CoList, CoMap, ID, Account, CoValue, CoValueClass, Group } from "jazz-tools";
-import { createInviteLink } from "jazz-react";
-
-type JsonValue = string | number | boolean | null | { [key: string]: JsonValue } | JsonValue[];
-type JsonObject = { [key: string]: JsonValue };
-type RawCoMap<T extends Record<string, any>, M extends JsonObject | null> = {
-  _raw: { data: T; metadata: M };
-};
-
-class Project extends CoMap {
-  title = co.string;
-  account = co.ref(Account);
-}
-
-class Request extends CoMap {
-  project = co.ref(Project);
-  account = co.ref(Account);
-}
-const mockArrayType = (type: any) => type; // Just for demonstration purposes
-
-export class RequestsList extends CoMap {
-  // Using mock helper instead of non-existent co.array
-  items = mockArrayType(co.ref(Request));
-}
-
-export class RequestsToJoin extends CoMap {
-  writeOnlyInvite = co.string;
-  requests = co.ref(RequestsList);
-}
-
-async function loadRequestsToJoin(projectId: ID<Project>): Promise<RequestsToJoin | null> {
-  // Mock implementation
-  return new RequestsToJoin();
-}
-
-// Mock function for consumeInviteLink
-interface ConsumeInviteLinkOptions {
-  inviteURL: string;
-  invitedObjectSchema?: any;
-}
-
-interface ConsumeInviteLinkResult {
-  success: boolean;
-  valueID: string;
-  writeable: boolean;
-  fromRaw: RawCoMap<{ [key: string]: JsonValue | undefined }, JsonObject | null>;
-}
-
-async function consumeInviteLink(options: ConsumeInviteLinkOptions): Promise<ConsumeInviteLinkResult | null> {
-  if (!options.inviteURL) {
-    return null;
-  }
-  return {
-    success: true,
-    valueID: "mock-value-id-123",
-    writeable: true,
-    fromRaw: {} as RawCoMap<{ [key: string]: JsonValue | undefined }, JsonObject | null>
-  };
-}
-
-// ---cut-before---
-
-function createRequestsToJoin() {
-  const everyoneReaderGroup = Group.create()
-  everyoneReaderGroup.addMember("everyone", "reader")
-
-  const requestsGroup = Group.create()
-  const writeOnlyInvite = createInviteLink(requestsGroup, "writeOnly")
-  
-  return RequestsToJoin.create({ writeOnlyInvite, requests: RequestsList.create({ items: [] }, requestsGroup) },  everyoneReaderGroup)
-}
-
-```
-</CodeGroup>
-Then, administrators can review and approve requests.
 <CodeGroup>
 ```ts twoslash
 // @errors: 2339 2345 18047 2769
-import { co, CoMap, ID, Account, Group } from "jazz-tools";
+import { co, CoMap, CoList, ID, Account, Group } from "jazz-tools";
 
-// Reusing the same types from previous examples
-class Project extends CoMap {
-  title = co.string;
-}
 
-class Request extends CoMap {
-  project = co.ref(Project);
+class JoinRequest extends CoMap {
   account = co.ref(Account);
-  message = co.string;
   status = co.string; // Can be "pending", "approved", "rejected"
 }
 
-export class RequestsList extends CoMap {
-  // Use mockArrayType helper instead of non-existent co.list
-  items = mockArrayType(co.ref(Request));
-}
+export class RequestsList extends CoList.Of(co.ref(JoinRequest)) {};
 
 // Helper function to mock the co.list functionality
 const mockArrayType = (type: any) => type;
@@ -272,56 +191,23 @@ export class RequestsToJoin extends CoMap {
   writeOnlyInvite = co.string;
   requests = co.ref(RequestsList);
 }
-async function reviewJoinRequests(requestsToJoinId: ID<RequestsToJoin>) {
-  const requestsToJoin = await RequestsToJoin.load(requestsToJoinId);
-  
-  if (!requestsToJoin || !requestsToJoin.requests) {
-    throw new Error("Requests container not found");
-  }
-  
-  const requestsList = await RequestsList.load(requestsToJoin.requests.id);
-  if (!requestsList) {
-    throw new Error("Requests list not found");
-  }
-    return requestsList.items;
-}
 
 // ---cut-before---
 
-async function approveJoinRequest(requestsToJoinId: ID<RequestsToJoin>, requestId: ID<Request>, targetGroup: ID<Group>) {
-  const requestsToJoin = await RequestsToJoin.load(requestsToJoinId);
-  
-  if (!requestsToJoin || !requestsToJoin.requests) {
-    throw new Error("Requests container not found");
-  }
-  
-  const requestsList = await RequestsList.load(requestsToJoin.requests.id);
-  
-  const request = await Request.load(requestId);
-  
-  if (!request) {
-    throw new Error("Request not found");
-  }
-    request.status = "approved";
-  
-  const group = await Group.load(targetGroup);
-  
-  if (!group) {
-    throw new Error("Target group not found");
-  }
-  
-  if (request.account) {
-    const account = await Account.load(request.account.id);
+async function approveJoinRequest(joinRequest: JoinRequest, targetGroup: Group) {
+  const account = joinRequest.account && await Account.load(joinRequest.account.id);
+
     if (account) {
-      // Now add the member and update the access
-      group.addMember(account, "reader");
-    }
-  }
-  
-  return true;
+      targetGroup.addMember(account, "reader");
+      joinRequest.status = "approved";
+      
+      return true;
+    } else {
+     return false;
+   }
 }
+
 ```
 </CodeGroup>
 <br />
-Example App coming soon!
 
