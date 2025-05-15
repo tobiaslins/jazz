@@ -67,7 +67,7 @@ export type AvailableCoValueCore = CoValueCore & { verified: VerifiedState };
 export const CO_VALUE_LOADING_CONFIG = {
   MAX_RETRIES: 1,
   TIMEOUT: 30_000,
-  RETRY_DELAY: 300,
+  RETRY_DELAY: 3000,
 };
 
 export class CoValueCore {
@@ -183,6 +183,20 @@ export class CoValueCore {
     return new Promise<CoValueCore>((resolve) => {
       const listener = (core: CoValueCore) => {
         if (core.isAvailable() || core.loadingState === "unavailable") {
+          resolve(core);
+          this.listeners.delete(listener);
+        }
+      };
+
+      this.listeners.add(listener);
+      listener(this);
+    });
+  }
+
+  waitForAvailable(): Promise<CoValueCore> {
+    return new Promise<CoValueCore>((resolve) => {
+      const listener = (core: CoValueCore) => {
+        if (core.isAvailable()) {
           resolve(core);
           this.listeners.delete(listener);
         }
