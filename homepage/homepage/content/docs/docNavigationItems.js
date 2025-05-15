@@ -190,6 +190,11 @@ export const docNavigationItems = [
         },
       },
       {
+        name: "Connecting CoValues",
+        href: "/docs/using-covalues/connecting-covalues",
+        done: 0,
+      },
+      {
         name: "SchemaUnions",
         href: "/docs/using-covalues/schemaunions",
         done: 0,
