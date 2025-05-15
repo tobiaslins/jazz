@@ -26,7 +26,7 @@ export type RefsToResolve<
                   DepthLimit,
                   [0, ...CurrentDepth]
                 >;
-                $skipInvalid?: true;
+                $skipInvalid?: boolean;
               }
             | boolean
         : // Basically V extends CoMap | Group | Account - but if we used that we'd introduce circularity into the definition of CoMap itself
@@ -48,7 +48,7 @@ export type RefsToResolve<
                         DepthLimit,
                         [0, ...CurrentDepth]
                       >;
-                      $skipInvalid?: true;
+                      $skipInvalid?: boolean;
                     }
                   : never)
               | boolean
@@ -63,7 +63,7 @@ export type RefsToResolve<
                       DepthLimit,
                       [0, ...CurrentDepth]
                     >;
-                    $skipInvalid?: true;
+                    $skipInvalid?: boolean;
                   }
                 | boolean
             : boolean);
