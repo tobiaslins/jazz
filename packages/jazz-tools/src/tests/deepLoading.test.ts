@@ -617,9 +617,9 @@ describe("Deep loading with unauthorized account", async () => {
     class Person extends CoMap {
       name = co.string;
     }
-    class Friend extends CoMap.Record(co.ref(Person)) {}
+    class Friends extends CoMap.Record(co.ref(Person)) {}
 
-    const map = Friend.create(
+    const map = Friends.create(
       {
         jane: Person.create({ name: "Jane" }, onlyBob),
         alice: Person.create({ name: "Alice" }, group),
@@ -627,7 +627,7 @@ describe("Deep loading with unauthorized account", async () => {
       group,
     );
 
-    const friendsOnAlice = await Friend.load(map.id, {
+    const friendsOnAlice = await Friends.load(map.id, {
       resolve: { $each: true, $skipInvalid: true },
       loadAs: alice,
     });
@@ -636,6 +636,91 @@ describe("Deep loading with unauthorized account", async () => {
 
     expect(friendsOnAlice.jane).toBeNull();
     expect(friendsOnAlice.alice).not.toBeNull();
+  });
+
+  test("unaccessible nested record element with $skipInvalid", async () => {
+    class Person extends CoMap {
+      name = co.string;
+    }
+    class Friends extends CoMap.Record(co.ref(Person)) {}
+
+    class User extends CoMap {
+      name = co.string;
+      friends = co.ref(Friends);
+    }
+
+    const map = User.create(
+      {
+        name: "John",
+        friends: Friends.create(
+          {
+            jane: Person.create({ name: "Jane" }, onlyBob),
+            alice: Person.create({ name: "Alice" }, group),
+          },
+          group,
+        ),
+      },
+      group,
+    );
+
+    const user = await User.load(map.id, {
+      resolve: { friends: { $each: true, $skipInvalid: true } },
+      loadAs: alice,
+    });
+
+    assert(user, "user is null");
+
+    expect(user.friends.jane).toBeNull();
+    expect(user.friends.alice).not.toBeNull();
+  });
+
+  test("unaccessible element down the chain with $skipInvalid on a record", async () => {
+    class Person extends CoMap {
+      name = co.string;
+      dog = co.ref(Dog);
+    }
+    class Dog extends CoMap {
+      name = co.string;
+    }
+    class Friends extends CoMap.Record(co.ref(Person)) {}
+
+    class User extends CoMap {
+      name = co.string;
+      friends = co.ref(Friends);
+    }
+
+    const map = User.create(
+      {
+        name: "John",
+        friends: Friends.create(
+          {
+            jane: Person.create(
+              {
+                name: "Jane",
+                dog: Dog.create({ name: "Rex" }, onlyBob), // Jane dog is inaccessible
+              },
+              group,
+            ),
+            alice: Person.create(
+              { name: "Alice", dog: Dog.create({ name: "Giggino" }, group) },
+              group,
+            ),
+          },
+          group,
+        ),
+      },
+      group,
+    );
+
+    const user = await User.load(map.id, {
+      resolve: { friends: { $each: { dog: true }, $skipInvalid: true } },
+      loadAs: alice,
+    });
+
+    assert(user);
+
+    expect(user.friends.jane).toBeNull(); // jane is null because her dog is inaccessible
+    expect(user.friends.alice?.dog).not.toBeNull(); // alice is not null because we have read access to her and her dog
   });
 
   test("unaccessible list element with $skipInvalid and $each with depth", async () => {

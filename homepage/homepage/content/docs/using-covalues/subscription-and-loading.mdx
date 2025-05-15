@@ -475,38 +475,60 @@ This way the inaccessible items are replaced with `null` in the returned list.
 
 <CodeGroup>
 ```typescript twoslash
-import { ID, CoMap, co, CoList } from "jazz-tools";
+import { ID, CoMap, co, Group, Account } from "jazz-tools";
+import { expect, assert } from "vitest";
 
-class Project extends CoMap {
+class Person extends CoMap {
   name = co.string;
-  tasks = co.ref(ListOfTasks);
+  dog = co.ref(Dog);
+}
+class Dog extends CoMap {
+  name = co.string;
+}
+class Friends extends CoMap.Record(co.ref(Person)) {}
+
+class User extends CoMap {
+  name = co.string;
+  friends = co.ref(Friends);
 }
 
-class Task extends CoMap {
-  title = co.string;
-}
-
-class ListOfTasks extends CoList.Of(co.ref(Task)) {}  
-
-const projectId = "co_123" as ID<Project>;
-
-function assert<T>(value: T | null | undefined): asserts value is T {
-  if (!value) {
-    throw new Error("Value is null or undefined");
-  }
-}
+const onlyVisibleToBob = Group.create();
+const visibleToMe = Group.create();
+const me = {} as unknown as Account;
 
 // ---cut-before---
-const project = await Project.load(projectId, {
-  resolve: { tasks: { $each: true, $skipInvalid: true } }
+const map = User.create(
+  {
+    name: "John",
+    friends: Friends.create(
+      {
+        jane: Person.create(
+          {
+            name: "Jane",
+            dog: Dog.create(
+              { name: "Rex" },
+              onlyVisibleToBob,
+            ), // Jane dog is not accessible by us
+          },
+          visibleToMe,
+        ),
+      },
+      visibleToMe,
+    ),
+  },
+  visibleToMe,
+);
+
+const user = await User.load(map.id, {
+  resolve: {
+    friends: { $each: { dog: true }, $skipInvalid: true },
+  },
+  loadAs: me,
 });
 
-assert(project);
+assert(user);
 
-const [task1, task2] = project.tasks;
-
-task1 // => Task
-task2 // => null because the task is inaccessible
+expect(user.friends.jane).toBeNull(); // jane is null because her dog is not accessible
 ```
 </CodeGroup>
 
@@ -543,7 +565,16 @@ function assert<T>(value: T | null | undefined): asserts value is T {
 const projectId = "co_123" as ID<Project>;
 // ---cut-before---
 const project = await Project.load(projectId, {
-  resolve: { tasks: { $each: { subtasks: { $each: true } }, $skipInvalid: true } }
+  resolve: {
+    tasks: {
+      $each: {
+        subtasks: {
+          $each: true,
+        },
+      },
+      $skipInvalid: true,
+    },
+  },
 });
 
 assert(project);
@@ -551,7 +582,7 @@ assert(project);
 const [task1, task2] = project.tasks;
 
 task1 // => Task, everything inside is loaded
-task2 // => null because the one of the task2 subtasks is inaccessible
+task2 // => null because one of the subtasks in task2 is not accessible
 ```
 </CodeGroup>
 
