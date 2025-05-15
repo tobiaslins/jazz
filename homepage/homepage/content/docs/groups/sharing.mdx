@@ -108,7 +108,7 @@ import { CoMap, co, CoValue, Account, CoList } from "jazz-tools";
 // ---cut-before---
 class JoinRequest extends CoMap {
   account = co.ref(Account);
-  status = co.string;
+  status = co.literal("pending", "approved", "rejected");
 }
 
 class RequestsList extends CoList.Of(co.ref(JoinRequest)) {};
