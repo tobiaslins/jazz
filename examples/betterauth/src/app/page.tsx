@@ -1,9 +1,16 @@
 "use client";
 
-import { Button } from "@/components/Button";
+import { Button } from "@/components/ui/button";
 import { useAccount, useIsAuthenticated } from "jazz-react";
 import { useAuth } from "jazz-react-auth-betterauth";
+import {
+  AppWindowMacIcon,
+  FileTextIcon,
+  GlobeIcon,
+  WrenchIcon,
+} from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useCallback } from "react";
 
 export default function Home() {
@@ -27,17 +34,21 @@ export default function Home() {
           {me && hasCredentials && isAuthenticated && (
             <>
               <Button onClick={signOut}>Sign out</Button>
-              <Button href="/settings">Settings</Button>
+              <Button asChild>
+                <Link href="/settings">Settings</Link>
+              </Button>
             </>
           )}
         </div>
         <div className="float-end flex gap-4">
           {!hasCredentials && !isAuthenticated && (
             <>
-              <Button href="/sign-in" variant="secondary">
-                Sign in
+              <Button asChild variant="secondary">
+                <Link href="/auth/sign-in">Sign in</Link>
               </Button>
-              <Button href="/sign-up">Sign up</Button>
+              <Button asChild>
+                <Link href="/auth/sign-up">Sign up</Link>
+              </Button>
             </>
           )}
         </div>
@@ -71,93 +82,73 @@ export default function Home() {
           </p>
 
           <div className="flex gap-4 items-center flex-col sm:flex-row">
-            <a
-              className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-              href="https://jazz.tools/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Image src="/jazz.svg" alt="Jazz logo" width={20} height={20} />
-              Start building
-            </a>
-            <a
-              className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center gap-2 hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto"
-              href="https://jazz.tools/docs"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Image
-                aria-hidden
-                src="/file.svg"
-                alt="File icon"
-                width={16}
-                height={16}
-              />
-              Read the docs
-            </a>
+            <Button asChild size="lg">
+              <a
+                href="https://jazz.tools/docs"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Image src="/jazz.svg" alt="" width={20} height={20} />
+                Start building
+              </a>
+            </Button>
+
+            <Button asChild variant="secondary" size="lg">
+              <a
+                href="https://jazz.tools/docs"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <FileTextIcon className="size-4" />
+                Read the docs
+              </a>
+            </Button>
           </div>
         </main>
+
         <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-          <a
-            className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-            href="https://jazz.tools/api-reference"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              aria-hidden
-              src="/file.svg"
-              alt="File icon"
-              width={16}
-              height={16}
-            />
-            API reference
-          </a>
-          <a
-            className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-            href="https://jazz.tools/examples"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              aria-hidden
-              src="/window.svg"
-              alt="Window icon"
-              width={16}
-              height={16}
-            />
-            Examples
-          </a>
-          <a
-            className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-            href="https://jazz.tools/status"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              aria-hidden
-              src="/globe.svg"
-              alt="Globe icon"
-              width={16}
-              height={16}
-            />
-            Status
-          </a>
-          <a
-            className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-            href="https://jazz.tools/showcase"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              aria-hidden
-              src="/wrench.svg"
-              alt="Wrench icon"
-              width={16}
-              height={16}
-            />
-            Built with Jazz
-          </a>
+          <Button asChild variant="ghost">
+            <a
+              href="https://jazz.tools/api-reference"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <FileTextIcon className="size-4" />
+              API reference
+            </a>
+          </Button>
+          <Button asChild variant="ghost">
+            <a
+              href="https://jazz.tools/examples"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <AppWindowMacIcon className="size-4" />
+              Examples
+            </a>
+          </Button>
+
+          <Button asChild variant="ghost">
+            <a
+              href="https://jazz.tools/status"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <GlobeIcon className="size-4" />
+              Status
+            </a>
+          </Button>
+
+          <Button asChild variant="ghost">
+            <a
+              href="https://jazz.tools/showcase"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <WrenchIcon className="size-4" />
+              Built with Jazz
+            </a>
+          </Button>
         </footer>
       </div>
     </>
