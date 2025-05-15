@@ -1,5 +1,4 @@
 import { ExampleCard } from "@/components/examples/ExampleCard";
-import { ExampleDemo } from "@/components/examples/ExampleDemo";
 import { ClerkFullLogo } from "@/components/icons/ClerkFullLogo";
 import { ReactLogo } from "@/components/icons/ReactLogo";
 import { ReactNativeLogo } from "@/components/icons/ReactNativeLogo";
@@ -681,15 +680,11 @@ export default function Page() {
 
             <GappedGrid>
               {category.examples.map((example) =>
-                example.showDemo ? (
-                  <ExampleDemo key={example.slug} example={example} />
-                ) : (
-                  <ExampleCard
-                    className="border bg-stone-50 shadow-sm p-3 rounded-lg dark:bg-stone-950"
-                    key={example.slug}
-                    example={example}
-                  />
-                ),
+                <ExampleCard
+                  className="border bg-stone-50 shadow-sm p-3 rounded-lg dark:bg-stone-950"
+                  key={example.slug}
+                  example={example}
+                />
               )}
             </GappedGrid>
           </div>

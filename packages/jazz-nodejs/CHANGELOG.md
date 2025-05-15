@@ -1,5 +1,36 @@
 # jazz-autosub
 
+## 0.13.30
+
+### Patch Changes
+
+- Updated dependencies [07dd2c5]
+  - cojson@0.13.30
+  - cojson-transport-ws@0.13.30
+  - jazz-tools@0.13.30
+
+## 0.13.29
+
+### Patch Changes
+
+- Updated dependencies [eef1a5d]
+- Updated dependencies [191ae38]
+- Updated dependencies [daee7b9]
+  - cojson@0.13.29
+  - cojson-transport-ws@0.13.29
+  - jazz-tools@0.13.29
+
+## 0.13.28
+
+### Patch Changes
+
+- 422dbc4: Add waitForConnection and subscribeToConnectionChange APIs to handle connection drops
+- Updated dependencies [e7ccb2c]
+- Updated dependencies [422dbc4]
+  - cojson@0.13.28
+  - cojson-transport-ws@0.13.28
+  - jazz-tools@0.13.28
+
 ## 0.13.27
 
 ### Patch Changes
