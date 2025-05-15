@@ -1,5 +1,12 @@
 # multi-cursors
 
+## 0.0.88
+
+### Patch Changes
+
+- jazz-react@0.13.29
+- jazz-tools@0.13.29
+
 ## 0.0.87
 
 ### Patch Changes
