@@ -100,11 +100,10 @@ To allow a non-group member to request an invitation to a group you can use the 
 This means that users only have write access to a specific requests list (they can't read other requests). 
 However, Administrators can review and approve these requests.
 
-First, create the data models
+Create the data models.
 
 <CodeGroup>
 ```ts twoslash
-// @errors: 2345;
 import { CoMap, co, CoValue, Account, CoList } from "jazz-tools";
 
 class JoinRequest extends CoMap {
@@ -116,17 +115,16 @@ export class RequestsList extends CoList.Of(co.ref(JoinRequest)) {};
 
 // ---cut-before---
 class RequestsToJoin extends CoMap {
-  writeOnlyInvite = co.string;  // Stores the write-only invite link
-  requests = co.ref(RequestsList);  // Reference to all requests
+  writeOnlyInvite = co.string;
+  requests = co.ref(RequestsList);
 }
 ```
 </CodeGroup>
 
-Next, set up the request system with appropriate access controls
+Set up the request system with appropriate access controls.
 
 <CodeGroup>
 ```ts twoslash
-// @errors: 2721
 import { Group, co, CoList, CoMap, Account } from "jazz-tools";
 import { createInviteLink } from "jazz-react";
 
@@ -173,7 +171,6 @@ Using the write-only invitation link, users can submit requests and administrato
 
 <CodeGroup>
 ```ts twoslash
-// @errors: 2339 2345 18047 2769
 import { co, CoMap, CoList, ID, Account, Group } from "jazz-tools";
 
 
@@ -183,9 +180,6 @@ class JoinRequest extends CoMap {
 }
 
 export class RequestsList extends CoList.Of(co.ref(JoinRequest)) {};
-
-// Helper function to mock the co.list functionality
-const mockArrayType = (type: any) => type;
 
 export class RequestsToJoin extends CoMap {
   writeOnlyInvite = co.string;
