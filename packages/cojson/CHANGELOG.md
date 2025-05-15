@@ -1,5 +1,11 @@
 # cojson
 
+## 0.13.30
+
+### Patch Changes
+
+- 07dd2c5: Restore the longer timeout for the storage loading
+
 ## 0.13.29
 
 ### Patch Changes
