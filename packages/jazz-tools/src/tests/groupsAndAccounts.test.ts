@@ -94,12 +94,12 @@ describe("Custom accounts and groups", async () => {
 });
 
 describe("Group inheritance", () => {
-  class TestMap extends CoMap {
-    title = coField.string;
-  }
+  const TestMap = co.map({
+    title: z.string(),
+  });
 
   test("Group inheritance", async () => {
-    const me = await Account.create({
+    const me = await co.account().create({
       creationProps: { name: "Hermes Puggington" },
       crypto: Crypto,
     });
@@ -109,7 +109,7 @@ describe("Group inheritance", () => {
 
     group.extend(parentGroup);
 
-    const reader = await Account.createAs(me, {
+    const reader = await co.account().createAs(me, {
       creationProps: { name: "Reader" },
     });
 

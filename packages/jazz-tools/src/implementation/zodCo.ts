@@ -120,6 +120,7 @@ const coAccountDefiner = <
     ) => void;
 
     create: AccountSchema<Shape>["create"];
+    createAs: AccountSchema<Shape>["createAs"];
     load: AccountSchema<Shape>["load"];
     subscribe: AccountSchema<Shape>["subscribe"];
     withHelpers: AccountSchema<Shape>["withHelpers"];
@@ -132,6 +133,13 @@ const coAccountDefiner = <
   accountSchema.create = function (this: AccountSchema<Shape>, ...args: any[]) {
     return (zodSchemaToCoSchema(this) as any).create(...args);
   } as AccountSchema<Shape>["create"];
+
+  accountSchema.createAs = function (
+    this: AccountSchema<Shape>,
+    ...args: any[]
+  ) {
+    return (zodSchemaToCoSchema(this) as any).createAs(...args);
+  } as AccountSchema<Shape>["createAs"];
 
   accountSchema.load = function (this: AccountSchema<Shape>, ...args: any[]) {
     return (zodSchemaToCoSchema(this) as any).load(...args);

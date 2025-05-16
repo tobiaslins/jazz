@@ -122,6 +122,13 @@ export type AccountSchema<
     crypto?: CryptoProvider;
   }) => Promise<AccountInstance<Shape>>;
 
+  createAs: (
+    as: Account,
+    options: {
+      creationProps?: { name: string };
+    },
+  ) => Promise<AccountInstance<Shape>>;
+
   withMigration(
     migration: (
       account: InstanceOrPrimitive<AccountSchema<Shape>>,
