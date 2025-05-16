@@ -1,5 +1,11 @@
 # jazz-run
 
+## 0.13.32
+
+### Patch Changes
+
+- cojson-storage-sqlite@0.13.32
+
 ## 0.13.31
 
 ### Patch Changes
