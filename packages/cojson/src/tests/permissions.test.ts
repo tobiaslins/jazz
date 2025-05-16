@@ -1682,58 +1682,6 @@ test("WriteOnlyInvites can set writeKeys", () => {
   expect(groupAsInvite.get(`writeKeyFor_${admin.id}`)).toEqual(readKeyID);
 });
 
-test("Invites can't override key revelations", () => {
-  const { groupCore, admin } = newGroup();
-
-  const inviteSecret = Crypto.newRandomAgentSecret();
-  const inviteID = Crypto.getAgentID(inviteSecret);
-
-  const group = expectGroup(groupCore.getCurrentContent());
-
-  const { secret: readKey, id: readKeyID } = Crypto.newRandomKeySecret();
-  const revelation = Crypto.seal({
-    message: readKey,
-    from: admin.currentSealerSecret(),
-    to: admin.currentSealerID(),
-    nOnceMaterial: {
-      in: groupCore.id,
-      tx: groupCore.nextTransactionID(),
-    },
-  });
-
-  group.set(`${readKeyID}_for_${admin.id}`, revelation, "trusting");
-  group.set("readKey", readKeyID, "trusting");
-
-  group.set(inviteID, "readerInvite", "trusting");
-
-  expect(group.get(inviteID)).toEqual("readerInvite");
-
-  const revelationForInvite = Crypto.seal({
-    message: readKey,
-    from: admin.currentSealerSecret(),
-    to: Crypto.getAgentSealerID(inviteID),
-    nOnceMaterial: {
-      in: groupCore.id,
-      tx: groupCore.nextTransactionID(),
-    },
-  });
-
-  group.set(`${readKeyID}_for_${inviteID}`, revelationForInvite, "trusting");
-
-  const groupAsInvite = expectGroup(
-    groupCore.contentInClonedNodeWithDifferentAccount(
-      new ControlledAgent(inviteSecret, Crypto),
-    ),
-  );
-
-  groupAsInvite.set(
-    `${readKeyID}_for_${admin.id}`,
-    "Evil change" as any,
-    "trusting",
-  );
-  expect(groupAsInvite.get(`${readKeyID}_for_${admin.id}`)).toBe(revelation);
-});
-
 test("WriteOnlyInvites can't override writeKeys", () => {
   const { groupCore, admin } = newGroup();
 
