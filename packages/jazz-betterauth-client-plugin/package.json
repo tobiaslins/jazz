@@ -1,6 +1,6 @@
 {
   "name": "jazz-betterauth-client-plugin",
-  "version": "0.13.30",
+  "version": "0.13.31",
   "type": "module",
   "main": "dist/index.js",
   "types": "src/index.ts",

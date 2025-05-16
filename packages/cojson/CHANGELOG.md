@@ -1,5 +1,12 @@
 # cojson
 
+## 0.13.31
+
+### Patch Changes
+
+- d63716a: Fix removing members when the admin doesn't have access to the parent group readkeys
+- d5edad7: Group invites: restore support for role upgrades and inviting revoked members
+
 ## 0.13.30
 
 ### Patch Changes
