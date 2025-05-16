@@ -11,6 +11,14 @@ export const auth = await (async () => {
     database: new Database("sqlite.db"),
     emailAndPassword: {
       enabled: true,
+      sendResetPassword: () => {
+        throw new Error("Not implemented");
+      },
+    },
+    emailVerification: {
+      sendVerificationEmail() {
+        throw new Error("Not implemented");
+      },
     },
     socialProviders,
     user: {
@@ -19,6 +27,16 @@ export const auth = await (async () => {
       },
     },
     plugins: [jazzPlugin()],
+    databaseHooks: {
+      user: {
+        create: {
+          after: () => {
+            // Here we can send a welcome email to the user
+            throw new Error("Not implemented");
+          },
+        },
+      },
+    },
   });
 
   // Run database migrations
