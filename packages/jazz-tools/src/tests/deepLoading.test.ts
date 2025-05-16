@@ -797,6 +797,69 @@ describe("Deep loading with unauthorized account", async () => {
     expect(friendsOnAlice.jane).toBeNull();
     expect(friendsOnAlice.alice).not.toBeNull();
   });
+
+  test("unaccessible ref catched with $onError", async () => {
+    class Person extends CoMap {
+      name = co.string;
+      dog = co.ref(Dog);
+    }
+    class Dog extends CoMap {
+      name = co.string;
+    }
+    class Friends extends CoMap.Record(co.ref(Person)) {}
+
+    class User extends CoMap {
+      name = co.string;
+      friends = co.ref(Friends);
+    }
+
+    const map = User.create(
+      {
+        name: "John",
+        friends: Friends.create(
+          {
+            jane: Person.create(
+              {
+                name: "Jane",
+                dog: Dog.create({ name: "Rex" }, onlyBob), // Jane dog is inaccessible
+              },
+              group,
+            ),
+            alice: Person.create(
+              { name: "Alice", dog: Dog.create({ name: "Giggino" }, group) },
+              group,
+            ),
+          },
+          group,
+        ),
+      },
+      group,
+    );
+
+    const user = await User.load(map.id, {
+      resolve: { friends: { $each: { dog: { $onError: null } } } },
+      loadAs: alice,
+    });
+
+    assert(user);
+
+    expect(user.friends.jane?.dog).toBeNull(); // jane is null because her dog is inaccessible
+    expect(user.friends.alice?.dog?.name).toBe("Giggino"); // alice is not null because we have read access to her and her dog
+  });
+
+  test("using $onError on the resolve root", async () => {
+    class Person extends CoMap {
+      name = co.string;
+    }
+
+    const map = Person.create({ name: "John" }, onlyBob);
+    const user = await Person.load(map.id, {
+      resolve: { $onError: null },
+      loadAs: alice,
+    });
+
+    expect(user).toBeNull();
+  });
 });
 
 test("doesn't break on Map.Record key deletion when the key is referenced in the depth", async () => {
