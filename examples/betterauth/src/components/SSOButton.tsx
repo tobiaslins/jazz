@@ -18,7 +18,9 @@ import {
   SiZoom,
 } from "@icons-pack/react-simple-icons";
 import { type SSOProviderType, useAuth } from "jazz-react-auth-betterauth";
+import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
+import { toast } from "sonner";
 
 interface SocialProvider {
   name: string;
@@ -100,30 +102,32 @@ const socialProviderMap: Record<SSOProviderType, SocialProvider> = {
 
 interface Props {
   provider: SSOProviderType;
-  callbackURL?: string;
 }
 
-export function SSOButton({ provider, callbackURL }: Props) {
+export function SSOButton({ provider }: Props) {
   const auth = useAuth();
+  const router = useRouter();
+
   return (
     <Button
       type="button"
       variant="outline"
-      onClick={async (e) => {
-        e.preventDefault();
-        const { error } = await (async () => {
-          return await auth.authClient.signIn.social({
+      onClick={() => {
+        auth.authClient.signIn.social(
+          {
             provider,
-            callbackURL,
-          });
-        })();
-        if (error) {
-          // setError({
-          //   ...error,
-          //   name: error.message ?? error.statusText,
-          //   message: error.message ?? error.statusText,
-          // });
-        }
+          },
+          {
+            onSuccess: () => {
+              router.push("/");
+            },
+            onError: (error) => {
+              toast.error("Error", {
+                description: error.error.message,
+              });
+            },
+          },
+        );
       }}
     >
       {socialProviderMap[provider].icon}
