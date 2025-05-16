@@ -5,7 +5,13 @@ import { Heading } from "./components/Heading.tsx";
 
 export function HomePage() {
   const { me } = useAccount({
-    resolve: { root: { organizations: true } },
+    resolve: {
+      root: {
+        organizations: {
+          $each: { $onError: null },
+        },
+      },
+    },
   });
 
   if (!me?.root.organizations) return;

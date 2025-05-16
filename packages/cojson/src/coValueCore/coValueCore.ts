@@ -1044,11 +1044,6 @@ export class CoValueCore {
     });
     peer.trackLoadRequestSent(this.id);
 
-    const timeoutDuration =
-      peer.role === "storage"
-        ? CO_VALUE_LOADING_CONFIG.TIMEOUT * 10
-        : CO_VALUE_LOADING_CONFIG.TIMEOUT;
-
     return new Promise<void>((resolve) => {
       const markNotFound = () => {
         if (this.peers.get(peer.id)?.type === "pending") {
@@ -1060,7 +1055,7 @@ export class CoValueCore {
         }
       };
 
-      const timeout = setTimeout(markNotFound, timeoutDuration);
+      const timeout = setTimeout(markNotFound, CO_VALUE_LOADING_CONFIG.TIMEOUT);
       const removeCloseListener = peer.addCloseListener(markNotFound);
 
       const listener = (state: CoValueCore) => {

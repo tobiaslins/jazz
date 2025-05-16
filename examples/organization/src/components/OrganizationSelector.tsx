@@ -7,7 +7,7 @@ import { Organization } from "../schema.ts";
 
 export function OrganizationSelector({ className }: { className?: string }) {
   const { me } = useAccount({
-    resolve: { root: { organizations: { $each: true } } },
+    resolve: { root: { organizations: { $each: { $onError: null } } } },
   });
 
   const navigate = useNavigate();
@@ -48,6 +48,10 @@ export function OrganizationSelector({ className }: { className?: string }) {
         className="rounded-md shadow-sm dark:bg-transparent w-full"
       >
         {me?.root.organizations.map((organization) => {
+          if (!organization) {
+            return null;
+          }
+
           return (
             <option key={organization.id} value={organization.id}>
               {organization.name}
