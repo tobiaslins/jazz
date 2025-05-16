@@ -134,11 +134,19 @@ export class CoMap extends CoValueBase implements CoValue {
    *
    * @category Content
    **/
-  get _refs(): {
-    [Key in CoKeys<this> as this[Key] extends undefined
-      ? Key
-      : never]?: RefIfCoValue<this[Key]>;
-  } {
+  get _refs(): Simplify<
+    {
+      [Key in CoKeys<this> as NonNullable<this[Key]> extends CoValue
+        ? Key
+        : never]?: RefIfCoValue<this[Key]>;
+    } & {
+      [Key in CoKeys<this> as this[Key] extends undefined
+        ? never
+        : this[Key] extends CoValue
+          ? Key
+          : never]: RefIfCoValue<this[Key]>;
+    }
+  > {
     return makeRefs<CoKeys<this>>(
       this,
       (key) => this._raw.get(key as string) as unknown as ID<CoValue>,

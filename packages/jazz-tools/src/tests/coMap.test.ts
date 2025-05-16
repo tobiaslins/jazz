@@ -11,7 +11,7 @@ import {
 } from "vitest";
 import { Group, co, subscribeToCoValue, z } from "../exports.js";
 import { Account } from "../index.js";
-import { Loaded, zodSchemaToCoSchema } from "../internal.js";
+import { CoKeys, Loaded, zodSchemaToCoSchema } from "../internal.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 import { setupTwoNodes, waitFor } from "./utils.js";
 
@@ -370,7 +370,7 @@ describe("CoMap", async () => {
 
       john.age = 21;
 
-      expect(john._edits.age.all).toEqual([
+      expect(john._edits.age?.all).toEqual([
         {
           by: expect.objectContaining({ _type: "Account", id: me.id }),
           value: 20,

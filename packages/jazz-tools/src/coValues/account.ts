@@ -349,7 +349,7 @@ export class Account extends CoValueBase implements CoValue {
       const profileGroup = RegisteredSchemas["Group"].create({ owner: this });
 
       this.profile = Profile.create({ name: creationProps.name }, profileGroup);
-      this.profile._owner.addMember("everyone", "reader");
+      profileGroup.addMember("everyone", "reader");
     } else if (this.profile && creationProps) {
       if (this.profile._owner._type !== "Group") {
         throw new Error("Profile must be owned by a Group", {

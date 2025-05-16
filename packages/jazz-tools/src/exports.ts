@@ -32,7 +32,7 @@ export type {
   CoMapInit,
   CoFeedEntry,
   TextPos,
-  AccountClassZod as AccountClass,
+  AccountClass as AccountClass,
   AccountCreationProps,
 } from "./internal.js";
 
