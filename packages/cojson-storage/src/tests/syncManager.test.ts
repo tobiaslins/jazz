@@ -98,13 +98,7 @@ describe("DB sync manager", () => {
 
       await syncManager.handleSyncMessage(loadMsg);
 
-      expect(syncManager.sendStateMessage).toBeCalledTimes(2);
-      expect(syncManager.sendStateMessage).toBeCalledWith({
-        action: "known",
-        header: true,
-        id: coValueIdToLoad,
-        sessions: {},
-      });
+      expect(syncManager.sendStateMessage).toBeCalledTimes(1);
       expect(syncManager.sendStateMessage).toBeCalledWith({
         action: "content",
         header: expect.objectContaining({
@@ -148,13 +142,7 @@ describe("DB sync manager", () => {
 
       // We send out pairs (known + content) messages only FOUR times - as many as the coValues number
       // and less than amount of interconnected dependencies to loop through in dependenciesTreeWithLoop
-      expect(syncManager.sendStateMessage).toBeCalledTimes(4 * 2);
-
-      const knownExpected = {
-        action: "known",
-        header: true,
-        sessions: {},
-      };
+      expect(syncManager.sendStateMessage).toBeCalledTimes(4);
 
       const contentExpected = {
         action: "content",
@@ -164,37 +152,18 @@ describe("DB sync manager", () => {
       };
 
       expect(syncManager.sendStateMessage).toHaveBeenNthCalledWith(1, {
-        ...knownExpected,
-        id: dependency3,
-        asDependencyOf: coValueIdToLoad,
+        ...contentExpected,
+        id: dependency1,
       });
       expect(syncManager.sendStateMessage).toHaveBeenNthCalledWith(2, {
         ...contentExpected,
         id: dependency3,
       });
       expect(syncManager.sendStateMessage).toHaveBeenNthCalledWith(3, {
-        ...knownExpected,
+        ...contentExpected,
         id: dependency2,
-        asDependencyOf: coValueIdToLoad,
       });
       expect(syncManager.sendStateMessage).toHaveBeenNthCalledWith(4, {
-        ...contentExpected,
-        id: dependency2,
-      });
-      expect(syncManager.sendStateMessage).toHaveBeenNthCalledWith(5, {
-        ...knownExpected,
-        id: dependency1,
-        asDependencyOf: coValueIdToLoad,
-      });
-      expect(syncManager.sendStateMessage).toHaveBeenNthCalledWith(6, {
-        ...contentExpected,
-        id: dependency1,
-      });
-      expect(syncManager.sendStateMessage).toHaveBeenNthCalledWith(7, {
-        ...knownExpected,
-        id: coValueIdToLoad,
-      });
-      expect(syncManager.sendStateMessage).toHaveBeenNthCalledWith(8, {
         ...contentExpected,
         id: coValueIdToLoad,
       });

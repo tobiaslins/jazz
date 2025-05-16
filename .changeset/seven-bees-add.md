@@ -2,4 +2,4 @@
 "cojson-storage": patch
 ---
 
-Add support content chunking for large CoValues on storage
+Implement content streaming for large CoValues on storage

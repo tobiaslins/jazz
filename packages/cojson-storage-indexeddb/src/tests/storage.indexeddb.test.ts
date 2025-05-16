@@ -96,11 +96,84 @@ test("should sync and load data from storage", async () => {
   ).toMatchInlineSnapshot(`
     [
       "client -> LOAD Map sessions: empty",
-      "storage -> KNOWN Group sessions: header/3",
       "storage -> CONTENT Group header: true new: After: 0 New: 3",
-      "storage -> KNOWN Map sessions: header/1",
       "storage -> CONTENT Map header: true new: After: 0 New: 1",
-      "client -> KNOWN Group sessions: header/3",
+    ]
+  `);
+
+  node2Sync.restore();
+});
+
+test("should send an empty content message if there is no content", async () => {
+  const agentSecret = Crypto.newRandomAgentSecret();
+
+  const node1 = new LocalNode(
+    agentSecret,
+    Crypto.newRandomSessionID(Crypto.getAgentID(agentSecret)),
+    Crypto,
+  );
+
+  const node1Sync = trackMessages(node1);
+
+  const peer = await IDBStorage.asPeer();
+
+  node1.syncManager.addPeer(peer);
+
+  const group = node1.createGroup();
+
+  const map = group.createMap();
+
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  expect(
+    toSimplifiedMessages(
+      {
+        Map: map.core,
+        Group: group.core,
+      },
+      node1Sync.messages,
+    ),
+  ).toMatchInlineSnapshot(`
+    [
+      "client -> CONTENT Group header: true new: After: 0 New: 3",
+      "storage -> KNOWN Group sessions: header/3",
+      "client -> CONTENT Map header: true new: ",
+      "storage -> KNOWN Map sessions: header/0",
+    ]
+  `);
+
+  node1Sync.restore();
+
+  const node2 = new LocalNode(
+    agentSecret,
+    Crypto.newRandomSessionID(Crypto.getAgentID(agentSecret)),
+    Crypto,
+  );
+
+  const node2Sync = trackMessages(node2);
+
+  const peer2 = await IDBStorage.asPeer();
+
+  node2.syncManager.addPeer(peer2);
+
+  const map2 = await node2.load(map.id);
+  if (map2 === "unavailable") {
+    throw new Error("Map is unavailable");
+  }
+
+  expect(
+    toSimplifiedMessages(
+      {
+        Map: map.core,
+        Group: group.core,
+      },
+      node2Sync.messages,
+    ),
+  ).toMatchInlineSnapshot(`
+    [
+      "client -> LOAD Map sessions: empty",
+      "storage -> CONTENT Group header: true new: After: 0 New: 3",
+      "storage -> CONTENT Map header: true new: ",
     ]
   `);
 
@@ -185,14 +258,9 @@ test("should load dependencies correctly (group inheritance)", async () => {
   ).toMatchInlineSnapshot(`
     [
       "client -> LOAD Map sessions: empty",
-      "storage -> KNOWN ParentGroup sessions: header/4",
       "storage -> CONTENT ParentGroup header: true new: After: 0 New: 4",
-      "storage -> KNOWN Group sessions: header/5",
       "storage -> CONTENT Group header: true new: After: 0 New: 5",
-      "client -> KNOWN ParentGroup sessions: header/4",
-      "storage -> KNOWN Map sessions: header/1",
       "storage -> CONTENT Map header: true new: After: 0 New: 1",
-      "client -> KNOWN Group sessions: header/5",
     ]
   `);
 });
@@ -260,19 +328,14 @@ test("should not send the same dependency value twice", async () => {
   ).toMatchInlineSnapshot(`
     [
       "client -> LOAD Map sessions: empty",
-      "storage -> KNOWN ParentGroup sessions: header/4",
       "storage -> CONTENT ParentGroup header: true new: After: 0 New: 4",
-      "storage -> KNOWN Group sessions: header/5",
       "storage -> CONTENT Group header: true new: After: 0 New: 5",
-      "client -> KNOWN ParentGroup sessions: header/4",
-      "storage -> KNOWN Map sessions: header/1",
       "storage -> CONTENT Map header: true new: After: 0 New: 1",
+      "client -> KNOWN ParentGroup sessions: header/4",
       "client -> KNOWN Group sessions: header/5",
       "client -> KNOWN Map sessions: header/1",
       "client -> LOAD MapFromParent sessions: empty",
-      "storage -> KNOWN MapFromParent sessions: header/1",
       "storage -> CONTENT MapFromParent header: true new: After: 0 New: 1",
-      "client -> KNOWN MapFromParent sessions: header/1",
     ]
   `);
 });
@@ -374,11 +437,8 @@ test("should recover from data loss", async () => {
   ).toMatchInlineSnapshot(`
     [
       "client -> LOAD Map sessions: empty",
-      "storage -> KNOWN Group sessions: header/3",
       "storage -> CONTENT Group header: true new: After: 0 New: 3",
-      "storage -> KNOWN Map sessions: header/4",
       "storage -> CONTENT Map header: true new: After: 0 New: 4",
-      "client -> KNOWN Group sessions: header/3",
     ]
   `);
 });
@@ -453,11 +513,8 @@ test("should sync multiple sessions in a single content message", async () => {
   ).toMatchInlineSnapshot(`
     [
       "client -> LOAD Map sessions: empty",
-      "storage -> KNOWN Group sessions: header/3",
       "storage -> CONTENT Group header: true new: After: 0 New: 3",
-      "storage -> KNOWN Map sessions: header/2",
       "storage -> CONTENT Map header: true new: After: 0 New: 1 | After: 0 New: 1",
-      "client -> KNOWN Group sessions: header/3",
     ]
   `);
 
@@ -529,13 +586,12 @@ test("large coValue upload streaming", async () => {
   ).toMatchInlineSnapshot(`
     [
       "client -> LOAD Map sessions: empty",
-      "storage -> KNOWN Group sessions: header/3",
-      "storage -> CONTENT Group header: true new: After: 0 New: 3",
       "storage -> KNOWN Map sessions: header/200",
+      "storage -> CONTENT Group header: true new: After: 0 New: 3",
       "storage -> CONTENT Map header: true new: After: 0 New: 97",
-      "client -> KNOWN Group sessions: header/3",
       "storage -> CONTENT Map header: true new: After: 97 New: 97",
       "storage -> CONTENT Map header: true new: After: 194 New: 6",
+      "client -> KNOWN Group sessions: header/3",
       "client -> KNOWN Map sessions: header/97",
       "client -> KNOWN Map sessions: header/194",
       "client -> KNOWN Map sessions: header/200",
