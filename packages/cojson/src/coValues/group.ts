@@ -606,9 +606,12 @@ export class RawGroup<
         parent.core.getCurrentReadKey();
 
       if (!parentReadKeySecret) {
-        throw new Error(
+        // We can't reveal the new child key to the parent group where we don't have access to the parent read key
+        // TODO: This will be fixed with: https://github.com/garden-co/jazz/issues/1979
+        logger.warn(
           "Can't reveal new child key to parent where we don't have access to the parent read key",
         );
+        continue;
       }
 
       this.set(
