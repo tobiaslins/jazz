@@ -135,7 +135,9 @@ export class CoMap extends CoValueBase implements CoValue {
    * @category Content
    **/
   get _refs(): {
-    [Key in CoKeys<this>]: RefIfCoValue<this[Key]>;
+    [Key in CoKeys<this> as this[Key] extends undefined
+      ? Key
+      : never]?: RefIfCoValue<this[Key]>;
   } {
     return makeRefs<CoKeys<this>>(
       this,
@@ -233,7 +235,7 @@ export class CoMap extends CoValueBase implements CoValue {
         },
       },
     ) as {
-      [Key in CoKeys<this>]: LastAndAllCoMapEdits<this[Key]>;
+      [Key in CoKeys<this>]?: LastAndAllCoMapEdits<this[Key]>;
     };
   }
 

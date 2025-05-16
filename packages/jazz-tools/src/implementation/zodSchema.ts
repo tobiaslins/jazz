@@ -1,4 +1,10 @@
-import { CoValueUniqueness, RawCoList, RawCoMap, RawCoValue } from "cojson";
+import {
+  CoValueUniqueness,
+  CryptoProvider,
+  RawCoList,
+  RawCoMap,
+  RawCoValue,
+} from "cojson";
 import z from "zod";
 import {
   Account,
@@ -108,8 +114,13 @@ export type AccountSchema<
     profile: AnyCoMapSchema<{ name: z.core.$ZodString<string> }>;
     root: AnyCoMapSchema;
   },
-> = CoMapSchema<Shape> & {
+> = Omit<CoMapSchema<Shape>, "create"> & {
   builtin: "Account";
+
+  create: (options: {
+    creationProps?: { name: string };
+    crypto?: CryptoProvider;
+  }) => Promise<AccountInstance<Shape>>;
 
   withMigration(
     migration: (
@@ -245,7 +256,10 @@ let coSchemasForZodSchemas = new Map<z.core.$ZodType, CoValueClass>();
 export function zodSchemaToCoSchema<
   S extends
     | z.core.$ZodType
-    | (z.core.$ZodObject<any, any> & { builtin: "Account" })
+    | (z.core.$ZodObject<any, any> & {
+        builtin: "Account";
+        migration?: (account: any, creationProps?: { name: string }) => void;
+      })
     | (z.core.$ZodCustom<any, any> & { builtin: "FileStream" })
     | (z.core.$ZodCustom<any, any> & {
         builtin: "CoFeed";
@@ -279,7 +293,20 @@ export function zodSchemaToCoSchema<
         }
       };
 
-      coSchemasForZodSchemas.set(schema, coSchema);
+      if ("migration" in schema) {
+        const migration = schema.migration;
+        if (typeof migration !== "function") {
+          throw new Error("migration must be a function");
+        }
+        (coSchema.prototype as Account).migrate = function (
+          this,
+          creationProps,
+        ) {
+          migration(this, creationProps);
+        };
+      }
+
+      coSchemasForZodSchemas.set(schema, coSchema as unknown as CoValueClass);
       return coSchema as unknown as CoValueClassOrPrimitiveFromZodSchema<S>;
     } else if (schema instanceof z.core.$ZodArray) {
       const def = (schema as z.core.$ZodArray)._zod.def;
@@ -476,6 +503,13 @@ export type AnyCoMapSchema<
   OutExtra extends Record<string, unknown> = Record<string, unknown>,
 > = z.core.$ZodObject<Shape, OutExtra> & { collaborative: true };
 
+export type AnyAccountSchema<
+  Shape extends z.core.$ZodLooseShape = z.core.$ZodLooseShape,
+> = z.core.$ZodObject<Shape> & {
+  collaborative: true;
+  builtin: "Account";
+};
+
 export type AnyCoRecordSchema<
   K extends z.core.$ZodString<string> = z.core.$ZodString<string>,
   V extends z.core.$ZodType = z.core.$ZodType,
@@ -488,13 +522,15 @@ export type AnyCoFeedSchema<T extends z.core.$ZodType = z.core.$ZodType> =
   z.core.$ZodCustom<CoFeed<T>, unknown> & { collaborative: true };
 
 export type CoValueClassOrPrimitiveFromZodSchema<S extends z.core.$ZodType> =
-  S extends AnyCoMapSchema
-    ? CoMapClass<S["_zod"]["def"]["shape"]>
-    : S extends AnyCoListSchema
-      ? CoListClass<S["_zod"]["def"]["element"]>
-      : S extends z.core.$ZodString
-        ? S
-        : never;
+  S extends AnyAccountSchema
+    ? AccountClassZod<S["_zod"]["def"]["shape"]>
+    : S extends AnyCoMapSchema
+      ? CoMapClassZod<S["_zod"]["def"]["shape"]>
+      : S extends AnyCoListSchema
+        ? CoListClassZod<S["_zod"]["def"]["element"]>
+        : S extends z.core.$ZodString
+          ? S
+          : never;
 
 export type CoMapInstance<Shape extends z.core.$ZodLooseShape> = {
   -readonly [key in keyof Shape]: InstanceOrPrimitive<Shape[key]>;
@@ -511,7 +547,7 @@ export type AccountInstance<Shape extends z.core.$ZodLooseShape> = {
   -readonly [key in keyof Shape]: InstanceOrPrimitive<Shape[key]>;
 } & Account;
 
-export type CoMapClass<Shape extends z.core.$ZodLooseShape> = typeof CoMap &
+export type CoMapClassZod<Shape extends z.core.$ZodLooseShape> = typeof CoMap &
   CoValueClass<CoMapInstance<Shape>> & {
     create: (
       init: Simplify<
@@ -563,11 +599,59 @@ export type CoMapClass<Shape extends z.core.$ZodLooseShape> = typeof CoMap &
     ): ID<CoMapInstance<Shape>>;
   };
 
+export type AccountClassZod<Shape extends z.core.$ZodLooseShape> =
+  typeof Account &
+    CoValueClass<AccountInstance<Shape>> & {
+      create: (
+        init: Simplify<
+          CoMapInit<{
+            [key in keyof Shape]: InstanceOrPrimitive<Shape[key]>;
+          }>
+        >,
+        options?:
+          | {
+              owner: Account | Group;
+              unique?: CoValueUniqueness["uniqueness"];
+            }
+          | Account
+          | Group,
+      ) => AccountInstance<Shape>;
+      load<const R extends RefsToResolve<AccountInstance<Shape>> = true>(
+        id: ID<AccountInstance<Shape>>,
+        options?: {
+          resolve?: RefsToResolveStrict<AccountInstance<Shape>, R>;
+          loadAs?: Account | AnonymousJazzAgent;
+        },
+      ): Promise<Resolved<AccountInstance<Shape>, R> | null>;
+      subscribe<const R extends RefsToResolve<AccountInstance<Shape>> = true>(
+        this: CoValueClass<AccountInstance<Shape>>,
+        id: ID<AccountInstance<Shape>>,
+        listener: (
+          value: Resolved<AccountInstance<Shape>, R>,
+          unsubscribe: () => void,
+        ) => void,
+      ): () => void;
+      subscribe<const R extends RefsToResolve<AccountInstance<Shape>> = true>(
+        this: CoValueClass<AccountInstance<Shape>>,
+        id: ID<AccountInstance<Shape>>,
+        options: SubscribeListenerOptions<AccountInstance<Shape>, R>,
+        listener: (
+          value: Resolved<AccountInstance<Shape>, R>,
+          unsubscribe: () => void,
+        ) => void,
+      ): () => void;
+      subscribe<const R extends RefsToResolve<AccountInstance<Shape>>>(
+        this: CoValueClass<AccountInstance<Shape>>,
+        id: ID<AccountInstance<Shape>>,
+        ...args: SubscribeRestArgs<AccountInstance<Shape>, R>
+      ): () => void;
+    };
+
 export type CoListInstance<T extends z.core.$ZodType> = CoList<
   InstanceOrPrimitive<T>
 >;
 
-export type CoListClass<T extends z.core.$ZodType> = typeof CoList<
+export type CoListClassZod<T extends z.core.$ZodType> = typeof CoList<
   InstanceOrPrimitive<T>
 > &
   CoValueClass<CoListInstance<T>> & {

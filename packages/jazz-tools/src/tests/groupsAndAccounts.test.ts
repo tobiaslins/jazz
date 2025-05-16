@@ -1,7 +1,7 @@
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { assert, beforeEach, describe, expect, test } from "vitest";
 import { Account, CoMap, Group, Profile, coField, z } from "../exports.js";
-import { Loaded, Ref, co } from "../internal.js";
+import { Loaded, Ref, co, zodSchemaToCoSchema } from "../internal.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 import { setupTwoNodes, waitFor } from "./utils.js";
 
@@ -33,6 +33,7 @@ describe("Custom accounts and groups", async () => {
           creationProps?: { name: string },
         ) => {
           if (creationProps) {
+            console.log("In migration!");
             const profileGroup = Group.create({ owner: account });
             profileGroup.addMember("everyone", "reader");
             account.profile = CustomProfile.create(
@@ -46,7 +47,7 @@ describe("Custom accounts and groups", async () => {
     const me = await createJazzTestAccount({
       creationProps: { name: "Hermes Puggington" },
       isCurrentActiveAccount: true,
-      AccountSchema: CustomAccount,
+      AccountSchema: zodSchemaToCoSchema(CustomAccount),
     });
 
     expect(me.profile).toBeDefined();
@@ -59,24 +60,29 @@ describe("Custom accounts and groups", async () => {
     expect(group.members).toMatchObject([{ id: me.id, role: "admin" }]);
 
     const meAsMember = group.members.find((member) => member.id === me.id);
-    expect((meAsMember?.account as CustomAccount).profile?.name).toBe(
+    expect((meAsMember?.account as typeof me).profile?.name).toBe(
       "Hermes Puggington",
     );
-    expect((meAsMember?.account as CustomAccount).profile?.color).toBe("blue");
+    expect((meAsMember?.account as typeof me).profile?.color).toBe("blue");
   });
 
   test("Should throw when creating a profile with an account as owner", async () => {
-    class CustomAccount extends Account {
-      migrate(this: CustomAccount, creationProps?: { name: string }) {
-        if (creationProps) {
-          this.profile = Profile.create(
-            { name: creationProps.name },
-            // @ts-expect-error - only groups can own profiles, but we want to also perform a runtime check
-            this,
-          );
-        }
-      }
-    }
+    const CustomAccount = co
+      .account()
+      .withMigration(
+        (
+          account: Loaded<typeof CustomAccount>,
+          creationProps?: { name: string },
+        ) => {
+          if (creationProps) {
+            account.profile = Profile.create(
+              { name: creationProps.name },
+              // @ts-expect-error - only groups can own profiles, but we want to also perform a runtime check
+              account,
+            );
+          }
+        },
+      );
 
     await expect(() =>
       CustomAccount.create({

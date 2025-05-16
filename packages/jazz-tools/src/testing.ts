@@ -4,6 +4,7 @@ import { PureJSCrypto } from "cojson/dist/crypto/PureJSCrypto";
 import {
   Account,
   AccountClass,
+  AccountClassZod,
   AccountSchema,
   type AnonymousJazzAgent,
   AuthCredentials,
@@ -73,21 +74,11 @@ export function getPeerConnectedToTestSyncServer() {
 const SecretSeedMap = new Map<string, Uint8Array>();
 let isMigrationActive = false;
 
-export async function createJazzTestAccount<Acc extends Account>(options?: {
+export async function createJazzTestAccount<A extends Account>(options?: {
   isCurrentActiveAccount?: boolean;
-  AccountSchema?: CoValueClass<Acc> | AccountSchema;
+  AccountSchema?: CoValueClass<A>;
   creationProps?: Record<string, unknown>;
-}): Promise<Acc>;
-export async function createJazzTestAccount<Acc extends Account>(options?: {
-  isCurrentActiveAccount?: boolean;
-  AccountSchema?: CoValueClass<Acc> | AccountSchema;
-  creationProps?: Record<string, unknown>;
-}): Promise<Acc>;
-export async function createJazzTestAccount(options?: {
-  isCurrentActiveAccount?: boolean;
-  AccountSchema?: CoValueClass<Account> | AccountSchema;
-  creationProps?: Record<string, unknown>;
-}): Promise<Account> {
+}): Promise<A> {
   const AccountSchema = (options?.AccountSchema ??
     Account) as unknown as TestAccountSchema<Account>;
   const peers = [];
@@ -115,8 +106,6 @@ export async function createJazzTestAccount(options?: {
 
       isMigrationActive = true;
 
-      console.log(AccountSchema);
-
       const account = new AccountSchema({
         fromRaw: rawAccount,
       });
@@ -143,7 +132,7 @@ export async function createJazzTestAccount(options?: {
     activeAccountContext.set(account);
   }
 
-  return account;
+  return account as A;
 }
 
 export function setActiveAccount(account: Account) {

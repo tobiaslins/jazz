@@ -97,7 +97,10 @@ const coAccountDefiner = <
     root: AnyCoMapSchema;
   },
 >(
-  shape: Shape,
+  shape: Shape = {
+    profile: co.map({ name: z.string() }),
+    root: co.map({}),
+  } as unknown as Shape,
 ): AccountSchema<Shape> => {
   const objectSchema = z.object(shape).meta({
     collaborative: true,
@@ -116,6 +119,7 @@ const coAccountDefiner = <
       creationProps?: AccountCreationProps,
     ) => void;
 
+    create: AccountSchema<Shape>["create"];
     load: AccountSchema<Shape>["load"];
     subscribe: AccountSchema<Shape>["subscribe"];
     withHelpers: AccountSchema<Shape>["withHelpers"];
@@ -124,6 +128,10 @@ const coAccountDefiner = <
 
   accountSchema.collaborative = true;
   accountSchema.builtin = "Account";
+
+  accountSchema.create = function (this: AccountSchema<Shape>, ...args: any[]) {
+    return (zodSchemaToCoSchema(this) as any).create(...args);
+  } as AccountSchema<Shape>["create"];
 
   accountSchema.load = function (this: AccountSchema<Shape>, ...args: any[]) {
     return (zodSchemaToCoSchema(this) as any).load(...args);
