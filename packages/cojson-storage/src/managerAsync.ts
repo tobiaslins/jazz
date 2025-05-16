@@ -9,7 +9,12 @@ import {
   logger,
 } from "cojson";
 import { collectNewTxs, getDependedOnCoValues } from "./syncUtils.js";
-import type { DBClientInterfaceAsync, StoredSessionRow } from "./types.js";
+import type {
+  DBClientInterfaceAsync,
+  SignatureAfterRow,
+  StoredCoValueRow,
+  StoredSessionRow,
+} from "./types.js";
 import NewContentMessage = CojsonInternalTypes.NewContentMessage;
 import KnownStateMessage = CojsonInternalTypes.KnownStateMessage;
 import RawCoID = CojsonInternalTypes.RawCoID;
@@ -42,89 +47,90 @@ export class StorageManagerAsync {
         await this.handleContent(msg);
         break;
       case "known":
-        await this.handleKnown(msg);
+        this.handleKnown(msg);
         break;
       case "done":
-        await this.handleDone(msg);
+        this.handleDone(msg);
         break;
     }
   }
 
   async sendNewContent(
     coValueKnownState: CojsonInternalTypes.CoValueKnownState,
-  ): Promise<void> {
-    const outputMessages: OutputMessageMap =
-      await this.collectCoValueData(coValueKnownState);
-
-    // reverse it to send the top level id the last in the order
-    const collectedMessages = Object.values(outputMessages).reverse();
-    for (const { knownMessage, contentMessages } of collectedMessages) {
-      this.sendStateMessage(knownMessage);
-
-      if (contentMessages?.length) {
-        for (const msg of contentMessages) {
-          this.sendStateMessage(msg);
-        }
-      }
-    }
-  }
-
-  private async collectCoValueData(
-    peerKnownState: CojsonInternalTypes.CoValueKnownState,
-    messageMap: OutputMessageMap = {},
-    asDependencyOf?: CojsonInternalTypes.RawCoID,
   ) {
-    if (messageMap[peerKnownState.id]) {
-      return messageMap;
-    }
-
-    const coValueRow = await this.dbClient.getCoValue(peerKnownState.id);
+    const coValueRow = await this.dbClient.getCoValue(coValueKnownState.id);
 
     if (!coValueRow) {
       const emptyKnownMessage: KnownStateMessage = {
         action: "known",
-        ...emptyKnownState(peerKnownState.id),
+        ...emptyKnownState(coValueKnownState.id),
       };
-      if (asDependencyOf) {
-        emptyKnownMessage.asDependencyOf = asDependencyOf;
-      }
-      messageMap[peerKnownState.id] = { knownMessage: emptyKnownMessage };
-      return messageMap;
+
+      this.sendStateMessage(emptyKnownMessage);
+      return;
     }
 
     const allCoValueSessions = await this.dbClient.getCoValueSessions(
       coValueRow.rowID,
     );
 
-    const newCoValueKnownState: CojsonInternalTypes.CoValueKnownState = {
-      id: coValueRow.id,
-      header: true,
-      sessions: {},
-    };
+    const signaturesBySession = new Map<
+      SessionID,
+      Pick<SignatureAfterRow, "idx" | "signature">[]
+    >();
 
+    let contentStreaming = false;
     for (const sessionRow of allCoValueSessions) {
-      newCoValueKnownState.sessions[sessionRow.sessionID] = sessionRow.lastIdx;
+      const signatures = await this.dbClient.getSignatures(sessionRow.rowID, 0);
+
+      if (signatures.length > 0) {
+        contentStreaming = true;
+        signaturesBySession.set(sessionRow.sessionID, signatures);
+      }
     }
 
-    const newContentMessages: CojsonInternalTypes.NewContentMessage[] = [
-      {
-        action: "content",
+    /**
+     * If we are going to send the content in streaming, we send before a known state message
+     * to let the peer know how many transactions we are going to send.
+     */
+    if (contentStreaming) {
+      const newCoValueKnownState: CojsonInternalTypes.CoValueKnownState = {
         id: coValueRow.id,
-        header: coValueRow.header,
-        new: {},
-        priority: cojsonInternals.getPriorityFromHeader(coValueRow.header),
-      },
-    ];
+        header: true,
+        sessions: {},
+      };
+
+      for (const sessionRow of allCoValueSessions) {
+        newCoValueKnownState.sessions[sessionRow.sessionID] =
+          sessionRow.lastIdx;
+      }
+
+      this.sendStateMessage({
+        action: "known",
+        ...newCoValueKnownState,
+      });
+    }
+
+    this.loadedCoValues.add(coValueRow.id);
+
+    let contentMessage = {
+      action: "content",
+      id: coValueRow.id,
+      header: coValueRow.header,
+      new: {},
+      priority: cojsonInternals.getPriorityFromHeader(coValueRow.header),
+    } satisfies CojsonInternalTypes.NewContentMessage;
 
     for (const sessionRow of allCoValueSessions) {
       if (
         sessionRow.lastIdx <=
-        (peerKnownState.sessions[sessionRow.sessionID] || 0)
+        (coValueKnownState.sessions[sessionRow.sessionID] || 0)
       ) {
         continue;
       }
 
-      const signatures = await this.dbClient.getSignatures(sessionRow.rowID, 0);
+      const signatures = signaturesBySession.get(sessionRow.sessionID) || [];
+
       let idx = 0;
 
       signatures.push({
@@ -132,23 +138,7 @@ export class StorageManagerAsync {
         signature: sessionRow.lastSignature,
       });
 
-      for (let i = 0; i < signatures.length; i++) {
-        if (i > 0) {
-          newContentMessages.push({
-            action: "content",
-            id: coValueRow.id,
-            header: coValueRow.header,
-            new: {},
-            priority: cojsonInternals.getPriorityFromHeader(coValueRow.header),
-          });
-        }
-
-        const signature = signatures[i];
-
-        if (!signature) {
-          continue;
-        }
-
+      for (const signature of signatures) {
         const newTxsInSession = await this.dbClient.getNewTransactionInSession(
           sessionRow.rowID,
           idx,
@@ -157,54 +147,56 @@ export class StorageManagerAsync {
 
         collectNewTxs({
           newTxsInSession,
-          newContentMessages,
+          contentMessage,
           sessionRow,
           firstNewTxIdx: idx,
           signature: signature.signature,
         });
 
         idx = signature.idx + 1;
+
+        if (signatures.length > 1) {
+          await this.sendContentMessage(coValueRow, contentMessage);
+          contentMessage = {
+            action: "content",
+            id: coValueRow.id,
+            header: coValueRow.header,
+            new: {},
+            priority: cojsonInternals.getPriorityFromHeader(coValueRow.header),
+          } satisfies CojsonInternalTypes.NewContentMessage;
+        }
       }
     }
 
-    this.loadedCoValues.add(coValueRow.id);
+    if (Object.keys(contentMessage.new).length === 0 && contentStreaming) {
+      return;
+    }
 
+    return this.sendContentMessage(coValueRow, contentMessage);
+  }
+
+  async sendContentMessage(
+    coValueRow: StoredCoValueRow,
+    contentMessage: CojsonInternalTypes.NewContentMessage,
+  ) {
     const dependedOnCoValuesList = getDependedOnCoValues({
       coValueRow,
-      newContentMessages,
+      newContentMessages: [contentMessage],
     });
 
-    const knownMessage: KnownStateMessage = {
-      action: "known",
-      ...newCoValueKnownState,
-    };
-    if (asDependencyOf) {
-      knownMessage.asDependencyOf = asDependencyOf;
+    for (const dependedOnCoValue of dependedOnCoValuesList) {
+      if (this.loadedCoValues.has(dependedOnCoValue)) {
+        continue;
+      }
+
+      await this.sendNewContent({
+        id: dependedOnCoValue,
+        header: false,
+        sessions: {},
+      });
     }
-    messageMap[newCoValueKnownState.id] = {
-      knownMessage: knownMessage,
-      contentMessages: newContentMessages,
-    };
 
-    await Promise.all(
-      dependedOnCoValuesList.map((dependedOnCoValue) => {
-        if (this.loadedCoValues.has(dependedOnCoValue)) {
-          return;
-        }
-
-        return this.collectCoValueData(
-          {
-            id: dependedOnCoValue,
-            header: false,
-            sessions: {},
-          },
-          messageMap,
-          asDependencyOf || coValueRow.id,
-        );
-      }),
-    );
-
-    return messageMap;
+    this.sendStateMessage(contentMessage);
   }
 
   handleLoad(msg: CojsonInternalTypes.LoadMessage) {

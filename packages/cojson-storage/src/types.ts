@@ -28,6 +28,7 @@ export type TransactionRow = {
 };
 
 export type SignatureAfterRow = {
+  ses: number;
   idx: number;
   signature: CojsonInternalTypes.Signature;
 };
@@ -103,7 +104,7 @@ export interface DBClientInterfaceSync {
   getSignatures(
     sessionRowId: number,
     firstNewTxIdx: number,
-  ): SignatureAfterRow[];
+  ): Pick<SignatureAfterRow, "idx" | "signature">[];
 
   addCoValue(msg: CojsonInternalTypes.NewContentMessage): number;
 
