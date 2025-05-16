@@ -50,35 +50,6 @@ export class StorageManagerAsync {
     }
   }
 
-  async handleSessionUpdate({
-    sessionRow,
-    peerKnownState,
-    newContentMessages,
-  }: {
-    sessionRow: StoredSessionRow;
-    peerKnownState: CojsonInternalTypes.CoValueKnownState;
-    newContentMessages: CojsonInternalTypes.NewContentMessage[];
-  }) {
-    if (
-      sessionRow.lastIdx <= (peerKnownState.sessions[sessionRow.sessionID] || 0)
-    )
-      return;
-
-    const firstNewTxIdx = peerKnownState.sessions[sessionRow.sessionID] || 0;
-
-    const newTxsInSession = await this.dbClient.getNewTransactionInSession(
-      sessionRow.rowID,
-      firstNewTxIdx,
-    );
-
-    collectNewTxs({
-      newTxsInSession,
-      newContentMessages,
-      sessionRow,
-      firstNewTxIdx,
-    });
-  }
-
   async sendNewContent(
     coValueKnownState: CojsonInternalTypes.CoValueKnownState,
   ): Promise<void> {
@@ -131,6 +102,10 @@ export class StorageManagerAsync {
       sessions: {},
     };
 
+    for (const sessionRow of allCoValueSessions) {
+      newCoValueKnownState.sessions[sessionRow.sessionID] = sessionRow.lastIdx;
+    }
+
     const newContentMessages: CojsonInternalTypes.NewContentMessage[] = [
       {
         action: "content",
@@ -141,18 +116,56 @@ export class StorageManagerAsync {
       },
     ];
 
-    await Promise.all(
-      allCoValueSessions.map((sessionRow) => {
-        newCoValueKnownState.sessions[sessionRow.sessionID] =
-          sessionRow.lastIdx;
-        // Collect new sessions data into newContentMessages
-        return this.handleSessionUpdate({
-          sessionRow,
-          peerKnownState,
+    for (const sessionRow of allCoValueSessions) {
+      if (
+        sessionRow.lastIdx <=
+        (peerKnownState.sessions[sessionRow.sessionID] || 0)
+      ) {
+        continue;
+      }
+
+      const signatures = await this.dbClient.getSignatures(sessionRow.rowID, 0);
+      let idx = 0;
+
+      signatures.push({
+        idx: sessionRow.lastIdx,
+        signature: sessionRow.lastSignature,
+      });
+
+      for (let i = 0; i < signatures.length; i++) {
+        if (i > 0) {
+          newContentMessages.push({
+            action: "content",
+            id: coValueRow.id,
+            header: coValueRow.header,
+            new: {},
+            priority: cojsonInternals.getPriorityFromHeader(coValueRow.header),
+          });
+        }
+
+        const signature = signatures[i];
+
+        if (!signature) {
+          continue;
+        }
+
+        const newTxsInSession = await this.dbClient.getNewTransactionInSession(
+          sessionRow.rowID,
+          idx,
+          signature.idx,
+        );
+
+        collectNewTxs({
+          newTxsInSession,
           newContentMessages,
+          sessionRow,
+          firstNewTxIdx: idx,
+          signature: signature.signature,
         });
-      }),
-    );
+
+        idx = signature.idx + 1;
+      }
+    }
 
     this.loadedCoValues.add(coValueRow.id);
 

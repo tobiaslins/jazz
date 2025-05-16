@@ -16,10 +16,12 @@ export function collectNewTxs({
   newContentMessages,
   sessionRow,
   firstNewTxIdx,
+  signature,
 }: {
   newTxsInSession: TransactionRow[];
   newContentMessages: CojsonInternalTypes.NewContentMessage[];
   sessionRow: StoredSessionRow;
+  signature?: CojsonInternalTypes.Signature;
   firstNewTxIdx: number;
 }) {
   for (const tx of newTxsInSession) {
@@ -37,7 +39,7 @@ export function collectNewTxs({
     }
 
     sessionEntry.newTransactions.push(tx.tx);
-    sessionEntry.lastSignature = sessionRow.lastSignature;
+    sessionEntry.lastSignature = signature || sessionRow.lastSignature;
   }
 }
 
