@@ -476,7 +476,7 @@ This way the inaccessible items are replaced with `null` in the returned list.
 <CodeGroup>
 ```typescript twoslash
 import { ID, CoMap, CoList, co, Group, Account } from "jazz-tools";
-import { expect, assert } from "vitest";
+import { assert } from "vitest";
 
 class Person extends CoMap {
   name = co.string;
@@ -515,16 +515,17 @@ const friends = await Friends.load(source.id, {
 
 // Thanks to $onError catching the errors, the list is loaded
 // because we have access to friends
-expect(friends).not.toBeNull();
+friends // => Friends
 
 assert(friends);
 
 // Jane is null because we lack access rights
 // and we have used $onError to catch the error on the list items
-expect(friends[0]).toBeNull();
+friends[0] // => null
+
 // Alice is not null because we have access
 // the type is nullable because we have used $onError
-expect(friends[1]?.name).toBe("Alice");
+friends[1] // => Person
 ```
 </CodeGroup>
 
@@ -533,7 +534,7 @@ The `$onError` works as a "catch" clause option to block any error in the resolv
 <CodeGroup>
 ```typescript twoslash
 import { ID, CoMap, CoList, co, Group, Account } from "jazz-tools";
-import { expect, assert } from "vitest";
+import { assert } from "vitest";
 
 class Person extends CoMap {
   name = co.string;
@@ -581,7 +582,7 @@ assert(friends);
 
 // Jane is null because we don't have access to Rex
 // and we have used $onError to catch the error on the list items
-expect(friends[0]).toBeNull();
+friends[0] // => null
 ```
 </CodeGroup>
 
@@ -590,7 +591,7 @@ We can actually use `$onError` everywhere in the resolve query, so we can use it
 <CodeGroup>
 ```typescript twoslash
 import { ID, CoMap, CoList, co, Group, Account } from "jazz-tools";
-import { expect, assert } from "vitest";
+import { assert } from "vitest";
 
 class Person extends CoMap {
   name = co.string;
@@ -641,11 +642,11 @@ assert(friends);
 //
 // This also means that if we don't have access to Jane
 // the entire friends list will be null
-expect(friends[0].name).toBe("Jane");
+friends[0] // => Person
 
 // Jane's dog is null because we don't have access to Rex
 // and we have used $onError to catch the error
-expect(friends[0]?.dog).toBeNull();
+friends[0].dog // => null
 ```
 </CodeGroup>
 
