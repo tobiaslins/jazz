@@ -129,6 +129,8 @@ export type AccountSchema<
     },
   ) => Promise<AccountInstance<Shape>>;
 
+  getMe: () => AccountInstance<Shape>;
+
   withMigration(
     migration: (
       account: InstanceOrPrimitive<AccountSchema<Shape>>,
