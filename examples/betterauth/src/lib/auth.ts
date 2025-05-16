@@ -11,13 +11,16 @@ export const auth = await (async () => {
     database: new Database("sqlite.db"),
     emailAndPassword: {
       enabled: true,
-      sendResetPassword: () => {
-        throw new Error("Not implemented");
+      async sendResetPassword({ url }) {
+        // Here we can send an email to the user with the reset password link
+        console.log("****** RESET PASSWORD ******");
+        console.log("navigate to", url, "to reset your password");
+        console.log("******");
       },
     },
     emailVerification: {
-      sendVerificationEmail() {
-        throw new Error("Not implemented");
+      async sendVerificationEmail(data) {
+        console.error("Not implemented");
       },
     },
     socialProviders,
@@ -30,9 +33,9 @@ export const auth = await (async () => {
     databaseHooks: {
       user: {
         create: {
-          after: () => {
+          async after(user) {
             // Here we can send a welcome email to the user
-            throw new Error("Not implemented");
+            console.error("Not implemented");
           },
         },
       },
