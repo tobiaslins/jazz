@@ -4,8 +4,6 @@ import { PureJSCrypto } from "cojson/dist/crypto/PureJSCrypto";
 import {
   Account,
   AccountClass,
-  AccountClassZod,
-  AccountSchema,
   type AnonymousJazzAgent,
   AuthCredentials,
   type CoValueClass,
