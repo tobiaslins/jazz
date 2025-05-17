@@ -286,6 +286,33 @@ export function zodSchemaToCoSchema<
   return coSchema;
 }
 
+export function anySchemaToCoSchema<
+  S extends
+    | CoValueClass
+    | z.core.$ZodType
+    | (z.core.$ZodObject<any, any> & {
+        builtin: "Account";
+        migration?: (account: any, creationProps?: { name: string }) => void;
+      })
+    | (z.core.$ZodCustom<any, any> & { builtin: "FileStream" })
+    | (z.core.$ZodCustom<any, any> & {
+        builtin: "CoFeed";
+        element: z.core.$ZodType;
+      }),
+>(
+  schema: S,
+): S extends CoValueClass
+  ? S
+  : S extends z.core.$ZodType
+    ? CoValueClassFromZodSchema<S>
+    : never {
+  if (isCoValueClass(schema)) {
+    return schema as any;
+  } else {
+    return zodSchemaToCoSchema(schema as any) as any;
+  }
+}
+
 type ZodPrimitiveSchema =
   | z.core.$ZodString
   | z.core.$ZodNumber
@@ -662,6 +689,14 @@ export type AnyCoUnionSchema = z.core.$ZodDiscriminatedUnion<
     | z.core.$ZodDiscriminatedUnion
   )[]
 >;
+
+export type CoValueOrZodSchema =
+  | CoValueClass
+  | AnyCoMapSchema
+  | AnyCoFeedSchema
+  | AnyCoRecordSchema
+  | AnyCoListSchema
+  | AnyCoUnionSchema;
 
 export type CoValueClassFromZodSchema<S extends z.core.$ZodType> = CoValueClass<
   InstanceOfSchema<S>

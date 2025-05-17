@@ -4,9 +4,13 @@ import {
   type Account,
   CoValue,
   CoValueClass,
+  CoValueOrZodSchema,
   ID,
+  InstanceOfSchema,
   activeAccountContext,
+  anySchemaToCoSchema,
   loadCoValue,
+  zodSchemaToCoSchema,
 } from "../internal.js";
 
 export type InboxInvite = `${CoID<MessagesStream>}/${InviteSecret}`;
@@ -106,10 +110,10 @@ export class Inbox {
     this.failed = failed;
   }
 
-  subscribe<I extends CoValue, O extends CoValue | undefined>(
-    Schema: CoValueClass<I>,
+  subscribe<M extends CoValueOrZodSchema, O extends CoValue | undefined>(
+    Schema: M,
     callback: (
-      message: I,
+      message: InstanceOfSchema<M>,
       senderAccountID: ID<Account>,
     ) => Promise<O | undefined | void>,
     options: { retries?: number } = {},
@@ -142,7 +146,7 @@ export class Inbox {
 
       for (const [sessionID, items] of Object.entries(stream.items) as [
         SessionID,
-        CoStreamItem<CoID<InboxMessage<I, O>>>[],
+        CoStreamItem<CoID<InboxMessage<InstanceOfSchema<M>, O>>>[],
       ][]) {
         const accountID = getAccountIDfromSessionID(sessionID);
 
@@ -168,9 +172,13 @@ export class Inbox {
                   );
                 }
 
-                return loadCoValue(Schema, message.get("payload") as ID<I>, {
-                  loadAs: account,
-                });
+                return loadCoValue(
+                  anySchemaToCoSchema(Schema),
+                  message.get("payload")!,
+                  {
+                    loadAs: account,
+                  },
+                );
               })
               .then((value) => {
                 if (!value) {
@@ -179,7 +187,7 @@ export class Inbox {
                   );
                 }
 
-                return callback(value, accountID);
+                return callback(value as InstanceOfSchema<M>, accountID);
               })
               .then((result) => {
                 const inboxMessage = node
