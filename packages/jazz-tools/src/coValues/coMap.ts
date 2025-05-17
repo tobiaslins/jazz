@@ -9,12 +9,13 @@ import {
   cojsonInternals,
 } from "cojson";
 import type {
-  Account,
   AnonymousJazzAgent,
+  AnyAccountSchema,
   CoValue,
   CoValueClass,
   Group,
   ID,
+  InstanceOfSchema,
   RefEncoded,
   RefIfCoValue,
   RefsToResolve,
@@ -23,13 +24,12 @@ import type {
   Schema,
   SubscribeListenerOptions,
   SubscribeRestArgs,
-  coField,
 } from "../internal.js";
 import {
+  Account,
   CoValueBase,
   ItemsSym,
   Ref,
-  RegisteredAccount,
   RegisteredSchemas,
   SchemaInit,
   accessChildById,
@@ -50,7 +50,9 @@ import {
 type CoMapEdit<V> = {
   value?: V;
   ref?: RefIfCoValue<V>;
-  by?: RegisteredAccount;
+  by<A extends typeof Account | AnyAccountSchema>(
+    AccountSchema?: A,
+  ): InstanceOfSchema<A> | null;
   madeAt: Date;
   key?: string;
 };
@@ -197,12 +199,17 @@ export class CoMap extends CoValueBase implements CoValue {
               target,
             )
           : undefined,
-      by:
-        rawEdit.by &&
-        accessChildById(target, rawEdit.by, {
-          ref: anySchemaToCoSchema(RegisteredSchemas["Account"]),
-          optional: false,
-        }),
+      by<A extends typeof Account | AnyAccountSchema>(
+        AccountSchema: A = Account as A,
+      ): InstanceOfSchema<A> | null {
+        return (
+          rawEdit.by &&
+          accessChildById(target, rawEdit.by, {
+            ref: anySchemaToCoSchema(AccountSchema),
+            optional: false,
+          })
+        );
+      },
       madeAt: rawEdit.at,
       key,
     };

@@ -59,11 +59,12 @@ describe("Custom accounts and groups", async () => {
 
     expect(group.members).toMatchObject([{ id: me.id, role: "admin" }]);
 
-    const meAsMember = group.members.find((member) => member.id === me.id);
-    expect((meAsMember?.account as typeof me).profile?.name).toBe(
-      "Hermes Puggington",
-    );
-    expect((meAsMember?.account as typeof me).profile?.color).toBe("blue");
+    const meAsMember = group
+      .members(CustomAccount)
+      .find((member) => member.id === me.id);
+    assert(meAsMember?.account);
+    expect((meAsMember?.account).profile?.name).toBe("Hermes Puggington");
+    expect((meAsMember?.account).profile?.color).toBe("blue");
   });
 
   test("Should throw when creating a profile with an account as owner", async () => {

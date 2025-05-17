@@ -3,15 +3,8 @@ import { useEffect } from "react";
 
 import { useJazzContext } from "jazz-react-core";
 import { CoValueOrZodSchema } from "jazz-tools";
-import { RegisteredAccount } from "./provider.js";
 
 export { useCoState, useAuthSecretStorage } from "jazz-react-core";
-
-declare module "jazz-react-core" {
-  export interface Register {
-    Account: RegisteredAccount;
-  }
-}
 
 export function useAcceptInvite<S extends CoValueOrZodSchema>({
   invitedObjectSchema,

@@ -16,6 +16,20 @@ import { createJazzTestAccount, createJazzTestGuest } from "../testing.js";
 import { renderHook } from "./testUtils.js";
 
 describe("useAccountOrGuest", () => {
+  const AccountRoot = co.map({
+    value: z.string(),
+  });
+
+  const AccountSchema = co
+    .account({
+      root: AccountRoot,
+      profile: co.map({ name: z.string() }),
+    })
+    .withMigration((account, creationProps) => {
+      if (!account._refs.root) {
+        account.root = AccountRoot.create({ value: "123" }, { owner: account });
+      }
+    });
   it("should return the correct me value", async () => {
     const account = await createJazzTestAccount();
 
@@ -37,34 +51,13 @@ describe("useAccountOrGuest", () => {
   });
 
   it("should load nested values if requested", async () => {
-    const AccountRoot = co.map({
-      value: z.string(),
-    });
-
-    const AccountSchema = co
-      .account({
-        root: AccountRoot,
-        profile: co.map({ name: z.string() }),
-      })
-      .withMigration((account, creationProps) => {
-        if (!account._refs.root) {
-          account.root = AccountRoot.create(
-            { value: "123" },
-            { owner: account },
-          );
-        }
-      });
-
     const account = await createJazzTestAccount({
       AccountSchema: zodSchemaToCoSchema(AccountSchema),
     });
 
     const { result } = renderHook(
       () =>
-        useAccountOrGuest<
-          Loaded<typeof AccountSchema>,
-          RefsToResolve<{ root: true }>
-        >({
+        useAccountOrGuest(AccountSchema, {
           resolve: {
             root: true,
           },
@@ -83,7 +76,7 @@ describe("useAccountOrGuest", () => {
 
     const { result } = renderHook(
       () =>
-        useAccountOrGuest({
+        useAccountOrGuest(AccountSchema, {
           resolve: {
             root: true,
           },

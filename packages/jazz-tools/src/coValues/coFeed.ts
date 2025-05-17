@@ -11,12 +11,13 @@ import type {
 } from "cojson";
 import { MAX_RECOMMENDED_TX_SIZE, cojsonInternals } from "cojson";
 import type {
-  Account,
   AnonymousJazzAgent,
+  AnyAccountSchema,
   CoValue,
   CoValueClass,
   Group,
   ID,
+  InstanceOfSchema,
   RefsToResolve,
   RefsToResolveStrict,
   Resolved,
@@ -26,10 +27,10 @@ import type {
   SubscribeRestArgs,
 } from "../internal.js";
 import {
+  Account,
   CoValueBase,
   ItemsSym,
   Ref,
-  RegisteredAccount,
   RegisteredSchemas,
   SchemaInit,
   accessChildById,
@@ -58,7 +59,9 @@ export type SingleCoStreamEntry<Item> = SingleCoFeedEntry<Item>;
 export type SingleCoFeedEntry<Item> = {
   value: NonNullable<Item> extends CoValue ? NonNullable<Item> | null : Item;
   ref: NonNullable<Item> extends CoValue ? Ref<NonNullable<Item>> : never;
-  by?: RegisteredAccount | null;
+  by<A extends typeof Account | AnyAccountSchema>(
+    AccountSchema?: A,
+  ): InstanceOfSchema<A> | null;
   madeAt: Date;
   tx: CojsonInternalTypes.TransactionID;
 };
@@ -466,11 +469,13 @@ function entryFromRawEntry<Item>(
         return undefined as never;
       }
     },
-    get by() {
+    by<A extends typeof Account | AnyAccountSchema>(
+      AccountSchema: A = Account as unknown as A,
+    ): InstanceOfSchema<A> | null {
       return (
         accountID &&
         accessChildById(accessFrom, accountID, {
-          ref: anySchemaToCoSchema(RegisteredSchemas["Account"]),
+          ref: anySchemaToCoSchema(AccountSchema),
           optional: false,
         })
       );

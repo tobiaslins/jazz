@@ -1,17 +1,10 @@
 import { JazzProvider } from "jazz-react";
-import { InstanceOfSchema, Loaded } from "jazz-tools";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { apiKey } from "./apiKey";
 import { JazzAccount } from "./schema.ts";
-
-declare module "jazz-react" {
-  interface Register {
-    Account: InstanceOfSchema<typeof JazzAccount>;
-  }
-}
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

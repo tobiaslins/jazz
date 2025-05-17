@@ -1,7 +1,7 @@
 import { useAccount } from "jazz-react";
-import { DraftBubbleTeaOrder } from "./schema";
+import { DraftBubbleTeaOrder, JazzAccount } from "./schema";
 export function DraftIndicator() {
-  const { me } = useAccount({
+  const { me } = useAccount(JazzAccount, {
     resolve: { root: { draft: true } },
   });
 

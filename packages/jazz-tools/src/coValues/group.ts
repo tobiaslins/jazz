@@ -7,11 +7,12 @@ import type {
   Role,
 } from "cojson";
 import type {
-  Account,
+  AnyAccountSchema,
   CoMap,
   CoValue,
   CoValueClass,
   ID,
+  InstanceOfSchema,
   RefEncoded,
   RefsToResolve,
   RefsToResolveStrict,
@@ -21,14 +22,15 @@ import type {
   SubscribeRestArgs,
 } from "../internal.js";
 import {
+  Account,
   AccountAndGroupProxyHandler,
   CoValueBase,
   Profile,
   Ref,
-  RegisteredAccount,
   RegisteredSchemas,
   accessChildById,
   activeAccountContext,
+  anySchemaToCoSchema,
   ensureCoValueLoaded,
   isControlledAccount,
   loadCoValueWithoutMe,
@@ -153,21 +155,21 @@ export class Group extends CoValueBase implements CoValue {
     return this._raw.removeMember(member === "everyone" ? member : member._raw);
   }
 
-  get members(): Array<{
-    id: ID<RegisteredAccount>;
+  members<A extends typeof Account | AnyAccountSchema>(
+    AccountSchema: A = Account as A,
+  ): Array<{
+    id: string;
     role: AccountRole;
-    ref: Ref<RegisteredAccount>;
-    account: RegisteredAccount;
+    ref: Ref<InstanceOfSchema<A>>;
+    account: InstanceOfSchema<A>;
   }> {
     const members = [];
 
-    const BaseAccountSchema =
-      (activeAccountContext.maybeGet()?.constructor as typeof Account) ||
-      RegisteredSchemas["Account"];
     const refEncodedAccountSchema = {
-      ref: () => BaseAccountSchema,
+      ref: () =>
+        anySchemaToCoSchema(AccountSchema) as CoValueClass<InstanceOfSchema<A>>,
       optional: false,
-    } satisfies RefEncoded<RegisteredAccount>;
+    } satisfies RefEncoded<InstanceOfSchema<A>>;
 
     for (const accountID of this._raw.getAllMemberKeysSet()) {
       if (!isAccountID(accountID)) continue;
@@ -180,8 +182,8 @@ export class Group extends CoValueBase implements CoValue {
         role === "reader" ||
         role === "writeOnly"
       ) {
-        const ref = new Ref<RegisteredAccount>(
-          accountID as unknown as ID<RegisteredAccount>,
+        const ref = new Ref<InstanceOfSchema<A>>(
+          accountID,
           this._loadedAs,
           refEncodedAccountSchema,
           this,

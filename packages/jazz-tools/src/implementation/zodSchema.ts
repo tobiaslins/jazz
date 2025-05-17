@@ -868,6 +868,7 @@ export type InstanceOfSchema<S extends CoValueClass | z.core.$ZodType> =
 
 export type Loaded<
   T extends
+    | CoValueClass
     | AnyCoMapSchema
     | AnyAccountSchema
     | AnyCoRecordSchema
@@ -875,5 +876,5 @@ export type Loaded<
     | AnyCoFeedSchema
     | AnyCoUnionSchema
     | PlainTextSchema,
-  R extends RefsToResolve<InstanceOrPrimitiveOfSchema<T>> = true,
-> = Resolved<InstanceOrPrimitiveOfSchema<T>, R>;
+  R extends RefsToResolve<InstanceOfSchema<T>> = true,
+> = Resolved<InstanceOfSchema<T>, R>;

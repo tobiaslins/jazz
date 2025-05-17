@@ -3,11 +3,13 @@ import { ControlledAccount, RawAccount } from "cojson";
 import { calcPatch } from "fast-myers-diff";
 import type {
   Account,
+  AnyAccountSchema,
   CoValue,
   CoValueClass,
   CoValueFromRaw,
   Group,
   ID,
+  InstanceOfSchema,
   RefEncoded,
   RefsToResolve,
   RefsToResolveStrict,
@@ -21,7 +23,6 @@ import {
   AnonymousJazzAgent,
   ItemsSym,
   Ref,
-  RegisteredAccount,
   RegisteredSchemas,
   SchemaInit,
   accessChildByKey,
@@ -162,7 +163,9 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
     [idx: number]: {
       value?: Item;
       ref?: Item extends CoValue ? Ref<Item> : never;
-      by?: RegisteredAccount;
+      by<A extends typeof Account | AnyAccountSchema>(
+        AccountSchema?: A,
+      ): InstanceOfSchema<A> | null;
       madeAt: Date;
     };
   } {

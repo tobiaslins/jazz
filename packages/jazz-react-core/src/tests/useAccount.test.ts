@@ -57,7 +57,8 @@ describe("useAccount", () => {
 
     const { result } = renderHook(
       () =>
-        useAccount<Loaded<typeof AccountSchema>, RefsToResolve<{ root: true }>>(
+        useAccount<typeof AccountSchema, RefsToResolve<{ root: true }>>(
+          AccountSchema,
           {
             resolve: {
               root: true,

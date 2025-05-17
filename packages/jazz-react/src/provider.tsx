@@ -13,12 +13,6 @@ import {
 } from "jazz-tools";
 import React, { useEffect, useRef } from "react";
 
-export interface Register {}
-
-export type RegisteredAccount = Register extends { Account: infer Acc }
-  ? Acc
-  : Account;
-
 export type JazzProviderProps<
   S extends
     | (AccountClass<Account> & CoValueFromRaw<Account>)

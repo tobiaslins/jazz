@@ -56,9 +56,3 @@ export type SyncConfig =
       peer?: `wss://${string}` | `ws://${string}`;
       when: "never";
     };
-
-export interface Register {}
-
-export type RegisteredAccount = Register extends { Account: infer Acc }
-  ? Acc
-  : Account;

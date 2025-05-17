@@ -8,11 +8,12 @@ import { OrderForm } from "./OrderForm.tsx";
 import {
   BubbleTeaOrder,
   DraftBubbleTeaOrder,
+  JazzAccount,
   ListOfBubbleTeaAddOns,
 } from "./schema.ts";
 
 export function CreateOrder() {
-  const { me } = useAccount({
+  const { me } = useAccount(JazzAccount, {
     resolve: { root: { draft: true, orders: true } },
   });
   const router = useIframeHashRouter();

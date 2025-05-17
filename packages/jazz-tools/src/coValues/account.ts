@@ -16,6 +16,7 @@ import {
 } from "cojson";
 import {
   AnonymousJazzAgent,
+  AnyAccountSchema,
   type CoMap,
   type CoValue,
   CoValueBase,
@@ -23,6 +24,7 @@ import {
   CoValueOrZodSchema,
   type Group,
   ID,
+  InstanceOfSchema,
   InstanceOrPrimitiveOfSchema,
   Profile,
   Ref,
@@ -30,7 +32,6 @@ import {
   RefIfCoValue,
   RefsToResolve,
   RefsToResolveStrict,
-  RegisteredAccount,
   RegisteredSchemas,
   Resolved,
   type Schema,
@@ -55,6 +56,15 @@ export type AccountCreationProps = {
   name: string;
   onboarding?: boolean;
 };
+
+type AccountMembers<A extends Account> = [
+  {
+    id: string | "everyone";
+    role: Role;
+    ref: Ref<A>;
+    account: A;
+  },
+];
 
 /** @category Identity & Permissions */
 export class Account extends CoValueBase implements CoValue {
@@ -209,17 +219,12 @@ export class Account extends CoValueBase implements CoValue {
     return [];
   }
 
-  get members(): Array<{
-    id: ID<RegisteredAccount> | "everyone";
-    role: Role;
-    ref: Ref<RegisteredAccount> | undefined;
-    account: RegisteredAccount | null | undefined;
-  }> {
-    const ref = new Ref<RegisteredAccount>(
+  members(): AccountMembers<this> {
+    const ref = new Ref<typeof this>(
       this.id,
       this._loadedAs,
       {
-        ref: () => this.constructor as typeof Account,
+        ref: () => this.constructor as AccountClass<typeof this>,
         optional: false,
       },
       this,
