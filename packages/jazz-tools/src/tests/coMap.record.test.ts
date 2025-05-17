@@ -9,7 +9,10 @@ import {
   vi,
 } from "vitest";
 import { Group, co, z } from "../exports.js";
-import { InstanceOrPrimitive, Loaded } from "../implementation/zodSchema.js";
+import {
+  InstanceOrPrimitiveOfSchema,
+  Loaded,
+} from "../implementation/zodSchema.js";
 import { Account } from "../index.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 import { waitFor } from "./utils.js";
@@ -225,7 +228,7 @@ describe("CoMap.Record", async () => {
       });
 
       type V = (typeof Person)["_zod"]["def"]["valueType"];
-      type T = InstanceOrPrimitive<typeof Person>;
+      type T = InstanceOrPrimitiveOfSchema<typeof Person>;
 
       const updates: Loaded<typeof Person, { $each: true }>[] = [];
       const spy = vi.fn((person) => updates.push(person));

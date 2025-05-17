@@ -1,6 +1,7 @@
 import {
   CoValueUniqueness,
   CryptoProvider,
+  LocalNode,
   RawAccount,
   RawCoList,
   RawCoMap,
@@ -8,6 +9,7 @@ import {
 import z from "zod";
 import {
   Account,
+  AccountClass,
   AnonymousJazzAgent,
   CoFeed,
   CoList,
@@ -41,11 +43,11 @@ export type CoMapSchema<
         {
           [key in keyof Shape as Shape[key] extends z.ZodOptional<any>
             ? key
-            : never]?: InstanceOrPrimitive<Shape[key]>;
+            : never]?: InstanceOrPrimitiveOfSchema<Shape[key]>;
         } & {
           [key in keyof Shape as Shape[key] extends z.ZodOptional<any>
             ? never
-            : key]: InstanceOrPrimitive<Shape[key]>;
+            : key]: InstanceOrPrimitiveOfSchema<Shape[key]>;
         }
       >,
       options?:
@@ -58,7 +60,9 @@ export type CoMapSchema<
     ) => (Shape extends Record<string, never>
       ? {}
       : {
-          -readonly [key in keyof Shape]: InstanceOrPrimitive<Shape[key]>;
+          -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchema<
+            Shape[key]
+          >;
         }) &
       (unknown extends OutExtra[string]
         ? {}
@@ -131,7 +135,7 @@ export type AccountSchema<
 
   withMigration(
     migration: (
-      account: InstanceOrPrimitive<AccountSchema<Shape>>,
+      account: InstanceOrPrimitiveOfSchema<AccountSchema<Shape>>,
       creationProps?: { name: string },
     ) => void,
   ): AccountSchema<Shape>;
@@ -145,7 +149,7 @@ export type CoRecordSchema<
 
   create: (
     init: Simplify<{
-      [key in z.output<K>]?: InstanceOrPrimitive<V>;
+      [key in z.output<K>]?: InstanceOrPrimitiveOfSchema<V>;
     }>,
     options?:
       | {
@@ -155,7 +159,7 @@ export type CoRecordSchema<
       | Account
       | Group,
   ) => {
-    [key in z.output<K>]: InstanceOrPrimitive<V>;
+    [key in z.output<K>]: InstanceOrPrimitiveOfSchema<V>;
   } & CoMap;
 
   load<const R extends RefsToResolve<CoRecordInstance<K, V>> = true>(
@@ -194,9 +198,9 @@ export type CoListSchema<T extends z.core.$ZodType> = z.core.$ZodArray<T> & {
   collaborative: true;
 
   create: (
-    items: InstanceOrPrimitive<T>[],
+    items: InstanceOrPrimitiveOfSchema<T>[],
     options?: { owner: Account | Group } | Account | Group,
-  ) => CoList<InstanceOrPrimitive<T>>;
+  ) => CoList<InstanceOrPrimitiveOfSchema<T>>;
 
   load<const R extends RefsToResolve<CoListInstance<T>> = true>(
     id: string,
@@ -224,7 +228,7 @@ export type CoFeedSchema<T extends z.core.$ZodType> = z.core.$ZodCustom<
   element: T;
 
   create(
-    init: InstanceOrPrimitive<T>[],
+    init: InstanceOrPrimitiveOfSchema<T>[],
     options?: { owner: Account | Group } | Account | Group,
   ): CoFeedInstance<T>;
 
@@ -389,7 +393,7 @@ export function tryZodSchemaToCoSchema<S extends z.core.$ZodType>(
     if (isUnionOfCoMapsDeeply(schema)) {
       return SchemaUnion.Of(
         schemaUnionDiscriminatorFor(schema),
-      ) as CoValueClassFromZodSchema<S>;
+      ) as unknown as CoValueClassFromZodSchema<S>;
     } else {
       throw new Error(
         "z.discriminatedUnion() of non-collaborative types is not supported as a top-level schema",
@@ -654,103 +658,117 @@ export type AnyCoUnionSchema = z.core.$ZodDiscriminatedUnion<
 >;
 
 export type CoValueClassFromZodSchema<S extends z.core.$ZodType> = CoValueClass<
-  ExpectInstance<S>
+  InstanceOfSchema<S>
 > &
-  CoValueFromRaw<ExpectInstance<S>>;
+  CoValueFromRaw<InstanceOfSchema<S>> &
+  (S extends AnyAccountSchema
+    ? {
+        fromNode: <A extends Account>(
+          this: AccountClass<A>,
+          node: LocalNode,
+        ) => A;
+      }
+    : {});
 
 export type CoMapInstance<Shape extends z.core.$ZodLooseShape> = {
-  -readonly [key in keyof Shape]: InstanceOrPrimitive<Shape[key]>;
+  -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchema<Shape[key]>;
 } & CoMap;
 
 export type CoRecordInstance<
   K extends z.core.$ZodString<string>,
   V extends z.core.$ZodType,
 > = {
-  [key in z.output<K>]: InstanceOrPrimitive<V>;
+  [key in z.output<K>]: InstanceOrPrimitiveOfSchema<V>;
 } & CoMap;
 
 export type AccountInstance<Shape extends z.core.$ZodLooseShape> = {
-  -readonly [key in keyof Shape]: InstanceOrPrimitive<Shape[key]>;
+  -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchema<Shape[key]>;
 } & Account;
 
 export type CoListInstance<T extends z.core.$ZodType> = CoList<
-  InstanceOrPrimitive<T>
+  InstanceOrPrimitiveOfSchema<T>
 >;
 
 export type CoFeedInstance<T extends z.core.$ZodType> = CoFeed<
-  InstanceOrPrimitive<T>
+  InstanceOrPrimitiveOfSchema<T>
 >;
 
-export type InstanceOrPrimitive<S extends CoValueClass | z.core.$ZodType> =
-  S extends z.core.$ZodType
-    ? S extends z.core.$ZodObject<infer Shape> & {
-        collaborative: true;
-        builtin: "Account";
-      }
+export type InstanceOrPrimitiveOfSchema<
+  S extends CoValueClass | z.core.$ZodType,
+> = S extends z.core.$ZodType
+  ? S extends z.core.$ZodObject<infer Shape> & {
+      collaborative: true;
+      builtin: "Account";
+    }
+    ? {
+        -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchema<Shape[key]>;
+      } & Account
+    : S extends z.core.$ZodRecord<infer K, infer V> & {
+          collaborative: true;
+        }
       ? {
-          [key in keyof Shape]: InstanceOrPrimitive<Shape[key]>;
-        } & Account
-      : S extends z.core.$ZodRecord<infer K, infer V> & {
-            collaborative: true;
-          }
+          -readonly [key in z.output<K> &
+            string]: InstanceOrPrimitiveOfSchema<V>;
+        } & CoMap
+      : S extends AnyCoMapSchema<infer Shape, infer OutExtra>
         ? {
-            [key in z.output<K> & string]: InstanceOrPrimitive<V>;
-          } & CoMap
-        : S extends AnyCoMapSchema<infer Shape, infer OutExtra>
-          ? {
-              [key in keyof Shape]: InstanceOrPrimitive<Shape[key]>;
-            } & (unknown extends OutExtra[string]
-              ? {}
-              : {
-                  [key: string]: OutExtra[string];
-                }) &
-              CoMap
-          : S extends AnyCoListSchema<infer T>
-            ? CoList<InstanceOrPrimitive<T>>
-            : S extends AnyCoFeedSchema<infer T>
-              ? CoFeed<InstanceOrPrimitive<T>>
-              : S extends z.core.$ZodOptional<infer Inner>
-                ? InstanceOrPrimitive<Inner> | undefined
-                : S extends z.core.$ZodTuple<infer Items>
-                  ? {
-                      [key in keyof Items]: InstanceOrPrimitive<Items[key]>;
-                    }
-                  : S extends z.core.$ZodUnion<infer Members>
-                    ? InstanceOrPrimitive<Members[number]>
-                    : S extends z.core.$ZodString
-                      ? string
-                      : S extends z.core.$ZodNumber
-                        ? number
-                        : S extends z.core.$ZodBoolean
-                          ? boolean
-                          : S extends z.core.$ZodLiteral<infer Literal>
-                            ? Literal
-                            : S extends z.core.$ZodDate
-                              ? Date
-                              : never
-    : S extends CoValueClass
-      ? InstanceType<S>
-      : never;
+            -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchema<
+              Shape[key]
+            >;
+          } & (unknown extends OutExtra[string]
+            ? {}
+            : {
+                [key: string]: OutExtra[string];
+              }) &
+            CoMap
+        : S extends AnyCoListSchema<infer T>
+          ? CoList<InstanceOrPrimitiveOfSchema<T>>
+          : S extends AnyCoFeedSchema<infer T>
+            ? CoFeed<InstanceOrPrimitiveOfSchema<T>>
+            : S extends z.core.$ZodOptional<infer Inner>
+              ? InstanceOrPrimitiveOfSchema<Inner> | undefined
+              : S extends z.core.$ZodTuple<infer Items>
+                ? {
+                    [key in keyof Items]: InstanceOrPrimitiveOfSchema<
+                      Items[key]
+                    >;
+                  }
+                : S extends z.core.$ZodUnion<infer Members>
+                  ? InstanceOrPrimitiveOfSchema<Members[number]>
+                  : S extends z.core.$ZodString
+                    ? string
+                    : S extends z.core.$ZodNumber
+                      ? number
+                      : S extends z.core.$ZodBoolean
+                        ? boolean
+                        : S extends z.core.$ZodLiteral<infer Literal>
+                          ? Literal
+                          : S extends z.core.$ZodDate
+                            ? Date
+                            : never
+  : S extends CoValueClass
+    ? InstanceType<S>
+    : never;
 
 // same as above type but excluding primitives
-export type ExpectInstance<S extends CoValueClass | z.core.$ZodType> =
+export type InstanceOfSchema<S extends CoValueClass | z.core.$ZodType> =
   S extends z.core.$ZodType
     ? S extends z.core.$ZodObject<infer Shape> & {
         collaborative: true;
         builtin: "Account";
       }
       ? {
-          [key in keyof Shape]: InstanceOrPrimitive<Shape[key]>;
+          [key in keyof Shape]: InstanceOrPrimitiveOfSchema<Shape[key]>;
         } & Account
       : S extends z.core.$ZodRecord<infer K, infer V> & {
             collaborative: true;
           }
         ? {
-            [key in z.output<K> & string]: InstanceOrPrimitive<V>;
+            [key in z.output<K> & string]: InstanceOrPrimitiveOfSchema<V>;
           } & CoMap
         : S extends AnyCoMapSchema<infer Shape, infer OutExtra>
           ? {
-              [key in keyof Shape]: InstanceOrPrimitive<Shape[key]>;
+              [key in keyof Shape]: InstanceOrPrimitiveOfSchema<Shape[key]>;
             } & (unknown extends OutExtra[string]
               ? {}
               : {
@@ -758,13 +776,13 @@ export type ExpectInstance<S extends CoValueClass | z.core.$ZodType> =
                 }) &
               CoMap
           : S extends AnyCoListSchema<infer T>
-            ? CoList<InstanceOrPrimitive<T>>
+            ? CoList<InstanceOrPrimitiveOfSchema<T>>
             : S extends AnyCoFeedSchema<infer T>
-              ? CoFeed<InstanceOrPrimitive<T>>
+              ? CoFeed<InstanceOrPrimitiveOfSchema<T>>
               : S extends z.core.$ZodOptional<infer Inner>
-                ? InstanceOrPrimitive<Inner>
+                ? InstanceOrPrimitiveOfSchema<Inner>
                 : S extends z.core.$ZodUnion<infer Members>
-                  ? InstanceOrPrimitive<Members[number]>
+                  ? InstanceOrPrimitiveOfSchema<Members[number]>
                   : never
     : S extends CoValueClass
       ? InstanceType<S>
@@ -777,5 +795,5 @@ export type Loaded<
     | AnyCoListSchema
     | AnyCoFeedSchema
     | AnyCoUnionSchema,
-  R extends RefsToResolve<InstanceOrPrimitive<T>> = true,
-> = Resolved<InstanceOrPrimitive<T>, R>;
+  R extends RefsToResolve<InstanceOrPrimitiveOfSchema<T>> = true,
+> = Resolved<InstanceOrPrimitiveOfSchema<T>, R>;

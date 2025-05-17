@@ -86,6 +86,6 @@ export type * from "./types.js";
 
 export {
   zodSchemaToCoSchema,
-  type InstanceOrPrimitive,
+  type InstanceOrPrimitiveOfSchema as InstanceOrPrimitive,
   type Loaded,
 } from "./internal.js";

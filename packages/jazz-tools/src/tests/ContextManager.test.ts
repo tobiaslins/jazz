@@ -9,7 +9,9 @@ import {
   InMemoryKVStore,
   JazzAuthContext,
   KvStoreContext,
+  co,
   coField,
+  z,
 } from "../exports";
 import {
   JazzContextManager,
@@ -20,6 +22,7 @@ import {
   createJazzContext,
   randomSessionProvider,
 } from "../implementation/createContext";
+import { InstanceOfSchema, Loaded, zodSchemaToCoSchema } from "../internal";
 import {
   createJazzTestAccount,
   getPeerConnectedToTestSyncServer,
@@ -226,31 +229,39 @@ describe("ContextManager", () => {
   });
 
   test("the migration should be applied correctly on existing accounts", async () => {
-    class AccountRoot extends CoMap {
-      value = coField.string;
-    }
+    const AccountRoot = co.map({
+      value: z.string(),
+    });
 
     let lastRootId: string | undefined;
 
-    class CustomAccount extends Account {
-      root = coField.ref(AccountRoot);
-
-      migrate() {
-        this.root = AccountRoot.create({
+    const CustomAccount = co
+      .account({
+        root: AccountRoot,
+        profile: co.map({
+          name: z.string(),
+        }),
+      })
+      .withMigration(async (account) => {
+        account.root = AccountRoot.create({
           value: "Hello",
         });
-        lastRootId = this.root.id;
-      }
-    }
-    const customManager = new TestJazzContextManager<CustomAccount>();
+        lastRootId = account.root.id;
+      });
+
+    const customManager = new TestJazzContextManager<
+      InstanceOfSchema<typeof CustomAccount>
+    >();
 
     // Create initial anonymous context
     await customManager.createContext({
-      AccountSchema: CustomAccount,
+      AccountSchema: zodSchemaToCoSchema(CustomAccount),
     });
 
     const account = (
-      customManager.getCurrentValue() as JazzAuthContext<CustomAccount>
+      customManager.getCurrentValue() as JazzAuthContext<
+        InstanceOfSchema<typeof CustomAccount>
+      >
     ).me;
 
     console.log("before", account._refs.root?.id);
@@ -271,34 +282,43 @@ describe("ContextManager", () => {
   });
 
   test("the migration should be applied correctly on existing accounts (2)", async () => {
-    class AccountRoot extends CoMap {
-      value = coField.number;
-    }
+    const AccountRoot = co.map({
+      value: z.number(),
+    });
 
-    class CustomAccount extends Account {
-      root = coField.ref(AccountRoot);
-
-      async migrate(this: CustomAccount) {
-        if (this.root === undefined) {
-          this.root = AccountRoot.create({
+    const CustomAccount = co
+      .account({
+        root: AccountRoot,
+        profile: co.map({
+          name: z.string(),
+        }),
+      })
+      .withMigration(async (account) => {
+        if (account.root === undefined) {
+          account.root = AccountRoot.create({
             value: 1,
           });
         } else {
-          const { root } = await this.ensureLoaded({ resolve: { root: true } });
+          const { root } = await account.ensureLoaded({
+            resolve: { root: true },
+          });
 
           root.value = 2;
         }
-      }
-    }
-    const customManager = new TestJazzContextManager<CustomAccount>();
+      });
+    const customManager = new TestJazzContextManager<
+      InstanceOfSchema<typeof CustomAccount>
+    >();
 
     // Create initial anonymous context
     await customManager.createContext({
-      AccountSchema: CustomAccount,
+      AccountSchema: zodSchemaToCoSchema(CustomAccount),
     });
 
     const account = (
-      customManager.getCurrentValue() as JazzAuthContext<CustomAccount>
+      customManager.getCurrentValue() as JazzAuthContext<
+        InstanceOfSchema<typeof CustomAccount>
+      >
     ).me;
 
     await customManager.authenticate({
@@ -315,25 +335,30 @@ describe("ContextManager", () => {
   });
 
   test("onAnonymousAccountDiscarded should work on transfering data between accounts", async () => {
-    class AccountRoot extends CoMap {
-      value = coField.string;
-      transferredRoot = coField.optional.ref(AccountRoot);
-    }
+    const AccountRoot = co.map({
+      value: z.string(),
+      get transferredRoot(): z.ZodOptional<typeof AccountRoot> {
+        return z.optional(AccountRoot);
+      },
+    });
 
-    class CustomAccount extends Account {
-      root = coField.ref(AccountRoot);
-
-      migrate() {
-        if (this.root === undefined) {
-          this.root = AccountRoot.create({
+    const CustomAccount = co
+      .account({
+        root: AccountRoot,
+        profile: co.map({
+          name: z.string(),
+        }),
+      })
+      .withMigration(async (account) => {
+        if (account.root === undefined) {
+          account.root = AccountRoot.create({
             value: "Hello",
           });
         }
-      }
-    }
+      });
 
     const onAnonymousAccountDiscarded = async (
-      anonymousAccount: CustomAccount,
+      anonymousAccount: Loaded<typeof CustomAccount, { root: true }>,
     ) => {
       const anonymousAccountWithRoot = await anonymousAccount.ensureLoaded({
         resolve: {
@@ -354,17 +379,19 @@ describe("ContextManager", () => {
       meWithRoot.root.transferredRoot = rootToTransfer;
     };
 
-    const customManager = new TestJazzContextManager<CustomAccount>();
+    const customManager = new TestJazzContextManager<
+      InstanceOfSchema<typeof CustomAccount>
+    >();
 
     // Create initial anonymous context
     await customManager.createContext({
       onAnonymousAccountDiscarded,
-      AccountSchema: CustomAccount,
+      AccountSchema: zodSchemaToCoSchema(CustomAccount),
     });
 
     const account = await createJazzTestAccount({
       isCurrentActiveAccount: true,
-      AccountSchema: CustomAccount,
+      AccountSchema: zodSchemaToCoSchema(CustomAccount),
     });
 
     await customManager.authenticate({

@@ -21,7 +21,7 @@ import {
 import {
   CoMapInstance,
   ID,
-  InstanceOrPrimitive,
+  InstanceOrPrimitiveOfSchema,
   Loaded,
   Resolved,
   co,
@@ -1012,7 +1012,7 @@ describe("createCoValueObservable", () => {
   it("should return null if the coValue is not found", async () => {
     const { meOnSecondPeer } = await setupAccount();
     const observable = createCoValueObservable<
-      InstanceOrPrimitive<typeof TestMap>,
+      InstanceOrPrimitiveOfSchema<typeof TestMap>,
       Loaded<typeof TestMap, {}>
     >();
 
