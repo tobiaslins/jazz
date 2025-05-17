@@ -14,6 +14,7 @@ import {
   CoFeed,
   CoList,
   CoMap,
+  CoPlainText,
   CoValueClass,
   CoValueFromRaw,
   FileStream,
@@ -264,7 +265,27 @@ export type CoFeedSchema<T extends z.core.$ZodType> = z.core.$ZodCustom<
 
 export type FileStreamSchema = z.core.$ZodCustom<FileStream, unknown> & {
   collaborative: true;
+  builtin: "FileStream";
   create: (typeof FileStream)["create"];
+};
+
+export type PlainTextSchema = z.core.$ZodCustom<CoPlainText, unknown> & {
+  collaborative: true;
+  builtin: "CoPlainText";
+  create(text: string, options: { owner: Account | Group }): CoPlainText;
+  load(
+    id: string,
+    options: { loadAs: Account | AnonymousJazzAgent },
+  ): Promise<CoPlainText>;
+  subscribe(
+    id: string,
+    options: { loadAs: Account | AnonymousJazzAgent },
+    listener: (value: CoPlainText, unsubscribe: () => void) => void,
+  ): () => void;
+  subscribe(
+    id: string,
+    listener: (value: CoPlainText, unsubscribe: () => void) => void,
+  ): () => void;
 };
 
 let coSchemasForZodSchemas = new Map<z.core.$ZodType, CoValueClass>();

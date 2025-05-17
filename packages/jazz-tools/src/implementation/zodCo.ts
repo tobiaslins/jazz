@@ -11,11 +11,13 @@ import {
   CoFeedSchema,
   CoListSchema,
   CoMapSchema,
+  CoPlainText,
   CoRecordSchema,
   FileStream,
   FileStreamSchema,
   Group,
   ImageDefinition,
+  PlainTextSchema,
   zodSchemaToCoSchema,
 } from "../internal.js";
 
@@ -272,11 +274,44 @@ export const coFileStreamDefiner = (): FileStreamSchema => {
   return fileStreamSchema;
 };
 
+export const coPlainTextDefiner = (): PlainTextSchema => {
+  const placeholderSchema = z.instanceof(CoPlainText);
+
+  const plainTextSchema = placeholderSchema as unknown as Pick<
+    typeof placeholderSchema,
+    "_zod" | "def" | "~standard"
+  > & {
+    collaborative: true;
+    builtin: "CoPlainText";
+    create: PlainTextSchema["create"];
+    load: PlainTextSchema["load"];
+    subscribe: PlainTextSchema["subscribe"];
+  };
+
+  plainTextSchema.collaborative = true;
+  plainTextSchema.builtin = "CoPlainText";
+
+  plainTextSchema.create = function (...args: any[]) {
+    return (CoPlainText as any).create(...args);
+  } as PlainTextSchema["create"];
+
+  plainTextSchema.load = function (...args: any[]) {
+    return (CoPlainText as any).load(...args);
+  } as PlainTextSchema["load"];
+
+  plainTextSchema.subscribe = function (...args: any[]) {
+    return (CoPlainText as any).subscribe(...args);
+  } as PlainTextSchema["subscribe"];
+
+  return plainTextSchema;
+};
+
 export const co = {
   map: coMapDefiner,
   record: coRecordDefiner,
   list: coListDefiner,
   feed: coFeedDefiner,
+  plainText: coPlainTextDefiner,
   fileStream: coFileStreamDefiner,
   image: (): typeof ImageDefinition => {
     return ImageDefinition;

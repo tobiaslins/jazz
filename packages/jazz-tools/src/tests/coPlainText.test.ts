@@ -2,12 +2,11 @@ import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { describe, expect, test } from "vitest";
 import {
   Account,
-  CoPlainText,
   cojsonInternals,
   createJazzContextFromExistingCredentials,
   isControlledAccount,
 } from "../index.js";
-import { randomSessionProvider } from "../internal.js";
+import { co, randomSessionProvider } from "../internal.js";
 
 const Crypto = await WasmCrypto.create();
 
@@ -20,7 +19,7 @@ describe("CoPlainText", () => {
       crypto: Crypto,
     });
 
-    const text = CoPlainText.create("hello world", { owner: me });
+    const text = co.plainText().create("hello world", { owner: me });
 
     return { me, text };
   };
@@ -34,7 +33,7 @@ describe("CoPlainText", () => {
 
     describe("Mutation", () => {
       test("insertion", () => {
-        const text = CoPlainText.create("hello world", { owner: me });
+        const text = co.plainText().create("hello world", { owner: me });
 
         text.insertAfter(4, " cruel");
         expect(text + "").toEqual("hello cruel world");
@@ -44,14 +43,14 @@ describe("CoPlainText", () => {
       });
 
       test("deletion", () => {
-        const text = CoPlainText.create("hello world", { owner: me });
+        const text = co.plainText().create("hello world", { owner: me });
 
         text.deleteRange({ from: 3, to: 8 });
         expect(text + "").toEqual("helrld");
       });
 
       test("applyDiff", () => {
-        const text = CoPlainText.create("hello world", { owner: me });
+        const text = co.plainText().create("hello world", { owner: me });
         text.applyDiff("hello cruel world");
         expect(text.toString()).toEqual("hello cruel world");
       });
@@ -59,19 +58,19 @@ describe("CoPlainText", () => {
 
     describe("Properties", () => {
       test("length", () => {
-        const text = CoPlainText.create("hello world", { owner: me });
+        const text = co.plainText().create("hello world", { owner: me });
         expect(text.length).toBe(11);
       });
 
       test("toString", () => {
-        const text = CoPlainText.create("hello world", { owner: me });
+        const text = co.plainText().create("hello world", { owner: me });
         expect(text.toString()).toBe("hello world");
       });
     });
 
     describe("Position operations", () => {
       test("idxBefore returns index before a position", () => {
-        const text = CoPlainText.create("hello world", { owner: me });
+        const text = co.plainText().create("hello world", { owner: me });
 
         // Get position at index 5 (between "hello" and " world")
         const pos = text.posBefore(5);
@@ -85,7 +84,7 @@ describe("CoPlainText", () => {
       });
 
       test("idxAfter returns index after a position", () => {
-        const text = CoPlainText.create("hello world", { owner: me });
+        const text = co.plainText().create("hello world", { owner: me });
 
         // Get position at index 5 (between "hello" and " world")
         const pos = text.posBefore(5);
@@ -127,7 +126,7 @@ describe("CoPlainText", () => {
         });
 
       // Load the text on the second peer
-      const loaded = await CoPlainText.load(id, { loadAs: meOnSecondPeer });
+      const loaded = await co.plainText().load(id, { loadAs: meOnSecondPeer });
       expect(loaded).toBeDefined();
       expect(loaded!.toString()).toBe("hello world");
     });
@@ -160,7 +159,7 @@ describe("CoPlainText", () => {
     const queue = new cojsonInternals.Channel();
 
     // Subscribe to text updates
-    CoPlainText.subscribe(
+    co.plainText().subscribe(
       text.id,
       { loadAs: meOnSecondPeer },
       (subscribedText) => {
