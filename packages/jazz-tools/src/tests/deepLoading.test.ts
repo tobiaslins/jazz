@@ -2,20 +2,14 @@ import { cojsonInternals } from "cojson";
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { assert, describe, expect, expectTypeOf, test, vi } from "vitest";
 import {
-  Account,
-  CoFeed,
-  CoList,
-  CoMap,
   Group,
   ID,
-  Profile,
   SessionID,
-  coField,
   createJazzContextFromExistingCredentials,
   isControlledAccount,
   z,
 } from "../index.js";
-import { Loaded, co, randomSessionProvider } from "../internal.js";
+import { Account, Loaded, co, randomSessionProvider } from "../internal.js";
 import { createJazzTestAccount, linkAccounts } from "../testing.js";
 import { waitFor } from "./utils.js";
 
@@ -223,7 +217,9 @@ const CustomAccount = co
         root: { list: true },
       },
     });
-    expectTypeOf(accountLoaded).toEqualTypeOf<
+
+    // seems overly strict / spurious errors without .branded
+    expectTypeOf(accountLoaded).branded.toEqualTypeOf<
       Loaded<typeof CustomAccount> & {
         profile: Loaded<typeof CustomProfile> & {
           stream: Loaded<typeof TestFeed>;
@@ -247,7 +243,8 @@ test("Deep loading within account", async () => {
       root: { list: true },
     },
   });
-  expectTypeOf(meLoaded).toEqualTypeOf<
+  // seems overly strict / spurious errors without .branded
+  expectTypeOf(meLoaded).branded.toEqualTypeOf<
     Loaded<typeof CustomAccount> & {
       profile: Loaded<typeof CustomProfile> & {
         stream: Loaded<typeof TestFeed>;
@@ -359,7 +356,8 @@ test("The resolve type doesn't accept extra keys", async () => {
       },
     });
 
-    expectTypeOf(meLoaded).toEqualTypeOf<
+    // seems overly strict / spurious errors without .branded
+    expectTypeOf(meLoaded).branded.toEqualTypeOf<
       Loaded<typeof CustomAccount> & {
         profile: Loaded<typeof CustomProfile> & {
           stream: Loaded<typeof TestFeed>;
