@@ -1,27 +1,26 @@
 import { assert, describe, expect, test } from "vitest";
-import { Account, CoList, CoMap, Group, ID, coField } from "../../exports";
+import { Account, CoList, CoMap, Group, ID, co, z } from "../../exports";
 import { createJazzTestAccount, linkAccounts } from "../../testing";
 
-class RequestToJoin extends CoMap {
-  account = coField.ref(Account);
-  status = coField.literal("pending", "approved", "rejected");
-}
+const RequestToJoin = co.map({
+  account: Account,
+  status: z.literal(["pending", "approved", "rejected"]),
+});
 
-class ProjectsList extends CoList.Of(coField.string) {}
+const RequestsMap = co.record(z.string(), RequestToJoin);
 
-class RequestsMap extends CoMap.Record(coField.ref(RequestToJoin)) {}
+const RequestsStatus = co.record(
+  z.string(),
+  z.literal(["pending", "approved", "rejected"]),
+);
 
-class RequestsStatus extends CoMap.Record(
-  coField.literal("pending", "approved", "rejected"),
-) {}
-
-class Organization extends CoMap {
-  name = coField.string;
-  requests = coField.ref(RequestsMap);
-  statuses = coField.ref(RequestsStatus);
-  projects = coField.ref(ProjectsList);
-  mainGroup = coField.ref(Group);
-}
+const Organization = co.map({
+  name: z.string(),
+  requests: RequestsMap,
+  statuses: RequestsStatus,
+  projects: co.list(z.string()),
+  mainGroup: Group,
+});
 
 async function setup() {
   const admin1 = await createJazzTestAccount();
@@ -57,7 +56,7 @@ async function setup() {
       requests: RequestsMap.create({}, requestsGroup),
 
       // To simulate the resource to share
-      projects: ProjectsList.create([], organizationGroup),
+      projects: co.list(z.string()).create([], organizationGroup),
 
       // Statuses are private to admins
       // Used to make the requests statues readable only to them
@@ -81,10 +80,7 @@ async function setup() {
   };
 }
 
-async function sendRequestToJoin(
-  organizationId: ID<Organization>,
-  account: Account,
-) {
+async function sendRequestToJoin(organizationId: string, account: Account) {
   const organization = await Organization.load(organizationId, {
     resolve: { requests: true },
     loadAs: account,
@@ -110,7 +106,7 @@ async function sendRequestToJoin(
 }
 
 async function approveRequest(
-  organizationId: ID<Organization>,
+  organizationId: string,
   admin: Account,
   user: Account,
 ) {
@@ -145,7 +141,7 @@ async function approveRequest(
 }
 
 async function rejectRequest(
-  organizationId: ID<Organization>,
+  organizationId: string,
   admin: Account,
   user: Account,
 ) {
@@ -196,9 +192,11 @@ describe("Request to join", () => {
 
     await approveRequest(organizationId, admin1, user1);
 
-    const projectsOnUser = await ProjectsList.load(organization.projects.id, {
-      loadAs: user1,
-    });
+    const projectsOnUser = await co
+      .list(z.string())
+      .load(organization.projects.id, {
+        loadAs: user1,
+      });
 
     assert(projectsOnUser);
 
@@ -224,9 +222,11 @@ describe("Request to join", () => {
     await sendRequestToJoin(organizationId, user1);
     await rejectRequest(organizationId, admin1, user1);
 
-    const projectsOnUser = await ProjectsList.load(organization.projects.id, {
-      loadAs: user1,
-    });
+    const projectsOnUser = await co
+      .list(z.string())
+      .load(organization.projects.id, {
+        loadAs: user1,
+      });
 
     expect(projectsOnUser).toBeNull();
   });
