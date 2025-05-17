@@ -5,6 +5,7 @@ import {
   RawAccount,
   RawCoList,
   RawCoMap,
+  RawCoPlainText,
 } from "cojson";
 import z from "zod";
 import {
@@ -272,7 +273,10 @@ export type FileStreamSchema = z.core.$ZodCustom<FileStream, unknown> & {
 export type PlainTextSchema = z.core.$ZodCustom<CoPlainText, unknown> & {
   collaborative: true;
   builtin: "CoPlainText";
-  create(text: string, options: { owner: Account | Group }): CoPlainText;
+  create(
+    text: string,
+    options?: { owner: Account | Group } | Account | Group,
+  ): CoPlainText;
   load(
     id: string,
     options: { loadAs: Account | AnonymousJazzAgent },
@@ -286,6 +290,7 @@ export type PlainTextSchema = z.core.$ZodCustom<CoPlainText, unknown> & {
     id: string,
     listener: (value: CoPlainText, unsubscribe: () => void) => void,
   ): () => void;
+  fromRaw(raw: RawCoPlainText): CoPlainText;
 };
 
 let coSchemasForZodSchemas = new Map<z.core.$ZodType, CoValueClass>();
@@ -794,27 +799,29 @@ export type InstanceOrPrimitiveOfSchema<
           ? CoList<InstanceOrPrimitiveOfSchema<T>>
           : S extends AnyCoFeedSchema<infer T>
             ? CoFeed<InstanceOrPrimitiveOfSchema<T>>
-            : S extends z.core.$ZodOptional<infer Inner>
-              ? InstanceOrPrimitiveOfSchema<Inner> | undefined
-              : S extends z.core.$ZodTuple<infer Items>
-                ? {
-                    [key in keyof Items]: InstanceOrPrimitiveOfSchema<
-                      Items[key]
-                    >;
-                  }
-                : S extends z.core.$ZodUnion<infer Members>
-                  ? InstanceOrPrimitiveOfSchema<Members[number]>
-                  : S extends z.core.$ZodString
-                    ? string
-                    : S extends z.core.$ZodNumber
-                      ? number
-                      : S extends z.core.$ZodBoolean
-                        ? boolean
-                        : S extends z.core.$ZodLiteral<infer Literal>
-                          ? Literal
-                          : S extends z.core.$ZodDate
-                            ? Date
-                            : never
+            : S extends PlainTextSchema
+              ? CoPlainText
+              : S extends z.core.$ZodOptional<infer Inner>
+                ? InstanceOrPrimitiveOfSchema<Inner> | undefined
+                : S extends z.core.$ZodTuple<infer Items>
+                  ? {
+                      [key in keyof Items]: InstanceOrPrimitiveOfSchema<
+                        Items[key]
+                      >;
+                    }
+                  : S extends z.core.$ZodUnion<infer Members>
+                    ? InstanceOrPrimitiveOfSchema<Members[number]>
+                    : S extends z.core.$ZodString
+                      ? string
+                      : S extends z.core.$ZodNumber
+                        ? number
+                        : S extends z.core.$ZodBoolean
+                          ? boolean
+                          : S extends z.core.$ZodLiteral<infer Literal>
+                            ? Literal
+                            : S extends z.core.$ZodDate
+                              ? Date
+                              : never
   : S extends CoValueClass
     ? InstanceType<S>
     : never;
@@ -864,6 +871,7 @@ export type Loaded<
     | AnyCoRecordSchema
     | AnyCoListSchema
     | AnyCoFeedSchema
-    | AnyCoUnionSchema,
+    | AnyCoUnionSchema
+    | PlainTextSchema,
   R extends RefsToResolve<InstanceOrPrimitiveOfSchema<T>> = true,
 > = Resolved<InstanceOrPrimitiveOfSchema<T>, R>;

@@ -9,7 +9,13 @@ import {
   isControlledAccount,
   z,
 } from "../index.js";
-import { Account, Loaded, co, randomSessionProvider } from "../internal.js";
+import {
+  Account,
+  CoListSchema,
+  Loaded,
+  co,
+  randomSessionProvider,
+} from "../internal.js";
 import { createJazzTestAccount, linkAccounts } from "../testing.js";
 import { waitFor } from "./utils.js";
 
@@ -615,10 +621,10 @@ describe("Deep loading with unauthorized account", async () => {
   });
 
   test("unaccessible record element with $onError", async () => {
-    class Person extends CoMap {
-      name = co.string;
-    }
-    class Friends extends CoMap.Record(co.ref(Person)) {}
+    const Person = co.map({
+      name: z.string(),
+    });
+    const Friends = co.record(z.string(), Person);
 
     const map = Friends.create(
       {
@@ -640,15 +646,15 @@ describe("Deep loading with unauthorized account", async () => {
   });
 
   test("unaccessible nested record element with $onError", async () => {
-    class Person extends CoMap {
-      name = co.string;
-    }
-    class Friends extends CoMap.Record(co.ref(Person)) {}
+    const Person = co.map({
+      name: z.string(),
+    });
+    const Friends = co.record(z.string(), Person);
 
-    class User extends CoMap {
-      name = co.string;
-      friends = co.ref(Friends);
-    }
+    const User = co.map({
+      name: z.string(),
+      friends: Friends,
+    });
 
     const map = User.create(
       {
@@ -676,19 +682,21 @@ describe("Deep loading with unauthorized account", async () => {
   });
 
   test("unaccessible element down the chain with $onError on a record", async () => {
-    class Person extends CoMap {
-      name = co.string;
-      dog = co.ref(Dog);
-    }
-    class Dog extends CoMap {
-      name = co.string;
-    }
-    class Friends extends CoMap.Record(co.ref(Person)) {}
+    const Dog = co.map({
+      name: z.string(),
+    });
 
-    class User extends CoMap {
-      name = co.string;
-      friends = co.ref(Friends);
-    }
+    const Person = co.map({
+      name: z.string(),
+      dog: Dog,
+    });
+
+    const Friends = co.record(z.string(), Person);
+
+    const User = co.map({
+      name: z.string(),
+      friends: Friends,
+    });
 
     const map = User.create(
       {
@@ -725,11 +733,13 @@ describe("Deep loading with unauthorized account", async () => {
   });
 
   test("unaccessible list element with $onError and $each with depth", async () => {
-    class Person extends CoMap {
-      name = co.string;
-      friends = co.optional.ref(Friends);
-    }
-    class Friends extends CoList.Of(co.ref(Person)) {}
+    const Person = co.map({
+      name: z.string(),
+      get friends(): z.ZodOptional<typeof Friends> {
+        return z.optional(Friends);
+      },
+    });
+    const Friends: CoListSchema<typeof Person> = co.list(Person); // TODO: annoying that we have to annotate
 
     const list = Friends.create(
       [
@@ -775,10 +785,10 @@ describe("Deep loading with unauthorized account", async () => {
   });
 
   test("unaccessible record element with $onError", async () => {
-    class Person extends CoMap {
-      name = co.string;
-    }
-    class Friend extends CoMap.Record(co.ref(Person)) {}
+    const Person = co.map({
+      name: z.string(),
+    });
+    const Friend = co.record(z.string(), Person);
 
     const map = Friend.create(
       {
@@ -800,19 +810,21 @@ describe("Deep loading with unauthorized account", async () => {
   });
 
   test("unaccessible ref catched with $onError", async () => {
-    class Person extends CoMap {
-      name = co.string;
-      dog = co.ref(Dog);
-    }
-    class Dog extends CoMap {
-      name = co.string;
-    }
-    class Friends extends CoMap.Record(co.ref(Person)) {}
+    const Dog = co.map({
+      name: z.string(),
+    });
 
-    class User extends CoMap {
-      name = co.string;
-      friends = co.ref(Friends);
-    }
+    const Person = co.map({
+      name: z.string(),
+      dog: Dog,
+    });
+
+    const Friends = co.record(z.string(), Person);
+
+    const User = co.map({
+      name: z.string(),
+      friends: Friends,
+    });
 
     const map = User.create(
       {
@@ -849,9 +861,9 @@ describe("Deep loading with unauthorized account", async () => {
   });
 
   test("using $onError on the resolve root", async () => {
-    class Person extends CoMap {
-      name = co.string;
-    }
+    const Person = co.map({
+      name: z.string(),
+    });
 
     const map = Person.create({ name: "John" }, onlyBob);
     const user = await Person.load(map.id, {

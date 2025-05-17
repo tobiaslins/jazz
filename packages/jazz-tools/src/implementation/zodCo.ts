@@ -286,6 +286,7 @@ export const coPlainTextDefiner = (): PlainTextSchema => {
     create: PlainTextSchema["create"];
     load: PlainTextSchema["load"];
     subscribe: PlainTextSchema["subscribe"];
+    fromRaw: PlainTextSchema["fromRaw"];
   };
 
   plainTextSchema.collaborative = true;
@@ -302,6 +303,10 @@ export const coPlainTextDefiner = (): PlainTextSchema => {
   plainTextSchema.subscribe = function (...args: any[]) {
     return (CoPlainText as any).subscribe(...args);
   } as PlainTextSchema["subscribe"];
+
+  plainTextSchema.fromRaw = function (...args: any[]) {
+    return (CoPlainText as any).fromRaw(...args);
+  } as PlainTextSchema["fromRaw"];
 
   return plainTextSchema;
 };
