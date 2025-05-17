@@ -25,6 +25,7 @@ import {
   RegisteredSchemas,
   SchemaInit,
   accessChildByKey,
+  anySchemaToCoSchema,
   coField,
   coValuesCache,
   ensureCoValueLoaded,
@@ -115,7 +116,9 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
   /** @category Collaboration */
   get _owner(): Account | Group {
     return this._raw.group instanceof RawAccount
-      ? RegisteredSchemas["Account"].fromRaw(this._raw.group)
+      ? anySchemaToCoSchema(RegisteredSchemas["Account"]).fromRaw(
+          this._raw.group,
+        )
       : RegisteredSchemas["Group"].fromRaw(this._raw.group);
   }
 
@@ -171,7 +174,9 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
 
     if (agent instanceof ControlledAccount) {
       return coValuesCache.get(agent.account, () =>
-        RegisteredSchemas["Account"].fromRaw(agent.account),
+        anySchemaToCoSchema(RegisteredSchemas["Account"]).fromRaw(
+          agent.account,
+        ),
       );
     }
 

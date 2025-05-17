@@ -116,6 +116,9 @@ export type AccountSchema<
   Shape extends {
     profile: AnyCoMapSchema<{ name: z.core.$ZodString<string> }>;
     root: AnyCoMapSchema;
+  } = {
+    profile: CoMapSchema<{ name: z.core.$ZodString<string> }>;
+    root: CoMapSchema<{}>;
   },
 > = Omit<CoMapSchema<Shape>, "create"> & {
   builtin: "Account";
@@ -704,6 +707,10 @@ export type CoValueClassFromZodSchema<S extends z.core.$ZodType> = CoValueClass<
   CoValueFromRaw<InstanceOfSchema<S>> &
   (S extends AnyAccountSchema
     ? {
+        fromRaw: <A extends Account>(
+          this: AccountClass<A>,
+          raw: RawAccount,
+        ) => A;
         fromNode: <A extends Account>(
           this: AccountClass<A>,
           node: LocalNode,

@@ -25,6 +25,7 @@ export { co } from "./internal.js";
 
 export type {
   CoValueClass,
+  CoValueFromRaw,
   DeeplyLoaded,
   Resolved,
   RefsToResolve,
@@ -32,7 +33,7 @@ export type {
   CoMapInit,
   CoFeedEntry,
   TextPos,
-  AccountClass as AccountClass,
+  AccountClass,
   AccountCreationProps,
 } from "./internal.js";
 
@@ -87,7 +88,10 @@ export type * from "./types.js";
 export {
   zodSchemaToCoSchema,
   anySchemaToCoSchema,
+  type InstanceOfSchema,
   type InstanceOrPrimitiveOfSchema,
   type CoValueOrZodSchema,
   type Loaded,
+  type AccountSchema,
+  type AnyAccountSchema,
 } from "./internal.js";

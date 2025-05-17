@@ -1,6 +1,7 @@
 import {
   Account,
   AccountClass,
+  CoValueFromRaw,
   InMemoryKVStore,
   JazzContextManager,
   SyncConfig,
@@ -20,7 +21,7 @@ export type JazzContextManagerProps<Acc extends Account> = {
   logOutReplacement?: () => void;
   onAnonymousAccountDiscarded?: (anonymousAccount: Acc) => Promise<void>;
   storage?: BaseBrowserContextOptions["storage"];
-  AccountSchema?: AccountClass<Acc>;
+  AccountSchema?: AccountClass<Acc> & CoValueFromRaw<Acc>;
   defaultProfileName?: string;
 };
 
@@ -48,7 +49,7 @@ export class JazzBrowserContextManager<
         authSecretStorage: this.authSecretStorage,
       });
     } else {
-      return createJazzBrowserContext<Acc>({
+      return createJazzBrowserContext<AccountClass<Acc> & CoValueFromRaw<Acc>>({
         sync: props.sync,
         storage: props.storage,
         AccountSchema: props.AccountSchema,

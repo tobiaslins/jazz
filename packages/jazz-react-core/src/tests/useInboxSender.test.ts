@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 
-import { CoMap, Group, Inbox, co, z } from "jazz-tools";
+import { CoMap, Group, Inbox, Loaded, co, z } from "jazz-tools";
 import { describe, expect, it } from "vitest";
 import { experimental_useInboxSender } from "../index.js";
 import { createJazzTestAccount, linkAccounts } from "../testing.js";
@@ -18,7 +18,11 @@ describe("useInboxSender", () => {
     await linkAccounts(account, inboxReceiver);
 
     const { result } = renderHook(
-      () => experimental_useInboxSender<TestMap, TestMap>(inboxReceiver.id),
+      () =>
+        experimental_useInboxSender<
+          Loaded<typeof TestMap>,
+          Loaded<typeof TestMap>
+        >(inboxReceiver.id),
       {
         account,
       },
@@ -35,7 +39,7 @@ describe("useInboxSender", () => {
 
     const inbox = await Inbox.load(inboxReceiver);
 
-    const incoming = await new Promise<TestMap>((resolve) => {
+    const incoming = await new Promise<Loaded<typeof TestMap>>((resolve) => {
       inbox.subscribe(TestMap, async (message) => {
         resolve(message);
 

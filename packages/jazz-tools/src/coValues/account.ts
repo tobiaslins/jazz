@@ -20,8 +20,10 @@ import {
   type CoValue,
   CoValueBase,
   CoValueClass,
+  CoValueOrZodSchema,
   type Group,
   ID,
+  InstanceOrPrimitiveOfSchema,
   Profile,
   Ref,
   type RefEncoded,
@@ -37,6 +39,7 @@ import {
   SubscribeRestArgs,
   accessChildByKey,
   activeAccountContext,
+  anySchemaToCoSchema,
   coValuesCache,
   createInboxRoot,
   ensureCoValueLoaded,
@@ -246,11 +249,11 @@ export class Account extends CoValueBase implements CoValue {
     return value._owner.getRoleOf(this.id) === "admin";
   }
 
-  async acceptInvite<V extends CoValue>(
-    valueID: ID<V>,
+  async acceptInvite<S extends CoValueOrZodSchema>(
+    valueID: string,
     inviteSecret: InviteSecret,
-    coValueClass: CoValueClass<V>,
-  ): Promise<Resolved<V, true> | null> {
+    coValueClass: S,
+  ): Promise<Resolved<InstanceOrPrimitiveOfSchema<S>, true> | null> {
     if (!this.isLocalNodeOwner) {
       throw new Error("Only a controlled account can accept invites");
     }
@@ -260,9 +263,9 @@ export class Account extends CoValueBase implements CoValue {
       inviteSecret,
     );
 
-    return loadCoValue(coValueClass, valueID, {
+    return loadCoValue(anySchemaToCoSchema(coValueClass), valueID, {
       loadAs: this,
-    });
+    }) as Resolved<InstanceOrPrimitiveOfSchema<S>, true> | null;
   }
 
   /** @private */

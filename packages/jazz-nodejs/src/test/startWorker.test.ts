@@ -3,15 +3,25 @@ import { startSyncServer } from "jazz-run/startSyncServer";
 import {
   Account,
   AccountClass,
+  AccountSchema,
+  AnyAccountSchema,
   CoMap,
+  CoValueFromRaw,
   Group,
   InboxSender,
+  Loaded,
+  co,
   coField,
+  z,
 } from "jazz-tools";
 import { describe, expect, onTestFinished, test } from "vitest";
 import { startWorker } from "../index.js";
 
-async function setup<Acc extends Account>(AccountSchema?: AccountClass<Acc>) {
+async function setup<
+  S extends
+    | (AccountClass<Account> & CoValueFromRaw<Account>)
+    | AnyAccountSchema,
+>(AccountSchema?: S) {
   const { server, port } = await setupSyncServer();
 
   const syncServer = `ws://localhost:${port}`;
@@ -37,10 +47,11 @@ async function setupSyncServer(defaultPort = "0") {
   return { server, port };
 }
 
-async function setupWorker<Acc extends Account>(
-  syncServer: string,
-  AccountSchema?: AccountClass<Acc>,
-) {
+async function setupWorker<
+  S extends
+    | (AccountClass<Account> & CoValueFromRaw<Account>)
+    | AnyAccountSchema,
+>(syncServer: string, AccountSchema?: S) {
   const { accountID, agentSecret } = await createWorkerAccount({
     name: "test-worker",
     peer: syncServer,
@@ -54,9 +65,9 @@ async function setupWorker<Acc extends Account>(
   });
 }
 
-class TestMap extends CoMap {
-  value = coField.string;
-}
+const TestMap = co.map({
+  value: z.string(),
+});
 
 describe("startWorker integration", () => {
   test("worker connects to sync server successfully", async () => {
@@ -84,32 +95,35 @@ describe("startWorker integration", () => {
   });
 
   test("worker handles successfully the custom account migration", async () => {
-    class AccountRoot extends CoMap {
-      value = coField.string;
-    }
+    const AccountRoot = co.map({
+      value: z.string(),
+    });
 
     let shouldReloadPreviousAccount = false;
 
-    class CustomAccount extends Account {
-      root = coField.ref(AccountRoot);
-
-      migrate() {
-        if (this.root === undefined) {
+    const CustomAccount = co
+      .account({
+        root: AccountRoot,
+        profile: co.map({
+          name: z.string(),
+        }),
+      })
+      .withMigration((account) => {
+        if (account.root === undefined) {
           if (shouldReloadPreviousAccount) {
             throw new Error("Previous account not found");
           }
 
           shouldReloadPreviousAccount = true;
 
-          this.root = AccountRoot.create(
+          account.root = AccountRoot.create(
             {
               value: "test",
             },
-            this,
+            account,
           );
         }
-      }
-    }
+      });
 
     const worker1 = await setup(CustomAccount);
 
@@ -183,10 +197,10 @@ describe("startWorker integration", () => {
       );
     });
 
-    const sender = await InboxSender.load<TestMap, TestMap>(
-      worker2.worker.id,
-      worker1.worker,
-    );
+    const sender = await InboxSender.load<
+      Loaded<typeof TestMap>,
+      Loaded<typeof TestMap>
+    >(worker2.worker.id, worker1.worker);
 
     const resultId = await sender.sendMessage(map);
 

@@ -6,6 +6,7 @@ import {
   CoValueFromRaw,
   ID,
   RegisteredSchemas,
+  anySchemaToCoSchema,
   coValuesCache,
   inspect,
 } from "../internal.js";
@@ -23,7 +24,9 @@ export class CoValueBase implements CoValue {
   get _owner(): Account | Group {
     const owner = coValuesCache.get(this._raw.group, () =>
       this._raw.group instanceof RawAccount
-        ? RegisteredSchemas["Account"].fromRaw(this._raw.group)
+        ? anySchemaToCoSchema(RegisteredSchemas["Account"]).fromRaw(
+            this._raw.group,
+          )
         : RegisteredSchemas["Group"].fromRaw(this._raw.group),
     );
 
@@ -36,7 +39,9 @@ export class CoValueBase implements CoValue {
 
     if (agent instanceof ControlledAccount) {
       return coValuesCache.get(agent.account, () =>
-        RegisteredSchemas["Account"].fromRaw(agent.account),
+        anySchemaToCoSchema(RegisteredSchemas["Account"]).fromRaw(
+          agent.account,
+        ),
       );
     }
 

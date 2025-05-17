@@ -22,7 +22,12 @@ import {
   createJazzContext,
   randomSessionProvider,
 } from "../implementation/createContext";
-import { InstanceOfSchema, Loaded, zodSchemaToCoSchema } from "../internal";
+import {
+  CoValueFromRaw,
+  InstanceOfSchema,
+  Loaded,
+  zodSchemaToCoSchema,
+} from "../internal";
 import {
   createJazzTestAccount,
   getPeerConnectedToTestSyncServer,
@@ -41,11 +46,11 @@ class TestJazzContextManager<Acc extends Account> extends JazzContextManager<
   async getNewContext(
     props: JazzContextManagerBaseProps<Acc> & {
       defaultProfileName?: string;
-      AccountSchema?: AccountClass<Acc>;
+      AccountSchema?: AccountClass<Acc> & CoValueFromRaw<Acc>;
     },
     authProps?: JazzContextManagerAuthProps,
   ) {
-    const context = await createJazzContext<Acc>({
+    const context = await createJazzContext({
       credentials: authProps?.credentials,
       defaultProfileName: props.defaultProfileName,
       newAccountProps: authProps?.newAccountProps,

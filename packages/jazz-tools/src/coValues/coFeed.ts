@@ -33,6 +33,7 @@ import {
   RegisteredSchemas,
   SchemaInit,
   accessChildById,
+  anySchemaToCoSchema,
   coField,
   ensureCoValueLoaded,
   inspect,
@@ -469,7 +470,7 @@ function entryFromRawEntry<Item>(
       return (
         accountID &&
         accessChildById(accessFrom, accountID, {
-          ref: RegisteredSchemas["Account"],
+          ref: anySchemaToCoSchema(RegisteredSchemas["Account"]),
           optional: false,
         })
       );

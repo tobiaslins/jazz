@@ -7,6 +7,7 @@ import {
   type AnonymousJazzAgent,
   AuthCredentials,
   type CoValueClass,
+  CoValueFromRaw,
   JazzContextManager,
   JazzContextManagerAuthProps,
   JazzContextManagerBaseProps,
@@ -151,7 +152,7 @@ export async function createJazzTestGuest() {
 export type TestJazzContextManagerProps<Acc extends Account> =
   JazzContextManagerBaseProps<Acc> & {
     defaultProfileName?: string;
-    AccountSchema?: AccountClass<Acc>;
+    AccountSchema?: AccountClass<Acc> & CoValueFromRaw<Acc>;
     isAuthenticated?: boolean;
   };
 
@@ -190,7 +191,8 @@ export class TestJazzContextManager<
 
     context.updateContext(
       {
-        AccountSchema: account.constructor as AccountClass<Acc>,
+        AccountSchema: account.constructor as AccountClass<Acc> &
+          CoValueFromRaw<Acc>,
         ...props,
       },
       {
@@ -243,7 +245,7 @@ export class TestJazzContextManager<
       );
     }
 
-    const context = await createJazzContext<Acc>({
+    const context = await createJazzContext({
       credentials: authProps?.credentials,
       defaultProfileName: props.defaultProfileName,
       newAccountProps: authProps?.newAccountProps,

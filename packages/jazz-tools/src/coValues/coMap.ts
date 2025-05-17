@@ -35,6 +35,7 @@ import {
   accessChildById,
   accessChildByKey,
   activeAccountContext,
+  anySchemaToCoSchema,
   ensureCoValueLoaded,
   inspect,
   isRefEncoded,
@@ -199,7 +200,7 @@ export class CoMap extends CoValueBase implements CoValue {
       by:
         rawEdit.by &&
         accessChildById(target, rawEdit.by, {
-          ref: RegisteredSchemas["Account"],
+          ref: anySchemaToCoSchema(RegisteredSchemas["Account"]),
           optional: false,
         }),
       madeAt: rawEdit.at,

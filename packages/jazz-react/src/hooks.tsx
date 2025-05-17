@@ -2,7 +2,7 @@ import { consumeInviteLinkFromWindowLocation } from "jazz-browser";
 import { useEffect } from "react";
 
 import { useJazzContext } from "jazz-react-core";
-import { CoValue, CoValueClass, ID } from "jazz-tools";
+import { CoValueOrZodSchema } from "jazz-tools";
 import { RegisteredAccount } from "./provider.js";
 
 export { useCoState, useAuthSecretStorage } from "jazz-react-core";
@@ -13,13 +13,13 @@ declare module "jazz-react-core" {
   }
 }
 
-export function useAcceptInvite<V extends CoValue>({
+export function useAcceptInvite<S extends CoValueOrZodSchema>({
   invitedObjectSchema,
   onAccept,
   forValueHint,
 }: {
-  invitedObjectSchema: CoValueClass<V>;
-  onAccept: (projectID: ID<V>) => void;
+  invitedObjectSchema: S;
+  onAccept: (valueID: string) => void;
   forValueHint?: string;
 }): void {
   const context = useJazzContext();
