@@ -2150,7 +2150,7 @@ importers:
         specifier: workspace:0.13.31
         version: link:../cojson
       jazz-browser:
-        specifier: workspace:0.13.31
+        specifier: workspace:0.13.32
         version: link:../jazz-browser
       jazz-tools:
         specifier: workspace:0.13.31
@@ -2229,7 +2229,7 @@ importers:
         specifier: ^4.1.0
         version: 4.1.0
       jazz-browser:
-        specifier: workspace:0.13.31
+        specifier: workspace:0.13.32
         version: link:../jazz-browser
       jazz-tools:
         specifier: workspace:0.13.31
@@ -2390,10 +2390,10 @@ importers:
         specifier: workspace:0.13.31
         version: link:../cojson
       jazz-browser:
-        specifier: workspace:0.13.31
+        specifier: workspace:0.13.32
         version: link:../jazz-browser
       jazz-browser-media-images:
-        specifier: workspace:0.13.31
+        specifier: workspace:0.13.32
         version: link:../jazz-browser-media-images
       jazz-react-core:
         specifier: workspace:0.13.31
@@ -2726,7 +2726,7 @@ importers:
         specifier: workspace:0.13.31
         version: link:../cojson
       cojson-storage-sqlite:
-        specifier: workspace:0.13.31
+        specifier: workspace:0.13.32
         version: link:../cojson-storage-sqlite
       cojson-transport-ws:
         specifier: workspace:0.13.31
