@@ -234,7 +234,6 @@ function determineValidTransactionsForGroup(
   const writeOnlyKeys: Record<RawAccountID | AgentID, KeyID> = {};
   const validTransactions: ValidTransactionsResult[] = [];
 
-  const keyRevelations = new Set<string>();
   const writeKeys = new Set<string>();
 
   for (const { sessionID, txIndex, tx } of allTransactionsSorted) {
@@ -315,23 +314,6 @@ function determineValidTransactionsForGroup(
         logPermissionError("Only admins can reveal keys");
         continue;
       }
-
-      /**
-       * We don't want to give the ability to invite members to override
-       * key revelations, otherwise they could hide a key revelation to any user
-       * blocking them from accessing the group.
-       */
-      if (
-        keyRevelations.has(change.key) &&
-        memberState[transactor] !== "admin"
-      ) {
-        logPermissionError(
-          "Key revelation already exists and can't be overridden by invite",
-        );
-        continue;
-      }
-
-      keyRevelations.add(change.key);
 
       // TODO: check validity of agents who the key is revealed to?
       validTransactions.push({ txID: { sessionID, txIndex }, tx });
@@ -452,7 +434,12 @@ function determineValidTransactionsForGroup(
       change.key === transactor &&
       change.value === "admin";
 
-    if (!isFirstSelfAppointment) {
+    const currentAccountId = coValue.node.getCurrentAccountOrAgentID();
+
+    const isSelfRevoke =
+      currentAccountId === change.key && change.value === "revoked";
+
+    if (!isFirstSelfAppointment && !isSelfRevoke) {
       if (memberState[transactor] === "admin") {
         if (
           memberState[affectedMember] === "admin" &&

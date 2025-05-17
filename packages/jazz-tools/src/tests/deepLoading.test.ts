@@ -613,6 +613,254 @@ describe("Deep loading with unauthorized account", async () => {
 
     expect(loadedMap?.id).toBe(map.id);
   });
+
+  test("unaccessible record element with $onError", async () => {
+    class Person extends CoMap {
+      name = co.string;
+    }
+    class Friends extends CoMap.Record(co.ref(Person)) {}
+
+    const map = Friends.create(
+      {
+        jane: Person.create({ name: "Jane" }, onlyBob),
+        alice: Person.create({ name: "Alice" }, group),
+      },
+      group,
+    );
+
+    const friendsOnAlice = await Friends.load(map.id, {
+      resolve: { $each: { $onError: null } },
+      loadAs: alice,
+    });
+
+    assert(friendsOnAlice, "friendsOnAlice is null");
+
+    expect(friendsOnAlice.jane).toBeNull();
+    expect(friendsOnAlice.alice).not.toBeNull();
+  });
+
+  test("unaccessible nested record element with $onError", async () => {
+    class Person extends CoMap {
+      name = co.string;
+    }
+    class Friends extends CoMap.Record(co.ref(Person)) {}
+
+    class User extends CoMap {
+      name = co.string;
+      friends = co.ref(Friends);
+    }
+
+    const map = User.create(
+      {
+        name: "John",
+        friends: Friends.create(
+          {
+            jane: Person.create({ name: "Jane" }, onlyBob),
+            alice: Person.create({ name: "Alice" }, group),
+          },
+          group,
+        ),
+      },
+      group,
+    );
+
+    const user = await User.load(map.id, {
+      resolve: { friends: { $each: { $onError: null } } },
+      loadAs: alice,
+    });
+
+    assert(user, "user is null");
+
+    expect(user.friends.jane).toBeNull();
+    expect(user.friends.alice).not.toBeNull();
+  });
+
+  test("unaccessible element down the chain with $onError on a record", async () => {
+    class Person extends CoMap {
+      name = co.string;
+      dog = co.ref(Dog);
+    }
+    class Dog extends CoMap {
+      name = co.string;
+    }
+    class Friends extends CoMap.Record(co.ref(Person)) {}
+
+    class User extends CoMap {
+      name = co.string;
+      friends = co.ref(Friends);
+    }
+
+    const map = User.create(
+      {
+        name: "John",
+        friends: Friends.create(
+          {
+            jane: Person.create(
+              {
+                name: "Jane",
+                dog: Dog.create({ name: "Rex" }, onlyBob), // Jane dog is inaccessible
+              },
+              group,
+            ),
+            alice: Person.create(
+              { name: "Alice", dog: Dog.create({ name: "Giggino" }, group) },
+              group,
+            ),
+          },
+          group,
+        ),
+      },
+      group,
+    );
+
+    const user = await User.load(map.id, {
+      resolve: { friends: { $each: { dog: true, $onError: null } } },
+      loadAs: alice,
+    });
+
+    assert(user);
+
+    expect(user.friends.jane).toBeNull(); // jane is null because her dog is inaccessible
+    expect(user.friends.alice?.dog).not.toBeNull(); // alice is not null because we have read access to her and her dog
+  });
+
+  test("unaccessible list element with $onError and $each with depth", async () => {
+    class Person extends CoMap {
+      name = co.string;
+      friends = co.optional.ref(Friends);
+    }
+    class Friends extends CoList.Of(co.ref(Person)) {}
+
+    const list = Friends.create(
+      [
+        Person.create(
+          {
+            name: "Jane",
+            friends: Friends.create(
+              [Person.create({ name: "Bob" }, onlyBob)],
+              group,
+            ),
+          },
+          group,
+        ),
+        Person.create(
+          {
+            name: "Alice",
+            friends: Friends.create(
+              [Person.create({ name: "Bob" }, group)],
+              group,
+            ),
+          },
+          group,
+        ),
+      ],
+      group,
+    );
+
+    // The error List -> Jane -> Bob should be propagated to the list element Jane
+    // and we should have [null, Alice]
+    const listOnAlice = await Friends.load(list.id, {
+      resolve: { $each: { friends: { $each: true }, $onError: null } },
+      loadAs: alice,
+    });
+
+    assert(listOnAlice, "listOnAlice is null");
+
+    expect(listOnAlice[0]).toBeNull();
+    expect(listOnAlice[1]).not.toBeNull();
+    expect(listOnAlice[1]?.name).toBe("Alice");
+    expect(listOnAlice[1]?.friends).not.toBeNull();
+    expect(listOnAlice[1]?.friends?.[0]?.name).toBe("Bob");
+    expect(listOnAlice).toHaveLength(2);
+  });
+
+  test("unaccessible record element with $onError", async () => {
+    class Person extends CoMap {
+      name = co.string;
+    }
+    class Friend extends CoMap.Record(co.ref(Person)) {}
+
+    const map = Friend.create(
+      {
+        jane: Person.create({ name: "Jane" }, onlyBob),
+        alice: Person.create({ name: "Alice" }, group),
+      },
+      group,
+    );
+
+    const friendsOnAlice = await Friend.load(map.id, {
+      resolve: { $each: { $onError: null } },
+      loadAs: alice,
+    });
+
+    assert(friendsOnAlice, "friendsOnAlice is null");
+
+    expect(friendsOnAlice.jane).toBeNull();
+    expect(friendsOnAlice.alice).not.toBeNull();
+  });
+
+  test("unaccessible ref catched with $onError", async () => {
+    class Person extends CoMap {
+      name = co.string;
+      dog = co.ref(Dog);
+    }
+    class Dog extends CoMap {
+      name = co.string;
+    }
+    class Friends extends CoMap.Record(co.ref(Person)) {}
+
+    class User extends CoMap {
+      name = co.string;
+      friends = co.ref(Friends);
+    }
+
+    const map = User.create(
+      {
+        name: "John",
+        friends: Friends.create(
+          {
+            jane: Person.create(
+              {
+                name: "Jane",
+                dog: Dog.create({ name: "Rex" }, onlyBob), // Jane dog is inaccessible
+              },
+              group,
+            ),
+            alice: Person.create(
+              { name: "Alice", dog: Dog.create({ name: "Giggino" }, group) },
+              group,
+            ),
+          },
+          group,
+        ),
+      },
+      group,
+    );
+
+    const user = await User.load(map.id, {
+      resolve: { friends: { $each: { dog: { $onError: null } } } },
+      loadAs: alice,
+    });
+
+    assert(user);
+
+    expect(user.friends.jane?.dog).toBeNull(); // jane is null because her dog is inaccessible
+    expect(user.friends.alice?.dog?.name).toBe("Giggino"); // alice is not null because we have read access to her and her dog
+  });
+
+  test("using $onError on the resolve root", async () => {
+    class Person extends CoMap {
+      name = co.string;
+    }
+
+    const map = Person.create({ name: "John" }, onlyBob);
+    const user = await Person.load(map.id, {
+      resolve: { $onError: null },
+      loadAs: alice,
+    });
+
+    expect(user).toBeNull();
+  });
 });
 
 test("doesn't break on Map.Record key deletion when the key is referenced in the depth", async () => {
@@ -692,6 +940,7 @@ test("throw when calling ensureLoaded on a ref that is not defined in the schema
 
   await expect(
     root.ensureLoaded({
+      // @ts-expect-error missing required ref
       resolve: { profile: true },
     }),
   ).rejects.toThrow("Failed to deeply load CoValue " + root.id);

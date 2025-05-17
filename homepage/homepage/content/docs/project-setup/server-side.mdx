@@ -1,4 +1,6 @@
-export const metadata = { title: "Node.JS / server workers" };
+export const metadata = {
+  description: "Use Jazz server-side through Server Workers which act like Jazz accounts."
+};
 
 import { CodeGroup } from "@/components/forMdx";
 
@@ -7,6 +9,8 @@ import { CodeGroup } from "@/components/forMdx";
 The main detail to understand when using Jazz server-side is that Server Workers have Jazz `Accounts`, just like normal users do.
 
 This lets you share CoValues with Server Workers, having precise access control by adding the Worker to `Groups` with specific roles just like you would with other users.
+
+[See the full example here.](https://github.com/garden-co/jazz/tree/main/examples/jazz-paper-scissors)
 
 ## Generating credentials
 

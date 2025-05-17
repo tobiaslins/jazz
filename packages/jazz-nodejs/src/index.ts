@@ -1,5 +1,8 @@
-import { AgentSecret, CryptoProvider, LocalNode } from "cojson";
-import { type AnyWebSocketConstructor } from "cojson-transport-ws";
+import { AgentSecret, CryptoProvider, LocalNode, Peer } from "cojson";
+import {
+  type AnyWebSocketConstructor,
+  WebSocketPeerWithReconnection,
+} from "cojson-transport-ws";
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import {
   Account,
@@ -12,7 +15,6 @@ import {
   createJazzContextFromExistingCredentials,
   randomSessionProvider,
 } from "jazz-tools";
-import { webSocketWithReconnection } from "./webSocketWithReconnection.js";
 
 type WorkerOptions<
   S extends
@@ -41,13 +43,24 @@ export async function startWorker<
   } = options;
 
   let node: LocalNode | undefined = undefined;
-  const wsPeer = webSocketWithReconnection(
-    syncServer,
-    (peer) => {
-      node?.syncManager.addPeer(peer);
+
+  const peersToLoadFrom: Peer[] = [];
+
+  const wsPeer = new WebSocketPeerWithReconnection({
+    peer: syncServer,
+    reconnectionTimeout: 100,
+    addPeer: (peer) => {
+      if (node) {
+        node.syncManager.addPeer(peer);
+      } else {
+        peersToLoadFrom.push(peer);
+      }
     },
-    options.WebSocket,
-  );
+    removePeer: () => {},
+    WebSocketConstructor: options.WebSocket,
+  });
+
+  wsPeer.enable();
 
   if (!accountID) {
     throw new Error("No accountID provided");
@@ -70,7 +83,7 @@ export async function startWorker<
     AccountSchema,
     // TODO: locked sessions similar to browser
     sessionProvider: randomSessionProvider,
-    peersToLoadFrom: [wsPeer.peer],
+    peersToLoadFrom,
     crypto: options.crypto ?? (await WasmCrypto.create()),
   });
 
@@ -86,7 +99,7 @@ export async function startWorker<
   async function done() {
     await context.account.waitForAllCoValuesSync();
 
-    wsPeer.done();
+    wsPeer.disable();
     context.done();
   }
 
@@ -98,6 +111,16 @@ export async function startWorker<
     worker: context.account as InstanceOfSchema<S>,
     experimental: {
       inbox: inboxPublicApi,
+    },
+    waitForConnection() {
+      return wsPeer.waitUntilConnected();
+    },
+    subscribeToConnectionChange(listener: (connected: boolean) => void) {
+      wsPeer.subscribe(listener);
+
+      return () => {
+        wsPeer.unsubscribe(listener);
+      };
     },
     done,
   };

@@ -1,9 +1,6 @@
 import { base58 } from "@scure/base";
 import { CoID } from "../coValue.js";
-import {
-  AvailableCoValueCore,
-  CoValueCore,
-} from "../coValueCore/coValueCore.js";
+import { AvailableCoValueCore } from "../coValueCore/coValueCore.js";
 import { CoValueUniqueness } from "../coValueCore/verifiedState.js";
 import {
   CryptoProvider,
@@ -27,7 +24,6 @@ import { logger } from "../logger.js";
 import { AccountRole, Role } from "../permissions.js";
 import { expectGroup } from "../typeUtils/expectGroup.js";
 import {
-  ControlledAccount,
   ControlledAccountOrAgent,
   RawAccount,
   RawAccountID,
@@ -332,6 +328,8 @@ export class RawGroup<
     if (role === "writeOnly" || role === "writeOnlyInvite") {
       const previousRole = this.get(memberKey);
 
+      this.set(memberKey, role, "trusting");
+
       if (
         previousRole === "reader" ||
         previousRole === "writer" ||
@@ -340,7 +338,6 @@ export class RawGroup<
         this.rotateReadKey();
       }
 
-      this.set(memberKey, role, "trusting");
       this.internalCreateWriteOnlyKeyForMember(memberKey, agent);
     } else {
       const currentReadKey = this.core.getCurrentReadKey();
@@ -609,9 +606,12 @@ export class RawGroup<
         parent.core.getCurrentReadKey();
 
       if (!parentReadKeySecret) {
-        throw new Error(
+        // We can't reveal the new child key to the parent group where we don't have access to the parent read key
+        // TODO: This will be fixed with: https://github.com/garden-co/jazz/issues/1979
+        logger.warn(
           "Can't reveal new child key to parent where we don't have access to the parent read key",
         );
+        continue;
       }
 
       this.set(
@@ -773,7 +773,10 @@ export class RawGroup<
   ) {
     const memberKey = typeof account === "string" ? account : account.id;
 
-    this.rotateReadKey(memberKey);
+    if (this.myRole() === "admin") {
+      this.rotateReadKey(memberKey);
+    }
+
     this.set(memberKey, "revoked", "trusting");
   }
 

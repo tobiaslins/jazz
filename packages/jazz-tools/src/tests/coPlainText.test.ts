@@ -24,6 +24,56 @@ describe("CoPlainText", () => {
     return { me, text };
   };
 
+  describe("Creation", () => {
+    test("should allow `create`", async () => {
+      const me = await Account.create({
+        creationProps: { name: "Hermes Puggington" },
+        crypto: Crypto,
+      });
+      const text = CoPlainText.create("hello world", me);
+      expect(text._owner.id).toBe(me.id);
+    });
+
+    test("should allow `new CoPlainText`", async () => {
+      const me = await Account.create({
+        creationProps: { name: "Hermes Puggington" },
+        crypto: Crypto,
+      });
+      const text = new CoPlainText({ text: "hello world", owner: me });
+      expect(text._owner.id).toBe(me.id);
+    });
+
+    test("should allow `create` from raw", async () => {
+      const me = await Account.create({
+        creationProps: { name: "Hermes Puggington" },
+        crypto: Crypto,
+      });
+      const text = CoPlainText.create("hello world", me);
+      const raw = text._raw;
+      const text2 = CoPlainText.fromRaw(raw);
+      expect(text2._owner.id).toBe(me.id);
+    });
+
+    test("should allow creation of new instance from raw", async () => {
+      const me = await Account.create({
+        creationProps: { name: "Hermes Puggington" },
+        crypto: Crypto,
+      });
+      const raw = me._raw.createPlainText("hello world");
+      const text = new CoPlainText({ fromRaw: raw });
+      expect(text._owner.id).toBe(me.id);
+    });
+
+    test("should allow owner shorthand", async () => {
+      const me = await Account.create({
+        creationProps: { name: "Hermes Puggington" },
+        crypto: Crypto,
+      });
+      const text = CoPlainText.create("hello world", me);
+      expect(text._owner.id).toBe(me.id);
+    });
+  });
+
   describe("Simple CoPlainText operations", async () => {
     const { me, text } = await initNodeAndText();
 
@@ -60,6 +110,26 @@ describe("CoPlainText", () => {
       test("length", () => {
         const text = co.plainText().create("hello world", { owner: me });
         expect(text.length).toBe(11);
+      });
+
+      test("as string", () => {
+        const text = CoPlainText.create("hello world", { owner: me });
+        expect(`${text}`).toBe("hello world");
+      });
+
+      test("as number", () => {
+        const text = CoPlainText.create("hello world", { owner: me });
+        expect(Number(text)).toBe(NaN);
+      });
+
+      test("as number", () => {
+        const text = CoPlainText.create("123", { owner: me });
+        expect(Number(text)).toBe(123);
+      });
+
+      test("toJSON", () => {
+        const text = CoPlainText.create("hello world", { owner: me });
+        expect(text.toJSON()).toBe("hello world");
       });
 
       test("toString", () => {

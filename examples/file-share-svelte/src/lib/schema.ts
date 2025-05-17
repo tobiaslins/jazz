@@ -15,9 +15,8 @@ export class FileShareProfile extends Profile {
 export class ListOfSharedFiles extends CoList.Of(coField.ref(SharedFile)) {}
 
 export class FileShareAccountRoot extends CoMap {
-  type = coField.string;
+  type = coField.literal('file-share-account');
   sharedFiles = coField.ref(ListOfSharedFiles);
-  publicGroup = coField.ref(Group);
 }
 
 export class FileShareAccount extends Account {
@@ -31,7 +30,7 @@ export class FileShareAccount extends Account {
     await this._refs.root?.load();
 
     // Initialize root if it doesn't exist
-    if (!this.root || this.root.type !== 'file-share-account') {
+    if (this.root === undefined || this.root?.type !== 'file-share-account') {
       // Create a group that will own all shared files
       const publicGroup = Group.create({ owner: this });
       publicGroup.addMember('everyone', 'reader');
@@ -40,9 +39,7 @@ export class FileShareAccount extends Account {
         {
           type: 'file-share-account',
           sharedFiles: ListOfSharedFiles.create([], { owner: publicGroup }),
-          publicGroup
         },
-        { owner: this }
       );
     }
   }

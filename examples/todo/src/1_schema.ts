@@ -1,4 +1,11 @@
-import { Account, CoList, CoMap, Profile, coField } from "jazz-tools";
+import {
+  Account,
+  CoList,
+  CoMap,
+  CoPlainText,
+  Profile,
+  coField,
+} from "jazz-tools";
 
 /** Walkthrough: Defining the data model with CoJSON
  *
@@ -13,7 +20,7 @@ import { Account, CoList, CoMap, Profile, coField } from "jazz-tools";
 /** An individual task which collaborators can tick or rename */
 export class Task extends CoMap {
   done = coField.boolean;
-  text = coField.string;
+  text = coField.ref(CoPlainText);
 }
 
 export class ListOfTasks extends CoList.Of(coField.ref(Task)) {}

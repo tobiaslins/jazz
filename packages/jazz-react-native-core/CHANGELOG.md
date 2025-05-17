@@ -1,5 +1,160 @@
 # jazz-browser
 
+## 0.13.32
+
+### Patch Changes
+
+- Updated dependencies [2bf9743]
+  - cojson-storage@0.13.32
+
+## 0.13.31
+
+### Patch Changes
+
+- Updated dependencies [e5b170f]
+- Updated dependencies [d63716a]
+- Updated dependencies [d5edad7]
+  - jazz-tools@0.13.31
+  - cojson@0.13.31
+  - jazz-react-core@0.13.31
+  - cojson-storage@0.13.31
+  - cojson-transport-ws@0.13.31
+
+## 0.13.30
+
+### Patch Changes
+
+- Updated dependencies [07dd2c5]
+  - cojson@0.13.30
+  - cojson-storage@0.13.30
+  - cojson-transport-ws@0.13.30
+  - jazz-react-core@0.13.30
+  - jazz-tools@0.13.30
+
+## 0.13.29
+
+### Patch Changes
+
+- Updated dependencies [e2d6ba3]
+- Updated dependencies [eef1a5d]
+- Updated dependencies [191ae38]
+- Updated dependencies [daee7b9]
+  - cojson-storage@0.13.29
+  - cojson@0.13.29
+  - cojson-transport-ws@0.13.29
+  - jazz-react-core@0.13.29
+  - jazz-tools@0.13.29
+
+## 0.13.28
+
+### Patch Changes
+
+- Updated dependencies [e7ccb2c]
+- Updated dependencies [422dbc4]
+  - cojson@0.13.28
+  - cojson-transport-ws@0.13.28
+  - cojson-storage@0.13.28
+  - jazz-react-core@0.13.28
+  - jazz-tools@0.13.28
+
+## 0.13.27
+
+### Patch Changes
+
+- Updated dependencies [6357052]
+  - cojson@0.13.27
+  - cojson-storage@0.13.27
+  - cojson-transport-ws@0.13.27
+  - jazz-react-core@0.13.27
+  - jazz-tools@0.13.27
+
+## 0.13.26
+
+### Patch Changes
+
+- Updated dependencies [ff846d9]
+  - jazz-tools@0.13.26
+  - jazz-react-core@0.13.26
+
+## 0.13.25
+
+### Patch Changes
+
+- Updated dependencies [a846e07]
+  - cojson@0.13.25
+  - cojson-storage@0.13.25
+  - cojson-transport-ws@0.13.25
+  - jazz-react-core@0.13.25
+  - jazz-tools@0.13.25
+
+## 0.13.23
+
+### Patch Changes
+
+- Updated dependencies [6b781cf]
+- Updated dependencies [02a240c]
+  - cojson@0.13.23
+  - jazz-tools@0.13.23
+  - cojson-storage@0.13.23
+  - cojson-transport-ws@0.13.23
+  - jazz-react-core@0.13.23
+
+## 0.13.22
+
+### Patch Changes
+
+- b0c2a5a: Fix the InvalidSignature errors on RNQuickCrypto
+
+## 0.13.21
+
+### Patch Changes
+
+- Updated dependencies [e14e61f]
+  - cojson@0.13.21
+  - cojson-storage@0.13.21
+  - cojson-transport-ws@0.13.21
+  - jazz-react-core@0.13.21
+  - jazz-tools@0.13.21
+
+## 0.13.20
+
+### Patch Changes
+
+- Updated dependencies [adfc9a6]
+- Updated dependencies [1389207]
+- Updated dependencies [d6e143e]
+- Updated dependencies [439f0fe]
+- Updated dependencies [3e6229d]
+  - cojson-storage@0.13.20
+  - cojson@0.13.20
+  - jazz-tools@0.13.20
+  - cojson-transport-ws@0.13.20
+  - jazz-react-core@0.13.20
+
+## 0.13.19
+
+### Patch Changes
+
+- Updated dependencies [80530a4]
+  - jazz-tools@0.13.19
+  - jazz-react-core@0.13.19
+
+## 0.13.18
+
+### Patch Changes
+
+- Updated dependencies [9089252]
+- Updated dependencies [b470f63]
+- Updated dependencies [8b2df0e]
+- Updated dependencies [761759c]
+- Updated dependencies [66373ba]
+- Updated dependencies [f24cad1]
+  - cojson@0.13.18
+  - cojson-storage@0.13.18
+  - jazz-tools@0.13.18
+  - cojson-transport-ws@0.13.18
+  - jazz-react-core@0.13.18
+
 ## 0.13.17
 
 ### Patch Changes

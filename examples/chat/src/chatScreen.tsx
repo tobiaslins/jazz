@@ -1,5 +1,5 @@
 import { createImage, useAccount, useCoState } from "jazz-react";
-import { Account, Loaded } from "jazz-tools";
+import { Account, Loaded, co } from "jazz-tools";
 import { useState } from "react";
 import { Chat, Message } from "./schema.ts";
 import {
@@ -36,11 +36,15 @@ export function ChatScreen(props: { chatID: string }) {
     }
 
     createImage(file, { owner: chat._owner }).then((image) => {
-      const msg = Message.create(
-        { text: file.name, image: image },
-        chat._owner,
+      chat.push(
+        Message.create(
+          {
+            text: co.plainText().create(file.name, chat._owner),
+            image: image,
+          },
+          chat._owner,
+        ),
       );
-      chat.push(msg);
     });
   };
 
@@ -70,7 +74,12 @@ export function ChatScreen(props: { chatID: string }) {
 
         <TextInput
           onSubmit={(text) => {
-            chat.push(Message.create({ text }, chat._owner));
+            chat.push(
+              Message.create(
+                { text: co.plainText().create(text, chat._owner) },
+                chat._owner,
+              ),
+            );
           }}
         />
       </InputBar>
@@ -78,8 +87,11 @@ export function ChatScreen(props: { chatID: string }) {
   );
 }
 
-function ChatBubble(props: { me: Account; msg: Loaded<typeof Message> }) {
-  if (!props.me.canRead(props.msg)) {
+function ChatBubble(props: {
+  me: Account;
+  msg: Loaded<typeof Message, { text: true }>;
+}) {
+  if (!props.me.canRead(props.msg) || !props.msg.text?.toString()) {
     return (
       <BubbleContainer fromMe={false}>
         <BubbleBody fromMe={false}>
@@ -93,7 +105,7 @@ function ChatBubble(props: { me: Account; msg: Loaded<typeof Message> }) {
   }
 
   const lastEdit = props.msg._edits.text;
-  const fromMe = lastEdit.by?.isMe;
+  const fromMe = lastEdit?.by?.isMe;
   const { text, image } = props.msg;
 
   return (
@@ -102,7 +114,9 @@ function ChatBubble(props: { me: Account; msg: Loaded<typeof Message> }) {
         {image && <BubbleImage image={image} />}
         <BubbleText text={text} />
       </BubbleBody>
-      <BubbleInfo by={lastEdit.by?.profile?.name} madeAt={lastEdit.madeAt} />
+      {lastEdit && (
+        <BubbleInfo by={lastEdit.by?.profile?.name} madeAt={lastEdit.madeAt} />
+      )}
     </BubbleContainer>
   );
 }

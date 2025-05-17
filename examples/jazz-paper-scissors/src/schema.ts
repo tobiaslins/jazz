@@ -30,7 +30,7 @@ export class Game extends CoMap {
 
 export class Player extends CoMap {
   account = coField.ref(Account);
-  playSelection? = coField.string;
+  playSelection? = coField.literal("rock", "paper", "scissors");
 }
 
 export class WaitingRoom extends CoMap {
@@ -47,7 +47,7 @@ export class PlayIntent extends InboxMessage {
   type = coField.literal("play");
   gameId = coField.string;
   player = coField.literal("player1", "player2");
-  playSelection = coField.string;
+  playSelection = coField.literal("rock", "paper", "scissors");
 }
 
 export class NewGameIntent extends InboxMessage {

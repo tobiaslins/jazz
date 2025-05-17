@@ -1,5 +1,93 @@
 # cojson-storage
 
+## 0.13.32
+
+### Patch Changes
+
+- 2bf9743: Implement content streaming for large CoValues on storage
+
+## 0.13.31
+
+### Patch Changes
+
+- Updated dependencies [d63716a]
+- Updated dependencies [d5edad7]
+  - cojson@0.13.31
+
+## 0.13.30
+
+### Patch Changes
+
+- Updated dependencies [07dd2c5]
+  - cojson@0.13.30
+
+## 0.13.29
+
+### Patch Changes
+
+- e2d6ba3: Create specialized Sync and Async storage managers
+- Updated dependencies [eef1a5d]
+- Updated dependencies [191ae38]
+- Updated dependencies [daee7b9]
+  - cojson@0.13.29
+
+## 0.13.28
+
+### Patch Changes
+
+- Updated dependencies [e7ccb2c]
+  - cojson@0.13.28
+
+## 0.13.27
+
+### Patch Changes
+
+- Updated dependencies [6357052]
+  - cojson@0.13.27
+
+## 0.13.25
+
+### Patch Changes
+
+- Updated dependencies [a846e07]
+  - cojson@0.13.25
+
+## 0.13.23
+
+### Patch Changes
+
+- Updated dependencies [6b781cf]
+  - cojson@0.13.23
+
+## 0.13.21
+
+### Patch Changes
+
+- Updated dependencies [e14e61f]
+  - cojson@0.13.21
+
+## 0.13.20
+
+### Patch Changes
+
+- adfc9a6: Make waitForSync work on storage peers by handling optimistic/known states
+- Updated dependencies [adfc9a6]
+- Updated dependencies [1389207]
+- Updated dependencies [d6e143e]
+- Updated dependencies [3e6229d]
+  - cojson@0.13.20
+
+## 0.13.18
+
+### Patch Changes
+
+- 8b2df0e: Optimized the dependency push from storage to send a given dependency only once
+- Updated dependencies [9089252]
+- Updated dependencies [b470f63]
+- Updated dependencies [66373ba]
+- Updated dependencies [f24cad1]
+  - cojson@0.13.18
+
 ## 0.13.17
 
 ### Patch Changes

@@ -71,6 +71,8 @@ async function setup() {
 
   const organizationId = organization.id;
 
+  await admin1.waitForAllCoValuesSync();
+
   return {
     admin1,
     admin2,

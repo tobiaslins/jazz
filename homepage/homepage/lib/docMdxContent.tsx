@@ -1,5 +1,7 @@
 import DocsLayout from "@/components/docs/DocsLayout";
 import { DocNav } from "@/components/docs/DocsNav";
+import { HelpLinks } from "@/components/docs/HelpLinks";
+import { Separator } from "@garden-co/design-system/src/components/atoms/Separator";
 import { Prose } from "@garden-co/design-system/src/components/molecules/Prose";
 import { Toc } from "@stefanprobst/rehype-extract-toc";
 
@@ -22,19 +24,22 @@ export async function getDocMetadata(framework: string, slug?: string[]) {
 
   try {
     const mdxSource = await getMdxSource(framework, slugPath);
-    const title = mdxSource.tableOfContents?.[0].value || "Documentation";
+
+    const title = mdxSource.metadata.title || mdxSource.tableOfContents?.[0].value || "Documentation"
 
     return {
       title,
+      description: mdxSource.metadata.description,
       openGraph: {
         title,
       },
     };
   } catch (error) {
+    const title = "Documentation"
     return {
-      title: "Documentation",
+      title,
       openGraph: {
-        title: "Documentation",
+        title,
       },
     };
   }
@@ -62,6 +67,10 @@ export async function DocPage({
       <DocsLayout nav={<DocNav />} tocItems={tocItems}>
         <DocProse>
           <Content />
+
+          <Separator className="mt-12 mb-4 lg:hidden" />
+
+          <HelpLinks className="lg:hidden" />
         </DocProse>
       </DocsLayout>
     );
@@ -93,7 +102,7 @@ export async function getMdxWithToc(framework: string, slug?: string[]) {
   const tocItems = filterTocItemsForFramework(
     tableOfContents as Toc,
     framework,
-    headingsFrameworkVisibility
+    headingsFrameworkVisibility,
   );
 
   return {
@@ -104,18 +113,23 @@ export async function getMdxWithToc(framework: string, slug?: string[]) {
 function filterTocItemsForFramework(
   tocItems: Toc,
   framework: string,
-  headingsFrameworkVisibility: Record<string, string[]>
+  headingsFrameworkVisibility: Record<string, string[]>,
 ): Toc {
   return tocItems
-    .map(item => {
+    .map((item) => {
       const isVisible =
-        !item.id || !(item.id in headingsFrameworkVisibility) ||
+        !item.id ||
+        !(item.id in headingsFrameworkVisibility) ||
         headingsFrameworkVisibility[item.id]?.includes(framework);
 
       if (!isVisible) return null;
 
       const filteredChildren = item.children
-        ? filterTocItemsForFramework(item.children, framework, headingsFrameworkVisibility)
+        ? filterTocItemsForFramework(
+            item.children,
+            framework,
+            headingsFrameworkVisibility,
+          )
         : [];
 
       return {

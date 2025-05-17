@@ -1,5 +1,119 @@
 # jazz-example-inspector
 
+## 0.0.148
+
+### Patch Changes
+
+- Updated dependencies [d63716a]
+- Updated dependencies [d5edad7]
+  - cojson@0.13.31
+  - jazz-inspector@0.13.31
+  - cojson-transport-ws@0.13.31
+
+## 0.0.147
+
+### Patch Changes
+
+- Updated dependencies [07dd2c5]
+  - cojson@0.13.30
+  - cojson-transport-ws@0.13.30
+  - jazz-inspector@0.13.30
+
+## 0.0.146
+
+### Patch Changes
+
+- Updated dependencies [eef1a5d]
+- Updated dependencies [8e5ff13]
+- Updated dependencies [191ae38]
+- Updated dependencies [daee7b9]
+  - cojson@0.13.29
+  - jazz-inspector@0.13.29
+  - cojson-transport-ws@0.13.29
+
+## 0.0.145
+
+### Patch Changes
+
+- Updated dependencies [e7ccb2c]
+- Updated dependencies [422dbc4]
+  - cojson@0.13.28
+  - cojson-transport-ws@0.13.28
+  - jazz-inspector@0.13.28
+
+## 0.0.144
+
+### Patch Changes
+
+- Updated dependencies [6357052]
+  - cojson@0.13.27
+  - cojson-transport-ws@0.13.27
+  - jazz-inspector@0.13.27
+
+## 0.0.143
+
+### Patch Changes
+
+- jazz-inspector@0.13.26
+
+## 0.0.142
+
+### Patch Changes
+
+- Updated dependencies [a846e07]
+  - cojson@0.13.25
+  - cojson-transport-ws@0.13.25
+  - jazz-inspector@0.13.25
+
+## 0.0.141
+
+### Patch Changes
+
+- Updated dependencies [6b781cf]
+  - cojson@0.13.23
+  - cojson-transport-ws@0.13.23
+  - jazz-inspector@0.13.23
+
+## 0.0.140
+
+### Patch Changes
+
+- Updated dependencies [7de210f]
+- Updated dependencies [e14e61f]
+  - jazz-inspector@0.13.21
+  - cojson@0.13.21
+  - cojson-transport-ws@0.13.21
+
+## 0.0.139
+
+### Patch Changes
+
+- Updated dependencies [adfc9a6]
+- Updated dependencies [1389207]
+- Updated dependencies [d6e143e]
+- Updated dependencies [3e6229d]
+  - cojson@0.13.20
+  - cojson-transport-ws@0.13.20
+  - jazz-inspector@0.13.20
+
+## 0.0.138
+
+### Patch Changes
+
+- jazz-inspector@0.13.19
+
+## 0.0.137
+
+### Patch Changes
+
+- Updated dependencies [9089252]
+- Updated dependencies [b470f63]
+- Updated dependencies [66373ba]
+- Updated dependencies [f24cad1]
+  - cojson@0.13.18
+  - cojson-transport-ws@0.13.18
+  - jazz-inspector@0.13.18
+
 ## 0.0.136
 
 ### Patch Changes
