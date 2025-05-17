@@ -579,7 +579,7 @@ const CoListProxyHandler: ProxyHandler<CoList> = {
           ? undefined
           : itemDescriptor.encoded.decode(rawValue);
       } else if (isRefEncoded(itemDescriptor)) {
-        return rawValue === undefined
+        return rawValue === undefined || rawValue === null
           ? undefined
           : accessChildByKey(target, rawValue as string, key);
       }
@@ -604,11 +604,13 @@ const CoListProxyHandler: ProxyHandler<CoList> = {
       } else if ("encoded" in itemDescriptor) {
         rawValue = itemDescriptor.encoded.encode(value);
       } else if (isRefEncoded(itemDescriptor)) {
-        if (value === null) {
+        if (value === undefined) {
           if (itemDescriptor.optional) {
             rawValue = null;
           } else {
-            throw new Error(`Cannot set required reference ${key} to null`);
+            throw new Error(
+              `Cannot set required reference ${key} to undefined`,
+            );
           }
         } else if (value?.id) {
           rawValue = value.id;

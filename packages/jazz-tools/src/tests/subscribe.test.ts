@@ -701,7 +701,7 @@ describe("subscribeToCoValue", () => {
 
     assert(result);
 
-    expect(result[0]).toBeNull();
+    expect(result[0]).toBeUndefined();
 
     expect(updateFn).toHaveBeenCalledTimes(1);
   });

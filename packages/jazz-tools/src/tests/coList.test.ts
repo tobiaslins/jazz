@@ -90,7 +90,7 @@ describe("Simple CoList operations", async () => {
       expect(recipe[1]?.name).toBe("margarine");
     });
 
-    test("assign null on a required ref", () => {
+    test("assign undefined on a required ref", () => {
       const Ingredient = co.map({
         name: z.string(),
       });
@@ -107,8 +107,8 @@ describe("Simple CoList operations", async () => {
       );
 
       expect(() => {
-        recipe[1] = null as unknown as Loaded<typeof Ingredient>;
-      }).toThrow("Cannot set required reference 1 to null");
+        recipe[1] = undefined as unknown as Loaded<typeof Ingredient>;
+      }).toThrow("Cannot set required reference 1 to undefined");
 
       expect(recipe[1]?.name).toBe("butter");
     });
