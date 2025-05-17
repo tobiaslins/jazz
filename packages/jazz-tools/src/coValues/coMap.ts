@@ -695,7 +695,7 @@ const CoMapProxyHandler: ProxyHandler<CoMap> = {
       } else if ("encoded" in descriptor) {
         return raw === undefined ? undefined : descriptor.encoded.decode(raw);
       } else if (isRefEncoded(descriptor)) {
-        return raw === undefined
+        return raw === undefined || raw === null
           ? undefined
           : accessChildByKey(target, raw as string, key);
       }
@@ -723,11 +723,13 @@ const CoMapProxyHandler: ProxyHandler<CoMap> = {
       } else if ("encoded" in descriptor) {
         target._raw.set(key, descriptor.encoded.encode(value));
       } else if (isRefEncoded(descriptor)) {
-        if (value === null) {
+        if (value === undefined) {
           if (descriptor.optional) {
             target._raw.set(key, null);
           } else {
-            throw new Error(`Cannot set required reference ${key} to null`);
+            throw new Error(
+              `Cannot set required reference ${key} to undefined`,
+            );
           }
         } else if (value?.id) {
           target._raw.set(key, value.id);

@@ -13,6 +13,7 @@ import {
   z,
 } from "../index.js";
 import {
+  AnyCoFeedSchema,
   createJazzContextFromExistingCredentials,
   randomSessionProvider,
 } from "../internal.js";

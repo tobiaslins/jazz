@@ -19,6 +19,7 @@ import {
   FileStream,
   Group,
   ID,
+  Profile,
   RefsToResolve,
   RefsToResolveStrict,
   Resolved,
@@ -221,10 +222,11 @@ export type CoListSchema<T extends z.core.$ZodType> = z.core.$ZodArray<T> & {
 };
 
 export type CoFeedSchema<T extends z.core.$ZodType> = z.core.$ZodCustom<
-  CoFeed<T>,
+  CoFeed<InstanceOfSchema<T>>,
   unknown
 > & {
   collaborative: true;
+  builtin: "CoFeed";
   element: T;
 
   create(
@@ -343,11 +345,11 @@ export function tryZodSchemaToCoSchema<S extends z.core.$ZodType>(
         if (typeof migration !== "function") {
           throw new Error("migration must be a function");
         }
-        (coSchema.prototype as Account).migrate = function (
+        (coSchema.prototype as Account).migrate = async function (
           this,
           creationProps,
         ) {
-          migration(this, creationProps);
+          await migration(this, creationProps);
         };
       }
 
@@ -648,7 +650,11 @@ export type AnyCoListSchema<T extends z.core.$ZodType = z.core.$ZodType> =
   z.core.$ZodArray<T> & { collaborative: true };
 
 export type AnyCoFeedSchema<T extends z.core.$ZodType = z.core.$ZodType> =
-  z.core.$ZodCustom<CoFeed<T>, unknown> & { collaborative: true };
+  z.core.$ZodCustom<any, unknown> & {
+    collaborative: true;
+    builtin: "CoFeed";
+    element: T;
+  };
 
 export type AnyCoUnionSchema = z.core.$ZodDiscriminatedUnion<
   (
@@ -702,7 +708,7 @@ export type InstanceOrPrimitiveOfSchema<
     }
     ? {
         -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchema<Shape[key]>;
-      } & Account
+      } & { profile: Profile } & Account
     : S extends z.core.$ZodRecord<infer K, infer V> & {
           collaborative: true;
         }
@@ -791,6 +797,7 @@ export type InstanceOfSchema<S extends CoValueClass | z.core.$ZodType> =
 export type Loaded<
   T extends
     | AnyCoMapSchema
+    | AnyAccountSchema
     | AnyCoRecordSchema
     | AnyCoListSchema
     | AnyCoFeedSchema

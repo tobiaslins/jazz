@@ -1047,7 +1047,7 @@ describe("CoMap applyDiff", async () => {
     expect((map as any).invalidField).toBeUndefined();
   });
 
-  test("applyDiff with optional reference set to null", () => {
+  test("applyDiff with optional reference set to undefined", () => {
     const map = TestMap.create(
       {
         name: "Jack",
@@ -1061,15 +1061,15 @@ describe("CoMap applyDiff", async () => {
     );
 
     const newValues = {
-      optionalNested: null,
+      optionalNested: undefined,
     };
 
     map.applyDiff(newValues);
 
-    expect(map.optionalNested).toBeNull();
+    expect(map.optionalNested).toBeUndefined();
   });
 
-  test("applyDiff with required reference set to null should throw", () => {
+  test("applyDiff with required reference set to undefined should throw", () => {
     const map = TestMap.create(
       {
         name: "Kate",
@@ -1082,12 +1082,11 @@ describe("CoMap applyDiff", async () => {
     );
 
     const newValues = {
-      nested: null,
+      nested: undefined,
     };
 
-    // @ts-expect-error testing invalid usage
     expect(() => map.applyDiff(newValues)).toThrowError(
-      "Cannot set required reference nested to null",
+      "Cannot set required reference nested to undefined",
     );
   });
 });
