@@ -13,7 +13,7 @@ import {
   CoValueOrZodSchema,
   ID,
   InboxSender,
-  InstanceOrPrimitive,
+  InstanceOrPrimitiveOfSchema,
   JazzContextManager,
   JazzContextType,
   RefsToResolve,
@@ -107,19 +107,21 @@ function useCoValueObservable<
 
 export function useCoState<
   S extends CoValueOrZodSchema,
-  const R extends RefsToResolve<InstanceOrPrimitive<S>> = true,
+  const R extends RefsToResolve<InstanceOrPrimitiveOfSchema<S>> = true,
 >(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Schema: S,
   id: string | undefined,
-  options?: { resolve?: RefsToResolveStrict<InstanceOrPrimitive<S>, R> },
-): Resolved<InstanceOrPrimitive<S>, R> | undefined | null {
+  options?: {
+    resolve?: RefsToResolveStrict<InstanceOrPrimitiveOfSchema<S>, R>;
+  },
+): Resolved<InstanceOrPrimitiveOfSchema<S>, R> | undefined | null {
   const contextManager = useJazzContextManager();
 
-  const observable = useCoValueObservable<InstanceOrPrimitive<S>, R>();
+  const observable = useCoValueObservable<InstanceOrPrimitiveOfSchema<S>, R>();
 
   const value = React.useSyncExternalStore<
-    Resolved<InstanceOrPrimitive<S>, R> | undefined | null
+    Resolved<InstanceOrPrimitiveOfSchema<S>, R> | undefined | null
   >(
     React.useCallback(
       (callback) => {
@@ -141,7 +143,7 @@ export function useCoState<
           return observable.getCurrentObservable().subscribe(
             "_zod" in Schema
               ? zodSchemaToCoSchema(Schema)
-              : (Schema as CoValueClass<InstanceOrPrimitive<S>>),
+              : (Schema as CoValueClass<InstanceOrPrimitiveOfSchema<S>>),
             id,
             {
               loadAs: agent,

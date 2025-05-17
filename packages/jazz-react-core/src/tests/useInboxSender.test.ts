@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 
-import { CoMap, Group, Inbox, coField } from "jazz-tools";
+import { CoMap, Group, Inbox, co, z } from "jazz-tools";
 import { describe, expect, it } from "vitest";
 import { experimental_useInboxSender } from "../index.js";
 import { createJazzTestAccount, linkAccounts } from "../testing.js";
@@ -8,9 +8,9 @@ import { renderHook } from "./testUtils.js";
 
 describe("useInboxSender", () => {
   it("should send the message to the inbox", async () => {
-    class TestMap extends CoMap {
-      value = coField.string;
-    }
+    const TestMap = co.map({
+      value: z.string(),
+    });
 
     const account = await createJazzTestAccount();
     const inboxReceiver = await createJazzTestAccount();
