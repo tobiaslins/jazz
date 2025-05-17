@@ -43,10 +43,10 @@ Write:
 Create a CoValue by extending CoMap and defining your fields:
 
 ```ts
-class Agent extends CoMap {
-  name = coField.string;
-  status = coField.string;
-}
+const Agent = co.map({
+  name: co.string,
+  status: co.string,
+});
 ```
 
 ---

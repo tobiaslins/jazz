@@ -8,9 +8,9 @@ const ImageDefinitionBase = coMapDefiner({
 }).catchall(coFileStreamDefiner());
 
 /** @category Media */
-export const ImageDefinition = ImageDefinitionBase.withHelpers({
+export const ImageDefinition = ImageDefinitionBase.withHelpers((Self) => ({
   highestResAvailable(
-    imageDef: Loaded<typeof ImageDefinitionBase>,
+    imageDef: Loaded<typeof Self>,
     options?: {
       maxWidth?: number;
       targetWidth?: number;
@@ -56,4 +56,4 @@ export const ImageDefinition = ImageDefinitionBase.withHelpers({
       }
     );
   },
-});
+}));

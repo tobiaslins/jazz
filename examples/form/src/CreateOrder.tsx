@@ -1,6 +1,6 @@
 import { useIframeHashRouter } from "hash-slash";
 import { useAccount, useCoState } from "jazz-react";
-import { ID } from "jazz-tools";
+import { Loaded } from "jazz-tools";
 import { useState } from "react";
 import { Errors } from "./Errors.tsx";
 import { LinkToHome } from "./LinkToHome.tsx";
@@ -20,7 +20,7 @@ export function CreateOrder() {
 
   if (!me?.root) return;
 
-  const onSave = (draft: DraftBubbleTeaOrder) => {
+  const onSave = (draft: Loaded<typeof DraftBubbleTeaOrder>) => {
     // validate if the draft is a valid order
     const validation = DraftBubbleTeaOrder.validate(draft);
     setErrors(validation.errors);
@@ -29,7 +29,7 @@ export function CreateOrder() {
     }
 
     // turn the draft into a real order
-    me.root.orders.push(draft as BubbleTeaOrder);
+    me.root.orders.push(draft as Loaded<typeof BubbleTeaOrder>);
 
     // reset the draft
     me.root.draft = DraftBubbleTeaOrder.create({
@@ -58,8 +58,8 @@ function CreateOrderForm({
   id,
   onSave,
 }: {
-  id: ID<DraftBubbleTeaOrder>;
-  onSave: (draft: DraftBubbleTeaOrder) => void;
+  id: string;
+  onSave: (draft: Loaded<typeof DraftBubbleTeaOrder>) => void;
 }) {
   const draft = useCoState(DraftBubbleTeaOrder, id, {
     resolve: { addOns: true, instructions: true },

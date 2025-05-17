@@ -1,4 +1,5 @@
 import { JazzProvider } from "jazz-react";
+import { InstanceOfSchema, Loaded } from "jazz-tools";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
@@ -8,7 +9,7 @@ import { JazzAccount } from "./schema.ts";
 
 declare module "jazz-react" {
   interface Register {
-    Account: JazzAccount;
+    Account: InstanceOfSchema<typeof JazzAccount>;
   }
 }
 

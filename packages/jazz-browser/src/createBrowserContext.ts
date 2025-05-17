@@ -5,12 +5,11 @@ import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import {
   Account,
   AccountClass,
-  AccountSchema,
   AgentID,
+  AnyAccountSchema,
   AuthCredentials,
   AuthSecretStorage,
   CoValue,
-  CoValueClass,
   CoValueFromRaw,
   CryptoProvider,
   ID,
@@ -138,7 +137,9 @@ export async function createJazzBrowserGuestContext(
 }
 
 export type BrowserContextOptions<
-  S extends (AccountClass<Account> & CoValueFromRaw<Account>) | AccountSchema,
+  S extends
+    | (AccountClass<Account> & CoValueFromRaw<Account>)
+    | AnyAccountSchema,
 > = {
   credentials?: AuthCredentials;
   AccountSchema?: S;
@@ -147,7 +148,9 @@ export type BrowserContextOptions<
 } & BaseBrowserContextOptions;
 
 export async function createJazzBrowserContext<
-  S extends (AccountClass<Account> & CoValueFromRaw<Account>) | AccountSchema,
+  S extends
+    | (AccountClass<Account> & CoValueFromRaw<Account>)
+    | AnyAccountSchema,
 >(options: BrowserContextOptions<S>) {
   const { toggleNetwork, peersToLoadFrom, setNode, crypto } =
     await setupPeers(options);

@@ -101,18 +101,18 @@ export type CoMapSchema<
       schema: T,
     ): CoMapSchema<Shape, Record<string, T["_zod"]["output"]>>;
 
-    withHelpers<T extends object>(
-      helpers: T,
-    ): CoMapSchemaWithHelpers<Shape, OutExtra, T>;
+    withHelpers<S extends z.core.$ZodType, T extends object>(
+      this: S,
+      helpers: (Self: S) => T,
+    ): WithHelpers<S, T>;
   };
 
 // defining an extra type for this, otherwise CoMapSchema<...> & {...} often
 // gets expanded into a n inferred type that's too long for typescript to print
-export type CoMapSchemaWithHelpers<
-  Shape extends z.core.$ZodLooseShape,
-  OutExtra extends Record<string, unknown>,
+export type WithHelpers<
+  Base extends z.core.$ZodType,
   Helpers extends object,
-> = CoMapSchema<Shape, OutExtra> & Helpers;
+> = Base & Helpers;
 
 export type AccountSchema<
   Shape extends {
@@ -191,14 +191,11 @@ export type CoRecordSchema<
     as?: Account | Group | AnonymousJazzAgent,
   ): ID<CoRecordInstance<K, V>>;
 
-  withHelpers<T extends object>(helpers: T): CoRecordSchemaWithHelpers<K, V, T>;
+  withHelpers<S extends z.core.$ZodType, T extends object>(
+    this: S,
+    helpers: (Self: S) => T,
+  ): WithHelpers<S, T>;
 };
-
-export type CoRecordSchemaWithHelpers<
-  K extends z.core.$ZodString<string>,
-  V extends z.core.$ZodType,
-  Helpers extends object,
-> = CoRecordSchema<K, V> & Helpers;
 
 export type CoListSchema<T extends z.core.$ZodType> = z.core.$ZodArray<T> & {
   collaborative: true;
@@ -224,6 +221,11 @@ export type CoListSchema<T extends z.core.$ZodType> = z.core.$ZodArray<T> & {
       unsubscribe: () => void,
     ) => void,
   ): () => void;
+
+  withHelpers<S extends z.core.$ZodType, T extends object>(
+    this: S,
+    helpers: (Self: S) => T,
+  ): WithHelpers<S, T>;
 };
 
 export type CoFeedSchema<T extends z.core.$ZodType> = z.core.$ZodCustom<

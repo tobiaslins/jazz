@@ -76,9 +76,9 @@ export const coMapDefiner = <Shape extends z.core.$ZodLooseShape>(
 
   coMapSchema.withHelpers = function (
     this: CoMapSchema<Shape>,
-    helpers: object,
+    helpers: (Self: CoMapSchema<Shape>) => object,
   ) {
-    return { ...this, ...helpers };
+    return { ...this, ...helpers(this) };
   } as CoMapSchema<Shape>["withHelpers"];
 
   return coMapSchema as unknown as CoMapSchema<Shape>;
@@ -197,6 +197,7 @@ const coListDefiner = <T extends z.core.$ZodType>(
     create: CoListSchema<T>["create"];
     load: CoListSchema<T>["load"];
     subscribe: CoListSchema<T>["subscribe"];
+    withHelpers: CoListSchema<T>["withHelpers"];
   };
 
   coListSchema.collaborative = true;
@@ -212,6 +213,13 @@ const coListDefiner = <T extends z.core.$ZodType>(
   coListSchema.subscribe = function (this: CoListSchema<T>, ...args: any[]) {
     return (zodSchemaToCoSchema(this) as any).subscribe(...args);
   } as CoListSchema<T>["subscribe"];
+
+  coListSchema.withHelpers = function (
+    this: CoListSchema<T>,
+    helpers: (Self: CoListSchema<T>) => object,
+  ) {
+    return { ...this, ...helpers(this) };
+  } as CoListSchema<T>["withHelpers"];
 
   return coListSchema;
 };

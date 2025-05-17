@@ -1,4 +1,4 @@
-import { Account, CoList, CoMap, CoPlainText, co, coField } from "jazz-tools";
+import { Loaded, co, z } from "jazz-tools";
 
 export const BubbleTeaAddOnTypes = [
   "Pearl",
@@ -15,77 +15,74 @@ export const BubbleTeaBaseTeaTypes = [
   "Thai",
 ] as const;
 
-export class ListOfBubbleTeaAddOns extends CoList.Of(
-  coField.literal(...BubbleTeaAddOnTypes),
-) {
-  get hasChanges() {
-    return Object.entries(this._raw.insertions).length > 0;
-  }
-}
+export const ListOfBubbleTeaAddOns = co
+  .list(z.literal([...BubbleTeaAddOnTypes]))
+  .withHelpers((Self) => ({
+    hasChanges(list: Loaded<typeof Self> | undefined) {
+      return list && Object.entries(list._raw.insertions).length > 0;
+    },
+  }));
 
-export class BubbleTeaOrder extends CoMap {
-  baseTea = coField.literal(...BubbleTeaBaseTeaTypes);
-  addOns = coField.ref(ListOfBubbleTeaAddOns);
-  deliveryDate = coField.Date;
-  withMilk = coField.boolean;
-  instructions = coField.optional.ref(CoPlainText);
-}
+export const BubbleTeaOrder = co.map({
+  baseTea: z.literal([...BubbleTeaBaseTeaTypes]),
+  addOns: ListOfBubbleTeaAddOns,
+  deliveryDate: z.date(),
+  withMilk: z.boolean(),
+  instructions: z.optional(co.plainText()),
+});
 
-export class DraftBubbleTeaOrder extends CoMap {
-  baseTea = coField.optional.literal(...BubbleTeaBaseTeaTypes);
-  addOns = coField.optional.ref(ListOfBubbleTeaAddOns);
-  deliveryDate = coField.optional.Date;
-  withMilk = coField.optional.boolean;
-  instructions = coField.optional.ref(CoPlainText);
+export const DraftBubbleTeaOrder = co
+  .map({
+    baseTea: z.optional(z.literal([...BubbleTeaBaseTeaTypes])),
+    addOns: z.optional(ListOfBubbleTeaAddOns),
+    deliveryDate: z.optional(z.date()),
+    withMilk: z.optional(z.boolean()),
+    instructions: z.optional(co.plainText()),
+  })
+  .withHelpers((Self) => ({
+    hasChanges(order: Loaded<typeof Self> | undefined) {
+      return (
+        !!order &&
+        (Object.keys(order._edits).length > 1 ||
+          ListOfBubbleTeaAddOns.hasChanges(order.addOns))
+      );
+    },
 
-  static hasChanges(order: DraftBubbleTeaOrder | undefined) {
-    return (
-      !!order &&
-      (Object.keys(order._edits).length > 1 || order.addOns?.hasChanges)
-    );
-  }
+    validate(order: Loaded<typeof Self>) {
+      const errors: string[] = [];
 
-  static validate(order: DraftBubbleTeaOrder) {
-    const errors: string[] = [];
+      if (!order.baseTea) {
+        errors.push("Please select your preferred base tea.");
+      }
+      if (!order.deliveryDate) {
+        errors.push("Plese select a delivery date.");
+      }
 
-    if (!order.baseTea) {
-      errors.push("Please select your preferred base tea.");
-    }
-    if (!order.deliveryDate) {
-      errors.push("Plese select a delivery date.");
-    }
-
-    return { errors };
-  }
-}
-
-export class ListOfBubbleTeaOrders extends CoList.Of(
-  coField.ref(BubbleTeaOrder),
-) {}
+      return { errors };
+    },
+  }));
 
 /** The root is an app-specific per-user private `CoMap`
  *  where you can store top-level objects for that user */
-export class AccountRoot extends CoMap {
-  draft = coField.ref(DraftBubbleTeaOrder);
-  orders = coField.ref(ListOfBubbleTeaOrders);
-}
+export const AccountRoot = co.map({
+  draft: DraftBubbleTeaOrder,
+  orders: co.list(BubbleTeaOrder),
+});
 
-export class JazzAccount extends Account {
-  root = coField.ref(AccountRoot);
+export const JazzAccount = co.account({
+  root: AccountRoot,
+  profile: co.map({ name: z.string() }),
+});
+// .withMigration((account) => {
+//   if (!account.root) {
+//     const orders = co.list(BubbleTeaOrder).create([], account);
+//     const draft = DraftBubbleTeaOrder.create(
+//       {
+//         addOns: ListOfBubbleTeaAddOns.create([], account),
+//       },
+//       account,
+//     );
 
-  migrate() {
-    const account = this;
-
-    if (!this._refs.root) {
-      const orders = ListOfBubbleTeaOrders.create([], account);
-      const draft = DraftBubbleTeaOrder.create(
-        {
-          addOns: ListOfBubbleTeaAddOns.create([], account),
-        },
-        account,
-      );
-
-      this.root = AccountRoot.create({ draft, orders }, account);
-    }
-  }
-}
+//     account.root = AccountRoot.create({ draft, orders }, account);
+//   }
+// });
