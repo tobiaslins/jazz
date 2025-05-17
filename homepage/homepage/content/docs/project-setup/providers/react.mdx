@@ -22,12 +22,21 @@ The `<JazzProvider />` accepts several configuration options:
 <CodeGroup>
 ```tsx twoslash
 // @filename: schema.ts
-import { Account, coField } from "jazz-tools";
+import { co, z } from "jazz-tools";
 
-export class MyAppAccount extends Account {
-  name = coField.string;
-}
+export const TodoItem = co.map({
+  title: z.string(),
+  completed: z.boolean(),
+});
 
+export const AccountRoot = co.map({
+  todos: co.list(TodoItem),
+});
+
+export const MyAppAccount = co.account({
+  root: AccountRoot,
+  profile: co.map({ name: z.string() }),
+});
 // @filename: app.tsx
 import * as React from "react";
 // ---cut---
@@ -47,13 +56,6 @@ export function MyApp({ children }: { children: React.ReactNode }) {
       {children}
     </JazzProvider>
   );
-}
-
-// Register the Account schema so `useAccount` returns our custom `MyAppAccount`
-declare module "jazz-react" {
-  interface Register {
-    Account: MyAppAccount;
-  }
 }
 ```
 </CodeGroup>
@@ -88,18 +90,21 @@ The `AccountSchema` property defines your application's account structure:
 ```tsx twoslash
 
 // @filename: schema.ts
-import { Account, CoMap, coField } from "jazz-tools";
-// schema.ts
-class Preferences extends CoMap {
-  theme = coField.string;
-  notifications = coField.boolean;
-}
+import { co, z } from "jazz-tools";
 
-// Define your custom account schema
-export class MyAppAccount extends Account {
-  name = coField.string;
-  preferences = coField.ref(Preferences);
-}
+export const TodoItem = co.map({
+  title: z.string(),
+  completed: z.boolean(),
+});
+
+export const AccountRoot = co.map({
+  todos: co.list(TodoItem),
+});
+
+export const MyAppAccount = co.account({
+  root: AccountRoot,
+  profile: co.map({ name: z.string() }),
+});
 
 // @filename: app.tsx
 import * as React from "react";
@@ -120,19 +125,11 @@ export function MyApp ({ children }: { children: React.ReactNode }) {
   return (
     <JazzProvider
       sync={syncConfig}
-
       AccountSchema={MyAppAccount}
     >
       {children}
     </JazzProvider>
   );
-}
-
-// Register type for useAccount
-declare module "jazz-react" {
-  interface Register {
-    Account: MyAppAccount;
-  }
 }
 ```
 </CodeGroup>

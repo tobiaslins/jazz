@@ -94,4 +94,9 @@ export {
   type Loaded,
   type AccountSchema,
   type AnyAccountSchema,
+  type CoListSchema,
+  type CoMapSchema,
+  type CoFeedSchema,
+  type PlainTextSchema,
+  type FileStreamSchema,
 } from "./internal.js";

@@ -192,12 +192,6 @@ export const JazzAccount = co.account({
   profile: co.map({ name: z.string() }),
 });
 
-declare module "jazz-react" {
-  interface Register {
-    Account: Loaded<typeof JazzAccount>;
-  }
-}
-
 export function OrderForm({
   order,
   onSave,
@@ -309,12 +303,6 @@ export const JazzAccount = co.account({
   root: AccountRoot,
   profile: co.map({ name: z.string() }),
 });
-
-declare module "jazz-react" {
-  interface Register {
-    Account: Loaded<typeof JazzAccount>;
-  }
-}
 
 export function OrderForm({
   order,
@@ -453,14 +441,7 @@ export function MyJazzProvider({ children }: { children: React.ReactNode }) {
         </JazzProvider>
     );
 }
-
-// Register the Account schema so `useAccount` returns our custom `JazzAccount`
-declare module "jazz-react" { // [!code ++:5]
-    interface Register {
-        Account: Loaded<typeof JazzAccount>;
-    }
-}
-  ```
+```
 </CodeGroup>
 
 Instead of creating a new draft every time we use the create form, let's use the draft from the account root.
@@ -503,16 +484,10 @@ export const JazzAccount = co.account({
   }
 });
 
-declare module "jazz-react" {
-  interface Register {
-    Account: Loaded<typeof JazzAccount>;
-  }
-}
-
 // @filename: CreateOrder.tsx
 import * as React from "react";
 import { useCoState, useAccount } from "jazz-react";
-import { BubbleTeaOrder, DraftBubbleTeaOrder } from "schema";
+import { BubbleTeaOrder, DraftBubbleTeaOrder, JazzAccount } from "schema";
 import { Loaded } from "jazz-tools";
 
 export function OrderForm({
@@ -542,7 +517,7 @@ export function OrderForm({
 // ---cut---
 // CreateOrder.tsx
 export function CreateOrder() {
-  const { me } = useAccount({ // [!code ++:5]
+  const { me } = useAccount(JazzAccount, { // [!code ++:5]
     resolve: { root: { draft: true } },
   });
 
@@ -669,15 +644,10 @@ export const JazzAccount = co.account({
   }
 });
 
-declare module "jazz-react" {
-  interface Register {
-    Account: Loaded<typeof JazzAccount>;
-  }
-}
 // ---cut---
 // DraftIndicator.tsx
 export function DraftIndicator() {
-  const { me } = useAccount({
+  const { me } = useAccount(JazzAccount, {
     resolve: { root: { draft: true } },
   });
 
