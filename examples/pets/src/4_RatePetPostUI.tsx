@@ -1,10 +1,10 @@
 import { useParams } from "react-router";
 
-import { PetPost, PetReactions, ReactionTypes } from "./1_schema";
+import { PetAccount, PetPost, PetReactions, ReactionTypes } from "./1_schema";
 
 import { ProgressiveImg, useAccount } from "jazz-react";
 import { useCoState } from "jazz-react";
-import { ID } from "jazz-tools";
+import { Loaded } from "jazz-tools";
 import uniqolor from "uniqolor";
 import { Button, Skeleton } from "./basicComponents";
 import { ShareButton } from "./components/ShareButton";
@@ -24,9 +24,9 @@ const reactionEmojiMap: {
 };
 
 export function RatePetPostUI() {
-  const petPostID = useParams<{ petPostId: ID<PetPost> }>().petPostId;
+  const petPostID = useParams<{ petPostId: string }>().petPostId;
 
-  const { me } = useAccount();
+  const { me } = useAccount(PetAccount);
   const petPost = useCoState(PetPost, petPostID);
 
   return (
@@ -68,7 +68,9 @@ export function RatePetPostUI() {
   );
 }
 
-function ReactionOverview({ petReactions }: { petReactions: PetReactions }) {
+function ReactionOverview({
+  petReactions,
+}: { petReactions: Loaded<typeof PetReactions> }) {
   return (
     <div>
       <h2>Reactions</h2>

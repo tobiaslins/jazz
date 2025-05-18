@@ -15,7 +15,7 @@ import {
 } from "./basicComponents";
 
 import { useCoState } from "jazz-react";
-import { CoPlainText, ID } from "jazz-tools";
+import { CoPlainText, ID, Loaded } from "jazz-tools";
 import { useParams } from "react-router";
 import uniqolor from "uniqolor";
 import { InviteButton } from "./components/InviteButton";
@@ -29,7 +29,7 @@ import { InviteButton } from "./components/InviteButton";
  */
 
 export function ProjectTodoTable() {
-  const projectId = useParams<{ projectId: ID<TodoProject> }>().projectId;
+  const projectId = useParams<{ projectId: string }>().projectId;
 
   // `useAutoSub()` reactively subscribes to updates to a CoValue's
   // content - whether we create edits locally, load persisted data, or receive
@@ -97,7 +97,7 @@ export function ProjectTodoTable() {
   );
 }
 
-export function TaskRow({ task }: { task: Task | undefined }) {
+export function TaskRow({ task }: { task: Loaded<typeof Task> | undefined }) {
   return (
     <TableRow>
       <TableCell>
@@ -124,12 +124,12 @@ export function TaskRow({ task }: { task: Task | undefined }) {
           {
             // Here we see for the first time how we can access edit history
             // for a CoValue, and use it to display who created the task.
-            task?._edits.text?.by?.profile?.name ? (
+            task?._edits.text?.by()?.profile?.name ? (
               <span
                 className="rounded-full py-0.5 px-2 text-xs"
-                style={uniqueColoring(task._edits.text.by.id)}
+                style={uniqueColoring(task._edits.text.by()?.id ?? "")}
               >
-                {task._edits.text.by.profile.name}
+                {task._edits.text.by()?.profile?.name}
               </span>
             ) : (
               <Skeleton className="mt-1 w-[50px] h-[1em] rounded-full" />

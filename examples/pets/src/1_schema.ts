@@ -1,13 +1,4 @@
-import {
-  Account,
-  CoFeed,
-  CoList,
-  CoMap,
-  ImageDefinition,
-  Profile,
-  coField,
-  zodSchemaToCoSchema,
-} from "jazz-tools";
+import { co, z } from "jazz-tools";
 
 /** Walkthrough: Defining the data model with CoJSON
  *
@@ -27,34 +18,32 @@ export const ReactionTypes = [
 
 export type ReactionType = (typeof ReactionTypes)[number];
 
-export class PetReactions extends CoFeed.Of(coField.json<ReactionType>()) {}
+export const PetReactions = co.feed(z.literal([...ReactionTypes]));
 
-export class PetPost extends CoMap {
-  name = coField.string;
-  image = coField.ref(zodSchemaToCoSchema(ImageDefinition));
-  reactions = coField.ref(PetReactions);
-}
+export const PetPost = co.map({
+  name: z.string(),
+  image: co.image(),
+  reactions: PetReactions,
+});
 
-export class ListOfPosts extends CoList.Of(coField.ref(PetPost)) {}
+export const PetAccountRoot = co.map({
+  posts: co.list(PetPost),
+});
 
-export class PetAccountRoot extends CoMap {
-  posts = coField.ref(ListOfPosts);
-}
-
-export class PetAccount extends Account {
-  profile = coField.ref(Profile);
-  root = coField.ref(PetAccountRoot);
-
-  migrate() {
-    if (!this._refs.root) {
-      this.root = PetAccountRoot.create(
+export const PetAccount = co
+  .account({
+    profile: co.profile(),
+    root: PetAccountRoot,
+  })
+  .withMigration(async (account) => {
+    if (!account.root) {
+      account.root = PetAccountRoot.create(
         {
-          posts: ListOfPosts.create([], { owner: this }),
+          posts: co.list(PetPost).create([], { owner: account }),
         },
-        { owner: this },
+        { owner: account },
       );
     }
-  }
-}
+  });
 
 /** Walkthrough: Continue with ./2_App.tsx */

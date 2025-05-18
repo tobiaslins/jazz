@@ -1,11 +1,4 @@
-import {
-  Account,
-  CoList,
-  CoMap,
-  FileStream,
-  Profile,
-  coField,
-} from "jazz-tools";
+import { co, z } from "jazz-tools";
 
 /** Walkthrough: Defining the data model with CoJSON
  *
@@ -17,23 +10,22 @@ import {
  *  - other CoValues
  **/
 
-export class MusicTrack extends CoMap {
+export const MusicTrackWaveform = co.map({
+  data: z.array(z.number()),
+});
+
+export const MusicTrack = co.map({
   /**
-   *  Attributes are defined as class properties
-   *  and you can get the types from the `co` module
-   *  here we are defining the title and duration for our music track
-   *
-   *  Tip: try to follow the coField.string defintion to discover the other available primitives!
+   *  Attributes are defined using zod schemas
    */
-  title = coField.string;
-  duration = coField.number;
+  title: z.string(),
+  duration: z.number(),
 
   /**
-   * With `coField.ref` you can define relations between your coValues.
-   *
-   * Attributes are required by default unless you mark them as optional.
+   * You can define relations between coValues using the other CoValue schema
+   * You can mark them optional using z.optional()
    */
-  sourceTrack = coField.optional.ref(MusicTrack);
+  waveform: MusicTrackWaveform,
 
   /**
    * In Jazz you can upload files using FileStream.
@@ -41,76 +33,69 @@ export class MusicTrack extends CoMap {
    * As for any other coValue the music files we put inside FileStream
    * is available offline and end-to-end encrypted 😉
    */
-  file = coField.ref(FileStream);
-  waveform = coField.ref(MusicTrackWaveform);
+  file: co.fileStream(),
 
-  isExampleTrack = coField.optional.boolean;
-}
+  isExampleTrack: z.optional(z.boolean()),
 
-export class MusicTrackWaveform extends CoMap {
-  data = coField.json<number[]>();
-}
+  /**
+   * You can use getters for recusrive relations
+   */
+  get sourceTrack(): z.ZodOptional<typeof MusicTrack> {
+    return z.optional(MusicTrack);
+  },
+});
 
-/**
- * CoList is the collaborative version of Array
- *
- * They are strongly typed and accept only the type you define here
- * as "CoList.Of" argument
- */
-export class ListOfTracks extends CoList.Of(coField.ref(MusicTrack)) {}
-
-export class Playlist extends CoMap {
-  title = coField.string;
-  tracks = coField.ref(ListOfTracks);
-}
-
-export class ListOfPlaylists extends CoList.Of(coField.ref(Playlist)) {}
+export const Playlist = co.map({
+  title: z.string(),
+  tracks: co.list(MusicTrack), // CoList is the collaborative version of Array
+});
 
 /** The account root is an app-specific per-user private `CoMap`
  *  where you can store top-level objects for that user */
-export class MusicaAccountRoot extends CoMap {
+export const MusicaAccountRoot = co.map({
   // The root playlist works as container for the tracks that
   // the user has uploaded
-  rootPlaylist = coField.ref(Playlist);
+  rootPlaylist: Playlist,
   // Here we store the list of playlists that the user has created
   // or that has been invited to
-  playlists = coField.ref(ListOfPlaylists);
+  playlists: co.list(Playlist),
   // We store the active track and playlist as coValue here
   // so when the user reloads the page can see the last played
   // track and playlist
   // You can also add the position in time if you want make it possible
   // to resume the song
-  activeTrack = coField.optional.ref(MusicTrack);
-  activePlaylist = coField.ref(Playlist);
+  activeTrack: z.optional(MusicTrack),
+  activePlaylist: Playlist,
 
-  exampleDataLoaded = coField.optional.boolean;
-}
+  exampleDataLoaded: z.optional(z.boolean()),
+});
 
-export class MusicaAccount extends Account {
-  profile = coField.ref(Profile);
-  root = coField.ref(MusicaAccountRoot);
-
-  /**
-   *  The account migration is run on account creation and on every log-in.
-   *  You can use it to set up the account root and any other initial CoValues you need.
-   */
-  migrate() {
-    if (this.root === undefined) {
-      const tracks = ListOfTracks.create([]);
+export const MusicaAccount = co
+  .account({
+    /** the default user profile with a name */
+    profile: co.profile(),
+    root: MusicaAccountRoot,
+  })
+  .withMigration((account) => {
+    /**
+     *  The account migration is run on account creation and on every log-in.
+     *  You can use it to set up the account root and any other initial CoValues you need.
+     */
+    if (account.root === undefined) {
+      const tracks = co.list(MusicTrack).create([]);
       const rootPlaylist = Playlist.create({
         tracks,
         title: "",
       });
 
-      this.root = MusicaAccountRoot.create({
+      account.root = MusicaAccountRoot.create({
         rootPlaylist,
-        playlists: ListOfPlaylists.create([]),
-        activeTrack: null,
+        playlists: co.list(Playlist).create([]),
+        activeTrack: undefined,
         activePlaylist: rootPlaylist,
         exampleDataLoaded: false,
       });
     }
-  }
-}
+  });
 
 /** Walkthrough: Continue with ./2_main.tsx */

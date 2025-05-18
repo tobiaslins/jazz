@@ -9,11 +9,12 @@ import {
   RefsToResolve,
   RefsToResolveStrict,
   Resolved,
+  Simplify,
 } from "../../internal.js";
 import { AnyAccountSchema } from "./schemaTypes/AccountSchema.js";
 import { AnyCoFeedSchema } from "./schemaTypes/CoFeedSchema.js";
 import { AnyCoListSchema } from "./schemaTypes/CoListSchema.js";
-import { AnyCoMapSchema } from "./schemaTypes/CoMapSchema.js";
+import { AnyCoMapSchema, CoMapInitZod } from "./schemaTypes/CoMapSchema.js";
 import { AnyCoRecordSchema } from "./schemaTypes/CoRecordSchema.js";
 import { FileStreamSchema } from "./schemaTypes/FileStreamSchema.js";
 import { PlainTextSchema } from "./schemaTypes/PlainTextSchema.js";
@@ -91,3 +92,6 @@ export type ResolveQueryStrict<
   T extends CoValueClass | AnyCoSchema,
   R extends ResolveQuery<T>,
 > = RefsToResolveStrict<NonNullable<InstanceOfSchemaCoValuesNullable<T>>, R>;
+
+export type InitFor<T extends CoValueClass | AnyCoSchema> =
+  T extends AnyCoMapSchema<infer Shape> ? Simplify<CoMapInitZod<Shape>> : never;

@@ -3,13 +3,13 @@ import { ID } from "jazz-tools";
 import { useEffect, useMemo, useState } from "react";
 import { Issue } from "./schema.ts";
 
-function DescriptionVersionHistory({ id }: { id: ID<Issue> }) {
+function DescriptionVersionHistory({ id }: { id: string }) {
   const issue = useCoState(Issue, id);
   const [version, setVersion] = useState<any | undefined>();
   const [isVersionLatest, setIsVersionLatest] = useState(true);
   const edits = useMemo(() => {
     if (!issue) return [];
-    return issue._edits.description.all.reverse();
+    return issue._edits.description?.all.reverse() ?? [];
   }, [issue?._edits]);
 
   useEffect(() => {
@@ -53,7 +53,7 @@ function DescriptionVersionHistory({ id }: { id: ID<Issue> }) {
             >
               {i == 0 ? "(Latest)" : ""}
               <div className="font-medium">{edit.madeAt.toLocaleString()}</div>
-              <div className="text-stone-500">{edit.by?.profile?.name}</div>
+              <div className="text-stone-500">{edit.by()?.profile?.name}</div>
             </button>
           ))}
         </div>
@@ -62,16 +62,16 @@ function DescriptionVersionHistory({ id }: { id: ID<Issue> }) {
   );
 }
 
-export function IssueVersionHistory({ id }: { id: ID<Issue> }) {
+export function IssueVersionHistory({ id }: { id: string }) {
   const issue = useCoState(Issue, id);
 
   const edits = useMemo(() => {
     if (!issue) return [];
 
     return [
-      ...issue._edits.title.all,
-      ...issue._edits.estimate.all,
-      ...issue._edits.status.all,
+      ...(issue._edits.title?.all ?? []),
+      ...(issue._edits.estimate?.all ?? []),
+      ...(issue._edits.status?.all ?? []),
     ].sort((a, b) => (a.madeAt < b.madeAt ? -1 : a.madeAt > b.madeAt ? 1 : 0));
   }, [issue?._edits]);
 
@@ -86,7 +86,7 @@ export function IssueVersionHistory({ id }: { id: ID<Issue> }) {
             </p>
             <p className="text-stone-600" key={i}>
               <span className="font-medium text-stone-800">
-                {edit.by?.profile?.name}
+                {edit.by()?.profile?.name}
               </span>{" "}
               changed{" "}
               <span className="font-medium text-stone-800">{edit.key}</span> to{" "}

@@ -4,7 +4,9 @@ import {
   CoMap,
   CoPlainText,
   Profile,
+  co,
   coField,
+  z,
 } from "jazz-tools";
 
 /** Walkthrough: Defining the data model with CoJSON
@@ -18,41 +20,37 @@ import {
  **/
 
 /** An individual task which collaborators can tick or rename */
-export class Task extends CoMap {
-  done = coField.boolean;
-  text = coField.ref(CoPlainText);
-}
-
-export class ListOfTasks extends CoList.Of(coField.ref(Task)) {}
+export const Task = co.map({
+  done: z.boolean(),
+  text: co.plainText(),
+});
 
 /** Our top level object: a project with a title, referencing a list of tasks */
-export class TodoProject extends CoMap {
-  title = coField.string;
-  tasks = coField.ref(ListOfTasks);
-}
-
-export class ListOfProjects extends CoList.Of(coField.ref(TodoProject)) {}
+export const TodoProject = co.map({
+  title: z.string(),
+  tasks: co.list(Task),
+});
 
 /** The account root is an app-specific per-user private `CoMap`
  *  where you can store top-level objects for that user */
-export class TodoAccountRoot extends CoMap {
-  projects = coField.ref(ListOfProjects);
-}
+export const TodoAccountRoot = co.map({
+  projects: co.list(TodoProject),
+});
 
-export class TodoAccount extends Account {
-  profile = coField.ref(Profile);
-  root = coField.ref(TodoAccountRoot);
-
-  /** The account migration is run on account creation and on every log-in.
-   *  You can use it to set up the account root and any other initial CoValues you need.
-   */
-  migrate() {
-    if (!this._refs.root) {
-      this.root = TodoAccountRoot.create({
-        projects: ListOfProjects.create([]),
+export const TodoAccount = co
+  .account({
+    profile: co.profile(),
+    root: TodoAccountRoot,
+  })
+  .withMigration(async (account) => {
+    /** The account migration is run on account creation and on every log-in.
+     *  You can use it to set up the account root and any other initial CoValues you need.
+     */
+    if (!account.root) {
+      account.root = TodoAccountRoot.create({
+        projects: co.list(TodoProject).create([], { owner: account }),
       });
     }
-  }
-}
+  });
 
 /** Walkthrough: Continue with ./2_main.tsx */

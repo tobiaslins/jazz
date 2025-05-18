@@ -1,48 +1,58 @@
-import { Account, CoList, CoMap, Group, Profile, coField } from "jazz-tools";
+import {
+  Account,
+  CoList,
+  CoMap,
+  Group,
+  Loaded,
+  Profile,
+  co,
+  coField,
+  z,
+} from "jazz-tools";
 import { getRandomUsername } from "./util";
 
-export class Project extends CoMap {
-  name = coField.string;
-}
+export const Project = co.map({
+  name: z.string(),
+});
 
-export class ListOfProjects extends CoList.Of(coField.ref(Project)) {}
+export const Organization = co.map({
+  name: z.string(),
+  projects: co.list(Project),
+});
 
-export class Organization extends CoMap {
-  name = coField.string;
-  projects = coField.ref(ListOfProjects);
-}
+export const DraftOrganization = co
+  .map({
+    name: z.optional(z.string()),
+    projects: co.list(Project),
+  })
+  .withHelpers((Self) => ({
+    validate(org: Loaded<typeof Self>) {
+      const errors: string[] = [];
 
-export class DraftOrganization extends CoMap {
-  name = coField.optional.string;
-  projects = coField.ref(ListOfProjects);
+      if (!org.name) {
+        errors.push("Please enter a name.");
+      }
 
-  validate() {
-    const errors: string[] = [];
+      return {
+        errors,
+      };
+    },
+  }));
 
-    if (!this.name) {
-      errors.push("Please enter a name.");
-    }
+export const JazzAccountRoot = co.map({
+  organizations: co.list(Organization),
+  draftOrganization: DraftOrganization,
+});
 
-    return {
-      errors,
-    };
-  }
-}
-
-export class ListOfOrganizations extends CoList.Of(coField.ref(Organization)) {}
-
-export class JazzAccountRoot extends CoMap {
-  organizations = coField.ref(ListOfOrganizations);
-  draftOrganization = coField.ref(DraftOrganization);
-}
-
-export class JazzAccount extends Account {
-  root = coField.ref(JazzAccountRoot);
-
-  async migrate(this: JazzAccount) {
-    if (this.profile === undefined) {
+export const JazzAccount = co
+  .account({
+    profile: co.profile(),
+    root: JazzAccountRoot,
+  })
+  .withMigration(async (account) => {
+    if (account.profile === undefined) {
       const group = Group.create();
-      this.profile = Profile.create(
+      account.profile = co.profile().create(
         {
           name: getRandomUsername(),
         },
@@ -51,37 +61,36 @@ export class JazzAccount extends Account {
       group.addMember("everyone", "reader");
     }
 
-    if (this.root === undefined) {
+    if (account.root === undefined) {
       const draftOrgGroup = Group.create();
       const draftOrganization = DraftOrganization.create(
         {
-          projects: ListOfProjects.create([], draftOrgGroup),
+          projects: co.list(Project).create([], draftOrgGroup),
         },
         draftOrgGroup,
       );
 
       const defaultOrgGroup = Group.create();
 
-      const { profile } = await this.ensureLoaded({
+      const { profile } = await account.ensureLoaded({
         resolve: {
           profile: true,
         },
       });
 
-      const organizations = ListOfOrganizations.create([
+      const organizations = co.list(Organization).create([
         Organization.create(
           {
             name: profile.name ? `${profile.name}'s projects` : "Your projects",
-            projects: ListOfProjects.create([], defaultOrgGroup),
+            projects: co.list(Project).create([], defaultOrgGroup),
           },
           defaultOrgGroup,
         ),
       ]);
 
-      this.root = JazzAccountRoot.create({
+      account.root = JazzAccountRoot.create({
         draftOrganization,
         organizations,
       });
     }
-  }
-}
+  });

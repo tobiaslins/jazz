@@ -7,7 +7,7 @@ import {
 } from "jazz-react";
 import { ID } from "jazz-tools";
 import { useNavigate, useParams } from "react-router";
-import { Playlist } from "./1_schema";
+import { MusicaAccount, Playlist } from "./1_schema";
 import { createNewPlaylist, uploadMusicTracks } from "./4_actions";
 import { MediaPlayer } from "./5_useMediaPlayer";
 import { AuthButton } from "./components/AuthButton";
@@ -23,7 +23,7 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
    * `me` represents the current user account, which will determine
    *  access rights to CoValues. We get it from the top-level provider `<WithJazz/>`.
    */
-  const { me } = useAccount({
+  const { me } = useAccount(MusicaAccount, {
     resolve: { root: { rootPlaylist: true, playlists: true } },
   });
 
@@ -46,7 +46,7 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
     navigate(`/playlist/${playlist.id}`);
   }
 
-  const params = useParams<{ playlistId: ID<Playlist> }>();
+  const params = useParams<{ playlistId: string }>();
   const playlistId = params.playlistId ?? me?.root._refs.rootPlaylist.id;
 
   const playlist = useCoState(Playlist, playlistId, {

@@ -101,4 +101,5 @@ export {
   type FileStreamSchema,
   type ResolveQuery,
   type ResolveQueryStrict,
+  type InitFor,
 } from "./internal.js";
