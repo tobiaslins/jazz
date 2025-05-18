@@ -5,7 +5,6 @@ import {
   useCoState,
   useIsAuthenticated,
 } from "jazz-react";
-import { ID } from "jazz-tools";
 import { useNavigate, useParams } from "react-router";
 import { MusicaAccount, Playlist } from "./1_schema";
 import { createNewPlaylist, uploadMusicTracks } from "./4_actions";

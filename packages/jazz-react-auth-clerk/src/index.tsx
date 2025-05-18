@@ -9,7 +9,7 @@ import {
 import {
   Account,
   AccountClass,
-  AccountSchema,
+  AnyAccountSchema,
   CoValueFromRaw,
   InMemoryKVStore,
   KvStoreContext,
@@ -43,7 +43,9 @@ function RegisterClerkAuth(props: {
 }
 
 export const JazzProviderWithClerk = <
-  S extends (AccountClass<Account> & CoValueFromRaw<Account>) | AccountSchema,
+  S extends
+    | (AccountClass<Account> & CoValueFromRaw<Account>)
+    | AnyAccountSchema,
 >(
   props: { clerk: MinimalClerkClient } & JazzProviderProps<S>,
 ) => {

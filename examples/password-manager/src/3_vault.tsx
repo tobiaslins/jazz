@@ -238,7 +238,9 @@ const VaultPage: React.FC = () => {
           folders={folders}
           selectedFolder={selectedFolder}
           initialValues={
-            editingItem && editingItem.folder ? { ...editingItem } : undefined
+            editingItem && editingItem.folder
+              ? { ...editingItem, folder: editingItem.folder! }
+              : undefined
           }
         />
       ) : null}

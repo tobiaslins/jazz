@@ -2,10 +2,12 @@ import { useAccount, useIsAuthenticated } from "jazz-react";
 import { AuthButton } from "./AuthButton.tsx";
 import { Form } from "./Form.tsx";
 import { Logo } from "./Logo.tsx";
-import { AccountRoot } from "./schema.ts";
+import { AccountRoot, JazzAccount } from "./schema.ts";
 
 function App() {
-  const { me } = useAccount({ resolve: { profile: true, root: true } });
+  const { me } = useAccount(JazzAccount, {
+    resolve: { profile: true, root: true },
+  });
 
   const isAuthenticated = useIsAuthenticated();
 

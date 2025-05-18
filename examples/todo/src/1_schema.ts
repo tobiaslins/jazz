@@ -1,13 +1,4 @@
-import {
-  Account,
-  CoList,
-  CoMap,
-  CoPlainText,
-  Profile,
-  co,
-  coField,
-  z,
-} from "jazz-tools";
+import { co, z } from "jazz-tools";
 
 /** Walkthrough: Defining the data model with CoJSON
  *

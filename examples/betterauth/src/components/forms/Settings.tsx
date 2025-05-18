@@ -10,6 +10,7 @@ import type {
   FullAuthClient,
   SSOProviderType,
 } from "jazz-react-auth-betterauth";
+import { Account } from "jazz-tools";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
@@ -38,7 +39,7 @@ export default function SettingsForm({
   const [otpStatus, setOtpStatus] = useState<boolean>(false);
   const [otp, setOtp] = useState<string>("");
 
-  const { me, logOut } = useAccount({ resolve: { profile: true } });
+  const { me, logOut } = useAccount(Account, { resolve: { profile: true } });
   const isAuthenticated = useIsAuthenticated();
   const signOut = useCallback(() => {
     authClient

@@ -15,7 +15,7 @@ import {
 } from "./basicComponents";
 
 import { useCoState } from "jazz-react";
-import { CoPlainText, ID, Loaded } from "jazz-tools";
+import { CoPlainText, Loaded } from "jazz-tools";
 import { useParams } from "react-router";
 import uniqolor from "uniqolor";
 import { InviteButton } from "./components/InviteButton";
