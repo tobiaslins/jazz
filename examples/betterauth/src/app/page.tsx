@@ -3,13 +3,14 @@
 import { Button } from "@/components/Button";
 import { useAccount, useIsAuthenticated } from "jazz-react";
 import { useAuth } from "jazz-react-auth-betterauth";
+import { Account } from "jazz-tools";
 import Image from "next/image";
 import { useCallback } from "react";
 
 export default function Home() {
   const { authClient, account, state } = useAuth();
   const hasCredentials = state !== "anonymous";
-  const { me, logOut } = useAccount({ resolve: { profile: {} } });
+  const { me, logOut } = useAccount(Account, { resolve: { profile: {} } });
   const isAuthenticated = useIsAuthenticated();
   const signOut = useCallback(() => {
     authClient.signOut().catch(console.error).finally(logOut);

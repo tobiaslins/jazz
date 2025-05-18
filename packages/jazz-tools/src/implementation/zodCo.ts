@@ -305,6 +305,7 @@ export const coFileStreamDefiner = (): FileStreamSchema => {
     collaborative: true;
     builtin: "FileStream";
     create: (typeof FileStream)["create"];
+    createFromBlob: (typeof FileStream)["createFromBlob"];
   };
 
   fileStreamSchema.collaborative = true;
@@ -313,6 +314,10 @@ export const coFileStreamDefiner = (): FileStreamSchema => {
   fileStreamSchema.create = function (options: any) {
     return FileStream.create(options);
   } as (typeof FileStream)["create"];
+
+  fileStreamSchema.createFromBlob = function (blob: Blob, options: any) {
+    return FileStream.createFromBlob(blob, options);
+  } as (typeof FileStream)["createFromBlob"];
 
   return fileStreamSchema;
 };

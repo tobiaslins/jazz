@@ -1,8 +1,11 @@
 import { ProgressiveImg, createImage, useAccount } from "jazz-react";
+import { Loaded } from "jazz-tools";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { JazzAccount } from "./schema";
 
 export default function ImageUpload() {
-  const { me } = useAccount();
+  const { me } = useAccount(JazzAccount);
+  type T = Loaded<typeof JazzAccount, true>;
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -48,7 +51,7 @@ export default function ImageUpload() {
 
   const deleteImage = () => {
     if (!me?.profile) return;
-    me.profile.image = null;
+    me.profile.image = undefined;
   };
 
   if (me?.profile?.image) {

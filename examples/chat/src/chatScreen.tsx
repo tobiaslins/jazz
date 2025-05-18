@@ -105,7 +105,7 @@ function ChatBubble(props: {
   }
 
   const lastEdit = props.msg._edits.text;
-  const fromMe = lastEdit?.by?.isMe;
+  const fromMe = lastEdit?.by()?.isMe;
   const { text, image } = props.msg;
 
   return (
@@ -115,7 +115,10 @@ function ChatBubble(props: {
         <BubbleText text={text} />
       </BubbleBody>
       {lastEdit && (
-        <BubbleInfo by={lastEdit.by?.profile?.name} madeAt={lastEdit.madeAt} />
+        <BubbleInfo
+          by={lastEdit.by()?.profile?.name}
+          madeAt={lastEdit.madeAt}
+        />
       )}
     </BubbleContainer>
   );

@@ -169,7 +169,7 @@ export function useCoState<
 function useAccount<A extends AccountClass<Account> | AnyAccountSchema>(
   AccountSchema?: A,
 ): {
-  me: InstanceOfSchema<A>;
+  me: Loaded<A, true>;
   logOut: () => void;
 };
 function useAccount<
@@ -189,7 +189,10 @@ function useAccount<
   options?: {
     resolve?: RefsToResolveStrict<A, R>;
   },
-): { me: A | Loaded<A, R> | undefined | null; logOut: () => void } {
+): {
+  me: Loaded<A, true> | Loaded<A, R> | undefined | null;
+  logOut: () => void;
+} {
   const context = useJazzContext<InstanceOfSchema<A>>();
   const contextManager = useJazzContextManager<InstanceOfSchema<A>>();
 

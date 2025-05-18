@@ -69,20 +69,21 @@ export const AccountRoot = co.map({
   orders: co.list(BubbleTeaOrder),
 });
 
-export const JazzAccount = co.account({
-  root: AccountRoot,
-  profile: co.map({ name: z.string() }),
-});
-// .withMigration((account) => {
-//   if (!account.root) {
-//     const orders = co.list(BubbleTeaOrder).create([], account);
-//     const draft = DraftBubbleTeaOrder.create(
-//       {
-//         addOns: ListOfBubbleTeaAddOns.create([], account),
-//       },
-//       account,
-//     );
+export const JazzAccount = co
+  .account({
+    root: AccountRoot,
+    profile: co.profile(),
+  })
+  .withMigration((account) => {
+    if (!account.root) {
+      const orders = co.list(BubbleTeaOrder).create([], account);
+      const draft = DraftBubbleTeaOrder.create(
+        {
+          addOns: ListOfBubbleTeaAddOns.create([], account),
+        },
+        account,
+      );
 
-//     account.root = AccountRoot.create({ draft, orders }, account);
-//   }
-// });
+      account.root = AccountRoot.create({ draft, orders }, account);
+    }
+  });

@@ -1,20 +1,10 @@
-import {
-  Account,
-  ImageDefinition,
-  Profile,
-  coField,
-  zodSchemaToCoSchema,
-} from "jazz-tools";
+import { co, z } from "jazz-tools";
 
-export class JazzProfile extends Profile {
-  image = coField.ref(zodSchemaToCoSchema(ImageDefinition), { optional: true });
-}
+export const JazzProfile = co.profile({
+  image: z.optional(co.image()),
+});
 
-export class JazzAccount extends Account {
-  profile = coField.ref(JazzProfile);
-
-  /** The account migration is run on account creation and on every log-in.
-   *  You can use it to set up the account root and any other initial CoValues you need.
-   */
-  migrate(this: JazzAccount) {}
-}
+export const JazzAccount = co.account({
+  profile: JazzProfile,
+  root: co.map({}),
+});
