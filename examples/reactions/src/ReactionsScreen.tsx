@@ -58,10 +58,10 @@ const ReactionOverview = ({
   reactions,
 }: { reactions: Loaded<typeof Reactions> }) => (
   <>
-    {Object.values(reactions).map((reaction) => (
-      <div key={reaction.by?.profile?.name} className="reaction-row">
+    {Object.values(reactions.perAccount).map((reaction) => (
+      <div key={reaction.by()?.id} className="reaction-row">
         {reactionEmojiMap[reaction.value as ReactionType]}{" "}
-        {reaction.by?.profile?.name}
+        {reaction.by()?.profile?.name}
       </div>
     ))}
   </>

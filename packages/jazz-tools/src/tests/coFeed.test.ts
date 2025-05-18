@@ -14,6 +14,7 @@ import {
 } from "../index.js";
 import {
   AnyCoFeedSchema,
+  Loaded,
   createJazzContextFromExistingCredentials,
   randomSessionProvider,
 } from "../internal.js";
@@ -37,14 +38,14 @@ describe("Simple CoFeed operations", async () => {
   const stream = TestStream.create(["milk"], { owner: me });
 
   test("Construction", () => {
-    expect(stream[me.id]?.value).toEqual("milk");
+    expect(stream.perAccount[me.id]?.value).toEqual("milk");
     expect(stream.perSession[me.sessionID]?.value).toEqual("milk");
   });
 
   test("Construction with an Account", () => {
     const stream = TestStream.create(["milk"], me);
 
-    expect(stream[me.id]?.value).toEqual("milk");
+    expect(stream.perAccount[me.id]?.value).toEqual("milk");
     expect(stream.perSession[me.sessionID]?.value).toEqual("milk");
   });
 
@@ -52,18 +53,18 @@ describe("Simple CoFeed operations", async () => {
     const group = Group.create(me);
     const stream = TestStream.create(["milk"], group);
 
-    expect(stream[me.id]?.value).toEqual("milk");
+    expect(stream.perAccount[me.id]?.value).toEqual("milk");
     expect(stream.perSession[me.sessionID]?.value).toEqual("milk");
   });
 
   describe("Mutation", () => {
     test("pushing", () => {
       stream.push("bread");
-      expect(stream[me.id]?.value).toEqual("bread");
+      expect(stream.perAccount[me.id]?.value).toEqual("bread");
       expect(stream.perSession[me.sessionID]?.value).toEqual("bread");
 
       stream.push("butter");
-      expect(stream[me.id]?.value).toEqual("butter");
+      expect(stream.perAccount[me.id]?.value).toEqual("butter");
       expect(stream.perSession[me.sessionID]?.value).toEqual("butter");
     });
   });
@@ -99,9 +100,11 @@ describe("CoFeed resolution", async () => {
     // TODO: fix this
     // expectTypeOf(stream[me.id]).not.toBeAny();
 
-    expect(stream[me.id]?.value?.[me.id]?.value?.[me.id]?.value).toEqual(
-      "milk",
-    );
+    expect(
+      stream.perAccount[me.id]?.value?.perAccount[me.id]?.value?.perAccount[
+        me.id
+      ]?.value,
+    ).toEqual("milk");
   });
 
   test("Loading and availability", async () => {
@@ -132,43 +135,49 @@ describe("CoFeed resolution", async () => {
     // TODO: fix this
     // expectTypeOf(loadedStream?.[me.id]).not.toBeAny();
 
-    expect(loadedStream?.[me.id]?.value).toEqual(null);
-    expect(loadedStream?.[me.id]?.ref?.id).toEqual(stream[me.id]?.value?.id);
+    expect(loadedStream?.perAccount[me.id]?.value).toEqual(null);
+    expect(loadedStream?.perAccount[me.id]?.ref?.id).toEqual(
+      stream.perAccount[me.id]?.value?.id,
+    );
 
     const loadedNestedStream = await NestedStream.load(
-      stream[me.id]!.value!.id,
+      stream.perAccount[me.id]!.value!.id,
       { loadAs: meOnSecondPeer },
     );
 
     // expect(loadedStream?.[me.id]?.value).toEqual(loadedNestedStream);
-    expect(loadedStream?.[me.id]?.value?.id).toEqual(loadedNestedStream?.id);
-    expect(loadedStream?.[me.id]?.value?.[me.id]?.value).toEqual(null);
-    // expect(loadedStream?.[me.id]?.ref?.value).toEqual(loadedNestedStream);
-    expect(loadedStream?.[me.id]?.ref?.value?.id).toEqual(
+    expect(loadedStream?.perAccount[me.id]?.value?.id).toEqual(
       loadedNestedStream?.id,
     );
-    expect(loadedStream?.[me.id]?.value?.[me.id]?.ref?.id).toEqual(
-      stream[me.id]?.value?.[me.id]?.value?.id,
+    expect(
+      loadedStream?.perAccount[me.id]?.value?.perAccount[me.id]?.value,
+    ).toEqual(null);
+    // expect(loadedStream?.[me.id]?.ref?.value).toEqual(loadedNestedStream);
+    expect(loadedStream?.perAccount[me.id]?.ref?.value?.id).toEqual(
+      loadedNestedStream?.id,
     );
+    expect(
+      loadedStream?.perAccount[me.id]?.value?.perAccount[me.id]?.ref?.id,
+    ).toEqual(stream.perAccount[me.id]?.value?.perAccount[me.id]?.value?.id);
 
     const loadedTwiceNestedStream = await TwiceNestedStream.load(
-      stream[me.id]!.value![me.id]!.value!.id,
+      stream.perAccount[me.id]!.value!.perAccount[me.id]!.value!.id,
       { loadAs: meOnSecondPeer },
     );
 
     // expect(loadedStream?.[me.id]?.value?.[me.id]?.value).toEqual(
     //     loadedTwiceNestedStream
     // );
-    expect(loadedStream?.[me.id]?.value?.[me.id]?.value?.id).toEqual(
-      loadedTwiceNestedStream?.id,
-    );
+    expect(
+      loadedStream?.perAccount[me.id]?.value?.perAccount[me.id]?.value?.id,
+    ).toEqual(loadedTwiceNestedStream?.id);
     // expect(loadedStream?.[me.id]?.ref?.value).toEqual(loadedNestedStream);
-    expect(loadedStream?.[me.id]?.ref?.value?.id).toEqual(
+    expect(loadedStream?.perAccount[me.id]?.ref?.value?.id).toEqual(
       loadedNestedStream?.id,
     );
-    expect(loadedStream?.[me.id]?.value?.[me.id]?.ref?.value?.id).toEqual(
-      loadedTwiceNestedStream?.id,
-    );
+    expect(
+      loadedStream?.perAccount[me.id]?.value?.perAccount[me.id]?.ref?.value?.id,
+    ).toEqual(loadedTwiceNestedStream?.id);
 
     const otherNestedStream = NestedStream.create(
       [TwiceNestedStream.create(["butter"], { owner: meOnSecondPeer })],
@@ -176,13 +185,15 @@ describe("CoFeed resolution", async () => {
     );
     loadedStream?.push(otherNestedStream);
     // expect(loadedStream?.[me.id]?.value).toEqual(otherNestedStream);
-    expect(loadedStream?.[me.id]?.value?.id).toEqual(otherNestedStream?.id);
-    expect(loadedStream?.[me.id]?.ref?.value?.id).toEqual(
+    expect(loadedStream?.perAccount[me.id]?.value?.id).toEqual(
       otherNestedStream?.id,
     );
-    expect(loadedStream?.[me.id]?.value?.[me.id]?.value?.id).toEqual(
-      otherNestedStream[me.id]?.value?.id,
+    expect(loadedStream?.perAccount[me.id]?.ref?.value?.id).toEqual(
+      otherNestedStream?.id,
     );
+    expect(
+      loadedStream?.perAccount[me.id]?.value?.perAccount[me.id]?.value?.id,
+    ).toEqual(otherNestedStream.perAccount[me.id]?.value?.id);
   });
 
   test("Subscription & auto-resolution", async () => {
@@ -219,20 +230,32 @@ describe("CoFeed resolution", async () => {
     );
 
     const update1 = (await queue.next()).value;
-    expect(update1[me.id]?.value).toEqual(null);
+    expect(update1.perAccount[me.id]?.value).toEqual(null);
 
     const update2 = (await queue.next()).value;
-    expect(update2[me.id]?.value).toBeDefined();
-    expect(update2[me.id]?.value?.[me.id]?.value).toBe(null);
+    expect(update2.perAccount[me.id]?.value).toBeDefined();
+    expect(update2.perAccount[me.id]?.value?.perAccount[me.id]?.value).toBe(
+      null,
+    );
 
     const update3 = (await queue.next()).value;
-    expect(update3[me.id]?.value?.[me.id]?.value).toBeDefined();
-    expect(update3[me.id]?.value?.[me.id]?.value?.[me.id]?.value).toBe("milk");
+    expect(
+      update3.perAccount[me.id]?.value?.perAccount[me.id]?.value,
+    ).toBeDefined();
+    expect(
+      update3.perAccount[me.id]?.value?.perAccount[me.id]?.value?.perAccount[
+        me.id
+      ]?.value,
+    ).toBe("milk");
 
-    update3[me.id]!.value![me.id]!.value!.push("bread");
+    update3.perAccount[me.id]!.value!.perAccount[me.id]!.value!.push("bread");
 
     const update4 = (await queue.next()).value;
-    expect(update4[me.id]?.value?.[me.id]?.value?.[me.id]?.value).toBe("bread");
+    expect(
+      update4.perAccount[me.id]?.value?.perAccount[me.id]?.value?.perAccount[
+        me.id
+      ]?.value,
+    ).toBe("bread");
 
     // When assigning a new nested stream, we get an update
     const newTwiceNested = TwiceNestedStream.create(["butter"], {
@@ -246,14 +269,20 @@ describe("CoFeed resolution", async () => {
     update4.push(newNested);
 
     const update5 = (await queue.next()).value;
-    expect(update5[me.id]?.value?.[me.id]?.value?.[me.id]?.value).toBe(
-      "butter",
-    );
+    expect(
+      update5.perAccount[me.id]?.value?.perAccount[me.id]?.value?.perAccount[
+        me.id
+      ]?.value,
+    ).toBe("butter");
 
     // we get updates when the new nested stream changes
     newTwiceNested.push("jam");
     const update6 = (await queue.next()).value;
-    expect(update6[me.id]?.value?.[me.id]?.value?.[me.id]?.value).toBe("jam");
+    expect(
+      update6.perAccount[me.id]?.value?.perAccount[me.id]?.value?.perAccount[
+        me.id
+      ]?.value,
+    ).toBe("jam");
   });
 
   test("Subscription without options", async () => {
@@ -278,26 +307,38 @@ describe("CoFeed resolution", async () => {
       crypto: Crypto,
     });
 
-    const queue = new cojsonInternals.Channel();
+    const queue = new cojsonInternals.Channel<Loaded<typeof TestStream>>();
 
     TestStream.subscribe(stream.id, (subscribedStream) => {
       void queue.push(subscribedStream);
     });
 
     const update1 = (await queue.next()).value;
-    expect(update1[me.id]?.value).toEqual(null);
+    expect(update1.perAccount[me.id]?.value).toEqual(null);
 
     const update2 = (await queue.next()).value;
-    expect(update2[me.id]?.value?.[me.id]?.value).toEqual(null);
+    expect(update2.perAccount[me.id]?.value?.perAccount[me.id]?.value).toEqual(
+      null,
+    );
 
     const update3 = (await queue.next()).value;
-    expect(update3[me.id]?.value?.[me.id]?.value).toBeDefined();
-    expect(update3[me.id]?.value?.[me.id]?.value?.[me.id]?.value).toBe("milk");
+    expect(
+      update3.perAccount[me.id]?.value?.perAccount[me.id]?.value,
+    ).toBeDefined();
+    expect(
+      update3.perAccount[me.id]?.value?.perAccount[me.id]?.value?.perAccount[
+        me.id
+      ]?.value,
+    ).toBe("milk");
 
-    update3[me.id]!.value![me.id]!.value!.push("bread");
+    update3.perAccount[me.id]!.value!.perAccount[me.id]!.value!.push("bread");
 
     const update4 = (await queue.next()).value;
-    expect(update4[me.id]?.value?.[me.id]?.value?.[me.id]?.value).toBe("bread");
+    expect(
+      update4.perAccount[me.id]?.value?.perAccount[me.id]?.value?.perAccount[
+        me.id
+      ]?.value,
+    ).toBe("bread");
   });
 });
 

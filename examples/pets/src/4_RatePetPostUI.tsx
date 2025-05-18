@@ -76,9 +76,9 @@ function ReactionOverview({
       <h2>Reactions</h2>
       <div className="flex flex-col gap-1">
         {ReactionTypes.map((reactionType) => {
-          const reactionsOfThisType = Object.values(petReactions).filter(
-            (entry) => entry.value === reactionType,
-          );
+          const reactionsOfThisType = Object.values(
+            petReactions.perAccount,
+          ).filter((entry) => entry.value === reactionType);
 
           if (reactionsOfThisType.length === 0) return null;
 
@@ -86,13 +86,13 @@ function ReactionOverview({
             <div className="flex gap-2 items-center" key={reactionType}>
               {reactionEmojiMap[reactionType]}{" "}
               {reactionsOfThisType.map((reaction, idx) =>
-                reaction.by?.profile?.name ? (
+                reaction.by()?.profile?.name ? (
                   <span
                     className="rounded-full py-0.5 px-2 text-xs"
-                    style={uniqueColoring(reaction.by.id)}
-                    key={reaction.by.id}
+                    style={uniqueColoring(reaction.by()?.id ?? "")}
+                    key={reaction.by()?.id ?? ""}
                   >
-                    {reaction.by.profile.name}
+                    {reaction.by()?.profile?.name}
                   </span>
                 ) : (
                   <Skeleton

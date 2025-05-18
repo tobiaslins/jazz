@@ -156,7 +156,7 @@ describe("Deep loading with depth arg", async () => {
     >();
     assert(map4, "map4 is null");
     expect(map4.list[0]?.stream).toBeTruthy();
-    expect(map4.list[0]?.stream?.[me.id]).toBeTruthy();
+    expect(map4.list[0]?.stream?.perAccount[me.id]).toBeTruthy();
     expect(map4.list[0]?.stream?.byMe?.value).toBe(null);
   });
 
@@ -186,7 +186,7 @@ describe("Deep loading with depth arg", async () => {
     expectTypeOf(map5).branded.toEqualTypeOf<ExpectedMap5>();
     assert(map5, "map5 is null");
 
-    expect(map5.list[0]?.stream?.[me.id]?.value).toBeTruthy();
+    expect(map5.list[0]?.stream?.perAccount[me.id]?.value).toBeTruthy();
     expect(map5.list[0]?.stream?.byMe?.value).toBeTruthy();
   });
 });
