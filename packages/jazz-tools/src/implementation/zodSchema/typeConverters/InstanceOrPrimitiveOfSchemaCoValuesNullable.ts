@@ -1,0 +1,89 @@
+import z from "zod";
+import {
+  Account,
+  CoFeed,
+  CoList,
+  CoMap,
+  CoPlainText,
+  CoValueClass,
+  FileStream,
+  Profile,
+} from "../../../internal.js";
+import { AnyCoFeedSchema } from "../schemaTypes/CoFeedSchema.js";
+import { AnyCoListSchema } from "../schemaTypes/CoListSchema.js";
+import { AnyCoMapSchema } from "../schemaTypes/CoMapSchema.js";
+import { FileStreamSchema } from "../schemaTypes/FileStreamSchema.js";
+import { PlainTextSchema } from "../schemaTypes/PlainTextSchema.js";
+
+export type InstanceOrPrimitiveOfSchemaCoValuesNullable<
+  S extends CoValueClass | z.core.$ZodType,
+> = S extends z.core.$ZodType
+  ? S extends z.core.$ZodObject<infer Shape> & {
+      collaborative: true;
+      builtin: "Account";
+    }
+    ?
+        | ({
+            -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchemaCoValuesNullable<
+              Shape[key]
+            >;
+          } & { profile: Profile | null } & Account)
+        | null
+    : S extends z.core.$ZodRecord<infer K, infer V> & {
+          collaborative: true;
+        }
+      ?
+          | ({
+              -readonly [key in z.output<K> &
+                string]: InstanceOrPrimitiveOfSchemaCoValuesNullable<V>;
+            } & CoMap)
+          | null
+      : S extends AnyCoMapSchema<infer Shape, infer OutExtra>
+        ?
+            | ({
+                -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchemaCoValuesNullable<
+                  Shape[key]
+                >;
+              } & (unknown extends OutExtra[string]
+                ? {}
+                : {
+                    [key: string]: OutExtra[string];
+                  }) &
+                CoMap)
+            | null
+        : S extends AnyCoListSchema<infer T>
+          ? CoList<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>> | null
+          : S extends AnyCoFeedSchema<infer T>
+            ? CoFeed<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>> | null
+            : S extends PlainTextSchema
+              ? CoPlainText | null
+              : S extends FileStreamSchema
+                ? FileStream | null
+                : S extends z.core.$ZodOptional<infer Inner>
+                  ?
+                      | InstanceOrPrimitiveOfSchemaCoValuesNullable<Inner>
+                      | undefined
+                  : S extends z.core.$ZodTuple<infer Items>
+                    ? {
+                        [key in keyof Items]: InstanceOrPrimitiveOfSchemaCoValuesNullable<
+                          Items[key]
+                        >;
+                      }
+                    : S extends z.core.$ZodUnion<infer Members>
+                      ? InstanceOrPrimitiveOfSchemaCoValuesNullable<
+                          Members[number]
+                        >
+                      : S extends z.core.$ZodString
+                        ? string
+                        : S extends z.core.$ZodNumber
+                          ? number
+                          : S extends z.core.$ZodBoolean
+                            ? boolean
+                            : S extends z.core.$ZodLiteral<infer Literal>
+                              ? Literal
+                              : S extends z.core.$ZodDate
+                                ? Date
+                                : never
+  : S extends CoValueClass
+    ? InstanceType<S> | null
+    : never;

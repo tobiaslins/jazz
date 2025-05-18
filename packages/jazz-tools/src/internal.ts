@@ -29,8 +29,21 @@ export * from "./lib/cache.js";
 export * from "./implementation/createContext.js";
 
 export * from "./types.js";
-export * from "./implementation/zodSchema.js";
-export * from "./implementation/zodCo.js";
+export * from "./implementation/zodSchema/zodSchema.js";
+export * from "./implementation/zodSchema/zodCo.js";
+export * from "./implementation/zodSchema/schemaTypes/CoMapSchema.js";
+export * from "./implementation/zodSchema/schemaTypes/CoRecordSchema.js";
+export * from "./implementation/zodSchema/schemaTypes/CoListSchema.js";
+export * from "./implementation/zodSchema/schemaTypes/CoFeedSchema.js";
+export * from "./implementation/zodSchema/schemaTypes/AccountSchema.js";
+export * from "./implementation/zodSchema/schemaTypes/FileStreamSchema.js";
+export * from "./implementation/zodSchema/schemaTypes/PlainTextSchema.js";
+export * from "./implementation/zodSchema/typeConverters/InstanceOrPrimitiveOfSchema.js";
+export * from "./implementation/zodSchema/typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
+export * from "./implementation/zodSchema/typeConverters/InstanceOfSchema.js";
+export * from "./implementation/zodSchema/typeConverters/InstanceOfSchemaCoValuesNullable.js";
+export * from "./implementation/zodSchema/runtimeConverters/zodSchemaToCoSchema.js";
+export * from "./implementation/zodSchema/runtimeConverters/zodFieldToVoFieldDef.js";
 export * from "./coValues/extensions/imageDef.js";
 
 export * from "./implementation/ContextManager.js";

@@ -9,10 +9,8 @@ import {
   vi,
 } from "vitest";
 import { Group, co, z } from "../exports.js";
-import {
-  InstanceOrPrimitiveOfSchema,
-  Loaded,
-} from "../implementation/zodSchema.js";
+import { InstanceOrPrimitiveOfSchema } from "../implementation/zodSchema/typeConverters/InstanceOrPrimitiveOfSchema.js";
+import { Loaded } from "../implementation/zodSchema/zodSchema.js";
 import { Account } from "../index.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 import { waitFor } from "./utils.js";

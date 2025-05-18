@@ -22,7 +22,7 @@ import {
   PlainTextSchema,
   Simplify,
   zodSchemaToCoSchema,
-} from "../internal.js";
+} from "../../internal.js";
 
 export const coMapDefiner = <Shape extends z.core.$ZodLooseShape>(
   shape: Shape,
