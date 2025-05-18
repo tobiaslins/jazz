@@ -5,6 +5,8 @@ import {
   CoFeed,
   CoList,
   CoMap,
+  CoPlainText,
+  CoRichText,
   CoValueClass,
   FileStream,
   SchemaUnion,
@@ -90,6 +92,10 @@ export function tryZodSchemaToCoSchema<S extends z.core.$ZodType>(
           ) as unknown as CoValueClassFromZodSchema<S>;
         } else if (schema.builtin === "FileStream") {
           return FileStream as unknown as CoValueClassFromZodSchema<S>;
+        } else if (schema.builtin === "CoPlainText") {
+          return CoPlainText as unknown as CoValueClassFromZodSchema<S>;
+        } else if (schema.builtin === "CoRichText") {
+          return CoRichText as unknown as CoValueClassFromZodSchema<S>;
         } else {
           throw new Error(`Unsupported builtin type: ${schema.builtin}`);
         }

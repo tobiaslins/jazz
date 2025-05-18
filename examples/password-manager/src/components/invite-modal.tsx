@@ -1,4 +1,4 @@
-import { Group } from "jazz-tools";
+import { Group, Loaded } from "jazz-tools";
 import React, { useState } from "react";
 import { Folder } from "../1_schema";
 import { shareFolder } from "../4_actions";
@@ -8,7 +8,7 @@ import Button from "./button";
 interface InviteModalProps {
   isOpen: boolean;
   onClose: () => void;
-  selectedFolder: Folder | undefined;
+  selectedFolder: Loaded<typeof Folder> | undefined;
 }
 
 const InviteModal: React.FC<InviteModalProps> = ({
@@ -21,7 +21,7 @@ const InviteModal: React.FC<InviteModalProps> = ({
   >("reader");
   const [inviteLink, setInviteLink] = useState("");
 
-  const members = selectedFolder?._owner.members;
+  const members = selectedFolder?._owner.members();
   const invitedMembers = members
     ? members.filter((m) => !m.account?.isMe).map((m) => m.account)
     : [];

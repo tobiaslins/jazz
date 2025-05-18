@@ -18,6 +18,7 @@ import { AnyCoMapSchema, CoMapInitZod } from "./schemaTypes/CoMapSchema.js";
 import { AnyCoRecordSchema } from "./schemaTypes/CoRecordSchema.js";
 import { FileStreamSchema } from "./schemaTypes/FileStreamSchema.js";
 import { PlainTextSchema } from "./schemaTypes/PlainTextSchema.js";
+import { RichTextSchema } from "./schemaTypes/RichTextSchema.js";
 import { InstanceOfSchema } from "./typeConverters/InstanceOfSchema.js";
 import { InstanceOfSchemaCoValuesNullable } from "./typeConverters/InstanceOfSchemaCoValuesNullable.js";
 import { InstanceOrPrimitiveOfSchema } from "./typeConverters/InstanceOrPrimitiveOfSchema.js";
@@ -77,6 +78,7 @@ type AnyCoSchema =
   | AnyCoFeedSchema
   | AnyCoUnionSchema
   | PlainTextSchema
+  | RichTextSchema
   | FileStreamSchema;
 
 export type Loaded<

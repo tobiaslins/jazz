@@ -18,7 +18,7 @@ export const BubbleTeaBaseTeaTypes = [
 export const ListOfBubbleTeaAddOns = co
   .list(z.literal([...BubbleTeaAddOnTypes]))
   .withHelpers((Self) => ({
-    hasChanges(list: Loaded<typeof Self> | undefined) {
+    hasChanges(list?: Loaded<typeof Self> | null) {
       return list && Object.entries(list._raw.insertions).length > 0;
     },
   }));

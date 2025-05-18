@@ -1,5 +1,4 @@
 import { useCoState } from "jazz-react";
-import { ID } from "jazz-tools";
 import { useEffect, useMemo, useState } from "react";
 import { Issue } from "./schema.ts";
 

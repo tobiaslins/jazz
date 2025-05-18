@@ -14,6 +14,7 @@ import {
   CoPlainText,
   CoProfileSchema,
   CoRecordSchema,
+  CoRichText,
   DefaultProfileShape,
   FileStream,
   FileStreamSchema,
@@ -23,6 +24,7 @@ import {
   Simplify,
   zodSchemaToCoSchema,
 } from "../../internal.js";
+import { RichTextSchema } from "./schemaTypes/RichTextSchema.js";
 
 export const coMapDefiner = <Shape extends z.core.$ZodLooseShape>(
   shape: Shape,
@@ -359,12 +361,45 @@ export const coPlainTextDefiner = (): PlainTextSchema => {
   return plainTextSchema;
 };
 
+export const coRichTextDefiner = (): RichTextSchema => {
+  const placeholderSchema = z.instanceof(CoRichText);
+
+  const richTextSchema = placeholderSchema as unknown as Pick<
+    typeof placeholderSchema,
+    "_zod" | "def" | "~standard"
+  > & {
+    collaborative: true;
+    builtin: "CoRichText";
+    create: RichTextSchema["create"];
+    load: RichTextSchema["load"];
+    subscribe: RichTextSchema["subscribe"];
+  };
+
+  richTextSchema.collaborative = true;
+  richTextSchema.builtin = "CoRichText";
+
+  richTextSchema.create = function (...args: any[]) {
+    return (CoRichText as any).create(...args);
+  } as RichTextSchema["create"];
+
+  richTextSchema.load = function (...args: any[]) {
+    return (CoRichText as any).load(...args);
+  } as RichTextSchema["load"];
+
+  richTextSchema.subscribe = function (...args: any[]) {
+    return (CoRichText as any).subscribe(...args);
+  } as RichTextSchema["subscribe"];
+
+  return richTextSchema;
+};
+
 export const co = {
   map: coMapDefiner,
   record: coRecordDefiner,
   list: coListDefiner,
   feed: coFeedDefiner,
   plainText: coPlainTextDefiner,
+  richText: coRichTextDefiner,
   fileStream: coFileStreamDefiner,
   image: (): typeof ImageDefinition => {
     return ImageDefinition;

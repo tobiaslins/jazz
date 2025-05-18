@@ -8,11 +8,13 @@ import {
   CoList,
   CoMap,
   CoPlainText,
+  CoRichText,
   CoValueClass,
   FileStream,
 } from "../../../internal.js";
 import { FileStreamSchema } from "../schemaTypes/FileStreamSchema.js";
 import { PlainTextSchema } from "../schemaTypes/PlainTextSchema.js";
+import { RichTextSchema } from "../schemaTypes/RichTextSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "./InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 
 export type InstanceOfSchemaCoValuesNullable<
@@ -57,17 +59,19 @@ export type InstanceOfSchemaCoValuesNullable<
             ? CoFeed<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>> | null
             : S extends PlainTextSchema
               ? CoPlainText | null
-              : S extends FileStreamSchema
-                ? FileStream | null
-                : S extends z.core.$ZodOptional<infer Inner>
-                  ?
-                      | InstanceOrPrimitiveOfSchemaCoValuesNullable<Inner>
-                      | undefined
-                  : S extends z.core.$ZodUnion<infer Members>
-                    ? InstanceOrPrimitiveOfSchemaCoValuesNullable<
-                        Members[number]
-                      >
-                    : never
+              : S extends RichTextSchema
+                ? CoRichText | null
+                : S extends FileStreamSchema
+                  ? FileStream | null
+                  : S extends z.core.$ZodOptional<infer Inner>
+                    ?
+                        | InstanceOrPrimitiveOfSchemaCoValuesNullable<Inner>
+                        | undefined
+                    : S extends z.core.$ZodUnion<infer Members>
+                      ? InstanceOrPrimitiveOfSchemaCoValuesNullable<
+                          Members[number]
+                        >
+                      : never
   : S extends CoValueClass
     ? InstanceType<S> | null
     : never;

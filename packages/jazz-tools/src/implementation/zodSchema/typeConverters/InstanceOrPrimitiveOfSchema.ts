@@ -5,6 +5,7 @@ import {
   CoList,
   CoMap,
   CoPlainText,
+  CoRichText,
   CoValueClass,
   FileStream,
   Profile,
@@ -14,6 +15,7 @@ import { AnyCoListSchema } from "../schemaTypes/CoListSchema.js";
 import { AnyCoMapSchema } from "../schemaTypes/CoMapSchema.js";
 import { FileStreamSchema } from "../schemaTypes/FileStreamSchema.js";
 import { PlainTextSchema } from "../schemaTypes/PlainTextSchema.js";
+import { RichTextSchema } from "../schemaTypes/RichTextSchema.js";
 
 export type InstanceOrPrimitiveOfSchema<
   S extends CoValueClass | z.core.$ZodType,
@@ -49,38 +51,40 @@ export type InstanceOrPrimitiveOfSchema<
             ? CoFeed<InstanceOrPrimitiveOfSchema<T>>
             : S extends PlainTextSchema
               ? CoPlainText
-              : S extends FileStreamSchema
-                ? FileStream
-                : S extends z.core.$ZodOptional<infer Inner>
-                  ? InstanceOrPrimitiveOfSchema<Inner> | undefined
-                  : S extends z.core.$ZodUnion<infer Members>
-                    ? InstanceOrPrimitiveOfSchema<Members[number]>
-                    : // primitives below here - we manually traverse to ensure we only allow what we can handle
-                      S extends z.core.$ZodObject<infer Shape>
-                      ? {
-                          -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchema<
-                            Shape[key]
-                          >;
-                        }
-                      : S extends z.core.$ZodArray<infer Item>
-                        ? InstanceOrPrimitiveOfSchema<Item>[]
-                        : S extends z.core.$ZodTuple<infer Items>
-                          ? {
-                              [key in keyof Items]: InstanceOrPrimitiveOfSchema<
-                                Items[key]
-                              >;
-                            }
-                          : S extends z.core.$ZodString
-                            ? string
-                            : S extends z.core.$ZodNumber
-                              ? number
-                              : S extends z.core.$ZodBoolean
-                                ? boolean
-                                : S extends z.core.$ZodLiteral<infer Literal>
-                                  ? Literal
-                                  : S extends z.core.$ZodDate
-                                    ? Date
-                                    : never
+              : S extends RichTextSchema
+                ? CoRichText
+                : S extends FileStreamSchema
+                  ? FileStream
+                  : S extends z.core.$ZodOptional<infer Inner>
+                    ? InstanceOrPrimitiveOfSchema<Inner> | undefined
+                    : S extends z.core.$ZodUnion<infer Members>
+                      ? InstanceOrPrimitiveOfSchema<Members[number]>
+                      : // primitives below here - we manually traverse to ensure we only allow what we can handle
+                        S extends z.core.$ZodObject<infer Shape>
+                        ? {
+                            -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchema<
+                              Shape[key]
+                            >;
+                          }
+                        : S extends z.core.$ZodArray<infer Item>
+                          ? InstanceOrPrimitiveOfSchema<Item>[]
+                          : S extends z.core.$ZodTuple<infer Items>
+                            ? {
+                                [key in keyof Items]: InstanceOrPrimitiveOfSchema<
+                                  Items[key]
+                                >;
+                              }
+                            : S extends z.core.$ZodString
+                              ? string
+                              : S extends z.core.$ZodNumber
+                                ? number
+                                : S extends z.core.$ZodBoolean
+                                  ? boolean
+                                  : S extends z.core.$ZodLiteral<infer Literal>
+                                    ? Literal
+                                    : S extends z.core.$ZodDate
+                                      ? Date
+                                      : never
   : S extends CoValueClass
     ? InstanceType<S>
     : never;

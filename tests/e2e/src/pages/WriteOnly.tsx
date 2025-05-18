@@ -47,7 +47,7 @@ export function WriteOnlyRole() {
 
     const coListGroup = coList._owner as Group;
 
-    for (const member of coListGroup.members) {
+    for (const member of coListGroup.members()) {
       if (
         member.account &&
         member.role !== "admin" &&

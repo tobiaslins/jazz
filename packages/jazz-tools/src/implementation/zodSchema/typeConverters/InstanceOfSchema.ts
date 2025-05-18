@@ -5,6 +5,7 @@ import {
   CoList,
   CoMap,
   CoPlainText,
+  CoRichText,
   CoValueClass,
   FileStream,
 } from "../../../internal.js";
@@ -13,6 +14,7 @@ import { AnyCoListSchema } from "../schemaTypes/CoListSchema.js";
 import { AnyCoMapSchema } from "../schemaTypes/CoMapSchema.js";
 import { FileStreamSchema } from "../schemaTypes/FileStreamSchema.js";
 import { PlainTextSchema } from "../schemaTypes/PlainTextSchema.js";
+import { RichTextSchema } from "../schemaTypes/RichTextSchema.js";
 import { InstanceOrPrimitiveOfSchema } from "./InstanceOrPrimitiveOfSchema.js";
 
 export type InstanceOfSchema<S extends CoValueClass | z.core.$ZodType> =
@@ -45,13 +47,15 @@ export type InstanceOfSchema<S extends CoValueClass | z.core.$ZodType> =
               ? CoFeed<InstanceOrPrimitiveOfSchema<T>>
               : S extends PlainTextSchema
                 ? CoPlainText
-                : S extends FileStreamSchema
-                  ? FileStream
-                  : S extends z.core.$ZodOptional<infer Inner>
-                    ? InstanceOrPrimitiveOfSchema<Inner>
-                    : S extends z.core.$ZodUnion<infer Members>
-                      ? InstanceOrPrimitiveOfSchema<Members[number]>
-                      : never
+                : S extends RichTextSchema
+                  ? CoRichText
+                  : S extends FileStreamSchema
+                    ? FileStream
+                    : S extends z.core.$ZodOptional<infer Inner>
+                      ? InstanceOrPrimitiveOfSchema<Inner>
+                      : S extends z.core.$ZodUnion<infer Members>
+                        ? InstanceOrPrimitiveOfSchema<Members[number]>
+                        : never
     : S extends CoValueClass
       ? InstanceType<S>
       : never;
