@@ -8,7 +8,7 @@ export type {
   SyncMessage,
 } from "cojson";
 
-export { z } from "zod";
+export { z } from "zod/v4";
 
 export type { CoValue, ID } from "./internal.js";
 

@@ -1,4 +1,4 @@
-import z from "zod";
+import z from "zod/v4";
 import { Loaded, coFileStreamDefiner, coMapDefiner } from "../../internal.js";
 
 // avoiding circularity by using the standalone definers instead of `co`

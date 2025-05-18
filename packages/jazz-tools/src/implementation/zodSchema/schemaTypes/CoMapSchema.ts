@@ -1,5 +1,5 @@
 import { CoValueUniqueness } from "cojson";
-import z from "zod";
+import z from "zod/v4";
 import {
   Account,
   CoMap,
@@ -17,8 +17,8 @@ import { FullyOrPartiallyLoaded, WithHelpers } from "../zodSchema.js";
 
 export type CoMapSchema<
   Shape extends z.core.$ZodLooseShape,
-  OutExtra extends Record<string, unknown> = Record<string, unknown>,
-> = z.core.$ZodObject<Shape, OutExtra> &
+  Config extends z.core.$ZodObjectConfig = z.core.$ZodObjectConfig,
+> = z.core.$ZodObject<Shape, Config> &
   z.$ZodTypeDiscriminable & {
     collaborative: true;
 
@@ -38,10 +38,10 @@ export type CoMapSchema<
             Shape[key]
           >;
         }) &
-      (unknown extends OutExtra[string]
+      (unknown extends Config["out"][string]
         ? {}
         : {
-            [key: string]: OutExtra[string];
+            [key: string]: Config["out"][string];
           }) &
       CoMap;
 
@@ -90,7 +90,7 @@ export type CoMapSchema<
 
     catchall<T extends z.core.$ZodType>(
       schema: T,
-    ): CoMapSchema<Shape, Record<string, T["_zod"]["output"]>>;
+    ): CoMapSchema<Shape, z.core.$catchall<T>>;
 
     withHelpers<S extends z.core.$ZodType, T extends object>(
       this: S,
@@ -111,8 +111,8 @@ export type CoMapInitZod<Shape extends z.core.$ZodLooseShape> = {
 // less precise verion to avoid circularity issues and allow matching against
 export type AnyCoMapSchema<
   Shape extends z.core.$ZodLooseShape = z.core.$ZodLooseShape,
-  OutExtra extends Record<string, unknown> = Record<string, unknown>,
-> = z.core.$ZodObject<Shape, OutExtra> & { collaborative: true };
+  Config extends z.core.$ZodObjectConfig = z.core.$ZodObjectConfig,
+> = z.core.$ZodObject<Shape, Config> & { collaborative: true };
 
 export type CoMapInstance<Shape extends z.core.$ZodLooseShape> = {
   -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchema<Shape[key]>;

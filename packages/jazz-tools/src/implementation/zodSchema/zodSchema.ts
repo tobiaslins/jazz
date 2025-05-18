@@ -1,5 +1,5 @@
 import { LocalNode, RawAccount } from "cojson";
-import z from "zod";
+import z from "zod/v4";
 import {
   Account,
   AccountClass,
@@ -50,6 +50,23 @@ export type AnyCoUnionSchema = z.core.$ZodDiscriminatedUnion<
     | z.core.$ZodDiscriminatedUnion
   )[]
 >;
+
+// this is a series of hacks to work around z4 removing _zod at runtime from z.core.$ZodType
+export function isZodObject(
+  schema: z.core.$ZodType,
+): schema is z.core.$ZodObject<any, any> {
+  return (schema as any).def?.type === "object";
+}
+
+export function isZodCustom(
+  schema: z.core.$ZodType,
+): schema is z.core.$ZodCustom<any, any> {
+  return (schema as any).def?.type === "custom";
+}
+
+export function getDef<S extends z.core.$ZodType>(schema: S): S["_zod"]["def"] {
+  return (schema as any).def;
+}
 
 export type CoValueOrZodSchema =
   | CoValueClass

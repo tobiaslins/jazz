@@ -1,4 +1,4 @@
-import z from "zod";
+import z from "zod/v4";
 import { Account, CoRichText, Group } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 

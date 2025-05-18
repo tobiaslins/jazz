@@ -1,5 +1,5 @@
 import { RawCoList, RawCoMap } from "cojson";
-import z from "zod";
+import z from "zod/v4";
 import {
   Account,
   CoFeed,
@@ -17,7 +17,13 @@ import {
   isUnionOfCoMapsDeeply,
   schemaUnionDiscriminatorFor,
 } from "../unionUtils.js";
-import { CoValueClassFromZodSchema, ZodPrimitiveSchema } from "../zodSchema.js";
+import {
+  CoValueClassFromZodSchema,
+  ZodPrimitiveSchema,
+  getDef,
+  isZodCustom,
+  isZodObject,
+} from "../zodSchema.js";
 import { zodFieldToCoFieldDef } from "./zodFieldToCoFieldDef.js";
 
 let coSchemasForZodSchemas = new Map<z.core.$ZodType, CoValueClass>();
@@ -30,8 +36,8 @@ export function tryZodSchemaToCoSchema<S extends z.core.$ZodType>(
       return coSchemasForZodSchemas.get(schema) as CoValueClassFromZodSchema<S>;
     }
 
-    if (schema instanceof z.core.$ZodObject) {
-      const def = (schema as z.core.$ZodObject)._zod.def;
+    if (isZodObject(schema)) {
+      const def = getDef(schema);
 
       const ClassToExtend =
         "builtin" in schema && schema.builtin === "Account" ? Account : CoMap;
@@ -39,7 +45,9 @@ export function tryZodSchemaToCoSchema<S extends z.core.$ZodType>(
       const coSchema = class ZCoMap extends ClassToExtend {
         constructor(options: { fromRaw: RawCoMap } | undefined) {
           super(options);
-          for (const [field, fieldType] of Object.entries(def.shape)) {
+          for (const [field, fieldType] of Object.entries(
+            def.shape as z.core.$ZodShape,
+          )) {
             (this as any)[field] = zodFieldToCoFieldDef(
               zodSchemaToCoSchemaOrKeepPrimitive(fieldType),
             );
@@ -68,7 +76,7 @@ export function tryZodSchemaToCoSchema<S extends z.core.$ZodType>(
       coSchemasForZodSchemas.set(schema, coSchema as unknown as CoValueClass);
       return coSchema as unknown as CoValueClassFromZodSchema<S>;
     } else if (schema instanceof z.core.$ZodArray) {
-      const def = (schema as z.core.$ZodArray)._zod.def;
+      const def = getDef(schema);
       const coSchema = class ZCoList extends CoList {
         constructor(options: { fromRaw: RawCoList } | undefined) {
           super(options);
@@ -80,7 +88,7 @@ export function tryZodSchemaToCoSchema<S extends z.core.$ZodType>(
 
       coSchemasForZodSchemas.set(schema, coSchema);
       return coSchema as unknown as CoValueClassFromZodSchema<S>;
-    } else if (schema._zod.def.type === "custom") {
+    } else if (isZodCustom(schema)) {
       if ("builtin" in schema) {
         if (schema.builtin === "CoFeed" && "element" in schema) {
           return CoFeed.Of(
@@ -104,7 +112,7 @@ export function tryZodSchemaToCoSchema<S extends z.core.$ZodType>(
       }
     } else {
       throw new Error(
-        `Unsupported zod CoValue type for top-level schema: ${schema._zod?.def?.type || JSON.stringify(schema)}`,
+        `Unsupported zod CoValue type for top-level schema: ${schema._zod?.def?.type || JSON.stringify(schema, undefined, 2)}`,
       );
     }
   } else if (schema instanceof z.core.$ZodDiscriminatedUnion) {

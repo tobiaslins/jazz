@@ -1,4 +1,4 @@
-import z from "zod";
+import z from "zod/v4";
 import { CoMap, CoValueClass, isCoValueClass } from "../../../internal.js";
 import { coField } from "../../schema.js";
 import {

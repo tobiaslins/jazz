@@ -1,4 +1,4 @@
-import z from "zod";
+import z from "zod/v4";
 import {
   Account,
   CoFeed,
@@ -32,13 +32,13 @@ export type InstanceOfSchema<S extends CoValueClass | z.core.$ZodType> =
         ? {
             [key in z.output<K> & string]: InstanceOrPrimitiveOfSchema<V>;
           } & CoMap
-        : S extends AnyCoMapSchema<infer Shape, infer OutExtra>
+        : S extends AnyCoMapSchema<infer Shape, infer Config>
           ? {
               [key in keyof Shape]: InstanceOrPrimitiveOfSchema<Shape[key]>;
-            } & (unknown extends OutExtra[string]
+            } & (unknown extends Config["out"][string]
               ? {}
               : {
-                  [key: string]: OutExtra[string];
+                  [key: string]: Config["out"][string];
                 }) &
               CoMap
           : S extends AnyCoListSchema<infer T>
