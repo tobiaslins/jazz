@@ -7,7 +7,7 @@ import {
   RawCoMap,
   RawCoPlainText,
 } from "cojson";
-import z from "zod";
+import z, { keyof } from "zod";
 import {
   Account,
   AccountClass,
@@ -16,6 +16,7 @@ import {
   CoList,
   CoMap,
   CoPlainText,
+  CoValue,
   CoValueClass,
   CoValueFromRaw,
   FileStream,
@@ -64,28 +65,48 @@ export type CoMapSchema<
           }) &
       CoMap;
 
-    load<const R extends RefsToResolve<CoMapInstance<Shape>> = true>(
-      id: ID<CoMapInstance<Shape>>,
+    load<
+      const R extends RefsToResolve<
+        Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap
+      > = true,
+    >(
+      id: string,
       options?: {
-        resolve?: RefsToResolveStrict<CoMapInstance<Shape>, R>;
+        resolve?: RefsToResolveStrict<
+          Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
+          R
+        >;
         loadAs?: Account | AnonymousJazzAgent;
       },
-    ): Promise<Resolved<CoMapInstance<Shape>, R> | null>;
+    ): Promise<Resolved<
+      Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
+      R
+    > | null>;
 
-    subscribe<const R extends RefsToResolve<CoMapInstance<Shape>> = true>(
-      id: ID<CoMapInstance<Shape>>,
-      options: SubscribeListenerOptions<CoMapInstance<Shape>, R>,
+    subscribe<
+      const R extends RefsToResolve<
+        Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap
+      > = true,
+    >(
+      id: string,
+      options: SubscribeListenerOptions<
+        Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
+        R
+      >,
       listener: (
-        value: Resolved<CoMapInstance<Shape>, R>,
+        value: Resolved<
+          Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
+          R
+        >,
         unsubscribe: () => void,
       ) => void,
     ): () => void;
 
     findUnique(
       unique: CoValueUniqueness["uniqueness"],
-      ownerID: ID<Account> | ID<Group>,
+      ownerID: string,
       as?: Account | Group | AnonymousJazzAgent,
-    ): ID<CoMapInstance<Shape>>;
+    ): string;
 
     catchall<T extends z.core.$ZodType>(
       schema: T,
@@ -107,36 +128,49 @@ export type WithHelpers<
 type CoMapInit<Shape extends z.core.$ZodLooseShape> = {
   [key in keyof Shape as Shape[key] extends z.core.$ZodOptional<any>
     ? key
-    : never]?: InstanceOrPrimitiveOfSchema<Shape[key]>;
+    : never]?: FullyOrPartiallyLoaded<Shape[key]>;
 } & {
   [key in keyof Shape as Shape[key] extends z.core.$ZodOptional<any>
     ? never
-    : key]: InstanceOrPrimitiveOfSchema<Shape[key]>;
+    : key]: FullyOrPartiallyLoaded<Shape[key]>;
 };
+
+type FullyOrPartiallyLoaded<S extends z.core.$ZodType | CoValueClass> =
+  InstanceOrPrimitiveOfSchema<S> extends CoValue
+    ? NonNullable<InstanceOrPrimitiveOfSchemaCoValuesNullable<S>>
+    : InstanceOrPrimitiveOfSchema<S>;
 
 export type AccountSchema<
   Shape extends {
     profile: AnyCoMapSchema<{
       name: z.core.$ZodString<string>;
-      inbox: z.core.$ZodOptional<z.core.$ZodString>;
-      inboxInvite: z.core.$ZodOptional<z.core.$ZodString>;
+      inbox?: z.core.$ZodOptional<z.core.$ZodString>;
+      inboxInvite?: z.core.$ZodOptional<z.core.$ZodString>;
     }>;
     root: AnyCoMapSchema;
   } = {
     profile: CoMapSchema<{
       name: z.core.$ZodString<string>;
-      inbox: z.core.$ZodOptional<z.core.$ZodString>;
-      inboxInvite: z.core.$ZodOptional<z.core.$ZodString>;
+      inbox?: z.core.$ZodOptional<z.core.$ZodString>;
+      inboxInvite?: z.core.$ZodOptional<z.core.$ZodString>;
     }>;
     root: CoMapSchema<{}>;
   },
-> = Omit<CoMapSchema<Shape>, "create"> & {
+> = Omit<CoMapSchema<Shape>, "create" | "load"> & {
   builtin: "Account";
 
   create: (options: {
     creationProps?: { name: string };
     crypto?: CryptoProvider;
   }) => Promise<AccountInstance<Shape>>;
+
+  load: <R extends ResolveQuery<AccountSchema<Shape>>>(
+    id: string,
+    options?: {
+      loadAs?: Account | AnonymousJazzAgent;
+      resolve?: RefsToResolveStrict<AccountSchema<Shape>, R>;
+    },
+  ) => Promise<Loaded<AccountSchema<Shape>, R> | null>;
 
   createAs: (
     as: Account,
@@ -145,7 +179,7 @@ export type AccountSchema<
     },
   ) => Promise<AccountInstance<Shape>>;
 
-  getMe: () => AccountInstance<Shape>;
+  getMe: () => AccountInstanceCoValuesNullable<Shape>;
 
   withMigration(
     migration: (
@@ -176,19 +210,30 @@ export type CoRecordSchema<
     [key in z.output<K>]: InstanceOrPrimitiveOfSchema<V>;
   } & CoMap;
 
-  load<const R extends RefsToResolve<CoRecordInstance<K, V>> = true>(
-    id: ID<CoRecordInstance<K, V>>,
+  load<
+    const R extends RefsToResolve<
+      CoRecordInstanceCoValuesNullable<K, V>
+    > = true,
+  >(
+    id: ID<CoRecordInstanceCoValuesNullable<K, V>>,
     options?: {
-      resolve?: RefsToResolveStrict<CoRecordInstance<K, V>, R>;
+      resolve?: RefsToResolveStrict<CoRecordInstanceCoValuesNullable<K, V>, R>;
       loadAs?: Account | AnonymousJazzAgent;
     },
-  ): Promise<Resolved<CoRecordInstance<K, V>, R> | null>;
+  ): Promise<Resolved<CoRecordInstanceCoValuesNullable<K, V>, R> | null>;
 
-  subscribe<const R extends RefsToResolve<CoRecordInstance<K, V>> = true>(
-    id: ID<CoRecordInstance<K, V>>,
-    options: SubscribeListenerOptions<CoRecordInstance<K, V>, R>,
+  subscribe<
+    const R extends RefsToResolve<
+      CoRecordInstanceCoValuesNullable<K, V>
+    > = true,
+  >(
+    id: ID<CoRecordInstanceCoValuesNullable<K, V>>,
+    options: SubscribeListenerOptions<
+      CoRecordInstanceCoValuesNullable<K, V>,
+      R
+    >,
     listener: (
-      value: Resolved<CoRecordInstance<K, V>, R>,
+      value: Resolved<CoRecordInstanceCoValuesNullable<K, V>, R>,
       unsubscribe: () => void,
     ) => void,
   ): () => void;
@@ -197,7 +242,7 @@ export type CoRecordSchema<
     unique: CoValueUniqueness["uniqueness"],
     ownerID: ID<Account> | ID<Group>,
     as?: Account | Group | AnonymousJazzAgent,
-  ): ID<CoRecordInstance<K, V>>;
+  ): ID<CoRecordInstanceCoValuesNullable<K, V>>;
 
   withHelpers<S extends z.core.$ZodType, T extends object>(
     this: S,
@@ -228,19 +273,21 @@ export type CoListSchema<T extends z.core.$ZodType> = z.core.$ZodArray<T> & {
     options?: { owner: Account | Group } | Account | Group,
   ) => CoList<InstanceOrPrimitiveOfSchema<T>>;
 
-  load<const R extends RefsToResolve<CoListInstance<T>> = true>(
+  load<const R extends RefsToResolve<CoListInstanceCoValuesNullable<T>> = true>(
     id: string,
     options?: {
-      resolve?: RefsToResolveStrict<CoListInstance<T>, R>;
+      resolve?: RefsToResolveStrict<CoListInstanceCoValuesNullable<T>, R>;
       loadAs?: Account | AnonymousJazzAgent;
     },
-  ): Promise<Resolved<CoListInstance<T>, R> | null>;
+  ): Promise<Resolved<CoListInstanceCoValuesNullable<T>, R> | null>;
 
-  subscribe<const R extends RefsToResolve<CoListInstance<T>> = true>(
+  subscribe<
+    const R extends RefsToResolve<CoListInstanceCoValuesNullable<T>> = true,
+  >(
     id: string,
-    options: SubscribeListenerOptions<CoListInstance<T>, R>,
+    options: SubscribeListenerOptions<CoListInstanceCoValuesNullable<T>, R>,
     listener: (
-      value: Resolved<CoListInstance<T>, R>,
+      value: Resolved<CoListInstanceCoValuesNullable<T>, R>,
       unsubscribe: () => void,
     ) => void,
   ): () => void;
@@ -264,26 +311,28 @@ export type CoFeedSchema<T extends z.core.$ZodType> = z.core.$ZodCustom<
     options?: { owner: Account | Group } | Account | Group,
   ): CoFeedInstance<T>;
 
-  load<const R extends RefsToResolve<CoFeedInstance<T>> = true>(
+  load<const R extends RefsToResolve<CoFeedInstanceCoValuesNullable<T>> = true>(
     id: string,
     options?: {
-      resolve?: RefsToResolveStrict<CoFeedInstance<T>, R>;
+      resolve?: RefsToResolveStrict<CoFeedInstanceCoValuesNullable<T>, R>;
       loadAs?: Account | AnonymousJazzAgent;
     },
-  ): Promise<Resolved<CoFeedInstance<T>, R> | null>;
+  ): Promise<Resolved<CoFeedInstanceCoValuesNullable<T>, R> | null>;
 
   subscribe(
     id: string,
     listener: (
-      value: Resolved<CoFeedInstance<T>, true>,
+      value: Resolved<CoFeedInstanceCoValuesNullable<T>, true>,
       unsubscribe: () => void,
     ) => void,
   ): () => void;
-  subscribe<const R extends RefsToResolve<CoFeedInstance<T>> = true>(
+  subscribe<
+    const R extends RefsToResolve<CoFeedInstanceCoValuesNullable<T>> = true,
+  >(
     id: string,
-    options: SubscribeListenerOptions<CoFeedInstance<T>, R>,
+    options: SubscribeListenerOptions<CoFeedInstanceCoValuesNullable<T>, R>,
     listener: (
-      value: Resolved<CoFeedInstance<T>, R>,
+      value: Resolved<CoFeedInstanceCoValuesNullable<T>, R>,
       unsubscribe: () => void,
     ) => void,
   ): () => void;
@@ -774,6 +823,13 @@ export type CoMapInstance<Shape extends z.core.$ZodLooseShape> = {
   -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchema<Shape[key]>;
 } & CoMap;
 
+export type CoMapInstanceCoValuesNullable<Shape extends z.core.$ZodLooseShape> =
+  {
+    -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchemaCoValuesNullable<
+      Shape[key]
+    >;
+  };
+
 export type CoRecordInstance<
   K extends z.core.$ZodString<string>,
   V extends z.core.$ZodType,
@@ -781,16 +837,39 @@ export type CoRecordInstance<
   [key in z.output<K>]: InstanceOrPrimitiveOfSchema<V>;
 } & CoMap;
 
+export type CoRecordInstanceCoValuesNullable<
+  K extends z.core.$ZodString<string>,
+  V extends z.core.$ZodType,
+> = {
+  [key in z.output<K>]: InstanceOrPrimitiveOfSchemaCoValuesNullable<V>;
+} & CoMap;
+
 export type AccountInstance<Shape extends z.core.$ZodLooseShape> = {
   -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchema<Shape[key]>;
+} & Account;
+
+export type AccountInstanceCoValuesNullable<
+  Shape extends z.core.$ZodLooseShape,
+> = {
+  -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchemaCoValuesNullable<
+    Shape[key]
+  >;
 } & Account;
 
 export type CoListInstance<T extends z.core.$ZodType> = CoList<
   InstanceOrPrimitiveOfSchema<T>
 >;
 
+export type CoListInstanceCoValuesNullable<T extends z.core.$ZodType> = CoList<
+  InstanceOrPrimitiveOfSchemaCoValuesNullable<T>
+>;
+
 export type CoFeedInstance<T extends z.core.$ZodType> = CoFeed<
   InstanceOrPrimitiveOfSchema<T>
+>;
+
+export type CoFeedInstanceCoValuesNullable<T extends z.core.$ZodType> = CoFeed<
+  InstanceOrPrimitiveOfSchemaCoValuesNullable<T>
 >;
 
 export type InstanceOrPrimitiveOfSchema<
@@ -854,6 +933,79 @@ export type InstanceOrPrimitiveOfSchema<
     ? InstanceType<S>
     : never;
 
+export type InstanceOrPrimitiveOfSchemaCoValuesNullable<
+  S extends CoValueClass | z.core.$ZodType,
+> = S extends z.core.$ZodType
+  ? S extends z.core.$ZodObject<infer Shape> & {
+      collaborative: true;
+      builtin: "Account";
+    }
+    ?
+        | ({
+            -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchemaCoValuesNullable<
+              Shape[key]
+            >;
+          } & { profile: Profile | null } & Account)
+        | null
+    : S extends z.core.$ZodRecord<infer K, infer V> & {
+          collaborative: true;
+        }
+      ?
+          | ({
+              -readonly [key in z.output<K> &
+                string]: InstanceOrPrimitiveOfSchemaCoValuesNullable<V>;
+            } & CoMap)
+          | null
+      : S extends AnyCoMapSchema<infer Shape, infer OutExtra>
+        ?
+            | ({
+                -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchemaCoValuesNullable<
+                  Shape[key]
+                >;
+              } & (unknown extends OutExtra[string]
+                ? {}
+                : {
+                    [key: string]: OutExtra[string];
+                  }) &
+                CoMap)
+            | null
+        : S extends AnyCoListSchema<infer T>
+          ? CoList<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>> | null
+          : S extends AnyCoFeedSchema<infer T>
+            ? CoFeed<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>> | null
+            : S extends PlainTextSchema
+              ? CoPlainText | null
+              : S extends FileStreamSchema
+                ? FileStream | null
+                : S extends z.core.$ZodOptional<infer Inner>
+                  ?
+                      | InstanceOrPrimitiveOfSchemaCoValuesNullable<Inner>
+                      | undefined
+                  : S extends z.core.$ZodTuple<infer Items>
+                    ? {
+                        [key in keyof Items]: InstanceOrPrimitiveOfSchemaCoValuesNullable<
+                          Items[key]
+                        >;
+                      }
+                    : S extends z.core.$ZodUnion<infer Members>
+                      ? InstanceOrPrimitiveOfSchemaCoValuesNullable<
+                          Members[number]
+                        >
+                      : S extends z.core.$ZodString
+                        ? string
+                        : S extends z.core.$ZodNumber
+                          ? number
+                          : S extends z.core.$ZodBoolean
+                            ? boolean
+                            : S extends z.core.$ZodLiteral<infer Literal>
+                              ? Literal
+                              : S extends z.core.$ZodDate
+                                ? Date
+                                : never
+  : S extends CoValueClass
+    ? InstanceType<S> | null
+    : never;
+
 // same as above type but excluding primitives
 export type InstanceOfSchema<S extends CoValueClass | z.core.$ZodType> =
   S extends z.core.$ZodType
@@ -896,15 +1048,83 @@ export type InstanceOfSchema<S extends CoValueClass | z.core.$ZodType> =
       ? InstanceType<S>
       : never;
 
+export type InstanceOfSchemaCoValuesNullable<
+  S extends CoValueClass | z.core.$ZodType,
+> = S extends z.core.$ZodType
+  ? S extends z.core.$ZodObject<infer Shape> & {
+      collaborative: true;
+      builtin: "Account";
+    }
+    ?
+        | ({
+            [key in keyof Shape]: InstanceOrPrimitiveOfSchemaCoValuesNullable<
+              Shape[key]
+            >;
+          } & Account)
+        | null
+    : S extends z.core.$ZodRecord<infer K, infer V> & {
+          collaborative: true;
+        }
+      ?
+          | ({
+              [key in z.output<K> &
+                string]: InstanceOrPrimitiveOfSchemaCoValuesNullable<V>;
+            } & CoMap)
+          | null
+      : S extends AnyCoMapSchema<infer Shape, infer OutExtra>
+        ?
+            | ({
+                [key in keyof Shape]: InstanceOrPrimitiveOfSchemaCoValuesNullable<
+                  Shape[key]
+                >;
+              } & (unknown extends OutExtra[string]
+                ? {}
+                : {
+                    [key: string]: OutExtra[string];
+                  }) &
+                CoMap)
+            | null
+        : S extends AnyCoListSchema<infer T>
+          ? CoList<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>> | null
+          : S extends AnyCoFeedSchema<infer T>
+            ? CoFeed<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>> | null
+            : S extends PlainTextSchema
+              ? CoPlainText | null
+              : S extends FileStreamSchema
+                ? FileStream | null
+                : S extends z.core.$ZodOptional<infer Inner>
+                  ?
+                      | InstanceOrPrimitiveOfSchemaCoValuesNullable<Inner>
+                      | undefined
+                  : S extends z.core.$ZodUnion<infer Members>
+                    ? InstanceOrPrimitiveOfSchemaCoValuesNullable<
+                        Members[number]
+                      >
+                    : never
+  : S extends CoValueClass
+    ? InstanceType<S> | null
+    : never;
+
+type AnyCoSchema =
+  | AnyCoMapSchema
+  | AnyAccountSchema
+  | AnyCoRecordSchema
+  | AnyCoListSchema
+  | AnyCoFeedSchema
+  | AnyCoUnionSchema
+  | PlainTextSchema
+  | FileStreamSchema;
+
 export type Loaded<
-  T extends
-    | CoValueClass
-    | AnyCoMapSchema
-    | AnyAccountSchema
-    | AnyCoRecordSchema
-    | AnyCoListSchema
-    | AnyCoFeedSchema
-    | AnyCoUnionSchema
-    | PlainTextSchema,
-  R extends RefsToResolve<InstanceOfSchema<T>> = true,
-> = Resolved<InstanceOfSchema<T>, R>;
+  T extends CoValueClass | AnyCoSchema,
+  R extends ResolveQuery<T> = true,
+> = Resolved<NonNullable<InstanceOfSchemaCoValuesNullable<T>>, R>;
+
+export type ResolveQuery<T extends CoValueClass | AnyCoSchema> = RefsToResolve<
+  NonNullable<InstanceOfSchemaCoValuesNullable<T>>
+>;
+
+export type ResolveQueryStrict<
+  T extends CoValueClass | AnyCoSchema,
+  R extends ResolveQuery<T>,
+> = RefsToResolveStrict<NonNullable<InstanceOfSchemaCoValuesNullable<T>>, R>;

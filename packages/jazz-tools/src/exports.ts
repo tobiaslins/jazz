@@ -89,7 +89,7 @@ export {
   zodSchemaToCoSchema,
   anySchemaToCoSchema,
   type InstanceOfSchema,
-  type InstanceOrPrimitiveOfSchema,
+  type InstanceOfSchemaCoValuesNullable,
   type CoValueOrZodSchema,
   type Loaded,
   type AccountSchema,
@@ -99,4 +99,6 @@ export {
   type CoFeedSchema,
   type PlainTextSchema,
   type FileStreamSchema,
+  type ResolveQuery,
+  type ResolveQueryStrict,
 } from "./internal.js";

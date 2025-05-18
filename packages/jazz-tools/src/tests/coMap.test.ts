@@ -589,9 +589,9 @@ describe("CoMap resolution", async () => {
 
     assert(loadedPerson);
 
-    expect(loadedPerson._refs.dog.id).toBe(person.dog!.id);
+    expect(loadedPerson._refs.dog?.id).toBe(person.dog!.id);
 
-    const dog = await loadedPerson._refs.dog.load();
+    const dog = await loadedPerson._refs.dog?.load();
 
     assert(dog);
 

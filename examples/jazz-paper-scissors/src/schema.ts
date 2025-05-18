@@ -1,65 +1,47 @@
-import { Account, CoMap, coField } from "jazz-tools";
+import { co, z } from "jazz-tools";
 
-export class Game extends CoMap {
-  player1 = coField.ref(Player);
-  player2? = coField.ref(Player);
-  outcome? = coField.literal("player1", "player2", "draw");
-  player1Score = coField.number;
-  player2Score = coField.number;
+export const Player = co.map({
+  account: co.account(),
+  playSelection: z.optional(z.literal(["rock", "paper", "scissors"])),
+});
 
-  /**
-   * Given a player, returns the opponent in the current game.
-   */
-  static getOpponent(game: Game, player: Player) {
-    // TODO: player may be unrelated to this game
-    const opponent =
-      player.account?.id === game.player1?.account?.id
-        ? game.player2
-        : game.player1;
+export const Game = co.map({
+  player1: Player,
+  player2: z.optional(Player),
+  outcome: z.optional(z.literal(["player1", "player2", "draw"])),
+  player1Score: z.number(),
+  player2Score: z.number(),
+});
 
-    if (!opponent) {
-      throw new Error("Opponent not found");
-    }
+export const WaitingRoom = co.map({
+  account1: co.account(),
+  account2: z.optional(co.account()),
+  game: z.optional(Game),
+});
+export const PlayIntent = co.map({
+  type: z.literal("play"),
+  gameId: z.string(),
+  player: z.literal(["player1", "player2"]),
+  playSelection: z.literal(["rock", "paper", "scissors"]),
+});
 
-    return opponent.ensureLoaded({
-      // account: {},
-      resolve: {},
-    });
-  }
-}
+export const NewGameIntent = co.map({
+  type: z.literal("newGame"),
+  gameId: z.string(),
+});
 
-export class Player extends CoMap {
-  account = coField.ref(Account);
-  playSelection? = coField.literal("rock", "paper", "scissors");
-}
+export const CreateGameRequest = co.map({
+  type: z.literal("createGame"),
+});
 
-export class WaitingRoom extends CoMap {
-  account1 = coField.ref(Account);
-  account2 = coField.optional.ref(Account);
-  game = coField.optional.ref(Game);
-}
+export const JoinGameRequest = co.map({
+  type: z.literal("joinGame"),
+  waitingRoom: WaitingRoom,
+});
 
-export class InboxMessage extends CoMap {
-  type = coField.literal("play", "createGame", "joinGame", "newGame");
-}
-
-export class PlayIntent extends InboxMessage {
-  type = coField.literal("play");
-  gameId = coField.string;
-  player = coField.literal("player1", "player2");
-  playSelection = coField.literal("rock", "paper", "scissors");
-}
-
-export class NewGameIntent extends InboxMessage {
-  type = coField.literal("newGame");
-  gameId = coField.string;
-}
-
-export class CreateGameRequest extends InboxMessage {
-  type = coField.literal("createGame");
-}
-
-export class JoinGameRequest extends InboxMessage {
-  type = coField.literal("joinGame");
-  waitingRoom = coField.ref(WaitingRoom);
-}
+export const InboxMessage = z.discriminatedUnion([
+  PlayIntent,
+  NewGameIntent,
+  CreateGameRequest,
+  JoinGameRequest,
+]);

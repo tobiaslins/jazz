@@ -1,11 +1,9 @@
 import { ProgressiveImg, createImage, useAccount } from "jazz-react";
-import { Loaded } from "jazz-tools";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { JazzAccount } from "./schema";
 
 export default function ImageUpload() {
-  const { me } = useAccount(JazzAccount);
-  type T = Loaded<typeof JazzAccount, true>;
+  const { me } = useAccount(JazzAccount, { resolve: { profile: true } });
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -28,7 +26,7 @@ export default function ImageUpload() {
   }, [imagePreviewUrl]);
 
   const onImageChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    if (!me?.profile) return;
+    if (!me) return;
 
     const file = event.currentTarget.files?.[0];
 
@@ -37,9 +35,9 @@ export default function ImageUpload() {
       setImagePreviewUrl(objectUrl);
 
       try {
-        me.profile.image = (await createImage(file, {
+        me.profile.image = await createImage(file, {
           owner: me.profile._owner,
-        })) as any; // TODO: fix this
+        });
       } catch (error) {
         console.error("Error uploading image:", error);
       } finally {

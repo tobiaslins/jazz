@@ -85,7 +85,7 @@ export { CoFeed as CoStream };
  *
  * @category CoValues
  */
-export class CoFeed<Item = any> extends CoValueBase implements CoValue {
+export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
   /**
    * Declare a `CoFeed` by subclassing `CoFeed.Of(...)` and passing the item schema using a `co` primitive or a `coField.ref`.
    *
@@ -122,7 +122,7 @@ export class CoFeed<Item = any> extends CoValueBase implements CoValue {
   static _schema: any;
   /** @internal */
   get _schema(): {
-    [ItemsSym]: SchemaFor<Item>;
+    [ItemsSym]: SchemaFor<Item> | any;
   } {
     return (this.constructor as typeof CoFeed)._schema;
   }

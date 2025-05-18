@@ -16,17 +16,18 @@ import {
   ID,
   InboxSender,
   InstanceOfSchema,
-  InstanceOrPrimitiveOfSchema,
+  InstanceOfSchemaCoValuesNullable,
   JazzContextManager,
   JazzContextType,
   Loaded,
   RefsToResolve,
   RefsToResolveStrict,
+  ResolveQuery,
+  ResolveQueryStrict,
   Resolved,
   anySchemaToCoSchema,
   createCoValueObservable,
   z,
-  zodSchemaToCoSchema,
 } from "jazz-tools";
 import { JazzContext, JazzContextManagerContext } from "./provider.js";
 import { getCurrentAccountFromContextManager } from "./utils.js";
@@ -87,10 +88,10 @@ export function useIsAuthenticated() {
 }
 
 function useCoValueObservable<
-  V extends CoValue,
-  const R extends RefsToResolve<V>,
+  S extends CoValueOrZodSchema,
+  const R extends ResolveQuery<S>,
 >() {
-  const [initialValue] = React.useState(() => createCoValueObservable<V, R>());
+  const [initialValue] = React.useState(() => createCoValueObservable<S, R>());
   const ref = useRef(initialValue);
 
   return {
@@ -101,29 +102,27 @@ function useCoValueObservable<
       return ref.current;
     },
     reset(initialValue?: undefined | null) {
-      ref.current = createCoValueObservable<V, R>(initialValue);
+      ref.current = createCoValueObservable<S, R>(initialValue);
     },
   };
 }
 
 export function useCoState<
   S extends CoValueOrZodSchema,
-  const R extends RefsToResolve<InstanceOrPrimitiveOfSchema<S>> = true,
+  const R extends ResolveQuery<S> = true,
 >(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Schema: S,
   id: string | undefined,
   options?: {
-    resolve?: RefsToResolveStrict<InstanceOrPrimitiveOfSchema<S>, R>;
+    resolve?: ResolveQueryStrict<S, R>;
   },
-): Resolved<InstanceOrPrimitiveOfSchema<S>, R> | undefined | null {
+): Loaded<S, R> | undefined | null {
   const contextManager = useJazzContextManager();
 
-  const observable = useCoValueObservable<InstanceOrPrimitiveOfSchema<S>, R>();
+  const observable = useCoValueObservable<S, R>();
 
-  const value = React.useSyncExternalStore<
-    Resolved<InstanceOrPrimitiveOfSchema<S>, R> | undefined | null
-  >(
+  const value = React.useSyncExternalStore<Loaded<S, R> | undefined | null>(
     React.useCallback(
       (callback) => {
         if (!id) {
@@ -142,9 +141,7 @@ export function useCoState<
           observable.reset();
 
           return observable.getCurrentObservable().subscribe(
-            anySchemaToCoSchema(Schema) as CoValueClass<
-              InstanceOrPrimitiveOfSchema<S>
-            >,
+            Schema,
             id,
             {
               loadAs: agent,
@@ -174,20 +171,20 @@ function useAccount<A extends AccountClass<Account> | AnyAccountSchema>(
 };
 function useAccount<
   A extends AccountClass<Account> | AnyAccountSchema,
-  R extends RefsToResolve<InstanceOfSchema<A>>,
+  R extends ResolveQuery<A>,
 >(
   AccountSchema: A,
   options?: {
-    resolve?: RefsToResolveStrict<InstanceOfSchema<A>, R>;
+    resolve?: ResolveQueryStrict<A, R>;
   },
 ): { me: Loaded<A, R> | undefined | null; logOut: () => void };
 function useAccount<
   A extends AccountClass<Account> | AnyAccountSchema,
-  R extends RefsToResolve<A>,
+  R extends ResolveQuery<A>,
 >(
   AccountSchema: A = Account as unknown as A,
   options?: {
-    resolve?: RefsToResolveStrict<A, R>;
+    resolve?: ResolveQueryStrict<A, R>;
   },
 ): {
   me: Loaded<A, true> | Loaded<A, R> | undefined | null;
@@ -202,7 +199,7 @@ function useAccount<
     );
   }
 
-  const observable = useCoValueObservable<InstanceOfSchema<A>, R>();
+  const observable = useCoValueObservable<A, R>();
 
   const me = React.useSyncExternalStore<Loaded<A, R> | undefined | null>(
     React.useCallback(
@@ -219,16 +216,11 @@ function useAccount<
           observable.reset();
 
           return observable.getCurrentObservable().subscribe(
-            anySchemaToCoSchema(AccountSchema) as CoValueClass<
-              InstanceOfSchema<A>
-            >,
+            AccountSchema,
             agent.id,
             {
               loadAs: agent,
-              resolve: options?.resolve as unknown as RefsToResolveStrict<
-                InstanceOfSchema<A>,
-                R
-              >,
+              resolve: options?.resolve,
               onUnauthorized: callback,
               onUnavailable: callback,
               syncResolution: true,
@@ -253,23 +245,23 @@ function useAccount<
 function useAccountOrGuest<A extends AccountClass<Account> | AnyAccountSchema>(
   AccountSchema?: A,
 ): {
-  me: InstanceOfSchema<A> | AnonymousJazzAgent;
+  me: Loaded<A, true> | AnonymousJazzAgent;
 };
 function useAccountOrGuest<
   A extends AccountClass<Account> | AnyAccountSchema,
-  R extends RefsToResolve<InstanceOfSchema<A>>,
+  R extends ResolveQuery<A>,
 >(
   AccountSchema?: A,
-  options?: { resolve?: RefsToResolveStrict<InstanceOfSchema<A>, R> },
+  options?: { resolve?: ResolveQueryStrict<A, R> },
 ): {
   me: Loaded<A, R> | undefined | null | AnonymousJazzAgent;
 };
 function useAccountOrGuest<
   A extends AccountClass<Account> | AnyAccountSchema,
-  R extends RefsToResolve<InstanceOfSchema<A>>,
+  R extends ResolveQuery<A>,
 >(
   AccountSchema: A = Account as unknown as A,
-  options?: { resolve?: RefsToResolveStrict<InstanceOfSchema<A>, R> },
+  options?: { resolve?: ResolveQueryStrict<A, R> },
 ): {
   me:
     | InstanceOfSchema<A>
@@ -281,7 +273,7 @@ function useAccountOrGuest<
   const context = useJazzContext<InstanceOfSchema<A>>();
   const contextManager = useJazzContextManager<InstanceOfSchema<A>>();
 
-  const observable = useCoValueObservable<InstanceOfSchema<A>, R>();
+  const observable = useCoValueObservable<A, R>();
 
   const me = React.useSyncExternalStore<Loaded<A, R> | undefined | null>(
     React.useCallback(
@@ -296,9 +288,7 @@ function useAccountOrGuest<
           observable.reset();
 
           return observable.getCurrentObservable().subscribe(
-            anySchemaToCoSchema(AccountSchema) as CoValueClass<
-              InstanceOfSchema<A>
-            >,
+            AccountSchema,
             agent.id,
             {
               loadAs: agent,

@@ -81,7 +81,7 @@ describe("subscribeToCoValue", () => {
     const chatRoom = createChatRoom(me, "General");
     const updateFn = vi.fn();
 
-    let result = null as Loaded<typeof ChatRoom, {}> | null;
+    let result = null as Loaded<typeof ChatRoom, true> | null;
 
     const unsubscribe = subscribeToCoValue(
       zodSchemaToCoSchema(ChatRoom),
@@ -1271,12 +1271,12 @@ describe("createCoValueObservable", () => {
   it("should return null if the coValue is not found", async () => {
     const { meOnSecondPeer } = await setupAccount();
     const observable = createCoValueObservable<
-      InstanceOrPrimitiveOfSchema<typeof TestMap>,
+      typeof TestMap,
       Loaded<typeof TestMap, {}>
     >();
 
     const unsubscribe = observable.subscribe(
-      zodSchemaToCoSchema(TestMap),
+      TestMap,
       "co_z123",
       { loadAs: meOnSecondPeer },
       () => {},

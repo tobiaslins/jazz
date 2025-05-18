@@ -2,14 +2,19 @@ import type { CoValueUniqueness, RawCoValue } from "cojson";
 import {
   type Account,
   AnonymousJazzAgent,
+  CoValueOrZodSchema,
   type Group,
+  Loaded,
   RefsToResolve,
   RefsToResolveStrict,
   RegisteredSchemas,
+  ResolveQuery,
+  ResolveQueryStrict,
   Resolved,
   SubscriptionScope,
   type SubscriptionValue,
   activeAccountContext,
+  anySchemaToCoSchema,
   inspect,
 } from "../internal.js";
 
@@ -290,18 +295,18 @@ export function subscribeToCoValue<
 }
 
 export function createCoValueObservable<
-  V extends CoValue,
-  const R extends RefsToResolve<V>,
+  S extends CoValueOrZodSchema,
+  const R extends ResolveQuery<S>,
 >(initialValue: undefined | null = undefined) {
-  let currentValue: Resolved<V, R> | undefined | null = initialValue;
+  let currentValue: Loaded<S, R> | undefined | null = initialValue;
   let subscriberCount = 0;
 
   function subscribe(
-    cls: CoValueClass<V>,
-    id: ID<CoValue>,
+    cls: S,
+    id: string,
     options: {
       loadAs: Account | AnonymousJazzAgent;
-      resolve?: RefsToResolveStrict<V, R>;
+      resolve?: ResolveQueryStrict<S, R>;
       onUnavailable?: () => void;
       onUnauthorized?: () => void;
       syncResolution?: boolean;
@@ -311,11 +316,11 @@ export function createCoValueObservable<
     subscriberCount++;
 
     const unsubscribe = subscribeToCoValue(
-      cls,
+      anySchemaToCoSchema(cls),
       id,
       {
         loadAs: options.loadAs,
-        resolve: options.resolve,
+        resolve: options.resolve as any,
         onUnavailable: () => {
           currentValue = null;
           options.onUnavailable?.();
@@ -327,7 +332,7 @@ export function createCoValueObservable<
         syncResolution: options.syncResolution,
       },
       (value) => {
-        currentValue = value;
+        currentValue = value as Loaded<S, R>;
         listener();
       },
     );

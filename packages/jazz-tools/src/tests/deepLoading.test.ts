@@ -1,4 +1,4 @@
-import { cojsonInternals } from "cojson";
+import { Profile, cojsonInternals } from "cojson";
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { assert, describe, expect, expectTypeOf, test, vi } from "vitest";
 import {
@@ -88,7 +88,7 @@ describe("Deep loading with depth arg", async () => {
 
   test("load without resolve", async () => {
     const map1 = await TestMap.load(map.id, { loadAs: meOnSecondPeer });
-    expectTypeOf(map1).toEqualTypeOf<Loaded<typeof TestMap> | null>();
+    expectTypeOf(map1).branded.toEqualTypeOf<Loaded<typeof TestMap> | null>();
 
     assert(map1, "map1 is null");
 
@@ -100,7 +100,7 @@ describe("Deep loading with depth arg", async () => {
       loadAs: meOnSecondPeer,
       resolve: { list: true },
     });
-    expectTypeOf(map2).toEqualTypeOf<
+    expectTypeOf(map2).branded.toEqualTypeOf<
       | (Loaded<typeof TestMap> & {
           list: Loaded<typeof TestList>;
         })
@@ -116,7 +116,7 @@ describe("Deep loading with depth arg", async () => {
       loadAs: meOnSecondPeer,
       resolve: { list: { $each: true } },
     });
-    expectTypeOf(map3).toEqualTypeOf<
+    expectTypeOf(map3).branded.toEqualTypeOf<
       | (Loaded<typeof TestMap> & {
           list: Loaded<typeof TestList> & Loaded<typeof InnerMap>[];
         })
@@ -132,7 +132,7 @@ describe("Deep loading with depth arg", async () => {
       loadAs: meOnSecondPeer,
       resolve: { optionalRef: true } as const,
     });
-    expectTypeOf(map3a).toEqualTypeOf<
+    expectTypeOf(map3a).branded.toEqualTypeOf<
       | (Loaded<typeof TestMap> & {
           optionalRef: Loaded<typeof InnermostMap> | undefined;
         })
@@ -147,7 +147,7 @@ describe("Deep loading with depth arg", async () => {
       loadAs: meOnSecondPeer,
       resolve: { list: { $each: { stream: true } } },
     });
-    expectTypeOf(map4).toEqualTypeOf<
+    expectTypeOf(map4).branded.toEqualTypeOf<
       | (Loaded<typeof TestMap> & {
           list: Loaded<typeof TestList> &
             (Loaded<typeof InnerMap> & { stream: Loaded<typeof TestFeed> })[];
@@ -183,7 +183,7 @@ describe("Deep loading with depth arg", async () => {
             })[];
         })
       | null;
-    expectTypeOf(map5).toEqualTypeOf<ExpectedMap5>();
+    expectTypeOf(map5).branded.toEqualTypeOf<ExpectedMap5>();
     assert(map5, "map5 is null");
 
     expect(map5.list[0]?.stream?.[me.id]?.value).toBeTruthy();
@@ -224,17 +224,17 @@ const CustomAccount = co
       },
     });
 
-    // seems overly strict / spurious errors without .branded
-    expectTypeOf(accountLoaded).branded.toEqualTypeOf<
-      Loaded<typeof CustomAccount> & {
-        profile: Loaded<typeof CustomProfile> & {
-          stream: Loaded<typeof TestFeed>;
-        };
-        root: Loaded<typeof TestMap> & {
-          list: Loaded<typeof TestList>;
-        };
-      }
-    >();
+    // using assignment to check type compatibility
+    const _T:
+      | (Loaded<typeof CustomAccount> & {
+          profile: Loaded<typeof CustomProfile> & {
+            stream: Loaded<typeof TestFeed>;
+          };
+          root: Loaded<typeof TestMap> & {
+            list: Loaded<typeof TestList>;
+          };
+        })
+      | null = accountLoaded;
   });
 
 test("Deep loading within account", async () => {
@@ -249,17 +249,18 @@ test("Deep loading within account", async () => {
       root: { list: true },
     },
   });
-  // seems overly strict / spurious errors without .branded
-  expectTypeOf(meLoaded).branded.toEqualTypeOf<
-    Loaded<typeof CustomAccount> & {
-      profile: Loaded<typeof CustomProfile> & {
-        stream: Loaded<typeof TestFeed>;
-      };
-      root: Loaded<typeof TestMap> & {
-        list: Loaded<typeof TestList>;
-      };
-    }
-  >();
+
+  // using assignment to check type compatibility
+  const _T:
+    | (Loaded<typeof CustomAccount> & {
+        profile: Loaded<typeof CustomProfile> & {
+          stream: Loaded<typeof TestFeed>;
+        };
+        root: Loaded<typeof TestMap> & {
+          list: Loaded<typeof TestList>;
+        };
+      })
+    | null = meLoaded;
 
   expect(meLoaded.profile.stream).toBeTruthy();
   expect(meLoaded.root.list).toBeTruthy();
@@ -362,19 +363,19 @@ test("The resolve type doesn't accept extra keys", async () => {
       },
     });
 
-    // seems overly strict / spurious errors without .branded
-    expectTypeOf(meLoaded).branded.toEqualTypeOf<
-      Loaded<typeof CustomAccount> & {
-        profile: Loaded<typeof CustomProfile> & {
-          stream: Loaded<typeof TestFeed>;
-          extraKey: never;
-        };
-        root: Loaded<typeof TestMap> & {
-          list: Loaded<typeof TestList>;
-          extraKey: never;
-        };
-      }
-    >();
+    // using assignment to check type compatibility
+    const _T:
+      | (Loaded<typeof CustomAccount> & {
+          profile: Loaded<typeof CustomProfile> & {
+            stream: Loaded<typeof TestFeed>;
+            extraKey: never;
+          };
+          root: Loaded<typeof TestMap> & {
+            list: Loaded<typeof TestList>;
+            extraKey: never;
+          };
+        })
+      | null = meLoaded;
   } catch (e) {
     expect(e).toBeInstanceOf(Error);
   }

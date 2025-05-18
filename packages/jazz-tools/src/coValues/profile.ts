@@ -1,12 +1,9 @@
-import { CoID } from "cojson";
 import {
   Account,
   CoMap,
   CoMapInit,
   CoValueClass,
   Group,
-  InboxInvite,
-  InboxRoot,
   Simplify,
   coField,
 } from "../internal.js";

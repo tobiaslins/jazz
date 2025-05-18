@@ -91,8 +91,8 @@ const coAccountDefiner = <
   Shape extends {
     profile: AnyCoMapSchema<{
       name: z.core.$ZodString<string>;
-      inbox: z.core.$ZodOptional<z.core.$ZodString>;
-      inboxInvite: z.core.$ZodOptional<z.core.$ZodString>;
+      inbox?: z.core.$ZodOptional<z.core.$ZodString>;
+      inboxInvite?: z.core.$ZodOptional<z.core.$ZodString>;
     }>;
     root: AnyCoMapSchema;
   },

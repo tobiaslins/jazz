@@ -16,7 +16,9 @@ import {
 } from "./ui.tsx";
 
 export function ChatScreen(props: { chatID: string }) {
-  const chat = useCoState(Chat, props.chatID, { resolve: { $each: true } });
+  const chat = useCoState(Chat, props.chatID, {
+    resolve: { $each: { text: true } },
+  });
   const account = useAccount();
   const [showNLastMessages, setShowNLastMessages] = useState(30);
 

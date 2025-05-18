@@ -58,7 +58,7 @@ import {
  * @category CoValues
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export class CoList<Item = any> extends Array<Item> implements CoValue {
+export class CoList<out Item = any> extends Array<Item> implements CoValue {
   /**
    * Declare a `CoList` by subclassing `CoList.Of(...)` and passing the item schema using `co`.
    *
@@ -109,7 +109,7 @@ export class CoList<Item = any> extends Array<Item> implements CoValue {
   static _schema: any;
   /** @internal */
   get _schema(): {
-    [ItemsSym]: SchemaFor<Item>;
+    [ItemsSym]: SchemaFor<Item> | any;
   } {
     return (this.constructor as typeof CoList)._schema;
   }
