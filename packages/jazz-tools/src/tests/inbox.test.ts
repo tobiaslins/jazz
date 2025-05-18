@@ -19,10 +19,9 @@ describe("Inbox", () => {
   describe("Private profile", () => {
     it("Should throw if the inbox owner profile is private", async () => {
       const WorkerAccount = co.account().withMigration((account) => {
-        account.profile = Profile.create(
-          { name: "Worker" },
-          Group.create({ owner: account }),
-        );
+        account.profile = co
+          .profile()
+          .create({ name: "Worker" }, Group.create({ owner: account }));
       });
 
       const { clientAccount: sender, serverAccount: receiver } =

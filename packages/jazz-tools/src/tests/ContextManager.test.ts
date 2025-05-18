@@ -243,9 +243,7 @@ describe("ContextManager", () => {
     const CustomAccount = co
       .account({
         root: AccountRoot,
-        profile: co.map({
-          name: z.string(),
-        }),
+        profile: co.profile(),
       })
       .withMigration(async (account) => {
         account.root = AccountRoot.create({
@@ -294,9 +292,7 @@ describe("ContextManager", () => {
     const CustomAccount = co
       .account({
         root: AccountRoot,
-        profile: co.map({
-          name: z.string(),
-        }),
+        profile: co.profile(),
       })
       .withMigration(async (account) => {
         if (account.root === undefined) {
@@ -350,9 +346,7 @@ describe("ContextManager", () => {
     const CustomAccount = co
       .account({
         root: AccountRoot,
-        profile: co.map({
-          name: z.string(),
-        }),
+        profile: co.profile(),
       })
       .withMigration(async (account) => {
         if (account.root === undefined) {

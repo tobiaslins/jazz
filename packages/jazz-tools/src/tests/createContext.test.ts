@@ -68,9 +68,7 @@ describe("createContext methods", () => {
       const CustomAccount = co
         .account({
           root: co.map({}),
-          profile: co.map({
-            name: z.string(),
-          }),
+          profile: co.profile(),
         })
         .withMigration(async () => {});
 
@@ -189,9 +187,7 @@ describe("createContext methods", () => {
       const CustomAccount = co
         .account({
           root: co.map({}),
-          profile: co.map({
-            name: z.string(),
-          }),
+          profile: co.profile(),
         })
         .withMigration(async () => {});
 
@@ -341,9 +337,7 @@ describe("createContext methods", () => {
       const CustomAccount = co
         .account({
           root: co.map({}),
-          profile: co.map({
-            name: z.string(),
-          }),
+          profile: co.profile(),
         })
         .withMigration(async () => {});
 

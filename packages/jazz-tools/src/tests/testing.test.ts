@@ -32,9 +32,7 @@ describe("Jazz Test Sync", () => {
     const CustomAccount = co
       .account({
         root: MyRoot,
-        profile: co.map({
-          name: z.string(),
-        }),
+        profile: co.profile(),
       })
       .withMigration((account) => {
         if (account.root === undefined) {
@@ -60,9 +58,7 @@ describe("Jazz Test Sync", () => {
     const CustomAccount = co
       .account({
         root: MyRoot,
-        profile: co.map({
-          name: z.string(),
-        }),
+        profile: co.profile(),
       })
       .withMigration((account) => {
         if (account.root === undefined) {

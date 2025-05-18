@@ -152,21 +152,21 @@ describe("CoMap.Record", async () => {
 
       const edits = person._edits.name?.all;
       expect(edits).toEqual([
-        {
-          by: expect.objectContaining({ _type: "Account", id: me.id }),
+        expect.objectContaining({
           value: "John",
           key: "name",
           ref: undefined,
           madeAt: expect.any(Date),
-        },
-        {
-          by: expect.objectContaining({ _type: "Account", id: me.id }),
+        }),
+        expect.objectContaining({
           value: "Jane",
           key: "name",
           ref: undefined,
           madeAt: expect.any(Date),
-        },
+        }),
       ]);
+      expect(edits?.[0]?.by()).toMatchObject({ _type: "Account", id: me.id });
+      expect(edits?.[1]?.by()).toMatchObject({ _type: "Account", id: me.id });
     });
   });
 

@@ -12,12 +12,15 @@ import {
   CoListSchema,
   CoMapSchema,
   CoPlainText,
+  CoProfileSchema,
   CoRecordSchema,
+  DefaultProfileShape,
   FileStream,
   FileStreamSchema,
   Group,
   ImageDefinition,
   PlainTextSchema,
+  Simplify,
   zodSchemaToCoSchema,
 } from "../internal.js";
 
@@ -86,12 +89,20 @@ export const coMapDefiner = <Shape extends z.core.$ZodLooseShape>(
 
 const coAccountDefiner = <
   Shape extends {
-    profile: AnyCoMapSchema<{ name: z.core.$ZodString<string> }>;
+    profile: AnyCoMapSchema<{
+      name: z.core.$ZodString<string>;
+      inbox: z.core.$ZodOptional<z.core.$ZodString>;
+      inboxInvite: z.core.$ZodOptional<z.core.$ZodString>;
+    }>;
     root: AnyCoMapSchema;
   },
 >(
   shape: Shape = {
-    profile: co.map({ name: z.string() }),
+    profile: co.map({
+      name: z.string(),
+      inbox: z.optional(z.string()),
+      inboxInvite: z.optional(z.string()),
+    }),
     root: co.map({}),
   } as unknown as Shape,
 ): AccountSchema<Shape> => {
@@ -224,6 +235,30 @@ const coListDefiner = <T extends z.core.$ZodType>(
   return coListSchema;
 };
 
+const coProfileDefiner = <
+  Shape extends z.core.$ZodLooseShape = Simplify<DefaultProfileShape>,
+>(
+  shape: Shape & {
+    name?: z.core.$ZodString<string>;
+    inbox?: z.core.$ZodOptional<z.core.$ZodString>;
+    inboxInvite?: z.core.$ZodOptional<z.core.$ZodString>;
+  } = {} as any,
+): CoProfileSchema<Shape> => {
+  const base = coMapDefiner({
+    ...(shape ?? {}),
+    name: z.string(),
+    inbox: z.optional(z.string()),
+    inboxInvite: z.optional(z.string()),
+  });
+  return {
+    ...base,
+    // enforce that the owner is a group
+    create: ((init: any, options: { owner: Group } | Group) => {
+      return base.create(init, options);
+    }) as CoProfileSchema<Shape>["create"],
+  } as CoProfileSchema<Shape>;
+};
+
 const coFeedDefiner = <T extends z.core.$ZodType>(
   element: T,
 ): CoFeedSchema<T> => {
@@ -330,4 +365,5 @@ export const co = {
     return ImageDefinition;
   },
   account: coAccountDefiner,
+  profile: coProfileDefiner,
 };

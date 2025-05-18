@@ -191,7 +191,7 @@ describe("Deep loading with depth arg", async () => {
   });
 });
 
-const CustomProfile = co.map({
+const CustomProfile = co.profile({
   name: z.string(),
   stream: TestFeed,
 });
@@ -203,7 +203,7 @@ const CustomAccount = co
   })
   .withMigration(async (account, creationProps) => {
     if (creationProps) {
-      const profileGroup = Group.create(this);
+      const profileGroup = Group.create(account);
       account.profile = CustomProfile.create(
         {
           name: creationProps.name,

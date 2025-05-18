@@ -42,17 +42,7 @@ export type CoMapSchema<
     collaborative: true;
 
     create: (
-      init: Simplify<
-        {
-          [key in keyof Shape as Shape[key] extends z.ZodOptional<any>
-            ? key
-            : never]?: InstanceOrPrimitiveOfSchema<Shape[key]>;
-        } & {
-          [key in keyof Shape as Shape[key] extends z.ZodOptional<any>
-            ? never
-            : key]: InstanceOrPrimitiveOfSchema<Shape[key]>;
-        }
-      >,
+      init: Simplify<CoMapInit<Shape>>,
       options?:
         | {
             owner: Account | Group;
@@ -114,12 +104,30 @@ export type WithHelpers<
   Helpers extends object,
 > = Base & Helpers;
 
+type CoMapInit<Shape extends z.core.$ZodLooseShape> = {
+  [key in keyof Shape as Shape[key] extends z.core.$ZodOptional<any>
+    ? key
+    : never]?: InstanceOrPrimitiveOfSchema<Shape[key]>;
+} & {
+  [key in keyof Shape as Shape[key] extends z.core.$ZodOptional<any>
+    ? never
+    : key]: InstanceOrPrimitiveOfSchema<Shape[key]>;
+};
+
 export type AccountSchema<
   Shape extends {
-    profile: AnyCoMapSchema<{ name: z.core.$ZodString<string> }>;
+    profile: AnyCoMapSchema<{
+      name: z.core.$ZodString<string>;
+      inbox: z.core.$ZodOptional<z.core.$ZodString>;
+      inboxInvite: z.core.$ZodOptional<z.core.$ZodString>;
+    }>;
     root: AnyCoMapSchema;
   } = {
-    profile: CoMapSchema<{ name: z.core.$ZodString<string> }>;
+    profile: CoMapSchema<{
+      name: z.core.$ZodString<string>;
+      inbox: z.core.$ZodOptional<z.core.$ZodString>;
+      inboxInvite: z.core.$ZodOptional<z.core.$ZodString>;
+    }>;
     root: CoMapSchema<{}>;
   },
 > = Omit<CoMapSchema<Shape>, "create"> & {
@@ -195,6 +203,21 @@ export type CoRecordSchema<
     this: S,
     helpers: (Self: S) => T,
   ): WithHelpers<S, T>;
+};
+
+export type DefaultProfileShape = {
+  name: z.core.$ZodString<string>;
+  inbox: z.core.$ZodOptional<z.core.$ZodString>;
+  inboxInvite: z.core.$ZodOptional<z.core.$ZodString>;
+};
+
+export type CoProfileSchema<
+  Shape extends z.core.$ZodLooseShape = DefaultProfileShape,
+> = Omit<CoMapSchema<Shape & DefaultProfileShape>, "create"> & {
+  create: (
+    init: Simplify<CoMapInit<Shape & DefaultProfileShape>>,
+    options: { owner: Exclude<Group, Account> } | Exclude<Group, Account>,
+  ) => CoMapInstance<Shape & Simplify<DefaultProfileShape>>;
 };
 
 export type CoListSchema<T extends z.core.$ZodType> = z.core.$ZodArray<T> & {

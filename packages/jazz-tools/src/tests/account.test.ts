@@ -98,10 +98,8 @@ test("accounts should sync correctly", async () => {
 
   group.addMember(otherAccount, "writer");
 
-  const { members } = group;
-
-  expect(members()[0]?.account.profile!.name).toBe("test 1");
-  expect(members()[1]?.account.profile!.name).toBe("test 2");
+  expect(group.members()[0]?.account.profile!.name).toBe("test 1");
+  expect(group.members()[1]?.account.profile!.name).toBe("test 2");
 });
 
 test("loading accounts should work", async () => {
