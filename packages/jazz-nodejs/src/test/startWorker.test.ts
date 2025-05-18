@@ -124,9 +124,7 @@ describe("startWorker integration", () => {
     const CustomAccount = co
       .account({
         root: AccountRoot,
-        profile: co.map({
-          name: z.string(),
-        }),
+        profile: co.profile(),
       })
       .withMigration((account) => {
         if (account.root === undefined) {
