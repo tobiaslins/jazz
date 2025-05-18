@@ -43,7 +43,7 @@ export * from "./implementation/zodSchema/typeConverters/InstanceOrPrimitiveOfSc
 export * from "./implementation/zodSchema/typeConverters/InstanceOfSchema.js";
 export * from "./implementation/zodSchema/typeConverters/InstanceOfSchemaCoValuesNullable.js";
 export * from "./implementation/zodSchema/runtimeConverters/zodSchemaToCoSchema.js";
-export * from "./implementation/zodSchema/runtimeConverters/zodFieldToVoFieldDef.js";
+export * from "./implementation/zodSchema/runtimeConverters/zodFieldToCoFieldDef.js";
 export * from "./coValues/extensions/imageDef.js";
 
 export * from "./implementation/ContextManager.js";

@@ -16,7 +16,7 @@ import {
   schemaUnionDiscriminatorFor,
 } from "../unionUtils.js";
 import { CoValueClassFromZodSchema, ZodPrimitiveSchema } from "../zodSchema.js";
-import { zodFieldToCoFieldDef } from "./zodFieldToVoFieldDef.js";
+import { zodFieldToCoFieldDef } from "./zodFieldToCoFieldDef.js";
 
 let coSchemasForZodSchemas = new Map<z.core.$ZodType, CoValueClass>();
 
