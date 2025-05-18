@@ -23,7 +23,7 @@ describe("useAccountOrGuest", () => {
   const AccountSchema = co
     .account({
       root: AccountRoot,
-      profile: co.map({ name: z.string() }),
+      profile: co.profile(),
     })
     .withMigration((account, creationProps) => {
       if (!account._refs.root) {
