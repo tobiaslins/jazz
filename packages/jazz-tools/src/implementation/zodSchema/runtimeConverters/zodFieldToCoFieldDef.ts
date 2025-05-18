@@ -13,8 +13,10 @@ type FieldSchema =
   | CoValueClass
   | ZodPrimitiveSchema
   | z.core.$ZodOptional<z.core.$ZodType>
-  | z.core.$ZodTuple<z.core.$ZodType[]>
   | z.core.$ZodUnion<z.core.$ZodType[]>
+  | z.core.$ZodObject<z.core.$ZodLooseShape>
+  | z.core.$ZodArray<z.core.$ZodType>
+  | z.core.$ZodTuple<z.core.$ZodType[]>
   | (z.core.$ZodCustom<any, any> & { builtin: any });
 
 export function zodFieldToCoFieldDef(schema: FieldSchema) {
@@ -63,7 +65,11 @@ export function zodFieldToCoFieldDef(schema: FieldSchema) {
             undefined | null | bigint
           >[]),
         );
-      } else if (schema._zod.def.type === "tuple") {
+      } else if (
+        schema._zod.def.type === "object" ||
+        schema._zod.def.type === "array" ||
+        schema._zod.def.type === "tuple"
+      ) {
         return coField.json();
       } else if (schema._zod.def.type === "custom") {
         if ("builtin" in schema) {
