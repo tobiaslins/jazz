@@ -104,7 +104,7 @@ export function tryZodSchemaToCoSchema<S extends z.core.$ZodType>(
       }
     } else {
       throw new Error(
-        `Unsupported zod CoValue type for top-level schema: ${schema._zod.def.type}`,
+        `Unsupported zod CoValue type for top-level schema: ${schema._zod?.def?.type || JSON.stringify(schema)}`,
       );
     }
   } else if (schema instanceof z.core.$ZodDiscriminatedUnion) {
@@ -137,7 +137,9 @@ export function zodSchemaToCoSchema<
 >(schema: S): CoValueClassFromZodSchema<S> {
   const coSchema = tryZodSchemaToCoSchema(schema);
   if (!coSchema) {
-    throw new Error(`Unsupported zod type: ${schema._zod.def.type}`);
+    throw new Error(
+      `Unsupported zod type: ${schema._zod?.def?.type || JSON.stringify(schema)}`,
+    );
   }
   return coSchema;
 }

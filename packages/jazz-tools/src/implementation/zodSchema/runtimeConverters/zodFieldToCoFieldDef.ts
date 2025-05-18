@@ -85,7 +85,7 @@ export function zodFieldToCoFieldDef(schema: FieldSchema) {
         }
       } else {
         throw new Error(
-          `Unsupported zod type: ${(schema._zod.def as any).type}`,
+          `Unsupported zod type: ${(schema._zod?.def as any)?.type || JSON.stringify(schema)}`,
         );
       }
     } else {

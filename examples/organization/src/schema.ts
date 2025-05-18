@@ -1,14 +1,4 @@
-import {
-  Account,
-  CoList,
-  CoMap,
-  Group,
-  Loaded,
-  Profile,
-  co,
-  coField,
-  z,
-} from "jazz-tools";
+import { Group, Loaded, co, z } from "jazz-tools";
 import { getRandomUsername } from "./util";
 
 export const Project = co.map({

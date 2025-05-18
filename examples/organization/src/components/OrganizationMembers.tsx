@@ -1,15 +1,15 @@
 import { useAccount, useCoState } from "jazz-react";
-import { Account, Group, ID } from "jazz-tools";
+import { Account, Group, ID, Loaded } from "jazz-tools";
 import { Organization } from "../schema.ts";
 
 export function OrganizationMembers({
   organization,
-}: { organization: Organization }) {
+}: { organization: Loaded<typeof Organization> }) {
   const group = organization._owner.castAs(Group);
 
   return (
     <>
-      {group.members.map((member) => (
+      {group.members().map((member) => (
         <MemberItem
           key={member.id}
           accountId={member.account.id}

@@ -168,7 +168,7 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
   get perAccount(): {
     [key: ID<Account>]: CoFeedEntry<Item>;
   } {
-    return new Proxy(this, CoStreamPerAccountProxyHandler) as any;
+    return new Proxy({}, CoStreamPerAccountProxyHandler(this)) as any;
   }
 
   /**
@@ -179,7 +179,7 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
     [key: SessionID]: CoFeedEntry<Item>;
   } {
     return new Proxy(
-      this,
+      {},
       CoStreamPerSessionProxyHandler(this, this) as any,
     ) as any;
   }
@@ -502,23 +502,25 @@ function entryFromRawEntry<Item>(
  * The proxy handler for `CoFeed` instances
  * @internal
  */
-export const CoStreamPerAccountProxyHandler: ProxyHandler<CoFeed> = {
-  get(target, key, receiver) {
+export const CoStreamPerAccountProxyHandler = (
+  innerTarget: CoFeed,
+): ProxyHandler<{}> => ({
+  get(_target, key, receiver) {
     if (typeof key === "string" && key.startsWith("co_")) {
-      const rawEntry = target._raw.lastItemBy(key as RawAccountID);
+      const rawEntry = innerTarget._raw.lastItemBy(key as RawAccountID);
 
       if (!rawEntry) return;
       const entry = entryFromRawEntry(
         receiver,
         rawEntry,
-        target._loadedAs,
+        innerTarget._loadedAs,
         key as unknown as ID<Account>,
-        target._schema[ItemsSym],
+        innerTarget._schema[ItemsSym],
       );
 
       Object.defineProperty(entry, "all", {
         get: () => {
-          const allRawEntries = target._raw.itemsBy(key as RawAccountID);
+          const allRawEntries = innerTarget._raw.itemsBy(key as RawAccountID);
           return (function* () {
             while (true) {
               const rawEntry = allRawEntries.next();
@@ -526,9 +528,9 @@ export const CoStreamPerAccountProxyHandler: ProxyHandler<CoFeed> = {
               yield entryFromRawEntry(
                 receiver,
                 rawEntry.value,
-                target._loadedAs,
+                innerTarget._loadedAs,
                 key as unknown as ID<Account>,
-                target._schema[ItemsSym],
+                innerTarget._schema[ItemsSym],
               );
             }
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -538,13 +540,13 @@ export const CoStreamPerAccountProxyHandler: ProxyHandler<CoFeed> = {
 
       return entry;
     } else {
-      return Reflect.get(target, key, receiver);
+      return Reflect.get(innerTarget, key, receiver);
     }
   },
-  ownKeys(target) {
-    return Array.from(target._raw.accounts());
+  ownKeys(_target) {
+    return Array.from(innerTarget._raw.accounts());
   },
-  getOwnPropertyDescriptor(target, key) {
+  getOwnPropertyDescriptor(_target, key) {
     if (typeof key === "string" && key.startsWith("co_")) {
       return {
         configurable: true,
@@ -552,10 +554,10 @@ export const CoStreamPerAccountProxyHandler: ProxyHandler<CoFeed> = {
         writable: false,
       };
     } else {
-      return Reflect.getOwnPropertyDescriptor(target, key);
+      return Reflect.getOwnPropertyDescriptor(innerTarget, key);
     }
   },
-};
+});
 
 /**
  * The proxy handler for the per-session view of a `CoFeed`

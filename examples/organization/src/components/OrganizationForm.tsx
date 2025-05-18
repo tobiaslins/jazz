@@ -1,10 +1,11 @@
+import { Loaded } from "jazz-tools";
 import { DraftOrganization, Organization } from "../schema.ts";
 
 export function OrganizationForm({
   organization,
   onSave,
 }: {
-  organization: Organization | DraftOrganization;
+  organization: Loaded<typeof Organization> | Loaded<typeof DraftOrganization>;
   onSave?: (e: React.FormEvent<HTMLFormElement>) => void;
 }) {
   return (
