@@ -165,7 +165,7 @@ export const docNavigationItems = [
       {
       name: "Soft Deletion",
       href: "/docs/schemas/soft-deletion", 
-      done: 20, 
+      done: 100, 
       }
     ],
   },
