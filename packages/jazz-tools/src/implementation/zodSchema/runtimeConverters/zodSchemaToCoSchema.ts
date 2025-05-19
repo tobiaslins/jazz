@@ -21,6 +21,7 @@ import {
   CoValueClassFromZodSchema,
   ZodPrimitiveSchema,
   getDef,
+  isZodArray,
   isZodCustom,
   isZodObject,
 } from "../zodSchema.js";
@@ -75,7 +76,7 @@ export function tryZodSchemaToCoSchema<S extends z.core.$ZodType>(
 
       coSchemasForZodSchemas.set(schema, coSchema as unknown as CoValueClass);
       return coSchema as unknown as CoValueClassFromZodSchema<S>;
-    } else if (schema instanceof z.core.$ZodArray) {
+    } else if (isZodArray(schema)) {
       const def = getDef(schema);
       const coSchema = class ZCoList extends CoList {
         constructor(options: { fromRaw: RawCoList } | undefined) {

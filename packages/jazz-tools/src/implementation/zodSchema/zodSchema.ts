@@ -58,6 +58,12 @@ export function isZodObject(
   return (schema as any).def?.type === "object";
 }
 
+export function isZodArray(
+  schema: z.core.$ZodType,
+): schema is z.core.$ZodArray<any> {
+  return (schema as any).def?.type === "array";
+}
+
 export function isZodCustom(
   schema: z.core.$ZodType,
 ): schema is z.core.$ZodCustom<any, any> {
