@@ -1,5 +1,5 @@
-import { useAccount, useCoState } from "jazz-react";
-import { Account, Group, ID, Loaded } from "jazz-tools";
+import { useAccount } from "jazz-react";
+import { Account, Group, Loaded } from "jazz-tools";
 import { Organization } from "../schema.ts";
 
 export function OrganizationMembers({
@@ -12,7 +12,7 @@ export function OrganizationMembers({
       {group.members.map((member) => (
         <MemberItem
           key={member.id}
-          accountId={member.account.id}
+          account={member.account}
           role={member.role}
           group={group}
         />
@@ -22,18 +22,13 @@ export function OrganizationMembers({
 }
 
 function MemberItem({
-  accountId,
+  account,
   role,
   group,
-}: { accountId: ID<Account>; role: string; group: Group }) {
-  const account = useCoState(Account, accountId, {
-    resolve: {
-      profile: true,
-    },
-  });
+}: { account: Account; role: string; group: Group }) {
   const { me } = useAccount();
 
-  const canRemoveMember = group.myRole() === "admin" && accountId !== me?.id;
+  const canRemoveMember = group.myRole() === "admin" && account.id !== me?.id;
 
   function handleRemoveMember() {
     if (canRemoveMember && account) {
@@ -44,7 +39,7 @@ function MemberItem({
   return (
     <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
       <div>
-        <strong className="font-medium">{account?.profile.name}</strong> ({role}
+        <strong className="font-medium">{account.profile?.name}</strong> ({role}
         )
       </div>
       {canRemoveMember && (
