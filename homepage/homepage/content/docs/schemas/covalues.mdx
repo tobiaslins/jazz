@@ -1,6 +1,5 @@
 export const metadata = {
-  description:
-    "CoValues are the core abstraction of Jazz. They're your bread-and-butter datastructures that you use to represent everything in your app.",
+  description: "CoValues are the core abstraction of Jazz. They're your bread-and-butter datastructures that you use to represent everything in your app.",
 };
 
 import { CodeGroup, ComingSoon } from "@/components/forMdx";
@@ -48,7 +47,7 @@ export const TodoProject = co.map({
 ```
 </CodeGroup>
 
-This gives us schema info that is available for type inference _and_ at runtime.
+This gives us schema info that is available for type inference *and* at runtime.
 
 Check out the inferred type of `project` in the example below, as well as the input `.create()` expects.
 
@@ -71,14 +70,14 @@ import { Group } from "jazz-tools";
 import { TodoProject, ListOfTasks } from "./schema";
 
 const project = TodoProject.create(
-{
-title: "New Project",
-tasks: ListOfTasks.create([], Group.create()),
-},
-Group.create()
+  {
+    title: "New Project",
+    tasks: ListOfTasks.create([], Group.create()),
+  },
+  Group.create()
 );
-
 ````
+
 </CodeGroup>
 
 ## Types of CoValues
@@ -115,8 +114,8 @@ const Fruit = co.map({
 const ColorToHex = co.record(z.string(), z.string());
 
 const ColorToFruit = co.record(z.string(), Fruit);
-
 ````
+
 </CodeGroup>
 
 
@@ -211,17 +210,17 @@ import { co, z } from "jazz-tools";
 // ---cut---
 
 const ButtonWidget = co.map({
-type: z.literal("button"),
-label: z.string(),
-});
+  type: z.literal("button"),
+  label: z.string(),
+}); 
 
 const SliderWidget = co.map({
-type: z.literal("slider"),
-min: z.number(),
-max: z.number(),
+  type: z.literal("slider"),
+  min: z.number(),
+  max: z.number(),
 });
 
-const WidgetUnion = z.discriminatedUnion("type",[ButtonWidget, SliderWidget]);
+const WidgetUnion = z.discriminatedUnion("type", [ButtonWidget, SliderWidget]);
 
 ````
 </CodeGroup>
@@ -310,10 +309,10 @@ const Person = co.map({
 const ListOfPeople = co.list(Person);
 
 const Company = co.map({
-members: ListOfPeople,
+  members: ListOfPeople,
 });
-
 ````
+
 </CodeGroup>
 
 #### Optional References
@@ -359,15 +358,15 @@ You can use the same technique for mutually recursive references, but you'll nee
 import { co, z, CoListSchema } from "jazz-tools";
 
 const Person = co.map({
-name: z.string(),
-get friends(): CoListSchema<typeof Person> {
-return ListOfPeople;
-}
+  name: z.string(),
+  get friends(): CoListSchema<typeof Person> {
+    return ListOfPeople;
+  }
 });
 
 const ListOfPeople = co.list(Person);
-
 ````
+
 </CodeGroup>
 
 Note: similarly, if you use modifiers like `z.optional()` you'll need to help TypeScript along:
@@ -408,16 +407,15 @@ const Person = co.map({
   fullName(person: Loaded<typeof Self>) {
     return `${person.firstName} ${person.lastName}`;
   },
-
-ageAsOf(person: Loaded<typeof Self>, date: Date) {
-return differenceInYears(date, person.dateOfBirth);
-}
+  ageAsOf(person: Loaded<typeof Self>, date: Date) {
+    return differenceInYears(date, person.dateOfBirth);
+  }
 }));
 
 const person = Person.create({
-firstName: "John",
-lastName: "Doe",
-dateOfBirth: new Date("1990-01-01"),
+  firstName: "John",
+  lastName: "Doe",
+  dateOfBirth: new Date("1990-01-01"),
 });
 
 const fullName = Person.fullName(person);
