@@ -1,5 +1,11 @@
 # cojson
 
+## 0.14.0
+
+### Minor Changes
+
+- 5835ed1: Type-level changes to support Zod schemas in jazz-tools
+
 ## 0.13.31
 
 ### Patch Changes
