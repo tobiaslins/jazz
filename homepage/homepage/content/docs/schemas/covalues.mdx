@@ -1,5 +1,6 @@
 export const metadata = {
-  description: "CoValues are the core abstraction of Jazz. They're your bread-and-butter datastructures that you use to represent everything in your app."
+  description:
+    "CoValues are the core abstraction of Jazz. They're your bread-and-butter datastructures that you use to represent everything in your app.",
 };
 
 import { CodeGroup, ComingSoon } from "@/components/forMdx";
@@ -23,6 +24,7 @@ CoValues model JSON with CoMaps and CoLists, but also offer CoFeeds for simple p
 Fundamentally, CoValues are as dynamic and flexible as JSON, but in Jazz you use them by defining fixed schemas to describe the shape of data in your app.
 
 This helps correctness and development speed, but is particularly important...
+
 - when you evolve your app and need migrations
 - when different clients and server workers collaborate on CoValues and need to make compatible changes
 
@@ -46,7 +48,7 @@ export const TodoProject = co.map({
 ```
 </CodeGroup>
 
-This gives us schema info that is available for type inference *and* at runtime.
+This gives us schema info that is available for type inference _and_ at runtime.
 
 Check out the inferred type of `project` in the example below, as well as the input `.create()` expects.
 
@@ -69,13 +71,14 @@ import { Group } from "jazz-tools";
 import { TodoProject, ListOfTasks } from "./schema";
 
 const project = TodoProject.create(
-  {
-    title: "New Project",
-    tasks: ListOfTasks.create([], Group.create()),
-  },
-  Group.create()
+{
+title: "New Project",
+tasks: ListOfTasks.create([], Group.create()),
+},
+Group.create()
 );
-```
+
+````
 </CodeGroup>
 
 ## Types of CoValues
@@ -95,7 +98,8 @@ const Task = co.map({
   title: z.string(),
   completed: z.boolean(),
 });
-```
+````
+
 </CodeGroup>
 
 Or record-like CoMaps (key-value pairs, where keys are always `string`):
@@ -111,7 +115,8 @@ const Fruit = co.map({
 const ColorToHex = co.record(z.string(), z.string());
 
 const ColorToFruit = co.record(z.string(), Fruit);
-```
+
+````
 </CodeGroup>
 
 
@@ -136,7 +141,8 @@ const Task = co.map({
 // ---cut---
 const ListOfColors = co.list(z.string());
 const ListOfTasks = co.list(Task);
-```
+````
+
 </CodeGroup>
 
 See the corresponding sections for [creating](/docs/using-covalues/colists#creating-colists),
@@ -205,18 +211,19 @@ import { co, z } from "jazz-tools";
 // ---cut---
 
 const ButtonWidget = co.map({
-  type: z.literal("button"),
-  label: z.string(),
+type: z.literal("button"),
+label: z.string(),
 });
 
 const SliderWidget = co.map({
-  type: z.literal("slider"),
-  min: z.number(),
-  max: z.number(),
+type: z.literal("slider"),
+min: z.number(),
+max: z.number(),
 });
 
-const WidgetUnion = z.discriminatedUnion([ButtonWidget, SliderWidget]);
-```
+const WidgetUnion = z.discriminatedUnion("type",[ButtonWidget, SliderWidget]);
+
+````
 </CodeGroup>
 
 See the corresponding sections for [creating](/docs/using-covalues/schemaunions#creating-schemaunions),
@@ -240,25 +247,20 @@ const Person = co.map({
 })
 
 export const ListOfColors = co.list(z.string());
-```
+````
+
 </CodeGroup>
 
 Here's a quick overview of the primitive types you can use:
 
 <CodeGroup>
-```ts twoslash
-import { z } from "jazz-tools";
-// ---cut---
-z.string();  // For simple strings
-z.number();  // For numbers
-z.boolean(); // For booleans
-z.null();    // For null
-z.date();    // For dates
-z.literal(["waiting", "ready"]); // For enums
-```
+  ```ts twoslash import {z} from "jazz-tools"; // ---cut--- z.string(); // For
+  simple strings z.number(); // For numbers z.boolean(); // For booleans
+  z.null(); // For null z.date(); // For dates z.literal(["waiting", "ready"]);
+  // For enums ```
 </CodeGroup>
 
-Finally, for more complex JSON data, that you *don't want to be collaborative internally* (but only ever update as a whole), you can use more complex Zod types.
+Finally, for more complex JSON data, that you _don't want to be collaborative internally_ (but only ever update as a whole), you can use more complex Zod types.
 
 For example, you can use `z.object()` to represent an internally immutable position:
 
@@ -308,9 +310,10 @@ const Person = co.map({
 const ListOfPeople = co.list(Person);
 
 const Company = co.map({
-  members: ListOfPeople,
+members: ListOfPeople,
 });
-```
+
+````
 </CodeGroup>
 
 #### Optional References
@@ -327,7 +330,8 @@ const Pet = co.map({
 const Person = co.map({
   pet: z.optional(Pet),
 });
-```
+````
+
 </CodeGroup>
 
 #### Recursive References
@@ -355,14 +359,15 @@ You can use the same technique for mutually recursive references, but you'll nee
 import { co, z, CoListSchema } from "jazz-tools";
 
 const Person = co.map({
-  name: z.string(),
-  get friends(): CoListSchema<typeof Person> {
-    return ListOfPeople;
-  }
+name: z.string(),
+get friends(): CoListSchema<typeof Person> {
+return ListOfPeople;
+}
 });
 
 const ListOfPeople = co.list(Person);
-```
+
+````
 </CodeGroup>
 
 Note: similarly, if you use modifiers like `z.optional()` you'll need to help TypeScript along:
@@ -377,7 +382,8 @@ const Person = co.map({
     return z.optional(Person);
   }
 });
-```
+````
+
 </CodeGroup>
 
 ### Helper methods
@@ -403,18 +409,20 @@ const Person = co.map({
     return `${person.firstName} ${person.lastName}`;
   },
 
-  ageAsOf(person: Loaded<typeof Self>, date: Date) {
-    return differenceInYears(date, person.dateOfBirth);
-  }
+ageAsOf(person: Loaded<typeof Self>, date: Date) {
+return differenceInYears(date, person.dateOfBirth);
+}
 }));
 
 const person = Person.create({
-  firstName: "John",
-  lastName: "Doe",
-  dateOfBirth: new Date("1990-01-01"),
+firstName: "John",
+lastName: "Doe",
+dateOfBirth: new Date("1990-01-01"),
 });
 
 const fullName = Person.fullName(person);
 const age = Person.ageAsOf(person, new Date());
+
 ```
 </CodeGroup>
+```
