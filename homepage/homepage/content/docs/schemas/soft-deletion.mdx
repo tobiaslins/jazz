@@ -14,7 +14,6 @@ Simply add an optional `deleted` boolean to the CoValue you want to delete in th
 ```ts
 export class Team extends CoMap {
     name = co.string;
-    apps = co.ref(ListOfApps);
     deleted = co.optional.boolean;
 }
 ```
