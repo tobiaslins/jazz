@@ -1,6 +1,6 @@
 import { CodeGroup, ContentByFramework } from "@/components/forMdx";
 
-export const metadata = { 
+export const metadata = {
   description: "CoLists are ordered collections that work like JavaScript arrays. They provide indexed access, iteration methods, and length properties."
 };
 
@@ -14,9 +14,11 @@ CoLists are defined by specifying the type of items they contain:
 
 <CodeGroup>
 ```ts
-class ListOfResources extends CoList.Of(coField.string) {}
+import { co, z } from "jazz-tools";
 
-class ListOfTasks extends CoList.Of(coField.ref(Task)) {}
+const ListOfResources = co.list(z.string());
+
+const ListOfTasks = co.list(Task);
 ```
 </CodeGroup>
 
@@ -25,10 +27,10 @@ To create a `CoList`:
 <CodeGroup>
 ```ts
 // Create an empty list
-const resources = ListOfResources.create([]);
+const resources = co.list(z.string()).create([]);
 
 // Create a list with initial items
-const tasks = ListOfTasks.create([
+const tasks = co.list(Task).create([
   Task.create({ title: "Prepare soil beds", status: "in-progress" }),
   Task.create({ title: "Order compost", status: "todo" })
 ]);
@@ -41,22 +43,21 @@ Like other CoValues, you can specify ownership when creating CoLists.
 
 <CodeGroup>
 ```ts twoslash
-import { Group, coField, CoMap, CoList } from "jazz-tools";
+import { Group, co, z } from "jazz-tools";
 import { createJazzTestAccount } from 'jazz-tools/testing';
 const me = await createJazzTestAccount();
 const colleagueAccount = await createJazzTestAccount();
-class Task extends CoMap {
-  title = coField.string;
-  status = coField.string;
-}
-class ListOfTasks extends CoList.Of(coField.ref(Task)) {}
+const Task = co.map({
+  title: z.string(),
+  status: z.string(),
+});
 
 // ---cut---
 // Create with shared ownership
 const teamGroup = Group.create();
 teamGroup.addMember(colleagueAccount, "writer");
 
-const teamList = ListOfTasks.create([], { owner: teamGroup });
+const teamList = co.list(Task).create([], { owner: teamGroup });
 ```
 </CodeGroup>
 
@@ -178,8 +179,11 @@ CoLists work well with UI rendering libraries:
 
 <CodeGroup>
 ```tsx
+import { co, z, Loaded } from "jazz-tools";
+const ListOfTasks = co.list(Task);
+
 // React example
-function TaskList({ tasks }) {
+function TaskList({ tasks: Loaded<typeof ListOfTasks> }) {
   return (
     <ul>
       {tasks.map(task => (
@@ -199,10 +203,12 @@ CoLists can be used to create one-to-many relationships:
 
 <CodeGroup>
 ```ts
-class Project extends CoMap {
-  name = coField.string;
-  tasks = coField.ref(ListOfTasks);
-}
+import { co, z } from "jazz-tools";
+
+const Project = co.map({
+  name: z.string(),
+  tasks: co.list(Task),
+});
 
 // ...
 
