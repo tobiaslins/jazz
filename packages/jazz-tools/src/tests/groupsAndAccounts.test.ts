@@ -57,14 +57,11 @@ describe("Custom accounts and groups", async () => {
     const group = Group.create({ owner: me });
     group.addMember("everyone", "reader");
 
-    expect(group.members()).toMatchObject([{ id: me.id, role: "admin" }]);
+    expect(group.members).toMatchObject([{ id: me.id, role: "admin" }]);
 
-    const meAsMember = group
-      .members(CustomAccount)
-      .find((member) => member.id === me.id);
+    const meAsMember = group.members.find((member) => member.id === me.id);
     assert(meAsMember?.account);
     expect((meAsMember?.account).profile?.name).toBe("Hermes Puggington");
-    expect((meAsMember?.account).profile?.color).toBe("blue");
   });
 
   test("Should throw when creating a profile with an account as owner", async () => {
@@ -254,7 +251,7 @@ describe("Group inheritance", () => {
     // @ts-expect-error - Even though readerInvite is a valid role for an account, we don't allow it to not create confusion when using the intellisense
     group.addMember(account, "readerInvite");
 
-    expect(group.members()).not.toContainEqual(
+    expect(group.members).not.toContainEqual(
       expect.objectContaining({
         id: account.id,
         role: "readerInvite",
@@ -384,7 +381,7 @@ describe("Account permissions", () => {
       crypto: Crypto,
     });
 
-    expect(account.members()).toEqual([
+    expect(account.members).toEqual([
       { id: account.id, role: "admin", account: account, ref: expect.any(Ref) },
     ]);
   });
@@ -517,7 +514,7 @@ describe("Group.members", () => {
     childGroup.addMember(bob, "reader");
     expect(childGroup.getRoleOf(bob.id)).toBe("reader");
 
-    expect(childGroup.members()).toEqual([
+    expect(childGroup.members).toEqual([
       expect.objectContaining({
         account: expect.objectContaining({
           id: co.account().getMe().id,
@@ -545,7 +542,7 @@ describe("Group.members", () => {
 
     expect(childGroup.getRoleOf(bob.id)).toBe("reader");
 
-    expect(childGroup.members()).toEqual([
+    expect(childGroup.members).toEqual([
       expect.objectContaining({
         account: expect.objectContaining({
           id: co.account().getMe().id,
@@ -567,7 +564,7 @@ describe("Group.members", () => {
     childGroup.addMember("everyone", "reader");
     expect(childGroup.getRoleOf("everyone")).toBe("reader");
 
-    expect(childGroup.members()).toEqual([
+    expect(childGroup.members).toEqual([
       expect.objectContaining({
         account: expect.objectContaining({
           id: co.account().getMe().id,
@@ -588,7 +585,7 @@ describe("Group.members", () => {
 
     expect(childGroup.getRoleOf(bob.id)).toBeUndefined();
 
-    expect(childGroup.members()).toEqual([
+    expect(childGroup.members).toEqual([
       expect.objectContaining({
         account: expect.objectContaining({
           id: co.account().getMe().id,

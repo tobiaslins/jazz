@@ -18,6 +18,7 @@ export const WaitingRoom = co.map({
   account2: z.optional(co.account()),
   game: z.optional(Game),
 });
+
 export const PlayIntent = co.map({
   type: z.literal("play"),
   gameId: z.string(),

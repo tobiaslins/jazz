@@ -37,7 +37,7 @@ function Container({ cursorFeedID }: { cursorFeedID: string }) {
       entry,
       position: entry.value.position,
       color: getColor(entry.tx.sessionID),
-      name: getName(entry.by()?.profile?.name, entry.tx.sessionID),
+      name: getName(entry.by?.profile?.name, entry.tx.sessionID),
       age: new Date().getTime() - new Date(entry.madeAt).getTime(),
       active:
         !OLD_CURSOR_AGE_SECONDS ||

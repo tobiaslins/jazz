@@ -50,9 +50,7 @@ import {
 type CoMapEdit<V> = {
   value?: V;
   ref?: RefIfCoValue<V>;
-  by<A extends typeof Account | AnyAccountSchema>(
-    AccountSchema?: A,
-  ): InstanceOfSchema<A> | null;
+  by: Account | null;
   madeAt: Date;
   key?: string;
 };
@@ -199,13 +197,11 @@ export class CoMap extends CoValueBase implements CoValue {
               target,
             )
           : undefined,
-      by<A extends typeof Account | AnyAccountSchema>(
-        AccountSchema: A = Account as A,
-      ): InstanceOfSchema<A> | null {
+      get by() {
         return (
           rawEdit.by &&
           accessChildById(target, rawEdit.by, {
-            ref: anySchemaToCoSchema(AccountSchema),
+            ref: Account,
             optional: false,
           })
         );

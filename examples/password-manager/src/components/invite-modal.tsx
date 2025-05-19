@@ -21,7 +21,7 @@ const InviteModal: React.FC<InviteModalProps> = ({
   >("reader");
   const [inviteLink, setInviteLink] = useState("");
 
-  const members = selectedFolder?._owner.members();
+  const members = selectedFolder?._owner.members;
   const invitedMembers = members
     ? members.filter((m) => !m.account?.isMe).map((m) => m.account)
     : [];

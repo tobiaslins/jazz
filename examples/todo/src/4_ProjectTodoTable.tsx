@@ -124,12 +124,12 @@ export function TaskRow({ task }: { task: Loaded<typeof Task> | undefined }) {
           {
             // Here we see for the first time how we can access edit history
             // for a CoValue, and use it to display who created the task.
-            task?._edits.text?.by()?.profile?.name ? (
+            task?._edits.text?.by?.profile?.name ? (
               <span
                 className="rounded-full py-0.5 px-2 text-xs"
-                style={uniqueColoring(task._edits.text.by()?.id ?? "")}
+                style={uniqueColoring(task._edits.text.by?.id ?? "")}
               >
-                {task._edits.text.by()?.profile?.name}
+                {task._edits.text.by?.profile?.name}
               </span>
             ) : (
               <Skeleton className="mt-1 w-[50px] h-[1em] rounded-full" />

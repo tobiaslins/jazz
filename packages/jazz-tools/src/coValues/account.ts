@@ -219,7 +219,7 @@ export class Account extends CoValueBase implements CoValue {
     return [];
   }
 
-  members(): AccountMembers<this> {
+  get members(): AccountMembers<this> {
     const ref = new Ref<typeof this>(
       this.id,
       this._loadedAs,

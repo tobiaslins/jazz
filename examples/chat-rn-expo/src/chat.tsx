@@ -76,7 +76,7 @@ export default function ChatScreen({ navigation }: { navigation: any }) {
   };
 
   const renderMessageItem = ({ item }: { item: Loaded<typeof Message> }) => {
-    const isMe = item._edits?.text?.by()?.isMe;
+    const isMe = item._edits?.text?.by?.isMe;
     return (
       <View
         className={clsx(
@@ -92,7 +92,7 @@ export default function ChatScreen({ navigation }: { navigation: any }) {
               isMe ? "text-right" : "text-left",
             )}
           >
-            {item?._edits?.text?.by()?.profile?.name}
+            {item?._edits?.text?.by?.profile?.name}
           </Text>
         ) : null}
         <View

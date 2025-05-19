@@ -95,7 +95,7 @@ export function ChatScreen({ navigation }: { navigation: any }) {
   const renderMessageItem = ({
     item,
   }: { item: Loaded<typeof Message, { text: true }> }) => {
-    const isMe = item._edits?.text?.by()?.isMe;
+    const isMe = item._edits?.text?.by?.isMe;
     return (
       <View
         style={[
@@ -110,7 +110,7 @@ export function ChatScreen({ navigation }: { navigation: any }) {
               isMe ? styles.textRight : styles.textLeft,
             ]}
           >
-            {item?._edits?.text?.by()?.profile?.name}
+            {item?._edits?.text?.by?.profile?.name}
           </Text>
         ) : null}
         <View style={styles.messageContent}>

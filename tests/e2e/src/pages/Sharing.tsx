@@ -44,7 +44,7 @@ export function Sharing() {
 
     const coMapGroup = coMap._owner as Group;
 
-    for (const member of coMapGroup.members()) {
+    for (const member of coMapGroup.members) {
       if (
         member.account &&
         member.role !== "admin" &&

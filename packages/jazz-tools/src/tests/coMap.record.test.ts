@@ -163,8 +163,8 @@ describe("CoMap.Record", async () => {
           madeAt: expect.any(Date),
         }),
       ]);
-      expect(edits?.[0]?.by()).toMatchObject({ _type: "Account", id: me.id });
-      expect(edits?.[1]?.by()).toMatchObject({ _type: "Account", id: me.id });
+      expect(edits?.[0]?.by).toMatchObject({ _type: "Account", id: me.id });
+      expect(edits?.[1]?.by).toMatchObject({ _type: "Account", id: me.id });
     });
   });
 

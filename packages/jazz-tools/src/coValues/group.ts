@@ -155,21 +155,18 @@ export class Group extends CoValueBase implements CoValue {
     return this._raw.removeMember(member === "everyone" ? member : member._raw);
   }
 
-  members<A extends typeof Account | AnyAccountSchema>(
-    AccountSchema: A = Account as A,
-  ): Array<{
+  get members(): Array<{
     id: string;
     role: AccountRole;
-    ref: Ref<InstanceOfSchema<A>>;
-    account: InstanceOfSchema<A>;
+    ref: Ref<Account>;
+    account: Account;
   }> {
     const members = [];
 
     const refEncodedAccountSchema = {
-      ref: () =>
-        anySchemaToCoSchema(AccountSchema) as CoValueClass<InstanceOfSchema<A>>,
+      ref: () => Account,
       optional: false,
-    } satisfies RefEncoded<InstanceOfSchema<A>>;
+    } satisfies RefEncoded<Account>;
 
     for (const accountID of this._raw.getAllMemberKeysSet()) {
       if (!isAccountID(accountID)) continue;
@@ -182,7 +179,7 @@ export class Group extends CoValueBase implements CoValue {
         role === "reader" ||
         role === "writeOnly"
       ) {
-        const ref = new Ref<InstanceOfSchema<A>>(
+        const ref = new Ref<Account>(
           accountID,
           this._loadedAs,
           refEncodedAccountSchema,

@@ -52,7 +52,7 @@ function DescriptionVersionHistory({ id }: { id: string }) {
             >
               {i == 0 ? "(Latest)" : ""}
               <div className="font-medium">{edit.madeAt.toLocaleString()}</div>
-              <div className="text-stone-500">{edit.by()?.profile?.name}</div>
+              <div className="text-stone-500">{edit.by?.profile?.name}</div>
             </button>
           ))}
         </div>
@@ -85,7 +85,7 @@ export function IssueVersionHistory({ id }: { id: string }) {
             </p>
             <p className="text-stone-600" key={i}>
               <span className="font-medium text-stone-800">
-                {edit.by()?.profile?.name}
+                {edit.by?.profile?.name}
               </span>{" "}
               changed{" "}
               <span className="font-medium text-stone-800">{edit.key}</span> to{" "}

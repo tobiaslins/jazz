@@ -163,9 +163,7 @@ export class CoList<out Item = any> extends Array<Item> implements CoValue {
     [idx: number]: {
       value?: Item;
       ref?: Item extends CoValue ? Ref<Item> : never;
-      by<A extends typeof Account | AnyAccountSchema>(
-        AccountSchema?: A,
-      ): InstanceOfSchema<A> | null;
+      by: Account | null;
       madeAt: Date;
     };
   } {

@@ -9,7 +9,7 @@ export function OrganizationMembers({
 
   return (
     <>
-      {group.members().map((member) => (
+      {group.members.map((member) => (
         <MemberItem
           key={member.id}
           accountId={member.account.id}

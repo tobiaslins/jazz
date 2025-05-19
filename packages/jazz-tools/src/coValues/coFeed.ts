@@ -59,9 +59,7 @@ export type SingleCoStreamEntry<Item> = SingleCoFeedEntry<Item>;
 export type SingleCoFeedEntry<Item> = {
   value: NonNullable<Item> extends CoValue ? NonNullable<Item> | null : Item;
   ref: NonNullable<Item> extends CoValue ? Ref<NonNullable<Item>> : never;
-  by<A extends typeof Account | AnyAccountSchema>(
-    AccountSchema?: A,
-  ): InstanceOfSchema<A> | null;
+  by: Account | null;
   madeAt: Date;
   tx: CojsonInternalTypes.TransactionID;
 };
@@ -482,13 +480,11 @@ function entryFromRawEntry<Item>(
         return undefined as never;
       }
     },
-    by<A extends typeof Account | AnyAccountSchema>(
-      AccountSchema: A = Account as unknown as A,
-    ): InstanceOfSchema<A> | null {
+    get by() {
       return (
         accountID &&
         accessChildById(accessFrom, accountID, {
-          ref: anySchemaToCoSchema(AccountSchema),
+          ref: Account,
           optional: false,
         })
       );
