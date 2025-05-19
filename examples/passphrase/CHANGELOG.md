@@ -1,5 +1,13 @@
 # passphrase
 
+## 0.0.95
+
+### Patch Changes
+
+- Updated dependencies [cdfc105]
+  - jazz-tools@0.14.1
+  - jazz-react@0.14.1
+
 ## 0.0.94
 
 ### Patch Changes

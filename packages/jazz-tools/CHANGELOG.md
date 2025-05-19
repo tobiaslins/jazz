@@ -1,5 +1,13 @@
 # jazz-tools
 
+## 0.14.1
+
+### Patch Changes
+
+- cdfc105: Make the profile access on Group members trigger updates correctly
+- Updated dependencies [c8b33ad]
+  - cojson@0.14.1
+
 ## 0.14.0
 
 ### Minor Changes

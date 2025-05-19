@@ -1,5 +1,14 @@
 # chat-rn-expo-clerk
 
+## 1.0.125
+
+### Patch Changes
+
+- Updated dependencies [cdfc105]
+  - jazz-tools@0.14.1
+  - jazz-expo@0.14.1
+  - jazz-react-native-media-images@0.14.1
+
 ## 1.0.124
 
 ### Patch Changes
