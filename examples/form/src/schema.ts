@@ -80,6 +80,7 @@ export const JazzAccount = co
       const draft = DraftBubbleTeaOrder.create(
         {
           addOns: ListOfBubbleTeaAddOns.create([], account),
+          instructions: CoPlainText.create("", account),
         },
         account,
       );
