@@ -121,7 +121,7 @@ describe("CoMap", async () => {
           _height: 10,
           name: "John",
           birthday: undefined!,
-        })
+        }),
       ).toThrow();
     });
 
@@ -505,7 +505,7 @@ describe("CoMap resolution", async () => {
         age: 20,
         dog: Dog.create({ name: "Rex", breed: "Labrador" }, group),
       },
-      group
+      group,
     );
 
     const userB = await createJazzTestAccount();
@@ -542,7 +542,7 @@ describe("CoMap resolution", async () => {
         age: 20,
         dog: Dog.create({ name: "Rex", breed: "Labrador" }, group),
       },
-      group
+      group,
     );
 
     const userB = await createJazzTestAccount();
@@ -579,7 +579,7 @@ describe("CoMap resolution", async () => {
         age: 20,
         dog: Dog.create({ name: "Rex", breed: "Labrador" }, group),
       },
-      group
+      group,
     );
 
     const userB = await createJazzTestAccount();
@@ -626,7 +626,7 @@ describe("CoMap resolution", async () => {
           dog: true,
         },
       },
-      spy
+      spy,
     );
 
     expect(spy).not.toHaveBeenCalled();
@@ -714,7 +714,7 @@ describe("CoMap resolution", async () => {
         syncResolution: true,
         loadAs: Account.getMe(),
       },
-      spy
+      spy,
     );
 
     expect(spy).toHaveBeenCalled();
@@ -754,7 +754,7 @@ describe("CoMap resolution", async () => {
         age: 20,
         dog: Dog.create({ name: "Rex", breed: "Labrador" }, group),
       },
-      group
+      group,
     );
 
     const userB = await createJazzTestAccount();
@@ -770,7 +770,7 @@ describe("CoMap resolution", async () => {
         },
         loadAs: userB,
       },
-      spy
+      spy,
     );
 
     expect(spy).not.toHaveBeenCalled();
@@ -811,7 +811,7 @@ describe("CoMap resolution", async () => {
         age: 20,
         dog: Dog.create({ name: "Rex", breed: "Labrador" }, group),
       },
-      group
+      group,
     );
 
     const updates: Loaded<typeof Person>[] = [];
@@ -824,7 +824,7 @@ describe("CoMap resolution", async () => {
       {
         loadAs: userB,
       },
-      spy
+      spy,
     );
 
     expect(spy).not.toHaveBeenCalled();
@@ -872,7 +872,7 @@ describe("CoMap resolution", async () => {
           dog: true,
         },
       },
-      spy
+      spy,
     );
 
     expect(spy).not.toHaveBeenCalled();
@@ -922,7 +922,7 @@ describe("CoMap applyDiff", async () => {
         birthday: new Date("1990-01-01"),
         nested: NestedMap.create({ value: "original" }, { owner: me }),
       },
-      { owner: me }
+      { owner: me },
     );
 
     const newValues = {
@@ -949,7 +949,7 @@ describe("CoMap applyDiff", async () => {
         birthday: new Date("1995-01-01"),
         nested: NestedMap.create({ value: "original" }, { owner: me }),
       },
-      { owner: me }
+      { owner: me },
     );
 
     const newValues = {
@@ -973,7 +973,7 @@ describe("CoMap applyDiff", async () => {
         birthday: new Date("1993-01-01"),
         nested: NestedMap.create({ value: "original" }, { owner: me }),
       },
-      { owner: me }
+      { owner: me },
     );
 
     const newValues = {
@@ -994,7 +994,7 @@ describe("CoMap applyDiff", async () => {
         birthday: new Date("1980-01-01"),
         nested: NestedMap.create({ value: "original" }, { owner: me }),
       },
-      { owner: me }
+      { owner: me },
     );
 
     const newValues = {
@@ -1019,7 +1019,7 @@ describe("CoMap applyDiff", async () => {
         birthday: new Date("1985-01-01"),
         nested: NestedMap.create({ value: "original" }, { owner: me }),
       },
-      { owner: me }
+      { owner: me },
     );
 
     const originalJSON = map.toJSON();
@@ -1038,7 +1038,7 @@ describe("CoMap applyDiff", async () => {
         birthday: new Date("1975-01-01"),
         nested: NestedMap.create({ value: "original" }, { owner: me }),
       },
-      { owner: me }
+      { owner: me },
     );
 
     const newValues = {
@@ -1063,7 +1063,7 @@ describe("CoMap applyDiff", async () => {
         nested: NestedMap.create({ value: "original" }, { owner: me }),
         optionalNested: NestedMap.create({ value: "optional" }, { owner: me }),
       },
-      { owner: me }
+      { owner: me },
     );
 
     const newValues = {
@@ -1084,7 +1084,7 @@ describe("CoMap applyDiff", async () => {
         birthday: new Date("1965-01-01"),
         nested: NestedMap.create({ value: "original" }, { owner: me }),
       },
-      { owner: me }
+      { owner: me },
     );
 
     const newValues = {
@@ -1092,7 +1092,7 @@ describe("CoMap applyDiff", async () => {
     };
 
     expect(() => map.applyDiff(newValues)).toThrowError(
-      "Cannot set required reference nested to undefined"
+      "Cannot set required reference nested to undefined",
     );
   });
 });
@@ -1119,7 +1119,7 @@ describe("CoMap Typescript validation", async () => {
         // @ts-expect-error null can't be passed to a non-optional field
         required: null,
       },
-      { owner: me }
+      { owner: me },
     );
   });
 
@@ -1136,7 +1136,7 @@ describe("CoMap Typescript validation", async () => {
     expectTypeOf<typeof TestMap.create>().toBeCallableWith(
       // @ts-expect-error non-optional fields can't be omitted
       {},
-      { owner: me }
+      { owner: me },
     );
   });
 
@@ -1154,7 +1154,7 @@ describe("CoMap Typescript validation", async () => {
       {
         required: NestedMap.create({ value: "" }, { owner: me }),
       },
-      { owner: me }
+      { owner: me },
     );
 
     expectTypeOf<typeof TestMap.create>().toBeCallableWith(
@@ -1162,7 +1162,7 @@ describe("CoMap Typescript validation", async () => {
         required: NestedMap.create({ value: "" }, { owner: me }),
         optional: undefined, // TODO: should we allow null here? zod is stricter about this than we were before
       },
-      { owner: me }
+      { owner: me },
     );
   });
 
@@ -1177,7 +1177,7 @@ describe("CoMap Typescript validation", async () => {
       {
         name: "Alice",
       },
-      { owner: clientAccount }
+      { owner: clientAccount },
     );
 
     await map.waitForSync({ timeout: 1000 });
@@ -1209,7 +1209,7 @@ describe("Creating and finding unique CoMaps", async () => {
         birthday: new Date("1990-01-01"),
         color: "red",
       },
-      { owner: group, unique: { name: "Alice" } }
+      { owner: group, unique: { name: "Alice" } },
     );
 
     const foundAlice = Person.findUnique({ name: "Alice" }, group.id);

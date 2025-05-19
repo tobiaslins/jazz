@@ -61,15 +61,15 @@ describe("SchemaUnion", () => {
   it("should instantiate the correct schema based on schema and provided data", async () => {
     const buttonWidget = RedButtonWidget.create(
       { type: "button", color: "red", label: "Submit" },
-      { owner: me }
+      { owner: me },
     );
     const sliderWidget = SliderWidget.create(
       { type: "slider", min: 0, max: 100 },
-      { owner: me }
+      { owner: me },
     );
     const checkboxWidget = CheckboxWidget.create(
       { type: "checkbox", checked: true },
-      { owner: me }
+      { owner: me },
     );
 
     const loadedButtonWidget = await loadCoValue(
@@ -77,19 +77,19 @@ describe("SchemaUnion", () => {
       buttonWidget.id,
       {
         loadAs: me,
-      }
+      },
     );
     const loadedSliderWidget = await loadCoValue(
       zodSchemaToCoSchema(WidgetUnion),
       sliderWidget.id,
       {
         loadAs: me,
-      }
+      },
     );
     const loadedCheckboxWidget = await loadCoValue(
       zodSchemaToCoSchema(WidgetUnion),
       checkboxWidget.id,
-      { loadAs: me }
+      { loadAs: me },
     );
 
     expect(loadedButtonWidget?.type).toBe("button");
@@ -100,7 +100,7 @@ describe("SchemaUnion", () => {
   it("should integrate with subscribeToCoValue correctly", async () => {
     const buttonWidget = BlueButtonWidget.create(
       { type: "button", color: "blue", label: "Submit", blueness: 100 },
-      { owner: me }
+      { owner: me },
     );
     let currentValue = "Submit";
     const unsubscribe = subscribeToCoValue(
@@ -115,7 +115,7 @@ describe("SchemaUnion", () => {
         } else {
           throw new Error("Unexpected widget type");
         }
-      }
+      },
     );
     currentValue = "Changed";
     buttonWidget.label = "Changed";
