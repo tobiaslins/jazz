@@ -1,0 +1,43 @@
+import { CodeGroup, ContentByFramework } from "@/components/forMdx";
+
+export const metadata = {
+    description: "Learn how different CoValue types can reference the same data."
+};
+
+# Connecting CoValues
+CoValues can form relationships with each other by using references (co.ref).
+The use of co.ref creates a link from one CoValue to another. Instead of embedding all the details of a related entity directly within a CoValue, you store a reference to its unique identity. This allows multiple CoValues to point to the same piece of data.
+
+<CodeGroup>
+```ts
+// co.ref can be used within CoMap fields to point to other CoValues
+class Actor extends CoMap {
+    name = co.string;
+    imageURL = co.string;
+    birthplace = co.ref(Location)
+}
+
+//  actual actor data is stored in the separate Actor CoValue
+class Movie extends CoMap {
+  title = co.string;
+  director = co.string;
+  cast = co.list(co.ref(Actor)); // ordered, mutable
+}
+
+// A User CoMap can maintain a CoFeed of co.ref(Movie) to track their favorite movies
+class User extends CoMap {
+  username = co.string;
+  favoriteMovies = co.feed(co.ref(Movie)); // append-only
+}
+```
+</CodeGroup>
+
+CoList is a collaborative list where each item is a reference to a CoValue while CoFeed contains an append-only list of references to CoValues.
+
+References offer a single source of truth, when you update the CoValue all references to that value are automatically updated, ensuring data consistency across your application.
+
+By connecting CoValues through references, you can build robust and collaborative applications where data is consistent, efficient to manage, and relationships are clearly defined. 
+The ability to link different CoValue types to the same underlying data is fundamental to building complex applications with Jazz.
+
+
+
