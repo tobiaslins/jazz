@@ -3,7 +3,7 @@
   "version": "1.0.110",
   "main": "index.js",
   "scripts": {
-    "build": "expo export -p ios",
+    "build": "tsc --noEmit && expo export -p ios",
     "start": "expo start",
     "format-and-lint": "biome check .",
     "format-and-lint:fix": "biome check . --write",

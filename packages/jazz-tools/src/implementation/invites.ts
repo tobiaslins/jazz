@@ -36,9 +36,7 @@ export function createInviteLink<C extends CoValue>(
 }
 
 /** @category Invite Links */
-export function parseInviteLink<C extends CoValue>(
-  inviteURL: string,
-):
+export function parseInviteLink(inviteURL: string):
   | {
       valueID: string;
       valueHint?: string;
