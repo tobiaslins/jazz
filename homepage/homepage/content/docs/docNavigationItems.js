@@ -9,13 +9,13 @@ export const docNavigationItems = [
         href: "/docs",
         done: 100,
       },
-      {
-        name: "Guide",
-        href: "/docs/guide",
-        done: {
-          react: 100,
-        },
-      },
+      // {
+      //   name: "Guide",
+      //   href: "/docs/guide",
+      //   done: {
+      //     react: 100,
+      //   },
+      // },
       {
         name: "Example apps",
         href: "/examples",

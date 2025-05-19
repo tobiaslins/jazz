@@ -57,13 +57,10 @@ function App() {
 
         <p className="text-center my-16">
           Go to{" "}
-          <a
-            className="font-semibold underline"
-            href="https://jazz.tools/docs/react/guide"
-          >
-            jazz.tools/docs/react/guide
+          <a className="font-semibold underline" href="https://jazz.tools/docs">
+            jazz.tools/docs
           </a>{" "}
-          for a full tutorial.
+          for our docs.
         </p>
       </main>
     </>
