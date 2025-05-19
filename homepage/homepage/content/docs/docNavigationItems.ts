@@ -1,4 +1,27 @@
-export const docNavigationItems = [
+import { Framework } from "../framework";
+
+export type DoneStatus =
+  | number // represents percentage done
+  | Partial<Record<Framework, number>>;
+
+export type DocNavigationItem = {
+  name: string;
+  href: string;
+  done: DoneStatus;
+  framework?: Framework;
+  next?: DocNavigationItem | null;
+  previous?: DocNavigationItem | null;
+  excludeFromNavigation?: boolean;
+};
+
+export type DocNavigationSection = {
+  name: string;
+  items: DocNavigationItem[];
+  collapse?: boolean;
+  prefix?: string;
+};
+
+export const docNavigationItems: DocNavigationSection[] = [
   {
     // welcome to jazz
     name: "Getting started",
@@ -8,6 +31,7 @@ export const docNavigationItems = [
         name: "Introduction",
         href: "/docs",
         done: 100,
+        excludeFromNavigation: true,
       },
       // {
       //   name: "Guide",
@@ -20,6 +44,7 @@ export const docNavigationItems = [
         name: "Example apps",
         href: "/examples",
         done: 30,
+        excludeFromNavigation: true,
       },
       { name: "FAQs", href: "/docs/faq", done: 100 },
     ],
@@ -89,18 +114,21 @@ export const docNavigationItems = [
         name: "0.13.0 - React Native Split",
         href: "/docs/upgrade/0-13-0",
         done: 100,
+        excludeFromNavigation: true,
       },
       {
         // upgrade guides
         name: "0.12.0 - Deeply Resolved Data",
         href: "/docs/upgrade/0-12-0",
         done: 100,
+        excludeFromNavigation: true,
       },
       {
         // upgrade guides
         name: "0.11.0 - Roles and permissions",
         href: "/docs/upgrade/0-11-0",
         done: 100,
+        excludeFromNavigation: true,
       },
       // {
       //   // upgrade guides
@@ -126,7 +154,8 @@ export const docNavigationItems = [
         name: "0.9.2 - Local persistence on React Native Expo",
         href: "/docs/upgrade/react-native-local-persistence",
         done: 100,
-        framework: "react-native-expo",
+        framework: Framework.ReactNativeExpo,
+        excludeFromNavigation: true,
       },
       // {
       //   // upgrade guides
@@ -296,3 +325,15 @@ export const docNavigationItems = [
     ],
   },
 ];
+
+const flatItems = docNavigationItems
+  .flatMap((section) => section.items)
+  .filter((item) => !item.excludeFromNavigation);
+
+export const flatItemsWithNavLinks = flatItems.map((item, index) => {
+  return {
+    ...item,
+    next: item.next === null ? null : flatItems[index + 1],
+    previous: item.previous === null ? null : flatItems[index - 1],
+  };
+});
