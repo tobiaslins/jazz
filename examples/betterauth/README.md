@@ -1,6 +1,6 @@
 # Better Auth Integration Example
 
-This example demonstrates using Jazz with Better Auth and Next.js.
+This example demonstrates how to integrate [Better Auth](https://www.better-auth.com/) with Jazz.
 
 ## Getting started
 
@@ -26,3 +26,29 @@ cd betterauth-app
 pnpm install
 pnpm dev
 ```
+
+### Using the monorepo
+
+This requires `pnpm` to be installed, see [https://pnpm.io/installation](https://pnpm.io/installation).
+
+Clone the jazz repository.
+```bash
+git clone https://github.com/garden-co/jazz.git
+```
+
+Install and build dependencies.
+```bash
+pnpm i && npx turbo build
+```
+
+Go to the example directory.
+```bash
+cd jazz/examples/betterauth/
+```
+
+Start the dev server.
+```bash
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
