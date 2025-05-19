@@ -76,7 +76,7 @@ const project = TodoProject.create(
   },
   Group.create()
 );
-````
+```
 
 </CodeGroup>
 
@@ -97,7 +97,7 @@ const Task = co.map({
   title: z.string(),
   completed: z.boolean(),
 });
-````
+```
 
 </CodeGroup>
 
@@ -114,7 +114,7 @@ const Fruit = co.map({
 const ColorToHex = co.record(z.string(), z.string());
 
 const ColorToFruit = co.record(z.string(), Fruit);
-````
+```
 
 </CodeGroup>
 
@@ -140,7 +140,7 @@ const Task = co.map({
 // ---cut---
 const ListOfColors = co.list(z.string());
 const ListOfTasks = co.list(Task);
-````
+```
 
 </CodeGroup>
 
@@ -221,8 +221,8 @@ const SliderWidget = co.map({
 });
 
 const WidgetUnion = z.discriminatedUnion("type", [ButtonWidget, SliderWidget]);
+```
 
-````
 </CodeGroup>
 
 See the corresponding sections for [creating](/docs/using-covalues/schemaunions#creating-schemaunions),
@@ -246,20 +246,24 @@ const Person = co.map({
 })
 
 export const ListOfColors = co.list(z.string());
-````
-
+```
 </CodeGroup>
 
 Here's a quick overview of the primitive types you can use:
 
 <CodeGroup>
-  ```ts twoslash import {z} from "jazz-tools"; // ---cut--- z.string(); // For
-  simple strings z.number(); // For numbers z.boolean(); // For booleans
-  z.null(); // For null z.date(); // For dates z.literal(["waiting", "ready"]);
-  // For enums ```
+```ts twoslash import {z} from "jazz-tools"; 
+// ---cut--- 
+z.string(); // For simple strings 
+z.number(); // For numbers 
+z.boolean(); // For booleans
+z.null(); // For null 
+z.date(); // For dates 
+z.literal(["waiting", "ready"]); // For enums 
+```
 </CodeGroup>
 
-Finally, for more complex JSON data, that you _don't want to be collaborative internally_ (but only ever update as a whole), you can use more complex Zod types.
+Finally, for more complex JSON data, that you *don't want to be collaborative internally* (but only ever update as a whole), you can use more complex Zod types.
 
 For example, you can use `z.object()` to represent an internally immutable position:
 
@@ -311,7 +315,7 @@ const ListOfPeople = co.list(Person);
 const Company = co.map({
   members: ListOfPeople,
 });
-````
+```
 
 </CodeGroup>
 
@@ -329,8 +333,7 @@ const Pet = co.map({
 const Person = co.map({
   pet: z.optional(Pet),
 });
-````
-
+```
 </CodeGroup>
 
 #### Recursive References
@@ -365,7 +368,7 @@ const Person = co.map({
 });
 
 const ListOfPeople = co.list(Person);
-````
+```
 
 </CodeGroup>
 
@@ -381,7 +384,7 @@ const Person = co.map({
     return z.optional(Person);
   }
 });
-````
+```
 
 </CodeGroup>
 
