@@ -2,6 +2,7 @@ import {
   docNavigationItems,
   flatItemsWithNavLinks,
 } from "@/content/docs/docNavigationItems";
+import { DocNavigationItem } from "@/content/docs/docNavigationItemsTypes";
 import { Icon } from "@garden-co/design-system/src/components/atoms/Icon";
 import { Separator } from "@garden-co/design-system/src/components/atoms/Separator";
 import Link from "next/link";
@@ -18,7 +19,7 @@ export function PreviousNextLinks({ slug, framework }: PreviousNextLinksProps) {
       ? `/docs/${framework}/${slug.join("/")}`
       : `/docs/${framework}`;
     return currentPath === itemPath;
-  });
+  }) as DocNavigationItem;
 
   if (
     currentItem?.excludeFromNavigation ||
