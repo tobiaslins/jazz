@@ -1,4 +1,4 @@
-import { ContentByFramework } from '@/components/forMdx'
+import { ContentByFramework, CodeGroup } from '@/components/forMdx'
 
 # Jazz 0.14.0 Introducing Zod-based schemas
 
@@ -16,4 +16,42 @@ If you see something broken, please let us know on [Discord](https://discord.gg/
 
 ## Overview:
 
-TODO (check back in a couple minutes)
+Before, the schema for a simple chat app looked like this:
+
+<CodeGroup>
+```ts
+import { co, CoMap, CoList, CoPlainText, ImageDefinition } from "jazz-tools";
+
+export class Message extends CoMap {
+  text = co.ref(CoPlainText);
+  image = co.optional.ref(ImageDefinition);
+}
+
+export class Chat extends CoList.Of(co.ref(Message)) {}
+```
+</CodeGroup>
+Now, we're introducing a new `co` definer for CoValues that uses Zod schemas under the hood and lets you use Zod's `z` for primitive values and combinators.
+
+<CodeGroup>
+```ts twoslash
+import { co, z } from "jazz-tools";
+
+export const Message = co.map({
+  text: co.plainText(),
+  image: z.optional(co.image()),
+});
+
+export const Chat = co.list(Message);
+```
+</CodeGroup>
+## Major breaking change: Schema definitions
+
+TODO
+
+## Major breaking change: How to pass loaded CoValues
+
+TODO
+
+## Major breaking change: Removing AccountSchema registration
+
+TODO
