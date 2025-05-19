@@ -311,7 +311,7 @@ describe("Group invites", () => {
       member.accountID,
     );
     group.addMember(memberAccount, "reader");
-    group.removeMember(memberAccount);
+    await group.removeMember(memberAccount);
 
     // Create a new reader invite
     const inviteSecret = group.createInvite("reader");
