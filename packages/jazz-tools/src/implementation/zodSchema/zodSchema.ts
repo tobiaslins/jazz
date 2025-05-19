@@ -74,13 +74,7 @@ export function getDef<S extends z.core.$ZodType>(schema: S): S["_zod"]["def"] {
   return (schema as any).def;
 }
 
-export type CoValueOrZodSchema =
-  | CoValueClass
-  | AnyCoMapSchema
-  | AnyCoFeedSchema
-  | AnyCoRecordSchema
-  | AnyCoListSchema
-  | AnyCoUnionSchema;
+export type CoValueOrZodSchema = CoValueClass | AnyCoSchema;
 
 export type CoValueClassFromZodSchema<S extends z.core.$ZodType> = CoValueClass<
   InstanceOfSchema<S>
