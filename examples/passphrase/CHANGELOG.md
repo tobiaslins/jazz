@@ -1,5 +1,13 @@
 # passphrase
 
+## 0.0.94
+
+### Patch Changes
+
+- Updated dependencies [5835ed1]
+  - jazz-tools@0.14.0
+  - jazz-react@0.14.0
+
 ## 0.0.93
 
 ### Patch Changes

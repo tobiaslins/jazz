@@ -1,5 +1,13 @@
 # image-upload
 
+## 0.0.96
+
+### Patch Changes
+
+- Updated dependencies [5835ed1]
+  - jazz-tools@0.14.0
+  - jazz-react@0.14.0
+
 ## 0.0.95
 
 ### Patch Changes
