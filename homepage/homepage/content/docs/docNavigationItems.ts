@@ -107,29 +107,34 @@ export const docNavigationItems: DocNavigationSection[] = [
   },
   {
     name: "Upgrade guides",
-    collapse: true,
+    // collapse: true,
     prefix: "/docs/upgrade",
     items: [
       {
-        name: "0.13.0 - React Native Split",
-        href: "/docs/upgrade/0-13-0",
+        name: "0.14.0 - Zod-based schemas",
+        href: "/docs/upgrade/0-14-0",
         done: 100,
-        excludeFromNavigation: true,
       },
-      {
-        // upgrade guides
-        name: "0.12.0 - Deeply Resolved Data",
-        href: "/docs/upgrade/0-12-0",
-        done: 100,
-        excludeFromNavigation: true,
-      },
-      {
-        // upgrade guides
-        name: "0.11.0 - Roles and permissions",
-        href: "/docs/upgrade/0-11-0",
-        done: 100,
-        excludeFromNavigation: true,
-      },
+      // {
+      //   name: "0.13.0 - React Native Split",
+      //   href: "/docs/upgrade/0-13-0",
+      //   done: 100,
+      //   excludeFromNavigation: true,
+      // },
+      // {
+      //   // upgrade guides
+      //   name: "0.12.0 - Deeply Resolved Data",
+      //   href: "/docs/upgrade/0-12-0",
+      //   done: 100,
+      //   excludeFromNavigation: true,
+      // },
+      // {
+      //   // upgrade guides
+      //   name: "0.11.0 - Roles and permissions",
+      //   href: "/docs/upgrade/0-11-0",
+      //   done: 100,
+      //   excludeFromNavigation: true,
+      // },
       // {
       //   // upgrade guides
       //   name: "0.10.0 - New authentication flow",
