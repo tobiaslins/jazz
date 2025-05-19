@@ -544,7 +544,8 @@ export class LocalNode {
       groupAsInvite.core.verified,
       { forceOverwrite: true },
     );
-    group.core.internalShamefullyResetCachedContent();
+
+    group.processNewTransactions();
 
     group.core.notifyUpdate("immediate");
   }

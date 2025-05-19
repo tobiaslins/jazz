@@ -1,5 +1,36 @@
 # jazz-react
 
+## 0.13.32
+
+### Patch Changes
+
+- jazz-browser@0.13.32
+- jazz-browser-media-images@0.13.32
+
+## 0.13.31
+
+### Patch Changes
+
+- Updated dependencies [e5b170f]
+- Updated dependencies [d63716a]
+- Updated dependencies [d5edad7]
+  - jazz-tools@0.13.31
+  - cojson@0.13.31
+  - jazz-browser@0.13.31
+  - jazz-browser-media-images@0.13.31
+  - jazz-react-core@0.13.31
+
+## 0.13.30
+
+### Patch Changes
+
+- Updated dependencies [07dd2c5]
+  - cojson@0.13.30
+  - jazz-browser@0.13.30
+  - jazz-react-core@0.13.30
+  - jazz-tools@0.13.30
+  - jazz-browser-media-images@0.13.30
+
 ## 0.13.29
 
 ### Patch Changes

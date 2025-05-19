@@ -1,5 +1,26 @@
 # multi-cursors
 
+## 0.0.91
+
+### Patch Changes
+
+- jazz-react@0.13.32
+
+## 0.0.90
+
+### Patch Changes
+
+- Updated dependencies [e5b170f]
+  - jazz-tools@0.13.31
+  - jazz-react@0.13.31
+
+## 0.0.89
+
+### Patch Changes
+
+- jazz-react@0.13.30
+- jazz-tools@0.13.30
+
 ## 0.0.88
 
 ### Patch Changes

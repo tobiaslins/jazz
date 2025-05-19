@@ -1,4 +1,5 @@
-import { Group } from "jazz-tools";
+import { useAccount, useCoState } from "jazz-react";
+import { Account, Group, ID } from "jazz-tools";
 import { Organization } from "../schema.ts";
 
 export function OrganizationMembers({
@@ -9,13 +10,51 @@ export function OrganizationMembers({
   return (
     <>
       {group.members.map((member) => (
-        <div key={member.id} className="px-4 py-5 sm:px-6">
-          <strong className="font-medium">
-            {member.account.profile?.name}
-          </strong>{" "}
-          ({member.role})
-        </div>
+        <MemberItem
+          key={member.id}
+          accountId={member.account.id}
+          role={member.role}
+          group={group}
+        />
       ))}
     </>
+  );
+}
+
+function MemberItem({
+  accountId,
+  role,
+  group,
+}: { accountId: ID<Account>; role: string; group: Group }) {
+  const account = useCoState(Account, accountId, {
+    resolve: {
+      profile: true,
+    },
+  });
+  const { me } = useAccount();
+
+  const canRemoveMember = group.myRole() === "admin" && accountId !== me?.id;
+
+  function handleRemoveMember() {
+    if (canRemoveMember && account) {
+      group.removeMember(account);
+    }
+  }
+
+  return (
+    <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
+      <div>
+        <strong className="font-medium">{account?.profile.name}</strong> ({role}
+        )
+      </div>
+      {canRemoveMember && (
+        <button
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          onClick={handleRemoveMember}
+        >
+          Remove member
+        </button>
+      )}
+    </div>
   );
 }

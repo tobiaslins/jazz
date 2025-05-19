@@ -1,4 +1,5 @@
-import { Account, CoList, CoMap, Group, co } from "jazz-tools";
+import { Account, CoList, CoMap, Group, Profile, co } from "jazz-tools";
+import { getRandomUsername } from "./util";
 
 export class Project extends CoMap {
   name = co.string;
@@ -38,43 +39,49 @@ export class JazzAccountRoot extends CoMap {
 export class JazzAccount extends Account {
   root = co.ref(JazzAccountRoot);
 
-  async migrate() {
-    if (!this._refs.root) {
-      const draftOrganizationOwnership = {
-        owner: Group.create({ owner: this }),
-      };
+  async migrate(this: JazzAccount) {
+    if (this.profile === undefined) {
+      const group = Group.create();
+      this.profile = Profile.create(
+        {
+          name: getRandomUsername(),
+        },
+        group,
+      );
+      group.addMember("everyone", "reader");
+    }
+
+    if (this.root === undefined) {
+      const draftOrgGroup = Group.create();
       const draftOrganization = DraftOrganization.create(
         {
-          projects: ListOfProjects.create([], draftOrganizationOwnership),
+          projects: ListOfProjects.create([], draftOrgGroup),
         },
-        draftOrganizationOwnership,
+        draftOrgGroup,
       );
 
-      const initialOrganizationOwnership = {
-        owner: Group.create({ owner: this }),
-      };
-      const organizations = ListOfOrganizations.create(
-        [
-          Organization.create(
-            {
-              name: this.profile?.name
-                ? `${this.profile.name}'s projects`
-                : "Your projects",
-              projects: ListOfProjects.create([], initialOrganizationOwnership),
-            },
-            initialOrganizationOwnership,
-          ),
-        ],
-        { owner: this },
-      );
+      const defaultOrgGroup = Group.create();
 
-      this.root = JazzAccountRoot.create(
-        {
-          draftOrganization,
-          organizations,
+      const { profile } = await this.ensureLoaded({
+        resolve: {
+          profile: true,
         },
-        { owner: this },
-      );
+      });
+
+      const organizations = ListOfOrganizations.create([
+        Organization.create(
+          {
+            name: profile.name ? `${profile.name}'s projects` : "Your projects",
+            projects: ListOfProjects.create([], defaultOrgGroup),
+          },
+          defaultOrgGroup,
+        ),
+      ]);
+
+      this.root = JazzAccountRoot.create({
+        draftOrganization,
+        organizations,
+      });
     }
   }
 }

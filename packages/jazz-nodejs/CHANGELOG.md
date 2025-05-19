@@ -1,5 +1,25 @@
 # jazz-autosub
 
+## 0.13.31
+
+### Patch Changes
+
+- Updated dependencies [e5b170f]
+- Updated dependencies [d63716a]
+- Updated dependencies [d5edad7]
+  - jazz-tools@0.13.31
+  - cojson@0.13.31
+  - cojson-transport-ws@0.13.31
+
+## 0.13.30
+
+### Patch Changes
+
+- Updated dependencies [07dd2c5]
+  - cojson@0.13.30
+  - cojson-transport-ws@0.13.30
+  - jazz-tools@0.13.30
+
 ## 0.13.29
 
 ### Patch Changes

@@ -1,5 +1,26 @@
 # cojson-storage
 
+## 0.13.32
+
+### Patch Changes
+
+- 2bf9743: Implement content streaming for large CoValues on storage
+
+## 0.13.31
+
+### Patch Changes
+
+- Updated dependencies [d63716a]
+- Updated dependencies [d5edad7]
+  - cojson@0.13.31
+
+## 0.13.30
+
+### Patch Changes
+
+- Updated dependencies [07dd2c5]
+  - cojson@0.13.30
+
 ## 0.13.29
 
 ### Patch Changes
