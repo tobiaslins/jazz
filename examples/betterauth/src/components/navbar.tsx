@@ -3,13 +3,14 @@
 import { Button } from "@/components/ui/button";
 import { useAccount, useIsAuthenticated } from "jazz-react";
 import { useAuth } from "jazz-react-auth-betterauth";
+import { Account } from "jazz-tools";
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback } from "react";
 
 export function Navbar() {
   const { authClient } = useAuth();
-  const { logOut } = useAccount({ resolve: { profile: {} } });
+  const { logOut } = useAccount(Account, { resolve: { profile: {} } });
 
   const isAuthenticated = useIsAuthenticated();
 

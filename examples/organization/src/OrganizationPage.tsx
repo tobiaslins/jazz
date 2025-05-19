@@ -1,5 +1,4 @@
 import { useCoState } from "jazz-react";
-import { ID } from "jazz-tools";
 import { useParams } from "react-router";
 import { Layout } from "./Layout.tsx";
 import { CreateProject } from "./components/CreateProject.tsx";
@@ -9,7 +8,7 @@ import { OrganizationMembers } from "./components/OrganizationMembers.tsx";
 import { Organization } from "./schema.ts";
 
 export function OrganizationPage() {
-  const paramOrganizationId = useParams<{ organizationId: ID<Organization> }>()
+  const paramOrganizationId = useParams<{ organizationId: string }>()
     .organizationId;
 
   const organization = useCoState(Organization, paramOrganizationId, {
