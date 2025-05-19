@@ -1,4 +1,4 @@
-import { docNavigationItems } from "../../content/docs/docNavigationItems.ts";
+import { docNavigationItems } from "../../content/docs/docNavigationItems.js";
 
 // Transform docNavigationItems into the format we need
 function transformNavItems() {

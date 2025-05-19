@@ -1,27 +1,5 @@
-import { Framework } from "../framework";
-
-export type DoneStatus =
-  | number // represents percentage done
-  | Partial<Record<Framework, number>>;
-
-export type DocNavigationItem = {
-  name: string;
-  href: string;
-  done: DoneStatus;
-  framework?: Framework;
-  next?: DocNavigationItem | null;
-  previous?: DocNavigationItem | null;
-  excludeFromNavigation?: boolean;
-};
-
-export type DocNavigationSection = {
-  name: string;
-  items: DocNavigationItem[];
-  collapse?: boolean;
-  prefix?: string;
-};
-
-export const docNavigationItems: DocNavigationSection[] = [
+/** @satisfies {DocNavigationSection[]} */
+export const docNavigationItems = [
   {
     // welcome to jazz
     name: "Getting started",
@@ -159,7 +137,7 @@ export const docNavigationItems: DocNavigationSection[] = [
         name: "0.9.2 - Local persistence on React Native Expo",
         href: "/docs/upgrade/react-native-local-persistence",
         done: 100,
-        framework: Framework.ReactNativeExpo,
+        framework: "react-native-expo",
         excludeFromNavigation: true,
       },
       // {
