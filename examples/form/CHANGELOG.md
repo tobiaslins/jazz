@@ -1,5 +1,13 @@
 # form
 
+## 0.1.41
+
+### Patch Changes
+
+- Updated dependencies [cdfc105]
+  - jazz-tools@0.14.1
+  - jazz-react@0.14.1
+
 ## 0.1.40
 
 ### Patch Changes
