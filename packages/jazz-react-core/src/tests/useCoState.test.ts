@@ -1,24 +1,10 @@
 // @vitest-environment happy-dom
 
 import { cojsonInternals } from "cojson";
-import {
-  CoList,
-  CoMap,
-  CoValue,
-  Group,
-  ID,
-  Loaded,
-  co,
-  coField,
-  z,
-} from "jazz-tools";
-import { beforeEach, describe, expect, expectTypeOf, it } from "vitest";
+import { Account, CoValue, Group, ID, Loaded, co, z } from "jazz-tools";
+import { assert, beforeEach, describe, expect, expectTypeOf, it } from "vitest";
 import { useCoState } from "../index.js";
-import {
-  createJazzTestAccount,
-  linkAccounts,
-  setupJazzTestSync,
-} from "../testing.js";
+import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 import { act, renderHook, waitFor } from "./testUtils.js";
 
 beforeEach(async () => {
@@ -463,5 +449,52 @@ describe("useCoState", () => {
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     expect(renderCount).toBe(2);
+  });
+
+  it("should manage correctly the group.members[number].account.profile?.name autoload", async () => {
+    const Dog = co.map({
+      name: z.string(),
+    });
+
+    const john = await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+      creationProps: {
+        name: "John Doe",
+      },
+    });
+
+    const jane = await createJazzTestAccount({
+      creationProps: {
+        name: "Jane Doe",
+      },
+    });
+
+    const janeOnJohn = await Account.load(jane.id, {
+      loadAs: john,
+    });
+
+    assert(janeOnJohn);
+
+    const group = Group.create(john);
+    group.addMember(janeOnJohn, "reader");
+
+    const dog = Dog.create(
+      {
+        name: "Rex",
+      },
+      group,
+    );
+
+    const { result } = renderHook(
+      () => useCoState(Dog, dog.id)?._owner.castAs(Group).members,
+      {
+        account: john,
+      },
+    );
+
+    await waitFor(() => {
+      expect(result.current?.[0]?.account?.profile?.name).toBe("John Doe");
+      expect(result.current?.[1]?.account?.profile?.name).toBe("Jane Doe");
+    });
   });
 });

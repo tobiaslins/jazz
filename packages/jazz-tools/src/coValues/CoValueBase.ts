@@ -6,6 +6,7 @@ import {
   CoValueFromRaw,
   ID,
   RegisteredSchemas,
+  accessChildById,
   anySchemaToCoSchema,
   coValuesCache,
   inspect,
@@ -22,15 +23,15 @@ export class CoValueBase implements CoValue {
   declare _instanceID: string;
 
   get _owner(): Account | Group {
-    const owner = coValuesCache.get(this._raw.group, () =>
+    const schema =
       this._raw.group instanceof RawAccount
-        ? anySchemaToCoSchema(RegisteredSchemas["Account"]).fromRaw(
-            this._raw.group,
-          )
-        : RegisteredSchemas["Group"].fromRaw(this._raw.group),
-    );
+        ? RegisteredSchemas["Account"]
+        : RegisteredSchemas["Group"];
 
-    return owner;
+    return accessChildById(this, this._raw.group.id, {
+      ref: schema,
+      optional: false,
+    });
   }
 
   /** @private */
@@ -78,6 +79,10 @@ export class CoValueBase implements CoValue {
   castAs<Cl extends CoValueClass & CoValueFromRaw<CoValue>>(
     cl: Cl,
   ): InstanceType<Cl> {
+    if (this.constructor === cl) {
+      return this as InstanceType<Cl>;
+    }
+
     return cl.fromRaw(this._raw) as InstanceType<Cl>;
   }
 }
