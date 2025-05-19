@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useAccount } from "jazz-react";
+import { Account } from "jazz-tools";
 import {
   AppWindowMacIcon,
   FileTextIcon,
@@ -11,7 +12,7 @@ import {
 import Image from "next/image";
 
 export default function Home() {
-  const { me } = useAccount({ resolve: { profile: {} } });
+  const { me } = useAccount(Account, { resolve: { profile: {} } });
 
   if (!me) {
     return null;
