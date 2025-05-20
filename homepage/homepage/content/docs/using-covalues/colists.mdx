@@ -127,7 +127,8 @@ export const Task = co.map({
     markAsDeleted(task: Loaded<typeof Self>) {
       task.deleted = true;
     }
-  }));
+  })
+);
 
 const ListOfTasks = co.list(Task)
   .withHelpers((Self) => ({
@@ -137,7 +138,8 @@ const ListOfTasks = co.list(Task)
           !task?.deleted && task?._owner.castAs(Group).myRole() !== undefined,
       );
     }
-  }));
+  })
+);
 ```
 </CodeGroup>
 
