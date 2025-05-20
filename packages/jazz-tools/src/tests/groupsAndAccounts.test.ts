@@ -250,9 +250,9 @@ describe("Group inheritance", () => {
 
     // @ts-expect-error - Even though readerInvite is a valid role for an account, we don't allow it to not create confusion when using the intellisense
     group.addMember(account, "readerInvite");
-    // @ts-expect-error
+    // @ts-expect-error - Only groups can have an `inherit` role, not accounts
     group.addMember(account, "inherit");
-    // @ts-expect-error
+    // @ts-expect-error - Only groups can be added without a role, not accounts
     group.addMember(account, undefined);
 
     expect(group.members).not.toContainEqual(

@@ -12,7 +12,7 @@ When a group is added as a member of another group, members of the parent group 
 
 ## Basic usage
 
-Here's how to add a child group to a parent group:
+Here's how to add a group as a member of another group:
 
 <CodeGroup>
 ```ts twoslash
@@ -27,9 +27,9 @@ trackGroup.addMember(playlistGroup);
 </CodeGroup>
 
 When you add groups as members:
-- Members of the parent group get access to the child group
+- Members of the added group become members of the container group
 - Their roles are inherited (with some exceptions, see [below](#the-rules-of-role-inheritance))
-- Removing a member from the parent group also removes their access to child groups
+- Revoking access from the member group also removes its access to the container group
 
 ## Levels of inheritance
 
@@ -54,7 +54,7 @@ Members of the grandparent group will get access to all descendant groups based 
 
 ### The rules of role inheritance
 
-If the account is already a member of the child group, it will get the more permissive role:
+If the account is already a member of the container group, it will get the more permissive role:
 <CodeGroup>
 ```ts twoslash
 import { Group } from "jazz-tools";
@@ -161,12 +161,13 @@ import { Group } from "jazz-tools";
 import { createJazzTestAccount } from 'jazz-tools/testing';
 const bob = await createJazzTestAccount();
 const parentGroup = Group.create();
-parentGroup.addMember(bob, "reader");
 // ---cut---
 // Remove member from parent
 await parentGroup.removeMember(bob);
 
-// Bob loses access to both parent and child groups
+// Bob loses access to both groups.
+// If Bob was also a member of the member group,
+// he wouldn't have lost access.
 ```
 </CodeGroup>
 
