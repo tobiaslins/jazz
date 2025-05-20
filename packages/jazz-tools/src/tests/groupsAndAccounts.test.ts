@@ -250,6 +250,10 @@ describe("Group inheritance", () => {
 
     // @ts-expect-error - Even though readerInvite is a valid role for an account, we don't allow it to not create confusion when using the intellisense
     group.addMember(account, "readerInvite");
+    // @ts-expect-error
+    group.addMember(account, "inherit");
+    // @ts-expect-error
+    group.addMember(account, undefined);
 
     expect(group.members).not.toContainEqual(
       expect.objectContaining({
@@ -259,6 +263,18 @@ describe("Group inheritance", () => {
     );
 
     expect(group.getRoleOf(account.id)).toBe("readerInvite");
+  });
+
+  test("adding a group member as writeOnly should fail", async () => {
+    const account = await createJazzTestAccount({});
+    await account.waitForAllCoValuesSync();
+
+    const parentGroup = Group.create();
+    const group = Group.create();
+    expect(() => {
+      // @ts-expect-error
+      group.addMember(parentGroup, "writeOnly");
+    }).toThrow();
   });
 });
 

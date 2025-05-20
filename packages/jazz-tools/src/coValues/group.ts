@@ -161,7 +161,9 @@ export class Group extends CoValueBase implements CoValue {
     role?: AccountRole | "inherit",
   ) {
     if (member !== "everyone" && member._type === "Group") {
-      this._raw.extend(member._raw, role === "writeOnly" ? "writer" : role);
+      if (role === "writeOnly")
+        throw new Error("Cannot add group as member with write-only role");
+      this._raw.extend(member._raw, role);
     } else if (role !== undefined && role !== "inherit") {
       this._raw.addMember(member === "everyone" ? member : member._raw, role);
     }
