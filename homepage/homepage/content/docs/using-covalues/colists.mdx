@@ -111,6 +111,38 @@ tasks[0].status = "complete";        // Update properties of references
 ```
 </CodeGroup>
 
+### Soft Deletion
+When an object needs to be "deleted," instead of removing it from the database, you can set a deleted flag is set to true.
+
+Then, create methods in CoList classes, which explicitly filter out items where the deleted property is true, ensuring these items are not surfaced in standard queries.
+
+<CodeGroup>
+```ts twoslash
+import { co, z, Loaded, Group } from "jazz-tools";
+
+export const Task = co.map({
+  name: z.string(),
+  deleted: z.boolean(), 
+}).withHelpers((Self) => ({
+    markAsDeleted(task: Loaded<typeof Self>) {
+      task.deleted = true;
+    }
+  }));
+
+const ListOfTasks = co.list(Task)
+  .withHelpers((Self) => ({
+    getAll(list: Loaded<typeof Self>) {
+      return Array.from(list.values()).filter(
+        (task): task is Loaded<typeof Task> =>
+          !task?.deleted && task?._owner.castAs(Group).myRole() !== undefined,
+      );
+    }
+  }));
+```
+</CodeGroup>
+
+There are several benefits to utilizing this soft delete pattern, including the ability to recover deleted data, it helps maintain data integrity for relationships, and potentially support audit trails.
+
 ### Deleting Items
 
 Remove specific items by index with `splice`, or remove the first or last item with `pop` or `shift`:

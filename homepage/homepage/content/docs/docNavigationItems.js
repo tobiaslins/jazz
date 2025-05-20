@@ -161,11 +161,6 @@ export const docNavigationItems = [
         name: "Accounts & migrations",
         href: "/docs/schemas/accounts-and-migrations",
         done: 20,
-      },
-      {
-      name: "Soft Deletion",
-      href: "/docs/schemas/soft-deletion", 
-      done: 100, 
       }
     ],
   },
