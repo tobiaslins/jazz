@@ -270,13 +270,11 @@ project.startDate = "2025-03-15"; // ✗ Type error: expected Date
 
 Implementing a soft deletion pattern by using a `deleted` flag allows you to maintain data for potential recovery and auditing. 
 
-Simply add an optional `deleted` boolean to the CoValue you want to delete in the schema.
-
 <CodeGroup>
 ```tsx
 export class Project extends co.map({
     name = z.string;
-    deleted = z.optional.boolean;
+    deleted = z.optional.boolean; // [!code ++]
 })
 ```
 </CodeGroup>
