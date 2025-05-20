@@ -1,5 +1,24 @@
 # cojson
 
+## 0.14.1
+
+### Patch Changes
+
+- c8b33ad: Force sync of the group after acceptInvite
+
+## 0.14.0
+
+### Minor Changes
+
+- 5835ed1: Type-level changes to support Zod schemas in jazz-tools
+
+## 0.13.31
+
+### Patch Changes
+
+- d63716a: Fix removing members when the admin doesn't have access to the parent group readkeys
+- d5edad7: Group invites: restore support for role upgrades and inviting revoked members
+
 ## 0.13.30
 
 ### Patch Changes
@@ -215,7 +234,7 @@
 - b9d194a: Added getAllMemberKeysSet method on RawGroup
   Add everyone to the possible inputs of Group.roleOf
 - a4713df: Moving to the d.ts files for the exported type definitions
-- 0f67e0a: Allow optional fields in types passed to co.json
+- 0f67e0a: Allow optional fields in types passed to coField.json
 
 ## 0.10.15
 
@@ -503,7 +522,7 @@
 ### Patch Changes
 
 - c3f4e6b: Fix order of exports fields in package.json
-- d9152ed: Allow interface types as generic argument in co.json
+- d9152ed: Allow interface types as generic argument in coField.json
 
 ## 0.8.3
 
