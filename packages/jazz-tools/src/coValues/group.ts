@@ -7,12 +7,10 @@ import type {
   Role,
 } from "cojson";
 import type {
-  AnyAccountSchema,
   CoMap,
   CoValue,
   CoValueClass,
   ID,
-  InstanceOfSchema,
   RefEncoded,
   RefsToResolve,
   RefsToResolveStrict,
@@ -30,7 +28,6 @@ import {
   RegisteredSchemas,
   accessChildById,
   activeAccountContext,
-  anySchemaToCoSchema,
   ensureCoValueLoaded,
   isControlledAccount,
   loadCoValueWithoutMe,
@@ -147,7 +144,7 @@ export class Group extends CoValueBase implements CoValue {
 
   addMember(member: Everyone, role: "writer" | "reader" | "writeOnly"): void;
   addMember(member: Account, role: AccountRole): void;
-  /**
+  /** @category Identity & Permissions
    * Gives members of a parent group membership in this group.
    * @param member The group that will gain access to this group.
    * @param role The role all members of the parent group should have in this group.
@@ -170,7 +167,7 @@ export class Group extends CoValueBase implements CoValue {
   }
 
   removeMember(member: Everyone | Account): Promise<void>;
-  /**
+  /** @category Identity & Permissions
    * Revokes membership from members a parent group.
    * @param member The group that will lose access to this group.
    */
@@ -249,7 +246,7 @@ export class Group extends CoValueBase implements CoValue {
     return this._raw.getParentGroups().map((group) => Group.fromRaw(group));
   }
 
-  /**
+  /** @category Identity & Permissions
    * Gives members of a parent group membership in this group.
    * @deprecated Use `addMember` instead.
    * @param parent The group that will gain access to this group.
@@ -264,7 +261,7 @@ export class Group extends CoValueBase implements CoValue {
     return this;
   }
 
-  /**
+  /** @category Identity & Permissions
    * Revokes membership from members a parent group.
    * @deprecated Use `removeMember` instead.
    * @param parent The group that will lose access to this group.

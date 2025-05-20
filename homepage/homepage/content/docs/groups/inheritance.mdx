@@ -1,18 +1,18 @@
 import { ContentByFramework, CodeGroup } from '@/components/forMdx'
 
 export const metadata = {
-  description: "Create Groups that inherit members from other Groups."
+  description: "Add groups as members of other groups."
 };
 
-# Group Inheritance
+# Groups as members
 
-Groups can inherit members from other groups using the `addMember` method.
+Groups can be added to other groups using the `addMember` method.
 
-When a group extends another group, members of the parent group will become automatically part of the child group.
+When a group is added as a member of another group, members of the parent group will become part of the child group.
 
-## Basic Usage
+## Basic usage
 
-Here's how to extend a group:
+Here's how to add a child group to a parent group:
 
 <CodeGroup>
 ```ts twoslash
@@ -21,19 +21,98 @@ import { Group } from "jazz-tools";
 const playlistGroup = Group.create();
 const trackGroup = Group.create();
 
-// This way track becomes visible to the members of playlist
+// Tracks are now visible to the members of playlist
 trackGroup.addMember(playlistGroup);
 ```
 </CodeGroup>
 
-When you extend a group:
+When you add groups as members:
 - Members of the parent group get access to the child group
-- Their roles are inherited (with some exceptions, see [below](#role-inheritance-rules))
+- Their roles are inherited (with some exceptions, see [below](#the-rules-of-role-inheritance))
 - Removing a member from the parent group also removes their access to child groups
 
-## Inheriting members but overriding their role
+## Levels of inheritance
 
-In some cases you might want to inherit all members from a parent group but override/flatten their roles to the same specific role in the child group. You can do so by passing an "override role" as a second argument to `addMember`:
+Adding a group as a member of another is not limited in depth:
+
+<CodeGroup>
+```ts twoslash
+import { Group } from "jazz-tools";
+// ---cut---
+const grandParentGroup = Group.create();
+const parentGroup = Group.create();
+const childGroup = Group.create();
+
+childGroup.addMember(parentGroup);
+parentGroup.addMember(grandParentGroup);
+```
+</CodeGroup>
+
+Members of the grandparent group will get access to all descendant groups based on their roles.
+
+## Roles
+
+### The rules of role inheritance
+
+If the account is already a member of the child group, it will get the more permissive role:
+<CodeGroup>
+```ts twoslash
+import { Group } from "jazz-tools";
+import { createJazzTestAccount } from 'jazz-tools/testing';
+const bob = await createJazzTestAccount();
+// ---cut---
+const parentGroup = Group.create();
+parentGroup.addMember(bob, "reader");
+
+const childGroup = Group.create();
+parentGroup.addMember(bob, "writer");
+childGroup.addMember(parentGroup);
+
+// Bob stays a writer because his role is higher
+// than the inherited reader role.
+```
+</CodeGroup>
+
+When adding a parent group to a child group, only admin, writer and reader roles are inherited:
+<CodeGroup>
+```ts twoslash
+import { Group } from "jazz-tools";
+import { createJazzTestAccount } from 'jazz-tools/testing';
+const bob = await createJazzTestAccount();
+// ---cut---
+const parentGroup = Group.create();
+parentGroup.addMember(bob, "writeOnly");
+
+const childGroup = Group.create();
+childGroup.addMember(parentGroup);
+
+// Bob does not become a member of the child group
+```
+</CodeGroup>
+
+To add a parent group to a child group:
+
+1. The current account must be an admin in the child group
+2. The current account must be a member of the parent group
+
+<CodeGroup>
+```ts twoslash
+import { co, Group } from "jazz-tools";
+const group = Group.create();
+const Company = co.map({});
+const company = Company.create({ owner: group });
+// ---cut---
+const companyGroup = company._owner.castAs(Group);
+const teamGroup = Group.create();
+
+// Works only if I'm a member of `companyGroup`
+teamGroup.addMember(companyGroup);
+```
+</CodeGroup>
+
+### Overriding parent group roles
+
+In some cases you might want to inherit all members from a parent group but override their roles to the same specific role in the child group. You can do so by passing an "override role" as a second argument to `addMember`:
 
 <CodeGroup>
 ```ts twoslash
@@ -46,7 +125,8 @@ organizationGroup.addMember(bob, "admin");
 
 const billingGroup = Group.create();
 
-// This way the members of the organization can only read the billing data
+// This way the members of the organization
+// can only read the billing data
 billingGroup.addMember(organizationGroup, "reader");
 ```
 </CodeGroup>
@@ -71,26 +151,7 @@ childGroup.addMember(parentGroup, "writer");
 ```
 </CodeGroup>
 
-## Multiple Levels of Inheritance
-
-Groups can be extended multiple levels deep:
-
-<CodeGroup>
-```ts twoslash
-import { Group } from "jazz-tools";
-// ---cut---
-const grandParentGroup = Group.create();
-const parentGroup = Group.create();
-const childGroup = Group.create();
-
-childGroup.addMember(parentGroup);
-parentGroup.addMember(grandParentGroup);
-```
-</CodeGroup>
-
-Members of the grandparent group will get access to all descendant groups based on their roles.
-
-## Permission Changes
+### Permission changes
 
 When you remove a member from a parent group, they automatically lose access to all child groups. We handle key rotation automatically to ensure security.
 
@@ -109,67 +170,9 @@ await parentGroup.removeMember(bob);
 ```
 </CodeGroup>
 
-## Role Inheritance Rules
+## Removing groups from other groups
 
-If the account is already a member of the child group, it will get the more permissive role:
-<CodeGroup>
-```ts twoslash
-import { Group } from "jazz-tools";
-import { createJazzTestAccount } from 'jazz-tools/testing';
-const bob = await createJazzTestAccount();
-// ---cut---
-const parentGroup = Group.create();
-parentGroup.addMember(bob, "reader");
-
-const childGroup = Group.create();
-parentGroup.addMember(bob, "writer");
-childGroup.addMember(parentGroup);
-
-// Bob stays a writer because his role is higher
-// than the inherited reader role.
-```
-</CodeGroup>
-
-When extending groups, only admin, writer and reader roles are inherited:
-<CodeGroup>
-```ts twoslash
-import { Group } from "jazz-tools";
-import { createJazzTestAccount } from 'jazz-tools/testing';
-const bob = await createJazzTestAccount();
-// ---cut---
-const parentGroup = Group.create();
-parentGroup.addMember(bob, "writeOnly");
-
-const childGroup = Group.create();
-childGroup.addMember(parentGroup);
-
-// Bob does not become a member of the child group
-```
-</CodeGroup>
-
-To extend a group:
-
-1. The current account must be an admin in the child group
-2. The current account must be a member of the parent group
-
-<CodeGroup>
-```ts twoslash
-import { co, Group } from "jazz-tools";
-const group = Group.create();
-const Company = co.map({});
-const company = Company.create({ owner: group });
-// ---cut---
-const companyGroup = company._owner.castAs(Group);
-const teamGroup = Group.create();
-
-// Works only if I'm a member of companyGroup
-teamGroup.addMember(companyGroup);
-```
-</CodeGroup>
-
-## Revoking a group extension
-
-You can revoke a group extension by using the `removeMember` method:
+You can remove a parent group from a child group by using the `removeMember` method:
 
 <CodeGroup>
 ```ts twoslash
