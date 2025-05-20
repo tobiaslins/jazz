@@ -276,6 +276,33 @@ describe("Group inheritance", () => {
       group.addMember(parentGroup, "writeOnly");
     }).toThrow();
   });
+
+  test("Removing member group", async () => {
+    const alice = await createJazzTestAccount({});
+    await alice.waitForAllCoValuesSync();
+    const bob = await createJazzTestAccount({});
+    await bob.waitForAllCoValuesSync();
+
+    const parentGroup = Group.create();
+    // `parentGroup` has `alice` as a writer
+    parentGroup.addMember(alice, "writer");
+    expect(parentGroup.getRoleOf(alice.id)).toBe("writer");
+
+    const group = Group.create();
+    // `group` has `bob` as a reader
+    group.addMember(bob, "reader");
+    expect(group.getRoleOf(bob.id)).toBe("reader");
+
+    group.addMember(parentGroup);
+    // `group` has `parentGroup`'s members (in this case, `alice` as a writer)
+    expect(group.getRoleOf(bob.id)).toBe("reader");
+    expect(group.getRoleOf(alice.id)).toBe("writer");
+
+    // `group` no longer has `parentGroup`'s members
+    await group.removeMember(parentGroup);
+    expect(group.getRoleOf(bob.id)).toBe("reader");
+    expect(group.getRoleOf(alice.id)).toBe(undefined);
+  });
 });
 
 describe("Group.getRoleOf", () => {
