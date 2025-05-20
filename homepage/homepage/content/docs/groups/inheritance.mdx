@@ -1,12 +1,12 @@
 import { ContentByFramework, CodeGroup } from '@/components/forMdx'
 
-export const metadata = { 
+export const metadata = {
   description: "Create Groups that inherit members from other Groups."
 };
 
 # Group Inheritance
 
-Groups can inherit members from other groups using the `extend` method. 
+Groups can inherit members from other groups using the `addMember` method.
 
 When a group extends another group, members of the parent group will become automatically part of the child group.
 
@@ -20,7 +20,7 @@ const playlistGroup = Group.create();
 const trackGroup = Group.create();
 
 // This way track becomes visible to the members of playlist
-trackGroup.extend(playlistGroup);
+trackGroup.addMember(playlistGroup);
 ```
 </CodeGroup>
 
@@ -31,7 +31,7 @@ When you extend a group:
 
 ## Inheriting members but overriding their role
 
-In some cases you might want to inherit all members from a parent group but override/flatten their roles to the same specific role in the child group. You can do so by passing an "override role" as a second argument to `extend`:
+In some cases you might want to inherit all members from a parent group but override/flatten their roles to the same specific role in the child group. You can do so by passing an "override role" as a second argument to `addMember`:
 
 <CodeGroup>
 ```typescript
@@ -41,7 +41,7 @@ organizationGroup.addMember(bob, "admin");
 const billingGroup = Group.create();
 
 // This way the members of the organization can only read the billing data
-billingGroup.extend(organizationGroup, "reader"); 
+billingGroup.addMember(organizationGroup, "reader");
 ```
 </CodeGroup>
 
@@ -54,7 +54,7 @@ parentGroup.addMember(bob, "reader");
 parentGroup.addMember(alice, "admin");
 
 const childGroup = Group.create();
-childGroup.extend(parentGroup, "writer");
+childGroup.addMember(parentGroup, "writer");
 
 // Bob and Alice are now writers in the child group
 ```
@@ -68,10 +68,10 @@ Groups can be extended multiple levels deep:
 ```typescript
 const grandParentGroup = Group.create();
 const parentGroup = Group.create();
-const childGroup = Group.create(); 
+const childGroup = Group.create();
 
-childGroup.extend(parentGroup);
-parentGroup.extend(grandParentGroup);
+childGroup.addMember(parentGroup);
+parentGroup.addMember(grandParentGroup);
 ```
 </CodeGroup>
 
@@ -100,7 +100,7 @@ parentGroup.addMember(bob, "reader");
 
 const childGroup = Group.create();
 parentGroup.addMember(bob, "writer");
-childGroup.extend(parentGroup);
+childGroup.addMember(parentGroup);
 
 // Bob stays a writer because his role is higher
 // than the inherited reader role.
@@ -114,7 +114,7 @@ const parentGroup = Group.create();
 parentGroup.addMember(bob, "writeOnly");
 
 const childGroup = Group.create();
-childGroup.extend(parentGroup);
+childGroup.addMember(parentGroup);
 
 // Bob does not become a member of the child group
 ```
@@ -131,23 +131,23 @@ const companyGroup = company._owner.castAs(Group)
 const teamGroup = Group.create();
 
 // Works only if I'm a member of companyGroup
-teamGroup.extend(companyGroup); 
+teamGroup.addMember(companyGroup);
 ```
 </CodeGroup>
 
 ## Revoking a group extension
 
-You can revoke a group extension by using the `revokeExtend` method:
+You can revoke a group extension by using the `removeMember` method:
 
 <CodeGroup>
 ```typescript
 const parentGroup = Group.create();
 const childGroup = Group.create();
 
-childGroup.extend(parentGroup); 
+childGroup.addMember(parentGroup);
 
 // Revoke the extension
-await childGroup.revokeExtend(parentGroup);
+await childGroup.removeMember(parentGroup);
 ```
 </CodeGroup>
 
@@ -159,7 +159,7 @@ You can get all the parent groups of a group by calling the `getParentGroups` me
 ```typescript
 const childGroup = Group.create();
 const parentGroup = Group.create();
-childGroup.extend(parentGroup);
+childGroup.addMember(parentGroup);
 
 console.log(childGroup.getParentGroups()); // [parentGroup]
 ```
@@ -177,13 +177,13 @@ companyGroup.addMember(CEO, "admin");
 
 // Team group with elevated permissions
 const teamGroup = Group.create();
-teamGroup.extend(companyGroup); // Inherits company-wide access
+teamGroup.addMember(companyGroup); // Inherits company-wide access
 teamGroup.addMember(teamLead, "admin");
 teamGroup.addMember(developer, "writer");
 
 // Project group with specific permissions
 const projectGroup = Group.create();
-projectGroup.extend(teamGroup); // Inherits team permissions
+projectGroup.addMember(teamGroup); // Inherits team permissions
 projectGroup.addMember(client, "reader"); // Client can only read project items
 ```
 </CodeGroup>

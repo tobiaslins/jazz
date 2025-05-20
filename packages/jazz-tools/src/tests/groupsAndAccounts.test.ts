@@ -105,7 +105,7 @@ describe("Group inheritance", () => {
     const parentGroup = Group.create({ owner: me });
     const group = Group.create({ owner: me });
 
-    group.extend(parentGroup);
+    group.addMember(parentGroup);
 
     const reader = await co.account().createAs(me, {
       creationProps: { name: "Reader" },
@@ -140,8 +140,8 @@ describe("Group inheritance", () => {
     const parentGroup = Group.create({ owner: me });
     const group = Group.create({ owner: me });
 
-    group.extend(parentGroup);
-    parentGroup.extend(grandParentGroup);
+    group.addMember(parentGroup);
+    parentGroup.addMember(grandParentGroup);
 
     const reader = await co.account().createAs(me, {
       creationProps: { name: "Reader" },
@@ -181,8 +181,8 @@ describe("Group inheritance", () => {
     const parentGroup = Group.create({ owner: me });
     const childGroup = Group.create({ owner: me });
 
-    childGroup.extend(parentGroup);
-    parentGroup.extend(grandParentGroup);
+    childGroup.addMember(parentGroup);
+    parentGroup.addMember(grandParentGroup);
 
     const parentGroups = childGroup.getParentGroups();
 
@@ -538,7 +538,7 @@ describe("Group.members", () => {
     await bob.waitForAllCoValuesSync();
 
     parentGroup.addMember(bob, "writer");
-    childGroup.extend(parentGroup, "reader");
+    childGroup.addMember(parentGroup, "reader");
 
     expect(childGroup.getRoleOf(bob.id)).toBe("reader");
 
