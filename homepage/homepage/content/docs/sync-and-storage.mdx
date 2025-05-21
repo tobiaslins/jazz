@@ -29,6 +29,7 @@ wss://cloud.jazz.tools/?key=YOUR_API_KEY
 <ContentByFramework framework="react">
 <CodeGroup>
 ```tsx twoslash
+const apiKey = "Replace with API key from dashboard.jazz.tools";
 import * as React from "react";
 import { JazzProvider } from "jazz-react";
 // ---cut---
@@ -36,7 +37,7 @@ export function MyApp({ children }: { children: React.ReactNode }) {
   return (
     <JazzProvider
       sync={{
-        peer: "wss://cloud.jazz.tools/?key=YOUR_API_KEY",
+        peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
         // ...
       }}
     >
