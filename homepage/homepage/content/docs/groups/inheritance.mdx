@@ -8,7 +8,7 @@ export const metadata = {
 
 Groups can be added to other groups using the `addMember` method.
 
-When a group is added as a member of another group, members of the parent group will become part of the child group.
+When a group is added as a member of another group, members of the added group will become part of the containing group.
 
 ## Basic usage
 
@@ -61,39 +61,39 @@ import { Group } from "jazz-tools";
 import { createJazzTestAccount } from 'jazz-tools/testing';
 const bob = await createJazzTestAccount();
 // ---cut---
-const parentGroup = Group.create();
-parentGroup.addMember(bob, "reader");
+const addedGroup = Group.create();
+addedGroup.addMember(bob, "reader");
 
-const childGroup = Group.create();
-parentGroup.addMember(bob, "writer");
-childGroup.addMember(parentGroup);
+const containingGroup = Group.create();
+addedGroup.addMember(bob, "writer");
+containingGroup.addMember(addedGroup);
 
 // Bob stays a writer because his role is higher
 // than the inherited reader role.
 ```
 </CodeGroup>
 
-When adding a parent group to a child group, only admin, writer and reader roles are inherited:
+When adding a group to another group, only admin, writer and reader roles are inherited:
 <CodeGroup>
 ```ts twoslash
 import { Group } from "jazz-tools";
 import { createJazzTestAccount } from 'jazz-tools/testing';
 const bob = await createJazzTestAccount();
 // ---cut---
-const parentGroup = Group.create();
-parentGroup.addMember(bob, "writeOnly");
+const addedGroup = Group.create();
+addedGroup.addMember(bob, "writeOnly");
 
-const childGroup = Group.create();
-childGroup.addMember(parentGroup);
+const containingGroup = Group.create();
+containingGroup.addMember(addedGroup);
 
-// Bob does not become a member of the child group
+// Bob does not become a member of the containing group
 ```
 </CodeGroup>
 
-To add a parent group to a child group:
+To add a group to another group:
 
-1. The current account must be an admin in the child group
-2. The current account must be a member of the parent group
+1. The current account must be an admin in the containing group
+2. The current account must be a member of the added group
 
 <CodeGroup>
 ```ts twoslash
@@ -110,9 +110,9 @@ teamGroup.addMember(companyGroup);
 ```
 </CodeGroup>
 
-### Overriding parent group roles
+### Overriding the added group's roles
 
-In some cases you might want to inherit all members from a parent group but override their roles to the same specific role in the child group. You can do so by passing an "override role" as a second argument to `addMember`:
+In some cases you might want to inherit all members from an added group but override their roles to the same specific role in the containing group. You can do so by passing an "override role" as a second argument to `addMember`:
 
 <CodeGroup>
 ```ts twoslash
@@ -140,68 +140,68 @@ import { createJazzTestAccount } from 'jazz-tools/testing';
 const alice = await createJazzTestAccount();
 const bob = await createJazzTestAccount();
 // ---cut---
-const parentGroup = Group.create();
-parentGroup.addMember(bob, "reader");
-parentGroup.addMember(alice, "admin");
+const addedGroup = Group.create();
+addedGroup.addMember(bob, "reader");
+addedGroup.addMember(alice, "admin");
 
-const childGroup = Group.create();
-childGroup.addMember(parentGroup, "writer");
+const containingGroup = Group.create();
+containingGroup.addMember(addedGroup, "writer");
 
-// Bob and Alice are now writers in the child group
+// Bob and Alice are now writers in the containing group
 ```
 </CodeGroup>
 
 ### Permission changes
 
-When you remove a member from a parent group, they automatically lose access to all child groups. We handle key rotation automatically to ensure security.
+When you remove a member from an added group, they automatically lose access to all containing groups. We handle key rotation automatically to ensure security.
 
 <CodeGroup>
 ```ts twoslash
 import { Group } from "jazz-tools";
 import { createJazzTestAccount } from 'jazz-tools/testing';
 const bob = await createJazzTestAccount();
-const parentGroup = Group.create();
+const addedGroup = Group.create();
 // ---cut---
-// Remove member from parent
-await parentGroup.removeMember(bob);
+// Remove member from added group
+await addedGroup.removeMember(bob);
 
 // Bob loses access to both groups.
-// If Bob was also a member of the member group,
+// If Bob was also a member of the containing group,
 // he wouldn't have lost access.
 ```
 </CodeGroup>
 
 ## Removing groups from other groups
 
-You can remove a parent group from a child group by using the `removeMember` method:
+You can remove a group from another group by using the `removeMember` method:
 
 <CodeGroup>
 ```ts twoslash
 import { Group } from "jazz-tools";
 // ---cut---
-const parentGroup = Group.create();
-const childGroup = Group.create();
+const addedGroup = Group.create();
+const containingGroup = Group.create();
 
-childGroup.addMember(parentGroup);
+containingGroup.addMember(addedGroup);
 
 // Revoke the extension
-await childGroup.removeMember(parentGroup);
+await containingGroup.removeMember(addedGroup);
 ```
 </CodeGroup>
 
-## Getting all parent groups
+## Getting all added groups
 
-You can get all the parent groups of a group by calling the `getParentGroups` method:
+You can get all of the groups added to a group by calling the `getParentGroups` method:
 
 <CodeGroup>
 ```ts twoslash
 import { Group } from "jazz-tools";
 // ---cut---
-const childGroup = Group.create();
-const parentGroup = Group.create();
-childGroup.addMember(parentGroup);
+const containingGroup = Group.create();
+const addedGroup = Group.create();
+containingGroup.addMember(addedGroup);
 
-console.log(childGroup.getParentGroups()); // [parentGroup]
+console.log(containingGroup.getParentGroups()); // [addedGroup]
 ```
 </CodeGroup>
 
