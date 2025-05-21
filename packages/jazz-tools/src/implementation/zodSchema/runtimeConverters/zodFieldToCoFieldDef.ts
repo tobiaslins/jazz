@@ -41,6 +41,9 @@ export function zodFieldToCoFieldDef(schema: FieldSchema) {
         return coField.boolean;
       } else if (schema._zod.def.type === "null") {
         return coField.null;
+        // @ts-expect-error enum is not declared as def.type
+      } else if (schema._zod.def.type === "enum") {
+        return coField.string;
       } else if (schema._zod.def.type === "date") {
         return coField.Date;
       } else if (schema._zod.def.type === "literal") {
