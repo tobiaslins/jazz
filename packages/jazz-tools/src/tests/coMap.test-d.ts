@@ -116,6 +116,46 @@ describe("CoMap", async () => {
       matches(person);
     });
 
+    test("CoMap create with partially loaded, reference and optional", () => {
+      const Dog = co.map({
+        name: z.string(),
+        breed: co.map({ type: z.literal("labrador"), value: z.string() }),
+      });
+      type Dog = co.loaded<typeof Dog>;
+
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+        dog: Dog.optional(),
+      });
+
+      const dog = Dog.create({
+        name: "Rex",
+        breed: Dog.def.shape.breed.create({
+          type: "labrador",
+          value: "Labrador",
+        }),
+      }) as Dog;
+
+      const person = Person.create({
+        name: "John",
+        age: 20,
+        dog,
+      });
+
+      type ExpectedType = {
+        name: string;
+        age: number;
+        dog: Loaded<typeof Dog> | undefined;
+      };
+
+      function matches(value: ExpectedType) {
+        return value;
+      }
+
+      matches(person);
+    });
+
     test("CoMap with self reference", () => {
       const Person = co.map({
         name: z.string(),
