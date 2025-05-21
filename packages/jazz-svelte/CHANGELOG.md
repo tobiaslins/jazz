@@ -1,5 +1,13 @@
 # jazz-svelte
 
+## 0.14.3
+
+### Patch Changes
+
+- b2ee306: Fix compat with the new Zod schema.
+
+  BREAKING: Remove RegisterAccount, the useCoState, useAccount and useAccountOrGuest hooks and now AccountCoState requires the schema param
+
 ## 0.14.2
 
 ### Patch Changes
