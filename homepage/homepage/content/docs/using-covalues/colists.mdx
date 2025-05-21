@@ -136,7 +136,10 @@ const ListOfTasks = co.list(Task)
 ```
 </CodeGroup>
 
-There are several benefits to utilizing this soft delete pattern, including the ability to recover deleted data, it helps maintain data integrity for relationships, and potentially support audit trails.
+There are several benefits to soft deletions:
+- **recoverablity** - Nothing is truly deleted, so recovery is possible in the future
+- **data integrity** - Relationships can be maintained between current and deleted values
+- **auditable** - The data can still be accessed, good for audit trails and checking compliance
 
 ### Deleting Items
 
