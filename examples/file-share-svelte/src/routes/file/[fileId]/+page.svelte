@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from '$app/stores';
-  import {  CoState } from 'jazz-svelte';
+  import { CoState } from 'jazz-svelte';
   import { SharedFile } from '$lib/schema';
   import { File, FileDown, Link2 } from 'lucide-svelte';
   import { FileStream } from 'jazz-tools';
@@ -9,7 +9,7 @@
 
   const fileId = $page.params.fileId;
 
-  const file = $derived(new CoState(SharedFile, fileId ));
+  const file = $derived(new CoState(SharedFile, fileId));
   const isAdmin = $derived(file.current?._owner?.myRole() === 'admin');
 
   const fileStreamId = $derived(file.current?._refs?.file?.id);

@@ -8,6 +8,8 @@ export const SharedFile = co.map({
   size: z.number(),
 });
 
+export type SharedFile = typeof SharedFile;
+
 export const FileShareAccountRoot = co.map({
   type: z.literal('file-share-account'),
   sharedFiles: co.list(SharedFile),
