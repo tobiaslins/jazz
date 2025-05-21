@@ -11,10 +11,12 @@
       root: {
         sharedFiles: {
           $each: true
-        },
+        }
       }
     }
   });
+
+  $inspect(me);
 
   const sharedFiles = $derived(me.current?.root.sharedFiles);
 
@@ -107,10 +109,7 @@
         {#if sharedFiles.length}
           {#each sharedFiles as file}
             {#if file}
-              <FileItem
-                {file}
-                onDelete={deleteFile}
-              />
+              <FileItem {file} onDelete={deleteFile} />
             {/if}
           {/each}
         {:else}
