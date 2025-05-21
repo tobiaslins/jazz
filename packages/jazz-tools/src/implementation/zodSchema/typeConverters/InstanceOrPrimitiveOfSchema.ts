@@ -84,7 +84,9 @@ export type InstanceOrPrimitiveOfSchema<
                                     ? Literal
                                     : S extends z.core.$ZodDate
                                       ? Date
-                                      : never
+                                      : S extends z.core.$ZodEnum<infer Enum>
+                                        ? Enum[keyof Enum]
+                                        : never
   : S extends CoValueClass
     ? InstanceType<S>
     : never;
