@@ -1,5 +1,12 @@
 # file-share-svelte
 
+## 0.0.86
+
+### Patch Changes
+
+- Updated dependencies [b2ee306]
+  - jazz-svelte@0.14.3
+
 ## 0.0.85
 
 ### Patch Changes
