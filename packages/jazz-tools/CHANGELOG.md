@@ -1,5 +1,11 @@
 # jazz-tools
 
+## 0.14.4
+
+### Patch Changes
+
+- 011af55: Support z.enum in the schema definitions
+
 ## 0.14.2
 
 ### Patch Changes
