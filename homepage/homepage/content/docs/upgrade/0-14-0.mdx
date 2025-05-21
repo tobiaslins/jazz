@@ -87,7 +87,7 @@ Similar to Zod v4's new object syntax, recursive and mutually recursive types ar
 
 ### How to pass loaded CoValues
 
-<ContentByFramework framework={["react", "react-native", "vue"]}>
+<ContentByFramework framework={["react", "react-native", "vue", "vanilla", "react-native-expo"]}>
 Calls to `useCoState()` work just the same, but they return a slightly different type than before.
 
 And while you can still read from the type just as before...
@@ -285,7 +285,7 @@ We have removed the Typescript AccountSchema registration.
 
 It was causing some deal of confusion to new adopters so we have decided to replace the magic inference with a more explicit approach.
 
-<ContentByFramework framework={["react", "react-native", "vue"]}>
+<ContentByFramework framework={["react", "react-native", "vue", "vanilla", "react-native-expo"]}>
 When using `useAccount` you should now pass the `Account` schema directly:
 
 <CodeGroup>
