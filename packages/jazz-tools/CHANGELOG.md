@@ -1,5 +1,12 @@
 # jazz-tools
 
+## 0.14.5
+
+### Patch Changes
+
+- 91cbb2f: Fix CoMap.create with optional types
+- 20b3d88: Add co.loaded utility
+
 ## 0.14.4
 
 ### Patch Changes
