@@ -1,7 +1,13 @@
 import { assert, describe, expectTypeOf, test } from "vitest";
 import { Group, co, z } from "../exports.js";
 import { Account } from "../index.js";
-import { CoListSchema, Loaded } from "../internal.js";
+import {
+  CoListSchema,
+  CoMapInitZod,
+  Loaded,
+  optionalKeys,
+  requiredKeys,
+} from "../internal.js";
 
 describe("CoMap", async () => {
   describe("init", () => {
@@ -114,6 +120,73 @@ describe("CoMap", async () => {
       }
 
       matches(person);
+    });
+
+    test("CoMap create with partially loaded, reference and optional", () => {
+      const Dog = co.map({
+        name: z.string(),
+        breed: co.map({ type: z.literal("labrador"), value: z.string() }),
+      });
+      type Dog = co.loaded<typeof Dog>;
+
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+        dog: Dog.optional(),
+      });
+
+      const dog = Dog.create({
+        name: "Rex",
+        breed: Dog.def.shape.breed.create({
+          type: "labrador",
+          value: "Labrador",
+        }),
+      }) as Dog;
+
+      type R = requiredKeys<typeof Person.def.shape>;
+      type O = optionalKeys<typeof Person.def.shape>;
+      type I = CoMapInitZod<typeof Person.def.shape>;
+
+      const person = Person.create({
+        name: "John",
+        age: 20,
+        dog,
+      });
+
+      type ExpectedType = {
+        name: string;
+        age: number;
+        dog: Loaded<typeof Dog> | undefined;
+      };
+
+      function matches(value: ExpectedType) {
+        return value;
+      }
+
+      matches(person);
+    });
+
+    test("Comap with recursive optional reference", () => {
+      const Recursive = co.map({
+        get child(): z.ZodOptional<typeof Recursive> {
+          return z.optional(Recursive);
+        },
+      });
+
+      const child: Loaded<typeof Recursive> = Recursive.create({});
+      const parent = Recursive.create({
+        child: child,
+      });
+
+      type ExpectedType = {
+        child: Loaded<typeof Recursive> | undefined;
+      };
+
+      function matches(value: ExpectedType) {
+        return value;
+      }
+
+      matches(parent);
     });
 
     test("CoMap with self reference", () => {
