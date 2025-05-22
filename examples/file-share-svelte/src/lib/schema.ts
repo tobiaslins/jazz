@@ -1,8 +1,8 @@
-import { FileStream, Group, co, z } from 'jazz-tools';
+import { Group, co, z } from 'jazz-tools';
 
 export const SharedFile = co.map({
   name: z.string(),
-  file: FileStream,
+  file: co.fileStream(),
   createdAt: z.date(),
   uploadedAt: z.date(),
   size: z.number(),

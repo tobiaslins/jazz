@@ -79,6 +79,39 @@ describe("CoMap.Record", () => {
 
       matches(person);
     });
+
+    test("Record create with partially loaded, reference and optional", () => {
+      const Dog = co.map({
+        name: z.string(),
+        breed: co.map({ type: z.literal("labrador"), value: z.string() }),
+      });
+      type Dog = co.loaded<typeof Dog>;
+
+      const DogRecord = co.record(z.string(), Dog.optional());
+
+      const dog = Dog.create({
+        name: "Rex",
+        breed: Dog.def.shape.breed.create({
+          type: "labrador",
+          value: "Labrador",
+        }),
+      }) as Dog;
+
+      const record = DogRecord.create({
+        pet1: dog,
+        pet2: undefined,
+      });
+
+      type ExpectedType = {
+        [key: string]: Loaded<typeof Dog> | undefined;
+      };
+
+      function matches(value: ExpectedType) {
+        return value;
+      }
+
+      matches(record);
+    });
   });
 
   describe("Record resolution", () => {
