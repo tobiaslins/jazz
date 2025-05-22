@@ -89,7 +89,7 @@ export const coMapDefiner = <Shape extends z.core.$ZodLooseShape>(
   return coMapSchema as unknown as CoMapSchema<Shape>;
 };
 
-const coAccountDefiner = <
+export const coAccountDefiner = <
   Shape extends {
     profile: AnyCoMapSchema<{
       name: z.core.$ZodString<string>;
@@ -100,12 +100,12 @@ const coAccountDefiner = <
   },
 >(
   shape: Shape = {
-    profile: co.map({
+    profile: coMapDefiner({
       name: z.string(),
       inbox: z.optional(z.string()),
       inboxInvite: z.optional(z.string()),
     }),
-    root: co.map({}),
+    root: coMapDefiner({}),
   } as unknown as Shape,
 ): AccountSchema<Shape> => {
   const objectSchema = z.object(shape).meta({
@@ -183,7 +183,7 @@ const coAccountDefiner = <
   return accountSchema as unknown as AccountSchema<Shape>;
 };
 
-const coRecordDefiner = <
+export const coRecordDefiner = <
   K extends z.core.$ZodString<string>,
   V extends z.core.$ZodType,
 >(
@@ -196,7 +196,7 @@ const coRecordDefiner = <
   >;
 };
 
-const coListDefiner = <T extends z.core.$ZodType>(
+export const coListDefiner = <T extends z.core.$ZodType>(
   element: T,
 ): CoListSchema<T> => {
   const arraySchema = z.array(element).meta({
@@ -237,7 +237,7 @@ const coListDefiner = <T extends z.core.$ZodType>(
   return coListSchema;
 };
 
-const coProfileDefiner = <
+export const coProfileDefiner = <
   Shape extends z.core.$ZodLooseShape = Simplify<DefaultProfileShape>,
 >(
   shape: Shape & {
@@ -261,7 +261,7 @@ const coProfileDefiner = <
   } as CoProfileSchema<Shape>;
 };
 
-const coFeedDefiner = <T extends z.core.$ZodType>(
+export const coFeedDefiner = <T extends z.core.$ZodType>(
   element: T,
 ): CoFeedSchema<T> => {
   const placeholderSchema = z.instanceof(CoFeed);
@@ -393,17 +393,6 @@ export const coRichTextDefiner = (): RichTextSchema => {
   return richTextSchema;
 };
 
-export const co = {
-  map: coMapDefiner,
-  record: coRecordDefiner,
-  list: coListDefiner,
-  feed: coFeedDefiner,
-  plainText: coPlainTextDefiner,
-  richText: coRichTextDefiner,
-  fileStream: coFileStreamDefiner,
-  image: (): typeof ImageDefinition => {
-    return ImageDefinition;
-  },
-  account: coAccountDefiner,
-  profile: coProfileDefiner,
+export const coImageDefiner = (): typeof ImageDefinition => {
+  return ImageDefinition;
 };
