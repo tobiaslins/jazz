@@ -1,5 +1,11 @@
 # jazz-tools
 
+## 0.14.8
+
+### Patch Changes
+
+- 637ae13: Use our Zod v4 fork with the React Native fixes
+
 ## 0.14.7
 
 ### Patch Changes
