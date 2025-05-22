@@ -1,5 +1,14 @@
 # jazz-richtext-tiptap
 
+## 0.1.15
+
+### Patch Changes
+
+- Updated dependencies [365b0ea]
+  - jazz-tools@0.14.7
+  - jazz-browser@0.14.7
+  - jazz-richtext-prosemirror@0.1.26
+
 ## 0.1.14
 
 ### Patch Changes
