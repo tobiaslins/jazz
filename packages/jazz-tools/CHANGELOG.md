@@ -1,5 +1,11 @@
 # jazz-tools
 
+## 0.14.7
+
+### Patch Changes
+
+- 365b0ea: reduce the z exported APIs to the ones we support and fix compatible types
+
 ## 0.14.6
 
 ### Patch Changes
