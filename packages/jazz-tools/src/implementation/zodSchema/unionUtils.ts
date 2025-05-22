@@ -1,5 +1,5 @@
 import { RawAccount, RawCoList, RawCoMap } from "cojson";
-import z from "zod/v4";
+import z from "jazz-tools-zod-v4-rn-patch/v4";
 import { zodSchemaToCoSchema } from "./runtimeConverters/zodSchemaToCoSchema.js";
 
 export function schemaUnionDiscriminatorFor(

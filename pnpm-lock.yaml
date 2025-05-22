@@ -2865,9 +2865,9 @@ importers:
       fast-myers-diff:
         specifier: ^3.2.0
         version: 3.2.0
-      zod:
-        specifier: 3.25.0-beta.20250518T002810
-        version: 3.25.0-beta.20250518T002810
+      jazz-tools-zod-v4-rn-patch:
+        specifier: 3.25.22
+        version: 3.25.22
     devDependencies:
       tsup:
         specifier: 8.3.5
@@ -10295,6 +10295,9 @@ packages:
 
   jazz-crypto-rs@0.0.7:
     resolution: {integrity: sha512-Pzs8Zu1zgKVURkBVvqqF1B2r78FaSZdwPbmeCWx0Nb3nibzPuB/kSKEO7LJsKnb3P5HO0v+lTIJ53mGC5H1urQ==}
+
+  jazz-tools-zod-v4-rn-patch@3.25.22:
+    resolution: {integrity: sha512-q+bXP6W+ecbiz4l8zoWLQYshrUaBnRrN2M1pyfqv16LdNXGrIm0ZDZPjFfvQQDcAKNZ0V6csWxPP8jrznMhPEA==}
 
   jest-changed-files@29.7.0:
     resolution: {integrity: sha512-fEArFiwf1BpQ+4bXSprcDc3/x4HSzL4al2tozwVpDFpsxALjLYdyiIK4e5Vz66GQJIbXJ82+35PtysofptNX2w==}
@@ -23967,6 +23970,8 @@ snapshots:
       '@isaacs/cliui': 8.0.2
 
   jazz-crypto-rs@0.0.7: {}
+
+  jazz-tools-zod-v4-rn-patch@3.25.22: {}
 
   jest-changed-files@29.7.0:
     dependencies:

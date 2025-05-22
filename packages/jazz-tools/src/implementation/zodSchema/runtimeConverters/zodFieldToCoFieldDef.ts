@@ -1,4 +1,8 @@
-import z, { ZodCatch, ZodLazy, ZodReadonly } from "zod/v4";
+import z, {
+  ZodCatch,
+  ZodLazy,
+  ZodReadonly,
+} from "jazz-tools-zod-v4-rn-patch/v4";
 import { CoMap, CoValueClass, isCoValueClass } from "../../../internal.js";
 import { coField } from "../../schema.js";
 import {
