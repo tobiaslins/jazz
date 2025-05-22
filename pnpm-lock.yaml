@@ -1120,6 +1120,9 @@ importers:
       react-dom:
         specifier: 18.3.1
         version: 18.3.1(react@18.3.1)
+      zod:
+        specifier: 3.25.0-beta.20250518T002810
+        version: 3.25.0-beta.20250518T002810
     devDependencies:
       '@biomejs/biome':
         specifier: 1.9.4

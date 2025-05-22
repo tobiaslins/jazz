@@ -1,4 +1,4 @@
-import { assert, describe, expectTypeOf, test } from "vitest";
+import { describe, expectTypeOf, test } from "vitest";
 import { Group, co, z } from "../exports.js";
 import { Account } from "../index.js";
 import { Loaded } from "../internal.js";
