@@ -17,7 +17,6 @@ export function useProgressiveImg({
   const originalSize = $state(image?.originalSize);
 
   const unsubscribe = image?.subscribe({}, (update: Loaded<typeof ImageDefinition>) => {
-    console.log('image update', update);
     const highestRes = ImageDefinition.highestResAvailable(update, { maxWidth, targetWidth });
     if (highestRes) {
       if (highestRes.res !== current?.res) {
