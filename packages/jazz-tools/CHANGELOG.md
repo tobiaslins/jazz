@@ -1,5 +1,12 @@
 # jazz-tools
 
+## 0.14.6
+
+### Patch Changes
+
+- 9d6d9fe: Fixes co.fileStream create and createFromBlob types
+- 9d6d9fe: Fixes init type for CoList, CoFeed and CoRecord to accept optional partially loaded values
+
 ## 0.14.5
 
 ### Patch Changes

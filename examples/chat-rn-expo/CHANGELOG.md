@@ -1,5 +1,14 @@
 # chat-rn-expo
 
+## 1.0.116
+
+### Patch Changes
+
+- Updated dependencies [9d6d9fe]
+- Updated dependencies [9d6d9fe]
+  - jazz-tools@0.14.6
+  - jazz-expo@0.14.6
+
 ## 1.0.115
 
 ### Patch Changes
