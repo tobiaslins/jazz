@@ -17,45 +17,49 @@ Jazz provides two main ways to access history:
 
 <CodeGroup>
 ```ts twoslash
-import { co, CoMap } from "jazz-tools";
+import { createJazzTestAccount } from "jazz-tools/testing";
+const me = await createJazzTestAccount();
+import { co, z } from "jazz-tools";
 
-class Task extends CoMap {
-  title = co.string;
-  status = co.literal("todo", "in-progress", "completed");
-}
+const Task = co.map({
+  title: z.string(),
+  status: z.literal(["todo", "in-progress", "completed"]),
+});
 
-const task = Task.create({ title: "New task", status: "todo" });
+const task = Task.create({ title: "New task", status: "todo" }, { owner: me });
 // ---cut---
 // Get the latest edit for a field
 const latestEdit = task._edits.status;
 // { value: "in-progress", by: Account, madeAt: Date, ... }
 
 // Get all edits for a field as an array
-const allEdits = task._edits.status.all;
+const allEdits = task._edits.status?.all;
 // [{value: "todo", ...}, {value: "in-progress", ...}]
-
-// For advanced use cases, access the internal state
-const rawState = task._raw;
-// Use with caution, internal API
 ```
 </CodeGroup>
+
 ## Working with Edit Metadata
 
 Every edit tracks who made the change and when. Here's how to use it:
 
 <CodeGroup>
 ```ts twoslash
-import { co, CoMap, CoList } from "jazz-tools";
+import { co, z, CoListSchema } from "jazz-tools";
+import { createJazzTestAccount } from "jazz-tools/testing";
 
-class Task extends CoMap {
-  title = coField.string;
-  description = coField.string;
-  status = coField.literal("todo", "in-progress", "completed");
-  priority = coField.literal("low", "medium", "high");
-  subtasks = coField.optional.ref(ListOfTasks);
-}
+const me = await createJazzTestAccount();
 
-class ListOfTasks extends CoList.Of(coField.ref(Task)) {}
+const Task = co.map({
+  title: z.string(),
+  description: z.string(),
+  status: z.literal(["todo", "in-progress", "completed"]),
+  priority: z.literal(["low", "medium", "high"]),
+  get subtasks(): z.ZodOptional<CoListSchema<typeof Task>> {
+    return z.optional(co.list(Task));
+  }
+});
+
+// ---cut---
 
 // Create a task with initial values
 const task = Task.create({
@@ -63,7 +67,7 @@ const task = Task.create({
   description: "Plant peas, carrots, and lettuce in the south garden bed",
   status: "todo",
   priority: "medium",
-});
+}, { owner: me });
 
 // Change the status
 task.status = "in-progress";
@@ -73,11 +77,13 @@ console.log("Latest edit:", task._edits.status);
 // { value: "in-progress", by: Account, madeAt: Date, ... }
 
 // See when it was changed
-const lastEditTime = task._edits.status.madeAt;
+const lastEditTime = task._edits.status?.madeAt;
 console.log(`Changed at: ${lastEditTime?.toLocaleString()}`);
+// Changed at: 2025-05-22 12:00:00
+
 
 // Get all edits for the field
-for (const edit of task._edits.status.all) {
+for (const edit of task._edits.status?.all ?? []) {
   console.log({
     author: edit.by,        // Who made the change
     timestamp: edit.madeAt, // When it happened
@@ -93,22 +99,25 @@ Show all changes to a CoValue in chronological order:
 
 <CodeGroup>
 ```ts twoslash
-import { CoMap, co } from "jazz-tools";
+import { co, z } from "jazz-tools";
 
-class Task extends CoMap {
-  title = co.string;
-  status = co.literal("todo", "in-progress", "completed");
-}
+const Task = co.map({
+  title: z.string(),
+  status: z.literal(["todo", "in-progress", "completed"]),
+});
+type Task = co.loaded<typeof Task>;
 
 // ---cut---
 function getAuditLog(task: Task) {
   const changes = [];
 
   // Collect edits for all fields
-  for (const field of Object.keys(task)) {
-    if (!task._edits[field]) continue; // Skip fields without edits
+  const fields = Object.keys(task);
+  for (const field of fields) {
+    const editField = field as keyof typeof task._edits;
+    if (!task._edits[editField]) continue; // Skip fields without edits
 
-    for (const edit of task._edits[field].all) {
+    for (const edit of task._edits[editField].all) {
       changes.push({
         field,
         value: edit.value,
@@ -134,7 +143,6 @@ auditLog.forEach((entry) => {
   );
   // 2025-05-14 12:00:00 - status changed to "in-progress" by co_z123
 });
-
 ```
 </CodeGroup>
 
@@ -144,25 +152,52 @@ Show recent changes across your data:
 
 <CodeGroup>
 ```ts twoslash
-import { co, CoMap } from "jazz-tools";
+import { co, z, Account } from "jazz-tools";
+import { createJazzTestAccount } from "jazz-tools/testing";
 
-  for (const field of Object.keys(project)) {
-    // Skip if the field doesn't have edits
-    if (!project._edits[field as keyof typeof project._edits]) continue;
+const me = await createJazzTestAccount();
 
-    for (const edit of project._edits[field as keyof typeof project._edits].all) {
-      if (edit.madeAt > hourAgo) {
-        activity.push({
-          field,
-          value: edit.value,
-          by: edit.by,
-          at: edit.madeAt
-        });
-      }
+const Project = co.map({
+  name: z.string(),
+  status: z.literal(["planning", "active", "completed"]),
+});
+
+type Project = co.loaded<typeof Project>;
+
+const project = Project.create({
+  name: "Garden Renovation",
+  status: "planning",
+}, { owner: me });
+
+const hourAgo = new Date(Date.now() - 1000 * 60 * 60);
+const activity: { field: string; value: string; by: Account | null; at: Date }[] = [];
+
+const gardenProject = Project.create({
+  name: "Garden Renovation",
+  status: "planning",
+}, { owner: me });
+
+// ---cut---
+const projectFields = Object.keys(project);
+
+function getRecentActivity(project: Project) {
+for (const field of projectFields) {
+  // Skip if the field doesn't have edits
+  if (!project._edits[field as keyof typeof project._edits]) continue;
+
+  for (const edit of project._edits[field as keyof typeof project._edits]?.all ?? []) {
+    if (edit.madeAt > hourAgo) {
+      activity.push({
+        field,
+        value: edit.value ?? "",
+        by: edit.by,
+        at: edit.madeAt
+      });
     }
   }
+}
 
-  return activity.sort((a, b) => b.at.getTime() - a.at.getTime());
+return activity.sort((a, b) => b.at.getTime() - a.at.getTime());
 }
 
 // Example usage
@@ -179,39 +214,47 @@ recentActivity.forEach(activity => {
 CoValues track their entire history of changes, creating a timeline you can explore. You can see who changed what and when, or even view past states of the data. This capability enables powerful debugging tools and user-facing features like history browsing and restoration of previous versions:
 
 <CodeGroup>
-```ts
-class Task extends CoMap {
-  title = coField.string;
-  description = coField.string;
-  status = coField.literal("todo", "in-progress", "completed");
-  priority = coField.literal("low", "medium", "high");
-}
+```ts twoslash
+import { co, z } from 'jazz-tools'; 
+import { createJazzTestAccount } from 'jazz-tools/testing';
 
+const me = await createJazzTestAccount();
+
+const Task = co.map({
+  title: z.string(),
+  description: z.string(),
+  status: z.literal(["todo", "in-progress", "completed"]),
+  priority: z.literal(["low", "medium", "high"]),
+});
+
+type Task = co.loaded<typeof Task>;
+
+// ---cut---
 // Create a new task
 const task = Task.create({
   title: "Plant spring vegetables",
   description: "Plant peas, carrots, and lettuce in the south garden bed",
   status: "todo",
   priority: "medium",
-});
+}, { owner: me });
 
 // Make some changes
 task.status = "in-progress";
 task.priority = "high";
 
 // See all edits for a field
-for (const edit of task._edits.status.all) {
+for (const edit of task._edits.status?.all ?? []) {
   console.log(
     `${edit.madeAt.toISOString()}: Status changed to "${edit.value}" by ${edit.by?.id}`,
   );
 }
 
 // Get the initial value
-const initialStatus = task._edits.status.all[0]?.value;
+const initialStatus = task._edits.status?.all[0]?.value;
 console.log(`Original status: ${initialStatus}`);
 
 // Get a specific edit by index
-const previousEdit = task._edits.status.all[1]; // Second edit
+const previousEdit = task._edits.status?.all[1]; // Second edit
 console.log(`Previous status: ${previousEdit?.value}`);
 
 // Check who made the most recent change
@@ -225,23 +268,42 @@ console.log(`Latest change made by: ${latestEdit?.by?.id}`);
 The ability to view a CoValue as it existed at any point in time is one of Jazz's most powerful features. Looking into the past can help you understand how things changed - perfect for audit logs, debugging, or showing user activity. You can reconstruct the exact state of any CoValue at any moment in its history:
 
 <CodeGroup>
-```ts
-class Project extends CoMap {
-  name = coField.string;
-  status = coField.literal("planning", "active", "completed");
-  lastUpdate = coField.Date;
-}
+```ts twoslash
+import { createJazzTestAccount } from "jazz-tools/testing";
+import { co, z } from "jazz-tools";
+
+const me = await createJazzTestAccount();
+
+const Project = co.map({
+  name: z.string(),
+  status: z.literal(["planning", "active", "completed"]),
+  lastUpdate: z.date(),
+});
+
+type Project = co.loaded<typeof Project>;
+
+// Example usage
+const gardenProject = Project.create(
+  {
+    name: "Garden Renovation",
+    status: "planning",
+    lastUpdate: new Date(),
+  },
+  { owner: me },
+);
 
 // ---cut---
 function getRecentActivity(project: Project, hourLimit = 1) {
   const activity = [];
   const cutoffTime = new Date(Date.now() - hourLimit * 3600000);
 
-  for (const field of Object.keys(project)) {
+  const fields = Object.keys(project);
+  for (const field of fields) {
+    const editField = field as keyof typeof project._edits;
     // Skip if no edits for this field
-    if (!project._edits[field]) continue;
+    if (!project._edits[editField]) continue;
 
-    for (const edit of project._edits[field].all) {
+    for (const edit of project._edits[editField].all) {
       if (edit.madeAt > cutoffTime) {
         activity.push({
           field,
@@ -257,15 +319,6 @@ function getRecentActivity(project: Project, hourLimit = 1) {
   return activity.sort((a, b) => b.at.getTime() - a.at.getTime());
 }
 
-// Example usage
-const gardenProject = Project.create(
-  {
-    name: "Garden Renovation",
-    status: "planning",
-    lastUpdate: new Date(),
-  }
-);
-
 gardenProject.status = "active";
 
 const recentActivity = getRecentActivity(gardenProject);
@@ -276,7 +329,6 @@ recentActivity.forEach((activity) => {
   );
   // 2025-05-14 12:00:00 - co_z123 updated status
 });
-
 ```
 </CodeGroup>
 
@@ -286,13 +338,16 @@ Look back at previous values and changes:
 
 <CodeGroup>
 ```ts twoslash
-import { co, CoMap } from "jazz-tools";
+import { co, z } from "jazz-tools";
+import { createJazzTestAccount } from "jazz-tools/testing";
 
-class Task extends CoMap {
-  title = co.string;
-  status = co.literal("todo", "in-progress", "completed");
-  priority = co.literal("low", "medium", "high");
-}
+const me = await createJazzTestAccount();
+
+const Task = co.map({
+  title: z.string(),
+  status: z.literal(["todo", "in-progress", "completed"]),
+  priority: z.literal(["low", "medium", "high"]),
+});
 
 // ---cut---
 // Create and change a task
@@ -300,29 +355,30 @@ const task = Task.create({
   title: "Plant vegetables",
   status: "todo",
   priority: "medium",
-});
+}, { owner: me });
 
 task.status = "in-progress";
 task.priority = "high";
 
 // See all edits for status
-for (const edit of task._edits.status.all) {
+for (const edit of task._edits?.status?.all ?? []) {
   console.log(
     `${edit.madeAt.toISOString()}: Status became "${edit.value}" (by ${edit.by?.id})`,
   );
 }
 
 // Get the original value
-const initialStatus = task._edits.status.all[0]?.value;
+const initialStatus = task._edits?.status?.all[0]?.value;
 console.log(`Original status: ${initialStatus}`);
 
 // Get a specific edit
-const previousEdit = task._edits.status.all[1]; // Second edit
+const previousEdit = task._edits?.status?.all[1]; // Second edit
 console.log(`Previous status: ${previousEdit?.value}`);
 
 // Who made the last change?
 const latestEdit = task._edits.status;
 console.log(`Latest change by: ${latestEdit?.by?.id}`);
+
 ```
 </CodeGroup>
 
@@ -332,14 +388,23 @@ Identify when specific changes occurred:
 
 <CodeGroup>
 ```ts twoslash
+import { createJazzTestAccount } from "jazz-tools/testing";
+import { co, z } from "jazz-tools";
+
 type Status = "planning" | "active" | "completed";
-import { co, CoMap } from "jazz-tools";
+const me = await createJazzTestAccount();
 
-class Project extends CoMap {
-  name = co.string;
-  status = co.literal("planning", "active", "completed");
-}
+const Project = co.map({
+  name: z.string(),
+  status: z.literal(["planning", "active", "completed"]),
+});
 
+type Project = co.loaded<typeof Project>;
+
+const gardenProject = Project.create({ 
+  name: "Garden Renovation", 
+  status: "planning"
+}, { owner: me });
 // ---cut---
 // Find when a project became active
 function findStatusChange(project: Project, targetStatus: Status) {
@@ -362,10 +427,6 @@ function findStatusChange(project: Project, targetStatus: Status) {
 }
 
 // Example usage
-const gardenProject = Project.create({ 
-  name: "Garden Renovation", 
-  status: "planning"
-});
 gardenProject.status = "active";
 
 const change = findStatusChange(gardenProject, "active");
@@ -376,63 +437,6 @@ if (change) {
 ```
 </CodeGroup>
 
-## Time Travel
-
-See how your data looked in the past using the `_raw.atTime` API:
-
-<CodeGroup>
-```ts twoslash
-import { co, CoMap } from "jazz-tools";
-
-class Task extends CoMap {
-  title = co.string;
-  status = co.literal("todo", "in-progress", "completed");
-  priority = co.literal("low", "medium", "high");
-}
-
-// ---cut---
-// Create and change a task over time
-const task = Task.create({
-  title: "Plant vegetables",
-  status: "todo",
-  priority: "low",
-});
-
-// Update it several times
-setTimeout(() => { task.status = "in-progress"; }, 1000);
-setTimeout(() => { task.priority = "medium"; }, 2000);
-setTimeout(() => { task.status = "completed"; }, 3000);
-
-// Later, track its history
-function getTaskHistory(task: Task, days = 7) {
-  const history = [];
-  const dayInMs = 86400000;
-
-  // Check state for each day
-  for (let day = 0; day < days; day++) {
-    const timePoint = new Date(Date.now() - day * dayInMs);
-    // Get state at that point in time
-    const pastState = task._raw.atTime(timePoint.getTime());
-    
-    history.push({
-      date: timePoint.toLocaleDateString(),
-      status: pastState.get("status"),
-      priority: pastState.get("priority")
-    });
-  }
-
-  return history;
-}
-
-// Example usage 
-setTimeout(() => {
-  const history = getTaskHistory(task, 3);
-  history.forEach(entry => {
-    console.log(`${entry.date}: Status was "${entry.status}" with ${entry.priority} priority`);
-  });
-}, 4000);
-```
-</CodeGroup>
 
 ## Best Practices
 
