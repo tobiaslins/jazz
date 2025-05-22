@@ -1,5 +1,14 @@
 # jazz-richtext-prosemirror
 
+## 0.1.25
+
+### Patch Changes
+
+- Updated dependencies [9d6d9fe]
+- Updated dependencies [9d6d9fe]
+  - jazz-tools@0.14.6
+  - jazz-browser@0.14.6
+
 ## 0.1.24
 
 ### Patch Changes
