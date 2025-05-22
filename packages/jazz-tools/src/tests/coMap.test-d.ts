@@ -1,13 +1,7 @@
 import { assert, describe, expectTypeOf, test } from "vitest";
 import { Group, co, z } from "../exports.js";
 import { Account } from "../index.js";
-import {
-  CoListSchema,
-  CoMapInitZod,
-  Loaded,
-  optionalKeys,
-  requiredKeys,
-} from "../internal.js";
+import { CoListSchema, Loaded } from "../internal.js";
 
 describe("CoMap", async () => {
   describe("init", () => {
@@ -142,10 +136,6 @@ describe("CoMap", async () => {
           value: "Labrador",
         }),
       }) as Dog;
-
-      type R = requiredKeys<typeof Person.def.shape>;
-      type O = optionalKeys<typeof Person.def.shape>;
-      type I = CoMapInitZod<typeof Person.def.shape>;
 
       const person = Person.create({
         name: "John",

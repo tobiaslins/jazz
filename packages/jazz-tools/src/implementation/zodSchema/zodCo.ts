@@ -306,8 +306,11 @@ export const coFileStreamDefiner = (): FileStreamSchema => {
   > & {
     collaborative: true;
     builtin: "FileStream";
-    create: (typeof FileStream)["create"];
-    createFromBlob: (typeof FileStream)["createFromBlob"];
+    create: FileStreamSchema["create"];
+    createFromBlob: FileStreamSchema["createFromBlob"];
+    load: FileStreamSchema["load"];
+    loadAsBlob: FileStreamSchema["loadAsBlob"];
+    subscribe: FileStreamSchema["subscribe"];
   };
 
   fileStreamSchema.collaborative = true;
@@ -315,11 +318,27 @@ export const coFileStreamDefiner = (): FileStreamSchema => {
 
   fileStreamSchema.create = function (options: any) {
     return FileStream.create(options);
-  } as (typeof FileStream)["create"];
+  } as FileStreamSchema["create"];
 
   fileStreamSchema.createFromBlob = function (blob: Blob, options: any) {
     return FileStream.createFromBlob(blob, options);
-  } as (typeof FileStream)["createFromBlob"];
+  } as FileStreamSchema["createFromBlob"];
+
+  fileStreamSchema.load = function (id: string, options: any) {
+    return FileStream.load(id, options);
+  } as FileStreamSchema["load"];
+
+  fileStreamSchema.loadAsBlob = function (id: string, options: any) {
+    return FileStream.loadAsBlob(id, options);
+  } as FileStreamSchema["loadAsBlob"];
+
+  fileStreamSchema.subscribe = function (
+    id: string,
+    options: any,
+    listener: any,
+  ) {
+    return FileStream.subscribe(id, options, listener);
+  } as FileStreamSchema["subscribe"];
 
   return fileStreamSchema;
 };
