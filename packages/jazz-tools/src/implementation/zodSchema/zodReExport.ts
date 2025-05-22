@@ -34,4 +34,4 @@ export {
   int,
   optional,
   type ZodOptional,
-} from "zod/v4";
+} from "jazz-tools-zod-v4-rn-patch/v4";

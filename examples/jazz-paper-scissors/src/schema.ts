@@ -47,7 +47,7 @@ export const JoinGameRequest = co.map({
 });
 export type JoinGameRequest = co.loaded<typeof JoinGameRequest>;
 
-export const InboxMessage = z.discriminatedUnion([
+export const InboxMessage = z.discriminatedUnion("type", [
   PlayIntent,
   NewGameIntent,
   CreateGameRequest,
