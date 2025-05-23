@@ -99,7 +99,15 @@ export type InstanceOrPrimitiveOfSchema<
                                                   infer Inner
                                                 >
                                               ? InstanceOrPrimitiveOfSchema<Inner>
-                                              : never
+                                              : S extends z.core.$ZodDefault<
+                                                    infer Default
+                                                  >
+                                                ? InstanceOrPrimitiveOfSchema<Default>
+                                                : S extends z.core.$ZodCatch<
+                                                      infer Catch
+                                                    >
+                                                  ? InstanceOrPrimitiveOfSchema<Catch>
+                                                  : never
   : S extends CoValueClass
     ? InstanceType<S>
     : never;

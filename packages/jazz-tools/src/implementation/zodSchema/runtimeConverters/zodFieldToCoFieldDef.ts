@@ -5,7 +5,13 @@ import {
   isUnionOfPrimitivesDeeply,
   schemaUnionDiscriminatorFor,
 } from "../unionUtils.js";
-import { ZodLazy, ZodReadonly, z } from "../zodReExport.js";
+import {
+  ZodCatch,
+  ZodDefault,
+  ZodLazy,
+  ZodReadonly,
+  z,
+} from "../zodReExport.js";
 import { ZodPrimitiveSchema } from "../zodSchema.js";
 import { zodSchemaToCoSchemaOrKeepPrimitive } from "./zodSchemaToCoSchema.js";
 
@@ -23,6 +29,8 @@ type FieldSchema =
   | z.core.$ZodLiteral<any>
   | z.core.$ZodCatch<z.core.$ZodType>
   | z.core.$ZodEnum<any>
+  | z.core.$ZodDefault<z.core.$ZodType>
+  | z.core.$ZodCatch<z.core.$ZodType>
   | (z.core.$ZodCustom<any, any> & { builtin: any });
 
 export function zodFieldToCoFieldDef(schema: FieldSchema) {
@@ -61,6 +69,18 @@ export function zodFieldToCoFieldDef(schema: FieldSchema) {
         // Mostly to support z.json()
         return zodFieldToCoFieldDef(
           (schema as unknown as ZodLazy).unwrap() as FieldSchema,
+        );
+      } else if (
+        schema._zod.def.type === "default" ||
+        schema._zod.def.type === "catch"
+      ) {
+        console.warn(
+          "z.default()/z.catch() are not supported in collaborative schemas. They will be ignored.",
+        );
+
+        return zodFieldToCoFieldDef(
+          (schema as unknown as ZodDefault | ZodCatch).def
+            .innerType as FieldSchema,
         );
       } else if (schema._zod.def.type === "literal") {
         if (

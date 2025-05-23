@@ -36,6 +36,8 @@ export {
   type ZodOptional,
   type ZodReadonly,
   type ZodLazy,
+  type ZodDefault,
+  type ZodCatch,
   type output as infer,
   z,
 } from "zod/v4";
