@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { z } from "../exports.js";
 import { co } from "../internal.js";
 import { createJazzTestAccount } from "../testing.js";
@@ -380,23 +380,41 @@ describe("co.map and Zod schema compatibility", () => {
       expect(map.longString).toBe("this is a long string");
     });
 
-    // it("should fire error on default values", async () => {
-    //   const schema = co.map({
-    //     fish: z.string().default("tuna"),
-    //   });
-    //   const account = await createJazzTestAccount();
-    //   const map = schema.create({}, account);
-    //   expect(map.fish).toBe("tuna");
-    // });
+    it("should log a warning on default values", async () => {
+      const consoleSpy = vi.spyOn(console, "warn");
 
-    // it("should fire error catch values", async () => {
-    //   const schema = co.map({
-    //     number: z.number().catch(42),
-    //   });
-    //   const account = await createJazzTestAccount();
-    //   const map = schema.create({ number: 42 }, account);
-    //   expect(map.number).toBe(42);
-    // });
+      const schema = co.map({
+        fish: z.string().default("tuna"),
+      });
+      const account = await createJazzTestAccount();
+      const map = schema.create(
+        {
+          fish: "salmon",
+        },
+        account,
+      );
+      expect(map.fish).toBe("salmon");
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "z.default()/z.catch() are not supported in collaborative schemas. They will be ignored.",
+      );
+      consoleSpy.mockRestore();
+    });
+
+    it("should log a warning on catch values", async () => {
+      const consoleSpy = vi.spyOn(console, "warn");
+      const schema = co.map({
+        number: z.number().catch(42),
+      });
+      const account = await createJazzTestAccount();
+      const map = schema.create({ number: 18 }, account);
+      expect(map.number).toBe(18);
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "z.default()/z.catch() are not supported in collaborative schemas. They will be ignored.",
+      );
+      consoleSpy.mockRestore();
+    });
 
     it("should handle branded types", async () => {
       const schema = co.map({
