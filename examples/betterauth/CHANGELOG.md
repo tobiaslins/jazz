@@ -1,5 +1,13 @@
 # betterauth
 
+## 0.1.16
+
+### Patch Changes
+
+- jazz-inspector@0.14.13
+- jazz-react@0.14.13
+- jazz-react-auth-betterauth@0.14.13
+
 ## 0.1.15
 
 ### Patch Changes

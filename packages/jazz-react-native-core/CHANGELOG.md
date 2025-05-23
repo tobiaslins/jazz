@@ -1,5 +1,12 @@
 # jazz-browser
 
+## 0.14.13
+
+### Patch Changes
+
+- Updated dependencies [bb214f0]
+  - jazz-react-core@0.14.13
+
 ## 0.14.12
 
 ### Patch Changes
