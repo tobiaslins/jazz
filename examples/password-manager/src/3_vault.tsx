@@ -5,8 +5,8 @@ import InviteModal from "./components/invite-modal";
 import NewItemModal from "./components/new-item-modal";
 import Table from "./components/table";
 
-import { useAccount, useCoState } from "jazz-react";
-import { Loaded, co } from "jazz-tools";
+import { useAccount } from "jazz-react";
+import { Loaded } from "jazz-tools";
 import { useNavigate, useParams } from "react-router-dom";
 import { Folder, PasswordItem, PasswordManagerAccount } from "./1_schema";
 import {
@@ -20,13 +20,27 @@ import { Alert, AlertDescription } from "./components/alert";
 import { PasswordItemFormValues } from "./types";
 
 const VaultPage: React.FC = () => {
-  const { me, logOut } = useAccount(PasswordManagerAccount);
+  const { me, logOut } = useAccount(PasswordManagerAccount, {
+    resolve: {
+      root: {
+        folders: {
+          $each: {
+            items: {
+              $each: true,
+            },
+          },
+        },
+      },
+    },
+  });
   const sharedFolderId = useParams<{ sharedFolderId: string }>().sharedFolderId;
 
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!sharedFolderId) return;
+
+    const me = PasswordManagerAccount.getMe();
 
     addSharedFolder(sharedFolderId, me).then(() => {
       navigate("/vault");
@@ -36,17 +50,13 @@ const VaultPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const items = me.root?.folders?.flatMap(
+  const items = me?.root.folders.flatMap(
     (folder) =>
       folder?.items?.filter(
         (item): item is Exclude<typeof item, null> => !!item,
       ) || [],
   );
-  const folders = useCoState(co.list(Folder), me.root?._refs.folders?.id, {
-    resolve: {
-      $each: { items: { $each: true } },
-    },
-  });
+  const folders = me?.root.folders;
 
   const [selectedFolder, setSelectedFolder] = useState<
     Loaded<typeof Folder> | undefined
@@ -95,6 +105,7 @@ const VaultPage: React.FC = () => {
   };
 
   const handleCreateFolder = async () => {
+    if (!me) return;
     if (newFolderName) {
       try {
         const newFolder = createFolder(newFolderName, me);
@@ -108,18 +119,20 @@ const VaultPage: React.FC = () => {
   };
 
   const handleDeleteFolder = async () => {
+    if (!me) return;
     try {
-      const selectedFolderIndex = me.root?.folders?.findIndex(
+      const selectedFolderIndex = me.root.folders.findIndex(
         (folder) => folder?.id === selectedFolder?.id,
       );
       if (selectedFolderIndex !== undefined && selectedFolderIndex > -1)
-        me.root?.folders?.splice(selectedFolderIndex, 1);
+        me.root.folders.splice(selectedFolderIndex, 1);
     } catch (err) {
       setError("Failed to create folder. Please try again.");
     }
   };
 
   const handleLogout = async () => {
+    if (!me) return;
     try {
       logOut();
     } catch (err) {
@@ -141,14 +154,14 @@ const VaultPage: React.FC = () => {
           </Button>
           <Button
             onClick={() => setEditingItem(item)}
-            disabled={!me.canWrite(item)}
+            disabled={!me?.canWrite(item)}
           >
             Edit
           </Button>
           <Button
             onClick={() => handleDeleteItem(item)}
             variant="danger"
-            disabled={!me.canWrite(item)}
+            disabled={!me?.canWrite(item)}
           >
             Delete
           </Button>
@@ -209,13 +222,13 @@ const VaultPage: React.FC = () => {
         <div className="flex gap-2">
           <Button
             onClick={() => setIsNewItemModalOpen(true)}
-            disabled={!selectedFolder || !me.canWrite(selectedFolder)}
+            disabled={!selectedFolder || !me?.canWrite(selectedFolder)}
           >
             New Item
           </Button>
           <Button
             onClick={() => setIsInviteModalOpen(true)}
-            disabled={!selectedFolder || !me.canWrite(selectedFolder)}
+            disabled={!selectedFolder || !me?.canWrite(selectedFolder)}
           >
             Share Folder
           </Button>

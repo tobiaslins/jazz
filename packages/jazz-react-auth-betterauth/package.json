@@ -14,7 +14,7 @@
 		"jazz-tools": "workspace:*"
 	},
 	"peerDependencies": {
-		"react": "^17 || ^18 || ^19"
+		"react": "*"
 	},
 	"scripts": {
 		"format-and-lint": "biome check .",
