@@ -1,5 +1,11 @@
 # create-jazz-app
 
+## 0.1.20
+
+### Patch Changes
+
+- f5bae09: Remove React Native specific steps as not required anymore
+
 ## 0.1.19
 
 ### Patch Changes
