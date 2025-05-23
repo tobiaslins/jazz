@@ -1,5 +1,11 @@
 # jazz-tools
 
+## 0.14.9
+
+### Patch Changes
+
+- 22c2600: Move back to zod as dependency and clean up zod re-export
+
 ## 0.14.8
 
 ### Patch Changes
