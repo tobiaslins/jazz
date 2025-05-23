@@ -29,8 +29,7 @@
     "typescript": "catalog:"
   },
   "peerDependencies": {
-    "react": "*",
-    "react-dom": "*"
+    "react": "*"
   },
   "scripts": {
     "dev": "tsc --watch --sourceMap --outDir dist",
