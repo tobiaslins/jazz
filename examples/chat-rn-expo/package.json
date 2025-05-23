@@ -3,15 +3,17 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
+    "build": "expo prebuild",
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web"
   },
   "dependencies": {
     "@azure/core-asynciterator-polyfill": "^1.0.2",
     "@bacons/text-decoder": "^0.0.0",
     "@craftzdog/react-native-buffer": "^6.0.5",
+    "@react-native-community/netinfo": "11.4.1",
     "expo": "~53.0.9",
     "expo-clipboard": "^7.1.4",
     "expo-status-bar": "~2.2.3",
