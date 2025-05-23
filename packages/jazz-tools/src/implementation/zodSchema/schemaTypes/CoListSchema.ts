@@ -46,6 +46,7 @@ export type CoListSchema<T extends z.core.$ZodType> = z.core.$ZodArray<T> & {
     ) => void,
   ): () => void;
 
+  /** @deprecated Define your helper methods separately, in standalone functions. */
   withHelpers<S extends z.core.$ZodType, T extends object>(
     this: S,
     helpers: (Self: S) => T,

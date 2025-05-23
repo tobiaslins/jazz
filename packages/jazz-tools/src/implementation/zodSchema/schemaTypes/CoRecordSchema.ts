@@ -78,6 +78,7 @@ export type CoRecordSchema<
     as?: Account | Group | AnonymousJazzAgent,
   ): ID<CoRecordInstanceCoValuesNullable<K, V>>;
 
+  /** @deprecated Define your helper methods separately, in standalone functions. */
   withHelpers<S extends z.core.$ZodType, T extends object>(
     this: S,
     helpers: (Self: S) => T,

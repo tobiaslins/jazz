@@ -92,6 +92,7 @@ export type CoMapSchema<
       schema: T,
     ): CoMapSchema<Shape, z.core.$catchall<T>>;
 
+    /** @deprecated Define your helper methods separately, in standalone functions. */
     withHelpers<S extends z.core.$ZodType, T extends object>(
       this: S,
       helpers: (Self: S) => T,

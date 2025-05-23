@@ -1,10 +1,5 @@
 import { z } from "../../implementation/zodSchema/zodReExport.js";
-import {
-  Loaded,
-  co,
-  coFileStreamDefiner,
-  coMapDefiner,
-} from "../../internal.js";
+import { Loaded, coFileStreamDefiner, coMapDefiner } from "../../internal.js";
 
 // avoiding circularity by using the standalone definers instead of `co`
 const ImageDefinitionBase = coMapDefiner({
@@ -62,4 +57,4 @@ export const ImageDefinition = ImageDefinitionBase.withHelpers((Self) => ({
     );
   },
 }));
-export type ImageDefinition = co.loaded<typeof ImageDefinition>;
+export type ImageDefinition = Loaded<typeof ImageDefinition>;
