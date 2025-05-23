@@ -1,6 +1,6 @@
 {
   "name": "chat-rn",
-  "version": "1.0.129",
+  "version": "1.0.130",
   "main": "index.js",
   "scripts": {
     "android": "react-native run-android",

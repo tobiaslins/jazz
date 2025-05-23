@@ -1,5 +1,11 @@
 # jazz-browser
 
+## 0.14.12
+
+### Patch Changes
+
+- jazz-react-native-core@0.14.12
+
 ## 0.14.11
 
 ### Patch Changes

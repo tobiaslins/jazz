@@ -1,5 +1,11 @@
 # richtext
 
+## 0.0.96
+
+### Patch Changes
+
+- jazz-react@0.14.12
+
 ## 0.0.95
 
 ### Patch Changes

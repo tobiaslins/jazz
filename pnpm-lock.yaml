@@ -2380,7 +2380,7 @@ importers:
         specifier: workspace:0.14.10
         version: link:../jazz-browser-media-images
       jazz-react-core:
-        specifier: workspace:0.14.10
+        specifier: workspace:0.14.12
         version: link:../jazz-react-core
       jazz-tools:
         specifier: workspace:0.14.10
@@ -14927,7 +14927,7 @@ snapshots:
 
   '@babel/helper-wrap-function@7.25.9':
     dependencies:
-      '@babel/template': 7.27.0
+      '@babel/template': 7.27.2
       '@babel/traverse': 7.27.0
       '@babel/types': 7.27.1
     transitivePeerDependencies:
