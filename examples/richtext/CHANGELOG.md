@@ -1,5 +1,14 @@
 # richtext
 
+## 0.0.94
+
+### Patch Changes
+
+- Updated dependencies [22c2600]
+  - jazz-tools@0.14.9
+  - jazz-react@0.14.9
+  - jazz-richtext-prosemirror@0.1.28
+
 ## 0.0.93
 
 ### Patch Changes

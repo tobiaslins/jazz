@@ -1,5 +1,11 @@
 # jazz-example-inspector
 
+## 0.0.157
+
+### Patch Changes
+
+- jazz-inspector@0.14.9
+
 ## 0.0.156
 
 ### Patch Changes
