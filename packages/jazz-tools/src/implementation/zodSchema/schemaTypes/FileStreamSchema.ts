@@ -1,10 +1,10 @@
-import z from "jazz-tools-zod-v4-rn-patch/v4";
 import {
   Account,
   AnonymousJazzAgent,
   FileStream,
   Group,
 } from "../../../internal.js";
+import { z } from "../zodReExport.js";
 
 export type FileStreamSchema = z.core.$ZodCustom<FileStream, unknown> & {
   collaborative: true;

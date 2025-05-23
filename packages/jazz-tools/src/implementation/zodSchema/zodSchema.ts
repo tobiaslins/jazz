@@ -1,5 +1,4 @@
 import { LocalNode, RawAccount } from "cojson";
-import z from "jazz-tools-zod-v4-rn-patch/v4";
 import {
   Account,
   AccountClass,
@@ -21,6 +20,7 @@ import { PlainTextSchema } from "./schemaTypes/PlainTextSchema.js";
 import { RichTextSchema } from "./schemaTypes/RichTextSchema.js";
 import { InstanceOfSchema } from "./typeConverters/InstanceOfSchema.js";
 import { InstanceOfSchemaCoValuesNullable } from "./typeConverters/InstanceOfSchemaCoValuesNullable.js";
+import { z } from "./zodReExport.js";
 
 // defining an extra type for this, otherwise BaseSchema & {...} often
 // gets expanded into a n inferred type that's too long for typescript to print

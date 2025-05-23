@@ -1,5 +1,4 @@
 import { CoValueUniqueness } from "cojson";
-import z from "jazz-tools-zod-v4-rn-patch/v4";
 import {
   Account,
   AccountCreationProps,
@@ -25,6 +24,7 @@ import {
   zodSchemaToCoSchema,
 } from "../../internal.js";
 import { RichTextSchema } from "./schemaTypes/RichTextSchema.js";
+import { z } from "./zodReExport.js";
 
 export const coMapDefiner = <Shape extends z.core.$ZodLooseShape>(
   shape: Shape,

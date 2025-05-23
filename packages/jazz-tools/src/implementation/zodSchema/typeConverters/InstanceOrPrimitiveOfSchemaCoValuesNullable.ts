@@ -1,5 +1,4 @@
 import { JsonValue } from "cojson";
-import z from "jazz-tools-zod-v4-rn-patch/v4";
 import {
   Account,
   CoFeed,
@@ -18,6 +17,7 @@ import { AnyCoMapSchema } from "../schemaTypes/CoMapSchema.js";
 import { FileStreamSchema } from "../schemaTypes/FileStreamSchema.js";
 import { PlainTextSchema } from "../schemaTypes/PlainTextSchema.js";
 import { RichTextSchema } from "../schemaTypes/RichTextSchema.js";
+import { z } from "../zodReExport.js";
 
 export type InstanceOrPrimitiveOfSchemaCoValuesNullable<
   S extends CoValueClass | z.core.$ZodType,

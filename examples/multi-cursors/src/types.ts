@@ -1,4 +1,4 @@
-import { z } from "zod/v4";
+import { z } from "jazz-tools";
 
 export const Vec2 = z.object({
   x: z.number(),

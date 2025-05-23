@@ -1,8 +1,3 @@
-import z, {
-  ZodCatch,
-  ZodLazy,
-  ZodReadonly,
-} from "jazz-tools-zod-v4-rn-patch/v4";
 import { CoMap, CoValueClass, isCoValueClass } from "../../../internal.js";
 import { coField } from "../../schema.js";
 import {
@@ -10,6 +5,7 @@ import {
   isUnionOfPrimitivesDeeply,
   schemaUnionDiscriminatorFor,
 } from "../unionUtils.js";
+import { ZodLazy, ZodReadonly, z } from "../zodReExport.js";
 import { ZodPrimitiveSchema } from "../zodSchema.js";
 import { zodSchemaToCoSchemaOrKeepPrimitive } from "./zodSchemaToCoSchema.js";
 

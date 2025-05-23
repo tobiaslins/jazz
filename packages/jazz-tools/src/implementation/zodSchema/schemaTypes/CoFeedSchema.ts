@@ -1,4 +1,3 @@
-import z from "jazz-tools-zod-v4-rn-patch/v4";
 import {
   Account,
   CoFeed,
@@ -12,6 +11,7 @@ import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOfSchema } from "../typeConverters/InstanceOfSchema.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
+import { z } from "../zodReExport.js";
 
 type CoFeedInit<T extends z.core.$ZodType> = Array<
   T extends z.core.$ZodOptional<any>

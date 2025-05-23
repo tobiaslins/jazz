@@ -1,4 +1,3 @@
-import z from "jazz-tools-zod-v4-rn-patch/v4";
 import {
   Account,
   CoList,
@@ -11,6 +10,7 @@ import {
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
+import { z } from "../zodReExport.js";
 import { WithHelpers } from "../zodSchema.js";
 
 type CoListInit<T extends z.core.$ZodType> = Array<

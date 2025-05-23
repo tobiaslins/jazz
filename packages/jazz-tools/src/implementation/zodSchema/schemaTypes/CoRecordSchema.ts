@@ -1,5 +1,4 @@
 import { CoValueUniqueness } from "cojson";
-import z from "jazz-tools-zod-v4-rn-patch/v4";
 import {
   Account,
   CoMap,
@@ -14,6 +13,7 @@ import {
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
+import { z } from "../zodReExport.js";
 import { WithHelpers } from "../zodSchema.js";
 
 type CoRecordInit<
