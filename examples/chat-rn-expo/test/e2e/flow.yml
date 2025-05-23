@@ -8,10 +8,7 @@ appId: com.jazz.chatrn
 # - assertVisible: "Reload"
 # - tapOn: "Reload"
 
-# login
-- assertVisible: "Logout"
-- tapOn: "Logout"
-- assertVisible: "Anonymous user"
+- assertVisible: "Username"
 - runFlow:
     label: "Erase existing username"
     file: erase_text.yml
