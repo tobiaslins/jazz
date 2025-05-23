@@ -1,5 +1,11 @@
 # jazz-react-core
 
+## 0.14.12
+
+### Patch Changes
+
+- f167112: Remove react and react-dom dev dependencies due to npm install issues
+
 ## 0.14.10
 
 ### Patch Changes

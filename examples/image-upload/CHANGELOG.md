@@ -1,5 +1,11 @@
 # image-upload
 
+## 0.0.106
+
+### Patch Changes
+
+- jazz-react@0.14.12
+
 ## 0.0.105
 
 ### Patch Changes
