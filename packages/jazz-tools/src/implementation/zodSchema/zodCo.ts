@@ -45,6 +45,7 @@ export const coMapDefiner = <Shape extends z.core.$ZodLooseShape>(
     subscribe: CoMapSchema<Shape>["subscribe"];
     findUnique: CoMapSchema<Shape>["findUnique"];
     catchall: CoMapSchema<Shape>["catchall"];
+    /** @deprecated Define your helper methods separately, in standalone functions. */
     withHelpers: CoMapSchema<Shape>["withHelpers"];
   };
 
@@ -130,6 +131,7 @@ export const coAccountDefiner = <
     getMe: AccountSchema<Shape>["getMe"];
     load: AccountSchema<Shape>["load"];
     subscribe: AccountSchema<Shape>["subscribe"];
+    /** @deprecated Define your helper methods separately, in standalone functions. */
     withHelpers: AccountSchema<Shape>["withHelpers"];
     withMigration: AccountSchema<Shape>["withMigration"];
   };
@@ -210,6 +212,7 @@ export const coListDefiner = <T extends z.core.$ZodType>(
     create: CoListSchema<T>["create"];
     load: CoListSchema<T>["load"];
     subscribe: CoListSchema<T>["subscribe"];
+    /** @deprecated Define your helper methods separately, in standalone functions. */
     withHelpers: CoListSchema<T>["withHelpers"];
   };
 
