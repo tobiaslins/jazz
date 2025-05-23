@@ -1,5 +1,11 @@
 # jazz-react-core
 
+## 0.14.13
+
+### Patch Changes
+
+- bb214f0: Remove react-dom from the peerDependencies
+
 ## 0.14.12
 
 ### Patch Changes

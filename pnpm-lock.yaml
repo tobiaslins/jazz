@@ -2380,7 +2380,7 @@ importers:
         specifier: workspace:0.14.10
         version: link:../jazz-browser-media-images
       jazz-react-core:
-        specifier: workspace:0.14.12
+        specifier: workspace:0.14.13
         version: link:../jazz-react-core
       jazz-tools:
         specifier: workspace:0.14.10
