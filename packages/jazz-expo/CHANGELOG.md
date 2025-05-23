@@ -1,5 +1,11 @@
 # jazz-browser
 
+## 0.14.11
+
+### Patch Changes
+
+- 98d697f: Remove react and react-native dev dependencies
+
 ## 0.14.10
 
 ### Patch Changes
