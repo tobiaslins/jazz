@@ -1,5 +1,18 @@
 # jazz-react
 
+## 0.14.10
+
+### Patch Changes
+
+- dc746a2: Make the react peerDependency definition more relaxed
+- Updated dependencies [dc746a2]
+- Updated dependencies [f869d9a]
+- Updated dependencies [3fe6832]
+  - jazz-react-core@0.14.10
+  - jazz-tools@0.14.10
+  - jazz-browser@0.14.10
+  - jazz-browser-media-images@0.14.10
+
 ## 0.14.9
 
 ### Patch Changes

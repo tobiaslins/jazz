@@ -1,5 +1,13 @@
 # jazz-tools
 
+## 0.14.10
+
+### Patch Changes
+
+- dc746a2: Make the react peerDependency definition more relaxed
+- f869d9a: Deprecated the withHelpers method in favor of standalone functions
+- 3fe6832: Add support for z.catch/default. We ignore them for the moment and flag a warning.
+
 ## 0.14.9
 
 ### Patch Changes
