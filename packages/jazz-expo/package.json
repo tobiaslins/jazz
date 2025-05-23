@@ -47,7 +47,8 @@
   "peerDependencies": {
     "@react-native-community/netinfo": "*",
     "expo-secure-store": "*",
-    "react-native": "*"
+    "react-native": "*",
+    "react": "*"
   },
   "devDependencies": {
     "@react-native-community/netinfo": "11.4.1",

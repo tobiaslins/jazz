@@ -35,7 +35,8 @@
   },
   "peerDependencies": {
     "@react-native-community/netinfo": "*",
-    "react-native": "*"
+    "react-native": "*",
+    "react": "*"
   },
   "devDependencies": {
     "@react-native-community/netinfo": "11.4.1",
