@@ -186,12 +186,6 @@ function useAccount<
   const context = useJazzContext<InstanceOfSchema<A>>();
   const contextManager = useJazzContextManager<InstanceOfSchema<A>>();
 
-  if (!("me" in context)) {
-    throw new Error(
-      "useAccount can't be used in a JazzProvider with auth === 'guest' - consider using useAccountOrGuest()",
-    );
-  }
-
   const observable = useCoValueObservable<A, R>();
 
   const me = React.useSyncExternalStore<Loaded<A, R> | undefined | null>(
@@ -200,13 +194,11 @@ function useAccount<
         return subscribeToContextManager(contextManager, () => {
           const agent = getCurrentAccountFromContextManager(contextManager);
 
-          if (agent._type === "Anonymous") {
-            throw new Error(
-              "useAccount can't be used in a JazzProvider with auth === 'guest' - consider using useAccountOrGuest()",
-            );
-          }
-
           observable.reset();
+
+          if (agent._type === "Anonymous") {
+            return () => {};
+          }
 
           return observable.getCurrentObservable().subscribe(
             AccountSchema,
@@ -228,9 +220,15 @@ function useAccount<
     () => observable.getCurrentValue() as Loaded<A, R> | undefined | null,
   );
 
+  if (options?.resolve === undefined && "me" in context) {
+    return {
+      me: me || (context.me as Loaded<A, R>),
+      logOut: contextManager.logOut,
+    };
+  }
+
   return {
-    me:
-      options?.resolve === undefined ? me || (context.me as Loaded<A, R>) : me,
+    me,
     logOut: contextManager.logOut,
   };
 }

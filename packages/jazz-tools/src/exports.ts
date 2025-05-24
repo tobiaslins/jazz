@@ -52,6 +52,7 @@ export {
   loadCoValue,
   subscribeToCoValue,
   ImageDefinition,
+  SubscriptionScope,
 } from "./internal.js";
 
 export {
