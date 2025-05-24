@@ -1,5 +1,11 @@
 # jazz-tools
 
+## 0.14.14
+
+### Patch Changes
+
+- e32a1f7: Add useAnonymousFallback option in JazzContextManager
+
 ## 0.14.10
 
 ### Patch Changes

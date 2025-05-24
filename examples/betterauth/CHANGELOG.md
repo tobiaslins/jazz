@@ -1,5 +1,17 @@
 # betterauth
 
+## 0.1.17
+
+### Patch Changes
+
+- Updated dependencies [e32a1f7]
+  - jazz-tools@0.14.14
+  - jazz-betterauth-server-plugin@0.14.14
+  - jazz-inspector@0.14.14
+  - jazz-react@0.14.14
+  - jazz-react-auth-betterauth@0.14.14
+  - jazz-betterauth-client-plugin@0.14.14
+
 ## 0.1.16
 
 ### Patch Changes

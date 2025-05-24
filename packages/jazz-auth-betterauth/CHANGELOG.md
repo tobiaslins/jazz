@@ -1,5 +1,14 @@
 # jazz-auth-betterauth
 
+## 0.14.14
+
+### Patch Changes
+
+- Updated dependencies [e32a1f7]
+  - jazz-tools@0.14.14
+  - jazz-browser@0.14.14
+  - jazz-betterauth-client-plugin@0.14.14
+
 ## 0.14.10
 
 ### Patch Changes
