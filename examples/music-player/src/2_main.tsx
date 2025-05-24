@@ -7,11 +7,11 @@ import { RouterProvider, createHashRouter } from "react-router-dom";
 import { HomePage } from "./3_HomePage";
 import { useMediaPlayer } from "./5_useMediaPlayer";
 import { InvitePage } from "./6_InvitePage";
-import { PlayerControls } from "./components/PlayerControls";
 import "./index.css";
 
 import { MusicaAccount } from "@/1_schema";
 import { apiKey } from "@/apiKey.ts";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { JazzProvider } from "jazz-react";
 import { onAnonymousAccountDiscarded } from "./4_actions";
 import { useUploadExampleData } from "./lib/useUploadExampleData";
@@ -50,7 +50,7 @@ function Main() {
   return (
     <>
       <RouterProvider router={router} />
-      <PlayerControls mediaPlayer={mediaPlayer} />
+      {/* <PlayerControls mediaPlayer={mediaPlayer} /> */}
       <Toaster />
     </>
   );
@@ -72,8 +72,10 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       defaultProfileName="Anonymous unicorn"
       onAnonymousAccountDiscarded={onAnonymousAccountDiscarded}
     >
-      <Main />
-      <JazzInspector />
+      <SidebarProvider>
+        <Main />
+        <JazzInspector />
+      </SidebarProvider>
     </JazzProvider>
   </React.StrictMode>,
 );

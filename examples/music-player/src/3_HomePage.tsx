@@ -5,16 +5,16 @@ import {
   useCoState,
   useIsAuthenticated,
 } from "jazz-react";
-import { useNavigate, useParams } from "react-router";
+import { useParams } from "react-router";
 import { MusicaAccount, Playlist } from "./1_schema";
-import { createNewPlaylist, uploadMusicTracks } from "./4_actions";
+import { uploadMusicTracks } from "./4_actions";
 import { MediaPlayer } from "./5_useMediaPlayer";
-import { AuthButton } from "./components/AuthButton";
 import { FileUploadButton } from "./components/FileUploadButton";
 import { MusicTrackRow } from "./components/MusicTrackRow";
 import { PlaylistTitleInput } from "./components/PlaylistTitleInput";
 import { SidePanel } from "./components/SidePanel";
 import { Button } from "./components/ui/button";
+import { SidebarInset, SidebarTrigger } from "./components/ui/sidebar";
 import { usePlayState } from "./lib/audio/usePlayState";
 
 export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
@@ -26,7 +26,6 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
     resolve: { root: { rootPlaylist: true, playlists: true } },
   });
 
-  const navigate = useNavigate();
   const playState = usePlayState();
   const isPlaying = playState.value === "play";
   const { toast } = useToast();
@@ -37,12 +36,6 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
      * values in Jazz and manage files!
      */
     await uploadMusicTracks(files);
-  }
-
-  async function handleCreatePlaylist() {
-    const playlist = await createNewPlaylist();
-
-    navigate(`/playlist/${playlist.id}`);
   }
 
   const params = useParams<{ playlistId: string }>();
@@ -71,10 +64,11 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
   const isAuthenticated = useIsAuthenticated();
 
   return (
-    <div className="flex flex-col h-screen text-gray-800 bg-blue-50">
+    <SidebarInset className="flex flex-col h-screen text-gray-800 bg-blue-50">
       <div className="flex flex-1 overflow-hidden">
-        <SidePanel />
+        <SidePanel mediaPlayer={mediaPlayer} />
         <main className="flex-1 p-6 overflow-y-auto">
+          <SidebarTrigger />
           <div className="flex items-center justify-between mb-6">
             {isRootPlaylist ? (
               <h1 className="text-2xl font-bold text-blue-800">All tracks</h1>
@@ -87,7 +81,6 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
                   <FileUploadButton onFileLoad={handleFileLoad}>
                     Add file
                   </FileUploadButton>
-                  <Button onClick={handleCreatePlaylist}>New playlist</Button>
                 </>
               )}
               {!isRootPlaylist && isAuthenticated && (
@@ -95,7 +88,6 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
                   Share playlist
                 </Button>
               )}
-              <AuthButton />
             </div>
           </div>
           <ul className="flex flex-col">
@@ -121,6 +113,6 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
           </ul>
         </main>
       </div>
-    </div>
+    </SidebarInset>
   );
 }
