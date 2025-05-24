@@ -1,5 +1,4 @@
 import { RawCoList, RawCoMap } from "cojson";
-import z from "zod/v4";
 import {
   Account,
   CoFeed,
@@ -17,6 +16,7 @@ import {
   isUnionOfCoMapsDeeply,
   schemaUnionDiscriminatorFor,
 } from "../unionUtils.js";
+import { z } from "../zodReExport.js";
 import {
   CoValueClassFromZodSchema,
   ZodPrimitiveSchema,

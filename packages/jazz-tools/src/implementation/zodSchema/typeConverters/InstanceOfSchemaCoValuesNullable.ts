@@ -1,4 +1,3 @@
-import z from "zod/v4";
 import {
   Account,
   AnyCoFeedSchema,
@@ -15,6 +14,7 @@ import {
 import { FileStreamSchema } from "../schemaTypes/FileStreamSchema.js";
 import { PlainTextSchema } from "../schemaTypes/PlainTextSchema.js";
 import { RichTextSchema } from "../schemaTypes/RichTextSchema.js";
+import { z } from "../zodReExport.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "./InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 
 export type InstanceOfSchemaCoValuesNullable<

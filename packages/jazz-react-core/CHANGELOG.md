@@ -1,5 +1,96 @@
 # jazz-react-core
 
+## 0.14.14
+
+### Patch Changes
+
+- e32a1f7: Add experimental_enableSSR flag
+- Updated dependencies [e32a1f7]
+  - jazz-tools@0.14.14
+
+## 0.14.13
+
+### Patch Changes
+
+- bb214f0: Remove react-dom from the peerDependencies
+
+## 0.14.12
+
+### Patch Changes
+
+- f167112: Remove react and react-dom dev dependencies due to npm install issues
+
+## 0.14.10
+
+### Patch Changes
+
+- dc746a2: Make the react peerDependency definition more relaxed
+- Updated dependencies [dc746a2]
+- Updated dependencies [f869d9a]
+- Updated dependencies [3fe6832]
+  - jazz-tools@0.14.10
+
+## 0.14.9
+
+### Patch Changes
+
+- Updated dependencies [22c2600]
+  - jazz-tools@0.14.9
+
+## 0.14.8
+
+### Patch Changes
+
+- Updated dependencies [637ae13]
+  - jazz-tools@0.14.8
+
+## 0.14.7
+
+### Patch Changes
+
+- Updated dependencies [365b0ea]
+  - jazz-tools@0.14.7
+
+## 0.14.6
+
+### Patch Changes
+
+- Updated dependencies [9d6d9fe]
+- Updated dependencies [9d6d9fe]
+  - jazz-tools@0.14.6
+
+## 0.14.5
+
+### Patch Changes
+
+- Updated dependencies [91cbb2f]
+- Updated dependencies [20b3d88]
+  - jazz-tools@0.14.5
+
+## 0.14.4
+
+### Patch Changes
+
+- Updated dependencies [011af55]
+  - jazz-tools@0.14.4
+
+## 0.14.2
+
+### Patch Changes
+
+- Updated dependencies [3d1027f]
+- Updated dependencies [c240eed]
+  - jazz-tools@0.14.2
+
+## 0.14.1
+
+### Patch Changes
+
+- Updated dependencies [c8b33ad]
+- Updated dependencies [cdfc105]
+  - cojson@0.14.1
+  - jazz-tools@0.14.1
+
 ## 0.14.0
 
 ### Patch Changes

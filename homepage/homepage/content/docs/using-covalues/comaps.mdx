@@ -332,7 +332,7 @@ project.coordinator = undefined;  // Remove the reference
 
 #### Helper methods
 
-You can add helper methods to your CoMap schema to make it more useful:
+You should define helper methods of CoValue schemas separately, in standalone functions:
 
 <CodeGroup>
 ```ts twoslash
@@ -345,26 +345,27 @@ const Project = co.map({
   name: z.string(),
   startDate: z.date(),
   endDate: z.optional(z.date()),
-}).withHelpers((Self) => ({
-  isActive(project: Loaded<typeof Self>) {
-    const now = new Date();
-    return now >= project.startDate && (!project.endDate || now <= project.endDate);
-  },
+});
+type Project = co.loaded<typeof Project>;
 
-  formatDuration(project: Loaded<typeof Self>, format: "short" | "full") {
-    const start = project.startDate.toLocaleDateString();
-    if (!project.endDate) {
-      return format === "full"
+export function isProjectActive(project: Project) {
+  const now = new Date();
+  return now >= project.startDate && (!project.endDate || now <= project.endDate);
+}
+
+export function formatProjectDuration(project: Project, format: "short" | "full") {
+  const start = project.startDate.toLocaleDateString();
+  if (!project.endDate) {
+    return format === "full"
         ? `Started on ${start}, ongoing`
         : `From ${start}`;
-    }
-
-    const end = project.endDate.toLocaleDateString();
-    return format === "full"
-      ? `From ${start} to ${end}`
-      : `${(project.endDate.getTime() - project.startDate.getTime()) / 86400000} days`;
   }
-}));
+
+  const end = project.endDate.toLocaleDateString();
+  return format === "full"
+    ? `From ${start} to ${end}`
+    : `${(project.endDate.getTime() - project.startDate.getTime()) / 86400000} days`;
+}
 
 const project = Project.create({
   name: "My project",
@@ -372,7 +373,7 @@ const project = Project.create({
   endDate: new Date("2025-04-04"),
 });
 
-console.log(Project.isActive(project)); // false
-console.log(Project.formatDuration(project, "short")); // "3 days"
+console.log(isProjectActive(project)); // false
+console.log(formatProjectDuration(project, "short")); // "3 days"
 ```
 </CodeGroup>

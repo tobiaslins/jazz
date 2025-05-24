@@ -1,5 +1,112 @@
 # jazz-browser
 
+## 0.14.14
+
+### Patch Changes
+
+- Updated dependencies [e32a1f7]
+  - jazz-tools@0.14.14
+  - jazz-react-native-core@0.14.14
+
+## 0.14.13
+
+### Patch Changes
+
+- jazz-react-native-core@0.14.13
+
+## 0.14.12
+
+### Patch Changes
+
+- jazz-react-native-core@0.14.12
+
+## 0.14.11
+
+### Patch Changes
+
+- 98d697f: Remove react and react-native dev dependencies
+
+## 0.14.10
+
+### Patch Changes
+
+- dc746a2: Make the react peerDependency definition more relaxed
+- Updated dependencies [dc746a2]
+- Updated dependencies [f869d9a]
+- Updated dependencies [3fe6832]
+  - jazz-tools@0.14.10
+  - jazz-react-native-core@0.14.10
+
+## 0.14.9
+
+### Patch Changes
+
+- Updated dependencies [22c2600]
+  - jazz-tools@0.14.9
+  - jazz-react-native-core@0.14.9
+
+## 0.14.8
+
+### Patch Changes
+
+- Updated dependencies [637ae13]
+  - jazz-tools@0.14.8
+  - jazz-react-native-core@0.14.8
+
+## 0.14.7
+
+### Patch Changes
+
+- Updated dependencies [365b0ea]
+  - jazz-tools@0.14.7
+  - jazz-react-native-core@0.14.7
+
+## 0.14.6
+
+### Patch Changes
+
+- Updated dependencies [9d6d9fe]
+- Updated dependencies [9d6d9fe]
+  - jazz-tools@0.14.6
+  - jazz-react-native-core@0.14.6
+
+## 0.14.5
+
+### Patch Changes
+
+- Updated dependencies [91cbb2f]
+- Updated dependencies [20b3d88]
+  - jazz-tools@0.14.5
+  - jazz-react-native-core@0.14.5
+
+## 0.14.4
+
+### Patch Changes
+
+- Updated dependencies [011af55]
+  - jazz-tools@0.14.4
+  - jazz-react-native-core@0.14.4
+
+## 0.14.2
+
+### Patch Changes
+
+- Updated dependencies [3d1027f]
+- Updated dependencies [c240eed]
+  - jazz-tools@0.14.2
+  - jazz-react-native-core@0.14.2
+
+## 0.14.1
+
+### Patch Changes
+
+- Updated dependencies [c8b33ad]
+- Updated dependencies [cdfc105]
+  - cojson@0.14.1
+  - jazz-tools@0.14.1
+  - cojson-storage@0.14.1
+  - jazz-react-native-core@0.14.1
+
 ## 0.14.0
 
 ### Patch Changes

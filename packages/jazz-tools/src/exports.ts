@@ -8,7 +8,7 @@ export type {
   SyncMessage,
 } from "cojson";
 
-export { z } from "zod/v4";
+export * as z from "./implementation/zodSchema/zodReExport.js";
 
 export type { CoValue, ID } from "./internal.js";
 
@@ -52,6 +52,7 @@ export {
   loadCoValue,
   subscribeToCoValue,
   ImageDefinition,
+  SubscriptionScope,
 } from "./internal.js";
 
 export {

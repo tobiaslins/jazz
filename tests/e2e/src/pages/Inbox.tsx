@@ -20,7 +20,7 @@ export function InboxPage() {
   const [id] = useState(getIdParam);
   const { me } = useAccount();
   const [pingPong, setPingPong] = useState<PingPong | null>(null);
-  const iframeRef = useRef<HTMLIFrameElement>();
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
     let unsubscribe = () => {};

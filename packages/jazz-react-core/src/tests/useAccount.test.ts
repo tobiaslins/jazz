@@ -124,6 +124,10 @@ describe("useAccount", () => {
           "isAuthenticated": true,
         },
         {
+          "accountIndex": 0,
+          "isAuthenticated": false,
+        },
+        {
           "accountIndex": 1,
           "isAuthenticated": false,
         },

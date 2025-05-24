@@ -20,7 +20,7 @@ export function AuthButton() {
 
   if (isAuthenticated) {
     return (
-      <Button variant="outline" onClick={handleSignOut}>
+      <Button variant="ghost" onClick={handleSignOut}>
         Sign out
       </Button>
     );
@@ -28,10 +28,7 @@ export function AuthButton() {
 
   return (
     <>
-      <Button
-        onClick={() => setOpen(true)}
-        className="bg-white text-black hover:bg-gray-100"
-      >
+      <Button onClick={() => setOpen(true)} variant="ghost">
         Sign up
       </Button>
       <AuthModal open={open} onOpenChange={setOpen} />

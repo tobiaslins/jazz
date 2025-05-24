@@ -1,5 +1,114 @@
 # multiauth
 
+## 0.0.52
+
+### Patch Changes
+
+- Updated dependencies [e32a1f7]
+  - jazz-tools@0.14.14
+  - jazz-react@0.14.14
+  - jazz-react-auth-clerk@0.14.14
+
+## 0.0.51
+
+### Patch Changes
+
+- jazz-react@0.14.13
+- jazz-react-auth-clerk@0.14.13
+
+## 0.0.50
+
+### Patch Changes
+
+- jazz-react@0.14.12
+- jazz-react-auth-clerk@0.14.12
+
+## 0.0.49
+
+### Patch Changes
+
+- Updated dependencies [dc746a2]
+- Updated dependencies [f869d9a]
+- Updated dependencies [3fe6832]
+  - jazz-react-auth-clerk@0.14.10
+  - jazz-react@0.14.10
+  - jazz-tools@0.14.10
+
+## 0.0.48
+
+### Patch Changes
+
+- Updated dependencies [22c2600]
+  - jazz-tools@0.14.9
+  - jazz-react@0.14.9
+  - jazz-react-auth-clerk@0.14.9
+
+## 0.0.47
+
+### Patch Changes
+
+- Updated dependencies [637ae13]
+  - jazz-tools@0.14.8
+  - jazz-react@0.14.8
+  - jazz-react-auth-clerk@0.14.8
+
+## 0.0.46
+
+### Patch Changes
+
+- Updated dependencies [365b0ea]
+  - jazz-tools@0.14.7
+  - jazz-react@0.14.7
+  - jazz-react-auth-clerk@0.14.7
+
+## 0.0.45
+
+### Patch Changes
+
+- Updated dependencies [9d6d9fe]
+- Updated dependencies [9d6d9fe]
+  - jazz-tools@0.14.6
+  - jazz-react@0.14.6
+  - jazz-react-auth-clerk@0.14.6
+
+## 0.0.44
+
+### Patch Changes
+
+- Updated dependencies [91cbb2f]
+- Updated dependencies [20b3d88]
+  - jazz-tools@0.14.5
+  - jazz-react@0.14.5
+  - jazz-react-auth-clerk@0.14.5
+
+## 0.0.43
+
+### Patch Changes
+
+- Updated dependencies [011af55]
+  - jazz-tools@0.14.4
+  - jazz-react@0.14.4
+  - jazz-react-auth-clerk@0.14.4
+
+## 0.0.42
+
+### Patch Changes
+
+- Updated dependencies [3d1027f]
+- Updated dependencies [c240eed]
+  - jazz-tools@0.14.2
+  - jazz-react@0.14.2
+  - jazz-react-auth-clerk@0.14.2
+
+## 0.0.41
+
+### Patch Changes
+
+- Updated dependencies [cdfc105]
+  - jazz-tools@0.14.1
+  - jazz-react@0.14.1
+  - jazz-react-auth-clerk@0.14.1
+
 ## 0.0.40
 
 ### Patch Changes

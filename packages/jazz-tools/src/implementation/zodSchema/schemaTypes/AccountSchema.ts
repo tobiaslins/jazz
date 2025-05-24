@@ -1,5 +1,4 @@
 import { CryptoProvider } from "cojson";
-import z from "zod/v4";
 import {
   Account,
   Group,
@@ -9,6 +8,7 @@ import {
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
+import { z } from "../zodReExport.js";
 import { Loaded, ResolveQuery } from "../zodSchema.js";
 import {
   AnyCoMapSchema,
