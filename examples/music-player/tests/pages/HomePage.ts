@@ -71,7 +71,7 @@ export class HomePage {
 
   async navigateToPlaylist(playlistTitle: string) {
     await this.page
-      .getByRole("link", {
+      .getByRole("button", {
         name: playlistTitle,
       })
       .click();
@@ -79,7 +79,7 @@ export class HomePage {
 
   async navigateToHome() {
     await this.page
-      .getByRole("link", {
+      .getByRole("button", {
         name: "All tracks",
       })
       .click();
