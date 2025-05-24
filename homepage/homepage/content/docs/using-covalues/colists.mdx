@@ -163,19 +163,28 @@ import { co, z, Loaded, Group } from "jazz-tools";
 
 export const Task = co.map({
   name: z.string(),
-  deleted: z.boolean(), 
-})
+  deleted: z.boolean(),
+});
 
-const ListOfTasks = co.list(Task)
-  .withHelpers((Self) => ({
-    getAll(list: Loaded<typeof Self>) {
-      return Array.from(list.values()).filter(
-        (task): task is Loaded<typeof Task> =>
-          !task?.deleted
-      );
-    }
-  })
-);
+export const ListOfTasks = co.list(Task);
+
+export function getCurrentTasks(
+  list: Loaded<typeof ListOfTasks>
+): Loaded<typeof Task>[] {
+  return Array.from(list.values()).filter(
+    (task): task is Loaded<typeof Task> => !task?.deleted
+  );
+}
+
+async function main() {
+  const myTaskList = ListOfTasks.create([]);
+  myTaskList.push(Task.create({ name: "Tomatoes", deleted: false }));
+  myTaskList.push(Task.create({ name: "Cucumbers", deleted: true }));
+  myTaskList.push(Task.create({ name: "Carrots", deleted: false }));
+
+  const activeTasks = getCurrentTasks(myTaskList);
+  console.log(activeTasks.map((task) => task.name)); // Output: ["Tomatoes", "Carrots"]
+}
 ```
 </CodeGroup>
 
