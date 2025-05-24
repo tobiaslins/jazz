@@ -1,5 +1,13 @@
 # jazz-react-core
 
+## 0.14.14
+
+### Patch Changes
+
+- e32a1f7: Add experimental_enableSSR flag
+- Updated dependencies [e32a1f7]
+  - jazz-tools@0.14.14
+
 ## 0.14.13
 
 ### Patch Changes
