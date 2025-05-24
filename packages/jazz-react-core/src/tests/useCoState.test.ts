@@ -1,7 +1,16 @@
 // @vitest-environment happy-dom
 
 import { cojsonInternals } from "cojson";
-import { Account, CoValue, Group, ID, Loaded, co, z } from "jazz-tools";
+import {
+  Account,
+  CoRichText,
+  CoValue,
+  Group,
+  ID,
+  Loaded,
+  co,
+  z,
+} from "jazz-tools";
 import { assert, beforeEach, describe, expect, expectTypeOf, it } from "vitest";
 import { useCoState } from "../index.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
@@ -496,5 +505,48 @@ describe("useCoState", () => {
       expect(result.current?.[0]?.account?.profile?.name).toBe("John Doe");
       expect(result.current?.[1]?.account?.profile?.name).toBe("Jane Doe");
     });
+  });
+
+  it.skip("should immediately load deeploaded data when available locally", async () => {
+    const Message = co.map({
+      content: CoRichText,
+    });
+    const Thread = co.map({
+      messages: co.list(Message),
+    });
+
+    const thread = Thread.create({
+      messages: Thread.def.shape.messages.create([
+        Message.create({
+          content: CoRichText.create("Hello man!"),
+        }),
+        Message.create({
+          content: CoRichText.create("The temperature is high today"),
+        }),
+        Message.create({
+          content: CoRichText.create("Shall we go to the beach?"),
+        }),
+      ]),
+    });
+
+    const renderings: boolean[] = [];
+
+    renderHook(() => {
+      const data = useCoState(Thread, thread.id, {
+        resolve: {
+          messages: {
+            $each: {
+              content: true,
+            },
+          },
+        },
+      });
+
+      renderings.push(Boolean(data));
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    expect(renderings).toBe([true]);
   });
 });

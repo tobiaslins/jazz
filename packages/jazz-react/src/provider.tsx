@@ -19,6 +19,13 @@ export type JazzProviderProps<
     | AnyAccountSchema,
 > = {
   children: React.ReactNode;
+  /**
+   * Renders children even before the account is loaded.
+   *
+   * For this reason useAccount may return null on the first render even when the
+   * resolve option is not passed
+   */
+  experimental_enableSSR?: boolean;
 } & JazzContextManagerProps<S>;
 
 /** @category Context & Hooks */
@@ -36,9 +43,13 @@ export function JazzProvider<
   onLogOut,
   logOutReplacement,
   onAnonymousAccountDiscarded,
+  experimental_enableSSR,
 }: JazzProviderProps<S>) {
   const [contextManager] = React.useState(
-    () => new JazzBrowserContextManager<S>(),
+    () =>
+      new JazzBrowserContextManager<S>({
+        useAnonymousFallback: experimental_enableSSR,
+      }),
   );
 
   const onLogOutRefCallback = useRefCallback(onLogOut);
