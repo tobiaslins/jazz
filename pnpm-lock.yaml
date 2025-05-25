@@ -2970,6 +2970,9 @@ importers:
       cojson:
         specifier: workspace:*
         version: link:../../packages/cojson
+      cojson-storage:
+        specifier: workspace:*
+        version: link:../../packages/cojson-storage
       cojson-storage-indexeddb:
         specifier: workspace:*
         version: link:../../packages/cojson-storage-indexeddb
