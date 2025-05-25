@@ -1,12 +1,21 @@
 import { LocalNode } from "cojson";
 import { StorageManagerAsync } from "cojson-storage";
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
-import { expect, test, vi } from "vitest";
+import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { IDBStorage } from "../index.js";
 import { toSimplifiedMessages } from "./messagesTestUtils.js";
 import { trackMessages, waitFor } from "./testUtils.js";
 
 const Crypto = await WasmCrypto.create();
+let syncMessages: ReturnType<typeof trackMessages>;
+
+beforeEach(() => {
+  syncMessages = trackMessages();
+});
+
+afterEach(() => {
+  syncMessages.restore();
+});
 
 test("Should be able to initialize and load from empty DB", async () => {
   const agentSecret = Crypto.newRandomAgentSecret();
@@ -33,8 +42,6 @@ test("should sync and load data from storage", async () => {
     Crypto,
   );
 
-  const node1Sync = trackMessages(node1);
-
   const peer = await IDBStorage.asPeer();
 
   node1.syncManager.addPeer(peer);
@@ -53,7 +60,7 @@ test("should sync and load data from storage", async () => {
         Map: map.core,
         Group: group.core,
       },
-      node1Sync.messages,
+      syncMessages.messages,
     ),
   ).toMatchInlineSnapshot(`
     [
@@ -64,15 +71,14 @@ test("should sync and load data from storage", async () => {
     ]
   `);
 
-  node1Sync.restore();
+  node1.gracefulShutdown();
+  syncMessages.clear();
 
   const node2 = new LocalNode(
     agentSecret,
     Crypto.newRandomSessionID(Crypto.getAgentID(agentSecret)),
     Crypto,
   );
-
-  const node2Sync = trackMessages(node2);
 
   const peer2 = await IDBStorage.asPeer();
 
@@ -91,7 +97,7 @@ test("should sync and load data from storage", async () => {
         Map: map.core,
         Group: group.core,
       },
-      node2Sync.messages,
+      syncMessages.messages,
     ),
   ).toMatchInlineSnapshot(`
     [
@@ -100,8 +106,6 @@ test("should sync and load data from storage", async () => {
       "storage -> CONTENT Map header: true new: After: 0 New: 1",
     ]
   `);
-
-  node2Sync.restore();
 });
 
 test("should send an empty content message if there is no content", async () => {
@@ -112,8 +116,6 @@ test("should send an empty content message if there is no content", async () => 
     Crypto.newRandomSessionID(Crypto.getAgentID(agentSecret)),
     Crypto,
   );
-
-  const node1Sync = trackMessages(node1);
 
   const peer = await IDBStorage.asPeer();
 
@@ -131,7 +133,7 @@ test("should send an empty content message if there is no content", async () => 
         Map: map.core,
         Group: group.core,
       },
-      node1Sync.messages,
+      syncMessages.messages,
     ),
   ).toMatchInlineSnapshot(`
     [
@@ -142,15 +144,14 @@ test("should send an empty content message if there is no content", async () => 
     ]
   `);
 
-  node1Sync.restore();
+  syncMessages.clear();
+  node1.gracefulShutdown();
 
   const node2 = new LocalNode(
     agentSecret,
     Crypto.newRandomSessionID(Crypto.getAgentID(agentSecret)),
     Crypto,
   );
-
-  const node2Sync = trackMessages(node2);
 
   const peer2 = await IDBStorage.asPeer();
 
@@ -167,7 +168,7 @@ test("should send an empty content message if there is no content", async () => 
         Map: map.core,
         Group: group.core,
       },
-      node2Sync.messages,
+      syncMessages.messages,
     ),
   ).toMatchInlineSnapshot(`
     [
@@ -176,8 +177,6 @@ test("should send an empty content message if there is no content", async () => 
       "storage -> CONTENT Map header: true new: ",
     ]
   `);
-
-  node2Sync.restore();
 });
 
 test("should load dependencies correctly (group inheritance)", async () => {
@@ -188,8 +187,6 @@ test("should load dependencies correctly (group inheritance)", async () => {
     Crypto.newRandomSessionID(Crypto.getAgentID(agentSecret)),
     Crypto,
   );
-
-  const node1Sync = trackMessages(node1);
 
   const peer = await IDBStorage.asPeer();
 
@@ -213,7 +210,7 @@ test("should load dependencies correctly (group inheritance)", async () => {
         Group: group.core,
         ParentGroup: parentGroup.core,
       },
-      node1Sync.messages,
+      syncMessages.messages,
     ),
   ).toMatchInlineSnapshot(`
     [
@@ -226,15 +223,14 @@ test("should load dependencies correctly (group inheritance)", async () => {
     ]
   `);
 
-  node1Sync.restore();
+  syncMessages.clear();
+  node1.gracefulShutdown();
 
   const node2 = new LocalNode(
     agentSecret,
     Crypto.newRandomSessionID(Crypto.getAgentID(agentSecret)),
     Crypto,
   );
-
-  const node2Sync = trackMessages(node2);
 
   const peer2 = await IDBStorage.asPeer();
 
@@ -253,7 +249,7 @@ test("should load dependencies correctly (group inheritance)", async () => {
         Group: group.core,
         ParentGroup: parentGroup.core,
       },
-      node2Sync.messages,
+      syncMessages.messages,
     ),
   ).toMatchInlineSnapshot(`
     [
@@ -274,8 +270,6 @@ test("should not send the same dependency value twice", async () => {
     Crypto,
   );
 
-  const node1Sync = trackMessages(node1);
-
   const peer = await IDBStorage.asPeer();
 
   node1.syncManager.addPeer(peer);
@@ -293,15 +287,14 @@ test("should not send the same dependency value twice", async () => {
 
   await new Promise((resolve) => setTimeout(resolve, 200));
 
-  node1Sync.restore();
+  syncMessages.clear();
+  node1.gracefulShutdown();
 
   const node2 = new LocalNode(
     agentSecret,
     Crypto.newRandomSessionID(Crypto.getAgentID(agentSecret)),
     Crypto,
   );
-
-  const node2Sync = trackMessages(node2);
 
   const peer2 = await IDBStorage.asPeer();
 
@@ -323,7 +316,7 @@ test("should not send the same dependency value twice", async () => {
         ParentGroup: parentGroup.core,
         MapFromParent: mapFromParent.core,
       },
-      node2Sync.messages,
+      syncMessages.messages,
     ),
   ).toMatchInlineSnapshot(`
     [
@@ -348,8 +341,6 @@ test("should recover from data loss", async () => {
     Crypto.newRandomSessionID(Crypto.getAgentID(agentSecret)),
     Crypto,
   );
-
-  const node1Sync = trackMessages(node1);
 
   const peer = await IDBStorage.asPeer();
 
@@ -384,7 +375,7 @@ test("should recover from data loss", async () => {
         Map: map.core,
         Group: group.core,
       },
-      node1Sync.messages,
+      syncMessages.messages,
     ),
   ).toMatchInlineSnapshot(`
     [
@@ -399,15 +390,14 @@ test("should recover from data loss", async () => {
     ]
   `);
 
-  node1Sync.restore();
+  syncMessages.clear();
+  node1.gracefulShutdown();
 
   const node2 = new LocalNode(
     agentSecret,
     Crypto.newRandomSessionID(Crypto.getAgentID(agentSecret)),
     Crypto,
   );
-
-  const node2Sync = trackMessages(node2);
 
   const peer2 = await IDBStorage.asPeer();
 
@@ -432,7 +422,7 @@ test("should recover from data loss", async () => {
         Map: map.core,
         Group: group.core,
       },
-      node2Sync.messages,
+      syncMessages.messages,
     ),
   ).toMatchInlineSnapshot(`
     [
@@ -491,7 +481,7 @@ test("should sync multiple sessions in a single content message", async () => {
     Crypto,
   );
 
-  const node3Sync = trackMessages(node3);
+  syncMessages.clear();
 
   node3.syncManager.addPeer(await IDBStorage.asPeer());
 
@@ -508,7 +498,7 @@ test("should sync multiple sessions in a single content message", async () => {
         Map: map.core,
         Group: group.core,
       },
-      node3Sync.messages,
+      syncMessages.messages,
     ),
   ).toMatchInlineSnapshot(`
     [
@@ -517,8 +507,6 @@ test("should sync multiple sessions in a single content message", async () => {
       "storage -> CONTENT Map header: true new: After: 0 New: 1 | After: 0 New: 1",
     ]
   `);
-
-  node3Sync.restore();
 });
 
 test("large coValue upload streaming", async () => {
@@ -559,7 +547,7 @@ test("large coValue upload streaming", async () => {
     Crypto,
   );
 
-  const node2Sync = trackMessages(node2);
+  syncMessages.clear();
 
   node2.syncManager.addPeer(await IDBStorage.asPeer());
 
@@ -581,7 +569,7 @@ test("large coValue upload streaming", async () => {
         Map: largeMap.core,
         Group: group.core,
       },
-      node2Sync.messages,
+      syncMessages.messages,
     ),
   ).toMatchInlineSnapshot(`
     [
@@ -597,4 +585,81 @@ test("large coValue upload streaming", async () => {
       "client -> KNOWN Map sessions: header/200",
     ]
   `);
+});
+
+test("should sync and load accounts from storage", async () => {
+  const agentSecret = Crypto.newRandomAgentSecret();
+
+  const { node: node1, accountID } = await LocalNode.withNewlyCreatedAccount({
+    crypto: Crypto,
+    initialAgentSecret: agentSecret,
+    peersToLoadFrom: [await IDBStorage.asPeer()],
+    creationProps: {
+      name: "test",
+    },
+  });
+
+  const account1 = node1.getCoValue(accountID);
+  const profile = node1.expectProfileLoaded(accountID);
+  const profileGroup = profile.group;
+
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  expect(
+    toSimplifiedMessages(
+      {
+        Account: account1,
+        Profile: profile.core,
+        ProfileGroup: profileGroup.core,
+      },
+      syncMessages.messages,
+    ),
+  ).toMatchInlineSnapshot(`
+    [
+      "client -> CONTENT Account header: true new: After: 0 New: 4",
+      "storage -> KNOWN Account sessions: header/4",
+      "client -> CONTENT ProfileGroup header: true new: After: 0 New: 5",
+      "storage -> KNOWN ProfileGroup sessions: header/5",
+      "client -> CONTENT Profile header: true new: After: 0 New: 1",
+      "storage -> KNOWN Profile sessions: header/1",
+    ]
+  `);
+
+  node1.gracefulShutdown();
+  syncMessages.restore();
+  syncMessages = trackMessages();
+
+  const node2 = await LocalNode.withLoadedAccount({
+    crypto: Crypto,
+    accountSecret: agentSecret,
+    accountID,
+    peersToLoadFrom: [await IDBStorage.asPeer()],
+    sessionID: Crypto.newRandomSessionID(Crypto.getAgentID(agentSecret)),
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  expect(
+    toSimplifiedMessages(
+      {
+        Account: account1,
+        Profile: profile.core,
+        ProfileGroup: profileGroup.core,
+      },
+      syncMessages.messages,
+    ),
+  ).toMatchInlineSnapshot(`
+    [
+      "client -> LOAD Account sessions: empty",
+      "storage -> CONTENT Account header: true new: After: 0 New: 4",
+      "client -> KNOWN Account sessions: header/4",
+      "client -> LOAD Profile sessions: empty",
+      "storage -> CONTENT ProfileGroup header: true new: After: 0 New: 5",
+      "storage -> CONTENT Profile header: true new: After: 0 New: 1",
+      "client -> KNOWN ProfileGroup sessions: header/5",
+      "client -> KNOWN Profile sessions: header/1",
+    ]
+  `);
+
+  expect(node2.getCoValue(accountID).isAvailable()).toBeTruthy();
 });

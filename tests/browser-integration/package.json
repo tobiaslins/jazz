@@ -12,9 +12,10 @@
   },
   "dependencies": {
     "cojson": "workspace:*",
-    "cojson-transport-ws": "workspace:*",
+    "cojson-storage": "workspace:*",
     "cojson-storage-indexeddb": "workspace:*",
     "cojson-storage-sqlite": "workspace:*",
+    "cojson-transport-ws": "workspace:*",
     "jazz-browser": "workspace:*",
     "jazz-browser-media-images": "workspace:*",
     "jazz-tools": "workspace:*"

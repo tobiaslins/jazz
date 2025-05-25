@@ -15,14 +15,8 @@ import type {
   StoredCoValueRow,
   StoredSessionRow,
 } from "./types.js";
-import NewContentMessage = CojsonInternalTypes.NewContentMessage;
 import KnownStateMessage = CojsonInternalTypes.KnownStateMessage;
 import RawCoID = CojsonInternalTypes.RawCoID;
-
-type OutputMessageMap = Record<
-  RawCoID,
-  { knownMessage: KnownStateMessage; contentMessages?: NewContentMessage[] }
->;
 
 export class StorageManagerAsync {
   private readonly toLocalNode: OutgoingSyncQueue;
@@ -179,10 +173,10 @@ export class StorageManagerAsync {
     coValueRow: StoredCoValueRow,
     contentMessage: CojsonInternalTypes.NewContentMessage,
   ) {
-    const dependedOnCoValuesList = getDependedOnCoValues({
-      coValueRow,
-      newContentMessages: [contentMessage],
-    });
+    const dependedOnCoValuesList = getDependedOnCoValues(
+      coValueRow.header,
+      contentMessage,
+    );
 
     for (const dependedOnCoValue of dependedOnCoValuesList) {
       if (this.loadedCoValues.has(dependedOnCoValue)) {

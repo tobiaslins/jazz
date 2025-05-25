@@ -1,8 +1,11 @@
 import type { LocalNode, SyncMessage } from "cojson";
+import { cojsonInternals } from "cojson";
 import { StorageManagerAsync } from "cojson-storage";
 import { onTestFinished } from "vitest";
 
-export function trackMessages(node: LocalNode) {
+const { SyncManager } = cojsonInternals;
+
+export function trackMessages() {
   const messages: {
     from: "client" | "server" | "storage";
     msg: SyncMessage;
@@ -10,7 +13,7 @@ export function trackMessages(node: LocalNode) {
 
   const originalHandleSyncMessage =
     StorageManagerAsync.prototype.handleSyncMessage;
-  const originalNodeSyncMessage = node.syncManager.handleSyncMessage;
+  const originalNodeSyncMessage = SyncManager.prototype.handleSyncMessage;
 
   StorageManagerAsync.prototype.handleSyncMessage = async function (msg) {
     messages.push({
@@ -20,7 +23,7 @@ export function trackMessages(node: LocalNode) {
     return originalHandleSyncMessage.call(this, msg);
   };
 
-  node.syncManager.handleSyncMessage = async function (msg, peer) {
+  SyncManager.prototype.handleSyncMessage = async function (msg, peer) {
     messages.push({
       from: "storage",
       msg,
@@ -30,7 +33,12 @@ export function trackMessages(node: LocalNode) {
 
   const restore = () => {
     StorageManagerAsync.prototype.handleSyncMessage = originalHandleSyncMessage;
-    node.syncManager.handleSyncMessage = originalNodeSyncMessage;
+    SyncManager.prototype.handleSyncMessage = originalNodeSyncMessage;
+    messages.length = 0;
+  };
+
+  const clear = () => {
+    messages.length = 0;
   };
 
   onTestFinished(() => {
@@ -40,6 +48,7 @@ export function trackMessages(node: LocalNode) {
   return {
     messages,
     restore,
+    clear,
   };
 }
 

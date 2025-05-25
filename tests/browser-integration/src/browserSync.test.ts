@@ -1,11 +1,8 @@
 import { commands } from "@vitest/browser/context";
 import {
-  Account,
   AuthSecretStorage,
-  CoMap,
   Group,
   co,
-  coField,
   z,
   zodSchemaToCoSchema,
 } from "jazz-tools";
@@ -18,7 +15,11 @@ import {
   onTestFinished,
   test,
 } from "vitest";
-import { createAccountContext, startSyncServer } from "./testUtils";
+import {
+  createAccountContext,
+  startSyncServer,
+  trackMessages,
+} from "./testUtils";
 
 const TestMap = co.map({ value: z.string() });
 
@@ -62,6 +63,8 @@ describe("Browser sync", () => {
 
     // Clearing the credentials storage so the next auth will be a new account
     await contextManager.getAuthSecretStorage().clear();
+
+    const messages = trackMessages();
 
     const { account: account2 } = await createAccountContext({
       sync: {
@@ -240,7 +243,7 @@ describe("Browser sync", () => {
     expect(loadedMap?.value).toBe("test data");
   });
 
-  test.skip("manage to persist the account even when the node is closed immediately after creating the value", async () => {
+  test("manage to persist the account even when the node is closed immediately after creating the value", async () => {
     const syncServer = await startSyncServer();
 
     const { contextManager } = await createAccountContext({
@@ -249,18 +252,88 @@ describe("Browser sync", () => {
       },
       storage: "indexedDB",
       AccountSchema: CustomAccount,
+      databaseName: "jazz-storage",
     });
 
     contextManager.done();
 
     const { account } = await createAccountContext({
       sync: {
+        when: "never",
+      },
+      storage: "indexedDB",
+      AccountSchema: CustomAccount,
+      databaseName: "jazz-storage",
+    });
+
+    expect(account).toBeDefined();
+  });
+
+  test("successfully loads a group with many account dependencies", async () => {
+    const syncServer = await startSyncServer();
+
+    // Create first account and group
+    const { account: account1, contextManager: contextManager1 } =
+      await createAccountContext({
+        sync: {
+          peer: syncServer.url,
+        },
+        storage: "indexedDB",
+      });
+
+    const group = Group.create(account1);
+    await group.waitForSync();
+    contextManager1.getAuthSecretStorage().clear();
+    contextManager1.done();
+
+    async function extendGroup() {
+      // Create second account and group
+      const { account, contextManager } = await createAccountContext({
+        sync: {
+          peer: syncServer.url,
+        },
+        storage: "indexedDB",
+      });
+
+      const childGroup = Group.create(account);
+      const groupToExtend = await Group.load(group.id, { loadAs: account });
+
+      assert(groupToExtend);
+      childGroup.extend(groupToExtend);
+      await childGroup.waitForSync();
+      contextManager.getAuthSecretStorage().clear();
+      contextManager.done();
+    }
+
+    await extendGroup();
+    await extendGroup();
+    await extendGroup();
+
+    // Create a new account to load all groups
+    const { account: loadingAccount } = await createAccountContext({
+      sync: {
         peer: syncServer.url,
       },
       storage: "indexedDB",
       AccountSchema: CustomAccount,
+      databaseName: "jazz-storage",
     });
 
-    expect(account).toBeDefined();
+    await Group.load(group.id, { loadAs: loadingAccount });
+
+    const { account: loadingRetryAccount } = await createAccountContext({
+      sync: {
+        peer: syncServer.url,
+      },
+      storage: "indexedDB",
+      AccountSchema: CustomAccount,
+      databaseName: "jazz-storage",
+    });
+
+    const loadedGroup = await Group.load(group.id, {
+      loadAs: loadingRetryAccount,
+    });
+
+    expect(loadedGroup).toBeDefined();
   });
 });
