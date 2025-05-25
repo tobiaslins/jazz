@@ -72,6 +72,7 @@ import type {
 import {
   DisconnectedError,
   PingTimeoutError,
+  SyncManager,
   emptyKnownState,
 } from "./sync.js";
 
@@ -102,6 +103,7 @@ export const cojsonInternals = {
   getGroupDependentKeyList,
   getGroupDependentKey,
   disablePermissionErrors,
+  SyncManager,
   CO_VALUE_LOADING_CONFIG,
   setCoValueLoadingRetryDelay(delay: number) {
     CO_VALUE_LOADING_CONFIG.RETRY_DELAY = delay;

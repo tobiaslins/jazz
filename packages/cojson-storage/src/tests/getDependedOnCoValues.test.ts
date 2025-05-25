@@ -13,7 +13,7 @@ function getMockedCoValueId() {
 function generateNewContentMessage(
   privacy: "trusting" | "private",
   changes: any[],
-  accountId?: `co_z${string}`,
+  accountId: `co_z${string}`,
 ) {
   return {
     action: "content",
@@ -46,18 +46,21 @@ describe("getDependedOnCoValues", () => {
       },
     } as any;
 
-    const result = getDependedOnCoValues({
-      coValueRow,
-      newContentMessages: [
-        generateNewContentMessage("trusting", [
+    const accountId = getMockedCoValueId();
+    const result = getDependedOnCoValues(
+      coValueRow.header,
+      generateNewContentMessage(
+        "trusting",
+        [
           { op: "set", key: "co_zabc123", value: "test" },
           { op: "set", key: "parent_co_zdef456", value: "test" },
           { op: "set", key: "normal_key", value: "test" },
-        ]),
-      ],
-    });
+        ],
+        accountId,
+      ),
+    );
 
-    expect(result).toEqual(["co_zabc123", "co_zdef456"]);
+    expect(result).toEqual(new Set([accountId, "co_zabc123", "co_zdef456"]));
   });
 
   it("should not throw on malformed JSON", () => {
@@ -70,9 +73,12 @@ describe("getDependedOnCoValues", () => {
       },
     } as any;
 
-    const message = generateNewContentMessage("trusting", [
-      { op: "set", key: "co_zabc123", value: "test" },
-    ]);
+    const accountId = getMockedCoValueId();
+    const message = generateNewContentMessage(
+      "trusting",
+      [{ op: "set", key: "co_zabc123", value: "test" }],
+      accountId,
+    );
 
     message.new["invalid_session" as SessionID] = {
       after: 0,
@@ -86,12 +92,9 @@ describe("getDependedOnCoValues", () => {
       ],
     };
 
-    const result = getDependedOnCoValues({
-      coValueRow,
-      newContentMessages: [message],
-    });
+    const result = getDependedOnCoValues(coValueRow.header, message);
 
-    expect(result).toEqual(["co_zabc123"]);
+    expect(result).toEqual(new Set([accountId, "co_zabc123"]));
   });
 
   it("should return dependencies for ownedByGroup ruleset", () => {
@@ -123,12 +126,9 @@ describe("getDependedOnCoValues", () => {
       newTransactions: [],
     };
 
-    const result = getDependedOnCoValues({
-      coValueRow,
-      newContentMessages: [message],
-    });
+    const result = getDependedOnCoValues(coValueRow.header, message);
 
-    expect(result).toEqual([groupId, accountId]);
+    expect(result).toEqual(new Set([groupId, accountId]));
   });
 
   it("should return empty array for other ruleset types", () => {
@@ -141,18 +141,21 @@ describe("getDependedOnCoValues", () => {
       },
     } as any;
 
-    const result = getDependedOnCoValues({
-      coValueRow,
-      newContentMessages: [
-        generateNewContentMessage("trusting", [
+    const accountId = getMockedCoValueId();
+    const result = getDependedOnCoValues(
+      coValueRow.header,
+      generateNewContentMessage(
+        "trusting",
+        [
           { op: "set", key: "co_zabc123", value: "test" },
           { op: "set", key: "parent_co_zdef456", value: "test" },
           { op: "set", key: "normal_key", value: "test" },
-        ]),
-      ],
-    });
+        ],
+        accountId,
+      ),
+    );
 
-    expect(result).toEqual([]);
+    expect(result).toEqual(new Set([accountId]));
   });
 
   it("should ignore non-trusting transactions in group ruleset", () => {
@@ -165,15 +168,17 @@ describe("getDependedOnCoValues", () => {
       },
     } as any;
 
-    const result = getDependedOnCoValues({
-      coValueRow,
-      newContentMessages: [
-        generateNewContentMessage("private", [
-          { op: "set", key: "co_zabc123", value: "test" },
-        ]),
-      ],
-    });
+    const accountId = getMockedCoValueId();
 
-    expect(result).toEqual([]);
+    const result = getDependedOnCoValues(
+      coValueRow.header,
+      generateNewContentMessage(
+        "private",
+        [{ op: "set", key: "co_zabc123", value: "test" }],
+        accountId,
+      ),
+    );
+
+    expect(result).toEqual(new Set([accountId]));
   });
 });
