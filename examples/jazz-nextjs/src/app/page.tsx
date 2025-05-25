@@ -2,6 +2,7 @@
 
 import { useAccount } from "jazz-react";
 import { Account } from "jazz-tools";
+import Link from "next/link";
 
 export default function Home() {
   const { me } = useAccount(Account, {
@@ -34,6 +35,12 @@ export default function Home() {
           }}
         />
       </label>
+      <Link
+        href={`/profile/${me?.profile.id}`}
+        className="bg-blue-500 text-white px-4 py-2 rounded-md"
+      >
+        Your profile name in a Server Component
+      </Link>
     </div>
   );
 }
