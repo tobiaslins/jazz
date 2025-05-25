@@ -1,5 +1,11 @@
 # cojson
 
+## 0.14.15
+
+### Patch Changes
+
+- 23daa7c: Align the processing of the group dependencies between LocalNode and Storage.
+
 ## 0.14.1
 
 ### Patch Changes

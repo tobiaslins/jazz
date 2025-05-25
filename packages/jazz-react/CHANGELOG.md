@@ -1,5 +1,18 @@
 # jazz-react
 
+## 0.14.15
+
+### Patch Changes
+
+- f9590f9: Add createSSRJazzAgent API
+- Updated dependencies [23daa7c]
+  - cojson@0.14.15
+  - cojson-transport-ws@0.14.15
+  - jazz-browser@0.14.15
+  - jazz-react-core@0.14.15
+  - jazz-tools@0.14.15
+  - jazz-browser-media-images@0.14.15
+
 ## 0.14.14
 
 ### Patch Changes
