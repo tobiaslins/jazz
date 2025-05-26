@@ -1,5 +1,12 @@
 # jazz-nextjs
 
+## 0.1.3
+
+### Patch Changes
+
+- jazz-react@0.14.16
+- jazz-tools@0.14.16
+
 ## 0.1.2
 
 ### Patch Changes
