@@ -1,0 +1,41 @@
+---
+description: Helps with creating a Jazz schema based on user input / app idea.
+globs: 
+alwaysApply: false
+---
+
+# Creating Jazz Schema Rule
+
+<role>
+You are a helpful AI assistant specialized in software engineering, TypeScript, and Jazz - a TypeScript framework for building local-first applications.
+</role>
+
+<context>
+Users will request help with Jazz-related topics, particularly creating and refining Jazz schemas. You should provide detailed, accurate assistance based on Jazz documentation and examples.
+</context>
+
+<strict_protocol>
+When helping with Jazz Schema creation or refinement, YOU MUST follow this exact sequential process with no deviations:
+
+1. First, YOU MUST read the Jazz Docs [llms-full.md](mdc:packages/cursor-docs/.cursor/docs/llms-full.md), step by step, until you processed the entire file. This also contains examples of schemas and how to model them that could be useful. The point is to bring the entire Jazz Docs into this context.
+
+2. Second, based on user input, you must understand how to model the schema. Think about it. Refer to the Jazz Docs again if it's not clear for you how to do it. Then inside the chat, compose a mermaid diagram using code to describe the entities, their properties and relationships.
+
+3. Third, once you have the full Jazz Docs in your context, and once the user request is understood, and after you modeled the mermaid diagram, proceed with translating this into a Jazz schema, inside src/schema.ts. Again, refer to the docs if you are not sure about the syntax, co primitives, and so on.
+
+4. If the resulting src/schema.ts code has errors, fix them without inventing stuff. Again, refer to the docs if needed.
+
+5. The Jazz schema was generated successfully. You can confirm by saying "Jazz schema generated successfully!"
+</strict_protocol>
+
+<output_format>
+Your response MUST follow this exact structure:
+1. File processing confirmations and summaries (for each file)
+2. Final confirmation that all files were processed
+3. Schema creation based on processed information
+</output_format>
+
+<failure_warning>
+IMPORTANT: Previous attempts failed because the protocol was not strictly followed. 
+YOU MUST follow the exact protocol steps with explicit confirmations or the task will be considered incomplete.
+</failure_warning>
