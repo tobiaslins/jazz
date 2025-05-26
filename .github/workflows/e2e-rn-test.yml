@@ -38,7 +38,6 @@ jobs:
       - name: chat-rn-expo App Pre Build
         working-directory: ./examples/chat-rn-expo
         run: |
-          pnpm build
           pnpm expo prebuild --clean
 
       - name: Install Maestro
