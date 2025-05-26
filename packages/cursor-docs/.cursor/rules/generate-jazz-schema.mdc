@@ -17,22 +17,38 @@ Users will request help with Jazz-related topics, particularly creating and refi
 <strict_protocol>
 When helping with Jazz Schema creation or refinement, YOU MUST follow this exact sequential process with no deviations:
 
-1. First, YOU MUST read the Jazz Docs [llms-full.md](mdc:packages/cursor-docs/.cursor/docs/llms-full.md), step by step, until you processed the entire file. This also contains examples of schemas and how to model them that could be useful. The point is to bring the entire Jazz Docs into this context.
+1. **Documentation Analysis Phase**: 
+   - First, YOU MUST read the Jazz Docs [llms-full.md](mdc:packages/cursor-docs/.cursor/docs/llms-full.md), step by step, until you processed the entire file. This also contains examples of schemas and how to model them that could be useful. The point is to bring the entire Jazz Docs into this context.
+   - Second, YOU MUST read the Jazz Schema Template [jazz-schema-template.md](mdc:packages/cursor-docs/.cursor/docs/jazz-schema-template.md) to understand the standard patterns, best practices, and common schema structures.
 
-2. Second, based on user input, you must understand how to model the schema. Think about it. Refer to the Jazz Docs again if it's not clear for you how to do it. Then inside the chat, compose a mermaid diagram using code to describe the entities, their properties and relationships.
+2. **Schema Design Phase**: 
+   - Based on user input, you must understand how to model the schema. Think about it. Refer to the Jazz Docs and Schema Template if it's not clear for you how to do it.
+   - Analyze the user's requirements and map them to appropriate Jazz schema patterns from the template.
+   - Then inside the chat, compose a mermaid diagram using code to describe the entities, their properties and relationships.
 
-3. Third, once you have the full Jazz Docs in your context, and once the user request is understood, and after you modeled the mermaid diagram, proceed with translating this into a Jazz schema, inside src/schema.ts. Again, refer to the docs if you are not sure about the syntax, co primitives, and so on.
+3. **Schema Implementation Phase**: 
+   - Once you have the full Jazz Docs and Schema Template in your context, and once the user request is understood, and after you modeled the mermaid diagram, proceed with translating this into a Jazz schema, inside src/schema.ts.
+   - Use the Schema Template as a reference for structure, naming conventions, and best practices.
+   - Follow the patterns shown in the template for feeds, profiles, roots, containers, and account schemas.
+   - Include proper migration logic following the template patterns.
+   - Again, refer to the docs and template if you are not sure about the syntax, co primitives, and so on.
 
-4. If the resulting src/schema.ts code has errors, fix them without inventing stuff. Again, refer to the docs if needed.
+4. **Validation and Refinement Phase**: 
+   - If the resulting src/schema.ts code has errors, fix them without inventing stuff. Again, refer to the docs and template if needed.
+   - Ensure the schema follows the best practices outlined in the template.
+   - Verify that naming conventions, permission patterns, and migration logic are properly implemented.
 
-5. The Jazz schema was generated successfully. You can confirm by saying "Jazz schema generated successfully!"
+5. **Completion Confirmation**: 
+   - The Jazz schema was generated successfully. You can confirm by saying "Jazz schema generated successfully!"
 </strict_protocol>
 
 <output_format>
 Your response MUST follow this exact structure:
-1. File processing confirmations and summaries (for each file)
-2. Final confirmation that all files were processed
-3. Schema creation based on processed information
+1. Documentation processing confirmations and summaries (for Jazz Docs and Schema Template)
+2. Schema design analysis with mermaid diagram
+3. Final confirmation that all files were processed
+4. Schema creation based on processed information and template patterns
+5. Validation confirmation that schema follows best practices
 </output_format>
 
 <failure_warning>
