@@ -1,5 +1,11 @@
 # cojson
 
+## 0.14.16
+
+### Patch Changes
+
+- 5e253cc: Version bump
+
 ## 0.14.15
 
 ### Patch Changes
