@@ -1,5 +1,14 @@
 # file-share-svelte
 
+## 0.0.99
+
+### Patch Changes
+
+- Updated dependencies [e512df4]
+  - jazz-tools@0.14.17
+  - jazz-inspector-element@0.14.17
+  - jazz-svelte@0.14.17
+
 ## 0.0.98
 
 ### Patch Changes

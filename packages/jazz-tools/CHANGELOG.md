@@ -1,5 +1,11 @@
 # jazz-tools
 
+## 0.14.17
+
+### Patch Changes
+
+- e512df4: Move to latest stable version of Zod
+
 ## 0.14.16
 
 ### Patch Changes

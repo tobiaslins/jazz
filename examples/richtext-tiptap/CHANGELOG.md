@@ -1,5 +1,14 @@
 # richtext-tiptap
 
+## 0.1.24
+
+### Patch Changes
+
+- Updated dependencies [e512df4]
+  - jazz-tools@0.14.17
+  - jazz-react@0.14.17
+  - jazz-richtext-tiptap@0.1.22
+
 ## 0.1.23
 
 ### Patch Changes
