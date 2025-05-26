@@ -1,5 +1,14 @@
 # jazz-betterauth-server-plugin
 
+## 0.14.17
+
+### Patch Changes
+
+- e512df4: Move to latest stable version of Zod
+- Updated dependencies [e512df4]
+  - jazz-tools@0.14.17
+  - jazz-browser@0.14.17
+
 ## 0.14.16
 
 ### Patch Changes

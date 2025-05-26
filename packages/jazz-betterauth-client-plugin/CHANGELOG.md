@@ -1,5 +1,12 @@
 # jazz-betterauth-client-plugin
 
+## 0.14.17
+
+### Patch Changes
+
+- Updated dependencies [e512df4]
+  - jazz-betterauth-server-plugin@0.14.17
+
 ## 0.14.16
 
 ### Patch Changes
