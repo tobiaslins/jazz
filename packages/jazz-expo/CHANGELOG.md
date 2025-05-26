@@ -1,5 +1,17 @@
 # jazz-browser
 
+## 0.14.15
+
+### Patch Changes
+
+- Updated dependencies [23daa7c]
+  - cojson@0.14.15
+  - jazz-react-native-core@0.14.15
+  - cojson-transport-ws@0.14.15
+  - jazz-auth-clerk@0.14.15
+  - jazz-react-core@0.14.15
+  - jazz-tools@0.14.15
+
 ## 0.14.14
 
 ### Patch Changes
