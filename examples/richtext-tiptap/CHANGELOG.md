@@ -1,5 +1,13 @@
 # richtext-tiptap
 
+## 0.1.23
+
+### Patch Changes
+
+- jazz-react@0.14.16
+- jazz-tools@0.14.16
+- jazz-richtext-tiptap@0.1.21
+
 ## 0.1.22
 
 ### Patch Changes
