@@ -106,7 +106,7 @@ function isInsideGitRepository(projectPath: string): boolean {
   }
 }
 
-function getPkgManager(): PackageManager {
+function getPkgManager() {
   const userAgent = process.env.npm_config_user_agent || "";
 
   if (userAgent.startsWith("yarn")) {
