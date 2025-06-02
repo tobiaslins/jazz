@@ -39,7 +39,7 @@ export function FrameworkSelect({
   return (
     <Dropdown>
       <DropdownButton
-        className={clsx("w-full justify-between", size === "sm" && "text-sm")}
+        className={clsx("w-full justify-between", size === "sm" && "text-sm text-nowrap")}
         as={Button}
         variant="secondary"
       >
@@ -49,7 +49,7 @@ export function FrameworkSelect({
       <DropdownMenu className="w-[--button-width] z-50" anchor="bottom start">
         {Object.entries(frameworkNames).map(([key, framework]) => (
           <DropdownItem
-            className={clsx("items-baseline", size === "sm" && "text-xs text-nowrap")}
+            className={clsx("items-baseline", size === "sm" && "text-xs text-nowrap", selectedFramework === key && "text-primary dark:text-primary")}
             key={key}
             onClick={() => selectFramework(key as Framework)}
           >
