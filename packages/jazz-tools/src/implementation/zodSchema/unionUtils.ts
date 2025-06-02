@@ -29,19 +29,23 @@ export function schemaUnionDiscriminatorFor(
       }
     }
 
-    const flattendOptions = [
-      ...schema._zod.def.options.flatMap((option) => {
-        if (option._zod.def.type === "object") {
-          return [option];
-        } else if (option._zod.def.type === "union") {
-          return [...(option as z.core.$ZodUnion)._zod.def.options];
-        } else {
-          throw new Error(
-            "Unsupported zod type in z.discriminatedUnion() of collaborative types",
-          );
+    const availableOptions: z.core.$ZodObject[] = [];
+
+    for (const option of schema._zod.def.options) {
+      if (option._zod.def.type === "object") {
+        availableOptions.push(option as z.core.$ZodObject);
+      } else if (option._zod.def.type === "union") {
+        for (const subOption of (option as z.core.$ZodUnion)._zod.def.options) {
+          if (subOption._zod.def.type === "object") {
+            availableOptions.push(subOption as z.core.$ZodObject);
+          }
         }
-      }),
-    ];
+      } else {
+        throw new Error(
+          "Unsupported zod type in z.discriminatedUnion() of collaborative types",
+        );
+      }
+    }
 
     const determineSchema = (_raw: RawCoMap | RawAccount | RawCoList) => {
       if (_raw instanceof RawCoList) {
@@ -50,40 +54,43 @@ export function schemaUnionDiscriminatorFor(
         );
       }
 
-      const discriminatorValue = (_raw as RawCoMap).get(
-        discriminator as string,
-      );
+      for (const option of availableOptions) {
+        let match = true;
 
-      if (discriminatorValue && typeof discriminatorValue === "object") {
-        throw new Error("Discriminator must be a primitive value");
-      }
+        for (const key of schema._zod.disc.keys()) {
+          const discriminatorDef = (option as z.core.$ZodObject)._zod.def.shape[
+            key as string
+          ];
 
-      for (const option of flattendOptions) {
-        if (option._zod.def.type !== "object") {
-          continue;
-        }
+          const discriminatorValue = (_raw as RawCoMap).get(key as string);
 
-        const discriminatorDef = (option as z.core.$ZodObject)._zod.def.shape[
-          discriminator as string
-        ];
-
-        if (!discriminatorDef) {
-          continue;
-        }
-
-        if (discriminatorDef._zod.def.type !== "literal") {
-          console.warn(
-            "Non-literal discriminator found in z.discriminatedUnion() of collaborative types",
-          );
-          continue;
-        }
-
-        const literalDef = discriminatorDef._zod.def as z.core.$ZodLiteralDef;
-
-        for (const value of literalDef.values) {
-          if (value === discriminatorValue) {
-            return zodSchemaToCoSchema(option);
+          if (discriminatorValue && typeof discriminatorValue === "object") {
+            throw new Error("Discriminator must be a primitive value");
           }
+
+          if (!discriminatorDef) {
+            if (key === discriminator) {
+              match = false;
+              break;
+            } else {
+              continue;
+            }
+          }
+
+          if (discriminatorDef._zod.def.type !== "literal") {
+            break;
+          }
+
+          const literalDef = discriminatorDef._zod.def as z.core.$ZodLiteralDef;
+
+          if (!Array.from(literalDef.values).includes(discriminatorValue)) {
+            match = false;
+            break;
+          }
+        }
+
+        if (match) {
+          return zodSchemaToCoSchema(option);
         }
       }
 

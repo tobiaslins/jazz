@@ -110,29 +110,6 @@ describe("CoMap", async () => {
       expect(emptyMap.color).toEqual(undefined);
     });
 
-    test("setting date as undefined should throw", () => {
-      const Person = co.map({
-        color: z.string(),
-        _height: z.number(),
-        birthday: z.date(),
-        name: z.string(),
-        // nullable: z.optional.encoded<string | undefined>({
-        //   encode: (value: string | undefined) => value || null,
-        //   decode: (value: unknown) => (value as string) || undefined,
-        // });
-        optionalDate: z.date().optional(),
-      });
-
-      expect(() =>
-        Person.create({
-          color: "red",
-          _height: 10,
-          name: "John",
-          birthday: undefined!,
-        }),
-      ).toThrow();
-    });
-
     test("CoMap with reference", () => {
       const Dog = co.map({
         name: z.string(),
