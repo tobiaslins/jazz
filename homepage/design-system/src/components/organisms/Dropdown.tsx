@@ -28,7 +28,6 @@ export function DropdownMenu({
       transition
       anchor={anchor}
       className={clsx(
-        className,
         // Anchor positioning
         "[--anchor-gap:theme(spacing.2)] [--anchor-padding:theme(spacing.1.5)]",
         // Base styles
@@ -45,6 +44,7 @@ export function DropdownMenu({
         "supports-[grid-template-columns:subgrid]:grid supports-[grid-template-columns:subgrid]:grid-cols-[auto_1fr_1.5rem_0.5rem_auto]",
         // Transitions
         "transition data-[closed]:data-[leave]:opacity-0 data-[leave]:duration-100 data-[leave]:ease-in",
+        className,
       )}
     />
   );
