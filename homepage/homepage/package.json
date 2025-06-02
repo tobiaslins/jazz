@@ -5,12 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build:generate-docs": "pnpm run generate:docs && pnpm run generate:llm-docs",
+    "build:generate-docs": "pnpm run generate:llm-docs",
     "build": "next build",
     "start": "next start",
     "format-and-lint": "biome check .",
     "format-and-lint:fix": "biome check . --write",
-    "generate:docs": "node generate-docs/typedocs.mjs --build",
     "generate:llm-docs": "node generate-docs/llms-full.mjs",
     "test": "pnpm run test:llm-docs",
     "test:llm-docs": "node generate-docs/llms-full.test.mjs"
@@ -72,7 +71,6 @@
     "autoprefixer": "^10",
     "postcss": "^8",
     "tailwindcss": "^3",
-    "typedoc": "^0.27.0",
     "typescript": "~5.7.0"
   }
 }
