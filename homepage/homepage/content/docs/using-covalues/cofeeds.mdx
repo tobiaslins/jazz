@@ -87,7 +87,7 @@ const Activity = co.map({
 });
 
 const ActivityFeed = co.feed(Activity);
-const activityFeed = ActivityFeed.create([], me);
+const activityFeed = ActivityFeed.create([]);
 const sessionId = `${me.id}_session_z1` as SessionID;
 
 // ---cut---
