@@ -7,6 +7,7 @@ import {
   instantiateRefEncoded,
 } from "../internal.js";
 import { coValuesCache } from "../lib/cache.js";
+import { applyCoValueMigrations } from "../lib/migration.js";
 import { SubscriptionScope } from "./SubscriptionScope.js";
 
 export function getOwnerFromRawValue(raw: RawCoValue) {
@@ -32,6 +33,8 @@ export function createCoValue<D extends CoValue>(
     enumerable: false,
     configurable: false,
   });
+
+  applyCoValueMigrations(freshValueInstance);
 
   return {
     type: "loaded" as const,

@@ -33,7 +33,7 @@ export type AccountSchema<
     }>;
     root: CoMapSchema<{}>;
   },
-> = Omit<CoMapSchema<Shape>, "create" | "load"> & {
+> = Omit<CoMapSchema<Shape>, "create" | "load" | "withMigration"> & {
   builtin: "Account";
 
   create: (options: {

@@ -61,7 +61,6 @@ export class CoValueBase implements CoValue {
   static fromRaw<V extends CoValue>(this: CoValueClass<V>, raw: RawCoValue): V {
     return new this({ fromRaw: raw });
   }
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   toJSON(): object | any[] | string {
     return {

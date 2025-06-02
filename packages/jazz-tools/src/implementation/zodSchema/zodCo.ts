@@ -1,11 +1,7 @@
-import { CoValueUniqueness } from "cojson";
-import { ZodObject } from "zod/v4";
 import {
-  Account,
   AccountCreationProps,
   AccountInstance,
   AccountSchema,
-  AnonymousJazzAgent,
   AnyCoMapSchema,
   CoFeed,
   CoFeedSchema,
@@ -18,7 +14,6 @@ import {
   DefaultProfileShape,
   FileStream,
   FileStreamSchema,
-  Group,
   ImageDefinition,
   PlainTextSchema,
   Simplify,
@@ -55,10 +50,16 @@ function enrichCoMapSchema<Shape extends z.core.$ZodLooseShape>(
     withHelpers: (helpers: (Self: z.core.$ZodType) => object) => {
       return Object.assign(schema, helpers(schema));
     },
+    withMigration: (migration: (value: any) => void) => {
+      coSchema.prototype.migration = migration;
+
+      return enrichedSchema;
+    },
   }) as unknown as CoMapSchema<Shape>;
 
   // Needs to be derived from the enriched schema
   const coSchema = zodSchemaToCoSchema(enrichedSchema) as any;
+
   return enrichedSchema;
 }
 
@@ -151,7 +152,7 @@ export const coAccountDefiner = <
     this: CoMapSchema<Shape>,
     helpers: object,
   ) {
-    return { ...this, ...helpers };
+    return Object.assign(this, helpers);
   } as CoMapSchema<Shape>["withHelpers"];
 
   accountSchema.withMigration = function (
