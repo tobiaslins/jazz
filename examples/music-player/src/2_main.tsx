@@ -14,6 +14,8 @@ import { apiKey } from "@/apiKey.ts";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { JazzProvider } from "jazz-react";
 import { onAnonymousAccountDiscarded } from "./4_actions";
+import { KeyboardListener } from "./components/PlayerControls";
+import { useMediaEndListener } from "./lib/audio/useMediaEndListener";
 import { useUploadExampleData } from "./lib/useUploadExampleData";
 
 /**
@@ -50,7 +52,7 @@ function Main() {
   return (
     <>
       <RouterProvider router={router} />
-      {/* <PlayerControls mediaPlayer={mediaPlayer} /> */}
+      <KeyboardListener mediaPlayer={mediaPlayer} />
       <Toaster />
     </>
   );
