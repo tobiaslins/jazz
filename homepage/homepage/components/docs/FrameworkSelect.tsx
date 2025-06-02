@@ -17,9 +17,11 @@ import { useState } from "react";
 export function FrameworkSelect({
   onSelect,
   size = "md",
+  routerPush = true,
 }: {
   onSelect: (framework: Framework) => void;
   size?: "sm" | "md";
+  routerPush?: boolean;
 }) {
   const router = useRouter();
   const defaultFramework = useFramework();
@@ -31,7 +33,7 @@ export function FrameworkSelect({
   const selectFramework = (newFramework: Framework) => {
     setSelectedFramework(newFramework);
     onSelect(newFramework);
-    router.push(path.replace(defaultFramework, newFramework));
+    routerPush && router.push(path.replace(defaultFramework, newFramework));
   };
 
   return (

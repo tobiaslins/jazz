@@ -42,7 +42,7 @@ export function GetStartedSnippetSelect() {
         </Button>
       </div>
       <div className="col-span-2 md:col-span-1 flex h-full items-center">
-      <FrameworkSelect onSelect={setSelectedFramework} size="sm" />
+      <FrameworkSelect onSelect={setSelectedFramework} size="sm" routerPush={false} />
       </div>
     </div>
   );
