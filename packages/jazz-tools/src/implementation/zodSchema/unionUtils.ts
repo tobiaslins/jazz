@@ -11,19 +11,22 @@ export function schemaUnionDiscriminatorFor(
         "z.union() of collaborative types is not supported, use z.discriminatedUnion() instead",
       );
     }
-    if (![...schema._zod.disc.keys()].every((key) => typeof key === "string")) {
+
+    const discriminator = schema._zod.def.discriminator;
+    const field = schema._zod.disc.get(discriminator);
+
+    if (!field) {
       throw new Error(
-        "z.discriminatedUnion() of collaborative types with non-string discriminator key is not supported",
+        "z.discriminatedUnion() of collaborative types with non-existent discriminator key is not supported",
       );
     }
-    if (
-      ![...schema._zod.disc.values()].every((v) =>
-        [...v.values].every((value) => typeof value === "string"),
-      )
-    ) {
-      throw new Error(
-        "z.discriminatedUnion() of collaborative types with non-string discriminator value is not supported",
-      );
+
+    for (const value of field.values) {
+      if (typeof value !== "string" && typeof value !== "number") {
+        throw new Error(
+          "z.discriminatedUnion() of collaborative types with non-string or non-number discriminator value is not supported",
+        );
+      }
     }
 
     const flattendOptions = [
@@ -46,49 +49,44 @@ export function schemaUnionDiscriminatorFor(
           "z.discriminatedUnion() of collaborative types is not supported for CoLists",
         );
       }
-      let remainingOptions = [...flattendOptions];
-      for (const discriminator of schema._zod.disc.keys()) {
-        const discriminatorValue = (_raw as RawCoMap).get(
-          discriminator as string,
-        );
-        if (typeof discriminatorValue !== "string") {
-          throw new Error("Discriminator must be a string");
-        }
-        remainingOptions = remainingOptions.filter((option) => {
-          if (option._zod.def.type !== "object") {
-            return false;
-          }
-          const discriminatorDef = (option as z.core.$ZodObject)._zod.def.shape[
-            discriminator as string
-          ];
-          if (!discriminatorDef) {
-            return false;
-          }
 
-          if (discriminatorDef._zod.def.type !== "literal") {
-            console.warn(
-              "Non-literal discriminator found in z.discriminatedUnion() of collaborative types",
-            );
-            return false;
-          }
-          if (
-            (discriminatorDef._zod.def as z.core.$ZodLiteralDef).values
-              .length !== 1
-          ) {
-            console.warn(
-              "Literal discriminator with more than one value found in z.discriminatedUnion() of collaborative types",
-            );
-            return false;
-          }
-          return (
-            (discriminatorDef._zod.def as z.core.$ZodLiteralDef).values[0] ===
-            discriminatorValue
+      const discriminatorValue = (_raw as RawCoMap).get(
+        discriminator as string,
+      );
+
+      if (discriminatorValue && typeof discriminatorValue === "object") {
+        throw new Error("Discriminator must be a primitive value");
+      }
+
+      for (const option of flattendOptions) {
+        if (option._zod.def.type !== "object") {
+          continue;
+        }
+
+        const discriminatorDef = (option as z.core.$ZodObject)._zod.def.shape[
+          discriminator as string
+        ];
+
+        if (!discriminatorDef) {
+          continue;
+        }
+
+        if (discriminatorDef._zod.def.type !== "literal") {
+          console.warn(
+            "Non-literal discriminator found in z.discriminatedUnion() of collaborative types",
           );
-        });
-        if (remainingOptions.length === 1) {
-          return zodSchemaToCoSchema(remainingOptions[0]!);
+          continue;
+        }
+
+        const literalDef = discriminatorDef._zod.def as z.core.$ZodLiteralDef;
+
+        for (const value of literalDef.values) {
+          if (value === discriminatorValue) {
+            return zodSchemaToCoSchema(option);
+          }
         }
       }
+
       throw new Error(
         "z.discriminatedUnion() of collaborative types with no matching discriminator value found",
       );
