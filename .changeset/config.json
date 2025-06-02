@@ -27,6 +27,8 @@
       "jazz-react-native-core",
       "jazz-react-native",
       "jazz-react-native-media-images",
+      "jazz-richtext-prosemirror",
+      "jazz-richtext-tiptap",
       "jazz-run",
       "jazz-svelte",
       "jazz-tools",
