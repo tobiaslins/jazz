@@ -116,10 +116,10 @@ const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
 const recentActivity = getRecentActivity(myProjects, hourAgo);
 // [{
 //   project: "New project",
-//   field: "status",
-//   value: "todo",
-//   by: "Alice",
-//   at: "22/05/2025, 12:00:00",
+//   field: "name",
+//   value: "New project", 
+//   by: Account,
+//   at: Date
 // }]
 ```
 </CodeGroup>
@@ -145,7 +145,7 @@ const task = Task.create({ title: "New task", status: "todo" }, { owner: me });
 // ---cut---
 function getLastUpdated(task: Task) {
   // Find the most recent edit across all fields
-  let lastEdit = null;
+  let lastEdit: any = null;
   
   for (const field of Object.keys(task)) {
     const editField = field as keyof typeof task._edits;
@@ -192,20 +192,42 @@ type Task = co.loaded<typeof Task>;
 const task = Task.create({ title: "New task", status: "todo" }, { owner: me });
 
 task.status = "completed";
+task.status = "in-progress";
+task.status = "completed";
 
 // ---cut---
 // Find when a task was completed
 function findCompletionTime(task: Task): Date | null {
   if (!task._edits.status) return null;
   
+  // ⚠️ Note: .find() returns the FIRST completion time
+  // If status toggles (completed → in-progress → completed), 
+  // this gives you the earliest completion, not the latest
   const completionEdit = task._edits.status.all.find(
     edit => edit.value === "completed"
   );
   
   return completionEdit?.madeAt || null;
 }
-console.log(findCompletionTime(task));
-// 2025-05-22T12:00:00.000Z
+
+// To get the LATEST completion time instead:
+function findLatestCompletionTime(task: Task): Date | null {
+  if (!task._edits.status) return null;
+  
+  // Find all completion edits and get the most recent one
+  const completionEdits = task._edits.status.all.filter(
+    edit => edit.value === "completed"
+  );
+  
+  if (completionEdits.length === 0) return null;
+  
+  // Get the latest completion
+  const latestCompletion = completionEdits[completionEdits.length - 1];
+  return latestCompletion.madeAt;
+}
+
+console.log(findCompletionTime(task)); // First completion
+console.log(findLatestCompletionTime(task)); // Most recent completion
 
 // Find who made a specific change
 function findWhoChanged(task: Task, field: string, value: any) {
