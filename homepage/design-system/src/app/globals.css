@@ -15,6 +15,7 @@
   --color-tip: #b441eb;
   --color-success: #8bda27;
   --color-pink: #ef478e;
+  --color-error: #EE494C;
 
   --color-default: theme("colors.stone.700");
   --color-highlight: theme("colors.stone.900");

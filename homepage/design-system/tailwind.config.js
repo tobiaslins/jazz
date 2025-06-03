@@ -62,6 +62,7 @@ const config = {
         green: {
           DEFAULT: "var(--color-green)",
         },
+        error: "var(--color-error)",
       },
       textColor: {
         default: "var(--color-default)",
