@@ -44,7 +44,7 @@ task._edits.status
 // Returns the latest edit
 
 task._edits.status?.all
-// Returns array of all edits, newest first
+// Returns array of all edits in chronological order
 
 // Check if edits exist
 if (task._edits.status) {
@@ -130,21 +130,21 @@ const task = Task.create({ title: "New task", status: "todo" }, { owner: me });
 task.status = "in-progress";
 task.status = "completed";
 // ---cut---
-// Get all edits (newest first)
+// Get all edits (chronologically)
 const allStatusEdits = task._edits.status?.all || [];
 
 allStatusEdits.forEach((edit, index) => {
   console.log(`Edit ${index}: ${edit.value} at ${edit.madeAt.toISOString()}`);
 });
-// Edit 0: completed at 2025-05-22T15:30:00.000Z
+// Edit 0: todo at 2025-05-22T13:00:00.000Z
 // Edit 1: in-progress at 2025-05-22T14:00:00.000Z  
-// Edit 2: todo at 2025-05-22T13:00:00.000Z
+// Edit 2: completed at 2025-05-22T15:30:00.000Z
 ```
 </CodeGroup>
 
 ### Initial Values
 
-The oldest edit contains the initial value:
+The first edit contains the initial value:
 
 <CodeGroup>
 ```ts twoslash
@@ -162,7 +162,7 @@ const task = Task.create({ title: "New task", status: "todo" }, { owner: me });
 task.status = "in-progress";
 // ---cut---
 const allEdits = task._edits.status?.all || [];
-const initialValue = allEdits[allEdits.length - 1]?.value;
+const initialValue = allEdits[0]?.value;
 console.log(`Started as: ${initialValue}`);
 // Started as: todo
 ```
@@ -184,14 +184,13 @@ const Task = co.map({
 ```
 </CodeGroup>
 
-Alternatively, you can use the oldest edit's `madeAt` property.
-
+Alternatively, you can use the first edit's `madeAt` property.
 
 ## Requirements
 
 - CoValues must be loaded to access history (see [Subscription & Loading](/docs/using-covalues/subscription-and-loading))
 - History is only available for fields defined in your schema
-- Edit arrays are ordered newest to oldest
+- Edit arrays are ordered chronologically (oldest to newest)
 
 ## Common Patterns
 
@@ -201,5 +200,3 @@ For practical implementations using history, see [History Patterns](/docs/design
 - Implementing undo/redo
 - Showing change indicators
 - Querying historical data
-
-
