@@ -1,5 +1,12 @@
 # jazz-react-core
 
+## 0.14.19
+
+### Patch Changes
+
+- cojson@0.14.19
+- jazz-tools@0.14.19
+
 ## 0.14.18
 
 ### Patch Changes
