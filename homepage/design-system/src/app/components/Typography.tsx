@@ -34,7 +34,7 @@ export function Typography() {
         </div>
         <div>
           Paragraph
-          <p className="text-xs text-highlight mb-1">
+          <p className="text-xs text-highlight my-1">
             NB: That text can be styled with colour classes, including{" "}
             <code>text-muted</code> and <code>text-highlight</code>, see{" "}
             <a href="#text-color-variables">Text Color Variables</a>.
@@ -54,14 +54,14 @@ export function Typography() {
 
         <div>
           Link
-          <Prose className="p-3 border">
+          <Prose className="p-3">
             This is a <a href="https://jazz.tools">link</a>
           </Prose>
         </div>
 
         <div>
           Code
-          <Prose className="p-3 border">
+          <Prose className="p-3">
             This is a one-line <code>piece of code</code>
           </Prose>
         </div>

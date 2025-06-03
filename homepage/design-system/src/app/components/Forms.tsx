@@ -7,7 +7,7 @@ export function Forms() {
         Forms
       </h2>
 
-      <div className="p-3 border">
+      <div className="p-3">
         <NewsletterForm />
       </div>
     </div>
