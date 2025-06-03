@@ -46,7 +46,6 @@ describe("useAcceptInvite", () => {
       expect(acceptedId).toBeDefined();
     });
 
-    // biome-ignore lint/style/noNonNullAssertion: We're in tests
     const accepted = await TestMap.load(acceptedId!, {
       loadAs: account,
     });

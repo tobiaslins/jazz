@@ -1,21 +1,15 @@
 {
   "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
-  "vcs": {
-    "enabled": true,
-    "clientKind": "git",
-    "useIgnoreFile": true
-  },
-  "formatter": {
-    "enabled": true,
-    "indentStyle": "space"
-  },
-  "organizeImports": {
-    "enabled": true
-  },
-  "linter": {
-    "enabled": true,
-    "rules": {
-      "recommended": true
+  "extends": ["../../biome.json"],
+  "overrides": [
+    {
+      "include": ["src/**"],
+      "linter": {
+        "enabled": true,
+        "rules": {
+          "recommended": true
+        }
+      }
     }
-  }
+  ]
 }
