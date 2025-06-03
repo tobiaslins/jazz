@@ -11,7 +11,7 @@
     "@biomejs/biome": "catalog:",
     "@changesets/cli": "^2.27.10",
     "@playwright/test": "^1.50.1",
-    "@vitejs/plugin-react": "^4.3.3",
+    "@vitejs/plugin-react": "^4.5.1",
     "@vitest/browser": "catalog:",
     "@vitest/coverage-istanbul": "catalog:",
     "@vitest/coverage-v8": "catalog:",
