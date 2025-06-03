@@ -1,4 +1,3 @@
-import type { LocalNode } from "cojson";
 import type { CoValue } from "../internal.js";
 
 export function applyCoValueMigrations(instance: CoValue) {
@@ -8,15 +7,17 @@ export function applyCoValueMigrations(instance: CoValue) {
   const migratedCoValues = (node._migratedCoValues ??= new Set<string>());
 
   if (
-    "migration" in instance &&
-    typeof instance.migration === "function" &&
+    "migrate" in instance &&
+    typeof instance.migrate === "function" &&
     instance._type !== "Account" &&
     !migratedCoValues.has(instance.id)
   ) {
-    const result = instance.migration?.(instance);
-    if (result && "then" in result) {
-      console.error("Migration function cannot be async");
-    }
+    // We flag this before the migration to avoid that internal loads trigger the migration again
     migratedCoValues.add(instance.id);
+
+    const result = instance.migrate?.(instance);
+    if (result && "then" in result) {
+      throw new Error("Migration function cannot be async");
+    }
   }
 }

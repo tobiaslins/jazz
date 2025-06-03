@@ -45,7 +45,6 @@ import {
   subscribeToCoValueWithoutMe,
   subscribeToExistingCoValue,
 } from "../internal.js";
-import { applyCoValueMigrations } from "../lib/migration.js";
 
 type CoMapEdit<V> = {
   value?: V;
@@ -316,8 +315,6 @@ export class CoMap extends CoValueBase implements CoValue {
       },
       _raw: { value: raw, enumerable: false },
     });
-
-    applyCoValueMigrations(instance);
 
     return instance;
   }

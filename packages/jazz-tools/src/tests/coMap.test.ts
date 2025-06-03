@@ -1357,17 +1357,104 @@ describe("Creating and finding unique CoMaps", async () => {
   });
 });
 
+describe("castAs", () => {
+  test("should cast a co.map type", () => {
+    const Person = co.map({
+      name: z.string(),
+    });
+
+    const PersonWithAge = co.map({
+      name: z.string(),
+      age: z.number().optional(),
+    });
+
+    const person = Person.create({
+      name: "Alice",
+    });
+
+    const personWithAge = person.castAs(PersonWithAge);
+
+    personWithAge.age = 20;
+
+    expect(personWithAge.age).toEqual(20);
+  });
+
+  test("should still be able to autoload in-memory deps", () => {
+    const Dog = co.map({
+      name: z.string(),
+    });
+
+    const Person = co.map({
+      name: z.string(),
+      dog: Dog,
+    });
+
+    const PersonWithAge = co.map({
+      name: z.string(),
+      age: z.number().optional(),
+      dog: Dog,
+    });
+
+    const person = Person.create({
+      name: "Alice",
+      dog: Dog.create({ name: "Rex" }),
+    });
+
+    const personWithAge = person.castAs(PersonWithAge);
+
+    personWithAge.age = 20;
+
+    expect(personWithAge.age).toEqual(20);
+    expect(personWithAge.dog?.name).toEqual("Rex");
+  });
+});
+
 describe("CoMap migration", () => {
-  test("should run on creation", () => {
+  test("should run on load", async () => {
+    const PersonV1 = co.map({
+      name: z.string(),
+      version: z.literal(1),
+    });
+
     const Person = co
       .map({
         name: z.string(),
-        version: z.number(),
+        age: z.number(),
+        version: z.literal([1, 2]),
       })
       .withMigration((person) => {
         if (person.version === 1) {
-          person.name = "Alice";
+          person.age = 20;
           person.version = 2;
+        }
+      });
+
+    const person = PersonV1.create({
+      name: "Bob",
+      version: 1,
+    });
+
+    expect(person?.name).toEqual("Bob");
+    expect(person?.version).toEqual(1);
+
+    const loadedPerson = await Person.load(person.id);
+
+    expect(loadedPerson?.name).toEqual("Bob");
+    expect(loadedPerson?.age).toEqual(20);
+    expect(loadedPerson?.version).toEqual(2);
+  });
+
+  test("should handle group updates", async () => {
+    const Person = co
+      .map({
+        name: z.string(),
+        version: z.literal([1, 2]),
+      })
+      .withMigration((person) => {
+        if (person.version === 1) {
+          person.version = 2;
+
+          person._owner.castAs(Group).addMember("everyone", "reader");
         }
       });
 
@@ -1376,73 +1463,40 @@ describe("CoMap migration", () => {
       version: 1,
     });
 
-    expect(person.name).toEqual("Alice");
-    expect(person.version).toEqual(2);
-  });
+    expect(person?.name).toEqual("Bob");
+    expect(person?.version).toEqual(1);
 
-  test("should run on load", async () => {
-    const Person = co
-      .map({
-        name: z.string(),
-        version: z.number(),
-      })
-      .withMigration((person) => {
-        if (person.version === 1) {
-          person.name = "Alice";
-          person.version = 2;
-        }
-      });
+    const loadedPerson = await Person.load(person.id);
 
-    const group = Group.create();
-    group.addMember("everyone", "writer");
-
-    const person = Person.create(
-      {
-        name: "Bob",
-        version: 1,
-      },
-      group,
-    );
-    person.version = 1;
-    person.name = "Bob";
-
-    await person.waitForSync();
-
-    const account = await createJazzTestAccount();
-
-    const loadedPerson = await Person.load(person.id, {
-      loadAs: account,
-    });
-    expect(loadedPerson?.name).toEqual("Alice");
+    expect(loadedPerson?.name).toEqual("Bob");
     expect(loadedPerson?.version).toEqual(2);
+
+    const anotherAccount = await createJazzTestAccount();
+
+    const loadedPersonFromAnotherAccount = await Person.load(person.id, {
+      loadAs: anotherAccount,
+    });
+
+    expect(loadedPersonFromAnotherAccount?.name).toEqual("Bob");
   });
 
-  test("should log an error if a migration is async", () => {
+  test("should throw an error if a migration is async", async () => {
     const Person = co
       .map({
         name: z.string(),
         version: z.number(),
       })
       // @ts-expect-error async function
-      .withMigration(async (person) => {
-        if (person.version === 1) {
-          person.name = "Alice";
-          person.version = 2;
-        }
-      });
-
-    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+      .withMigration(async () => {});
 
     const person = Person.create({
       name: "Bob",
       version: 1,
     });
 
-    expect(spy).toHaveBeenCalledWith("Migration function cannot be async");
-
-    expect(person.name).toEqual("Alice");
-    expect(person.version).toEqual(2);
-    spy.mockRestore();
+    await expect(Person.load(person.id)).rejects.toThrow(
+      "Migration function cannot be async",
+    );
   });
 
   test("should run only once", async () => {
@@ -1454,10 +1508,6 @@ describe("CoMap migration", () => {
       })
       .withMigration((person) => {
         spy(person);
-        if (person.version === 1) {
-          person.name = "Alice";
-          person.version = 2;
-        }
       });
 
     const person = Person.create({
@@ -1465,116 +1515,58 @@ describe("CoMap migration", () => {
       version: 1,
     });
 
-    // First migration should run
-    expect(person.name).toEqual("Alice");
-    expect(person.version).toEqual(2);
-
-    // Second migration should not run
-    person.version = 1;
-
-    const loadedPerson = await Person.load(person.id);
-    expect(loadedPerson?.name).toEqual("Alice");
-    expect(loadedPerson?.version).toEqual(1);
+    await Person.load(person.id);
+    await Person.load(person.id);
     expect(spy).toHaveBeenCalledTimes(1);
   });
 
-  test("should not break recursive schemas", () => {
+  test("should not break recursive schemas", async () => {
+    const PersonV1 = co.map({
+      name: z.string(),
+      version: z.literal(1),
+      get friend() {
+        return PersonV1.optional();
+      },
+    });
+
     const Person = co
       .map({
         name: z.string(),
-        version: z.number(),
+        age: z.number(),
         get friend() {
           return Person.optional();
         },
+        version: z.literal([1, 2]),
       })
       .withMigration((person) => {
         if (person.version === 1) {
-          person.name = "Alice";
+          person.age = 20;
           person.version = 2;
         }
       });
 
-    const friend = Person.create({
-      name: "Bob",
+    const charlie = PersonV1.create({
+      name: "Charlie",
       version: 1,
     });
 
-    const person = Person.create({
-      name: "Charlie",
+    const bob = PersonV1.create({
+      name: "Bob",
       version: 1,
-      friend,
+      friend: charlie,
+    });
+
+    const loaded = await Person.load(bob.id, {
+      resolve: {
+        friend: true,
+      },
     });
 
     // Migration should run on both the person and their friend
-    expect(person.name).toEqual("Alice");
-    expect(person.version).toEqual(2);
-    expect(person.friend?.name).toEqual("Alice");
-    expect(person.friend?.version).toEqual(2);
-  });
-
-  test("should run on deep nested values", () => {
-    const NestedMap = co
-      .map({
-        name: z.string(),
-        version: z.number(),
-      })
-      .withMigration((nested) => {
-        if (nested.version === 1) {
-          nested.name = "Nested Alice";
-          nested.version = 2;
-        }
-      });
-
-    const MiddleMap = co
-      .map({
-        name: z.string(),
-        version: z.number(),
-        nested: NestedMap,
-      })
-      .withMigration((middle) => {
-        if (middle.version === 1) {
-          middle.name = "Middle Alice";
-          middle.version = 2;
-        }
-      });
-
-    const TopMap = co
-      .map({
-        name: z.string(),
-        version: z.number(),
-        middle: MiddleMap,
-      })
-      .withMigration((top) => {
-        if (top.version === 1) {
-          top.name = "Top Alice";
-          top.version = 2;
-        }
-      });
-
-    // Create a deeply nested structure
-    const nested = NestedMap.create({
-      name: "Nested Bob",
-      version: 1,
-    });
-
-    const middle = MiddleMap.create({
-      name: "Middle Bob",
-      version: 1,
-      nested,
-    });
-
-    const top = TopMap.create({
-      name: "Top Bob",
-      version: 1,
-      middle,
-    });
-
-    // Verify migrations ran on all levels
-    expect(top.name).toEqual("Top Alice");
-    expect(top.version).toEqual(2);
-    expect(top.middle.name).toEqual("Middle Alice");
-    expect(top.middle.version).toEqual(2);
-    expect(top.middle.nested.name).toEqual("Nested Alice");
-    expect(top.middle.nested.version).toEqual(2);
+    expect(loaded?.name).toEqual("Bob");
+    expect(loaded?.age).toEqual(20);
+    expect(loaded?.version).toEqual(2);
+    expect(loaded?.friend?.name).toEqual("Charlie");
+    expect(loaded?.friend?.version).toEqual(2);
   });
 });

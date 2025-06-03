@@ -64,6 +64,8 @@ export type AccountSchema<
       creationProps?: { name: string },
     ) => void,
   ): AccountSchema<Shape>;
+
+  getCoSchema: () => typeof Account;
 };
 
 export type DefaultProfileShape = {
