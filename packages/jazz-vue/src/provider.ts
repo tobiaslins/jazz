@@ -1,5 +1,5 @@
 import { JazzBrowserContextManager } from "jazz-browser";
-import {
+import type {
   Account,
   AccountClass,
   AnyAccountSchema,
@@ -7,9 +7,8 @@ import {
   JazzContextType,
   SyncConfig,
 } from "jazz-tools";
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
-  PropType,
+  type PropType,
   defineComponent,
   onMounted,
   onUnmounted,
@@ -20,7 +19,7 @@ import {
 
 export const logoutHandler = ref<() => void>();
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+// biome-ignore lint/suspicious/noEmptyInterface: This interface is meant to be module augmented by users
 export interface Register {}
 
 export type RegisteredAccount = Register extends { Account: infer Acc }
@@ -35,6 +34,7 @@ declare module "jazz-tools" {
 
 export const JazzContextSymbol = Symbol("JazzContext");
 export const JazzAuthContextSymbol = Symbol("JazzAuthContext");
+
 export const JazzProvider = defineComponent({
   name: "JazzProvider",
   props: {
@@ -61,6 +61,7 @@ export const JazzProvider = defineComponent({
       required: false,
     },
     onAnonymousAccountDiscarded: {
+      // biome-ignore lint/suspicious/noExplicitAny: Complex generic typing with Jazz framework internals
       type: Function as PropType<(anonymousAccount: any) => Promise<void>>,
       required: false,
     },
@@ -73,6 +74,7 @@ export const JazzProvider = defineComponent({
     const contextManager = new JazzBrowserContextManager<
       (AccountClass<Account> & CoValueFromRaw<Account>) | AnyAccountSchema
     >();
+    // biome-ignore lint/suspicious/noExplicitAny: Complex generic typing with Jazz framework internals
     const ctx = ref<JazzContextType<any>>();
 
     provide(JazzContextSymbol, ctx);
