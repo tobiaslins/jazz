@@ -5,34 +5,26 @@ export const metadata = { title: "History" };
 
 Jazz tracks every change to your data automatically. See who changed what, when they did it, and even look at your data from any point in the past.
 
+See the [version history example](https://github.com/garden-co/jazz/tree/main/examples/version-history) for reference.
+
+Let's use the following schema to see how we can use the edit history.
+
+
 <CodeGroup>
-```ts twoslash
-import { createJazzTestAccount } from "jazz-tools/testing";
-const me = await createJazzTestAccount();
+  ```ts twoslash
 import { co, z } from "jazz-tools";
-
-const Task = co.map({
-  title: z.string(),
-  status: z.literal(["todo", "in-progress", "completed"]),
-});
-
-const task = Task.create({ title: "New task", status: "todo" }, { owner: me });
 // ---cut---
-// See the last change to a task
-const lastEdit = task._edits.status;
-
-const name = lastEdit?.by?.profile?.name;
-const value = lastEdit?.value;
-const madeAt = lastEdit?.madeAt.toLocaleString();
-
-console.log(`${name} changed status to "${value}" at ${madeAt}`);
-// Alice changed status to "completed" at 14/05/2025, 15:30:00
-```
+const Task = co.map({
+    title: z.string(),
+    status: z.literal(["todo", "in-progress", "completed"]),
+});
+  ```
 </CodeGroup>
 
 ## The _edits Property
 
-Every CoValue has an `_edits` property that contains the complete history for each field:
+Every CoValue has an `_edits` property that contains the complete history for each field. Here's
+how to get the edit history for `task.status`:
 
 <CodeGroup>
 ```ts twoslash
@@ -175,6 +167,25 @@ console.log(`Started as: ${initialValue}`);
 // Started as: todo
 ```
 </CodeGroup>
+
+## Showing creation date
+
+To show when a `Task` was created, store the date manually.
+
+<CodeGroup>
+```ts twoslash
+import { co, z } from "jazz-tools";
+// ---cut---
+const Task = co.map({
+    title: z.string(),
+    status: z.literal(["todo", "in-progress", "completed"]),
+    createdAt: z.date(), // [!code ++]
+});
+```
+</CodeGroup>
+
+Alternatively, you can use the oldest edit's `madeAt` property.
+
 
 ## Requirements
 
