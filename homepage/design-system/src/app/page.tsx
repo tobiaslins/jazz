@@ -21,7 +21,7 @@ export default function Home() {
           </div>
         ))}
       </div>
-      <div className="col-span-8 overflow-y-scroll">
+      <div className="col-span-8 overflow-y-scroll mt-7">
         <h1 className="text-2xl font-semibold font-display">
           Jazz Design System
         </h1>
