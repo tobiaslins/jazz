@@ -200,7 +200,7 @@ task.status = "completed";
 function findCompletionTime(task: Task): Date | null {
   if (!task._edits.status) return null;
   
-  // ⚠️ Note: .find() returns the FIRST completion time
+  // find() returns the FIRST completion time
   // If status toggles (completed → in-progress → completed), 
   // this gives you the earliest completion, not the latest
   const completionEdit = task._edits.status.all.find(
@@ -210,20 +210,17 @@ function findCompletionTime(task: Task): Date | null {
   return completionEdit?.madeAt || null;
 }
 
-// To get the LATEST completion time instead:
+// To get the LATEST completion time instead reverse the array, then find:
 function findLatestCompletionTime(task: Task): Date | null {
   if (!task._edits.status) return null;
   
-  // Find all completion edits and get the most recent one
-  const completionEdits = task._edits.status.all.filter(
-    edit => edit.value === "completed"
-  );
+  // Reverse and find (stops at first match)
+  const latestCompletionEdit = task._edits.status.all
+    .slice() // Create copy to avoid mutating original
+    .reverse()
+    .find(edit => edit.value === "completed");
   
-  if (completionEdits.length === 0) return null;
-  
-  // Get the latest completion
-  const latestCompletion = completionEdits[completionEdits.length - 1];
-  return latestCompletion.madeAt;
+  return latestCompletionEdit?.madeAt || null;
 }
 
 console.log(findCompletionTime(task)); // First completion
