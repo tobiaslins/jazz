@@ -310,7 +310,7 @@ project.coordinator = undefined;  // Remove the reference
 
 Migrations in CoMaps are functions that run when a CoMap is loaded, not when it's created. They're useful for updating the structure of existing CoMaps to match new schema versions. Migrations are synchronous and cannot be async.
 
-Here's an example of a migration that updates a task's text field from a plain string to a `CoPlainText` type:
+Here's an example of a migration that adds the `priority` field to the `Task` CoMap:
 
 <CodeGroup>
 ```ts twoslash
