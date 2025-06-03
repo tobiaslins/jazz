@@ -86,6 +86,7 @@ import type {
     }
   
     get current() {
+      // Reading the #version value to trigger the reactivity
       // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       this.#version;
 
@@ -169,6 +170,7 @@ import type {
     }
   
     get current() {
+      // Reading the #version value to trigger the reactivity
       // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       this.#version;
   
