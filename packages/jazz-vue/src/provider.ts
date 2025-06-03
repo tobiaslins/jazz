@@ -1,9 +1,15 @@
 import { JazzBrowserContextManager } from "jazz-browser";
-import { Account, AccountClass, JazzContextType, SyncConfig } from "jazz-tools";
+import {
+  Account,
+  AccountClass,
+  AnyAccountSchema,
+  CoValueFromRaw,
+  JazzContextType,
+  SyncConfig,
+} from "jazz-tools";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   PropType,
-  computed,
   defineComponent,
   onMounted,
   onUnmounted,
@@ -41,7 +47,9 @@ export const JazzProvider = defineComponent({
       required: true,
     },
     AccountSchema: {
-      type: Function as unknown as PropType<AccountClass<RegisteredAccount>>,
+      type: Function as unknown as PropType<
+        (AccountClass<Account> & CoValueFromRaw<Account>) | AnyAccountSchema
+      >,
       required: false,
     },
     storage: {
@@ -53,9 +61,7 @@ export const JazzProvider = defineComponent({
       required: false,
     },
     onAnonymousAccountDiscarded: {
-      type: Function as PropType<
-        (anonymousAccount: RegisteredAccount) => Promise<void>
-      >,
+      type: Function as PropType<(anonymousAccount: any) => Promise<void>>,
       required: false,
     },
     onLogOut: {
@@ -64,8 +70,10 @@ export const JazzProvider = defineComponent({
     },
   },
   setup(props, { slots }) {
-    const contextManager = new JazzBrowserContextManager<RegisteredAccount>();
-    const ctx = ref<JazzContextType<RegisteredAccount>>();
+    const contextManager = new JazzBrowserContextManager<
+      (AccountClass<Account> & CoValueFromRaw<Account>) | AnyAccountSchema
+    >();
+    const ctx = ref<JazzContextType<any>>();
 
     provide(JazzContextSymbol, ctx);
     provide(JazzAuthContextSymbol, contextManager.getAuthSecretStorage());
