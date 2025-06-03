@@ -1,13 +1,13 @@
-import { CoFeed, CoList, CoMap, coField } from "jazz-tools";
+import { co, z } from "jazz-tools";
 
 // Example CoMap class
-export class Person extends CoMap {
-  name = coField.string;
-  age = coField.number;
-  height = coField.optional.number;
-  weight = coField.optional.number;
-}
+export const Person = co.map({
+  name: z.string(),
+  age: z.number(),
+  height: z.number().optional(),
+  weight: z.number().optional(),
+});
 
-export class ListOfPeople extends CoList.Of(coField.ref(Person)) {}
+export const ListOfPeople = co.list(Person);
 
-export class PersonFeed extends CoFeed.Of(coField.ref(Person)) {}
+export const PersonFeed = co.feed(Person);
