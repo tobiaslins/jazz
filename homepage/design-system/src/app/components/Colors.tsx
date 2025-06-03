@@ -29,7 +29,7 @@ export function Colors() {
         Color Variables
       </h3>
 
-      <p className="mb-1">
+      <p className="mb-2">
         The following variables are available and should be used as a preference
         to tailwind classes:
       </p>
