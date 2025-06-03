@@ -12,8 +12,7 @@
     "lint": "prettier --check . && eslint .",
     "format-and-lint": "pnpm run format && pnpm run lint",
     "format-and-lint:fix": "pnpm run format --write && pnpm run lint --fix",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "vitest",
     "test:coverage": "vitest --coverage"
   },
   "files": [
