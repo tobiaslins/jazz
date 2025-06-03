@@ -9,6 +9,7 @@ import type {
     ResolveQuery,
     ResolveQueryStrict,
   } from "jazz-tools";
+  import { createSubscriber } from "svelte/reactivity";
   import { getJazzContext } from "./jazz.svelte.js";
   import { anySchemaToCoSchema, subscribeToCoValue } from "jazz-tools";
   
@@ -17,10 +18,14 @@ import type {
     R extends ResolveQuery<V> = true,
   > {
     #value: Loaded<V, R> | undefined | null = undefined;
+    #subscribe: VoidFunction;
     #ctx = $derived(getJazzContext<InstanceOfSchema<AccountClass<Account>>>());
+    #update: VoidFunction = () => {};
     #Schema: V;
     #options: { resolve?: ResolveQueryStrict<V, R> } | undefined;
     #id: string | undefined | null;
+  
+    #unsubscribe: VoidFunction = () => {};
   
     constructor(
       Schema: V,
@@ -29,12 +34,21 @@ import type {
     ) {
       this.#Schema = Schema;
       this.#options = options;
+      this.#id = typeof id === "function" ? id() : id;
   
-      // Using an effect to react to the id and ctx changes
-      $effect.pre(() => {
-        this.#id = typeof id === "function" ? id() : id;
-
-        return this.subscribeTo();
+      this.#subscribe = createSubscriber((update) => {
+        this.#update = update;
+  
+        // Using an effect to react to the id and ctx changes
+        $effect.pre(() => {
+          this.#id = typeof id === "function" ? id() : id;
+  
+          this.subscribeTo();
+        });
+  
+        return () => {
+          this.#unsubscribe();
+        };
       });
     }
   
@@ -44,13 +58,14 @@ import type {
   
       // Reset state when dependencies change
       this.updateValue(undefined);
+      this.#unsubscribe();
   
-      if (!ctx.current || !id) return () => {};
+      if (!ctx.current || !id) return;
   
       const agent = "me" in ctx.current ? ctx.current.me : ctx.current.guest;
   
       // Setup subscription with current values
-      return subscribeToCoValue(
+      this.#unsubscribe = subscribeToCoValue(
         anySchemaToCoSchema(this.#Schema),
         id,
         {
@@ -74,22 +89,13 @@ import type {
     updateValue(value: Loaded<V, R> | undefined | null) {
       if (value !== this.#value) {
         this.#value = value;
-        this.#triggerUpdate();
+        this.#update();
       }
-    }
-
-    #version = $state(0);
-    #versionValue = 0
-    #triggerUpdate() {
-      this.#versionValue++;
-      this.#version = this.#versionValue;
     }
   
     get current() {
-      // Reading the #version value to trigger the reactivity
-      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-      this.#version;
-
+      this.#subscribe();
+  
       return this.#value;
     }
   }
@@ -101,18 +107,27 @@ import type {
     R extends ResolveQuery<A> = true,
   > {
     #value: Loaded<A, R> | undefined | null = undefined;
+    #subscribe: VoidFunction;
     #ctx = $derived(getJazzContext<InstanceOfSchema<A>>());
     #Schema: A;
+    #update: VoidFunction = () => {};
     #unsubscribe: VoidFunction = () => {};
     #options: { resolve?: ResolveQueryStrict<A, R> } | undefined;
   
     constructor(Schema: A, options?: { resolve?: ResolveQueryStrict<A, R> }) {
       this.#Schema = Schema;
       this.#options = options;
+      this.#subscribe = createSubscriber((update) => {
+        this.#update = update;
   
-      // Using an effect to react to the ctx changes
-      $effect.pre(() => {
-        return this.subscribeTo();
+        // Using an effect to react to the ctx changes
+        $effect.pre(() => {
+          this.subscribeTo();
+        });
+  
+        return () => {
+          this.#unsubscribe();
+        };
       });
     }
   
@@ -129,7 +144,7 @@ import type {
       const me = ctx.current.me;
   
       // Setup subscription with current values
-      return subscribeToCoValue(
+      this.#unsubscribe = subscribeToCoValue(
         anySchemaToCoSchema(this.#Schema),
         me.id,
         {
@@ -157,22 +172,12 @@ import type {
     updateValue(value: Loaded<A, R> | undefined | null) {
       if (value !== this.#value) {
         this.#value = value;
-        this.#triggerUpdate();
+        this.#update();
       }
-    }
-
-
-    #version = $state(0);
-    #versionValue = 0
-    #triggerUpdate() {
-      this.#versionValue++;
-      this.#version = this.#versionValue;
     }
   
     get current() {
-      // Reading the #version value to trigger the reactivity
-      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-      this.#version;
+      this.#subscribe();
   
       return this.#value;
     }
