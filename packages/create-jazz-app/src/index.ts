@@ -16,10 +16,9 @@ import {
   frameworkToAuthExamples,
   frameworks,
 } from "./config.js";
+import { type PackageManager, getPkgManager } from "./utils.js";
 
 const program = new Command();
-
-type PackageManager = "npm" | "yarn" | "pnpm" | "bun" | "deno";
 
 type ScaffoldOptions = {
   template: FrameworkAuthPair | string;
@@ -104,28 +103,6 @@ function isInsideGitRepository(projectPath: string): boolean {
     // If command fails, we're not in a git repo
     return false;
   }
-}
-
-function getPkgManager() {
-  const userAgent = process.env.npm_config_user_agent || "";
-
-  if (userAgent.startsWith("yarn")) {
-    return "yarn";
-  }
-
-  if (userAgent.startsWith("pnpm")) {
-    return "pnpm";
-  }
-
-  if (userAgent.startsWith("bun")) {
-    return "bun";
-  }
-
-  if (userAgent.startsWith("deno")) {
-    return "deno";
-  }
-
-  return "npm";
 }
 
 async function scaffoldProject({
