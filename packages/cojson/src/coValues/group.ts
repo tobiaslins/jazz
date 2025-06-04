@@ -292,7 +292,7 @@ export class RawGroup<
       this.set(account, role, "trusting");
 
       if (this.get(account) !== role) {
-        throw new Error("Failed to set role");
+        throw new Error("Failed to set role due to insufficient permissions");
       }
 
       if (role === "writeOnly") {
@@ -349,7 +349,7 @@ export class RawGroup<
       this.set(memberKey, role, "trusting");
 
       if (this.get(memberKey) !== role) {
-        throw new Error("Failed to set role");
+        throw new Error("Failed to set role due to insufficient permissions");
       }
 
       this.storeKeyRevelationForMember(
