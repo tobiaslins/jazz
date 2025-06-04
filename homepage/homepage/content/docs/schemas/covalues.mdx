@@ -391,13 +391,11 @@ const Person = co.map({
 
 ### Helper methods
 
-You can use the `withHelpers` method on CoValue schemas to add helper functions to the schema itself.
-
-These typically take a parameter of a loaded CoValue of the schema.
+You should define helper methods of CoValue schemas separately, in standalone functions.
 
 <CodeGroup>
 ```ts twoslash
-import { co, z, Loaded } from "jazz-tools";
+import { co, z } from "jazz-tools";
 function differenceInYears(date1: Date, date2: Date) {
   const diffTime = Math.abs(date1.getTime() - date2.getTime());
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 365.25));
@@ -407,14 +405,16 @@ const Person = co.map({
   firstName: z.string(),
   lastName: z.string(),
   dateOfBirth: z.date(),
-}).withHelpers((Self) => ({
-  fullName(person: Loaded<typeof Self>) {
-    return `${person.firstName} ${person.lastName}`;
-  },
-  ageAsOf(person: Loaded<typeof Self>, date: Date) {
-    return differenceInYears(date, person.dateOfBirth);
-  }
-}));
+})
+type Person = co.loaded<typeof Person>;
+
+export function getPersonFullName(person: Person) {
+  return `${person.firstName} ${person.lastName}`;
+}
+
+export function getPersonAgeAsOf(person: Person, date: Date) {
+  return differenceInYears(date, person.dateOfBirth);
+}
 
 const person = Person.create({
   firstName: "John",
@@ -422,9 +422,8 @@ const person = Person.create({
   dateOfBirth: new Date("1990-01-01"),
 });
 
-const fullName = Person.fullName(person);
-const age = Person.ageAsOf(person, new Date());
-
+const fullName = getPersonFullName(person);
+const age = getPersonAgeAsOf(person, new Date());
 ```
 </CodeGroup>
 ```

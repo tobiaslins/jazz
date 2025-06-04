@@ -222,6 +222,12 @@ export class SubscriptionScope<D extends CoValue> {
     return true;
   }
 
+  getCurrentValue() {
+    if (!this.shouldSendUpdates()) return;
+    if (this.errorFromChildren) return this.errorFromChildren;
+    return this.value;
+  }
+
   triggerUpdate() {
     if (!this.shouldSendUpdates()) return;
     if (!this.dirty) return;

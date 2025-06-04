@@ -5,11 +5,15 @@
 
 set -e
 
+OUTPUT_FILE=~/output/android-install.log
+mkdir -p ~/output
+touch $OUTPUT_FILE
+
 # build and install the app
 echo "Building and installing Android app."
 echo "If it fails, its output will be in artifact: android-install.log..."
 cd ./android/
-./gradlew installRelease >> ~/output/android-install.log 2>&1
+./gradlew installRelease >> $OUTPUT_FILE 2>&1
 cd ..
 
 # run the e2e tests

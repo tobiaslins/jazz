@@ -1,5 +1,5 @@
 import { CoValueUniqueness } from "cojson";
-import z from "zod/v4";
+import { ZodObject } from "zod/v4";
 import {
   Account,
   AccountCreationProps,
@@ -25,6 +25,42 @@ import {
   zodSchemaToCoSchema,
 } from "../../internal.js";
 import { RichTextSchema } from "./schemaTypes/RichTextSchema.js";
+import { z } from "./zodReExport.js";
+
+function enrichCoMapSchema<Shape extends z.core.$ZodLooseShape>(
+  schema: z.ZodObject<
+    { -readonly [P in keyof Shape]: Shape[P] },
+    z.core.$strip
+  >,
+) {
+  const baseCatchall = schema.catchall;
+
+  const enrichedSchema = Object.assign(schema, {
+    collaborative: true,
+    create: (...args: any[]) => {
+      return coSchema.create(...args);
+    },
+    load: (...args: any[]) => {
+      return coSchema.load(...args);
+    },
+    subscribe: (...args: any[]) => {
+      return coSchema.subscribe(...args);
+    },
+    findUnique: (...args: any[]) => {
+      return coSchema.findUnique(...args);
+    },
+    catchall: (index: z.core.$ZodType) => {
+      return enrichCoMapSchema(baseCatchall(index));
+    },
+    withHelpers: (helpers: (Self: z.core.$ZodType) => object) => {
+      return Object.assign(schema, helpers(schema));
+    },
+  }) as unknown as CoMapSchema<Shape>;
+
+  // Needs to be derived from the enriched schema
+  const coSchema = zodSchemaToCoSchema(enrichedSchema) as any;
+  return enrichedSchema;
+}
 
 export const coMapDefiner = <Shape extends z.core.$ZodLooseShape>(
   shape: Shape,
@@ -33,63 +69,10 @@ export const coMapDefiner = <Shape extends z.core.$ZodLooseShape>(
     collaborative: true,
   });
 
-  type CleanedType = Pick<
-    typeof objectSchema,
-    "_zod" | "def" | "~standard" | "catchall"
-  >;
-
-  const coMapSchema = objectSchema as unknown as CleanedType & {
-    collaborative: true;
-    create: CoMapSchema<Shape>["create"];
-    load: CoMapSchema<Shape>["load"];
-    subscribe: CoMapSchema<Shape>["subscribe"];
-    findUnique: CoMapSchema<Shape>["findUnique"];
-    catchall: CoMapSchema<Shape>["catchall"];
-    withHelpers: CoMapSchema<Shape>["withHelpers"];
-  };
-
-  coMapSchema.collaborative = true;
-
-  coMapSchema.create = function (this: CoMapSchema<Shape>, ...args: any[]) {
-    return (zodSchemaToCoSchema(this) as any).create(...args);
-  } as CoMapSchema<Shape>["create"];
-
-  coMapSchema.load = function (this: CoMapSchema<Shape>, ...args: any[]) {
-    return (zodSchemaToCoSchema(this) as any).load(...args);
-  } as CoMapSchema<Shape>["load"];
-
-  coMapSchema.subscribe = function (this: CoMapSchema<Shape>, ...args: any[]) {
-    return (zodSchemaToCoSchema(this) as any).subscribe(...args);
-  } as CoMapSchema<Shape>["subscribe"];
-
-  coMapSchema.findUnique = function (
-    this: CoMapSchema<Shape>,
-    unique: CoValueUniqueness["uniqueness"],
-    ownerID: string,
-    as?: Account | Group | AnonymousJazzAgent,
-  ) {
-    return (zodSchemaToCoSchema(this) as any).findUnique(unique, ownerID, as);
-  } as CoMapSchema<Shape>["findUnique"];
-
-  const oldCatchall = coMapSchema.catchall;
-  coMapSchema.catchall = function (
-    this: CoMapSchema<Shape>,
-    schema: z.core.$ZodType,
-  ) {
-    return { ...this, ...oldCatchall(schema) } as any;
-  } as CoMapSchema<Shape>["catchall"] as any;
-
-  coMapSchema.withHelpers = function (
-    this: CoMapSchema<Shape>,
-    helpers: (Self: CoMapSchema<Shape>) => object,
-  ) {
-    return { ...this, ...helpers(this) };
-  } as CoMapSchema<Shape>["withHelpers"];
-
-  return coMapSchema as unknown as CoMapSchema<Shape>;
+  return enrichCoMapSchema(objectSchema);
 };
 
-const coAccountDefiner = <
+export const coAccountDefiner = <
   Shape extends {
     profile: AnyCoMapSchema<{
       name: z.core.$ZodString<string>;
@@ -100,12 +83,12 @@ const coAccountDefiner = <
   },
 >(
   shape: Shape = {
-    profile: co.map({
+    profile: coMapDefiner({
       name: z.string(),
       inbox: z.optional(z.string()),
       inboxInvite: z.optional(z.string()),
     }),
-    root: co.map({}),
+    root: coMapDefiner({}),
   } as unknown as Shape,
 ): AccountSchema<Shape> => {
   const objectSchema = z.object(shape).meta({
@@ -130,6 +113,7 @@ const coAccountDefiner = <
     getMe: AccountSchema<Shape>["getMe"];
     load: AccountSchema<Shape>["load"];
     subscribe: AccountSchema<Shape>["subscribe"];
+    /** @deprecated Define your helper methods separately, in standalone functions. */
     withHelpers: AccountSchema<Shape>["withHelpers"];
     withMigration: AccountSchema<Shape>["withMigration"];
   };
@@ -177,13 +161,13 @@ const coAccountDefiner = <
       creationProps?: AccountCreationProps,
     ) => void,
   ) {
-    return { ...this, migration };
+    return Object.assign(this, { migration });
   } as AccountSchema<Shape>["withMigration"];
 
   return accountSchema as unknown as AccountSchema<Shape>;
 };
 
-const coRecordDefiner = <
+export const coRecordDefiner = <
   K extends z.core.$ZodString<string>,
   V extends z.core.$ZodType,
 >(
@@ -196,7 +180,7 @@ const coRecordDefiner = <
   >;
 };
 
-const coListDefiner = <T extends z.core.$ZodType>(
+export const coListDefiner = <T extends z.core.$ZodType>(
   element: T,
 ): CoListSchema<T> => {
   const arraySchema = z.array(element).meta({
@@ -210,6 +194,7 @@ const coListDefiner = <T extends z.core.$ZodType>(
     create: CoListSchema<T>["create"];
     load: CoListSchema<T>["load"];
     subscribe: CoListSchema<T>["subscribe"];
+    /** @deprecated Define your helper methods separately, in standalone functions. */
     withHelpers: CoListSchema<T>["withHelpers"];
   };
 
@@ -231,13 +216,13 @@ const coListDefiner = <T extends z.core.$ZodType>(
     this: CoListSchema<T>,
     helpers: (Self: CoListSchema<T>) => object,
   ) {
-    return { ...this, ...helpers(this) };
+    return Object.assign(this, helpers(this));
   } as CoListSchema<T>["withHelpers"];
 
   return coListSchema;
 };
 
-const coProfileDefiner = <
+export const coProfileDefiner = <
   Shape extends z.core.$ZodLooseShape = Simplify<DefaultProfileShape>,
 >(
   shape: Shape & {
@@ -246,22 +231,16 @@ const coProfileDefiner = <
     inboxInvite?: z.core.$ZodOptional<z.core.$ZodString>;
   } = {} as any,
 ): CoProfileSchema<Shape> => {
-  const base = coMapDefiner({
-    ...(shape ?? {}),
+  const ehnancedShape = Object.assign(shape ?? {}, {
     name: z.string(),
     inbox: z.optional(z.string()),
     inboxInvite: z.optional(z.string()),
   });
-  return {
-    ...base,
-    // enforce that the owner is a group
-    create: ((init: any, options: { owner: Group } | Group) => {
-      return base.create(init, options);
-    }) as CoProfileSchema<Shape>["create"],
-  } as CoProfileSchema<Shape>;
+
+  return coMapDefiner(ehnancedShape) as CoProfileSchema<Shape>;
 };
 
-const coFeedDefiner = <T extends z.core.$ZodType>(
+export const coFeedDefiner = <T extends z.core.$ZodType>(
   element: T,
 ): CoFeedSchema<T> => {
   const placeholderSchema = z.instanceof(CoFeed);
@@ -306,8 +285,11 @@ export const coFileStreamDefiner = (): FileStreamSchema => {
   > & {
     collaborative: true;
     builtin: "FileStream";
-    create: (typeof FileStream)["create"];
-    createFromBlob: (typeof FileStream)["createFromBlob"];
+    create: FileStreamSchema["create"];
+    createFromBlob: FileStreamSchema["createFromBlob"];
+    load: FileStreamSchema["load"];
+    loadAsBlob: FileStreamSchema["loadAsBlob"];
+    subscribe: FileStreamSchema["subscribe"];
   };
 
   fileStreamSchema.collaborative = true;
@@ -315,11 +297,27 @@ export const coFileStreamDefiner = (): FileStreamSchema => {
 
   fileStreamSchema.create = function (options: any) {
     return FileStream.create(options);
-  } as (typeof FileStream)["create"];
+  } as FileStreamSchema["create"];
 
   fileStreamSchema.createFromBlob = function (blob: Blob, options: any) {
     return FileStream.createFromBlob(blob, options);
-  } as (typeof FileStream)["createFromBlob"];
+  } as FileStreamSchema["createFromBlob"];
+
+  fileStreamSchema.load = function (id: string, options: any) {
+    return FileStream.load(id, options);
+  } as FileStreamSchema["load"];
+
+  fileStreamSchema.loadAsBlob = function (id: string, options: any) {
+    return FileStream.loadAsBlob(id, options);
+  } as FileStreamSchema["loadAsBlob"];
+
+  fileStreamSchema.subscribe = function (
+    id: string,
+    options: any,
+    listener: any,
+  ) {
+    return FileStream.subscribe(id, options, listener);
+  } as FileStreamSchema["subscribe"];
 
   return fileStreamSchema;
 };
@@ -393,17 +391,6 @@ export const coRichTextDefiner = (): RichTextSchema => {
   return richTextSchema;
 };
 
-export const co = {
-  map: coMapDefiner,
-  record: coRecordDefiner,
-  list: coListDefiner,
-  feed: coFeedDefiner,
-  plainText: coPlainTextDefiner,
-  richText: coRichTextDefiner,
-  fileStream: coFileStreamDefiner,
-  image: (): typeof ImageDefinition => {
-    return ImageDefinition;
-  },
-  account: coAccountDefiner,
-  profile: coProfileDefiner,
+export const coImageDefiner = (): typeof ImageDefinition => {
+  return ImageDefinition;
 };

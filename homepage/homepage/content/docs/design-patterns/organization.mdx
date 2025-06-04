@@ -4,10 +4,9 @@ export const metadata = {
 
 import { CodeGroup } from "@/components/forMdx";
 
-# Sharing data through Organizations
+# How to share data between users through Organizations
 
-Organizations are a way to share a set of data between users.
-Different apps have different names for this concept, such as "teams" or "workspaces".
+This guide shows you how to share a set of CoValues between users. Different apps have different names for this concept, such as "teams" or "workspaces".
 
 We'll use the term Organization.
 
@@ -21,23 +20,21 @@ For this example, users within an `Organization` will be sharing `Project`s.
 
 <CodeGroup>
 ```ts twoslash
-import { co, CoMap, CoList } from "jazz-tools";
+import { co, z } from "jazz-tools";
 // ---cut---
 // schema.ts
-export class Project extends CoMap {
-  name = coField.string;
-}
+export const Project = co.map({
+  name: z.string(),
+});
 
-export class ListOfProjects extends CoList.Of(coField.ref(Project)) {}
-
-export class Organization extends CoMap {
-  name = coField.string;
+export const Organization = co.map({
+  name: z.string(),
 
   // shared data between users of each organization
-  projects = coField.ref(ListOfProjects);
-}
+  projects: co.list(Project),
+});
 
-export class ListOfOrganizations extends CoList.Of(coField.ref(Organization)) {}
+export const ListOfOrganizations = co.list(Organization);
 ```
 </CodeGroup>
 
@@ -49,54 +46,47 @@ Let's add the list of `Organization`s to the user's Account `root` so they can a
 
 <CodeGroup>
 ```ts twoslash
-import { co, CoMap, CoList, Account, Group } from "jazz-tools";
-export class Project extends CoMap {
- name = co.string;
-}
+import { Group, co, z } from "jazz-tools";
+export const Project = co.map({
+  name: z.string(),
+});
 
-export class ListOfProjects extends CoList.Of(co.ref(Project)) {}
+export const Organization = co.map({
+  name: z.string(),
 
-export class Organization extends CoMap {
- name = co.string;
+  // shared data between users of each organization
+  projects: co.list(Project),
+});
 
- // shared data between users of each organization
- projects = co.ref(ListOfProjects);
-}
-
-export class ListOfOrganizations extends CoList.Of(co.ref(Organization)) {}
 // ---cut---
 // schema.ts
-export class JazzAccountRoot extends CoMap {
-  organizations = coField.ref(ListOfOrganizations);
-}
+export const JazzAccountRoot = co.map({
+  organizations: co.list(Organization),
+});
 
-export class JazzAccount extends Account {
-  root = coField.ref(JazzAccountRoot);
-
-  async migrate() {
-    if (this.root === undefined) {
+export const JazzAccount = co
+  .account({
+    root: JazzAccountRoot,
+    profile: co.profile({}),
+  })
+  .withMigration((account) => {
+    if (account.root === undefined) {
       // Using a Group as an owner allows you to give access to other users
       const organizationGroup = Group.create();
 
-      const organizations = ListOfOrganizations.create(
-        [
-          // Create the first Organization so users can start right away
-          Organization.create(
-            {
-              name: "My organization",
-              projects: ListOfProjects.create([], organizationGroup),
-            },
-            organizationGroup,
-          ),
-        ],
-      );
-
-      this.root = JazzAccountRoot.create(
-        { organizations },
-      );
+      const organizations = co.list(Organization).create([
+        // Create the first Organization so users can start right away
+        Organization.create(
+          {
+            name: "My organization",
+            projects: co.list(Project).create([], organizationGroup),
+          },
+          organizationGroup,
+        ),
+      ]);
+      account.root = JazzAccountRoot.create({ organizations });
     }
-  }
-}
+  });
 ```
 </CodeGroup>
 
@@ -104,12 +94,16 @@ This schema now allows users to create `Organization`s and add `Project`s to the
 
 [See the schema for the example app here.](https://github.com/garden-co/jazz/blob/main/examples/organization/src/schema.ts)
 
-## Adding other users to an Organization
+## Adding members to an Organization
 
-To give users access to an `Organization`, you can either send them an invite link, or
-add their `Account` manually.
+Here are different ways to add members to an `Organization`.
 
-### Adding users through invite links
+- Send users an invite link.
+- [The user requests to join.](/docs/groups/sharing#requesting-invites)
+
+This guide and the example app show you the first method.
+
+### Adding members through invite links
 
 Here's how you can generate an [invite link](/docs/groups/sharing#invites).
 
@@ -117,44 +111,35 @@ When the user accepts the invite, add the `Organization` to the user's `organiza
 
 <CodeGroup>
 ```tsx twoslash
-import { useAcceptInvite, useAccount } from "jazz-react";
-import { ID } from "jazz-tools";
-import { Account, CoList, CoMap, Group, co } from "jazz-tools";
 import * as React from "react";
+import { useAcceptInvite, useAccount } from "jazz-react";
+import { co, z } from "jazz-tools";
 
-export class Project extends CoMap {
-  name = co.string;
-}
+const Project = z.object({
+  name: z.string(),
+});
 
-export class ListOfProjects extends CoList.Of(co.ref(Project)) {}
+const Organization = co.map({
+  name: z.string(),
+  projects: co.list(Project),
+});
 
-export class Organization extends CoMap {
-  name = co.string;
-  projects = co.ref(ListOfProjects);
-}
+const JazzAccountRoot = co.map({
+  organizations: co.list(Organization),
+});
 
-export class ListOfOrganizations extends CoList.Of(co.ref(Organization)) {}
+const JazzAccount = co.account({
+  root: JazzAccountRoot,
+  profile: co.profile({}),
+});
 
-export class JazzAccountRoot extends CoMap {
-  organizations = co.ref(ListOfOrganizations);
-}
-
-export class JazzAccount extends Account {
-  root = co.ref(JazzAccountRoot);
-}
-
-declare module "jazz-react" {
-  interface Register {
-    Account: JazzAccount;
-  }
-}
 // ---cut---
 export function AcceptInvitePage() {
-  const { me } = useAccount({
+  const { me } = useAccount(JazzAccount, {
     resolve: { root: { organizations: { $each: { $onError: null } } } },
   });
 
-  const onAccept = (organizationId: ID<Organization>) => {
+  const onAccept = (organizationId: string) => {
     if (me) {
       Organization.load(organizationId).then((organization) => {
         if (organization) {
@@ -180,6 +165,7 @@ export function AcceptInvitePage() {
 ```
 </CodeGroup>
 
-### Adding users through their Account ID
+## Further reading
 
-...more on this coming soon
+- [Allowing users to request an invite to join a Group](/docs/groups/sharing#requesting-invites)
+- [Groups as permission scopes](/docs/groups/intro#adding-group-members-by-id)

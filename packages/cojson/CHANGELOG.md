@@ -1,5 +1,29 @@
 # cojson
 
+## 0.14.18
+
+### Patch Changes
+
+- 0d5ee3e: Enable react-native-quick-crypto xsalsa20 accelerated algorithm for encrypt/decrypt functions
+
+## 0.14.16
+
+### Patch Changes
+
+- 5e253cc: Version bump
+
+## 0.14.15
+
+### Patch Changes
+
+- 23daa7c: Align the processing of the group dependencies between LocalNode and Storage.
+
+## 0.14.1
+
+### Patch Changes
+
+- c8b33ad: Force sync of the group after acceptInvite
+
 ## 0.14.0
 
 ### Minor Changes

@@ -1,5 +1,102 @@
 # jazz-tools
 
+## 0.14.18
+
+### Patch Changes
+
+- 4b950bc: Fixes support for recursive props on co.profile and for co.image inside z.discriminatedUnion
+- d6d9c0a: Make checks on the discriminator field on z.discriminatedUnion more specific and less strict
+- c559054: Add support for optional dates
+- Updated dependencies [0d5ee3e]
+  - cojson@0.14.18
+
+## 0.14.17
+
+### Patch Changes
+
+- e512df4: Move to latest stable version of Zod
+
+## 0.14.16
+
+### Patch Changes
+
+- Updated dependencies [5e253cc]
+  - cojson@0.14.16
+
+## 0.14.15
+
+### Patch Changes
+
+- Updated dependencies [23daa7c]
+  - cojson@0.14.15
+
+## 0.14.14
+
+### Patch Changes
+
+- e32a1f7: Add useAnonymousFallback option in JazzContextManager
+
+## 0.14.10
+
+### Patch Changes
+
+- dc746a2: Make the react peerDependency definition more relaxed
+- f869d9a: Deprecated the withHelpers method in favor of standalone functions
+- 3fe6832: Add support for z.catch/default. We ignore them for the moment and flag a warning.
+
+## 0.14.9
+
+### Patch Changes
+
+- 22c2600: Move back to zod as dependency and clean up zod re-export
+
+## 0.14.8
+
+### Patch Changes
+
+- 637ae13: Use our Zod v4 fork with the React Native fixes
+
+## 0.14.7
+
+### Patch Changes
+
+- 365b0ea: reduce the z exported APIs to the ones we support and fix compatible types
+
+## 0.14.6
+
+### Patch Changes
+
+- 9d6d9fe: Fixes co.fileStream create and createFromBlob types
+- 9d6d9fe: Fixes init type for CoList, CoFeed and CoRecord to accept optional partially loaded values
+
+## 0.14.5
+
+### Patch Changes
+
+- 91cbb2f: Fix CoMap.create with optional types
+- 20b3d88: Add co.loaded utility
+
+## 0.14.4
+
+### Patch Changes
+
+- 011af55: Support z.enum in the schema definitions
+
+## 0.14.2
+
+### Patch Changes
+
+- 3d1027f: Make possible to extend a group without having access to it
+- c240eed: Fix custom AccountSchema support in testing utils
+
+## 0.14.1
+
+### Patch Changes
+
+- cdfc105: Make the profile access on Group members trigger updates correctly
+- Updated dependencies [c8b33ad]
+  - cojson@0.14.1
+
 ## 0.14.0
 
 ### Minor Changes

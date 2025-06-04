@@ -180,10 +180,10 @@ export class StorageManagerSync {
     coValueRow: StoredCoValueRow,
     contentMessage: CojsonInternalTypes.NewContentMessage,
   ) {
-    const dependedOnCoValuesList = getDependedOnCoValues({
-      coValueRow,
-      newContentMessages: [contentMessage],
-    });
+    const dependedOnCoValuesList = getDependedOnCoValues(
+      coValueRow.header,
+      contentMessage,
+    );
 
     for (const dependedOnCoValue of dependedOnCoValuesList) {
       if (this.loadedCoValues.has(dependedOnCoValue)) {

@@ -1,4 +1,3 @@
-import z from "zod/v4";
 import {
   Account,
   CoFeed,
@@ -15,6 +14,7 @@ import { AnyCoMapSchema } from "../schemaTypes/CoMapSchema.js";
 import { FileStreamSchema } from "../schemaTypes/FileStreamSchema.js";
 import { PlainTextSchema } from "../schemaTypes/PlainTextSchema.js";
 import { RichTextSchema } from "../schemaTypes/RichTextSchema.js";
+import { z } from "../zodReExport.js";
 import { InstanceOrPrimitiveOfSchema } from "./InstanceOrPrimitiveOfSchema.js";
 
 export type InstanceOfSchema<S extends CoValueClass | z.core.$ZodType> =

@@ -133,14 +133,14 @@ export const docNavigationItems = [
       //   done: 100,
       //   framework: "react-native",
       // },
-      {
-        // upgrade guides
-        name: "0.9.2 - Local persistence on React Native Expo",
-        href: "/docs/upgrade/react-native-local-persistence",
-        done: 100,
-        framework: "react-native-expo",
-        excludeFromNavigation: true,
-      },
+      // {
+      //   // upgrade guides
+      //   name: "0.9.2 - Local persistence on React Native Expo",
+      //   href: "/docs/upgrade/react-native-local-persistence",
+      //   done: 100,
+      //   framework: "react-native-expo",
+      //   excludeFromNavigation: true,
+      // },
       // {
       //   // upgrade guides
       //   name: "0.9.0 - Top level imports",
@@ -287,7 +287,7 @@ export const docNavigationItems = [
     name: "Design patterns",
     items: [
       {
-        name: "Form",
+        name: "Autosaving forms",
         href: "/docs/design-patterns/form",
         done: 100,
       },

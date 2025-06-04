@@ -1,4 +1,3 @@
-import z from "zod/v4";
 import {
   Account,
   CoFeed,
@@ -12,6 +11,13 @@ import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOfSchema } from "../typeConverters/InstanceOfSchema.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
+import { z } from "../zodReExport.js";
+
+type CoFeedInit<T extends z.core.$ZodType> = Array<
+  T extends z.core.$ZodOptional<any>
+    ? InstanceOrPrimitiveOfSchemaCoValuesNullable<T>
+    : NonNullable<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>>
+>;
 
 export type CoFeedSchema<T extends z.core.$ZodType> = z.core.$ZodCustom<
   CoFeed<InstanceOfSchema<T>>,
@@ -22,7 +28,7 @@ export type CoFeedSchema<T extends z.core.$ZodType> = z.core.$ZodCustom<
   element: T;
 
   create(
-    init: InstanceOrPrimitiveOfSchema<T>[],
+    init: CoFeedInit<T>,
     options?: { owner: Account | Group } | Account | Group,
   ): CoFeedInstance<T>;
 
