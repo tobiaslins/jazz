@@ -5,6 +5,17 @@ import { Icon } from "./Icon";
 import type { IconName } from "./Icon";
 import { Spinner } from "./Spinner";
 
+export interface VariantClasses {
+  primary: string;
+  secondary: string;
+  info: string;
+  success: string;
+  warning: string;
+  danger: string;
+  alert: string;
+  tip: string;
+}
+
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?:
     | "primary"
@@ -48,8 +59,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       children,
       size = "md",
       variant = "primary",
-      color = "default",
-      styleVariant = "default",
+      color,
+      styleVariant,
       href,
       disabled,
       newTab,
@@ -67,44 +78,43 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       lg: "md:text-lg  py-2 px-3 md:px-8 md:py-3",
     };
 
-    const variantClasses = {
-      primary: "bg-primary hover:bg-primary-transparent",
-      secondary: "bg-secondary hover:bg-secondary-transparent",
-      info: "bg-info hover:bg-info-transparent",
-      warning: "bg-warning hover:bg-warning-transparent",
-      success: "bg-success hover:bg-success-transparent",
-      danger: "bg-danger hover:bg-danger-transparent",
-      alert: "bg-alert hover:bg-alert-transparent",
-      tip: "bg-tip hover:bg-tip-transparent",
-    };
+    const variantClass = `bg-${variant} hover:bg-${variant}-transparent text-white`;
 
     const colorClasses = {
       light:
         "bg-stone-200 text-stone-700 dark:text-stone-900 hover:bg-stone-200/80",
-      dark: "bg-stone-900 text-stone-900 hover:bg-stone-900/80",
-      white: "bg-white text-pink dark:text-black hover:bg-white/80",
+      dark: "bg-stone-900 text-stone-200 hover:bg-stone-900/80",
+      white: "bg-white text-black dark:text-black hover:bg-white/80",
       black: "bg-black text-white dark:bg-black hover:bg-black/50",
-      default: "",
     };
 
     const styleClasses = {
       outline: `border border-${variant} bg-transparent hover:bg-transparent m-[0.07rem] hover:m-0 text-${variant} hover:border-2`,
-      inverted:
-        "bg-blue/20 dark:bg-blue/20 text-primary dark:text-primary hover:bg-blue/30 dark:hover:bg-blue/30",
-      ghost:
-        "bg-transparent text-primary dark:text-primary hover:bg-blue/10 dark:hover:bg-blue/20",
-      text: "bg-transparent text-primary dark:text-primary underline underline-offset-2 hover:bg-transparent hover:text-primary-dark dark:hover:text-primary-dark",
-      default: "",
+      inverted: `bg-${variant}/20 dark:bg-${variant}/20 text-${variant} dark:text-${variant} hover:bg-${variant}/30 dark:hover:bg-${variant}/30`,
+      ghost: `bg-transparent text-${variant} dark:text-${variant} hover:bg-${variant}/10 dark:hover:bg-${variant}/20`,
+      text: `bg-transparent text-${variant} dark:text-${variant} underline underline-offset-2 hover:bg-transparent hover:text-${variant}-dark dark:hover:text-primary-dark`,
     };
+
+    const getClasses = ({
+      styleVariant,
+    }: { styleVariant: string | undefined }) => {
+      return {
+        [sizeClasses[size as keyof typeof sizeClasses]]: size,
+        [variantClass]: !styleVariant && !color,
+        [colorClasses[color as keyof typeof colorClasses]]:
+          color && !styleVariant,
+        [styleClasses[styleVariant as keyof typeof styleClasses]]:
+          styleVariant && !color,
+      };
+    };
+
+    const classes = getClasses({ styleVariant });
 
     const classNames = clsx(
       className,
-      "inline-flex items-center justify-center gap-2 rounded-lg text-center transition-colors text-white font-medium box-content",
+      "inline-flex items-center justify-center gap-2 rounded-lg text-center transition-colors font-medium box-content",
+      getClasses({ styleVariant }),
       "disabled:pointer-events-none disabled:opacity-70",
-      sizeClasses[size as keyof typeof sizeClasses],
-      variantClasses[variant as keyof typeof variantClasses],
-      colorClasses[color as keyof typeof colorClasses],
-      styleClasses[styleVariant as keyof typeof styleClasses],
       disabled && "opacity-50 cursor-not-allowed pointer-events-none",
     );
 
