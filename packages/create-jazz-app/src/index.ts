@@ -18,6 +18,11 @@ import {
 } from "./config.js";
 import { type PackageManager, getPkgManager } from "./utils.js";
 
+// Handle SIGINT (Ctrl+C) gracefully
+process.on("SIGINT", () => {
+  process.exit(0);
+});
+
 const program = new Command();
 
 type ScaffoldOptions = {
