@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Buttons } from "./components/Buttons";
 import { Colors } from "./components/Colors";
 import { Forms } from "./components/Forms";
 import { Typography } from "./components/Typography";
@@ -7,7 +8,7 @@ const designSystemTopics = [
   "Colors",
   "Typography",
   "Forms",
-  // 'Buttons',
+  "Buttons",
   // 'Components',
 ];
 
@@ -26,10 +27,10 @@ export default function Home() {
           Jazz Design System
         </h1>
 
+        <Buttons />
         <Colors />
         <Typography />
-        {/* <Buttons />
-        <Components /> */}
+        {/* <Components /> */}
         <Forms />
       </div>
     </main>

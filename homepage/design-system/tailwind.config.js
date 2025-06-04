@@ -52,17 +52,45 @@ const config = {
         ...harmonyPalette,
         stone: stonePaletteWithAlpha,
         blue: jazzBlue,
-        primary: "var(--color-primary)",
-        secondary: "var(--color-secondary)",
-        highlight: "var(--color-transparent-primary)",
-        success: "var(--color-success)",
-        info: "var(--color-info)",
-        warning: "var(--color-warning)",
-        tip: "var(--color-tip)",
+        primary: {
+          DEFAULT: "var(--color-primary)",
+          transparent: "var(--color-transparent-primary)",
+          dark: "var(--color-primary-dark)",
+          light: "var(--color-primary-light)",
+        },
+        secondary: {
+          DEFAULT: "var(--color-secondary)",
+          transparent: "var(--color-transparent-secondary)",
+        },
+        success: {
+          DEFAULT: "var(--color-success)",
+          transparent: "lch(from var(--color-success) l c h / 0.8)",
+        },
+        info: {
+          DEFAULT: "var(--color-info)",
+          transparent: "lch(from var(--color-info) l c h / 0.8)",
+        },
+        warning: {
+          DEFAULT: "var(--color-warning)",
+          transparent: "lch(from var(--color-warning) l c h / 0.8)",
+        },
+        // tip: "var(--color-tip)",
         green: {
           DEFAULT: "var(--color-green)",
+          transparent: "lch(from var(--color-green) l c h / 0.8)",
         },
-        error: "var(--color-error)",
+        danger: {
+          DEFAULT: "var(--color-danger)",
+          transparent: "lch(from var(--color-danger) l c h / 0.8)",
+        },
+        tip: {
+          DEFAULT: "var(--color-tip)",
+          transparent: "lch(from var(--color-tip) l c h / 0.8)",
+        },
+        alert: {
+          DEFAULT: "var(--color-alert)",
+          transparent: "lch(from var(--color-alert) l c h / 0.8)",
+        },
       },
       textColor: {
         default: "var(--color-default)",

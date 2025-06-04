@@ -35,10 +35,12 @@ export function Colors() {
       <div className="grid grid-cols-2 gap-2 p-3">
         <div className="bg-primary text-white p-3 rounded-md">Primary</div>
         <div className="bg-secondary text-white p-3 rounded-md">Secondary</div>
+        <div className="bg-tip text-white p-3 rounded-md">Tip</div>
+        <div className="bg-info text-white p-3 rounded-md">Info</div>
         <div className="bg-success text-white p-3 rounded-md">Success</div>
         <div className="bg-warning text-white p-3 rounded-md">Warning</div>
-        <div className="bg-error text-white p-3 rounded-md">Error</div>
-        <div className="bg-info text-white p-3 rounded-md">Info</div>
+        <div className="bg-alert text-white p-3 rounded-md">Alert</div>
+        <div className="bg-danger text-white p-3 rounded-md">Danger</div>
       </div>
       <p className="text-xs mt-1 mb-4">
         NB: These classes should be used across all apps as the primary an
