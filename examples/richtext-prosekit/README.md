@@ -1,8 +1,10 @@
-# Jazz RichText Tiptap Example
+# Jazz RichText ProseKit Example
 
-A demonstration of collaborative rich text editing with Jazz, React, and Tiptap.
+A demonstration of collaborative rich text editing with Jazz, React, and ProseKit.
 
-Live version: [https://richtext-tiptap.demo.jazz.tools](https://richtext-tiptap.demo.jazz.tools)
+Original implementation by [prosekit](https://github.com/prosekit/prosekit-jazz)
+
+Live version: [https://richtext-prosekit.demo.jazz.tools](https://richtext-prosekit.demo.jazz.tools)
 
 ## Overview
 
@@ -10,14 +12,8 @@ This example shows how to implement collaborative rich text editing using:
 
 - **Jazz** for real-time synchronization
 - **CoRichText** for collaborative rich text data structures
-- **Tiptap** for the rich text editor UI
+- **ProseKit** for the rich text editor UI
 - **React** for the component framework
-
-The example features:
-
-- Side-by-side plaintext and rich text editors
-- Real-time collaboration across devices
-- Persistent document storage
 
 ## Getting started
 
@@ -31,13 +27,13 @@ You can either
 Create a new Jazz project, and use this example as a template.
 
 ```bash
-npx create-jazz-app@latest richtext-tiptap-app --example richtext-tiptap
+npx create-jazz-app@latest richtext-prosekit-app --example richtext-prosekit
 ```
 
 Go to the new project directory.
 
 ```bash
-cd richtext-tiptap-app
+cd richtext-prosekit-app
 ```
 
 Run the dev server.
@@ -65,7 +61,7 @@ pnpm i && npx turbo build
 Go to the example directory.
 
 ```bash
-cd jazz/examples/richtext-tiptap/
+cd jazz/examples/richtext-prosekit/
 ```
 
 Start the dev server.
@@ -81,13 +77,13 @@ Open [http://localhost:5173](http://localhost:5173) with your browser to see the
 This example demonstrates two key functionalities:
 
 1. **CoRichText** - Jazz's collaborative rich text data structure
-2. **Rich text integration** - Using Tiptap with Jazz
+2. **Rich text integration** - Using ProseKit with Jazz
 
 ### Key components
 
 - `src/schema.ts` - Defines the data model, including the `bio` field using CoRichText
 - `src/Editor.tsx` - Implements both plaintext and rich text editor views
-- `jazz-richtext-tiptap` - Provides the plugin that connects Jazz to Tiptap
+- `jazz-richtext-prosekit` - Provides the plugin that connects Jazz to ProseKit
 
 ### Implementation details
 
@@ -95,7 +91,7 @@ The example shows how to:
 
 - Create and store CoRichText values
 - Set up a plaintext editor with CoRichText
-- Set up a Tiptap editor with a Jazz plugin
+- Set up a ProseKit editor with a Jazz plugin
 
 ## Extending this example
 
@@ -117,8 +113,9 @@ To learn more about Jazz's collaborative text capabilities:
 
 - [Jazz documentation](https://jazz.tools/docs)
 - [CoText documentation](https://jazz.tools/docs/using-covalues/cotext)
-- [Tiptap documentation](https://tiptap.dev/docs)
+- [ProseKit documentation](https://prosekit.dev/getting-started/introduction/)
 
 ## Questions / problems / feedback
 
 If you have feedback, let us know on [Discord](https://discord.gg/utDMjHYg42) or open an issue or PR to fix something that seems wrong.
+
