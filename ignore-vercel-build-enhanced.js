@@ -1,6 +1,6 @@
 import { execSync } from "child_process";
 import { existsSync, readFileSync } from "fs";
-import { join, relative } from "path";
+import { join } from "path";
 
 // Get current app name from package.json (what Turbo uses)
 function getCurrentAppName() {
