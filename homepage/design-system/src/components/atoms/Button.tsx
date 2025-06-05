@@ -45,11 +45,11 @@ function ButtonIcon({ icon, loading }: ButtonProps) {
 
   const className = "size-5";
 
-  if (loading) return <Spinner className={className} />;
-
-  if (icon) {
-    return <Icon name={icon} className={className} />;
-  }
+  return loading ? (
+    <Spinner className={className} />
+  ) : icon ? (
+    <Icon name={icon} className={className} />
+  ) : null;
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -250,7 +250,7 @@ const variantClass = (variant: keyof typeof variantToBgMap) =>
 
 const styleClasses = (variant: keyof typeof variantToBgMap) => {
   return {
-    outline: `border ${variantToBorderMap[variant]} bg-transparent hover:bg-transparent m-[0.07rem] hover:m-0 ${variantToTextMap[variant]} hover:border-2 dark:border-${variant}`,
+    outline: `border ${variantToBorderMap[variant]} bg-transparent hover:bg-transparent my-[0.06rem] hover:m-0 ${variantToTextMap[variant]} hover:border-2 dark:border-${variant}`,
     inverted: `${variantToTextMap[variant]} ${colorToBgHoverMap30[variantToColorMap[variant] as keyof typeof colorToBgHoverMap30]} ${colorToBgMap[variantToColorMap[variant] as keyof typeof colorToBgMap]}`,
     ghost: `bg-transparent ${variantToTextMap[variant]} ${colorToBgHoverMap10[variantToColorMap[variant] as keyof typeof colorToBgHoverMap10]}`,
     text: `bg-transparent ${variantToTextMap[variant]} underline underline-offset-2 hover:bg-transparent ${variantToTextHoverMap[variant]}`,
