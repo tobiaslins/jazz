@@ -45,8 +45,8 @@ function turboHasChanges(currentAppName) {
       // Check changes since last deployment
       filterCommand = `pnpm turbo run build --filter=${currentAppName}...[${previousSha}] --dry-run`;
     } else {
-      // Fallback to HEAD~1
-      filterCommand = `pnpm turbo run build --filter=${currentAppName}...[HEAD~1] --dry-run`;
+      // Fallback to main branch
+      filterCommand = `pnpm turbo run build --filter=${currentAppName}...[main] --dry-run`;
     }
 
     console.log(`🎯 Running: ${filterCommand}`);
