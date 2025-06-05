@@ -27,7 +27,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     | "alert"
     | "tip";
   color?: "light" | "dark" | "white" | "black" | "default";
-  styleVariant?: "outline" | "inverted" | "ghost" | "text" | "default";
+  style?: "outline" | "inverted" | "ghost" | "text" | "default";
   state?: "hover" | "active" | "focus" | "disabled";
   size?: "sm" | "md" | "lg";
   href?: string;
@@ -60,7 +60,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       size = "md",
       variant = "primary",
       color,
-      styleVariant,
+      style: styleVariant,
       href,
       disabled,
       newTab,

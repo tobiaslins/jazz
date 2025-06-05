@@ -32,10 +32,10 @@ export function Buttons() {
       <h3 className="text-lg mt-5 mb-2 font-bold">Styles</h3>
 
       <div className="grid grid-cols-2 gap-2">
-        <Button styleVariant="outline">outline</Button>
-        <Button styleVariant="inverted">inverted</Button>
-        <Button styleVariant="ghost">ghost</Button>
-        <Button styleVariant="text">text</Button>
+        <Button style="outline">outline</Button>
+        <Button style="inverted">inverted</Button>
+        <Button style="ghost">ghost</Button>
+        <Button style="text">text</Button>
       </div>
     </div>
   );
