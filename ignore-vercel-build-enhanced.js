@@ -20,7 +20,18 @@ function gitCommand(command) {
 
 // Get list of changed files since last deployment
 function getChangedFiles() {
-  // Try to get files changed since the last commit on the main branch
+  const previousSha = process.env.VERCEL_GIT_PREVIOUS_SHA;
+
+  if (previousSha) {
+    // Compare against the last successful deployment
+    const changedFiles = gitCommand(`git diff --name-only ${previousSha} HEAD`);
+    if (changedFiles) {
+      console.log(`📊 Comparing against last deployment: ${previousSha}`);
+      return changedFiles.split("\n").filter((file) => file.trim() !== "");
+    }
+  }
+
+  // Fallback to current logic
   let changedFiles = gitCommand("git diff --name-only HEAD~1 HEAD");
 
   // If that fails, get files changed in the current commit
@@ -68,10 +79,7 @@ function getProjectDependencies(projectPath) {
 
     // Filter to only local workspace dependencies
     return Object.keys(deps).filter(
-      (dep) =>
-        deps[dep].startsWith("workspace:") ||
-        dep.startsWith("@jazz-tools/") ||
-        dep.startsWith("jazz-"),
+      (dep) => deps[dep].startsWith("workspace:") || dep.startsWith("jazz-"),
     );
   } catch (error) {
     console.log(
