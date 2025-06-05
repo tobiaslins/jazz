@@ -27,9 +27,9 @@ export default function Home() {
           Jazz Design System
         </h1>
 
-        <Buttons />
         <Colors />
         <Typography />
+        <Buttons />
         {/* <Components /> */}
         <Forms />
       </div>
