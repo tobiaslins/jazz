@@ -1,6 +1,6 @@
 import { execSync } from "child_process";
 import { existsSync, readFileSync } from "fs";
-import { join } from "path";
+import { join, relative } from "path";
 
 const branchName =
   process.env.VERCEL_GIT_COMMIT_REF ||
@@ -37,31 +37,19 @@ function getChangedFiles() {
   return changedFiles.split("\n").filter((file) => file.trim() !== "");
 }
 
-// Determine project path from APP_NAME
-function getProjectPath(appName) {
-  if (appName === homepageAppName) {
-    return "homepage/homepage";
-  }
+// Get current project path relative to repo root
+function getCurrentProjectPath() {
+  const cwd = process.cwd();
+  const repoRoot =
+    process.env.VERCEL_ROOT ||
+    gitCommand("git rev-parse --show-toplevel") ||
+    cwd;
 
-  // Check examples first
-  const examplePath = `examples/${appName.replace(/^jazz-/, "")}`;
-  if (existsSync(examplePath)) {
-    return examplePath;
-  }
+  // Get relative path from repo root to current directory
+  const projectPath = relative(repoRoot, cwd);
 
-  // Check starters
-  const starterPath = `starters/${appName.replace(/^jazz-/, "")}`;
-  if (existsSync(starterPath)) {
-    return starterPath;
-  }
-
-  // Fallback - try the exact app name
-  if (existsSync(appName)) {
-    return appName;
-  }
-
-  console.log(`⚠️  Could not determine project path for ${appName}`);
-  return null;
+  // If we're at repo root, return empty string
+  return projectPath === "" ? "." : projectPath;
 }
 
 // Get dependencies from package.json
@@ -78,7 +66,7 @@ function getProjectDependencies(projectPath) {
       ...packageJson.devDependencies,
     };
 
-    // Filter to only local workspace dependencies (packages that start with workspace path)
+    // Filter to only local workspace dependencies
     return Object.keys(deps).filter(
       (dep) =>
         deps[dep].startsWith("workspace:") ||
@@ -173,26 +161,26 @@ if (!changedFiles) {
 console.log(`📁 Changed files: ${changedFiles.length}`);
 console.log(changedFiles.map((f) => `  - ${f}`).join("\n"));
 
-const projectPath = getProjectPath(currentAppName);
-if (!projectPath) {
-  console.log(
-    "✅ Could not determine project path, proceeding with build for safety.",
-  );
-  process.exit(1);
-}
-
+const projectPath = getCurrentProjectPath();
 console.log(`📂 Project path: ${projectPath}`);
 
-// Check if project files changed
-const projectChanged = changedFiles.some((file) =>
-  file.startsWith(projectPath + "/"),
-);
+// Check if current project files changed
+const projectChanged = changedFiles.some((file) => {
+  // Check if file is in current project directory
+  if (projectPath === ".") {
+    // We're at repo root, check for root-level changes
+    return !file.includes("/");
+  } else {
+    // Check if file is in our project directory
+    return file.startsWith(projectPath + "/") || file === projectPath;
+  }
+});
 
 // Check if global config changed
 const globalChanged = globalConfigChanged(changedFiles);
 
 // Check if dependencies changed
-const dependencies = getProjectDependencies(projectPath);
+const dependencies = getProjectDependencies(".");
 const depsChanged = workspacePackagesChanged(changedFiles, dependencies);
 
 console.log(`📊 Change analysis:`);
