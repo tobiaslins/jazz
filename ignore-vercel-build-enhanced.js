@@ -2,10 +2,26 @@ import { execSync } from "child_process";
 import { existsSync, readFileSync } from "fs";
 import { join, relative } from "path";
 
+// Get current app name from package.json (what Turbo uses)
+function getCurrentAppName() {
+  try {
+    const packageJsonPath = join(process.cwd(), "package.json");
+    if (existsSync(packageJsonPath)) {
+      const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
+      return packageJson.name;
+    }
+  } catch (error) {
+    console.log("⚠️  Could not read package.json, falling back to APP_NAME");
+  }
+
+  // Fallback to environment variable
+  return process.env.APP_NAME;
+}
+
 const branchName =
   process.env.VERCEL_GIT_COMMIT_REF ||
   execSync("git rev-parse --abbrev-ref HEAD").toString().trim();
-const currentAppName = process.env.APP_NAME;
+const currentAppName = getCurrentAppName();
 const homepageAppName = "jazz-homepage";
 
 // Helper function to execute git commands safely
@@ -18,112 +34,38 @@ function gitCommand(command) {
   }
 }
 
-// Get list of changed files since last deployment
-function getChangedFiles() {
+// Check if Turbo would run any tasks for this app based on changes
+function turboHasChanges(currentAppName) {
   const previousSha = process.env.VERCEL_GIT_PREVIOUS_SHA;
 
-  if (previousSha) {
-    // Compare against the last successful deployment
-    const changedFiles = gitCommand(`git diff --name-only ${previousSha} HEAD`);
-    if (changedFiles) {
-      console.log(`📊 Comparing against last deployment: ${previousSha}`);
-      return changedFiles.split("\n").filter((file) => file.trim() !== "");
-    }
-  }
-
-  // Fallback to current logic
-  let changedFiles = gitCommand("git diff --name-only HEAD~1 HEAD");
-
-  // If that fails, get files changed in the current commit
-  if (!changedFiles) {
-    changedFiles = gitCommand("git diff --name-only HEAD^ HEAD");
-  }
-
-  // If still no files, assume we need to build (safety fallback)
-  if (!changedFiles) {
-    console.log("⚠️  Could not determine changed files, proceeding with build");
-    return null;
-  }
-
-  return changedFiles.split("\n").filter((file) => file.trim() !== "");
-}
-
-// Get current project path relative to repo root
-function getCurrentProjectPath() {
-  const cwd = process.cwd();
-  const repoRoot =
-    process.env.VERCEL_ROOT ||
-    gitCommand("git rev-parse --show-toplevel") ||
-    cwd;
-
-  // Get relative path from repo root to current directory
-  const projectPath = relative(repoRoot, cwd);
-
-  // If we're at repo root, return empty string
-  return projectPath === "" ? "." : projectPath;
-}
-
-// Get dependencies from package.json
-function getProjectDependencies(projectPath) {
-  const packageJsonPath = join(projectPath, "package.json");
-  if (!existsSync(packageJsonPath)) {
-    return [];
-  }
-
   try {
-    const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
-    const deps = {
-      ...packageJson.dependencies,
-      ...packageJson.devDependencies,
-    };
+    let filterCommand;
 
-    // Filter to only local workspace dependencies
-    return Object.keys(deps).filter(
-      (dep) => deps[dep].startsWith("workspace:") || dep.startsWith("jazz-"),
-    );
-  } catch (error) {
-    console.log(
-      `Error reading package.json for ${projectPath}:`,
-      error.message,
-    );
-    return [];
-  }
-}
-
-// Check if any workspace packages changed
-function workspacePackagesChanged(changedFiles, dependencies) {
-  return changedFiles.some((file) => {
-    // Check if any file in packages/ directory changed
-    if (file.startsWith("packages/")) {
-      const packageName = file.split("/")[1];
-      // Check if this package is a dependency of our project
-      return dependencies.some(
-        (dep) =>
-          dep.includes(packageName) ||
-          file.startsWith(`packages/${packageName}`),
-      );
+    if (previousSha) {
+      // Check changes since last deployment
+      filterCommand = `pnpm turbo run build --filter=${currentAppName}...[${previousSha}] --dry-run`;
+    } else {
+      // Fallback to HEAD~1
+      filterCommand = `pnpm turbo run build --filter=${currentAppName}...[HEAD~1] --dry-run`;
     }
-    return false;
-  });
-}
 
-// Check if global configuration files changed
-function globalConfigChanged(changedFiles) {
-  const globalFiles = [
-    "package.json",
-    "pnpm-lock.yaml",
-    "pnpm-workspace.yaml",
-    "turbo.json",
-    "tsconfig.json",
-    "vite.config.ts",
-    "biome.json",
-    ".npmrc",
-    ".nvmrc",
-    "ignore-vercel-build.js",
-    "ignore-vercel-build-enhanced.js",
-  ];
+    console.log(`🎯 Running: ${filterCommand}`);
+    const result = gitCommand(filterCommand);
 
-  return changedFiles.some((file) => globalFiles.includes(file));
+    if (result) {
+      // If turbo finds tasks to run, there are relevant changes
+      const hasTasksToRun =
+        result.includes(currentAppName) || result.includes("run build");
+      console.log(
+        `🎯 Turbo change detection: ${hasTasksToRun ? "changes detected" : "no changes"}`,
+      );
+      return hasTasksToRun;
+    }
+  } catch (error) {
+    console.log(`⚠️  Turbo change detection failed: ${error.message}`);
+  }
+
+  return null; // Unknown, will build for safety
 }
 
 // Main logic
@@ -131,7 +73,7 @@ console.log(
   `🔍 Checking build necessity for ${currentAppName} on branch ${branchName}`,
 );
 
-// Keep existing docs branch logic
+// Special docs branch logic
 if (
   branchName === "main" &&
   process.env.VERCEL_GIT_COMMIT_MESSAGE?.includes("docs")
@@ -157,55 +99,24 @@ if (
   }
 }
 
-// Enhanced change detection
-const changedFiles = getChangedFiles();
-if (!changedFiles) {
+// Use Turbo to determine if build is needed
+console.log("🎯 Checking with Turbo...");
+const turboChanges = turboHasChanges(currentAppName);
+
+if (turboChanges === true) {
   console.log(
-    "✅ Could not determine changes, proceeding with build for safety.",
+    `✅ Building ${currentAppName} - Turbo detected relevant changes.`,
   );
   process.exit(1);
-}
-
-console.log(`📁 Changed files: ${changedFiles.length}`);
-console.log(changedFiles.map((f) => `  - ${f}`).join("\n"));
-
-const projectPath = getCurrentProjectPath();
-console.log(`📂 Project path: ${projectPath}`);
-
-// Check if current project files changed
-const projectChanged = changedFiles.some((file) => {
-  // Check if file is in current project directory
-  if (projectPath === ".") {
-    // We're at repo root, check for root-level changes
-    return !file.includes("/");
-  } else {
-    // Check if file is in our project directory
-    return file.startsWith(projectPath + "/") || file === projectPath;
-  }
-});
-
-// Check if global config changed
-const globalChanged = globalConfigChanged(changedFiles);
-
-// Check if dependencies changed
-const dependencies = getProjectDependencies(".");
-const depsChanged = workspacePackagesChanged(changedFiles, dependencies);
-
-console.log(`📊 Change analysis:`);
-console.log(`  - Project files changed: ${projectChanged}`);
-console.log(`  - Global config changed: ${globalChanged}`);
-console.log(`  - Dependencies changed: ${depsChanged}`);
-console.log(`  - Dependencies: ${dependencies.join(", ") || "none"}`);
-
-// Decision logic
-if (projectChanged || globalChanged || depsChanged) {
+} else if (turboChanges === false) {
   console.log(
-    `✅ Building ${currentAppName} - changes detected that affect this project.`,
-  );
-  process.exit(1);
-} else {
-  console.log(
-    `🛑 Skipping build for ${currentAppName} - no relevant changes detected.`,
+    `🛑 Skipping build for ${currentAppName} - Turbo found no relevant changes.`,
   );
   process.exit(0);
+} else {
+  // Turbo failed, build for safety
+  console.log(
+    `✅ Building ${currentAppName} - Turbo check failed, proceeding for safety.`,
+  );
+  process.exit(1);
 }
