@@ -46,11 +46,11 @@ export function Buttons() {
         <Button styleVariant="outline" variant="warning">
           outline warning
         </Button>
-        <Button styleVariant="ghost" variant="info">
-          ghost info
-        </Button>
         <Button styleVariant="inverted" variant="success">
           inverted success
+        </Button>
+        <Button styleVariant="ghost" variant="info">
+          ghost info
         </Button>
         <Button styleVariant="text" variant="tip">
           text tip
