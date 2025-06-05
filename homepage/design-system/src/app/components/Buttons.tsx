@@ -39,7 +39,7 @@ export function Buttons() {
       </div>
 
       <p className="text-sm mt-5 mb-2">
-        <strong>NB:</strong> Variables and styles are interchangeable.
+        <strong>NB:</strong> Variants and styles are interchangeable.
       </p>
 
       <div className="grid grid-cols-2 gap-2">
