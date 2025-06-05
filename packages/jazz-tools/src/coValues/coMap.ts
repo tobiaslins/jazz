@@ -118,6 +118,19 @@ export class CoMap extends CoValueBase implements CoValue {
     } & { [ItemsSym]?: Schema };
   }
 
+  /** @internal */
+  get _createdAt() {
+    return this._raw.core.verified.header.createdAt
+      ? new Date(this._raw.core.verified.header.createdAt).getTime()
+      : Number.MAX_SAFE_INTEGER;
+  }
+
+  /** @internal */
+  get _lastUpdatedAt() {
+    // The latest transaction timestamp can remain unchanged (0), so falling back to the creation time is necessary
+    return this._raw.latestTxMadeAt || this._createdAt;
+  }
+
   /**
    * If property `prop` is a `coField.ref(...)`, you can use `coMaps._refs.prop` to access
    * the `Ref` instead of the potentially loaded/null value.
