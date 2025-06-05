@@ -30,6 +30,36 @@ const jazzBlue = {
   DEFAULT: COLORS.BLUE,
 };
 
+const green = {
+  ...colors.green,
+  DEFAULT: COLORS.FOREST,
+};
+
+const cyan = {
+  ...colors.cyan,
+  DEFAULT: COLORS.TURQUOISE,
+};
+
+const red = {
+  ...colors.red,
+  DEFAULT: COLORS.RED,
+};
+
+const yellow = {
+  ...colors.yellow,
+  DEFAULT: COLORS.YELLOW,
+};
+
+const orange = {
+  ...colors.orange,
+  DEFAULT: COLORS.ORANGE,
+};
+
+const purple = {
+  ...colors.purple,
+  DEFAULT: COLORS.PURPLE,
+};
+
 const stonePaletteWithAlpha = { ...stonePalette };
 
 Object.keys(stonePalette).forEach((key) => {
@@ -52,6 +82,12 @@ const config = {
         ...harmonyPalette,
         stone: stonePaletteWithAlpha,
         blue: jazzBlue,
+        green,
+        cyan,
+        red,
+        yellow,
+        purple,
+        orange,
         primary: {
           DEFAULT: "var(--color-primary)",
           transparent: "var(--color-transparent-primary)",
@@ -73,11 +109,6 @@ const config = {
         warning: {
           DEFAULT: "var(--color-warning)",
           transparent: "lch(from var(--color-warning) l c h / 0.8)",
-        },
-        // tip: "var(--color-tip)",
-        green: {
-          DEFAULT: "var(--color-green)",
-          transparent: "lch(from var(--color-green) l c h / 0.8)",
         },
         danger: {
           DEFAULT: "var(--color-danger)",

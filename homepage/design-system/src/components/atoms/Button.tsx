@@ -72,47 +72,24 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref,
   ) => {
-    const sizeClasses = {
-      sm: "text-sm py-1 px-2",
-      md: "py-1.5 px-3",
-      lg: "md:text-lg  py-2 px-3 md:px-8 md:py-3",
-    };
-
-    const variantClass = `bg-${variant} hover:bg-${variant}-transparent text-white`;
-
-    const colorClasses = {
-      light:
-        "bg-stone-200 text-stone-700 dark:text-stone-900 hover:bg-stone-200/80",
-      dark: "bg-stone-900 text-stone-200 hover:bg-stone-900/80",
-      white: "bg-white text-black dark:text-black hover:bg-white/80",
-      black: "bg-black text-white dark:bg-black hover:bg-black/50",
-    };
-
-    const styleClasses = {
-      outline: `border border-${variant} bg-transparent hover:bg-transparent m-[0.07rem] hover:m-0 text-${variant} hover:border-2`,
-      inverted: `bg-${variant}/20 dark:bg-${variant}/20 text-${variant} dark:text-${variant} hover:bg-${variant}/30 dark:hover:bg-${variant}/30`,
-      ghost: `bg-transparent text-${variant} dark:text-${variant} hover:bg-${variant}/10 dark:hover:bg-${variant}/20`,
-      text: `bg-transparent text-${variant} dark:text-${variant} underline underline-offset-2 hover:bg-transparent hover:text-${variant}-dark dark:hover:text-primary-dark`,
-    };
+    const styleClass =
+      styleClasses(variant)[styleVariant as keyof typeof styleClasses] || "";
 
     const getClasses = ({
       styleVariant,
     }: { styleVariant: string | undefined }) => {
       return {
         [sizeClasses[size as keyof typeof sizeClasses]]: size,
-        [variantClass]: !styleVariant && !color,
+        [variantClass(variant)]: !styleVariant && !color,
         [colorClasses[color as keyof typeof colorClasses]]:
           color && !styleVariant,
-        [styleClasses[styleVariant as keyof typeof styleClasses]]:
-          styleVariant && !color,
+        [styleClass]: styleVariant,
       };
     };
 
-    const classes = getClasses({ styleVariant });
-
     const classNames = clsx(
       className,
-      "inline-flex items-center justify-center gap-2 rounded-lg text-center transition-colors font-medium box-content",
+      "inline-flex items-center justify-center gap-2 rounded-full text-center transition-colors",
       getClasses({ styleVariant }),
       "disabled:pointer-events-none disabled:opacity-70",
       disabled && "opacity-50 cursor-not-allowed pointer-events-none",
@@ -153,3 +130,129 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     );
   },
 );
+
+// NB: Do not touch the below code, this is to patch over the tailwind qualms, it can not even be moved. (Trust me I tried.)
+export const sizeClasses = {
+  sm: "text-sm py-1 px-2",
+  md: "py-1.5 px-3",
+  lg: "md:text-lg  py-2 px-3 md:px-8 md:py-3",
+};
+
+export const colorClasses = {
+  light:
+    "bg-stone-200 text-stone-700 dark:text-stone-900 hover:bg-stone-200/80",
+  dark: "bg-stone-900 text-stone-200 hover:bg-stone-900/80",
+  white: "bg-white text-black dark:text-black hover:bg-white/80",
+  black: "bg-black text-white dark:bg-black hover:bg-black/80",
+};
+
+const variantToBorderMap = {
+  primary: "border-primary",
+  secondary: "border-secondary",
+  info: "border-info",
+  success: "border-success",
+  warning: "border-warning",
+  danger: "border-danger",
+  alert: "border-alert",
+  tip: "border-tip",
+};
+
+const variantToBgMap = {
+  primary: "bg-primary",
+  secondary: "bg-secondary",
+  info: "bg-info",
+  success: "bg-success",
+  warning: "bg-warning",
+  danger: "bg-danger",
+  alert: "bg-alert",
+  tip: "bg-tip",
+};
+
+const variantToTextHoverMap = {
+  primary: "hover:text-primary-transparent",
+  secondary: "hover:text-secondary-transparent",
+  info: "hover:text-info-transparent",
+  success: "hover:text-success-transparent",
+  warning: "hover:text-warning-transparent",
+  danger: "hover:text-danger-transparent",
+  alert: "hover:text-alert-transparent",
+  tip: "hover:text-tip-transparent",
+};
+
+const variantToBgTransparentHoverMap = {
+  primary: "hover:bg-primary-transparent",
+  secondary: "hover:bg-secondary-transparent",
+  info: "hover:bg-info-transparent",
+  success: "hover:bg-success-transparent",
+  warning: "hover:bg-warning-transparent",
+  danger: "hover:bg-danger-transparent",
+  alert: "hover:bg-alert-transparent",
+  tip: "hover:bg-tip-transparent",
+};
+
+const variantToTextMap = {
+  primary: "text-primary",
+  secondary: "text-secondary",
+  info: "text-info",
+  success: "text-success",
+  warning: "text-warning",
+  danger: "text-danger",
+  alert: "text-alert",
+  tip: "text-tip",
+};
+
+const variantToColorMap = {
+  primary: "blue",
+  secondary: "aqua",
+  info: "purple",
+  success: "green",
+  warning: "orange",
+  danger: "red",
+  alert: "yellow",
+  tip: "cyan",
+};
+
+const colorToBgMap = {
+  blue: "bg-blue/20",
+  aqua: "bg-aqua/20",
+  purple: "bg-purple/20",
+  green: "bg-green/20",
+  orange: "bg-orange/20",
+  red: "bg-red/20",
+  yellow: "bg-yellow/20",
+  cyan: "bg-cyan/20",
+};
+
+const colorToBgHoverMap30 = {
+  blue: "hover:bg-blue/30",
+  aqua: "hover:bg-aqua/30",
+  purple: "hover:bg-purple/30",
+  green: "hover:bg-green/30",
+  orange: "hover:bg-orange/30",
+  red: "hover:bg-red/30",
+  yellow: "hover:bg-yellow/30",
+  cyan: "hover:bg-cyan/30",
+};
+
+const colorToBgHoverMap10 = {
+  blue: "hover:bg-blue/10",
+  aqua: "hover:bg-aqua/10",
+  purple: "hover:bg-purple/10",
+  green: "hover:bg-green/10",
+  orange: "hover:bg-orange/10",
+  red: "hover:bg-red/10",
+  yellow: "hover:bg-yellow/10",
+  cyan: "hover:bg-cyan/10",
+};
+
+const variantClass = (variant: keyof typeof variantToBgMap) =>
+  `${variantToBgMap[variant]} ${variantToBgTransparentHoverMap[variant]} text-white`;
+
+const styleClasses = (variant: keyof typeof variantToBgMap) => {
+  return {
+    outline: `border ${variantToBorderMap[variant]} bg-transparent hover:bg-transparent m-[0.07rem] hover:m-0 ${variantToTextMap[variant]} hover:border-2 dark:border-${variant}`,
+    inverted: `${variantToTextMap[variant]} ${colorToBgHoverMap30[variantToColorMap[variant] as keyof typeof colorToBgHoverMap30]} ${colorToBgMap[variantToColorMap[variant] as keyof typeof colorToBgMap]}`,
+    ghost: `bg-transparent ${variantToTextMap[variant]} ${colorToBgHoverMap10[variantToColorMap[variant] as keyof typeof colorToBgHoverMap10]}`,
+    text: `bg-transparent ${variantToTextMap[variant]} underline underline-offset-2 hover:bg-transparent ${variantToTextHoverMap[variant]}`,
+  };
+};
