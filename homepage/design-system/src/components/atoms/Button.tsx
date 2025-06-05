@@ -105,7 +105,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           <ButtonIcon icon={icon} loading={loading} />
           {children}
           {newTab ? (
-            <span className="inline-block text-muted relative -top-0.5 -left-2 -mr-2">
+            <span
+              className={`inline-block relative -top-0.5 -left-2 -mr-2 ${variantToTextMap[variant as keyof typeof variantToTextMap]}`}
+            >
               ⌝
             </span>
           ) : (
@@ -203,7 +205,7 @@ const variantToTextMap = {
 
 const variantToColorMap = {
   primary: "blue",
-  secondary: "aqua",
+  secondary: "indigo",
   info: "purple",
   success: "green",
   warning: "orange",
@@ -214,7 +216,7 @@ const variantToColorMap = {
 
 const colorToBgMap = {
   blue: "bg-blue/20",
-  aqua: "bg-aqua/20",
+  indigo: "bg-indigo-500/20",
   purple: "bg-purple/20",
   green: "bg-green/20",
   orange: "bg-orange/20",
@@ -225,7 +227,7 @@ const colorToBgMap = {
 
 const colorToBgHoverMap30 = {
   blue: "hover:bg-blue/30",
-  aqua: "hover:bg-aqua/30",
+  indigo: "hover:bg-indigo-500/30",
   purple: "hover:bg-purple/30",
   green: "hover:bg-green/30",
   orange: "hover:bg-orange/30",
@@ -236,7 +238,7 @@ const colorToBgHoverMap30 = {
 
 const colorToBgHoverMap10 = {
   blue: "hover:bg-blue/10",
-  aqua: "hover:bg-aqua/10",
+  indigo: "hover:bg-indigo-500/10",
   purple: "hover:bg-purple/10",
   green: "hover:bg-green/10",
   orange: "hover:bg-orange/10",
