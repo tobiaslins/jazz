@@ -47,6 +47,19 @@ function commitExists(sha) {
   }
 }
 
+// Helper function to check if a branch/reference exists
+function refExists(ref) {
+  if (!ref) return false;
+
+  try {
+    execSync(`git show-ref --verify refs/heads/${ref}`, { encoding: "utf8" });
+    return true;
+  } catch (error) {
+    console.log(`⚠️  Branch/ref ${ref} does not exist in repository`);
+    return false;
+  }
+}
+
 // Check if Turbo would run any tasks for this app based on changes
 function turboHasChanges(currentAppName) {
   const previousSha = process.env.VERCEL_GIT_PREVIOUS_SHA;
@@ -59,17 +72,24 @@ function turboHasChanges(currentAppName) {
       console.log(`🎯 Using previous SHA: ${previousSha}`);
       filterCommand = `pnpm turbo run build --filter=${currentAppName}...[${previousSha}] --dry-run`;
     } else {
-      // Fallback to main branch (either no previousSha or commit doesn't exist)
-      if (previousSha) {
-        console.log(
-          `⚠️  Previous SHA ${previousSha} doesn't exist, falling back to main branch`,
-        );
+      // Check if main branch exists, otherwise use HEAD~1 or fall back to building
+      // Note: Vercel does shallow clones, so 'main' branch may not be available
+      if (refExists("main")) {
+        console.log(`🎯 Using main branch as fallback`);
+        filterCommand = `pnpm turbo run build --filter=${currentAppName}...[main] --dry-run`;
       } else {
+        // Try HEAD~1 as fallback (previous commit)
         console.log(
-          `⚠️  No previous SHA available, falling back to main branch`,
+          `⚠️  Main branch not available (likely Vercel shallow clone), trying HEAD~1 as fallback`,
         );
+        try {
+          execSync(`git rev-parse HEAD~1`, { encoding: "utf8" });
+          filterCommand = `pnpm turbo run build --filter=${currentAppName}...[HEAD~1] --dry-run`;
+        } catch (error) {
+          console.log(`⚠️  HEAD~1 also not available, will build for safety`);
+          return null; // Will trigger build for safety
+        }
       }
-      filterCommand = `pnpm turbo run build --filter=${currentAppName}...[main] --dry-run`;
     }
 
     console.log(`🎯 Running: ${filterCommand}`);
