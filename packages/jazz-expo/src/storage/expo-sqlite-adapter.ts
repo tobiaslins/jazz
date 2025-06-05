@@ -90,5 +90,6 @@ export class ExpoSQLiteAdapter implements SQLiteDatabaseDriverAsync {
     }
 
     await this.db.closeAsync();
+    this.db = null;
   }
 }

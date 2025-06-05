@@ -75,5 +75,6 @@ export class OPSQLiteAdapter implements SQLiteDatabaseDriverAsync {
     }
 
     this.db.close();
+    this.db = null;
   }
 }
