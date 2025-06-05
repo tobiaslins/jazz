@@ -34,6 +34,19 @@ function gitCommand(command) {
   }
 }
 
+// Helper function to check if a git commit exists
+function commitExists(sha) {
+  if (!sha) return false;
+
+  try {
+    execSync(`git cat-file -e ${sha}`, { encoding: "utf8" });
+    return true;
+  } catch (error) {
+    console.log(`⚠️  Commit ${sha} does not exist in repository`);
+    return false;
+  }
+}
+
 // Check if Turbo would run any tasks for this app based on changes
 function turboHasChanges(currentAppName) {
   const previousSha = process.env.VERCEL_GIT_PREVIOUS_SHA;
@@ -41,11 +54,21 @@ function turboHasChanges(currentAppName) {
   try {
     let filterCommand;
 
-    if (previousSha) {
-      // Check changes since last deployment
+    if (previousSha && commitExists(previousSha)) {
+      // Check changes since last deployment - commit exists
+      console.log(`🎯 Using previous SHA: ${previousSha}`);
       filterCommand = `pnpm turbo run build --filter=${currentAppName}...[${previousSha}] --dry-run`;
     } else {
-      // Fallback to main branch
+      // Fallback to main branch (either no previousSha or commit doesn't exist)
+      if (previousSha) {
+        console.log(
+          `⚠️  Previous SHA ${previousSha} doesn't exist, falling back to main branch`,
+        );
+      } else {
+        console.log(
+          `⚠️  No previous SHA available, falling back to main branch`,
+        );
+      }
       filterCommand = `pnpm turbo run build --filter=${currentAppName}...[main] --dry-run`;
     }
 
