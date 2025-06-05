@@ -81,7 +81,7 @@ test("Admins can't demote other admins in a group (high level)", () => {
   );
 
   expect(() => groupAsOtherAdmin.addMemberInternal(admin.id, "writer")).toThrow(
-    "Failed to set role due to insufficient permissions (role of current account is admin)",
+    "Administrators cannot demote other administrators in a group",
   );
 
   expect(groupAsOtherAdmin.get(admin.id)).toEqual("admin");

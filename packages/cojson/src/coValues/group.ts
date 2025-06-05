@@ -292,8 +292,11 @@ export class RawGroup<
       this.set(account, role, "trusting");
 
       if (this.get(account) !== role) {
+        const myRole = this.myRole();
         throw new Error(
-          `Failed to set role due to insufficient permissions (role of current account is ${this.myRole()})`,
+          myRole === "admin"
+            ? "Administrators cannot demote other administrators in a group"
+            : `Failed to set role due to insufficient permissions (role of current account is ${myRole})`,
         );
       }
 
@@ -351,8 +354,11 @@ export class RawGroup<
       this.set(memberKey, role, "trusting");
 
       if (this.get(memberKey) !== role) {
+        const myRole = this.myRole();
         throw new Error(
-          `Failed to set role due to insufficient permissions (role of current account is ${this.myRole()})`,
+          myRole === "admin"
+            ? "Administrators cannot demote other administrators in a group"
+            : `Failed to set role due to insufficient permissions (role of current account is ${myRole})`,
         );
       }
 
