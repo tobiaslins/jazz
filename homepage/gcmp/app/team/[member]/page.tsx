@@ -7,7 +7,7 @@ import Router from "next/router";
 const membersNameToInfoMap = {
   anselm: "Anselm Eickhoff",
   guido: "Guido D'Orsi",
-  giordano: "Giordano Ricci",
+  gio: "Giordano Ricci",
   trisha: "Trisha Lim",
   benjamin: "Benjamin Leveritt",
   nikos: "Nikos Papadopoulos",
