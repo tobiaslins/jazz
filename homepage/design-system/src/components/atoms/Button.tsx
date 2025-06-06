@@ -1,6 +1,3 @@
-import { clsx } from "clsx";
-import Link from "next/link";
-import { forwardRef } from "react";
 import {
   colorClasses,
   colorToBgHoverMap10,
@@ -13,32 +10,17 @@ import {
   variantToColorMap,
   variantToTextHoverMap,
   variantToTextMap,
-} from "../../utils/tailwindClassesMap";
+} from "@/utils/tailwindClassesMap";
+import { Variant } from "@/utils/variants";
+import { clsx } from "clsx";
+import Link from "next/link";
+import { forwardRef } from "react";
 import { Icon } from "./Icon";
 import type { IconName } from "./Icon";
 import { Spinner } from "./Spinner";
 
-export interface VariantClasses {
-  primary: string;
-  secondary: string;
-  info: string;
-  success: string;
-  warning: string;
-  danger: string;
-  alert: string;
-  tip: string;
-}
-
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?:
-    | "primary"
-    | "secondary"
-    | "info"
-    | "success"
-    | "warning"
-    | "danger"
-    | "alert"
-    | "tip";
+  variant?: Variant;
   color?: "light" | "dark" | "white" | "black" | "default";
   styleVariant?: "outline" | "inverted" | "ghost" | "text" | "default";
   state?: "hover" | "active" | "focus" | "disabled";
