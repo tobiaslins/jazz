@@ -7,19 +7,17 @@ export function Switch({
   checked,
   onChange,
   label,
-  labelSize = "sm",
 }: {
   id: string;
   size?: "sm" | "md";
   checked: boolean;
   onChange: (checked: boolean) => void;
   label?: string;
-  labelSize?: "md" | "sm" | "xs";
 }) {
   return (
     <div className="flex items-center gap-2 w-content">
       <label
-        className={clsx("text-xs text-gray-500", labelSizeClass[labelSize])}
+        className={clsx("text-xs text-gray-500", labelSizeClass[size])}
         htmlFor={id}
       >
         {label}
@@ -47,7 +45,6 @@ export function Switch({
 }
 
 const labelSizeClass = {
-  xs: "text-xs",
-  sm: "text-sm",
-  md: "text-md",
+  sm: "text-xs",
+  md: "text-sm",
 };
