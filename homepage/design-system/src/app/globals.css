@@ -11,10 +11,10 @@
   --color-success: #42bb69;
   --color-info: #b441eb;
   --color-warning: #ff601c;
-  --color-alert: #FCAE00;
+  --color-alert: #fcae00;
   --color-tip: #2dc9c9;
   --color-pink: #ef478e;
-  --color-danger: #EE494C;
+  --color-danger: #ee494c;
 
   --color-default: theme("colors.stone.700");
   --color-highlight: theme("colors.stone.900");
