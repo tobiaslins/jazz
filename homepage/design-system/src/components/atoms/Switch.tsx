@@ -1,7 +1,7 @@
-import { variantToBgMap } from "@/utils/tailwindClassesMap";
-import { Variant } from "@/utils/variants";
 import clsx from "clsx";
 import { Switch as RadixSwitch } from "radix-ui";
+import { variantToBgMap } from "../../utils/tailwindClassesMap";
+import { Variant } from "../../utils/variants";
 
 export function Switch({
   id,

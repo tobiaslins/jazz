@@ -1,3 +1,7 @@
+import { Variant } from "@/utils/variants";
+import { clsx } from "clsx";
+import Link from "next/link";
+import { forwardRef } from "react";
 import {
   colorClasses,
   colorToBgHoverMap10,
@@ -10,11 +14,7 @@ import {
   variantToColorMap,
   variantToTextHoverMap,
   variantToTextMap,
-} from "@/utils/tailwindClassesMap";
-import { Variant } from "@/utils/variants";
-import { clsx } from "clsx";
-import Link from "next/link";
-import { forwardRef } from "react";
+} from "../../utils/tailwindClassesMap";
 import { Icon } from "./Icon";
 import type { IconName } from "./Icon";
 import { Spinner } from "./Spinner";
