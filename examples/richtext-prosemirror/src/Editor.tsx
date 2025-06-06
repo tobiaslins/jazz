@@ -49,7 +49,7 @@ export function Editor() {
 
   return (
     <div className="flex flex-col">
-      <div className="flex-1 flex flex-col md:flex-col gap-4 p-8">
+      <div className="flex-1 flex flex-col gap-4 p-8">
         <div className="flex-1 flex flex-col gap-2">
           <label className="text-sm font-medium text-stone-600">Richtext</label>
           <div
