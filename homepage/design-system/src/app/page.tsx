@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { Buttons } from "./components/Buttons";
-import { Colors } from "./components/Colors";
-import { Forms } from "./components/Forms";
-import { Typography } from "./components/Typography";
+import { Buttons } from "../views/Buttons";
+import { Colors } from "../views/Colors";
+import { Forms } from "../views/Forms";
+import { Typography } from "../views/Typography";
 
 const designSystemTopics = [
   "Colors",
