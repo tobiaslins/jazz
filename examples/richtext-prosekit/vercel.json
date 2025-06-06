@@ -1,0 +1,8 @@
+{
+  "build": {
+    "env": {
+      "APP_NAME": "jazz-richtext-prosekit"
+    }
+  },
+  "ignoreCommand": "npx turbo-ignore"
+}
