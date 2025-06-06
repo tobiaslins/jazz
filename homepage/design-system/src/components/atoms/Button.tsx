@@ -1,4 +1,3 @@
-import { Variant } from "@/utils/variants";
 import { clsx } from "clsx";
 import Link from "next/link";
 import { forwardRef } from "react";
@@ -15,6 +14,7 @@ import {
   variantToTextHoverMap,
   variantToTextMap,
 } from "../../utils/tailwindClassesMap";
+import { Variant } from "../../utils/variants";
 import { Icon } from "./Icon";
 import type { IconName } from "./Icon";
 import { Spinner } from "./Spinner";
