@@ -1,16 +1,10 @@
 import Link from "next/link";
 import { Buttons } from "../views/Buttons";
 import { Colors } from "../views/Colors";
-import { Forms } from "../views/Forms";
+import { Components } from "../views/Components";
 import { Typography } from "../views/Typography";
 
-const designSystemTopics = [
-  "Colors",
-  "Typography",
-  "Forms",
-  "Buttons",
-  // 'Components',
-];
+const designSystemTopics = ["Colors", "Typography", "Buttons", "Components"];
 
 export default function Home() {
   return (
@@ -30,8 +24,7 @@ export default function Home() {
         <Colors />
         <Typography />
         <Buttons />
-        {/* <Components /> */}
-        <Forms />
+        <Components />
       </div>
     </main>
   );

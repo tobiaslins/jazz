@@ -19,9 +19,9 @@ export function Switch({
   label?: string;
 }) {
   return (
-    <div className="flex items-center gap-2 w-content">
+    <div className="flex items-center w-content">
       <label
-        className={clsx("text-xs text-gray-500", labelSizeClass[size])}
+        className={clsx("text-gray-500 mr-2", labelSizeClass[size])}
         htmlFor={id}
       >
         {label}
@@ -38,9 +38,12 @@ export function Switch({
       >
         <RadixSwitch.Thumb
           className={clsx(
-            "block bg-white rounded-full transition-transform duration-300 translate-x-0 ml-[0.06rem]",
-            size === "sm" ? "w-3 h-3" : "w-4 h-4",
-            checked && "translate-x-[0.6rem]",
+            "block bg-white rounded-full transition-transform duration-300 translate-x-0 ml-[0.1em]",
+            size === "sm" ? "w-3 h-3" : "w-5 h-5",
+            checked &&
+              (size === "sm"
+                ? "translate-x-[0.6rem]"
+                : "translate-x-[1.01rem]"),
           )}
         />
       </RadixSwitch.Root>
