@@ -4,5 +4,5 @@
       "APP_NAME": "filestream"
     }
   },
-  "ignoreCommand": "node ../../ignore-vercel-build.js"
+  "ignoreCommand": "npx turbo-ignore"
 }

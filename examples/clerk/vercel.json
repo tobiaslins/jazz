@@ -2,6 +2,7 @@
   "build": {
     "env": {
       "APP_NAME": "clerk-demo"
-    }
+    },
+    "ignoreCommand": "npx turbo-ignore"
   }
 }

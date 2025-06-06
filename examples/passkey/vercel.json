@@ -4,5 +4,5 @@
       "APP_NAME": "passkey-demo"
     }
   },
-  "ignoreCommand": "node ../../ignore-vercel-build-enhanced.js"
+  "ignoreCommand": "npx turbo-ignore"
 }

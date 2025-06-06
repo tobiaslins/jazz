@@ -4,12 +4,13 @@
     "build": {
       "dependsOn": ["^build"],
       "outputs": [".next/**", "!.next/cache/**"],
-      "env": ["GRAFANA_SERVICE_ACCOUNT"]
+      "env": ["GRAFANA_SERVICE_ACCOUNT", "APP_NAME"],
+      "inputs": ["src/**", "fonts/**", "colors/**", "public/**"]
     },
     "dev": {
       "cache": false,
       "persistent": true,
-      "dependsOn": ["build"]
+      "dependsOn": ["^build"]
     }
   }
 }
