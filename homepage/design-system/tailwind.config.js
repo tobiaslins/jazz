@@ -134,7 +134,7 @@ const config = {
       },
       backgroundColor: {
         highlight: "var(--color-transparent-primary)",
-        muted: "var(--color-bg-muted)",
+        muted: "var(--color-muted)",
       },
       fontFamily: {
         display: ["var(--font-manrope)"],
