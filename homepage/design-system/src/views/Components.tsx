@@ -6,9 +6,10 @@ import { useState } from "react";
 
 export function Components() {
   const [checked, setChecked] = useState({
-    md: false,
-    sm: false,
+    md: true,
+    sm: true,
   });
+
   return (
     <div>
       <h2 id="components" className="text-xl mt-5 mb-2 font-bold">
@@ -16,8 +17,10 @@ export function Components() {
       </h2>
 
       <div className="p-3">
+        <h3 className="text-md font-semibold mb-2">Forms</h3>
         <NewsletterForm />
         <div className="py-3 flex gap-6">
+          <h3 className="text-md font-semibold">Switches</h3>
           <Switch
             label="Switch default (md) (Primary)"
             id="switch-md"

@@ -42,7 +42,7 @@ export function Switch({
             size === "sm" ? "w-3 h-3" : "w-5 h-5",
             checked &&
               (size === "sm"
-                ? "translate-x-[0.6rem]"
+                ? "translate-x-[0.5rem]"
                 : "translate-x-[1.01rem]"),
           )}
         />
