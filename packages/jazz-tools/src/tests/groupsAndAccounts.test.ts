@@ -1,5 +1,12 @@
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
-import { assert, beforeEach, describe, expect, test } from "vitest";
+import {
+  assert,
+  beforeEach,
+  describe,
+  expect,
+  expectTypeOf,
+  test,
+} from "vitest";
 import { Account, CoMap, Group, Profile, coField, z } from "../exports.js";
 import { Loaded, Ref, co, zodSchemaToCoSchema } from "../internal.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
@@ -27,22 +34,22 @@ describe("Custom accounts and groups", async () => {
         profile: CustomProfile,
         root: co.map({}),
       })
-      .withMigration(
-        (
-          account: Loaded<typeof CustomAccount>,
-          creationProps?: { name: string },
-        ) => {
-          if (creationProps) {
-            console.log("In migration!");
-            const profileGroup = Group.create({ owner: account });
-            profileGroup.addMember("everyone", "reader");
-            account.profile = CustomProfile.create(
-              { name: creationProps.name, color: "blue" },
-              profileGroup,
-            );
-          }
-        },
-      );
+      .withMigration((account, creationProps?: { name: string }) => {
+        // making sure that the inferred type of account.root & account.profile considers the root/profile not being loaded
+        type R = typeof account.root;
+        const _r: R = {} as Loaded<typeof CustomAccount.def.shape.root> | null;
+        type P = typeof account.profile;
+        const _p: P = {} as Loaded<typeof CustomProfile> | null;
+        if (creationProps) {
+          console.log("In migration!");
+          const profileGroup = Group.create({ owner: account });
+          profileGroup.addMember("everyone", "reader");
+          account.profile = CustomProfile.create(
+            { name: creationProps.name, color: "blue" },
+            profileGroup,
+          );
+        }
+      });
 
     const me = await createJazzTestAccount({
       creationProps: { name: "Hermes Puggington" },

@@ -3,6 +3,7 @@ import {
   Account,
   Group,
   RefsToResolveStrict,
+  Resolved,
   Simplify,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
@@ -14,6 +15,7 @@ import {
   AnyCoMapSchema,
   CoMapInitZod,
   CoMapInstance,
+  CoMapInstanceCoValuesNullable,
   CoMapSchema,
 } from "./CoMapSchema.js";
 
@@ -60,7 +62,7 @@ export type AccountSchema<
 
   withMigration(
     migration: (
-      account: InstanceOrPrimitiveOfSchema<AccountSchema<Shape>>,
+      account: Loaded<AccountSchema<Shape>>,
       creationProps?: { name: string },
     ) => void,
   ): AccountSchema<Shape>;
