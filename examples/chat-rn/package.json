@@ -1,6 +1,6 @@
 {
   "name": "chat-rn",
-  
+  "private": true,
   "main": "index.js",
   "scripts": {
     "android": "react-native run-android",
