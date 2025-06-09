@@ -28,10 +28,10 @@ interface Account {
 }
 
 interface JazzLoggedInSecret {
-    accountID: string;
-    accountSecret: string;
-    secretSeed?: number[];
-    provider?: string;
+  accountID: string;
+  accountSecret: string;
+  secretSeed?: number[];
+  provider?: string;
 }
 
 export default function CoJsonViewerApp() {
@@ -276,26 +276,26 @@ function AddAccountForm({
   const [id, setId] = useState("");
   const [secret, setSecret] = useState("");
 
-    const handleIdChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-        const value = e.target.value;
-        setId(value);
+  const handleIdChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const value = e.target.value;
+    setId(value);
 
-        // Try to parse as JSON if it looks like a JSON object
-        if (value.trim().startsWith("{") && value.trim().endsWith("}")) {
-            try {
-                const parsed: JazzLoggedInSecret = JSON.parse(value);
-                if (parsed.accountID && parsed.accountSecret) {
-                    setId(parsed.accountID);
-                    setSecret(parsed.accountSecret);
-                }
-            } catch (error) {
-                // If parsing fails, just keep the raw value in the id field
-                console.log("Failed to parse JSON:", error);
-            }
+    // Try to parse as JSON if it looks like a JSON object
+    if (value.trim().startsWith("{") && value.trim().endsWith("}")) {
+      try {
+        const parsed: JazzLoggedInSecret = JSON.parse(value);
+        if (parsed.accountID && parsed.accountSecret) {
+          setId(parsed.accountID);
+          setSecret(parsed.accountSecret);
         }
-    };
+      } catch (error) {
+        // If parsing fails, just keep the raw value in the id field
+        console.log("Failed to parse JSON:", error);
+      }
+    }
+  };
 
-    const handleSubmit = (e: React.FormEvent): void => {
+  const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
     addAccount(id as RawAccountID, secret as AgentSecret);
     setId("");
@@ -316,14 +316,14 @@ function AddAccountForm({
           jazz-logged-in-secret
         </code>{" "}
         local storage key from within your Jazz app for your account
-                credentials. You can paste the full JSON object or enter the ID
-                and secret separately.
+        credentials. You can paste the full JSON object or enter the ID and
+        secret separately.
       </p>
       <Input
         label="Account ID"
         value={id}
-                placeholder="co_z1234567890abcdef123456789 or paste full JSON"
-                onChange={handleIdChange}
+        placeholder="co_z1234567890abcdef123456789 or paste full JSON"
+        onChange={handleIdChange}
       />
       <Input
         label="Account secret"
