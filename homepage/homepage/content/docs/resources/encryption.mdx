@@ -1,5 +1,5 @@
-export const metadata = { 
-  description: "Learn how Jazz encrypts your data to ensure privacy and security."
+export const metadata = {
+  description: "How Jazz encrypts your data to ensure privacy and security."
 };
 
 # Encryption
@@ -63,6 +63,12 @@ CoValue IDs are the [Blake3](https://github.com/BLAKE3-team/BLAKE3) hash of thei
 **Verifiable authenticity**: Every change is cryptographically signed, so you always know who made what changes.
 
 ## Further reading
+
+- [Blake3](https://github.com/BLAKE3-team/BLAKE3) - append-only hashing
+- [ed25519](https://ed25519.cr.yp.to/) - signature scheme
+- [xsalsa20](https://cr.yp.to/salsa20.html) - stream cipher for data encryption
+
+### Implementation details
 
 The cryptographic primitives are implemented in the [`cojson/src/crypto`](https://github.com/garden-co/jazz/tree/main/packages/cojson/src/crypto) package.
 
