@@ -52,7 +52,16 @@ const config = {
 };
 
 const highlighterPromise = createHighlighter({
-  langs: ["typescript", "bash", "tsx", "json", "ruby", "groovy", "svelte", "vue"],
+  langs: [
+    "typescript",
+    "bash",
+    "tsx",
+    "json",
+    "ruby",
+    "groovy",
+    "svelte",
+    "vue",
+  ],
   themes: [jazzLight, jazzDark],
 });
 
@@ -78,8 +87,12 @@ function highlightPlugin() {
             throws: false, //process.env.NODE_ENV === "production",
             onTwoslashError:
               process.env.NODE_ENV !== "production"
-                ? (e) => {
-                    console.error(e);
+                ? (e, code) => {
+                    const { description, recommendation } = e;
+                    console.error("\nTwoslash error: ");
+                    console.log(description);
+                    console.log(recommendation);
+                    console.log("\nCode: \n```\n" + code + "\n```");
                     error = e;
                   }
                 : undefined,
