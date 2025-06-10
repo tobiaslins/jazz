@@ -1,5 +1,177 @@
 # chat-rn-expo-clerk
 
+## 1.0.145
+
+### Patch Changes
+
+- Updated dependencies [048ac1d]
+  - jazz-tools@0.14.22
+  - jazz-expo@0.14.22
+  - jazz-react-native-media-images@0.14.22
+
+## 1.0.144
+
+### Patch Changes
+
+- Updated dependencies [e7e505e]
+- Updated dependencies [cfb6786]
+- Updated dependencies [13b57aa]
+- Updated dependencies [5662faa]
+- Updated dependencies [2116a59]
+  - jazz-tools@0.14.21
+  - jazz-expo@0.14.21
+  - jazz-react-native-media-images@0.14.21
+
+## 1.0.143
+
+### Patch Changes
+
+- Updated dependencies [6f72419]
+- Updated dependencies [04b20c2]
+  - jazz-tools@0.14.20
+  - jazz-expo@0.14.20
+  - jazz-react-native-media-images@0.14.20
+
+## 1.0.142
+
+### Patch Changes
+
+- Updated dependencies [061ec99]
+  - jazz-expo@0.14.19
+  - jazz-react-native-media-images@0.14.19
+  - jazz-tools@0.14.19
+
+## 1.0.141
+
+### Patch Changes
+
+- Updated dependencies [4b950bc]
+- Updated dependencies [d6d9c0a]
+- Updated dependencies [c559054]
+  - jazz-tools@0.14.18
+  - jazz-expo@0.14.18
+  - jazz-react-native-media-images@0.14.18
+
+## 1.0.140
+
+### Patch Changes
+
+- Updated dependencies [e512df4]
+  - jazz-tools@0.14.17
+  - jazz-expo@0.14.17
+  - jazz-react-native-media-images@0.14.17
+
+## 1.0.139
+
+### Patch Changes
+
+- jazz-expo@0.14.16
+- jazz-tools@0.14.16
+- jazz-react-native-media-images@0.14.16
+
+## 1.0.138
+
+### Patch Changes
+
+- jazz-expo@0.14.15
+- jazz-tools@0.14.15
+- jazz-react-native-media-images@0.14.15
+
+## 1.0.137
+
+### Patch Changes
+
+- Updated dependencies [e32a1f7]
+  - jazz-tools@0.14.14
+  - jazz-expo@0.14.14
+  - jazz-react-native-media-images@0.14.14
+
+## 1.0.136
+
+### Patch Changes
+
+- jazz-expo@0.14.13
+
+## 1.0.135
+
+### Patch Changes
+
+- jazz-expo@0.14.12
+
+## 1.0.134
+
+### Patch Changes
+
+- Updated dependencies [98d697f]
+  - jazz-expo@0.14.11
+
+## 1.0.133
+
+### Patch Changes
+
+- Updated dependencies [dc746a2]
+- Updated dependencies [f869d9a]
+- Updated dependencies [3fe6832]
+  - jazz-react-native-media-images@0.14.10
+  - jazz-tools@0.14.10
+  - jazz-expo@0.14.10
+
+## 1.0.132
+
+### Patch Changes
+
+- Updated dependencies [22c2600]
+  - jazz-tools@0.14.9
+  - jazz-expo@0.14.9
+  - jazz-react-native-media-images@0.14.9
+
+## 1.0.131
+
+### Patch Changes
+
+- Updated dependencies [637ae13]
+  - jazz-tools@0.14.8
+  - jazz-expo@0.14.8
+  - jazz-react-native-media-images@0.14.8
+
+## 1.0.130
+
+### Patch Changes
+
+- Updated dependencies [365b0ea]
+  - jazz-tools@0.14.7
+  - jazz-expo@0.14.7
+  - jazz-react-native-media-images@0.14.7
+
+## 1.0.129
+
+### Patch Changes
+
+- Updated dependencies [9d6d9fe]
+- Updated dependencies [9d6d9fe]
+  - jazz-tools@0.14.6
+  - jazz-expo@0.14.6
+  - jazz-react-native-media-images@0.14.6
+
+## 1.0.128
+
+### Patch Changes
+
+- Updated dependencies [91cbb2f]
+- Updated dependencies [20b3d88]
+  - jazz-tools@0.14.5
+  - jazz-expo@0.14.5
+  - jazz-react-native-media-images@0.14.5
+
+## 1.0.127
+
+### Patch Changes
+
+- Updated dependencies [011af55]
+  - jazz-tools@0.14.4
+  - jazz-expo@0.14.4
+  - jazz-react-native-media-images@0.14.4
+
 ## 1.0.126
 
 ### Patch Changes

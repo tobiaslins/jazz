@@ -1,6 +1,6 @@
 "use client";
 
-import { SideNav, SideNavBody, SideNavHeader } from "@/components/SideNav";
+import { SideNav, SideNavBody } from "@/components/SideNav";
 import { SideNavSection } from "@/components/SideNavSection";
 import { FrameworkSelect } from "@/components/docs/FrameworkSelect";
 import { docNavigationItems } from "@/content/docs/docNavigationItems";
@@ -44,8 +44,6 @@ export function DocNav() {
         {items.map((item) => (
           <SideNavSection item={item} key={item.name} />
         ))}
-
-        <SideNavHeader href="/api-reference">API Reference</SideNavHeader>
       </SideNavBody>
     </SideNav>
   );

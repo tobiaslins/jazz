@@ -1,5 +1,4 @@
 import { RawCoList, RawCoMap } from "cojson";
-import z from "zod/v4";
 import {
   Account,
   CoFeed,
@@ -17,6 +16,7 @@ import {
   isUnionOfCoMapsDeeply,
   schemaUnionDiscriminatorFor,
 } from "../unionUtils.js";
+import { z } from "../zodReExport.js";
 import {
   CoValueClassFromZodSchema,
   ZodPrimitiveSchema,
@@ -60,19 +60,6 @@ export function tryZodSchemaToCoSchema<S extends z.core.$ZodType>(
           }
         }
       };
-
-      if ("migration" in schema) {
-        const migration = schema.migration;
-        if (typeof migration !== "function") {
-          throw new Error("migration must be a function");
-        }
-        (coSchema.prototype as Account).migrate = async function (
-          this,
-          creationProps,
-        ) {
-          await migration(this, creationProps);
-        };
-      }
 
       coSchemasForZodSchemas.set(schema, coSchema as unknown as CoValueClass);
       return coSchema as unknown as CoValueClassFromZodSchema<S>;
@@ -175,9 +162,19 @@ export function anySchemaToCoSchema<
     : never {
   if (isCoValueClass(schema)) {
     return schema as any;
-  } else {
-    return zodSchemaToCoSchema(schema as any) as any;
+  } else if ("getCoSchema" in schema) {
+    return (schema as any).getCoSchema() as any;
+  } else if ("def" in schema) {
+    const coSchema = tryZodSchemaToCoSchema(schema as z.core.$ZodType);
+    if (!coSchema) {
+      throw new Error(
+        `Unsupported zod type: ${(schema.def as any)?.type || JSON.stringify(schema)}`,
+      );
+    }
+    return coSchema as any;
   }
+
+  throw new Error(`Unsupported schema: ${JSON.stringify(schema)}`);
 }
 
 export function zodSchemaToCoSchemaOrKeepPrimitive<S extends z.core.$ZodType>(

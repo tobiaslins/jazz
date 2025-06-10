@@ -21,7 +21,6 @@ import { fixtures } from "./fixtureMessages.js";
 
 type RawCoID = CojsonInternalTypes.RawCoID;
 type NewContentMessage = CojsonInternalTypes.NewContentMessage;
-type Transaction = CojsonInternalTypes.Transaction;
 vi.mock("../syncUtils");
 
 const coValueIdToLoad = "co_zKwG8NyfZ8GXqcjDHY4NS3SbU2m";
@@ -58,7 +57,7 @@ describe("DB sync manager", () => {
     syncManager.sendStateMessage = vi.fn();
 
     // No dependencies found
-    vi.mocked(getDependedOnCoValues).mockReturnValue([]);
+    vi.mocked(getDependedOnCoValues).mockReturnValue(new Set());
   });
 
   afterEach(() => {
@@ -135,7 +134,7 @@ describe("DB sync manager", () => {
 
       // Fetch dependencies of the current dependency for the future recursion iterations
       vi.mocked(getDependedOnCoValues).mockImplementation(
-        ({ coValueRow }) => dependenciesTreeWithLoop[coValueRow.id] || [],
+        (_, msg) => new Set(dependenciesTreeWithLoop[msg.id] || []),
       );
 
       await syncManager.handleSyncMessage(loadMsg);

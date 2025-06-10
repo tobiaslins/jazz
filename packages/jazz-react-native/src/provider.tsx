@@ -1,17 +1,27 @@
 import { JazzProviderCore, JazzProviderProps } from "jazz-react-native-core";
-import React from "react";
+import {
+  Account,
+  AccountClass,
+  AnyAccountSchema,
+  CoValueFromRaw,
+} from "jazz-tools";
+import React, { useMemo } from "react";
 import { MMKVStore } from "./storage/mmkv-store-adapter.js";
 import { OPSQLiteAdapter } from "./storage/op-sqlite-adapter.js";
 
-export function JazzProvider(props: JazzProviderProps) {
+export function JazzProvider<
+  S extends
+    | (AccountClass<Account> & CoValueFromRaw<Account>)
+    | AnyAccountSchema,
+>(props: JazzProviderProps<S>) {
   // Destructure kvStore and pass everything else via rest
-  const { kvStore, storage, ...rest } = props;
+  const storage = useMemo(() => {
+    return props.storage ?? new OPSQLiteAdapter();
+  }, [props.storage]);
 
-  return (
-    <JazzProviderCore
-      {...rest}
-      storage={storage ?? new OPSQLiteAdapter()}
-      kvStore={kvStore ?? new MMKVStore()}
-    />
-  );
+  const kvStore = useMemo(() => {
+    return props.kvStore ?? new MMKVStore();
+  }, [props.kvStore]);
+
+  return <JazzProviderCore {...props} storage={storage} kvStore={kvStore} />;
 }

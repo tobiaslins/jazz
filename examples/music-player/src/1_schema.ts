@@ -13,6 +13,7 @@ import { co, z } from "jazz-tools";
 export const MusicTrackWaveform = co.map({
   data: z.array(z.number()),
 });
+export type MusicTrackWaveform = co.loaded<typeof MusicTrackWaveform>;
 
 export const MusicTrack = co.map({
   /**
@@ -40,16 +41,17 @@ export const MusicTrack = co.map({
   /**
    * You can use getters for recusrive relations
    */
-  get sourceTrack(): z.ZodOptional<typeof MusicTrack> {
-    return z.optional(MusicTrack);
+  get sourceTrack() {
+    return MusicTrack.optional();
   },
 });
+export type MusicTrack = co.loaded<typeof MusicTrack>;
 
 export const Playlist = co.map({
   title: z.string(),
   tracks: co.list(MusicTrack), // CoList is the collaborative version of Array
 });
-
+export type Playlist = co.loaded<typeof Playlist>;
 /** The account root is an app-specific per-user private `CoMap`
  *  where you can store top-level objects for that user */
 export const MusicaAccountRoot = co.map({
@@ -69,7 +71,7 @@ export const MusicaAccountRoot = co.map({
 
   exampleDataLoaded: z.optional(z.boolean()),
 });
-
+export type MusicaAccountRoot = co.loaded<typeof MusicaAccountRoot>;
 export const MusicaAccount = co
   .account({
     /** the default user profile with a name */
@@ -97,5 +99,6 @@ export const MusicaAccount = co
       });
     }
   });
+export type MusicaAccount = co.loaded<typeof MusicaAccount>;
 
 /** Walkthrough: Continue with ./2_main.tsx */

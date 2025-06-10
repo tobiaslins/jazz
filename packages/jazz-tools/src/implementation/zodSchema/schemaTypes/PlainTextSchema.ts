@@ -1,7 +1,7 @@
 import { RawCoPlainText } from "cojson";
-import z from "zod/v4";
 import { Account, CoPlainText, Group } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
+import { z } from "../zodReExport.js";
 
 export type PlainTextSchema = z.core.$ZodCustom<CoPlainText, unknown> & {
   collaborative: true;
@@ -24,4 +24,5 @@ export type PlainTextSchema = z.core.$ZodCustom<CoPlainText, unknown> & {
     listener: (value: CoPlainText, unsubscribe: () => void) => void,
   ): () => void;
   fromRaw(raw: RawCoPlainText): CoPlainText;
+  getCoSchema: () => typeof CoPlainText;
 };

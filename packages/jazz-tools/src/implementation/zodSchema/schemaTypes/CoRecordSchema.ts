@@ -1,8 +1,7 @@
 import { CoValueUniqueness } from "cojson";
-import z from "zod/v4";
 import {
   Account,
-  CoMap,
+  type CoMap,
   Group,
   ID,
   RefsToResolve,
@@ -14,7 +13,17 @@ import {
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
+import { z } from "../zodReExport.js";
 import { WithHelpers } from "../zodSchema.js";
+
+type CoRecordInit<
+  K extends z.core.$ZodString<string>,
+  V extends z.core.$ZodType,
+> = {
+  [key in z.output<K>]: V extends z.core.$ZodOptional<any>
+    ? InstanceOrPrimitiveOfSchemaCoValuesNullable<V>
+    : NonNullable<InstanceOrPrimitiveOfSchemaCoValuesNullable<V>>;
+};
 
 export type CoRecordSchema<
   K extends z.core.$ZodString<string>,
@@ -23,9 +32,7 @@ export type CoRecordSchema<
   collaborative: true;
 
   create: (
-    init: Simplify<{
-      [key in z.output<K>]?: InstanceOrPrimitiveOfSchema<V>;
-    }>,
+    init: Simplify<CoRecordInit<K, V>>,
     options?:
       | {
           owner: Account | Group;
@@ -71,10 +78,12 @@ export type CoRecordSchema<
     as?: Account | Group | AnonymousJazzAgent,
   ): ID<CoRecordInstanceCoValuesNullable<K, V>>;
 
+  /** @deprecated Define your helper methods separately, in standalone functions. */
   withHelpers<S extends z.core.$ZodType, T extends object>(
     this: S,
     helpers: (Self: S) => T,
   ): WithHelpers<S, T>;
+  getCoSchema: () => typeof CoMap;
 };
 
 // less precise verion to avoid circularity issues and allow matching against

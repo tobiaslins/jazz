@@ -121,7 +121,7 @@ describe("useAccount", () => {
         },
         {
           "accountIndex": 0,
-          "isAuthenticated": true,
+          "isAuthenticated": false,
         },
         {
           "accountIndex": 1,
@@ -179,10 +179,6 @@ describe("useAccount", () => {
 
     expect(updates).toMatchInlineSnapshot(`
       [
-        {
-          "accountIndex": 0,
-          "isAuthenticated": false,
-        },
         {
           "accountIndex": 0,
           "isAuthenticated": false,

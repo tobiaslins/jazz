@@ -4,11 +4,11 @@ import {
   Account,
   CryptoProvider,
   Loaded,
+  anySchemaToCoSchema,
   co,
   loadCoValue,
   subscribeToCoValue,
   z,
-  zodSchemaToCoSchema,
 } from "../exports.js";
 
 const RedButtonWidget = co.map({
@@ -24,7 +24,10 @@ const BlueButtonWidget = co.map({
   blueness: z.number(),
 });
 
-const ButtonWidget = z.discriminatedUnion([RedButtonWidget, BlueButtonWidget]);
+const ButtonWidget = z.discriminatedUnion("type", [
+  RedButtonWidget,
+  BlueButtonWidget,
+]);
 
 const SliderWidget = co.map({
   type: z.literal("slider"),
@@ -37,7 +40,7 @@ const CheckboxWidget = co.map({
   checked: z.boolean(),
 });
 
-const WidgetUnion = z.discriminatedUnion([
+const WidgetUnion = z.discriminatedUnion("type", [
   ButtonWidget,
   SliderWidget,
   CheckboxWidget,
@@ -70,21 +73,21 @@ describe("SchemaUnion", () => {
     );
 
     const loadedButtonWidget = await loadCoValue(
-      zodSchemaToCoSchema(WidgetUnion),
+      anySchemaToCoSchema(WidgetUnion),
       buttonWidget.id,
       {
         loadAs: me,
       },
     );
     const loadedSliderWidget = await loadCoValue(
-      zodSchemaToCoSchema(WidgetUnion),
+      anySchemaToCoSchema(WidgetUnion),
       sliderWidget.id,
       {
         loadAs: me,
       },
     );
     const loadedCheckboxWidget = await loadCoValue(
-      zodSchemaToCoSchema(WidgetUnion),
+      anySchemaToCoSchema(WidgetUnion),
       checkboxWidget.id,
       { loadAs: me },
     );
@@ -101,7 +104,7 @@ describe("SchemaUnion", () => {
     );
     let currentValue = "Submit";
     const unsubscribe = subscribeToCoValue(
-      zodSchemaToCoSchema(WidgetUnion),
+      anySchemaToCoSchema(WidgetUnion),
       buttonWidget.id,
       { loadAs: me, syncResolution: true },
       (value: Loaded<typeof WidgetUnion>) => {

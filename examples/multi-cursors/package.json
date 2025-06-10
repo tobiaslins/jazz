@@ -1,7 +1,7 @@
 {
   "name": "multi-cursors",
   "private": true,
-  "version": "0.0.94",
+  
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -15,21 +15,22 @@
     "@react-spring/web": "^9.7.5",
     "jazz-react": "workspace:*",
     "jazz-tools": "workspace:*",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "zod": "3.25.28"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
-    "@vitejs/plugin-react": "^4.3.3",
+    "@types/react": "19.0.0",
+    "@types/react-dom": "19.0.0",
+    "@vitejs/plugin-react": "^4.5.1",
     "autoprefixer": "^10.4.20",
     "globals": "^15.11.0",
     "is-ci": "^3.0.1",
     "postcss": "^8.4.27",
     "tailwindcss": "^3.4.17",
     "typescript": "5.6.2",
-    "vite": "6.0.11",
+    "vite": "6.3.5",
     "vitest": "3.1.1"
   }
 }

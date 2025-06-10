@@ -1,5 +1,4 @@
 import { CoValueUniqueness } from "cojson";
-import z from "zod/v4";
 import {
   Account,
   CoMap,
@@ -13,11 +12,13 @@ import {
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
-import { FullyOrPartiallyLoaded, WithHelpers } from "../zodSchema.js";
+import { z } from "../zodReExport.js";
+import { WithHelpers } from "../zodSchema.js";
 
 export type CoMapSchema<
   Shape extends z.core.$ZodLooseShape,
   Config extends z.core.$ZodObjectConfig = z.core.$ZodObjectConfig,
+  Owner extends Account | Group = Account | Group,
 > = z.core.$ZodObject<Shape, Config> &
   z.$ZodTypeDiscriminable & {
     collaborative: true;
@@ -26,11 +27,10 @@ export type CoMapSchema<
       init: Simplify<CoMapInitZod<Shape>>,
       options?:
         | {
-            owner: Account | Group;
+            owner: Owner;
             unique?: CoValueUniqueness["uniqueness"];
           }
-        | Account
-        | Group,
+        | Owner,
     ) => (Shape extends Record<string, never>
       ? {}
       : {
@@ -92,21 +92,45 @@ export type CoMapSchema<
       schema: T,
     ): CoMapSchema<Shape, z.core.$catchall<T>>;
 
+    /** @deprecated Define your helper methods separately, in standalone functions. */
     withHelpers<S extends z.core.$ZodType, T extends object>(
       this: S,
       helpers: (Self: S) => T,
     ): WithHelpers<S, T>;
+
+    withMigration(
+      migration: (
+        value: Resolved<
+          Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
+          true
+        >,
+      ) => undefined,
+    ): CoMapSchema<Shape, Config, Owner>;
+
+    getCoSchema: () => typeof CoMap;
   };
 
-export type CoMapInitZod<Shape extends z.core.$ZodLooseShape> = {
-  [key in keyof Shape as Shape[key] extends z.core.$ZodOptional<any>
+export type optionalKeys<Shape extends z.core.$ZodLooseShape> = {
+  [key in keyof Shape]: Shape[key] extends z.core.$ZodOptional<any>
     ? key
-    : never]?: FullyOrPartiallyLoaded<Shape[key]>;
-} & {
-  [key in keyof Shape as Shape[key] extends z.core.$ZodOptional<any>
+    : never;
+}[keyof Shape];
+
+export type requiredKeys<Shape extends z.core.$ZodLooseShape> = {
+  [key in keyof Shape]: Shape[key] extends z.core.$ZodOptional<any>
     ? never
-    : key]: FullyOrPartiallyLoaded<Shape[key]>;
-};
+    : key;
+}[keyof Shape];
+
+export type CoMapInitZod<Shape extends z.core.$ZodLooseShape> = {
+  [key in optionalKeys<Shape>]?: NonNullable<
+    InstanceOrPrimitiveOfSchemaCoValuesNullable<Shape[key]>
+  >;
+} & {
+  [key in requiredKeys<Shape>]: NonNullable<
+    InstanceOrPrimitiveOfSchemaCoValuesNullable<Shape[key]>
+  >;
+} & { [key in keyof Shape]?: unknown };
 
 // less precise verion to avoid circularity issues and allow matching against
 export type AnyCoMapSchema<

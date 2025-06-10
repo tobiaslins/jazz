@@ -5,6 +5,7 @@ import {
   type Stringified,
   cojsonInternals,
 } from "cojson";
+import type { RawCoID } from "cojson";
 import type {
   StoredCoValueRow,
   StoredSessionRow,
@@ -42,31 +43,29 @@ export function collectNewTxs({
   sessionEntry.lastSignature = signature;
 }
 
-export function getDependedOnCoValues({
-  coValueRow,
-  newContentMessages,
-}: {
-  coValueRow: StoredCoValueRow;
-  newContentMessages: CojsonInternalTypes.NewContentMessage[];
-}) {
-  return coValueRow.header.ruleset.type === "group"
-    ? getGroupDependedOnCoValues(newContentMessages)
-    : coValueRow.header.ruleset.type === "ownedByGroup"
-      ? getOwnedByGroupDependedOnCoValues(coValueRow, newContentMessages)
-      : [];
-}
-
-function getGroupDependedOnCoValues(
-  newContentMessages: CojsonInternalTypes.NewContentMessage[],
+export function getDependedOnCoValues(
+  header: CojsonInternalTypes.CoValueHeader,
+  contentMessage: CojsonInternalTypes.NewContentMessage,
 ) {
-  const keys: CojsonInternalTypes.RawCoID[] = [];
+  const deps = new Set<RawCoID>();
 
-  /**
-   * Collect all the signing keys inside the transactions to list all the
-   * dependencies required to correctly access the CoValue.
-   */
-  for (const piece of newContentMessages) {
-    for (const sessionEntry of Object.values(piece.new)) {
+  for (const sessionID of Object.keys(contentMessage.new) as SessionID[]) {
+    const accountId = cojsonInternals.accountOrAgentIDfromSessionID(sessionID);
+
+    if (
+      cojsonInternals.isAccountID(accountId) &&
+      accountId !== contentMessage.id
+    ) {
+      deps.add(accountId);
+    }
+  }
+
+  if (header.ruleset.type === "group") {
+    /**
+     * Collect all the signing keys inside the transactions to list all the
+     * dependencies required to correctly access the CoValue.
+     */
+    for (const sessionEntry of Object.values(contentMessage.new)) {
       for (const tx of sessionEntry.newTransactions) {
         if (tx.privacy !== "trusting") continue;
 
@@ -83,7 +82,7 @@ function getGroupDependedOnCoValues(
             const key = cojsonInternals.getGroupDependentKey(change.key);
 
             if (key) {
-              keys.push(key);
+              deps.add(key);
             }
           }
         }
@@ -91,36 +90,11 @@ function getGroupDependedOnCoValues(
     }
   }
 
-  return keys;
-}
-
-function getOwnedByGroupDependedOnCoValues(
-  coValueRow: StoredCoValueRow,
-  newContentMessages: CojsonInternalTypes.NewContentMessage[],
-) {
-  if (coValueRow.header.ruleset.type !== "ownedByGroup") return [];
-
-  const keys: CojsonInternalTypes.RawCoID[] = [coValueRow.header.ruleset.group];
-
-  /**
-   * Collect all the signing keys inside the transactions to list all the
-   * dependencies required to correctly access the CoValue.
-   */
-  for (const piece of newContentMessages) {
-    for (const sessionID of Object.keys(piece.new) as SessionID[]) {
-      const accountId =
-        cojsonInternals.accountOrAgentIDfromSessionID(sessionID);
-
-      if (
-        cojsonInternals.isAccountID(accountId) &&
-        accountId !== coValueRow.id
-      ) {
-        keys.push(accountId);
-      }
-    }
+  if (header.ruleset.type === "ownedByGroup") {
+    deps.add(header.ruleset.group);
   }
 
-  return keys;
+  return deps;
 }
 
 function safeParseChanges(changes: Stringified<JsonValue[]>) {

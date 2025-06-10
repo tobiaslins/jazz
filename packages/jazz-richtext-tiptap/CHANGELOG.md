@@ -1,5 +1,156 @@
 # jazz-richtext-tiptap
 
+## 0.14.22
+
+### Patch Changes
+
+- Updated dependencies [048ac1d]
+  - jazz-tools@0.14.22
+  - jazz-browser@0.14.22
+  - jazz-richtext-prosemirror@0.14.22
+
+## 0.14.21
+
+### Patch Changes
+
+- Updated dependencies [e7e505e]
+- Updated dependencies [13b57aa]
+- Updated dependencies [5662faa]
+- Updated dependencies [2116a59]
+  - jazz-tools@0.14.21
+  - jazz-browser@0.14.21
+  - jazz-richtext-prosemirror@0.14.21
+
+## 0.14.20
+
+### Patch Changes
+
+- Updated dependencies [6f72419]
+- Updated dependencies [04b20c2]
+  - jazz-tools@0.14.20
+  - jazz-browser@0.14.20
+  - jazz-richtext-prosemirror@0.14.20
+
+## 0.14.19
+
+### Patch Changes
+
+- jazz-browser@0.14.19
+- jazz-richtext-prosemirror@0.14.19
+- jazz-tools@0.14.19
+
+## 0.14.18
+
+### Patch Changes
+
+- Updated dependencies [4b950bc]
+- Updated dependencies [d6d9c0a]
+- Updated dependencies [c559054]
+  - jazz-tools@0.14.18
+  - jazz-browser@0.14.18
+  - jazz-richtext-prosemirror@0.14.18
+
+## 0.1.22
+
+### Patch Changes
+
+- Updated dependencies [e512df4]
+  - jazz-tools@0.14.17
+  - jazz-browser@0.14.17
+  - jazz-richtext-prosemirror@0.1.33
+
+## 0.1.21
+
+### Patch Changes
+
+- jazz-browser@0.14.16
+- jazz-tools@0.14.16
+- jazz-richtext-prosemirror@0.1.32
+
+## 0.1.20
+
+### Patch Changes
+
+- jazz-browser@0.14.15
+- jazz-tools@0.14.15
+- jazz-richtext-prosemirror@0.1.31
+
+## 0.1.19
+
+### Patch Changes
+
+- Updated dependencies [e32a1f7]
+  - jazz-tools@0.14.14
+  - jazz-browser@0.14.14
+  - jazz-richtext-prosemirror@0.1.30
+
+## 0.1.18
+
+### Patch Changes
+
+- Updated dependencies [dc746a2]
+- Updated dependencies [f869d9a]
+- Updated dependencies [3fe6832]
+  - jazz-tools@0.14.10
+  - jazz-browser@0.14.10
+  - jazz-richtext-prosemirror@0.1.29
+
+## 0.1.17
+
+### Patch Changes
+
+- Updated dependencies [22c2600]
+  - jazz-tools@0.14.9
+  - jazz-browser@0.14.9
+  - jazz-richtext-prosemirror@0.1.28
+
+## 0.1.16
+
+### Patch Changes
+
+- Updated dependencies [637ae13]
+  - jazz-tools@0.14.8
+  - jazz-browser@0.14.8
+  - jazz-richtext-prosemirror@0.1.27
+
+## 0.1.15
+
+### Patch Changes
+
+- Updated dependencies [365b0ea]
+  - jazz-tools@0.14.7
+  - jazz-browser@0.14.7
+  - jazz-richtext-prosemirror@0.1.26
+
+## 0.1.14
+
+### Patch Changes
+
+- Updated dependencies [9d6d9fe]
+- Updated dependencies [9d6d9fe]
+  - jazz-tools@0.14.6
+  - jazz-browser@0.14.6
+  - jazz-richtext-prosemirror@0.1.25
+
+## 0.1.13
+
+### Patch Changes
+
+- Updated dependencies [91cbb2f]
+- Updated dependencies [20b3d88]
+  - jazz-tools@0.14.5
+  - jazz-browser@0.14.5
+  - jazz-richtext-prosemirror@0.1.24
+
+## 0.1.12
+
+### Patch Changes
+
+- Updated dependencies [011af55]
+  - jazz-tools@0.14.4
+  - jazz-browser@0.14.4
+  - jazz-richtext-prosemirror@0.1.23
+
 ## 0.1.11
 
 ### Patch Changes

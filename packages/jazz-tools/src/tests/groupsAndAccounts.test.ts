@@ -27,22 +27,22 @@ describe("Custom accounts and groups", async () => {
         profile: CustomProfile,
         root: co.map({}),
       })
-      .withMigration(
-        (
-          account: Loaded<typeof CustomAccount>,
-          creationProps?: { name: string },
-        ) => {
-          if (creationProps) {
-            console.log("In migration!");
-            const profileGroup = Group.create({ owner: account });
-            profileGroup.addMember("everyone", "reader");
-            account.profile = CustomProfile.create(
-              { name: creationProps.name, color: "blue" },
-              profileGroup,
-            );
-          }
-        },
-      );
+      .withMigration((account, creationProps?: { name: string }) => {
+        // making sure that the inferred type of account.root & account.profile considers the root/profile not being loaded
+        type R = typeof account.root;
+        const _r: R = {} as Loaded<typeof CustomAccount.def.shape.root> | null;
+        type P = typeof account.profile;
+        const _p: P = {} as Loaded<typeof CustomProfile> | null;
+        if (creationProps) {
+          console.log("In migration!");
+          const profileGroup = Group.create({ owner: account });
+          profileGroup.addMember("everyone", "reader");
+          account.profile = CustomProfile.create(
+            { name: creationProps.name, color: "blue" },
+            profileGroup,
+          );
+        }
+      });
 
     const me = await createJazzTestAccount({
       creationProps: { name: "Hermes Puggington" },
@@ -240,6 +240,18 @@ describe("Group inheritance", () => {
     group.addMember("everyone", "writeOnly");
 
     expect(group.getRoleOf("everyone")).toBe("writeOnly");
+  });
+
+  test("makePublic should add everyone as a reader", () => {
+    const group = Group.create();
+    group.makePublic();
+    expect(group.getRoleOf("everyone")).toBe("reader");
+  });
+
+  test("makePublic should add everyone as a writer", () => {
+    const group = Group.create();
+    group.makePublic("writer");
+    expect(group.getRoleOf("everyone")).toBe("writer");
   });
 
   test("typescript should show an error when adding a member with a non-account role", async () => {

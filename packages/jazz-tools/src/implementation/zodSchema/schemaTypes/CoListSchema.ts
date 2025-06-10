@@ -1,4 +1,3 @@
-import z from "zod/v4";
 import {
   Account,
   CoList,
@@ -11,13 +10,20 @@ import {
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
+import { z } from "../zodReExport.js";
 import { WithHelpers } from "../zodSchema.js";
+
+type CoListInit<T extends z.core.$ZodType> = Array<
+  T extends z.core.$ZodOptional<any>
+    ? InstanceOrPrimitiveOfSchemaCoValuesNullable<T>
+    : NonNullable<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>>
+>;
 
 export type CoListSchema<T extends z.core.$ZodType> = z.core.$ZodArray<T> & {
   collaborative: true;
 
   create: (
-    items: InstanceOrPrimitiveOfSchema<T>[],
+    items: CoListInit<T>,
     options?: { owner: Account | Group } | Account | Group,
   ) => CoList<InstanceOrPrimitiveOfSchema<T>>;
 
@@ -40,10 +46,13 @@ export type CoListSchema<T extends z.core.$ZodType> = z.core.$ZodArray<T> & {
     ) => void,
   ): () => void;
 
+  /** @deprecated Define your helper methods separately, in standalone functions. */
   withHelpers<S extends z.core.$ZodType, T extends object>(
     this: S,
     helpers: (Self: S) => T,
   ): WithHelpers<S, T>;
+
+  getCoSchema: () => typeof CoList;
 };
 
 // less precise verion to avoid circularity issues and allow matching against

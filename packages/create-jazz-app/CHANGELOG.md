@@ -1,5 +1,23 @@
 # create-jazz-app
 
+## 0.1.21
+
+### Patch Changes
+
+- e005ecd: Sets selected package manager based on command runner
+
+## 0.1.20
+
+### Patch Changes
+
+- f5bae09: Remove React Native specific steps as not required anymore
+
+## 0.1.19
+
+### Patch Changes
+
+- 4508524: Rename demo to minimal, change React Native template to minimal auth
+
 ## 0.1.18
 
 ### Patch Changes

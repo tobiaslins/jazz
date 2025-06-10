@@ -35,7 +35,7 @@ const MyAccount = co.account({
 MyAccount.withMigration((account, creationProps) => {
   if (account.profile === undefined) {
     const profileGroup = Group.create();
-    profileGroup.addMember("everyone", "reader");
+    profileGroup.makePublic();
     account.profile = MyProfile.create(
       {
         name: creationProps?.name ?? "New user",
@@ -67,7 +67,7 @@ async function handleFileUpload(event: Event) {
 ```
 </CodeGroup>
 
-> Note: `createImage()` requires a browser environment as it uses browser APIs to process images.
+**Note:** `createImage()` requires a browser environment as it uses browser APIs to process images.
 
 The `createImage()` function:
 - Creates an `ImageDefinition` with the right properties

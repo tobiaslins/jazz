@@ -1,5 +1,39 @@
 # cojson
 
+## 0.14.22
+
+### Patch Changes
+
+- 57fb69f: fix: clarify `Group.addMember` error message when attempting to set roles with insufficient permissions
+
+## 0.14.21
+
+### Patch Changes
+
+- c3d8779: Fix setting latestTxMadeAt when the transaction is empty. (can happen when calling assign with an empty object)
+
+## 0.14.20
+
+## 0.14.19
+
+## 0.14.18
+
+### Patch Changes
+
+- 0d5ee3e: Enable react-native-quick-crypto xsalsa20 accelerated algorithm for encrypt/decrypt functions
+
+## 0.14.16
+
+### Patch Changes
+
+- 5e253cc: Version bump
+
+## 0.14.15
+
+### Patch Changes
+
+- 23daa7c: Align the processing of the group dependencies between LocalNode and Storage.
+
 ## 0.14.1
 
 ### Patch Changes

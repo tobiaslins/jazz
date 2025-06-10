@@ -11,25 +11,26 @@
     "@biomejs/biome": "catalog:",
     "@changesets/cli": "^2.27.10",
     "@playwright/test": "^1.50.1",
-    "@vitejs/plugin-react": "^4.3.3",
-    "@vitest/browser": "^3.1.1",
-    "@vitest/coverage-istanbul": "3.1.1",
-    "@vitest/coverage-v8": "3.1.1",
-    "@vitest/ui": "3.1.1",
+    "@vitejs/plugin-react": "^4.5.1",
+    "@vitest/browser": "catalog:",
+    "@vitest/coverage-istanbul": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "@vitest/ui": "catalog:",
     "happy-dom": "^17.4.4",
     "lefthook": "^1.8.2",
     "pkg-pr-new": "^0.0.39",
     "playwright": "^1.50.1",
     "turbo": "^2.3.1",
     "typedoc": "^0.25.13",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "yalc": "^1.0.0-pre.53"
   },
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build && cd homepage/homepage && turbo build",
     "lint": "turbo lint && cd homepage/homepage && pnpm run lint",
     "test": "vitest",
-    "test:ci": "vitest --coverage.enabled=true",
+    "test:ci": "vitest run --watch=false --coverage.enabled=true && cd packages/jazz-svelte && pnpm exec vitest run --watch=false",
     "test:coverage": "vitest --ui --coverage.enabled=true",
     "format-and-lint": "biome check .",
     "format-and-lint:fix": "biome check . --write",
@@ -37,7 +38,8 @@
     "changeset-version": "changeset version && pnpm i --no-frozen-lockfile",
     "release": "turbo run build --filter='./packages/*' && pnpm changeset publish && git push --follow-tags",
     "clean": "rm -rf ./packages/*/dist && rm -rf ./packages/*/node_modules && rm -rf ./examples/*/node_modules && rm -rf ./examples/*/dist",
-    "check-catalog-deps": "node scripts/check-catalog-deps.js"
+    "check-catalog-deps": "node scripts/check-catalog-deps.js",
+    "yalc:all": "for d in packages/*/; do echo $d; cd $d; pnpm yalc push --replace --sig; cd '../../'; done"
   },
   "version": "0.0.0",
   "pnpm": {
@@ -48,9 +50,12 @@
       "ignoreMissing": ["@babel/*", "expo-modules-*", "typescript"]
     },
     "overrides": {
-      "react": "18.3.1",
-      "react-dom": "18.3.1",
+      "@types/react": "19.0.0",
+      "@types/react-dom": "19.0.0",
+      "react": "19.0.0",
+      "react-dom": "19.0.0",
       "esbuild": "0.24.0"
+
     },
     "patchedDependencies": {
       "expo-router": "patches/expo-router.patch"

@@ -11,7 +11,7 @@ import {
 } from "vitest";
 import { Group, co, subscribeToCoValue, z } from "../exports.js";
 import { Account } from "../index.js";
-import { CoKeys, Loaded, zodSchemaToCoSchema } from "../internal.js";
+import { Loaded, zodSchemaToCoSchema } from "../internal.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 import { setupTwoNodes, waitFor } from "./utils.js";
 
@@ -34,6 +34,8 @@ describe("CoMap", async () => {
         _height: z.number(),
         birthday: z.date(),
         name: z.string(),
+        enum: z.enum(["a", "b", "c"]),
+        enumMap: z.enum({ a: 1, b: 2, c: 3 }),
         // nullable: z.optional.encoded<string | undefined>({
         //   encode: (value: string | undefined) => value || null,
         //   decode: (value: unknown) => (value as string) || undefined,
@@ -48,6 +50,8 @@ describe("CoMap", async () => {
         _height: 10,
         birthday,
         name: "John",
+        enum: "a",
+        enumMap: 1,
       });
 
       expect(john.color).toEqual("red");
@@ -59,7 +63,11 @@ describe("CoMap", async () => {
         "_height",
         "birthday",
         "name",
+        "enum",
+        "enumMap",
       ]);
+      expect(john.enum).toEqual("a");
+      expect(john.enumMap).toEqual(1);
     });
 
     test("property existence", () => {
@@ -100,29 +108,6 @@ describe("CoMap", async () => {
 
       // @ts-expect-error
       expect(emptyMap.color).toEqual(undefined);
-    });
-
-    test("setting date as undefined should throw", () => {
-      const Person = co.map({
-        color: z.string(),
-        _height: z.number(),
-        birthday: z.date(),
-        name: z.string(),
-        // nullable: z.optional.encoded<string | undefined>({
-        //   encode: (value: string | undefined) => value || null,
-        //   decode: (value: unknown) => (value as string) || undefined,
-        // });
-        optionalDate: z.date().optional(),
-      });
-
-      expect(() =>
-        Person.create({
-          color: "red",
-          _height: 10,
-          name: "John",
-          birthday: undefined!,
-        }),
-      ).toThrow();
     });
 
     test("CoMap with reference", () => {
@@ -408,7 +393,7 @@ describe("CoMap", async () => {
 
     const MapWithEnumOfMaps = co.map({
       name: z.string(),
-      child: z.discriminatedUnion([ChildA, ChildB]),
+      child: z.discriminatedUnion("type", [ChildA, ChildB]),
     });
 
     const mapWithEnum = MapWithEnumOfMaps.create({
@@ -1214,5 +1199,439 @@ describe("Creating and finding unique CoMaps", async () => {
 
     const foundAlice = Person.findUnique({ name: "Alice" }, group.id);
     expect(foundAlice).toEqual(alice.id);
+  });
+
+  test("complex discriminated union", () => {
+    const StringTag = co.map({
+      type: z.literal("string"),
+      stringValue: z.string(),
+    });
+
+    const DateTag = co.map({
+      type: z.literal("date"),
+      dateValue: z.date(),
+      repeat: z.optional(
+        z.literal("daily").or(z.literal("weekly")).or(z.literal("monthly")),
+      ),
+    });
+
+    const StringAttributeValue = co.map({
+      type: z.literal(["somethingElse", "string"]),
+      stringValue: z.string(),
+    });
+
+    const NumberAttributeValue = co.map({
+      type: z.literal("number"),
+      numberValue: z.number(),
+    });
+
+    const DateAttributeValue = co.map({
+      type: z.literal("date"),
+      dateValue: z.date(),
+    });
+
+    const AttributeValue = z.discriminatedUnion("type", [
+      StringAttributeValue,
+      NumberAttributeValue,
+      DateAttributeValue,
+    ]);
+
+    const AttributeTagKey = co.map({
+      key: z.string(),
+    });
+
+    const AttributeTag = co.map({
+      type: z.literal("attribute"),
+      key: AttributeTagKey, // this is a covalue so that it can be referenced uniquely by other tags
+      attributeValue: AttributeValue,
+    });
+
+    const Tag = z.discriminatedUnion("type", [
+      AttributeTag,
+      StringTag,
+      DateTag,
+    ]);
+
+    const Wrapper = co.map({
+      tag: Tag,
+    });
+
+    const wrapper = Wrapper.create({
+      tag: AttributeTag.create({
+        type: "attribute",
+        key: AttributeTagKey.create({ key: "name" }),
+        attributeValue: StringAttributeValue.create({
+          type: "string",
+          stringValue: "Alice",
+        }),
+      }),
+    });
+
+    if (wrapper.tag.type === "attribute") {
+      expect(wrapper.tag.key.key).toEqual("name");
+      if (wrapper.tag.attributeValue.type === "string") {
+        expect(wrapper.tag.attributeValue.stringValue).toEqual("Alice");
+      }
+    }
+  });
+
+  test("complex discriminated union with numeric discriminator value", () => {
+    const HttpError = co.map({
+      code: z.number(),
+      message: z.string(),
+    });
+
+    const ClientError = co.map({
+      type: z.literal(400),
+      error: HttpError,
+    });
+
+    const ServerError = co.map({
+      type: z.literal(500),
+      error: HttpError,
+    });
+
+    const NetworkError = co.map({
+      type: z.literal(0),
+      error: HttpError,
+    });
+
+    const ErrorResponse = z.discriminatedUnion("type", [
+      ClientError,
+      ServerError,
+      NetworkError,
+    ]);
+
+    const ErrorWrapper = co.map({
+      response: ErrorResponse,
+    });
+
+    const wrapper = ErrorWrapper.create({
+      response: ClientError.create({
+        type: 400,
+        error: HttpError.create({
+          code: 400,
+          message: "Bad Request",
+        }),
+      }),
+    });
+
+    if (wrapper.response.type === 400) {
+      expect(wrapper.response.error.code).toEqual(400);
+      expect(wrapper.response.error.message).toEqual("Bad Request");
+    }
+
+    const serverErrorWrapper = ErrorWrapper.create({
+      response: ServerError.create({
+        type: 500,
+        error: HttpError.create({
+          code: 500,
+          message: "Internal Server Error",
+        }),
+      }),
+    });
+
+    if (serverErrorWrapper.response.type === 500) {
+      expect(serverErrorWrapper.response.error.code).toEqual(500);
+      expect(serverErrorWrapper.response.error.message).toEqual(
+        "Internal Server Error",
+      );
+    }
+
+    const networkErrorWrapper = ErrorWrapper.create({
+      response: NetworkError.create({
+        type: 0,
+        error: HttpError.create({
+          code: 0,
+          message: "Network Error",
+        }),
+      }),
+    });
+
+    if (networkErrorWrapper.response.type === 0) {
+      expect(networkErrorWrapper.response.error.code).toEqual(0);
+      expect(networkErrorWrapper.response.error.message).toEqual(
+        "Network Error",
+      );
+    }
+  });
+});
+
+describe("castAs", () => {
+  test("should cast a co.map type", () => {
+    const Person = co.map({
+      name: z.string(),
+    });
+
+    const PersonWithAge = co.map({
+      name: z.string(),
+      age: z.number().optional(),
+    });
+
+    const person = Person.create({
+      name: "Alice",
+    });
+
+    const personWithAge = person.castAs(PersonWithAge);
+
+    personWithAge.age = 20;
+
+    expect(personWithAge.age).toEqual(20);
+  });
+
+  test("should still be able to autoload in-memory deps", () => {
+    const Dog = co.map({
+      name: z.string(),
+    });
+
+    const Person = co.map({
+      name: z.string(),
+      dog: Dog,
+    });
+
+    const PersonWithAge = co.map({
+      name: z.string(),
+      age: z.number().optional(),
+      dog: Dog,
+    });
+
+    const person = Person.create({
+      name: "Alice",
+      dog: Dog.create({ name: "Rex" }),
+    });
+
+    const personWithAge = person.castAs(PersonWithAge);
+
+    personWithAge.age = 20;
+
+    expect(personWithAge.age).toEqual(20);
+    expect(personWithAge.dog?.name).toEqual("Rex");
+  });
+});
+
+describe("CoMap migration", () => {
+  test("should run on load", async () => {
+    const PersonV1 = co.map({
+      name: z.string(),
+      version: z.literal(1),
+    });
+
+    const Person = co
+      .map({
+        name: z.string(),
+        age: z.number(),
+        version: z.literal([1, 2]),
+      })
+      .withMigration((person) => {
+        if (person.version === 1) {
+          person.age = 20;
+          person.version = 2;
+        }
+      });
+
+    const person = PersonV1.create({
+      name: "Bob",
+      version: 1,
+    });
+
+    expect(person?.name).toEqual("Bob");
+    expect(person?.version).toEqual(1);
+
+    const loadedPerson = await Person.load(person.id);
+
+    expect(loadedPerson?.name).toEqual("Bob");
+    expect(loadedPerson?.age).toEqual(20);
+    expect(loadedPerson?.version).toEqual(2);
+  });
+
+  test("should handle group updates", async () => {
+    const Person = co
+      .map({
+        name: z.string(),
+        version: z.literal([1, 2]),
+      })
+      .withMigration((person) => {
+        if (person.version === 1) {
+          person.version = 2;
+
+          person._owner.castAs(Group).addMember("everyone", "reader");
+        }
+      });
+
+    const person = Person.create({
+      name: "Bob",
+      version: 1,
+    });
+
+    expect(person?.name).toEqual("Bob");
+    expect(person?.version).toEqual(1);
+
+    const loadedPerson = await Person.load(person.id);
+
+    expect(loadedPerson?.name).toEqual("Bob");
+    expect(loadedPerson?.version).toEqual(2);
+
+    const anotherAccount = await createJazzTestAccount();
+
+    const loadedPersonFromAnotherAccount = await Person.load(person.id, {
+      loadAs: anotherAccount,
+    });
+
+    expect(loadedPersonFromAnotherAccount?.name).toEqual("Bob");
+  });
+
+  test("should throw an error if a migration is async", async () => {
+    const Person = co
+      .map({
+        name: z.string(),
+        version: z.number(),
+      })
+      // @ts-expect-error async function
+      .withMigration(async () => {});
+
+    const person = Person.create({
+      name: "Bob",
+      version: 1,
+    });
+
+    await expect(Person.load(person.id)).rejects.toThrow(
+      "Migration function cannot be async",
+    );
+  });
+
+  test("should run only once", async () => {
+    const spy = vi.fn();
+    const Person = co
+      .map({
+        name: z.string(),
+        version: z.number(),
+      })
+      .withMigration((person) => {
+        spy(person);
+      });
+
+    const person = Person.create({
+      name: "Bob",
+      version: 1,
+    });
+
+    await Person.load(person.id);
+    await Person.load(person.id);
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  test("should not break recursive schemas", async () => {
+    const PersonV1 = co.map({
+      name: z.string(),
+      version: z.literal(1),
+      get friend() {
+        return PersonV1.optional();
+      },
+    });
+
+    const Person = co
+      .map({
+        name: z.string(),
+        age: z.number(),
+        get friend() {
+          return Person.optional();
+        },
+        version: z.literal([1, 2]),
+      })
+      .withMigration((person) => {
+        if (person.version === 1) {
+          person.age = 20;
+          person.version = 2;
+        }
+      });
+
+    const charlie = PersonV1.create({
+      name: "Charlie",
+      version: 1,
+    });
+
+    const bob = PersonV1.create({
+      name: "Bob",
+      version: 1,
+      friend: charlie,
+    });
+
+    const loaded = await Person.load(bob.id, {
+      resolve: {
+        friend: true,
+      },
+    });
+
+    // Migration should run on both the person and their friend
+    expect(loaded?.name).toEqual("Bob");
+    expect(loaded?.age).toEqual(20);
+    expect(loaded?.version).toEqual(2);
+    expect(loaded?.friend?.name).toEqual("Charlie");
+    expect(loaded?.friend?.version).toEqual(2);
+  });
+  describe("Time", () => {
+    test("empty map created time", () => {
+      const currentTimestampInSeconds = Math.floor(Date.now() / 1000);
+      const emptyMap = co.map({}).create({});
+      const createdAtInSeconds = Math.floor(emptyMap._createdAt / 1000);
+
+      expect(createdAtInSeconds).toEqual(currentTimestampInSeconds);
+      expect(emptyMap._lastUpdatedAt).toEqual(emptyMap._createdAt);
+    });
+
+    test("created time and last updated time", async () => {
+      const Person = co.map({
+        name: z.string(),
+      });
+
+      let currentTimestampInSeconds = Math.floor(Date.now() / 1000);
+      const person = Person.create({ name: "John" });
+
+      const createdAt = person._createdAt;
+      const createdAtInSeconds = Math.floor(createdAt / 1000);
+      expect(createdAtInSeconds).toEqual(currentTimestampInSeconds);
+      expect(person._lastUpdatedAt).toEqual(createdAt);
+
+      await new Promise((r) => setTimeout(r, 1000));
+      currentTimestampInSeconds = Math.floor(Date.now() / 1000);
+      person.name = "Jane";
+
+      const lastUpdatedAtInSeconds = Math.floor(person._lastUpdatedAt / 1000);
+      expect(lastUpdatedAtInSeconds).toEqual(currentTimestampInSeconds);
+      expect(person._createdAt).toEqual(createdAt);
+      expect(person._lastUpdatedAt).not.toEqual(createdAt);
+    });
+
+    test("comap with custom uniqueness", () => {
+      const Person = co.map({
+        name: z.string(),
+      });
+
+      let currentTimestampInSeconds = Math.floor(Date.now() / 1000);
+      const person = Person.create(
+        { name: "John" },
+        { unique: "name", owner: Account.getMe() },
+      );
+
+      const createdAt = person._createdAt;
+      const createdAtInSeconds = Math.floor(createdAt / 1000);
+      expect(createdAtInSeconds).toEqual(currentTimestampInSeconds);
+    });
+
+    test("empty comap with custom uniqueness", () => {
+      const Person = co.map({
+        name: z.optional(z.string()),
+      });
+
+      let currentTimestampInSeconds = Math.floor(Date.now() / 1000);
+      const person = Person.create(
+        {},
+        { unique: "name", owner: Account.getMe() },
+      );
+
+      const createdAt = person._createdAt;
+      const createdAtInSeconds = Math.floor(createdAt / 1000);
+      expect(createdAtInSeconds).toEqual(currentTimestampInSeconds);
+    });
   });
 });

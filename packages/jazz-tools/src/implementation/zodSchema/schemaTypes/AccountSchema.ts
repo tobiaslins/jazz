@@ -1,21 +1,11 @@
 import { CryptoProvider } from "cojson";
-import z from "zod/v4";
-import {
-  Account,
-  Group,
-  RefsToResolveStrict,
-  Simplify,
-} from "../../../internal.js";
+import { Account, Group, RefsToResolveStrict } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
+import { z } from "../zodReExport.js";
 import { Loaded, ResolveQuery } from "../zodSchema.js";
-import {
-  AnyCoMapSchema,
-  CoMapInitZod,
-  CoMapInstance,
-  CoMapSchema,
-} from "./CoMapSchema.js";
+import { AnyCoMapSchema, CoMapSchema } from "./CoMapSchema.js";
 
 export type AccountSchema<
   Shape extends {
@@ -33,7 +23,7 @@ export type AccountSchema<
     }>;
     root: CoMapSchema<{}>;
   },
-> = Omit<CoMapSchema<Shape>, "create" | "load"> & {
+> = Omit<CoMapSchema<Shape>, "create" | "load" | "withMigration"> & {
   builtin: "Account";
 
   create: (options: {
@@ -60,10 +50,12 @@ export type AccountSchema<
 
   withMigration(
     migration: (
-      account: InstanceOrPrimitiveOfSchema<AccountSchema<Shape>>,
+      account: Loaded<AccountSchema<Shape>>,
       creationProps?: { name: string },
     ) => void,
   ): AccountSchema<Shape>;
+
+  getCoSchema: () => typeof Account;
 };
 
 export type DefaultProfileShape = {
@@ -74,12 +66,8 @@ export type DefaultProfileShape = {
 
 export type CoProfileSchema<
   Shape extends z.core.$ZodLooseShape = DefaultProfileShape,
-> = Omit<CoMapSchema<Shape & DefaultProfileShape>, "create"> & {
-  create: (
-    init: Simplify<CoMapInitZod<Shape & DefaultProfileShape>>,
-    options: { owner: Exclude<Group, Account> } | Exclude<Group, Account>,
-  ) => CoMapInstance<Shape & Simplify<DefaultProfileShape>>;
-};
+  Config extends z.core.$ZodObjectConfig = z.core.$ZodObjectConfig,
+> = CoMapSchema<Shape & DefaultProfileShape, Config, Group>;
 
 // less precise verion to avoid circularity issues and allow matching against
 export type AnyAccountSchema<

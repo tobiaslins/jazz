@@ -15,8 +15,6 @@ We're still in the process of:
 - completing all the details of this upgrade guide
 </small>
 
-**Note: React Native is currently broken based on an [underlying Zod v4 issue](https://github.com/colinhacks/zod/issues/4148).**
-
 If you see something broken, please let us know on [Discord](https://discord.gg/utDMjHYg42) and check back in a couple hours.
 
 Thanks for your patience!
@@ -103,41 +101,14 @@ const Pet = co.map({
   name: z.string(),
   age: z.number(),
 });
+type Pet = co.loaded<typeof Pet>;
 
 const Person = co.map({
   name: z.string(),
   age: z.number(),
   pets: co.list(Pet),
 });
-
-function MyComponent({ id }: { id: string }) {
-  const person = useCoState(Person, id);
-
-  return person && <div>{person.name}</div>;
-}
-```
-</CodeGroup>
-
-...you now need to specify the type differently **when passing CoValues as a parameter** or
-**whenever you need to refer to the type of a loaded CoValue instance:**
-
-<CodeGroup>
-```tsx twoslash
-import React from "react";
-// ---cut---
-import { z, co, Loaded } from "jazz-tools"; // [!code ++]
-import { useCoState } from "jazz-react";
-
-const Pet = co.map({
-  name: z.string(),
-  age: z.number(),
-});
-
-const Person = co.map({
-  name: z.string(),
-  age: z.number(),
-  pets: co.list(Pet),
-});
+type Person = co.loaded<typeof Person>;
 
 function MyComponent({ id }: { id: string }) {
   const person = useCoState(Person, id);
@@ -145,31 +116,35 @@ function MyComponent({ id }: { id: string }) {
   return person && <PersonName person={person} />;
 }
 
-function PersonName({ person }: { person: Loaded<typeof Person> }) { // [!code ++]
+function PersonName({ person }: {
+  person: Person
+}) {
   return <div>{person.name}</div>;
 }
 ```
 </CodeGroup>
 
-`Loaded` can also take a second argument to specify the loading depth of the expected CoValue, mirroring the `resolve` options for `useCoState`, `load`, `subscribe`, etc.
+`co.loaded` can also take a second argument to specify the loading depth of the expected CoValue, mirroring the `resolve` options for `useCoState`, `load`, `subscribe`, etc.
 
 <CodeGroup>
 ```tsx twoslash
 import React from "react";
 // ---cut---
-import { z, co, Loaded } from "jazz-tools";
+import { z, co } from "jazz-tools";
 import { useCoState } from "jazz-react";
 
 const Pet = co.map({
   name: z.string(),
   age: z.number(),
 });
+type Pet = co.loaded<typeof Pet>;
 
 const Person = co.map({
   name: z.string(),
   age: z.number(),
   pets: co.list(Pet),
 });
+type Person = co.loaded<typeof Person>;
 
 function MyComponent({ id }: { id: string }) {
   const personWithPets = useCoState(Person, id, {
@@ -180,7 +155,7 @@ function MyComponent({ id }: { id: string }) {
 }
 
 function PersonAndFirstPetName({ person }: {
-  person: Loaded<typeof Person, { pets: { $each: true } }> // [!code ++]
+  person: co.loaded<typeof Person, { pets: { $each: true } }> // [!code ++]
 }) {
   return <div>{person.name} & {person.pets[0].name}</div>;
 }
@@ -205,12 +180,14 @@ const Pet = co.map({
   name: z.string(),
   age: z.number(),
 });
+type Pet = co.loaded<typeof Pet>;
 
 const Person = co.map({
   name: z.string(),
   age: z.number(),
   pets: co.list(Pet),
 });
+type Person = co.loaded<typeof Person>;
 ``` 
 ```svelte twoslash filename="app.svelte"
 // @filename: app.svelte
@@ -227,37 +204,13 @@ const person = new CoState(Person, id);
 ```
 </CodeGroup>
 
-...you now need to specify the type differently **when passing CoValues as a parameter** or
-**whenever you need to refer to the type of a loaded CoValue instance:**
+`co.loaded` can also take a second argument to specify the loading depth of the expected CoValue, mirroring the `resolve` options for `CoState`, `load`, `subscribe`, etc.
 
 <CodeGroup>
 ```svelte twoslash
 <script lang="ts" module>
   export type Props = {
-    person: Loaded<typeof Person>;  // [!code ++]
-  };
-</script>
-
-<script lang="ts">
-  import { Person } from './schema';
-  
-  let props: Props = $props();
-</script>
-
-
-<div>
-  {props.person.name}
-</div>
-```
-</CodeGroup>
-
-`Loaded` can also take a second argument to specify the loading depth of the expected CoValue, mirroring the `resolve` options for `CoState`, `load`, `subscribe`, etc.
-
-<CodeGroup>
-```svelte twoslash
-<script lang="ts" module>
-  export type Props = {
-    person: Loaded<typeof Person, { pets: { $each: true } }>;  // [!code ++]
+    person: co.loaded<typeof Person, { pets: { $each: true } }>;  // [!code ++]
   };
 </script>
 
@@ -419,7 +372,7 @@ This means that you now need to rely on `useCoState` on them to load their using
 <CodeGroup>
 ```tsx twoslash
 import React from "react";
-import { co, z, Loaded, Group } from "jazz-tools";
+import { co, z, Group } from "jazz-tools";
 import { useCoState } from "jazz-react";
 
 const Pet = co.map({
@@ -442,7 +395,7 @@ export const MyAppAccount = co.account({
 });
 
 // ---cut---
-function GroupMembers({ group }: { group: Loaded<typeof Group> }) {
+function GroupMembers({ group }: { group: Group }) {
   const members = group.members;
 
   return (

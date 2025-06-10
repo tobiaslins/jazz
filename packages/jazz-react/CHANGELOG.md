@@ -1,5 +1,209 @@
 # jazz-react
 
+## 0.14.22
+
+### Patch Changes
+
+- Updated dependencies [57fb69f]
+- Updated dependencies [048ac1d]
+  - cojson@0.14.22
+  - jazz-tools@0.14.22
+  - cojson-transport-ws@0.14.22
+  - jazz-browser@0.14.22
+  - jazz-react-core@0.14.22
+  - jazz-browser-media-images@0.14.22
+
+## 0.14.21
+
+### Patch Changes
+
+- Updated dependencies [e7e505e]
+- Updated dependencies [c3d8779]
+- Updated dependencies [13b57aa]
+- Updated dependencies [2116a59]
+- Updated dependencies [5662faa]
+- Updated dependencies [2116a59]
+  - jazz-tools@0.14.21
+  - cojson@0.14.21
+  - jazz-react-core@0.14.21
+  - jazz-browser@0.14.21
+  - jazz-browser-media-images@0.14.21
+  - cojson-transport-ws@0.14.21
+
+## 0.14.20
+
+### Patch Changes
+
+- Updated dependencies [6f72419]
+- Updated dependencies [04b20c2]
+  - jazz-tools@0.14.20
+  - jazz-browser@0.14.20
+  - jazz-browser-media-images@0.14.20
+  - jazz-react-core@0.14.20
+  - cojson@0.14.20
+  - cojson-transport-ws@0.14.20
+
+## 0.14.19
+
+### Patch Changes
+
+- cojson@0.14.19
+- cojson-transport-ws@0.14.19
+- jazz-browser@0.14.19
+- jazz-browser-media-images@0.14.19
+- jazz-react-core@0.14.19
+- jazz-tools@0.14.19
+
+## 0.14.18
+
+### Patch Changes
+
+- Updated dependencies [4b950bc]
+- Updated dependencies [0d5ee3e]
+- Updated dependencies [d6d9c0a]
+- Updated dependencies [c559054]
+  - jazz-tools@0.14.18
+  - cojson@0.14.18
+  - jazz-browser@0.14.18
+  - jazz-browser-media-images@0.14.18
+  - jazz-react-core@0.14.18
+  - cojson-transport-ws@0.14.18
+
+## 0.14.17
+
+### Patch Changes
+
+- Updated dependencies [e512df4]
+  - jazz-tools@0.14.17
+  - jazz-browser@0.14.17
+  - jazz-browser-media-images@0.14.17
+  - jazz-react-core@0.14.17
+
+## 0.14.16
+
+### Patch Changes
+
+- Updated dependencies [5e253cc]
+  - cojson@0.14.16
+  - cojson-transport-ws@0.14.16
+  - jazz-browser@0.14.16
+  - jazz-react-core@0.14.16
+  - jazz-tools@0.14.16
+  - jazz-browser-media-images@0.14.16
+
+## 0.14.15
+
+### Patch Changes
+
+- f9590f9: Add createSSRJazzAgent API
+- Updated dependencies [23daa7c]
+  - cojson@0.14.15
+  - cojson-transport-ws@0.14.15
+  - jazz-browser@0.14.15
+  - jazz-react-core@0.14.15
+  - jazz-tools@0.14.15
+  - jazz-browser-media-images@0.14.15
+
+## 0.14.14
+
+### Patch Changes
+
+- Updated dependencies [e32a1f7]
+- Updated dependencies [e32a1f7]
+  - jazz-tools@0.14.14
+  - jazz-react-core@0.14.14
+  - jazz-browser@0.14.14
+  - jazz-browser-media-images@0.14.14
+
+## 0.14.13
+
+### Patch Changes
+
+- Updated dependencies [bb214f0]
+  - jazz-react-core@0.14.13
+
+## 0.14.12
+
+### Patch Changes
+
+- Updated dependencies [f167112]
+  - jazz-react-core@0.14.12
+
+## 0.14.10
+
+### Patch Changes
+
+- dc746a2: Make the react peerDependency definition more relaxed
+- Updated dependencies [dc746a2]
+- Updated dependencies [f869d9a]
+- Updated dependencies [3fe6832]
+  - jazz-react-core@0.14.10
+  - jazz-tools@0.14.10
+  - jazz-browser@0.14.10
+  - jazz-browser-media-images@0.14.10
+
+## 0.14.9
+
+### Patch Changes
+
+- Updated dependencies [22c2600]
+  - jazz-tools@0.14.9
+  - jazz-browser@0.14.9
+  - jazz-browser-media-images@0.14.9
+  - jazz-react-core@0.14.9
+
+## 0.14.8
+
+### Patch Changes
+
+- Updated dependencies [637ae13]
+  - jazz-tools@0.14.8
+  - jazz-browser@0.14.8
+  - jazz-browser-media-images@0.14.8
+  - jazz-react-core@0.14.8
+
+## 0.14.7
+
+### Patch Changes
+
+- Updated dependencies [365b0ea]
+  - jazz-tools@0.14.7
+  - jazz-browser@0.14.7
+  - jazz-browser-media-images@0.14.7
+  - jazz-react-core@0.14.7
+
+## 0.14.6
+
+### Patch Changes
+
+- Updated dependencies [9d6d9fe]
+- Updated dependencies [9d6d9fe]
+  - jazz-tools@0.14.6
+  - jazz-browser@0.14.6
+  - jazz-browser-media-images@0.14.6
+  - jazz-react-core@0.14.6
+
+## 0.14.5
+
+### Patch Changes
+
+- Updated dependencies [91cbb2f]
+- Updated dependencies [20b3d88]
+  - jazz-tools@0.14.5
+  - jazz-browser@0.14.5
+  - jazz-browser-media-images@0.14.5
+  - jazz-react-core@0.14.5
+
+## 0.14.4
+
+### Patch Changes
+
+- Updated dependencies [011af55]
+  - jazz-tools@0.14.4
+  - jazz-browser@0.14.4
+  - jazz-browser-media-images@0.14.4
+  - jazz-react-core@0.14.4
+
 ## 0.14.2
 
 ### Patch Changes
