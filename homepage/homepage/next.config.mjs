@@ -78,8 +78,12 @@ function highlightPlugin() {
             throws: false, //process.env.NODE_ENV === "production",
             onTwoslashError:
               process.env.NODE_ENV !== "production"
-                ? (e) => {
-                    console.error(e);
+                ? (e, code) => {
+                    const { title, description, recommendation } = e;
+                    console.error("\nTwoslash error: ", title);
+                    console.log(description);
+                    console.log(recommendation);
+                    console.log(code);
                     error = e;
                   }
                 : undefined,
