@@ -307,6 +307,11 @@ export const docNavigationItems = [
     name: "Resources",
     items: [
       {
+        name: "Encryption",
+        href: "/docs/resources/encryption",
+        done: 100,
+      },
+      {
         name: "Jazz under the hood",
         href: "/docs/jazz-under-the-hood",
         done: 0,
