@@ -99,15 +99,13 @@ export default function CoJsonViewerApp() {
         );
         accounts.splice(invalidAccountIndex, 1);
 
-        console.log(accounts);
-        console.log("remove the account");
         setAccounts(accounts);
         //remove from localStorage
         localStorage.removeItem("lastSelectedAccountId");
         localStorage.setItem(
           "inspectorAccounts",
           JSON.parse(localStorage.inspectorAccounts).filter(
-            (acc) => acc.id != currentAccount.id,
+            (acc: Account) => acc.id != currentAccount.id,
           ),
         );
         setCurrentAccount(null);
@@ -336,10 +334,10 @@ function AddAccountForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-3 max-w-md mx-auto h-full justify-center"
+      className={`flex flex-col max-w-[30rem] mx-auto justify-center ${errors == null ? "h-full" : ""}`}
     >
       {errors != null && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mt-4 font-mono whitespace-pre-wrap break-words">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mt-4 font-mono whitespace-pre-wrap break-words mb-8">
           <h3>Error</h3>
           <pre className="whitespace-pre-wrap break-words overflow-hidden">
             {JSON.stringify(errors)}
