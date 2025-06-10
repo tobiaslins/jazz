@@ -29,6 +29,11 @@ export class ChatPage {
     await expect(this.page.getByText(message)).toBeVisible();
   }
 
+  async expectUserNameNotToBeAnonymousUser() {
+    await expect(this.usernameInput).not.toHaveValue(/anonymous user/i);
+    await expect(this.usernameInput).toHaveValue(/^Anonymous \w+/);
+  }
+
   async logout() {
     await this.logoutButton.click();
     await this.page.goto('/');

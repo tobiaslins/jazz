@@ -1,3 +1,4 @@
+import { expect } from 'vitest';
 import { ChatPage } from './pages/ChatPage';
 import { test } from '@playwright/test';
 
@@ -12,6 +13,7 @@ test('chat works between two windows', async ({ page: marioPage, browser }) => {
 
   const marioChat = new ChatPage(marioPage);
   const luigiChat = new ChatPage(luigiPage);
+
 
   await marioChat.setUsername('Mario');
 
@@ -35,4 +37,19 @@ test('chat works between two windows', async ({ page: marioPage, browser }) => {
   await marioChat.expectMessageRow(message1ByMario);
   await luigiChat.expectMessageRow(message2ByLuigi);
   await context.close();
+});
+
+test('user does not get assigned \'Anonymous user\' name', async ({ page: marioPage, browser }) => {
+  await marioPage.goto('/');
+  const context = await browser.newContext();
+  const luigiPage = await context.newPage();
+
+  await marioPage.waitForURL('/chat/**');
+  const roomUrl = marioPage.url();
+  await luigiPage.goto(roomUrl);
+
+  const marioChat = new ChatPage(marioPage);
+  const luigiChat = new ChatPage(luigiPage);
+  await marioChat.expectUserNameNotToBeAnonymousUser();
+  await luigiChat.expectUserNameNotToBeAnonymousUser();
 });
