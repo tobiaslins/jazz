@@ -12,6 +12,7 @@ import type {
 import { createSubscriber } from 'svelte/reactivity';
 import { getJazzContext } from './jazz.svelte';
 import { anySchemaToCoSchema, subscribeToCoValue } from 'jazz-tools';
+import { useIsAuthenticated } from './auth/useIsAuthenticated.svelte.js';
 
 export class CoState<V extends CoValueOrZodSchema, R extends ResolveQuery<V> = true> {
 	#value: Loaded<V, R> | undefined | null = undefined;
@@ -149,5 +150,11 @@ export class AccountCoState<
 		}
 
 		return 'me' in this.#ctx.current ? this.#ctx.current.me : this.#ctx.current.guest;
+	}
+
+	#isAuthenticated = useIsAuthenticated();
+
+	get isAuthenticated() {
+		return this.#isAuthenticated.current;
 	}
 }
