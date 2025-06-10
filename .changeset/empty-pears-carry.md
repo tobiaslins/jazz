@@ -1,6 +1,6 @@
 ---
-"jazz-example-music-player": minor
-"jazz-tools": minor
+"jazz-example-music-player": patch
+"jazz-tools": patch
 ---
 
 Deprecated `Group.extend` and `Group.revokeExtend` (use `Group.addMember` and `Group.removeMember` respectively)
