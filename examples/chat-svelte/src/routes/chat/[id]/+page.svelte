@@ -71,7 +71,12 @@
       }}
       placeholder="Set username"
     />
-    <button onclick={account.logOut}>Log out</button>
+    <button
+      onclick={() => {
+        account.logOut();
+        window.location.reload(); // Otherwise the provider will not update with default profile name
+      }}>Log out</button
+    >
   </TopBar>
   {#if !chat}
     <div class="flex items-center justify-center flex-1">Loading...</div>

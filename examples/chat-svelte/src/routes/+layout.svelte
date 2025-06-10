@@ -7,7 +7,7 @@
   import { getRandomUsername } from '$lib/utils';
   let { children } = $props();
   const { url } = $derived(page);
-  const defaultProfileName = $derived(url.searchParams.get('user') ?? getRandomUsername());
+  const defaultProfileName = $derived(url.searchParams.get('user')?.trim() ?? getRandomUsername());
 </script>
 
 <svelte:head>
