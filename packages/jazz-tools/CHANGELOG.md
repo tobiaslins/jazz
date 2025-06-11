@@ -1,5 +1,13 @@
 # jazz-tools
 
+## 0.14.23
+
+### Patch Changes
+
+- 9177579: Fixs coText applyDiff out of bounds insertion with emoji
+- Updated dependencies [1ca9299]
+  - cojson@0.14.23
+
 ## 0.14.22
 
 ### Patch Changes

@@ -1,7 +1,6 @@
 {
   "name": "organization",
   "private": true,
-  
   "type": "module",
   "scripts": {
     "dev": "vite",

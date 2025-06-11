@@ -1,5 +1,15 @@
 # cojson-storage-sqlite
 
+## 0.14.23
+
+### Patch Changes
+
+- 5f42c97: Close the DB connection when the node/context is closed
+- Updated dependencies [1ca9299]
+- Updated dependencies [5f42c97]
+  - cojson@0.14.23
+  - cojson-storage@0.14.23
+
 ## 0.14.22
 
 ### Patch Changes

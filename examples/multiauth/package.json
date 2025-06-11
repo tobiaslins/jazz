@@ -1,7 +1,6 @@
 {
   "name": "multiauth",
   "private": true,
-  
   "type": "module",
   "scripts": {
     "dev": "vite",

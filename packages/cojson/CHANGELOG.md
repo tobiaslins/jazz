@@ -1,5 +1,11 @@
 # cojson
 
+## 0.14.23
+
+### Patch Changes
+
+- 1ca9299: Adds grapheme split helpers for coText
+
 ## 0.14.22
 
 ### Patch Changes

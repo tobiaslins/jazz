@@ -1,7 +1,6 @@
 {
   "name": "jazz-password-manager",
   "private": true,
-  
   "type": "module",
   "scripts": {
     "dev": "vite",

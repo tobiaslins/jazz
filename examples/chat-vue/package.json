@@ -1,6 +1,5 @@
 {
   "name": "chat-vue",
-  
   "private": true,
   "type": "module",
   "scripts": {

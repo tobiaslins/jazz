@@ -1,6 +1,5 @@
 {
   "name": "example-prosekit-jazz",
-  
   "private": true,
   "type": "module",
   "scripts": {
