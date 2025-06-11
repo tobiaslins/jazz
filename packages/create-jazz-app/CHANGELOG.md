@@ -1,5 +1,11 @@
 # create-jazz-app
 
+## 0.1.22
+
+### Patch Changes
+
+- 5bb1252: delete .env.test file
+
 ## 0.1.21
 
 ### Patch Changes

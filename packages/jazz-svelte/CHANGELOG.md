@@ -1,5 +1,14 @@
 # jazz-svelte
 
+## 0.14.24
+
+### Patch Changes
+
+- ea33ad4: Add isAuthenticated to AccountCoState & fix some edge cases on the id reactivity in CoState
+  - cojson@0.14.24
+  - jazz-browser@0.14.24
+  - jazz-tools@0.14.24
+
 ## 0.14.23
 
 ### Patch Changes
