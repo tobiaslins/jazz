@@ -14,8 +14,6 @@ const dateOfBirth = $derived(
   me ? me.root?.dateOfBirth?.toISOString().split("T")[0] || "" : "",
 );
 
-$inspect(me);
-
 function handleDateOfBirthChange(
   event: Event & { currentTarget: HTMLInputElement },
 ) {
@@ -23,7 +21,6 @@ function handleDateOfBirthChange(
     me.root.dateOfBirth = new Date(event.currentTarget.value);
   }
 }
-$inspect(me);
 </script>
 
 {#if me}

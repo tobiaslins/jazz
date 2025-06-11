@@ -25,6 +25,7 @@ jobs:
           "examples/organization",
           "examples/pets",
           "starters/react-passkey-auth",
+          "starters/svelte-passkey-auth",
           "packages/jazz-svelte"
         ]
 
