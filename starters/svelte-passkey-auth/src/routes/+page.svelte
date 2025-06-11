@@ -1,6 +1,6 @@
 <script lang="ts">
   import Form from "$lib/components/Form.svelte";
-  import { AccountRoot, JazzAccount } from "$lib/schema";
+  import { getUserAge, JazzAccount } from "$lib/schema";
   import { AccountCoState } from "jazz-svelte";
 
   const account = new AccountCoState(JazzAccount, {
@@ -17,7 +17,7 @@
     Welcome{#if me?.profile?.firstName}, {me?.profile.firstName}{/if}!
   </h1>
   {#if me?.root}
-    <p>As of today, you are {AccountRoot.age(me?.root)} years old.</p>
+    <p>As of today, you are {getUserAge(me?.root)} years old.</p>
   {/if}
 </div>
 
