@@ -24,7 +24,11 @@ jobs:
         uses: ./.github/actions/source-code/
 
       - name: Pnpm Build
-        run: pnpm turbo build
+        run: |
+          if [ -f .env.test ]; then
+            cp .env.test .env
+          fi
+          pnpm turbo build
         working-directory: ./${{ matrix.project }}
 
       - name: Install Playwright Browsers
