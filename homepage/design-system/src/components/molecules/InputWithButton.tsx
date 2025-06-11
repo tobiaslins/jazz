@@ -1,0 +1,24 @@
+import { clsx } from "clsx";
+import { Button, ButtonProps } from "../atoms/Button";
+import { Input, InputProps } from "./Input";
+
+export function InputWithButton({
+  inputProps,
+  buttonProps,
+}: {
+  inputProps: InputProps;
+  buttonProps: ButtonProps;
+}) {
+  return (
+    <div className="flex gap-2 w-full">
+      <Input {...inputProps} />
+      <Button
+        {...buttonProps}
+        className={clsx(
+          buttonProps.className,
+          !inputProps.labelHidden ? "mt-6" : "",
+        )}
+      />
+    </div>
+  );
+}
