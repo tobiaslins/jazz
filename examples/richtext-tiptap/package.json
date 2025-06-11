@@ -1,7 +1,6 @@
 {
   "name": "richtext-tiptap",
   "private": true,
-  
   "type": "module",
   "scripts": {
     "dev": "vite",

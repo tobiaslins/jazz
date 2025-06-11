@@ -1,7 +1,6 @@
 {
   "name": "image-upload",
   "private": true,
-  
   "type": "module",
   "scripts": {
     "dev": "vite",

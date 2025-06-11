@@ -1,6 +1,5 @@
 {
   "name": "file-share-svelte",
-  
   "private": true,
   "type": "module",
   "scripts": {

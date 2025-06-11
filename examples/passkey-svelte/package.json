@@ -1,6 +1,5 @@
 {
   "name": "passkey-svelte",
-  
   "type": "module",
   "private": true,
   "scripts": {

@@ -1,7 +1,6 @@
 {
   "name": "passkey",
   "private": true,
-  
   "type": "module",
   "scripts": {
     "dev": "vite",

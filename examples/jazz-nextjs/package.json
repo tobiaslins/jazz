@@ -1,6 +1,5 @@
 {
   "name": "jazz-nextjs",
-  
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",

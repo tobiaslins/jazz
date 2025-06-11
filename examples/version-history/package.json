@@ -1,7 +1,6 @@
 {
   "name": "version-history",
   "private": true,
-  
   "type": "module",
   "scripts": {
     "dev": "vite",

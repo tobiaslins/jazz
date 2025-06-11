@@ -1,7 +1,6 @@
 {
   "name": "clerk",
   "private": true,
-  
   "type": "module",
   "scripts": {
     "dev": "vite",
