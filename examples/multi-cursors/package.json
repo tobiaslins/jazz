@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@react-spring/web": "^9.7.5",
+    "jazz-inspector": "workspace:*",
     "jazz-react": "workspace:*",
     "jazz-tools": "workspace:*",
     "react": "19.0.0",
