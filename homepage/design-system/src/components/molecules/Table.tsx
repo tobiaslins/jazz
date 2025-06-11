@@ -19,7 +19,7 @@ export function Table({ className, tableData, ...tableProps }: TableProps) {
       <thead>
         <tr>
           {tableData.headers.map((header) => (
-            <th key={header} className="text-left">
+            <th key={header} className="text-left pl-1">
               {header}
             </th>
           ))}
@@ -27,9 +27,19 @@ export function Table({ className, tableData, ...tableProps }: TableProps) {
       </thead>
       <tbody className="border-t border-gray-200">
         {tableData.data.map((row, index) => (
-          <tr key={row.id} className={index % 2 === 0 ? "bg-gray-100" : ""}>
-            {tableData.headers.map((header) => (
-              <td key={header}>{row[header]}</td>
+          <tr
+            key={row.id}
+            className={clsx(
+              index % 2 === 0
+                ? "bg-gray-100 hover:bg-gray-200/50"
+                : "hover:bg-gray-200/20",
+              "border-b border-gray-200",
+            )}
+          >
+            {tableData.headers.map((header, index) => (
+              <td key={header} className="pl-1">
+                {row[header]}
+              </td>
             ))}
           </tr>
         ))}
