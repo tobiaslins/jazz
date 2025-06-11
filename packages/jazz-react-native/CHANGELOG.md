@@ -1,5 +1,15 @@
 # jazz-browser
 
+## 0.14.24
+
+### Patch Changes
+
+- 678f326: Reuse the same db connection when switching users instead of closing/opening a new one
+  - cojson@0.14.24
+  - cojson-storage@0.14.24
+  - jazz-react-native-core@0.14.24
+  - jazz-tools@0.14.24
+
 ## 0.14.23
 
 ### Patch Changes

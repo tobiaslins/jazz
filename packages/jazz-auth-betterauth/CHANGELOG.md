@@ -1,5 +1,14 @@
 # jazz-auth-betterauth
 
+## 0.14.24
+
+### Patch Changes
+
+- cojson@0.14.24
+- jazz-browser@0.14.24
+- jazz-betterauth-client-plugin@0.14.24
+- jazz-tools@0.14.24
+
 ## 0.14.23
 
 ### Patch Changes

@@ -1,5 +1,17 @@
 # jazz-react
 
+## 0.14.24
+
+### Patch Changes
+
+- 9088a34: Expliticly returns ReactNode type for ProgressiveImg
+  - cojson@0.14.24
+  - cojson-transport-ws@0.14.24
+  - jazz-browser@0.14.24
+  - jazz-browser-media-images@0.14.24
+  - jazz-react-core@0.14.24
+  - jazz-tools@0.14.24
+
 ## 0.14.23
 
 ### Patch Changes
