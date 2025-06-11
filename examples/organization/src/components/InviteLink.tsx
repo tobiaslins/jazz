@@ -12,12 +12,6 @@ export function InviteLink({
   let copied = copyCount > 0;
 
   useEffect(() => {
-    if (organization) {
-      setInviteLink(createInviteLink(organization, "writer"));
-    }
-  }, [organization.id]);
-
-  useEffect(() => {
     if (copyCount > 0) {
       let timeout = setTimeout(() => setCopyCount(0), 1000);
       return () => {
@@ -27,11 +21,17 @@ export function InviteLink({
   }, [copyCount]);
 
   const copyUrl = () => {
-    if (inviteLink) {
-      navigator.clipboard.writeText(inviteLink).then(() => {
-        setCopyCount((count) => count + 1);
-      });
+    // Create invite link only if it doesn't exist yet
+    const linkToUse = inviteLink || createInviteLink(organization, "writer");
+
+    // Store the link if it was just created
+    if (!inviteLink) {
+      setInviteLink(linkToUse);
     }
+
+    navigator.clipboard.writeText(linkToUse).then(() => {
+      setCopyCount((count) => count + 1);
+    });
   };
 
   return (
