@@ -1,4 +1,5 @@
 import { Button } from "@/components/atoms/Button";
+import { Table } from "@/components/molecules/Table";
 
 export function Buttons() {
   return (
@@ -83,6 +84,42 @@ export function Buttons() {
         <Button icon="newsletter" styleVariant="text" variant="tip" />
         <Button icon="check" variant="success" />
       </div>
+      <div>
+        <h3 className="text-xl mt-5 mb-2 font-bold">Props Table</h3>
+        <Table tableData={buttonPropsTableData} />
+      </div>
     </div>
   );
 }
+
+const buttonPropsTableData = {
+  headers: ["Prop", "Types", "Default"],
+  data: [
+    {
+      Prop: "variant",
+      Types:
+        "primary | secondary | tip | info | success | warning | alert | danger",
+      Default: "primary",
+    },
+    {
+      Prop: "styleVariant",
+      Types: "outline | inverted | ghost | text",
+      Default: "default",
+    },
+    {
+      Prop: "color",
+      Types: "light | dark | white | black",
+      Default: "primary",
+    },
+    {
+      Prop: "icon",
+      Types: "string",
+      Default: "undefined",
+    },
+    {
+      Prop: "iconPosition",
+      Types: "left | right",
+      Default: "left",
+    },
+  ],
+};
