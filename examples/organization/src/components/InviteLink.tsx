@@ -7,7 +7,6 @@ import { Organization } from "../schema.ts";
 export function InviteLink({
   organization,
 }: { organization: Loaded<typeof Organization> }) {
-  const [inviteLink, setInviteLink] = useState<string>();
   let [copyCount, setCopyCount] = useState(0);
   let copied = copyCount > 0;
 
@@ -21,15 +20,8 @@ export function InviteLink({
   }, [copyCount]);
 
   const copyUrl = () => {
-    // Create invite link only if it doesn't exist yet
-    const linkToUse = inviteLink || createInviteLink(organization, "writer");
-
-    // Store the link if it was just created
-    if (!inviteLink) {
-      setInviteLink(linkToUse);
-    }
-
-    navigator.clipboard.writeText(linkToUse).then(() => {
+    const inviteLink = createInviteLink(organization, "writer");
+    navigator.clipboard.writeText(inviteLink).then(() => {
       setCopyCount((count) => count + 1);
     });
   };
