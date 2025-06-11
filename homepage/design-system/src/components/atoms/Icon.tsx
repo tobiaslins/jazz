@@ -36,6 +36,7 @@ import {
   MousePointerSquareDashedIcon,
   ScanFace,
   ScrollIcon,
+  SearchIcon,
   SunIcon,
   TrashIcon,
   UploadCloudIcon,
@@ -47,7 +48,7 @@ import {
 
 import { GcmpIcons } from "./icons";
 
-const icons = {
+export const icons = {
   arrowDown: ArrowDownIcon,
   arrowRight: ArrowRightIcon,
   auth: UserIcon,
@@ -91,7 +92,7 @@ const icons = {
   colist: Brackets,
   user: UserIcon,
   group: UsersIcon,
-
+  search: SearchIcon,
   previous: ChevronLeftIcon,
   next: ChevronRightIcon,
 
