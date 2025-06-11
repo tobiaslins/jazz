@@ -1,13 +1,13 @@
 <script lang="ts">
-import { JazzProvider } from "jazz-svelte";
-import { apiKey } from "../apiKey";
-import "../app.css";
-import Header from "$lib/components/Header.svelte";
-import "jazz-inspector-element";
-import { JazzAccount } from "$lib/schema";
+  import { JazzProvider } from "jazz-svelte";
+  import { apiKey } from "../apiKey";
+  import "../app.css";
+  import Header from "$lib/components/Header.svelte";
+  import "jazz-inspector-element";
+  import { JazzAccount } from "$lib/schema";
 
-let { children } = $props();
-let appName = "Jazz Svelte starter";
+  let { children } = $props();
+  let appName = "Jazz Svelte starter";
 </script>
 
 <svelte:head>
@@ -16,7 +16,7 @@ let appName = "Jazz Svelte starter";
 
 <JazzProvider
   sync={{
-    peer: `wss://cloud.jazz.tools/?key=${apiKey}`
+    peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
   }}
   AccountSchema={JazzAccount}
 >

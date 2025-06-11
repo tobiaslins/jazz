@@ -1,15 +1,15 @@
 <script lang="ts">
-import Form from "$lib/components/Form.svelte";
-import { AccountRoot, JazzAccount } from "$lib/schema";
-import { AccountCoState } from "jazz-svelte";
+  import Form from "$lib/components/Form.svelte";
+  import { AccountRoot, JazzAccount } from "$lib/schema";
+  import { AccountCoState } from "jazz-svelte";
 
-const account = new AccountCoState(JazzAccount, {
-  resolve: {
-    profile: true,
-    root: true,
-  },
-});
-const me = $derived(account.current);
+  const account = new AccountCoState(JazzAccount, {
+    resolve: {
+      profile: true,
+      root: true,
+    },
+  });
+  const me = $derived(account.current);
 </script>
 
 <div class="text-center">

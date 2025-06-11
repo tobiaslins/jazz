@@ -1,19 +1,19 @@
 <script lang="ts">
-import { JazzAccount } from "$lib/schema";
-import { usePasskeyAuth } from "jazz-svelte";
-import { AccountCoState } from "jazz-svelte";
+  import { JazzAccount } from "$lib/schema";
+  import { usePasskeyAuth } from "jazz-svelte";
+  import { AccountCoState } from "jazz-svelte";
 
-let { appName } = $props();
+  let { appName } = $props();
 
-const { logOut } = new AccountCoState(JazzAccount);
+  const { logOut } = new AccountCoState(JazzAccount);
 
-const { current, state } = $derived(
-  usePasskeyAuth({
-    appName,
-  }),
-);
+  const { current, state } = $derived(
+    usePasskeyAuth({
+      appName,
+    }),
+  );
 
-const isAuthenticated = $derived(state === "signedIn");
+  const isAuthenticated = $derived(state === "signedIn");
 </script>
 
 <header>
@@ -33,7 +33,7 @@ const isAuthenticated = $derived(state === "signedIn");
         <button
           type="button"
           class="bg-stone-100 py-1.5 px-3 text-sm rounded-md"
-          onclick={() => current.signUp('')}
+          onclick={() => current.signUp("")}
         >
           Sign up
         </button>

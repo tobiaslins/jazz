@@ -1,26 +1,22 @@
 <script lang="ts">
-import { JazzAccount } from "$lib/schema";
-import { AccountCoState } from "jazz-svelte";
+  import { JazzAccount } from "$lib/schema";
+  import { AccountCoState } from "jazz-svelte";
 
-const account = new AccountCoState(JazzAccount, {
-  resolve: {
-    profile: true,
-    root: true,
-  },
-});
-const me = $derived(account.current);
+  const account = new AccountCoState(JazzAccount, {
+    resolve: {
+      profile: true,
+      root: true,
+    },
+  });
+  const me = $derived(account.current);
 
-const dateOfBirth = $derived(
-  me ? me.root?.dateOfBirth?.toISOString().split("T")[0] || "" : "",
-);
+  const dateOfBirth = $derived(me ? me.root?.dateOfBirth?.toISOString().split("T")[0] || "" : "");
 
-function handleDateOfBirthChange(
-  event: Event & { currentTarget: HTMLInputElement },
-) {
-  if (me && event.currentTarget.value) {
-    me.root.dateOfBirth = new Date(event.currentTarget.value);
+  function handleDateOfBirthChange(event: Event & { currentTarget: HTMLInputElement }) {
+    if (me && event.currentTarget.value) {
+      me.root.dateOfBirth = new Date(event.currentTarget.value);
+    }
   }
-}
 </script>
 
 {#if me}
