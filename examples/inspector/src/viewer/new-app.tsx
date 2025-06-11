@@ -106,12 +106,11 @@ export default function CoJsonViewerApp() {
           );
           setCurrentAccount(null);
           setErrors("Trying to load covalue with invalid id");
-          setLocalNode(null);
-          goToIndex(-1);
         } else {
           setErrors("The account could not be loaded");
         }
-
+        setLocalNode(null);
+        goToIndex(-1);
         return;
       }
       setLocalNode(node);
@@ -340,7 +339,7 @@ function AddAccountForm({
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mt-4 font-mono whitespace-pre-wrap break-words mb-8">
           <h3>Error</h3>
           <pre className="whitespace-pre-wrap break-words overflow-hidden">
-            Error: {JSON.stringify(errors)}
+            {errors}
           </pre>
         </div>
       )}
