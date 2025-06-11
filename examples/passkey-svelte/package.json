@@ -32,7 +32,6 @@
     "vite": "6.3.5"
   },
   "dependencies": {
-    "jazz-inspector-element": "workspace:*",
     "jazz-svelte": "workspace:*",
     "jazz-tools": "workspace:*"
   }
