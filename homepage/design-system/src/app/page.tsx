@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Toaster } from "react-hot-toast";
 import { Buttons } from "../views/Buttons";
 import { Colors } from "../views/Colors";
 import { Components } from "../views/Components";
@@ -9,6 +10,7 @@ const designSystemTopics = ["Colors", "Typography", "Buttons", "Components"];
 export default function Home() {
   return (
     <main className="container flex flex-col gap-8 py-8 lg:py-16 grid grid-cols-10 relative h-full overflow-hidden">
+      <Toaster position="bottom-right" />
       <div className="col-span-2 sticky top-0">
         {designSystemTopics.map((topic) => (
           <div key={topic}>
