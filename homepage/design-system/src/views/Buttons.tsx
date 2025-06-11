@@ -60,12 +60,17 @@ export function Buttons() {
       <p>Buttons can also ofcourse contain an icon.</p>
 
       <div className="grid grid-cols-2 gap-2">
-        <Button icon="delete" styleVariant="text" variant="danger">
+        <Button
+          icon="delete"
+          styleVariant="text"
+          variant="danger"
+          iconPosition="right"
+        >
           text danger with icon
         </Button>
         <Button
           icon="info"
-          iconPosition="right"
+          iconPosition="left"
           styleVariant="outline"
           variant="info"
         >

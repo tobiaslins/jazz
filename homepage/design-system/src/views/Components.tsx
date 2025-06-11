@@ -66,8 +66,9 @@ export function Components() {
             buttonProps={{
               children: "Let's go",
               variant: "success",
+              styleVariant: "inverted",
               icon: "check",
-              iconPosition: "right",
+              iconPosition: "left",
             }}
           />
           <NewsletterForm />
