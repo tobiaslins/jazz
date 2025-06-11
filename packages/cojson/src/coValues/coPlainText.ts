@@ -182,4 +182,14 @@ export class RawCoPlainText<
     this.core.makeTransaction(ops, privacy);
     this.processNewTransactions();
   }
+
+  /** @internal Helper method to split text into graphemes */
+  toGraphemes(text: string): string[] {
+    return [...splitGraphemes(text)];
+  }
+
+  /** @internal Helper method to join graphemes into a string */
+  fromGraphemes(graphemes: string[]): string {
+    return graphemes.join("");
+  }
 }
