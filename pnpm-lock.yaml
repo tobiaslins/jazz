@@ -2941,6 +2941,9 @@ importers:
       globals:
         specifier: ^15.11.0
         version: 15.14.0
+      jazz-inspector-element:
+        specifier: workspace:*
+        version: link:../jazz-inspector-element
       jsdom:
         specifier: ^25.0.1
         version: 25.0.1

@@ -18,7 +18,7 @@ export class CoState<V extends CoValueOrZodSchema, R extends ResolveQuery<V> = t
 	#value: Loaded<V, R> | undefined | null = undefined;
 	#ctx = getJazzContext<InstanceOfSchema<AccountClass<Account>>>();
 	#id: string | undefined | null;
-	#subscribe: (() => void) | undefined;
+	#subscribe: () => void;
 
 	constructor(
 		Schema: V,
@@ -27,54 +27,53 @@ export class CoState<V extends CoValueOrZodSchema, R extends ResolveQuery<V> = t
 	) {
 		this.#id = $derived.by(typeof id === 'function' ? id : () => id);
 
-		this.#subscribe = $derived.by(() => {
-			const ctx = this.#ctx.current;
-			const id = this.#id;
+		this.#subscribe = createSubscriber(update => {
+			return $effect.root(() => {
+				$effect.pre(() => {
+					const ctx = this.#ctx.current;
+					const id = this.#id;
 
-			if (!ctx || !id) return;
+					if (!ctx || !id) return update();
+					const agent = 'me' in ctx ? ctx.me : ctx.guest;
 
-			const agent = 'me' in ctx ? ctx.me : ctx.guest;
-
-			return createSubscriber(update => {
-				const unsubscribe = subscribeToCoValue(
-					anySchemaToCoSchema(Schema),
-					id,
-					{
-						// @ts-expect-error The resolve query type isn't compatible with the anySchemaToCoSchema conversion
-						resolve: options?.resolve,
-						loadAs: agent,
-						onUnavailable: () => {
-							this.#value = null;
-							update();
+					const unsubscribe = subscribeToCoValue(
+						anySchemaToCoSchema(Schema),
+						id,
+						{
+							// @ts-expect-error The resolve query type isn't compatible with the anySchemaToCoSchema conversion
+							resolve: options?.resolve,
+							loadAs: agent,
+							onUnavailable: () => {
+								this.#value = null;
+								update();
+							},
+							onUnauthorized: () => {
+								this.#value = null;
+								update();
+							},
+							syncResolution: true
 						},
-						onUnauthorized: () => {
-							this.#value = null;
+						value => {
+							if (value === this.#value) return;
+							this.#value = value as Loaded<V, R>;
 							update();
-						},
-						syncResolution: true
-					},
-					value => {
-						if (value === this.#value) return;
-						this.#value = value as Loaded<V, R>;
-						update();
-					}
-				);
-
-				return () => {
-					unsubscribe();
-					this.#value = undefined;
-				};
+						}
+					);
+					return () => {
+						unsubscribe();
+						this.#value = undefined;
+					};
+				});
 			});
 		});
 
 		$effect.pre(() => {
-			if (!this.#id || !this.#ctx.current) return;
-			this.#subscribe?.();
+			this.#subscribe();
 		})
 	}
 
 	get current() {
-		this.#subscribe?.();
+		this.#subscribe();
 		return this.#value;
 	}
 }
@@ -85,52 +84,52 @@ export class AccountCoState<
 > {
 	#value: Loaded<A, R> | undefined | null = undefined;
 	#ctx = getJazzContext<InstanceOfSchema<A>>();
-	#subscribe: (() => void) | undefined;
+	#subscribe: () => void;
 
 	constructor(Schema: A, options?: { resolve?: ResolveQueryStrict<A, R> }) {
-		this.#subscribe = $derived.by(() => {
-			const ctx = this.#ctx.current;
+		this.#subscribe = createSubscriber(update => {
+			return $effect.root(() => {
+				$effect.pre(() => {
+					const ctx = this.#ctx.current;
 
-			if (!ctx || !('me' in ctx)) return;
+					if (!ctx || !('me' in ctx)) return update();
 
-			const me = ctx.me;
+					const me = ctx.me;
 
-			return createSubscriber(update => {
-				// Setup subscription with current values
-				const unsubscribe = subscribeToCoValue(
-					anySchemaToCoSchema(Schema),
-					me.id,
-					{
-						// @ts-expect-error The resolve query type isn't compatible with the anySchemaToCoSchema conversion
-						resolve: options?.resolve,
-						loadAs: me,
-						onUnavailable: () => {
-							this.#value = null;
-							update();
+					const unsubscribe = subscribeToCoValue(
+						anySchemaToCoSchema(Schema),
+						me.id,
+						{
+							// @ts-expect-error The resolve query type isn't compatible with the anySchemaToCoSchema conversion
+							resolve: options?.resolve,
+							loadAs: me,
+							onUnavailable: () => {
+								this.#value = null;
+								update();
+							},
+							onUnauthorized: () => {
+								this.#value = null;
+								update();
+							},
+							syncResolution: true
 						},
-						onUnauthorized: () => {
-							this.#value = null;
+						value => {
+							if (value === this.#value) return;
+							this.#value = value as Loaded<A, R>;
 							update();
-						},
-						syncResolution: true
-					},
-					value => {
-						if (value === this.#value) return;
-						this.#value = value as Loaded<A, R>;
-						update();
-					}
-				);
+						}
+					);
 
-				return () => {
-					unsubscribe();
-					this.#value = undefined;
-				}
-			})
+					return () => {
+						unsubscribe();
+						this.#value = undefined;
+					};
+				});
+			});
 		});
 
 		$effect.pre(() => {
-			if (!this.#ctx.current) return;
-			this.#subscribe?.();
+			this.#subscribe();
 		})
 	}
 
@@ -139,7 +138,7 @@ export class AccountCoState<
 	};
 
 	get current() {
-		this.#subscribe?.();
+		this.#subscribe();
 
 		return this.#value;
 	}

@@ -24,7 +24,8 @@ jobs:
           "examples/music-player",
           "examples/organization",
           "examples/pets",
-          "starters/react-passkey-auth"
+          "starters/react-passkey-auth",
+          "packages/jazz-svelte"
         ]
 
     steps:
