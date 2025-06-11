@@ -1422,9 +1422,6 @@ importers:
 
   examples/passkey-svelte:
     dependencies:
-      jazz-inspector-element:
-        specifier: workspace:*
-        version: link:../../packages/jazz-inspector-element
       jazz-svelte:
         specifier: workspace:*
         version: link:../../packages/jazz-svelte
