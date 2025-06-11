@@ -35,7 +35,7 @@ interface JazzLoggedInSecret {
 }
 
 export default function CoJsonViewerApp() {
-  const [errors, setErrors] = useState(null);
+  const [errors, setErrors] = useState<string | null>(null);
   const [accounts, setAccounts] = useState<Account[]>(() => {
     const storedAccounts = localStorage.getItem("inspectorAccounts");
     return storedAccounts ? JSON.parse(storedAccounts) : [];
