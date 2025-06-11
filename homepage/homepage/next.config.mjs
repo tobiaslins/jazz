@@ -84,18 +84,15 @@ function highlightPlugin() {
         transformers: [
           transformerTwoslash({
             explicitTrigger: true,
-            throws: false, //process.env.NODE_ENV === "production",
-            onTwoslashError:
-              process.env.NODE_ENV !== "production"
-                ? (e, code) => {
-                    const { description, recommendation } = e;
-                    console.error("\nTwoslash error: ");
-                    console.log(description);
-                    console.log(recommendation);
-                    console.log("\nCode: \n```\n" + code + "\n```");
-                    error = e;
-                  }
-                : undefined,
+            throws: true, // process.env.NODE_ENV === "production",
+            onTwoslashError: (e, code) => {
+              const { description, recommendation } = e;
+              console.error("\nTwoslash error: ");
+              console.log(description);
+              console.log(recommendation);
+              console.log("\nCode: \n```\n" + code + "\n```");
+              error = e;
+            },
           }),
           transformerNotationDiff(),
         ],
