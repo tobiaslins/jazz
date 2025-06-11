@@ -1,3 +1,4 @@
+import { JazzInspector } from "jazz-inspector";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import {
@@ -47,6 +48,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <PasskeyAuthBasicUI appName={appName}>
             <App />
           </PasskeyAuthBasicUI>
+          <JazzInspector />
         </JazzProvider>
       </div>
     </ThemeProvider>

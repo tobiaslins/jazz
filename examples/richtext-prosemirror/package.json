@@ -13,6 +13,7 @@
     "format-and-lint:fix": "biome check . --write"
   },
   "dependencies": {
+    "jazz-inspector": "workspace:*",
     "jazz-react": "workspace:*",
     "jazz-richtext-prosemirror": "workspace:*",
     "jazz-tools": "workspace:*",

@@ -650,6 +650,9 @@ importers:
       '@clerk/clerk-react':
         specifier: ^5.4.1
         version: 5.20.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      jazz-inspector:
+        specifier: workspace:*
+        version: link:../../packages/jazz-inspector
       jazz-react:
         specifier: workspace:*
         version: link:../../packages/jazz-react
@@ -827,6 +830,9 @@ importers:
       hash-slash:
         specifier: workspace:*
         version: link:../../packages/hash-slash
+      jazz-inspector:
+        specifier: workspace:*
+        version: link:../../packages/jazz-inspector
       jazz-react:
         specifier: workspace:*
         version: link:../../packages/jazz-react
@@ -882,6 +888,9 @@ importers:
 
   examples/image-upload:
     dependencies:
+      jazz-inspector:
+        specifier: workspace:*
+        version: link:../../packages/jazz-inspector
       jazz-react:
         specifier: workspace:*
         version: link:../../packages/jazz-react
@@ -989,6 +998,9 @@ importers:
 
   examples/jazz-nextjs:
     dependencies:
+      jazz-inspector:
+        specifier: workspace:*
+        version: link:../../packages/jazz-inspector
       jazz-react:
         specifier: workspace:*
         version: link:../../packages/jazz-react
@@ -1114,6 +1126,9 @@ importers:
       '@react-spring/web':
         specifier: ^9.7.5
         version: 9.7.5(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      jazz-inspector:
+        specifier: workspace:*
+        version: link:../../packages/jazz-inspector
       jazz-react:
         specifier: workspace:*
         version: link:../../packages/jazz-react
@@ -1172,6 +1187,9 @@ importers:
       '@clerk/clerk-react':
         specifier: ^5.4.1
         version: 5.20.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      jazz-inspector:
+        specifier: workspace:*
+        version: link:../../packages/jazz-inspector
       jazz-react:
         specifier: workspace:*
         version: link:../../packages/jazz-react
@@ -1300,6 +1318,9 @@ importers:
 
   examples/organization:
     dependencies:
+      jazz-inspector:
+        specifier: workspace:*
+        version: link:../../packages/jazz-inspector
       jazz-react:
         specifier: workspace:*
         version: link:../../packages/jazz-react
@@ -1361,6 +1382,9 @@ importers:
 
   examples/passkey:
     dependencies:
+      jazz-inspector:
+        specifier: workspace:*
+        version: link:../../packages/jazz-inspector
       jazz-react:
         specifier: workspace:*
         version: link:../../packages/jazz-react
@@ -1398,6 +1422,9 @@ importers:
 
   examples/passkey-svelte:
     dependencies:
+      jazz-inspector-element:
+        specifier: workspace:*
+        version: link:../../packages/jazz-inspector-element
       jazz-svelte:
         specifier: workspace:*
         version: link:../../packages/jazz-svelte
@@ -1453,6 +1480,9 @@ importers:
 
   examples/passphrase:
     dependencies:
+      jazz-inspector:
+        specifier: workspace:*
+        version: link:../../packages/jazz-inspector
       jazz-react:
         specifier: workspace:*
         version: link:../../packages/jazz-react
@@ -1490,6 +1520,9 @@ importers:
 
   examples/password-manager:
     dependencies:
+      jazz-inspector:
+        specifier: workspace:*
+        version: link:../../packages/jazz-inspector
       jazz-react:
         specifier: workspace:*
         version: link:../../packages/jazz-react
@@ -1554,6 +1587,9 @@ importers:
       clsx:
         specifier: ^2.0.0
         version: 2.1.1
+      jazz-inspector:
+        specifier: workspace:*
+        version: link:../../packages/jazz-inspector
       jazz-react:
         specifier: workspace:*
         version: link:../../packages/jazz-react
@@ -1636,6 +1672,9 @@ importers:
       hash-slash:
         specifier: workspace:*
         version: link:../../packages/hash-slash
+      jazz-inspector:
+        specifier: workspace:*
+        version: link:../../packages/jazz-inspector
       jazz-react:
         specifier: workspace:*
         version: link:../../packages/jazz-react
@@ -1673,6 +1712,9 @@ importers:
 
   examples/richtext-prosekit:
     dependencies:
+      jazz-inspector:
+        specifier: workspace:*
+        version: link:../../packages/jazz-inspector
       jazz-react:
         specifier: workspace:*
         version: link:../../packages/jazz-react
@@ -1722,6 +1764,9 @@ importers:
 
   examples/richtext-prosemirror:
     dependencies:
+      jazz-inspector:
+        specifier: workspace:*
+        version: link:../../packages/jazz-inspector
       jazz-react:
         specifier: workspace:*
         version: link:../../packages/jazz-react
@@ -1819,6 +1864,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      jazz-inspector:
+        specifier: workspace:*
+        version: link:../../packages/jazz-inspector
       jazz-react:
         specifier: workspace:*
         version: link:../../packages/jazz-react
@@ -1895,6 +1943,9 @@ importers:
       clsx:
         specifier: ^2.0.0
         version: 2.1.1
+      jazz-inspector:
+        specifier: workspace:*
+        version: link:../../packages/jazz-inspector
       jazz-react:
         specifier: workspace:*
         version: link:../../packages/jazz-react
@@ -1962,6 +2013,9 @@ importers:
       jazz-browser:
         specifier: workspace:*
         version: link:../../packages/jazz-browser
+      jazz-inspector-element:
+        specifier: workspace:*
+        version: link:../../packages/jazz-inspector-element
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools

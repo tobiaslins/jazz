@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "hash-slash": "workspace:*",
+    "jazz-inspector": "workspace:*",
     "jazz-react": "workspace:*",
     "jazz-tools": "workspace:*",
     "react": "19.0.0",

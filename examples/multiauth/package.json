@@ -13,6 +13,7 @@
   "dependencies": {
     "@clerk/clerk-react": "^5.4.1",
     "jazz-react": "workspace:*",
+    "jazz-inspector": "workspace:*",
     "jazz-react-auth-clerk": "workspace:*",
     "jazz-tools": "workspace:*",
     "react": "19.0.0",
