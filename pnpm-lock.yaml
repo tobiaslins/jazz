@@ -3140,6 +3140,9 @@ importers:
       is-ci:
         specifier: ^3.0.1
         version: 3.0.1
+      postcss:
+        specifier: ^8.4.27
+        version: 8.5.4
       prettier:
         specifier: ^3.3.2
         version: 3.5.3
