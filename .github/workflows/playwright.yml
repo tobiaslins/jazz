@@ -26,8 +26,6 @@ jobs:
       - name: Pnpm Build
         run: pnpm turbo build
         working-directory: ./${{ matrix.project }}
-        env:
-          VITE_CLERK_PUBLISHABLE_KEY: ${{ matrix.project == 'examples/clerk' && 'pk_test_ZXZpZGVudC1kYW5lLTg5LmNsZXJrLmFjY291bnRzLmRldiQ' || '' }}
 
       - name: Install Playwright Browsers
         run: pnpm exec playwright install
