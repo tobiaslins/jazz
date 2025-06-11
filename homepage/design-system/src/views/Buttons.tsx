@@ -96,30 +96,70 @@ const buttonPropsTableData = {
   headers: ["Prop", "Types", "Default"],
   data: [
     {
-      Prop: "variant",
+      Prop: "variant?",
       Types:
         "primary | secondary | tip | info | success | warning | alert | danger",
       Default: "primary",
     },
     {
-      Prop: "styleVariant",
+      Prop: "styleVariant?",
       Types: "outline | inverted | ghost | text",
       Default: "default",
     },
     {
-      Prop: "color",
+      Prop: "color?",
       Types: "light | dark | white | black",
       Default: "primary",
     },
     {
-      Prop: "icon",
+      Prop: "icon?",
       Types: "string",
       Default: "undefined",
     },
     {
-      Prop: "iconPosition",
+      Prop: "iconPosition?",
       Types: "left | right",
       Default: "left",
+    },
+    {
+      Prop: "loading?",
+      Types: "boolean",
+      Default: "false",
+    },
+    {
+      Prop: "loadingText?",
+      Types: "string",
+      Default: "Loading...",
+    },
+    {
+      Prop: "disabled?",
+      Types: "boolean",
+      Default: "false",
+    },
+    {
+      Prop: "href?",
+      Types: "string",
+      Default: "undefined",
+    },
+    {
+      Prop: "newTab?",
+      Types: "boolean",
+      Default: "false",
+    },
+    {
+      Prop: "size?",
+      Types: "sm | md | lg",
+      Default: "md",
+    },
+    {
+      Prop: "className?",
+      Types: "string",
+      Default: "undefined",
+    },
+    {
+      Prop: "children?",
+      Types: "React.ReactNode",
+      Default: "undefined",
     },
   ],
 };
