@@ -1,6 +1,8 @@
 "use client";
 
 import { Switch } from "@/components/atoms/Switch";
+import { Input } from "@/components/molecules/Input";
+import { InputWithButton } from "@/components/molecules/InputWithButton";
 import { NewsletterForm } from "@/components/organisms/NewsletterForm";
 import { useState } from "react";
 
@@ -17,8 +19,6 @@ export function Components() {
       </h2>
 
       <div className="p-3">
-        <h3 className="text-md font-semibold mb-2">Forms</h3>
-        <NewsletterForm />
         <div className="py-3 flex gap-6">
           <h3 className="text-md font-semibold">Switches</h3>
           <Switch
@@ -35,6 +35,42 @@ export function Components() {
             size="sm"
             variant="success"
           />
+        </div>
+        <h3 className="text-md font-semibold mb-2">Inputs</h3>
+        <div className="flex flex-col gap-2">
+          <Input
+            icon="search"
+            label="Search [label hidden]"
+            iconPosition="left"
+            placeholder="Search"
+            labelHidden={true}
+          />
+          <Input
+            icon="check"
+            label="Email"
+            iconPosition="left"
+            placeholder="Email"
+          />
+          <Input
+            icon="file"
+            label="Password"
+            iconPosition="right"
+            placeholder="Password"
+          />
+          <InputWithButton
+            inputProps={{
+              label: "Input with button [label visible]",
+              labelHidden: false,
+              placeholder: "Input with button",
+            }}
+            buttonProps={{
+              children: "Let's go",
+              variant: "success",
+              icon: "check",
+              iconPosition: "right",
+            }}
+          />
+          <NewsletterForm />
         </div>
       </div>
     </div>
