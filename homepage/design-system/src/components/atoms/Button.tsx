@@ -19,7 +19,8 @@ import { Icon } from "./Icon";
 import type { IconName } from "./Icon";
 import { Spinner } from "./Spinner";
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
   color?: "light" | "dark" | "white" | "black" | "default";
   styleVariant?: "outline" | "inverted" | "ghost" | "text" | "default";
@@ -28,23 +29,12 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   href?: string;
   newTab?: boolean;
   icon?: IconName;
+  iconPosition?: "left" | "right" | "center";
   loading?: boolean;
   loadingText?: string;
   children?: React.ReactNode;
   className?: string;
   disabled?: boolean;
-}
-
-function ButtonIcon({ icon, loading }: ButtonProps) {
-  if (!Icon) return null;
-
-  const className = "size-5";
-
-  return loading ? (
-    <Spinner className={className} />
-  ) : icon ? (
-    <Icon name={icon} className={className} />
-  ) : null;
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -62,6 +52,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       loading,
       loadingText,
       icon,
+      iconPosition = "left",
       type = "button",
       ...buttonProps
     },
@@ -83,11 +74,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     const classNames = clsx(
-      className,
-      "inline-flex items-center justify-center gap-2 rounded-full text-center transition-colors",
+      "inline-flex items-center justify-center gap-2 rounded-full text-center transition-colors w-fit text-nowrap",
       getClasses({ styleVariant }),
       "disabled:pointer-events-none disabled:opacity-70",
       disabled && "opacity-50 cursor-not-allowed pointer-events-none",
+      className,
     );
 
     if (href) {
@@ -97,7 +88,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           target={newTab ? "_blank" : undefined}
           className={classNames}
         >
-          <ButtonIcon icon={icon} loading={loading} />
+          {icon && (
+            <Icon
+              name={icon}
+              className={`size-5 ${iconPosition === "left" ? "mr-2" : iconPosition === "right" ? "ml-2" : ""}`}
+            />
+          )}
           {children}
           {newTab ? (
             <span
@@ -120,9 +116,16 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         className={classNames}
         type={type}
       >
-        <ButtonIcon icon={icon} loading={loading} />
-
+        {loading ? (
+          <Spinner className="size-5" />
+        ) : (
+          icon &&
+          iconPosition === "left" && <Icon name={icon} className="size-5" />
+        )}
         {loading && loadingText ? loadingText : children}
+        {icon && iconPosition === "right" && (
+          <Icon name={icon} className="size-5" />
+        )}
       </button>
     );
   },
@@ -133,7 +136,7 @@ const variantClass = (variant: keyof typeof variantToBgMap) =>
 
 const styleClasses = (variant: keyof typeof variantToBgMap) => {
   return {
-    outline: `border ${variantToBorderMap[variant]} bg-transparent hover:bg-transparent my-[0.06rem] hover:m-0 ${variantToTextMap[variant]} hover:border-2 dark:border-${variant}`,
+    outline: `border ${variantToBorderMap[variant]} bg-transparent hover:bg-transparent ${variantToTextMap[variant]} hover:shadow-md hover:shadow-${variant}/50 dark:hover:shadow-${variant}`,
     inverted: `${variantToTextMap[variant]} ${colorToBgHoverMap30[variantToColorMap[variant] as keyof typeof colorToBgHoverMap30]} ${colorToBgMap[variantToColorMap[variant] as keyof typeof colorToBgMap]}`,
     ghost: `bg-transparent ${variantToTextMap[variant]} ${colorToBgHoverMap10[variantToColorMap[variant] as keyof typeof colorToBgHoverMap10]}`,
     text: `bg-transparent ${variantToTextMap[variant]} underline underline-offset-2 hover:bg-transparent ${variantToTextHoverMap[variant]}`,
