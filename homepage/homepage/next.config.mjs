@@ -107,7 +107,7 @@ function highlightPlugin() {
 
       node.type = "html";
       node.value = error
-        ? `<div style="color: red; background: #fee; padding: 8px; border: 1px solid #fcc; margin: 8px 0;"><strong>Twoslash Error:</strong> ${error.description || error.message}</div>` + html
+        ? `<div style="color: red; background: #fee; padding: 8px; border: 1px solid #fcc; margin: 8px 0;"><strong>Twoslash Error:</strong> ${error.description || error.message} ${error.recommendation}</div>` + html
         : html;
       node.children = [];
       return SKIP;
