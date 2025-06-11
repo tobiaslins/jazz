@@ -18,6 +18,10 @@ export class OPSQLiteAdapter implements SQLiteDatabaseDriverAsync {
   }
 
   public async initialize(): Promise<void> {
+    if (this.db) {
+      return;
+    }
+
     const dbPath =
       Platform.OS === "ios" ? IOS_LIBRARY_PATH : ANDROID_DATABASE_PATH;
 
@@ -70,11 +74,6 @@ export class OPSQLiteAdapter implements SQLiteDatabaseDriverAsync {
   }
 
   public async closeDb(): Promise<void> {
-    if (!this.db) {
-      throw new Error("Database not initialized");
-    }
-
-    this.db.close();
-    this.db = null;
+    // Keeping the database open and reusing the same connection over multiple ctx instances.
   }
 }
