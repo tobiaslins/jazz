@@ -57,7 +57,7 @@ export function Buttons() {
         </Button>
       </div>
 
-      <p>Buttons can also ofcourse contain an icon.</p>
+      <p>Buttons can also contain an icon.</p>
 
       <div className="grid grid-cols-2 gap-2">
         <Button
