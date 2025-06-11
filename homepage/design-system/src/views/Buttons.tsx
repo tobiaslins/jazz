@@ -56,6 +56,28 @@ export function Buttons() {
           text tip
         </Button>
       </div>
+
+      <p>Buttons can also ofcourse contain an icon.</p>
+
+      <div className="grid grid-cols-2 gap-2">
+        <Button icon="delete" styleVariant="text" variant="danger">
+          text danger with icon
+        </Button>
+        <Button
+          icon="info"
+          iconPosition="right"
+          styleVariant="outline"
+          variant="info"
+        >
+          outline info with icon
+        </Button>
+        <p className="col-span-2">
+          Or just use the icon prop with any of the button variants, style
+          variants and colors.
+        </p>
+        <Button icon="newsletter" styleVariant="text" variant="tip" />
+        <Button icon="check" variant="success" />
+      </div>
     </div>
   );
 }
