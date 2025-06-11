@@ -88,6 +88,32 @@ export type CoMapSchema<
       as?: Account | Group | AnonymousJazzAgent,
     ): string;
 
+    upsertUnique: (
+      unique: CoValueUniqueness["uniqueness"],
+      ownerID: string,
+      init: Simplify<CoMapInitZod<Shape>>,
+      options?:
+        | {
+            owner: Owner;
+            unique?: CoValueUniqueness["uniqueness"];
+          }
+        | Owner,
+    ) => Promise<
+      (Shape extends Record<string, never>
+        ? {}
+        : {
+            -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchema<
+              Shape[key]
+            >;
+          }) &
+        (unknown extends Config["out"][string]
+          ? {}
+          : {
+              [key: string]: Config["out"][string];
+            }) &
+        CoMap
+    >;
+
     catchall<T extends z.core.$ZodType>(
       schema: T,
     ): CoMapSchema<Shape, z.core.$catchall<T>>;

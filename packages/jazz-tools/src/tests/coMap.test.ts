@@ -11,7 +11,7 @@ import {
 } from "vitest";
 import { Group, co, subscribeToCoValue, z } from "../exports.js";
 import { Account } from "../index.js";
-import { Loaded, zodSchemaToCoSchema } from "../internal.js";
+import { ID, Loaded, zodSchemaToCoSchema } from "../internal.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 import { setupTwoNodes, waitFor } from "./utils.js";
 
@@ -1199,6 +1199,85 @@ describe("Creating and finding unique CoMaps", async () => {
 
     const foundAlice = Person.findUnique({ name: "Alice" }, group.id);
     expect(foundAlice).toEqual(alice.id);
+  });
+
+  test("manual upserting pattern", async () => {
+    // Schema
+    const Event = co.map({
+      title: z.string(),
+      identifier: z.string(),
+      external_id: z.string(),
+    });
+
+    // Data
+    const sourceData = {
+      title: "Test Event Title",
+      identifier: "test-event-identifier",
+      _id: "test-event-external-id",
+    };
+    const workspace = Group.create();
+
+    // Pattern
+    let eventId = Event.findUnique(
+      { identifier: sourceData.identifier },
+      workspace.id,
+    );
+    let activeEvent = await Event.load(eventId as unknown as ID<Event>);
+    if (!activeEvent) {
+      activeEvent = Event.create(
+        {
+          title: sourceData.title,
+          identifier: sourceData.identifier,
+          external_id: sourceData._id,
+        },
+        workspace,
+      );
+    } else {
+      activeEvent.applyDiff({
+        title: sourceData.title,
+        identifier: sourceData.identifier,
+        external_id: sourceData._id,
+      });
+    }
+    expect(activeEvent).toEqual({
+      title: sourceData.title,
+      identifier: sourceData.identifier,
+      external_id: sourceData._id,
+    });
+  });
+
+  test("upserting", async () => {
+    // Schema
+    const Event = co.map({
+      title: z.string(),
+      identifier: z.string(),
+      external_id: z.string(),
+    });
+
+    // Data
+    const sourceData = {
+      title: "Test Event Title",
+      identifier: "test-event-identifier",
+      _id: "test-event-external-id",
+    };
+    const workspace = Group.create();
+
+    // Upserting
+    const activeEvent = await Event.upsertUnique(
+      sourceData.identifier,
+      workspace.id,
+      {
+        title: sourceData.title,
+        identifier: sourceData.identifier,
+        external_id: sourceData._id,
+      },
+      workspace,
+    );
+    expect(activeEvent).toEqual({
+      title: sourceData.title,
+      identifier: sourceData.identifier,
+      external_id: sourceData._id,
+    });
   });
 
   test("complex discriminated union", () => {

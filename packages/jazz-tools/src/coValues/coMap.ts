@@ -565,6 +565,51 @@ export class CoMap extends CoValueBase implements CoValue {
   }
 
   /**
+   * Given some data, updates an existing CoMap or initialises a new one if none exists.
+   * @param unique The data that uniquely identifies the CoMap.
+   * @param ownerID The ID of the owner of the CoMap.
+   * @param init The data that the CoMap should contain.
+   * @param options The creation options for the CoMap.
+   * @returns Either an existing & modified CoMap, or a new initialised CoMap if none exists.
+   */
+  static async upsertUnique<M extends CoMap>(
+    this: CoValueClass<M>,
+    unique: CoValueUniqueness["uniqueness"],
+    ownerID: ID<Account> | ID<Group>,
+    init: Simplify<CoMapInit<M>>,
+    options?:
+      | {
+          owner: Account | Group;
+        }
+      | Account
+      | Group,
+  ): Promise<M> {
+    let mapId = CoMap.findUnique(unique, ownerID);
+    let map: Resolved<M, true> | null = await loadCoValueWithoutMe(this, mapId);
+    if (!map) {
+      const instance = new this();
+      const createOptions =
+        options && !("_type" in options)
+          ? { ...options, unique: unique }
+          : options;
+      const { owner, uniqueness } = parseCoValueCreateOptions(createOptions);
+      const raw = instance.rawFromInit(init, owner, uniqueness);
+      Object.defineProperties(instance, {
+        id: {
+          value: raw.id,
+          enumerable: false,
+        },
+        _raw: { value: raw, enumerable: false },
+      });
+      map = instance;
+    } else {
+      map.applyDiff(init as Partial<CoMapInit<M>>);
+    }
+
+    return map as M;
+  }
+
+  /**
    * Given an already loaded `CoMap`, ensure that the specified fields are loaded to the specified depth.
    *
    * Works like `CoMap.load()`, but you don't need to pass the ID or the account to load as again.

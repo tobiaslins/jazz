@@ -44,6 +44,9 @@ function enrichCoMapSchema<Shape extends z.core.$ZodLooseShape>(
     findUnique: (...args: any[]) => {
       return coSchema.findUnique(...args);
     },
+    upsertUnique: (...args: any[]) => {
+      return coSchema.upsertUnique(...args);
+    },
     catchall: (index: z.core.$ZodType) => {
       return enrichCoMapSchema(baseCatchall(index));
     },
