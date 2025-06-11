@@ -94,24 +94,24 @@ export default function CoJsonViewerApp() {
           },
         });
       } catch (err: any) {
-        const invalidAccountIndex = accounts.findIndex(
-          (acc) => acc.id === currentAccount.id,
-        );
-        accounts.splice(invalidAccountIndex, 1);
+        if (err.toString().includes("invalid id")) {
+          setAccounts(accounts.filter((acc) => acc.id !== currentAccount.id));
+          //remove from localStorage
+          localStorage.removeItem("lastSelectedAccountId");
+          localStorage.setItem(
+            "inspectorAccounts",
+            JSON.parse(localStorage.inspectorAccounts).filter(
+              (acc: Account) => acc.id != currentAccount.id,
+            ),
+          );
+          setCurrentAccount(null);
+          setErrors("Trying to load covalue with invalid id");
+          setLocalNode(null);
+          goToIndex(-1);
+        } else {
+          setErrors("The account could not be loaded");
+        }
 
-        setAccounts(accounts);
-        //remove from localStorage
-        localStorage.removeItem("lastSelectedAccountId");
-        localStorage.setItem(
-          "inspectorAccounts",
-          JSON.parse(localStorage.inspectorAccounts).filter(
-            (acc: Account) => acc.id != currentAccount.id,
-          ),
-        );
-        setCurrentAccount(null);
-        setErrors(err.toString());
-        setLocalNode(null);
-        goToIndex(-1);
         return;
       }
       setLocalNode(node);
@@ -340,7 +340,7 @@ function AddAccountForm({
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mt-4 font-mono whitespace-pre-wrap break-words mb-8">
           <h3>Error</h3>
           <pre className="whitespace-pre-wrap break-words overflow-hidden">
-            {JSON.stringify(errors)}
+            Error: {JSON.stringify(errors)}
           </pre>
         </div>
       )}
