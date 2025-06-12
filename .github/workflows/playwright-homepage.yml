@@ -23,7 +23,7 @@ jobs:
         uses: ./.github/actions/source-code/
 
       - name: Install root dependencies
-        run: cd .. && pnpm install && pnpm turbo build
+        run: pnpm install && pnpm turbo build
 
       - name: Install project dependencies
         run: pnpm install
