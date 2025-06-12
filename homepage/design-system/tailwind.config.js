@@ -98,30 +98,51 @@ const config = {
         secondary: {
           DEFAULT: "var(--color-secondary)",
           transparent: "var(--color-transparent-secondary)",
+          dark: "lch(from var(--color-primary) calc(l - 7) calc(c - 1) calc(h + 5))",
+          light:
+            "lch(from var(--color-primary) calc(l + 7) calc(c + 1) calc(h - 5))",
         },
         success: {
           DEFAULT: "var(--color-success)",
           transparent: "lch(from var(--color-success) l c h / 0.8)",
+          dark: "lch(from var(--color-success) calc(l - 7) calc(c - 1) calc(h + 5))",
+          light:
+            "lch(from var(--color-success) calc(l + 7) calc(c + 1) calc(h - 5))",
         },
         info: {
           DEFAULT: "var(--color-info)",
           transparent: "lch(from var(--color-info) l c h / 0.8)",
+          dark: "lch(from var(--color-info) calc(l - 7) calc(c - 1) calc(h + 5))",
+          light:
+            "lch(from var(--color-info) calc(l + 7) calc(c + 1) calc(h - 5))",
         },
         warning: {
           DEFAULT: "var(--color-warning)",
           transparent: "lch(from var(--color-warning) l c h / 0.8)",
+          dark: "lch(from var(--color-warning) calc(l - 7) calc(c - 1) calc(h + 5))",
+          light:
+            "lch(from var(--color-warning) calc(l + 7) calc(c + 1) calc(h - 5))",
         },
         danger: {
           DEFAULT: "var(--color-danger)",
           transparent: "lch(from var(--color-danger) l c h / 0.8)",
+          dark: "lch(from var(--color-danger) calc(l - 7) calc(c - 1) calc(h + 5))",
+          light:
+            "lch(from var(--color-danger) calc(l + 7) calc(c + 1) calc(h - 5))",
         },
         tip: {
           DEFAULT: "var(--color-tip)",
           transparent: "lch(from var(--color-tip) l c h / 0.8)",
+          dark: "lch(from var(--color-tip) calc(l - 7) calc(c - 1) calc(h + 5))",
+          light:
+            "lch(from var(--color-tip) calc(l + 7) calc(c + 1) calc(h - 5))",
         },
         alert: {
           DEFAULT: "var(--color-alert)",
           transparent: "lch(from var(--color-alert) l c h / 0.8)",
+          dark: "lch(from var(--color-alert) calc(l - 7) calc(c - 1) calc(h + 5))",
+          light:
+            "lch(from var(--color-alert) calc(l + 7) calc(c + 1) calc(h - 5))",
         },
       },
       textColor: {
