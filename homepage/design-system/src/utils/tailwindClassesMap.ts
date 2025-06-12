@@ -67,6 +67,17 @@ export const variantToTextMap = {
   tip: "text-tip",
 };
 
+export const variantToTextActiveMap = {
+  primary: "active:text-primary-dark",
+  secondary: "active:text-secondary-dark",
+  info: "active:text-info-dark",
+  success: "active:text-success-dark",
+  warning: "active:text-warning-dark",
+  danger: "active:text-danger-dark",
+  alert: "active:text-alert-dark",
+  tip: "active:text-tip-dark",
+};
+
 export const variantToColorMap = {
   primary: "blue",
   secondary: "indigo",
@@ -111,8 +122,30 @@ export const colorToBgHoverMap10 = {
   cyan: "hover:bg-cyan/10",
 };
 
+export const colorToBgActiveMap50 = {
+  blue: "active:bg-blue/50",
+  indigo: "active:bg-indigo-500/50",
+  purple: "active:bg-purple/50",
+  green: "active:bg-green/50",
+  orange: "active:bg-orange/50",
+  red: "active:bg-red/50",
+  yellow: "active:bg-yellow/50",
+  cyan: "active:bg-cyan/50",
+};
+
+export const colorToBgActiveMap25 = {
+  blue: "active:bg-blue/25",
+  indigo: "active:bg-indigo-500/25",
+  purple: "active:bg-purple/25",
+  green: "active:bg-green/25",
+  orange: "active:bg-orange/25",
+  red: "active:bg-red/25",
+  yellow: "active:bg-yellow/25",
+  cyan: "active:bg-cyan/25",
+};
+
 const focusRingClassesBase =
-  "focus:ring-2 focus:ring-offset-2 focus:ring-offset-opacity-10";
+  "focus:outline-none focus-visible:ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-opacity-10";
 
 export const variantToButtonStateMap = {
   primary: `active:bg-primary-light ${focusRingClassesBase} focus:ring-primary`,
@@ -123,4 +156,31 @@ export const variantToButtonStateMap = {
   danger: `active:bg-danger-light ${focusRingClassesBase} focus:ring-danger`,
   alert: `active:bg-alert-light ${focusRingClassesBase} focus:ring-alert`,
   tip: `active:bg-tip-light ${focusRingClassesBase} focus:ring-tip`,
+};
+
+export const variantStyleToButtonStateMap = {
+  outline: `${focusRingClassesBase}`,
+  inverted: `${focusRingClassesBase}`,
+  ghost: `${focusRingClassesBase}`,
+  text: `${focusRingClassesBase}`,
+};
+
+export const colourStyleToButtonStateMap = {
+  light: `${focusRingClassesBase}`,
+  dark: `${focusRingClassesBase}`,
+  white: `${focusRingClassesBase}`,
+  black: `${focusRingClassesBase}`,
+};
+
+const shadowClassesBase = "shadow-md shadow-opacity-10";
+
+export const variantToHoverShadowMap = {
+  primary: `${shadowClassesBase} hover:shadow-blue/25`,
+  secondary: `${shadowClassesBase} hover:shadow-indigo/25`,
+  info: `${shadowClassesBase} hover:shadow-purple/25`,
+  success: `${shadowClassesBase} hover:shadow-green/25`,
+  warning: `${shadowClassesBase} hover:shadow-orange/25`,
+  danger: `${shadowClassesBase} hover:shadow-red/25`,
+  alert: `${shadowClassesBase} hover:shadow-yellow/25`,
+  tip: `${shadowClassesBase} hover:shadow-cyan/25`,
 };

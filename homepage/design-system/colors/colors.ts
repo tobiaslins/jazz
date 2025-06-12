@@ -7,4 +7,5 @@ export const COLORS = {
   PURPLE: "#B441EB",
   YELLOW: "#FCAE00",
   RED: "#FF601C",
+  ORANGE: "#FF601C",
 };
