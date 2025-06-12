@@ -68,6 +68,14 @@ export const PasskeyAuthBasicUI = (props: {
 
   const { logIn, signUp } = auth;
 
+  function handleError(error: Error) {
+    if (error.cause instanceof Error) {
+      setError(error.cause.message);
+    } else {
+      setError(error.message);
+    }
+  }
+
   return (
     <div
       style={{
@@ -97,7 +105,7 @@ export const PasskeyAuthBasicUI = (props: {
           onSubmit={(e) => {
             e.preventDefault();
             setError(null);
-            signUp(username).catch((error) => setError(error.message));
+            signUp(username).catch(handleError);
           }}
         >
           <input
@@ -127,7 +135,7 @@ export const PasskeyAuthBasicUI = (props: {
         <button
           onClick={() => {
             setError(null);
-            logIn().catch((error) => setError(error.message));
+            logIn().catch(handleError);
           }}
           style={{
             background: "#000",
