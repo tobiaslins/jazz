@@ -16,5 +16,6 @@
       "persistent": true,
       "dependsOn": ["build"]
     }
-  }
+  },
+  "extends": ["//"]
 }
