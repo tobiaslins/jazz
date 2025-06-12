@@ -469,6 +469,30 @@ describe("CoMap resolution", async () => {
     expect(loadedPerson.dog?.name).toEqual("Rex");
   });
 
+  test("loading a locally available map with skipRetry", async () => {
+    const Dog = co.map({
+      name: z.string(),
+      breed: z.string(),
+    });
+
+    const Person = co.map({
+      name: z.string(),
+      age: z.number(),
+      dog: Dog,
+    });
+
+    const person = Person.create({
+      name: "John",
+      age: 20,
+      dog: Dog.create({ name: "Rex", breed: "Labrador" }),
+    });
+
+    const loadedPerson = await Person.load(person.id, { skipRetry: true });
+
+    assert(loadedPerson);
+    expect(loadedPerson.dog?.name).toEqual("Rex");
+  });
+
   test("loading a remotely available map with deep resolve", async () => {
     const Dog = co.map({
       name: z.string(),
@@ -541,6 +565,57 @@ describe("CoMap resolution", async () => {
     await waitFor(() => expect(loadedPerson.dog).toBeTruthy());
 
     expect(loadedPerson.dog?.name).toEqual("Rex");
+  });
+
+  test("loading a remotely available map with skipRetry", async () => {
+    const {
+      clientNode: nodeA,
+      clientAccount: userA,
+      serverNode: nodeB,
+      serverAccount: userB,
+    } = await setupTwoNodes();
+
+    const Dog = co.map({
+      name: z.string(),
+      breed: z.string(),
+    });
+
+    const Person = co.map({
+      name: z.string(),
+      age: z.number(),
+      dog: Dog,
+    });
+
+    const group = Group.fromRaw(nodeA.createGroup());
+    group.addMember("everyone", "writer");
+
+    const person = Person.create(
+      {
+        name: "John",
+        age: 20,
+        dog: Dog.create({ name: "Rex", breed: "Labrador" }, group),
+      },
+      group,
+    );
+
+    nodeA.gracefulShutdown();
+
+    // const userB = await createJazzTestAccount();
+    const loadedPerson = await Person.load(person.id, {
+      loadAs: userB,
+      skipRetry: true,
+    });
+
+    expect(loadedPerson).toBeFalsy();
+    console.log(`Loaded person ${loadedPerson?.id}: ${loadedPerson}`);
+    console.log(`Person's dog ${loadedPerson?.dog?.id}: ${loadedPerson?.dog}`);
+    expect(loadedPerson?.dog).toBe(undefined);
+
+    expect(await waitFor(() => expect(loadedPerson?.dog).toBeTruthy())).toBe(
+      false,
+    );
+
+    expect(loadedPerson?.dog?.name).toEqual("Rex");
   });
 
   test("accessing the value refs", async () => {

@@ -57,6 +57,7 @@ export type CoMapSchema<
           R
         >;
         loadAs?: Account | AnonymousJazzAgent;
+        skipRetry?: boolean;
       },
     ): Promise<Resolved<
       Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,

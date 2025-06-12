@@ -10,22 +10,31 @@ export class CoValueCoreSubscription {
     public node: LocalNode,
     public id: string,
     public listener: (value: RawCoValue | "unavailable") => void,
+    public skipRetry?: boolean,
   ) {
     const entry = this.node.getCoValue(this.id as any);
 
     if (entry?.isAvailable()) {
       this.subscribe(entry.getCurrentContent());
     } else {
-      this.node.loadCoValueCore(this.id as any).then((value) => {
-        if (this.unsubscribed) return;
+      if (skipRetry)
+        console.log(
+          `Skipping retry for ${id}, from CoValueCoreSubscription constructor`,
+        );
+      this.node
+        .loadCoValueCore(this.id as any, undefined, skipRetry)
+        .then((value) => {
+          if (this.unsubscribed) return;
 
-        if (value.isAvailable()) {
-          this.subscribe(value.getCurrentContent());
-        } else {
-          this.listener("unavailable");
-          this.subscribeToState();
-        }
-      });
+          if (value.isAvailable()) {
+            this.subscribe(value.getCurrentContent());
+          } else {
+            this.listener("unavailable");
+            if (!skipRetry) this.subscribeToState();
+            if (skipRetry)
+              console.log(`Skip retry for ${this.id}, ignoring subscription`);
+          }
+        });
     }
   }
 

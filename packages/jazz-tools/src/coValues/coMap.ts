@@ -490,8 +490,11 @@ export class CoMap extends CoValueBase implements CoValue {
     options?: {
       resolve?: RefsToResolveStrict<M, R>;
       loadAs?: Account | AnonymousJazzAgent;
+      skipRetry?: boolean;
     },
   ): Promise<Resolved<M, R> | null> {
+    if (options?.skipRetry)
+      console.log(`Skipping retry for ${id}, from CoMap.load`);
     return loadCoValueWithoutMe(this, id, options);
   }
 

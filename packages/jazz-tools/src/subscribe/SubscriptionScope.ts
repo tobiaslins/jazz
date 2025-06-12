@@ -44,34 +44,44 @@ export class SubscriptionScope<D extends CoValue> {
     resolve: RefsToResolve<D>,
     public id: ID<D>,
     public schema: RefEncoded<D>,
+    public skipRetry?: boolean,
   ) {
     this.resolve = resolve;
     this.value = { type: "unloaded", id };
 
     let lastUpdate: RawCoValue | "unavailable" | undefined;
-    this.subscription = new CoValueCoreSubscription(node, id, (value) => {
-      lastUpdate = value;
+    if (skipRetry)
+      console.log(
+        `Skipping retry for ${id}, from SubscriptionScope constructor`,
+      );
+    this.subscription = new CoValueCoreSubscription(
+      node,
+      id,
+      (value) => {
+        lastUpdate = value;
 
-      // Need all these checks because the migration can trigger new syncronous updates
-      //
-      // We want to:
-      // - Run the migration only once
-      // - Skip all the updates until the migration is done
-      // - Trigger handleUpdate only with the final value
-      if (!this.migrated && value !== "unavailable") {
-        if (this.migrating) {
+        // Need all these checks because the migration can trigger new syncronous updates
+        //
+        // We want to:
+        // - Run the migration only once
+        // - Skip all the updates until the migration is done
+        // - Trigger handleUpdate only with the final value
+        if (!this.migrated && value !== "unavailable") {
+          if (this.migrating) {
+            return;
+          }
+
+          this.migrating = true;
+          applyCoValueMigrations(instantiateRefEncoded(this.schema, value));
+          this.migrated = true;
+          this.handleUpdate(lastUpdate);
           return;
         }
 
-        this.migrating = true;
-        applyCoValueMigrations(instantiateRefEncoded(this.schema, value));
-        this.migrated = true;
-        this.handleUpdate(lastUpdate);
-        return;
-      }
-
-      this.handleUpdate(value);
-    });
+        this.handleUpdate(value);
+      },
+      skipRetry,
+    );
   }
 
   updateValue(value: SubscriptionValue<D, any>) {

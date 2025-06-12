@@ -90,8 +90,11 @@ export function loadCoValueWithoutMe<
   options?: {
     resolve?: RefsToResolveStrict<V, R>;
     loadAs?: Account | AnonymousJazzAgent;
+    skipRetry?: boolean;
   },
 ): Promise<Resolved<V, R> | null> {
+  if (options?.skipRetry)
+    console.log(`Skipping retry for ${id}, from loadCoValueWithoutMe`);
   return loadCoValue(cls, id, {
     ...options,
     loadAs: options?.loadAs ?? activeAccountContext.get(),
@@ -107,8 +110,11 @@ export function loadCoValue<
   options: {
     resolve?: RefsToResolveStrict<V, R>;
     loadAs: Account | AnonymousJazzAgent;
+    skipRetry?: boolean;
   },
 ): Promise<Resolved<V, R> | null> {
+  if (options?.skipRetry)
+    console.log(`Skipping retry for ${id}, from loadCoValue`);
   return new Promise((resolve) => {
     subscribeToCoValue<V, R>(
       cls,
@@ -117,6 +123,7 @@ export function loadCoValue<
         resolve: options.resolve,
         loadAs: options.loadAs,
         syncResolution: true,
+        skipRetry: options.skipRetry,
         onUnavailable: () => {
           resolve(null);
         },
@@ -242,6 +249,7 @@ export function subscribeToCoValue<
     onUnavailable?: () => void;
     onUnauthorized?: () => void;
     syncResolution?: boolean;
+    skipRetry?: boolean;
   },
   listener: SubscribeListener<V, R>,
 ): () => void {
@@ -252,10 +260,18 @@ export function subscribeToCoValue<
 
   let unsubscribed = false;
 
-  const rootNode = new SubscriptionScope<V>(node, resolve, id as ID<V>, {
-    ref: cls,
-    optional: false,
-  });
+  if (options?.skipRetry)
+    console.log(`Skipping retry for ${id}, from subscribeToCoValue`);
+  const rootNode = new SubscriptionScope<V>(
+    node,
+    resolve,
+    id as ID<V>,
+    {
+      ref: cls,
+      optional: false,
+    },
+    options.skipRetry,
+  );
 
   const handleUpdate = (value: SubscriptionValue<V, any>) => {
     if (unsubscribed) return;
