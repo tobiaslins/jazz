@@ -110,3 +110,17 @@ export const colorToBgHoverMap10 = {
   yellow: "hover:bg-yellow/10",
   cyan: "hover:bg-cyan/10",
 };
+
+const focusRingClassesBase =
+  "focus:ring-2 focus:ring-offset-2 focus:ring-offset-opacity-10";
+
+export const variantToButtonStateMap = {
+  primary: `active:bg-primary-light ${focusRingClassesBase} focus:ring-primary`,
+  secondary: `active:bg-secondary-dark ${focusRingClassesBase} focus:ring-secondary`,
+  info: `active:bg-info-light ${focusRingClassesBase} focus:ring-info`,
+  success: `active:bg-success-light ${focusRingClassesBase} focus:ring-success`,
+  warning: `active:bg-warning-light ${focusRingClassesBase} focus:ring-warning`,
+  danger: `active:bg-danger-light ${focusRingClassesBase} focus:ring-danger`,
+  alert: `active:bg-alert-light ${focusRingClassesBase} focus:ring-alert`,
+  tip: `active:bg-tip-light ${focusRingClassesBase} focus:ring-tip`,
+};

@@ -10,6 +10,7 @@ import {
   variantToBgMap,
   variantToBgTransparentHoverMap,
   variantToBorderMap,
+  variantToButtonStateMap,
   variantToColorMap,
   variantToTextHoverMap,
   variantToTextMap,
@@ -132,7 +133,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 );
 
 const variantClass = (variant: keyof typeof variantToBgMap) =>
-  `${variantToBgMap[variant]} ${variantToBgTransparentHoverMap[variant]} text-white`;
+  `${variantToBgMap[variant]} ${variantToBgTransparentHoverMap[variant]} text-white ${variantToButtonStateMap[variant]}`;
 
 const styleClasses = (variant: keyof typeof variantToBgMap) => {
   return {
