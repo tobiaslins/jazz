@@ -85,11 +85,8 @@ useAcceptInvite({
   },
 });
 ```
-</CodeGroup>
 
-### Accepting Invites Programmatically
-
-While the `useAcceptInvite` hook is convenient for React applications, you can also accept invites programmatically using the `acceptInvite` method on an account:
+You can also accept the invite programmatically, using the `acceptInvite` method on an account by passing the ID of the CoValue you're being invited to, the secret from the invite link, and the schema of the CoValue.
 
 <CodeGroup>
 ```ts twoslash
@@ -99,17 +96,13 @@ const Organization = co.map({
   name: z.string(),
 });
 
-// ---cut---
-// Assuming you have an account and invite details
 await account.acceptInvite(
-  organizationId, // The ID of the CoValue you're being invited to
-  inviteSecret,   // The secret from the invite link
-  Organization    // The schema of the CoValue
+  organizationId,
+  inviteSecret,
+  Organization
 );
 ```
 </CodeGroup>
-
-This is useful when you need to accept invites outside of React components or want more control over the invite acceptance process.
 
 ### Requesting Invites
 
