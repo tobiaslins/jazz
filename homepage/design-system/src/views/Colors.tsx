@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import Link from "next/link";
 
 export function Colors() {
@@ -68,7 +69,10 @@ export function Colors() {
 const ColorTypography = ({ isDark }: { isDark: boolean }) => {
   return (
     <div
-      className={`text-default p-3 rounded-md ${isDark ? "dark bg-stone-950" : "bg-white"}`}
+      className={clsx(
+        "text-default p-3 rounded-md",
+        isDark ? "dark bg-stone-900" : "bg-white",
+      )}
     >
       <div className="text-default mb-1">text-default</div>
       <div className="text-muted mb-1">text-muted</div>
