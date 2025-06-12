@@ -2,7 +2,7 @@ export const metadata = {
   description: "Share CoValues in Jazz through public sharing and invite links. Enable collaboration by granting access to everyone or specific users with different permission levels."
 };
 
-import { ContentByFramework, CodeGroup } from '@/components/forMdx'
+import { CodeGroup, ContentByFramework } from '@/components/forMdx';
 
 # Public sharing and invites
 
@@ -87,6 +87,29 @@ useAcceptInvite({
 ```
 </CodeGroup>
 
+### Accepting Invites Programmatically
+
+While the `useAcceptInvite` hook is convenient for React applications, you can also accept invites programmatically using the `acceptInvite` method on an account:
+
+<CodeGroup>
+```ts twoslash
+import { co, z } from "jazz-tools";
+
+const Organization = co.map({
+  name: z.string(),
+});
+
+// ---cut---
+// Assuming you have an account and invite details
+await account.acceptInvite(
+  organizationId, // The ID of the CoValue you're being invited to
+  inviteSecret,   // The secret from the invite link
+  Organization    // The schema of the CoValue
+);
+```
+</CodeGroup>
+
+This is useful when you need to accept invites outside of React components or want more control over the invite acceptance process.
 
 ### Requesting Invites
 
