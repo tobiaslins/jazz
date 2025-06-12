@@ -1,6 +1,6 @@
 /**
  * Learn about schemas here:
- * https://jazz.tools/docs/react/schemas/covalues
+ * https://jazz.tools/docs/svelte/schemas/covalues
  */
 
 import { Group, co, z } from "jazz-tools";
@@ -10,7 +10,7 @@ import { Group, co, z } from "jazz-tools";
 export const JazzProfile = co.profile({
   /**
    * Learn about CoValue field/item types here:
-   * https://jazz.tools/docs/react/schemas/covalues#covalue-fielditem-types
+   * https://jazz.tools/docs/svelte/schemas/covalues#covalue-fielditem-types
    */
   firstName: z.string(),
 
@@ -54,7 +54,7 @@ export const JazzAccount = co
 
       account.profile = JazzProfile.create(
         {
-          name: "Anonymous user",
+          name: "",
           firstName: "",
         },
         group,
