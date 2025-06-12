@@ -6,10 +6,12 @@ export const sizeClasses = {
 
 export const colorClasses = {
   light:
-    "bg-stone-200 text-stone-700 dark:text-stone-900 hover:bg-stone-200/80",
-  dark: "bg-stone-900 text-stone-200 hover:bg-stone-900/80",
-  white: "bg-white text-black dark:text-black hover:bg-white/80",
-  black: "bg-black text-white dark:bg-black hover:bg-black/80",
+    "bg-stone-200 text-stone-700 dark:text-stone-900 hover:bg-stone-200/60 active:bg-stone-200/70",
+  dark: "bg-stone-900 text-stone-200 hover:bg-stone-900/60 active:bg-stone-900/70",
+  white:
+    "bg-white text-black dark:text-black hover:bg-white/60 active:bg-white/70",
+  black:
+    "bg-black text-white dark:bg-black hover:bg-black/60 active:bg-black/70",
 };
 
 export const variantToBorderMap = {
