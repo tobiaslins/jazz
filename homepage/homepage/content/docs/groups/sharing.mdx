@@ -91,12 +91,16 @@ Pass the ID of the CoValue you're being invited to, the secret from the invite l
 
 <CodeGroup>
 ```ts twoslash
-import { co, z } from "jazz-tools";
+import { co, z, Account } from "jazz-tools";
 
 const Organization = co.map({
   name: z.string(),
 });
+const account = {} as unknown as Account;
+const organizationId = "";
+const inviteSecret ="";
 
+// ---cut---
 await account.acceptInvite(
   organizationId,
   inviteSecret,
