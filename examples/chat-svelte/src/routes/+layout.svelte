@@ -6,8 +6,7 @@
   import { apiKey } from '../apiKey';
   import { getRandomUsername } from '$lib/utils';
   let { children } = $props();
-  const { url } = $derived(page);
-  const defaultProfileName = $derived(url.searchParams.get('user')?.trim() ?? getRandomUsername());
+  const defaultProfileName = getRandomUsername();
 </script>
 
 <svelte:head>
