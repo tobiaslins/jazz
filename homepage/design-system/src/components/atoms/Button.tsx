@@ -139,6 +139,6 @@ const styleClasses = (variant: keyof typeof variantToBgMap) => {
     outline: `border ${variantToBorderMap[variant]} bg-transparent hover:bg-transparent ${variantToTextMap[variant]} hover:shadow-md hover:shadow-${variant}/50 dark:hover:shadow-${variant}`,
     inverted: `${variantToTextMap[variant]} ${colorToBgHoverMap30[variantToColorMap[variant] as keyof typeof colorToBgHoverMap30]} ${colorToBgMap[variantToColorMap[variant] as keyof typeof colorToBgMap]}`,
     ghost: `bg-transparent ${variantToTextMap[variant]} ${colorToBgHoverMap10[variantToColorMap[variant] as keyof typeof colorToBgHoverMap10]}`,
-    text: `bg-transparent ${variantToTextMap[variant]} underline underline-offset-2 hover:bg-transparent ${variantToTextHoverMap[variant]}`,
+    text: `bg-transparent ${variantToTextMap[variant]} underline underline-offset-2 p-0 hover:bg-transparent ${variantToTextHoverMap[variant]}`,
   };
 };
