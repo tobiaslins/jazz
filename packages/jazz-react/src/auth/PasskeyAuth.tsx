@@ -83,11 +83,24 @@ export const PasskeyAuthBasicUI = (props: {
         height: "100vh",
         display: "flex",
         flexWrap: "wrap",
-        alignItems: "center",
         justifyContent: "center",
+        alignItems: error ? "inherit" : "center",
       }}
     >
-      {error && <div style={{ color: "red", width: "100%" }}>{error}</div>}
+      {error && (
+        <div
+          style={{
+            color: "red",
+            width: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "end",
+            padding: "1rem",
+          }}
+        >
+          {error}
+        </div>
+      )}
       <div
         style={{
           width: "18rem",
