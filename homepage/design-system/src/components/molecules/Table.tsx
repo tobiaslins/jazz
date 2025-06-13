@@ -39,9 +39,9 @@ export function Table({
             key={row.id as string}
             className={clsx(
               index % 2 === 0
-                ? "bg-gray-100 hover:bg-gray-200/50"
-                : "hover:bg-gray-200/20",
-              "border-b border-gray-200",
+                ? "bg-stone-200/20 dark:bg-stone-800/40 hover:bg-stone-200/70 dark:hover:bg-stone-800/90"
+                : "hover:bg-stone-200/50 dark:hover:bg-stone-100/20",
+              "border-b border-stone-200 text-stone-800 hover:text-black dark:text-stone-200 dark:hover:text-white",
             )}
           >
             {tableData.headers.map((header, index) => (
@@ -53,9 +53,21 @@ export function Table({
                 )}
               >
                 {typeof row[header] !== "string" ? (
-                  <TableDataContainer isCopyable={copyable}>
+                  <TableDataContainer>
                     {row[header].map((item) => (
-                      <div className="hover:underline" key={item}>
+                      <div
+                        className={clsx(
+                          "hover:underline",
+                          copyable && "cursor-pointer",
+                        )}
+                        key={item}
+                        onClick={() => {
+                          if (copyable) {
+                            navigator.clipboard.writeText(item.toString());
+                            toast.success("Copied to clipboard");
+                          }
+                        }}
+                      >
                         {item}
                       </div>
                     ))}
