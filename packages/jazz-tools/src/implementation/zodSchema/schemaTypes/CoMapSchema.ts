@@ -123,7 +123,6 @@ export type CoMapSchema<
         Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap
       > = true,
     >(
-      id: string,
       unique: CoValueUniqueness["uniqueness"],
       ownerID: string,
       options?: {
