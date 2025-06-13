@@ -144,7 +144,7 @@ export class BrowserPasskeyAuth {
             userVerification: "preferred",
           },
           timeout: 60000,
-          attestation: "none",
+          attestation: "direct",
         },
       });
     } catch (error) {
