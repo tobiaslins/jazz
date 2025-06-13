@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   --color-primary: #146aff;
   --color-primary-dark: lch(
@@ -25,6 +29,8 @@
   --color-transparent-secondary: lch(from var(--color-secondary) l c h / 0.8);
 
   --color-border-default: theme("colors.stone.200");
+  --color-background-highlight: lch(from var(--color-primary) l c h / 0.5);
+
 }
 
 .dark {
@@ -43,7 +49,3 @@
 *:focus {
   outline: none;
 }
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
