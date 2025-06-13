@@ -1,5 +1,6 @@
 import { Button } from "@/components/atoms/Button";
 import { Table } from "@/components/molecules/Table";
+import Link from "next/link";
 
 export function Buttons() {
   return (
@@ -86,7 +87,7 @@ export function Buttons() {
       </div>
       <div>
         <h3 className="text-xl mt-5 mb-2 font-bold">Props Table</h3>
-        <Table tableData={buttonPropsTableData} />
+        <Table tableData={buttonPropsTableData} copyable={true} />
       </div>
     </div>
   );
@@ -97,28 +98,37 @@ const buttonPropsTableData = {
   data: [
     {
       Prop: "variant?",
-      Types:
-        "primary | secondary | tip | info | success | warning | alert | danger",
+      Types: [
+        "primary",
+        "secondary",
+        "tip",
+        "info",
+        "success",
+        "warning",
+        "alert",
+        "danger",
+      ],
       Default: "primary",
     },
     {
       Prop: "styleVariant?",
-      Types: "outline | inverted | ghost | text",
+      Types: ["outline", "inverted", "ghost", "text"],
       Default: "default",
     },
     {
       Prop: "color?",
-      Types: "light | dark | white | black",
+      Types: ["light", "dark", "white", "black"],
       Default: "primary",
     },
     {
       Prop: "icon?",
       Types: "string",
+      Types: "see icon props",
       Default: "undefined",
     },
     {
       Prop: "iconPosition?",
-      Types: "left | right",
+      Types: ["left", "right"],
       Default: "left",
     },
     {
@@ -148,7 +158,7 @@ const buttonPropsTableData = {
     },
     {
       Prop: "size?",
-      Types: "sm | md | lg",
+      Types: ["sm", "md", "lg"],
       Default: "md",
     },
     {
