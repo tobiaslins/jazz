@@ -330,7 +330,7 @@ const Task = co
     if (task.version === 1) {
       task.priority = "medium";
       // Upgrade the version so the migration won't run again
-      task.version = 2; 
+      task.version = 2;
     }
   });
 ```
@@ -367,7 +367,7 @@ const TaskV1 = co.map({
 const TaskV2 = co.map({
   // We need to be more strict about the version to make the
   // discriminated union work
-  version: z.literal(2), 
+  version: z.literal(2),
   done: z.boolean(),
   text: z.string(),
   priority: z.enum(["low", "medium", "high"]),
@@ -443,5 +443,109 @@ const project = Project.create({
 
 console.log(isProjectActive(project)); // false
 console.log(formatProjectDuration(project, "short")); // "3 days"
+```
+</CodeGroup>
+
+#### Upserting
+
+Consider a scenario where one needs to update a CoMap if it exists, or create it if it doesn't:
+
+<CodeGroup>
+```ts twoslash
+import { co, z, Group, ID } from "jazz-tools";
+const Event = co.map({
+  title: z.string(),
+  identifier: z.string(),
+  external_id: z.string(),
+});
+const sourceData = {
+  title: "" as string,
+  identifier: "" as string,
+  _id: "" as string,
+};
+const workspace = Group.create();
+// ---cut---
+let eventId = Event.findUnique(
+  { identifier: sourceData.identifier },
+  workspace.id,
+);
+let activeEvent = await Event.load(eventId as unknown as ID<Event>);
+if (!activeEvent) {
+  activeEvent = Event.create(
+    {
+      title: sourceData.title,
+      identifier: sourceData.identifier,
+      external_id: sourceData._id,
+    },
+    workspace,
+  );
+} else {
+  activeEvent.applyDiff({
+    title: sourceData.title,
+    identifier: sourceData.identifier,
+    external_id: sourceData._id,
+  });
+}
+```
+</CodeGroup>
+
+To simplify this, one could use `CoMap.upsertUnique`:
+
+<CodeGroup>
+```ts twoslash
+import { co, z, Group, ID } from "jazz-tools";
+const Event = co.map({
+  title: z.string(),
+  identifier: z.string(),
+  external_id: z.string(),
+});
+const sourceData = {
+  title: "" as string,
+  identifier: "" as string,
+  _id: "" as string,
+};
+const workspace = Group.create();
+// ---cut---
+const activeEvent = await Event.upsertUnique(
+  sourceData.identifier,
+  workspace.id,
+  {
+    title: sourceData.title,
+    identifier: sourceData.identifier,
+    external_id: sourceData._id,
+  },
+  workspace,
+);
+```
+</CodeGroup>
+
+Note that `CoMap.upsertUnique` will [skip retrying unavailable CoValues](/docs/using-covalues/subscription-and-loading#retrying-unavailable-items) by default. If you expect the CoMap to eventually become available if it's not already, you can specify `skipRetry: false` as a load option:
+
+<CodeGroup>
+```ts twoslash
+import { co, z, Group, ID } from "jazz-tools";
+const Event = co.map({
+  title: z.string(),
+  identifier: z.string(),
+  external_id: z.string(),
+});
+const sourceData = {
+  title: "" as string,
+  identifier: "" as string,
+  _id: "" as string,
+};
+const workspace = Group.create();
+// ---cut---
+const activeEvent = await Event.upsertUnique(
+  sourceData.identifier,
+  workspace.id,
+  {
+    title: sourceData.title,
+    identifier: sourceData.identifier,
+    external_id: sourceData._id,
+  },
+  workspace,
+  { skipRetry: false }  // [!code ++]
+);
 ```
 </CodeGroup>

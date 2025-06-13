@@ -239,6 +239,69 @@ Task.subscribe(taskId, {}, (task: co.loaded<typeof Task>) => {
 ```
 </CodeGroup>
 
+### Retrying unavailable items
+
+By default, Jazz will retry loading items that are not available immediately. This is useful for handling network errors or other temporary issues. However, in some cases, you may want to disable this behaviour if you trust that the item is not going to become available.
+
+Consider a scenario where you've created a CoValue locally and want to load it elsewhere in your code without retries.
+In the scenario where the CoValue was being loaded on the same device it would've been created on, skipping retries saves time in determining if the CoValue exists:
+
+<CodeGroup>
+```ts twoslash
+import { co, z } from "jazz-tools";
+const Dog = co.map({
+  name: z.string(),
+  breed: z.string(),
+});
+const Person = co.map({
+  name: z.string(),
+  age: z.number(),
+  dog: Dog,
+});
+// ---cut---
+const person = Person.create({
+  name: "John",
+  age: 20,
+  dog: Dog.create({ name: "Rex", breed: "Labrador" }),
+});
+
+// …
+
+// Loading without retries
+const loadedPersonWithoutRetrying = await Person.load(person.id, { skipRetry: true }); // Value should load successfully
+
+// Loading with retries (both lines are equivalent)
+const loadedPerson = await Person.load(person.id); // Value should load successfully
+const loadedPersonRetrying = await Person.load(person.id, { skipRetry: false }); // Value should load successfully
+```
+</CodeGroup>
+
+However, if a CoValue cannot be loaded, either because it does not exist or because no peers are available to serve it, loading the CoValue and its dependents will fail quickly:
+
+<CodeGroup>
+```ts twoslash
+import { co, z } from "jazz-tools";
+const Dog = co.map({
+  name: z.string(),
+  breed: z.string(),
+});
+const Person = co.map({
+  name: z.string(),
+  age: z.number(),
+  dog: Dog,
+});
+const person_id = "" as string;
+// ---cut---
+// Assume no `Person` with `person_id` exists
+const loadedPerson = await Person.load(person_id, { skipRetry: true });
+
+console.log(loadedPerson); // `null`
+console.log(loadedPerson?.dog?.name) // `undefined`
+
+// Same would've happened without `skipRetry: true`, but it would've taken longer.
+```
+</CodeGroup>
+
 ## Deep Loading
 
 When working with related CoValues (like tasks in a project), you often need to load not just the top-level object but also its nested references. This is especially important when working with [CoMaps](/docs/using-covalues/comaps) that contain references to other CoValues or with [CoLists](/docs/using-covalues/colists) that contain multiple items. Jazz provides a flexible mechanism for specifying exactly how much of the object graph to load.
