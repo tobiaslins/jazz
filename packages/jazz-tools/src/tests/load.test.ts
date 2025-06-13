@@ -158,6 +158,7 @@ test("retry an unavailable value with skipRetry set to false", async () => {
   );
 
   const john = await promise;
+  expect(resolved).toBe(true);
   expect(john).not.toBeNull();
   expect(john?.name).toBe("John");
 });
