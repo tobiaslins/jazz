@@ -20,7 +20,7 @@ export default function Components() {
       </h2>
 
       <div className="p-3">
-        <div className="py-3 flex gap-6">
+        <div className="py-3 flex gap-6 mobile:flex-col">
           <h3 className="text-md font-semibold">Switches</h3>
           <Switch
             label="Switch default (md) (Primary)"

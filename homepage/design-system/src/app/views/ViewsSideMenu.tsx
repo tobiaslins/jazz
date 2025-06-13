@@ -11,12 +11,7 @@ export function ViewsSideMenu() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
   return (
-    <div
-      className={clsx(
-        "col-span-0 sticky top-0",
-        mobileMenuOpen && "col-span-2",
-      )}
-    >
+    <div className="sticky top-0">
       <Button
         styleVariant="text"
         icon={mobileMenuOpen ? "close" : "chevronRight"}
