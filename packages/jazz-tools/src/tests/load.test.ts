@@ -69,6 +69,7 @@ test("retry an unavailable value", async () => {
   );
 
   const john = await promise;
+  expect(resolved).toBe(true);
   expect(john).not.toBeNull();
   expect(john?.name).toBe("John");
 });
@@ -97,6 +98,8 @@ test("skip retrying an unavailable value", async () => {
     resolved = true;
   });
 
+  expect(resolved).toBe(false);
+
   await new Promise((resolve) =>
     setTimeout(
       resolve,
@@ -104,19 +107,16 @@ test("skip retrying an unavailable value", async () => {
     ),
   );
 
-  expect(resolved).toBe(false);
+  expect(resolved).toBe(true);
 
   // Reconnect the current account
   currentAccount._raw.core.node.syncManager.addPeer(
     getPeerConnectedToTestSyncServer(),
   );
 
-  // Wait for promise to resolve, or timeout after 1.5 seconds
-  await Promise.race([
-    promise,
-    new Promise((resolve) => setTimeout(resolve, 1500)),
-  ]);
-  expect(resolved).toBe(false);
+  const john = await promise;
+  expect(john).toBeNull();
+  expect(john?.name).toBeUndefined();
 });
 
 test("retry an unavailable value with skipRetry set to false", async () => {

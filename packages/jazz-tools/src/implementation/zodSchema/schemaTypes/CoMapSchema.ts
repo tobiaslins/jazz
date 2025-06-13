@@ -89,16 +89,28 @@ export type CoMapSchema<
       as?: Account | Group | AnonymousJazzAgent,
     ): string;
 
-    upsertUnique: (
+    upsertUnique: <
+      const R extends RefsToResolve<
+        Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap
+      > = true,
+    >(
       unique: CoValueUniqueness["uniqueness"],
       ownerID: string,
       init: Simplify<CoMapInitZod<Shape>>,
-      options?:
+      creationOptions?:
         | {
             owner: Owner;
             unique?: CoValueUniqueness["uniqueness"];
           }
         | Owner,
+      loadOptions?: {
+        resolve?: RefsToResolveStrict<
+          Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
+          R
+        >;
+        loadAs?: Account | AnonymousJazzAgent;
+        skipRetry?: boolean;
+      },
     ) => Promise<
       (Shape extends Record<string, never>
         ? {}

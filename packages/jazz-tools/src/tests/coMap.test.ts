@@ -650,6 +650,8 @@ describe("CoMap resolution", async () => {
       resolved = true;
     });
 
+    expect(resolved).toBe(false);
+
     await new Promise((resolve) =>
       setTimeout(
         resolve,
@@ -657,19 +659,17 @@ describe("CoMap resolution", async () => {
       ),
     );
 
-    expect(resolved).toBe(false);
+    expect(resolved).toBe(true);
 
     // Reconnect the current account
     currentAccount._raw.core.node.syncManager.addPeer(
       getPeerConnectedToTestSyncServer(),
     );
 
-    // Wait for promise to resolve, or timeout after 1.5 seconds
-    await Promise.race([
-      promise,
-      new Promise((resolve) => setTimeout(resolve, 1500)),
-    ]);
-    expect(resolved).toBe(false);
+    const loadedPerson = await promise;
+    expect(loadedPerson).toBeNull();
+    expect(loadedPerson?.dog).toBeFalsy();
+    expect(loadedPerson?.dog?.name).toBeUndefined();
   });
 
   test("loading a remotely available map with skipRetry set to false", async () => {

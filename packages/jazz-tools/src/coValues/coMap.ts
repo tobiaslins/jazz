@@ -10,12 +10,10 @@ import {
 } from "cojson";
 import type {
   AnonymousJazzAgent,
-  AnyAccountSchema,
   CoValue,
   CoValueClass,
   Group,
   ID,
-  InstanceOfSchema,
   RefEncoded,
   RefIfCoValue,
   RefsToResolve,
@@ -575,26 +573,38 @@ export class CoMap extends CoValueBase implements CoValue {
    * @param options The creation options for the CoMap.
    * @returns Either an existing & modified CoMap, or a new initialised CoMap if none exists.
    */
-  static async upsertUnique<M extends CoMap>(
+  static async upsertUnique<
+    M extends CoMap,
+    const R extends RefsToResolve<M> = true,
+  >(
     this: CoValueClass<M>,
     unique: CoValueUniqueness["uniqueness"],
     ownerID: ID<Account> | ID<Group>,
     init: Simplify<CoMapInit<M>>,
-    options?:
+    creationOptions?:
       | {
           owner: Account | Group;
         }
       | Account
       | Group,
+    loadOptions?: {
+      resolve?: RefsToResolveStrict<M, R>;
+      loadAs?: Account | AnonymousJazzAgent;
+      skipRetry?: boolean;
+    },
   ): Promise<M> {
     let mapId = CoMap.findUnique(unique, ownerID);
-    let map: Resolved<M, true> | null = await loadCoValueWithoutMe(this, mapId);
+    let map: Resolved<M, true> | null = await loadCoValueWithoutMe(
+      this,
+      mapId,
+      { ...loadOptions, skipRetry: loadOptions?.skipRetry ?? true },
+    );
     if (!map) {
       const instance = new this();
       const createOptions =
-        options && !("_type" in options)
-          ? { ...options, unique: unique }
-          : options;
+        creationOptions && !("_type" in creationOptions)
+          ? { ...creationOptions, unique: unique }
+          : creationOptions;
       const { owner, uniqueness } = parseCoValueCreateOptions(createOptions);
       const raw = instance.rawFromInit(init, owner, uniqueness);
       Object.defineProperties(instance, {

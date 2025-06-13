@@ -64,6 +64,7 @@ export class SubscriptionScope<D extends CoValue> {
           console.log(
             `Stopping CoValueCoreSubscription for ${id} due to skipping retry, from SubscriptionScope constructor`,
           );
+          this.handleUpdate(value);
           this.destroy();
           return;
         }
