@@ -1440,7 +1440,7 @@ describe("Creating and finding unique CoMaps", async () => {
     });
   });
 
-  test("upserting", async () => {
+  test("upserting a non-existent value", async () => {
     // Schema
     const Event = co.map({
       title: z.string(),
@@ -1457,21 +1457,68 @@ describe("Creating and finding unique CoMaps", async () => {
     const workspace = Group.create();
 
     // Upserting
-    const activeEvent = await Event.upsertUnique(
-      sourceData.identifier,
-      workspace.id,
-      {
+    const activeEvent = await Event.upsertUnique({
+      value: {
         title: sourceData.title,
         identifier: sourceData.identifier,
         external_id: sourceData._id,
       },
-      workspace,
-    );
+      unique: sourceData.identifier,
+      owner: workspace,
+    });
     expect(activeEvent).toEqual({
       title: sourceData.title,
       identifier: sourceData.identifier,
       external_id: sourceData._id,
     });
+  });
+
+  test("upserting an existing value", async () => {
+    // Schema
+    const Event = co.map({
+      title: z.string(),
+      identifier: z.string(),
+      external_id: z.string(),
+    });
+
+    // Data
+    const oldSourceData = {
+      title: "Old Event Title",
+      identifier: "test-event-identifier",
+      _id: "test-event-external-id",
+    };
+    const newSourceData = {
+      title: "New Event Title",
+      identifier: "test-event-identifier",
+      _id: "test-event-external-id",
+    };
+    expect(oldSourceData.identifier).toEqual(newSourceData.identifier);
+    const workspace = Group.create();
+    const oldActiveEvent = Event.create(
+      {
+        title: oldSourceData.title,
+        identifier: oldSourceData.identifier,
+        external_id: oldSourceData._id,
+      },
+      workspace,
+    );
+
+    // Upserting
+    const activeEvent = await Event.upsertUnique({
+      value: {
+        title: newSourceData.title,
+        identifier: newSourceData.identifier,
+        external_id: newSourceData._id,
+      },
+      unique: newSourceData.identifier,
+      owner: workspace,
+    });
+    expect(activeEvent).toEqual({
+      title: newSourceData.title,
+      identifier: newSourceData.identifier,
+      external_id: newSourceData._id,
+    });
+    expect(activeEvent).not.toEqual(oldActiveEvent);
   });
 
   test("complex discriminated union", () => {

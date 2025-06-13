@@ -93,25 +93,15 @@ export type CoMapSchema<
       const R extends RefsToResolve<
         Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap
       > = true,
-    >(
-      unique: CoValueUniqueness["uniqueness"],
-      ownerID: string,
-      init: Simplify<CoMapInitZod<Shape>>,
-      creationOptions?:
-        | {
-            owner: Owner;
-            unique?: CoValueUniqueness["uniqueness"];
-          }
-        | Owner,
-      loadOptions?: {
-        resolve?: RefsToResolveStrict<
-          Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
-          R
-        >;
-        loadAs?: Account | AnonymousJazzAgent;
-        skipRetry?: boolean;
-      },
-    ) => Promise<
+    >(options: {
+      value: Simplify<CoMapInitZod<Shape>>;
+      unique: CoValueUniqueness["uniqueness"];
+      owner: Owner;
+      resolve?: RefsToResolveStrict<
+        Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
+        R
+      >;
+    }) => Promise<
       (Shape extends Record<string, never>
         ? {}
         : {
@@ -126,6 +116,26 @@ export type CoMapSchema<
             }) &
         CoMap
     >;
+
+    loadUnique<
+      const R extends RefsToResolve<
+        Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap
+      > = true,
+    >(
+      id: string,
+      unique: CoValueUniqueness["uniqueness"],
+      ownerID: string,
+      options?: {
+        resolve?: RefsToResolveStrict<
+          Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
+          R
+        >;
+        loadAs?: Account | AnonymousJazzAgent;
+      },
+    ): Promise<Resolved<
+      Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
+      R
+    > | null>;
 
     catchall<T extends z.core.$ZodType>(
       schema: T,
