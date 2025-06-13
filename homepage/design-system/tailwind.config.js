@@ -70,7 +70,7 @@ Object.keys(stonePalette).forEach((key) => {
 });
 
 /** @type {import('tailwindcss').Config} */
-const config = {
+export const preset = {
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -275,5 +275,11 @@ const config = {
       }),
     ),
   ],
+};
+
+const config = {
+  presets: [preset],
+  darkMode: ["class"],
+  content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
 };
 export default config;
