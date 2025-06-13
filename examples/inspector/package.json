@@ -12,24 +12,24 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "jazz-inspector": "workspace:*",
-    "jazz-tools": "workspace:*",
     "clsx": "^2.0.0",
     "cojson": "workspace:*",
     "cojson-transport-ws": "workspace:*",
     "hash-slash": "workspace:*",
+    "jazz-inspector": "workspace:*",
+    "jazz-tools": "workspace:*",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-use": "^17.4.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.50.1",
+    "@tailwindcss/postcss": "^4.1.10",
     "@types/react": "19.0.0",
     "@types/react-dom": "19.0.0",
     "@vitejs/plugin-react-swc": "^3.10.1",
-    "autoprefixer": "^10.4.20",
-    "postcss": "^8.4.27",
-    "tailwindcss": "^3.4.17",
+    "postcss": "^8.4.40",
+    "tailwindcss": "^4.1.10",
     "typescript": "5.6.2",
     "vite": "6.3.5"
   }
