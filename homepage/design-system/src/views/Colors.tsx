@@ -1,5 +1,5 @@
-import clsx from "clsx";
 import Link from "next/link";
+import { ColorTypography } from "./ColorTypography";
 
 export function Colors() {
   return (
@@ -46,6 +46,11 @@ export function Colors() {
       <p className="text-xs mt-1 mb-4">
         NB: These classes should be used across all apps as the primary an
         secondary colour are updated per app.
+        <br />
+        <br />
+        For full custimisation, the default colours on tailwind are programmed
+        to be the tailwind semantic colours, so you can achieve a transparent
+        primary with `blue/20`.
       </p>
 
       <h3 id="text-color-variables" className="text-md mt-4 mb-1 font-bold">
@@ -65,24 +70,3 @@ export function Colors() {
     </div>
   );
 }
-
-const ColorTypography = ({ isDark }: { isDark: boolean }) => {
-  return (
-    <div
-      className={clsx(
-        "text-default p-3 rounded-md",
-        isDark ? "dark bg-stone-900" : "bg-white",
-      )}
-    >
-      <div className="text-default mb-1">text-default</div>
-      <div className="text-muted mb-1">text-muted</div>
-      <div className="text-highlight mb-1">text-highlight*</div>
-      <div>
-        <span className="bg-highlight text-default">bg-highlight*</span>
-      </div>
-      <div className="text-highlight my-1">
-        <span className="bg-highlight">[text+bg]-highlight*</span>
-      </div>
-    </div>
-  );
-};
