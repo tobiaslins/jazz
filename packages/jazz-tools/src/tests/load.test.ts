@@ -111,10 +111,10 @@ test("skip retrying an unavailable value", async () => {
     getPeerConnectedToTestSyncServer(),
   );
 
-  // Wait for promise to resolve, or timeout after 2 seconds
+  // Wait for promise to resolve, or timeout after 1.5 seconds
   await Promise.race([
     promise,
-    new Promise((resolve) => setTimeout(resolve, 2000)),
+    new Promise((resolve) => setTimeout(resolve, 1500)),
   ]);
   expect(resolved).toBe(false);
 });
