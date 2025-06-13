@@ -171,7 +171,7 @@ export default function CoJsonViewerApp() {
           <form onSubmit={handleCoValueIdSubmit}>
             {path.length !== 0 && (
               <Input
-                className="min-w-[21rem] font-mono"
+                className="min-w-84 font-mono"
                 placeholder="co_z1234567890abcdef123456789"
                 label="CoValue ID"
                 hideLabel
@@ -333,7 +333,7 @@ function AddAccountForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className={`flex flex-col max-w-[30rem] mx-auto justify-center ${errors == null ? "h-full" : ""}`}
+      className={`flex flex-col max-w-120 mx-auto justify-center ${errors == null ? "h-full" : ""}`}
     >
       {errors != null && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mt-4 font-mono whitespace-pre-wrap break-words mb-8">

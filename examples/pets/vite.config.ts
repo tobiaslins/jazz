@@ -1,11 +1,11 @@
 import path from "path";
-import react from "@vitejs/plugin-react-swc";
+import tailwindcss from "@tailwindcss/vite";
+import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
-import topLevelAwait from "vite-plugin-top-level-await";
 
-// https://vitejs.dev/config/
+// https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), topLevelAwait()],
+  plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

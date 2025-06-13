@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "jazz-svelte": "workspace:*",
-    "jazz-tools": "workspace:*"
+    "jazz-tools": "workspace:*",
+    "tailwindcss": "^4.1.10"
   }
 }
