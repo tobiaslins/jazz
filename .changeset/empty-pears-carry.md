@@ -1,5 +1,4 @@
 ---
-"jazz-example-music-player": patch
 "jazz-tools": patch
 ---
 
