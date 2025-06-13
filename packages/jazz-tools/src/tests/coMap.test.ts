@@ -638,7 +638,6 @@ describe("CoMap resolution", async () => {
       },
       group,
     );
-    console.log(`Created person ${person.id} with dog ${person.dog.id}`);
 
     const userB = await createJazzTestAccount();
     let resolved = false;
@@ -702,7 +701,6 @@ describe("CoMap resolution", async () => {
       },
       group,
     );
-    console.log(`Created person ${person.id} with dog ${person.dog.id}`);
 
     const userB = await createJazzTestAccount();
     let resolved = false;

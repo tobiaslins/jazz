@@ -491,8 +491,6 @@ export class CoMap extends CoValueBase implements CoValue {
       skipRetry?: boolean;
     },
   ): Promise<Resolved<M, R> | null> {
-    if (options?.skipRetry)
-      console.log(`Skipping retry for ${id}, from CoMap.load`);
     return loadCoValueWithoutMe(this, id, options);
   }
 
@@ -567,11 +565,28 @@ export class CoMap extends CoValueBase implements CoValue {
 
   /**
    * Given some data, updates an existing CoMap or initialises a new one if none exists.
+   *
+   * @example
+   * ```ts
+   * const activeEvent = await Event.upsertUnique(
+   *   sourceData.identifier,
+   *   workspace.id,
+   *   {
+   *     title: sourceData.title,
+   *     identifier: sourceData.identifier,
+   *     external_id: sourceData._id,
+   *   },
+   *   workspace
+   * );
+   * ```
+   *
    * @param unique The data that uniquely identifies the CoMap.
    * @param ownerID The ID of the owner of the CoMap.
    * @param init The data that the CoMap should contain.
-   * @param options The creation options for the CoMap.
+   * @param creationOptions The creation options for the CoMap.
+   * @param loadOptions The options for loading the CoMap, if it exists (note: `skipRetry` defaults to `true`).
    * @returns Either an existing & modified CoMap, or a new initialised CoMap if none exists.
+   * @category Subscription & Loading
    */
   static async upsertUnique<
     M extends CoMap,

@@ -93,8 +93,6 @@ export function loadCoValueWithoutMe<
     skipRetry?: boolean;
   },
 ): Promise<Resolved<V, R> | null> {
-  if (options?.skipRetry)
-    console.log(`Skipping retry for ${id}, from loadCoValueWithoutMe`);
   return loadCoValue(cls, id, {
     ...options,
     loadAs: options?.loadAs ?? activeAccountContext.get(),
@@ -113,8 +111,6 @@ export function loadCoValue<
     skipRetry?: boolean;
   },
 ): Promise<Resolved<V, R> | null> {
-  if (options?.skipRetry)
-    console.log(`Skipping retry for ${id}, from loadCoValue`);
   return new Promise((resolve) => {
     subscribeToCoValue<V, R>(
       cls,
@@ -260,8 +256,6 @@ export function subscribeToCoValue<
 
   let unsubscribed = false;
 
-  if (options?.skipRetry)
-    console.log(`Skipping retry for ${id}, from subscribeToCoValue`);
   const rootNode = new SubscriptionScope<V>(
     node,
     resolve,

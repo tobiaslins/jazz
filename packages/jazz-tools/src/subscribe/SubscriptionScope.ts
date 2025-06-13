@@ -50,10 +50,6 @@ export class SubscriptionScope<D extends CoValue> {
     this.value = { type: "unloaded", id };
 
     let lastUpdate: RawCoValue | "unavailable" | undefined;
-    if (skipRetry)
-      console.log(
-        `Skipping retry for ${id}, from SubscriptionScope constructor`,
-      );
     this.subscription = new CoValueCoreSubscription(
       node,
       id,
@@ -61,9 +57,6 @@ export class SubscriptionScope<D extends CoValue> {
         lastUpdate = value;
 
         if (skipRetry && value === "unavailable") {
-          console.log(
-            `Stopping CoValueCoreSubscription for ${id} due to skipping retry, from SubscriptionScope constructor`,
-          );
           this.handleUpdate(value);
           this.destroy();
           return;
