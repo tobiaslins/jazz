@@ -376,8 +376,6 @@ export class LocalNode {
         skipRetry ||
         retries >= CO_VALUE_LOADING_CONFIG.MAX_RETRIES
       ) {
-        if (skipRetry)
-          console.log(`Skip retry for ${coValue.id}, in loadCoValueCore`);
         return result;
       }
 
