@@ -548,7 +548,7 @@ export class CoMap extends CoValueBase implements CoValue {
     ownerID: ID<Account> | ID<Group>,
     as?: Account | Group | AnonymousJazzAgent,
   ) {
-    return CoMap._findUnique(this, unique, ownerID, as);
+    return CoMap._findUnique(unique, ownerID, as);
   }
 
   /** @internal */
