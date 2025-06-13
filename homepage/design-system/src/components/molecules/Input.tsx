@@ -1,10 +1,7 @@
-import {
-  variantToActiveBorderMap,
-  variantToBorderMap,
-} from "@/utils/tailwindClassesMap";
-import { Variant } from "@/utils/variants";
 import { clsx } from "clsx";
 import { forwardRef, useId } from "react";
+import { Variant } from "../..//utils/variants";
+import { variantToActiveBorderMap } from "../../utils/tailwindClassesMap";
 import { Button, ButtonProps } from "../atoms/Button";
 import { Icon, icons } from "../atoms/Icon";
 import { Label } from "../atoms/Label";
