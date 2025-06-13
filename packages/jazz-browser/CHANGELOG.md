@@ -1,5 +1,16 @@
 # jazz-browser
 
+## 0.14.25
+
+### Patch Changes
+
+- b3ff726: Increase the Passkey challenge to 20 bytes
+- Updated dependencies [99a2d9b]
+  - jazz-tools@0.14.25
+  - cojson@0.14.25
+  - cojson-storage-indexeddb@0.14.25
+  - cojson-transport-ws@0.14.25
+
 ## 0.14.24
 
 ### Patch Changes

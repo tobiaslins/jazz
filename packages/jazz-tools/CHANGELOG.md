@@ -1,5 +1,12 @@
 # jazz-tools
 
+## 0.14.25
+
+### Patch Changes
+
+- 99a2d9b: Deprecated `Group.extend` and `Group.revokeExtend` (use `Group.addMember` and `Group.removeMember` respectively)
+  - cojson@0.14.25
+
 ## 0.14.24
 
 ### Patch Changes

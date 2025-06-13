@@ -1,5 +1,11 @@
 # create-jazz-app
 
+## 0.1.23
+
+### Patch Changes
+
+- 2d19908: use new svelte starter
+
 ## 0.1.22
 
 ### Patch Changes
