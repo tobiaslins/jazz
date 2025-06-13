@@ -45,16 +45,32 @@ export default function ButtonsPage() {
       </p>
 
       <div className="grid grid-cols-2 gap-2">
-        <Button styleVariant="outline" variant="warning">
+        <Button
+          styleVariant="outline"
+          variant="warning"
+          className="col-span-2 md:col-span-1"
+        >
           outline warning
         </Button>
-        <Button styleVariant="inverted" variant="success">
+        <Button
+          styleVariant="inverted"
+          variant="success"
+          className="col-span-2 md:col-span-1"
+        >
           inverted success
         </Button>
-        <Button styleVariant="ghost" variant="info">
+        <Button
+          styleVariant="ghost"
+          variant="info"
+          className="col-span-2 md:col-span-1"
+        >
           ghost info
         </Button>
-        <Button styleVariant="text" variant="tip">
+        <Button
+          styleVariant="text"
+          variant="tip"
+          className="col-span-2 md:col-span-1"
+        >
           text tip
         </Button>
       </div>
@@ -67,6 +83,7 @@ export default function ButtonsPage() {
           styleVariant="text"
           variant="danger"
           iconPosition="right"
+          className="col-span-2 md:col-span-1"
         >
           text danger with icon
         </Button>
@@ -75,6 +92,7 @@ export default function ButtonsPage() {
           iconPosition="left"
           styleVariant="outline"
           variant="info"
+          className="col-span-2 md:col-span-1"
         >
           outline info with icon
         </Button>
@@ -85,7 +103,7 @@ export default function ButtonsPage() {
         <Button icon="newsletter" styleVariant="text" variant="tip" />
         <Button icon="check" variant="success" />
       </div>
-      <div>
+      <div className="overflow-auto">
         <h3 className="text-xl mt-5 mb-2 font-bold">Props Table</h3>
         <Table tableData={buttonPropsTableData} copyable={true} />
       </div>
