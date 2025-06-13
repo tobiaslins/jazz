@@ -17,26 +17,16 @@ export class CoValueCoreSubscription {
     if (entry?.isAvailable()) {
       this.subscribe(entry.getCurrentContent());
     } else {
-      if (skipRetry)
-        console.log(
-          `Skipping retry for ${id}, from CoValueCoreSubscription constructor`,
-        );
       this.node
         .loadCoValueCore(this.id as any, undefined, skipRetry)
         .then((value) => {
           if (this.unsubscribed) return;
 
           if (value.isAvailable()) {
-            if (skipRetry)
-              console.log(
-                `Value ${value.id} loaded from CoValueCoreSubscription constructor`,
-              );
             this.subscribe(value.getCurrentContent());
           } else {
             this.listener("unavailable");
             if (!skipRetry) this.subscribeToState();
-            if (skipRetry)
-              console.log(`Skip retry for ${this.id}, ignoring subscription`);
           }
         });
     }
