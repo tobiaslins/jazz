@@ -36,6 +36,8 @@
 
   --color-transparent-primary: lch(from var(--color-primary) l c h / 0.2);
   --color-transparent-secondary: lch(from var(--color-secondary) l c h / 0.2);
+
+  --color-border-default: theme("colors.stone.900");
 }
 
 *:focus {
