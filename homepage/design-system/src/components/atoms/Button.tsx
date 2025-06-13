@@ -10,6 +10,7 @@ import {
   colorToBgMap,
   sizeClasses,
   variantToBgMap,
+  variantToBgTransparentActiveMap,
   variantToBgTransparentHoverMap,
   variantToBorderMap,
   variantToButtonStateMap,
@@ -141,7 +142,7 @@ const variantClass = (variant: keyof typeof variantToBgMap) =>
 
 const styleClasses = (variant: keyof typeof variantToBgMap) => {
   return {
-    outline: `border ${variantToBorderMap[variant]} bg-transparent hover:bg-transparent ${variantToTextMap[variant]} ${variantToHoverShadowMap[variant]} active:bg-stone-100`,
+    outline: `border ${variantToBorderMap[variant]} bg-transparent hover:bg-transparent ${variantToTextMap[variant]} ${variantToHoverShadowMap[variant]} ${variantToBgTransparentActiveMap[variant]}`,
     inverted: `${variantToTextMap[variant]} ${colorToBgHoverMap30[variantToColorMap[variant] as keyof typeof colorToBgHoverMap30]} ${colorToBgMap[variantToColorMap[variant] as keyof typeof colorToBgMap]} ${colorToBgActiveMap50[variantToColorMap[variant] as keyof typeof colorToBgActiveMap50]}`,
     ghost: `bg-transparent ${variantToTextMap[variant]} ${colorToBgHoverMap10[variantToColorMap[variant] as keyof typeof colorToBgHoverMap10]} ${colorToBgActiveMap25[variantToColorMap[variant] as keyof typeof colorToBgActiveMap25]}`,
     text: `bg-transparent ${variantToTextMap[variant]} underline underline-offset-2 p-0 hover:bg-transparent ${variantToTextHoverMap[variant]} ${variantToTextActiveMap[variant]} active:underline-stone-500`,

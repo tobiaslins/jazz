@@ -69,6 +69,17 @@ export const variantToBgTransparentHoverMap = {
   tip: "hover:bg-tip-transparent",
 };
 
+export const variantToBgTransparentActiveMap = {
+  primary: "active:bg-blue/20",
+  secondary: "active:bg-indigo/20",
+  info: "active:bg-purple/20",
+  success: "active:bg-green/20",
+  warning: "active:bg-orange/20",
+  danger: "active:bg-red/20",
+  alert: "active:bg-yellow/20",
+  tip: "active:bg-cyan/20",
+};
+
 export const variantToTextMap = {
   primary: "text-primary",
   secondary: "text-secondary",
@@ -178,12 +189,12 @@ export const variantStyleToButtonStateMap = {
   text: `${focusRingClassesBase}`,
 };
 
-export const colourStyleToButtonStateMap = {
-  light: `${focusRingClassesBase}`,
-  dark: `${focusRingClassesBase}`,
-  white: `${focusRingClassesBase}`,
-  black: `${focusRingClassesBase}`,
-};
+// export const colourStyleToButtonStateMap = {
+//   light: `${focusRingClassesBase}`,
+//   dark: `${focusRingClassesBase}`,
+//   white: `${focusRingClassesBase}`,
+//   black: `${focusRingClassesBase}`,
+// };
 
 const shadowClassesBase = "shadow-md shadow-opacity-10";
 
