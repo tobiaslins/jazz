@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Toaster } from "react-hot-toast";
 import { fontClasses } from "../fonts";
 
 export const metadata: Metadata = {
@@ -21,6 +22,7 @@ export default function RootLayout({
           "bg-white dark:bg-stone-950 text-default",
         ].join(" ")}
       >
+        <Toaster position="bottom-right" />
         {children}
       </body>
     </html>

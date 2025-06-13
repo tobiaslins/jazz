@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { ColorTypography } from "./ColorTypography";
+import { ColorTypography } from "../ColorTypography";
+import { ViewsLayout } from "../ViewsLayout";
 
-export function Colors() {
+export default function Colors() {
   return (
-    <div className="text-default">
+    <ViewsLayout>
       <h2 id="colors" className="text-xl mt-5 mb-2 font-bold">
         Colors
       </h2>
@@ -67,6 +68,6 @@ export function Colors() {
           </p>
         </div>
       </div>
-    </div>
+    </ViewsLayout>
   );
 }

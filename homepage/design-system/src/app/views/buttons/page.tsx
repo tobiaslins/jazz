@@ -1,10 +1,10 @@
 import { Button } from "@/components/atoms/Button";
 import { Table } from "@/components/molecules/Table";
-import Link from "next/link";
+import { ViewsLayout } from "../ViewsLayout";
 
-export function Buttons() {
+export default function ButtonsPage() {
   return (
-    <div>
+    <ViewsLayout>
       <h2 id="buttons" className="text-xl mt-5 mb-2 font-bold">
         Buttons
       </h2>
@@ -89,7 +89,7 @@ export function Buttons() {
         <h3 className="text-xl mt-5 mb-2 font-bold">Props Table</h3>
         <Table tableData={buttonPropsTableData} copyable={true} />
       </div>
-    </div>
+    </ViewsLayout>
   );
 }
 
@@ -122,8 +122,7 @@ const buttonPropsTableData = {
     },
     {
       Prop: "icon?",
-      Types: "string",
-      Types: "see icon props",
+      Types: "Lucide icon name",
       Default: "undefined",
     },
     {

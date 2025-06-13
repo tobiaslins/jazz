@@ -5,15 +5,16 @@ import { Input } from "@/components/molecules/Input";
 import { InputWithButton } from "@/components/molecules/InputWithButton";
 import { NewsletterForm } from "@/components/organisms/NewsletterForm";
 import { useState } from "react";
+import { ViewsLayout } from "../ViewsLayout";
 
-export function Components() {
+export default function Components() {
   const [checked, setChecked] = useState({
     md: true,
     sm: true,
   });
 
   return (
-    <div>
+    <ViewsLayout>
       <h2 id="components" className="text-xl mt-5 mb-2 font-bold">
         Components
       </h2>
@@ -97,6 +98,6 @@ export function Components() {
           <NewsletterForm />
         </div>
       </div>
-    </div>
+    </ViewsLayout>
   );
 }

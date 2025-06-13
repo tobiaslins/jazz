@@ -1,0 +1,41 @@
+"use client";
+
+import clsx from "clsx";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Button } from "../../components/atoms/Button";
+
+const designSystemTopics = ["Colors", "Typography", "Buttons", "Components"];
+
+export function ViewsSideMenu() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const router = useRouter();
+  return (
+    <div
+      className={clsx(
+        "col-span-0 sticky top-0",
+        mobileMenuOpen && "col-span-2",
+      )}
+    >
+      <Button
+        styleVariant="text"
+        icon={mobileMenuOpen ? "close" : "chevronRight"}
+        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+      />
+      {mobileMenuOpen && (
+        <div className="flex flex-col gap-2">
+          {designSystemTopics.map((topic) => (
+            <div key={topic}>
+              <Button
+                styleVariant="text"
+                onClick={() => router.push(`/views/${topic.toLowerCase()}`)}
+              >
+                {topic}
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

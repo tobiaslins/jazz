@@ -154,7 +154,7 @@ export const preset = {
         DEFAULT: "var(--color-border-default)",
       },
       backgroundColor: {
-        highlight: "var(--color-transparent-primary)",
+        highlight: "var(--color-background-highlight)",
       },
       fontFamily: {
         display: ["var(--font-manrope)"],

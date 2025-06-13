@@ -1,8 +1,9 @@
 import { Prose } from "@/components/molecules/Prose";
+import { ViewsLayout } from "../ViewsLayout";
 
-export function Typography() {
+export default function Typography() {
   return (
-    <>
+    <ViewsLayout>
       <h2 id="typography" className="text-xl mt-5 mb-2 font-bold">
         Typography
       </h2>
@@ -66,6 +67,6 @@ export function Typography() {
           </Prose>
         </div>
       </div>
-    </>
+    </ViewsLayout>
   );
 }
