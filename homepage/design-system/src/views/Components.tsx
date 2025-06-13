@@ -57,10 +57,33 @@ export function Components() {
             iconPosition="right"
             placeholder="Password"
           />
+          <Input
+            icon="file"
+            label="Password"
+            iconPosition="right"
+            labelPosition="row"
+            placeholder="Password"
+          />
           <InputWithButton
             inputProps={{
               label: "Input with button [label visible]",
               labelHidden: false,
+              placeholder: "Input with button",
+              variant: "success",
+            }}
+            buttonProps={{
+              children: "Let's go",
+              variant: "success",
+              styleVariant: "inverted",
+              icon: "check",
+              iconPosition: "left",
+            }}
+          />
+          <InputWithButton
+            inputProps={{
+              label: "Input with button [label visible]",
+              labelHidden: false,
+              labelPosition: "row",
               placeholder: "Input with button",
             }}
             buttonProps={{

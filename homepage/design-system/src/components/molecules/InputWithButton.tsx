@@ -11,14 +11,7 @@ export function InputWithButton({
 }) {
   return (
     <div className="flex gap-2 w-full">
-      <Input {...inputProps} />
-      <Button
-        {...buttonProps}
-        className={clsx(
-          buttonProps.className,
-          !inputProps.labelHidden ? "mt-6" : "",
-        )}
-      />
+      <Input {...inputProps} button={buttonProps} />
     </div>
   );
 }

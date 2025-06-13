@@ -25,6 +25,17 @@ export const variantToBorderMap = {
   tip: "border-tip",
 };
 
+export const variantToActiveBorderMap = {
+  primary: "active:border-primary focus:border-primary",
+  secondary: "active:border-secondary focus:border-secondary",
+  info: "active:border-info focus:border-info",
+  success: "active:border-success focus:border-success",
+  warning: "active:border-warning focus:border-warning",
+  danger: "active:border-danger focus:border-danger",
+  alert: "active:border-alert focus:border-alert",
+  tip: "active:border-tip focus:border-tip",
+};
+
 export const variantToBgMap = {
   primary: "bg-primary",
   secondary: "bg-secondary",

@@ -1,5 +1,11 @@
+import {
+  variantToActiveBorderMap,
+  variantToBorderMap,
+} from "@/utils/tailwindClassesMap";
+import { Variant } from "@/utils/variants";
 import { clsx } from "clsx";
 import { forwardRef, useId } from "react";
+import { Button, ButtonProps } from "../atoms/Button";
 import { Icon, icons } from "../atoms/Icon";
 import { Label } from "../atoms/Label";
 
@@ -12,6 +18,9 @@ export interface InputProps
   icon?: keyof typeof icons;
   iconPosition?: "left" | "right";
   labelHidden?: boolean;
+  labelPosition?: "column" | "row";
+  button?: ButtonProps;
+  variant?: Variant;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
@@ -24,6 +33,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       icon,
       iconPosition,
       labelHidden,
+      labelPosition,
+      button,
+      variant = "primary",
       ...inputProps
     },
     ref,
@@ -38,41 +50,54 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     );
 
     return (
-      <div className="relative w-full">
+      <div
+        className={clsx(
+          "relative w-full",
+          labelPosition === "row" ? "flex flex-row items-center" : "",
+        )}
+      >
         <Label
           label={label}
           htmlFor={id}
-          className={labelHidden ? "sr-only" : ""}
-        />
-        <input
-          ref={ref}
-          {...inputProps}
-          id={id}
           className={clsx(
-            inputClassName,
-            iconPosition === "left"
-              ? "pl-9"
-              : iconPosition === "right"
-                ? "pr-9"
-                : "",
-            className,
+            labelPosition === "row" ? "mr-2" : "w-full",
+            labelHidden ? "sr-only" : "",
           )}
-          placeholder={placeholder}
         />
-        {icon && (
-          <Icon
-            name={icon}
+        <div className={clsx("flex gap-2 w-full items-center")}>
+          <input
+            ref={ref}
+            {...inputProps}
+            id={id}
             className={clsx(
-              "absolute",
+              inputClassName,
               iconPosition === "left"
-                ? "left-2"
+                ? "pl-9"
                 : iconPosition === "right"
-                  ? "right-2"
+                  ? "pr-9"
                   : "",
-              labelHidden ? "top-[0.6rem]" : "top-1/2",
+              className,
+              // variantToBorderMap[variant]
+              variantToActiveBorderMap[variant],
             )}
+            placeholder={placeholder}
           />
-        )}
+          {icon && (
+            <Icon
+              name={icon}
+              className={clsx(
+                "absolute",
+                iconPosition === "left"
+                  ? "left-2"
+                  : iconPosition === "right"
+                    ? "right-2"
+                    : "",
+                // labelHidden ? "top-[0.6rem]" : "top-1/2",
+              )}
+            />
+          )}
+          {button && <Button {...button} />}
+        </div>
       </div>
     );
   },
