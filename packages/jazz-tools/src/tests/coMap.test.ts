@@ -1,3 +1,4 @@
+import { cojsonInternals } from "cojson";
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import {
   assert,
@@ -12,7 +13,11 @@ import {
 import { Group, co, subscribeToCoValue, z } from "../exports.js";
 import { Account } from "../index.js";
 import { ID, Loaded, zodSchemaToCoSchema } from "../internal.js";
-import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
+import {
+  createJazzTestAccount,
+  getPeerConnectedToTestSyncServer,
+  setupJazzTestSync,
+} from "../testing.js";
 import { setupTwoNodes, waitFor } from "./utils.js";
 
 const Crypto = await WasmCrypto.create();
@@ -469,7 +474,7 @@ describe("CoMap resolution", async () => {
     expect(loadedPerson.dog?.name).toEqual("Rex");
   });
 
-  test("loading a locally available map with skipRetry", async () => {
+  test("loading a locally available map with skipRetry set to true", async () => {
     const Dog = co.map({
       name: z.string(),
       breed: z.string(),
@@ -481,6 +486,12 @@ describe("CoMap resolution", async () => {
       dog: Dog,
     });
 
+    // Disconnect the current account
+    const currentAccount = Account.getMe();
+    currentAccount._raw.core.node.syncManager.getPeers().forEach((peer) => {
+      peer.gracefulShutdown();
+    });
+
     const person = Person.create({
       name: "John",
       age: 20,
@@ -488,6 +499,36 @@ describe("CoMap resolution", async () => {
     });
 
     const loadedPerson = await Person.load(person.id, { skipRetry: true });
+
+    assert(loadedPerson);
+    expect(loadedPerson.dog?.name).toEqual("Rex");
+  });
+
+  test("loading a locally available map with skipRetry set to false", async () => {
+    const Dog = co.map({
+      name: z.string(),
+      breed: z.string(),
+    });
+
+    const Person = co.map({
+      name: z.string(),
+      age: z.number(),
+      dog: Dog,
+    });
+
+    // Disconnect the current account
+    const currentAccount = Account.getMe();
+    currentAccount._raw.core.node.syncManager.getPeers().forEach((peer) => {
+      peer.gracefulShutdown();
+    });
+
+    const person = Person.create({
+      name: "John",
+      age: 20,
+      dog: Dog.create({ name: "Rex", breed: "Labrador" }),
+    });
+
+    const loadedPerson = await Person.load(person.id, { skipRetry: false });
 
     assert(loadedPerson);
     expect(loadedPerson.dog?.name).toEqual("Rex");
@@ -567,14 +608,7 @@ describe("CoMap resolution", async () => {
     expect(loadedPerson.dog?.name).toEqual("Rex");
   });
 
-  test("loading a remotely available map with skipRetry", async () => {
-    const {
-      clientNode: nodeA,
-      clientAccount: userA,
-      serverNode: nodeB,
-      serverAccount: userB,
-    } = await setupTwoNodes();
-
+  test("loading a remotely available map with skipRetry set to true", async () => {
     const Dog = co.map({
       name: z.string(),
       breed: z.string(),
@@ -586,7 +620,14 @@ describe("CoMap resolution", async () => {
       dog: Dog,
     });
 
-    const group = Group.fromRaw(nodeA.createGroup());
+    const currentAccount = Account.getMe();
+
+    // Disconnect the current account
+    currentAccount._raw.core.node.syncManager.getPeers().forEach((peer) => {
+      peer.gracefulShutdown();
+    });
+
+    const group = Group.create();
     group.addMember("everyone", "writer");
 
     const person = Person.create(
@@ -597,25 +638,105 @@ describe("CoMap resolution", async () => {
       },
       group,
     );
+    console.log(`Created person ${person.id} with dog ${person.dog.id}`);
 
-    nodeA.gracefulShutdown();
-
-    // const userB = await createJazzTestAccount();
-    const loadedPerson = await Person.load(person.id, {
+    const userB = await createJazzTestAccount();
+    let resolved = false;
+    const promise = Person.load(person.id, {
       loadAs: userB,
       skipRetry: true,
     });
+    promise.then(() => {
+      resolved = true;
+    });
 
-    expect(loadedPerson).toBeFalsy();
-    console.log(`Loaded person ${loadedPerson?.id}: ${loadedPerson}`);
-    console.log(`Person's dog ${loadedPerson?.dog?.id}: ${loadedPerson?.dog}`);
-    expect(loadedPerson?.dog).toBe(undefined);
-
-    expect(await waitFor(() => expect(loadedPerson?.dog).toBeTruthy())).toBe(
-      false,
+    await new Promise((resolve) =>
+      setTimeout(
+        resolve,
+        cojsonInternals.CO_VALUE_LOADING_CONFIG.RETRY_DELAY - 100,
+      ),
     );
 
-    expect(loadedPerson?.dog?.name).toEqual("Rex");
+    expect(resolved).toBe(false);
+
+    // Reconnect the current account
+    currentAccount._raw.core.node.syncManager.addPeer(
+      getPeerConnectedToTestSyncServer(),
+    );
+
+    // Wait for promise to resolve, or timeout after 1.5 seconds
+    await Promise.race([
+      promise,
+      new Promise((resolve) => setTimeout(resolve, 1500)),
+    ]);
+    expect(resolved).toBe(false);
+  });
+
+  test("loading a remotely available map with skipRetry set to false", async () => {
+    const Dog = co.map({
+      name: z.string(),
+      breed: z.string(),
+    });
+
+    const Person = co.map({
+      name: z.string(),
+      age: z.number(),
+      dog: Dog,
+    });
+
+    const currentAccount = Account.getMe();
+
+    // Disconnect the current account
+    currentAccount._raw.core.node.syncManager.getPeers().forEach((peer) => {
+      peer.gracefulShutdown();
+    });
+
+    const group = Group.create();
+    group.addMember("everyone", "writer");
+
+    const person = Person.create(
+      {
+        name: "John",
+        age: 20,
+        dog: Dog.create({ name: "Rex", breed: "Labrador" }, group),
+      },
+      group,
+    );
+    console.log(`Created person ${person.id} with dog ${person.dog.id}`);
+
+    const userB = await createJazzTestAccount();
+    let resolved = false;
+    const promise = Person.load(person.id, {
+      loadAs: userB,
+      skipRetry: false,
+    });
+    promise.then(() => {
+      resolved = true;
+    });
+
+    await new Promise((resolve) =>
+      setTimeout(
+        resolve,
+        cojsonInternals.CO_VALUE_LOADING_CONFIG.RETRY_DELAY - 100,
+      ),
+    );
+
+    expect(resolved).toBe(false);
+
+    // Reconnect the current account
+    currentAccount._raw.core.node.syncManager.addPeer(
+      getPeerConnectedToTestSyncServer(),
+    );
+
+    const loadedPerson = await promise;
+
+    expect(resolved).toBe(true);
+    assert(loadedPerson);
+    expect(loadedPerson.dog).toBe(null);
+
+    await waitFor(() => expect(loadedPerson.dog).toBeTruthy());
+
+    expect(loadedPerson.dog?.name).toEqual("Rex");
   });
 
   test("accessing the value refs", async () => {

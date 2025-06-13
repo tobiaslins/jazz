@@ -60,6 +60,14 @@ export class SubscriptionScope<D extends CoValue> {
       (value) => {
         lastUpdate = value;
 
+        if (skipRetry && value === "unavailable") {
+          console.log(
+            `Stopping CoValueCoreSubscription for ${id} due to skipping retry, from SubscriptionScope constructor`,
+          );
+          this.destroy();
+          return;
+        }
+
         // Need all these checks because the migration can trigger new syncronous updates
         //
         // We want to:

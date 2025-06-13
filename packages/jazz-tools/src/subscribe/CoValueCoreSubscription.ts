@@ -27,6 +27,10 @@ export class CoValueCoreSubscription {
           if (this.unsubscribed) return;
 
           if (value.isAvailable()) {
+            if (skipRetry)
+              console.log(
+                `Value ${value.id} loaded from CoValueCoreSubscription constructor`,
+              );
             this.subscribe(value.getCurrentContent());
           } else {
             this.listener("unavailable");
