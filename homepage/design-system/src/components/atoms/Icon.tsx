@@ -14,6 +14,7 @@ import {
   ChevronRightIcon,
   ClipboardIcon,
   CodeIcon,
+  Eye,
   FileLock2Icon,
   FileTextIcon,
   FingerprintIcon,
@@ -99,6 +100,7 @@ export const icons = {
   // text editor icons
   bold: BoldIcon,
   italic: ItalicIcon,
+  eye: Eye,
 };
 
 // copied from tailwind line height https://tailwindcss.com/docs/font-size

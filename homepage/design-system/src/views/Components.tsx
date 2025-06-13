@@ -58,7 +58,7 @@ export function Components() {
             placeholder="Password"
           />
           <Input
-            icon="file"
+            icon="eye"
             label="Password"
             iconPosition="right"
             labelPosition="row"
@@ -87,11 +87,11 @@ export function Components() {
               placeholder: "Input with button",
             }}
             buttonProps={{
-              children: "Let's go",
-              variant: "success",
-              styleVariant: "inverted",
-              icon: "check",
-              iconPosition: "left",
+              children: "Learn more",
+              variant: "tip",
+              styleVariant: "outline",
+              icon: "corecord",
+              iconPosition: "right",
             }}
           />
           <NewsletterForm />
