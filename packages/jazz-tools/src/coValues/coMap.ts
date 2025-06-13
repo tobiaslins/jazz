@@ -541,7 +541,18 @@ export class CoMap extends CoValueBase implements CoValue {
     return subscribeToCoValueWithoutMe<M, R>(this, id, options, listener);
   }
 
+  /** @deprecated Use `CoMap.upsertUnique` and `CoMap.loadUnique` instead. */
   static findUnique<M extends CoMap>(
+    this: CoValueClass<M>,
+    unique: CoValueUniqueness["uniqueness"],
+    ownerID: ID<Account> | ID<Group>,
+    as?: Account | Group | AnonymousJazzAgent,
+  ) {
+    return CoMap._findUnique(this, unique, ownerID, as);
+  }
+
+  /** @internal */
+  static _findUnique<M extends CoMap>(
     this: CoValueClass<M>,
     unique: CoValueUniqueness["uniqueness"],
     ownerID: ID<Account> | ID<Group>,
@@ -596,7 +607,7 @@ export class CoMap extends CoValueBase implements CoValue {
       resolve?: RefsToResolveStrict<M, R>;
     },
   ): Promise<M> {
-    let mapId = CoMap.findUnique(options.unique, options.owner.id);
+    let mapId = CoMap._findUnique(options.unique, options.owner.id);
     let map: Resolved<M, true> | null = await loadCoValueWithoutMe(
       this,
       mapId,
@@ -633,6 +644,13 @@ export class CoMap extends CoValueBase implements CoValue {
     return map;
   }
 
+  /**
+   * Loads a CoMap by its unique identifier and owner's ID.
+   * @param unique The unique identifier of the CoMap to load.
+   * @param ownerID The ID of the owner of the CoMap.
+   * @param options Additional options for loading the CoMap.
+   * @returns The loaded CoMap, or null if unavailable.
+   */
   static loadUnique<M extends CoMap, const R extends RefsToResolve<M> = true>(
     this: CoValueClass<M>,
     unique: CoValueUniqueness["uniqueness"],
@@ -641,10 +659,10 @@ export class CoMap extends CoValueBase implements CoValue {
       resolve?: RefsToResolveStrict<M, R>;
       loadAs?: Account | AnonymousJazzAgent;
     },
-  ) {
+  ): Promise<Resolved<M, R> | null> {
     return loadCoValueWithoutMe(
       this,
-      CoMap.findUnique(unique, ownerID, options?.loadAs),
+      CoMap._findUnique(unique, ownerID, options?.loadAs),
       { ...options, skipRetry: true },
     );
   }

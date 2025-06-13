@@ -83,6 +83,7 @@ export type CoMapSchema<
       ) => void,
     ): () => void;
 
+    /** @deprecated Use `CoMap.upsertUnique` and `CoMap.loadUnique` instead. */
     findUnique(
       unique: CoValueUniqueness["uniqueness"],
       ownerID: string,

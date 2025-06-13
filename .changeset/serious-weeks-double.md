@@ -3,4 +3,4 @@
 "cojson": patch
 ---
 
-feat: added `CoMap.upsertUnique` method and `skipRetry` option to `CoMap.load`
+feat: added `CoMap.upsertUnique` & `CoMap.loadUnique` methods (deprecating `CoMap.findUnique`) and added `skipRetry` option to `CoMap.load`
