@@ -30,7 +30,6 @@
 
   --color-border-default: theme("colors.stone.200");
   --color-background-highlight: lch(from var(--color-primary) l c h / 0.5);
-
 }
 
 .dark {
