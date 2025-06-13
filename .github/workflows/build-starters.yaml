@@ -9,7 +9,7 @@ jobs:
     runs-on: blacksmith-4vcpu-ubuntu-2204
     strategy:
       matrix:
-        starter: ["react-passkey-auth"]
+        starter: ["react-passkey-auth", "svelte-passkey-auth"]
 
     steps:
       - uses: actions/checkout@v4

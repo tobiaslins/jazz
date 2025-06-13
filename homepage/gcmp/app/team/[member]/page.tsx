@@ -18,15 +18,17 @@ const membersNameToInfoMap = {
   brad: "Bradley Kowalski",
 };
 
-export default function TeamMemberPage({
+export default async function TeamMemberPage({
   params,
-}: { params: { member: string } }) {
-  if (!(params.member in membersNameToInfoMap)) {
+}: { params: Promise<{ member: string }> }) {
+  const { member } = await params;
+
+  if (!(member in membersNameToInfoMap)) {
     Router.push("/team");
   }
 
   const memberName =
-    membersNameToInfoMap[params.member as keyof typeof membersNameToInfoMap];
+    membersNameToInfoMap[member as keyof typeof membersNameToInfoMap];
   const memberInfo = team.find(
     (m: { name: string }) => m.name.toLowerCase() === memberName.toLowerCase(),
   );
