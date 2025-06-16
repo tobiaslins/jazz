@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { FileStream } from "jazz-tools";
+import { Account, FileStream, Group } from "jazz-tools";
 import { createOrganization } from "./data";
 import { createAccount, initializeKvStore } from "./lib";
 
@@ -137,4 +137,41 @@ test("should show CoValue type", async ({ page }) => {
   await page.getByLabel("CoValue ID").fill(organization._owner.id);
   await page.getByRole("button", { name: "Inspect CoValue" }).click();
   await expect(page.getByText("👥 Group")).toBeVisible();
+});
+
+test("should show Group members", async ({ page }) => {
+  await page.goto("/");
+  await page.getByLabel("Account ID").fill(accountID);
+  await page.getByLabel("Account secret").fill(accountSecret);
+  await page.getByRole("button", { name: "Add account" }).click();
+
+  organization._owner.castAs(Group).addMember("everyone", "reader");
+
+  await account.waitForAllCoValuesSync(); // Ensures that the organization is uploaded
+  await page.getByLabel("CoValue ID").fill(organization.id);
+  await page.getByRole("button", { name: "Inspect CoValue" }).click();
+
+  const ownershipText = await page.getByText(/Owned by/).innerText();
+  expect(ownershipText).toContain(`Group <${organization._owner.id}>`);
+
+  await page
+    .getByRole("button", { name: `Group <${organization._owner.id}>` })
+    .click();
+
+  const table = page.getByRole("table");
+
+  const row1 = table.getByRole("row").nth(1);
+  await expect(row1.getByRole("cell").nth(0)).toHaveText("everyone");
+  await expect(row1.getByRole("cell").nth(1)).toHaveText("reader");
+
+  const row2 = table.getByRole("row").nth(2);
+  await expect(row2.getByRole("cell").nth(0)).toHaveText(
+    `Inspector test account <${account.id}>`,
+  );
+  await expect(row2.getByRole("cell").nth(1)).toHaveText("admin");
+
+  await page
+    .getByRole("button", { name: `Inspector test account <${account.id}>` })
+    .click();
+  await expect(page.getByText("👤 Account")).toBeVisible();
 });

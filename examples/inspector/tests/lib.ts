@@ -15,9 +15,9 @@ export const initializeKvStore = () => {
   KvStoreContext.getInstance().initialize(kvStore);
 };
 
-export async function createAccount() {
+export async function createAccount(name?: string) {
   const { account, authSecretStorage } = await createJazzContext({
-    defaultProfileName: "Inspector test account",
+    defaultProfileName: name || "Inspector test account",
     crypto: await WasmCrypto.create(),
     sessionProvider: randomSessionProvider,
     authSecretStorage: new AuthSecretStorage(),
