@@ -28,6 +28,7 @@ export const TypeIcon = ({
   extendedType?: ExtendedCoJsonType;
 }) => {
   const iconMap: Record<ExtendedCoJsonType | CoJsonType, string> = {
+    record: "{} Record",
     image: "🖼️ Image",
     comap: "{} CoMap",
     costream: "≋ CoFeed",
