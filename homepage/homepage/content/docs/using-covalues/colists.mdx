@@ -165,7 +165,7 @@ import { co, z } from "jazz-tools";
 const Task = co.map({
   title: z.string(),
   status: z.literal(["todo", "in-progress", "complete"]),
-  deleted: z.boolean() // [!code ++]
+  deleted: z.optional(z.boolean()) // [!code ++]
 });
 type Task = typeof Task;
 
@@ -182,7 +182,7 @@ async function main() {
   const myTaskList = ListOfTasks.create([]);
   myTaskList.push(Task.create({ 
     title: "Tomatoes",
-    status: "todo", 
+    status: "todo",
     deleted: false
   }));
   myTaskList.push(Task.create({
@@ -192,8 +192,7 @@ async function main() {
   }));
   myTaskList.push(Task.create({
     title: "Carrots",
-    status: "todo",
-    deleted: false
+    status: "todo"
   }));
 
   const activeTasks = getCurrentTasks(myTaskList);
