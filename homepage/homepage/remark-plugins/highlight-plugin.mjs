@@ -1,5 +1,3 @@
-// @ts-check
-
 import { visit, SKIP } from "unist-util-visit";
 import { createHighlighter } from "shiki";
 import { transformerNotationDiff } from "@shikijs/transformers";
@@ -23,12 +21,11 @@ const highlighterPromise = createHighlighter({
 
 /**
  * A remark plugin that highlights code blocks
- * @returns {Promise<import('unified').Plugin<[], import('mdast').Root>>} A remark plugin
+ * @returns {import('unified').Plugin<[], import('mdast').Root>} A remark plugin
  */
-export async function highlightPlugin() {
-  const highlighter = await highlighterPromise;
-
-  return function transformer(tree) {
+export function highlightPlugin() {
+  return async function transformer(tree) {
+    const highlighter = await highlighterPromise;
     visit(tree, "code", visitor);
 
     function visitor(node) {
