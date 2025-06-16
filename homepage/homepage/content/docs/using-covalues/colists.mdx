@@ -159,31 +159,46 @@ You can do a soft deletion by using a deleted flag, then creating a helper metho
 
 <CodeGroup>
 ```ts twoslash
-import { co, z, Loaded, Group } from "jazz-tools";
+import { co, z } from "jazz-tools";
 
-export const Task = co.map({
-  name: z.string(),
-  deleted: z.boolean(),
+// ---cut---
+const Task = co.map({
+  title: z.string(),
+  status: z.literal(["todo", "in-progress", "complete"]),
+  deleted: z.boolean() // [!code ++]
 });
+type Task = typeof Task;
 
-export const ListOfTasks = co.list(Task);
+const ListOfTasks = co.list(Task);
+type ListOfTasks = typeof ListOfTasks;
 
-export function getCurrentTasks(
-  list: Loaded<typeof ListOfTasks>
-): Loaded<typeof Task>[] {
-  return Array.from(list.values()).filter(
-    (task): task is Loaded<typeof Task> => !task?.deleted
+export function getCurrentTasks(list: co.loaded<ListOfTasks>) {
+  return list.filter(
+    (task): task is co.loaded<Task> => !task?.deleted
   );
 }
 
 async function main() {
   const myTaskList = ListOfTasks.create([]);
-  myTaskList.push(Task.create({ name: "Tomatoes", deleted: false }));
-  myTaskList.push(Task.create({ name: "Cucumbers", deleted: true }));
-  myTaskList.push(Task.create({ name: "Carrots", deleted: false }));
+  myTaskList.push(Task.create({ 
+    title: "Tomatoes",
+    status: "todo", 
+    deleted: false
+  }));
+  myTaskList.push(Task.create({
+    title: "Cucumbers",
+    status: "todo",
+    deleted: true
+  }));
+  myTaskList.push(Task.create({
+    title: "Carrots",
+    status: "todo",
+    deleted: false
+  }));
 
   const activeTasks = getCurrentTasks(myTaskList);
-  console.log(activeTasks.map((task) => task.name)); // Output: ["Tomatoes", "Carrots"]
+  console.log(activeTasks.map((task) => task.title));
+  // Output: ["Tomatoes", "Carrots"]
 }
 ```
 </CodeGroup>
