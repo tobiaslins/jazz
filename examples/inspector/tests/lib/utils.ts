@@ -5,10 +5,8 @@ import {
   AuthSecretStorage,
   InMemoryKVStore,
   KvStoreContext,
-  co,
   createJazzContext,
   randomSessionProvider,
-  z,
 } from "jazz-tools";
 
 export const initializeKvStore = () => {
@@ -16,9 +14,9 @@ export const initializeKvStore = () => {
   KvStoreContext.getInstance().initialize(kvStore);
 };
 
-export async function createAccount(name?: string) {
+export async function createAccount() {
   const { account, authSecretStorage } = await createJazzContext({
-    defaultProfileName: name || "Inspector test account",
+    defaultProfileName: "Inspector test account",
     crypto: await WasmCrypto.create(),
     sessionProvider: randomSessionProvider,
     authSecretStorage: new AuthSecretStorage(),

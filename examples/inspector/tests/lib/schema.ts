@@ -1,4 +1,4 @@
-import { FileStream, ImageDefinition, co, z } from "jazz-tools";
+import { co, z } from "jazz-tools";
 
 export const ReactionTypes = ["thumb-up", "thumb-down"] as const;
 
