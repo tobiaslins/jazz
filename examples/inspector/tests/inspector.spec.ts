@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { Account, FileStream, Group } from "jazz-tools";
+import { FileStream, Group } from "jazz-tools";
 import { createOrganization } from "./data";
 import { createAccount, initializeKvStore } from "./lib";
 
@@ -77,6 +77,48 @@ test("should inspect CoValue", async ({ page }) => {
 
   await page.getByRole("button", { name: "issues" }).click();
   await expect(page.getByRole("table").getByRole("row")).toHaveCount(4);
+
+  const table = page.getByRole("table");
+  const row = table.getByRole("row").nth(1);
+  const issue = organization.projects[0].issues[0];
+
+  // Test if table is displaying the Issue data correctly
+  await expect(row.getByRole("cell").nth(0)).toHaveText(issue.title);
+  await expect(row.getByRole("cell").nth(1)).toHaveText(issue.status);
+  await expect(
+    row.getByRole("cell").nth(2).getByRole("button", { name: issue.labels.id }),
+  ).toBeVisible();
+  await expect(
+    row
+      .getByRole("cell")
+      .nth(3)
+      .getByRole("button", { name: issue.reactions.id }),
+  ).toBeVisible();
+
+  if (issue.file) {
+    await expect(
+      row.getByRole("cell").nth(4).getByRole("button", { name: issue.file.id }),
+    ).toBeVisible();
+  }
+
+  if (issue.image) {
+    await expect(
+      row
+        .getByRole("cell")
+        .nth(5)
+        .getByRole("button", { name: issue.image.id }),
+    ).toBeVisible();
+  }
+
+  // Test if CoMap/grid view is displaying Issue data correctly
+  await row.getByRole("button", { name: "View" }).click();
+  await expect(page.getByRole("table")).not.toBeVisible();
+  await expect(page.getByText(issue.title)).toBeVisible();
+  await expect(page.getByText(issue.status)).toBeVisible();
+  await expect(page.getByRole("button", { name: /labels/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /reactions/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /file/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /image/ })).toBeVisible();
 
   await page.getByRole("button", { name: "projects" }).click();
   await expect(page.getByRole("table").getByRole("row")).toHaveCount(5);

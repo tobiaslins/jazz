@@ -1,4 +1,4 @@
-import { ImageDefinition, co, z } from "jazz-tools";
+import { FileStream, ImageDefinition, co, z } from "jazz-tools";
 
 const projectsData: {
   name: string;
@@ -8,6 +8,8 @@ const projectsData: {
     status: "open" | "closed";
     labels: string[];
     reactions?: ReactionType[];
+    file?: boolean;
+    image?: boolean;
   }[];
 }[] = [
   {
@@ -30,6 +32,8 @@ const projectsData: {
           "urgent",
         ],
         reactions: ["thumb-up"],
+        image: true,
+        file: true,
       },
       { title: "Issue 2", status: "closed", labels: ["bug"] },
       { title: "Issue 3", status: "open", labels: ["feature", "enhancement"] },
@@ -63,6 +67,9 @@ export const Issue = co.map({
   status: z.enum(["open", "closed"]),
   labels: co.list(z.string()),
   reactions: ReactionsList,
+  file: z.optional(co.fileStream()),
+  image: z.optional(co.image()),
+  lead: z.optional(co.account()),
 });
 
 const Project = co.map({
@@ -76,6 +83,21 @@ const Organization = co.map({
   projects: co.list(Project),
   image: co.image(),
 });
+
+export const createFile = () => {
+  const file = FileStream.create();
+  file.start({ mimeType: "image/jpeg" });
+  file.push(new Uint8Array([1, 2, 3]));
+  file.end();
+  return file;
+};
+
+export const createImage = () => {
+  return ImageDefinition.create({
+    originalSize: [1920, 1080],
+    placeholderDataURL: "data:image/jpeg;base64,...",
+  });
+};
 
 export const createOrganization = () => {
   return Organization.create({
@@ -96,6 +118,8 @@ export const createOrganization = () => {
                 status: issue.status,
                 labels: co.list(z.string()).create(issue.labels),
                 reactions: ReactionsList.create(issue.reactions || []),
+                file: issue.file ? createFile() : undefined,
+                image: issue.image ? createImage() : undefined,
               }),
             ),
           ),
