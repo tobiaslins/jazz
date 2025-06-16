@@ -1,4 +1,4 @@
-import { co, z } from "jazz-tools";
+import { ImageDefinition, co, z } from "jazz-tools";
 
 const projectsData: {
   name: string;
@@ -7,6 +7,7 @@ const projectsData: {
     title: string;
     status: "open" | "closed";
     labels: string[];
+    reactions?: ReactionType[];
   }[];
 }[] = [
   {
@@ -28,6 +29,7 @@ const projectsData: {
           "high priority",
           "urgent",
         ],
+        reactions: ["thumb-up"],
       },
       { title: "Issue 2", status: "closed", labels: ["bug"] },
       { title: "Issue 3", status: "open", labels: ["feature", "enhancement"] },
@@ -50,10 +52,17 @@ const projectsData: {
   },
 ];
 
-const Issue = co.map({
+const ReactionTypes = ["thumb-up", "thumb-down"] as const;
+
+type ReactionType = (typeof ReactionTypes)[number];
+
+const ReactionsList = co.feed(z.literal([...ReactionTypes]));
+
+export const Issue = co.map({
   title: z.string(),
   status: z.enum(["open", "closed"]),
   labels: co.list(z.string()),
+  reactions: ReactionsList,
 });
 
 const Project = co.map({
@@ -65,11 +74,16 @@ const Project = co.map({
 const Organization = co.map({
   name: z.string(),
   projects: co.list(Project),
+  image: co.image(),
 });
 
 export const createOrganization = () => {
   return Organization.create({
     name: "Garden Computing",
+    image: ImageDefinition.create({
+      originalSize: [1920, 1080],
+      placeholderDataURL: "data:image/jpeg;base64,...",
+    }),
     projects: co.list(Project).create(
       projectsData.map((project) =>
         Project.create({
@@ -81,6 +95,7 @@ export const createOrganization = () => {
                 title: issue.title,
                 status: issue.status,
                 labels: co.list(z.string()).create(issue.labels),
+                reactions: ReactionsList.create(issue.reactions || []),
               }),
             ),
           ),
