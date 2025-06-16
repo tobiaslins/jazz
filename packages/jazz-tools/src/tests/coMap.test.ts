@@ -1564,6 +1564,7 @@ describe("Creating and finding unique CoMaps", async () => {
       unique: { unique: "First project" },
       owner: workspace,
     });
+    expect(initialProject.name).toEqual("My project");
 
     const myOrg = await Organisation.upsertUnique({
       value: {
@@ -1580,7 +1581,7 @@ describe("Creating and finding unique CoMaps", async () => {
     });
     expect(myOrg.name).toEqual("My organisation");
     expect(myOrg.projects.length).toBe(1);
-    expect(myOrg.projects[0]).toMatchObject(initialProject);
+    expect(myOrg.projects.at(0)?.name).toEqual("My project");
 
     const updatedProject = await Project.upsertUnique({
       value: {
@@ -1590,9 +1591,91 @@ describe("Creating and finding unique CoMaps", async () => {
       owner: workspace,
     });
 
-    expect(updatedProject).toMatchObject(initialProject);
+    expect(updatedProject).toEqual(initialProject);
+    expect(updatedProject.name).toEqual("My updated project");
     expect(myOrg.projects.length).toBe(1);
-    expect(myOrg.projects[0]).toMatchObject(updatedProject);
+    expect(myOrg.projects.at(0)?.name).toEqual("My updated project");
+  });
+
+  test("upserting a non-existent value with resolve not matching value", async () => {
+    const Project = co.map({
+      name: z.string(),
+    });
+    const Organisation = co.map({
+      name: z.string(),
+      projects: co.list(Project),
+    });
+    const workspace = Group.create();
+
+    const myOrg = await Organisation.upsertUnique({
+      value: {
+        name: "My organisation",
+        projects: co.list(Project).create(
+          [
+            Project.create(
+              {
+                name: "My project",
+              },
+              workspace,
+            ),
+          ],
+          workspace,
+        ),
+      },
+      unique: { name: "My organisation" },
+      owner: workspace,
+      resolve: {},
+    });
+    expect(myOrg.name).toEqual("My organisation");
+    expect(myOrg.projects.length).toBe(1);
+    expect(myOrg.projects[0]).toMatchObject({
+      name: "My project",
+    });
+  });
+
+  test("upserting an existing value with resolve not matching value", async () => {
+    const Project = co.map({
+      name: z.string(),
+    });
+    const Organisation = co.map({
+      name: z.string(),
+      projects: co.list(Project),
+    });
+    const workspace = Group.create();
+    const initialProject = await Project.upsertUnique({
+      value: {
+        name: "My project",
+      },
+      unique: { unique: "First project" },
+      owner: workspace,
+    });
+    expect(initialProject.name).toEqual("My project");
+
+    const myOrg = await Organisation.upsertUnique({
+      value: {
+        name: "My organisation",
+        projects: co.list(Project).create([initialProject], workspace),
+      },
+      unique: { name: "My organisation" },
+      owner: workspace,
+      resolve: {},
+    });
+    expect(myOrg.name).toEqual("My organisation");
+    expect(myOrg.projects.length).toBe(1);
+    expect(myOrg.projects.at(0)?.name).toEqual("My project");
+
+    const updatedProject = await Project.upsertUnique({
+      value: {
+        name: "My updated project",
+      },
+      unique: { unique: "First project" },
+      owner: workspace,
+    });
+
+    expect(updatedProject).toEqual(initialProject);
+    expect(updatedProject.name).toEqual("My updated project");
+    expect(myOrg.projects.length).toBe(1);
+    expect(myOrg.projects.at(0)?.name).toEqual("My updated project");
   });
 
   test("complex discriminated union", () => {
