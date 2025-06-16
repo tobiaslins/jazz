@@ -486,12 +486,6 @@ describe("CoMap resolution", async () => {
       dog: Dog,
     });
 
-    // Disconnect the current account
-    const currentAccount = Account.getMe();
-    currentAccount._raw.core.node.syncManager.getPeers().forEach((peer) => {
-      peer.gracefulShutdown();
-    });
-
     const person = Person.create({
       name: "John",
       age: 20,
@@ -514,12 +508,6 @@ describe("CoMap resolution", async () => {
       name: z.string(),
       age: z.number(),
       dog: Dog,
-    });
-
-    // Disconnect the current account
-    const currentAccount = Account.getMe();
-    currentAccount._raw.core.node.syncManager.getPeers().forEach((peer) => {
-      peer.gracefulShutdown();
     });
 
     const person = Person.create({
@@ -1391,8 +1379,8 @@ describe("Creating and finding unique CoMaps", async () => {
       { owner: group, unique: { name: "Alice" } },
     );
 
-    const foundAlice = Person.findUnique({ name: "Alice" }, group.id);
-    expect(foundAlice).toEqual(alice.id);
+    const foundAlice = await Person.loadUnique({ name: "Alice" }, group.id);
+    expect(foundAlice).toEqual(alice);
   });
 
   test("manual upserting pattern", async () => {
@@ -1412,11 +1400,10 @@ describe("Creating and finding unique CoMaps", async () => {
     const workspace = Group.create();
 
     // Pattern
-    let eventId = Event.findUnique(
+    let activeEvent = await Event.loadUnique(
       { identifier: sourceData.identifier },
       workspace.id,
     );
-    let activeEvent = await Event.load(eventId as unknown as ID<Event>);
     if (!activeEvent) {
       activeEvent = Event.create(
         {
