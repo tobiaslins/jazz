@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, onTestFinished, test, vi } from "vitest";
 
 import { expectMap } from "../coValue";
 import { CO_VALUE_LOADING_CONFIG } from "../coValueCore/coValueCore";
+import { RawCoMap } from "../exports";
 import {
   SyncMessagesLog,
   blockMessageTypeOnOutgoingPeer,
@@ -535,10 +536,9 @@ describe("loading coValues from server", () => {
         "client -> server | LOAD Map sessions: empty",
         "server -> client | CONTENT Group header: true new: After: 0 New: 5",
         "client -> server | LOAD Account sessions: empty",
-        "client -> server | KNOWN CORRECTION Group sessions: empty",
+        "client -> server | KNOWN Group sessions: empty",
         "server -> client | CONTENT Account header: true new: After: 0 New: 4",
         "client -> server | KNOWN Account sessions: header/4",
-        "server -> client | CONTENT Group header: true new: After: 0 New: 5",
         "client -> server | KNOWN Group sessions: header/5",
         "server -> client | CONTENT Map header: true new: After: 0 New: 1",
         "client -> server | KNOWN Map sessions: header/1",
@@ -600,10 +600,9 @@ describe("loading coValues from server", () => {
         "client -> server | KNOWN Group sessions: header/5",
         "server -> client | CONTENT Map header: true new: After: 0 New: 1 | After: 0 New: 1",
         "client -> server | LOAD Account sessions: empty",
-        "client -> server | KNOWN CORRECTION Map sessions: empty",
+        "client -> server | KNOWN Map sessions: empty",
         "server -> client | CONTENT Account header: true new: After: 0 New: 4",
         "client -> server | KNOWN Account sessions: header/4",
-        "server -> client | CONTENT Map header: true new: After: 0 New: 1 | After: 0 New: 1",
         "client -> server | KNOWN Map sessions: header/2",
       ]
     `);
@@ -624,7 +623,6 @@ describe("loading coValues from server", () => {
 
     const blocker = blockMessageTypeOnOutgoingPeer(peerOnServer, "content", {
       id: syncServer.accountID,
-      once: true,
     });
 
     const account = syncServer.node.expectCurrentAccount(syncServer.accountID);
@@ -642,7 +640,6 @@ describe("loading coValues from server", () => {
 
     await new Promise((resolve) => setTimeout(resolve, 100));
 
-    console.log("sending blocked messages");
     blocker.sendBlockedMessages();
     blocker.unblock();
 
@@ -654,7 +651,7 @@ describe("loading coValues from server", () => {
     const mapOnClient = expectMap(core.getCurrentContent());
     expect(mapOnClient.get("hello")).toEqual("world");
 
-    // ParentGroup sent twice, once because the server pushed it and another time because the client requested the missing dependency
+    // Account sent twice, once because the server pushed it and another time because the client requested the missing dependency
     expect(
       SyncMessagesLog.getMessages({
         Account: account.core,
@@ -666,15 +663,82 @@ describe("loading coValues from server", () => {
         "client -> server | LOAD Map sessions: empty",
         "server -> client | CONTENT Group header: true new: After: 0 New: 5",
         "client -> server | LOAD Account sessions: empty",
-        "client -> server | KNOWN CORRECTION Group sessions: empty",
-        "server -> client | CONTENT Account header: true new: After: 0 New: 4",
-        "client -> server | KNOWN Account sessions: header/4",
-        "server -> client | CONTENT Group header: true new: After: 0 New: 5",
-        "client -> server | KNOWN Group sessions: header/5",
+        "client -> server | KNOWN Group sessions: empty",
         "server -> client | CONTENT Map header: true new: After: 0 New: 1",
-        "client -> server | KNOWN Map sessions: header/1",
+        "client -> server | KNOWN Map sessions: empty",
         "server -> client | CONTENT Account header: true new: After: 0 New: 4",
         "client -> server | KNOWN Account sessions: header/4",
+        "server -> client | CONTENT Account header: true new: After: 0 New: 4",
+        "client -> server | KNOWN Group sessions: header/5",
+      ]
+    `);
+  });
+
+  test("coValue with a delayed account loading with no group (block for 100ms)", async () => {
+    const client = setupTestNode();
+    const syncServer = await setupTestAccount({ isSyncServer: true });
+
+    const { peerOnServer } = client.connectToSyncServer({
+      syncServer: syncServer.node,
+    });
+
+    const blocker = blockMessageTypeOnOutgoingPeer(peerOnServer, "content", {
+      id: syncServer.accountID,
+    });
+
+    const account = syncServer.node.expectCurrentAccount(syncServer.accountID);
+
+    const map = syncServer.node
+      .createCoValue({
+        type: "comap",
+        ruleset: {
+          type: "ownedByGroup",
+          group: syncServer.accountID,
+        },
+        meta: null,
+        ...syncServer.node.crypto.createdNowUnique(),
+      })
+      .getCurrentContent() as RawCoMap;
+
+    map.set("hello", "world", "trusting");
+
+    const core = client.node.getCoValue(map.id);
+    const promise = client.node.loadCoValueCore(map.id);
+
+    const spy = vi.fn();
+
+    core.subscribe(spy);
+    spy.mockClear(); // Reset the first call
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    blocker.sendBlockedMessages();
+    blocker.unblock();
+
+    await promise;
+
+    expect(spy).toHaveBeenCalled();
+    expect(core.isAvailable()).toBe(true);
+
+    const mapOnClient = expectMap(core.getCurrentContent());
+    expect(mapOnClient.get("hello")).toEqual("world");
+
+    // Account sent twice, once because the server pushed it and another time because the client requested the missing dependency
+    expect(
+      SyncMessagesLog.getMessages({
+        Account: account.core,
+        Map: map.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "client -> server | LOAD Map sessions: empty",
+        "server -> client | CONTENT Map header: true new: After: 0 New: 1",
+        "client -> server | LOAD Account sessions: empty",
+        "client -> server | KNOWN Map sessions: empty",
+        "server -> client | CONTENT Account header: true new: After: 0 New: 4",
+        "client -> server | KNOWN Account sessions: header/4",
+        "server -> client | CONTENT Account header: true new: After: 0 New: 4",
+        "client -> server | KNOWN Map sessions: header/1",
       ]
     `);
   });

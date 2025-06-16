@@ -114,8 +114,6 @@ export class CoValueCore {
   private _cachedDependentOn?: Set<RawCoID>;
   private counter: UpDownCounter;
 
-  correctionsRequested = new Set<SessionID>();
-
   private constructor(
     init: { header: CoValueHeader } | { id: RawCoID },
     node: LocalNode,

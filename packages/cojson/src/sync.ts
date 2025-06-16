@@ -498,7 +498,15 @@ export class SyncManager {
           coValue.markMissingDependency(dependency);
 
           if (!dependencyCoValue.verified) {
-            dependencyCoValue.loadFromPeers(this.getServerAndStoragePeers());
+            const peers = this.getServerAndStoragePeers();
+
+            // if the peer that sent the content is a client, we add it to the list of peers
+            // to also ask them for the dependency
+            if (peer.role === "client") {
+              peers.push(peer);
+            }
+
+            dependencyCoValue.loadFromPeers(peers);
           }
         }
       }
@@ -544,22 +552,37 @@ export class SyncManager {
       if (isAccountID(accountId)) {
         const account = this.local.getCoValue(accountId);
 
-        // New transaction with a missing account on an already loaded coValue
-        if (!coValue.missingDependencies.has(accountId)) {
-          account.loadFromPeers(this.getServerAndStoragePeers());
-        }
-
-        // We can't verify the transaction without the account, so we skip it and ask for a correction
+        // We can't verify the transaction without the account, so we delay the session content handling until the account is available
         if (!account.isAvailable()) {
-          if (!coValue.correctionsRequested.has(sessionID)) {
-            coValue.correctionsRequested.add(sessionID);
-            invalidStateAssumed = true;
+          // New transaction with a missing account on an already loaded coValue
+          if (!coValue.missingDependencies.has(accountId)) {
+            const peers = this.getServerAndStoragePeers();
+
+            if (peer.role === "client") {
+              // if the peer that sent the content is a client, we add it to the list of peers
+              // to also ask them for the dependency
+              peers.push(peer);
+            }
+
+            account.loadFromPeers(peers);
           }
+
+          void account.waitForAvailable().then(() => {
+            this.handleNewContent(
+              {
+                action: "content",
+                id: coValue.id,
+                new: {
+                  [sessionID]: newContentForSession,
+                },
+                priority: msg.priority,
+              },
+              peer,
+            );
+          });
           continue;
         }
       }
-
-      coValue.correctionsRequested.delete(sessionID);
 
       const result = coValue.tryAddTransactions(
         sessionID,
