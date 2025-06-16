@@ -26,6 +26,10 @@ export class CoValueCoreSubscription {
             this.subscribe(value.getCurrentContent());
           } else {
             this.listener("unavailable");
+            // If unavailable and we're not skipping retries, subscribe to state changes.
+            // In the scenario where the CoValue is unavailable and we're not interested in retrying,
+            // we are not interested in watching for changes since we're taking this to mean
+            // the CoValue doesn't exist.
             if (!skipRetry) this.subscribeToState();
           }
         });
