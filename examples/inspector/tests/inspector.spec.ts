@@ -113,7 +113,9 @@ test("should inspect CoValue", async ({ page }) => {
   await expect(page.getByRole("button", { name: /labels/ })).toBeVisible();
   await expect(page.getByRole("button", { name: /reactions/ })).toBeVisible();
   await expect(page.getByRole("button", { name: /file/ })).toBeVisible();
-  await expect(page.getByRole("button", { name: /image/ })).toBeVisible();
+
+  await expect(page.getByRole("button", { name: /^image/ })).toBeVisible();
+  await page.pause();
 
   await page.getByRole("button", { name: "projects" }).click();
   await expect(page.getByRole("table").getByRole("row")).toHaveCount(5);
