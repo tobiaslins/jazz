@@ -11,6 +11,7 @@ import { valueToEstree } from "estree-util-value-to-estree";
 
 /**
  * A rehype plugin that exports the table of contents and framework visibility data when importing a .mdx file
+ * This is a modified version of withTocExport from @stefanprobst/rehype-extract-toc
  *
  * @returns {import('unified').Plugin<[], Root>} A rehype plugin
  */

@@ -6,6 +6,7 @@ import { processHeadingNode } from "./utils/processing-heading-node.mjs";
 /**
  * A rehype plugin that adds IDs to heading elements and handles framework visibility markers.
  * It also tracks which frameworks each heading should be visible for.
+ * A modified version of rehype-slug.
  * 
  * @returns {import('unified').Plugin<[], import('hast').Root>} A rehype plugin
  */
