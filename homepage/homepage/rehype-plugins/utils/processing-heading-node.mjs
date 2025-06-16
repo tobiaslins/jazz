@@ -6,11 +6,15 @@ import { generateHeaderId } from "./header-ids.mjs";
 
 const FRAMEWORK_MARKER_REGEX = /\s*\[\!framework=([a-zA-Z0-9,_-]+)\]\s*$/;
 
-/** @typedef {{ type: string; tagName?: string; properties?: Record<string, any>; children?: any[]; value?: string }} HastNode */
+/**
+ * @typedef {import('hast').Element} Element
+ * @typedef {import('hast').Text} Text
+ * @typedef {Element | Text} HastNode
+ */
 
 /**
 * Processes a heading node to extract framework visibility and generate an ID
-* @param {HastNode} node - The heading node to process
+* @param {Element} node - The heading node to process
 * @param {Record<string, string[]>} [frameworkVisibility] - Object to store framework visibility info
 * @returns {string | undefined} The generated header ID if processed, undefined otherwise
 */

@@ -1,4 +1,7 @@
+// @ts-check
+
 import { visit } from "unist-util-visit";
+import { processHeadingNode } from "./utils/processing-heading-node.mjs";
 
 /**
  * A rehype plugin that adds IDs to heading elements and handles framework visibility markers.

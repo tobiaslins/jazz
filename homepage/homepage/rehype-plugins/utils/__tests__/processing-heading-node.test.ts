@@ -1,34 +1,31 @@
 import { describe, it, expect } from "vitest";
 import { processHeadingNode } from "../processing-heading-node.mjs";
-
-type HastNode = {
-  type: string;
-  tagName?: string;
-  properties: Record<string, any>;
-  children?: Array<{
-    type: string;
-    value?: string;
-    tagName?: string;
-    properties?: Record<string, any>;
-    children?: any[];
-  }>;
-  value?: string;
-};
+import type { Element, Text } from "hast";
 
 describe("processHeadingNode", () => {
   it("should return undefined for non-heading nodes", () => {
-    const node = { type: "element", tagName: "div" };
+    const node: Element = {
+      type: "element",
+      tagName: "div",
+      properties: {},
+      children: [],
+    };
     const frameworkVisibility = {};
     expect(processHeadingNode(node, frameworkVisibility)).toBeUndefined();
     expect(frameworkVisibility).toEqual({});
   });
 
   it("should generate ID for heading without framework marker", () => {
-    const node: HastNode = {
+    const node: Element = {
       type: "element",
       tagName: "h2",
       properties: { id: undefined },
-      children: [{ type: "text", value: "Test Header" }],
+      children: [
+        {
+          type: "text",
+          value: "Test Header",
+        } as Text,
+      ],
     };
     const frameworkVisibility: Record<string, string[]> = {};
     const id = processHeadingNode(node, frameworkVisibility);
@@ -38,11 +35,16 @@ describe("processHeadingNode", () => {
   });
 
   it("should handle framework marker in header text", () => {
-    const node: HastNode = {
+    const node: Element = {
       type: "element",
       tagName: "h2",
       properties: { id: undefined },
-      children: [{ type: "text", value: "Test Header [!framework=react,vue]" }],
+      children: [
+        {
+          type: "text",
+          value: "Test Header [!framework=react,vue]",
+        } as Text,
+      ],
     };
     const frameworkVisibility: Record<string, string[]> = {};
     const id = processHeadingNode(node, frameworkVisibility);
@@ -51,6 +53,6 @@ describe("processHeadingNode", () => {
     expect(frameworkVisibility).toEqual({
       [id!]: ["react", "vue"],
     });
-    expect(node.children?.[0].value).toBe("Test Header");
+    expect((node.children?.[0] as Text).value).toBe("Test Header");
   });
 });
