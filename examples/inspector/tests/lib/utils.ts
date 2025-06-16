@@ -1,3 +1,4 @@
+import { Page } from "@playwright/test";
 import { createWebSocketPeer } from "cojson-transport-ws";
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import {
@@ -40,4 +41,21 @@ export async function createAccount(name?: string) {
   }
 
   return { account, ...credentials };
+}
+
+export async function addAccount(
+  page: Page,
+  accountID: string,
+  accountSecret: string,
+) {
+  await page.goto("/");
+  await page.getByLabel("Account ID").fill(accountID);
+  await page.getByLabel("Account secret").fill(accountSecret);
+  await page.getByRole("button", { name: "Add account" }).click();
+}
+
+export async function inspectCoValue(page: Page, coValueId: string) {
+  await page.goto("/");
+  await page.getByLabel("CoValue ID").fill(coValueId);
+  await page.getByRole("button", { name: "Inspect CoValue" }).click();
 }

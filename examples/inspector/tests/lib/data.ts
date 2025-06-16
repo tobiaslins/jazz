@@ -1,4 +1,11 @@
 import { FileStream, ImageDefinition, co, z } from "jazz-tools";
+import {
+  Issue,
+  Organization,
+  Project,
+  ReactionType,
+  ReactionsList,
+} from "./schema";
 
 const projectsData: {
   name: string;
@@ -55,34 +62,6 @@ const projectsData: {
     issues: [],
   },
 ];
-
-const ReactionTypes = ["thumb-up", "thumb-down"] as const;
-
-type ReactionType = (typeof ReactionTypes)[number];
-
-const ReactionsList = co.feed(z.literal([...ReactionTypes]));
-
-export const Issue = co.map({
-  title: z.string(),
-  status: z.enum(["open", "closed"]),
-  labels: co.list(z.string()),
-  reactions: ReactionsList,
-  file: z.optional(co.fileStream()),
-  image: z.optional(co.image()),
-  lead: z.optional(co.account()),
-});
-
-const Project = co.map({
-  name: z.string(),
-  description: z.string(),
-  issues: co.list(Issue),
-});
-
-const Organization = co.map({
-  name: z.string(),
-  projects: co.list(Project),
-  image: co.image(),
-});
 
 export const createFile = () => {
   const file = FileStream.create();

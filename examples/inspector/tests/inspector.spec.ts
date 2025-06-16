@@ -1,7 +1,12 @@
 import { expect, test } from "@playwright/test";
 import { FileStream, Group } from "jazz-tools";
-import { createOrganization } from "./data";
-import { createAccount, initializeKvStore } from "./lib";
+import { createFile, createOrganization } from "./lib/data";
+import {
+  addAccount,
+  createAccount,
+  initializeKvStore,
+  inspectCoValue,
+} from "./lib/utils";
 
 initializeKvStore();
 const { account, accountID, accountSecret } = await createAccount();
@@ -9,10 +14,7 @@ const { account, accountID, accountSecret } = await createAccount();
 const organization = createOrganization();
 
 test("should add and delete account in dropdown", async ({ page }) => {
-  await page.goto("/");
-  await page.getByLabel("Account ID").fill(accountID);
-  await page.getByLabel("Account secret").fill(accountSecret);
-  await page.getByRole("button", { name: "Add account" }).click();
+  await addAccount(page, accountID, accountSecret);
 
   await expect(page.getByText("Jazz CoValue Inspector")).toBeVisible();
   await page
@@ -28,10 +30,7 @@ test("should add and delete account in dropdown", async ({ page }) => {
 });
 
 test("should inspect account", async ({ page }) => {
-  await page.goto("/");
-  await page.getByLabel("Account ID").fill(accountID);
-  await page.getByLabel("Account secret").fill(accountSecret);
-  await page.getByRole("button", { name: "Add account" }).click();
+  await addAccount(page, accountID, accountSecret);
   await page.getByRole("button", { name: "Inspect my account" }).click();
 
   await expect(page.getByRole("heading", { name: accountID })).toBeVisible();
@@ -42,15 +41,11 @@ test("should inspect account", async ({ page }) => {
 });
 
 test("should inspect CoValue", async ({ page }) => {
-  await page.goto("/");
-  await page.getByLabel("Account ID").fill(accountID);
-  await page.getByLabel("Account secret").fill(accountSecret);
-  await page.getByRole("button", { name: "Add account" }).click();
+  await addAccount(page, accountID, accountSecret);
 
   await account.waitForAllCoValuesSync(); // Ensures that the organization is uploaded
 
-  await page.getByLabel("CoValue ID").fill(organization.id);
-  await page.getByRole("button", { name: "Inspect CoValue" }).click();
+  await inspectCoValue(page, organization.id);
 
   await expect(page.getByText(/Garden Computing/)).toHaveCount(2);
   await expect(
@@ -125,73 +120,47 @@ test("should inspect CoValue", async ({ page }) => {
 });
 
 test("should show CoValue type", async ({ page }) => {
-  await page.goto("/");
-  await page.getByLabel("Account ID").fill(accountID);
-  await page.getByLabel("Account secret").fill(accountSecret);
-  await page.getByRole("button", { name: "Add account" }).click();
+  await addAccount(page, accountID, accountSecret);
 
   await account.waitForAllCoValuesSync(); // Ensures that the organization is uploaded
 
   // Test FileStream
-  const file = FileStream.create();
-  file.start({ mimeType: "image/jpeg" });
-  file.push(new Uint8Array([1, 2, 3]));
-  file.end();
-  await page.goto("/");
-  await page.getByLabel("CoValue ID").fill(file.id);
-  await page.getByRole("button", { name: "Inspect CoValue" }).click();
+  const file = createFile();
+  await inspectCoValue(page, file.id);
   await expect(page.getByText("📃 FileStream")).toBeVisible();
 
   // Test ImageDefinition
-  await page.goto("/");
-  await page.getByLabel("CoValue ID").fill(organization.image.id);
-  await page.getByRole("button", { name: "Inspect CoValue" }).click();
+  await inspectCoValue(page, organization.image.id);
   await expect(page.getByText("🖼️ Image")).toBeVisible();
 
   // Test CoMap
-  await page.goto("/");
-  await page.getByLabel("CoValue ID").fill(organization.id);
-  await page.getByRole("button", { name: "Inspect CoValue" }).click();
+  await inspectCoValue(page, organization.id);
   await expect(page.getByText("{} CoMap")).toBeVisible();
 
   // Test CoList
-  await page.goto("/");
-  await page.getByLabel("CoValue ID").fill(organization.projects.id);
-  await page.getByRole("button", { name: "Inspect CoValue" }).click();
+  await inspectCoValue(page, organization.projects.id);
   await expect(page.getByText("☰ CoList")).toBeVisible();
 
   // Test CoFeed
-  await page.goto("/");
-  await page
-    .getByLabel("CoValue ID")
-    .fill(organization.projects[0].issues[0].reactions.id);
-  await page.getByRole("button", { name: "Inspect CoValue" }).click();
+  await inspectCoValue(page, organization.projects[0].issues[0].reactions.id);
   await expect(page.getByText("≋ CoFeed")).toBeVisible();
 
   // Test Account
-  await page.goto("/");
-  await page.getByLabel("CoValue ID").fill(account.id);
-  await page.getByRole("button", { name: "Inspect CoValue" }).click();
+  await inspectCoValue(page, account.id);
   await expect(page.getByText("👤 Account")).toBeVisible();
 
   // Test Group
-  await page.goto("/");
-  await page.getByLabel("CoValue ID").fill(organization._owner.id);
-  await page.getByRole("button", { name: "Inspect CoValue" }).click();
+  await inspectCoValue(page, organization._owner.id);
   await expect(page.getByText("👥 Group")).toBeVisible();
 });
 
 test("should show Group members", async ({ page }) => {
-  await page.goto("/");
-  await page.getByLabel("Account ID").fill(accountID);
-  await page.getByLabel("Account secret").fill(accountSecret);
-  await page.getByRole("button", { name: "Add account" }).click();
+  await addAccount(page, accountID, accountSecret);
 
   organization._owner.castAs(Group).addMember("everyone", "reader");
 
   await account.waitForAllCoValuesSync(); // Ensures that the organization is uploaded
-  await page.getByLabel("CoValue ID").fill(organization.id);
-  await page.getByRole("button", { name: "Inspect CoValue" }).click();
+  await inspectCoValue(page, organization.id);
 
   const ownershipText = await page.getByText(/Owned by/).innerText();
   expect(ownershipText).toContain(`Group <${organization._owner.id}>`);
