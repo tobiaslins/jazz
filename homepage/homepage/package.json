@@ -29,7 +29,7 @@
     "@radix-ui/react-tooltip": "^1.1.6",
     "@shikijs/transformers": "^3.2.1",
     "@shikijs/twoslash": "^3.2.1",
-    "@stefanprobst/rehype-extract-toc": "^2.2.0",
+    "@stefanprobst/rehype-extract-toc": "3.0.0",
     "@turf/turf": "^7.1.0",
     "@types/mdx": "^2.0.8",
     "@types/react-native": "^0.73.0",
