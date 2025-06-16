@@ -3,9 +3,10 @@
 import createMDX from "@next/mdx";
 import { transformerNotationDiff } from "@shikijs/transformers";
 import { transformerTwoslash } from "@shikijs/twoslash";
+import { remarkHtmlToJsx } from "./remark-plugins/html-to-jsx.mjs";
 import withToc from "@stefanprobst/rehype-extract-toc";
 import { createHighlighter } from "shiki";
-import { SKIP, visit } from "unist-util-visit";
+import { visit, SKIP } from "unist-util-visit";
 import { jazzDark } from "./themes/jazzDark.mjs";
 import { jazzLight } from "./themes/jazzLight.mjs";
 import { withSlugAndHeadingsFrameworkVisibility } from "./rehype-plugins/with-slug-and-framework-visibility.mjs";
@@ -113,33 +114,6 @@ function highlightPlugin() {
       return SKIP;
     }
   };
-}
-
-function remarkHtmlToJsx() {
-  async function transform(...args) {
-    // Async import since these packages are all in ESM
-    const { visit, SKIP } = await import("unist-util-visit");
-    const { mdxFromMarkdown } = await import("mdast-util-mdx");
-    const { fromMarkdown } = await import("mdast-util-from-markdown");
-    const { mdxjs } = await import("micromark-extension-mdxjs");
-
-    // This is a horror show, but it's the only way I could get the raw HTML into MDX.
-    const [ast] = args;
-    visit(ast, "html", (node) => {
-      const escapedHtml = JSON.stringify(node.value);
-      const jsx = `<CodeWithInterpolation highlightedCode={${escapedHtml}}/>`;
-      const rawHtmlNode = fromMarkdown(jsx, {
-        extensions: [mdxjs()],
-        mdastExtensions: [mdxFromMarkdown()],
-      }).children[0];
-
-      Object.assign(node, rawHtmlNode);
-
-      return SKIP;
-    });
-  }
-
-  return transform;
 }
 
 export default config;
