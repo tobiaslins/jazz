@@ -317,18 +317,7 @@ export class CoMap extends CoValueBase implements CoValue {
   ) {
     const instance = new this();
 
-    const { owner, uniqueness } = parseCoValueCreateOptions(options);
-    const raw = instance.rawFromInit(init, owner, uniqueness);
-
-    Object.defineProperties(instance, {
-      id: {
-        value: raw.id,
-        enumerable: false,
-      },
-      _raw: { value: raw, enumerable: false },
-    });
-
-    return instance;
+    return instance._createCoMap(init, options);
   }
 
   /**
@@ -384,6 +373,30 @@ export class CoMap extends CoValueBase implements CoValue {
 
   [inspect]() {
     return this.toJSON();
+  }
+
+  _createCoMap(
+    init: Simplify<CoMapInit<typeof this>>,
+    options?:
+      | {
+          owner: Account | Group;
+          unique?: CoValueUniqueness["uniqueness"];
+        }
+      | Account
+      | Group,
+  ): typeof this {
+    const { owner, uniqueness } = parseCoValueCreateOptions(options);
+    const raw = this.rawFromInit(init, owner, uniqueness);
+
+    Object.defineProperties(this, {
+      id: {
+        value: raw.id,
+        enumerable: false,
+      },
+      _raw: { value: raw, enumerable: false },
+    });
+
+    return this;
   }
 
   /**
@@ -615,22 +628,10 @@ export class CoMap extends CoValueBase implements CoValue {
     );
     if (!map) {
       const instance = new this();
-      const uniqueness = options.unique
-        ? { uniqueness: options.unique }
-        : undefined;
-      const raw = instance.rawFromInit(
-        options.value,
-        options.owner,
-        uniqueness,
-      );
-      Object.defineProperties(instance, {
-        id: {
-          value: raw.id,
-          enumerable: false,
-        },
-        _raw: { value: raw, enumerable: false },
+      map = instance._createCoMap(options.value, {
+        owner: options.owner,
+        unique: options.unique,
       });
-      map = instance;
     } else {
       map.applyDiff(options.value as Partial<CoMapInit<M>>);
       map =
