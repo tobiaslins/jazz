@@ -1,11 +1,10 @@
+// @ts-check
+
 import createMDX from "@next/mdx";
 import { transformerNotationDiff } from "@shikijs/transformers";
 import { transformerTwoslash } from "@shikijs/twoslash";
 import withToc from "@stefanprobst/rehype-extract-toc";
 import { valueToEstree } from "estree-util-value-to-estree";
-import GithubSlugger from "github-slugger";
-import { headingRank } from "hast-util-heading-rank";
-import { toString } from "hast-util-to-string";
 import { createHighlighter } from "shiki";
 import { SKIP, visit } from "unist-util-visit";
 import { jazzDark } from "./themes/jazzDark.mjs";
@@ -142,37 +141,7 @@ function remarkHtmlToJsx() {
   return transform;
 }
 
-import { generateHeaderId } from './utils/header-ids.mjs';
-
-export function withSlugAndHeadingsFrameworkVisibility() {
-  return function (tree, vfile) {
-    vfile.data.headingsFrameworkVisibility = {};
-
-    visit(tree, "element", function (node) {
-      if (headingRank(node) && !node.properties.id) {
-        const lastChild = node.children?.[node.children.length - 1];
-        if (!lastChild || lastChild.type !== "text") return;
-
-        const headerText = toString(node);
-        const frameworkMatch = lastChild.value.match(
-          /\s*\[\!framework=([a-zA-Z0-9,_-]+)\]\s*$/
-        );
-        
-        if (frameworkMatch) {
-          const frameworks = frameworkMatch[1];
-          lastChild.value = lastChild.value.replace(
-            /\s*\[\!framework=[a-zA-Z0-9,_-]+\]\s*$/,
-            ""
-          );
-          node.properties.id = generateHeaderId(headerText);
-          vfile.data.headingsFrameworkVisibility[node.properties.id] = frameworks.split(",");
-        } else {
-          node.properties.id = generateHeaderId(headerText);
-        }
-      }
-    });
-  };
-}
+import { withSlugAndHeadingsFrameworkVisibility } from './utils/with-slug-and-framework-visibility.mjs';
 
 export function withTocAndFrameworkHeadingsVisibilityExport() {
   return function transformer(tree, vfile) {
