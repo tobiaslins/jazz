@@ -142,11 +142,10 @@ function remarkHtmlToJsx() {
   return transform;
 }
 
-const slugs = new GithubSlugger();
+import { generateHeaderId } from './utils/header-ids.mjs';
 
 export function withSlugAndHeadingsFrameworkVisibility() {
   return function (tree, vfile) {
-    slugs.reset();
     vfile.data.headingsFrameworkVisibility = {};
 
     visit(tree, "element", function (node) {
@@ -154,22 +153,21 @@ export function withSlugAndHeadingsFrameworkVisibility() {
         const lastChild = node.children?.[node.children.length - 1];
         if (!lastChild || lastChild.type !== "text") return;
 
-        const match = lastChild.value.match(
-          /\s*\[\!framework=([a-zA-Z0-9,_-]+)\]\s*$/,
+        const headerText = toString(node);
+        const frameworkMatch = lastChild.value.match(
+          /\s*\[\!framework=([a-zA-Z0-9,_-]+)\]\s*$/
         );
-        if (match) {
-          const frameworks = match[1];
-
+        
+        if (frameworkMatch) {
+          const frameworks = frameworkMatch[1];
           lastChild.value = lastChild.value.replace(
             /\s*\[\!framework=[a-zA-Z0-9,_-]+\]\s*$/,
-            "",
+            ""
           );
-
-          node.properties.id = slugs.slug(lastChild.value);
-          vfile.data.headingsFrameworkVisibility[node.properties.id] =
-            frameworks.split(",");
+          node.properties.id = generateHeaderId(headerText);
+          vfile.data.headingsFrameworkVisibility[node.properties.id] = frameworks.split(",");
         } else {
-          node.properties.id = slugs.slug(toString(node));
+          node.properties.id = generateHeaderId(headerText);
         }
       }
     });
