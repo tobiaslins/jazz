@@ -4,12 +4,12 @@ import createMDX from "@next/mdx";
 import { transformerNotationDiff } from "@shikijs/transformers";
 import { transformerTwoslash } from "@shikijs/twoslash";
 import withToc from "@stefanprobst/rehype-extract-toc";
-import { valueToEstree } from "estree-util-value-to-estree";
 import { createHighlighter } from "shiki";
 import { SKIP, visit } from "unist-util-visit";
 import { jazzDark } from "./themes/jazzDark.mjs";
 import { jazzLight } from "./themes/jazzLight.mjs";
-import { withSlugAndHeadingsFrameworkVisibility } from './rehype-plugins/with-slug-and-framework-visibility.mjs';
+import { withSlugAndHeadingsFrameworkVisibility } from "./rehype-plugins/with-slug-and-framework-visibility.mjs";
+import { withTocAndFrameworkHeadingsVisibilityExport } from "./rehype-plugins/with-toc-and-framework-visibility-export.mjs";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -140,48 +140,6 @@ function remarkHtmlToJsx() {
   }
 
   return transform;
-}
-
-export function withTocAndFrameworkHeadingsVisibilityExport() {
-  return function transformer(tree, vfile) {
-    if (vfile.data.toc == null) return;
-
-    tree.children.unshift({
-      type: "mdxjsEsm",
-      data: {
-        estree: {
-          type: "Program",
-          sourceType: "module",
-          body: [
-            {
-              type: "ExportNamedDeclaration",
-              source: null,
-              specifiers: [],
-              declaration: {
-                type: "VariableDeclaration",
-                kind: "const",
-                declarations: [
-                  {
-                    type: "VariableDeclarator",
-                    id: {
-                      type: "Identifier",
-                      name: "headingsFrameworkVisibility",
-                    },
-                    init: valueToEstree(vfile.data.headingsFrameworkVisibility),
-                  },
-                  {
-                    type: "VariableDeclarator",
-                    id: { type: "Identifier", name: "tableOfContents" },
-                    init: valueToEstree(vfile.data.toc),
-                  },
-                ],
-              },
-            },
-          ],
-        },
-      },
-    });
-  };
 }
 
 export default config;
