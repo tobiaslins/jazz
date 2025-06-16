@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { processHeadingNode } from "../with-slug-and-framework-visibility.mjs";
+import { processHeadingNode } from "../processing-heading-node.mjs";
 
 type HastNode = {
   type: string;
@@ -28,7 +28,7 @@ describe("processHeadingNode", () => {
       type: "element",
       tagName: "h2",
       properties: { id: undefined },
-      children: [{ type: "text", value: "Test Header" }]
+      children: [{ type: "text", value: "Test Header" }],
     };
     const frameworkVisibility: Record<string, string[]> = {};
     const id = processHeadingNode(node, frameworkVisibility);
@@ -42,15 +42,15 @@ describe("processHeadingNode", () => {
       type: "element",
       tagName: "h2",
       properties: { id: undefined },
-      children: [{ type: "text", value: "Test Header [!framework=react,vue]" }]
+      children: [{ type: "text", value: "Test Header [!framework=react,vue]" }],
     };
     const frameworkVisibility: Record<string, string[]> = {};
     const id = processHeadingNode(node, frameworkVisibility);
-    
+
     expect(id).toBeDefined();
     expect(frameworkVisibility).toEqual({
-      [id!]: ["react", "vue"]
+      [id!]: ["react", "vue"],
     });
-    expect(node.children?.[0].value).toBe("Test Header"); 
+    expect(node.children?.[0].value).toBe("Test Header");
   });
 });

@@ -9,6 +9,7 @@ import { createHighlighter } from "shiki";
 import { SKIP, visit } from "unist-util-visit";
 import { jazzDark } from "./themes/jazzDark.mjs";
 import { jazzLight } from "./themes/jazzLight.mjs";
+import { withSlugAndHeadingsFrameworkVisibility } from './rehype-plugins/with-slug-and-framework-visibility.mjs';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -140,8 +141,6 @@ function remarkHtmlToJsx() {
 
   return transform;
 }
-
-import { withSlugAndHeadingsFrameworkVisibility } from './utils/with-slug-and-framework-visibility.mjs';
 
 export function withTocAndFrameworkHeadingsVisibilityExport() {
   return function transformer(tree, vfile) {
