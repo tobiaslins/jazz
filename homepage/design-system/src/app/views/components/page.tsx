@@ -4,6 +4,7 @@ import { Icon } from "@/components/atoms/Icon";
 import { Switch } from "@/components/atoms/Switch";
 import { Input } from "@/components/molecules/Input";
 import { InputWithButton } from "@/components/molecules/InputWithButton";
+import { Table } from "@/components/molecules/Table";
 import { NewsletterForm } from "@/components/organisms/NewsletterForm";
 import { useState } from "react";
 import { ViewsLayout } from "../ViewsLayout";
@@ -98,6 +99,7 @@ export default function Components() {
           />
           <NewsletterForm />
         </div>
+        <Table className="mt-6" tableData={inputPropsTable} copyable />
       </div>
       <div className="p-3">
         <h3 className="text-md font-semibold mb-2">Icons</h3>
@@ -116,3 +118,39 @@ export default function Components() {
     </ViewsLayout>
   );
 }
+
+const inputPropsTable = {
+  headers: ["prop", "types", "default"],
+  data: [
+    {
+      prop: "label",
+      types: "string",
+      default: "undefined",
+    },
+    {
+      prop: "labelHidden",
+      types: "boolean",
+      default: "false",
+    },
+    {
+      prop: "labelPosition",
+      types: ["column", "row"],
+      default: "column",
+    },
+    {
+      prop: "icon",
+      types: ["LucideIcon"],
+      default: "undefined",
+    },
+    {
+      prop: "iconPosition",
+      types: ["left", "right"],
+      default: "left",
+    },
+    {
+      prop: "buttonProps",
+      types: "see Button Props",
+      default: "undefined",
+    },
+  ],
+};
