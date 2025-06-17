@@ -554,7 +554,8 @@ export class SyncManager {
 
         // We can't verify the transaction without the account, so we delay the session content handling until the account is available
         if (!account.isAvailable()) {
-          // New transaction with a missing account on an already loaded coValue
+          // This covers the case where we are getting a new session on an already loaded coValue
+          // where we need to load the account to get their public key
           if (!coValue.missingDependencies.has(accountId)) {
             const peers = this.getServerAndStoragePeers();
 
@@ -567,6 +568,16 @@ export class SyncManager {
             account.loadFromPeers(peers);
           }
 
+          // We need to wait for the account to be available before we can verify the transaction
+          // Currently doing this by delaying the handleNewContent for the session to when we have the account
+          //
+          // This is not the best solution, because the knownState is not updated and the ACK response will be given
+          // by excluding the session.
+          // This is good enough implementation for now because the only case for the account to be missing are out-of-order
+          // dependencies push, so the gap should be short lived.
+          //
+          // When we are going to have sharded-peers we should revisit this, and store unverified sessions that are considered as part of the
+          // knwonState, but not actively used until they can be verified.
           void account.waitForAvailable().then(() => {
             this.handleNewContent(
               {
