@@ -4,7 +4,7 @@ import fs from 'fs/promises';
 import crypto from 'crypto';
 import path from 'path';
 
-const CACHE_DIR = '.next/cache/highlight-cache';
+const CACHE_DIR = '.next/highlight-cache';
 
 /**
  * Get a cached result from the cache directory
