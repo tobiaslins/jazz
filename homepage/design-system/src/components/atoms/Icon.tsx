@@ -47,8 +47,8 @@ import {
   XIcon,
 } from "lucide-react";
 
-import { Variant } from "@/utils/variants";
 import clsx from "clsx";
+import { Variant } from "../../utils/variants";
 import { GcmpIcons } from "./icons";
 
 export const icons = {
