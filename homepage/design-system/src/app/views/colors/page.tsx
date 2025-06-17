@@ -1,13 +1,9 @@
 import clsx from "clsx";
 import Link from "next/link";
-import { ViewsLayout } from "../ViewsLayout";
 
 export default function Colors() {
   return (
-    <ViewsLayout>
-      <h2 id="colors" className="text-xl mt-5 mb-2 font-bold">
-        Colors
-      </h2>
+    <>
       <p className="p-1">
         Jazz uses a color palette which extends tailwind classes, with some
         modifications, see{" "}
@@ -68,7 +64,7 @@ export default function Colors() {
           </p>
         </div>
       </div>
-    </ViewsLayout>
+    </>
   );
 }
 

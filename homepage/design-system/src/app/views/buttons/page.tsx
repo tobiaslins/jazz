@@ -1,14 +1,9 @@
 import { Button } from "@/components/atoms/Button";
 import { Table } from "@/components/molecules/Table";
-import { ViewsLayout } from "../ViewsLayout";
 
 export default function ButtonsPage() {
   return (
-    <ViewsLayout>
-      <h2 id="buttons" className="text-xl mt-5 mb-2 font-bold">
-        Buttons
-      </h2>
-
+    <>
       <h3 className="text-lg mt-5 mb-2 font-bold">Variants</h3>
 
       <div className="grid grid-cols-2 gap-2">
@@ -107,7 +102,7 @@ export default function ButtonsPage() {
         <h3 className="text-xl mt-5 mb-2 font-bold">Props Table</h3>
         <Table tableData={buttonPropsTableData} copyable={true} />
       </div>
-    </ViewsLayout>
+    </>
   );
 }
 
