@@ -147,6 +147,7 @@ export function Icon({
   icon,
   size = "md",
   variant = "default",
+  hasBackground = false,
   className,
   ...svgProps
 }: {
@@ -154,6 +155,7 @@ export function Icon({
   icon?: LucideIcon;
   size?: keyof typeof sizes;
   variant?: "default" | Variant | "white";
+  hasBackground?: boolean;
   className?: string;
 } & React.SVGProps<SVGSVGElement>) {
   if (!icon && (!name || !icons.hasOwnProperty(name))) {
@@ -176,6 +178,26 @@ export function Icon({
     white: "text-white",
   };
 
+  const backgroundClasses = {
+    default: "bg-transparent dark:bg-stone-900",
+    primary: "bg-primary-transparent dark:bg-primary-transparent",
+    secondary: "bg-secondary-transparent dark:bg-secondary-transparent",
+    info: "bg-info-transparent dark:bg-info-transparent",
+    success: "bg-success-transparent dark:bg-success-transparent",
+    warning: "bg-warning-transparent dark:bg-warning-transparent",
+    danger: "bg-danger-transparent dark:bg-danger-transparent",
+    alert: "bg-alert-transparent dark:bg-alert-transparent",
+    tip: "bg-tip-transparent dark:bg-tip-transparent",
+    white: "bg-white dark:bg-stone-900",
+  };
+
+  const sizeClasses = {
+    xs: "rounded-xs",
+    sm: "rounded-sm",
+    md: "rounded-md",
+    lg: "rounded-lg",
+  };
+
   return (
     <IconComponent
       aria-hidden="true"
@@ -183,8 +205,10 @@ export function Icon({
       strokeWidth={strokeWidths[size]}
       strokeLinecap="round"
       className={clsx(
-        "rounded-md",
+        sizeClasses[size as keyof typeof sizeClasses],
         variantClasses[variant as keyof typeof variantClasses],
+        hasBackground &&
+          backgroundClasses[variant as keyof typeof backgroundClasses],
         className,
       )}
       {...svgProps}
