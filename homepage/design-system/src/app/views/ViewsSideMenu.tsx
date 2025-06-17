@@ -5,7 +5,14 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "../../components/atoms/Button";
 
-const designSystemTopics = ["Colors", "Typography", "Buttons", "Components"];
+const designSystemTopics = [
+  "Colors",
+  "Typography",
+  "Buttons",
+  "Components",
+  "Inputs",
+  "Icons",
+];
 
 export function ViewsSideMenu() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
