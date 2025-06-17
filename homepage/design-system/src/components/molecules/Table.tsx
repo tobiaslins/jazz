@@ -21,13 +21,16 @@ export function Table({
 }: TableProps) {
   return (
     <table
-      className={clsx("w-full border border-gray-200 rounded-lg", className)}
+      className={clsx(
+        "w-full border border-gray-200 rounded-lg overflow-hidden overflow-x-scroll",
+        className,
+      )}
       {...tableProps}
     >
       <thead>
         <tr>
           {tableData.headers.map((header) => (
-            <th key={header} className="text-left pl-1">
+            <th key={header} className="text-left pl-1 capitalize">
               {header}
             </th>
           ))}
@@ -36,7 +39,7 @@ export function Table({
       <tbody className="border-t border-gray-200">
         {tableData.data.map((row, index) => (
           <tr
-            key={row.id as string}
+            key={`${row.id as string}-${index}=${tableData.headers.join("-")}`}
             className={clsx(
               index % 2 === 0
                 ? "bg-stone-200/20 dark:bg-stone-800/40 hover:bg-stone-200/70 dark:hover:bg-stone-800/90"
@@ -54,7 +57,7 @@ export function Table({
               >
                 {typeof row[header] !== "string" ? (
                   <TableDataContainer>
-                    {row[header].map((item) => (
+                    {row[header]?.map((item) => (
                       <div
                         className={clsx(
                           "hover:underline",
