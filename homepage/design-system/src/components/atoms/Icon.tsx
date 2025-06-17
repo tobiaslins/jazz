@@ -142,6 +142,8 @@ const strokeWidths = {
 
 export type IconName = keyof typeof icons;
 
+export type Color = "white" | "black" | "light" | "dark" | "default";
+
 export function Icon({
   name,
   icon,
@@ -154,7 +156,7 @@ export function Icon({
   name?: IconName;
   icon?: LucideIcon;
   size?: keyof typeof sizes;
-  variant?: "default" | Variant | "white";
+  variant?: Variant | Color;
   hasBackground?: boolean;
   className?: string;
 } & React.SVGProps<SVGSVGElement>) {
@@ -176,26 +178,33 @@ export function Icon({
     alert: "text-alert",
     tip: "text-tip",
     white: "text-white",
+    black: "text-black",
+    light: "text-stone-700",
+    dark: "text-stone-300",
   };
 
   const backgroundClasses = {
     default: "bg-transparent dark:bg-stone-900",
-    primary: "bg-primary-transparent dark:bg-primary-transparent",
-    secondary: "bg-secondary-transparent dark:bg-secondary-transparent",
-    info: "bg-info-transparent dark:bg-info-transparent",
-    success: "bg-success-transparent dark:bg-success-transparent",
-    warning: "bg-warning-transparent dark:bg-warning-transparent",
-    danger: "bg-danger-transparent dark:bg-danger-transparent",
-    alert: "bg-alert-transparent dark:bg-alert-transparent",
-    tip: "bg-tip-transparent dark:bg-tip-transparent",
-    white: "bg-white dark:bg-stone-900",
+    primary: "bg-primary-transparent",
+    secondary: "bg-secondary-transparent",
+    info: "bg-info-transparent",
+    success: "bg-success-transparent",
+    warning: "bg-warning-transparent",
+    danger: "bg-danger-transparent",
+    alert: "bg-alert-transparent",
+    tip: "bg-tip-transparent",
+    white: "bg-stone-300", // dark:bg-stone-700",
+    black: "bg-stone-700", // dark:bg-stone-300",
+    light: "bg-stone-200", // dark:bg-stone-800",
+    dark: "bg-stone-900", // dark:bg-stone-100",
   };
 
-  const sizeClasses = {
+  const roundedClasses = {
     xs: "rounded-xs",
     sm: "rounded-sm",
     md: "rounded-md",
     lg: "rounded-lg",
+    xl: "rounded-xl",
   };
 
   return (
@@ -205,7 +214,7 @@ export function Icon({
       strokeWidth={strokeWidths[size]}
       strokeLinecap="round"
       className={clsx(
-        sizeClasses[size as keyof typeof sizeClasses],
+        roundedClasses[size as keyof typeof roundedClasses] || "rounded-lg",
         variantClasses[variant as keyof typeof variantClasses],
         hasBackground &&
           backgroundClasses[variant as keyof typeof backgroundClasses],
