@@ -25,11 +25,17 @@ import { Icon } from "./Icon";
 import type { IconName } from "./Icon";
 import { Spinner } from "./Spinner";
 
+export type StyleVariant =
+  | "outline"
+  | "inverted"
+  | "ghost"
+  | "text"
+  | "default";
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
   color?: "light" | "dark" | "white" | "black" | "default";
-  styleVariant?: "outline" | "inverted" | "ghost" | "text" | "default";
+  styleVariant?: StyleVariant;
   state?: "hover" | "active" | "focus" | "disabled";
   size?: "sm" | "md" | "lg";
   href?: string;
