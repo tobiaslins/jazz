@@ -1,5 +1,7 @@
 # cojson
 
+## 0.14.27
+
 ## 0.14.26
 
 ### Patch Changes

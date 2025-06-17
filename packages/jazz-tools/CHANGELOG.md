@@ -1,5 +1,12 @@
 # jazz-tools
 
+## 0.14.27
+
+### Patch Changes
+
+- a026073: Export CoRecordSchema & CoProfileSchema types
+  - cojson@0.14.27
+
 ## 0.14.26
 
 ### Patch Changes
