@@ -1,5 +1,12 @@
 # jazz-richtext-prosemirror
 
+## 0.14.26
+
+### Patch Changes
+
+- jazz-browser@0.14.26
+- jazz-tools@0.14.26
+
 ## 0.14.25
 
 ### Patch Changes

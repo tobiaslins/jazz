@@ -1,5 +1,14 @@
 # passkey-svelte
 
+## 0.0.86
+
+### Patch Changes
+
+- Updated dependencies [e35a380]
+  - jazz-svelte@0.14.26
+  - jazz-tools@0.14.26
+  - jazz-browser-media-images@0.14.26
+
 ## 0.0.85
 
 ### Patch Changes

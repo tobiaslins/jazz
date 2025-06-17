@@ -1,5 +1,12 @@
 # jazz-browser-media-images
 
+## 0.14.26
+
+### Patch Changes
+
+- fc71d45: remove React Native `Buffer` polyfill
+  - jazz-tools@0.14.26
+
 ## 0.14.25
 
 ### Patch Changes

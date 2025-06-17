@@ -1,5 +1,15 @@
 # cojson-storage-indexeddb
 
+## 0.14.26
+
+### Patch Changes
+
+- 680a2e2: Read in parallel up to 10 values on the async storage adapters to improve loading perf
+- Updated dependencies [e74a077]
+- Updated dependencies [680a2e2]
+  - cojson@0.14.26
+  - cojson-storage@0.14.26
+
 ## 0.14.25
 
 ### Patch Changes
