@@ -29,7 +29,7 @@ npx expo prebuild
 ```bash
 npx expo install expo-linking expo-secure-store expo-file-system @react-native-community/netinfo @bam.tech/react-native-image-resizer
 
-  npm i -S @azure/core-asynciterator-polyfill react-native-url-polyfill readable-stream react-native-get-random-values @craftzdog/react-native-buffer
+  npm i -S @azure/core-asynciterator-polyfill react-native-url-polyfill readable-stream react-native-get-random-values
 
 
 npm i -D @babel/plugin-transform-class-static-block
@@ -139,9 +139,6 @@ Create a file `polyfills.js` at the project root with the following content:
 
 ```js
 import { polyfillGlobal } from 'react-native/Libraries/Utilities/PolyfillFunctions';
-
-import { Buffer } from '@craftzdog/react-native-buffer';
-polyfillGlobal('Buffer', () => Buffer);
 
 import { ReadableStream } from 'readable-stream';
 polyfillGlobal('ReadableStream', () => ReadableStream);
