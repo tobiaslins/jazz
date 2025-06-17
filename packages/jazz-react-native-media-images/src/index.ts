@@ -73,9 +73,8 @@ async function base64DataURIToBlob(base64Data: string) {
   }
   const byteArray = new Uint8Array(byteNumbers);
 
-  const buffer = Buffer.from(byteArray);
-  // @ts-expect-error buffer has data
-  const blob = new Blob([buffer.data], { type: contentType });
+  // @ts-expect-error byteArray has data
+  const blob = new Blob(byteArray, { type: contentType });
   blob.arrayBuffer = () => arrayBuffer(blob);
   return blob;
 }

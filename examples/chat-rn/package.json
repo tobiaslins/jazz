@@ -12,7 +12,6 @@
   "dependencies": {
     "@azure/core-asynciterator-polyfill": "^1.0.2",
     "@bacons/text-decoder": "0.0.0",
-    "@craftzdog/react-native-buffer": "6.0.5",
     "@op-engineering/op-sqlite": "^11.4.8",
     "@react-native-clipboard/clipboard": "1.16.1",
     "@react-native-community/netinfo": "11.4.1",

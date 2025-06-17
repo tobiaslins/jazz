@@ -11,7 +11,7 @@
   "dependencies": {
     "@azure/core-asynciterator-polyfill": "^1.0.2",
     "@bacons/text-decoder": "^0.0.0",
-    "@craftzdog/react-native-buffer": "^6.0.5",
+    "@bam.tech/react-native-image-resizer": "^3.0.11",
     "@react-native-community/netinfo": "11.4.1",
     "expo": "~53.0.9",
     "expo-clipboard": "^7.1.4",

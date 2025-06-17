@@ -259,9 +259,6 @@ importers:
       '@bacons/text-decoder':
         specifier: 0.0.0
         version: 0.0.0(react-native@0.79.2(@babel/core@7.26.0)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))
-      '@craftzdog/react-native-buffer':
-        specifier: 6.0.5
-        version: 6.0.5(react-native@0.79.2(@babel/core@7.26.0)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)
       '@op-engineering/op-sqlite':
         specifier: ^11.4.8
         version: 11.4.8(react-native@0.79.2(@babel/core@7.26.0)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)
@@ -386,9 +383,9 @@ importers:
       '@bacons/text-decoder':
         specifier: ^0.0.0
         version: 0.0.0(react-native@0.79.2(@babel/core@7.26.0)(@react-native-community/cli@15.0.1(typescript@5.8.3))(@types/react@19.0.0)(react@19.0.0))
-      '@craftzdog/react-native-buffer':
-        specifier: ^6.0.5
-        version: 6.0.5(react-native@0.79.2(@babel/core@7.26.0)(@react-native-community/cli@15.0.1(typescript@5.8.3))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)
+      '@bam.tech/react-native-image-resizer':
+        specifier: ^3.0.11
+        version: 3.0.11(react-native@0.79.2(@babel/core@7.26.0)(@react-native-community/cli@15.0.1(typescript@5.8.3))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)
       '@react-native-community/netinfo':
         specifier: 11.4.1
         version: 11.4.1(react-native@0.79.2(@babel/core@7.26.0)(@react-native-community/cli@15.0.1(typescript@5.8.3))(@types/react@19.0.0)(react@19.0.0))
@@ -450,9 +447,6 @@ importers:
       '@clerk/clerk-expo':
         specifier: ^2.2.21
         version: 2.6.5(6wmqyfiepq3qqevv5wnhfabybe)
-      '@craftzdog/react-native-buffer':
-        specifier: 6.0.5
-        version: 6.0.5(react-native@0.79.2(@babel/core@7.26.0)(@react-native-community/cli@15.0.1(typescript@5.8.3))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)
       '@expo/vector-icons':
         specifier: ^14.1.0
         version: 14.1.0(expo-font@13.3.1(expo@53.0.8(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.2(@babel/core@7.26.0)(@react-native-community/cli@15.0.1(typescript@5.8.3))(@types/react@19.0.0)(react@19.0.0)))(graphql@16.11.0)(react-native@0.79.2(@babel/core@7.26.0)(@react-native-community/cli@15.0.1(typescript@5.8.3))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.26.0)(@react-native-community/cli@15.0.1(typescript@5.8.3))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)
@@ -3372,9 +3366,6 @@ importers:
       '@bacons/text-decoder':
         specifier: 0.0.0
         version: 0.0.0(react-native@0.79.2(@babel/core@7.26.0)(@react-native-community/cli@15.0.1(typescript@5.8.3))(@types/react@19.0.0)(react@19.0.0))
-      '@craftzdog/react-native-buffer':
-        specifier: 6.0.5
-        version: 6.0.5(react-native@0.79.2(@babel/core@7.26.0)(@react-native-community/cli@15.0.1(typescript@5.8.3))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)
       '@op-engineering/op-sqlite':
         specifier: ^11.2.12
         version: 11.4.8(react-native@0.79.2(@babel/core@7.26.0)(@react-native-community/cli@15.0.1(typescript@5.8.3))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)
@@ -18214,22 +18205,6 @@ snapshots:
       preact: 10.25.3
       sha.js: 2.4.11
 
-  '@craftzdog/react-native-buffer@6.0.5(react-native@0.79.2(@babel/core@7.26.0)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)':
-    dependencies:
-      ieee754: 1.2.1
-      react-native-quick-base64: 2.1.2(react-native@0.79.2(@babel/core@7.26.0)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)
-    transitivePeerDependencies:
-      - react
-      - react-native
-
-  '@craftzdog/react-native-buffer@6.0.5(react-native@0.79.2(@babel/core@7.26.0)(@react-native-community/cli@15.0.1(typescript@5.8.3))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)':
-    dependencies:
-      ieee754: 1.2.1
-      react-native-quick-base64: 2.1.2(react-native@0.79.2(@babel/core@7.26.0)(@react-native-community/cli@15.0.1(typescript@5.8.3))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)
-    transitivePeerDependencies:
-      - react
-      - react-native
-
   '@craftzdog/react-native-buffer@6.0.5(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)':
     dependencies:
       ieee754: 1.2.1
@@ -29782,18 +29757,6 @@ snapshots:
       react-native-url-polyfill: 2.0.0(react-native@0.79.2(@babel/core@7.26.0)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))
       text-encoding: 0.7.0
       web-streams-polyfill: 3.3.3
-
-  react-native-quick-base64@2.1.2(react-native@0.79.2(@babel/core@7.26.0)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0):
-    dependencies:
-      base64-js: 1.5.1
-      react: 19.0.0
-      react-native: 0.79.2(@babel/core@7.26.0)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0)
-
-  react-native-quick-base64@2.1.2(react-native@0.79.2(@babel/core@7.26.0)(@react-native-community/cli@15.0.1(typescript@5.8.3))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0):
-    dependencies:
-      base64-js: 1.5.1
-      react: 19.0.0
-      react-native: 0.79.2(@babel/core@7.26.0)(@react-native-community/cli@15.0.1(typescript@5.8.3))(@types/react@19.0.0)(react@19.0.0)
 
   react-native-quick-base64@2.1.2(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0):
     dependencies:
