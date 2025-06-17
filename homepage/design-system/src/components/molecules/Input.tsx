@@ -74,7 +74,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                   ? "pr-9"
                   : "",
               className,
-              // variantToBorderMap[variant]
+              "px-2",
               variantToActiveBorderMap[variant],
             )}
             placeholder={placeholder}
@@ -89,7 +89,6 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                   : iconPosition === "right"
                     ? "right-2"
                     : "",
-                // labelHidden ? "top-[0.6rem]" : "top-1/2",
               )}
             />
           )}
