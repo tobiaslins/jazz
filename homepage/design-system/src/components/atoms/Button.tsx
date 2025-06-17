@@ -97,7 +97,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           {icon && (
             <Icon
               name={icon}
-              className={`size-5 ${iconPosition === "left" ? "mr-2" : iconPosition === "right" ? "ml-2" : ""}`}
+              className={`size-5 ${iconPosition === "left" ? "mr-2" : iconPosition === "right" ? "ml-2" : ""}, ${iconVariant(variant, styleVariant)}`}
             />
           )}
           {children}
@@ -126,16 +126,25 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           <Spinner className="size-5" />
         ) : (
           icon &&
-          iconPosition === "left" && <Icon name={icon} className="size-5" />
+          iconPosition === "left" && (
+            <Icon name={icon} variant={iconVariant(variant, styleVariant)} />
+          )
         )}
         {loading && loadingText ? loadingText : children}
         {icon && iconPosition === "right" && (
-          <Icon name={icon} className="size-5" />
+          <Icon name={icon} variant={iconVariant(variant, styleVariant)} />
         )}
       </button>
     );
   },
 );
+
+const iconVariant = (
+  variant: keyof typeof variantToTextMap,
+  styleVariant: StyleVariant | undefined,
+) => {
+  return styleVariant ? variant : "white";
+};
 
 const variantClass = (variant: keyof typeof variantToBgMap) =>
   `${variantToBgMap[variant]} ${variantToBgTransparentHoverMap[variant]} text-white ${variantToButtonStateMap[variant]}`;

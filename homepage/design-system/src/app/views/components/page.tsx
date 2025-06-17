@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@/components/atoms/Icon";
 import { Switch } from "@/components/atoms/Switch";
 import { Input } from "@/components/molecules/Input";
 import { InputWithButton } from "@/components/molecules/InputWithButton";
@@ -96,6 +97,20 @@ export default function Components() {
             }}
           />
           <NewsletterForm />
+        </div>
+      </div>
+      <div className="p-3">
+        <h3 className="text-md font-semibold mb-2">Icons</h3>
+        <div className="flex gap-2">
+          <Icon name="search" size="xs" variant="primary" />
+          <Icon name="upload" size="sm" variant="secondary" />
+          <Icon name="zip" size="md" variant="info" />
+          <Icon name="docs" size="lg" variant="success" />
+          <Icon name="file" size="xl" variant="warning" />
+          <Icon name="hash" size="2xl" variant="danger" />
+          <Icon name="help" size="3xl" variant="alert" />
+          <Icon name="image" size="4xl" variant="tip" />
+          <Icon name="corecord" size="5xl" variant="default" />
         </div>
       </div>
     </ViewsLayout>

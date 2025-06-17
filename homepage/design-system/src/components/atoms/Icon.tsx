@@ -47,6 +47,8 @@ import {
   XIcon,
 } from "lucide-react";
 
+import { Variant } from "@/utils/variants";
+import clsx from "clsx";
 import { GcmpIcons } from "./icons";
 
 export const icons = {
@@ -144,12 +146,14 @@ export function Icon({
   name,
   icon,
   size = "md",
+  variant = "default",
   className,
   ...svgProps
 }: {
   name?: IconName;
   icon?: LucideIcon;
   size?: keyof typeof sizes;
+  variant?: "default" | Variant | "white";
   className?: string;
 } & React.SVGProps<SVGSVGElement>) {
   if (!icon && (!name || !icons.hasOwnProperty(name))) {
@@ -159,13 +163,30 @@ export function Icon({
   // @ts-ignore
   const IconComponent = icons?.hasOwnProperty(name) ? icons[name] : icon;
 
+  const variantClasses = {
+    default: "text-stone-950",
+    primary: "text-primary",
+    secondary: "text-secondary",
+    info: "text-info",
+    success: "text-success",
+    warning: "text-warning",
+    danger: "text-danger",
+    alert: "text-alert",
+    tip: "text-tip",
+    white: "text-white",
+  };
+
   return (
     <IconComponent
       aria-hidden="true"
       size={sizes[size]}
       strokeWidth={strokeWidths[size]}
       strokeLinecap="round"
-      className={className}
+      className={clsx(
+        "rounded-md",
+        variantClasses[variant as keyof typeof variantClasses],
+        className,
+      )}
       {...svgProps}
     />
   );
