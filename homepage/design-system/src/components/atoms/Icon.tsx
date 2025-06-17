@@ -179,8 +179,8 @@ export function Icon({
     tip: "text-tip",
     white: "text-white",
     black: "text-black",
-    light: "text-stone-700",
-    dark: "text-stone-300",
+    light: "text-stone-300",
+    dark: "text-stone-700",
   };
 
   const backgroundClasses = {
@@ -193,10 +193,10 @@ export function Icon({
     danger: "bg-danger-transparent",
     alert: "bg-alert-transparent",
     tip: "bg-tip-transparent",
-    white: "bg-stone-300", // dark:bg-stone-700",
-    black: "bg-stone-700", // dark:bg-stone-300",
-    light: "bg-stone-200", // dark:bg-stone-800",
-    dark: "bg-stone-900", // dark:bg-stone-100",
+    white: "bg-stone-300",
+    black: "bg-stone-700",
+    light: "bg-stone-500",
+    dark: "bg-stone-950",
   };
 
   const roundedClasses = {

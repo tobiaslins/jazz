@@ -14,10 +14,14 @@ export default function IconsView() {
         <Icon name="help" size="3xl" variant="alert" />
         <Icon name="image" size="4xl" variant="tip" />
         <Icon name="corecord" size="5xl" variant="default" />
-        <Icon name="corecord" size="6xl" variant="white" />
-        <Icon name="corecord" size="7xl" variant="light" />
-        <Icon name="corecord" size="8xl" variant="dark" />
-        <Icon name="corecord" size="9xl" variant="black" />
+        <Icon name="corecord" size="6xl" variant="light" />
+        <Icon name="corecord" size="7xl" variant="dark" />
+        <div className="bg-stone-900 flex gap-2 h-fit">
+          <Icon name="corecord" size="8xl" variant="white" />
+        </div>
+        <div className="bg-stone-200 dark flex gap-2 h-fit">
+          <Icon name="corecord" size="9xl" variant="black" />
+        </div>
       </div>
       <div className="flex gap-2">
         <Icon name="search" size="xs" variant="primary" hasBackground />
@@ -29,9 +33,9 @@ export default function IconsView() {
         <Icon name="help" size="3xl" variant="alert" hasBackground />
         <Icon name="image" size="4xl" variant="tip" hasBackground />
         <Icon name="corecord" size="5xl" variant="default" hasBackground />
-        <Icon name="corecord" size="6xl" variant="white" hasBackground />
-        <Icon name="corecord" size="7xl" variant="light" hasBackground />
-        <Icon name="corecord" size="8xl" variant="dark" hasBackground />
+        <Icon name="corecord" size="6xl" variant="light" hasBackground />
+        <Icon name="corecord" size="7xl" variant="dark" hasBackground />
+        <Icon name="corecord" size="8xl" variant="white" hasBackground />
         <Icon name="corecord" size="9xl" variant="black" hasBackground />
       </div>
       <Table className="mt-6" tableData={iconPropsTable} copyable />
