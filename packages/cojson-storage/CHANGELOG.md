@@ -1,5 +1,25 @@
 # cojson-storage
 
+## 0.14.28
+
+### Patch Changes
+
+- cojson@0.14.28
+
+## 0.14.27
+
+### Patch Changes
+
+- cojson@0.14.27
+
+## 0.14.26
+
+### Patch Changes
+
+- 680a2e2: Read in parallel up to 10 values on the async storage adapters to improve loading perf
+- Updated dependencies [e74a077]
+  - cojson@0.14.26
+
 ## 0.14.25
 
 ### Patch Changes

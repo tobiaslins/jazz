@@ -1,6 +1,5 @@
 import { JsonObject, LocalNode, RawAccount } from "cojson";
 import { CoID } from "cojson";
-import { Card, CardBody, CardHeader } from "../ui/card.js";
 import {
   Table,
   TableBody,
@@ -11,8 +10,8 @@ import {
 } from "../ui/table.js";
 import { Text } from "../ui/text.js";
 import { AccountOrGroupText } from "./account-or-group-text.js";
+import { RawDataCard } from "./raw-data-card.js";
 import { PageInfo, isCoId } from "./types.js";
-import { ValueRenderer } from "./value-renderer.js";
 
 export function GroupView({
   data,
@@ -62,14 +61,7 @@ export function GroupView({
         </TableBody>
       </Table>
 
-      <Card>
-        <CardHeader>
-          <Text strong>Raw data</Text>
-        </CardHeader>
-        <CardBody>
-          <ValueRenderer json={data} />
-        </CardBody>
-      </Card>
+      <RawDataCard data={data} />
     </>
   );
 }

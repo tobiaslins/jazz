@@ -1,5 +1,15 @@
 # cojson
 
+## 0.14.28
+
+## 0.14.27
+
+## 0.14.26
+
+### Patch Changes
+
+- e74a077: Improve the missing dependencies recovery & management
+
 ## 0.14.25
 
 ## 0.14.24

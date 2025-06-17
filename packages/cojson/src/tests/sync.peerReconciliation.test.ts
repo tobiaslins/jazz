@@ -1,9 +1,10 @@
 import { assert, beforeEach, describe, expect, test } from "vitest";
 import { expectMap } from "../coValue";
+import { CO_VALUE_LOADING_CONFIG } from "../coValueCore/coValueCore";
 import { WasmCrypto } from "../crypto/WasmCrypto";
+import { RawCoMap } from "../exports";
 import {
   SyncMessagesLog,
-  loadCoValueOrFail,
   setupTestAccount,
   setupTestNode,
   waitFor,
@@ -195,10 +196,8 @@ describe("peer reconciliation", () => {
         "client -> server | CONTENT Map header: true new: After: 0 New: 2",
         "server -> client | LOAD Group sessions: empty",
         "client -> server | CONTENT Group header: true new: After: 0 New: 3",
-        "server -> client | KNOWN CORRECTION Map sessions: empty",
-        "client -> server | CONTENT Map header: true new: After: 0 New: 2",
+        "server -> client | KNOWN Map sessions: empty",
         "server -> client | KNOWN Group sessions: header/3",
-        "server -> client | KNOWN Map sessions: header/2",
         "client -> server | LOAD Group sessions: header/3",
         "server -> client | KNOWN Group sessions: header/3",
         "client -> server | LOAD Map sessions: header/2",
@@ -232,7 +231,9 @@ describe("peer reconciliation", () => {
     await waitFor(() => {
       const mapOnSyncServer = jazzCloud.node.getCoValue(map.id);
 
-      expect(mapOnSyncServer.loadingState).toBe("available");
+      expect(mapOnSyncServer.isAvailable()).toBe(true);
+      const content = mapOnSyncServer.getCurrentContent() as RawCoMap;
+      expect(content.get("hello")).toBe("updated");
     });
 
     expect(
@@ -263,11 +264,10 @@ describe("peer reconciliation", () => {
         "client -> server | CONTENT Account header: true new: After: 0 New: 4",
         "server -> client | LOAD Group sessions: empty",
         "client -> server | CONTENT Group header: true new: After: 0 New: 3",
-        "server -> client | KNOWN CORRECTION Map sessions: empty",
-        "client -> server | CONTENT Map header: true new: After: 0 New: 2",
+        "server -> client | KNOWN Map sessions: empty",
         "server -> client | KNOWN Account sessions: header/4",
+        "server -> client | KNOWN Map sessions: empty",
         "server -> client | KNOWN Group sessions: header/3",
-        "server -> client | KNOWN Map sessions: header/2",
         "client -> server | LOAD Account sessions: header/4",
         "server -> client | KNOWN Account sessions: header/4",
         "client -> server | LOAD ProfileGroup sessions: header/5",

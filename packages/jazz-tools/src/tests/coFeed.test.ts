@@ -589,6 +589,55 @@ describe("FileStream loading & Subscription", async () => {
   });
 });
 
+describe("FileStream.load", async () => {
+  async function setup() {
+    const me = await Account.create({
+      creationProps: { name: "Hermes Puggington" },
+      crypto: Crypto,
+    });
+
+    const stream = FileStream.create({ owner: me });
+
+    stream.start({ mimeType: "text/plain" });
+
+    return { stream, me };
+  }
+
+  test("resolves only when the stream is ended", async () => {
+    const { stream, me } = await setup();
+    stream.push(new Uint8Array([1]));
+
+    const promise = FileStream.load(stream.id, { loadAs: me });
+
+    stream.push(new Uint8Array([2]));
+    stream.end();
+
+    const blob = await promise;
+
+    // The promise resolves only when the stream is ended
+    // so we get a blob with all the chunks
+    expect(blob?.getChunks()?.finished).toBe(true);
+  });
+
+  test("resolves with an unfinshed blob if allowUnfinished: true", async () => {
+    const { stream, me } = await setup();
+    stream.push(new Uint8Array([1]));
+
+    const promise = FileStream.load(stream.id, {
+      loadAs: me,
+      allowUnfinished: true,
+    });
+
+    const blob = await promise;
+
+    stream.push(new Uint8Array([2]));
+
+    // The promise resolves before the stream is ended
+    // so we get a blob only with the first chunk
+    expect(blob?.getChunks({ allowUnfinished: true })?.finished).toBe(false);
+  });
+});
+
 describe("FileStream.loadAsBlob", async () => {
   async function setup() {
     const me = await Account.create({

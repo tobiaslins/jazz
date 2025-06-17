@@ -1,5 +1,33 @@
 # jazz-svelte
 
+## 0.14.28
+
+### Patch Changes
+
+- Updated dependencies [06c5a1c]
+  - jazz-tools@0.14.28
+  - jazz-browser@0.14.28
+  - cojson@0.14.28
+
+## 0.14.27
+
+### Patch Changes
+
+- Updated dependencies [a026073]
+  - jazz-tools@0.14.27
+  - jazz-browser@0.14.27
+  - cojson@0.14.27
+
+## 0.14.26
+
+### Patch Changes
+
+- e35a380: Fix "Cannot read property of undefined (reading id)" when using CoState with a list virtualizer
+- Updated dependencies [e74a077]
+  - cojson@0.14.26
+  - jazz-browser@0.14.26
+  - jazz-tools@0.14.26
+
 ## 0.14.25
 
 ### Patch Changes
