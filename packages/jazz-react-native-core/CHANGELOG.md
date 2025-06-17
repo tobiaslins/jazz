@@ -1,5 +1,18 @@
 # jazz-browser
 
+## 0.14.26
+
+### Patch Changes
+
+- fc71d45: remove React Native `Buffer` polyfill
+- Updated dependencies [e74a077]
+- Updated dependencies [680a2e2]
+  - cojson@0.14.26
+  - cojson-storage@0.14.26
+  - cojson-transport-ws@0.14.26
+  - jazz-react-core@0.14.26
+  - jazz-tools@0.14.26
+
 ## 0.14.25
 
 ### Patch Changes
