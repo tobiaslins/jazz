@@ -1,5 +1,12 @@
 # jazz-tools
 
+## 0.14.28
+
+### Patch Changes
+
+- 06c5a1c: Resolve FileStream.load() only when the stream is fully downloaded
+  - cojson@0.14.28
+
 ## 0.14.27
 
 ### Patch Changes
