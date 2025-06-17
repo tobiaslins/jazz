@@ -774,6 +774,44 @@ export class FileStream extends CoValueBase implements CoValue {
     });
   }
 
+  static async loadAsBase64(
+    id: ID<FileStream>,
+    options?: {
+      allowUnfinished?: boolean;
+      loadAs?: Account | AnonymousJazzAgent;
+      dataURL?: boolean;
+    },
+  ): Promise<string | undefined> {
+    const stream = await this.load(id, options);
+
+    return stream?.asBase64(options);
+  }
+
+  asBase64(options?: {
+    allowUnfinished?: boolean;
+    dataURL?: boolean;
+  }): string | undefined {
+    const chunks = this.getChunks(options);
+
+    if (!chunks) return undefined;
+
+    const output = [];
+
+    for (const chunk of chunks.chunks) {
+      for (const byte of chunk) {
+        output.push(String.fromCharCode(byte));
+      }
+    }
+
+    const base64 = btoa(output.join(""));
+
+    if (options?.dataURL) {
+      return `data:${chunks.mimeType};base64,${base64}`;
+    }
+
+    return base64;
+  }
+
   /**
    * Create a `FileStream` from a `Blob` or `File`
    *

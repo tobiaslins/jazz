@@ -26,28 +26,8 @@ export function useProgressiveImgNative({
       if (highestRes && highestRes.res !== lastHighestRes) {
         lastHighestRes = highestRes.res;
         // use the base64 data directly
-        const chunks = highestRes.stream.getChunks();
-        if (chunks?.chunks && chunks.chunks.length > 0) {
-          // convert chunks to base64
-          const totalLength = chunks.chunks.reduce(
-            (acc, chunk) => acc + chunk.length,
-            0,
-          );
-          const combinedArray = new Uint8Array(totalLength);
-          let offset = 0;
-          chunks.chunks.forEach((chunk) => {
-            combinedArray.set(chunk, offset);
-            offset += chunk.length;
-          });
-
-          // Create data URL
-          const base64 = btoa(
-            Array.from(combinedArray, (byte) => String.fromCharCode(byte)).join(
-              "",
-            ),
-          );
-          const dataUrl = `data:${chunks.mimeType};base64,${base64}`;
-
+        const dataUrl = highestRes.stream.asBase64({ dataURL: true });
+        if (dataUrl) {
           setCurrent({
             src: dataUrl,
             res: highestRes.res,
