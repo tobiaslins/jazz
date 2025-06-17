@@ -590,6 +590,8 @@ export class CoMap extends CoValueBase implements CoValue {
   /**
    * Given some data, updates an existing CoMap or initialises a new one if none exists.
    *
+   * Note: This method respects resolve options, and thus can return `null` if the references cannot be resolved.
+   *
    * @example
    * ```ts
    * const activeEvent = await Event.upsertUnique(
@@ -619,30 +621,28 @@ export class CoMap extends CoValueBase implements CoValue {
       owner: Account | Group;
       resolve?: RefsToResolveStrict<M, R>;
     },
-  ): Promise<M> {
+  ): Promise<Resolved<M, R> | null> {
     let mapId = CoMap._findUnique(options.unique, options.owner.id);
-    let map: Resolved<M, true> | null = await loadCoValueWithoutMe(
-      this,
-      mapId,
-      { ...options, loadAs: options.owner._loadedAs, skipRetry: true },
-    );
+    let map: Resolved<M, R> | null = await loadCoValueWithoutMe(this, mapId, {
+      ...options,
+      loadAs: options.owner._loadedAs,
+      skipRetry: true,
+    });
     if (!map) {
       const instance = new this();
       map = instance._createCoMap(options.value, {
         owner: options.owner,
         unique: options.unique,
-      });
+      }) as Resolved<M, R>;
     } else {
-      map.applyDiff(options.value as Partial<CoMapInit<M>>);
-      map =
-        (await loadCoValueWithoutMe(this, mapId, {
-          ...options,
-          loadAs: options.owner._loadedAs,
-          skipRetry: true,
-        })) ?? map;
+      (map as M).applyDiff(options.value as Partial<CoMapInit<M>>);
     }
 
-    return map;
+    return await loadCoValueWithoutMe(this, mapId, {
+      ...options,
+      loadAs: options.owner._loadedAs,
+      skipRetry: true,
+    });
   }
 
   /**

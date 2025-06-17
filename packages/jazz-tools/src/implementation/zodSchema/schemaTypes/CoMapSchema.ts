@@ -102,21 +102,10 @@ export type CoMapSchema<
         Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
         R
       >;
-    }) => Promise<
-      (Shape extends Record<string, never>
-        ? {}
-        : {
-            -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchema<
-              Shape[key]
-            >;
-          }) &
-        (unknown extends Config["out"][string]
-          ? {}
-          : {
-              [key: string]: Config["out"][string];
-            }) &
-        CoMap
-    >;
+    }) => Promise<Resolved<
+      Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
+      R
+    > | null>;
 
     loadUnique<
       const R extends RefsToResolve<

@@ -1541,6 +1541,8 @@ describe("Creating and finding unique CoMaps", async () => {
         },
       },
     });
+    assert(myOrg);
+    expect(myOrg).not.toBeNull();
     expect(myOrg.name).toEqual("My organisation");
     expect(myOrg.projects.length).toBe(1);
     expect(myOrg.projects[0]).toMatchObject({
@@ -1564,6 +1566,8 @@ describe("Creating and finding unique CoMaps", async () => {
       unique: { unique: "First project" },
       owner: workspace,
     });
+    assert(initialProject);
+    expect(initialProject).not.toBeNull();
     expect(initialProject.name).toEqual("My project");
 
     const myOrg = await Organisation.upsertUnique({
@@ -1579,6 +1583,8 @@ describe("Creating and finding unique CoMaps", async () => {
         },
       },
     });
+    assert(myOrg);
+    expect(myOrg).not.toBeNull();
     expect(myOrg.name).toEqual("My organisation");
     expect(myOrg.projects.length).toBe(1);
     expect(myOrg.projects.at(0)?.name).toEqual("My project");
@@ -1591,6 +1597,8 @@ describe("Creating and finding unique CoMaps", async () => {
       owner: workspace,
     });
 
+    assert(updatedProject);
+    expect(updatedProject).not.toBeNull();
     expect(updatedProject).toEqual(initialProject);
     expect(updatedProject.name).toEqual("My updated project");
     expect(myOrg.projects.length).toBe(1);
@@ -1626,7 +1634,11 @@ describe("Creating and finding unique CoMaps", async () => {
       owner: workspace,
       resolve: {},
     });
+    assert(myOrg);
+    expect(myOrg).not.toBeNull();
     expect(myOrg.name).toEqual("My organisation");
+    assert(myOrg.projects);
+    expect(myOrg.projects).not.toBeNull();
     expect(myOrg.projects.length).toBe(1);
     expect(myOrg.projects[0]).toMatchObject({
       name: "My project",
@@ -1649,6 +1661,8 @@ describe("Creating and finding unique CoMaps", async () => {
       unique: { unique: "First project" },
       owner: workspace,
     });
+    assert(initialProject);
+    expect(initialProject).not.toBeNull();
     expect(initialProject.name).toEqual("My project");
 
     const myOrg = await Organisation.upsertUnique({
@@ -1660,7 +1674,11 @@ describe("Creating and finding unique CoMaps", async () => {
       owner: workspace,
       resolve: {},
     });
+    assert(myOrg);
+    expect(myOrg).not.toBeNull();
     expect(myOrg.name).toEqual("My organisation");
+    assert(myOrg.projects);
+    expect(myOrg.projects).not.toBeNull();
     expect(myOrg.projects.length).toBe(1);
     expect(myOrg.projects.at(0)?.name).toEqual("My project");
 
@@ -1672,8 +1690,13 @@ describe("Creating and finding unique CoMaps", async () => {
       owner: workspace,
     });
 
+    assert(updatedProject);
+    expect(updatedProject).not.toBeNull();
     expect(updatedProject).toEqual(initialProject);
     expect(updatedProject.name).toEqual("My updated project");
+
+    assert(myOrg.projects);
+    expect(myOrg.projects).not.toBeNull();
     expect(myOrg.projects.length).toBe(1);
     expect(myOrg.projects.at(0)?.name).toEqual("My updated project");
   });

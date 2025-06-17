@@ -15,6 +15,7 @@ export default defineConfig({
       include: ["packages/*/src/**/*.ts"],
       exclude: ["packages/*/src/tests", "packages/jazz-svelte/**"],
       reporter: ["html"],
+      reportOnFailure: true,
       thresholds: {
         global: {
           branches: 80,
