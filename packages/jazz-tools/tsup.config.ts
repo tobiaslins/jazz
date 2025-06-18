@@ -103,6 +103,13 @@ export default defineConfig([
   {
     ...cfg,
     entry: {
+      index: "src/tiptap/index.ts",
+    },
+    outDir: "dist/tiptap",
+  },
+  {
+    ...cfg,
+    entry: {
       index: "src/worker/index.ts",
     },
     outDir: "dist/worker",

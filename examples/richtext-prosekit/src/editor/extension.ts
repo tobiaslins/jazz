@@ -14,7 +14,7 @@ import {
 } from "prosekit/react";
 
 import type { CoRichText } from "jazz-tools";
-import { JazzPluginConfig } from "jazz-tools/prosemirror/src/lib/plugin";
+import { JazzPluginConfig } from "jazz-tools/prosemirror";
 import CodeBlockView from "./code-block-view";
 import ImageView from "./image-view";
 import { defineImageFileHandlers } from "./upload-file";
