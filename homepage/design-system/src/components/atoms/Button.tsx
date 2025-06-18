@@ -154,14 +154,14 @@ const iconVariant = (
       : "white";
 };
 
-const colorVariant = (variant: keyof typeof variantToTextMap) => {
+const colorVariant = (variant: Variant) => {
   return variant === "white" ? "text-black" : "text-white";
 };
 
-const variantClass = (variant: keyof typeof variantToBgMap) =>
+const variantClass = (variant: Variant) =>
   `bg-gradient-to-tr ${variantToBgGradientColorMap[variant]} ${variantToBgGradientHoverMap[variant]} ${colorVariant(variant)} ${variantToButtonStateMap[variant]} ${shadowClassesBase} shadow-stone-400/20`;
 
-const styleClasses = (variant: keyof typeof variantToBgMap) => {
+const styleClasses = (variant: Variant) => {
   return {
     outline: `border ${variantToBorderMap[variant]} ${variantToTextMap[variant]} ${variantToHoverShadowMap[variant]} ${variantToBgTransparentActiveMap[variant]} shadow-{5px}-0px`,
     inverted: `${variantToTextMap[variant]} ${colorToBgHoverMap30[variantToColorMap[variant] as keyof typeof colorToBgHoverMap30]} ${colorToBgMap[variantToColorMap[variant] as keyof typeof colorToBgMap]} ${colorToBgActiveMap50[variantToColorMap[variant] as keyof typeof colorToBgActiveMap50]} ${shadowClassesBase}`,
