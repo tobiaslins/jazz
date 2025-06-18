@@ -13,6 +13,7 @@ export const frameworkNames: Record<
   {
     label: string;
     experimental: boolean;
+    hidden?: boolean;
   }
 > = {
   [Framework.React]: {
@@ -38,6 +39,7 @@ export const frameworkNames: Record<
   [Framework.Vue]: {
     label: "Vue",
     experimental: true,
+    hidden: true,
   },
 };
 

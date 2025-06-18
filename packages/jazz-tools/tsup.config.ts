@@ -107,12 +107,4 @@ export default defineConfig([
     },
     outDir: "dist/worker",
   },
-  {
-    ...cfg,
-    entry: {
-      index: "src/vue/index.ts",
-      testing: "src/vue/testing.ts",
-    },
-    outDir: "dist/vue",
-  },
 ]);
