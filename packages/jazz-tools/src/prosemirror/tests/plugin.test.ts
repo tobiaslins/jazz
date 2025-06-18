@@ -1,3 +1,5 @@
+// @vitest-environment jsdom
+
 import { Account, CoRichText } from "jazz-tools";
 import { createJazzTestAccount, setupJazzTestSync } from "jazz-tools/testing";
 import { schema } from "prosemirror-schema-basic";
