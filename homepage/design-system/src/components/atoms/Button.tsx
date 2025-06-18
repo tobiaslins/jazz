@@ -36,7 +36,6 @@ export type StyleVariant =
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
-  color?: "light" | "dark" | "white" | "black" | "default";
   styleVariant?: StyleVariant;
   state?: "hover" | "active" | "focus" | "disabled";
   size?: "sm" | "md" | "lg";
@@ -58,7 +57,6 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       children,
       size = "md",
       variant = "primary",
-      color,
       styleVariant,
       href,
       disabled,
@@ -80,9 +78,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     }: { styleVariant: string | undefined }) => {
       return {
         [sizeClasses[size as keyof typeof sizeClasses]]: size,
-        [variantClass(variant)]: !styleVariant && !color,
-        [colorClasses[color as keyof typeof colorClasses]]:
-          color && !styleVariant,
+        [variantClass(variant)]: !styleVariant,
         [styleClass]: styleVariant,
       };
     };
@@ -148,14 +144,22 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 );
 
 const iconVariant = (
-  variant: keyof typeof variantToTextMap,
+  variant: Variant,
   styleVariant: StyleVariant | undefined,
 ) => {
-  return styleVariant ? variant : "white";
+  return styleVariant
+    ? variant
+    : variant === "white" || variant === "light"
+      ? "black"
+      : "white";
+};
+
+const colorVariant = (variant: keyof typeof variantToTextMap) => {
+  return variant === "white" ? "text-black" : "text-white";
 };
 
 const variantClass = (variant: keyof typeof variantToBgMap) =>
-  `bg-gradient-to-tr ${variantToBgGradientColorMap[variant]} ${variantToBgGradientHoverMap[variant]} text-white ${variantToButtonStateMap[variant]} ${shadowClassesBase} shadow-stone-400/20`;
+  `bg-gradient-to-tr ${variantToBgGradientColorMap[variant]} ${variantToBgGradientHoverMap[variant]} ${colorVariant(variant)} ${variantToButtonStateMap[variant]} ${shadowClassesBase} shadow-stone-400/20`;
 
 const styleClasses = (variant: keyof typeof variantToBgMap) => {
   return {

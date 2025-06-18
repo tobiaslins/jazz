@@ -179,6 +179,10 @@ export const variantToBgGradientColorMap = {
   danger: `from-danger-dark via-danger to-danger-light ${gradiantClassesBase}`,
   alert: `from-alert-dark via-alert to-alert-light ${gradiantClassesBase}`,
   tip: `from-tip-dark via-tip to-tip-light ${gradiantClassesBase}`,
+  light: `from-stone-200 via-stone-300 to-stone-400 ${gradiantClassesBase}`,
+  dark: `from-stone-700 via-stone-800 to-stone-900 ${gradiantClassesBase}`,
+  white: `from-stone-100 via-white to-white ${gradiantClassesBase}`,
+  black: `from-stone-950 via-black to-stone-800 ${gradiantClassesBase}`,
 };
 
 export const variantToBgGradientHoverMap = {
@@ -190,6 +194,10 @@ export const variantToBgGradientHoverMap = {
   danger: `hover:from-danger-brightLight hover:to-danger-light ${gradiantClassesBase}`,
   alert: `hover:from-alert-brightLight hover:to-alert-light ${gradiantClassesBase}`,
   tip: `hover:from-tip-brightLight hover:to-tip-light ${gradiantClassesBase}`,
+  light: `hover:from-stone-200 hover:to-stone-300 ${gradiantClassesBase}`,
+  dark: `hover:from-stone-700 hover:to-stone-800 ${gradiantClassesBase}`,
+  white: `hover:from-white hover:to-white ${gradiantClassesBase}`,
+  black: `hover:from-black hover:to-stone-800 ${gradiantClassesBase}`,
 };
 
 export const variantToBgGradientActiveMap = {
@@ -201,6 +209,10 @@ export const variantToBgGradientActiveMap = {
   danger: `active:from-danger-brightDark active:to-danger-light ${gradiantClassesBase}`,
   alert: `active:from-alert-brightDark active:to-alert-light ${gradiantClassesBase}`,
   tip: `active:from-tip-brightDark active:to-tip-light ${gradiantClassesBase}`,
+  light: `active:from-stone-100 active:to-stone-300 ${gradiantClassesBase}`,
+  dark: `active:from-stone-950 active:to-stone-900 ${gradiantClassesBase}`,
+  white: `active:from-white active:to-white ${gradiantClassesBase}`,
+  black: `active:from-black active:to-black ${gradiantClassesBase}`,
 };
 
 export const shadowClassesBase = "shadow-md shadow-opacity-90";

@@ -6,4 +6,8 @@ export type Variant =
   | "success"
   | "warning"
   | "alert"
-  | "danger";
+  | "danger"
+  | "light"
+  | "dark"
+  | "white"
+  | "black";
