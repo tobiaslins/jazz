@@ -8,7 +8,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "jazz-richtext-prosemirror": "workspace:*",
     "jazz-tools": "workspace:*",
     "prosekit": "^0.13.3",
     "react": "^19.1.0",

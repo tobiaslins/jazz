@@ -1,8 +1,8 @@
 <script lang="ts">
+  import 'jazz-tools/inspector/register-custom-element';
+
   import '../app.css';
-  import { JazzProvider } from 'jazz-svelte';
-  import 'jazz-inspector-element';
-  import { page } from '$app/state';
+  import { JazzProvider } from 'jazz-tools/svelte';
   import { apiKey } from '../apiKey';
   import { getRandomUsername } from '$lib/utils';
   let { children } = $props();

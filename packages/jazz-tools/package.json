@@ -44,6 +44,16 @@
       "types": "./dist/inspector/index.d.ts",
       "default": "./dist/inspector/index.js"
     },
+    "./inspector/register-custom-element": {
+      "@jazz-tools/source": "./src/inspector/register-custom-element.ts",
+      "types": "./dist/inspector/register-custom-element.d.ts",
+      "default": "./dist/inspector/register-custom-element.js"
+    },
+    "./prosemirror": {
+      "@jazz-tools/source": "./src/prosemirror/index.ts",
+      "types": "./dist/prosemirror/index.d.ts",
+      "default": "./dist/prosemirror/index.js"
+    },
     "./react": {
       "@jazz-tools/source": "./src/react/index.ts",
       "types": "./dist/react/index.d.ts",
@@ -99,6 +109,28 @@
       "types": "./dist/react-native-core/testing.d.ts",
       "default": "./dist/react-native-core/testing.js"
     },
+    "./react-native-media-images": {
+      "@jazz-tools/source": "./src/react-native-media-images/index.ts",
+      "types": "./dist/react-native-media-images/index.d.ts",
+      "default": "./dist/react-native-media-images/index.js"
+    },
+    "./svelte": {
+      "svelte": "./dist/svelte/index.js",
+      "@jazz-tools/source": "./src/svelte/index.ts",
+      "types": "./dist/svelte/index.d.ts",
+      "default": "./dist/svelte/index.js"
+    },
+    "./svelte/testing": {
+      "svelte": "./dist/svelte/index.js",
+      "@jazz-tools/source": "./src/svelte/testing.ts",
+      "types": "./dist/svelte/testing.d.ts",
+      "default": "./dist/svelte/testing.js"
+    },
+    "./tiptap": {
+      "@jazz-tools/source": "./src/tiptap/index.ts",
+      "types": "./dist/tiptap/index.d.ts",
+      "default": "./dist/tiptap/index.js"
+    },
     "./worker": {
       "@jazz-tools/source": "./src/worker/index.ts",
       "types": "./dist/worker/index.d.ts",
@@ -109,25 +141,33 @@
   "license": "MIT",
   "version": "0.14.28",
   "dependencies": {
-    "clsx": "^2.0.0",
-    "goober": "^2.1.16",
-    "expo-sqlite": "15.2.9",
-    "@types/image-blob-reduce": "^4.1.1",
-    "image-blob-reduce": "^4.1.0",
-    "pica": "^9.0.1",
-    "@scure/bip39": "^1.3.0",
-    "cojson": "workspace:*",
-    "cojson-transport-ws": "workspace:*",
-    "cojson-storage": "workspace:*",
-    "cojson-storage-indexeddb": "workspace:*",
-    "fast-myers-diff": "^3.2.0",
-    "zod": "3.25.28",
+    "@manuscripts/prosemirror-recreate-steps": "^0.1.4",
     "@op-engineering/op-sqlite": "^11.4.8",
     "@scure/base": "1.2.1",
-    "react-native-mmkv": "^3.2.0",
+    "@scure/bip39": "^1.3.0",
+    "@tiptap/core": "^2.12.0",
+    "@types/image-blob-reduce": "^4.1.1",
+    "clsx": "^2.0.0",
+    "cojson": "workspace:*",
+    "cojson-storage": "workspace:*",
+    "cojson-storage-indexeddb": "workspace:*",
+    "cojson-transport-ws": "workspace:*",
+    "expo-sqlite": "15.2.9",
+    "fast-myers-diff": "^3.2.0",
+    "goober": "^2.1.16",
+    "image-blob-reduce": "^4.1.0",
+    "pica": "^9.0.1",
+    "prosemirror-example-setup": "^1.2.2",
+    "prosemirror-menu": "^1.2.4",
+    "prosemirror-model": "^1.21.1",
+    "prosemirror-schema-basic": "^1.2.2",
+    "prosemirror-state": "^1.4.3",
+    "prosemirror-transform": "^1.9.0",
     "react-native-fast-encoder": "^0.2.0",
+    "react-native-mmkv": "^3.2.0",
     "react-native-nitro-modules": "0.25.2",
-    "react-native-quick-crypto": "1.0.0-beta.16"
+    "react-native-quick-crypto": "1.0.0-beta.16",
+    "zod": "3.25.28"
   },
   "scripts": {
     "format-and-lint": "biome check .",
@@ -136,28 +176,40 @@
     "test": "vitest --run --root ../../ --project jazz-tools",
     "test:watch": "vitest --watch --root ../../ --project jazz-tools",
     "types": "tsc --outDir dist",
-    "build": "tsup && pnpm types"
+    "build:svelte": "svelte-package -i src/svelte -o dist/svelte",
+    "build": "tsup && pnpm build:svelte && pnpm types"
   },
   "devDependencies": {
-    "tsup": "8.3.5",
-    "typescript": "catalog:",
-    "vitest": "catalog:",
-    "ws": "^8.14.2",
     "@scure/bip39": "^1.3.0",
+    "@sveltejs/package": "^2.0.0",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "16.2.0",
     "@types/react": "19.0.0",
-    "@types/react-dom": "19.0.0"
+    "@types/react-dom": "19.0.0",
+    "svelte": "^5.34.6",
+    "tsup": "8.5.0",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "ws": "^8.14.2"
   },
   "peerDependencies": {
+    "@bam.tech/react-native-image-resizer": "*",
     "@react-native-community/netinfo": "*",
+    "expo-file-system": "*",
     "expo-secure-store": "*",
-    "react-native": "*",
     "react": "*",
-    "react-dom": "*"
+    "react-dom": "*",
+    "react-native": "*",
+    "svelte": "*"
   },
   "peerDependenciesMeta": {
+    "@bam.tech/react-native-image-resizer": {
+      "optional": true
+    },
+    "expo-file-system": {
+      "optional": true
+    },
     "@react-native-community/netinfo": {
       "optional": true
     },
@@ -174,9 +226,6 @@
       "optional": true
     },
     "svelte": {
-      "optional": true
-    },
-    "vue": {
       "optional": true
     }
   }

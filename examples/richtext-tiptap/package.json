@@ -20,7 +20,6 @@
     "@tiptap/react": "^2.12.0",
     "@tiptap/starter-kit": "^2.12.0",
     "clsx": "^2.1.1",
-    "jazz-richtext-tiptap": "workspace:*",
     "jazz-tools": "workspace:*",
     "lucide-react": "^0.509.0",
     "react": "19.0.0",

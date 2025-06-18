@@ -9,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-import { useAccount } from "jazz-vue";
+import { useAccount } from "jazz-tools/vue";
 import AppContainer from "./components/AppContainer.vue";
 import TopBar from "./components/TopBar.vue";
 

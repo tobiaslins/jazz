@@ -26,7 +26,7 @@
 
 <script lang="ts">
 import { CoPlainText, type ID } from "jazz-tools";
-import { useCoState } from "jazz-vue";
+import { useCoState } from "jazz-tools/vue";
 import { type PropType, computed, defineComponent, ref } from "vue";
 import ChatBody from "../components/ChatBody.vue";
 import ChatBubble from "../components/ChatBubble.vue";

@@ -12,7 +12,6 @@
     "format-and-lint:fix": "biome check . --write"
   },
   "dependencies": {
-    "jazz-richtext-prosemirror": "workspace:*",
     "jazz-tools": "workspace:*",
     "prosemirror-example-setup": "^1.2.3",
     "prosemirror-model": "^1.25.0",

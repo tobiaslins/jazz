@@ -87,7 +87,7 @@ This example demonstrates two key functionalities:
 
 - `src/schema.ts` - Defines the data model, including the `bio` field using CoRichText
 - `src/Editor.tsx` - Implements both plaintext and rich text editor views
-- `jazz-richtext-tiptap` - Provides the plugin that connects Jazz to Tiptap
+- `jazz-tools/tiptap` - Provides the plugin that connects Jazz to Tiptap
 
 ### Implementation details
 

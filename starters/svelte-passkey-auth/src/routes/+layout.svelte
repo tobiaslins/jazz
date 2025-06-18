@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { JazzProvider } from "jazz-svelte";
+  import { JazzProvider } from "jazz-tools/svelte";
   import { apiKey } from "../apiKey";
   import "../app.css";
   import Header from "$lib/components/Header.svelte";
-  import "jazz-inspector-element";
+  import "jazz-tools/inspector/register-custom-element";
   import { JazzAccount } from "$lib/schema";
 
   let { children } = $props();

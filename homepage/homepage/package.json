@@ -41,7 +41,6 @@
     "github-slugger": "^2.0.0",
     "jazz-auth-betterauth": "link:../../packages/jazz-auth-betterauth",
     "jazz-react-auth-betterauth": "link:../../packages/jazz-react-auth-betterauth",
-    "jazz-richtext-prosemirror": "link:../../packages/jazz-richtext-prosemirror",
     "jazz-tools": "link:../../packages/jazz-tools",
     "lucide-react": "^0.436.0",
     "mdast-util-from-markdown": "^2.0.0",

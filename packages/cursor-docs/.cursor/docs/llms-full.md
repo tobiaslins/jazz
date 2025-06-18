@@ -3674,7 +3674,7 @@ Jazz provides two CoValue types for collaborative text editing, collectively ref
 
 Both types enable real-time collaborative editing of text content while maintaining consistency across multiple users.
 
-**Note:** If you're looking for a quick way to add rich text editing to your app, check out [jazz-richtext-prosemirror](#using-rich-text-with-prosemirror).
+**Note:** If you're looking for a quick way to add rich text editing to your app, check out [jazz-tools/prosemirror](#using-rich-text-with-prosemirror).
 
 <CodeGroup>
 ```ts twoslash
@@ -3939,7 +3939,7 @@ const note = co.plainText().create("", { owner: me });
 
 ## Using Rich Text with ProseMirror
 
-Jazz provides a dedicated plugin for integrating co.richText() with the popular ProseMirror editor. This plugin, [`jazz-richtext-prosemirror`](https://www.npmjs.com/package/jazz-richtext-prosemirror), enables bidirectional synchronization between your co.richText() instances and ProseMirror editors.
+Jazz provides a dedicated plugin for integrating co.richText() with the popular ProseMirror editor. This plugin, [`jazz-tools/prosemirror`](https://www.npmjs.com/package/jazz-tools/prosemirror), enables bidirectional synchronization between your co.richText() instances and ProseMirror editors.
 
 ### ProseMirror Plugin Features
 
@@ -3951,7 +3951,7 @@ Jazz provides a dedicated plugin for integrating co.richText() with the popular 
 
 <CodeGroup>
 ```bash
-pnpm add jazz-richtext-prosemirror \
+pnpm add jazz-tools/prosemirror \
   prosemirror-view \
   prosemirror-state \
   prosemirror-schema-basic

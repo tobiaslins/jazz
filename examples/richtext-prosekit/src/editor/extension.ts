@@ -1,4 +1,4 @@
-import { createJazzPlugin } from "jazz-richtext-prosemirror";
+import { createJazzPlugin } from "jazz-tools/prosemirror";
 import { defineBasicExtension } from "prosekit/basic";
 import { definePlugin, union } from "prosekit/core";
 import {
@@ -13,8 +13,8 @@ import {
   defineReactNodeView,
 } from "prosekit/react";
 
-import { JazzPluginConfig } from "jazz-richtext-prosemirror/src/lib/plugin";
 import type { CoRichText } from "jazz-tools";
+import { JazzPluginConfig } from "jazz-tools/prosemirror/src/lib/plugin";
 import CodeBlockView from "./code-block-view";
 import ImageView from "./image-view";
 import { defineImageFileHandlers } from "./upload-file";

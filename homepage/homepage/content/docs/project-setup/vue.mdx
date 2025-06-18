@@ -40,7 +40,7 @@ Run the following command to install Jazz libraries:
 
 <CodeGroup>
 ```bash
-pnpm install jazz-tools jazz-vue
+pnpm install jazz-tools
 ```
 </CodeGroup>
 
@@ -110,17 +110,11 @@ Update the `src/main.ts` file to integrate Jazz:
 <CodeGroup>
 ```typescript
 import "./assets/main.css";
-import { JazzProvider } from "jazz-vue";
+import { JazzProvider } from "jazz-tools/vue";
 import { createApp, defineComponent, h } from "vue";
 import App from "./App.vue";
 import router from "./router";
 import { ToDoAccount } from "./schema";
-
-declare module "jazz-vue" {
-  interface Register {
-    Account: ToDoAccount;
-  }
-}
 
 const RootComponent = defineComponent({
   name: "RootComponent",
@@ -195,7 +189,7 @@ Update the `App.vue` file to include logout functionality:
 </template>
 
 <script setup lang="ts">
-import { useAccount } from "jazz-vue";
+import { useAccount } from "jazz-tools/vue";
 
 const { me, logOut } = useAccount();
 </script>
@@ -212,7 +206,7 @@ Subscribe to a CoValue inside `src/views/HomeView.vue`:
 import { Group, type ID } from "jazz-tools";
 import { ref, toRaw, watch } from "vue";
 import { computed } from "vue";
-import { useAccount, useCoState } from "jazz-vue";
+import { useAccount, useCoState } from "jazz-tools/vue";
 import { Folder, FolderList, ToDoItem, ToDoList } from "../schema";
 
 const { me } = useAccount();

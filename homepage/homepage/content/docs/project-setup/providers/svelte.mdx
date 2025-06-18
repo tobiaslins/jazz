@@ -25,7 +25,7 @@ The `<JazzProvider />` accepts several configuration options:
 <!-- src/routes/+layout.svelte -->
 <script lang="ts" module>
   // Register the Account schema so `useAccount` returns our custom `MyAppAccount`
-  declare module 'jazz-svelte' {
+  declare module 'jazz-tools/svelte' {
     interface Register {
       Account: MyAppAccount;
     }
@@ -33,7 +33,7 @@ The `<JazzProvider />` accepts several configuration options:
 </script>
 
 <script lang="ts">
-  import { JazzProvider } from "jazz-svelte";
+  import { JazzProvider } from "jazz-tools/svelte";
   import { MyAppAccount } from "$lib/schema";
   let { children } = $props();
 </script>
@@ -84,17 +84,8 @@ The `AccountSchema` property defines your application's account structure:
 <CodeGroup>
 ```svelte
 <!-- src/routes/+layout.svelte -->>
-<script lang="ts" module>
-  // Register the Account schema so `useAccount` returns our custom `MyAppAccount`
-  declare module 'jazz-svelte' {
-    interface Register {
-      Account: MyAppAccount;
-    }
-  }
-</script>
-
 <script lang="ts">
-  import { JazzProvider } from "jazz-svelte";
+  import { JazzProvider } from "jazz-tools/svelte";
   import { MyAppAccount } from "$lib/schema";
   let { children } = $props();
 </script>
@@ -116,7 +107,7 @@ The provider accepts these additional options:
 ```svelte
 <!-- src/routes/+layout.svelte -->
 <script lang="ts">
-  import { JazzProvider } from "jazz-svelte";
+  import { JazzProvider } from "jazz-tools/svelte";
   import { syncConfig } from "$lib/syncConfig";
   let { children } = $props();
   

@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { JazzProvider } from 'jazz-svelte';
-  import "jazz-inspector-element"
-  import { PasskeyAuthBasicUI } from 'jazz-svelte';
+  import { JazzProvider } from 'jazz-tools/svelte';
+  import 'jazz-tools/inspector/register-custom-element';
+  import { PasskeyAuthBasicUI } from 'jazz-tools/svelte';
   import { Toaster } from 'svelte-sonner';
   import '../app.css';
   import { FileShareAccount } from '$lib/schema';

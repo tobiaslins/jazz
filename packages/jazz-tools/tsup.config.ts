@@ -52,6 +52,22 @@ export default defineConfig([
   {
     ...cfg,
     entry: {
+      "register-custom-element": "src/inspector/register-custom-element.ts",
+    },
+    // This is a custom element meant to be used on non-react apps
+    noExternal: ["react", "react-dom"],
+    outDir: "dist/inspector",
+  },
+  {
+    ...cfg,
+    entry: {
+      index: "src/prosemirror/index.ts",
+    },
+    outDir: "dist/prosemirror",
+  },
+  {
+    ...cfg,
+    entry: {
       index: "src/react/index.ts",
       testing: "src/react/testing.tsx",
       ssr: "src/react/ssr.ts",
@@ -90,5 +106,13 @@ export default defineConfig([
       index: "src/worker/index.ts",
     },
     outDir: "dist/worker",
+  },
+  {
+    ...cfg,
+    entry: {
+      index: "src/vue/index.ts",
+      testing: "src/vue/testing.ts",
+    },
+    outDir: "dist/vue",
   },
 ]);

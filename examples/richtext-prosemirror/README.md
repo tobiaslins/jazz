@@ -79,7 +79,7 @@ This example demonstrates two key functionalities:
 
 - `src/schema.ts` - Defines the data model, including the `bio` field using CoRichText
 - `src/Editor.tsx` - Implements both plaintext and rich text editor views
-- `jazz-richtext-prosemirror` - Provides the plugin that connects Jazz to ProseMirror
+- `jazz-tools/prosemirror` - Provides the plugin that connects Jazz to ProseMirror
 
 ### Implementation details
 
