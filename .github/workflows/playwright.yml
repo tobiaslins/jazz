@@ -16,6 +16,7 @@ jobs:
         project: [
           "tests/e2e",
           "examples/chat",
+          "examples/chat-svelte",
           "examples/clerk",
           "examples/betterauth",
           "examples/file-share-svelte",
@@ -23,7 +24,6 @@ jobs:
           "examples/inspector",
           "examples/music-player",
           "examples/organization",
-          "examples/pets",
           "starters/react-passkey-auth",
           "starters/svelte-passkey-auth",
           "packages/jazz-svelte"
