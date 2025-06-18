@@ -4,16 +4,6 @@ export const sizeClasses = {
   lg: "md:text-lg  py-2 px-3 md:px-8 md:py-3",
 };
 
-export const colorClasses = {
-  light:
-    "bg-stone-200 text-stone-700 dark:text-stone-900 hover:bg-stone-200/60 active:bg-stone-200/70",
-  dark: "bg-stone-900 text-stone-200 hover:bg-stone-900/60 active:bg-stone-900/70",
-  white:
-    "bg-white text-black dark:text-black hover:bg-white/60 active:bg-white/70",
-  black:
-    "bg-black text-white dark:bg-black hover:bg-black/60 active:bg-black/70",
-};
-
 export const variantToBorderMap = {
   primary: "border-primary",
   secondary: "border-secondary",
@@ -23,6 +13,10 @@ export const variantToBorderMap = {
   danger: "border-danger",
   alert: "border-alert",
   tip: "border-tip",
+  light: "border-stone-200",
+  dark: "border-stone-900",
+  white: "border-white",
+  black: "border-black",
 };
 
 export const variantToActiveBorderMap = {
@@ -34,6 +28,10 @@ export const variantToActiveBorderMap = {
   danger: "active:border-danger focus:border-danger",
   alert: "active:border-alert focus:border-alert",
   tip: "active:border-tip focus:border-tip",
+  light: "active:border-stone-200 focus:border-stone-200",
+  dark: "active:border-stone-900 focus:border-stone-900",
+  white: "active:border-white focus:border-white",
+  black: "active:border-black focus:border-black",
 };
 
 export const variantToBgMap = {
@@ -45,6 +43,10 @@ export const variantToBgMap = {
   danger: "bg-danger",
   alert: "bg-alert",
   tip: "bg-tip",
+  light: "bg-stone-200",
+  dark: "bg-stone-900",
+  white: "bg-white",
+  black: "bg-black",
 };
 
 export const variantToTextHoverMap = {
@@ -56,6 +58,10 @@ export const variantToTextHoverMap = {
   danger: "hover:text-danger-light",
   alert: "hover:text-alert-light",
   tip: "hover:text-tip-light",
+  light: "hover:text-stone-700",
+  dark: "hover:text-stone-200",
+  white: "hover:text-black",
+  black: "hover:text-white",
 };
 
 export const variantToBgTransparentHoverMap = {
@@ -67,6 +73,10 @@ export const variantToBgTransparentHoverMap = {
   danger: "hover:bg-danger-transparent",
   alert: "hover:bg-alert-transparent",
   tip: "hover:bg-tip-transparent",
+  light: "hover:bg-stone-100",
+  dark: "hover:bg-stone-900",
+  white: "hover:bg-white",
+  black: "hover:bg-black",
 };
 
 export const variantToBgTransparentActiveMap = {
@@ -78,6 +88,10 @@ export const variantToBgTransparentActiveMap = {
   danger: "active:bg-red/20",
   alert: "active:bg-yellow/20",
   tip: "active:bg-cyan/20",
+  light: "active:bg-stone-100",
+  dark: "active:bg-stone-900",
+  white: "active:bg-white",
+  black: "active:bg-black",
 };
 
 export const variantToTextMap = {
@@ -89,6 +103,10 @@ export const variantToTextMap = {
   danger: "text-danger",
   alert: "text-alert",
   tip: "text-tip",
+  light: "text-stone-700",
+  dark: "text-stone-200",
+  white: "text-black",
+  black: "text-white",
 };
 
 export const variantToTextActiveMap = {
@@ -100,7 +118,25 @@ export const variantToTextActiveMap = {
   danger: "active:text-danger-dark",
   alert: "active:text-alert-dark",
   tip: "active:text-tip-dark",
+  light: "active:text-stone-700",
+  dark: "active:text-stone-200",
+  white: "active:text-black",
+  black: "active:text-white",
 };
+
+export type VariantColor =
+  | "blue"
+  | "indigo"
+  | "purple"
+  | "green"
+  | "orange"
+  | "red"
+  | "yellow"
+  | "cyan"
+  | "light"
+  | "dark"
+  | "white"
+  | "black";
 
 export const variantToColorMap = {
   primary: "blue",
@@ -111,6 +147,10 @@ export const variantToColorMap = {
   danger: "red",
   alert: "yellow",
   tip: "cyan",
+  light: "light",
+  dark: "dark",
+  white: "white",
+  black: "black",
 };
 
 export const colorToBgMap = {
@@ -122,6 +162,10 @@ export const colorToBgMap = {
   red: "bg-red/20",
   yellow: "bg-yellow/20",
   cyan: "bg-cyan/20",
+  light: "bg-stone-100/20",
+  dark: "bg-stone-900/20",
+  white: "bg-white/20",
+  black: "bg-black/20",
 };
 
 export const colorToBgHoverMap30 = {
@@ -133,6 +177,10 @@ export const colorToBgHoverMap30 = {
   red: "hover:bg-red/30",
   yellow: "hover:bg-yellow/30",
   cyan: "hover:bg-cyan/30",
+  light: "hover:bg-stone-100/30",
+  dark: "hover:bg-stone-900/30",
+  white: "hover:bg-white/30",
+  black: "hover:bg-black/30",
 };
 
 export const colorToBgHoverMap10 = {
@@ -144,6 +192,10 @@ export const colorToBgHoverMap10 = {
   red: "hover:bg-red/10",
   yellow: "hover:bg-yellow/10",
   cyan: "hover:bg-cyan/10",
+  light: "hover:bg-stone-100/10",
+  dark: "hover:bg-stone-900/10",
+  white: "hover:bg-white/10",
+  black: "hover:bg-black/10",
 };
 
 export const colorToBgActiveMap50 = {
@@ -155,6 +207,10 @@ export const colorToBgActiveMap50 = {
   red: "active:bg-red/50",
   yellow: "active:bg-yellow/50",
   cyan: "active:bg-cyan/50",
+  light: "active:bg-stone-100/50",
+  dark: "active:bg-stone-900/50",
+  white: "active:bg-white/50",
+  black: "active:bg-black/50",
 };
 
 export const colorToBgActiveMap25 = {
@@ -166,6 +222,10 @@ export const colorToBgActiveMap25 = {
   red: "active:bg-red/25",
   yellow: "active:bg-yellow/25",
   cyan: "active:bg-cyan/25",
+  light: "active:bg-stone-100/25",
+  dark: "active:bg-stone-900/25",
+  white: "active:bg-white/25",
+  black: "active:bg-black/25",
 };
 
 const gradiantClassesBase = "from-7% via-50% to-95%";
@@ -226,6 +286,10 @@ export const variantToHoverShadowMap = {
   danger: `${shadowClassesBase} hover:shadow-red/40`,
   alert: `${shadowClassesBase} hover:shadow-yellow/40`,
   tip: `${shadowClassesBase} hover:shadow-cyan/40`,
+  light: `${shadowClassesBase} hover:shadow-stone-200/40`,
+  dark: `${shadowClassesBase} hover:shadow-stone-900/40`,
+  white: `${shadowClassesBase} hover:shadow-white/40`,
+  black: `${shadowClassesBase} hover:shadow-black/40`,
 };
 
 const focusRingClassesBase =
@@ -240,6 +304,10 @@ export const variantToButtonStateMap = {
   danger: `${variantToBgGradientActiveMap.danger} ${focusRingClassesBase} focus:ring-danger`,
   alert: `${variantToBgGradientActiveMap.alert} ${focusRingClassesBase} focus:ring-alert`,
   tip: `${variantToBgGradientActiveMap.tip} ${focusRingClassesBase} focus:ring-tip`,
+  light: `${variantToBgGradientActiveMap.light} ${focusRingClassesBase} focus:ring-stone-200`,
+  dark: `${variantToBgGradientActiveMap.dark} ${focusRingClassesBase} focus:ring-stone-800`,
+  white: `${variantToBgGradientActiveMap.white} ${focusRingClassesBase} focus:ring-white`,
+  black: `${variantToBgGradientActiveMap.black} ${focusRingClassesBase} focus:ring-black`,
 };
 
 export const variantStyleToButtonStateMap = {

@@ -2,7 +2,7 @@ import { clsx } from "clsx";
 import Link from "next/link";
 import { forwardRef } from "react";
 import {
-  colorClasses,
+  VariantColor,
   colorToBgActiveMap25,
   colorToBgActiveMap50,
   colorToBgHoverMap10,
@@ -12,7 +12,6 @@ import {
   sizeClasses,
   variantToBgGradientColorMap,
   variantToBgGradientHoverMap,
-  variantToBgMap,
   variantToBgTransparentActiveMap,
   variantToBorderMap,
   variantToButtonStateMap,
@@ -163,9 +162,9 @@ const variantClass = (variant: Variant) =>
 
 const styleClasses = (variant: Variant) => {
   return {
-    outline: `border ${variantToBorderMap[variant]} ${variantToTextMap[variant]} ${variantToHoverShadowMap[variant]} ${variantToBgTransparentActiveMap[variant]} shadow-{5px}-0px`,
-    inverted: `${variantToTextMap[variant]} ${colorToBgHoverMap30[variantToColorMap[variant] as keyof typeof colorToBgHoverMap30]} ${colorToBgMap[variantToColorMap[variant] as keyof typeof colorToBgMap]} ${colorToBgActiveMap50[variantToColorMap[variant] as keyof typeof colorToBgActiveMap50]} ${shadowClassesBase}`,
-    ghost: `bg-transparent ${variantToTextMap[variant]} ${colorToBgHoverMap10[variantToColorMap[variant] as keyof typeof colorToBgHoverMap10]} ${colorToBgActiveMap25[variantToColorMap[variant] as keyof typeof colorToBgActiveMap25]}`,
+    outline: `border ${variantToBorderMap[variant]} ${variantToTextMap[variant]} ${variantToHoverShadowMap[variant]} ${variantToBgTransparentActiveMap[variant]} shadow-[5px_0px]`,
+    inverted: `${variantToTextMap[variant]} ${colorToBgHoverMap30[variantToColorMap[variant] as VariantColor]} ${colorToBgMap[variantToColorMap[variant] as VariantColor]} ${colorToBgActiveMap50[variantToColorMap[variant] as VariantColor]} ${shadowClassesBase}`,
+    ghost: `bg-transparent ${variantToTextMap[variant]} ${colorToBgHoverMap10[variantToColorMap[variant] as VariantColor]} ${colorToBgActiveMap25[variantToColorMap[variant] as VariantColor]}`,
     text: `bg-transparent ${variantToTextMap[variant]} underline underline-offset-2 p-0 hover:bg-transparent ${variantToTextHoverMap[variant]} ${variantToTextActiveMap[variant]} active:underline-stone-500`,
   };
 };
