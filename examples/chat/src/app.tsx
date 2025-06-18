@@ -1,9 +1,9 @@
 import { apiKey } from "@/apiKey.ts";
 import { getRandomUsername, inIframe, onChatLoad } from "@/util.ts";
 import { useIframeHashRouter } from "hash-slash";
-import { JazzInspector } from "jazz-inspector";
-import { JazzProvider, useAccount } from "jazz-react";
 import { Group } from "jazz-tools";
+import { JazzInspector } from "jazz-tools/inspector";
+import { JazzProvider, useAccount } from "jazz-tools/react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { ChatScreen } from "./chatScreen.tsx";

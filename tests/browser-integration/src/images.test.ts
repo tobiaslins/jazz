@@ -1,6 +1,6 @@
 import { page, userEvent } from "@vitest/browser/context";
-import { createImage } from "jazz-browser-media-images";
 import { AuthSecretStorage, ImageDefinition } from "jazz-tools";
+import { createImage } from "jazz-tools/browser-media-images";
 import { assert, afterEach, describe, expect, test } from "vitest";
 import { createAccountContext, startSyncServer } from "./testUtils";
 

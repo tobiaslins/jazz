@@ -13,8 +13,10 @@
     "declaration": true,
     "emitDeclarationOnly": true,
     "declarationMap": true,
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "jsx": "react-jsx",
+    "customConditions": ["@jazz-tools/source"]
   },
-  "include": ["./src/**/*.ts"],
+  "include": ["src/**/*.ts"],
   "exclude": ["./node_modules"]
 }

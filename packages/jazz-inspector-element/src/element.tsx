@@ -1,5 +1,5 @@
-import { JazzInspectorInternal } from "jazz-inspector";
 import { Account } from "jazz-tools";
+import { JazzInspectorInternal } from "jazz-tools/inspector";
 import { createRoot } from "react-dom/client";
 
 export class JazzInspectorElement extends HTMLElement {

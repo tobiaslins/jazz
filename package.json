@@ -17,6 +17,7 @@
     "@vitest/coverage-v8": "catalog:",
     "@vitest/ui": "catalog:",
     "happy-dom": "^17.4.4",
+    "jazz-tools": "workspace:*",
     "lefthook": "^1.8.2",
     "pkg-pr-new": "^0.0.39",
     "playwright": "^1.50.1",

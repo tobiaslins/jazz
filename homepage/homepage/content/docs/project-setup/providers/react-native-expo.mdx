@@ -21,7 +21,7 @@ Wrap your app components with the `<JazzProvider />` component:
 ```tsx twoslash
 // @noErrors: 2307 7031 2304 2686 2664
 // App.tsx
-import { JazzProvider } from "jazz-expo";
+import { JazzProvider } from "jazz-tools/expo";
 import { MyAppAccount } from "./schema";
 
 export function MyJazzProvider({ children }: { children: React.ReactNode }) {
@@ -36,7 +36,7 @@ export function MyJazzProvider({ children }: { children: React.ReactNode }) {
 }
 
 // Register the Account schema so `useAccount` returns our custom `MyAppAccount`
-declare module "jazz-expo" {
+declare module "jazz-tools/expo" {
   interface Register {
     Account: MyAppAccount;
   }
@@ -75,7 +75,7 @@ function SignInScreen({ auth }: { auth: any }) {
 }
 // ---cut-before---
 // Example with PassphraseAuth
-import { JazzProvider, usePassphraseAuth } from "jazz-expo";
+import { JazzProvider, usePassphraseAuth } from "jazz-tools/expo";
 import { englishWordlist } from "./wordlist";
 
 function JazzAuthentication({ children }: { children: ReactNode }) {
@@ -139,8 +139,8 @@ function SignInScreen({ auth }: { auth: any }) {
   return null;
 }
 // ---cut-before---
-import { JazzProvider } from "jazz-expo";
-import { RNQuickCrypto } from "jazz-expo/crypto";
+import { JazzProvider } from "jazz-tools/expo";
+import { RNQuickCrypto } from "jazz-tools/expo/crypto";
 
 function MyJazzProvider({ children }: { children: ReactNode }) {
   return (

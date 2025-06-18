@@ -22,7 +22,7 @@ First, install the required packages:
 
 <CodeGroup>
 ```bash
-pnpm install jazz-react jazz-tools
+pnpm install jazz-tools
 ```
 </CodeGroup>
 
@@ -84,7 +84,7 @@ function App() {
 }
 // ---cut---
 // app.tsx
-import { JazzProvider } from "jazz-react";
+import { JazzProvider } from "jazz-tools/react";
 import { MyAppAccount } from "./schema";
 
 createRoot(document.getElementById("root")!).render(
@@ -135,7 +135,7 @@ import * as React from "react";
 // app.tsx
 "use client" // Mark as client component
 
-import { JazzProvider } from "jazz-react";
+import { JazzProvider } from "jazz-tools/react";
 import { MyAppAccount } from "./schema";
 
 export function JazzWrapper({ children }: { children: React.ReactNode }) {
@@ -178,7 +178,7 @@ import * as React from "react";
 // Profile.tsx
 "use client"; // [!code ++]
 
-import { useAccount } from "jazz-react";
+import { useAccount } from "jazz-tools/react";
 import { MyAppAccount } from "./schema";
 
 export function Profile() {
@@ -303,7 +303,7 @@ export function ItemList({ items }: { items: MyItem[] }) {
 // @filename: ItemListHydrator.tsx
 // ItemListHydrator.tsx
 import * as React from "react";
-import { useCoState } from "jazz-react";
+import { useCoState } from "jazz-tools/react";
 import { ID } from "jazz-tools";
 const myCollectionID = "co_z123" as ID<MyCollection>;
 // ---cut---
@@ -358,7 +358,7 @@ export function ItemList({ items }: { items: MyItem[] }) {
 // @filename: ItemListHydrator.tsx
 // ItemListHydrator.tsx
 import * as React from "react";
-import { useCoState } from "jazz-react";
+import { useCoState } from "jazz-tools/react";
 import { ID } from "jazz-tools";
 const myCollectionID = "co_z123" as ID<MyCollection>;
 // ---cut---

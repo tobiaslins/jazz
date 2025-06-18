@@ -3,9 +3,9 @@ import { userEvent } from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import PasskeyAuthBasicUI from './PasskeyAuthBasicUI.svelte';
 import { createJazzTestAccount, createJazzTestContext } from '../testing.js';
-import { BrowserPasskeyAuth } from 'jazz-browser';
+import { BrowserPasskeyAuth } from 'jazz-tools/browser';
 
-vi.mock('jazz-browser', () => ({
+vi.mock('jazz-tools/browser', () => ({
   BrowserPasskeyAuth: class {
     logIn() {
       return Promise.resolve();

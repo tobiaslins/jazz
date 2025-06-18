@@ -127,7 +127,7 @@ const MyAppAccount = co.account({
 class ChatPreview extends React.Component<{ chat: co.loaded<typeof Chat> }> {};
 class ContactPreview extends React.Component<{ contact: co.loaded<typeof MyAppAccount> }> {};
 // ---cut---
-import { useAccount } from "jazz-react";
+import { useAccount } from "jazz-tools/react";
 
 function DashboardPageComponent() {
   const { me } = useAccount(MyAppAccount, { resolve: {

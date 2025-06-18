@@ -1,4 +1,4 @@
-import { JazzProvider } from "jazz-expo";
+import { JazzProvider } from "jazz-tools/expo";
 import React, { StrictMode } from "react";
 import { apiKey } from "./apiKey";
 import ChatScreen from "./chat";

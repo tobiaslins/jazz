@@ -4,10 +4,10 @@ import clsx from "clsx";
 import * as Clipboard from "expo-clipboard";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams } from "expo-router";
-import { useAccount, useCoState } from "jazz-expo";
-import { ProgressiveImg } from "jazz-expo";
 import { createImage } from "jazz-react-native-media-images";
 import { CoPlainText, Group, Loaded } from "jazz-tools";
+import { useAccount, useCoState } from "jazz-tools/expo";
+import { ProgressiveImg } from "jazz-tools/expo";
 import { useEffect, useLayoutEffect, useState } from "react";
 import React, {
   SafeAreaView,

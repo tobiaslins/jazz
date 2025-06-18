@@ -1,8 +1,8 @@
+import { Account, CoMap, Group, ID, Inbox, coField } from "jazz-tools";
 import {
   useAccount,
   experimental_useInboxSender as useInboxSender,
-} from "jazz-react";
-import { Account, CoMap, Group, ID, Inbox, coField } from "jazz-tools";
+} from "jazz-tools/react";
 import { useEffect, useRef, useState } from "react";
 import { createCredentiallessIframe } from "../lib/createCredentiallessIframe";
 

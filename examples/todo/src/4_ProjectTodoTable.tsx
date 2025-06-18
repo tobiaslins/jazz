@@ -14,8 +14,8 @@ import {
   TableRow,
 } from "./basicComponents";
 
-import { useCoState } from "jazz-react";
 import { CoPlainText, Loaded } from "jazz-tools";
+import { useCoState } from "jazz-tools/react";
 import { useParams } from "react-router";
 import uniqolor from "uniqolor";
 import { InviteButton } from "./components/InviteButton";

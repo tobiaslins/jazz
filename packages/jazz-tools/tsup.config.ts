@@ -1,13 +1,94 @@
 import { defineConfig } from "tsup";
 
-export default defineConfig({
-  entry: {
-    index: "src/index.ts",
-    testing: "src/testing.ts",
-  },
-  format: ["esm"],
-  dts: false,
+const cfg = {
+  splitting: true,
   sourcemap: true,
   clean: true,
-  minify: false,
-});
+  treeshake: false,
+  dts: false,
+  format: ["esm" as const],
+  external: ["jazz-tools"],
+};
+
+export default defineConfig([
+  {
+    ...cfg,
+    entry: {
+      index: "src/index.ts",
+      testing: "src/testing.ts",
+    },
+    outDir: "dist",
+  },
+  {
+    ...cfg,
+    entry: {
+      index: "src/browser/index.ts",
+    },
+    outDir: "dist/browser",
+  },
+  {
+    ...cfg,
+    entry: {
+      index: "src/browser-media-images/index.ts",
+    },
+    outDir: "dist/browser-media-images",
+  },
+  {
+    ...cfg,
+    entry: {
+      index: "src/expo/index.ts",
+      testing: "src/expo/testing.ts",
+      crypto: "src/expo/crypto.ts",
+    },
+    outDir: "dist/expo",
+  },
+  {
+    ...cfg,
+    entry: {
+      index: "src/inspector/index.ts",
+    },
+    outDir: "dist/inspector",
+  },
+  {
+    ...cfg,
+    entry: {
+      index: "src/react/index.ts",
+      testing: "src/react/testing.tsx",
+      ssr: "src/react/ssr.ts",
+    },
+    outDir: "dist/react",
+  },
+  {
+    ...cfg,
+    entry: {
+      index: "src/react-core/index.ts",
+      testing: "src/react-core/testing.tsx",
+    },
+    outDir: "dist/react-core",
+  },
+  {
+    ...cfg,
+    entry: {
+      index: "src/react-native/index.ts",
+      testing: "src/react-native/testing.ts",
+      crypto: "src/react-native/crypto.ts",
+    },
+    outDir: "dist/react-native",
+  },
+  {
+    ...cfg,
+    entry: {
+      index: "src/react-native-core/index.ts",
+      testing: "src/react-native-core/testing.tsx",
+      crypto: "src/react-native-core/crypto/index.ts",
+    },
+    outDir: "dist/react-native-core",
+  },
+  {
+    ...cfg,
+    entry: {
+      index: "src/worker/index.ts",
+    },
+    outDir: "dist/worker",
+  },
+]);

@@ -200,7 +200,7 @@ Perfect for handling user input in form controls:
 ```tsx twoslash
 import { co, z } from "jazz-tools";
 import { createJazzTestAccount } from 'jazz-tools/testing';
-import { useCoState } from "jazz-react";
+import { useCoState } from "jazz-tools/react";
 import React, { useState } from "react";
 const me = await createJazzTestAccount();
 
@@ -347,7 +347,7 @@ const JazzAccount = co.account({
   root: co.map({})
 });
 
-import { useAccount, useCoState } from "jazz-react";
+import { useAccount, useCoState } from "jazz-tools/react";
 import { co, z } from "jazz-tools";
 import React, { useEffect, useRef } from "react";
 // ---cut---

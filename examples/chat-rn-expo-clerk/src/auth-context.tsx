@@ -1,5 +1,5 @@
 import { useClerk } from "@clerk/clerk-expo";
-import { JazzProviderWithClerk } from "jazz-expo/auth/clerk";
+import { JazzProviderWithClerk } from "jazz-tools/expo";
 import React, { PropsWithChildren } from "react";
 import { apiKey } from "./apiKey";
 

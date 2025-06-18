@@ -1,4 +1,4 @@
-import { JazzProvider } from "jazz-react";
+import { JazzProvider } from "jazz-tools/react";
 
 export function JazzAndAuth({ children }: { children: React.ReactNode }) {
   return (

@@ -8,7 +8,7 @@ export const metadata = {
 
 `ImageDefinition` is a specialized CoValue designed specifically for managing images in Jazz. It extends beyond basic file storage by supporting multiple resolutions of the same image, optimized for mobile devices.
 
-**Note**: This guide applies to both Expo and framework-less React Native implementations. The functionality described here is identical regardless of which implementation you're using, though you'll need to import from the appropriate package (`jazz-expo` or `jazz-react-native`).
+**Note**: This guide applies to both Expo and framework-less React Native implementations. The functionality described here is identical regardless of which implementation you're using
 
 Jazz offers several tools to work with images in React Native:
 - [`createImage()`](#creating-images) - function to create an `ImageDefinition` from a base64 image data URI
@@ -91,7 +91,7 @@ For a complete progressive loading experience, use the `ProgressiveImg` componen
 
 <CodeGroup>
 ```tsx
-import { ProgressiveImg } from "jazz-react-native";
+import { ProgressiveImg } from "jazz-tools/react-native";
 import { Image, StyleSheet } from "react-native";
 
 function GalleryView({ image }) {
@@ -133,7 +133,7 @@ For more control over image loading, you can implement your own progressive imag
 
 <CodeGroup>
 ```tsx
-import { useProgressiveImg } from "jazz-react-native";
+import { useProgressiveImg } from "jazz-tools/react-native";
 import { Image, View, Text, ActivityIndicator } from "react-native";
 
 function CustomImageComponent({ image }) {

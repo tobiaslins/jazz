@@ -1,4 +1,4 @@
-import { BrowserPasskeyAuth } from "jazz-browser";
+import { BrowserPasskeyAuth } from "jazz-tools/browser";
 import { computed } from "vue";
 import { useAuthSecretStorage, useJazzContext } from "../composables.js";
 import { useIsAuthenticated } from "./useIsAuthenticated.js";

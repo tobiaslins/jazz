@@ -1,6 +1,6 @@
 "use client";
 
-import { useAccount, usePasskeyAuth } from "jazz-react";
+import { useAccount, usePasskeyAuth } from "jazz-tools/react";
 import { APPLICATION_NAME } from "./Main";
 
 export function AuthButton() {

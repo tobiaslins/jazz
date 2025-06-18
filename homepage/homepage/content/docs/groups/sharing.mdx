@@ -53,7 +53,7 @@ const Organization = co.map({
 });
 const organization = Organization.create({ name: "Garden Computing" });
 // ---cut---
-import { createInviteLink } from "jazz-react";
+import { createInviteLink } from "jazz-tools/react";
 
 createInviteLink(organization, "writer"); // or reader, admin, writeOnly
 ```
@@ -75,7 +75,7 @@ const Organization = co.map({
 const organization = Organization.create({ name: "Garden Computing" });
 const organizationID = organization.id;
 // ---cut---
-import { useAcceptInvite } from "jazz-react";
+import { useAcceptInvite } from "jazz-tools/react";
 
 useAcceptInvite({
   invitedObjectSchema: Organization,

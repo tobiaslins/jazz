@@ -1,5 +1,5 @@
 import { CoID, RawCoValue } from "cojson";
-import { PageInfo } from "jazz-inspector";
+import { PageInfo } from "jazz-tools/inspector";
 import { useCallback, useEffect, useState } from "react";
 
 export function usePagePath(defaultPath?: PageInfo[]) {

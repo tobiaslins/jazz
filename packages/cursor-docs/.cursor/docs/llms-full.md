@@ -8116,7 +8116,7 @@ export type MusicaAccount = co.loaded<typeof MusicaAccount>;
 
 ```ts
 import { Toaster } from "@/components/ui/toaster";
-import { JazzInspector } from "jazz-inspector";
+import { JazzInspector } from "jazz-tools/inspector";
 /* eslint-disable react-refresh/only-export-components */
 import React from "react";
 import ReactDOM from "react-dom/client";

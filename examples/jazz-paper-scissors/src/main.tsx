@@ -1,10 +1,10 @@
-import { JazzInspector } from "jazz-inspector";
+import { JazzInspector } from "jazz-tools/inspector";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 
 import "./index.css";
 import { apiKey } from "@/apiKey.ts";
-import { JazzProvider } from "jazz-react";
+import { JazzProvider } from "jazz-tools/react";
 import { App } from "./app";
 
 const rootElement = document.getElementById("app");

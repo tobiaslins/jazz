@@ -68,7 +68,6 @@
   },
   "dependencies": {
     "cojson": "workspace:*",
-    "jazz-browser": "workspace:*",
     "jazz-tools": "workspace:*"
   }
 }

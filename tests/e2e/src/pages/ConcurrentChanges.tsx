@@ -1,5 +1,5 @@
-import { useAccount, useCoState } from "jazz-react";
 import { CoFeed, Group, ID, coField } from "jazz-tools";
+import { useAccount, useCoState } from "jazz-tools/react";
 import { useEffect, useState } from "react";
 
 export class Counter extends CoFeed.Of(coField.json<{ value: number }>()) {}

@@ -1,14 +1,14 @@
 "use client";
 
-import { JazzProvider } from "jazz-react";
 import { AuthProvider } from "jazz-react-auth-betterauth";
+import { JazzProvider } from "jazz-tools/react";
 import { type ReactNode, lazy } from "react";
 
 const JazzDevTools =
   process.env.NODE_ENV === "production"
     ? () => null
     : lazy(() =>
-        import("jazz-inspector").then((res) => ({
+        import("jazz-tools/inspector").then((res) => ({
           default: res.JazzInspector,
         })),
       );

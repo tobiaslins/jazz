@@ -21,7 +21,7 @@ Wrap your app components with the `<JazzProvider />` component:
 ```tsx twoslash
 // @noErrors: 2307 2686 2664
 // App.tsx
-import { JazzProvider } from "jazz-react-native";
+import { JazzProvider } from "jazz-tools/react-native";
 import { MyAppAccount } from "./schema";
 
 export function MyJazzProvider({ children }: { children: React.ReactNode }) {
@@ -33,13 +33,6 @@ export function MyJazzProvider({ children }: { children: React.ReactNode }) {
       {children}
     </JazzProvider>
   );
-}
-
-// Register the Account schema so `useAccount` returns our custom `MyAppAccount`
-declare module "jazz-react-native" {
-  interface Register {
-    Account: MyAppAccount;
-  }
 }
 ```
 </CodeGroup>
@@ -75,7 +68,7 @@ function SignInScreen({ auth }: { auth: any }) {
 }
 // ---cut-before---
 // Example with PassphraseAuth
-import { JazzProvider, usePassphraseAuth } from "jazz-react-native";
+import { JazzProvider, usePassphraseAuth } from "jazz-tools/react-native";
 import { englishWordlist } from "./wordlist";
 
 function JazzAuthentication({ children }: { children: ReactNode }) {
@@ -137,8 +130,8 @@ function SignInScreen({ auth }: { auth: any }) {
   return null;
 }
 // ---cut-before---
-import { JazzProvider } from "jazz-react-native";
-import { RNQuickCrypto } from "jazz-react-native/crypto";
+import { JazzProvider } from "jazz-tools/react-native";
+import { RNQuickCrypto } from "jazz-tools/react-native/crypto";
 
 function MyJazzProvider({ children }: { children: ReactNode }) {
   return (

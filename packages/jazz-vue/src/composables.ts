@@ -1,4 +1,3 @@
-import { consumeInviteLinkFromWindowLocation } from "jazz-browser";
 import {
   type AnonymousJazzAgent,
   type AuthSecretStorage,
@@ -13,6 +12,7 @@ import {
   type Resolved,
   subscribeToCoValue,
 } from "jazz-tools";
+import { consumeInviteLinkFromWindowLocation } from "jazz-tools/browser";
 import {
   type ComputedRef,
   type MaybeRef,

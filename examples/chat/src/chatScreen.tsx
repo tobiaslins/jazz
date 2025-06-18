@@ -1,5 +1,5 @@
-import { createImage, useAccount, useCoState } from "jazz-react";
 import { Account, co } from "jazz-tools";
+import { createImage, useAccount, useCoState } from "jazz-tools/react";
 import { useState } from "react";
 import { Chat, Message } from "./schema.ts";
 import {

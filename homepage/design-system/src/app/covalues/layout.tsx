@@ -1,6 +1,6 @@
 "use client";
 
-import { JazzProvider } from "jazz-react";
+import { JazzProvider } from "jazz-tools/react";
 
 export default function CovaluesLayout({
   children,

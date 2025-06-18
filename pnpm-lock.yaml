@@ -72,6 +72,9 @@ importers:
       happy-dom:
         specifier: ^17.4.4
         version: 17.4.4
+      jazz-tools:
+        specifier: workspace:*
+        version: link:packages/jazz-tools
       lefthook:
         specifier: ^1.8.2
         version: 1.10.0
@@ -123,15 +126,6 @@ importers:
       jazz-betterauth-server-plugin:
         specifier: workspace:*
         version: link:../../packages/jazz-betterauth-server-plugin
-      jazz-inspector:
-        specifier: workspace:*
-        version: link:../../packages/jazz-inspector
-      jazz-react:
-        specifier: workspace:*
-        version: link:../../packages/jazz-react
-      jazz-react-auth-betterauth:
-        specifier: workspace:*
-        version: link:../../packages/jazz-react-auth-betterauth
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools
@@ -196,12 +190,6 @@ importers:
       hash-slash:
         specifier: workspace:*
         version: link:../../packages/hash-slash
-      jazz-inspector:
-        specifier: workspace:*
-        version: link:../../packages/jazz-inspector
-      jazz-react:
-        specifier: workspace:*
-        version: link:../../packages/jazz-react
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools
@@ -281,9 +269,6 @@ importers:
       cojson-transport-ws:
         specifier: workspace:*
         version: link:../../packages/cojson-transport-ws
-      jazz-react-native:
-        specifier: workspace:*
-        version: link:../../packages/jazz-react-native
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools
@@ -399,9 +384,6 @@ importers:
       expo-status-bar:
         specifier: ~2.2.3
         version: 2.2.3(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.8.3))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)
-      jazz-expo:
-        specifier: workspace:*
-        version: link:../../packages/jazz-expo
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools
@@ -505,9 +487,6 @@ importers:
       expo-web-browser:
         specifier: ~14.1.6
         version: 14.1.6(expo@53.0.9(@babel/core@7.27.1)(@expo/metro-runtime@5.0.4(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.8.3))(@types/react@19.0.0)(react@19.0.0)))(graphql@16.11.0)(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.8.3))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.8.3))(@types/react@19.0.0)(react@19.0.0))
-      jazz-expo:
-        specifier: workspace:*
-        version: link:../../packages/jazz-expo
       jazz-react-native-media-images:
         specifier: workspace:*
         version: link:../../packages/jazz-react-native-media-images
@@ -572,9 +551,6 @@ importers:
       '@tailwindcss/vite':
         specifier: ^4.1.7
         version: 4.1.10(vite@6.3.5(@types/node@22.15.18)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.37.0)(tsx@4.19.3)(yaml@2.6.1))
-      jazz-browser-media-images:
-        specifier: workspace:*
-        version: link:../../packages/jazz-browser-media-images
       jazz-svelte:
         specifier: workspace:*
         version: link:../../packages/jazz-svelte
@@ -636,9 +612,6 @@ importers:
 
   examples/chat-vue:
     dependencies:
-      jazz-browser:
-        specifier: workspace:*
-        version: link:../../packages/jazz-browser
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools
@@ -703,15 +676,6 @@ importers:
       '@clerk/clerk-react':
         specifier: ^5.4.1
         version: 5.20.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      jazz-inspector:
-        specifier: workspace:*
-        version: link:../../packages/jazz-inspector
-      jazz-react:
-        specifier: workspace:*
-        version: link:../../packages/jazz-react
-      jazz-react-auth-clerk:
-        specifier: workspace:*
-        version: link:../../packages/jazz-react-auth-clerk
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools
@@ -828,12 +792,6 @@ importers:
 
   examples/filestream:
     dependencies:
-      jazz-inspector:
-        specifier: workspace:*
-        version: link:../../packages/jazz-inspector
-      jazz-react:
-        specifier: workspace:*
-        version: link:../../packages/jazz-react
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools
@@ -883,12 +841,6 @@ importers:
       hash-slash:
         specifier: workspace:*
         version: link:../../packages/hash-slash
-      jazz-inspector:
-        specifier: workspace:*
-        version: link:../../packages/jazz-inspector
-      jazz-react:
-        specifier: workspace:*
-        version: link:../../packages/jazz-react
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools
@@ -941,12 +893,6 @@ importers:
 
   examples/image-upload:
     dependencies:
-      jazz-inspector:
-        specifier: workspace:*
-        version: link:../../packages/jazz-inspector
-      jazz-react:
-        specifier: workspace:*
-        version: link:../../packages/jazz-react
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools
@@ -1002,9 +948,6 @@ importers:
       hash-slash:
         specifier: workspace:*
         version: link:../../packages/hash-slash
-      jazz-inspector:
-        specifier: workspace:*
-        version: link:../../packages/jazz-inspector
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools
@@ -1048,12 +991,6 @@ importers:
 
   examples/jazz-nextjs:
     dependencies:
-      jazz-inspector:
-        specifier: workspace:*
-        version: link:../../packages/jazz-inspector
-      jazz-react:
-        specifier: workspace:*
-        version: link:../../packages/jazz-react
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools
@@ -1115,15 +1052,6 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
-      jazz-inspector:
-        specifier: workspace:*
-        version: link:../../packages/jazz-inspector
-      jazz-nodejs:
-        specifier: workspace:*
-        version: link:../../packages/jazz-nodejs
-      jazz-react:
-        specifier: workspace:*
-        version: link:../../packages/jazz-react
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools
@@ -1176,12 +1104,6 @@ importers:
       '@react-spring/web':
         specifier: ^9.7.5
         version: 9.7.5(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      jazz-inspector:
-        specifier: workspace:*
-        version: link:../../packages/jazz-inspector
-      jazz-react:
-        specifier: workspace:*
-        version: link:../../packages/jazz-react
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools
@@ -1237,15 +1159,6 @@ importers:
       '@clerk/clerk-react':
         specifier: ^5.4.1
         version: 5.20.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      jazz-inspector:
-        specifier: workspace:*
-        version: link:../../packages/jazz-inspector
-      jazz-react:
-        specifier: workspace:*
-        version: link:../../packages/jazz-react
-      jazz-react-auth-clerk:
-        specifier: workspace:*
-        version: link:../../packages/jazz-react-auth-clerk
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools
@@ -1310,12 +1223,6 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
-      jazz-inspector:
-        specifier: workspace:*
-        version: link:../../packages/jazz-inspector
-      jazz-react:
-        specifier: workspace:*
-        version: link:../../packages/jazz-react
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools
@@ -1368,12 +1275,6 @@ importers:
 
   examples/organization:
     dependencies:
-      jazz-inspector:
-        specifier: workspace:*
-        version: link:../../packages/jazz-inspector
-      jazz-react:
-        specifier: workspace:*
-        version: link:../../packages/jazz-react
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools
@@ -1432,12 +1333,6 @@ importers:
 
   examples/passphrase:
     dependencies:
-      jazz-inspector:
-        specifier: workspace:*
-        version: link:../../packages/jazz-inspector
-      jazz-react:
-        specifier: workspace:*
-        version: link:../../packages/jazz-react
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools
@@ -1478,12 +1373,6 @@ importers:
       hash-slash:
         specifier: workspace:*
         version: link:../../packages/hash-slash
-      jazz-inspector:
-        specifier: workspace:*
-        version: link:../../packages/jazz-inspector
-      jazz-react:
-        specifier: workspace:*
-        version: link:../../packages/jazz-react
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools
@@ -1521,12 +1410,6 @@ importers:
 
   examples/richtext-prosekit:
     dependencies:
-      jazz-inspector:
-        specifier: workspace:*
-        version: link:../../packages/jazz-inspector
-      jazz-react:
-        specifier: workspace:*
-        version: link:../../packages/jazz-react
       jazz-richtext-prosemirror:
         specifier: workspace:*
         version: link:../../packages/jazz-richtext-prosemirror
@@ -1573,12 +1456,6 @@ importers:
 
   examples/richtext-prosemirror:
     dependencies:
-      jazz-inspector:
-        specifier: workspace:*
-        version: link:../../packages/jazz-inspector
-      jazz-react:
-        specifier: workspace:*
-        version: link:../../packages/jazz-react
       jazz-richtext-prosemirror:
         specifier: workspace:*
         version: link:../../packages/jazz-richtext-prosemirror
@@ -1673,12 +1550,6 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
-      jazz-inspector:
-        specifier: workspace:*
-        version: link:../../packages/jazz-inspector
-      jazz-react:
-        specifier: workspace:*
-        version: link:../../packages/jazz-react
       jazz-richtext-tiptap:
         specifier: workspace:*
         version: link:../../packages/jazz-richtext-tiptap
@@ -1752,12 +1623,6 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
-      jazz-inspector:
-        specifier: workspace:*
-        version: link:../../packages/jazz-inspector
-      jazz-react:
-        specifier: workspace:*
-        version: link:../../packages/jazz-react
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools
@@ -1822,12 +1687,6 @@ importers:
       '@tailwindcss/forms':
         specifier: ^0.5.9
         version: 0.5.10(tailwindcss@4.1.10)
-      jazz-inspector:
-        specifier: workspace:*
-        version: link:../../packages/jazz-inspector
-      jazz-react:
-        specifier: workspace:*
-        version: link:../../packages/jazz-react
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools
@@ -2026,27 +1885,8 @@ importers:
       jazz-betterauth-client-plugin:
         specifier: workspace:*
         version: link:../jazz-betterauth-client-plugin
-      jazz-browser:
-        specifier: workspace:*
-        version: link:../jazz-browser
       jazz-tools:
         specifier: workspace:*
-        version: link:../jazz-tools
-    devDependencies:
-      typescript:
-        specifier: 'catalog:'
-        version: 5.6.2
-
-  packages/jazz-auth-clerk:
-    dependencies:
-      cojson:
-        specifier: workspace:0.14.28
-        version: link:../cojson
-      jazz-browser:
-        specifier: workspace:0.14.28
-        version: link:../jazz-browser
-      jazz-tools:
-        specifier: workspace:0.14.28
         version: link:../jazz-tools
     devDependencies:
       typescript:
@@ -2074,9 +1914,6 @@ importers:
       cojson:
         specifier: workspace:*
         version: link:../cojson
-      jazz-browser:
-        specifier: workspace:*
-        version: link:../jazz-browser
       jazz-tools:
         specifier: workspace:*
         version: link:../jazz-tools
@@ -2091,141 +1928,8 @@ importers:
         specifier: ~5.6.2
         version: 5.6.2
 
-  packages/jazz-browser:
-    dependencies:
-      cojson:
-        specifier: workspace:*
-        version: link:../cojson
-      cojson-storage-indexeddb:
-        specifier: workspace:*
-        version: link:../cojson-storage-indexeddb
-      cojson-transport-ws:
-        specifier: workspace:*
-        version: link:../cojson-transport-ws
-      jazz-tools:
-        specifier: workspace:*
-        version: link:../jazz-tools
-    devDependencies:
-      fake-indexeddb:
-        specifier: ^6.0.0
-        version: 6.0.0
-      typescript:
-        specifier: 'catalog:'
-        version: 5.6.2
-
-  packages/jazz-browser-media-images:
-    dependencies:
-      '@types/image-blob-reduce':
-        specifier: ^4.1.1
-        version: 4.1.4
-      image-blob-reduce:
-        specifier: ^4.1.0
-        version: 4.1.0
-      jazz-browser:
-        specifier: workspace:0.14.28
-        version: link:../jazz-browser
-      jazz-tools:
-        specifier: workspace:0.14.28
-        version: link:../jazz-tools
-      pica:
-        specifier: ^9.0.1
-        version: 9.0.1
-    devDependencies:
-      '@types/pica':
-        specifier: ^9.0.4
-        version: 9.0.4
-      typescript:
-        specifier: 'catalog:'
-        version: 5.6.2
-
-  packages/jazz-expo:
-    dependencies:
-      '@scure/base':
-        specifier: 1.2.1
-        version: 1.2.1
-      cojson:
-        specifier: workspace:*
-        version: link:../cojson
-      cojson-transport-ws:
-        specifier: workspace:*
-        version: link:../cojson-transport-ws
-      expo-sqlite:
-        specifier: 15.2.9
-        version: 15.2.9(expo@53.0.9(@babel/core@7.27.1)(@expo/metro-runtime@5.0.4(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0)))(graphql@16.11.0)(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)
-      jazz-auth-clerk:
-        specifier: workspace:*
-        version: link:../jazz-auth-clerk
-      jazz-react-core:
-        specifier: workspace:*
-        version: link:../jazz-react-core
-      jazz-react-native-core:
-        specifier: workspace:*
-        version: link:../jazz-react-native-core
-      jazz-tools:
-        specifier: workspace:*
-        version: link:../jazz-tools
-      react:
-        specifier: 19.0.0
-        version: 19.0.0
-      react-native:
-        specifier: '*'
-        version: 0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0)
-    devDependencies:
-      '@react-native-community/netinfo':
-        specifier: 11.4.1
-        version: 11.4.1(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))
-      expo-secure-store:
-        specifier: ~14.2.3
-        version: 14.2.3(expo@53.0.9(@babel/core@7.27.1)(@expo/metro-runtime@5.0.4(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0)))(graphql@16.11.0)(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0))
-      typescript:
-        specifier: 'catalog:'
-        version: 5.6.2
-
-  packages/jazz-inspector:
-    dependencies:
-      clsx:
-        specifier: ^2.0.0
-        version: 2.1.1
-      cojson:
-        specifier: workspace:*
-        version: link:../cojson
-      goober:
-        specifier: ^2.1.16
-        version: 2.1.16(csstype@3.1.3)
-      jazz-react-core:
-        specifier: workspace:*
-        version: link:../jazz-react-core
-      jazz-tools:
-        specifier: workspace:*
-        version: link:../jazz-tools
-      react:
-        specifier: 19.0.0
-        version: 19.0.0
-    devDependencies:
-      '@types/react':
-        specifier: 19.0.0
-        version: 19.0.0
-      '@types/react-dom':
-        specifier: 19.0.0
-        version: 19.0.0
-      '@vitejs/plugin-react-swc':
-        specifier: ^3.10.1
-        version: 3.10.1(vite@6.3.5(@types/node@22.15.18)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.37.0)(tsx@4.19.3)(yaml@2.6.1))
-      rollup-plugin-node-externals:
-        specifier: ^8.0.0
-        version: 8.0.0(rollup@4.41.1)
-      typescript:
-        specifier: 'catalog:'
-        version: 5.6.2
-      vite:
-        specifier: 6.3.5
-        version: 6.3.5(@types/node@22.15.18)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.37.0)(tsx@4.19.3)(yaml@2.6.1)
-
   packages/jazz-inspector-element:
     dependencies:
-      jazz-inspector:
-        specifier: workspace:*
-        version: link:../jazz-inspector
       jazz-tools:
         specifier: workspace:*
         version: link:../jazz-tools
@@ -2254,74 +1958,6 @@ importers:
       vite:
         specifier: 6.3.5
         version: 6.3.5(@types/node@22.15.18)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.37.0)(tsx@4.19.3)(yaml@2.6.1)
-
-  packages/jazz-nodejs:
-    dependencies:
-      cojson:
-        specifier: workspace:*
-        version: link:../cojson
-      cojson-transport-ws:
-        specifier: workspace:*
-        version: link:../cojson-transport-ws
-      jazz-tools:
-        specifier: workspace:*
-        version: link:../jazz-tools
-    devDependencies:
-      jazz-run:
-        specifier: workspace:*
-        version: link:../jazz-run
-      typescript:
-        specifier: 'catalog:'
-        version: 5.6.2
-
-  packages/jazz-react:
-    dependencies:
-      '@scure/bip39':
-        specifier: ^1.3.0
-        version: 1.5.0
-      cojson:
-        specifier: workspace:*
-        version: link:../cojson
-      cojson-transport-ws:
-        specifier: workspace:*
-        version: link:../cojson-transport-ws
-      jazz-browser:
-        specifier: workspace:0.14.28
-        version: link:../jazz-browser
-      jazz-browser-media-images:
-        specifier: workspace:0.14.28
-        version: link:../jazz-browser-media-images
-      jazz-react-core:
-        specifier: workspace:0.14.28
-        version: link:../jazz-react-core
-      jazz-tools:
-        specifier: workspace:0.14.28
-        version: link:../jazz-tools
-    devDependencies:
-      '@testing-library/dom':
-        specifier: ^10.4.0
-        version: 10.4.0
-      '@testing-library/jest-dom':
-        specifier: ^6.6.3
-        version: 6.6.3
-      '@testing-library/react':
-        specifier: 16.2.0
-        version: 16.2.0(@testing-library/dom@10.4.0)(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      '@types/react':
-        specifier: 19.0.0
-        version: 19.0.0
-      '@types/react-dom':
-        specifier: 19.0.0
-        version: 19.0.0
-      react:
-        specifier: 19.0.0
-        version: 19.0.0
-      react-dom:
-        specifier: 19.0.0
-        version: 19.0.0(react@19.0.0)
-      typescript:
-        specifier: 'catalog:'
-        version: 5.6.2
 
   packages/jazz-react-auth-betterauth:
     dependencies:
@@ -2334,12 +1970,6 @@ importers:
       jazz-betterauth-client-plugin:
         specifier: workspace:*
         version: link:../jazz-betterauth-client-plugin
-      jazz-browser:
-        specifier: workspace:*
-        version: link:../jazz-browser
-      jazz-react:
-        specifier: workspace:*
-        version: link:../jazz-react
       jazz-tools:
         specifier: workspace:*
         version: link:../jazz-tools
@@ -2353,142 +1983,6 @@ importers:
       '@types/react':
         specifier: 19.0.0
         version: 19.0.0
-      typescript:
-        specifier: 'catalog:'
-        version: 5.6.2
-
-  packages/jazz-react-auth-clerk:
-    dependencies:
-      cojson:
-        specifier: workspace:*
-        version: link:../cojson
-      jazz-auth-clerk:
-        specifier: workspace:*
-        version: link:../jazz-auth-clerk
-      jazz-browser:
-        specifier: workspace:*
-        version: link:../jazz-browser
-      jazz-react:
-        specifier: workspace:*
-        version: link:../jazz-react
-      jazz-tools:
-        specifier: workspace:*
-        version: link:../jazz-tools
-      react:
-        specifier: 19.0.0
-        version: 19.0.0
-    devDependencies:
-      '@testing-library/react':
-        specifier: 16.2.0
-        version: 16.2.0(@testing-library/dom@10.4.0)(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      '@types/react':
-        specifier: 19.0.0
-        version: 19.0.0
-      '@types/react-dom':
-        specifier: 19.0.0
-        version: 19.0.0
-      typescript:
-        specifier: 'catalog:'
-        version: 5.6.2
-
-  packages/jazz-react-core:
-    dependencies:
-      cojson:
-        specifier: workspace:*
-        version: link:../cojson
-      jazz-tools:
-        specifier: workspace:*
-        version: link:../jazz-tools
-      react:
-        specifier: 19.0.0
-        version: 19.0.0
-    devDependencies:
-      '@scure/bip39':
-        specifier: ^1.3.0
-        version: 1.5.0
-      '@testing-library/dom':
-        specifier: ^10.4.0
-        version: 10.4.0
-      '@testing-library/jest-dom':
-        specifier: ^6.6.3
-        version: 6.6.3
-      '@testing-library/react':
-        specifier: 16.2.0
-        version: 16.2.0(@testing-library/dom@10.4.0)(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      '@types/react':
-        specifier: 19.0.0
-        version: 19.0.0
-      '@types/react-dom':
-        specifier: 19.0.0
-        version: 19.0.0
-      typescript:
-        specifier: 'catalog:'
-        version: 5.6.2
-
-  packages/jazz-react-native:
-    dependencies:
-      '@op-engineering/op-sqlite':
-        specifier: ^11.4.8
-        version: 11.4.8(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)
-      '@scure/base':
-        specifier: 1.2.1
-        version: 1.2.1
-      cojson:
-        specifier: workspace:*
-        version: link:../cojson
-      cojson-storage:
-        specifier: workspace:*
-        version: link:../cojson-storage
-      jazz-react-native-core:
-        specifier: workspace:*
-        version: link:../jazz-react-native-core
-      jazz-tools:
-        specifier: workspace:*
-        version: link:../jazz-tools
-      react:
-        specifier: 19.0.0
-        version: 19.0.0
-      react-native:
-        specifier: '*'
-        version: 0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0)
-      react-native-mmkv:
-        specifier: ^3.2.0
-        version: 3.2.0(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)
-    devDependencies:
-      '@react-native-community/netinfo':
-        specifier: 11.4.1
-        version: 11.4.1(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))
-      typescript:
-        specifier: 'catalog:'
-        version: 5.6.2
-
-  packages/jazz-react-native-core:
-    dependencies:
-      cojson:
-        specifier: workspace:*
-        version: link:../cojson
-      cojson-storage:
-        specifier: workspace:*
-        version: link:../cojson-storage
-      cojson-transport-ws:
-        specifier: workspace:*
-        version: link:../cojson-transport-ws
-      jazz-react-core:
-        specifier: workspace:*
-        version: link:../jazz-react-core
-      jazz-tools:
-        specifier: workspace:*
-        version: link:../jazz-tools
-      react-native-fast-encoder:
-        specifier: ^0.2.0
-        version: 0.2.0(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)
-      react-native-nitro-modules:
-        specifier: 0.25.2
-        version: 0.25.2(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)
-      react-native-quick-crypto:
-        specifier: 1.0.0-beta.16
-        version: 1.0.0-beta.16(react-native-nitro-modules@0.25.2(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)
-    devDependencies:
       typescript:
         specifier: 'catalog:'
         version: 5.6.2
@@ -2520,9 +2014,6 @@ importers:
       '@manuscripts/prosemirror-recreate-steps':
         specifier: ^0.1.4
         version: 0.1.4
-      jazz-browser:
-        specifier: workspace:*
-        version: link:../jazz-browser
       jazz-tools:
         specifier: workspace:*
         version: link:../jazz-tools
@@ -2569,9 +2060,6 @@ importers:
       '@tiptap/core':
         specifier: ^2.12.0
         version: 2.12.0(@tiptap/pm@2.12.0)
-      jazz-browser:
-        specifier: workspace:*
-        version: link:../jazz-browser
       jazz-richtext-prosemirror:
         specifier: workspace:*
         version: link:../jazz-richtext-prosemirror
@@ -2649,9 +2137,6 @@ importers:
       cojson:
         specifier: workspace:*
         version: link:../cojson
-      jazz-browser:
-        specifier: workspace:*
-        version: link:../jazz-browser
       jazz-tools:
         specifier: workspace:*
         version: link:../jazz-tools
@@ -2728,19 +2213,94 @@ importers:
 
   packages/jazz-tools:
     dependencies:
+      '@op-engineering/op-sqlite':
+        specifier: ^11.4.8
+        version: 11.4.8(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)
+      '@react-native-community/netinfo':
+        specifier: '*'
+        version: 11.4.1(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))
+      '@scure/base':
+        specifier: 1.2.1
+        version: 1.2.1
       '@scure/bip39':
         specifier: ^1.3.0
         version: 1.5.0
+      '@types/image-blob-reduce':
+        specifier: ^4.1.1
+        version: 4.1.4
+      clsx:
+        specifier: ^2.0.0
+        version: 2.1.1
       cojson:
         specifier: workspace:*
         version: link:../cojson
+      cojson-storage:
+        specifier: workspace:*
+        version: link:../cojson-storage
+      cojson-storage-indexeddb:
+        specifier: workspace:*
+        version: link:../cojson-storage-indexeddb
+      cojson-transport-ws:
+        specifier: workspace:*
+        version: link:../cojson-transport-ws
+      expo-secure-store:
+        specifier: '*'
+        version: 14.2.3(expo@53.0.9(@babel/core@7.27.1)(@expo/metro-runtime@5.0.4(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0)))(graphql@16.11.0)(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0))
+      expo-sqlite:
+        specifier: 15.2.9
+        version: 15.2.9(expo@53.0.9(@babel/core@7.27.1)(@expo/metro-runtime@5.0.4(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0)))(graphql@16.11.0)(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)
       fast-myers-diff:
         specifier: ^3.2.0
         version: 3.2.0
+      goober:
+        specifier: ^2.1.16
+        version: 2.1.16(csstype@3.1.3)
+      image-blob-reduce:
+        specifier: ^4.1.0
+        version: 4.1.0
+      pica:
+        specifier: ^9.0.1
+        version: 9.0.1
+      react:
+        specifier: 19.0.0
+        version: 19.0.0
+      react-dom:
+        specifier: 19.0.0
+        version: 19.0.0(react@19.0.0)
+      react-native:
+        specifier: '*'
+        version: 0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0)
+      react-native-fast-encoder:
+        specifier: ^0.2.0
+        version: 0.2.0(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)
+      react-native-mmkv:
+        specifier: ^3.2.0
+        version: 3.2.0(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)
+      react-native-nitro-modules:
+        specifier: 0.25.2
+        version: 0.25.2(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)
+      react-native-quick-crypto:
+        specifier: 1.0.0-beta.16
+        version: 1.0.0-beta.16(react-native-nitro-modules@0.25.2(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@15.0.1(typescript@5.6.2))(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)
       zod:
         specifier: 3.25.28
         version: 3.25.28
     devDependencies:
+      '@testing-library/dom':
+        specifier: ^10.4.0
+        version: 10.4.0
+      '@testing-library/jest-dom':
+        specifier: ^6.6.3
+        version: 6.6.3
+      '@testing-library/react':
+        specifier: 16.2.0
+        version: 16.2.0(@testing-library/dom@10.4.0)(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      '@types/react':
+        specifier: 19.0.0
+        version: 19.0.0
+      '@types/react-dom':
+        specifier: 19.0.0
+        version: 19.0.0
       tsup:
         specifier: 8.3.5
         version: 8.3.5(@microsoft/api-extractor@7.48.1(@types/node@22.15.18))(@swc/core@1.11.29)(jiti@2.4.2)(postcss@8.5.4)(tsx@4.19.3)(typescript@5.6.2)(yaml@2.6.1)
@@ -2759,9 +2319,6 @@ importers:
       cojson:
         specifier: workspace:*
         version: link:../cojson
-      jazz-browser:
-        specifier: workspace:*
-        version: link:../jazz-browser
       jazz-tools:
         specifier: workspace:*
         version: link:../jazz-tools
@@ -2793,12 +2350,6 @@ importers:
 
   starters/react-passkey-auth:
     dependencies:
-      jazz-inspector:
-        specifier: workspace:*
-        version: link:../../packages/jazz-inspector
-      jazz-react:
-        specifier: workspace:*
-        version: link:../../packages/jazz-react
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools
@@ -2933,12 +2484,6 @@ importers:
       cojson-transport-ws:
         specifier: workspace:*
         version: link:../../packages/cojson-transport-ws
-      jazz-browser:
-        specifier: workspace:*
-        version: link:../../packages/jazz-browser
-      jazz-browser-media-images:
-        specifier: workspace:*
-        version: link:../../packages/jazz-browser-media-images
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools
@@ -2958,9 +2503,6 @@ importers:
       hono:
         specifier: ^4.7.2
         version: 4.7.2
-      jazz-nodejs:
-        specifier: workspace:*
-        version: link:../../packages/jazz-nodejs
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools
@@ -2989,9 +2531,6 @@ importers:
       is-ci:
         specifier: ^3.0.1
         version: 3.0.1
-      jazz-react:
-        specifier: workspace:*
-        version: link:../../packages/jazz-react
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools
@@ -9265,10 +8804,6 @@ packages:
     resolution: {integrity: sha512-GDhU9ntwuKyGXdZBUgTIe+vXnWj0fppUEtMDL0+idd5Sta8TGpHssn/eusA9mrPr9qNDym6SxAYZjNvCn/9RBg==}
     engines: {node: '>= 10.17.0'}
     hasBin: true
-
-  fake-indexeddb@6.0.0:
-    resolution: {integrity: sha512-YEboHE5VfopUclOck7LncgIqskAqnv4q0EWbYCaxKKjAvO93c+TJIaBuGy8CBFdbg9nKdpN3AuPRwVBJ4k7NrQ==}
-    engines: {node: '>=18'}
 
   fast-base64-decode@1.0.0:
     resolution: {integrity: sha512-qwaScUgUGBYeDNRnbc/KyllVU88Jk1pRHPStuF/lO7B0/RTRLj7U0lkdTAutlBblY08rwZDff6tNU9cjv6j//Q==}
@@ -22643,8 +22178,6 @@ snapshots:
       '@types/yauzl': 2.10.3
     transitivePeerDependencies:
       - supports-color
-
-  fake-indexeddb@6.0.0: {}
 
   fast-base64-decode@1.0.0: {}
 

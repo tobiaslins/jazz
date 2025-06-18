@@ -1,4 +1,4 @@
-import { consumeInviteLinkFromWindowLocation } from 'jazz-browser';
+import { consumeInviteLinkFromWindowLocation } from 'jazz-tools/browser';
 import type {
   AccountClass,
   AuthSecretStorage,

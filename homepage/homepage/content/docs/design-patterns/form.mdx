@@ -113,7 +113,7 @@ To make the edit form, simply pass the `BubbleTeaOrder`.
 <CodeGroup>
 ```tsx twoslash
 import { co, z } from "jazz-tools";
-import { useCoState } from "jazz-react";
+import { useCoState } from "jazz-tools/react";
 import * as React from "react";
 
 export const BubbleTeaOrder = co.map({
@@ -171,7 +171,7 @@ Here's how that looks like:
 <CodeGroup>
 ```tsx twoslash
 import { co, z } from "jazz-tools";
-import { useCoState, useAccount } from "jazz-react";
+import { useCoState, useAccount } from "jazz-tools/react";
 import * as React from "react";
 import { useState, useEffect } from "react";
 
@@ -273,7 +273,7 @@ Then perform the validation on submit.
 <CodeGroup>
 ```tsx twoslash
 import { co, z } from "jazz-tools";
-import { useCoState, useAccount } from "jazz-react";
+import { useCoState, useAccount } from "jazz-tools/react";
 import * as React from "react";
 import { useState, useEffect } from "react";
 
@@ -427,7 +427,7 @@ export const JazzAccount = co.account({
 // @filename: App.tsx
 import * as React from "react";
 // ---cut---
-import { JazzProvider } from "jazz-react";
+import { JazzProvider } from "jazz-tools/react";
 import { JazzAccount } from "./schema"; // [!code ++]
 
 export function MyJazzProvider({ children }: { children: React.ReactNode }) {
@@ -485,7 +485,7 @@ export const JazzAccount = co.account({
 
 // @filename: CreateOrder.tsx
 import * as React from "react";
-import { useCoState, useAccount } from "jazz-react";
+import { useCoState, useAccount } from "jazz-tools/react";
 import { BubbleTeaOrder, DraftBubbleTeaOrder, JazzAccount } from "schema";
 import { co } from "jazz-tools";
 
@@ -603,7 +603,7 @@ In the UI, you can choose how you want to show the draft indicator.
 <CodeGroup>
 ```tsx twoslash
 import { co, z } from "jazz-tools";
-import { useCoState, useAccount } from "jazz-react";
+import { useCoState, useAccount } from "jazz-tools/react";
 import * as React from "react";
 
 export const BubbleTeaOrder = co.map({

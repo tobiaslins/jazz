@@ -6,13 +6,13 @@ import {
 } from "react-router-dom";
 import "./index.css";
 
-import { JazzInspector } from "jazz-inspector";
+import { JazzInspector } from "jazz-tools/inspector";
 import {
   JazzProvider,
   PassphraseAuthBasicUI,
   useAcceptInvite,
   useAccount,
-} from "jazz-react";
+} from "jazz-tools/react";
 import React from "react";
 import { TodoAccount, TodoProject } from "./1_schema.ts";
 import { NewProjectForm } from "./3_NewProjectForm.tsx";

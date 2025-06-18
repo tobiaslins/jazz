@@ -35,7 +35,7 @@ export const wordlist = ["apple", "banana", "cherry", "date", "elderberry", "fig
 // @filename: AuthModal.tsx
 import * as React from "react";
 import { useState } from "react";
-import { usePassphraseAuth } from "jazz-react";
+import { usePassphraseAuth } from "jazz-tools/react";
 type AuthModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -102,7 +102,7 @@ export const wordlist = ["apple", "banana", "cherry", "date", "elderberry", "fig
 import * as React from "react";
 import { View, TextInput, Button, Text } from 'react-native';
 import { useState } from "react";
-import { usePassphraseAuth } from "jazz-react-native";
+import { usePassphraseAuth } from "jazz-tools/react-native";
 
 type AuthModalProps = {
   open: boolean;

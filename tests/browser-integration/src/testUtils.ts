@@ -2,10 +2,6 @@ import { commands } from "@vitest/browser/context";
 import { StorageManagerAsync } from "cojson-storage";
 import { internal_setDatabaseName } from "cojson-storage-indexeddb";
 import {
-  JazzBrowserContextManager,
-  JazzContextManagerProps,
-} from "jazz-browser";
-import {
   Account,
   AccountClass,
   AnyAccountSchema,
@@ -14,6 +10,10 @@ import {
   SyncMessage,
   cojsonInternals,
 } from "jazz-tools";
+import {
+  JazzBrowserContextManager,
+  JazzContextManagerProps,
+} from "jazz-tools/browser";
 import { onTestFinished } from "vitest";
 
 export function waitFor(callback: () => boolean | void) {

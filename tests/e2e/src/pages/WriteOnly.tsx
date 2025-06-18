@@ -1,6 +1,6 @@
-import { createInviteLink } from "jazz-react";
-import { useAcceptInvite, useCoState } from "jazz-react";
 import { Account, CoList, CoMap, Group, ID, coField } from "jazz-tools";
+import { createInviteLink } from "jazz-tools/react";
+import { useAcceptInvite, useCoState } from "jazz-tools/react";
 import { useState } from "react";
 
 class SharedCoMap extends CoMap {

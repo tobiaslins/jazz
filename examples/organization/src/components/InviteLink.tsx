@@ -1,5 +1,5 @@
-import { createInviteLink } from "jazz-react";
 import { Loaded } from "jazz-tools";
+import { createInviteLink } from "jazz-tools/react";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Organization } from "../schema.ts";

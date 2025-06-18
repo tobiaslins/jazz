@@ -18,7 +18,6 @@
     "cojson": "workspace:*",
     "hash-slash": "workspace:*",
     "is-ci": "^3.0.1",
-    "jazz-react": "workspace:*",
     "jazz-tools": "workspace:*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

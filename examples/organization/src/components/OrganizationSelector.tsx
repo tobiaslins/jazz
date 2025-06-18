@@ -1,4 +1,4 @@
-import { useAccount } from "jazz-react";
+import { useAccount } from "jazz-tools/react";
 import { UsersIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";

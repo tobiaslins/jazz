@@ -3,7 +3,7 @@ import {
   useNavigationContainerRef,
 } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { JazzProvider } from "jazz-react-native";
+import { JazzProvider } from "jazz-tools/react-native";
 import React, { StrictMode, useEffect, useState } from "react";
 import { Linking } from "react-native";
 import { apiKey } from "./apiKey";

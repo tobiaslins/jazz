@@ -44,7 +44,7 @@ You can detect the current authentication state using `useAccountOrGuest` and `u
 ```tsx twoslash
 import * as React from "react";
 // ---cut---
-import { useAccountOrGuest, useIsAuthenticated } from "jazz-react";
+import { useAccountOrGuest, useIsAuthenticated } from "jazz-tools/react";
 
 function AuthStateIndicator() {
   const { me } = useAccountOrGuest();
@@ -161,7 +161,7 @@ You can control network sync with [Providers](/docs/project-setup/providers/) ba
 <CodeGroup>
 ```tsx twoslash
 import * as React from "react";
-import { JazzProvider } from "jazz-react";
+import { JazzProvider } from "jazz-tools/react";
 const apiKey = "you@example.com";
 function App() {
   return <div>Hello World</div>;
@@ -191,7 +191,7 @@ For example, you may want to give users with Anonymous Authentication the opport
 <CodeGroup>
 ```tsx twoslash
 import * as React from "react";
-import { JazzProvider } from "jazz-react";
+import { JazzProvider } from "jazz-tools/react";
 const apiKey = "you@example.com";
 function App() {
   return <div>Hello World</div>;
@@ -218,7 +218,7 @@ You can configure Guest Mode access with the `guestMode` prop for [Providers](/d
 <CodeGroup>
 ```tsx twoslash
 import * as React from "react";
-import { JazzProvider } from "jazz-react";
+import { JazzProvider } from "jazz-tools/react";
 const apiKey = "you@example.com";
 function App() {
   return <div>Hello World</div>;

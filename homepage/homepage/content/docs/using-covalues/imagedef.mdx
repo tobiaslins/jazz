@@ -50,7 +50,7 @@ const me = await MyAccount.create({ creationProps: { name: "John Doe" } });
 const myGroup = Group.create();
 
 // ---cut---
-import { createImage } from "jazz-browser-media-images";
+import { createImage } from "jazz-tools/browser-media-images";
 
 // Create an image from a file input
 async function handleFileUpload(event: Event) {
@@ -81,7 +81,7 @@ You can configure `createImage()` with additional options:
 
 <CodeGroup>
 ```tsx twoslash
-import { createImage } from "jazz-browser-media-images";
+import { createImage } from "jazz-tools/browser-media-images";
 import { createJazzTestAccount } from 'jazz-tools/testing';
 const me = await createJazzTestAccount();
 const file = new File([], "test.jpg", { type: "image/jpeg" });
@@ -109,7 +109,7 @@ Like other CoValues, you can specify ownership when creating image definitions.
 <CodeGroup>
 ```ts twoslash
 import { Group } from "jazz-tools";
-import { createImage } from "jazz-browser-media-images";
+import { createImage } from "jazz-tools/browser-media-images";
 import { createJazzTestAccount } from 'jazz-tools/testing';
 const me = await createJazzTestAccount();
 const colleagueAccount = await createJazzTestAccount();

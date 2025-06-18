@@ -1,4 +1,4 @@
-import { JazzProvider } from "jazz-react";
+import { JazzProvider } from "jazz-tools/react";
 
 const url = new URL(window.location.href);
 

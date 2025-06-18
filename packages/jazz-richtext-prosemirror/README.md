@@ -22,7 +22,7 @@ yarn add jazz-richtext-prosemirror prosemirror-view prosemirror-state prosemirro
 ## Basic Usage
 
 ```tsx
-import { useAccount } from "jazz-react";
+import { useAccount } from "jazz-tools/react";
 import { createJazzPlugin } from "jazz-richtext-prosemirror";
 import { exampleSetup } from "prosemirror-example-setup";
 import { schema } from "prosemirror-schema-basic";

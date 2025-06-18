@@ -12,7 +12,7 @@
 | (AccountClass<Account> & CoValueFromRaw<Account>)
 | AnyAccountSchema,"
 >
-  import { JazzBrowserContextManager, type JazzContextManagerProps } from 'jazz-browser';
+  import { JazzBrowserContextManager, type JazzContextManagerProps } from 'jazz-tools/browser';
   import type { AuthSecretStorage, InstanceOfSchema } from 'jazz-tools';
   import { Account, type AccountClass, type CoValueFromRaw, type AnyAccountSchema } from 'jazz-tools';
   import { type Snippet, setContext, untrack } from 'svelte';

@@ -8,8 +8,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "jazz-inspector": "workspace:*",
-    "jazz-react": "workspace:*",
     "jazz-tools": "workspace:*",
     "next": "15.3.2",
     "react": "^19.0.0",

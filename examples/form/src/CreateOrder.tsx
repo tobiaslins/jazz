@@ -1,6 +1,6 @@
 import { useIframeHashRouter } from "hash-slash";
-import { useAccount, useCoState } from "jazz-react";
 import { Loaded } from "jazz-tools";
+import { useAccount, useCoState } from "jazz-tools/react";
 import { useState } from "react";
 import { Errors } from "./Errors.tsx";
 import { LinkToHome } from "./LinkToHome.tsx";

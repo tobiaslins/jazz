@@ -1,4 +1,4 @@
-import { useAccount } from "jazz-react";
+import { useAccount } from "jazz-tools/react";
 import { useEffect, useState } from "react";
 import { Logo } from "./Logo";
 import Container from "./components/Container";

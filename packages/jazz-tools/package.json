@@ -5,24 +5,129 @@
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
+      "@jazz-tools/source": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
     "./testing": {
+      "@jazz-tools/source": "./src/testing.ts",
       "types": "./dist/testing.d.ts",
       "default": "./dist/testing.js"
     },
-    "./dist/*": "./dist/*",
-    "./src/*": "./src/*"
+    "./browser": {
+      "@jazz-tools/source": "./src/browser/index.ts",
+      "types": "./dist/browser/index.d.ts",
+      "default": "./dist/browser/index.js"
+    },
+    "./browser-media-images": {
+      "@jazz-tools/source": "./src/browser-media-images/index.ts",
+      "types": "./dist/browser-media-images/index.d.ts",
+      "default": "./dist/browser-media-images/index.js"
+    },
+    "./expo": {
+      "@jazz-tools/source": "./src/expo/index.ts",
+      "types": "./dist/expo/index.d.ts",
+      "default": "./dist/expo/index.js"
+    },
+    "./expo/crypto": {
+      "@jazz-tools/source": "./src/expo/crypto/index.ts",
+      "types": "./dist/expo/crypto.d.ts",
+      "default": "./dist/expo/crypto.js"
+    },
+    "./expo/testing": {
+      "@jazz-tools/source": "./src/expo/testing.tsx",
+      "types": "./dist/expo/testing.d.ts",
+      "default": "./dist/expo/testing.js"
+    },
+    "./inspector": {
+      "@jazz-tools/source": "./src/inspector/index.ts",
+      "types": "./dist/inspector/index.d.ts",
+      "default": "./dist/inspector/index.js"
+    },
+    "./react": {
+      "@jazz-tools/source": "./src/react/index.ts",
+      "types": "./dist/react/index.d.ts",
+      "default": "./dist/react/index.js"
+    },
+    "./react/testing": {
+      "@jazz-tools/source": "./src/react/testing.tsx",
+      "types": "./dist/react/testing.d.ts",
+      "default": "./dist/react/testing.js"
+    },
+    "./react/ssr": {
+      "@jazz-tools/source": "./src/react/ssr.ts",
+      "types": "./dist/react/ssr.d.ts",
+      "default": "./dist/react/ssr.js"
+    },
+    "./react-core": {
+      "@jazz-tools/source": "./src/react-core/index.ts",
+      "types": "./dist/react-core/index.d.ts",
+      "default": "./dist/react-core/index.js"
+    },
+    "./react-core/testing": {
+      "@jazz-tools/source": "./src/react-core/testing.tsx",
+      "types": "./dist/react-core/testing.d.ts",
+      "default": "./dist/react-core/testing.js"
+    },
+    "./react-native": {
+      "@jazz-tools/source": "./src/react-native/index.ts",
+      "types": "./dist/react-native/index.d.ts",
+      "default": "./dist/react-native/index.js"
+    },
+    "./react-native/crypto": {
+      "@jazz-tools/source": "./src/react-native/crypto/index.ts",
+      "types": "./dist/react-native/crypto.d.ts",
+      "default": "./dist/react-native/crypto.js"
+    },
+    "./react-native/testing": {
+      "@jazz-tools/source": "./src/react-native/testing.tsx",
+      "types": "./dist/react-native/testing.d.ts",
+      "default": "./dist/react-native/testing.js"
+    },
+    "./react-native-core": {
+      "@jazz-tools/source": "./src/react-native-core/index.ts",
+      "types": "./dist/react-native-core/index.d.ts",
+      "default": "./dist/react-native-core/index.js"
+    },
+    "./react-native-core/crypto": {
+      "@jazz-tools/source": "./src/react-native-core/crypto/index.ts",
+      "types": "./dist/react-native-core/crypto.d.ts",
+      "default": "./dist/react-native-core/crypto.js"
+    },
+    "./react-native-core/testing": {
+      "@jazz-tools/source": "./src/react-native-core/testing.tsx",
+      "types": "./dist/react-native-core/testing.d.ts",
+      "default": "./dist/react-native-core/testing.js"
+    },
+    "./worker": {
+      "@jazz-tools/source": "./src/worker/index.ts",
+      "types": "./dist/worker/index.d.ts",
+      "default": "./dist/worker/index.js"
+    }
   },
   "type": "module",
   "license": "MIT",
   "version": "0.14.28",
   "dependencies": {
+    "clsx": "^2.0.0",
+    "goober": "^2.1.16",
+    "expo-sqlite": "15.2.9",
+    "@types/image-blob-reduce": "^4.1.1",
+    "image-blob-reduce": "^4.1.0",
+    "pica": "^9.0.1",
     "@scure/bip39": "^1.3.0",
     "cojson": "workspace:*",
+    "cojson-transport-ws": "workspace:*",
+    "cojson-storage": "workspace:*",
+    "cojson-storage-indexeddb": "workspace:*",
     "fast-myers-diff": "^3.2.0",
-    "zod": "3.25.28"
+    "zod": "3.25.28",
+    "@op-engineering/op-sqlite": "^11.4.8",
+    "@scure/base": "1.2.1",
+    "react-native-mmkv": "^3.2.0",
+    "react-native-fast-encoder": "^0.2.0",
+    "react-native-nitro-modules": "0.25.2",
+    "react-native-quick-crypto": "1.0.0-beta.16"
   },
   "scripts": {
     "format-and-lint": "biome check .",
@@ -37,13 +142,42 @@
     "tsup": "8.3.5",
     "typescript": "catalog:",
     "vitest": "catalog:",
-    "ws": "^8.14.2"
+    "ws": "^8.14.2",
+    "@scure/bip39": "^1.3.0",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "16.2.0",
+    "@types/react": "19.0.0",
+    "@types/react-dom": "19.0.0"
   },
-  "madge": {
-    "detectiveOptions": {
-      "ts": {
-        "skipTypeImports": true
-      }
+  "peerDependencies": {
+    "@react-native-community/netinfo": "*",
+    "expo-secure-store": "*",
+    "react-native": "*",
+    "react": "*",
+    "react-dom": "*"
+  },
+  "peerDependenciesMeta": {
+    "@react-native-community/netinfo": {
+      "optional": true
+    },
+    "expo-secure-store": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    },
+    "react-native": {
+      "optional": true
+    },
+    "svelte": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true
     }
   }
 }

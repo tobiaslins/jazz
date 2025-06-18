@@ -1,5 +1,5 @@
-import { JazzInspector } from "jazz-inspector";
-import { JazzProvider } from "jazz-react";
+import { JazzInspector } from "jazz-tools/inspector";
+import { JazzProvider } from "jazz-tools/react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";

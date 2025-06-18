@@ -15,7 +15,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { usePlayState } from "@/lib/audio/usePlayState";
-import { useAccount, useCoState } from "jazz-react";
+import { useAccount, useCoState } from "jazz-tools/react";
 import { Home, Music, Pause, Play, Plus, Trash2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
 import { AuthButton } from "./AuthButton";

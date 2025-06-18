@@ -12,7 +12,6 @@
     "format-and-lint:fix": "biome check . --write"
   },
   "dependencies": {
-    "jazz-browser": "workspace:*",
     "jazz-tools": "workspace:*",
     "jazz-vue": "workspace:*",
     "vue": "^3.5.11",

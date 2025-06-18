@@ -3,8 +3,8 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { JazzInspector } from "jazz-inspector";
-import { JazzProviderWithClerk } from "jazz-react-auth-clerk";
+import { JazzInspector } from "jazz-tools/inspector";
+import { JazzProviderWithClerk } from "jazz-tools/react";
 import { ReactNode } from "react";
 import { apiKey } from "./apiKey";
 

@@ -1,5 +1,5 @@
-import { useAccount } from "jazz-react";
 import { Account, Group, Loaded } from "jazz-tools";
+import { useAccount } from "jazz-tools/react";
 import { Organization } from "../schema.ts";
 
 export function OrganizationMembers({

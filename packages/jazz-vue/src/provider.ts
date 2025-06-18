@@ -1,4 +1,3 @@
-import { JazzBrowserContextManager } from "jazz-browser";
 import type {
   Account,
   AccountClass,
@@ -7,6 +6,7 @@ import type {
   JazzContextType,
   SyncConfig,
 } from "jazz-tools";
+import { JazzBrowserContextManager } from "jazz-tools/browser";
 import {
   type PropType,
   defineComponent,

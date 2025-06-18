@@ -1,5 +1,5 @@
 import { MusicaAccount } from "@/1_schema";
-import { useAccount } from "jazz-react";
+import { useAccount } from "jazz-tools/react";
 import { useEffect } from "react";
 import { uploadMusicTracks } from "../4_actions";
 

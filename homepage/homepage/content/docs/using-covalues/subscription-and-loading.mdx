@@ -98,7 +98,7 @@ const Project = co.map({
   tasks: co.list(Task),
 });
 // ---cut-before---
-import { useCoState } from "jazz-react";
+import { useCoState } from "jazz-tools/react";
 
 function GardenPlanner({ projectId }: { projectId: string }) {
   // Subscribe to a project and its tasks
@@ -169,7 +169,7 @@ const MyAppAccount = co.account({
 });
 
 // ---cut-before---
-import { useAccount } from "jazz-react";
+import { useAccount } from "jazz-tools/react";
 
 function ProjectList() {
   const { me } = useAccount(MyAppAccount, {

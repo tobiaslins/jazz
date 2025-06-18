@@ -41,7 +41,7 @@ export const MyAppAccount = co.account({
 import * as React from "react";
 // ---cut---
 // App.tsx
-import { JazzProvider } from "jazz-react";
+import { JazzProvider } from "jazz-tools/react";
 import { MyAppAccount } from "./schema";
 
 export function MyApp({ children }: { children: React.ReactNode }) {
@@ -108,7 +108,7 @@ export const MyAppAccount = co.account({
 
 // @filename: app.tsx
 import * as React from "react";
-import { JazzProvider } from "jazz-react";
+import { JazzProvider } from "jazz-tools/react";
 import { SyncConfig } from "jazz-tools";
 
 const syncConfig: SyncConfig = {
@@ -141,7 +141,7 @@ The provider accepts these additional options:
 <CodeGroup>
 ```tsx twoslash
 import * as React from "react";
-import { JazzProvider } from "jazz-react";
+import { JazzProvider } from "jazz-tools/react";
 import { SyncConfig } from "jazz-tools";
 
 const syncConfig: SyncConfig = {

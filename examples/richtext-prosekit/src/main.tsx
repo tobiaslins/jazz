@@ -1,6 +1,6 @@
 import "./app.css";
-import { JazzInspector } from "jazz-inspector";
-import { JazzProvider } from "jazz-react";
+import { JazzInspector } from "jazz-tools/inspector";
+import { JazzProvider } from "jazz-tools/react";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { apiKey } from "./apiKey.ts";
