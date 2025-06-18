@@ -21,6 +21,7 @@ export function ViewsSideMenu() {
     <div className={clsx("sticky top-0", mobileMenuOpen ? "w-32" : "w-7")}>
       <Button
         styleVariant="text"
+        variant="dark"
         icon={mobileMenuOpen ? "close" : "chevronRight"}
         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         size="sm"
@@ -31,6 +32,7 @@ export function ViewsSideMenu() {
             <div key={topic}>
               <Button
                 styleVariant="text"
+                variant="dark"
                 onClick={() => router.push(`/views/${topic.toLowerCase()}`)}
               >
                 {topic}

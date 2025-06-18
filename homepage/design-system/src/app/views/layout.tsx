@@ -7,8 +7,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const viewName = pathname.split("/").pop();
 
-  console.log(viewName);
-
   return (
     <ViewsLayout>
       <h2 className="text-2xl font-bold capitalize my-3">{viewName}</h2>

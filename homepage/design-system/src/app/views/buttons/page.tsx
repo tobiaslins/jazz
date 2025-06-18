@@ -15,15 +15,10 @@ export default function ButtonsPage() {
         <Button variant="warning">warning</Button>
         <Button variant="alert">alert</Button>
         <Button variant="danger">danger</Button>
-      </div>
-
-      <h3 className="text-lg mt-5 mb-2 font-bold">Colors</h3>
-
-      <div className="grid grid-cols-2 gap-2">
-        <Button color="light">light</Button>
-        <Button color="dark">dark</Button>
-        <Button color="white">white</Button>
-        <Button color="black">black</Button>
+        <Button variant="light">light</Button>
+        <Button variant="dark">dark</Button>
+        <Button variant="white">white</Button>
+        <Button variant="black">black</Button>
       </div>
 
       <h3 className="text-lg mt-5 mb-2 font-bold">Styles</h3>
