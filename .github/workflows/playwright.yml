@@ -26,7 +26,7 @@ jobs:
           "examples/organization",
           "starters/react-passkey-auth",
           "starters/svelte-passkey-auth",
-          "packages/jazz-svelte"
+          "tests/jazz-svelte"
         ]
 
     steps:
