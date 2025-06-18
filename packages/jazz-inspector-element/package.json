@@ -27,6 +27,6 @@
     "@vitejs/plugin-react-swc": "^3.10.1",
     "rollup-plugin-node-externals": "^8.0.0",
     "typescript": "catalog:",
-    "vite": "catalog:"
+    "vite": "^6.3.5"
   }
 }

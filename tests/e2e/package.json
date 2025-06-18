@@ -34,6 +34,6 @@
     "jstat": "^1.9.6",
     "typescript": "catalog:",
     "jazz-run": "workspace:*",
-    "vite": "catalog:"
+    "vite": "^6.3.5"
   }
 }
