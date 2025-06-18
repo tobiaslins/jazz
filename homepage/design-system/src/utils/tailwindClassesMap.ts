@@ -48,14 +48,14 @@ export const variantToBgMap = {
 };
 
 export const variantToTextHoverMap = {
-  primary: "hover:text-primary-transparent",
-  secondary: "hover:text-secondary-transparent",
-  info: "hover:text-info-transparent",
-  success: "hover:text-success-transparent",
-  warning: "hover:text-warning-transparent",
-  danger: "hover:text-danger-transparent",
-  alert: "hover:text-alert-transparent",
-  tip: "hover:text-tip-transparent",
+  primary: "hover:text-primary-light",
+  secondary: "hover:text-secondary-light",
+  info: "hover:text-info-light",
+  success: "hover:text-success-light",
+  warning: "hover:text-warning-light",
+  danger: "hover:text-danger-light",
+  alert: "hover:text-alert-light",
+  tip: "hover:text-tip-light",
 };
 
 export const variantToBgTransparentHoverMap = {
@@ -168,18 +168,66 @@ export const colorToBgActiveMap25 = {
   cyan: "active:bg-cyan/25",
 };
 
+const gradiantClassesBase = "from-7% via-50% to-95%";
+
+export const variantToBgGradientColorMap = {
+  primary: `from-primary-dark via-primary to-primary-light ${gradiantClassesBase}`,
+  secondary: `from-secondary-dark via-secondary to-secondary-light ${gradiantClassesBase}`,
+  info: `from-info-dark via-info to-info-light ${gradiantClassesBase}`,
+  success: `from-success-dark via-success to-success-light ${gradiantClassesBase}`,
+  warning: `from-warning-dark via-warning to-warning-light ${gradiantClassesBase}`,
+  danger: `from-danger-dark via-danger to-danger-light ${gradiantClassesBase}`,
+  alert: `from-alert-dark via-alert to-alert-light ${gradiantClassesBase}`,
+  tip: `from-tip-dark via-tip to-tip-light ${gradiantClassesBase}`,
+};
+
+export const variantToBgGradientHoverMap = {
+  primary: `hover:from-primary-brightLight hover:to-primary-light ${gradiantClassesBase}`,
+  secondary: `hover:from-secondary-brightLight hover:to-secondary-light ${gradiantClassesBase}`,
+  info: `hover:from-info-brightLight hover:to-info-light ${gradiantClassesBase}`,
+  success: `hover:from-success-brightLight hover:to-success-light ${gradiantClassesBase}`,
+  warning: `hover:from-warning-brightLight hover:to-warning-light ${gradiantClassesBase}`,
+  danger: `hover:from-danger-brightLight hover:to-danger-light ${gradiantClassesBase}`,
+  alert: `hover:from-alert-brightLight hover:to-alert-light ${gradiantClassesBase}`,
+  tip: `hover:from-tip-brightLight hover:to-tip-light ${gradiantClassesBase}`,
+};
+
+export const variantToBgGradientActiveMap = {
+  primary: `active:from-primary-brightDark active:to-primary-light ${gradiantClassesBase}`,
+  secondary: `active:from-secondary-brightDark active:to-secondary-light ${gradiantClassesBase}`,
+  info: `active:from-info-brightDark active:to-info-light ${gradiantClassesBase}`,
+  success: `active:from-success-brightDark active:to-success-light ${gradiantClassesBase}`,
+  warning: `active:from-warning-brightDark active:to-warning-light ${gradiantClassesBase}`,
+  danger: `active:from-danger-brightDark active:to-danger-light ${gradiantClassesBase}`,
+  alert: `active:from-alert-brightDark active:to-alert-light ${gradiantClassesBase}`,
+  tip: `active:from-tip-brightDark active:to-tip-light ${gradiantClassesBase}`,
+};
+
+export const shadowClassesBase = "shadow-md shadow-opacity-90";
+
+export const variantToHoverShadowMap = {
+  primary: `${shadowClassesBase} hover:shadow-blue/40`,
+  secondary: `${shadowClassesBase} hover:shadow-indigo/40`,
+  info: `${shadowClassesBase} hover:shadow-purple/40`,
+  success: `${shadowClassesBase} hover:shadow-green/40`,
+  warning: `${shadowClassesBase} hover:shadow-orange/40`,
+  danger: `${shadowClassesBase} hover:shadow-red/40`,
+  alert: `${shadowClassesBase} hover:shadow-yellow/40`,
+  tip: `${shadowClassesBase} hover:shadow-cyan/40`,
+};
+
 const focusRingClassesBase =
   "focus:outline-none focus-visible:ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-opacity-10";
 
 export const variantToButtonStateMap = {
-  primary: `active:bg-primary-light ${focusRingClassesBase} focus:ring-primary`,
-  secondary: `active:bg-secondary-dark ${focusRingClassesBase} focus:ring-secondary`,
-  info: `active:bg-info-light ${focusRingClassesBase} focus:ring-info`,
-  success: `active:bg-success-light ${focusRingClassesBase} focus:ring-success`,
-  warning: `active:bg-warning-light ${focusRingClassesBase} focus:ring-warning`,
-  danger: `active:bg-danger-light ${focusRingClassesBase} focus:ring-danger`,
-  alert: `active:bg-alert-light ${focusRingClassesBase} focus:ring-alert`,
-  tip: `active:bg-tip-light ${focusRingClassesBase} focus:ring-tip`,
+  primary: `${variantToBgGradientActiveMap.primary} ${focusRingClassesBase} focus:ring-primary`,
+  secondary: `${variantToBgGradientActiveMap.secondary} ${focusRingClassesBase} focus:ring-secondary`,
+  info: `${variantToBgGradientActiveMap.info} ${focusRingClassesBase} focus:ring-info`,
+  success: `${variantToBgGradientActiveMap.success} ${focusRingClassesBase} focus:ring-success`,
+  warning: `${variantToBgGradientActiveMap.warning} ${focusRingClassesBase} focus:ring-warning`,
+  danger: `${variantToBgGradientActiveMap.danger} ${focusRingClassesBase} focus:ring-danger`,
+  alert: `${variantToBgGradientActiveMap.alert} ${focusRingClassesBase} focus:ring-alert`,
+  tip: `${variantToBgGradientActiveMap.tip} ${focusRingClassesBase} focus:ring-tip`,
 };
 
 export const variantStyleToButtonStateMap = {
@@ -187,24 +235,4 @@ export const variantStyleToButtonStateMap = {
   inverted: `${focusRingClassesBase}`,
   ghost: `${focusRingClassesBase}`,
   text: `${focusRingClassesBase}`,
-};
-
-// export const colourStyleToButtonStateMap = {
-//   light: `${focusRingClassesBase}`,
-//   dark: `${focusRingClassesBase}`,
-//   white: `${focusRingClassesBase}`,
-//   black: `${focusRingClassesBase}`,
-// };
-
-const shadowClassesBase = "shadow-md shadow-opacity-10";
-
-export const variantToHoverShadowMap = {
-  primary: `${shadowClassesBase} hover:shadow-blue/25`,
-  secondary: `${shadowClassesBase} hover:shadow-indigo/25`,
-  info: `${shadowClassesBase} hover:shadow-purple/25`,
-  success: `${shadowClassesBase} hover:shadow-green/25`,
-  warning: `${shadowClassesBase} hover:shadow-orange/25`,
-  danger: `${shadowClassesBase} hover:shadow-red/25`,
-  alert: `${shadowClassesBase} hover:shadow-yellow/25`,
-  tip: `${shadowClassesBase} hover:shadow-cyan/25`,
 };

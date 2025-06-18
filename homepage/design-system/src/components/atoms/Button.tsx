@@ -8,10 +8,12 @@ import {
   colorToBgHoverMap10,
   colorToBgHoverMap30,
   colorToBgMap,
+  shadowClassesBase,
   sizeClasses,
+  variantToBgGradientColorMap,
+  variantToBgGradientHoverMap,
   variantToBgMap,
   variantToBgTransparentActiveMap,
-  variantToBgTransparentHoverMap,
   variantToBorderMap,
   variantToButtonStateMap,
   variantToColorMap,
@@ -153,12 +155,12 @@ const iconVariant = (
 };
 
 const variantClass = (variant: keyof typeof variantToBgMap) =>
-  `${variantToBgMap[variant]} ${variantToBgTransparentHoverMap[variant]} text-white ${variantToButtonStateMap[variant]}`;
+  `bg-gradient-to-tr ${variantToBgGradientColorMap[variant]} ${variantToBgGradientHoverMap[variant]} text-white ${variantToButtonStateMap[variant]} ${shadowClassesBase} shadow-stone-400/20`;
 
 const styleClasses = (variant: keyof typeof variantToBgMap) => {
   return {
-    outline: `border ${variantToBorderMap[variant]} bg-transparent hover:bg-transparent ${variantToTextMap[variant]} ${variantToHoverShadowMap[variant]} ${variantToBgTransparentActiveMap[variant]}`,
-    inverted: `${variantToTextMap[variant]} ${colorToBgHoverMap30[variantToColorMap[variant] as keyof typeof colorToBgHoverMap30]} ${colorToBgMap[variantToColorMap[variant] as keyof typeof colorToBgMap]} ${colorToBgActiveMap50[variantToColorMap[variant] as keyof typeof colorToBgActiveMap50]}`,
+    outline: `border ${variantToBorderMap[variant]} ${variantToTextMap[variant]} ${variantToHoverShadowMap[variant]} ${variantToBgTransparentActiveMap[variant]} shadow-{5px}-0px`,
+    inverted: `${variantToTextMap[variant]} ${colorToBgHoverMap30[variantToColorMap[variant] as keyof typeof colorToBgHoverMap30]} ${colorToBgMap[variantToColorMap[variant] as keyof typeof colorToBgMap]} ${colorToBgActiveMap50[variantToColorMap[variant] as keyof typeof colorToBgActiveMap50]} ${shadowClassesBase}`,
     ghost: `bg-transparent ${variantToTextMap[variant]} ${colorToBgHoverMap10[variantToColorMap[variant] as keyof typeof colorToBgHoverMap10]} ${colorToBgActiveMap25[variantToColorMap[variant] as keyof typeof colorToBgActiveMap25]}`,
     text: `bg-transparent ${variantToTextMap[variant]} underline underline-offset-2 p-0 hover:bg-transparent ${variantToTextHoverMap[variant]} ${variantToTextActiveMap[variant]} active:underline-stone-500`,
   };
