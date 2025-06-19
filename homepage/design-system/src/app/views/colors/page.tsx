@@ -19,9 +19,12 @@ export default function Colors() {
         Nearly all use cases are encapsulated by harnessing variables which have
         a baked in light & dark mode; meaning there are only a limited number of
         variables which are required for most development.
+        <span className="italic">
+          To see light/dark mode toggle your system settings.
+        </span>
       </p>
 
-      <h3 id="color-variables" className="text-md mt-4 mb-1 font-bold">
+      <h3 id="color-variables" className="text-md mt-6 mb-1 font-bold">
         Color Variables
       </h3>
 
@@ -50,13 +53,12 @@ export default function Colors() {
         primary with `blue/20`.
       </p>
 
-      <h3 id="text-color-variables" className="text-md mt-4 mb-1 font-bold">
+      <h3 id="text-color-variables" className="text-md mt-6 font-bold">
         Text Color Variables
       </h3>
 
-      <div className="grid grid-cols-2 gap-2 my-3 p-3">
-        <ColorTypography isDark={false} />
-        <ColorTypography isDark={true} />
+      <div className="grid grid-cols-2 gap-2 my-3 px-3">
+        <ColorTypography />
         <div className="col-span-2">
           <p className="text-xs mb-4 flex justify-end">
             *`text-highlight` and `bg-highlight` are individually set variables
@@ -68,14 +70,9 @@ export default function Colors() {
   );
 }
 
-const ColorTypography = ({ isDark }: { isDark: boolean }) => {
+const ColorTypography = () => {
   return (
-    <div
-      className={clsx(
-        "text-default p-3 rounded-md",
-        isDark ? "dark bg-stone-900" : "bg-white",
-      )}
-    >
+    <div className={clsx("text-default rounded-md")}>
       <div className="text-default mb-1">text-default</div>
       <div className="text-muted mb-1">text-muted</div>
       <div className="text-highlight mb-1">text-highlight</div>
