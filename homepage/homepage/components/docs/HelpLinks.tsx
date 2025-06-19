@@ -35,7 +35,7 @@ export function HelpLinks({ className }: { className?: string }) {
         variant="primary"
         styleVariant="outline"
         newTab
-        className="mt-3"
+        className="lg:mt-3"
       >
         <SiDiscord className="size-4" />
         Join Discord
