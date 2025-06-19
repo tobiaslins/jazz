@@ -453,12 +453,13 @@ const reactExamples: Example[] = [
   },
   {
     name: "Passkey",
-    slug: "passkey",
+    slug: "react-passkey-auth",
     description: "A React app that uses Passkey for authentication",
     tech: [tech.react],
     features: [features.passkey],
     demoUrl: "https://passkey.demo.jazz.tools",
     illustration: <PasskeyIllustration />,
+    starter: true,
   },
   {
     name: "Form",
@@ -532,11 +533,12 @@ const vueExamples: Example[] = [
 const svelteExamples: Example[] = [
   {
     name: "Passkey",
-    slug: "passkey-svelte",
+    slug: "svelte-passkey-auth",
     description: "A Svelte app that uses Passkey for authentication",
     tech: [tech.svelte],
     features: [features.passkey],
     illustration: <PasskeyIllustration />,
+    starter: true,
   },
   {
     name: "File share",
