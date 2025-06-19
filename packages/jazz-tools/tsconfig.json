@@ -17,6 +17,11 @@
     "jsx": "react-jsx",
     "customConditions": ["@jazz-tools/source"]
   },
-  "include": ["src/**/*.ts"],
+  "include": [
+    "src/**/*.ts",
+    "./src/**/*.js",
+    "./src/**/*.ts",
+    "./src/**/*.svelte"
+  ],
   "exclude": ["./node_modules"]
 }
