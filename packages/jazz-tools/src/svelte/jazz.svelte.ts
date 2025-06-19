@@ -11,7 +11,7 @@ import { consumeInviteLinkFromWindowLocation } from "jazz-tools/browser";
 import { getContext, untrack } from "svelte";
 import Provider from "./Provider.svelte";
 
-export { Provider as JazzProvider };
+export { Provider as JazzSvelteProvider };
 
 /**
  * The key for the Jazz context.
@@ -34,7 +34,7 @@ export function getJazzContext<Acc extends Account>() {
   const context = getContext<JazzContext<Acc>>(JAZZ_CTX);
 
   if (!context) {
-    throw new Error("useJazzContext must be used within a JazzProvider");
+    throw new Error("useJazzContext must be used within a JazzSvelteProvider");
   }
 
   if (!context.current) {
@@ -50,54 +50,60 @@ export function getAuthSecretStorage() {
   const context = getContext<AuthSecretStorage>(JAZZ_AUTH_CTX);
 
   if (!context) {
-    throw new Error("getAuthSecretStorage must be used within a JazzProvider");
+    throw new Error(
+      "getAuthSecretStorage must be used within a JazzSvelteProvider",
+    );
   }
 
   return context;
 }
 
 /**
- * Use the accept invite hook.
+ * Triggers the `onAccept` function when an invite link is detected in the URL.
+ *
  * @param invitedObjectSchema - The invited object schema.
  * @param onAccept - Function to call when the invite is accepted.
  * @param forValueHint - Hint for the value.
  * @returns The accept invite hook.
  */
-export function useAcceptInvite<V extends CoValueOrZodSchema>({
-  invitedObjectSchema,
-  onAccept,
-  forValueHint,
-}: {
-  invitedObjectSchema: V;
-  onAccept: (projectID: ID<V>) => void;
-  forValueHint?: string;
-}): void {
-  const _onAccept = onAccept;
+export class InviteListener<V extends CoValueOrZodSchema> {
+  constructor({
+    invitedObjectSchema,
+    onAccept,
+    forValueHint,
+  }: {
+    invitedObjectSchema: V;
+    onAccept: (projectID: ID<V>) => void;
+    forValueHint?: string;
+  }) {
+    // TODO Listen to the hashchange event
+    const _onAccept = onAccept;
 
-  // Subscribe to the onAccept function.
-  $effect(() => {
-    const ctx = getJazzContext<InstanceOfSchema<AccountClass<Account>>>();
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    _onAccept;
     // Subscribe to the onAccept function.
-    untrack(() => {
-      // If there is no context, return.
-      if (!ctx.current) return;
-      if (!("me" in ctx.current)) return;
+    $effect(() => {
+      const ctx = getJazzContext<InstanceOfSchema<AccountClass<Account>>>();
 
-      // Consume the invite link from the window location.
-      const result = consumeInviteLinkFromWindowLocation({
-        as: ctx.current.me,
-        invitedObjectSchema,
-        forValueHint,
-      });
-      // If the result is valid, call the onAccept function.
-      result
-        .then((result) => result && _onAccept(result?.valueID))
-        .catch((e) => {
-          console.error("Failed to accept invite", e);
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+      _onAccept;
+      // Subscribe to the onAccept function.
+      untrack(() => {
+        // If there is no context, return.
+        if (!ctx.current) return;
+        if (!("me" in ctx.current)) return;
+
+        // Consume the invite link from the window location.
+        const result = consumeInviteLinkFromWindowLocation({
+          as: ctx.current.me,
+          invitedObjectSchema,
+          forValueHint,
         });
+        // If the result is valid, call the onAccept function.
+        result
+          .then((result) => result && _onAccept(result?.valueID))
+          .catch((e) => {
+            console.error("Failed to accept invite", e);
+          });
+      });
     });
-  });
+  }
 }

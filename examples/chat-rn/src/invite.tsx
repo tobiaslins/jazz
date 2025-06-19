@@ -1,4 +1,4 @@
-import { useAcceptInvite } from "jazz-tools/react-native";
+import { useAcceptInviteNative } from "jazz-tools/react-native";
 import React from "react";
 import { Text } from "react-native";
 import { Chat } from "./schema";
@@ -8,7 +8,7 @@ export function HandleInviteScreen({
 }: {
   navigation: any;
 }) {
-  useAcceptInvite({
+  useAcceptInviteNative({
     invitedObjectSchema: Chat,
     onAccept: async (chatId) => {
       navigation.navigate("ChatScreen", { chatId });

@@ -1,11 +1,13 @@
 "use client";
 
-import { JazzProvider } from "jazz-tools/react";
+import { JazzReactProvider } from "jazz-tools/react";
 
 export default function CovaluesLayout({
   children,
 }: {
   children: any;
 }) {
-  return <JazzProvider sync={{ when: "never" }}>{children}</JazzProvider>;
+  return (
+    <JazzReactProvider sync={{ when: "never" }}>{children}</JazzReactProvider>
+  );
 }

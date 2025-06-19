@@ -12,7 +12,7 @@ Integrating Jazz with React is straightforward. You'll define data schemas that 
 
 1. [Install dependencies](#install-dependencies)
 2. [Write your schema](#write-your-schema)
-3. [Wrap your app in `<JazzProvider />`](#standard-react-setup)
+3. [Wrap your app in `<JazzReactProvider />`](#standard-react-setup)
 
 Looking for complete examples? Check out our [example applications](/examples) for chat apps, collaborative editors, and more.
 
@@ -55,7 +55,7 @@ See [CoValues](/docs/schemas/covalues) for more information on how to define you
 
 ## Standard React Setup
 
-Wrap your application with `<JazzProvider />` to connect to the Jazz network and define your data schema:
+Wrap your application with `<JazzReactProvider />` to connect to the Jazz network and define your data schema:
 
 <CodeGroup>
 ```tsx twoslash
@@ -84,16 +84,16 @@ function App() {
 }
 // ---cut---
 // app.tsx
-import { JazzProvider } from "jazz-tools/react";
+import { JazzReactProvider } from "jazz-tools/react";
 import { MyAppAccount } from "./schema";
 
 createRoot(document.getElementById("root")!).render(
-  <JazzProvider
+  <JazzReactProvider
     sync={{ peer: "wss://cloud.jazz.tools/?key=you@example.com" }}
     AccountSchema={MyAppAccount}
   >
     <App />
-  </JazzProvider>
+  </JazzReactProvider>
 );
 ```
 </CodeGroup>
@@ -135,17 +135,17 @@ import * as React from "react";
 // app.tsx
 "use client" // Mark as client component
 
-import { JazzProvider } from "jazz-tools/react";
+import { JazzReactProvider } from "jazz-tools/react";
 import { MyAppAccount } from "./schema";
 
 export function JazzWrapper({ children }: { children: React.ReactNode }) {
   return (
-    <JazzProvider
+    <JazzReactProvider
       sync={{ peer: "wss://cloud.jazz.tools/?key=you@example.com" }}
       AccountSchema={MyAppAccount}
     >
       {children}
-    </JazzProvider>
+    </JazzReactProvider>
   );
 }
 ```

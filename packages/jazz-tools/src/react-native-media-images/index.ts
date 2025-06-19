@@ -95,7 +95,7 @@ async function getImageDimensions(
 }
 
 /** @category Image creation */
-export async function createImage(
+export async function createImageNative(
   base64ImageDataURI: string,
   options: {
     owner?: Group | Account;

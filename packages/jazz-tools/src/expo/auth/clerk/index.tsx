@@ -10,7 +10,7 @@ import { useAuthSecretStorage, useJazzContext } from "jazz-tools/react-core";
 import { JazzProviderProps } from "jazz-tools/react-native-core";
 import React from "react";
 import { useEffect, useMemo, useState } from "react";
-import { JazzProvider } from "../../provider.js";
+import { JazzExpoProvider } from "../../provider.js";
 import { ExpoSecureStoreAdapter } from "../../storage/expo-secure-store-adapter.js";
 
 function useJazzClerkAuth(clerk: MinimalClerkClient) {
@@ -38,7 +38,7 @@ function RegisterClerkAuth(props: {
   return props.children;
 }
 
-export const JazzProviderWithClerk = <
+export const JazzExpoProviderWithClerk = <
   S extends
     | (AccountClass<Account> & CoValueFromRaw<Account>)
     | AnyAccountSchema,
@@ -71,10 +71,10 @@ export const JazzProviderWithClerk = <
   }
 
   return (
-    <JazzProvider {...props} logOutReplacement={props.clerk.signOut}>
+    <JazzExpoProvider {...props} logOutReplacement={props.clerk.signOut}>
       <RegisterClerkAuth clerk={props.clerk}>
         {props.children}
       </RegisterClerkAuth>
-    </JazzProvider>
+    </JazzExpoProvider>
   );
 };

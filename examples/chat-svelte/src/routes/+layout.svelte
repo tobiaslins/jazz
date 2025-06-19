@@ -2,7 +2,7 @@
   import 'jazz-tools/inspector/register-custom-element';
 
   import '../app.css';
-  import { JazzProvider } from 'jazz-tools/svelte';
+  import { JazzSvelteProvider } from 'jazz-tools/svelte';
   import { apiKey } from '../apiKey';
   import { getRandomUsername } from '$lib/utils';
   let { children } = $props();
@@ -14,14 +14,14 @@
 </svelte:head>
 
 <div class="h-full bg-white text-stone-700 dark:text-stone-400 dark:bg-stone-925">
-  <JazzProvider
+  <JazzSvelteProvider
     sync={{
       peer: `wss://cloud.jazz.tools/?key=${apiKey}`
     }}
     {defaultProfileName}
   >
     {@render children?.()}
-  </JazzProvider>
+  </JazzSvelteProvider>
   <jazz-inspector></jazz-inspector>
 </div>
 

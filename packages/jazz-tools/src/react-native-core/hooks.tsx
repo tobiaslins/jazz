@@ -16,7 +16,7 @@ export {
   useAccountOrGuest,
 } from "jazz-tools/react-core";
 
-export function useAcceptInvite<S extends CoValueOrZodSchema>({
+export function useAcceptInviteNative<S extends CoValueOrZodSchema>({
   invitedObjectSchema,
   onAccept,
   forValueHint,
@@ -29,7 +29,7 @@ export function useAcceptInvite<S extends CoValueOrZodSchema>({
 
   if (!("me" in context)) {
     throw new Error(
-      "useAcceptInvite can't be used in a JazzProvider with auth === 'guest'.",
+      "useAcceptInviteNative can't be used in a JazzProvider with auth === 'guest'.",
     );
   }
 

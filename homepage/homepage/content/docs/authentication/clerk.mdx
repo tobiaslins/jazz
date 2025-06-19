@@ -29,7 +29,7 @@ This authentication method is not fully local-first, as login and signup need to
 ## Implementation
 
 <ContentByFramework framework="react">
-Use `<JazzProviderWithClerk />` to wrap your app:
+Use `<JazzReactProviderWithClerk />` to wrap your app:
 
 <CodeGroup>
 ```tsx twoslash
@@ -42,20 +42,20 @@ function App() {
 }
 // ---cut---
 import { useClerk, ClerkProvider } from '@clerk/clerk-react';
-import { JazzProviderWithClerk } from "jazz-tools/react";
+import { JazzReactProviderWithClerk } from "jazz-tools/react";
 
 function JazzProvider({ children }: { children: React.ReactNode }) {
   const clerk = useClerk();
 
   return (
-    <JazzProviderWithClerk
+    <JazzReactProviderWithClerk
       clerk={clerk}
       sync={{
         peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
       }}
     >
       {children}
-    </JazzProviderWithClerk>
+    </JazzReactProviderWithClerk>
   );
 }
 
@@ -71,7 +71,7 @@ createRoot(document.getElementById("root")!).render(
 </ContentByFramework>
 
 <ContentByFramework framework="react-native-expo">
-Use `<JazzProviderWithClerk />` to wrap your app.
+Use `<JazzExpoProviderWithClerk />` to wrap your app.
 
 <CodeGroup>
 ```tsx twoslash
@@ -88,20 +88,20 @@ const tokenCache = {
 // ---cut---
 import { useClerk, ClerkProvider, ClerkLoaded } from '@clerk/clerk-expo';
 import { secureStore } from "@clerk/clerk-expo/secure-store";
-import { JazzProviderWithClerk } from "jazz-tools/expo";
+import { JazzExpoProviderWithClerk } from "jazz-tools/expo";
 
 function JazzAndAuth({ children }: { children: React.ReactNode }) {
   const clerk = useClerk();
 
   return (
-    <JazzProviderWithClerk
+    <JazzExpoProviderWithClerk
       clerk={clerk}
       sync={{
         peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
       }}
     >
       {children}
-    </JazzProviderWithClerk>
+    </JazzExpoProviderWithClerk>
   );
 }
 

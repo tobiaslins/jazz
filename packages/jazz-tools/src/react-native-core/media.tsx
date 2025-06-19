@@ -2,7 +2,7 @@ import { ImageDefinition, Loaded } from "jazz-tools";
 import React, { useEffect, useState } from "react";
 
 /** @category Media */
-export function useProgressiveImg({
+export function useProgressiveImgNative({
   image,
   maxWidth,
   targetWidth,
@@ -79,7 +79,7 @@ export function useProgressiveImg({
 }
 
 /** @category Media */
-export function ProgressiveImg({
+export function ProgressiveImgNative({
   children,
   image,
   maxWidth,
@@ -94,6 +94,6 @@ export function ProgressiveImg({
   maxWidth?: number;
   targetWidth?: number;
 }) {
-  const result = useProgressiveImg({ image, maxWidth, targetWidth });
+  const result = useProgressiveImgNative({ image, maxWidth, targetWidth });
   return result && children(result);
 }

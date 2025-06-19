@@ -10,7 +10,7 @@ import {
 import { LocalStorageKVStore } from "jazz-tools/browser";
 import { useAuthSecretStorage, useJazzContext } from "jazz-tools/react-core";
 import { useEffect, useMemo, useState } from "react";
-import { JazzProvider, JazzProviderProps } from "../provider.js";
+import { JazzProviderProps, JazzReactProvider } from "../provider.js";
 
 function useJazzClerkAuth(clerk: MinimalClerkClient) {
   const context = useJazzContext();
@@ -38,7 +38,7 @@ function RegisterClerkAuth(props: {
   return props.children;
 }
 
-export const JazzProviderWithClerk = <
+export const JazzReactProviderWithClerk = <
   S extends
     | (AccountClass<Account> & CoValueFromRaw<Account>)
     | AnyAccountSchema,
@@ -48,7 +48,7 @@ export const JazzProviderWithClerk = <
   const [isLoaded, setIsLoaded] = useState(false);
 
   /**
-   * This effect ensures that a logged-in Clerk user is authenticated before the JazzProvider is mounted.
+   * This effect ensures that a logged-in Clerk user is authenticated before the JazzReactProvider is mounted.
    *
    * This is done to optimize the initial load.
    */
@@ -65,11 +65,11 @@ export const JazzProviderWithClerk = <
   }
 
   return (
-    <JazzProvider {...props} logOutReplacement={props.clerk.signOut}>
+    <JazzReactProvider {...props} logOutReplacement={props.clerk.signOut}>
       <RegisterClerkAuth clerk={props.clerk}>
         {props.children}
       </RegisterClerkAuth>
-    </JazzProvider>
+    </JazzReactProvider>
   );
 };
 

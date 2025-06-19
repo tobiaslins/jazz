@@ -427,17 +427,17 @@ export const JazzAccount = co.account({
 // @filename: App.tsx
 import * as React from "react";
 // ---cut---
-import { JazzProvider } from "jazz-tools/react";
+import { JazzReactProvider } from "jazz-tools/react";
 import { JazzAccount } from "./schema"; // [!code ++]
 
 export function MyJazzProvider({ children }: { children: React.ReactNode }) {
     return (
-        <JazzProvider
+        <JazzReactProvider
             sync={{ peer: "wss://cloud.jazz.tools/?key=you@example.com" }}
             AccountSchema={JazzAccount} // [!code ++]
         >
             {children}
-        </JazzProvider>
+        </JazzReactProvider>
     );
 }
 ```

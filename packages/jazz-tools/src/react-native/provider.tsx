@@ -12,7 +12,7 @@ import React, { useMemo } from "react";
 import { MMKVStore } from "./storage/mmkv-store-adapter.js";
 import { OPSQLiteAdapter } from "./storage/op-sqlite-adapter.js";
 
-export function JazzProvider<
+export function JazzReactNativeProvider<
   S extends
     | (AccountClass<Account> & CoValueFromRaw<Account>)
     | AnyAccountSchema,

@@ -65,6 +65,7 @@ It generates a URL that looks like `.../invite/[CoValue ID]/[inviteSecret]`
 In your app, you need to handle this route, and let the user accept the invitation,
 as done [here](https://github.com/garden-co/jazz/tree/main/examples/pets/src/2_main.tsx).
 
+<ContentByFramework framework={["react"]}>
 <CodeGroup>
 ```ts twoslash
 import { co, z } from "jazz-tools";
@@ -86,6 +87,79 @@ useAcceptInvite({
 });
 ```
 </CodeGroup>
+</ContentByFramework>
+
+<ContentByFramework framework={["react-native"]}>
+<CodeGroup>
+```ts twoslash
+import { co, z } from "jazz-tools";
+
+const Organization = co.map({
+  name: z.string(),
+});
+const organization = Organization.create({ name: "Garden Computing" });
+const organizationID = organization.id;
+// ---cut---
+import { useAcceptInviteNative } from "jazz-tools/react-native";
+
+useAcceptInviteNative({
+  invitedObjectSchema: Organization,
+  onAccept: (organizationID) => {
+    console.log("Accepted invite!")
+    // navigate to the organization page
+  },
+});
+```
+</CodeGroup>
+</ContentByFramework>
+
+<ContentByFramework framework={["react-native-expo"]}>
+<CodeGroup>
+```ts twoslash
+import { co, z } from "jazz-tools";
+
+const Organization = co.map({
+  name: z.string(),
+});
+const organization = Organization.create({ name: "Garden Computing" });
+const organizationID = organization.id;
+// ---cut---
+import { useAcceptInviteNative } from "jazz-tools/expo";
+
+useAcceptInviteNative({
+  invitedObjectSchema: Organization,
+  onAccept: (organizationID) => {
+    console.log("Accepted invite!")
+    // navigate to the organization page
+  },
+});
+```
+</CodeGroup>
+</ContentByFramework>
+
+<ContentByFramework framework={["svelte"]}>
+<CodeGroup>
+```ts twoslash
+import { co, z } from "jazz-tools";
+
+const Organization = co.map({
+  name: z.string(),
+});
+const organization = Organization.create({ name: "Garden Computing" });
+const organizationID = organization.id;
+// ---cut---
+import { InviteListener } from "jazz-tools/svelte";
+
+new InviteListener({
+  invitedObjectSchema: Organization,
+  onAccept: (organizationID) => {
+    console.log("Accepted invite!")
+    // navigate to the organization page
+  },
+});
+```
+</CodeGroup>
+</ContentByFramework>
 
 You can accept an invitation programmatically by using the `acceptInvite` method on an account.
 Pass the ID of the CoValue you're being invited to, the secret from the invite link, and the schema of the CoValue.

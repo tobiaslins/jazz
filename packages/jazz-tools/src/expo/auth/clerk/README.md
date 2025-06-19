@@ -4,7 +4,7 @@ This package import provides a [Clerk-based](https://clerk.com/) authentication 
 
 ## Usage
 
-The `JazzProviderWithClerk` component is a JazzProvider that automatically handles Clerk authentication.
+The `JazzExpoProviderWithClerk` component is a JazzExpoProvider that automatically handles Clerk authentication.
 
 Once authenticated, authentication will persist across page reloads, even if the device is offline.
 
@@ -12,7 +12,7 @@ See the full [example app](https://github.com/garden-co/jazz/tree/main/examples/
 
 ```tsx
 import { ClerkProvider, useClerk } from "@clerk/clerk-react";
-import { JazzProviderWithClerk } from "jazz-tools/expo";
+import { JazzExpoProviderWithClerk } from "jazz-tools/expo";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -20,14 +20,14 @@ function JazzProvider({ children }: { children: React.ReactNode }) {
   const clerk = useClerk();
 
   return (
-    <JazzProviderWithClerk
+    <JazzExpoProviderWithClerk
       clerk={clerk}
       sync={{
         peer: "wss://cloud.jazz.tools/?key=chat-rn-expo-clerk-example-jazz@garden.co",
       }}
     >
       {children}
-    </JazzProviderWithClerk>
+    </JazzExpoProviderWithClerk>
   );
 }
 

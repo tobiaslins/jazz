@@ -1,4 +1,4 @@
-export { JazzProvider } from "./provider.js";
+export { JazzReactProvider } from "./provider.js";
 export type { JazzProviderProps } from "./provider.js";
 export {
   useAccount,

@@ -2,7 +2,7 @@ import { SignInButton } from "@clerk/clerk-react";
 import { usePassphraseAuth } from "jazz-tools/react";
 import {
   JazzProviderProps,
-  JazzProviderWithClerk,
+  JazzReactProviderWithClerk,
   useIsAuthenticated,
 } from "jazz-tools/react";
 import { useState } from "react";
@@ -181,7 +181,7 @@ export function OmniAuth<
   const clerk = useClerk();
 
   return (
-    <JazzProviderWithClerk
+    <JazzReactProviderWithClerk
       clerk={clerk}
       sync={sync}
       AccountSchema={AccountSchema}
@@ -192,6 +192,6 @@ export function OmniAuth<
       >
         {children}
       </OmniAuthContainer>
-    </JazzProviderWithClerk>
+    </JazzReactProviderWithClerk>
   );
 }

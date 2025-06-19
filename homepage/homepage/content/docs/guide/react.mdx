@@ -52,16 +52,16 @@ Collaborative Values (CoValues), build a UI and subscribe to changes, set permis
     import ReactDOM from "react-dom/client";
     import App from "./App.tsx";
     import "./index.css";
-    import { JazzProvider } from "jazz-tools/react";  // [!code ++]
+    import { JazzReactProvider } from "jazz-tools/react";  // [!code ++]
 
     ReactDOM.createRoot(document.getElementById("root")!).render(
         <React.StrictMode>
-            <JazzProvider // [!code ++:6]
+            <JazzReactProvider // [!code ++:6]
                 // replace `you@example.com` with your email as a temporary API key
                 sync={{ peer: "wss://cloud.jazz.tools/?key=you@example.com" }}
             >
                 <App />
-            </JazzProvider>
+            </JazzReactProvider>
         </React.StrictMode>
     );
     ```

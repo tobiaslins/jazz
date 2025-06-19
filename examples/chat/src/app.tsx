@@ -3,7 +3,7 @@ import { getRandomUsername, inIframe, onChatLoad } from "@/util.ts";
 import { useIframeHashRouter } from "hash-slash";
 import { Group } from "jazz-tools";
 import { JazzInspector } from "jazz-tools/inspector";
-import { JazzProvider, useAccount } from "jazz-tools/react";
+import { JazzReactProvider, useAccount } from "jazz-tools/react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { ChatScreen } from "./chatScreen.tsx";
@@ -55,7 +55,7 @@ const defaultProfileName = url.searchParams.get("user") ?? getRandomUsername();
 createRoot(document.getElementById("root")!).render(
   <ThemeProvider>
     <StrictMode>
-      <JazzProvider
+      <JazzReactProvider
         sync={{
           peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
         }}
@@ -63,7 +63,7 @@ createRoot(document.getElementById("root")!).render(
       >
         <App />
         <JazzInspector />
-      </JazzProvider>
+      </JazzReactProvider>
     </StrictMode>
   </ThemeProvider>,
 );

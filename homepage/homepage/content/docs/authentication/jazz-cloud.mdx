@@ -196,13 +196,13 @@ const authUrl: string = "https://auth.jazz.tools/exampleApiKey/api/auth/";
 
 "use client";
 
-import { JazzProvider } from "jazz-tools/react";
+import { JazzReactProvider } from "jazz-tools/react";
 import { AuthProvider } from "jazz-react-auth-betterauth";
 import { type ReactNode, lazy } from "react";
 
 export function JazzAndAuth({ children }: { children: ReactNode }) {
 	return (
-		<JazzProvider
+		<JazzReactProvider
 			sync={{
 				peer: "wss://cloud.jazz.tools/?key=documentation-example@garden.co",
 			}}
@@ -216,7 +216,7 @@ export function JazzAndAuth({ children }: { children: ReactNode }) {
 					{children}
 				</AuthProvider>
 			</>
-		</JazzProvider>
+		</JazzReactProvider>
 	);
 }
 ```

@@ -1,5 +1,5 @@
 import { JazzInspector } from "jazz-tools/inspector";
-import { JazzProvider } from "jazz-tools/react";
+import { JazzReactProvider } from "jazz-tools/react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
@@ -9,7 +9,7 @@ import { JazzAccount } from "./schema.ts";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <JazzProvider
+    <JazzReactProvider
       sync={{
         peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
       }}
@@ -17,6 +17,6 @@ createRoot(document.getElementById("root")!).render(
     >
       <App />
       <JazzInspector />
-    </JazzProvider>
+    </JazzReactProvider>
   </StrictMode>,
 );

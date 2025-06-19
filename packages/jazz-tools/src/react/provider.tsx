@@ -29,7 +29,7 @@ export type JazzProviderProps<
 } & JazzContextManagerProps<S>;
 
 /** @category Context & Hooks */
-export function JazzProvider<
+export function JazzReactProvider<
   S extends
     | (AccountClass<Account> & CoValueFromRaw<Account>)
     | AnyAccountSchema,

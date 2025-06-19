@@ -1,24 +1,24 @@
 export const metadata = {
   description:
-    "Configure your JazzProvider - the core component that connects your app to Jazz, handling sync, storage, account schema, and auth.",
+    "Configure your JazzSvelteProvider - the core component that connects your app to Jazz, handling sync, storage, account schema, and auth.",
 };
 
 import { CodeGroup } from "@/components/forMdx";
 
 # Providers
 
-`<JazzProvider />` is the core component that connects your Svelte application to Jazz. It handles:
+`<JazzSvelteProvider />` is the core component that connects your Svelte application to Jazz. It handles:
 
 - **Data Synchronization**: Manages connections to peers and the Jazz cloud
 - **Local Storage**: Persists data locally between app sessions
 - **Schema Types**: Provides APIs for the [AccountSchema](/docs/schemas/accounts-and-migrations)
 - **Authentication**: Connects your authentication system to Jazz
 
-Our [File Share example app](https://github.com/garden-co/jazz/blob/main/examples/file-share-svelte/src/routes/%2Blayout.svelte) provides an implementation of JazzProvider with authentication and real-time data sync.
+Our [File Share example app](https://github.com/garden-co/jazz/blob/main/examples/file-share-svelte/src/routes/%2Blayout.svelte) provides an implementation of JazzSvelteProvider with authentication and real-time data sync.
 
 ## Setting up the Provider
 
-The `<JazzProvider />` accepts several configuration options:
+The `<JazzSvelteProvider />` accepts several configuration options:
 
 <CodeGroup>
 ```svelte
@@ -33,12 +33,12 @@ The `<JazzProvider />` accepts several configuration options:
 </script>
 
 <script lang="ts">
-  import { JazzProvider } from "jazz-tools/svelte";
+  import { JazzSvelteProvider } from "jazz-tools/svelte";
   import { MyAppAccount } from "$lib/schema";
   let { children } = $props();
 </script>
 
-<JazzProvider
+<JazzSvelteProvider
   sync={{ 
     peer: "wss://cloud.jazz.tools/?key=your-api-key",
     when: "always" // When to sync: "always", "never", or "signedUp"
@@ -46,7 +46,7 @@ The `<JazzProvider />` accepts several configuration options:
   AccountSchema={MyAppAccount}
 >
   {@render children()}
-</JazzProvider>
+</JazzSvelteProvider>
 ```
 </CodeGroup>
 
@@ -85,17 +85,17 @@ The `AccountSchema` property defines your application's account structure:
 ```svelte
 <!-- src/routes/+layout.svelte -->>
 <script lang="ts">
-  import { JazzProvider } from "jazz-tools/svelte";
+  import { JazzSvelteProvider } from "jazz-tools/svelte";
   import { MyAppAccount } from "$lib/schema";
   let { children } = $props();
 </script>
 
-<JazzProvider
+<JazzSvelteProvider
   sync={syncConfig}
   AccountSchema={MyAppAccount}
 >
   {@render children()}
-</JazzProvider>
+</JazzSvelteProvider>
 ```
 </CodeGroup>
 
@@ -107,7 +107,7 @@ The provider accepts these additional options:
 ```svelte
 <!-- src/routes/+layout.svelte -->
 <script lang="ts">
-  import { JazzProvider } from "jazz-tools/svelte";
+  import { JazzSvelteProvider } from "jazz-tools/svelte";
   import { syncConfig } from "$lib/syncConfig";
   let { children } = $props();
   
@@ -130,7 +130,7 @@ The provider accepts these additional options:
   };
 </script>
 
-<JazzProvider
+<JazzSvelteProvider
   sync={syncConfig}
   {guestMode}
   {defaultProfileName}
@@ -138,7 +138,7 @@ The provider accepts these additional options:
   {onAnonymousAccountDiscarded}
 >
   {@render children}
-</JazzProvider>
+</JazzSvelteProvider>
 ```
 </CodeGroup>
 
@@ -146,7 +146,7 @@ See [Authentication States](/docs/authentication/authentication-states) for more
 
 ## Authentication
 
-`<JazzProvider />` works with various authentication methods to enable users to access their data across multiple devices. For a complete guide to authentication, see our [Authentication Overview](/docs/authentication/overview).
+`<JazzSvelteProvider />` works with various authentication methods to enable users to access their data across multiple devices. For a complete guide to authentication, see our [Authentication Overview](/docs/authentication/overview).
 
 ## Need Help?
 

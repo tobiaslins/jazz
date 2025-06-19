@@ -3,7 +3,7 @@ import {
   useNavigationContainerRef,
 } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { JazzProvider } from "jazz-tools/react-native";
+import { JazzReactNativeProvider } from "jazz-tools/react-native";
 import React, { StrictMode, useEffect, useState } from "react";
 import { Linking } from "react-native";
 import { apiKey } from "./apiKey";
@@ -49,7 +49,7 @@ function App() {
 
   return (
     <StrictMode>
-      <JazzProvider
+      <JazzReactNativeProvider
         sync={{
           peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
         }}
@@ -67,7 +67,7 @@ function App() {
             />
           </Stack.Navigator>
         </NavigationContainer>
-      </JazzProvider>
+      </JazzReactNativeProvider>
     </StrictMode>
   );
 }

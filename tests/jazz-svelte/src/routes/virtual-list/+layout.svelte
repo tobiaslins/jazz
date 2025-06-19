@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { JazzProvider } from 'jazz-tools/svelte';
+    import { JazzSvelteProvider } from 'jazz-tools/svelte';
     import "jazz-tools/inspector/register-custom-element"
     import { TestAccount } from './schema.js';
 
@@ -10,7 +10,7 @@
     let { children } = $props();
   </script>
   
-  <JazzProvider
+  <JazzSvelteProvider
     AccountSchema={TestAccount}
     sync={{
       when: "never"
@@ -18,5 +18,5 @@
   >
     <jazz-inspector></jazz-inspector>
     {@render children()}
-  </JazzProvider>
+  </JazzSvelteProvider>
   

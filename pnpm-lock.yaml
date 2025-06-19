@@ -126,6 +126,9 @@ importers:
       jazz-betterauth-server-plugin:
         specifier: workspace:*
         version: link:../../packages/jazz-betterauth-server-plugin
+      jazz-react-auth-betterauth:
+        specifier: workspace:*
+        version: link:../../packages/jazz-react-auth-betterauth
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools

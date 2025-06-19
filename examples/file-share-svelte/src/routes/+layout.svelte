@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { JazzProvider } from 'jazz-tools/svelte';
+  import { JazzSvelteProvider } from 'jazz-tools/svelte';
   import 'jazz-tools/inspector/register-custom-element';
   import { PasskeyAuthBasicUI } from 'jazz-tools/svelte';
   import { Toaster } from 'svelte-sonner';
@@ -16,7 +16,7 @@
 
 <Toaster richColors />
 
-<JazzProvider
+<JazzSvelteProvider
   AccountSchema={FileShareAccount}
   sync={{
     peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
@@ -28,4 +28,4 @@
       {@render children()}
     </div>
   </PasskeyAuthBasicUI>
-</JazzProvider>
+</JazzSvelteProvider>

@@ -1,13 +1,13 @@
-import { JazzProvider } from "jazz-tools/react";
+import { JazzReactProvider } from "jazz-tools/react";
 
 export function JazzAndAuth({ children }: { children: React.ReactNode }) {
   return (
-    <JazzProvider
+    <JazzReactProvider
       sync={{
         peer: "wss://cloud.jazz.tools/?key=jazz-paper-scissors@garden.co",
       }}
     >
       {children}
-    </JazzProvider>
+    </JazzReactProvider>
   );
 }

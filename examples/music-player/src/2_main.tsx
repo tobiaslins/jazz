@@ -12,20 +12,20 @@ import "./index.css";
 import { MusicaAccount } from "@/1_schema";
 import { apiKey } from "@/apiKey.ts";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { JazzProvider } from "jazz-tools/react";
+import { JazzReactProvider } from "jazz-tools/react";
 import { onAnonymousAccountDiscarded } from "./4_actions";
 import { KeyboardListener } from "./components/PlayerControls";
 import { useUploadExampleData } from "./lib/useUploadExampleData";
 
 /**
- * Walkthrough: The top-level provider `<JazzProvider/>`
+ * Walkthrough: The top-level provider `<JazzReactProvider/>`
  *
- * This shows how to use the top-level provider `<JazzProvider/>`,
+ * This shows how to use the top-level provider `<JazzReactProvider/>`,
  * which provides the rest of the app with a controlled account (used through `useAccount` later).
  * Here we use `DemoAuth` which is great for prototyping you app without wasting time on figuring out
  * the best way to do auth.
  *
- * `<JazzProvider/>` also runs our account migration
+ * `<JazzReactProvider/>` also runs our account migration
  */
 
 function Main() {
@@ -64,7 +64,7 @@ const peer =
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <JazzProvider
+    <JazzReactProvider
       sync={{
         peer,
       }}
@@ -77,6 +77,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <Main />
         <JazzInspector />
       </SidebarProvider>
-    </JazzProvider>
+    </JazzReactProvider>
   </React.StrictMode>,
 );

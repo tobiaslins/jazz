@@ -1,12 +1,12 @@
 export const metadata = {
-  description: "Configure your JazzProvider - the core component that connects your app to Jazz, handling sync, storage, account schema, and auth."
+  description: "Configure your JazzReactNativeProvider - the core component that connects your app to Jazz, handling sync, storage, account schema, and auth."
 };
 
 import { CodeGroup } from "@/components/forMdx";
 
 # Providers
 
-`<JazzProvider />` is the core component that connects your React Native application to Jazz. It handles:
+`<JazzReactNativeProvider />` is the core component that connects your React Native application to Jazz. It handles:
 
 - **Data Synchronization**: Manages connections to peers and the Jazz cloud
 - **Local Storage**: Persists data locally between app sessions
@@ -15,23 +15,23 @@ import { CodeGroup } from "@/components/forMdx";
 
 ## Setting up the provider
 
-Wrap your app components with the `<JazzProvider />` component:
+Wrap your app components with the `<JazzReactNativeProvider />` component:
 
 <CodeGroup>
 ```tsx twoslash
 // @noErrors: 2307 2686 2664
 // App.tsx
-import { JazzProvider } from "jazz-tools/react-native";
+import { JazzReactNativeProvider } from "jazz-tools/react-native";
 import { MyAppAccount } from "./schema";
 
 export function MyJazzProvider({ children }: { children: React.ReactNode }) {
   return (
-    <JazzProvider
+    <JazzReactNativeProvider
       sync={{ peer: "wss://cloud.jazz.tools/?key=you@example.com" }}
       AccountSchema={MyAppAccount}
     >
       {children}
-    </JazzProvider>
+    </JazzReactNativeProvider>
   );
 }
 ```
@@ -49,9 +49,9 @@ export function MyJazzProvider({ children }: { children: React.ReactNode }) {
 
 ## Authentication in the Provider
 
-`<JazzProvider />` works with various authentication methods, with PassphraseAuth being the easiest way to get started for development and testing. For authentication details, refer to our [Authentication Overview](/docs/authentication/overview) guide.
+`<JazzReactNativeProvider />` works with various authentication methods, with PassphraseAuth being the easiest way to get started for development and testing. For authentication details, refer to our [Authentication Overview](/docs/authentication/overview) guide.
 
-The authentication hooks must always be used inside the `<JazzProvider />` component.
+The authentication hooks must always be used inside the `<JazzReactNativeProvider />` component.
 
 Implementing PassphraseAuth is straightforward:
 
@@ -68,7 +68,7 @@ function SignInScreen({ auth }: { auth: any }) {
 }
 // ---cut-before---
 // Example with PassphraseAuth
-import { JazzProvider, usePassphraseAuth } from "jazz-tools/react-native";
+import { JazzReactNativeProvider, usePassphraseAuth } from "jazz-tools/react-native";
 import { englishWordlist } from "./wordlist";
 
 function JazzAuthentication({ children }: { children: ReactNode }) {
@@ -87,13 +87,13 @@ function JazzAuthentication({ children }: { children: ReactNode }) {
 
 function AuthenticatedProvider({ children }: { children: ReactNode }) {
   return (
-    <JazzProvider
+    <JazzReactNativeProvider
       sync={{ peer: "wss://cloud.jazz.tools/?key=your-api-key" }}
     >
       <JazzAuthentication>
         {children}
       </JazzAuthentication>
-    </JazzProvider>
+    </JazzReactNativeProvider>
   );
 }
 ```
@@ -120,7 +120,7 @@ pnpm add react-native-quick-crypto@1.0.0-beta.18 react-native-nitro-modules
 ```
 </CodeGroup>
 
-Then add the following to your `JazzProvider`:
+Then add the following to your `JazzReactNativeProvider`:
 
 <CodeGroup>
 ```tsx twoslash
@@ -130,17 +130,17 @@ function SignInScreen({ auth }: { auth: any }) {
   return null;
 }
 // ---cut-before---
-import { JazzProvider } from "jazz-tools/react-native";
+import { JazzReactNativeProvider } from "jazz-tools/react-native";
 import { RNQuickCrypto } from "jazz-tools/react-native/crypto";
 
 function MyJazzProvider({ children }: { children: ReactNode }) {
   return (
-    <JazzProvider
+    <JazzReactNativeProvider
       sync={{ peer: "wss://cloud.jazz.tools/?key=your-api-key" }}
       CryptoProvider={RNQuickCrypto}
     >
       {children}
-    </JazzProvider>
+    </JazzReactNativeProvider>
   );
 }
 ```

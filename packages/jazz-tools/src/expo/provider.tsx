@@ -12,7 +12,7 @@ import React, { useMemo } from "react";
 import { ExpoSecureStoreAdapter } from "./storage/expo-secure-store-adapter.js";
 import { ExpoSQLiteAdapter } from "./storage/expo-sqlite-adapter.js";
 
-export function JazzProvider<
+export function JazzExpoProvider<
   S extends
     | (AccountClass<Account> & CoValueFromRaw<Account>)
     | AnyAccountSchema,
