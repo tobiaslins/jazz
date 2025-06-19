@@ -12,7 +12,8 @@ import {
 } from "@garden-co/design-system/src/components/organisms/Dialog";
 import { track } from "@vercel/analytics";
 import { useState } from "react";
-import CreateJazzApp from "./CreateJazzApp.mdx";
+import CreateJazzAppExample from "./CreateJazzAppExample.mdx";
+import CreateJazzAppStarter from "./CreateJazzAppStarter.mdx";
 
 export function ExampleLinks({ example }: { example: Example }) {
   const { slug, demoUrl, starter } = example;
@@ -56,11 +57,19 @@ export function ExampleLinks({ example }: { example: Example }) {
               });
             }}
           >
-            <CreateJazzApp
-              components={InterpolateInCode({
-                $EXAMPLE: example.slug,
-              })}
-            />
+            {starter ? (
+              <CreateJazzAppStarter
+                components={InterpolateInCode({
+                  $EXAMPLE: example.slug,
+                })}
+              />
+            ) : (
+              <CreateJazzAppExample
+                components={InterpolateInCode({
+                  $EXAMPLE: example.slug,
+                })}
+              />
+            )}
           </CodeGroup>
         </DialogBody>
         <DialogActions>
