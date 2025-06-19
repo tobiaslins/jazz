@@ -390,7 +390,8 @@ const Person = co.map({
 
 ### Helper methods
 
-You should define helper methods of CoValue schemas separately, in standalone functions.
+If you find yourself repeating the same logic to access computed CoValues properties, 
+you can define helper functions to encapsulate it for better reusability:
 
 <CodeGroup>
 ```ts twoslash
@@ -404,7 +405,7 @@ const Person = co.map({
   firstName: z.string(),
   lastName: z.string(),
   dateOfBirth: z.date(),
-})
+});
 type Person = co.loaded<typeof Person>;
 
 export function getPersonFullName(person: Person) {
@@ -425,4 +426,33 @@ const fullName = getPersonFullName(person);
 const age = getPersonAgeAsOf(person, new Date());
 ```
 </CodeGroup>
+
+Similarly, you can encapsulate logic needed to update CoValues:
+
+<CodeGroup>
+```ts twoslash
+import { co, z } from "jazz-tools";
+// ---cut---
+const Person = co.map({
+  firstName: z.string(),
+  lastName: z.string(),
+});
+type Person = co.loaded<typeof Person>;
+
+export function updatePersonName(person: Person, fullName: string) {
+  const [firstName, lastName] = fullName.split(" ");
+  person.firstName = firstName;
+  person.lastName = lastName;
+}
+
+const person = Person.create({
+  firstName: "John",
+  lastName: "Doe",
+});
+console.log(person.firstName, person.lastName) // John Doe
+
+updatePersonName(person, "Jane Doe");
+
+console.log(person.firstName, person.lastName) // Jane Doe
 ```
+</CodeGroup>
