@@ -142,8 +142,6 @@ const strokeWidths = {
 
 export type IconName = keyof typeof icons;
 
-export type Color = "white" | "black" | "light" | "dark" | "default";
-
 export function Icon({
   name,
   icon,
@@ -156,7 +154,7 @@ export function Icon({
   name?: IconName;
   icon?: LucideIcon;
   size?: keyof typeof sizes;
-  variant?: Variant | Color;
+  variant?: Variant | "white";
   hasBackground?: boolean;
   className?: string;
 } & React.SVGProps<SVGSVGElement>) {
@@ -168,7 +166,7 @@ export function Icon({
   const IconComponent = icons?.hasOwnProperty(name) ? icons[name] : icon;
 
   const variantClasses = {
-    default: "text-stone-950",
+    default: "text-stone-950 dark:text-white",
     primary: "text-primary",
     secondary: "text-secondary",
     info: "text-info",
@@ -177,10 +175,9 @@ export function Icon({
     danger: "text-danger",
     alert: "text-alert",
     tip: "text-tip",
-    white: "text-white",
-    black: "text-black",
     light: "text-stone-300",
     dark: "text-stone-700",
+    white: "text-white",
   };
 
   const backgroundClasses = {
@@ -193,10 +190,9 @@ export function Icon({
     danger: "bg-danger-transparent",
     alert: "bg-alert-transparent",
     tip: "bg-tip-transparent",
-    white: "bg-stone-300",
-    black: "bg-stone-700",
     light: "bg-stone-500",
     dark: "bg-stone-950",
+    white: "bg-stone-100/30",
   };
 
   const roundedClasses = {

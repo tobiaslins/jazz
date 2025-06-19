@@ -70,14 +70,17 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref,
   ) => {
     const styleClass =
-      styleClasses(variant)[styleVariant as keyof typeof styleClasses] || "";
+      styleClasses(variant, styleVariant)[
+        styleVariant as keyof typeof styleClasses
+      ] || "";
 
     const getClasses = ({
       styleVariant,
     }: { styleVariant: string | undefined }) => {
       return {
         [sizeClasses[size as keyof typeof sizeClasses]]: size,
-        [variantClass(variant)]: !styleVariant,
+        [variantClass(variant, styleVariant as StyleVariant | undefined)]:
+          !styleVariant,
         [styleClass]: styleVariant,
       };
     };
@@ -146,21 +149,23 @@ const iconVariant = (
   variant: Variant,
   styleVariant: StyleVariant | undefined,
 ) => {
-  return styleVariant
-    ? variant
-    : variant === "white" || variant === "light"
-      ? "black"
-      : "white";
+  return styleVariant ? variant : "white";
 };
 
-const colorVariant = (variant: Variant) => {
-  return variant === "white" ? "text-black" : "text-white";
+const textColorVariant = (variant: Variant) => {
+  return variant === "default" ? "text-black dark:text-white" : "text-white";
 };
 
-const variantClass = (variant: Variant) =>
-  `bg-gradient-to-tr ${variantToBgGradientColorMap[variant]} ${variantToBgGradientHoverMap[variant]} ${colorVariant(variant)} ${variantToButtonStateMap[variant]} ${shadowClassesBase} shadow-stone-400/20`;
+const variantClass = (
+  variant: Variant,
+  styleVariant: StyleVariant | undefined,
+) =>
+  `bg-gradient-to-tr ${variantToBgGradientColorMap[variant]} ${variantToBgGradientHoverMap[variant]} ${textColorVariant(variant)} ${variantToButtonStateMap[variant]} ${shadowClassesBase} shadow-stone-400/20`;
 
-const styleClasses = (variant: Variant) => {
+const styleClasses = (
+  variant: Variant,
+  styleVariant: StyleVariant | undefined,
+) => {
   return {
     outline: `border ${variantToBorderMap[variant]} ${variantToTextMap[variant]} ${variantToHoverShadowMap[variant]} ${variantToBgTransparentActiveMap[variant]} shadow-[5px_0px]`,
     inverted: `${variantToTextMap[variant]} ${colorToBgHoverMap30[variantToColorMap[variant] as VariantColor]} ${colorToBgMap[variantToColorMap[variant] as VariantColor]} ${colorToBgActiveMap50[variantToColorMap[variant] as VariantColor]} ${shadowClassesBase}`,

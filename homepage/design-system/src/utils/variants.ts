@@ -9,5 +9,4 @@ export type Variant =
   | "danger"
   | "light"
   | "dark"
-  | "white"
-  | "black";
+  | "default";

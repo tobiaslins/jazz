@@ -17,8 +17,7 @@ export default function ButtonsPage() {
         <Button variant="danger">danger</Button>
         <Button variant="light">light</Button>
         <Button variant="dark">dark</Button>
-        <Button variant="white">white</Button>
-        <Button variant="black">black</Button>
+        <Button variant="default">default</Button>
       </div>
 
       <h3 className="text-lg mt-5 mb-2 font-bold">Styles</h3>
@@ -64,7 +63,6 @@ export default function ButtonsPage() {
           text tip
         </Button>
       </div>
-
       <p>Buttons can also contain an icon.</p>
 
       <div className="grid grid-cols-2 gap-2">
