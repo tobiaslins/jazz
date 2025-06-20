@@ -12,8 +12,8 @@ export const metadata = {
 
 Jazz offers several tools to work with images in React Native:
 - [`createImageNative()`](#creating-images) - function to create an `ImageDefinition` from a base64 image data URI
-- [`ProgressiveImg`](#displaying-images-with-progressiveimg) - React component to display an image with progressive loading
-- [`useProgressiveImgNative`](#using-useprogressiveimg-hook) - React hook to load an image in your own component
+- [`ProgressiveImgNative`](#displaying-images-with-progressiveimgnative) - React component to display an image with progressive loading
+- [`useProgressiveImgNative`](#using-useprogressiveimgnative-hook) - React hook to load an image in your own component
 
 For examples of use, see our example apps:
 - [React Native Chat](https://github.com/gardencmp/jazz/tree/main/examples/chat-rn) (Framework-less implementation)
@@ -85,18 +85,18 @@ const image = await createImageNative(base64Uri, options);
 ```
 </CodeGroup>
 
-## Displaying Images with `ProgressiveImg`
+## Displaying Images with `ProgressiveImgNative`
 
-For a complete progressive loading experience, use the `ProgressiveImg` component:
+For a complete progressive loading experience, use the `ProgressiveImgNative` component:
 
 <CodeGroup>
 ```tsx
-import { ProgressiveImg } from "jazz-tools/react-native";
+import { ProgressiveImgNative } from "jazz-tools/react-native";
 import { Image, StyleSheet } from "react-native";
 
 function GalleryView({ image }) {
   return (
-    <ProgressiveImg
+    <ProgressiveImgNative
       image={image}  // The image definition to load
       targetWidth={800} //  Looks for the best available resolution for a 800px image
     >
@@ -107,7 +107,7 @@ function GalleryView({ image }) {
           resizeMode="cover"
         />
       )}
-    </ProgressiveImg>
+    </ProgressiveImgNative>
   );
 }
 
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
 ```
 </CodeGroup>
 
-The `ProgressiveImg` component handles:
+The `ProgressiveImgNative` component handles:
 - Showing a placeholder while loading
 - Automatically selecting the appropriate resolution
 - Progressive enhancement as higher resolutions become available
