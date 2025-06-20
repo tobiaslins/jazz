@@ -4,7 +4,7 @@ import { secureStore } from "@clerk/clerk-expo/secure-store";
 import { useFonts } from "expo-font";
 import { Slot, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useIsAuthenticated, useJazzContext } from "jazz-expo";
+import { useIsAuthenticated, useJazzContext } from "jazz-tools/expo";
 import React, { useEffect } from "react";
 import { tokenCache } from "../cache";
 import { JazzAndAuth } from "../src/auth-context";

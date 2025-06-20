@@ -1,4 +1,4 @@
-import { useAccount, useIsAuthenticated } from "jazz-react";
+import { useAccount, useIsAuthenticated } from "jazz-tools/react";
 import { AuthButton } from "./AuthButton.tsx";
 import { Form } from "./Form.tsx";
 import { Logo } from "./Logo.tsx";

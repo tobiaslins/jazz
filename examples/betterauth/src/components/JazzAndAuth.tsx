@@ -1,21 +1,21 @@
 "use client";
 
-import { JazzProvider } from "jazz-react";
 import { AuthProvider } from "jazz-react-auth-betterauth";
+import { JazzReactProvider } from "jazz-tools/react";
 import { type ReactNode, lazy } from "react";
 
 const JazzDevTools =
   process.env.NODE_ENV === "production"
     ? () => null
     : lazy(() =>
-        import("jazz-inspector").then((res) => ({
+        import("jazz-tools/inspector").then((res) => ({
           default: res.JazzInspector,
         })),
       );
 
 export function JazzAndAuth({ children }: { children: ReactNode }) {
   return (
-    <JazzProvider
+    <JazzReactProvider
       sync={{
         peer: "wss://cloud.jazz.tools/?key=betterauth-example@garden.co",
       }}
@@ -28,6 +28,6 @@ export function JazzAndAuth({ children }: { children: ReactNode }) {
         {children}
       </AuthProvider>
       <JazzDevTools />
-    </JazzProvider>
+    </JazzReactProvider>
   );
 }

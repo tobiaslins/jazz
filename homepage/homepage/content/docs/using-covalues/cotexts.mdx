@@ -13,7 +13,7 @@ Jazz provides two CoValue types for collaborative text editing, collectively ref
 
 Both types enable real-time collaborative editing of text content while maintaining consistency across multiple users.
 
-**Note:** If you're looking for a quick way to add rich text editing to your app, check out [jazz-richtext-prosemirror](#using-rich-text-with-prosemirror).
+**Note:** If you're looking for a quick way to add rich text editing to your app, check out [our prosemirror plugin](#using-rich-text-with-prosemirror).
 
 <CodeGroup>
 ```ts twoslash
@@ -200,7 +200,7 @@ Perfect for handling user input in form controls:
 ```tsx twoslash
 import { co, z } from "jazz-tools";
 import { createJazzTestAccount } from 'jazz-tools/testing';
-import { useCoState } from "jazz-react";
+import { useCoState } from "jazz-tools/react";
 import React, { useState } from "react";
 const me = await createJazzTestAccount();
 
@@ -305,7 +305,7 @@ const note = co.plainText().create("", { owner: me });
 
 ## Using Rich Text with ProseMirror
 
-Jazz provides a dedicated plugin for integrating `co.richText()` with the popular ProseMirror editor. This plugin, [`jazz-richtext-prosemirror`](https://www.npmjs.com/package/jazz-richtext-prosemirror), enables bidirectional synchronization between your co.richText() instances and ProseMirror editors.
+Jazz provides a dedicated plugin for integrating `co.richText()` with the popular ProseMirror editor that enables bidirectional synchronization between your co.richText() instances and ProseMirror editors.
 
 ### ProseMirror Plugin Features
 
@@ -317,8 +317,7 @@ Jazz provides a dedicated plugin for integrating `co.richText()` with the popula
 
 <CodeGroup>
 ```bash
-pnpm add jazz-richtext-prosemirror \
-  prosemirror-view \
+pnpm add prosemirror-view \
   prosemirror-state \
   prosemirror-schema-basic
 ```
@@ -347,12 +346,12 @@ const JazzAccount = co.account({
   root: co.map({})
 });
 
-import { useAccount, useCoState } from "jazz-react";
+import { useAccount, useCoState } from "jazz-tools/react";
 import { co, z } from "jazz-tools";
 import React, { useEffect, useRef } from "react";
 // ---cut---
 // RichTextEditor.tsx
-import { createJazzPlugin } from "jazz-richtext-prosemirror";
+import { createJazzPlugin } from "jazz-tools/prosemirror";
 import { exampleSetup } from "prosemirror-example-setup";
 import { schema } from "prosemirror-schema-basic";
 import { EditorState } from "prosemirror-state";
@@ -416,7 +415,7 @@ For use without a framework:
 <CodeGroup>
 ```js twoslash
 import { co, z } from "jazz-tools";
-import { createJazzPlugin } from "jazz-richtext-prosemirror";
+import { createJazzPlugin } from "jazz-tools/prosemirror";
 import { exampleSetup } from "prosemirror-example-setup";
 import { schema } from "prosemirror-schema-basic";
 import { EditorState } from "prosemirror-state";

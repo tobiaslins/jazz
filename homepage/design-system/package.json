@@ -16,7 +16,6 @@
     "@tailwindcss/typography": "^0.5.16",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
-    "jazz-react": "link:../../packages/jazz-react",
     "jazz-tools": "link:../../packages/jazz-tools",
     "lucide-react": "^0.436.0",
     "next": "15.2.1",

@@ -16,7 +16,6 @@
     "cojson": "workspace:*",
     "cojson-transport-ws": "workspace:*",
     "hash-slash": "workspace:*",
-    "jazz-inspector": "workspace:*",
     "jazz-tools": "workspace:*",
     "react": "19.0.0",
     "react-dom": "19.0.0",

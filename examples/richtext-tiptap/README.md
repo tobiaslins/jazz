@@ -87,7 +87,7 @@ This example demonstrates two key functionalities:
 
 - `src/schema.ts` - Defines the data model, including the `bio` field using CoRichText
 - `src/Editor.tsx` - Implements both plaintext and rich text editor views
-- `jazz-richtext-tiptap` - Provides the plugin that connects Jazz to Tiptap
+- `jazz-tools/tiptap` - Provides the plugin that connects Jazz to Tiptap
 
 ### Implementation details
 
@@ -109,7 +109,7 @@ You can extend this example by:
 
 By default, the app uses [Jazz Cloud](https://jazz.tools/cloud) (`wss://cloud.jazz.tools`) - so cross-device use, invites and collaboration should just work.
 
-You can also run a local sync server by running`npx jazz-run sync`, and setting the `sync` parameter of`JazzProvider` in [./src/main.tsx](./src/main.tsx) to`{ peer: "ws://localhost:4200" }`.
+You can also run a local sync server by running`npx jazz-run sync`, and setting the `sync` parameter of`JazzReactProvider` in [./src/main.tsx](./src/main.tsx) to`{ peer: "ws://localhost:4200" }`.
 
 ## Learn more
 

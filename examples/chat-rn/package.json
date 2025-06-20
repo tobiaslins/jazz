@@ -20,7 +20,6 @@
     "clsx": "^2.0.0",
     "cojson": "workspace:*",
     "cojson-transport-ws": "workspace:*",
-    "jazz-react-native": "workspace:*",
     "jazz-tools": "workspace:*",
     "react": "19.0.0",
     "react-native": "0.79.2",

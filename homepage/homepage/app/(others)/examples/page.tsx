@@ -3,7 +3,6 @@ import { ClerkFullLogo } from "@/components/icons/ClerkFullLogo";
 import { ReactLogo } from "@/components/icons/ReactLogo";
 import { ReactNativeLogo } from "@/components/icons/ReactNativeLogo";
 import { SvelteLogo } from "@/components/icons/SvelteLogo";
-import { VueLogo } from "@/components/icons/VueLogo";
 import { Example, features, tech } from "@/content/example";
 import { H2 } from "@garden-co/design-system/src/components/atoms/Headings";
 import { Icon } from "@garden-co/design-system/src/components/atoms/Icon";
@@ -520,16 +519,6 @@ const rnExamples: Example[] = [
   },
 ];
 
-const vueExamples: Example[] = [
-  {
-    name: "Chat",
-    slug: "chat-vue",
-    description: "A simple app that creates a chat room with a shareable link.",
-    tech: [tech.vue],
-    illustration: <ChatIllustration />,
-  },
-];
-
 const svelteExamples: Example[] = [
   {
     name: "Passkey",
@@ -576,12 +565,6 @@ const categories = [
     id: "svelte",
     logo: SvelteLogo,
     examples: svelteExamples,
-  },
-  {
-    name: "Vue",
-    id: "vue",
-    logo: VueLogo,
-    examples: vueExamples,
   },
 ];
 

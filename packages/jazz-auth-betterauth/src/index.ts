@@ -7,7 +7,7 @@ import {
   type AuthSecretStorage,
   type AuthenticateAccountFunction,
 } from "jazz-tools";
-import type { AuthSetPayload } from "jazz-tools/dist/auth/AuthSecretStorage.js";
+import type { AuthSetPayload } from "jazz-tools";
 
 export const newAuthClient = <T extends ClientOptions>(options?: T) => {
   type Plugins = Array<

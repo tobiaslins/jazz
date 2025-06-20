@@ -4,7 +4,7 @@ import {
   useAccount,
   useCoState,
   useIsAuthenticated,
-} from "jazz-react";
+} from "jazz-tools/react";
 import { useParams } from "react-router";
 import { MusicaAccount, Playlist } from "./1_schema";
 import { uploadMusicTracks } from "./4_actions";

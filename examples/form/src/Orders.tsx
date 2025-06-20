@@ -1,4 +1,4 @@
-import { useAccount } from "jazz-react";
+import { useAccount } from "jazz-tools/react";
 import { DraftIndicator } from "./DraftIndicator.tsx";
 import { OrderThumbnail } from "./OrderThumbnail.tsx";
 import { JazzAccount } from "./schema.ts";

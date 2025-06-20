@@ -1,6 +1,6 @@
 import clsx from "clsx";
-import { ProgressiveImg } from "jazz-react";
 import { CoPlainText, ImageDefinition } from "jazz-tools";
+import { ProgressiveImg } from "jazz-tools/react";
 import { ImageIcon } from "lucide-react";
 import { useId, useRef } from "react";
 

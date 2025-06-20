@@ -4,8 +4,8 @@ import { Task, TodoAccount, TodoProject } from "./1_schema";
 
 import { SubmittableInput } from "./basicComponents";
 
-import { useAccount } from "jazz-react";
 import { Group, co } from "jazz-tools";
+import { useAccount } from "jazz-tools/react";
 import { useNavigate } from "react-router";
 
 export function NewProjectForm() {

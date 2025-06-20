@@ -1,5 +1,5 @@
-import { useAccount } from "jazz-react";
-import { createJazzPlugin } from "jazz-richtext-prosemirror";
+import { createJazzPlugin } from "jazz-tools/prosemirror";
+import { useAccount } from "jazz-tools/react";
 import { exampleSetup } from "prosemirror-example-setup";
 import { Schema } from "prosemirror-model";
 import { schema as basicSchema } from "prosemirror-schema-basic";

@@ -9,7 +9,7 @@ import {
 import { WORKER_ID } from "@/constants";
 import { Game, NewGameIntent, PlayIntent } from "@/schema";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { experimental_useInboxSender, useCoState } from "jazz-react";
+import { experimental_useInboxSender, useCoState } from "jazz-tools/react";
 import { Badge, CircleHelp, Scissors, ScrollText } from "lucide-react";
 import { useEffect, useState } from "react";
 

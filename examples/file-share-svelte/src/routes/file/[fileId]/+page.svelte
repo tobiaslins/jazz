@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from '$app/stores';
-  import { CoState } from 'jazz-svelte';
+  import { CoState } from 'jazz-tools/svelte';
   import { SharedFile } from '$lib/schema';
   import { File, FileDown, Link2 } from 'lucide-svelte';
   import { FileStream } from 'jazz-tools';

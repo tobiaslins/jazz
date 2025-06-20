@@ -1,5 +1,5 @@
-import { useAccount, useIsAuthenticated } from "jazz-react";
 import { CoRichText } from "jazz-tools";
+import { useAccount, useIsAuthenticated } from "jazz-tools/react";
 import { useMemo } from "react";
 import { Logo } from "./app-logo.tsx";
 import { AuthButton } from "./auth-button.tsx";

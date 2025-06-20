@@ -17,8 +17,8 @@ import {
   Input,
   PageStack,
   Select,
-} from "jazz-inspector";
-import { AccountOrGroupText } from "jazz-inspector";
+} from "jazz-tools/inspector";
+import { AccountOrGroupText } from "jazz-tools/inspector";
 import React, { useState, useEffect } from "react";
 import { usePagePath } from "./use-page-path";
 

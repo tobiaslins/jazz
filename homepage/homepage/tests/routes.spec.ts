@@ -37,7 +37,6 @@ test.describe("Docs pages load", () => {
     "react",
     "react-native",
     "react-native-expo",
-    "vue",
     "svelte",
     "vanilla",
   ].forEach((framework) => {

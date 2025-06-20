@@ -90,6 +90,11 @@ export const docNavigationItems = [
     prefix: "/docs/upgrade",
     items: [
       {
+        name: "0.15.0 - Everything inside `jazz-tools`",
+        href: "/docs/upgrade/0-15-0",
+        done: 100,
+      },
+      {
         name: "0.14.0 - Zod-based schemas",
         href: "/docs/upgrade/0-14-0",
         done: 100,

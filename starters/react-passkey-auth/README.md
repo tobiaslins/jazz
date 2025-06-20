@@ -43,4 +43,4 @@ If you have feedback, let us know on [Discord](https://discord.gg/utDMjHYg42) or
 
 By default, the React starter app uses [Jazz Cloud](https://jazz.tools/cloud) (`wss://cloud.jazz.tools`) - so cross-device use, invites and collaboration should just work.
 
-You can also run a local sync server by running `npx jazz-run sync`, and setting the `sync` parameter of `JazzProvider` in [./src/app.tsx](./src/app.tsx) to `{ peer: "ws://localhost:4200" }`.
+You can also run a local sync server by running `npx jazz-run sync`, and setting the `sync` parameter of `JazzReactProvider` in [./src/app.tsx](./src/app.tsx) to `{ peer: "ws://localhost:4200" }`.

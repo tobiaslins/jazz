@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAccount, usePasskeyAuth } from "jazz-react";
+import { useAccount, usePasskeyAuth } from "jazz-tools/react";
 import { useState } from "react";
 
 interface AuthModalProps {

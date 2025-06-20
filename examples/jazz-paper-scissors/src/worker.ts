@@ -6,8 +6,8 @@ import {
   Player,
   WaitingRoom,
 } from "@/schema";
-import { startWorker } from "jazz-nodejs";
 import { Account, Group, co } from "jazz-tools";
+import { startWorker } from "jazz-tools/worker";
 import { determineWinner } from "./lib/utils";
 
 if (!process.env.VITE_JAZZ_WORKER_ACCOUNT || !process.env.JAZZ_WORKER_SECRET) {

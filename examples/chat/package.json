@@ -14,8 +14,6 @@
   "dependencies": {
     "clsx": "^2.0.0",
     "hash-slash": "workspace:*",
-    "jazz-inspector": "workspace:*",
-    "jazz-react": "workspace:*",
     "jazz-tools": "workspace:*",
     "lucide-react": "^0.274.0",
     "react": "19.0.0",

@@ -1,5 +1,5 @@
-import { useAccount, useCoState } from "jazz-react";
 import { zodSchemaToCoSchema } from "jazz-tools";
+import { useAccount, useCoState } from "jazz-tools/react";
 import { useEffect, useState } from "react";
 import { createCredentiallessIframe } from "../../lib/createCredentiallessIframe";
 import { waitForCoValue } from "../../lib/waitForCoValue";
@@ -20,7 +20,7 @@ export function UploaderPeer() {
   const testFile = useCoState(UploadedFile, uploadedFileId, {});
 
   async function uploadTestFile() {
-    if (!account) return;
+    if (!account.me) return;
 
     setUploadedFileId(undefined);
     setSynced(false);

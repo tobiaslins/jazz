@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { AccountCoState } from 'jazz-svelte';
+  import { AccountCoState } from 'jazz-tools/svelte';
   import { SharedFile, FileShareAccount } from '$lib/schema';
   import { FileStream, type Loaded } from 'jazz-tools';
   import FileItem from '$lib/components/FileItem.svelte';

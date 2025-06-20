@@ -1,5 +1,5 @@
-import { JazzInspector } from "jazz-inspector";
-import { JazzProvider, PasskeyAuthBasicUI } from "jazz-react";
+import { JazzInspector } from "jazz-tools/inspector";
+import { JazzReactProvider, PasskeyAuthBasicUI } from "jazz-tools/react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
@@ -8,7 +8,7 @@ import { apiKey } from "./apiKey";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <JazzProvider
+    <JazzReactProvider
       sync={{
         peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
       }}
@@ -17,6 +17,6 @@ createRoot(document.getElementById("root")!).render(
         <App />
       </PasskeyAuthBasicUI>
       <JazzInspector />
-    </JazzProvider>
+    </JazzReactProvider>
   </StrictMode>,
 );

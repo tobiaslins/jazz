@@ -14,7 +14,7 @@ import React, {
   StyleSheet,
 } from "react-native";
 
-import { useAccount, useCoState } from "jazz-expo";
+import { useAccount, useCoState } from "jazz-tools/expo";
 import { Chat, Message } from "./schema";
 
 export default function ChatScreen() {

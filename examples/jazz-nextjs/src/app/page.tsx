@@ -1,7 +1,7 @@
 "use client";
 
-import { useAccount } from "jazz-react";
 import { Account } from "jazz-tools";
+import { useAccount } from "jazz-tools/react";
 import Link from "next/link";
 
 export default function Home() {

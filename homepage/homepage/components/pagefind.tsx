@@ -70,7 +70,6 @@ const navigateToUrl = (url: string, close: () => void) => {
 
 const alternativeKeywordsByFramework: Partial<Record<Framework, string[]>> = {
   [Framework.React]: ["reactjs", "react.js", "next.js", "nextjs"],
-  [Framework.Vue]: ["vuejs", "vue.js"],
   [Framework.ReactNative]: ["react native"],
   [Framework.ReactNativeExpo]: ["react native expo", "expo"],
   [Framework.Vanilla]: ["javascript", "js", "plain js", "vanilla js"],

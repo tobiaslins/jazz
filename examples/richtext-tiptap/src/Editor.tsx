@@ -1,8 +1,8 @@
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import clsx from "clsx";
-import { JazzSyncExtension } from "jazz-richtext-tiptap";
 import { CoRichText } from "jazz-tools";
+import { JazzSyncExtension } from "jazz-tools/tiptap";
 import { BoldIcon, ItalicIcon, type LucideIcon } from "lucide-react";
 import { useCallback } from "react";
 

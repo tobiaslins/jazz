@@ -1,5 +1,5 @@
 import { SignInButton, SignOutButton } from "@clerk/clerk-react";
-import { useAccount, useIsAuthenticated } from "jazz-react";
+import { useAccount, useIsAuthenticated } from "jazz-tools/react";
 
 function App() {
   const { me } = useAccount();

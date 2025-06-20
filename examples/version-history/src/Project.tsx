@@ -1,6 +1,6 @@
-import { createInviteLink, useAccount } from "jazz-react";
-import { useCoState } from "jazz-react";
 import { CoPlainText } from "jazz-tools";
+import { createInviteLink, useAccount } from "jazz-tools/react";
+import { useCoState } from "jazz-tools/react";
 import { IssueComponent } from "./Issue.tsx";
 import { Issue, Project } from "./schema.ts";
 export function ProjectComponent({ projectID }: { projectID: string }) {
@@ -31,7 +31,7 @@ export function ProjectComponent({ projectID }: { projectID: string }) {
   return project ? (
     <div>
       <h1>{project.name}</h1>
-      {me.canAdmin(project) && (
+      {me?.canAdmin(project) && (
         <>
           <button onClick={() => invite("reader")}>Invite Guest</button>
           <button onClick={() => invite("writer")}>Invite Member</button>

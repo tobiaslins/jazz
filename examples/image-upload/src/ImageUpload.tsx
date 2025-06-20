@@ -1,4 +1,4 @@
-import { ProgressiveImg, createImage, useAccount } from "jazz-react";
+import { ProgressiveImg, createImage, useAccount } from "jazz-tools/react";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { JazzAccount } from "./schema";
 
