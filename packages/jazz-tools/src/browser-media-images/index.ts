@@ -23,8 +23,6 @@ export async function createImage(
     pica = new Pica();
   }
 
-  const owner = options?.owner;
-
   let originalWidth!: number;
   let originalHeight!: number;
   const Reducer = new ImageBlobReduce({ pica });
@@ -49,8 +47,9 @@ export async function createImage(
       originalSize: [originalWidth, originalHeight],
       placeholderDataURL,
     },
-    owner,
+    options?.owner,
   );
+  const owner = imageDefinition._owner;
 
   const fillImageResolutions = async () => {
     const max256 = await Reducer.toBlob(imageBlobOrFile, { max: 256 });
