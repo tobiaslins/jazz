@@ -19,12 +19,6 @@ export type JazzProviderProps<
     | AnyAccountSchema,
 > = {
   children: React.ReactNode;
-  /**
-   * Renders children even before the account is loaded.
-   *
-   * For this reason useAccount may return null on the first render even when the
-   * resolve option is not passed
-   */
   enableSSR?: boolean;
 } & JazzContextManagerProps<S>;
 
