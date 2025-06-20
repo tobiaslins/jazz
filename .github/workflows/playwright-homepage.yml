@@ -10,9 +10,6 @@ jobs:
   test:
     timeout-minutes: 60
     runs-on: blacksmith-4vcpu-ubuntu-2204
-    strategy:
-      matrix:
-        project: ["homepage/homepage"]
 
     steps:
       - uses: actions/checkout@v4
@@ -23,27 +20,27 @@ jobs:
         uses: ./.github/actions/source-code/
 
       - name: Install root dependencies
-        run: pnpm install && pnpm turbo build
+        run: pnpm install && pnpm exec turbo build --filter="./packages/*"
 
       - name: Install project dependencies
         run: pnpm install
-        working-directory: ./${{ matrix.project }}
+        working-directory: ./homepage/homepage
 
       - name: Pnpm Build
-        run: pnpm turbo build
-        working-directory: ./${{ matrix.project }}
+        run: pnpm exec turbo build
+        working-directory: ./homepage/homepage
 
       - name: Install Playwright Browsers
         run: pnpm exec playwright install
-        working-directory: ./${{ matrix.project }}
+        working-directory: ./homepage/homepage
 
       - name: Run Playwright tests
         run: pnpm exec playwright test
-        working-directory: ./${{ matrix.project }}
+        working-directory: ./homepage/homepage
 
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: ${{ hashFiles(format('{0}/package.json', matrix.project)) }}-playwright-report
-          path: ./${{ matrix.project }}/playwright-report/
+          name: homepage-playwright-report
+          path: ./homepage/homepage/playwright-report/
           retention-days: 30
