@@ -5,6 +5,7 @@ import { Badge } from "../ui/badge.js";
 import { Heading } from "../ui/heading.js";
 import { Text } from "../ui/text.js";
 import { AccountOrGroupText } from "./account-or-group-text.js";
+import { AccountView } from "./account-view.js";
 import { CoStreamView } from "./co-stream-view.js";
 import { GridView } from "./grid-view.js";
 import { GroupView } from "./group-view.js";
@@ -106,6 +107,10 @@ function View(
 
   if (extendedType === "group") {
     return <GroupView data={snapshot} node={node} onNavigate={onNavigate} />;
+  }
+
+  if (extendedType === "account") {
+    return <AccountView data={snapshot} node={node} onNavigate={onNavigate} />;
   }
 
   if (type === "colist" || extendedType === "record") {

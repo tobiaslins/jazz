@@ -54,8 +54,8 @@
       "@types/react-dom": "19.0.0",
       "react": "19.0.0",
       "react-dom": "19.0.0",
+      "vite": "6.3.5",
       "esbuild": "0.24.0"
-
     },
     "patchedDependencies": {
       "expo-router": "patches/expo-router.patch"

@@ -37,7 +37,11 @@ export function ProjectTodoTable() {
   // It also recursively resolves and subsribes to all referenced CoValues.
   const project = useCoState(TodoProject, projectId, {
     resolve: {
-      tasks: true,
+      tasks: {
+        $each: {
+          text: true,
+        },
+      },
     },
   });
 
@@ -63,7 +67,7 @@ export function ProjectTodoTable() {
   );
 
   return (
-    <div className="max-w-full w-4xl">
+    <div className="max-w-full w-xl">
       <div className="flex justify-between items-center gap-4 mb-4">
         <h1>
           {
@@ -88,7 +92,7 @@ export function ProjectTodoTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {project?.tasks?.map(
+          {project?.tasks.map(
             (task) => task && <TaskRow key={task.id} task={task} />,
           )}
           <NewTaskInputRow createTask={createTask} disabled={!project} />

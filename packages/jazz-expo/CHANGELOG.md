@@ -1,5 +1,93 @@
 # jazz-browser
 
+## 0.14.28
+
+### Patch Changes
+
+- Updated dependencies [06c5a1c]
+  - jazz-tools@0.14.28
+  - jazz-auth-clerk@0.14.28
+  - jazz-react-core@0.14.28
+  - jazz-react-native-core@0.14.28
+  - cojson@0.14.28
+  - cojson-transport-ws@0.14.28
+
+## 0.14.27
+
+### Patch Changes
+
+- Updated dependencies [a026073]
+  - jazz-tools@0.14.27
+  - jazz-auth-clerk@0.14.27
+  - jazz-react-core@0.14.27
+  - jazz-react-native-core@0.14.27
+  - cojson@0.14.27
+  - cojson-transport-ws@0.14.27
+
+## 0.14.26
+
+### Patch Changes
+
+- Updated dependencies [fc71d45]
+- Updated dependencies [e74a077]
+  - jazz-react-native-core@0.14.26
+  - cojson@0.14.26
+  - cojson-transport-ws@0.14.26
+  - jazz-auth-clerk@0.14.26
+  - jazz-react-core@0.14.26
+  - jazz-tools@0.14.26
+
+## 0.14.25
+
+### Patch Changes
+
+- Updated dependencies [99a2d9b]
+  - jazz-tools@0.14.25
+  - jazz-auth-clerk@0.14.25
+  - jazz-react-core@0.14.25
+  - jazz-react-native-core@0.14.25
+  - cojson@0.14.25
+  - cojson-transport-ws@0.14.25
+
+## 0.14.24
+
+### Patch Changes
+
+- 678f326: Reuse the same db connection when switching users instead of closing/opening a new one
+  - cojson@0.14.24
+  - cojson-transport-ws@0.14.24
+  - jazz-auth-clerk@0.14.24
+  - jazz-react-core@0.14.24
+  - jazz-react-native-core@0.14.24
+  - jazz-tools@0.14.24
+
+## 0.14.23
+
+### Patch Changes
+
+- 5f42c97: Close the DB connection when the node/context is closed
+- Updated dependencies [1ca9299]
+- Updated dependencies [9177579]
+  - cojson@0.14.23
+  - jazz-tools@0.14.23
+  - cojson-transport-ws@0.14.23
+  - jazz-auth-clerk@0.14.23
+  - jazz-react-core@0.14.23
+  - jazz-react-native-core@0.14.23
+
+## 0.14.22
+
+### Patch Changes
+
+- Updated dependencies [57fb69f]
+- Updated dependencies [048ac1d]
+  - cojson@0.14.22
+  - jazz-tools@0.14.22
+  - cojson-transport-ws@0.14.22
+  - jazz-auth-clerk@0.14.22
+  - jazz-react-core@0.14.22
+  - jazz-react-native-core@0.14.22
+
 ## 0.14.21
 
 ### Patch Changes

@@ -1,5 +1,52 @@
 # cojson-storage
 
+## 0.14.28
+
+### Patch Changes
+
+- cojson@0.14.28
+
+## 0.14.27
+
+### Patch Changes
+
+- cojson@0.14.27
+
+## 0.14.26
+
+### Patch Changes
+
+- 680a2e2: Read in parallel up to 10 values on the async storage adapters to improve loading perf
+- Updated dependencies [e74a077]
+  - cojson@0.14.26
+
+## 0.14.25
+
+### Patch Changes
+
+- cojson@0.14.25
+
+## 0.14.24
+
+### Patch Changes
+
+- cojson@0.14.24
+
+## 0.14.23
+
+### Patch Changes
+
+- 5f42c97: Close the DB connection when the node/context is closed
+- Updated dependencies [1ca9299]
+  - cojson@0.14.23
+
+## 0.14.22
+
+### Patch Changes
+
+- Updated dependencies [57fb69f]
+  - cojson@0.14.22
+
 ## 0.14.21
 
 ### Patch Changes

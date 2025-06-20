@@ -239,6 +239,32 @@ We have removed the Typescript AccountSchema registration.
 It was causing some deal of confusion to new adopters so we have decided to replace the magic inference with a more explicit approach.
 
 <ContentByFramework framework={["react", "react-native", "vue", "vanilla", "react-native-expo"]}>
+<CodeGroup>
+```tsx
+import { JazzProvider } from "jazz-react";
+import { MyAccount } from "./schema";
+
+declare module "jazz-react" { // [!code --]
+  interface Register {  // [!code --]
+    Account: MyAccount; // [!code --]
+  }  // [!code --]
+}  // [!code --]
+
+export function MyApp({ children }: { children: React.ReactNode }) {
+  return (
+    <JazzProvider
+      sync={{
+        peer: "wss://cloud.jazz.tools/?key=your-api-key",
+      }}
+      AccountSchema={MyAccount}
+    >
+      {children}
+    </JazzProvider>
+  );
+}
+```
+</CodeGroup>
+
 When using `useAccount` you should now pass the `Account` schema directly:
 
 <CodeGroup>
@@ -271,6 +297,35 @@ function MyComponent() {
 </ContentByFramework>
 
 <ContentByFramework framework="svelte">
+<CodeGroup>
+```svelte
+<!-- src/routes/+layout.svelte -->
+<script lang="ts" module>
+  declare module 'jazz-svelte' {  // [!code --]
+    interface Register {  // [!code --]
+      Account: MyAppAccount; // [!code --]
+    }  // [!code --]
+  }  // [!code --]
+</script> // [!code --]
+
+<script lang="ts">
+  import { JazzProvider } from "jazz-svelte";
+  import { MyAppAccount } from "$lib/schema";
+  let { children } = $props();
+</script>
+
+<JazzProvider
+  sync={{ 
+    peer: "wss://cloud.jazz.tools/?key=your-api-key",
+    when: "always" // When to sync: "always", "never", or "signedUp"
+  }}
+  AccountSchema={MyAppAccount}
+>
+  {@render children()}
+</JazzProvider>
+```
+</CodeGroup>
+
 When using `AccountCoState` you should now pass the `Account` schema directly:
 
 <CodeGroup>
@@ -339,7 +394,8 @@ export const MyAppAccount = co.account({
 
 ### Defining Schema helper methods
 
-TODO
+You can no longer define helper methods directly within your schema, create standalone functions instead. See
+[Docs on Helper methods](/docs/schemas/covalues#helper-methods) for an example.
 
 ## Minor breaking changes
 

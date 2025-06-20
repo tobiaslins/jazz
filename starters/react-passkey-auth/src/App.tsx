@@ -2,7 +2,7 @@ import { useAccount, useIsAuthenticated } from "jazz-react";
 import { AuthButton } from "./AuthButton.tsx";
 import { Form } from "./Form.tsx";
 import { Logo } from "./Logo.tsx";
-import { AccountRoot, JazzAccount } from "./schema.ts";
+import { JazzAccount, getUserAge } from "./schema.ts";
 
 function App() {
   const { me } = useAccount(JazzAccount, {
@@ -32,7 +32,7 @@ function App() {
             !
           </h1>
           {!!me?.root && (
-            <p>As of today, you are {AccountRoot.age(me.root)} years old.</p>
+            <p>As of today, you are {getUserAge(me.root)} years old.</p>
           )}
         </div>
 

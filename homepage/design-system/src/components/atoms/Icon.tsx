@@ -96,6 +96,7 @@ export const icons = {
   user: UserIcon,
   group: UsersIcon,
   search: SearchIcon,
+
   previous: ChevronLeftIcon,
   next: ChevronRightIcon,
 

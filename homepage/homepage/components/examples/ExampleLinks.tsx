@@ -10,13 +10,16 @@ import {
   DialogBody,
   DialogTitle,
 } from "@garden-co/design-system/src/components/organisms/Dialog";
-import { DialogDescription } from "@headlessui/react";
+import { track } from "@vercel/analytics";
 import { useState } from "react";
-import CreateJazzApp from "./CreateJazzApp.mdx";
+import CreateJazzAppExample from "./CreateJazzAppExample.mdx";
+import CreateJazzAppStarter from "./CreateJazzAppStarter.mdx";
 
 export function ExampleLinks({ example }: { example: Example }) {
-  const { slug, demoUrl } = example;
-  const githubUrl = `https://github.com/gardencmp/jazz/tree/main/examples/${slug}`;
+  const { slug, demoUrl, starter } = example;
+  const githubUrl = starter
+    ? `https://github.com/gardencmp/jazz/tree/main/starters/${slug}`
+    : `https://github.com/gardencmp/jazz/tree/main/examples/${slug}`;
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -47,12 +50,26 @@ export function ExampleLinks({ example }: { example: Example }) {
           <p className="mb-3">
             Generate a new Jazz app by running the command below.
           </p>
-          <CodeGroup>
-            <CreateJazzApp
-              components={InterpolateInCode({
-                $EXAMPLE: example.slug,
-              })}
-            />
+          <CodeGroup
+            onCopy={() => {
+              track("Template command copied from examples page", {
+                example: example.slug,
+              });
+            }}
+          >
+            {starter ? (
+              <CreateJazzAppStarter
+                components={InterpolateInCode({
+                  $EXAMPLE: example.slug,
+                })}
+              />
+            ) : (
+              <CreateJazzAppExample
+                components={InterpolateInCode({
+                  $EXAMPLE: example.slug,
+                })}
+              />
+            )}
           </CodeGroup>
         </DialogBody>
         <DialogActions>

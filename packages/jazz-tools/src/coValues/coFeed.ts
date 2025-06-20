@@ -769,26 +769,6 @@ export class FileStream extends CoValueBase implements CoValue {
   ): Promise<Blob | undefined> {
     let stream = await this.load(id, options);
 
-    /**
-     * If the user hasn't requested an incomplete blob and the
-     * stream isn't complete wait for the stream download before progressing
-     */
-    if (!options?.allowUnfinished && !stream?.isBinaryStreamEnded()) {
-      stream = await new Promise<FileStream>((resolve) => {
-        subscribeToCoValueWithoutMe(
-          this,
-          id,
-          options || {},
-          (value, unsubscribe) => {
-            if (value.isBinaryStreamEnded()) {
-              unsubscribe();
-              resolve(value);
-            }
-          },
-        );
-      });
-    }
-
     return stream?.toBlob({
       allowUnfinished: options?.allowUnfinished,
     });
@@ -884,12 +864,37 @@ export class FileStream extends CoValueBase implements CoValue {
    * Load a `FileStream`
    * @category Subscription & Loading
    */
-  static load<C extends FileStream>(
+  static async load<C extends FileStream>(
     this: CoValueClass<C>,
     id: ID<C>,
-    options?: { loadAs?: Account | AnonymousJazzAgent },
-  ): Promise<Resolved<C, true> | null> {
-    return loadCoValueWithoutMe(this, id, options);
+    options?: {
+      loadAs?: Account | AnonymousJazzAgent;
+      allowUnfinished?: boolean;
+    },
+  ): Promise<FileStream | null> {
+    const stream = await loadCoValueWithoutMe(this, id, options);
+
+    /**
+     * If the user hasn't requested an incomplete blob and the
+     * stream isn't complete wait for the stream download before progressing
+     */
+    if (!options?.allowUnfinished && !stream?.isBinaryStreamEnded()) {
+      return new Promise<FileStream>((resolve) => {
+        subscribeToCoValueWithoutMe(
+          this,
+          id,
+          options || {},
+          (value, unsubscribe) => {
+            if (value.isBinaryStreamEnded()) {
+              unsubscribe();
+              resolve(value);
+            }
+          },
+        );
+      });
+    }
+
+    return stream;
   }
 
   /**

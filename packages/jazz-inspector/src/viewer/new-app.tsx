@@ -15,7 +15,8 @@ import { InspectorButton, type Position } from "./inpsector-button.js";
 
 const InspectorContainer = styled("div")`
   position: fixed;
-  height: calc(100% - 12rem);
+  height: 50vh;
+  max-height: 800px;
   display: flex;
   flex-direction: column;
   bottom: 0;

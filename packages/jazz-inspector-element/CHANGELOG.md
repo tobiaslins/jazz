@@ -1,5 +1,59 @@
 # jazz-inspector-element
 
+## 0.14.28
+
+### Patch Changes
+
+- Updated dependencies [06c5a1c]
+  - jazz-tools@0.14.28
+  - jazz-inspector@0.14.28
+
+## 0.14.27
+
+### Patch Changes
+
+- Updated dependencies [a026073]
+  - jazz-tools@0.14.27
+  - jazz-inspector@0.14.27
+
+## 0.14.26
+
+### Patch Changes
+
+- jazz-inspector@0.14.26
+- jazz-tools@0.14.26
+
+## 0.14.25
+
+### Patch Changes
+
+- Updated dependencies [99a2d9b]
+  - jazz-tools@0.14.25
+  - jazz-inspector@0.14.25
+
+## 0.14.24
+
+### Patch Changes
+
+- jazz-inspector@0.14.24
+- jazz-tools@0.14.24
+
+## 0.14.23
+
+### Patch Changes
+
+- Updated dependencies [9177579]
+  - jazz-tools@0.14.23
+  - jazz-inspector@0.14.23
+
+## 0.14.22
+
+### Patch Changes
+
+- Updated dependencies [048ac1d]
+  - jazz-tools@0.14.22
+  - jazz-inspector@0.14.22
+
 ## 0.14.21
 
 ### Patch Changes

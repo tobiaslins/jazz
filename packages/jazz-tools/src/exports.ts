@@ -103,4 +103,6 @@ export {
   type ResolveQuery,
   type ResolveQueryStrict,
   type InitFor,
+  type CoRecordSchema,
+  type CoProfileSchema,
 } from "./internal.js";

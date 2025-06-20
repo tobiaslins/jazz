@@ -41,7 +41,11 @@ export function useProgressiveImg({
           });
 
           // Create data URL
-          const base64 = Buffer.from(combinedArray).toString("base64");
+          const base64 = btoa(
+            Array.from(combinedArray, (byte) => String.fromCharCode(byte)).join(
+              "",
+            ),
+          );
           const dataUrl = `data:${chunks.mimeType};base64,${base64}`;
 
           setCurrent({
