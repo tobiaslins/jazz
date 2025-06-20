@@ -1,5 +1,3 @@
-"use client";
-
 import { JazzInspector } from "jazz-tools/inspector";
 import { JazzReactProvider } from "jazz-tools/react";
 

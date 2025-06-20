@@ -48,6 +48,11 @@ export default defineConfig([
       index: "src/inspector/index.ts",
     },
     outDir: "dist/inspector",
+    esbuildOptions: (options) => {
+      options.banner = {
+        js: '"use client";',
+      };
+    },
   },
   {
     ...cfg,
@@ -77,10 +82,28 @@ export default defineConfig([
   {
     ...cfg,
     entry: {
+      index: "src/react/index.ts",
+      testing: "src/react/testing.tsx",
+    },
+    outDir: "dist/react",
+    esbuildOptions: (options) => {
+      options.banner = {
+        js: '"use client";',
+      };
+    },
+  },
+  {
+    ...cfg,
+    entry: {
       index: "src/react-core/index.ts",
       testing: "src/react-core/testing.tsx",
     },
     outDir: "dist/react-core",
+    esbuildOptions: (options) => {
+      options.banner = {
+        js: '"use client";',
+      };
+    },
   },
   {
     ...cfg,
