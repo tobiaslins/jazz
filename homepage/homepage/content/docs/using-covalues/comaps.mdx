@@ -475,112 +475,98 @@ Consider a scenario where one wants to identify a CoMap using some unique identi
 <CodeGroup>
 ```ts twoslash
 import { co, z, Group, ID } from "jazz-tools";
-const Event = co.map({
-  title: z.string(),
-  identifier: z.string(),
-  external_id: z.string(),
+const Task = co.map({
+  text: z.string(),
 });
-const sourceData = {
-  title: "" as string,
-  identifier: "" as string,
-  _id: "" as string,
-};
 // ---cut---
-// This will not work, as `sourceData.identifier` is some externally-generated string, not a CoValue ID
-let activeEvent = await Event.load(sourceData.identifier);
+// This will not work as `learning-jazz` is not a CoValue ID
+const myTask = await Task.load("learning-jazz");
 ```
 </CodeGroup>
 
-To achieve this, one could use `CoMap.loadUnique`:
+To make it possible to use human-readable identifiers Jazz lets you to define a `unique` property on CoMaps.
+
+Then the CoValue id will be generated based on the `unique` property and the owner of the CoMap.
 
 <CodeGroup>
 ```ts twoslash
 import { co, z, Group, ID } from "jazz-tools";
-const Event = co.map({
-  title: z.string(),
-  identifier: z.string(),
-  external_id: z.string(),
+const Task = co.map({
+  text: z.string(),
 });
-const sourceData = {
-  title: "" as string,
-  identifier: "" as string,
-  _id: "" as string,
-};
-const workspace = Group.create();
+const Project = co.map({
+  name: z.string(),
+  startDate: z.date(),
+  endDate: z.optional(z.date()),
+});
+const project = Project.create({
+  name: "My project",
+  startDate: new Date("2025-04-01"),
+  endDate: new Date("2025-04-04"),
+});
 // ---cut---
-let activeEvent = await Event.loadUnique(
-  { identifier: sourceData.identifier },
-  workspace.id
+// Given the project owner, myTask will have always the same id
+const learnJazzTask = await Task.create({
+  text: "Let's learn some Jazz!",
+}, {
+  unique: "learning-jazz",
+  owner: project._owner, // Different owner, different id
+});
+```
+</CodeGroup>
+
+Now you can use `CoMap.loadUnique` to easily load the CoMap using the human-readable identifier:
+
+<CodeGroup>
+```ts twoslash
+import { co, z, Group, ID } from "jazz-tools";
+const Task = co.map({
+  text: z.string(),
+});
+const Project = co.map({
+  name: z.string(),
+  startDate: z.date(),
+  endDate: z.optional(z.date()),
+});
+const project = Project.create({
+  name: "My project",
+  startDate: new Date("2025-04-01"),
+  endDate: new Date("2025-04-04"),
+});
+// ---cut---
+const learnJazzTask = await Task.loadUnique(
+  "learning-jazz",
+  project._owner.id
 );
 ```
 </CodeGroup>
 
-Now suppose you wished to create or modify a CoMap using its unique identifier:
+It's also possible to combine the create+load operation using `CoMap.upsertUnique`:
 
 <CodeGroup>
 ```ts twoslash
 import { co, z, Group, ID } from "jazz-tools";
-const Event = co.map({
-  title: z.string(),
-  identifier: z.string(),
-  external_id: z.string(),
+const Task = co.map({
+  text: z.string(),
 });
-const sourceData = {
-  title: "" as string,
-  identifier: "" as string,
-  _id: "" as string,
-};
-const workspace = Group.create();
-// ---cut---
-let activeEvent = await Event.loadUnique(
-  { identifier: sourceData.identifier },
-  workspace.id
-);
-if (!activeEvent) {
-  activeEvent = Event.create(
-    {
-      title: sourceData.title,
-      identifier: sourceData.identifier,
-      external_id: sourceData._id,
-    },
-    workspace,
-  );
-} else {
-  activeEvent.applyDiff({
-    title: sourceData.title,
-    identifier: sourceData.identifier,
-    external_id: sourceData._id,
-  });
-}
-```
-</CodeGroup>
-
-To simplify this, one could use `CoMap.upsertUnique`:
-
-<CodeGroup>
-```ts twoslash
-import { co, z, Group, ID } from "jazz-tools";
-const Event = co.map({
-  title: z.string(),
-  identifier: z.string(),
-  external_id: z.string(),
+const Project = co.map({
+  name: z.string(),
+  startDate: z.date(),
+  endDate: z.optional(z.date()),
 });
-const sourceData = {
-  title: "" as string,
-  identifier: "" as string,
-  _id: "" as string,
-};
-const workspace = Group.create();
+const project = Project.create({
+  name: "My project",
+  startDate: new Date("2025-04-01"),
+  endDate: new Date("2025-04-04"),
+});
 // ---cut---
-const activeEvent = await Event.upsertUnique(
+const learnJazzTask = await Task.upsertUnique(
   {
     value: {
-      title: sourceData.title,
-      identifier: sourceData.identifier,
-      external_id: sourceData._id,
+      text: "Let's learn some Jazz!",
     },
-    unique: sourceData.identifier,
-    owner: workspace
+    unique: "learning-jazz",
+    owner: project._owner,
   }
 );
 ```
