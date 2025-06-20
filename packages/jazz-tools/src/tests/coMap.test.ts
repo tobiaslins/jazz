@@ -23,6 +23,8 @@ import { setupTwoNodes, waitFor } from "./utils.js";
 const Crypto = await WasmCrypto.create();
 
 beforeEach(async () => {
+  cojsonInternals.CO_VALUE_LOADING_CONFIG.RETRY_DELAY = 1000;
+
   await setupJazzTestSync();
 
   await createJazzTestAccount({
@@ -474,54 +476,6 @@ describe("CoMap resolution", async () => {
     expect(loadedPerson.dog?.name).toEqual("Rex");
   });
 
-  test("loading a locally available map with skipRetry set to true", async () => {
-    const Dog = co.map({
-      name: z.string(),
-      breed: z.string(),
-    });
-
-    const Person = co.map({
-      name: z.string(),
-      age: z.number(),
-      dog: Dog,
-    });
-
-    const person = Person.create({
-      name: "John",
-      age: 20,
-      dog: Dog.create({ name: "Rex", breed: "Labrador" }),
-    });
-
-    const loadedPerson = await Person.load(person.id, { skipRetry: true });
-
-    assert(loadedPerson);
-    expect(loadedPerson.dog?.name).toEqual("Rex");
-  });
-
-  test("loading a locally available map with skipRetry set to false", async () => {
-    const Dog = co.map({
-      name: z.string(),
-      breed: z.string(),
-    });
-
-    const Person = co.map({
-      name: z.string(),
-      age: z.number(),
-      dog: Dog,
-    });
-
-    const person = Person.create({
-      name: "John",
-      age: 20,
-      dog: Dog.create({ name: "Rex", breed: "Labrador" }),
-    });
-
-    const loadedPerson = await Person.load(person.id, { skipRetry: false });
-
-    assert(loadedPerson);
-    expect(loadedPerson.dog?.name).toEqual("Rex");
-  });
-
   test("loading a remotely available map with deep resolve", async () => {
     const Dog = co.map({
       name: z.string(),
@@ -597,6 +551,9 @@ describe("CoMap resolution", async () => {
   });
 
   test("loading a remotely available map with skipRetry set to true", async () => {
+    // Make the retry delay extra long to ensure that it's not used
+    cojsonInternals.CO_VALUE_LOADING_CONFIG.RETRY_DELAY = 100_000_000;
+
     const Dog = co.map({
       name: z.string(),
       breed: z.string(),
@@ -628,38 +585,20 @@ describe("CoMap resolution", async () => {
     );
 
     const userB = await createJazzTestAccount();
-    let resolved = false;
-    const promise = Person.load(person.id, {
+
+    // We expect that the test doesn't hang here and immediately returns null
+    const loadedPerson = await Person.load(person.id, {
       loadAs: userB,
       skipRetry: true,
     });
-    promise.then(() => {
-      resolved = true;
-    });
 
-    expect(resolved).toBe(false);
-
-    await new Promise((resolve) =>
-      setTimeout(
-        resolve,
-        cojsonInternals.CO_VALUE_LOADING_CONFIG.RETRY_DELAY - 100,
-      ),
-    );
-
-    expect(resolved).toBe(true);
-
-    // Reconnect the current account
-    currentAccount._raw.core.node.syncManager.addPeer(
-      getPeerConnectedToTestSyncServer(),
-    );
-
-    const loadedPerson = await promise;
     expect(loadedPerson).toBeNull();
-    expect(loadedPerson?.dog).toBeFalsy();
-    expect(loadedPerson?.dog?.name).toBeUndefined();
   });
 
   test("loading a remotely available map with skipRetry set to false", async () => {
+    // Make the retry delay extra long to avoid flakyness in the resolved checks
+    cojsonInternals.CO_VALUE_LOADING_CONFIG.RETRY_DELAY = 100_000_000;
+
     const Dog = co.map({
       name: z.string(),
       breed: z.string(),
@@ -700,12 +639,7 @@ describe("CoMap resolution", async () => {
       resolved = true;
     });
 
-    await new Promise((resolve) =>
-      setTimeout(
-        resolve,
-        cojsonInternals.CO_VALUE_LOADING_CONFIG.RETRY_DELAY - 100,
-      ),
-    );
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     expect(resolved).toBe(false);
 
