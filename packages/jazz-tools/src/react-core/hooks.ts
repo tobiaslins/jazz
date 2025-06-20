@@ -229,36 +229,23 @@ function useAccountSubscription<
   return subscription.subscription;
 }
 
-function useAccount<A extends AccountClass<Account> | AnyAccountSchema>(
-  AccountSchema?: A,
-): {
-  me: Loaded<A, true>;
-  logOut: () => void;
-};
-function useAccount<
+export function useAccount<
   A extends AccountClass<Account> | AnyAccountSchema,
-  R extends ResolveQuery<A>,
->(
-  AccountSchema: A,
-  options?: {
-    resolve?: ResolveQueryStrict<A, R>;
-  },
-): { me: Loaded<A, R> | undefined | null; logOut: () => void };
-function useAccount<
-  A extends AccountClass<Account> | AnyAccountSchema,
-  R extends ResolveQuery<A>,
+  R extends ResolveQuery<A> = true,
 >(
   AccountSchema: A = Account as unknown as A,
   options?: {
     resolve?: ResolveQueryStrict<A, R>;
   },
 ): {
-  me: Loaded<A, true> | Loaded<A, R> | undefined | null;
+  me: Loaded<A, R> | undefined | null;
+  agent: AnonymousJazzAgent | Loaded<A, true>;
   logOut: () => void;
 } {
-  const context = useJazzContext<InstanceOfSchema<A>>();
   const contextManager = useJazzContextManager<InstanceOfSchema<A>>();
   const subscription = useAccountSubscription(AccountSchema, options);
+
+  const agent = getCurrentAccountFromContextManager(contextManager);
 
   const value = React.useSyncExternalStore<Loaded<A, R> | undefined | null>(
     React.useCallback(
@@ -275,60 +262,12 @@ function useAccount<
     () => (subscription ? subscription.getCurrentValue() : null),
   );
 
-  if (options?.resolve === undefined && "me" in context) {
-    return {
-      me: value || (context.me as Loaded<A, R>),
-      logOut: contextManager.logOut,
-    };
-  }
-
   return {
     me: value,
+    agent,
     logOut: contextManager.logOut,
   };
 }
-
-function useAccountOrGuest<A extends AccountClass<Account> | AnyAccountSchema>(
-  AccountSchema?: A,
-): {
-  me: Loaded<A, true> | AnonymousJazzAgent;
-};
-function useAccountOrGuest<
-  A extends AccountClass<Account> | AnyAccountSchema,
-  R extends ResolveQuery<A>,
->(
-  AccountSchema?: A,
-  options?: { resolve?: ResolveQueryStrict<A, R> },
-): {
-  me: Loaded<A, R> | undefined | null | AnonymousJazzAgent;
-};
-function useAccountOrGuest<
-  A extends AccountClass<Account> | AnyAccountSchema,
-  R extends ResolveQuery<A>,
->(
-  AccountSchema: A = Account as unknown as A,
-  options?: { resolve?: ResolveQueryStrict<A, R> },
-): {
-  me:
-    | InstanceOfSchema<A>
-    | Loaded<A, R>
-    | undefined
-    | null
-    | AnonymousJazzAgent;
-} {
-  const context = useJazzContext<InstanceOfSchema<A>>();
-  const account = useAccount(AccountSchema, options);
-
-  if ("me" in context) {
-    return {
-      me: account.me,
-    };
-  } else {
-    return { me: context.guest };
-  }
-}
-
-export { useAccount, useAccountOrGuest };
 
 export function experimental_useInboxSender<
   I extends CoValue,

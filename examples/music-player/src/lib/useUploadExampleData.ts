@@ -4,11 +4,11 @@ import { useEffect } from "react";
 import { uploadMusicTracks } from "../4_actions";
 
 export function useUploadExampleData() {
-  const { me } = useAccount();
+  const { agent } = useAccount();
 
   useEffect(() => {
     uploadOnboardingData();
-  }, [me.id]);
+  }, [agent]);
 }
 
 async function uploadOnboardingData() {

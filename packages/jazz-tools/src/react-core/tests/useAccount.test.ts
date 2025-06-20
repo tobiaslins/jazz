@@ -14,7 +14,11 @@ import {
 import { beforeEach, describe, expect, it } from "vitest";
 import { useAccount, useJazzContextManager } from "../hooks.js";
 import { useIsAuthenticated } from "../index.js";
-import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
+import {
+  createJazzTestAccount,
+  createJazzTestGuest,
+  setupJazzTestSync,
+} from "../testing.js";
 import { act, renderHook } from "./testUtils.js";
 
 beforeEach(async () => {
@@ -84,14 +88,16 @@ describe("useAccount", () => {
         const isAuthenticated = useIsAuthenticated();
         const account = useAccount();
 
-        if (!accounts.includes(account.me.id)) {
-          accounts.push(account.me.id);
-        }
+        if (account.me) {
+          if (!accounts.includes(account.me.id)) {
+            accounts.push(account.me.id);
+          }
 
-        updates.push({
-          isAuthenticated,
-          accountIndex: accounts.indexOf(account.me.id),
-        });
+          updates.push({
+            isAuthenticated,
+            accountIndex: accounts.indexOf(account.me.id),
+          });
+        }
 
         return { isAuthenticated, account };
       },
@@ -111,7 +117,7 @@ describe("useAccount", () => {
     });
 
     expect(result.current?.isAuthenticated).toBe(false);
-    expect(result.current?.account?.me.id).not.toBe(id);
+    expect(result.current?.account?.me?.id).not.toBe(id);
 
     expect(updates).toMatchInlineSnapshot(`
       [
@@ -144,14 +150,16 @@ describe("useAccount", () => {
         const account = useAccount();
         const contextManager = useJazzContextManager();
 
-        if (!accounts.includes(account.me.id)) {
-          accounts.push(account.me.id);
-        }
+        if (account.me) {
+          if (!accounts.includes(account.me.id)) {
+            accounts.push(account.me.id);
+          }
 
-        updates.push({
-          isAuthenticated,
-          accountIndex: accounts.indexOf(account.me.id),
-        });
+          updates.push({
+            isAuthenticated,
+            accountIndex: accounts.indexOf(account.me.id),
+          });
+        }
 
         return { isAuthenticated, account, contextManager };
       },
@@ -175,7 +183,7 @@ describe("useAccount", () => {
     });
 
     expect(result.current?.isAuthenticated).toBe(true);
-    expect(result.current?.account?.me.id).not.toBe(id);
+    expect(result.current?.account?.me?.id).not.toBe(id);
 
     expect(updates).toMatchInlineSnapshot(`
       [
@@ -189,5 +197,42 @@ describe("useAccount", () => {
         },
       ]
     `);
+  });
+
+  it("should not load nested values if the account is a guest", async () => {
+    const AccountRoot = co.map({
+      value: z.string(),
+    });
+
+    const AccountSchema = co
+      .account({
+        root: AccountRoot,
+        profile: co.profile(),
+      })
+      .withMigration((account, creationProps) => {
+        if (!account._refs.root) {
+          account.root = AccountRoot.create(
+            { value: "123" },
+            { owner: account },
+          );
+        }
+      });
+
+    const account = await createJazzTestGuest();
+
+    const { result } = renderHook(
+      () =>
+        useAccount(AccountSchema, {
+          resolve: {
+            root: true,
+          },
+        }),
+      {
+        account,
+      },
+    );
+
+    expect(result.current.me).toBe(null);
+    expect(result.current.agent).toBe(account.guest);
   });
 });

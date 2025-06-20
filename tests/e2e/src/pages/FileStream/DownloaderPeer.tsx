@@ -8,6 +8,10 @@ export function DownloaderPeer(props: { testCoMapId: string }) {
   const [synced, setSynced] = useState(false);
 
   useEffect(() => {
+    if (!account.me) {
+      return;
+    }
+
     async function run(me: Account, uploadedFileId: string) {
       const uploadedFile = await UploadedFile.load(uploadedFileId, {
         loadAs: me,

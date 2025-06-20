@@ -20,7 +20,7 @@ export function UploaderPeer() {
   const testFile = useCoState(UploadedFile, uploadedFileId, {});
 
   async function uploadTestFile() {
-    if (!account) return;
+    if (!account.me) return;
 
     setUploadedFileId(undefined);
     setSynced(false);

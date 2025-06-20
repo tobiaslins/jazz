@@ -176,7 +176,7 @@
     "test": "vitest --run --root ../../ --project jazz-tools",
     "test:watch": "vitest --watch --root ../../ --project jazz-tools",
     "types": "tsc --outDir dist",
-    "build:svelte": "rm -rf dist/svelte && svelte-package -i src/svelte -o dist/svelte",
+    "build:svelte": "rm -rf dist/svelte && svelte-package -i src/svelte -o dist/svelte --tsconfig tsconfig.svelte.json",
     "build": "tsup && pnpm types && pnpm build:svelte"
   },
   "devDependencies": {

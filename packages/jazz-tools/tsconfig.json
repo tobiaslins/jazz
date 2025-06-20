@@ -2,7 +2,7 @@
   "compilerOptions": {
     "lib": ["ESNext", "DOM"],
     "module": "esnext",
-    "target": "esnext",
+    "target": "ES2021", // For RN/Hermes compatibility
     "moduleResolution": "bundler",
     "moduleDetection": "force",
     "strict": true,

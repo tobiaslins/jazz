@@ -19,7 +19,7 @@ export function ChatScreen(props: { chatID: string }) {
   const chat = useCoState(Chat, props.chatID, {
     resolve: { $each: { text: true } },
   });
-  const account = useAccount();
+  const { me } = useAccount();
   const [showNLastMessages, setShowNLastMessages] = useState(30);
 
   if (!chat)
@@ -50,6 +50,10 @@ export function ChatScreen(props: { chatID: string }) {
     });
   };
 
+  if (!me) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <>
       <ChatBody>
@@ -57,7 +61,7 @@ export function ChatScreen(props: { chatID: string }) {
           chat
             .slice(-showNLastMessages)
             .reverse() // this plus flex-col-reverse on ChatBody gives us scroll-to-bottom behavior
-            .map((msg) => <ChatBubble me={account.me} msg={msg} key={msg.id} />)
+            .map((msg) => <ChatBubble me={me} msg={msg} key={msg.id} />)
         ) : (
           <EmptyChatMessage />
         )}

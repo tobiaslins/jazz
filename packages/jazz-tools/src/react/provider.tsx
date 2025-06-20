@@ -25,7 +25,7 @@ export type JazzProviderProps<
    * For this reason useAccount may return null on the first render even when the
    * resolve option is not passed
    */
-  experimental_enableSSR?: boolean;
+  enableSSR?: boolean;
 } & JazzContextManagerProps<S>;
 
 /** @category Context & Hooks */
@@ -43,12 +43,12 @@ export function JazzReactProvider<
   onLogOut,
   logOutReplacement,
   onAnonymousAccountDiscarded,
-  experimental_enableSSR,
+  enableSSR,
 }: JazzProviderProps<S>) {
   const [contextManager] = React.useState(
     () =>
       new JazzBrowserContextManager<S>({
-        useAnonymousFallback: experimental_enableSSR,
+        useAnonymousFallback: enableSSR,
       }),
   );
 

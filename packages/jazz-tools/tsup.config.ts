@@ -103,6 +103,13 @@ export default defineConfig([
   {
     ...cfg,
     entry: {
+      index: "src/react-native-media-images/index.ts",
+    },
+    outDir: "dist/react-native-media-images",
+  },
+  {
+    ...cfg,
+    entry: {
       index: "src/tiptap/index.ts",
     },
     outDir: "dist/tiptap",

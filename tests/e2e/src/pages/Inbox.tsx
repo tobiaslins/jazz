@@ -23,11 +23,14 @@ export function InboxPage() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
+    if (!me) return;
+
     let unsubscribe = () => {};
     let unmounted = false;
+    const account = me;
 
     async function load() {
-      const inbox = await Inbox.load(me);
+      const inbox = await Inbox.load(account);
 
       if (unmounted) return;
 

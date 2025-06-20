@@ -6,7 +6,7 @@ import { JazzReactProvider } from "jazz-tools/react";
 export function Jazz({ children }: { children: React.ReactNode }) {
   return (
     <JazzReactProvider
-      experimental_enableSSR
+      enableSSR
       sync={{
         peer: `wss://cloud.jazz.tools/`,
       }}
