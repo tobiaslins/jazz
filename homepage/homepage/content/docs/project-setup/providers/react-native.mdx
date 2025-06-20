@@ -34,13 +34,6 @@ export function MyJazzProvider({ children }: { children: React.ReactNode }) {
     </JazzProvider>
   );
 }
-
-// Register the Account schema so `useAccount` returns our custom `MyAppAccount`
-declare module "jazz-react-native" {
-  interface Register {
-    Account: MyAppAccount;
-  }
-}
 ```
 </CodeGroup>
 

@@ -22,16 +22,6 @@ The `<JazzProvider />` accepts several configuration options:
 
 <CodeGroup>
 ```svelte
-<!-- src/routes/+layout.svelte -->
-<script lang="ts" module>
-  // Register the Account schema so `useAccount` returns our custom `MyAppAccount`
-  declare module 'jazz-svelte' {
-    interface Register {
-      Account: MyAppAccount;
-    }
-  }
-</script>
-
 <script lang="ts">
   import { JazzProvider } from "jazz-svelte";
   import { MyAppAccount } from "$lib/schema";
