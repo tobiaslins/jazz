@@ -8,6 +8,7 @@ export type Example = {
   demoUrl?: string;
   imageUrl?: string;
   codeSamples?: { name: string; content: React.ReactNode }[];
+  starter?: boolean;
 };
 
 export const tech = {
