@@ -1,15 +1,20 @@
 import { expect, test } from "@playwright/test";
-import { createOrganization } from "./data";
-import { createAccount, initializeKvStore } from "./lib";
+import { FileStream, Group } from "jazz-tools";
+import { createFile, createOrganization } from "./lib/data";
+import {
+  addAccount,
+  createAccount,
+  initializeKvStore,
+  inspectCoValue,
+} from "./lib/utils";
 
 initializeKvStore();
 const { account, accountID, accountSecret } = await createAccount();
 
+const organization = createOrganization();
+
 test("should add and delete account in dropdown", async ({ page }) => {
-  await page.goto("/");
-  await page.getByLabel("Account ID").fill(accountID);
-  await page.getByLabel("Account secret").fill(accountSecret);
-  await page.getByRole("button", { name: "Add account" }).click();
+  await addAccount(page, accountID, accountSecret);
 
   await expect(page.getByText("Jazz CoValue Inspector")).toBeVisible();
   await page
@@ -25,10 +30,7 @@ test("should add and delete account in dropdown", async ({ page }) => {
 });
 
 test("should inspect account", async ({ page }) => {
-  await page.goto("/");
-  await page.getByLabel("Account ID").fill(accountID);
-  await page.getByLabel("Account secret").fill(accountSecret);
-  await page.getByRole("button", { name: "Add account" }).click();
+  await addAccount(page, accountID, accountSecret);
   await page.getByRole("button", { name: "Inspect my account" }).click();
 
   await expect(page.getByRole("heading", { name: accountID })).toBeVisible();
@@ -39,17 +41,11 @@ test("should inspect account", async ({ page }) => {
 });
 
 test("should inspect CoValue", async ({ page }) => {
-  await page.goto("/");
-  await page.getByLabel("Account ID").fill(accountID);
-  await page.getByLabel("Account secret").fill(accountSecret);
-  await page.getByRole("button", { name: "Add account" }).click();
-
-  const organization = createOrganization();
+  await addAccount(page, accountID, accountSecret);
 
   await account.waitForAllCoValuesSync(); // Ensures that the organization is uploaded
 
-  await page.getByLabel("CoValue ID").fill(organization.id);
-  await page.getByRole("button", { name: "Inspect CoValue" }).click();
+  await inspectCoValue(page, organization.id);
 
   await expect(page.getByText(/Garden Computing/)).toHaveCount(2);
   await expect(
@@ -77,6 +73,118 @@ test("should inspect CoValue", async ({ page }) => {
   await page.getByRole("button", { name: "issues" }).click();
   await expect(page.getByRole("table").getByRole("row")).toHaveCount(4);
 
+  const table = page.getByRole("table");
+  const row = table.getByRole("row").nth(1);
+  const issue = organization.projects[0].issues[0];
+
+  // Test if table is displaying the Issue data correctly
+  await expect(row.getByRole("cell").nth(0)).toHaveText(issue.title);
+  await expect(row.getByRole("cell").nth(1)).toHaveText(issue.status);
+  await expect(
+    row.getByRole("cell").nth(2).getByRole("button", { name: issue.labels.id }),
+  ).toBeVisible();
+  await expect(
+    row
+      .getByRole("cell")
+      .nth(3)
+      .getByRole("button", { name: issue.reactions.id }),
+  ).toBeVisible();
+
+  if (issue.file) {
+    await expect(
+      row.getByRole("cell").nth(4).getByRole("button", { name: issue.file.id }),
+    ).toBeVisible();
+  }
+
+  if (issue.image) {
+    await expect(
+      row
+        .getByRole("cell")
+        .nth(5)
+        .getByRole("button", { name: issue.image.id }),
+    ).toBeVisible();
+  }
+
+  // Test if CoMap/grid view is displaying Issue data correctly
+  await row.getByRole("button", { name: "View" }).click();
+  await expect(page.getByRole("table")).not.toBeVisible();
+  await expect(page.getByText(issue.title)).toBeVisible();
+  await expect(page.getByText(issue.status)).toBeVisible();
+  await expect(page.getByRole("button", { name: /labels/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /reactions/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /file/ })).toBeVisible();
+
+  await expect(page.getByRole("button", { name: /^image/ })).toBeVisible();
+  await page.pause();
+
   await page.getByRole("button", { name: "projects" }).click();
   await expect(page.getByRole("table").getByRole("row")).toHaveCount(5);
+});
+
+test("should show CoValue type", async ({ page }) => {
+  await addAccount(page, accountID, accountSecret);
+
+  await account.waitForAllCoValuesSync(); // Ensures that the organization is uploaded
+
+  // Test FileStream
+  const file = createFile();
+  await inspectCoValue(page, file.id);
+  await expect(page.getByText("📃 FileStream")).toBeVisible();
+
+  // Test ImageDefinition
+  await inspectCoValue(page, organization.image.id);
+  await expect(page.getByText("🖼️ Image")).toBeVisible();
+
+  // Test CoMap
+  await inspectCoValue(page, organization.id);
+  await expect(page.getByText("{} CoMap")).toBeVisible();
+
+  // Test CoList
+  await inspectCoValue(page, organization.projects.id);
+  await expect(page.getByText("☰ CoList")).toBeVisible();
+
+  // Test CoFeed
+  await inspectCoValue(page, organization.projects[0].issues[0].reactions.id);
+  await expect(page.getByText("≋ CoFeed")).toBeVisible();
+
+  // Test Account
+  await inspectCoValue(page, account.id);
+  await expect(page.getByText("👤 Account")).toBeVisible();
+
+  // Test Group
+  await inspectCoValue(page, organization._owner.id);
+  await expect(page.getByText("👥 Group")).toBeVisible();
+});
+
+test("should show Group members", async ({ page }) => {
+  await addAccount(page, accountID, accountSecret);
+
+  organization._owner.castAs(Group).addMember("everyone", "reader");
+
+  await account.waitForAllCoValuesSync(); // Ensures that the organization is uploaded
+  await inspectCoValue(page, organization.id);
+
+  const ownershipText = await page.getByText(/Owned by/).innerText();
+  expect(ownershipText).toContain(`Group <${organization._owner.id}>`);
+
+  await page
+    .getByRole("button", { name: `Group <${organization._owner.id}>` })
+    .click();
+
+  const table = page.getByRole("table");
+
+  const row1 = table.getByRole("row").nth(1);
+  await expect(row1.getByRole("cell").nth(0)).toHaveText("everyone");
+  await expect(row1.getByRole("cell").nth(1)).toHaveText("reader");
+
+  const row2 = table.getByRole("row").nth(2);
+  await expect(row2.getByRole("cell").nth(0)).toHaveText(
+    `Inspector test account <${account.id}>`,
+  );
+  await expect(row2.getByRole("cell").nth(1)).toHaveText("admin");
+
+  await page
+    .getByRole("button", { name: `Inspector test account <${account.id}>` })
+    .click();
+  await expect(page.getByText("👤 Account")).toBeVisible();
 });

@@ -1,4 +1,11 @@
-import { co, z } from "jazz-tools";
+import { FileStream, ImageDefinition, co, z } from "jazz-tools";
+import {
+  Issue,
+  Organization,
+  Project,
+  ReactionType,
+  ReactionsList,
+} from "./schema";
 
 const projectsData: {
   name: string;
@@ -7,6 +14,9 @@ const projectsData: {
     title: string;
     status: "open" | "closed";
     labels: string[];
+    reactions?: ReactionType[];
+    file?: boolean;
+    image?: boolean;
   }[];
 }[] = [
   {
@@ -28,6 +38,9 @@ const projectsData: {
           "high priority",
           "urgent",
         ],
+        reactions: ["thumb-up"],
+        image: true,
+        file: true,
       },
       { title: "Issue 2", status: "closed", labels: ["bug"] },
       { title: "Issue 3", status: "open", labels: ["feature", "enhancement"] },
@@ -50,26 +63,28 @@ const projectsData: {
   },
 ];
 
-const Issue = co.map({
-  title: z.string(),
-  status: z.enum(["open", "closed"]),
-  labels: co.list(z.string()),
-});
+export const createFile = () => {
+  const file = FileStream.create();
+  file.start({ mimeType: "image/jpeg" });
+  file.push(new Uint8Array([1, 2, 3]));
+  file.end();
+  return file;
+};
 
-const Project = co.map({
-  name: z.string(),
-  description: z.string(),
-  issues: co.list(Issue),
-});
-
-const Organization = co.map({
-  name: z.string(),
-  projects: co.list(Project),
-});
+export const createImage = () => {
+  return ImageDefinition.create({
+    originalSize: [1920, 1080],
+    placeholderDataURL: "data:image/jpeg;base64,...",
+  });
+};
 
 export const createOrganization = () => {
   return Organization.create({
     name: "Garden Computing",
+    image: ImageDefinition.create({
+      originalSize: [1920, 1080],
+      placeholderDataURL: "data:image/jpeg;base64,...",
+    }),
     projects: co.list(Project).create(
       projectsData.map((project) =>
         Project.create({
@@ -81,6 +96,9 @@ export const createOrganization = () => {
                 title: issue.title,
                 status: issue.status,
                 labels: co.list(z.string()).create(issue.labels),
+                reactions: ReactionsList.create(issue.reactions || []),
+                file: issue.file ? createFile() : undefined,
+                image: issue.image ? createImage() : undefined,
               }),
             ),
           ),
