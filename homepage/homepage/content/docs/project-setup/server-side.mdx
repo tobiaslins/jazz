@@ -47,7 +47,7 @@ import { co } from "jazz-tools";
 const MyWorkerAccount = co.account();
 type MyWorkerAccount = co.loaded<typeof MyWorkerAccount>;
 // ---cut---
-import { startWorker } from 'jazz-nodejs';
+import { startWorker } from 'jazz-tools/worker';
 
 const { worker } = await startWorker({
   AccountSchema: MyWorkerAccount,

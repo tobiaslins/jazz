@@ -1,4 +1,4 @@
-import { useCoState } from "jazz-react";
+import { useCoState } from "jazz-tools/react";
 import { LinkToHome } from "./LinkToHome.tsx";
 import { OrderForm } from "./OrderForm.tsx";
 import { OrderThumbnail } from "./OrderThumbnail.tsx";

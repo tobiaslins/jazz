@@ -1,23 +1,23 @@
 export const metadata = {
-  description: "Configure your JazzProvider - the core component that connects your app to Jazz, handling sync, storage, account schema, and auth.",
+  description: "Configure your JazzReactProvider - the core component that connects your app to Jazz, handling sync, storage, account schema, and auth.",
 };
 
 import { CodeGroup } from "@/components/forMdx";
 
 # Providers
 
-`<JazzProvider />` is the core component that connects your React application to Jazz. It handles:
+`<JazzReactProvider />` is the core component that connects your React application to Jazz. It handles:
 
 - **Data Synchronization**: Manages connections to peers and the Jazz cloud
 - **Local Storage**: Persists data locally between app sessions
 - **Schema Types**: Provides APIs for the [AccountSchema](/docs/schemas/accounts-and-migrations)
 - **Authentication**: Connects your authentication system to Jazz
 
-Our [Chat example app](https://jazz.tools/examples#chat) provides a complete implementation of JazzProvider with authentication and real-time data sync.
+Our [Chat example app](https://jazz.tools/examples#chat) provides a complete implementation of JazzReactProvider with authentication and real-time data sync.
 
 ## Setting up the Provider
 
-The `<JazzProvider />` accepts several configuration options:
+The `<JazzReactProvider />` accepts several configuration options:
 
 <CodeGroup>
 ```tsx twoslash
@@ -41,12 +41,12 @@ export const MyAppAccount = co.account({
 import * as React from "react";
 // ---cut---
 // App.tsx
-import { JazzProvider } from "jazz-react";
+import { JazzReactProvider } from "jazz-tools/react";
 import { MyAppAccount } from "./schema";
 
 export function MyApp({ children }: { children: React.ReactNode }) {
   return (
-    <JazzProvider
+    <JazzReactProvider
       sync={{
         peer: "wss://cloud.jazz.tools/?key=your-api-key",
         when: "always" // When to sync: "always", "never", or "signedUp"
@@ -54,7 +54,7 @@ export function MyApp({ children }: { children: React.ReactNode }) {
       AccountSchema={MyAppAccount}
     >
       {children}
-    </JazzProvider>
+    </JazzReactProvider>
   );
 }
 ```
@@ -108,7 +108,7 @@ export const MyAppAccount = co.account({
 
 // @filename: app.tsx
 import * as React from "react";
-import { JazzProvider } from "jazz-react";
+import { JazzReactProvider } from "jazz-tools/react";
 import { SyncConfig } from "jazz-tools";
 
 const syncConfig: SyncConfig = {
@@ -123,12 +123,12 @@ import { MyAppAccount } from "./schema";
 export function MyApp ({ children }: { children: React.ReactNode }) {
   // Use in provider
   return (
-    <JazzProvider
+    <JazzReactProvider
       sync={syncConfig}
       AccountSchema={MyAppAccount}
     >
       {children}
-    </JazzProvider>
+    </JazzReactProvider>
   );
 }
 ```
@@ -141,7 +141,7 @@ The provider accepts these additional options:
 <CodeGroup>
 ```tsx twoslash
 import * as React from "react";
-import { JazzProvider } from "jazz-react";
+import { JazzReactProvider } from "jazz-tools/react";
 import { SyncConfig } from "jazz-tools";
 
 const syncConfig: SyncConfig = {
@@ -153,7 +153,7 @@ const syncConfig: SyncConfig = {
 // app.tsx
 export function MyApp ({ children }: { children: React.ReactNode }) {
   return (
-    <JazzProvider
+    <JazzReactProvider
       sync={syncConfig}
 
       // Enable guest mode for account-less access
@@ -175,7 +175,7 @@ export function MyApp ({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
-    </JazzProvider>
+    </JazzReactProvider>
   );
 }
 ```
@@ -185,7 +185,7 @@ See [Authentication States](/docs/authentication/authentication-states) for more
 
 ## Authentication
 
-`<JazzProvider />` works with various authentication methods to enable users to access their data across multiple devices. For a complete guide to authentication, see our [Authentication Overview](/docs/authentication/overview).
+`<JazzReactProvider />` works with various authentication methods to enable users to access their data across multiple devices. For a complete guide to authentication, see our [Authentication Overview](/docs/authentication/overview).
 
 ## Need Help?
 

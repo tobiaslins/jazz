@@ -1,6 +1,6 @@
-import { createInviteLink } from "jazz-react";
-import { useAcceptInvite, useAccount, useCoState } from "jazz-react";
 import { CoMap, Group, ID, coField } from "jazz-tools";
+import { createInviteLink } from "jazz-tools/react";
+import { useAcceptInvite, useAccount, useCoState } from "jazz-tools/react";
 import { useState } from "react";
 
 class SharedCoMap extends CoMap {
@@ -48,7 +48,7 @@ export function Sharing() {
       if (
         member.account &&
         member.role !== "admin" &&
-        member.account.id !== me.id
+        member.account.id !== me?.id
       ) {
         coMapGroup.removeMember(member.account);
       }

@@ -60,7 +60,8 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-metrics
           disable-animations: true
           working-directory: ./examples/chat-rn-expo/
-          script: ./test/e2e/run.sh
+          # killall due to this issue: https://github.com/ReactiveCircus/android-emulator-runner/issues/385
+          script: ./test/e2e/run.sh && killall -INT crashpad_handler || true
 
       - name: Copy Maestro Output
         if: steps.e2e_test.outcome != 'success'

@@ -8,9 +8,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "jazz-inspector": "workspace:*",
-    "jazz-react": "workspace:*",
-    "jazz-richtext-prosemirror": "workspace:*",
     "jazz-tools": "workspace:*",
     "prosekit": "^0.13.3",
     "react": "^19.1.0",
@@ -25,6 +22,6 @@
     "postcss": "^8.5.4",
     "tailwindcss": "^3.4.17",
     "typescript": "5.6.2",
-    "vite": "6.3.5"
+    "vite": "^6.3.5"
   }
 }

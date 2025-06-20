@@ -3,7 +3,6 @@ import { ClerkFullLogo } from "@/components/icons/ClerkFullLogo";
 import { ReactLogo } from "@/components/icons/ReactLogo";
 import { ReactNativeLogo } from "@/components/icons/ReactNativeLogo";
 import { SvelteLogo } from "@/components/icons/SvelteLogo";
-import { VueLogo } from "@/components/icons/VueLogo";
 import { Example, features, tech } from "@/content/example";
 import { H2 } from "@garden-co/design-system/src/components/atoms/Headings";
 import { Icon } from "@garden-co/design-system/src/components/atoms/Icon";
@@ -305,82 +304,6 @@ const CoTextIllustration = () => (
   </div>
 );
 
-const PetIllustration = () => (
-  <div className="h-full p-4 bg-[url('/dog.jpg')] bg-cover bg-center p-4 flex items-end">
-    <div className="inline-flex justify-center gap-1 mx-auto">
-      {["😍", "😮", "🤩", "😂", "👍"].map((emoji) => (
-        <button
-          type="button"
-          key={emoji}
-          className="size-6 rounded shadow-sm bg-white leading-none"
-        >
-          {emoji}
-        </button>
-      ))}
-    </div>
-  </div>
-);
-
-const PasswordManagerIllustration = () => (
-  <div className="max-w-[30rem] mx-auto flex flex-col justify-center h-full p-5 gap-4">
-    <div className="flex justify-between items-center">
-      <p className="font-display font-medium tracking-tight text-sm text-stone-900 dark:text-white">
-        Password manager
-      </p>
-
-      <button
-        type="button"
-        className="border py-1 p-2 rounded-full font-medium text-xs"
-      >
-        Log out
-      </button>
-    </div>
-
-    <table className="text-xs">
-      <thead>
-        <tr className="w-full text-stone-700 bg-stone-50 border-b dark:bg-transparent dark:text-stone-400">
-          <th className="font-medium tracking-wider text-left uppercase p-2">
-            Username
-          </th>
-          <th className="font-medium tracking-wider text-left uppercase p-2">
-            URI
-          </th>
-          <th className="font-medium tracking-wider text-left uppercase p-2">
-            Actions
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        {[
-          {
-            email: "user@gmail.com",
-            domain: "gmail.com",
-          },
-          {
-            email: "user@gmail.com",
-            domain: "fb.com",
-          },
-          {
-            email: "user@gmail.com",
-            domain: "x.com",
-          },
-        ].map(({ email, domain }) => (
-          <tr className="border-b max-sm:last:hidden" key={domain}>
-            <td className="p-2">{email}</td>
-            <td className="p-2">{domain}</td>
-            <td className="p-2">
-              <MockButton>
-                <Icon name="copy" size="2xs" className="mr-1" />
-                Password
-              </MockButton>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-);
-
 const FileShareIllustration = () => (
   <div className="flex flex-col items-center justify-center h-full gap-3 p-8">
     <p>This file was shared with you.</p>
@@ -488,16 +411,6 @@ const reactExamples: Example[] = [
     illustration: <CoTextIllustration />,
   },
   {
-    name: "Rate my pet",
-    slug: "pets",
-    description:
-      "Upload a photo of your pet, and invite your friends to react to it.",
-    tech: [tech.react],
-    features: [features.imageUpload, features.inviteLink],
-    demoUrl: "https://pets.demo.jazz.tools",
-    illustration: <PetIllustration />,
-  },
-  {
     name: "Todo list",
     slug: "todo",
     description: "A todo list where you can collaborate with invited guests.",
@@ -507,15 +420,6 @@ const reactExamples: Example[] = [
     illustration: (
       <div className="h-full w-full bg-cover bg-[url('/todo.jpg')] bg-left-bottom"></div>
     ),
-  },
-  {
-    name: "Password manager",
-    slug: "password-manager",
-    description: "A secure password manager, using Passkey for authentication.",
-    tech: [tech.react],
-    features: [features.passkey],
-    demoUrl: "https://passwords.demo.jazz.tools",
-    illustration: <PasswordManagerIllustration />,
   },
   {
     name: "Music player",
@@ -548,12 +452,13 @@ const reactExamples: Example[] = [
   },
   {
     name: "Passkey",
-    slug: "passkey",
+    slug: "react-passkey-auth",
     description: "A React app that uses Passkey for authentication",
     tech: [tech.react],
     features: [features.passkey],
     demoUrl: "https://passkey.demo.jazz.tools",
     illustration: <PasskeyIllustration />,
+    starter: true,
   },
   {
     name: "Form",
@@ -614,34 +519,15 @@ const rnExamples: Example[] = [
   },
 ];
 
-const vueExamples: Example[] = [
-  {
-    name: "Chat",
-    slug: "chat-vue",
-    description: "A simple app that creates a chat room with a shareable link.",
-    tech: [tech.vue],
-    illustration: <ChatIllustration />,
-  },
-  {
-    name: "Todo list",
-    slug: "todo-vue",
-    description: "A todo list where you can collaborate with invited guests.",
-    tech: [tech.vue],
-    features: [features.inviteLink],
-    illustration: (
-      <div className="h-full w-full bg-cover bg-[url('/todo.jpg')] bg-left-bottom"></div>
-    ),
-  },
-];
-
 const svelteExamples: Example[] = [
   {
     name: "Passkey",
-    slug: "passkey-svelte",
+    slug: "svelte-passkey-auth",
     description: "A Svelte app that uses Passkey for authentication",
     tech: [tech.svelte],
     features: [features.passkey],
     illustration: <PasskeyIllustration />,
+    starter: true,
   },
   {
     name: "File share",
@@ -679,12 +565,6 @@ const categories = [
     id: "svelte",
     logo: SvelteLogo,
     examples: svelteExamples,
-  },
-  {
-    name: "Vue",
-    id: "vue",
-    logo: VueLogo,
-    examples: vueExamples,
   },
 ];
 

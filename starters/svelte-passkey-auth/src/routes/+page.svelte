@@ -1,7 +1,7 @@
 <script lang="ts">
   import Form from "$lib/components/Form.svelte";
   import { getUserAge, JazzAccount } from "$lib/schema";
-  import { AccountCoState } from "jazz-svelte";
+  import { AccountCoState } from "jazz-tools/svelte";
 
   const account = new AccountCoState(JazzAccount, {
     resolve: {

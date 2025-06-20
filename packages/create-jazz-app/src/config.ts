@@ -1,6 +1,6 @@
 export type Environment = "browser" | "mobile";
 export type Engine = "browser" | "mobile" | "nodejs" | "deno" | "bun";
-export type Framework = "react" | "vue" | "svelte" | "rn";
+export type Framework = "react" | "svelte" | "rn";
 export type AuthMethod =
   | "minimal"
   | "passkey"
@@ -32,10 +32,6 @@ export const frameworks: {
     name: "Svelte",
     value: "svelte",
   },
-  {
-    name: "Vue",
-    value: "vue",
-  },
 ];
 
 export type ConfigStructure = Record<Environment, EngineConfig>;
@@ -59,7 +55,6 @@ export const configMap: ConfigStructure = {
   browser: {
     browser: {
       react: { auth: ["minimal", "passkey", "passphrase", "clerk"] },
-      vue: { auth: ["minimal"] },
       svelte: { auth: ["passkey"] },
     },
   },
@@ -96,11 +91,6 @@ export const frameworkToAuthExamples: Partial<
   "react-clerk-auth": {
     name: "Clerk auth",
     repo: "garden-co/jazz/examples/clerk",
-    platform: PLATFORM.WEB,
-  },
-  "vue-minimal-auth": {
-    name: "Anonymous auth",
-    repo: "garden-co/jazz/examples/todo-vue",
     platform: PLATFORM.WEB,
   },
   "svelte-passkey-auth": {

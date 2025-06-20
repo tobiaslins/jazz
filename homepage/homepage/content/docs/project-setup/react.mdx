@@ -12,7 +12,7 @@ Integrating Jazz with React is straightforward. You'll define data schemas that 
 
 1. [Install dependencies](#install-dependencies)
 2. [Write your schema](#write-your-schema)
-3. [Wrap your app in `<JazzProvider />`](#standard-react-setup)
+3. [Wrap your app in `<JazzReactProvider />`](#standard-react-setup)
 
 Looking for complete examples? Check out our [example applications](/examples) for chat apps, collaborative editors, and more.
 
@@ -22,7 +22,7 @@ First, install the required packages:
 
 <CodeGroup>
 ```bash
-pnpm install jazz-react jazz-tools
+pnpm install jazz-tools
 ```
 </CodeGroup>
 
@@ -55,7 +55,7 @@ See [CoValues](/docs/schemas/covalues) for more information on how to define you
 
 ## Standard React Setup
 
-Wrap your application with `<JazzProvider />` to connect to the Jazz network and define your data schema:
+Wrap your application with `<JazzReactProvider />` to connect to the Jazz network and define your data schema:
 
 <CodeGroup>
 ```tsx twoslash
@@ -84,16 +84,16 @@ function App() {
 }
 // ---cut---
 // app.tsx
-import { JazzProvider } from "jazz-react";
+import { JazzReactProvider } from "jazz-tools/react";
 import { MyAppAccount } from "./schema";
 
 createRoot(document.getElementById("root")!).render(
-  <JazzProvider
+  <JazzReactProvider
     sync={{ peer: "wss://cloud.jazz.tools/?key=you@example.com" }}
     AccountSchema={MyAppAccount}
   >
     <App />
-  </JazzProvider>
+  </JazzReactProvider>
 );
 ```
 </CodeGroup>
@@ -107,9 +107,10 @@ With this in place, you're ready to start using Jazz hooks in your components. [
 
 ## Next.js Integration
 
-### Client-side Only (Easiest)
+Normally Jazz doesn't render the children until the account is loaded.
 
-The simplest approach for Next.js is client-side only integration:
+On the server there is no account, but we can ask Jazz to render the children using an "empty agent".
+An agent is a read-only account that can be used without credentials to render the data available to the public.
 
 <CodeGroup>
 ```tsx twoslash
@@ -133,25 +134,28 @@ export const MyAppAccount = co.account({
 import * as React from "react";
 // ---cut---
 // app.tsx
-"use client" // Mark as client component
+"use client" // Mark as client component, providers are not supported in server components
 
-import { JazzProvider } from "jazz-react";
+import { JazzReactProvider } from "jazz-tools/react";
 import { MyAppAccount } from "./schema";
 
 export function JazzWrapper({ children }: { children: React.ReactNode }) {
   return (
-    <JazzProvider
+    <JazzReactProvider
+      enableSSR // Renders the components tree in the server using an agent
       sync={{ peer: "wss://cloud.jazz.tools/?key=you@example.com" }}
       AccountSchema={MyAppAccount}
     >
       {children}
-    </JazzProvider>
+    </JazzReactProvider>
   );
 }
 ```
 </CodeGroup>
 
-Remember to mark any component that uses Jazz hooks with `"use client"`:
+Since the agent used is empty, all the `useCoState` and `useAccount` will return null.
+
+If you want to render the data on the server you can use `createSSRJazzAgent` to generate a read-only account to load the data:
 
 <CodeGroup>
 ```tsx twoslash
@@ -171,240 +175,41 @@ export const MyAppAccount = co.account({
   root: AccountRoot,
   profile: co.map({ name: z.string() }),
 });
-// @filename: Profile.tsx
+// @filename: app.tsx
 import * as React from "react";
-
 // ---cut---
-// Profile.tsx
-"use client"; // [!code ++]
+import { createSSRJazzAgent } from "jazz-tools/react/ssr";
+import { TodoItem } from "./schema";
 
-import { useAccount } from "jazz-react";
-import { MyAppAccount } from "./schema";
+// This can be created in a centralized module, to reuse the same agent in all the server components
+export const jazzSSR = createSSRJazzAgent({
+  peer: "wss://cloud.jazz.tools/",
+});
 
-export function Profile() {
-  const { me } = useAccount(MyAppAccount, { resolve: { profile: true } });
-
-  return <div>Hello, {me?.profile.name}</div>;
-}
-```
-</CodeGroup>
-
-### SSR Support (Experimental)
-
-For server-side rendering, Jazz offers experimental approaches:
-
-- Pure SSR
-- Hybrid SSR + Client Hydration
-
-#### Pure SSR
-
-Use Jazz in server components by directly loading data with `CoValue.load()`.
-
-{/*
-<CodeGroup>
-```tsx twoslash
-// @errors: 18047
-// @filename: schema.ts
-import { co, CoList, CoMap } from "jazz-tools";
-
-export class MyItem extends CoMap {
-  title = co.string;
-}
-
-export class MyCollection extends CoList.Of(co.ref(MyItem)) {}
-// @filename: PublicData.tsx
-import * as React from "react";
-import { ID } from "jazz-tools";
-const collectionID = "co_z123" as ID<MyCollection>;
-// ---cut---
-// Server Component (no "use client" directive)
-import { MyCollection, MyItem } from "./schema";
-
-export default async function PublicData() {
-  // Load data directly in the server component
-  const items = await MyCollection.load(collectionID);
-
-  if (!items) {
-    return <div>Loading...</div>;
-  }
+export default async function ServerSidePage(props: {
+  params: Promise<{ itemId: string }>;
+}) {
+  const { itemId } = await props.params;
+  const item = await TodoItem.load(itemId, {
+    loadAs: jazzSSR,
+  });
 
   return (
-    <ul>
-      {items.map(item => (
-        item ? <li key={item.id}>{item.title}</li> : null
-      ))}
-    </ul>
+    <div className="flex flex-col items-center justify-center h-screen gap-4">
+      <h1 className="text-2xl font-bold">SSR rendering example with Jazz</h1>
+      <div className="text-sm text-gray-500 w-1/2 text-center">
+        This is a server component!
+      </div>
+      <label>
+        <div className="text-sm">Item title "{item?.title}"</div>
+      </label>
+    </div>
   );
 }
 ```
 </CodeGroup>
-*/}
 
-This works well for public data accessible to the server account.
-
-#### Hybrid SSR + Client Hydration
-
-For more complex cases, you can pre-render on the server and hydrate on the client:
-
-1. Create a shared rendering component.
-
-{/*
-<CodeGroup>
-```tsx twoslash
-// @filename: schema.ts
-import { co, CoList, CoMap } from "jazz-tools";
-
-export class MyItem extends CoMap {
-  title = co.string;
-}
-// @filename: ItemList.tsx
-import * as React from "react";
-import { MyItem } from "./schema";
-// ---cut---
-// ItemList.tsx - works in both server and client contexts
-export function ItemList({ items }: { items: MyItem[] }) {
-  return (
-    <ul>
-      {items.map(item => (
-        <li key={item.id}>{item.title}</li>
-      ))}
-    </ul>
-  );
-}
-```
-</CodeGroup>
-*/}
-
-2. Create a client hydration component.
-
-{/*
-<CodeGroup>
-```tsx twoslash
-// @filename: schema.ts
-import { co, CoList, CoMap } from "jazz-tools";
-
-export class MyItem extends CoMap {
-  title = co.string;
-}
-export class MyCollection extends CoList.Of(co.ref(MyItem)) {}
-// @filename: ItemList.tsx
-import * as React from "react";
-import { MyItem } from "./schema";
-
-export function ItemList({ items }: { items: MyItem[] }) {
-  return (
-    <ul>
-      {items.map(item => (
-        <li key={item.id}>{item.title}</li>
-      ))}
-    </ul>
-  );
-}
-// @filename: ItemListHydrator.tsx
-// ItemListHydrator.tsx
-import * as React from "react";
-import { useCoState } from "jazz-react";
-import { ID } from "jazz-tools";
-const myCollectionID = "co_z123" as ID<MyCollection>;
-// ---cut---
-"use client"
-
-import { MyCollection, MyItem } from "./schema";
-import { ItemList } from "./ItemList";
-export function ItemListHydrator({ initialItems }: { initialItems: MyItem[] }) {
-  // Hydrate with real-time data once client loads
-  const myCollection = useCoState(MyCollection, myCollectionID);
-
-  // Filter out nulls for type safety
-  const items = Array.from(myCollection?.values() || []).filter(
-    (item): item is MyItem => !!item
-  );
-
-  // Use server data until client data is available
-  const displayItems = items || initialItems;
-
-  return <ItemList items={displayItems} />;
-}
-```
-</CodeGroup>
-*/}
-
-3. Create a server component that pre-loads data.
-
-{/*
-<CodeGroup>
-```tsx twoslash
-// @filename: schema.ts
-import { co, CoList, CoMap } from "jazz-tools";
-
-export class MyItem extends CoMap {
-  title = co.string;
-}
-
-export class MyCollection extends CoList.Of(co.ref(MyItem)) {}
-// @filename: ItemList.tsx
-import * as React from "react";
-import { MyItem } from "./schema";
-
-export function ItemList({ items }: { items: MyItem[] }) {
-  return (
-    <ul>
-      {items.map(item => (
-        <li key={item.id}>{item.title}</li>
-      ))}
-    </ul>
-  );
-}
-// @filename: ItemListHydrator.tsx
-// ItemListHydrator.tsx
-import * as React from "react";
-import { useCoState } from "jazz-react";
-import { ID } from "jazz-tools";
-const myCollectionID = "co_z123" as ID<MyCollection>;
-// ---cut---
-"use client"
-
-import { MyCollection, MyItem } from "./schema";
-import { ItemList } from "./ItemList";
-export function ItemListHydrator({ initialItems }: { initialItems: MyItem[] }) {
-  // Hydrate with real-time data once client loads
-  const myCollection = useCoState(MyCollection, myCollectionID);
-
-  // Filter out nulls for type safety
-  const items = Array.from(myCollection?.values() || []).filter(
-    (item): item is MyItem => !!item
-  );
-
-  // Use server data until client data is available
-  const displayItems = items || initialItems;
-
-  return <ItemList items={displayItems} />;
-}
-// @filename: ServerItemPage.tsx
-import * as React from 'react';
-import { ID } from "jazz-tools";
-import { MyCollection, MyItem } from "./schema";
-import { ItemListHydrator } from "./ItemListHydrator";
-const myCollectionID = "co_z123" as ID<MyCollection>;
-// ---cut---
-// ServerItemPage.tsx
-export default async function ServerItemPage() {
-  // Pre-load data on the server
-  const initialItems = await MyCollection.load(myCollectionID);
-
-  // Filter out nulls for type safety
-  const items = Array.from(initialItems?.values() || []).filter(
-    (item): item is MyItem => !!item
-  );
-
-  // Pass to client hydrator
-  return <ItemListHydrator initialItems={items} />;
-}
-```
-</CodeGroup>
-*/}
-
-This approach gives you the best of both worlds: fast initial loading with server rendering, plus real-time updates on the client.
+Take a look on our [Next.js example](https://github.com/garden-co/jazz/tree/main/examples/jazz-nextjs) to see a complete example of how to use SSR with Jazz.
 
 ## Further Reading
 

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { JazzAccount } from "$lib/schema";
-  import { AccountCoState } from "jazz-svelte";
+  import { AccountCoState } from "jazz-tools/svelte";
 
   const account = new AccountCoState(JazzAccount, {
     resolve: {

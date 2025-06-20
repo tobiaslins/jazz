@@ -11,7 +11,7 @@
       "jazz-tools.json",
       "**/ios/**",
       "**/android/**",
-      "packages/jazz-svelte/**",
+      "tests/jazz-svelte/src/**",
       "examples/*svelte*/**",
       "starters/*svelte*/**",
       "examples/jazz-paper-scissors/src/routeTree.gen.ts",

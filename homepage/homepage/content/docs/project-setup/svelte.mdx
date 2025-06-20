@@ -14,7 +14,7 @@ To add some Jazz to your Svelte app, you can use the following steps:
 
 <CodeGroup>
 ```sh
-pnpm install jazz-tools jazz-svelte
+pnpm install jazz-tools
 ```
 </CodeGroup>
 
@@ -45,26 +45,18 @@ export class MyAccount extends Account {
 <CodeGroup>
 ```svelte
 <!-- src/routes/+layout.svelte -->
- <script lang="ts" module>
-  // Register the Account schema so `useAccount` returns our custom `MyAppAccount`
-  declare module 'jazz-svelte' {
-    interface Register {
-      Account: MyAccount;
-    }
-  }
-</script>
 
 <script lang="ts">
-  import { JazzProvider } from 'jazz-svelte';
+  import { JazzSvelteProvider } from 'jazz-tools/svelte';
 
   // Example configuration for authentication and peer connection
   let sync = { peer: "wss://cloud.jazz.tools/?key=you@example.com" };
   let AccountSchema = MyAccount;
 </script>
 
-<JazzProvider {sync} {AccountSchema}>
+<JazzSvelteProvider {sync} {AccountSchema}>
   <App />
-</JazzProvider>
+</JazzSvelteProvider>
 ```
 </CodeGroup>
 
@@ -74,7 +66,7 @@ export class MyAccount extends Account {
 ```svelte
 <!-- src/routes/+page.svelte -->
 <script lang="ts">
-  import { useCoState, useAccount } from 'jazz-svelte';
+  import { useCoState, useAccount } from 'jazz-tools/svelte';
   import { MyProfile } from './schema';
 
   const { me } = useAccount();

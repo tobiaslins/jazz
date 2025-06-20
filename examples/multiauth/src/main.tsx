@@ -1,5 +1,5 @@
 import { ClerkProvider } from "@clerk/clerk-react";
-import { JazzInspector } from "jazz-inspector";
+import { JazzInspector } from "jazz-tools/inspector";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";

@@ -1,4 +1,4 @@
-import { useAccount } from "jazz-react";
+import { useAccount } from "jazz-tools/react";
 import { UserIcon } from "lucide-react";
 import { JazzAccount } from "./schema";
 

@@ -79,7 +79,7 @@ import {
 type Value = JsonValue | AnyRawCoValue;
 
 import { getDependedOnCoValuesFromRawData } from "./coValueCore/utils.js";
-import { logger } from "./logger.js";
+import { LogLevel, logger } from "./logger.js";
 import { getPriorityFromHeader } from "./priority.js";
 
 /** @hidden */
@@ -154,6 +154,7 @@ export {
   RawCoPlainText,
   stringifyOpID,
   logger,
+  LogLevel,
   base64URLtoBytes,
   bytesToBase64url,
 };

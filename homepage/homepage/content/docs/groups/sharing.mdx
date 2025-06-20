@@ -40,8 +40,7 @@ You can also [add members by Account ID](/docs/groups/intro#adding-group-members
 
 You can grant users access to a CoValue by sending them an invite link.
 
-This is used in the [pet example](https://github.com/garden-co/jazz/tree/main/examples/pets)
-and the [todo example](https://github.com/garden-co/jazz/tree/main/examples/todo).
+This is used in the [todo example](https://github.com/garden-co/jazz/tree/main/examples/todo).
 
 <ContentByFramework framework={["react", "react-native", "react-native-expo", "vue", "svelte"]}>
 <CodeGroup>
@@ -53,7 +52,7 @@ const Organization = co.map({
 });
 const organization = Organization.create({ name: "Garden Computing" });
 // ---cut---
-import { createInviteLink } from "jazz-react";
+import { createInviteLink } from "jazz-tools/react";
 
 createInviteLink(organization, "writer"); // or reader, admin, writeOnly
 ```
@@ -63,8 +62,9 @@ createInviteLink(organization, "writer"); // or reader, admin, writeOnly
 It generates a URL that looks like `.../invite/[CoValue ID]/[inviteSecret]`
 
 In your app, you need to handle this route, and let the user accept the invitation,
-as done [here](https://github.com/garden-co/jazz/tree/main/examples/pets/src/2_main.tsx).
+as done [here](https://github.com/garden-co/jazz/tree/main/examples/todo/src/2_main.tsx).
 
+<ContentByFramework framework={["react"]}>
 <CodeGroup>
 ```ts twoslash
 import { co, z } from "jazz-tools";
@@ -75,7 +75,7 @@ const Organization = co.map({
 const organization = Organization.create({ name: "Garden Computing" });
 const organizationID = organization.id;
 // ---cut---
-import { useAcceptInvite } from "jazz-react";
+import { useAcceptInvite } from "jazz-tools/react";
 
 useAcceptInvite({
   invitedObjectSchema: Organization,
@@ -86,6 +86,79 @@ useAcceptInvite({
 });
 ```
 </CodeGroup>
+</ContentByFramework>
+
+<ContentByFramework framework={["react-native"]}>
+<CodeGroup>
+```ts twoslash
+import { co, z } from "jazz-tools";
+
+const Organization = co.map({
+  name: z.string(),
+});
+const organization = Organization.create({ name: "Garden Computing" });
+const organizationID = organization.id;
+// ---cut---
+import { useAcceptInviteNative } from "jazz-tools/react-native";
+
+useAcceptInviteNative({
+  invitedObjectSchema: Organization,
+  onAccept: (organizationID) => {
+    console.log("Accepted invite!")
+    // navigate to the organization page
+  },
+});
+```
+</CodeGroup>
+</ContentByFramework>
+
+<ContentByFramework framework={["react-native-expo"]}>
+<CodeGroup>
+```ts twoslash
+import { co, z } from "jazz-tools";
+
+const Organization = co.map({
+  name: z.string(),
+});
+const organization = Organization.create({ name: "Garden Computing" });
+const organizationID = organization.id;
+// ---cut---
+import { useAcceptInviteNative } from "jazz-tools/expo";
+
+useAcceptInviteNative({
+  invitedObjectSchema: Organization,
+  onAccept: (organizationID) => {
+    console.log("Accepted invite!")
+    // navigate to the organization page
+  },
+});
+```
+</CodeGroup>
+</ContentByFramework>
+
+<ContentByFramework framework={["svelte"]}>
+<CodeGroup>
+```ts twoslash
+import { co, z } from "jazz-tools";
+
+const Organization = co.map({
+  name: z.string(),
+});
+const organization = Organization.create({ name: "Garden Computing" });
+const organizationID = organization.id;
+// ---cut---
+import { InviteListener } from "jazz-tools/svelte";
+
+new InviteListener({
+  invitedObjectSchema: Organization,
+  onAccept: (organizationID) => {
+    console.log("Accepted invite!")
+    // navigate to the organization page
+  },
+});
+```
+</CodeGroup>
+</ContentByFramework>
 
 You can accept an invitation programmatically by using the `acceptInvite` method on an account.
 Pass the ID of the CoValue you're being invited to, the secret from the invite link, and the schema of the CoValue.

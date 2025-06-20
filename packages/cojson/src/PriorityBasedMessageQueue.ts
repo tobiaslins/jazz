@@ -76,14 +76,14 @@ class QueueMeter {
     private attrs?: Record<string, string | number>,
   ) {
     this.pullCounter = metrics
-      .getMeter("cojosn")
+      .getMeter("cojson")
       .createCounter(`${prefix}.pulled`, {
         description: "Number of messages pulled from the queue",
         valueType: ValueType.INT,
         unit: "1",
       });
     this.pushCounter = metrics
-      .getMeter("cojosn")
+      .getMeter("cojson")
       .createCounter(`${prefix}.pushed`, {
         description: "Number of messages pushed to the queue",
         valueType: ValueType.INT,

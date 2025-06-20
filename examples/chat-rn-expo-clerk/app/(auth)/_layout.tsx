@@ -1,5 +1,5 @@
 import { Redirect, Stack } from "expo-router";
-import { useIsAuthenticated } from "jazz-expo";
+import { useIsAuthenticated } from "jazz-tools/expo";
 
 export default function UnAuthenticatedLayout() {
   const isAuthenticated = useIsAuthenticated();

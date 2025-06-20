@@ -1,5 +1,5 @@
 import { RouterProvider, createRouter } from "@tanstack/react-router";
-import { useAccount } from "jazz-react";
+import { useAccount } from "jazz-tools/react";
 import { routeTree } from "./routeTree.gen";
 
 // Create a new router instance

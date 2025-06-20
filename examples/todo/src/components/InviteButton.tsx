@@ -2,8 +2,8 @@ import { useState } from "react";
 
 import QRCode from "qrcode";
 
-import { createInviteLink, useAccount } from "jazz-react";
 import { CoValue } from "jazz-tools";
+import { createInviteLink, useAccount } from "jazz-tools/react";
 import { Button, useToast } from "../basicComponents";
 
 export function InviteButton<T extends CoValue>({
@@ -19,7 +19,7 @@ export function InviteButton<T extends CoValue>({
 
   return (
     value &&
-    me.canAdmin(value) && (
+    me?.canAdmin(value) && (
       <Button
         size="sm"
         className="py-0"

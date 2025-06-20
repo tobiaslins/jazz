@@ -1,18 +1,16 @@
-"use client";
-
-import { JazzInspector } from "jazz-inspector";
-import { JazzProvider } from "jazz-react";
+import { JazzInspector } from "jazz-tools/inspector";
+import { JazzReactProvider } from "jazz-tools/react";
 
 export function Jazz({ children }: { children: React.ReactNode }) {
   return (
-    <JazzProvider
-      experimental_enableSSR
+    <JazzReactProvider
+      enableSSR
       sync={{
         peer: `wss://cloud.jazz.tools/`,
       }}
     >
       {children}
       <JazzInspector />
-    </JazzProvider>
+    </JazzReactProvider>
   );
 }

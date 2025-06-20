@@ -8,13 +8,13 @@ export type Example = {
   demoUrl?: string;
   imageUrl?: string;
   codeSamples?: { name: string; content: React.ReactNode }[];
+  starter?: boolean;
 };
 
 export const tech = {
   react: "React",
   reactNative: "React Native",
   expo: "Expo",
-  vue: "Vue",
   svelte: "Svelte",
 };
 

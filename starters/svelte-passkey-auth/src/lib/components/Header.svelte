@@ -1,7 +1,7 @@
 <script lang="ts">
   import { JazzAccount } from "$lib/schema";
-  import { usePasskeyAuth } from "jazz-svelte";
-  import { AccountCoState } from "jazz-svelte";
+  import { usePasskeyAuth } from "jazz-tools/svelte";
+  import { AccountCoState } from "jazz-tools/svelte";
 
   let { appName } = $props();
 

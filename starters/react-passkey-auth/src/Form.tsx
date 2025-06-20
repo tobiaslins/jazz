@@ -1,4 +1,4 @@
-import { useAccount } from "jazz-react";
+import { useAccount } from "jazz-tools/react";
 import { JazzAccount } from "./schema";
 
 export function Form() {

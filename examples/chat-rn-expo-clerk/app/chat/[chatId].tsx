@@ -4,10 +4,10 @@ import clsx from "clsx";
 import * as Clipboard from "expo-clipboard";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams } from "expo-router";
-import { useAccount, useCoState } from "jazz-expo";
-import { ProgressiveImg } from "jazz-expo";
-import { createImage } from "jazz-react-native-media-images";
 import { CoPlainText, Group, Loaded } from "jazz-tools";
+import { useAccount, useCoState } from "jazz-tools/expo";
+import { ProgressiveImgNative } from "jazz-tools/expo";
+import { createImageNative } from "jazz-tools/react-native-media-images";
 import { useEffect, useLayoutEffect, useState } from "react";
 import React, {
   SafeAreaView,
@@ -104,7 +104,7 @@ export default function Conversation() {
         setIsUploading(true);
         const base64Uri = `data:image/jpeg;base64,${result.assets[0].base64}`;
 
-        const image = await createImage(base64Uri, {
+        const image = await createImageNative(base64Uri, {
           owner: chat._owner,
           maxSize: 2048,
         });
@@ -149,15 +149,17 @@ export default function Conversation() {
           )}
         >
           {item.image && (
-            <ProgressiveImg image={item.image} maxWidth={1024}>
-              {({ src, res, originalSize }) => (
+            <ProgressiveImgNative
+              image={item.image}
+              maxWidth={1024}
+              children={({ src }) => (
                 <Image
                   source={{ uri: src }}
                   className="w-48 h-48 rounded-lg mb-2"
                   resizeMode="cover"
                 />
               )}
-            </ProgressiveImg>
+            />
           )}
           {item.text && (
             <Text

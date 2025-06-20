@@ -1,5 +1,5 @@
-import { useAccount, useCoState } from "jazz-react";
 import { CoPlainText, Group } from "jazz-tools";
+import { useAccount, useCoState } from "jazz-tools/react";
 import { useState } from "react";
 import { IssueComponent } from "./Issue.tsx";
 import { IssueVersionHistory } from "./IssueVersionHistory.tsx";

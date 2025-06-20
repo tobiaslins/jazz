@@ -1,4 +1,3 @@
-import { expect } from 'vitest';
 import { ChatPage } from './pages/ChatPage';
 import { test } from '@playwright/test';
 

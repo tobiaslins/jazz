@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { createImage } from 'jazz-browser-media-images';
-  import { AccountCoState, CoState } from 'jazz-svelte';
+  import { createImage } from 'jazz-tools/browser-media-images';
+  import { AccountCoState, CoState } from 'jazz-tools/svelte';
   import { Account, CoPlainText, type ID } from 'jazz-tools';
 
   import { page } from '$app/state';

@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useAccount } from "jazz-react";
 import { Account } from "jazz-tools";
+import { useAccount } from "jazz-tools/react";
 import {
   AppWindowMacIcon,
   FileTextIcon,

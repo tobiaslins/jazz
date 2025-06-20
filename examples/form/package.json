@@ -11,8 +11,6 @@
   },
   "dependencies": {
     "hash-slash": "workspace:*",
-    "jazz-inspector": "workspace:*",
-    "jazz-react": "workspace:*",
     "jazz-tools": "workspace:*",
     "react": "19.0.0",
     "react-dom": "19.0.0"
@@ -30,6 +28,6 @@
     "postcss": "^8.4.40",
     "tailwindcss": "^4.1.10",
     "typescript": "5.6.2",
-    "vite": "6.3.5"
+    "vite": "^6.3.5"
   }
 }
