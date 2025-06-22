@@ -306,6 +306,9 @@ importers:
       '@babel/core':
         specifier: ^7.25.2
         version: 7.27.1
+      '@babel/plugin-transform-export-namespace-from':
+        specifier: ^7.27.1
+        version: 7.27.1(@babel/core@7.27.1)
       '@babel/preset-env':
         specifier: ^7.25.3
         version: 7.26.0(@babel/core@7.27.1)
@@ -2804,6 +2807,12 @@ packages:
 
   '@babel/plugin-transform-export-namespace-from@7.25.9':
     resolution: {integrity: sha512-2NsEz+CxzJIVOPx2o9UsW1rXLqtChtLoVnwYHHiB04wS5sgn7mrV45fWMBX0Kk+ub9uXytVYfNP2HjbVbCB3Ww==}
+    engines: {node: '>=6.9.0'}
+    peerDependencies:
+      '@babel/core': ^7.0.0-0
+
+  '@babel/plugin-transform-export-namespace-from@7.27.1':
+    resolution: {integrity: sha512-tQvHWSZ3/jH2xuq/vZDy0jNn+ZdXJeM8gHvX4lnJmsc3+50yPlWdZXIc5ay+umX+2/tJIqHqiEqcJvxlmIvRvQ==}
     engines: {node: '>=6.9.0'}
     peerDependencies:
       '@babel/core': ^7.0.0-0
@@ -13938,6 +13947,11 @@ snapshots:
       '@babel/core': 7.27.1
       '@babel/helper-plugin-utils': 7.27.1
 
+  '@babel/plugin-transform-export-namespace-from@7.27.1(@babel/core@7.27.1)':
+    dependencies:
+      '@babel/core': 7.27.1
+      '@babel/helper-plugin-utils': 7.27.1
+
   '@babel/plugin-transform-flow-strip-types@7.25.9(@babel/core@7.27.1)':
     dependencies:
       '@babel/core': 7.27.1
@@ -14252,7 +14266,7 @@ snapshots:
       '@babel/plugin-transform-duplicate-named-capturing-groups-regex': 7.25.9(@babel/core@7.27.1)
       '@babel/plugin-transform-dynamic-import': 7.25.9(@babel/core@7.27.1)
       '@babel/plugin-transform-exponentiation-operator': 7.26.3(@babel/core@7.27.1)
-      '@babel/plugin-transform-export-namespace-from': 7.25.9(@babel/core@7.27.1)
+      '@babel/plugin-transform-export-namespace-from': 7.27.1(@babel/core@7.27.1)
       '@babel/plugin-transform-for-of': 7.25.9(@babel/core@7.27.1)
       '@babel/plugin-transform-function-name': 7.25.9(@babel/core@7.27.1)
       '@babel/plugin-transform-json-strings': 7.25.9(@babel/core@7.27.1)
