@@ -153,6 +153,13 @@ async function scaffoldProject({
       fs.unlinkSync(envTestFilePath);
     }
 
+    if (
+      starterConfig.platform === PLATFORM.REACT_NATIVE &&
+      packageManager === "pnpm"
+    ) {
+      fs.writeFileSync(`${projectName}/.npmrc`, "node-linker=hoisted");
+    }
+
     cloneSpinner.succeed(chalk.green("Template cloned successfully"));
   } catch (error) {
     cloneSpinner.fail(chalk.red("Failed to clone template"));
