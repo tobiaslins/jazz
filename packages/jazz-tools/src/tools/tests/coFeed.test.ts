@@ -688,6 +688,75 @@ describe("FileStream.loadAsBlob", async () => {
   });
 });
 
+describe("FileStream.loadAsBase64", async () => {
+  async function setup() {
+    const me = await Account.create({
+      creationProps: { name: "Hermes Puggington" },
+      crypto: Crypto,
+    });
+
+    const stream = FileStream.create({ owner: me });
+
+    stream.start({ mimeType: "text/plain" });
+
+    return { stream, me };
+  }
+
+  test("resolves only when the stream is ended", async () => {
+    const { stream, me } = await setup();
+    stream.push(new Uint8Array([1]));
+
+    const promise = FileStream.loadAsBase64(stream.id, { loadAs: me });
+
+    stream.push(new Uint8Array([2]));
+    stream.end();
+
+    const base64 = await promise;
+
+    // The promise resolves only when the stream is ended
+    // so we get a blob with all the chunks
+    expect(base64).toBe("AQI=");
+  });
+
+  test("resolves with a data URL if dataURL: true", async () => {
+    const { stream, me } = await setup();
+    stream.push(new Uint8Array([1]));
+
+    const promise = FileStream.loadAsBase64(stream.id, {
+      loadAs: me,
+      dataURL: true,
+    });
+
+    stream.push(new Uint8Array([2]));
+    stream.end();
+
+    const base64 = await promise;
+
+    // The promise resolves only when the stream is ended
+    // so we get a blob with all the chunks
+    expect(base64).toBe("data:text/plain;base64,AQI=");
+  });
+
+  test("resolves with a partial base64 if allowUnfinished: true", async () => {
+    const { stream, me } = await setup();
+    stream.push(new Uint8Array([1]));
+
+    const promise = FileStream.loadAsBase64(stream.id, {
+      loadAs: me,
+      allowUnfinished: true,
+    });
+
+    const base64 = await promise;
+
+    stream.push(new Uint8Array([2]));
+    stream.end();
+
+    // The promise resolves before the stream is ended
+    // so we get a blob only with the first chunk
+    expect(base64).toBe("AQ==");
+  });
+});
+
 describe("FileStream progress tracking", async () => {
   test("createFromBlob should report upload progress correctly", async () => {
     // Create 5MB test blob
