@@ -509,10 +509,10 @@ const rnExamples: Example[] = [
   },
 
   {
-    name: "Chat",
-    slug: "chat-rn-expo-clerk",
+    name: "Clerk",
+    slug: "clerk-expo",
     description:
-      "Exactly like the React Native Expo chat app, with Clerk for auth.",
+      "An example Expo app that uses Clerk for authentication.",
     tech: [tech.reactNative, tech.expo],
     features: [features.clerk],
     illustration: <ClerkIllustration />,

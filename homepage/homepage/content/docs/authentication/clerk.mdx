@@ -76,7 +76,6 @@ Use `<JazzExpoProviderWithClerk />` to wrap your app.
 <CodeGroup>
 ```tsx twoslash
 import * as React from "react";
-import { Slot } from "expo-router";
 const apiKey = "you@example.com";
 const tokenCache = {
   getToken: async (key: string) => {
@@ -85,9 +84,12 @@ const tokenCache = {
   saveToken: async (key: string, token: string) => {},
   clearToken: async (key: string) => {},
 };
+function MainScreen() {
+  return null;
+}
 // ---cut---
 import { useClerk, ClerkProvider, ClerkLoaded } from '@clerk/clerk-expo';
-import { secureStore } from "@clerk/clerk-expo/secure-store";
+import { resourceCache } from '@clerk/clerk-expo/resource-cache';
 import { JazzExpoProviderWithClerk } from "jazz-tools/expo";
 
 function JazzAndAuth({ children }: { children: React.ReactNode }) {
@@ -118,11 +120,11 @@ export default function RootLayout() {
     <ClerkProvider
       tokenCache={tokenCache}
       publishableKey={publishableKey}
-      __experimental_resourceCache={secureStore}
+      __experimental_resourceCache={resourceCache}
     >
       <ClerkLoaded>
         <JazzAndAuth>
-          <Slot />
+          <MainScreen />
         </JazzAndAuth>
       </ClerkLoaded>
     </ClerkProvider>
@@ -131,8 +133,6 @@ export default function RootLayout() {
 ```
 </CodeGroup>
 </ContentByFramework>
-
-Once set up, you can use Clerk's auth methods for login and signup:
 
 <ContentByFramework framework="react">
 <CodeGroup>
