@@ -16,7 +16,8 @@ export function QuickSearch() {
   return (
     <Button
       className="group xl:min-w-48  text-stone-600 md:mr-5"
-      variant="secondary"
+      variant="default"
+      styleVariant="outline"
       onClick={() => setOpen((open) => !open)}
     >
       <Icon name="search" size="xs" className=" text-stone-600" />
