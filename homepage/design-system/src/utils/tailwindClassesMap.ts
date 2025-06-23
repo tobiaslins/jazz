@@ -99,9 +99,9 @@ export const variantToTextHoverMap = {
   danger: "hover:text-danger-light",
   alert: "hover:text-alert-light",
   tip: "hover:text-tip-light",
-  light: "hover:text-stone-300",
+  light: "hover:text-stone-400",
   dark: "hover:text-stone-600",
-  default: "hover:text-stone-700 dark:hover:text-stone-100",
+  default: "hover:text-stone-700 dark:hover:text-stone-200",
 };
 
 export const variantToTextActiveMap = {
@@ -259,20 +259,20 @@ export const variantToBgGradientActiveMap = {
   default: `active:from-stone-100 active:to-white dark:active:from-stone-950 dark:active:to-black ${gradiantClassesBase}`,
 };
 
-export const shadowClassesBase = "shadow-md shadow-opacity-90";
+export const shadowClassesBase = "shadow-md";
 
 export const variantToHoverShadowMap = {
-  primary: `${shadowClassesBase} hover:shadow-blue/40`,
-  secondary: `${shadowClassesBase} hover:shadow-indigo/40`,
-  info: `${shadowClassesBase} hover:shadow-purple/40`,
-  success: `${shadowClassesBase} hover:shadow-green/40`,
-  warning: `${shadowClassesBase} hover:shadow-orange/40`,
-  danger: `${shadowClassesBase} hover:shadow-red/40`,
-  alert: `${shadowClassesBase} hover:shadow-yellow/40`,
-  tip: `${shadowClassesBase} hover:shadow-cyan/40`,
-  light: `${shadowClassesBase} hover:shadow-stone-200/40`,
-  dark: `${shadowClassesBase} hover:shadow-stone-900/40`,
-  default: `${shadowClassesBase} hover:shadow-black/40 dark:hover:shadow-white/40`,
+  primary: `${shadowClassesBase} shadow-blue/20 hover:shadow-blue/40`,
+  secondary: `${shadowClassesBase} shadow-indigo/20 hover:shadow-indigo/30`,
+  info: `${shadowClassesBase} shadow-purple/20 hover:shadow-purple/30`,
+  success: `${shadowClassesBase} shadow-green/20 hover:shadow-green/30`,
+  warning: `${shadowClassesBase} shadow-orange/20 hover:shadow-orange/30`,
+  danger: `${shadowClassesBase} shadow-red/20 hover:shadow-red/30`,
+  alert: `${shadowClassesBase} shadow-yellow/20 hover:shadow-yellow/30`,
+  tip: `${shadowClassesBase} shadow-cyan/20 hover:shadow-cyan/30`,
+  light: `${shadowClassesBase} shadow-stone-200/20 hover:shadow-stone-200/30`,
+  dark: `${shadowClassesBase} shadow-stone-900/20 hover:shadow-stone-900/30`,
+  default: `${shadowClassesBase} shadow-black/20 hover:shadow-black/30 dark:shadow-white/20 dark:hover:shadow-white/30`,
 };
 
 const focusRingClassesBase =
