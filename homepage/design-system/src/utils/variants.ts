@@ -7,6 +7,6 @@ export type Variant =
   | "warning"
   | "alert"
   | "danger"
-  | "light"
-  | "dark"
+  | "muted"
+  | "highlight"
   | "default";

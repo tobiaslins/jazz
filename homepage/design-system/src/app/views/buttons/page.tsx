@@ -15,8 +15,8 @@ export default function ButtonsPage() {
         <Button variant="warning">warning</Button>
         <Button variant="alert">alert</Button>
         <Button variant="danger">danger</Button>
-        <Button variant="light">light</Button>
-        <Button variant="dark">dark</Button>
+        <Button variant="muted">muted</Button>
+        <Button variant="highlight">highlight</Button>
         <Button variant="default">default</Button>
       </div>
 
@@ -36,28 +36,28 @@ export default function ButtonsPage() {
       <div className="grid grid-cols-2 gap-2">
         <Button
           styleVariant="outline"
-          variant="warning"
+          variant="default"
           className="col-span-2 md:col-span-1"
         >
           outline warning
         </Button>
         <Button
           styleVariant="inverted"
-          variant="success"
+          variant="default"
           className="col-span-2 md:col-span-1"
         >
           inverted success
         </Button>
         <Button
           styleVariant="ghost"
-          variant="info"
+          variant="default"
           className="col-span-2 md:col-span-1"
         >
           ghost info
         </Button>
         <Button
           styleVariant="text"
-          variant="tip"
+          variant="default"
           className="col-span-2 md:col-span-1"
         >
           text tip
@@ -113,8 +113,8 @@ const buttonPropsTableData = {
         "warning",
         "alert",
         "danger",
-        "light",
-        "dark",
+        "muted",
+        "highlight",
         "default",
       ],
       default: "primary",

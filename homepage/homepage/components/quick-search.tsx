@@ -16,7 +16,7 @@ export function QuickSearch() {
   return (
     <Button
       className="group xl:min-w-48 md:mr-5"
-      variant="dark"
+      variant="muted"
       styleVariant="outline"
       onClick={() => setOpen((open) => !open)}
     >
