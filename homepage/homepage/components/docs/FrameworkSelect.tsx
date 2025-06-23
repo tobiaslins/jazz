@@ -31,7 +31,8 @@ export function FrameworkSelect() {
       <DropdownButton
         className="w-full justify-between"
         as={Button}
-        styleVariant="inverted"
+        styleVariant="outline"
+        variant="default"
       >
         {frameworkNames[selectedFramework].label}
         <Icon name="chevronDown" size="sm" />

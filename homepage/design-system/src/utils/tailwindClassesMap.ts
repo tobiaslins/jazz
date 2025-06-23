@@ -15,7 +15,7 @@ export const variantToBorderMap = {
   tip: "border-tip",
   muted: "border-stone-200 dark:border-stone-700",
   highlight: "border-stone-900 dark:border-stone-100",
-  default: "border-stone-700 dark:border-stone-200",
+  default: "border-stone-600 dark:border-stone-200",
 };
 
 export const variantToActiveBorderMap = {
@@ -33,7 +33,7 @@ export const variantToActiveBorderMap = {
   highlight:
     "active:border-stone-900/30 focus:border-stone-900/30 dark:active:border-stone-200/30 dark:focus:border-stone-200/30",
   default:
-    "active:border-stone-900/30 dark:active:border-stone-100/30 focus:border-stone-900/30 dark:focus:border-stone-100/30",
+    "active:border-stone-600/30 dark:active:border-stone-100/30 focus:border-stone-600/30 dark:focus:border-stone-100/30",
 };
 
 export const variantToBgMap = {
@@ -273,8 +273,8 @@ export const variantToHoverShadowMap = {
   alert: `${shadowClassesBase} shadow-yellow/20 hover:shadow-yellow/30`,
   tip: `${shadowClassesBase} shadow-cyan/20 hover:shadow-cyan/30`,
   muted: `${shadowClassesBase} shadow-stone-200/20 hover:shadow-stone-200/30 dark:shadow-stone-600/20 dark:hover:shadow-stone-600/30`,
-  highlight: `${shadowClassesBase} shadow-stone-900/20 hover:shadow-stone-900/30 dark:shadow-stone-200/20 dark:hover:shadow-stone-200/30`,
-  default: `${shadowClassesBase} shadow-black/20 hover:shadow-black/30 dark:shadow-white/20 dark:hover:shadow-white/30`,
+  highlight: `${shadowClassesBase} shadow-stone-900/20 hover:shadow-stone-900/30 dark:shadow-white/20 dark:hover:shadow-white/30`,
+  default: `${shadowClassesBase} shadow-stone-600/20 hover:shadow-stone-600/30 dark:shadow-stone-200/20 dark:hover:shadow-stone-200/30`,
 };
 
 const focusRingClassesBase =
