@@ -1,5 +1,11 @@
 # cojson
 
+## 0.15.1
+
+### Patch Changes
+
+- b110f00: Added `CoMap.upsertUnique` & `CoMap.loadUnique` methods (deprecating `CoMap.findUnique`) and added `skipRetry` option to `CoMap.load`
+
 ## 0.15.0
 
 ## 0.14.28
