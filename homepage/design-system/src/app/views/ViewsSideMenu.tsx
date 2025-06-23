@@ -32,7 +32,7 @@ export function ViewsSideMenu() {
             <div key={topic}>
               <Button
                 styleVariant="text"
-                variant="dark"
+                variant="highlight"
                 onClick={() => router.push(`/views/${topic.toLowerCase()}`)}
               >
                 {topic}
