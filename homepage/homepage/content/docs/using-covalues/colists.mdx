@@ -23,8 +23,10 @@ const Task = co.map({
 import { co, z } from "jazz-tools";
 
 const ListOfResources = co.list(z.string());
+export type ListOfResources = co.loaded<typeof ListOfResources>;
 
 const ListOfTasks = co.list(Task);
+export type ListOfTasks = co.loaded<typeof ListOfTasks>;
 ```
 </CodeGroup>
 

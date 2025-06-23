@@ -18,6 +18,7 @@ const Task = co.map({
     title: z.string(),
     status: z.literal(["todo", "in-progress", "completed"]),
 });
+export type Task = co.loaded<typeof Task>;
   ```
 </CodeGroup>
 

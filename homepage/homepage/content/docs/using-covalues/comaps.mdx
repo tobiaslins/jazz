@@ -26,6 +26,7 @@ const Project = co.map({
   status: z.literal(["planning", "active", "completed"]),
   coordinator: z.optional(Member),
 });
+export type Project = co.loaded<typeof Project>;
 ```
 </CodeGroup>
 
@@ -177,6 +178,53 @@ const project = Project.create(
 if (project.coordinator) {
   console.log(project.coordinator.name);  // Safe access
 }
+```
+</CodeGroup>
+
+### Recursive references
+
+CoMaps can reference themselves recursively:
+
+<CodeGroup>
+```ts twoslash
+const Member = co.map({
+  name: z.string(),
+});
+// ---cut---
+import { co, z } from "jazz-tools";
+
+const Project = co.map({
+  name: z.string(),
+  startDate: z.date(),
+  status: z.literal(["planning", "active", "completed"]),
+  coordinator: z.optional(Member),
+  get subProject() {
+    return Project.optional();
+  }
+});
+export type Project = co.loaded<typeof Project>;
+```
+</CodeGroup>
+
+When the recursive references involve more complex types, it is required to specify the getter return type:
+<CodeGroup>
+```ts twoslash
+const Member = co.map({
+  name: z.string(),
+});
+// ---cut---
+import { co, z, CoListSchema } from "jazz-tools";
+
+const Project = co.map({
+  name: z.string(),
+  startDate: z.date(),
+  status: z.literal(["planning", "active", "completed"]),
+  coordinator: z.optional(Member),
+  get subProjects(): z.ZodOptional<CoListSchema<typeof Project>> {
+    return z.optional(co.list(Project));
+  }
+});
+export type Project = co.loaded<typeof Project>;
 ```
 </CodeGroup>
 
@@ -401,6 +449,7 @@ export const Task = z.discriminatedUnion("version", [
   TaskV1,
   TaskV2,
 ]);
+export type Task = co.loaded<typeof Task>;
 ```
 </CodeGroup>
 
