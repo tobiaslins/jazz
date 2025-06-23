@@ -113,6 +113,9 @@ const buttonPropsTableData = {
         "warning",
         "alert",
         "danger",
+        "light",
+        "dark",
+        "default",
       ],
       default: "primary",
     },
@@ -120,11 +123,6 @@ const buttonPropsTableData = {
       prop: "styleVariant?",
       types: ["outline", "inverted", "ghost", "text"],
       default: "default",
-    },
-    {
-      prop: "color?",
-      types: ["light", "dark", "white", "black"],
-      default: "primary",
     },
     {
       prop: "icon?",
