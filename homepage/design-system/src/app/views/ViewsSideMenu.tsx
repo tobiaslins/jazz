@@ -21,7 +21,7 @@ export function ViewsSideMenu() {
     <div className={clsx("sticky top-0", mobileMenuOpen ? "w-32" : "w-7")}>
       <Button
         styleVariant="text"
-        variant="dark"
+        variant="highlight"
         icon={mobileMenuOpen ? "close" : "chevronRight"}
         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         size="sm"
