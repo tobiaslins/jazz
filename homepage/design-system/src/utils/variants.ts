@@ -1,6 +1,6 @@
 export type Variant =
+  | "default"
   | "primary"
-  | "secondary"
   | "tip"
   | "info"
   | "success"
@@ -8,5 +8,4 @@ export type Variant =
   | "alert"
   | "danger"
   | "muted"
-  | "highlight"
-  | "default";
+  | "highlight";

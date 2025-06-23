@@ -11,7 +11,6 @@
     from var(--color-primary) calc(l + 10) calc(c + 1) calc(h - 5)
   );
 
-  --color-secondary: var(--color-primary-dark);
   --color-success: #42bb69;
   --color-info: #b441eb;
   --color-warning: #ff601c;
@@ -26,21 +25,17 @@
 
   --color-transparent-white: rgba(255, 255, 255, 0.1);
   --color-transparent-primary: lch(from var(--color-primary) l c h / 0.1);
-  --color-transparent-secondary: lch(from var(--color-secondary) l c h / 0.3);
 
   --color-border-default: theme("colors.stone.200");
   --color-background-highlight: lch(from var(--color-primary) l c h / 0.25);
 }
 
 .dark {
-  --color-secondary: var(--color-primary-light);
-
   --color-default: theme("colors.stone.400");
   --color-highlight: theme("colors.white");
   --color-muted: theme("colors.stone.700");
 
   --color-transparent-primary: lch(from var(--color-primary) l c h / 0.3);
-  --color-transparent-secondary: lch(from var(--color-secondary) l c h / 0.3);
 
   --color-border-default: theme("colors.stone.900");
   --color-background-highlight: lch(from var(--color-primary) l c h / 0.5);

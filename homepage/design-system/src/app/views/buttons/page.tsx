@@ -15,7 +15,6 @@ export default function ButtonsPage() {
   const variants = [
     "default",
     "primary",
-    "secondary",
     "tip",
     "info",
     "success",
@@ -31,8 +30,8 @@ export default function ButtonsPage() {
       <h3 className="text-lg mt-5 mb-2 font-bold">Variants</h3>
 
       <div className="grid grid-cols-2 gap-2">
-        <Button>default</Button>
-        <Button variant="secondary">secondary</Button>
+        <Button variant="default">default</Button>
+        <Button variant="primary">primary</Button>
         <Button variant="tip">tip</Button>
         <Button variant="info">info</Button>
         <Button variant="success">success</Button>
@@ -41,7 +40,6 @@ export default function ButtonsPage() {
         <Button variant="danger">danger</Button>
         <Button variant="muted">muted</Button>
         <Button variant="highlight">highlight</Button>
-        <Button variant="default">default</Button>
       </div>
 
       <div className="flex justify-between items-center w-12 mt-10">
@@ -134,8 +132,8 @@ const buttonPropsTableData = {
     {
       prop: "variant?",
       types: [
+        "default",
         "primary",
-        "secondary",
         "tip",
         "info",
         "success",
@@ -144,9 +142,8 @@ const buttonPropsTableData = {
         "danger",
         "muted",
         "highlight",
-        "default",
       ],
-      default: "primary",
+      default: "default",
     },
     {
       prop: "styleVariant?",

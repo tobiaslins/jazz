@@ -6,7 +6,6 @@ export default function IconsView() {
     <div className="p-3">
       <div className="flex gap-2">
         <Icon name="search" size="xs" variant="primary" />
-        <Icon name="upload" size="sm" variant="secondary" />
         <Icon name="zip" size="md" variant="info" />
         <Icon name="docs" size="lg" variant="success" />
         <Icon name="file" size="xl" variant="warning" />
@@ -19,7 +18,6 @@ export default function IconsView() {
       </div>
       <div className="flex gap-2">
         <Icon name="search" size="xs" variant="primary" hasBackground />
-        <Icon name="upload" size="sm" variant="secondary" hasBackground />
         <Icon name="zip" size="md" variant="info" hasBackground />
         <Icon name="docs" size="lg" variant="success" hasBackground />
         <Icon name="file" size="xl" variant="warning" hasBackground />
@@ -58,7 +56,6 @@ const iconPropsTable = {
       types: [
         "default",
         "primary",
-        "secondary",
         "info",
         "success",
         "warning",

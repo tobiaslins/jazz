@@ -35,7 +35,6 @@ export default function Colors() {
 
       <div className="grid grid-cols-2 gap-2 p-3">
         <div className="bg-primary text-white p-3 rounded-md">Primary</div>
-        <div className="bg-secondary text-white p-3 rounded-md">Secondary</div>
         <div className="bg-tip text-white p-3 rounded-md">Tip</div>
         <div className="bg-info text-white p-3 rounded-md">Info</div>
         <div className="bg-success text-white p-3 rounded-md">Success</div>
