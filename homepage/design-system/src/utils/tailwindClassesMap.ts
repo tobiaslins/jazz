@@ -19,18 +19,19 @@ export const variantToBorderMap = {
 };
 
 export const variantToActiveBorderMap = {
-  primary: "active:border-primary focus:border-primary",
-  secondary: "active:border-secondary focus:border-secondary",
-  info: "active:border-info focus:border-info",
-  success: "active:border-success focus:border-success",
-  warning: "active:border-warning focus:border-warning",
-  danger: "active:border-danger focus:border-danger",
-  alert: "active:border-alert focus:border-alert",
-  tip: "active:border-tip focus:border-tip",
-  light: "active:border-stone-200 focus:border-stone-200",
-  dark: "active:border-stone-900 focus:border-stone-900",
+  primary: "active:border-primary-transparent focus:border-primary-transparent",
+  secondary:
+    "active:border-secondary-transparent focus:border-secondary-transparent",
+  info: "active:border-info-transparent focus:border-info-transparent",
+  success: "active:border-success-transparent focus:border-success-transparent",
+  warning: "active:border-warning-transparent focus:border-warning-transparent",
+  danger: "active:border-danger-transparent focus:border-danger-transparent",
+  alert: "active:border-alert-transparent focus:border-alert-transparent",
+  tip: "active:border-tip-transparent focus:border-tip-transparent",
+  light: "active:border-stone-200/30 focus:border-stone-200/30",
+  dark: "active:border-stone-900/30 focus:border-stone-900/30",
   default:
-    "active:border-black dark:active:border-white focus:border-black dark:focus:border-white",
+    "active:border-black/30 dark:active:border-white/30 focus:border-black/30 dark:focus:border-white/30",
 };
 
 export const variantToBgMap = {

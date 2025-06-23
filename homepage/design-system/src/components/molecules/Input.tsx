@@ -28,7 +28,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       id: customId,
       placeholder,
       icon,
-      iconPosition,
+      iconPosition = "left",
       labelHidden,
       labelPosition,
       button,
@@ -39,6 +39,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
   ) => {
     const generatedId = useId();
     const id = customId || generatedId;
+    const inputIconClassName =
+      icon && iconPosition === "left"
+        ? "pl-9"
+        : icon && iconPosition === "right";
 
     const inputClassName = clsx(
       "w-full rounded-md border px-3.5 py-2 shadow-sm",
@@ -68,11 +72,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             id={id}
             className={clsx(
               inputClassName,
-              iconPosition === "left"
-                ? "pl-9"
-                : iconPosition === "right"
-                  ? "pr-9"
-                  : "",
+              inputIconClassName,
               className,
               "px-2",
               variantToActiveBorderMap[variant],

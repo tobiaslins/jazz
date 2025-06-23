@@ -14,8 +14,16 @@ export default function InputsView() {
 
   return (
     <div className="p-3">
-      <h3 className="text-md font-semibold mb-2">Inputs</h3>
-      <div className="flex flex-col gap-2">
+      <p>
+        Inputs consist of a combintion of atoms which can be used to create a
+        variety of inputs. These atoms include:
+        <br />
+        <br />
+        <code>Icon</code>, <code>Label</code> and <code>Button</code>, and also
+        may be styled with the <code>variant</code> prop.
+      </p>
+      <div className="flex flex-col gap-2 mt-3">
+        <h3 className="text-lg font-semibold my-2">Icons</h3>
         <Input
           icon="search"
           label="Search [label hidden]"
@@ -42,6 +50,11 @@ export default function InputsView() {
           labelPosition="row"
           placeholder="Password"
         />
+        <h3 className="text-lg font-semibold my-2">Variants</h3>
+        <Input label="Light" placeholder="Light" variant="light" />
+        <Input label="Dark" placeholder="Dark" variant="dark" />
+        <Input label="Default" placeholder="Default" variant="default" />
+        <h3 className="text-lg font-semibold my-2">Buttons</h3>
         <InputWithButton
           inputProps={{
             label: "Input with button [label visible]",
@@ -88,27 +101,44 @@ const inputPropsTable = {
       default: "undefined",
     },
     {
-      prop: "labelHidden",
+      prop: "labelHidden?",
       types: "boolean",
       default: "false",
     },
     {
-      prop: "labelPosition",
+      prop: "labelPosition?",
       types: ["column", "row"],
       default: "column",
     },
     {
-      prop: "icon",
+      prop: "icon?",
       types: ["LucideIcon"],
       default: "undefined",
     },
     {
-      prop: "iconPosition",
+      prop: "iconPosition?",
       types: ["left", "right"],
       default: "left",
     },
     {
-      prop: "buttonProps",
+      prop: "variant?",
+      types: [
+        "primary",
+        "secondary",
+        "info",
+        "success",
+        "warning",
+        "danger",
+        "alert",
+        "tip",
+        "light",
+        "dark",
+        "default",
+      ],
+      default: "primary",
+    },
+    {
+      prop: "buttonProps?",
       types: "see Button Props",
       default: "undefined",
     },
