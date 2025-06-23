@@ -1,4 +1,4 @@
-import { CodeGroup, ContentByFramework, JazzLogo } from '@/components/forMdx'
+import { CodeGroup, ContentByFramework, JazzLogo } from "@/components/forMdx";
 
 export const metadata = {
   title: "Documentation",
@@ -12,20 +12,17 @@ Instead of wrestling with databases, APIs, and server infrastructure, you work w
 
 ---
 
-**Note:** We just released [Jazz 0.14.0](/docs/upgrade/0-14-0) with a bunch of breaking changes and are still cleaning the docs up - see the [upgrade guide](/docs/upgrade/0-14-0) for details.
-
 ## Quickstart
 
 You can use [`create-jazz-app`](/docs/tools/create-jazz-app) to create a new Jazz project from one of our starter templates or example apps:
 
 <CodeGroup>
-```sh
-npx create-jazz-app@latest --api-key you@example.com
-```
+  ```sh npx create-jazz-app@latest --api-key you@example.com ```
 </CodeGroup>
 
-{/* <ContentByFramework framework="react">
-  Or you can follow this [React step-by-step guide](/docs/react/guide) where we walk you through building an issue tracker app.
+{/\* <ContentByFramework framework="react">
+Or you can follow this [React step-by-step guide](/docs/react/guide) where we walk you through building an issue tracker app.
+
 </ContentByFramework> */}
 
 ## Why Jazz is different
@@ -33,7 +30,7 @@ npx create-jazz-app@latest --api-key you@example.com
 Most apps rebuild the same thing: shared state that syncs between users and devices. Jazz starts from that shared state, giving you:
 
 - **No backend required** — Focus on building features, not infrastructure
-- **Real-time sync** — Changes appear everywhere immediately  
+- **Real-time sync** — Changes appear everywhere immediately
 - **Multiplayer by default** — Collaboration just works
 - **Local-first** — Your app works offline and feels instant
 
