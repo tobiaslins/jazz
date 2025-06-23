@@ -1,7 +1,30 @@
+"use client";
 import { Button } from "@/components/atoms/Button";
+import { Icon } from "@/components/atoms/Icon";
+import { Select } from "@/components/molecules/Select";
 import { Table } from "@/components/molecules/Table";
-
+import {
+  Dropdown,
+  DropdownButton,
+  DropdownItem,
+  DropdownMenu,
+} from "@/components/organisms/Dropdown";
+import { Variant } from "@/utils/variants";
+import { useState } from "react";
 export default function ButtonsPage() {
+  const variants = [
+    "default",
+    "secondary",
+    "tip",
+    "info",
+    "success",
+    "warning",
+    "alert",
+    "danger",
+    "muted",
+    "highlight",
+  ] as const;
+  const [selectedVariant, setSelectedVariant] = useState<Variant>("default");
   return (
     <>
       <h3 className="text-lg mt-5 mb-2 font-bold">Variants</h3>
@@ -20,50 +43,55 @@ export default function ButtonsPage() {
         <Button variant="default">default</Button>
       </div>
 
-      <h3 className="text-lg mt-5 mb-2 font-bold">Styles</h3>
-
-      <div className="grid grid-cols-2 gap-2">
-        <Button styleVariant="outline">outline</Button>
-        <Button styleVariant="inverted">inverted</Button>
-        <Button styleVariant="ghost">ghost</Button>
-        <Button styleVariant="text">text</Button>
+      <div className="flex justify-between items-center w-12 mt-10">
+        <h3 className="text-lg font-bold">Styles</h3>
+        <div className="max-w-xs ml-12">
+          <Dropdown>
+            <DropdownButton
+              className="w-full justify-between"
+              as={Button}
+              variant="default"
+              styleVariant="inverted"
+            >
+              {selectedVariant}
+              <Icon name="chevronDown" size="sm" />
+            </DropdownButton>
+            <DropdownMenu>
+              {variants.map((variant) => (
+                <DropdownItem
+                  key={variant}
+                  onClick={() => setSelectedVariant(variant)}
+                >
+                  {variant}
+                </DropdownItem>
+              ))}
+            </DropdownMenu>
+          </Dropdown>
+        </div>
       </div>
-
-      <p className="text-sm mt-5 mb-2">
-        <strong>NB:</strong> Variants and styles are interchangeable.
+      <p className="text-sm mt-2 mb-5">
+        <strong>NB:</strong> Variants and styles are interchangeable. See the
+        variants with the dropdown
       </p>
 
       <div className="grid grid-cols-2 gap-2">
-        <Button
-          styleVariant="outline"
-          variant="default"
-          className="col-span-2 md:col-span-1"
-        >
-          outline warning
+        <Button variant={selectedVariant} styleVariant="outline">
+          outline
         </Button>
-        <Button
-          styleVariant="inverted"
-          variant="default"
-          className="col-span-2 md:col-span-1"
-        >
-          inverted success
+        <Button variant={selectedVariant} styleVariant="inverted">
+          inverted
         </Button>
-        <Button
-          styleVariant="ghost"
-          variant="default"
-          className="col-span-2 md:col-span-1"
-        >
-          ghost info
+        <Button variant={selectedVariant} styleVariant="ghost">
+          ghost
         </Button>
-        <Button
-          styleVariant="text"
-          variant="default"
-          className="col-span-2 md:col-span-1"
-        >
-          text tip
+        <Button variant={selectedVariant} styleVariant="text">
+          text
         </Button>
       </div>
-      <p>Buttons can also contain an icon.</p>
+
+      <h3 className="text-lg font-bold mt-5">Icons</h3>
+
+      <p>Buttons can also contain an icon and text.</p>
 
       <div className="grid grid-cols-2 gap-2">
         <Button
