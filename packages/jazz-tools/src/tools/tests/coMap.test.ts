@@ -1635,6 +1635,144 @@ describe("Creating and finding unique CoMaps", async () => {
     expect(myOrg.projects.at(0)?.name).toEqual("My updated project");
   });
 
+  test("upserting a partially loaded value on an new value with resolve", async () => {
+    const Project = co.map({
+      name: z.string(),
+    });
+    const Organisation = co.map({
+      name: z.string(),
+      projects: co.list(Project),
+    });
+    const publicAccess = Group.create();
+    publicAccess.addMember("everyone", "writer");
+
+    const initialProject = await Project.upsertUnique({
+      value: {
+        name: "My project",
+      },
+      unique: { unique: "First project" },
+      owner: publicAccess,
+    });
+    assert(initialProject);
+    expect(initialProject).not.toBeNull();
+    expect(initialProject.name).toEqual("My project");
+
+    const fullProjectList = co
+      .list(Project)
+      .create([initialProject], publicAccess);
+
+    const account = await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+    });
+
+    const shallowProjectList = await co.list(Project).load(fullProjectList.id, {
+      loadAs: account,
+    });
+    assert(shallowProjectList);
+
+    const publicAccessAsNewAccount = await Group.load(publicAccess.id, {
+      loadAs: account,
+    });
+    assert(publicAccessAsNewAccount);
+
+    const updatedOrg = await Organisation.upsertUnique({
+      value: {
+        name: "My organisation",
+        projects: shallowProjectList,
+      },
+      unique: { name: "My organisation" },
+      owner: publicAccessAsNewAccount,
+      resolve: {
+        projects: {
+          $each: true,
+        },
+      },
+    });
+
+    assert(updatedOrg);
+
+    expect(updatedOrg.projects.id).toEqual(fullProjectList.id);
+    expect(updatedOrg.projects.length).toBe(1);
+    expect(updatedOrg.projects.at(0)?.name).toEqual("My project");
+  });
+
+  test("upserting a partially loaded value on an existing value with resolve", async () => {
+    const Project = co.map({
+      name: z.string(),
+    });
+    const Organisation = co.map({
+      name: z.string(),
+      projects: co.list(Project),
+    });
+    const publicAccess = Group.create();
+    publicAccess.addMember("everyone", "writer");
+
+    const initialProject = await Project.upsertUnique({
+      value: {
+        name: "My project",
+      },
+      unique: { unique: "First project" },
+      owner: publicAccess,
+    });
+    assert(initialProject);
+    expect(initialProject).not.toBeNull();
+    expect(initialProject.name).toEqual("My project");
+
+    const myOrg = await Organisation.upsertUnique({
+      value: {
+        name: "My organisation",
+        projects: co.list(Project).create([], publicAccess),
+      },
+      unique: { name: "My organisation" },
+      owner: publicAccess,
+      resolve: {
+        projects: {
+          $each: true,
+        },
+      },
+    });
+    assert(myOrg);
+
+    const fullProjectList = co
+      .list(Project)
+      .create([initialProject], publicAccess);
+
+    const account = await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+    });
+
+    const shallowProjectList = await co.list(Project).load(fullProjectList.id, {
+      loadAs: account,
+    });
+    assert(shallowProjectList);
+
+    const publicAccessAsNewAccount = await Group.load(publicAccess.id, {
+      loadAs: account,
+    });
+    assert(publicAccessAsNewAccount);
+
+    const updatedOrg = await Organisation.upsertUnique({
+      value: {
+        name: "My organisation",
+        projects: shallowProjectList,
+      },
+      unique: { name: "My organisation" },
+      owner: publicAccessAsNewAccount,
+      resolve: {
+        projects: {
+          $each: true,
+        },
+      },
+    });
+
+    assert(updatedOrg);
+
+    expect(updatedOrg.projects.id).toEqual(fullProjectList.id);
+    expect(updatedOrg.projects.length).toBe(1);
+    expect(updatedOrg.projects.at(0)?.name).toEqual("My project");
+    expect(updatedOrg.id).toEqual(myOrg.id);
+  });
+
   test("complex discriminated union", () => {
     const StringTag = co.map({
       type: z.literal("string"),
