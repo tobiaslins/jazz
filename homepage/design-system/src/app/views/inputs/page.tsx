@@ -51,8 +51,8 @@ export default function InputsView() {
           placeholder="Password"
         />
         <h3 className="text-lg font-semibold my-2">Variants</h3>
-        <Input label="Light" placeholder="Light" variant="light" />
-        <Input label="Dark" placeholder="Dark" variant="dark" />
+        <Input label="Light" placeholder="Light" variant="muted" />
+        <Input label="Dark" placeholder="Dark" variant="highlight" />
         <Input label="Default" placeholder="Default" variant="default" />
         <h3 className="text-lg font-semibold my-2">Buttons</h3>
         <InputWithButton
@@ -135,7 +135,7 @@ const inputPropsTable = {
         "dark",
         "default",
       ],
-      default: "primary",
+      default: "default",
     },
     {
       prop: "buttonProps?",
