@@ -16,6 +16,7 @@ export const Location = co.map({
   city: z.string(),
   country: z.string(),
 });
+export type Location = co.loaded<typeof Location>;
 
 // co.ref can be used within CoMap fields to point to other CoValues
 const Actor = co.map({
@@ -23,6 +24,7 @@ const Actor = co.map({
     imageURL: z.string,
     birthplace: Location // Links directly to the Location CoMap above.
 })
+export type Actor = co.loaded<typeof Actor>;
 
 //  actual actor data is stored in the separate Actor CoValue
 const Movie = co.map({
@@ -30,12 +32,14 @@ const Movie = co.map({
   director: z.string,
   cast: co.list(Actor), // ordered, mutable
 })
+export type Movie = co.loaded<typeof Movie>;
 
 // A User CoMap can maintain a CoFeed of co.ref(Movie) to track their favorite movies
 const User = co.map({
   username: z.string,
   favoriteMovies: co.feed(Movie), // append-only
 })
+export type User = co.loaded<typeof User>;
 ```
 </CodeGroup>
 
@@ -46,6 +50,3 @@ const User = co.map({
 This direct linking approach offers a single source of truth. When you update a referenced CoValue, all other CoValues that point to it are automatically updated, ensuring data consistency across your application.
 
 By connecting CoValues through these direct references, you can build robust and collaborative applications where data is consistent, efficient to manage, and relationships are clearly defined. The ability to link different CoValue types to the same underlying data is fundamental to building complex applications with Jazz.
-
-
-

@@ -28,6 +28,7 @@ const Activity = co.map({
   action: z.literal(["watering", "planting", "harvesting", "maintenance"]),
   notes: z.optional(z.string()),
 });
+export type Activity = co.loaded<typeof Activity>;
 
 // Define a feed of garden activities
 const ActivityFeed = co.feed(Activity);
