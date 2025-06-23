@@ -4,34 +4,12 @@ import { team } from "@/app/team/members";
 
 import Router from "next/router";
 
-const membersNameToInfoMap = {
-  anselm: "Anselm Eickhoff",
-  guido: "Guido D'Orsi",
-  gio: "Giordano Ricci",
-  trisha: "Trisha Lim",
-  benjamin: "Benjamin Leveritt",
-  nikos: "Nikos Papadopoulos",
-  emil: "Emil Sayahi",
-  meg: "Meg Culotta",
-  nikita: "Nikita Voloboev",
-  sammii: "Sammii Kellow",
-  brad: "Bradley Kowalski",
-};
-
 export default async function TeamMemberPage({
   params,
 }: { params: Promise<{ member: string }> }) {
   const { member } = await params;
 
-  if (!(member in membersNameToInfoMap)) {
-    Router.push("/team");
-  }
-
-  const memberName =
-    membersNameToInfoMap[member as keyof typeof membersNameToInfoMap];
-  const memberInfo = team.find(
-    (m: { name: string }) => m.name.toLowerCase() === memberName.toLowerCase(),
-  );
+  const memberInfo = team.find((m) => m.slug === member);
 
   if (!memberInfo) {
     Router.push("/team");

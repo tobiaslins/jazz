@@ -1,5 +1,6 @@
 export interface TeamMember {
   name: string;
+  slug: string;
   titles: string[];
   image: string;
   location: string;
@@ -13,6 +14,7 @@ export interface TeamMember {
 export const team: Array<TeamMember> = [
   {
     name: "Anselm Eickhoff",
+    slug: "anselm",
     titles: ["Founder"],
     image: "anselm.jpg",
     location: "London, UK ",
@@ -24,6 +26,7 @@ export const team: Array<TeamMember> = [
   },
   {
     name: "Guido D'Orsi",
+    slug: "guido",
     titles: ["Lead Engineer", "React Performance"],
     image: "guido.jpeg",
     location: "Piano di Sorrento, Italy ",
@@ -31,6 +34,7 @@ export const team: Array<TeamMember> = [
   },
   {
     name: "Giordano Ricci",
+    slug: "gio",
     titles: ["Full-Stack Dev", "Observability Expert"],
     location: "Lisbon, Portugal ",
     github: "Elfo404",
@@ -40,6 +44,7 @@ export const team: Array<TeamMember> = [
   },
   {
     name: "Trisha Lim",
+    slug: "trisha",
     titles: ["Frontend Dev", "Marketing"],
     image: "trisha.png",
     location: "Lisbon, Portugal ",
@@ -47,39 +52,16 @@ export const team: Array<TeamMember> = [
     website: "https://trishalim.com",
   },
   {
-    name: "Benjamin Leveritt",
-    titles: ["Full-Stack Dev", "Technical Writer"],
-    image: "benjamin.jpg",
-    location: "Portsmouth, UK ",
-    github: "bensleveritt",
-  },
-  {
-    name: "Nikos Papadopoulos",
-    titles: ["Full-Stack Dev"],
-    location: "Farnham, UK",
-    github: "4rknova",
-    website: "https://www.4rknova.com",
-    linkedin: "nikpapas",
-    image: "nikos.png",
-  },
-  {
-    name: "Emil Sayahi",
-    titles: ["Full-Stack Dev", "Support Dev"],
-    location: "San Francisco, California, US",
-    github: "emmyoh",
-    bluesky: "sayahi.bsky.social",
-    linkedin: "emil-sayahi",
-    image: "emil.jpg",
-  },
-  {
     name: "Meg Culotta",
-    titles: ["Support Dev", "Frontend Dev"],
+    slug: "meg",
+    titles: ["Technical Project Manager", "QA"],
     location: "Minneapolis, Minnesota, US",
     github: "mculotta120",
     image: "meg.jpg",
   },
   {
     name: "Nikita Voloboev",
+    slug: "nikita",
     location: "Barcelona, Spain",
     titles: ["Full-Stack Dev"],
     x: "nikitavoloboev",
@@ -89,6 +71,7 @@ export const team: Array<TeamMember> = [
   },
   {
     name: "Sammii Kellow",
+    slug: "sammii",
     location: "London, UK",
     titles: ["Design Engineer", "Marketing"],
     x: "SammiiHaylock",
@@ -99,6 +82,7 @@ export const team: Array<TeamMember> = [
   },
   {
     name: "Brad Anderson",
+    slug: "brad",
     location: "Atlanta, Georgia, US",
     titles: ["React Native Specialist"],
     x: "boorad",
