@@ -138,7 +138,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         )}
         {loading && loadingText ? loadingText : children}
         {icon && iconPosition === "right" && (
-          <Icon name={icon} variant={iconVariant(variant, styleVariant)} />
+          <Icon
+            name={icon}
+            variant={iconVariant(variant, styleVariant)}
+            hasHover={true}
+          />
         )}
       </button>
     );

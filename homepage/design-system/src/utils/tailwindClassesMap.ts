@@ -88,7 +88,7 @@ export const variantToTextMap = {
   alert: "text-alert",
   tip: "text-tip",
   muted: "text-stone-500 dark:text-stone-400",
-  highlight: "text-stone-900 dark:text-stone-100",
+  highlight: "text-stone-900 dark:text-white",
   default: "text-stone-700 dark:text-stone-100",
 };
 
@@ -256,9 +256,9 @@ export const variantToBgGradientActiveMap = {
   danger: `active:from-danger-brightDark active:to-danger-light ${gradiantClassesBase}`,
   alert: `active:from-alert-brightDark active:to-alert-light ${gradiantClassesBase}`,
   tip: `active:from-tip-brightDark active:to-tip-light ${gradiantClassesBase}`,
-  muted: `active:from-stone-100 active:to-stone-300 ${gradiantClassesBase} dark:active:from-stone-900 dark:active:to-stone-800`,
+  muted: `active:from-stone-300 active:to-stone-300 ${gradiantClassesBase} dark:active:from-stone-900 dark:active:to-stone-800`,
   highlight: `active:from-stone-950 active:to-stone-900 ${gradiantClassesBase} dark:active:from-stone-100 dark:active:to-stone-200`,
-  default: `active:from-white active:to-stone-100/60 dark:active:from-stone-950 dark:active:to-black ${gradiantClassesBase}`,
+  default: `active:from-stone-200/50 active:to-stone-100/50 dark:active:from-stone-950 dark:active:to-black ${gradiantClassesBase}`,
 };
 
 export const shadowClassesBase = "shadow-md";

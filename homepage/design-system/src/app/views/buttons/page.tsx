@@ -14,6 +14,7 @@ import { useState } from "react";
 export default function ButtonsPage() {
   const variants = [
     "default",
+    "primary",
     "secondary",
     "tip",
     "info",
