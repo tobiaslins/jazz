@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { generateHeaderId } from "../header-ids.mjs";
 
 describe("generateHeaderId", () => {
