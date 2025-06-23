@@ -1,5 +1,17 @@
 # jazz-tools
 
+## 0.15.1
+
+### Patch Changes
+
+- 0e3a4d2: Add FileStream.loadAsBase64 API
+- b110f00: Added `CoMap.upsertUnique` & `CoMap.loadUnique` methods (deprecating `CoMap.findUnique`) and added `skipRetry` option to `CoMap.load`
+- Updated dependencies [b110f00]
+  - cojson@0.15.1
+  - cojson-storage@0.15.1
+  - cojson-storage-indexeddb@0.15.1
+  - cojson-transport-ws@0.15.1
+
 ## 0.15.0
 
 ### Minor Changes

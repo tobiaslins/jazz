@@ -1,5 +1,11 @@
 # create-jazz-app
 
+## 0.1.24
+
+### Patch Changes
+
+- 6f5731b: Fix the metro.config.js for react-native plain projects and Expo. Introduce .npmrc file to allow the installation with pnpm
+
 ## 0.1.23
 
 ### Patch Changes
