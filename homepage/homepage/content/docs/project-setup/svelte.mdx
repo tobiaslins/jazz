@@ -3,6 +3,7 @@ export const metadata = {
 };
 
 import { CodeGroup } from "@/components/forMdx";
+import { Alert } from "@garden-co/design-system/src/components/atoms/Alert";
 
 # Svelte Installation and Setup
 
@@ -10,7 +11,7 @@ Jazz can be used with Svelte or in a SvelteKit app.
 
 To add some Jazz to your Svelte app, you can use the following steps:
 
-1. Install Jazz dependencies
+## Install Jazz dependencies
 
 <CodeGroup>
 ```sh
@@ -18,7 +19,9 @@ pnpm install jazz-tools
 ```
 </CodeGroup>
 
-2. Write your schema
+<Alert variant="info" className="mt-4 flex gap-2 items-center">Requires at least Node.js v20.</Alert>
+
+## Write your schema
 
 See the [schema docs](/docs/schemas/covalues) for more information.
 
@@ -40,7 +43,7 @@ export class MyAccount extends Account {
 ```
 </CodeGroup>
 
-3. Set up the Provider in your root layout
+## Set up the Provider in your root layout
 
 <CodeGroup>
 ```svelte
@@ -60,7 +63,7 @@ export class MyAccount extends Account {
 ```
 </CodeGroup>
 
-4. Use Jazz hooks in your components
+## Use Jazz hooks in your components
 
 <CodeGroup>
 ```svelte
