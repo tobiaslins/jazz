@@ -87,7 +87,7 @@ export const variantToTextMap = {
   tip: "text-tip",
   light: "text-stone-500",
   dark: "text-stone-700",
-  default: "text-black dark:text-white",
+  default: "text-stone-900 dark:text-white",
 };
 
 export const variantToTextHoverMap = {

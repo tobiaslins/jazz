@@ -167,7 +167,7 @@ const styleClasses = (
   styleVariant: StyleVariant | undefined,
 ) => {
   return {
-    outline: `border ${variantToBorderMap[variant]} ${variantToTextMap[variant]} ${variantToHoverShadowMap[variant]} ${variantToBgTransparentActiveMap[variant]} shadow-[5px_0px]`,
+    outline: `border ${variantToBorderMap[variant]} ${variantToTextMap[variant]} ${variantToTextHoverMap[variant]} ${variantToHoverShadowMap[variant]} ${variantToBgTransparentActiveMap[variant]} shadow-[5px_0px]`,
     inverted: `${variantToTextMap[variant]} ${colorToBgHoverMap30[variantToColorMap[variant] as VariantColor]} ${colorToBgMap[variantToColorMap[variant] as VariantColor]} ${colorToBgActiveMap50[variantToColorMap[variant] as VariantColor]} ${shadowClassesBase}`,
     ghost: `bg-transparent ${variantToTextMap[variant]} ${colorToBgHoverMap10[variantToColorMap[variant] as VariantColor]} ${colorToBgActiveMap25[variantToColorMap[variant] as VariantColor]}`,
     text: `bg-transparent ${variantToTextMap[variant]} underline underline-offset-2 p-0 hover:bg-transparent ${variantToTextHoverMap[variant]} ${variantToTextActiveMap[variant]} active:underline-stone-500`,
