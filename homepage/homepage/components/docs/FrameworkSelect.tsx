@@ -19,7 +19,7 @@ export function FrameworkSelect({
   size = "md",
   routerPush = true,
 }: {
-  onSelect: (framework: Framework) => void;
+  onSelect?: (framework: Framework) => void;
   size?: "sm" | "md";
   routerPush?: boolean;
 }) {
@@ -32,14 +32,14 @@ export function FrameworkSelect({
 
   const selectFramework = (newFramework: Framework) => {
     setSelectedFramework(newFramework);
-    onSelect(newFramework);
+    onSelect && onSelect(newFramework);
     routerPush && router.push(path.replace(defaultFramework, newFramework));
   };
 
   return (
     <Dropdown>
       <DropdownButton
-        className={clsx("w-full justify-between", size === "sm" && "text-sm text-nowrap")}
+        className={clsx("w-full justify-between overflow-clip", size === "sm" && "text-sm text-nowrap")}
         as={Button}
         variant="secondary"
       >
