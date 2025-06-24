@@ -6,7 +6,10 @@ import { Testimonial } from "@garden-co/design-system/src/components/molecules/T
 function TheoTestimonial({
   size,
   className,
-}: { size?: "sm" | "md"; className?: string }) {
+}: {
+  size?: "sm" | "md";
+  className?: string;
+}) {
   return (
     <Testimonial
       size={size}
@@ -31,7 +34,7 @@ function TheoTestimonial({
 
 export function EarlyAdopterSection() {
   return (
-    <div className="grid grid grid-cols-3 items-center gap-y-12">
+    <div className="grid grid-cols-3 items-center gap-y-12">
       <TheoTestimonial size="md" className="col-span-3 lg:hidden" />
       <div className="col-span-3 lg:col-span-2">
         <div className="max-w-3xl space-y-6">
@@ -56,7 +59,11 @@ export function EarlyAdopterSection() {
             <Button href="/docs" variant="primary">
               Read docs
             </Button>
-            <Button href="https://discord.gg/utDMjHYg42" variant="secondary">
+            <Button
+              href="https://discord.gg/utDMjHYg42"
+              variant="primary"
+              styleVariant="outline"
+            >
               Join Discord
             </Button>
           </div>
