@@ -35,12 +35,17 @@ export default function Colors() {
 
       <div className="grid grid-cols-2 gap-2 p-3">
         <div className="bg-primary text-white p-3 rounded-md">Primary</div>
+        <div className="bg-highlight text-white p-3 rounded-md">Highlight</div>
         <div className="bg-tip text-white p-3 rounded-md">Tip</div>
         <div className="bg-info text-white p-3 rounded-md">Info</div>
         <div className="bg-success text-white p-3 rounded-md">Success</div>
         <div className="bg-warning text-white p-3 rounded-md">Warning</div>
         <div className="bg-alert text-white p-3 rounded-md">Alert</div>
         <div className="bg-danger text-white p-3 rounded-md">Danger</div>
+        <div className="bg-muted text-white p-3 rounded-md">Muted</div>
+        <div className="bg-strong text-white dark:text-stone-900 p-3 rounded-md">
+          Strong
+        </div>
       </div>
       <p className="text-xs mt-1 mb-4">
         NB: These classes should be used across all apps as the primary an
@@ -56,14 +61,8 @@ export default function Colors() {
         Text Color Variables
       </h3>
 
-      <div className="grid grid-cols-2 gap-2 my-3 px-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 my-3 px-3">
         <ColorTypography />
-        <div className="col-span-2">
-          <p className="text-xs mb-4 flex justify-end">
-            *`text-highlight` and `bg-highlight` are individually set variables
-            for each use case meaning they can be combined
-          </p>
-        </div>
       </div>
     </>
   );
@@ -74,12 +73,12 @@ const ColorTypography = () => {
     <div className={clsx("text-default rounded-md")}>
       <div className="text-default mb-1">text-default</div>
       <div className="text-muted mb-1">text-muted</div>
-      <div className="text-highlight mb-1">text-highlight</div>
-      <div>
+      <div className="text-strong mb-1">text-strong</div>
+      {/* <div>
         <span className="text-default bg-highlight">bg-highlight*</span>
-      </div>
-      <div className="text-highlight my-1">
-        <span className="bg-highlight">[text+bg]-highlight*</span>
+      </div> */}
+      <div className="text-strong my-1">
+        <span className="bg-highlight">text-strong bg-highlight*</span>
       </div>
     </div>
   );

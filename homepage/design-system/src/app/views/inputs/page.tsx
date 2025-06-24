@@ -52,7 +52,7 @@ export default function InputsView() {
         />
         <h3 className="text-lg font-semibold my-2">Variants</h3>
         <Input label="Muted" placeholder="Muted" variant="muted" />
-        <Input label="Highlight" placeholder="Highlight" variant="highlight" />
+        <Input label="Strong" placeholder="Strong" variant="strong" />
         <Input label="Default" placeholder="Default" variant="default" />
         <h3 className="text-lg font-semibold my-2">Buttons</h3>
         <InputWithButton
@@ -132,7 +132,7 @@ const inputPropsTable = {
         "alert",
         "tip",
         "muted",
-        "highlight",
+        "strong",
         "default",
       ],
       default: "default",

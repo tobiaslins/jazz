@@ -14,7 +14,7 @@ export default function IconsView() {
         <Icon name="image" size="4xl" variant="tip" />
         <Icon name="corecord" size="5xl" variant="default" />
         <Icon name="corecord" size="6xl" variant="muted" />
-        <Icon name="corecord" size="7xl" variant="highlight" />
+        <Icon name="corecord" size="7xl" variant="strong" />
       </div>
       <div className="flex gap-2">
         <Icon name="search" size="xs" variant="primary" hasBackground />
@@ -26,7 +26,7 @@ export default function IconsView() {
         <Icon name="image" size="4xl" variant="tip" hasBackground />
         <Icon name="corecord" size="5xl" variant="default" hasBackground />
         <Icon name="corecord" size="6xl" variant="muted" hasBackground />
-        <Icon name="corecord" size="7xl" variant="highlight" hasBackground />
+        <Icon name="corecord" size="7xl" variant="strong" hasBackground />
       </div>
       <Table className="mt-6" tableData={iconPropsTable} copyable />
     </div>
@@ -63,7 +63,7 @@ const iconPropsTable = {
         "alert",
         "tip",
         "muted",
-        "highlight",
+        "strong",
         "white",
       ],
       default: "default",

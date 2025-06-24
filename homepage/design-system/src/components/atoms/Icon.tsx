@@ -47,11 +47,11 @@ import {
   XIcon,
 } from "lucide-react";
 
+import clsx from "clsx";
 import {
   variantToTextHoverMap,
   variantToTextMap,
-} from "@/utils/tailwindClassesMap";
-import clsx from "clsx";
+} from "../../utils/tailwindClassesMap";
 import { Variant } from "../../utils/variants";
 import { GcmpIcons } from "./icons";
 
@@ -193,7 +193,7 @@ export function Icon({
     alert: "bg-alert-transparent",
     tip: "bg-tip-transparent",
     muted: "bg-stone-300/30 dark:bg-stone-700/30",
-    highlight: "bg-stone-900/30 dark:bg-stone-100/30",
+    strong: "bg-stone-900/30 dark:bg-stone-100/30",
   };
 
   const roundedClasses = {

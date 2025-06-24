@@ -89,6 +89,8 @@ export const preset = {
         yellow,
         purple,
         orange,
+        muted: "var(--color-muted)",
+        strong: "var(--color-strong)",
         primary: {
           DEFAULT: "var(--color-primary)",
           transparent: "var(--color-transparent-primary)",
@@ -170,6 +172,7 @@ export const preset = {
       textColor: {
         default: "var(--color-default)",
         highlight: "var(--color-highlight)",
+        strong: "var(--color-strong)",
         muted: "var(--color-muted)",
       },
       borderColor: {

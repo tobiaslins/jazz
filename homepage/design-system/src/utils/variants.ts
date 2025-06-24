@@ -8,4 +8,4 @@ export type Variant =
   | "alert"
   | "danger"
   | "muted"
-  | "highlight";
+  | "strong";
