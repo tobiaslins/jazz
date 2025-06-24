@@ -9,6 +9,7 @@ import { Button } from "@garden-co/design-system/src/components/atoms/Button";
 import Link from "next/link";
 import { FrameworkSelect } from "../docs/FrameworkSelect";
 import clsx from "clsx";
+import { track } from "@vercel/analytics";
 
 const getStartedSnippet = (framework: Framework) => {
   const props = framework !== Framework.React ? ` --framework ${framework}` : "";
@@ -20,18 +21,17 @@ export function GetStartedSnippetSelect() {
   const [selectedFramework, setSelectedFramework] =
     useState<Framework>(defaultFramework);
 
-  console.log(selectedFramework);
-
   const snippet = getStartedSnippet(selectedFramework);
 
 
   return (
-    <div className="flex flex-col grid grid-cols-8 gap-2 w-full col-span-2 justify-end relative mt-9 tex-sm">
+    <div className="grid grid-cols-8 gap-2 w-full col-span-2 justify-end relative mt-9 tex-sm">
       <div className="relative w-full col-span-4 md:col-span-4 border-2 border-primary rounded-lg overflow-hidden">
         <CopyButton
           code={snippet}
           size="sm"
           className={clsx("mt-0.5 mr-0.5 z-100 md:opacity-100")}
+          onCopy={() => track("create-jazz-app command copied from hero")}
         />
         <NpxCreateJazzApp />
         {/* {snippet} */}
