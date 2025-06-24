@@ -5,8 +5,8 @@ import { Nav } from "@garden-co/design-system/src/components/organisms/Nav";
 export function GcmpNav() {
   const cta = (
     <Button
-      variant="success"
-      styleVariant="outline"
+      styleType="success"
+      variant="outline"
       className="ml-3"
       href="mailto:hello@garden.co"
     >
