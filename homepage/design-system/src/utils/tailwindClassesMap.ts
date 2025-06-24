@@ -14,7 +14,7 @@ export const variantToBorderMap = {
   alert: "border-alert",
   tip: "border-tip",
   muted: "border-stone-200 dark:border-stone-700",
-  highlight: "border-stone-900 dark:border-stone-100",
+  strong: "border-stone-900 dark:border-stone-100",
   default: "border-stone-600 dark:border-stone-200",
 };
 
@@ -30,7 +30,7 @@ export const variantToActiveBorderMap = {
   tip: "active:border-tip-transparent focus:border-tip-transparent",
   muted:
     "active:border-stone-200/30 focus:border-stone-200/30 dark:active:border-stone-900/30 dark:focus:border-stone-900/30",
-  highlight:
+  strong:
     "active:border-stone-900/30 focus:border-stone-900/30 dark:active:border-stone-200/30 dark:focus:border-stone-200/30",
   default:
     "active:border-stone-600/30 dark:active:border-stone-100/30 focus:border-stone-600/30 dark:focus:border-stone-100/30",
@@ -46,7 +46,7 @@ export const variantToBgMap = {
   alert: "bg-alert",
   tip: "bg-tip",
   muted: "bg-stone-200 dark:bg-stone-900",
-  highlight: "bg-stone-900 dark:bg-stone-200",
+  strong: "bg-stone-900 dark:bg-stone-200",
   default: "bg-stone-700 dark:bg-stone-100",
 };
 
@@ -60,7 +60,7 @@ export const variantToBgTransparentHoverMap = {
   alert: "hover:bg-alert-transparent",
   tip: "hover:bg-tip-transparent",
   muted: "hover:bg-stone-100/20 dark:hover:bg-stone-900/20",
-  highlight: "hover:bg-stone-900/20 dark:hover:bg-stone-100/20",
+  strong: "hover:bg-stone-900/20 dark:hover:bg-stone-100/20",
   default: "hover:bg-stone-600/20 dark:hover:bg-stone-100/20",
 };
 
@@ -74,7 +74,7 @@ export const variantToBgTransparentActiveMap = {
   alert: "active:bg-yellow/20",
   tip: "active:bg-cyan/20",
   muted: "active:bg-stone-400/20",
-  highlight: "active:bg-stone-900/20",
+  strong: "active:bg-stone-900/20",
   default: "active:bg-stone-600/20 dark:active:bg-stone-100/20",
 };
 
@@ -88,7 +88,7 @@ export const variantToTextMap = {
   alert: "text-alert",
   tip: "text-tip",
   muted: "text-stone-500 dark:text-stone-400",
-  highlight: "text-stone-900 dark:text-white",
+  strong: "text-stone-900 dark:text-white",
   default: "text-stone-700 dark:text-stone-100",
 };
 
@@ -102,7 +102,7 @@ export const variantToTextHoverMap = {
   alert: "hover:text-alert-light",
   tip: "hover:text-tip-light",
   muted: "hover:text-stone-400 dark:hover:text-stone-500",
-  highlight: "hover:text-stone-700 dark:hover:text-stone-300",
+  strong: "hover:text-stone-700 dark:hover:text-stone-300",
   default: "hover:text-stone-600 dark:hover:text-stone-200",
 };
 
@@ -116,7 +116,7 @@ export const variantToTextActiveMap = {
   alert: "active:text-alert-dark",
   tip: "active:text-tip-dark",
   muted: "active:text-stone-400 dark:active:text-stone-500",
-  highlight: "active:text-stone-700 dark:active:text-stone-300",
+  strong: "active:text-stone-700 dark:active:text-stone-300",
   default: "active:text-stone-800 dark:active:text-stone-400",
 };
 
@@ -130,7 +130,7 @@ export type VariantColor =
   | "yellow"
   | "cyan"
   | "muted"
-  | "highlight"
+  | "strong"
   | "default";
 
 export const variantToColorMap = {
@@ -143,7 +143,7 @@ export const variantToColorMap = {
   alert: "yellow",
   tip: "cyan",
   muted: "muted",
-  highlight: "highlight",
+  strong: "strong",
   default: "default",
 };
 
@@ -157,7 +157,7 @@ export const colorToBgMap = {
   yellow: "bg-yellow/20",
   cyan: "bg-cyan/20",
   muted: "bg-stone-200/20 dark:bg-stone-900/50",
-  highlight: "bg-stone-900/20 dark:bg-stone-100/50",
+  strong: "bg-stone-900/20 dark:bg-stone-100/50",
   default: "bg-stone-600/20 dark:bg-white/20",
 };
 
@@ -171,7 +171,7 @@ export const colorToBgHoverMap30 = {
   yellow: "hover:bg-yellow/30",
   cyan: "hover:bg-cyan/30",
   muted: "hover:bg-stone-200/30 dark:hover:bg-stone-900/30",
-  highlight: "hover:bg-stone-900/30 dark:hover:bg-stone-100/30",
+  strong: "hover:bg-stone-900/30 dark:hover:bg-stone-100/30",
   default: "hover:bg-stone-600/30 dark:hover:bg-white/30",
 };
 
@@ -185,7 +185,7 @@ export const colorToBgHoverMap10 = {
   yellow: "hover:bg-yellow/10",
   cyan: "hover:bg-cyan/10",
   muted: "hover:bg-stone-200/30 dark:hover:bg-stone-800/30",
-  highlight: "hover:bg-stone-900/10 dark:hover:bg-stone-100/10",
+  strong: "hover:bg-stone-900/10 dark:hover:bg-stone-100/10",
   default: "hover:bg-stone-600/10 dark:hover:bg-white/10",
 };
 
@@ -199,7 +199,7 @@ export const colorToBgActiveMap50 = {
   yellow: "active:bg-yellow/50",
   cyan: "active:bg-cyan/50",
   muted: "active:bg-stone-100/50 dark:active:bg-stone-900/50",
-  highlight: "active:bg-stone-800/40 dark:active:bg-stone-200/40",
+  strong: "active:bg-stone-800/40 dark:active:bg-stone-200/40",
   default: "active:bg-stone-900/40 dark:active:bg-white/50",
 };
 
@@ -213,11 +213,11 @@ export const colorToBgActiveMap25 = {
   yellow: "active:bg-yellow/25",
   cyan: "active:bg-cyan/25",
   muted: "active:bg-stone-100/25 dark:active:bg-stone-900/25",
-  highlight: "active:bg-stone-900/25 dark:active:bg-stone-100/25",
+  strong: "active:bg-stone-900/25 dark:active:bg-stone-100/25",
   default: "active:bg-black/25 dark:active:bg-white/25",
 };
 
-const gradiantClassesBase = "from-7% via-50% to-95%";
+const gradiantClassesBase = "bg-gradient-to-t from-7% via-50% to-95%";
 
 export const variantToBgGradientColorMap = {
   primary: `from-primary-dark via-primary to-primary-light ${gradiantClassesBase}`,
@@ -229,7 +229,7 @@ export const variantToBgGradientColorMap = {
   alert: `from-alert-dark via-alert to-alert-light ${gradiantClassesBase}`,
   tip: `from-tip-dark via-tip to-tip-light ${gradiantClassesBase}`,
   muted: `from-stone-200 via-stone-300 to-stone-400 ${gradiantClassesBase} dark:from-stone-900 dark:via-stone-900 dark:to-stone-800`,
-  highlight: `from-stone-700 via-stone-800 to-stone-900 ${gradiantClassesBase} dark:from-stone-100 dark:via-stone-200 dark:to-stone-300`,
+  strong: `from-stone-700 via-stone-800 to-stone-900 ${gradiantClassesBase} dark:from-stone-100 dark:via-stone-200 dark:to-stone-300`,
   default: `from-stone-200/40 via-white to-stone-100 ${gradiantClassesBase} dark:from-stone-900 dark:via-black dark:to-stone-950`,
 };
 
@@ -243,7 +243,7 @@ export const variantToBgGradientHoverMap = {
   alert: `hover:from-alert-brightLight hover:to-alert-light ${gradiantClassesBase}`,
   tip: `hover:from-tip-brightLight hover:to-tip-light ${gradiantClassesBase}`,
   muted: `hover:from-stone-200 hover:to-stone-300 ${gradiantClassesBase} dark:hover:from-stone-900 dark:hover:to-stone-700/70`,
-  highlight: `hover:from-stone-700 hover:to-stone-800 ${gradiantClassesBase} dark:hover:from-stone-100 dark:hover:to-stone-200`,
+  strong: `hover:from-stone-700 hover:to-stone-800 ${gradiantClassesBase} dark:hover:from-stone-100 dark:hover:to-stone-200`,
   default: `hover:from-stone-100/50 hover:to-stone-100/50 dark:hover:from-stone-950 dark:hover:to-stone-900 ${gradiantClassesBase} border border-stone-100 dark:border-stone-900`,
 };
 
@@ -257,11 +257,11 @@ export const variantToBgGradientActiveMap = {
   alert: `active:from-alert-brightDark active:to-alert-light ${gradiantClassesBase}`,
   tip: `active:from-tip-brightDark active:to-tip-light ${gradiantClassesBase}`,
   muted: `active:from-stone-300 active:to-stone-300 ${gradiantClassesBase} dark:active:from-stone-900 dark:active:to-stone-800`,
-  highlight: `active:from-stone-950 active:to-stone-900 ${gradiantClassesBase} dark:active:from-stone-100 dark:active:to-stone-200`,
+  strong: `active:from-stone-950 active:to-stone-900 ${gradiantClassesBase} dark:active:from-stone-100 dark:active:to-stone-200`,
   default: `active:from-stone-200/50 active:to-stone-100/50 dark:active:from-stone-950 dark:active:to-black ${gradiantClassesBase}`,
 };
 
-export const shadowClassesBase = "shadow-md";
+export const shadowClassesBase = "shadow-sm";
 
 export const variantToHoverShadowMap = {
   primary: `${shadowClassesBase} shadow-blue/20 hover:shadow-blue/40`,
@@ -273,7 +273,7 @@ export const variantToHoverShadowMap = {
   alert: `${shadowClassesBase} shadow-yellow/20 hover:shadow-yellow/30`,
   tip: `${shadowClassesBase} shadow-cyan/20 hover:shadow-cyan/30`,
   muted: `${shadowClassesBase} shadow-stone-200/20 hover:shadow-stone-200/30 dark:shadow-stone-600/20 dark:hover:shadow-stone-600/30`,
-  highlight: `${shadowClassesBase} shadow-stone-900/20 hover:shadow-stone-900/30 dark:shadow-white/20 dark:hover:shadow-white/30`,
+  strong: `${shadowClassesBase} shadow-stone-900/20 hover:shadow-stone-900/30 dark:shadow-white/20 dark:hover:shadow-white/30`,
   default: `${shadowClassesBase} shadow-stone-600/20 hover:shadow-stone-600/30 dark:shadow-stone-200/20 dark:hover:shadow-stone-200/30`,
 };
 
@@ -290,7 +290,7 @@ export const variantToButtonStateMap = {
   alert: `${variantToBgGradientActiveMap.alert} ${focusRingClassesBase} focus:ring-alert`,
   tip: `${variantToBgGradientActiveMap.tip} ${focusRingClassesBase} focus:ring-tip`,
   muted: `${variantToBgGradientActiveMap.muted} ${focusRingClassesBase} focus:ring-stone-200 dark:focus:ring-stone-900`,
-  highlight: `${variantToBgGradientActiveMap.highlight} ${focusRingClassesBase} focus:ring-stone-800 dark:focus:ring-stone-200`,
+  strong: `${variantToBgGradientActiveMap.strong} ${focusRingClassesBase} focus:ring-stone-800 dark:focus:ring-stone-200`,
   default: `${variantToBgGradientActiveMap.default} ${focusRingClassesBase} focus:ring-black dark:focus:ring-white`,
 };
 

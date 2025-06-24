@@ -55,7 +55,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       className,
       children,
       size = "md",
-      variant = "primary",
+      variant = "default",
       styleVariant,
       href,
       disabled,
@@ -158,7 +158,7 @@ const iconVariant = (
 const textColorVariant = (variant: Variant) => {
   return variant === "default"
     ? "text-stone-900 dark:text-white hover:text-stone-800 active:text-stone-700 dark:hover:text-stone-100 dark:active:text-stone-200"
-    : variant === "highlight"
+    : variant === "strong"
       ? "text-stone-100 dark:text-stone-900"
       : "text-white";
 };
@@ -167,7 +167,7 @@ const variantClass = (
   variant: Variant,
   styleVariant: StyleVariant | undefined,
 ) =>
-  `bg-gradient-to-tr ${variantToBgGradientColorMap[variant]} ${variantToBgGradientHoverMap[variant]} ${textColorVariant(variant)} ${variantToButtonStateMap[variant]} ${shadowClassesBase} shadow-stone-400/20`;
+  `${variantToBgGradientColorMap[variant]} ${variantToBgGradientHoverMap[variant]} ${textColorVariant(variant)} ${variantToButtonStateMap[variant]} ${shadowClassesBase} shadow-stone-400/20`;
 
 const styleClasses = (
   variant: Variant,

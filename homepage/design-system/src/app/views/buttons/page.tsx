@@ -22,7 +22,7 @@ export default function ButtonsPage() {
     "alert",
     "danger",
     "muted",
-    "highlight",
+    "strong",
   ] as const;
   const [selectedVariant, setSelectedVariant] = useState<Variant>("default");
   return (
@@ -39,7 +39,7 @@ export default function ButtonsPage() {
         <Button variant="alert">alert</Button>
         <Button variant="danger">danger</Button>
         <Button variant="muted">muted</Button>
-        <Button variant="highlight">highlight</Button>
+        <Button variant="strong">strong</Button>
       </div>
 
       <div className="flex justify-between items-center w-12 mt-10">
@@ -141,7 +141,7 @@ const buttonPropsTableData = {
         "alert",
         "danger",
         "muted",
-        "highlight",
+        "strong",
       ],
       default: "default",
     },
