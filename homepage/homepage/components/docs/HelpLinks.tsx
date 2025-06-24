@@ -26,13 +26,13 @@ export function HelpLinks({ className }: { className?: string }) {
         className,
       )}
     >
-      <Button href={issueUrl} variant="highlight" styleVariant="ghost" newTab>
+      <Button href={issueUrl} variant="strong" styleVariant="ghost" newTab>
         <SiGithub className="size-4" />
         Docs issue?
       </Button>
       <Button
         href="https://discord.gg/utDMjHYg42"
-        variant="highlight"
+        variant="strong"
         styleVariant="ghost"
         newTab
         className="lg:mt-3"

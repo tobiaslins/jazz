@@ -3,14 +3,11 @@
 import { useState } from "react";
 import { ErrorResponse } from "resend";
 import { subscribe } from "../../actions/resend";
-import { Button } from "../atoms/Button";
 import { Icon } from "../atoms/Icon";
-import { Input } from "../molecules/Input";
 import { InputWithButton } from "../molecules/InputWithButton";
 
 export function NewsletterForm() {
   const [email, setEmail] = useState("");
-  // const [subscribed, setSubscribed] = useState(false);
   const [error, setError] = useState<ErrorResponse | undefined>();
 
   const [state, setState] = useState<"ready" | "loading" | "success" | "error">(
@@ -60,10 +57,12 @@ export function NewsletterForm() {
           className: "flex-1",
           label: "Email address",
           labelHidden: true,
+          variant: "primary",
         }}
         buttonProps={{
           type: "submit",
-          variant: "secondary",
+          variant: "primary",
+          styleVariant: "outline",
           loadingText: "Subscribing...",
           loading: state === "loading",
           icon: "newsletter",
