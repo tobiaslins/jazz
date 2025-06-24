@@ -56,13 +56,13 @@ export function EarlyAdopterSection() {
           </Prose>
 
           <div className="flex gap-3">
-            <Button href="/docs" variant="primary">
+            <Button href="/docs" styleType="primary">
               Read docs
             </Button>
             <Button
               href="https://discord.gg/utDMjHYg42"
-              variant="primary"
-              styleVariant="outline"
+              styleType="primary"
+              variant="outline"
             >
               Join Discord
             </Button>

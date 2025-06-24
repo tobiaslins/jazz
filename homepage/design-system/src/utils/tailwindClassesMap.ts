@@ -1,10 +1,31 @@
+export type Variant =
+  | "default"
+  | "secondary"
+  | "destructive"
+  | "ghost"
+  | "outline"
+  | "link"
+  | "inverted";
+
+export type Style =
+  | "default"
+  | "primary"
+  | "tip"
+  | "info"
+  | "success"
+  | "warning"
+  | "alert"
+  | "danger"
+  | "muted"
+  | "strong";
+
 export const sizeClasses = {
   sm: "text-sm py-1 px-2",
   md: "py-1.5 px-3",
   lg: "md:text-lg  py-2 px-3 md:px-8 md:py-3",
 };
 
-export const variantToBorderMap = {
+export const styleToBorderMap = {
   primary: "border-primary",
   info: "border-info",
   success: "border-success",
@@ -17,7 +38,7 @@ export const variantToBorderMap = {
   default: "border-stone-600 dark:border-stone-200",
 };
 
-export const variantToActiveBorderMap = {
+export const styleToActiveBorderMap = {
   primary: "active:border-primary-transparent focus:border-primary-transparent",
   info: "active:border-info-transparent focus:border-info-transparent",
   success: "active:border-success-transparent focus:border-success-transparent",
@@ -33,7 +54,7 @@ export const variantToActiveBorderMap = {
     "active:border-stone-600/30 dark:active:border-stone-100/30 focus:border-stone-600/30 dark:focus:border-stone-100/30",
 };
 
-export const variantToBgMap = {
+export const styleToBgMap = {
   primary: "bg-primary",
   info: "bg-info",
   success: "bg-success",
@@ -46,7 +67,7 @@ export const variantToBgMap = {
   default: "bg-stone-700 dark:bg-stone-100",
 };
 
-export const variantToBgTransparentHoverMap = {
+export const styleToBgTransparentHoverMap = {
   primary: "hover:bg-primary-transparent",
   info: "hover:bg-info-transparent",
   success: "hover:bg-success-transparent",
@@ -59,7 +80,7 @@ export const variantToBgTransparentHoverMap = {
   default: "hover:bg-stone-600/20 dark:hover:bg-stone-100/20",
 };
 
-export const variantToBgTransparentActiveMap = {
+export const styleToBgTransparentActiveMap = {
   primary: "active:bg-blue/20",
   info: "active:bg-purple/20",
   success: "active:bg-green/20",
@@ -72,7 +93,7 @@ export const variantToBgTransparentActiveMap = {
   default: "active:bg-stone-600/20 dark:active:bg-stone-100/20",
 };
 
-export const variantToTextMap = {
+export const styleToTextMap = {
   primary: "text-primary",
   info: "text-info",
   success: "text-success",
@@ -85,7 +106,7 @@ export const variantToTextMap = {
   default: "text-stone-700 dark:text-stone-100",
 };
 
-export const variantToTextHoverMap = {
+export const styleToTextHoverMap = {
   primary: "hover:text-primary-light",
   info: "hover:text-info-light",
   success: "hover:text-success-light",
@@ -98,7 +119,7 @@ export const variantToTextHoverMap = {
   default: "hover:text-stone-600 dark:hover:text-stone-200",
 };
 
-export const variantToTextActiveMap = {
+export const styleToTextActiveMap = {
   primary: "active:text-primary-dark",
   info: "active:text-info-dark",
   success: "active:text-success-dark",
@@ -124,7 +145,7 @@ export type VariantColor =
   | "strong"
   | "default";
 
-export const variantToColorMap = {
+export const styleToColorMap = {
   primary: "blue",
   info: "purple",
   success: "green",
@@ -209,7 +230,7 @@ export const colorToBgActiveMap25 = {
 
 const gradiantClassesBase = "bg-gradient-to-t from-7% via-50% to-95%";
 
-export const variantToBgGradientColorMap = {
+export const styleToBgGradientColorMap = {
   primary: `from-primary-dark via-primary to-primary-light ${gradiantClassesBase}`,
   info: `from-info-dark via-info to-info-light ${gradiantClassesBase}`,
   success: `from-success-dark via-success to-success-light ${gradiantClassesBase}`,
@@ -222,7 +243,7 @@ export const variantToBgGradientColorMap = {
   default: `from-stone-200/40 via-white to-stone-100 ${gradiantClassesBase} dark:from-stone-900 dark:via-black dark:to-stone-950`,
 };
 
-export const variantToBgGradientHoverMap = {
+export const styleToBgGradientHoverMap = {
   primary: `hover:from-primary-brightLight hover:to-primary-light ${gradiantClassesBase}`,
   info: `hover:from-info-brightLight hover:to-info-light ${gradiantClassesBase}`,
   success: `hover:from-success-brightLight hover:to-success-light ${gradiantClassesBase}`,
@@ -235,7 +256,7 @@ export const variantToBgGradientHoverMap = {
   default: `hover:from-stone-100/50 hover:to-stone-100/50 dark:hover:from-stone-950 dark:hover:to-stone-900 ${gradiantClassesBase} border border-stone-100 dark:border-stone-900`,
 };
 
-export const variantToBgGradientActiveMap = {
+export const styleToBgGradientActiveMap = {
   primary: `active:from-primary-brightDark active:to-primary-light ${gradiantClassesBase}`,
   info: `active:from-info-brightDark active:to-info-light ${gradiantClassesBase}`,
   success: `active:from-success-brightDark active:to-success-light ${gradiantClassesBase}`,
@@ -250,7 +271,7 @@ export const variantToBgGradientActiveMap = {
 
 export const shadowClassesBase = "shadow-sm";
 
-export const variantToHoverShadowMap = {
+export const styleToHoverShadowMap = {
   primary: `${shadowClassesBase} shadow-blue/20 hover:shadow-blue/40`,
   info: `${shadowClassesBase} shadow-purple/20 hover:shadow-purple/30`,
   success: `${shadowClassesBase} shadow-green/20 hover:shadow-green/30`,
@@ -266,17 +287,17 @@ export const variantToHoverShadowMap = {
 const focusRingClassesBase =
   "focus:outline-none focus-visible:ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-opacity-10";
 
-export const variantToButtonStateMap = {
-  primary: `${variantToBgGradientActiveMap.primary} ${focusRingClassesBase} focus:ring-primary`,
-  info: `${variantToBgGradientActiveMap.info} ${focusRingClassesBase} focus:ring-info`,
-  success: `${variantToBgGradientActiveMap.success} ${focusRingClassesBase} focus:ring-success`,
-  warning: `${variantToBgGradientActiveMap.warning} ${focusRingClassesBase} focus:ring-warning`,
-  danger: `${variantToBgGradientActiveMap.danger} ${focusRingClassesBase} focus:ring-danger`,
-  alert: `${variantToBgGradientActiveMap.alert} ${focusRingClassesBase} focus:ring-alert`,
-  tip: `${variantToBgGradientActiveMap.tip} ${focusRingClassesBase} focus:ring-tip`,
-  muted: `${variantToBgGradientActiveMap.muted} ${focusRingClassesBase} focus:ring-stone-200 dark:focus:ring-stone-900`,
-  strong: `${variantToBgGradientActiveMap.strong} ${focusRingClassesBase} focus:ring-stone-800 dark:focus:ring-stone-200`,
-  default: `${variantToBgGradientActiveMap.default} ${focusRingClassesBase} focus:ring-black dark:focus:ring-white`,
+export const styleToButtonStateMap = {
+  primary: `${styleToBgGradientActiveMap.primary} ${focusRingClassesBase} focus:ring-primary`,
+  info: `${styleToBgGradientActiveMap.info} ${focusRingClassesBase} focus:ring-info`,
+  success: `${styleToBgGradientActiveMap.success} ${focusRingClassesBase} focus:ring-success`,
+  warning: `${styleToBgGradientActiveMap.warning} ${focusRingClassesBase} focus:ring-warning`,
+  danger: `${styleToBgGradientActiveMap.danger} ${focusRingClassesBase} focus:ring-danger`,
+  alert: `${styleToBgGradientActiveMap.alert} ${focusRingClassesBase} focus:ring-alert`,
+  tip: `${styleToBgGradientActiveMap.tip} ${focusRingClassesBase} focus:ring-tip`,
+  muted: `${styleToBgGradientActiveMap.muted} ${focusRingClassesBase} focus:ring-stone-200 dark:focus:ring-stone-900`,
+  strong: `${styleToBgGradientActiveMap.strong} ${focusRingClassesBase} focus:ring-stone-800 dark:focus:ring-stone-200`,
+  default: `${styleToBgGradientActiveMap.default} ${focusRingClassesBase} focus:ring-black dark:focus:ring-white`,
 };
 
 export const variantStyleToButtonStateMap = {

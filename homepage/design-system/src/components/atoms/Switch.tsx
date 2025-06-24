@@ -1,19 +1,18 @@
 import clsx from "clsx";
 import { Switch as RadixSwitch } from "radix-ui";
-import { variantToBgMap } from "../../utils/tailwindClassesMap";
-import { Variant } from "../../utils/variants";
+import { Style, styleToBgMap } from "../../utils/tailwindClassesMap";
 
 export function Switch({
   id,
   size = "md",
-  variant = "primary",
+  styleType = "primary",
   checked,
   onChange,
   label,
 }: {
   id: string;
   size?: "sm" | "md";
-  variant?: Variant;
+  styleType?: Style;
   checked: boolean;
   onChange: (checked: boolean) => void;
   label?: string;
@@ -31,7 +30,7 @@ export function Switch({
         className={clsx(
           "rounded-full relative",
           size === "sm" ? "min-w-6 h-4" : "min-w-10 h-6",
-          checked ? variantToBgMap[variant] : "bg-stone-200",
+          checked ? styleToBgMap[styleType] : "bg-stone-200",
         )}
         checked={checked}
         onCheckedChange={onChange}

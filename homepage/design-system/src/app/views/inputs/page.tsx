@@ -51,21 +51,21 @@ export default function InputsView() {
           placeholder="Password"
         />
         <h3 className="text-lg font-semibold my-2">Variants</h3>
-        <Input label="Muted" placeholder="Muted" variant="muted" />
-        <Input label="Strong" placeholder="Strong" variant="strong" />
-        <Input label="Default" placeholder="Default" variant="default" />
+        <Input label="Muted" placeholder="Muted" styleType="muted" />
+        <Input label="Strong" placeholder="Strong" styleType="strong" />
+        <Input label="Default" placeholder="Default" styleType="default" />
         <h3 className="text-lg font-semibold my-2">Buttons</h3>
         <InputWithButton
           inputProps={{
             label: "Input with button [label visible]",
             labelHidden: false,
             placeholder: "Input with button",
-            variant: "success",
+            styleType: "success",
           }}
           buttonProps={{
             children: "Let's go",
-            variant: "success",
-            styleVariant: "inverted",
+            styleType: "success",
+            variant: "inverted",
             icon: "check",
             iconPosition: "left",
           }}
@@ -79,8 +79,8 @@ export default function InputsView() {
           }}
           buttonProps={{
             children: "Learn more",
-            variant: "tip",
-            styleVariant: "outline",
+            styleType: "tip",
+            variant: "outline",
             icon: "corecord",
             iconPosition: "right",
           }}
@@ -121,7 +121,7 @@ const inputPropsTable = {
       default: "left",
     },
     {
-      prop: "variant?",
+      prop: "styleType?",
       types: [
         "primary",
         "secondary",

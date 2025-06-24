@@ -49,10 +49,10 @@ import {
 
 import clsx from "clsx";
 import {
-  variantToTextHoverMap,
-  variantToTextMap,
+  Style,
+  styleToTextHoverMap,
+  styleToTextMap,
 } from "../../utils/tailwindClassesMap";
-import { Variant } from "../../utils/variants";
 import { GcmpIcons } from "./icons";
 
 export const icons = {
@@ -151,7 +151,7 @@ export function Icon({
   name,
   icon,
   size = "md",
-  variant = "default",
+  styleType = "default",
   hasBackground = false,
   className,
   hasHover = false,
@@ -160,7 +160,7 @@ export function Icon({
   name?: IconName;
   icon?: LucideIcon;
   size?: keyof typeof sizes;
-  variant?: Variant | "white";
+  styleType?: Style | "white";
   hasBackground?: boolean;
   className?: string;
   hasHover?: boolean;
@@ -173,12 +173,12 @@ export function Icon({
   const IconComponent = icons?.hasOwnProperty(name) ? icons[name] : icon;
 
   const iconClass = {
-    ...variantToTextMap,
+    ...styleToTextMap,
     white: "text-white",
   };
 
   const iconHoverClass = {
-    ...variantToTextHoverMap,
+    ...styleToTextHoverMap,
     white: "hover:text-white/90",
   };
 
@@ -212,10 +212,10 @@ export function Icon({
       strokeLinecap="round"
       className={clsx(
         roundedClasses[size as keyof typeof roundedClasses] || "rounded-lg",
-        iconClass[variant as keyof typeof iconClass],
+        iconClass[styleType as keyof typeof iconClass],
         hasBackground &&
-          backgroundClasses[variant as keyof typeof backgroundClasses],
-        hasHover && iconHoverClass[variant as keyof typeof iconHoverClass],
+          backgroundClasses[styleType as keyof typeof backgroundClasses],
+        hasHover && iconHoverClass[styleType as keyof typeof iconHoverClass],
         className,
       )}
       {...svgProps}

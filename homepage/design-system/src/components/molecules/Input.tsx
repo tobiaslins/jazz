@@ -1,7 +1,6 @@
 import { clsx } from "clsx";
 import { forwardRef, useId } from "react";
-import { Variant } from "../..//utils/variants";
-import { variantToActiveBorderMap } from "../../utils/tailwindClassesMap";
+import { Style, styleToActiveBorderMap } from "../../utils/tailwindClassesMap";
 import { Button, ButtonProps } from "../atoms/Button";
 import { Icon, icons } from "../atoms/Icon";
 import { Label } from "../atoms/Label";
@@ -17,7 +16,7 @@ export interface InputProps
   labelHidden?: boolean;
   labelPosition?: "column" | "row";
   button?: ButtonProps;
-  variant?: Variant;
+  styleType?: Style;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
@@ -32,7 +31,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       labelHidden,
       labelPosition,
       button,
-      variant = "default",
+      styleType = "default",
       ...inputProps
     },
     ref,
@@ -75,7 +74,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               inputIconClassName,
               className,
               "px-2",
-              variantToActiveBorderMap[variant],
+              styleToActiveBorderMap[
+                styleType as keyof typeof styleToActiveBorderMap
+              ],
             )}
             placeholder={placeholder}
           />
@@ -90,7 +91,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                     ? "right-2"
                     : "",
               )}
-              variant={variant}
+              styleType={styleType}
             />
           )}
           {button && <Button {...button} />}

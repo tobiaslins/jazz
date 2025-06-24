@@ -139,7 +139,7 @@ export function FeaturesSection() {
               </p>
             </Prose>
             <div className="flex items-center flex-wrap gap-3">
-              <Button href="/cloud" variant="primary">
+              <Button href="/cloud" styleType="primary">
                 View free tier & pricing
               </Button>
 
@@ -162,7 +162,7 @@ export function FeaturesSection() {
                   className="flex items-center gap-1.5 whitespace-nowrap"
                 >
                   <span className="p-1 rounded-full bg-primary-transparent">
-                    <Icon name="check" size="xs" variant="primary" />
+                    <Icon name="check" size="xs" styleType="primary" />
                   </span>
                   {feature}
                 </li>

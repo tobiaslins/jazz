@@ -57,12 +57,12 @@ export function NewsletterForm() {
           className: "flex-1",
           label: "Email address",
           labelHidden: true,
-          variant: "primary",
+          styleType: "primary",
         }}
         buttonProps={{
           type: "submit",
-          variant: "primary",
-          styleVariant: "outline",
+          styleType: "primary",
+          variant: "outline",
           loadingText: "Subscribing...",
           loading: state === "loading",
           icon: "newsletter",

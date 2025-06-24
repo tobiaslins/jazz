@@ -1,5 +1,4 @@
-import { clsx } from "clsx";
-import { Button, ButtonProps } from "../atoms/Button";
+import { ButtonProps } from "../atoms/Button";
 import { Input, InputProps } from "./Input";
 
 export function InputWithButton({

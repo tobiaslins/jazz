@@ -1,7 +1,6 @@
 "use client";
 import { Button } from "@/components/atoms/Button";
 import { Icon } from "@/components/atoms/Icon";
-import { Select } from "@/components/molecules/Select";
 import { Table } from "@/components/molecules/Table";
 import {
   Dropdown,
@@ -9,8 +8,8 @@ import {
   DropdownItem,
   DropdownMenu,
 } from "@/components/organisms/Dropdown";
-import { Variant } from "@/utils/variants";
 import { useState } from "react";
+import { Style } from "../../../utils/tailwindClassesMap";
 export default function ButtonsPage() {
   const variants = [
     "default",
@@ -24,33 +23,52 @@ export default function ButtonsPage() {
     "muted",
     "strong",
   ] as const;
-  const [selectedVariant, setSelectedVariant] = useState<Variant>("default");
+  const [selectedVariant, setSelectedVariant] = useState<Style>("default");
   return (
     <>
       <h3 className="text-lg mt-5 mb-2 font-bold">Variants</h3>
+      <p className="mb-3">
+        For compatibility the shadcn/ui variants are mapped to the design
+        system.
+      </p>
 
       <div className="grid grid-cols-2 gap-2">
         <Button variant="default">default</Button>
-        <Button variant="primary">primary</Button>
-        <Button variant="tip">tip</Button>
-        <Button variant="info">info</Button>
-        <Button variant="success">success</Button>
-        <Button variant="warning">warning</Button>
-        <Button variant="alert">alert</Button>
-        <Button variant="danger">danger</Button>
-        <Button variant="muted">muted</Button>
-        <Button variant="strong">strong</Button>
+        <Button variant="link">link</Button>
+        <Button variant="ghost">ghost</Button>
+        <Button variant="outline">outline</Button>
+        <Button variant="secondary">secondary</Button>
+        <Button variant="destructive">destructive</Button>
       </div>
 
-      <div className="flex justify-between items-center w-12 mt-10">
-        <h3 className="text-lg font-bold">Styles</h3>
-        <div className="max-w-xs ml-12">
+      <h3 className="text-lg mt-5 mb-2 font-bold">Style Types</h3>
+      <p>
+        We have extended the shadcn/ui variants to include more styles via the
+        styleType prop.
+      </p>
+
+      <div className="grid grid-cols-2 gap-2">
+        {/* <Button styleType="default">default</Button> */}
+        <Button styleType="primary">primary</Button>
+        <Button styleType="tip">tip</Button>
+        <Button styleType="info">info</Button>
+        <Button styleType="success">success</Button>
+        <Button styleType="warning">warning</Button>
+        <Button styleType="alert">alert</Button>
+        <Button styleType="danger">danger</Button>
+        <Button styleType="muted">muted</Button>
+        <Button styleType="strong">strong</Button>
+      </div>
+
+      <div className="flex justify-between items-center w-48 mt-10">
+        <h3 className="text-lg font-bold min-w-52">Variants & Style Types</h3>
+        <div className="max-w-xs ml-3">
           <Dropdown>
             <DropdownButton
               className="w-full justify-between"
               as={Button}
-              variant="default"
-              styleVariant="inverted"
+              styleType="default"
+              variant="inverted"
             >
               {selectedVariant}
               <Icon name="chevronDown" size="sm" />
@@ -68,23 +86,24 @@ export default function ButtonsPage() {
           </Dropdown>
         </div>
       </div>
+
       <p className="text-sm mt-2 mb-5">
         <strong>NB:</strong> Variants and styles are interchangeable. See the
-        variants with the dropdown
+        styleType on each variant with the dropdown
       </p>
 
       <div className="grid grid-cols-2 gap-2">
-        <Button variant={selectedVariant} styleVariant="outline">
+        <Button styleType={selectedVariant} variant="outline">
           outline
         </Button>
-        <Button variant={selectedVariant} styleVariant="inverted">
+        <Button styleType={selectedVariant} variant="inverted">
           inverted
         </Button>
-        <Button variant={selectedVariant} styleVariant="ghost">
+        <Button styleType={selectedVariant} variant="ghost">
           ghost
         </Button>
-        <Button variant={selectedVariant} styleVariant="text">
-          text
+        <Button styleType={selectedVariant} variant="link">
+          link
         </Button>
       </div>
 
@@ -95,8 +114,8 @@ export default function ButtonsPage() {
       <div className="grid grid-cols-2 gap-2">
         <Button
           icon="delete"
-          styleVariant="text"
-          variant="danger"
+          styleType="danger"
+          variant="link"
           iconPosition="right"
           className="col-span-2 md:col-span-1"
         >
@@ -105,8 +124,8 @@ export default function ButtonsPage() {
         <Button
           icon="info"
           iconPosition="left"
-          styleVariant="outline"
-          variant="info"
+          styleType="info"
+          variant="outline"
           className="col-span-2 md:col-span-1"
         >
           outline info with icon
@@ -115,8 +134,8 @@ export default function ButtonsPage() {
           Or just use the icon prop with any of the button variants, style
           variants and colors.
         </p>
-        <Button icon="newsletter" styleVariant="text" variant="tip" />
-        <Button icon="check" variant="success" />
+        <Button icon="newsletter" styleType="tip" variant="inverted" />
+        <Button icon="check" styleType="success" />
       </div>
       <div className="overflow-auto">
         <h3 className="text-xl mt-5 mb-2 font-bold">Props Table</h3>
@@ -130,9 +149,8 @@ const buttonPropsTableData = {
   headers: ["prop", "types", "default"],
   data: [
     {
-      prop: "variant?",
+      prop: "styleType?",
       types: [
-        "default",
         "primary",
         "tip",
         "info",
@@ -146,9 +164,17 @@ const buttonPropsTableData = {
       default: "default",
     },
     {
-      prop: "styleVariant?",
-      types: ["outline", "inverted", "ghost", "text"],
-      default: "default",
+      prop: "variant?",
+      types: [
+        "default",
+        "outline",
+        "inverted",
+        "ghost",
+        "link",
+        "secondary",
+        "destructive",
+      ],
+      default: "undefined",
     },
     {
       prop: "icon?",

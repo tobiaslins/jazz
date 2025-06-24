@@ -33,8 +33,8 @@ export default function Products() {
               <div>
                 <Button
                   href="https://jazz.tools"
-                  variant="primary"
-                  styleVariant="outline"
+                  styleType="primary"
+                  variant="outline"
                 >
                   Go to jazz.tools
                 </Button>
