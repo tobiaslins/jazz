@@ -153,11 +153,11 @@ const iconVariant = (
   variant: Variant,
   styleVariant: StyleVariant | undefined,
 ) => {
-  return styleVariant ? variant : "white";
+  return styleVariant ? variant : variant === "default" ? "default" : "white";
 };
 const textColorVariant = (variant: Variant) => {
   return variant === "default"
-    ? "text-stone-900 dark:text-white hover:text-stone-800 active:text-stone-700 dark:hover:text-stone-100 dark:active:text-stone-200"
+    ? "text-stone-700 dark:text-white hover:text-stone-800 active:text-stone-700 dark:hover:text-stone-100 dark:active:text-stone-200"
     : variant === "strong"
       ? "text-stone-100 dark:text-stone-900"
       : "text-white";

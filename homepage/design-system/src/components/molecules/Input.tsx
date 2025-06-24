@@ -32,7 +32,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       labelHidden,
       labelPosition,
       button,
-      variant = "primary",
+      variant = "default",
       ...inputProps
     },
     ref,
@@ -90,6 +90,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                     ? "right-2"
                     : "",
               )}
+              variant={variant}
             />
           )}
           {button && <Button {...button} />}
