@@ -1,5 +1,55 @@
 # cojson
 
+## 0.15.1
+
+### Patch Changes
+
+- b110f00: Added `CoMap.upsertUnique` & `CoMap.loadUnique` methods (deprecating `CoMap.findUnique`) and added `skipRetry` option to `CoMap.load`
+
+## 0.15.0
+
+## 0.14.28
+
+## 0.14.27
+
+## 0.14.26
+
+### Patch Changes
+
+- e74a077: Improve the missing dependencies recovery & management
+
+## 0.14.25
+
+## 0.14.24
+
+## 0.14.23
+
+### Patch Changes
+
+- 1ca9299: Adds grapheme split helpers for coText
+
+## 0.14.22
+
+### Patch Changes
+
+- 57fb69f: fix: clarify `Group.addMember` error message when attempting to set roles with insufficient permissions
+
+## 0.14.21
+
+### Patch Changes
+
+- c3d8779: Fix setting latestTxMadeAt when the transaction is empty. (can happen when calling assign with an empty object)
+
+## 0.14.20
+
+## 0.14.19
+
+## 0.14.18
+
+### Patch Changes
+
+- 0d5ee3e: Enable react-native-quick-crypto xsalsa20 accelerated algorithm for encrypt/decrypt functions
+
 ## 0.14.16
 
 ### Patch Changes

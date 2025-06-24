@@ -36,7 +36,7 @@ const MyAccount = co.account({
 MyAccount.withMigration((account, creationProps) => {
   if (account.profile === undefined) {
     const profileGroup = Group.create();
-    profileGroup.addMember("everyone", "reader");
+    profileGroup.makePublic();
     account.profile = MyProfile.create(
       {
         name: creationProps?.name ?? "New user",
@@ -51,7 +51,7 @@ const me = await MyAccount.create({});
 const myGroup = Group.create();
 
 // ---cut---
-import { createImage } from "jazz-browser-media-images";
+import { createImage } from "jazz-tools/browser-media-images";
 
 // Create an image from a file input
 async function handleFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
@@ -82,7 +82,7 @@ You can configure `createImage()` with additional options:
 
 <CodeGroup>
 ```ts twoslash
-import { createImage } from "jazz-browser-media-images";
+import { createImage } from "jazz-tools/browser-media-images";
 import { createJazzTestAccount } from 'jazz-tools/testing';
 const me = await createJazzTestAccount();
 const file = new File([], "test.jpg", { type: "image/jpeg" });
@@ -110,7 +110,7 @@ Like other CoValues, you can specify ownership when creating image definitions.
 <CodeGroup>
 ```ts twoslash
 import { Group } from "jazz-tools";
-import { createImage } from "jazz-browser-media-images";
+import { createImage } from "jazz-tools/browser-media-images";
 import { createJazzTestAccount } from 'jazz-tools/testing';
 const me = await createJazzTestAccount();
 const colleagueAccount = await createJazzTestAccount();
@@ -136,7 +136,7 @@ For a complete progressive loading experience, use the `ProgressiveImg` componen
 ```tsx twoslash
 import * as React from "react";
 // ---cut---
-import { ProgressiveImg } from "jazz-react";
+import { ProgressiveImg } from "jazz-tools/react";
 import { co } from "jazz-tools";
 const Image = co.image();
 
@@ -177,7 +177,7 @@ import * as React from "react";
 import { co } from "jazz-tools";
 const Image = co.image();
 // ---cut---
-import { useProgressiveImg } from "jazz-react";
+import { useProgressiveImg } from "jazz-tools/react";
 
 function CustomImageComponent({ image }: { image: co.loaded<typeof Image> }) {
   const {

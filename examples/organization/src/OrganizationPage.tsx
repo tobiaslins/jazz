@@ -1,4 +1,4 @@
-import { useCoState } from "jazz-react";
+import { useCoState } from "jazz-tools/react";
 import { useParams } from "react-router";
 import { Layout } from "./Layout.tsx";
 import { CreateProject } from "./components/CreateProject.tsx";

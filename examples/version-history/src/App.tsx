@@ -1,5 +1,5 @@
-import { useAccount, useCoState } from "jazz-react";
 import { CoPlainText, Group } from "jazz-tools";
+import { useAccount, useCoState } from "jazz-tools/react";
 import { useState } from "react";
 import { IssueComponent } from "./Issue.tsx";
 import { IssueVersionHistory } from "./IssueVersionHistory.tsx";
@@ -37,7 +37,7 @@ function App() {
   return (
     <>
       <header>
-        <nav className="container flex justify-between items-center py-3">
+        <nav className="max-w-3xl mx-auto px-3 flex justify-between items-center py-3">
           <span>
             You're logged in as <strong>{me?.profile?.name}</strong>
           </span>
@@ -49,7 +49,7 @@ function App() {
           </button>
         </nav>
       </header>
-      <main className="container my-8 flex flex-col gap-8">
+      <main className="max-w-3xl mx-auto px-3 my-8 flex flex-col gap-8">
         {issue ? (
           <>
             <h1 className="sr-only">Issue: {issue.title}</h1>

@@ -1,6 +1,6 @@
 "use client";
-import { useAccount } from "jazz-react";
 import { co } from "jazz-tools";
+import { useAccount } from "jazz-tools/react";
 import { useRef, useState } from "react";
 import { JazzAccount } from "./schema";
 

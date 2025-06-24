@@ -42,10 +42,10 @@ If you intend to build for iOS, you can accept the invitation to install CocoaPo
 npm install @react-native-community/netinfo @bam.tech/react-native-image-resizer
 
 # React Native polyfills
-npm i -S @azure/core-asynciterator-polyfill react-native-url-polyfill readable-stream react-native-get-random-values @craftzdog/react-native-buffer @op-engineering/op-sqlite react-native-mmkv
+npm i -S @azure/core-asynciterator-polyfill react-native-url-polyfill readable-stream react-native-get-random-values @op-engineering/op-sqlite react-native-mmkv
 
 # Jazz dependencies
-npm i -S jazz-tools jazz-react-native jazz-react-native-media-images
+npm i -S jazz-tools
 ```
 </CodeGroup>
 
@@ -143,9 +143,6 @@ Create a file `polyfills.js` at the project root with the following content:
 // @noErrors: 7016
 // polyfills.js
 import { polyfillGlobal } from 'react-native/Libraries/Utilities/PolyfillFunctions';
-import { Buffer } from "@craftzdog/react-native-buffer";
-polyfillGlobal("Buffer", () => Buffer); // polyfill Buffer
-
 import { ReadableStream } from "readable-stream";
 polyfillGlobal("ReadableStream", () => ReadableStream); // polyfill ReadableStream
 
@@ -164,7 +161,7 @@ Update `index.js`:
 import { AppRegistry } from 'react-native';
 import App from './App';
 import { name as appName } from './app.json';
-import './src/polyfills';
+import './polyfills';
 
 AppRegistry.registerComponent(appName, () => App);
 ```

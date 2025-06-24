@@ -47,11 +47,12 @@ export function FrameworkSelect({
         <Icon name="chevronDown" size="sm" className="text-muted" />
       </DropdownButton>
       <DropdownMenu className="w-[--button-width] z-50" anchor="bottom start">
-        {Object.entries(frameworkNames).map(([key, framework]) => (
-          <DropdownItem
+        {Object.entries(frameworkNames)
+          .map(([key, framework]) => (
+            <DropdownItem
             className={clsx("items-baseline", size === "sm" && "text-xs text-nowrap", selectedFramework === key && "text-primary dark:text-primary")}
-            key={key}
-            onClick={() => selectFramework(key as Framework)}
+              key={key}
+              onClick={() => selectFramework(key as Framework)}
           >
             {framework.label}
             {framework.experimental && (

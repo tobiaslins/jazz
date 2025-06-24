@@ -23,17 +23,7 @@ We're introducing a new resolve API for deep loading, more friendly to TypeScrip
 2. Shallowly loading a collection is now done with `true` instead of `[]` or `{}`
 
 <CodeGroup>
-```tsx twoslash
-// @noErrors: 2451
-import { CoMap, CoList, coField, Account } from "jazz-tools";
-import { useAccount } from "jazz-react";
-class AccountRoot extends CoMap { friends = coField.ref(ListOfAccounts); }
-class ListOfAccounts extends CoList.Of(coField.ref(Account)) {}
-class MyAppAccount extends Account { root = coField.ref(AccountRoot);}
-declare module "jazz-react" { interface Register { Account: MyAppAccount; } }
-// ---cut-before---
-// Before
-// @ts-expect-error
+```tsx
 const { me } = useAccount({ root: { friends: [] } }); // [!code --]
 
 // After
@@ -48,12 +38,7 @@ const { me } = useAccount({ // [!code ++]
 For a `CoList`:
 
 <CodeGroup>
-```tsx twoslash
-// @noErrors: 2451
-import { CoList, coField, ID, CoMap } from "jazz-tools";
-import { useCoState } from "jazz-react";
-
-// ---cut-before---
+```tsx
 class Task extends CoMap { }
 class ListOfTasks extends CoList.Of(coField.ref(Task)) {}
 
@@ -71,14 +56,7 @@ const tasks = useCoState(ListOfTasks, id, { resolve: { $each: true } }); // [!co
 For a `CoMap.Record`:
 
 <CodeGroup>
-```tsx twoslash
-// @noErrors: 2451
-import { CoMap, coField, Account, ID } from "jazz-tools";
-import { useCoState } from "jazz-react";
-class MyAppAccount extends Account {}
-const id = "co_123" as ID<UsersByUsername>;
-
-// ---cut-before---
+```tsx
 class UsersByUsername extends CoMap.Record(coField.ref(MyAppAccount)) {}
 
 // Before
@@ -95,14 +73,7 @@ const usersByUsername = useCoState(UsersByUsername, id, { // [!code ++]
 Nested loading &mdash; note how it's now less terse, but more readable:
 
 <CodeGroup>
-```tsx twoslash
-// @noErrors: 2451
-import { CoList, CoMap, coField, Account, ID } from "jazz-tools";
-import { useCoState } from "jazz-react";
-
-const id = "co_123" as ID<ListOfTasks>;
-
-// ---cut-before---
+```tsx
 class Org extends CoMap {
   name = coField.string;
 }
@@ -141,19 +112,7 @@ const tasksWithAssigneesAndTheirOrgs = useCoState(ListOfTasks, id, { // [!code +
 It's also a lot more auto-complete friendly:
 
 <CodeGroup>
-```tsx twoslash
-// @noErrors: 2451 2353 2581
-import { CoList, CoMap, coField, ID } from "jazz-tools";
-import { useCoState } from "jazz-react";
-
-class Org extends CoMap { name = coField.string; }
-class Assignee extends CoMap { org = coField.ref(Org); }
-class ListOfAssignees extends CoList.Of(coField.ref(Assignee)) {}
-class Task extends CoMap { assignees = coField.ref(ListOfAssignees);  }
-class ListOfTasks extends CoList.Of(coField.ref(Task)) {}
-const id = "co_123" as ID<ListOfTasks>;
-
-// ---cut-before---
+```tsx
 const tasksWithAssigneesAndTheirOrgs = useCoState(ListOfTasks, id, {
   resolve: {
     $each: {
@@ -173,17 +132,7 @@ The new API works across all loading methods, and separating out the resolve que
 other options with default values are easier to manage, for example: loading a value as a specific account instead of using the implicit current account:
 
 <CodeGroup>
-```ts twoslash
-// @noErrors: 2451
-import { coField, Account, CoMap, CoList, ID } from "jazz-tools";
-
-class Track extends CoMap {}
-class ListOfTracks extends CoList.Of(coField.ref(Track)) {}
-class Playlist extends CoMap { tracks = coField.ref(ListOfTracks); }
-const id = "co_123" as ID<Playlist>;
-const otherAccount = {} as Account;
-
-// ---cut-before---
+```ts
 // Before
 // @ts-expect-error
 Playlist.load(id, otherAccount, { // [!code --]
@@ -212,15 +161,7 @@ We also have implemented a more granular permission checking, where if an *optio
 
 <CodeGroup>
 {/* prettier-ignore */}
-```tsx twoslash
-// @noErrors: 2451
-import React from "react";
-import { CoList, CoMap, coField, ID } from "jazz-tools";
-import { useCoState } from "jazz-react";
-class Track extends CoMap {}
-function TrackComponent({ track }: { track: Track }) {return ""}
-
-// ---cut-before---
+```tsx
 class ListOfTracks extends CoList.Of(coField.optional.ref(Track)) {}
 
 function TrackListComponent({ id }: { id: ID<ListOfTracks> }) {
@@ -244,15 +185,7 @@ function TrackListComponent({ id }: { id: ID<ListOfTracks> }) {
 The same change is applied to the load function, so now it returns `null` instead of `undefined` when the value is missing.
 
 <CodeGroup>
-```tsx twoslash
-// @noErrors: 2451
-import { CoMap, coField, ID } from "jazz-tools";
-import { useAccount } from "jazz-react";
-
-class MyCoMap extends CoMap {}
-const id = "co_123" as ID<MyCoMap>;
-
-// ---cut-before---
+```tsx 
 // Before
 // @ts-expect-error
 const map = await MyCoMap.load(id);
@@ -275,16 +208,7 @@ if (map === null) {
 The new `Resolved` type can be used to define what kind of deeply loaded data you expect in your parameters, using the same resolve query syntax as the new loading APIs:
 
 <CodeGroup>
-```tsx twoslash
-// @noErrors: 2451
-import React from "react";
-import { Resolved, CoMap, CoList, coField } from "jazz-tools";
-class Track extends CoMap {}
-class ListOfTracks extends CoList.Of(coField.ref(Track)) {}
-class Playlist extends CoMap { tracks = coField.ref(ListOfTracks); }
-function TrackComponent({ track }: { track: Track }) {return ""}
-
-// ---cut-before---
+```tsx
 type PlaylistResolved = Resolved<Playlist, {
   tracks: { $each: true }
 }>;

@@ -1,4 +1,4 @@
-import { useAccount } from "jazz-react";
+import { useAccount } from "jazz-tools/react";
 import { useEffect, useState } from "react";
 import { Logo } from "./Logo";
 import Container from "./components/Container";
@@ -14,7 +14,6 @@ function App() {
   const [cursorFeedID, setCursorFeedID] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log("Loading cursor feed...", me.id);
     if (!me?.id) return;
     const loadCursorFeed = async () => {
       const id = await loadCursorContainer(

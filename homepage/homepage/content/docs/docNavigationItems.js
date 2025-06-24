@@ -90,6 +90,11 @@ export const docNavigationItems = [
     prefix: "/docs/upgrade",
     items: [
       {
+        name: "0.15.0 - Everything inside `jazz-tools`",
+        href: "/docs/upgrade/0-15-0",
+        done: 100,
+      },
+      {
         name: "0.14.0 - Zod-based schemas",
         href: "/docs/upgrade/0-14-0",
         done: 100,
@@ -203,6 +208,11 @@ export const docNavigationItems = [
         },
       },
       {
+        name: "Connecting CoValues",
+        href: "/docs/using-covalues/connecting-covalues",
+        done: 100,
+      },
+      {
         name: "SchemaUnions",
         href: "/docs/using-covalues/schemaunions",
         done: 0,
@@ -213,9 +223,9 @@ export const docNavigationItems = [
         done: 80,
       },
       {
-        name: "History & time travel",
+        name: "History",
         href: "/docs/using-covalues/history",
-        done: 0,
+        done: 100,
       },
     ],
   },
@@ -233,7 +243,7 @@ export const docNavigationItems = [
         done: 10,
       },
       {
-        name: "Group inheritance",
+        name: "Groups as members",
         href: "/docs/groups/inheritance",
         done: 100,
       },
@@ -296,11 +306,21 @@ export const docNavigationItems = [
         href: "/docs/design-patterns/organization",
         done: 80,
       },
+      {
+        name: "History Patterns",
+        href: "/docs/design-patterns/history-patterns",
+        done: 100,
+      },
     ],
   },
   {
     name: "Resources",
     items: [
+      {
+        name: "Encryption",
+        href: "/docs/resources/encryption",
+        done: 100,
+      },
       {
         name: "Jazz under the hood",
         href: "/docs/jazz-under-the-hood",

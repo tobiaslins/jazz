@@ -1,6 +1,6 @@
 import { useIframeHashRouter } from "hash-slash";
-import { useAccount } from "jazz-react";
 import { Group } from "jazz-tools";
+import { useAccount } from "jazz-tools/react";
 import { ReactionsScreen } from "./ReactionsScreen.tsx";
 import { Reactions } from "./schema.ts";
 

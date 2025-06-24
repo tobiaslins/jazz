@@ -1,8 +1,0 @@
-{
-  "build": {
-    "env": {
-      "APP_NAME": "passwords-demo"
-    }
-  },
-  "ignoreCommand": "node ../../ignore-vercel-build.js"
-}

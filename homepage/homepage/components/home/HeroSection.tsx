@@ -1,3 +1,5 @@
+"use client";
+
 import { marketingCopy } from "@/content/marketingCopy";
 import { H1 } from "@garden-co/design-system/src/components/atoms/Headings";
 import {

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAccount, usePasskeyAuth } from "jazz-react";
+import { useAccount, usePasskeyAuth } from "jazz-tools/react";
 import { useState } from "react";
 
 interface AuthModalProps {
@@ -54,7 +54,15 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
       }
       onOpenChange(false);
     } catch (error) {
-      setError(error instanceof Error ? error.message : "Unknown error");
+      if (error instanceof Error) {
+        if (error.cause instanceof Error) {
+          setError(error.cause.message);
+        } else {
+          setError(error.message);
+        }
+      } else {
+        setError("Unknown error");
+      }
     }
   };
 

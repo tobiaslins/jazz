@@ -14,8 +14,8 @@ import {
   TableRow,
 } from "./basicComponents";
 
-import { useCoState } from "jazz-react";
 import { CoPlainText, Loaded } from "jazz-tools";
+import { useCoState } from "jazz-tools/react";
 import { useParams } from "react-router";
 import uniqolor from "uniqolor";
 import { InviteButton } from "./components/InviteButton";
@@ -37,7 +37,11 @@ export function ProjectTodoTable() {
   // It also recursively resolves and subsribes to all referenced CoValues.
   const project = useCoState(TodoProject, projectId, {
     resolve: {
-      tasks: true,
+      tasks: {
+        $each: {
+          text: true,
+        },
+      },
     },
   });
 
@@ -51,6 +55,7 @@ export function ProjectTodoTable() {
         {
           done: false,
           text: CoPlainText.create(text, project._owner),
+          version: 1,
         },
         project._owner,
       );
@@ -62,7 +67,7 @@ export function ProjectTodoTable() {
   );
 
   return (
-    <div className="max-w-full w-4xl">
+    <div className="max-w-full w-xl">
       <div className="flex justify-between items-center gap-4 mb-4">
         <h1>
           {
@@ -87,7 +92,7 @@ export function ProjectTodoTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {project?.tasks?.map(
+          {project?.tasks.map(
             (task) => task && <TaskRow key={task.id} task={task} />,
           )}
           <NewTaskInputRow createTask={createTask} disabled={!project} />

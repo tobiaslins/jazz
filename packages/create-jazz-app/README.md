@@ -4,7 +4,7 @@
 
 ## Features
 
-- 🚀 Quick start with popular frameworks (React, Vue, Svelte, Next.js, React Native)
+- 🚀 Quick start with popular frameworks (React, Svelte, Next.js, React Native)
 - 🔐 Multiple authentication options (Demo, Passkey, Clerk, etc.)
 - 📦 Support for various package managers (npm, yarn, pnpm, bun, deno)
 - 💅 Beautiful CLI interface with interactive prompts
@@ -17,11 +17,13 @@ You can create a new Jazz app in two ways:
 ### Interactive mode
 
 Simply run:
+
 ```bash
 npx create-jazz-app@latest
 ```
 
 Then follow the interactive prompts to select your:
+
 - Framework and authentication combination
 - Package manager
 - Project name
@@ -31,7 +33,7 @@ Then follow the interactive prompts to select your:
 Or specify all options directly:
 
 ```bash
-npx create-jazz-app@latest my-app --starter react-demo-auth --package-manager npm
+npx create-jazz-app@latest my-app --starter react-passkey-auth --package-manager npm
 ```
 
 ### Start with an example app
@@ -44,18 +46,6 @@ the directory name of the example app found [here](https://github.com/garden-co/
 ```bash
 npm create jazz-app@latest --example chat
 ```
-
-## Available starters
-
-Currently implemented starters:
-
-- `react-demo-auth` - React + Jazz + Demo Auth
-- `react-passkey-auth` - React + Jazz + Passkey Auth
-- `react-clerk-auth` - React + Jazz + Clerk Auth
-- `vue-demo-auth` - Vue + Jazz + Demo Auth
-- `svelte-passkey-auth` - Svelte + Jazz + Passkey Auth
-- `nextjs-demo-auth` - Next.js + Jazz + Demo Auth
-- `react-native-expo-clerk-auth` - React Native Expo + Jazz + Clerk Auth
 
 More starters coming soon! Check the help menu (`create-jazz-app --help`) for the latest list.
 

@@ -1,6 +1,5 @@
 {
 	"name": "betterauth",
-	"version": "0.1.20",
 	"private": true,
 	"type": "module",
 	"scripts": {
@@ -22,11 +21,9 @@
 		"better-sqlite3": "^11.9.1",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
+		"jazz-react-auth-betterauth": "workspace:*",
 		"jazz-betterauth-client-plugin": "workspace:*",
 		"jazz-betterauth-server-plugin": "workspace:*",
-		"jazz-inspector": "workspace:*",
-		"jazz-react": "workspace:*",
-		"jazz-react-auth-betterauth": "workspace:*",
 		"jazz-tools": "workspace:*",
 		"lucide-react": "^0.510.0",
 		"next": "15.3.2",

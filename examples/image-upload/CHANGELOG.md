@@ -1,5 +1,50 @@
 # image-upload
 
+## 0.0.116
+
+### Patch Changes
+
+- Updated dependencies [048ac1d]
+  - jazz-tools@0.14.22
+  - jazz-react@0.14.22
+
+## 0.0.115
+
+### Patch Changes
+
+- Updated dependencies [e7e505e]
+- Updated dependencies [13b57aa]
+- Updated dependencies [5662faa]
+- Updated dependencies [2116a59]
+  - jazz-tools@0.14.21
+  - jazz-react@0.14.21
+
+## 0.0.114
+
+### Patch Changes
+
+- Updated dependencies [6f72419]
+- Updated dependencies [04b20c2]
+  - jazz-tools@0.14.20
+  - jazz-react@0.14.20
+
+## 0.0.113
+
+### Patch Changes
+
+- jazz-react@0.14.19
+- jazz-tools@0.14.19
+
+## 0.0.112
+
+### Patch Changes
+
+- Updated dependencies [4b950bc]
+- Updated dependencies [d6d9c0a]
+- Updated dependencies [c559054]
+  - jazz-tools@0.14.18
+  - jazz-react@0.14.18
+
 ## 0.0.111
 
 ### Patch Changes

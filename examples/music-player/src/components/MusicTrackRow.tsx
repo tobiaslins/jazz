@@ -7,8 +7,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { useAccount, useCoState } from "jazz-react";
 import { Loaded } from "jazz-tools";
+import { useAccount, useCoState } from "jazz-tools/react";
 import { MoreHorizontal } from "lucide-react";
 import { Fragment } from "react/jsx-runtime";
 import { MusicTrackTitleInput } from "./MusicTrackTitleInput";
@@ -62,9 +62,7 @@ export function MusicTrackRow({
 
   return (
     <li
-      className={
-        "flex gap-1  hover:bg-slate-200 group py-2 px-2 cursor-pointer"
-      }
+      className={"flex gap-1 hover:bg-slate-200 group py-2 px-2 cursor-pointer"}
       onClick={handleTrackClick}
     >
       <button

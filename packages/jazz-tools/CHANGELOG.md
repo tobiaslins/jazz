@@ -1,5 +1,116 @@
 # jazz-tools
 
+## 0.15.1
+
+### Patch Changes
+
+- 0e3a4d2: Add FileStream.loadAsBase64 API
+- b110f00: Added `CoMap.upsertUnique` & `CoMap.loadUnique` methods (deprecating `CoMap.findUnique`) and added `skipRetry` option to `CoMap.load`
+- Updated dependencies [b110f00]
+  - cojson@0.15.1
+  - cojson-storage@0.15.1
+  - cojson-storage-indexeddb@0.15.1
+  - cojson-transport-ws@0.15.1
+
+## 0.15.0
+
+### Minor Changes
+
+- 1378a1f: Moved all the framework adapters in jazz-tools to simplify dependency management
+- 0fa051a: Remove the experimental prefix from enableSSR, change the useAccount type to make me always nullable and remove useAccountOrGuest
+
+### Patch Changes
+
+- cojson@0.15.0
+- cojson-storage@0.15.0
+- cojson-storage-indexeddb@0.15.0
+- cojson-transport-ws@0.15.0
+
+## 0.14.28
+
+### Patch Changes
+
+- 06c5a1c: Resolve FileStream.load() only when the stream is fully downloaded
+  - cojson@0.14.28
+
+## 0.14.27
+
+### Patch Changes
+
+- a026073: Export CoRecordSchema & CoProfileSchema types
+  - cojson@0.14.27
+
+## 0.14.26
+
+### Patch Changes
+
+- Updated dependencies [e74a077]
+  - cojson@0.14.26
+
+## 0.14.25
+
+### Patch Changes
+
+- 99a2d9b: Deprecated `Group.extend` and `Group.revokeExtend` (use `Group.addMember` and `Group.removeMember` respectively)
+  - cojson@0.14.25
+
+## 0.14.24
+
+### Patch Changes
+
+- cojson@0.14.24
+
+## 0.14.23
+
+### Patch Changes
+
+- 9177579: Fixs coText applyDiff out of bounds insertion with emoji
+- Updated dependencies [1ca9299]
+  - cojson@0.14.23
+
+## 0.14.22
+
+### Patch Changes
+
+- 048ac1d: Fix: Ensure the types on withMigration expect a shallowly loaded Account
+- Updated dependencies [57fb69f]
+  - cojson@0.14.22
+
+## 0.14.21
+
+### Patch Changes
+
+- e7e505e: Adds `makePublic(role)` alias for `group.addMember("everyone", role)`
+- 13b57aa: Fix creation of z.discriminatedUnions of CoValue schemas in Inbox and other places
+- 5662faa: Add `_createdAt` and `_lastUpdatedAt` getters for CoMaps
+- 2116a59: Improve SubscriptionScope.getCurrentValue to be the basis of the new React integration
+- Updated dependencies [c3d8779]
+  - cojson@0.14.21
+
+## 0.14.20
+
+### Patch Changes
+
+- 6f72419: Add support for per-CoMap migrations
+- 04b20c2: Make Zod schemas compatible with castAs
+  - cojson@0.14.20
+
+## 0.14.19
+
+### Patch Changes
+
+- cojson@0.14.19
+
+## 0.14.18
+
+### Patch Changes
+
+- 4b950bc: Fixes support for recursive props on co.profile and for co.image inside z.discriminatedUnion
+- d6d9c0a: Make checks on the discriminator field on z.discriminatedUnion more specific and less strict
+- c559054: Add support for optional dates
+- Updated dependencies [0d5ee3e]
+  - cojson@0.14.18
+
 ## 0.14.17
 
 ### Patch Changes

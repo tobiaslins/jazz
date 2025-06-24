@@ -2,7 +2,6 @@ export enum Framework {
   React = "react",
   ReactNative = "react-native",
   ReactNativeExpo = "react-native-expo",
-  Vue = "vue",
   Svelte = "svelte",
   Vanilla = "vanilla",
 }
@@ -13,6 +12,7 @@ export const frameworkNames: Record<
   {
     label: string;
     experimental: boolean;
+    hidden?: boolean;
   }
 > = {
   [Framework.React]: {
@@ -34,10 +34,6 @@ export const frameworkNames: Record<
   [Framework.Vanilla]: {
     label: "VanillaJS",
     experimental: false,
-  },
-  [Framework.Vue]: {
-    label: "Vue",
-    experimental: true,
   },
 };
 

@@ -1,4 +1,4 @@
-import { useAccount, useCoState } from "jazz-react";
+import { useAccount, useCoState } from "jazz-tools/react";
 import { CursorFeed } from "../schema";
 import { getColor } from "../utils/getColor.ts";
 import { getName } from "../utils/getName";

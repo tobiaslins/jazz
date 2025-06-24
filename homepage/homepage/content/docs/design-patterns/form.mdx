@@ -14,8 +14,7 @@ We'll build:
 
 [See the full example here.](https://github.com/garden-co/jazz/tree/main/examples/form)
 
-**Note**: If you do need a save button on your update form, this guide is not for you. Another option
-is to use [react-hook-form](https://www.react-hook-form.com), which you can see in [this example](https://github.com/garden-co/jazz/tree/main/examples/password-manager).
+**Note**: If you do need a save button on your update form, this guide is not for you. Another option is to use [react-hook-form](https://www.react-hook-form.com).
 
 ## Updating a CoValue
 
@@ -113,7 +112,7 @@ To make the edit form, simply pass the `BubbleTeaOrder`.
 <CodeGroup>
 ```tsx twoslash
 import { co, z } from "jazz-tools";
-import { useCoState } from "jazz-react";
+import { useCoState } from "jazz-tools/react";
 import * as React from "react";
 
 export const BubbleTeaOrder = co.map({
@@ -171,7 +170,7 @@ Here's how that looks like:
 <CodeGroup>
 ```tsx twoslash
 import { co, z } from "jazz-tools";
-import { useCoState, useAccount } from "jazz-react";
+import { useCoState, useAccount } from "jazz-tools/react";
 import * as React from "react";
 import { useState, useEffect } from "react";
 
@@ -273,7 +272,7 @@ Then perform the validation on submit.
 <CodeGroup>
 ```tsx twoslash
 import { co, z } from "jazz-tools";
-import { useCoState, useAccount } from "jazz-react";
+import { useCoState, useAccount } from "jazz-tools/react";
 import * as React from "react";
 import { useState, useEffect } from "react";
 
@@ -427,17 +426,17 @@ export const JazzAccount = co.account({
 // @filename: App.tsx
 import * as React from "react";
 // ---cut---
-import { JazzProvider } from "jazz-react";
+import { JazzReactProvider } from "jazz-tools/react";
 import { JazzAccount } from "./schema"; // [!code ++]
 
 export function MyJazzProvider({ children }: { children: React.ReactNode }) {
     return (
-        <JazzProvider
+        <JazzReactProvider
             sync={{ peer: "wss://cloud.jazz.tools/?key=you@example.com" }}
             AccountSchema={JazzAccount} // [!code ++]
         >
             {children}
-        </JazzProvider>
+        </JazzReactProvider>
     );
 }
 ```
@@ -485,7 +484,7 @@ export const JazzAccount = co.account({
 
 // @filename: CreateOrder.tsx
 import * as React from "react";
-import { useCoState, useAccount } from "jazz-react";
+import { useCoState, useAccount } from "jazz-tools/react";
 import { BubbleTeaOrder, DraftBubbleTeaOrder, JazzAccount } from "schema";
 import { co } from "jazz-tools";
 
@@ -603,7 +602,7 @@ In the UI, you can choose how you want to show the draft indicator.
 <CodeGroup>
 ```tsx twoslash
 import { co, z } from "jazz-tools";
-import { useCoState, useAccount } from "jazz-react";
+import { useCoState, useAccount } from "jazz-tools/react";
 import * as React from "react";
 
 export const BubbleTeaOrder = co.map({

@@ -6,19 +6,6 @@ We're excited to move from our own schema syntax to using Zod v4.
 
 This is the first step in a series of releases to make Jazz more familiar and to make CoValues look more like regular data structures.
 
-**Note: This is a huge release that we're still cleaning up and documenting.**
-
-<small className="leading-tight">
-We're still in the process of:
-- updating all our docs
-- double-checking all our framework bindings
-- completing all the details of this upgrade guide
-</small>
-
-If you see something broken, please let us know on [Discord](https://discord.gg/utDMjHYg42) and check back in a couple hours.
-
-Thanks for your patience!
-
 ## Overview:
 
 So far, Jazz has relied on our own idiosyncratic schema definition syntax where you had to extend classes and be careful to use `co.ref` for references.
@@ -45,7 +32,7 @@ In addition, many of our adopters expressed a preference for avoiding class synt
 For this reason, we completely overhauled how you define and use CoValue schemas:
 
 <CodeGroup>
-```ts twoslash
+```ts
 // AFTER
 import { co, z } from "jazz-tools";
 
@@ -91,9 +78,7 @@ Calls to `useCoState()` work just the same, but they return a slightly different
 And while you can still read from the type just as before...
 
 <CodeGroup>
-```tsx twoslash
-import React from "react";
-// ---cut---
+```tsx
 import { z, co } from "jazz-tools";
 import { useCoState } from "jazz-react";
 
@@ -127,9 +112,7 @@ function PersonName({ person }: {
 `co.loaded` can also take a second argument to specify the loading depth of the expected CoValue, mirroring the `resolve` options for `useCoState`, `load`, `subscribe`, etc.
 
 <CodeGroup>
-```tsx twoslash
-import React from "react";
-// ---cut---
+```tsx
 import { z, co } from "jazz-tools";
 import { useCoState } from "jazz-react";
 
@@ -172,7 +155,7 @@ Calls to `new CoState()` work just the same, but they return a slightly differen
 And while you can still read from the type just as before...
 
 <CodeGroup>
-```ts twoslash filename="schema.ts"
+```ts
 // @filename: schema.ts
 import { z, co } from "jazz-tools";
 
@@ -189,7 +172,7 @@ const Person = co.map({
 });
 type Person = co.loaded<typeof Person>;
 ``` 
-```svelte twoslash filename="app.svelte"
+```svelte
 // @filename: app.svelte
 <script lang="ts">
 import { CoState } from "jazz-svelte";
@@ -207,7 +190,7 @@ const person = new CoState(Person, id);
 `co.loaded` can also take a second argument to specify the loading depth of the expected CoValue, mirroring the `resolve` options for `CoState`, `load`, `subscribe`, etc.
 
 <CodeGroup>
-```svelte twoslash
+```svelte
 <script lang="ts" module>
   export type Props = {
     person: co.loaded<typeof Person, { pets: { $each: true } }>;  // [!code ++]
@@ -239,21 +222,36 @@ We have removed the Typescript AccountSchema registration.
 It was causing some deal of confusion to new adopters so we have decided to replace the magic inference with a more explicit approach.
 
 <ContentByFramework framework={["react", "react-native", "vue", "vanilla", "react-native-expo"]}>
+<CodeGroup>
+```tsx
+import { JazzProvider } from "jazz-react";
+import { MyAccount } from "./schema";
+
+declare module "jazz-react" { // [!code --]
+  interface Register {  // [!code --]
+    Account: MyAccount; // [!code --]
+  }  // [!code --]
+}  // [!code --]
+
+export function MyApp({ children }: { children: React.ReactNode }) {
+  return (
+    <JazzProvider
+      sync={{
+        peer: "wss://cloud.jazz.tools/?key=your-api-key",
+      }}
+      AccountSchema={MyAccount}
+    >
+      {children}
+    </JazzProvider>
+  );
+}
+```
+</CodeGroup>
+
 When using `useAccount` you should now pass the `Account` schema directly:
 
 <CodeGroup>
-```tsx twoslash
-// @filename: schema.ts
-import { co, z } from "jazz-tools";
-
-export const MyAccount = co.account({
-  profile: co.profile(),
-  root: co.map({})
-});
-
-// @filename: app.tsx
-import React from "react";
-// ---cut---
+```tsx
 import { useAccount } from "jazz-react";
 import { MyAccount } from "./schema";
 
@@ -271,10 +269,39 @@ function MyComponent() {
 </ContentByFramework>
 
 <ContentByFramework framework="svelte">
+<CodeGroup>
+```svelte
+<!-- src/routes/+layout.svelte -->
+<script lang="ts" module>
+  declare module 'jazz-svelte' {  // [!code --]
+    interface Register {  // [!code --]
+      Account: MyAppAccount; // [!code --]
+    }  // [!code --]
+  }  // [!code --]
+</script> // [!code --]
+
+<script lang="ts">
+  import { JazzProvider } from "jazz-svelte";
+  import { MyAppAccount } from "$lib/schema";
+  let { children } = $props();
+</script>
+
+<JazzProvider
+  sync={{ 
+    peer: "wss://cloud.jazz.tools/?key=your-api-key",
+    when: "always" // When to sync: "always", "never", or "signedUp"
+  }}
+  AccountSchema={MyAppAccount}
+>
+  {@render children()}
+</JazzProvider>
+```
+</CodeGroup>
+
 When using `AccountCoState` you should now pass the `Account` schema directly:
 
 <CodeGroup>
-```svelte twoslash filename="app.svelte"
+```svelte
 <script lang="ts">
 import { AccountCoState } from "jazz-svelte";
 import { MyAccount } from "./schema";
@@ -298,7 +325,7 @@ const account = new AccountCoState(MyAccount, {
 Now account schemas need to be defined with `co.account()` and migrations can be declared using `withMigration()`:
 
 <CodeGroup>
-```ts twoslash
+```ts
 import { co, z, Group } from "jazz-tools";
 
 const Pet = co.map({
@@ -339,7 +366,8 @@ export const MyAppAccount = co.account({
 
 ### Defining Schema helper methods
 
-TODO
+You can no longer define helper methods directly within your schema, create standalone functions instead. See
+[Docs on Helper methods](/docs/schemas/covalues#helper-methods) for an example.
 
 ## Minor breaking changes
 
@@ -348,9 +376,7 @@ TODO
 The type of `_refs` and `_edits` is now nullable.
 
 <CodeGroup>
-```ts twoslash 
-import { z, co } from "jazz-tools";
-// ---cut---
+```ts 
 const Person = co.map({
   name: z.string(),
   age: z.number(),
@@ -370,31 +396,7 @@ We have removed the Account schema registration, so now `members` and `by` metho
 This means that you now need to rely on `useCoState` on them to load their using your account schema.
 
 <CodeGroup>
-```tsx twoslash
-import React from "react";
-import { co, z, Group } from "jazz-tools";
-import { useCoState } from "jazz-react";
-
-const Pet = co.map({
-  name: z.string(),
-  age: z.number(),
-});
-
-const MyAppRoot = co.map({
-  pets: co.list(Pet),
-});
-
-const MyAppProfile = co.profile({
-  name: z.string(),
-  age: z.number().optional(),
-});
-
-export const MyAppAccount = co.account({
-  root: MyAppRoot,
-  profile: MyAppProfile,
-});
-
-// ---cut---
+```tsx
 function GroupMembers({ group }: { group: Group }) {
   const members = group.members;
 

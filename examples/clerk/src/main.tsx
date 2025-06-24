@@ -3,7 +3,8 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { JazzProviderWithClerk } from "jazz-react-auth-clerk";
+import { JazzInspector } from "jazz-tools/inspector";
+import { JazzReactProviderWithClerk } from "jazz-tools/react";
 import { ReactNode } from "react";
 import { apiKey } from "./apiKey";
 
@@ -18,14 +19,14 @@ function JazzProvider({ children }: { children: ReactNode }) {
   const clerk = useClerk();
 
   return (
-    <JazzProviderWithClerk
+    <JazzReactProviderWithClerk
       clerk={clerk}
       sync={{
         peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
       }}
     >
       {children}
-    </JazzProviderWithClerk>
+    </JazzReactProviderWithClerk>
   );
 }
 
@@ -44,6 +45,7 @@ if (location.search.includes("expirationTest")) {
       <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
         <JazzProvider>
           <App />
+          <JazzInspector />
         </JazzProvider>
       </ClerkProvider>
     </StrictMode>,

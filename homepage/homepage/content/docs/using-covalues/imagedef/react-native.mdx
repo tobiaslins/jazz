@@ -8,25 +8,25 @@ export const metadata = {
 
 `ImageDefinition` is a specialized CoValue designed specifically for managing images in Jazz. It extends beyond basic file storage by supporting multiple resolutions of the same image, optimized for mobile devices.
 
-**Note**: This guide applies to both Expo and framework-less React Native implementations. The functionality described here is identical regardless of which implementation you're using, though you'll need to import from the appropriate package (`jazz-expo` or `jazz-react-native`).
+**Note**: This guide applies to both Expo and framework-less React Native implementations.
 
 Jazz offers several tools to work with images in React Native:
-- [`createImage()`](#creating-images) - function to create an `ImageDefinition` from a base64 image data URI
-- [`ProgressiveImg`](#displaying-images-with-progressiveimg) - React component to display an image with progressive loading
-- [`useProgressiveImg`](#using-useprogressiveimg-hook) - React hook to load an image in your own component
+- [`createImageNative()`](#creating-images) - function to create an `ImageDefinition` from a base64 image data URI
+- [`ProgressiveImgNative`](#displaying-images-with-progressiveimgnative) - React component to display an image with progressive loading
+- [`useProgressiveImgNative`](#using-useprogressiveimgnative-hook) - React hook to load an image in your own component
 
 For examples of use, see our example apps:
 - [React Native Chat](https://github.com/gardencmp/jazz/tree/main/examples/chat-rn) (Framework-less implementation)
-- [React Native Expo Chat](https://github.com/gardencmp/jazz/tree/main/examples/chat-rn-expo) (Expo implementation)
-- [React Native Expo Clerk Chat](https://github.com/gardencmp/jazz/tree/main/examples/chat-rn-expo-clerk) (Expo implementation with Clerk)
+- [Expo Chat](https://github.com/gardencmp/jazz/tree/main/examples/chat-rn-expo) (Expo implementation)
+- [Expo Clerk](https://github.com/gardencmp/jazz/tree/main/examples/clerk-expo) (Expo with Clerk-based authentication)
 
 ## Creating Images
 
-The easiest way to create and use images in your Jazz application is with the `createImage()` function:
+The easiest way to create and use images in your Jazz application is with the `createImageNative()` function:
 
 <CodeGroup>
 ```tsx
-import { createImage } from "jazz-react-native-media-images";
+import { createImageNative } from "jazz-tools/react-native-media-images";
 import { launchImageLibrary } from 'react-native-image-picker';
 
 async function handleImagePicker() {
@@ -42,7 +42,7 @@ async function handleImagePicker() {
       const base64Uri = `data:image/jpeg;base64,${result.assets[0].base64}`;
 
       // Creates ImageDefinition with multiple resolutions automatically
-      const image = await createImage(base64Uri, {
+      const image = await createImageNative(base64Uri, {
         owner: me.profile._owner,
         maxSize: 2048, // Optional: limit maximum resolution
       });
@@ -57,7 +57,7 @@ async function handleImagePicker() {
 ```
 </CodeGroup>
 
-The `createImage()` function:
+The `createImageNative()` function:
 - Creates an `ImageDefinition` with the right properties
 - Generates a small placeholder for immediate display
 - Creates multiple resolution variants of your image
@@ -65,7 +65,7 @@ The `createImage()` function:
 
 ### Configuration Options
 
-You can configure `createImage()` with additional options:
+You can configure `createImageNative()` with additional options:
 
 <CodeGroup>
 ```tsx
@@ -81,22 +81,22 @@ const options = {
 // 2048: Creates 256px, 1024px, and 2048px resolutions
 // undefined: Creates all resolutions including the original size
 
-const image = await createImage(base64Uri, options);
+const image = await createImageNative(base64Uri, options);
 ```
 </CodeGroup>
 
-## Displaying Images with `ProgressiveImg`
+## Displaying Images with `ProgressiveImgNative`
 
-For a complete progressive loading experience, use the `ProgressiveImg` component:
+For a complete progressive loading experience, use the `ProgressiveImgNative` component:
 
 <CodeGroup>
 ```tsx
-import { ProgressiveImg } from "jazz-react-native";
+import { ProgressiveImgNative } from "jazz-tools/react-native";
 import { Image, StyleSheet } from "react-native";
 
 function GalleryView({ image }) {
   return (
-    <ProgressiveImg
+    <ProgressiveImgNative
       image={image}  // The image definition to load
       targetWidth={800} //  Looks for the best available resolution for a 800px image
     >
@@ -107,7 +107,7 @@ function GalleryView({ image }) {
           resizeMode="cover"
         />
       )}
-    </ProgressiveImg>
+    </ProgressiveImgNative>
   );
 }
 
@@ -121,19 +121,19 @@ const styles = StyleSheet.create({
 ```
 </CodeGroup>
 
-The `ProgressiveImg` component handles:
+The `ProgressiveImgNative` component handles:
 - Showing a placeholder while loading
 - Automatically selecting the appropriate resolution
 - Progressive enhancement as higher resolutions become available
 - Cleaning up resources when unmounted
 
-## Using `useProgressiveImg` Hook
+## Using `useProgressiveImgNative` Hook
 
 For more control over image loading, you can implement your own progressive image component:
 
 <CodeGroup>
 ```tsx
-import { useProgressiveImg } from "jazz-react-native";
+import { useProgressiveImgNative } from "jazz-tools/react-native";
 import { Image, View, Text, ActivityIndicator } from "react-native";
 
 function CustomImageComponent({ image }) {
@@ -142,7 +142,7 @@ function CustomImageComponent({ image }) {
                  // or a placeholder image URI
     res,         // The current resolution
     originalSize // The original size of the image
-  } = useProgressiveImg({
+  } = useProgressiveImgNative({
     image: image,  // The image definition to load
     targetWidth: 800  // Limit to resolutions up to 800px wide
   });

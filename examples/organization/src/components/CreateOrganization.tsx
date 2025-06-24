@@ -1,5 +1,5 @@
-import { useAccount, useCoState } from "jazz-react";
 import { Group, Loaded, co } from "jazz-tools";
+import { useAccount, useCoState } from "jazz-tools/react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import {

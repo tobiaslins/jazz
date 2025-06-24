@@ -1,6 +1,5 @@
 {
   "name": "chat-rn-expo",
-  "version": "1.0.8",
   "main": "index.ts",
   "scripts": {
     "build": "expo prebuild",
@@ -12,14 +11,12 @@
   "dependencies": {
     "@azure/core-asynciterator-polyfill": "^1.0.2",
     "@bacons/text-decoder": "^0.0.0",
-    "@craftzdog/react-native-buffer": "^6.0.5",
+    "@bam.tech/react-native-image-resizer": "^3.0.11",
     "@react-native-community/netinfo": "11.4.1",
     "expo": "~53.0.9",
     "expo-clipboard": "^7.1.4",
     "expo-secure-store": "~14.2.3",
     "expo-sqlite": "~15.2.10",
-    "expo-status-bar": "~2.2.3",
-    "jazz-expo": "workspace:*",
     "jazz-tools": "workspace:*",
     "react": "19.0.0",
     "react-native": "0.79.2",

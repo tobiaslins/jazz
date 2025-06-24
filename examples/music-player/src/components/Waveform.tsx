@@ -1,8 +1,8 @@
 import { MusicTrack, MusicTrackWaveform } from "@/1_schema";
 import { usePlayerCurrentTime } from "@/lib/audio/usePlayerCurrentTime";
 import { cn } from "@/lib/utils";
-import { useCoState } from "jazz-react";
 import { Loaded } from "jazz-tools";
+import { useCoState } from "jazz-tools/react";
 
 export function Waveform(props: {
   track: Loaded<typeof MusicTrack>;
@@ -50,8 +50,8 @@ export function Waveform(props: {
           className={cn(
             "w-1 transition-colors rounded-none rounded-t-lg min-h-1",
             activeBar >= i ? "bg-gray-500" : "bg-gray-300",
-            "hover:bg-black hover:border-1 hover:border-solid hover:border-black",
-            "focus-visible:outline-black focus:outline-none",
+            "hover:bg-black hover:border hover:border-solid hover:border-black",
+            "focus-visible:outline-black focus:outline-hidden",
           )}
           style={{
             height: height * value,

@@ -14,7 +14,7 @@ import React, {
   StyleSheet,
 } from "react-native";
 
-import { useAccount, useCoState } from "jazz-expo";
+import { useAccount, useCoState } from "jazz-tools/expo";
 import { Chat, Message } from "./schema";
 
 export default function ChatScreen() {
@@ -128,7 +128,11 @@ export default function ChatScreen() {
             }}
             testID="chat-id-input"
           />
-          <TouchableOpacity onPress={joinChat} style={styles.joinChatButton}>
+          <TouchableOpacity
+            testID="join-chat-button"
+            onPress={joinChat}
+            style={styles.joinChatButton}
+          >
             <Text style={styles.newChatButtonText}>Join chat</Text>
           </TouchableOpacity>
         </View>

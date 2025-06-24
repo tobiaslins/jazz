@@ -1,6 +1,6 @@
 {
 	"name": "jazz-react-auth-betterauth",
-	"version": "0.14.17",
+	"version": "0.15.1",
 	"type": "module",
 	"main": "dist/index.js",
 	"types": "src/index.tsx",
@@ -9,8 +9,6 @@
 		"cojson": "workspace:*",
 		"jazz-auth-betterauth": "workspace:*",
 		"jazz-betterauth-client-plugin": "workspace:*",
-		"jazz-browser": "workspace:*",
-		"jazz-react": "workspace:*",
 		"jazz-tools": "workspace:*"
 	},
 	"peerDependencies": {

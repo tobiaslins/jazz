@@ -1,5 +1,29 @@
 # create-jazz-app
 
+## 0.1.24
+
+### Patch Changes
+
+- 6f5731b: Fix the metro.config.js for react-native plain projects and Expo. Introduce .npmrc file to allow the installation with pnpm
+
+## 0.1.23
+
+### Patch Changes
+
+- 2d19908: use new svelte starter
+
+## 0.1.22
+
+### Patch Changes
+
+- 5bb1252: delete .env.test file
+
+## 0.1.21
+
+### Patch Changes
+
+- e005ecd: Sets selected package manager based on command runner
+
 ## 0.1.20
 
 ### Patch Changes

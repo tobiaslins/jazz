@@ -1,6 +1,6 @@
 import Clipboard from "@react-native-clipboard/clipboard";
-import { useAccount, useCoState } from "jazz-react-native";
 import { CoPlainText, Group, ID, Loaded, Profile } from "jazz-tools";
+import { useAccount, useCoState } from "jazz-tools/react-native";
 import { useEffect, useState } from "react";
 import {
   Button,

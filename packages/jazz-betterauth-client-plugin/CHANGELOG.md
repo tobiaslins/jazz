@@ -1,5 +1,83 @@
 # jazz-betterauth-client-plugin
 
+## 0.15.1
+
+### Patch Changes
+
+- jazz-betterauth-server-plugin@0.15.1
+
+## 0.15.0
+
+### Patch Changes
+
+- jazz-betterauth-server-plugin@0.15.0
+
+## 0.14.28
+
+### Patch Changes
+
+- jazz-betterauth-server-plugin@0.14.28
+
+## 0.14.27
+
+### Patch Changes
+
+- jazz-betterauth-server-plugin@0.14.27
+
+## 0.14.26
+
+### Patch Changes
+
+- jazz-betterauth-server-plugin@0.14.26
+
+## 0.14.25
+
+### Patch Changes
+
+- jazz-betterauth-server-plugin@0.14.25
+
+## 0.14.24
+
+### Patch Changes
+
+- jazz-betterauth-server-plugin@0.14.24
+
+## 0.14.23
+
+### Patch Changes
+
+- jazz-betterauth-server-plugin@0.14.23
+
+## 0.14.22
+
+### Patch Changes
+
+- jazz-betterauth-server-plugin@0.14.22
+
+## 0.14.21
+
+### Patch Changes
+
+- jazz-betterauth-server-plugin@0.14.21
+
+## 0.14.20
+
+### Patch Changes
+
+- jazz-betterauth-server-plugin@0.14.20
+
+## 0.14.19
+
+### Patch Changes
+
+- jazz-betterauth-server-plugin@0.14.19
+
+## 0.14.18
+
+### Patch Changes
+
+- jazz-betterauth-server-plugin@0.14.18
+
 ## 0.14.17
 
 ### Patch Changes

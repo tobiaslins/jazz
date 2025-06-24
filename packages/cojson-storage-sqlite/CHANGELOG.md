@@ -1,5 +1,106 @@
 # cojson-storage-sqlite
 
+## 0.15.1
+
+### Patch Changes
+
+- Updated dependencies [b110f00]
+  - cojson@0.15.1
+  - cojson-storage@0.15.1
+
+## 0.15.0
+
+### Patch Changes
+
+- cojson@0.15.0
+- cojson-storage@0.15.0
+
+## 0.14.28
+
+### Patch Changes
+
+- cojson@0.14.28
+- cojson-storage@0.14.28
+
+## 0.14.27
+
+### Patch Changes
+
+- cojson@0.14.27
+- cojson-storage@0.14.27
+
+## 0.14.26
+
+### Patch Changes
+
+- Updated dependencies [e74a077]
+- Updated dependencies [680a2e2]
+  - cojson@0.14.26
+  - cojson-storage@0.14.26
+
+## 0.14.25
+
+### Patch Changes
+
+- cojson@0.14.25
+- cojson-storage@0.14.25
+
+## 0.14.24
+
+### Patch Changes
+
+- cojson@0.14.24
+- cojson-storage@0.14.24
+
+## 0.14.23
+
+### Patch Changes
+
+- 5f42c97: Close the DB connection when the node/context is closed
+- Updated dependencies [1ca9299]
+- Updated dependencies [5f42c97]
+  - cojson@0.14.23
+  - cojson-storage@0.14.23
+
+## 0.14.22
+
+### Patch Changes
+
+- Updated dependencies [57fb69f]
+  - cojson@0.14.22
+  - cojson-storage@0.14.22
+
+## 0.14.21
+
+### Patch Changes
+
+- Updated dependencies [c3d8779]
+  - cojson@0.14.21
+  - cojson-storage@0.14.21
+
+## 0.14.20
+
+### Patch Changes
+
+- cojson@0.14.20
+- cojson-storage@0.14.20
+
+## 0.14.19
+
+### Patch Changes
+
+- cojson@0.14.19
+- cojson-storage@0.14.19
+
+## 0.14.18
+
+### Patch Changes
+
+- Updated dependencies [0d5ee3e]
+- Updated dependencies [be7c4c2]
+  - cojson@0.14.18
+  - cojson-storage@0.14.18
+
 ## 0.14.16
 
 ### Patch Changes
