@@ -36,6 +36,7 @@ export const TypeIcon = ({
     account: "👤 Account",
     group: "👥 Group",
     file: "📃 FileStream",
+    coplaintext: "📄 CoPlainText",
   };
 
   const iconKey = extendedType || type;
