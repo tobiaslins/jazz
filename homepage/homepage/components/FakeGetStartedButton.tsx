@@ -13,7 +13,7 @@ export function FakeGetStartedButton({ tier }: { tier: "starter" | "indie" }) {
         );
         window.location.pathname = "/docs";
       }}
-      variant={tier === "starter" ? "secondary" : "primary"}
+      variant={tier === "starter" ? "default" : "primary"}
     >
       Get {tier === "starter" ? "Starter" : "Indie"} API Key
     </Button>
