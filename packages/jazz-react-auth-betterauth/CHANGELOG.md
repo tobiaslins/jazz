@@ -1,5 +1,16 @@
 # jazz-react-auth-betterauth
 
+## 0.15.2
+
+### Patch Changes
+
+- Updated dependencies [4b964ed]
+- Updated dependencies [0e7e532]
+  - cojson@0.15.2
+  - jazz-tools@0.15.2
+  - jazz-auth-betterauth@0.15.2
+  - jazz-betterauth-client-plugin@0.15.2
+
 ## 0.15.1
 
 ### Patch Changes
