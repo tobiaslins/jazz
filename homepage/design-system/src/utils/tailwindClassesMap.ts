@@ -6,7 +6,6 @@ export const sizeClasses = {
 
 export const variantToBorderMap = {
   primary: "border-primary",
-  secondary: "border-secondary",
   info: "border-info",
   success: "border-success",
   warning: "border-warning",
@@ -20,8 +19,6 @@ export const variantToBorderMap = {
 
 export const variantToActiveBorderMap = {
   primary: "active:border-primary-transparent focus:border-primary-transparent",
-  secondary:
-    "active:border-secondary-transparent focus:border-secondary-transparent",
   info: "active:border-info-transparent focus:border-info-transparent",
   success: "active:border-success-transparent focus:border-success-transparent",
   warning: "active:border-warning-transparent focus:border-warning-transparent",
@@ -38,7 +35,6 @@ export const variantToActiveBorderMap = {
 
 export const variantToBgMap = {
   primary: "bg-primary",
-  secondary: "bg-secondary",
   info: "bg-info",
   success: "bg-success",
   warning: "bg-warning",
@@ -52,7 +48,6 @@ export const variantToBgMap = {
 
 export const variantToBgTransparentHoverMap = {
   primary: "hover:bg-primary-transparent",
-  secondary: "hover:bg-secondary-transparent",
   info: "hover:bg-info-transparent",
   success: "hover:bg-success-transparent",
   warning: "hover:bg-warning-transparent",
@@ -66,7 +61,6 @@ export const variantToBgTransparentHoverMap = {
 
 export const variantToBgTransparentActiveMap = {
   primary: "active:bg-blue/20",
-  secondary: "active:bg-indigo/20",
   info: "active:bg-purple/20",
   success: "active:bg-green/20",
   warning: "active:bg-orange/20",
@@ -80,7 +74,6 @@ export const variantToBgTransparentActiveMap = {
 
 export const variantToTextMap = {
   primary: "text-primary",
-  secondary: "text-secondary",
   info: "text-info",
   success: "text-success",
   warning: "text-warning",
@@ -94,7 +87,6 @@ export const variantToTextMap = {
 
 export const variantToTextHoverMap = {
   primary: "hover:text-primary-light",
-  secondary: "hover:text-secondary-light",
   info: "hover:text-info-light",
   success: "hover:text-success-light",
   warning: "hover:text-warning-light",
@@ -108,7 +100,6 @@ export const variantToTextHoverMap = {
 
 export const variantToTextActiveMap = {
   primary: "active:text-primary-dark",
-  secondary: "active:text-secondary-dark",
   info: "active:text-info-dark",
   success: "active:text-success-dark",
   warning: "active:text-warning-dark",
@@ -135,7 +126,6 @@ export type VariantColor =
 
 export const variantToColorMap = {
   primary: "blue",
-  secondary: "indigo",
   info: "purple",
   success: "green",
   warning: "orange",
@@ -221,7 +211,6 @@ const gradiantClassesBase = "bg-gradient-to-t from-7% via-50% to-95%";
 
 export const variantToBgGradientColorMap = {
   primary: `from-primary-dark via-primary to-primary-light ${gradiantClassesBase}`,
-  secondary: `from-secondary-dark via-secondary to-secondary-light ${gradiantClassesBase}`,
   info: `from-info-dark via-info to-info-light ${gradiantClassesBase}`,
   success: `from-success-dark via-success to-success-light ${gradiantClassesBase}`,
   warning: `from-warning-dark via-warning to-warning-light ${gradiantClassesBase}`,
@@ -235,7 +224,6 @@ export const variantToBgGradientColorMap = {
 
 export const variantToBgGradientHoverMap = {
   primary: `hover:from-primary-brightLight hover:to-primary-light ${gradiantClassesBase}`,
-  secondary: `hover:from-secondary-brightLight hover:to-secondary-light ${gradiantClassesBase}`,
   info: `hover:from-info-brightLight hover:to-info-light ${gradiantClassesBase}`,
   success: `hover:from-success-brightLight hover:to-success-light ${gradiantClassesBase}`,
   warning: `hover:from-warning-brightLight hover:to-warning-light ${gradiantClassesBase}`,
@@ -249,7 +237,6 @@ export const variantToBgGradientHoverMap = {
 
 export const variantToBgGradientActiveMap = {
   primary: `active:from-primary-brightDark active:to-primary-light ${gradiantClassesBase}`,
-  secondary: `active:from-secondary-brightDark active:to-secondary-light ${gradiantClassesBase}`,
   info: `active:from-info-brightDark active:to-info-light ${gradiantClassesBase}`,
   success: `active:from-success-brightDark active:to-success-light ${gradiantClassesBase}`,
   warning: `active:from-warning-brightDark active:to-warning-light ${gradiantClassesBase}`,
@@ -265,7 +252,6 @@ export const shadowClassesBase = "shadow-sm";
 
 export const variantToHoverShadowMap = {
   primary: `${shadowClassesBase} shadow-blue/20 hover:shadow-blue/40`,
-  secondary: `${shadowClassesBase} shadow-indigo/20 hover:shadow-indigo/30`,
   info: `${shadowClassesBase} shadow-purple/20 hover:shadow-purple/30`,
   success: `${shadowClassesBase} shadow-green/20 hover:shadow-green/30`,
   warning: `${shadowClassesBase} shadow-orange/20 hover:shadow-orange/30`,
@@ -282,7 +268,6 @@ const focusRingClassesBase =
 
 export const variantToButtonStateMap = {
   primary: `${variantToBgGradientActiveMap.primary} ${focusRingClassesBase} focus:ring-primary`,
-  secondary: `${variantToBgGradientActiveMap.secondary} ${focusRingClassesBase} focus:ring-secondary`,
   info: `${variantToBgGradientActiveMap.info} ${focusRingClassesBase} focus:ring-info`,
   success: `${variantToBgGradientActiveMap.success} ${focusRingClassesBase} focus:ring-success`,
   warning: `${variantToBgGradientActiveMap.warning} ${focusRingClassesBase} focus:ring-warning`,
