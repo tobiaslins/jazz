@@ -1,5 +1,11 @@
 # cojson
 
+## 0.15.2
+
+### Patch Changes
+
+- 4b964ed: Add debug code on transactions parsing
+
 ## 0.15.1
 
 ### Patch Changes

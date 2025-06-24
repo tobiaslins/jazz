@@ -1,5 +1,16 @@
 # jazz-tools
 
+## 0.15.2
+
+### Patch Changes
+
+- 0e7e532: inspector: improve CoPlainText view
+- Updated dependencies [4b964ed]
+  - cojson@0.15.2
+  - cojson-storage@0.15.2
+  - cojson-storage-indexeddb@0.15.2
+  - cojson-transport-ws@0.15.2
+
 ## 0.15.1
 
 ### Patch Changes
