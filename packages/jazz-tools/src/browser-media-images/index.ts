@@ -8,7 +8,7 @@ import {
 } from "jazz-tools";
 import Pica from "pica";
 
-let pica: Pica.Pica | undefined;
+let reducer: ImageBlobReduce.ImageBlobReduce | undefined;
 
 /** @category Image creation */
 export async function createImage(
@@ -18,117 +18,114 @@ export async function createImage(
     maxSize?: 256 | 1024 | 2048;
   },
 ): Promise<Loaded<typeof ImageDefinition>> {
-  // Inizialize Pica here to not have module side effects
-  if (!pica) {
-    pica = new Pica();
-  }
+  // Get the original size of the image
+  const { width: originalWidth, height: originalHeight } =
+    await getImageSize(imageBlobOrFile);
 
-  let originalWidth!: number;
-  let originalHeight!: number;
-  const Reducer = new ImageBlobReduce({ pica });
-  Reducer.after("_blob_to_image", (env) => {
-    originalWidth =
-      (env as unknown as { orientation: number }).orientation & 4
-        ? env.image.height
-        : env.image.width;
-    originalHeight =
-      (env as unknown as { orientation: number }).orientation & 4
-        ? env.image.width
-        : env.image.height;
-    return Promise.resolve(env);
-  });
+  const highestDimension = Math.max(originalWidth, originalHeight);
 
-  const placeholderDataURL = (
-    await Reducer.toCanvas(imageBlobOrFile, { max: 8 })
-  ).toDataURL("image/png");
+  // Calculate the sizes to resize the image to
+  const resizes = [256, 1024, 2048, highestDimension]
+    .filter((s) => s <= (options?.maxSize ?? highestDimension))
+    .toSorted((a, b) => a - b);
+
+  // Get the highest resolution to use as final original size
+  // In case of options.maxSize, it's not the originalWidth/Height
+  const { width: finalWidth, height: finalHeight } = getNewDimensions(
+    originalWidth,
+    originalHeight,
+    resizes.at(-1)!,
+  );
 
   const imageDefinition = ImageDefinition.create(
-    {
-      originalSize: [originalWidth, originalHeight],
-      placeholderDataURL,
-    },
+    { originalSize: [finalWidth, finalHeight] },
     options?.owner,
   );
   const owner = imageDefinition._owner;
 
-  const fillImageResolutions = async () => {
-    const max256 = await Reducer.toBlob(imageBlobOrFile, { max: 256 });
+  // Placeholder 8x8
+  imageDefinition.placeholderDataURL =
+    await getPlaceholderBase64(imageBlobOrFile);
 
-    if (originalWidth > 256 || originalHeight > 256) {
-      const width =
-        originalWidth > originalHeight
-          ? 256
-          : Math.round(256 * (originalWidth / originalHeight));
-      const height =
-        originalHeight > originalWidth
-          ? 256
-          : Math.round(256 * (originalHeight / originalWidth));
-
-      const binaryStream = await FileStream.createFromBlob(max256, owner);
-
-      imageDefinition[`${width}x${height}`] = binaryStream;
-      imageDefinition.originalSize = [width, height];
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    if (options?.maxSize === 256) return;
-
-    const max1024 = await Reducer.toBlob(imageBlobOrFile, { max: 1024 });
-
-    if (originalWidth > 1024 || originalHeight > 1024) {
-      const width =
-        originalWidth > originalHeight
-          ? 1024
-          : Math.round(1024 * (originalWidth / originalHeight));
-      const height =
-        originalHeight > originalWidth
-          ? 1024
-          : Math.round(1024 * (originalHeight / originalWidth));
-
-      const binaryStream = await FileStream.createFromBlob(max1024, owner);
-
-      imageDefinition[`${width}x${height}`] = binaryStream;
-      imageDefinition.originalSize = [width, height];
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    if (options?.maxSize === 1024) return;
-
-    const max2048 = await Reducer.toBlob(imageBlobOrFile, { max: 2048 });
-
-    if (originalWidth > 2048 || originalHeight > 2048) {
-      const width =
-        originalWidth > originalHeight
-          ? 2048
-          : Math.round(2048 * (originalWidth / originalHeight));
-      const height =
-        originalHeight > originalWidth
-          ? 2048
-          : Math.round(2048 * (originalHeight / originalWidth));
-
-      const binaryStream = await FileStream.createFromBlob(max2048, owner);
-
-      imageDefinition[`${width}x${height}`] = binaryStream;
-      imageDefinition.originalSize = [width, height];
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    if (options?.maxSize === 2048) return;
-
-    const originalBinaryStream = await FileStream.createFromBlob(
-      imageBlobOrFile,
-      owner,
+  // Resizes for progressive loading
+  for (let size of resizes) {
+    // Calculate width and height respecting the aspect ratio
+    const { width, height } = getNewDimensions(
+      originalWidth,
+      originalHeight,
+      size,
     );
 
-    imageDefinition[`${originalWidth}x${originalHeight}`] =
-      originalBinaryStream;
-    imageDefinition.originalSize = [originalWidth, originalHeight];
-  };
+    const image = await resize(imageBlobOrFile, width, height);
 
-  await fillImageResolutions();
+    const binaryStream = await FileStream.createFromBlob(image, owner);
+    imageDefinition[`${width}x${height}`] = binaryStream;
+  }
 
   return imageDefinition;
 }
+
+async function getImageSize(
+  imageBlobOrFile: Blob | File,
+): Promise<{ width: number; height: number }> {
+  const { width, height } = await new Promise<{
+    width: number;
+    height: number;
+  }>((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      resolve({ width: img.width, height: img.height });
+      URL.revokeObjectURL(img.src);
+    };
+    img.onerror = () => {
+      reject(new Error("Failed to load image"));
+      URL.revokeObjectURL(img.src);
+    };
+    img.src = URL.createObjectURL(imageBlobOrFile);
+  });
+
+  return { width, height };
+}
+
+async function getPlaceholderBase64(
+  imageBlobOrFile: Blob | File,
+): Promise<string> {
+  // Inizialize Reducer here to not have module side effects
+  if (!reducer) {
+    reducer = new ImageBlobReduce({ pica: new Pica() });
+  }
+
+  const canvas = await reducer.toCanvas(imageBlobOrFile, { max: 8 });
+  return canvas.toDataURL("image/png");
+}
+
+async function resize(
+  imageBlobOrFile: Blob | File,
+  width: number,
+  height: number,
+): Promise<Blob> {
+  // Inizialize Reducer here to not have module side effects
+  if (!reducer) {
+    reducer = new ImageBlobReduce({ pica: new Pica() });
+  }
+
+  return reducer.toBlob(imageBlobOrFile, { max: Math.max(width, height) });
+}
+
+const getNewDimensions = (
+  originalWidth: number,
+  originalHeight: number,
+  maxSize: number,
+) => {
+  const width =
+    originalWidth > originalHeight
+      ? maxSize
+      : Math.round(maxSize * (originalWidth / originalHeight));
+
+  const height =
+    originalHeight > originalWidth
+      ? maxSize
+      : Math.round(maxSize * (originalHeight / originalWidth));
+
+  return { width, height };
+};
