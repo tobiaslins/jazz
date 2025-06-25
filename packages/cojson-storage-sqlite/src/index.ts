@@ -1,1 +1,5 @@
-export { SQLiteNode, SQLiteNode as SQLiteStorage } from "./sqliteNode.js";
+export {
+  SQLiteNode,
+  SQLiteNode as SQLiteStorage,
+  getSqliteStorage,
+} from "./sqliteNode.js";

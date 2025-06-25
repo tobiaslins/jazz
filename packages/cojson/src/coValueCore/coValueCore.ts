@@ -224,6 +224,10 @@ export class CoValueCore {
     }
   }
 
+  markNotFoundInStorage() {
+    this.markNotFoundInPeer("storage");
+  }
+
   markNotFoundInPeer(peerId: PeerID) {
     const previousState = this.loadingState;
     this.peers.set(peerId, { type: "unavailable" });
@@ -253,7 +257,7 @@ export class CoValueCore {
     }
   }
 
-  provideHeader(header: CoValueHeader, fromPeerId: PeerID) {
+  provideHeader(header: CoValueHeader, fromPeerId?: PeerID) {
     const previousState = this.loadingState;
 
     if (this._verified?.sessions.size) {
@@ -268,7 +272,10 @@ export class CoValueCore {
       new Map(),
     );
 
-    this.peers.set(fromPeerId, { type: "available" });
+    if (fromPeerId) {
+      this.peers.set(fromPeerId, { type: "available" });
+    }
+
     this.updateCounter(previousState);
     this.notifyUpdate("immediate");
   }

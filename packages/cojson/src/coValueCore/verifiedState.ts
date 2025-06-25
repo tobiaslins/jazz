@@ -51,7 +51,7 @@ export type Transaction = PrivateTransaction | TrustingTransaction;
 type SessionLog = {
   readonly transactions: Transaction[];
   lastHash?: Hash;
-  streamingHash: StreamingHash;
+  streamingHash?: StreamingHash;
   readonly signatureAfter: { [txIdx: number]: Signature | undefined };
   lastSignature: Signature;
 };
@@ -85,12 +85,19 @@ export class VerifiedState {
       clonedSessions.set(sessionID, {
         lastSignature: sessionLog.lastSignature,
         lastHash: sessionLog.lastHash,
-        streamingHash: sessionLog.streamingHash.clone(),
+        streamingHash: sessionLog.streamingHash?.clone(),
         signatureAfter: { ...sessionLog.signatureAfter },
         transactions: sessionLog.transactions.slice(),
       } satisfies SessionLog);
     }
     return new VerifiedState(this.id, this.crypto, this.header, clonedSessions);
+  }
+
+  resetStreaingHashForSession(sessionID: SessionID) {
+    const session = this.sessions.get(sessionID);
+    if (session) {
+      session.streamingHash = undefined;
+    }
   }
 
   tryAddTransactions(
@@ -117,6 +124,10 @@ export class VerifiedState {
       );
 
       if (givenExpectedNewHash && givenExpectedNewHash !== expectedNewHash) {
+        // in case of error, we need to reset the streaming hash because it has been mutated
+        // with a broken transaction
+        this.resetStreaingHashForSession(sessionID);
+
         return err({
           type: "InvalidHash",
           id: this.id,
@@ -126,6 +137,8 @@ export class VerifiedState {
       }
 
       if (!this.crypto.verify(newSignature, expectedNewHash, signerID)) {
+        this.resetStreaingHashForSession(sessionID);
+
         return err({
           type: "InvalidSignature",
           id: this.id,
@@ -198,9 +211,17 @@ export class VerifiedState {
     sessionID: SessionID,
     newTransactions: Transaction[],
   ): { expectedNewHash: Hash; newStreamingHash: StreamingHash } {
-    const streamingHash =
-      this.sessions.get(sessionID)?.streamingHash.clone() ??
-      new StreamingHash(this.crypto);
+    const session = this.sessions.get(sessionID);
+    let streamingHash = session?.streamingHash;
+
+    // If the streaming hash is missing, we need to compute one from scratch
+    if (!streamingHash) {
+      streamingHash = new StreamingHash(this.crypto);
+
+      for (const oldTransaction of session?.transactions ?? []) {
+        streamingHash.update(oldTransaction);
+      }
+    }
 
     for (const transaction of newTransactions) {
       streamingHash.update(transaction);
