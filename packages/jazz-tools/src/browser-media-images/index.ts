@@ -67,6 +67,7 @@ export async function createImage(
       const binaryStream = await FileStream.createFromBlob(max256, owner);
 
       imageDefinition[`${width}x${height}`] = binaryStream;
+      imageDefinition.originalSize = [width, height];
     }
 
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -88,6 +89,7 @@ export async function createImage(
       const binaryStream = await FileStream.createFromBlob(max1024, owner);
 
       imageDefinition[`${width}x${height}`] = binaryStream;
+      imageDefinition.originalSize = [width, height];
     }
 
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -109,6 +111,7 @@ export async function createImage(
       const binaryStream = await FileStream.createFromBlob(max2048, owner);
 
       imageDefinition[`${width}x${height}`] = binaryStream;
+      imageDefinition.originalSize = [width, height];
     }
 
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -122,6 +125,7 @@ export async function createImage(
 
     imageDefinition[`${originalWidth}x${originalHeight}`] =
       originalBinaryStream;
+    imageDefinition.originalSize = [originalWidth, originalHeight];
   };
 
   await fillImageResolutions();
