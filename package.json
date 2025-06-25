@@ -29,6 +29,7 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build && cd homepage/homepage && turbo build",
+    "build:packages": "turbo build --filter='./packages/*'",
     "lint": "turbo lint && cd homepage/homepage && pnpm run lint",
     "test": "vitest",
     "test:ci": "vitest run --watch=false --coverage.enabled=true",
