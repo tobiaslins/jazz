@@ -670,7 +670,7 @@ export class SyncManager {
     const syncedPeers = [];
 
     if (sourcePeer && this.local.storage) {
-      this.local.storage.store([msg], (correction) => {
+      this.local.storage.store(coValue.id, [msg], (correction) => {
         if (!coValue.verified) return;
         if (!this.local.storage) return;
 
@@ -678,7 +678,7 @@ export class SyncManager {
 
         if (!newContentPieces) return;
 
-        this.local.storage.store(newContentPieces, () => {
+        this.local.storage.store(coValue.id, newContentPieces, () => {
           logger.error(
             "Correction requested by storage after sending a correction content",
           );
@@ -757,7 +757,7 @@ export class SyncManager {
       const knownState = this.local.storage.getKnownState(coValue.id);
       const newContentPieces = coValue.verified.newContentSince(knownState);
 
-      this.local.storage.store(newContentPieces, () => {
+      this.local.storage.store(coValue.id, newContentPieces, () => {
         logger.error(
           "Correction requested by storage after sending a correction content",
         );

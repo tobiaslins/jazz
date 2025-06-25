@@ -149,6 +149,7 @@ export class LocalNode {
     crypto: CryptoProvider;
     initialAgentSecret?: AgentSecret;
     peersToLoadFrom?: Peer[];
+    storage?: StorageAPI;
   }): RawAccount {
     const {
       crypto,
@@ -166,6 +167,10 @@ export class LocalNode {
       crypto.newRandomSessionID(accountID as RawAccountID),
       crypto,
     );
+
+    if (opts.storage) {
+      node.setStorage(opts.storage);
+    }
 
     for (const peer of peersToLoadFrom) {
       node.syncManager.addPeer(peer);
@@ -205,12 +210,14 @@ export class LocalNode {
     migration,
     crypto,
     initialAgentSecret = crypto.newRandomAgentSecret(),
+    storage,
   }: {
     creationProps: { name: string };
     peersToLoadFrom?: Peer[];
     migration?: RawAccountMigration<AccountMeta>;
     crypto: CryptoProvider;
     initialAgentSecret?: AgentSecret;
+    storage?: StorageAPI;
   }): Promise<{
     node: LocalNode;
     accountID: RawAccountID;
@@ -221,6 +228,7 @@ export class LocalNode {
       crypto,
       initialAgentSecret,
       peersToLoadFrom,
+      storage,
     });
     const node = account.core.node;
 
@@ -264,6 +272,7 @@ export class LocalNode {
     peersToLoadFrom,
     crypto,
     migration,
+    storage,
   }: {
     accountID: RawAccountID;
     accountSecret: AgentSecret;
@@ -271,6 +280,7 @@ export class LocalNode {
     peersToLoadFrom: Peer[];
     crypto: CryptoProvider;
     migration?: RawAccountMigration<AccountMeta>;
+    storage?: StorageAPI;
   }): Promise<LocalNode> {
     try {
       const node = new LocalNode(
@@ -278,6 +288,10 @@ export class LocalNode {
         sessionID || crypto.newRandomSessionID(accountID),
         crypto,
       );
+
+      if (storage) {
+        node.setStorage(storage);
+      }
 
       for (const peer of peersToLoadFrom) {
         node.syncManager.addPeer(peer);
@@ -364,16 +378,36 @@ export class LocalNode {
         const peers =
           this.syncManager.getServerAndStoragePeers(skipLoadingFromPeer);
 
-        if (peers.length === 0) {
+        if (this.storage && retries === 0) {
+          coValue.markPending("storage");
+          this.storage.load(
+            id,
+            (data) => {
+              // TODO: content streaming triggers a load request
+              this.syncManager.handleNewContent(data);
+            },
+            (found) => {
+              if (!found) {
+                coValue.loadFromPeers(peers).catch((e) => {
+                  logger.error("Error loading from peers", {
+                    id,
+                    err: e,
+                  });
+                });
+                coValue.markNotFoundInPeer("storage");
+              }
+            },
+          );
+        } else if (peers.length > 0) {
+          coValue.loadFromPeers(peers).catch((e) => {
+            logger.error("Error loading from peers", {
+              id,
+              err: e,
+            });
+          });
+        } else {
           return coValue;
         }
-
-        coValue.loadFromPeers(peers).catch((e) => {
-          logger.error("Error loading from peers", {
-            id,
-            err: e,
-          });
-        });
       }
 
       const result = await coValue.waitForAvailableOrUnavailable();

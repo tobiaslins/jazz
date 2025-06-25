@@ -257,7 +257,7 @@ export class CoValueCore {
     }
   }
 
-  provideHeader(header: CoValueHeader, fromPeerId?: PeerID) {
+  provideHeader(header: CoValueHeader, fromPeerId: PeerID) {
     const previousState = this.loadingState;
 
     if (this._verified?.sessions.size) {
@@ -272,9 +272,7 @@ export class CoValueCore {
       new Map(),
     );
 
-    if (fromPeerId) {
-      this.peers.set(fromPeerId, { type: "available" });
-    }
+    this.peers.set(fromPeerId, { type: "available" });
 
     this.updateCounter(previousState);
     this.notifyUpdate("immediate");
@@ -299,7 +297,7 @@ export class CoValueCore {
     this.notifyUpdate("immediate");
   }
 
-  private markPending(peerId: PeerID) {
+  markPending(peerId: PeerID) {
     const previousState = this.loadingState;
     this.peers.set(peerId, { type: "pending" });
     this.updateCounter(previousState);

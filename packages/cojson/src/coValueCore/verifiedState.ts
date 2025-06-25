@@ -93,7 +93,7 @@ export class VerifiedState {
     return new VerifiedState(this.id, this.crypto, this.header, clonedSessions);
   }
 
-  resetStreaingHashForSession(sessionID: SessionID) {
+  resetStreamingHashForSession(sessionID: SessionID) {
     const session = this.sessions.get(sessionID);
     if (session) {
       session.streamingHash = undefined;
@@ -126,7 +126,7 @@ export class VerifiedState {
       if (givenExpectedNewHash && givenExpectedNewHash !== expectedNewHash) {
         // in case of error, we need to reset the streaming hash because it has been mutated
         // with a broken transaction
-        this.resetStreaingHashForSession(sessionID);
+        this.resetStreamingHashForSession(sessionID);
 
         return err({
           type: "InvalidHash",
@@ -137,7 +137,7 @@ export class VerifiedState {
       }
 
       if (!this.crypto.verify(newSignature, expectedNewHash, signerID)) {
-        this.resetStreaingHashForSession(sessionID);
+        this.resetStreamingHashForSession(sessionID);
 
         return err({
           type: "InvalidSignature",

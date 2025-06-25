@@ -8,7 +8,7 @@ import {
 } from "cojson";
 import { collectNewTxs, getDependedOnCoValues } from "./syncUtils.js";
 import type {
-  DBClientInterfaceSync,
+  DBClientInterfaceAsync,
   SignatureAfterRow,
   StoredCoValueRow,
   StoredSessionRow,
@@ -16,11 +16,12 @@ import type {
 
 type RawCoID = CojsonInternalTypes.RawCoID;
 
-export class StorageApiSync implements StorageAPI {
-  private readonly dbClient: DBClientInterfaceSync;
+export class StorageApiAsync implements StorageAPI {
+  private readonly dbClient: DBClientInterfaceAsync;
+
   private loadedCoValues = new Set<RawCoID>();
 
-  constructor(dbClient: DBClientInterfaceSync) {
+  constructor(dbClient: DBClientInterfaceAsync) {
     this.dbClient = dbClient;
   }
 
@@ -35,14 +36,14 @@ export class StorageApiSync implements StorageAPI {
     callback: (data: CojsonInternalTypes.NewContentMessage) => void,
     done?: (found: boolean) => void,
   ) {
-    const coValueRow = this.dbClient.getCoValue(id);
+    const coValueRow = await this.dbClient.getCoValue(id);
 
     if (!coValueRow) {
       done?.(false);
       return;
     }
 
-    const allCoValueSessions = this.dbClient.getCoValueSessions(
+    const allCoValueSessions = await this.dbClient.getCoValueSessions(
       coValueRow.rowID,
     );
 
@@ -52,14 +53,20 @@ export class StorageApiSync implements StorageAPI {
     >();
 
     let contentStreaming = false;
-    for (const sessionRow of allCoValueSessions) {
-      const signatures = this.dbClient.getSignatures(sessionRow.rowID, 0);
 
-      if (signatures.length > 0) {
-        contentStreaming = true;
-        signaturesBySession.set(sessionRow.sessionID, signatures);
-      }
-    }
+    await Promise.all(
+      allCoValueSessions.map(async (sessionRow) => {
+        const signatures = await this.dbClient.getSignatures(
+          sessionRow.rowID,
+          0,
+        );
+
+        if (signatures.length > 0) {
+          contentStreaming = true;
+          signaturesBySession.set(sessionRow.sessionID, signatures);
+        }
+      }),
+    );
 
     const knownState =
       this.knwonStates.get(coValueRow.id) ?? emptyKnownState(coValueRow.id);
@@ -90,7 +97,7 @@ export class StorageApiSync implements StorageAPI {
       });
 
       for (const signature of signatures) {
-        const newTxsInSession = this.dbClient.getNewTransactionInSession(
+        const newTxsInSession = await this.dbClient.getNewTransactionInSession(
           sessionRow.rowID,
           idx,
           signature.idx,
@@ -119,10 +126,6 @@ export class StorageApiSync implements StorageAPI {
             new: {},
             priority: cojsonInternals.getPriorityFromHeader(coValueRow.header),
           } satisfies CojsonInternalTypes.NewContentMessage;
-
-          // Introduce a delay to not block the main thread
-          // for the entire content processing
-          await new Promise((resolve) => setTimeout(resolve));
         }
       }
     }
@@ -133,7 +136,6 @@ export class StorageApiSync implements StorageAPI {
     }
 
     this.pushContentWithDependencies(coValueRow, contentMessage, callback);
-
     done?.(true);
   }
 
@@ -158,42 +160,55 @@ export class StorageApiSync implements StorageAPI {
     pushCallback(contentMessage);
   }
 
-  store(
+  storeQueue = new Map<string, CojsonInternalTypes.NewContentMessage[]>();
+
+  async store(
     id: string,
     msgs: CojsonInternalTypes.NewContentMessage[],
     correctionCallback: (data: CojsonInternalTypes.CoValueKnownState) => void,
   ) {
+    const queue = this.storeQueue.get(id);
+
+    if (queue) {
+      queue.push(...msgs);
+      return;
+    }
+
+    this.storeQueue.set(id, msgs);
+
     for (const msg of msgs) {
-      const success = this.storeSingle(id, msg, correctionCallback);
+      const success = await this.storeSingle(id, msg, correctionCallback);
 
       if (!success) {
         return false;
       }
     }
+
+    this.storeQueue.delete(id);
   }
 
-  private storeSingle(
+  private async storeSingle(
     id: string,
     msg: CojsonInternalTypes.NewContentMessage,
     correctionCallback: (data: CojsonInternalTypes.CoValueKnownState) => void,
-  ): boolean {
-    const coValueRow = this.dbClient.getCoValue(id);
+  ): Promise<boolean> {
+    const coValueRow = await this.dbClient.getCoValue(id);
 
     // We have no info about coValue header
     const invalidAssumptionOnHeaderPresence = !msg.header && !coValueRow;
 
     if (invalidAssumptionOnHeaderPresence) {
       const knownState = emptyKnownState(id as RawCoID);
-      correctionCallback(knownState);
-
       this.knwonStates.set(id, knownState);
 
+      this.storeQueue.delete(id);
+      correctionCallback(knownState);
       return false;
     }
 
     const storedCoValueRowID: number = coValueRow
       ? coValueRow.rowID
-      : this.dbClient.addCoValue(msg);
+      : await this.dbClient.addCoValue(msg);
 
     const knownState =
       this.knwonStates.get(id) ?? emptyKnownState(id as RawCoID);
@@ -202,8 +217,8 @@ export class StorageApiSync implements StorageAPI {
     let invalidAssumptions = false;
 
     for (const sessionID of Object.keys(msg.new) as SessionID[]) {
-      this.dbClient.transaction(() => {
-        const sessionRow = this.dbClient.getSingleCoValueSession(
+      await this.dbClient.transaction(async () => {
+        const sessionRow = await this.dbClient.getSingleCoValueSession(
           storedCoValueRowID,
           sessionID,
         );
@@ -215,7 +230,7 @@ export class StorageApiSync implements StorageAPI {
         if ((sessionRow?.lastIdx || 0) < (msg.new[sessionID]?.after || 0)) {
           invalidAssumptions = true;
         } else {
-          const newLastIdx = this.putNewTxs(
+          const newLastIdx = await this.putNewTxs(
             msg,
             sessionID,
             sessionRow,
@@ -227,6 +242,7 @@ export class StorageApiSync implements StorageAPI {
     }
 
     if (invalidAssumptions) {
+      this.storeQueue.delete(id);
       correctionCallback(knownState);
       return false;
     }
@@ -234,7 +250,7 @@ export class StorageApiSync implements StorageAPI {
     return true;
   }
 
-  private putNewTxs(
+  private async putNewTxs(
     msg: CojsonInternalTypes.NewContentMessage,
     sessionID: SessionID,
     sessionRow: StoredSessionRow | undefined,
@@ -280,21 +296,23 @@ export class StorageApiSync implements StorageAPI {
       bytesSinceLastSignature: newBytesSinceLastSignature,
     };
 
-    const sessionRowID: number = this.dbClient.addSessionUpdate({
+    const sessionRowID: number = await this.dbClient.addSessionUpdate({
       sessionUpdate,
       sessionRow,
     });
 
     if (shouldWriteSignature) {
-      this.dbClient.addSignatureAfter({
+      await this.dbClient.addSignatureAfter({
         sessionRowID,
         idx: newLastIdx - 1,
         signature: msg.new[sessionID].lastSignature,
       });
     }
 
-    actuallyNewTransactions.map((newTransaction, i) =>
-      this.dbClient.addTransaction(sessionRowID, nextIdx + i, newTransaction),
+    await Promise.all(
+      actuallyNewTransactions.map((newTransaction, i) =>
+        this.dbClient.addTransaction(sessionRowID, nextIdx + i, newTransaction),
+      ),
     );
 
     return newLastIdx;
