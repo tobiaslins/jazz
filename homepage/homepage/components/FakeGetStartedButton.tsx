@@ -14,7 +14,7 @@ export function FakeGetStartedButton({ tier }: { tier: "starter" | "indie" }) {
         window.location.pathname = "/docs";
       }}
       intent="primary"
-      variant={tier !== "starter" ? "outline" : "inverted"}
+      variant={tier === "starter" ? "outline" : undefined}
     >
       Get {tier === "starter" ? "Starter" : "Indie"} API Key
     </Button>
