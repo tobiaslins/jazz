@@ -52,7 +52,7 @@ function Illustration() {
         name="encryption"
         size="3xl"
         className="z-30 p-1.5 rounded-lg"
-        styleType="primary"
+        intent="primary"
         hasBackground
       />
 

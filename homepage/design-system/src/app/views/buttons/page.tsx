@@ -41,33 +41,33 @@ export default function ButtonsPage() {
         <Button variant="destructive">destructive</Button>
       </div>
 
-      <h3 className="text-lg mt-5 mb-2 font-bold">Style Types</h3>
+      <h3 className="text-lg mt-5 mb-2 font-bold">Intents</h3>
       <p>
         We have extended the shadcn/ui variants to include more styles via the
-        styleType prop.
+        intent prop.
       </p>
 
       <div className="grid grid-cols-2 gap-2">
-        {/* <Button styleType="default">default</Button> */}
-        <Button styleType="primary">primary</Button>
-        <Button styleType="tip">tip</Button>
-        <Button styleType="info">info</Button>
-        <Button styleType="success">success</Button>
-        <Button styleType="warning">warning</Button>
-        <Button styleType="alert">alert</Button>
-        <Button styleType="danger">danger</Button>
-        <Button styleType="muted">muted</Button>
-        <Button styleType="strong">strong</Button>
+        {/* <Button intent="default">default</Button> */}
+        <Button intent="primary">primary</Button>
+        <Button intent="tip">tip</Button>
+        <Button intent="info">info</Button>
+        <Button intent="success">success</Button>
+        <Button intent="warning">warning</Button>
+        <Button intent="alert">alert</Button>
+        <Button intent="danger">danger</Button>
+        <Button intent="muted">muted</Button>
+        <Button intent="strong">strong</Button>
       </div>
 
       <div className="flex justify-between items-center w-48 mt-10">
-        <h3 className="text-lg font-bold min-w-52">Variants & Style Types</h3>
+        <h3 className="text-lg font-bold min-w-52">Variants & Intents</h3>
         <div className="max-w-xs ml-3">
           <Dropdown>
             <DropdownButton
               className="w-full justify-between"
               as={Button}
-              styleType="default"
+              intent="default"
               variant="inverted"
             >
               {selectedVariant}
@@ -89,20 +89,20 @@ export default function ButtonsPage() {
 
       <p className="text-sm mt-2 mb-5">
         <strong>NB:</strong> Variants and styles are interchangeable. See the
-        styleType on each variant with the dropdown
+        intent on each variant with the dropdown
       </p>
 
       <div className="grid grid-cols-2 gap-2">
-        <Button styleType={selectedVariant} variant="outline">
+        <Button intent={selectedVariant} variant="outline">
           outline
         </Button>
-        <Button styleType={selectedVariant} variant="inverted">
+        <Button intent={selectedVariant} variant="inverted">
           inverted
         </Button>
-        <Button styleType={selectedVariant} variant="ghost">
+        <Button intent={selectedVariant} variant="ghost">
           ghost
         </Button>
-        <Button styleType={selectedVariant} variant="link">
+        <Button intent={selectedVariant} variant="link">
           link
         </Button>
       </div>
@@ -114,7 +114,7 @@ export default function ButtonsPage() {
       <div className="grid grid-cols-2 gap-2">
         <Button
           icon="delete"
-          styleType="danger"
+          intent="danger"
           variant="link"
           iconPosition="right"
           className="col-span-2 md:col-span-1"
@@ -124,7 +124,7 @@ export default function ButtonsPage() {
         <Button
           icon="info"
           iconPosition="left"
-          styleType="info"
+          intent="info"
           variant="outline"
           className="col-span-2 md:col-span-1"
         >
@@ -134,8 +134,8 @@ export default function ButtonsPage() {
           Or just use the icon prop with any of the button variants, style
           variants and colors.
         </p>
-        <Button icon="newsletter" styleType="tip" variant="inverted" />
-        <Button icon="check" styleType="success" />
+        <Button icon="newsletter" intent="tip" variant="inverted" />
+        <Button icon="check" intent="success" />
       </div>
       <div className="overflow-auto">
         <h3 className="text-xl mt-5 mb-2 font-bold">Props Table</h3>
@@ -149,7 +149,7 @@ const buttonPropsTableData = {
   headers: ["prop", "types", "default"],
   data: [
     {
-      prop: "styleType?",
+      prop: "intent?",
       types: [
         "primary",
         "tip",

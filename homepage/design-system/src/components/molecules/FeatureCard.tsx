@@ -21,7 +21,7 @@ export function FeatureCard({
       {icon && (
         <Icon
           name={icon}
-          styleType="primary"
+          intent="primary"
           hasBackground
           className="p-1.5 rounded-lg mb-2.5"
           size="3xl"

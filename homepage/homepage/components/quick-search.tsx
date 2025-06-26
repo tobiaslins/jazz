@@ -16,11 +16,11 @@ export function QuickSearch() {
   return (
     <Button
       className="group xl:min-w-48 md:mr-5"
-      styleType="muted"
+      intent="muted"
       variant="outline"
       onClick={() => setOpen((open) => !open)}
     >
-      <Icon name="search" size="xs" styleType="default" />
+      <Icon name="search" size="xs" intent="default" />
       <span className="font-normal flex-1 text-left text-sm xl:not-sr-only">
         Search docs
       </span>

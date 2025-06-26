@@ -29,7 +29,7 @@ import { Spinner } from "./Spinner";
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  styleType?: Style;
+  intent?: Style;
   variant?: Variant;
   state?: "hover" | "active" | "focus" | "disabled";
   size?: "sm" | "md" | "lg";
@@ -50,7 +50,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       className,
       children,
       size = "md",
-      styleType = "default",
+      intent = "default",
       variant,
       href,
       disabled,
@@ -65,13 +65,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref,
   ) => {
     const styleClass =
-      styleClasses(styleType, variant)[variant as keyof typeof styleClasses] ||
-      "";
+      styleClasses(intent, variant)[variant as keyof typeof styleClasses] || "";
 
     const getClasses = ({ variant }: { variant: string | undefined }) => {
       return {
         [sizeClasses[size as keyof typeof sizeClasses]]: size,
-        [variantClass(styleType)]: !variant,
+        [variantClass(intent)]: !variant,
         [styleClass]: variant,
       };
     };
@@ -94,13 +93,13 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           {icon && (
             <Icon
               name={icon}
-              className={`size-5 ${iconPosition === "left" ? "mr-2" : iconPosition === "right" ? "ml-2" : ""}, ${iconVariant(styleType, variant)}`}
+              className={`size-5 ${iconPosition === "left" ? "mr-2" : iconPosition === "right" ? "ml-2" : ""}, ${iconVariant(intent, variant)}`}
             />
           )}
           {children}
           {newTab ? (
             <span
-              className={`inline-block relative -top-0.5 -left-2 -mr-2 ${styleToTextMap[styleType as keyof typeof styleToTextMap]}`}
+              className={`inline-block relative -top-0.5 -left-2 -mr-2 ${styleToTextMap[intent as keyof typeof styleToTextMap]}`}
             >
               ⌝
             </span>
@@ -124,14 +123,14 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ) : (
           icon &&
           iconPosition === "left" && (
-            <Icon name={icon} styleType={iconVariant(styleType, variant)} />
+            <Icon name={icon} intent={iconVariant(intent, variant)} />
           )
         )}
         {loading && loadingText ? loadingText : children}
         {icon && iconPosition === "right" && (
           <Icon
             name={icon}
-            styleType={iconVariant(styleType, variant)}
+            intent={iconVariant(intent, variant)}
             hasHover={true}
           />
         )}
@@ -140,8 +139,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   },
 );
 
-const iconVariant = (styleType: Style, variant: Variant | undefined) => {
-  return variant ? styleType : styleType === "default" ? "default" : "white";
+const iconVariant = (intent: Style, variant: Variant | undefined) => {
+  return variant ? intent : intent === "default" ? "default" : "white";
 };
 const textColorVariant = (style: Style) => {
   return style === "default"
@@ -151,16 +150,16 @@ const textColorVariant = (style: Style) => {
       : "text-white";
 };
 
-const variantClass = (styleType: Style) =>
-  `${styleToBgGradientColorMap[styleType]} ${styleToBgGradientHoverMap[styleType]} ${textColorVariant(styleType)} ${styleToButtonStateMap[styleType]} ${shadowClassesBase} shadow-stone-400/20`;
+const variantClass = (intent: Style) =>
+  `${styleToBgGradientColorMap[intent]} ${styleToBgGradientHoverMap[intent]} ${textColorVariant(intent)} ${styleToButtonStateMap[intent]} ${shadowClassesBase} shadow-stone-400/20`;
 
-const styleClasses = (styleType: Style, variant: Variant | undefined) => {
+const styleClasses = (intent: Style, variant: Variant | undefined) => {
   return {
-    outline: `border ${styleToBorderMap[styleType]} ${styleToTextMap[styleType]} ${styleToTextHoverMap[styleType]} ${styleToHoverShadowMap[styleType]} ${styleToBgTransparentActiveMap[styleType]} shadow-[5px_0px]`,
-    inverted: `${styleToTextMap[styleType]} ${colorToBgHoverMap30[styleToColorMap[styleType] as VariantColor]} ${colorToBgMap[styleToColorMap[styleType] as VariantColor]} ${colorToBgActiveMap50[styleToColorMap[styleType] as VariantColor]} ${shadowClassesBase}`,
-    ghost: `bg-transparent ${styleToTextMap[styleType]} ${colorToBgHoverMap10[styleToColorMap[styleType] as VariantColor]} ${colorToBgActiveMap25[styleToColorMap[styleType] as VariantColor]}`,
-    link: `bg-transparent ${styleToTextMap[styleType]} underline underline-offset-2 p-0 hover:bg-transparent ${styleToTextHoverMap[styleType]} ${styleToTextActiveMap[styleType]} active:underline-stone-500`,
-    secondary: `bg-stone-300 ${styleToTextMap[styleType]} hover:bg-stone-400/80 active:bg-stone-500/80`,
+    outline: `border ${styleToBorderMap[intent]} ${styleToTextMap[intent]} ${styleToTextHoverMap[intent]} ${styleToHoverShadowMap[intent]} ${styleToBgTransparentActiveMap[intent]} shadow-[5px_0px]`,
+    inverted: `${styleToTextMap[intent]} ${colorToBgHoverMap30[styleToColorMap[intent] as VariantColor]} ${colorToBgMap[styleToColorMap[intent] as VariantColor]} ${colorToBgActiveMap50[styleToColorMap[intent] as VariantColor]} ${shadowClassesBase}`,
+    ghost: `bg-transparent ${styleToTextMap[intent]} ${colorToBgHoverMap10[styleToColorMap[intent] as VariantColor]} ${colorToBgActiveMap25[styleToColorMap[intent] as VariantColor]}`,
+    link: `bg-transparent ${styleToTextMap[intent]} underline underline-offset-2 p-0 hover:bg-transparent ${styleToTextHoverMap[intent]} ${styleToTextActiveMap[intent]} active:underline-stone-500`,
+    secondary: `bg-stone-300 ${styleToTextMap[intent]} hover:bg-stone-400/80 active:bg-stone-500/80`,
     destructive: `bg-danger text-white hover:bg-red/80 active:bg-red/70`,
     default: `${styleToBgGradientColorMap["default"]} ${styleToBgGradientHoverMap["default"]} ${textColorVariant("default")} ${styleToButtonStateMap["default"]} ${shadowClassesBase} shadow-stone-400/20`,
   };

@@ -16,7 +16,7 @@ export interface InputProps
   labelHidden?: boolean;
   labelPosition?: "column" | "row";
   button?: ButtonProps;
-  styleType?: Style;
+  intent?: Style;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
@@ -31,7 +31,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       labelHidden,
       labelPosition,
       button,
-      styleType = "default",
+      intent = "default",
       ...inputProps
     },
     ref,
@@ -75,7 +75,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               className,
               "px-2",
               styleToActiveBorderMap[
-                styleType as keyof typeof styleToActiveBorderMap
+                intent as keyof typeof styleToActiveBorderMap
               ],
             )}
             placeholder={placeholder}
@@ -91,7 +91,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                     ? "right-2"
                     : "",
               )}
-              styleType={styleType}
+              intent={intent}
             />
           )}
           {button && <Button {...button} />}

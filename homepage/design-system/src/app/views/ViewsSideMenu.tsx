@@ -20,7 +20,7 @@ export function ViewsSideMenu() {
   return (
     <div className={clsx("sticky top-0", mobileMenuOpen ? "w-32" : "w-7")}>
       <Button
-        styleType="default"
+        intent="default"
         variant="link"
         icon={mobileMenuOpen ? "close" : "chevronRight"}
         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -31,7 +31,7 @@ export function ViewsSideMenu() {
           {designSystemTopics.map((topic) => (
             <div key={topic}>
               <Button
-                styleType="default"
+                intent="default"
                 variant="link"
                 onClick={() => router.push(`/views/${topic.toLowerCase()}`)}
               >

@@ -5,14 +5,14 @@ import { Style, styleToBgMap } from "../../utils/tailwindClassesMap";
 export function Switch({
   id,
   size = "md",
-  styleType = "primary",
+  intent = "primary",
   checked,
   onChange,
   label,
 }: {
   id: string;
   size?: "sm" | "md";
-  styleType?: Style;
+  intent?: Style;
   checked: boolean;
   onChange: (checked: boolean) => void;
   label?: string;
@@ -30,7 +30,7 @@ export function Switch({
         className={clsx(
           "rounded-full relative",
           size === "sm" ? "min-w-6 h-4" : "min-w-10 h-6",
-          checked ? styleToBgMap[styleType] : "bg-stone-200",
+          checked ? styleToBgMap[intent] : "bg-stone-200",
         )}
         checked={checked}
         onCheckedChange={onChange}

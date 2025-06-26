@@ -32,7 +32,7 @@ export function FrameworkSelect() {
         className="w-full justify-between"
         as={Button}
         variant="outline"
-        styleType="default"
+        intent="default"
       >
         {frameworkNames[selectedFramework].label}
         <Icon name="chevronDown" size="sm" />

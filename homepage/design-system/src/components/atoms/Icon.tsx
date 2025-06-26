@@ -151,7 +151,7 @@ export function Icon({
   name,
   icon,
   size = "md",
-  styleType = "default",
+  intent = "default",
   hasBackground = false,
   className,
   hasHover = false,
@@ -160,7 +160,7 @@ export function Icon({
   name?: IconName;
   icon?: LucideIcon;
   size?: keyof typeof sizes;
-  styleType?: Style | "white";
+  intent?: Style | "white";
   hasBackground?: boolean;
   className?: string;
   hasHover?: boolean;
@@ -212,10 +212,10 @@ export function Icon({
       strokeLinecap="round"
       className={clsx(
         roundedClasses[size as keyof typeof roundedClasses] || "rounded-lg",
-        iconClass[styleType as keyof typeof iconClass],
+        iconClass[intent as keyof typeof iconClass],
         hasBackground &&
-          backgroundClasses[styleType as keyof typeof backgroundClasses],
-        hasHover && iconHoverClass[styleType as keyof typeof iconHoverClass],
+          backgroundClasses[intent as keyof typeof backgroundClasses],
+        hasHover && iconHoverClass[intent as keyof typeof iconHoverClass],
         className,
       )}
       {...svgProps}

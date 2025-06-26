@@ -25,7 +25,7 @@ export default function Components() {
           checked={checked.sm}
           onChange={() => setChecked({ ...checked, sm: !checked.sm })}
           size="sm"
-          styleType="success"
+          intent="success"
         />
       </div>
     </div>
