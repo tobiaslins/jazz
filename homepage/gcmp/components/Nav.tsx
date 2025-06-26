@@ -7,7 +7,7 @@ export function GcmpNav() {
     <Button
       intent="success"
       variant="outline"
-      className="ml-3"
+      size="sm"
       href="mailto:hello@garden.co"
     >
       Contact us
