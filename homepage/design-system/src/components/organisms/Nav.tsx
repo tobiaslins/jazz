@@ -170,6 +170,7 @@ export function MobileNav({
                 {item.title}
               </NavLink>
             ))}
+          {cta}
         </div>
       </>
     ),
@@ -200,7 +201,6 @@ export function MobileNav({
         <NavLinkLogo prominent href="/" className="mr-auto">
           {mainLogo}
         </NavLinkLogo>
-        {cta}
         <button
           className="flex gap-2 p-3 rounded-xl items-center"
           onClick={() => {
