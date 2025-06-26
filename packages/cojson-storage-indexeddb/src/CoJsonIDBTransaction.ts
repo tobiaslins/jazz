@@ -9,7 +9,7 @@ export type StoreName =
 // in a single transaction.
 export class CoJsonIDBTransaction {
   db: IDBDatabase;
-  tx: IDBTransaction;
+  declare tx: IDBTransaction;
 
   pendingRequests: ((txEntry: this) => void)[] = [];
   rejectHandlers: (() => void)[] = [];
@@ -23,6 +23,10 @@ export class CoJsonIDBTransaction {
   constructor(db: IDBDatabase) {
     this.db = db;
 
+    this.refresh();
+  }
+
+  refresh() {
     this.tx = this.db.transaction(
       ["coValues", "sessions", "transactions", "signatureAfter"],
       "readwrite",
@@ -36,14 +40,17 @@ export class CoJsonIDBTransaction {
     };
   }
 
-  startedAt = performance.now();
   isReusable() {
-    const delta = performance.now() - this.startedAt;
-    return !this.done && !this.failed && delta <= 100;
+    return !this.done && !this.failed;
   }
 
   getObjectStore(name: StoreName) {
-    return this.tx.objectStore(name);
+    try {
+      return this.tx.objectStore(name);
+    } catch (error) {
+      this.refresh();
+      return this.tx.objectStore(name);
+    }
   }
 
   private pushRequest<T>(

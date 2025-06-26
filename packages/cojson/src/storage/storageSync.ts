@@ -1,11 +1,17 @@
+import { getIsUploaded } from "../SyncStateManager.js";
 import {
-  type CojsonInternalTypes,
   MAX_RECOMMENDED_TX_SIZE,
+  RawCoID,
   type SessionID,
   type StorageAPI,
-  cojsonInternals,
+} from "../exports.js";
+import { getPriorityFromHeader } from "../priority.js";
+import {
+  CoValueKnownState,
+  NewContentMessage,
   emptyKnownState,
-} from "cojson";
+} from "../sync.js";
+import { StorageKnownState } from "./knownState.js";
 import { collectNewTxs, getDependedOnCoValues } from "./syncUtils.js";
 import type {
   DBClientInterfaceSync,
@@ -13,8 +19,6 @@ import type {
   StoredCoValueRow,
   StoredSessionRow,
 } from "./types.js";
-
-type RawCoID = CojsonInternalTypes.RawCoID;
 
 export class StorageApiSync implements StorageAPI {
   private readonly dbClient: DBClientInterfaceSync;
@@ -24,15 +28,23 @@ export class StorageApiSync implements StorageAPI {
     this.dbClient = dbClient;
   }
 
-  knwonStates = new Map<string, CojsonInternalTypes.CoValueKnownState>();
+  knwonStates = new StorageKnownState();
 
-  getKnownState(id: string): CojsonInternalTypes.CoValueKnownState {
-    return this.knwonStates.get(id) ?? emptyKnownState(id as RawCoID);
+  getKnownState(id: string): CoValueKnownState {
+    return this.knwonStates.getKnownState(id);
   }
 
   async load(
     id: string,
-    callback: (data: CojsonInternalTypes.NewContentMessage) => void,
+    callback: (data: NewContentMessage) => void,
+    done: (found: boolean) => void,
+  ) {
+    await this.loadCoValue(id, callback, done);
+  }
+
+  async loadCoValue(
+    id: string,
+    callback: (data: NewContentMessage) => void,
     done?: (found: boolean) => void,
   ) {
     const coValueRow = this.dbClient.getCoValue(id);
@@ -61,14 +73,12 @@ export class StorageApiSync implements StorageAPI {
       }
     }
 
-    const knownState =
-      this.knwonStates.get(coValueRow.id) ?? emptyKnownState(coValueRow.id);
+    const knownState = this.knwonStates.getKnownState(coValueRow.id);
 
     for (const sessionRow of allCoValueSessions) {
       knownState.sessions[sessionRow.sessionID] = sessionRow.lastIdx;
     }
 
-    this.knwonStates.set(coValueRow.id, knownState);
     this.loadedCoValues.add(coValueRow.id);
 
     let contentMessage = {
@@ -76,8 +86,8 @@ export class StorageApiSync implements StorageAPI {
       id: coValueRow.id,
       header: coValueRow.header,
       new: {},
-      priority: cojsonInternals.getPriorityFromHeader(coValueRow.header),
-    } satisfies CojsonInternalTypes.NewContentMessage;
+      priority: getPriorityFromHeader(coValueRow.header),
+    } satisfies NewContentMessage;
 
     for (const sessionRow of allCoValueSessions) {
       const signatures = signaturesBySession.get(sessionRow.sessionID) || [];
@@ -117,8 +127,8 @@ export class StorageApiSync implements StorageAPI {
             id: coValueRow.id,
             header: coValueRow.header,
             new: {},
-            priority: cojsonInternals.getPriorityFromHeader(coValueRow.header),
-          } satisfies CojsonInternalTypes.NewContentMessage;
+            priority: getPriorityFromHeader(coValueRow.header),
+          } satisfies NewContentMessage;
 
           // Introduce a delay to not block the main thread
           // for the entire content processing
@@ -128,19 +138,22 @@ export class StorageApiSync implements StorageAPI {
     }
 
     if (Object.keys(contentMessage.new).length === 0 && contentStreaming) {
+      this.knwonStates.handleUpdate(coValueRow.id, knownState);
+
       done?.(true);
       return;
     }
 
     this.pushContentWithDependencies(coValueRow, contentMessage, callback);
 
+    this.knwonStates.handleUpdate(coValueRow.id, knownState);
     done?.(true);
   }
 
   async pushContentWithDependencies(
     coValueRow: StoredCoValueRow,
-    contentMessage: CojsonInternalTypes.NewContentMessage,
-    pushCallback: (data: CojsonInternalTypes.NewContentMessage) => void,
+    contentMessage: NewContentMessage,
+    pushCallback: (data: NewContentMessage) => void,
   ) {
     const dependedOnCoValuesList = getDependedOnCoValues(
       coValueRow.header,
@@ -152,7 +165,7 @@ export class StorageApiSync implements StorageAPI {
         continue;
       }
 
-      this.load(dependedOnCoValue, pushCallback);
+      this.loadCoValue(dependedOnCoValue, pushCallback);
     }
 
     pushCallback(contentMessage);
@@ -160,8 +173,8 @@ export class StorageApiSync implements StorageAPI {
 
   store(
     id: string,
-    msgs: CojsonInternalTypes.NewContentMessage[],
-    correctionCallback: (data: CojsonInternalTypes.CoValueKnownState) => void,
+    msgs: NewContentMessage[],
+    correctionCallback: (data: CoValueKnownState) => void,
   ) {
     for (const msg of msgs) {
       const success = this.storeSingle(id, msg, correctionCallback);
@@ -174,8 +187,8 @@ export class StorageApiSync implements StorageAPI {
 
   private storeSingle(
     id: string,
-    msg: CojsonInternalTypes.NewContentMessage,
-    correctionCallback: (data: CojsonInternalTypes.CoValueKnownState) => void,
+    msg: NewContentMessage,
+    correctionCallback: (data: CoValueKnownState) => void,
   ): boolean {
     const coValueRow = this.dbClient.getCoValue(id);
 
@@ -186,7 +199,7 @@ export class StorageApiSync implements StorageAPI {
       const knownState = emptyKnownState(id as RawCoID);
       correctionCallback(knownState);
 
-      this.knwonStates.set(id, knownState);
+      this.knwonStates.setKnownState(id, knownState);
 
       return false;
     }
@@ -195,9 +208,8 @@ export class StorageApiSync implements StorageAPI {
       ? coValueRow.rowID
       : this.dbClient.addCoValue(msg);
 
-    const knownState =
-      this.knwonStates.get(id) ?? emptyKnownState(id as RawCoID);
-    this.knwonStates.set(id, knownState);
+    const knownState = this.knwonStates.getKnownState(id);
+    knownState.header = true;
 
     let invalidAssumptions = false;
 
@@ -226,6 +238,8 @@ export class StorageApiSync implements StorageAPI {
       });
     }
 
+    this.knwonStates.handleUpdate(id, knownState);
+
     if (invalidAssumptions) {
       correctionCallback(knownState);
       return false;
@@ -235,7 +249,7 @@ export class StorageApiSync implements StorageAPI {
   }
 
   private putNewTxs(
-    msg: CojsonInternalTypes.NewContentMessage,
+    msg: NewContentMessage,
     sessionID: SessionID,
     sessionRow: StoredSessionRow | undefined,
     storedCoValueRowID: number,
@@ -299,4 +313,10 @@ export class StorageApiSync implements StorageAPI {
 
     return newLastIdx;
   }
+
+  waitForSync(id: string, knownState: CoValueKnownState) {
+    return this.knwonStates.waitForSync(id, knownState);
+  }
+
+  close() {}
 }

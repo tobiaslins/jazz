@@ -1,8 +1,8 @@
-import {
-  type CojsonInternalTypes,
-  type SessionID,
-  cojsonInternals,
-} from "cojson";
+import { getDependedOnCoValuesFromRawData } from "../coValueCore/utils.js";
+import type { CoValueHeader } from "../coValueCore/verifiedState.js";
+import type { Signature } from "../crypto/crypto.js";
+import type { SessionID } from "../exports.js";
+import type { NewContentMessage } from "../sync.js";
 import type { StoredSessionRow, TransactionRow } from "./types.js";
 
 export function collectNewTxs({
@@ -13,9 +13,9 @@ export function collectNewTxs({
   signature,
 }: {
   newTxsInSession: TransactionRow[];
-  contentMessage: CojsonInternalTypes.NewContentMessage;
+  contentMessage: NewContentMessage;
   sessionRow: StoredSessionRow;
-  signature: CojsonInternalTypes.Signature;
+  signature: Signature;
   firstNewTxIdx: number;
 }) {
   let sessionEntry = contentMessage.new[sessionRow.sessionID];
@@ -23,7 +23,7 @@ export function collectNewTxs({
   if (!sessionEntry) {
     sessionEntry = {
       after: firstNewTxIdx,
-      lastSignature: "WILL_BE_REPLACED" as CojsonInternalTypes.Signature,
+      lastSignature: "WILL_BE_REPLACED" as Signature,
       newTransactions: [],
     };
     contentMessage.new[sessionRow.sessionID] = sessionEntry;
@@ -37,8 +37,8 @@ export function collectNewTxs({
 }
 
 export function getDependedOnCoValues(
-  header: CojsonInternalTypes.CoValueHeader,
-  contentMessage: CojsonInternalTypes.NewContentMessage,
+  header: CoValueHeader,
+  contentMessage: NewContentMessage,
 ) {
   const id = contentMessage.id;
   const sessionIDs = Object.keys(contentMessage.new) as SessionID[];
@@ -46,10 +46,5 @@ export function getDependedOnCoValues(
     (entry) => entry.newTransactions,
   );
 
-  return cojsonInternals.getDependedOnCoValuesFromRawData(
-    id,
-    header,
-    sessionIDs,
-    transactions,
-  );
+  return getDependedOnCoValuesFromRawData(id, header, sessionIDs, transactions);
 }

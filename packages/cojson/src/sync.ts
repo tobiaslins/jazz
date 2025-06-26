@@ -159,12 +159,6 @@ export class SyncManager {
     );
   }
 
-  hasStoragePeers(): boolean {
-    return this.getPeers().some(
-      (peer) => peer.role === "storage" && !peer.closed,
-    );
-  }
-
   handleSyncMessage(msg: SyncMessage, peer: PeerState) {
     if (msg.id === undefined || msg.id === null) {
       logger.warn("Received sync message with undefined id", {
@@ -670,20 +664,7 @@ export class SyncManager {
     const syncedPeers = [];
 
     if (sourcePeer && this.local.storage) {
-      this.local.storage.store(coValue.id, [msg], (correction) => {
-        if (!coValue.verified) return;
-        if (!this.local.storage) return;
-
-        const newContentPieces = coValue.verified.newContentSince(correction);
-
-        if (!newContentPieces) return;
-
-        this.local.storage.store(coValue.id, newContentPieces, () => {
-          logger.error(
-            "Correction requested by storage after sending a correction content",
-          );
-        });
-      });
+      this.storeCoValue(coValue, [msg]);
     }
 
     for (const peer of this.peersInPriorityOrder()) {
@@ -750,6 +731,29 @@ export class SyncManager {
     this.requestedSyncs.add(coValue.id);
   }
 
+  storeCoValue(coValue: CoValueCore, data: NewContentMessage[] | undefined) {
+    const storage = this.local.storage;
+
+    if (!storage || !data) return;
+
+    storage.store(coValue.id, data, (correction) => {
+      if (!coValue.verified) return;
+
+      const newContentPieces = coValue.verified.newContentSince(correction);
+
+      if (!newContentPieces) return;
+
+      storage.store(coValue.id, newContentPieces, (response) => {
+        logger.error(
+          "Correction requested by storage after sending a correction content",
+          {
+            response,
+          },
+        );
+      });
+    });
+  }
+
   syncCoValue(coValue: CoValueCore) {
     this.requestedSyncs.delete(coValue.id);
 
@@ -757,11 +761,7 @@ export class SyncManager {
       const knownState = this.local.storage.getKnownState(coValue.id);
       const newContentPieces = coValue.verified.newContentSince(knownState);
 
-      this.local.storage.store(coValue.id, newContentPieces, () => {
-        logger.error(
-          "Correction requested by storage after sending a correction content",
-        );
-      });
+      this.storeCoValue(coValue, newContentPieces);
     }
 
     for (const peer of this.peersInPriorityOrder()) {
@@ -828,13 +828,10 @@ export class SyncManager {
     });
   }
 
-  waitForStorageSync(id: RawCoID, timeout = 30_000) {
-    const peers = this.getPeers();
-
-    return Promise.all(
-      peers
-        .filter((peer) => peer.role === "storage")
-        .map((peer) => this.waitForSyncWithPeer(peer.id, id, timeout)),
+  waitForStorageSync(id: RawCoID) {
+    return this.local.storage?.waitForSync(
+      id,
+      this.local.getCoValue(id).knownState(),
     );
   }
 
@@ -842,7 +839,9 @@ export class SyncManager {
     const peers = this.getPeers();
 
     return Promise.all(
-      peers.map((peer) => this.waitForSyncWithPeer(peer.id, id, timeout)),
+      peers
+        .map((peer) => this.waitForSyncWithPeer(peer.id, id, timeout))
+        .concat(this.waitForStorageSync(id)),
     );
   }
 

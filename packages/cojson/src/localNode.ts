@@ -34,7 +34,7 @@ import {
 import { AgentSecret, CryptoProvider } from "./crypto/crypto.js";
 import { AgentID, RawCoID, SessionID, isAgentID } from "./ids.js";
 import { logger } from "./logger.js";
-import { StorageAPI } from "./storageApi.js";
+import { StorageAPI } from "./storage/index.js";
 import { Peer, PeerID, SyncManager } from "./sync.js";
 import { accountOrAgentIDfromSessionID } from "./typeUtils/accountOrAgentIDfromSessionID.js";
 import { expectGroup } from "./typeUtils/expectGroup.js";
@@ -249,7 +249,7 @@ export class LocalNode {
       throw new Error("Must set account profile in initial migration");
     }
 
-    if (node.syncManager.hasStoragePeers()) {
+    if (node.storage) {
       await Promise.all([
         node.syncManager.waitForStorageSync(account.id),
         node.syncManager.waitForStorageSync(profileId),
@@ -755,6 +755,7 @@ export class LocalNode {
   }
 
   gracefulShutdown() {
+    this.storage?.close();
     this.syncManager.gracefulShutdown();
   }
 }

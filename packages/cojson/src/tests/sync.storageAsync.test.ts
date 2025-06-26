@@ -18,7 +18,7 @@ describe("client with storage syncs with server", () => {
     const client = setupTestNode();
 
     client.connectToSyncServer();
-    client.addStorage();
+    await client.addAsyncStorage();
 
     const group = jazzCloud.node.createGroup();
     const map = group.createMap();
@@ -50,7 +50,7 @@ describe("client with storage syncs with server", () => {
     const client = setupTestNode();
 
     client.connectToSyncServer();
-    const { storage } = client.addStorage();
+    const { storage } = await client.addAsyncStorage();
 
     jazzCloud.node.setStorage(storage);
 
@@ -69,9 +69,9 @@ describe("client with storage syncs with server", () => {
     ).toMatchInlineSnapshot(`
       [
         "client -> storage | LOAD Map sessions: empty",
-        "client -> server | LOAD Map sessions: empty",
         "client -> storage | CONTENT Group header: true new: After: 0 New: 3",
         "client -> storage | CONTENT Map header: true new: After: 0 New: 1",
+        "client -> server | LOAD Map sessions: empty",
         "server -> client | CONTENT Group header: true new: After: 0 New: 3",
         "client -> server | KNOWN Group sessions: header/3",
         "client -> storage | CONTENT Group header: true new: After: 0 New: 3",
@@ -86,7 +86,7 @@ describe("client with storage syncs with server", () => {
     const client = setupTestNode();
 
     client.connectToSyncServer();
-    client.addStorage();
+    await client.addAsyncStorage();
 
     const group = jazzCloud.node.createGroup();
     const parentGroup = jazzCloud.node.createGroup();
@@ -127,7 +127,7 @@ describe("client with storage syncs with server", () => {
     const client = setupTestNode();
 
     client.connectToSyncServer();
-    client.addStorage();
+    await client.addAsyncStorage();
 
     const group = jazzCloud.node.createGroup();
     const map = group.createMap();
@@ -146,6 +146,8 @@ describe("client with storage syncs with server", () => {
     await map.core.waitForSync();
 
     expect(mapOnClient.get("hello")).toEqual("updated");
+
+    await mapOnClient.core.waitForSync();
 
     expect(
       SyncMessagesLog.getMessages({

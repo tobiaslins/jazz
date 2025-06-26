@@ -1,11 +1,17 @@
+import { LinkedList } from "../PriorityBasedMessageQueue.js";
 import {
-  type CojsonInternalTypes,
   MAX_RECOMMENDED_TX_SIZE,
+  RawCoID,
   type SessionID,
   type StorageAPI,
-  cojsonInternals,
+} from "../exports.js";
+import { getPriorityFromHeader } from "../priority.js";
+import {
+  CoValueKnownState,
+  NewContentMessage,
   emptyKnownState,
-} from "cojson";
+} from "../sync.js";
+import { StorageKnownState } from "./knownState.js";
 import { collectNewTxs, getDependedOnCoValues } from "./syncUtils.js";
 import type {
   DBClientInterfaceAsync,
@@ -13,8 +19,6 @@ import type {
   StoredCoValueRow,
   StoredSessionRow,
 } from "./types.js";
-
-type RawCoID = CojsonInternalTypes.RawCoID;
 
 export class StorageApiAsync implements StorageAPI {
   private readonly dbClient: DBClientInterfaceAsync;
@@ -25,16 +29,24 @@ export class StorageApiAsync implements StorageAPI {
     this.dbClient = dbClient;
   }
 
-  knwonStates = new Map<string, CojsonInternalTypes.CoValueKnownState>();
+  knwonStates = new StorageKnownState();
 
-  getKnownState(id: string): CojsonInternalTypes.CoValueKnownState {
-    return this.knwonStates.get(id) ?? emptyKnownState(id as RawCoID);
+  getKnownState(id: string): CoValueKnownState {
+    return this.knwonStates.getKnownState(id);
   }
 
   async load(
     id: string,
-    callback: (data: CojsonInternalTypes.NewContentMessage) => void,
-    done?: (found: boolean) => void,
+    callback: (data: NewContentMessage) => void,
+    done: (found: boolean) => void,
+  ) {
+    await this.loadCoValue(id, callback, done);
+  }
+
+  async loadCoValue(
+    id: string,
+    callback: (data: NewContentMessage) => void,
+    done: (found: boolean) => void,
   ) {
     const coValueRow = await this.dbClient.getCoValue(id);
 
@@ -68,14 +80,12 @@ export class StorageApiAsync implements StorageAPI {
       }),
     );
 
-    const knownState =
-      this.knwonStates.get(coValueRow.id) ?? emptyKnownState(coValueRow.id);
+    const knownState = this.knwonStates.getKnownState(coValueRow.id);
 
     for (const sessionRow of allCoValueSessions) {
       knownState.sessions[sessionRow.sessionID] = sessionRow.lastIdx;
     }
 
-    this.knwonStates.set(coValueRow.id, knownState);
     this.loadedCoValues.add(coValueRow.id);
 
     let contentMessage = {
@@ -83,8 +93,8 @@ export class StorageApiAsync implements StorageAPI {
       id: coValueRow.id,
       header: coValueRow.header,
       new: {},
-      priority: cojsonInternals.getPriorityFromHeader(coValueRow.header),
-    } satisfies CojsonInternalTypes.NewContentMessage;
+      priority: getPriorityFromHeader(coValueRow.header),
+    } satisfies NewContentMessage;
 
     for (const sessionRow of allCoValueSessions) {
       const signatures = signaturesBySession.get(sessionRow.sessionID) || [];
@@ -114,7 +124,7 @@ export class StorageApiAsync implements StorageAPI {
         idx = signature.idx + 1;
 
         if (signatures.length > 1) {
-          this.pushContentWithDependencies(
+          await this.pushContentWithDependencies(
             coValueRow,
             contentMessage,
             callback,
@@ -124,74 +134,98 @@ export class StorageApiAsync implements StorageAPI {
             id: coValueRow.id,
             header: coValueRow.header,
             new: {},
-            priority: cojsonInternals.getPriorityFromHeader(coValueRow.header),
-          } satisfies CojsonInternalTypes.NewContentMessage;
+            priority: getPriorityFromHeader(coValueRow.header),
+          } satisfies NewContentMessage;
         }
       }
     }
 
     if (Object.keys(contentMessage.new).length === 0 && contentStreaming) {
+      this.knwonStates.handleUpdate(coValueRow.id, knownState);
       done?.(true);
       return;
     }
 
-    this.pushContentWithDependencies(coValueRow, contentMessage, callback);
+    await this.pushContentWithDependencies(
+      coValueRow,
+      contentMessage,
+      callback,
+    );
+    this.knwonStates.handleUpdate(coValueRow.id, knownState);
     done?.(true);
   }
 
   async pushContentWithDependencies(
     coValueRow: StoredCoValueRow,
-    contentMessage: CojsonInternalTypes.NewContentMessage,
-    pushCallback: (data: CojsonInternalTypes.NewContentMessage) => void,
+    contentMessage: NewContentMessage,
+    pushCallback: (data: NewContentMessage) => void,
   ) {
     const dependedOnCoValuesList = getDependedOnCoValues(
       coValueRow.header,
       contentMessage,
     );
 
+    const promises = [];
+
     for (const dependedOnCoValue of dependedOnCoValuesList) {
       if (this.loadedCoValues.has(dependedOnCoValue)) {
         continue;
       }
 
-      this.load(dependedOnCoValue, pushCallback);
+      promises.push(
+        new Promise((resolve) => {
+          this.loadCoValue(dependedOnCoValue, pushCallback, resolve);
+        }),
+      );
     }
+
+    await Promise.all(promises);
 
     pushCallback(contentMessage);
   }
 
-  storeQueue = new Map<string, CojsonInternalTypes.NewContentMessage[]>();
+  storeQueue = createStoreQueue();
+  processingStoreQueue = false;
 
   async store(
-    id: string,
-    msgs: CojsonInternalTypes.NewContentMessage[],
-    correctionCallback: (data: CojsonInternalTypes.CoValueKnownState) => void,
+    id: string, // TODO: Remove this
+    msgs: NewContentMessage[],
+    correctionCallback: (data: CoValueKnownState) => void,
   ) {
-    const queue = this.storeQueue.get(id);
+    this.storeQueue.push({ data: msgs, correctionCallback });
 
-    if (queue) {
-      queue.push(...msgs);
+    if (this.processingStoreQueue) {
       return;
     }
 
-    this.storeQueue.set(id, msgs);
+    this.processingStoreQueue = true;
 
-    for (const msg of msgs) {
-      const success = await this.storeSingle(id, msg, correctionCallback);
+    let entry:
+      | {
+          data: NewContentMessage[];
+          correctionCallback: (data: CoValueKnownState) => void;
+        }
+      | undefined;
 
-      if (!success) {
-        return false;
+    while ((entry = this.storeQueue.shift())) {
+      for (const msg of entry.data) {
+        const success = await this.storeSingle(msg, entry.correctionCallback);
+
+        if (!success) {
+          // Stop processing the messages for this entry, because the data is out of sync with storage
+          break;
+        }
       }
     }
 
-    this.storeQueue.delete(id);
+    this.processingStoreQueue = false;
   }
 
   private async storeSingle(
-    id: string,
-    msg: CojsonInternalTypes.NewContentMessage,
-    correctionCallback: (data: CojsonInternalTypes.CoValueKnownState) => void,
+    msg: NewContentMessage,
+    correctionCallback: (data: CoValueKnownState) => void,
   ): Promise<boolean> {
+    const id = msg.id;
     const coValueRow = await this.dbClient.getCoValue(id);
 
     // We have no info about coValue header
@@ -199,9 +233,8 @@ export class StorageApiAsync implements StorageAPI {
 
     if (invalidAssumptionOnHeaderPresence) {
       const knownState = emptyKnownState(id as RawCoID);
-      this.knwonStates.set(id, knownState);
+      this.knwonStates.setKnownState(id, knownState);
 
-      this.storeQueue.delete(id);
       correctionCallback(knownState);
       return false;
     }
@@ -210,9 +243,8 @@ export class StorageApiAsync implements StorageAPI {
       ? coValueRow.rowID
       : await this.dbClient.addCoValue(msg);
 
-    const knownState =
-      this.knwonStates.get(id) ?? emptyKnownState(id as RawCoID);
-    this.knwonStates.set(id, knownState);
+    const knownState = this.knwonStates.getKnownState(id);
+    knownState.header = true;
 
     let invalidAssumptions = false;
 
@@ -227,7 +259,11 @@ export class StorageApiAsync implements StorageAPI {
           knownState.sessions[sessionRow.sessionID] = sessionRow.lastIdx;
         }
 
-        if ((sessionRow?.lastIdx || 0) < (msg.new[sessionID]?.after || 0)) {
+        const lastIdx = sessionRow?.lastIdx || 0;
+        const after = msg.new[sessionID]?.after || 0;
+
+        if (lastIdx < after) {
+          knownState.sessions[sessionID] = lastIdx;
           invalidAssumptions = true;
         } else {
           const newLastIdx = await this.putNewTxs(
@@ -241,8 +277,9 @@ export class StorageApiAsync implements StorageAPI {
       });
     }
 
+    this.knwonStates.handleUpdate(id, knownState);
+
     if (invalidAssumptions) {
-      this.storeQueue.delete(id);
       correctionCallback(knownState);
       return false;
     }
@@ -251,7 +288,7 @@ export class StorageApiAsync implements StorageAPI {
   }
 
   private async putNewTxs(
-    msg: CojsonInternalTypes.NewContentMessage,
+    msg: NewContentMessage,
     sessionID: SessionID,
     sessionRow: StoredSessionRow | undefined,
     storedCoValueRowID: number,
@@ -317,4 +354,27 @@ export class StorageApiAsync implements StorageAPI {
 
     return newLastIdx;
   }
+
+  waitForSync(id: string, knownState: CoValueKnownState) {
+    return this.knwonStates.waitForSync(id, knownState);
+  }
+
+  close() {
+    let entry:
+      | {
+          data: NewContentMessage[];
+          correctionCallback: (data: CoValueKnownState) => void;
+        }
+      | undefined;
+
+    // Drain the store queue
+    while ((entry = this.storeQueue.shift())) {}
+  }
+}
+
+function createStoreQueue() {
+  return new LinkedList<{
+    data: NewContentMessage[];
+    correctionCallback: (data: CoValueKnownState) => void;
+  }>();
 }

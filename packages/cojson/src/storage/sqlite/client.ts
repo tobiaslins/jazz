@@ -1,20 +1,23 @@
-import { type CojsonInternalTypes, type SessionID, logger } from "cojson";
 import type {
-  DBClientInterfaceAsync,
+  CoValueHeader,
+  Transaction,
+} from "../../coValueCore/verifiedState.js";
+import type { Signature } from "../../crypto/crypto.js";
+import type { RawCoID, SessionID } from "../../exports.js";
+import { logger } from "../../logger.js";
+import type { NewContentMessage } from "../../sync.js";
+import type {
+  DBClientInterfaceSync,
   SessionRow,
   SignatureAfterRow,
   StoredCoValueRow,
   StoredSessionRow,
   TransactionRow,
 } from "../types.js";
-import type { SQLiteDatabaseDriverAsync } from "./types.js";
-
-type RawCoID = CojsonInternalTypes.RawCoID;
-type Signature = CojsonInternalTypes.Signature;
-type Transaction = CojsonInternalTypes.Transaction;
+import type { SQLiteDatabaseDriver } from "./types.js";
 
 export type RawCoValueRow = {
-  id: CojsonInternalTypes.RawCoID;
+  id: RawCoID;
   header: string;
 };
 
@@ -28,15 +31,15 @@ export function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Unknown error";
 }
 
-export class SQLiteClientAsync implements DBClientInterfaceAsync {
-  private readonly db: SQLiteDatabaseDriverAsync;
+export class SQLiteClient implements DBClientInterfaceSync {
+  private readonly db: SQLiteDatabaseDriver;
 
-  constructor(db: SQLiteDatabaseDriverAsync) {
+  constructor(db: SQLiteDatabaseDriver) {
     this.db = db;
   }
 
-  async getCoValue(coValueId: RawCoID): Promise<StoredCoValueRow | undefined> {
-    const coValueRow = await this.db.get<RawCoValueRow & { rowID: number }>(
+  getCoValue(coValueId: RawCoID): StoredCoValueRow | undefined {
+    const coValueRow = this.db.get<RawCoValueRow & { rowID: number }>(
       "SELECT * FROM coValues WHERE id = ?",
       [coValueId],
     );
@@ -45,7 +48,7 @@ export class SQLiteClientAsync implements DBClientInterfaceAsync {
 
     try {
       const parsedHeader = (coValueRow?.header &&
-        JSON.parse(coValueRow.header)) as CojsonInternalTypes.CoValueHeader;
+        JSON.parse(coValueRow.header)) as CoValueHeader;
 
       return {
         ...coValueRow,
@@ -61,32 +64,32 @@ export class SQLiteClientAsync implements DBClientInterfaceAsync {
     }
   }
 
-  async getCoValueSessions(coValueRowId: number): Promise<StoredSessionRow[]> {
+  getCoValueSessions(coValueRowId: number): StoredSessionRow[] {
     return this.db.query<StoredSessionRow>(
       "SELECT * FROM sessions WHERE coValue = ?",
       [coValueRowId],
-    );
+    ) as StoredSessionRow[];
   }
 
-  async getSingleCoValueSession(
+  getSingleCoValueSession(
     coValueRowId: number,
     sessionID: SessionID,
-  ): Promise<StoredSessionRow | undefined> {
+  ): StoredSessionRow | undefined {
     return this.db.get<StoredSessionRow>(
       "SELECT * FROM sessions WHERE coValue = ? AND sessionID = ?",
       [coValueRowId, sessionID],
     );
   }
 
-  async getNewTransactionInSession(
+  getNewTransactionInSession(
     sessionRowId: number,
     fromIdx: number,
     toIdx: number,
-  ): Promise<TransactionRow[]> {
-    const txs = await this.db.query<RawTransactionRow>(
+  ): TransactionRow[] {
+    const txs = this.db.query<RawTransactionRow>(
       "SELECT * FROM transactions WHERE ses = ? AND idx >= ? AND idx <= ?",
       [sessionRowId, fromIdx, toIdx],
-    );
+    ) as RawTransactionRow[];
 
     try {
       return txs.map((transactionRow) => ({
@@ -99,20 +102,18 @@ export class SQLiteClientAsync implements DBClientInterfaceAsync {
     }
   }
 
-  async getSignatures(
+  getSignatures(
     sessionRowId: number,
     firstNewTxIdx: number,
-  ): Promise<SignatureAfterRow[]> {
+  ): SignatureAfterRow[] {
     return this.db.query<SignatureAfterRow>(
       "SELECT * FROM signatureAfter WHERE ses = ? AND idx >= ?",
       [sessionRowId, firstNewTxIdx],
-    );
+    ) as SignatureAfterRow[];
   }
 
-  async addCoValue(
-    msg: CojsonInternalTypes.NewContentMessage,
-  ): Promise<number> {
-    const result = await this.db.get<{ rowID: number }>(
+  addCoValue(msg: NewContentMessage): number {
+    const result = this.db.get<{ rowID: number }>(
       "INSERT INTO coValues (id, header) VALUES (?, ?) RETURNING rowID",
       [msg.id, JSON.stringify(msg.header)],
     );
@@ -124,12 +125,12 @@ export class SQLiteClientAsync implements DBClientInterfaceAsync {
     return result.rowID;
   }
 
-  async addSessionUpdate({
+  addSessionUpdate({
     sessionUpdate,
   }: {
     sessionUpdate: SessionRow;
-  }): Promise<number> {
-    const result = await this.db.get<{ rowID: number }>(
+  }): number {
+    const result = this.db.get<{ rowID: number }>(
       `INSERT INTO sessions (coValue, sessionID, lastIdx, lastSignature, bytesSinceLastSignature) VALUES (?, ?, ?, ?, ?)
                             ON CONFLICT(coValue, sessionID) DO UPDATE SET lastIdx=excluded.lastIdx, lastSignature=excluded.lastSignature, bytesSinceLastSignature=excluded.bytesSinceLastSignature
                             RETURNING rowID`,
@@ -161,7 +162,7 @@ export class SQLiteClientAsync implements DBClientInterfaceAsync {
     ]);
   }
 
-  async addSignatureAfter({
+  addSignatureAfter({
     sessionRowID,
     idx,
     signature,
@@ -172,7 +173,8 @@ export class SQLiteClientAsync implements DBClientInterfaceAsync {
     );
   }
 
-  async transaction(operationsCallback: () => unknown) {
-    return this.db.transaction(operationsCallback);
+  transaction(operationsCallback: () => unknown) {
+    this.db.transaction(operationsCallback);
+    return undefined;
   }
 }

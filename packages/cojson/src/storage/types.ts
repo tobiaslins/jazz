@@ -1,11 +1,33 @@
-import type { CojsonInternalTypes, SessionID } from "cojson";
+import type {
+  CoValueHeader,
+  Transaction,
+} from "../coValueCore/verifiedState.js";
+import { Signature } from "../crypto/crypto.js";
+import type { RawCoID, SessionID } from "../exports.js";
+import { CoValueKnownState, NewContentMessage } from "../sync.js";
 
-type Transaction = CojsonInternalTypes.Transaction;
-type Signature = CojsonInternalTypes.Signature;
+export interface StorageAPI {
+  load(
+    id: string,
+    callback: (data: NewContentMessage) => void,
+    done?: (found: boolean) => void,
+  ): void;
+  store(
+    id: string,
+    data: NewContentMessage[] | undefined,
+    handleCorrection: (correction: CoValueKnownState) => void,
+  ): void;
+
+  getKnownState(id: string): CoValueKnownState;
+
+  waitForSync(id: string, knownState: CoValueKnownState): Promise<void>;
+
+  close(): void;
+}
 
 export type CoValueRow = {
-  id: CojsonInternalTypes.RawCoID;
-  header: CojsonInternalTypes.CoValueHeader;
+  id: RawCoID;
+  header: CoValueHeader;
 };
 
 export type StoredCoValueRow = CoValueRow & { rowID: number };
@@ -14,7 +36,7 @@ export type SessionRow = {
   coValue: number;
   sessionID: SessionID;
   lastIdx: number;
-  lastSignature: CojsonInternalTypes.Signature;
+  lastSignature: Signature;
   bytesSinceLastSignature?: number;
 };
 
@@ -23,13 +45,13 @@ export type StoredSessionRow = SessionRow & { rowID: number };
 export type TransactionRow = {
   ses: number;
   idx: number;
-  tx: CojsonInternalTypes.Transaction;
+  tx: Transaction;
 };
 
 export type SignatureAfterRow = {
   ses: number;
   idx: number;
-  signature: CojsonInternalTypes.Signature;
+  signature: Signature;
 };
 
 export interface DBClientInterfaceAsync {
@@ -55,7 +77,7 @@ export interface DBClientInterfaceAsync {
     firstNewTxIdx: number,
   ): Promise<SignatureAfterRow[]>;
 
-  addCoValue(msg: CojsonInternalTypes.NewContentMessage): Promise<number>;
+  addCoValue(msg: NewContentMessage): Promise<number>;
 
   addSessionUpdate({
     sessionUpdate,
@@ -105,7 +127,7 @@ export interface DBClientInterfaceSync {
     firstNewTxIdx: number,
   ): Pick<SignatureAfterRow, "idx" | "signature">[];
 
-  addCoValue(msg: CojsonInternalTypes.NewContentMessage): number;
+  addCoValue(msg: NewContentMessage): number;
 
   addSessionUpdate({
     sessionUpdate,

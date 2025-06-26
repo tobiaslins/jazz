@@ -2,7 +2,7 @@ import { createServer } from "http";
 import { mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
 import { LocalNode } from "cojson";
-import { getSqliteStorage } from "cojson-storage-sqlite";
+import { getBetterSqliteStorage } from "cojson-storage-sqlite";
 import { createWebSocketPeer } from "cojson-transport-ws";
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { WebSocketServer } from "ws";
@@ -38,7 +38,7 @@ export const startSyncServer = async ({
   if (!inMemory) {
     await mkdir(dirname(db), { recursive: true });
 
-    const storage = getSqliteStorage(db);
+    const storage = getBetterSqliteStorage(db);
 
     localNode.setStorage(storage);
   }

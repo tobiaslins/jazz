@@ -42,7 +42,7 @@ function JazzAndAuth({ children }: { children: React.ReactNode }) {
   return (
     <JazzReactProvider
       sync={{
-        peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
+        peer: `ws://127.0.0.1:4200?key=${apiKey}`,
       }}
       AccountSchema={TodoAccount}
     >
