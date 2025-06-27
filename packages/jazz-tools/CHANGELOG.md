@@ -1,5 +1,16 @@
 # jazz-tools
 
+## 0.15.3
+
+### Patch Changes
+
+- 45f73a7: fix image `originalSize` to be coherent with the highest resolution
+- Updated dependencies [535c460]
+  - cojson-storage-indexeddb@0.15.3
+  - cojson@0.15.3
+  - cojson-storage@0.15.3
+  - cojson-transport-ws@0.15.3
+
 ## 0.15.2
 
 ### Patch Changes
