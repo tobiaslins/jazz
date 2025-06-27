@@ -147,7 +147,7 @@ function trackStorageMessages(
   const originalStore = storage.store;
   const originalLoad = storage.load;
 
-  storage.store = function (id, data, correctionCallback) {
+  storage.store = function (data, correctionCallback) {
     for (const msg of data ?? []) {
       SyncMessagesLog.add({
         from: nodeName,
@@ -156,7 +156,7 @@ function trackStorageMessages(
       });
     }
 
-    return originalStore.call(storage, id, data, (correction) => {
+    return originalStore.call(storage, data, (correction) => {
       SyncMessagesLog.add({
         from: storageName,
         to: nodeName,

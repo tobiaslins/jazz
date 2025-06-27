@@ -171,12 +171,11 @@ export class StorageApiSync implements StorageAPI {
   }
 
   store(
-    id: string,
     msgs: NewContentMessage[],
     correctionCallback: (data: CoValueKnownState) => void,
   ) {
     for (const msg of msgs) {
-      const success = this.storeSingle(id, msg, correctionCallback);
+      const success = this.storeSingle(msg, correctionCallback);
 
       if (!success) {
         return false;
@@ -185,10 +184,10 @@ export class StorageApiSync implements StorageAPI {
   }
 
   private storeSingle(
-    id: string,
     msg: NewContentMessage,
     correctionCallback: (data: CoValueKnownState) => void,
   ): boolean {
+    const id = msg.id;
     const coValueRow = this.dbClient.getCoValue(id);
 
     // We have no info about coValue header

@@ -35,18 +35,14 @@ export function trackMessages() {
     );
   };
 
-  StorageApiAsync.prototype.store = async function (
-    id,
-    data,
-    correctionCallback,
-  ) {
+  StorageApiAsync.prototype.store = async function (data, correctionCallback) {
     for (const msg of data) {
       messages.push({
         from: "client",
         msg,
       });
     }
-    return originalStore.call(this, id, data, (msg) => {
+    return originalStore.call(this, data, (msg) => {
       messages.push({
         from: "storage",
         msg: {

@@ -452,15 +452,17 @@ test("should recover missing dependencies from storage", async () => {
     .spyOn(StorageApiSync.prototype, "store")
     .mockImplementation(function (
       this: StorageApiSync,
-      id,
       data,
       correctionCallback,
     ) {
-      if ([group.core.id, account.core.id as string].includes(id)) {
+      if (
+        data[0]?.id &&
+        [group.core.id, account.core.id as string].includes(data[0].id)
+      ) {
         return false;
       }
 
-      return store.call(this, id, data, correctionCallback);
+      return store.call(this, data, correctionCallback);
     });
 
   const { storage, dbPath } = createSQLiteStorage();

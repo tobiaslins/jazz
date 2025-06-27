@@ -727,14 +727,16 @@ export class SyncManager {
 
     if (!storage || !data) return;
 
-    storage.store(coValue.id, data, (correction) => {
+    // Try to store the content as-is for performance
+    // In case that some transactions are missing, a correction will be requested, but it's an edge case
+    storage.store(data, (correction) => {
       if (!coValue.verified) return;
 
       const newContentPieces = coValue.verified.newContentSince(correction);
 
       if (!newContentPieces) return;
 
-      storage.store(coValue.id, newContentPieces, (response) => {
+      storage.store(newContentPieces, (response) => {
         logger.error(
           "Correction requested by storage after sending a correction content",
           {

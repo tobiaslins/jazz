@@ -191,7 +191,6 @@ export class StorageApiAsync implements StorageAPI {
   processingStoreQueue = false;
 
   async store(
-    id: string, // TODO: Remove this
     msgs: NewContentMessage[],
     correctionCallback: (data: CoValueKnownState) => void,
   ) {
