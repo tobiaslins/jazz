@@ -23,7 +23,6 @@ import {
   ThemeProvider,
   TitleAndLogo,
 } from "./basicComponents/index.ts";
-import { TaskGenerator } from "./components/TaskGenerator.tsx";
 import { wordlist } from "./wordlist.ts";
 
 /**
@@ -42,7 +41,7 @@ function JazzAndAuth({ children }: { children: React.ReactNode }) {
   return (
     <JazzReactProvider
       sync={{
-        peer: `ws://127.0.0.1:4200?key=${apiKey}`,
+        peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
       }}
       AccountSchema={TodoAccount}
     >
@@ -90,10 +89,6 @@ export default function App() {
     {
       path: "/invite/*",
       element: <p>Accepting invite...</p>,
-    },
-    {
-      path: "/generate",
-      element: <TaskGenerator />,
     },
   ]);
 
