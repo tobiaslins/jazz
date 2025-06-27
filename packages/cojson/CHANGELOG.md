@@ -1,5 +1,11 @@
 # cojson
 
+## 0.15.4
+
+### Patch Changes
+
+- 277e4d4: Fix sync with circular deps
+
 ## 0.15.3
 
 ## 0.15.2
