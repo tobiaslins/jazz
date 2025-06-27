@@ -1,5 +1,13 @@
 # cojson-storage-indexeddb
 
+## 0.15.3
+
+### Patch Changes
+
+- 535c460: Refresh the IndexedDB transaction when getting "Failed to execute 'objectStore' on 'IDBTransaction': The transaction has finished"
+  - cojson@0.15.3
+  - cojson-storage@0.15.3
+
 ## 0.15.2
 
 ### Patch Changes

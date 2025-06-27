@@ -198,7 +198,17 @@ export class SyncManager {
     }
   }
 
-  sendNewContentIncludingDependencies(id: RawCoID, peer: PeerState) {
+  sendNewContentIncludingDependencies(
+    id: RawCoID,
+    peer: PeerState,
+    seen: Set<RawCoID> = new Set(),
+  ) {
+    if (seen.has(id)) {
+      return;
+    }
+
+    seen.add(id);
+
     const coValue = this.local.getCoValue(id);
 
     if (!coValue.isAvailable()) {
@@ -206,7 +216,7 @@ export class SyncManager {
     }
 
     for (const dependency of coValue.getDependedOnCoValues()) {
-      this.sendNewContentIncludingDependencies(dependency, peer);
+      this.sendNewContentIncludingDependencies(dependency, peer, seen);
     }
 
     const newContentPieces = coValue.verified.newContentSince(
@@ -492,7 +502,7 @@ export class SyncManager {
       )) {
         const dependencyCoValue = this.local.getCoValue(dependency);
 
-        if (!dependencyCoValue.isAvailable()) {
+        if (!dependencyCoValue.verified) {
           coValue.markMissingDependency(dependency);
 
           if (!dependencyCoValue.verified) {
