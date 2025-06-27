@@ -40,8 +40,10 @@ export class CoJsonIDBTransaction {
     };
   }
 
+  startedAt = performance.now();
   isReusable() {
-    return !this.done && !this.failed;
+    const delta = performance.now() - this.startedAt;
+    return !this.done && !this.failed && delta <= 100;
   }
 
   getObjectStore(name: StoreName) {
