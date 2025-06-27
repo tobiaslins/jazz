@@ -985,18 +985,29 @@ export class CoValueCore {
     return this.node.syncManager.waitForSync(this.id, options?.timeout);
   }
 
-  loadFromStorage(done?: () => void) {
+  load(peers: PeerState[]) {
+    this.loadFromStorage((found) => {
+      // When found the load is triggered by handleNewContent
+      if (!found) {
+        this.loadFromPeers(peers).catch((e) => {
+          logger.error("Error loading coValue in loadFromPeers", { err: e });
+        });
+      }
+    });
+  }
+
+  loadFromStorage(done?: (found: boolean) => void) {
     const node = this.node;
 
     if (!node.storage) {
-      done?.();
+      done?.(false);
       return;
     }
 
     const currentState = this.peers.get("storage");
 
     if (currentState && currentState.type !== "unknown") {
-      done?.();
+      done?.(currentState.type === "available");
       return;
     }
 
@@ -1012,7 +1023,7 @@ export class CoValueCore {
           this.markNotFoundInPeer("storage");
         }
 
-        done?.();
+        done?.(found);
       },
     );
   }

@@ -390,11 +390,7 @@ export class SyncManager {
 
     const peers = this.getServerAndStoragePeers(peer.id);
 
-    coValue.loadFromStorage(() => {
-      coValue.loadFromPeers(peers).catch((e) => {
-        logger.error("Error loading coValue in handleLoad", { err: e });
-      });
-    });
+    coValue.load(peers);
 
     const handleLoadResult = () => {
       if (coValue.isAvailable()) {
@@ -498,7 +494,7 @@ export class SyncManager {
               peers.push(peer);
             }
 
-            dependencyCoValue.loadFromPeers(peers);
+            dependencyCoValue.load(peers);
           }
         }
       }
@@ -557,7 +553,7 @@ export class SyncManager {
               peers.push(peer);
             }
 
-            account.loadFromPeers(peers);
+            account.load(peers);
           }
 
           // We need to wait for the account to be available before we can verify the transaction

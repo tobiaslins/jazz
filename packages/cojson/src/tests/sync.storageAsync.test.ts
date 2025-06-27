@@ -215,4 +215,110 @@ describe("client syncs with a server with storage", () => {
       ]
     `);
   });
+
+  test("large coValue streaming", async () => {
+    const client = setupTestNode();
+
+    client.connectToSyncServer({
+      syncServer: jazzCloud.node,
+    });
+
+    const { storage } = await client.addAsyncStorage({
+      ourName: "client",
+    });
+
+    const group = client.node.createGroup();
+    group.addMember("everyone", "writer");
+
+    const largeMap = group.createMap();
+
+    // Generate a large amount of data (about 100MB)
+    const dataSize = 1 * 200 * 1024;
+    const chunkSize = 1024; // 1KB chunks
+    const chunks = dataSize / chunkSize;
+
+    const value = Buffer.alloc(chunkSize, `value$`).toString("base64");
+
+    for (let i = 0; i < chunks; i++) {
+      const key = `key${i}`;
+      largeMap.set(key, value, "trusting");
+    }
+
+    await largeMap.core.waitForSync();
+
+    expect(
+      SyncMessagesLog.getMessages({
+        Group: group.core,
+        Map: largeMap.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "client -> storage | CONTENT Group header: true new: After: 0 New: 5",
+        "client -> server | CONTENT Group header: true new: After: 0 New: 5",
+        "client -> storage | CONTENT Map header: true new: ",
+        "client -> storage | CONTENT Map header: false new: After: 0 New: 73",
+        "client -> storage | CONTENT Map header: false new: After: 73 New: 73",
+        "client -> storage | CONTENT Map header: false new: After: 146 New: 54",
+        "server -> client | KNOWN Group sessions: header/5",
+        "server -> storage | CONTENT Group header: true new: After: 0 New: 5",
+        "client -> server | CONTENT Map header: true new: ",
+        "server -> client | KNOWN Map sessions: header/0",
+        "server -> storage | CONTENT Map header: true new: ",
+        "client -> server | CONTENT Map header: false new: After: 0 New: 73",
+        "server -> client | KNOWN Map sessions: header/73",
+        "server -> storage | CONTENT Map header: false new: After: 0 New: 73",
+        "client -> server | CONTENT Map header: false new: After: 73 New: 73",
+        "server -> client | KNOWN Map sessions: header/146",
+        "server -> storage | CONTENT Map header: false new: After: 73 New: 73",
+        "client -> server | CONTENT Map header: false new: After: 146 New: 54",
+        "server -> client | KNOWN Map sessions: header/200",
+        "server -> storage | CONTENT Map header: false new: After: 146 New: 54",
+      ]
+    `);
+
+    SyncMessagesLog.clear();
+
+    client.restart();
+
+    client.connectToSyncServer({
+      ourName: "client",
+      syncServer: jazzCloud.node,
+    });
+
+    client.addStorage({
+      ourName: "client",
+      storage,
+    });
+
+    const mapOnClient2 = await loadCoValueOrFail(client.node, largeMap.id);
+
+    await mapOnClient2.core.waitForSync();
+
+    // TODO: The client should wait for the full load from the storage peer before subscribing to the core server
+    expect(
+      SyncMessagesLog.getMessages({
+        Group: group.core,
+        Map: largeMap.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "client -> storage | LOAD Map sessions: empty",
+        "storage -> client | CONTENT Group header: true new: After: 0 New: 5",
+        "client -> server | LOAD Group sessions: header/5",
+        "server -> client | KNOWN Group sessions: header/5",
+        "storage -> client | CONTENT Map header: true new: After: 0 New: 73",
+        "client -> server | LOAD Map sessions: header/73",
+        "server -> client | CONTENT Map header: false new: After: 73 New: 73",
+        "client -> server | KNOWN Map sessions: header/146",
+        "client -> storage | CONTENT Map header: false new: After: 73 New: 73",
+        "server -> client | CONTENT Map header: false new: After: 146 New: 54",
+        "client -> server | CONTENT Map header: true new: ",
+        "client -> storage | CONTENT Map header: false new: After: 146 New: 54",
+        "server -> client | KNOWN Map sessions: header/200",
+        "server -> storage | CONTENT Map header: true new: ",
+        "client -> server | KNOWN Map sessions: header/200",
+        "storage -> client | CONTENT Map header: true new: After: 73 New: 73",
+      ]
+    `);
+  });
 });

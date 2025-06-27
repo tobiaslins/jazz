@@ -382,14 +382,7 @@ export class LocalNode {
           return coValue;
         }
 
-        coValue.loadFromStorage(() => {
-          coValue.loadFromPeers(peers).catch((e) => {
-            logger.error("Error loading from peers", {
-              id,
-              err: e,
-            });
-          });
-        });
+        coValue.load(peers);
       }
 
       const result = await coValue.waitForAvailableOrUnavailable();
