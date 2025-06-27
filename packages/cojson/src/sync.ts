@@ -388,29 +388,13 @@ export class SyncManager {
       return;
     }
 
-    const eligiblePeers = this.getServerAndStoragePeers(peer.id);
+    const peers = this.getServerAndStoragePeers(peer.id);
 
-    // TODO: Storage load deduplication & storage streaming sync checks
-    if (this.local.storage) {
-      this.local.storage.load(
-        msg.id,
-        (msg) => {
-          this.handleNewContent(msg as NewContentMessage);
-        },
-        (found) => {
-          coValue.loadFromPeers(eligiblePeers).catch((e) => {
-            logger.error("Error loading coValue in handleLoad", { err: e });
-          });
-          if (!found) {
-            coValue.markNotFoundInStorage();
-          }
-        },
-      );
-    } else {
-      coValue.loadFromPeers(eligiblePeers).catch((e) => {
+    coValue.loadFromStorage(() => {
+      coValue.loadFromPeers(peers).catch((e) => {
         logger.error("Error loading coValue in handleLoad", { err: e });
       });
-    }
+    });
 
     const handleLoadResult = () => {
       if (coValue.isAvailable()) {
@@ -427,7 +411,7 @@ export class SyncManager {
       });
     };
 
-    if (eligiblePeers.length > 0 || this.local.storage) {
+    if (peers.length > 0 || this.local.storage) {
       coValue.waitForAvailableOrUnavailable().then(handleLoadResult);
     } else {
       handleLoadResult();

@@ -378,36 +378,18 @@ export class LocalNode {
         const peers =
           this.syncManager.getServerAndStoragePeers(skipLoadingFromPeer);
 
-        if (this.storage && retries === 0) {
-          coValue.markPending("storage");
-          this.storage.load(
-            id,
-            (data) => {
-              // TODO: content streaming triggers a load request
-              this.syncManager.handleNewContent(data);
-            },
-            (found) => {
-              if (!found) {
-                coValue.loadFromPeers(peers).catch((e) => {
-                  logger.error("Error loading from peers", {
-                    id,
-                    err: e,
-                  });
-                });
-                coValue.markNotFoundInPeer("storage");
-              }
-            },
-          );
-        } else if (peers.length > 0) {
+        if (!this.storage && peers.length === 0) {
+          return coValue;
+        }
+
+        coValue.loadFromStorage(() => {
           coValue.loadFromPeers(peers).catch((e) => {
             logger.error("Error loading from peers", {
               id,
               err: e,
             });
           });
-        } else {
-          return coValue;
-        }
+        });
       }
 
       const result = await coValue.waitForAvailableOrUnavailable();

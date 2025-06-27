@@ -1604,7 +1604,7 @@ importers:
         specifier: ^11.7.0
         version: 11.10.0
       cojson:
-        specifier: workspace:0.15.3
+        specifier: workspace:*
         version: link:../cojson
     devDependencies:
       '@types/better-sqlite3':

@@ -985,6 +985,38 @@ export class CoValueCore {
     return this.node.syncManager.waitForSync(this.id, options?.timeout);
   }
 
+  loadFromStorage(done?: () => void) {
+    const node = this.node;
+
+    if (!node.storage) {
+      done?.();
+      return;
+    }
+
+    const currentState = this.peers.get("storage");
+
+    if (currentState && currentState.type !== "unknown") {
+      done?.();
+      return;
+    }
+
+    this.markPending("storage");
+    node.storage.load(
+      this.id,
+      (data) => {
+        // TODO: content streaming triggers a load request
+        node.syncManager.handleNewContent(data);
+      },
+      (found) => {
+        if (!found) {
+          this.markNotFoundInPeer("storage");
+        }
+
+        done?.();
+      },
+    );
+  }
+
   async loadFromPeers(peers: PeerState[]) {
     if (peers.length === 0) {
       return;
