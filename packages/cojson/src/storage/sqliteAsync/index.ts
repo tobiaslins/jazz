@@ -7,6 +7,8 @@ import { SQLiteClientAsync } from "./client.js";
 import type { SQLiteDatabaseDriverAsync } from "./types.js";
 
 export async function getSqliteStorageAsync(db: SQLiteDatabaseDriverAsync) {
+  await db.initialize();
+
   const rows = await db.query<{ user_version: string }>(
     "PRAGMA user_version",
     [],
