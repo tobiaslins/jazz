@@ -826,4 +826,46 @@ describe("loading coValues from server", () => {
       ]
     `);
   });
+
+  test("coValue with circular deps loading", async () => {
+    const client = setupTestNode({
+      connected: true,
+    });
+
+    const group = client.node.createGroup();
+    const parentGroup = client.node.createGroup();
+    parentGroup.addMember("everyone", "reader");
+
+    group.extend(parentGroup);
+
+    // Disable the circular dependency check in the extend function
+    vi.spyOn(parentGroup, "isSelfExtension").mockImplementation(() => false);
+
+    parentGroup.extend(group);
+
+    const map = group.createMap();
+    map.set("hello", "world");
+
+    await map.core.waitForSync();
+
+    expect(
+      SyncMessagesLog.getMessages({
+        ParentGroup: parentGroup.core,
+        Group: group.core,
+        Map: map.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "client -> server | CONTENT ParentGroup header: true new: After: 0 New: 8",
+        "server -> client | LOAD Group sessions: empty",
+        "client -> server | CONTENT Group header: true new: After: 0 New: 6",
+        "server -> client | KNOWN ParentGroup sessions: empty",
+        "client -> server | CONTENT Group header: true new: After: 0 New: 6",
+        "server -> client | KNOWN Group sessions: header/6",
+        "client -> server | CONTENT Map header: true new: After: 0 New: 1",
+        "server -> client | KNOWN Group sessions: header/6",
+        "server -> client | KNOWN Map sessions: header/1",
+      ]
+    `);
+  });
 });
