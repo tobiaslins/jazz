@@ -2,6 +2,10 @@ import { getIsUploaded } from "../SyncStateManager.js";
 import { RawCoID } from "../ids.js";
 import { CoValueKnownState, emptyKnownState } from "../sync.js";
 
+/**
+ * Track how much data we have stored inside our storage
+ * and provides the API to wait for the data to be fully stored.
+ */
 export class StorageKnownState {
   knwonStates = new Map<string, CoValueKnownState>();
 

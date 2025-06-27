@@ -35,6 +35,7 @@ describe("client with storage syncs with server", () => {
     ).toMatchInlineSnapshot(`
       [
         "client -> storage | LOAD Map sessions: empty",
+        "storage -> client | KNOWN Map sessions: empty",
         "client -> server | LOAD Map sessions: empty",
         "server -> client | CONTENT Group header: true new: After: 0 New: 3",
         "client -> server | KNOWN Group sessions: header/3",
@@ -52,11 +53,21 @@ describe("client with storage syncs with server", () => {
     client.connectToSyncServer();
     const { storage } = client.addStorage();
 
-    jazzCloud.node.setStorage(storage);
-
     const group = jazzCloud.node.createGroup();
     const map = group.createMap();
     map.set("hello", "world", "trusting");
+
+    await loadCoValueOrFail(client.node, map.id);
+
+    client.restart();
+
+    client.connectToSyncServer();
+    client.addStorage({
+      ourName: "client",
+      storage,
+    });
+
+    SyncMessagesLog.clear();
 
     const mapOnClient = await loadCoValueOrFail(client.node, map.id);
     expect(mapOnClient.get("hello")).toEqual("world");
@@ -69,15 +80,12 @@ describe("client with storage syncs with server", () => {
     ).toMatchInlineSnapshot(`
       [
         "client -> storage | LOAD Map sessions: empty",
-        "client -> server | LOAD Map sessions: empty",
-        "client -> storage | CONTENT Group header: true new: After: 0 New: 3",
-        "client -> storage | CONTENT Map header: true new: After: 0 New: 1",
-        "server -> client | CONTENT Group header: true new: After: 0 New: 3",
-        "client -> server | KNOWN Group sessions: header/3",
-        "client -> storage | CONTENT Group header: true new: After: 0 New: 3",
-        "server -> client | CONTENT Map header: true new: After: 0 New: 1",
-        "client -> server | KNOWN Map sessions: header/1",
-        "client -> storage | CONTENT Map header: true new: After: 0 New: 1",
+        "storage -> client | CONTENT Group header: true new: After: 0 New: 3",
+        "client -> server | LOAD Group sessions: header/3",
+        "storage -> client | CONTENT Map header: true new: After: 0 New: 1",
+        "server -> client | KNOWN Group sessions: header/3",
+        "client -> server | LOAD Map sessions: header/1",
+        "server -> client | KNOWN Map sessions: header/1",
       ]
     `);
   });
@@ -109,6 +117,7 @@ describe("client with storage syncs with server", () => {
     ).toMatchInlineSnapshot(`
       [
         "client -> storage | LOAD Map sessions: empty",
+        "storage -> client | KNOWN Map sessions: empty",
         "client -> server | LOAD Map sessions: empty",
         "server -> client | CONTENT ParentGroup header: true new: After: 0 New: 6",
         "client -> server | KNOWN ParentGroup sessions: header/6",

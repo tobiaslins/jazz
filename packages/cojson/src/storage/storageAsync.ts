@@ -124,6 +124,8 @@ export class StorageApiAsync implements StorageAPI {
         idx = signature.idx + 1;
 
         if (signatures.length > 1) {
+          // Having more than one signature means that the content needs streaming
+          // So we start pushing the content to the client, and start a new content message
           await this.pushContentWithDependencies(
             coValueRow,
             contentMessage,
@@ -140,17 +142,18 @@ export class StorageApiAsync implements StorageAPI {
       }
     }
 
-    if (Object.keys(contentMessage.new).length === 0 && contentStreaming) {
-      this.knwonStates.handleUpdate(coValueRow.id, knownState);
-      done?.(true);
-      return;
+    const hasNewContent = Object.keys(contentMessage.new).length > 0;
+
+    // If there is no new content but steaming is not active, it's the case for a coValue with the header but no transactions
+    // For streaming the push has already been done in the loop above
+    if (hasNewContent || !contentStreaming) {
+      await this.pushContentWithDependencies(
+        coValueRow,
+        contentMessage,
+        callback,
+      );
     }
 
-    await this.pushContentWithDependencies(
-      coValueRow,
-      contentMessage,
-      callback,
-    );
     this.knwonStates.handleUpdate(coValueRow.id, knownState);
     done?.(true);
   }
@@ -192,6 +195,10 @@ export class StorageApiAsync implements StorageAPI {
     msgs: NewContentMessage[],
     correctionCallback: (data: CoValueKnownState) => void,
   ) {
+    /**
+     * The store operations must be done one by one, because we can't start a new transaction when there
+     * is already a transaction open.
+     */
     this.storeQueue.push({ data: msgs, correctionCallback });
 
     if (this.processingStoreQueue) {
@@ -213,6 +220,7 @@ export class StorageApiAsync implements StorageAPI {
 
         if (!success) {
           // Stop processing the messages for this entry, because the data is out of sync with storage
+          // and the other transactions will be rejected anyway.
           break;
         }
       }

@@ -195,7 +195,22 @@ function trackStorageMessages(
 
         return callback(msg);
       },
-      done,
+      (found) => {
+        if (!found) {
+          SyncMessagesLog.add({
+            from: storageName,
+            to: nodeName,
+            msg: {
+              action: "known",
+              id: id as RawCoID,
+              sessions: {},
+              header: false,
+            },
+          });
+        }
+
+        return done?.(found);
+      },
     );
   };
 }

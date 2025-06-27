@@ -6,6 +6,11 @@ import { Signature } from "../crypto/crypto.js";
 import type { RawCoID, SessionID } from "../exports.js";
 import { CoValueKnownState, NewContentMessage } from "../sync.js";
 
+/**
+ * The StorageAPI is the interface that the StorageSync and StorageAsync classes implement.
+ *
+ * It uses callbacks instead of promises to have no overhead when using the StorageSync and less overhead when using the StorageAsync.
+ */
 export interface StorageAPI {
   load(
     id: string,

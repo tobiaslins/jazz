@@ -651,9 +651,10 @@ export class SyncManager {
     }
 
     const sourcePeer = peer;
+    const isContentFromStorage = !sourcePeer;
     const syncedPeers = [];
 
-    if (sourcePeer && this.local.storage) {
+    if (!isContentFromStorage) {
       this.storeCoValue(coValue, [msg]);
     }
 

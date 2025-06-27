@@ -224,10 +224,6 @@ export class CoValueCore {
     }
   }
 
-  markNotFoundInStorage() {
-    this.markNotFoundInPeer("storage");
-  }
-
   markNotFoundInPeer(peerId: PeerID) {
     const previousState = this.loadingState;
     this.peers.set(peerId, { type: "unavailable" });
