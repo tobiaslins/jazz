@@ -17,7 +17,6 @@ import React from "react";
 import { TodoAccount, TodoProject } from "./1_schema.ts";
 import { NewProjectForm } from "./3_NewProjectForm.tsx";
 import { ProjectTodoTable } from "./4_ProjectTodoTable.tsx";
-import { apiKey } from "./apiKey";
 import {
   Button,
   ThemeProvider,
@@ -41,7 +40,7 @@ function JazzAndAuth({ children }: { children: React.ReactNode }) {
   return (
     <JazzReactProvider
       sync={{
-        peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
+        peer: `ws://localhost:4200`,
       }}
       AccountSchema={TodoAccount}
     >
@@ -51,6 +50,8 @@ function JazzAndAuth({ children }: { children: React.ReactNode }) {
     </JazzReactProvider>
   );
 }
+
+// http://localhost:5173/#/project/co_znUD6vciCQazKwAKi4hFwRodxEk
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

@@ -30,6 +30,36 @@ const jazzBlue = {
   DEFAULT: COLORS.BLUE,
 };
 
+const green = {
+  ...colors.green,
+  DEFAULT: COLORS.FOREST,
+};
+
+const cyan = {
+  ...colors.cyan,
+  DEFAULT: COLORS.TURQUOISE,
+};
+
+const red = {
+  ...colors.red,
+  DEFAULT: COLORS.RED,
+};
+
+const yellow = {
+  ...colors.yellow,
+  DEFAULT: COLORS.YELLOW,
+};
+
+const orange = {
+  ...colors.orange,
+  DEFAULT: COLORS.ORANGE,
+};
+
+const purple = {
+  ...colors.purple,
+  DEFAULT: COLORS.PURPLE,
+};
+
 const stonePaletteWithAlpha = { ...stonePalette };
 
 Object.keys(stonePalette).forEach((key) => {
@@ -40,11 +70,12 @@ Object.keys(stonePalette).forEach((key) => {
 });
 
 /** @type {import('tailwindcss').Config} */
-const config = {
+export const preset = {
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/utils/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
@@ -52,28 +83,103 @@ const config = {
         ...harmonyPalette,
         stone: stonePaletteWithAlpha,
         blue: jazzBlue,
-        primary: "var(--color-primary)",
-        secondary: "var(--color-secondary)",
-        highlight: "var(--color-transparent-primary)",
-        success: "var(--color-success)",
-        info: "var(--color-info)",
-        warning: "var(--color-warning)",
-        tip: "var(--color-tip)",
-        green: {
-          DEFAULT: "var(--color-green)",
+        green,
+        cyan,
+        red,
+        yellow,
+        purple,
+        orange,
+        muted: "var(--color-muted)",
+        strong: "var(--color-strong)",
+        primary: {
+          DEFAULT: "var(--color-primary)",
+          transparent: "var(--color-transparent-primary)",
+          dark: "var(--color-primary-dark)",
+          light:
+            "lch(from var(--color-primary) calc(l + 10) calc(c + 1) calc(h - 5))",
+          brightLight:
+            "lch(from var(--color-primary) calc(l - 1) calc(c + 20) calc(h + 5))",
+          brightDark:
+            "lch(from var(--color-primary) calc(l - 6) calc(c + 20) calc(h + 5))",
+        },
+        success: {
+          DEFAULT: "var(--color-success)",
+          transparent: "lch(from var(--color-success) l c h / 0.3)",
+          dark: "lch(from var(--color-success) calc(l - 7) calc(c - 1) calc(h + 5))",
+          light:
+            "lch(from var(--color-success) calc(l + 4) calc(c + 1) calc(h - 5))",
+          brightLight:
+            "lch(from var(--color-success) calc(l - 1) calc(c + 20) calc(h + 10))",
+          brightDark:
+            "lch(from var(--color-success) calc(l - 6) calc(c + 20) calc(h + 10))",
+        },
+        info: {
+          DEFAULT: "var(--color-info)",
+          transparent: "lch(from var(--color-info) l c h / 0.3)",
+          dark: "lch(from var(--color-info) calc(l - 7) calc(c - 1) calc(h + 5))",
+          light:
+            "lch(from var(--color-info) calc(l + 4) calc(c + 1) calc(h - 5))",
+          brightLight:
+            "lch(from var(--color-info) calc(l - 1) calc(c + 20) calc(h + 5))",
+          brightDark:
+            "lch(from var(--color-info) calc(l - 4) calc(c + 20) calc(h + 5))",
+        },
+        warning: {
+          DEFAULT: "var(--color-warning)",
+          transparent: "lch(from var(--color-warning) l c h / 0.3)",
+          dark: "lch(from var(--color-warning) calc(l - 7) calc(c - 1) calc(h + 5))",
+          light:
+            "lch(from var(--color-warning) calc(l + 4) calc(c + 1) calc(h - 5))",
+          brightLight:
+            "lch(from var(--color-warning) calc(l - 1) calc(c + 30) calc(h + 15))",
+          brightDark:
+            "lch(from var(--color-warning) calc(l - 4) calc(c + 30) calc(h + 15))",
+        },
+        danger: {
+          DEFAULT: "var(--color-danger)",
+          transparent: "lch(from var(--color-danger) l c h / 0.3)",
+          dark: "lch(from var(--color-danger) calc(l - 7) calc(c - 1) calc(h + 5))",
+          light:
+            "lch(from var(--color-danger) calc(l + 4) calc(c + 1) calc(h - 5))",
+          brightLight:
+            "lch(from var(--color-danger) calc(l - 2) calc(c + 20) calc(h + 10))",
+          brightDark:
+            "lch(from var(--color-danger) calc(l - 6) calc(c + 10) calc(h + 10))",
+        },
+        tip: {
+          DEFAULT: "var(--color-tip)",
+          transparent: "lch(from var(--color-tip) l c h / 0.3)",
+          dark: "lch(from var(--color-tip) calc(l - 7) calc(c - 1) calc(h + 5))",
+          light:
+            "lch(from var(--color-tip) calc(l + 4) calc(c + 1) calc(h - 5))",
+          brightLight:
+            "lch(from var(--color-tip) calc(l - 1) calc(c + 20) calc(h + 10))",
+          brightDark:
+            "lch(from var(--color-tip) calc(l - 4) calc(c + 20) calc(h + 10))",
+        },
+        alert: {
+          DEFAULT: "var(--color-alert)",
+          transparent: "lch(from var(--color-alert) l c h / 0.3)",
+          dark: "lch(from var(--color-alert) calc(l - 7) calc(c - 1) calc(h + 5))",
+          light:
+            "lch(from var(--color-alert) calc(l + 4) calc(c + 1) calc(h - 5))",
+          brightLight:
+            "lch(from var(--color-alert) calc(l - 1) calc(c + 50) calc(h + 15))",
+          brightDark:
+            "lch(from var(--color-alert) calc(l - 5) calc(c + 50) calc(h + 15))",
         },
       },
       textColor: {
         default: "var(--color-default)",
         highlight: "var(--color-highlight)",
+        strong: "var(--color-strong)",
         muted: "var(--color-muted)",
       },
       borderColor: {
         DEFAULT: "var(--color-border-default)",
       },
       backgroundColor: {
-        highlight: "var(--color-transparent-primary)",
-        muted: "var(--color-bg-muted)",
+        highlight: "var(--color-background-highlight)",
       },
       fontFamily: {
         display: ["var(--font-manrope)"],
@@ -194,5 +300,11 @@ const config = {
       }),
     ),
   ],
+};
+
+const config = {
+  presets: [preset],
+  darkMode: ["class"],
+  content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
 };
 export default config;

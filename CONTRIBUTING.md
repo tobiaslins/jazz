@@ -63,7 +63,7 @@ You'll need Node.js 22.x installed (we're working on support for 23.x), and pnpm
 4. **Build the packages**:
 
    ```bash
-   pnpm build
+   pnpm build:packages
    ```
 
 5. **Run tests** to verify everything is working:

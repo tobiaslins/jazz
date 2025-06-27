@@ -14,6 +14,7 @@ import {
   ChevronRightIcon,
   ClipboardIcon,
   CodeIcon,
+  Eye,
   FileLock2Icon,
   FileTextIcon,
   FingerprintIcon,
@@ -46,9 +47,15 @@ import {
   XIcon,
 } from "lucide-react";
 
+import clsx from "clsx";
+import {
+  Style,
+  styleToTextHoverMap,
+  styleToTextMap,
+} from "../../utils/tailwindClassesMap";
 import { GcmpIcons } from "./icons";
 
-const icons = {
+export const icons = {
   arrowDown: ArrowDownIcon,
   arrowRight: ArrowRightIcon,
   auth: UserIcon,
@@ -100,6 +107,7 @@ const icons = {
   // text editor icons
   bold: BoldIcon,
   italic: ItalicIcon,
+  eye: Eye,
 };
 
 // copied from tailwind line height https://tailwindcss.com/docs/font-size
@@ -107,8 +115,8 @@ const sizes = {
   "2xs": 14,
   xs: 16,
   sm: 20,
-  md: 24,
-  lg: 28,
+  md: 22,
+  lg: 26,
   xl: 28,
   "2xl": 32,
   "3xl": 36,
@@ -143,13 +151,19 @@ export function Icon({
   name,
   icon,
   size = "md",
+  intent = "default",
+  hasBackground = false,
   className,
+  hasHover = false,
   ...svgProps
 }: {
   name?: IconName;
   icon?: LucideIcon;
   size?: keyof typeof sizes;
+  intent?: Style | "white";
+  hasBackground?: boolean;
   className?: string;
+  hasHover?: boolean;
 } & React.SVGProps<SVGSVGElement>) {
   if (!icon && (!name || !icons.hasOwnProperty(name))) {
     throw new Error(`Icon not found: ${name}`);
@@ -158,13 +172,52 @@ export function Icon({
   // @ts-ignore
   const IconComponent = icons?.hasOwnProperty(name) ? icons[name] : icon;
 
+  const iconClass = {
+    ...styleToTextMap,
+    white: "text-white",
+  };
+
+  const iconHoverClass = {
+    ...styleToTextHoverMap,
+    white: "hover:text-white/90",
+  };
+
+  const backgroundClasses = {
+    default: "bg-stone-200/30 dark:bg-stone-900/30",
+    primary: "bg-primary-transparent",
+    secondary: "bg-secondary-transparent",
+    info: "bg-info-transparent",
+    success: "bg-success-transparent",
+    warning: "bg-warning-transparent",
+    danger: "bg-danger-transparent",
+    alert: "bg-alert-transparent",
+    tip: "bg-tip-transparent",
+    muted: "bg-stone-300/30 dark:bg-stone-700/30",
+    strong: "bg-stone-900/30 dark:bg-stone-100/30",
+  };
+
+  const roundedClasses = {
+    xs: "rounded-xs",
+    sm: "rounded-sm",
+    md: "rounded-md",
+    lg: "rounded-lg",
+    xl: "rounded-xl",
+  };
+
   return (
     <IconComponent
       aria-hidden="true"
       size={sizes[size]}
       strokeWidth={strokeWidths[size]}
       strokeLinecap="round"
-      className={className}
+      className={clsx(
+        roundedClasses[size as keyof typeof roundedClasses] || "rounded-lg",
+        iconClass[intent as keyof typeof iconClass],
+        hasBackground &&
+          backgroundClasses[intent as keyof typeof backgroundClasses],
+        hasHover && iconHoverClass[intent as keyof typeof iconHoverClass],
+        className,
+      )}
       {...svgProps}
     />
   );
