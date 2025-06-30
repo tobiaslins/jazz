@@ -1,7 +1,7 @@
 import { CoID, RawCoValue } from "../coValue.js";
 import {
-  AvailableCoValueCore,
   CoValueCore,
+  CoValueCoreWithContent,
 } from "../coValueCore/coValueCore.js";
 import {
   CoValueHeader,

@@ -1,7 +1,8 @@
 import { LinkedList } from "../PriorityBasedMessageQueue.js";
 import {
+  type CoValueCore,
   MAX_RECOMMENDED_TX_SIZE,
-  RawCoID,
+  type RawCoID,
   type SessionID,
   type StorageAPI,
 } from "../exports.js";
@@ -94,7 +95,11 @@ export class StorageApiAsync implements StorageAPI {
       header: coValueRow.header,
       new: {},
       priority: getPriorityFromHeader(coValueRow.header),
-    } satisfies NewContentMessage;
+    } as NewContentMessage;
+
+    if (contentStreaming) {
+      contentMessage.streamingTarget = knownState["sessions"];
+    }
 
     for (const sessionRow of allCoValueSessions) {
       const signatures = signaturesBySession.get(sessionRow.sessionID) || [];
@@ -124,7 +129,7 @@ export class StorageApiAsync implements StorageAPI {
         idx = signature.idx + 1;
 
         if (signatures.length > 1) {
-          // Having more than one signature means that the content needs streaming
+          // Having more than one signature means that the content needs streamingTarget
           // So we start pushing the content to the client, and start a new content message
           await this.pushContentWithDependencies(
             coValueRow,
@@ -137,6 +142,7 @@ export class StorageApiAsync implements StorageAPI {
             header: coValueRow.header,
             new: {},
             priority: getPriorityFromHeader(coValueRow.header),
+            streamingTarget: knownState["sessions"],
           } satisfies NewContentMessage;
         }
       }
@@ -145,7 +151,7 @@ export class StorageApiAsync implements StorageAPI {
     const hasNewContent = Object.keys(contentMessage.new).length > 0;
 
     // If there is no new content but steaming is not active, it's the case for a coValue with the header but no transactions
-    // For streaming the push has already been done in the loop above
+    // For streamingTarget the push has already been done in the loop above
     if (hasNewContent || !contentStreaming) {
       await this.pushContentWithDependencies(
         coValueRow,
@@ -362,8 +368,8 @@ export class StorageApiAsync implements StorageAPI {
     return newLastIdx;
   }
 
-  waitForSync(id: string, knownState: CoValueKnownState) {
-    return this.knwonStates.waitForSync(id, knownState);
+  waitForSync(id: string, coValue: CoValueCore) {
+    return this.knwonStates.waitForSync(id, coValue);
   }
 
   close() {

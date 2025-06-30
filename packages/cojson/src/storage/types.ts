@@ -3,7 +3,7 @@ import type {
   Transaction,
 } from "../coValueCore/verifiedState.js";
 import { Signature } from "../crypto/crypto.js";
-import type { RawCoID, SessionID } from "../exports.js";
+import type { CoValueCore, RawCoID, SessionID } from "../exports.js";
 import { CoValueKnownState, NewContentMessage } from "../sync.js";
 
 /**
@@ -14,7 +14,7 @@ import { CoValueKnownState, NewContentMessage } from "../sync.js";
 export interface StorageAPI {
   load(
     id: string,
-    // This callback is fired when data is found, might be called multiple times if the content requires streaming (e.g when loading files)
+    // This callback is fired when data is found, might be called multiple times if the content requires streamingTarget (e.g when loading files)
     callback: (data: NewContentMessage) => void,
     done?: (found: boolean) => void,
   ): void;
@@ -25,7 +25,7 @@ export interface StorageAPI {
 
   getKnownState(id: string): CoValueKnownState;
 
-  waitForSync(id: string, knownState: CoValueKnownState): Promise<void>;
+  waitForSync(id: string, coValue: CoValueCore): Promise<void>;
 
   close(): void;
 }

@@ -223,7 +223,7 @@ describe("client syncs with a server with storage", () => {
     `);
   });
 
-  test("large coValue streaming", async () => {
+  test("loading a large coValue from storage", async () => {
     const client = setupTestNode();
 
     client.connectToSyncServer({
@@ -262,24 +262,24 @@ describe("client syncs with a server with storage", () => {
       [
         "client -> storage | CONTENT Group header: true new: After: 0 New: 5",
         "client -> server | CONTENT Group header: true new: After: 0 New: 5",
-        "client -> storage | CONTENT Map header: true new: ",
-        "client -> storage | CONTENT Map header: false new: After: 0 New: 73",
-        "client -> storage | CONTENT Map header: false new: After: 73 New: 73",
-        "client -> storage | CONTENT Map header: false new: After: 146 New: 54",
+        "client -> storage | CONTENT Map header: true new:  streamingTarget: header/200",
+        "client -> storage | CONTENT Map header: false new: After: 0 New: 73 streamingTarget: header/200",
+        "client -> storage | CONTENT Map header: false new: After: 73 New: 73 streamingTarget: header/200",
+        "client -> storage | CONTENT Map header: false new: After: 146 New: 54 streamingTarget: header/200",
         "server -> client | KNOWN Group sessions: header/5",
         "server -> storage | CONTENT Group header: true new: After: 0 New: 5",
-        "client -> server | CONTENT Map header: true new: ",
+        "client -> server | CONTENT Map header: true new:  streamingTarget: header/200",
         "server -> client | KNOWN Map sessions: header/0",
-        "server -> storage | CONTENT Map header: true new: ",
-        "client -> server | CONTENT Map header: false new: After: 0 New: 73",
+        "server -> storage | CONTENT Map header: true new:  streamingTarget: header/200",
+        "client -> server | CONTENT Map header: false new: After: 0 New: 73 streamingTarget: header/200",
         "server -> client | KNOWN Map sessions: header/73",
-        "server -> storage | CONTENT Map header: false new: After: 0 New: 73",
-        "client -> server | CONTENT Map header: false new: After: 73 New: 73",
+        "server -> storage | CONTENT Map header: false new: After: 0 New: 73 streamingTarget: header/200",
+        "client -> server | CONTENT Map header: false new: After: 73 New: 73 streamingTarget: header/200",
         "server -> client | KNOWN Map sessions: header/146",
-        "server -> storage | CONTENT Map header: false new: After: 73 New: 73",
-        "client -> server | CONTENT Map header: false new: After: 146 New: 54",
+        "server -> storage | CONTENT Map header: false new: After: 73 New: 73 streamingTarget: header/200",
+        "client -> server | CONTENT Map header: false new: After: 146 New: 54 streamingTarget: header/200",
         "server -> client | KNOWN Map sessions: header/200",
-        "server -> storage | CONTENT Map header: false new: After: 146 New: 54",
+        "server -> storage | CONTENT Map header: false new: After: 146 New: 54 streamingTarget: header/200",
       ]
     `);
 
@@ -301,7 +301,6 @@ describe("client syncs with a server with storage", () => {
 
     await mapOnClient2.core.waitForSync();
 
-    // TODO: The client should wait for the full load from the storage peer before subscribing to the core server
     expect(
       SyncMessagesLog.getMessages({
         Group: group.core,
@@ -312,18 +311,12 @@ describe("client syncs with a server with storage", () => {
         "client -> storage | LOAD Map sessions: empty",
         "storage -> client | CONTENT Group header: true new: After: 0 New: 5",
         "client -> server | LOAD Group sessions: header/5",
-        "storage -> client | CONTENT Map header: true new: After: 0 New: 73",
+        "storage -> client | CONTENT Map header: true new: After: 0 New: 73 streamingTarget: header/200",
         "server -> client | KNOWN Group sessions: header/5",
-        "client -> server | LOAD Map sessions: header/73",
-        "server -> client | CONTENT Map header: false new: After: 73 New: 73",
-        "client -> server | KNOWN Map sessions: header/146",
-        "client -> storage | CONTENT Map header: false new: After: 73 New: 73",
-        "server -> client | CONTENT Map header: false new: After: 146 New: 54",
-        "client -> server | CONTENT Map header: true new: ",
-        "client -> storage | CONTENT Map header: false new: After: 146 New: 54",
+        "client -> server | LOAD Map sessions: header/200",
         "server -> client | KNOWN Map sessions: header/200",
-        "server -> storage | CONTENT Map header: true new: ",
-        "client -> server | KNOWN Map sessions: header/200",
+        "storage -> client | CONTENT Map header: true new: After: 73 New: 73 streamingTarget: header/200",
+        "storage -> client | CONTENT Map header: true new: After: 146 New: 54 streamingTarget: header/200",
       ]
     `);
   });

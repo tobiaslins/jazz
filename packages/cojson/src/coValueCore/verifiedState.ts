@@ -65,17 +65,20 @@ export class VerifiedState {
   readonly sessions: ValidatedSessions;
   private _cachedKnownState?: CoValueKnownState;
   private _cachedNewContentSinceEmpty: NewContentMessage[] | undefined;
+  private streamingKnownState?: CoValueKnownState["sessions"];
 
   constructor(
     id: RawCoID,
     crypto: CryptoProvider,
     header: CoValueHeader,
     sessions: ValidatedSessions,
+    streamingKnownState?: CoValueKnownState["sessions"],
   ) {
     this.id = id;
     this.crypto = crypto;
     this.header = header;
     this.sessions = sessions;
+    this.streamingKnownState = streamingKnownState;
   }
 
   clone(): VerifiedState {
@@ -90,7 +93,13 @@ export class VerifiedState {
         transactions: sessionLog.transactions.slice(),
       } satisfies SessionLog);
     }
-    return new VerifiedState(this.id, this.crypto, this.header, clonedSessions);
+    return new VerifiedState(
+      this.id,
+      this.crypto,
+      this.header,
+      clonedSessions,
+      this.streamingKnownState,
+    );
   }
 
   tryAddTransactions(
@@ -285,12 +294,18 @@ export class VerifiedState {
         }
 
         if (pieceSize >= MAX_RECOMMENDED_TX_SIZE) {
+          if (!currentPiece.streamingTarget) {
+            currentPiece.streamingTarget =
+              this.knownStateWithStreaming().sessions;
+          }
+
           currentPiece = {
             action: "content",
             id: this.id,
             header: undefined,
             new: {},
             priority: getPriorityFromHeader(this.header),
+            streamingTarget: currentPiece.streamingTarget,
           };
           pieces.push(currentPiece);
           pieceSize = pieceSize - oldPieceSize;
@@ -334,6 +349,38 @@ export class VerifiedState {
     }
 
     return piecesWithContent;
+  }
+
+  knownStateWithStreaming(): CoValueKnownState {
+    const knownState = this.knownState();
+
+    if (this.streamingKnownState) {
+      const newSessions: CoValueKnownState["sessions"] = {};
+      const entries = Object.entries(this.streamingKnownState);
+      let outdated = true;
+
+      for (const [sessionID, txs] of entries) {
+        if ((knownState.sessions[sessionID as SessionID] ?? 0) < txs) {
+          newSessions[sessionID as SessionID] = txs;
+          outdated = false;
+        } else {
+          newSessions[sessionID as SessionID] = txs;
+        }
+      }
+
+      if (outdated) {
+        this.streamingKnownState = undefined;
+        return knownState;
+      } else {
+        return {
+          id: knownState.id,
+          header: knownState.header,
+          sessions: newSessions,
+        };
+      }
+    }
+
+    return knownState;
   }
 
   knownState(): CoValueKnownState {

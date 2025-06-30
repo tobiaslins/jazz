@@ -64,7 +64,7 @@ export type DecryptedTransaction = {
 
 const readKeyCache = new WeakMap<CoValueCore, { [id: KeyID]: KeySecret }>();
 
-export type AvailableCoValueCore = CoValueCore & { verified: VerifiedState };
+export type CoValueCoreWithContent = CoValueCore & { verified: VerifiedState };
 
 export const CO_VALUE_LOADING_CONFIG = {
   MAX_RETRIES: 1,
@@ -151,8 +151,8 @@ export class CoValueCore {
   static fromHeader(
     header: CoValueHeader,
     node: LocalNode,
-  ): AvailableCoValueCore {
-    return new CoValueCore({ header }, node) as AvailableCoValueCore;
+  ): CoValueCoreWithContent {
+    return new CoValueCore({ header }, node) as CoValueCoreWithContent;
   }
 
   get loadingState() {
@@ -173,8 +173,12 @@ export class CoValueCore {
     return "unavailable";
   }
 
-  isAvailable(): this is AvailableCoValueCore {
-    return !!this.verified && this.missingDependencies.size === 0;
+  isAvailable(): this is CoValueCoreWithContent {
+    return this.hasVerifiedContent() && this.missingDependencies.size === 0;
+  }
+
+  hasVerifiedContent(): this is CoValueCoreWithContent {
+    return !!this.verified;
   }
 
   isErroredInPeer(peerId: PeerID) {
@@ -253,7 +257,11 @@ export class CoValueCore {
     }
   }
 
-  provideHeader(header: CoValueHeader, fromPeerId: PeerID) {
+  provideHeader(
+    header: CoValueHeader,
+    fromPeerId: PeerID,
+    streamingKnownState?: CoValueKnownState["sessions"],
+  ) {
     const previousState = this.loadingState;
 
     if (this._verified?.sessions.size) {
@@ -266,6 +274,7 @@ export class CoValueCore {
       this.node.crypto,
       header,
       new Map(),
+      streamingKnownState,
     );
 
     this.peers.set(fromPeerId, { type: "available" });
@@ -354,6 +363,14 @@ export class CoValueCore {
     return this.node
       .loadCoValueAsDifferentAgent(this.id, account.agentSecret, account.id)
       .getCurrentContent();
+  }
+
+  knownStateWithStreaming(): CoValueKnownState {
+    if (this.isAvailable()) {
+      return this.verified.knownStateWithStreaming();
+    } else {
+      return emptyKnownState(this.id);
+    }
   }
 
   knownState(): CoValueKnownState {
@@ -596,7 +613,7 @@ export class CoValueCore {
 
     this.subscribeToGroupInvalidation();
 
-    const newContent = coreToCoValue(this as AvailableCoValueCore, options);
+    const newContent = coreToCoValue(this as CoValueCoreWithContent, options);
 
     if (!options?.ignorePrivateTransactions) {
       this._cachedContent = newContent;
@@ -1011,7 +1028,7 @@ export class CoValueCore {
     node.storage.load(
       this.id,
       (data) => {
-        // TODO: content streaming triggers a load request
+        // TODO: content streamingTarget triggers a load request
         node.syncManager.handleNewContent(data);
       },
       (found) => {

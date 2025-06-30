@@ -50,6 +50,9 @@ export type NewContentMessage = {
   new: {
     [sessionID: SessionID]: SessionNewContent;
   };
+  streamingTarget?: {
+    [sessionID: SessionID]: number;
+  };
 };
 
 export type SessionNewContent = {
@@ -448,7 +451,7 @@ export class SyncManager {
   handleNewContent(msg: NewContentMessage, peer?: PeerState) {
     const coValue = this.local.getCoValue(msg.id);
 
-    if (!coValue.verified) {
+    if (!coValue.hasVerifiedContent()) {
       if (!msg.header) {
         if (peer) {
           this.trySendToPeer(peer, {
@@ -482,28 +485,38 @@ export class SyncManager {
       )) {
         const dependencyCoValue = this.local.getCoValue(dependency);
 
-        if (!dependencyCoValue.verified) {
+        if (!dependencyCoValue.hasVerifiedContent()) {
           coValue.markMissingDependency(dependency);
 
-          if (!dependencyCoValue.verified) {
-            const peers = this.getServerAndStoragePeers();
+          const peers = this.getServerAndStoragePeers();
 
-            // if the peer that sent the content is a client, we add it to the list of peers
-            // to also ask them for the dependency
-            if (peer?.role === "client") {
-              peers.push(peer);
-            }
-
-            dependencyCoValue.load(peers);
+          // if the peer that sent the content is a client, we add it to the list of peers
+          // to also ask them for the dependency
+          if (peer?.role === "client") {
+            peers.push(peer);
           }
+
+          dependencyCoValue.load(peers);
         }
       }
 
       peer?.updateHeader(msg.id, true);
-      coValue.provideHeader(msg.header, peer?.id ?? "storage");
+      coValue.provideHeader(
+        msg.header,
+        peer?.id ?? "storage",
+        msg.streamingTarget,
+      );
+
+      if (msg.streamingTarget) {
+        peer?.combineWith(msg.id, {
+          id: msg.id,
+          header: true,
+          sessions: msg.streamingTarget,
+        });
+      }
     }
 
-    if (!coValue.verified) {
+    if (!coValue.hasVerifiedContent()) {
       throw new Error(
         "Unreachable: CoValue should always have a verified state at this point",
       );
@@ -593,7 +606,7 @@ export class SyncManager {
 
       if (result.isErr()) {
         if (peer) {
-          console.error("Failed to add transactions", {
+          logger.error("Failed to add transactions", {
             peerId: peer.id,
             peerRole: peer.role,
             id: msg.id,
@@ -688,7 +701,7 @@ export class SyncManager {
           // before sending the new content
           this.trySendToPeer(peer, {
             action: "load",
-            ...coValue.knownState(),
+            ...coValue.knownStateWithStreaming(),
           });
           peer.trackLoadRequestSent(coValue.id);
           syncedPeers.push(peer);
@@ -730,7 +743,7 @@ export class SyncManager {
     // Try to store the content as-is for performance
     // In case that some transactions are missing, a correction will be requested, but it's an edge case
     storage.store(data, (correction) => {
-      if (!coValue.verified) return;
+      if (!coValue.hasVerifiedContent()) return;
 
       const newContentPieces = coValue.verified.newContentSince(correction);
 
@@ -741,6 +754,7 @@ export class SyncManager {
           "Correction requested by storage after sending a correction content",
           {
             response,
+            knownState: coValue.knownState(),
           },
         );
       });
@@ -750,7 +764,7 @@ export class SyncManager {
   syncCoValue(coValue: CoValueCore) {
     this.requestedSyncs.delete(coValue.id);
 
-    if (this.local.storage && coValue.verified) {
+    if (this.local.storage && coValue.hasVerifiedContent()) {
       const knownState = this.local.storage.getKnownState(coValue.id);
       const newContentPieces = coValue.verified.newContentSince(knownState);
 
@@ -822,10 +836,7 @@ export class SyncManager {
   }
 
   waitForStorageSync(id: RawCoID) {
-    return this.local.storage?.waitForSync(
-      id,
-      this.local.getCoValue(id).knownState(),
-    );
+    return this.local.storage?.waitForSync(id, this.local.getCoValue(id));
   }
 
   waitForSync(id: RawCoID, timeout = 30_000) {

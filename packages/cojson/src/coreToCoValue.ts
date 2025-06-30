@@ -1,5 +1,5 @@
 import { RawUnknownCoValue } from "./coValue.js";
-import type { AvailableCoValueCore } from "./coValueCore/coValueCore.js";
+import type { CoValueCoreWithContent } from "./coValueCore/coValueCore.js";
 import { RawAccount } from "./coValues/account.js";
 import { RawCoList } from "./coValues/coList.js";
 import { RawCoMap } from "./coValues/coMap.js";
@@ -8,7 +8,7 @@ import { RawBinaryCoStream, RawCoStream } from "./coValues/coStream.js";
 import { RawGroup } from "./coValues/group.js";
 
 export function coreToCoValue(
-  core: AvailableCoValueCore,
+  core: CoValueCoreWithContent,
   options?: { ignorePrivateTransactions: true },
 ) {
   if (core.verified.header.type === "comap") {

@@ -2,9 +2,9 @@ import { Result, err, ok } from "neverthrow";
 import { CoID } from "./coValue.js";
 import { RawCoValue } from "./coValue.js";
 import {
-  AvailableCoValueCore,
   CO_VALUE_LOADING_CONFIG,
   CoValueCore,
+  CoValueCoreWithContent,
   idforHeader,
 } from "./coValueCore/coValueCore.js";
 import {
@@ -101,10 +101,10 @@ export class LocalNode {
     id: RawCoID,
     verified: VerifiedState,
     { forceOverwrite = false }: { forceOverwrite?: boolean } = {},
-  ): AvailableCoValueCore {
+  ): CoValueCoreWithContent {
     const entry = this.getCoValue(id);
     entry.internalMarkMagicallyAvailable(verified, { forceOverwrite });
-    return entry as AvailableCoValueCore;
+    return entry as CoValueCoreWithContent;
   }
 
   internalDeleteCoValue(id: RawCoID) {
@@ -323,7 +323,7 @@ export class LocalNode {
   }
 
   /** @internal */
-  createCoValue(header: CoValueHeader): AvailableCoValueCore {
+  createCoValue(header: CoValueHeader): CoValueCoreWithContent {
     if (this.crashed) {
       throw new Error("Trying to create CoValue after node has crashed", {
         cause: this.crashed,
@@ -574,7 +574,10 @@ export class LocalNode {
   }
 
   /** @internal */
-  expectCoValueLoaded(id: RawCoID, expectation?: string): AvailableCoValueCore {
+  expectCoValueLoaded(
+    id: RawCoID,
+    expectation?: string,
+  ): CoValueCoreWithContent {
     const coValue = this.getCoValue(id);
 
     if (!coValue.isAvailable()) {
@@ -609,7 +612,7 @@ export class LocalNode {
       return ok(id);
     }
 
-    let coValue: AvailableCoValueCore;
+    let coValue: CoValueCoreWithContent;
 
     try {
       coValue = this.expectCoValueLoaded(id, expectation);
