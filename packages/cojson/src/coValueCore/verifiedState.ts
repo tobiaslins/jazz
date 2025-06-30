@@ -351,6 +351,11 @@ export class VerifiedState {
     return piecesWithContent;
   }
 
+  /**
+   * Returns the known state considering the known state of the streaming source
+   *
+   * Used to correctly manage the content & subscriptions during the content streaming process
+   */
   knownStateWithStreaming(): CoValueKnownState {
     const knownState = this.knownState();
 

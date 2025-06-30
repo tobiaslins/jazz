@@ -1,6 +1,6 @@
 import { base58 } from "@scure/base";
 import { CoID } from "../coValue.js";
-import { CoValueCoreWithContent } from "../coValueCore/coValueCore.js";
+import { AvailableCoValueCore } from "../coValueCore/coValueCore.js";
 import { CoValueUniqueness } from "../coValueCore/verifiedState.js";
 import {
   CryptoProvider,
@@ -87,7 +87,7 @@ export class RawGroup<
   protected readonly crypto: CryptoProvider;
 
   constructor(
-    core: CoValueCoreWithContent,
+    core: AvailableCoValueCore,
     options?: {
       ignorePrivateTransactions: boolean;
     },

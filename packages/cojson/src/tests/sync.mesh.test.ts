@@ -472,7 +472,7 @@ describe("multiple clients syncing with the a cloud-like server mesh", () => {
     expect(mapOnClient.get("hello")).toEqual("world");
   });
 
-  test("large coValue streaming", async () => {
+  test("large coValue streaming from an edge to the core server and a client at the same time", async () => {
     const edge = setupTestNode();
 
     const { storage } = edge.addStorage({

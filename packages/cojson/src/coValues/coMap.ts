@@ -1,7 +1,7 @@
 import { CoID, RawCoValue } from "../coValue.js";
 import {
+  AvailableCoValueCore,
   CoValueCore,
-  CoValueCoreWithContent,
 } from "../coValueCore/coValueCore.js";
 import { AgentID, TransactionID } from "../ids.js";
 import { JsonObject, JsonValue } from "../jsonValue.js";
@@ -42,7 +42,7 @@ export class RawCoMapView<
   /** @category 6. Meta */
   type = "comap" as const;
   /** @category 6. Meta */
-  core: CoValueCoreWithContent;
+  core: AvailableCoValueCore;
   /** @internal */
   latest: {
     [Key in keyof Shape & string]?: MapOp<Key, Shape[Key]>;
@@ -69,7 +69,7 @@ export class RawCoMapView<
 
   /** @internal */
   constructor(
-    core: CoValueCoreWithContent,
+    core: AvailableCoValueCore,
     options?: {
       ignorePrivateTransactions: boolean;
     },

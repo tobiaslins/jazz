@@ -129,7 +129,7 @@ export class StorageApiAsync implements StorageAPI {
         idx = signature.idx + 1;
 
         if (signatures.length > 1) {
-          // Having more than one signature means that the content needs streamingTarget
+          // Having more than one signature means that the content needs streaming
           // So we start pushing the content to the client, and start a new content message
           await this.pushContentWithDependencies(
             coValueRow,
@@ -151,7 +151,7 @@ export class StorageApiAsync implements StorageAPI {
     const hasNewContent = Object.keys(contentMessage.new).length > 0;
 
     // If there is no new content but steaming is not active, it's the case for a coValue with the header but no transactions
-    // For streamingTarget the push has already been done in the loop above
+    // For streaming the push has already been done in the loop above
     if (hasNewContent || !contentStreaming) {
       await this.pushContentWithDependencies(
         coValueRow,

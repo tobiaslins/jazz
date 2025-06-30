@@ -1,5 +1,5 @@
 import { splitGraphemes } from "unicode-segmenter/grapheme";
-import { CoValueCoreWithContent } from "../coValueCore/coValueCore.js";
+import { AvailableCoValueCore } from "../coValueCore/coValueCore.js";
 import { JsonObject } from "../jsonValue.js";
 import { DeletionOpPayload, OpID, RawCoList } from "./coList.js";
 
@@ -54,7 +54,7 @@ export class RawCoPlainText<
     PlaintextIdxMapping
   >;
 
-  constructor(core: CoValueCoreWithContent) {
+  constructor(core: AvailableCoValueCore) {
     super(core);
     this._cachedMapping = new WeakMap();
   }

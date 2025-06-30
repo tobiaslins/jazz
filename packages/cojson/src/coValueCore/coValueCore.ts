@@ -64,7 +64,7 @@ export type DecryptedTransaction = {
 
 const readKeyCache = new WeakMap<CoValueCore, { [id: KeyID]: KeySecret }>();
 
-export type CoValueCoreWithContent = CoValueCore & { verified: VerifiedState };
+export type AvailableCoValueCore = CoValueCore & { verified: VerifiedState };
 
 export const CO_VALUE_LOADING_CONFIG = {
   MAX_RETRIES: 1,
@@ -151,8 +151,8 @@ export class CoValueCore {
   static fromHeader(
     header: CoValueHeader,
     node: LocalNode,
-  ): CoValueCoreWithContent {
-    return new CoValueCore({ header }, node) as CoValueCoreWithContent;
+  ): AvailableCoValueCore {
+    return new CoValueCore({ header }, node) as AvailableCoValueCore;
   }
 
   get loadingState() {
@@ -173,11 +173,11 @@ export class CoValueCore {
     return "unavailable";
   }
 
-  isAvailable(): this is CoValueCoreWithContent {
+  isAvailable(): this is AvailableCoValueCore {
     return this.hasVerifiedContent() && this.missingDependencies.size === 0;
   }
 
-  hasVerifiedContent(): this is CoValueCoreWithContent {
+  hasVerifiedContent(): this is AvailableCoValueCore {
     return !!this.verified;
   }
 
@@ -613,7 +613,7 @@ export class CoValueCore {
 
     this.subscribeToGroupInvalidation();
 
-    const newContent = coreToCoValue(this as CoValueCoreWithContent, options);
+    const newContent = coreToCoValue(this as AvailableCoValueCore, options);
 
     if (!options?.ignorePrivateTransactions) {
       this._cachedContent = newContent;
@@ -1028,7 +1028,6 @@ export class CoValueCore {
     node.storage.load(
       this.id,
       (data) => {
-        // TODO: content streamingTarget triggers a load request
         node.syncManager.handleNewContent(data);
       },
       (found) => {

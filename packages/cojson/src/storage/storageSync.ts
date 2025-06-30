@@ -145,7 +145,7 @@ export class StorageApiSync implements StorageAPI {
     const hasNewContent = Object.keys(contentMessage.new).length > 0;
 
     // If there is no new content but steaming is not active, it's the case for a coValue with the header but no transactions
-    // For streamingTarget the push has already been done in the loop above
+    // For streaming the push has already been done in the loop above
     if (hasNewContent || !contentStreaming) {
       this.pushContentWithDependencies(coValueRow, contentMessage, callback);
     }

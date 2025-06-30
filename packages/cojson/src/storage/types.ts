@@ -14,7 +14,7 @@ import { CoValueKnownState, NewContentMessage } from "../sync.js";
 export interface StorageAPI {
   load(
     id: string,
-    // This callback is fired when data is found, might be called multiple times if the content requires streamingTarget (e.g when loading files)
+    // This callback is fired when data is found, might be called multiple times if the content requires streaming (e.g when loading files)
     callback: (data: NewContentMessage) => void,
     done?: (found: boolean) => void,
   ): void;

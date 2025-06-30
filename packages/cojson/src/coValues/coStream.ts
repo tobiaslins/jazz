@@ -1,8 +1,8 @@
 import { base64URLtoBytes, bytesToBase64url } from "../base64url.js";
 import { CoID, RawCoValue } from "../coValue.js";
 import {
+  AvailableCoValueCore,
   CoValueCore,
-  CoValueCoreWithContent,
 } from "../coValueCore/coValueCore.js";
 import { AgentID, SessionID, TransactionID } from "../ids.js";
 import { JsonObject, JsonValue } from "../jsonValue.js";
@@ -53,7 +53,7 @@ export class RawCoStreamView<
 {
   id: CoID<this>;
   type = "costream" as const;
-  core: CoValueCoreWithContent;
+  core: AvailableCoValueCore;
   items: {
     [key: SessionID]: CoStreamItem<Item>[];
   };
@@ -62,7 +62,7 @@ export class RawCoStreamView<
   totalValidTransactions = 0;
   readonly _item!: Item;
 
-  constructor(core: CoValueCoreWithContent) {
+  constructor(core: AvailableCoValueCore) {
     this.id = core.id as CoID<this>;
     this.core = core;
     this.items = {};
