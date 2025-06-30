@@ -1,1 +1,1 @@
-export { RNQuickCrypto } from "./RNQuickCrypto.js";
+export { RNQuickCrypto } from "./RNQuickCrypto";
