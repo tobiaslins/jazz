@@ -193,7 +193,7 @@ export class RawGroup<
 
   loadAllChildGroups() {
     const requests: Promise<unknown>[] = [];
-    const peers = this.core.node.syncManager.getServerAndStoragePeers();
+    const peers = this.core.node.syncManager.getServerPeers();
 
     for (const key of this.keys()) {
       if (!isChildGroupReference(key)) {

@@ -83,7 +83,7 @@ export interface Peer {
   id: PeerID;
   incoming: IncomingSyncStream;
   outgoing: OutgoingSyncQueue;
-  role: "server" | "client" | "storage";
+  role: "server" | "client";
   priority?: number;
   crashOnClose: boolean;
   deletePeerStateOnClose?: boolean;
@@ -153,12 +153,10 @@ export class SyncManager {
     return Object.values(this.peers);
   }
 
-  getServerAndStoragePeers(excludePeerId?: PeerID): PeerState[] {
-    return this.peersInPriorityOrder().filter(
+  getServerPeers(excludePeerId?: PeerID): PeerState[] {
+    return this.getPeers().filter(
       (peer) =>
-        peer.isServerOrStoragePeer() &&
-        peer.id !== excludePeerId &&
-        !peer.closed,
+        peer.role === "server" && peer.id !== excludePeerId && !peer.closed,
     );
   }
 
@@ -323,7 +321,7 @@ export class SyncManager {
       },
     );
 
-    if (peerState.isServerOrStoragePeer()) {
+    if (peerState.role === "server") {
       void this.startPeerReconciliation(peerState);
     }
 
@@ -391,7 +389,7 @@ export class SyncManager {
       return;
     }
 
-    const peers = this.getServerAndStoragePeers(peer.id);
+    const peers = this.getServerPeers(peer.id);
 
     coValue.load(peers);
 
@@ -488,7 +486,7 @@ export class SyncManager {
         if (!dependencyCoValue.hasVerifiedContent()) {
           coValue.markMissingDependency(dependency);
 
-          const peers = this.getServerAndStoragePeers();
+          const peers = this.getServerPeers();
 
           // if the peer that sent the content is a client, we add it to the list of peers
           // to also ask them for the dependency
@@ -558,7 +556,7 @@ export class SyncManager {
           // This covers the case where we are getting a new session on an already loaded coValue
           // where we need to load the account to get their public key
           if (!coValue.missingDependencies.has(accountId)) {
-            const peers = this.getServerAndStoragePeers();
+            const peers = this.getServerPeers();
 
             if (peer?.role === "client") {
               // if the peer that sent the content is a client, we add it to the list of peers
@@ -675,12 +673,7 @@ export class SyncManager {
       /**
        * We sync the content against the source peer if it is a client or server peers
        * to upload any content that is available on the current node and not on the source peer.
-       *
-       * We don't need to do this with storage peers because we don't get updates from those peers,
-       * only load and store content.
        */
-      if (peer.id === sourcePeer?.id && sourcePeer?.role === "storage")
-        continue;
       if (peer.closed) continue;
       if (coValue.isErroredInPeer(peer.id)) continue;
 
@@ -689,7 +682,7 @@ export class SyncManager {
         this.sendNewContentIncludingDependencies(coValue.id, peer);
         syncedPeers.push(peer);
       } else if (
-        peer.isServerOrStoragePeer() &&
+        peer.role === "server" &&
         !peer.loadRequestSent.has(coValue.id)
       ) {
         const state = coValue.getStateForPeer(peer.id)?.type;
