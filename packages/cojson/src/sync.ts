@@ -1,5 +1,9 @@
 import { Histogram, ValueType, metrics } from "@opentelemetry/api";
 import { PeerState } from "./PeerState.js";
+import {
+  IncomingMessagesQueue,
+  PriorityBasedMessageQueue,
+} from "./PriorityBasedMessageQueue.js";
 import { SyncStateManager } from "./SyncStateManager.js";
 import { CoValueCore } from "./coValueCore/coValueCore.js";
 import { getDependedOnCoValuesFromRawData } from "./coValueCore/utils.js";
@@ -8,7 +12,7 @@ import { Signature } from "./crypto/crypto.js";
 import { RawCoID, SessionID } from "./ids.js";
 import { LocalNode } from "./localNode.js";
 import { logger } from "./logger.js";
-import { CoValuePriority } from "./priority.js";
+import { CO_VALUE_PRIORITY, CoValuePriority } from "./priority.js";
 import { accountOrAgentIDfromSessionID } from "./typeUtils/accountOrAgentIDfromSessionID.js";
 import { isAccountID } from "./typeUtils/isAccountID.js";
 
@@ -303,6 +307,30 @@ export class SyncManager {
     }
   }
 
+  messagesQueue = new IncomingMessagesQueue();
+  async pushMessage(incoming: SyncMessage, peer: PeerState) {
+    this.messagesQueue.push(incoming, peer);
+
+    if (this.messagesQueue.processing) {
+      return;
+    }
+
+    let lastTimer = performance.now();
+    let paused = false;
+    this.messagesQueue.processQueue((msg, peer, stop) => {
+      this.handleSyncMessage(msg, peer);
+
+      if (performance.now() - lastTimer > 50) {
+        paused = true;
+        stop();
+      }
+    });
+
+    if (paused) {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+  }
+
   addPeer(peer: Peer) {
     const prevPeer = this.peers[peer.id];
 
@@ -327,7 +355,7 @@ export class SyncManager {
 
     peerState
       .processIncomingMessages((msg) => {
-        this.handleSyncMessage(msg, peerState);
+        this.pushMessage(msg, peerState);
       })
       .then(() => {
         if (peer.crashOnClose) {
