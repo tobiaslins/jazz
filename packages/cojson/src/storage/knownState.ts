@@ -50,7 +50,8 @@ export class StorageKnownState {
   >();
 
   waitForSync(id: string, coValue: CoValueCore) {
-    if (isInSync(coValue.knownState(), this.getKnownState(id))) {
+    const initialKnownState = coValue.knownState();
+    if (isInSync(initialKnownState, this.getKnownState(id))) {
       return Promise.resolve();
     }
 
@@ -58,8 +59,6 @@ export class StorageKnownState {
     this.waitForSyncRequests.set(id, requests);
 
     return new Promise<void>((resolve) => {
-      const knownState = coValue.knownState();
-
       const unsubscribe = coValue.subscribe((coValue) => {
         req.knownState = coValue.knownState();
         this.handleUpdate(id, this.getKnownState(id));
@@ -70,7 +69,7 @@ export class StorageKnownState {
         unsubscribe();
       };
 
-      const req = { knownState, resolve: handleResolve };
+      const req = { knownState: initialKnownState, resolve: handleResolve };
 
       requests.add(req);
     });
