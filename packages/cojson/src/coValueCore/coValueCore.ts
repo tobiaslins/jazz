@@ -1002,9 +1002,7 @@ export class CoValueCore {
     this.loadFromStorage((found) => {
       // When found the load is triggered by handleNewContent
       if (!found) {
-        this.loadFromPeers(peers).catch((e) => {
-          logger.error("Error loading coValue in loadFromPeers", { err: e });
-        });
+        this.loadFromPeers(peers);
       }
     });
   }
@@ -1040,65 +1038,28 @@ export class CoValueCore {
     );
   }
 
-  async loadFromPeers(peers: PeerState[]) {
+  loadFromPeers(peers: PeerState[]) {
     if (peers.length === 0) {
       return;
     }
 
-    const peersToActuallyLoadFrom = {
-      storage: [] as PeerState[],
-      server: [] as PeerState[],
-    };
+    const peersToActuallyLoadFrom = [] as PeerState[];
 
     for (const peer of peers) {
-      const currentState = this.peers.get(peer.id);
+      const currentState = this.peers.get(peer.id)?.type;
 
       if (
-        currentState?.type === "available" ||
-        currentState?.type === "pending"
+        !currentState ||
+        currentState === "unknown" ||
+        currentState === "unavailable"
       ) {
-        continue;
-      }
-
-      if (currentState?.type === "errored") {
-        continue;
-      }
-
-      if (currentState?.type === "unavailable") {
-        if (peer.role === "server") {
-          peersToActuallyLoadFrom.server.push(peer);
-          this.markPending(peer.id);
-        }
-
-        continue;
-      }
-
-      if (!currentState || currentState?.type === "unknown") {
-        if (peer.role === "storage") {
-          peersToActuallyLoadFrom.storage.push(peer);
-        } else {
-          peersToActuallyLoadFrom.server.push(peer);
-        }
-
+        peersToActuallyLoadFrom.push(peer);
         this.markPending(peer.id);
       }
     }
 
-    // Load from storage peers first, then from server peers
-    if (peersToActuallyLoadFrom.storage.length > 0) {
-      await Promise.all(
-        peersToActuallyLoadFrom.storage.map((peer) =>
-          this.internalLoadFromPeer(peer),
-        ),
-      );
-    }
-
-    if (peersToActuallyLoadFrom.server.length > 0) {
-      await Promise.all(
-        peersToActuallyLoadFrom.server.map((peer) =>
-          this.internalLoadFromPeer(peer),
-        ),
-      );
+    for (const peer of peersToActuallyLoadFrom) {
+      this.internalLoadFromPeer(peer);
     }
   }
 

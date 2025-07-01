@@ -362,13 +362,10 @@ describe("multiple clients syncing with the a cloud-like server mesh", () => {
 
     const storage = setupTestNode();
 
-    const { peer: storagePeer } = client.connectToSyncServer({
-      syncServerName: "storage",
+    client.connectToSyncServer({
+      syncServerName: "another-server",
       syncServer: storage.node,
     });
-
-    storagePeer.role = "storage";
-    storagePeer.priority = 100;
 
     const group = coreServer.node.createGroup();
     const map = group.createMap();
@@ -402,14 +399,13 @@ describe("multiple clients syncing with the a cloud-like server mesh", () => {
       }),
     ).toMatchInlineSnapshot(`
       [
-        "client -> storage | LOAD Map sessions: empty",
-        "storage -> client | CONTENT Group header: true new: After: 0 New: 3",
-        "client -> storage | KNOWN Group sessions: header/3",
+        "client -> core | LOAD Map sessions: empty",
+        "client -> another-server | LOAD Map sessions: empty",
+        "another-server -> client | CONTENT Group header: true new: After: 0 New: 3",
+        "client -> another-server | KNOWN Group sessions: header/3",
         "client -> core | LOAD Group sessions: header/3",
-        "storage -> client | CONTENT Map header: true new: After: 0 New: 1",
-        "core -> client | KNOWN Group sessions: header/3",
-        "client -> storage | KNOWN Map sessions: header/1",
-        "client -> core | LOAD Map sessions: header/1",
+        "another-server -> client | CONTENT Map header: true new: After: 0 New: 1",
+        "client -> another-server | KNOWN Map sessions: header/1",
       ]
     `);
 

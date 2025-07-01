@@ -375,8 +375,7 @@ export class LocalNode {
         coValue.loadingState === "unknown" ||
         coValue.loadingState === "unavailable"
       ) {
-        const peers =
-          this.syncManager.getServerAndStoragePeers(skipLoadingFromPeer);
+        const peers = this.syncManager.getServerPeers(skipLoadingFromPeer);
 
         if (!this.storage && peers.length === 0) {
           return coValue;
