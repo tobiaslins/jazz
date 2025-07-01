@@ -27,7 +27,7 @@ import { SQLiteReactNative } from "./storage/sqlite-react-native.js";
 
 import { SQLiteDatabaseDriverAsync } from "cojson-storage";
 import { WebSocketPeerWithReconnection } from "cojson-transport-ws";
-import type { RNQuickCrypto } from "./crypto/RNQuickCrypto.js";
+import type { RNQuickCrypto } from "jazz-tools/react-native-core/crypto";
 
 export type BaseReactNativeContextOptions = {
   sync: SyncConfig;
