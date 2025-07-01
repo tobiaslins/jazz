@@ -471,4 +471,132 @@ describe("multiple clients syncing with the a cloud-like server mesh", () => {
 
     expect(mapOnClient.get("hello")).toEqual("world");
   });
+
+  test("large coValue streaming from an edge to the core server and a client at the same time", async () => {
+    const edge = setupTestNode();
+
+    const { storage } = edge.addStorage({
+      ourName: "edge",
+    });
+
+    const group = edge.node.createGroup();
+    group.addMember("everyone", "writer");
+
+    const largeMap = group.createMap();
+
+    // Generate a large amount of data (about 100MB)
+    const dataSize = 1 * 200 * 1024;
+    const chunkSize = 1024; // 1KB chunks
+    const chunks = dataSize / chunkSize;
+
+    const value = Buffer.alloc(chunkSize, `value$`).toString("base64");
+
+    for (let i = 0; i < chunks; i++) {
+      const key = `key${i}`;
+      largeMap.set(key, value, "trusting");
+    }
+
+    await largeMap.core.waitForSync();
+
+    expect(
+      SyncMessagesLog.getMessages({
+        Group: group.core,
+        Map: largeMap.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "edge -> storage | CONTENT Group header: true new: After: 0 New: 5",
+        "edge -> storage | CONTENT Map header: true new:  streamingTarget: header/200",
+        "edge -> storage | CONTENT Map header: false new: After: 0 New: 73 streamingTarget: header/200",
+        "edge -> storage | CONTENT Map header: false new: After: 73 New: 73 streamingTarget: header/200",
+        "edge -> storage | CONTENT Map header: false new: After: 146 New: 54 streamingTarget: header/200",
+      ]
+    `);
+
+    edge.restart();
+
+    edge.connectToSyncServer({
+      syncServerName: "core",
+      ourName: "edge",
+      syncServer: mesh.coreServer.node,
+    });
+    edge.addStorage({
+      storage,
+    });
+
+    SyncMessagesLog.clear();
+
+    const client = setupTestNode();
+
+    client.connectToSyncServer({
+      syncServerName: "edge",
+      syncServer: edge.node,
+    });
+
+    client.addStorage({
+      ourName: "client",
+    });
+
+    const mapOnClient = await loadCoValueOrFail(client.node, largeMap.id);
+
+    await mapOnClient.core.waitForSync();
+
+    expect(
+      SyncMessagesLog.getMessages({
+        Group: group.core,
+        Map: largeMap.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "client -> storage | LOAD Map sessions: empty",
+        "storage -> client | KNOWN Map sessions: empty",
+        "client -> edge | LOAD Map sessions: empty",
+        "edge -> storage | LOAD Map sessions: empty",
+        "storage -> edge | CONTENT Group header: true new: After: 0 New: 5",
+        "edge -> core | LOAD Group sessions: header/5",
+        "storage -> edge | CONTENT Map header: true new: After: 0 New: 73 streamingTarget: header/200",
+        "edge -> client | CONTENT Group header: true new: After: 0 New: 5",
+        "core -> storage | LOAD Group sessions: empty",
+        "storage -> core | KNOWN Group sessions: empty",
+        "edge -> core | LOAD Map sessions: header/200",
+        "client -> edge | KNOWN Group sessions: header/5",
+        "client -> storage | CONTENT Group header: true new: After: 0 New: 5",
+        "edge -> client | CONTENT Map header: true new:  streamingTarget: header/200",
+        "core -> edge | KNOWN Group sessions: empty",
+        "core -> storage | LOAD Map sessions: empty",
+        "storage -> core | KNOWN Map sessions: empty",
+        "client -> edge | KNOWN Map sessions: header/0",
+        "client -> storage | CONTENT Map header: true new:  streamingTarget: header/200",
+        "edge -> client | CONTENT Map header: false new: After: 0 New: 73 streamingTarget: header/200",
+        "edge -> core | CONTENT Group header: true new: After: 0 New: 5",
+        "core -> edge | KNOWN Map sessions: empty",
+        "client -> edge | KNOWN Map sessions: header/73",
+        "client -> storage | CONTENT Map header: false new: After: 0 New: 73 streamingTarget: header/200",
+        "core -> storage | CONTENT Group header: true new: After: 0 New: 5",
+        "edge -> core | CONTENT Map header: true new:  streamingTarget: header/200",
+        "core -> edge | KNOWN Group sessions: header/5",
+        "core -> storage | CONTENT Map header: true new:  streamingTarget: header/200",
+        "edge -> core | CONTENT Map header: false new: After: 0 New: 73 streamingTarget: header/200",
+        "core -> edge | KNOWN Map sessions: header/0",
+        "core -> storage | CONTENT Map header: false new: After: 0 New: 73 streamingTarget: header/200",
+        "core -> edge | KNOWN Map sessions: header/73",
+        "storage -> edge | CONTENT Map header: true new: After: 73 New: 73 streamingTarget: header/200",
+        "edge -> core | CONTENT Map header: false new: After: 73 New: 73 streamingTarget: header/200",
+        "edge -> client | CONTENT Map header: false new: After: 73 New: 73 streamingTarget: header/200",
+        "core -> edge | KNOWN Map sessions: header/146",
+        "core -> storage | CONTENT Map header: false new: After: 73 New: 73 streamingTarget: header/200",
+        "client -> edge | KNOWN Map sessions: header/146",
+        "client -> storage | CONTENT Map header: false new: After: 73 New: 73 streamingTarget: header/200",
+        "storage -> edge | CONTENT Map header: true new: After: 146 New: 54 streamingTarget: header/200",
+        "edge -> core | CONTENT Map header: false new: After: 146 New: 54",
+        "edge -> client | CONTENT Map header: false new: After: 146 New: 54",
+        "core -> edge | KNOWN Map sessions: header/200",
+        "core -> storage | CONTENT Map header: false new: After: 146 New: 54",
+        "client -> edge | KNOWN Map sessions: header/200",
+        "client -> storage | CONTENT Map header: false new: After: 146 New: 54",
+      ]
+    `);
+
+    expect(mapOnClient.core.knownState()).toEqual(largeMap.core.knownState());
+  });
 });

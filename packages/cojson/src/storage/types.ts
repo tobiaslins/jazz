@@ -3,7 +3,7 @@ import type {
   Transaction,
 } from "../coValueCore/verifiedState.js";
 import { Signature } from "../crypto/crypto.js";
-import type { RawCoID, SessionID } from "../exports.js";
+import type { CoValueCore, RawCoID, SessionID } from "../exports.js";
 import { CoValueKnownState, NewContentMessage } from "../sync.js";
 
 /**
@@ -25,7 +25,7 @@ export interface StorageAPI {
 
   getKnownState(id: string): CoValueKnownState;
 
-  waitForSync(id: string, knownState: CoValueKnownState): Promise<void>;
+  waitForSync(id: string, coValue: CoValueCore): Promise<void>;
 
   close(): void;
 }

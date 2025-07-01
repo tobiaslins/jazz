@@ -174,7 +174,11 @@ export class CoValueCore {
   }
 
   isAvailable(): this is AvailableCoValueCore {
-    return !!this.verified && this.missingDependencies.size === 0;
+    return this.hasVerifiedContent() && this.missingDependencies.size === 0;
+  }
+
+  hasVerifiedContent(): this is AvailableCoValueCore {
+    return !!this.verified;
   }
 
   isErroredInPeer(peerId: PeerID) {
@@ -253,7 +257,11 @@ export class CoValueCore {
     }
   }
 
-  provideHeader(header: CoValueHeader, fromPeerId: PeerID) {
+  provideHeader(
+    header: CoValueHeader,
+    fromPeerId: PeerID,
+    streamingKnownState?: CoValueKnownState["sessions"],
+  ) {
     const previousState = this.loadingState;
 
     if (this._verified?.sessions.size) {
@@ -266,6 +274,7 @@ export class CoValueCore {
       this.node.crypto,
       header,
       new Map(),
+      streamingKnownState,
     );
 
     this.peers.set(fromPeerId, { type: "available" });
@@ -354,6 +363,14 @@ export class CoValueCore {
     return this.node
       .loadCoValueAsDifferentAgent(this.id, account.agentSecret, account.id)
       .getCurrentContent();
+  }
+
+  knownStateWithStreaming(): CoValueKnownState {
+    if (this.isAvailable()) {
+      return this.verified.knownStateWithStreaming();
+    } else {
+      return emptyKnownState(this.id);
+    }
   }
 
   knownState(): CoValueKnownState {
@@ -1011,7 +1028,6 @@ export class CoValueCore {
     node.storage.load(
       this.id,
       (data) => {
-        // TODO: content streaming triggers a load request
         node.syncManager.handleNewContent(data);
       },
       (found) => {

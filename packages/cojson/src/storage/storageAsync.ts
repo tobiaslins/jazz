@@ -1,7 +1,8 @@
 import { LinkedList } from "../PriorityBasedMessageQueue.js";
 import {
+  type CoValueCore,
   MAX_RECOMMENDED_TX_SIZE,
-  RawCoID,
+  type RawCoID,
   type SessionID,
   type StorageAPI,
 } from "../exports.js";
@@ -94,7 +95,11 @@ export class StorageApiAsync implements StorageAPI {
       header: coValueRow.header,
       new: {},
       priority: getPriorityFromHeader(coValueRow.header),
-    } satisfies NewContentMessage;
+    } as NewContentMessage;
+
+    if (contentStreaming) {
+      contentMessage.streamingTarget = knownState["sessions"];
+    }
 
     for (const sessionRow of allCoValueSessions) {
       const signatures = signaturesBySession.get(sessionRow.sessionID) || [];
@@ -137,6 +142,7 @@ export class StorageApiAsync implements StorageAPI {
             header: coValueRow.header,
             new: {},
             priority: getPriorityFromHeader(coValueRow.header),
+            streamingTarget: knownState["sessions"],
           } satisfies NewContentMessage;
         }
       }
@@ -362,8 +368,8 @@ export class StorageApiAsync implements StorageAPI {
     return newLastIdx;
   }
 
-  waitForSync(id: string, knownState: CoValueKnownState) {
-    return this.knwonStates.waitForSync(id, knownState);
+  waitForSync(id: string, coValue: CoValueCore) {
+    return this.knwonStates.waitForSync(id, coValue);
   }
 
   close() {

@@ -139,9 +139,6 @@ describe("Browser sync", () => {
       AccountSchema: CustomAccount,
     });
 
-    // TODO: Wait for sync doesn't work on the IndexedDB storage peer as it just waits for the content to be pushed
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
     const loadedMap = await TestMap.load(map.id, {
       loadAs: account2,
     });
@@ -181,9 +178,6 @@ describe("Browser sync", () => {
       databaseName: "jazz-storage",
       AccountSchema: CustomAccount,
     });
-
-    // TODO: Wait for sync doesn't work on the IndexedDB storage peer as it just waits for the content to be pushed
-    await new Promise((resolve) => setTimeout(resolve, 500));
 
     const loadedMap = await TestMap.load(map.id, {
       loadAs: account2,

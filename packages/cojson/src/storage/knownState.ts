@@ -1,4 +1,5 @@
 import { getIsUploaded } from "../SyncStateManager.js";
+import { type CoValueCore } from "../exports.js";
 import { RawCoID } from "../ids.js";
 import { CoValueKnownState, emptyKnownState } from "../sync.js";
 
@@ -48,8 +49,9 @@ export class StorageKnownState {
     }>
   >();
 
-  waitForSync(id: string, knownState: CoValueKnownState) {
-    if (isInSync(knownState, this.getKnownState(id))) {
+  waitForSync(id: string, coValue: CoValueCore) {
+    const initialKnownState = coValue.knownState();
+    if (isInSync(initialKnownState, this.getKnownState(id))) {
       return Promise.resolve();
     }
 
@@ -57,7 +59,19 @@ export class StorageKnownState {
     this.waitForSyncRequests.set(id, requests);
 
     return new Promise<void>((resolve) => {
-      requests.add({ knownState, resolve });
+      const unsubscribe = coValue.subscribe((coValue) => {
+        req.knownState = coValue.knownState();
+        this.handleUpdate(id, this.getKnownState(id));
+      }, false);
+
+      const handleResolve = () => {
+        resolve();
+        unsubscribe();
+      };
+
+      const req = { knownState: initialKnownState, resolve: handleResolve };
+
+      requests.add(req);
     });
   }
 }
