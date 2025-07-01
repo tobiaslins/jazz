@@ -365,11 +365,9 @@ export class VerifiedState {
       let outdated = true;
 
       for (const [sessionID, txs] of entries) {
+        newSessions[sessionID as SessionID] = txs;
         if ((knownState.sessions[sessionID as SessionID] ?? 0) < txs) {
-          newSessions[sessionID as SessionID] = txs;
           outdated = false;
-        } else {
-          newSessions[sessionID as SessionID] = txs;
         }
       }
 
