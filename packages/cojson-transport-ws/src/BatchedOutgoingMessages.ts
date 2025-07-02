@@ -12,10 +12,6 @@ export class BatchedOutgoingMessages {
   push(msg: SyncMessage) {
     const payload = addMessageToBacklog(this.backlog, msg);
 
-    if (this.timeout) {
-      clearTimeout(this.timeout);
-    }
-
     const maxChunkSizeReached =
       payload.length >= MAX_OUTGOING_MESSAGES_CHUNK_BYTES;
     const backlogExists = this.backlog.length > 0;
@@ -23,23 +19,27 @@ export class BatchedOutgoingMessages {
     if (maxChunkSizeReached && backlogExists) {
       this.sendMessagesInBulk();
       this.backlog = addMessageToBacklog("", msg);
-      this.timeout = setTimeout(() => {
-        this.sendMessagesInBulk();
-      }, 0);
     } else if (maxChunkSizeReached) {
       this.backlog = payload;
       this.sendMessagesInBulk();
     } else {
       this.backlog = payload;
+    }
+
+    // Throttling the sending of messages to once every 10ms
+    if (!this.timeout) {
       this.timeout = setTimeout(() => {
         this.sendMessagesInBulk();
-      }, 0);
+        this.timeout = null;
+      }, 10);
     }
   }
 
   sendMessagesInBulk() {
-    this.send(this.backlog);
-    this.backlog = "";
+    if (this.backlog.length > 0) {
+      this.send(this.backlog);
+      this.backlog = "";
+    }
   }
 
   close() {

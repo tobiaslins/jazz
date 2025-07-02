@@ -1,9 +1,6 @@
 import { Histogram, ValueType, metrics } from "@opentelemetry/api";
 import { PeerState } from "./PeerState.js";
-import {
-  IncomingMessagesQueue,
-  PriorityBasedMessageQueue,
-} from "./PriorityBasedMessageQueue.js";
+import { IncomingMessagesQueue } from "./PriorityBasedMessageQueue.js";
 import { SyncStateManager } from "./SyncStateManager.js";
 import { CoValueCore } from "./coValueCore/coValueCore.js";
 import { getDependedOnCoValuesFromRawData } from "./coValueCore/utils.js";
@@ -12,7 +9,7 @@ import { Signature } from "./crypto/crypto.js";
 import { RawCoID, SessionID } from "./ids.js";
 import { LocalNode } from "./localNode.js";
 import { logger } from "./logger.js";
-import { CO_VALUE_PRIORITY, CoValuePriority } from "./priority.js";
+import { CoValuePriority } from "./priority.js";
 import { accountOrAgentIDfromSessionID } from "./typeUtils/accountOrAgentIDfromSessionID.js";
 import { isAccountID } from "./typeUtils/isAccountID.js";
 
@@ -73,23 +70,19 @@ export type PeerID = string;
 
 export type DisconnectedError = "Disconnected";
 
-export type PingTimeoutError = "PingTimeout";
-
-export type IncomingSyncStream = AsyncIterable<
-  SyncMessage | DisconnectedError | PingTimeoutError
->;
-export type OutgoingSyncQueue = {
-  push: (msg: SyncMessage) => Promise<unknown>;
+export interface PeerChannel {
+  push: (msg: SyncMessage | DisconnectedError) => void;
   close: () => void;
-};
+  onMessage: (callback: (msg: SyncMessage | DisconnectedError) => void) => void;
+  onClose: (callback: () => void) => void;
+}
 
 export interface Peer {
   id: PeerID;
-  incoming: IncomingSyncStream;
-  outgoing: OutgoingSyncQueue;
+  incoming: PeerChannel;
+  outgoing: PeerChannel;
   role: "server" | "client";
   priority?: number;
-  crashOnClose: boolean;
   deletePeerStateOnClose?: boolean;
 }
 
@@ -308,27 +301,16 @@ export class SyncManager {
   }
 
   messagesQueue = new IncomingMessagesQueue();
-  async pushMessage(incoming: SyncMessage, peer: PeerState) {
+  pushMessage(incoming: SyncMessage, peer: PeerState) {
     this.messagesQueue.push(incoming, peer);
 
     if (this.messagesQueue.processing) {
       return;
     }
 
-    let lastTimer = performance.now();
-    let paused = false;
-    this.messagesQueue.processQueue((msg, peer, stop) => {
+    this.messagesQueue.processQueue((msg, peer) => {
       this.handleSyncMessage(msg, peer);
-
-      if (performance.now() - lastTimer > 50) {
-        paused = true;
-        stop();
-      }
     });
-
-    if (paused) {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    }
   }
 
   addPeer(peer: Peer) {
@@ -353,41 +335,23 @@ export class SyncManager {
       void this.startPeerReconciliation(peerState);
     }
 
-    peerState
-      .processIncomingMessages((msg) => {
-        this.pushMessage(msg, peerState);
-      })
-      .then(() => {
-        if (peer.crashOnClose) {
-          logger.error("Unexepcted close from peer", {
-            peerId: peer.id,
-            peerRole: peer.role,
-          });
-          this.local.crashed = new Error("Unexpected close from peer");
-          throw new Error("Unexpected close from peer");
-        }
-      })
-      .catch((e) => {
-        logger.error("Error processing messages from peer", {
-          err: e,
-          peerId: peer.id,
-          peerRole: peer.role,
-        });
-
-        if (peer.crashOnClose) {
-          this.local.crashed = e;
-          throw new Error(e);
-        }
-      })
-      .finally(() => {
+    peerState.incoming.onMessage((msg) => {
+      if (msg === "Disconnected") {
         peerState.gracefulShutdown();
-        unsubscribeFromKnownStatesUpdates();
-        this.peersCounter.add(-1, { role: peer.role });
+        return;
+      }
 
-        if (peer.deletePeerStateOnClose && this.peers[peer.id] === peerState) {
-          delete this.peers[peer.id];
-        }
-      });
+      this.pushMessage(msg, peerState);
+    });
+
+    peerState.addCloseListener(() => {
+      unsubscribeFromKnownStatesUpdates();
+      this.peersCounter.add(-1, { role: peer.role });
+
+      if (peer.deletePeerStateOnClose && this.peers[peer.id] === peerState) {
+        delete this.peers[peer.id];
+      }
+    });
   }
 
   trySendToPeer(peer: PeerState, msg: SyncMessage) {
@@ -523,6 +487,8 @@ export class SyncManager {
           }
 
           dependencyCoValue.load(peers);
+        } else if (!dependencyCoValue.isAvailable()) {
+          coValue.markMissingDependency(dependency);
         }
       }
 

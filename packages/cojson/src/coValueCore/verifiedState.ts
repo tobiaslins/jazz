@@ -362,18 +362,17 @@ export class VerifiedState {
     if (this.streamingKnownState) {
       const newSessions: CoValueKnownState["sessions"] = {};
       const entries = Object.entries(this.streamingKnownState);
-      let outdated = true;
 
       for (const [sessionID, txs] of entries) {
         if ((knownState.sessions[sessionID as SessionID] ?? 0) < txs) {
           newSessions[sessionID as SessionID] = txs;
-          outdated = false;
         } else {
           newSessions[sessionID as SessionID] = txs;
+          delete this.streamingKnownState[sessionID as SessionID];
         }
       }
 
-      if (outdated) {
+      if (Object.keys(this.streamingKnownState).length === 0) {
         this.streamingKnownState = undefined;
         return knownState;
       } else {

@@ -348,6 +348,7 @@ export class LocalNode {
     skipLoadingFromPeer?: PeerID,
     skipRetry?: boolean,
   ): Promise<CoValueCore> {
+    console.log("loadCoValueCore", id);
     if (!id) {
       throw new Error("Trying to load CoValue with undefined id");
     }
@@ -385,7 +386,6 @@ export class LocalNode {
       }
 
       const result = await coValue.waitForAvailableOrUnavailable();
-
       if (
         result.isAvailable() ||
         skipRetry ||

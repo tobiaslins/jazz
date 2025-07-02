@@ -42,7 +42,7 @@ import {
 import { Stringified, parseJSON, stableStringify } from "./jsonStringify.js";
 import { LocalNode } from "./localNode.js";
 import type { AccountRole, Role } from "./permissions.js";
-import { Channel, connectedPeers } from "./streamUtils.js";
+import { ConnectedPeerChannel, connectedPeers } from "./streamUtils.js";
 import { accountOrAgentIDfromSessionID } from "./typeUtils/accountOrAgentIDfromSessionID.js";
 import { expectGroup } from "./typeUtils/expectGroup.js";
 import { isAccountID } from "./typeUtils/isAccountID.js";
@@ -63,24 +63,15 @@ import type { AgentID, RawCoID, SessionID } from "./ids.js";
 import type { JsonObject, JsonValue } from "./jsonValue.js";
 import type * as Media from "./media.js";
 import { disablePermissionErrors } from "./permissions.js";
-import type {
-  IncomingSyncStream,
-  OutgoingSyncQueue,
-  Peer,
-  SyncMessage,
-} from "./sync.js";
-import {
-  DisconnectedError,
-  PingTimeoutError,
-  SyncManager,
-  emptyKnownState,
-} from "./sync.js";
+import type { Peer, SyncMessage } from "./sync.js";
+import { DisconnectedError, SyncManager, emptyKnownState } from "./sync.js";
 
 type Value = JsonValue | AnyRawCoValue;
 
+import { PriorityBasedMessageQueue } from "./PriorityBasedMessageQueue.js";
 import { getDependedOnCoValuesFromRawData } from "./coValueCore/utils.js";
 import { LogLevel, logger } from "./logger.js";
-import { getPriorityFromHeader } from "./priority.js";
+import { CO_VALUE_PRIORITY, getPriorityFromHeader } from "./priority.js";
 
 /** @hidden */
 export const cojsonInternals = {
@@ -100,13 +91,15 @@ export const cojsonInternals = {
   accountHeaderForInitialAgentSecret,
   idforHeader,
   StreamingHash,
-  Channel,
   getPriorityFromHeader,
   getGroupDependentKeyList,
   getGroupDependentKey,
   disablePermissionErrors,
   SyncManager,
   CO_VALUE_LOADING_CONFIG,
+  PriorityBasedMessageQueue,
+  CO_VALUE_PRIORITY,
+  ConnectedPeerChannel,
   setCoValueLoadingRetryDelay(delay: number) {
     CO_VALUE_LOADING_CONFIG.RETRY_DELAY = delay;
   },
@@ -161,10 +154,7 @@ export {
 
 export type {
   Value,
-  IncomingSyncStream,
-  OutgoingSyncQueue,
   DisconnectedError,
-  PingTimeoutError,
   CoValueUniqueness,
   Stringified,
   CoStreamItem,

@@ -211,22 +211,21 @@ export class IncomingMessagesQueue {
 
   processing = false;
 
-  processQueue(
-    callback: (msg: SyncMessage, peer: PeerState, stop: () => void) => void,
-  ) {
+  async processQueue(callback: (msg: SyncMessage, peer: PeerState) => void) {
     this.processing = true;
 
     let entry: { msg: SyncMessage; peer: PeerState } | undefined;
+    let lastTimer = performance.now();
 
     while ((entry = this.pull())) {
       const { msg, peer } = entry;
 
-      callback(msg, peer, () => {
-        this.processing = false;
-      });
+      callback(msg, peer);
 
-      if (!this.processing) {
-        break;
+      const currentTimer = performance.now();
+
+      if (currentTimer - lastTimer > 50) {
+        await new Promise((resolve) => setTimeout(resolve, 0));
       }
     }
 

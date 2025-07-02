@@ -10,7 +10,7 @@ import {
 } from "./testUtils";
 
 const Crypto = await WasmCrypto.create();
-let jazzCloud = setupTestNode({ isSyncServer: true });
+let jazzCloud: ReturnType<typeof setupTestNode>;
 
 beforeEach(async () => {
   SyncMessagesLog.clear();
@@ -53,13 +53,10 @@ describe("invitations sync", () => {
       [
         "invite-consumer -> server | LOAD Map sessions: empty",
         "server -> invite-consumer | CONTENT Group header: true new: After: 0 New: 5",
-        "invite-consumer -> server | KNOWN Group sessions: header/5",
         "server -> invite-consumer | CONTENT Map header: true new: After: 0 New: 1",
+        "invite-consumer -> server | KNOWN Group sessions: header/5",
         "invite-consumer -> server | KNOWN Map sessions: header/1",
         "invite-consumer -> server | CONTENT Group header: false new: After: 0 New: 2",
-        "server -> invite-consumer | KNOWN Group sessions: header/7",
-        "server -> invite-provider | CONTENT Group header: false new: After: 0 New: 2",
-        "invite-provider -> server | KNOWN Group sessions: header/7",
       ]
     `);
   });
@@ -103,15 +100,12 @@ describe("invitations sync", () => {
       [
         "invite-consumer -> server | LOAD Map sessions: empty",
         "server -> invite-consumer | CONTENT ParentGroup header: true new: After: 0 New: 4",
-        "invite-consumer -> server | KNOWN ParentGroup sessions: header/4",
         "server -> invite-consumer | CONTENT Group header: true new: After: 0 New: 7",
-        "invite-consumer -> server | KNOWN Group sessions: header/7",
         "server -> invite-consumer | CONTENT Map header: true new: After: 0 New: 1",
+        "invite-consumer -> server | KNOWN ParentGroup sessions: header/4",
+        "invite-consumer -> server | KNOWN Group sessions: header/7",
         "invite-consumer -> server | KNOWN Map sessions: header/1",
         "invite-consumer -> server | CONTENT Group header: false new: After: 0 New: 2",
-        "server -> invite-consumer | KNOWN Group sessions: header/9",
-        "server -> invite-provider | CONTENT Group header: false new: After: 0 New: 2",
-        "invite-provider -> server | KNOWN Group sessions: header/9",
       ]
     `);
   });
@@ -157,13 +151,13 @@ describe("invitations sync", () => {
         "server -> invite-consumer | CONTENT ParentGroup header: true new: After: 0 New: 6",
         "invite-consumer -> server | KNOWN ParentGroup sessions: header/6",
         "invite-consumer -> server | CONTENT ParentGroup header: false new: After: 0 New: 2",
+        "invite-consumer -> server | LOAD Map sessions: empty",
         "server -> invite-consumer | KNOWN ParentGroup sessions: header/8",
         "server -> invite-provider | CONTENT ParentGroup header: false new: After: 0 New: 2",
-        "invite-consumer -> server | LOAD Map sessions: empty",
-        "invite-provider -> server | KNOWN ParentGroup sessions: header/8",
         "server -> invite-consumer | CONTENT Group header: true new: After: 0 New: 5",
-        "invite-consumer -> server | KNOWN Group sessions: header/5",
         "server -> invite-consumer | CONTENT Map header: true new: After: 0 New: 1",
+        "invite-provider -> server | KNOWN ParentGroup sessions: header/8",
+        "invite-consumer -> server | KNOWN Group sessions: header/5",
         "invite-consumer -> server | KNOWN Map sessions: header/1",
       ]
     `);

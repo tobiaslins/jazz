@@ -113,7 +113,7 @@ describe("BatchedOutgoingMessages", () => {
     expect(sendMock).toHaveBeenCalledWith(JSON.stringify(message));
   });
 
-  test("should clear timeout when pushing new messages", () => {
+  test("should throttle the messages send", () => {
     const { sendMock, batchedMessages } = setup();
     const message1: SyncMessage = {
       action: "known",
@@ -129,12 +129,7 @@ describe("BatchedOutgoingMessages", () => {
     };
 
     batchedMessages.push(message1);
-
-    const clearTimeoutSpy = vi.spyOn(global, "clearTimeout");
-
     batchedMessages.push(message2);
-
-    expect(clearTimeoutSpy).toHaveBeenCalled();
 
     vi.runAllTimers();
 

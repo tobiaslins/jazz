@@ -2,11 +2,14 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { expectMap } from "../coValue.js";
 import {
   SyncMessagesLog,
+  TEST_NODE_CONFIG,
   loadCoValueOrFail,
   setupTestAccount,
   setupTestNode,
   waitFor,
 } from "./testUtils.js";
+
+TEST_NODE_CONFIG.withSyncronousPeers = true;
 
 beforeEach(async () => {
   SyncMessagesLog.clear();

@@ -1,11 +1,4 @@
-import {
-  type DisconnectedError,
-  type Peer,
-  type PingTimeoutError,
-  type SyncMessage,
-  cojsonInternals,
-  logger,
-} from "cojson";
+import { type Peer, type SyncMessage, cojsonInternals, logger } from "cojson";
 import { BatchedOutgoingMessages } from "./BatchedOutgoingMessages.js";
 import { deserializeMessages } from "./serialization.js";
 import type { AnyWebSocket } from "./types.js";
@@ -62,9 +55,13 @@ function waitForWebSocketOpen(websocket: AnyWebSocket) {
   });
 }
 
+const { PriorityBasedMessageQueue, CO_VALUE_PRIORITY, ConnectedPeerChannel } =
+  cojsonInternals;
+
 function createOutgoingMessagesManager(
   websocket: AnyWebSocket,
   batchingByDefault: boolean,
+  role: Peer["role"],
 ) {
   let closed = false;
   const outgoingMessages = new BatchedOutgoingMessages((messages) => {
@@ -74,34 +71,63 @@ function createOutgoingMessagesManager(
   });
 
   let batchingEnabled = batchingByDefault;
+  const queue = new PriorityBasedMessageQueue(CO_VALUE_PRIORITY.HIGH, {
+    peerRole: role,
+  });
+  let processing = false;
 
-  async function sendMessage(msg: SyncMessage) {
+  async function processQueue() {
+    if (processing) {
+      return;
+    }
+
+    processing = true;
+
+    let msg = queue.pull();
+
+    while (msg) {
+      if (closed) {
+        return;
+      }
+
+      if (websocket.readyState !== 1) {
+        await waitForWebSocketOpen(websocket);
+      }
+
+      while (
+        websocket.bufferedAmount > BUFFER_LIMIT &&
+        websocket.readyState === 1
+      ) {
+        await new Promise<void>((resolve) =>
+          setTimeout(resolve, BUFFER_LIMIT_POLLING_INTERVAL),
+        );
+      }
+
+      if (websocket.readyState !== 1) {
+        return;
+      }
+
+      if (!batchingEnabled) {
+        websocket.send(JSON.stringify(msg));
+      } else {
+        outgoingMessages.push(msg);
+      }
+
+      msg = queue.pull();
+    }
+
+    processing = false;
+  }
+
+  function sendMessage(msg: SyncMessage) {
     if (closed) {
       return Promise.reject(new Error("WebSocket closed"));
     }
 
-    if (websocket.readyState !== 1) {
-      await waitForWebSocketOpen(websocket);
-    }
-
-    while (
-      websocket.bufferedAmount > BUFFER_LIMIT &&
-      websocket.readyState === 1
-    ) {
-      await new Promise<void>((resolve) =>
-        setTimeout(resolve, BUFFER_LIMIT_POLLING_INTERVAL),
-      );
-    }
-
-    if (websocket.readyState !== 1) {
-      return;
-    }
-
-    if (!batchingEnabled) {
-      websocket.send(JSON.stringify(msg));
-    } else {
-      outgoingMessages.push(msg);
-    }
+    queue.push(msg);
+    processQueue().catch((e) => {
+      logger.error("Error while processing sendMessage queue", { err: e });
+    });
   }
 
   return {
@@ -137,17 +163,11 @@ export function createWebSocketPeer({
   onSuccess,
   onClose,
 }: CreateWebSocketPeerOpts): Peer {
-  const incoming = new cojsonInternals.Channel<
-    SyncMessage | DisconnectedError | PingTimeoutError
-  >();
+  const incoming = new ConnectedPeerChannel();
   const emitClosedEvent = createClosedEventEmitter(onClose);
 
   function handleClose() {
-    incoming
-      .push("Disconnected")
-      .catch((e) =>
-        logger.error("Error while pushing disconnect msg", { err: e }),
-      );
+    incoming.push("Disconnected");
     emitClosedEvent();
   }
 
@@ -166,11 +186,11 @@ export function createWebSocketPeer({
     expectPings,
     pingTimeout,
     () => {
-      incoming
-        .push("PingTimeout")
-        .catch((e) =>
-          logger.error("Error while pushing ping timeout", { err: e }),
-        );
+      incoming.push("Disconnected");
+      logger.error("Ping timeout from peer", {
+        peerId: id,
+        peerRole: role,
+      });
       emitClosedEvent();
     },
   );
@@ -178,6 +198,7 @@ export function createWebSocketPeer({
   const outgoingMessages = createOutgoingMessagesManager(
     websocket,
     batchingByDefault,
+    role,
   );
   let isFirstMessage = true;
 
@@ -211,45 +232,50 @@ export function createWebSocketPeer({
 
     for (const msg of messages) {
       if (msg && "action" in msg) {
-        incoming
-          .push(msg)
-          .catch((e) =>
-            logger.error("Error while pushing incoming msg", { err: e }),
-          );
+        incoming.push(msg);
       }
     }
   }
 
   websocket.addEventListener("message", handleIncomingMsg);
 
+  const outgoing = new ConnectedPeerChannel();
+
+  outgoing.onMessage((msg) => {
+    if (msg === "Disconnected") {
+      handleClose();
+      return;
+    }
+
+    outgoingMessages.sendMessage(msg);
+  });
+
+  outgoing.onClose(() => {
+    outgoingMessages.close();
+
+    websocket.removeEventListener("message", handleIncomingMsg);
+    websocket.removeEventListener("close", handleClose);
+    pingTimeoutListener.clear();
+    emitClosedEvent();
+
+    if (websocket.readyState === 0) {
+      websocket.addEventListener(
+        "open",
+        function handleClose() {
+          websocket.close();
+        },
+        { once: true },
+      );
+    } else if (websocket.readyState === 1) {
+      websocket.close();
+    }
+  });
+
   return {
     id,
     incoming,
-    outgoing: {
-      push: outgoingMessages.sendMessage,
-      close() {
-        outgoingMessages.close();
-
-        websocket.removeEventListener("message", handleIncomingMsg);
-        websocket.removeEventListener("close", handleClose);
-        pingTimeoutListener.clear();
-        emitClosedEvent();
-
-        if (websocket.readyState === 0) {
-          websocket.addEventListener(
-            "open",
-            function handleClose() {
-              websocket.close();
-            },
-            { once: true },
-          );
-        } else if (websocket.readyState === 1) {
-          websocket.close();
-        }
-      },
-    },
+    outgoing,
     role,
-    crashOnClose: false,
     deletePeerStateOnClose,
   };
 }

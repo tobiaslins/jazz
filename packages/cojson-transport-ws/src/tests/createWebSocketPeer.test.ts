@@ -48,7 +48,6 @@ describe("createWebSocketPeer", () => {
     expect(peer).toHaveProperty("incoming");
     expect(peer).toHaveProperty("outgoing");
     expect(peer).toHaveProperty("role", "client");
-    expect(peer).toHaveProperty("crashOnClose", false);
   });
 
   test("should handle disconnection", async () => {
@@ -56,10 +55,7 @@ describe("createWebSocketPeer", () => {
 
     const { listeners, peer } = setup();
 
-    const incoming = peer.incoming as Channel<
-      SyncMessage | "Disconnected" | "PingTimeout"
-    >;
-    const pushSpy = vi.spyOn(incoming, "push");
+    const pushSpy = vi.spyOn(peer.incoming, "push");
 
     const closeHandler = listeners.get("close");
 
@@ -72,10 +68,7 @@ describe("createWebSocketPeer", () => {
     vi.useFakeTimers();
     const { listeners, peer } = setup();
 
-    const incoming = peer.incoming as Channel<
-      SyncMessage | "Disconnected" | "PingTimeout"
-    >;
-    const pushSpy = vi.spyOn(incoming, "push");
+    const pushSpy = vi.spyOn(peer.incoming, "push");
 
     const messageHandler = listeners.get("message");
 
@@ -83,7 +76,7 @@ describe("createWebSocketPeer", () => {
 
     await vi.advanceTimersByTimeAsync(10_000);
 
-    expect(pushSpy).toHaveBeenCalledWith("PingTimeout");
+    expect(pushSpy).toHaveBeenCalledWith("Disconnected");
 
     vi.useRealTimers();
   });
@@ -97,15 +90,14 @@ describe("createWebSocketPeer", () => {
       header: false,
       sessions: {},
     };
-    const promise = peer.outgoing.push(testMessage);
+
+    peer.outgoing.push(testMessage);
 
     await waitFor(() => {
       expect(mockWebSocket.send).toHaveBeenCalledWith(
         JSON.stringify(testMessage),
       );
     });
-
-    await expect(promise).resolves.toBeUndefined();
   });
 
   test("should stop sending messages when the websocket is closed", async () => {
@@ -151,23 +143,6 @@ describe("createWebSocketPeer", () => {
     peer.outgoing.close();
 
     expect(mockWebSocket.close).toHaveBeenCalled();
-  });
-
-  test("should return a rejection if a message is sent after the peer is closed", async () => {
-    const { peer } = setup();
-
-    peer.outgoing.close();
-
-    const message: SyncMessage = {
-      action: "known",
-      id: "co_ztest",
-      header: false,
-      sessions: {},
-    };
-
-    await expect(peer.outgoing.push(message)).rejects.toThrow(
-      "WebSocket closed",
-    );
   });
 
   test("should call onSuccess handler after receiving first message", () => {

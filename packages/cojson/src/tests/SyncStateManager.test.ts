@@ -12,7 +12,7 @@ import {
   waitFor,
 } from "./testUtils.js";
 
-let jazzCloud = setupTestNode({ isSyncServer: true });
+let jazzCloud: ReturnType<typeof setupTestNode>;
 
 beforeEach(async () => {
   SyncMessagesLog.clear();

@@ -13,7 +13,7 @@ import type { RawGroup } from "../coValues/group.js";
 import { WasmCrypto } from "../crypto/WasmCrypto.js";
 import { LocalNode } from "../localNode.js";
 import { connectedPeers, newQueuePair } from "../streamUtils.js";
-import type { LoadMessage } from "../sync.js";
+import type { LoadMessage, SyncMessage } from "../sync.js";
 import {
   blockMessageTypeOnOutgoingPeer,
   connectTwoPeers,
@@ -30,9 +30,7 @@ import {
 
 const Crypto = await WasmCrypto.create();
 
-let jazzCloud = setupTestNode({
-  isSyncServer: true,
-});
+let jazzCloud: ReturnType<typeof setupTestNode>;
 
 beforeEach(async () => {
   jazzCloud = setupTestNode({
@@ -47,16 +45,14 @@ test("If we add a client peer, but it never subscribes to a coValue, it won't ge
 
   const map = group.createMap();
 
-  const [inRx, _inTx] = newQueuePair();
-  const [outRx, outTx] = newQueuePair();
-  const outRxQ = outRx[Symbol.asyncIterator]();
+  const [inRx] = newQueuePair();
+  const [, outTx] = newQueuePair();
 
   node.syncManager.addPeer({
     id: "test",
     incoming: inRx,
     outgoing: outTx,
     role: "client",
-    crashOnClose: true,
   });
 
   map.set("hello", "world", "trusting");
@@ -66,7 +62,9 @@ test("If we add a client peer, but it never subscribes to a coValue, it won't ge
   );
 
   const result = await Promise.race([
-    outRxQ.next().then((value) => value.value),
+    new Promise((resolve) => {
+      inRx.onMessage((msg) => resolve(msg));
+    }),
     timeoutPromise,
   ]);
 
@@ -125,10 +123,11 @@ test("should keep the peer state when the peer closes", async () => {
 
   const syncManager = client.node.syncManager;
 
-  // @ts-expect-error Simulating a peer closing, leveraging the direct connection between the client/server peers
-  await peer.outgoing.push("Disconnected");
+  peer.incoming.push("Disconnected");
 
-  await waitFor(() => peerState?.closed);
+  await waitFor(() => {
+    return peerState.closed;
+  });
 
   expect(syncManager.peers[peer.id]).not.toBeUndefined();
 });
@@ -148,8 +147,7 @@ test("should delete the peer state when the peer closes if deletePeerStateOnClos
 
   const syncManager = client.node.syncManager;
 
-  // @ts-expect-error Simulating a peer closing, leveraging the direct connection between the client/server peers
-  await peer.outgoing.push("Disconnected");
+  peer.incoming.push("Disconnected");
 
   await waitFor(() => peerState?.closed);
 
@@ -929,7 +927,6 @@ describe("metrics", () => {
       incoming: inPeer1,
       outgoing: outPeer1,
       role: "client",
-      crashOnClose: false,
     });
 
     connectedPeers = await metricReader.getMetricValue("jazz.peers", {
@@ -944,7 +941,6 @@ describe("metrics", () => {
       incoming: inPeer2,
       outgoing: outPeer2,
       role: "client",
-      crashOnClose: false,
     });
 
     connectedPeers = await metricReader.getMetricValue("jazz.peers", {
@@ -959,7 +955,6 @@ describe("metrics", () => {
       incoming: inServer1,
       outgoing: outServer1,
       role: "server",
-      crashOnClose: false,
     });
     connectedServerPeers = await metricReader.getMetricValue("jazz.peers", {
       role: "server",
@@ -970,7 +965,6 @@ describe("metrics", () => {
     });
     expect(connectedPeers).toBe(2);
 
-    // @ts-expect-error Simulating peer-1 closing
     await outPeer1.push("Disconnected");
     await waitFor(() => node.syncManager.peers["peer-1"]?.closed);
 
@@ -979,7 +973,6 @@ describe("metrics", () => {
     });
     expect(connectedPeers).toBe(1);
 
-    // @ts-expect-error Simulating server-1 closing
     await outServer1.push("Disconnected");
 
     await waitFor(() => node.syncManager.peers["server-1"]?.closed);
