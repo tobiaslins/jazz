@@ -497,12 +497,12 @@ async function promptUser(
     let defaultProjectName = undefined;
     if (partialOptions.example) {
       // Use the example name, affixed with -app if not already
-      defaultProjectName = partialOptions.example.endsWith('-app')
+      defaultProjectName = partialOptions.example.endsWith("-app")
         ? partialOptions.example
         : `${partialOptions.example}-app`;
     } else if (partialOptions.starter) {
       // Use the starter name, affixed with -app if not already
-      defaultProjectName = partialOptions.starter.endsWith('-app')
+      defaultProjectName = partialOptions.starter.endsWith("-app")
         ? partialOptions.starter
         : `${partialOptions.starter}-app`;
     }
@@ -607,11 +607,11 @@ program
       } else if (!directory && !options.projectName) {
         // If no directory or projectName, and example is provided, use example as default
         if (options.example) {
-          partialOptions.projectName = options.example.endsWith('-app')
+          partialOptions.projectName = options.example.endsWith("-app")
             ? options.example
             : `${options.example}-app`;
         } else if (options.starter) {
-          partialOptions.projectName = options.starter.endsWith('-app')
+          partialOptions.projectName = options.starter.endsWith("-app")
             ? options.starter
             : `${options.starter}-app`;
         }
