@@ -7,9 +7,7 @@
     "moduleDetection": "force",
     "strict": true,
     "skipLibCheck": true,
-    "jsx": "react-jsx",
-    "declaration": true,
-    "declarationMap": true,
+    "jsx": "react",
     "forceConsistentCasingInFileNames": true,
     "noUncheckedIndexedAccess": true,
     "esModuleInterop": true

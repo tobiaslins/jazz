@@ -9,7 +9,7 @@ import {
 } from "jazz-tools";
 import { JazzContext, JazzContextManagerContext } from "jazz-tools/react-core";
 import React, { useEffect, useRef } from "react";
-import { JazzContextManagerProps } from "./ReactNativeContextManager.js";
+import type { JazzContextManagerProps } from "./ReactNativeContextManager.js";
 import { ReactNativeContextManager } from "./ReactNativeContextManager.js";
 import { setupKvStore } from "./platform.js";
 
@@ -35,10 +35,10 @@ export function JazzProviderCore<
   AccountSchema,
   defaultProfileName,
   onLogOut,
-  kvStore,
-  onAnonymousAccountDiscarded,
-  CryptoProvider,
   logOutReplacement,
+  onAnonymousAccountDiscarded,
+  kvStore,
+  CryptoProvider,
 }: JazzProviderProps<S>) {
   setupKvStore(kvStore);
 
@@ -46,11 +46,11 @@ export function JazzProviderCore<
     () => new ReactNativeContextManager<S>(),
   );
 
+  const onLogOutRefCallback = useRefCallback(onLogOut);
+  const logOutReplacementRefCallback = useRefCallback(logOutReplacement);
   const onAnonymousAccountDiscardedRefCallback = useRefCallback(
     onAnonymousAccountDiscarded,
   );
-  const onLogOutRefCallback = useRefCallback(onLogOut);
-  const logOutReplacementRefCallback = useRefCallback(logOutReplacement);
   const logoutReplacementActiveRef = useRef(false);
   logoutReplacementActiveRef.current = Boolean(logOutReplacement);
 
@@ -76,7 +76,7 @@ export function JazzProviderCore<
         if (contextManager.propsChanged(props)) {
           contextManager.createContext(props).catch((error) => {
             console.log(error.stack);
-            console.error("Error creating Jazz context:", error);
+            console.error("Error creating Jazz React Native context:", error);
           });
         }
 
