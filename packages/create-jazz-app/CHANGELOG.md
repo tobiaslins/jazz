@@ -1,5 +1,11 @@
 # create-jazz-app
 
+## 0.1.25
+
+### Patch Changes
+
+- b774bb3: Add default project name
+
 ## 0.1.24
 
 ### Patch Changes

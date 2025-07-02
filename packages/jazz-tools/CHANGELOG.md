@@ -1,5 +1,17 @@
 # jazz-tools
 
+## 0.15.5
+
+### Patch Changes
+
+- 23bfea5: Make all React Native dependencies in `jazz-tools` optional peer dependencies
+- e4ba23c: Fix type error with `RNQuickCrypto` that prevented using it as a `CryptoProvider`
+- 4b89838: Changes that verify the BetterAuth package for React also works with React Native and Expo apps
+  - cojson@0.15.5
+  - cojson-storage@0.15.5
+  - cojson-storage-indexeddb@0.15.5
+  - cojson-transport-ws@0.15.5
+
 ## 0.15.4
 
 ### Patch Changes
