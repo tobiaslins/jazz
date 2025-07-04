@@ -1,4 +1,4 @@
-name: Playwright Tests
+name: Playwright Tests - Homepage
 
 concurrency:
   # For pushes, this lets concurrent runs happen, so each push gets a result.
