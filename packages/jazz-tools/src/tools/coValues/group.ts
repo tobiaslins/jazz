@@ -230,6 +230,54 @@ export class Group extends CoValueBase implements CoValue {
     return members;
   }
 
+  get directMembers(): Array<{
+    id: string;
+    role: AccountRole;
+    ref: Ref<Account>;
+    account: Account;
+  }> {
+    const members = [];
+
+    const refEncodedAccountSchema = {
+      ref: () => Account,
+      optional: false,
+    } satisfies RefEncoded<Account>;
+
+    for (const accountID of this._raw.getMemberKeys()) {
+      if (!isAccountID(accountID)) continue;
+
+      const role = this._raw.roleOf(accountID);
+
+      if (
+        role === "admin" ||
+        role === "writer" ||
+        role === "reader" ||
+        role === "writeOnly"
+      ) {
+        const ref = new Ref<Account>(
+          accountID,
+          this._loadedAs,
+          refEncodedAccountSchema,
+          this,
+        );
+
+        const group = this;
+
+        members.push({
+          id: accountID as unknown as ID<Account>,
+          role,
+          ref,
+          get account() {
+            // Accounts values are non-nullable because are loaded as dependencies
+            return accessChildById(group, accountID, refEncodedAccountSchema);
+          },
+        });
+      }
+    }
+
+    return members;
+  }
+
   getRoleOf(member: Everyone | ID<Account> | "me") {
     if (member === "me") {
       return this._raw.roleOf(

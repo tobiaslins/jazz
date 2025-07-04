@@ -650,3 +650,43 @@ describe("Group.members", () => {
     ]);
   });
 });
+
+describe("Group.directMembers", () => {
+  test("should return only the direct members of the group", async () => {
+    const groupWithBob = Group.create();
+
+    const bob = await createJazzTestAccount({});
+    await bob.waitForAllCoValuesSync();
+
+    groupWithBob.addMember(bob, "reader");
+
+    const childGroup = Group.create();
+    groupWithBob.addMember(childGroup, "reader");
+
+    expect(childGroup.directMembers).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          account: expect.objectContaining({
+            id: bob.id,
+          }),
+          role: "reader",
+        }),
+      ]),
+    );
+
+    expect(groupWithBob.directMembers).toEqual([
+      expect.objectContaining({
+        account: expect.objectContaining({
+          id: co.account().getMe().id,
+        }),
+        role: "admin",
+      }),
+      expect.objectContaining({
+        account: expect.objectContaining({
+          id: bob.id,
+        }),
+        role: "reader",
+      }),
+    ]);
+  });
+});
