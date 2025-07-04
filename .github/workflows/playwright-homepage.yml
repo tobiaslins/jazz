@@ -1,5 +1,11 @@
 name: Playwright Tests
 
+concurrency:
+  # For pushes, this lets concurrent runs happen, so each push gets a result.
+  # But for other events (e.g. PRs), we can cancel the previous runs.
+  group: ${{ github.workflow }}-${{ github.event_name == 'push' && github.sha || github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: ["main"]
