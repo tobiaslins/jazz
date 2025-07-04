@@ -653,39 +653,61 @@ describe("Group.members", () => {
 
 describe("Group.directMembers", () => {
   test("should return only the direct members of the group", async () => {
-    const groupWithBob = Group.create();
+    const parentGroup = Group.create();
+    const childGroup = Group.create();
 
     const bob = await createJazzTestAccount({});
     await bob.waitForAllCoValuesSync();
 
-    groupWithBob.addMember(bob, "reader");
+    // Add bob to parent group
+    parentGroup.addMember(bob, "reader");
 
-    const childGroup = Group.create();
-    groupWithBob.addMember(childGroup, "reader");
+    // Add parent group to child group
+    childGroup.addMember(parentGroup);
 
-    expect(childGroup.directMembers).not.toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          account: expect.objectContaining({
-            id: bob.id,
-          }),
-          role: "reader",
-        }),
-      ]),
-    );
-
-    expect(groupWithBob.directMembers).toEqual([
+    // Child group should inherit bob through parent, but bob is not a direct member
+    expect(childGroup.members).toEqual([
       expect.objectContaining({
         account: expect.objectContaining({
           id: co.account().getMe().id,
         }),
-        role: "admin",
       }),
       expect.objectContaining({
         account: expect.objectContaining({
           id: bob.id,
         }),
-        role: "reader",
+      }),
+    ]);
+
+    // directMembers should only show the admin, not the inherited bob
+    expect(childGroup.directMembers).toEqual([
+      expect.objectContaining({
+        account: expect.objectContaining({
+          id: co.account().getMe().id,
+        }),
+      }),
+    ]);
+
+    // Explicitly verify bob is not in directMembers
+    expect(childGroup.directMembers).not.toContainEqual(
+      expect.objectContaining({
+        account: expect.objectContaining({
+          id: bob.id,
+        }),
+      }),
+    );
+
+    // Parent group's direct members should include both admin and bob
+    expect(parentGroup.directMembers).toEqual([
+      expect.objectContaining({
+        account: expect.objectContaining({
+          id: co.account().getMe().id,
+        }),
+      }),
+      expect.objectContaining({
+        account: expect.objectContaining({
+          id: bob.id,
+        }),
       }),
     ]);
   });
