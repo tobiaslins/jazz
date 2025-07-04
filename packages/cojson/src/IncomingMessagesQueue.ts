@@ -3,6 +3,14 @@ import { LinkedList } from "./PriorityBasedMessageQueue.js";
 import { logger } from "./logger.js";
 import type { SyncMessage } from "./sync.js";
 
+/**
+ * A queue that schedules messages across different peers using a round-robin approach.
+ *
+ * This class manages incoming sync messages from multiple peers, ensuring fair processing
+ * by cycling through each peer's message queue in a round-robin fashion. It also implements
+ * collaborative scheduling on message processing, pausing when the main thread is blocked
+ * for more than 50ms.
+ */
 export class IncomingMessagesQueue {
   queues: [LinkedList<SyncMessage>, PeerState][];
   peerToQueue: WeakMap<PeerState, LinkedList<SyncMessage>>;
