@@ -1,5 +1,18 @@
 # jazz-react-auth-betterauth
 
+## 0.15.5
+
+### Patch Changes
+
+- 4b89838: Changes that verify the BetterAuth package for React also works with React Native and Expo apps
+- Updated dependencies [23bfea5]
+- Updated dependencies [e4ba23c]
+- Updated dependencies [4b89838]
+  - jazz-tools@0.15.5
+  - jazz-auth-betterauth@0.15.5
+  - jazz-betterauth-client-plugin@0.15.5
+  - cojson@0.15.5
+
 ## 0.15.4
 
 ### Patch Changes
