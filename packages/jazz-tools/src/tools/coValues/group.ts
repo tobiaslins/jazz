@@ -186,6 +186,7 @@ export class Group extends CoValueBase implements CoValue {
     accountIDs: Iterable<RawAccountID | AgentID>,
   ): Array<{
     id: string;
+    role: AccountRole;
     ref: Ref<Account>;
     account: Account;
   }> {
