@@ -4,10 +4,14 @@ import { expectList, expectMap } from "../coValue";
 import { WasmCrypto } from "../crypto/WasmCrypto";
 import {
   SyncMessagesLog,
+  TEST_NODE_CONFIG,
   loadCoValueOrFail,
   setupTestNode,
   waitFor,
 } from "./testUtils";
+
+// We want to simulate a real world communication that happens asynchronously
+TEST_NODE_CONFIG.withAsyncPeers = true;
 
 const Crypto = await WasmCrypto.create();
 let jazzCloud: ReturnType<typeof setupTestNode>;

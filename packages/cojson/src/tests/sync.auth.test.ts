@@ -4,12 +4,16 @@ import { WasmCrypto } from "../crypto/WasmCrypto";
 import { LocalNode } from "../localNode";
 import {
   SyncMessagesLog,
+  TEST_NODE_CONFIG,
   getSyncServerConnectedPeer,
   setupTestNode,
 } from "./testUtils";
 
 const Crypto = await WasmCrypto.create();
 let jazzCloud: ReturnType<typeof setupTestNode>;
+
+// We want to simulate a real world communication that happens asynchronously
+TEST_NODE_CONFIG.withAsyncPeers = true;
 
 beforeEach(async () => {
   SyncMessagesLog.clear();

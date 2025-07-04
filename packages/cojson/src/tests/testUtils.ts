@@ -463,7 +463,7 @@ export function getSyncServerConnectedPeer(opts: {
 }
 
 export const TEST_NODE_CONFIG = {
-  withSyncronousPeers: false,
+  withAsyncPeers: false,
 };
 
 export function setupTestNode(
@@ -662,7 +662,7 @@ export function connectedPeersWithMessagesTracking(opts: {
       });
     }
 
-    if (TEST_NODE_CONFIG.withSyncronousPeers) {
+    if (!TEST_NODE_CONFIG.withAsyncPeers) {
       peer1Push.call(peer1.outgoing, msg);
     } else {
       // Simulate the async nature of the real push
@@ -682,7 +682,7 @@ export function connectedPeersWithMessagesTracking(opts: {
       });
     }
 
-    if (TEST_NODE_CONFIG.withSyncronousPeers) {
+    if (!TEST_NODE_CONFIG.withAsyncPeers) {
       peer2Push.call(peer2.outgoing, msg);
     } else {
       // Simulate the async nature of the real push

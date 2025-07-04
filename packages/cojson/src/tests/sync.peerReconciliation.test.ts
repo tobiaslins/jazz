@@ -5,10 +5,14 @@ import { WasmCrypto } from "../crypto/WasmCrypto";
 import { RawCoMap } from "../exports";
 import {
   SyncMessagesLog,
+  TEST_NODE_CONFIG,
   setupTestAccount,
   setupTestNode,
   waitFor,
 } from "./testUtils";
+
+// We want to simulate a real world communication that happens asynchronously
+TEST_NODE_CONFIG.withAsyncPeers = true;
 
 let jazzCloud: ReturnType<typeof setupTestNode>;
 

@@ -9,8 +9,6 @@ import {
   waitFor,
 } from "./testUtils.js";
 
-TEST_NODE_CONFIG.withSyncronousPeers = true;
-
 beforeEach(async () => {
   SyncMessagesLog.clear();
   setupTestNode({ isSyncServer: true });

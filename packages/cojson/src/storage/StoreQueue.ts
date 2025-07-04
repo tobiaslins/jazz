@@ -1,4 +1,5 @@
 import { LinkedList } from "../PriorityBasedMessageQueue.js";
+import { logger } from "../logger.js";
 import { CoValueKnownState, NewContentMessage } from "../sync.js";
 
 type StoreQueueEntry = {
@@ -39,7 +40,11 @@ export class StoreQueue {
     while ((entry = this.pull())) {
       const { data, correctionCallback } = entry;
 
-      await callback(data, correctionCallback);
+      try {
+        await callback(data, correctionCallback);
+      } catch (err) {
+        logger.error("Error processing message in store queue", { err });
+      }
     }
 
     this.processing = false;

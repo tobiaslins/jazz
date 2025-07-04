@@ -11,6 +11,9 @@ import {
   setupTestNode,
   waitFor,
 } from "./testUtils.js";
+import { TEST_NODE_CONFIG } from "./testUtils.js";
+
+TEST_NODE_CONFIG.withAsyncPeers = true;
 
 let jazzCloud: ReturnType<typeof setupTestNode>;
 

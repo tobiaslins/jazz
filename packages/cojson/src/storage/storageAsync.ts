@@ -12,8 +12,8 @@ import {
   NewContentMessage,
   emptyKnownState,
 } from "../sync.js";
+import { StoreQueue } from "./StoreQueue.js";
 import { StorageKnownState } from "./knownState.js";
-import { StoreQueue } from "./queue.js";
 import { collectNewTxs, getDependedOnCoValues } from "./syncUtils.js";
 import type {
   DBClientInterfaceAsync,

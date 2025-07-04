@@ -9,24 +9,25 @@ import {
 } from "vitest";
 import { expectMap } from "../coValue.js";
 import { RawCoMap } from "../coValues/coMap.js";
-import type { RawGroup } from "../coValues/group.js";
 import { WasmCrypto } from "../crypto/WasmCrypto.js";
-import { LocalNode } from "../localNode.js";
 import { connectedPeers, newQueuePair } from "../streamUtils.js";
-import type { LoadMessage, SyncMessage } from "../sync.js";
+import type { LoadMessage } from "../sync.js";
 import {
+  TEST_NODE_CONFIG,
   blockMessageTypeOnOutgoingPeer,
   connectTwoPeers,
   createTestMetricReader,
   createTestNode,
   loadCoValueOrFail,
   nodeWithRandomAgentAndSessionID,
-  randomAgentAndSessionID,
   setupTestAccount,
   setupTestNode,
   tearDownTestMetricReader,
   waitFor,
 } from "./testUtils.js";
+
+// We want to simulate a real world communication that happens asynchronously
+TEST_NODE_CONFIG.withAsyncPeers = true;
 
 const Crypto = await WasmCrypto.create();
 

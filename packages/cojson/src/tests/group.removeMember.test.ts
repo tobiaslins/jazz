@@ -7,7 +7,6 @@ import {
   setupTestNode,
 } from "./testUtils.js";
 
-TEST_NODE_CONFIG.withSyncronousPeers = true;
 let jazzCloud: ReturnType<typeof setupTestNode>;
 
 beforeEach(async () => {

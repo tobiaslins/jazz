@@ -1,6 +1,6 @@
 import { Histogram, ValueType, metrics } from "@opentelemetry/api";
+import { IncomingMessagesQueue } from "./IncomingMessagesQueue.js";
 import { PeerState } from "./PeerState.js";
-import { IncomingMessagesQueue } from "./PriorityBasedMessageQueue.js";
 import { SyncStateManager } from "./SyncStateManager.js";
 import { CoValueCore } from "./coValueCore/coValueCore.js";
 import { getDependedOnCoValuesFromRawData } from "./coValueCore/utils.js";

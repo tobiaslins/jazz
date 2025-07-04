@@ -1,15 +1,15 @@
 import { beforeEach, describe, expect, test } from "vitest";
 
-import { expectList, expectMap } from "../coValue";
-import { WasmCrypto } from "../crypto/WasmCrypto";
 import {
   SyncMessagesLog,
+  TEST_NODE_CONFIG,
   loadCoValueOrFail,
   setupTestNode,
-  waitFor,
 } from "./testUtils";
 
-const Crypto = await WasmCrypto.create();
+// We want to simulate a real world communication that happens asynchronously
+TEST_NODE_CONFIG.withAsyncPeers = true;
+
 let jazzCloud: ReturnType<typeof setupTestNode>;
 
 beforeEach(async () => {

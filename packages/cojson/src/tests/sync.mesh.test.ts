@@ -3,12 +3,16 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { expectMap } from "../coValue";
 import {
   SyncMessagesLog,
+  TEST_NODE_CONFIG,
   blockMessageTypeOnOutgoingPeer,
   connectedPeersWithMessagesTracking,
   loadCoValueOrFail,
   setupTestNode,
   waitFor,
 } from "./testUtils";
+
+// We want to simulate a real world communication that happens asynchronously
+TEST_NODE_CONFIG.withAsyncPeers = true;
 
 function setupMesh() {
   const coreServer = setupTestNode();
