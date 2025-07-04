@@ -182,9 +182,10 @@ export class Group extends CoValueBase implements CoValue {
     }
   }
 
-  get members(): Array<{
+  private getMembersFromKeys(
+    accountIDs: Iterable<RawAccountID | AgentID>,
+  ): Array<{
     id: string;
-    role: AccountRole;
     ref: Ref<Account>;
     account: Account;
   }> {
@@ -195,7 +196,7 @@ export class Group extends CoValueBase implements CoValue {
       optional: false,
     } satisfies RefEncoded<Account>;
 
-    for (const accountID of this._raw.getAllMemberKeysSet()) {
+    for (const accountID of accountIDs) {
       if (!isAccountID(accountID)) continue;
 
       const role = this._raw.roleOf(accountID);
@@ -230,52 +231,28 @@ export class Group extends CoValueBase implements CoValue {
     return members;
   }
 
-  get directMembers(): Array<{
-    id: string;
-    role: AccountRole;
-    ref: Ref<Account>;
-    account: Account;
-  }> {
-    const members = [];
+  /**
+   * Returns all members of the group, including inherited members from parent
+   * groups.
+   *
+   * If you need only the direct members of the group, use
+   * {@link getDirectMembers} instead.
+   *
+   * @returns The members of the group.
+   */
+  get members() {
+    return this.getMembersFromKeys(this._raw.getAllMemberKeysSet());
+  }
 
-    const refEncodedAccountSchema = {
-      ref: () => Account,
-      optional: false,
-    } satisfies RefEncoded<Account>;
-
-    for (const accountID of this._raw.getMemberKeys()) {
-      if (!isAccountID(accountID)) continue;
-
-      const role = this._raw.roleOf(accountID);
-
-      if (
-        role === "admin" ||
-        role === "writer" ||
-        role === "reader" ||
-        role === "writeOnly"
-      ) {
-        const ref = new Ref<Account>(
-          accountID,
-          this._loadedAs,
-          refEncodedAccountSchema,
-          this,
-        );
-
-        const group = this;
-
-        members.push({
-          id: accountID as unknown as ID<Account>,
-          role,
-          ref,
-          get account() {
-            // Accounts values are non-nullable because are loaded as dependencies
-            return accessChildById(group, accountID, refEncodedAccountSchema);
-          },
-        });
-      }
-    }
-
-    return members;
+  /**
+   * Returns the direct members of the group.
+   *
+   * If you need all members of the group, including inherited members from
+   * parent groups, use {@link Group.members|members} instead.
+   * @returns The direct members of the group.
+   */
+  getDirectMembers() {
+    return this.getMembersFromKeys(this._raw.getMemberKeys());
   }
 
   getRoleOf(member: Everyone | ID<Account> | "me") {

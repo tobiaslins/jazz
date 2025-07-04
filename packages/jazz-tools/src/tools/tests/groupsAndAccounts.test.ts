@@ -651,7 +651,7 @@ describe("Group.members", () => {
   });
 });
 
-describe("Group.directMembers", () => {
+describe("Group.getDirectMembers", () => {
   test("should return only the direct members of the group", async () => {
     const parentGroup = Group.create();
     const childGroup = Group.create();
@@ -680,7 +680,7 @@ describe("Group.directMembers", () => {
     ]);
 
     // directMembers should only show the admin, not the inherited bob
-    expect(childGroup.directMembers).toEqual([
+    expect(childGroup.getDirectMembers()).toEqual([
       expect.objectContaining({
         account: expect.objectContaining({
           id: co.account().getMe().id,
@@ -689,7 +689,7 @@ describe("Group.directMembers", () => {
     ]);
 
     // Explicitly verify bob is not in directMembers
-    expect(childGroup.directMembers).not.toContainEqual(
+    expect(childGroup.getDirectMembers()).not.toContainEqual(
       expect.objectContaining({
         account: expect.objectContaining({
           id: bob.id,
@@ -698,7 +698,7 @@ describe("Group.directMembers", () => {
     );
 
     // Parent group's direct members should include both admin and bob
-    expect(parentGroup.directMembers).toEqual([
+    expect(parentGroup.getDirectMembers()).toEqual([
       expect.objectContaining({
         account: expect.objectContaining({
           id: co.account().getMe().id,
