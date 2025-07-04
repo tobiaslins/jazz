@@ -68,7 +68,7 @@ import { DisconnectedError, SyncManager, emptyKnownState } from "./sync.js";
 
 type Value = JsonValue | AnyRawCoValue;
 
-import { PriorityBasedMessageQueue } from "./PriorityBasedMessageQueue.js";
+export { PriorityBasedMessageQueue } from "./PriorityBasedMessageQueue.js";
 import { getDependedOnCoValuesFromRawData } from "./coValueCore/utils.js";
 import { LogLevel, logger } from "./logger.js";
 import { CO_VALUE_PRIORITY, getPriorityFromHeader } from "./priority.js";
@@ -97,7 +97,6 @@ export const cojsonInternals = {
   disablePermissionErrors,
   SyncManager,
   CO_VALUE_LOADING_CONFIG,
-  PriorityBasedMessageQueue,
   CO_VALUE_PRIORITY,
   ConnectedPeerChannel,
   setCoValueLoadingRetryDelay(delay: number) {
@@ -188,5 +187,7 @@ export namespace CojsonInternalTypes {
   export type SignerID = import("./crypto/crypto.js").SignerID;
   export type SignerSecret = import("./crypto/crypto.js").SignerSecret;
   export type JsonObject = import("./jsonValue.js").JsonObject;
+  export type OutgoingPeerChannel = import("./sync.js").OutgoingPeerChannel;
+  export type IncomingPeerChannel = import("./sync.js").IncomingPeerChannel;
 }
 // biome-ignore format: on

@@ -3,8 +3,7 @@ import { BatchedOutgoingMessages } from "./BatchedOutgoingMessages.js";
 import { deserializeMessages } from "./serialization.js";
 import type { AnyWebSocket } from "./types.js";
 
-export const BUFFER_LIMIT = 100_000;
-export const BUFFER_LIMIT_POLLING_INTERVAL = 10;
+const { ConnectedPeerChannel } = cojsonInternals;
 
 export type CreateWebSocketPeerOpts = {
   id: string;
@@ -41,103 +40,6 @@ function createPingTimeoutListener(
     },
     clear() {
       pingTimeout && clearTimeout(pingTimeout);
-    },
-  };
-}
-
-function waitForWebSocketOpen(websocket: AnyWebSocket) {
-  return new Promise<void>((resolve) => {
-    if (websocket.readyState === 1) {
-      resolve();
-    } else {
-      websocket.addEventListener("open", () => resolve(), { once: true });
-    }
-  });
-}
-
-const { PriorityBasedMessageQueue, CO_VALUE_PRIORITY, ConnectedPeerChannel } =
-  cojsonInternals;
-
-function createOutgoingMessagesManager(
-  websocket: AnyWebSocket,
-  batchingByDefault: boolean,
-  role: Peer["role"],
-) {
-  let closed = false;
-  const outgoingMessages = new BatchedOutgoingMessages((messages) => {
-    if (websocket.readyState === 1) {
-      websocket.send(messages);
-    }
-  });
-
-  let batchingEnabled = batchingByDefault;
-  const queue = new PriorityBasedMessageQueue(CO_VALUE_PRIORITY.HIGH, {
-    peerRole: role,
-  });
-  let processing = false;
-
-  async function processQueue() {
-    if (processing) {
-      return;
-    }
-
-    processing = true;
-
-    let msg = queue.pull();
-
-    while (msg) {
-      if (closed) {
-        return;
-      }
-
-      if (websocket.readyState !== 1) {
-        await waitForWebSocketOpen(websocket);
-      }
-
-      while (
-        websocket.bufferedAmount > BUFFER_LIMIT &&
-        websocket.readyState === 1
-      ) {
-        await new Promise<void>((resolve) =>
-          setTimeout(resolve, BUFFER_LIMIT_POLLING_INTERVAL),
-        );
-      }
-
-      if (websocket.readyState !== 1) {
-        return;
-      }
-
-      if (!batchingEnabled) {
-        websocket.send(JSON.stringify(msg));
-      } else {
-        outgoingMessages.push(msg);
-      }
-
-      msg = queue.pull();
-    }
-
-    processing = false;
-  }
-
-  function sendMessage(msg: SyncMessage) {
-    if (closed) {
-      return Promise.reject(new Error("WebSocket closed"));
-    }
-
-    queue.push(msg);
-    processQueue().catch((e) => {
-      logger.error("Error while processing sendMessage queue", { err: e });
-    });
-  }
-
-  return {
-    sendMessage,
-    setBatchingEnabled(enabled: boolean) {
-      batchingEnabled = enabled;
-    },
-    close() {
-      closed = true;
-      outgoingMessages.close();
     },
   };
 }
@@ -195,7 +97,7 @@ export function createWebSocketPeer({
     },
   );
 
-  const outgoingMessages = createOutgoingMessagesManager(
+  const outgoing = new BatchedOutgoingMessages(
     websocket,
     batchingByDefault,
     role,
@@ -227,7 +129,7 @@ export function createWebSocketPeer({
 
     if (messages.length > 1) {
       // If more than one message is received, the other peer supports batching
-      outgoingMessages.setBatchingEnabled(true);
+      outgoing.setBatching(true);
     }
 
     for (const msg of messages) {
@@ -239,20 +141,7 @@ export function createWebSocketPeer({
 
   websocket.addEventListener("message", handleIncomingMsg);
 
-  const outgoing = new ConnectedPeerChannel();
-
-  outgoing.onMessage((msg) => {
-    if (msg === "Disconnected") {
-      handleClose();
-      return;
-    }
-
-    outgoingMessages.sendMessage(msg);
-  });
-
   outgoing.onClose(() => {
-    outgoingMessages.close();
-
     websocket.removeEventListener("message", handleIncomingMsg);
     websocket.removeEventListener("close", handleClose);
     pingTimeoutListener.clear();

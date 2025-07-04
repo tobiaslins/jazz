@@ -70,17 +70,22 @@ export type PeerID = string;
 
 export type DisconnectedError = "Disconnected";
 
-export interface PeerChannel {
-  push: (msg: SyncMessage | DisconnectedError) => void;
+export interface IncomingPeerChannel {
   close: () => void;
   onMessage: (callback: (msg: SyncMessage | DisconnectedError) => void) => void;
   onClose: (callback: () => void) => void;
 }
 
+export interface OutgoingPeerChannel {
+  push: (msg: SyncMessage | DisconnectedError) => void;
+  close: () => void;
+  onClose: (callback: () => void) => void;
+}
+
 export interface Peer {
   id: PeerID;
-  incoming: PeerChannel;
-  outgoing: PeerChannel;
+  incoming: IncomingPeerChannel;
+  outgoing: OutgoingPeerChannel;
   role: "server" | "client";
   priority?: number;
   deletePeerStateOnClose?: boolean;

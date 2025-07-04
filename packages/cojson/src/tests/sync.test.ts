@@ -113,7 +113,7 @@ test("Can sync a coValue with private transactions through a server to another c
 test("should keep the peer state when the peer closes", async () => {
   const client = setupTestNode();
 
-  const { peer, peerState } = client.connectToSyncServer();
+  const { peer, peerState, peerOnServer } = client.connectToSyncServer();
 
   const group = jazzCloud.node.createGroup();
   const map = group.createMap();
@@ -123,7 +123,7 @@ test("should keep the peer state when the peer closes", async () => {
 
   const syncManager = client.node.syncManager;
 
-  peer.incoming.push("Disconnected");
+  peerOnServer.outgoing.push("Disconnected");
 
   await waitFor(() => {
     return peerState.closed;
@@ -135,7 +135,7 @@ test("should keep the peer state when the peer closes", async () => {
 test("should delete the peer state when the peer closes if deletePeerStateOnClose is true", async () => {
   const client = setupTestNode();
 
-  const { peer, peerState } = client.connectToSyncServer();
+  const { peer, peerState, peerOnServer } = client.connectToSyncServer();
 
   peer.deletePeerStateOnClose = true;
 
@@ -147,7 +147,7 @@ test("should delete the peer state when the peer closes if deletePeerStateOnClos
 
   const syncManager = client.node.syncManager;
 
-  peer.incoming.push("Disconnected");
+  peerOnServer.outgoing.push("Disconnected");
 
   await waitFor(() => peerState?.closed);
 

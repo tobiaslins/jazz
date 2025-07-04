@@ -14,7 +14,6 @@ function setup() {
     outgoing: new ConnectedPeerChannel(),
   };
   vi.spyOn(mockPeer.outgoing, "push");
-  vi.spyOn(mockPeer.incoming, "push");
   vi.spyOn(mockPeer.incoming, "close");
   vi.spyOn(mockPeer.outgoing, "close");
   const peerState = new PeerState(mockPeer, undefined);

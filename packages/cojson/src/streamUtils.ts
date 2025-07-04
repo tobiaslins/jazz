@@ -1,7 +1,8 @@
 import {
   DisconnectedError,
+  IncomingPeerChannel,
+  OutgoingPeerChannel,
   Peer,
-  PeerChannel,
   PeerID,
   SyncMessage,
 } from "./sync.js";
@@ -43,7 +44,9 @@ export function newQueuePair(): [ConnectedPeerChannel, ConnectedPeerChannel] {
   return [channel, channel];
 }
 
-export class ConnectedPeerChannel implements PeerChannel {
+export class ConnectedPeerChannel
+  implements IncomingPeerChannel, OutgoingPeerChannel
+{
   buffer: (SyncMessage | DisconnectedError)[] = [];
 
   push(msg: SyncMessage | DisconnectedError) {
