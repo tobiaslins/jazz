@@ -650,3 +650,65 @@ describe("Group.members", () => {
     ]);
   });
 });
+
+describe("Group.getDirectMembers", () => {
+  test("should return only the direct members of the group", async () => {
+    const parentGroup = Group.create();
+    const childGroup = Group.create();
+
+    const bob = await createJazzTestAccount({});
+    await bob.waitForAllCoValuesSync();
+
+    // Add bob to parent group
+    parentGroup.addMember(bob, "reader");
+
+    // Add parent group to child group
+    childGroup.addMember(parentGroup);
+
+    // Child group should inherit bob through parent, but bob is not a direct member
+    expect(childGroup.members).toEqual([
+      expect.objectContaining({
+        account: expect.objectContaining({
+          id: co.account().getMe().id,
+        }),
+      }),
+      expect.objectContaining({
+        account: expect.objectContaining({
+          id: bob.id,
+        }),
+      }),
+    ]);
+
+    // directMembers should only show the admin, not the inherited bob
+    expect(childGroup.getDirectMembers()).toEqual([
+      expect.objectContaining({
+        account: expect.objectContaining({
+          id: co.account().getMe().id,
+        }),
+      }),
+    ]);
+
+    // Explicitly verify bob is not in directMembers
+    expect(childGroup.getDirectMembers()).not.toContainEqual(
+      expect.objectContaining({
+        account: expect.objectContaining({
+          id: bob.id,
+        }),
+      }),
+    );
+
+    // Parent group's direct members should include both admin and bob
+    expect(parentGroup.getDirectMembers()).toEqual([
+      expect.objectContaining({
+        account: expect.objectContaining({
+          id: co.account().getMe().id,
+        }),
+      }),
+      expect.objectContaining({
+        account: expect.objectContaining({
+          id: bob.id,
+        }),
+      }),
+    ]);
+  });
+});
