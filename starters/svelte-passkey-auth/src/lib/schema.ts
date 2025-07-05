@@ -31,9 +31,12 @@ export function getUserAge(root: co.loaded<typeof AccountRoot> | undefined) {
 
   let age = today.getFullYear() - birthDate.getFullYear();
 
-  // Check if the birthday has not occurred yet this year
-  const monthDiff = today.getMonth() - birthDate.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+  // Check if the birthday hasn't occurred yet this year
+  const hasBirthdayPassed =
+    today.getMonth() > birthDate.getMonth() ||
+    (today.getMonth() === birthDate.getMonth() && today.getDate() > birthDate.getDate());
+
+  if (!hasBirthdayPassed) {
     age--;
   }
 
