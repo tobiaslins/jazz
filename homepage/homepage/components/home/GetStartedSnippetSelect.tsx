@@ -11,24 +11,16 @@ import { FrameworkSelect } from "../docs/FrameworkSelect";
 import clsx from "clsx";
 import { track } from "@vercel/analytics";
 
-const getStartedSnippet = (framework: Framework) => {
-  const props = framework !== Framework.React ? ` --framework ${framework}` : "";
-  return `npx create-jazz-app@latest${props}`;
-};
-
 export function GetStartedSnippetSelect() {
   const defaultFramework = useFramework();
   const [selectedFramework, setSelectedFramework] =
     useState<Framework>(defaultFramework);
 
-  const snippet = getStartedSnippet(selectedFramework);
-
-
   return (
     <div className="grid grid-cols-8 gap-2 w-full col-span-2 justify-end relative mt-9 tex-sm">
       <div className="relative w-full col-span-4 md:col-span-4 border-2 border-primary rounded-lg overflow-hidden">
         <CopyButton
-          code={snippet}
+          code="npx create-jazz-app@latest"
           size="sm"
           className={clsx("mt-0.5 mr-0.5 z-100 md:opacity-100")}
           onCopy={() => track("create-jazz-app command copied from hero")}
