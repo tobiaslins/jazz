@@ -1,10 +1,13 @@
-import { beforeEach, describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
 import {
   SyncMessagesLog,
   TEST_NODE_CONFIG,
+  createTestMetricReader,
   loadCoValueOrFail,
   setupTestNode,
+  tearDownTestMetricReader,
+  waitFor,
 } from "./testUtils";
 
 // We want to simulate a real world communication that happens asynchronously
@@ -185,15 +188,21 @@ describe("client with storage syncs with server", () => {
 
 describe("client syncs with a server with storage", () => {
   let jazzCloud: ReturnType<typeof setupTestNode>;
+  let metricReader: ReturnType<typeof createTestMetricReader>;
 
   beforeEach(async () => {
     SyncMessagesLog.clear();
+    metricReader = createTestMetricReader();
     jazzCloud = setupTestNode({
       isSyncServer: true,
     });
     jazzCloud.addStorage({
       ourName: "server",
     });
+  });
+
+  afterEach(() => {
+    tearDownTestMetricReader();
   });
 
   test("coValue uploading", async () => {
@@ -257,6 +266,13 @@ describe("client syncs with a server with storage", () => {
 
     await largeMap.core.waitForSync();
 
+    // Test streaming counter during initial sync
+    // The streaming counter should be 0 after the sync is complete
+    const streamingCounterAfterSync = await metricReader.getMetricValue(
+      "jazz.storage.streaming",
+    );
+    expect(streamingCounterAfterSync).toBe(0);
+
     expect(
       SyncMessagesLog.getMessages({
         Group: group.core,
@@ -301,9 +317,30 @@ describe("client syncs with a server with storage", () => {
       storage,
     });
 
-    const mapOnClient2 = await loadCoValueOrFail(client.node, largeMap.id);
+    // Test streaming counter before loading the large coValue
+    const streamingCounterBeforeLoad = await metricReader.getMetricValue(
+      "jazz.storage.streaming",
+    );
+    expect(streamingCounterBeforeLoad).toBe(0);
 
+    const promise = loadCoValueOrFail(client.node, largeMap.id);
+
+    // Test streaming counter during loading (should be 1 during streaming)
+    const streamingCounterDuringLoad = await metricReader.getMetricValue(
+      "jazz.storage.streaming",
+    );
+    expect(streamingCounterDuringLoad).toBe(1);
+
+    const mapOnClient2 = await promise;
     await mapOnClient2.core.waitForSync();
+
+    // Test streaming counter after loading is complete (should be 0)
+    await waitFor(async () => {
+      const streamingCounterAfterLoad = await metricReader.getMetricValue(
+        "jazz.storage.streaming",
+      );
+      expect(streamingCounterAfterLoad).toBe(0);
+    });
 
     expect(
       SyncMessagesLog.getMessages({

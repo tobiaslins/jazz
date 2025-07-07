@@ -32,9 +32,13 @@ export class BatchedOutgoingMessages
     private batching: boolean,
     peerRole: Peer["role"],
   ) {
-    this.queue = new PriorityBasedMessageQueue(CO_VALUE_PRIORITY.HIGH, {
-      peerRole: peerRole,
-    });
+    this.queue = new PriorityBasedMessageQueue(
+      CO_VALUE_PRIORITY.HIGH,
+      "outgoing",
+      {
+        peerRole: peerRole,
+      },
+    );
   }
 
   push(msg: SyncMessage | DisconnectedError) {

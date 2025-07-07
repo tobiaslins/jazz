@@ -1,8 +1,12 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { IncomingMessagesQueue } from "../IncomingMessagesQueue.js";
 import { PeerState } from "../PeerState.js";
 import { ConnectedPeerChannel } from "../streamUtils.js";
 import { Peer, SyncMessage } from "../sync.js";
+import {
+  createTestMetricReader,
+  tearDownTestMetricReader,
+} from "./testUtils.js";
 
 // Mock performance.now for consistent timing tests
 const mockPerformanceNow = vi.fn();
@@ -22,8 +26,12 @@ function createMockPeer(id: string): Peer {
   };
 }
 
-function createMockPeerState(id: string): PeerState {
+function createMockPeerState(
+  id: string,
+  role: "client" | "server" = "client",
+): PeerState {
   const peer = createMockPeer(id);
+  peer.role = role;
   return new PeerState(peer, undefined);
 }
 
@@ -54,15 +62,20 @@ function createMockSyncMessage(
 }
 
 function setup() {
+  const metricReader = createTestMetricReader();
   const queue = new IncomingMessagesQueue();
   const peer1 = createMockPeerState("peer1");
   const peer2 = createMockPeerState("peer2");
 
-  return { queue, peer1, peer2 };
+  return { queue, peer1, peer2, metricReader };
 }
 
 beforeEach(() => {
   mockPerformanceNow.mockReturnValue(0);
+});
+
+afterEach(() => {
+  tearDownTestMetricReader();
 });
 
 describe("IncomingMessagesQueue", () => {
@@ -426,6 +439,188 @@ describe("IncomingMessagesQueue", () => {
       expect(secondProcessSpy).not.toHaveBeenCalled();
 
       expect(queue.processing).toBe(false);
+    });
+  });
+
+  describe("metrics", () => {
+    test("should increment push counter when pushing messages", async () => {
+      const { queue, peer1, metricReader } = setup();
+      const msg = createMockSyncMessage("test");
+
+      queue.push(msg, peer1);
+
+      const pushValue = await metricReader.getMetricValue(
+        "jazz.messagequeue.incoming.pushed",
+        { peerRole: "client" },
+      );
+
+      expect(pushValue).toBe(1);
+    });
+
+    test("should increment pull counter when pulling messages", async () => {
+      const { queue, peer1, metricReader } = setup();
+      const msg = createMockSyncMessage("test");
+
+      queue.push(msg, peer1);
+      queue.pull();
+
+      const pullValue = await metricReader.getMetricValue(
+        "jazz.messagequeue.incoming.pulled",
+        { peerRole: "client" },
+      );
+
+      expect(pullValue).toBe(1);
+    });
+
+    test("should track metrics for both client and server peers", async () => {
+      const { queue, peer1, metricReader } = setup();
+
+      // Create a server peer
+      const serverPeer = createMockPeerState("server-peer", "server");
+
+      const clientMsg = createMockSyncMessage("client-test");
+      const serverMsg = createMockSyncMessage("server-test");
+
+      queue.push(clientMsg, peer1); // client peer
+      queue.push(serverMsg, serverPeer); // server peer
+
+      const clientPushValue = await metricReader.getMetricValue(
+        "jazz.messagequeue.incoming.pushed",
+        { peerRole: "client" },
+      );
+
+      const serverPushValue = await metricReader.getMetricValue(
+        "jazz.messagequeue.incoming.pushed",
+        { peerRole: "server" },
+      );
+
+      expect(clientPushValue).toBe(1);
+      expect(serverPushValue).toBe(1);
+    });
+
+    test("should track pull metrics for both client and server peers", async () => {
+      const { queue, peer1, metricReader } = setup();
+
+      // Create a server peer
+      const serverPeer = createMockPeerState("server-peer", "server");
+
+      const clientMsg = createMockSyncMessage("client-test");
+      const serverMsg = createMockSyncMessage("server-test");
+
+      queue.push(clientMsg, peer1);
+      queue.push(serverMsg, serverPeer);
+
+      queue.pull(); // Pull client message
+      queue.pull(); // Pull server message
+
+      const clientPullValue = await metricReader.getMetricValue(
+        "jazz.messagequeue.incoming.pulled",
+        { peerRole: "client" },
+      );
+
+      const serverPullValue = await metricReader.getMetricValue(
+        "jazz.messagequeue.incoming.pulled",
+        { peerRole: "server" },
+      );
+
+      expect(clientPullValue).toBe(1);
+      expect(serverPullValue).toBe(1);
+    });
+
+    test("should not increment pull counter when queue is empty", async () => {
+      const { queue, metricReader } = setup();
+
+      queue.pull(); // Should return undefined
+
+      const pullValue = await metricReader.getMetricValue(
+        "jazz.messagequeue.incoming.pulled",
+        { peerRole: "client" },
+      );
+
+      expect(pullValue).toBe(0);
+    });
+
+    test("should track multiple pushes and pulls correctly", async () => {
+      const { queue, peer1, metricReader } = setup();
+      const msg1 = createMockSyncMessage("test1");
+      const msg2 = createMockSyncMessage("test2");
+      const msg3 = createMockSyncMessage("test3");
+
+      queue.push(msg1, peer1);
+      queue.push(msg2, peer1);
+      queue.push(msg3, peer1);
+
+      queue.pull(); // Pull first message
+      queue.pull(); // Pull second message
+
+      const pushValue = await metricReader.getMetricValue(
+        "jazz.messagequeue.incoming.pushed",
+        { peerRole: "client" },
+      );
+
+      const pullValue = await metricReader.getMetricValue(
+        "jazz.messagequeue.incoming.pulled",
+        { peerRole: "client" },
+      );
+
+      expect(pushValue).toBe(3);
+      expect(pullValue).toBe(2);
+    });
+
+    test("should initialize metrics with zero values for both peer roles", async () => {
+      const { metricReader } = setup();
+
+      // The constructor should initialize metrics with 0 values
+      const clientPushValue = await metricReader.getMetricValue(
+        "jazz.messagequeue.incoming.pushed",
+        { peerRole: "client" },
+      );
+
+      const serverPushValue = await metricReader.getMetricValue(
+        "jazz.messagequeue.incoming.pushed",
+        { peerRole: "server" },
+      );
+
+      const clientPullValue = await metricReader.getMetricValue(
+        "jazz.messagequeue.incoming.pulled",
+        { peerRole: "client" },
+      );
+
+      const serverPullValue = await metricReader.getMetricValue(
+        "jazz.messagequeue.incoming.pulled",
+        { peerRole: "server" },
+      );
+
+      expect(clientPushValue).toBe(0);
+      expect(serverPushValue).toBe(0);
+      expect(clientPullValue).toBe(0);
+      expect(serverPullValue).toBe(0);
+    });
+
+    test("should track metrics during processQueue execution", async () => {
+      const { queue, peer1, metricReader } = setup();
+      const msg1 = createMockSyncMessage("test1");
+      const msg2 = createMockSyncMessage("test2");
+
+      queue.push(msg1, peer1);
+      queue.push(msg2, peer1);
+
+      await queue.processQueue(() => {
+        // Process messages
+      });
+
+      const pushValue = await metricReader.getMetricValue(
+        "jazz.messagequeue.incoming.pushed",
+        { peerRole: "client" },
+      );
+
+      const pullValue = await metricReader.getMetricValue(
+        "jazz.messagequeue.incoming.pulled",
+        { peerRole: "client" },
+      );
+
+      expect(pushValue).toBe(2);
+      expect(pullValue).toBe(2);
     });
   });
 });

@@ -1,3 +1,4 @@
+import { UpDownCounter, metrics } from "@opentelemetry/api";
 import {
   CoValueCore,
   MAX_RECOMMENDED_TX_SIZE,
@@ -21,11 +22,20 @@ import type {
 } from "./types.js";
 
 export class StorageApiSync implements StorageAPI {
+  private streamingCounter: UpDownCounter;
+
   private readonly dbClient: DBClientInterfaceSync;
   private loadedCoValues = new Set<RawCoID>();
 
   constructor(dbClient: DBClientInterfaceSync) {
     this.dbClient = dbClient;
+    this.streamingCounter = metrics
+      .getMeter("cojson")
+      .createUpDownCounter(`jazz.storage.streaming`, {
+        description: "Number of streaming coValues",
+        unit: "1",
+      });
+    this.streamingCounter.add(0);
   }
 
   knwonStates = new StorageKnownState();
@@ -90,6 +100,8 @@ export class StorageApiSync implements StorageAPI {
     } as NewContentMessage;
 
     if (contentStreaming) {
+      console.log("streamingCounter - add 1");
+      this.streamingCounter.add(1);
       contentMessage.streamingTarget = knownState["sessions"];
     }
 
@@ -148,6 +160,11 @@ export class StorageApiSync implements StorageAPI {
     // For streaming the push has already been done in the loop above
     if (hasNewContent || !contentStreaming) {
       this.pushContentWithDependencies(coValueRow, contentMessage, callback);
+    }
+
+    if (contentStreaming) {
+      console.log("streamingCounter - remove 1");
+      this.streamingCounter.add(-1);
     }
 
     this.knwonStates.handleUpdate(coValueRow.id, knownState);

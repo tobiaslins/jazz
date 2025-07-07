@@ -1,3 +1,4 @@
+import { Counter, ValueType, metrics } from "@opentelemetry/api";
 import type { PeerState } from "./PeerState.js";
 import { LinkedList } from "./PriorityBasedMessageQueue.js";
 import { logger } from "./logger.js";
@@ -12,11 +13,47 @@ import type { SyncMessage } from "./sync.js";
  * for more than 50ms.
  */
 export class IncomingMessagesQueue {
+  private pullCounter: Counter;
+  private pushCounter: Counter;
+
   queues: [LinkedList<SyncMessage>, PeerState][];
   peerToQueue: WeakMap<PeerState, LinkedList<SyncMessage>>;
   currentQueue = 0;
 
   constructor() {
+    this.pullCounter = metrics
+      .getMeter("cojson")
+      .createCounter(`jazz.messagequeue.incoming.pulled`, {
+        description: "Number of messages pulled from the queue",
+        valueType: ValueType.INT,
+        unit: "1",
+      });
+    this.pushCounter = metrics
+      .getMeter("cojson")
+      .createCounter(`jazz.messagequeue.incoming.pushed`, {
+        description: "Number of messages pushed to the queue",
+        valueType: ValueType.INT,
+        unit: "1",
+      });
+
+    /**
+     * This makes sure that those metrics are generated (and emitted) as soon as the queue is created.
+     * This is to avoid edge cases where one series reset is delayed, which would cause spikes or dips
+     * when queried - and it also more correctly represents the actual state of the queue after a restart.
+     */
+    this.pullCounter.add(0, {
+      peerRole: "client",
+    });
+    this.pushCounter.add(0, {
+      peerRole: "client",
+    });
+    this.pullCounter.add(0, {
+      peerRole: "server",
+    });
+    this.pushCounter.add(0, {
+      peerRole: "server",
+    });
+
     this.queues = [];
     this.peerToQueue = new WeakMap();
   }
@@ -32,6 +69,10 @@ export class IncomingMessagesQueue {
     } else {
       queue.push(msg);
     }
+
+    this.pushCounter.add(1, {
+      peerRole: peer.role,
+    });
   }
 
   public pull() {
@@ -56,6 +97,10 @@ export class IncomingMessagesQueue {
     }
 
     if (msg) {
+      this.pullCounter.add(1, {
+        peerRole: peer.role,
+      });
+
       return { msg, peer };
     }
 

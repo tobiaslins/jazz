@@ -112,8 +112,11 @@ class QueueMeter {
   }
 }
 
-function meteredList<T>(attrs?: Record<string, string | number>) {
-  return new LinkedList<T>(new QueueMeter("jazz.messagequeue", attrs));
+function meteredList<T>(
+  type: "incoming" | "outgoing",
+  attrs?: Record<string, string | number>,
+) {
+  return new LinkedList<T>(new QueueMeter("jazz.messagequeue." + type, attrs));
 }
 
 const PRIORITY_TO_QUEUE_INDEX = {
@@ -127,6 +130,7 @@ export class PriorityBasedMessageQueue {
 
   constructor(
     private defaultPriority: CoValuePriority,
+    type: "incoming" | "outgoing",
     /**
      * Optional attributes to be added to the generated metrics.
      * By default the metrics will have the priority as an attribute.
@@ -134,9 +138,9 @@ export class PriorityBasedMessageQueue {
     attrs?: Record<string, string | number>,
   ) {
     this.queues = [
-      meteredList({ priority: CO_VALUE_PRIORITY.HIGH, ...attrs }),
-      meteredList({ priority: CO_VALUE_PRIORITY.MEDIUM, ...attrs }),
-      meteredList({ priority: CO_VALUE_PRIORITY.LOW, ...attrs }),
+      meteredList(type, { priority: CO_VALUE_PRIORITY.HIGH, ...attrs }),
+      meteredList(type, { priority: CO_VALUE_PRIORITY.MEDIUM, ...attrs }),
+      meteredList(type, { priority: CO_VALUE_PRIORITY.LOW, ...attrs }),
     ];
   }
 
