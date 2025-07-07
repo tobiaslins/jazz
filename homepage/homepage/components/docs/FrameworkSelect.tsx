@@ -39,12 +39,12 @@ export function FrameworkSelect({
   return (
     <Dropdown>
       <DropdownButton
-        className={clsx("w-full justify-between overflow-clip", size === "sm" && "text-sm text-nowrap")}
+        className={clsx("w-full justify-between overflow-hidden text-nowrap", size === "sm" && "text-sm")}
         as={Button}
         variant="outline"
         intent="default"
       >
-        {frameworkNames[selectedFramework].label}
+        <span className="text-nowrap max-w-full overflow-hidden text-ellipsis">{frameworkNames[selectedFramework].label}</span>
         <Icon name="chevronDown" size="sm" />
       </DropdownButton>
       <DropdownMenu className="w-[--button-width] z-50" anchor="bottom start">
