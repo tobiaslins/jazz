@@ -1,3 +1,4 @@
+import { assert } from "node:console";
 import { ControlledAgent, type CryptoProvider, LocalNode } from "cojson";
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
@@ -7,7 +8,7 @@ import { startSyncServer } from "./syncServer";
 import { waitFor } from "./utils";
 
 describe("WebSocket Peer Integration", () => {
-  let server: any;
+  let server: Awaited<ReturnType<typeof startSyncServer>>;
   let syncServerUrl: string;
   let crypto: CryptoProvider;
 
@@ -93,7 +94,11 @@ describe("WebSocket Peer Integration", () => {
     const serverNode = server.localNode;
     const serverMap = await serverNode.load(map.id);
 
-    expect(serverMap.get("testKey")).toBe("testValue");
+    if (serverMap === "unavailable") {
+      throw new Error("Server map is unavailable");
+    }
+
+    expect(serverMap.get("testKey")?.toString()).toBe("testValue");
   });
 
   test("should handle disconnection and cleanup", async () => {
@@ -160,5 +165,35 @@ describe("WebSocket Peer Integration", () => {
     });
 
     expect(ws.readyState).toBe(WebSocket.CLOSED);
+  });
+
+  test("calling terminate on the server should close the connection", async () => {
+    const ws = new WebSocket(syncServerUrl);
+    let disconnectCalled = false;
+
+    createWebSocketPeer({
+      id: "test-client",
+      websocket: ws,
+      role: "server",
+      onClose: () => {
+        disconnectCalled = true;
+      },
+    });
+
+    await waitFor(() => {
+      expect(server.wss.clients.size).toBe(1);
+    });
+
+    const peerOnServer = server.localNode.syncManager.getPeers()[0];
+
+    for (const client of server.wss.clients) {
+      client.terminate();
+    }
+
+    await waitFor(() => {
+      expect(disconnectCalled).toBe(true);
+    });
+
+    expect(peerOnServer?.closed).toBe(true);
   });
 });
