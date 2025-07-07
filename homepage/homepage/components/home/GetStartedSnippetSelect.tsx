@@ -34,15 +34,14 @@ export function GetStartedSnippetSelect() {
           onCopy={() => track("create-jazz-app command copied from hero")}
         />
         <NpxCreateJazzApp />
-        {/* {snippet} */}
       </div>
       <div className="col-span-2 md:col-span-1 col-start-5 md:col-start-6 flex align-middle h-full items-center">
-        <Button variant="primary" size="sm" className="w-full h-fit">
-          <Link className="my-[0.11rem]" href={`/docs/${selectedFramework}`}>Get started</Link>
-        </Button>
+        <FrameworkSelect onSelect={setSelectedFramework} size="sm" routerPush={false} />
       </div>
       <div className="col-span-2 md:col-span-1 flex h-full items-center">
-      <FrameworkSelect onSelect={setSelectedFramework} size="sm" routerPush={false} />
+        <Button intent="primary" size="sm" className="w-full h-fit">
+          <Link className="my-[0.11rem]" href={`/docs/${selectedFramework}`}>Get started</Link>
+        </Button>
       </div>
     </div>
   );
