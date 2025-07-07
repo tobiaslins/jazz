@@ -1,5 +1,15 @@
 # jazz-tools
 
+## 0.15.7
+
+### Patch Changes
+
+- c09b636: Fix react bundling in jazz-tools/inspector/register-custom-element
+  - cojson@0.15.7
+  - cojson-storage@0.15.7
+  - cojson-storage-indexeddb@0.15.7
+  - cojson-transport-ws@0.15.7
+
 ## 0.15.6
 
 ### Patch Changes
