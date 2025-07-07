@@ -60,7 +60,7 @@ export default defineConfig([
       "register-custom-element": "src/inspector/register-custom-element.ts",
     },
     // This is a custom element meant to be used on non-react apps
-    noExternal: ["react", "react-dom"],
+    noExternal: ["react", "react-dom", "react-dom/client", "react/jsx-runtime"],
     outDir: "dist/inspector",
   },
   {
