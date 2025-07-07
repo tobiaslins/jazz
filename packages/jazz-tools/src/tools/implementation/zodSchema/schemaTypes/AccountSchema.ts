@@ -7,22 +7,24 @@ import { z } from "../zodReExport.js";
 import { Loaded, ResolveQuery } from "../zodSchema.js";
 import { AnyCoMapSchema, CoMapSchema } from "./CoMapSchema.js";
 
+export type BaseProfileShape = {
+  name: z.core.$ZodString<string>;
+  inbox?: z.core.$ZodOptional<z.core.$ZodString>;
+  inboxInvite?: z.core.$ZodOptional<z.core.$ZodString>;
+};
+
+export type BaseAccountShape = {
+  profile: AnyCoMapSchema<BaseProfileShape>;
+  root: AnyCoMapSchema;
+};
+
+export type DefaultAccountShape = {
+  profile: CoMapSchema<BaseProfileShape>;
+  root: CoMapSchema<{}>;
+};
+
 export type AccountSchema<
-  Shape extends {
-    profile: AnyCoMapSchema<{
-      name: z.core.$ZodString<string>;
-      inbox?: z.core.$ZodOptional<z.core.$ZodString>;
-      inboxInvite?: z.core.$ZodOptional<z.core.$ZodString>;
-    }>;
-    root: AnyCoMapSchema;
-  } = {
-    profile: CoMapSchema<{
-      name: z.core.$ZodString<string>;
-      inbox?: z.core.$ZodOptional<z.core.$ZodString>;
-      inboxInvite?: z.core.$ZodOptional<z.core.$ZodString>;
-    }>;
-    root: CoMapSchema<{}>;
-  },
+  Shape extends BaseAccountShape = DefaultAccountShape,
 > = Omit<CoMapSchema<Shape>, "create" | "load" | "withMigration"> & {
   builtin: "Account";
 
