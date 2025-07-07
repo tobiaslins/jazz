@@ -41,10 +41,11 @@ export function FrameworkSelect({
       <DropdownButton
         className={clsx("w-full justify-between overflow-clip", size === "sm" && "text-sm text-nowrap")}
         as={Button}
-        variant="secondary"
+        variant="outline"
+        intent="default"
       >
         {frameworkNames[selectedFramework].label}
-        <Icon name="chevronDown" size="sm" className="text-muted" />
+        <Icon name="chevronDown" size="sm" />
       </DropdownButton>
       <DropdownMenu className="w-[--button-width] z-50" anchor="bottom start">
         {Object.entries(frameworkNames)

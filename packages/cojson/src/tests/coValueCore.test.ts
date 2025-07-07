@@ -1,4 +1,6 @@
+import { encrypt } from "jazz-crypto-rs";
 import { assert, afterEach, beforeEach, expect, test, vi } from "vitest";
+import { bytesToBase64url } from "../base64url.js";
 import { CoValueCore } from "../coValueCore/coValueCore.js";
 import { Transaction } from "../coValueCore/verifiedState.js";
 import { MapOpPayload } from "../coValues/coMap.js";
@@ -347,4 +349,166 @@ test("listeners are notified even if the previous listener threw an error", asyn
   expect(mapOnNode2.get("hello")).toBe("world");
 
   errorLog.mockRestore();
+});
+
+test("getValidTransactions should skip trusting transactions with invalid JSON", () => {
+  const [agent, sessionID] = randomAgentAndSessionID();
+  const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+
+  const coValue = node.createCoValue({
+    type: "costream",
+    ruleset: { type: "unsafeAllowAll" },
+    meta: null,
+    ...Crypto.createdNowUnique(),
+  });
+
+  // Create a valid transaction first
+  const validTransaction: Transaction = {
+    privacy: "trusting",
+    madeAt: Date.now(),
+    changes: stableStringify([{ hello: "world" }]),
+  };
+
+  const { expectedNewHash: expectedNewHash1 } =
+    coValue.verified.expectedNewHashAfter(node.currentSessionID, [
+      validTransaction,
+    ]);
+
+  coValue
+    .tryAddTransactions(
+      node.currentSessionID,
+      [validTransaction],
+      expectedNewHash1,
+      Crypto.sign(agent.currentSignerSecret(), expectedNewHash1),
+      "immediate",
+    )
+    ._unsafeUnwrap();
+
+  // Create an invalid transaction with malformed JSON
+  const invalidTransaction: Transaction = {
+    privacy: "trusting",
+    madeAt: Date.now() + 1,
+    changes: '{"invalid": json}' as any, // Invalid JSON string
+  };
+
+  const { expectedNewHash: expectedNewHash2 } =
+    coValue.verified.expectedNewHashAfter(node.currentSessionID, [
+      invalidTransaction,
+    ]);
+
+  coValue
+    .tryAddTransactions(
+      node.currentSessionID,
+      [invalidTransaction],
+      expectedNewHash2,
+      Crypto.sign(agent.currentSignerSecret(), expectedNewHash2),
+      "immediate",
+    )
+    ._unsafeUnwrap();
+
+  // Get valid transactions - should only include the valid one
+  const validTransactions = coValue.getValidTransactions();
+
+  expect(validTransactions).toHaveLength(1);
+  expect(validTransactions[0]?.changes).toEqual([{ hello: "world" }]);
+});
+
+test("getValidTransactions should skip private transactions with invalid JSON", () => {
+  const [agent, sessionID] = randomAgentAndSessionID();
+  const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+
+  const group = node.createGroup();
+  group.addMember("everyone", "writer");
+
+  const coValue = node.createCoValue({
+    type: "costream",
+    ruleset: { type: "ownedByGroup", group: group.id },
+    meta: null,
+    ...Crypto.createdNowUnique(),
+  });
+
+  const { secret: keySecret, id: keyID } = coValue.getCurrentReadKey();
+
+  assert(keySecret);
+
+  const encrypted = Crypto.encryptForTransaction(
+    [{ hello: "world" }],
+    keySecret,
+    {
+      in: coValue.id,
+      tx: coValue.nextTransactionID(),
+    },
+  );
+
+  // Create a valid private transaction first
+  const validTransaction: Transaction = {
+    privacy: "private",
+    madeAt: Date.now(),
+    keyUsed: keyID,
+    encryptedChanges: encrypted as any,
+  };
+
+  const { expectedNewHash: expectedNewHash1 } =
+    coValue.verified.expectedNewHashAfter(node.currentSessionID, [
+      validTransaction,
+    ]);
+
+  coValue
+    .tryAddTransactions(
+      node.currentSessionID,
+      [validTransaction],
+      expectedNewHash1,
+      Crypto.sign(agent.currentSignerSecret(), expectedNewHash1),
+      "immediate",
+    )
+    ._unsafeUnwrap();
+
+  const textEncoder = new TextEncoder();
+  const brokenChange = `encrypted_U${bytesToBase64url(
+    encrypt(
+      textEncoder.encode('{"invalid": json}'),
+      keySecret,
+      textEncoder.encode(
+        stableStringify({
+          in: coValue.id,
+          tx: coValue.nextTransactionID(),
+        }),
+      ),
+    ),
+  )}`;
+
+  // Create an invalid private transaction with malformed JSON after decryption
+  const invalidTransaction: Transaction = {
+    privacy: "private",
+    madeAt: Date.now() + 1,
+    keyUsed: keyID,
+    encryptedChanges: brokenChange as any,
+  };
+
+  const { expectedNewHash: expectedNewHash2 } =
+    coValue.verified.expectedNewHashAfter(node.currentSessionID, [
+      invalidTransaction,
+    ]);
+
+  coValue
+    .tryAddTransactions(
+      node.currentSessionID,
+      [invalidTransaction],
+      expectedNewHash2,
+      Crypto.sign(agent.currentSignerSecret(), expectedNewHash2),
+      "immediate",
+    )
+    ._unsafeUnwrap();
+
+  // Get valid transactions - should skip the invalid one
+  const validTransactions = coValue.getValidTransactions({
+    ignorePrivateTransactions: false,
+  });
+
+  // Since we can't easily create valid private transactions in this test setup,
+  // we just verify that the method doesn't crash and handles the invalid JSON gracefully
+  expect(validTransactions).toBeDefined();
+  expect(Array.isArray(validTransactions)).toBe(true);
+  expect(validTransactions.length).toBe(1);
+  expect(validTransactions[0]?.changes).toEqual([{ hello: "world" }]);
 });

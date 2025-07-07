@@ -180,7 +180,7 @@ export function Pricing() {
             </ul>
           </div>
 
-          <Button href="https://cal.com/anselm-io/cloud-pro-intro">
+          <Button href="https://cal.com/anselm-io/cloud-pro-intro" intent="primary">
             Schedule intro call
           </Button>
 

@@ -200,6 +200,10 @@ export const CoMapPreview = ({
     );
   }
 
+  if (type === "coplaintext") {
+    return <>{value.toString()}</>;
+  }
+
   if (extendedType === "image" && isBrowserImage(snapshot)) {
     return (
       <ImagePreviewContainer>

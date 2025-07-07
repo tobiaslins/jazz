@@ -1,5 +1,23 @@
 # cojson
 
+## 0.15.6
+
+## 0.15.5
+
+## 0.15.4
+
+### Patch Changes
+
+- 277e4d4: Fix sync with circular deps
+
+## 0.15.3
+
+## 0.15.2
+
+### Patch Changes
+
+- 4b964ed: Add debug code on transactions parsing
+
 ## 0.15.1
 
 ### Patch Changes

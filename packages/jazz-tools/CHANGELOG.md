@@ -1,5 +1,59 @@
 # jazz-tools
 
+## 0.15.6
+
+### Patch Changes
+
+- a5ceaff: add Group.getDirectMembers to get only direct members of a group
+  - cojson@0.15.6
+  - cojson-storage@0.15.6
+  - cojson-storage-indexeddb@0.15.6
+  - cojson-transport-ws@0.15.6
+
+## 0.15.5
+
+### Patch Changes
+
+- 23bfea5: Make all React Native dependencies in `jazz-tools` optional peer dependencies
+- e4ba23c: Fix type error with `RNQuickCrypto` that prevented using it as a `CryptoProvider`
+- 4b89838: Changes that verify the BetterAuth package for React also works with React Native and Expo apps
+  - cojson@0.15.5
+  - cojson-storage@0.15.5
+  - cojson-storage-indexeddb@0.15.5
+  - cojson-transport-ws@0.15.5
+
+## 0.15.4
+
+### Patch Changes
+
+- Updated dependencies [277e4d4]
+  - cojson@0.15.4
+  - cojson-storage@0.15.4
+  - cojson-storage-indexeddb@0.15.4
+  - cojson-transport-ws@0.15.4
+
+## 0.15.3
+
+### Patch Changes
+
+- 45f73a7: fix image `originalSize` to be coherent with the highest resolution
+- Updated dependencies [535c460]
+  - cojson-storage-indexeddb@0.15.3
+  - cojson@0.15.3
+  - cojson-storage@0.15.3
+  - cojson-transport-ws@0.15.3
+
+## 0.15.2
+
+### Patch Changes
+
+- 0e7e532: inspector: improve CoPlainText view
+- Updated dependencies [4b964ed]
+  - cojson@0.15.2
+  - cojson-storage@0.15.2
+  - cojson-storage-indexeddb@0.15.2
+  - cojson-transport-ws@0.15.2
+
 ## 0.15.1
 
 ### Patch Changes

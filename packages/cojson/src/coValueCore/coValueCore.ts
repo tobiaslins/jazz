@@ -621,11 +621,19 @@ export class CoValueCore {
       }
 
       if (tx.privacy === "trusting") {
-        allTransactions.push({
-          txID,
-          madeAt: tx.madeAt,
-          changes: parseJSON(tx.changes),
-        });
+        try {
+          allTransactions.push({
+            txID,
+            madeAt: tx.madeAt,
+            changes: parseJSON(tx.changes),
+          });
+        } catch (e) {
+          logger.error("Failed to parse trusting transaction on " + this.id, {
+            err: e,
+            txID,
+            changes: tx.changes.slice(0, 50),
+          });
+        }
         continue;
       }
 
@@ -650,7 +658,17 @@ export class CoValueCore {
             tx: txID,
           },
         );
-        decryptedChanges = decryptedString && parseJSON(decryptedString);
+
+        try {
+          decryptedChanges = decryptedString && parseJSON(decryptedString);
+        } catch (e) {
+          logger.error("Failed to parse private transaction on " + this.id, {
+            err: e,
+            txID,
+            changes: decryptedString?.slice(0, 50),
+          });
+          continue;
+        }
         this._decryptionCache[tx.encryptedChanges] = decryptedChanges;
       }
 

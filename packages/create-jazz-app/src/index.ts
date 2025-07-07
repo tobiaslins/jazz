@@ -493,10 +493,24 @@ async function promptUser(
   }
 
   if (!partialOptions.projectName) {
+    // Determine a default project name if possible
+    let defaultProjectName = undefined;
+    if (partialOptions.example) {
+      // Use the example name, affixed with -app if not already
+      defaultProjectName = partialOptions.example.endsWith("-app")
+        ? partialOptions.example
+        : `${partialOptions.example}-app`;
+    } else if (partialOptions.starter) {
+      // Use the starter name, affixed with -app if not already
+      defaultProjectName = partialOptions.starter.endsWith("-app")
+        ? partialOptions.starter
+        : `${partialOptions.starter}-app`;
+    }
     questions.push({
       type: "input",
       name: "projectName",
       message: chalk.cyan("Enter your project name:"),
+      default: defaultProjectName,
       validate: (input: string) =>
         input ? true : chalk.red("Project name cannot be empty"),
     });
@@ -590,6 +604,17 @@ program
       } else if (directory && !options.projectName) {
         // If directory is provided but not project name, use directory as project name
         partialOptions.projectName = directory;
+      } else if (!directory && !options.projectName) {
+        // If no directory or projectName, and example is provided, use example as default
+        if (options.example) {
+          partialOptions.projectName = options.example.endsWith("-app")
+            ? options.example
+            : `${options.example}-app`;
+        } else if (options.starter) {
+          partialOptions.projectName = options.starter.endsWith("-app")
+            ? options.starter
+            : `${options.starter}-app`;
+        }
       }
 
       if (options.starter)

@@ -18,17 +18,17 @@ export function FeatureCard({
 }) {
   return (
     <Card className={clsx(className, "p-4")}>
-      <div className="flex items-center align-middle gap-2">
-        {icon && (
-          <Icon
-            name={icon}
-            className="text-primary p-1.5 rounded-lg mb-2.5"
-            size="3xl"
-          />
-        )}
-        <div className="text-primary flex font-medium md:text-base mb-2">
-          {label}
-        </div>
+      {icon && (
+        <Icon
+          name={icon}
+          intent="primary"
+          hasBackground
+          className="p-1.5 rounded-lg mb-2.5"
+          size="3xl"
+        />
+      )}
+      <div className="text-stone-900 font-medium md:text-base dark:text-stone-100 mb-2">
+        {label}
       </div>
       {explanation && <Prose>{explanation}</Prose>}
       {children}

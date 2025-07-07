@@ -8,7 +8,7 @@ import {
 import { useEffect, useState } from "react";
 import { detectCoStreamType } from "./co-stream-view.js";
 
-export type CoJsonType = "comap" | "costream" | "colist";
+export type CoJsonType = "comap" | "costream" | "colist" | "coplaintext";
 export type ExtendedCoJsonType =
   | "image"
   | "record"

@@ -4,17 +4,14 @@ import { PureJSCrypto } from "cojson/dist/crypto/PureJSCrypto"; // Importing fro
 import {
   Account,
   AccountClass,
-  AccountSchema,
   AgentID,
   AnyAccountSchema,
   AuthCredentials,
   AuthSecretStorage,
   CoValue,
-  CoValueClass,
   CoValueFromRaw,
   CryptoProvider,
   ID,
-  InstanceOfSchema,
   NewAccountProps,
   SessionID,
   SyncConfig,
@@ -27,7 +24,7 @@ import { SQLiteReactNative } from "./storage/sqlite-react-native.js";
 
 import { SQLiteDatabaseDriverAsync } from "cojson-storage";
 import { WebSocketPeerWithReconnection } from "cojson-transport-ws";
-import type { RNQuickCrypto } from "./crypto/RNQuickCrypto.js";
+import type { RNQuickCrypto } from "jazz-tools/react-native-core/crypto";
 
 export type BaseReactNativeContextOptions = {
   sync: SyncConfig;

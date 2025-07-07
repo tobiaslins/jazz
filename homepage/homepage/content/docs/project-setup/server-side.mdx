@@ -3,6 +3,7 @@ export const metadata = {
 };
 
 import { CodeGroup } from "@/components/forMdx";
+import { Alert } from "@garden-co/design-system/src/components/atoms/Alert";
 
 # Node.JS / server workers
 
@@ -11,6 +12,8 @@ The main detail to understand when using Jazz server-side is that Server Workers
 This lets you share CoValues with Server Workers, having precise access control by adding the Worker to `Groups` with specific roles just like you would with other users.
 
 [See the full example here.](https://github.com/garden-co/jazz/tree/main/examples/jazz-paper-scissors)
+
+<Alert variant="info" className="mt-4 flex gap-2 items-center">Requires at least Node.js v20.</Alert>
 
 ## Generating credentials
 
