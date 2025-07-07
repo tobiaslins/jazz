@@ -40,7 +40,7 @@
     "@react-native/typescript-config": "0.80.0",
     "@rnx-kit/metro-config": "^2.0.1",
     "@rnx-kit/metro-resolver-symlinks": "^0.2.5",
-    "@types/react": "19.1.0",
+    "@types/react": "^19.1.0",
     "eslint": "^8.19.0",
     "pod-install": "^0.3.5",
     "prettier": "2.8.8",
