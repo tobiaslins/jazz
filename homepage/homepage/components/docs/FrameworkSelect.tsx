@@ -18,10 +18,12 @@ export function FrameworkSelect({
   onSelect,
   size = "md",
   routerPush = true,
+  className,
 }: {
   onSelect?: (framework: Framework) => void;
   size?: "sm" | "md";
   routerPush?: boolean;
+  className?: string;
 }) {
   const router = useRouter();
   const defaultFramework = useFramework();
@@ -39,7 +41,7 @@ export function FrameworkSelect({
   return (
     <Dropdown>
       <DropdownButton
-        className={clsx("w-full justify-between overflow-hidden text-nowrap", size === "sm" && "text-sm")}
+        className={clsx("w-full justify-between overflow-hidden text-nowrap", size === "sm" && "text-sm", className)}
         as={Button}
         variant="outline"
         intent="default"

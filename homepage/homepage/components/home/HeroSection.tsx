@@ -91,9 +91,6 @@ export function HeroSection() {
             </div>
           ))}
         </div>
-          <div className="col-span-10">
-            <GetStartedSnippetSelect />
-          </div>
       </div>
     </div>
   );
