@@ -136,6 +136,43 @@ function enrichAccountSchema<Shape extends BaseAccountShape>(
   return enrichedSchema;
 }
 
+/**
+ * Defines a collaborative account schema for Jazz applications.
+ *
+ * Creates an account schema that represents a user account with profile and root data.
+ * Accounts are the primary way to identify and manage users in Jazz applications.
+ *
+ * @template Shape - The shape of the account schema extending BaseAccountShape
+ * @param shape - The account schema shape. Defaults to a basic profile with name, inbox, and inboxInvite fields, plus an empty root object.
+ *
+ * @example
+ * ```typescript
+ * // Basic account with default profile
+ * const BasicAccount = co.account();
+ *
+ * // Custom account with specific profile and root structure
+ * const JazzAccount = co.account({
+ *   profile: co.profile({
+ *     name: z.string(),
+ *     avatar: z.optional(z.string()),
+ *   }),
+ *   root: co.map({
+ *     organizations: co.list(Organization),
+ *     draftOrganization: DraftOrganization,
+ *   }),
+ * }).withMigration(async (account) => {
+ *   // Migration logic for existing accounts
+ *   if (account.profile === undefined) {
+ *     const group = Group.create();
+ *     account.profile = co.profile().create(
+ *       { name: getRandomUsername() },
+ *       group
+ *     );
+ *     group.addMember("everyone", "reader");
+ *   }
+ * });
+ * ```
+ */
 export const coAccountDefiner = <Shape extends BaseAccountShape>(
   shape: Shape = {
     profile: coMapDefiner({
