@@ -242,13 +242,9 @@ export const coListDefiner = <T extends z.core.$ZodType>(
 export const coProfileDefiner = <
   Shape extends z.core.$ZodLooseShape = Simplify<DefaultProfileShape>,
 >(
-  shape: Shape & {
-    name?: z.core.$ZodString<string>;
-    inbox?: z.core.$ZodOptional<z.core.$ZodString>;
-    inboxInvite?: z.core.$ZodOptional<z.core.$ZodString>;
-  } = {} as any,
+  shape: Shape & Partial<DefaultProfileShape> = {} as any,
 ): CoProfileSchema<Shape> => {
-  const ehnancedShape = Object.assign(shape ?? {}, {
+  const ehnancedShape = Object.assign(shape, {
     name: z.string(),
     inbox: z.optional(z.string()),
     inboxInvite: z.optional(z.string()),
