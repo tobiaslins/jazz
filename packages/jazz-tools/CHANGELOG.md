@@ -1,5 +1,15 @@
 # jazz-tools
 
+## 0.15.8
+
+### Patch Changes
+
+- 3844666: Refactor AccountSchema types to solve "This is likely not portable. A type annotation is necessary" issue when using co.account()
+  - cojson@0.15.8
+  - cojson-storage@0.15.8
+  - cojson-storage-indexeddb@0.15.8
+  - cojson-transport-ws@0.15.8
+
 ## 0.15.7
 
 ### Patch Changes
