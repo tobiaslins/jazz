@@ -293,7 +293,7 @@ export class VerifiedState {
         }
 
         if (pieceSize >= MAX_RECOMMENDED_TX_SIZE) {
-          if (!currentPiece.streamingTarget) {
+          if (!currentPiece.streamingTarget && pieces.length === 1) {
             currentPiece.streamingTarget =
               this.knownStateWithStreaming().sessions;
           }
@@ -304,7 +304,6 @@ export class VerifiedState {
             header: undefined,
             new: {},
             priority: getPriorityFromHeader(this.header),
-            streamingTarget: currentPiece.streamingTarget,
           };
           pieces.push(currentPiece);
           pieceSize = pieceSize - oldPieceSize;

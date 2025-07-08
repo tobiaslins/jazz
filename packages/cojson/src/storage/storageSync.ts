@@ -143,7 +143,6 @@ export class StorageApiSync implements StorageAPI {
             header: coValueRow.header,
             new: {},
             priority: getPriorityFromHeader(coValueRow.header),
-            streamingTarget: knownState["sessions"],
           } satisfies NewContentMessage;
 
           // Introduce a delay to not block the main thread

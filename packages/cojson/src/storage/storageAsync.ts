@@ -143,7 +143,6 @@ export class StorageApiAsync implements StorageAPI {
             header: coValueRow.header,
             new: {},
             priority: getPriorityFromHeader(coValueRow.header),
-            streamingTarget: knownState["sessions"],
           } satisfies NewContentMessage;
         }
       }
