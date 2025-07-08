@@ -94,4 +94,13 @@ export const team: Array<TeamMember> = [
     linkedin: "shortdiv",
     image: "div.jpg",
   },
+  {
+    name: "Nico Rainhart",
+    slug: "nico",
+    location: "Buenos Aires, Argentina",
+    titles: ["Full-Stack Dev", "Framework Engineer"],
+    image: "nico.jpeg",
+    github: "nrainhart",
+    linkedin: "nicolás-rainhart",
+  },
 ];
