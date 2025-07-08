@@ -89,6 +89,7 @@ export const team: Array<TeamMember> = [
     titles: ["Platform Engineer"],
     x: "shortdiv",
     github: "shortdiv",
+    website: "https://shortdiv.com",
     bluesky: "shortdiv.bsky.social",
     linkedin: "shortdiv",
     image: "div.jpg",
