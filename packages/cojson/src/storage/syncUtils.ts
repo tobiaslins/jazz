@@ -23,17 +23,17 @@ export function collectNewTxs({
   if (!sessionEntry) {
     sessionEntry = {
       after: firstNewTxIdx,
-      lastSignature: "WILL_BE_REPLACED" as Signature,
+      lastSignature: signature,
       newTransactions: [],
     };
     contentMessage.new[sessionRow.sessionID] = sessionEntry;
+  } else {
+    sessionEntry.lastSignature = signature;
   }
 
   for (const tx of newTxsInSession) {
     sessionEntry.newTransactions.push(tx.tx);
   }
-
-  sessionEntry.lastSignature = signature;
 }
 
 export function getDependedOnCoValues(

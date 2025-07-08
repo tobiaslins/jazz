@@ -298,6 +298,10 @@ export class StorageApiAsync implements StorageAPI {
 
     const actuallyNewTransactions = newTransactions.slice(actuallyNewOffset);
 
+    if (actuallyNewTransactions.length === 0) {
+      return sessionRow?.lastIdx || 0;
+    }
+
     let newBytesSinceLastSignature =
       (sessionRow?.bytesSinceLastSignature || 0) +
       actuallyNewTransactions.reduce(
