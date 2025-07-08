@@ -100,7 +100,6 @@ export class StorageApiSync implements StorageAPI {
     } as NewContentMessage;
 
     if (contentStreaming) {
-      console.log("streamingCounter - add 1");
       this.streamingCounter.add(1);
       contentMessage.streamingTarget = knownState["sessions"];
     }
@@ -163,7 +162,6 @@ export class StorageApiSync implements StorageAPI {
     }
 
     if (contentStreaming) {
-      console.log("streamingCounter - remove 1");
       this.streamingCounter.add(-1);
     }
 
