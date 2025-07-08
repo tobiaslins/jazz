@@ -4,6 +4,7 @@ import { PeerState } from "../PeerState.js";
 import { RawCoValue } from "../coValue.js";
 import { ControlledAccountOrAgent, RawAccountID } from "../coValues/account.js";
 import { RawGroup } from "../coValues/group.js";
+import { CO_VALUE_LOADING_CONFIG, MAX_RECOMMENDED_TX_SIZE } from "../config.js";
 import { coreToCoValue } from "../coreToCoValue.js";
 import {
   CryptoProvider,
@@ -19,8 +20,6 @@ import {
   RawCoID,
   SessionID,
   TransactionID,
-  getGroupDependentKey,
-  getGroupDependentKeyList,
   getParentGroupId,
   isParentGroupReference,
 } from "../ids.js";
@@ -39,15 +38,6 @@ import { isAccountID } from "../typeUtils/isAccountID.js";
 import { getDependedOnCoValuesFromRawData } from "./utils.js";
 import { CoValueHeader, Transaction, VerifiedState } from "./verifiedState.js";
 
-/**
-    In order to not block other concurrently syncing CoValues we introduce a maximum size of transactions,
-    since they are the smallest unit of progress that can be synced within a CoValue.
-    This is particularly important for storing binary data in CoValues, since they are likely to be at least on the order of megabytes.
-    This also means that we want to keep signatures roughly after each MAX_RECOMMENDED_TX size chunk,
-    to be able to verify partially loaded CoValues or CoValues that are still being created (like a video live stream).
-**/
-export const MAX_RECOMMENDED_TX_SIZE = 100 * 1024;
-
 export function idforHeader(
   header: CoValueHeader,
   crypto: CryptoProvider,
@@ -65,12 +55,6 @@ export type DecryptedTransaction = {
 const readKeyCache = new WeakMap<CoValueCore, { [id: KeyID]: KeySecret }>();
 
 export type AvailableCoValueCore = CoValueCore & { verified: VerifiedState };
-
-export const CO_VALUE_LOADING_CONFIG = {
-  MAX_RETRIES: 1,
-  TIMEOUT: 30_000,
-  RETRY_DELAY: 3000,
-};
 
 export class CoValueCore {
   // context
@@ -236,12 +220,41 @@ export class CoValueCore {
   }
 
   missingDependencies = new Set<RawCoID>();
+
+  // Checks if the current CoValueCore is already a missing dependency of the given CoValueCore
+  checkCircularDependencies(dependency: CoValueCore) {
+    const visited = new Set<RawCoID>();
+    const stack = [dependency];
+
+    while (stack.length > 0) {
+      const current = stack.pop();
+
+      if (!current) {
+        return true;
+      }
+
+      visited.add(current.id);
+
+      for (const dependency of current.missingDependencies) {
+        if (dependency === this.id) {
+          return false;
+        }
+
+        if (!visited.has(dependency)) {
+          stack.push(this.node.getCoValue(dependency));
+        }
+      }
+    }
+
+    return true;
+  }
+
   markMissingDependency(dependency: RawCoID) {
     const value = this.node.getCoValue(dependency);
 
     if (value.isAvailable()) {
       this.missingDependencies.delete(dependency);
-    } else {
+    } else if (this.checkCircularDependencies(value)) {
       const unsubscribe = value.subscribe(() => {
         if (value.isAvailable()) {
           this.missingDependencies.delete(dependency);

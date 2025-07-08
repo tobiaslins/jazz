@@ -1,5 +1,6 @@
 import { Result, err, ok } from "neverthrow";
 import { AnyRawCoValue } from "../coValue.js";
+import { MAX_RECOMMENDED_TX_SIZE } from "../config.js";
 import {
   CryptoProvider,
   Encrypted,
@@ -15,11 +16,7 @@ import { JsonObject, JsonValue } from "../jsonValue.js";
 import { PermissionsDef as RulesetDef } from "../permissions.js";
 import { getPriorityFromHeader } from "../priority.js";
 import { CoValueKnownState, NewContentMessage } from "../sync.js";
-import {
-  InvalidHashError,
-  InvalidSignatureError,
-  MAX_RECOMMENDED_TX_SIZE,
-} from "./coValueCore.js";
+import { InvalidHashError, InvalidSignatureError } from "./coValueCore.js";
 import { TryAddTransactionsError } from "./coValueCore.js";
 
 export type CoValueHeader = {
@@ -78,7 +75,9 @@ export class VerifiedState {
     this.crypto = crypto;
     this.header = header;
     this.sessions = sessions;
-    this.streamingKnownState = streamingKnownState;
+    this.streamingKnownState = streamingKnownState
+      ? { ...streamingKnownState }
+      : undefined;
   }
 
   clone(): VerifiedState {
@@ -362,16 +361,18 @@ export class VerifiedState {
     if (this.streamingKnownState) {
       const newSessions: CoValueKnownState["sessions"] = {};
       const entries = Object.entries(this.streamingKnownState);
-      let outdated = true;
 
       for (const [sessionID, txs] of entries) {
         newSessions[sessionID as SessionID] = txs;
         if ((knownState.sessions[sessionID as SessionID] ?? 0) < txs) {
-          outdated = false;
+          newSessions[sessionID as SessionID] = txs;
+        } else {
+          newSessions[sessionID as SessionID] = txs;
+          delete this.streamingKnownState[sessionID as SessionID];
         }
       }
 
-      if (outdated) {
+      if (Object.keys(this.streamingKnownState).length === 0) {
         this.streamingKnownState = undefined;
         return knownState;
       } else {

@@ -1,11 +1,19 @@
-import { beforeEach, describe, expect, test } from "vitest";
+import { assert, beforeEach, describe, expect, test, vi } from "vitest";
 
-import { SyncMessagesLog, loadCoValueOrFail, setupTestNode } from "./testUtils";
+import { emptyKnownState } from "../exports";
+import {
+  SyncMessagesLog,
+  TEST_NODE_CONFIG,
+  loadCoValueOrFail,
+  setupTestNode,
+  waitFor,
+} from "./testUtils";
+
+// We want to simulate a real world communication that happens asynchronously
+TEST_NODE_CONFIG.withAsyncPeers = true;
 
 describe("client with storage syncs with server", () => {
-  let jazzCloud = setupTestNode({
-    isSyncServer: true,
-  });
+  let jazzCloud: ReturnType<typeof setupTestNode>;
 
   beforeEach(async () => {
     SyncMessagesLog.clear();
@@ -38,9 +46,9 @@ describe("client with storage syncs with server", () => {
         "storage -> client | KNOWN Map sessions: empty",
         "client -> server | LOAD Map sessions: empty",
         "server -> client | CONTENT Group header: true new: After: 0 New: 3",
+        "server -> client | CONTENT Map header: true new: After: 0 New: 1",
         "client -> server | KNOWN Group sessions: header/3",
         "client -> storage | CONTENT Group header: true new: After: 0 New: 3",
-        "server -> client | CONTENT Map header: true new: After: 0 New: 1",
         "client -> server | KNOWN Map sessions: header/1",
         "client -> storage | CONTENT Map header: true new: After: 0 New: 1",
       ]
@@ -83,10 +91,8 @@ describe("client with storage syncs with server", () => {
         "client -> storage | LOAD Map sessions: empty",
         "storage -> client | CONTENT Group header: true new: After: 0 New: 3",
         "client -> server | LOAD Group sessions: header/3",
-        "server -> client | KNOWN Group sessions: header/3",
         "storage -> client | CONTENT Map header: true new: After: 0 New: 1",
         "client -> server | LOAD Map sessions: header/1",
-        "server -> client | KNOWN Map sessions: header/1",
       ]
     `);
   });
@@ -121,12 +127,12 @@ describe("client with storage syncs with server", () => {
         "storage -> client | KNOWN Map sessions: empty",
         "client -> server | LOAD Map sessions: empty",
         "server -> client | CONTENT ParentGroup header: true new: After: 0 New: 6",
+        "server -> client | CONTENT Group header: true new: After: 0 New: 5",
+        "server -> client | CONTENT Map header: true new: After: 0 New: 1",
         "client -> server | KNOWN ParentGroup sessions: header/6",
         "client -> storage | CONTENT ParentGroup header: true new: After: 0 New: 6",
-        "server -> client | CONTENT Group header: true new: After: 0 New: 5",
         "client -> server | KNOWN Group sessions: header/5",
         "client -> storage | CONTENT Group header: true new: After: 0 New: 5",
-        "server -> client | CONTENT Map header: true new: After: 0 New: 1",
         "client -> server | KNOWN Map sessions: header/1",
         "client -> storage | CONTENT Map header: true new: After: 0 New: 1",
       ]
@@ -167,12 +173,14 @@ describe("client with storage syncs with server", () => {
     ).toMatchInlineSnapshot(`
       [
         "client -> server | LOAD Group sessions: header/3",
-        "server -> client | KNOWN Group sessions: header/3",
         "client -> server | LOAD Map sessions: header/1",
+        "server -> client | CONTENT Group header: true new: After: 0 New: 3",
+        "server -> client | CONTENT Map header: true new: After: 0 New: 2",
         "server -> client | CONTENT Map header: false new: After: 1 New: 1",
+        "client -> server | KNOWN Group sessions: header/3",
+        "client -> storage | CONTENT Group header: true new: After: 0 New: 3",
         "client -> server | KNOWN Map sessions: header/2",
-        "client -> storage | CONTENT Map header: false new: After: 1 New: 1",
-        "server -> client | CONTENT Map header: false new: After: 1 New: 1",
+        "client -> storage | CONTENT Map header: true new: After: 0 New: 2",
         "client -> server | KNOWN Map sessions: header/2",
         "client -> storage | CONTENT Map header: false new: After: 1 New: 1",
       ]
@@ -181,9 +189,7 @@ describe("client with storage syncs with server", () => {
 });
 
 describe("client syncs with a server with storage", () => {
-  let jazzCloud = setupTestNode({
-    isSyncServer: true,
-  });
+  let jazzCloud: ReturnType<typeof setupTestNode>;
 
   beforeEach(async () => {
     SyncMessagesLog.clear();
@@ -217,9 +223,9 @@ describe("client syncs with a server with storage", () => {
     ).toMatchInlineSnapshot(`
       [
         "client -> server | CONTENT Group header: true new: After: 0 New: 3",
+        "client -> server | CONTENT Map header: true new: After: 0 New: 1",
         "server -> client | KNOWN Group sessions: header/3",
         "server -> storage | CONTENT Group header: true new: After: 0 New: 3",
-        "client -> server | CONTENT Map header: true new: After: 0 New: 1",
         "server -> client | KNOWN Map sessions: header/1",
         "server -> storage | CONTENT Map header: true new: After: 0 New: 1",
       ]
@@ -269,18 +275,18 @@ describe("client syncs with a server with storage", () => {
         "client -> storage | CONTENT Map header: false new: After: 0 New: 73 streamingTarget: header/200",
         "client -> storage | CONTENT Map header: false new: After: 73 New: 73 streamingTarget: header/200",
         "client -> storage | CONTENT Map header: false new: After: 146 New: 54 streamingTarget: header/200",
+        "client -> server | CONTENT Map header: true new:  streamingTarget: header/200",
+        "client -> server | CONTENT Map header: false new: After: 0 New: 73 streamingTarget: header/200",
+        "client -> server | CONTENT Map header: false new: After: 73 New: 73 streamingTarget: header/200",
+        "client -> server | CONTENT Map header: false new: After: 146 New: 54 streamingTarget: header/200",
         "server -> client | KNOWN Group sessions: header/5",
         "server -> storage | CONTENT Group header: true new: After: 0 New: 5",
-        "client -> server | CONTENT Map header: true new:  streamingTarget: header/200",
         "server -> client | KNOWN Map sessions: header/0",
         "server -> storage | CONTENT Map header: true new:  streamingTarget: header/200",
-        "client -> server | CONTENT Map header: false new: After: 0 New: 73 streamingTarget: header/200",
         "server -> client | KNOWN Map sessions: header/73",
         "server -> storage | CONTENT Map header: false new: After: 0 New: 73 streamingTarget: header/200",
-        "client -> server | CONTENT Map header: false new: After: 73 New: 73 streamingTarget: header/200",
         "server -> client | KNOWN Map sessions: header/146",
         "server -> storage | CONTENT Map header: false new: After: 73 New: 73 streamingTarget: header/200",
-        "client -> server | CONTENT Map header: false new: After: 146 New: 54 streamingTarget: header/200",
         "server -> client | KNOWN Map sessions: header/200",
         "server -> storage | CONTENT Map header: false new: After: 146 New: 54 streamingTarget: header/200",
       ]
@@ -314,12 +320,166 @@ describe("client syncs with a server with storage", () => {
         "client -> storage | LOAD Map sessions: empty",
         "storage -> client | CONTENT Group header: true new: After: 0 New: 5",
         "client -> server | LOAD Group sessions: header/5",
-        "server -> client | KNOWN Group sessions: header/5",
         "storage -> client | CONTENT Map header: true new: After: 0 New: 73 streamingTarget: header/200",
         "client -> server | LOAD Map sessions: header/200",
-        "server -> client | KNOWN Map sessions: header/200",
         "storage -> client | CONTENT Map header: true new: After: 73 New: 73 streamingTarget: header/200",
         "storage -> client | CONTENT Map header: true new: After: 146 New: 54 streamingTarget: header/200",
+        "server -> client | KNOWN Group sessions: header/5",
+        "server -> client | KNOWN Map sessions: header/200",
+      ]
+    `);
+  });
+
+  test("storing stale data should not compromise the signatures", async () => {
+    const client = setupTestNode();
+
+    client.connectToSyncServer({
+      syncServer: jazzCloud.node,
+    });
+
+    const { storage } = await client.addAsyncStorage({
+      ourName: "client",
+    });
+
+    const group = client.node.createGroup();
+    group.addMember("everyone", "writer");
+
+    const largeMap = group.createMap();
+
+    // Generate a large amount of data (about 100MB)
+    const dataSize = 1 * 200 * 1024;
+    const chunkSize = 1024; // 1KB chunks
+    const chunks = dataSize / chunkSize;
+
+    const value = Buffer.alloc(chunkSize, `value$`).toString("base64");
+
+    for (let i = 0; i < chunks; i++) {
+      const key = `key${i}`;
+      largeMap.set(key, value, "trusting");
+    }
+
+    await largeMap.core.waitForSync();
+
+    const newContentChunks = largeMap.core.verified.newContentSince(
+      emptyKnownState(largeMap.id),
+    );
+
+    assert(newContentChunks);
+    assert(newContentChunks.length > 1);
+
+    const correctionSpy = vi.fn();
+
+    client.node.storage?.store(newContentChunks.slice(1, 2), correctionSpy);
+
+    // Wait for the content to be stored in the storage
+    // We can't use waitForSync because we are trying to store stale data
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    expect(correctionSpy).not.toHaveBeenCalled();
+
+    client.restart();
+
+    client.connectToSyncServer({
+      ourName: "client",
+      syncServer: jazzCloud.node,
+    });
+
+    client.addStorage({
+      ourName: "client",
+      storage,
+    });
+
+    const mapOnClient2 = await loadCoValueOrFail(client.node, largeMap.id);
+
+    await waitFor(async () => {
+      expect(mapOnClient2.core.knownState()).toEqual(
+        largeMap.core.knownState(),
+      );
+    });
+  });
+
+  test("large coValue streaming from cold server", async () => {
+    const server = setupTestNode({
+      isSyncServer: true,
+    });
+    const { storage: serverStorage } = server.addStorage({
+      ourName: "server",
+    });
+
+    const client = setupTestNode();
+
+    client.connectToSyncServer({
+      syncServer: server.node,
+    });
+
+    const { storage } = await client.addAsyncStorage({
+      ourName: "client",
+    });
+
+    const group = client.node.createGroup();
+    group.addMember("everyone", "writer");
+
+    const largeMap = group.createMap();
+
+    // Generate a large amount of data (about 100MB)
+    const dataSize = 1 * 200 * 1024;
+    const chunkSize = 1024; // 1KB chunks
+    const chunks = dataSize / chunkSize;
+
+    const value = Buffer.alloc(chunkSize, `value$`).toString("base64");
+
+    for (let i = 0; i < chunks; i++) {
+      const key = `key${i}`;
+      largeMap.set(key, value, "trusting");
+    }
+
+    await largeMap.core.waitForSync();
+
+    SyncMessagesLog.clear();
+
+    server.restart();
+
+    server.addStorage({
+      ourName: "server",
+      storage: serverStorage,
+    });
+
+    client.restart();
+
+    client.connectToSyncServer({
+      ourName: "client",
+      syncServer: server.node,
+    });
+
+    client.addStorage({
+      ourName: "client",
+      storage,
+    });
+
+    const mapOnClient2 = await loadCoValueOrFail(client.node, largeMap.id);
+
+    await mapOnClient2.core.waitForSync();
+
+    expect(
+      SyncMessagesLog.getMessages({
+        Group: group.core,
+        Map: largeMap.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "client -> storage | LOAD Map sessions: empty",
+        "storage -> client | CONTENT Group header: true new: After: 0 New: 5",
+        "client -> server | LOAD Group sessions: header/5",
+        "storage -> client | CONTENT Map header: true new: After: 0 New: 73 streamingTarget: header/200",
+        "client -> server | LOAD Map sessions: header/200",
+        "storage -> client | CONTENT Map header: true new: After: 73 New: 73 streamingTarget: header/200",
+        "storage -> client | CONTENT Map header: true new: After: 146 New: 54 streamingTarget: header/200",
+        "server -> storage | LOAD Group sessions: empty",
+        "storage -> server | CONTENT Group header: true new: After: 0 New: 5",
+        "server -> client | KNOWN Group sessions: header/5",
+        "server -> storage | LOAD Map sessions: empty",
+        "storage -> server | CONTENT Map header: true new: After: 0 New: 73 streamingTarget: header/200",
+        "server -> client | KNOWN Map sessions: header/200",
       ]
     `);
   });
