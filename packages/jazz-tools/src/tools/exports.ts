@@ -102,6 +102,8 @@ export {
   type InstanceOfSchemaCoValuesNullable,
   type CoValueOrZodSchema,
   type Loaded,
+  type BaseAccountShape,
+  type DefaultAccountShape,
   type AccountSchema,
   type AnyAccountSchema,
   type CoListSchema,

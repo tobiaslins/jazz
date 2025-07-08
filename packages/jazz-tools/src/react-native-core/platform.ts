@@ -23,7 +23,7 @@ import { KvStore, KvStoreContext } from "./storage/kv-store-context.js";
 
 import { SQLiteDatabaseDriverAsync } from "cojson";
 import { WebSocketPeerWithReconnection } from "cojson-transport-ws";
-import type { RNQuickCrypto } from "./crypto/RNQuickCrypto.js";
+import type { RNQuickCrypto } from "jazz-tools/react-native-core/crypto";
 
 export type BaseReactNativeContextOptions = {
   sync: SyncConfig;
