@@ -1,11 +1,6 @@
 import { base64URLtoBytes, bytesToBase64url } from "./base64url.js";
 import { type RawCoValue } from "./coValue.js";
-import {
-  CO_VALUE_LOADING_CONFIG,
-  CoValueCore,
-  MAX_RECOMMENDED_TX_SIZE,
-  idforHeader,
-} from "./coValueCore/coValueCore.js";
+import { CoValueCore, idforHeader } from "./coValueCore/coValueCore.js";
 import { CoValueUniqueness } from "./coValueCore/verifiedState.js";
 import {
   ControlledAccount,
@@ -70,6 +65,12 @@ type Value = JsonValue | AnyRawCoValue;
 
 export { PriorityBasedMessageQueue } from "./PriorityBasedMessageQueue.js";
 import { getDependedOnCoValuesFromRawData } from "./coValueCore/utils.js";
+import {
+  CO_VALUE_LOADING_CONFIG,
+  MAX_RECOMMENDED_TX_SIZE,
+  setCoValueLoadingRetryDelay,
+  setIncomingMessagesTimeBudget,
+} from "./config.js";
 import { LogLevel, logger } from "./logger.js";
 import { CO_VALUE_PRIORITY, getPriorityFromHeader } from "./priority.js";
 
@@ -98,10 +99,9 @@ export const cojsonInternals = {
   SyncManager,
   CO_VALUE_LOADING_CONFIG,
   CO_VALUE_PRIORITY,
+  setIncomingMessagesTimeBudget,
+  setCoValueLoadingRetryDelay,
   ConnectedPeerChannel,
-  setCoValueLoadingRetryDelay(delay: number) {
-    CO_VALUE_LOADING_CONFIG.RETRY_DELAY = delay;
-  },
   textEncoder,
   textDecoder,
 };

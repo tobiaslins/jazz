@@ -1,7 +1,5 @@
 import { assert, beforeEach, describe, expect, test, vi } from "vitest";
 import { expectMap } from "../coValue";
-import { CO_VALUE_LOADING_CONFIG } from "../coValueCore/coValueCore";
-import { WasmCrypto } from "../crypto/WasmCrypto";
 import { RawCoMap } from "../exports";
 import {
   SyncMessagesLog,

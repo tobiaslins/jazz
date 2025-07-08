@@ -1,6 +1,7 @@
 import { Counter, ValueType, metrics } from "@opentelemetry/api";
 import type { PeerState } from "./PeerState.js";
 import { LinkedList } from "./PriorityBasedMessageQueue.js";
+import { SYNC_SCHEDULER_CONFIG } from "./config.js";
 import { logger } from "./logger.js";
 import type { SyncMessage } from "./sync.js";
 
@@ -128,7 +129,10 @@ export class IncomingMessagesQueue {
 
       // We check if we have blocked the main thread for too long
       // and if so, we schedule a timer task to yield to the event loop
-      if (currentTimer - lastTimer > 50) {
+      if (
+        currentTimer - lastTimer >
+        SYNC_SCHEDULER_CONFIG.INCOMING_MESSAGES_TIME_BUDGET
+      ) {
         await new Promise((resolve) => setTimeout(resolve, 0));
       }
     }

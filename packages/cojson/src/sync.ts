@@ -235,7 +235,7 @@ export class SyncManager {
     } else if (!peer.toldKnownState.has(id)) {
       this.trySendToPeer(peer, {
         action: "known",
-        ...coValue.knownState(),
+        ...coValue.knownStateWithStreaming(),
       });
     }
 

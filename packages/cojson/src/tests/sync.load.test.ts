@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { expectMap } from "../coValue";
-import { CO_VALUE_LOADING_CONFIG } from "../coValueCore/coValueCore";
+import { setCoValueLoadingRetryDelay } from "../config";
 import { RawCoMap } from "../exports";
 import {
   SyncMessagesLog,
@@ -18,7 +18,7 @@ TEST_NODE_CONFIG.withAsyncPeers = true;
 let jazzCloud: ReturnType<typeof setupTestNode>;
 
 // Set a short timeout to make the tests on unavailable complete faster
-CO_VALUE_LOADING_CONFIG.RETRY_DELAY = 100;
+setCoValueLoadingRetryDelay(100);
 
 beforeEach(async () => {
   SyncMessagesLog.clear();

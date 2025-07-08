@@ -3,7 +3,6 @@ import { CoID } from "./coValue.js";
 import { RawCoValue } from "./coValue.js";
 import {
   AvailableCoValueCore,
-  CO_VALUE_LOADING_CONFIG,
   CoValueCore,
   idforHeader,
 } from "./coValueCore/coValueCore.js";
@@ -31,6 +30,7 @@ import {
   RawGroup,
   secretSeedFromInviteSecret,
 } from "./coValues/group.js";
+import { CO_VALUE_LOADING_CONFIG } from "./config.js";
 import { AgentSecret, CryptoProvider } from "./crypto/crypto.js";
 import { AgentID, RawCoID, SessionID, isAgentID } from "./ids.js";
 import { logger } from "./logger.js";

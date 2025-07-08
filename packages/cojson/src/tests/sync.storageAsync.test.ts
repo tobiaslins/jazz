@@ -397,4 +397,90 @@ describe("client syncs with a server with storage", () => {
       );
     });
   });
+
+  test("large coValue streaming from cold server", async () => {
+    const server = setupTestNode({
+      isSyncServer: true,
+    });
+    const { storage: serverStorage } = server.addStorage({
+      ourName: "server",
+    });
+
+    const client = setupTestNode();
+
+    client.connectToSyncServer({
+      syncServer: server.node,
+    });
+
+    const { storage } = await client.addAsyncStorage({
+      ourName: "client",
+    });
+
+    const group = client.node.createGroup();
+    group.addMember("everyone", "writer");
+
+    const largeMap = group.createMap();
+
+    // Generate a large amount of data (about 100MB)
+    const dataSize = 1 * 200 * 1024;
+    const chunkSize = 1024; // 1KB chunks
+    const chunks = dataSize / chunkSize;
+
+    const value = Buffer.alloc(chunkSize, `value$`).toString("base64");
+
+    for (let i = 0; i < chunks; i++) {
+      const key = `key${i}`;
+      largeMap.set(key, value, "trusting");
+    }
+
+    await largeMap.core.waitForSync();
+
+    SyncMessagesLog.clear();
+
+    server.restart();
+
+    server.addStorage({
+      ourName: "server",
+      storage: serverStorage,
+    });
+
+    client.restart();
+
+    client.connectToSyncServer({
+      ourName: "client",
+      syncServer: server.node,
+    });
+
+    client.addStorage({
+      ourName: "client",
+      storage,
+    });
+
+    const mapOnClient2 = await loadCoValueOrFail(client.node, largeMap.id);
+
+    await mapOnClient2.core.waitForSync();
+
+    expect(
+      SyncMessagesLog.getMessages({
+        Group: group.core,
+        Map: largeMap.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "client -> storage | LOAD Map sessions: empty",
+        "storage -> client | CONTENT Group header: true new: After: 0 New: 5",
+        "client -> server | LOAD Group sessions: header/5",
+        "storage -> client | CONTENT Map header: true new: After: 0 New: 73 streamingTarget: header/200",
+        "client -> server | LOAD Map sessions: header/200",
+        "storage -> client | CONTENT Map header: true new: After: 73 New: 73 streamingTarget: header/200",
+        "storage -> client | CONTENT Map header: true new: After: 146 New: 54 streamingTarget: header/200",
+        "server -> storage | LOAD Group sessions: empty",
+        "storage -> server | CONTENT Group header: true new: After: 0 New: 5",
+        "server -> client | KNOWN Group sessions: header/5",
+        "server -> storage | LOAD Map sessions: empty",
+        "storage -> server | CONTENT Map header: true new: After: 0 New: 73 streamingTarget: header/200",
+        "server -> client | KNOWN Map sessions: header/200",
+      ]
+    `);
+  });
 });
