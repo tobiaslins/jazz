@@ -18,9 +18,6 @@ export function GetStartedSnippetSelect() {
     useState<Framework>(defaultFramework);
 
   return (
-    // <div className="grid grid-cols-8 gap-2 w-full col-span-2 justify-end relative mt-9 tex-sm">
-    // <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 lg:gap-8 items-stretch col-span-2 justify-end relative text-sm container mt-9 p-0">
-    // <>
     <GappedGrid>
       <div className="relative w-full col-span-2 lg:col-span-3 border-2 border-primary rounded-lg overflow-hidden">
         <CopyButton
@@ -33,16 +30,14 @@ export function GetStartedSnippetSelect() {
       </div>
       <div className="col-span-2 lg:col-span-3 flex flex-row gap-2">
         <div className="h-full items-center w-[175px]">
-          <FrameworkSelect onSelect={setSelectedFramework} size="md" routerPush={false} className="h-full" />
+          <FrameworkSelect onSelect={setSelectedFramework} size="md" routerPush={false} className="h-full md:px-4" />
         </div>
         <div className="flex h-full items-center">
-          <Button intent="primary" size="md" className="w-full h-full">
+          <Button intent="primary" size="lg" className="w-full">
             <Link className="my-[0.11rem]" href={`/docs/${selectedFramework}`}>Get started</Link>
           </Button>
         </div>
       </div>
     </GappedGrid>
-    // {/* </div> */}
-    // {/* </> */}
   );
 }
