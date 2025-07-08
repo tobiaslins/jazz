@@ -1,5 +1,14 @@
-import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import {
+  assert,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  test,
+  vi,
+} from "vitest";
 
+import { emptyKnownState } from "../exports";
 import {
   SyncMessagesLog,
   TEST_NODE_CONFIG,
@@ -360,5 +369,69 @@ describe("client syncs with a server with storage", () => {
         "storage -> client | CONTENT Map header: true new: After: 146 New: 54 streamingTarget: header/200",
       ]
     `);
+  });
+
+  test("storing stale data should not compromise the signatures", async () => {
+    const client = setupTestNode();
+
+    client.connectToSyncServer({
+      syncServer: jazzCloud.node,
+    });
+
+    const { storage } = client.addStorage({
+      ourName: "client",
+    });
+
+    const group = client.node.createGroup();
+    group.addMember("everyone", "writer");
+
+    const largeMap = group.createMap();
+
+    // Generate a large amount of data (about 100MB)
+    const dataSize = 1 * 200 * 1024;
+    const chunkSize = 1024; // 1KB chunks
+    const chunks = dataSize / chunkSize;
+
+    const value = Buffer.alloc(chunkSize, `value$`).toString("base64");
+
+    for (let i = 0; i < chunks; i++) {
+      const key = `key${i}`;
+      largeMap.set(key, value, "trusting");
+    }
+
+    await largeMap.core.waitForSync();
+
+    const newContentChunks = largeMap.core.verified.newContentSince(
+      emptyKnownState(largeMap.id),
+    );
+
+    assert(newContentChunks);
+    assert(newContentChunks.length > 1);
+
+    const correctionSpy = vi.fn();
+
+    client.node.storage?.store(newContentChunks.slice(1, 2), correctionSpy);
+
+    expect(correctionSpy).not.toHaveBeenCalled();
+
+    client.restart();
+
+    client.connectToSyncServer({
+      ourName: "client",
+      syncServer: jazzCloud.node,
+    });
+
+    client.addStorage({
+      ourName: "client",
+      storage,
+    });
+
+    const mapOnClient2 = await loadCoValueOrFail(client.node, largeMap.id);
+
+    await waitFor(async () => {
+      expect(mapOnClient2.core.knownState()).toEqual(
+        largeMap.core.knownState(),
+      );
+    });
   });
 });
