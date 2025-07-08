@@ -60,7 +60,7 @@ export function DropdownItem({
   let classes = clsx(
     className,
     // Base styles
-    "group rounded-md space-x-2  focus:outline-none px-2.5 py-1.5",
+    "group rounded-md space-x-2 focus:outline-none px-2.5 py-1.5",
     // Text styles
     "text-left text-sm/6 dark:text-white forced-colors:text-[CanvasText]",
     // Focus
