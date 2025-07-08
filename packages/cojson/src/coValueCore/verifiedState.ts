@@ -386,6 +386,13 @@ export class VerifiedState {
     return knownState;
   }
 
+  isStreaming(): boolean {
+    // Call knownStateWithStreaming to delete the streamingKnownState when it matches the current knownState
+    this.knownStateWithStreaming();
+
+    return this.streamingKnownState !== undefined;
+  }
+
   knownState(): CoValueKnownState {
     if (this._cachedKnownState) {
       return this._cachedKnownState;
