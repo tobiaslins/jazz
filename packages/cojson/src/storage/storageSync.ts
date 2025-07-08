@@ -101,7 +101,7 @@ export class StorageApiSync implements StorageAPI {
 
     if (contentStreaming) {
       this.streamingCounter.add(1);
-      contentMessage.streamingTarget = knownState["sessions"];
+      contentMessage.expectContentUntil = knownState["sessions"];
     }
 
     for (const sessionRow of allCoValueSessions) {

@@ -288,7 +288,7 @@ describe("client to server upload", () => {
       [
         "client -> server | LOAD Map sessions: empty",
         "server -> client | CONTENT Group header: true new: After: 0 New: 5",
-        "server -> client | CONTENT Map header: true new:  streamingTarget: header/1024",
+        "server -> client | CONTENT Map header: true new:  expectContentUntil: header/1024",
         "server -> client | CONTENT Map header: false new: After: 0 New: 73",
         "server -> client | CONTENT Map header: false new: After: 73 New: 73",
         "server -> client | CONTENT Map header: false new: After: 146 New: 73",

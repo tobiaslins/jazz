@@ -293,8 +293,8 @@ export class VerifiedState {
         }
 
         if (pieceSize >= MAX_RECOMMENDED_TX_SIZE) {
-          if (!currentPiece.streamingTarget && pieces.length === 1) {
-            currentPiece.streamingTarget =
+          if (!currentPiece.expectContentUntil && pieces.length === 1) {
+            currentPiece.expectContentUntil =
               this.knownStateWithStreaming().sessions;
           }
 

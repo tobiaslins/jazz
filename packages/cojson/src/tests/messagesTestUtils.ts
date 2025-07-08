@@ -51,7 +51,7 @@ export function toSimplifiedMessages(
       case "done":
         return `${from} -> ${to} | DONE ${getCoValue(msg.id)}`;
       case "content":
-        return `${from} -> ${to} | CONTENT ${getCoValue(msg.id)} header: ${Boolean(msg.header)} new: ${simplifyNewContent(msg.new)}${msg.streamingTarget ? ` streamingTarget: ${simplifySessions({ sessions: msg.streamingTarget, header: true })}` : ""}`;
+        return `${from} -> ${to} | CONTENT ${getCoValue(msg.id)} header: ${Boolean(msg.header)} new: ${simplifyNewContent(msg.new)}${msg.expectContentUntil ? ` expectContentUntil: ${simplifySessions({ sessions: msg.expectContentUntil, header: true })}` : ""}`;
     }
   }
 

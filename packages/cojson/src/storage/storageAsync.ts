@@ -99,7 +99,7 @@ export class StorageApiAsync implements StorageAPI {
     } as NewContentMessage;
 
     if (contentStreaming) {
-      contentMessage.streamingTarget = knownState["sessions"];
+      contentMessage.expectContentUntil = knownState["sessions"];
     }
 
     for (const sessionRow of allCoValueSessions) {

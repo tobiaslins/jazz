@@ -51,7 +51,7 @@ export type NewContentMessage = {
   new: {
     [sessionID: SessionID]: SessionNewContent;
   };
-  streamingTarget?: {
+  expectContentUntil?: {
     [sessionID: SessionID]: number;
   };
 };
@@ -501,14 +501,14 @@ export class SyncManager {
       coValue.provideHeader(
         msg.header,
         peer?.id ?? "storage",
-        msg.streamingTarget,
+        msg.expectContentUntil,
       );
 
-      if (msg.streamingTarget) {
+      if (msg.expectContentUntil) {
         peer?.combineWith(msg.id, {
           id: msg.id,
           header: true,
-          sessions: msg.streamingTarget,
+          sessions: msg.expectContentUntil,
         });
       }
     }
