@@ -14,6 +14,7 @@ import { AnyAccountSchema } from "./schemaTypes/AccountSchema.js";
 import { AnyCoFeedSchema } from "./schemaTypes/CoFeedSchema.js";
 import { AnyCoListSchema } from "./schemaTypes/CoListSchema.js";
 import { AnyCoMapSchema, CoMapInitZod } from "./schemaTypes/CoMapSchema.js";
+import { AnyCoOptionalSchema } from "./schemaTypes/CoOptionalSchema.js";
 import { AnyCoRecordSchema } from "./schemaTypes/CoRecordSchema.js";
 import { FileStreamSchema } from "./schemaTypes/FileStreamSchema.js";
 import { PlainTextSchema } from "./schemaTypes/PlainTextSchema.js";
@@ -87,6 +88,7 @@ export type AnyCoSchema =
   | AnyCoListSchema
   | AnyCoFeedSchema
   | AnyCoUnionSchema
+  | AnyCoOptionalSchema
   | PlainTextSchema
   | RichTextSchema
   | FileStreamSchema;

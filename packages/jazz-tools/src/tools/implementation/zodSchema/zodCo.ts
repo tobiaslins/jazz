@@ -20,6 +20,10 @@ import {
   type Simplify,
   zodSchemaToCoSchema,
 } from "../../internal.js";
+import {
+  CoOptionalSchema,
+  createCoOptionalSchema,
+} from "./schemaTypes/CoOptionalSchema.js";
 import { RichTextSchema } from "./schemaTypes/RichTextSchema.js";
 import { z } from "./zodReExport.js";
 
@@ -389,8 +393,8 @@ export const coImageDefiner = (): typeof ImageDefinition => {
 
 export const coOptionalDefiner = <T extends AnyCoSchema>(
   schema: T,
-): z.ZodOptional<T> => {
-  return z.optional(schema);
+): CoOptionalSchema<T> => {
+  return createCoOptionalSchema(schema);
 };
 
 export const coDiscriminatedUnionDefiner = <
