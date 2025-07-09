@@ -1,7 +1,28 @@
-use cojson_core::{KeyID, SessionLogInternal, CoID, SessionID};
+use cojson_core::{CoJsonCoreError, KeyID, SessionLogInternal, CoID, SessionID};
 use ed25519_dalek::{Signature, SigningKey, VerifyingKey};
 use serde_json::value::RawValue;
+use thiserror::Error;
 use wasm_bindgen::prelude::*;
+
+#[derive(Error, Debug)]
+pub enum WasmError {
+    #[error(transparent)]
+    CoJson(#[from] CoJsonCoreError),
+    #[error("JsValue Error: {0:?}")]
+    Js(JsValue),
+}
+
+impl From<serde_wasm_bindgen::Error> for WasmError {
+    fn from(err: serde_wasm_bindgen::Error) -> Self {
+        WasmError::Js(err.into())
+    }
+}
+
+impl From<WasmError> for JsValue {
+    fn from(err: WasmError) -> Self {
+        JsValue::from_str(&err.to_string())
+    }
+}
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -41,24 +62,25 @@ impl SessionLog {
         transactions_js: JsValue,
         new_signature_bytes: &[u8],
         skip_verify: bool,
-    ) -> Result<(), JsValue> {
+    ) -> Result<(), WasmError> {
         let transactions_str: Vec<String> = serde_wasm_bindgen::from_value(transactions_js)?;
         let transactions: Vec<Box<RawValue>> = transactions_str
             .into_iter()
             .map(|s| {
                 serde_json::from_str(&s)
-                    .map_err(|e| JsValue::from(format!("Failed to parse transaction string: {}", e)))
+                    .map_err(|e| WasmError::Js(JsValue::from(format!("Failed to parse transaction string: {}", e))))
             })
             .collect::<Result<Vec<_>, _>>()?;
 
         let signature_array: [u8; 64] = new_signature_bytes
             .try_into()
-            .map_err(|_| JsValue::from_str("Invalid signature length, expected 64 bytes"))?;
+            .map_err(|_| WasmError::Js(JsValue::from_str("Invalid signature length, expected 64 bytes")))?;
         let new_signature = Signature::from_bytes(&signature_array);
 
         self.internal
-            .try_add(transactions, new_signature, skip_verify)
-            .map_err(|e| JsValue::from_str(&e.to_string()))
+            .try_add(transactions, new_signature, skip_verify)?;
+
+        Ok(())
     }
 
     #[wasm_bindgen(js_name = addNewTransaction)]
@@ -69,10 +91,10 @@ impl SessionLog {
         encryption_key: &[u8],
         key_id_str: String,
         made_at: f64,
-    ) -> Result<Vec<u8>, JsValue> {
+    ) -> Result<Vec<u8>, WasmError> {
         let signing_key_array: [u8; 32] = signing_key_bytes
             .try_into()
-            .map_err(|_| JsValue::from_str("Invalid signing key length, expected 32 bytes"))?;
+            .map_err(|_| WasmError::Js(JsValue::from_str("Invalid signing key length, expected 32 bytes")))?;
         let signing_key = SigningKey::from_bytes(&signing_key_array);
         let key_id = KeyID(key_id_str);
 
@@ -92,9 +114,9 @@ impl SessionLog {
         &self,
         tx_index: u32,
         key_secret: &[u8],
-    ) -> Result<String, JsValue> {
-        self.internal
-            .decrypt_next_transaction_changes_json(tx_index, key_secret)
-            .map_err(|e| JsValue::from_str(&e.to_string()))
+    ) -> Result<String, WasmError> {
+        Ok(self
+            .internal
+            .decrypt_next_transaction_changes_json(tx_index, key_secret)?)
     }
 }

@@ -7,9 +7,11 @@ use salsa20::{
     XSalsa20,
 };
 use base64::{engine::general_purpose::URL_SAFE, Engine as _};
-use std::error::Error;
+use std::error::Error as StdError;
+use thiserror::Error;
 
 // Re-export lzy for convenience
+#[cfg(feature = "lzy")]
 pub use lzy;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -71,6 +73,27 @@ pub const APPEND_INVALID_SIGNATURE: u32 = 1;
 
 pub type AppendResult = u32;
 
+#[derive(Error, Debug)]
+pub enum CoJsonCoreError {
+    #[error("Transaction not found at index {0}")]
+    TransactionNotFound(u32),
+
+    #[error("Invalid encrypted prefix in transaction")]
+    InvalidEncryptedPrefix,
+
+    #[error("Base64 decoding failed")]
+    Base64Decode(#[from] base64::DecodeError),
+
+    #[error("UTF-8 conversion failed")]
+    Utf8(#[from] std::string::FromUtf8Error),
+
+    #[error("JSON deserialization failed")]
+    Json(#[from] serde_json::Error),
+
+    #[error("Signature verification failed: {0}")]
+    SignatureVerification(String),
+}
+
 pub struct SessionLogInternal {
     co_id: CoID,
     session_id: SessionID,
@@ -98,7 +121,7 @@ impl SessionLogInternal {
         transactions: Vec<Box<RawValue>>,
         new_signature: Signature,
         skip_verify: bool,
-    ) -> Result<(), String> {
+    ) -> Result<(), CoJsonCoreError> {
         if !skip_verify {
             let mut hasher = self.hasher.clone();
             for tx in &transactions {
@@ -113,7 +136,7 @@ impl SessionLogInternal {
                 .verify(new_hash_encoded.as_bytes(), &new_signature)
                 .is_err()
             {
-                return Err(new_hash_encoded);
+                return Err(CoJsonCoreError::SignatureVerification(new_hash_encoded));
             }
         }
 
@@ -181,8 +204,8 @@ impl SessionLogInternal {
         &self,
         tx_index: u32,
         key_secret: &[u8],
-    ) -> Result<String, Box<dyn Error>> {
-        let tx_json = self.transactions_json.get(tx_index as usize).ok_or("Transaction not found")?;
+    ) -> Result<String, CoJsonCoreError> {
+        let tx_json = self.transactions_json.get(tx_index as usize).ok_or(CoJsonCoreError::TransactionNotFound(tx_index))?;
         let tx: Transaction = serde_json::from_str(tx_json)?;
 
         match tx {
@@ -200,7 +223,7 @@ impl SessionLogInternal {
                 let encrypted_val = private_tx.encrypted_changes.value;
                 let prefix = "encrypted_U";
                 if !encrypted_val.starts_with(prefix) {
-                    return Err("Invalid encrypted prefix".into());
+                    return Err(CoJsonCoreError::InvalidEncryptedPrefix);
                 }
 
                 let ciphertext_b64 = &encrypted_val[prefix.len()..];
@@ -237,7 +260,7 @@ impl SessionLogInternal {
 mod tests {
     use super::*;
     use ed25519_dalek::Signer;
-    use rand_core::OsRng;
+    use rand_core::{OsRng, RngCore};
     use std::{collections::HashMap, fs};
 
     fn decode_z(value: &str) -> Result<Vec<u8>, String> {
@@ -311,8 +334,11 @@ mod tests {
                 assert_eq!(final_hash_encoded, example.last_hash);
                 assert_eq!(session.last_signature, Some(new_signature));
             }
-            Err(new_hash_encoded) => {
+            Err(CoJsonCoreError::SignatureVerification(new_hash_encoded)) => {
                 assert_eq!(new_hash_encoded, example.last_hash);
+            }
+            Err(e) => {
+                panic!("Unexpected error: {:?}", e);
             }
         }
     }

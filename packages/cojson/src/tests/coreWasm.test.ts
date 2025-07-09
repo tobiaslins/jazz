@@ -38,6 +38,13 @@ describe("SessionLog WASM", () => {
     expect(session).toBeDefined();
   });
 
+  it("decodeZ works", () => {
+    const encoded = "z6Mkeq44t4iEbfY23e42n1g8G2yJ2g4g4g4g4g4g4g4g4g4g4";
+    const decoded = decodeZ("signerID_z" + encoded);
+    const scureDecoded = base58.decode(encoded);
+    expect(decoded).toEqual(scureDecoded);
+  });
+
   it("test_add_from_example_json", () => {
     const [sessionIdStr, example] = Object.entries(
       exampleSessions.exampleBase
@@ -48,6 +55,7 @@ describe("SessionLog WASM", () => {
     let session = new SessionLog(coIdStr, sessionIdStr, publicKey);
 
     const newSignature = decodeZ(example.lastSignature);
+    console.log("Expected hash from test data:", example.lastHash);
 
     try {
       session.tryAdd([JSON.stringify(example.transactions[0])], newSignature, false);
