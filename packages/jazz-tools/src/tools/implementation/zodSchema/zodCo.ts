@@ -396,3 +396,15 @@ export const coOptionalDefiner = <T extends AnyCoSchema>(
 ): z.ZodOptional<T> => {
   return z.optional(schema);
 };
+
+export const coDiscriminatedUnionDefiner = <
+  T extends readonly [
+    AnyCoSchema & z.core.$ZodTypeDiscriminable,
+    ...(AnyCoSchema & z.core.$ZodTypeDiscriminable)[],
+  ],
+>(
+  discriminator: string,
+  schemas: T,
+): z.ZodDiscriminatedUnion<T> => {
+  return z.discriminatedUnion(discriminator, schemas as any);
+};

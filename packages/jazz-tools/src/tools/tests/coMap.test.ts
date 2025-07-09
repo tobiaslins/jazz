@@ -400,7 +400,7 @@ describe("CoMap", async () => {
 
     const MapWithEnumOfMaps = co.map({
       name: z.string(),
-      child: z.discriminatedUnion("type", [ChildA, ChildB]),
+      child: co.discriminatedUnion("type", [ChildA, ChildB]),
     });
 
     const mapWithEnum = MapWithEnumOfMaps.create({
@@ -1706,7 +1706,7 @@ describe("Creating and finding unique CoMaps", async () => {
       dateValue: z.date(),
     });
 
-    const AttributeValue = z.discriminatedUnion("type", [
+    const AttributeValue = co.discriminatedUnion("type", [
       StringAttributeValue,
       NumberAttributeValue,
       DateAttributeValue,
@@ -1722,7 +1722,7 @@ describe("Creating and finding unique CoMaps", async () => {
       attributeValue: AttributeValue,
     });
 
-    const Tag = z.discriminatedUnion("type", [
+    const Tag = co.discriminatedUnion("type", [
       AttributeTag,
       StringTag,
       DateTag,
@@ -1772,7 +1772,7 @@ describe("Creating and finding unique CoMaps", async () => {
       error: HttpError,
     });
 
-    const ErrorResponse = z.discriminatedUnion("type", [
+    const ErrorResponse = co.discriminatedUnion("type", [
       ClientError,
       ServerError,
       NetworkError,

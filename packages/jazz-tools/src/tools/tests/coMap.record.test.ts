@@ -315,7 +315,7 @@ describe("CoMap.Record", async () => {
 
     const PersonRecord = co.record(
       z.string(),
-      z.discriminatedUnion("type", [Base, IssueRepro]),
+      co.discriminatedUnion("type", [Base, IssueRepro]),
     );
 
     const person = IssueRepro.create({
@@ -350,7 +350,7 @@ describe("CoMap.Record", async () => {
 
     const PersonRecord = co.record(
       z.string(),
-      z.discriminatedUnion("type", [Base, IssueRepro]),
+      co.discriminatedUnion("type", [Base, IssueRepro]),
     );
 
     const person = IssueRepro.create({
@@ -385,7 +385,7 @@ describe("CoMap.Record", async () => {
 
     const PersonRecord = co.record(
       z.string(),
-      z.discriminatedUnion("type", [Base, IssueRepro]),
+      co.discriminatedUnion("type", [Base, IssueRepro]),
     );
 
     const person = IssueRepro.create({

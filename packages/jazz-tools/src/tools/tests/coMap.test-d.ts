@@ -280,7 +280,7 @@ describe("CoMap", async () => {
 
     const MapWithEnumOfMaps = co.map({
       name: z.string(),
-      child: z.discriminatedUnion("type", [ChildA, ChildB]),
+      child: co.discriminatedUnion("type", [ChildA, ChildB]),
     });
 
     const mapWithEnum = MapWithEnumOfMaps.create({
