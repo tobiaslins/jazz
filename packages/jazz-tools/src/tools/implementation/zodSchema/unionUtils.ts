@@ -1,5 +1,8 @@
 import { RawAccount, RawCoList, RawCoMap } from "cojson";
-import { zodSchemaToCoSchema } from "./runtimeConverters/zodSchemaToCoSchema.js";
+import {
+  isCoValueSchema,
+  zodSchemaToCoSchema,
+} from "./runtimeConverters/zodSchemaToCoSchema.js";
 import { z } from "./zodReExport.js";
 
 export function schemaUnionDiscriminatorFor(
@@ -120,11 +123,7 @@ export function isUnionOfCoMapsDeeply(
 function isCoMapOrUnionOfCoMapsDeeply(
   schema: z.core.$ZodType,
 ): schema is z.core.$ZodDiscriminatedUnion {
-  if (
-    schema instanceof z.core.$ZodObject &&
-    "collaborative" in schema &&
-    schema.collaborative
-  ) {
+  if (schema instanceof z.core.$ZodObject && isCoValueSchema(schema)) {
     return true;
   } else if (schema instanceof z.core.$ZodUnion) {
     return schema._zod.def.options.every(isCoMapOrUnionOfCoMapsDeeply);
@@ -137,6 +136,6 @@ export function isUnionOfPrimitivesDeeply(schema: z.core.$ZodType) {
   if (schema instanceof z.core.$ZodUnion) {
     return schema._zod.def.options.every(isUnionOfPrimitivesDeeply);
   } else {
-    return !("collaborative" in schema);
+    return !isCoValueSchema(schema);
   }
 }

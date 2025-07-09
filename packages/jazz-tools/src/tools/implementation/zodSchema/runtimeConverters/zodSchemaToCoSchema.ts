@@ -18,6 +18,7 @@ import {
 } from "../unionUtils.js";
 import { z } from "../zodReExport.js";
 import {
+  AnyCoSchema,
   CoValueClassFromZodSchema,
   ZodPrimitiveSchema,
   getDef,
@@ -25,14 +26,20 @@ import {
   isZodCustom,
   isZodObject,
 } from "../zodSchema.js";
-import { zodFieldToCoFieldDef } from "./zodFieldToCoFieldDef.js";
+import { schemaFieldToCoFieldDef } from "./zodFieldToCoFieldDef.js";
 
 let coSchemasForZodSchemas = new Map<z.core.$ZodType, CoValueClass>();
+
+export function isCoValueSchema(
+  schema: z.core.$ZodType,
+): schema is AnyCoSchema {
+  return "collaborative" in schema && schema.collaborative === true;
+}
 
 export function tryZodSchemaToCoSchema<S extends z.core.$ZodType>(
   schema: S,
 ): CoValueClassFromZodSchema<S> | null {
-  if ("collaborative" in schema && schema.collaborative) {
+  if (isCoValueSchema(schema)) {
     if (coSchemasForZodSchemas.has(schema)) {
       return coSchemasForZodSchemas.get(schema) as CoValueClassFromZodSchema<S>;
     }
@@ -49,12 +56,12 @@ export function tryZodSchemaToCoSchema<S extends z.core.$ZodType>(
           for (const [field, fieldType] of Object.entries(
             def.shape as z.core.$ZodShape,
           )) {
-            (this as any)[field] = zodFieldToCoFieldDef(
+            (this as any)[field] = schemaFieldToCoFieldDef(
               zodSchemaToCoSchemaOrKeepPrimitive(fieldType),
             );
           }
           if (def.catchall) {
-            (this as any)[coField.items] = zodFieldToCoFieldDef(
+            (this as any)[coField.items] = schemaFieldToCoFieldDef(
               zodSchemaToCoSchemaOrKeepPrimitive(def.catchall),
             );
           }
@@ -68,7 +75,7 @@ export function tryZodSchemaToCoSchema<S extends z.core.$ZodType>(
       const coSchema = class ZCoList extends CoList {
         constructor(options: { fromRaw: RawCoList } | undefined) {
           super(options);
-          (this as any)[coField.items] = zodFieldToCoFieldDef(
+          (this as any)[coField.items] = schemaFieldToCoFieldDef(
             zodSchemaToCoSchemaOrKeepPrimitive(def.element),
           );
         }
@@ -80,7 +87,7 @@ export function tryZodSchemaToCoSchema<S extends z.core.$ZodType>(
       if ("builtin" in schema) {
         if (schema.builtin === "CoFeed" && "element" in schema) {
           return CoFeed.Of(
-            zodFieldToCoFieldDef(
+            schemaFieldToCoFieldDef(
               zodSchemaToCoSchemaOrKeepPrimitive(
                 schema.element as z.core.$ZodType,
               ),
