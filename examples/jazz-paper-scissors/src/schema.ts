@@ -8,7 +8,7 @@ export type Player = co.loaded<typeof Player>;
 
 export const Game = co.map({
   player1: Player,
-  player2: z.optional(Player),
+  player2: co.optional(Player),
   outcome: z.optional(z.literal(["player1", "player2", "draw"])),
   player1Score: z.number(),
   player2Score: z.number(),
@@ -17,8 +17,8 @@ export type Game = co.loaded<typeof Game>;
 
 export const WaitingRoom = co.map({
   account1: co.account(),
-  account2: z.optional(co.account()),
-  game: z.optional(Game),
+  account2: co.optional(co.account()),
+  game: co.optional(Game),
 });
 export type WaitingRoom = co.loaded<typeof WaitingRoom>;
 

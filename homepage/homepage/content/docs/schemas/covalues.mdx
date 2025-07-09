@@ -321,7 +321,7 @@ const Company = co.map({
 
 #### Optional References
 
-You can make references optional with `z.optional()`:
+You can make references optional with `co.optional()`:
 
 <CodeGroup>
 ```ts twoslash
@@ -331,7 +331,7 @@ const Pet = co.map({
 });
 // ---cut---
 const Person = co.map({
-  pet: z.optional(Pet),
+  pet: co.optional(Pet),
 });
 ```
 </CodeGroup>
@@ -372,7 +372,7 @@ const ListOfPeople = co.list(Person);
 
 </CodeGroup>
 
-Note: similarly, if you use modifiers like `z.optional()` you'll need to help TypeScript along:
+Note: similarly, if you use modifiers like `co.optional()` you'll need to help TypeScript along:
 
 <CodeGroup>
 ```ts twoslash
@@ -381,7 +381,7 @@ import { co, z } from "jazz-tools";
 const Person = co.map({
   name: z.string(),
   get bestFriend(): z.ZodOptional<typeof Person> {
-    return z.optional(Person);
+    return co.optional(Person);
   }
 });
 ```
