@@ -1,13 +1,12 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{value::RawValue, Number, Value as JsonValue};
-use ed25519_dalek::{Signature, Signer, SigningKey, VerifyingKey, Verifier};
+use ed25519_dalek::{Signature, Signer, SigningKey, VerifyingKey, Verifier, SignatureError};
 use bs58;
 use salsa20::{
     cipher::{KeyIvInit, StreamCipher},
     XSalsa20,
 };
 use base64::{engine::general_purpose::URL_SAFE, Engine as _};
-use std::error::Error as StdError;
 use thiserror::Error;
 
 // Re-export lzy for convenience
@@ -90,8 +89,8 @@ pub enum CoJsonCoreError {
     #[error("JSON deserialization failed")]
     Json(#[from] serde_json::Error),
 
-    #[error("Signature verification failed: {0}")]
-    SignatureVerification(String),
+    #[error("Signature verification failed: {0} {1:?} {2:?} {3:?}")]
+    SignatureVerification(SignatureError, String, Signature, VerifyingKey),
 }
 
 pub struct SessionLogInternal {
@@ -131,12 +130,16 @@ impl SessionLogInternal {
             let new_hash = hasher.finalize();
             let new_hash_encoded = format!("hash_z{}", bs58::encode(new_hash.as_bytes()).into_string());
 
-            if self
+            println!("new_hash_encoded: {}, new_signature: {:?} public_key: {:?}", new_hash_encoded, new_signature, self.public_key);
+
+            match self
                 .public_key
                 .verify(new_hash_encoded.as_bytes(), &new_signature)
-                .is_err()
             {
-                return Err(CoJsonCoreError::SignatureVerification(new_hash_encoded));
+                Ok(()) => {}
+                Err(e) => {
+                    return Err(CoJsonCoreError::SignatureVerification(e, new_hash_encoded, new_signature, self.public_key));
+                }
             }
         }
 
@@ -169,7 +172,6 @@ impl SessionLogInternal {
             }).unwrap()),
         ]));
 
-        println!("Nonce material for add_new_transaction: {}", serde_json::to_string(&nonce_material).unwrap());
         let nonce = self.generate_json_nonce(&nonce_material);
 
         let mut ciphertext = changes_json.as_bytes().to_vec();
@@ -334,7 +336,7 @@ mod tests {
                 assert_eq!(final_hash_encoded, example.last_hash);
                 assert_eq!(session.last_signature, Some(new_signature));
             }
-            Err(CoJsonCoreError::SignatureVerification(new_hash_encoded)) => {
+            Err(CoJsonCoreError::SignatureVerification(_, new_hash_encoded, _, _)) => {
                 assert_eq!(new_hash_encoded, example.last_hash);
             }
             Err(e) => {

@@ -52,13 +52,15 @@ describe("SessionLog WASM", () => {
     const coIdStr = sessionIdStr.split("_session_")[0]!;
     const publicKey = decodeZ(exampleSessions.signerID);
 
+    console.log("publicKey", publicKey, exampleSessions.signerID);
+
     let session = new SessionLog(coIdStr, sessionIdStr, publicKey);
 
-    const newSignature = decodeZ(example.lastSignature);
-    console.log("Expected hash from test data:", example.lastHash);
+    const lastSignature = decodeZ(example.lastSignature);
+    console.log("Expected hash from test data:", example.lastHash, lastSignature,example.lastSignature);
 
     try {
-      session.tryAdd([JSON.stringify(example.transactions[0])], newSignature, false);
+      session.tryAdd([JSON.stringify(example.transactions[0])], lastSignature, false);
     } catch (e) {
       console.error(e);
       throw e;
