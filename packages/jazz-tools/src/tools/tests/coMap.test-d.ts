@@ -152,6 +152,17 @@ describe("CoMap", async () => {
       });
     });
 
+    test("cannot use z.tuple with CoValue schemas as values", () => {
+      const Dog = co.map({
+        type: z.literal("dog"),
+      });
+
+      const Person = co.map({
+        // @ts-expect-error: cannot use z.tuple with a CoValue schema
+        pets: z.tuple([Dog]),
+      });
+    });
+
     test("CoMap with optional reference", () => {
       const Dog = co.map({
         name: z.string(),

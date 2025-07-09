@@ -4,12 +4,14 @@ import {
   discriminatedUnion as zodDiscriminatedUnion,
   object as zodObject,
   optional as zodOptional,
+  tuple as zodTuple,
   union as zodUnion,
   ZodDiscriminatedUnion,
   ZodObject,
   ZodOptional,
   ZodUnion,
   ZodArray,
+  ZodTuple,
 } from "zod/v4";
 import { util } from "zod/v4/core";
 export {
@@ -18,7 +20,6 @@ export {
   boolean,
   templateLiteral,
   json,
-  tuple,
   date,
   emoji,
   base64,
@@ -85,4 +86,11 @@ export function array<T extends NonCoZodType>(
   params?: string | core.$ZodArrayParams,
 ): ZodArray<T> {
   return zodArray(element, params);
+}
+
+export function tuple<T extends readonly [NonCoZodType, ...NonCoZodType[]]>(
+  options: T,
+  params?: string | core.$ZodTupleParams,
+): ZodTuple<T> {
+  return zodTuple(options, params);
 }
