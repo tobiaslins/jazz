@@ -2,6 +2,7 @@ import {
   array as zodArray,
   core,
   discriminatedUnion as zodDiscriminatedUnion,
+  intersection as zodIntersection,
   object as zodObject,
   optional as zodOptional,
   strictObject as zodStrictObject,
@@ -13,6 +14,7 @@ import {
   ZodUnion,
   ZodArray,
   ZodTuple,
+  ZodIntersection,
 } from "zod/v4";
 import { util } from "zod/v4/core";
 export {
@@ -40,7 +42,6 @@ export {
   cidrv6,
   iso,
   int32,
-  //   intersection,
   //   record,
   int,
   type ZodOptional,
@@ -86,6 +87,13 @@ export function union<const T extends readonly NonCoZodType[]>(
   params?: string | core.$ZodUnionParams,
 ): ZodUnion<T> {
   return zodUnion(options, params);
+}
+
+export function intersection<T extends NonCoZodType, U extends NonCoZodType>(
+  left: T,
+  right: U,
+): ZodIntersection<T, U> {
+  return zodIntersection(left, right);
 }
 
 export function array<T extends NonCoZodType>(

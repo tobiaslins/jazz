@@ -154,6 +154,21 @@ describe("CoMap", async () => {
       });
     });
 
+    test("cannot use z.intersection with CoValue schemas as values", () => {
+      const Dog = co.map({
+        type: z.literal("dog"),
+      });
+
+      const Cat = co.map({
+        type: z.literal("cat"),
+      });
+
+      const Person = co.map({
+        // @ts-expect-error: cannot use z.intersection with a CoValue schema
+        pets: z.intersection(Dog, Cat),
+      });
+    });
+
     test("cannot use z.array with CoValue schemas as values", () => {
       const Dog = co.map({
         type: z.literal("dog"),
