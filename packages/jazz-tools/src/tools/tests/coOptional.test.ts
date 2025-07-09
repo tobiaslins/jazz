@@ -1,5 +1,5 @@
 import { beforeEach, describe, test } from "vitest";
-import { co, CoPlainText, z } from "../exports.js";
+import { CoPlainText, co, z } from "../exports.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 
 describe("co.optional", () => {

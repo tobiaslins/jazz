@@ -1,17 +1,17 @@
 import { beforeEach, describe, test } from "vitest";
-import { co, Loaded, z } from "../exports.js";
-import { setupJazzTestSync, createJazzTestAccount } from "../testing.js";
+import { Loaded, co, z } from "../exports.js";
+import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 
 describe("co.discriminatedUnion", () => {
-   beforeEach(async () => {
-     await setupJazzTestSync();
+  beforeEach(async () => {
+    await setupJazzTestSync();
 
-     await createJazzTestAccount({
-       isCurrentActiveAccount: true,
-       creationProps: { name: "Hermes Puggington" },
-     });
-   });
-   
+    await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+      creationProps: { name: "Hermes Puggington" },
+    });
+  });
+
   test("can use co.discriminatedUnion with CoValue schemas as values", () => {
     const Dog = co.map({
       type: z.literal("dog"),
