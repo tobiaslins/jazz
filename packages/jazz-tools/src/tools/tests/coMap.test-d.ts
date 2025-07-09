@@ -124,6 +124,17 @@ describe("CoMap", async () => {
       });
     });
 
+    test("cannot use z.record with CoValue schemas as values", () => {
+      const Dog = co.map({
+        type: z.literal("dog"),
+      });
+
+      const Person = co.map({
+        // @ts-expect-error: cannot use z.record with a CoValue schema
+        pets: z.record(z.string(), Dog),
+      });
+    });
+
     test("cannot use z.discriminatedUnion with CoValue schemas as values", () => {
       const Dog = co.map({
         type: z.literal("dog"),

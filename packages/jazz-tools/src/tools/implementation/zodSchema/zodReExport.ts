@@ -5,6 +5,7 @@ import {
   intersection as zodIntersection,
   object as zodObject,
   optional as zodOptional,
+  record as zodRecord,
   strictObject as zodStrictObject,
   tuple as zodTuple,
   union as zodUnion,
@@ -15,6 +16,7 @@ import {
   ZodArray,
   ZodTuple,
   ZodIntersection,
+  ZodRecord,
 } from "zod/v4";
 import { util } from "zod/v4/core";
 export {
@@ -42,7 +44,6 @@ export {
   cidrv6,
   iso,
   int32,
-  //   record,
   int,
   type ZodOptional,
   type ZodReadonly,
@@ -67,6 +68,17 @@ export function strictObject<T extends Record<string, NonCoZodType>>(
   params?: string | core.$ZodObjectParams,
 ): ZodObject<T, core.$strict> {
   return zodStrictObject(shape, params);
+}
+
+export function record<
+  Key extends core.$ZodRecordKey,
+  Value extends NonCoZodType,
+>(
+  keyType: Key,
+  valueType: Value,
+  params?: string | core.$ZodRecordParams,
+): ZodRecord<Key, Value> {
+  return zodRecord(keyType, valueType, params);
 }
 
 export function optional<T extends NonCoZodType>(schema: T): ZodOptional<T> {
