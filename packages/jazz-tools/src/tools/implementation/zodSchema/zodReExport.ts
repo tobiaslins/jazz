@@ -1,9 +1,11 @@
 import {
   core,
-  ZodObject,
+  discriminatedUnion as zodDiscriminatedUnion,
   object as zodObject,
-  ZodOptional,
   optional as zodOptional,
+  ZodDiscriminatedUnion,
+  ZodObject,
+  ZodOptional,
 } from "zod/v4";
 import { util } from "zod/v4/core";
 export {
@@ -35,7 +37,6 @@ export {
   iso,
   int32,
   strictObject,
-  discriminatedUnion,
   //   intersection,
   //   record,
   int,
@@ -59,4 +60,13 @@ export function object<T extends Record<string, NonCoZodType>>(
 
 export function optional<T extends NonCoZodType>(schema: T): ZodOptional<T> {
   return zodOptional(schema);
+}
+
+export function discriminatedUnion<
+  T extends readonly [
+    NonCoZodType & core.$ZodTypeDiscriminable,
+    ...(NonCoZodType & core.$ZodTypeDiscriminable)[],
+  ],
+>(discriminator: string, schemas: T): ZodDiscriminatedUnion<T> {
+  return zodDiscriminatedUnion(discriminator, schemas as any);
 }
