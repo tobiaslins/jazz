@@ -1,4 +1,5 @@
 import {
+  array as zodArray,
   core,
   discriminatedUnion as zodDiscriminatedUnion,
   object as zodObject,
@@ -8,13 +9,13 @@ import {
   ZodObject,
   ZodOptional,
   ZodUnion,
+  ZodArray,
 } from "zod/v4";
 import { util } from "zod/v4/core";
 export {
   string,
   number,
   boolean,
-  array,
   templateLiteral,
   json,
   tuple,
@@ -77,4 +78,11 @@ export function union<const T extends readonly NonCoZodType[]>(
   params?: string | core.$ZodUnionParams,
 ): ZodUnion<T> {
   return zodUnion(options, params);
+}
+
+export function array<T extends NonCoZodType>(
+  element: T,
+  params?: string | core.$ZodArrayParams,
+): ZodArray<T> {
+  return zodArray(element, params);
 }
