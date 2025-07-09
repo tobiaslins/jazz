@@ -4,6 +4,7 @@ import {
   discriminatedUnion as zodDiscriminatedUnion,
   object as zodObject,
   optional as zodOptional,
+  strictObject as zodStrictObject,
   tuple as zodTuple,
   union as zodUnion,
   ZodDiscriminatedUnion,
@@ -39,7 +40,6 @@ export {
   cidrv6,
   iso,
   int32,
-  strictObject,
   //   intersection,
   //   record,
   int,
@@ -59,6 +59,13 @@ export function object<T extends Record<string, NonCoZodType>>(
   params?: string | core.$ZodObjectParams,
 ): ZodObject<util.Writeable<T> & {}, core.$strip> {
   return zodObject(shape, params);
+}
+
+export function strictObject<T extends Record<string, NonCoZodType>>(
+  shape: T,
+  params?: string | core.$ZodObjectParams,
+): ZodObject<T, core.$strict> {
+  return zodStrictObject(shape, params);
 }
 
 export function optional<T extends NonCoZodType>(schema: T): ZodOptional<T> {
