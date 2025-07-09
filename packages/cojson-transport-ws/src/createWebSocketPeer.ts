@@ -85,6 +85,7 @@ function createOutgoingMessagesManager(
     }
 
     while (
+      websocket.bufferedAmount &&
       websocket.bufferedAmount > BUFFER_LIMIT &&
       websocket.readyState === 1
     ) {
