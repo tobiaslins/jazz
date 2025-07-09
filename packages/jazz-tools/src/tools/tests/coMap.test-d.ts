@@ -126,6 +126,21 @@ describe("CoMap", async () => {
       });
     });
 
+    test("cannot use z.union with CoValue schemas as values", () => {
+      const Dog = co.map({
+        type: z.literal("dog"),
+      });
+
+      const Cat = co.map({
+        type: z.literal("cat"),
+      });
+
+      const Person = co.map({
+        // @ts-expect-error: cannot use z.union with a CoValue schema
+        pets: z.union([Dog, Cat]),
+      });
+    });
+
     test("CoMap with optional reference", () => {
       const Dog = co.map({
         name: z.string(),

@@ -3,16 +3,17 @@ import {
   discriminatedUnion as zodDiscriminatedUnion,
   object as zodObject,
   optional as zodOptional,
+  union as zodUnion,
   ZodDiscriminatedUnion,
   ZodObject,
   ZodOptional,
+  ZodUnion,
 } from "zod/v4";
 import { util } from "zod/v4/core";
 export {
   string,
   number,
   boolean,
-  union,
   array,
   templateLiteral,
   json,
@@ -69,4 +70,11 @@ export function discriminatedUnion<
   ],
 >(discriminator: string, schemas: T): ZodDiscriminatedUnion<T> {
   return zodDiscriminatedUnion(discriminator, schemas as any);
+}
+
+export function union<const T extends readonly NonCoZodType[]>(
+  options: T,
+  params?: string | core.$ZodUnionParams,
+): ZodUnion<T> {
+  return zodUnion(options, params);
 }
