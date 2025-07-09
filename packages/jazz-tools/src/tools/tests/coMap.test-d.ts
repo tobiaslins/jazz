@@ -97,33 +97,6 @@ describe("CoMap", async () => {
       });
     });
 
-    test("cannot use z.object with CoValue schemas as values", () => {
-      const Dog = co.map({
-        name: z.string(),
-        breed: z.string(),
-      });
-
-      const Person = co.map({
-        pets: z.object({
-          // @ts-expect-error: cannot use z.object with a CoValue schema
-          dog: Dog,
-        }),
-      });
-    });
-
-    test("cannot use z.strictObject with CoValue schemas as values", () => {
-      const Dog = co.map({
-        type: z.literal("dog"),
-      });
-
-      const Person = co.map({
-        pets: z.strictObject({
-          // @ts-expect-error: cannot use z.strictObject with a CoValue schema
-          dog: Dog,
-        }),
-      });
-    });
-
     test("cannot use z.record with CoValue schemas as values", () => {
       const Dog = co.map({
         type: z.literal("dog"),

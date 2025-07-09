@@ -3,14 +3,11 @@ import {
   core,
   discriminatedUnion as zodDiscriminatedUnion,
   intersection as zodIntersection,
-  object as zodObject,
   optional as zodOptional,
   record as zodRecord,
-  strictObject as zodStrictObject,
   tuple as zodTuple,
   union as zodUnion,
   ZodDiscriminatedUnion,
-  ZodObject,
   ZodOptional,
   ZodUnion,
   ZodArray,
@@ -18,11 +15,11 @@ import {
   ZodIntersection,
   ZodRecord,
 } from "zod/v4";
-import { util } from "zod/v4/core";
 export {
   string,
   number,
   boolean,
+  object,
   templateLiteral,
   json,
   date,
@@ -44,6 +41,7 @@ export {
   cidrv6,
   iso,
   int32,
+  strictObject,
   int,
   type ZodOptional,
   type ZodReadonly,
@@ -55,20 +53,6 @@ export {
 } from "zod/v4";
 
 type NonCoZodType = core.$ZodType & { collaborative?: false };
-
-export function object<T extends Record<string, NonCoZodType>>(
-  shape?: T,
-  params?: string | core.$ZodObjectParams,
-): ZodObject<util.Writeable<T> & {}, core.$strip> {
-  return zodObject(shape, params);
-}
-
-export function strictObject<T extends Record<string, NonCoZodType>>(
-  shape: T,
-  params?: string | core.$ZodObjectParams,
-): ZodObject<T, core.$strict> {
-  return zodStrictObject(shape, params);
-}
 
 export function record<
   Key extends core.$ZodRecordKey,
