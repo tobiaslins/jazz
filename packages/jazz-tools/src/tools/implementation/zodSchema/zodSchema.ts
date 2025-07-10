@@ -111,8 +111,13 @@ export type CoValueSchemaFromZodSchema<S extends z.core.$ZodType> =
                     ? FileStreamSchema
                     : S extends z.core.$ZodOptional<infer Inner>
                       ? CoValueSchemaFromZodSchema<Inner>
-                      : S extends z.core.$ZodUnion<infer Members>
-                        ? CoValueSchemaFromZodSchema<Members[number]>
+                      : S extends z.core.$ZodUnion<
+                            infer Members extends readonly [
+                              z.core.$ZodTypeDiscriminable,
+                              ...z.core.$ZodTypeDiscriminable[],
+                            ]
+                          >
+                        ? CoDiscriminatedUnionSchema<Members>
                         : never
     : never;
 

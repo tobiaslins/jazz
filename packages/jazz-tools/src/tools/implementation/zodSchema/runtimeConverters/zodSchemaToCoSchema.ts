@@ -6,11 +6,10 @@ import {
   CoMap,
   CoPlainText,
   CoRichText,
-  CoValueClass,
   FileStream,
-  InstanceOfSchema,
   SchemaUnion,
   enrichAccountSchema,
+  enrichCoDiscriminatedUnionSchema,
   enrichCoFeedSchema,
   enrichCoListSchema,
   enrichCoMapSchema,
@@ -151,9 +150,12 @@ function tryZodSchemaToCoSchema<S extends z.core.$ZodType>(
     }
   } else if (schema instanceof z.core.$ZodDiscriminatedUnion) {
     if (isUnionOfCoMapsDeeply(schema)) {
-      return SchemaUnion.Of(
-        schemaUnionDiscriminatorFor(schema),
-      ) as unknown as CoValueSchemaFromZodSchema<S>;
+      const coValueClass = SchemaUnion.Of(schemaUnionDiscriminatorFor(schema));
+      const coValueSchema = enrichCoDiscriminatedUnionSchema(
+        schema as any,
+        coValueClass as any,
+      );
+      return coValueSchema as unknown as CoValueSchemaFromZodSchema<S>;
     } else {
       throw new Error(
         "z.discriminatedUnion() of non-collaborative types is not supported as a top-level schema",
