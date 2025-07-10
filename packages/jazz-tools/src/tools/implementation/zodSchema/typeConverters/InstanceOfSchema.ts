@@ -17,6 +17,8 @@ import { RichTextSchema } from "../schemaTypes/RichTextSchema.js";
 import { z } from "../zodReExport.js";
 import { InstanceOrPrimitiveOfSchema } from "./InstanceOrPrimitiveOfSchema.js";
 
+// TODO this should be CoValueClassOfCoValueSchema
+// TODO refactor to use AnyAccountSchema, etc.
 export type InstanceOfSchema<S extends CoValueClass | z.core.$ZodType> =
   S extends z.core.$ZodType
     ? S extends z.core.$ZodObject<infer Shape> & {

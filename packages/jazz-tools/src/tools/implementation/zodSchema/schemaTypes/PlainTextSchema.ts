@@ -3,9 +3,13 @@ import { Account, CoPlainText, Group } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { z } from "../zodReExport.js";
 
-export type PlainTextSchema = z.core.$ZodCustom<CoPlainText, unknown> & {
+// TODO rename to ProtoPlainTextSchema
+export type AnyPlainTextSchema = z.core.$ZodCustom<CoPlainText, unknown> & {
   collaborative: true;
   builtin: "CoPlainText";
+};
+
+export type PlainTextSchema = AnyPlainTextSchema & {
   create(
     text: string,
     options?: { owner: Account | Group } | Account | Group,
@@ -26,3 +30,28 @@ export type PlainTextSchema = z.core.$ZodCustom<CoPlainText, unknown> & {
   fromRaw(raw: RawCoPlainText): CoPlainText;
   getCoSchema: () => typeof CoPlainText;
 };
+
+export function enrichPlainTextSchema(
+  schema: AnyPlainTextSchema,
+  coValueClass: typeof CoPlainText,
+): PlainTextSchema {
+  return Object.assign(schema, {
+    create: (...args: [any, ...any[]]) => {
+      return coValueClass.create(...args);
+    },
+    load: (...args: [any, ...any[]]) => {
+      return coValueClass.load(...args);
+    },
+    subscribe: (...args: [any, ...any[]]) => {
+      // @ts-expect-error
+      return coValueClass.subscribe(...args);
+    },
+    fromRaw: (...args: [any, ...any[]]) => {
+      // @ts-expect-error
+      return coValueClass.fromRaw(...args);
+    },
+    getCoSchema: () => {
+      return coValueClass;
+    },
+  }) as unknown as PlainTextSchema;
+}

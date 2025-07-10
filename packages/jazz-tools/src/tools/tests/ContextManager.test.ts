@@ -4,13 +4,11 @@ import {
   Account,
   AccountClass,
   AuthSecretStorage,
-  CoMap,
   Group,
   InMemoryKVStore,
   JazzAuthContext,
   KvStoreContext,
   co,
-  coField,
   z,
 } from "../exports";
 import {
@@ -23,6 +21,7 @@ import {
   randomSessionProvider,
 } from "../implementation/createContext";
 import {
+  anySchemaToCoSchema,
   CoValueFromRaw,
   InstanceOfSchema,
   Loaded,
@@ -258,7 +257,7 @@ describe("ContextManager", () => {
 
     // Create initial anonymous context
     await customManager.createContext({
-      AccountSchema: zodSchemaToCoSchema(CustomAccount),
+      AccountSchema: anySchemaToCoSchema(CustomAccount),
     });
 
     const account = (
@@ -313,7 +312,7 @@ describe("ContextManager", () => {
 
     // Create initial anonymous context
     await customManager.createContext({
-      AccountSchema: zodSchemaToCoSchema(CustomAccount),
+      AccountSchema: anySchemaToCoSchema(CustomAccount),
     });
 
     const account = (
@@ -385,7 +384,7 @@ describe("ContextManager", () => {
     // Create initial anonymous context
     await customManager.createContext({
       onAnonymousAccountDiscarded,
-      AccountSchema: zodSchemaToCoSchema(CustomAccount),
+      AccountSchema: anySchemaToCoSchema(CustomAccount),
     });
 
     const account = await createJazzTestAccount({

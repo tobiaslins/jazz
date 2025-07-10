@@ -8,6 +8,7 @@ import {
   Resolved,
   Simplify,
   SubscribeListenerOptions,
+  tryZodSchemaToCoSchema,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
@@ -15,6 +16,7 @@ import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/I
 import { z } from "../zodReExport.js";
 import { WithHelpers } from "../zodSchema.js";
 
+// TODO refactor to use AnyCoMapSchema
 export type CoMapSchema<
   Shape extends z.core.$ZodLooseShape,
   Config extends z.core.$ZodObjectConfig = z.core.$ZodObjectConfig,
@@ -147,6 +149,57 @@ export type CoMapSchema<
 
     getCoSchema: () => typeof CoMap;
   };
+
+export function enrichCoMapSchema<
+  Shape extends z.core.$ZodLooseShape,
+  Config extends z.core.$ZodObjectConfig,
+>(
+  schema: AnyCoMapSchema<Shape, Config>,
+  coValueClass: typeof CoMap,
+): CoMapSchema<Shape, Config> {
+  // @ts-expect-error TODO should AnyCoMapSchema extend z.ZodObject instead of z.core.$ZodObject?
+  const baseCatchall = schema.catchall;
+  const coValueSchema = Object.assign(schema, {
+    create: (...args: [any, ...any[]]) => {
+      return coValueClass.create(...args);
+    },
+    load: (...args: [any, ...any[]]) => {
+      return coValueClass.load(...args);
+    },
+    subscribe: (...args: [any, ...any[]]) => {
+      // @ts-expect-error
+      return coValueClass.subscribe(...args);
+    },
+    findUnique: (...args: [any, ...any[]]) => {
+      // @ts-expect-error
+      return coValueClass.findUnique(...args);
+    },
+    upsertUnique: (...args: [any, ...any[]]) => {
+      // @ts-expect-error
+      return coValueClass.upsertUnique(...args);
+    },
+    loadUnique: (...args: [any, ...any[]]) => {
+      // @ts-expect-error
+      return coValueClass.loadUnique(...args);
+    },
+    catchall: (index: z.core.$ZodType) => {
+      return tryZodSchemaToCoSchema(baseCatchall(index));
+    },
+    withHelpers: (helpers: (Self: z.core.$ZodType) => object) => {
+      return Object.assign(schema, helpers(schema));
+    },
+    withMigration: (migration: (value: any) => undefined) => {
+      // @ts-expect-error TODO check
+      coValueClass.prototype.migrate = migration;
+
+      return coValueSchema;
+    },
+    getCoSchema: () => {
+      return coValueClass;
+    },
+  }) as unknown as CoMapSchema<Shape, Config>;
+  return coValueSchema;
+}
 
 export type optionalKeys<Shape extends z.core.$ZodLooseShape> = {
   [key in keyof Shape]: Shape[key] extends z.core.$ZodOptional<any>

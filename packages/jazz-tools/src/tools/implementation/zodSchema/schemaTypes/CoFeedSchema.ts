@@ -61,6 +61,31 @@ export type CoFeedSchema<T extends z.core.$ZodType> = z.core.$ZodCustom<
   getCoSchema: () => typeof CoFeed;
 };
 
+export function enrichCoFeedSchema<T extends z.core.$ZodType>(
+  schema: AnyCoFeedSchema<T>,
+  coValueClass: typeof CoFeed,
+): CoFeedSchema<T> {
+  return Object.assign(schema, {
+    create: (...args: [any, ...any[]]) => {
+      return coValueClass.create(...args);
+    },
+    load: (...args: [any, ...any[]]) => {
+      // @ts-expect-error
+      return coValueClass.load(...args);
+    },
+    subscribe: (...args: [any, ...any[]]) => {
+      // @ts-expect-error
+      return coValueClass.subscribe(...args);
+    },
+    withHelpers: (helpers: (Self: z.core.$ZodType) => object) => {
+      return Object.assign(schema, helpers(schema));
+    },
+    getCoSchema: () => {
+      return coValueClass;
+    },
+  }) as unknown as CoFeedSchema<T>;
+}
+
 // less precise verion to avoid circularity issues and allow matching against
 export type AnyCoFeedSchema<T extends z.core.$ZodType = z.core.$ZodType> =
   z.core.$ZodCustom<any, unknown> & {

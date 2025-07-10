@@ -14,7 +14,6 @@ import {
 } from "../internal.js";
 import type {
   Account,
-  CoValueClassFromZodSchema,
   Group,
   InstanceOfSchemaCoValuesNullable,
 } from "../internal.js";

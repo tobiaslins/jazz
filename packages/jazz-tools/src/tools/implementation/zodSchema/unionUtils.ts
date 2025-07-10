@@ -4,6 +4,10 @@ import {
   zodSchemaToCoSchema,
 } from "./runtimeConverters/zodSchemaToCoSchema.js";
 import { z } from "./zodReExport.js";
+import { CoMapSchema } from "./schemaTypes/CoMapSchema.js";
+import { AccountSchema } from "./schemaTypes/AccountSchema.js";
+import { CoListSchema } from "./schemaTypes/CoListSchema.js";
+import { CoValueClass, CoValueFromRaw } from "../../internal.js";
 
 export function schemaUnionDiscriminatorFor(
   schema: z.core.$ZodDiscriminatedUnion,
@@ -93,7 +97,12 @@ export function schemaUnionDiscriminatorFor(
         }
 
         if (match) {
-          return zodSchemaToCoSchema(option);
+          const coValueSchema = zodSchemaToCoSchema(option) as
+            | CoMapSchema<any>
+            | AccountSchema
+            | CoListSchema<any>;
+          return coValueSchema.getCoSchema() as CoValueClass<any> &
+            CoValueFromRaw<any>;
         }
       }
 

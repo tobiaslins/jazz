@@ -55,6 +55,30 @@ export type CoListSchema<T extends z.core.$ZodType> = z.core.$ZodArray<T> & {
   getCoSchema: () => typeof CoList;
 };
 
+export function enrichCoListSchema<T extends z.core.$ZodType>(
+  schema: AnyCoListSchema<T>,
+  coValueClass: typeof CoList,
+): CoListSchema<T> {
+  return Object.assign(schema, {
+    create: (...args: [any, ...any[]]) => {
+      return coValueClass.create(...args);
+    },
+    load: (...args: [any, ...any[]]) => {
+      return coValueClass.load(...args);
+    },
+    subscribe: (...args: [any, ...any[]]) => {
+      // @ts-expect-error
+      return coValueClass.subscribe(...args);
+    },
+    withHelpers: (helpers: (Self: z.core.$ZodType) => object) => {
+      return Object.assign(schema, helpers(schema));
+    },
+    getCoSchema: () => {
+      return coValueClass;
+    },
+  }) as unknown as CoListSchema<T>;
+}
+
 // less precise verion to avoid circularity issues and allow matching against
 export type AnyCoListSchema<T extends z.core.$ZodType = z.core.$ZodType> =
   z.core.$ZodArray<T> & { collaborative: true };
