@@ -63,15 +63,14 @@ describe("experimental_defineRequest", () => {
         group,
       );
 
-      group.addMember("everyone", "reader");
+      group.addMember("everyone", "writer");
 
-      const blogRequest = experimental_defineRequest(
-        {
-          blog: Blog,
-        },
-        {
-          resolve: {
-            blog: {
+      const blogRequest = experimental_defineRequest({
+        url: "https://api.example.com/api/blog",
+        payload: {
+          blog: {
+            schema: Blog,
+            resolve: {
               posts: {
                 $each: {
                   comments: true,
@@ -79,13 +78,14 @@ describe("experimental_defineRequest", () => {
               },
             },
           },
-          paramsSchema: z.undefined(),
-          responseSchema: z.object({
-            isValid: z.boolean(),
-          }),
-          url: "https://api.example.com/api/blog",
+          additionalData: z.string(),
         },
-      );
+        response: {
+          blog: {
+            schema: Blog,
+          },
+        },
+      });
 
       const worker = await createJazzTestAccount();
 
@@ -93,34 +93,31 @@ describe("experimental_defineRequest", () => {
 
       server.use(
         http.post("https://api.example.com/api/blog", async ({ request }) => {
-          return blogRequest.handle(
-            request,
-            worker,
-            async (values, params, madeBy) => {
-              callbackData = {
-                values: values.blog.toJSON(),
-                params,
-                madeBy: madeBy.id,
-              };
+          return blogRequest.handle(request, worker, async (values, madeBy) => {
+            callbackData = {
+              values: values.blog.toJSON(),
+              additionalData: values.additionalData,
+              madeBy: madeBy.id,
+            };
 
-              return {
-                isValid: true,
-              };
-            },
-          );
+            values.blog.name = "My Blog (modified)";
+
+            return {
+              blog,
+            };
+          });
         }),
       );
 
       const response = await blogRequest.send(
         {
           blog,
+          additionalData: "Hello World",
         },
-        undefined,
         { owner: me },
       );
-      expect(response).toEqual({
-        isValid: true,
-      });
+
+      expect(response.blog.name).toEqual("My Blog (modified)");
 
       expect(callbackData).toMatchObject({
         values: {
@@ -134,7 +131,7 @@ describe("experimental_defineRequest", () => {
             },
           ],
         },
-        params: undefined,
+        additionalData: "Hello World",
         madeBy: me.id,
       });
     });

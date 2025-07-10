@@ -14,17 +14,57 @@ import {
 import { Account } from "./account.js";
 
 type CoValueKnownState = CojsonInternalTypes.CoValueKnownState;
+type NonCoZodType = z.ZodType & { collaborative?: false };
+
+interface RequestPayloadValue<
+  S extends CoValueOrZodSchema,
+  R extends ResolveQuery<S>,
+> {
+  schema: S;
+  resolve?: R;
+}
+
+type BaseRequestPayload = Record<
+  string,
+  | RequestPayloadValue<CoValueOrZodSchema, ResolveQuery<CoValueOrZodSchema>>
+  | NonCoZodType
+>;
+
+interface RequestOptions<
+  P extends BaseRequestPayload,
+  R extends BaseRequestPayload,
+> {
+  url: string;
+  payload: P;
+  response: R;
+}
 
 export type ValueSchemas = Record<string, CoValueOrZodSchema>;
 
-export type ValueResolves<Vs extends ValueSchemas> = {
-  [K in keyof Vs]?: ResolveQuery<Vs[K]>;
+type LooseValuesFor<P extends BaseRequestPayload> = {
+  [K in keyof P]: any;
 };
 
-export type ValuesFor<Vs extends ValueSchemas, Vr extends ValueResolves<Vs>> = {
-  [K in keyof Vs]: Vr[K] extends ResolveQuery<Vs[K]>
-    ? Loaded<Vs[K], Vr[K]>
-    : Loaded<Vs[K]>;
+export type InputValuesFor<P extends BaseRequestPayload> = {
+  [K in keyof P]: P[K] extends { schema: any }
+    ? Loaded<P[K]["schema"]>
+    : P[K] extends z.core.$ZodType
+      ? z.infer<P[K]>
+      : never;
+};
+
+export type LoadedValuesFor<P extends BaseRequestPayload> = {
+  [K in keyof P]: P[K] extends { schema: any; resolve?: any }
+    ? P[K]["resolve"] extends ResolveQuery<P[K]["schema"]>
+      ? Loaded<P[K]["schema"], P[K]["resolve"]>
+      : Loaded<P[K]["schema"]>
+    : P[K] extends z.core.$ZodType
+      ? z.infer<P[K]>
+      : never;
+};
+
+export type PlainDataFor<P extends BaseRequestPayload> = {
+  [K in keyof P]: P[K] extends z.core.$ZodType ? z.infer<P[K]> : never;
 };
 
 export type CoValueRequest<Vs extends ValueSchemas, P extends z.ZodType> = {
@@ -39,29 +79,9 @@ export type CoValueRequest<Vs extends ValueSchemas, P extends z.ZodType> = {
   contentPieces?: Record<string, CojsonInternalTypes.NewContentMessage>;
 };
 
-function getCoValueClass<Vs extends ValueSchemas>(
-  value: Vs,
-  k: string,
-): CoValueClass<CoValue> {
-  const schema = value[k];
-
-  if (!schema) {
-    throw new Error(`Value ${k} not found in valueSchemas`);
-  }
-
-  return anySchemaToCoSchema(schema);
-}
-
-async function serializeRequest<
-  Vs extends ValueSchemas,
-  P extends z.ZodType,
-  Vr extends ValueResolves<Vs>,
->(
-  paramsSchema: P,
-  valueSchemas: Vs,
-  values: ValuesFor<Vs, {}>,
-  params: z.infer<P>,
-  resolve: Vr,
+async function serializeMessagePayload<P extends BaseRequestPayload>(
+  values: LooseValuesFor<P>,
+  params: P,
   owner?: Account,
 ) {
   const me = owner ?? Account.getMe();
@@ -70,24 +90,42 @@ async function serializeRequest<
   const signerID = agent.currentSignerID();
   const signerSecret = agent.currentSignerSecret();
 
-  const valuesIds: [string, string][] = [];
+  const coValuesIds: [string, string][] = [];
+  const plainData: Record<string, unknown> = {};
   const contentPieces: CojsonInternalTypes.NewContentMessage[] = [];
 
-  for (const [k, v] of Object.entries(values)) {
-    valuesIds.push([k, v.id]);
+  for (const k of Object.keys(params)) {
+    const schemaDef = params[k];
 
-    const exported = await exportCoValue(valueSchemas[k] as any, v.id, {
-      // @ts-expect-error We can't really validate this
-      resolve: resolve[k],
-      loadAs: me,
-    });
-
-    if (!exported) {
-      throw new Error(`Failed to export value ${k}`);
+    if (!schemaDef) {
+      continue;
     }
 
-    for (const piece of exported) {
-      contentPieces.push(piece);
+    if ("schema" in schemaDef) {
+      const value = values[k];
+
+      if (!value) {
+        throw new Error(`Value ${k} not found in values`);
+      }
+
+      coValuesIds.push([k, value.id]);
+
+      // TODO: Deduplicate content pieces
+      const coSchema = anySchemaToCoSchema(schemaDef.schema);
+      const exported = await exportCoValue(coSchema, value.id, {
+        resolve: schemaDef.resolve,
+        loadAs: me,
+      });
+
+      if (!exported) {
+        throw new Error(`Failed to export value ${k}`);
+      }
+
+      for (const piece of exported) {
+        contentPieces.push(piece);
+      }
+    } else {
+      plainData[k] = schemaDef.parse(values[k]);
     }
   }
 
@@ -104,34 +142,61 @@ async function serializeRequest<
   }
 
   const payload = {
-    values: valuesIds,
+    coValuesIds,
     contentPieces,
-    params: paramsSchema.parse(params),
+    plainData,
   };
 
-  const signature = node.crypto.sign(signerSecret, payload as JsonValue);
+  const stringifiedPayload = JSON.stringify(payload);
+  const hash = node.crypto.secureHash(stringifiedPayload);
+  const signature = node.crypto.sign(signerSecret, hash);
 
-  return JSON.stringify({
-    payload,
+  return {
+    payload: stringifiedPayload,
     madeBy: me.id,
     signerID,
     signature,
-  });
+  };
 }
 
 const requestSchema = z.object({
-  payload: z.object({
-    values: z.array(z.tuple([z.string(), z.string()])),
-    params: z.any(),
-    // TODO Setup a proper content schema for this
-    contentPieces: z.array(z.json()),
-  }),
+  payload: z.string(),
   madeBy: z.string(),
   signerID: z.string(),
   signature: z.string(),
 });
 
-async function parseIncomingRequest<P extends z.ZodType>(
+const requestPayloadSchema = z.object({
+  coValuesIds: z.array(z.tuple([z.string(), z.string()])),
+  plainData: z.any(),
+  // TODO Setup a proper content schema for this
+  contentPieces: z.array(z.json()),
+});
+
+function parsePlainData<P extends BaseRequestPayload>(
+  params: P,
+  payload: unknown,
+) {
+  const shape: Record<string, NonCoZodType> = {};
+
+  for (const k of Object.keys(params)) {
+    const schemaDef = params[k];
+
+    if (!schemaDef) {
+      continue;
+    }
+
+    if ("schema" in schemaDef) {
+      continue;
+    }
+
+    shape[k] = schemaDef;
+  }
+
+  return z.object(shape).parse(payload) as PlainDataFor<P>;
+}
+
+async function handleIncomingMessage<P extends BaseRequestPayload>(
   request: unknown,
   paramsSchema: P,
   crypto: CryptoProvider,
@@ -139,19 +204,22 @@ async function parseIncomingRequest<P extends z.ZodType>(
 ) {
   const requestParsed = requestSchema.parse(request);
 
+  const hash = crypto.secureHash(requestParsed.payload);
+
   if (
     !crypto.verify(
       requestParsed.signature as CojsonInternalTypes.Signature,
-      requestParsed.payload as JsonValue,
+      hash,
       requestParsed.signerID as CojsonInternalTypes.SignerID,
     )
   ) {
     throw new Error("Invalid signature");
   }
 
+  const payload = requestPayloadSchema.parse(JSON.parse(requestParsed.payload));
+
   importContentPieces(
-    requestParsed.payload
-      .contentPieces as CojsonInternalTypes.NewContentMessage[],
+    payload.contentPieces as CojsonInternalTypes.NewContentMessage[],
     loadAs,
   );
 
@@ -171,36 +239,47 @@ async function parseIncomingRequest<P extends z.ZodType>(
     );
   }
 
+  const coValuesIds = payload.coValuesIds;
+  const plainData = parsePlainData(paramsSchema, payload.plainData);
+
+  const values = await loadValues(coValuesIds, plainData, paramsSchema, loadAs);
+
   return {
-    values: requestParsed.payload.values,
-    contentPieces: requestParsed.payload.contentPieces,
-    params: paramsSchema.parse(requestParsed.payload.params),
+    values,
     madeBy,
   };
 }
 
-async function loadValues<
-  Vs extends ValueSchemas,
-  Vr extends ValueResolves<Vs>,
->(values: [string, string][], valuesSchema: Vs, resolve: Vr, loadAs?: Account) {
-  const loaded = {};
+async function loadValues<P extends BaseRequestPayload>(
+  coValuesIds: [string, string][],
+  plainData: PlainDataFor<P>,
+  params: P,
+  loadAs?: Account,
+) {
+  const loaded = plainData as LoadedValuesFor<P>;
   const promises = [];
   const errors: string[] = [];
 
-  for (const [k, id] of values) {
-    const coSchema = getCoValueClass(valuesSchema, k);
+  for (const [k, id] of coValuesIds) {
+    const schemaDef = params[k];
+
+    if (!schemaDef || !("schema" in schemaDef)) {
+      throw new Error(`Value ${k} not found in valueSchemas`);
+    }
+
+    const coSchema = anySchemaToCoSchema(schemaDef.schema);
 
     promises.push(
       loadCoValue(coSchema, id, {
         // @ts-expect-error We can't really validate this
-        resolve: resolve[k],
+        resolve: schemaDef.resolve,
         loadAs: loadAs ?? Account.getMe(),
       }).then((v: unknown) => {
         if (!v) {
           errors.push(`Value ${k} not found/accessible`);
         }
 
-        // @ts-ignore
+        // @ts-expect-error We can't really validate this
         loaded[k] = v;
 
         return v;
@@ -214,48 +293,72 @@ async function loadValues<
     throw new Error(errors.join("\n"));
   }
 
-  return loaded as ValuesFor<Vs, Vr>;
+  return loaded;
 }
 
 export function experimental_defineRequest<
-  Vs extends ValueSchemas,
-  Vr extends ValueResolves<Vs>,
-  P extends z.ZodType,
-  R extends z.ZodType,
->(
-  valueSchemas: Vs,
-  defOptions: {
-    resolve: Vr;
-    paramsSchema: P;
-    responseSchema: R;
-    url: string;
-  },
-) {
-  const handle = async (
-    request: Request,
-    as: Account,
-    callback: (
-      values: ValuesFor<Vs, Vr>,
-      params: z.infer<P>,
-      madeBy: Account,
-    ) => Promise<z.infer<R>>,
-  ): Promise<Response> => {
+  P extends BaseRequestPayload,
+  R extends BaseRequestPayload,
+>(params: RequestOptions<P, R>) {
+  const send = async (
+    values: InputValuesFor<P>,
+    options?: { owner?: Account },
+  ) => {
+    const as = options?.owner ?? Account.getMe();
     const node = as._raw.core.node;
-    const data = await parseIncomingRequest(
-      await request.json(),
-      defOptions.paramsSchema,
+
+    const response = await fetch(params.url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(
+        await serializeMessagePayload(values, params.payload, as),
+      ),
+    });
+
+    const responseBody = await response.json();
+
+    const responseParsed = z
+      .object({
+        type: z.literal("success"),
+        payload: z.any(),
+      })
+      .parse(responseBody);
+
+    const data = await handleIncomingMessage(
+      responseParsed.payload,
+      params.response,
       node.crypto,
       as,
     );
 
-    const values = await loadValues(
-      data.values,
-      valueSchemas,
-      defOptions.resolve,
+    return data.values;
+  };
+
+  const handle = async (
+    request: Request,
+    as: Account,
+    callback: (
+      values: LoadedValuesFor<P>,
+      madeBy: Account,
+    ) => Promise<LoadedValuesFor<R>>,
+  ): Promise<Response> => {
+    const node = as._raw.core.node;
+    const body = await request.json();
+    const data = await handleIncomingMessage(
+      body,
+      params.payload,
+      node.crypto,
       as,
     );
-    const responsePayload = defOptions.responseSchema.parse(
-      await callback(values, data.params, data.madeBy),
+
+    const responseValues = await callback(data.values, data.madeBy);
+
+    const responsePayload = await serializeMessagePayload(
+      responseValues as InputValuesFor<R>,
+      params.response,
+      as,
     );
 
     const responseBody = JSON.stringify({
@@ -269,34 +372,6 @@ export function experimental_defineRequest<
         "Content-Type": "application/json",
       },
     });
-  };
-
-  const send = async (
-    values: ValuesFor<Vs, {}>,
-    params: z.infer<P>,
-    options?: { assumeUnknown?: boolean; owner?: Account },
-  ) => {
-    const response = await fetch(defOptions.url, {
-      method: "POST",
-      body: await serializeRequest(
-        defOptions.paramsSchema,
-        valueSchemas,
-        values,
-        params,
-        defOptions.resolve,
-        options?.owner,
-      ),
-    });
-
-    const responseBody = await response.json();
-    const responseParsed = z
-      .object({
-        type: z.literal("success"),
-        payload: z.any(),
-      })
-      .parse(responseBody);
-
-    return defOptions.responseSchema.parse(responseParsed.payload);
   };
 
   return {
