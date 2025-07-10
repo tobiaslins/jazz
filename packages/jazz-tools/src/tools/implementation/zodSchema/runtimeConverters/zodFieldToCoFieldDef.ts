@@ -1,6 +1,6 @@
 import { CoMap, CoValueClass, isCoValueClass } from "../../../internal.js";
 import { coField } from "../../schema.js";
-import { isCoOptionalSchema } from "../schemaTypes/CoOptionalSchema.js";
+import { isAnyCoOptionalSchema } from "../schemaTypes/CoOptionalSchema.js";
 import {
   isUnionOfCoMapsDeeply,
   isUnionOfPrimitivesDeeply,
@@ -19,8 +19,14 @@ import {
   zodSchemaToCoSchemaOrKeepPrimitive,
 } from "./zodSchemaToCoSchema.js";
 
-type FieldSchema =
+/**
+ * Types of objects that can be nested inside CoValue schema containers
+ */
+type SchemaField =
+  // Schemas created with co.map(), co.record(), co.list(), etc.
   | AnyCoSchema
+  // CoValue classes created with class syntax, or framework-provided classes like Group
+  | CoValueClass
   | ZodPrimitiveSchema
   | z.core.$ZodOptional<z.core.$ZodType>
   | z.core.$ZodUnion<z.core.$ZodType[]>
@@ -37,25 +43,16 @@ type FieldSchema =
   | z.core.$ZodCatch<z.core.$ZodType>
   | (z.core.$ZodCustom<any, any> & { builtin: any });
 
-const getCoValueClassFromCoSchema = (schema: AnyCoSchema): CoValueClass => {
-  if (isCoOptionalSchema(schema)) {
-    return getCoValueClassFromCoSchema(
-      schema._zod.def.innerType as AnyCoSchema,
-    );
-  } else {
-    // TODO improve type safety
-    return (schema as any).getCoValueClass();
-  }
-};
-
-export function schemaFieldToCoFieldDef(schema: FieldSchema) {
-  if (isCoValueSchema(schema)) {
-    if (isCoOptionalSchema(schema)) {
-      return coField.ref(getCoValueClassFromCoSchema(schema), {
+export function schemaFieldToCoFieldDef(schema: SchemaField) {
+  if (isCoValueClass(schema)) {
+    return coField.ref(schema);
+  } else if (isCoValueSchema(schema)) {
+    if (isAnyCoOptionalSchema(schema)) {
+      return coField.ref(schema.getCoValueClass(), {
         optional: true,
       });
     }
-    return coField.ref(getCoValueClassFromCoSchema(schema));
+    return coField.ref(schema.getCoValueClass());
   } else {
     if ("_zod" in schema) {
       if (schema._zod.def.type === "optional") {
@@ -79,7 +76,7 @@ export function schemaFieldToCoFieldDef(schema: FieldSchema) {
         return coField.string;
       } else if (schema._zod.def.type === "readonly") {
         return schemaFieldToCoFieldDef(
-          (schema as unknown as ZodReadonly).def.innerType as FieldSchema,
+          (schema as unknown as ZodReadonly).def.innerType as SchemaField,
         );
       } else if (schema._zod.def.type === "date") {
         return coField.optional.Date;
@@ -88,7 +85,7 @@ export function schemaFieldToCoFieldDef(schema: FieldSchema) {
       } else if (schema._zod.def.type === "lazy") {
         // Mostly to support z.json()
         return schemaFieldToCoFieldDef(
-          (schema as unknown as ZodLazy).unwrap() as FieldSchema,
+          (schema as unknown as ZodLazy).unwrap() as SchemaField,
         );
       } else if (
         schema._zod.def.type === "default" ||
@@ -100,7 +97,7 @@ export function schemaFieldToCoFieldDef(schema: FieldSchema) {
 
         return schemaFieldToCoFieldDef(
           (schema as unknown as ZodDefault | ZodCatch).def
-            .innerType as FieldSchema,
+            .innerType as SchemaField,
         );
       } else if (schema._zod.def.type === "literal") {
         if (

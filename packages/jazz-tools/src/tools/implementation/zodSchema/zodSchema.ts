@@ -145,7 +145,7 @@ export type AnyCoSchema =
   | AnyCoOptionalSchema
   | AnyPlainTextSchema
   | AnyRichTextSchema
-  | FileStreamSchema;
+  | AnyFileStreamSchema;
 
 export type Loaded<
   T extends CoValueClass | AnyCoSchema,

@@ -6,6 +6,7 @@ import {
   CoMap,
   CoPlainText,
   CoRichText,
+  CoValueClass,
   FileStream,
   SchemaUnion,
   enrichAccountSchema,
@@ -36,14 +37,20 @@ import {
 } from "../zodSchema.js";
 import { schemaFieldToCoFieldDef } from "./zodFieldToCoFieldDef.js";
 import { enrichRichTextSchema } from "../schemaTypes/RichTextSchema.js";
-import { isCoOptionalSchema } from "../schemaTypes/CoOptionalSchema.js";
+import { isAnyCoOptionalSchema } from "../schemaTypes/CoOptionalSchema.js";
 
 let coSchemasForZodSchemas = new Map<z.core.$ZodType, AnyCoSchema>();
 
-export function isCoValueSchema(
-  schema: z.core.$ZodType,
+export function isAnyCoValueSchema(
+  schema: z.core.$ZodType | CoValueClass,
 ): schema is AnyCoSchema {
   return "collaborative" in schema && schema.collaborative === true;
+}
+
+export function isCoValueSchema(
+  schema: z.core.$ZodType | CoValueClass,
+): schema is CoValueSchemaFromZodSchema<AnyCoSchema> {
+  return isAnyCoValueSchema(schema) && "getCoValueClass" in schema;
 }
 
 /**
@@ -57,14 +64,14 @@ function tryZodSchemaToCoSchema<S extends z.core.$ZodType>(
   schema: S,
 ): CoValueSchemaFromZodSchema<S> | null {
   // TODO rethink how collaborative zod schemas are branded
-  if (isCoValueSchema(schema)) {
+  if (isAnyCoValueSchema(schema)) {
     if (coSchemasForZodSchemas.has(schema)) {
       return coSchemasForZodSchemas.get(
         schema,
       ) as CoValueSchemaFromZodSchema<S>;
     }
 
-    if (isCoOptionalSchema(schema)) {
+    if (isAnyCoOptionalSchema(schema)) {
       // Optional schemas are not supported as top-level schemas
       return null;
     } else if (isZodObject(schema)) {
@@ -178,15 +185,14 @@ export function zodSchemaToCoSchema<S extends z.core.$ZodType | AnyCoSchema>(
   return coSchema;
 }
 
-// TODO this should be anySchemaToCoValueClass
-// (or maybe coValueSchemaToCoValueClass)
+// TODO this should be coValueClassOrAnySchemaToCoValueClass
 export function anySchemaToCoSchema<S extends CoValueOrZodSchema>(
   schema: S,
 ): CoValueClassFromAnySchema<S> {
   if (isCoValueClass(schema)) {
     return schema as any;
-  } else if ("getCoValueClass" in schema) {
-    return (schema as any).getCoValueClass() as any;
+  } else if (isCoValueSchema(schema)) {
+    return schema.getCoValueClass() as any;
   } else if ("def" in schema) {
     const coSchema = tryZodSchemaToCoSchema(
       schema as z.core.$ZodType | AnyCoSchema,
