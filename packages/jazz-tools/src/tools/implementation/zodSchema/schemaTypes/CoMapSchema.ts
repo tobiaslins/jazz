@@ -8,7 +8,7 @@ import {
   Resolved,
   Simplify,
   SubscribeListenerOptions,
-  tryZodSchemaToCoSchema,
+  zodSchemaToCoSchema,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
@@ -183,7 +183,12 @@ export function enrichCoMapSchema<
       return coValueClass.loadUnique(...args);
     },
     catchall: (index: z.core.$ZodType) => {
-      return tryZodSchemaToCoSchema(baseCatchall(index));
+      const newSchema = baseCatchall(index);
+      // TODO avoid repeating this with coMapDefiner
+      const enrichedSchema = Object.assign(newSchema, {
+        collaborative: true,
+      }) as AnyCoMapSchema<Shape, Config>;
+      return zodSchemaToCoSchema(enrichedSchema);
     },
     withHelpers: (helpers: (Self: z.core.$ZodType) => object) => {
       return Object.assign(schema, helpers(schema));

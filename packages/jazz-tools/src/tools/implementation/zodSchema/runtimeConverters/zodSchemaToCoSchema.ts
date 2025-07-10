@@ -53,7 +53,7 @@ export function isCoValueSchema(
  * @returns The CoValue schema matching the provided ProtoCoSchema, or `null` if the Zod schema
  * does not match a CoValue schema.
  */
-export function tryZodSchemaToCoSchema<S extends z.core.$ZodType>(
+function tryZodSchemaToCoSchema<S extends z.core.$ZodType>(
   schema: S,
 ): CoValueSchemaFromZodSchema<S> | null {
   // TODO rethink how collaborative zod schemas are branded
