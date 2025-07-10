@@ -119,13 +119,13 @@ export const coRecordDefiner = <
 export const coListDefiner = <T extends z.core.$ZodType>(
   element: T,
 ): CoListSchema<T> => {
-  const arraySchema = Object.assign(
-    z.array(element).meta({
-      collaborative: true,
-    }),
-    { collaborative: true },
-  ) as AnyCoListSchema<T>;
-  return zodSchemaToCoSchema(arraySchema);
+  const schema = z.array(element).meta({
+    collaborative: true,
+  });
+  const enrichedSchema = Object.assign(schema, {
+    collaborative: true,
+  }) as AnyCoListSchema<T>;
+  return zodSchemaToCoSchema(enrichedSchema);
 };
 
 export const coProfileDefiner = <

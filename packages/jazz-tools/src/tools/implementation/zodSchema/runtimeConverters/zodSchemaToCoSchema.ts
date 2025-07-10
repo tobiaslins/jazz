@@ -112,7 +112,7 @@ function tryZodSchemaToCoSchema<S extends z.core.$ZodType>(
       const coValueSchema = enrichCoListSchema(schema, coValueClass as any);
 
       coSchemasForZodSchemas.set(schema, coValueSchema);
-      return coValueClass as unknown as CoValueSchemaFromZodSchema<S>;
+      return coValueSchema as unknown as CoValueSchemaFromZodSchema<S>;
     } else if (isZodCustom(schema)) {
       if ("builtin" in schema) {
         if (schema.builtin === "CoFeed" && "element" in schema) {
