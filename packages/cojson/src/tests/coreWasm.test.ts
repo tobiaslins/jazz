@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from "vitest";
-import { SessionLog } from "cojson-core-wasm";
+import { SessionLog, test_ed25519_dalek_vector } from "cojson-core-wasm";
 import { ed25519 } from "@noble/curves/ed25519";
 import { base58 } from "@scure/base";
 import * as fs from "fs";
@@ -23,6 +23,11 @@ describe("SessionLog WASM", () => {
     );
     const data = fs.readFileSync(dataPath, "utf-8");
     exampleSessions = JSON.parse(data);
+  });
+
+  it("test_ed25519_dalek_vector", () => {
+    const result = test_ed25519_dalek_vector();
+    console.log("result", result);
   });
 
   it("it works", () => {
@@ -52,12 +57,8 @@ describe("SessionLog WASM", () => {
     const coIdStr = sessionIdStr.split("_session_")[0]!;
     const publicKey = decodeZ(exampleSessions.signerID);
 
-    console.log("publicKey", publicKey, exampleSessions.signerID);
-
     let session = new SessionLog(coIdStr, sessionIdStr, publicKey);
-
     const lastSignature = decodeZ(example.lastSignature);
-    console.log("Expected hash from test data:", example.lastHash, lastSignature,example.lastSignature);
 
     try {
       session.tryAdd([JSON.stringify(example.transactions[0])], lastSignature, false);

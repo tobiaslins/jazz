@@ -1,5 +1,5 @@
 use cojson_core::{CoJsonCoreError, KeyID, SessionLogInternal, CoID, SessionID};
-use ed25519_dalek::{Signature, SigningKey, VerifyingKey};
+use ed25519_dalek::{Signature, SigningKey, VerifyingKey, Signer};
 use serde_json::value::RawValue;
 use thiserror::Error;
 use wasm_bindgen::prelude::*;
@@ -72,10 +72,12 @@ impl SessionLog {
             })
             .collect::<Result<Vec<_>, _>>()?;
 
-        let signature_array: [u8; 64] = new_signature_bytes
-            .try_into()
-            .map_err(|_| WasmError::Js(JsValue::from_str("Invalid signature length, expected 64 bytes")))?;
-        let new_signature = Signature::from_bytes(&signature_array);
+            let signature_bytes_from_js = new_signature_bytes.to_vec();
+
+            let signature_array: [u8; 64] = signature_bytes_from_js
+                .try_into()
+                .map_err(|_| WasmError::Js(JsValue::from_str("Invalid signature length, expected 64 bytes")))?;
+            let new_signature = Signature::from_bytes(&signature_array);
 
         self.internal
             .try_add(transactions, new_signature, skip_verify)?;
@@ -119,4 +121,42 @@ impl SessionLog {
             .internal
             .decrypt_next_transaction_changes_json(tx_index, key_secret)?)
     }
+}
+
+#[wasm_bindgen]
+pub fn test_ed25519_dalek_vector() -> Result<(), JsValue> {
+    let line = "0d4a05b07352a5436e180356da0ae6efa0345ff7fb1572575772e8005ed978e9e61a185bcef2613a6c7cb79763ce945d3b245d76114dd440bcf5f2dc1aa57057:e61a185bcef2613a6c7cb79763ce945d3b245d76114dd440bcf5f2dc1aa57057:cbc77b:d9868d52c2bebce5f3fa5a79891970f309cb6591e3e1702a70276fa97c24b3a8e58606c38c9758529da50ee31b8219cba45271c689afa60b0ea26c99db19b00ccbc77b:";
+    let parts: Vec<&str> = line.split(':').collect();
+    if parts.len() != 5 {
+        return Err(JsValue::from_str(&format!("wrong number of fields in line: expected 5, got {}", parts.len())));
+    }
+
+    let sec_bytes: Vec<u8> = hex::decode(parts[0]).map_err(|e| JsValue::from_str(&e.to_string()))?;
+    let pub_bytes: Vec<u8> = hex::decode(parts[1]).map_err(|e| JsValue::from_str(&e.to_string()))?;
+    let msg_bytes: Vec<u8> = hex::decode(parts[2]).map_err(|e| JsValue::from_str(&e.to_string()))?;
+    let sig_bytes: Vec<u8> = hex::decode(parts[3]).map_err(|e| JsValue::from_str(&e.to_string()))?;
+
+    let sec_key_bytes: &[u8; 32] = &sec_bytes[..32].try_into().map_err(|_| JsValue::from_str("Failed to slice secret key"))?;
+    let pub_key_bytes: &[u8; 32] = &pub_bytes[..32].try_into().map_err(|_| JsValue::from_str("Failed to slice public key"))?;
+
+    let signing_key = SigningKey::from_bytes(sec_key_bytes);
+    let expected_verifying_key = VerifyingKey::from_bytes(pub_key_bytes).map_err(|e| JsValue::from_str(&e.to_string()))?;
+    if expected_verifying_key != signing_key.verifying_key() {
+        return Err(JsValue::from_str("Derived verifying key does not match expected verifying key"));
+    }
+
+    let sig1: Signature = Signature::try_from(&sig_bytes[..64]).map_err(|_| JsValue::from_str("Failed to create signature from bytes"))?;
+    let sig2: Signature = signing_key.sign(&msg_bytes);
+
+    if sig1 != sig2 {
+        return Err(JsValue::from_str("Signature bytes not equal"));
+    }
+
+    signing_key.verify(&msg_bytes, &sig2).map_err(|e| JsValue::from_str(&format!("Signature verification failed: {}", e)))?;
+
+    expected_verifying_key
+        .verify_strict(&msg_bytes, &sig2)
+        .map_err(|e| JsValue::from_str(&format!("Signature strict verification failed: {}", e)))?;
+
+    Ok(())
 }

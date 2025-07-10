@@ -1,12 +1,12 @@
-use serde::{Deserialize, Serialize};
-use serde_json::{value::RawValue, Number, Value as JsonValue};
-use ed25519_dalek::{Signature, Signer, SigningKey, VerifyingKey, Verifier, SignatureError};
+use base64::{engine::general_purpose::URL_SAFE, Engine as _};
 use bs58;
+use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
 use salsa20::{
     cipher::{KeyIvInit, StreamCipher},
     XSalsa20,
 };
-use base64::{engine::general_purpose::URL_SAFE, Engine as _};
+use serde::{Deserialize, Serialize};
+use serde_json::{value::RawValue, Number, Value as JsonValue};
 use thiserror::Error;
 
 // Re-export lzy for convenience
@@ -39,7 +39,6 @@ pub struct Encrypted<T> {
     pub value: String,
     _phantom: std::marker::PhantomData<T>,
 }
-
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PrivateTransaction {
@@ -89,8 +88,8 @@ pub enum CoJsonCoreError {
     #[error("JSON deserialization failed")]
     Json(#[from] serde_json::Error),
 
-    #[error("Signature verification failed: {0} {1:?} {2:?} {3:?}")]
-    SignatureVerification(SignatureError, String, Signature, VerifyingKey),
+    #[error("Signature verification failed: (hash: {0})")]
+    SignatureVerification(String),
 }
 
 pub struct SessionLogInternal {
@@ -128,17 +127,18 @@ impl SessionLogInternal {
             }
 
             let new_hash = hasher.finalize();
-            let new_hash_encoded = format!("hash_z{}", bs58::encode(new_hash.as_bytes()).into_string());
-
-            println!("new_hash_encoded: {}, new_signature: {:?} public_key: {:?}", new_hash_encoded, new_signature, self.public_key);
+            let new_hash_encoded_stringified =
+                format!("\"hash_z{}\"", bs58::encode(new_hash.as_bytes()).into_string());
 
             match self
                 .public_key
-                .verify(new_hash_encoded.as_bytes(), &new_signature)
+                .verify(new_hash_encoded_stringified.as_bytes(), &new_signature)
             {
                 Ok(()) => {}
-                Err(e) => {
-                    return Err(CoJsonCoreError::SignatureVerification(e, new_hash_encoded, new_signature, self.public_key));
+                Err(_) => {
+                    return Err(CoJsonCoreError::SignatureVerification(
+                        new_hash_encoded_stringified,
+                    ));
                 }
             }
         }
@@ -166,10 +166,14 @@ impl SessionLogInternal {
 
         let nonce_material = JsonValue::Object(serde_json::Map::from_iter(vec![
             ("in".to_string(), JsonValue::String(self.co_id.0.clone())),
-            ("tx".to_string(), serde_json::to_value(TransactionID {
-                session_id: self.session_id.clone(),
-                tx_index,
-            }).unwrap()),
+            (
+                "tx".to_string(),
+                serde_json::to_value(TransactionID {
+                    session_id: self.session_id.clone(),
+                    tx_index,
+                })
+                .unwrap(),
+            ),
         ]));
 
         let nonce = self.generate_json_nonce(&nonce_material);
@@ -207,17 +211,23 @@ impl SessionLogInternal {
         tx_index: u32,
         key_secret: &[u8],
     ) -> Result<String, CoJsonCoreError> {
-        let tx_json = self.transactions_json.get(tx_index as usize).ok_or(CoJsonCoreError::TransactionNotFound(tx_index))?;
+        let tx_json = self
+            .transactions_json
+            .get(tx_index as usize)
+            .ok_or(CoJsonCoreError::TransactionNotFound(tx_index))?;
         let tx: Transaction = serde_json::from_str(tx_json)?;
 
         match tx {
             Transaction::Private(private_tx) => {
                 let nonce_material = JsonValue::Object(serde_json::Map::from_iter(vec![
                     ("in".to_string(), JsonValue::String(self.co_id.0.clone())),
-                    ("tx".to_string(), serde_json::to_value(TransactionID {
-                        session_id: self.session_id.clone(),
-                        tx_index,
-                    })?),
+                    (
+                        "tx".to_string(),
+                        serde_json::to_value(TransactionID {
+                            session_id: self.session_id.clone(),
+                            tx_index,
+                        })?,
+                    ),
                 ]));
 
                 let nonce = self.generate_json_nonce(&nonce_material);
@@ -236,9 +246,7 @@ impl SessionLogInternal {
 
                 Ok(String::from_utf8(ciphertext)?)
             }
-            Transaction::Trusting(trusting_tx) => {
-                Ok(trusting_tx.changes)
-            }
+            Transaction::Trusting(trusting_tx) => Ok(trusting_tx.changes),
         }
     }
 
@@ -257,17 +265,17 @@ impl SessionLogInternal {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ed25519_dalek::Signer;
-    use rand_core::{OsRng, RngCore};
+    use rand_core::{OsRng};
     use std::{collections::HashMap, fs};
 
     fn decode_z(value: &str) -> Result<Vec<u8>, String> {
         let prefix_end = value.find("_z").ok_or("Invalid prefix")? + 2;
-        bs58::decode(&value[prefix_end..]).into_vec().map_err(|e| e.to_string())
+        bs58::decode(&value[prefix_end..])
+            .into_vec()
+            .map_err(|e| e.to_string())
     }
 
     #[test]
@@ -305,22 +313,35 @@ mod tests {
             signer_id: SignerID,
         }
 
-        let data = fs::read_to_string("data/exampleSessions.json").expect("Unable to read exampleSessions.json");
+        let data = fs::read_to_string("data/exampleSessions.json")
+            .expect("Unable to read exampleSessions.json");
         let root: Root = serde_json::from_str(&data).unwrap();
 
         let (session_id_str, example) = root.example_base.into_iter().next().unwrap();
         let session_id = SessionID(session_id_str.clone());
-        let co_id = CoID(session_id_str.split("_session_").next().unwrap().to_string());
-
-        let public_key = VerifyingKey::from_bytes(&decode_z(&root.signer_id.0).unwrap().try_into().unwrap()).unwrap();
-
-        let mut session = SessionLogInternal::new(
-            co_id,
-            session_id,
-            public_key,
+        let co_id = CoID(
+            session_id_str
+                .split("_session_")
+                .next()
+                .unwrap()
+                .to_string(),
         );
 
-        let new_signature = Signature::from_bytes(&decode_z(&example.last_signature).unwrap().try_into().unwrap());
+        let public_key_bytes = decode_z(&root.signer_id.0).unwrap();
+
+
+        let public_key =
+            VerifyingKey::from_bytes(&public_key_bytes.try_into().unwrap())
+                .unwrap();
+
+        let mut session = SessionLogInternal::new(co_id, session_id, public_key);
+
+        let new_signature = Signature::from_bytes(
+            &decode_z(&example.last_signature)
+                .unwrap()
+                .try_into()
+                .unwrap(),
+        );
 
         let result = session.try_add(
             vec![example.transactions[0].to_owned()],
@@ -331,13 +352,17 @@ mod tests {
         match result {
             Ok(()) => {
                 let final_hash = session.hasher.finalize();
-                let final_hash_encoded = format!("hash_z{}", bs58::encode(final_hash.as_bytes()).into_string());
+                let final_hash_encoded = format!(
+                    "hash_z{}",
+                    bs58::encode(final_hash.as_bytes()).into_string()
+                );
 
                 assert_eq!(final_hash_encoded, example.last_hash);
                 assert_eq!(session.last_signature, Some(new_signature));
             }
-            Err(CoJsonCoreError::SignatureVerification(_, new_hash_encoded, _, _)) => {
+            Err(CoJsonCoreError::SignatureVerification(new_hash_encoded)) => {
                 assert_eq!(new_hash_encoded, example.last_hash);
+                panic!("Signature verification failed despite same hash");
             }
             Err(e) => {
                 panic!("Unexpected error: {:?}", e);
@@ -348,9 +373,11 @@ mod tests {
     #[test]
     fn test_add_new_transaction() {
         // Load the example data to get all the pieces we need
-        let data = fs::read_to_string("data/exampleSessions.json").expect("Unable to read exampleSessions.json");
+        let data = fs::read_to_string("data/exampleSessions.json")
+            .expect("Unable to read exampleSessions.json");
         let root: serde_json::Value = serde_json::from_str(&data).unwrap();
-        let session_data = &root["exampleBase"]["co_zkNajJ1BhLzR962jpzvXxx917ZB_session_zXzrQLTtp8rR"];
+        let session_data =
+            &root["exampleBase"]["co_zkNajJ1BhLzR962jpzvXxx917ZB_session_zXzrQLTtp8rR"];
         let tx_from_example = &session_data["transactions"][0];
         let known_key = &root["knownKeys"][0];
 
@@ -367,7 +394,8 @@ mod tests {
         );
 
         // The plaintext changes we want to add
-        let changes_json = r#"[{"after":"start","op":"app","value":"co_zMphsnYN6GU8nn2HDY5suvyGufY"}]"#;
+        let changes_json =
+            r#"[{"after":"start","op":"app","value":"co_zMphsnYN6GU8nn2HDY5suvyGufY"}]"#;
 
         // Extract all the necessary components from the example data
         let key_secret = decode_z(known_key["secret"].as_str().unwrap()).unwrap();
@@ -375,13 +403,8 @@ mod tests {
         let made_at = tx_from_example["madeAt"].as_u64().unwrap();
 
         // Call the function we are testing
-        let new_signature = session.add_new_transaction(
-            changes_json,
-            &signing_key,
-            &key_secret,
-            key_id,
-            made_at,
-        );
+        let new_signature =
+            session.add_new_transaction(changes_json, &signing_key, &key_secret, key_id, made_at);
 
         // 1. Check that the transaction we created matches the one in the file
         let created_tx_json = &session.transactions_json[0];
@@ -390,11 +413,20 @@ mod tests {
 
         // 2. Check that the final hash of the session matches the one in the file
         let final_hash = session.hasher.finalize();
-        let final_hash_encoded = format!("hash_z{}", bs58::encode(final_hash.as_bytes()).into_string());
-        assert_eq!(final_hash_encoded, session_data["lastHash"].as_str().unwrap());
+        let final_hash_encoded = format!(
+            "hash_z{}",
+            bs58::encode(final_hash.as_bytes()).into_string()
+        );
+        assert_eq!(
+            final_hash_encoded,
+            session_data["lastHash"].as_str().unwrap()
+        );
 
         // 3. Check that the signature is valid for our generated key
-        assert!(session.public_key.verify(final_hash_encoded.as_bytes(), &new_signature).is_ok());
+        assert!(session
+            .public_key
+            .verify(final_hash_encoded.as_bytes(), &new_signature)
+            .is_ok());
         assert_eq!(session.last_signature, Some(new_signature));
     }
 
@@ -412,7 +444,6 @@ mod tests {
             last_signature: String,
             #[serde(borrow)]
             transactions: Vec<&'a RawValue>,
-            last_hash: String,
         }
 
         #[derive(Deserialize, Debug)]
@@ -428,44 +459,47 @@ mod tests {
             co_id: CoID,
         }
 
-        let data = fs::read_to_string("data/exampleSessions.json").expect("Unable to read exampleSessions.json");
+        let data = fs::read_to_string("data/exampleSessions.json")
+            .expect("Unable to read exampleSessions.json");
         let root: Root = serde_json::from_str(&data).unwrap();
 
         let (session_id_str, example) = root.example_base.into_iter().next().unwrap();
         let session_id = SessionID(session_id_str.clone());
 
-        let public_key = VerifyingKey::from_bytes(&decode_z(&root.signer_id.0).unwrap().try_into().unwrap()).unwrap();
+        let public_key =
+            VerifyingKey::from_bytes(&decode_z(&root.signer_id.0).unwrap().try_into().unwrap())
+                .unwrap();
 
-        let mut session = SessionLogInternal::new(
-            root.co_id,
-            session_id,
-            public_key,
+        let mut session = SessionLogInternal::new(root.co_id, session_id, public_key);
+
+        let new_signature = Signature::from_bytes(
+            &decode_z(&example.last_signature)
+                .unwrap()
+                .try_into()
+                .unwrap(),
         );
 
-        let new_signature = Signature::from_bytes(&decode_z(&example.last_signature).unwrap().try_into().unwrap());
-
-        session.try_add(
-            example
-                .transactions
-                .into_iter()
-                .map(|v| v.to_owned())
-                .collect(),
-            new_signature,
-            true, // Skipping verification because we don't have the right initial state
-        ).unwrap();
+        session
+            .try_add(
+                example
+                    .transactions
+                    .into_iter()
+                    .map(|v| v.to_owned())
+                    .collect(),
+                new_signature,
+                true, // Skipping verification because we don't have the right initial state
+            )
+            .unwrap();
 
         let key_secret = decode_z(&root.known_keys[0].secret).unwrap();
 
-        let nonce_material_for_decryption = JsonValue::Object(serde_json::Map::from_iter(vec![
-            ("in".to_string(), JsonValue::String(session.co_id.0.clone())),
-            ("tx".to_string(), serde_json::to_value(TransactionID {
-                session_id: session.session_id.clone(),
-                tx_index: 0,
-            }).unwrap()),
-        ]));
+        let decrypted = session
+            .decrypt_next_transaction_changes_json(0, &key_secret)
+            .unwrap();
 
-        let decrypted = session.decrypt_next_transaction_changes_json(0, &key_secret).unwrap();
-
-        assert_eq!(decrypted, r#"[{"after":"start","op":"app","value":"co_zMphsnYN6GU8nn2HDY5suvyGufY"}]"#);
+        assert_eq!(
+            decrypted,
+            r#"[{"after":"start","op":"app","value":"co_zMphsnYN6GU8nn2HDY5suvyGufY"}]"#
+        );
     }
 }
