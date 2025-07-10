@@ -249,7 +249,7 @@ export class SubscriptionScope<D extends CoValue> {
     // If the value is in error, we send the update regardless of the children statuses
     if (this.value.type !== "loaded") return true;
 
-    if (this.isStreaming()) {
+    if (this.isStreaming() && !this.isFileStream()) {
       return false;
     }
 
@@ -295,6 +295,14 @@ export class SubscriptionScope<D extends CoValue> {
     }
 
     return this.value.value._raw.core.verified.isStreaming();
+  }
+
+  isFileStream() {
+    if (this.value.type !== "loaded") {
+      return false;
+    }
+
+    return this.value.value._raw.core.verified.header.meta?.type === "binary";
   }
 
   triggerUpdate() {
