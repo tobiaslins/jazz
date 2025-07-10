@@ -13,6 +13,7 @@ import {
 import {
   AccountSchema,
   AnyAccountSchema,
+  BaseAccountShape,
 } from "./schemaTypes/AccountSchema.js";
 import { AnyCoFeedSchema, CoFeedSchema } from "./schemaTypes/CoFeedSchema.js";
 import { AnyCoListSchema, CoListSchema } from "./schemaTypes/CoListSchema.js";
@@ -40,6 +41,7 @@ import {
 } from "./schemaTypes/RichTextSchema.js";
 import { InstanceOfSchemaCoValuesNullable } from "./typeConverters/InstanceOfSchemaCoValuesNullable.js";
 import { z } from "./zodReExport.js";
+import { CoDiscriminatedUnionSchema } from "./schemaTypes/CoDiscriminatedUnionSchema.js";
 
 // defining an extra type for this, otherwise BaseSchema & {...} often
 // gets expanded into a n inferred type that's too long for typescript to print
@@ -92,9 +94,8 @@ export type CoValueOrZodSchema = CoValueClass | AnyCoSchema;
 // TODO rename to CoValueSchemaFromCoProtoSchema
 export type CoValueSchemaFromZodSchema<S extends z.core.$ZodType> =
   S extends z.core.$ZodType
-    ? S extends AnyAccountSchema<infer Shape>
-      ? // @ts-expect-error TODO can we tighten AnyAccountSchema's Shape?
-        AccountSchema<Shape>
+    ? S extends AnyAccountSchema<infer Shape extends BaseAccountShape>
+      ? AccountSchema<Shape>
       : S extends AnyCoRecordSchema<infer K, infer V>
         ? CoRecordSchema<K, V>
         : S extends AnyCoMapSchema<infer Shape, infer Config>
