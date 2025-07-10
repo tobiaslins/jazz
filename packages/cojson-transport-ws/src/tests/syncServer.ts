@@ -88,5 +88,6 @@ export const startSyncServer = async (port?: number) => {
     syncServer,
     port: actualPort,
     localNode,
+    wss,
   };
 };

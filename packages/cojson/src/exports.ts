@@ -1,11 +1,6 @@
 import { base64URLtoBytes, bytesToBase64url } from "./base64url.js";
 import { type RawCoValue } from "./coValue.js";
-import {
-  CO_VALUE_LOADING_CONFIG,
-  CoValueCore,
-  MAX_RECOMMENDED_TX_SIZE,
-  idforHeader,
-} from "./coValueCore/coValueCore.js";
+import { CoValueCore, idforHeader } from "./coValueCore/coValueCore.js";
 import { CoValueUniqueness } from "./coValueCore/verifiedState.js";
 import {
   ControlledAccount,
@@ -42,7 +37,7 @@ import {
 import { Stringified, parseJSON, stableStringify } from "./jsonStringify.js";
 import { LocalNode } from "./localNode.js";
 import type { AccountRole, Role } from "./permissions.js";
-import { Channel, connectedPeers } from "./streamUtils.js";
+import { ConnectedPeerChannel, connectedPeers } from "./streamUtils.js";
 import { accountOrAgentIDfromSessionID } from "./typeUtils/accountOrAgentIDfromSessionID.js";
 import { expectGroup } from "./typeUtils/expectGroup.js";
 import { isAccountID } from "./typeUtils/isAccountID.js";
@@ -63,24 +58,21 @@ import type { AgentID, RawCoID, SessionID } from "./ids.js";
 import type { JsonObject, JsonValue } from "./jsonValue.js";
 import type * as Media from "./media.js";
 import { disablePermissionErrors } from "./permissions.js";
-import type {
-  IncomingSyncStream,
-  OutgoingSyncQueue,
-  Peer,
-  SyncMessage,
-} from "./sync.js";
-import {
-  DisconnectedError,
-  PingTimeoutError,
-  SyncManager,
-  emptyKnownState,
-} from "./sync.js";
+import type { Peer, SyncMessage } from "./sync.js";
+import { DisconnectedError, SyncManager, emptyKnownState } from "./sync.js";
 
 type Value = JsonValue | AnyRawCoValue;
 
+export { PriorityBasedMessageQueue } from "./PriorityBasedMessageQueue.js";
 import { getDependedOnCoValuesFromRawData } from "./coValueCore/utils.js";
+import {
+  CO_VALUE_LOADING_CONFIG,
+  MAX_RECOMMENDED_TX_SIZE,
+  setCoValueLoadingRetryDelay,
+  setIncomingMessagesTimeBudget,
+} from "./config.js";
 import { LogLevel, logger } from "./logger.js";
-import { getPriorityFromHeader } from "./priority.js";
+import { CO_VALUE_PRIORITY, getPriorityFromHeader } from "./priority.js";
 
 /** @hidden */
 export const cojsonInternals = {
@@ -100,16 +92,16 @@ export const cojsonInternals = {
   accountHeaderForInitialAgentSecret,
   idforHeader,
   StreamingHash,
-  Channel,
   getPriorityFromHeader,
   getGroupDependentKeyList,
   getGroupDependentKey,
   disablePermissionErrors,
   SyncManager,
   CO_VALUE_LOADING_CONFIG,
-  setCoValueLoadingRetryDelay(delay: number) {
-    CO_VALUE_LOADING_CONFIG.RETRY_DELAY = delay;
-  },
+  CO_VALUE_PRIORITY,
+  setIncomingMessagesTimeBudget,
+  setCoValueLoadingRetryDelay,
+  ConnectedPeerChannel,
   textEncoder,
   textDecoder,
 };
@@ -161,10 +153,7 @@ export {
 
 export type {
   Value,
-  IncomingSyncStream,
-  OutgoingSyncQueue,
   DisconnectedError,
-  PingTimeoutError,
   CoValueUniqueness,
   Stringified,
   CoStreamItem,
@@ -173,6 +162,8 @@ export type {
   OpID,
   AccountRole,
 };
+
+export * from "./storage/index.js";
 
 // biome-ignore format: off
 // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -196,5 +187,7 @@ export namespace CojsonInternalTypes {
   export type SignerID = import("./crypto/crypto.js").SignerID;
   export type SignerSecret = import("./crypto/crypto.js").SignerSecret;
   export type JsonObject = import("./jsonValue.js").JsonObject;
+  export type OutgoingPeerChannel = import("./sync.js").OutgoingPeerChannel;
+  export type IncomingPeerChannel = import("./sync.js").IncomingPeerChannel;
 }
 // biome-ignore format: on
