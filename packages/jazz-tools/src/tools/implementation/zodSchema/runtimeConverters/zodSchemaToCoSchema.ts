@@ -185,8 +185,8 @@ export function anySchemaToCoSchema<S extends CoValueOrZodSchema>(
 ): CoValueClassFromAnySchema<S> {
   if (isCoValueClass(schema)) {
     return schema as any;
-  } else if ("getCoSchema" in schema) {
-    return (schema as any).getCoSchema() as any;
+  } else if ("getCoValueClass" in schema) {
+    return (schema as any).getCoValueClass() as any;
   } else if ("def" in schema) {
     const coSchema = tryZodSchemaToCoSchema(
       schema as z.core.$ZodType | AnyCoSchema,
@@ -196,7 +196,7 @@ export function anySchemaToCoSchema<S extends CoValueOrZodSchema>(
         `Unsupported zod type: ${(schema.def as any)?.type || JSON.stringify(schema)}`,
       );
     }
-    return coSchema.getCoSchema() as any;
+    return coSchema.getCoValueClass() as any;
   }
 
   throw new Error(`Unsupported schema: ${JSON.stringify(schema)}`);

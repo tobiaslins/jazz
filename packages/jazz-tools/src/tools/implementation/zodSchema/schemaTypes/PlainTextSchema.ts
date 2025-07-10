@@ -28,7 +28,7 @@ export type PlainTextSchema = AnyPlainTextSchema & {
     listener: (value: CoPlainText, unsubscribe: () => void) => void,
   ): () => void;
   fromRaw(raw: RawCoPlainText): CoPlainText;
-  getCoSchema: () => typeof CoPlainText;
+  getCoValueClass: () => typeof CoPlainText;
 };
 
 export function enrichPlainTextSchema(
@@ -50,7 +50,7 @@ export function enrichPlainTextSchema(
       // @ts-expect-error
       return coValueClass.fromRaw(...args);
     },
-    getCoSchema: () => {
+    getCoValueClass: () => {
       return coValueClass;
     },
   }) as unknown as PlainTextSchema;

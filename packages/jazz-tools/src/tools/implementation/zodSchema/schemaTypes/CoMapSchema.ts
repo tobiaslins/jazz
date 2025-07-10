@@ -147,7 +147,7 @@ export type CoMapSchema<
       ) => undefined,
     ): CoMapSchema<Shape, Config, Owner>;
 
-    getCoSchema: () => typeof CoMap;
+    getCoValueClass: () => typeof CoMap;
   };
 
 export function enrichCoMapSchema<
@@ -199,7 +199,7 @@ export function enrichCoMapSchema<
 
       return coValueSchema;
     },
-    getCoSchema: () => {
+    getCoValueClass: () => {
       return coValueClass;
     },
   }) as unknown as CoMapSchema<Shape, Config>;

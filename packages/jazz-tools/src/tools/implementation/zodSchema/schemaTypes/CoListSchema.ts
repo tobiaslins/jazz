@@ -52,7 +52,7 @@ export type CoListSchema<T extends z.core.$ZodType> = z.core.$ZodArray<T> & {
     helpers: (Self: S) => T,
   ): WithHelpers<S, T>;
 
-  getCoSchema: () => typeof CoList;
+  getCoValueClass: () => typeof CoList;
 };
 
 export function enrichCoListSchema<T extends z.core.$ZodType>(
@@ -73,7 +73,7 @@ export function enrichCoListSchema<T extends z.core.$ZodType>(
     withHelpers: (helpers: (Self: z.core.$ZodType) => object) => {
       return Object.assign(schema, helpers(schema));
     },
-    getCoSchema: () => {
+    getCoValueClass: () => {
       return coValueClass;
     },
   }) as unknown as CoListSchema<T>;

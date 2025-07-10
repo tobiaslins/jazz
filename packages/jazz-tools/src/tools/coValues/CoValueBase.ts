@@ -100,7 +100,8 @@ export class CoValueBase implements CoValue {
     : S extends z.core.$ZodType
       ? NonNullable<InstanceOfSchemaCoValuesNullable<S>>
       : never {
-    const cl = "getCoSchema" in schema ? (schema as any).getCoSchema() : schema;
+    const cl =
+      "getCoValueClass" in schema ? (schema as any).getCoValueClass() : schema;
 
     if (this.constructor === cl) {
       return this as any;

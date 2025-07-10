@@ -101,7 +101,7 @@ export function schemaUnionDiscriminatorFor(
             | CoMapSchema<any>
             | AccountSchema
             | CoListSchema<any>;
-          return coValueSchema.getCoSchema() as CoValueClass<any> &
+          return coValueSchema.getCoValueClass() as CoValueClass<any> &
             CoValueFromRaw<any>;
         }
       }

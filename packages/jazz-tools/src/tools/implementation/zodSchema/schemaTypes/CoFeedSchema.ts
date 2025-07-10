@@ -58,7 +58,7 @@ export type CoFeedSchema<T extends z.core.$ZodType> = z.core.$ZodCustom<
     ) => void,
   ): () => void;
 
-  getCoSchema: () => typeof CoFeed;
+  getCoValueClass: () => typeof CoFeed;
 };
 
 export function enrichCoFeedSchema<T extends z.core.$ZodType>(
@@ -80,7 +80,7 @@ export function enrichCoFeedSchema<T extends z.core.$ZodType>(
     withHelpers: (helpers: (Self: z.core.$ZodType) => object) => {
       return Object.assign(schema, helpers(schema));
     },
-    getCoSchema: () => {
+    getCoValueClass: () => {
       return coValueClass;
     },
   }) as unknown as CoFeedSchema<T>;

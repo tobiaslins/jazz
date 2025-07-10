@@ -25,7 +25,7 @@ export type RichTextSchema = AnyRichTextSchema & {
     id: string,
     listener: (value: CoRichText, unsubscribe: () => void) => void,
   ): () => void;
-  getCoSchema: () => typeof CoRichText;
+  getCoValueClass: () => typeof CoRichText;
 };
 
 export function enrichRichTextSchema(
@@ -43,7 +43,7 @@ export function enrichRichTextSchema(
       // @ts-expect-error
       return coValueClass.subscribe(...args);
     },
-    getCoSchema: () => {
+    getCoValueClass: () => {
       return coValueClass;
     },
   }) as unknown as RichTextSchema;

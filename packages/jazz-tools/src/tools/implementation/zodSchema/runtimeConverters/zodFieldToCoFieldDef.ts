@@ -44,7 +44,7 @@ const getCoValueClassFromCoSchema = (schema: AnyCoSchema): CoValueClass => {
     );
   } else {
     // TODO improve type safety
-    return (schema as any).getCoSchema();
+    return (schema as any).getCoValueClass();
   }
 };
 

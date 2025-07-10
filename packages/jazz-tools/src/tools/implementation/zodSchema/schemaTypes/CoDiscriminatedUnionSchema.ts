@@ -16,7 +16,7 @@ export type CoDiscriminatedUnionSchema<
     ...z.core.$ZodTypeDiscriminable[],
   ],
 > = AnyCoDiscriminatedUnionSchema<Types> & {
-  getCoSchema: () => typeof SchemaUnion;
+  getCoValueClass: () => typeof SchemaUnion;
 };
 
 export function enrichCoDiscriminatedUnionSchema<
@@ -29,7 +29,7 @@ export function enrichCoDiscriminatedUnionSchema<
   coValueClass: typeof SchemaUnion,
 ): CoDiscriminatedUnionSchema<Types> {
   return Object.assign(schema, {
-    getCoSchema: () => {
+    getCoValueClass: () => {
       return coValueClass;
     },
   }) as unknown as CoDiscriminatedUnionSchema<Types>;

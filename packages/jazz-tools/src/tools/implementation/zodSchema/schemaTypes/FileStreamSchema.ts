@@ -43,7 +43,7 @@ export type FileStreamSchema = AnyFileStreamSchema & {
     id: string,
     listener: (value: FileStream, unsubscribe: () => void) => void,
   ): () => void;
-  getCoSchema: () => typeof FileStream;
+  getCoValueClass: () => typeof FileStream;
 };
 
 export function enrichFileStreamSchema(
@@ -67,7 +67,7 @@ export function enrichFileStreamSchema(
       // @ts-expect-error
       return coValueClass.subscribe(...args);
     },
-    getCoSchema: () => {
+    getCoValueClass: () => {
       return coValueClass;
     },
   }) as unknown as FileStreamSchema;

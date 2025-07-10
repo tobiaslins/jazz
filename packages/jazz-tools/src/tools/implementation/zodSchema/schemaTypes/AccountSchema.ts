@@ -28,9 +28,10 @@ export type DefaultAccountShape = {
   root: CoMapSchema<{}>;
 };
 
-export type AccountSchema<
-  Shape extends BaseAccountShape = DefaultAccountShape,
-> = Omit<CoMapSchema<Shape>, "create" | "load" | "withMigration"> & {
+export type AccountSchema<Shape extends BaseAccountShape = DefaultAccountShape> = Omit<
+  CoMapSchema<Shape>,
+  "create" | "load" | "withMigration"
+> & {
   builtin: "Account";
 
   create: (options: {
@@ -62,7 +63,7 @@ export type AccountSchema<
     ) => void,
   ): AccountSchema<Shape>;
 
-  getCoSchema: () => typeof Account;
+  getCoValueClass: () => typeof Account;
 };
 
 export function enrichAccountSchema<Shape extends BaseAccountShape>(
@@ -112,7 +113,7 @@ export function enrichAccountSchema<Shape extends BaseAccountShape>(
 
       return enrichedSchema;
     },
-    getCoSchema: () => {
+    getCoValueClass: () => {
       return coValueClass;
     },
   }) as unknown as AccountSchema<Shape>;

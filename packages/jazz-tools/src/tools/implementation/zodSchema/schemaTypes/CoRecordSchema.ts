@@ -83,7 +83,7 @@ export type CoRecordSchema<
     this: S,
     helpers: (Self: S) => T,
   ): WithHelpers<S, T>;
-  getCoSchema: () => typeof CoMap;
+  getCoValueClass: () => typeof CoMap;
 };
 
 // less precise verion to avoid circularity issues and allow matching against
