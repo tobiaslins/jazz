@@ -2,14 +2,13 @@ import { isCoValueSchema } from "../runtimeConverters/zodSchemaToCoSchema.js";
 import { z } from "../zodReExport.js";
 import { AnyCoSchema } from "../zodSchema.js";
 
-export type AnyCoOptionalSchema<
-  Shape extends z.core.$ZodType = z.core.$ZodType,
-> = CoOptionalSchema<Shape>;
+export type AnyCoOptionalSchema<Shape extends z.core.$ZodType = z.core.$ZodType> =
+  z.ZodOptional<Shape> & {
+    collaborative: true;
+  };
 
-// TODO the type constraint should eventually be AnyCoSchema
-export type CoOptionalSchema<T extends z.core.$ZodType> = z.ZodOptional<T> & {
-  collaborative: true;
-};
+export type CoOptionalSchema<Shape extends z.core.$ZodType = z.core.$ZodType> =
+  AnyCoOptionalSchema<Shape>;
 
 export function createCoOptionalSchema<T extends AnyCoSchema>(
   schema: T,

@@ -37,6 +37,7 @@ import {
 } from "../zodSchema.js";
 import { schemaFieldToCoFieldDef } from "./zodFieldToCoFieldDef.js";
 import { enrichRichTextSchema } from "../schemaTypes/RichTextSchema.js";
+import { isCoOptionalSchema } from "../schemaTypes/CoOptionalSchema.js";
 
 let coSchemasForZodSchemas = new Map<z.core.$ZodType, AnyCoSchema>();
 
@@ -64,7 +65,10 @@ function tryZodSchemaToCoSchema<S extends z.core.$ZodType>(
       ) as CoValueSchemaFromZodSchema<S>;
     }
 
-    if (isZodObject(schema)) {
+    if (isCoOptionalSchema(schema)) {
+      // Optional schemas are not supported as top-level schemas
+      return null;
+    } else if (isZodObject(schema)) {
       const def = getDef(schema);
 
       const ClassToExtend =
