@@ -1,13 +1,13 @@
 import { RawAccount, RawCoList, RawCoMap } from "cojson";
+import { CoValueClass, CoValueFromRaw } from "../../internal.js";
 import {
   isAnyCoValueSchema,
   zodSchemaToCoSchema,
 } from "./runtimeConverters/zodSchemaToCoSchema.js";
-import { z } from "./zodReExport.js";
-import { CoMapSchema } from "./schemaTypes/CoMapSchema.js";
 import { AccountSchema } from "./schemaTypes/AccountSchema.js";
 import { CoListSchema } from "./schemaTypes/CoListSchema.js";
-import { CoValueClass, CoValueFromRaw } from "../../internal.js";
+import { CoMapSchema } from "./schemaTypes/CoMapSchema.js";
+import { z } from "./zodReExport.js";
 
 export function schemaUnionDiscriminatorFor(
   schema: z.core.$ZodDiscriminatedUnion,

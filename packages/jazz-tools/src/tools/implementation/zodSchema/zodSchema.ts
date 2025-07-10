@@ -15,6 +15,7 @@ import {
   AnyAccountSchema,
   BaseAccountShape,
 } from "./schemaTypes/AccountSchema.js";
+import { CoDiscriminatedUnionSchema } from "./schemaTypes/CoDiscriminatedUnionSchema.js";
 import { AnyCoFeedSchema, CoFeedSchema } from "./schemaTypes/CoFeedSchema.js";
 import { AnyCoListSchema, CoListSchema } from "./schemaTypes/CoListSchema.js";
 import {
@@ -41,7 +42,6 @@ import {
 } from "./schemaTypes/RichTextSchema.js";
 import { InstanceOfSchemaCoValuesNullable } from "./typeConverters/InstanceOfSchemaCoValuesNullable.js";
 import { z } from "./zodReExport.js";
-import { CoDiscriminatedUnionSchema } from "./schemaTypes/CoDiscriminatedUnionSchema.js";
 
 // defining an extra type for this, otherwise BaseSchema & {...} often
 // gets expanded into a n inferred type that's too long for typescript to print

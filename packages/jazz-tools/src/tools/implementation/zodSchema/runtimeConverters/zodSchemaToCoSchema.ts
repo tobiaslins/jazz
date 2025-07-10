@@ -19,6 +19,8 @@ import {
   isCoValueClass,
 } from "../../../internal.js";
 import { coField } from "../../schema.js";
+import { isAnyCoOptionalSchema } from "../schemaTypes/CoOptionalSchema.js";
+import { enrichRichTextSchema } from "../schemaTypes/RichTextSchema.js";
 import {
   isUnionOfCoMapsDeeply,
   schemaUnionDiscriminatorFor,
@@ -36,8 +38,6 @@ import {
   isZodObject,
 } from "../zodSchema.js";
 import { schemaFieldToCoFieldDef } from "./zodFieldToCoFieldDef.js";
-import { enrichRichTextSchema } from "../schemaTypes/RichTextSchema.js";
-import { isAnyCoOptionalSchema } from "../schemaTypes/CoOptionalSchema.js";
 
 let coSchemasForZodSchemas = new Map<z.core.$ZodType, AnyCoSchema>();
 

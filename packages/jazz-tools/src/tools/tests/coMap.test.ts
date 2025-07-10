@@ -12,7 +12,7 @@ import {
 } from "vitest";
 import { Group, co, subscribeToCoValue, z } from "../exports.js";
 import { Account } from "../index.js";
-import { anySchemaToCoSchema, Loaded } from "../internal.js";
+import { Loaded, anySchemaToCoSchema } from "../internal.js";
 import {
   createJazzTestAccount,
   getPeerConnectedToTestSyncServer,

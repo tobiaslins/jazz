@@ -28,10 +28,9 @@ export type DefaultAccountShape = {
   root: CoMapSchema<{}>;
 };
 
-export type AccountSchema<Shape extends BaseAccountShape = DefaultAccountShape> = Omit<
-  CoMapSchema<Shape>,
-  "create" | "load" | "withMigration"
-> & {
+export type AccountSchema<
+  Shape extends BaseAccountShape = DefaultAccountShape,
+> = Omit<CoMapSchema<Shape>, "create" | "load" | "withMigration"> & {
   builtin: "Account";
 
   create: (options: {
