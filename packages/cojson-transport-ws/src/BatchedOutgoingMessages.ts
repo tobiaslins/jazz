@@ -65,7 +65,7 @@ export class BatchedOutgoingMessages
 
     // Delay the initiation of the queue processing to accumulate messages
     // before sending them, in order to do prioritization and batching
-    await new Promise<void>((resolve) => setTimeout(resolve));
+    await new Promise<void>((resolve) => setTimeout(resolve, 5));
 
     let msg = this.queue.pull();
 
