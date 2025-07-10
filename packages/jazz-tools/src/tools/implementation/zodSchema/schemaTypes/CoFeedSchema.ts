@@ -86,7 +86,7 @@ export function enrichCoFeedSchema<T extends z.core.$ZodType>(
   }) as unknown as CoFeedSchema<T>;
 }
 
-// less precise verion to avoid circularity issues and allow matching against
+// less precise version to avoid circularity issues and allow matching against
 export type AnyCoFeedSchema<T extends z.core.$ZodType = z.core.$ZodType> =
   z.core.$ZodCustom<any, unknown> & {
     collaborative: true;

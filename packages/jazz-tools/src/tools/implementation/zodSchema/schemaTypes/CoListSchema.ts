@@ -19,9 +19,7 @@ type CoListInit<T extends z.core.$ZodType> = Array<
     : NonNullable<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>>
 >;
 
-export type CoListSchema<T extends z.core.$ZodType> = z.core.$ZodArray<T> & {
-  collaborative: true;
-
+export type CoListSchema<T extends z.core.$ZodType> = AnyCoListSchema<T> & {
   create: (
     items: CoListInit<T>,
     options?: { owner: Account | Group } | Account | Group,
@@ -79,7 +77,7 @@ export function enrichCoListSchema<T extends z.core.$ZodType>(
   }) as unknown as CoListSchema<T>;
 }
 
-// less precise verion to avoid circularity issues and allow matching against
+// less precise version to avoid circularity issues and allow matching against
 export type AnyCoListSchema<T extends z.core.$ZodType = z.core.$ZodType> =
   z.core.$ZodArray<T> & { collaborative: true };
 

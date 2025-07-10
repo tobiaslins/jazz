@@ -16,15 +16,12 @@ import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/I
 import { z } from "../zodReExport.js";
 import { WithHelpers } from "../zodSchema.js";
 
-// TODO refactor to use AnyCoMapSchema
 export type CoMapSchema<
   Shape extends z.core.$ZodLooseShape,
   Config extends z.core.$ZodObjectConfig = z.core.$ZodObjectConfig,
   Owner extends Account | Group = Account | Group,
-> = z.core.$ZodObject<Shape, Config> &
+> = AnyCoMapSchema<Shape, Config> &
   z.$ZodTypeDiscriminable & {
-    collaborative: true;
-
     create: (
       init: Simplify<CoMapInitZod<Shape>>,
       options?:
@@ -157,7 +154,7 @@ export function enrichCoMapSchema<
   schema: AnyCoMapSchema<Shape, Config>,
   coValueClass: typeof CoMap,
 ): CoMapSchema<Shape, Config> {
-  // @ts-expect-error TODO should AnyCoMapSchema extend z.ZodObject instead of z.core.$ZodObject?
+  // @ts-expect-error schema is actually a z.ZodObject, but we need to use z.core.$ZodObject to avoid circularity issues
   const baseCatchall = schema.catchall;
   const coValueSchema = Object.assign(schema, {
     create: (...args: [any, ...any[]]) => {
@@ -228,7 +225,7 @@ export type CoMapInitZod<Shape extends z.core.$ZodLooseShape> = {
   >;
 } & { [key in keyof Shape]?: unknown };
 
-// less precise verion to avoid circularity issues and allow matching against
+// less precise version to avoid circularity issues and allow matching against
 export type AnyCoMapSchema<
   Shape extends z.core.$ZodLooseShape = z.core.$ZodLooseShape,
   Config extends z.core.$ZodObjectConfig = z.core.$ZodObjectConfig,

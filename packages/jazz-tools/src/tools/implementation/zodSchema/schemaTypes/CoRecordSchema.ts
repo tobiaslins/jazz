@@ -28,9 +28,7 @@ type CoRecordInit<
 export type CoRecordSchema<
   K extends z.core.$ZodString<string>,
   V extends z.core.$ZodType,
-> = z.core.$ZodRecord<K, V> & {
-  collaborative: true;
-
+> = AnyCoRecordSchema<K, V> & {
   create: (
     init: Simplify<CoRecordInit<K, V>>,
     options?:
@@ -86,7 +84,7 @@ export type CoRecordSchema<
   getCoValueClass: () => typeof CoMap;
 };
 
-// less precise verion to avoid circularity issues and allow matching against
+// less precise version to avoid circularity issues and allow matching against
 export type AnyCoRecordSchema<
   K extends z.core.$ZodString<string> = z.core.$ZodString<string>,
   V extends z.core.$ZodType = z.core.$ZodType,

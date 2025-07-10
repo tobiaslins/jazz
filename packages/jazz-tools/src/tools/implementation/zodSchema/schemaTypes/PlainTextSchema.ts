@@ -3,7 +3,6 @@ import { Account, CoPlainText, Group } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { z } from "../zodReExport.js";
 
-// TODO rename to ProtoPlainTextSchema
 export type AnyPlainTextSchema = z.core.$ZodCustom<CoPlainText, unknown> & {
   collaborative: true;
   builtin: "CoPlainText";
