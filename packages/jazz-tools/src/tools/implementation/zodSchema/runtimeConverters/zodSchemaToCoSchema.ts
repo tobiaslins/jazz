@@ -63,7 +63,6 @@ export function isCoValueSchema(
 function tryZodSchemaToCoSchema<S extends z.core.$ZodType>(
   schema: S,
 ): CoValueSchemaFromZodSchema<S> | null {
-  // TODO rethink how collaborative zod schemas are branded
   if (isAnyCoValueSchema(schema)) {
     if (coSchemasForZodSchemas.has(schema)) {
       return coSchemasForZodSchemas.get(
