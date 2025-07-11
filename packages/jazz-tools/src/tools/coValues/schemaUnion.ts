@@ -11,9 +11,9 @@ import {
   Resolved,
   SubscribeListenerOptions,
   SubscribeRestArgs,
-  subscribeToCoValueWithoutMe,
   loadCoValueWithoutMe,
   parseSubscribeRestArgs,
+  subscribeToCoValueWithoutMe,
 } from "../internal.js";
 
 /**

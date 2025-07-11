@@ -194,10 +194,7 @@ export const coOptionalDefiner = <T extends AnyCoSchema>(
 };
 
 export const coDiscriminatedUnionDefiner = <
-  T extends readonly [
-    AnyDiscriminableCoSchema,
-    ...AnyDiscriminableCoSchema[],
-  ],
+  T extends readonly [AnyDiscriminableCoSchema, ...AnyDiscriminableCoSchema[]],
 >(
   discriminator: string,
   schemas: T,
