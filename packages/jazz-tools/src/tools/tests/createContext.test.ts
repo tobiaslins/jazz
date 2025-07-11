@@ -16,8 +16,6 @@ import {
   createJazzContextForNewAccount,
   createJazzContextFromExistingCredentials,
   randomSessionProvider,
-  z,
-  zodSchemaToCoSchema,
 } from "../exports";
 import { activeAccountContext } from "../implementation/activeAccountContext";
 import {
@@ -86,7 +84,7 @@ describe("createContext methods", () => {
         credentials,
         peersToLoadFrom: [getPeerConnectedToTestSyncServer()],
         crypto: Crypto,
-        AccountSchema: zodSchemaToCoSchema(CustomAccount),
+        AccountSchema: CustomAccount,
         sessionProvider: randomSessionProvider,
       });
 
@@ -196,7 +194,7 @@ describe("createContext methods", () => {
         creationProps: { name: "New User" },
         peersToLoadFrom: [],
         crypto: Crypto,
-        AccountSchema: zodSchemaToCoSchema(CustomAccount),
+        AccountSchema: CustomAccount,
       });
 
       expect(context.account).toBeInstanceOf(
@@ -347,7 +345,7 @@ describe("createContext methods", () => {
         crypto: Crypto,
         authSecretStorage,
         sessionProvider: randomSessionProvider,
-        AccountSchema: zodSchemaToCoSchema(CustomAccount),
+        AccountSchema: CustomAccount,
       });
 
       expect(context.account).toBeInstanceOf(

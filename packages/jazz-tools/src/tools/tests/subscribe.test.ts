@@ -1300,7 +1300,7 @@ describe("createCoValueObservable", () => {
     const mockListener = vi.fn();
 
     const unsubscribe = observable.subscribe(
-      anySchemaToCoSchema(TestMap),
+      TestMap,
       testMap.id,
       {
         loadAs: meOnSecondPeer,
@@ -1329,7 +1329,7 @@ describe("createCoValueObservable", () => {
     const mockListener = vi.fn();
 
     const unsubscribe = observable.subscribe(
-      anySchemaToCoSchema(TestMap),
+      TestMap,
       testMap.id,
       {
         loadAs: meOnSecondPeer,

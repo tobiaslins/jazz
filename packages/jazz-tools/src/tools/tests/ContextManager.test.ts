@@ -26,7 +26,6 @@ import {
   InstanceOfSchema,
   Loaded,
   anySchemaToCoSchema,
-  zodSchemaToCoSchema,
 } from "../internal";
 import {
   createJazzTestAccount,
@@ -464,7 +463,7 @@ describe("ContextManager", () => {
 
     const account = await createJazzTestAccount({
       isCurrentActiveAccount: true,
-      AccountSchema: zodSchemaToCoSchema(CustomAccount),
+      AccountSchema: CustomAccount,
     });
 
     await customManager.authenticate({
