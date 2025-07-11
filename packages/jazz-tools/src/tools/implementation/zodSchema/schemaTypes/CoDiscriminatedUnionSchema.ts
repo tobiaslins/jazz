@@ -1,6 +1,7 @@
 import {
   Account,
   AnonymousJazzAgent,
+  AnyCoSchema,
   InstanceOrPrimitiveOfSchemaCoValuesNullable,
   RefsToResolve,
   RefsToResolveStrict,
@@ -9,10 +10,13 @@ import {
 } from "../../../internal.js";
 import { z } from "../zodReExport.js";
 
+export type AnyDiscriminableCoSchema = AnyCoSchema &
+  z.core.$ZodTypeDiscriminable;
+
 export type AnyCoDiscriminatedUnionSchema<
   Types extends readonly [
-    z.core.$ZodTypeDiscriminable,
-    ...z.core.$ZodTypeDiscriminable[],
+    AnyDiscriminableCoSchema,
+    ...AnyDiscriminableCoSchema[],
   ],
 > = z.ZodDiscriminatedUnion<Types> & {
   collaborative: true;
@@ -20,8 +24,8 @@ export type AnyCoDiscriminatedUnionSchema<
 
 export type CoDiscriminatedUnionSchema<
   Types extends readonly [
-    z.core.$ZodTypeDiscriminable,
-    ...z.core.$ZodTypeDiscriminable[],
+    AnyDiscriminableCoSchema,
+    ...AnyDiscriminableCoSchema[],
   ],
 > = AnyCoDiscriminatedUnionSchema<Types> & {
   load<
@@ -47,8 +51,8 @@ export type CoDiscriminatedUnionSchema<
 
 export function enrichCoDiscriminatedUnionSchema<
   Types extends readonly [
-    z.core.$ZodTypeDiscriminable,
-    ...z.core.$ZodTypeDiscriminable[],
+    AnyDiscriminableCoSchema,
+    ...AnyDiscriminableCoSchema[],
   ],
 >(
   schema: z.ZodDiscriminatedUnion<Types>,
@@ -67,7 +71,7 @@ export function enrichCoDiscriminatedUnionSchema<
 
 type CoDiscriminatedUnionInstanceCoValuesNullable<
   Types extends readonly [
-    z.core.$ZodTypeDiscriminable,
-    ...z.core.$ZodTypeDiscriminable[],
+    AnyDiscriminableCoSchema,
+    ...AnyDiscriminableCoSchema[],
   ],
 > = NonNullable<InstanceOrPrimitiveOfSchemaCoValuesNullable<Types[number]>>;

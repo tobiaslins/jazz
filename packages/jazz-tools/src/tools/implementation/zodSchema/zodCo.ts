@@ -23,7 +23,10 @@ import {
   type Simplify,
   zodSchemaToCoSchema,
 } from "../../internal.js";
-import { CoDiscriminatedUnionSchema } from "./schemaTypes/CoDiscriminatedUnionSchema.js";
+import {
+  AnyDiscriminableCoSchema,
+  CoDiscriminatedUnionSchema,
+} from "./schemaTypes/CoDiscriminatedUnionSchema.js";
 import {
   CoOptionalSchema,
   createCoOptionalSchema,
@@ -192,8 +195,8 @@ export const coOptionalDefiner = <T extends AnyCoSchema>(
 
 export const coDiscriminatedUnionDefiner = <
   T extends readonly [
-    AnyCoSchema & z.core.$ZodTypeDiscriminable,
-    ...(AnyCoSchema & z.core.$ZodTypeDiscriminable)[],
+    AnyDiscriminableCoSchema,
+    ...AnyDiscriminableCoSchema[],
   ],
 >(
   discriminator: string,
