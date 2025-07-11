@@ -18,6 +18,7 @@ import {
 import {
   AnyDiscriminableCoSchema,
   CoDiscriminatedUnionSchema,
+  AnyCoDiscriminatedUnionSchema,
 } from "./schemaTypes/CoDiscriminatedUnionSchema.js";
 import { AnyCoFeedSchema, CoFeedSchema } from "./schemaTypes/CoFeedSchema.js";
 import { AnyCoListSchema, CoListSchema } from "./schemaTypes/CoListSchema.js";
@@ -60,13 +61,6 @@ export type ZodPrimitiveSchema =
   | z.core.$ZodNull
   | z.core.$ZodDate
   | z.core.$ZodLiteral;
-
-export type AnyCoUnionSchema = z.core.$ZodDiscriminatedUnion<
-  (
-    | (z.core.$ZodType & { collaborative: true })
-    | z.core.$ZodDiscriminatedUnion
-  )[]
->;
 
 // this is a series of hacks to work around z4 removing _zod at runtime from z.core.$ZodType
 export function isZodObject(
@@ -137,14 +131,14 @@ type AccountClassEssentials = {
   fromNode: <A extends Account>(this: AccountClass<A>, node: LocalNode) => A;
 };
 
-// TODO rename to ProtoCoSchema?
+// TODO rename to CoreCoSchema
 export type AnyCoSchema =
   | AnyCoMapSchema
   | AnyAccountSchema
   | AnyCoRecordSchema
   | AnyCoListSchema
   | AnyCoFeedSchema
-  | AnyCoUnionSchema
+  | AnyCoDiscriminatedUnionSchema<any>
   | AnyCoOptionalSchema
   | AnyPlainTextSchema
   | AnyRichTextSchema

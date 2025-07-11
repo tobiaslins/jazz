@@ -2,9 +2,11 @@ import {
   Account,
   AnonymousJazzAgent,
   AnyCoSchema,
+  InstanceOfSchema,
   InstanceOrPrimitiveOfSchemaCoValuesNullable,
   Resolved,
   SchemaUnion,
+  SchemaUnionConcreteSubclass,
   SubscribeListenerOptions,
 } from "../../../internal.js";
 import { z } from "../zodReExport.js";
@@ -17,7 +19,7 @@ export type AnyCoDiscriminatedUnionSchema<
     AnyDiscriminableCoSchema,
     ...AnyDiscriminableCoSchema[],
   ],
-> = z.ZodDiscriminatedUnion<Types>;
+> = z.core.$ZodDiscriminatedUnion<Types>;
 
 export type CoDiscriminatedUnionSchema<
   Types extends readonly [
@@ -53,7 +55,9 @@ export type CoDiscriminatedUnionSchema<
     ) => void,
   ): () => void;
 
-  getCoValueClass: () => typeof SchemaUnion;
+  getCoValueClass: () => SchemaUnionConcreteSubclass<
+    InstanceOfSchema<Types[number]>
+  >;
 };
 
 export function createCoreCoDiscriminatedUnionSchema<
@@ -72,11 +76,10 @@ export function enrichCoDiscriminatedUnionSchema<
   ],
 >(
   schema: z.ZodDiscriminatedUnion<Types>,
-  coValueClass: typeof SchemaUnion,
+  coValueClass: SchemaUnionConcreteSubclass<InstanceOfSchema<Types[number]>>,
 ): CoDiscriminatedUnionSchema<Types> {
   return Object.assign(schema, {
     load: (...args: [any, ...any]) => {
-      // @ts-expect-error
       return coValueClass.load(...args);
     },
     subscribe: (...args: [any, ...any[]]) => {

@@ -30,6 +30,7 @@ type SchemaField =
   | ZodPrimitiveSchema
   | z.core.$ZodOptional<z.core.$ZodType>
   | z.core.$ZodUnion<z.core.$ZodType[]>
+  | z.core.$ZodDiscriminatedUnion<z.core.$ZodType[]>
   | z.core.$ZodObject<z.core.$ZodLooseShape>
   | z.core.$ZodArray<z.core.$ZodType>
   | z.core.$ZodTuple<z.core.$ZodType[]>
