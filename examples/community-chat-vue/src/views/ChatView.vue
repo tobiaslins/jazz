@@ -47,7 +47,7 @@ export default defineComponent({
     const showNLastMessages = ref(30);
 
     const displayedMessages = computed(() => {
-      return chat?.value?.slice(-showNLastMessages.value).reverse();
+      return chat.value?.slice(-showNLastMessages.value).reverse();
     });
 
     function showMoreMessages() {
@@ -55,12 +55,14 @@ export default defineComponent({
     }
 
     function handleSubmit(text: string) {
-      chat?.value?.push(
-        Message.create(
-          { text: CoPlainText.create(text, chat.value._owner) },
-          chat.value._owner,
-        ),
-      );
+      if (chat.value) {
+        chat.value.push(
+          Message.create(
+            { text: CoPlainText.create(text, chat.value._owner) },
+            chat.value._owner,
+          ),
+        );
+      }
     }
 
     return {

@@ -38,7 +38,7 @@ const handleSubmit = (e: Event) => {
       width: '18rem',
       maxWidth: 'calc(100vw - 2rem)',
       gap: '2rem',
-      margin: '0 auto'
+      margin: '0 auto',
     }"
   >
     <h1
@@ -46,7 +46,7 @@ const handleSubmit = (e: Event) => {
         color: darkMode ? '#fff' : '#000',
         textAlign: 'center',
         fontSize: '1.5rem',
-        fontWeight: 'bold'
+        fontWeight: 'bold',
       }"
     >
       {{ appName }}
@@ -56,7 +56,7 @@ const handleSubmit = (e: Event) => {
       :style="{
         display: 'flex',
         flexDirection: 'column',
-        gap: '0.5rem'
+        gap: '0.5rem',
       }"
       @submit="handleSubmit"
     >
@@ -69,9 +69,9 @@ const handleSubmit = (e: Event) => {
           padding: '11px 8px',
           borderRadius: '6px',
           background: darkMode ? '#000' : '#fff',
-          color: darkMode ? '#fff' : '#000'
+          color: darkMode ? '#fff' : '#000',
         }"
-      >
+      />
       <input
         type="submit"
         value="Sign up"
@@ -81,9 +81,9 @@ const handleSubmit = (e: Event) => {
           borderRadius: '6px',
           cursor: 'pointer',
           background: darkMode ? '#444' : '#ddd',
-          color: darkMode ? '#fff' : '#000'
+          color: darkMode ? '#fff' : '#000',
         }"
-      >
+      />
     </form>
 
     <div
@@ -91,7 +91,7 @@ const handleSubmit = (e: Event) => {
       :style="{
         display: 'flex',
         flexDirection: 'column',
-        gap: '0.5rem'
+        gap: '0.5rem',
       }"
     >
       <p
@@ -100,7 +100,7 @@ const handleSubmit = (e: Event) => {
           textAlign: 'center',
           paddingTop: '0.5rem',
           borderTop: '1px solid',
-          borderColor: darkMode ? '#111' : '#e2e2e2'
+          borderColor: darkMode ? '#111' : '#e2e2e2',
         }"
       >
         Log in as
@@ -116,7 +116,7 @@ const handleSubmit = (e: Event) => {
           color: darkMode ? '#fff' : '#000',
           padding: '0.5rem',
           border: 'none',
-          borderRadius: '6px'
+          borderRadius: '6px',
         }"
       >
         {{ user }}

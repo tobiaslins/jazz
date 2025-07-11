@@ -9,35 +9,31 @@ import type {
 import { JazzBrowserContextManager } from "jazz-tools/browser";
 import {
   type PropType,
+  computed,
   defineComponent,
-  onMounted,
+  markRaw,
   onUnmounted,
   provide,
   ref,
+  shallowRef,
   watch,
 } from "vue";
 
 export const logoutHandler = ref<() => void>();
 
-// biome-ignore lint/suspicious/noEmptyInterface: This interface is meant to be module augmented by users
-export interface Register {}
-
-export type RegisteredAccount = Register extends { Account: infer Acc }
-  ? Acc
-  : Account;
-
-declare module "jazz-tools" {
-  export interface Register {
-    Account: RegisteredAccount;
-  }
-}
-
 export const JazzContextSymbol = Symbol("JazzContext");
+export const JazzContextManagerSymbol = Symbol("JazzContextManager");
 export const JazzAuthContextSymbol = Symbol("JazzAuthContext");
 
-export const JazzProvider = defineComponent({
+export const JazzVueProvider = defineComponent({
   name: "JazzProvider",
   props: {
+    AccountSchema: {
+      type: Function as unknown as PropType<
+        (AccountClass<Account> & CoValueFromRaw<Account>) | AnyAccountSchema
+      >,
+      required: false,
+    },
     guestMode: {
       type: Boolean,
       default: false,
@@ -45,12 +41,6 @@ export const JazzProvider = defineComponent({
     sync: {
       type: Object as PropType<SyncConfig>,
       required: true,
-    },
-    AccountSchema: {
-      type: Function as unknown as PropType<
-        (AccountClass<Account> & CoValueFromRaw<Account>) | AnyAccountSchema
-      >,
-      required: false,
     },
     storage: {
       type: String as PropType<"indexedDB">,
@@ -60,25 +50,48 @@ export const JazzProvider = defineComponent({
       type: String,
       required: false,
     },
-    onAnonymousAccountDiscarded: {
-      // biome-ignore lint/suspicious/noExplicitAny: Complex generic typing with Jazz framework internals
-      type: Function as PropType<(anonymousAccount: any) => Promise<void>>,
-      required: false,
-    },
     onLogOut: {
       type: Function as PropType<() => void>,
       required: false,
     },
+    logOutReplacement: {
+      type: Function as PropType<() => void>,
+      required: false,
+    },
+    onAnonymousAccountDiscarded: {
+      type: Function as PropType<(anonymousAccount: Account) => Promise<void>>,
+      required: false,
+    },
+    enableSSR: {
+      type: Boolean,
+      default: false,
+    },
   },
   setup(props, { slots }) {
-    const contextManager = new JazzBrowserContextManager<
-      (AccountClass<Account> & CoValueFromRaw<Account>) | AnyAccountSchema
-    >();
-    // biome-ignore lint/suspicious/noExplicitAny: Complex generic typing with Jazz framework internals
-    const ctx = ref<JazzContextType<any>>();
+    const contextManager = markRaw(
+      new JazzBrowserContextManager<
+        (AccountClass<Account> & CoValueFromRaw<Account>) | AnyAccountSchema
+      >({
+        useAnonymousFallback: props.enableSSR,
+      }),
+    );
+
+    // Use shallowRef to avoid deep reactivity on Jazz objects which can cause proxy errors
+    const ctx = shallowRef<JazzContextType<any>>();
 
     provide(JazzContextSymbol, ctx);
-    provide(JazzAuthContextSymbol, contextManager.getAuthSecretStorage());
+    provide(JazzContextManagerSymbol, ref(contextManager));
+    provide(
+      JazzAuthContextSymbol,
+      markRaw(contextManager.getAuthSecretStorage()),
+    );
+
+    // Create stable callback references like React's useRefCallback
+    const logOutReplacementCallback = () => props.logOutReplacement?.();
+
+    const logoutReplacementActive = computed(() =>
+      Boolean(props.logOutReplacement),
+    );
 
     watch(
       () => ({
@@ -90,13 +103,16 @@ export const JazzProvider = defineComponent({
       async () => {
         contextManager
           .createContext({
+            AccountSchema: props.AccountSchema,
+            guestMode: props.guestMode,
             sync: props.sync,
             storage: props.storage,
-            guestMode: props.guestMode,
-            AccountSchema: props.AccountSchema,
             defaultProfileName: props.defaultProfileName,
-            onAnonymousAccountDiscarded: props.onAnonymousAccountDiscarded,
             onLogOut: props.onLogOut,
+            logOutReplacement: logoutReplacementActive.value
+              ? logOutReplacementCallback
+              : undefined,
+            onAnonymousAccountDiscarded: props.onAnonymousAccountDiscarded,
           })
           .catch((error) => {
             console.error("Error creating Jazz browser context:", error);
@@ -105,17 +121,34 @@ export const JazzProvider = defineComponent({
       { immediate: true },
     );
 
-    onMounted(() => {
-      const cleanup = contextManager.subscribe(() => {
-        ctx.value = contextManager.getCurrentValue();
-      });
-      onUnmounted(cleanup);
+    // Set up context manager subscription immediately, not waiting for onMounted
+    // This ensures we catch context changes (like logout) that happen before mounting
+    const cleanup = contextManager.subscribe(() => {
+      const currentValue = contextManager.getCurrentValue();
+      // Use markRaw to prevent Vue from making Jazz objects reactive
+      ctx.value = currentValue ? markRaw(currentValue) : undefined;
+    });
+
+    onUnmounted(() => {
+      cleanup();
     });
 
     onUnmounted(() => {
       if (ctx.value) ctx.value.done?.();
+
+      // https://github.com/rizen/jazz-vue-vamp/blob/main/src/provider.ts#L167
+      // Only call done() in production, not in development (for HMR)
+      if (process.env.NODE_ENV !== "development") {
+        contextManager.done();
+      }
     });
 
     return () => (ctx.value ? slots.default?.() : null);
   },
 });
+
+/**
+ * Alias to JazzVueProvider to be consistent with React yet backwards compatible
+ * @deprecated Use JazzVueProvider instead
+ */
+export const JazzProvider = JazzVueProvider;

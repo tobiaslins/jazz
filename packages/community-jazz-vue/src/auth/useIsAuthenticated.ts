@@ -1,4 +1,4 @@
-import { onMounted, onUnmounted, ref } from "vue";
+import { onUnmounted, ref } from "vue";
 import { useAuthSecretStorage } from "../composables.js";
 
 export function useIsAuthenticated() {
@@ -9,9 +9,12 @@ export function useIsAuthenticated() {
     isAuthenticated.value = authSecretStorage.isAuthenticated;
   };
 
-  onMounted(() => {
-    const cleanup = authSecretStorage.onUpdate(handleUpdate);
-    onUnmounted(cleanup);
+  // Set up the listener immediately, not waiting for onMounted
+  // This ensures we catch auth state changes that happen before mounting
+  const cleanup = authSecretStorage.onUpdate(handleUpdate);
+
+  onUnmounted(() => {
+    cleanup();
   });
 
   return isAuthenticated;

@@ -1,5 +1,5 @@
 import { PassphraseAuth } from "jazz-tools";
-import { computed, ref, watchEffect } from "vue";
+import { computed, markRaw, ref, watchEffect } from "vue";
 import { useAuthSecretStorage, useJazzContext } from "../composables.js";
 import { useIsAuthenticated } from "./useIsAuthenticated.js";
 
@@ -27,12 +27,14 @@ export function usePassphraseAuth({
   }
 
   const authMethod = computed(() => {
-    return new PassphraseAuth(
-      context.value.node.crypto,
-      context.value.authenticate,
-      context.value.register,
-      authSecretStorage,
-      wordlist,
+    return markRaw(
+      new PassphraseAuth(
+        context.value.node.crypto,
+        context.value.authenticate,
+        context.value.register,
+        authSecretStorage,
+        wordlist,
+      ),
     );
   });
 

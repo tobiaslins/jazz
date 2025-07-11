@@ -1,5 +1,5 @@
 import { BrowserPasskeyAuth } from "jazz-tools/browser";
-import { computed } from "vue";
+import { computed, markRaw } from "vue";
 import { useAuthSecretStorage, useJazzContext } from "../composables.js";
 import { useIsAuthenticated } from "./useIsAuthenticated.js";
 
@@ -29,12 +29,14 @@ export function usePasskeyAuth({
   }
 
   const authMethod = computed(() => {
-    return new BrowserPasskeyAuth(
-      context.value.node.crypto,
-      context.value.authenticate,
-      authSecretStorage,
-      appName,
-      appHostname,
+    return markRaw(
+      new BrowserPasskeyAuth(
+        context.value.node.crypto,
+        context.value.authenticate,
+        authSecretStorage,
+        appName,
+        appHostname,
+      ),
     );
   });
 

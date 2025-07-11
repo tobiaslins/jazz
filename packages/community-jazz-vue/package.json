@@ -1,6 +1,6 @@
 {
   "name": "community-jazz-vue",
-  "version": "0.14.28",
+  "version": "0.15.4",
   "type": "module",
   "main": "dist/index.js",
   "types": "src/index.ts",
@@ -13,7 +13,16 @@
     "./testing": {
       "types": "./dist/testing.d.ts",
       "default": "./dist/testing.js"
-    }
+    },
+    "./inspector": {
+      "types": "./dist/inspector/index.d.ts",
+      "default": "./dist/inspector/index.js"
+    },
+    "./inspector/vue": {
+      "types": "./dist/inspector/vue-index.d.ts",
+      "default": "./dist/inspector/vue-index.js"
+    },
+    "./dist/community-jazz-vue.css": "./dist/community-jazz-vue.css"
   },
   "dependencies": {
     "cojson": "workspace:*",
@@ -22,6 +31,7 @@
   "devDependencies": {
     "@scure/bip39": "^1.3.0",
     "@vitejs/plugin-vue": "^5.1.4",
+    "@vitejs/plugin-vue-jsx": "^4.2.0",
     "rollup-plugin-node-externals": "^8.0.0",
     "typescript": "catalog:",
     "vite": "catalog:",

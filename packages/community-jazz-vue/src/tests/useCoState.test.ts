@@ -9,7 +9,7 @@ import {
 } from "jazz-tools";
 import { createJazzTestAccount, setupJazzTestSync } from "jazz-tools/testing";
 import { beforeEach, describe, expect, expectTypeOf, it } from "vitest";
-import type { Ref } from "vue";
+import type { ComputedRef, Ref, ShallowRef } from "vue";
 import { useCoState } from "../index.js";
 import { waitFor, withJazzTestSetup } from "./testUtils.js";
 
@@ -174,8 +174,6 @@ describe("useCoState", () => {
         resolve: true,
       }),
     );
-    expectTypeOf(result).toEqualTypeOf<
-      Ref<TestMap | null | undefined, TestMap | null | undefined>
-    >();
+    expectTypeOf(result).toEqualTypeOf<Ref<TestMap | null | undefined>>();
   });
 });

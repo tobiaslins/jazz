@@ -40,7 +40,7 @@ pnpm i && npx turbo build
 
 Go to the example directory.
 ```bash
-cd jazz/examples/todo-vue/
+cd jazz/examples/community-todo-vue/
 ```
 
 Start the dev server.

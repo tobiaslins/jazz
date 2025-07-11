@@ -1,14 +1,20 @@
-import { DemoAuthBasicUI, JazzProvider, useDemoAuth } from "community-jazz-vue";
+import {
+  DemoAuthBasicUI,
+  JazzInspector,
+  JazzVueProvider,
+} from "community-jazz-vue";
 import { createApp, defineComponent, h } from "vue";
 import App from "./App.vue";
 import "./assets/main.css";
 import { apiKey } from "./apiKey";
 import router from "./router";
-import { ToDoAccount } from "./schema";
+import { TodoAccount } from "./schema";
+
+import "community-jazz-vue/dist/community-jazz-vue.css";
 
 declare module "community-jazz-vue" {
   interface Register {
-    Account: ToDoAccount;
+    Account: typeof TodoAccount;
   }
 }
 
@@ -17,22 +23,23 @@ const RootComponent = defineComponent({
   setup() {
     return () =>
       h(
-        JazzProvider,
+        JazzVueProvider,
         {
-          AccountSchema: ToDoAccount,
+          AccountSchema: TodoAccount,
           sync: {
             peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
           },
         },
-        h(
-          DemoAuthBasicUI,
-          {
-            appName: "Jazz Vue Todo",
-          },
-          {
-            default: () => h(App),
-          },
-        ),
+        () => [
+          h(
+            DemoAuthBasicUI,
+            {
+              appName: "Jazz Vue Todo",
+            },
+            () => h(App),
+          ),
+          h(JazzInspector),
+        ],
       );
   },
 });

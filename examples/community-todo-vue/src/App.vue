@@ -4,7 +4,7 @@
       <h1>Todo App</h1>
       <div class="user-section">
         <span>{{ me.profile?.name }}</span>
-        <button class="logout-btn" @click="logOut">Log out</button>
+        <button class="logout-btn" @click="logoutHandler">Log out</button>
       </div>
     </header>
     <main>
@@ -40,6 +40,11 @@ h1 {
   gap: 1rem;
 }
 
+.user-section span {
+  color: #2c3e50;
+  font-weight: 500;
+}
+
 .logout-btn {
   background-color: transparent;
   border: 1px solid #dc3545;
@@ -63,7 +68,25 @@ main {
 </style>
 
 <script setup lang="ts">
-import { useAccount } from "community-jazz-vue";
+import { useAcceptInvite, useAccount } from "community-jazz-vue";
+import { useRouter } from "vue-router";
+import { TodoProject } from "./schema";
 
 const { me, logOut } = useAccount();
+const router = useRouter();
+
+async function logoutHandler() {
+  await logOut();
+  // Redirect to home page to avoid permission issues with project paths
+  router.push("/");
+}
+
+// Handle invite acceptance globally
+useAcceptInvite({
+  invitedObjectSchema: TodoProject,
+  forValueHint: "project",
+  onAccept: (projectId: string) => {
+    router.push(`/project/${projectId}`);
+  },
+});
 </script>

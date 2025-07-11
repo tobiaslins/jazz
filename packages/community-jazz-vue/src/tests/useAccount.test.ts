@@ -3,7 +3,7 @@
 import { Account, CoMap, coField } from "jazz-tools";
 import { describe, expect, it } from "vitest";
 import { useAccount } from "../composables.js";
-import { createJazzTestAccount } from "../testing.js";
+import { createJazzTestAccount, createJazzTestGuest } from "../testing.js";
 import { withJazzTestSetup } from "./testUtils.js";
 
 class AccountRoot extends CoMap {
@@ -42,7 +42,7 @@ describe("useAccount", () => {
 
     const [result] = withJazzTestSetup(
       () =>
-        useAccount({
+        useAccount(AccountSchema, {
           resolve: {
             root: true,
           },
@@ -52,6 +52,19 @@ describe("useAccount", () => {
       },
     );
 
-    expect(result.me.value?.root?.value).toBe("123");
+    expect((result.me.value?.root as AccountRoot)?.value).toBe("123");
+  });
+
+  it("should handle guest mode correctly", async () => {
+    const guestAccount = await createJazzTestGuest();
+
+    const [result] = withJazzTestSetup(() => useAccount(), {
+      account: guestAccount,
+    });
+
+    // In guest mode, me should be null and agent should be the guest
+    expect(result.me.value).toBe(null);
+    expect(result.agent._type).toBe("Anonymous");
+    expect(typeof result.logOut).toBe("function");
   });
 });

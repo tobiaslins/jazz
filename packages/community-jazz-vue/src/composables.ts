@@ -1,50 +1,81 @@
 import {
-  type AnonymousJazzAgent,
+  Account,
+  AccountClass,
+  AnonymousJazzAgent,
+  AnyAccountSchema,
   type AuthSecretStorage,
   type CoValue,
-  type CoValueClass,
-  type ID,
+  CoValueOrZodSchema,
+  InboxSender,
+  InstanceOfSchema,
   type JazzAuthContext,
+  JazzContextManager,
   type JazzContextType,
-  type JazzGuestContext,
+  type Loaded,
   type RefsToResolve,
-  type RefsToResolveStrict,
-  type Resolved,
+  ResolveQuery,
+  ResolveQueryStrict,
+  anySchemaToCoSchema,
   subscribeToCoValue,
 } from "jazz-tools";
 import { consumeInviteLinkFromWindowLocation } from "jazz-tools/browser";
 import {
   type ComputedRef,
-  type MaybeRef,
   type Ref,
   type ShallowRef,
   computed,
   inject,
+  markRaw,
   onMounted,
   onUnmounted,
   ref,
   shallowRef,
   toRaw,
-  unref,
   watch,
 } from "vue";
+
 import {
   JazzAuthContextSymbol,
+  JazzContextManagerSymbol,
   JazzContextSymbol,
-  type RegisteredAccount,
 } from "./provider.js";
 
 export const logoutHandler = ref<() => void>();
 
-export function useJazzContext(): Ref<
-  JazzContextType<RegisteredAccount>,
-  JazzContextType<RegisteredAccount>
+function getCurrentAccountFromContextManager<Acc extends Account>(
+  contextManager: JazzContextManager<Acc, any>,
+) {
+  const context = contextManager.getCurrentValue();
+
+  if (!context) {
+    throw new Error("No context found");
+  }
+
+  return "me" in context ? context.me : context.guest;
+}
+
+export function useJazzContext<Acc extends Account>(): Ref<
+  JazzContextType<Acc>,
+  JazzContextType<Acc>
 > {
-  const context =
-    inject<Ref<JazzContextType<RegisteredAccount>>>(JazzContextSymbol);
-  if (!context?.value) {
+  const context = inject<Ref<JazzContextType<Acc>>>(JazzContextSymbol);
+  if (!context) {
     throw new Error("useJazzContext must be used within a JazzProvider");
   }
+  return context;
+}
+
+export function useJazzContextManager<Acc extends Account>() {
+  const context = inject<Ref<JazzContextManager<Acc, {}>>>(
+    JazzContextManagerSymbol,
+  );
+
+  if (!context?.value) {
+    throw new Error(
+      "You need to set up a JazzProvider on top of your app to use this hook.",
+    );
+  }
+
   return context;
 }
 
@@ -56,125 +87,64 @@ export function useAuthSecretStorage() {
   return context;
 }
 
-export function useAccount(): {
-  me: ComputedRef<RegisteredAccount>;
-  logOut: () => void;
-};
 export function useAccount<
-  const R extends RefsToResolve<RegisteredAccount>,
->(options?: {
-  resolve?: RefsToResolveStrict<RegisteredAccount, R>;
-}): {
-  me: ComputedRef<Resolved<RegisteredAccount, R> | undefined | null>;
-  logOut: () => void;
-};
-export function useAccount<
-  const R extends RefsToResolve<RegisteredAccount>,
->(options?: {
-  resolve?: RefsToResolveStrict<RegisteredAccount, R>;
-}): {
-  me: ComputedRef<
-    RegisteredAccount | Resolved<RegisteredAccount, R> | undefined | null
-  >;
+  A extends AccountClass<Account> | AnyAccountSchema = typeof Account,
+  R extends ResolveQuery<A> = true,
+>(
+  AccountSchema: A = Account as unknown as A,
+  options?: {
+    resolve?: ResolveQueryStrict<A, R>;
+  },
+): {
+  me: ComputedRef<Loaded<A, R> | undefined | null>;
+  agent: AnonymousJazzAgent | Loaded<A, true>;
   logOut: () => void;
 } {
   const context = useJazzContext();
+  const contextManager = useJazzContextManager<InstanceOfSchema<A>>();
 
   if (!context.value) {
     throw new Error("useAccount must be used within a JazzProvider");
   }
 
+  const agent = getCurrentAccountFromContextManager(contextManager.value);
+
+  // Handle guest mode - return null for me and the guest agent
   if (!("me" in context.value)) {
-    throw new Error(
-      "useAccount can't be used in a JazzProvider with auth === 'guest' - consider using useAccountOrGuest()",
-    );
+    return {
+      me: computed(() => null) as any,
+      agent: markRaw(agent),
+      logOut: context.value.logOut,
+    };
   }
 
-  const contextMe = context.value.me as RegisteredAccount;
+  const contextMe = context.value.me as InstanceOfSchema<A>;
 
-  const me = useCoState<RegisteredAccount, R>(
-    contextMe.constructor as CoValueClass<RegisteredAccount>,
-    contextMe.id,
-    options,
-  );
+  const me = useCoState(AccountSchema as any, contextMe.id, options as any);
 
   return {
     me: computed(() => {
       const value =
         options?.resolve === undefined
-          ? me.value ||
-            toRaw((context.value as JazzAuthContext<RegisteredAccount>).me)
+          ? me.value || toRaw((context.value as any).me)
           : me.value;
 
       return value ? toRaw(value) : value;
-    }),
+    }) as any,
+    agent: markRaw(agent),
     logOut: context.value.logOut,
   };
 }
 
-export function useAccountOrGuest(): {
-  me: ComputedRef<RegisteredAccount | AnonymousJazzAgent>;
-};
-export function useAccountOrGuest<
-  const R extends RefsToResolve<RegisteredAccount>,
->(options?: {
-  resolve?: RefsToResolveStrict<RegisteredAccount, R>;
-}): {
-  me: ComputedRef<
-    Resolved<RegisteredAccount, R> | undefined | null | AnonymousJazzAgent
-  >;
-};
-export function useAccountOrGuest<
-  const R extends RefsToResolve<RegisteredAccount>,
->(options?: {
-  resolve?: RefsToResolveStrict<RegisteredAccount, R>;
-}): {
-  me: ComputedRef<
-    | RegisteredAccount
-    | Resolved<RegisteredAccount, R>
-    | undefined
-    | null
-    | AnonymousJazzAgent
-  >;
-} {
-  const context = useJazzContext();
-
-  if (!context.value) {
-    throw new Error("useAccountOrGuest must be used within a JazzProvider");
-  }
-
-  const contextMe = computed(() =>
-    "me" in context.value ? (context.value.me as RegisteredAccount) : undefined,
-  );
-
-  const me = useCoState<RegisteredAccount, R>(
-    contextMe.value?.constructor as CoValueClass<RegisteredAccount>,
-    contextMe.value?.id,
-    options,
-  );
-
-  if ("me" in context.value) {
-    return {
-      me: computed(() =>
-        options?.resolve === undefined
-          ? me.value ||
-            toRaw((context.value as JazzAuthContext<RegisteredAccount>).me)
-          : me.value,
-      ),
-    };
-  }
-
-  return {
-    me: computed(() => toRaw((context.value as JazzGuestContext).guest)),
-  };
-}
-
-export function useCoState<V extends CoValue, const R extends RefsToResolve<V>>(
-  Schema: CoValueClass<V>,
-  id: MaybeRef<ID<CoValue> | undefined>,
-  options?: { resolve?: RefsToResolveStrict<V, R> },
-): Ref<Resolved<V, R> | undefined | null> {
-  const state: ShallowRef<Resolved<V, R> | undefined | null> =
+export function useCoState<
+  S extends CoValueOrZodSchema,
+  const R extends RefsToResolve<S> = true,
+>(
+  Schema: S,
+  id: string | undefined,
+  options?: { resolve?: ResolveQueryStrict<S, R> },
+): Ref<Loaded<S, R> | undefined | null> {
+  const state: ShallowRef<Loaded<S, R> | undefined | null> =
     shallowRef(undefined);
   const context = useJazzContext();
 
@@ -185,18 +155,17 @@ export function useCoState<V extends CoValue, const R extends RefsToResolve<V>>(
   let unsubscribe: (() => void) | undefined;
 
   watch(
-    [() => unref(id), () => context, () => Schema, () => options],
+    () => ({ id, context: context.value, Schema, options }),
     () => {
       if (unsubscribe) unsubscribe();
 
-      const idValue = unref(id);
-      if (!idValue) return;
+      if (!id) return;
 
       unsubscribe = subscribeToCoValue(
-        Schema,
-        idValue,
+        anySchemaToCoSchema(Schema),
+        id as any,
         {
-          resolve: options?.resolve,
+          resolve: options?.resolve as any,
           loadAs:
             "me" in context.value
               ? toRaw(context.value.me)
@@ -209,7 +178,7 @@ export function useCoState<V extends CoValue, const R extends RefsToResolve<V>>(
           },
           syncResolution: true,
         },
-        (value) => {
+        (value: any) => {
           state.value = value;
         },
       );
@@ -226,13 +195,13 @@ export function useCoState<V extends CoValue, const R extends RefsToResolve<V>>(
   return computedState;
 }
 
-export function useAcceptInvite<V extends CoValue>({
+export function useAcceptInvite<S extends CoValueOrZodSchema>({
   invitedObjectSchema,
   onAccept,
   forValueHint,
 }: {
-  invitedObjectSchema: CoValueClass<V>;
-  onAccept: (projectID: ID<V>) => void;
+  invitedObjectSchema: S;
+  onAccept: (projectID: string) => void;
   forValueHint?: string;
 }): void {
   const context = useJazzContext();
@@ -247,9 +216,9 @@ export function useAcceptInvite<V extends CoValue>({
     );
   }
 
-  const runInviteAcceptance = () => {
+  const handleInvite = () => {
     const result = consumeInviteLinkFromWindowLocation({
-      as: toRaw((context.value as JazzAuthContext<RegisteredAccount>).me),
+      as: toRaw((context.value as JazzAuthContext<Account>).me),
       invitedObjectSchema,
       forValueHint,
     });
@@ -262,15 +231,78 @@ export function useAcceptInvite<V extends CoValue>({
   };
 
   onMounted(() => {
-    runInviteAcceptance();
+    handleInvite();
+
+    // Listen for hashchange events like React version
+    window.addEventListener("hashchange", handleInvite);
+  });
+
+  onUnmounted(() => {
+    window.removeEventListener("hashchange", handleInvite);
   });
 
   watch(
     () => onAccept,
     (newOnAccept, oldOnAccept) => {
       if (newOnAccept !== oldOnAccept) {
-        runInviteAcceptance();
+        handleInvite();
       }
     },
   );
 }
+
+export function experimental_useInboxSender<
+  I extends CoValue,
+  O extends CoValue | undefined,
+>(inboxOwnerID: string | undefined) {
+  const context = useJazzContext();
+
+  if (!context.value) {
+    throw new Error(
+      "experimental_useInboxSender must be used within a JazzProvider",
+    );
+  }
+
+  if (!("me" in context.value)) {
+    throw new Error(
+      "experimental_useInboxSender can't be used in a JazzProvider with auth === 'guest'.",
+    );
+  }
+
+  const me = computed(() => (context.value as JazzAuthContext<Account>).me);
+  const inboxRef = ref<Promise<InboxSender<I, O>> | undefined>(undefined);
+
+  const sendMessage = async (message: I) => {
+    if (!inboxOwnerID) throw new Error("Inbox owner ID is required");
+
+    if (!inboxRef.value) {
+      const inbox = InboxSender.load<I, O>(inboxOwnerID, toRaw(me.value));
+      inboxRef.value = inbox;
+    }
+
+    let inbox = await inboxRef.value;
+
+    if (inbox.owner.id !== inboxOwnerID) {
+      const req = InboxSender.load<I, O>(inboxOwnerID, toRaw(me.value));
+      inboxRef.value = req;
+      inbox = await req;
+    }
+
+    return inbox.sendMessage(message);
+  };
+
+  // Reset inbox reference when inboxOwnerID changes
+  watch(
+    () => inboxOwnerID,
+    () => {
+      inboxRef.value = undefined;
+    },
+  );
+
+  return sendMessage;
+}
+
+// useAccountOrGuest has been removed in v0.15.4 to match React library.
+// It has been merged into useAccount which now handles both authenticated and guest scenarios.
+// This change maintains 1:1 API compatibility with the React Jazz library.
+// If you were using useAccountOrGuest, please migrate to useAccount.

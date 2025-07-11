@@ -6,12 +6,11 @@ You can either
 1. Clone the jazz repository, and run the app within the monorepo.
 2. Or create a new Jazz project using this example as a template.
 
-
 ### Using the example as a template
 
 Create a new Jazz project, and use this example as a template.
 ```bash
-npx create-jazz-app@latest chat-vue-app --example chat-vue
+npx create-jazz-app@latest chat-vue-app --example community-chat-vue
 ```
 
 Go to the new project directory.
@@ -40,7 +39,7 @@ pnpm i && npx turbo build
 
 Go to the example directory.
 ```bash
-cd jazz/examples/chat-vue/
+cd jazz/examples/community-chat-vue/
 ```
 
 Start the dev server.
