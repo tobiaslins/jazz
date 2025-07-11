@@ -128,7 +128,7 @@ export const coListDefiner = <T extends z.core.$ZodType>(
   const enrichedSchema = Object.assign(schema, {
     collaborative: true,
   }) as AnyCoListSchema<T>;
-  return zodSchemaToCoSchema(enrichedSchema);
+  return zodSchemaToCoSchema(enrichedSchema) as unknown as CoListSchema<T>;
 };
 
 export const coProfileDefiner = <
