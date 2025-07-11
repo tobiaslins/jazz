@@ -1,11 +1,12 @@
 import { CojsonInternalTypes, CryptoProvider, JsonValue } from "cojson";
 import z from "zod/v4";
 import {
+  AnyCoSchema,
   CoValue,
   CoValueClass,
-  CoValueOrZodSchema,
   Loaded,
   ResolveQuery,
+  ResolveQueryStrict,
   anySchemaToCoSchema,
   exportCoValue,
   importContentPieces,
@@ -13,75 +14,39 @@ import {
 } from "../internal.js";
 import { Account } from "./account.js";
 
-type CoValueKnownState = CojsonInternalTypes.CoValueKnownState;
-type NonCoZodType = z.ZodType & { collaborative?: false };
-
-interface RequestPayloadValue<
-  S extends CoValueOrZodSchema,
-  R extends ResolveQuery<S>,
-> {
-  schema: S;
-  resolve?: R;
-}
-
-type BaseRequestPayload = Record<
-  string,
-  | RequestPayloadValue<CoValueOrZodSchema, ResolveQuery<CoValueOrZodSchema>>
-  | NonCoZodType
->;
+type RequestSchemaDefinition<
+  S extends AnyCoSchema,
+  R extends ResolveQuery<S> = true,
+> =
+  | S
+  | {
+      schema: S;
+      resolve?: R;
+    };
 
 interface RequestOptions<
-  P extends BaseRequestPayload,
-  R extends BaseRequestPayload,
+  RequestSchema extends AnyCoSchema,
+  RequestResolve extends ResolveQuery<RequestSchema>,
+  ResponseSchema extends AnyCoSchema,
+  ResponseResolve extends ResolveQuery<ResponseSchema>,
 > {
   url: string;
-  payload: P;
-  response: R;
+  // TODO: The request payload should be optional
+  request: RequestSchemaDefinition<
+    RequestSchema,
+    ResolveQueryStrict<RequestSchema, RequestResolve>
+  >;
+  response: RequestSchemaDefinition<
+    ResponseSchema,
+    ResolveQueryStrict<ResponseSchema, ResponseResolve>
+  >;
 }
 
-export type ValueSchemas = Record<string, CoValueOrZodSchema>;
-
-type LooseValuesFor<P extends BaseRequestPayload> = {
-  [K in keyof P]: any;
-};
-
-export type InputValuesFor<P extends BaseRequestPayload> = {
-  [K in keyof P]: P[K] extends { schema: any }
-    ? Loaded<P[K]["schema"]>
-    : P[K] extends z.core.$ZodType
-      ? z.infer<P[K]>
-      : never;
-};
-
-export type LoadedValuesFor<P extends BaseRequestPayload> = {
-  [K in keyof P]: P[K] extends { schema: any; resolve?: any }
-    ? P[K]["resolve"] extends ResolveQuery<P[K]["schema"]>
-      ? Loaded<P[K]["schema"], P[K]["resolve"]>
-      : Loaded<P[K]["schema"]>
-    : P[K] extends z.core.$ZodType
-      ? z.infer<P[K]>
-      : never;
-};
-
-export type PlainDataFor<P extends BaseRequestPayload> = {
-  [K in keyof P]: P[K] extends z.core.$ZodType ? z.infer<P[K]> : never;
-};
-
-export type CoValueRequest<Vs extends ValueSchemas, P extends z.ZodType> = {
-  payload: {
-    values: Record<keyof Vs, string>;
-    params: z.infer<P>;
-  };
-  madeBy: string;
-  signerID: CojsonInternalTypes.SignerID;
-  signature: CojsonInternalTypes.Signature;
-  knownStates?: Record<string, CoValueKnownState>;
-  contentPieces?: Record<string, CojsonInternalTypes.NewContentMessage>;
-};
-
-async function serializeMessagePayload<P extends BaseRequestPayload>(
-  values: LooseValuesFor<P>,
-  params: P,
+async function serializeMessagePayload(
+  // Skipping type validation here to avoid excessive type complexity that affects the typecheck performance
+  schema: AnyCoSchema,
+  resolve: any,
+  value: any,
   owner?: Account,
 ) {
   const me = owner ?? Account.getMe();
@@ -90,69 +55,37 @@ async function serializeMessagePayload<P extends BaseRequestPayload>(
   const signerID = agent.currentSignerID();
   const signerSecret = agent.currentSignerSecret();
 
-  const coValuesIds: [string, string][] = [];
-  const plainData: Record<string, unknown> = {};
-  const contentPieces: CojsonInternalTypes.NewContentMessage[] = [];
-
-  for (const k of Object.keys(params)) {
-    const schemaDef = params[k];
-
-    if (!schemaDef) {
-      continue;
-    }
-
-    if ("schema" in schemaDef) {
-      const value = values[k];
-
-      if (!value) {
-        throw new Error(`Value ${k} not found in values`);
-      }
-
-      coValuesIds.push([k, value.id]);
-
-      // TODO: Deduplicate content pieces
-      const coSchema = anySchemaToCoSchema(schemaDef.schema);
-      const exported = await exportCoValue(coSchema, value.id, {
-        resolve: schemaDef.resolve,
-        loadAs: me,
-      });
-
-      if (!exported) {
-        throw new Error(`Failed to export value ${k}`);
-      }
-
-      for (const piece of exported) {
-        contentPieces.push(piece);
-      }
-    } else {
-      plainData[k] = schemaDef.parse(values[k]);
-    }
-  }
-
-  const exported = await exportCoValue(Account, me.id, {
+  const contentPieces = await exportCoValue(schema, value.id, {
+    resolve,
     loadAs: me,
   });
 
-  if (!exported) {
-    throw new Error(`Failed to export current account`);
+  if (!contentPieces) {
+    throw new Error(`Failed to export value`);
   }
 
-  for (const piece of exported) {
-    contentPieces.push(piece);
+  if (!contentPieces.some((piece) => piece.id === me.id)) {
+    const accountContent = await exportCoValue(Account, me.id, {
+      loadAs: me,
+    });
+
+    if (!accountContent) {
+      throw new Error(`Failed to export current account`);
+    }
+
+    for (const piece of accountContent) {
+      contentPieces.push(piece);
+    }
   }
 
-  const payload = {
-    coValuesIds,
-    contentPieces,
-    plainData,
-  };
-
-  const stringifiedPayload = JSON.stringify(payload);
-  const hash = node.crypto.secureHash(stringifiedPayload);
-  const signature = node.crypto.sign(signerSecret, hash);
+  // TODO: Replay attacks protection
+  const challenge = node.crypto.uniquenessForHeader();
+  const signature = node.crypto.sign(signerSecret, `${value.id}${challenge}`);
 
   return {
-    payload: stringifiedPayload,
+    contentPieces,
+    challenge,
+    id: value.id,
     madeBy: me.id,
     signerID,
     signature,
@@ -160,66 +93,36 @@ async function serializeMessagePayload<P extends BaseRequestPayload>(
 }
 
 const requestSchema = z.object({
-  payload: z.string(),
+  contentPieces: z.array(z.json()),
+  id: z.string(),
+  challenge: z.string(),
   madeBy: z.string(),
   signerID: z.string(),
   signature: z.string(),
 });
 
-const requestPayloadSchema = z.object({
-  coValuesIds: z.array(z.tuple([z.string(), z.string()])),
-  plainData: z.any(),
-  // TODO Setup a proper content schema for this
-  contentPieces: z.array(z.json()),
-});
-
-function parsePlainData<P extends BaseRequestPayload>(
-  params: P,
-  payload: unknown,
-) {
-  const shape: Record<string, NonCoZodType> = {};
-
-  for (const k of Object.keys(params)) {
-    const schemaDef = params[k];
-
-    if (!schemaDef) {
-      continue;
-    }
-
-    if ("schema" in schemaDef) {
-      continue;
-    }
-
-    shape[k] = schemaDef;
-  }
-
-  return z.object(shape).parse(payload) as PlainDataFor<P>;
-}
-
-async function handleIncomingMessage<P extends BaseRequestPayload>(
+async function handleIncomingMessage(
+  // Skipping type validation here to avoid excessive type complexity that affects the typecheck performance
+  schema: AnyCoSchema,
+  resolve: any,
   request: unknown,
-  paramsSchema: P,
   crypto: CryptoProvider,
   loadAs?: Account,
 ) {
   const requestParsed = requestSchema.parse(request);
 
-  const hash = crypto.secureHash(requestParsed.payload);
-
   if (
     !crypto.verify(
       requestParsed.signature as CojsonInternalTypes.Signature,
-      hash,
+      `${requestParsed.id}${requestParsed.challenge}`,
       requestParsed.signerID as CojsonInternalTypes.SignerID,
     )
   ) {
     throw new Error("Invalid signature");
   }
 
-  const payload = requestPayloadSchema.parse(JSON.parse(requestParsed.payload));
-
   importContentPieces(
-    payload.contentPieces as CojsonInternalTypes.NewContentMessage[],
+    requestParsed.contentPieces as CojsonInternalTypes.NewContentMessage[],
     loadAs,
   );
 
@@ -239,71 +142,60 @@ async function handleIncomingMessage<P extends BaseRequestPayload>(
     );
   }
 
-  const coValuesIds = payload.coValuesIds;
-  const plainData = parsePlainData(paramsSchema, payload.plainData);
+  const coSchema = anySchemaToCoSchema(schema) as CoValueClass<CoValue>;
+  const value = await loadCoValue(coSchema, requestParsed.id, {
+    resolve,
+    loadAs: loadAs ?? Account.getMe(),
+  });
 
-  const values = await loadValues(coValuesIds, plainData, paramsSchema, loadAs);
+  if (!value) {
+    throw new Error("Value not found");
+  }
 
   return {
-    values,
+    value: value as unknown,
     madeBy,
   };
 }
 
-async function loadValues<P extends BaseRequestPayload>(
-  coValuesIds: [string, string][],
-  plainData: PlainDataFor<P>,
-  params: P,
-  loadAs?: Account,
-) {
-  const loaded = plainData as LoadedValuesFor<P>;
-  const promises = [];
-  const errors: string[] = [];
-
-  for (const [k, id] of coValuesIds) {
-    const schemaDef = params[k];
-
-    if (!schemaDef || !("schema" in schemaDef)) {
-      throw new Error(`Value ${k} not found in valueSchemas`);
-    }
-
-    const coSchema = anySchemaToCoSchema(schemaDef.schema);
-
-    promises.push(
-      loadCoValue(coSchema, id, {
-        // @ts-expect-error We can't really validate this
-        resolve: schemaDef.resolve,
-        loadAs: loadAs ?? Account.getMe(),
-      }).then((v: unknown) => {
-        if (!v) {
-          errors.push(`Value ${k} not found/accessible`);
-        }
-
-        // @ts-expect-error We can't really validate this
-        loaded[k] = v;
-
-        return v;
-      }),
-    );
+function parseSchemaAndResolve<
+  S extends AnyCoSchema,
+  R extends ResolveQuery<S>,
+>(options: RequestSchemaDefinition<S, R>) {
+  if ("schema" in options) {
+    return {
+      schema: options.schema,
+      resolve: options.resolve,
+    };
   }
 
-  await Promise.all(promises);
-
-  if (errors.length > 0) {
-    throw new Error(errors.join("\n"));
-  }
-
-  return loaded;
+  return {
+    schema: options,
+    resolve: true,
+  };
 }
 
 export function experimental_defineRequest<
-  P extends BaseRequestPayload,
-  R extends BaseRequestPayload,
->(params: RequestOptions<P, R>) {
+  RequestSchema extends AnyCoSchema,
+  RequestResolve extends ResolveQuery<RequestSchema>,
+  ResponseSchema extends AnyCoSchema,
+  ResponseResolve extends ResolveQuery<ResponseSchema>,
+>(
+  params: RequestOptions<
+    RequestSchema,
+    RequestResolve,
+    ResponseSchema,
+    ResponseResolve
+  >,
+) {
+  const requestDefinition = parseSchemaAndResolve(params.request);
+  const responseDefinition = parseSchemaAndResolve(params.response);
+
   const send = async (
-    values: InputValuesFor<P>,
+    // TODO: Accept the init payload as well
+    values: Loaded<RequestSchema>,
     options?: { owner?: Account },
-  ) => {
+  ): Promise<Loaded<ResponseSchema, ResponseResolve>> => {
     const as = options?.owner ?? Account.getMe();
     const node = as._raw.core.node;
 
@@ -313,7 +205,12 @@ export function experimental_defineRequest<
         "Content-Type": "application/json",
       },
       body: JSON.stringify(
-        await serializeMessagePayload(values, params.payload, as),
+        await serializeMessagePayload(
+          requestDefinition.schema,
+          requestDefinition.resolve,
+          values,
+          as,
+        ),
       ),
     });
 
@@ -327,37 +224,45 @@ export function experimental_defineRequest<
       .parse(responseBody);
 
     const data = await handleIncomingMessage(
+      responseDefinition.schema,
+      responseDefinition.resolve,
       responseParsed.payload,
-      params.response,
       node.crypto,
       as,
     );
 
-    return data.values;
+    return data.value as Loaded<ResponseSchema, ResponseResolve>;
   };
 
   const handle = async (
     request: Request,
     as: Account,
     callback: (
-      values: LoadedValuesFor<P>,
+      value: Loaded<RequestSchema, RequestResolve>,
       madeBy: Account,
-    ) => Promise<InputValuesFor<R>> | InputValuesFor<R>,
+
+      // TODO: Accept the init payload as well
+    ) => Promise<Loaded<ResponseSchema>> | Loaded<ResponseSchema>,
   ): Promise<Response> => {
     const node = as._raw.core.node;
     const body = await request.json();
     const data = await handleIncomingMessage(
+      requestDefinition.schema,
+      requestDefinition.resolve,
       body,
-      params.payload,
       node.crypto,
       as,
     );
 
-    const responseValues = await callback(data.values, data.madeBy);
+    const responseValue = await callback(
+      data.value as Loaded<RequestSchema, RequestResolve>,
+      data.madeBy,
+    );
 
     const responsePayload = await serializeMessagePayload(
-      responseValues as InputValuesFor<R>,
-      params.response,
+      responseDefinition.schema,
+      responseDefinition.resolve,
+      responseValue,
       as,
     );
 
@@ -377,5 +282,9 @@ export function experimental_defineRequest<
   return {
     send,
     handle,
+    schema: {
+      request: requestDefinition.schema,
+      response: responseDefinition.schema,
+    },
   };
 }

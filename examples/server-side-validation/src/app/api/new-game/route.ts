@@ -5,8 +5,7 @@ export async function POST(request: Request) {
   const response = await newGameRequest.handle(
     request,
     jazzServerAccount.worker,
-    // @ts-expect-error - FIX THIS
-    async ({ game: inputGame }, madeBy) => {
+    async (inputGame, madeBy) => {
       const game = await Game.load(inputGame.id, {
         loadAs: jazzServerAccount.worker,
         resolve: {
@@ -20,22 +19,28 @@ export async function POST(request: Request) {
       });
 
       if (!game) {
-        return {
-          game,
-          result: "error",
-          error: "Unable to load game player data",
-        };
+        return newGameRequest.schema.response.create(
+          {
+            game: inputGame,
+            result: "error",
+            error: "Unable to load game player data",
+          },
+          inputGame._owner,
+        );
       }
 
       const isPlayer1 = game.player1.account.id === madeBy.id;
       const isPlayer2 = game.player2.account.id === madeBy.id;
 
       if (!isPlayer1 && !isPlayer2) {
-        return {
-          game,
-          result: "error",
-          error: "You are not a player in this game",
-        };
+        return newGameRequest.schema.response.create(
+          {
+            game: inputGame,
+            result: "error",
+            error: "You are not a player in this game",
+          },
+          inputGame._owner,
+        );
       }
 
       if (game.outcome) {
@@ -47,11 +52,14 @@ export async function POST(request: Request) {
         }
       }
 
-      return {
-        game,
-        result: "success",
-        error: undefined,
-      };
+      return newGameRequest.schema.response.create(
+        {
+          game,
+          result: "success",
+          error: undefined,
+        },
+        game._owner,
+      );
     },
   );
 

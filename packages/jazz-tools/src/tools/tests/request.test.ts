@@ -67,24 +67,17 @@ describe("experimental_defineRequest", () => {
 
       const blogRequest = experimental_defineRequest({
         url: "https://api.example.com/api/blog",
-        payload: {
-          blog: {
-            schema: Blog,
-            resolve: {
-              posts: {
-                $each: {
-                  comments: true,
-                },
+        request: {
+          schema: Blog,
+          resolve: {
+            posts: {
+              $each: {
+                comments: true,
               },
             },
           },
-          additionalData: z.string(),
         },
-        response: {
-          blog: {
-            schema: Blog,
-          },
-        },
+        response: Blog,
       });
 
       const worker = await createJazzTestAccount();
@@ -93,31 +86,22 @@ describe("experimental_defineRequest", () => {
 
       server.use(
         http.post("https://api.example.com/api/blog", async ({ request }) => {
-          return blogRequest.handle(request, worker, async (values, madeBy) => {
+          return blogRequest.handle(request, worker, async (blog, madeBy) => {
             callbackData = {
-              values: values.blog.toJSON(),
-              additionalData: values.additionalData,
+              values: blog.toJSON(),
               madeBy: madeBy.id,
             };
 
-            values.blog.name = "My Blog (modified)";
+            blog.name = "My Blog (modified)";
 
-            return {
-              blog,
-            };
+            return blog;
           });
         }),
       );
 
-      const response = await blogRequest.send(
-        {
-          blog,
-          additionalData: "Hello World",
-        },
-        { owner: me },
-      );
+      const response = await blogRequest.send(blog, { owner: me });
 
-      expect(response.blog.name).toEqual("My Blog (modified)");
+      expect(response.name).toEqual("My Blog (modified)");
 
       expect(callbackData).toMatchObject({
         values: {
@@ -131,7 +115,6 @@ describe("experimental_defineRequest", () => {
             },
           ],
         },
-        additionalData: "Hello World",
         madeBy: me.id,
       });
     });

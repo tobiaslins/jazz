@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Game, newGameRequest, playRequest } from "@/schema";
+import { Group } from "jazz-tools";
 import { useAccount, useCoState } from "jazz-tools/react";
 import { Badge, CircleHelp, Scissors, ScrollText } from "lucide-react";
 import { useParams } from "next/navigation";
@@ -80,16 +81,23 @@ export default function RouteComponent() {
   ) => {
     if (!playSelection) return;
 
-    await playRequest.send({
-      game,
-      selection: playSelection,
-    });
+    const group = Group.create();
+    group.addMember(game._owner.castAs(Group), "writer");
+
+    await playRequest.send(
+      playRequest.schema.request.create(
+        {
+          game,
+          selection: playSelection,
+        },
+        group,
+      ),
+    );
+    setPlaySelection(undefined);
   };
 
   const onNewGame = async () => {
-    await newGameRequest.send({
-      game,
-    });
+    await newGameRequest.send(game);
   };
 
   const currentPlayerSelection =

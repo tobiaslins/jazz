@@ -16,9 +16,7 @@ export async function POST(request: Request) {
         waitingRoomGroup,
       );
 
-      return {
-        waitingRoom,
-      };
+      return waitingRoom;
     },
   );
 

@@ -30,88 +30,67 @@ export type WaitingRoom = co.loaded<typeof WaitingRoom>;
 
 export const createGameRequest = experimental_defineRequest({
   url: "/api/create-game",
-  payload: {},
-  response: {
-    waitingRoom: {
-      schema: WaitingRoom,
-      resolve: {
-        account1: true,
-      },
-    },
-  },
+  request: co.map({}),
+  response: WaitingRoom,
 });
 
 export const joinGameRequest = experimental_defineRequest({
   url: "/api/join-game",
-  payload: {
-    waitingRoom: {
-      schema: WaitingRoom,
-      resolve: {
-        account1: true,
-      },
+  request: {
+    schema: WaitingRoom,
+    resolve: {
+      account1: true,
     },
   },
   response: {
-    waitingRoom: {
-      schema: WaitingRoom,
-      resolve: {
-        account2: true,
+    schema: co.map({
+      waitingRoom: WaitingRoom,
+      result: z.literal(["success", "error"]),
+      error: z.optional(z.string()),
+    }),
+    resolve: {
+      waitingRoom: {
         game: true,
       },
     },
-    result: z.literal(["success", "error"]),
-    error: z.optional(z.string()),
   },
 });
 
 export const newGameRequest = experimental_defineRequest({
   url: "/api/new-game",
-  payload: {
-    game: {
-      schema: Game,
-      resolve: {
-        outcome: true,
-        player1Score: true,
-        player2Score: true,
-      },
-    },
-  },
+  request: Game,
   response: {
-    game: {
-      schema: Game,
-      resolve: {
-        outcome: true,
-        player1Score: true,
-        player2Score: true,
-      },
+    schema: co.map({
+      game: Game,
+      result: z.literal(["success", "error"]),
+      error: z.optional(z.string()),
+    }),
+    resolve: {
+      game: true,
     },
   },
 });
 
 export const playRequest = experimental_defineRequest({
   url: "/api/play",
-  payload: {
-    game: {
-      schema: Game,
-      resolve: {
-        outcome: true,
-        player1Score: true,
-        player2Score: true,
-      },
+  request: {
+    schema: co.map({
+      game: Game,
+      selection: z.literal(["rock", "paper", "scissors"]),
+    }),
+    resolve: {
+      game: true,
     },
-    selection: z.literal(["rock", "paper", "scissors"]),
   },
   response: {
-    game: {
-      schema: Game,
-      resolve: {
-        outcome: true,
-        player1Score: true,
-        player2Score: true,
-      },
+    schema: co.map({
+      game: Game,
+      result: z.literal(["success", "error"]),
+      error: z.optional(z.string()),
+    }),
+    resolve: {
+      game: true,
     },
-    result: z.literal(["success", "error"]),
-    error: z.optional(z.string()),
   },
 });
 

@@ -6,7 +6,6 @@ export async function POST(request: Request) {
   const response = await playRequest.handle(
     request,
     jazzServerAccount.worker,
-    // @ts-expect-error - FIX THIS
     async ({ game: inputGame, selection }, madeBy) => {
       const game = await Game.load(inputGame.id, {
         loadAs: jazzServerAccount.worker,
@@ -27,22 +26,28 @@ export async function POST(request: Request) {
       });
 
       if (!game) {
-        return {
-          game,
-          result: "error",
-          error: "Unable to load game player data",
-        };
+        return playRequest.schema.response.create(
+          {
+            game: inputGame,
+            result: "error",
+            error: "Unable to load game player data",
+          },
+          inputGame._owner,
+        );
       }
 
       const isPlayer1 = game.player1.account.id === madeBy.id;
       const isPlayer2 = game.player2.account.id === madeBy.id;
 
       if (!isPlayer1 && !isPlayer2) {
-        return {
-          game,
-          result: "error",
-          error: "You are not a player in this game",
-        };
+        return playRequest.schema.response.create(
+          {
+            game: inputGame,
+            result: "error",
+            error: "You are not a player in this game",
+          },
+          inputGame._owner,
+        );
       }
 
       const group = Group.create({ owner: jazzServerAccount.worker });
@@ -76,13 +81,22 @@ export async function POST(request: Request) {
         // Reveal the play selections to the other player
         player1PlaySelection.group.addMember(game.player2.account, "reader");
         player2PlaySelection.group.addMember(game.player1.account, "reader");
+
+        if (game.outcome === "player1") {
+          game.player1Score++;
+        } else if (game.outcome === "player2") {
+          game.player2Score++;
+        }
       }
 
-      return {
-        game,
-        result: "success",
-        error: undefined,
-      };
+      return playRequest.schema.response.create(
+        {
+          game,
+          result: "success",
+          error: undefined,
+        },
+        game._owner,
+      );
     },
   );
 
