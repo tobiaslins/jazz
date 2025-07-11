@@ -8,7 +8,7 @@ import {
   Resolved,
   Simplify,
   SubscribeListenerOptions,
-  zodSchemaToCoSchema,
+  coreSchemaToCoSchema,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
@@ -20,132 +20,129 @@ export type CoMapSchema<
   Shape extends z.core.$ZodLooseShape,
   Config extends z.core.$ZodObjectConfig = z.core.$ZodObjectConfig,
   Owner extends Account | Group = Account | Group,
-> = AnyCoMapSchema<Shape, Config> &
-  z.$ZodTypeDiscriminable & {
-    create: (
-      init: Simplify<CoMapInitZod<Shape>>,
-      options?:
-        | {
-            owner: Owner;
-            unique?: CoValueUniqueness["uniqueness"];
-          }
-        | Owner,
-    ) => (Shape extends Record<string, never>
+> = AnyCoMapSchema<Shape, Config> & {
+  create: (
+    init: Simplify<CoMapInitZod<Shape>>,
+    options?:
+      | {
+          owner: Owner;
+          unique?: CoValueUniqueness["uniqueness"];
+        }
+      | Owner,
+  ) => (Shape extends Record<string, never>
+    ? {}
+    : {
+        -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchema<Shape[key]>;
+      }) &
+    (unknown extends Config["out"][string]
       ? {}
       : {
-          -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchema<
-            Shape[key]
-          >;
+          [key: string]: Config["out"][string];
         }) &
-      (unknown extends Config["out"][string]
-        ? {}
-        : {
-            [key: string]: Config["out"][string];
-          }) &
-      CoMap;
+    CoMap;
 
-    load<
-      const R extends RefsToResolve<
-        Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap
-      > = true,
-    >(
-      id: string,
-      options?: {
-        resolve?: RefsToResolveStrict<
-          Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
-          R
-        >;
-        loadAs?: Account | AnonymousJazzAgent;
-        skipRetry?: boolean;
-      },
-    ): Promise<Resolved<
-      Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
-      R
-    > | null>;
-
-    subscribe<
-      const R extends RefsToResolve<
-        Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap
-      > = true,
-    >(
-      id: string,
-      options: SubscribeListenerOptions<
-        Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
-        R
-      >,
-      listener: (
-        value: Resolved<
-          Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
-          R
-        >,
-        unsubscribe: () => void,
-      ) => void,
-    ): () => void;
-
-    /** @deprecated Use `CoMap.upsertUnique` and `CoMap.loadUnique` instead. */
-    findUnique(
-      unique: CoValueUniqueness["uniqueness"],
-      ownerID: string,
-      as?: Account | Group | AnonymousJazzAgent,
-    ): string;
-
-    upsertUnique: <
-      const R extends RefsToResolve<
-        Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap
-      > = true,
-    >(options: {
-      value: Simplify<CoMapInitZod<Shape>>;
-      unique: CoValueUniqueness["uniqueness"];
-      owner: Owner;
+  load<
+    const R extends RefsToResolve<
+      Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap
+    > = true,
+  >(
+    id: string,
+    options?: {
       resolve?: RefsToResolveStrict<
         Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
         R
       >;
-    }) => Promise<Resolved<
+      loadAs?: Account | AnonymousJazzAgent;
+      skipRetry?: boolean;
+    },
+  ): Promise<Resolved<
+    Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
+    R
+  > | null>;
+
+  subscribe<
+    const R extends RefsToResolve<
+      Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap
+    > = true,
+  >(
+    id: string,
+    options: SubscribeListenerOptions<
       Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
       R
-    > | null>;
+    >,
+    listener: (
+      value: Resolved<
+        Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
+        R
+      >,
+      unsubscribe: () => void,
+    ) => void,
+  ): () => void;
 
-    loadUnique<
-      const R extends RefsToResolve<
-        Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap
-      > = true,
-    >(
-      unique: CoValueUniqueness["uniqueness"],
-      ownerID: string,
-      options?: {
-        resolve?: RefsToResolveStrict<
-          Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
-          R
-        >;
-        loadAs?: Account | AnonymousJazzAgent;
-      },
-    ): Promise<Resolved<
+  /** @deprecated Use `CoMap.upsertUnique` and `CoMap.loadUnique` instead. */
+  findUnique(
+    unique: CoValueUniqueness["uniqueness"],
+    ownerID: string,
+    as?: Account | Group | AnonymousJazzAgent,
+  ): string;
+
+  upsertUnique: <
+    const R extends RefsToResolve<
+      Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap
+    > = true,
+  >(options: {
+    value: Simplify<CoMapInitZod<Shape>>;
+    unique: CoValueUniqueness["uniqueness"];
+    owner: Owner;
+    resolve?: RefsToResolveStrict<
       Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
       R
-    > | null>;
+    >;
+  }) => Promise<Resolved<
+    Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
+    R
+  > | null>;
 
-    catchall<T extends z.core.$ZodType>(
-      schema: T,
-    ): CoMapSchema<Shape, z.core.$catchall<T>>;
+  loadUnique<
+    const R extends RefsToResolve<
+      Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap
+    > = true,
+  >(
+    unique: CoValueUniqueness["uniqueness"],
+    ownerID: string,
+    options?: {
+      resolve?: RefsToResolveStrict<
+        Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
+        R
+      >;
+      loadAs?: Account | AnonymousJazzAgent;
+    },
+  ): Promise<Resolved<
+    Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
+    R
+  > | null>;
 
-    /** @deprecated Define your helper methods separately, in standalone functions. */
-    withHelpers<S extends z.core.$ZodType, T extends object>(
-      this: S,
-      helpers: (Self: S) => T,
-    ): WithHelpers<S, T>;
+  catchall<T extends z.core.$ZodType>(
+    schema: T,
+  ): CoMapSchema<Shape, z.core.$catchall<T>>;
 
-    withMigration(
-      migration: (
-        value: Resolved<
-          Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
-          true
-        >,
-      ) => undefined,
-    ): CoMapSchema<Shape, Config, Owner>;
+  /** @deprecated Define your helper methods separately, in standalone functions. */
+  withHelpers<S extends z.core.$ZodType, T extends object>(
+    this: S,
+    helpers: (Self: S) => T,
+  ): WithHelpers<S, T>;
 
-    getCoValueClass: () => typeof CoMap;
-  };
+  withMigration(
+    migration: (
+      value: Resolved<
+        Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
+        true
+      >,
+    ) => undefined,
+  ): CoMapSchema<Shape, Config, Owner>;
+
+  getCoValueClass: () => typeof CoMap;
+};
 
 export function createCoreCoMapSchema<Shape extends z.core.$ZodLooseShape>(
   shape: Shape,
@@ -196,7 +193,7 @@ export function enrichCoMapSchema<
       const enrichedSchema = Object.assign(newSchema, {
         collaborative: true,
       }) as AnyCoMapSchema<Shape, Config>;
-      return zodSchemaToCoSchema(enrichedSchema);
+      return coreSchemaToCoSchema(enrichedSchema);
     },
     withHelpers: (helpers: (Self: z.core.$ZodType) => object) => {
       return Object.assign(schema, helpers(schema));
@@ -240,7 +237,8 @@ export type CoMapInitZod<Shape extends z.core.$ZodLooseShape> = {
 export type AnyCoMapSchema<
   Shape extends z.core.$ZodLooseShape = z.core.$ZodLooseShape,
   Config extends z.core.$ZodObjectConfig = z.core.$ZodObjectConfig,
-> = z.core.$ZodObject<Shape, Config> & { collaborative: true };
+> = z.core.$ZodObject<Shape, Config> &
+  z.$ZodTypeDiscriminable & { collaborative: true };
 
 export type CoMapInstance<Shape extends z.core.$ZodLooseShape> = {
   -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchema<Shape[key]>;

@@ -18,7 +18,7 @@ import {
   createCoreCoMapSchema,
   createCoreCoPlainTextSchema,
   createCoreFileStreamSchema,
-  zodSchemaToCoSchema,
+  coreSchemaToCoSchema,
 } from "../../internal.js";
 import {
   AnyDiscriminableCoSchema,
@@ -39,7 +39,7 @@ export const coMapDefiner = <Shape extends z.core.$ZodLooseShape>(
   shape: Shape,
 ): CoMapSchema<Shape> => {
   const coreSchema = createCoreCoMapSchema(shape);
-  return zodSchemaToCoSchema(coreSchema);
+  return coreSchemaToCoSchema(coreSchema);
 };
 
 /**
@@ -90,7 +90,7 @@ export const coAccountDefiner = <Shape extends BaseAccountShape>(
   } as unknown as Shape,
 ): AccountSchema<Shape> => {
   const coreSchema = createCoreAccountSchema(shape);
-  return zodSchemaToCoSchema(coreSchema);
+  return coreSchemaToCoSchema(coreSchema);
 };
 
 export const coRecordDefiner = <
@@ -110,7 +110,7 @@ export const coListDefiner = <T extends z.core.$ZodType>(
   element: T,
 ): CoListSchema<T> => {
   const coreSchema = createCoreCoListSchema(element);
-  return zodSchemaToCoSchema(coreSchema) as unknown as CoListSchema<T>;
+  return coreSchemaToCoSchema(coreSchema) as unknown as CoListSchema<T>;
 };
 
 export const coProfileDefiner = <
@@ -130,22 +130,22 @@ export const coFeedDefiner = <T extends z.core.$ZodType>(
   element: T,
 ): CoFeedSchema<T> => {
   const coreSchema = createCoreCoFeedSchema(element);
-  return zodSchemaToCoSchema(coreSchema);
+  return coreSchemaToCoSchema(coreSchema);
 };
 
 export const coFileStreamDefiner = (): FileStreamSchema => {
   const coreSchema = createCoreFileStreamSchema();
-  return zodSchemaToCoSchema(coreSchema);
+  return coreSchemaToCoSchema(coreSchema);
 };
 
 export const coPlainTextDefiner = (): PlainTextSchema => {
   const coreSchema = createCoreCoPlainTextSchema();
-  return zodSchemaToCoSchema(coreSchema);
+  return coreSchemaToCoSchema(coreSchema);
 };
 
 export const coRichTextDefiner = (): RichTextSchema => {
   const coreSchema = createCoreCoRichTextSchema();
-  return zodSchemaToCoSchema(coreSchema);
+  return coreSchemaToCoSchema(coreSchema);
 };
 
 export const coImageDefiner = (): typeof ImageDefinition => {
@@ -168,5 +168,5 @@ export const coDiscriminatedUnionDefiner = <
     discriminator,
     schemas,
   );
-  return zodSchemaToCoSchema(coreSchema);
+  return coreSchemaToCoSchema(coreSchema);
 };

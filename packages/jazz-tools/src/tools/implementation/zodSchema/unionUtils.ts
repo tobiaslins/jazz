@@ -1,12 +1,14 @@
 import { RawAccount, RawCoList, RawCoMap } from "cojson";
-import { CoValueClass, CoValueFromRaw } from "../../internal.js";
+import {
+  AnyCoDiscriminatedUnionSchema,
+  AnyDiscriminableCoSchema,
+  CoMap,
+} from "../../internal.js";
 import {
   isAnyCoValueSchema,
-  zodSchemaToCoSchema,
+  coreSchemaToCoSchema,
 } from "./runtimeConverters/zodSchemaToCoSchema.js";
-import { AccountSchema } from "./schemaTypes/AccountSchema.js";
-import { CoListSchema } from "./schemaTypes/CoListSchema.js";
-import { CoMapSchema } from "./schemaTypes/CoMapSchema.js";
+import { AnyCoMapSchema } from "./schemaTypes/CoMapSchema.js";
 import { z } from "./zodReExport.js";
 
 export function schemaUnionDiscriminatorFor(
@@ -36,15 +38,16 @@ export function schemaUnionDiscriminatorFor(
       }
     }
 
-    const availableOptions: z.core.$ZodObject[] = [];
+    const availableOptions: AnyDiscriminableCoSchema[] = [];
 
     for (const option of schema._zod.def.options) {
       if (option._zod.def.type === "object") {
-        availableOptions.push(option as z.core.$ZodObject);
+        availableOptions.push(option as AnyCoMapSchema);
       } else if (option._zod.def.type === "union") {
-        for (const subOption of (option as z.core.$ZodUnion)._zod.def.options) {
+        for (const subOption of (option as AnyCoDiscriminatedUnionSchema<any>)
+          ._zod.def.options) {
           if (subOption._zod.def.type === "object") {
-            availableOptions.push(subOption as z.core.$ZodObject);
+            availableOptions.push(subOption as AnyCoMapSchema);
           }
         }
       } else {
@@ -97,12 +100,8 @@ export function schemaUnionDiscriminatorFor(
         }
 
         if (match) {
-          const coValueSchema = zodSchemaToCoSchema(option) as
-            | CoMapSchema<any>
-            | AccountSchema
-            | CoListSchema<any>;
-          return coValueSchema.getCoValueClass() as CoValueClass<any> &
-            CoValueFromRaw<any>;
+          const coValueSchema = coreSchemaToCoSchema(option);
+          return coValueSchema.getCoValueClass() as typeof CoMap;
         }
       }
 

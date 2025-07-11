@@ -172,7 +172,7 @@ function tryZodSchemaToCoSchema<S extends z.core.$ZodType>(
   }
 }
 
-export function zodSchemaToCoSchema<S extends z.core.$ZodType | AnyCoSchema>(
+export function coreSchemaToCoSchema<S extends AnyCoSchema>(
   schema: S,
 ): CoValueSchemaFromZodSchema<S> {
   const coSchema = tryZodSchemaToCoSchema(schema);
