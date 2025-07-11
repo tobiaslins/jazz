@@ -96,7 +96,6 @@ export {
 export type * from "./types.js";
 
 export {
-  zodSchemaToCoSchema,
   anySchemaToCoSchema,
   type InstanceOfSchema,
   type InstanceOfSchemaCoValuesNullable,
