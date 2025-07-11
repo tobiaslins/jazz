@@ -39,7 +39,7 @@ describe("co.discriminatedUnion", () => {
     expect(person.pet.type).toEqual("cat");
   });
 
-  test("load CoValue instances using the DiscriminatedUnion schema without resolve", async () => {
+  test("load CoValue instances using the DiscriminatedUnion schema", async () => {
     const Dog = co.map({
       type: z.literal("dog"),
     });
@@ -53,47 +53,26 @@ describe("co.discriminatedUnion", () => {
     expect(loadedPet?.type).toEqual("dog");
   });
 
-  test("load CoValue instances using the DiscriminatedUnion schema with deep resolve", async () => {
+  test("subscribe to CoValue instances using the DiscriminatedUnion schema", async () => {
     const Person = co.map({
       name: z.string(),
     });
     const Dog = co.map({
       type: z.literal("dog"),
+      name: z.string(),
       owner: Person,
     });
     const Cat = co.map({
       type: z.literal("cat"),
-      owner: Person,
+      name: z.string(),
     });
     const Pet = co.discriminatedUnion("type", [Dog, Cat]);
 
     const dog = Dog.create({
       type: "dog",
-      owner: Person.create({
-        name: "John Doe",
-      }),
+      name: "Rex",
+      owner: Person.create({ name: "John Doe" }),
     });
-
-    const loadedPet = await Pet.load(dog.id, {
-      resolve: {
-        owner: true,
-      },
-    });
-    expect(loadedPet?.owner.name).toEqual("John Doe");
-  });
-
-  test("subscribe to CoValue instances using the DiscriminatedUnion schema without resolve", async () => {
-    const Dog = co.map({
-      type: z.literal("dog"),
-      name: z.string(),
-    });
-    const Cat = co.map({
-      type: z.literal("cat"),
-      name: z.string(),
-    });
-    const Pet = co.discriminatedUnion("type", [Dog, Cat]);
-
-    const dog = Dog.create({ type: "dog", name: "Rex" });
 
     const updates: Loaded<typeof Pet>[] = [];
     const spy = vi.fn((pet) => updates.push(pet));
@@ -110,39 +89,5 @@ describe("co.discriminatedUnion", () => {
     expect(spy).toHaveBeenCalledTimes(1);
 
     expect(updates[0]?.name).toEqual("Rex");
-  });
-
-  test("subscribe to CoValue instances using the DiscriminatedUnion schema with deep resolve", async () => {
-    const Person = co.map({
-      name: z.string(),
-    });
-    const Dog = co.map({
-      type: z.literal("dog"),
-      owner: Person,
-    });
-    const Cat = co.map({
-      type: z.literal("cat"),
-      owner: Person,
-    });
-    const Pet = co.discriminatedUnion("type", [Dog, Cat]);
-
-    const dog = Dog.create({
-      type: "dog",
-      owner: Person.create({
-        name: "John Doe",
-      }),
-    });
-
-    const spy = vi.fn();
-    Pet.subscribe(dog.id, { resolve: { owner: true } }, (pet) => {
-      expect(pet.owner.name).toEqual("John Doe");
-      spy(pet);
-    });
-
-    expect(spy).not.toHaveBeenCalled();
-
-    await waitFor(() => expect(spy).toHaveBeenCalled());
-
-    expect(spy).toHaveBeenCalledTimes(1);
   });
 });

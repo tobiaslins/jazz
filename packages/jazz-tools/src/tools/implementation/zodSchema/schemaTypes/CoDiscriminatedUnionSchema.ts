@@ -29,39 +29,27 @@ export type CoDiscriminatedUnionSchema<
     ...AnyDiscriminableCoSchema[],
   ],
 > = AnyCoDiscriminatedUnionSchema<Types> & {
-  load<
-    const R extends RefsToResolve<
-      CoDiscriminatedUnionInstanceCoValuesNullable<Types> & SchemaUnion
-    > = true,
-  >(
+  load(
     id: string,
     options?: {
-      resolve?: RefsToResolveStrict<
-        CoDiscriminatedUnionInstanceCoValuesNullable<Types> & SchemaUnion,
-        R
-      >;
       loadAs?: Account | AnonymousJazzAgent;
       skipRetry?: boolean;
     },
   ): Promise<Resolved<
     CoDiscriminatedUnionInstanceCoValuesNullable<Types> & SchemaUnion,
-    R
+    true
   > | null>;
 
-  subscribe<
-    const R extends RefsToResolve<
-      CoDiscriminatedUnionInstanceCoValuesNullable<Types> & SchemaUnion
-    > = true,
-  >(
+  subscribe(
     id: string,
     options: SubscribeListenerOptions<
       CoDiscriminatedUnionInstanceCoValuesNullable<Types> & SchemaUnion,
-      R
+      true
     >,
     listener: (
       value: Resolved<
         CoDiscriminatedUnionInstanceCoValuesNullable<Types> & SchemaUnion,
-        R
+        true
       >,
       unsubscribe: () => void,
     ) => void,
