@@ -3,8 +3,6 @@ import {
   AnonymousJazzAgent,
   AnyCoSchema,
   InstanceOrPrimitiveOfSchemaCoValuesNullable,
-  RefsToResolve,
-  RefsToResolveStrict,
   Resolved,
   SchemaUnion,
   SubscribeListenerOptions,
@@ -19,9 +17,7 @@ export type AnyCoDiscriminatedUnionSchema<
     AnyDiscriminableCoSchema,
     ...AnyDiscriminableCoSchema[],
   ],
-> = z.ZodDiscriminatedUnion<Types> & {
-  collaborative: true;
-};
+> = z.ZodDiscriminatedUnion<Types>;
 
 export type CoDiscriminatedUnionSchema<
   Types extends readonly [
@@ -29,6 +25,8 @@ export type CoDiscriminatedUnionSchema<
     ...AnyDiscriminableCoSchema[],
   ],
 > = AnyCoDiscriminatedUnionSchema<Types> & {
+  collaborative: true;
+
   load(
     id: string,
     options?: {
@@ -57,6 +55,15 @@ export type CoDiscriminatedUnionSchema<
 
   getCoValueClass: () => typeof SchemaUnion;
 };
+
+export function createCoreCoDiscriminatedUnionSchema<
+  Types extends readonly [
+    AnyDiscriminableCoSchema,
+    ...AnyDiscriminableCoSchema[],
+  ],
+>(discriminator: string, schemas: Types): AnyCoDiscriminatedUnionSchema<Types> {
+  return z.discriminatedUnion(discriminator, schemas as any);
+}
 
 export function enrichCoDiscriminatedUnionSchema<
   Types extends readonly [

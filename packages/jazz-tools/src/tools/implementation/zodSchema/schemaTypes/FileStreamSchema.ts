@@ -46,6 +46,16 @@ export type FileStreamSchema = AnyFileStreamSchema & {
   getCoValueClass: () => typeof FileStream;
 };
 
+export function createCoreFileStreamSchema(): AnyFileStreamSchema {
+  const zodSchema = z.instanceof(FileStream).meta({
+    collaborative: true,
+  });
+  return Object.assign(zodSchema, {
+    collaborative: true as const,
+    builtin: "FileStream" as const,
+  });
+}
+
 export function enrichFileStreamSchema(
   schema: AnyFileStreamSchema,
   coValueClass: typeof FileStream,

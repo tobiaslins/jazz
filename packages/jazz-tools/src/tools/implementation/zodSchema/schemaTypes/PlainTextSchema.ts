@@ -30,6 +30,16 @@ export type PlainTextSchema = AnyPlainTextSchema & {
   getCoValueClass: () => typeof CoPlainText;
 };
 
+export function createCoreCoPlainTextSchema(): AnyPlainTextSchema {
+  const zodSchema = z.instanceof(CoPlainText).meta({
+    collaborative: true,
+  });
+  return Object.assign(zodSchema, {
+    collaborative: true as const,
+    builtin: "CoPlainText" as const,
+  });
+}
+
 export function enrichPlainTextSchema(
   schema: AnyPlainTextSchema,
   coValueClass: typeof CoPlainText,

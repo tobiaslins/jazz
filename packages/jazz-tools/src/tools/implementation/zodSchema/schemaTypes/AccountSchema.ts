@@ -65,6 +65,18 @@ export type AccountSchema<
   getCoValueClass: () => typeof Account;
 };
 
+export function createCoreAccountSchema<Shape extends BaseAccountShape>(
+  shape: Shape,
+): AnyAccountSchema<Shape> {
+  const zodSchema = z.object(shape).meta({
+    collaborative: true,
+  });
+  return Object.assign(zodSchema, {
+    collaborative: true as const,
+    builtin: "Account" as const,
+  });
+}
+
 export function enrichAccountSchema<Shape extends BaseAccountShape>(
   schema: AnyAccountSchema<Shape>,
   coValueClass: typeof Account,

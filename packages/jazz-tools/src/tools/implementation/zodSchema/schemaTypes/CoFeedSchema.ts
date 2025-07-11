@@ -61,6 +61,19 @@ export type CoFeedSchema<T extends z.core.$ZodType> = z.core.$ZodCustom<
   getCoValueClass: () => typeof CoFeed;
 };
 
+export function createCoreCoFeedSchema<T extends z.core.$ZodType>(
+  element: T,
+): AnyCoFeedSchema<T> {
+  const zodSchema = z.instanceof(CoFeed).meta({
+    collaborative: true,
+  });
+  return Object.assign(zodSchema, {
+    collaborative: true as const,
+    builtin: "CoFeed" as const,
+    element,
+  });
+}
+
 export function enrichCoFeedSchema<T extends z.core.$ZodType>(
   schema: AnyCoFeedSchema<T>,
   coValueClass: typeof CoFeed,

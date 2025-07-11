@@ -147,6 +147,17 @@ export type CoMapSchema<
     getCoValueClass: () => typeof CoMap;
   };
 
+export function createCoreCoMapSchema<Shape extends z.core.$ZodLooseShape>(
+  shape: Shape,
+): AnyCoMapSchema<Shape> {
+  const zodSchema = z.object(shape).meta({
+    collaborative: true,
+  });
+  return Object.assign(zodSchema, {
+    collaborative: true as const,
+  });
+}
+
 export function enrichCoMapSchema<
   Shape extends z.core.$ZodLooseShape,
   Config extends z.core.$ZodObjectConfig,

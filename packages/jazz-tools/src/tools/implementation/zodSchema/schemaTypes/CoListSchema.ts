@@ -53,6 +53,17 @@ export type CoListSchema<T extends z.core.$ZodType> = AnyCoListSchema<T> & {
   getCoValueClass: () => typeof CoList;
 };
 
+export function createCoreCoListSchema<T extends z.core.$ZodType>(
+  element: T,
+): AnyCoListSchema<T> {
+  const zodSchema = z.array(element).meta({
+    collaborative: true,
+  });
+  return Object.assign(zodSchema, {
+    collaborative: true as const,
+  });
+}
+
 export function enrichCoListSchema<T extends z.core.$ZodType>(
   schema: AnyCoListSchema<T>,
   coValueClass: typeof CoList,

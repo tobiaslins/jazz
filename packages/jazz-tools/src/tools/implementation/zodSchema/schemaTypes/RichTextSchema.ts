@@ -28,6 +28,16 @@ export type RichTextSchema = AnyRichTextSchema & {
   getCoValueClass: () => typeof CoRichText;
 };
 
+export function createCoreCoRichTextSchema(): AnyRichTextSchema {
+  const zodSchema = z.instanceof(CoRichText).meta({
+    collaborative: true,
+  });
+  return Object.assign(zodSchema, {
+    collaborative: true as const,
+    builtin: "CoRichText" as const,
+  });
+}
+
 export function enrichRichTextSchema(
   schema: AnyRichTextSchema,
   coValueClass: typeof CoRichText,
