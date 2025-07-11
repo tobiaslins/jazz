@@ -117,3 +117,5 @@ export {
   type CoRecordSchema,
   type CoProfileSchema,
 } from "./internal.js";
+
+export { experimental_defineRequest } from "./coValues/request.js";

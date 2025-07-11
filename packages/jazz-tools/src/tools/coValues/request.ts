@@ -342,7 +342,7 @@ export function experimental_defineRequest<
     callback: (
       values: LoadedValuesFor<P>,
       madeBy: Account,
-    ) => Promise<LoadedValuesFor<R>>,
+    ) => Promise<InputValuesFor<R>> | InputValuesFor<R>,
   ): Promise<Response> => {
     const node = as._raw.core.node;
     const body = await request.json();
