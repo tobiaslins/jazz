@@ -50,3 +50,62 @@ export type User = co.loaded<typeof User>;
 This direct linking approach offers a single source of truth. When you update a referenced CoValue, all other CoValues that point to it are automatically updated, ensuring data consistency across your application.
 
 By connecting CoValues through these direct references, you can build robust and collaborative applications where data is consistent, efficient to manage, and relationships are clearly defined. The ability to link different CoValue types to the same underlying data is fundamental to building complex applications with Jazz.
+
+# Recursive Connections with Unions
+In advanced schemas, you may want a CoValue that can recursively reference itself. For example, a `NoteItem` that contains other notes or attachments inside it, forming a tree-like structure.
+
+Let’s say you’re building a `ProjectContextItem` where items can be of type `note`, `attachment`, or `reference`, and references can point to other `ProjectContextItems`.
+
+When using Zod’s `z.discriminatedUnion`, this recursive pattern requires a small workaround due to how TypeScript handles inference.
+
+### Use this pattern for recursive schemas
+<CodeGroup>
+```ts twoslash
+import { co, z } from "jazz-tools";
+  // First, define your item types
+export const NoteItem = co.map({
+  type: z.literal("note"),
+  internal: z.boolean(),
+  content: co.plainText(),
+});
+
+export const AttachmentItem = co.map({
+  type: z.literal("attachment"),
+  internal: z.boolean(),
+  content: co.fileStream(),
+});
+
+// Declare the array of types before creating the discriminated union
+const projectContextItemTypes = [NoteItem, AttachmentItem]; // ReferenceItem will be added next
+
+// Create the union type
+export const ProjectContextItem = z.discriminatedUnion("type", projectContextItemTypes);
+
+// Then define the recursive item and add it to the array
+export const ReferenceItem = co.map({
+  type: z.literal("reference"),
+  internal: z.boolean(),
+  content: z.string(), // e.g., URL or external doc
+  get children(): CoListSchema<ZodDiscriminatedUnion<typeof projectContextItemTypes>> {
+    return ProjectContextItemList;
+  },
+});
+
+projectContextItemTypes.push(ReferenceItem);
+
+export const ProjectContextItemList = co.list(ProjectContextItem);
+</CodeGroup>
+
+### Why not this?
+<CodeGroup>
+```ts twoslash
+import { co } from "jazz-tools";
+
+// This looks simpler, but will cause a circular reference error
+export const ReferenceItem = co.map({
+  children: co.list(ProjectContextItem), // ProjectContextItem not yet defined
+});
+</CodeGroup>
+
+Zod can’t resolve the circular reference this way. Always build recursive types using an intermediate list or ref.
+
