@@ -1,8 +1,15 @@
 import {
+  Account,
+  AnonymousJazzAgent,
   CoValue,
   CoValueBase,
   CoValueClass,
   CoValueFromRaw,
+  ID,
+  RefsToResolve,
+  RefsToResolveStrict,
+  Resolved,
+  loadCoValueWithoutMe,
 } from "../internal.js";
 
 /**
@@ -98,5 +105,22 @@ export abstract class SchemaUnion extends CoValueBase implements CoValue {
   // @ts-ignore
   static fromRaw<V extends CoValue>(this: CoValueClass<V>, raw: V["_raw"]): V {
     throw new Error("Not implemented");
+  }
+
+  /**
+   * Load a `SchemaUnion` with a given ID, as a given account.
+   *
+   * @category Subscription & Loading
+   */
+  static load<M extends SchemaUnion, const R extends RefsToResolve<M> = true>(
+    this: CoValueClass<M>,
+    id: ID<M>,
+    options?: {
+      resolve?: RefsToResolveStrict<M, R>;
+      loadAs?: Account | AnonymousJazzAgent;
+      skipRetry?: boolean;
+    },
+  ): Promise<Resolved<M, R> | null> {
+    return loadCoValueWithoutMe(this, id, options);
   }
 }
