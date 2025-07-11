@@ -1,11 +1,29 @@
-import { beforeEach, describe, expect, test } from "vitest";
+import {
+  assert,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  test,
+  vi,
+} from "vitest";
 
-import { SyncMessagesLog, loadCoValueOrFail, setupTestNode } from "./testUtils";
+import { emptyKnownState } from "../exports";
+import {
+  SyncMessagesLog,
+  TEST_NODE_CONFIG,
+  createTestMetricReader,
+  loadCoValueOrFail,
+  setupTestNode,
+  tearDownTestMetricReader,
+  waitFor,
+} from "./testUtils";
+
+// We want to simulate a real world communication that happens asynchronously
+TEST_NODE_CONFIG.withAsyncPeers = true;
 
 describe("client with storage syncs with server", () => {
-  let jazzCloud = setupTestNode({
-    isSyncServer: true,
-  });
+  let jazzCloud: ReturnType<typeof setupTestNode>;
 
   beforeEach(async () => {
     SyncMessagesLog.clear();
@@ -18,7 +36,7 @@ describe("client with storage syncs with server", () => {
     const client = setupTestNode();
 
     client.connectToSyncServer();
-    client.addStoragePeer();
+    client.addStorage();
 
     const group = jazzCloud.node.createGroup();
     const map = group.createMap();
@@ -38,15 +56,11 @@ describe("client with storage syncs with server", () => {
         "storage -> client | KNOWN Map sessions: empty",
         "client -> server | LOAD Map sessions: empty",
         "server -> client | CONTENT Group header: true new: After: 0 New: 3",
-        "client -> server | KNOWN Group sessions: header/3",
-        "client -> storage | LOAD Group sessions: header/3",
         "server -> client | CONTENT Map header: true new: After: 0 New: 1",
-        "storage -> client | KNOWN Group sessions: empty",
-        "client -> server | KNOWN Map sessions: header/1",
+        "client -> server | KNOWN Group sessions: header/3",
         "client -> storage | CONTENT Group header: true new: After: 0 New: 3",
-        "storage -> client | KNOWN Group sessions: header/3",
+        "client -> server | KNOWN Map sessions: header/1",
         "client -> storage | CONTENT Map header: true new: After: 0 New: 1",
-        "storage -> client | KNOWN Map sessions: header/1",
       ]
     `);
   });
@@ -55,14 +69,23 @@ describe("client with storage syncs with server", () => {
     const client = setupTestNode();
 
     client.connectToSyncServer();
-    const { storage } = client.addStoragePeer();
-
-    // biome-ignore lint/suspicious/noExplicitAny: Super ugly, might have unintended side effects
-    (storage as any).coValues = (jazzCloud.node as any).coValues;
+    const { storage } = client.addStorage();
 
     const group = jazzCloud.node.createGroup();
     const map = group.createMap();
     map.set("hello", "world", "trusting");
+
+    await loadCoValueOrFail(client.node, map.id);
+
+    client.restart();
+
+    client.connectToSyncServer();
+    client.addStorage({
+      ourName: "client",
+      storage,
+    });
+
+    SyncMessagesLog.clear();
 
     const mapOnClient = await loadCoValueOrFail(client.node, map.id);
     expect(mapOnClient.get("hello")).toEqual("world");
@@ -76,13 +99,9 @@ describe("client with storage syncs with server", () => {
       [
         "client -> storage | LOAD Map sessions: empty",
         "storage -> client | CONTENT Group header: true new: After: 0 New: 3",
-        "client -> storage | KNOWN Group sessions: header/3",
         "client -> server | LOAD Group sessions: header/3",
         "storage -> client | CONTENT Map header: true new: After: 0 New: 1",
-        "server -> client | KNOWN Group sessions: header/3",
-        "client -> storage | KNOWN Map sessions: header/1",
         "client -> server | LOAD Map sessions: header/1",
-        "server -> client | KNOWN Map sessions: header/1",
       ]
     `);
   });
@@ -91,7 +110,7 @@ describe("client with storage syncs with server", () => {
     const client = setupTestNode();
 
     client.connectToSyncServer();
-    client.addStoragePeer();
+    client.addStorage();
 
     const group = jazzCloud.node.createGroup();
     const parentGroup = jazzCloud.node.createGroup();
@@ -117,21 +136,14 @@ describe("client with storage syncs with server", () => {
         "storage -> client | KNOWN Map sessions: empty",
         "client -> server | LOAD Map sessions: empty",
         "server -> client | CONTENT ParentGroup header: true new: After: 0 New: 6",
-        "client -> server | KNOWN ParentGroup sessions: header/6",
-        "client -> storage | LOAD ParentGroup sessions: header/6",
         "server -> client | CONTENT Group header: true new: After: 0 New: 5",
-        "storage -> client | KNOWN ParentGroup sessions: empty",
-        "client -> server | KNOWN Group sessions: header/5",
-        "client -> storage | LOAD Group sessions: header/5",
         "server -> client | CONTENT Map header: true new: After: 0 New: 1",
-        "storage -> client | KNOWN Group sessions: empty",
+        "client -> server | KNOWN ParentGroup sessions: header/6",
         "client -> storage | CONTENT ParentGroup header: true new: After: 0 New: 6",
-        "client -> server | KNOWN Map sessions: header/1",
-        "storage -> client | KNOWN ParentGroup sessions: header/6",
+        "client -> server | KNOWN Group sessions: header/5",
         "client -> storage | CONTENT Group header: true new: After: 0 New: 5",
-        "storage -> client | KNOWN Group sessions: header/5",
+        "client -> server | KNOWN Map sessions: header/1",
         "client -> storage | CONTENT Map header: true new: After: 0 New: 1",
-        "storage -> client | KNOWN Map sessions: header/1",
       ]
     `);
   });
@@ -140,7 +152,7 @@ describe("client with storage syncs with server", () => {
     const client = setupTestNode();
 
     client.connectToSyncServer();
-    client.addStoragePeer();
+    client.addStorage();
 
     const group = jazzCloud.node.createGroup();
     const map = group.createMap();
@@ -168,32 +180,38 @@ describe("client with storage syncs with server", () => {
     ).toMatchInlineSnapshot(`
       [
         "client -> server | LOAD Group sessions: header/3",
-        "server -> client | KNOWN Group sessions: header/3",
         "client -> server | LOAD Map sessions: header/1",
+        "server -> client | CONTENT Group header: true new: After: 0 New: 3",
+        "server -> client | CONTENT Map header: true new: After: 0 New: 2",
         "server -> client | CONTENT Map header: false new: After: 1 New: 1",
+        "client -> server | KNOWN Group sessions: header/3",
+        "client -> storage | CONTENT Group header: true new: After: 0 New: 3",
+        "client -> server | KNOWN Map sessions: header/2",
+        "client -> storage | CONTENT Map header: true new: After: 0 New: 2",
         "client -> server | KNOWN Map sessions: header/2",
         "client -> storage | CONTENT Map header: false new: After: 1 New: 1",
-        "server -> client | CONTENT Map header: false new: After: 1 New: 1",
-        "storage -> client | KNOWN Map sessions: header/2",
-        "client -> server | KNOWN Map sessions: header/2",
       ]
     `);
   });
 });
 
 describe("client syncs with a server with storage", () => {
-  let jazzCloud = setupTestNode({
-    isSyncServer: true,
-  });
+  let jazzCloud: ReturnType<typeof setupTestNode>;
+  let metricReader: ReturnType<typeof createTestMetricReader>;
 
   beforeEach(async () => {
     SyncMessagesLog.clear();
+    metricReader = createTestMetricReader();
     jazzCloud = setupTestNode({
       isSyncServer: true,
     });
-    jazzCloud.addStoragePeer({
+    jazzCloud.addStorage({
       ourName: "server",
     });
+  });
+
+  afterEach(() => {
+    tearDownTestMetricReader();
   });
 
   test("coValue uploading", async () => {
@@ -218,53 +236,202 @@ describe("client syncs with a server with storage", () => {
     ).toMatchInlineSnapshot(`
       [
         "client -> server | CONTENT Group header: true new: After: 0 New: 3",
-        "server -> client | KNOWN Group sessions: header/3",
-        "server -> storage | LOAD Group sessions: header/3",
         "client -> server | CONTENT Map header: true new: After: 0 New: 1",
-        "storage -> server | KNOWN Group sessions: empty",
-        "server -> client | KNOWN Map sessions: header/1",
-        "server -> storage | LOAD Map sessions: header/1",
-        "storage -> server | KNOWN Map sessions: empty",
+        "server -> client | KNOWN Group sessions: header/3",
         "server -> storage | CONTENT Group header: true new: After: 0 New: 3",
-        "storage -> server | KNOWN Group sessions: header/3",
+        "server -> client | KNOWN Map sessions: header/1",
         "server -> storage | CONTENT Map header: true new: After: 0 New: 1",
-        "storage -> server | KNOWN Map sessions: header/1",
       ]
     `);
   });
 
-  test.skip("server restarts", async () => {
+  test("loading a large coValue from storage", async () => {
     const client = setupTestNode();
 
-    client.addStoragePeer();
+    client.connectToSyncServer({
+      syncServer: jazzCloud.node,
+    });
+
+    const { storage } = client.addStorage({
+      ourName: "client",
+    });
 
     const group = client.node.createGroup();
-    const map = group.createMap();
-    map.set("hello", "world", "trusting");
+    group.addMember("everyone", "writer");
 
-    await map.core.waitForSync();
+    const largeMap = group.createMap();
 
-    jazzCloud.restart();
+    // Generate a large amount of data (about 100MB)
+    const dataSize = 1 * 200 * 1024;
+    const chunkSize = 1024; // 1KB chunks
+    const chunks = dataSize / chunkSize;
 
-    SyncMessagesLog.clear();
-    client.addStoragePeer();
+    const value = Buffer.alloc(chunkSize, `value$`).toString("base64");
 
-    const mapOnServer = await loadCoValueOrFail(jazzCloud.node, map.id);
-    expect(mapOnServer.get("hello")).toEqual("world");
+    for (let i = 0; i < chunks; i++) {
+      const key = `key${i}`;
+      largeMap.set(key, value, "trusting");
+    }
+
+    await largeMap.core.waitForSync();
+
+    // Test streaming counter during initial sync
+    // The streaming counter should be 0 after the sync is complete
+    const streamingCounterAfterSync = await metricReader.getMetricValue(
+      "jazz.storage.streaming",
+    );
+    expect(streamingCounterAfterSync).toBe(0);
 
     expect(
       SyncMessagesLog.getMessages({
         Group: group.core,
-        Map: map.core,
+        Map: largeMap.core,
       }),
     ).toMatchInlineSnapshot(`
       [
-        "server -> storage | LOAD Group sessions: header/3",
-        "storage -> server | KNOWN Map sessions: header/1",
-        "storage -> server | KNOWN Group sessions: empty",
-        "server -> storage | LOAD Map sessions: header/1",
-        "storage -> server | KNOWN Map sessions: empty",
+        "client -> storage | CONTENT Group header: true new: After: 0 New: 5",
+        "client -> server | CONTENT Group header: true new: After: 0 New: 5",
+        "client -> storage | CONTENT Map header: true new:  expectContentUntil: header/200",
+        "client -> storage | CONTENT Map header: false new: After: 0 New: 73",
+        "client -> storage | CONTENT Map header: false new: After: 73 New: 73",
+        "client -> storage | CONTENT Map header: false new: After: 146 New: 54",
+        "client -> server | CONTENT Map header: true new:  expectContentUntil: header/200",
+        "client -> server | CONTENT Map header: false new: After: 0 New: 73",
+        "client -> server | CONTENT Map header: false new: After: 73 New: 73",
+        "client -> server | CONTENT Map header: false new: After: 146 New: 54",
+        "server -> client | KNOWN Group sessions: header/5",
+        "server -> storage | CONTENT Group header: true new: After: 0 New: 5",
+        "server -> client | KNOWN Map sessions: header/0",
+        "server -> storage | CONTENT Map header: true new:  expectContentUntil: header/200",
+        "server -> client | KNOWN Map sessions: header/73",
+        "server -> storage | CONTENT Map header: false new: After: 0 New: 73",
+        "server -> client | KNOWN Map sessions: header/146",
+        "server -> storage | CONTENT Map header: false new: After: 73 New: 73",
+        "server -> client | KNOWN Map sessions: header/200",
+        "server -> storage | CONTENT Map header: false new: After: 146 New: 54",
       ]
     `);
+
+    SyncMessagesLog.clear();
+
+    client.restart();
+
+    client.connectToSyncServer({
+      ourName: "client",
+      syncServer: jazzCloud.node,
+    });
+
+    client.addStorage({
+      ourName: "client",
+      storage,
+    });
+
+    // Test streaming counter before loading the large coValue
+    const streamingCounterBeforeLoad = await metricReader.getMetricValue(
+      "jazz.storage.streaming",
+    );
+    expect(streamingCounterBeforeLoad).toBe(0);
+
+    const promise = loadCoValueOrFail(client.node, largeMap.id);
+
+    // Test streaming counter during loading (should be 1 during streaming)
+    const streamingCounterDuringLoad = await metricReader.getMetricValue(
+      "jazz.storage.streaming",
+    );
+    expect(streamingCounterDuringLoad).toBe(1);
+
+    const mapOnClient2 = await promise;
+    await mapOnClient2.core.waitForSync();
+
+    // Test streaming counter after loading is complete (should be 0)
+    await waitFor(async () => {
+      const streamingCounterAfterLoad = await metricReader.getMetricValue(
+        "jazz.storage.streaming",
+      );
+      expect(streamingCounterAfterLoad).toBe(0);
+    });
+
+    expect(
+      SyncMessagesLog.getMessages({
+        Group: group.core,
+        Map: largeMap.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "client -> storage | LOAD Map sessions: empty",
+        "storage -> client | CONTENT Group header: true new: After: 0 New: 5",
+        "client -> server | LOAD Group sessions: header/5",
+        "storage -> client | CONTENT Map header: true new: After: 0 New: 73 expectContentUntil: header/200",
+        "client -> server | LOAD Map sessions: header/200",
+        "server -> client | KNOWN Group sessions: header/5",
+        "server -> client | KNOWN Map sessions: header/200",
+        "storage -> client | CONTENT Map header: true new: After: 73 New: 73",
+        "storage -> client | CONTENT Map header: true new: After: 146 New: 54",
+      ]
+    `);
+  });
+
+  test("storing stale data should not compromise the signatures", async () => {
+    const client = setupTestNode();
+
+    client.connectToSyncServer({
+      syncServer: jazzCloud.node,
+    });
+
+    const { storage } = client.addStorage({
+      ourName: "client",
+    });
+
+    const group = client.node.createGroup();
+    group.addMember("everyone", "writer");
+
+    const largeMap = group.createMap();
+
+    // Generate a large amount of data (about 100MB)
+    const dataSize = 1 * 200 * 1024;
+    const chunkSize = 1024; // 1KB chunks
+    const chunks = dataSize / chunkSize;
+
+    const value = Buffer.alloc(chunkSize, `value$`).toString("base64");
+
+    for (let i = 0; i < chunks; i++) {
+      const key = `key${i}`;
+      largeMap.set(key, value, "trusting");
+    }
+
+    await largeMap.core.waitForSync();
+
+    const newContentChunks = largeMap.core.verified.newContentSince(
+      emptyKnownState(largeMap.id),
+    );
+
+    assert(newContentChunks);
+    assert(newContentChunks.length > 1);
+
+    const correctionSpy = vi.fn();
+
+    client.node.storage?.store(newContentChunks.slice(1, 2), correctionSpy);
+
+    expect(correctionSpy).not.toHaveBeenCalled();
+
+    client.restart();
+
+    client.connectToSyncServer({
+      ourName: "client",
+      syncServer: jazzCloud.node,
+    });
+
+    client.addStorage({
+      ourName: "client",
+      storage,
+    });
+
+    const mapOnClient2 = await loadCoValueOrFail(client.node, largeMap.id);
+
+    await waitFor(async () => {
+      expect(mapOnClient2.core.knownState()).toEqual(
+        largeMap.core.knownState(),
+      );
+    });
   });
 });

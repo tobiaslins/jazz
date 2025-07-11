@@ -4,7 +4,7 @@ import {
   useAuthSecretStorage,
   useIsAuthenticated,
   useJazzContext,
-} from "jazz-tools/react";
+} from "jazz-tools/react-core";
 import { useEffect, useMemo, useState } from "react";
 
 export * from "./contexts/Auth.js";

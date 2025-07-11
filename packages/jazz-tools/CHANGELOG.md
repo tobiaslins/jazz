@@ -1,5 +1,58 @@
 # jazz-tools
 
+## 0.15.9
+
+### Patch Changes
+
+- 27b4837: Wait for the full streaming before return values in load and subscribe
+- Updated dependencies [27b4837]
+- Updated dependencies [2776263]
+  - cojson@0.15.9
+  - cojson-storage-indexeddb@0.15.9
+  - cojson-transport-ws@0.15.9
+
+## 0.15.8
+
+### Patch Changes
+
+- 3844666: Refactor AccountSchema types to solve "This is likely not portable. A type annotation is necessary" issue when using co.account()
+  - cojson@0.15.8
+  - cojson-storage@0.15.8
+  - cojson-storage-indexeddb@0.15.8
+  - cojson-transport-ws@0.15.8
+
+## 0.15.7
+
+### Patch Changes
+
+- c09b636: Fix react bundling in jazz-tools/inspector/register-custom-element
+  - cojson@0.15.7
+  - cojson-storage@0.15.7
+  - cojson-storage-indexeddb@0.15.7
+  - cojson-transport-ws@0.15.7
+
+## 0.15.6
+
+### Patch Changes
+
+- a5ceaff: add Group.getDirectMembers to get only direct members of a group
+  - cojson@0.15.6
+  - cojson-storage@0.15.6
+  - cojson-storage-indexeddb@0.15.6
+  - cojson-transport-ws@0.15.6
+
+## 0.15.5
+
+### Patch Changes
+
+- 23bfea5: Make all React Native dependencies in `jazz-tools` optional peer dependencies
+- e4ba23c: Fix type error with `RNQuickCrypto` that prevented using it as a `CryptoProvider`
+- 4b89838: Changes that verify the BetterAuth package for React also works with React Native and Expo apps
+  - cojson@0.15.5
+  - cojson-storage@0.15.5
+  - cojson-storage-indexeddb@0.15.5
+  - cojson-transport-ws@0.15.5
+
 ## 0.15.4
 
 ### Patch Changes

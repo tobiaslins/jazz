@@ -1,22 +1,23 @@
 import {
   type Account,
-  AccountCreationProps,
-  AccountSchema,
-  AnyCoMapSchema,
+  type AccountCreationProps,
+  type AccountSchema,
+  type AnyCoMapSchema,
+  BaseAccountShape,
   CoFeed,
-  CoFeedSchema,
-  CoListSchema,
-  CoMapSchema,
+  type CoFeedSchema,
+  type CoListSchema,
+  type CoMapSchema,
   CoPlainText,
-  CoProfileSchema,
-  CoRecordSchema,
+  type CoProfileSchema,
+  type CoRecordSchema,
   CoRichText,
-  DefaultProfileShape,
+  type DefaultProfileShape,
   FileStream,
-  FileStreamSchema,
+  type FileStreamSchema,
   ImageDefinition,
-  PlainTextSchema,
-  Simplify,
+  type PlainTextSchema,
+  type Simplify,
   zodSchemaToCoSchema,
 } from "../../internal.js";
 import { RichTextSchema } from "./schemaTypes/RichTextSchema.js";
@@ -82,16 +83,9 @@ export const coMapDefiner = <Shape extends z.core.$ZodLooseShape>(
   return enrichCoMapSchema(objectSchema);
 };
 
-function enrichAccountSchema<
-  Shape extends {
-    profile: AnyCoMapSchema<{
-      name: z.core.$ZodString<string>;
-      inbox?: z.core.$ZodOptional<z.core.$ZodString>;
-      inboxInvite?: z.core.$ZodOptional<z.core.$ZodString>;
-    }>;
-    root: AnyCoMapSchema;
-  },
->(schema: z.ZodObject<Shape, z.core.$strip>) {
+function enrichAccountSchema<Shape extends BaseAccountShape>(
+  schema: z.ZodObject<Shape, z.core.$strip>,
+) {
   const enrichedSchema = Object.assign(schema, {
     collaborative: true,
     builtin: "Account",
@@ -142,16 +136,44 @@ function enrichAccountSchema<
   return enrichedSchema;
 }
 
-export const coAccountDefiner = <
-  Shape extends {
-    profile: AnyCoMapSchema<{
-      name: z.core.$ZodString<string>;
-      inbox?: z.core.$ZodOptional<z.core.$ZodString>;
-      inboxInvite?: z.core.$ZodOptional<z.core.$ZodString>;
-    }>;
-    root: AnyCoMapSchema;
-  },
->(
+/**
+ * Defines a collaborative account schema for Jazz applications.
+ *
+ * Creates an account schema that represents a user account with profile and root data.
+ * Accounts are the primary way to identify and manage users in Jazz applications.
+ *
+ * @template Shape - The shape of the account schema extending BaseAccountShape
+ * @param shape - The account schema shape. Defaults to a basic profile with name, inbox, and inboxInvite fields, plus an empty root object.
+ *
+ * @example
+ * ```typescript
+ * // Basic account with default profile
+ * const BasicAccount = co.account();
+ *
+ * // Custom account with specific profile and root structure
+ * const JazzAccount = co.account({
+ *   profile: co.profile({
+ *     name: z.string(),
+ *     avatar: z.optional(z.string()),
+ *   }),
+ *   root: co.map({
+ *     organizations: co.list(Organization),
+ *     draftOrganization: DraftOrganization,
+ *   }),
+ * }).withMigration(async (account) => {
+ *   // Migration logic for existing accounts
+ *   if (account.profile === undefined) {
+ *     const group = Group.create();
+ *     account.profile = co.profile().create(
+ *       { name: getRandomUsername() },
+ *       group
+ *     );
+ *     group.addMember("everyone", "reader");
+ *   }
+ * });
+ * ```
+ */
+export const coAccountDefiner = <Shape extends BaseAccountShape>(
   shape: Shape = {
     profile: coMapDefiner({
       name: z.string(),

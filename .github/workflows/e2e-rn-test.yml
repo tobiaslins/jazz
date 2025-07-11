@@ -1,5 +1,11 @@
 name: End-to-End Tests for React Native
 
+concurrency:
+  # For pushes, this lets concurrent runs happen, so each push gets a result.
+  # But for other events (e.g. PRs), we can cancel the previous runs.
+  group: ${{ github.workflow }}-${{ github.event_name == 'push' && github.sha || github.ref }}
+  cancel-in-progress: true
+
 on:
   pull_request:
     types: [opened, synchronize, reopened]
@@ -61,7 +67,7 @@ jobs:
           disable-animations: true
           working-directory: ./examples/chat-rn-expo/
           # killall due to this issue: https://github.com/ReactiveCircus/android-emulator-runner/issues/385
-          script: ./test/e2e/run.sh && killall -INT crashpad_handler || true
+          script: ./test/e2e/run.sh && ( killall -INT crashpad_handler || true )
 
       - name: Copy Maestro Output
         if: steps.e2e_test.outcome != 'success'

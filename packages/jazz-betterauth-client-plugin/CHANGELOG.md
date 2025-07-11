@@ -1,5 +1,35 @@
 # jazz-betterauth-client-plugin
 
+## 0.15.9
+
+### Patch Changes
+
+- jazz-betterauth-server-plugin@0.15.9
+
+## 0.15.8
+
+### Patch Changes
+
+- jazz-betterauth-server-plugin@0.15.8
+
+## 0.15.7
+
+### Patch Changes
+
+- jazz-betterauth-server-plugin@0.15.7
+
+## 0.15.6
+
+### Patch Changes
+
+- jazz-betterauth-server-plugin@0.15.6
+
+## 0.15.5
+
+### Patch Changes
+
+- jazz-betterauth-server-plugin@0.15.5
+
 ## 0.15.4
 
 ### Patch Changes

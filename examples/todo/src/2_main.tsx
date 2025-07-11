@@ -17,12 +17,12 @@ import React from "react";
 import { TodoAccount, TodoProject } from "./1_schema.ts";
 import { NewProjectForm } from "./3_NewProjectForm.tsx";
 import { ProjectTodoTable } from "./4_ProjectTodoTable.tsx";
+import { apiKey } from "./apiKey.ts";
 import {
   Button,
   ThemeProvider,
   TitleAndLogo,
 } from "./basicComponents/index.ts";
-import { TaskGenerator } from "./components/TaskGenerator.tsx";
 import { wordlist } from "./wordlist.ts";
 
 /**
@@ -41,7 +41,7 @@ function JazzAndAuth({ children }: { children: React.ReactNode }) {
   return (
     <JazzReactProvider
       sync={{
-        peer: `ws://localhost:4200`,
+        peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
       }}
       AccountSchema={TodoAccount}
     >
@@ -91,10 +91,6 @@ export default function App() {
     {
       path: "/invite/*",
       element: <p>Accepting invite...</p>,
-    },
-    {
-      path: "/generate",
-      element: <TaskGenerator />,
     },
   ]);
 

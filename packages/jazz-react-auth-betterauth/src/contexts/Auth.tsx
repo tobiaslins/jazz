@@ -1,6 +1,5 @@
 "use client";
 
-import type { ClientOptions } from "better-auth/client";
 import { createContext, useContext } from "react";
 import { useBetterAuth } from "../index.js";
 
