@@ -9,7 +9,11 @@ import {
   RefsToResolve,
   RefsToResolveStrict,
   Resolved,
+  SubscribeListenerOptions,
+  SubscribeRestArgs,
+  subscribeToCoValueWithoutMe,
   loadCoValueWithoutMe,
+  parseSubscribeRestArgs,
 } from "../internal.js";
 
 /**
@@ -122,5 +126,42 @@ export abstract class SchemaUnion extends CoValueBase implements CoValue {
     },
   ): Promise<Resolved<M, R> | null> {
     return loadCoValueWithoutMe(this, id, options);
+  }
+
+  /**
+   * Load and subscribe to a `CoMap` with a given ID, as a given account.
+   *
+   * Automatically also subscribes to updates to all referenced/nested CoValues as soon as they are accessed in the listener.
+   *
+   * Returns an unsubscribe function that you should call when you no longer need updates.
+   *
+   * Also see the `useCoState` hook to reactively subscribe to a CoValue in a React component.
+   *
+   * @category Subscription & Loading
+   */
+  static subscribe<
+    M extends SchemaUnion,
+    const R extends RefsToResolve<M> = true,
+  >(
+    this: CoValueClass<M>,
+    id: ID<M>,
+    listener: (value: Resolved<M, R>, unsubscribe: () => void) => void,
+  ): () => void;
+  static subscribe<
+    M extends SchemaUnion,
+    const R extends RefsToResolve<M> = true,
+  >(
+    this: CoValueClass<M>,
+    id: ID<M>,
+    options: SubscribeListenerOptions<M, R>,
+    listener: (value: Resolved<M, R>, unsubscribe: () => void) => void,
+  ): () => void;
+  static subscribe<M extends SchemaUnion, const R extends RefsToResolve<M>>(
+    this: CoValueClass<M>,
+    id: ID<M>,
+    ...args: SubscribeRestArgs<M, R>
+  ): () => void {
+    const { options, listener } = parseSubscribeRestArgs(args);
+    return subscribeToCoValueWithoutMe<M, R>(this, id, options, listener);
   }
 }
