@@ -8,9 +8,9 @@ export type AnyCoOptionalSchema<
   collaborative: true;
 };
 
-export type CoOptionalSchema<Shape extends z.core.$ZodType = z.core.$ZodType> =
+export type CoOptionalSchema<Shape extends AnyCoSchema = AnyCoSchema> =
   AnyCoOptionalSchema<Shape> & {
-    getCoValueClass: () => CoValueSchemaFromZodSchema<AnyCoSchema>["getCoValueClass"];
+    getCoValueClass: () => CoValueSchemaFromZodSchema<Shape>["getCoValueClass"];
   };
 
 export function createCoOptionalSchema<T extends AnyCoSchema>(
@@ -28,6 +28,6 @@ export function createCoOptionalSchema<T extends AnyCoSchema>(
 
 export function isAnyCoOptionalSchema(
   schema: z.core.$ZodType,
-): schema is CoOptionalSchema<z.core.$ZodType> {
+): schema is CoOptionalSchema<AnyCoSchema> {
   return isAnyCoValueSchema(schema) && schema._zod.def.type === "optional";
 }
