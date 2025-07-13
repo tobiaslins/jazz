@@ -51,7 +51,7 @@ test("Can create coValue with new agent credentials and add transaction to it", 
     ]),
   };
 
-  const { expectedNewHash } = coValue.verified.expectedNewHashAfter(
+  const { expectedNewHash } = coValue.verified.testExpectedHashAfter(
     node.currentSessionID,
     [transaction],
   );
@@ -90,7 +90,7 @@ test("transactions with wrong signature are rejected", () => {
     ]),
   };
 
-  const { expectedNewHash } = coValue.verified.expectedNewHashAfter(
+  const { expectedNewHash } = coValue.verified.testExpectedHashAfter(
     node.currentSessionID,
     [transaction],
   );
@@ -128,7 +128,7 @@ test("transactions with correctly signed, but wrong hash are rejected", () => {
     ]),
   };
 
-  const { expectedNewHash } = coValue.verified.expectedNewHashAfter(
+  const { expectedNewHash } = coValue.verified.testExpectedHashAfter(
     node.currentSessionID,
     [
       {
@@ -187,7 +187,7 @@ test("New transactions in a group correctly update owned values, including subsc
     ]),
   } satisfies Transaction;
 
-  const { expectedNewHash } = group.core.verified.expectedNewHashAfter(
+  const { expectedNewHash } = group.core.verified.testExpectedHashAfter(
     sessionID,
     [resignationThatWeJustLearnedAbout],
   );
@@ -370,7 +370,7 @@ test("getValidTransactions should skip trusting transactions with invalid JSON",
   };
 
   const { expectedNewHash: expectedNewHash1 } =
-    coValue.verified.expectedNewHashAfter(node.currentSessionID, [
+    coValue.verified.testExpectedHashAfter(node.currentSessionID, [
       validTransaction,
     ]);
 
@@ -392,7 +392,7 @@ test("getValidTransactions should skip trusting transactions with invalid JSON",
   };
 
   const { expectedNewHash: expectedNewHash2 } =
-    coValue.verified.expectedNewHashAfter(node.currentSessionID, [
+    coValue.verified.testExpectedHashAfter(node.currentSessionID, [
       invalidTransaction,
     ]);
 
@@ -449,7 +449,7 @@ test("getValidTransactions should skip private transactions with invalid JSON", 
   };
 
   const { expectedNewHash: expectedNewHash1 } =
-    coValue.verified.expectedNewHashAfter(node.currentSessionID, [
+    coValue.verified.testExpectedHashAfter(node.currentSessionID, [
       validTransaction,
     ]);
 
@@ -486,7 +486,7 @@ test("getValidTransactions should skip private transactions with invalid JSON", 
   };
 
   const { expectedNewHash: expectedNewHash2 } =
-    coValue.verified.expectedNewHashAfter(node.currentSessionID, [
+    coValue.verified.testExpectedHashAfter(node.currentSessionID, [
       invalidTransaction,
     ]);
 

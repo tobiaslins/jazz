@@ -38,6 +38,7 @@ import { expectGroup } from "../typeUtils/expectGroup.js";
 import { isAccountID } from "../typeUtils/isAccountID.js";
 import { getDependedOnCoValuesFromRawData } from "./utils.js";
 import { CoValueHeader, Transaction, VerifiedState } from "./verifiedState.js";
+import { SessionLog } from "cojson-core-wasm";
 
 /**
     In order to not block other concurrently syncing CoValues we introduce a maximum size of transactions,
@@ -436,6 +437,9 @@ export class CoValueCore {
 
           this._cachedDependentOn = undefined;
 
+          console.log("Valid transactions", this.getValidTransactions());
+          console.log("Notifying update", this.getCurrentContent().toJSON());
+
           this.notifyUpdate(notifyMode);
         }
 
@@ -513,38 +517,6 @@ export class CoValueCore {
       );
     }
 
-    const madeAt = Date.now();
-
-    let transaction: Transaction;
-
-    if (privacy === "private") {
-      const { secret: keySecret, id: keyID } = this.getCurrentReadKey();
-
-      if (!keySecret) {
-        throw new Error("Can't make transaction without read key secret");
-      }
-
-      const encrypted = this.crypto.encryptForTransaction(changes, keySecret, {
-        in: this.id,
-        tx: this.nextTransactionID(),
-      });
-
-      this._decryptionCache[encrypted] = changes;
-
-      transaction = {
-        privacy: "private",
-        madeAt,
-        keyUsed: keyID,
-        encryptedChanges: encrypted,
-      };
-    } else {
-      transaction = {
-        privacy: "trusting",
-        madeAt,
-        changes: stableStringify(changes),
-      };
-    }
-
     // This is an ugly hack to get a unique but stable session ID for editing the current account
     const sessionID =
       this.verified.header.meta?.type === "account"
@@ -554,30 +526,35 @@ export class CoValueCore {
           ) as SessionID)
         : this.node.currentSessionID;
 
-    const { expectedNewHash, newStreamingHash } =
-      this.verified.expectedNewHashAfter(sessionID, [transaction]);
+    const signerAgent = this.node.getCurrentAgent();
 
-    const signature = this.crypto.sign(
-      this.node.getCurrentAgent().currentSignerSecret(),
-      expectedNewHash,
-    );
+    let privacyMode:
+      | { type: "private"; keyID: KeyID; keySecret: KeySecret }
+      | { type: "trusting" };
 
-    const success = this.tryAddTransactions(
-      sessionID,
-      [transaction],
-      expectedNewHash,
-      signature,
-      "immediate",
-      true,
-      newStreamingHash,
-    )._unsafeUnwrap({ withStackTrace: true });
+    if (privacy === "private") {
+      const { secret: keySecret, id: keyID } = this.getCurrentReadKey();
 
-    if (success) {
-      this.node.syncManager.recordTransactionsSize([transaction], "local");
-      void this.node.syncManager.requestCoValueSync(this);
+      if (!keySecret) {
+        throw new Error("Can't make transaction without read key secret");
+      }
+
+      privacyMode = { type: "private", keyID, keySecret };
+    } else {
+      privacyMode = { type: "trusting" };
     }
 
-    return success;
+    const { transaction } = this.verified.makeNewTransaction(
+      sessionID,
+      signerAgent,
+      changes,
+      privacyMode,
+    );
+
+    this.node.syncManager.recordTransactionsSize([transaction], "local");
+    void this.node.syncManager.requestCoValueSync(this);
+
+    return true;
   }
 
   getCurrentContent(options?: {
@@ -1102,6 +1079,7 @@ export type InvalidSignatureError = {
   newSignature: Signature;
   sessionID: SessionID;
   signerID: SignerID;
+  error: Error;
 };
 
 export type TriedToAddTransactionsWithoutVerifiedStateErrpr = {

@@ -14,6 +14,7 @@ import { logger } from "./logger.js";
 import { CoValuePriority } from "./priority.js";
 import { accountOrAgentIDfromSessionID } from "./typeUtils/accountOrAgentIDfromSessionID.js";
 import { isAccountID } from "./typeUtils/isAccountID.js";
+import { stableStringify } from "./jsonStringify.js";
 
 export type CoValueKnownState = {
   id: RawCoID;
@@ -619,6 +620,9 @@ export class SyncManager {
           peerRole: peer.role,
           id: msg.id,
           err: result.error,
+          stack: new Error().stack,
+          transactions: newTransactions.map(tx => JSON.stringify(tx)),
+          stableTransactions: newTransactions.map(tx => stableStringify(tx)),
         });
         coValue.markErrored(peer.id, result.error);
         continue;

@@ -1,9 +1,11 @@
 import { beforeAll, describe, expect, it } from "vitest";
-import { SessionLog, test_ed25519_dalek_vector } from "cojson-core-wasm";
+import { SessionLog } from "cojson-core-wasm";
 import { ed25519 } from "@noble/curves/ed25519";
 import { base58 } from "@scure/base";
 import * as fs from "fs";
 import * as path from "path";
+import { PureJSCrypto } from "../crypto/PureJSCrypto";
+import { Transaction } from "../coValueCore/verifiedState";
 
 function decodeZ(value: string): Uint8Array {
   const prefixEnd = value.indexOf("_z");
@@ -13,31 +15,25 @@ function decodeZ(value: string): Uint8Array {
   return base58.decode(value.substring(prefixEnd + 2));
 }
 
+const jsCrypto = new PureJSCrypto();
+
 describe("SessionLog WASM", () => {
   let exampleSessions: any;
 
   beforeAll(() => {
     const dataPath = path.resolve(
       __dirname,
-      "../../../../crates/cojson-core/data/exampleSessions.json"
+      "../../../../crates/cojson-core/data/singleTxSession.json",
     );
     const data = fs.readFileSync(dataPath, "utf-8");
     exampleSessions = JSON.parse(data);
   });
 
-  it("test_ed25519_dalek_vector", () => {
-    const result = test_ed25519_dalek_vector();
-    console.log("result", result);
-  });
-
   it("it works", () => {
-    const signingKey = ed25519.utils.randomPrivateKey();
-    const publicKey = ed25519.getPublicKey(signingKey);
-
     const session = new SessionLog(
       "co_test1",
       "session_test1",
-      publicKey
+      jsCrypto.getSignerID(jsCrypto.newRandomSigner()),
     );
 
     expect(session).toBeDefined();
@@ -52,16 +48,53 @@ describe("SessionLog WASM", () => {
 
   it("test_add_from_example_json", () => {
     const [sessionIdStr, example] = Object.entries(
-      exampleSessions.exampleBase
+      exampleSessions.exampleBase,
     )[0] as [string, any];
     const coIdStr = sessionIdStr.split("_session_")[0]!;
-    const publicKey = decodeZ(exampleSessions.signerID);
 
-    let session = new SessionLog(coIdStr, sessionIdStr, publicKey);
-    const lastSignature = decodeZ(example.lastSignature);
+    let session = new SessionLog(
+      coIdStr,
+      sessionIdStr,
+      exampleSessions.signerID,
+    );
 
     try {
-      session.tryAdd([JSON.stringify(example.transactions[0])], lastSignature, false);
+      session.tryAdd(
+        [JSON.stringify(example.transactions[0])],
+        example.lastSignature,
+        false,
+      );
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  });
+
+  it("test_add_from_multi_tx_example_json", () => {
+    const dataPath = path.resolve(
+      __dirname,
+      "../../../../crates/cojson-core/data/multiTxSession.json",
+    );
+    const data = fs.readFileSync(dataPath, "utf-8");
+    const multiTxExampleSessions = JSON.parse(data);
+
+    const [sessionIdStr, example] = Object.entries(
+      multiTxExampleSessions.exampleBase,
+    )[0] as [string, any];
+    const coIdStr = sessionIdStr.split("_session_")[0]!;
+
+    let session = new SessionLog(
+      coIdStr,
+      sessionIdStr,
+      multiTxExampleSessions.signerID,
+    );
+
+    try {
+      session.tryAdd(
+        example.transactions.map((tx: Transaction) => JSON.stringify(tx)),
+        example.lastSignature,
+        false,
+      );
     } catch (e) {
       console.error(e);
       throw e;
@@ -76,46 +109,48 @@ describe("SessionLog WASM", () => {
     const txFromExample = sessionData.transactions[0];
     const knownKey = exampleSessions.knownKeys[0];
 
-    const signingKey = ed25519.utils.randomPrivateKey();
-    const publicKey = ed25519.getPublicKey(signingKey);
+    const signerSecret = jsCrypto.newRandomSigner();
+    const publicKey = jsCrypto.getSignerID(signerSecret);
 
     let session = new SessionLog(
       exampleSessions.coID,
       "co_zkNajJ1BhLzR962jpzvXxx917ZB_session_zXzrQLTtp8rR",
-      publicKey
+      publicKey,
     );
 
     const changesJson =
       '[{"after":"start","op":"app","value":"co_zMphsnYN6GU8nn2HDY5suvyGufY"}]';
-    const keySecret = decodeZ(knownKey.secret);
     const keyId = knownKey.id;
     const madeAt = txFromExample.madeAt;
 
-    const newSignature = session.addNewTransaction(
+    const signatureAndTxJson = session.addNewPrivateTransaction(
       changesJson,
-      signingKey,
-      keySecret,
+      signerSecret,
+      knownKey.secret,
       keyId,
-      madeAt
+      madeAt,
     );
 
-    expect(newSignature).toBeInstanceOf(Uint8Array);
+    const { signature, transaction } = JSON.parse(signatureAndTxJson);
+
+    expect(signature).toMatch(/^signature_z[a-zA-Z0-9]+$/);
+    expect(transaction).toEqual(txFromExample);
   });
 
   it("test_decrypt_from_example_json", () => {
     const [sessionIdStr, example] = Object.entries(
-      exampleSessions.exampleBase
+      exampleSessions.exampleBase,
     )[0] as [string, any];
-    const publicKey = decodeZ(exampleSessions.signerID);
-
-    let session = new SessionLog(exampleSessions.coID, sessionIdStr, publicKey);
-
-    const newSignature = decodeZ(example.lastSignature);
+    let session = new SessionLog(
+      exampleSessions.coID,
+      sessionIdStr,
+      exampleSessions.signerID,
+    );
 
     session.tryAdd(
       example.transactions.map((tx: any) => JSON.stringify(tx)),
-      newSignature,
-      true
+      example.lastSignature,
+      true,
     );
 
     const keySecret = decodeZ(exampleSessions.knownKeys[0].secret);
@@ -123,7 +158,7 @@ describe("SessionLog WASM", () => {
     const decrypted = session.decryptNextTransactionChangesJson(0, keySecret);
 
     expect(decrypted).toEqual(
-      '[{"after":"start","op":"app","value":"co_zMphsnYN6GU8nn2HDY5suvyGufY"}]'
+      '[{"after":"start","op":"app","value":"co_zMphsnYN6GU8nn2HDY5suvyGufY"}]',
     );
   });
 });
