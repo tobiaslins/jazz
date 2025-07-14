@@ -1,6 +1,8 @@
 import { JsonValue } from "cojson";
 import {
   Account,
+  AnyAccountSchema,
+  AnyCoRecordSchema,
   AnyZodOrCoValueSchema,
   CoFeed,
   CoList,
@@ -15,18 +17,15 @@ import {
 import { AnyCoFeedSchema } from "../schemaTypes/CoFeedSchema.js";
 import { AnyCoListSchema } from "../schemaTypes/CoListSchema.js";
 import { AnyCoMapSchema } from "../schemaTypes/CoMapSchema.js";
-import { FileStreamSchema } from "../schemaTypes/FileStreamSchema.js";
-import { PlainTextSchema } from "../schemaTypes/PlainTextSchema.js";
-import { RichTextSchema } from "../schemaTypes/RichTextSchema.js";
+import { AnyFileStreamSchema } from "../schemaTypes/FileStreamSchema.js";
+import { AnyPlainTextSchema } from "../schemaTypes/PlainTextSchema.js";
+import { AnyRichTextSchema } from "../schemaTypes/RichTextSchema.js";
 import { z } from "../zodReExport.js";
 
 export type InstanceOrPrimitiveOfSchemaCoValuesNullable<
   S extends CoValueClass | AnyZodOrCoValueSchema,
 > = S extends z.core.$ZodType
-  ? S extends z.core.$ZodObject<infer Shape> & {
-      collaborative: true;
-      builtin: "Account";
-    }
+  ? S extends AnyAccountSchema<infer Shape>
     ?
         | ({
             -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchemaCoValuesNullable<
@@ -34,9 +33,7 @@ export type InstanceOrPrimitiveOfSchemaCoValuesNullable<
             >;
           } & { profile: Profile | null } & Account)
         | null
-    : S extends z.core.$ZodRecord<infer K, infer V> & {
-          collaborative: true;
-        }
+    : S extends AnyCoRecordSchema<infer K, infer V>
       ?
           | ({
               -readonly [key in z.output<K> &
@@ -60,11 +57,11 @@ export type InstanceOrPrimitiveOfSchemaCoValuesNullable<
           ? CoList<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>> | null
           : S extends AnyCoFeedSchema<infer T>
             ? CoFeed<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>> | null
-            : S extends PlainTextSchema
+            : S extends AnyPlainTextSchema
               ? CoPlainText | null
-              : S extends RichTextSchema
+              : S extends AnyRichTextSchema
                 ? CoRichText | null
-                : S extends FileStreamSchema
+                : S extends AnyFileStreamSchema
                   ? FileStream | null
                   : S extends z.core.$ZodOptional<infer Inner>
                     ?

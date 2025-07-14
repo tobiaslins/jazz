@@ -1,6 +1,8 @@
 import { JsonValue } from "cojson";
 import {
   Account,
+  AnyAccountSchema,
+  AnyCoRecordSchema,
   AnyZodOrCoValueSchema,
   CoFeed,
   CoList,
@@ -14,24 +16,19 @@ import {
 import { AnyCoFeedSchema } from "../schemaTypes/CoFeedSchema.js";
 import { AnyCoListSchema } from "../schemaTypes/CoListSchema.js";
 import { AnyCoMapSchema } from "../schemaTypes/CoMapSchema.js";
-import { FileStreamSchema } from "../schemaTypes/FileStreamSchema.js";
-import { PlainTextSchema } from "../schemaTypes/PlainTextSchema.js";
-import { RichTextSchema } from "../schemaTypes/RichTextSchema.js";
+import { AnyFileStreamSchema } from "../schemaTypes/FileStreamSchema.js";
+import { AnyPlainTextSchema } from "../schemaTypes/PlainTextSchema.js";
+import { AnyRichTextSchema } from "../schemaTypes/RichTextSchema.js";
 import { z } from "../zodReExport.js";
 
 export type InstanceOrPrimitiveOfSchema<
   S extends CoValueClass | AnyZodOrCoValueSchema,
 > = S extends z.core.$ZodType
-  ? S extends z.core.$ZodObject<infer Shape> & {
-      collaborative: true;
-      builtin: "Account";
-    }
+  ? S extends AnyAccountSchema<infer Shape>
     ? {
         -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchema<Shape[key]>;
       } & { profile: Profile } & Account
-    : S extends z.core.$ZodRecord<infer K, infer V> & {
-          collaborative: true;
-        }
+    : S extends AnyCoRecordSchema<infer K, infer V>
       ? {
           -readonly [key in z.output<K> &
             string]: InstanceOrPrimitiveOfSchema<V>;
@@ -51,11 +48,11 @@ export type InstanceOrPrimitiveOfSchema<
           ? CoList<InstanceOrPrimitiveOfSchema<T>>
           : S extends AnyCoFeedSchema<infer T>
             ? CoFeed<InstanceOrPrimitiveOfSchema<T>>
-            : S extends PlainTextSchema
+            : S extends AnyPlainTextSchema
               ? CoPlainText
-              : S extends RichTextSchema
+              : S extends AnyRichTextSchema
                 ? CoRichText
-                : S extends FileStreamSchema
+                : S extends AnyFileStreamSchema
                   ? FileStream
                   : S extends z.core.$ZodOptional<infer Inner>
                     ? InstanceOrPrimitiveOfSchema<Inner> | undefined
