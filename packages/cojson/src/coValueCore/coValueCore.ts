@@ -4,6 +4,7 @@ import { PeerState } from "../PeerState.js";
 import { RawCoValue } from "../coValue.js";
 import { ControlledAccountOrAgent, RawAccountID } from "../coValues/account.js";
 import { RawGroup } from "../coValues/group.js";
+import { CO_VALUE_LOADING_CONFIG, MAX_RECOMMENDED_TX_SIZE } from "../config.js";
 import { coreToCoValue } from "../coreToCoValue.js";
 import {
   CryptoProvider,
@@ -19,8 +20,6 @@ import {
   RawCoID,
   SessionID,
   TransactionID,
-  getGroupDependentKey,
-  getGroupDependentKeyList,
   getParentGroupId,
   isParentGroupReference,
 } from "../ids.js";
@@ -39,15 +38,6 @@ import { isAccountID } from "../typeUtils/isAccountID.js";
 import { getDependedOnCoValuesFromRawData } from "./utils.js";
 import { CoValueHeader, Transaction, VerifiedState } from "./verifiedState.js";
 
-/**
-    In order to not block other concurrently syncing CoValues we introduce a maximum size of transactions,
-    since they are the smallest unit of progress that can be synced within a CoValue.
-    This is particularly important for storing binary data in CoValues, since they are likely to be at least on the order of megabytes.
-    This also means that we want to keep signatures roughly after each MAX_RECOMMENDED_TX size chunk,
-    to be able to verify partially loaded CoValues or CoValues that are still being created (like a video live stream).
-**/
-export const MAX_RECOMMENDED_TX_SIZE = 100 * 1024;
-
 export function idforHeader(
   header: CoValueHeader,
   crypto: CryptoProvider,
@@ -65,12 +55,6 @@ export type DecryptedTransaction = {
 const readKeyCache = new WeakMap<CoValueCore, { [id: KeyID]: KeySecret }>();
 
 export type AvailableCoValueCore = CoValueCore & { verified: VerifiedState };
-
-export const CO_VALUE_LOADING_CONFIG = {
-  MAX_RETRIES: 1,
-  TIMEOUT: 30_000,
-  RETRY_DELAY: 3000,
-};
 
 export class CoValueCore {
   // context
@@ -174,7 +158,11 @@ export class CoValueCore {
   }
 
   isAvailable(): this is AvailableCoValueCore {
-    return !!this.verified && this.missingDependencies.size === 0;
+    return this.hasVerifiedContent() && this.missingDependencies.size === 0;
+  }
+
+  hasVerifiedContent(): this is AvailableCoValueCore {
+    return !!this.verified;
   }
 
   isErroredInPeer(peerId: PeerID) {
@@ -232,12 +220,41 @@ export class CoValueCore {
   }
 
   missingDependencies = new Set<RawCoID>();
+
+  // Checks if the current CoValueCore is already a missing dependency of the given CoValueCore
+  checkCircularDependencies(dependency: CoValueCore) {
+    const visited = new Set<RawCoID>();
+    const stack = [dependency];
+
+    while (stack.length > 0) {
+      const current = stack.pop();
+
+      if (!current) {
+        return true;
+      }
+
+      visited.add(current.id);
+
+      for (const dependency of current.missingDependencies) {
+        if (dependency === this.id) {
+          return false;
+        }
+
+        if (!visited.has(dependency)) {
+          stack.push(this.node.getCoValue(dependency));
+        }
+      }
+    }
+
+    return true;
+  }
+
   markMissingDependency(dependency: RawCoID) {
     const value = this.node.getCoValue(dependency);
 
     if (value.isAvailable()) {
       this.missingDependencies.delete(dependency);
-    } else {
+    } else if (this.checkCircularDependencies(value)) {
       const unsubscribe = value.subscribe(() => {
         if (value.isAvailable()) {
           this.missingDependencies.delete(dependency);
@@ -253,7 +270,11 @@ export class CoValueCore {
     }
   }
 
-  provideHeader(header: CoValueHeader, fromPeerId: PeerID) {
+  provideHeader(
+    header: CoValueHeader,
+    fromPeerId: PeerID,
+    streamingKnownState?: CoValueKnownState["sessions"],
+  ) {
     const previousState = this.loadingState;
 
     if (this._verified?.sessions.size) {
@@ -266,9 +287,11 @@ export class CoValueCore {
       this.node.crypto,
       header,
       new Map(),
+      streamingKnownState,
     );
 
     this.peers.set(fromPeerId, { type: "available" });
+
     this.updateCounter(previousState);
     this.notifyUpdate("immediate");
   }
@@ -292,7 +315,7 @@ export class CoValueCore {
     this.notifyUpdate("immediate");
   }
 
-  private markPending(peerId: PeerID) {
+  markPending(peerId: PeerID) {
     const previousState = this.loadingState;
     this.peers.set(peerId, { type: "pending" });
     this.updateCounter(previousState);
@@ -353,6 +376,14 @@ export class CoValueCore {
     return this.node
       .loadCoValueAsDifferentAgent(this.id, account.agentSecret, account.id)
       .getCurrentContent();
+  }
+
+  knownStateWithStreaming(): CoValueKnownState {
+    if (this.isAvailable()) {
+      return this.verified.knownStateWithStreaming();
+    } else {
+      return emptyKnownState(this.id);
+    }
   }
 
   knownState(): CoValueKnownState {
@@ -980,65 +1011,68 @@ export class CoValueCore {
     return this.node.syncManager.waitForSync(this.id, options?.timeout);
   }
 
-  async loadFromPeers(peers: PeerState[]) {
+  load(peers: PeerState[]) {
+    this.loadFromStorage((found) => {
+      // When found the load is triggered by handleNewContent
+      if (!found) {
+        this.loadFromPeers(peers);
+      }
+    });
+  }
+
+  loadFromStorage(done?: (found: boolean) => void) {
+    const node = this.node;
+
+    if (!node.storage) {
+      done?.(false);
+      return;
+    }
+
+    const currentState = this.peers.get("storage");
+
+    if (currentState && currentState.type !== "unknown") {
+      done?.(currentState.type === "available");
+      return;
+    }
+
+    this.markPending("storage");
+    node.storage.load(
+      this.id,
+      (data) => {
+        node.syncManager.handleNewContent(data, "storage");
+      },
+      (found) => {
+        if (!found) {
+          this.markNotFoundInPeer("storage");
+        }
+
+        done?.(found);
+      },
+    );
+  }
+
+  loadFromPeers(peers: PeerState[]) {
     if (peers.length === 0) {
       return;
     }
 
-    const peersToActuallyLoadFrom = {
-      storage: [] as PeerState[],
-      server: [] as PeerState[],
-    };
+    const peersToActuallyLoadFrom = [] as PeerState[];
 
     for (const peer of peers) {
-      const currentState = this.peers.get(peer.id);
+      const currentState = this.peers.get(peer.id)?.type;
 
       if (
-        currentState?.type === "available" ||
-        currentState?.type === "pending"
+        !currentState ||
+        currentState === "unknown" ||
+        currentState === "unavailable"
       ) {
-        continue;
-      }
-
-      if (currentState?.type === "errored") {
-        continue;
-      }
-
-      if (currentState?.type === "unavailable") {
-        if (peer.role === "server") {
-          peersToActuallyLoadFrom.server.push(peer);
-          this.markPending(peer.id);
-        }
-
-        continue;
-      }
-
-      if (!currentState || currentState?.type === "unknown") {
-        if (peer.role === "storage") {
-          peersToActuallyLoadFrom.storage.push(peer);
-        } else {
-          peersToActuallyLoadFrom.server.push(peer);
-        }
-
+        peersToActuallyLoadFrom.push(peer);
         this.markPending(peer.id);
       }
     }
 
-    // Load from storage peers first, then from server peers
-    if (peersToActuallyLoadFrom.storage.length > 0) {
-      await Promise.all(
-        peersToActuallyLoadFrom.storage.map((peer) =>
-          this.internalLoadFromPeer(peer),
-        ),
-      );
-    }
-
-    if (peersToActuallyLoadFrom.server.length > 0) {
-      await Promise.all(
-        peersToActuallyLoadFrom.server.map((peer) =>
-          this.internalLoadFromPeer(peer),
-        ),
-      );
+    for (const peer of peersToActuallyLoadFrom) {
+      this.internalLoadFromPeer(peer);
     }
   }
 
