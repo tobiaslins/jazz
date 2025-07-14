@@ -5,7 +5,7 @@ export async function POST(request: Request) {
   const response = await newGameRequest.handle(
     request,
     jazzServerAccount.worker,
-    async (game, madeBy) => {
+    async ({ game }, madeBy) => {
       const isPlayer1 = game.player1.account.id === madeBy.id;
       const isPlayer2 = game.player2.account.id === madeBy.id;
 

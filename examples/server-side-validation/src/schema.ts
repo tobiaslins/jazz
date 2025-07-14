@@ -27,26 +27,34 @@ export const WaitingRoom = co.map({
 });
 export type WaitingRoom = co.loaded<typeof WaitingRoom>;
 
+const workerId = process.env.NEXT_PUBLIC_JAZZ_WORKER_ACCOUNT!;
+
 export const createGameRequest = experimental_defineRequest({
   url: "/api/create-game",
-  request: co.map({}),
-  response: WaitingRoom,
+  workerId,
+  request: {},
+  response: { waitingRoom: WaitingRoom },
 });
 
 export const joinGameRequest = experimental_defineRequest({
   url: "/api/join-game",
+  workerId,
   request: {
-    schema: WaitingRoom,
+    schema: {
+      waitingRoom: WaitingRoom,
+    },
     resolve: {
-      creator: true,
+      waitingRoom: {
+        creator: true,
+      },
     },
   },
   response: {
-    schema: co.map({
+    schema: {
       waitingRoom: WaitingRoom,
       result: z.literal(["success", "error"]),
       error: z.optional(z.string()),
-    }),
+    },
     resolve: {
       waitingRoom: {
         game: {
@@ -64,23 +72,28 @@ export const joinGameRequest = experimental_defineRequest({
 
 export const newGameRequest = experimental_defineRequest({
   url: "/api/new-game",
+  workerId,
   request: {
-    schema: Game,
+    schema: {
+      game: Game,
+    },
     resolve: {
-      player1: {
-        account: true,
-      },
-      player2: {
-        account: true,
+      game: {
+        player1: {
+          account: true,
+        },
+        player2: {
+          account: true,
+        },
       },
     },
   },
   response: {
-    schema: co.map({
+    schema: {
       game: Game,
       result: z.literal(["success", "error"]),
       error: z.optional(z.string()),
-    }),
+    },
     resolve: {
       game: {
         player1: true,
@@ -92,11 +105,12 @@ export const newGameRequest = experimental_defineRequest({
 
 export const playRequest = experimental_defineRequest({
   url: "/api/play",
+  workerId,
   request: {
-    schema: co.map({
+    schema: {
       game: Game,
       selection: z.literal(["rock", "paper", "scissors"]),
-    }),
+    },
     resolve: {
       game: {
         player1: {
@@ -114,13 +128,12 @@ export const playRequest = experimental_defineRequest({
       },
     },
   },
-  // TODO: Make this optional
   response: {
-    schema: co.map({
+    schema: {
       game: Game,
       result: z.literal(["success", "error"]),
       error: z.optional(z.string()),
-    }),
+    },
     resolve: {
       game: true,
     },

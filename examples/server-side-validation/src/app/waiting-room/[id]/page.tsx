@@ -33,7 +33,9 @@ async function askToJoinGame(
     return;
   }
 
-  const response = await joinGameRequest.send(waitingRoom);
+  const response = await joinGameRequest.send({
+    waitingRoom,
+  });
 
   if (response.result === "error") {
     console.error(response.error);

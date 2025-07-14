@@ -1,15 +1,11 @@
-import {
-  CojsonInternalTypes,
-  CryptoProvider,
-  RawCoID,
-  emptyKnownState,
-} from "cojson";
+import { CoValueCore, CojsonInternalTypes, cojsonInternals } from "cojson";
 import z from "zod/v4";
 import {
   AnyCoMapSchema,
+  AnyCoSchema,
   CoMap,
-  CoMapInit,
   CoMapInitZod,
+  CoMapSchema,
   CoValue,
   CoValueClass,
   Group,
@@ -18,15 +14,18 @@ import {
   ResolveQueryStrict,
   Simplify,
   anySchemaToCoSchema,
+  coMapDefiner,
   exportCoValue,
   importContentPieces,
   loadCoValue,
 } from "../internal.js";
 import { Account } from "./account.js";
 
+type MessageShape = Record<string, z.core.$ZodType | AnyCoSchema>;
+
 type RequestSchemaDefinition<
-  S extends AnyCoMapSchema,
-  R extends ResolveQuery<S> = true,
+  S extends MessageShape,
+  R extends ResolveQuery<CoMapSchema<S>> = true,
 > =
   | S
   | {
@@ -35,49 +34,39 @@ type RequestSchemaDefinition<
     };
 
 interface RequestOptions<
-  RequestSchema extends AnyCoMapSchema,
-  RequestResolve extends ResolveQuery<RequestSchema>,
-  ResponseSchema extends AnyCoMapSchema,
-  ResponseResolve extends ResolveQuery<ResponseSchema>,
+  RequestShape extends MessageShape,
+  RequestResolve extends ResolveQuery<CoMapSchema<RequestShape>>,
+  ResponseShape extends MessageShape,
+  ResponseResolve extends ResolveQuery<CoMapSchema<ResponseShape>>,
 > {
   url: string;
+  workerId: string;
   // TODO: The request payload should be optional
   request: RequestSchemaDefinition<
-    RequestSchema,
-    ResolveQueryStrict<RequestSchema, RequestResolve>
+    RequestShape,
+    ResolveQueryStrict<CoMapSchema<RequestShape>, RequestResolve>
   >;
   response: RequestSchemaDefinition<
-    ResponseSchema,
-    ResolveQueryStrict<ResponseSchema, ResponseResolve>
+    ResponseShape,
+    ResolveQueryStrict<CoMapSchema<ResponseShape>, ResponseResolve>
   >;
 }
 
-type MessageValuePayload<T extends AnyCoMapSchema> = T extends AnyCoMapSchema<
-  infer Shape
->
-  ? Simplify<CoMapInitZod<Shape>> | Loaded<T>
-  : Loaded<T>;
+type MessageValuePayload<T extends MessageShape> = Simplify<CoMapInitZod<T>>;
 
-function inputValueToCoMap<S extends AnyCoMapSchema>(
-  schema: S,
+function inputValueToCoMap<S extends MessageShape>(
+  schema: AnyCoMapSchema,
   value: MessageValuePayload<S>,
   owner: Account,
-  sharedWith?: Account | Group,
+  sharedWith: Account | Group,
 ) {
-  if ("_type" in value && value._type === "CoMap") {
-    return value;
-  }
-
   const group = Group.create({ owner });
 
-  if (sharedWith) {
-    group.addMember(sharedWith, "reader");
-  } else {
-    group.makePublic("writer");
-  }
+  group.addMember(sharedWith, "reader");
 
-  const coMap = anySchemaToCoSchema(schema) as unknown as typeof CoMap;
-  return coMap.create(value, group) as Loaded<S>;
+  return (schema as CoMapSchema<S>).create(value, group) as Loaded<
+    CoMapSchema<S>
+  >;
 }
 
 async function serializeMessagePayload(
@@ -85,15 +74,18 @@ async function serializeMessagePayload(
   schema: AnyCoMapSchema,
   resolve: any,
   value: any,
-  owner?: Account,
+  owner: Account,
+  target: Account | Group,
 ) {
   const me = owner ?? Account.getMe();
   const node = me._raw.core.node;
+  const crypto = node.crypto;
+
   const agent = node.getCurrentAgent();
   const signerID = agent.currentSignerID();
   const signerSecret = agent.currentSignerSecret();
 
-  const coMap = inputValueToCoMap(schema, value, me);
+  const coMap = inputValueToCoMap(schema, value, me, target);
 
   const contentPieces = await exportCoValue(schema, coMap.id, {
     resolve,
@@ -119,33 +111,37 @@ async function serializeMessagePayload(
     }
   }
 
-  // Replay attacks protection with in-memory tracking of challenge and expiration
-  const challenge = node.crypto.uniquenessForHeader();
-  const expiration = Date.now() + 1000 * 60; // 1 minute expiration
-  const signature = node.crypto.sign(
-    signerSecret,
-    `${coMap.id}${challenge}${expiration}`,
-  );
+  const createdAt = Date.now();
+
+  const signPayload = crypto.secureHash({
+    contentPieces,
+    id: coMap.id,
+    createdAt,
+  });
+
+  const authToken = crypto.sign(signerSecret, signPayload);
 
   return {
     contentPieces,
-    challenge,
     id: coMap.id,
-    madeBy: me.id,
+    createdAt,
+    authToken,
     signerID,
-    signature,
-    expiration,
   };
 }
 
 const requestSchema = z.object({
   contentPieces: z.array(z.json()),
-  id: z.string(),
-  challenge: z.string(),
-  madeBy: z.string(),
-  signerID: z.string(),
-  signature: z.string(),
-  expiration: z.number(),
+  id: z.custom<`co_z${string}`>(
+    (value) => typeof value === "string" && value.startsWith("co_z"),
+  ),
+  createdAt: z.number(),
+  authToken: z.custom<`signature_z${string}`>(
+    (value) => typeof value === "string" && value.startsWith("signature_z"),
+  ),
+  signerID: z.custom<`signer_z${string}`>(
+    (value) => typeof value === "string" && value.startsWith("signer_z"),
+  ),
 });
 
 async function handleIncomingMessage(
@@ -153,33 +149,45 @@ async function handleIncomingMessage(
   schema: AnyCoMapSchema,
   resolve: any,
   request: unknown,
-  crypto: CryptoProvider,
-  loadAs?: Account,
+  loadAs: Account,
+  handledMessages: Set<`co_z${string}`>,
 ) {
+  const node = loadAs._raw.core.node;
+  const crypto = node.crypto;
+
   const requestParsed = requestSchema.parse(request);
 
+  if (handledMessages.has(requestParsed.id)) {
+    throw new Error("Request payload is already handled");
+  }
+
+  if (requestParsed.createdAt + 1000 * 60 < Date.now()) {
+    throw new Error("Authentication token is expired");
+  }
+
+  const signPayload = crypto.secureHash({
+    contentPieces: requestParsed.contentPieces,
+    id: requestParsed.id,
+    createdAt: requestParsed.createdAt,
+  });
+
   if (
-    !crypto.verify(
-      requestParsed.signature as CojsonInternalTypes.Signature,
-      `${requestParsed.id}${requestParsed.challenge}${requestParsed.expiration}`,
-      requestParsed.signerID as CojsonInternalTypes.SignerID,
-    )
+    !crypto.verify(requestParsed.authToken, signPayload, requestParsed.signerID)
   ) {
     throw new Error("Invalid signature");
   }
 
-  if (requestParsed.expiration < Date.now()) {
-    throw new Error("Request expired");
-  }
-
-  // TODO: In-memory tracking of used challenges to avoid replay attacks
+  handledMessages.add(requestParsed.id);
 
   importContentPieces(
     requestParsed.contentPieces as CojsonInternalTypes.NewContentMessage[],
     loadAs,
   );
 
-  const madeBy = await Account.load(requestParsed.madeBy, {
+  const coValue = await node.loadCoValueCore(requestParsed.id);
+  const accountId = getCoValueCreatorAccountId(coValue);
+
+  const madeBy = await Account.load(accountId, {
     loadAs,
   });
 
@@ -198,7 +206,7 @@ async function handleIncomingMessage(
   const coSchema = anySchemaToCoSchema(schema) as CoValueClass<CoValue>;
   const value = await loadCoValue(coSchema, requestParsed.id, {
     resolve,
-    loadAs: loadAs ?? Account.getMe(),
+    loadAs,
   });
 
   if (!value) {
@@ -212,44 +220,53 @@ async function handleIncomingMessage(
 }
 
 function parseSchemaAndResolve<
-  S extends AnyCoMapSchema,
-  R extends ResolveQuery<S>,
+  S extends MessageShape,
+  R extends ResolveQuery<CoMapSchema<S>>,
 >(options: RequestSchemaDefinition<S, R>) {
   if ("schema" in options) {
     return {
-      schema: options.schema,
+      // Casting to reduce the type complexity
+      schema: coMapDefiner(options.schema) as AnyCoMapSchema,
       resolve: options.resolve,
     };
   }
 
   return {
-    schema: options,
+    schema: coMapDefiner(options) as AnyCoMapSchema,
     resolve: true,
   };
 }
 
 export function experimental_defineRequest<
-  RequestSchema extends AnyCoMapSchema,
-  RequestResolve extends ResolveQuery<RequestSchema>,
-  ResponseSchema extends AnyCoMapSchema,
-  ResponseResolve extends ResolveQuery<ResponseSchema>,
+  RequestShape extends MessageShape,
+  RequestResolve extends ResolveQuery<CoMapSchema<RequestShape>>,
+  ResponseShape extends MessageShape,
+  ResponseResolve extends ResolveQuery<CoMapSchema<ResponseShape>>,
 >(
   params: RequestOptions<
-    RequestSchema,
+    RequestShape,
     RequestResolve,
-    ResponseSchema,
+    ResponseShape,
     ResponseResolve
   >,
 ) {
+  const processedValues = new Set<`co_z${string}`>();
   const requestDefinition = parseSchemaAndResolve(params.request);
   const responseDefinition = parseSchemaAndResolve(params.response);
 
   const send = async (
-    values: MessageValuePayload<RequestSchema>,
+    values: MessageValuePayload<RequestShape>,
     options?: { owner?: Account },
-  ): Promise<Loaded<ResponseSchema, ResponseResolve>> => {
+  ): Promise<Loaded<CoMapSchema<ResponseShape>, ResponseResolve>> => {
     const as = options?.owner ?? Account.getMe();
-    const node = as._raw.core.node;
+
+    const workerAccount = await Account.load(params.workerId, {
+      loadAs: as,
+    });
+
+    if (!workerAccount) {
+      throw new Error("Worker account not found");
+    }
 
     const response = await fetch(params.url, {
       method: "POST",
@@ -262,6 +279,7 @@ export function experimental_defineRequest<
           requestDefinition.resolve,
           values,
           as,
+          workerAccount,
         ),
       ),
     });
@@ -279,22 +297,22 @@ export function experimental_defineRequest<
       responseDefinition.schema,
       responseDefinition.resolve,
       responseParsed.payload,
-      node.crypto,
       as,
+      processedValues,
     );
 
-    return data.value as Loaded<ResponseSchema, ResponseResolve>;
+    return data.value as Loaded<CoMapSchema<ResponseShape>, ResponseResolve>;
   };
 
   const handle = async (
     request: Request,
     as: Account,
     callback: (
-      value: Loaded<RequestSchema, RequestResolve>,
+      value: Loaded<CoMapSchema<RequestShape>, RequestResolve>,
       madeBy: Account,
     ) =>
-      | Promise<MessageValuePayload<ResponseSchema>>
-      | MessageValuePayload<ResponseSchema>,
+      | Promise<MessageValuePayload<ResponseShape>>
+      | MessageValuePayload<ResponseShape>,
   ): Promise<Response> => {
     const node = as._raw.core.node;
     const body = await request.json();
@@ -302,27 +320,23 @@ export function experimental_defineRequest<
       requestDefinition.schema,
       requestDefinition.resolve,
       body,
-      node.crypto,
       as,
+      processedValues,
     );
 
     const tracking = node.syncManager.trackDirtyCoValues();
 
     const responseValue = await callback(
-      data.value as Loaded<RequestSchema, RequestResolve>,
+      data.value as Loaded<CoMapSchema<RequestShape>, RequestResolve>,
       data.madeBy,
     );
 
     const responsePayload = await serializeMessagePayload(
       responseDefinition.schema,
       responseDefinition.resolve,
-      inputValueToCoMap(
-        responseDefinition.schema,
-        responseValue,
-        as,
-        data.madeBy,
-      ),
+      responseValue,
       as,
+      data.madeBy,
     );
 
     const responseBody = JSON.stringify({
@@ -351,6 +365,28 @@ export function experimental_defineRequest<
       response: responseDefinition.schema,
     },
   };
+}
+
+function getCoValueCreatorAccountId(coValue: CoValueCore) {
+  if (!coValue.isAvailable()) {
+    throw new Error("Unable to load the request payload");
+  }
+
+  const creatorSessionId = coValue.getValidSortedTransactions().at(0)
+    ?.txID.sessionID;
+
+  if (!creatorSessionId) {
+    throw new Error("Request payload is not valid");
+  }
+
+  const accountId =
+    cojsonInternals.accountOrAgentIDfromSessionID(creatorSessionId);
+
+  if (!accountId.startsWith("co_z")) {
+    throw new Error("Request payload is not valid");
+  }
+
+  return accountId;
 }
 
 // Cache the resolve -> ids

@@ -5,7 +5,7 @@ export async function POST(request: Request) {
   const response = await joinGameRequest.handle(
     request,
     jazzServerAccount.worker,
-    async (waitingRoom, madeBy) => {
+    async ({ waitingRoom }, madeBy) => {
       if (!waitingRoom.creator) {
         return {
           waitingRoom,

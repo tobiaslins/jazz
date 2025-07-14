@@ -135,7 +135,9 @@ export default function RouteComponent() {
   };
 
   const onNewGame = async () => {
-    await newGameRequest.send(game);
+    await newGameRequest.send({
+      game,
+    });
   };
 
   const currentPlayerSelection =

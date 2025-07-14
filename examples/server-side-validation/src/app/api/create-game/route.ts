@@ -12,7 +12,9 @@ export async function POST(request: Request) {
         Group.create(jazzServerAccount.worker).makePublic(),
       );
 
-      return waitingRoom;
+      return {
+        waitingRoom,
+      };
     },
   );
 
