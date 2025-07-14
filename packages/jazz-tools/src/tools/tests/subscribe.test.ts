@@ -14,7 +14,6 @@ import {
   co,
   createCoValueObservable,
   subscribeToCoValue,
-  zodSchemaToCoSchema,
 } from "../internal.js";
 import {
   createJazzTestAccount,
@@ -1235,7 +1234,7 @@ describe("subscribeToCoValue", () => {
 
     // Test subscribing to the large coValue
     const unsubscribe = subscribeToCoValue(
-      zodSchemaToCoSchema(LargeDataset),
+      anySchemaToCoSchema(LargeDataset),
       largeMap.id,
       {
         loadAs: alice,
@@ -1301,7 +1300,7 @@ describe("createCoValueObservable", () => {
     const mockListener = vi.fn();
 
     const unsubscribe = observable.subscribe(
-      zodSchemaToCoSchema(TestMap),
+      anySchemaToCoSchema(TestMap),
       testMap.id,
       {
         loadAs: meOnSecondPeer,
@@ -1330,7 +1329,7 @@ describe("createCoValueObservable", () => {
     const mockListener = vi.fn();
 
     const unsubscribe = observable.subscribe(
-      zodSchemaToCoSchema(TestMap),
+      anySchemaToCoSchema(TestMap),
       testMap.id,
       {
         loadAs: meOnSecondPeer,
