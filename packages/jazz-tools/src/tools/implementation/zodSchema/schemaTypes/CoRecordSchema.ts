@@ -88,7 +88,10 @@ export type CoRecordSchema<
 export type AnyCoRecordSchema<
   K extends z.core.$ZodString<string> = z.core.$ZodString<string>,
   V extends AnyZodOrCoValueSchema = z.core.$ZodType,
-> = z.core.$ZodRecord<K, V> & { collaborative: true };
+> = z.core.$ZodRecord<K, V> & {
+  collaborative: true;
+  getZodSchema: () => z.core.$ZodRecord<K, V>;
+};
 
 export type CoRecordInstance<
   K extends z.core.$ZodString<string>,

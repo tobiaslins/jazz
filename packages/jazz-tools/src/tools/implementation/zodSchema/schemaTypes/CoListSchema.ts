@@ -64,6 +64,7 @@ export function createCoreCoListSchema<T extends AnyZodOrCoValueSchema>(
   });
   return Object.assign(zodSchema, {
     collaborative: true as const,
+    getZodSchema: () => zodSchema,
   });
 }
 
@@ -93,7 +94,10 @@ export function enrichCoListSchema<T extends AnyZodOrCoValueSchema>(
 
 // less precise version to avoid circularity issues and allow matching against
 export type AnyCoListSchema<T extends AnyZodOrCoValueSchema = z.core.$ZodType> =
-  z.core.$ZodArray<T> & { collaborative: true };
+  z.core.$ZodArray<T> & {
+    collaborative: true;
+    getZodSchema: () => z.core.$ZodArray<T>;
+  };
 
 export type CoListInstance<T extends AnyZodOrCoValueSchema> = CoList<
   InstanceOrPrimitiveOfSchema<T>

@@ -5,6 +5,7 @@ import { z } from "../zodReExport.js";
 export type AnyRichTextSchema = z.core.$ZodCustom<CoRichText, unknown> & {
   collaborative: true;
   builtin: "CoRichText";
+  getZodSchema: () => z.core.$ZodCustom<CoRichText, unknown>;
 };
 
 export type RichTextSchema = AnyRichTextSchema & {
@@ -35,6 +36,7 @@ export function createCoreCoRichTextSchema(): AnyRichTextSchema {
   return Object.assign(zodSchema, {
     collaborative: true as const,
     builtin: "CoRichText" as const,
+    getZodSchema: () => zodSchema,
   });
 }
 

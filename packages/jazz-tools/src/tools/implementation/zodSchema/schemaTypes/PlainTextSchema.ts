@@ -6,6 +6,7 @@ import { z } from "../zodReExport.js";
 export type AnyPlainTextSchema = z.core.$ZodCustom<CoPlainText, unknown> & {
   collaborative: true;
   builtin: "CoPlainText";
+  getZodSchema: () => z.core.$ZodCustom<CoPlainText, unknown>;
 };
 
 export type PlainTextSchema = AnyPlainTextSchema & {
@@ -37,6 +38,7 @@ export function createCoreCoPlainTextSchema(): AnyPlainTextSchema {
   return Object.assign(zodSchema, {
     collaborative: true as const,
     builtin: "CoPlainText" as const,
+    getZodSchema: () => zodSchema,
   });
 }
 

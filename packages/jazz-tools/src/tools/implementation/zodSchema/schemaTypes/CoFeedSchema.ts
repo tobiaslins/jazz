@@ -20,14 +20,7 @@ type CoFeedInit<T extends z.core.$ZodType> = Array<
     : NonNullable<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>>
 >;
 
-export type CoFeedSchema<T extends AnyZodOrCoValueSchema> = z.core.$ZodCustom<
-  CoFeed<InstanceOfSchema<T>>,
-  unknown
-> & {
-  collaborative: true;
-  builtin: "CoFeed";
-  element: T;
-
+export type CoFeedSchema<T extends AnyZodOrCoValueSchema> = AnyCoFeedSchema<T> & {
   create(
     init: CoFeedInit<T>,
     options?: { owner: Account | Group } | Account | Group,
@@ -72,6 +65,7 @@ export function createCoreCoFeedSchema<T extends AnyZodOrCoValueSchema>(
     collaborative: true as const,
     builtin: "CoFeed" as const,
     element,
+    getZodSchema: () => zodSchema,
   });
 }
 
@@ -102,10 +96,11 @@ export function enrichCoFeedSchema<T extends AnyZodOrCoValueSchema>(
 
 // less precise version to avoid circularity issues and allow matching against
 export type AnyCoFeedSchema<T extends AnyZodOrCoValueSchema = z.core.$ZodType> =
-  z.core.$ZodCustom<any, unknown> & {
+  z.core.$ZodCustom<CoFeed, unknown> & {
     collaborative: true;
     builtin: "CoFeed";
     element: T;
+    getZodSchema: () => z.core.$ZodCustom<CoFeed, unknown>;
   };
 
 export type CoFeedInstance<T extends AnyZodOrCoValueSchema> = CoFeed<

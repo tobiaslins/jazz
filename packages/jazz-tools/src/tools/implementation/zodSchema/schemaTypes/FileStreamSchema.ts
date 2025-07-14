@@ -9,6 +9,7 @@ import { z } from "../zodReExport.js";
 export type AnyFileStreamSchema = z.core.$ZodCustom<FileStream, unknown> & {
   collaborative: true;
   builtin: "FileStream";
+  getZodSchema: () => z.core.$ZodCustom<FileStream, unknown>;
 };
 
 export type FileStreamSchema = AnyFileStreamSchema & {
@@ -53,6 +54,7 @@ export function createCoreFileStreamSchema(): AnyFileStreamSchema {
   return Object.assign(zodSchema, {
     collaborative: true as const,
     builtin: "FileStream" as const,
+    getZodSchema: () => zodSchema,
   });
 }
 

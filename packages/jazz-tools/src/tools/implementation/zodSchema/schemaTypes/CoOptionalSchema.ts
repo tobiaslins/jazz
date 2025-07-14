@@ -6,11 +6,11 @@ import {
   CoValueSchemaFromZodSchema,
 } from "../zodSchema.js";
 
-export type AnyCoOptionalSchema<
-  Shape extends z.core.$ZodType = z.core.$ZodType,
-> = z.ZodOptional<Shape> & {
-  collaborative: true;
-};
+export type AnyCoOptionalSchema<Shape extends z.core.$ZodType = z.core.$ZodType> =
+  z.ZodOptional<Shape> & {
+    collaborative: true;
+    getZodSchema: () => z.ZodOptional<Shape>;
+  };
 
 export type CoOptionalSchema<Shape extends AnyCoSchema = AnyCoSchema> =
   AnyCoOptionalSchema<Shape> & {
@@ -20,13 +20,15 @@ export type CoOptionalSchema<Shape extends AnyCoSchema = AnyCoSchema> =
 export function createCoOptionalSchema<T extends AnyCoSchema>(
   schema: T,
 ): CoOptionalSchema<T> {
-  return Object.assign(z.optional(schema), {
+  const zodSchema = z.optional(schema);
+  return Object.assign(zodSchema, {
     collaborative: true,
     getCoValueClass: () => {
       return (
         schema as CoValueSchemaFromZodSchema<AnyCoSchema>
       ).getCoValueClass();
     },
+    getZodSchema: () => zodSchema,
   }) as unknown as CoOptionalSchema<T>;
 }
 

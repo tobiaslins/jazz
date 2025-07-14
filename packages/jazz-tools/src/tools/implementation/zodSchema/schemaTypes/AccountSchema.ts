@@ -74,6 +74,7 @@ export function createCoreAccountSchema<Shape extends BaseAccountShape>(
   return Object.assign(zodSchema, {
     collaborative: true as const,
     builtin: "Account" as const,
+    getZodSchema: () => zodSchema,
   });
 }
 
@@ -148,6 +149,7 @@ export type AnyAccountSchema<
 > = z.core.$ZodObject<Shape> & {
   collaborative: true;
   builtin: "Account";
+  getZodSchema: () => z.core.$ZodObject<Shape>;
 };
 
 export type AccountInstance<Shape extends z.core.$ZodLooseShape> = {

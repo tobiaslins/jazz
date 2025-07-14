@@ -103,7 +103,7 @@ function tryZodSchemaToCoSchema<S extends z.core.$ZodType>(
           ? enrichAccountSchema(schema as any, coValueClass as any)
           : enrichCoMapSchema(schema as any, coValueClass as any);
 
-      coSchemasForZodSchemas.set(schema, coValueSchema);
+      coSchemasForZodSchemas.set(schema as any, coValueSchema);
       return coValueSchema as unknown as CoValueSchemaFromZodSchema<S>;
     } else if (isZodArray(schema)) {
       const def = getDef(schema);

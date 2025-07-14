@@ -152,6 +152,7 @@ export function createCoreCoMapSchema<Shape extends z.core.$ZodLooseShape>(
   });
   return Object.assign(zodSchema, {
     collaborative: true as const,
+    getZodSchema: () => zodSchema,
   });
 }
 
@@ -192,6 +193,7 @@ export function enrichCoMapSchema<
       // TODO avoid repeating this with coMapDefiner
       const enrichedSchema = Object.assign(newSchema, {
         collaborative: true,
+        getZodSchema: () => newSchema,
       }) as AnyCoMapSchema<Shape, Config>;
       return coreSchemaToCoSchema(enrichedSchema);
     },
@@ -238,7 +240,10 @@ export type AnyCoMapSchema<
   Shape extends z.core.$ZodLooseShape = z.core.$ZodLooseShape,
   Config extends z.core.$ZodObjectConfig = z.core.$ZodObjectConfig,
 > = z.core.$ZodObject<Shape, Config> &
-  z.$ZodTypeDiscriminable & { collaborative: true };
+  z.$ZodTypeDiscriminable & {
+    collaborative: true;
+    getZodSchema: () => z.core.$ZodObject<Shape, Config>;
+  };
 
 export type CoMapInstance<Shape extends z.core.$ZodLooseShape> = {
   -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchema<Shape[key]>;
