@@ -1,12 +1,17 @@
-import { CojsonInternalTypes, CryptoProvider, JsonValue } from "cojson";
+import { CojsonInternalTypes, CryptoProvider } from "cojson";
 import z from "zod/v4";
 import {
-  AnyCoSchema,
+  AnyCoMapSchema,
+  CoMap,
+  CoMapInit,
+  CoMapInitZod,
   CoValue,
   CoValueClass,
+  Group,
   Loaded,
   ResolveQuery,
   ResolveQueryStrict,
+  Simplify,
   anySchemaToCoSchema,
   exportCoValue,
   importContentPieces,
@@ -15,7 +20,7 @@ import {
 import { Account } from "./account.js";
 
 type RequestSchemaDefinition<
-  S extends AnyCoSchema,
+  S extends AnyCoMapSchema,
   R extends ResolveQuery<S> = true,
 > =
   | S
@@ -25,9 +30,9 @@ type RequestSchemaDefinition<
     };
 
 interface RequestOptions<
-  RequestSchema extends AnyCoSchema,
+  RequestSchema extends AnyCoMapSchema,
   RequestResolve extends ResolveQuery<RequestSchema>,
-  ResponseSchema extends AnyCoSchema,
+  ResponseSchema extends AnyCoMapSchema,
   ResponseResolve extends ResolveQuery<ResponseSchema>,
 > {
   url: string;
@@ -42,9 +47,37 @@ interface RequestOptions<
   >;
 }
 
+type MessageValuePayload<T extends AnyCoMapSchema> = T extends AnyCoMapSchema<
+  infer Shape
+>
+  ? Simplify<CoMapInitZod<Shape>> | Loaded<T>
+  : Loaded<T>;
+
+function inputValueToCoMap<S extends AnyCoMapSchema>(
+  schema: S,
+  value: MessageValuePayload<S>,
+  owner: Account,
+  sharedWith?: Account | Group,
+) {
+  if ("_type" in value && value._type === "CoMap") {
+    return value;
+  }
+
+  const group = Group.create({ owner });
+
+  if (sharedWith) {
+    group.addMember(sharedWith, "reader");
+  } else {
+    group.makePublic("writer");
+  }
+
+  const coMap = anySchemaToCoSchema(schema) as unknown as typeof CoMap;
+  return coMap.create(value, group) as Loaded<S>;
+}
+
 async function serializeMessagePayload(
   // Skipping type validation here to avoid excessive type complexity that affects the typecheck performance
-  schema: AnyCoSchema,
+  schema: AnyCoMapSchema,
   resolve: any,
   value: any,
   owner?: Account,
@@ -55,7 +88,9 @@ async function serializeMessagePayload(
   const signerID = agent.currentSignerID();
   const signerSecret = agent.currentSignerSecret();
 
-  const contentPieces = await exportCoValue(schema, value.id, {
+  const coMap = inputValueToCoMap(schema, value, me);
+
+  const contentPieces = await exportCoValue(schema, coMap.id, {
     resolve,
     loadAs: me,
   });
@@ -78,17 +113,22 @@ async function serializeMessagePayload(
     }
   }
 
-  // TODO: Replay attacks protection
+  // Replay attacks protection with in-memory tracking of challenge and expiration
   const challenge = node.crypto.uniquenessForHeader();
-  const signature = node.crypto.sign(signerSecret, `${value.id}${challenge}`);
+  const expiration = Date.now() + 1000 * 60; // 1 minute expiration
+  const signature = node.crypto.sign(
+    signerSecret,
+    `${coMap.id}${challenge}${expiration}`,
+  );
 
   return {
     contentPieces,
     challenge,
-    id: value.id,
+    id: coMap.id,
     madeBy: me.id,
     signerID,
     signature,
+    expiration,
   };
 }
 
@@ -99,11 +139,12 @@ const requestSchema = z.object({
   madeBy: z.string(),
   signerID: z.string(),
   signature: z.string(),
+  expiration: z.number(),
 });
 
 async function handleIncomingMessage(
   // Skipping type validation here to avoid excessive type complexity that affects the typecheck performance
-  schema: AnyCoSchema,
+  schema: AnyCoMapSchema,
   resolve: any,
   request: unknown,
   crypto: CryptoProvider,
@@ -114,12 +155,18 @@ async function handleIncomingMessage(
   if (
     !crypto.verify(
       requestParsed.signature as CojsonInternalTypes.Signature,
-      `${requestParsed.id}${requestParsed.challenge}`,
+      `${requestParsed.id}${requestParsed.challenge}${requestParsed.expiration}`,
       requestParsed.signerID as CojsonInternalTypes.SignerID,
     )
   ) {
     throw new Error("Invalid signature");
   }
+
+  if (requestParsed.expiration < Date.now()) {
+    throw new Error("Request expired");
+  }
+
+  // TODO: In-memory tracking of used challenges to avoid replay attacks
 
   importContentPieces(
     requestParsed.contentPieces as CojsonInternalTypes.NewContentMessage[],
@@ -159,7 +206,7 @@ async function handleIncomingMessage(
 }
 
 function parseSchemaAndResolve<
-  S extends AnyCoSchema,
+  S extends AnyCoMapSchema,
   R extends ResolveQuery<S>,
 >(options: RequestSchemaDefinition<S, R>) {
   if ("schema" in options) {
@@ -176,9 +223,9 @@ function parseSchemaAndResolve<
 }
 
 export function experimental_defineRequest<
-  RequestSchema extends AnyCoSchema,
+  RequestSchema extends AnyCoMapSchema,
   RequestResolve extends ResolveQuery<RequestSchema>,
-  ResponseSchema extends AnyCoSchema,
+  ResponseSchema extends AnyCoMapSchema,
   ResponseResolve extends ResolveQuery<ResponseSchema>,
 >(
   params: RequestOptions<
@@ -192,8 +239,7 @@ export function experimental_defineRequest<
   const responseDefinition = parseSchemaAndResolve(params.response);
 
   const send = async (
-    // TODO: Accept the init payload as well
-    values: Loaded<RequestSchema>,
+    values: MessageValuePayload<RequestSchema>,
     options?: { owner?: Account },
   ): Promise<Loaded<ResponseSchema, ResponseResolve>> => {
     const as = options?.owner ?? Account.getMe();
@@ -240,9 +286,9 @@ export function experimental_defineRequest<
     callback: (
       value: Loaded<RequestSchema, RequestResolve>,
       madeBy: Account,
-
-      // TODO: Accept the init payload as well
-    ) => Promise<Loaded<ResponseSchema>> | Loaded<ResponseSchema>,
+    ) =>
+      | Promise<MessageValuePayload<ResponseSchema>>
+      | MessageValuePayload<ResponseSchema>,
   ): Promise<Response> => {
     const node = as._raw.core.node;
     const body = await request.json();
@@ -262,7 +308,12 @@ export function experimental_defineRequest<
     const responsePayload = await serializeMessagePayload(
       responseDefinition.schema,
       responseDefinition.resolve,
-      responseValue,
+      inputValueToCoMap(
+        responseDefinition.schema,
+        responseValue,
+        as,
+        data.madeBy,
+      ),
       as,
     );
 
@@ -288,3 +339,6 @@ export function experimental_defineRequest<
     },
   };
 }
+
+// Cache the resolve -> ids
+// In-process scaling with Threads

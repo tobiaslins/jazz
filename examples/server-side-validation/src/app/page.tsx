@@ -14,10 +14,7 @@ export default function HomeComponent() {
   const onNewGameClick = async () => {
     setIsLoading(true);
 
-    const group = Group.create().makePublic();
-    const waitingRoom = await createGameRequest.send(
-      co.map({}).create({}, group),
-    );
+    const waitingRoom = await createGameRequest.send({});
 
     if (!waitingRoom) {
       setIsLoading(false);

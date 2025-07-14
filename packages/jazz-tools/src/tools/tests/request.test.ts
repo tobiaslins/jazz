@@ -118,5 +118,80 @@ describe("experimental_defineRequest", () => {
         madeBy: me.id,
       });
     });
+
+    it("should accept the CoMap init as the request payload and as response callback return value", async () => {
+      const me = await createJazzTestAccount();
+      const worker = await createJazzTestAccount();
+
+      const User = co.map({
+        name: z.string(),
+        email: z.string(),
+        age: z.number(),
+      });
+
+      const UserProfile = co.map({
+        bio: z.string(),
+        avatar: z.string().optional(),
+      });
+
+      const group = Group.create(me);
+      group.addMember("everyone", "writer");
+
+      const userRequest = experimental_defineRequest({
+        url: "https://api.example.com/api/user",
+        request: User,
+        response: UserProfile,
+      });
+
+      let receivedUser: unknown;
+      let receivedMadeBy: unknown;
+
+      server.use(
+        http.post("https://api.example.com/api/user", async ({ request }) => {
+          return userRequest.handle(request, worker, async (user, madeBy) => {
+            receivedUser = user.toJSON();
+            receivedMadeBy = madeBy.id;
+
+            // Return a plain object (CoMapInit) instead of a CoMap instance
+            return {
+              bio: `Profile for ${user.name}`,
+              avatar: `https://example.com/avatars/${user.email}.jpg`,
+            };
+          });
+        }),
+      );
+
+      // Send a plain object (CoMapInit) instead of a CoMap instance
+      const response = await userRequest.send(
+        {
+          name: "John Doe",
+          email: "john@example.com",
+          age: 30,
+        },
+        { owner: me },
+      );
+
+      // Verify the response is a proper CoMap instance
+      expect(response.bio).toEqual("Profile for John Doe");
+      expect(response.avatar).toEqual(
+        "https://example.com/avatars/john@example.com.jpg",
+      );
+
+      expect(
+        response._owner.members.map((m) => [m.account.id, m.role]),
+      ).toEqual([
+        [worker.id, "admin"],
+        [me.id, "reader"],
+      ]);
+
+      // Verify the server received the correct data
+      expect(receivedUser).toMatchObject({
+        _type: "CoMap",
+        name: "John Doe",
+        email: "john@example.com",
+        age: 30,
+      });
+      expect(receivedMadeBy).toEqual(me.id);
+    });
   });
 });

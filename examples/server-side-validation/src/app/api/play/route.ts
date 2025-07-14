@@ -26,28 +26,22 @@ export async function POST(request: Request) {
       });
 
       if (!game) {
-        return playRequest.schema.response.create(
-          {
-            game: inputGame,
-            result: "error",
-            error: "Unable to load game player data",
-          },
-          inputGame._owner,
-        );
+        return {
+          game: inputGame,
+          result: "error",
+          error: "Unable to load game player data",
+        };
       }
 
       const isPlayer1 = game.player1.account.id === madeBy.id;
       const isPlayer2 = game.player2.account.id === madeBy.id;
 
       if (!isPlayer1 && !isPlayer2) {
-        return playRequest.schema.response.create(
-          {
-            game: inputGame,
-            result: "error",
-            error: "You are not a player in this game",
-          },
-          inputGame._owner,
-        );
+        return {
+          game: inputGame,
+          result: "error",
+          error: "You are not a player in this game",
+        };
       }
 
       const group = Group.create({ owner: jazzServerAccount.worker });
@@ -89,14 +83,10 @@ export async function POST(request: Request) {
         }
       }
 
-      return playRequest.schema.response.create(
-        {
-          game,
-          result: "success",
-          error: undefined,
-        },
-        game._owner,
-      );
+      return {
+        game,
+        result: "success",
+      };
     },
   );
 

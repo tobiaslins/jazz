@@ -7,13 +7,9 @@ export async function POST(request: Request) {
     request,
     jazzServerAccount.worker,
     async (_, madeBy) => {
-      const waitingRoomGroup = Group.create({
-        owner: jazzServerAccount.worker,
-      });
-      waitingRoomGroup.addMember("everyone", "reader");
       const waitingRoom = WaitingRoom.create(
-        { account1: madeBy },
-        waitingRoomGroup,
+        { creator: madeBy },
+        Group.create(jazzServerAccount.worker).makePublic(),
       );
 
       return waitingRoom;

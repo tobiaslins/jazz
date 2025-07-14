@@ -22,8 +22,7 @@ export const Game = co.map({
 export type Game = co.loaded<typeof Game>;
 
 export const WaitingRoom = co.map({
-  account1: co.account(),
-  account2: z.optional(co.account()),
+  creator: co.account(),
   game: z.optional(Game),
 });
 export type WaitingRoom = co.loaded<typeof WaitingRoom>;
@@ -39,7 +38,7 @@ export const joinGameRequest = experimental_defineRequest({
   request: {
     schema: WaitingRoom,
     resolve: {
-      account1: true,
+      creator: true,
     },
   },
   response: {

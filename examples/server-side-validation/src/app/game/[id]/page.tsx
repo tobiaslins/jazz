@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Game, newGameRequest, playRequest } from "@/schema";
-import { Group } from "jazz-tools";
 import { useAccount, useCoState } from "jazz-tools/react";
 import { Badge, CircleHelp, Scissors, ScrollText } from "lucide-react";
 import { useParams } from "next/navigation";
@@ -12,13 +11,25 @@ import { useEffect, useState } from "react";
 const playIcon = (selection: "rock" | "paper" | "scissors" | undefined) => {
   switch (selection) {
     case "rock":
-      return <Badge className="w-5 h-5" />;
+      return (
+        <>
+          <Badge className="w-5 h-5" /> Rock
+        </>
+      );
     case "paper":
-      return <ScrollText className="w-5 h-5" />;
+      return (
+        <>
+          <ScrollText className="w-5 h-5" /> Paper
+        </>
+      );
     case "scissors":
-      return <Scissors className="w-5 h-5" />;
+      return (
+        <>
+          <Scissors className="w-5 h-5" /> Scissors
+        </>
+      );
     default:
-      return <CircleHelp className="w-5 h-5" />;
+      return <>Waiting for selection</>;
   }
 };
 
@@ -81,18 +92,10 @@ export default function RouteComponent() {
   ) => {
     if (!playSelection) return;
 
-    const group = Group.create();
-    group.addMember(game._owner.castAs(Group), "writer");
-
-    await playRequest.send(
-      playRequest.schema.request.create(
-        {
-          game,
-          selection: playSelection,
-        },
-        group,
-      ),
-    );
+    await playRequest.send({
+      game,
+      selection: playSelection,
+    });
     setPlaySelection(undefined);
   };
 

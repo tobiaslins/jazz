@@ -27,9 +27,9 @@ function useWindowLocation() {
 }
 
 async function askToJoinGame(
-  waitingRoom: co.loaded<typeof WaitingRoom, { account1: true; game: true }>,
+  waitingRoom: co.loaded<typeof WaitingRoom, { creator: true }>,
 ) {
-  if (waitingRoom.account1.isMe) {
+  if (waitingRoom.creator.isMe) {
     return;
   }
 
@@ -44,7 +44,7 @@ export default function RouteComponent() {
   const params = useParams<{ id: string }>();
   const waitingRoom = useCoState(WaitingRoom, params.id, {
     resolve: {
-      account1: true,
+      creator: true,
       game: true,
     },
   });
