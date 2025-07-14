@@ -1,5 +1,15 @@
 # jazz-tools
 
+## 0.15.10
+
+### Patch Changes
+
+- 9815ec6: Export the z.ZodDiscriminatedUnion type
+- b4fdab4: Exposed the current Account's ID in unauthorized error message
+  - cojson@0.15.10
+  - cojson-storage-indexeddb@0.15.10
+  - cojson-transport-ws@0.15.10
+
 ## 0.15.9
 
 ### Patch Changes
