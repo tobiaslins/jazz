@@ -3,7 +3,7 @@ import type {
   AccountClass,
   AnyAccountSchema,
   CoValueFromRaw,
-  CoValueOrZodSchema,
+  CoValueClassOrSchema,
   InstanceOfSchema,
   Loaded,
   ResolveQuery,
@@ -16,7 +16,7 @@ import { useIsAuthenticated } from "./auth/useIsAuthenticated.svelte.js";
 import { getJazzContext } from "./jazz.svelte";
 
 export class CoState<
-  V extends CoValueOrZodSchema,
+  V extends CoValueClassOrSchema,
   R extends ResolveQuery<V> = true,
 > {
   #value: Loaded<V, R> | undefined | null = undefined;

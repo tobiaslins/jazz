@@ -99,7 +99,7 @@ export {
   anySchemaToCoSchema,
   type InstanceOfSchema,
   type InstanceOfSchemaCoValuesNullable,
-  type CoValueOrZodSchema,
+  type CoValueClassOrSchema,
   type Loaded,
   type BaseAccountShape,
   type DefaultAccountShape,

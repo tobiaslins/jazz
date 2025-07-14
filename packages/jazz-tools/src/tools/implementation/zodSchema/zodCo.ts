@@ -19,6 +19,7 @@ import {
   createCoreCoPlainTextSchema,
   createCoreFileStreamSchema,
   coreSchemaToCoSchema,
+  AnyZodOrCoValueSchema,
 } from "../../internal.js";
 import {
   AnyDiscriminableCoSchema,
@@ -95,7 +96,7 @@ export const coAccountDefiner = <Shape extends BaseAccountShape>(
 
 export const coRecordDefiner = <
   K extends z.core.$ZodString<string>,
-  V extends z.core.$ZodType,
+  V extends AnyZodOrCoValueSchema,
 >(
   _keyType: K,
   valueType: V,
@@ -106,7 +107,7 @@ export const coRecordDefiner = <
   >;
 };
 
-export const coListDefiner = <T extends z.core.$ZodType>(
+export const coListDefiner = <T extends AnyZodOrCoValueSchema>(
   element: T,
 ): CoListSchema<T> => {
   const coreSchema = createCoreCoListSchema(element);
@@ -126,7 +127,7 @@ export const coProfileDefiner = <
   return coMapDefiner(ehnancedShape) as CoProfileSchema<Shape>;
 };
 
-export const coFeedDefiner = <T extends z.core.$ZodType>(
+export const coFeedDefiner = <T extends AnyZodOrCoValueSchema>(
   element: T,
 ): CoFeedSchema<T> => {
   const coreSchema = createCoreCoFeedSchema(element);

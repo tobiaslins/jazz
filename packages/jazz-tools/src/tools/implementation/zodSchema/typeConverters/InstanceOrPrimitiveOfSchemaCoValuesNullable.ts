@@ -1,6 +1,7 @@
 import { JsonValue } from "cojson";
 import {
   Account,
+  AnyZodOrCoValueSchema,
   CoFeed,
   CoList,
   CoMap,
@@ -20,7 +21,7 @@ import { RichTextSchema } from "../schemaTypes/RichTextSchema.js";
 import { z } from "../zodReExport.js";
 
 export type InstanceOrPrimitiveOfSchemaCoValuesNullable<
-  S extends CoValueClass | z.core.$ZodType,
+  S extends CoValueClass | AnyZodOrCoValueSchema,
 > = S extends z.core.$ZodType
   ? S extends z.core.$ZodObject<infer Shape> & {
       collaborative: true;

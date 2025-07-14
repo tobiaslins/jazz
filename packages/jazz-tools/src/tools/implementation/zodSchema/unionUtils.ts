@@ -2,6 +2,7 @@ import { RawAccount, RawCoList, RawCoMap } from "cojson";
 import {
   AnyCoDiscriminatedUnionSchema,
   AnyDiscriminableCoSchema,
+  AnyZodOrCoValueSchema,
   CoMap,
 } from "../../internal.js";
 import {
@@ -119,7 +120,7 @@ export function schemaUnionDiscriminatorFor(
 }
 
 export function isUnionOfCoMapsDeeply(
-  schema: z.core.$ZodType,
+  schema: AnyZodOrCoValueSchema,
 ): schema is z.core.$ZodDiscriminatedUnion {
   if (schema instanceof z.core.$ZodUnion) {
     return schema._zod.def.options.every(isCoMapOrUnionOfCoMapsDeeply);
@@ -129,7 +130,7 @@ export function isUnionOfCoMapsDeeply(
 }
 
 function isCoMapOrUnionOfCoMapsDeeply(
-  schema: z.core.$ZodType,
+  schema: AnyZodOrCoValueSchema,
 ): schema is z.core.$ZodDiscriminatedUnion {
   if (schema instanceof z.core.$ZodObject && isAnyCoValueSchema(schema)) {
     return true;
@@ -140,7 +141,7 @@ function isCoMapOrUnionOfCoMapsDeeply(
   }
 }
 
-export function isUnionOfPrimitivesDeeply(schema: z.core.$ZodType) {
+export function isUnionOfPrimitivesDeeply(schema: AnyZodOrCoValueSchema) {
   if (schema instanceof z.core.$ZodUnion) {
     return schema._zod.def.options.every(isUnionOfPrimitivesDeeply);
   } else {

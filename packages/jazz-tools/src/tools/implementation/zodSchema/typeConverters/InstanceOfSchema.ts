@@ -2,6 +2,7 @@ import {
   Account,
   AnyAccountSchema,
   AnyCoRecordSchema,
+  AnyZodOrCoValueSchema,
   CoFeed,
   CoList,
   CoMap,
@@ -19,7 +20,7 @@ import { AnyRichTextSchema } from "../schemaTypes/RichTextSchema.js";
 import { z } from "../zodReExport.js";
 import { InstanceOrPrimitiveOfSchema } from "./InstanceOrPrimitiveOfSchema.js";
 
-export type InstanceOfSchema<S extends CoValueClass | z.core.$ZodType> =
+export type InstanceOfSchema<S extends CoValueClass | AnyZodOrCoValueSchema> =
   S extends z.core.$ZodType
     ? S extends AnyAccountSchema<infer Shape>
       ? {

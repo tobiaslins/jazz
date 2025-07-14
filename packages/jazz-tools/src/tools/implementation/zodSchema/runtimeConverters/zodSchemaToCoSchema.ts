@@ -28,8 +28,9 @@ import {
 import { z } from "../zodReExport.js";
 import {
   AnyCoSchema,
+  AnyZodOrCoValueSchema,
   CoValueClassFromAnySchema,
-  CoValueOrZodSchema,
+  CoValueClassOrSchema,
   CoValueSchemaFromZodSchema,
   ZodPrimitiveSchema,
   getDef,
@@ -39,16 +40,16 @@ import {
 } from "../zodSchema.js";
 import { schemaFieldToCoFieldDef } from "./zodFieldToCoFieldDef.js";
 
-let coSchemasForZodSchemas = new Map<z.core.$ZodType, AnyCoSchema>();
+let coSchemasForZodSchemas = new Map<AnyCoSchema, AnyCoSchema>();
 
 export function isAnyCoValueSchema(
-  schema: z.core.$ZodType | CoValueClass,
+  schema: AnyZodOrCoValueSchema | CoValueClass,
 ): schema is AnyCoSchema {
   return "collaborative" in schema && schema.collaborative === true;
 }
 
 export function isCoValueSchema(
-  schema: z.core.$ZodType | CoValueClass,
+  schema: AnyZodOrCoValueSchema | CoValueClass,
 ): schema is CoValueSchemaFromZodSchema<AnyCoSchema> {
   return isAnyCoValueSchema(schema) && "getCoValueClass" in schema;
 }
@@ -124,9 +125,7 @@ function tryZodSchemaToCoSchema<S extends z.core.$ZodType>(
         if (schema.builtin === "CoFeed" && "element" in schema) {
           const coValueClass = CoFeed.Of(
             schemaFieldToCoFieldDef(
-              zodSchemaToCoSchemaOrKeepPrimitive(
-                schema.element as z.core.$ZodType,
-              ),
+              zodSchemaToCoSchemaOrKeepPrimitive(schema.element),
             ),
           );
           const coValueSchema = enrichCoFeedSchema(schema, coValueClass as any);
@@ -185,7 +184,7 @@ export function coreSchemaToCoSchema<S extends AnyCoSchema>(
 }
 
 // TODO this should be coValueClassOrAnySchemaToCoValueClass
-export function anySchemaToCoSchema<S extends CoValueOrZodSchema>(
+export function anySchemaToCoSchema<S extends CoValueClassOrSchema>(
   schema: S,
 ): CoValueClassFromAnySchema<S> {
   if (isCoValueClass(schema)) {
@@ -193,9 +192,7 @@ export function anySchemaToCoSchema<S extends CoValueOrZodSchema>(
   } else if (isCoValueSchema(schema)) {
     return schema.getCoValueClass() as any;
   } else if ("def" in schema) {
-    const coSchema = tryZodSchemaToCoSchema(
-      schema as z.core.$ZodType | AnyCoSchema,
-    );
+    const coSchema = tryZodSchemaToCoSchema(schema as AnyZodOrCoValueSchema);
     if (!coSchema) {
       throw new Error(
         `Unsupported zod type: ${(schema.def as any)?.type || JSON.stringify(schema)}`,
@@ -207,9 +204,9 @@ export function anySchemaToCoSchema<S extends CoValueOrZodSchema>(
   throw new Error(`Unsupported schema: ${JSON.stringify(schema)}`);
 }
 
-export function zodSchemaToCoSchemaOrKeepPrimitive<S extends z.core.$ZodType>(
-  schema: S,
-): CoValueSchemaFromZodSchema<S> | ZodPrimitiveSchema {
+export function zodSchemaToCoSchemaOrKeepPrimitive<
+  S extends AnyZodOrCoValueSchema,
+>(schema: S): CoValueSchemaFromZodSchema<S> | ZodPrimitiveSchema {
   const coSchema = tryZodSchemaToCoSchema(schema);
   if (!coSchema) {
     return schema as any;

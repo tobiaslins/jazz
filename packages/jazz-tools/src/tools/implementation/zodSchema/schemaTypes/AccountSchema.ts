@@ -9,7 +9,7 @@ import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { z } from "../zodReExport.js";
-import { Loaded, ResolveQuery } from "../zodSchema.js";
+import { AnyZodOrCoValueSchema, Loaded, ResolveQuery } from "../zodSchema.js";
 import { AnyCoMapSchema, CoMapSchema } from "./CoMapSchema.js";
 
 export type BaseProfileShape = {
@@ -102,7 +102,7 @@ export function enrichAccountSchema<Shape extends BaseAccountShape>(
       // @ts-expect-error
       return coValueClass.subscribe(...args);
     },
-    withHelpers: (helpers: (Self: z.core.$ZodType) => object) => {
+    withHelpers: (helpers: (Self: AnyZodOrCoValueSchema) => object) => {
       return Object.assign(schema, helpers(schema));
     },
     fromRaw: (...args: any[]) => {

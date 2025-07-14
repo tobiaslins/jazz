@@ -1,6 +1,10 @@
 import { isAnyCoValueSchema } from "../runtimeConverters/zodSchemaToCoSchema.js";
 import { z } from "../zodReExport.js";
-import { AnyCoSchema, CoValueSchemaFromZodSchema } from "../zodSchema.js";
+import {
+  AnyCoSchema,
+  AnyZodOrCoValueSchema,
+  CoValueSchemaFromZodSchema,
+} from "../zodSchema.js";
 
 export type AnyCoOptionalSchema<
   Shape extends z.core.$ZodType = z.core.$ZodType,
@@ -27,7 +31,7 @@ export function createCoOptionalSchema<T extends AnyCoSchema>(
 }
 
 export function isAnyCoOptionalSchema(
-  schema: z.core.$ZodType,
+  schema: AnyZodOrCoValueSchema,
 ): schema is CoOptionalSchema<AnyCoSchema> {
   return isAnyCoValueSchema(schema) && schema._zod.def.type === "optional";
 }

@@ -3,7 +3,7 @@ import { CoStreamItem, RawCoStream } from "cojson";
 import {
   type Account,
   CoValue,
-  CoValueOrZodSchema,
+  CoValueClassOrSchema,
   ID,
   InstanceOfSchema,
   activeAccountContext,
@@ -108,7 +108,7 @@ export class Inbox {
     this.failed = failed;
   }
 
-  subscribe<M extends CoValueOrZodSchema, O extends CoValue | undefined>(
+  subscribe<M extends CoValueClassOrSchema, O extends CoValue | undefined>(
     Schema: M,
     callback: (
       message: InstanceOfSchema<M>,

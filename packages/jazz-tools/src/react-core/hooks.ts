@@ -11,7 +11,7 @@ import {
   AnonymousJazzAgent,
   AnyAccountSchema,
   CoValue,
-  CoValueOrZodSchema,
+  CoValueClassOrSchema,
   InboxSender,
   InstanceOfSchema,
   JazzContextManager,
@@ -80,7 +80,7 @@ export function useIsAuthenticated() {
 }
 
 function useCoValueSubscription<
-  S extends CoValueOrZodSchema,
+  S extends CoValueClassOrSchema,
   const R extends ResolveQuery<S>,
 >(
   Schema: S,
@@ -142,7 +142,7 @@ function useCoValueSubscription<
 }
 
 export function useCoState<
-  S extends CoValueOrZodSchema,
+  S extends CoValueClassOrSchema,
   const R extends ResolveQuery<S> = true,
 >(
   Schema: S,

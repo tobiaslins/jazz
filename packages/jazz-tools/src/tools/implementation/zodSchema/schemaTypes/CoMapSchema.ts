@@ -14,7 +14,7 @@ import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { z } from "../zodReExport.js";
-import { WithHelpers } from "../zodSchema.js";
+import { AnyZodOrCoValueSchema, WithHelpers } from "../zodSchema.js";
 
 export type CoMapSchema<
   Shape extends z.core.$ZodLooseShape,
@@ -122,12 +122,12 @@ export type CoMapSchema<
     R
   > | null>;
 
-  catchall<T extends z.core.$ZodType>(
+  catchall<T extends AnyZodOrCoValueSchema>(
     schema: T,
   ): CoMapSchema<Shape, z.core.$catchall<T>>;
 
   /** @deprecated Define your helper methods separately, in standalone functions. */
-  withHelpers<S extends z.core.$ZodType, T extends object>(
+  withHelpers<S extends AnyCoMapSchema, T extends object>(
     this: S,
     helpers: (Self: S) => T,
   ): WithHelpers<S, T>;
@@ -187,7 +187,7 @@ export function enrichCoMapSchema<
       // @ts-expect-error
       return coValueClass.loadUnique(...args);
     },
-    catchall: (index: z.core.$ZodType) => {
+    catchall: (index: AnyZodOrCoValueSchema) => {
       const newSchema = baseCatchall(index);
       // TODO avoid repeating this with coMapDefiner
       const enrichedSchema = Object.assign(newSchema, {
@@ -195,7 +195,7 @@ export function enrichCoMapSchema<
       }) as AnyCoMapSchema<Shape, Config>;
       return coreSchemaToCoSchema(enrichedSchema);
     },
-    withHelpers: (helpers: (Self: z.core.$ZodType) => object) => {
+    withHelpers: (helpers: (Self: AnyCoMapSchema<Shape, Config>) => object) => {
       return Object.assign(schema, helpers(schema));
     },
     withMigration: (migration: (value: any) => undefined) => {

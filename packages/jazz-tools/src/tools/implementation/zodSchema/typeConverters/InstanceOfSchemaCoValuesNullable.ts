@@ -3,6 +3,7 @@ import {
   AnyCoFeedSchema,
   AnyCoListSchema,
   AnyCoMapSchema,
+  AnyZodOrCoValueSchema,
   CoFeed,
   CoList,
   CoMap,
@@ -18,7 +19,7 @@ import { z } from "../zodReExport.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "./InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 
 export type InstanceOfSchemaCoValuesNullable<
-  S extends CoValueClass | z.core.$ZodType,
+  S extends CoValueClass | AnyZodOrCoValueSchema,
 > = S extends z.core.$ZodType
   ? S extends z.core.$ZodObject<infer Shape> & {
       collaborative: true;

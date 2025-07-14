@@ -2,7 +2,7 @@ import type { CoValueUniqueness, RawCoValue } from "cojson";
 import {
   type Account,
   AnonymousJazzAgent,
-  CoValueOrZodSchema,
+  CoValueClassOrSchema,
   type Group,
   Loaded,
   RefsToResolve,
@@ -310,7 +310,7 @@ export function subscribeToCoValue<
  * Going to be removed in the next minor version.
  */
 export function createCoValueObservable<
-  S extends CoValueOrZodSchema,
+  S extends CoValueClassOrSchema,
   const R extends ResolveQuery<S>,
 >(initialValue: undefined | null = undefined) {
   let currentValue: Loaded<S, R> | undefined | null = initialValue;

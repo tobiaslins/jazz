@@ -50,7 +50,7 @@ import { z } from "./zodReExport.js";
 // defining an extra type for this, otherwise BaseSchema & {...} often
 // gets expanded into a n inferred type that's too long for typescript to print
 export type WithHelpers<
-  Base extends z.core.$ZodType,
+  Base extends AnyCoSchema,
   Helpers extends object,
 > = Base & Helpers;
 
@@ -64,32 +64,33 @@ export type ZodPrimitiveSchema =
 
 // this is a series of hacks to work around z4 removing _zod at runtime from z.core.$ZodType
 export function isZodObject(
-  schema: z.core.$ZodType,
+  schema: AnyZodOrCoValueSchema,
 ): schema is z.ZodObject<any, any> {
   return (schema as any).def?.type === "object";
 }
 
 export function isZodArray(
-  schema: z.core.$ZodType,
+  schema: AnyZodOrCoValueSchema,
 ): schema is z.core.$ZodArray<any> {
   return (schema as any).def?.type === "array";
 }
 
 export function isZodCustom(
-  schema: z.core.$ZodType,
+  schema: AnyZodOrCoValueSchema,
 ): schema is z.core.$ZodCustom<any, any> {
   return (schema as any).def?.type === "custom";
 }
 
-export function getDef<S extends z.core.$ZodType>(schema: S): S["_zod"]["def"] {
+export function getDef<S extends AnyZodOrCoValueSchema>(
+  schema: S,
+): S["_zod"]["def"] {
   return (schema as any).def;
 }
 
-// TODO rename. This represents a CoValue class or a CoValue schema
-export type CoValueOrZodSchema = CoValueClass | AnyCoSchema;
+export type CoValueClassOrSchema = CoValueClass | AnyCoSchema;
 
 // TODO rename to CoValueSchemaFromCoProtoSchema
-export type CoValueSchemaFromZodSchema<S extends z.core.$ZodType> =
+export type CoValueSchemaFromZodSchema<S extends AnyZodOrCoValueSchema> =
   S extends z.core.$ZodType
     ? S extends AnyAccountSchema<infer Shape extends BaseAccountShape>
       ? AccountSchema<Shape>
@@ -119,7 +120,7 @@ export type CoValueSchemaFromZodSchema<S extends z.core.$ZodType> =
                         : never
     : never;
 
-export type CoValueClassFromAnySchema<S extends CoValueOrZodSchema> =
+export type CoValueClassFromAnySchema<S extends CoValueClassOrSchema> =
   S extends CoValueClass<any>
     ? S
     : CoValueClass<InstanceOfSchema<S>> &
@@ -143,6 +144,10 @@ export type AnyCoSchema =
   | AnyPlainTextSchema
   | AnyRichTextSchema
   | AnyFileStreamSchema;
+
+export type AnyZodSchema = z.core.$ZodType;
+
+export type AnyZodOrCoValueSchema = AnyZodSchema | AnyCoSchema;
 
 export type Loaded<
   T extends CoValueClass | AnyCoSchema,

@@ -11,7 +11,7 @@ import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { z } from "../zodReExport.js";
-import { WithHelpers } from "../zodSchema.js";
+import { AnyZodOrCoValueSchema, WithHelpers } from "../zodSchema.js";
 
 type CoListInit<T extends z.core.$ZodType> = Array<
   T extends z.core.$ZodOptional<any>
@@ -19,41 +19,44 @@ type CoListInit<T extends z.core.$ZodType> = Array<
     : NonNullable<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>>
 >;
 
-export type CoListSchema<T extends z.core.$ZodType> = AnyCoListSchema<T> & {
-  create: (
-    items: CoListInit<T>,
-    options?: { owner: Account | Group } | Account | Group,
-  ) => CoList<InstanceOrPrimitiveOfSchema<T>>;
+export type CoListSchema<T extends AnyZodOrCoValueSchema> =
+  AnyCoListSchema<T> & {
+    create: (
+      items: CoListInit<T>,
+      options?: { owner: Account | Group } | Account | Group,
+    ) => CoList<InstanceOrPrimitiveOfSchema<T>>;
 
-  load<const R extends RefsToResolve<CoListInstanceCoValuesNullable<T>> = true>(
-    id: string,
-    options?: {
-      resolve?: RefsToResolveStrict<CoListInstanceCoValuesNullable<T>, R>;
-      loadAs?: Account | AnonymousJazzAgent;
-    },
-  ): Promise<Resolved<CoListInstanceCoValuesNullable<T>, R> | null>;
+    load<
+      const R extends RefsToResolve<CoListInstanceCoValuesNullable<T>> = true,
+    >(
+      id: string,
+      options?: {
+        resolve?: RefsToResolveStrict<CoListInstanceCoValuesNullable<T>, R>;
+        loadAs?: Account | AnonymousJazzAgent;
+      },
+    ): Promise<Resolved<CoListInstanceCoValuesNullable<T>, R> | null>;
 
-  subscribe<
-    const R extends RefsToResolve<CoListInstanceCoValuesNullable<T>> = true,
-  >(
-    id: string,
-    options: SubscribeListenerOptions<CoListInstanceCoValuesNullable<T>, R>,
-    listener: (
-      value: Resolved<CoListInstanceCoValuesNullable<T>, R>,
-      unsubscribe: () => void,
-    ) => void,
-  ): () => void;
+    subscribe<
+      const R extends RefsToResolve<CoListInstanceCoValuesNullable<T>> = true,
+    >(
+      id: string,
+      options: SubscribeListenerOptions<CoListInstanceCoValuesNullable<T>, R>,
+      listener: (
+        value: Resolved<CoListInstanceCoValuesNullable<T>, R>,
+        unsubscribe: () => void,
+      ) => void,
+    ): () => void;
 
-  /** @deprecated Define your helper methods separately, in standalone functions. */
-  withHelpers<S extends z.core.$ZodType, T extends object>(
-    this: S,
-    helpers: (Self: S) => T,
-  ): WithHelpers<S, T>;
+    /** @deprecated Define your helper methods separately, in standalone functions. */
+    withHelpers<S extends AnyCoListSchema<T>, T2 extends object>(
+      this: S,
+      helpers: (Self: S) => T2,
+    ): WithHelpers<S, T2>;
 
-  getCoValueClass: () => typeof CoList;
-};
+    getCoValueClass: () => typeof CoList;
+  };
 
-export function createCoreCoListSchema<T extends z.core.$ZodType>(
+export function createCoreCoListSchema<T extends AnyZodOrCoValueSchema>(
   element: T,
 ): AnyCoListSchema<T> {
   const zodSchema = z.array(element).meta({
@@ -64,7 +67,7 @@ export function createCoreCoListSchema<T extends z.core.$ZodType>(
   });
 }
 
-export function enrichCoListSchema<T extends z.core.$ZodType>(
+export function enrichCoListSchema<T extends AnyZodOrCoValueSchema>(
   schema: AnyCoListSchema<T>,
   coValueClass: typeof CoList,
 ): CoListSchema<T> {
@@ -79,7 +82,7 @@ export function enrichCoListSchema<T extends z.core.$ZodType>(
       // @ts-expect-error
       return coValueClass.subscribe(...args);
     },
-    withHelpers: (helpers: (Self: z.core.$ZodType) => object) => {
+    withHelpers: (helpers: (Self: AnyCoListSchema<T>) => object) => {
       return Object.assign(schema, helpers(schema));
     },
     getCoValueClass: () => {
@@ -89,13 +92,12 @@ export function enrichCoListSchema<T extends z.core.$ZodType>(
 }
 
 // less precise version to avoid circularity issues and allow matching against
-export type AnyCoListSchema<T extends z.core.$ZodType = z.core.$ZodType> =
+export type AnyCoListSchema<T extends AnyZodOrCoValueSchema = z.core.$ZodType> =
   z.core.$ZodArray<T> & { collaborative: true };
 
-export type CoListInstance<T extends z.core.$ZodType> = CoList<
+export type CoListInstance<T extends AnyZodOrCoValueSchema> = CoList<
   InstanceOrPrimitiveOfSchema<T>
 >;
 
-export type CoListInstanceCoValuesNullable<T extends z.core.$ZodType> = CoList<
-  InstanceOrPrimitiveOfSchemaCoValuesNullable<T>
->;
+export type CoListInstanceCoValuesNullable<T extends AnyZodOrCoValueSchema> =
+  CoList<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>>;
