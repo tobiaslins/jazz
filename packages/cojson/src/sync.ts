@@ -724,10 +724,29 @@ export class SyncManager {
     return this.sendNewContentIncludingDependencies(msg.id, peer);
   }
 
+  dirtyCoValuesTrackingSets: Set<Set<RawCoID>> = new Set();
+  trackDirtyCoValues() {
+    const trackingSet = new Set<RawCoID>();
+
+    this.dirtyCoValuesTrackingSets.add(trackingSet);
+
+    return {
+      done: () => {
+        this.dirtyCoValuesTrackingSets.delete(trackingSet);
+
+        return trackingSet;
+      },
+    };
+  }
+
   requestedSyncs = new Set<RawCoID>();
   requestCoValueSync(coValue: CoValueCore) {
     if (this.requestedSyncs.has(coValue.id)) {
       return;
+    }
+
+    for (const trackingSet of this.dirtyCoValuesTrackingSets) {
+      trackingSet.add(coValue.id);
     }
 
     queueMicrotask(() => {

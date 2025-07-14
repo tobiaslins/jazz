@@ -481,29 +481,50 @@ export async function exportCoValue<
     resolve?: ResolveQueryStrict<S, R>;
     loadAs: Account | AnonymousJazzAgent;
     skipRetry?: boolean;
+    bestEffortResolution?: boolean;
   },
 ) {
-  const value = await loadCoValue(anySchemaToCoSchema(cls), id, {
-    // @ts-expect-error We can't really validate this
-    resolve: options.resolve,
-    loadAs: options.loadAs,
-    skipRetry: options.skipRetry,
+  const loadAs = options.loadAs ?? activeAccountContext.get();
+  const node = "node" in loadAs ? loadAs.node : loadAs._raw.core.node;
+
+  const resolve = options.resolve ?? true;
+
+  const rootNode = new SubscriptionScope<CoValue>(
+    node,
+    resolve as any,
+    id,
+    {
+      ref: anySchemaToCoSchema(cls),
+      optional: false,
+    },
+    options.skipRetry,
+    options.bestEffortResolution,
+  );
+
+  const value = await new Promise<Loaded<S, R> | null>((resolve) => {
+    rootNode.setListener((value) => {
+      if (value.type === "unavailable") {
+        resolve(null);
+        console.error(value.toString());
+      } else if (value.type === "unauthorized") {
+        resolve(null);
+        console.error(value.toString());
+      } else if (value.type === "loaded") {
+        resolve(value.value as Loaded<S, R>);
+      }
+
+      rootNode.destroy();
+    });
   });
 
   if (!value) {
     return null;
   }
 
-  const subscription = getSubscriptionScope(value);
   const valuesExported = new Set<string>();
-
   const contentPieces: CojsonInternalTypes.NewContentMessage[] = [];
 
-  loadContentPiecesFromSubscription(
-    subscription,
-    valuesExported,
-    contentPieces,
-  );
+  loadContentPiecesFromSubscription(rootNode, valuesExported, contentPieces);
 
   return contentPieces;
 }

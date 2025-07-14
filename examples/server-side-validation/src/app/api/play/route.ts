@@ -6,39 +6,13 @@ export async function POST(request: Request) {
   const response = await playRequest.handle(
     request,
     jazzServerAccount.worker,
-    async ({ game: inputGame, selection }, madeBy) => {
-      const game = await Game.load(inputGame.id, {
-        loadAs: jazzServerAccount.worker,
-        resolve: {
-          player1: {
-            account: true,
-            playSelection: {
-              group: true,
-            },
-          },
-          player2: {
-            account: true,
-            playSelection: {
-              group: true,
-            },
-          },
-        },
-      });
-
-      if (!game) {
-        return {
-          game: inputGame,
-          result: "error",
-          error: "Unable to load game player data",
-        };
-      }
-
+    async ({ game, selection }, madeBy) => {
       const isPlayer1 = game.player1.account.id === madeBy.id;
       const isPlayer2 = game.player2.account.id === madeBy.id;
 
       if (!isPlayer1 && !isPlayer2) {
         return {
-          game: inputGame,
+          game,
           result: "error",
           error: "You are not a player in this game",
         };

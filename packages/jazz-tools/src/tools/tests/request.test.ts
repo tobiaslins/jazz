@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { afterAll, afterEach, beforeAll } from "vitest";
 import { z } from "zod/v4";
 import { experimental_defineRequest } from "../coValues/request.js";
-import { Group, co } from "../index.js";
+import { CoPlainText, Group, co } from "../index.js";
 import { createJazzTestAccount } from "../testing.js";
 
 const server = setupServer();
@@ -193,5 +193,69 @@ describe("experimental_defineRequest", () => {
       });
       expect(receivedMadeBy).toEqual(me.id);
     });
+  });
+
+  it("should handle errors on child covalues gracefully", async () => {
+    const me = await createJazzTestAccount();
+    const worker = await createJazzTestAccount();
+
+    const Address = co.map({
+      street: co.plainText(),
+      city: co.plainText(),
+    });
+
+    const Person = co.map({
+      name: z.string(),
+      address: Address,
+    });
+
+    const privateToWorker = Group.create(worker);
+    const privateToMe = Group.create(me);
+    const group = Group.create(me);
+    const address = Address.create(
+      {
+        street: CoPlainText.create("123 Main St", privateToWorker),
+        city: CoPlainText.create("New York", privateToMe),
+      },
+      group,
+    );
+    const person = Person.create({ name: "John", address }, group);
+
+    group.addMember("everyone", "writer");
+
+    const personRequest = experimental_defineRequest({
+      url: "https://api.example.com/api/person",
+      request: {
+        schema: Person,
+        resolve: { address: { street: true } },
+      },
+      response: {
+        schema: Person,
+        resolve: { address: { street: true, city: true } },
+      },
+    });
+
+    server.use(
+      http.post("https://api.example.com/api/person", async ({ request }) => {
+        return personRequest.handle(request, worker, async (person, madeBy) => {
+          person.address.street._owner
+            .castAs(Group)
+            .addMember(madeBy, "reader");
+
+          // The request should handle the error gracefully when trying to resolve
+          // child covalues that the worker doesn't have access to
+          return person;
+        });
+      }),
+    );
+
+    // Send the request - this should not throw even though the worker
+    // doesn't have access to the address's child covalues
+    const response = await personRequest.send(person, { owner: me });
+
+    // Verify the response is still a proper Person instance
+    expect(response.name).toEqual("John");
+    expect(response.address.street.toString()).toBe("123 Main St");
+    expect(response.address.city.toString()).toBe("New York");
   });
 });

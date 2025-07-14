@@ -64,7 +64,17 @@ export const joinGameRequest = experimental_defineRequest({
 
 export const newGameRequest = experimental_defineRequest({
   url: "/api/new-game",
-  request: Game,
+  request: {
+    schema: Game,
+    resolve: {
+      player1: {
+        account: true,
+      },
+      player2: {
+        account: true,
+      },
+    },
+  },
   response: {
     schema: co.map({
       game: Game,
@@ -73,12 +83,8 @@ export const newGameRequest = experimental_defineRequest({
     }),
     resolve: {
       game: {
-        player1: {
-          account: true,
-        },
-        player2: {
-          account: true,
-        },
+        player1: true,
+        player2: true,
       },
     },
   },
@@ -92,9 +98,23 @@ export const playRequest = experimental_defineRequest({
       selection: z.literal(["rock", "paper", "scissors"]),
     }),
     resolve: {
-      game: true,
+      game: {
+        player1: {
+          account: true,
+          playSelection: {
+            group: true,
+          },
+        },
+        player2: {
+          account: true,
+          playSelection: {
+            group: true,
+          },
+        },
+      },
     },
   },
+  // TODO: Make this optional
   response: {
     schema: co.map({
       game: Game,

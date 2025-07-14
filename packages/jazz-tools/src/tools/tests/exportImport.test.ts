@@ -1,7 +1,7 @@
 import { cojsonInternals } from "cojson";
-import { beforeEach, describe, expect, test } from "vitest";
+import { assert, beforeEach, describe, expect, test } from "vitest";
 import { exportCoValue, importContentPieces } from "../coValues/interfaces.js";
-import { Account, Group, co, z } from "../exports.js";
+import { Account, CoPlainText, Group, co, z } from "../exports.js";
 import {
   createJazzTestAccount,
   createJazzTestGuest,
@@ -185,6 +185,61 @@ describe("exportCoValue", () => {
     expect(exportedWithResolve!.length).toBeGreaterThanOrEqual(
       exportedWithoutResolve!.length,
     );
+  });
+
+  test("exports should handle errors on child covalues gracefully", async () => {
+    const Address = co.map({
+      street: co.plainText(),
+      city: co.plainText(),
+    });
+
+    const Person = co.map({
+      name: z.string(),
+      address: Address,
+    });
+
+    const group = Group.create();
+    const address = Address.create(
+      {
+        street: CoPlainText.create("123 Main St"),
+        city: CoPlainText.create("New York"),
+      },
+      group,
+    );
+    const person = Person.create({ name: "John", address }, group);
+
+    // Only add the person to the group, not the address
+    // This makes the address unauthorized for other accounts
+    group.addMember("everyone", "reader");
+
+    const alice = await createJazzTestAccount();
+
+    // Export from alice's perspective with resolve: true
+    // This should attempt to resolve the address but handle the error gracefully
+    const exported = await exportCoValue(Person, person.id, {
+      resolve: { address: { street: true, city: true } },
+      loadAs: alice,
+      bestEffortResolution: true,
+    });
+
+    assert(exported);
+
+    // Verify the person content is exported
+    const personContent = exported.filter((piece) => piece.id === person.id);
+    expect(personContent.length).toBeGreaterThan(0);
+
+    const addressContent = exported.filter((piece) => piece.id === address.id);
+    expect(addressContent.length).toBeGreaterThan(0);
+
+    const streetContent = exported.filter(
+      (piece) => piece.id === address.street.id,
+    );
+    expect(streetContent).toHaveLength(0);
+
+    const cityContent = exported.filter(
+      (piece) => piece.id === address.city.id,
+    );
+    expect(cityContent).toHaveLength(0);
   });
 });
 

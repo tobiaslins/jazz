@@ -44,7 +44,8 @@ export class SubscriptionScope<D extends CoValue> {
     resolve: RefsToResolve<D>,
     public id: ID<D>,
     public schema: RefEncoded<D>,
-    public skipRetry?: boolean,
+    public skipRetry = false,
+    public bestEffortResolution = false,
   ) {
     this.resolve = resolve;
     this.value = { type: "unloaded", id };
@@ -172,6 +173,10 @@ export class SubscriptionScope<D extends CoValue> {
     let errorType: JazzError["type"] = "unavailable";
 
     if (this.childErrors.size === 0 && this.validationErrors.size === 0) {
+      return undefined;
+    }
+
+    if (this.bestEffortResolution) {
       return undefined;
     }
 
@@ -378,6 +383,8 @@ export class SubscriptionScope<D extends CoValue> {
       true,
       id as ID<any>,
       descriptor,
+      this.skipRetry,
+      this.bestEffortResolution,
     );
     this.childNodes.set(id, child);
     child.setListener((value) => this.handleChildUpdate(id, value));
@@ -613,6 +620,8 @@ export class SubscriptionScope<D extends CoValue> {
       resolve,
       id as ID<any>,
       descriptor,
+      this.skipRetry,
+      this.bestEffortResolution,
     );
     this.childNodes.set(id, child);
     child.setListener((value) => this.handleChildUpdate(id, value, key));

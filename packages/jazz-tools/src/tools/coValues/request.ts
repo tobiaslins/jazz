@@ -1,4 +1,9 @@
-import { CojsonInternalTypes, CryptoProvider } from "cojson";
+import {
+  CojsonInternalTypes,
+  CryptoProvider,
+  RawCoID,
+  emptyKnownState,
+} from "cojson";
 import z from "zod/v4";
 import {
   AnyCoMapSchema,
@@ -93,6 +98,7 @@ async function serializeMessagePayload(
   const contentPieces = await exportCoValue(schema, coMap.id, {
     resolve,
     loadAs: me,
+    bestEffortResolution: true,
   });
 
   if (!contentPieces) {
@@ -300,6 +306,8 @@ export function experimental_defineRequest<
       as,
     );
 
+    const tracking = node.syncManager.trackDirtyCoValues();
+
     const responseValue = await callback(
       data.value as Loaded<RequestSchema, RequestResolve>,
       data.madeBy,
@@ -322,6 +330,11 @@ export function experimental_defineRequest<
       payload: responsePayload,
     });
 
+    // TODO: Detect the defer support from the environment
+    await Promise.all(
+      Array.from(tracking.done(), (id) => node.syncManager.waitForSync(id)),
+    );
+
     return new Response(responseBody, {
       status: 200,
       headers: {
@@ -342,3 +355,8 @@ export function experimental_defineRequest<
 
 // Cache the resolve -> ids
 // In-process scaling with Threads
+// Make the response schema optional
+// Router-based API
+// Require a WorkerID
+// Move the expiration to the CoMap header
+// Only init payloads for request/response
