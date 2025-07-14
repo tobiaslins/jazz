@@ -49,7 +49,14 @@ export const joinGameRequest = experimental_defineRequest({
     }),
     resolve: {
       waitingRoom: {
-        game: true,
+        game: {
+          player1: {
+            account: true,
+          },
+          player2: {
+            account: true,
+          },
+        },
       },
     },
   },
@@ -65,7 +72,14 @@ export const newGameRequest = experimental_defineRequest({
       error: z.optional(z.string()),
     }),
     resolve: {
-      game: true,
+      game: {
+        player1: {
+          account: true,
+        },
+        player2: {
+          account: true,
+        },
+      },
     },
   },
 });
