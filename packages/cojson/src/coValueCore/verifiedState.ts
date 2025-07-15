@@ -64,7 +64,7 @@ type SessionLog = {
   wasm: WasmSessionLog;
   transactions: Transaction[];
   lastSignature: Signature | undefined;
-  lastHash: Hash | undefined;
+  // lastHash: Hash | undefined;
   signatureAfter: { [txIdx: number]: Signature | undefined };
 };
 
@@ -98,7 +98,7 @@ export class VerifiedState {
         wasm: sessionLog.wasm.clone(),
         transactions: sessionLog.transactions.slice(),
         lastSignature: sessionLog.lastSignature,
-        lastHash: sessionLog.lastHash,
+        // lastHash: sessionLog.lastHash,
         signatureAfter: {...sessionLog.signatureAfter},
       });
     }
@@ -121,18 +121,18 @@ export class VerifiedState {
         wasm: new WasmSessionLog(this.id, sessionID, signerID),
         transactions: [],
         lastSignature: undefined,
-        lastHash: undefined,
+        // lastHash: undefined,
         signatureAfter: {},
       };
       this.sessions.set(sessionID, sessionLog);
     }
 
     try {
-      const newHash = sessionLog.wasm.tryAdd(newTransactions.map(tx => stableStringify(tx)), newSignature, skipVerify);
+      const _newHash = sessionLog.wasm.tryAdd(newTransactions.map(tx => stableStringify(tx)), newSignature, skipVerify);
 
       sessionLog.transactions.push(...newTransactions);
       sessionLog.lastSignature = newSignature;
-      sessionLog.lastHash = newHash as Hash;
+      // sessionLog.lastHash = newHash as Hash;
 
       this._cachedNewContentSinceEmpty = undefined;
       this._cachedKnownState = undefined;
@@ -169,7 +169,7 @@ export class VerifiedState {
         ),
         transactions: [],
         lastSignature: undefined,
-        lastHash: undefined,
+        // lastHash: undefined,
         signatureAfter: {},
       };
       this.sessions.set(sessionID, sessionLog);
@@ -195,12 +195,10 @@ export class VerifiedState {
       ) as Signature;
     }
 
-    const { signature, transaction, hash } = JSON.parse(signatureAndTxJson);
-
-    console.log("Making transaction", this.id, transaction);
+    const { signature, transaction } = JSON.parse(signatureAndTxJson);
 
     sessionLog.lastSignature = signature;
-    sessionLog.lastHash = hash;
+    // sessionLog.lastHash = hash;
     sessionLog.transactions.push(transaction);
 
     this._cachedNewContentSinceEmpty = undefined;
@@ -352,8 +350,6 @@ export class VerifiedState {
     if (isKnownStateEmpty) {
       this._cachedNewContentSinceEmpty = piecesWithContent;
     }
-
-    console.log("newContentSince", this.id, piecesWithContent);
 
     return piecesWithContent;
   }

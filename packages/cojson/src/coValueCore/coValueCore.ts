@@ -437,9 +437,6 @@ export class CoValueCore {
 
           this._cachedDependentOn = undefined;
 
-          console.log("Valid transactions", this.getValidTransactions());
-          console.log("Notifying update", this.getCurrentContent().toJSON());
-
           this.notifyUpdate(notifyMode);
         }
 
