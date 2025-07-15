@@ -22,15 +22,16 @@ describe("Custom accounts and groups", async () => {
       color: z.string(),
     });
 
+    const Root = co.map({});
     const CustomAccount = co
       .account({
         profile: CustomProfile,
-        root: co.map({}),
+        root: Root,
       })
       .withMigration((account, creationProps?: { name: string }) => {
         // making sure that the inferred type of account.root & account.profile considers the root/profile not being loaded
         type R = typeof account.root;
-        const _r: R = {} as Loaded<typeof CustomAccount.def.shape.root> | null;
+        const _r: R = {} as Loaded<typeof Root> | null;
         type P = typeof account.profile;
         const _p: P = {} as Loaded<typeof CustomProfile> | null;
         if (creationProps) {

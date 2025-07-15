@@ -214,13 +214,14 @@ test("returns null if the value is unavailable after retries", async () => {
 test("load a large coValue", async () => {
   const syncServer = await setupJazzTestSync({ asyncPeers: true });
 
+  const Data = co.list(z.string());
   const LargeDataset = co.map({
     metadata: z.object({
       name: z.string(),
       description: z.string(),
       createdAt: z.number(),
     }),
-    data: co.list(z.string()),
+    data: Data,
   });
 
   const group = Group.create(syncServer);
@@ -232,7 +233,7 @@ test("load a large coValue", async () => {
           "A dataset with many entries for testing large coValue loading",
         createdAt: Date.now(),
       },
-      data: LargeDataset.def.shape.data.create([], group),
+      data: Data.create([], group),
     },
     group,
   );
