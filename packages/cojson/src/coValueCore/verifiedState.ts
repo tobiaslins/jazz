@@ -235,7 +235,7 @@ export class VerifiedState {
     }
     return {
       expectedNewHash: sessionLog.wasm.testExpectedHashAfter(
-        transactions,
+        transactions.map(tx => stableStringify(tx)),
       ) as Hash,
     };
   }

@@ -231,7 +231,7 @@ impl SessionLogInternal {
     pub fn test_expected_hash_after(&self, transactions: &[Box<RawValue>]) -> String {
         let new_hash = self.expected_hash_after(transactions);
         format!(
-            "\"hash_z{}\"",
+            "hash_z{}",
             bs58::encode(new_hash.as_bytes()).into_string()
         )
     }
