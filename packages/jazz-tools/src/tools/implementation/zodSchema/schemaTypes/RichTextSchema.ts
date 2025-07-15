@@ -3,14 +3,15 @@ import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { z } from "../zodReExport.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
-export type AnyRichTextSchema = CoreCoValueSchema &
-  z.core.$ZodCustom<CoRichText, unknown> & {
-    collaborative: true;
-    builtin: "CoRichText";
-    getZodSchema: () => z.core.$ZodCustom<CoRichText, unknown>;
-  };
+export interface AnyRichTextSchema
+  extends CoreCoValueSchema,
+    z.core.$ZodCustom<CoRichText, unknown> {
+  collaborative: true;
+  builtin: "CoRichText";
+  getZodSchema: () => z.core.$ZodCustom<CoRichText, unknown>;
+}
 
-export type RichTextSchema = AnyRichTextSchema & {
+export interface RichTextSchema extends AnyRichTextSchema {
   create(
     text: string,
     options?: { owner: Account | Group } | Account | Group,
@@ -29,7 +30,7 @@ export type RichTextSchema = AnyRichTextSchema & {
     listener: (value: CoRichText, unsubscribe: () => void) => void,
   ): () => void;
   getCoValueClass: () => typeof CoRichText;
-};
+}
 
 export function createCoreCoRichTextSchema(): AnyRichTextSchema {
   const zodSchema = z.instanceof(CoRichText).meta({

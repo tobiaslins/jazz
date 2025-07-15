@@ -26,10 +26,10 @@ type CoRecordInit<
     : NonNullable<InstanceOrPrimitiveOfSchemaCoValuesNullable<V>>;
 };
 
-export type CoRecordSchema<
+export interface CoRecordSchema<
   K extends z.core.$ZodString<string>,
   V extends AnyZodOrCoValueSchema,
-> = AnyCoRecordSchema<K, V> & {
+> extends AnyCoRecordSchema<K, V> {
   create: (
     init: Simplify<CoRecordInit<K, V>>,
     options?:
@@ -83,18 +83,18 @@ export type CoRecordSchema<
     helpers: (Self: S) => T,
   ): WithHelpers<S, T>;
   getCoValueClass: () => typeof CoMap;
-};
+}
 
 // less precise version to avoid circularity issues and allow matching against
-export type AnyCoRecordSchema<
+export interface AnyCoRecordSchema<
   K extends z.core.$ZodString<string> = z.core.$ZodString<string>,
   V extends AnyZodOrCoValueSchema = z.core.$ZodType,
-> = z.core.$ZodRecord<K, V> & {
+> extends z.core.$ZodRecord<K, V> {
   collaborative: true;
   builtin: "CoMap";
   getDefinition: () => CoMapSchemaDefinition;
   getZodSchema: () => z.core.$ZodRecord<K, V>;
-};
+}
 
 export type CoRecordInstance<
   K extends z.core.$ZodString<string>,

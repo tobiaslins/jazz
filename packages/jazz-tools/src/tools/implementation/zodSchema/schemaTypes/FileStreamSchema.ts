@@ -7,14 +7,15 @@ import {
 import { z } from "../zodReExport.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
-export type AnyFileStreamSchema = CoreCoValueSchema &
-  z.core.$ZodCustom<FileStream, unknown> & {
-    collaborative: true;
-    builtin: "FileStream";
-    getZodSchema: () => z.core.$ZodCustom<FileStream, unknown>;
-  };
+export interface AnyFileStreamSchema
+  extends CoreCoValueSchema,
+    z.core.$ZodCustom<FileStream, unknown> {
+  collaborative: true;
+  builtin: "FileStream";
+  getZodSchema: () => z.core.$ZodCustom<FileStream, unknown>;
+}
 
-export type FileStreamSchema = AnyFileStreamSchema & {
+export interface FileStreamSchema extends AnyFileStreamSchema {
   create(options?: { owner?: Account | Group } | Account | Group): FileStream;
   createFromBlob(
     blob: Blob | File,
@@ -47,7 +48,7 @@ export type FileStreamSchema = AnyFileStreamSchema & {
     listener: (value: FileStream, unsubscribe: () => void) => void,
   ): () => void;
   getCoValueClass: () => typeof FileStream;
-};
+}
 
 export function createCoreFileStreamSchema(): AnyFileStreamSchema {
   const zodSchema = z.instanceof(FileStream).meta({

@@ -17,11 +17,11 @@ import { z } from "../zodReExport.js";
 import { AnyZodOrCoValueSchema, WithHelpers } from "../zodSchema.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
-export type CoMapSchema<
+export interface CoMapSchema<
   Shape extends z.core.$ZodLooseShape,
   Config extends z.core.$ZodObjectConfig = z.core.$ZodObjectConfig,
   Owner extends Account | Group = Account | Group,
-> = AnyCoMapSchema<Shape, Config> & {
+> extends AnyCoMapSchema<Shape, Config> {
   create: (
     init: Simplify<CoMapInitZod<Shape>>,
     options?:
@@ -143,7 +143,7 @@ export type CoMapSchema<
   ): CoMapSchema<Shape, Config, Owner>;
 
   getCoValueClass: () => typeof CoMap;
-};
+}
 
 export function createCoreCoMapSchema<Shape extends z.core.$ZodLooseShape>(
   input: { shape: Shape } | { zodObject: z.ZodObject<Shape> },

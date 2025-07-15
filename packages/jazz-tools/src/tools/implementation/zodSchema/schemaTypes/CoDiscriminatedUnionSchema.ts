@@ -15,23 +15,23 @@ import { CoreCoValueSchema } from "./CoValueSchema.js";
 export type AnyDiscriminableCoSchema = AnyCoSchema &
   z.core.$ZodTypeDiscriminable;
 
-export type AnyCoDiscriminatedUnionSchema<
+export interface AnyCoDiscriminatedUnionSchema<
   Types extends readonly [
     AnyDiscriminableCoSchema,
     ...AnyDiscriminableCoSchema[],
   ],
-> = CoreCoValueSchema &
-  z.core.$ZodDiscriminatedUnion<Types> & {
-    builtin: "CoDiscriminatedUnion";
-    getZodSchema: () => z.core.$ZodDiscriminatedUnion<Types>;
-  };
+> extends CoreCoValueSchema,
+    z.core.$ZodDiscriminatedUnion<Types> {
+  builtin: "CoDiscriminatedUnion";
+  getZodSchema: () => z.core.$ZodDiscriminatedUnion<Types>;
+}
 
-export type CoDiscriminatedUnionSchema<
+export interface CoDiscriminatedUnionSchema<
   Types extends readonly [
     AnyDiscriminableCoSchema,
     ...AnyDiscriminableCoSchema[],
   ],
-> = AnyCoDiscriminatedUnionSchema<Types> & {
+> extends AnyCoDiscriminatedUnionSchema<Types> {
   collaborative: true;
 
   load(
@@ -63,7 +63,7 @@ export type CoDiscriminatedUnionSchema<
   getCoValueClass: () => SchemaUnionConcreteSubclass<
     InstanceOfSchema<Types[number]>
   >;
-};
+}
 
 export function createCoreCoDiscriminatedUnionSchema<
   Types extends readonly [
