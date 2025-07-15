@@ -1,16 +1,12 @@
 import {
   ZodArray,
-  ZodDiscriminatedUnion,
   ZodIntersection,
-  ZodOptional,
   ZodRecord,
   ZodTuple,
   ZodUnion,
   core,
   array as zodArray,
-  discriminatedUnion as zodDiscriminatedUnion,
   intersection as zodIntersection,
-  optional as zodOptional,
   record as zodRecord,
   tuple as zodTuple,
   union as zodUnion,
@@ -42,7 +38,9 @@ export {
   iso,
   int32,
   strictObject,
+  discriminatedUnion,
   int,
+  optional,
   type ZodOptional,
   type ZodReadonly,
   type ZodLazy,
@@ -63,19 +61,6 @@ export function record<
   params?: string | core.$ZodRecordParams,
 ): ZodRecord<Key, Value> {
   return zodRecord(keyType, valueType, params);
-}
-
-export function optional<T extends NonCoZodType>(schema: T): ZodOptional<T> {
-  return zodOptional(schema);
-}
-
-export function discriminatedUnion<
-  T extends readonly [
-    NonCoZodType & core.$ZodTypeDiscriminable,
-    ...(NonCoZodType & core.$ZodTypeDiscriminable)[],
-  ],
->(discriminator: string, schemas: T): ZodDiscriminatedUnion<T> {
-  return zodDiscriminatedUnion(discriminator, schemas as any);
 }
 
 export function union<const T extends readonly NonCoZodType[]>(
