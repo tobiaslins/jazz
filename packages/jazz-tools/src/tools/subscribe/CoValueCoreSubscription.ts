@@ -28,6 +28,10 @@ export class CoValueCoreSubscription {
             this.subscribeToState();
             this.listener("unavailable");
           }
+        })
+        .catch((error) => {
+          console.error("Unexpected error loading CoValue: ", error);
+          this.listener("unavailable");
         });
     }
   }

@@ -33,6 +33,15 @@ test("load a value", async () => {
   expect(john?.name).toBe("John");
 });
 
+test("return null if id is invalid", async () => {
+  const Person = co.map({
+    name: z.string(),
+  });
+
+  const john = await Person.load("test");
+  expect(john).toBeNull();
+});
+
 test("retry an unavailable value", async () => {
   const Person = co.map({
     name: z.string(),
