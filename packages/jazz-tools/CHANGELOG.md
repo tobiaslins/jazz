@@ -1,5 +1,15 @@
 # jazz-tools
 
+## 0.15.11
+
+### Patch Changes
+
+- bdc9aee: - Add `co.optional` and `co.discriminatedUnion`. You can now `load` and `subcribe` to schemas created with `co.discriminatedUnion`.
+  - Improved type-checking around `z.` schemas to prevent invalid combinations with `co.` schemas.
+  - cojson@0.15.11
+  - cojson-storage-indexeddb@0.15.11
+  - cojson-transport-ws@0.15.11
+
 ## 0.15.10
 
 ### Patch Changes
