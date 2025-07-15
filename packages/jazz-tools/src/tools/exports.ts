@@ -118,4 +118,8 @@ export {
   type CoProfileSchema,
 } from "./internal.js";
 
-export { experimental_defineRequest } from "./coValues/request.js";
+export {
+  experimental_defineRequest,
+  JazzRequestError,
+  isJazzRequestError,
+} from "./coValues/request.js";

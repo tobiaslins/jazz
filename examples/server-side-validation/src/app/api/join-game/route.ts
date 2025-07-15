@@ -1,28 +1,15 @@
 import { jazzServerAccount } from "@/jazzServerAccount";
 import { Game, Player } from "@/schema";
 import { serverApi } from "@/serverApi";
-import { Account, Group } from "jazz-tools";
+import { Account, Group, JazzRequestError } from "jazz-tools";
 
 export async function POST(request: Request) {
   const response = await serverApi.joinGame.handle(
     request,
     jazzServerAccount.worker,
     async ({ waitingRoom }, madeBy) => {
-      if (!waitingRoom.creator) {
-        return {
-          waitingRoom,
-          result: "error",
-          error:
-            "Waiting room is missing the player 1 account, you can't join it",
-        };
-      }
-
       if (madeBy.id === waitingRoom.creator.id) {
-        return {
-          waitingRoom,
-          result: "error",
-          error: "You can't join your own waiting room",
-        };
+        throw new JazzRequestError("You can't join your own waiting room", 400);
       }
 
       waitingRoom.game = createGame({
@@ -33,7 +20,6 @@ export async function POST(request: Request) {
 
       return {
         waitingRoom,
-        result: "success",
       };
     },
   );

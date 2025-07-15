@@ -7,7 +7,10 @@ const createGameRequest = experimental_defineRequest({
   url: "/api/create-game",
   workerId,
   request: {},
-  response: { waitingRoom: WaitingRoom },
+  response: {
+    schema: { waitingRoom: WaitingRoom },
+    resolve: { waitingRoom: { creator: true } },
+  },
 });
 
 const joinGameRequest = experimental_defineRequest({
@@ -26,8 +29,6 @@ const joinGameRequest = experimental_defineRequest({
   response: {
     schema: {
       waitingRoom: WaitingRoom,
-      result: z.literal(["success", "error"]),
-      error: z.optional(z.string()),
     },
     resolve: {
       waitingRoom: {
@@ -65,8 +66,6 @@ const newGameRequest = experimental_defineRequest({
   response: {
     schema: {
       game: Game,
-      result: z.literal(["success", "error"]),
-      error: z.optional(z.string()),
     },
     resolve: {
       game: {
@@ -105,8 +104,6 @@ const playRequest = experimental_defineRequest({
   response: {
     schema: {
       game: Game,
-      result: z.literal(["success", "error"]),
-      error: z.optional(z.string()),
     },
     resolve: {
       game: true,

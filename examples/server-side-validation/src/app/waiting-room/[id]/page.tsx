@@ -11,11 +11,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { WaitingRoom } from "@/schema";
 import { serverApi } from "@/serverApi";
-import { co } from "jazz-tools";
+import { JazzRequestError, co } from "jazz-tools";
 import { useCoState } from "jazz-tools/react-core";
 import { ClipboardCopyIcon, Loader2Icon } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 function useWindowLocation() {
   const [location, setLocation] = useState<string>("");
@@ -31,15 +32,22 @@ async function askToJoinGame(
   waitingRoom: co.loaded<typeof WaitingRoom, { creator: true }>,
 ) {
   if (waitingRoom.creator.isMe) {
-    return;
+    return null;
   }
 
-  const response = await serverApi.joinGame.send({
-    waitingRoom,
-  });
-
-  if (response.result === "error") {
-    console.error(response.error);
+  try {
+    await serverApi.joinGame.send({
+      waitingRoom,
+    });
+    return null;
+  } catch (error) {
+    if (error instanceof JazzRequestError) {
+      console.error(error.message);
+      toast.error(error.message);
+    } else {
+      console.error(error);
+      toast.error("An unexpected error occurred");
+    }
   }
 }
 
@@ -59,6 +67,7 @@ export default function RouteComponent() {
     if (!waitingRoom) {
       return;
     }
+
     askToJoinGame(waitingRoom);
   }, [waitingRoom?.id]);
 
@@ -73,6 +82,7 @@ export default function RouteComponent() {
   const onCopyClick = () => {
     navigator.clipboard.writeText(window.location.toString());
     setCopied(true);
+    toast.success("Link copied to clipboard!");
   };
 
   return (

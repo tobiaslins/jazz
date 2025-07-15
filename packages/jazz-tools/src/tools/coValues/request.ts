@@ -92,7 +92,7 @@ async function serializeMessagePayload(
   });
 
   if (!contentPieces) {
-    throw new Error(`Failed to export value`);
+    throw new JazzRequestError(`Failed to export value content`, 500);
   }
 
   if (!contentPieces.some((piece) => piece.id === me.id)) {
@@ -101,7 +101,7 @@ async function serializeMessagePayload(
     });
 
     if (!accountContent) {
-      throw new Error(`Failed to export current account`);
+      throw new JazzRequestError(`Failed to export current account`, 500);
     }
 
     for (const piece of accountContent) {
@@ -153,36 +153,46 @@ async function handleIncomingMessage(
   const node = loadAs._raw.core.node;
   const crypto = node.crypto;
 
-  const requestParsed = requestSchema.parse(request);
+  const requestParsed = requestSchema.safeParse(request);
 
-  if (handledMessages.has(requestParsed.id)) {
-    throw new Error("Request payload is already handled");
+  if (!requestParsed.success) {
+    throw new JazzRequestError(
+      "Request payload is not valid",
+      400,
+      requestParsed.error,
+    );
   }
 
-  if (requestParsed.createdAt + 1000 * 60 < Date.now()) {
-    throw new Error("Authentication token is expired");
+  const requestData = requestParsed.data;
+
+  if (handledMessages.has(requestData.id)) {
+    throw new JazzRequestError("Request payload is already handled", 400);
+  }
+
+  if (requestData.createdAt + 1000 * 60 < Date.now()) {
+    throw new JazzRequestError("Authentication token is expired", 401);
   }
 
   const signPayload = crypto.secureHash({
-    contentPieces: requestParsed.contentPieces,
-    id: requestParsed.id,
-    createdAt: requestParsed.createdAt,
+    contentPieces: requestData.contentPieces,
+    id: requestData.id,
+    createdAt: requestData.createdAt,
   });
 
   if (
-    !crypto.verify(requestParsed.authToken, signPayload, requestParsed.signerID)
+    !crypto.verify(requestData.authToken, signPayload, requestData.signerID)
   ) {
-    throw new Error("Invalid signature");
+    throw new JazzRequestError("Invalid signature", 401);
   }
 
-  handledMessages.add(requestParsed.id);
+  handledMessages.add(requestData.id);
 
   importContentPieces(
-    requestParsed.contentPieces as CojsonInternalTypes.NewContentMessage[],
+    requestData.contentPieces as CojsonInternalTypes.NewContentMessage[],
     loadAs,
   );
 
-  const coValue = await node.loadCoValueCore(requestParsed.id);
+  const coValue = await node.loadCoValueCore(requestData.id);
   const accountId = getCoValueCreatorAccountId(coValue);
 
   const madeBy = await Account.load(accountId, {
@@ -190,25 +200,26 @@ async function handleIncomingMessage(
   });
 
   if (!madeBy) {
-    throw new Error("Made by account not found");
+    throw new JazzRequestError("Creator account not found", 400);
   }
 
   const signerID = crypto.getAgentSignerID(madeBy._raw.currentAgentID());
 
-  if (signerID !== requestParsed.signerID) {
-    throw new Error(
+  if (signerID !== requestData.signerID) {
+    throw new JazzRequestError(
       "The signer ID in the request does not match the signer ID of the account",
+      400,
     );
   }
 
   const coSchema = anySchemaToCoSchema(schema) as CoValueClass<CoValue>;
-  const value = await loadCoValue(coSchema, requestParsed.id, {
+  const value = await loadCoValue(coSchema, requestData.id, {
     resolve,
     loadAs,
   });
 
   if (!value) {
-    throw new Error("Value not found");
+    throw new JazzRequestError("Value not found", 400);
   }
 
   return {
@@ -278,7 +289,7 @@ class HttpRoute<
     });
 
     if (!workerAccount) {
-      throw new Error("Worker account not found");
+      throw new JazzRequestError("Worker account not found", 400);
     }
 
     const response = await fetch(this.url, {
@@ -297,6 +308,15 @@ class HttpRoute<
       ),
     });
 
+    if (!response.ok) {
+      if (response.headers.has("X-Jazz-Request-Error")) {
+        const error = await response.json();
+        throw new JazzRequestError(error.message, error.code, error.details);
+      }
+
+      throw new JazzRequestError("Request failed", response.status);
+    }
+
     const responseBody = await response.json();
 
     const responseParsed = z
@@ -304,12 +324,20 @@ class HttpRoute<
         type: z.literal("success"),
         payload: z.any(),
       })
-      .parse(responseBody);
+      .safeParse(responseBody);
+
+    if (!responseParsed.success) {
+      throw new JazzRequestError(
+        "Response payload is not valid",
+        400,
+        responseParsed.error,
+      );
+    }
 
     const data = await handleIncomingMessage(
       this.responseDefinition.schema,
       this.responseDefinition.resolve,
-      responseParsed.payload,
+      responseParsed.data.payload,
       as,
       this.processedValues,
     );
@@ -318,6 +346,34 @@ class HttpRoute<
   };
 
   handle = async (
+    request: Request,
+    as: Account,
+    callback: (
+      value: Loaded<CoMapSchema<RequestShape>, RequestResolve>,
+      madeBy: Account,
+    ) =>
+      | Promise<MessageValuePayload<ResponseShape>>
+      | MessageValuePayload<ResponseShape>,
+  ): Promise<Response> => {
+    try {
+      const response = await this.executeHandleRequest(request, as, callback);
+      return response;
+    } catch (error) {
+      if (isJazzRequestError(error)) {
+        return new Response(JSON.stringify(error.toJSON()), {
+          status: error.code,
+          headers: {
+            "Content-Type": "application/json",
+            "X-Jazz-Request-Error": "true",
+          },
+        });
+      }
+
+      throw error;
+    }
+  };
+
+  executeHandleRequest = async (
     request: Request,
     as: Account,
     callback: (
@@ -404,15 +460,45 @@ function getCoValueCreatorAccountId(coValue: CoValueCore) {
     ?.txID.sessionID;
 
   if (!creatorSessionId) {
-    throw new Error("Request payload is not valid");
+    throw new JazzRequestError(
+      "Request payload is not valid, creator session ID not found",
+      400,
+    );
   }
 
   const accountId =
     cojsonInternals.accountOrAgentIDfromSessionID(creatorSessionId);
 
   if (!accountId.startsWith("co_z")) {
-    throw new Error("Request payload is not valid");
+    throw new JazzRequestError(
+      "Request payload is not valid, the creator is not a valid account",
+      400,
+    );
   }
 
   return accountId;
+}
+
+export class JazzRequestError {
+  public readonly isJazzRequestError = true;
+
+  constructor(
+    public readonly message: string,
+    public readonly code: number,
+    public readonly details?: unknown,
+  ) {}
+
+  toJSON() {
+    return { message: this.message, code: this.code, details: this.details };
+  }
+}
+
+export function isJazzRequestError(error: unknown): error is JazzRequestError {
+  return (
+    error instanceof JazzRequestError ||
+    (typeof error === "object" &&
+      error !== null &&
+      "isJazzRequestError" in error &&
+      Boolean(error.isJazzRequestError))
+  );
 }

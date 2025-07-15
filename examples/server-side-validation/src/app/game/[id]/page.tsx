@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Game } from "@/schema";
 import { serverApi } from "@/serverApi";
+import { isJazzRequestError } from "jazz-tools";
 import { useAccount, useCoState } from "jazz-tools/react";
 import {
   CheckCircle,
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 const playIcon = (
   selection: "rock" | "paper" | "scissors" | undefined,
@@ -99,9 +101,6 @@ export default function RouteComponent() {
     "rock" | "paper" | "scissors" | undefined
   >(undefined);
 
-  // TODO: This is necessary due to enableSSR. The subscribe/load should be able to default to the current agent.
-  const { agent } = useAccount();
-
   if (!game) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
@@ -126,16 +125,36 @@ export default function RouteComponent() {
   ) => {
     if (!playSelection) return;
 
-    await serverApi.play.send({
-      game,
-      selection: playSelection,
-    });
+    try {
+      await serverApi.play.send({
+        game,
+        selection: playSelection,
+      });
+    } catch (error) {
+      if (isJazzRequestError(error)) {
+        console.error(error.message);
+        toast.error(error.message);
+      } else {
+        console.error(error);
+        toast.error("An unexpected error occurred");
+      }
+    }
   };
 
   const onNewGame = async () => {
-    await serverApi.newGame.send({
-      game,
-    });
+    try {
+      await serverApi.newGame.send({
+        game,
+      });
+    } catch (error) {
+      if (isJazzRequestError(error)) {
+        console.error(error.message);
+        toast.error(error.message);
+      } else {
+        console.error(error);
+        toast.error("An unexpected error occurred");
+      }
+    }
   };
 
   const currentPlayerSelection =

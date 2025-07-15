@@ -13,12 +13,8 @@ export default function HomeComponent() {
   const onNewGameClick = async () => {
     setIsLoading(true);
 
-    const waitingRoom = await serverApi.createGame.send({});
+    const { waitingRoom } = await serverApi.createGame.send({});
 
-    if (!waitingRoom) {
-      setIsLoading(false);
-      return;
-    }
     router.push(`/waiting-room/${waitingRoom.id}`);
   };
 

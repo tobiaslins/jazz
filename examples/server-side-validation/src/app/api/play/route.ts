@@ -1,7 +1,7 @@
 import { jazzServerAccount } from "@/jazzServerAccount";
 import { PlaySelection } from "@/schema";
 import { serverApi } from "@/serverApi";
-import { Group } from "jazz-tools";
+import { Group, JazzRequestError } from "jazz-tools";
 
 export async function POST(request: Request) {
   const response = await serverApi.play.handle(
@@ -12,28 +12,16 @@ export async function POST(request: Request) {
       const isPlayer2 = game.player2.account.id === madeBy.id;
 
       if (!isPlayer1 && !isPlayer2) {
-        return {
-          game,
-          result: "error",
-          error: "You are not a player in this game",
-        };
+        throw new JazzRequestError("You are not a player in this game", 400);
       }
 
       const group = Group.create({ owner: jazzServerAccount.worker });
       group.addMember(madeBy, "reader");
 
       if (isPlayer1 && game.player1.playSelection) {
-        return {
-          game,
-          result: "error",
-          error: "You have already played",
-        };
+        throw new JazzRequestError("You have already played", 400);
       } else if (isPlayer2 && game.player2.playSelection) {
-        return {
-          game,
-          result: "error",
-          error: "You have already played",
-        };
+        throw new JazzRequestError("You have already played", 400);
       }
 
       const playSelection = PlaySelection.create(

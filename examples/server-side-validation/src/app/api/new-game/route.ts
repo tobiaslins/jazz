@@ -1,5 +1,6 @@
 import { jazzServerAccount } from "@/jazzServerAccount";
 import { serverApi } from "@/serverApi";
+import { JazzRequestError } from "jazz-tools";
 
 export async function POST(request: Request) {
   const response = await serverApi.newGame.handle(
@@ -10,11 +11,7 @@ export async function POST(request: Request) {
       const isPlayer2 = game.player2.account.id === madeBy.id;
 
       if (!isPlayer1 && !isPlayer2) {
-        return {
-          game,
-          result: "error",
-          error: "You are not a player in this game",
-        };
+        throw new JazzRequestError("You are not a player in this game", 400);
       }
 
       if (game.outcome) {
@@ -28,7 +25,6 @@ export async function POST(request: Request) {
 
       return {
         game,
-        result: "success",
       };
     },
   );
