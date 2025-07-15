@@ -31,13 +31,6 @@ describe("loading coValues from server", () => {
     const map = group.createMap();
     map.set("hello", "world", "trusting");
 
-    console.log("on server", map.get("hello"));
-    console.log("map", map.id);
-    console.dir(map.core.verified.sessions, { depth: 10 });
-
-    console.log("group", group.id);
-    console.dir(group.core.verified.sessions, { depth: 10 });
-
     const mapOnClient = await loadCoValueOrFail(client, map.id);
     expect(mapOnClient.get("hello")).toEqual("world");
 

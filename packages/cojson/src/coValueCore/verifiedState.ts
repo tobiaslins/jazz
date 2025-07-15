@@ -221,12 +221,15 @@ export class VerifiedState {
     let sessionLog = this.sessions.get(sessionID);
     if (!sessionLog) {
       // TODO: this is ugly
+      const ephemeralSigner = this.crypto.newRandomSigner();
+      const ephemeralSignerID = this.crypto.getSignerID(ephemeralSigner);
+
       const ephemeralSessionLog = new WasmSessionLog(
         this.id,
         sessionID,
-        "signer_zEPHEMERAL_UNUSED_SIGNER",
+        ephemeralSignerID,
       );
-      const result = ephemeralSessionLog.testExpectedHashAfter(transactions);
+      const result = ephemeralSessionLog.testExpectedHashAfter(transactions.map(tx => stableStringify(tx)));
       ephemeralSessionLog.free();
       return { expectedNewHash: result as Hash };
     }
