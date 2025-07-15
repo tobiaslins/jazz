@@ -51,14 +51,6 @@ export type TrustingTransaction = {
 
 export type Transaction = PrivateTransaction | TrustingTransaction;
 
-// type SessionLog = {
-//   readonly transactions: Transaction[];
-//   lastHash?: Hash;
-//   streamingHash: StreamingHash;
-//   readonly signatureAfter: { [txIdx: number]: Signature | undefined };
-//   lastSignature: Signature;
-// };
-
 type SessionLog = {
   signerID: SignerID;
   wasm: WasmSessionLog;
@@ -66,6 +58,7 @@ type SessionLog = {
   lastSignature: Signature | undefined;
   // lastHash: Hash | undefined;
   signatureAfter: { [txIdx: number]: Signature | undefined };
+  txSizeSinceLastInbetweenSignature: number;
 };
 
 export type ValidatedSessions = Map<SessionID, SessionLog>;
@@ -123,19 +116,14 @@ export class VerifiedState {
         lastSignature: undefined,
         // lastHash: undefined,
         signatureAfter: {},
+        txSizeSinceLastInbetweenSignature: 0,
       };
       this.sessions.set(sessionID, sessionLog);
     }
 
     try {
-      const _newHash = sessionLog.wasm.tryAdd(newTransactions.map(tx => stableStringify(tx)), newSignature, skipVerify);
-
-      sessionLog.transactions.push(...newTransactions);
-      sessionLog.lastSignature = newSignature;
-      // sessionLog.lastHash = newHash as Hash;
-
-      this._cachedNewContentSinceEmpty = undefined;
-      this._cachedKnownState = undefined;
+      const newHash = sessionLog.wasm.tryAdd(newTransactions.map(tx => stableStringify(tx)), newSignature, skipVerify);
+      this.addTransactionsToJsLog(sessionLog, newTransactions, newSignature, newHash as Hash);
 
       return ok(true as const);
     } catch (e) {
@@ -171,6 +159,7 @@ export class VerifiedState {
         lastSignature: undefined,
         // lastHash: undefined,
         signatureAfter: {},
+        txSizeSinceLastInbetweenSignature: 0,
       };
       this.sessions.set(sessionID, sessionLog);
     }
@@ -195,16 +184,34 @@ export class VerifiedState {
       ) as Signature;
     }
 
-    const { signature, transaction } = JSON.parse(signatureAndTxJson);
+    const { signature, transaction, hash } = JSON.parse(signatureAndTxJson);
 
-    sessionLog.lastSignature = signature;
-    // sessionLog.lastHash = hash;
-    sessionLog.transactions.push(transaction);
-
-    this._cachedNewContentSinceEmpty = undefined;
-      this._cachedKnownState = undefined;
+    this.addTransactionsToJsLog(sessionLog, [transaction], signature, hash);
 
     return { signature, transaction };
+  }
+
+  private addTransactionsToJsLog(sessionLog: SessionLog, newTransactions: Transaction[], signature: Signature, hash: Hash) {
+    sessionLog.transactions.push(...newTransactions);
+    sessionLog.lastSignature = signature;
+
+    sessionLog.txSizeSinceLastInbetweenSignature += newTransactions.reduce(
+      (sum, tx) =>
+        sum +
+        (tx.privacy === "private"
+          ? tx.encryptedChanges.length
+          : tx.changes.length),
+      0,
+    );
+
+    if (sessionLog.txSizeSinceLastInbetweenSignature > MAX_RECOMMENDED_TX_SIZE) {
+      sessionLog.signatureAfter[sessionLog.transactions.length - 1] = signature;
+      sessionLog.txSizeSinceLastInbetweenSignature = 0;
+    }
+
+    // sessionLog.lastHash = hash;
+    this._cachedNewContentSinceEmpty = undefined;
+    this._cachedKnownState = undefined;
   }
 
   testExpectedHashAfter(
