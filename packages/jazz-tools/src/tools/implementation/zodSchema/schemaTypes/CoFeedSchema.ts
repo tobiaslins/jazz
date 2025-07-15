@@ -9,10 +9,10 @@ import {
   SubscribeListenerOptions,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
-import { InstanceOfSchema } from "../typeConverters/InstanceOfSchema.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { z } from "../zodReExport.js";
+import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 type CoFeedInit<T extends z.core.$ZodType> = Array<
   T extends z.core.$ZodOptional<any>
@@ -20,40 +20,43 @@ type CoFeedInit<T extends z.core.$ZodType> = Array<
     : NonNullable<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>>
 >;
 
-export type CoFeedSchema<T extends AnyZodOrCoValueSchema> = AnyCoFeedSchema<T> & {
-  create(
-    init: CoFeedInit<T>,
-    options?: { owner: Account | Group } | Account | Group,
-  ): CoFeedInstance<T>;
+export type CoFeedSchema<T extends AnyZodOrCoValueSchema> =
+  AnyCoFeedSchema<T> & {
+    create(
+      init: CoFeedInit<T>,
+      options?: { owner: Account | Group } | Account | Group,
+    ): CoFeedInstance<T>;
 
-  load<const R extends RefsToResolve<CoFeedInstanceCoValuesNullable<T>> = true>(
-    id: string,
-    options?: {
-      resolve?: RefsToResolveStrict<CoFeedInstanceCoValuesNullable<T>, R>;
-      loadAs?: Account | AnonymousJazzAgent;
-    },
-  ): Promise<Resolved<CoFeedInstanceCoValuesNullable<T>, R> | null>;
+    load<
+      const R extends RefsToResolve<CoFeedInstanceCoValuesNullable<T>> = true,
+    >(
+      id: string,
+      options?: {
+        resolve?: RefsToResolveStrict<CoFeedInstanceCoValuesNullable<T>, R>;
+        loadAs?: Account | AnonymousJazzAgent;
+      },
+    ): Promise<Resolved<CoFeedInstanceCoValuesNullable<T>, R> | null>;
 
-  subscribe(
-    id: string,
-    listener: (
-      value: Resolved<CoFeedInstanceCoValuesNullable<T>, true>,
-      unsubscribe: () => void,
-    ) => void,
-  ): () => void;
-  subscribe<
-    const R extends RefsToResolve<CoFeedInstanceCoValuesNullable<T>> = true,
-  >(
-    id: string,
-    options: SubscribeListenerOptions<CoFeedInstanceCoValuesNullable<T>, R>,
-    listener: (
-      value: Resolved<CoFeedInstanceCoValuesNullable<T>, R>,
-      unsubscribe: () => void,
-    ) => void,
-  ): () => void;
+    subscribe(
+      id: string,
+      listener: (
+        value: Resolved<CoFeedInstanceCoValuesNullable<T>, true>,
+        unsubscribe: () => void,
+      ) => void,
+    ): () => void;
+    subscribe<
+      const R extends RefsToResolve<CoFeedInstanceCoValuesNullable<T>> = true,
+    >(
+      id: string,
+      options: SubscribeListenerOptions<CoFeedInstanceCoValuesNullable<T>, R>,
+      listener: (
+        value: Resolved<CoFeedInstanceCoValuesNullable<T>, R>,
+        unsubscribe: () => void,
+      ) => void,
+    ): () => void;
 
-  getCoValueClass: () => typeof CoFeed;
-};
+    getCoValueClass: () => typeof CoFeed;
+  };
 
 export function createCoreCoFeedSchema<T extends AnyZodOrCoValueSchema>(
   element: T,
@@ -96,12 +99,13 @@ export function enrichCoFeedSchema<T extends AnyZodOrCoValueSchema>(
 
 // less precise version to avoid circularity issues and allow matching against
 export type AnyCoFeedSchema<T extends AnyZodOrCoValueSchema = z.core.$ZodType> =
-  z.core.$ZodCustom<CoFeed, unknown> & {
-    collaborative: true;
-    builtin: "CoFeed";
-    element: T;
-    getZodSchema: () => z.core.$ZodCustom<CoFeed, unknown>;
-  };
+  CoreCoValueSchema &
+    z.core.$ZodCustom<CoFeed, unknown> & {
+      collaborative: true;
+      builtin: "CoFeed";
+      element: T;
+      getZodSchema: () => z.core.$ZodCustom<CoFeed, unknown>;
+    };
 
 export type CoFeedInstance<T extends AnyZodOrCoValueSchema> = CoFeed<
   InstanceOrPrimitiveOfSchema<T>

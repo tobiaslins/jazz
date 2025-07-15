@@ -10,7 +10,12 @@ import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimiti
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { z } from "../zodReExport.js";
 import { AnyZodOrCoValueSchema, Loaded, ResolveQuery } from "../zodSchema.js";
-import { AnyCoMapSchema, CoMapSchema } from "./CoMapSchema.js";
+import {
+  AnyCoMapSchema,
+  CoMapSchema,
+  CoMapSchemaDefinition,
+} from "./CoMapSchema.js";
+import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 export type BaseProfileShape = {
   name: z.core.$ZodString<string>;
@@ -30,7 +35,10 @@ export type DefaultAccountShape = {
 
 export type AccountSchema<
   Shape extends BaseAccountShape = DefaultAccountShape,
-> = Omit<CoMapSchema<Shape>, "create" | "load" | "withMigration"> & {
+> = Omit<
+  CoMapSchema<Shape>,
+  "builtin" | "create" | "load" | "withMigration"
+> & {
   builtin: "Account";
 
   create: (options: {
@@ -71,9 +79,14 @@ export function createCoreAccountSchema<Shape extends BaseAccountShape>(
   const zodSchema = z.object(shape).meta({
     collaborative: true,
   });
+  // @ts-expect-error ignore z.ZodObject's type constraint on Shape
   return Object.assign(zodSchema, {
     collaborative: true as const,
     builtin: "Account" as const,
+    getDefinition: () => ({
+      shape: zodSchema.def.shape,
+      catchall: zodSchema.def.catchall,
+    }),
     getZodSchema: () => zodSchema,
   });
 }
@@ -146,11 +159,13 @@ export type CoProfileSchema<
 // less precise version to avoid circularity issues and allow matching against
 export type AnyAccountSchema<
   Shape extends z.core.$ZodLooseShape = z.core.$ZodLooseShape,
-> = z.core.$ZodObject<Shape> & {
-  collaborative: true;
-  builtin: "Account";
-  getZodSchema: () => z.core.$ZodObject<Shape>;
-};
+> = z.core.$ZodObject<Shape> &
+  CoreCoValueSchema & {
+    collaborative: true;
+    builtin: "Account";
+    getDefinition: () => CoMapSchemaDefinition;
+    getZodSchema: () => z.core.$ZodObject<Shape>;
+  };
 
 export type AccountInstance<Shape extends z.core.$ZodLooseShape> = {
   -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchema<Shape[key]>;

@@ -10,6 +10,7 @@ import {
   SubscribeListenerOptions,
 } from "../../../internal.js";
 import { z } from "../zodReExport.js";
+import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 export type AnyDiscriminableCoSchema = AnyCoSchema &
   z.core.$ZodTypeDiscriminable;
@@ -19,9 +20,11 @@ export type AnyCoDiscriminatedUnionSchema<
     AnyDiscriminableCoSchema,
     ...AnyDiscriminableCoSchema[],
   ],
-> = z.core.$ZodDiscriminatedUnion<Types> & {
-  getZodSchema: () => z.core.$ZodDiscriminatedUnion<Types>;
-};
+> = CoreCoValueSchema &
+  z.core.$ZodDiscriminatedUnion<Types> & {
+    builtin: "CoDiscriminatedUnion";
+    getZodSchema: () => z.core.$ZodDiscriminatedUnion<Types>;
+  };
 
 export type CoDiscriminatedUnionSchema<
   Types extends readonly [
@@ -70,6 +73,7 @@ export function createCoreCoDiscriminatedUnionSchema<
 >(discriminator: string, schemas: Types): AnyCoDiscriminatedUnionSchema<Types> {
   const zodSchema = z.discriminatedUnion(discriminator, schemas as any);
   return Object.assign(zodSchema, {
+    builtin: "CoDiscriminatedUnion" as const,
     getZodSchema: () => zodSchema,
   });
 }

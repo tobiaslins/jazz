@@ -6,8 +6,8 @@ import {
   CoMap,
 } from "../../internal.js";
 import {
-  isAnyCoValueSchema,
   coreSchemaToCoSchema,
+  isAnyCoValueSchema,
 } from "./runtimeConverters/zodSchemaToCoSchema.js";
 import { AnyCoMapSchema } from "./schemaTypes/CoMapSchema.js";
 import { z } from "./zodReExport.js";
@@ -16,14 +16,15 @@ export function schemaUnionDiscriminatorFor(
   schema: z.core.$ZodDiscriminatedUnion,
 ) {
   if (isUnionOfCoMapsDeeply(schema)) {
-    if (!schema._zod.disc || schema._zod.disc.size == 0) {
+    const discriminatorMap = schema._zod.disc;
+    if (!discriminatorMap || discriminatorMap.size == 0) {
       throw new Error(
         "z.union() of collaborative types is not supported, use co.discriminatedUnion() instead",
       );
     }
 
     const discriminator = schema._zod.def.discriminator;
-    const field = schema._zod.disc.get(discriminator);
+    const field = discriminatorMap.get(discriminator);
 
     if (!field) {
       throw new Error(
@@ -68,7 +69,7 @@ export function schemaUnionDiscriminatorFor(
       for (const option of availableOptions) {
         let match = true;
 
-        for (const key of schema._zod.disc.keys()) {
+        for (const key of discriminatorMap.keys()) {
           const discriminatorDef = (option as z.core.$ZodObject)._zod.def.shape[
             key as string
           ];

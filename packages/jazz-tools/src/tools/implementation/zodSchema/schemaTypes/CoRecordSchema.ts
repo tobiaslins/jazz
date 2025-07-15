@@ -2,6 +2,7 @@ import { CoValueUniqueness } from "cojson";
 import {
   Account,
   type CoMap,
+  CoMapSchemaDefinition,
   Group,
   ID,
   RefsToResolve,
@@ -90,6 +91,8 @@ export type AnyCoRecordSchema<
   V extends AnyZodOrCoValueSchema = z.core.$ZodType,
 > = z.core.$ZodRecord<K, V> & {
   collaborative: true;
+  builtin: "CoMap";
+  getDefinition: () => CoMapSchemaDefinition;
   getZodSchema: () => z.core.$ZodRecord<K, V>;
 };
 

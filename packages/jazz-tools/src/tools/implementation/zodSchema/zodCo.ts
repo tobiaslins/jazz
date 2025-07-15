@@ -1,6 +1,7 @@
 import {
   type AccountSchema,
   AnyCoSchema,
+  AnyZodOrCoValueSchema,
   BaseAccountShape,
   type CoFeedSchema,
   type CoListSchema,
@@ -12,14 +13,13 @@ import {
   ImageDefinition,
   type PlainTextSchema,
   type Simplify,
+  coreSchemaToCoSchema,
   createCoreAccountSchema,
   createCoreCoFeedSchema,
   createCoreCoListSchema,
   createCoreCoMapSchema,
   createCoreCoPlainTextSchema,
   createCoreFileStreamSchema,
-  coreSchemaToCoSchema,
-  AnyZodOrCoValueSchema,
 } from "../../internal.js";
 import {
   AnyDiscriminableCoSchema,
@@ -39,7 +39,7 @@ import { z } from "./zodReExport.js";
 export const coMapDefiner = <Shape extends z.core.$ZodLooseShape>(
   shape: Shape,
 ): CoMapSchema<Shape> => {
-  const coreSchema = createCoreCoMapSchema(shape);
+  const coreSchema = createCoreCoMapSchema({ shape });
   return coreSchemaToCoSchema(coreSchema);
 };
 

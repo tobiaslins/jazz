@@ -2,12 +2,14 @@ import { RawCoPlainText } from "cojson";
 import { Account, CoPlainText, Group } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { z } from "../zodReExport.js";
+import { CoreCoValueSchema } from "./CoValueSchema.js";
 
-export type AnyPlainTextSchema = z.core.$ZodCustom<CoPlainText, unknown> & {
-  collaborative: true;
-  builtin: "CoPlainText";
-  getZodSchema: () => z.core.$ZodCustom<CoPlainText, unknown>;
-};
+export type AnyPlainTextSchema = CoreCoValueSchema &
+  z.core.$ZodCustom<CoPlainText, unknown> & {
+    collaborative: true;
+    builtin: "CoPlainText";
+    getZodSchema: () => z.core.$ZodCustom<CoPlainText, unknown>;
+  };
 
 export type PlainTextSchema = AnyPlainTextSchema & {
   create(

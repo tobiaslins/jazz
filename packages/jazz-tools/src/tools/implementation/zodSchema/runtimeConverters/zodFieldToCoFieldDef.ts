@@ -1,6 +1,5 @@
 import { CoMap, CoValueClass, isCoValueClass } from "../../../internal.js";
 import { coField } from "../../schema.js";
-import { isAnyCoOptionalSchema } from "../schemaTypes/CoOptionalSchema.js";
 import {
   isUnionOfCoMapsDeeply,
   isUnionOfPrimitivesDeeply,
@@ -48,7 +47,7 @@ export function schemaFieldToCoFieldDef(schema: SchemaField) {
   if (isCoValueClass(schema)) {
     return coField.ref(schema);
   } else if (isCoValueSchema(schema)) {
-    if (isAnyCoOptionalSchema(schema)) {
+    if (schema.builtin === "CoOptional") {
       return coField.ref(schema.getCoValueClass(), {
         optional: true,
       });

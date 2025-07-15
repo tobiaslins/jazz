@@ -6,12 +6,14 @@ import {
   RefsToResolveStrict,
   Resolved,
   SubscribeListenerOptions,
+  isAnyCoValueSchema,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { z } from "../zodReExport.js";
 import { AnyZodOrCoValueSchema, WithHelpers } from "../zodSchema.js";
+import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 type CoListInit<T extends z.core.$ZodType> = Array<
   T extends z.core.$ZodOptional<any>
@@ -56,6 +58,10 @@ export type CoListSchema<T extends AnyZodOrCoValueSchema> =
     getCoValueClass: () => typeof CoList;
   };
 
+type CoListSchemaDefinition = {
+  element: AnyZodOrCoValueSchema;
+};
+
 export function createCoreCoListSchema<T extends AnyZodOrCoValueSchema>(
   element: T,
 ): AnyCoListSchema<T> {
@@ -64,6 +70,10 @@ export function createCoreCoListSchema<T extends AnyZodOrCoValueSchema>(
   });
   return Object.assign(zodSchema, {
     collaborative: true as const,
+    builtin: "CoList" as const,
+    getDefinition: () => ({
+      element: zodSchema.def.element,
+    }),
     getZodSchema: () => zodSchema,
   });
 }
@@ -94,10 +104,13 @@ export function enrichCoListSchema<T extends AnyZodOrCoValueSchema>(
 
 // less precise version to avoid circularity issues and allow matching against
 export type AnyCoListSchema<T extends AnyZodOrCoValueSchema = z.core.$ZodType> =
-  z.core.$ZodArray<T> & {
-    collaborative: true;
-    getZodSchema: () => z.core.$ZodArray<T>;
-  };
+  CoreCoValueSchema &
+    z.core.$ZodArray<T> & {
+      collaborative: true;
+      builtin: "CoList";
+      getDefinition: () => CoListSchemaDefinition;
+      getZodSchema: () => z.core.$ZodArray<T>;
+    };
 
 export type CoListInstance<T extends AnyZodOrCoValueSchema> = CoList<
   InstanceOrPrimitiveOfSchema<T>

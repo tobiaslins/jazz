@@ -5,12 +5,14 @@ import {
   Group,
 } from "../../../internal.js";
 import { z } from "../zodReExport.js";
+import { CoreCoValueSchema } from "./CoValueSchema.js";
 
-export type AnyFileStreamSchema = z.core.$ZodCustom<FileStream, unknown> & {
-  collaborative: true;
-  builtin: "FileStream";
-  getZodSchema: () => z.core.$ZodCustom<FileStream, unknown>;
-};
+export type AnyFileStreamSchema = CoreCoValueSchema &
+  z.core.$ZodCustom<FileStream, unknown> & {
+    collaborative: true;
+    builtin: "FileStream";
+    getZodSchema: () => z.core.$ZodCustom<FileStream, unknown>;
+  };
 
 export type FileStreamSchema = AnyFileStreamSchema & {
   create(options?: { owner?: Account | Group } | Account | Group): FileStream;

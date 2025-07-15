@@ -1,21 +1,23 @@
-import { isAnyCoValueSchema } from "../runtimeConverters/zodSchemaToCoSchema.js";
 import { z } from "../zodReExport.js";
-import {
-  AnyCoSchema,
-  AnyZodOrCoValueSchema,
-  CoValueSchemaFromZodSchema,
-} from "../zodSchema.js";
+import { AnyCoSchema, CoValueSchemaFromZodSchema } from "../zodSchema.js";
+import { CoreCoValueSchema } from "./CoValueSchema.js";
 
-export type AnyCoOptionalSchema<Shape extends z.core.$ZodType = z.core.$ZodType> =
+export type AnyCoOptionalSchema<
+  Shape extends z.core.$ZodType & CoreCoValueSchema = z.core.$ZodType &
+    CoreCoValueSchema,
+> = CoreCoValueSchema &
   z.ZodOptional<Shape> & {
     collaborative: true;
+    builtin: "CoOptional";
     getZodSchema: () => z.ZodOptional<Shape>;
   };
 
-export type CoOptionalSchema<Shape extends AnyCoSchema = AnyCoSchema> =
-  AnyCoOptionalSchema<Shape> & {
-    getCoValueClass: () => CoValueSchemaFromZodSchema<Shape>["getCoValueClass"];
-  };
+export type CoOptionalSchema<
+  Shape extends z.core.$ZodType & CoreCoValueSchema = z.core.$ZodType &
+    CoreCoValueSchema,
+> = AnyCoOptionalSchema<Shape> & {
+  getCoValueClass: () => CoValueSchemaFromZodSchema<Shape>["getCoValueClass"];
+};
 
 export function createCoOptionalSchema<T extends AnyCoSchema>(
   schema: T,
@@ -23,6 +25,7 @@ export function createCoOptionalSchema<T extends AnyCoSchema>(
   const zodSchema = z.optional(schema);
   return Object.assign(zodSchema, {
     collaborative: true,
+    builtin: "CoOptional" as const,
     getCoValueClass: () => {
       return (
         schema as CoValueSchemaFromZodSchema<AnyCoSchema>
@@ -30,10 +33,4 @@ export function createCoOptionalSchema<T extends AnyCoSchema>(
     },
     getZodSchema: () => zodSchema,
   }) as unknown as CoOptionalSchema<T>;
-}
-
-export function isAnyCoOptionalSchema(
-  schema: AnyZodOrCoValueSchema,
-): schema is CoOptionalSchema<AnyCoSchema> {
-  return isAnyCoValueSchema(schema) && schema._zod.def.type === "optional";
 }

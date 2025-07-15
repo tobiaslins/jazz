@@ -2,6 +2,8 @@ import { LocalNode, RawAccount } from "cojson";
 import {
   Account,
   AccountClass,
+  AnyCoRecordSchema,
+  CoRecordSchema,
   CoValueClass,
   CoValueFromRaw,
   InstanceOfSchema,
@@ -16,9 +18,9 @@ import {
   BaseAccountShape,
 } from "./schemaTypes/AccountSchema.js";
 import {
+  AnyCoDiscriminatedUnionSchema,
   AnyDiscriminableCoSchema,
   CoDiscriminatedUnionSchema,
-  AnyCoDiscriminatedUnionSchema,
 } from "./schemaTypes/CoDiscriminatedUnionSchema.js";
 import { AnyCoFeedSchema, CoFeedSchema } from "./schemaTypes/CoFeedSchema.js";
 import { AnyCoListSchema, CoListSchema } from "./schemaTypes/CoListSchema.js";
@@ -27,11 +29,11 @@ import {
   CoMapInitZod,
   CoMapSchema,
 } from "./schemaTypes/CoMapSchema.js";
-import { AnyCoOptionalSchema } from "./schemaTypes/CoOptionalSchema.js";
 import {
-  AnyCoRecordSchema,
-  CoRecordSchema,
-} from "./schemaTypes/CoRecordSchema.js";
+  AnyCoOptionalSchema,
+  CoOptionalSchema,
+} from "./schemaTypes/CoOptionalSchema.js";
+import { CoreCoValueSchema } from "./schemaTypes/CoValueSchema.js";
 import {
   AnyFileStreamSchema,
   FileStreamSchema,
@@ -62,31 +64,6 @@ export type ZodPrimitiveSchema =
   | z.core.$ZodDate
   | z.core.$ZodLiteral;
 
-// this is a series of hacks to work around z4 removing _zod at runtime from z.core.$ZodType
-export function isZodObject(
-  schema: AnyZodOrCoValueSchema,
-): schema is z.ZodObject<any, any> {
-  return (schema as any).def?.type === "object";
-}
-
-export function isZodArray(
-  schema: AnyZodOrCoValueSchema,
-): schema is z.core.$ZodArray<any> {
-  return (schema as any).def?.type === "array";
-}
-
-export function isZodCustom(
-  schema: AnyZodOrCoValueSchema,
-): schema is z.core.$ZodCustom<any, any> {
-  return (schema as any).def?.type === "custom";
-}
-
-export function getDef<S extends AnyZodOrCoValueSchema>(
-  schema: S,
-): S["_zod"]["def"] {
-  return (schema as any).def;
-}
-
 export type CoValueClassOrSchema = CoValueClass | AnyCoSchema;
 
 // TODO rename to CoValueSchemaFromCoProtoSchema
@@ -108,8 +85,13 @@ export type CoValueSchemaFromZodSchema<S extends AnyZodOrCoValueSchema> =
                   ? RichTextSchema
                   : S extends AnyFileStreamSchema
                     ? FileStreamSchema
-                    : S extends z.core.$ZodOptional<infer Inner>
-                      ? CoValueSchemaFromZodSchema<Inner>
+                    : S extends
+                          | z.core.$ZodOptional<
+                              infer Inner extends z.core.$ZodType &
+                                CoreCoValueSchema
+                            >
+                          | z.ZodOptional<infer Inner>
+                      ? CoOptionalSchema<Inner>
                       : S extends z.core.$ZodUnion<
                             infer Members extends readonly [
                               AnyDiscriminableCoSchema,

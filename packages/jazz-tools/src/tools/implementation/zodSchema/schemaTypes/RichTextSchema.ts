@@ -1,12 +1,14 @@
 import { Account, CoRichText, Group } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { z } from "../zodReExport.js";
+import { CoreCoValueSchema } from "./CoValueSchema.js";
 
-export type AnyRichTextSchema = z.core.$ZodCustom<CoRichText, unknown> & {
-  collaborative: true;
-  builtin: "CoRichText";
-  getZodSchema: () => z.core.$ZodCustom<CoRichText, unknown>;
-};
+export type AnyRichTextSchema = CoreCoValueSchema &
+  z.core.$ZodCustom<CoRichText, unknown> & {
+    collaborative: true;
+    builtin: "CoRichText";
+    getZodSchema: () => z.core.$ZodCustom<CoRichText, unknown>;
+  };
 
 export type RichTextSchema = AnyRichTextSchema & {
   create(
