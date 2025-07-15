@@ -12,7 +12,7 @@ import {
 } from "vitest";
 import { Group, co, subscribeToCoValue, z } from "../exports.js";
 import { Account } from "../index.js";
-import { ID, Loaded, zodSchemaToCoSchema } from "../internal.js";
+import { Loaded, anySchemaToCoSchema } from "../internal.js";
 import {
   createJazzTestAccount,
   getPeerConnectedToTestSyncServer,
@@ -145,7 +145,7 @@ describe("CoMap", async () => {
         age: z.number(),
         // TODO: would be nice if this didn't need a type annotation
         get friend(): z.ZodOptional<typeof Person> {
-          return z.optional(Person);
+          return co.optional(Person);
         },
       });
 
@@ -182,7 +182,7 @@ describe("CoMap", async () => {
         name: z.string(),
         age: z.number(),
         get friend(): z.ZodOptional<typeof Person> {
-          return z.optional(Person);
+          return co.optional(Person);
         },
       });
 
@@ -211,7 +211,7 @@ describe("CoMap", async () => {
         name: z.string(),
         age: z.number(),
         get friend(): z.ZodOptional<typeof Person> {
-          return z.optional(Person);
+          return co.optional(Person);
         },
       });
 
@@ -400,7 +400,7 @@ describe("CoMap", async () => {
 
     const MapWithEnumOfMaps = co.map({
       name: z.string(),
-      child: z.discriminatedUnion("type", [ChildA, ChildB]),
+      child: co.discriminatedUnion("type", [ChildA, ChildB]),
     });
 
     const mapWithEnum = MapWithEnumOfMaps.create({
@@ -801,7 +801,7 @@ describe("CoMap resolution", async () => {
     const spy = vi.fn((person) => updates.push(person));
 
     subscribeToCoValue(
-      zodSchemaToCoSchema(Person), // TODO: we should get rid of the conversion in the future
+      anySchemaToCoSchema(Person), // TODO: we should get rid of the conversion in the future
       person.id,
       {
         syncResolution: true,
@@ -1003,7 +1003,7 @@ describe("CoMap applyDiff", async () => {
     birthday: z.date(),
     nested: NestedMap,
     optionalField: z.string().optional(),
-    optionalNested: z.optional(NestedMap),
+    optionalNested: co.optional(NestedMap),
   });
 
   test("Basic applyDiff", () => {
@@ -1698,7 +1698,7 @@ describe("Creating and finding unique CoMaps", async () => {
       dateValue: z.date(),
     });
 
-    const AttributeValue = z.discriminatedUnion("type", [
+    const AttributeValue = co.discriminatedUnion("type", [
       StringAttributeValue,
       NumberAttributeValue,
       DateAttributeValue,
@@ -1714,7 +1714,7 @@ describe("Creating and finding unique CoMaps", async () => {
       attributeValue: AttributeValue,
     });
 
-    const Tag = z.discriminatedUnion("type", [
+    const Tag = co.discriminatedUnion("type", [
       AttributeTag,
       StringTag,
       DateTag,
@@ -1764,7 +1764,7 @@ describe("Creating and finding unique CoMaps", async () => {
       error: HttpError,
     });
 
-    const ErrorResponse = z.discriminatedUnion("type", [
+    const ErrorResponse = co.discriminatedUnion("type", [
       ClientError,
       ServerError,
       NetworkError,
