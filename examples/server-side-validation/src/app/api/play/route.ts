@@ -1,9 +1,10 @@
 import { jazzServerAccount } from "@/jazzServerAccount";
-import { Game, PlaySelection, playRequest } from "@/schema";
+import { PlaySelection } from "@/schema";
+import { serverApi } from "@/serverApi";
 import { Group } from "jazz-tools";
 
 export async function POST(request: Request) {
-  const response = await playRequest.handle(
+  const response = await serverApi.play.handle(
     request,
     jazzServerAccount.worker,
     async ({ game, selection }, madeBy) => {
@@ -20,6 +21,20 @@ export async function POST(request: Request) {
 
       const group = Group.create({ owner: jazzServerAccount.worker });
       group.addMember(madeBy, "reader");
+
+      if (isPlayer1 && game.player1.playSelection) {
+        return {
+          game,
+          result: "error",
+          error: "You have already played",
+        };
+      } else if (isPlayer2 && game.player2.playSelection) {
+        return {
+          game,
+          result: "error",
+          error: "You have already played",
+        };
+      }
 
       const playSelection = PlaySelection.create(
         { value: selection, group },

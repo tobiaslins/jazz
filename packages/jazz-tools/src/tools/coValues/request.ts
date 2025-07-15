@@ -3,7 +3,6 @@ import z from "zod/v4";
 import {
   AnyCoMapSchema,
   AnyCoSchema,
-  CoMap,
   CoMapInitZod,
   CoMapSchema,
   CoValue,
@@ -41,7 +40,6 @@ interface RequestOptions<
 > {
   url: string;
   workerId: string;
-  // TODO: The request payload should be optional
   request: RequestSchemaDefinition<
     RequestShape,
     ResolveQueryStrict<CoMapSchema<RequestShape>, RequestResolve>
@@ -227,40 +225,55 @@ function parseSchemaAndResolve<
     return {
       // Casting to reduce the type complexity
       schema: coMapDefiner(options.schema) as AnyCoMapSchema,
-      resolve: options.resolve,
+      resolve: options.resolve as any,
     };
   }
 
   return {
     schema: coMapDefiner(options) as AnyCoMapSchema,
-    resolve: true,
+    resolve: true as any,
   };
 }
 
-export function experimental_defineRequest<
-  RequestShape extends MessageShape,
-  RequestResolve extends ResolveQuery<CoMapSchema<RequestShape>>,
-  ResponseShape extends MessageShape,
-  ResponseResolve extends ResolveQuery<CoMapSchema<ResponseShape>>,
->(
-  params: RequestOptions<
-    RequestShape,
-    RequestResolve,
-    ResponseShape,
-    ResponseResolve
-  >,
-) {
-  const processedValues = new Set<`co_z${string}`>();
-  const requestDefinition = parseSchemaAndResolve(params.request);
-  const responseDefinition = parseSchemaAndResolve(params.response);
+class HttpRoute<
+  RequestShape extends MessageShape = z.core.$ZodLooseShape,
+  RequestResolve extends ResolveQuery<CoMapSchema<RequestShape>> = any,
+  ResponseShape extends MessageShape = z.core.$ZodLooseShape,
+  ResponseResolve extends ResolveQuery<CoMapSchema<ResponseShape>> = any,
+> {
+  private processedValues = new Set<`co_z${string}`>();
+  private requestDefinition: {
+    schema: AnyCoMapSchema;
+    resolve: any;
+  };
+  private responseDefinition: {
+    schema: AnyCoMapSchema;
+    resolve: any;
+  };
+  private url: string;
+  private workerId: string;
 
-  const send = async (
+  constructor(
+    params: RequestOptions<
+      RequestShape,
+      RequestResolve,
+      ResponseShape,
+      ResponseResolve
+    >,
+  ) {
+    this.requestDefinition = parseSchemaAndResolve(params.request);
+    this.responseDefinition = parseSchemaAndResolve(params.response);
+    this.url = params.url;
+    this.workerId = params.workerId;
+  }
+
+  send = async (
     values: MessageValuePayload<RequestShape>,
     options?: { owner?: Account },
   ): Promise<Loaded<CoMapSchema<ResponseShape>, ResponseResolve>> => {
     const as = options?.owner ?? Account.getMe();
 
-    const workerAccount = await Account.load(params.workerId, {
+    const workerAccount = await Account.load(this.workerId, {
       loadAs: as,
     });
 
@@ -268,15 +281,15 @@ export function experimental_defineRequest<
       throw new Error("Worker account not found");
     }
 
-    const response = await fetch(params.url, {
+    const response = await fetch(this.url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(
         await serializeMessagePayload(
-          requestDefinition.schema,
-          requestDefinition.resolve,
+          this.requestDefinition.schema,
+          this.requestDefinition.resolve,
           values,
           as,
           workerAccount,
@@ -294,17 +307,17 @@ export function experimental_defineRequest<
       .parse(responseBody);
 
     const data = await handleIncomingMessage(
-      responseDefinition.schema,
-      responseDefinition.resolve,
+      this.responseDefinition.schema,
+      this.responseDefinition.resolve,
       responseParsed.payload,
       as,
-      processedValues,
+      this.processedValues,
     );
 
     return data.value as Loaded<CoMapSchema<ResponseShape>, ResponseResolve>;
   };
 
-  const handle = async (
+  handle = async (
     request: Request,
     as: Account,
     callback: (
@@ -317,11 +330,11 @@ export function experimental_defineRequest<
     const node = as._raw.core.node;
     const body = await request.json();
     const data = await handleIncomingMessage(
-      requestDefinition.schema,
-      requestDefinition.resolve,
+      this.requestDefinition.schema,
+      this.requestDefinition.resolve,
       body,
       as,
-      processedValues,
+      this.processedValues,
     );
 
     const tracking = node.syncManager.trackDirtyCoValues();
@@ -332,8 +345,8 @@ export function experimental_defineRequest<
     );
 
     const responsePayload = await serializeMessagePayload(
-      responseDefinition.schema,
-      responseDefinition.resolve,
+      this.responseDefinition.schema,
+      this.responseDefinition.resolve,
       responseValue,
       as,
       data.madeBy,
@@ -357,14 +370,29 @@ export function experimental_defineRequest<
     });
   };
 
-  return {
-    send,
-    handle,
-    schema: {
-      request: requestDefinition.schema,
-      response: responseDefinition.schema,
-    },
-  };
+  get requestSchema(): CoMapSchema<RequestShape> {
+    return this.requestDefinition.schema as CoMapSchema<RequestShape>;
+  }
+
+  get responseSchema() {
+    return this.responseDefinition.schema as CoMapSchema<ResponseShape>;
+  }
+}
+
+export function experimental_defineRequest<
+  RequestShape extends MessageShape,
+  RequestResolve extends ResolveQuery<CoMapSchema<RequestShape>>,
+  ResponseShape extends MessageShape,
+  ResponseResolve extends ResolveQuery<CoMapSchema<ResponseShape>>,
+>(
+  params: RequestOptions<
+    RequestShape,
+    RequestResolve,
+    ResponseShape,
+    ResponseResolve
+  >,
+) {
+  return new HttpRoute(params);
 }
 
 function getCoValueCreatorAccountId(coValue: CoValueCore) {
@@ -388,11 +416,3 @@ function getCoValueCreatorAccountId(coValue: CoValueCore) {
 
   return accountId;
 }
-
-// Cache the resolve -> ids
-// In-process scaling with Threads
-// Make the response schema optional
-// Router-based API
-// Require a WorkerID
-// Move the expiration to the CoMap header
-// Only init payloads for request/response

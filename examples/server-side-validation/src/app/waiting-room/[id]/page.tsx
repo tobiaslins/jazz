@@ -9,11 +9,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { WaitingRoom, joinGameRequest } from "@/schema";
-import { Account, co } from "jazz-tools";
+import { WaitingRoom } from "@/schema";
+import { serverApi } from "@/serverApi";
+import { co } from "jazz-tools";
 import { useCoState } from "jazz-tools/react-core";
 import { ClipboardCopyIcon, Loader2Icon } from "lucide-react";
-import { useParams, usePathname, useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 function useWindowLocation() {
@@ -33,7 +34,7 @@ async function askToJoinGame(
     return;
   }
 
-  const response = await joinGameRequest.send({
+  const response = await serverApi.joinGame.send({
     waitingRoom,
   });
 

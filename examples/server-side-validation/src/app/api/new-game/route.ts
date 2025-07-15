@@ -1,8 +1,8 @@
 import { jazzServerAccount } from "@/jazzServerAccount";
-import { Game, newGameRequest } from "@/schema";
+import { serverApi } from "@/serverApi";
 
 export async function POST(request: Request) {
-  const response = await newGameRequest.handle(
+  const response = await serverApi.newGame.handle(
     request,
     jazzServerAccount.worker,
     async ({ game }, madeBy) => {

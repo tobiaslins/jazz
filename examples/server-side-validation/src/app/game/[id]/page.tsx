@@ -3,23 +3,21 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Game, newGameRequest, playRequest } from "@/schema";
+import { Game } from "@/schema";
+import { serverApi } from "@/serverApi";
 import { useAccount, useCoState } from "jazz-tools/react";
 import {
   CheckCircle,
   Clock,
   Gamepad2,
   Minus,
-  Mountain,
-  Scissors,
-  ScrollText,
   Sparkles,
   Trophy,
   Users,
   XCircle,
 } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const playIcon = (
   selection: "rock" | "paper" | "scissors" | undefined,
@@ -128,14 +126,14 @@ export default function RouteComponent() {
   ) => {
     if (!playSelection) return;
 
-    await playRequest.send({
+    await serverApi.play.send({
       game,
       selection: playSelection,
     });
   };
 
   const onNewGame = async () => {
-    await newGameRequest.send({
+    await serverApi.newGame.send({
       game,
     });
   };
