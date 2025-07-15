@@ -1,13 +1,9 @@
 import {
   ZodArray,
-  ZodIntersection,
-  ZodRecord,
   ZodTuple,
   ZodUnion,
   core,
   array as zodArray,
-  intersection as zodIntersection,
-  record as zodRecord,
   tuple as zodTuple,
   union as zodUnion,
 } from "zod/v4";
@@ -39,6 +35,8 @@ export {
   int32,
   strictObject,
   discriminatedUnion,
+  // record,
+  // intersection,
   int,
   optional,
   type ZodOptional,
@@ -52,29 +50,11 @@ export {
 
 type NonCoZodType = core.$ZodType & { collaborative?: false };
 
-export function record<
-  Key extends core.$ZodRecordKey,
-  Value extends NonCoZodType,
->(
-  keyType: Key,
-  valueType: Value,
-  params?: string | core.$ZodRecordParams,
-): ZodRecord<Key, Value> {
-  return zodRecord(keyType, valueType, params);
-}
-
 export function union<const T extends readonly NonCoZodType[]>(
   options: T,
   params?: string | core.$ZodUnionParams,
 ): ZodUnion<T> {
   return zodUnion(options, params);
-}
-
-export function intersection<T extends NonCoZodType, U extends NonCoZodType>(
-  left: T,
-  right: U,
-): ZodIntersection<T, U> {
-  return zodIntersection(left, right);
 }
 
 export function array<T extends NonCoZodType>(
