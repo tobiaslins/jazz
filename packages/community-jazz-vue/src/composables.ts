@@ -25,7 +25,6 @@ import {
   type ShallowRef,
   computed,
   inject,
-  markRaw,
   onMounted,
   onUnmounted,
   ref,
@@ -113,7 +112,7 @@ export function useAccount<
   if (!("me" in context.value)) {
     return {
       me: computed(() => null) as any,
-      agent: markRaw(agent),
+      agent: agent,
       logOut: context.value.logOut,
     };
   }
@@ -131,7 +130,7 @@ export function useAccount<
 
       return value ? toRaw(value) : value;
     }) as any,
-    agent: markRaw(agent),
+    agent: agent,
     logOut: context.value.logOut,
   };
 }
