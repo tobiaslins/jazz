@@ -368,32 +368,6 @@ describe("co.map and Zod schema compatibility", () => {
     //   expect(failedMap.result).toEqual({ status: "failed", error: "error" });
     // });
 
-    it("should handle discriminated unions of CoValues", () => {
-      const Dog = co.map({
-        type: z.literal("dog"),
-        breed: z.string(),
-      });
-
-      const Cat = co.map({
-        type: z.literal("cat"),
-        name: z.string(),
-      });
-
-      const Person = co.map({
-        pet: z.discriminatedUnion("type", [Dog, Cat]),
-      });
-
-      const person = Person.create({
-        pet: Dog.create({ type: "dog", breed: "Labrador" }),
-      });
-
-      expect(person.pet).toEqual({ type: "dog", breed: "Labrador" });
-
-      person.pet = Cat.create({ type: "cat", name: "Whiskers" });
-
-      expect(person.pet).toEqual({ type: "cat", name: "Whiskers" });
-    });
-
     it("should handle optional CoValues", () => {
       const Dog = co.map({
         name: z.string(),

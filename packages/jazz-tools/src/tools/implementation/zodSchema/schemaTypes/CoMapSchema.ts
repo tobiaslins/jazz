@@ -8,6 +8,7 @@ import {
   Resolved,
   Simplify,
   SubscribeListenerOptions,
+  coOptionalDefiner,
   coreSchemaToCoSchema,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
@@ -15,6 +16,7 @@ import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimiti
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { z } from "../zodReExport.js";
 import { AnyZodOrCoValueSchema, WithHelpers } from "../zodSchema.js";
+import { CoOptionalSchema } from "./CoOptionalSchema.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 export interface CoMapSchema<
@@ -143,6 +145,8 @@ export interface CoMapSchema<
   ): CoMapSchema<Shape, Config, Owner>;
 
   getCoValueClass: () => typeof CoMap;
+
+  optional(): CoOptionalSchema<CoMapSchema<Shape, Config, Owner>>;
 }
 
 export function createCoreCoMapSchema<Shape extends z.core.$ZodLooseShape>(
@@ -218,6 +222,10 @@ export function enrichCoMapSchema<
     getCoValueClass: () => {
       return coValueClass;
     },
+
+    optional: () => {
+      return coOptionalDefiner(coValueSchema);
+    },
   }) as unknown as CoMapSchema<Shape, Config>;
   return coValueSchema;
 }
@@ -255,7 +263,7 @@ export type AnyCoMapSchema<
   Config extends z.core.$ZodObjectConfig = z.core.$ZodObjectConfig,
 > = CoreCoValueSchema &
   z.core.$ZodObject<Shape, Config> &
-  z.$ZodTypeDiscriminable & {
+  z.core.$ZodTypeDiscriminable & {
     collaborative: true;
     builtin: "CoMap";
     getDefinition: () => CoMapSchemaDefinition;
