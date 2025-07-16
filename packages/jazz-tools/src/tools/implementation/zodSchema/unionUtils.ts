@@ -4,26 +4,28 @@ import {
   AnyZodOrCoValueSchema,
   CoMap,
   CoreCoDiscriminatedUnionSchema,
+  CoreCoMapSchema,
 } from "../../internal.js";
 import {
   coreSchemaToCoSchema,
   isAnyCoValueSchema,
 } from "./runtimeConverters/zodSchemaToCoSchema.js";
-import { CoreCoMapSchema } from "./schemaTypes/CoMapSchema.js";
 import { z } from "./zodReExport.js";
 
 export function schemaUnionDiscriminatorFor(
-  schema: z.core.$ZodDiscriminatedUnion,
+  schema: CoreCoDiscriminatedUnionSchema<
+    [AnyDiscriminableCoSchema, ...AnyDiscriminableCoSchema[]]
+  >,
 ) {
   if (isUnionOfCoMapsDeeply(schema)) {
-    const discriminatorMap = schema._zod.disc;
+    const definition = schema.getDefinition();
+    const { discriminatorMap, discriminator, options } = definition;
     if (!discriminatorMap || discriminatorMap.size == 0) {
       throw new Error(
         "z.union() of collaborative types is not supported, use co.discriminatedUnion() instead",
       );
     }
 
-    const discriminator = schema._zod.def.discriminator;
     const field = discriminatorMap.get(discriminator);
 
     if (!field) {
@@ -42,14 +44,13 @@ export function schemaUnionDiscriminatorFor(
 
     const availableOptions: AnyDiscriminableCoSchema[] = [];
 
-    for (const option of schema._zod.def.options) {
-      if (option._zod.def.type === "object") {
-        availableOptions.push(option as CoreCoMapSchema);
-      } else if (option._zod.def.type === "union") {
-        for (const subOption of (option as CoreCoDiscriminatedUnionSchema<any>)
-          ._zod.def.options) {
-          if (subOption._zod.def.type === "object") {
-            availableOptions.push(subOption as CoreCoMapSchema);
+    for (const option of options) {
+      if (option.builtin === "CoMap") {
+        availableOptions.push(option);
+      } else if (option.builtin === "CoDiscriminatedUnion") {
+        for (const subOption of option.getDefinition().options) {
+          if (subOption.builtin === "CoMap") {
+            availableOptions.push(subOption);
           }
         }
       } else {
@@ -70,9 +71,8 @@ export function schemaUnionDiscriminatorFor(
         let match = true;
 
         for (const key of discriminatorMap.keys()) {
-          const discriminatorDef = (option as z.core.$ZodObject)._zod.def.shape[
-            key as string
-          ];
+          const discriminatorDef = (option as CoreCoMapSchema).getDefinition()
+            .shape[key as string];
 
           const discriminatorValue = (_raw as RawCoMap).get(key as string);
 
@@ -115,28 +115,26 @@ export function schemaUnionDiscriminatorFor(
     return determineSchema;
   } else {
     throw new Error(
-      "z.discriminatedUnion() of non-collaborative types is not supported",
+      "co.discriminatedUnion() of non-collaborative types is not supported",
     );
   }
 }
 
-export function isUnionOfCoMapsDeeply(
-  schema: AnyZodOrCoValueSchema,
-): schema is z.core.$ZodDiscriminatedUnion {
-  if (schema instanceof z.core.$ZodUnion) {
-    return schema._zod.def.options.every(isCoMapOrUnionOfCoMapsDeeply);
-  } else {
-    return false;
-  }
+function isUnionOfCoMapsDeeply(
+  schema: CoreCoDiscriminatedUnionSchema<
+    [AnyDiscriminableCoSchema, ...AnyDiscriminableCoSchema[]]
+  >,
+): boolean {
+  return schema.getDefinition().options.every(isCoMapOrUnionOfCoMapsDeeply);
 }
 
 function isCoMapOrUnionOfCoMapsDeeply(
-  schema: AnyZodOrCoValueSchema,
-): schema is z.core.$ZodDiscriminatedUnion {
-  if (schema instanceof z.core.$ZodObject && isAnyCoValueSchema(schema)) {
+  schema: AnyDiscriminableCoSchema,
+): boolean {
+  if (schema.builtin === "CoMap") {
     return true;
-  } else if (schema instanceof z.core.$ZodUnion) {
-    return schema._zod.def.options.every(isCoMapOrUnionOfCoMapsDeeply);
+  } else if (schema.builtin === "CoDiscriminatedUnion") {
+    return schema.getDefinition().options.every(isCoMapOrUnionOfCoMapsDeeply);
   } else {
     return false;
   }

@@ -6,7 +6,6 @@ import {
   RefsToResolveStrict,
   Resolved,
   SubscribeListenerOptions,
-  isAnyCoValueSchema,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";

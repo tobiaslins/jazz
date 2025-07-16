@@ -15,6 +15,12 @@ import { CoreCoValueSchema } from "./CoValueSchema.js";
 export type AnyDiscriminableCoSchema = AnyCoreCoValueSchema &
   z.core.$ZodTypeDiscriminable;
 
+export type CoDiscriminatedUnionSchemaDefinition = {
+  discriminator: string;
+  discriminatorMap: z.core.$ZodDiscriminatedUnionInternals["disc"];
+  options: AnyDiscriminableCoSchema[];
+};
+
 export interface CoreCoDiscriminatedUnionSchema<
   Types extends readonly [
     AnyDiscriminableCoSchema,
@@ -23,6 +29,7 @@ export interface CoreCoDiscriminatedUnionSchema<
 > extends CoreCoValueSchema,
     z.core.$ZodDiscriminatedUnion<Types> {
   builtin: "CoDiscriminatedUnion";
+  getDefinition: () => CoDiscriminatedUnionSchemaDefinition;
   getZodSchema: () => z.core.$ZodDiscriminatedUnion<Types>;
 }
 export interface CoDiscriminatedUnionSchema<
@@ -75,6 +82,15 @@ export function createCoreCoDiscriminatedUnionSchema<
   return Object.assign(zodSchema, {
     collaborative: true as const,
     builtin: "CoDiscriminatedUnion" as const,
+    getDefinition: () => ({
+      discriminator,
+      get discriminatorMap() {
+        return zodSchema._zod.disc;
+      },
+      get options() {
+        return zodSchema._zod.def.options;
+      },
+    }),
     getZodSchema: () => zodSchema,
   });
 }

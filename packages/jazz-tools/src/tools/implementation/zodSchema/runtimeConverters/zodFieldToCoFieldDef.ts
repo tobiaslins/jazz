@@ -1,9 +1,6 @@
 import { CoValueClass, isCoValueClass } from "../../../internal.js";
 import { coField } from "../../schema.js";
-import {
-  isUnionOfCoMapsDeeply,
-  isUnionOfPrimitivesDeeply,
-} from "../unionUtils.js";
+import { isUnionOfPrimitivesDeeply } from "../unionUtils.js";
 import {
   ZodCatch,
   ZodDefault,
@@ -130,13 +127,9 @@ export function schemaFieldToCoFieldDef(schema: SchemaField) {
       } else if (schema._zod.def.type === "union") {
         if (isUnionOfPrimitivesDeeply(schema)) {
           return coField.json();
-        } else if (isUnionOfCoMapsDeeply(schema)) {
-          throw new Error(
-            "z.union()/z.discriminatedUnion() of collaborative types is not supported",
-          );
         } else {
           throw new Error(
-            "z.union()/z.discriminatedUnion() of mixed collaborative and non-collaborative types is not supported",
+            "z.union()/z.discriminatedUnion() of collaborative types is not supported. Use co.discriminatedUnion() instead.",
           );
         }
       } else {
