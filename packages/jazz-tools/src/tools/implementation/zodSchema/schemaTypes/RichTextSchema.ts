@@ -6,7 +6,6 @@ import { CoreCoValueSchema } from "./CoValueSchema.js";
 export interface AnyRichTextSchema
   extends CoreCoValueSchema,
     z.core.$ZodCustom<CoRichText, unknown> {
-  collaborative: true;
   builtin: "CoRichText";
   getZodSchema: () => z.core.$ZodCustom<CoRichText, unknown>;
 }

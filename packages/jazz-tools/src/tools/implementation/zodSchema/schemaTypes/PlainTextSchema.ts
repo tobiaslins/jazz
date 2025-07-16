@@ -7,7 +7,6 @@ import { CoreCoValueSchema } from "./CoValueSchema.js";
 export interface AnyPlainTextSchema
   extends CoreCoValueSchema,
     z.core.$ZodCustom<CoPlainText, unknown> {
-  collaborative: true;
   builtin: "CoPlainText";
   getZodSchema: () => z.core.$ZodCustom<CoPlainText, unknown>;
 }

@@ -39,6 +39,49 @@ describe("co.discriminatedUnion", () => {
     expect(person.pet.type).toEqual("cat");
   });
 
+  test("use nested co.discriminatedUnions", () => {
+    const BaseError = { status: z.literal("failed"), message: z.string() };
+    const BadRequestError = co.map({ ...BaseError, code: z.literal(400) });
+    const UnauthorizedError = co.map({ ...BaseError, code: z.literal(401) });
+    const InternalServerError = co.map({ ...BaseError, code: z.literal(500) });
+    const Errors = co.discriminatedUnion("code", [
+      BadRequestError,
+      UnauthorizedError,
+      InternalServerError,
+    ]);
+
+    const Success = co.map({ status: z.literal("success"), data: z.string() });
+    const Response = co.map({
+      result: co.discriminatedUnion("status", [Success, Errors]),
+    });
+
+    const response = Response.create({
+      result: Success.create({
+        status: "success",
+        data: "Hello, world!",
+      }),
+    });
+
+    expect(response.result.status).toEqual("success");
+    if (response.result.status === "success") {
+      expect(response.result.data).toEqual("Hello, world!");
+    }
+
+    response.result = BadRequestError.create({
+      status: "failed",
+      message: "Bad request",
+      code: 400,
+    });
+
+    expect(response.result.status).toEqual("failed");
+    if (response.result.status === "failed") {
+      expect(response.result.code).toEqual(400);
+      if (response.result.code === 400) {
+        expect(response.result.message).toEqual("Bad request");
+      }
+    }
+  });
+
   test("load CoValue instances using the DiscriminatedUnion schema", async () => {
     const Dog = co.map({
       type: z.literal("dog"),

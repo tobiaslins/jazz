@@ -105,7 +105,6 @@ export interface AnyCoListSchema<
   T extends AnyZodOrCoValueSchema = z.core.$ZodType,
 > extends CoreCoValueSchema,
     z.core.$ZodArray<T> {
-  collaborative: true;
   builtin: "CoList";
   getDefinition: () => CoListSchemaDefinition;
   getZodSchema: () => z.core.$ZodArray<T>;

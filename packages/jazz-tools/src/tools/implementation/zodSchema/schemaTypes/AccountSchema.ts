@@ -161,7 +161,6 @@ export interface AnyAccountSchema<
   Shape extends z.core.$ZodLooseShape = z.core.$ZodLooseShape,
 > extends z.core.$ZodObject<Shape>,
     CoreCoValueSchema {
-  collaborative: true;
   builtin: "Account";
   getDefinition: () => CoMapSchemaDefinition;
   getZodSchema: () => z.core.$ZodObject<Shape>;

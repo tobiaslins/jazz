@@ -16,6 +16,7 @@ import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimiti
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { z } from "../zodReExport.js";
 import { AnyZodOrCoValueSchema, WithHelpers } from "../zodSchema.js";
+import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 type CoRecordInit<
   K extends z.core.$ZodString<string>,
@@ -89,8 +90,8 @@ export interface CoRecordSchema<
 export interface AnyCoRecordSchema<
   K extends z.core.$ZodString<string> = z.core.$ZodString<string>,
   V extends AnyZodOrCoValueSchema = z.core.$ZodType,
-> extends z.core.$ZodRecord<K, V> {
-  collaborative: true;
+> extends CoreCoValueSchema,
+    z.core.$ZodRecord<K, V> {
   builtin: "CoMap";
   getDefinition: () => CoMapSchemaDefinition;
   getZodSchema: () => z.core.$ZodRecord<K, V>;

@@ -1,5 +1,5 @@
 import { z } from "../zodReExport.js";
-import { AnyCoSchema, CoValueSchemaFromZodSchema } from "../zodSchema.js";
+import { AnyCoSchema, CoValueSchemaFromCoreSchema } from "../zodSchema.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 export interface AnyCoOptionalSchema<
@@ -7,7 +7,6 @@ export interface AnyCoOptionalSchema<
     CoreCoValueSchema,
 > extends CoreCoValueSchema,
     z.ZodOptional<Shape> {
-  collaborative: true;
   builtin: "CoOptional";
   getZodSchema: () => z.ZodOptional<Shape>;
 }
@@ -16,7 +15,7 @@ export interface CoOptionalSchema<
   Shape extends z.core.$ZodType & CoreCoValueSchema = z.core.$ZodType &
     CoreCoValueSchema,
 > extends AnyCoOptionalSchema<Shape> {
-  getCoValueClass: () => CoValueSchemaFromZodSchema<Shape>["getCoValueClass"];
+  getCoValueClass: () => CoValueSchemaFromCoreSchema<Shape>["getCoValueClass"];
 }
 
 export function createCoOptionalSchema<T extends AnyCoSchema>(
@@ -28,7 +27,7 @@ export function createCoOptionalSchema<T extends AnyCoSchema>(
     builtin: "CoOptional" as const,
     getCoValueClass: () => {
       return (
-        schema as CoValueSchemaFromZodSchema<AnyCoSchema>
+        schema as CoValueSchemaFromCoreSchema<AnyCoSchema>
       ).getCoValueClass();
     },
     getZodSchema: () => zodSchema,

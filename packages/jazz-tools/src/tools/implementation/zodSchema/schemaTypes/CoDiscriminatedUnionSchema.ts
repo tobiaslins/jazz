@@ -25,15 +25,12 @@ export interface AnyCoDiscriminatedUnionSchema<
   builtin: "CoDiscriminatedUnion";
   getZodSchema: () => z.core.$ZodDiscriminatedUnion<Types>;
 }
-
 export interface CoDiscriminatedUnionSchema<
   Types extends readonly [
     AnyDiscriminableCoSchema,
     ...AnyDiscriminableCoSchema[],
   ],
 > extends AnyCoDiscriminatedUnionSchema<Types> {
-  collaborative: true;
-
   load(
     id: string,
     options?: {
@@ -73,6 +70,7 @@ export function createCoreCoDiscriminatedUnionSchema<
 >(discriminator: string, schemas: Types): AnyCoDiscriminatedUnionSchema<Types> {
   const zodSchema = z.discriminatedUnion(discriminator, schemas as any);
   return Object.assign(zodSchema, {
+    collaborative: true as const,
     builtin: "CoDiscriminatedUnion" as const,
     getZodSchema: () => zodSchema,
   });

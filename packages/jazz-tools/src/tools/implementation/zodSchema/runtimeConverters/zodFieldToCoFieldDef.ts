@@ -1,9 +1,8 @@
-import { CoMap, CoValueClass, isCoValueClass } from "../../../internal.js";
+import { CoValueClass, isCoValueClass } from "../../../internal.js";
 import { coField } from "../../schema.js";
 import {
   isUnionOfCoMapsDeeply,
   isUnionOfPrimitivesDeeply,
-  schemaUnionDiscriminatorFor,
 } from "../unionUtils.js";
 import {
   ZodCatch,
@@ -13,15 +12,12 @@ import {
   z,
 } from "../zodReExport.js";
 import { AnyCoSchema, ZodPrimitiveSchema } from "../zodSchema.js";
-import {
-  isCoValueSchema,
-  zodSchemaToCoSchemaOrKeepPrimitive,
-} from "./zodSchemaToCoSchema.js";
+import { isCoValueSchema } from "./zodSchemaToCoSchema.js";
 
 /**
  * Types of objects that can be nested inside CoValue schema containers
  */
-type SchemaField =
+export type SchemaField =
   // Schemas created with co.map(), co.record(), co.list(), etc.
   | AnyCoSchema
   // CoValue classes created with class syntax, or framework-provided classes like Group
@@ -56,9 +52,7 @@ export function schemaFieldToCoFieldDef(schema: SchemaField) {
   } else {
     if ("_zod" in schema) {
       if (schema._zod.def.type === "optional") {
-        const inner = zodSchemaToCoSchemaOrKeepPrimitive(
-          schema._zod.def.innerType,
-        );
+        const inner = schema._zod.def.innerType as ZodPrimitiveSchema;
         if (isCoValueClass(inner)) {
           return coField.ref(inner, { optional: true });
         } else {
@@ -137,8 +131,8 @@ export function schemaFieldToCoFieldDef(schema: SchemaField) {
         if (isUnionOfPrimitivesDeeply(schema)) {
           return coField.json();
         } else if (isUnionOfCoMapsDeeply(schema)) {
-          return coField.ref<CoValueClass<CoMap>>(
-            schemaUnionDiscriminatorFor(schema),
+          throw new Error(
+            "z.union()/z.discriminatedUnion() of collaborative types is not supported",
           );
         } else {
           throw new Error(

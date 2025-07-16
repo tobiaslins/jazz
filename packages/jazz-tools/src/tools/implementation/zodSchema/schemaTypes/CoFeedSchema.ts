@@ -100,7 +100,6 @@ export interface AnyCoFeedSchema<
   T extends AnyZodOrCoValueSchema = z.core.$ZodType,
 > extends CoreCoValueSchema,
     z.core.$ZodCustom<CoFeed, unknown> {
-  collaborative: true;
   builtin: "CoFeed";
   element: T;
   getZodSchema: () => z.core.$ZodCustom<CoFeed, unknown>;

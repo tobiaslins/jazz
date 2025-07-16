@@ -264,7 +264,6 @@ export type AnyCoMapSchema<
 > = CoreCoValueSchema &
   z.core.$ZodObject<Shape, Config> &
   z.core.$ZodTypeDiscriminable & {
-    collaborative: true;
     builtin: "CoMap";
     getDefinition: () => CoMapSchemaDefinition;
     getZodSchema: () => z.core.$ZodObject<Shape, Config>;

@@ -66,41 +66,28 @@ export type ZodPrimitiveSchema =
 
 export type CoValueClassOrSchema = CoValueClass | AnyCoSchema;
 
-// TODO rename to CoValueSchemaFromCoProtoSchema
-export type CoValueSchemaFromZodSchema<S extends AnyZodOrCoValueSchema> =
-  S extends z.core.$ZodType
-    ? S extends AnyAccountSchema<infer Shape extends BaseAccountShape>
-      ? AccountSchema<Shape>
-      : S extends AnyCoRecordSchema<infer K, infer V>
-        ? CoRecordSchema<K, V>
-        : S extends AnyCoMapSchema<infer Shape, infer Config>
-          ? CoMapSchema<Shape, Config>
-          : S extends AnyCoListSchema<infer T>
-            ? CoListSchema<T>
-            : S extends AnyCoFeedSchema<infer T>
-              ? CoFeedSchema<T>
-              : S extends AnyPlainTextSchema
-                ? PlainTextSchema
-                : S extends AnyRichTextSchema
-                  ? RichTextSchema
-                  : S extends AnyFileStreamSchema
-                    ? FileStreamSchema
-                    : S extends
-                          | z.core.$ZodOptional<
-                              infer Inner extends z.core.$ZodType &
-                                CoreCoValueSchema
-                            >
-                          | z.ZodOptional<infer Inner>
-                      ? CoOptionalSchema<Inner>
-                      : S extends z.core.$ZodUnion<
-                            infer Members extends readonly [
-                              AnyDiscriminableCoSchema,
-                              ...AnyDiscriminableCoSchema[],
-                            ]
-                          >
-                        ? CoDiscriminatedUnionSchema<Members>
-                        : never
-    : never;
+export type CoValueSchemaFromCoreSchema<S extends CoreCoValueSchema> =
+  S extends AnyAccountSchema<infer Shape extends BaseAccountShape>
+    ? AccountSchema<Shape>
+    : S extends AnyCoRecordSchema<infer K, infer V>
+      ? CoRecordSchema<K, V>
+      : S extends AnyCoMapSchema<infer Shape, infer Config>
+        ? CoMapSchema<Shape, Config>
+        : S extends AnyCoListSchema<infer T>
+          ? CoListSchema<T>
+          : S extends AnyCoFeedSchema<infer T>
+            ? CoFeedSchema<T>
+            : S extends AnyPlainTextSchema
+              ? PlainTextSchema
+              : S extends AnyRichTextSchema
+                ? RichTextSchema
+                : S extends AnyFileStreamSchema
+                  ? FileStreamSchema
+                  : S extends AnyCoOptionalSchema<infer Inner>
+                    ? CoOptionalSchema<Inner>
+                    : S extends AnyCoDiscriminatedUnionSchema<infer Members>
+                      ? CoDiscriminatedUnionSchema<Members>
+                      : never;
 
 export type CoValueClassFromAnySchema<S extends CoValueClassOrSchema> =
   S extends CoValueClass<any>

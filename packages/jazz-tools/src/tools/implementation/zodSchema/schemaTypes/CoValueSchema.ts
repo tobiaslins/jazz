@@ -8,6 +8,8 @@ import { z } from "../zodReExport.js";
  * the actual CoValue schemas.
  */
 export interface CoreCoValueSchema {
+  collaborative: true;
+
   /**
    * Used for discriminating between different CoValue schemas.
    */
