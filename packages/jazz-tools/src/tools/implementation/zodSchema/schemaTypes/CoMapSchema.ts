@@ -131,7 +131,12 @@ export interface CoMapSchema<
 
   catchall<T extends AnyZodOrCoValueSchema>(
     schema: T,
-  ): CoMapSchema<Shape, z.core.$catchall<ZodSchemaForAnySchema<T>>>;
+  ): CoMapSchema<
+    Shape,
+    // This is a hack to keep a reference to T in the CoMapSchema
+    // TODO: find a better way to do this
+    z.core.$catchall<T & z.core.$ZodType<unknown, unknown>>
+  >;
 
   /** @deprecated Define your helper methods separately, in standalone functions. */
   withHelpers<S extends CoreCoMapSchema, T extends object>(

@@ -25,7 +25,7 @@ export interface CoOptionalSchema<
 export function createCoOptionalSchema<T extends CoreCoValueSchema>(
   schema: T,
 ): CoOptionalSchema<T> {
-  const zodSchema = z.optional(schema.getZodSchema());
+  const zodSchema = z.optional(schema as any);
   return Object.assign(zodSchema, {
     collaborative: true,
     builtin: "CoOptional" as const,
