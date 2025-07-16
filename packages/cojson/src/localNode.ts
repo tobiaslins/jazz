@@ -82,6 +82,11 @@ export class LocalNode {
     this.storage = storage;
   }
 
+  removeStorage() {
+    this.storage?.close();
+    this.storage = undefined;
+  }
+
   getCoValue(id: RawCoID) {
     let entry = this.coValues.get(id);
 

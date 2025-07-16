@@ -281,8 +281,7 @@ export class JazzContextManager<
 
       // Closing storage on the prevContext to avoid conflicting transactions and getting stuck on waitForAllCoValuesSync
       // The storage is reachable through currentContext using the connectedPeers
-      prevContext.node.storage?.close();
-      prevContext.node.storage = undefined;
+      prevContext.node.removeStorage();
 
       currentContext.node.syncManager.addPeer(prevAccountAsPeer);
       prevContext.node.syncManager.addPeer(currentAccountAsPeer);
