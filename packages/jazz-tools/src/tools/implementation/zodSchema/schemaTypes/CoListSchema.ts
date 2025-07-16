@@ -5,19 +5,27 @@ import {
   RefsToResolve,
   RefsToResolveStrict,
   Resolved,
+  Simplify,
   SubscribeListenerOptions,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { z } from "../zodReExport.js";
-import { AnyZodOrCoValueSchema, WithHelpers } from "../zodSchema.js";
+import {
+  AnyZodOrCoValueSchema,
+  WithHelpers,
+  ZodSchemaForAnySchema,
+} from "../zodSchema.js";
+import { CoreCoOptionalSchema } from "./CoOptionalSchema.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
-type CoListInit<T extends z.core.$ZodType> = Array<
-  T extends z.core.$ZodOptional<any>
-    ? InstanceOrPrimitiveOfSchemaCoValuesNullable<T>
-    : NonNullable<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>>
+type CoListInit<T extends AnyZodOrCoValueSchema> = Simplify<
+  Array<
+    T extends z.core.$ZodOptional<infer V2> | CoreCoOptionalSchema<infer V2>
+      ? NonNullable<InstanceOrPrimitiveOfSchemaCoValuesNullable<V2>> | undefined
+      : NonNullable<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>>
+  >
 >;
 
 export interface CoListSchema<T extends AnyZodOrCoValueSchema>
@@ -55,24 +63,26 @@ export interface CoListSchema<T extends AnyZodOrCoValueSchema>
   getCoValueClass: () => typeof CoList;
 }
 
-type CoListSchemaDefinition = {
-  element: AnyZodOrCoValueSchema;
+type CoListSchemaDefinition<
+  T extends AnyZodOrCoValueSchema = AnyZodOrCoValueSchema,
+> = {
+  element: T;
 };
 
 export function createCoreCoListSchema<T extends AnyZodOrCoValueSchema>(
   element: T,
 ): CoreCoListSchema<T> {
-  const zodSchema = z.array(element).meta({
+  const zodSchema = z.array(element as any).meta({
     collaborative: true,
   });
-  return Object.assign(zodSchema, {
+  return {
     collaborative: true as const,
     builtin: "CoList" as const,
     getDefinition: () => ({
       element: zodSchema.def.element,
     }),
     getZodSchema: () => zodSchema,
-  });
+  };
 }
 
 export function enrichCoListSchema<T extends AnyZodOrCoValueSchema>(
@@ -101,12 +111,11 @@ export function enrichCoListSchema<T extends AnyZodOrCoValueSchema>(
 
 // less precise version to avoid circularity issues and allow matching against
 export interface CoreCoListSchema<
-  T extends AnyZodOrCoValueSchema = z.core.$ZodType,
-> extends CoreCoValueSchema,
-    z.core.$ZodArray<T> {
+  T extends AnyZodOrCoValueSchema = AnyZodOrCoValueSchema,
+> extends CoreCoValueSchema {
   builtin: "CoList";
-  getDefinition: () => CoListSchemaDefinition;
-  getZodSchema: () => z.core.$ZodArray<T>;
+  getDefinition: () => CoListSchemaDefinition<T>;
+  getZodSchema: () => z.core.$ZodArray<ZodSchemaForAnySchema<T>>;
 }
 
 export type CoListInstance<T extends AnyZodOrCoValueSchema> = CoList<

@@ -15,8 +15,12 @@ import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { z } from "../zodReExport.js";
-import { AnyZodOrCoValueSchema, WithHelpers } from "../zodSchema.js";
-import { CoOptionalSchema } from "./CoOptionalSchema.js";
+import {
+  AnyZodOrCoValueSchema,
+  WithHelpers,
+  ZodSchemaForAnySchema,
+} from "../zodSchema.js";
+import { CoOptionalSchema, CoreCoOptionalSchema } from "./CoOptionalSchema.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 export interface CoMapSchema<
@@ -127,7 +131,7 @@ export interface CoMapSchema<
 
   catchall<T extends AnyZodOrCoValueSchema>(
     schema: T,
-  ): CoMapSchema<Shape, z.core.$catchall<T>>;
+  ): CoMapSchema<Shape, z.core.$catchall<ZodSchemaForAnySchema<T>>>;
 
   /** @deprecated Define your helper methods separately, in standalone functions. */
   withHelpers<S extends CoreCoMapSchema, T extends object>(
@@ -233,13 +237,17 @@ export function enrichCoMapSchema<
 }
 
 export type optionalKeys<Shape extends z.core.$ZodLooseShape> = {
-  [key in keyof Shape]: Shape[key] extends z.core.$ZodOptional<any>
+  [key in keyof Shape]: Shape[key] extends
+    | z.core.$ZodOptional<any>
+    | CoreCoOptionalSchema<any>
     ? key
     : never;
 }[keyof Shape];
 
 export type requiredKeys<Shape extends z.core.$ZodLooseShape> = {
-  [key in keyof Shape]: Shape[key] extends z.core.$ZodOptional<any>
+  [key in keyof Shape]: Shape[key] extends
+    | z.core.$ZodOptional<any>
+    | CoreCoOptionalSchema<any>
     ? never
     : key;
 }[keyof Shape];
@@ -264,7 +272,6 @@ export type CoreCoMapSchema<
   Shape extends z.core.$ZodLooseShape = z.core.$ZodLooseShape,
   Config extends z.core.$ZodObjectConfig = z.core.$ZodObjectConfig,
 > = CoreCoValueSchema &
-  z.core.$ZodObject<Shape, Config> &
   z.core.$ZodTypeDiscriminable & {
     builtin: "CoMap";
     getDefinition: () => CoMapSchemaDefinition;

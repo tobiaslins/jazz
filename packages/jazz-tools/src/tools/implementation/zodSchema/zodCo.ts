@@ -1,6 +1,5 @@
 import {
   type AccountSchema,
-  AnyCoreCoValueSchema,
   AnyZodOrCoValueSchema,
   BaseAccountShape,
   type CoFeedSchema,
@@ -24,12 +23,14 @@ import {
 import {
   AnyDiscriminableCoSchema,
   CoDiscriminatedUnionSchema,
+  DiscriminableCoValueSchemas,
   createCoreCoDiscriminatedUnionSchema,
 } from "./schemaTypes/CoDiscriminatedUnionSchema.js";
 import {
   CoOptionalSchema,
   createCoOptionalSchema,
 } from "./schemaTypes/CoOptionalSchema.js";
+import { CoreCoValueSchema } from "./schemaTypes/CoValueSchema.js";
 import {
   RichTextSchema,
   createCoreCoRichTextSchema,
@@ -153,14 +154,14 @@ export const coImageDefiner = (): typeof ImageDefinition => {
   return ImageDefinition;
 };
 
-export const coOptionalDefiner = <T extends AnyCoreCoValueSchema>(
+export const coOptionalDefiner = <T extends CoreCoValueSchema>(
   schema: T,
 ): CoOptionalSchema<T> => {
   return createCoOptionalSchema(schema);
 };
 
 export const coDiscriminatedUnionDefiner = <
-  T extends readonly [AnyDiscriminableCoSchema, ...AnyDiscriminableCoSchema[]],
+  T extends DiscriminableCoValueSchemas,
 >(
   discriminator: string,
   schemas: T,

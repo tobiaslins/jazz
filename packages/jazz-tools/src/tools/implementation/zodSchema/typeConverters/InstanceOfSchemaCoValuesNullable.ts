@@ -8,12 +8,15 @@ import {
   CoRichText,
   CoValueClass,
   CoreAccountSchema,
+  CoreCoDiscriminatedUnionSchema,
   CoreCoFeedSchema,
   CoreCoListSchema,
   CoreCoMapSchema,
   CoreCoRecordSchema,
   FileStream,
 } from "../../../internal.js";
+import { CoreCoOptionalSchema } from "../schemaTypes/CoOptionalSchema.js";
+import { CoreCoValueSchema } from "../schemaTypes/CoValueSchema.js";
 import { CoreFileStreamSchema } from "../schemaTypes/FileStreamSchema.js";
 import { CorePlainTextSchema } from "../schemaTypes/PlainTextSchema.js";
 import { CoreRichTextSchema } from "../schemaTypes/RichTextSchema.js";
@@ -22,7 +25,7 @@ import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "./InstanceOrPrimiti
 
 export type InstanceOfSchemaCoValuesNullable<
   S extends CoValueClass | AnyZodOrCoValueSchema,
-> = S extends z.core.$ZodType
+> = S extends CoreCoValueSchema
   ? S extends CoreAccountSchema<infer Shape>
     ?
         | ({
@@ -61,11 +64,11 @@ export type InstanceOfSchemaCoValuesNullable<
                 ? CoRichText | null
                 : S extends CoreFileStreamSchema
                   ? FileStream | null
-                  : S extends z.core.$ZodOptional<infer Inner>
+                  : S extends CoreCoOptionalSchema<infer Inner>
                     ?
                         | InstanceOrPrimitiveOfSchemaCoValuesNullable<Inner>
                         | undefined
-                    : S extends z.core.$ZodUnion<infer Members>
+                    : S extends CoreCoDiscriminatedUnionSchema<infer Members>
                       ? InstanceOrPrimitiveOfSchemaCoValuesNullable<
                           Members[number]
                         >

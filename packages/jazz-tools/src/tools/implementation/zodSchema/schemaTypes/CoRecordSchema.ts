@@ -15,15 +15,22 @@ import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { z } from "../zodReExport.js";
-import { AnyZodOrCoValueSchema, WithHelpers } from "../zodSchema.js";
+import {
+  AnyZodOrCoValueSchema,
+  WithHelpers,
+  ZodSchemaForAnySchema,
+} from "../zodSchema.js";
+import { CoreCoOptionalSchema } from "./CoOptionalSchema.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 type CoRecordInit<
   K extends z.core.$ZodString<string>,
-  V extends z.core.$ZodType,
+  V extends AnyZodOrCoValueSchema,
 > = {
-  [key in z.output<K>]: V extends z.core.$ZodOptional<any>
-    ? InstanceOrPrimitiveOfSchemaCoValuesNullable<V>
+  [key in z.output<K>]: V extends
+    | z.core.$ZodOptional<infer V2>
+    | CoreCoOptionalSchema<infer V2>
+    ? NonNullable<InstanceOrPrimitiveOfSchemaCoValuesNullable<V2>> | undefined
     : NonNullable<InstanceOrPrimitiveOfSchemaCoValuesNullable<V>>;
 };
 
@@ -86,15 +93,22 @@ export interface CoRecordSchema<
   getCoValueClass: () => typeof CoMap;
 }
 
+type CoRecordSchemaDefinition<
+  K extends z.core.$ZodString<string>,
+  V extends AnyZodOrCoValueSchema,
+> = CoMapSchemaDefinition & {
+  keyType: K;
+  valueType: V;
+};
+
 // less precise version to avoid circularity issues and allow matching against
 export interface CoreCoRecordSchema<
   K extends z.core.$ZodString<string> = z.core.$ZodString<string>,
-  V extends AnyZodOrCoValueSchema = z.core.$ZodType,
-> extends CoreCoValueSchema,
-    z.core.$ZodRecord<K, V> {
+  V extends AnyZodOrCoValueSchema = AnyZodOrCoValueSchema,
+> extends CoreCoValueSchema {
   builtin: "CoMap";
-  getDefinition: () => CoMapSchemaDefinition;
-  getZodSchema: () => z.core.$ZodRecord<K, V>;
+  getDefinition: () => CoRecordSchemaDefinition<K, V>;
+  getZodSchema: () => z.core.$ZodRecord<K, ZodSchemaForAnySchema<V>>;
 }
 
 export type CoRecordInstance<

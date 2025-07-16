@@ -1,5 +1,6 @@
 import { CoValueClass, isCoValueClass } from "../../../internal.js";
 import { coField } from "../../schema.js";
+import { CoreCoValueSchema } from "../schemaTypes/CoValueSchema.js";
 import { isUnionOfPrimitivesDeeply } from "../unionUtils.js";
 import {
   ZodCatch,
@@ -8,7 +9,7 @@ import {
   ZodReadonly,
   z,
 } from "../zodReExport.js";
-import { AnyCoreCoValueSchema, ZodPrimitiveSchema } from "../zodSchema.js";
+import { ZodPrimitiveSchema } from "../zodSchema.js";
 import { isCoValueSchema } from "./zodSchemaToCoSchema.js";
 
 /**
@@ -16,7 +17,7 @@ import { isCoValueSchema } from "./zodSchemaToCoSchema.js";
  */
 export type SchemaField =
   // Schemas created with co.map(), co.record(), co.list(), etc.
-  | AnyCoreCoValueSchema
+  | CoreCoValueSchema
   // CoValue classes created with class syntax, or framework-provided classes like Group
   | CoValueClass
   | ZodPrimitiveSchema
@@ -48,39 +49,40 @@ export function schemaFieldToCoFieldDef(schema: SchemaField) {
     return coField.ref(schema.getCoValueClass());
   } else {
     if ("_zod" in schema) {
-      if (schema._zod.def.type === "optional") {
-        const inner = schema._zod.def.innerType as ZodPrimitiveSchema;
+      const zodSchemaDef = schema._zod.def;
+      if (zodSchemaDef.type === "optional") {
+        const inner = zodSchemaDef.innerType as ZodPrimitiveSchema;
         if (isCoValueClass(inner)) {
           return coField.ref(inner, { optional: true });
         } else {
           return schemaFieldToCoFieldDef(inner);
         }
-      } else if (schema._zod.def.type === "string") {
+      } else if (zodSchemaDef.type === "string") {
         return coField.string;
-      } else if (schema._zod.def.type === "number") {
+      } else if (zodSchemaDef.type === "number") {
         return coField.number;
-      } else if (schema._zod.def.type === "boolean") {
+      } else if (zodSchemaDef.type === "boolean") {
         return coField.boolean;
-      } else if (schema._zod.def.type === "null") {
+      } else if (zodSchemaDef.type === "null") {
         return coField.null;
-      } else if (schema._zod.def.type === "enum") {
+      } else if (zodSchemaDef.type === "enum") {
         return coField.string;
-      } else if (schema._zod.def.type === "readonly") {
+      } else if (zodSchemaDef.type === "readonly") {
         return schemaFieldToCoFieldDef(
           (schema as unknown as ZodReadonly).def.innerType as SchemaField,
         );
-      } else if (schema._zod.def.type === "date") {
+      } else if (zodSchemaDef.type === "date") {
         return coField.optional.Date;
-      } else if (schema._zod.def.type === "template_literal") {
+      } else if (zodSchemaDef.type === "template_literal") {
         return coField.string;
-      } else if (schema._zod.def.type === "lazy") {
+      } else if (zodSchemaDef.type === "lazy") {
         // Mostly to support z.json()
         return schemaFieldToCoFieldDef(
           (schema as unknown as ZodLazy).unwrap() as SchemaField,
         );
       } else if (
-        schema._zod.def.type === "default" ||
-        schema._zod.def.type === "catch"
+        zodSchemaDef.type === "default" ||
+        zodSchemaDef.type === "catch"
       ) {
         console.warn(
           "z.default()/z.catch() are not supported in collaborative schemas. They will be ignored.",
@@ -90,41 +92,39 @@ export function schemaFieldToCoFieldDef(schema: SchemaField) {
           (schema as unknown as ZodDefault | ZodCatch).def
             .innerType as SchemaField,
         );
-      } else if (schema._zod.def.type === "literal") {
+      } else if (zodSchemaDef.type === "literal") {
         if (
-          schema._zod.def.values.some(
-            (literal) => typeof literal === "undefined",
-          )
+          zodSchemaDef.values.some((literal) => typeof literal === "undefined")
         ) {
           throw new Error("z.literal() with undefined is not supported");
         }
-        if (schema._zod.def.values.some((literal) => literal === null)) {
+        if (zodSchemaDef.values.some((literal) => literal === null)) {
           throw new Error("z.literal() with null is not supported");
         }
         if (
-          schema._zod.def.values.some((literal) => typeof literal === "bigint")
+          zodSchemaDef.values.some((literal) => typeof literal === "bigint")
         ) {
           throw new Error("z.literal() with bigint is not supported");
         }
         return coField.literal(
-          ...(schema._zod.def.values as Exclude<
-            (typeof schema._zod.def.values)[number],
+          ...(zodSchemaDef.values as Exclude<
+            (typeof zodSchemaDef.values)[number],
             undefined | null | bigint
           >[]),
         );
       } else if (
-        schema._zod.def.type === "object" ||
-        schema._zod.def.type === "array" ||
-        schema._zod.def.type === "tuple"
+        zodSchemaDef.type === "object" ||
+        zodSchemaDef.type === "array" ||
+        zodSchemaDef.type === "tuple"
       ) {
         return coField.json();
-      } else if (schema._zod.def.type === "custom") {
+      } else if (zodSchemaDef.type === "custom") {
         if ("builtin" in schema) {
           return schemaFieldToCoFieldDef(schema.builtin);
         } else {
           throw new Error(`Unsupported custom zod type`);
         }
-      } else if (schema._zod.def.type === "union") {
+      } else if (zodSchemaDef.type === "union") {
         if (isUnionOfPrimitivesDeeply(schema)) {
           return coField.json();
         } else {

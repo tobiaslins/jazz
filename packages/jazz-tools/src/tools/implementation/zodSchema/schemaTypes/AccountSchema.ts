@@ -35,10 +35,16 @@ export type DefaultAccountShape = {
 
 export interface AccountSchema<
   Shape extends BaseAccountShape = DefaultAccountShape,
-> extends Omit<
-    CoMapSchema<Shape>,
-    "builtin" | "create" | "load" | "withMigration" | "getCoValueClass"
-  > {
+> extends CoreAccountSchema<Shape>,
+    Omit<
+      CoMapSchema<Shape>,
+      | "builtin"
+      | "create"
+      | "load"
+      | "withMigration"
+      | "getCoValueClass"
+      | "getZodSchema"
+    > {
   builtin: "Account";
 
   create: (options: {
@@ -159,8 +165,7 @@ export type CoProfileSchema<
 // less precise version to avoid circularity issues and allow matching against
 export interface CoreAccountSchema<
   Shape extends z.core.$ZodLooseShape = z.core.$ZodLooseShape,
-> extends z.core.$ZodObject<Shape>,
-    CoreCoValueSchema {
+> extends CoreCoValueSchema {
   builtin: "Account";
   getDefinition: () => CoMapSchemaDefinition;
   getZodSchema: () => z.core.$ZodObject<Shape>;

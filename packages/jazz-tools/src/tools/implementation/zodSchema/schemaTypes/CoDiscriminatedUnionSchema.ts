@@ -1,7 +1,6 @@
 import {
   Account,
   AnonymousJazzAgent,
-  AnyCoreCoValueSchema,
   InstanceOfSchema,
   InstanceOrPrimitiveOfSchemaCoValuesNullable,
   Resolved,
@@ -12,7 +11,7 @@ import {
 import { z } from "../zodReExport.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
-export type AnyDiscriminableCoSchema = AnyCoreCoValueSchema &
+export type AnyDiscriminableCoSchema = CoreCoValueSchema &
   z.core.$ZodTypeDiscriminable;
 
 export type CoDiscriminatedUnionSchemaDefinition = {
@@ -21,11 +20,13 @@ export type CoDiscriminatedUnionSchemaDefinition = {
   options: AnyDiscriminableCoSchema[];
 };
 
+export type DiscriminableCoValueSchemas = readonly [
+  AnyDiscriminableCoSchema,
+  ...AnyDiscriminableCoSchema[],
+];
+
 export interface CoreCoDiscriminatedUnionSchema<
-  Types extends readonly [
-    AnyDiscriminableCoSchema,
-    ...AnyDiscriminableCoSchema[],
-  ],
+  Types extends DiscriminableCoValueSchemas = DiscriminableCoValueSchemas,
 > extends CoreCoValueSchema,
     z.core.$ZodDiscriminatedUnion<Types> {
   builtin: "CoDiscriminatedUnion";
@@ -33,10 +34,7 @@ export interface CoreCoDiscriminatedUnionSchema<
   getZodSchema: () => z.core.$ZodDiscriminatedUnion<Types>;
 }
 export interface CoDiscriminatedUnionSchema<
-  Types extends readonly [
-    AnyDiscriminableCoSchema,
-    ...AnyDiscriminableCoSchema[],
-  ],
+  Types extends DiscriminableCoValueSchemas,
 > extends CoreCoDiscriminatedUnionSchema<Types> {
   load(
     id: string,
@@ -70,10 +68,7 @@ export interface CoDiscriminatedUnionSchema<
 }
 
 export function createCoreCoDiscriminatedUnionSchema<
-  Types extends readonly [
-    AnyDiscriminableCoSchema,
-    ...AnyDiscriminableCoSchema[],
-  ],
+  Types extends DiscriminableCoValueSchemas,
 >(
   discriminator: string,
   schemas: Types,
@@ -96,10 +91,7 @@ export function createCoreCoDiscriminatedUnionSchema<
 }
 
 export function enrichCoDiscriminatedUnionSchema<
-  Types extends readonly [
-    AnyDiscriminableCoSchema,
-    ...AnyDiscriminableCoSchema[],
-  ],
+  Types extends DiscriminableCoValueSchemas,
 >(
   schema: z.ZodDiscriminatedUnion<Types>,
   coValueClass: SchemaUnionConcreteSubclass<InstanceOfSchema<Types[number]>>,
@@ -119,8 +111,5 @@ export function enrichCoDiscriminatedUnionSchema<
 }
 
 type CoDiscriminatedUnionInstanceCoValuesNullable<
-  Types extends readonly [
-    AnyDiscriminableCoSchema,
-    ...AnyDiscriminableCoSchema[],
-  ],
+  Types extends DiscriminableCoValueSchemas,
 > = NonNullable<InstanceOrPrimitiveOfSchemaCoValuesNullable<Types[number]>>;

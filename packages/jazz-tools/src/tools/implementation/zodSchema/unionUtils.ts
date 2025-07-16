@@ -2,6 +2,7 @@ import { RawAccount, RawCoList, RawCoMap } from "cojson";
 import {
   AnyDiscriminableCoSchema,
   AnyZodOrCoValueSchema,
+  CoDiscriminatedUnionSchema,
   CoMap,
   CoreCoDiscriminatedUnionSchema,
   CoreCoMapSchema,
@@ -48,7 +49,9 @@ export function schemaUnionDiscriminatorFor(
       if (option.builtin === "CoMap") {
         availableOptions.push(option);
       } else if (option.builtin === "CoDiscriminatedUnion") {
-        for (const subOption of option.getDefinition().options) {
+        for (const subOption of (
+          option as CoDiscriminatedUnionSchema<any>
+        ).getDefinition().options) {
           if (!options.includes(subOption)) {
             options.push(subOption);
           }
@@ -102,7 +105,7 @@ export function schemaUnionDiscriminatorFor(
         }
 
         if (match) {
-          const coValueSchema = coreSchemaToCoSchema(option);
+          const coValueSchema = coreSchemaToCoSchema(option as any);
           return coValueSchema.getCoValueClass() as typeof CoMap;
         }
       }
@@ -134,7 +137,9 @@ function isCoMapOrUnionOfCoMapsDeeply(
   if (schema.builtin === "CoMap") {
     return true;
   } else if (schema.builtin === "CoDiscriminatedUnion") {
-    return schema.getDefinition().options.every(isCoMapOrUnionOfCoMapsDeeply);
+    return (schema as CoDiscriminatedUnionSchema<any>)
+      .getDefinition()
+      .options.every(isCoMapOrUnionOfCoMapsDeeply);
   } else {
     return false;
   }

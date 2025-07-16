@@ -2,6 +2,7 @@ import { LocalNode, RawAccount } from "cojson";
 import {
   Account,
   AccountClass,
+  CoFeed,
   CoRecordSchema,
   CoValueClass,
   CoValueFromRaw,
@@ -51,7 +52,7 @@ import { z } from "./zodReExport.js";
 // defining an extra type for this, otherwise BaseSchema & {...} often
 // gets expanded into a n inferred type that's too long for typescript to print
 export type WithHelpers<
-  Base extends AnyCoreCoValueSchema,
+  Base extends CoreCoValueSchema,
   Helpers extends object,
 > = Base & Helpers;
 
@@ -63,7 +64,7 @@ export type ZodPrimitiveSchema =
   | z.core.$ZodDate
   | z.core.$ZodLiteral;
 
-export type CoValueClassOrSchema = CoValueClass | AnyCoreCoValueSchema;
+export type CoValueClassOrSchema = CoValueClass | CoreCoValueSchema;
 
 export type CoValueSchemaFromCoreSchema<S extends CoreCoValueSchema> =
   S extends CoreAccountSchema<infer Shape extends BaseAccountShape>
@@ -100,12 +101,6 @@ type AccountClassEssentials = {
   fromNode: <A extends Account>(this: AccountClass<A>, node: LocalNode) => A;
 };
 
-/**
- * The core representation of a schema that can be used to create a CoValue.
- *
- * "Core" CoValue schemas are necessary to avoid circularity issues when
- * defining schemas. This is similar to how Zod's "core" schemas are used.
- */
 export type AnyCoreCoValueSchema =
   | CoreCoMapSchema
   | CoreAccountSchema
@@ -118,24 +113,34 @@ export type AnyCoreCoValueSchema =
   | CoreRichTextSchema
   | CoreFileStreamSchema;
 
-export type AnyZodSchema = z.core.$ZodType;
+type AnyZodSchema = z.core.$ZodType;
 
-export type AnyZodOrCoValueSchema = AnyZodSchema | AnyCoreCoValueSchema;
+export type AnyZodOrCoValueSchema = AnyZodSchema | CoreCoValueSchema;
+
+// This type is intentionally vague to avoid circularity issues
+export type ZodSchemaForAnySchema<S extends AnyZodOrCoValueSchema> =
+  S extends CoreCoValueSchema
+    ? z.core.$ZodType
+    : S extends z.core.$ZodType
+      ? z.core.$ZodType
+      : never;
 
 export type Loaded<
-  T extends CoValueClass | AnyCoreCoValueSchema,
+  T extends CoValueClassOrSchema,
   R extends ResolveQuery<T> = true,
 > = Resolved<NonNullable<InstanceOfSchemaCoValuesNullable<T>>, R>;
 
-export type ResolveQuery<T extends CoValueClass | AnyCoreCoValueSchema> =
-  RefsToResolve<NonNullable<InstanceOfSchemaCoValuesNullable<T>>>;
+export type ResolveQuery<T extends CoValueClassOrSchema> = RefsToResolve<
+  NonNullable<InstanceOfSchemaCoValuesNullable<T>>
+>;
 
 export type ResolveQueryStrict<
-  T extends CoValueClass | AnyCoreCoValueSchema,
+  T extends CoValueClassOrSchema,
   R extends ResolveQuery<T>,
 > = RefsToResolveStrict<NonNullable<InstanceOfSchemaCoValuesNullable<T>>, R>;
 
-export type InitFor<T extends CoValueClass | AnyCoreCoValueSchema> =
-  T extends CoreCoMapSchema<infer Shape>
-    ? Simplify<CoMapInitZod<Shape>>
-    : never;
+export type InitFor<T extends CoValueClassOrSchema> = T extends CoreCoMapSchema<
+  infer Shape
+>
+  ? Simplify<CoMapInitZod<Shape>>
+  : never;

@@ -6,18 +6,22 @@ import {
   RefsToResolve,
   RefsToResolveStrict,
   Resolved,
+  Simplify,
   SubscribeListenerOptions,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { z } from "../zodReExport.js";
+import { CoreCoOptionalSchema } from "./CoOptionalSchema.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
-type CoFeedInit<T extends z.core.$ZodType> = Array<
-  T extends z.core.$ZodOptional<any>
-    ? InstanceOrPrimitiveOfSchemaCoValuesNullable<T>
-    : NonNullable<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>>
+type CoFeedInit<T extends AnyZodOrCoValueSchema> = Simplify<
+  Array<
+    T extends z.core.$ZodOptional<infer V2> | CoreCoOptionalSchema<infer V2>
+      ? NonNullable<InstanceOrPrimitiveOfSchemaCoValuesNullable<V2>> | undefined
+      : NonNullable<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>>
+  >
 >;
 
 export interface CoFeedSchema<T extends AnyZodOrCoValueSchema>
@@ -62,12 +66,12 @@ export function createCoreCoFeedSchema<T extends AnyZodOrCoValueSchema>(
   const zodSchema = z.instanceof(CoFeed).meta({
     collaborative: true,
   });
-  return Object.assign(zodSchema, {
+  return {
     collaborative: true as const,
     builtin: "CoFeed" as const,
     element,
     getZodSchema: () => zodSchema,
-  });
+  };
 }
 
 export function enrichCoFeedSchema<T extends AnyZodOrCoValueSchema>(
@@ -97,9 +101,8 @@ export function enrichCoFeedSchema<T extends AnyZodOrCoValueSchema>(
 
 // less precise version to avoid circularity issues and allow matching against
 export interface CoreCoFeedSchema<
-  T extends AnyZodOrCoValueSchema = z.core.$ZodType,
-> extends CoreCoValueSchema,
-    z.core.$ZodCustom<CoFeed, unknown> {
+  T extends AnyZodOrCoValueSchema = AnyZodOrCoValueSchema,
+> extends CoreCoValueSchema {
   builtin: "CoFeed";
   element: T;
   getZodSchema: () => z.core.$ZodCustom<CoFeed, unknown>;
