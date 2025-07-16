@@ -236,9 +236,6 @@ describe("CoMap.Record", async () => {
         pet1: Dog.create({ name: "Rex", breed: "Labrador" }),
       });
 
-      type V = (typeof Person)["_zod"]["def"]["valueType"];
-      type T = InstanceOrPrimitiveOfSchema<typeof Person>;
-
       const updates: Loaded<typeof Person, { $each: true }>[] = [];
       const spy = vi.fn((person) => updates.push(person));
 
