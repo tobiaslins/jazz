@@ -14,10 +14,12 @@ import { CoreCoValueSchema } from "./CoValueSchema.js";
 export type AnyDiscriminableCoSchema = CoreCoValueSchema &
   z.core.$ZodTypeDiscriminable;
 
-export type CoDiscriminatedUnionSchemaDefinition = {
+export type CoDiscriminatedUnionSchemaDefinition<
+  Options extends DiscriminableCoValueSchemas,
+> = {
   discriminator: string;
   discriminatorMap: z.core.$ZodDiscriminatedUnionInternals["disc"];
-  options: AnyDiscriminableCoSchema[];
+  options: Options;
 };
 
 export type DiscriminableCoValueSchemas = readonly [
@@ -26,16 +28,16 @@ export type DiscriminableCoValueSchemas = readonly [
 ];
 
 export interface CoreCoDiscriminatedUnionSchema<
-  Types extends DiscriminableCoValueSchemas = DiscriminableCoValueSchemas,
+  Options extends DiscriminableCoValueSchemas = DiscriminableCoValueSchemas,
 > extends CoreCoValueSchema,
-    z.core.$ZodDiscriminatedUnion<Types> {
+    z.core.$ZodDiscriminatedUnion<Options> {
   builtin: "CoDiscriminatedUnion";
-  getDefinition: () => CoDiscriminatedUnionSchemaDefinition;
-  getZodSchema: () => z.core.$ZodDiscriminatedUnion<Types>;
+  getDefinition: () => CoDiscriminatedUnionSchemaDefinition<Options>;
+  getZodSchema: () => z.core.$ZodDiscriminatedUnion<Options>;
 }
 export interface CoDiscriminatedUnionSchema<
-  Types extends DiscriminableCoValueSchemas,
-> extends CoreCoDiscriminatedUnionSchema<Types> {
+  Options extends DiscriminableCoValueSchemas,
+> extends CoreCoDiscriminatedUnionSchema<Options> {
   load(
     id: string,
     options?: {
@@ -43,19 +45,19 @@ export interface CoDiscriminatedUnionSchema<
       skipRetry?: boolean;
     },
   ): Promise<Resolved<
-    CoDiscriminatedUnionInstanceCoValuesNullable<Types> & SchemaUnion,
+    CoDiscriminatedUnionInstanceCoValuesNullable<Options> & SchemaUnion,
     true
   > | null>;
 
   subscribe(
     id: string,
     options: SubscribeListenerOptions<
-      CoDiscriminatedUnionInstanceCoValuesNullable<Types> & SchemaUnion,
+      CoDiscriminatedUnionInstanceCoValuesNullable<Options> & SchemaUnion,
       true
     >,
     listener: (
       value: Resolved<
-        CoDiscriminatedUnionInstanceCoValuesNullable<Types> & SchemaUnion,
+        CoDiscriminatedUnionInstanceCoValuesNullable<Options> & SchemaUnion,
         true
       >,
       unsubscribe: () => void,
@@ -63,16 +65,16 @@ export interface CoDiscriminatedUnionSchema<
   ): () => void;
 
   getCoValueClass: () => SchemaUnionConcreteSubclass<
-    InstanceOfSchema<Types[number]>
+    InstanceOfSchema<Options[number]>
   >;
 }
 
 export function createCoreCoDiscriminatedUnionSchema<
-  Types extends DiscriminableCoValueSchemas,
+  Options extends DiscriminableCoValueSchemas,
 >(
   discriminator: string,
-  schemas: Types,
-): CoreCoDiscriminatedUnionSchema<Types> {
+  schemas: Options,
+): CoreCoDiscriminatedUnionSchema<Options> {
   const zodSchema = z.discriminatedUnion(discriminator, schemas as any);
   return Object.assign(zodSchema, {
     collaborative: true as const,
@@ -91,11 +93,11 @@ export function createCoreCoDiscriminatedUnionSchema<
 }
 
 export function enrichCoDiscriminatedUnionSchema<
-  Types extends DiscriminableCoValueSchemas,
+  Options extends DiscriminableCoValueSchemas,
 >(
-  schema: z.ZodDiscriminatedUnion<Types>,
-  coValueClass: SchemaUnionConcreteSubclass<InstanceOfSchema<Types[number]>>,
-): CoDiscriminatedUnionSchema<Types> {
+  schema: z.ZodDiscriminatedUnion<Options>,
+  coValueClass: SchemaUnionConcreteSubclass<InstanceOfSchema<Options[number]>>,
+): CoDiscriminatedUnionSchema<Options> {
   return Object.assign(schema, {
     load: (...args: [any, ...any]) => {
       return coValueClass.load(...args);
@@ -107,9 +109,9 @@ export function enrichCoDiscriminatedUnionSchema<
     getCoValueClass: () => {
       return coValueClass;
     },
-  }) as unknown as CoDiscriminatedUnionSchema<Types>;
+  }) as unknown as CoDiscriminatedUnionSchema<Options>;
 }
 
 type CoDiscriminatedUnionInstanceCoValuesNullable<
-  Types extends DiscriminableCoValueSchemas,
-> = NonNullable<InstanceOrPrimitiveOfSchemaCoValuesNullable<Types[number]>>;
+  Options extends DiscriminableCoValueSchemas,
+> = NonNullable<InstanceOrPrimitiveOfSchemaCoValuesNullable<Options[number]>>;

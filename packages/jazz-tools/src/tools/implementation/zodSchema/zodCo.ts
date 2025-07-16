@@ -161,11 +161,11 @@ export const coOptionalDefiner = <T extends CoreCoValueSchema>(
 };
 
 export const coDiscriminatedUnionDefiner = <
-  T extends DiscriminableCoValueSchemas,
+  Options extends DiscriminableCoValueSchemas,
 >(
   discriminator: string,
-  schemas: T,
-): CoDiscriminatedUnionSchema<T> => {
+  schemas: Options,
+): CoDiscriminatedUnionSchema<Options> => {
   const coreSchema = createCoreCoDiscriminatedUnionSchema(
     discriminator,
     schemas,
