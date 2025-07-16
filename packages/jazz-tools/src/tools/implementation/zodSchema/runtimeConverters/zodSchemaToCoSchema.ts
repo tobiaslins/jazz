@@ -34,8 +34,6 @@ import {
   schemaFieldToCoFieldDef,
 } from "./zodFieldToCoFieldDef.js";
 
-let coSchemasForZodSchemas = new Map<AnyCoSchema, AnyCoSchema>();
-
 export function isAnyCoValueSchema(
   schema: AnyZodOrCoValueSchema | CoValueClass,
 ): schema is AnyCoSchema {
@@ -62,10 +60,6 @@ export function isCoValueSchema(
 export function coreSchemaToCoSchema<S extends AnyCoSchema>(
   schema: S,
 ): CoValueSchemaFromCoreSchema<S> {
-  if (coSchemasForZodSchemas.has(schema)) {
-    return coSchemasForZodSchemas.get(schema) as CoValueSchemaFromCoreSchema<S>;
-  }
-
   if (schema.builtin === "CoOptional") {
     throw new Error(
       `co.optional() of collaborative types is not supported as top-level schemas: ${JSON.stringify(schema)}`,
@@ -95,7 +89,6 @@ export function coreSchemaToCoSchema<S extends AnyCoSchema>(
         ? enrichAccountSchema(schema as any, coValueClass as any)
         : enrichCoMapSchema(schema as any, coValueClass as any);
 
-    coSchemasForZodSchemas.set(schema as any, coValueSchema);
     return coValueSchema as unknown as CoValueSchemaFromCoreSchema<S>;
   } else if (schema.builtin === "CoList") {
     const def = schema.getDefinition();
@@ -110,7 +103,6 @@ export function coreSchemaToCoSchema<S extends AnyCoSchema>(
 
     const coValueSchema = enrichCoListSchema(schema, coValueClass as any);
 
-    coSchemasForZodSchemas.set(schema, coValueSchema);
     return coValueSchema as unknown as CoValueSchemaFromCoreSchema<S>;
   } else if (schema.builtin === "CoFeed") {
     const coValueClass = CoFeed.Of(
