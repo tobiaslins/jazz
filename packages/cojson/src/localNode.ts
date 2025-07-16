@@ -348,12 +348,10 @@ export class LocalNode {
     skipLoadingFromPeer?: PeerID,
     skipRetry?: boolean,
   ): Promise<CoValueCore> {
-    if (!id) {
-      throw new Error("Trying to load CoValue with undefined id");
-    }
-
-    if (!id.startsWith("co_z")) {
-      throw new Error(`Trying to load CoValue with invalid id ${id}`);
+    if (typeof id !== "string" || !id.startsWith("co_z")) {
+      throw new TypeError(
+        `Trying to load CoValue with invalid id ${Array.isArray(id) ? JSON.stringify(id) : id}`,
+      );
     }
 
     if (this.crashed) {

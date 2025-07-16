@@ -991,7 +991,7 @@ describe("LocalNode.load", () => {
 
     // @ts-expect-error Testing with undefined ID
     await expect(client.node.load(undefined)).rejects.toThrow(
-      "Trying to load CoValue with undefined id",
+      "Trying to load CoValue with invalid id undefined",
     );
   });
 

@@ -47,6 +47,26 @@ describe("useCoState", () => {
     expect(result.current?.value).toBe("123");
   });
 
+  it("should return null on invalid id", async () => {
+    const TestMap = co.map({
+      value: z.string(),
+    });
+
+    const account = await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+    });
+
+    const { result } = renderHook(() => useCoState(TestMap, "test", {}), {
+      account,
+    });
+
+    expect(result.current).toBeUndefined();
+
+    await waitFor(() => {
+      expect(result.current).toBeNull();
+    });
+  });
+
   it("should update the value when the coValue changes", async () => {
     const TestMap = co.map({
       value: z.string(),
