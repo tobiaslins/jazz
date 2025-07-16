@@ -1,5 +1,15 @@
 # jazz-tools
 
+## 0.15.12
+
+### Patch Changes
+
+- d1c1b0c: Fix stuck authentication when using onAnonymousAccountDiscarded with a storage
+- cf4ad72: fix unhandled rejection on CoValue.load
+  - cojson@0.15.12
+  - cojson-storage-indexeddb@0.15.12
+  - cojson-transport-ws@0.15.12
+
 ## 0.15.11
 
 ### Patch Changes
