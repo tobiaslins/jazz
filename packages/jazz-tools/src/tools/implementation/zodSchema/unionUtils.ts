@@ -49,8 +49,8 @@ export function schemaUnionDiscriminatorFor(
         availableOptions.push(option);
       } else if (option.builtin === "CoDiscriminatedUnion") {
         for (const subOption of option.getDefinition().options) {
-          if (subOption.builtin === "CoMap") {
-            availableOptions.push(subOption);
+          if (!options.includes(subOption)) {
+            options.push(subOption);
           }
         }
       } else {

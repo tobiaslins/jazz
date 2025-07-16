@@ -82,6 +82,54 @@ describe("co.discriminatedUnion", () => {
     }
   });
 
+  test("use deeply nested co.discriminatedUnions", () => {
+    const BaseError = { status: z.literal("failed"), message: z.string() };
+    const BadRequestError = co.map({ ...BaseError, code: z.literal(400) });
+    const UnauthorizedError = co.map({ ...BaseError, code: z.literal(401) });
+    const Errors = co.discriminatedUnion("code", [
+      BadRequestError,
+      co.discriminatedUnion("code", [
+        co.discriminatedUnion("code", [
+          co.discriminatedUnion("code", [UnauthorizedError]),
+        ]),
+      ]),
+    ]);
+
+    const Response = co.map({
+      error: Errors,
+    });
+
+    const response = Response.create({
+      error: BadRequestError.create({
+        status: "failed",
+        message: "Bad request",
+        code: 400,
+      }),
+    });
+
+    expect(response.error.status).toEqual("failed");
+    if (response.error.status === "failed") {
+      expect(response.error.code).toEqual(400);
+      if (response.error.code === 400) {
+        expect(response.error.message).toEqual("Bad request");
+      }
+    }
+
+    response.error = UnauthorizedError.create({
+      status: "failed",
+      message: "Unauthorized",
+      code: 401,
+    });
+
+    expect(response.error.status).toEqual("failed");
+    if (response.error.status === "failed") {
+      expect(response.error.code).toEqual(401);
+      if (response.error.code === 401) {
+        expect(response.error.message).toEqual("Unauthorized");
+      }
+    }
+  });
+
   test("load CoValue instances using the DiscriminatedUnion schema", async () => {
     const Dog = co.map({
       type: z.literal("dog"),
