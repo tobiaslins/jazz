@@ -1,6 +1,7 @@
 import {
   Account,
   AnyZodOrCoValueSchema,
+  CoDiscriminatedUnionSchema,
   CoFeed,
   CoList,
   CoMap,
@@ -14,6 +15,8 @@ import {
 import { CoreCoFeedSchema } from "../schemaTypes/CoFeedSchema.js";
 import { CoreCoListSchema } from "../schemaTypes/CoListSchema.js";
 import { CoreCoMapSchema } from "../schemaTypes/CoMapSchema.js";
+import { CoreCoOptionalSchema } from "../schemaTypes/CoOptionalSchema.js";
+import { CoreCoValueSchema } from "../schemaTypes/CoValueSchema.js";
 import { CoreFileStreamSchema } from "../schemaTypes/FileStreamSchema.js";
 import { CorePlainTextSchema } from "../schemaTypes/PlainTextSchema.js";
 import { CoreRichTextSchema } from "../schemaTypes/RichTextSchema.js";
@@ -21,7 +24,7 @@ import { z } from "../zodReExport.js";
 import { InstanceOrPrimitiveOfSchema } from "./InstanceOrPrimitiveOfSchema.js";
 
 export type InstanceOfSchema<S extends CoValueClass | AnyZodOrCoValueSchema> =
-  S extends z.core.$ZodType
+  S extends CoreCoValueSchema
     ? S extends CoreAccountSchema<infer Shape>
       ? {
           [key in keyof Shape]: InstanceOrPrimitiveOfSchema<Shape[key]>;
@@ -49,9 +52,9 @@ export type InstanceOfSchema<S extends CoValueClass | AnyZodOrCoValueSchema> =
                   ? CoRichText
                   : S extends CoreFileStreamSchema
                     ? FileStream
-                    : S extends z.core.$ZodOptional<infer Inner>
-                      ? InstanceOrPrimitiveOfSchema<Inner>
-                      : S extends z.core.$ZodUnion<infer Members>
+                    : S extends CoreCoOptionalSchema<infer T>
+                      ? InstanceOrPrimitiveOfSchema<T>
+                      : S extends CoDiscriminatedUnionSchema<infer Members>
                         ? InstanceOrPrimitiveOfSchema<Members[number]>
                         : never
     : S extends CoValueClass
