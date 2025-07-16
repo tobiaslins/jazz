@@ -159,7 +159,7 @@ describe("CoMap", async () => {
 
     test("Comap with recursive optional reference", () => {
       const Recursive = co.map({
-        get child(): z.ZodOptional<typeof Recursive> {
+        get child(): co.Optional<typeof Recursive> {
           return co.optional(Recursive);
         },
       });
@@ -185,7 +185,7 @@ describe("CoMap", async () => {
         name: z.string(),
         age: z.number(),
         // TODO: would be nice if this didn't need a type annotation
-        get friend(): z.ZodOptional<typeof Person> {
+        get friend(): co.Optional<typeof Person> {
           return co.optional(Person);
         },
       });

@@ -144,7 +144,7 @@ describe("CoMap", async () => {
         name: z.string(),
         age: z.number(),
         // TODO: would be nice if this didn't need a type annotation
-        get friend(): z.ZodOptional<typeof Person> {
+        get friend(): co.Optional<typeof Person> {
           return co.optional(Person);
         },
       });
@@ -181,7 +181,7 @@ describe("CoMap", async () => {
       const Person = co.map({
         name: z.string(),
         age: z.number(),
-        get friend(): z.ZodOptional<typeof Person> {
+        get friend(): co.Optional<typeof Person> {
           return co.optional(Person);
         },
       });
@@ -210,7 +210,7 @@ describe("CoMap", async () => {
       const Person = co.map({
         name: z.string(),
         age: z.number(),
-        get friend(): z.ZodOptional<typeof Person> {
+        get friend(): co.Optional<typeof Person> {
           return co.optional(Person);
         },
       });
