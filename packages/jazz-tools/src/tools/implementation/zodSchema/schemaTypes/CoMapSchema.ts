@@ -23,7 +23,7 @@ export interface CoMapSchema<
   Shape extends z.core.$ZodLooseShape,
   Config extends z.core.$ZodObjectConfig = z.core.$ZodObjectConfig,
   Owner extends Account | Group = Account | Group,
-> extends AnyCoMapSchema<Shape, Config> {
+> extends CoreCoMapSchema<Shape, Config> {
   create: (
     init: Simplify<CoMapInitZod<Shape>>,
     options?:
@@ -130,7 +130,7 @@ export interface CoMapSchema<
   ): CoMapSchema<Shape, z.core.$catchall<T>>;
 
   /** @deprecated Define your helper methods separately, in standalone functions. */
-  withHelpers<S extends AnyCoMapSchema, T extends object>(
+  withHelpers<S extends CoreCoMapSchema, T extends object>(
     this: S,
     helpers: (Self: S) => T,
   ): WithHelpers<S, T>;
@@ -151,7 +151,7 @@ export interface CoMapSchema<
 
 export function createCoreCoMapSchema<Shape extends z.core.$ZodLooseShape>(
   input: { shape: Shape } | { zodObject: z.ZodObject<Shape> },
-): AnyCoMapSchema<Shape> {
+): CoreCoMapSchema<Shape> {
   const zodSchema =
     "zodObject" in input
       ? input.zodObject
@@ -177,7 +177,7 @@ export function enrichCoMapSchema<
   Shape extends z.core.$ZodLooseShape,
   Config extends z.core.$ZodObjectConfig,
 >(
-  schema: AnyCoMapSchema<Shape, Config>,
+  schema: CoreCoMapSchema<Shape, Config>,
   coValueClass: typeof CoMap,
 ): CoMapSchema<Shape, Config> {
   // @ts-expect-error schema is actually a z.ZodObject, but we need to use z.core.$ZodObject to avoid circularity issues
@@ -210,7 +210,9 @@ export function enrichCoMapSchema<
       const enrichedSchema = createCoreCoMapSchema({ zodObject: newSchema });
       return coreSchemaToCoSchema(enrichedSchema);
     },
-    withHelpers: (helpers: (Self: AnyCoMapSchema<Shape, Config>) => object) => {
+    withHelpers: (
+      helpers: (Self: CoreCoMapSchema<Shape, Config>) => object,
+    ) => {
       return Object.assign(schema, helpers(schema));
     },
     withMigration: (migration: (value: any) => undefined) => {
@@ -258,7 +260,7 @@ export type CoMapSchemaDefinition = {
 };
 
 // less precise version to avoid circularity issues and allow matching against
-export type AnyCoMapSchema<
+export type CoreCoMapSchema<
   Shape extends z.core.$ZodLooseShape = z.core.$ZodLooseShape,
   Config extends z.core.$ZodObjectConfig = z.core.$ZodObjectConfig,
 > = CoreCoValueSchema &

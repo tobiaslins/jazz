@@ -22,7 +22,7 @@ type CoListInit<T extends z.core.$ZodType> = Array<
 >;
 
 export interface CoListSchema<T extends AnyZodOrCoValueSchema>
-  extends AnyCoListSchema<T> {
+  extends CoreCoListSchema<T> {
   create: (
     items: CoListInit<T>,
     options?: { owner: Account | Group } | Account | Group,
@@ -48,7 +48,7 @@ export interface CoListSchema<T extends AnyZodOrCoValueSchema>
   ): () => void;
 
   /** @deprecated Define your helper methods separately, in standalone functions. */
-  withHelpers<S extends AnyCoListSchema<T>, T2 extends object>(
+  withHelpers<S extends CoreCoListSchema<T>, T2 extends object>(
     this: S,
     helpers: (Self: S) => T2,
   ): WithHelpers<S, T2>;
@@ -62,7 +62,7 @@ type CoListSchemaDefinition = {
 
 export function createCoreCoListSchema<T extends AnyZodOrCoValueSchema>(
   element: T,
-): AnyCoListSchema<T> {
+): CoreCoListSchema<T> {
   const zodSchema = z.array(element).meta({
     collaborative: true,
   });
@@ -77,7 +77,7 @@ export function createCoreCoListSchema<T extends AnyZodOrCoValueSchema>(
 }
 
 export function enrichCoListSchema<T extends AnyZodOrCoValueSchema>(
-  schema: AnyCoListSchema<T>,
+  schema: CoreCoListSchema<T>,
   coValueClass: typeof CoList,
 ): CoListSchema<T> {
   return Object.assign(schema, {
@@ -91,7 +91,7 @@ export function enrichCoListSchema<T extends AnyZodOrCoValueSchema>(
       // @ts-expect-error
       return coValueClass.subscribe(...args);
     },
-    withHelpers: (helpers: (Self: AnyCoListSchema<T>) => object) => {
+    withHelpers: (helpers: (Self: CoreCoListSchema<T>) => object) => {
       return Object.assign(schema, helpers(schema));
     },
     getCoValueClass: () => {
@@ -101,7 +101,7 @@ export function enrichCoListSchema<T extends AnyZodOrCoValueSchema>(
 }
 
 // less precise version to avoid circularity issues and allow matching against
-export interface AnyCoListSchema<
+export interface CoreCoListSchema<
   T extends AnyZodOrCoValueSchema = z.core.$ZodType,
 > extends CoreCoValueSchema,
     z.core.$ZodArray<T> {

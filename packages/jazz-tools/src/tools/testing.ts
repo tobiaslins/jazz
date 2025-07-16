@@ -5,9 +5,9 @@ import {
   Account,
   AccountClass,
   type AnonymousJazzAgent,
-  AnyAccountSchema,
   AuthCredentials,
   CoValueFromRaw,
+  CoreAccountSchema,
   InstanceOfSchema,
   JazzContextManager,
   JazzContextManagerAuthProps,
@@ -88,7 +88,7 @@ let isMigrationActive = false;
 export async function createJazzTestAccount<
   S extends
     | (AccountClass<Account> & CoValueFromRaw<Account>)
-    | AnyAccountSchema,
+    | CoreAccountSchema,
 >(options?: {
   isCurrentActiveAccount?: boolean;
   AccountSchema?: S;

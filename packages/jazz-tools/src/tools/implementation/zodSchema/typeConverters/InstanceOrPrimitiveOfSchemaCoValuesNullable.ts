@@ -1,8 +1,6 @@
 import { JsonValue } from "cojson";
 import {
   Account,
-  AnyAccountSchema,
-  AnyCoRecordSchema,
   AnyZodOrCoValueSchema,
   CoFeed,
   CoList,
@@ -10,22 +8,24 @@ import {
   CoPlainText,
   CoRichText,
   CoValueClass,
+  CoreAccountSchema,
+  CoreCoRecordSchema,
   FileStream,
   InstanceOrPrimitiveOfSchema,
   Profile,
 } from "../../../internal.js";
-import { AnyCoFeedSchema } from "../schemaTypes/CoFeedSchema.js";
-import { AnyCoListSchema } from "../schemaTypes/CoListSchema.js";
-import { AnyCoMapSchema } from "../schemaTypes/CoMapSchema.js";
-import { AnyFileStreamSchema } from "../schemaTypes/FileStreamSchema.js";
-import { AnyPlainTextSchema } from "../schemaTypes/PlainTextSchema.js";
-import { AnyRichTextSchema } from "../schemaTypes/RichTextSchema.js";
+import { CoreCoFeedSchema } from "../schemaTypes/CoFeedSchema.js";
+import { CoreCoListSchema } from "../schemaTypes/CoListSchema.js";
+import { CoreCoMapSchema } from "../schemaTypes/CoMapSchema.js";
+import { CoreFileStreamSchema } from "../schemaTypes/FileStreamSchema.js";
+import { CorePlainTextSchema } from "../schemaTypes/PlainTextSchema.js";
+import { CoreRichTextSchema } from "../schemaTypes/RichTextSchema.js";
 import { z } from "../zodReExport.js";
 
 export type InstanceOrPrimitiveOfSchemaCoValuesNullable<
   S extends CoValueClass | AnyZodOrCoValueSchema,
 > = S extends z.core.$ZodType
-  ? S extends AnyAccountSchema<infer Shape>
+  ? S extends CoreAccountSchema<infer Shape>
     ?
         | ({
             -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchemaCoValuesNullable<
@@ -33,14 +33,14 @@ export type InstanceOrPrimitiveOfSchemaCoValuesNullable<
             >;
           } & { profile: Profile | null } & Account)
         | null
-    : S extends AnyCoRecordSchema<infer K, infer V>
+    : S extends CoreCoRecordSchema<infer K, infer V>
       ?
           | ({
               -readonly [key in z.output<K> &
                 string]: InstanceOrPrimitiveOfSchemaCoValuesNullable<V>;
             } & CoMap)
           | null
-      : S extends AnyCoMapSchema<infer Shape, infer Config>
+      : S extends CoreCoMapSchema<infer Shape, infer Config>
         ?
             | ({
                 -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchemaCoValuesNullable<
@@ -53,15 +53,15 @@ export type InstanceOrPrimitiveOfSchemaCoValuesNullable<
                   }) &
                 CoMap)
             | null
-        : S extends AnyCoListSchema<infer T>
+        : S extends CoreCoListSchema<infer T>
           ? CoList<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>> | null
-          : S extends AnyCoFeedSchema<infer T>
+          : S extends CoreCoFeedSchema<infer T>
             ? CoFeed<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>> | null
-            : S extends AnyPlainTextSchema
+            : S extends CorePlainTextSchema
               ? CoPlainText | null
-              : S extends AnyRichTextSchema
+              : S extends CoreRichTextSchema
                 ? CoRichText | null
-                : S extends AnyFileStreamSchema
+                : S extends CoreFileStreamSchema
                   ? FileStream | null
                   : S extends z.core.$ZodOptional<infer Inner>
                     ?

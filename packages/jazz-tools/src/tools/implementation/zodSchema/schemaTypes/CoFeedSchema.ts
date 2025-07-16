@@ -21,7 +21,7 @@ type CoFeedInit<T extends z.core.$ZodType> = Array<
 >;
 
 export interface CoFeedSchema<T extends AnyZodOrCoValueSchema>
-  extends AnyCoFeedSchema<T> {
+  extends CoreCoFeedSchema<T> {
   create(
     init: CoFeedInit<T>,
     options?: { owner: Account | Group } | Account | Group,
@@ -58,7 +58,7 @@ export interface CoFeedSchema<T extends AnyZodOrCoValueSchema>
 
 export function createCoreCoFeedSchema<T extends AnyZodOrCoValueSchema>(
   element: T,
-): AnyCoFeedSchema<T> {
+): CoreCoFeedSchema<T> {
   const zodSchema = z.instanceof(CoFeed).meta({
     collaborative: true,
   });
@@ -71,7 +71,7 @@ export function createCoreCoFeedSchema<T extends AnyZodOrCoValueSchema>(
 }
 
 export function enrichCoFeedSchema<T extends AnyZodOrCoValueSchema>(
-  schema: AnyCoFeedSchema<T>,
+  schema: CoreCoFeedSchema<T>,
   coValueClass: typeof CoFeed,
 ): CoFeedSchema<T> {
   return Object.assign(schema, {
@@ -86,7 +86,7 @@ export function enrichCoFeedSchema<T extends AnyZodOrCoValueSchema>(
       // @ts-expect-error
       return coValueClass.subscribe(...args);
     },
-    withHelpers: (helpers: (Self: AnyCoFeedSchema<T>) => object) => {
+    withHelpers: (helpers: (Self: CoreCoFeedSchema<T>) => object) => {
       return Object.assign(schema, helpers(schema));
     },
     getCoValueClass: () => {
@@ -96,7 +96,7 @@ export function enrichCoFeedSchema<T extends AnyZodOrCoValueSchema>(
 }
 
 // less precise version to avoid circularity issues and allow matching against
-export interface AnyCoFeedSchema<
+export interface CoreCoFeedSchema<
   T extends AnyZodOrCoValueSchema = z.core.$ZodType,
 > extends CoreCoValueSchema,
     z.core.$ZodCustom<CoFeed, unknown> {

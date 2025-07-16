@@ -1,6 +1,6 @@
 import {
   type AccountSchema,
-  AnyCoSchema,
+  AnyCoreCoValueSchema,
   AnyZodOrCoValueSchema,
   BaseAccountShape,
   type CoFeedSchema,
@@ -153,7 +153,7 @@ export const coImageDefiner = (): typeof ImageDefinition => {
   return ImageDefinition;
 };
 
-export const coOptionalDefiner = <T extends AnyCoSchema>(
+export const coOptionalDefiner = <T extends AnyCoreCoValueSchema>(
   schema: T,
 ): CoOptionalSchema<T> => {
   return createCoOptionalSchema(schema);

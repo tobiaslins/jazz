@@ -12,9 +12,9 @@ import type {
 import { MAX_RECOMMENDED_TX_SIZE, cojsonInternals } from "cojson";
 import type {
   AnonymousJazzAgent,
-  AnyAccountSchema,
   CoValue,
   CoValueClass,
+  CoreAccountSchema,
   Group,
   ID,
   InstanceOfSchema,

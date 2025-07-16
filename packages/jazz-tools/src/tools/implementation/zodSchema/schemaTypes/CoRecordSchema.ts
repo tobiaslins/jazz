@@ -30,7 +30,7 @@ type CoRecordInit<
 export interface CoRecordSchema<
   K extends z.core.$ZodString<string>,
   V extends AnyZodOrCoValueSchema,
-> extends AnyCoRecordSchema<K, V> {
+> extends CoreCoRecordSchema<K, V> {
   create: (
     init: Simplify<CoRecordInit<K, V>>,
     options?:
@@ -79,7 +79,7 @@ export interface CoRecordSchema<
   ): ID<CoRecordInstanceCoValuesNullable<K, V>>;
 
   /** @deprecated Define your helper methods separately, in standalone functions. */
-  withHelpers<S extends AnyCoRecordSchema<K, V>, T extends object>(
+  withHelpers<S extends CoreCoRecordSchema<K, V>, T extends object>(
     this: S,
     helpers: (Self: S) => T,
   ): WithHelpers<S, T>;
@@ -87,7 +87,7 @@ export interface CoRecordSchema<
 }
 
 // less precise version to avoid circularity issues and allow matching against
-export interface AnyCoRecordSchema<
+export interface CoreCoRecordSchema<
   K extends z.core.$ZodString<string> = z.core.$ZodString<string>,
   V extends AnyZodOrCoValueSchema = z.core.$ZodType,
 > extends CoreCoValueSchema,

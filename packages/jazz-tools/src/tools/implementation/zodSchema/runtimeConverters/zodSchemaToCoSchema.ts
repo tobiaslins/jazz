@@ -23,7 +23,7 @@ import { coField } from "../../schema.js";
 import { enrichRichTextSchema } from "../schemaTypes/RichTextSchema.js";
 import { schemaUnionDiscriminatorFor } from "../unionUtils.js";
 import {
-  AnyCoSchema,
+  AnyCoreCoValueSchema,
   AnyZodOrCoValueSchema,
   CoValueClassFromAnySchema,
   CoValueClassOrSchema,
@@ -36,7 +36,7 @@ import {
 
 export function isAnyCoValueSchema(
   schema: AnyZodOrCoValueSchema | CoValueClass,
-): schema is AnyCoSchema {
+): schema is AnyCoreCoValueSchema {
   return (
     "getZodSchema" in schema &&
     "collaborative" in schema &&
@@ -46,7 +46,7 @@ export function isAnyCoValueSchema(
 
 export function isCoValueSchema(
   schema: AnyZodOrCoValueSchema | CoValueClass,
-): schema is CoValueSchemaFromCoreSchema<AnyCoSchema> {
+): schema is CoValueSchemaFromCoreSchema<AnyCoreCoValueSchema> {
   return isAnyCoValueSchema(schema) && "getCoValueClass" in schema;
 }
 
@@ -57,7 +57,7 @@ export function isCoValueSchema(
  * @returns The CoValue schema matching the provided ProtoCoSchema, or `null` if the Zod schema
  * does not match a CoValue schema.
  */
-export function coreSchemaToCoSchema<S extends AnyCoSchema>(
+export function coreSchemaToCoSchema<S extends AnyCoreCoValueSchema>(
   schema: S,
 ): CoValueSchemaFromCoreSchema<S> {
   if (schema.builtin === "CoOptional") {

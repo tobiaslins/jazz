@@ -16,12 +16,12 @@ import {
 } from "cojson";
 import {
   AnonymousJazzAgent,
-  AnyAccountSchema,
   type CoMap,
   type CoValue,
   CoValueBase,
   CoValueClass,
   CoValueClassOrSchema,
+  CoreAccountSchema,
   type Group,
   ID,
   InstanceOfSchema,

@@ -104,7 +104,7 @@ export {
   type BaseAccountShape,
   type DefaultAccountShape,
   type AccountSchema,
-  type AnyAccountSchema,
+  type CoreAccountSchema as AnyAccountSchema,
   type CoListSchema,
   type CoMapSchema,
   type CoFeedSchema,

@@ -1,15 +1,15 @@
 import { RawAccount, RawCoList, RawCoMap } from "cojson";
 import {
-  AnyCoDiscriminatedUnionSchema,
   AnyDiscriminableCoSchema,
   AnyZodOrCoValueSchema,
   CoMap,
+  CoreCoDiscriminatedUnionSchema,
 } from "../../internal.js";
 import {
   coreSchemaToCoSchema,
   isAnyCoValueSchema,
 } from "./runtimeConverters/zodSchemaToCoSchema.js";
-import { AnyCoMapSchema } from "./schemaTypes/CoMapSchema.js";
+import { CoreCoMapSchema } from "./schemaTypes/CoMapSchema.js";
 import { z } from "./zodReExport.js";
 
 export function schemaUnionDiscriminatorFor(
@@ -44,12 +44,12 @@ export function schemaUnionDiscriminatorFor(
 
     for (const option of schema._zod.def.options) {
       if (option._zod.def.type === "object") {
-        availableOptions.push(option as AnyCoMapSchema);
+        availableOptions.push(option as CoreCoMapSchema);
       } else if (option._zod.def.type === "union") {
-        for (const subOption of (option as AnyCoDiscriminatedUnionSchema<any>)
+        for (const subOption of (option as CoreCoDiscriminatedUnionSchema<any>)
           ._zod.def.options) {
           if (subOption._zod.def.type === "object") {
-            availableOptions.push(subOption as AnyCoMapSchema);
+            availableOptions.push(subOption as CoreCoMapSchema);
           }
         }
       } else {

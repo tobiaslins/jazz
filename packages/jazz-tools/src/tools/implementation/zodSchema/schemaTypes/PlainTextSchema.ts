@@ -4,14 +4,14 @@ import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { z } from "../zodReExport.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
-export interface AnyPlainTextSchema
+export interface CorePlainTextSchema
   extends CoreCoValueSchema,
     z.core.$ZodCustom<CoPlainText, unknown> {
   builtin: "CoPlainText";
   getZodSchema: () => z.core.$ZodCustom<CoPlainText, unknown>;
 }
 
-export interface PlainTextSchema extends AnyPlainTextSchema {
+export interface PlainTextSchema extends CorePlainTextSchema {
   create(
     text: string,
     options?: { owner: Account | Group } | Account | Group,
@@ -33,7 +33,7 @@ export interface PlainTextSchema extends AnyPlainTextSchema {
   getCoValueClass: () => typeof CoPlainText;
 }
 
-export function createCoreCoPlainTextSchema(): AnyPlainTextSchema {
+export function createCoreCoPlainTextSchema(): CorePlainTextSchema {
   const zodSchema = z.instanceof(CoPlainText).meta({
     collaborative: true,
   });
@@ -45,7 +45,7 @@ export function createCoreCoPlainTextSchema(): AnyPlainTextSchema {
 }
 
 export function enrichPlainTextSchema(
-  schema: AnyPlainTextSchema,
+  schema: CorePlainTextSchema,
   coValueClass: typeof CoPlainText,
 ): PlainTextSchema {
   return Object.assign(schema, {

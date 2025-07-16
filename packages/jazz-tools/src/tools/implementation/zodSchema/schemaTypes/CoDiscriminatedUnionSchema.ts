@@ -1,7 +1,7 @@
 import {
   Account,
   AnonymousJazzAgent,
-  AnyCoSchema,
+  AnyCoreCoValueSchema,
   InstanceOfSchema,
   InstanceOrPrimitiveOfSchemaCoValuesNullable,
   Resolved,
@@ -12,10 +12,10 @@ import {
 import { z } from "../zodReExport.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
-export type AnyDiscriminableCoSchema = AnyCoSchema &
+export type AnyDiscriminableCoSchema = AnyCoreCoValueSchema &
   z.core.$ZodTypeDiscriminable;
 
-export interface AnyCoDiscriminatedUnionSchema<
+export interface CoreCoDiscriminatedUnionSchema<
   Types extends readonly [
     AnyDiscriminableCoSchema,
     ...AnyDiscriminableCoSchema[],
@@ -30,7 +30,7 @@ export interface CoDiscriminatedUnionSchema<
     AnyDiscriminableCoSchema,
     ...AnyDiscriminableCoSchema[],
   ],
-> extends AnyCoDiscriminatedUnionSchema<Types> {
+> extends CoreCoDiscriminatedUnionSchema<Types> {
   load(
     id: string,
     options?: {
@@ -67,7 +67,10 @@ export function createCoreCoDiscriminatedUnionSchema<
     AnyDiscriminableCoSchema,
     ...AnyDiscriminableCoSchema[],
   ],
->(discriminator: string, schemas: Types): AnyCoDiscriminatedUnionSchema<Types> {
+>(
+  discriminator: string,
+  schemas: Types,
+): CoreCoDiscriminatedUnionSchema<Types> {
   const zodSchema = z.discriminatedUnion(discriminator, schemas as any);
   return Object.assign(zodSchema, {
     collaborative: true as const,

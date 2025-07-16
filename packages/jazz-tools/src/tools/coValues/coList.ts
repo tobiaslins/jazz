@@ -3,10 +3,10 @@ import { ControlledAccount, RawAccount } from "cojson";
 import { calcPatch } from "fast-myers-diff";
 import type {
   Account,
-  AnyAccountSchema,
   CoValue,
   CoValueClass,
   CoValueFromRaw,
+  CoreAccountSchema,
   Group,
   ID,
   InstanceOfSchema,

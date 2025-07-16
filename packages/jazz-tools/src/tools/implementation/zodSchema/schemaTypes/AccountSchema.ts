@@ -11,9 +11,9 @@ import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/I
 import { z } from "../zodReExport.js";
 import { AnyZodOrCoValueSchema, Loaded, ResolveQuery } from "../zodSchema.js";
 import {
-  AnyCoMapSchema,
   CoMapSchema,
   CoMapSchemaDefinition,
+  CoreCoMapSchema,
 } from "./CoMapSchema.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
@@ -24,8 +24,8 @@ export type BaseProfileShape = {
 };
 
 export type BaseAccountShape = {
-  profile: AnyCoMapSchema<BaseProfileShape>;
-  root: AnyCoMapSchema;
+  profile: CoreCoMapSchema<BaseProfileShape>;
+  root: CoreCoMapSchema;
 };
 
 export type DefaultAccountShape = {
@@ -75,7 +75,7 @@ export interface AccountSchema<
 
 export function createCoreAccountSchema<Shape extends BaseAccountShape>(
   shape: Shape,
-): AnyAccountSchema<Shape> {
+): CoreAccountSchema<Shape> {
   const zodSchema = z.object(shape).meta({
     collaborative: true,
   });
@@ -92,7 +92,7 @@ export function createCoreAccountSchema<Shape extends BaseAccountShape>(
 }
 
 export function enrichAccountSchema<Shape extends BaseAccountShape>(
-  schema: AnyAccountSchema<Shape>,
+  schema: CoreAccountSchema<Shape>,
   coValueClass: typeof Account,
 ): AccountSchema<Shape> {
   const enrichedSchema = Object.assign(schema, {
@@ -157,7 +157,7 @@ export type CoProfileSchema<
 > = CoMapSchema<Shape & DefaultProfileShape, Config, Group>;
 
 // less precise version to avoid circularity issues and allow matching against
-export interface AnyAccountSchema<
+export interface CoreAccountSchema<
   Shape extends z.core.$ZodLooseShape = z.core.$ZodLooseShape,
 > extends z.core.$ZodObject<Shape>,
     CoreCoValueSchema {

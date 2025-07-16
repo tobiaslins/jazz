@@ -11,7 +11,7 @@ import {
   ZodReadonly,
   z,
 } from "../zodReExport.js";
-import { AnyCoSchema, ZodPrimitiveSchema } from "../zodSchema.js";
+import { AnyCoreCoValueSchema, ZodPrimitiveSchema } from "../zodSchema.js";
 import { isCoValueSchema } from "./zodSchemaToCoSchema.js";
 
 /**
@@ -19,7 +19,7 @@ import { isCoValueSchema } from "./zodSchemaToCoSchema.js";
  */
 export type SchemaField =
   // Schemas created with co.map(), co.record(), co.list(), etc.
-  | AnyCoSchema
+  | AnyCoreCoValueSchema
   // CoValue classes created with class syntax, or framework-provided classes like Group
   | CoValueClass
   | ZodPrimitiveSchema

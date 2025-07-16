@@ -7,14 +7,14 @@ import {
 import { z } from "../zodReExport.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
-export interface AnyFileStreamSchema
+export interface CoreFileStreamSchema
   extends CoreCoValueSchema,
     z.core.$ZodCustom<FileStream, unknown> {
   builtin: "FileStream";
   getZodSchema: () => z.core.$ZodCustom<FileStream, unknown>;
 }
 
-export interface FileStreamSchema extends AnyFileStreamSchema {
+export interface FileStreamSchema extends CoreFileStreamSchema {
   create(options?: { owner?: Account | Group } | Account | Group): FileStream;
   createFromBlob(
     blob: Blob | File,
@@ -49,7 +49,7 @@ export interface FileStreamSchema extends AnyFileStreamSchema {
   getCoValueClass: () => typeof FileStream;
 }
 
-export function createCoreFileStreamSchema(): AnyFileStreamSchema {
+export function createCoreFileStreamSchema(): CoreFileStreamSchema {
   const zodSchema = z.instanceof(FileStream).meta({
     collaborative: true,
   });
@@ -61,7 +61,7 @@ export function createCoreFileStreamSchema(): AnyFileStreamSchema {
 }
 
 export function enrichFileStreamSchema(
-  schema: AnyFileStreamSchema,
+  schema: CoreFileStreamSchema,
   coValueClass: typeof FileStream,
 ): FileStreamSchema {
   return Object.assign(schema, {
