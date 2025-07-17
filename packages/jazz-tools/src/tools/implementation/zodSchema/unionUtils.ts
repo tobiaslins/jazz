@@ -8,9 +8,9 @@ import {
   DiscriminableCoreCoValueSchema,
 } from "../../internal.js";
 import {
-  coreSchemaToCoSchema,
+  hydrateCoreCoValueSchema,
   isAnyCoValueSchema,
-} from "./runtimeConverters/zodSchemaToCoSchema.js";
+} from "./runtimeConverters/coValueSchemaTransformation.js";
 import { z } from "./zodReExport.js";
 
 export function schemaUnionDiscriminatorFor(
@@ -98,7 +98,7 @@ export function schemaUnionDiscriminatorFor(
         }
 
         if (match) {
-          const coValueSchema = coreSchemaToCoSchema(option as any);
+          const coValueSchema = hydrateCoreCoValueSchema(option as any);
           return coValueSchema.getCoValueClass() as typeof CoMap;
         }
       }

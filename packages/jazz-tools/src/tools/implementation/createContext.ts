@@ -1,7 +1,6 @@
 import {
   AgentSecret,
   CoID,
-  ControlledAgent,
   CryptoProvider,
   LocalNode,
   Peer,
@@ -14,7 +13,6 @@ import { AuthSecretStorage } from "../auth/AuthSecretStorage.js";
 import { type Account, type AccountClass } from "../coValues/account.js";
 import { RegisteredSchemas } from "../coValues/registeredSchemas.js";
 import {
-  type AccountSchema,
   CoValueFromRaw,
   type CoreAccountSchema,
   type ID,

@@ -32,7 +32,7 @@ import {
 import {
   SchemaField,
   schemaFieldToCoFieldDef,
-} from "./zodFieldToCoFieldDef.js";
+} from "./schemaFieldToCoFieldDef.js";
 
 // Note: if you're editing this function, edit the `isAnyCoValueSchema`
 // function in `zodReExport.ts` as well
@@ -49,18 +49,16 @@ export function isCoValueSchema(
 }
 
 /**
- * Convert a Zod schema into a CoValue schema.
+ * Convert a {@link CoreCoValueSchema} into a CoValue schema.
  *
- * @param schema A Zod schema that may represent a CoValue schema
- * @returns The CoValue schema matching the provided ProtoCoSchema, or `null` if the Zod schema
- * does not match a CoValue schema.
+ * @returns The CoValue schema matching the provided CoreCoValueSchema
  */
-export function coreSchemaToCoSchema<S extends AnyCoreCoValueSchema>(
+export function hydrateCoreCoValueSchema<S extends AnyCoreCoValueSchema>(
   schema: S,
 ): CoValueSchemaFromCoreSchema<S> {
   if (schema.builtin === "CoOptional") {
     throw new Error(
-      `co.optional() of collaborative types is not supported as top-level schemas: ${JSON.stringify(schema)}`,
+      `co.optional() of collaborative types is not supported as top-level schema: ${JSON.stringify(schema)}`,
     );
   } else if (schema.builtin === "CoMap" || schema.builtin === "Account") {
     const def = schema.getDefinition();

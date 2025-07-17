@@ -10,7 +10,7 @@ import {
   z,
 } from "../zodReExport.js";
 import { ZodPrimitiveSchema } from "../zodSchema.js";
-import { isCoValueSchema } from "./zodSchemaToCoSchema.js";
+import { isCoValueSchema } from "./coValueSchemaTransformation.js";
 
 /**
  * Types of objects that can be nested inside CoValue schema containers

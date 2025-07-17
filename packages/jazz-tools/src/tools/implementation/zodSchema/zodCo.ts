@@ -12,13 +12,13 @@ import {
   ImageDefinition,
   type PlainTextSchema,
   type Simplify,
-  coreSchemaToCoSchema,
   createCoreAccountSchema,
   createCoreCoFeedSchema,
   createCoreCoListSchema,
   createCoreCoMapSchema,
   createCoreCoPlainTextSchema,
   createCoreFileStreamSchema,
+  hydrateCoreCoValueSchema,
 } from "../../internal.js";
 import {
   CoDiscriminatedUnionSchema,
@@ -40,7 +40,7 @@ export const coMapDefiner = <Shape extends z.core.$ZodLooseShape>(
   shape: Shape,
 ): CoMapSchema<Shape> => {
   const coreSchema = createCoreCoMapSchema(shape);
-  return coreSchemaToCoSchema(coreSchema);
+  return hydrateCoreCoValueSchema(coreSchema);
 };
 
 /**
@@ -91,7 +91,7 @@ export const coAccountDefiner = <Shape extends BaseAccountShape>(
   } as unknown as Shape,
 ): AccountSchema<Shape> => {
   const coreSchema = createCoreAccountSchema(shape);
-  return coreSchemaToCoSchema(coreSchema);
+  return hydrateCoreCoValueSchema(coreSchema);
 };
 
 export const coRecordDefiner = <
@@ -111,7 +111,7 @@ export const coListDefiner = <T extends AnyZodOrCoValueSchema>(
   element: T,
 ): CoListSchema<T> => {
   const coreSchema = createCoreCoListSchema(element);
-  return coreSchemaToCoSchema(coreSchema) as unknown as CoListSchema<T>;
+  return hydrateCoreCoValueSchema(coreSchema) as unknown as CoListSchema<T>;
 };
 
 export const coProfileDefiner = <
@@ -131,22 +131,22 @@ export const coFeedDefiner = <T extends AnyZodOrCoValueSchema>(
   element: T,
 ): CoFeedSchema<T> => {
   const coreSchema = createCoreCoFeedSchema(element);
-  return coreSchemaToCoSchema(coreSchema);
+  return hydrateCoreCoValueSchema(coreSchema);
 };
 
 export const coFileStreamDefiner = (): FileStreamSchema => {
   const coreSchema = createCoreFileStreamSchema();
-  return coreSchemaToCoSchema(coreSchema);
+  return hydrateCoreCoValueSchema(coreSchema);
 };
 
 export const coPlainTextDefiner = (): PlainTextSchema => {
   const coreSchema = createCoreCoPlainTextSchema();
-  return coreSchemaToCoSchema(coreSchema);
+  return hydrateCoreCoValueSchema(coreSchema);
 };
 
 export const coRichTextDefiner = (): RichTextSchema => {
   const coreSchema = createCoreCoRichTextSchema();
-  return coreSchemaToCoSchema(coreSchema);
+  return hydrateCoreCoValueSchema(coreSchema);
 };
 
 export const coImageDefiner = (): typeof ImageDefinition => {
@@ -169,5 +169,5 @@ export const coDiscriminatedUnionDefiner = <
     discriminator,
     schemas,
   );
-  return coreSchemaToCoSchema(coreSchema);
+  return hydrateCoreCoValueSchema(coreSchema);
 };

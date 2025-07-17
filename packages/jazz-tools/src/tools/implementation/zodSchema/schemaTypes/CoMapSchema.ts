@@ -10,7 +10,7 @@ import {
   Simplify,
   SubscribeListenerOptions,
   coOptionalDefiner,
-  coreSchemaToCoSchema,
+  hydrateCoreCoValueSchema,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
@@ -201,11 +201,11 @@ export function enrichCoMapSchema<
       return coValueClass.loadUnique(...args);
     },
     catchall: (index: AnyZodOrCoValueSchema) => {
-      const enrichedSchema = createCoreCoMapSchema(
+      const schemaWithCatchAll = createCoreCoMapSchema(
         coValueSchema.getDefinition().shape,
         index,
       );
-      return coreSchemaToCoSchema(enrichedSchema);
+      return hydrateCoreCoValueSchema(schemaWithCatchAll);
     },
     withHelpers: (
       helpers: (Self: CoreCoMapSchema<Shape, CatchAll>) => object,
