@@ -42,6 +42,120 @@ test("return null if id is invalid", async () => {
   expect(john).toBeNull();
 });
 
+test("load a missing optional value (co.optional)", async () => {
+  const Dog = co.map({
+    name: z.string(),
+  });
+
+  const Person = co.map({
+    name: z.string(),
+    dog: co.optional(Dog),
+  });
+
+  const group = Group.create();
+  const map = Person.create({ name: "John" }, group);
+  group.addMember("everyone", "reader");
+
+  const alice = await createJazzTestAccount();
+
+  const john = await Person.load(map.id, {
+    loadAs: alice,
+    resolve: { dog: true },
+  });
+
+  assert(john);
+
+  expect(john.name).toBe("John");
+  expect(john.dog).toBeUndefined();
+});
+
+test("load a missing optional value (z.optional)", async () => {
+  const Dog = co.map({
+    name: z.string(),
+  });
+
+  const Person = co.map({
+    name: z.string(),
+    dog: z.optional(Dog),
+  });
+
+  const group = Group.create();
+  const map = Person.create({ name: "John" }, group);
+  group.addMember("everyone", "reader");
+
+  const alice = await createJazzTestAccount();
+
+  const john = await Person.load(map.id, {
+    loadAs: alice,
+    resolve: { dog: true },
+  });
+
+  assert(john);
+
+  expect(john.name).toBe("John");
+  expect(john.dog).toBeUndefined();
+});
+
+test("load a missing optional value (Schema.optional)", async () => {
+  const Dog = co.map({
+    name: z.string(),
+  });
+
+  const Person = co.map({
+    name: z.string(),
+    dog: Dog.optional(),
+  });
+
+  const group = Group.create();
+  const map = Person.create({ name: "John" }, group);
+  group.addMember("everyone", "reader");
+
+  const alice = await createJazzTestAccount();
+
+  const john = await Person.load(map.id, {
+    loadAs: alice,
+    resolve: { dog: true },
+  });
+
+  assert(john);
+
+  expect(john.name).toBe("John");
+  expect(john.dog).toBeUndefined();
+});
+
+test("load a missing optional value (optional discrminatedUnion)", async () => {
+  const Dog = co.map({
+    type: z.literal("dog"),
+    name: z.string(),
+  });
+
+  const Cat = co.map({
+    type: z.literal("cat"),
+    name: z.string(),
+  });
+
+  const Person = co.map({
+    name: z.string(),
+    pet: co.discriminatedUnion("type", [Dog, Cat]).optional(),
+  });
+
+  const group = Group.create();
+  const map = Person.create({ name: "John" }, group);
+  group.addMember("everyone", "reader");
+
+  const alice = await createJazzTestAccount();
+
+  const john = await Person.load(map.id, {
+    loadAs: alice,
+    resolve: { pet: true },
+  });
+
+  assert(john);
+
+  expect(john.name).toBe("John");
+  expect(john.pet).toBeUndefined();
+});
+
 test("retry an unavailable value", async () => {
   const Person = co.map({
     name: z.string(),
