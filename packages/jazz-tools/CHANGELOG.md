@@ -1,5 +1,14 @@
 # jazz-tools
 
+## 0.15.13
+
+### Patch Changes
+
+- 6c76ff8: Fix load failures when loading a missing ref declared with z.optional and Schema.optional
+  - cojson@0.15.13
+  - cojson-storage-indexeddb@0.15.13
+  - cojson-transport-ws@0.15.13
+
 ## 0.15.12
 
 ### Patch Changes
