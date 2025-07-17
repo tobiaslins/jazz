@@ -39,13 +39,10 @@ async function askToJoinGame(
     await serverApi.joinGame.send({
       waitingRoom,
     });
-    return null;
   } catch (error) {
     if (error instanceof JazzRequestError) {
-      console.error(error.message);
       toast.error(error.message);
     } else {
-      console.error(error);
       toast.error("An unexpected error occurred");
     }
   }

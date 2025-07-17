@@ -1,9 +1,13 @@
 import { http } from "msw";
 import { setupServer } from "msw/node";
-import { describe, expect, it, vi } from "vitest";
+import { assert, describe, expect, it, vi } from "vitest";
 import { afterAll, afterEach, beforeAll } from "vitest";
 import { z } from "zod/v4";
-import { experimental_defineRequest } from "../coValues/request.js";
+import {
+  JazzRequestError,
+  experimental_defineRequest,
+  isJazzRequestError,
+} from "../coValues/request.js";
 import { Account, CoPlainText, Group, co } from "../index.js";
 import { exportCoValue, importContentPieces } from "../internal.js";
 import { createJazzTestAccount } from "../testing.js";
@@ -12,19 +16,27 @@ const server = setupServer();
 
 beforeAll(() => server.listen());
 afterEach(() => server.resetHandlers());
+afterEach(() => vi.restoreAllMocks());
 afterAll(() => server.close());
+
+async function setupAccounts() {
+  const me = await createJazzTestAccount();
+  const worker = await createJazzTestAccount();
+
+  const workerPieces = await exportCoValue(Account, worker.id, {
+    loadAs: worker,
+  });
+
+  importContentPieces(workerPieces ?? [], me);
+
+  return { me, worker };
+}
 
 describe("experimental_defineRequest", () => {
   describe("full request/response cycle", () => {
     it("should accept the CoMap init as the request payload and as response callback return value", async () => {
-      const me = await createJazzTestAccount();
-      const worker = await createJazzTestAccount();
+      const { me, worker } = await setupAccounts();
 
-      const workerPieces = await exportCoValue(Account, worker.id, {
-        loadAs: worker,
-      });
-
-      importContentPieces(workerPieces ?? [], me);
       const group = Group.create(me);
       group.addMember("everyone", "writer");
 
@@ -104,14 +116,7 @@ describe("experimental_defineRequest", () => {
   });
 
   it("should handle errors on child covalues gracefully", async () => {
-    const me = await createJazzTestAccount();
-    const worker = await createJazzTestAccount();
-
-    const workerPieces = await exportCoValue(Account, worker.id, {
-      loadAs: worker,
-    });
-
-    importContentPieces(workerPieces ?? [], me);
+    const { me, worker } = await setupAccounts();
 
     const Address = co.map({
       street: co.plainText(),
@@ -184,5 +189,461 @@ describe("experimental_defineRequest", () => {
     expect(response.person.name).toEqual("John");
     expect(response.person.address.street.toString()).toBe("123 Main St");
     expect(response.person.address.city.toString()).toBe("New York");
+  });
+});
+
+describe("JazzRequestError handling", () => {
+  describe("System-defined errors in request.ts", () => {
+    it("should throw error when request payload is invalid", async () => {
+      const { me, worker } = await setupAccounts();
+
+      const userRequest = experimental_defineRequest({
+        url: "https://api.example.com/api/user",
+        workerId: worker.id,
+        request: {
+          name: z.string(),
+          email: z.string(),
+        },
+        response: {
+          bio: z.string(),
+        },
+      });
+
+      server.use(
+        http.post("https://api.example.com/api/user", async ({ request }) => {
+          return userRequest.handle(request, worker, async (user, madeBy) => {
+            return { bio: "test" };
+          });
+        }),
+      );
+
+      // Mock fetch to return invalid JSON
+      const originalFetch = global.fetch;
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ invalid: "payload" }),
+      });
+
+      await expect(
+        userRequest.send(
+          {
+            name: "John Doe",
+            email: "john@example.com",
+          },
+          { owner: me },
+        ),
+      ).rejects.toMatchInlineSnapshot(`
+        {
+          "code": 400,
+          "details": [ZodError: [
+          {
+            "code": "invalid_value",
+            "values": [
+              "success"
+            ],
+            "path": [
+              "type"
+            ],
+            "message": "Invalid input: expected \\"success\\""
+          }
+        ]],
+          "message": "Response payload is not valid",
+        }
+      `);
+
+      global.fetch = originalFetch;
+    });
+
+    it("should throw error when request payload is already handled", async () => {
+      const { me, worker } = await setupAccounts();
+
+      const userRequest = experimental_defineRequest({
+        url: "https://api.example.com/api/user",
+        workerId: worker.id,
+        request: {
+          name: z.string(),
+          email: z.string(),
+        },
+        response: {
+          bio: z.string(),
+        },
+      });
+
+      server.use(
+        http.post("https://api.example.com/api/user", async ({ request }) => {
+          // Mock to make it possible to call json() twice
+          const body = await request.json();
+          vi.spyOn(request, "json").mockResolvedValue(body);
+
+          // First call should succeed
+          await userRequest.handle(request, worker, async () => {
+            return { bio: "test" };
+          });
+
+          // Second call with same ID should fail
+          return userRequest.handle(request, worker, async () => {
+            return { bio: "test" };
+          });
+        }),
+      );
+
+      await expect(
+        userRequest.send(
+          {
+            name: "John Doe",
+            email: "john@example.com",
+          },
+          { owner: me },
+        ),
+      ).rejects.toMatchInlineSnapshot(`
+        {
+          "code": 400,
+          "details": undefined,
+          "message": "Request payload is already handled",
+        }
+      `);
+    });
+
+    it("should throw error when authentication token is expired", async () => {
+      const { me, worker } = await setupAccounts();
+
+      const userRequest = experimental_defineRequest({
+        url: "https://api.example.com/api/user",
+        workerId: worker.id,
+        request: {
+          name: z.string(),
+          email: z.string(),
+        },
+        response: {
+          bio: z.string(),
+        },
+      });
+
+      server.use(
+        http.post("https://api.example.com/api/user", async ({ request }) => {
+          const body = await request.json();
+
+          assert(typeof body === "object");
+          assert(body);
+
+          body.createdAt = Date.now() - 1000 * 70; // 70 seconds ago
+          vi.spyOn(request, "json").mockResolvedValue(body);
+
+          return userRequest.handle(request, worker, async () => {
+            return { bio: "test" };
+          });
+        }),
+      );
+
+      await expect(
+        userRequest.send(
+          {
+            name: "John Doe",
+            email: "john@example.com",
+          },
+          { owner: me },
+        ),
+      ).rejects.toMatchInlineSnapshot(`
+        {
+          "code": 401,
+          "details": undefined,
+          "message": "Authentication token is expired",
+        }
+      `);
+    });
+
+    it("should throw error when signature is invalid", async () => {
+      const { me, worker } = await setupAccounts();
+
+      const userRequest = experimental_defineRequest({
+        url: "https://api.example.com/api/user",
+        workerId: worker.id,
+        request: {
+          name: z.string(),
+          email: z.string(),
+        },
+        response: {
+          bio: z.string(),
+        },
+      });
+
+      server.use(
+        http.post("https://api.example.com/api/user", async ({ request }) => {
+          const body = await request.json();
+
+          assert(typeof body === "object");
+          assert(body);
+
+          body.authToken = "signature_zinvalid";
+          vi.spyOn(request, "json").mockResolvedValue(body);
+
+          return userRequest.handle(request, worker, async () => {
+            return { bio: "test" };
+          });
+        }),
+      );
+
+      await expect(
+        userRequest.send(
+          {
+            name: "John Doe",
+            email: "john@example.com",
+          },
+          { owner: me },
+        ),
+      ).rejects.toMatchInlineSnapshot(`
+        {
+          "code": 401,
+          "details": undefined,
+          "message": "Invalid signature",
+        }
+      `);
+    });
+
+    it("should throw error when creator account not found", async () => {
+      const { me, worker } = await setupAccounts();
+
+      const userRequest = experimental_defineRequest({
+        url: "https://api.example.com/api/user",
+        workerId: worker.id,
+        request: {
+          name: z.string(),
+          email: z.string(),
+        },
+        response: {
+          bio: z.string(),
+        },
+      });
+
+      server.use(
+        http.post("https://api.example.com/api/user", async ({ request }) => {
+          vi.spyOn(Account, "load").mockResolvedValue(null);
+
+          return userRequest.handle(request, worker, async () => {
+            return { bio: "test" };
+          });
+        }),
+      );
+
+      await expect(
+        userRequest.send(
+          {
+            name: "John Doe",
+            email: "john@example.com",
+          },
+          { owner: me },
+        ),
+      ).rejects.toMatchInlineSnapshot(`
+        {
+          "code": 400,
+          "details": undefined,
+          "message": "Creator account not found",
+        }
+      `);
+
+      vi.restoreAllMocks();
+    });
+
+    it("should throw error when value not found after loading", async () => {
+      const { me, worker } = await setupAccounts();
+
+      const User = co.map({
+        name: z.string(),
+        email: z.string(),
+      });
+
+      const userRequest = experimental_defineRequest({
+        url: "https://api.example.com/api/user",
+        workerId: worker.id,
+        request: {
+          schema: {
+            user: User,
+          },
+          resolve: {
+            user: true,
+          },
+        },
+        response: {
+          bio: z.string(),
+        },
+      });
+
+      server.use(
+        http.post("https://api.example.com/api/user", async ({ request }) => {
+          return userRequest.handle(request, worker, async (user, madeBy) => {
+            return { bio: "test" };
+          });
+        }),
+      );
+
+      await expect(
+        userRequest.send(
+          {
+            user: User.create(
+              {
+                name: "John Doe",
+                email: "john@example.com",
+              },
+              me,
+            ),
+          },
+          { owner: me },
+        ),
+      ).rejects.toMatchInlineSnapshot(`
+        {
+          "code": 400,
+          "details": undefined,
+          "message": "Value not found",
+        }
+      `);
+
+      vi.restoreAllMocks();
+    });
+
+    it("should throw error when the server returns a non-200 status code", async () => {
+      const { me, worker } = await setupAccounts();
+
+      const userRequest = experimental_defineRequest({
+        url: "https://api.example.com/api/user",
+        workerId: worker.id,
+        request: {
+          name: z.string(),
+          email: z.string(),
+        },
+        response: {
+          bio: z.string(),
+        },
+      });
+
+      server.use(
+        http.post("https://api.example.com/api/user", async ({ request }) => {
+          return new Response("Request failed", { status: 500 });
+        }),
+      );
+
+      await expect(
+        userRequest.send(
+          {
+            name: "John Doe",
+            email: "john@example.com",
+          },
+          { owner: me },
+        ),
+      ).rejects.toMatchInlineSnapshot(`
+        {
+          "code": 500,
+          "details": undefined,
+          "message": "Request failed",
+        }
+      `);
+    });
+
+    it("should throw error when HTTP request fails", async () => {
+      const { me, worker } = await setupAccounts();
+
+      const userRequest = experimental_defineRequest({
+        url: "https://api.example.com/api/user",
+        workerId: worker.id,
+        request: {
+          name: z.string(),
+          email: z.string(),
+        },
+        response: {
+          bio: z.string(),
+        },
+      });
+
+      server.close();
+
+      await expect(
+        userRequest.send(
+          {
+            name: "John Doe",
+            email: "john@example.com",
+          },
+          { owner: me },
+        ),
+      ).rejects.toThrow("fetch failed");
+
+      server.listen();
+    });
+  });
+
+  describe("User-defined errors from examples", () => {
+    it("should handle user-defined errors", async () => {
+      const { me, worker } = await setupAccounts();
+
+      const userRequest = experimental_defineRequest({
+        url: "https://api.example.com/api/user",
+        workerId: worker.id,
+        request: {
+          name: z.string(),
+          email: z.string(),
+        },
+        response: {
+          bio: z.string(),
+        },
+      });
+
+      server.use(
+        http.post("https://api.example.com/api/user", async ({ request }) => {
+          return userRequest.handle(request, worker, async (user, madeBy) => {
+            throw new JazzRequestError("Custom server error", 400, {
+              detail: "Some details",
+            });
+          });
+        }),
+      );
+
+      await expect(
+        userRequest.send(
+          {
+            name: "John Doe",
+            email: "john@example.com",
+          },
+          { owner: me },
+        ),
+      ).rejects.toMatchInlineSnapshot(`
+        {
+          "code": 400,
+          "details": {
+            "detail": "Some details",
+          },
+          "message": "Custom server error",
+        }
+      `);
+    });
+  });
+
+  describe("JazzRequestError class", () => {
+    it("should create JazzRequestError with correct properties", () => {
+      const error = new JazzRequestError("Test error", 400, { detail: "test" });
+
+      expect(error.message).toBe("Test error");
+      expect(error.code).toBe(400);
+      expect(error.details).toEqual({ detail: "test" });
+      expect(error.isJazzRequestError).toBe(true);
+    });
+
+    it("should serialize to JSON correctly", () => {
+      const error = new JazzRequestError("Test error", 400, { detail: "test" });
+      const json = error.toJSON();
+
+      expect(json).toEqual({
+        message: "Test error",
+        code: 400,
+        details: { detail: "test" },
+      });
+    });
+
+    it("should be identified by isJazzRequestError function", () => {
+      const error = new JazzRequestError("Test error", 400);
+      const regularError = new Error("Regular error");
+
+      expect(isJazzRequestError(error)).toBe(true);
+      expect(isJazzRequestError(regularError)).toBe(false);
+      expect(isJazzRequestError({ isJazzRequestError: true })).toBe(true);
+      expect(isJazzRequestError(null)).toBe(false);
+    });
   });
 });

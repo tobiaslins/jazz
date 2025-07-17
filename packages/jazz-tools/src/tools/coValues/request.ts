@@ -85,15 +85,12 @@ async function serializeMessagePayload(
 
   const coMap = inputValueToCoMap(schema, value, me, target);
 
-  const contentPieces = await exportCoValue(schema, coMap.id, {
-    resolve,
-    loadAs: me,
-    bestEffortResolution: true,
-  });
-
-  if (!contentPieces) {
-    throw new JazzRequestError(`Failed to export value content`, 500);
-  }
+  const contentPieces =
+    (await exportCoValue(schema, coMap.id, {
+      resolve,
+      loadAs: me,
+      bestEffortResolution: true,
+    })) ?? [];
 
   if (!contentPieces.some((piece) => piece.id === me.id)) {
     const accountContent = await exportCoValue(Account, me.id, {
@@ -115,6 +112,7 @@ async function serializeMessagePayload(
     contentPieces,
     id: coMap.id,
     createdAt,
+    signerID,
   });
 
   const authToken = crypto.sign(signerSecret, signPayload);
@@ -177,11 +175,22 @@ async function handleIncomingMessage(
     contentPieces: requestData.contentPieces,
     id: requestData.id,
     createdAt: requestData.createdAt,
+    signerID: requestData.signerID,
   });
 
-  if (
-    !crypto.verify(requestData.authToken, signPayload, requestData.signerID)
-  ) {
+  let validSignature = false;
+
+  try {
+    validSignature = crypto.verify(
+      requestData.authToken,
+      signPayload,
+      requestData.signerID,
+    );
+  } catch (error) {
+    validSignature = false;
+  }
+
+  if (!validSignature) {
     throw new JazzRequestError("Invalid signature", 401);
   }
 
@@ -201,15 +210,6 @@ async function handleIncomingMessage(
 
   if (!madeBy) {
     throw new JazzRequestError("Creator account not found", 400);
-  }
-
-  const signerID = crypto.getAgentSignerID(madeBy._raw.currentAgentID());
-
-  if (signerID !== requestData.signerID) {
-    throw new JazzRequestError(
-      "The signer ID in the request does not match the signer ID of the account",
-      400,
-    );
   }
 
   const coSchema = anySchemaToCoSchema(schema) as CoValueClass<CoValue>;

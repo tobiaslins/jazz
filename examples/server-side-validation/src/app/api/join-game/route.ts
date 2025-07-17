@@ -4,7 +4,7 @@ import { serverApi } from "@/serverApi";
 import { Account, Group, JazzRequestError } from "jazz-tools";
 
 export async function POST(request: Request) {
-  const response = await serverApi.joinGame.handle(
+  return serverApi.joinGame.handle(
     request,
     jazzServerAccount.worker,
     async ({ waitingRoom }, madeBy) => {
@@ -23,8 +23,6 @@ export async function POST(request: Request) {
       };
     },
   );
-
-  return response;
 }
 
 interface CreateGameParams {
