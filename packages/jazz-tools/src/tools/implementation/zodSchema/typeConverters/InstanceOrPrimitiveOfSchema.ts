@@ -63,11 +63,11 @@ export type InstanceOrPrimitiveOfSchema<
                       ? InstanceOrPrimitiveOfSchema<Members[number]>
                       : never
   : S extends z.core.$ZodType
-    ? S extends z.core.$ZodOptional<infer Inner>
+    ? S extends z.core.$ZodOptional<infer Inner extends z.core.$ZodType>
       ? InstanceOrPrimitiveOfSchema<Inner> | undefined
       : S extends z.ZodJSONSchema
         ? JsonValue
-        : S extends z.core.$ZodUnion<infer Members>
+        : S extends z.core.$ZodUnion<infer Members extends z.core.$ZodType[]>
           ? InstanceOrPrimitiveOfSchema<Members[number]>
           : // primitives below here - we manually traverse to ensure we only allow what we can handle
             S extends z.core.$ZodObject<infer Shape>
@@ -76,9 +76,11 @@ export type InstanceOrPrimitiveOfSchema<
                   Shape[key]
                 >;
               }
-            : S extends z.core.$ZodArray<infer Item>
+            : S extends z.core.$ZodArray<infer Item extends z.core.$ZodType>
               ? InstanceOrPrimitiveOfSchema<Item>[]
-              : S extends z.core.$ZodTuple<infer Items>
+              : S extends z.core.$ZodTuple<
+                    infer Items extends readonly z.core.$ZodType[]
+                  >
                 ? {
                     [key in keyof Items]: InstanceOrPrimitiveOfSchema<
                       Items[key]
@@ -100,11 +102,17 @@ export type InstanceOrPrimitiveOfSchema<
                                   infer pattern
                                 >
                               ? pattern
-                              : S extends z.core.$ZodReadonly<infer Inner>
+                              : S extends z.core.$ZodReadonly<
+                                    infer Inner extends z.core.$ZodType
+                                  >
                                 ? InstanceOrPrimitiveOfSchema<Inner>
-                                : S extends z.core.$ZodDefault<infer Default>
+                                : S extends z.core.$ZodDefault<
+                                      infer Default extends z.core.$ZodType
+                                    >
                                   ? InstanceOrPrimitiveOfSchema<Default>
-                                  : S extends z.core.$ZodCatch<infer Catch>
+                                  : S extends z.core.$ZodCatch<
+                                        infer Catch extends z.core.$ZodType
+                                      >
                                     ? InstanceOrPrimitiveOfSchema<Catch>
                                     : never
     : S extends CoValueClass

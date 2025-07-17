@@ -14,28 +14,20 @@ import {
 import { z } from "./zodReExport.js";
 
 export function schemaUnionDiscriminatorFor(
-  schema: CoreCoDiscriminatedUnionSchema<
-    [DiscriminableCoreCoValueSchema, ...DiscriminableCoreCoValueSchema[]]
-  >,
+  schema: CoreCoDiscriminatedUnionSchema<DiscriminableCoreCoValueSchema[]>,
 ) {
   if (isUnionOfCoMapsDeeply(schema)) {
     const definition = schema.getDefinition();
     const { discriminatorMap, discriminator, options } = definition;
-    if (!discriminatorMap || discriminatorMap.size == 0) {
-      throw new Error(
-        "z.union() of collaborative types is not supported, use co.discriminatedUnion() instead",
-      );
-    }
 
-    const field = discriminatorMap.get(discriminator);
-
+    const field = discriminatorMap[discriminator];
     if (!field) {
       throw new Error(
         "co.discriminatedUnion() of collaborative types with non-existent discriminator key is not supported",
       );
     }
 
-    for (const value of field.values) {
+    for (const value of field) {
       if (typeof value !== "string" && typeof value !== "number") {
         throw new Error(
           "co.discriminatedUnion() of collaborative types with non-string or non-number discriminator value is not supported",
@@ -73,7 +65,7 @@ export function schemaUnionDiscriminatorFor(
       for (const option of availableOptions) {
         let match = true;
 
-        for (const key of discriminatorMap.keys()) {
+        for (const key of Object.keys(discriminatorMap)) {
           const discriminatorDef = (option as CoreCoMapSchema).getDefinition()
             .shape[key as string];
 
@@ -96,7 +88,8 @@ export function schemaUnionDiscriminatorFor(
             break;
           }
 
-          const literalDef = discriminatorDef._zod.def as z.core.$ZodLiteralDef;
+          const literalDef = discriminatorDef._zod
+            .def as z.core.$ZodLiteralDef<any>;
 
           if (!Array.from(literalDef.values).includes(discriminatorValue)) {
             match = false;
@@ -124,9 +117,7 @@ export function schemaUnionDiscriminatorFor(
 }
 
 function isUnionOfCoMapsDeeply(
-  schema: CoreCoDiscriminatedUnionSchema<
-    [DiscriminableCoreCoValueSchema, ...DiscriminableCoreCoValueSchema[]]
-  >,
+  schema: CoreCoDiscriminatedUnionSchema<DiscriminableCoreCoValueSchema[]>,
 ): boolean {
   return schema.getDefinition().options.every(isCoMapOrUnionOfCoMapsDeeply);
 }

@@ -19,12 +19,11 @@ export interface CoDiscriminatedUnionSchemaDefinition<
   Options extends DiscriminableCoValueSchemas,
 > {
   discriminator: string;
-  discriminatorMap: z.core.$ZodDiscriminatedUnionInternals["disc"];
+  discriminatorMap: z.core.$ZodDiscriminatedUnionInternals["propValues"];
   options: Options;
 }
 
-type Tuple<T> = readonly [T, ...T[]];
-export type DiscriminableCoValueSchemas = Tuple<DiscriminableCoreCoValueSchema>;
+export type DiscriminableCoValueSchemas = DiscriminableCoreCoValueSchema[];
 
 export interface CoreCoDiscriminatedUnionSchema<
   Options extends DiscriminableCoValueSchemas = DiscriminableCoValueSchemas,
@@ -32,7 +31,7 @@ export interface CoreCoDiscriminatedUnionSchema<
   builtin: "CoDiscriminatedUnion";
   getDefinition: () => CoDiscriminatedUnionSchemaDefinition<Options>;
   getZodSchema: () => z.core.$ZodDiscriminatedUnion<
-    Tuple<ReturnType<Options[number]["getZodSchema"]>>
+    ReturnType<Options[number]["getZodSchema"]>[]
   >;
 }
 export interface CoDiscriminatedUnionSchema<
@@ -83,7 +82,7 @@ export function createCoreCoDiscriminatedUnionSchema<
     getDefinition: () => ({
       discriminator,
       get discriminatorMap() {
-        return zodSchema._zod.disc;
+        return zodSchema._zod.propValues;
       },
       get options() {
         return zodSchema._zod.def.options;
