@@ -39,11 +39,7 @@ import {
 export function isAnyCoValueSchema(
   schema: AnyZodOrCoValueSchema | CoValueClass,
 ): schema is AnyCoreCoValueSchema {
-  return (
-    "getZodSchema" in schema &&
-    "collaborative" in schema &&
-    schema.collaborative === true
-  );
+  return "collaborative" in schema && schema.collaborative === true;
 }
 
 export function isCoValueSchema(

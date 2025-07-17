@@ -167,7 +167,6 @@ export function createCoreCoMapSchema<
         return index;
       },
     }),
-    getZodSchema: () => zodSchema,
   });
 }
 
@@ -257,9 +256,10 @@ export type CoMapInitZod<Shape extends z.core.$ZodLooseShape> = {
 } & { [key in keyof Shape]?: unknown };
 
 export type CoMapSchemaDefinition<
+  Shape extends z.core.$ZodLooseShape = z.core.$ZodLooseShape,
   CatchAll extends AnyZodOrCoValueSchema | unknown = unknown,
 > = {
-  shape: z.core.$ZodShape;
+  shape: Shape;
   catchall?: CatchAll;
 };
 
@@ -269,8 +269,7 @@ export type CoreCoMapSchema<
   CatchAll extends AnyZodOrCoValueSchema | unknown = unknown,
 > = DiscriminableCoreCoValueSchema & {
   builtin: "CoMap";
-  getDefinition: () => CoMapSchemaDefinition<CatchAll>;
-  getZodSchema: () => z.core.$ZodObject<Shape>;
+  getDefinition: () => CoMapSchemaDefinition<Shape, CatchAll>;
 };
 
 export type CoMapInstance<Shape extends z.core.$ZodLooseShape> = {

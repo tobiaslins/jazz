@@ -116,14 +116,6 @@ type AnyZodSchema = z.core.$ZodType;
 
 export type AnyZodOrCoValueSchema = AnyZodSchema | CoreCoValueSchema;
 
-// This type is intentionally vague to avoid circularity issues
-export type ZodSchemaForAnySchema<S extends AnyZodOrCoValueSchema> =
-  S extends CoreCoValueSchema
-    ? z.core.$ZodType
-    : S extends z.core.$ZodType
-      ? z.core.$ZodType
-      : never;
-
 export type Loaded<
   T extends CoValueClassOrSchema,
   R extends ResolveQuery<T> = true,

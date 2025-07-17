@@ -39,11 +39,11 @@ export interface AccountSchema<
     Omit<
       CoMapSchema<Shape>,
       | "builtin"
+      | "getDefinition"
       | "create"
       | "load"
       | "withMigration"
       | "getCoValueClass"
-      | "getZodSchema"
     > {
   builtin: "Account";
 
@@ -85,7 +85,6 @@ export function createCoreAccountSchema<Shape extends BaseAccountShape>(
   const zodSchema = z.object(shape).meta({
     collaborative: true,
   });
-  // @ts-expect-error ignore z.ZodObject's type constraint on Shape
   return Object.assign(zodSchema, {
     collaborative: true as const,
     builtin: "Account" as const,
@@ -93,7 +92,6 @@ export function createCoreAccountSchema<Shape extends BaseAccountShape>(
       shape: zodSchema.def.shape,
       catchall: zodSchema.def.catchall,
     }),
-    getZodSchema: () => zodSchema,
   });
 }
 
@@ -167,8 +165,7 @@ export interface CoreAccountSchema<
   Shape extends z.core.$ZodLooseShape = z.core.$ZodLooseShape,
 > extends CoreCoValueSchema {
   builtin: "Account";
-  getDefinition: () => CoMapSchemaDefinition;
-  getZodSchema: () => z.core.$ZodObject<Shape>;
+  getDefinition: () => CoMapSchemaDefinition<Shape>;
 }
 
 export type AccountInstance<Shape extends z.core.$ZodLooseShape> = {

@@ -32,9 +32,6 @@ export interface CoreCoDiscriminatedUnionSchema<
 > extends DiscriminableCoreCoValueSchema {
   builtin: "CoDiscriminatedUnion";
   getDefinition: () => CoDiscriminatedUnionSchemaDefinition<Options>;
-  getZodSchema: () => z.core.$ZodDiscriminatedUnion<
-    ReturnType<Options[number]["getZodSchema"]>[]
-  >;
 }
 export interface CoDiscriminatedUnionSchema<
   Options extends DiscriminableCoValueSchemas,
@@ -92,7 +89,6 @@ export function createCoreCoDiscriminatedUnionSchema<
         return zodSchema._zod.def.options;
       },
     }),
-    getZodSchema: () => zodSchema,
   });
 }
 

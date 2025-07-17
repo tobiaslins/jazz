@@ -6,7 +6,6 @@ import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 export interface CorePlainTextSchema extends CoreCoValueSchema {
   builtin: "CoPlainText";
-  getZodSchema: () => z.core.$ZodCustom<CoPlainText, unknown>;
 }
 
 export interface PlainTextSchema extends CorePlainTextSchema {
@@ -38,7 +37,6 @@ export function createCoreCoPlainTextSchema(): CorePlainTextSchema {
   return Object.assign(zodSchema, {
     collaborative: true as const,
     builtin: "CoPlainText" as const,
-    getZodSchema: () => zodSchema,
   });
 }
 

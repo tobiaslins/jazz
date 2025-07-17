@@ -9,7 +9,6 @@ import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 export interface CoreFileStreamSchema extends CoreCoValueSchema {
   builtin: "FileStream";
-  getZodSchema: () => z.core.$ZodCustom<FileStream, unknown>;
 }
 
 export interface FileStreamSchema extends CoreFileStreamSchema {
@@ -54,7 +53,6 @@ export function createCoreFileStreamSchema(): CoreFileStreamSchema {
   return Object.assign(zodSchema, {
     collaborative: true as const,
     builtin: "FileStream" as const,
-    getZodSchema: () => zodSchema,
   });
 }
 

@@ -13,11 +13,7 @@ import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimiti
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { NotNull } from "../typeConverters/NotNull.js";
 import { z } from "../zodReExport.js";
-import {
-  AnyZodOrCoValueSchema,
-  WithHelpers,
-  ZodSchemaForAnySchema,
-} from "../zodSchema.js";
+import { AnyZodOrCoValueSchema, WithHelpers } from "../zodSchema.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 type CoListInit<T extends AnyZodOrCoValueSchema> = Simplify<
@@ -77,7 +73,6 @@ export function createCoreCoListSchema<T extends AnyZodOrCoValueSchema>(
     getDefinition: () => ({
       element: zodSchema.def.element,
     }),
-    getZodSchema: () => zodSchema,
   };
 }
 
@@ -111,7 +106,6 @@ export interface CoreCoListSchema<
 > extends CoreCoValueSchema {
   builtin: "CoList";
   getDefinition: () => CoListSchemaDefinition<T>;
-  getZodSchema: () => z.core.$ZodArray<ZodSchemaForAnySchema<T>>;
 }
 
 export type CoListInstance<T extends AnyZodOrCoValueSchema> = CoList<

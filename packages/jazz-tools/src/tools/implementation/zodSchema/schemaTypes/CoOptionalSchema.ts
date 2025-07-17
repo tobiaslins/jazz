@@ -13,7 +13,6 @@ export interface CoreCoOptionalSchema<
 > extends CoreCoValueSchema {
   builtin: "CoOptional";
   getDefinition: () => CoOptionalSchemaDefinition<Shape>;
-  getZodSchema: () => z.ZodOptional<ReturnType<Shape["getZodSchema"]>>;
 }
 
 export interface CoOptionalSchema<
@@ -34,6 +33,5 @@ export function createCoOptionalSchema<T extends CoreCoValueSchema>(
         schema as unknown as CoValueSchemaFromCoreSchema<T>
       ).getCoValueClass();
     },
-    getZodSchema: () => zodSchema,
   }) as unknown as CoOptionalSchema<T>;
 }

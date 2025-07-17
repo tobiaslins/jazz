@@ -59,14 +59,10 @@ export interface CoFeedSchema<T extends AnyZodOrCoValueSchema>
 export function createCoreCoFeedSchema<T extends AnyZodOrCoValueSchema>(
   element: T,
 ): CoreCoFeedSchema<T> {
-  const zodSchema = z.instanceof(CoFeed).meta({
-    collaborative: true,
-  });
   return {
     collaborative: true as const,
     builtin: "CoFeed" as const,
     element,
-    getZodSchema: () => zodSchema,
   };
 }
 
@@ -101,7 +97,6 @@ export interface CoreCoFeedSchema<
 > extends CoreCoValueSchema {
   builtin: "CoFeed";
   element: T;
-  getZodSchema: () => z.core.$ZodCustom<CoFeed, unknown>;
 }
 
 export type CoFeedInstance<T extends AnyZodOrCoValueSchema> = CoFeed<

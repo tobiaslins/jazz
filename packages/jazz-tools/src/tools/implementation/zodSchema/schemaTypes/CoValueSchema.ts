@@ -14,9 +14,4 @@ export interface CoreCoValueSchema {
    * Used for discriminating between different CoValue schemas.
    */
   builtin: string;
-
-  /**
-   * Returns the Zod schema that this CoValue schema is based on.
-   */
-  getZodSchema: () => z.core.$ZodType;
 }

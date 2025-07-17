@@ -5,7 +5,6 @@ import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 export interface CoreRichTextSchema extends CoreCoValueSchema {
   builtin: "CoRichText";
-  getZodSchema: () => z.core.$ZodCustom<CoRichText, unknown>;
 }
 
 export interface RichTextSchema extends CoreRichTextSchema {
@@ -36,7 +35,6 @@ export function createCoreCoRichTextSchema(): CoreRichTextSchema {
   return Object.assign(zodSchema, {
     collaborative: true as const,
     builtin: "CoRichText" as const,
-    getZodSchema: () => zodSchema,
   });
 }
 
