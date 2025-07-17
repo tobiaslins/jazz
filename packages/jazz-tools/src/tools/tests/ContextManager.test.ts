@@ -25,7 +25,7 @@ import {
   CoValueFromRaw,
   InstanceOfSchema,
   Loaded,
-  anySchemaToCoSchema,
+  coValueClassFromCoValueClassOrSchema,
 } from "../internal";
 import {
   createJazzTestAccount,
@@ -269,7 +269,7 @@ describe("ContextManager", () => {
     >();
 
     await customManager.createContext({
-      AccountSchema: anySchemaToCoSchema(CustomAccount),
+      AccountSchema: coValueClassFromCoValueClassOrSchema(CustomAccount),
       storage: dbFilename,
       onAnonymousAccountDiscarded: async (anonymousAccount) => {
         const anonymousAccountWithRoot = await anonymousAccount.ensureLoaded({
@@ -335,7 +335,7 @@ describe("ContextManager", () => {
 
     // Create initial anonymous context
     await customManager.createContext({
-      AccountSchema: anySchemaToCoSchema(CustomAccount),
+      AccountSchema: coValueClassFromCoValueClassOrSchema(CustomAccount),
     });
 
     const account = (
@@ -386,7 +386,7 @@ describe("ContextManager", () => {
 
     // Create initial anonymous context
     await customManager.createContext({
-      AccountSchema: anySchemaToCoSchema(CustomAccount),
+      AccountSchema: coValueClassFromCoValueClassOrSchema(CustomAccount),
     });
 
     const account = (
@@ -458,7 +458,7 @@ describe("ContextManager", () => {
     // Create initial anonymous context
     await customManager.createContext({
       onAnonymousAccountDiscarded,
-      AccountSchema: anySchemaToCoSchema(CustomAccount),
+      AccountSchema: coValueClassFromCoValueClassOrSchema(CustomAccount),
     });
 
     const account = await createJazzTestAccount({

@@ -40,7 +40,7 @@ import {
   SubscribeRestArgs,
   accessChildByKey,
   activeAccountContext,
-  anySchemaToCoSchema,
+  coValueClassFromCoValueClassOrSchema,
   coValuesCache,
   createInboxRoot,
   ensureCoValueLoaded,
@@ -268,9 +268,13 @@ export class Account extends CoValueBase implements CoValue {
       inviteSecret,
     );
 
-    return loadCoValue(anySchemaToCoSchema(coValueClass), valueID, {
-      loadAs: this,
-    }) as Resolved<InstanceOrPrimitiveOfSchema<S>, true> | null;
+    return loadCoValue(
+      coValueClassFromCoValueClassOrSchema(coValueClass),
+      valueID,
+      {
+        loadAs: this,
+      },
+    ) as Resolved<InstanceOrPrimitiveOfSchema<S>, true> | null;
   }
 
   /** @private */

@@ -20,7 +20,7 @@ import {
   ResolveQuery,
   ResolveQueryStrict,
   SubscriptionScope,
-  anySchemaToCoSchema,
+  coValueClassFromCoValueClassOrSchema,
 } from "jazz-tools";
 import { JazzContext, JazzContextManagerContext } from "./provider.js";
 import { getCurrentAccountFromContextManager } from "./utils.js";
@@ -107,7 +107,7 @@ function useCoValueSubscription<
       options?.resolve ?? true,
       id,
       {
-        ref: anySchemaToCoSchema(Schema),
+        ref: coValueClassFromCoValueClassOrSchema(Schema),
         optional: true,
       },
     );
@@ -198,7 +198,7 @@ function useAccountSubscription<
 
     const node = contextManager.getCurrentValue()!.node;
     const subscription = new SubscriptionScope<any>(node, resolve, agent.id, {
-      ref: anySchemaToCoSchema(Schema),
+      ref: coValueClassFromCoValueClassOrSchema(Schema),
       optional: true,
     });
 

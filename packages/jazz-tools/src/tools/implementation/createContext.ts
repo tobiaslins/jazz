@@ -17,7 +17,7 @@ import {
   type CoreAccountSchema,
   type ID,
   type InstanceOfSchema,
-  anySchemaToCoSchema,
+  coValueClassFromCoValueClassOrSchema,
 } from "../internal.js";
 import { AuthCredentials, NewAccountProps } from "../types.js";
 import { activeAccountContext } from "./activeAccountContext.js";
@@ -113,7 +113,8 @@ export async function createJazzContextFromExistingCredentials<
   const CurrentAccountSchema =
     PropsAccountSchema ?? (RegisteredSchemas["Account"] as unknown as S);
 
-  const AccountClass = anySchemaToCoSchema(CurrentAccountSchema);
+  const AccountClass =
+    coValueClassFromCoValueClassOrSchema(CurrentAccountSchema);
 
   const node = await LocalNode.withLoadedAccount({
     accountID: credentials.accountID as unknown as CoID<RawAccount>,
@@ -172,7 +173,8 @@ export async function createJazzContextForNewAccount<
   const CurrentAccountSchema =
     PropsAccountSchema ?? (RegisteredSchemas["Account"] as unknown as S);
 
-  const AccountClass = anySchemaToCoSchema(CurrentAccountSchema);
+  const AccountClass =
+    coValueClassFromCoValueClassOrSchema(CurrentAccountSchema);
 
   const { node } = await LocalNode.withNewlyCreatedAccount({
     creationProps,

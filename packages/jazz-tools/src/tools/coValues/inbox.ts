@@ -7,7 +7,7 @@ import {
   ID,
   InstanceOfSchema,
   activeAccountContext,
-  anySchemaToCoSchema,
+  coValueClassFromCoValueClassOrSchema,
   loadCoValue,
 } from "../internal.js";
 
@@ -171,7 +171,7 @@ export class Inbox {
                 }
 
                 return loadCoValue(
-                  anySchemaToCoSchema(Schema),
+                  coValueClassFromCoValueClassOrSchema(Schema),
                   message.get("payload")!,
                   {
                     loadAs: account,

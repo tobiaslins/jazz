@@ -96,7 +96,7 @@ export {
 export type * from "./types.js";
 
 export {
-  anySchemaToCoSchema,
+  coValueClassFromCoValueClassOrSchema,
   type InstanceOfSchema,
   type InstanceOfSchemaCoValuesNullable,
   type CoValueClassOrSchema,

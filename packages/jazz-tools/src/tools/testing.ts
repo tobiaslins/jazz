@@ -13,7 +13,7 @@ import {
   JazzContextManagerAuthProps,
   JazzContextManagerBaseProps,
   activeAccountContext,
-  anySchemaToCoSchema,
+  coValueClassFromCoValueClassOrSchema,
   createAnonymousJazzContext,
   createJazzContext,
   randomSessionProvider,
@@ -95,7 +95,7 @@ export async function createJazzTestAccount<
   creationProps?: Record<string, unknown>;
 }): Promise<InstanceOfSchema<S>> {
   const AccountClass = options?.AccountSchema
-    ? anySchemaToCoSchema(options.AccountSchema)
+    ? coValueClassFromCoValueClassOrSchema(options.AccountSchema)
     : Account;
   const peers = [];
   if (syncServer.current) {

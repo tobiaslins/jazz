@@ -133,10 +133,18 @@ export function hydrateCoreCoValueSchema<S extends AnyCoreCoValueSchema>(
   }
 }
 
-// TODO rename to coValueClassFromCoValueClassOrSchema
-export function anySchemaToCoSchema<S extends CoValueClassOrSchema>(
-  schema: S,
-): CoValueClassFromAnySchema<S> {
+/**
+ * Convert a CoValue class or a CoValue schema into a CoValue class.
+ *
+ * This function bridges the gap between CoValue classes created with the class syntax,
+ * and CoValue classes created with our `co.` definers.
+ *
+ * @param schema A CoValue class or a CoValue schema
+ * @returns The same CoValue class, or a CoValue class that matches the provided schema
+ */
+export function coValueClassFromCoValueClassOrSchema<
+  S extends CoValueClassOrSchema,
+>(schema: S): CoValueClassFromAnySchema<S> {
   if (isCoValueClass(schema)) {
     return schema as any;
   } else if (isCoValueSchema(schema)) {

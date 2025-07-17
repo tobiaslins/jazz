@@ -14,7 +14,7 @@ import {
   SubscriptionScope,
   type SubscriptionValue,
   activeAccountContext,
-  anySchemaToCoSchema,
+  coValueClassFromCoValueClassOrSchema,
   inspect,
 } from "../internal.js";
 
@@ -331,7 +331,7 @@ export function createCoValueObservable<
     subscriberCount++;
 
     const unsubscribe = subscribeToCoValue(
-      anySchemaToCoSchema(cls),
+      coValueClassFromCoValueClassOrSchema(cls),
       id,
       {
         loadAs: options.loadAs,

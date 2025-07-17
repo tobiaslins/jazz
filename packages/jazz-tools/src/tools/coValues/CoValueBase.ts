@@ -8,7 +8,7 @@ import {
   ID,
   RegisteredSchemas,
   accessChildById,
-  anySchemaToCoSchema,
+  coValueClassFromCoValueClassOrSchema,
   coValuesCache,
   inspect,
   isCoValueSchema,
@@ -47,9 +47,9 @@ export class CoValueBase implements CoValue {
 
     if (agent instanceof ControlledAccount) {
       return coValuesCache.get(agent.account, () =>
-        anySchemaToCoSchema(RegisteredSchemas["Account"]).fromRaw(
-          agent.account,
-        ),
+        coValueClassFromCoValueClassOrSchema(
+          RegisteredSchemas["Account"],
+        ).fromRaw(agent.account),
       );
     }
 

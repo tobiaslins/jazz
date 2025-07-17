@@ -9,8 +9,8 @@ import {
   ID,
   InMemoryKVStore,
   KvStoreContext,
-  anySchemaToCoSchema,
   co,
+  coValueClassFromCoValueClassOrSchema,
   createAnonymousJazzContext,
   createJazzContext,
   createJazzContextForNewAccount,
@@ -89,7 +89,7 @@ describe("createContext methods", () => {
       });
 
       expect(context.account).toBeInstanceOf(
-        anySchemaToCoSchema(CustomAccount),
+        coValueClassFromCoValueClassOrSchema(CustomAccount),
       );
     });
 
@@ -198,7 +198,7 @@ describe("createContext methods", () => {
       });
 
       expect(context.account).toBeInstanceOf(
-        anySchemaToCoSchema(CustomAccount),
+        coValueClassFromCoValueClassOrSchema(CustomAccount),
       );
     });
 
@@ -349,7 +349,7 @@ describe("createContext methods", () => {
       });
 
       expect(context.account).toBeInstanceOf(
-        anySchemaToCoSchema(CustomAccount),
+        coValueClassFromCoValueClassOrSchema(CustomAccount),
       );
     });
   });

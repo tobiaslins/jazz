@@ -12,7 +12,7 @@ import {
 } from "vitest";
 import { Group, co, subscribeToCoValue, z } from "../exports.js";
 import { Account } from "../index.js";
-import { Loaded, anySchemaToCoSchema } from "../internal.js";
+import { Loaded, coValueClassFromCoValueClassOrSchema } from "../internal.js";
 import {
   createJazzTestAccount,
   getPeerConnectedToTestSyncServer,
@@ -801,7 +801,7 @@ describe("CoMap resolution", async () => {
     const spy = vi.fn((person) => updates.push(person));
 
     subscribeToCoValue(
-      anySchemaToCoSchema(Person), // TODO: we should get rid of the conversion in the future
+      coValueClassFromCoValueClassOrSchema(Person), // TODO: we should get rid of the conversion in the future
       person.id,
       {
         syncResolution: true,
