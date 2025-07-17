@@ -69,33 +69,6 @@ test("load a missing optional value (co.optional)", async () => {
   expect(john.dog).toBeUndefined();
 });
 
-test("load a missing optional value (z.optional)", async () => {
-  const Dog = co.map({
-    name: z.string(),
-  });
-
-  const Person = co.map({
-    name: z.string(),
-    dog: z.optional(Dog),
-  });
-
-  const group = Group.create();
-  const map = Person.create({ name: "John" }, group);
-  group.addMember("everyone", "reader");
-
-  const alice = await createJazzTestAccount();
-
-  const john = await Person.load(map.id, {
-    loadAs: alice,
-    resolve: { dog: true },
-  });
-
-  assert(john);
-
-  expect(john.name).toBe("John");
-  expect(john.dog).toBeUndefined();
-});
-
 test("load a missing optional value (Schema.optional)", async () => {
   const Dog = co.map({
     name: z.string(),

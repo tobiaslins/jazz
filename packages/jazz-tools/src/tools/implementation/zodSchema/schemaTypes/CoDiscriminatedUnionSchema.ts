@@ -7,8 +7,10 @@ import {
   SchemaUnion,
   SchemaUnionConcreteSubclass,
   SubscribeListenerOptions,
+  coOptionalDefiner,
 } from "../../../internal.js";
 import { z } from "../zodReExport.js";
+import { CoOptionalSchema } from "./CoOptionalSchema.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 export interface DiscriminableCoreCoValueSchema extends CoreCoValueSchema {
@@ -66,6 +68,8 @@ export interface CoDiscriminatedUnionSchema<
   getCoValueClass: () => SchemaUnionConcreteSubclass<
     InstanceOfSchema<Options[number]>
   >;
+
+  optional(): CoOptionalSchema<CoDiscriminatedUnionSchema<Options>>;
 }
 
 export function createCoreCoDiscriminatedUnionSchema<
@@ -98,7 +102,7 @@ export function enrichCoDiscriminatedUnionSchema<
   schema: CoreCoDiscriminatedUnionSchema<Options>,
   coValueClass: SchemaUnionConcreteSubclass<InstanceOfSchema<Options[number]>>,
 ): CoDiscriminatedUnionSchema<Options> {
-  return Object.assign(schema, {
+  const coValueSchema = Object.assign(schema, {
     load: (...args: [any, ...any]) => {
       return coValueClass.load(...args);
     },
@@ -109,7 +113,12 @@ export function enrichCoDiscriminatedUnionSchema<
     getCoValueClass: () => {
       return coValueClass;
     },
+
+    optional: () => {
+      return coOptionalDefiner(coValueSchema);
+    },
   }) as unknown as CoDiscriminatedUnionSchema<Options>;
+  return coValueSchema;
 }
 
 type CoDiscriminatedUnionInstanceCoValuesNullable<
