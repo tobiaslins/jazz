@@ -14,24 +14,20 @@ import {
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
+import { NotNull } from "../typeConverters/NotNull.js";
 import { z } from "../zodReExport.js";
 import {
   AnyZodOrCoValueSchema,
   WithHelpers,
   ZodSchemaForAnySchema,
 } from "../zodSchema.js";
-import { CoreCoOptionalSchema } from "./CoOptionalSchema.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 type CoRecordInit<
   K extends z.core.$ZodString<string>,
   V extends AnyZodOrCoValueSchema,
 > = {
-  [key in z.output<K>]: V extends
-    | z.core.$ZodOptional<infer V2>
-    | CoreCoOptionalSchema<infer V2>
-    ? NonNullable<InstanceOrPrimitiveOfSchemaCoValuesNullable<V2>> | undefined
-    : NonNullable<InstanceOrPrimitiveOfSchemaCoValuesNullable<V>>;
+  [key in z.output<K>]: NotNull<InstanceOrPrimitiveOfSchemaCoValuesNullable<V>>;
 };
 
 export interface CoRecordSchema<

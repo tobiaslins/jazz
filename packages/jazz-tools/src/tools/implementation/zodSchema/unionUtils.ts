@@ -1,11 +1,11 @@
 import { RawAccount, RawCoList, RawCoMap } from "cojson";
 import {
-  AnyDiscriminableCoSchema,
   AnyZodOrCoValueSchema,
   CoDiscriminatedUnionSchema,
   CoMap,
   CoreCoDiscriminatedUnionSchema,
   CoreCoMapSchema,
+  DiscriminableCoreCoValueSchema,
 } from "../../internal.js";
 import {
   coreSchemaToCoSchema,
@@ -15,7 +15,7 @@ import { z } from "./zodReExport.js";
 
 export function schemaUnionDiscriminatorFor(
   schema: CoreCoDiscriminatedUnionSchema<
-    [AnyDiscriminableCoSchema, ...AnyDiscriminableCoSchema[]]
+    [DiscriminableCoreCoValueSchema, ...DiscriminableCoreCoValueSchema[]]
   >,
 ) {
   if (isUnionOfCoMapsDeeply(schema)) {
@@ -43,7 +43,7 @@ export function schemaUnionDiscriminatorFor(
       }
     }
 
-    const availableOptions: AnyDiscriminableCoSchema[] = [];
+    const availableOptions: DiscriminableCoreCoValueSchema[] = [];
 
     for (const option of options) {
       if (option.builtin === "CoMap") {
@@ -125,14 +125,14 @@ export function schemaUnionDiscriminatorFor(
 
 function isUnionOfCoMapsDeeply(
   schema: CoreCoDiscriminatedUnionSchema<
-    [AnyDiscriminableCoSchema, ...AnyDiscriminableCoSchema[]]
+    [DiscriminableCoreCoValueSchema, ...DiscriminableCoreCoValueSchema[]]
   >,
 ): boolean {
   return schema.getDefinition().options.every(isCoMapOrUnionOfCoMapsDeeply);
 }
 
 function isCoMapOrUnionOfCoMapsDeeply(
-  schema: AnyDiscriminableCoSchema,
+  schema: DiscriminableCoreCoValueSchema,
 ): boolean {
   if (schema.builtin === "CoMap") {
     return true;

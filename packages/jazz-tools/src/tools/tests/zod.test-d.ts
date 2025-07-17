@@ -15,6 +15,18 @@ describe("CoValue and Zod schema compatibility", () => {
     });
   });
 
+  test("cannot use z.optional with CoValue schemas", () => {
+    const Dog = co.map({
+      name: z.string(),
+      breed: z.string(),
+    });
+
+    const Person = co.map({
+      // @ts-expect-error: cannot use z.optional with a CoValue schema
+      pet: z.optional(Dog),
+    });
+  });
+
   test("cannot use z.discriminatedUnion with CoValue schemas as values", () => {
     const Dog = co.map({
       type: z.literal("dog"),

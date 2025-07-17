@@ -11,29 +11,29 @@ import {
 import { z } from "../zodReExport.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
-export type AnyDiscriminableCoSchema = CoreCoValueSchema &
-  z.core.$ZodTypeDiscriminable;
+export interface DiscriminableCoreCoValueSchema extends CoreCoValueSchema {
+  discriminable: true;
+}
 
-export type CoDiscriminatedUnionSchemaDefinition<
+export interface CoDiscriminatedUnionSchemaDefinition<
   Options extends DiscriminableCoValueSchemas,
-> = {
+> {
   discriminator: string;
   discriminatorMap: z.core.$ZodDiscriminatedUnionInternals["disc"];
   options: Options;
-};
+}
 
-export type DiscriminableCoValueSchemas = readonly [
-  AnyDiscriminableCoSchema,
-  ...AnyDiscriminableCoSchema[],
-];
+type Tuple<T> = readonly [T, ...T[]];
+export type DiscriminableCoValueSchemas = Tuple<DiscriminableCoreCoValueSchema>;
 
 export interface CoreCoDiscriminatedUnionSchema<
   Options extends DiscriminableCoValueSchemas = DiscriminableCoValueSchemas,
-> extends CoreCoValueSchema,
-    z.core.$ZodDiscriminatedUnion<Options> {
+> extends DiscriminableCoreCoValueSchema {
   builtin: "CoDiscriminatedUnion";
   getDefinition: () => CoDiscriminatedUnionSchemaDefinition<Options>;
-  getZodSchema: () => z.core.$ZodDiscriminatedUnion<Options>;
+  getZodSchema: () => z.core.$ZodDiscriminatedUnion<
+    Tuple<ReturnType<Options[number]["getZodSchema"]>>
+  >;
 }
 export interface CoDiscriminatedUnionSchema<
   Options extends DiscriminableCoValueSchemas,
@@ -79,6 +79,7 @@ export function createCoreCoDiscriminatedUnionSchema<
   return Object.assign(zodSchema, {
     collaborative: true as const,
     builtin: "CoDiscriminatedUnion" as const,
+    discriminable: true as const,
     getDefinition: () => ({
       discriminator,
       get discriminatorMap() {
@@ -95,7 +96,7 @@ export function createCoreCoDiscriminatedUnionSchema<
 export function enrichCoDiscriminatedUnionSchema<
   Options extends DiscriminableCoValueSchemas,
 >(
-  schema: z.ZodDiscriminatedUnion<Options>,
+  schema: CoreCoDiscriminatedUnionSchema<Options>,
   coValueClass: SchemaUnionConcreteSubclass<InstanceOfSchema<Options[number]>>,
 ): CoDiscriminatedUnionSchema<Options> {
   return Object.assign(schema, {

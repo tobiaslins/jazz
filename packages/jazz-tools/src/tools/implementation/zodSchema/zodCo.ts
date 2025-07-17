@@ -21,7 +21,6 @@ import {
   createCoreFileStreamSchema,
 } from "../../internal.js";
 import {
-  AnyDiscriminableCoSchema,
   CoDiscriminatedUnionSchema,
   DiscriminableCoValueSchemas,
   createCoreCoDiscriminatedUnionSchema,

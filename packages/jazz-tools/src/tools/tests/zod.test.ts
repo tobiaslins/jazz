@@ -368,25 +368,6 @@ describe("co.map and Zod schema compatibility", () => {
     //   expect(failedMap.result).toEqual({ status: "failed", error: "error" });
     // });
 
-    it("should handle optional CoValues", () => {
-      const Dog = co.map({
-        name: z.string(),
-        breed: z.string(),
-      });
-
-      const Person = co.map({
-        pet: z.optional(Dog),
-      });
-
-      const person = Person.create({});
-
-      expect(person.pet).toBeUndefined();
-
-      person.pet = Dog.create({ name: "Rex", breed: "Labrador" });
-
-      expect(person.pet).toEqual({ name: "Rex", breed: "Labrador" });
-    });
-
     // it("should handle intersections", async () => {
     //   const schema = co.map({
     //     value: z.intersection(

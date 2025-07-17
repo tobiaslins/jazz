@@ -11,21 +11,17 @@ import {
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
+import { NotNull } from "../typeConverters/NotNull.js";
 import { z } from "../zodReExport.js";
 import {
   AnyZodOrCoValueSchema,
   WithHelpers,
   ZodSchemaForAnySchema,
 } from "../zodSchema.js";
-import { CoreCoOptionalSchema } from "./CoOptionalSchema.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 type CoListInit<T extends AnyZodOrCoValueSchema> = Simplify<
-  Array<
-    T extends z.core.$ZodOptional<infer V2> | CoreCoOptionalSchema<infer V2>
-      ? NonNullable<InstanceOrPrimitiveOfSchemaCoValuesNullable<V2>> | undefined
-      : NonNullable<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>>
-  >
+  Array<NotNull<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>>>
 >;
 
 export interface CoListSchema<T extends AnyZodOrCoValueSchema>
