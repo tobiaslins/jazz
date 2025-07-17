@@ -52,11 +52,7 @@ export function schemaFieldToCoFieldDef(schema: SchemaField) {
       const zodSchemaDef = schema._zod.def;
       if (zodSchemaDef.type === "optional") {
         const inner = zodSchemaDef.innerType as ZodPrimitiveSchema;
-        if (isCoValueClass(inner)) {
-          return coField.ref(inner, { optional: true });
-        } else {
-          return schemaFieldToCoFieldDef(inner);
-        }
+        return schemaFieldToCoFieldDef(inner);
       } else if (zodSchemaDef.type === "string") {
         return coField.string;
       } else if (zodSchemaDef.type === "number") {
