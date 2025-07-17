@@ -21,9 +21,9 @@ import { CoOptionalSchema, CoreCoOptionalSchema } from "./CoOptionalSchema.js";
 
 export interface CoMapSchema<
   Shape extends z.core.$ZodLooseShape,
-  Config extends z.core.$ZodObjectConfig = z.core.$ZodObjectConfig,
+  CatchAll extends AnyZodOrCoValueSchema | unknown = unknown,
   Owner extends Account | Group = Account | Group,
-> extends CoreCoMapSchema<Shape, Config> {
+> extends CoreCoMapSchema<Shape, CatchAll> {
   create: (
     init: Simplify<CoMapInitZod<Shape>>,
     options?:
@@ -37,10 +37,11 @@ export interface CoMapSchema<
     : {
         -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchema<Shape[key]>;
       }) &
-    (unknown extends Config["out"][string]
+    (unknown extends CatchAll
       ? {}
       : {
-          [key: string]: Config["out"][string];
+          // @ts-expect-error
+          [key: string]: InstanceOrPrimitiveOfSchema<CatchAll>;
         }) &
     CoMap;
 
@@ -125,14 +126,7 @@ export interface CoMapSchema<
     R
   > | null>;
 
-  catchall<T extends AnyZodOrCoValueSchema>(
-    schema: T,
-  ): CoMapSchema<
-    Shape,
-    // This is a hack to keep a reference to T in the CoMapSchema
-    // TODO: find a better way to do this
-    z.core.$catchall<T & z.core.$ZodType<unknown, unknown>>
-  >;
+  catchall<T extends AnyZodOrCoValueSchema>(schema: T): CoMapSchema<Shape, T>;
 
   /** @deprecated Define your helper methods separately, in standalone functions. */
   withHelpers<S extends CoreCoMapSchema, T extends object>(
@@ -147,22 +141,20 @@ export interface CoMapSchema<
         true
       >,
     ) => undefined,
-  ): CoMapSchema<Shape, Config, Owner>;
+  ): CoMapSchema<Shape, CatchAll, Owner>;
 
   getCoValueClass: () => typeof CoMap;
 
-  optional(): CoOptionalSchema<CoMapSchema<Shape, Config, Owner>>;
+  optional(): CoOptionalSchema<CoMapSchema<Shape, CatchAll, Owner>>;
 }
 
-export function createCoreCoMapSchema<Shape extends z.core.$ZodLooseShape>(
-  input: { shape: Shape } | { zodObject: z.ZodObject<Shape> },
-): CoreCoMapSchema<Shape> {
-  const zodSchema =
-    "zodObject" in input
-      ? input.zodObject
-      : z.object(input.shape).meta({
-          collaborative: true,
-        });
+export function createCoreCoMapSchema<
+  Shape extends z.core.$ZodLooseShape,
+  CatchAll extends AnyZodOrCoValueSchema | unknown = unknown,
+>(shape: Shape, index?: CatchAll): CoreCoMapSchema<Shape, CatchAll> {
+  const zodSchema = z.object(shape).meta({
+    collaborative: true,
+  });
   return Object.assign(zodSchema, {
     collaborative: true as const,
     builtin: "CoMap" as const,
@@ -172,7 +164,7 @@ export function createCoreCoMapSchema<Shape extends z.core.$ZodLooseShape>(
         return zodSchema.def.shape;
       },
       get catchall() {
-        return zodSchema.def.catchall;
+        return index;
       },
     }),
     getZodSchema: () => zodSchema,
@@ -181,13 +173,11 @@ export function createCoreCoMapSchema<Shape extends z.core.$ZodLooseShape>(
 
 export function enrichCoMapSchema<
   Shape extends z.core.$ZodLooseShape,
-  Config extends z.core.$ZodObjectConfig,
+  CatchAll extends AnyZodOrCoValueSchema | unknown,
 >(
-  schema: CoreCoMapSchema<Shape, Config>,
+  schema: CoreCoMapSchema<Shape, CatchAll>,
   coValueClass: typeof CoMap,
-): CoMapSchema<Shape, Config> {
-  // @ts-expect-error schema is actually a z.ZodObject, but we need to use z.core.$ZodObject to avoid circularity issues
-  const baseCatchall = schema.catchall;
+): CoMapSchema<Shape, CatchAll> {
   const coValueSchema = Object.assign(schema, {
     create: (...args: [any, ...any[]]) => {
       return coValueClass.create(...args);
@@ -212,12 +202,14 @@ export function enrichCoMapSchema<
       return coValueClass.loadUnique(...args);
     },
     catchall: (index: AnyZodOrCoValueSchema) => {
-      const newSchema = baseCatchall(index);
-      const enrichedSchema = createCoreCoMapSchema({ zodObject: newSchema });
+      const enrichedSchema = createCoreCoMapSchema(
+        coValueSchema.getDefinition().shape,
+        index,
+      );
       return coreSchemaToCoSchema(enrichedSchema);
     },
     withHelpers: (
-      helpers: (Self: CoreCoMapSchema<Shape, Config>) => object,
+      helpers: (Self: CoreCoMapSchema<Shape, CatchAll>) => object,
     ) => {
       return Object.assign(schema, helpers(schema));
     },
@@ -234,7 +226,7 @@ export function enrichCoMapSchema<
     optional: () => {
       return coOptionalDefiner(coValueSchema);
     },
-  }) as unknown as CoMapSchema<Shape, Config>;
+  }) as unknown as CoMapSchema<Shape, CatchAll>;
   return coValueSchema;
 }
 
@@ -264,19 +256,21 @@ export type CoMapInitZod<Shape extends z.core.$ZodLooseShape> = {
   >;
 } & { [key in keyof Shape]?: unknown };
 
-export type CoMapSchemaDefinition = {
+export type CoMapSchemaDefinition<
+  CatchAll extends AnyZodOrCoValueSchema | unknown = unknown,
+> = {
   shape: z.core.$ZodShape;
-  catchall?: AnyZodOrCoValueSchema;
+  catchall?: CatchAll;
 };
 
 // less precise version to avoid circularity issues and allow matching against
 export type CoreCoMapSchema<
   Shape extends z.core.$ZodLooseShape = z.core.$ZodLooseShape,
-  Config extends z.core.$ZodObjectConfig = z.core.$ZodObjectConfig,
+  CatchAll extends AnyZodOrCoValueSchema | unknown = unknown,
 > = DiscriminableCoreCoValueSchema & {
   builtin: "CoMap";
-  getDefinition: () => CoMapSchemaDefinition;
-  getZodSchema: () => z.core.$ZodObject<Shape, Config>;
+  getDefinition: () => CoMapSchemaDefinition<CatchAll>;
+  getZodSchema: () => z.core.$ZodObject<Shape>;
 };
 
 export type CoMapInstance<Shape extends z.core.$ZodLooseShape> = {

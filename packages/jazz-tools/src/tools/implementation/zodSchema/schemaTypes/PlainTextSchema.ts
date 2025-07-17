@@ -4,9 +4,7 @@ import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { z } from "../zodReExport.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
-export interface CorePlainTextSchema
-  extends CoreCoValueSchema,
-    z.core.$ZodCustom<CoPlainText, unknown> {
+export interface CorePlainTextSchema extends CoreCoValueSchema {
   builtin: "CoPlainText";
   getZodSchema: () => z.core.$ZodCustom<CoPlainText, unknown>;
 }

@@ -43,16 +43,18 @@ export type InstanceOrPrimitiveOfSchemaCoValuesNullable<
                 string]: InstanceOrPrimitiveOfSchemaCoValuesNullable<V>;
             } & CoMap)
           | null
-      : S extends CoreCoMapSchema<infer Shape, infer Config>
+      : S extends CoreCoMapSchema<infer Shape, infer CatchAll>
         ?
             | ({
                 -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchemaCoValuesNullable<
                   Shape[key]
                 >;
-              } & (unknown extends Config["out"][string]
+              } & (unknown extends CatchAll
                 ? {}
                 : {
-                    [key: string]: Config["out"][string];
+                    [
+                      key: string // @ts-expect-error
+                    ]: InstanceOrPrimitiveOfSchemaCoValuesNullable<CatchAll>;
                   }) &
                 CoMap)
             | null

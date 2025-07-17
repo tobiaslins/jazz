@@ -3,9 +3,7 @@ import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { z } from "../zodReExport.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
-export interface CoreRichTextSchema
-  extends CoreCoValueSchema,
-    z.core.$ZodCustom<CoRichText, unknown> {
+export interface CoreRichTextSchema extends CoreCoValueSchema {
   builtin: "CoRichText";
   getZodSchema: () => z.core.$ZodCustom<CoRichText, unknown>;
 }

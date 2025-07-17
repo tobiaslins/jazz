@@ -159,8 +159,8 @@ export type DefaultProfileShape = {
 
 export type CoProfileSchema<
   Shape extends z.core.$ZodLooseShape = DefaultProfileShape,
-  Config extends z.core.$ZodObjectConfig = z.core.$ZodObjectConfig,
-> = CoMapSchema<Shape & DefaultProfileShape, Config, Group>;
+  CatchAll extends AnyZodOrCoValueSchema | unknown = unknown,
+> = CoMapSchema<Shape & DefaultProfileShape, CatchAll, Group>;
 
 // less precise version to avoid circularity issues and allow matching against
 export interface CoreAccountSchema<

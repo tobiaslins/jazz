@@ -7,9 +7,7 @@ import {
 import { z } from "../zodReExport.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
-export interface CoreFileStreamSchema
-  extends CoreCoValueSchema,
-    z.core.$ZodCustom<FileStream, unknown> {
+export interface CoreFileStreamSchema extends CoreCoValueSchema {
   builtin: "FileStream";
   getZodSchema: () => z.core.$ZodCustom<FileStream, unknown>;
 }

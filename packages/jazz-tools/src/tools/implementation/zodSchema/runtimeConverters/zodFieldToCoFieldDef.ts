@@ -34,8 +34,7 @@ export type SchemaField =
   | z.core.$ZodCatch<z.core.$ZodType>
   | z.core.$ZodEnum<any>
   | z.core.$ZodDefault<z.core.$ZodType>
-  | z.core.$ZodCatch<z.core.$ZodType>
-  | (z.core.$ZodCustom<any, any> & { builtin: any });
+  | z.core.$ZodCatch<z.core.$ZodType>;
 
 export function schemaFieldToCoFieldDef(schema: SchemaField) {
   if (isCoValueClass(schema)) {
@@ -114,12 +113,6 @@ export function schemaFieldToCoFieldDef(schema: SchemaField) {
         zodSchemaDef.type === "tuple"
       ) {
         return coField.json();
-      } else if (zodSchemaDef.type === "custom") {
-        if ("builtin" in schema) {
-          return schemaFieldToCoFieldDef(schema.builtin);
-        } else {
-          throw new Error(`Unsupported custom zod type`);
-        }
       } else if (zodSchemaDef.type === "union") {
         if (isUnionOfPrimitivesDeeply(schema)) {
           return coField.json();

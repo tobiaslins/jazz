@@ -39,7 +39,7 @@ import { z } from "./zodReExport.js";
 export const coMapDefiner = <Shape extends z.core.$ZodLooseShape>(
   shape: Shape,
 ): CoMapSchema<Shape> => {
-  const coreSchema = createCoreCoMapSchema({ shape });
+  const coreSchema = createCoreCoMapSchema(shape);
   return coreSchemaToCoSchema(coreSchema);
 };
 
