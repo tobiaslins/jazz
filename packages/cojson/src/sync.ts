@@ -448,7 +448,6 @@ export class SyncManager {
     from: PeerState | "storage" | "import",
   ) {
     const coValue = this.local.getCoValue(msg.id);
-
     const peer = from === "storage" || from === "import" ? undefined : from;
     const sourceRole =
       from === "storage"
@@ -609,7 +608,7 @@ export class SyncManager {
         newTransactions,
         undefined,
         newContentForSession.lastSignature,
-        "immediate", // TODO: can we change this to deferred?
+        "immediate",
       );
 
       if (result.isErr()) {
@@ -673,10 +672,9 @@ export class SyncManager {
       peer.trackToldKnownState(msg.id);
     }
 
-    const isContentFromStorage = from === "storage";
     const syncedPeers = [];
 
-    if (!isContentFromStorage) {
+    if (from !== "storage") {
       this.storeCoValue(coValue, [msg]);
     }
 

@@ -1,10 +1,18 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import { z } from "../exports.js";
 import { co } from "../internal.js";
-import { createJazzTestAccount } from "../testing.js";
+import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 
 describe("co.map and Zod schema compatibility", () => {
-  // Helper function to create a test account
+  beforeAll(async () => {
+    await setupJazzTestSync();
+
+    await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+      creationProps: { name: "Hermes Puggington" },
+    });
+  });
+
   describe("Primitive types", () => {
     it("should handle string fields", async () => {
       const schema = co.map({
@@ -348,11 +356,62 @@ describe("co.map and Zod schema compatibility", () => {
     //     ]),
     //   });
     //   const account = await createJazzTestAccount();
-    //   const successMap = schema.create({ result: { status: "success", data: "data" } }, account);
-    //   const failedMap = schema.create({ result: { status: "failed", error: "error" } }, account);
+    //   const successMap = schema.create(
+    //     { result: { status: "success", data: "data" } },
+    //     account,
+    //   );
+    //   const failedMap = schema.create(
+    //     { result: { status: "failed", error: "error" } },
+    //     account,
+    //   );
     //   expect(successMap.result).toEqual({ status: "success", data: "data" });
     //   expect(failedMap.result).toEqual({ status: "failed", error: "error" });
     // });
+
+    it("should handle discriminated unions of CoValues", () => {
+      const Dog = co.map({
+        type: z.literal("dog"),
+        breed: z.string(),
+      });
+
+      const Cat = co.map({
+        type: z.literal("cat"),
+        name: z.string(),
+      });
+
+      const Person = co.map({
+        pet: z.discriminatedUnion("type", [Dog, Cat]),
+      });
+
+      const person = Person.create({
+        pet: Dog.create({ type: "dog", breed: "Labrador" }),
+      });
+
+      expect(person.pet).toEqual({ type: "dog", breed: "Labrador" });
+
+      person.pet = Cat.create({ type: "cat", name: "Whiskers" });
+
+      expect(person.pet).toEqual({ type: "cat", name: "Whiskers" });
+    });
+
+    it("should handle optional CoValues", () => {
+      const Dog = co.map({
+        name: z.string(),
+        breed: z.string(),
+      });
+
+      const Person = co.map({
+        pet: z.optional(Dog),
+      });
+
+      const person = Person.create({});
+
+      expect(person.pet).toBeUndefined();
+
+      person.pet = Dog.create({ name: "Rex", breed: "Labrador" });
+
+      expect(person.pet).toEqual({ name: "Rex", breed: "Labrador" });
+    });
 
     // it("should handle intersections", async () => {
     //   const schema = co.map({

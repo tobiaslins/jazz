@@ -1,16 +1,15 @@
+import { StorageAPI } from "cojson";
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import {
   Account,
   AccountClass,
   AuthSecretStorage,
-  CoMap,
   Group,
   InMemoryKVStore,
   JazzAuthContext,
   KvStoreContext,
   co,
-  coField,
   z,
 } from "../exports";
 import {
@@ -26,6 +25,7 @@ import {
   CoValueFromRaw,
   InstanceOfSchema,
   Loaded,
+  anySchemaToCoSchema,
   zodSchemaToCoSchema,
 } from "../internal";
 import {
@@ -33,6 +33,7 @@ import {
   getPeerConnectedToTestSyncServer,
   setupJazzTestSync,
 } from "../testing";
+import { createAsyncStorage, getDbPath } from "./testStorage";
 
 const Crypto = await WasmCrypto.create();
 
@@ -41,12 +42,14 @@ class TestJazzContextManager<Acc extends Account> extends JazzContextManager<
   JazzContextManagerBaseProps<Acc> & {
     defaultProfileName?: string;
     AccountSchema?: AccountClass<Acc>;
+    storage?: string;
   }
 > {
   async getNewContext(
     props: JazzContextManagerBaseProps<Acc> & {
       defaultProfileName?: string;
       AccountSchema?: AccountClass<Acc> & CoValueFromRaw<Acc>;
+      storage?: string;
     },
     authProps?: JazzContextManagerAuthProps,
   ) {
@@ -59,6 +62,7 @@ class TestJazzContextManager<Acc extends Account> extends JazzContextManager<
       sessionProvider: randomSessionProvider,
       authSecretStorage: this.getAuthSecretStorage(),
       AccountSchema: props.AccountSchema,
+      storage: await createAsyncStorage({ filename: props.storage }),
     });
 
     return {
@@ -77,12 +81,14 @@ class TestJazzContextManager<Acc extends Account> extends JazzContextManager<
 describe("ContextManager", () => {
   let manager: TestJazzContextManager<Account>;
   let authSecretStorage: AuthSecretStorage;
+  let storage: StorageAPI;
 
   function getCurrentValue() {
     return manager.getCurrentValue() as JazzAuthContext<Account>;
   }
 
   beforeEach(async () => {
+    storage = await createAsyncStorage({});
     KvStoreContext.getInstance().initialize(new InMemoryKVStore());
     authSecretStorage = new AuthSecretStorage();
     await authSecretStorage.clear();
@@ -233,6 +239,78 @@ describe("ContextManager", () => {
     expect(onAnonymousAccountDiscarded).not.toHaveBeenCalled();
   });
 
+  test("onAnonymousAccountDiscarded should not block the authentication when storage is active", async () => {
+    const dbFilename = getDbPath();
+
+    const AccountRoot = co.map({
+      value: z.string(),
+      get transferredRoot(): z.ZodOptional<typeof AccountRoot> {
+        return co.optional(AccountRoot);
+      },
+    });
+
+    let lastRootId: string | undefined;
+
+    const CustomAccount = co
+      .account({
+        root: AccountRoot,
+        profile: co.profile(),
+      })
+      .withMigration(async (account) => {
+        account.root = AccountRoot.create(
+          {
+            value: "Hello",
+          },
+          Group.create(this).makePublic(),
+        );
+      });
+
+    const customManager = new TestJazzContextManager<
+      InstanceOfSchema<typeof CustomAccount>
+    >();
+
+    await customManager.createContext({
+      AccountSchema: anySchemaToCoSchema(CustomAccount),
+      storage: dbFilename,
+      onAnonymousAccountDiscarded: async (anonymousAccount) => {
+        const anonymousAccountWithRoot = await anonymousAccount.ensureLoaded({
+          resolve: { root: true },
+        });
+
+        const me = await CustomAccount.getMe().ensureLoaded({
+          resolve: { root: true },
+        });
+
+        me.root.transferredRoot = anonymousAccountWithRoot.root;
+      },
+    });
+
+    const prevContextNode = customManager.getCurrentValue()!.node;
+
+    expect(prevContextNode.storage).toBeDefined();
+
+    const account = (
+      customManager.getCurrentValue() as JazzAuthContext<
+        InstanceOfSchema<typeof CustomAccount>
+      >
+    ).me;
+
+    await customManager.authenticate({
+      accountID: account.id,
+      accountSecret: account._raw.core.node.getCurrentAgent().agentSecret,
+      provider: "test",
+    });
+
+    // The storage should be closed and set to undefined
+    expect(prevContextNode.storage).toBeUndefined();
+
+    const me = await CustomAccount.getMe().ensureLoaded({
+      resolve: { root: { transferredRoot: true } },
+    });
+
+    expect(me.root.transferredRoot?.value).toBe("Hello");
+  });
+
   test("the migration should be applied correctly on existing accounts", async () => {
     const AccountRoot = co.map({
       value: z.string(),
@@ -258,7 +336,7 @@ describe("ContextManager", () => {
 
     // Create initial anonymous context
     await customManager.createContext({
-      AccountSchema: zodSchemaToCoSchema(CustomAccount),
+      AccountSchema: anySchemaToCoSchema(CustomAccount),
     });
 
     const account = (
@@ -266,8 +344,6 @@ describe("ContextManager", () => {
         InstanceOfSchema<typeof CustomAccount>
       >
     ).me;
-
-    console.log("before", account._refs.root?.id);
 
     await customManager.authenticate({
       accountID: account.id,
@@ -278,8 +354,6 @@ describe("ContextManager", () => {
     const me = await CustomAccount.getMe().ensureLoaded({
       resolve: { root: true },
     });
-
-    console.log("after", me._refs.root?.id);
 
     expect(me.root.id).toBe(lastRootId);
   });
@@ -313,7 +387,7 @@ describe("ContextManager", () => {
 
     // Create initial anonymous context
     await customManager.createContext({
-      AccountSchema: zodSchemaToCoSchema(CustomAccount),
+      AccountSchema: anySchemaToCoSchema(CustomAccount),
     });
 
     const account = (
@@ -339,7 +413,7 @@ describe("ContextManager", () => {
     const AccountRoot = co.map({
       value: z.string(),
       get transferredRoot(): z.ZodOptional<typeof AccountRoot> {
-        return z.optional(AccountRoot);
+        return co.optional(AccountRoot);
       },
     });
 
@@ -385,7 +459,7 @@ describe("ContextManager", () => {
     // Create initial anonymous context
     await customManager.createContext({
       onAnonymousAccountDiscarded,
-      AccountSchema: zodSchemaToCoSchema(CustomAccount),
+      AccountSchema: anySchemaToCoSchema(CustomAccount),
     });
 
     const account = await createJazzTestAccount({

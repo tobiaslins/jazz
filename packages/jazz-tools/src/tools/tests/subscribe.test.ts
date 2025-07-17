@@ -7,27 +7,13 @@ import {
   onTestFinished,
   vi,
 } from "vitest";
+import { Account, Group, cojsonInternals, z } from "../index.js";
 import {
-  Account,
-  CoFeed,
-  CoList,
-  CoMap,
-  FileStream,
-  Group,
-  coField,
-  cojsonInternals,
-  z,
-} from "../index.js";
-import {
-  CoMapInstance,
-  ID,
-  InstanceOrPrimitiveOfSchema,
   Loaded,
-  Resolved,
+  anySchemaToCoSchema,
   co,
   createCoValueObservable,
   subscribeToCoValue,
-  zodSchemaToCoSchema,
 } from "../internal.js";
 import {
   createJazzTestAccount,
@@ -43,7 +29,7 @@ const ReactionsFeed = co.feed(z.string());
 const Message = co.map({
   text: z.string(),
   reactions: ReactionsFeed,
-  attachment: z.optional(co.fileStream()),
+  attachment: co.optional(co.fileStream()),
 });
 
 const ChatRoom = co.map({
@@ -84,7 +70,7 @@ describe("subscribeToCoValue", () => {
     let result = null as Loaded<typeof ChatRoom, true> | null;
 
     const unsubscribe = subscribeToCoValue(
-      zodSchemaToCoSchema(ChatRoom),
+      anySchemaToCoSchema(ChatRoom),
       chatRoom.id,
       { loadAs: meOnSecondPeer },
       (value) => {
@@ -131,7 +117,7 @@ describe("subscribeToCoValue", () => {
     let result = null as Loaded<typeof ChatRoom, {}> | null;
 
     const unsubscribe = subscribeToCoValue(
-      zodSchemaToCoSchema(ChatRoom),
+      anySchemaToCoSchema(ChatRoom),
       chatRoom.id,
       {
         loadAs: meOnSecondPeer,
@@ -172,7 +158,7 @@ describe("subscribeToCoValue", () => {
     messages.push(createMessage(me, "Hello"));
 
     const unsubscribe = subscribeToCoValue(
-      zodSchemaToCoSchema(ChatRoom),
+      anySchemaToCoSchema(ChatRoom),
       chatRoom.id,
       {
         loadAs: meOnSecondPeer,
@@ -215,7 +201,7 @@ describe("subscribeToCoValue", () => {
     const updateFn = vi.fn();
 
     const unsubscribe = subscribeToCoValue(
-      zodSchemaToCoSchema(ChatRoom),
+      anySchemaToCoSchema(ChatRoom),
       chatRoom.id,
       {
         loadAs: meOnSecondPeer,
@@ -275,7 +261,7 @@ describe("subscribeToCoValue", () => {
     >[];
 
     const unsubscribe = subscribeToCoValue(
-      zodSchemaToCoSchema(ChatRoom),
+      anySchemaToCoSchema(ChatRoom),
       chatRoom.id,
       {
         loadAs: meOnSecondPeer,
@@ -346,7 +332,7 @@ describe("subscribeToCoValue", () => {
     const updateFn = vi.fn();
 
     const unsubscribe = subscribeToCoValue(
-      zodSchemaToCoSchema(ChatRoom),
+      anySchemaToCoSchema(ChatRoom),
       chatRoom.id,
       {
         loadAs: meOnSecondPeer,
@@ -410,7 +396,7 @@ describe("subscribeToCoValue", () => {
     const updateFn = vi.fn();
 
     const unsubscribe = subscribeToCoValue(
-      zodSchemaToCoSchema(TestList),
+      anySchemaToCoSchema(TestList),
       list.id,
       {
         loadAs: account,
@@ -471,7 +457,7 @@ describe("subscribeToCoValue", () => {
     const onUnauthorized = vi.fn();
 
     const unsubscribe = subscribeToCoValue(
-      zodSchemaToCoSchema(TestList),
+      anySchemaToCoSchema(TestList),
       list.id,
       {
         loadAs: reader,
@@ -542,7 +528,7 @@ describe("subscribeToCoValue", () => {
     const onUnavailable = vi.fn();
 
     const unsubscribe = subscribeToCoValue(
-      zodSchemaToCoSchema(TestList),
+      anySchemaToCoSchema(TestList),
       list.id,
       {
         loadAs: reader,
@@ -617,7 +603,7 @@ describe("subscribeToCoValue", () => {
     const onUnavailable = vi.fn();
 
     const unsubscribe = subscribeToCoValue(
-      zodSchemaToCoSchema(TestList),
+      anySchemaToCoSchema(TestList),
       list.id,
       {
         loadAs: reader,
@@ -654,7 +640,7 @@ describe("subscribeToCoValue", () => {
       value: z.string(),
     });
 
-    const TestList = co.list(z.optional(TestMap));
+    const TestList = co.list(co.optional(TestMap));
 
     const reader = await createJazzTestAccount({
       isCurrentActiveAccount: true,
@@ -687,7 +673,7 @@ describe("subscribeToCoValue", () => {
     const onUnavailable = vi.fn();
 
     const unsubscribe = subscribeToCoValue(
-      zodSchemaToCoSchema(TestList),
+      anySchemaToCoSchema(TestList),
       list.id,
       {
         loadAs: reader,
@@ -718,7 +704,7 @@ describe("subscribeToCoValue", () => {
       value: z.string(),
     });
 
-    const TestList = co.list(z.optional(TestMap));
+    const TestList = co.list(co.optional(TestMap));
 
     const creator = await createJazzTestAccount({
       isCurrentActiveAccount: true,
@@ -739,7 +725,7 @@ describe("subscribeToCoValue", () => {
     });
 
     const unsubscribe = subscribeToCoValue(
-      zodSchemaToCoSchema(TestList),
+      anySchemaToCoSchema(TestList),
       list.id,
       {
         loadAs: creator,
@@ -806,7 +792,7 @@ describe("subscribeToCoValue", () => {
     });
 
     const unsubscribe = subscribeToCoValue(
-      zodSchemaToCoSchema(TestList),
+      anySchemaToCoSchema(TestList),
       list.id,
       {
         loadAs: creator,
@@ -895,7 +881,7 @@ describe("subscribeToCoValue", () => {
     });
 
     const unsubscribe = subscribeToCoValue(
-      zodSchemaToCoSchema(Person),
+      anySchemaToCoSchema(Person),
       person.id,
       {
         loadAs: reader,
@@ -982,7 +968,7 @@ describe("subscribeToCoValue", () => {
     const onUnavailable = vi.fn();
 
     const unsubscribe = subscribeToCoValue(
-      zodSchemaToCoSchema(TestList),
+      anySchemaToCoSchema(TestList),
       list.id,
       {
         loadAs: reader,
@@ -1069,7 +1055,7 @@ describe("subscribeToCoValue", () => {
     const onUnavailable = vi.fn();
 
     const unsubscribe = subscribeToCoValue(
-      zodSchemaToCoSchema(PersonList),
+      anySchemaToCoSchema(PersonList),
       list.id,
       {
         loadAs: reader,
@@ -1165,7 +1151,7 @@ describe("subscribeToCoValue", () => {
     const onUnavailable = vi.fn();
 
     const unsubscribe = subscribeToCoValue(
-      zodSchemaToCoSchema(PersonList),
+      anySchemaToCoSchema(PersonList),
       list.id,
       {
         loadAs: reader,
@@ -1198,6 +1184,98 @@ describe("subscribeToCoValue", () => {
     expect(onUnavailable).not.toHaveBeenCalled();
     expect(onUnauthorized).not.toHaveBeenCalled();
   });
+
+  it("should subscribe to a large coValue", async () => {
+    const syncServer = await setupJazzTestSync({ asyncPeers: true });
+
+    const LargeDataset = co.map({
+      metadata: z.object({
+        name: z.string(),
+        description: z.string(),
+        createdAt: z.number(),
+      }),
+      data: co.list(z.string()),
+    });
+
+    const group = Group.create(syncServer);
+    const largeMap = LargeDataset.create(
+      {
+        metadata: {
+          name: "Large Dataset",
+          description:
+            "A dataset with many entries for testing large coValue subscription",
+          createdAt: Date.now(),
+        },
+        data: LargeDataset.def.shape.data.create([], group),
+      },
+      group,
+    );
+    group.addMember("everyone", "reader");
+
+    const dataSize = 100 * 1024;
+    const chunkSize = 1024;
+    const chunks = dataSize / chunkSize;
+
+    const value = "x".repeat(chunkSize);
+
+    for (let i = 0; i < chunks; i++) {
+      largeMap.data.push(value);
+    }
+
+    // Wait for the large coValue to be fully synced
+    await largeMap.data._raw.core.waitForSync();
+
+    const alice = await createJazzTestAccount();
+
+    let result = null as Loaded<typeof LargeDataset, { data: true }> | null;
+    const updateFn = vi.fn().mockImplementation((value) => {
+      result = value;
+    });
+
+    // Test subscribing to the large coValue
+    const unsubscribe = subscribeToCoValue(
+      anySchemaToCoSchema(LargeDataset),
+      largeMap.id,
+      {
+        loadAs: alice,
+        resolve: {
+          data: true,
+        },
+      },
+      updateFn,
+    );
+
+    onTestFinished(unsubscribe);
+
+    await waitFor(() => {
+      expect(updateFn).toHaveBeenCalled();
+    });
+
+    assert(result);
+
+    expect(updateFn).toHaveBeenCalledTimes(1);
+    expect(result.metadata.name).toBe("Large Dataset");
+    expect(result.metadata.description).toBe(
+      "A dataset with many entries for testing large coValue subscription",
+    );
+
+    expect(result.data.length).toBe(chunks);
+    expect(result.data._raw.core.knownState()).toEqual(
+      largeMap.data._raw.core.knownState(),
+    );
+
+    // Test that updates to the large coValue are properly subscribed
+    updateFn.mockClear();
+    largeMap.data.push("new entry");
+
+    await waitFor(() => {
+      expect(updateFn).toHaveBeenCalled();
+    });
+
+    expect(updateFn).toHaveBeenCalledTimes(1);
+    expect(result.data.length).toBe(chunks + 1);
+    expect(result.data[chunks]).toBe("new entry");
+  });
 });
 
 describe("createCoValueObservable", () => {
@@ -1222,7 +1300,7 @@ describe("createCoValueObservable", () => {
     const mockListener = vi.fn();
 
     const unsubscribe = observable.subscribe(
-      zodSchemaToCoSchema(TestMap),
+      anySchemaToCoSchema(TestMap),
       testMap.id,
       {
         loadAs: meOnSecondPeer,
@@ -1251,7 +1329,7 @@ describe("createCoValueObservable", () => {
     const mockListener = vi.fn();
 
     const unsubscribe = observable.subscribe(
-      zodSchemaToCoSchema(TestMap),
+      anySchemaToCoSchema(TestMap),
       testMap.id,
       {
         loadAs: meOnSecondPeer,

@@ -47,8 +47,7 @@ export type Transaction = PrivateTransaction | TrustingTransaction;
 
 type SessionLog = {
   readonly transactions: Transaction[];
-  lastHash?: Hash;
-  streamingHash: StreamingHash;
+  streamingHash?: StreamingHash;
   readonly signatureAfter: { [txIdx: number]: Signature | undefined };
   lastSignature: Signature;
 };
@@ -86,8 +85,7 @@ export class VerifiedState {
     for (let [sessionID, sessionLog] of this.sessions) {
       clonedSessions.set(sessionID, {
         lastSignature: sessionLog.lastSignature,
-        lastHash: sessionLog.lastHash,
-        streamingHash: sessionLog.streamingHash.clone(),
+        streamingHash: sessionLog.streamingHash?.clone(),
         signatureAfter: { ...sessionLog.signatureAfter },
         transactions: sessionLog.transactions.slice(),
       } satisfies SessionLog);
@@ -110,12 +108,11 @@ export class VerifiedState {
     skipVerify: boolean = false,
     givenNewStreamingHash?: StreamingHash,
   ): Result<true, TryAddTransactionsError> {
-    if (skipVerify === true && givenNewStreamingHash && givenExpectedNewHash) {
+    if (skipVerify === true) {
       this.doAddTransactions(
         sessionID,
         newTransactions,
         newSignature,
-        givenExpectedNewHash,
         givenNewStreamingHash,
       );
     } else {
@@ -147,7 +144,6 @@ export class VerifiedState {
         sessionID,
         newTransactions,
         newSignature,
-        expectedNewHash,
         newStreamingHash,
       );
     }
@@ -159,16 +155,16 @@ export class VerifiedState {
     sessionID: SessionID,
     newTransactions: Transaction[],
     newSignature: Signature,
-    expectedNewHash: Hash,
-    newStreamingHash: StreamingHash,
+    newStreamingHash?: StreamingHash,
   ) {
-    const transactions = this.sessions.get(sessionID)?.transactions ?? [];
+    const sessionLog = this.sessions.get(sessionID);
+    const transactions = sessionLog?.transactions ?? [];
 
     for (const tx of newTransactions) {
       transactions.push(tx);
     }
 
-    const signatureAfter = this.sessions.get(sessionID)?.signatureAfter ?? {};
+    const signatureAfter = sessionLog?.signatureAfter ?? {};
 
     const lastInbetweenSignatureIdx = Object.keys(signatureAfter).reduce(
       (max, idx) => (parseInt(idx) > max ? parseInt(idx) : max),
@@ -192,7 +188,6 @@ export class VerifiedState {
 
     this.sessions.set(sessionID, {
       transactions,
-      lastHash: expectedNewHash,
       streamingHash: newStreamingHash,
       lastSignature: newSignature,
       signatureAfter: signatureAfter,
@@ -206,9 +201,27 @@ export class VerifiedState {
     sessionID: SessionID,
     newTransactions: Transaction[],
   ): { expectedNewHash: Hash; newStreamingHash: StreamingHash } {
-    const streamingHash =
-      this.sessions.get(sessionID)?.streamingHash.clone() ??
-      new StreamingHash(this.crypto);
+    const sessionLog = this.sessions.get(sessionID);
+
+    if (!sessionLog?.streamingHash) {
+      const streamingHash = new StreamingHash(this.crypto);
+      const oldTransactions = sessionLog?.transactions ?? [];
+
+      for (const transaction of oldTransactions) {
+        streamingHash.update(transaction);
+      }
+
+      for (const transaction of newTransactions) {
+        streamingHash.update(transaction);
+      }
+
+      return {
+        expectedNewHash: streamingHash.digest(),
+        newStreamingHash: streamingHash,
+      };
+    }
+
+    const streamingHash = sessionLog.streamingHash.clone();
 
     for (const transaction of newTransactions) {
       streamingHash.update(transaction);
@@ -384,6 +397,13 @@ export class VerifiedState {
     }
 
     return knownState;
+  }
+
+  isStreaming(): boolean {
+    // Call knownStateWithStreaming to delete the streamingKnownState when it matches the current knownState
+    this.knownStateWithStreaming();
+
+    return this.streamingKnownState !== undefined;
   }
 
   knownState(): CoValueKnownState {

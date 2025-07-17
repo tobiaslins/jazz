@@ -279,8 +279,12 @@ export class JazzContextManager<
           },
         );
 
-      prevContext.node.syncManager.addPeer(currentAccountAsPeer);
+      // Closing storage on the prevContext to avoid conflicting transactions and getting stuck on waitForAllCoValuesSync
+      // The storage is reachable through currentContext using the connectedPeers
+      prevContext.node.removeStorage();
+
       currentContext.node.syncManager.addPeer(prevAccountAsPeer);
+      prevContext.node.syncManager.addPeer(currentAccountAsPeer);
 
       try {
         await this.props.onAnonymousAccountDiscarded?.(prevContext.me);

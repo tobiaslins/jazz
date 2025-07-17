@@ -127,8 +127,7 @@ export class SubscriptionScope<D extends CoValue> {
           new JazzError(this.id, "unauthorized", [
             {
               code: "unauthorized",
-              message:
-                "The current user is not authorized to access this value",
+              message: `The current user (${this.node.getCurrentAgent().id}) is not authorized to access this value`,
               params: {
                 id: this.id,
               },
@@ -254,6 +253,10 @@ export class SubscriptionScope<D extends CoValue> {
     // If the value is in error, we send the update regardless of the children statuses
     if (this.value.type !== "loaded") return true;
 
+    if (this.isStreaming() && !this.isFileStream()) {
+      return false;
+    }
+
     for (const value of this.childValues.values()) {
       // We don't wait for autoloaded values to be loaded, in order to stream updates
       // on autoloaded lists or records
@@ -288,6 +291,22 @@ export class SubscriptionScope<D extends CoValue> {
     }
 
     return undefined;
+  }
+
+  isStreaming() {
+    if (this.value.type !== "loaded") {
+      return false;
+    }
+
+    return this.value.value._raw.core.verified.isStreaming();
+  }
+
+  isFileStream() {
+    if (this.value.type !== "loaded") {
+      return false;
+    }
+
+    return this.value.value._raw.core.verified.header.meta?.type === "binary";
   }
 
   triggerUpdate() {
