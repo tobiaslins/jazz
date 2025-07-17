@@ -43,27 +43,35 @@ type SchemaField =
   | z.core.$ZodCatch<z.core.$ZodType>
   | (z.core.$ZodCustom<any, any> & { builtin: any });
 
-export function schemaFieldToCoFieldDef(schema: SchemaField) {
+export function schemaFieldToCoFieldDef(
+  schema: SchemaField,
+  isOptional = false,
+) {
   if (isCoValueClass(schema)) {
-    return coField.ref(schema);
+    if (isOptional) {
+      return coField.ref(schema, { optional: true });
+    } else {
+      return coField.ref(schema);
+    }
   } else if (isCoValueSchema(schema)) {
     if (isAnyCoOptionalSchema(schema)) {
       return coField.ref(schema.getCoValueClass(), {
         optional: true,
       });
     }
-    return coField.ref(schema.getCoValueClass());
+
+    if (isOptional) {
+      return coField.ref(schema.getCoValueClass(), { optional: true });
+    } else {
+      return coField.ref(schema.getCoValueClass());
+    }
   } else {
     if ("_zod" in schema) {
       if (schema._zod.def.type === "optional") {
         const inner = zodSchemaToCoSchemaOrKeepPrimitive(
           schema._zod.def.innerType,
         );
-        if (isCoValueClass(inner)) {
-          return coField.ref(inner, { optional: true });
-        } else {
-          return schemaFieldToCoFieldDef(inner);
-        }
+        return schemaFieldToCoFieldDef(inner, true);
       } else if (schema._zod.def.type === "string") {
         return coField.string;
       } else if (schema._zod.def.type === "number") {
@@ -77,6 +85,7 @@ export function schemaFieldToCoFieldDef(schema: SchemaField) {
       } else if (schema._zod.def.type === "readonly") {
         return schemaFieldToCoFieldDef(
           (schema as unknown as ZodReadonly).def.innerType as SchemaField,
+          isOptional,
         );
       } else if (schema._zod.def.type === "date") {
         return coField.optional.Date;
@@ -86,6 +95,7 @@ export function schemaFieldToCoFieldDef(schema: SchemaField) {
         // Mostly to support z.json()
         return schemaFieldToCoFieldDef(
           (schema as unknown as ZodLazy).unwrap() as SchemaField,
+          isOptional,
         );
       } else if (
         schema._zod.def.type === "default" ||
@@ -98,6 +108,7 @@ export function schemaFieldToCoFieldDef(schema: SchemaField) {
         return schemaFieldToCoFieldDef(
           (schema as unknown as ZodDefault | ZodCatch).def
             .innerType as SchemaField,
+          isOptional,
         );
       } else if (schema._zod.def.type === "literal") {
         if (
@@ -129,7 +140,7 @@ export function schemaFieldToCoFieldDef(schema: SchemaField) {
         return coField.json();
       } else if (schema._zod.def.type === "custom") {
         if ("builtin" in schema) {
-          return schemaFieldToCoFieldDef(schema.builtin);
+          return schemaFieldToCoFieldDef(schema.builtin, isOptional);
         } else {
           throw new Error(`Unsupported custom zod type`);
         }
@@ -137,9 +148,13 @@ export function schemaFieldToCoFieldDef(schema: SchemaField) {
         if (isUnionOfPrimitivesDeeply(schema)) {
           return coField.json();
         } else if (isUnionOfCoMapsDeeply(schema)) {
-          return coField.ref<CoValueClass<CoMap>>(
-            schemaUnionDiscriminatorFor(schema),
-          );
+          const result = schemaUnionDiscriminatorFor(schema);
+
+          if (isOptional) {
+            return coField.ref<CoValueClass<CoMap>>(result, { optional: true });
+          } else {
+            return coField.ref<CoValueClass<CoMap>>(result);
+          }
         } else {
           throw new Error(
             "z.union()/z.discriminatedUnion() of mixed collaborative and non-collaborative types is not supported",
