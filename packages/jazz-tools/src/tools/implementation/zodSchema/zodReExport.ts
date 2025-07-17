@@ -1,12 +1,3 @@
-import {
-  ZodArray,
-  ZodTuple,
-  ZodUnion,
-  core,
-  array as zodArray,
-  tuple as zodTuple,
-  union as zodUnion,
-} from "zod/v4";
 export {
   string,
   number,
@@ -34,11 +25,14 @@ export {
   iso,
   int32,
   strictObject,
+  union,
   discriminatedUnion,
   // record,
   // intersection,
   int,
   optional,
+  array,
+  tuple,
   type ZodOptional,
   type ZodReadonly,
   type ZodLazy,
@@ -48,26 +42,3 @@ export {
   type ZodDiscriminatedUnion,
   z,
 } from "zod/v4";
-
-type NonCoZodType = core.$ZodType & { collaborative?: false };
-
-export function union<const T extends readonly NonCoZodType[]>(
-  options: T,
-  params?: string | core.$ZodUnionParams,
-): ZodUnion<T> {
-  return zodUnion(options, params);
-}
-
-export function array<T extends NonCoZodType>(
-  element: T,
-  params?: string | core.$ZodArrayParams,
-): ZodArray<T> {
-  return zodArray(element, params);
-}
-
-export function tuple<T extends readonly [NonCoZodType, ...NonCoZodType[]]>(
-  options: T,
-  params?: string | core.$ZodTupleParams,
-): ZodTuple<T> {
-  return zodTuple(options, params);
-}
