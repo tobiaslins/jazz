@@ -34,6 +34,8 @@ import {
   schemaFieldToCoFieldDef,
 } from "./zodFieldToCoFieldDef.js";
 
+// Note: if you're editing this function, edit the `isAnyCoValueSchema`
+// function in `zodReExport.ts` as well
 export function isAnyCoValueSchema(
   schema: AnyZodOrCoValueSchema | CoValueClass,
 ): schema is AnyCoreCoValueSchema {

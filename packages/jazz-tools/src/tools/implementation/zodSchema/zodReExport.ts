@@ -1,8 +1,12 @@
+import {
+  core,
+  object as zodObject,
+  strictObject as zodStrictObject,
+} from "zod";
 export {
   string,
   number,
   boolean,
-  object,
   templateLiteral,
   json,
   date,
@@ -24,7 +28,6 @@ export {
   cidrv6,
   iso,
   int32,
-  strictObject,
   union,
   discriminatedUnion,
   // record,
@@ -41,4 +44,51 @@ export {
   type output as infer,
   type ZodDiscriminatedUnion,
   z,
-} from "zod/v4";
+} from "zod";
+
+export function object<
+  T extends core.$ZodLooseShape = Partial<Record<never, core.SomeType>>,
+>(
+  shape?: T,
+  params?: string | core.$ZodObjectParams,
+): ReturnType<typeof zodObject> {
+  rejectCoValueSchemas(
+    shape,
+    "z.object() does not support collaborative types as values. Use co.map() instead",
+  );
+  return zodObject(shape, params);
+}
+
+export function strictObject<T extends core.$ZodLooseShape>(
+  shape: T,
+  params?: string | core.$ZodObjectParams,
+): ReturnType<typeof zodStrictObject> {
+  rejectCoValueSchemas(
+    shape,
+    "z.strictObject() does not support collaborative types as values. Use co.map() instead",
+  );
+  return zodStrictObject(shape, params);
+}
+
+function rejectCoValueSchemas(
+  shape: core.$ZodLooseShape | undefined,
+  errorMessage: string,
+) {
+  if (containsCoValueSchema(shape)) {
+    throw Error(errorMessage);
+  }
+}
+
+function containsCoValueSchema(shape?: core.$ZodLooseShape): boolean {
+  return Object.values(shape ?? {}).some(isAnyCoValueSchema);
+}
+
+// Note: if you're editing this function, edit the `isAnyCoValueSchema`
+// function in `zodSchemaToCoSchema.ts` as well
+function isAnyCoValueSchema(schema: any): boolean {
+  return (
+    "getZodSchema" in schema &&
+    "collaborative" in schema &&
+    schema.collaborative === true
+  );
+}

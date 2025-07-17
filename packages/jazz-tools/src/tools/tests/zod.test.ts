@@ -458,3 +458,19 @@ describe("co.map and Zod schema compatibility", () => {
     });
   });
 });
+
+describe("z.object() and CoValue schema compatibility", () => {
+  it("z.object() should throw an error when used with CoValue schema values", () => {
+    const coValueSchema = co.map({});
+    expect(() => z.object({ value: coValueSchema })).toThrow(
+      "z.object() does not support collaborative types as values. Use co.map() instead",
+    );
+  });
+
+  it("z.strictObject() should throw an error when used with CoValue schema values", () => {
+    const coValueSchema = co.map({});
+    expect(() => z.strictObject({ value: coValueSchema })).toThrow(
+      "z.strictObject() does not support collaborative types as values. Use co.map() instead",
+    );
+  });
+});

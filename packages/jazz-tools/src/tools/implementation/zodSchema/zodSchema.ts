@@ -2,7 +2,6 @@ import { LocalNode, RawAccount } from "cojson";
 import {
   Account,
   AccountClass,
-  CoFeed,
   CoRecordSchema,
   CoValueClass,
   CoValueFromRaw,
