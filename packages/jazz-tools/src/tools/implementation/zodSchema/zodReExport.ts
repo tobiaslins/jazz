@@ -1,4 +1,5 @@
 import {
+  ZodObject,
   core,
   object as zodObject,
   strictObject as zodStrictObject,
@@ -51,7 +52,7 @@ export function object<
 >(
   shape?: T,
   params?: string | core.$ZodObjectParams,
-): ReturnType<typeof zodObject> {
+): ZodObject<T, core.$strip> {
   rejectCoValueSchemas(
     shape,
     "z.object() does not support collaborative types as values. Use co.map() instead",
@@ -62,7 +63,7 @@ export function object<
 export function strictObject<T extends core.$ZodLooseShape>(
   shape: T,
   params?: string | core.$ZodObjectParams,
-): ReturnType<typeof zodStrictObject> {
+): ZodObject<T, core.$strict> {
   rejectCoValueSchemas(
     shape,
     "z.strictObject() does not support collaborative types as values. Use co.map() instead",
