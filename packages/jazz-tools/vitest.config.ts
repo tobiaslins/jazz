@@ -1,22 +1,16 @@
-import { defineConfig } from "vitest/config";
+import { defineProject } from "vitest/config";
 
-export default defineConfig({
+export default defineProject({
   test: {
-    workspace: [
-      {
-        test: {
-          typecheck: {
-            enabled: true,
-            checker: "tsc",
-          },
-          include: ["src/**/*.test.ts"],
-          name: "unit",
-        },
-      },
+    name: "jazz-tools",
+    typecheck: {
+      enabled: true,
+      checker: "tsc",
+    },
+    projects: [
       {
         test: {
           include: ["src/**/*.test.browser.ts"],
-          name: "browser",
           browser: {
             enabled: true,
             provider: "playwright",
@@ -24,6 +18,13 @@ export default defineConfig({
             screenshotFailures: false,
             instances: [{ browser: "chromium" }],
           },
+          name: "browser",
+        },
+      },
+      {
+        test: {
+          include: ["src/**/*.test.{js,ts,svelte}"],
+          name: "unit",
         },
       },
     ],

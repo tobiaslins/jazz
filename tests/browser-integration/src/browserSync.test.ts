@@ -15,11 +15,7 @@ import {
   onTestFinished,
   test,
 } from "vitest";
-import {
-  createAccountContext,
-  startSyncServer,
-  trackMessages,
-} from "./testUtils";
+import { createAccountContext, startSyncServer } from "./testUtils";
 
 const TestMap = co.map({ value: z.string() });
 
@@ -64,8 +60,6 @@ describe("Browser sync", () => {
     // Clearing the credentials storage so the next auth will be a new account
     await contextManager.getAuthSecretStorage().clear();
 
-    const messages = trackMessages();
-
     const { account: account2 } = await createAccountContext({
       sync: {
         peer: syncServer.url,
@@ -82,38 +76,34 @@ describe("Browser sync", () => {
     expect(loadedMap?.value).toBe("test data");
   });
 
-  test(
-    "loads the previous account through the sync server",
-    async () => {
-      const syncServer = await startSyncServer();
+  test("loads the previous account through the sync server", async () => {
+    const syncServer = await startSyncServer();
 
-      const { account: account1, contextManager } = await createAccountContext({
-        sync: {
-          peer: syncServer.url,
-        },
-        storage: "indexedDB",
-        AccountSchema: CustomAccount,
-      });
+    const { account: account1, contextManager } = await createAccountContext({
+      sync: {
+        peer: syncServer.url,
+      },
+      storage: "indexedDB",
+      AccountSchema: CustomAccount,
+    });
 
-      const group = Group.create(account1);
-      const map = TestMap.create({ value: "test data" }, group);
-      group.addMember("everyone", "reader");
+    const group = Group.create(account1);
+    const map = TestMap.create({ value: "test data" }, group);
+    group.addMember("everyone", "reader");
 
-      await map.waitForSync();
-      contextManager.done();
+    await map.waitForSync();
+    contextManager.done();
 
-      const { account: account2 } = await createAccountContext({
-        sync: {
-          peer: syncServer.url,
-        },
-        storage: "indexedDB",
-        AccountSchema: CustomAccount,
-      });
+    const { account: account2 } = await createAccountContext({
+      sync: {
+        peer: syncServer.url,
+      },
+      storage: "indexedDB",
+      AccountSchema: CustomAccount,
+    });
 
-      expect(account1.id).toBe(account2.id);
-    },
-    { timeout: 10_000 },
-  );
+    expect(account1.id).toBe(account2.id);
+  });
 
   test("syncs data between accounts through storage only", async () => {
     await startSyncServer();
@@ -144,9 +134,6 @@ describe("Browser sync", () => {
       databaseName: "jazz-storage",
       AccountSchema: CustomAccount,
     });
-
-    // TODO: Wait for sync doesn't work on the IndexedDB storage peer as it just waits for the content to be pushed
-    await new Promise((resolve) => setTimeout(resolve, 500));
 
     const loadedMap = await TestMap.load(map.id, {
       loadAs: account2,
@@ -187,9 +174,6 @@ describe("Browser sync", () => {
       databaseName: "jazz-storage",
       AccountSchema: CustomAccount,
     });
-
-    // TODO: Wait for sync doesn't work on the IndexedDB storage peer as it just waits for the content to be pushed
-    await new Promise((resolve) => setTimeout(resolve, 500));
 
     const loadedMap = await TestMap.load(map.id, {
       loadAs: account2,

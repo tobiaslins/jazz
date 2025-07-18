@@ -1,5 +1,8 @@
+import { SessionLog as WasmSessionLog } from "cojson-core-wasm";
 import { Result, err, ok } from "neverthrow";
 import { AnyRawCoValue } from "../coValue.js";
+import { ControlledAccountOrAgent } from "../coValues/account.js";
+import { MAX_RECOMMENDED_TX_SIZE } from "../config.js";
 import {
   CryptoProvider,
   Encrypted,
@@ -11,19 +14,13 @@ import {
   StreamingHash,
 } from "../crypto/crypto.js";
 import { RawCoID, SessionID, TransactionID } from "../ids.js";
-import { stableStringify, Stringified } from "../jsonStringify.js";
+import { Stringified, stableStringify } from "../jsonStringify.js";
 import { JsonObject, JsonValue } from "../jsonValue.js";
 import { PermissionsDef as RulesetDef } from "../permissions.js";
 import { getPriorityFromHeader } from "../priority.js";
 import { CoValueKnownState, NewContentMessage } from "../sync.js";
-import {
-  InvalidHashError,
-  InvalidSignatureError,
-  MAX_RECOMMENDED_TX_SIZE,
-} from "./coValueCore.js";
+import { InvalidHashError, InvalidSignatureError } from "./coValueCore.js";
 import { TryAddTransactionsError } from "./coValueCore.js";
-import { SessionLog as WasmSessionLog } from "cojson-core-wasm";
-import { ControlledAccountOrAgent } from "../coValues/account.js";
 
 export type CoValueHeader = {
   type: AnyRawCoValue["type"];
@@ -70,17 +67,22 @@ export class VerifiedState {
   readonly sessions: ValidatedSessions;
   private _cachedKnownState?: CoValueKnownState;
   private _cachedNewContentSinceEmpty: NewContentMessage[] | undefined;
+  private streamingKnownState?: CoValueKnownState["sessions"];
 
   constructor(
     id: RawCoID,
     crypto: CryptoProvider,
     header: CoValueHeader,
     sessions: ValidatedSessions,
+    streamingKnownState?: CoValueKnownState["sessions"],
   ) {
     this.id = id;
     this.crypto = crypto;
     this.header = header;
     this.sessions = sessions;
+    this.streamingKnownState = streamingKnownState
+      ? { ...streamingKnownState }
+      : undefined;
   }
 
   clone(): VerifiedState {
@@ -92,10 +94,16 @@ export class VerifiedState {
         transactions: sessionLog.transactions.slice(),
         lastSignature: sessionLog.lastSignature,
         // lastHash: sessionLog.lastHash,
-        signatureAfter: {...sessionLog.signatureAfter},
+        signatureAfter: { ...sessionLog.signatureAfter },
       });
     }
-    return new VerifiedState(this.id, this.crypto, this.header, clonedSessions);
+    return new VerifiedState(
+      this.id,
+      this.crypto,
+      this.header,
+      clonedSessions,
+      this.streamingKnownState,
+    );
   }
 
   tryAddTransactions(
@@ -122,8 +130,17 @@ export class VerifiedState {
     }
 
     try {
-      const newHash = sessionLog.wasm.tryAdd(newTransactions.map(tx => stableStringify(tx)), newSignature, skipVerify);
-      this.addTransactionsToJsLog(sessionLog, newTransactions, newSignature, newHash as Hash);
+      const newHash = sessionLog.wasm.tryAdd(
+        newTransactions.map((tx) => stableStringify(tx)),
+        newSignature,
+        skipVerify,
+      );
+      this.addTransactionsToJsLog(
+        sessionLog,
+        newTransactions,
+        newSignature,
+        newHash as Hash,
+      );
 
       return ok(true as const);
     } catch (e) {
@@ -191,7 +208,12 @@ export class VerifiedState {
     return { signature, transaction };
   }
 
-  private addTransactionsToJsLog(sessionLog: SessionLog, newTransactions: Transaction[], signature: Signature, hash: Hash) {
+  private addTransactionsToJsLog(
+    sessionLog: SessionLog,
+    newTransactions: Transaction[],
+    signature: Signature,
+    hash: Hash,
+  ) {
     sessionLog.transactions.push(...newTransactions);
     sessionLog.lastSignature = signature;
 
@@ -204,7 +226,9 @@ export class VerifiedState {
       0,
     );
 
-    if (sessionLog.txSizeSinceLastInbetweenSignature > MAX_RECOMMENDED_TX_SIZE) {
+    if (
+      sessionLog.txSizeSinceLastInbetweenSignature > MAX_RECOMMENDED_TX_SIZE
+    ) {
       sessionLog.signatureAfter[sessionLog.transactions.length - 1] = signature;
       sessionLog.txSizeSinceLastInbetweenSignature = 0;
     }
@@ -229,13 +253,15 @@ export class VerifiedState {
         sessionID,
         ephemeralSignerID,
       );
-      const result = ephemeralSessionLog.testExpectedHashAfter(transactions.map(tx => stableStringify(tx)));
+      const result = ephemeralSessionLog.testExpectedHashAfter(
+        transactions.map((tx) => stableStringify(tx)),
+      );
       ephemeralSessionLog.free();
       return { expectedNewHash: result as Hash };
     }
     return {
       expectedNewHash: sessionLog.wasm.testExpectedHashAfter(
-        transactions.map(tx => stableStringify(tx)),
+        transactions.map((tx) => stableStringify(tx)),
       ) as Hash,
     };
   }
@@ -313,6 +339,11 @@ export class VerifiedState {
         }
 
         if (pieceSize >= MAX_RECOMMENDED_TX_SIZE) {
+          if (!currentPiece.expectContentUntil && pieces.length === 1) {
+            currentPiece.expectContentUntil =
+              this.knownStateWithStreaming().sessions;
+          }
+
           currentPiece = {
             action: "content",
             id: this.id,
@@ -362,6 +393,50 @@ export class VerifiedState {
     }
 
     return piecesWithContent;
+  }
+
+  /**
+   * Returns the known state considering the known state of the streaming source
+   *
+   * Used to correctly manage the content & subscriptions during the content streaming process
+   */
+  knownStateWithStreaming(): CoValueKnownState {
+    const knownState = this.knownState();
+
+    if (this.streamingKnownState) {
+      const newSessions: CoValueKnownState["sessions"] = {};
+      const entries = Object.entries(this.streamingKnownState);
+
+      for (const [sessionID, txs] of entries) {
+        newSessions[sessionID as SessionID] = txs;
+        if ((knownState.sessions[sessionID as SessionID] ?? 0) < txs) {
+          newSessions[sessionID as SessionID] = txs;
+        } else {
+          newSessions[sessionID as SessionID] = txs;
+          delete this.streamingKnownState[sessionID as SessionID];
+        }
+      }
+
+      if (Object.keys(this.streamingKnownState).length === 0) {
+        this.streamingKnownState = undefined;
+        return knownState;
+      } else {
+        return {
+          id: knownState.id,
+          header: knownState.header,
+          sessions: newSessions,
+        };
+      }
+    }
+
+    return knownState;
+  }
+
+  isStreaming(): boolean {
+    // Call knownStateWithStreaming to delete the streamingKnownState when it matches the current knownState
+    this.knownStateWithStreaming();
+
+    return this.streamingKnownState !== undefined;
   }
 
   knownState(): CoValueKnownState {

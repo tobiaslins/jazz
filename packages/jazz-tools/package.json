@@ -139,7 +139,7 @@
   },
   "type": "module",
   "license": "MIT",
-  "version": "0.15.6",
+  "version": "0.15.13",
   "dependencies": {
     "@manuscripts/prosemirror-recreate-steps": "^0.1.4",
     "@scure/base": "1.2.1",
@@ -148,7 +148,6 @@
     "@types/image-blob-reduce": "^4.1.1",
     "clsx": "^2.0.0",
     "cojson": "workspace:*",
-    "cojson-storage": "workspace:*",
     "cojson-storage-indexeddb": "workspace:*",
     "cojson-transport-ws": "workspace:*",
     "fast-myers-diff": "^3.2.0",
@@ -164,6 +163,7 @@
     "zod": "3.25.28"
   },
   "scripts": {
+    "check": "tsc --noEmit",
     "format-and-lint": "biome check .",
     "format-and-lint:fix": "biome check . --write",
     "dev": "tsup --watch --dts",
@@ -179,9 +179,10 @@
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "16.2.0",
-    "@types/react": "19.0.0",
-    "@types/react-dom": "19.0.0",
+    "@types/react": "19.1.0",
+    "@types/react-dom": "19.1.0",
     "@vitest/browser": "^3.2.4",
+    "queueueue": "^4.1.2",
     "playwright": "^1.50.1",
     "tsup": "8.5.0",
     "typescript": "catalog:",
