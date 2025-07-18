@@ -119,6 +119,7 @@ export default function RouteComponent() {
   const opponentPlayer = game[opponent];
 
   const opponentSelection = opponentPlayer?.playSelection;
+  const opponentHasSelected = Boolean(opponentPlayer._refs.playSelection);
 
   const onSubmit = async (
     playSelection: "rock" | "paper" | "scissors" | undefined,
@@ -335,16 +336,25 @@ export default function RouteComponent() {
               </CardTitle>
             </CardHeader>
             <CardContent className="text-center">
-              <div className="mb-6">
-                {playIcon(opponentSelection?.value, "lg")}
-              </div>
-
-              {!opponentSelection && !gameComplete && (
-                <div className="text-muted-foreground">
-                  <Clock className="w-8 h-8 mx-auto mb-2 animate-pulse" />
-                  <p>Waiting for opponent...</p>
+              {opponentSelection && (
+                <div className="mb-6">
+                  {playIcon(opponentSelection?.value, "lg")}
                 </div>
               )}
+
+              {!opponentSelection && !gameComplete ? (
+                opponentHasSelected ? (
+                  <div className="text-muted-foreground">
+                    <Clock className="w-8 h-8 mx-auto mb-2 animate-pulse" />
+                    <p>The opponent has made their move</p>
+                  </div>
+                ) : (
+                  <div className="text-muted-foreground">
+                    <Clock className="w-8 h-8 mx-auto mb-2 animate-pulse" />
+                    <p>Waiting for opponent...</p>
+                  </div>
+                )
+              ) : null}
             </CardContent>
           </Card>
         </div>
