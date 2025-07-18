@@ -197,7 +197,7 @@ test("New transactions in a group correctly update owned values, including subsc
     expectedNewHash,
   );
 
-  expect(map.core.getValidSortedTransactions().length).toBe(1);
+  expect(map.core.getValidDecryptedTransactions().length).toBe(1);
 
   const manuallyAdddedTxSuccess = group.core
     .tryAddTransactions(
@@ -214,7 +214,7 @@ test("New transactions in a group correctly update owned values, including subsc
   expect(listener.mock.calls.length).toBe(2);
   expect(listener.mock.calls[1]?.[0].get("hello")).toBe(undefined);
 
-  expect(map.core.getValidSortedTransactions().length).toBe(0);
+  expect(map.core.getValidDecryptedTransactions().length).toBe(0);
 });
 
 test("correctly records transactions", async () => {
@@ -351,7 +351,7 @@ test("listeners are notified even if the previous listener threw an error", asyn
   errorLog.mockRestore();
 });
 
-test("getValidTransactions should skip trusting transactions with invalid JSON", () => {
+test("getValidDecryptedTransactions should skip trusting transactions with invalid JSON", () => {
   const [agent, sessionID] = randomAgentAndSessionID();
   const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
 
@@ -407,13 +407,13 @@ test("getValidTransactions should skip trusting transactions with invalid JSON",
     ._unsafeUnwrap();
 
   // Get valid transactions - should only include the valid one
-  const validTransactions = coValue.getValidTransactions();
+  const validTransactions = coValue.getValidDecryptedTransactions();
 
   expect(validTransactions).toHaveLength(1);
   expect(validTransactions[0]?.changes).toEqual([{ hello: "world" }]);
 });
 
-test("getValidTransactions should skip private transactions with invalid JSON", () => {
+test("getValidDecryptedTransactions should skip private transactions with invalid JSON", () => {
   const [agent, sessionID] = randomAgentAndSessionID();
   const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
 
@@ -501,7 +501,7 @@ test("getValidTransactions should skip private transactions with invalid JSON", 
     ._unsafeUnwrap();
 
   // Get valid transactions - should skip the invalid one
-  const validTransactions = coValue.getValidTransactions({
+  const validTransactions = coValue.getValidDecryptedTransactions({
     ignorePrivateTransactions: false,
   });
 
