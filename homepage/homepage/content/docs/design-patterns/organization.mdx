@@ -67,7 +67,9 @@ export const JazzAccountRoot = co.map({
 export const JazzAccount = co
   .account({
     root: JazzAccountRoot,
-    profile: co.profile({}),
+    profile: co.profile({
+      name: z.string(),
+    }),
   })
   .withMigration((account) => {
     if (account.root === undefined) {
@@ -130,7 +132,9 @@ const JazzAccountRoot = co.map({
 
 const JazzAccount = co.account({
   root: JazzAccountRoot,
-  profile: co.profile({}),
+  profile: co.profile({
+    name: z.string(),
+  }),
 });
 
 // ---cut---
