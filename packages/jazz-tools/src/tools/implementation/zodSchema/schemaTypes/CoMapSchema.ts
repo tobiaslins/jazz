@@ -15,6 +15,7 @@ import {
   isAnyCoValueSchema,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
+import { removeGetters } from "../../schemaUtils.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { z } from "../zodReExport.js";
@@ -300,16 +301,3 @@ export type CoMapInstanceCoValuesNullable<Shape extends z.core.$ZodLooseShape> =
       Shape[key]
     >;
   };
-
-function removeGetters<T extends object>(obj: T): Partial<T> {
-  const result: any = {};
-
-  for (const key of Object.keys(obj)) {
-    const descriptor = Object.getOwnPropertyDescriptor(obj, key);
-    if (!descriptor?.get) {
-      result[key] = (obj as any)[key];
-    }
-  }
-
-  return result;
-}

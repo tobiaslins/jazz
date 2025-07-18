@@ -4,6 +4,7 @@ import {
   object as zodObject,
   strictObject as zodStrictObject,
 } from "zod";
+import { removeGetters } from "../schemaUtils.js";
 export {
   string,
   number,
@@ -81,7 +82,8 @@ function rejectCoValueSchemas(
 }
 
 function containsCoValueSchema(shape?: core.$ZodLooseShape): boolean {
-  return Object.values(shape ?? {}).some(isAnyCoValueSchema);
+  // Remove getters to avoid circularity issues accessing schemas that may not be defined yet
+  return Object.values(removeGetters(shape ?? {})).some(isAnyCoValueSchema);
 }
 
 // Note: if you're editing this function, edit the `isAnyCoValueSchema`

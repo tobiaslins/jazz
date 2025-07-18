@@ -473,4 +473,38 @@ describe("z.object() and CoValue schema compatibility", () => {
       "z.strictObject() does not support collaborative types as values. Use co.map() instead",
     );
   });
+
+  it("z.object() should continue to work with cyclic references", () => {
+    const NoteItem = z.object({
+      type: z.literal("note"),
+      content: z.string(),
+    });
+
+    const ReferenceItem = z.object({
+      type: z.literal("reference"),
+      content: z.string(),
+
+      get child(): z.ZodDiscriminatedUnion<
+        [typeof NoteItem, typeof ReferenceItem]
+      > {
+        return ProjectContextItem;
+      },
+    });
+
+    const ProjectContextItem = z.discriminatedUnion("type", [
+      NoteItem,
+      ReferenceItem,
+    ]);
+
+    const referenceItem = ReferenceItem.parse({
+      type: "reference",
+      content: "Hello",
+      child: {
+        type: "note",
+        content: "Hello",
+      },
+    });
+
+    expect(referenceItem.child.type).toEqual("note");
+  });
 });
