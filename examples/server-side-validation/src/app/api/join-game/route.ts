@@ -31,7 +31,7 @@ interface CreateGameParams {
   worker: Account;
 }
 
-export function createGame({ account1, account2, worker }: CreateGameParams) {
+function createGame({ account1, account2, worker }: CreateGameParams) {
   const publicReadOnly = Group.create({ owner: worker });
   publicReadOnly.addMember(account1, "reader");
   publicReadOnly.addMember(account2, "reader");
