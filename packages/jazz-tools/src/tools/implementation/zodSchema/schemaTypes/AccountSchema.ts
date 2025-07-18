@@ -14,6 +14,7 @@ import {
   CoMapSchema,
   CoMapSchemaDefinition,
   CoreCoMapSchema,
+  createCoreCoMapSchema,
 } from "./CoMapSchema.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
@@ -82,17 +83,10 @@ export interface AccountSchema<
 export function createCoreAccountSchema<Shape extends BaseAccountShape>(
   shape: Shape,
 ): CoreAccountSchema<Shape> {
-  const zodSchema = z.object(shape).meta({
-    collaborative: true,
-  });
-  return Object.assign(zodSchema, {
-    collaborative: true as const,
+  return {
+    ...createCoreCoMapSchema(shape),
     builtin: "Account" as const,
-    getDefinition: () => ({
-      shape: zodSchema.def.shape,
-      catchall: zodSchema.def.catchall,
-    }),
-  });
+  };
 }
 
 export function enrichAccountSchema<Shape extends BaseAccountShape>(

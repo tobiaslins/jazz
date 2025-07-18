@@ -2,6 +2,7 @@ import { CoValueUniqueness } from "cojson";
 import {
   Account,
   CoMap,
+  DiscriminableCoValueSchemaDefinition,
   DiscriminableCoreCoValueSchema,
   Group,
   RefsToResolve,
@@ -11,6 +12,7 @@ import {
   SubscribeListenerOptions,
   coOptionalDefiner,
   hydrateCoreCoValueSchema,
+  isAnyCoValueSchema,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
@@ -158,13 +160,29 @@ export function createCoreCoMapSchema<
   return Object.assign(zodSchema, {
     collaborative: true as const,
     builtin: "CoMap" as const,
-    discriminable: true as const,
     getDefinition: () => ({
       get shape() {
         return zodSchema.def.shape;
       },
       get catchall() {
         return index;
+      },
+      get discriminatorMap() {
+        const propValues: DiscriminableCoValueSchemaDefinition["discriminatorMap"] =
+          {};
+        // remove getters to avoid circularity issues. Getters are not used as discriminators
+        for (const key in removeGetters(shape)) {
+          if (isAnyCoValueSchema(shape[key])) {
+            // CoValues cannot be used as discriminators either
+            continue;
+          }
+          const field = shape[key]._zod;
+          if (field.values) {
+            propValues[key] ??= new Set();
+            for (const v of field.values) propValues[key].add(v);
+          }
+        }
+        return propValues;
       },
     }),
   });
@@ -255,22 +273,22 @@ export type CoMapInitZod<Shape extends z.core.$ZodLooseShape> = {
   >;
 } & { [key in keyof Shape]?: unknown };
 
-export type CoMapSchemaDefinition<
+export interface CoMapSchemaDefinition<
   Shape extends z.core.$ZodLooseShape = z.core.$ZodLooseShape,
   CatchAll extends AnyZodOrCoValueSchema | unknown = unknown,
-> = {
+> extends DiscriminableCoValueSchemaDefinition {
   shape: Shape;
   catchall?: CatchAll;
-};
+}
 
 // less precise version to avoid circularity issues and allow matching against
-export type CoreCoMapSchema<
+export interface CoreCoMapSchema<
   Shape extends z.core.$ZodLooseShape = z.core.$ZodLooseShape,
   CatchAll extends AnyZodOrCoValueSchema | unknown = unknown,
-> = DiscriminableCoreCoValueSchema & {
+> extends DiscriminableCoreCoValueSchema {
   builtin: "CoMap";
   getDefinition: () => CoMapSchemaDefinition<Shape, CatchAll>;
-};
+}
 
 export type CoMapInstance<Shape extends z.core.$ZodLooseShape> = {
   -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchema<Shape[key]>;
@@ -282,3 +300,16 @@ export type CoMapInstanceCoValuesNullable<Shape extends z.core.$ZodLooseShape> =
       Shape[key]
     >;
   };
+
+function removeGetters<T extends object>(obj: T): Partial<T> {
+  const result: any = {};
+
+  for (const key of Object.keys(obj)) {
+    const descriptor = Object.getOwnPropertyDescriptor(obj, key);
+    if (!descriptor?.get) {
+      result[key] = (obj as any)[key];
+    }
+  }
+
+  return result;
+}

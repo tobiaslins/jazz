@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { Loaded, co, z } from "../exports.js";
+import { CoListSchema, CoPlainText, Loaded, co, z } from "../exports.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 import { waitFor } from "./utils.js";
 
@@ -128,6 +128,133 @@ describe("co.discriminatedUnion", () => {
         expect(response.error.message).toEqual("Unauthorized");
       }
     }
+  });
+
+  test("co.discriminatedUnion works when nested inside a co.list", () => {
+    const Dog = co.map({
+      type: z.literal("dog"),
+    });
+    const Cat = co.map({
+      type: z.literal("cat"),
+    });
+    const Pet = co.discriminatedUnion("type", [Dog, Cat]);
+
+    const Pets = co.list(Pet);
+
+    const Person = co.map({
+      pets: Pets,
+    });
+
+    const pets = Pets.create([
+      Dog.create({
+        type: "dog",
+      }),
+      Cat.create({
+        type: "cat",
+      }),
+    ]);
+    const person = Person.create({
+      pets,
+    });
+
+    expect(person.pets[0]?.type).toEqual("dog");
+    expect(person.pets[1]?.type).toEqual("cat");
+  });
+
+  test("co.discriminatedUnion works when used in a recursive reference", () => {
+    const NoteItem = co.map({
+      type: z.literal("note"),
+      internal: z.boolean(),
+      content: co.plainText(),
+    });
+
+    const AttachmentItem = co.map({
+      type: z.literal("attachment"),
+      internal: z.boolean(),
+      content: co.fileStream(),
+    });
+
+    const ReferenceItem = co.map({
+      type: z.literal("reference"),
+      internal: z.boolean(),
+      content: z.string(),
+
+      get child(): co.DiscriminatedUnion<
+        [typeof NoteItem, typeof AttachmentItem, typeof ReferenceItem]
+      > {
+        return ProjectContextItem;
+      },
+    });
+
+    const ProjectContextItem = co.discriminatedUnion("type", [
+      NoteItem,
+      AttachmentItem,
+      ReferenceItem,
+    ]);
+
+    const referenceItem = ReferenceItem.create({
+      type: "reference",
+      internal: false,
+      content: "Hello",
+      child: NoteItem.create({
+        type: "note",
+        internal: false,
+        content: CoPlainText.create("Hello"),
+      }),
+    });
+
+    expect(referenceItem.child.type).toEqual("note");
+  });
+
+  test("co.discriminatedUnion works when used inside another schema in a recursive reference", () => {
+    const NoteItem = co.map({
+      type: z.literal("note"),
+      internal: z.boolean(),
+      content: co.plainText(),
+    });
+
+    const AttachmentItem = co.map({
+      type: z.literal("attachment"),
+      internal: z.boolean(),
+      content: co.fileStream(),
+    });
+
+    const ReferenceItem = co.map({
+      type: z.literal("reference"),
+      internal: z.boolean(),
+      content: z.string(),
+
+      get children(): CoListSchema<
+        co.DiscriminatedUnion<
+          [typeof NoteItem, typeof AttachmentItem, typeof ReferenceItem]
+        >
+      > {
+        return ProjectContextItems;
+      },
+    });
+
+    const ProjectContextItem = co.discriminatedUnion("type", [
+      NoteItem,
+      AttachmentItem,
+      ReferenceItem,
+    ]);
+
+    const ProjectContextItems = co.list(ProjectContextItem);
+
+    const referenceItem = ReferenceItem.create({
+      type: "reference",
+      internal: false,
+      content: "Hello",
+      children: ProjectContextItems.create([
+        NoteItem.create({
+          type: "note",
+          internal: false,
+          content: CoPlainText.create("Hello"),
+        }),
+      ]),
+    });
+
+    expect(referenceItem.children[0]?.type).toEqual("note");
   });
 
   test("load CoValue instances using the DiscriminatedUnion schema", async () => {

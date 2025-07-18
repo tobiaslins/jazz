@@ -13,15 +13,18 @@ import { z } from "../zodReExport.js";
 import { CoOptionalSchema } from "./CoOptionalSchema.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
+export interface DiscriminableCoValueSchemaDefinition {
+  discriminatorMap: z.core.$ZodDiscriminatedUnionInternals["propValues"];
+}
+
 export interface DiscriminableCoreCoValueSchema extends CoreCoValueSchema {
-  discriminable: true;
+  getDefinition: () => DiscriminableCoValueSchemaDefinition;
 }
 
 export interface CoDiscriminatedUnionSchemaDefinition<
   Options extends DiscriminableCoValueSchemas,
-> {
+> extends DiscriminableCoValueSchemaDefinition {
   discriminator: string;
-  discriminatorMap: z.core.$ZodDiscriminatedUnionInternals["propValues"];
   options: Options;
 }
 
@@ -82,14 +85,28 @@ export function createCoreCoDiscriminatedUnionSchema<
   return Object.assign(zodSchema, {
     collaborative: true as const,
     builtin: "CoDiscriminatedUnion" as const,
-    discriminable: true as const,
     getDefinition: () => ({
       discriminator,
       get discriminatorMap() {
-        return zodSchema._zod.propValues;
+        const propValues: DiscriminableCoValueSchemaDefinition["discriminatorMap"] =
+          {};
+        for (const option of schemas) {
+          const dm = option.getDefinition().discriminatorMap;
+          if (!dm || Object.keys(dm).length === 0)
+            throw new Error(
+              `Invalid discriminated union option at index "${schemas.indexOf(option)}"`,
+            );
+          for (const [k, v] of Object.entries(dm)) {
+            propValues[k] ??= new Set();
+            for (const val of v) {
+              propValues[k].add(val);
+            }
+          }
+        }
+        return propValues;
       },
       get options() {
-        return zodSchema._zod.def.options;
+        return schemas;
       },
     }),
   });
