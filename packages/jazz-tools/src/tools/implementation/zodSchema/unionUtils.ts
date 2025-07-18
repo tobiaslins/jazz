@@ -5,6 +5,7 @@ import {
   CoMap,
   CoreCoDiscriminatedUnionSchema,
   CoreCoMapSchema,
+  DiscriminableCoValueSchemas,
   DiscriminableCoreCoValueSchema,
 } from "../../internal.js";
 import {
@@ -14,7 +15,7 @@ import {
 import { z } from "./zodReExport.js";
 
 export function schemaUnionDiscriminatorFor(
-  schema: CoreCoDiscriminatedUnionSchema<DiscriminableCoreCoValueSchema[]>,
+  schema: CoreCoDiscriminatedUnionSchema<DiscriminableCoValueSchemas>,
 ) {
   if (isUnionOfCoMapsDeeply(schema)) {
     const definition = schema.getDefinition();
@@ -117,7 +118,7 @@ export function schemaUnionDiscriminatorFor(
 }
 
 function isUnionOfCoMapsDeeply(
-  schema: CoreCoDiscriminatedUnionSchema<DiscriminableCoreCoValueSchema[]>,
+  schema: CoreCoDiscriminatedUnionSchema<DiscriminableCoValueSchemas>,
 ): boolean {
   return schema.getDefinition().options.every(isCoMapOrUnionOfCoMapsDeeply);
 }

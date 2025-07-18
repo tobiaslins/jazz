@@ -25,7 +25,10 @@ export interface CoDiscriminatedUnionSchemaDefinition<
   options: Options;
 }
 
-export type DiscriminableCoValueSchemas = DiscriminableCoreCoValueSchema[];
+export type DiscriminableCoValueSchemas = [
+  DiscriminableCoreCoValueSchema,
+  ...DiscriminableCoreCoValueSchema[],
+];
 
 export interface CoreCoDiscriminatedUnionSchema<
   Options extends DiscriminableCoValueSchemas = DiscriminableCoValueSchemas,
