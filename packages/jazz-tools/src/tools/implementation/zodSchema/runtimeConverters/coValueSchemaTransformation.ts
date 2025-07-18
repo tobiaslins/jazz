@@ -56,6 +56,11 @@ export function isCoValueSchema(
 export function hydrateCoreCoValueSchema<S extends AnyCoreCoValueSchema>(
   schema: S,
 ): CoValueSchemaFromCoreSchema<S> {
+  if (isCoValueSchema(schema)) {
+    // If the schema is already a CoValue schema, return it as is
+    return schema as any;
+  }
+
   if (schema.builtin === "CoOptional") {
     throw new Error(
       `co.optional() of collaborative types is not supported as top-level schema: ${JSON.stringify(schema)}`,
