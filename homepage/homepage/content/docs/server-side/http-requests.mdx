@@ -1,0 +1,207 @@
+export const metadata = {
+    description: "How to use HTTP requests to communicate with Server Workers using experimental_defineRequest."
+};
+
+import { CodeGroup } from "@/components/forMdx";
+import { Alert } from "@garden-co/design-system/src/components/atoms/Alert";
+
+# HTTP Requests with Server Workers
+
+HTTP requests are the easiest way to communicate with Server Workers in Jazz. They work well with any framework or runtime that supports standard Request and Response objects, can be scaled horizontally, and put clients and workers in direct communication.
+
+## Setting up HTTP requests
+
+### Defining request schemas
+
+Use `experimental_defineRequest` to define your API schema:
+
+<CodeGroup>
+```ts
+import { experimental_defineRequest, z } from "jazz-tools";
+import { Event, Ticket } from "./schema";
+
+const workerId = process.env.NEXT_PUBLIC_JAZZ_WORKER_ACCOUNT!;
+
+export const bookEventTicket = experimental_defineRequest({
+  url: "/api/book-event-ticket",
+  workerId,
+  // The schema definition of the data we send to the server
+  request: {
+    schema: {
+      event: Event,
+    },
+    // The data that will be considered as "loaded" in the server input
+    // It defines which data the client directly sends to the server, without involving the sync server
+    resolve: {
+      event: true,
+    },
+  },
+  // The schema definition of the data we expect to receive from the server
+  response: {
+    schema: { ticket: Ticket },
+    // The data that will be considered as "loaded" in the client response
+    // It defines which data the server directly sends to the client, without involving the sync server
+    resolve: { ticket: true },
+  },
+});
+```
+</CodeGroup>
+
+### Setting up the Server Worker
+
+We need to start a Server Worker instance that will be able to sync data with the sync server, and handle the requests.
+
+<CodeGroup>
+```ts
+import { startWorker } from "jazz-tools/worker";
+
+export const jazzServer = await startWorker({
+  syncServer: "wss://cloud.jazz.tools/?key=your-api-key",
+  accountID: process.env.JAZZ_WORKER_ACCOUNT,
+  accountSecret: process.env.JAZZ_WORKER_SECRET,
+});
+```
+</CodeGroup>
+
+## Handling requests on the server
+
+### Creating API routes
+
+Create API routes to handle the defined requests. Here's an example using Next.js API routes:
+
+<CodeGroup>
+```ts
+import { jazzServer } from "@/jazzServer";
+import { bookEventTicket, Ticket, Event } from "@/schema";
+import { JazzRequestError } from "jazz-tools";
+
+export async function POST(request: Request) {
+  return bookEventTicket.joinGame.handle(
+    request,
+    jazzServer.worker,
+    async ({ event }, madeBy) => {
+      // Load the reservations from the sync server, to ensure that we have the latest data
+      const { reservations } = await event.ensureLoaded({
+        resolve: {
+          reservations: true
+        }
+      });
+
+      const ticketGroup = Group.create(jazzServer.worker);
+      const ticket = Ticket.create({
+        account: madeBy,
+        event,
+      });
+
+      // Give access to the ticket to the client
+      ticketGroup.addMember(madeBy, "reader");
+
+      event.reservations.push(ticket);
+
+      return {
+        ticket,
+      };
+    },
+  );
+}
+```
+</CodeGroup>
+
+## Making requests from the client
+
+### Using the defined API
+
+Make requests from the client using the defined API:
+
+<CodeGroup>
+```ts
+import { bookEventTicket, Ticket, Event } from "@/schema";
+import { isJazzRequestError } from "jazz-tools";
+
+export async function sendEventBookingRequest(event: Event) {
+  const { ticket } = await bookEventTicket.send({ event });
+
+  return ticket;
+}
+```
+</CodeGroup>
+
+## Error handling
+
+### Server-side error handling
+
+Use `JazzRequestError` to return proper HTTP error responses:
+
+<CodeGroup>
+```ts
+import { jazzServer } from "@/jazzServer";
+import { bookEventTicket, Ticket, Event } from "@/schema";
+import { JazzRequestError } from "jazz-tools";
+
+export async function POST(request: Request) {
+  return bookEventTicket.joinGame.handle(
+    request,
+    jazzServer.worker,
+    async ({ event }, madeBy) => {
+      // Load the reservations from the sync server, to ensure that we have the latest data
+      const { reservations } = await event.ensureLoaded({
+        resolve: {
+          reservations: true
+        }
+      });
+
+      // Check if the event is full
+      if (event.reservations.length >= event.capacity) {
+        // The JazzRequestError are propagated to the client, use them for any validation errors
+        throw new JazzRequestError("Event is full", 400);
+      }
+
+
+      const ticketGroup = Group.create(jazzServer.worker);
+      const ticket = Ticket.create({
+        account: madeBy,
+        event,
+      });
+
+      // Give access to the ticket to the client
+      ticketGroup.addMember(madeBy, "reader");
+
+      event.reservations.push(ticket);
+
+      return {
+        ticket,
+      };
+    },
+  );
+}
+```
+</CodeGroup>
+
+### Client-side error handling
+
+Handle errors on the client side:
+
+<CodeGroup>
+```ts
+import { bookEventTicket, Ticket, Event } from "@/schema";
+import { isJazzRequestError } from "jazz-tools";
+
+export async function sendEventBookingRequest(event: Event) {
+  try {
+    const { ticket } = await bookEventTicket.send({ event });
+
+    return ticket;
+  } catch (error) {
+    // This works as a type guard, so you can easily get the error message and details
+    if (isJazzRequestError(error)) {
+      alert(error.message);
+      return;
+    }
+  }
+}
+```
+</CodeGroup>
+
+<Alert variant="info" className="mt-4">
+  **Note**: The `experimental_defineRequest` API is still experimental and may change in future versions. For production applications, consider the stability implications.
+</Alert>
