@@ -59,31 +59,36 @@ describe("loading coValues from server", () => {
       connected: true,
     });
 
-    expect(async () => await node.load("test" as any)).rejects.toThrow(
+    await expect(async () => await node.load("test" as any)).rejects.toThrow(
       "Trying to load CoValue with invalid id test",
     );
-    expect(async () => await node.load(null as any)).rejects.toThrow(
+    await expect(async () => await node.load(null as any)).rejects.toThrow(
       "Trying to load CoValue with invalid id null",
     );
-    expect(async () => await node.load(undefined as any)).rejects.toThrow(
+    await expect(async () => await node.load(undefined as any)).rejects.toThrow(
       "Trying to load CoValue with invalid id undefined",
     );
-    expect(async () => await node.load(1 as any)).rejects.toThrow(
+    await expect(async () => await node.load(1 as any)).rejects.toThrow(
       "Trying to load CoValue with invalid id 1",
     );
-    expect(async () => await node.load({} as any)).rejects.toThrow(
+    await expect(async () => await node.load({} as any)).rejects.toThrow(
       "Trying to load CoValue with invalid id [object Object]",
     );
-    expect(async () => await node.load([] as any)).rejects.toThrow(
+    await expect(async () => await node.load([] as any)).rejects.toThrow(
       "Trying to load CoValue with invalid id []",
     );
-    expect(async () => await node.load(["test"] as any)).rejects.toThrow(
+    await expect(async () => await node.load(["test"] as any)).rejects.toThrow(
       'Trying to load CoValue with invalid id ["test"]',
     );
-    expect(async () => await node.load((() => {}) as any)).rejects.toThrow(
-      "Trying to load CoValue with invalid id () => {\n    }",
-    );
-    expect(async () => await node.load(new Date() as any)).rejects.toThrow();
+    await expect(
+      async () => await node.load((() => {}) as any),
+    ).rejects.toMatchInlineSnapshot(`
+      [TypeError: Trying to load CoValue with invalid id () => {
+            }]
+    `);
+    await expect(
+      async () => await node.load(new Date() as any),
+    ).rejects.toThrow();
   });
 
   test("unavailable coValue retry with skipRetry set to true", async () => {
