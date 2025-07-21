@@ -10,7 +10,7 @@ import {
 } from "../coValues/request.js";
 import { Account, CoPlainText, Group, co } from "../index.js";
 import { exportCoValue, importContentPieces } from "../internal.js";
-import { createJazzTestAccount } from "../testing.js";
+import { createJazzTestAccount, linkAccounts } from "../testing.js";
 
 const server = setupServer();
 
@@ -117,6 +117,8 @@ describe("experimental_defineRequest", () => {
 
   it("should handle errors on child covalues gracefully", async () => {
     const { me, worker } = await setupAccounts();
+
+    await linkAccounts(me, worker);
 
     const Address = co.map({
       street: co.plainText(),

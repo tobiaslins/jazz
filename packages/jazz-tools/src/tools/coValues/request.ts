@@ -67,7 +67,7 @@ function inputValueToCoMap<S extends MessageShape>(
   >;
 }
 
-async function serializeMessagePayload(
+export async function internal_serializeMessagePayload(
   // Skipping type validation here to avoid excessive type complexity that affects the typecheck performance
   schema: AnyCoMapSchema,
   resolve: any,
@@ -91,20 +91,6 @@ async function serializeMessagePayload(
       loadAs: me,
       bestEffortResolution: true,
     })) ?? [];
-
-  if (!contentPieces.some((piece) => piece.id === me.id)) {
-    const accountContent = await exportCoValue(Account, me.id, {
-      loadAs: me,
-    });
-
-    if (!accountContent) {
-      throw new JazzRequestError(`Failed to export current account`, 500);
-    }
-
-    for (const piece of accountContent) {
-      contentPieces.push(piece);
-    }
-  }
 
   const createdAt = Date.now();
 
@@ -147,6 +133,7 @@ async function handleIncomingMessage(
   request: unknown,
   loadAs: Account,
   handledMessages: Set<`co_z${string}`>,
+  strictContentPieces: boolean,
 ) {
   const node = loadAs._raw.core.node;
   const crypto = node.crypto;
@@ -196,10 +183,29 @@ async function handleIncomingMessage(
 
   handledMessages.add(requestData.id);
 
-  importContentPieces(
-    requestData.contentPieces as CojsonInternalTypes.NewContentMessage[],
-    loadAs,
-  );
+  let contentPieces =
+    requestData.contentPieces as CojsonInternalTypes.NewContentMessage[];
+
+  if (strictContentPieces) {
+    const coValueContent = contentPieces.find(
+      (piece) => piece.id === requestData.id,
+    );
+
+    if (coValueContent && coValueContent.header) {
+      const validValues = cojsonInternals.getDependedOnCoValues(
+        coValueContent.header,
+        coValueContent,
+      );
+      validValues.add(requestData.id);
+      contentPieces = contentPieces.filter((piece) =>
+        validValues.has(piece.id),
+      );
+    } else {
+      contentPieces = [];
+    }
+  }
+
+  importContentPieces(contentPieces, loadAs);
 
   const coValue = await node.loadCoValueCore(requestData.id);
   const accountId = getCoValueCreatorAccountId(coValue);
@@ -298,9 +304,9 @@ class HttpRoute<
         "Content-Type": "application/json",
       },
       body: JSON.stringify(
-        await serializeMessagePayload(
+        await internal_serializeMessagePayload(
           this.requestDefinition.schema,
-          this.requestDefinition.resolve,
+          true,
           values,
           as,
           workerAccount,
@@ -340,6 +346,7 @@ class HttpRoute<
       responseParsed.data.payload,
       as,
       this.processedValues,
+      false,
     );
 
     return data.value as Loaded<CoMapSchema<ResponseShape>, ResponseResolve>;
@@ -391,6 +398,7 @@ class HttpRoute<
       body,
       as,
       this.processedValues,
+      true,
     );
 
     const tracking = node.syncManager.trackDirtyCoValues();
@@ -400,7 +408,7 @@ class HttpRoute<
       data.madeBy,
     );
 
-    const responsePayload = await serializeMessagePayload(
+    const responsePayload = await internal_serializeMessagePayload(
       this.responseDefinition.schema,
       this.responseDefinition.resolve,
       responseValue,

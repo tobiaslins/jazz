@@ -31,16 +31,15 @@ export const bookEventTicket = experimental_defineRequest({
       event: Event,
     },
     // The data that will be considered as "loaded" in the server input
-    // It defines which data the client directly sends to the server, without involving the sync server
     resolve: {
-      event: true,
+      event: { reservations: true },
     },
   },
   // The schema definition of the data we expect to receive from the server
   response: {
     schema: { ticket: Ticket },
     // The data that will be considered as "loaded" in the client response
-    // It defines which data the server directly sends to the client, without involving the sync server
+    // It defines the content that server directly sends to the client, without involving the sync server
     resolve: { ticket: true },
   },
 });
@@ -80,13 +79,6 @@ export async function POST(request: Request) {
     request,
     jazzServer.worker,
     async ({ event }, madeBy) => {
-      // Load the reservations from the sync server, to ensure that we have the latest data
-      const { reservations } = await event.ensureLoaded({
-        resolve: {
-          reservations: true
-        }
-      });
-
       const ticketGroup = Group.create(jazzServer.worker);
       const ticket = Ticket.create({
         account: madeBy,
@@ -143,13 +135,6 @@ export async function POST(request: Request) {
     request,
     jazzServer.worker,
     async ({ event }, madeBy) => {
-      // Load the reservations from the sync server, to ensure that we have the latest data
-      const { reservations } = await event.ensureLoaded({
-        resolve: {
-          reservations: true
-        }
-      });
-
       // Check if the event is full
       if (event.reservations.length >= event.capacity) {
         // The JazzRequestError is propagated to the client, use it for any validation errors
@@ -176,6 +161,12 @@ export async function POST(request: Request) {
 }
 ```
 </CodeGroup>
+
+<Alert variant="info" className="mt-4">
+  **Note**: To ensure that the rule is properly followed, the handler should be deployed in a single worker instance (e.g. a single Cloudflare DurableObject).
+  
+  Transactional updates are part of the roadmap, but not yet supported.
+</Alert>
 
 ### Client-side error handling
 
