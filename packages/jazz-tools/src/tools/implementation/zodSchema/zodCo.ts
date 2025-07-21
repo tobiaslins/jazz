@@ -25,10 +25,7 @@ import {
   DiscriminableCoValueSchemas,
   createCoreCoDiscriminatedUnionSchema,
 } from "./schemaTypes/CoDiscriminatedUnionSchema.js";
-import {
-  CoOptionalSchema,
-  createCoOptionalSchema,
-} from "./schemaTypes/CoOptionalSchema.js";
+import { CoOptionalSchema } from "./schemaTypes/CoOptionalSchema.js";
 import { CoreCoValueSchema } from "./schemaTypes/CoValueSchema.js";
 import {
   RichTextSchema,
@@ -157,7 +154,7 @@ export const coImageDefiner = (): ImageDefinitionSchema => {
 export const coOptionalDefiner = <T extends CoreCoValueSchema>(
   schema: T,
 ): CoOptionalSchema<T> => {
-  return createCoOptionalSchema(schema);
+  return new CoOptionalSchema(schema);
 };
 
 export const coDiscriminatedUnionDefiner = <

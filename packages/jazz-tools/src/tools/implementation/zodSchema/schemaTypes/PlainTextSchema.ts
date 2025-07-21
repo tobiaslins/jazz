@@ -7,28 +7,6 @@ export interface CorePlainTextSchema extends CoreCoValueSchema {
   builtin: "CoPlainText";
 }
 
-export interface PlainTextSchema extends CorePlainTextSchema {
-  create(
-    text: string,
-    options?: { owner: Account | Group } | Account | Group,
-  ): CoPlainText;
-  load(
-    id: string,
-    options: { loadAs: Account | AnonymousJazzAgent },
-  ): Promise<CoPlainText>;
-  subscribe(
-    id: string,
-    options: { loadAs: Account | AnonymousJazzAgent },
-    listener: (value: CoPlainText, unsubscribe: () => void) => void,
-  ): () => void;
-  subscribe(
-    id: string,
-    listener: (value: CoPlainText, unsubscribe: () => void) => void,
-  ): () => void;
-  fromRaw(raw: RawCoPlainText): CoPlainText;
-  getCoValueClass: () => typeof CoPlainText;
-}
-
 export function createCoreCoPlainTextSchema(): CorePlainTextSchema {
   return {
     collaborative: true as const,
@@ -36,27 +14,44 @@ export function createCoreCoPlainTextSchema(): CorePlainTextSchema {
   };
 }
 
-export function enrichPlainTextSchema(
-  schema: CorePlainTextSchema,
-  coValueClass: typeof CoPlainText,
-): PlainTextSchema {
-  return Object.assign(schema, {
-    create: (...args: [any, ...any[]]) => {
-      return coValueClass.create(...args);
-    },
-    load: (...args: [any, ...any[]]) => {
-      return coValueClass.load(...args);
-    },
-    subscribe: (...args: [any, ...any[]]) => {
-      // @ts-expect-error
-      return coValueClass.subscribe(...args);
-    },
-    fromRaw: (...args: [any, ...any[]]) => {
-      // @ts-expect-error
-      return coValueClass.fromRaw(...args);
-    },
-    getCoValueClass: () => {
-      return coValueClass;
-    },
-  }) as unknown as PlainTextSchema;
+export class PlainTextSchema implements CorePlainTextSchema {
+  readonly collaborative = true as const;
+  readonly builtin = "CoPlainText" as const;
+
+  constructor(private coValueClass: typeof CoPlainText) {}
+
+  create(
+    text: string,
+    options?: { owner: Account | Group } | Account | Group,
+  ): CoPlainText {
+    return this.coValueClass.create(text, options);
+  }
+
+  load(
+    id: string,
+    options: { loadAs: Account | AnonymousJazzAgent },
+  ): Promise<CoPlainText | null> {
+    return this.coValueClass.load(id, options);
+  }
+
+  subscribe(
+    id: string,
+    options: { loadAs: Account | AnonymousJazzAgent },
+    listener: (value: CoPlainText, unsubscribe: () => void) => void,
+  ): () => void;
+  subscribe(
+    id: string,
+    listener: (value: CoPlainText, unsubscribe: () => void) => void,
+  ): () => void;
+  subscribe(...args: [any, ...any[]]) {
+    // @ts-expect-error
+    return this.coValueClass.subscribe(...args);
+  }
+
+  fromRaw(raw: RawCoPlainText): CoPlainText {
+    return this.coValueClass.fromRaw(raw);
+  }
+  getCoValueClass(): typeof CoPlainText {
+    return this.coValueClass;
+  }
 }

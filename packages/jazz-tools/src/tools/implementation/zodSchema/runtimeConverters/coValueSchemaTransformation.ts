@@ -11,17 +11,17 @@ import {
   CoRichText,
   CoValueClass,
   FileStream,
+  FileStreamSchema,
+  PlainTextSchema,
   SchemaUnion,
   enrichAccountSchema,
   enrichCoMapSchema,
-  enrichFileStreamSchema,
-  enrichPlainTextSchema,
   isCoValueClass,
 } from "../../../internal.js";
 import { coField } from "../../schema.js";
 
 import { CoreCoValueSchema } from "../schemaTypes/CoValueSchema.js";
-import { enrichRichTextSchema } from "../schemaTypes/RichTextSchema.js";
+import { RichTextSchema } from "../schemaTypes/RichTextSchema.js";
 import { schemaUnionDiscriminatorFor } from "../unionUtils.js";
 import {
   AnyCoreCoValueSchema,
@@ -115,20 +115,17 @@ export function hydrateCoreCoValueSchema<S extends AnyCoreCoValueSchema>(
     return coValueSchema as unknown as CoValueSchemaFromCoreSchema<S>;
   } else if (schema.builtin === "FileStream") {
     const coValueClass = FileStream;
-    const coValueSchema = enrichFileStreamSchema(schema, coValueClass);
-    return coValueSchema as unknown as CoValueSchemaFromCoreSchema<S>;
+    return new FileStreamSchema(coValueClass) as CoValueSchemaFromCoreSchema<S>;
   } else if (schema.builtin === "CoPlainText") {
     const coValueClass = CoPlainText;
-    const coValueSchema = enrichPlainTextSchema(schema, coValueClass);
-    return coValueSchema as unknown as CoValueSchemaFromCoreSchema<S>;
+    return new PlainTextSchema(coValueClass) as CoValueSchemaFromCoreSchema<S>;
   } else if (schema.builtin === "CoRichText") {
     const coValueClass = CoRichText;
-    const coValueSchema = enrichRichTextSchema(schema, coValueClass);
-    return coValueSchema as unknown as CoValueSchemaFromCoreSchema<S>;
+    return new RichTextSchema(coValueClass) as CoValueSchemaFromCoreSchema<S>;
   } else if (schema.builtin === "CoDiscriminatedUnion") {
     const coValueClass = SchemaUnion.Of(schemaUnionDiscriminatorFor(schema));
     const coValueSchema = new CoDiscriminatedUnionSchema(schema, coValueClass);
-    return coValueSchema as unknown as CoValueSchemaFromCoreSchema<S>;
+    return coValueSchema as CoValueSchemaFromCoreSchema<S>;
   } else {
     const notReachable: never = schema;
     throw new Error(

@@ -6,27 +6,6 @@ export interface CoreRichTextSchema extends CoreCoValueSchema {
   builtin: "CoRichText";
 }
 
-export interface RichTextSchema extends CoreRichTextSchema {
-  create(
-    text: string,
-    options?: { owner: Account | Group } | Account | Group,
-  ): CoRichText;
-  load(
-    id: string,
-    options: { loadAs: Account | AnonymousJazzAgent },
-  ): Promise<CoRichText>;
-  subscribe(
-    id: string,
-    options: { loadAs: Account | AnonymousJazzAgent },
-    listener: (value: CoRichText, unsubscribe: () => void) => void,
-  ): () => void;
-  subscribe(
-    id: string,
-    listener: (value: CoRichText, unsubscribe: () => void) => void,
-  ): () => void;
-  getCoValueClass: () => typeof CoRichText;
-}
-
 export function createCoreCoRichTextSchema(): CoreRichTextSchema {
   return {
     collaborative: true as const,
@@ -34,23 +13,41 @@ export function createCoreCoRichTextSchema(): CoreRichTextSchema {
   };
 }
 
-export function enrichRichTextSchema(
-  schema: CoreRichTextSchema,
-  coValueClass: typeof CoRichText,
-): RichTextSchema {
-  return Object.assign(schema, {
-    create: (...args: [any, ...any[]]) => {
-      return coValueClass.create(...args);
-    },
-    load: (...args: [any, ...any[]]) => {
-      return coValueClass.load(...args);
-    },
-    subscribe: (...args: [any, ...any[]]) => {
-      // @ts-expect-error
-      return coValueClass.subscribe(...args);
-    },
-    getCoValueClass: () => {
-      return coValueClass;
-    },
-  }) as unknown as RichTextSchema;
+export class RichTextSchema implements CoreRichTextSchema {
+  readonly collaborative = true as const;
+  readonly builtin = "CoRichText" as const;
+
+  constructor(private coValueClass: typeof CoRichText) {}
+
+  create(
+    text: string,
+    options?: { owner: Account | Group } | Account | Group,
+  ): CoRichText {
+    return this.coValueClass.create(text, options);
+  }
+
+  load(
+    id: string,
+    options: { loadAs: Account | AnonymousJazzAgent },
+  ): Promise<CoRichText | null> {
+    return this.coValueClass.load(id, options);
+  }
+
+  subscribe(
+    id: string,
+    options: { loadAs: Account | AnonymousJazzAgent },
+    listener: (value: CoRichText, unsubscribe: () => void) => void,
+  ): () => void;
+  subscribe(
+    id: string,
+    listener: (value: CoRichText, unsubscribe: () => void) => void,
+  ): () => void;
+  subscribe(...args: [any, ...any[]]) {
+    // @ts-expect-error
+    return this.coValueClass.subscribe(...args);
+  }
+
+  getCoValueClass(): typeof CoRichText {
+    return this.coValueClass;
+  }
 }

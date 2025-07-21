@@ -10,8 +10,23 @@ export interface CoreFileStreamSchema extends CoreCoValueSchema {
   builtin: "FileStream";
 }
 
-export interface FileStreamSchema extends CoreFileStreamSchema {
-  create(options?: { owner?: Account | Group } | Account | Group): FileStream;
+export function createCoreFileStreamSchema(): CoreFileStreamSchema {
+  return {
+    collaborative: true as const,
+    builtin: "FileStream" as const,
+  };
+}
+
+export class FileStreamSchema implements CoreFileStreamSchema {
+  readonly collaborative = true as const;
+  readonly builtin = "FileStream" as const;
+
+  constructor(private coValueClass: typeof FileStream) {}
+
+  create(options?: { owner?: Account | Group } | Account | Group): FileStream {
+    return this.coValueClass.create(options);
+  }
+
   createFromBlob(
     blob: Blob | File,
     options?:
@@ -21,18 +36,27 @@ export interface FileStreamSchema extends CoreFileStreamSchema {
         }
       | Account
       | Group,
-  ): Promise<FileStream>;
+  ): Promise<FileStream> {
+    return this.coValueClass.createFromBlob(blob, options);
+  }
+
   loadAsBlob(
     id: string,
     options?: {
       allowUnfinished?: boolean;
       loadAs?: Account | AnonymousJazzAgent;
     },
-  ): Promise<Blob | undefined>;
+  ): Promise<Blob | undefined> {
+    return this.coValueClass.loadAsBlob(id, options);
+  }
+
   load(
     id: string,
     options: { loadAs: Account | AnonymousJazzAgent },
-  ): Promise<FileStream>;
+  ): Promise<FileStream | null> {
+    return this.coValueClass.load(id, options);
+  }
+
   subscribe(
     id: string,
     options: { loadAs: Account | AnonymousJazzAgent },
@@ -42,39 +66,12 @@ export interface FileStreamSchema extends CoreFileStreamSchema {
     id: string,
     listener: (value: FileStream, unsubscribe: () => void) => void,
   ): () => void;
-  getCoValueClass: () => typeof FileStream;
-}
+  subscribe(...args: [any, ...any[]]) {
+    // @ts-expect-error
+    return this.coValueClass.subscribe(...args);
+  }
 
-export function createCoreFileStreamSchema(): CoreFileStreamSchema {
-  return {
-    collaborative: true as const,
-    builtin: "FileStream" as const,
-  };
-}
-
-export function enrichFileStreamSchema(
-  schema: CoreFileStreamSchema,
-  coValueClass: typeof FileStream,
-): FileStreamSchema {
-  return Object.assign(schema, {
-    create: (...args: any[]) => {
-      return coValueClass.create(...args);
-    },
-    createFromBlob: (...args: [any, ...any[]]) => {
-      return coValueClass.createFromBlob(...args);
-    },
-    load: (...args: [any, ...any[]]) => {
-      return coValueClass.load(...args);
-    },
-    loadAsBlob: (...args: [any, ...any[]]) => {
-      return coValueClass.loadAsBlob(...args);
-    },
-    subscribe: (...args: [any, ...any[]]) => {
-      // @ts-expect-error
-      return coValueClass.subscribe(...args);
-    },
-    getCoValueClass: () => {
-      return coValueClass;
-    },
-  }) as unknown as FileStreamSchema;
+  getCoValueClass(): typeof FileStream {
+    return this.coValueClass;
+  }
 }

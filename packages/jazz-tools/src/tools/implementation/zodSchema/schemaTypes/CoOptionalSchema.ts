@@ -15,26 +15,21 @@ export interface CoreCoOptionalSchema<
   getDefinition: () => CoOptionalSchemaDefinition<Shape>;
 }
 
-export interface CoOptionalSchema<
+export class CoOptionalSchema<
   Shape extends CoreCoValueSchema = CoreCoValueSchema,
-> extends CoreCoOptionalSchema<Shape> {
-  getCoValueClass: () => ReturnType<
-    CoValueSchemaFromCoreSchema<Shape>["getCoValueClass"]
-  >;
-}
+> implements CoreCoOptionalSchema<Shape>
+{
+  readonly collaborative = true as const;
+  readonly builtin = "CoOptional" as const;
+  readonly getDefinition = () => ({
+    innerType: this.innerType,
+  });
 
-export function createCoOptionalSchema<T extends CoreCoValueSchema>(
-  schema: T,
-): CoOptionalSchema<T> {
-  return {
-    collaborative: true as const,
-    builtin: "CoOptional" as const,
-    innerType: schema,
-    getDefinition: () => ({
-      innerType: schema,
-    }),
-    getCoValueClass: () => {
-      return (schema as any).getCoValueClass();
-    },
-  };
+  constructor(public readonly innerType: Shape) {}
+
+  getCoValueClass(): ReturnType<
+    CoValueSchemaFromCoreSchema<Shape>["getCoValueClass"]
+  > {
+    return (this.innerType as any).getCoValueClass();
+  }
 }
