@@ -1,4 +1,4 @@
-import { Button } from "@/registry/jazz/ui/button";
+import { Button } from "@/registry/quint/ui/button";
 import { PlusIcon } from "lucide-react";
 
 export default function ButtonWithIcon() {

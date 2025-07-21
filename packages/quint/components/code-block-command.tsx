@@ -5,18 +5,18 @@ import * as React from "react";
 
 import { copyToClipboardWithMeta } from "@/components/copy-button";
 import { useConfig } from "@/hooks/use-config";
-import { Button } from "@/registry/jazz/ui/button";
+import { Button } from "@/registry/quint/ui/button";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@/registry/jazz/ui/tabs";
+} from "@/registry/quint/ui/tabs";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/registry/jazz/ui/tooltip";
+} from "@/registry/quint/ui/tooltip";
 
 export function CodeBlockCommand({
   __npm__,

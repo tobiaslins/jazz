@@ -5,25 +5,25 @@ import { type VariantProps, cva } from "class-variance-authority";
 import { PanelLeft } from "lucide-react";
 import * as React from "react";
 
-import { useIsMobile } from "@/registry/jazz/hooks/use-mobile";
-import { cn } from "@/registry/jazz/lib/utils";
-import { Button } from "@/registry/jazz/ui/button";
-import { Input } from "@/registry/jazz/ui/input";
-import { Separator } from "@/registry/jazz/ui/separator";
+import { useIsMobile } from "@/registry/quint/hooks/use-mobile";
+import { cn } from "@/registry/quint/lib/utils";
+import { Button } from "@/registry/quint/ui/button";
+import { Input } from "@/registry/quint/ui/input";
+import { Separator } from "@/registry/quint/ui/separator";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@/registry/jazz/ui/sheet";
-import { Skeleton } from "@/registry/jazz/ui/skeleton";
+} from "@/registry/quint/ui/sheet";
+import { Skeleton } from "@/registry/quint/ui/skeleton";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/registry/jazz/ui/tooltip";
+} from "@/registry/quint/ui/tooltip";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;

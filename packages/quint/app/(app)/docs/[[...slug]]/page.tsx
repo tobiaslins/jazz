@@ -7,8 +7,8 @@ import { DocsTableOfContents } from "@/components/docs-toc";
 import { source } from "@/lib/source";
 import { absoluteUrl } from "@/lib/utils";
 // import { OpenInV0Cta } from "@/components/open-in-v0-cta";
-import { Badge } from "@/registry/jazz/ui/badge";
-import { Button } from "@/registry/jazz/ui/button";
+import { Badge } from "@/registry/quint/ui/badge";
+import { Button } from "@/registry/quint/ui/button";
 import {
   ArrowUpRightIcon,
   ChevronLeftIcon,

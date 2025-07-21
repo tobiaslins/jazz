@@ -1,6 +1,6 @@
 import { DocsSidebar } from "@/components/docs-sidebar";
 import { source } from "@/lib/source";
-import { SidebarProvider } from "@/registry/jazz/ui/sidebar";
+import { SidebarProvider } from "@/registry/quint/ui/sidebar";
 
 export default function DocsLayout({
   children,
