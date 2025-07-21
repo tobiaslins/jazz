@@ -10,7 +10,6 @@ import {
   type DefaultProfileShape,
   type FileStreamSchema,
   ImageDefinition,
-  ImageDefinitionSchema,
   type PlainTextSchema,
   type Simplify,
   createCoreAccountSchema,

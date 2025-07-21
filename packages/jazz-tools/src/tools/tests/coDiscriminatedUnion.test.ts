@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { CoListSchema, CoPlainText, Loaded, co, z } from "../exports.js";
+import { CoPlainText, Loaded, co, z } from "../exports.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 import { waitFor } from "./utils.js";
 
@@ -224,7 +224,7 @@ describe("co.discriminatedUnion", () => {
       internal: z.boolean(),
       content: z.string(),
 
-      get children(): CoListSchema<
+      get children(): co.List<
         co.DiscriminatedUnion<
           [typeof NoteItem, typeof AttachmentItem, typeof ReferenceItem]
         >
