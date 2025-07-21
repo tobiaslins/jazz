@@ -1,4 +1,5 @@
-@import "tailwindcss";
+
+@import "quint/app/globals.css";
 
 /* Custom stone color palette */
 @theme {
