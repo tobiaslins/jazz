@@ -113,6 +113,97 @@ describe("experimental_defineRequest", () => {
       });
       expect(receivedMadeBy).toEqual(me.id);
     });
+
+    it("should push the response content directly to the client", async () => {
+      const { me, worker } = await setupAccounts();
+
+      const group = Group.create(me);
+      group.addMember("everyone", "writer");
+
+      const Address = co.map({
+        street: co.plainText(),
+        city: co.plainText(),
+      });
+
+      const Person = co.map({
+        name: z.string(),
+        address: Address,
+      });
+
+      const userRequest = experimental_defineRequest({
+        url: "https://api.example.com/api/user",
+        workerId: worker.id,
+        request: {
+          name: z.string(),
+          email: z.string(),
+          age: z.number(),
+        },
+        response: {
+          schema: {
+            person: Person,
+          },
+          resolve: {
+            person: {
+              address: {
+                street: true,
+                city: true,
+              },
+            },
+          },
+        },
+      });
+
+      server.use(
+        http.post("https://api.example.com/api/user", async ({ request }) => {
+          try {
+            return await userRequest.handle(
+              request,
+              worker,
+              async (user, madeBy) => {
+                const group = Group.create(me);
+                group.addMember(madeBy, "writer");
+
+                const person = Person.create(
+                  {
+                    name: user.name,
+                    address: Address.create(
+                      {
+                        street: CoPlainText.create("123 Main St", group),
+                        city: CoPlainText.create("New York", group),
+                      },
+                      group,
+                    ),
+                  },
+                  group,
+                );
+
+                return {
+                  person,
+                };
+              },
+            );
+          } catch (error) {
+            console.error(error);
+            throw error;
+          }
+        }),
+      );
+
+      // Send a plain object (CoMapInit) instead of a CoMap instance
+      const response = await userRequest.send(
+        {
+          name: "John Doe",
+          email: "john@example.com",
+          age: 30,
+        },
+        { owner: me },
+      );
+
+      // Verify the response is a proper CoMap instance
+      expect(response.person.name).toEqual("John Doe");
+      expect(response.person.address.street.toString()).toEqual("123 Main St");
+      expect(response.person.address.city.toString()).toEqual("New York");
+    });
   });
 
   it("should handle errors on child covalues gracefully", async () => {
@@ -446,8 +537,11 @@ describe("JazzRequestError handling", () => {
       vi.restoreAllMocks();
     });
 
-    it("should throw error when value not found after loading", async () => {
+    it("should throw error when there are not enough permissions to resolve the request payload", async () => {
       const { me, worker } = await setupAccounts();
+
+      // Link the accounts to ensure that the request payload is loaded
+      await linkAccounts(me, worker);
 
       const User = co.map({
         name: z.string(),
@@ -488,6 +582,67 @@ describe("JazzRequestError handling", () => {
               },
               me,
             ),
+          },
+          { owner: me },
+        ),
+      ).rejects.toMatchInlineSnapshot(`
+        {
+          "code": 400,
+          "details": undefined,
+          "message": "Value not found",
+        }
+      `);
+
+      vi.restoreAllMocks();
+    });
+
+    it("should throw error when the request payload is not found", async () => {
+      const { me, worker } = await setupAccounts();
+
+      const User = co.map({
+        name: z.string(),
+        email: z.string(),
+      });
+
+      const userRequest = experimental_defineRequest({
+        url: "https://api.example.com/api/user",
+        workerId: worker.id,
+        request: {
+          schema: {
+            user: User,
+          },
+          resolve: {
+            user: true,
+          },
+        },
+        response: {
+          bio: z.string(),
+        },
+      });
+
+      server.use(
+        http.post("https://api.example.com/api/user", async ({ request }) => {
+          return userRequest.handle(request, worker, async (user, madeBy) => {
+            return { bio: "test" };
+          });
+        }),
+      );
+
+      const group = Group.create(me);
+      group.makePublic();
+
+      const user = User.create(
+        {
+          name: "John Doe",
+          email: "john@example.com",
+        },
+        group,
+      );
+
+      await expect(
+        userRequest.send(
+          {
+            user,
           },
           { owner: me },
         ),
