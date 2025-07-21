@@ -2,6 +2,7 @@ import { RawCoList, RawCoMap } from "cojson";
 import {
   Account,
   CoFeed,
+  CoFeedSchema,
   CoList,
   CoListSchema,
   CoMap,
@@ -12,7 +13,6 @@ import {
   SchemaUnion,
   enrichAccountSchema,
   enrichCoDiscriminatedUnionSchema,
-  enrichCoFeedSchema,
   enrichCoMapSchema,
   enrichFileStreamSchema,
   enrichPlainTextSchema,
@@ -111,7 +111,7 @@ export function hydrateCoreCoValueSchema<S extends AnyCoreCoValueSchema>(
     const coValueClass = CoFeed.Of(
       schemaFieldToCoFieldDef(schema.element as SchemaField),
     );
-    const coValueSchema = enrichCoFeedSchema(schema, coValueClass as any);
+    const coValueSchema = new CoFeedSchema(schema.element, coValueClass);
     return coValueSchema as unknown as CoValueSchemaFromCoreSchema<S>;
   } else if (schema.builtin === "FileStream") {
     const coValueClass = FileStream;

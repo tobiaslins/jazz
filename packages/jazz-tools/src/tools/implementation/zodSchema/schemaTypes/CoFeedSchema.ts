@@ -19,12 +19,23 @@ type CoFeedInit<T extends AnyZodOrCoValueSchema> = Simplify<
   Array<NotNull<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>>>
 >;
 
-export interface CoFeedSchema<T extends AnyZodOrCoValueSchema>
-  extends CoreCoFeedSchema<T> {
+export class CoFeedSchema<T extends AnyZodOrCoValueSchema>
+  implements CoreCoFeedSchema<T>
+{
+  collaborative = true as const;
+  builtin = "CoFeed" as const;
+
+  constructor(
+    public element: T,
+    private coValueClass: typeof CoFeed,
+  ) {}
+
   create(
     init: CoFeedInit<T>,
     options?: { owner: Account | Group } | Account | Group,
-  ): CoFeedInstance<T>;
+  ): CoFeedInstance<T> {
+    return this.coValueClass.create(init, options) as CoFeedInstance<T>;
+  }
 
   load<const R extends RefsToResolve<CoFeedInstanceCoValuesNullable<T>> = true>(
     id: string,
@@ -32,7 +43,10 @@ export interface CoFeedSchema<T extends AnyZodOrCoValueSchema>
       resolve?: RefsToResolveStrict<CoFeedInstanceCoValuesNullable<T>, R>;
       loadAs?: Account | AnonymousJazzAgent;
     },
-  ): Promise<Resolved<CoFeedInstanceCoValuesNullable<T>, R> | null>;
+  ): Promise<Resolved<CoFeedInstanceCoValuesNullable<T>, R> | null> {
+    // @ts-expect-error
+    return this.coValueClass.load(id, options);
+  }
 
   subscribe(
     id: string,
@@ -51,8 +65,14 @@ export interface CoFeedSchema<T extends AnyZodOrCoValueSchema>
       unsubscribe: () => void,
     ) => void,
   ): () => void;
+  subscribe(...args: [any, ...any[]]) {
+    // @ts-expect-error
+    return this.coValueClass.subscribe(...args);
+  }
 
-  getCoValueClass: () => typeof CoFeed;
+  getCoValueClass(): typeof CoFeed {
+    return this.coValueClass;
+  }
 }
 
 export function createCoreCoFeedSchema<T extends AnyZodOrCoValueSchema>(
@@ -63,28 +83,6 @@ export function createCoreCoFeedSchema<T extends AnyZodOrCoValueSchema>(
     builtin: "CoFeed" as const,
     element,
   };
-}
-
-export function enrichCoFeedSchema<T extends AnyZodOrCoValueSchema>(
-  schema: CoreCoFeedSchema<T>,
-  coValueClass: typeof CoFeed,
-): CoFeedSchema<T> {
-  return Object.assign(schema, {
-    create: (...args: [any, ...any[]]) => {
-      return coValueClass.create(...args);
-    },
-    load: (...args: [any, ...any[]]) => {
-      // @ts-expect-error
-      return coValueClass.load(...args);
-    },
-    subscribe: (...args: [any, ...any[]]) => {
-      // @ts-expect-error
-      return coValueClass.subscribe(...args);
-    },
-    getCoValueClass: () => {
-      return coValueClass;
-    },
-  }) as unknown as CoFeedSchema<T>;
 }
 
 // less precise version to avoid circularity issues and allow matching against
