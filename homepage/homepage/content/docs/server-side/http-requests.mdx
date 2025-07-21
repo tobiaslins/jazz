@@ -204,22 +204,22 @@ Deploy your Server Worker on a single instance when applying validation rules th
 
 For example, when implementing capacity limits in an event registration system, you need a single instance to ensure the capacity check and ticket creation happen atomically.
 
-Jazz is is an eventually consistent database, and with multiple region deployments you may accept multiple registrations at the same time
+Jazz is an eventually consistent database, and with multiple region deployments you may accept multiple registrations at the same time
 and realize after the sync that the event is over capacity.
 
 Transactional updates on multi-region deployments are part of the roadmap, but not yet supported.
 
-An example of when you must deploy on a single instance are:
+Examples of when you must deploy on a single instance are:
 - when a counter is involved
 - when there is any kind of limit on the resources (like capacity)
 
-Essentialy when the output of the request depends on the state of the database, you must deploy on a single instance.
+Essentially when the output of the request depends on the state of the database, you must deploy on a single instance.
 
 ### Multi-Region Deployment
 
 When no transactional constraints exist, you can deploy Server Workers across multiple regions for better performance and availability.
 
-An example of when it's ok to deploy across multiple regions are:
+Examples of when it's acceptable to deploy across multiple regions are:
 - sending emails
 - sending notifications
 - calling external services (like LLMs)
