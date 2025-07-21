@@ -1,4 +1,4 @@
-import { Group, co, z } from "jazz-tools";
+import { Group, Loaded, co, z } from "jazz-tools";
 import { getRandomUsername } from "./util";
 
 export const Project = co.map({
@@ -14,6 +14,20 @@ export const DraftOrganization = co.map({
   name: z.optional(z.string()),
   projects: co.list(Project),
 });
+
+export function validateDraftOrganization(
+  org: Loaded<typeof DraftOrganization>,
+) {
+  const errors: string[] = [];
+
+  if (!org.name) {
+    errors.push("Please enter a name.");
+  }
+
+  return {
+    errors,
+  };
+}
 
 export const JazzAccountRoot = co.map({
   organizations: co.list(Organization),
