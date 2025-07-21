@@ -20,6 +20,7 @@ import {
 } from "../../../internal.js";
 import { coField } from "../../schema.js";
 
+import { CoreCoValueSchema } from "../schemaTypes/CoValueSchema.js";
 import { enrichRichTextSchema } from "../schemaTypes/RichTextSchema.js";
 import { schemaUnionDiscriminatorFor } from "../unionUtils.js";
 import {
@@ -49,7 +50,8 @@ export function isCoValueSchema(
 }
 
 /**
- * Convert a {@link CoreCoValueSchema} into a CoValue schema.
+ * Convert a "core" CoValue schema into a CoValue schema.
+ * See {@link CoreCoValueSchema} for more information.
  *
  * @returns The CoValue schema matching the provided CoreCoValueSchema
  */
