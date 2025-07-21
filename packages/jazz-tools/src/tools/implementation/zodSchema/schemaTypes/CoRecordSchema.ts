@@ -16,7 +16,7 @@ import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimiti
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { NotNull } from "../typeConverters/NotNull.js";
 import { z } from "../zodReExport.js";
-import { AnyZodOrCoValueSchema, WithHelpers } from "../zodSchema.js";
+import { AnyZodOrCoValueSchema } from "../zodSchema.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 type CoRecordInit<

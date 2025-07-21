@@ -12,13 +12,16 @@ export interface CoreCoOptionalSchema<
   Shape extends CoreCoValueSchema = CoreCoValueSchema,
 > extends CoreCoValueSchema {
   builtin: "CoOptional";
+  innerType: Shape;
   getDefinition: () => CoOptionalSchemaDefinition<Shape>;
 }
 
 export interface CoOptionalSchema<
   Shape extends CoreCoValueSchema = CoreCoValueSchema,
 > extends CoreCoOptionalSchema<Shape> {
-  getCoValueClass: () => CoValueSchemaFromCoreSchema<Shape>["getCoValueClass"];
+  getCoValueClass: () => ReturnType<
+    CoValueSchemaFromCoreSchema<Shape>["getCoValueClass"]
+  >;
 }
 
 export function createCoOptionalSchema<T extends CoreCoValueSchema>(
@@ -26,12 +29,14 @@ export function createCoOptionalSchema<T extends CoreCoValueSchema>(
 ): CoOptionalSchema<T> {
   const zodSchema = z.optional(schema as any);
   return Object.assign(zodSchema, {
-    collaborative: true,
+    collaborative: true as const,
     builtin: "CoOptional" as const,
+    innerType: schema,
+    getDefinition: () => ({
+      innerType: schema,
+    }),
     getCoValueClass: () => {
-      return (
-        schema as unknown as CoValueSchemaFromCoreSchema<T>
-      ).getCoValueClass();
+      return (schema as any).getCoValueClass();
     },
-  }) as unknown as CoOptionalSchema<T>;
+  });
 }

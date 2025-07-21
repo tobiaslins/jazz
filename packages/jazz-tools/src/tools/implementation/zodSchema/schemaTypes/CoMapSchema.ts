@@ -19,7 +19,7 @@ import { removeGetters } from "../../schemaUtils.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { z } from "../zodReExport.js";
-import { AnyZodOrCoValueSchema, WithHelpers } from "../zodSchema.js";
+import { AnyZodOrCoValueSchema } from "../zodSchema.js";
 import { CoOptionalSchema, CoreCoOptionalSchema } from "./CoOptionalSchema.js";
 
 export interface CoMapSchema<
@@ -148,19 +148,21 @@ export interface CoMapSchema<
 export function createCoreCoMapSchema<
   Shape extends z.core.$ZodLooseShape,
   CatchAll extends AnyZodOrCoValueSchema | unknown = unknown,
->(shape: Shape, index?: CatchAll): CoreCoMapSchema<Shape, CatchAll> {
+>(shape: Shape, catchAll?: CatchAll): CoreCoMapSchema<Shape, CatchAll> {
   const zodSchema = z.object(shape).meta({
     collaborative: true,
   });
   return Object.assign(zodSchema, {
     collaborative: true as const,
     builtin: "CoMap" as const,
+    shape,
+    catchAll,
     getDefinition: () => ({
       get shape() {
         return zodSchema.def.shape;
       },
       get catchall() {
-        return index;
+        return catchAll;
       },
       get discriminatorMap() {
         const propValues: DiscriminableCoValueSchemaDefinition["discriminatorMap"] =
@@ -213,10 +215,10 @@ export function enrichCoMapSchema<
       // @ts-expect-error
       return coValueClass.loadUnique(...args);
     },
-    catchall: (index: AnyZodOrCoValueSchema) => {
+    catchall: (catchAll: AnyZodOrCoValueSchema) => {
       const schemaWithCatchAll = createCoreCoMapSchema(
         coValueSchema.getDefinition().shape,
-        index,
+        catchAll,
       );
       return hydrateCoreCoValueSchema(schemaWithCatchAll);
     },
@@ -277,7 +279,9 @@ export interface CoreCoMapSchema<
   CatchAll extends AnyZodOrCoValueSchema | unknown = unknown,
 > extends DiscriminableCoreCoValueSchema {
   builtin: "CoMap";
-  getDefinition: () => CoMapSchemaDefinition<Shape, CatchAll>;
+  shape: Shape;
+  catchAll?: CatchAll;
+  getDefinition: () => CoMapSchemaDefinition;
 }
 
 export type CoMapInstance<Shape extends z.core.$ZodLooseShape> = {

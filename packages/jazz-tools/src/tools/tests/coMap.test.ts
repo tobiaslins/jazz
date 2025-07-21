@@ -2103,3 +2103,17 @@ describe("CoMap migration", () => {
     });
   });
 });
+
+describe("co.map schema", () => {
+  test("can access the inner schemas of a co.map", () => {
+    const Person = co.map({
+      name: co.plainText(),
+    });
+
+    const person = Person.create({
+      name: Person.shape["name"].create("John"),
+    });
+
+    expect(person.name.toString()).toEqual("John");
+  });
+});

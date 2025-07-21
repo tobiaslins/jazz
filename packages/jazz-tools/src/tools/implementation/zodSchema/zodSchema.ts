@@ -48,13 +48,6 @@ import {
 import { InstanceOfSchemaCoValuesNullable } from "./typeConverters/InstanceOfSchemaCoValuesNullable.js";
 import { z } from "./zodReExport.js";
 
-// defining an extra type for this, otherwise BaseSchema & {...} often
-// gets expanded into a n inferred type that's too long for typescript to print
-export type WithHelpers<
-  Base extends CoreCoValueSchema,
-  Helpers extends object,
-> = Base & Helpers;
-
 export type ZodPrimitiveSchema =
   | z.core.$ZodString
   | z.core.$ZodNumber

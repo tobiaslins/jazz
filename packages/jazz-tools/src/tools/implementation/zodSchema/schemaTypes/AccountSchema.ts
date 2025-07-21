@@ -16,7 +16,6 @@ import {
   CoreCoMapSchema,
   createCoreCoMapSchema,
 } from "./CoMapSchema.js";
-import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 export type BaseProfileShape = {
   name: z.core.$ZodString<string>;
@@ -154,9 +153,8 @@ export type CoProfileSchema<
 // less precise version to avoid circularity issues and allow matching against
 export interface CoreAccountSchema<
   Shape extends z.core.$ZodLooseShape = z.core.$ZodLooseShape,
-> extends CoreCoValueSchema {
+> extends Omit<CoreCoMapSchema<Shape>, "builtin"> {
   builtin: "Account";
-  getDefinition: () => CoMapSchemaDefinition<Shape>;
 }
 
 export type AccountInstance<Shape extends z.core.$ZodLooseShape> = {

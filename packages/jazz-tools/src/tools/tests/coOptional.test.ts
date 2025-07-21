@@ -1,4 +1,4 @@
-import { beforeEach, describe, test } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { CoPlainText, co, z } from "../exports.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 
@@ -35,5 +35,17 @@ describe("co.optional", () => {
       // @ts-expect-error: cannot use co.optional with a Zod schema
       preferredName: co.optional(z.string()),
     });
+  });
+
+  test("can access the inner schema of a co.optional", () => {
+    const Person = co.map({
+      preferredName: co.optional(co.plainText()),
+    });
+
+    const person = Person.create({
+      preferredName: Person.shape["preferredName"].innerType.create("John"),
+    });
+
+    expect(person?.preferredName?.toString()).toEqual("John");
   });
 });

@@ -810,3 +810,17 @@ describe("CoList subscription", async () => {
     expect(spy).toHaveBeenCalledTimes(2);
   });
 });
+
+describe("co.list schema", () => {
+  test("can access the inner schema of a co.list", () => {
+    const Keywords = co.list(co.plainText());
+
+    const keywords = Keywords.create([
+      Keywords.element.create("hello"),
+      Keywords.element.create("world"),
+    ]);
+
+    expect(keywords[0]?.toString()).toEqual("hello");
+    expect(keywords[1]?.toString()).toEqual("world");
+  });
+});
