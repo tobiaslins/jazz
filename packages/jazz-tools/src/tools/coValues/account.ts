@@ -502,7 +502,11 @@ export const AccountAndGroupProxyHandler: ProxyHandler<Account | Group> = {
       return true;
     } else if (key === "root") {
       if (value) {
-        target._raw.set("root", value.id as unknown as CoID<RawCoMap>);
+        target._raw.set(
+          "root",
+          value.id as unknown as CoID<RawCoMap>,
+          "trusting",
+        );
       }
       return true;
     } else {

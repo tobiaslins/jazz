@@ -313,6 +313,15 @@ export class LocalNode {
         throw new Error("Account has no profile");
       }
 
+      const rootID = account.get("root");
+      if (rootID) {
+        const rawEntry = account.getRaw("root");
+
+        if (!rawEntry?.trusting) {
+          account.set("root", rootID, "trusting");
+        }
+      }
+
       // Preload the profile
       await node.load(profileID);
 
