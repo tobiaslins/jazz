@@ -1,6 +1,7 @@
 import { RawCoList, RawCoMap } from "cojson";
 import {
   Account,
+  CoDiscriminatedUnionSchema,
   CoFeed,
   CoFeedSchema,
   CoList,
@@ -12,7 +13,6 @@ import {
   FileStream,
   SchemaUnion,
   enrichAccountSchema,
-  enrichCoDiscriminatedUnionSchema,
   enrichCoMapSchema,
   enrichFileStreamSchema,
   enrichPlainTextSchema,
@@ -127,10 +127,7 @@ export function hydrateCoreCoValueSchema<S extends AnyCoreCoValueSchema>(
     return coValueSchema as unknown as CoValueSchemaFromCoreSchema<S>;
   } else if (schema.builtin === "CoDiscriminatedUnion") {
     const coValueClass = SchemaUnion.Of(schemaUnionDiscriminatorFor(schema));
-    const coValueSchema = enrichCoDiscriminatedUnionSchema(
-      schema as any,
-      coValueClass as any,
-    );
+    const coValueSchema = new CoDiscriminatedUnionSchema(schema, coValueClass);
     return coValueSchema as unknown as CoValueSchemaFromCoreSchema<S>;
   } else {
     const notReachable: never = schema;

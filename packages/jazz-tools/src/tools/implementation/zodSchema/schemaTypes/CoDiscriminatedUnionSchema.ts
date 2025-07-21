@@ -39,9 +39,23 @@ export interface CoreCoDiscriminatedUnionSchema<
   builtin: "CoDiscriminatedUnion";
   getDefinition: () => CoDiscriminatedUnionSchemaDefinition<Options>;
 }
-export interface CoDiscriminatedUnionSchema<
+export class CoDiscriminatedUnionSchema<
   Options extends DiscriminableCoValueSchemas,
-> extends CoreCoDiscriminatedUnionSchema<Options> {
+> implements CoreCoDiscriminatedUnionSchema<Options>
+{
+  readonly collaborative = true as const;
+  readonly builtin = "CoDiscriminatedUnion" as const;
+  readonly getDefinition: () => CoDiscriminatedUnionSchemaDefinition<Options>;
+
+  constructor(
+    coreSchema: CoreCoDiscriminatedUnionSchema<Options>,
+    private coValueClass: SchemaUnionConcreteSubclass<
+      InstanceOfSchema<Options[number]>
+    >,
+  ) {
+    this.getDefinition = coreSchema.getDefinition;
+  }
+
   load(
     id: string,
     options?: {
@@ -51,7 +65,9 @@ export interface CoDiscriminatedUnionSchema<
   ): Promise<Resolved<
     CoDiscriminatedUnionInstanceCoValuesNullable<Options> & SchemaUnion,
     true
-  > | null>;
+  > | null> {
+    return this.coValueClass.load(id, options) as any;
+  }
 
   subscribe(
     id: string,
@@ -66,13 +82,20 @@ export interface CoDiscriminatedUnionSchema<
       >,
       unsubscribe: () => void,
     ) => void,
-  ): () => void;
+  ): () => void {
+    // @ts-expect-error
+    return this.coValueClass.subscribe(id, options, listener);
+  }
 
-  getCoValueClass: () => SchemaUnionConcreteSubclass<
+  getCoValueClass(): SchemaUnionConcreteSubclass<
     InstanceOfSchema<Options[number]>
-  >;
+  > {
+    return this.coValueClass;
+  }
 
-  optional(): CoOptionalSchema<CoDiscriminatedUnionSchema<Options>>;
+  optional(): CoOptionalSchema<CoDiscriminatedUnionSchema<Options>> {
+    return coOptionalDefiner(this);
+  }
 }
 
 export function createCoreCoDiscriminatedUnionSchema<
@@ -109,31 +132,6 @@ export function createCoreCoDiscriminatedUnionSchema<
       },
     }),
   };
-}
-
-export function enrichCoDiscriminatedUnionSchema<
-  Options extends DiscriminableCoValueSchemas,
->(
-  schema: CoreCoDiscriminatedUnionSchema<Options>,
-  coValueClass: SchemaUnionConcreteSubclass<InstanceOfSchema<Options[number]>>,
-): CoDiscriminatedUnionSchema<Options> {
-  const coValueSchema = Object.assign(schema, {
-    load: (...args: [any, ...any]) => {
-      return coValueClass.load(...args);
-    },
-    subscribe: (...args: [any, ...any[]]) => {
-      // @ts-expect-error
-      return coValueClass.subscribe(...args);
-    },
-    getCoValueClass: () => {
-      return coValueClass;
-    },
-
-    optional: () => {
-      return coOptionalDefiner(coValueSchema);
-    },
-  }) as unknown as CoDiscriminatedUnionSchema<Options>;
-  return coValueSchema;
 }
 
 type CoDiscriminatedUnionInstanceCoValuesNullable<
