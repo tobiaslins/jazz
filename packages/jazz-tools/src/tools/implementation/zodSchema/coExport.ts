@@ -25,4 +25,5 @@ export {
   coProfileDefiner as profile,
   coOptionalDefiner as optional,
   coDiscriminatedUnionDefiner as discriminatedUnion,
+  ImageDefinitionSchema as Image,
 } from "./zodCo.js";

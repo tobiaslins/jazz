@@ -10,6 +10,7 @@ import {
   type DefaultProfileShape,
   type FileStreamSchema,
   ImageDefinition,
+  ImageDefinitionSchema,
   type PlainTextSchema,
   type Simplify,
   createCoreAccountSchema,
@@ -149,7 +150,8 @@ export const coRichTextDefiner = (): RichTextSchema => {
   return hydrateCoreCoValueSchema(coreSchema);
 };
 
-export const coImageDefiner = (): typeof ImageDefinition => {
+export type ImageDefinitionSchema = typeof ImageDefinition;
+export const coImageDefiner = (): ImageDefinitionSchema => {
   return ImageDefinition;
 };
 
