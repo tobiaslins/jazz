@@ -198,8 +198,8 @@ importers:
         specifier: 19.1.0
         version: 19.1.0(react@19.1.0)
       zod:
-        specifier: 3.25.28
-        version: 3.25.28
+        specifier: 4.0.5
+        version: 4.0.5
     devDependencies:
       '@playwright/test':
         specifier: ^1.50.1
@@ -943,8 +943,8 @@ importers:
         specifier: 19.1.0
         version: 19.1.0(react@19.1.0)
       zod:
-        specifier: 3.25.28
-        version: 3.25.28
+        specifier: 4.0.5
+        version: 4.0.5
     devDependencies:
       '@biomejs/biome':
         specifier: 1.9.4
@@ -1713,8 +1713,8 @@ importers:
         specifier: workspace:*
         version: link:../jazz-tools
       zod:
-        specifier: 3.25.28
-        version: 3.25.28
+        specifier: 4.0.5
+        version: 4.0.5
     devDependencies:
       '@types/better-sqlite3':
         specifier: ^7.6.12
