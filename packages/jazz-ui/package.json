@@ -5,12 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
-    "dev:ui": "",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "registry:build": "node ~/code/shadcn/ui/packages/shadcn/dist/index.js build",
-    "reg:build": "tsx --tsconfig ./tsconfig.scripts.json scripts/build-registry.ts",
+    "registry:build": "tsx --tsconfig ./tsconfig.scripts.json scripts/build-registry.ts",
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {

@@ -1,12 +1,12 @@
 import clsx from "clsx";
-import { CoPlainText, ImageDefinition } from "jazz-tools";
+import type { CoPlainText, ImageDefinition } from "jazz-tools";
 import { ProgressiveImg } from "jazz-tools/react";
 import { ImageIcon } from "lucide-react";
 import { useId, useRef } from "react";
 
 export function AppContainer(props: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-col justify-between w-screen h-screen bg-stone-50 dark:bg-stone-925 dark:text-white">
+    <div className="flex flex-col justify-between w-screen h-screen bg-background">
       {props.children}
     </div>
   );
