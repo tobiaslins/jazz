@@ -298,17 +298,16 @@ describe("CoMap.Record", async () => {
   });
 
   // Covers https://github.com/garden-co/jazz/issues/2385
-  test("create a Record with a discriminated union containing a co.map that uses withHelpers", () => {
+  test("create a Record with a discriminated union containing a co.image", () => {
     const Base = co.map({
       type: z.literal("base"),
       name: z.string(),
     });
 
-    const Catchall = co.map({}).withHelpers((self) => self);
     const IssueRepro = co.map({
       type: z.literal("repro"),
-      catchall: Catchall,
       name: z.string(),
+      image: co.image(),
     });
 
     const PersonRecord = co.record(
@@ -318,8 +317,10 @@ describe("CoMap.Record", async () => {
 
     const person = IssueRepro.create({
       type: "repro",
-      catchall: Catchall.create({}),
       name: "John",
+      image: co.image().create({
+        originalSize: [1920, 1080],
+      }),
     });
 
     const record = PersonRecord.create({
@@ -327,7 +328,7 @@ describe("CoMap.Record", async () => {
     });
 
     if (record.john?.type === "repro") {
-      expect(record.john.catchall).toEqual({});
+      expect(record.john.image.originalSize).toEqual([1920, 1080]);
       expect(record.john.name).toEqual("John");
       expect(record.john.type).toEqual("repro");
     }

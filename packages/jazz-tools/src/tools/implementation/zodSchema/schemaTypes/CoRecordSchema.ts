@@ -77,11 +77,6 @@ export interface CoRecordSchema<
     as?: Account | Group | AnonymousJazzAgent,
   ): ID<CoRecordInstanceCoValuesNullable<K, V>>;
 
-  /** @deprecated Define your helper methods separately, in standalone functions. */
-  withHelpers<S extends CoreCoRecordSchema<K, V>, T extends object>(
-    this: S,
-    helpers: (Self: S) => T,
-  ): WithHelpers<S, T>;
   getCoValueClass: () => typeof CoMap;
 }
 

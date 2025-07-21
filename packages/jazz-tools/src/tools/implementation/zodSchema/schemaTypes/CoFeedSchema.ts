@@ -82,9 +82,6 @@ export function enrichCoFeedSchema<T extends AnyZodOrCoValueSchema>(
       // @ts-expect-error
       return coValueClass.subscribe(...args);
     },
-    withHelpers: (helpers: (Self: CoreCoFeedSchema<T>) => object) => {
-      return Object.assign(schema, helpers(schema));
-    },
     getCoValueClass: () => {
       return coValueClass;
     },

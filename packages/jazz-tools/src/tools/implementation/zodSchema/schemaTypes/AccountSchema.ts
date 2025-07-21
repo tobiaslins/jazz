@@ -114,9 +114,6 @@ export function enrichAccountSchema<Shape extends BaseAccountShape>(
       // @ts-expect-error
       return coValueClass.subscribe(...args);
     },
-    withHelpers: (helpers: (Self: AnyZodOrCoValueSchema) => object) => {
-      return Object.assign(schema, helpers(schema));
-    },
     fromRaw: (...args: any[]) => {
       // @ts-expect-error
       return coValueClass.fromRaw(...args);

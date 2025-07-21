@@ -46,12 +46,6 @@ export interface CoListSchema<T extends AnyZodOrCoValueSchema>
     ) => void,
   ): () => void;
 
-  /** @deprecated Define your helper methods separately, in standalone functions. */
-  withHelpers<S extends CoreCoListSchema<T>, T2 extends object>(
-    this: S,
-    helpers: (Self: S) => T2,
-  ): WithHelpers<S, T2>;
-
   getCoValueClass: () => typeof CoList;
 }
 
@@ -90,9 +84,6 @@ export function enrichCoListSchema<T extends AnyZodOrCoValueSchema>(
     subscribe: (...args: [any, ...any[]]) => {
       // @ts-expect-error
       return coValueClass.subscribe(...args);
-    },
-    withHelpers: (helpers: (Self: CoreCoListSchema<T>) => object) => {
-      return Object.assign(schema, helpers(schema));
     },
     getCoValueClass: () => {
       return coValueClass;

@@ -131,12 +131,6 @@ export interface CoMapSchema<
 
   catchall<T extends AnyZodOrCoValueSchema>(schema: T): CoMapSchema<Shape, T>;
 
-  /** @deprecated Define your helper methods separately, in standalone functions. */
-  withHelpers<S extends CoreCoMapSchema, T extends object>(
-    this: S,
-    helpers: (Self: S) => T,
-  ): WithHelpers<S, T>;
-
   withMigration(
     migration: (
       value: Resolved<
@@ -225,11 +219,6 @@ export function enrichCoMapSchema<
         index,
       );
       return hydrateCoreCoValueSchema(schemaWithCatchAll);
-    },
-    withHelpers: (
-      helpers: (Self: CoreCoMapSchema<Shape, CatchAll>) => object,
-    ) => {
-      return Object.assign(schema, helpers(schema));
     },
     withMigration: (migration: (value: any) => undefined) => {
       // @ts-expect-error TODO check

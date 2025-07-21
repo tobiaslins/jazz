@@ -253,17 +253,17 @@ import { co, z } from "jazz-tools";
 // schema.ts
 export const DraftBubbleTeaOrder = co.map({
   name: z.optional(z.string()),
-}).withHelpers((Self) => ({ // [!code ++:11]
-  validate(draft: co.loaded<typeof Self>) {
-    const errors: string[] = [];
+});
 
-    if (!draft.name) {
-      errors.push("Please enter a name.");
-    }
+export function validateDraftOrder(draft: co.loaded<typeof DraftBubbleTeaOrder>) { // [!code ++:9]
+  const errors: string[] = [];
 
-    return { errors };
-  },
-}));
+  if (!draft.name) {
+    errors.push("Please enter a name.");
+  }
+
+  return { errors };
+};
 ```
 </CodeGroup>
 
@@ -282,17 +282,17 @@ export const BubbleTeaOrder = co.map({
 
 export const DraftBubbleTeaOrder = co.map({
   name: z.optional(z.string()),
-}).withHelpers((Self) => ({
-  validate(draft: co.loaded<typeof Self>) {
-    const errors: string[] = [];
+});
 
-    if (!draft.name) {
-      errors.push("Please enter a name.");
-    }
+export function validateDraftOrder(draft: co.loaded<typeof DraftBubbleTeaOrder>) {
+  const errors: string[] = [];
 
-    return { errors };
-  },
-}));
+  if (!draft.name) {
+    errors.push("Please enter a name.");
+  }
+
+  return { errors };
+};
 
 export const AccountRoot = co.map({
   draft: DraftBubbleTeaOrder,
@@ -340,7 +340,7 @@ export function CreateOrder() {
     e.preventDefault();
     if (!draft) return;
 
-    const validation = DraftBubbleTeaOrder.validate(draft); // [!code ++:5]
+    const validation = validateDraftOrder(draft); // [!code ++:5]
     if (validation.errors.length > 0) {
       console.log(validation.errors);
       return;
@@ -455,17 +455,17 @@ export const BubbleTeaOrder = co.map({
 
 export const DraftBubbleTeaOrder = co.map({
   name: z.optional(z.string()),
-}).withHelpers((Self) => ({
-  validate(draft: co.loaded<typeof Self>) {
-    const errors: string[] = [];
+});
 
-    if (!draft.name) {
-      errors.push("Please enter a name.");
-    }
+export function validateDraftOrder(draft: co.loaded<typeof DraftBubbleTeaOrder>) {
+  const errors: string[] = [];
 
-    return { errors };
-  },
-}));
+  if (!draft.name) {
+    errors.push("Please enter a name.");
+  }
+
+  return { errors };
+};
 
 export const AccountRoot = co.map({
   draft: DraftBubbleTeaOrder,
@@ -527,7 +527,7 @@ export function CreateOrder() {
     const draft = me.root.draft; // [!code ++:2]
     if (!draft) return;
 
-    const validation = DraftBubbleTeaOrder.validate(draft);
+    const validation = validateDraftOrder(draft);
     if (validation.errors.length > 0) {
       console.log(validation.errors);
       return;
@@ -579,21 +579,21 @@ import { co, z } from "jazz-tools";
 // schema.ts
 export const DraftBubbleTeaOrder = co.map({
   name: z.optional(z.string()),
-}).withHelpers((Self) => ({
-  validate(draft: co.loaded<typeof Self>) {
-    const errors: string[] = [];
+});
 
-    if (!draft.name) {
-      errors.push("Plese enter a name.");
-    }
+export function validateDraftOrder(draft: co.loaded<typeof DraftBubbleTeaOrder>) {
+  const errors: string[] = [];
 
-    return { errors };
-  },
+  if (!draft.name) {
+    errors.push("Please enter a name.");
+  }
 
-  hasChanges(draft?: co.loaded<typeof Self>) { // [!code ++:3]
-    return draft ? Object.keys(draft._edits).length : false;
-  },
-}));
+  return { errors };
+};
+
+export function hasChanges(draft?: co.loaded<typeof Self>) { // [!code ++:3]
+  return draft ? Object.keys(draft._edits).length : false;
+};
 ```
 </CodeGroup>
 
@@ -611,21 +611,21 @@ export const BubbleTeaOrder = co.map({
 
 export const DraftBubbleTeaOrder = co.map({
   name: z.optional(z.string()),
-}).withHelpers((Self) => ({
-  validate(draft: co.loaded<typeof Self>) {
-    const errors: string[] = [];
+});
 
-    if (!draft.name) {
-      errors.push("Plese enter a name.");
-    }
+export function validateDraftOrder(draft: co.loaded<typeof DraftBubbleTeaOrder>) {
+  const errors: string[] = [];
 
-    return { errors };
-  },
+  if (!draft.name) {
+    errors.push("Please enter a name.");
+  }
 
-  hasChanges(draft?: co.loaded<typeof Self>) { // [!code ++:3]
-    return draft ? Object.keys(draft._edits).length : false;
-  },
-}));
+  return { errors };
+};
+
+export function hasChanges(draft?: co.loaded<typeof Self>) {
+  return draft ? Object.keys(draft._edits).length : false;
+};
 
 export const AccountRoot = co.map({
   draft: DraftBubbleTeaOrder,
