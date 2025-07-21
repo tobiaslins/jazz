@@ -1,4 +1,3 @@
-import { z } from "../zodReExport.js";
 import { CoValueSchemaFromCoreSchema } from "../zodSchema.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
@@ -27,8 +26,7 @@ export interface CoOptionalSchema<
 export function createCoOptionalSchema<T extends CoreCoValueSchema>(
   schema: T,
 ): CoOptionalSchema<T> {
-  const zodSchema = z.optional(schema as any);
-  return Object.assign(zodSchema, {
+  return {
     collaborative: true as const,
     builtin: "CoOptional" as const,
     innerType: schema,
@@ -38,5 +36,5 @@ export function createCoOptionalSchema<T extends CoreCoValueSchema>(
     getCoValueClass: () => {
       return (schema as any).getCoValueClass();
     },
-  });
+  };
 }

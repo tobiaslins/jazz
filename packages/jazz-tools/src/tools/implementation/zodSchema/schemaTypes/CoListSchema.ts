@@ -12,7 +12,6 @@ import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { NotNull } from "../typeConverters/NotNull.js";
-import { z } from "../zodReExport.js";
 import { AnyZodOrCoValueSchema } from "../zodSchema.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
@@ -58,15 +57,12 @@ type CoListSchemaDefinition<
 export function createCoreCoListSchema<T extends AnyZodOrCoValueSchema>(
   element: T,
 ): CoreCoListSchema<T> {
-  const zodSchema = z.array(element as any).meta({
-    collaborative: true,
-  });
   return {
     collaborative: true as const,
     builtin: "CoList" as const,
     element,
     getDefinition: () => ({
-      element: zodSchema.def.element,
+      element,
     }),
   };
 }

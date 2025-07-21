@@ -4,7 +4,6 @@ import {
   FileStream,
   Group,
 } from "../../../internal.js";
-import { z } from "../zodReExport.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 export interface CoreFileStreamSchema extends CoreCoValueSchema {
@@ -47,13 +46,10 @@ export interface FileStreamSchema extends CoreFileStreamSchema {
 }
 
 export function createCoreFileStreamSchema(): CoreFileStreamSchema {
-  const zodSchema = z.instanceof(FileStream).meta({
-    collaborative: true,
-  });
-  return Object.assign(zodSchema, {
+  return {
     collaborative: true as const,
     builtin: "FileStream" as const,
-  });
+  };
 }
 
 export function enrichFileStreamSchema(

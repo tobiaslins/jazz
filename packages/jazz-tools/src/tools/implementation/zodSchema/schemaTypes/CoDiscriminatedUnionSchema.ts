@@ -81,8 +81,7 @@ export function createCoreCoDiscriminatedUnionSchema<
   discriminator: string,
   schemas: Options,
 ): CoreCoDiscriminatedUnionSchema<Options> {
-  const zodSchema = z.discriminatedUnion(discriminator, schemas as any);
-  return Object.assign(zodSchema, {
+  return {
     collaborative: true as const,
     builtin: "CoDiscriminatedUnion" as const,
     getDefinition: () => ({
@@ -109,7 +108,7 @@ export function createCoreCoDiscriminatedUnionSchema<
         return schemas;
       },
     }),
-  });
+  };
 }
 
 export function enrichCoDiscriminatedUnionSchema<

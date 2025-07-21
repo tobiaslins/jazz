@@ -149,17 +149,14 @@ export function createCoreCoMapSchema<
   Shape extends z.core.$ZodLooseShape,
   CatchAll extends AnyZodOrCoValueSchema | unknown = unknown,
 >(shape: Shape, catchAll?: CatchAll): CoreCoMapSchema<Shape, CatchAll> {
-  const zodSchema = z.object(shape).meta({
-    collaborative: true,
-  });
-  return Object.assign(zodSchema, {
+  return {
     collaborative: true as const,
     builtin: "CoMap" as const,
     shape,
     catchAll,
     getDefinition: () => ({
       get shape() {
-        return zodSchema.def.shape;
+        return shape;
       },
       get catchall() {
         return catchAll;
@@ -182,7 +179,7 @@ export function createCoreCoMapSchema<
         return propValues;
       },
     }),
-  });
+  };
 }
 
 export function enrichCoMapSchema<

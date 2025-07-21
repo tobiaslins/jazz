@@ -1,6 +1,5 @@
 import { Account, CoRichText, Group } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
-import { z } from "../zodReExport.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 export interface CoreRichTextSchema extends CoreCoValueSchema {
@@ -29,13 +28,10 @@ export interface RichTextSchema extends CoreRichTextSchema {
 }
 
 export function createCoreCoRichTextSchema(): CoreRichTextSchema {
-  const zodSchema = z.instanceof(CoRichText).meta({
-    collaborative: true,
-  });
-  return Object.assign(zodSchema, {
+  return {
     collaborative: true as const,
     builtin: "CoRichText" as const,
-  });
+  };
 }
 
 export function enrichRichTextSchema(

@@ -1,7 +1,6 @@
 import { RawCoPlainText } from "cojson";
 import { Account, CoPlainText, Group } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
-import { z } from "../zodReExport.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 export interface CorePlainTextSchema extends CoreCoValueSchema {
@@ -31,13 +30,10 @@ export interface PlainTextSchema extends CorePlainTextSchema {
 }
 
 export function createCoreCoPlainTextSchema(): CorePlainTextSchema {
-  const zodSchema = z.instanceof(CoPlainText).meta({
-    collaborative: true,
-  });
-  return Object.assign(zodSchema, {
+  return {
     collaborative: true as const,
     builtin: "CoPlainText" as const,
-  });
+  };
 }
 
 export function enrichPlainTextSchema(
