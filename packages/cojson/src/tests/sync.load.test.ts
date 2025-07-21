@@ -54,6 +54,43 @@ describe("loading coValues from server", () => {
     `);
   });
 
+  test("coValue load throws on invalid id", async () => {
+    const { node } = setupTestNode({
+      connected: true,
+    });
+
+    await expect(async () => await node.load("test" as any)).rejects.toThrow(
+      "Trying to load CoValue with invalid id test",
+    );
+    await expect(async () => await node.load(null as any)).rejects.toThrow(
+      "Trying to load CoValue with invalid id null",
+    );
+    await expect(async () => await node.load(undefined as any)).rejects.toThrow(
+      "Trying to load CoValue with invalid id undefined",
+    );
+    await expect(async () => await node.load(1 as any)).rejects.toThrow(
+      "Trying to load CoValue with invalid id 1",
+    );
+    await expect(async () => await node.load({} as any)).rejects.toThrow(
+      "Trying to load CoValue with invalid id [object Object]",
+    );
+    await expect(async () => await node.load([] as any)).rejects.toThrow(
+      "Trying to load CoValue with invalid id []",
+    );
+    await expect(async () => await node.load(["test"] as any)).rejects.toThrow(
+      'Trying to load CoValue with invalid id ["test"]',
+    );
+    await expect(
+      async () => await node.load((() => {}) as any),
+    ).rejects.toMatchInlineSnapshot(`
+      [TypeError: Trying to load CoValue with invalid id () => {
+            }]
+    `);
+    await expect(
+      async () => await node.load(new Date() as any),
+    ).rejects.toThrow();
+  });
+
   test("unavailable coValue retry with skipRetry set to true", async () => {
     const client = setupTestNode();
     const client2 = setupTestNode();

@@ -1,5 +1,44 @@
 # jazz-tools
 
+## 0.15.13
+
+### Patch Changes
+
+- 6c76ff8: Fix load failures when loading a missing ref declared with z.optional and Schema.optional
+  - cojson@0.15.13
+  - cojson-storage-indexeddb@0.15.13
+  - cojson-transport-ws@0.15.13
+
+## 0.15.12
+
+### Patch Changes
+
+- d1c1b0c: Fix stuck authentication when using onAnonymousAccountDiscarded with a storage
+- cf4ad72: fix unhandled rejection on CoValue.load
+  - cojson@0.15.12
+  - cojson-storage-indexeddb@0.15.12
+  - cojson-transport-ws@0.15.12
+
+## 0.15.11
+
+### Patch Changes
+
+- bdc9aee: - Add `co.optional` and `co.discriminatedUnion`. You can now `load` and `subcribe` to schemas created with `co.discriminatedUnion`.
+  - Improved type-checking around `z.` schemas to prevent invalid combinations with `co.` schemas.
+  - cojson@0.15.11
+  - cojson-storage-indexeddb@0.15.11
+  - cojson-transport-ws@0.15.11
+
+## 0.15.10
+
+### Patch Changes
+
+- 9815ec6: Export the z.ZodDiscriminatedUnion type
+- b4fdab4: Exposed the current Account's ID in unauthorized error message
+  - cojson@0.15.10
+  - cojson-storage-indexeddb@0.15.10
+  - cojson-transport-ws@0.15.10
+
 ## 0.15.9
 
 ### Patch Changes

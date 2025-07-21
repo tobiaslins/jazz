@@ -1,5 +1,12 @@
 import { RawAccount, RawCoList, RawCoMap } from "cojson";
-import { zodSchemaToCoSchema } from "./runtimeConverters/zodSchemaToCoSchema.js";
+import { CoValueClass, CoValueFromRaw } from "../../internal.js";
+import {
+  isAnyCoValueSchema,
+  zodSchemaToCoSchema,
+} from "./runtimeConverters/zodSchemaToCoSchema.js";
+import { AccountSchema } from "./schemaTypes/AccountSchema.js";
+import { CoListSchema } from "./schemaTypes/CoListSchema.js";
+import { CoMapSchema } from "./schemaTypes/CoMapSchema.js";
 import { z } from "./zodReExport.js";
 
 export function schemaUnionDiscriminatorFor(
@@ -8,7 +15,7 @@ export function schemaUnionDiscriminatorFor(
   if (isUnionOfCoMapsDeeply(schema)) {
     if (!schema._zod.disc || schema._zod.disc.size == 0) {
       throw new Error(
-        "z.union() of collaborative types is not supported, use z.discriminatedUnion() instead",
+        "z.union() of collaborative types is not supported, use co.discriminatedUnion() instead",
       );
     }
 
@@ -17,14 +24,14 @@ export function schemaUnionDiscriminatorFor(
 
     if (!field) {
       throw new Error(
-        "z.discriminatedUnion() of collaborative types with non-existent discriminator key is not supported",
+        "co.discriminatedUnion() of collaborative types with non-existent discriminator key is not supported",
       );
     }
 
     for (const value of field.values) {
       if (typeof value !== "string" && typeof value !== "number") {
         throw new Error(
-          "z.discriminatedUnion() of collaborative types with non-string or non-number discriminator value is not supported",
+          "co.discriminatedUnion() of collaborative types with non-string or non-number discriminator value is not supported",
         );
       }
     }
@@ -42,7 +49,7 @@ export function schemaUnionDiscriminatorFor(
         }
       } else {
         throw new Error(
-          "Unsupported zod type in z.discriminatedUnion() of collaborative types",
+          "Unsupported zod type in co.discriminatedUnion() of collaborative types",
         );
       }
     }
@@ -50,7 +57,7 @@ export function schemaUnionDiscriminatorFor(
     const determineSchema = (_raw: RawCoMap | RawAccount | RawCoList) => {
       if (_raw instanceof RawCoList) {
         throw new Error(
-          "z.discriminatedUnion() of collaborative types is not supported for CoLists",
+          "co.discriminatedUnion() of collaborative types is not supported for CoLists",
         );
       }
 
@@ -90,12 +97,17 @@ export function schemaUnionDiscriminatorFor(
         }
 
         if (match) {
-          return zodSchemaToCoSchema(option);
+          const coValueSchema = zodSchemaToCoSchema(option) as
+            | CoMapSchema<any>
+            | AccountSchema
+            | CoListSchema<any>;
+          return coValueSchema.getCoValueClass() as CoValueClass<any> &
+            CoValueFromRaw<any>;
         }
       }
 
       throw new Error(
-        "z.discriminatedUnion() of collaborative types with no matching discriminator value found",
+        "co.discriminatedUnion() of collaborative types with no matching discriminator value found",
       );
     };
 
@@ -120,11 +132,7 @@ export function isUnionOfCoMapsDeeply(
 function isCoMapOrUnionOfCoMapsDeeply(
   schema: z.core.$ZodType,
 ): schema is z.core.$ZodDiscriminatedUnion {
-  if (
-    schema instanceof z.core.$ZodObject &&
-    "collaborative" in schema &&
-    schema.collaborative
-  ) {
+  if (schema instanceof z.core.$ZodObject && isAnyCoValueSchema(schema)) {
     return true;
   } else if (schema instanceof z.core.$ZodUnion) {
     return schema._zod.def.options.every(isCoMapOrUnionOfCoMapsDeeply);
@@ -137,6 +145,6 @@ export function isUnionOfPrimitivesDeeply(schema: z.core.$ZodType) {
   if (schema instanceof z.core.$ZodUnion) {
     return schema._zod.def.options.every(isUnionOfPrimitivesDeeply);
   } else {
-    return !("collaborative" in schema);
+    return !isAnyCoValueSchema(schema);
   }
 }
