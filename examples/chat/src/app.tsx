@@ -4,7 +4,6 @@ import { useIframeHashRouter } from "hash-slash";
 import { Group } from "jazz-tools";
 import { JazzInspector } from "jazz-tools/inspector";
 import { JazzReactProvider, useAccount } from "jazz-tools/react";
-import { Button } from "quint/registry/jazz/ui/button";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { ChatScreen } from "./chatScreen.tsx";
@@ -40,11 +39,7 @@ export function App() {
           }}
           placeholder="Set username"
         />
-        {!inIframe && (
-          <Button onClick={logOut} intent="danger">
-            Log out
-          </Button>
-        )}
+        {!inIframe && <button onClick={logOut}>Log out</button>}
       </TopBar>
       {router.route({
         "/": () => createChat() as never,

@@ -179,9 +179,6 @@ importers:
 
   examples/chat:
     dependencies:
-      '@base-ui-components/react':
-        specifier: 1.0.0-beta.1
-        version: 1.0.0-beta.1(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       clsx:
         specifier: ^2.0.0
         version: 2.1.1
@@ -194,18 +191,12 @@ importers:
       lucide-react:
         specifier: ^0.274.0
         version: 0.274.0(react@19.1.0)
-      quint:
-        specifier: workspace:*
-        version: link:../../packages/quint
       react:
         specifier: 19.1.0
         version: 19.1.0
       react-dom:
         specifier: 19.1.0
         version: 19.1.0(react@19.1.0)
-      tailwind-variants:
-        specifier: ^1.0.0
-        version: 1.0.0(tailwindcss@4.1.10)
       zod:
         specifier: 3.25.28
         version: 3.25.28
@@ -28420,11 +28411,6 @@ snapshots:
   tailwind-merge@3.3.0: {}
 
   tailwind-merge@3.3.1: {}
-
-  tailwind-variants@1.0.0(tailwindcss@4.1.10):
-    dependencies:
-      tailwind-merge: 3.0.2
-      tailwindcss: 4.1.10
 
   tailwind-variants@1.0.0(tailwindcss@4.1.11):
     dependencies:
