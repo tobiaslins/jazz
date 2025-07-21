@@ -141,7 +141,6 @@ export async function POST(request: Request) {
         throw new JazzRequestError("Event is full", 400);
       }
 
-
       const ticketGroup = Group.create(jazzServer.worker);
       const ticket = Ticket.create({
         account: madeBy,
@@ -163,9 +162,9 @@ export async function POST(request: Request) {
 </CodeGroup>
 
 <Alert variant="info" className="mt-4">
-  **Note**: To ensure that the rule is properly followed, the handler should be deployed in a single worker instance (e.g. a single Cloudflare DurableObject).
+  **Note**: To ensure that the limit is correctly enforced, the handler should be deployed in a single worker instance (e.g. a single Cloudflare DurableObject).
   
-  Transactional updates are part of the roadmap, but not yet supported.
+  Details on how to deploy a single instance Worker are available in the [Deployments & Transactionality](#deployments--transactionality) section.
 </Alert>
 
 ### Client-side error handling
@@ -196,3 +195,33 @@ export async function sendEventBookingRequest(event: Event) {
 <Alert variant="info" className="mt-4">
   **Note**: The `experimental_defineRequest` API is still experimental and may change in future versions. For production applications, consider the stability implications.
 </Alert>
+
+## Deployments & Transactionality
+
+### Single Instance Requirements
+
+Deploy your Server Worker on a single instance when applying validation rules that require atomic operations.
+
+For example, when implementing capacity limits in an event registration system, you need a single instance to ensure the capacity check and ticket creation happen atomically.
+
+Jazz is is an eventually consistent database, and with multiple region deployments you may accept multiple registrations at the same time
+and realize after the sync that the event is over capacity.
+
+Transactional updates on multi-region deployments are part of the roadmap, but not yet supported.
+
+An example of when you must deploy on a single instance are:
+- when a counter is involved
+- when there is any kind of limit on the resources (like capacity)
+
+Essentialy when the output of the request depends on the state of the database, you must deploy on a single instance.
+
+### Multi-Region Deployment
+
+When no transactional constraints exist, you can deploy Server Workers across multiple regions for better performance and availability.
+
+An example of when it's ok to deploy across multiple regions are:
+- sending emails
+- sending notifications
+- calling external services (like LLMs)
+
+When the output of the request does not depend on the state of the database, you can deploy across multiple regions.

@@ -88,8 +88,8 @@ export const docNavigationItems = [
         done: 100,
       },
       {
-        name: "Sending data to workers",
-        href: "/docs/server-side/sending-data-to-workers",
+        name: "Communicating with workers",
+        href: "/docs/server-side/communicating-with-workers",
         done: 100,
       },
       {
