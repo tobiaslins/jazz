@@ -52,8 +52,6 @@
   --color-selection: var(--selection);
   --color-selection-foreground: var(--selection-foreground);
 
-
-
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-transparent: var(--primary-transparent);
@@ -119,7 +117,7 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  
+
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
@@ -152,12 +150,20 @@
   --selection: oklch(0.145 0 0);
   --selection-foreground: oklch(1 0 0);
 
-  --primary: oklch(57.29% 0.235 261.20);
+  --primary: oklch(57.29% 0.235 261.2);
   --primary-transparent: lch(from var(--color-primary) l c h / 0.1);
-  --primary-dark:lch(from var(--color-primary) calc(l - 10) calc(c - 1) calc(h + 5));
-  --primary-light: lch(from var(--color-primary) calc(l + 10) calc(c + 1) calc(h - 5));
-  --primary-brightLight: lch(from var(--color-primary) calc(l - 1) calc(c + 20) calc(h + 5));
-  --primary-brightDark: lch(from var(--color-primary) calc(l - 6) calc(c + 20) calc(h + 5));
+  --primary-dark: lch(
+    from var(--color-primary) calc(l - 10) calc(c - 1) calc(h + 5)
+  );
+  --primary-light: lch(
+    from var(--color-primary) calc(l + 10) calc(c + 1) calc(h - 5)
+  );
+  --primary-brightLight: lch(
+    from var(--color-primary) calc(l - 1) calc(c + 20) calc(h + 5)
+  );
+  --primary-brightDark: lch(
+    from var(--color-primary) calc(l - 6) calc(c + 20) calc(h + 5)
+  );
   --primary-foreground: oklch(0.985 0.045 264.32);
 
   --alert: oklch(80.54% 0.169 76.45);
@@ -168,21 +174,29 @@
   --alert-brightDark: oklch(0.803 0.522 100.04);
   --alert-foreground: oklch(0.28 0.07 46);
 
-  --success: oklch(70.49% 0.160 150.62);
+  --success: oklch(70.49% 0.16 150.62);
   --success-transparent: lch(from var(--color-success) l c h / 0.3);
-  --success-dark: lch(from var(--color-success) calc(l - 7) calc(c - 1) calc(h + 5));
-  --success-light: lch(from var(--color-success) calc(l + 4) calc(c + 1) calc(h - 5));
-  --success-brightLight: lch(from var(--color-success) calc(l - 1) calc(c + 20) calc(h + 10));
-  --success-brightDark: lch(from var(--color-success) calc(l - 6) calc(c + 20) calc(h + 10));
-  --success-foreground: oklch(0.280 0.070 46);
+  --success-dark: lch(
+    from var(--color-success) calc(l - 7) calc(c - 1) calc(h + 5)
+  );
+  --success-light: lch(
+    from var(--color-success) calc(l + 4) calc(c + 1) calc(h - 5)
+  );
+  --success-brightLight: lch(
+    from var(--color-success) calc(l - 1) calc(c + 20) calc(h + 10)
+  );
+  --success-brightDark: lch(
+    from var(--color-success) calc(l - 6) calc(c + 20) calc(h + 10)
+  );
+  --success-foreground: oklch(0.28 0.07 46);
 
-  --info: oklch(61.13% 0.248 312.20);
+  --info: oklch(61.13% 0.248 312.2);
   --info-transparent: oklch(0.514 0.247 291.21 / 0.3);
   --info-dark: oklch(0.444 0.237 296.21);
   --info-light: oklch(0.554 0.257 286.21);
   --info-brightLight: oklch(0.504 0.447 296.21);
   --info-brightDark: oklch(0.474 0.447 296.21);
-  --info-foreground: oklch(0.280 0.070 46);
+  --info-foreground: oklch(0.28 0.07 46);
 
   --warning: oklch(68.92% 0.206 39.71);
   --warning-transparent: oklch(0.661 0.372 75.45 / 0.3);
@@ -190,23 +204,31 @@
   --warning-light: oklch(0.701 0.382 70.45);
   --warning-brightLight: oklch(0.651 0.672 90.45);
   --warning-brightDark: oklch(0.621 0.672 90.45);
-  --warning-foreground: oklch(0.280 0.070 46);
+  --warning-foreground: oklch(0.28 0.07 46);
 
-  --tip: oklch(76.08% 0.122 194.90);
-  --tip-transparent: oklch(0.595 0.317 176.30 / 0.3);
-  --tip-dark: oklch(0.525 0.307 181.30);
-  --tip-light: oklch(0.635 0.327 171.30);
-  --tip-brightLight: oklch(0.585 0.617 186.30);
-  --tip-brightDark: oklch(0.555 0.617 186.30);
-  --tip-foreground: oklch(0.280 0.070 46);
+  --tip: oklch(76.08% 0.122 194.9);
+  --tip-transparent: oklch(0.595 0.317 176.3 / 0.3);
+  --tip-dark: oklch(0.525 0.307 181.3);
+  --tip-light: oklch(0.635 0.327 171.3);
+  --tip-brightLight: oklch(0.585 0.617 186.3);
+  --tip-brightDark: oklch(0.555 0.617 186.3);
+  --tip-foreground: oklch(0.28 0.07 46);
 
   --danger: oklch(64.11% 0.202 23.95);
   --danger-transparent: lch(from var(--color-danger) l c h / 0.3);
-  --danger-dark: lch(from var(--color-danger) calc(l - 7) calc(c - 1) calc(h + 5));
-  --danger-light: lch(from var(--color-danger) calc(l + 4) calc(c + 1) calc(h - 5));
-  --danger-brightLight: lch(from var(--color-danger) calc(l - 2) calc(c + 20) calc(h + 10));
-  --danger-brightDark: lch(from var(--color-danger) calc(l - 6) calc(c + 10) calc(h + 10));
-  --danger-foreground: oklch(0.280 0.070 46);
+  --danger-dark: lch(
+    from var(--color-danger) calc(l - 7) calc(c - 1) calc(h + 5)
+  );
+  --danger-light: lch(
+    from var(--color-danger) calc(l + 4) calc(c + 1) calc(h - 5)
+  );
+  --danger-brightLight: lch(
+    from var(--color-danger) calc(l - 2) calc(c + 20) calc(h + 10)
+  );
+  --danger-brightDark: lch(
+    from var(--color-danger) calc(l - 6) calc(c + 10) calc(h + 10)
+  );
+  --danger-foreground: oklch(0.28 0.07 46);
 }
 
 .dark {
