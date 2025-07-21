@@ -76,7 +76,7 @@ import { bookEventTicket, Ticket, Event } from "@/schema";
 import { JazzRequestError } from "jazz-tools";
 
 export async function POST(request: Request) {
-  return bookEventTicket.joinGame.handle(
+  return bookEventTicket.handle(
     request,
     jazzServer.worker,
     async ({ event }, madeBy) => {
@@ -139,7 +139,7 @@ import { bookEventTicket, Ticket, Event } from "@/schema";
 import { JazzRequestError } from "jazz-tools";
 
 export async function POST(request: Request) {
-  return bookEventTicket.joinGame.handle(
+  return bookEventTicket.handle(
     request,
     jazzServer.worker,
     async ({ event }, madeBy) => {
@@ -152,7 +152,7 @@ export async function POST(request: Request) {
 
       // Check if the event is full
       if (event.reservations.length >= event.capacity) {
-        // The JazzRequestError are propagated to the client, use them for any validation errors
+        // The JazzRequestError is propagated to the client, use it for any validation errors
         throw new JazzRequestError("Event is full", 400);
       }
 

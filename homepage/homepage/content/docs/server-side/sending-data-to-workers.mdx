@@ -5,16 +5,10 @@ export const metadata = {
 import { CodeGroup } from "@/components/forMdx";
 import { Alert } from "@garden-co/design-system/src/components/atoms/Alert";
 
-# Communication with Server Workers
+# Communicating with Server Workers
 
-Server Workers in Jazz can receive data from clients through two different APIs, each with their own characteristics and use cases. This guide covers the key properties of each approach to help you choose the right one for your application.
-
-Both employ a request/response pattern, which is the only one we currently support.
-
-In the future we will make it easy to build a fully reactive system, where server
-workers can react to changes happening on the client.
-
-It's possible now, but it comes with a series of footguns, and we don't recommend it for most use cases.
+Server Workers in Jazz can receive data from clients through two different APIs, each with their own characteristics and use cases. 
+This guide covers the key properties of each approach to help you choose the right one for your application.
 
 ## Overview
 
@@ -37,7 +31,7 @@ It's also a good solution when using full-stack frameworks like Next.js, where y
 
 ## Inbox
 
-The Inbox API is fully built using the Jazz data model and provides offline support. Requests and responses are synced as soon as the device becomes online, but requires the Worker to always be online to work properly.
+The Inbox API is fully built using the Jazz data model and provides offline support. Requests and responses are synced as soon as the device becomes online, but require the Worker to always be online to work properly.
 
 ### When to use Inbox
 
