@@ -48,7 +48,6 @@ export {
   CoRichText,
   Account,
   isControlledAccount,
-  createCoValueObservable,
   loadCoValue,
   subscribeToCoValue,
   ImageDefinition,

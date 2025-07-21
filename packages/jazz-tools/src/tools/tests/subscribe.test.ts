@@ -12,7 +12,6 @@ import {
   Loaded,
   co,
   coValueClassFromCoValueClassOrSchema,
-  createCoValueObservable,
   subscribeToCoValue,
 } from "../internal.js";
 import {
@@ -1276,97 +1275,5 @@ describe("subscribeToCoValue", () => {
     expect(updateFn).toHaveBeenCalledTimes(1);
     expect(result.data.length).toBe(chunks + 1);
     expect(result.data[chunks]).toBe("new entry");
-  });
-});
-
-describe("createCoValueObservable", () => {
-  const TestMap = co.map({
-    color: z.string(),
-  });
-
-  function createTestMap(me: Account | Group) {
-    return TestMap.create({ color: "red" }, { owner: me });
-  }
-
-  it("should return undefined when there are no subscribers", async () => {
-    const observable = createCoValueObservable();
-
-    expect(observable.getCurrentValue()).toBeUndefined();
-  });
-
-  it("should update currentValue when subscribed", async () => {
-    const { me, meOnSecondPeer } = await setupAccount();
-    const testMap = createTestMap(me);
-    const observable = createCoValueObservable();
-    const mockListener = vi.fn();
-
-    const unsubscribe = observable.subscribe(
-      TestMap,
-      testMap.id,
-      {
-        loadAs: meOnSecondPeer,
-      },
-      () => {
-        mockListener();
-      },
-    );
-
-    testMap.color = "blue";
-
-    await waitFor(() => mockListener.mock.calls.length > 0);
-
-    expect(observable.getCurrentValue()).toMatchObject({
-      id: testMap.id,
-      color: "blue",
-    });
-
-    unsubscribe();
-  });
-
-  it("should reset to undefined after unsubscribe", async () => {
-    const { me, meOnSecondPeer } = await setupAccount();
-    const testMap = createTestMap(me);
-    const observable = createCoValueObservable();
-    const mockListener = vi.fn();
-
-    const unsubscribe = observable.subscribe(
-      TestMap,
-      testMap.id,
-      {
-        loadAs: meOnSecondPeer,
-      },
-      () => {
-        mockListener();
-      },
-    );
-
-    await waitFor(() => mockListener.mock.calls.length > 0);
-    expect(observable.getCurrentValue()).toBeDefined();
-
-    unsubscribe();
-    expect(observable.getCurrentValue()).toBeUndefined();
-  });
-
-  it("should return null if the coValue is not found", async () => {
-    const { meOnSecondPeer } = await setupAccount();
-    const observable = createCoValueObservable<
-      typeof TestMap,
-      Loaded<typeof TestMap, {}>
-    >();
-
-    const unsubscribe = observable.subscribe(
-      TestMap,
-      "co_z123",
-      { loadAs: meOnSecondPeer },
-      () => {},
-    );
-
-    expect(observable.getCurrentValue()).toBeUndefined();
-
-    await waitFor(() => {
-      expect(observable.getCurrentValue()).toBeNull();
-    });
-
-    unsubscribe();
   });
 });
