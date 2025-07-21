@@ -1,7 +1,7 @@
 import { assert, describe, expectTypeOf, test } from "vitest";
 import { Group, co, z } from "../exports.js";
 import { Account } from "../index.js";
-import { CoListSchema, Loaded } from "../internal.js";
+import { Loaded } from "../internal.js";
 
 describe("CoMap", async () => {
   describe("init", () => {
@@ -244,7 +244,7 @@ describe("CoMap", async () => {
     test("update a reference on a loaded value", () => {
       const Dog = co.map({
         name: z.string(),
-        get siblings(): CoListSchema<typeof Dog> {
+        get siblings(): co.List<typeof Dog> {
           return co.list(Dog);
         },
       });

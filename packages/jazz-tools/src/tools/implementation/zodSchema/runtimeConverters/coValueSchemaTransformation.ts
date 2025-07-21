@@ -3,6 +3,7 @@ import {
   Account,
   CoFeed,
   CoList,
+  CoListSchema,
   CoMap,
   CoPlainText,
   CoRichText,
@@ -12,7 +13,6 @@ import {
   enrichAccountSchema,
   enrichCoDiscriminatedUnionSchema,
   enrichCoFeedSchema,
-  enrichCoListSchema,
   enrichCoMapSchema,
   enrichFileStreamSchema,
   enrichPlainTextSchema,
@@ -94,17 +94,17 @@ export function hydrateCoreCoValueSchema<S extends AnyCoreCoValueSchema>(
 
     return coValueSchema as unknown as CoValueSchemaFromCoreSchema<S>;
   } else if (schema.builtin === "CoList") {
-    const def = schema.getDefinition();
+    const element = schema.element;
     const coValueClass = class ZCoList extends CoList {
       constructor(options: { fromRaw: RawCoList } | undefined) {
         super(options);
         (this as any)[coField.items] = schemaFieldToCoFieldDef(
-          def.element as SchemaField,
+          element as SchemaField,
         );
       }
     };
 
-    const coValueSchema = enrichCoListSchema(schema, coValueClass as any);
+    const coValueSchema = new CoListSchema(element, coValueClass as any);
 
     return coValueSchema as unknown as CoValueSchemaFromCoreSchema<S>;
   } else if (schema.builtin === "CoFeed") {

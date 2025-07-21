@@ -19,12 +19,23 @@ type CoListInit<T extends AnyZodOrCoValueSchema> = Simplify<
   Array<NotNull<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>>>
 >;
 
-export interface CoListSchema<T extends AnyZodOrCoValueSchema>
-  extends CoreCoListSchema<T> {
-  create: (
+export class CoListSchema<T extends AnyZodOrCoValueSchema>
+  implements CoreCoListSchema<T>
+{
+  collaborative = true as const;
+  builtin = "CoList" as const;
+
+  constructor(
+    public element: T,
+    private coValueClass: typeof CoList,
+  ) {}
+
+  create(
     items: CoListInit<T>,
     options?: { owner: Account | Group } | Account | Group,
-  ) => CoList<InstanceOrPrimitiveOfSchema<T>>;
+  ): CoListInstance<T> {
+    return this.coValueClass.create(items, options) as CoListInstance<T>;
+  }
 
   load<const R extends RefsToResolve<CoListInstanceCoValuesNullable<T>> = true>(
     id: string,
@@ -32,7 +43,10 @@ export interface CoListSchema<T extends AnyZodOrCoValueSchema>
       resolve?: RefsToResolveStrict<CoListInstanceCoValuesNullable<T>, R>;
       loadAs?: Account | AnonymousJazzAgent;
     },
-  ): Promise<Resolved<CoListInstanceCoValuesNullable<T>, R> | null>;
+  ): Promise<Resolved<CoListInstanceCoValuesNullable<T>, R> | null> {
+    // @ts-expect-error
+    return this.coValueClass.load(id, options);
+  }
 
   subscribe<
     const R extends RefsToResolve<CoListInstanceCoValuesNullable<T>> = true,
@@ -43,16 +57,14 @@ export interface CoListSchema<T extends AnyZodOrCoValueSchema>
       value: Resolved<CoListInstanceCoValuesNullable<T>, R>,
       unsubscribe: () => void,
     ) => void,
-  ): () => void;
+  ): () => void {
+    return this.coValueClass.subscribe(id, options, listener);
+  }
 
-  getCoValueClass: () => typeof CoList;
+  getCoValueClass(): typeof CoList {
+    return this.coValueClass;
+  }
 }
-
-type CoListSchemaDefinition<
-  T extends AnyZodOrCoValueSchema = AnyZodOrCoValueSchema,
-> = {
-  element: T;
-};
 
 export function createCoreCoListSchema<T extends AnyZodOrCoValueSchema>(
   element: T,
@@ -61,31 +73,7 @@ export function createCoreCoListSchema<T extends AnyZodOrCoValueSchema>(
     collaborative: true as const,
     builtin: "CoList" as const,
     element,
-    getDefinition: () => ({
-      element,
-    }),
   };
-}
-
-export function enrichCoListSchema<T extends AnyZodOrCoValueSchema>(
-  schema: CoreCoListSchema<T>,
-  coValueClass: typeof CoList,
-): CoListSchema<T> {
-  return Object.assign(schema, {
-    create: (...args: [any, ...any[]]) => {
-      return coValueClass.create(...args);
-    },
-    load: (...args: [any, ...any[]]) => {
-      return coValueClass.load(...args);
-    },
-    subscribe: (...args: [any, ...any[]]) => {
-      // @ts-expect-error
-      return coValueClass.subscribe(...args);
-    },
-    getCoValueClass: () => {
-      return coValueClass;
-    },
-  }) as unknown as CoListSchema<T>;
 }
 
 // less precise version to avoid circularity issues and allow matching against
@@ -94,7 +82,6 @@ export interface CoreCoListSchema<
 > extends CoreCoValueSchema {
   builtin: "CoList";
   element: T;
-  getDefinition: () => CoListSchemaDefinition<T>;
 }
 
 export type CoListInstance<T extends AnyZodOrCoValueSchema> = CoList<
