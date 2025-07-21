@@ -1,0 +1,13 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "button-with-icon",
+  "type": "registry:example",
+  "registryDependencies": ["button"],
+  "files": [
+    {
+      "path": "registry/quint/examples/button/with-icon.tsx",
+      "content": "import { Button } from \"@/registry/jazz/ui/button\";\nimport { PlusIcon } from \"lucide-react\";\n\nexport default function ButtonWithIcon() {\n  return (\n    <div>\n      <Button intent=\"primary\" variant=\"outline\">\n        <PlusIcon />\n        Add\n      </Button>\n    </div>\n  );\n}\n",
+      "type": "registry:example"
+    }
+  ]
+}
