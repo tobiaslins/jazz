@@ -5,6 +5,7 @@ import {
   CoMapSchemaDefinition,
   Group,
   ID,
+  NotNull,
   RefsToResolve,
   RefsToResolveStrict,
   Resolved,
@@ -14,7 +15,6 @@ import {
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
-import { NotNull } from "../typeConverters/NotNull.js";
 import { z } from "../zodReExport.js";
 import { AnyZodOrCoValueSchema } from "../zodSchema.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";

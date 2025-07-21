@@ -3,6 +3,7 @@ import {
   AnyZodOrCoValueSchema,
   CoFeed,
   Group,
+  NotNull,
   RefsToResolve,
   RefsToResolveStrict,
   Resolved,
@@ -12,7 +13,6 @@ import {
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
-import { NotNull } from "../typeConverters/NotNull.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 type CoFeedInit<T extends AnyZodOrCoValueSchema> = Simplify<

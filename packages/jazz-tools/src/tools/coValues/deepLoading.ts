@@ -2,10 +2,13 @@ import { SessionID } from "cojson";
 import { ItemsSym } from "../internal.js";
 import { type Account } from "./account.js";
 import { CoFeedEntry } from "./coFeed.js";
-import { type CoKeys, type CoMap } from "./coMap.js";
+import { type CoKeys } from "./coMap.js";
 import { type CoValue, type ID } from "./interfaces.js";
 
-type NotNull<T> = Exclude<T, null>;
+/**
+ * Similar to {@link NonNullable}, but removes only `null` and preserves `undefined`.
+ */
+export type NotNull<T> = Exclude<T, null>;
 
 export type RefsToResolve<
   V,
