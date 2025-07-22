@@ -1,5 +1,5 @@
 export const metadata = {
-  description: "How to use the Inbox API to communicate with Server Workers using the Jazz data model."
+  description: "How to use the Inbox API to communicate with Server Workers using experimental_useInboxSender and inbox.subscribe."
 };
 
 import { CodeGroup } from "@/components/forMdx";
@@ -7,543 +7,160 @@ import { Alert } from "@garden-co/design-system/src/components/atoms/Alert";
 
 # Inbox API with Server Workers
 
-The Inbox API is fully built using the Jazz data model and provides offline support. Requests and responses are synced as soon as the device becomes online, but requires the Worker to always be online to work properly.
+The Inbox API provides a message-based communication system for Server Workers in Jazz. 
 
-## Overview
+It works on top of the Jazz APIs and uses the sync to transfer the messages between the client and the server.
 
-The Inbox API leverages the Jazz data model to create a message queue system where:
+## Setting up the Inbox API
 
-- **Messages are stored as CoValues** - Fully integrated with Jazz's data model
-- **Offline support** - Messages are queued and synced when online
-- **Persistent storage** - Messages are stored and can be reviewed later
-- **Asynchronous communication** - No immediate response pattern
-- **Worker must be online** - Not ideal for serverless functions
+### Define the inbox message schema
 
-## Setting up the Inbox
-
-### Defining message schemas
-
-Create schemas for your inbox messages:
+Define the inbox message schema in your schema file:
 
 <CodeGroup>
-```ts co.account()
-import { co, z } from "jazz-tools";
+```ts
+export const BookTicketMessage = co.map({
+  type: co.literal("bookTicket"),
+  event: Event,
+})
+```
+</CodeGroup>
 
-const InboxMessage = co.map({
-  type: z.literal(["create-game", "join-game", "make-move"]),
-  data: z.any(),
-  response: z.optional(z.any()),
-  status: z.literal(["pending", "processing", "completed", "error"]),
-  createdAt: z.number().default(() => Date.now()),
-  processedAt: z.optional(z.number()),
+Any kind of CoMap is valid as an inbox message.
+
+### Setting up the Server Worker
+
+Run a server worker with and subscribe to the `inbox`:
+
+<CodeGroup>
+```ts
+import { startWorker } from "jazz-tools/worker";
+import { BookTicketMessage } from "@/schema";
+
+const {
+  worker,
+  experimental: { inbox },
+} = await startWorker({
+  accountID: process.env.JAZZ_WORKER_ACCOUNT,
+  accountSecret: process.env.JAZZ_WORKER_SECRET,
+  syncServer: "wss://cloud.jazz.tools/?key=your-api-key",
 });
 
-const Inbox = co.list(InboxMessage);
+inbox.subscribe(
+  BookTicketMessage,
+  async (message, senderID) => {
+    const madeBy = await co.account().load(senderID, { loadAs: worker });
 
-// Export the schemas
-export { InboxMessage, Inbox };
-```
-</CodeGroup>
+    const { event } = await message.ensureLoaded({
+      resolve: {
+        event: {
+          reservations: true,
+        },
+      },
+    });
 
-### Creating the inbox
+    const ticketGroup = Group.create(jazzServer.worker);
+    const ticket = Ticket.create({
+      account: madeBy,
+      event,
+    });
 
-Create an inbox owned by the worker that clients can send messages to:
+    // Give access to the ticket to the client
+    ticketGroup.addMember(madeBy, "reader");
 
-<CodeGroup>
-```ts 
-import { Group } from "jazz-tools";
-import { Inbox } from "./schema";
+    event.reservations.push(ticket);
 
-// Create a group for the worker
-const workerGroup = Group.create();
-workerGroup.addMember(workerAccount, "writer");
-
-// Create the inbox owned by the worker
-const inbox = Inbox.create([], workerGroup);
-
-// Make the inbox accessible to clients (read-only)
-const clientGroup = Group.create();
-clientGroup.addMember("everyone", "writer");
-clientGroup.extend(workerGroup, "reader");
-
-// Store the inbox ID for clients to use
-const inboxId = inbox.id;
-```
-</CodeGroup>
-
-## Sending messages from clients
-
-### Adding messages to the inbox
-
-Clients can add messages to the inbox by pushing to the list:
-
-<CodeGroup>
-```ts 
-import { Inbox, InboxMessage } from "./schema";
-
-// Load the inbox (assuming you have the inbox ID)
-const inbox = Inbox.load(inboxId, {
-  loadAs: clientAccount,
-});
-
-// Send a message to create a game
-const createGameMessage = InboxMessage.create({
-  type: "create-game",
-  data: { 
-    playerName: "Alice",
-    gameType: "quick" 
+    return ticket;
   },
-  status: "pending",
-}, inbox);
-
-inbox.push(createGameMessage);
-
-// Send a message to join a game
-const joinGameMessage = InboxMessage.create({
-  type: "join-game",
-  data: { 
-    gameId: "co_game_123",
-    playerName: "Bob" 
-  },
-  status: "pending",
-}, inbox);
-
-inbox.push(joinGameMessage);
-```
-</CodeGroup>
-
-### Creating a client helper function
-
-Create a helper function to make sending messages easier:
-
-<CodeGroup>
-```ts 
-import { Inbox, InboxMessage } from "./schema";
-
-export async function sendInboxMessage(
-  inboxId: string,
-  type: "create-game" | "join-game" | "make-move",
-  data: any,
-  clientAccount: Account
-) {
-  const inbox = Inbox.load(inboxId, {
-    loadAs: clientAccount,
-  });
-
-  const message = InboxMessage.create({
-    type,
-    data,
-    status: "pending",
-  }, inbox);
-
-  inbox.push(message);
-  
-  return message.id;
-}
-
-// Usage
-const messageId = await sendInboxMessage(
-  inboxId,
-  "create-game",
-  { playerName: "Alice", gameType: "quick" },
-  clientAccount
 );
 ```
 </CodeGroup>
 
-## Processing messages on the worker
+### Handling multiple message types
 
-### Subscribing to the inbox
+`inbox.subscribe` should be called once per worker instance.
 
-Set up a subscription to process new messages as they arrive:
+If you need to handle multiple message types, you can use the `co.discriminatedUnion` function to create a union of the message types.
 
 <CodeGroup>
-```ts 
-import { Inbox, InboxMessage } from "./schema";
-
-// Subscribe to the inbox for new messages
-inbox.subscribe((updatedInbox) => {
-  updatedInbox.forEach((message) => {
-    if (message.status === "pending") {
-      processMessage(message);
-    }
-  });
+```ts
+const CancelReservationMessage = co.map({
+  type: co.literal("cancelReservation"),
+  event: Event,
+  ticket: Ticket,
 });
 
-async function processMessage(message: InboxMessage) {
-  // Mark as processing
-  message.status = "processing";
-  message.processedAt = Date.now();
-  
-  try {
+export const InboxMessage = co.discriminatedUnion("type", [
+  BookTicketMessage,
+  CancelReservationMessage
+]);
+```
+</CodeGroup>
+
+And check the message type in the handler:
+
+<CodeGroup>
+```ts
+import { InboxMessage } from "@/schema";
+
+inbox.subscribe(
+  InboxMessage,
+  async (message, senderID) => {
     switch (message.type) {
-      case "create-game":
-        const game = await createGame(message.data);
-        message.response = { 
-          gameId: game.id,
-          status: "created"
-        };
-        break;
-        
-      case "join-game":
-        const result = await joinGame(message.data);
-        message.response = { 
-          success: result.success,
-          gameId: result.gameId
-        };
-        break;
-        
-      case "make-move":
-        const moveResult = await makeMove(message.data);
-        message.response = { 
-          success: moveResult.success,
-          gameState: moveResult.gameState
-        };
-        break;
-        
-      default:
-        throw new Error(`Unknown message type: ${message.type}`);
+      case "bookTicket":
+        return await handleBookTicket(message, senderID);
+      case "cancelReservation":
+        return await handleCancelReservation(message, senderID);
     }
-    
-    // Mark as completed
-    message.status = "completed";
-  } catch (error) {
-    // Mark as error
-    message.status = "error";
-    message.response = { 
-      error: error.message,
-      timestamp: Date.now()
-    };
-  }
-}
+  },
+);
 ```
 </CodeGroup>
 
-### Implementing the processing functions
+## Sending messages from the client
 
-Implement the actual business logic for each message type:
+### Using the Inbox Sender hook
+
+Use `experimental_useInboxSender` to send messages from React components:
 
 <CodeGroup>
-```ts 
-import { Game, Player } from "./schema";
-import { Group } from "jazz-tools";
+```ts
+import { experimental_useInboxSender } from "jazz-tools/react";
+import { BookTicketMessage, Event } from "@/schema";
 
-async function createGame(data: { playerName: string; gameType: string }) {
-  const gameGroup = Group.create({ owner: workerAccount });
-  gameGroup.addMember("everyone", "reader");
-  
-  const game = Game.create({
-    type: data.gameType,
-    status: "waiting",
-    createdAt: Date.now(),
-  }, gameGroup);
-  
-  const player = Player.create({
-    name: data.playerName,
-    joinedAt: Date.now(),
-  }, gameGroup);
-  
-  game.players.push(player);
-  
-  return game;
-}
+function EventComponent({ event }: { event: Event }) {
+  const sendInboxMessage = experimental_useInboxSender(WORKER_ID);
+  const [isLoading, setIsLoading] = useState(false);
 
-async function joinGame(data: { gameId: string; playerName: string }) {
-  const game = Game.load(data.gameId, {
-    loadAs: workerAccount,
-  });
-  
-  if (game.status !== "waiting") {
-    throw new Error("Game is not accepting players");
-  }
-  
-  if (game.players.length >= 2) {
-    throw new Error("Game is full");
-  }
-  
-  const player = Player.create({
-    name: data.playerName,
-    joinedAt: Date.now(),
-  }, game._owner);
-  
-  game.players.push(player);
-  
-  if (game.players.length === 2) {
-    game.status = "active";
-    game.startedAt = Date.now();
-  }
-  
-  return {
-    success: true,
-    gameId: game.id,
+  const onBookTicketClick = async () => {
+    setIsLoading(true);
+
+    const ticketId = await sendInboxMessage(
+      BookTicketMessage.create({
+        type: "bookTicket",
+        event: event,
+      }),
+    );
+
+    alert(`Ticket booked: ${ticketId}`);
   };
-}
 
-async function makeMove(data: { gameId: string; playerId: string; move: string }) {
-  const game = Game.load(data.gameId, {
-    loadAs: workerAccount,
-  });
-  
-  if (game.status !== "active") {
-    throw new Error("Game is not active");
-  }
-  
-  const player = game.players.find(p => p.id === data.playerId);
-  if (!player) {
-    throw new Error("Player not found in game");
-  }
-  
-  // Process the move
-  game.moves.push({
-    playerId: data.playerId,
-    move: data.move,
-    timestamp: Date.now(),
-  });
-  
-  // Check if game is complete
-  if (game.moves.length >= 2) {
-    game.status = "completed";
-    game.completedAt = Date.now();
-  }
-  
-  return {
-    success: true,
-    gameState: game.status,
-  };
+  return (
+    <Button onClick={onBookTicketClick} loading={isLoading}>
+      Book Ticket
+    </Button>
+  );
 }
 ```
 </CodeGroup>
 
-## Checking message status
+The `sendInboxMessage` API returns a Promise that waits for the message to be handled by a Worker. 
+A message is considered to be handled when the Promise returned by `inbox.subscribe` resolves. 
+The value returned will be the id of the CoValue returned in the `inbox.subscribe` resolved promise.
 
-### Client-side status checking
 
-Clients can check the status of their messages:
+## Deployments considerations
 
-<CodeGroup>
-```ts 
-import { Inbox, InboxMessage } from "./schema";
+Multi-region deployments are not supported when using the Inbox API.
 
-export async function checkMessageStatus(
-  inboxId: string,
-  messageId: string,
-  clientAccount: Account
-) {
-  const inbox = Inbox.load(inboxId, {
-    loadAs: clientAccount,
-  });
-  
-  const message = inbox.find(m => m.id === messageId);
-  
-  if (!message) {
-    return { status: "not-found" };
-  }
-  
-  return {
-    status: message.status,
-    response: message.response,
-    createdAt: message.createdAt,
-    processedAt: message.processedAt,
-  };
-}
-
-// Usage
-const status = await checkMessageStatus(inboxId, messageId, clientAccount);
-
-if (status.status === "completed") {
-  console.log("Message processed successfully:", status.response);
-} else if (status.status === "error") {
-  console.error("Message failed:", status.response.error);
-} else {
-  console.log("Message still processing...");
-}
-```
-</CodeGroup>
-
-### Polling for updates
-
-Set up polling to check for message updates:
-
-<CodeGroup>
-```ts 
-export async function waitForMessageCompletion(
-  inboxId: string,
-  messageId: string,
-  clientAccount: Account,
-  timeoutMs: number = 30000
-): Promise<any> {
-  const startTime = Date.now();
-  
-  while (Date.now() - startTime < timeoutMs) {
-    const status = await checkMessageStatus(inboxId, messageId, clientAccount);
-    
-    if (status.status === "completed") {
-      return status.response;
-    } else if (status.status === "error") {
-      throw new Error(status.response.error);
-    }
-    
-    // Wait before checking again
-    await new Promise(resolve => setTimeout(resolve, 1000));
-  }
-  
-  throw new Error("Message processing timeout");
-}
-
-// Usage
-try {
-  const response = await waitForMessageCompletion(inboxId, messageId, clientAccount);
-  console.log("Game created:", response.gameId);
-} catch (error) {
-  console.error("Failed to create game:", error.message);
-}
-```
-</CodeGroup>
-
-## Error handling and retries
-
-### Handling processing errors
-
-Implement robust error handling for message processing:
-
-<CodeGroup>
-```ts 
-async function processMessage(message: InboxMessage) {
-  message.status = "processing";
-  message.processedAt = Date.now();
-  
-  try {
-    // Validate the message data
-    if (!message.data) {
-      throw new Error("Message data is required");
-    }
-    
-    // Process based on type
-    const result = await processMessageByType(message);
-    
-    message.response = result;
-    message.status = "completed";
-    
-  } catch (error) {
-    console.error(`Error processing message ${message.id}:`, error);
-    
-    message.status = "error";
-    message.response = {
-      error: error.message,
-      timestamp: Date.now(),
-      retryable: isRetryableError(error),
-    };
-  }
-}
-
-function isRetryableError(error: Error): boolean {
-  // Network errors, temporary failures, etc.
-  const retryableErrors = [
-    "Network error",
-    "Temporary failure",
-    "Rate limit exceeded",
-  ];
-  
-  return retryableErrors.some(msg => error.message.includes(msg));
-}
-```
-</CodeGroup>
-
-### Implementing retry logic
-
-Add retry logic for failed messages:
-
-<CodeGroup>
-```ts 
-// Subscribe to the inbox and handle retries
-inbox.subscribe((updatedInbox) => {
-  updatedInbox.forEach((message) => {
-    if (message.status === "pending" || 
-        (message.status === "error" && message.response?.retryable)) {
-      processMessageWithRetry(message);
-    }
-  });
-});
-
-async function processMessageWithRetry(message: InboxMessage, maxRetries: number = 3) {
-  let retryCount = 0;
-  
-  while (retryCount < maxRetries) {
-    try {
-      await processMessage(message);
-      return; // Success, exit retry loop
-    } catch (error) {
-      retryCount++;
-      
-      if (retryCount >= maxRetries) {
-        message.status = "error";
-        message.response = {
-          error: `Failed after ${maxRetries} retries: ${error.message}`,
-          timestamp: Date.now(),
-          retryable: false,
-        };
-        return;
-      }
-      
-      // Wait before retrying (exponential backoff)
-      const delay = Math.pow(2, retryCount) * 1000;
-      await new Promise(resolve => setTimeout(resolve, delay));
-    }
-  }
-}
-```
-</CodeGroup>
-
-## Best practices
-
-1. **Use descriptive message types** - Make message types self-documenting
-2. **Validate message data** - Always validate data on the worker
-3. **Handle errors gracefully** - Provide meaningful error messages
-4. **Implement retry logic** - For transient failures
-5. **Monitor message processing** - Track processing times and error rates
-6. **Clean up old messages** - Archive or delete completed messages
-7. **Use proper permissions** - Ensure only authorized clients can send messages
-
-## Limitations and considerations
-
-### Worker availability
-
-The Inbox API requires the worker to be online to process messages:
-
-<Alert variant="warning" className="mt-4">
-  **Important**: The Inbox API requires the Server Worker to always be online to process messages. This makes it unsuitable for serverless functions that may be cold-started or have execution time limits.
-</Alert>
-
-### Message ordering
-
-Messages are processed in the order they are added to the inbox, but there's no guarantee of strict ordering across multiple workers.
-
-### Storage considerations
-
-Since messages are stored as CoValues, they consume storage space. Consider implementing a cleanup strategy:
-
-<CodeGroup>
-```ts 
-// Clean up old completed messages
-function cleanupOldMessages(inbox: Inbox, maxAgeMs: number = 24 * 60 * 60 * 1000) {
-  const cutoffTime = Date.now() - maxAgeMs;
-  
-  inbox.forEach((message, index) => {
-    if (message.status === "completed" && 
-        message.processedAt && 
-        message.processedAt < cutoffTime) {
-      inbox.splice(index, 1);
-    }
-  });
-}
-
-// Run cleanup periodically
-setInterval(() => {
-  cleanupOldMessages(inbox);
-}, 60 * 60 * 1000); // Every hour
-```
-</CodeGroup>
-
-<Alert variant="info" className="mt-4">
-  **Note**: The Inbox API is ideal for scenarios where you need offline support and can ensure your worker stays online. For serverless deployments, consider using HTTP requests instead.
-</Alert>
+If you need to split the workload across multiple regions, you can use the [HTTP API](./http-requests.mdx) instead.
