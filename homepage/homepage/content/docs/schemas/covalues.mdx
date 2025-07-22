@@ -358,11 +358,11 @@ You can use the same technique for mutually recursive references, but you'll nee
 <CodeGroup>
 ```ts twoslash
 // ---cut---
-import { co, z, CoListSchema } from "jazz-tools";
+import { co, z } from "jazz-tools";
 
 const Person = co.map({
   name: z.string(),
-  get friends(): CoListSchema<typeof Person> {
+  get friends(): co.List<typeof Person> {
     return ListOfPeople;
   }
 });
@@ -380,7 +380,7 @@ import { co, z } from "jazz-tools";
 // ---cut---
 const Person = co.map({
   name: z.string(),
-  get bestFriend(): z.ZodOptional<typeof Person> {
+  get bestFriend(): co.Optional<typeof Person> {
     return co.optional(Person);
   }
 });

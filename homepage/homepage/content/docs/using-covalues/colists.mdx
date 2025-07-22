@@ -343,14 +343,14 @@ CoLists can be used to create one-to-many relationships:
 
 <CodeGroup>
 ```ts twoslash
-import { co, z, CoListSchema } from "jazz-tools";
+import { co, z } from "jazz-tools";
 
 const Task = co.map({
   title: z.string(),
   status: z.literal(["todo", "in-progress", "complete"]),
 
-  get project(): z.ZodOptional<typeof Project> {
-    return z.optional(Project);
+  get project(): co.Optional<typeof Project> {
+    return co.optional(Project);
   }
 });
 
@@ -359,7 +359,7 @@ const ListOfTasks = co.list(Task);
 const Project = co.map({
   name: z.string(),
 
-  get tasks(): CoListSchema<typeof Task> {
+  get tasks(): co.List<typeof Task> {
     return ListOfTasks;
   }
 });

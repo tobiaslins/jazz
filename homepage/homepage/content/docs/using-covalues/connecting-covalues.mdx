@@ -62,7 +62,7 @@ Here’s how to structure your schema to avoid circular reference errors.
 ### Use this pattern for recursive discriminated unions
 <CodeGroup> 
 ```ts twoslash
-import { CoListSchema, co, z } from "jazz-tools";
+import { co, z } from "jazz-tools";
 
 // Recursive item modeling pattern using discriminated unions
 // First, define the non-recursive types
@@ -83,8 +83,8 @@ export const ReferenceItem = co.map({
   internal: z.boolean(),
   content: z.string(),
 
-  // Workaround: declare the field type using CoListSchema and ZodDiscriminatedUnion so TS can safely recurse
-  get children(): CoListSchema<z.ZodDiscriminatedUnion<[typeof NoteItem, typeof AttachmentItem, typeof ReferenceItem]>> {
+  // Workaround: declare the field type using co.List and co.DiscriminatedUnion so TS can safely recurse
+  get children(): co.List<co.DiscriminatedUnion<[typeof NoteItem, typeof AttachmentItem, typeof ReferenceItem]>> {
     return ProjectContextItemList;
   },
 });
