@@ -661,17 +661,9 @@ export function connectedPeersWithMessagesTracking(opts: {
   // If the persistent option is not provided, we default to true for the server and false for the client
   // Trying to mimic the real world behavior of the sync server
   if (opts.persistent === undefined) {
-    if (opts.peer1.role === "server") {
-      peer1.persistent = true;
-    } else {
-      peer1.persistent = false;
-    }
+    peer1.persistent = opts.peer1.role === "server";
 
-    if (opts.peer2.role === "server") {
-      peer2.persistent = true;
-    } else {
-      peer2.persistent = false;
-    }
+    peer2.persistent = opts.peer2.role === "server";
   }
 
   const peer1Push = peer1.outgoing.push;
