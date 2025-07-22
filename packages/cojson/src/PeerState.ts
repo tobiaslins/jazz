@@ -97,6 +97,10 @@ export class PeerState {
     return this.peer.incoming;
   }
 
+  get persistent() {
+    return this.peer.persistent;
+  }
+
   pushOutgoingMessage(msg: SyncMessage) {
     this.peer.outgoing.push(msg);
   }
