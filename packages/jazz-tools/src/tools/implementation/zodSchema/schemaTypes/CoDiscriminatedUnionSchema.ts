@@ -93,7 +93,7 @@ export class CoDiscriminatedUnionSchema<
     return this.coValueClass;
   }
 
-  optional(): CoOptionalSchema<CoDiscriminatedUnionSchema<Options>> {
+  optional(): CoOptionalSchema<this> {
     return coOptionalDefiner(this);
   }
 }

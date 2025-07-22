@@ -8,11 +8,13 @@ import {
   Resolved,
   Simplify,
   SubscribeListenerOptions,
+  coOptionalDefiner,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { AnyZodOrCoValueSchema } from "../zodSchema.js";
+import { CoOptionalSchema } from "./CoOptionalSchema.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 type CoListInit<T extends AnyZodOrCoValueSchema> = Simplify<
@@ -63,6 +65,10 @@ export class CoListSchema<T extends AnyZodOrCoValueSchema>
 
   getCoValueClass(): typeof CoList {
     return this.coValueClass;
+  }
+
+  optional(): CoOptionalSchema<this> {
+    return coOptionalDefiner(this);
   }
 }
 

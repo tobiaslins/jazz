@@ -142,7 +142,7 @@ export interface CoMapSchema<
 
   getCoValueClass: () => typeof CoMap;
 
-  optional(): CoOptionalSchema<CoMapSchema<Shape, CatchAll, Owner>>;
+  optional(): CoOptionalSchema<this>;
 }
 
 export function createCoreCoMapSchema<

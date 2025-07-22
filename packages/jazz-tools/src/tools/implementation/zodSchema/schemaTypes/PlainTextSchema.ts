@@ -1,6 +1,12 @@
 import { RawCoPlainText } from "cojson";
-import { Account, CoPlainText, Group } from "../../../internal.js";
+import {
+  Account,
+  CoPlainText,
+  Group,
+  coOptionalDefiner,
+} from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
+import { CoOptionalSchema } from "./CoOptionalSchema.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 export interface CorePlainTextSchema extends CoreCoValueSchema {
@@ -51,7 +57,12 @@ export class PlainTextSchema implements CorePlainTextSchema {
   fromRaw(raw: RawCoPlainText): CoPlainText {
     return this.coValueClass.fromRaw(raw);
   }
+
   getCoValueClass(): typeof CoPlainText {
     return this.coValueClass;
+  }
+
+  optional(): CoOptionalSchema<this> {
+    return coOptionalDefiner(this);
   }
 }

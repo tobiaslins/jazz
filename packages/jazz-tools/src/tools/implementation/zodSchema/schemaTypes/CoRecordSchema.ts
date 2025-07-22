@@ -17,6 +17,7 @@ import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimiti
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { z } from "../zodReExport.js";
 import { AnyZodOrCoValueSchema } from "../zodSchema.js";
+import { CoOptionalSchema } from "./CoOptionalSchema.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 type CoRecordInit<
@@ -78,6 +79,8 @@ export interface CoRecordSchema<
   ): ID<CoRecordInstanceCoValuesNullable<K, V>>;
 
   getCoValueClass: () => typeof CoMap;
+
+  optional(): CoOptionalSchema<this>;
 }
 
 type CoRecordSchemaDefinition<

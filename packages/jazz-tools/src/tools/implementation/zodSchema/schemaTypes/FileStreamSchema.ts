@@ -3,7 +3,9 @@ import {
   AnonymousJazzAgent,
   FileStream,
   Group,
+  coOptionalDefiner,
 } from "../../../internal.js";
+import { CoOptionalSchema } from "./CoOptionalSchema.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 export interface CoreFileStreamSchema extends CoreCoValueSchema {
@@ -73,5 +75,9 @@ export class FileStreamSchema implements CoreFileStreamSchema {
 
   getCoValueClass(): typeof FileStream {
     return this.coValueClass;
+  }
+
+  optional(): CoOptionalSchema<this> {
+    return coOptionalDefiner(this);
   }
 }

@@ -1,5 +1,11 @@
-import { Account, CoRichText, Group } from "../../../internal.js";
+import {
+  Account,
+  CoRichText,
+  Group,
+  coOptionalDefiner,
+} from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
+import { CoOptionalSchema } from "./CoOptionalSchema.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 export interface CoreRichTextSchema extends CoreCoValueSchema {
@@ -49,5 +55,9 @@ export class RichTextSchema implements CoreRichTextSchema {
 
   getCoValueClass(): typeof CoRichText {
     return this.coValueClass;
+  }
+
+  optional(): CoOptionalSchema<this> {
+    return coOptionalDefiner(this);
   }
 }
