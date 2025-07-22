@@ -3,7 +3,7 @@ import {
   core,
   object as zodObject,
   strictObject as zodStrictObject,
-} from "zod";
+} from "zod/v4";
 import { removeGetters } from "../schemaUtils.js";
 export {
   string,
@@ -46,7 +46,7 @@ export {
   type output as infer,
   type ZodDiscriminatedUnion,
   z,
-} from "zod";
+} from "zod/v4";
 
 export function object<
   T extends core.$ZodLooseShape = Partial<Record<never, core.SomeType>>,

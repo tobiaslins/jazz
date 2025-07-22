@@ -2,13 +2,8 @@ import { CodeGroup } from '@/components/forMdx'
 
 # Jazz 0.16.0 - Cleaner separation between Zod and CoValue schemas
 
-This release introduces a cleaner separation between Zod and CoValue schemas, simplifies internal access patterns, and includes a major upgrade to Zod v4.
+This release introduces a cleaner separation between Zod and CoValue schemas and simplifies how you access internal schemas.
 While most applications won’t require extensive refactors, some breaking changes will require action.
-
-## Zod upgrade
-
-We’ve upgraded our Zod dependency from 3.25.28 to 4.0.5. If your project includes its own version of Zod, make sure to upgrade to v4 as well.
-Otherwise, you might end up with duplicate Zod versions.
 
 ## Breaking changes
 
@@ -18,7 +13,7 @@ Zod schemas can only be composed with other Zod schemas. CoValue schemas can be 
 
 #### `z.optional()` and `z.discriminatedUnion()` no longer work with CoValue schemas
 
-You’ll now need to use the co.optional() and co.discriminatedUnion() equivalents.
+You’ll now need to use the `co.optional()` and `co.discriminatedUnion()` equivalents.
 This change may require you to update any explicitly typed cyclic references.
 
 <CodeGroup>
