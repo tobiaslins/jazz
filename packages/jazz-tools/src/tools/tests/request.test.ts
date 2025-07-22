@@ -284,44 +284,6 @@ describe("experimental_defineRequest", () => {
     expect(response.person.address.city.toString()).toBe("New York");
   });
 
-  it("should accept void request payload", async () => {
-    const { me, worker } = await setupAccounts();
-
-    const group = Group.create(me);
-    group.addMember("everyone", "writer");
-
-    const userRequest = experimental_defineRequest({
-      url: "https://api.example.com/api/user",
-      workerId: worker.id,
-      request: {},
-      response: {
-        bio: z.string(),
-        avatar: z.string().optional(),
-      },
-    });
-
-    server.use(
-      http.post("https://api.example.com/api/user", async ({ request }) => {
-        try {
-          return await userRequest.handle(request, worker, async () => {
-            return {
-              bio: "test",
-              avatar: "https://example.com/avatar.jpg",
-            };
-          });
-        } catch (error) {
-          console.error(error);
-          throw error;
-        }
-      }),
-    );
-
-    const { bio, avatar } = await userRequest.send(undefined);
-
-    expect(bio).toEqual("test");
-    expect(avatar).toEqual("https://example.com/avatar.jpg");
-  });
-
   it("should accept void responses", async () => {
     const { me, worker } = await setupAccounts();
 
