@@ -13,9 +13,11 @@ export function connectedPeers(
   {
     peer1role = "client",
     peer2role = "client",
+    persistent = false,
   }: {
     peer1role?: Peer["role"];
     peer2role?: Peer["role"];
+    persistent?: boolean;
   } = {},
 ): [Peer, Peer] {
   const from1to2 = new ConnectedPeerChannel();
@@ -26,6 +28,7 @@ export function connectedPeers(
     incoming: from2to1,
     outgoing: from1to2,
     role: peer2role,
+    persistent,
   };
 
   const peer1AsPeer: Peer = {
@@ -33,6 +36,7 @@ export function connectedPeers(
     incoming: from1to2,
     outgoing: from2to1,
     role: peer1role,
+    persistent,
   };
 
   return [peer1AsPeer, peer2AsPeer];

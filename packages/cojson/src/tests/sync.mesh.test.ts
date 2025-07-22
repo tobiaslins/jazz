@@ -26,6 +26,7 @@ function setupMesh() {
     ourName: "edge-italy",
     syncServerName: "core",
     syncServer: coreServer.node,
+    persistent: true,
   });
   edgeItaly.addStorage({
     ourName: "edge-italy",
@@ -36,6 +37,7 @@ function setupMesh() {
     ourName: "edge-france",
     syncServerName: "core",
     syncServer: coreServer.node,
+    persistent: true,
   });
   edgeFrance.addStorage({
     ourName: "edge-france",

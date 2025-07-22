@@ -33,7 +33,7 @@ describe("Images upload", () => {
 
     await userEvent.upload(
       page.getByRole("textbox"),
-      "./fixtures/jazz-icon.png",
+      "./src/fixtures/jazz-icon.png",
     );
 
     assert(file);
