@@ -9,7 +9,7 @@ import { Alert } from "@garden-co/design-system/src/components/atoms/Alert";
 
 The Inbox API provides a message-based communication system for Server Workers in Jazz. 
 
-It works on top of the Jazz APIs and uses the sync to transfer the messages between the client and the server.
+It works on top of the Jazz APIs and uses sync to transfer messages between the client and the server.
 
 ## Setting up the Inbox API
 
@@ -30,7 +30,7 @@ Any kind of CoMap is valid as an inbox message.
 
 ### Setting up the Server Worker
 
-Run a server worker with and subscribe to the `inbox`:
+Run a server worker and subscribe to the `inbox`:
 
 <CodeGroup>
 ```ts
@@ -159,7 +159,7 @@ A message is considered to be handled when the Promise returned by `inbox.subscr
 The value returned will be the id of the CoValue returned in the `inbox.subscribe` resolved promise.
 
 
-## Deployments considerations
+## Deployment considerations
 
 Multi-region deployments are not supported when using the Inbox API.
 
