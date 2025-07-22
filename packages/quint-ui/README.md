@@ -1,15 +1,15 @@
-# Quint
+# Quint UI
 
 ## Installation
 
 ```sh
-pnpm add quint tailwindcss
+pnpm add quint-ui tailwindcss
 ```
 
 then in your tailwind styles (ie. `styles.css`) add:
 ```css
-@import "quint/styles.css";
-@source "../node_modules/quint";
+@import "quint-ui/styles.css";
+@source "../node_modules/quint-ui";
 ```
 > [!TIP]
 > There's no need to do
@@ -22,7 +22,7 @@ then in your tailwind styles (ie. `styles.css`) add:
 ### Usage
 
 ```tsx
-import { Button } from "quint";
+import { Button } from "quint-ui";
 
 <Button>Click me</Button>
 ```
@@ -46,10 +46,10 @@ pnpm dev
 This starts typescript in watch mode. 
 
 > [!IMPORTANT]
-> Make sure quint is installed in the example via 
+> Make sure quint-ui is installed in the example via 
 > ```json
 > "dependencies": {
->   "quint": "workspace:*"
+>   "quint-ui": "workspace:*"
 > }
 > ```
 

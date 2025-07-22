@@ -1,6 +1,4 @@
 import "@/src/globals.css";
-// Use this to merge tailwind classes
-import { cn } from "@/src/lib/utils";
 
 export default function RootLayout({
   children,
@@ -10,7 +8,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <title>Quint</title>
+        <title>Quint UI</title>
       </head>
       <body>
         <div className="container mx-auto">{children}</div>
