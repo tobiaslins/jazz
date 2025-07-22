@@ -10,6 +10,18 @@ import { type CoValue, type ID } from "./interfaces.js";
  */
 export type NotNull<T> = Exclude<T, null>;
 
+/**
+ * Used to check if T is a union type.
+ *
+ * If T is a union type, the left hand side of the extends becomes a union of function types.
+ * The right hand side is always a single function type.
+ */
+type IsUnion<T, U = T> = (T extends any ? (x: T) => void : never) extends (
+  x: U,
+) => void
+  ? false
+  : true;
+
 export type RefsToResolve<
   V,
   DepthLimit extends number = 10,
@@ -19,56 +31,58 @@ export type RefsToResolve<
   | (DepthLimit extends CurrentDepth["length"]
       ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
         any
-      : // Basically V extends CoList - but if we used that we'd introduce circularity into the definition of CoList itself
-        V extends Array<infer Item>
-        ?
-            | {
-                $each: RefsToResolve<
-                  NotNull<Item>,
-                  DepthLimit,
-                  [0, ...CurrentDepth]
-                >;
-                $onError?: null;
-              }
-            | boolean
-        : // Basically V extends CoMap | Group | Account - but if we used that we'd introduce circularity into the definition of CoMap itself
-          V extends { _type: "CoMap" | "Group" | "Account" }
+      : IsUnion<NonNullable<V>> extends true
+        ? true
+        : // Basically V extends CoList - but if we used that we'd introduce circularity into the definition of CoList itself
+          V extends Array<infer Item>
           ?
-              | ({
-                  [Key in CoKeys<V> as NonNullable<V[Key]> extends CoValue
-                    ? Key
-                    : never]?: RefsToResolve<
-                    NonNullable<V[Key]>,
+              | {
+                  $each: RefsToResolve<
+                    NotNull<Item>,
                     DepthLimit,
                     [0, ...CurrentDepth]
                   >;
-                } & { $onError?: null })
-              | (ItemsSym extends keyof V
-                  ? {
+                  $onError?: null;
+                }
+              | boolean
+          : // Basically V extends CoMap | Group | Account - but if we used that we'd introduce circularity into the definition of CoMap itself
+            V extends { _type: "CoMap" | "Group" | "Account" }
+            ?
+                | ({
+                    [Key in CoKeys<V> as NonNullable<V[Key]> extends CoValue
+                      ? Key
+                      : never]?: RefsToResolve<
+                      NonNullable<V[Key]>,
+                      DepthLimit,
+                      [0, ...CurrentDepth]
+                    >;
+                  } & { $onError?: null })
+                | (ItemsSym extends keyof V
+                    ? {
+                        $each: RefsToResolve<
+                          NonNullable<V[ItemsSym]>,
+                          DepthLimit,
+                          [0, ...CurrentDepth]
+                        >;
+                        $onError?: null;
+                      }
+                    : never)
+                | boolean
+            : V extends {
+                  _type: "CoStream";
+                  byMe: CoFeedEntry<infer Item> | undefined;
+                }
+              ?
+                  | {
                       $each: RefsToResolve<
-                        NonNullable<V[ItemsSym]>,
+                        NotNull<Item>,
                         DepthLimit,
                         [0, ...CurrentDepth]
                       >;
                       $onError?: null;
                     }
-                  : never)
-              | boolean
-          : V extends {
-                _type: "CoStream";
-                byMe: CoFeedEntry<infer Item> | undefined;
-              }
-            ?
-                | {
-                    $each: RefsToResolve<
-                      NotNull<Item>,
-                      DepthLimit,
-                      [0, ...CurrentDepth]
-                    >;
-                    $onError?: null;
-                  }
-                | boolean
-            : boolean);
+                  | boolean
+              : boolean);
 
 export type RefsToResolveStrict<T, V> = V extends RefsToResolve<T>
   ? RefsToResolve<T>

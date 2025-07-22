@@ -195,10 +195,10 @@ describe("Browser sync", () => {
 
     await map.waitForSync();
 
-    await syncServer.setOffline(true);
+    await syncServer.setOnline(true);
 
     onTestFinished(async () => {
-      await syncServer.setOffline(false);
+      await syncServer.setOnline(false);
     });
 
     // Clearing the credentials storage so the next auth will be a new account

@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { expectMap } from "../coValue";
-import { setCoValueLoadingRetryDelay } from "../config";
+import {
+  CO_VALUE_LOADING_CONFIG,
+  setCoValueLoadingRetryDelay,
+} from "../config";
 import { RawCoMap } from "../exports";
 import {
   SyncMessagesLog,
@@ -59,31 +62,36 @@ describe("loading coValues from server", () => {
       connected: true,
     });
 
-    expect(async () => await node.load("test" as any)).rejects.toThrow(
+    await expect(async () => await node.load("test" as any)).rejects.toThrow(
       "Trying to load CoValue with invalid id test",
     );
-    expect(async () => await node.load(null as any)).rejects.toThrow(
+    await expect(async () => await node.load(null as any)).rejects.toThrow(
       "Trying to load CoValue with invalid id null",
     );
-    expect(async () => await node.load(undefined as any)).rejects.toThrow(
+    await expect(async () => await node.load(undefined as any)).rejects.toThrow(
       "Trying to load CoValue with invalid id undefined",
     );
-    expect(async () => await node.load(1 as any)).rejects.toThrow(
+    await expect(async () => await node.load(1 as any)).rejects.toThrow(
       "Trying to load CoValue with invalid id 1",
     );
-    expect(async () => await node.load({} as any)).rejects.toThrow(
+    await expect(async () => await node.load({} as any)).rejects.toThrow(
       "Trying to load CoValue with invalid id [object Object]",
     );
-    expect(async () => await node.load([] as any)).rejects.toThrow(
+    await expect(async () => await node.load([] as any)).rejects.toThrow(
       "Trying to load CoValue with invalid id []",
     );
-    expect(async () => await node.load(["test"] as any)).rejects.toThrow(
+    await expect(async () => await node.load(["test"] as any)).rejects.toThrow(
       'Trying to load CoValue with invalid id ["test"]',
     );
-    expect(async () => await node.load((() => {}) as any)).rejects.toThrow(
-      "Trying to load CoValue with invalid id () => {\n    }",
-    );
-    expect(async () => await node.load(new Date() as any)).rejects.toThrow();
+    await expect(
+      async () => await node.load((() => {}) as any),
+    ).rejects.toMatchInlineSnapshot(`
+      [TypeError: Trying to load CoValue with invalid id () => {
+            }]
+    `);
+    await expect(
+      async () => await node.load(new Date() as any),
+    ).rejects.toThrow();
   });
 
   test("unavailable coValue retry with skipRetry set to true", async () => {
@@ -502,9 +510,12 @@ describe("loading coValues from server", () => {
     `);
   });
 
-  test("should mark the coValue as unavailable if the peer is closed", async () => {
+  test("should wait for a persistent peer to reconnect before marking the coValue as unavailable", async () => {
     const client = setupTestNode();
-    const { peerState } = client.connectToSyncServer();
+    const connection1 = client.connectToSyncServer({
+      persistent: true,
+    });
+    connection1.peerState.gracefulShutdown();
 
     const group = jazzCloud.node.createGroup();
     group.addMember("everyone", "writer");
@@ -512,13 +523,15 @@ describe("loading coValues from server", () => {
     const map = group.createMap({
       test: "value",
     });
-
     const promise = client.node.load(map.id);
 
-    // Close the peer connection
-    peerState.gracefulShutdown();
+    await new Promise((resolve) => setTimeout(resolve, 10));
 
-    expect(await promise).toEqual("unavailable");
+    client.connectToSyncServer();
+
+    const coValue = await promise;
+
+    expect(coValue).not.toBe("unavailable");
 
     expect(
       SyncMessagesLog.getMessages({
@@ -528,6 +541,60 @@ describe("loading coValues from server", () => {
     ).toMatchInlineSnapshot(`
       [
         "client -> server | LOAD Map sessions: empty",
+        "server -> client | CONTENT Group header: true new: After: 0 New: 5",
+        "server -> client | CONTENT Map header: true new: After: 0 New: 1",
+        "client -> server | KNOWN Group sessions: header/5",
+        "client -> server | KNOWN Map sessions: header/1",
+      ]
+    `);
+  });
+
+  test("should handle reconnections in the middle of a load with a persistent peer", async () => {
+    const client = setupTestNode();
+    const connection1 = client.connectToSyncServer({
+      persistent: true,
+    });
+
+    const group = jazzCloud.node.createGroup();
+    group.addMember("everyone", "writer");
+
+    const map = group.createMap({
+      test: "value",
+    });
+
+    blockMessageTypeOnOutgoingPeer(connection1.peerOnServer, "content", {
+      id: map.id,
+      once: true,
+    });
+
+    const promise = client.node.load(map.id);
+
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    // Close the peer connection
+    connection1.peerState.gracefulShutdown();
+
+    client.connectToSyncServer();
+
+    const coValue = await promise;
+
+    expect(coValue).not.toBe("unavailable");
+
+    expect(
+      SyncMessagesLog.getMessages({
+        Group: group.core,
+        Map: map.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "client -> server | LOAD Map sessions: empty",
+        "server -> client | CONTENT Group header: true new: After: 0 New: 5",
+        "client -> server | KNOWN Group sessions: header/5",
+        "client -> server | LOAD Map sessions: empty",
+        "client -> server | LOAD Group sessions: header/5",
+        "server -> client | KNOWN Group sessions: header/5",
+        "server -> client | CONTENT Map header: true new: After: 0 New: 1",
+        "client -> server | KNOWN Map sessions: header/1",
       ]
     `);
   });
@@ -903,5 +970,63 @@ describe("loading coValues from server", () => {
         "client -> server | CONTENT Group header: true new: After: 0 New: 6",
       ]
     `);
+  });
+
+  test("should retry loading from a closed persistent peer after a timeout", async () => {
+    vi.useFakeTimers();
+
+    const client = setupTestNode();
+
+    const connection1 = client.connectToSyncServer({
+      persistent: true,
+    });
+
+    // Close the peer connection
+    connection1.peerState.gracefulShutdown();
+
+    const group = jazzCloud.node.createGroup();
+    group.addMember("everyone", "reader");
+
+    const map = group.createMap();
+    map.set("hello", "world");
+
+    const promise = loadCoValueOrFail(client.node, map.id);
+
+    await vi.advanceTimersByTimeAsync(
+      CO_VALUE_LOADING_CONFIG.TIMEOUT +
+        CO_VALUE_LOADING_CONFIG.RETRY_DELAY +
+        10,
+    );
+
+    client.connectToSyncServer({
+      persistent: true,
+    });
+
+    await vi.advanceTimersByTimeAsync(
+      CO_VALUE_LOADING_CONFIG.TIMEOUT +
+        CO_VALUE_LOADING_CONFIG.RETRY_DELAY +
+        10,
+    );
+
+    const coValue = await promise;
+
+    expect(coValue).not.toBe("unavailable");
+
+    expect(
+      SyncMessagesLog.getMessages({
+        Group: group.core,
+        Map: map.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "client -> server | LOAD Map sessions: empty",
+        "server -> client | CONTENT Group header: true new: After: 0 New: 5",
+        "server -> client | CONTENT Map header: true new: After: 0 New: 1",
+        "client -> server | KNOWN Group sessions: header/5",
+        "client -> server | KNOWN Map sessions: header/1",
+      ]
+    `);
+
+    vi.useRealTimers();
   });
 });
