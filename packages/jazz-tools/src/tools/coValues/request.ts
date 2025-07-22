@@ -50,21 +50,25 @@ interface RequestOptions<
   >;
 }
 
-type MessageValuePayload<T extends MessageShape> = Simplify<CoMapInitZod<T>>;
+type AsNullablePayload<T extends MessageShape> = T extends Record<string, never>
+  ? undefined
+  : never;
+type MessageValuePayload<T extends MessageShape> =
+  | Simplify<CoMapInitZod<T>>
+  | AsNullablePayload<T>;
 
 function inputValueToCoMap<S extends MessageShape>(
   schema: AnyCoMapSchema,
   value: MessageValuePayload<S>,
   owner: Account,
   sharedWith: Account | Group,
-) {
+): Loaded<CoMapSchema<S>> {
   const group = Group.create({ owner });
 
   group.addMember(sharedWith, "reader");
 
-  return (schema as CoMapSchema<S>).create(value, group) as Loaded<
-    CoMapSchema<S>
-  >;
+  // @ts-expect-error - AnyCoMapSchema doesn't have static methods
+  return schema.create(value ?? {}, group);
 }
 
 export async function internal_serializeMessagePayload(
@@ -284,10 +288,10 @@ class HttpRoute<
     this.workerId = params.workerId;
   }
 
-  send = async (
+  async send(
     values: MessageValuePayload<RequestShape>,
     options?: { owner?: Account },
-  ): Promise<Loaded<CoMapSchema<ResponseShape>, ResponseResolve>> => {
+  ): Promise<Loaded<CoMapSchema<ResponseShape>, ResponseResolve>> {
     const as = options?.owner ?? Account.getMe();
 
     const workerAccount = await Account.load(this.workerId, {
@@ -350,7 +354,7 @@ class HttpRoute<
     );
 
     return data.value as Loaded<CoMapSchema<ResponseShape>, ResponseResolve>;
-  };
+  }
 
   handle = async (
     request: Request,

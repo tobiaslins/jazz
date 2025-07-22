@@ -283,6 +283,102 @@ describe("experimental_defineRequest", () => {
     expect(response.person.address.street.toString()).toBe("123 Main St");
     expect(response.person.address.city.toString()).toBe("New York");
   });
+
+  it("should accept void request payload", async () => {
+    const { me, worker } = await setupAccounts();
+
+    const group = Group.create(me);
+    group.addMember("everyone", "writer");
+
+    const userRequest = experimental_defineRequest({
+      url: "https://api.example.com/api/user",
+      workerId: worker.id,
+      request: {},
+      response: {
+        bio: z.string(),
+        avatar: z.string().optional(),
+      },
+    });
+
+    server.use(
+      http.post("https://api.example.com/api/user", async ({ request }) => {
+        try {
+          return await userRequest.handle(request, worker, async () => {
+            return {
+              bio: "test",
+              avatar: "https://example.com/avatar.jpg",
+            };
+          });
+        } catch (error) {
+          console.error(error);
+          throw error;
+        }
+      }),
+    );
+
+    const { bio, avatar } = await userRequest.send(undefined);
+
+    expect(bio).toEqual("test");
+    expect(avatar).toEqual("https://example.com/avatar.jpg");
+  });
+
+  it("should accept void responses", async () => {
+    const { me, worker } = await setupAccounts();
+
+    const group = Group.create(me);
+    group.addMember("everyone", "writer");
+
+    const userRequest = experimental_defineRequest({
+      url: "https://api.example.com/api/user",
+      workerId: worker.id,
+      request: {
+        name: z.string(),
+        email: z.string(),
+        age: z.number(),
+      },
+      response: {},
+    });
+
+    let receivedUser: unknown;
+    let receivedMadeBy: unknown;
+
+    server.use(
+      http.post("https://api.example.com/api/user", async ({ request }) => {
+        try {
+          return await userRequest.handle(
+            request,
+            worker,
+            async (user, madeBy) => {
+              receivedUser = user.toJSON();
+              receivedMadeBy = madeBy.id;
+            },
+          );
+        } catch (error) {
+          console.error(error);
+          throw error;
+        }
+      }),
+    );
+
+    // Send a plain object (CoMapInit) instead of a CoMap instance
+    await userRequest.send(
+      {
+        name: "John Doe",
+        email: "john@example.com",
+        age: 30,
+      },
+      { owner: me },
+    );
+
+    // Verify the server received the correct data
+    expect(receivedUser).toMatchObject({
+      _type: "CoMap",
+      name: "John Doe",
+      email: "john@example.com",
+      age: 30,
+    });
+    expect(receivedMadeBy).toEqual(me.id);
+  });
 });
 
 describe("JazzRequestError handling", () => {
