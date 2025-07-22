@@ -1,36 +1,105 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Rock Paper Scissors with Jazz HTTP API
 
-## Getting Started
+This example demonstrates how to use the **Jazz HTTP API** with **Next.js** to implement updates in a trusted environment. The application implements a multiplayer Rock Paper Scissors game where the server validates game actions and reveals player intentions only after both players have made their moves.
 
-First, run the development server:
+## 🎯 Key Concepts Demonstrated
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### Trusted Environment Updates
+- **Server-side validation**: All game actions are validated by the server before being applied
+- **Secure reveal mechanism**: Player choices are hidden until both players have acted, built with Jazz group permissions
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 20+ 
+- pnpm (recommended) or npm
+
+### Installation
+
+1. **Install dependencies**:
+   ```bash
+   pnpm install
+   ```
+
+2. **Generate environment variables**:
+   ```bash
+   pnpm generate-env
+   ```
+
+3. **Start the development server**:
+   ```bash
+   pnpm dev
+   ```
+
+4. **Open your browser** to [http://localhost:3000](http://localhost:3000)
+
+### Environment Setup
+
+The `generate-env.ts` script creates the necessary environment variables for Jazz:
+- `NEXT_PUBLIC_JAZZ_WORKER_ACCOUNT`: Server worker account ID
+- `JAZZ_WORKER_SECRET`: Server worker secret key
+
+## 🔧 Key Implementation Details
+
+### Server API Definition
+```typescript
+const playRequest = experimental_defineRequest({
+  url: "/api/play",
+  workerId,
+  request: {
+    schema: {
+      game: Game,
+      selection: z.literal(["rock", "paper", "scissors"]),
+    },
+    resolve: {
+      game: {
+        player1: { account: true, playSelection: { group: true } },
+        player2: { account: true, playSelection: { group: true } },
+      },
+    },
+  },
+  response: {
+    schema: { game: Game },
+    resolve: { game: true },
+  },
+});
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Secure Move Handling
+```typescript
+// Create restricted group for the move
+const group = Group.create({ owner: jazzServerAccount.worker });
+group.addMember(madeBy, "reader");
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+// Store move with restricted access
+const playSelection = PlaySelection.create(
+  { value: selection, group },
+  group,
+);
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+// Reveal moves only after both players have acted
+if (player1PlaySelection && player2PlaySelection) {
+  player1PlaySelection.group.addMember(game.player2.account, "reader");
+  player2PlaySelection.group.addMember(game.player1.account, "reader");
+}
+```
 
-## Learn More
+## 🎯 Use Cases
 
-To learn more about Next.js, take a look at the following resources:
+This pattern is ideal for applications requiring:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Fair play guarantees**: Preventing cheating in games
+- **Simultaneous reveals**: Auctions, voting, or sealed-bid systems
+- **Trusted computation**: Server-side validation of complex business logic
+- **Real-time collaboration**: Multi-user applications with strict rules
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📚 Learn More
 
-## Deploy on Vercel
+- [Jazz Documentation](https://jazz.tools/docs)
+- [Next.js App Router](https://nextjs.org/docs/app)
+- [Groups & Permissions](https://jazz.tools/docs/react/groups/intro)
+- [HTTP API with experimental_defineRequest](https://jazz.tools/docs/react/server-side/http-requests)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🤝 Contributing
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This example is part of the Jazz framework. Feel free to submit issues and enhancement requests!
