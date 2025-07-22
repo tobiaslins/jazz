@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { expectMap } from "../coValue";
-import { setCoValueLoadingRetryDelay } from "../config";
+import {
+  CO_VALUE_LOADING_CONFIG,
+  setCoValueLoadingRetryDelay,
+} from "../config";
 import { RawCoMap } from "../exports";
 import {
   SyncMessagesLog,
@@ -967,5 +970,63 @@ describe("loading coValues from server", () => {
         "client -> server | CONTENT Group header: true new: After: 0 New: 6",
       ]
     `);
+  });
+
+  test("should retry loading from a closed persistent peer after a timeout", async () => {
+    vi.useFakeTimers();
+
+    const client = setupTestNode();
+
+    const connection1 = client.connectToSyncServer({
+      persistent: true,
+    });
+
+    // Close the peer connection
+    connection1.peerState.gracefulShutdown();
+
+    const group = jazzCloud.node.createGroup();
+    group.addMember("everyone", "reader");
+
+    const map = group.createMap();
+    map.set("hello", "world");
+
+    const promise = loadCoValueOrFail(client.node, map.id);
+
+    await vi.advanceTimersByTimeAsync(
+      CO_VALUE_LOADING_CONFIG.TIMEOUT +
+        CO_VALUE_LOADING_CONFIG.RETRY_DELAY +
+        10,
+    );
+
+    client.connectToSyncServer({
+      persistent: true,
+    });
+
+    await vi.advanceTimersByTimeAsync(
+      CO_VALUE_LOADING_CONFIG.TIMEOUT +
+        CO_VALUE_LOADING_CONFIG.RETRY_DELAY +
+        10,
+    );
+
+    const coValue = await promise;
+
+    expect(coValue).not.toBe("unavailable");
+
+    expect(
+      SyncMessagesLog.getMessages({
+        Group: group.core,
+        Map: map.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "client -> server | LOAD Map sessions: empty",
+        "server -> client | CONTENT Group header: true new: After: 0 New: 5",
+        "server -> client | CONTENT Map header: true new: After: 0 New: 1",
+        "client -> server | KNOWN Group sessions: header/5",
+        "client -> server | KNOWN Map sessions: header/1",
+      ]
+    `);
+
+    vi.useRealTimers();
   });
 });

@@ -1072,6 +1072,10 @@ export class CoValueCore {
       return;
     }
 
+    /**
+     * On reconnection persistent peers will automatically fire the load request
+     * as part of the reconnection process.
+     */
     if (!peer.closed) {
       peer.pushOutgoingMessage({
         action: "load",
