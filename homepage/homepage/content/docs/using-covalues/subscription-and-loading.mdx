@@ -259,7 +259,7 @@ const TeamMember = co.map({
 
 const Task = co.map({
   title: z.string(),
-  assignee: z.optional(TeamMember),
+  assignee: co.optional(TeamMember),
   get subtasks(): co.List<typeof Task> { return co.list(Task) },
 });
 
@@ -357,7 +357,7 @@ const TeamMember = co.map({
 
 const Task = co.map({
   title: z.string(),
-  assignee: z.optional(TeamMember),
+  assignee: co.optional(TeamMember),
   get subtasks(): co.List<typeof Task> { return co.list(Task) },
 });
 
@@ -396,7 +396,7 @@ const TeamMember = co.map({
 
 const Task = co.map({
   title: z.string(),
-  assignee: z.optional(TeamMember),
+  assignee: co.optional(TeamMember),
   get subtasks(): co.List<typeof Task> { return co.list(Task) },
 });
 
@@ -432,7 +432,7 @@ const TeamMember = co.map({
 
 const Task = co.map({
   title: z.string(),
-  assignee: z.optional(TeamMember),
+  assignee: co.optional(TeamMember),
   get subtasks(): co.List<typeof Task> { return co.list(Task) },
 });
 
@@ -662,7 +662,7 @@ const TeamMember = co.map({
 
 const Task = co.map({
   title: z.string(),
-  assignee: z.optional(TeamMember),
+  assignee: co.optional(TeamMember),
   get subtasks(): co.List<typeof Task> {
     return co.list(Task);
   },
@@ -735,7 +735,7 @@ const TeamMember = co.map({
 
 const Task = co.map({
   title: z.string(),
-  assignee: z.optional(TeamMember),
+  assignee: co.optional(TeamMember),
   get subtasks(): co.List<typeof Task> {
     return co.list(Task);
   },
