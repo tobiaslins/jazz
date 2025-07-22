@@ -165,6 +165,6 @@ export function createWebSocketPeer({
     incoming,
     outgoing,
     role,
-    deletePeerStateOnClose,
+    persistent: !deletePeerStateOnClose,
   };
 }
