@@ -1,5 +1,24 @@
 # jazz-tools
 
+## 0.15.13
+
+### Patch Changes
+
+- 6c76ff8: Fix load failures when loading a missing ref declared with z.optional and Schema.optional
+  - cojson@0.15.13
+  - cojson-storage-indexeddb@0.15.13
+  - cojson-transport-ws@0.15.13
+
+## 0.15.12
+
+### Patch Changes
+
+- d1c1b0c: Fix stuck authentication when using onAnonymousAccountDiscarded with a storage
+- cf4ad72: fix unhandled rejection on CoValue.load
+  - cojson@0.15.12
+  - cojson-storage-indexeddb@0.15.12
+  - cojson-transport-ws@0.15.12
+
 ## 0.15.11
 
 ### Patch Changes

@@ -111,10 +111,12 @@ test("Can sync a coValue with private transactions through a server to another c
   expect(mapOnClient2.get("hello")).toEqual("world");
 });
 
-test("should keep the peer state when the peer closes", async () => {
+test("should keep the peer state when the peer closes if persistent is true", async () => {
   const client = setupTestNode();
 
-  const { peer, peerState, peerOnServer } = client.connectToSyncServer();
+  const { peer, peerState, peerOnServer } = client.connectToSyncServer({
+    persistent: true,
+  });
 
   const group = jazzCloud.node.createGroup();
   const map = group.createMap();
@@ -133,12 +135,12 @@ test("should keep the peer state when the peer closes", async () => {
   expect(syncManager.peers[peer.id]).not.toBeUndefined();
 });
 
-test("should delete the peer state when the peer closes if deletePeerStateOnClose is true", async () => {
+test("should delete the peer state when the peer closes if persistent is false", async () => {
   const client = setupTestNode();
 
-  const { peer, peerState, peerOnServer } = client.connectToSyncServer();
-
-  peer.deletePeerStateOnClose = true;
+  const { peer, peerState, peerOnServer } = client.connectToSyncServer({
+    persistent: false,
+  });
 
   const group = jazzCloud.node.createGroup();
   const map = group.createMap();
@@ -991,7 +993,7 @@ describe("LocalNode.load", () => {
 
     // @ts-expect-error Testing with undefined ID
     await expect(client.node.load(undefined)).rejects.toThrow(
-      "Trying to load CoValue with undefined id",
+      "Trying to load CoValue with invalid id undefined",
     );
   });
 

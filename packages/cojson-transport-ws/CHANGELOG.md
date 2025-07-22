@@ -1,5 +1,17 @@
 # cojson-transport-nodejs-ws
 
+## 0.15.13
+
+### Patch Changes
+
+- cojson@0.15.13
+
+## 0.15.12
+
+### Patch Changes
+
+- cojson@0.15.12
+
 ## 0.15.11
 
 ### Patch Changes
