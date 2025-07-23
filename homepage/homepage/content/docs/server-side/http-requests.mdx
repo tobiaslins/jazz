@@ -241,8 +241,6 @@ Single servers are necessary to enforce invariants or provide a consistent view 
 
 As a rule of thumb, when the output of the request depends on the state of the database, you should probably deploy on a single instance.
 
-Per-user rate limiting or quota tracking are generally ok to do across multiple regions, since a user can only perform actions in one region at a time.
-
 ### Multi-Region Deployment
 
 If your code doesn’t need strict rules to keep data in sync (no counters, no limits, no “check‑then‑update” logic), you can run your workers in many regions at the same time.
