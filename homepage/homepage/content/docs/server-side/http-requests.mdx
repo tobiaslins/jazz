@@ -197,6 +197,22 @@ export async function sendEventBookingRequest(event: Event) {
   **Note**: The `experimental_defineRequest` API is still experimental and may change in future versions. For production applications, consider the stability implications.
 </Alert>
 
+## Security safeguards provided by Jazz
+
+Jazz HTTP requests include several built-in security measures to protect against common attacks:
+
+### Cryptographic Authentication
+- **Digital Signatures**: Each request is cryptographically signed using the sender's private key
+- **Signature Verification**: The server verifies the signature using the sender's public key to ensure message authenticity and to identify the sender account
+- **Tamper Protection**: Any modification to the request payload will invalidate the signature
+
+### Replay Attack Prevention
+- **Unique Message IDs**: Each request has a unique identifier (`co_z${string}`)
+- **Duplicate Detection**: The server maintains a set of processed message IDs to prevent replay attacks
+- **Message Expiration**: Requests expire after 60 seconds to provide additional protection
+
+These safeguards ensure that HTTP requests in Jazz are secure, authenticated, and protected against common attack vectors while maintaining the simplicity of standard HTTP communication.
+
 ## Deployments & Transactionality
 
 ### Single Instance Requirements
