@@ -3,17 +3,45 @@ import { CodeGroup } from '@/components/forMdx'
 # Jazz 0.16.0 - Cleaner separation between Zod and CoValue schemas
 
 This release introduces a cleaner separation between Zod and CoValue schemas and simplifies how you access internal schemas.
-While most applications won’t require extensive refactors, some breaking changes will require action.
+While most applications won't require extensive refactors, some breaking changes will require action.
+
+## Motivation
+
+Before 0.16.0, CoValue schemas were a thin wrapper around Zod schemas. This made it easy to use Zod methods on CoValue schemas,
+but it also prevented the type checker from detecting issues when combining Zod and CoValue schemas.
+
+For example, the following code would previously compile without errors, but would have severe limitations:
+
+<CodeGroup>
+```tsx
+import { co, z } from "jazz-tools";
+
+const Dog = co.map({
+  breed: z.string(),
+});
+const Person = co.map({
+  pets: z.array(Dog),
+});
+
+// You can create a CoMap with a z.array field that contains another CoMap
+const map = Person.create({
+  pets: [Dog.create({ breed: "Labrador" })],
+});
+
+// But then you cannot eagerly load the nested CoMap, because there's a plain JS object in between. So this would fail:
+Person.load(map.id, { resolve: { pets: { $each: true } } });
+```
+</CodeGroup>
+
+Schema composition rules are now stricter: Zod schemas can only be composed with other Zod schemas.
+CoValue schemas can be composed with either Zod or other CoValue schemas. These rules are enforced at the type level, to make it easier
+to spot errors in schema definitions and avoid possible footguns when mixing Zod and CoValue schemas.
 
 ## Breaking changes
 
-### Schema composition rules are now stricter
+### `z.optional()` and `z.discriminatedUnion()` no longer work with CoValue schemas
 
-Zod schemas can only be composed with other Zod schemas. CoValue schemas can be composed with either Zod or other CoValue schemas.
-
-#### `z.optional()` and `z.discriminatedUnion()` no longer work with CoValue schemas
-
-You’ll now need to use the `co.optional()` and `co.discriminatedUnion()` equivalents.
+You'll now need to use the `co.optional()` and `co.discriminatedUnion()` equivalents.
 This change may require you to update any explicitly typed cyclic references.
 
 <CodeGroup>
@@ -31,9 +59,9 @@ const Person = co.map({
 ```
 </CodeGroup>
 
-#### CoValue schema types are now under the `co.` namespace
+### CoValue schema types are now under the `co.` namespace
 
-All CoValue schema types are now accessed via the `co.` namespace. If you’re using explicit types (especially in recursive schemas), you’ll need to update them accordingly.
+All CoValue schema types are now accessed via the `co.` namespace. If you're using explicit types (especially in recursive schemas), you'll need to update them accordingly.
 
 <CodeGroup>
 ```tsx
@@ -51,13 +79,13 @@ const Person = co.map({
 
 ### Unsupported Zod methods have been removed from CoMap schemas
 
-CoMap schemas no longer incorrectly inherit Zod methods like `.extend()` and `.partial()`. These methods previously appeared to work but could behave unpredictably. They’ve now been disabled.
+CoMap schemas no longer incorrectly inherit Zod methods like `.extend()` and `.partial()`. These methods previously appeared to work but could behave unpredictably. They've now been disabled.
 
-In their place, .optional() has been added, and more Zod-like methods will be introduced in future releases.
+We're keeping `.optional()`, and plan to introduce more Zod-like methods in future releases.
 
 ### Internal schema access is now simpler
 
-You no longer need to use Zod’s `.def` to access schema internals. Instead, you can directly use methods like `CoMapSchema.shape`, `CoListSchema.element`, and `CoOptionalSchema.innerType`.
+You no longer need to use Zod's `.def` to access schema internals. Instead, you can directly use methods like `CoMapSchema.shape`, `CoListSchema.element`, and `CoOptionalSchema.innerType`.
 
 <CodeGroup>
 ```tsx
