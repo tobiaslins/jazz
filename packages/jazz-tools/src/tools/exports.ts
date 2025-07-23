@@ -35,7 +35,6 @@ export type {
   TextPos,
   AccountClass,
   AccountCreationProps,
-  WithHelpers,
 } from "./internal.js";
 
 export {
