@@ -251,9 +251,11 @@ describe("SyncStateManager", () => {
     ).toEqual({ uploaded: true });
   });
 
-  test("should skip closed peers", async () => {
+  test("should skip non-persistent closed peers", async () => {
     const client = setupTestNode();
-    const { peerState } = client.connectToSyncServer();
+    const { peerState } = client.connectToSyncServer({
+      persistent: false,
+    });
 
     peerState.gracefulShutdown();
 
@@ -261,6 +263,42 @@ describe("SyncStateManager", () => {
     const map = group.createMap();
 
     await map.core.waitForSync();
+  });
+
+  test("should wait for persistent closed peers to reconnect", async () => {
+    const client = setupTestNode();
+    const { peerState } = client.connectToSyncServer({
+      persistent: true,
+    });
+
+    peerState.gracefulShutdown();
+
+    const group = client.node.createGroup();
+    const map = group.createMap();
+
+    const promise = map.core.waitForSync().then(() => "waitForSync");
+
+    const result = await Promise.race([
+      promise,
+      new Promise((resolve) => {
+        setTimeout(() => resolve("timeout"), 10);
+      }),
+    ]);
+
+    expect(result).toBe("timeout");
+
+    client.connectToSyncServer({
+      persistent: true,
+    });
+
+    const result2 = await Promise.race([
+      promise,
+      new Promise((resolve) => {
+        setTimeout(() => resolve("timeout"), 10);
+      }),
+    ]);
+
+    expect(result2).toBe("waitForSync");
   });
 
   test("should skip client peers that are not subscribed to the coValue", async () => {

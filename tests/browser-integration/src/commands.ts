@@ -36,9 +36,11 @@ const disconnectAllClientsCommand: BrowserCommand<[url: string]> = async (
   syncServer.disconnectAllClients();
 };
 
-const setOfflineCommand: BrowserCommand<
-  [url: string, active: boolean]
-> = async (ctx, url, active) => {
+const setOnlineCommand: BrowserCommand<[url: string, active: boolean]> = async (
+  ctx,
+  url,
+  active,
+) => {
   const syncServer = syncServers.get(url);
 
   if (!syncServer) {
@@ -77,7 +79,7 @@ declare module "@vitest/browser/context" {
       port: number;
     }>;
     disconnectAllClients: (url: string) => Promise<void>;
-    setOffline: (url: string, active: boolean) => Promise<void>;
+    setOnline: (url: string, active: boolean) => Promise<void>;
     closeSyncServer: (url: string) => Promise<void>;
     cleanup: () => Promise<void>;
   }
@@ -86,7 +88,7 @@ declare module "@vitest/browser/context" {
 export const customCommands = {
   startSyncServer: startSyncServerCommand,
   disconnectAllClients: disconnectAllClientsCommand,
-  setOffline: setOfflineCommand,
+  setOnline: setOnlineCommand,
   closeSyncServer: closeSyncServerCommand,
   cleanup: cleanupCommand,
 };
