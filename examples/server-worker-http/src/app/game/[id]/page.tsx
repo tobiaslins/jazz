@@ -100,6 +100,7 @@ export default function RouteComponent() {
   const [playSelection, setPlaySelection] = useState<
     "rock" | "paper" | "scissors" | undefined
   >(undefined);
+  const [submitting, setSubmitting] = useState(false);
 
   if (!game) {
     return (
@@ -126,6 +127,8 @@ export default function RouteComponent() {
   ) => {
     if (!playSelection) return;
 
+    setSubmitting(true);
+
     try {
       await serverApi.play.send({
         game,
@@ -140,6 +143,8 @@ export default function RouteComponent() {
         toast.error("An unexpected error occurred");
       }
     }
+
+    setSubmitting(false);
   };
 
   const onNewGame = async () => {
@@ -160,6 +165,11 @@ export default function RouteComponent() {
 
   const currentPlayerSelection =
     currentPlayer?.playSelection?.value ?? playSelection;
+
+  const submitDisabled =
+    playSelection === undefined ||
+    Boolean(currentPlayer?.playSelection) ||
+    submitting;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8 px-4">
@@ -251,15 +261,12 @@ export default function RouteComponent() {
                         playSelection === "rock"
                           ? "bg-gradient-to-br from-gray-400 to-gray-600 text-white shadow-lg scale-105"
                           : "hover:scale-105"
-                      }`}
+                      } text-3xl`}
                       onClick={() => setPlaySelection("rock")}
+                      aria-label="Select Rock"
+                      aria-selected={playSelection === "rock"}
                     >
-                      <span
-                        className="text-3xl "
-                        style={{ animationDelay: "0ms" }}
-                      >
-                        🪨
-                      </span>
+                      🪨
                     </Button>
                     <Button
                       variant={
@@ -270,15 +277,12 @@ export default function RouteComponent() {
                         playSelection === "paper"
                           ? "bg-gradient-to-br from-blue-400 to-blue-600 text-white shadow-lg scale-105"
                           : "hover:scale-105"
-                      }`}
+                      } text-3xl`}
                       onClick={() => setPlaySelection("paper")}
+                      aria-label="Select Paper"
+                      aria-selected={playSelection === "paper"}
                     >
-                      <span
-                        className="text-3xl "
-                        style={{ animationDelay: "150ms" }}
-                      >
-                        📄
-                      </span>
+                      📄
                     </Button>
                     <Button
                       variant={
@@ -289,29 +293,23 @@ export default function RouteComponent() {
                         playSelection === "scissors"
                           ? "bg-gradient-to-br from-red-400 to-red-600 text-white shadow-lg scale-105"
                           : "hover:scale-105"
-                      }`}
+                      } text-3xl`}
                       onClick={() => setPlaySelection("scissors")}
+                      aria-label="Select Scissors"
+                      aria-selected={playSelection === "scissors"}
                     >
-                      <span
-                        className="text-3xl "
-                        style={{ animationDelay: "300ms" }}
-                      >
-                        ✂️
-                      </span>
+                      ✂️
                     </Button>
                   </div>
 
                   {/* Submit Button */}
                   <Button
-                    disabled={
-                      playSelection === undefined ||
-                      Boolean(currentPlayer?.playSelection)
-                    }
+                    disabled={submitDisabled}
                     onClick={() => onSubmit(playSelection)}
                     className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-3 text-lg"
                     size="lg"
                   >
-                    {currentPlayer?.playSelection ? (
+                    {currentPlayer?.playSelection || submitting ? (
                       <>
                         <CheckCircle className="w-5 h-5 mr-2" />
                         Selection Made!

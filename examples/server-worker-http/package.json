@@ -7,7 +7,9 @@
     "generate-env": "tsx generate-env.ts",
     "build": "pnpm generate-env && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
@@ -26,6 +28,7 @@
     "tailwindcss": "^4.1.11"
   },
   "devDependencies": {
+    "@playwright/test": "^1.50.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
