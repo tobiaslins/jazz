@@ -28,7 +28,8 @@ const map = Person.create({
   pets: [Dog.create({ breed: "Labrador" })],
 });
 
-// But then you cannot eagerly load the nested CoMap, because there's a plain JS object in between. So this would fail:
+// But then you cannot eagerly load the nested CoMap, because
+// there's a plain JS object in between. So this would fail:
 Person.load(map.id, { resolve: { pets: { $each: true } } });
 ```
 </CodeGroup>
@@ -50,9 +51,9 @@ import { co, z } from "jazz-tools";
 
 const Person = co.map({
   name: z.string(),
-  get bestFriend(): z.ZodOptional<typeof Person> { [!code --]
+  get bestFriend(): z.ZodOptional<typeof Person> { // [!code --]
     return z.optional(Person); [!code --]
-  get bestFriend(): co.Optional<typeof Person> { [!code ++]
+  get bestFriend(): co.Optional<typeof Person> { // [!code ++]
     return co.optional(Person); [!code ++]
   }
 });
@@ -69,8 +70,8 @@ import { co, z } from "jazz-tools";
 
 const Person = co.map({
   name: z.string(),
-  get friends(): CoListSchema<typeof Person> { [!code --]
-  get friends(): co.List<typeof Person> { [!code ++]
+  get friends(): CoListSchema<typeof Person> { // [!code --]
+  get friends(): co.List<typeof Person> { // [!code ++]
     return co.list(Person);
   }
 });
@@ -100,8 +101,8 @@ const Thread = co.map({
 });
 
 const thread = Thread.create({
-  messages: Thread.def.shape.messages.create([ [!code --]
-  messages: Thread.shape.messages.create([ [!code ++]
+  messages: Thread.def.shape.messages.create([ // [!code --]
+  messages: Thread.shape.messages.create([ // [!code ++]
     Message.create({
       content: co.richText().create("Hi!"),
     }),
@@ -115,5 +116,5 @@ const thread = Thread.create({
 
 ### Removed the deprecated `withHelper` method from CoValue schemas
 
-The deprecated `withHelpers()` method has been removed from CoValue schemas. You can now define helper functions manually to encapsulate CoValue-related logic.
+The deprecated `withHelpers()` method has been removed from CoValue schemas. You can define helper functions manually to encapsulate CoValue-related logic.
 [Learn how to define helper methods](https://jazz.tools/docs/vanilla/schemas/covalues#helper-methods).
