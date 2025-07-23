@@ -489,19 +489,7 @@ export class CoValueCore {
             null,
           );
 
-          if (
-            this._cachedContent &&
-            "processNewTransactions" in this._cachedContent &&
-            typeof this._cachedContent.processNewTransactions === "function"
-          ) {
-            this._cachedContent.processNewTransactions();
-          } else {
-            this._cachedContent = undefined;
-          }
-
-          this._cachedDependentOn = undefined;
-
-          this.notifyUpdate(notifyMode);
+          this.updateContentAndNotifyUpdate(notifyMode);
         }
 
         return result;
@@ -564,6 +552,22 @@ export class CoValueCore {
 
   deferredUpdates = 0;
   nextDeferredNotify: Promise<void> | undefined;
+
+  updateContentAndNotifyUpdate(notifyMode: "immediate" | "deferred") {
+    if (
+      this._cachedContent &&
+      "processNewTransactions" in this._cachedContent &&
+      typeof this._cachedContent.processNewTransactions === "function"
+    ) {
+      this._cachedContent.processNewTransactions();
+    } else {
+      this._cachedContent = undefined;
+    }
+
+    this._cachedDependentOn = undefined;
+
+    this.notifyUpdate(notifyMode);
+  }
 
   notifyUpdate(notifyMode: "immediate" | "deferred") {
     if (this.listeners.size === 0) {
@@ -674,6 +678,8 @@ export class CoValueCore {
     ]);
 
     this.node.syncManager.recordTransactionsSize([transaction], "local");
+
+    this.updateContentAndNotifyUpdate("immediate");
     void this.node.syncManager.requestCoValueSync(this);
 
     return true;
