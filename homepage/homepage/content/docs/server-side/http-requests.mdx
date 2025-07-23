@@ -39,7 +39,7 @@ export const bookEventTicket = experimental_defineRequest({
   response: {
     schema: { ticket: Ticket },
     // The data that will be considered as "loaded" in the client response
-    // It defines the content that server directly sends to the client, without involving the sync server
+    // It defines the content that the server directly sends to the client, without involving the sync server
     resolve: { ticket: true },
   },
 });
