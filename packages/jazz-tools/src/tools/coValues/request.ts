@@ -38,18 +38,49 @@ type RequestSchemaDefinition<
       resolve?: R;
     };
 
+/**
+ * Configuration options for defining HTTP request/response schemas in Jazz.
+ *
+ * This interface defines the structure for creating typed HTTP routes with
+ * request and response validation using CoMap schemas.
+ *
+ * @template RequestShape - The shape of the request message schema (must extend MessageShape)
+ * @template RequestResolve - The resolve query type for the request CoMap schema
+ * @template ResponseShape - The shape of the response message schema (must extend MessageShape)
+ * @template ResponseResolve - The resolve query type for the response CoMap schema
+ */
 interface RequestOptions<
   RequestShape extends MessageShape,
   RequestResolve extends ResolveQuery<CoMapSchema<RequestShape>>,
   ResponseShape extends MessageShape,
   ResponseResolve extends ResolveQuery<CoMapSchema<ResponseShape>>,
 > {
+  /**
+   * The URL endpoint for the HTTP route.
+   * This is used by the client to send requests to the server.
+   */
   url: string;
+
+  /**
+   * The id of the worker Account or Group.
+   */
   workerId: string;
+
+  /**
+   * Schema definition for the request payload.
+   * Can be either a direct schema object or an object with schema and optional resolve properties.
+   * The schema defines the structure and validation rules for incoming requests.
+   */
   request: RequestSchemaDefinition<
     RequestShape,
     ResolveQueryStrict<CoMapSchema<RequestShape>, RequestResolve>
   >;
+
+  /**
+   * Schema definition for the response payload.
+   * Can be either a direct schema object or an object with schema and optional resolve properties.
+   * The schema defines the structure and validation rules for outgoing responses.
+   */
   response: RequestSchemaDefinition<
     ResponseShape,
     ResolveQueryStrict<CoMapSchema<ResponseShape>, ResponseResolve>
