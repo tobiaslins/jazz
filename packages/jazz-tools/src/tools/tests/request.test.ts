@@ -341,6 +341,86 @@ describe("experimental_defineRequest", () => {
     });
     expect(receivedMadeBy).toEqual(me.id);
   });
+
+  it("should accept group as workerId", async () => {
+    const { me, worker } = await setupAccounts();
+
+    await linkAccounts(me, worker);
+
+    // Create a group that will act as the worker
+    const workerGroup = Group.create(worker);
+
+    const userRequest = experimental_defineRequest({
+      url: "https://api.example.com/api/user",
+      workerId: workerGroup.id, // Use group ID instead of account ID
+      request: {
+        name: z.string(),
+        email: z.string(),
+        age: z.number(),
+      },
+      response: {
+        bio: z.string(),
+        avatar: z.string().optional(),
+      },
+    });
+
+    let receivedUser: unknown;
+    let receivedMadeBy: unknown;
+
+    server.use(
+      http.post("https://api.example.com/api/user", async ({ request }) => {
+        try {
+          return await userRequest.handle(
+            request,
+            worker, // The worker account handles the request
+            async (user, madeBy) => {
+              receivedUser = user.toJSON();
+              receivedMadeBy = madeBy.id;
+
+              return {
+                bio: `Profile for ${user.name}`,
+                avatar: `https://example.com/avatars/${user.email}.jpg`,
+              };
+            },
+          );
+        } catch (error) {
+          console.error(error);
+          throw error;
+        }
+      }),
+    );
+
+    // Send a request - this should work with group as workerId
+    const response = await userRequest.send(
+      {
+        name: "John Doe",
+        email: "john@example.com",
+        age: 30,
+      },
+      { owner: me },
+    );
+
+    // Verify the response is a proper CoMap instance
+    expect(response.bio).toEqual("Profile for John Doe");
+    expect(response.avatar).toEqual(
+      "https://example.com/avatars/john@example.com.jpg",
+    );
+
+    // Verify the response owner structure - should include the worker account
+    expect(response._owner.members.map((m) => [m.account.id, m.role])).toEqual([
+      [worker.id, "admin"],
+      [me.id, "reader"],
+    ]);
+
+    // Verify the server received the correct data
+    expect(receivedUser).toMatchObject({
+      _type: "CoMap",
+      name: "John Doe",
+      email: "john@example.com",
+      age: 30,
+    });
+    expect(receivedMadeBy).toEqual(me.id);
+  });
 });
 
 describe("JazzRequestError handling", () => {

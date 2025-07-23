@@ -1,4 +1,10 @@
-import { CoValueCore, CojsonInternalTypes, cojsonInternals } from "cojson";
+import {
+  CoValueCore,
+  CojsonInternalTypes,
+  CryptoProvider,
+  RawAccount,
+  cojsonInternals,
+} from "cojson";
 import z from "zod/v4";
 import {
   AnyCoMapSchema,
@@ -57,7 +63,7 @@ type MessageValuePayload<T extends MessageShape> =
   | Simplify<CoMapInitZod<T>>
   | AsNullablePayload<T>;
 
-function inputValueToCoMap<S extends MessageShape>(
+function createMessageEnvelope<S extends MessageShape>(
   schema: AnyCoMapSchema,
   value: MessageValuePayload<S>,
   owner: Account,
@@ -71,14 +77,24 @@ function inputValueToCoMap<S extends MessageShape>(
   return schema.create(value ?? {}, group);
 }
 
-export async function internal_serializeMessagePayload(
+/**
+ * Function that exports the input CoValue in a serializable format and prepares the information
+ * required for the other side to safely verify the identity of the sender.
+ */
+async function serializeMessagePayload({
+  schema,
+  resolve,
+  value,
+  owner,
+  target,
+}: {
   // Skipping type validation here to avoid excessive type complexity that affects the typecheck performance
-  schema: AnyCoMapSchema,
-  resolve: any,
-  value: any,
-  owner: Account,
-  target: Account | Group,
-) {
+  schema: AnyCoMapSchema;
+  resolve: any;
+  value: any;
+  owner: Account;
+  target: Account | Group;
+}) {
   const me = owner ?? Account.getMe();
   const node = me._raw.core.node;
   const crypto = node.crypto;
@@ -87,10 +103,10 @@ export async function internal_serializeMessagePayload(
   const signerID = agent.currentSignerID();
   const signerSecret = agent.currentSignerSecret();
 
-  const coMap = inputValueToCoMap(schema, value, me, target);
+  const envelope = createMessageEnvelope(schema, value, me, target);
 
   const contentPieces =
-    (await exportCoValue(schema, coMap.id, {
+    (await exportCoValue(schema, envelope.id, {
       resolve,
       loadAs: me,
       bestEffortResolution: true,
@@ -100,7 +116,7 @@ export async function internal_serializeMessagePayload(
 
   const signPayload = crypto.secureHash({
     contentPieces,
-    id: coMap.id,
+    id: envelope.id,
     createdAt,
     signerID,
   });
@@ -109,7 +125,7 @@ export async function internal_serializeMessagePayload(
 
   return {
     contentPieces,
-    id: coMap.id,
+    id: envelope.id,
     createdAt,
     authToken,
     signerID,
@@ -130,15 +146,27 @@ const requestSchema = z.object({
   ),
 });
 
-async function handleIncomingMessage(
+/**
+ * Function that parses the message payload, verifies the identity of the sender and loads the data.
+ *
+ * @returns The data from the message.
+ */
+async function handleMessagePayload({
+  schema,
+  resolve,
+  request,
+  loadAs,
+  handledMessages,
+  importOnlyEnvelope,
+}: {
   // Skipping type validation here to avoid excessive type complexity that affects the typecheck performance
-  schema: AnyCoMapSchema,
-  resolve: any,
-  request: unknown,
-  loadAs: Account,
-  handledMessages: Set<`co_z${string}`>,
-  strictContentPieces: boolean,
-) {
+  schema: AnyCoMapSchema;
+  resolve: any;
+  request: unknown;
+  loadAs: Account;
+  handledMessages: Set<`co_z${string}`>;
+  importOnlyEnvelope: boolean;
+}) {
   const node = loadAs._raw.core.node;
   const crypto = node.crypto;
 
@@ -154,14 +182,17 @@ async function handleIncomingMessage(
 
   const requestData = requestParsed.data;
 
+  // Check if the message has already been handled to prevent replay attacks
   if (handledMessages.has(requestData.id)) {
     throw new JazzRequestError("Request payload is already handled", 400);
   }
 
+  // Check if the message is expired as extra protection since the handledMessages set is not persisted
   if (requestData.createdAt + 1000 * 60 < Date.now()) {
     throw new JazzRequestError("Authentication token is expired", 401);
   }
 
+  // Verify the signature of the message to prevent tampering
   const signPayload = crypto.secureHash({
     contentPieces: requestData.contentPieces,
     id: requestData.id,
@@ -169,19 +200,14 @@ async function handleIncomingMessage(
     signerID: requestData.signerID,
   });
 
-  let validSignature = false;
-
-  try {
-    validSignature = crypto.verify(
-      requestData.authToken,
+  if (
+    !safeVerifySignature(
+      crypto,
       signPayload,
       requestData.signerID,
-    );
-  } catch (error) {
-    validSignature = false;
-  }
-
-  if (!validSignature) {
+      requestData.authToken,
+    )
+  ) {
     throw new JazzRequestError("Invalid signature", 401);
   }
 
@@ -190,7 +216,7 @@ async function handleIncomingMessage(
   let contentPieces =
     requestData.contentPieces as CojsonInternalTypes.NewContentMessage[];
 
-  if (strictContentPieces) {
+  if (importOnlyEnvelope) {
     const coValueContent = contentPieces.find(
       (piece) => piece.id === requestData.id,
     );
@@ -244,7 +270,7 @@ function parseSchemaAndResolve<
 >(options: RequestSchemaDefinition<S, R>) {
   if ("schema" in options) {
     return {
-      // Casting to reduce the type complexity
+      // Using a type cast to reduce the type complexity
       schema: coMapDefiner(options.schema) as AnyCoMapSchema,
       resolve: options.resolve as any,
     };
@@ -286,6 +312,10 @@ class HttpRoute<
     this.responseDefinition = parseSchemaAndResolve(params.response);
     this.url = params.url;
     this.workerId = params.workerId;
+
+    if (params.workerId === undefined) {
+      throw new TypeError("Worker ID is required");
+    }
   }
 
   async send(
@@ -294,11 +324,8 @@ class HttpRoute<
   ): Promise<Loaded<CoMapSchema<ResponseShape>, ResponseResolve>> {
     const as = options?.owner ?? Account.getMe();
 
-    const workerAccount = await Account.load(this.workerId, {
-      loadAs: as,
-    });
-
-    if (!workerAccount) {
+    const target = await loadWorkerAccountOrGroup(this.workerId, as);
+    if (!target) {
       throw new JazzRequestError("Worker account not found", 400);
     }
 
@@ -308,13 +335,13 @@ class HttpRoute<
         "Content-Type": "application/json",
       },
       body: JSON.stringify(
-        await internal_serializeMessagePayload(
-          this.requestDefinition.schema,
-          true,
-          values,
-          as,
-          workerAccount,
-        ),
+        await serializeMessagePayload({
+          schema: this.requestDefinition.schema,
+          resolve: true, // export only the envelope
+          value: values,
+          owner: as,
+          target,
+        }),
       ),
     });
 
@@ -344,14 +371,14 @@ class HttpRoute<
       );
     }
 
-    const data = await handleIncomingMessage(
-      this.responseDefinition.schema,
-      this.responseDefinition.resolve,
-      responseParsed.data.payload,
-      as,
-      this.processedValues,
-      false,
-    );
+    const data = await handleMessagePayload({
+      schema: this.responseDefinition.schema,
+      resolve: this.responseDefinition.resolve,
+      request: responseParsed.data.payload,
+      loadAs: as,
+      handledMessages: this.processedValues,
+      importOnlyEnvelope: false,
+    });
 
     return data.value as Loaded<CoMapSchema<ResponseShape>, ResponseResolve>;
   }
@@ -370,6 +397,7 @@ class HttpRoute<
       const response = await this.executeHandleRequest(request, as, callback);
       return response;
     } catch (error) {
+      // Serialize the error to make it possible to handle it on the client side
       if (isJazzRequestError(error)) {
         return new Response(JSON.stringify(error.toJSON()), {
           status: error.code,
@@ -396,14 +424,14 @@ class HttpRoute<
   ): Promise<Response> => {
     const node = as._raw.core.node;
     const body = await request.json();
-    const data = await handleIncomingMessage(
-      this.requestDefinition.schema,
-      this.requestDefinition.resolve,
-      body,
-      as,
-      this.processedValues,
-      true,
-    );
+    const data = await handleMessagePayload({
+      schema: this.requestDefinition.schema,
+      resolve: this.requestDefinition.resolve,
+      request: body,
+      loadAs: as,
+      handledMessages: this.processedValues,
+      importOnlyEnvelope: true,
+    });
 
     const tracking = node.syncManager.trackDirtyCoValues();
 
@@ -412,13 +440,13 @@ class HttpRoute<
       data.madeBy,
     );
 
-    const responsePayload = await internal_serializeMessagePayload(
-      this.responseDefinition.schema,
-      this.responseDefinition.resolve,
-      responseValue,
-      as,
-      data.madeBy,
-    );
+    const responsePayload = await serializeMessagePayload({
+      schema: this.responseDefinition.schema,
+      resolve: this.responseDefinition.resolve,
+      value: responseValue,
+      owner: as,
+      target: data.madeBy,
+    });
 
     const responseBody = JSON.stringify({
       type: "success",
@@ -521,4 +549,38 @@ export function isJazzRequestError(error: unknown): error is JazzRequestError {
       "isJazzRequestError" in error &&
       Boolean(error.isJazzRequestError))
   );
+}
+
+function safeVerifySignature(
+  crypto: CryptoProvider,
+  signPayload: `hash_z${string}`,
+  signerID: `signer_z${string}`,
+  authToken: `signature_z${string}`,
+) {
+  try {
+    return crypto.verify(authToken, signPayload, signerID);
+  } catch (error) {
+    return false;
+  }
+}
+
+async function loadWorkerAccountOrGroup(id: string, loadAs: Account) {
+  const node = loadAs._raw.core.node;
+  const coValue = await node.loadCoValueCore(id as `co_z${string}`);
+
+  if (!coValue.isAvailable()) {
+    return null;
+  }
+
+  const content = coValue.getCurrentContent();
+
+  if (content instanceof RawAccount) {
+    return Account.load(content.id, {
+      loadAs,
+    });
+  }
+
+  return Group.load(content.id, {
+    loadAs,
+  });
 }
