@@ -7,11 +7,11 @@ const button = tv({
   variants: {
     variant: {
       default:
-        "shadow-sm shadow-stone-400/20 focus:outline-none focus-visible:ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-opacity-10",
+        "shadow-sm shadow-stone-400/20 focus:outline-none focus-visible:ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-opacity-10 bg-gradient-to-t from-7% via-50% to-95%",
       secondary:
-        "shadow-sm shadow-stone-400/20 focus:outline-none focus-visible:ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-opacity-10",
+        "shadow-sm shadow-stone-400/20 focus:outline-none focus-visible:ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-opacity-10 bg-gradient-to-t from-7% via-50% to-95%",
       destructive:
-        "shadow-sm shadow-stone-400/20 focus:outline-none focus-visible:ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-opacity-10",
+        "shadow-sm shadow-stone-400/20 focus:outline-none focus-visible:ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-opacity-10 bg-gradient-to-t from-7% via-50% to-95%",
       ghost: "bg-transparent",
       outline: "border shadow-[5px_0px]",
       link: "bg-transparent underline underline-offset-2 p-0 hover:bg-transparent active:underline-stone-500",
@@ -41,73 +41,73 @@ const button = tv({
       variant: "default",
       intent: "default",
       className:
-        "text-stone-700 dark:text-white hover:text-stone-800 active:text-stone-700 dark:hover:text-stone-100 dark:active:text-stone-200 from-stone-200/40 via-white to-stone-100 bg-gradient-to-t from-7% via-50% to-95% dark:from-stone-900 dark:via-black dark:to-stone-950 hover:from-stone-100/50 hover:to-stone-100/50 dark:hover:from-stone-950 dark:hover:to-stone-900 border border-stone-100 dark:border-stone-900 active:from-stone-200/50 active:to-stone-100/50 dark:active:from-stone-950 dark:active:to-black focus:ring-black dark:focus:ring-white",
+        "text-stone-700 dark:text-white hover:text-stone-800 active:text-stone-700 dark:hover:text-stone-100 dark:active:text-stone-200 from-stone-200/40 via-white to-stone-100 dark:from-stone-900 dark:via-black dark:to-stone-950 hover:from-stone-100/50 hover:to-stone-100/50 dark:hover:from-stone-950 dark:hover:to-stone-900 border border-stone-100 dark:border-stone-900 active:from-stone-200/50 active:to-stone-100/50 dark:active:from-stone-950 dark:active:to-black focus:ring-black dark:focus:ring-white",
     },
     {
       variant: "default",
       intent: "primary",
       className:
-        "text-white from-primary-dark via-primary to-primary-light bg-gradient-to-t from-7% via-50% to-95% hover:from-primary-brightLight hover:to-primary-light active:from-primary-brightDark active:to-primary-light focus:ring-primary",
+        "text-white from-primary-dark via-primary to-primary-light hover:from-primary-brightLight hover:to-primary-light active:from-primary-brightDark active:to-primary-light focus:ring-primary",
     },
     {
       variant: "default",
       intent: "tip",
       className:
-        "text-white from-tip-dark via-tip to-tip-light bg-gradient-to-t from-7% via-50% to-95% hover:from-tip-brightLight hover:to-tip-light active:from-tip-brightDark active:to-tip-light focus:ring-tip",
+        "text-white from-tip-dark via-tip to-tip-light hover:from-tip-brightLight hover:to-tip-light active:from-tip-brightDark active:to-tip-light focus:ring-tip",
     },
     {
       variant: "default",
       intent: "info",
       className:
-        "text-white from-info-dark via-info to-info-light bg-gradient-to-t from-7% via-50% to-95% hover:from-info-brightLight hover:to-info-light active:from-info-brightDark active:to-info-light focus:ring-info",
+        "text-white from-info-dark via-info to-info-light hover:from-info-brightLight hover:to-info-light active:from-info-brightDark active:to-info-light focus:ring-info",
     },
     {
       variant: "default",
       intent: "success",
       className:
-        "text-white from-success-dark via-success to-success-light bg-gradient-to-t from-7% via-50% to-95% hover:from-success-brightLight hover:to-success-light active:from-success-brightDark active:to-success-light focus:ring-success",
+        "text-white from-success-dark via-success to-success-light hover:from-success-brightLight hover:to-success-light active:from-success-brightDark active:to-success-light focus:ring-success",
     },
     {
       variant: "default",
       intent: "warning",
       className:
-        "text-white from-warning-dark via-warning to-warning-light bg-gradient-to-t from-7% via-50% to-95% hover:from-warning-brightLight hover:to-warning-light active:from-warning-brightDark active:to-warning-light focus:ring-warning",
+        "text-white from-warning-dark via-warning to-warning-light hover:from-warning-brightLight hover:to-warning-light active:from-warning-brightDark active:to-warning-light focus:ring-warning",
     },
     {
       variant: "default",
       intent: "alert",
       className:
-        "text-white from-alert-dark via-alert to-alert-light bg-gradient-to-t from-7% via-50% to-95% hover:from-alert-brightLight hover:to-alert-light active:from-alert-brightDark active:to-alert-light focus:ring-alert",
+        "text-white from-alert-dark via-alert to-alert-light hover:from-alert-brightLight hover:to-alert-light active:from-alert-brightDark active:to-alert-light focus:ring-alert",
     },
     {
       variant: "default",
       intent: "danger",
       className:
-        "text-white from-danger-dark via-danger to-danger-light bg-gradient-to-t from-7% via-50% to-95% hover:from-danger-brightLight hover:to-danger-light active:from-danger-brightDark active:to-danger-light focus:ring-danger",
+        "text-white from-danger-dark via-danger to-danger-light hover:from-danger-brightLight hover:to-danger-light active:from-danger-brightDark active:to-danger-light focus:ring-danger",
     },
     {
       variant: "default",
       intent: "muted",
       className:
-        "text-stone-100 dark:text-stone-900 from-stone-200 via-stone-300 to-stone-400 bg-gradient-to-t from-7% via-50% to-95% dark:from-stone-900 dark:via-stone-900 dark:to-stone-800 hover:from-stone-200 hover:to-stone-300 dark:hover:from-stone-900 dark:hover:to-stone-700/70 active:from-stone-300 active:to-stone-300 dark:active:from-stone-900 dark:active:to-stone-800 focus:ring-stone-200 dark:focus:ring-stone-900",
+        "text-stone-100 dark:text-stone-900 from-stone-200 via-stone-300 to-stone-400 dark:from-stone-900 dark:via-stone-900 dark:to-stone-800 hover:from-stone-200 hover:to-stone-300 dark:hover:from-stone-900 dark:hover:to-stone-700/70 active:from-stone-300 active:to-stone-300 dark:active:from-stone-900 dark:active:to-stone-800 focus:ring-stone-200 dark:focus:ring-stone-900",
     },
     {
       variant: "default",
       intent: "strong",
       className:
-        "text-stone-100 dark:text-stone-900 from-stone-700 via-stone-800 to-stone-900 bg-gradient-to-t from-7% via-50% to-95% dark:from-stone-100 dark:via-stone-200 dark:to-stone-300 hover:from-stone-700 hover:to-stone-800 dark:hover:from-stone-100 dark:hover:to-stone-200 active:from-stone-950 active:to-stone-900 dark:active:from-stone-100 dark:active:to-stone-200 focus:ring-stone-800 dark:focus:ring-stone-200",
+        "text-stone-100 dark:text-stone-900 from-stone-700 via-stone-800 to-stone-900 dark:from-stone-100 dark:via-stone-200 dark:to-stone-300 hover:from-stone-700 hover:to-stone-800 dark:hover:from-stone-100 dark:hover:to-stone-200 active:from-stone-950 active:to-stone-900 dark:active:from-stone-100 dark:active:to-stone-200 focus:ring-stone-800 dark:focus:ring-stone-200",
     },
     // Secondary Variant (alias for default-muted)
     {
       variant: "secondary",
       className:
-        "text-stone-100 dark:text-stone-900 from-stone-200 via-stone-300 to-stone-400 bg-gradient-to-t from-7% via-50% to-95% dark:from-stone-900 dark:via-stone-900 dark:to-stone-800 hover:from-stone-200 hover:to-stone-300 dark:hover:from-stone-900 dark:hover:to-stone-700/70 active:from-stone-300 active:to-stone-300 dark:active:from-stone-900 dark:active:to-stone-800 focus:ring-stone-200 dark:focus:ring-stone-900",
+        "text-stone-100 dark:text-stone-900 from-stone-200 via-stone-300 to-stone-400 dark:from-stone-900 dark:via-stone-900 dark:to-stone-800 hover:from-stone-200 hover:to-stone-300 dark:hover:from-stone-900 dark:hover:to-stone-700/70 active:from-stone-300 active:to-stone-300 dark:active:from-stone-900 dark:active:to-stone-800 focus:ring-stone-200 dark:focus:ring-stone-900",
     },
     // Destructive Variant (alias for default-danger)
     {
       variant: "destructive",
       className:
-        "text-white from-danger-dark via-danger to-danger-light bg-gradient-to-t from-7% via-50% to-95% hover:from-danger-brightLight hover:to-danger-light active:from-danger-brightDark active:to-danger-light focus:ring-danger",
+        "text-white from-danger-dark via-danger to-danger-light hover:from-danger-brightLight hover:to-danger-light active:from-danger-brightDark active:to-danger-light focus:ring-danger",
     },
     // Outline Variant
     {
