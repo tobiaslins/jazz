@@ -91,7 +91,7 @@ export const docNavigationItems = [
     items: [
       {
         name: "0.16.0 - Cleaner separation between Zod and CoValue schemas",
-        href: "/docs/upgrade/0-15-0",
+        href: "/docs/upgrade/0-16-0",
         done: 100,
       },
       {
