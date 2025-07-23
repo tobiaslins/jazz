@@ -13,6 +13,14 @@ export const CO_VALUE_LOADING_CONFIG = {
   RETRY_DELAY: 3000,
 };
 
+export function setCoValueLoadingMaxRetries(maxRetries: number) {
+  CO_VALUE_LOADING_CONFIG.MAX_RETRIES = maxRetries;
+}
+
+export function setCoValueLoadingTimeout(timeout: number) {
+  CO_VALUE_LOADING_CONFIG.TIMEOUT = timeout;
+}
+
 export function setCoValueLoadingRetryDelay(delay: number) {
   CO_VALUE_LOADING_CONFIG.RETRY_DELAY = delay;
 }

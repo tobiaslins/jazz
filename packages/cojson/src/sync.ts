@@ -88,7 +88,7 @@ export interface Peer {
   outgoing: OutgoingPeerChannel;
   role: "server" | "client";
   priority?: number;
-  deletePeerStateOnClose?: boolean;
+  persistent?: boolean;
 }
 
 export function combinedKnownStates(
@@ -157,8 +157,7 @@ export class SyncManager {
 
   getServerPeers(excludePeerId?: PeerID): PeerState[] {
     return this.getPeers().filter(
-      (peer) =>
-        peer.role === "server" && peer.id !== excludePeerId && !peer.closed,
+      (peer) => peer.role === "server" && peer.id !== excludePeerId,
     );
   }
 
@@ -353,7 +352,7 @@ export class SyncManager {
       unsubscribeFromKnownStatesUpdates();
       this.peersCounter.add(-1, { role: peer.role });
 
-      if (peer.deletePeerStateOnClose && this.peers[peer.id] === peerState) {
+      if (!peer.persistent && this.peers[peer.id] === peerState) {
         delete this.peers[peer.id];
       }
     });
@@ -794,8 +793,8 @@ export class SyncManager {
 
     const peerState = this.peers[peerId];
 
-    // The peer has been closed, so it isn't possible to sync
-    if (!peerState || peerState.closed) {
+    // The peer has been closed and is not persistent, so it isn't possible to sync
+    if (!peerState) {
       return;
     }
 
@@ -830,7 +829,7 @@ export class SyncManager {
     return this.local.storage?.waitForSync(id, this.local.getCoValue(id));
   }
 
-  waitForSync(id: RawCoID, timeout = 30_000) {
+  waitForSync(id: RawCoID, timeout = 60_000) {
     const peers = this.getPeers();
 
     return Promise.all(

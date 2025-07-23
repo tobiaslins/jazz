@@ -88,7 +88,7 @@ export async function startSyncServer(port?: number, dbName?: string) {
     url,
     port: syncServerPort,
     disconnectAllClients: () => commands.disconnectAllClients(url),
-    setOffline: (active: boolean) => commands.setOffline(url, active),
+    setOnline: (active: boolean) => commands.setOnline(url, active),
     close,
   };
 }
