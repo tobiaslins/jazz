@@ -447,6 +447,14 @@ class HttpRoute<
   }
 }
 
+/**
+ * Define a request route.
+ *
+ * @param params - The parameters for the request route.
+ * @returns The request route.
+ *
+ * @see {@link https://jazz.tools/docs/react/server-side/http-requests}
+ */
 export function experimental_defineRequest<
   RequestShape extends MessageShape,
   RequestResolve extends ResolveQuery<CoMapSchema<RequestShape>>,
