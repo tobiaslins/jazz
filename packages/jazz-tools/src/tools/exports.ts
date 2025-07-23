@@ -53,6 +53,8 @@ export {
   subscribeToCoValue,
   ImageDefinition,
   SubscriptionScope,
+  exportCoValue,
+  importContentPieces,
 } from "./internal.js";
 
 export {

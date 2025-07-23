@@ -471,6 +471,49 @@ export function parseGroupCreateOptions(
     : { owner: options.owner ?? activeAccountContext.get() };
 }
 
+/**
+ * Deeply export a CoValue to a content piece.
+ *
+ * @param cls - The class of the CoValue to export.
+ * @param id - The ID of the CoValue to export.
+ * @param options - The options for the export.
+ * @returns The content pieces that were exported.
+ *
+ * @example
+ * ```ts
+ * const Address = co.map({
+ *   street: z.string(),
+ *   city: z.string(),
+ * });
+ *
+ * const Person = co.map({
+ *   name: z.string(),
+ *   address: Address,
+ * });
+ *
+ * const group = Group.create();
+ * const address = Address.create(
+ *   { street: "123 Main St", city: "New York" },
+ *   group,
+ * );
+ * const person = Person.create({ name: "John", address }, group);
+ * group.addMember("everyone", "reader");
+ *
+ * // Export with nested references resolved, values can be serialized to JSON
+ * const exportedWithResolve = await exportCoValue(Person, person.id, {
+ *   resolve: { address: true },
+ * });
+ *
+ * // In another client or session
+ * // Load the exported content pieces into the node, they will be persisted
+ * importContentPieces(exportedWithResolve);
+ *
+ * // Now the person can be loaded from the node, even offline
+ * const person = await loadCoValue(Person, person.id, {
+ *   resolve: { address: true },
+ * });
+ * ```
+ */
 export async function exportCoValue<
   S extends CoValueOrZodSchema | CoValueClass<CoValue>,
   const R extends ResolveQuery<S>,
@@ -577,6 +620,12 @@ function loadContentPiecesFromCoValue(
   }
 }
 
+/**
+ * Import content pieces into the node.
+ *
+ * @param contentPieces - The content pieces to import.
+ * @param loadAs - The account to load the content pieces as.
+ */
 export function importContentPieces(
   contentPieces: CojsonInternalTypes.NewContentMessage[],
   loadAs?: Account | AnonymousJazzAgent,
