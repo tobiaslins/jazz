@@ -63,7 +63,7 @@ import { DisconnectedError, SyncManager, emptyKnownState } from "./sync.js";
 
 type Value = JsonValue | AnyRawCoValue;
 
-export { PriorityBasedMessageQueue } from "./PriorityBasedMessageQueue.js";
+export { PriorityBasedMessageQueue } from "./queue/PriorityBasedMessageQueue.js";
 import { getDependedOnCoValuesFromRawData } from "./coValueCore/utils.js";
 import {
   CO_VALUE_LOADING_CONFIG,
