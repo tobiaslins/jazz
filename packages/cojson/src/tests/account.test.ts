@@ -74,7 +74,7 @@ test("Can create account with one node, and then load it on another", async () =
   expect(map2.get("foo")).toEqual("bar");
 });
 
-test.only("Should migrate the root from private to trusting", async () => {
+test("Should migrate the root from private to trusting", async () => {
   const { node, accountID, accountSecret } =
     await LocalNode.withNewlyCreatedAccount({
       creationProps: { name: "Hermes Puggington" },
