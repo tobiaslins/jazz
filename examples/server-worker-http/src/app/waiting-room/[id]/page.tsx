@@ -11,10 +11,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { WaitingRoom } from "@/schema";
 import { serverApi } from "@/serverApi";
-import { JazzRequestError, co } from "jazz-tools";
+import { Account, JazzRequestError, co } from "jazz-tools";
 import { useCoState } from "jazz-tools/react-core";
 import { ClipboardCopyIcon, Loader2Icon } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -50,6 +50,7 @@ async function askToJoinGame(
 
 export default function RouteComponent() {
   const params = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
   const waitingRoom = useCoState(WaitingRoom, params.id, {
     resolve: {
       creator: true,
@@ -59,6 +60,11 @@ export default function RouteComponent() {
   const [copied, setCopied] = useState(false);
   const router = useRouter();
   const location = useWindowLocation();
+  const joinLocation = location + "?join=true";
+
+  const isJoining = !waitingRoom
+    ? searchParams.get("join") === "true"
+    : Account.getMe().id !== waitingRoom.creator.id;
 
   useEffect(() => {
     if (!waitingRoom) {
@@ -77,7 +83,7 @@ export default function RouteComponent() {
   }, [waitingRoom?.game?.id]);
 
   const onCopyClick = () => {
-    navigator.clipboard.writeText(window.location.toString());
+    navigator.clipboard.writeText(joinLocation);
     setCopied(true);
     toast.success("Link copied to clipboard!");
   };
@@ -112,9 +118,11 @@ export default function RouteComponent() {
             </span>
           </div>
           <h1 className="text-5xl font-bold text-white mb-2">Waiting Room</h1>
-          <p className="text-xl text-gray-300 max-w-md mx-auto">
-            Share this link with your friend to join the game
-          </p>
+          {!isJoining && (
+            <p className="text-xl text-gray-300 max-w-md mx-auto">
+              Share this link with your friend to join the game
+            </p>
+          )}
         </div>
 
         {/* Waiting room card */}
@@ -122,34 +130,37 @@ export default function RouteComponent() {
           <CardHeader className="text-center pb-4">
             <CardTitle className="text-2xl font-bold text-white flex items-center justify-center">
               <Loader2Icon className="animate-spin inline h-8 w-8 mr-3" />
-              Waiting for opponent
+              {isJoining ? "Joining the game" : "Waiting for opponent"}
             </CardTitle>
             <CardDescription className="text-gray-300 text-sm mt-2">
-              The game will automatically start once they join
+              The game will automatically start once{" "}
+              {isJoining ? "ready" : "they join"}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex">
-              <Input
-                className="w-full border-white/20 bg-white/5 text-white placeholder:text-gray-400 rounded-e-none focus:border-white/40 focus:ring-white/20"
-                readOnly
-                value={location}
-              />
-              <Button
-                onClick={onCopyClick}
-                className="rounded-s-none w-25 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-              >
-                {copied ? (
-                  "Copied!"
-                ) : (
-                  <>
-                    <ClipboardCopyIcon className="w-5 h-5" />
-                    Copy
-                  </>
-                )}
-              </Button>
-            </div>
-          </CardContent>
+          {!isJoining && (
+            <CardContent className="space-y-4">
+              <div className="flex">
+                <Input
+                  className="w-full border-white/20 bg-white/5 text-white placeholder:text-gray-400 rounded-e-none focus:border-white/40 focus:ring-white/20"
+                  readOnly
+                  value={joinLocation}
+                />
+                <Button
+                  onClick={onCopyClick}
+                  className="rounded-s-none w-25 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                >
+                  {copied ? (
+                    "Copied!"
+                  ) : (
+                    <>
+                      <ClipboardCopyIcon className="w-5 h-5" />
+                      Copy
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          )}
         </Card>
 
         {/* Footer */}

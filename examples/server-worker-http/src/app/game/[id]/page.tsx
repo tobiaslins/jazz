@@ -3,9 +3,9 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Game } from "@/schema";
+import { Game, PlaySelection, PlayerState } from "@/schema";
 import { serverApi } from "@/serverApi";
-import { isJazzRequestError } from "jazz-tools";
+import { Group, isJazzRequestError } from "jazz-tools";
 import { useAccount, useCoState } from "jazz-tools/react";
 import {
   CheckCircle,
@@ -79,6 +79,12 @@ export default function RouteComponent() {
   const params = useParams<{ id: string }>();
   const game = useCoState(Game, params.id, {
     resolve: {
+      player1State: {
+        $onError: null,
+      },
+      player2State: {
+        $onError: null,
+      },
       player1: {
         account: true,
         playSelection: {
@@ -97,11 +103,6 @@ export default function RouteComponent() {
   const isPlayer1 = game?.player1?.account?.isMe;
   const player = isPlayer1 ? "player1" : "player2";
 
-  const [playSelection, setPlaySelection] = useState<
-    "rock" | "paper" | "scissors" | undefined
-  >(undefined);
-  const [submitting, setSubmitting] = useState(false);
-
   if (!game) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
@@ -119,15 +120,25 @@ export default function RouteComponent() {
   const currentPlayer = game[player];
   const opponentPlayer = game[opponent];
 
+  const currentPlayerState = game[isPlayer1 ? "player1State" : "player2State"];
+
   const opponentSelection = opponentPlayer?.playSelection;
   const opponentHasSelected = Boolean(opponentPlayer._refs.playSelection);
 
-  const onSubmit = async (
+  const handleSelection = (selection: "rock" | "paper" | "scissors") => {
+    if (!currentPlayerState) return;
+    if (currentPlayerState.submitted) return;
+
+    currentPlayerState.currentSelection = selection;
+  };
+
+  const handleSubmit = async (
     playSelection: "rock" | "paper" | "scissors" | undefined,
   ) => {
     if (!playSelection) return;
+    if (!currentPlayerState) return;
 
-    setSubmitting(true);
+    currentPlayerState.submitted = true;
 
     try {
       await serverApi.play.send({
@@ -135,6 +146,7 @@ export default function RouteComponent() {
         selection: playSelection,
       });
     } catch (error) {
+      currentPlayerState.submitted = false;
       if (isJazzRequestError(error)) {
         toast.error(error.message);
       } else {
@@ -142,16 +154,20 @@ export default function RouteComponent() {
         toast.error("An unexpected error occurred");
       }
     }
-
-    setSubmitting(false);
   };
 
-  const onNewGame = async () => {
+  const handleNewGame = async () => {
+    if (!currentPlayerState) return;
+
+    currentPlayerState.resetRequested = true;
+
     try {
       await serverApi.newGame.send({
         game,
       });
     } catch (error) {
+      currentPlayerState.resetRequested = false;
+
       if (isJazzRequestError(error)) {
         toast.error(error.message);
       } else {
@@ -161,13 +177,10 @@ export default function RouteComponent() {
     }
   };
 
-  const currentPlayerSelection =
-    currentPlayer?.playSelection?.value ?? playSelection;
+  const playSelection = currentPlayerState?.currentSelection;
 
   const submitDisabled =
-    playSelection === undefined ||
-    Boolean(currentPlayer?.playSelection) ||
-    submitting;
+    !currentPlayerState?.currentSelection || currentPlayerState?.submitted;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8 px-4">
@@ -223,7 +236,8 @@ export default function RouteComponent() {
                 </h2>
               </div>
               <Button
-                onClick={onNewGame}
+                disabled={currentPlayerState?.resetRequested}
+                onClick={handleNewGame}
                 className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white"
                 size="lg"
               >
@@ -244,9 +258,7 @@ export default function RouteComponent() {
               </CardTitle>
             </CardHeader>
             <CardContent className="text-center">
-              <div className="mb-6">
-                {playIcon(currentPlayerSelection, "lg")}
-              </div>
+              <div className="mb-6">{playIcon(playSelection, "lg")}</div>
 
               {!gameComplete && (
                 <>
@@ -260,7 +272,7 @@ export default function RouteComponent() {
                           ? "bg-gradient-to-br from-gray-400 to-gray-600 text-white shadow-lg scale-105"
                           : "hover:scale-105"
                       } text-3xl`}
-                      onClick={() => setPlaySelection("rock")}
+                      onClick={() => handleSelection("rock")}
                       aria-label="Select Rock"
                       aria-selected={playSelection === "rock"}
                     >
@@ -276,7 +288,7 @@ export default function RouteComponent() {
                           ? "bg-gradient-to-br from-blue-400 to-blue-600 text-white shadow-lg scale-105"
                           : "hover:scale-105"
                       } text-3xl`}
-                      onClick={() => setPlaySelection("paper")}
+                      onClick={() => handleSelection("paper")}
                       aria-label="Select Paper"
                       aria-selected={playSelection === "paper"}
                     >
@@ -292,7 +304,7 @@ export default function RouteComponent() {
                           ? "bg-gradient-to-br from-red-400 to-red-600 text-white shadow-lg scale-105"
                           : "hover:scale-105"
                       } text-3xl`}
-                      onClick={() => setPlaySelection("scissors")}
+                      onClick={() => handleSelection("scissors")}
                       aria-label="Select Scissors"
                       aria-selected={playSelection === "scissors"}
                     >
@@ -303,11 +315,11 @@ export default function RouteComponent() {
                   {/* Submit Button */}
                   <Button
                     disabled={submitDisabled}
-                    onClick={() => onSubmit(playSelection)}
+                    onClick={() => handleSubmit(playSelection)}
                     className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-3 text-lg"
                     size="lg"
                   >
-                    {currentPlayer?.playSelection || submitting ? (
+                    {currentPlayerState?.submitted ? (
                       <>
                         <CheckCircle className="w-5 h-5 mr-2" />
                         Selection Made!
