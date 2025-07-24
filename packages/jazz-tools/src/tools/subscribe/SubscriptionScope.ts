@@ -341,16 +341,14 @@ export class SubscriptionScope<D extends CoValue> {
       this.resolve = {};
     }
 
-    if (this.resolve.$each || key in this.resolve) {
-      return;
+    if (!this.resolve.$each && !(key in this.resolve)) {
+      const resolve = this.resolve as Record<string, any>;
+
+      // Adding the key to the resolve object to resolve the key when calling loadChildren
+      resolve[key] = true;
+      // Track the keys that are autoloaded to flag any id on that key as autoloaded
+      this.autoloadedKeys.add(key);
     }
-
-    const resolve = this.resolve as Record<string, any>;
-
-    // Adding the key to the resolve object to resolve the key when calling loadChildren
-    resolve[key] = true;
-    // Track the keys that are autoloaded to flag any id on that key as autoloaded
-    this.autoloadedKeys.add(key);
 
     if (this.value.type !== "loaded") {
       return;
