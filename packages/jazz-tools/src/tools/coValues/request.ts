@@ -165,9 +165,7 @@ async function serializeMessagePayload({
 
 const requestSchema = z.object({
   contentPieces: z.array(z.json()),
-  id: z.custom<`co_z${string}`>(
-    (value) => typeof value === "string" && value.startsWith("co_z"),
-  ),
+  id: z.custom<`co_z${string}`>(isCoValueId),
   createdAt: z.number(),
   authToken: z.custom<`signature_z${string}`>(
     (value) => typeof value === "string" && value.startsWith("signature_z"),
@@ -548,7 +546,7 @@ function getCoValueCreatorAccountId(coValue: CoValueCore) {
   const accountId =
     cojsonInternals.accountOrAgentIDfromSessionID(creatorSessionId);
 
-  if (!accountId.startsWith("co_z")) {
+  if (!isCoValueId(accountId)) {
     throw new JazzRequestError(
       "Request payload is not valid, the creator is not a valid account",
       400,

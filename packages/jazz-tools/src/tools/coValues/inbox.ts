@@ -382,7 +382,7 @@ async function acceptInvite(invite: string, account?: Account) {
 
   const inviteSecret = invite.slice(invite.indexOf("/") + 1) as InviteSecret;
 
-  if (!id?.startsWith("co_z") || !inviteSecret.startsWith("inviteSecret_")) {
+  if (!isCoValueId(id) || !inviteSecret.startsWith("inviteSecret_")) {
     throw new Error("Invalid inbox ticket");
   }
 
@@ -399,8 +399,8 @@ function getAccountIDfromSessionID(sessionID: SessionID) {
   const until = sessionID.indexOf("_session");
   const accountID = sessionID.slice(0, until);
 
-  if (accountID.startsWith("co_z")) {
-    return accountID as ID<Account>;
+  if (isCoValueId(accountID)) {
+    return accountID;
   }
 
   return;
