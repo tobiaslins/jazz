@@ -136,7 +136,6 @@ export default function RouteComponent() {
       });
     } catch (error) {
       if (isJazzRequestError(error)) {
-        console.error(error.message);
         toast.error(error.message);
       } else {
         console.error(error);
@@ -154,7 +153,6 @@ export default function RouteComponent() {
       });
     } catch (error) {
       if (isJazzRequestError(error)) {
-        console.error(error.message);
         toast.error(error.message);
       } else {
         console.error(error);

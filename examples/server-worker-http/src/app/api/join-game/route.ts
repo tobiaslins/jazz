@@ -32,12 +32,12 @@ interface CreateGameParams {
 }
 
 function createGame({ account1, account2, worker }: CreateGameParams) {
-  const publicReadOnly = Group.create({ owner: worker });
-  publicReadOnly.addMember(account1, "reader");
-  publicReadOnly.addMember(account2, "reader");
+  const gameGroup = Group.create({ owner: worker });
+  gameGroup.addMember(account1, "reader");
+  gameGroup.addMember(account2, "reader");
 
-  const player1 = createPlayer({ account: account1, worker });
-  const player2 = createPlayer({ account: account2, worker });
+  const player1 = createPlayer({ account: account1, owner: gameGroup });
+  const player2 = createPlayer({ account: account2, owner: gameGroup });
 
   const game = Game.create(
     {
@@ -46,7 +46,7 @@ function createGame({ account1, account2, worker }: CreateGameParams) {
       player1Score: 0,
       player2Score: 0,
     },
-    { owner: publicReadOnly },
+    gameGroup,
   );
 
   return game;
@@ -54,18 +54,15 @@ function createGame({ account1, account2, worker }: CreateGameParams) {
 
 interface CreatePlayerParams {
   account: Account;
-  worker: Account;
+  owner: Group;
 }
 
-function createPlayer({ account, worker }: CreatePlayerParams) {
-  const publicRead = Group.create({ owner: worker });
-  publicRead.addMember("everyone", "reader");
-
+function createPlayer({ account, owner }: CreatePlayerParams) {
   const player = Player.create(
     {
-      account: account,
+      account,
     },
-    { owner: publicRead },
+    owner,
   );
 
   return player;
