@@ -56,6 +56,7 @@ describe("experimental_defineRequest", () => {
 
       let receivedUser: unknown;
       let receivedMadeBy: unknown;
+      let requestOwner: Account | Group;
 
       server.use(
         http.post("https://api.example.com/api/user", async ({ request }) => {
@@ -65,6 +66,7 @@ describe("experimental_defineRequest", () => {
               worker,
               async (user, madeBy) => {
                 receivedUser = user.toJSON();
+                requestOwner = user._owner;
                 receivedMadeBy = madeBy.id;
 
                 // Return a plain object (CoMapInit) instead of a CoMap instance
@@ -96,6 +98,11 @@ describe("experimental_defineRequest", () => {
       expect(response.avatar).toEqual(
         "https://example.com/avatars/john@example.com.jpg",
       );
+
+      expect(requestOwner!.members.map((m) => [m.account.id, m.role])).toEqual([
+        [me.id, "admin"],
+        [worker.id, "writer"],
+      ]);
 
       expect(
         response._owner.members.map((m) => [m.account.id, m.role]),

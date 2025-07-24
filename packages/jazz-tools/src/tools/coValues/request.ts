@@ -3,15 +3,16 @@ import {
   CojsonInternalTypes,
   CryptoProvider,
   RawAccount,
+  RawCoMap,
   cojsonInternals,
 } from "cojson";
 import z from "zod/v4";
 import {
   AnyCoMapSchema,
   AnyCoSchema,
+  CoMap,
   CoMapInitZod,
   CoMapSchema,
-  CoValue,
   CoValueClass,
   Group,
   Loaded,
@@ -100,10 +101,15 @@ function createMessageEnvelope<S extends MessageShape>(
   value: MessageValuePayload<S>,
   owner: Account,
   sharedWith: Account | Group,
+  type: "request" | "response",
 ): Loaded<CoMapSchema<S>> {
   const group = Group.create({ owner });
 
-  group.addMember(sharedWith, "reader");
+  if (type === "request") {
+    group.addMember(sharedWith, "writer");
+  } else {
+    group.addMember(sharedWith, "reader");
+  }
 
   // @ts-expect-error - AnyCoMapSchema doesn't have static methods
   return schema.create(value ?? {}, group);
@@ -114,6 +120,7 @@ function createMessageEnvelope<S extends MessageShape>(
  * required for the other side to safely verify the identity of the sender.
  */
 async function serializeMessagePayload({
+  type,
   schema,
   resolve,
   value,
@@ -121,6 +128,7 @@ async function serializeMessagePayload({
   target,
 }: {
   // Skipping type validation here to avoid excessive type complexity that affects the typecheck performance
+  type: "request" | "response";
   schema: AnyCoMapSchema;
   resolve: any;
   value: any;
@@ -135,7 +143,7 @@ async function serializeMessagePayload({
   const signerID = agent.currentSignerID();
   const signerSecret = agent.currentSignerSecret();
 
-  const envelope = createMessageEnvelope(schema, value, me, target);
+  const envelope = createMessageEnvelope(schema, value, me, target, type);
 
   const contentPieces =
     (await exportCoValue(schema, envelope.id, {
@@ -182,20 +190,18 @@ const requestSchema = z.object({
  * @returns The data from the message.
  */
 async function handleMessagePayload({
+  type,
   schema,
   resolve,
   request,
   loadAs,
-  handledMessages,
-  importOnlyEnvelope,
 }: {
+  type: "request" | "response";
   // Skipping type validation here to avoid excessive type complexity that affects the typecheck performance
   schema: AnyCoMapSchema;
   resolve: any;
   request: unknown;
   loadAs: Account;
-  handledMessages: Set<`co_z${string}`>;
-  importOnlyEnvelope: boolean;
 }) {
   const node = loadAs._raw.core.node;
   const crypto = node.crypto;
@@ -212,14 +218,22 @@ async function handleMessagePayload({
 
   const requestData = requestParsed.data;
 
-  // Check if the message has already been handled to prevent replay attacks
-  if (handledMessages.has(requestData.id)) {
-    throw new JazzRequestError("Request payload is already handled", 400);
-  }
+  if (type === "request") {
+    const core = await node.loadCoValueCore(requestData.id, undefined, true);
 
-  // Check if the message is expired as extra protection since the handledMessages set is not persisted
-  if (requestData.createdAt + 1000 * 60 < Date.now()) {
-    throw new JazzRequestError("Authentication token is expired", 401);
+    // Check if the message has already been handled to prevent replay attacks
+    if (core.isAvailable()) {
+      const content = core.getCurrentContent() as RawCoMap;
+
+      if (content.get("$handled") === loadAs.id) {
+        throw new JazzRequestError("Request payload is already handled", 400);
+      }
+    }
+
+    // Check if the message is expired as extra protection
+    if (requestData.createdAt + 1000 * 60 < Date.now()) {
+      throw new JazzRequestError("Authentication token is expired", 401);
+    }
   }
 
   // Verify the signature of the message to prevent tampering
@@ -241,12 +255,10 @@ async function handleMessagePayload({
     throw new JazzRequestError("Invalid signature", 401);
   }
 
-  handledMessages.add(requestData.id);
-
   let contentPieces =
     requestData.contentPieces as CojsonInternalTypes.NewContentMessage[];
 
-  if (importOnlyEnvelope) {
+  if (type === "request") {
     const coValueContent = contentPieces.find(
       (piece) => piece.id === requestData.id,
     );
@@ -278,14 +290,18 @@ async function handleMessagePayload({
     throw new JazzRequestError("Creator account not found", 400);
   }
 
-  const coSchema = anySchemaToCoSchema(schema) as CoValueClass<CoValue>;
-  const value = await loadCoValue(coSchema, requestData.id, {
+  const coSchema = anySchemaToCoSchema(schema) as CoValueClass<CoMap>;
+  const value = await loadCoValue<CoMap, true>(coSchema, requestData.id, {
     resolve,
     loadAs,
   });
 
   if (!value) {
     throw new JazzRequestError("Value not found", 400);
+  }
+
+  if (type === "request") {
+    value._raw.set("$handled", loadAs.id);
   }
 
   return {
@@ -318,7 +334,6 @@ class HttpRoute<
   ResponseShape extends MessageShape = z.core.$ZodLooseShape,
   ResponseResolve extends ResolveQuery<CoMapSchema<ResponseShape>> = any,
 > {
-  private processedValues = new Set<`co_z${string}`>();
   private requestDefinition: {
     schema: AnyCoMapSchema;
     resolve: any;
@@ -366,6 +381,7 @@ class HttpRoute<
       },
       body: JSON.stringify(
         await serializeMessagePayload({
+          type: "request",
           schema: this.requestDefinition.schema,
           resolve: true, // export only the envelope
           value: values,
@@ -402,12 +418,11 @@ class HttpRoute<
     }
 
     const data = await handleMessagePayload({
+      type: "response",
       schema: this.responseDefinition.schema,
       resolve: this.responseDefinition.resolve,
       request: responseParsed.data.payload,
       loadAs: as,
-      handledMessages: this.processedValues,
-      importOnlyEnvelope: false,
     });
 
     return data.value as Loaded<CoMapSchema<ResponseShape>, ResponseResolve>;
@@ -455,12 +470,11 @@ class HttpRoute<
     const node = as._raw.core.node;
     const body = await request.json();
     const data = await handleMessagePayload({
+      type: "request",
       schema: this.requestDefinition.schema,
       resolve: this.requestDefinition.resolve,
       request: body,
       loadAs: as,
-      handledMessages: this.processedValues,
-      importOnlyEnvelope: true,
     });
 
     const tracking = node.syncManager.trackDirtyCoValues();
@@ -471,6 +485,7 @@ class HttpRoute<
     );
 
     const responsePayload = await serializeMessagePayload({
+      type: "response",
       schema: this.responseDefinition.schema,
       resolve: this.responseDefinition.resolve,
       value: responseValue,
