@@ -1,5 +1,25 @@
 # jazz-tools
 
+## 0.15.15
+
+### Patch Changes
+
+- 3fe53a3: Fix property update when assigning an optional reference on CoMap
+  - cojson@0.15.15
+  - cojson-storage-indexeddb@0.15.15
+  - cojson-transport-ws@0.15.15
+
+## 0.15.14
+
+### Patch Changes
+
+- a584590: Prevent resolving discriminated union fields
+- 9acccb5: Export `WithHelpers` type used in CoValue schemas
+- Updated dependencies [70ce7c5]
+  - cojson-transport-ws@0.15.14
+  - cojson@0.15.14
+  - cojson-storage-indexeddb@0.15.14
+
 ## 0.15.13
 
 ### Patch Changes

@@ -1,5 +1,13 @@
 # cojson
 
+## 0.15.15
+
+## 0.15.14
+
+### Patch Changes
+
+- 70ce7c5: Introduce the persistent peers. Used to mark the WebSocket connections to the server as persistent, and wait for reconnection before failing load.
+
 ## 0.15.13
 
 ## 0.15.12
