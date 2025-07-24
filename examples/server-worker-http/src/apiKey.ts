@@ -1,1 +1,1 @@
-export const apiKey = "sever-side-validation@garden.co";
+export const apiKey = "server-side-validation@garden.co";
