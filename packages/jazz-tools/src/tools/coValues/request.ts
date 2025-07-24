@@ -24,6 +24,7 @@ import {
   importContentPieces,
   loadCoValue,
 } from "../internal.js";
+import { isCoValueId } from "../lib/id.js";
 import { Account } from "./account.js";
 
 type MessageShape = Record<string, z.core.$ZodType | AnyCoSchema>;
