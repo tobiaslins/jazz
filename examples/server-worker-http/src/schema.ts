@@ -1,4 +1,4 @@
-import { Account, Group, co, experimental_defineRequest, z } from "jazz-tools";
+import { Account, Group, co, z } from "jazz-tools";
 
 export const PlaySelection = co.map({
   value: z.literal(["rock", "paper", "scissors"]),
