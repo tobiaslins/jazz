@@ -35,23 +35,21 @@ export async function POST(request: Request) {
         game.player2.playSelection = playSelection;
       }
 
-      // TODO: For some reason, the autoload for playSelection is not syncronous after the set
-      // So working around the issue by reading it from the playSelection var.
-      const player1PlaySelection = isPlayer1
-        ? playSelection
-        : game.player1.playSelection;
-      const player2PlaySelection = isPlayer2
-        ? playSelection
-        : game.player2.playSelection;
-
-      if (player1PlaySelection && player2PlaySelection) {
+      if (game.player1.playSelection && game.player2.playSelection) {
         game.outcome = determineOutcome(
-          player1PlaySelection.value,
-          player2PlaySelection.value,
+          game.player1.playSelection.value,
+          game.player2.playSelection.value,
         );
+
         // Reveal the play selections to the other player
-        player1PlaySelection.group.addMember(game.player2.account, "reader");
-        player2PlaySelection.group.addMember(game.player1.account, "reader");
+        game.player1.playSelection.group.addMember(
+          game.player2.account,
+          "reader",
+        );
+        game.player2.playSelection.group.addMember(
+          game.player1.account,
+          "reader",
+        );
 
         if (game.outcome === "player1") {
           game.player1Score++;
