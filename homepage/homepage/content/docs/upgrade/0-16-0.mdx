@@ -2,7 +2,7 @@ import { CodeGroup } from '@/components/forMdx'
 
 # Jazz 0.16.0 - Cleaner separation between Zod and CoValue schemas
 
-This release introduces a cleaner separation between Zod and CoValue schemas and simplifies how you access internal schemas.
+This release introduces a cleaner separation between Zod and CoValue schemas, improves type inference with circular references, and simplifies how you access internal schemas.
 While most applications won't require extensive refactors, some breaking changes will require action.
 
 ## Motivation
@@ -37,6 +37,24 @@ Person.load(map.id, { resolve: { pets: { $each: true } } });
 Schema composition rules are now stricter: Zod schemas can only be composed with other Zod schemas.
 CoValue schemas can be composed with either Zod or other CoValue schemas. These rules are enforced at the type level, to make it easier
 to spot errors in schema definitions and avoid possible footguns when mixing Zod and CoValue schemas.
+
+Having a stricter separation between Zod and CoValue schemas also allowed us to improve type inference with circular references.
+Previously, the type checker would not be able to infer types for even simple circular references, but now it can!
+<CodeGroup>
+```tsx
+import { co, z } from "jazz-tools";
+
+const Person = co.map({
+  name: z.string(),
+  get friends(): CoListSchema<typeof Person> { // [!code --]
+  get friends() { // [!code ++]
+    return co.list(Person);
+  },
+});
+```
+</CodeGroup>
+
+There are some scenarios where recursive type inference can still fail due to TypeScript limitations, but these should be rare.
 
 ## Breaking changes
 

@@ -353,7 +353,7 @@ const Person = co.map({
 ```
 </CodeGroup>
 
-You can use the same technique for mutually recursive references, but you'll need to help TypeScript along:
+You can use the same technique for mutually recursive references:
 
 <CodeGroup>
 ```ts twoslash
@@ -362,28 +362,12 @@ import { co, z } from "jazz-tools";
 
 const Person = co.map({
   name: z.string(),
-  get friends(): co.List<typeof Person> {
+  get friends() {
     return ListOfPeople;
   }
 });
 
 const ListOfPeople = co.list(Person);
-```
-
-</CodeGroup>
-
-Note: similarly, if you use modifiers like `co.optional()` you'll need to help TypeScript along:
-
-<CodeGroup>
-```ts twoslash
-import { co, z } from "jazz-tools";
-// ---cut---
-const Person = co.map({
-  name: z.string(),
-  get bestFriend(): co.Optional<typeof Person> {
-    return co.optional(Person);
-  }
-});
 ```
 
 </CodeGroup>
