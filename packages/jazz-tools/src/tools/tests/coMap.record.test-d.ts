@@ -113,6 +113,33 @@ describe("CoMap.Record", () => {
 
       matches(record);
     });
+
+    test("Record with recursive reference", () => {
+      const Dog = co.map({
+        name: z.string(),
+        get owner() {
+          return Person.optional();
+        },
+      });
+
+      const Person = co.record(z.string(), Dog);
+
+      const person = Person.create({
+        pet1: Dog.create({ name: "Rex" }),
+      });
+
+      person.pet1!.owner = person;
+
+      type ExpectedType = {
+        [key: string]: Loaded<typeof Dog> | undefined;
+      };
+
+      function matches(value: ExpectedType) {
+        return value;
+      }
+
+      matches(person);
+    });
   });
 
   describe("Record resolution", () => {

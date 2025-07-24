@@ -102,6 +102,34 @@ describe("CoList", () => {
       matches(list);
     });
 
+    test("CoList with recursive reference", () => {
+      const Dog = co.map({
+        name: z.string(),
+        breed: z.string(),
+        get friends() {
+          return DogList.optional();
+        },
+      });
+
+      const DogList = co.list(Dog);
+
+      const rex = Dog.create({
+        name: "Rex",
+        breed: "Labrador",
+        friends: DogList.create([]),
+      });
+
+      const list = DogList.create([rex]);
+
+      type ExpectedType = Loaded<typeof Dog>[];
+
+      function matches(value: ExpectedType) {
+        return value;
+      }
+
+      matches(list);
+    });
+
     test("CoList with nested lists", () => {
       const NestedList = co.list(co.list(z.string()));
 
