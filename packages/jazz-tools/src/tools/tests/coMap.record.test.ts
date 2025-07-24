@@ -236,9 +236,6 @@ describe("CoMap.Record", async () => {
         pet1: Dog.create({ name: "Rex", breed: "Labrador" }),
       });
 
-      type V = (typeof Person)["_zod"]["def"]["valueType"];
-      type T = InstanceOrPrimitiveOfSchema<typeof Person>;
-
       const updates: Loaded<typeof Person, { $each: true }>[] = [];
       const spy = vi.fn((person) => updates.push(person));
 
@@ -301,7 +298,7 @@ describe("CoMap.Record", async () => {
   });
 
   // Covers https://github.com/garden-co/jazz/issues/2385
-  test("create a Record with a discriminated union containing a co.map that uses withHelpers", () => {
+  test("create a Record with a discriminated union containing a co.image", () => {
     const Base = co.map({
       type: z.literal("base"),
       name: z.string(),
@@ -309,8 +306,8 @@ describe("CoMap.Record", async () => {
 
     const IssueRepro = co.map({
       type: z.literal("repro"),
-      catchall: co.map({}).withHelpers((self) => self),
       name: z.string(),
+      image: co.image(),
     });
 
     const PersonRecord = co.record(
@@ -320,8 +317,10 @@ describe("CoMap.Record", async () => {
 
     const person = IssueRepro.create({
       type: "repro",
-      catchall: IssueRepro.def.shape.catchall.create({}),
       name: "John",
+      image: co.image().create({
+        originalSize: [1920, 1080],
+      }),
     });
 
     const record = PersonRecord.create({
@@ -329,7 +328,7 @@ describe("CoMap.Record", async () => {
     });
 
     if (record.john?.type === "repro") {
-      expect(record.john.catchall).toEqual({});
+      expect(record.john.image.originalSize).toEqual([1920, 1080]);
       expect(record.john.name).toEqual("John");
       expect(record.john.type).toEqual("repro");
     }
@@ -342,9 +341,10 @@ describe("CoMap.Record", async () => {
       name: z.string(),
     });
 
+    const Catchall = co.map({}).catchall(z.string());
     const IssueRepro = co.map({
       type: z.literal("repro"),
-      catchall: co.map({}).catchall(z.string()),
+      catchall: Catchall,
       name: z.string(),
     });
 
@@ -355,7 +355,7 @@ describe("CoMap.Record", async () => {
 
     const person = IssueRepro.create({
       type: "repro",
-      catchall: IssueRepro.def.shape.catchall.create({}),
+      catchall: Catchall.create({}),
       name: "John",
     });
 

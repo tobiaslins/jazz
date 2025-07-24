@@ -7,6 +7,7 @@ import {
   JazzAccount,
   Organization,
   Project,
+  validateDraftOrganization,
 } from "../schema.ts";
 import { Errors } from "./Errors.tsx";
 import { OrganizationForm } from "./OrganizationForm.tsx";
@@ -21,8 +22,7 @@ export function CreateOrganization() {
   if (!me?.root?.organizations) return;
 
   const onSave = (draft: Loaded<typeof DraftOrganization>) => {
-    // validate if the draft is a valid organization
-    const validation = DraftOrganization.validate(draft);
+    const validation = validateDraftOrganization(draft);
     setErrors(validation.errors);
     if (validation.errors.length > 0) {
       return;
