@@ -24,7 +24,7 @@ import { Group, co, z } from "jazz-tools";
 
 const MyProfile = co.profile({
   name: z.string(),
-  image: z.optional(co.image()),
+  image: co.optional(co.image()),
 });
 
 const MyAccount = co.account({

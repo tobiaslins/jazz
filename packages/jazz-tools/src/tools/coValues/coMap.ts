@@ -20,6 +20,7 @@ import type {
   RefsToResolveStrict,
   Resolved,
   Schema,
+  Simplify,
   SubscribeListenerOptions,
   SubscribeRestArgs,
 } from "../internal.js";
@@ -53,12 +54,6 @@ type CoMapEdit<V> = {
 };
 
 type LastAndAllCoMapEdits<V> = CoMapEdit<V> & { all: CoMapEdit<V>[] };
-
-export type Simplify<A> = {
-  [K in keyof A]: A[K];
-} extends infer B
-  ? B
-  : never;
 
 /**
  * CoMaps are collaborative versions of plain objects, mapping string-like keys to values.

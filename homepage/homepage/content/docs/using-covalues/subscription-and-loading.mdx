@@ -249,7 +249,7 @@ Resolve queries let you declare exactly which references to load and how deep to
 
 <CodeGroup>
 ```ts twoslash
-import { co, z, CoListSchema } from "jazz-tools";
+import { co, z } from "jazz-tools";
 const projectId = "co_123";
 
 // ---cut-before---
@@ -259,8 +259,8 @@ const TeamMember = co.map({
 
 const Task = co.map({
   title: z.string(),
-  assignee: z.optional(TeamMember),
-  get subtasks(): CoListSchema<typeof Task> { return co.list(Task) },
+  assignee: co.optional(TeamMember),
+  get subtasks(): co.List<typeof Task> { return co.list(Task) },
 });
 
 const Project = co.map({
@@ -349,7 +349,7 @@ When a user tries to load a reference they don't have access to:
 
 <CodeGroup>
 ```ts twoslash
-import { co, z, CoListSchema } from "jazz-tools";
+import { co, z } from "jazz-tools";
 
 const TeamMember = co.map({
   name: z.string(),
@@ -357,8 +357,8 @@ const TeamMember = co.map({
 
 const Task = co.map({
   title: z.string(),
-  assignee: z.optional(TeamMember),
-  get subtasks(): CoListSchema<typeof Task> { return co.list(Task) },
+  assignee: co.optional(TeamMember),
+  get subtasks(): co.List<typeof Task> { return co.list(Task) },
 });
 
 const Project = co.map({
@@ -388,7 +388,7 @@ When a list contains references to items the user can't access:
 
 <CodeGroup>
 ```ts twoslash
-import { co, z, CoListSchema } from "jazz-tools";
+import { co, z } from "jazz-tools";
 
 const TeamMember = co.map({
   name: z.string(),
@@ -396,8 +396,8 @@ const TeamMember = co.map({
 
 const Task = co.map({
   title: z.string(),
-  assignee: z.optional(TeamMember),
-  get subtasks(): CoListSchema<typeof Task> { return co.list(Task) },
+  assignee: co.optional(TeamMember),
+  get subtasks(): co.List<typeof Task> { return co.list(Task) },
 });
 
 const Project = co.map({
@@ -424,7 +424,7 @@ When trying to load an object with an inaccessible reference without directly re
 
 <CodeGroup>
 ```ts twoslash
-import { co, z, CoListSchema } from "jazz-tools";
+import { co, z } from "jazz-tools";
 
 const TeamMember = co.map({
   name: z.string(),
@@ -432,8 +432,8 @@ const TeamMember = co.map({
 
 const Task = co.map({
   title: z.string(),
-  assignee: z.optional(TeamMember),
-  get subtasks(): CoListSchema<typeof Task> { return co.list(Task) },
+  assignee: co.optional(TeamMember),
+  get subtasks(): co.List<typeof Task> { return co.list(Task) },
 });
 
 const Project = co.map({
@@ -468,7 +468,7 @@ This way the inaccessible items are replaced with `null` in the returned list.
 
 <CodeGroup>
 ```ts twoslash
-import { co, z, CoListSchema, Group } from "jazz-tools";
+import { co, z, Group } from "jazz-tools";
 import { createJazzTestAccount } from "jazz-tools/testing";
 
 const me = await createJazzTestAccount();
@@ -653,7 +653,7 @@ The `co.loaded` type is especially useful when passing data between components, 
 <ContentByFramework framework="react">
 <CodeGroup>
 ```tsx twoslash
-import { CoListSchema, co, z } from "jazz-tools";
+import { co, z } from "jazz-tools";
 import React from "react";
 
 const TeamMember = co.map({
@@ -662,8 +662,8 @@ const TeamMember = co.map({
 
 const Task = co.map({
   title: z.string(),
-  assignee: z.optional(TeamMember),
-  get subtasks(): CoListSchema<typeof Task> {
+  assignee: co.optional(TeamMember),
+  get subtasks(): co.List<typeof Task> {
     return co.list(Task);
   },
 });
@@ -727,7 +727,7 @@ function processProject(project: FullyLoadedProject) {
 <ContentByFramework framework="vanilla">
 <CodeGroup>
 ```ts twoslash
-import { CoListSchema, co, z } from "jazz-tools";
+import { co, z } from "jazz-tools";
 
 const TeamMember = co.map({
   name: z.string(),
@@ -735,8 +735,8 @@ const TeamMember = co.map({
 
 const Task = co.map({
   title: z.string(),
-  assignee: z.optional(TeamMember),
-  get subtasks(): CoListSchema<typeof Task> {
+  assignee: co.optional(TeamMember),
+  get subtasks(): co.List<typeof Task> {
     return co.list(Task);
   },
 });
@@ -799,7 +799,7 @@ Sometimes you need to make sure data is loaded before proceeding with an operati
 
 <CodeGroup>
 ```ts twoslash
-import { CoListSchema, co, z } from "jazz-tools";
+import { co, z } from "jazz-tools";
 
 const TeamMember = co.map({
   name: z.string(),
@@ -809,7 +809,7 @@ const Task = co.map({
   title: z.string(),
   status: z.literal(["todo", "in-progress", "completed"]),
   assignee: z.string().optional(),
-  get subtasks(): CoListSchema<typeof Task> {
+  get subtasks(): co.List<typeof Task> {
     return co.list(Task);
   },
 });

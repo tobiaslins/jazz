@@ -2,8 +2,10 @@ import { CoValueUniqueness } from "cojson";
 import {
   Account,
   type CoMap,
+  CoMapSchemaDefinition,
   Group,
   ID,
+  NotNull,
   RefsToResolve,
   RefsToResolveStrict,
   Resolved,
@@ -14,21 +16,21 @@ import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { z } from "../zodReExport.js";
-import { WithHelpers } from "../zodSchema.js";
+import { AnyZodOrCoValueSchema } from "../zodSchema.js";
+import { CoOptionalSchema } from "./CoOptionalSchema.js";
+import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 type CoRecordInit<
   K extends z.core.$ZodString<string>,
-  V extends z.core.$ZodType,
+  V extends AnyZodOrCoValueSchema,
 > = {
-  [key in z.output<K>]: V extends z.core.$ZodOptional<any>
-    ? InstanceOrPrimitiveOfSchemaCoValuesNullable<V>
-    : NonNullable<InstanceOrPrimitiveOfSchemaCoValuesNullable<V>>;
+  [key in z.output<K>]: NotNull<InstanceOrPrimitiveOfSchemaCoValuesNullable<V>>;
 };
 
-export type CoRecordSchema<
+export interface CoRecordSchema<
   K extends z.core.$ZodString<string>,
-  V extends z.core.$ZodType,
-> = AnyCoRecordSchema<K, V> & {
+  V extends AnyZodOrCoValueSchema,
+> extends CoreCoRecordSchema<K, V> {
   create: (
     init: Simplify<CoRecordInit<K, V>>,
     options?:
@@ -76,30 +78,38 @@ export type CoRecordSchema<
     as?: Account | Group | AnonymousJazzAgent,
   ): ID<CoRecordInstanceCoValuesNullable<K, V>>;
 
-  /** @deprecated Define your helper methods separately, in standalone functions. */
-  withHelpers<S extends z.core.$ZodType, T extends object>(
-    this: S,
-    helpers: (Self: S) => T,
-  ): WithHelpers<S, T>;
   getCoValueClass: () => typeof CoMap;
+
+  optional(): CoOptionalSchema<this>;
+}
+
+type CoRecordSchemaDefinition<
+  K extends z.core.$ZodString<string>,
+  V extends AnyZodOrCoValueSchema,
+> = CoMapSchemaDefinition & {
+  keyType: K;
+  valueType: V;
 };
 
 // less precise version to avoid circularity issues and allow matching against
-export type AnyCoRecordSchema<
+export interface CoreCoRecordSchema<
   K extends z.core.$ZodString<string> = z.core.$ZodString<string>,
-  V extends z.core.$ZodType = z.core.$ZodType,
-> = z.core.$ZodRecord<K, V> & { collaborative: true };
+  V extends AnyZodOrCoValueSchema = AnyZodOrCoValueSchema,
+> extends CoreCoValueSchema {
+  builtin: "CoMap";
+  getDefinition: () => CoRecordSchemaDefinition<K, V>;
+}
 
 export type CoRecordInstance<
   K extends z.core.$ZodString<string>,
-  V extends z.core.$ZodType,
+  V extends AnyZodOrCoValueSchema,
 > = {
   [key in z.output<K>]: InstanceOrPrimitiveOfSchema<V>;
 } & CoMap;
 
 export type CoRecordInstanceCoValuesNullable<
   K extends z.core.$ZodString<string>,
-  V extends z.core.$ZodType,
+  V extends AnyZodOrCoValueSchema,
 > = {
   [key in z.output<K>]: InstanceOrPrimitiveOfSchemaCoValuesNullable<V>;
 } & CoMap;

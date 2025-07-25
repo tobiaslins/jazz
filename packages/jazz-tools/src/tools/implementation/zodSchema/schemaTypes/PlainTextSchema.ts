@@ -1,22 +1,45 @@
 import { RawCoPlainText } from "cojson";
-import { Account, CoPlainText, Group } from "../../../internal.js";
+import {
+  Account,
+  CoPlainText,
+  Group,
+  coOptionalDefiner,
+} from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
-import { z } from "../zodReExport.js";
+import { CoOptionalSchema } from "./CoOptionalSchema.js";
+import { CoreCoValueSchema } from "./CoValueSchema.js";
 
-export type AnyPlainTextSchema = z.core.$ZodCustom<CoPlainText, unknown> & {
-  collaborative: true;
+export interface CorePlainTextSchema extends CoreCoValueSchema {
   builtin: "CoPlainText";
-};
+}
 
-export type PlainTextSchema = AnyPlainTextSchema & {
+export function createCoreCoPlainTextSchema(): CorePlainTextSchema {
+  return {
+    collaborative: true as const,
+    builtin: "CoPlainText" as const,
+  };
+}
+
+export class PlainTextSchema implements CorePlainTextSchema {
+  readonly collaborative = true as const;
+  readonly builtin = "CoPlainText" as const;
+
+  constructor(private coValueClass: typeof CoPlainText) {}
+
   create(
     text: string,
     options?: { owner: Account | Group } | Account | Group,
-  ): CoPlainText;
+  ): CoPlainText {
+    return this.coValueClass.create(text, options);
+  }
+
   load(
     id: string,
     options: { loadAs: Account | AnonymousJazzAgent },
-  ): Promise<CoPlainText>;
+  ): Promise<CoPlainText | null> {
+    return this.coValueClass.load(id, options);
+  }
+
   subscribe(
     id: string,
     options: { loadAs: Account | AnonymousJazzAgent },
@@ -26,31 +49,20 @@ export type PlainTextSchema = AnyPlainTextSchema & {
     id: string,
     listener: (value: CoPlainText, unsubscribe: () => void) => void,
   ): () => void;
-  fromRaw(raw: RawCoPlainText): CoPlainText;
-  getCoValueClass: () => typeof CoPlainText;
-};
+  subscribe(...args: [any, ...any[]]) {
+    // @ts-expect-error
+    return this.coValueClass.subscribe(...args);
+  }
 
-export function enrichPlainTextSchema(
-  schema: AnyPlainTextSchema,
-  coValueClass: typeof CoPlainText,
-): PlainTextSchema {
-  return Object.assign(schema, {
-    create: (...args: [any, ...any[]]) => {
-      return coValueClass.create(...args);
-    },
-    load: (...args: [any, ...any[]]) => {
-      return coValueClass.load(...args);
-    },
-    subscribe: (...args: [any, ...any[]]) => {
-      // @ts-expect-error
-      return coValueClass.subscribe(...args);
-    },
-    fromRaw: (...args: [any, ...any[]]) => {
-      // @ts-expect-error
-      return coValueClass.fromRaw(...args);
-    },
-    getCoValueClass: () => {
-      return coValueClass;
-    },
-  }) as unknown as PlainTextSchema;
+  fromRaw(raw: RawCoPlainText): CoPlainText {
+    return this.coValueClass.fromRaw(raw);
+  }
+
+  getCoValueClass(): typeof CoPlainText {
+    return this.coValueClass;
+  }
+
+  optional(): CoOptionalSchema<this> {
+    return coOptionalDefiner(this);
+  }
 }

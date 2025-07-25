@@ -1,21 +1,44 @@
-import { Account, CoRichText, Group } from "../../../internal.js";
+import {
+  Account,
+  CoRichText,
+  Group,
+  coOptionalDefiner,
+} from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
-import { z } from "../zodReExport.js";
+import { CoOptionalSchema } from "./CoOptionalSchema.js";
+import { CoreCoValueSchema } from "./CoValueSchema.js";
 
-export type AnyRichTextSchema = z.core.$ZodCustom<CoRichText, unknown> & {
-  collaborative: true;
+export interface CoreRichTextSchema extends CoreCoValueSchema {
   builtin: "CoRichText";
-};
+}
 
-export type RichTextSchema = AnyRichTextSchema & {
+export function createCoreCoRichTextSchema(): CoreRichTextSchema {
+  return {
+    collaborative: true as const,
+    builtin: "CoRichText" as const,
+  };
+}
+
+export class RichTextSchema implements CoreRichTextSchema {
+  readonly collaborative = true as const;
+  readonly builtin = "CoRichText" as const;
+
+  constructor(private coValueClass: typeof CoRichText) {}
+
   create(
     text: string,
     options?: { owner: Account | Group } | Account | Group,
-  ): CoRichText;
+  ): CoRichText {
+    return this.coValueClass.create(text, options);
+  }
+
   load(
     id: string,
     options: { loadAs: Account | AnonymousJazzAgent },
-  ): Promise<CoRichText>;
+  ): Promise<CoRichText | null> {
+    return this.coValueClass.load(id, options);
+  }
+
   subscribe(
     id: string,
     options: { loadAs: Account | AnonymousJazzAgent },
@@ -25,26 +48,16 @@ export type RichTextSchema = AnyRichTextSchema & {
     id: string,
     listener: (value: CoRichText, unsubscribe: () => void) => void,
   ): () => void;
-  getCoValueClass: () => typeof CoRichText;
-};
+  subscribe(...args: [any, ...any[]]) {
+    // @ts-expect-error
+    return this.coValueClass.subscribe(...args);
+  }
 
-export function enrichRichTextSchema(
-  schema: AnyRichTextSchema,
-  coValueClass: typeof CoRichText,
-): RichTextSchema {
-  return Object.assign(schema, {
-    create: (...args: [any, ...any[]]) => {
-      return coValueClass.create(...args);
-    },
-    load: (...args: [any, ...any[]]) => {
-      return coValueClass.load(...args);
-    },
-    subscribe: (...args: [any, ...any[]]) => {
-      // @ts-expect-error
-      return coValueClass.subscribe(...args);
-    },
-    getCoValueClass: () => {
-      return coValueClass;
-    },
-  }) as unknown as RichTextSchema;
+  getCoValueClass(): typeof CoRichText {
+    return this.coValueClass;
+  }
+
+  optional(): CoOptionalSchema<this> {
+    return coOptionalDefiner(this);
+  }
 }

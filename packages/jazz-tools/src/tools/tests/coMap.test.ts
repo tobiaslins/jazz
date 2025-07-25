@@ -12,7 +12,7 @@ import {
 } from "vitest";
 import { Group, co, subscribeToCoValue, z } from "../exports.js";
 import { Account } from "../index.js";
-import { Loaded, anySchemaToCoSchema } from "../internal.js";
+import { Loaded, coValueClassFromCoValueClassOrSchema } from "../internal.js";
 import {
   createJazzTestAccount,
   getPeerConnectedToTestSyncServer,
@@ -144,7 +144,7 @@ describe("CoMap", async () => {
         name: z.string(),
         age: z.number(),
         // TODO: would be nice if this didn't need a type annotation
-        get friend(): z.ZodOptional<typeof Person> {
+        get friend(): co.Optional<typeof Person> {
           return co.optional(Person);
         },
       });
@@ -181,7 +181,7 @@ describe("CoMap", async () => {
       const Person = co.map({
         name: z.string(),
         age: z.number(),
-        get friend(): z.ZodOptional<typeof Person> {
+        get friend(): co.Optional<typeof Person> {
           return co.optional(Person);
         },
       });
@@ -210,7 +210,7 @@ describe("CoMap", async () => {
       const Person = co.map({
         name: z.string(),
         age: z.number(),
-        get friend(): z.ZodOptional<typeof Person> {
+        get friend(): co.Optional<typeof Person> {
           return co.optional(Person);
         },
       });
@@ -801,7 +801,7 @@ describe("CoMap resolution", async () => {
     const spy = vi.fn((person) => updates.push(person));
 
     subscribeToCoValue(
-      anySchemaToCoSchema(Person), // TODO: we should get rid of the conversion in the future
+      coValueClassFromCoValueClassOrSchema(Person), // TODO: we should get rid of the conversion in the future
       person.id,
       {
         syncResolution: true,
@@ -2101,5 +2101,160 @@ describe("CoMap migration", () => {
       const createdAtInSeconds = Math.floor(createdAt / 1000);
       expect(createdAtInSeconds).toEqual(currentTimestampInSeconds);
     });
+  });
+});
+
+describe("co.map schema", () => {
+  test("can access the inner schemas of a co.map", () => {
+    const Person = co.map({
+      name: co.plainText(),
+    });
+
+    const person = Person.create({
+      name: Person.shape["name"].create("John"),
+    });
+
+    expect(person.name.toString()).toEqual("John");
+  });
+});
+
+describe("Updating a nested reference", () => {
+  test("should assign a resolved optional reference and expect value is not null", async () => {
+    // Define the schema similar to the server-worker-http example
+    const PlaySelection = co.map({
+      value: z.literal(["rock", "paper", "scissors"]),
+      group: Group,
+    });
+
+    const Player = co.map({
+      account: co.account(),
+      playSelection: PlaySelection.optional(),
+    });
+
+    const Game = co.map({
+      player1: Player,
+      player2: Player,
+      outcome: z.literal(["player1", "player2", "draw"]).optional(),
+      player1Score: z.number(),
+      player2Score: z.number(),
+    });
+
+    // Create accounts for the players
+    const player1Account = await createJazzTestAccount({
+      creationProps: { name: "Player 1" },
+    });
+    const player2Account = await createJazzTestAccount({
+      creationProps: { name: "Player 2" },
+    });
+
+    // Create a game
+    const game = Game.create({
+      player1: Player.create({
+        account: player1Account,
+      }),
+      player2: Player.create({
+        account: player2Account,
+      }),
+      player1Score: 0,
+      player2Score: 0,
+    });
+
+    // Create a group for the play selection (similar to the route logic)
+    const group = Group.create({ owner: Account.getMe() });
+    group.addMember(player1Account, "reader");
+
+    // Load the game to verify the assignment worked
+    const loadedGame = await Game.load(game.id, {
+      resolve: {
+        player1: {
+          account: true,
+          playSelection: true,
+        },
+        player2: {
+          account: true,
+          playSelection: true,
+        },
+      },
+    });
+
+    assert(loadedGame);
+
+    // Create a play selection
+    const playSelection = PlaySelection.create({ value: "rock", group }, group);
+
+    // Assign the play selection to player1 (similar to the route logic)
+    loadedGame.player1.playSelection = playSelection;
+
+    // Verify that the playSelection is not null and has the expected value
+    expect(loadedGame.player1.playSelection).not.toBeNull();
+    expect(loadedGame.player1.playSelection).toBeDefined();
+  });
+
+  test("should assign a resolved reference and expect value to update", async () => {
+    // Define the schema similar to the server-worker-http example
+    const PlaySelection = co.map({
+      value: z.literal(["rock", "paper", "scissors"]),
+    });
+
+    const Player = co.map({
+      account: co.account(),
+      playSelection: PlaySelection,
+    });
+
+    const Game = co.map({
+      player1: Player,
+      player2: Player,
+      outcome: z.literal(["player1", "player2", "draw"]).optional(),
+      player1Score: z.number(),
+      player2Score: z.number(),
+    });
+
+    // Create accounts for the players
+    const player1Account = await createJazzTestAccount({
+      creationProps: { name: "Player 1" },
+    });
+    const player2Account = await createJazzTestAccount({
+      creationProps: { name: "Player 2" },
+    });
+
+    // Create a game
+    const game = Game.create({
+      player1: Player.create({
+        account: player1Account,
+        playSelection: PlaySelection.create({ value: "rock" }),
+      }),
+      player2: Player.create({
+        account: player2Account,
+        playSelection: PlaySelection.create({ value: "paper" }),
+      }),
+      player1Score: 0,
+      player2Score: 0,
+    });
+
+    // Load the game to verify the assignment worked
+    const loadedGame = await Game.load(game.id, {
+      resolve: {
+        player1: {
+          account: true,
+          playSelection: true,
+        },
+        player2: {
+          account: true,
+          playSelection: true,
+        },
+      },
+    });
+
+    assert(loadedGame);
+
+    // Create a play selection
+    const playSelection = PlaySelection.create({ value: "scissors" });
+
+    // Assign the play selection to player1 (similar to the route logic)
+    loadedGame.player1.playSelection = playSelection;
+
+    // Verify that the playSelection is not null and has the expected value
+    expect(loadedGame.player1.playSelection.id).toBe(playSelection.id);
+    expect(loadedGame.player1.playSelection.value).toEqual("scissors");
   });
 });

@@ -74,9 +74,10 @@ describe("CoList", () => {
     });
 
     test("CoList create with partially loaded, reference and optional", () => {
+      const Breed = co.map({ type: z.literal("labrador"), value: z.string() });
       const Dog = co.map({
         name: z.string(),
-        breed: co.map({ type: z.literal("labrador"), value: z.string() }),
+        breed: Breed,
       });
       type Dog = co.loaded<typeof Dog>;
 
@@ -84,15 +85,43 @@ describe("CoList", () => {
 
       const dog = Dog.create({
         name: "Rex",
-        breed: Dog.def.shape.breed.create({
+        breed: Breed.create({
           type: "labrador",
           value: "Labrador",
         }),
-      }) as Dog;
+      });
 
       const list = DogList.create([dog, undefined]);
 
       type ExpectedType = (Loaded<typeof Dog> | undefined)[];
+
+      function matches(value: ExpectedType) {
+        return value;
+      }
+
+      matches(list);
+    });
+
+    test("CoList with recursive reference", () => {
+      const Dog = co.map({
+        name: z.string(),
+        breed: z.string(),
+        get friends() {
+          return DogList.optional();
+        },
+      });
+
+      const DogList = co.list(Dog);
+
+      const rex = Dog.create({
+        name: "Rex",
+        breed: "Labrador",
+        friends: DogList.create([]),
+      });
+
+      const list = DogList.create([rex]);
+
+      type ExpectedType = Loaded<typeof Dog>[];
 
       function matches(value: ExpectedType) {
         return value;

@@ -1,5 +1,14 @@
 # jazz-tools
 
+## 0.15.15
+
+### Patch Changes
+
+- 3fe53a3: Fix property update when assigning an optional reference on CoMap
+  - cojson@0.15.15
+  - cojson-storage-indexeddb@0.15.15
+  - cojson-transport-ws@0.15.15
+
 ## 0.15.14
 
 ### Patch Changes

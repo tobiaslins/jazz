@@ -7,7 +7,6 @@ import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import {
   Account,
   AccountClass,
-  AccountSchema,
   AnyAccountSchema,
   CoValueFromRaw,
   Inbox,

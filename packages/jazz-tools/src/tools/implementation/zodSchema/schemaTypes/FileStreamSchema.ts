@@ -3,16 +3,32 @@ import {
   AnonymousJazzAgent,
   FileStream,
   Group,
+  coOptionalDefiner,
 } from "../../../internal.js";
-import { z } from "../zodReExport.js";
+import { CoOptionalSchema } from "./CoOptionalSchema.js";
+import { CoreCoValueSchema } from "./CoValueSchema.js";
 
-export type AnyFileStreamSchema = z.core.$ZodCustom<FileStream, unknown> & {
-  collaborative: true;
+export interface CoreFileStreamSchema extends CoreCoValueSchema {
   builtin: "FileStream";
-};
+}
 
-export type FileStreamSchema = AnyFileStreamSchema & {
-  create(options?: { owner?: Account | Group } | Account | Group): FileStream;
+export function createCoreFileStreamSchema(): CoreFileStreamSchema {
+  return {
+    collaborative: true as const,
+    builtin: "FileStream" as const,
+  };
+}
+
+export class FileStreamSchema implements CoreFileStreamSchema {
+  readonly collaborative = true as const;
+  readonly builtin = "FileStream" as const;
+
+  constructor(private coValueClass: typeof FileStream) {}
+
+  create(options?: { owner?: Account | Group } | Account | Group): FileStream {
+    return this.coValueClass.create(options);
+  }
+
   createFromBlob(
     blob: Blob | File,
     options?:
@@ -22,18 +38,27 @@ export type FileStreamSchema = AnyFileStreamSchema & {
         }
       | Account
       | Group,
-  ): Promise<FileStream>;
+  ): Promise<FileStream> {
+    return this.coValueClass.createFromBlob(blob, options);
+  }
+
   loadAsBlob(
     id: string,
     options?: {
       allowUnfinished?: boolean;
       loadAs?: Account | AnonymousJazzAgent;
     },
-  ): Promise<Blob | undefined>;
+  ): Promise<Blob | undefined> {
+    return this.coValueClass.loadAsBlob(id, options);
+  }
+
   load(
     id: string,
     options: { loadAs: Account | AnonymousJazzAgent },
-  ): Promise<FileStream>;
+  ): Promise<FileStream | null> {
+    return this.coValueClass.load(id, options);
+  }
+
   subscribe(
     id: string,
     options: { loadAs: Account | AnonymousJazzAgent },
@@ -43,32 +68,16 @@ export type FileStreamSchema = AnyFileStreamSchema & {
     id: string,
     listener: (value: FileStream, unsubscribe: () => void) => void,
   ): () => void;
-  getCoValueClass: () => typeof FileStream;
-};
+  subscribe(...args: [any, ...any[]]) {
+    // @ts-expect-error
+    return this.coValueClass.subscribe(...args);
+  }
 
-export function enrichFileStreamSchema(
-  schema: AnyFileStreamSchema,
-  coValueClass: typeof FileStream,
-): FileStreamSchema {
-  return Object.assign(schema, {
-    create: (...args: any[]) => {
-      return coValueClass.create(...args);
-    },
-    createFromBlob: (...args: [any, ...any[]]) => {
-      return coValueClass.createFromBlob(...args);
-    },
-    load: (...args: [any, ...any[]]) => {
-      return coValueClass.load(...args);
-    },
-    loadAsBlob: (...args: [any, ...any[]]) => {
-      return coValueClass.loadAsBlob(...args);
-    },
-    subscribe: (...args: [any, ...any[]]) => {
-      // @ts-expect-error
-      return coValueClass.subscribe(...args);
-    },
-    getCoValueClass: () => {
-      return coValueClass;
-    },
-  }) as unknown as FileStreamSchema;
+  getCoValueClass(): typeof FileStream {
+    return this.coValueClass;
+  }
+
+  optional(): CoOptionalSchema<this> {
+    return coOptionalDefiner(this);
+  }
 }

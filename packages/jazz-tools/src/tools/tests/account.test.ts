@@ -1,5 +1,5 @@
 import { assert, beforeEach, expect, test } from "vitest";
-import { Account, CoListSchema, Group, co, z } from "../exports.js";
+import { Account, Group, co, z } from "../exports.js";
 import {
   createJazzTestAccount,
   linkAccounts,
@@ -147,10 +147,10 @@ test("should support recursive props on co.profile", async () => {
     username: z.optional(z.string()),
     display_name: z.optional(z.string()),
     anonymous: z.boolean(),
-    get following(): CoListSchema<typeof User> {
+    get following(): co.List<typeof User> {
       return co.list(User);
     },
-    get followers(): CoListSchema<typeof User> {
+    get followers(): co.List<typeof User> {
       return co.list(User);
     },
   });
