@@ -563,15 +563,14 @@ export class LocalNode {
             : "reader",
     );
 
-    group.core.internalShamefullyCloneVerifiedStateFrom(
-      groupAsInvite.core.verified,
-      { forceOverwrite: true },
-    );
+    const contentPieces =
+      groupAsInvite.core.verified.newContentSince(group.core.knownState()) ??
+      [];
 
-    group.processNewTransactions();
-
-    group.core.notifyUpdate("immediate");
-    this.syncManager.requestCoValueSync(group.core);
+    // Import the new transactions to the current localNode
+    for (const contentPiece of contentPieces) {
+      this.syncManager.handleNewContent(contentPiece, "import");
+    }
   }
 
   /** @internal */

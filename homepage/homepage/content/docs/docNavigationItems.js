@@ -48,11 +48,6 @@ export const docNavigationItems = [
         done: 100,
       },
       {
-        name: "Node.JS / server workers",
-        href: "/docs/project-setup/server-side",
-        done: 80,
-      },
-      {
         name: "Providers",
         href: "/docs/project-setup/providers",
         done: {
@@ -80,6 +75,31 @@ export const docNavigationItems = [
       {
         name: "Inspector",
         href: "/docs/inspector",
+        done: 100,
+      },
+    ],
+  },
+  {
+    name: "Server-side",
+    items: [
+      {
+        name: "Setup",
+        href: "/docs/server-side/setup",
+        done: 100,
+      },
+      {
+        name: "Communicating with workers",
+        href: "/docs/server-side/communicating-with-workers",
+        done: 100,
+      },
+      {
+        name: "HTTP requests",
+        href: "/docs/server-side/http-requests",
+        done: 100,
+      },
+      {
+        name: "Inbox",
+        href: "/docs/server-side/inbox",
         done: 100,
       },
     ],

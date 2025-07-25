@@ -54,6 +54,8 @@ export {
   subscribeToCoValue,
   ImageDefinition,
   SubscriptionScope,
+  exportCoValue,
+  importContentPieces,
 } from "./internal.js";
 
 export {
@@ -118,3 +120,9 @@ export {
   type CoRecordSchema,
   type CoProfileSchema,
 } from "./internal.js";
+
+export {
+  experimental_defineRequest,
+  JazzRequestError,
+  isJazzRequestError,
+} from "./coValues/request.js";
