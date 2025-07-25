@@ -41,7 +41,7 @@ const button = tv({
       variant: "default",
       intent: "default",
       className:
-        "text-white from-10% to-90% from-stone-400 to-stone-500 hover:from-stone-500 hover:to-slate-400 active:from-slate-400 active:to-stone-500 shadow-[inset_0_0_0_0.4px_rgba(120,113,108,0.2),inset_0_0.4px_0_rgba(245,245,244,0.4),inset_0_-0.4px_0_rgba(68,64,60,0.3)]",
+        "text-white from-10% to-90% from-stone-400 to-stone-500 hover:from-stone-500 hover:to-zinc-400 active:from-zinc-400 active:to-stone-500 shadow-[inset_0_0_0_0.4px_rgba(120,113,108,0.2),inset_0_0.4px_0_rgba(245,245,244,0.4),inset_0_-0.4px_0_rgba(68,64,60,0.3)]",
     },
     {
       variant: "default",
@@ -89,13 +89,13 @@ const button = tv({
       variant: "default",
       intent: "muted",
       className:
-        "text-stone-700 dark:text-white from-10% to-90% from-stone-300 to-stone-400 hover:from-stone-400 hover:to-gray-300 active:from-gray-300 active:to-stone-400 shadow-[inset_0_0_0_0.4px_rgba(255,255,255,0.2),inset_0_0.4px_0_rgba(255,255,255,0.4),inset_0_-0.4px_0_rgba(156,163,175,0.3)]",
+        "text-stone-700 dark:text-white from-10% to-90% from-stone-300 to-stone-400 hover:from-stone-400 hover:to-zinc-300 active:from-zinc-300 active:to-stone-400 shadow-[inset_0_0_0_0.4px_rgba(255,255,255,0.2),inset_0_0.4px_0_rgba(255,255,255,0.4),inset_0_-0.4px_0_rgba(156,163,175,0.3)]",
     },
     {
       variant: "default",
       intent: "strong",
       className:
-        "text-stone-100 dark:text-stone-900 from-10% to-90% from-stone-700 to-stone-800 hover:from-stone-800 hover:to-gray-700 active:from-gray-700 active:to-stone-800 shadow-[inset_0_0_0_0.4px_rgba(68,64,60,0.2),inset_0_0.4px_0_rgba(168,162,158,0.4),inset_0_-0.4px_0_rgba(41,37,36,0.3)]",
+        "text-stone-100 dark:text-stone-900 from-10% to-90% from-stone-700 to-stone-800 hover:from-stone-800 hover:to-zinc-600 active:from-zinc-600 active:to-stone-800 shadow-[inset_0_0_0_0.4px_rgba(68,64,60,0.2),inset_0_0.4px_0_rgba(168,162,158,0.4),inset_0_-0.4px_0_rgba(41,37,36,0.3)]",
     },
     // Secondary Variant (alias for default-muted)
     {
