@@ -50,6 +50,7 @@ export type DecryptedTransaction = {
   txID: TransactionID;
   changes: JsonValue[];
   madeAt: number;
+  trusting?: boolean;
 };
 
 const readKeyCache = new WeakMap<CoValueCore, { [id: KeyID]: KeySecret }>();
@@ -657,6 +658,7 @@ export class CoValueCore {
             txID,
             madeAt: tx.madeAt,
             changes: parseJSON(tx.changes),
+            trusting: true,
           });
         } catch (e) {
           logger.error("Failed to parse trusting transaction on " + this.id, {
