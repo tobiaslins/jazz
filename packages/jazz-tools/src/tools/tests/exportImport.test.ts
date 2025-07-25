@@ -464,13 +464,13 @@ describe("importContentPieces", () => {
       {
         title: "My First Post",
         content: "Hello World",
-        comments: Post.def.shape.comments.create([comment1, comment2], group),
+        comments: Post.shape.comments.create([comment1, comment2], group),
       },
       group,
     );
 
     const blog = Blog.create(
-      { name: "My Blog", posts: Blog.def.shape.posts.create([post], group) },
+      { name: "My Blog", posts: Blog.shape.posts.create([post], group) },
       group,
     );
 

@@ -1,5 +1,4 @@
 import {
-  CoValueCore,
   type CoValueUniqueness,
   type CojsonInternalTypes,
   type RawCoValue,
@@ -21,9 +20,7 @@ import {
   SubscriptionScope,
   type SubscriptionValue,
   activeAccountContext,
-  anySchemaToCoSchema,
   coValueClassFromCoValueClassOrSchema,
-  getSubscriptionScope,
   inspect,
 } from "../internal.js";
 
@@ -451,7 +448,7 @@ export function parseGroupCreateOptions(
  * ```
  */
 export async function exportCoValue<
-  S extends CoValueOrZodSchema | CoValueClass<CoValue>,
+  S extends CoValueClassOrSchema,
   const R extends ResolveQuery<S>,
 >(
   cls: S,
@@ -473,7 +470,7 @@ export async function exportCoValue<
     resolve as any,
     id,
     {
-      ref: anySchemaToCoSchema(cls),
+      ref: coValueClassFromCoValueClassOrSchema(cls),
       optional: false,
     },
     options.skipRetry,
