@@ -1,5 +1,12 @@
 # cojson-storage-indexeddb
 
+## 0.16.0
+
+### Patch Changes
+
+- Updated dependencies [c09dcdf]
+  - cojson@0.16.0
+
 ## 0.15.16
 
 ### Patch Changes
