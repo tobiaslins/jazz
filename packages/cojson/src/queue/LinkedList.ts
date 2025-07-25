@@ -1,6 +1,5 @@
 import { Counter, ValueType, metrics } from "@opentelemetry/api";
-import { CO_VALUE_PRIORITY, type CoValuePriority } from "./priority.js";
-import type { SyncMessage } from "./sync.js";
+import type { SyncMessage } from "../sync.js";
 
 /**
  * Since we have a fixed range of priority values (0-7) we can create a fixed array of queues.
@@ -10,18 +9,16 @@ type Tuple<T, N extends number, A extends unknown[] = []> = A extends {
 }
   ? A
   : Tuple<T, N, [...A, T]>;
-
-type QueueTuple = Tuple<LinkedList<SyncMessage>, 3>;
-
+export type QueueTuple = Tuple<LinkedList<SyncMessage>, 3>;
 type LinkedListNode<T> = {
   value: T;
   next: LinkedListNode<T> | undefined;
 };
-
 /**
  * Using a linked list to make the shift operation O(1) instead of O(n)
  * as our queues can grow very large when the system is under pressure.
  */
+
 export class LinkedList<T> {
   constructor(private meter?: QueueMeter) {}
 
@@ -70,7 +67,6 @@ export class LinkedList<T> {
     return this.head === undefined;
   }
 }
-
 class QueueMeter {
   private pullCounter: Counter;
   private pushCounter: Counter;
@@ -111,52 +107,9 @@ class QueueMeter {
     this.pushCounter.add(1, this.attrs);
   }
 }
-
-function meteredList<T>(
+export function meteredList<T>(
   type: "incoming" | "outgoing",
   attrs?: Record<string, string | number>,
 ) {
   return new LinkedList<T>(new QueueMeter("jazz.messagequeue." + type, attrs));
-}
-
-const PRIORITY_TO_QUEUE_INDEX = {
-  [CO_VALUE_PRIORITY.HIGH]: 0,
-  [CO_VALUE_PRIORITY.MEDIUM]: 1,
-  [CO_VALUE_PRIORITY.LOW]: 2,
-} as const;
-
-export class PriorityBasedMessageQueue {
-  private queues: QueueTuple;
-
-  constructor(
-    private defaultPriority: CoValuePriority,
-    type: "incoming" | "outgoing",
-    /**
-     * Optional attributes to be added to the generated metrics.
-     * By default the metrics will have the priority as an attribute.
-     */
-    attrs?: Record<string, string | number>,
-  ) {
-    this.queues = [
-      meteredList(type, { priority: CO_VALUE_PRIORITY.HIGH, ...attrs }),
-      meteredList(type, { priority: CO_VALUE_PRIORITY.MEDIUM, ...attrs }),
-      meteredList(type, { priority: CO_VALUE_PRIORITY.LOW, ...attrs }),
-    ];
-  }
-
-  private getQueue(priority: CoValuePriority) {
-    return this.queues[PRIORITY_TO_QUEUE_INDEX[priority]];
-  }
-
-  public push(msg: SyncMessage) {
-    const priority = "priority" in msg ? msg.priority : this.defaultPriority;
-
-    this.getQueue(priority).push(msg);
-  }
-
-  public pull() {
-    const priority = this.queues.findIndex((queue) => queue.length > 0);
-
-    return this.queues[priority]?.shift();
-  }
 }

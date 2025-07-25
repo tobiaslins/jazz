@@ -53,9 +53,7 @@ import { co, z } from "jazz-tools";
 // ...somewhere in jazz-tools itself...
 const Account = co.account({
   root: co.map({}),
-  profile: co.profile({
-    name: z.string(),
-  }),
+  profile: co.profile(),
 });
 ```
 </CodeGroup>
