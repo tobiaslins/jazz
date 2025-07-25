@@ -13,8 +13,8 @@ const button = tv({
       destructive:
         "shadow-sm shadow-stone-400/20 focus:outline-none focus-visible:ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-opacity-10 bg-gradient-to-t from-7% via-50% to-95%",
       ghost: "bg-transparent",
-      outline: "border shadow-[5px_0px]",
-      link: "bg-transparent underline underline-offset-2 p-0 hover:bg-transparent active:underline-stone-500",
+      outline: "border bg-transparent shadow-[5px_0px]",
+      link: "bg-transparent underline underline-offset-2 p-0 hover:bg-transparent",
       inverted: "shadow-sm",
     },
     intent: {
@@ -41,7 +41,7 @@ const button = tv({
       variant: "default",
       intent: "default",
       className:
-        "text-stone-700 dark:text-white hover:text-stone-800 active:text-stone-700 dark:hover:text-stone-100 dark:active:text-stone-200 from-stone-200 to-stone-400 hover:from-stone-400 hover:to-stone-100 active:from-stone-500 active:to-stone-200 shadow-[inset_0_0_0_0.4px_rgba(255,255,255,0.2),inset_0_0.4px_0_rgba(255,255,255,0.4),inset_0_-0.4px_0_rgba(156,163,175,0.3)]",
+        "text-stone-700 dark:text-white from-stone-200 to-stone-400 hover:from-stone-400 hover:to-stone-100 active:from-stone-500 active:to-stone-200 shadow-[inset_0_0_0_0.4px_rgba(255,255,255,0.2),inset_0_0.4px_0_rgba(255,255,255,0.4),inset_0_-0.4px_0_rgba(156,163,175,0.3)]",
     },
     {
       variant: "default",
@@ -65,7 +65,7 @@ const button = tv({
       variant: "default",
       intent: "success",
       className:
-        "text-white from-success-light to-success-dark hover:from-success-brightDark hover:to-success-brightLight active:from-success-dark hover:to-success-light shadow-[inset_0_0_0_0.4px_rgba(34,197,94,0.2),inset_0_0.4px_0_rgba(187,247,208,0.4),inset_0_-0.4px_0_rgba(22,101,52,0.3)]",
+        "text-white from-success-light to-success-dark hover:from-success-brightDark hover:to-success-brightLight active:from-success-dark active:to-success-light shadow-[inset_0_0_0_0.4px_rgba(34,197,94,0.2),inset_0_0.4px_0_rgba(187,247,208,0.4),inset_0_-0.4px_0_rgba(22,101,52,0.3)]",
     },
     {
       variant: "default",
@@ -114,61 +114,61 @@ const button = tv({
       variant: "outline",
       intent: "default",
       className:
-        "border-stone-600 dark:border-stone-200 text-stone-700 dark:text-stone-100 hover:text-stone-600 dark:hover:text-stone-200 shadow-sm shadow-stone-600/20 hover:shadow-stone-600/30 dark:shadow-stone-200/20 dark:hover:shadow-stone-200/30 active:bg-stone-600/20 dark:active:bg-stone-100/20",
+        "border-stone-600 dark:border-stone-200 text-stone-700 dark:text-stone-100 hover:text-stone-600 dark:hover:text-stone-200 active:bg-stone-600/20 dark:active:bg-stone-100/20 shadow-[inset_0_0_0_0.4px_rgba(255,255,255,0.2),inset_0_0.4px_0_rgba(255,255,255,0.4),inset_0_-0.4px_0_rgba(156,163,175,0.3)]",
     },
     {
       variant: "outline",
       intent: "primary",
       className:
-        "border-primary text-primary hover:text-primary-light shadow-sm shadow-blue/20 hover:shadow-blue/40 active:bg-blue/20",
+        "border-primary text-primary hover:text-primary-light active:bg-primary-20 shadow-[inset_0_0_0_0.4px_rgba(59,130,246,0.2),inset_0_0.4px_0_rgba(147,197,253,0.4),inset_0_-0.4px_0_rgba(30,64,175,0.3)]",
     },
     {
       variant: "outline",
       intent: "tip",
       className:
-        "border-tip text-tip hover:text-tip-light shadow-sm shadow-cyan/20 hover:shadow-cyan/30 active:bg-cyan/20",
+        "border-tip text-tip hover:text-tip-light active:bg-tip-20 shadow-[inset_0_0_0_0.4px_rgba(6,182,212,0.2),inset_0_0.4px_0_rgba(207,250,254,0.4),inset_0_-0.4px_0_rgba(21,94,117,0.3)]",
     },
     {
       variant: "outline",
       intent: "info",
       className:
-        "border-info text-info hover:text-info-light shadow-sm shadow-purple/20 hover:shadow-purple/30 active:bg-purple/20",
+        "border-info text-info hover:text-info-light active:bg-info-20 shadow-[inset_0_0_0_0.4px_rgba(147,51,234,0.2),inset_0_0.4px_0_rgba(221,214,254,0.4),inset_0_-0.4px_0_rgba(88,28,135,0.3)]",
     },
     {
       variant: "outline",
       intent: "success",
       className:
-        "border-success text-success hover:text-success-light shadow-sm shadow-green/20 hover:shadow-green/30 active:bg-green/20",
+        "border-success text-success hover:text-success-light active:bg-success-20 shadow-[inset_0_0_0_0.4px_rgba(34,197,94,0.2),inset_0_0.4px_0_rgba(187,247,208,0.4),inset_0_-0.4px_0_rgba(22,101,52,0.3)]",
     },
     {
       variant: "outline",
       intent: "warning",
       className:
-        "border-warning text-warning hover:text-warning-light shadow-sm shadow-orange/20 hover:shadow-orange/30 active:bg-orange/20",
+        "border-warning text-warning hover:text-warning-light active:bg-warning-20 shadow-[inset_0_0_0_0.4px_rgba(249,115,22,0.2),inset_0_0.4px_0_rgba(254,240,138,0.4),inset_0_-0.4px_0_rgba(154,52,18,0.3)]",
     },
     {
       variant: "outline",
       intent: "alert",
       className:
-        "border-alert text-alert hover:text-alert-light shadow-sm shadow-yellow/20 hover:shadow-yellow/30 active:bg-yellow/20",
+        "border-alert text-alert hover:text-alert-light active:bg-alert-20 shadow-[inset_0_0_0_0.4px_rgba(234,179,8,0.2),inset_0_0.4px_0_rgba(254,249,195,0.4),inset_0_-0.4px_0_rgba(133,77,14,0.3)]",
     },
     {
       variant: "outline",
       intent: "danger",
       className:
-        "border-danger text-danger hover:text-danger-light shadow-sm shadow-red/20 hover:shadow-red/30 active:bg-red/20",
+        "border-danger text-danger hover:text-danger-light active:bg-danger-20 shadow-[inset_0_0_0_0.4px_rgba(239,68,68,0.2),inset_0_0.4px_0_rgba(254,202,202,0.4),inset_0_-0.4px_0_rgba(153,27,27,0.3)]",
     },
     {
       variant: "outline",
       intent: "muted",
       className:
-        "border-stone-200 dark:border-stone-700 text-stone-500 dark:text-stone-400 hover:text-stone-400 dark:hover:text-stone-500 shadow-sm shadow-stone-200/20 hover:shadow-stone-200/30 dark:shadow-stone-600/20 dark:hover:shadow-stone-600/30 active:bg-stone-400/20",
+        "border-stone-200 dark:border-stone-700 text-stone-500 dark:text-stone-400 hover:text-stone-400 dark:hover:text-stone-500 active:bg-stone-400/20 shadow-[inset_0_0_0_0.4px_rgba(120,113,108,0.2),inset_0_0.4px_0_rgba(245,245,244,0.4),inset_0_-0.4px_0_rgba(68,64,60,0.3)]",
     },
     {
       variant: "outline",
       intent: "strong",
       className:
-        "border-stone-900 dark:border-stone-100 text-stone-900 dark:text-white hover:text-stone-700 dark:hover:text-stone-300 shadow-sm shadow-stone-900/20 hover:shadow-stone-900/30 dark:shadow-white/20 dark:hover:shadow-white/30 active:bg-stone-900/20",
+        "border-stone-900 dark:border-stone-100 text-stone-900 dark:text-white hover:text-stone-700 dark:hover:text-stone-300 active:bg-stone-900/20 shadow-[inset_0_0_0_0.4px_rgba(68,64,60,0.2),inset_0_0.4px_0_rgba(168,162,158,0.4),inset_0_-0.4px_0_rgba(41,37,36,0.3)]",
     },
     // Inverted Variant
     {
@@ -180,41 +180,41 @@ const button = tv({
     {
       variant: "inverted",
       intent: "primary",
-      className: "text-primary hover:bg-blue/30 bg-blue/20 active:bg-blue/50",
+      className:
+        "text-primary hover:bg-primary-30 bg-primary-20 active:bg-primary-50",
     },
     {
       variant: "inverted",
       intent: "tip",
-      className: "text-tip hover:bg-cyan/30 bg-cyan/20 active:bg-cyan/50",
+      className: "text-tip hover:bg-tip-30 bg-tip-20 active:bg-tip-50",
     },
     {
       variant: "inverted",
       intent: "info",
-      className:
-        "text-info hover:bg-purple/30 bg-purple/20 active:bg-purple/50",
+      className: "text-info hover:bg-info-30 bg-info-20 active:bg-info-50",
     },
     {
       variant: "inverted",
       intent: "success",
       className:
-        "text-success hover:bg-green/30 bg-green/20 active:bg-green/50",
+        "text-success hover:bg-success-30 bg-success-20 active:bg-success-50",
     },
     {
       variant: "inverted",
       intent: "warning",
       className:
-        "text-warning hover:bg-orange/30 bg-orange/20 active:bg-orange/50",
+        "text-warning hover:bg-warning-30 bg-warning-20 active:bg-warning-50",
     },
     {
       variant: "inverted",
       intent: "alert",
-      className:
-        "text-alert hover:bg-yellow/30 bg-yellow/20 active:bg-yellow/50",
+      className: "text-alert hover:bg-alert-30 bg-alert-20 active:bg-alert-50",
     },
     {
       variant: "inverted",
       intent: "danger",
-      className: "text-danger hover:bg-red/30 bg-red/20 active:bg-red/50",
+      className:
+        "text-danger hover:bg-danger-30 bg-danger-20 active:bg-danger-50",
     },
     {
       variant: "inverted",
@@ -238,37 +238,37 @@ const button = tv({
     {
       variant: "ghost",
       intent: "primary",
-      className: "text-primary hover:bg-blue/10 active:bg-blue/25",
+      className: "text-primary hover:bg-primary-10 active:bg-primary-25",
     },
     {
       variant: "ghost",
       intent: "tip",
-      className: "text-tip hover:bg-cyan/10 active:bg-cyan/25",
+      className: "text-tip hover:bg-tip-10 active:bg-tip-25",
     },
     {
       variant: "ghost",
       intent: "info",
-      className: "text-info hover:bg-purple/10 active:bg-purple/25",
+      className: "text-info hover:bg-info-10 active:bg-info-25",
     },
     {
       variant: "ghost",
       intent: "success",
-      className: "text-success hover:bg-green/10 active:bg-green/25",
+      className: "text-success hover:bg-success-10 active:bg-success-25",
     },
     {
       variant: "ghost",
       intent: "warning",
-      className: "text-warning hover:bg-orange/10 active:bg-orange/25",
+      className: "text-warning hover:bg-warning-10 active:bg-warning-25",
     },
     {
       variant: "ghost",
       intent: "alert",
-      className: "text-alert hover:bg-yellow/10 active:bg-yellow/25",
+      className: "text-alert hover:bg-alert-10 active:bg-alert-25",
     },
     {
       variant: "ghost",
       intent: "danger",
-      className: "text-danger hover:bg-red/10 active:bg-red/25",
+      className: "text-danger hover:bg-danger-10 active:bg-danger-25",
     },
     {
       variant: "ghost",
@@ -287,7 +287,7 @@ const button = tv({
       variant: "link",
       intent: "default",
       className:
-        "text-stone-700 dark:text-stone-100 hover:text-stone-600 dark:hover:text-stone-200 active:text-stone-800 dark:active:text-stone-400",
+        "text-stone-700 dark:text-stone-100 hover:text-stone-600 dark:hover:text-stone-200 active:text-stone-800 dark:active:text-stone-400 active:underline-stone-500",
     },
     {
       variant: "link",

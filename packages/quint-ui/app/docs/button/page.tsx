@@ -16,7 +16,7 @@ export default function ButtonDocsPage() {
     "strong",
   ] as const;
   const [selectedVariant, setSelectedVariant] =
-    useState<(typeof variants)[number]>("default");
+    useState<(typeof variants)[number]>("tip");
   return (
     <>
       <h3 className="text-lg mt-5 mb-2 font-bold">Variants</h3>
@@ -25,6 +25,7 @@ export default function ButtonDocsPage() {
 
       <div className="grid grid-cols-2 gap-2">
         <Button variant="default">default</Button>
+        <Button variant="inverted">inverted</Button>
         <Button variant="link">link</Button>
         <Button variant="ghost">ghost</Button>
         <Button variant="outline">outline</Button>
