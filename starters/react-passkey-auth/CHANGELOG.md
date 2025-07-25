@@ -1,5 +1,13 @@
 # jazz-react-tailwind-starter
 
+## 0.0.136
+
+### Patch Changes
+
+- Updated dependencies [9633d01]
+- Updated dependencies [4beafb7]
+  - jazz-tools@0.15.16
+
 ## 0.0.135
 
 ### Patch Changes

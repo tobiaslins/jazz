@@ -431,16 +431,16 @@ const reactExamples: Example[] = [
     demoUrl: "https://music.demo.jazz.tools",
     illustration: <MusicIllustration />,
   },
-  // {
-  //   name: "Jazz paper scissors",
-  //   slug: "jazz-paper-scissors",
-  //   description:
-  //     "A game that shows how to communicate with other accounts through the experimental Inbox API.",
-  //   tech: [tech.react],
-  //   features: [features.serverWorker, features.inbox],
-  //   illustration: <JazzPaperScissorsIllustration />,
-  //   demoUrl: "https://jazz-paper-scissors.demo.jazz.tools",
-  // },
+  {
+    name: "Server-side HTTP requests",
+    slug: "server-worker-http",
+    description:
+      "A game that shows how to manage state in a trusted environment through the experimental HTTP API.",
+    tech: [tech.react],
+    features: [features.serverWorker],
+    illustration: <JazzPaperScissorsIllustration />,
+    demoUrl: "https://jazz-paper-scissors.demo.jazz.tools",
+  },
   {
     name: "Clerk",
     slug: "clerk",

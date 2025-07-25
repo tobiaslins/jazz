@@ -63,7 +63,7 @@ import { DisconnectedError, SyncManager, emptyKnownState } from "./sync.js";
 
 type Value = JsonValue | AnyRawCoValue;
 
-export { PriorityBasedMessageQueue } from "./PriorityBasedMessageQueue.js";
+export { PriorityBasedMessageQueue } from "./queue/PriorityBasedMessageQueue.js";
 import { getDependedOnCoValuesFromRawData } from "./coValueCore/utils.js";
 import {
   CO_VALUE_LOADING_CONFIG,
@@ -73,6 +73,7 @@ import {
 } from "./config.js";
 import { LogLevel, logger } from "./logger.js";
 import { CO_VALUE_PRIORITY, getPriorityFromHeader } from "./priority.js";
+import { getDependedOnCoValues } from "./storage/syncUtils.js";
 
 /** @hidden */
 export const cojsonInternals = {
@@ -86,6 +87,7 @@ export const cojsonInternals = {
   bytesToBase64url,
   parseJSON,
   stableStringify,
+  getDependedOnCoValues,
   getDependedOnCoValuesFromRawData,
   accountOrAgentIDfromSessionID,
   isAccountID,

@@ -1,5 +1,15 @@
 # jazz-tools
 
+## 0.15.16
+
+### Patch Changes
+
+- 9633d01: Introduced a new HTTP based API to talk with Server Workers
+- 4beafb7: Fix property update when assigning an optional reference on CoMap
+  - cojson@0.15.16
+  - cojson-storage-indexeddb@0.15.16
+  - cojson-transport-ws@0.15.16
+
 ## 0.15.15
 
 ### Patch Changes
