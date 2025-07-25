@@ -9,6 +9,7 @@ import {
   Hash,
   KeyID,
   KeySecret,
+  SessionLogImpl,
   Signature,
   SignerID,
   StreamingHash,
@@ -50,7 +51,7 @@ export type Transaction = PrivateTransaction | TrustingTransaction;
 
 type SessionLog = {
   signerID: SignerID;
-  wasm: WasmSessionLog;
+  impl: SessionLogImpl;
   transactions: Transaction[];
   lastSignature: Signature | undefined;
   // lastHash: Hash | undefined;
@@ -90,7 +91,7 @@ export class VerifiedState {
     const clonedSessions = new Map();
     for (let [sessionID, sessionLog] of this.sessions) {
       clonedSessions.set(sessionID, {
-        wasm: sessionLog.wasm.clone(),
+        impl: sessionLog.impl.clone(),
         transactions: sessionLog.transactions.slice(),
         lastSignature: sessionLog.lastSignature,
         // lastHash: sessionLog.lastHash,
@@ -119,7 +120,7 @@ export class VerifiedState {
     if (!sessionLog) {
       sessionLog = {
         signerID,
-        wasm: new WasmSessionLog(this.id, sessionID, signerID),
+        impl: this.crypto.createSessionLog(this.id, sessionID, signerID),
         transactions: [],
         lastSignature: undefined,
         // lastHash: undefined,
@@ -130,7 +131,7 @@ export class VerifiedState {
     }
 
     try {
-      const newHash = sessionLog.wasm.tryAdd(
+      const newHash = sessionLog.impl.tryAdd(
         newTransactions.map((tx) => stableStringify(tx)),
         newSignature,
         skipVerify,
@@ -167,7 +168,7 @@ export class VerifiedState {
     if (!sessionLog) {
       sessionLog = {
         signerID: signerAgent.currentSignerID(),
-        wasm: new WasmSessionLog(
+        impl: this.crypto.createSessionLog(
           this.id,
           sessionID,
           signerAgent.currentSignerID(),
@@ -186,7 +187,7 @@ export class VerifiedState {
     let signatureAndTxJson: string;
 
     if (privacy.type === "private") {
-      signatureAndTxJson = sessionLog.wasm.addNewPrivateTransaction(
+      signatureAndTxJson = sessionLog.impl.addNewPrivateTransaction(
         stableStringify(changes),
         signerAgent.currentSignerSecret(),
         privacy.keySecret,
@@ -194,7 +195,7 @@ export class VerifiedState {
         madeAt,
       ) as Signature;
     } else {
-      signatureAndTxJson = sessionLog.wasm.addNewTrustingTransaction(
+      signatureAndTxJson = sessionLog.impl.addNewTrustingTransaction(
         stableStringify(changes),
         signerAgent.currentSignerSecret(),
         madeAt,
@@ -260,7 +261,7 @@ export class VerifiedState {
       return { expectedNewHash: result as Hash };
     }
     return {
-      expectedNewHash: sessionLog.wasm.testExpectedHashAfter(
+      expectedNewHash: sessionLog.impl.testExpectedHashAfter(
         transactions.map((tx) => stableStringify(tx)),
       ) as Hash,
     };

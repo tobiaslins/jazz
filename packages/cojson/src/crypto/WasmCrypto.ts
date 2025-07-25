@@ -1,3 +1,4 @@
+import { SessionLog } from "cojson-core-wasm";
 import {
   Blake3Hasher,
   blake3_empty_state,
@@ -16,7 +17,7 @@ import {
   verify,
 } from "jazz-crypto-rs";
 import { base64URLtoBytes, bytesToBase64url } from "../base64url.js";
-import { RawCoID, TransactionID } from "../ids.js";
+import { RawCoID, SessionID, TransactionID } from "../ids.js";
 import { Stringified, stableStringify } from "../jsonStringify.js";
 import { JsonValue } from "../jsonValue.js";
 import { logger } from "../logger.js";
@@ -194,5 +195,13 @@ export class WasmCrypto extends CryptoProvider<Blake3State> {
       logger.error("Failed to decrypt/parse sealed message", { err: e });
       return undefined;
     }
+  }
+
+  createSessionLog(
+    coID: RawCoID,
+    sessionID: SessionID,
+    signerID: SignerID,
+  ): SessionLog {
+    return new SessionLog(coID, sessionID, signerID);
   }
 }

@@ -2,8 +2,9 @@ import { xsalsa20, xsalsa20poly1305 } from "@noble/ciphers/salsa";
 import { ed25519, x25519 } from "@noble/curves/ed25519";
 import { blake3 } from "@noble/hashes/blake3";
 import { base58 } from "@scure/base";
+import { SessionLog } from "cojson-core-wasm";
 import { base64URLtoBytes, bytesToBase64url } from "../base64url.js";
-import { RawCoID, TransactionID } from "../ids.js";
+import { RawCoID, SessionID, TransactionID } from "../ids.js";
 import { Stringified, stableStringify } from "../jsonStringify.js";
 import { JsonValue } from "../jsonValue.js";
 import { logger } from "../logger.js";
@@ -198,5 +199,13 @@ export class PureJSCrypto extends CryptoProvider<Blake3State> {
       logger.error("Failed to decrypt/parse sealed message", { err: e });
       return undefined;
     }
+  }
+
+  createSessionLog(
+    coID: RawCoID,
+    sessionID: SessionID,
+    signerID: SignerID,
+  ): SessionLog {
+    throw new Error("Not implemented");
   }
 }
