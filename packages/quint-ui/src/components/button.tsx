@@ -2,6 +2,30 @@ import { mergeProps } from "@base-ui-components/react/merge-props";
 import { useRender } from "@base-ui-components/react/use-render";
 import { type VariantProps, tv } from "tailwind-variants";
 
+type ButtonVariants = VariantProps<typeof button>;
+
+interface ButtonProps
+  extends Omit<useRender.ComponentProps<"button">, keyof ButtonVariants>,
+    ButtonVariants {}
+
+export function Button({ render = <button />, ...props }: ButtonProps) {
+  const element = useRender({
+    render,
+    props: mergeProps<"button">(
+      {
+        className: button({
+          size: props.size,
+          variant: props.variant,
+          intent: props.intent,
+        }),
+      },
+      props,
+    ),
+  });
+
+  return element;
+}
+
 const button = tv({
   base: "inline-flex items-center justify-center gap-2 rounded-lg text-center transition-colors w-fit text-nowrap disabled:pointer-events-none disabled:opacity-70 cursor-pointer font-medium",
   variants: {
@@ -346,27 +370,3 @@ const button = tv({
     intent: "default",
   },
 });
-
-type ButtonVariants = VariantProps<typeof button>;
-
-interface ButtonProps
-  extends Omit<useRender.ComponentProps<"button">, keyof ButtonVariants>,
-    ButtonVariants {}
-
-export function Button({ render = <button />, ...props }: ButtonProps) {
-  const element = useRender({
-    render,
-    props: mergeProps<"button">(
-      {
-        className: button({
-          size: props.size,
-          variant: props.variant,
-          intent: props.intent,
-        }),
-      },
-      props,
-    ),
-  });
-
-  return element;
-}
