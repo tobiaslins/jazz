@@ -41,7 +41,7 @@ const button = tv({
       variant: "default",
       intent: "default",
       className:
-        "text-stone-700 dark:text-white from-stone-200 to-stone-400 hover:from-stone-400 hover:to-stone-100 active:from-stone-500 active:to-stone-200 shadow-[inset_0_0_0_0.4px_rgba(255,255,255,0.2),inset_0_0.4px_0_rgba(255,255,255,0.4),inset_0_-0.4px_0_rgba(156,163,175,0.3)]",
+        "text-white from-stone-300 to-stone-600 hover:from-stone-600 hover:to-stone-200 active:from-stone-700 active:to-stone-300 shadow-[inset_0_0_0_0.4px_rgba(120,113,108,0.2),inset_0_0.4px_0_rgba(245,245,244,0.4),inset_0_-0.4px_0_rgba(68,64,60,0.3)]",
     },
     {
       variant: "default",
@@ -89,7 +89,7 @@ const button = tv({
       variant: "default",
       intent: "muted",
       className:
-        "text-white from-stone-300 to-stone-600 hover:from-stone-600 hover:to-stone-200 active:from-stone-700 active:to-stone-300 shadow-[inset_0_0_0_0.4px_rgba(120,113,108,0.2),inset_0_0.4px_0_rgba(245,245,244,0.4),inset_0_-0.4px_0_rgba(68,64,60,0.3)]",
+        "text-stone-700 dark:text-white from-stone-200 to-stone-400 hover:from-stone-400 hover:to-stone-100 active:from-stone-500 active:to-stone-200 shadow-[inset_0_0_0_0.4px_rgba(255,255,255,0.2),inset_0_0.4px_0_rgba(255,255,255,0.4),inset_0_-0.4px_0_rgba(156,163,175,0.3)]",
     },
     {
       variant: "default",
