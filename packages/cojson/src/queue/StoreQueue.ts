@@ -1,6 +1,6 @@
-import { LinkedList } from "../PriorityBasedMessageQueue.js";
 import { logger } from "../logger.js";
 import { CoValueKnownState, NewContentMessage } from "../sync.js";
+import { LinkedList } from "./LinkedList.js";
 
 type StoreQueueEntry = {
   data: NewContentMessage[];

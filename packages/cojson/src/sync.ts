@@ -1,5 +1,4 @@
 import { Histogram, ValueType, metrics } from "@opentelemetry/api";
-import { IncomingMessagesQueue } from "./IncomingMessagesQueue.js";
 import { PeerState } from "./PeerState.js";
 import { SyncStateManager } from "./SyncStateManager.js";
 import { CoValueCore } from "./coValueCore/coValueCore.js";
@@ -10,6 +9,7 @@ import { RawCoID, SessionID } from "./ids.js";
 import { LocalNode } from "./localNode.js";
 import { logger } from "./logger.js";
 import { CoValuePriority } from "./priority.js";
+import { IncomingMessagesQueue } from "./queue/IncomingMessagesQueue.js";
 import { accountOrAgentIDfromSessionID } from "./typeUtils/accountOrAgentIDfromSessionID.js";
 import { isAccountID } from "./typeUtils/isAccountID.js";
 
