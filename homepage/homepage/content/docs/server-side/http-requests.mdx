@@ -208,7 +208,7 @@ Jazz HTTP requests include several built-in security measures to protect against
 
 ### Replay Attack Prevention
 - **Unique Message IDs**: Each request has a unique identifier (`co_z${string}`)
-- **Duplicate Detection**: The server maintains a set of processed message IDs to prevent replay attacks
+- **Duplicate Detection**: incoming messages ids are tracked to prevent replay attacks
 - **Message Expiration**: Requests expire after 60 seconds to provide additional protection
 
 These safeguards ensure that HTTP requests in Jazz are secure, authenticated, and protected against common attack vectors while maintaining the simplicity of standard HTTP communication.

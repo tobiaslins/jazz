@@ -1,5 +1,5 @@
 import { jazzServerAccount } from "@/jazzServerAccount";
-import { Game, Player } from "@/schema";
+import { Game, Player, PlayerState, createGameState } from "@/schema";
 import { serverApi } from "@/serverApi";
 import { Account, Group, JazzRequestError } from "jazz-tools";
 
@@ -36,13 +36,9 @@ function createGame({ account1, account2, worker }: CreateGameParams) {
   gameGroup.addMember(account1, "reader");
   gameGroup.addMember(account2, "reader");
 
-  const player1 = createPlayer({ account: account1, owner: gameGroup });
-  const player2 = createPlayer({ account: account2, owner: gameGroup });
-
   const game = Game.create(
     {
-      player1: player1,
-      player2: player2,
+      ...createGameState({ account1, account2, worker }),
       player1Score: 0,
       player2Score: 0,
     },
@@ -50,20 +46,4 @@ function createGame({ account1, account2, worker }: CreateGameParams) {
   );
 
   return game;
-}
-
-interface CreatePlayerParams {
-  account: Account;
-  owner: Group;
-}
-
-function createPlayer({ account, owner }: CreatePlayerParams) {
-  const player = Player.create(
-    {
-      account,
-    },
-    owner,
-  );
-
-  return player;
 }

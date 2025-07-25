@@ -1,5 +1,25 @@
 # cojson-transport-nodejs-ws
 
+## 0.15.16
+
+### Patch Changes
+
+- cojson@0.15.16
+
+## 0.15.15
+
+### Patch Changes
+
+- cojson@0.15.15
+
+## 0.15.14
+
+### Patch Changes
+
+- 70ce7c5: Introduce the persistent peers. Used to mark the WebSocket connections to the server as persistent, and wait for reconnection before failing load.
+- Updated dependencies [70ce7c5]
+  - cojson@0.15.14
+
 ## 0.15.13
 
 ### Patch Changes

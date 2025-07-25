@@ -69,6 +69,12 @@ const newGameRequest = experimental_defineRequest({
     },
     resolve: {
       game: {
+        player1State: {
+          $onError: null,
+        },
+        player2State: {
+          $onError: null,
+        },
         player1: true,
         player2: true,
       },

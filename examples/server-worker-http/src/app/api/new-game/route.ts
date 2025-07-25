@@ -1,4 +1,5 @@
 import { jazzServerAccount } from "@/jazzServerAccount";
+import { createGameState } from "@/schema";
 import { serverApi } from "@/serverApi";
 import { JazzRequestError } from "jazz-tools";
 
@@ -15,12 +16,13 @@ export async function POST(request: Request) {
       }
 
       if (game.outcome) {
-        game.outcome = undefined;
-        game.player1.playSelection = undefined;
-
-        if (game.player2) {
-          game.player2.playSelection = undefined;
-        }
+        game.applyDiff(
+          createGameState({
+            account1: game.player1.account,
+            account2: game.player2.account,
+            worker: jazzServerAccount.worker,
+          }),
+        );
       }
 
       return {
