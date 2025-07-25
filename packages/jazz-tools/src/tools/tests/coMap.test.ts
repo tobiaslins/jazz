@@ -527,7 +527,7 @@ describe("CoMap", async () => {
 
       john.age = 21;
 
-      expect(john._edits.age?.all).toEqual([
+      expect(john.$jazz.getEdits().age?.all).toEqual([
         expect.objectContaining({
           value: 20,
           key: "age",
@@ -541,11 +541,11 @@ describe("CoMap", async () => {
           madeAt: expect.any(Date),
         }),
       ]);
-      expect(john._edits.age?.all[0]?.by).toMatchObject({
+      expect(john.$jazz.getEdits().age?.all[0]?.by).toMatchObject({
         _type: "Account",
         id: me.id,
       });
-      expect(john._edits.age?.all[1]?.by).toMatchObject({
+      expect(john.$jazz.getEdits().age?.all[1]?.by).toMatchObject({
         _type: "Account",
         id: me.id,
       });
