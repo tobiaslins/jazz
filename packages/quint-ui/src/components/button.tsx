@@ -7,7 +7,7 @@ const button = tv({
   variants: {
     variant: {
       default:
-        "shadow-sm shadow-stone-400/20 focus:outline-none focus-visible:ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-opacity-10 bg-gradient-to-t from-7% via-50% to-95%",
+        "relative backdrop-blur-sm overflow-hidden transition-all duration-400 ease-in-out border-0 bg-gradient-to-br shadow-[0_6px_6px_rgba(0,0,0,0.2),0_0_20px_rgba(0,0,0,0.1)]",
       secondary:
         "shadow-sm shadow-stone-400/20 focus:outline-none focus-visible:ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-opacity-10 bg-gradient-to-t from-7% via-50% to-95%",
       destructive:
@@ -41,61 +41,61 @@ const button = tv({
       variant: "default",
       intent: "default",
       className:
-        "text-stone-700 dark:text-white hover:text-stone-800 active:text-stone-700 dark:hover:text-stone-100 dark:active:text-stone-200 from-stone-200/40 via-white to-stone-100 dark:from-stone-900 dark:via-black dark:to-stone-950 hover:from-stone-100/50 hover:to-stone-100/50 dark:hover:from-stone-950 dark:hover:to-stone-900 border border-stone-100 dark:border-stone-900 active:from-stone-200/50 active:to-stone-100/50 dark:active:from-stone-950 dark:active:to-black focus:ring-black dark:focus:ring-white",
+        "text-stone-700 dark:text-white hover:text-stone-800 active:text-stone-700 dark:hover:text-stone-100 dark:active:text-stone-200 from-stone-200 to-stone-400 hover:from-stone-400 hover:to-stone-100 active:from-stone-500 active:to-stone-200 shadow-[inset_0_0_0_0.4px_rgba(255,255,255,0.2),inset_0_0.4px_0_rgba(255,255,255,0.4),inset_0_-0.4px_0_rgba(156,163,175,0.3)]",
     },
     {
       variant: "default",
       intent: "primary",
       className:
-        "text-white from-primary-dark via-primary to-primary-light hover:from-primary-brightLight hover:to-primary-light active:from-primary-brightDark active:to-primary-light focus:ring-primary",
+        "text-white from-primary-light to-primary-dark hover:from-primary-dark hover:to-primary-brightLight active:from-primary-brightDark active:to-primary-light shadow-[inset_0_0_0_0.4px_rgba(59,130,246,0.2),inset_0_0.4px_0_rgba(147,197,253,0.4),inset_0_-0.4px_0_rgba(30,64,175,0.3)]",
     },
     {
       variant: "default",
       intent: "tip",
       className:
-        "text-white from-tip-dark via-tip to-tip-light hover:from-tip-brightLight hover:to-tip-light active:from-tip-brightDark active:to-tip-light focus:ring-tip",
+        "text-white from-tip-light to-tip-dark hover:from-tip-dark hover:to-tip-brightLight active:from-tip-brightDark active:to-tip-light shadow-[inset_0_0_0_0.4px_rgba(6,182,212,0.2),inset_0_0.4px_0_rgba(207,250,254,0.4),inset_0_-0.4px_0_rgba(21,94,117,0.3)]",
     },
     {
       variant: "default",
       intent: "info",
       className:
-        "text-white from-info-dark via-info to-info-light hover:from-info-brightLight hover:to-info-light active:from-info-brightDark active:to-info-light focus:ring-info",
+        "text-white from-info-light to-info-dark hover:from-info-dark hover:to-info-brightLight active:from-info-brightDark active:to-info-light shadow-[inset_0_0_0_0.4px_rgba(147,51,234,0.2),inset_0_0.4px_0_rgba(221,214,254,0.4),inset_0_-0.4px_0_rgba(88,28,135,0.3)]",
     },
     {
       variant: "default",
       intent: "success",
       className:
-        "text-white from-success-dark via-success to-success-light hover:from-success-brightLight hover:to-success-light active:from-success-brightDark active:to-success-light focus:ring-success",
+        "text-white from-success-light to-success-dark hover:from-success-brightDark hover:to-success-brightLight active:from-success-dark hover:to-success-light shadow-[inset_0_0_0_0.4px_rgba(34,197,94,0.2),inset_0_0.4px_0_rgba(187,247,208,0.4),inset_0_-0.4px_0_rgba(22,101,52,0.3)]",
     },
     {
       variant: "default",
       intent: "warning",
       className:
-        "text-white from-warning-dark via-warning to-warning-light hover:from-warning-brightLight hover:to-warning-light active:from-warning-brightDark active:to-warning-light focus:ring-warning",
+        "text-white from-warning-light to-warning-dark hover:from-warning-dark hover:to-warning-brightLight active:from-warning-brightDark active:to-warning-light shadow-[inset_0_0_0_0.4px_rgba(249,115,22,0.2),inset_0_0.4px_0_rgba(254,240,138,0.4),inset_0_-0.4px_0_rgba(154,52,18,0.3)]",
     },
     {
       variant: "default",
       intent: "alert",
       className:
-        "text-white from-alert-dark via-alert to-alert-light hover:from-alert-brightLight hover:to-alert-light active:from-alert-brightDark active:to-alert-light focus:ring-alert",
+        "text-white from-alert-light to-alert-dark hover:from-alert-dark hover:to-alert-brightLight active:from-alert-brightDark active:to-alert-light shadow-[inset_0_0_0_0.4px_rgba(234,179,8,0.2),inset_0_0.4px_0_rgba(254,249,195,0.4),inset_0_-0.4px_0_rgba(133,77,14,0.3)]",
     },
     {
       variant: "default",
       intent: "danger",
       className:
-        "text-white from-danger-dark via-danger to-danger-light hover:from-danger-brightLight hover:to-danger-light active:from-danger-brightDark active:to-danger-light focus:ring-danger",
+        "text-white from-danger-light to-danger-dark hover:from-danger-brightDark hover:to-danger-brightLight active:from-danger-dark active:to-danger-light shadow-[inset_0_0_0_0.4px_rgba(239,68,68,0.2),inset_0_0.4px_0_rgba(254,202,202,0.4),inset_0_-0.4px_0_rgba(153,27,27,0.3)]",
     },
     {
       variant: "default",
       intent: "muted",
       className:
-        "text-stone-100 dark:text-stone-900 from-stone-200 via-stone-300 to-stone-400 dark:from-stone-900 dark:via-stone-900 dark:to-stone-800 hover:from-stone-200 hover:to-stone-300 dark:hover:from-stone-900 dark:hover:to-stone-700/70 active:from-stone-300 active:to-stone-300 dark:active:from-stone-900 dark:active:to-stone-800 focus:ring-stone-200 dark:focus:ring-stone-900",
+        "text-white from-stone-300 to-stone-600 hover:from-stone-600 hover:to-stone-200 active:from-stone-700 active:to-stone-300 shadow-[inset_0_0_0_0.4px_rgba(120,113,108,0.2),inset_0_0.4px_0_rgba(245,245,244,0.4),inset_0_-0.4px_0_rgba(68,64,60,0.3)]",
     },
     {
       variant: "default",
       intent: "strong",
       className:
-        "text-stone-100 dark:text-stone-900 from-stone-700 via-stone-800 to-stone-900 dark:from-stone-100 dark:via-stone-200 dark:to-stone-300 hover:from-stone-700 hover:to-stone-800 dark:hover:from-stone-100 dark:hover:to-stone-200 active:from-stone-950 active:to-stone-900 dark:active:from-stone-100 dark:active:to-stone-200 focus:ring-stone-800 dark:focus:ring-stone-200",
+        "text-stone-100 dark:text-stone-900 from-stone-700 to-stone-900 hover:from-stone-900 hover:to-stone-600 active:from-stone-800 active:to-stone-700 shadow-[inset_0_0_0_0.4px_rgba(68,64,60,0.2),inset_0_0.4px_0_rgba(168,162,158,0.4),inset_0_-0.4px_0_rgba(41,37,36,0.3)]",
     },
     // Secondary Variant (alias for default-muted)
     {
