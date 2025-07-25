@@ -35,7 +35,6 @@ export type {
   TextPos,
   AccountClass,
   AccountCreationProps,
-  WithHelpers,
 } from "./internal.js";
 
 export {
@@ -49,7 +48,6 @@ export {
   CoRichText,
   Account,
   isControlledAccount,
-  createCoValueObservable,
   loadCoValue,
   subscribeToCoValue,
   ImageDefinition,
@@ -99,26 +97,17 @@ export {
 export type * from "./types.js";
 
 export {
-  zodSchemaToCoSchema,
-  anySchemaToCoSchema,
+  coValueClassFromCoValueClassOrSchema,
   type InstanceOfSchema,
   type InstanceOfSchemaCoValuesNullable,
-  type CoValueOrZodSchema,
+  type CoValueClassOrSchema,
   type Loaded,
   type BaseAccountShape,
   type DefaultAccountShape,
-  type AccountSchema,
-  type AnyAccountSchema,
-  type CoListSchema,
-  type CoMapSchema,
-  type CoFeedSchema,
-  type PlainTextSchema,
-  type FileStreamSchema,
+  type CoreAccountSchema as AnyAccountSchema,
   type ResolveQuery,
   type ResolveQueryStrict,
   type InitFor,
-  type CoRecordSchema,
-  type CoProfileSchema,
 } from "./internal.js";
 
 export {

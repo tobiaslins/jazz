@@ -8,19 +8,19 @@ import {
 } from "cojson";
 import z from "zod/v4";
 import {
-  AnyCoMapSchema,
-  AnyCoSchema,
+  AnyZodOrCoValueSchema,
   CoMap,
   CoMapInitZod,
   CoMapSchema,
   CoValueClass,
+  CoreCoMapSchema,
   Group,
   Loaded,
   ResolveQuery,
   ResolveQueryStrict,
   Simplify,
-  anySchemaToCoSchema,
   coMapDefiner,
+  coValueClassFromCoValueClassOrSchema,
   exportCoValue,
   importContentPieces,
   loadCoValue,
@@ -28,7 +28,7 @@ import {
 import { isCoValueId } from "../lib/id.js";
 import { Account } from "./account.js";
 
-type MessageShape = Record<string, z.core.$ZodType | AnyCoSchema>;
+type MessageShape = Record<string, AnyZodOrCoValueSchema>;
 
 type RequestSchemaDefinition<
   S extends MessageShape,
@@ -97,7 +97,7 @@ type MessageValuePayload<T extends MessageShape> =
   | AsNullablePayload<T>;
 
 function createMessageEnvelope<S extends MessageShape>(
-  schema: AnyCoMapSchema,
+  schema: CoreCoMapSchema,
   value: MessageValuePayload<S>,
   owner: Account,
   sharedWith: Account | Group,
@@ -111,7 +111,7 @@ function createMessageEnvelope<S extends MessageShape>(
     group.addMember(sharedWith, "reader");
   }
 
-  // @ts-expect-error - AnyCoMapSchema doesn't have static methods
+  // @ts-expect-error - CoreCoMapSchema doesn't have static methods
   return schema.create(value ?? {}, group);
 }
 
@@ -129,7 +129,7 @@ async function serializeMessagePayload({
 }: {
   // Skipping type validation here to avoid excessive type complexity that affects the typecheck performance
   type: "request" | "response";
-  schema: AnyCoMapSchema;
+  schema: CoreCoMapSchema;
   resolve: any;
   value: any;
   owner: Account;
@@ -198,7 +198,7 @@ async function handleMessagePayload({
 }: {
   type: "request" | "response";
   // Skipping type validation here to avoid excessive type complexity that affects the typecheck performance
-  schema: AnyCoMapSchema;
+  schema: CoreCoMapSchema;
   resolve: any;
   request: unknown;
   loadAs: Account;
@@ -290,7 +290,9 @@ async function handleMessagePayload({
     throw new JazzRequestError("Creator account not found", 400);
   }
 
-  const coSchema = anySchemaToCoSchema(schema) as CoValueClass<CoMap>;
+  const coSchema = coValueClassFromCoValueClassOrSchema(
+    schema,
+  ) as CoValueClass<CoMap>;
   const value = await loadCoValue<CoMap, true>(coSchema, requestData.id, {
     resolve,
     loadAs,
@@ -317,13 +319,13 @@ function parseSchemaAndResolve<
   if ("schema" in options) {
     return {
       // Using a type cast to reduce the type complexity
-      schema: coMapDefiner(options.schema) as AnyCoMapSchema,
+      schema: coMapDefiner(options.schema) as CoreCoMapSchema,
       resolve: options.resolve as any,
     };
   }
 
   return {
-    schema: coMapDefiner(options) as AnyCoMapSchema,
+    schema: coMapDefiner(options) as CoreCoMapSchema,
     resolve: true as any,
   };
 }
@@ -335,11 +337,11 @@ class HttpRoute<
   ResponseResolve extends ResolveQuery<CoMapSchema<ResponseShape>> = any,
 > {
   private requestDefinition: {
-    schema: AnyCoMapSchema;
+    schema: CoreCoMapSchema;
     resolve: any;
   };
   private responseDefinition: {
-    schema: AnyCoMapSchema;
+    schema: CoreCoMapSchema;
     resolve: any;
   };
   private url: string;

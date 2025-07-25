@@ -213,14 +213,14 @@ const Member = co.map({
   name: z.string(),
 });
 // ---cut---
-import { co, z, CoListSchema } from "jazz-tools";
+import { co, z } from "jazz-tools";
 
 const Project = co.map({
   name: z.string(),
   startDate: z.date(),
   status: z.literal(["planning", "active", "completed"]),
   coordinator: co.optional(Member),
-  get subProjects(): z.ZodOptional<CoListSchema<typeof Project>> {
+  get subProjects(): co.Optional<co.List<typeof Project>> {
     return co.optional(co.list(Project));
   }
 });

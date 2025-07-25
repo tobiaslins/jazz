@@ -110,6 +110,11 @@ export const docNavigationItems = [
     prefix: "/docs/upgrade",
     items: [
       {
+        name: "0.16.0 - Cleaner separation between Zod and CoValue schemas",
+        href: "/docs/upgrade/0-16-0",
+        done: 100,
+      },
+      {
         name: "0.15.0 - Everything inside `jazz-tools`",
         href: "/docs/upgrade/0-15-0",
         done: 100,

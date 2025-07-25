@@ -1,7 +1,11 @@
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { Account, Group, subscribeToCoValue, z } from "../index.js";
-import { Loaded, anySchemaToCoSchema, co } from "../internal.js";
+import {
+  Loaded,
+  co,
+  coValueClassFromCoValueClassOrSchema,
+} from "../internal.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 import { waitFor } from "./utils.js";
 
@@ -580,7 +584,7 @@ describe("CoList subscription", async () => {
     const spy = vi.fn((list) => updates.push(list));
 
     subscribeToCoValue(
-      anySchemaToCoSchema(TestList),
+      coValueClassFromCoValueClassOrSchema(TestList),
       list.id,
       {
         syncResolution: true,
@@ -804,5 +808,19 @@ describe("CoList subscription", async () => {
     await waitFor(() => expect(spy).toHaveBeenCalledTimes(2));
 
     expect(spy).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("co.list schema", () => {
+  test("can access the inner schema of a co.list", () => {
+    const Keywords = co.list(co.plainText());
+
+    const keywords = Keywords.create([
+      Keywords.element.create("hello"),
+      Keywords.element.create("world"),
+    ]);
+
+    expect(keywords[0]?.toString()).toEqual("hello");
+    expect(keywords[1]?.toString()).toEqual("world");
   });
 });

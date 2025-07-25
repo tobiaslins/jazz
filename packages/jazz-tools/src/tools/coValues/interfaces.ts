@@ -1,5 +1,4 @@
 import {
-  CoValueCore,
   type CoValueUniqueness,
   type CojsonInternalTypes,
   type RawCoValue,
@@ -9,7 +8,7 @@ import { AvailableCoValueCore } from "cojson/dist/coValueCore/coValueCore.js";
 import {
   Account,
   AnonymousJazzAgent,
-  CoValueOrZodSchema,
+  CoValueClassOrSchema,
   type Group,
   Loaded,
   RefsToResolve,
@@ -21,8 +20,7 @@ import {
   SubscriptionScope,
   type SubscriptionValue,
   activeAccountContext,
-  anySchemaToCoSchema,
-  getSubscriptionScope,
+  coValueClassFromCoValueClassOrSchema,
   inspect,
 } from "../internal.js";
 
@@ -312,71 +310,6 @@ export function subscribeToCoValue<
   return unsubscribe;
 }
 
-/**
- * @deprecated Used for the React integration in the past, but we moved to use SubscriptionScope directly.
- *
- * Going to be removed in the next minor version.
- */
-export function createCoValueObservable<
-  S extends CoValueOrZodSchema,
-  const R extends ResolveQuery<S>,
->(initialValue: undefined | null = undefined) {
-  let currentValue: Loaded<S, R> | undefined | null = initialValue;
-  let subscriberCount = 0;
-
-  function subscribe(
-    cls: S,
-    id: string,
-    options: {
-      loadAs: Account | AnonymousJazzAgent;
-      resolve?: ResolveQueryStrict<S, R>;
-      onUnavailable?: () => void;
-      onUnauthorized?: () => void;
-      syncResolution?: boolean;
-    },
-    listener: () => void,
-  ) {
-    subscriberCount++;
-
-    const unsubscribe = subscribeToCoValue(
-      anySchemaToCoSchema(cls),
-      id,
-      {
-        loadAs: options.loadAs,
-        resolve: options.resolve as any,
-        onUnavailable: () => {
-          currentValue = null;
-          options.onUnavailable?.();
-        },
-        onUnauthorized: () => {
-          currentValue = null;
-          options.onUnauthorized?.();
-        },
-        syncResolution: options.syncResolution,
-      },
-      (value) => {
-        currentValue = value as Loaded<S, R>;
-        listener();
-      },
-    );
-
-    return () => {
-      unsubscribe();
-      subscriberCount--;
-      if (subscriberCount === 0) {
-        currentValue = undefined;
-      }
-    };
-  }
-
-  const observable = {
-    getCurrentValue: () => currentValue,
-    subscribe,
-  };
-
-  return observable;
-}
-
 export function subscribeToExistingCoValue<
   V extends CoValue,
   const R extends RefsToResolve<V>,
@@ -515,7 +448,7 @@ export function parseGroupCreateOptions(
  * ```
  */
 export async function exportCoValue<
-  S extends CoValueOrZodSchema | CoValueClass<CoValue>,
+  S extends CoValueClassOrSchema,
   const R extends ResolveQuery<S>,
 >(
   cls: S,
@@ -537,7 +470,7 @@ export async function exportCoValue<
     resolve as any,
     id,
     {
-      ref: anySchemaToCoSchema(cls),
+      ref: coValueClassFromCoValueClassOrSchema(cls),
       optional: false,
     },
     options.skipRetry,
