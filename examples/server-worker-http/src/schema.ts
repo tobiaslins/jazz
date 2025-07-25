@@ -32,7 +32,7 @@ export type Game = co.loaded<typeof Game>;
 
 export const WaitingRoom = co.map({
   creator: co.account(),
-  game: z.optional(Game),
+  game: co.optional(Game),
 });
 export type WaitingRoom = co.loaded<typeof WaitingRoom>;
 

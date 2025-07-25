@@ -1,5 +1,5 @@
 import { jazzServerAccount } from "@/jazzServerAccount";
-import { Game, Player, PlayerState, createGameState } from "@/schema";
+import { Game, createGameState } from "@/schema";
 import { serverApi } from "@/serverApi";
 import { Account, Group, JazzRequestError } from "jazz-tools";
 
