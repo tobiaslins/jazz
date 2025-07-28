@@ -1,81 +1,193 @@
-// @vitest-environment happy-dom
-import { createImage } from "jazz-tools/media";
-import { describe, expect, it } from "vitest";
+import { FileStream } from "jazz-tools";
 import { createJazzTestAccount } from "jazz-tools/testing";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { createImageFactory } from "./create-image.js";
 
-describe("createImage - Browser Edition", async () => {
+describe("createImage", async () => {
   const account = await createJazzTestAccount();
 
-  it("should create an image", async () => {
+  const getImageSize = vi.fn();
+  const getPlaceholderBase64 = vi.fn();
+  const createFileStreamFromSource = vi
+    .fn()
+    .mockResolvedValue(FileStream.create({ owner: account._owner }));
+  const resize = vi.fn();
+
+  const createImage = createImageFactory({
+    getImageSize,
+    getPlaceholderBase64,
+    createFileStreamFromSource,
+    resize,
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should create a single original image if all settings are off", async () => {
+    const imageBlob = new Blob(
+      [Uint8Array.from(OnePixel, (c) => c.charCodeAt(0))],
+      { type: "image/png" },
+    );
+
+    getImageSize.mockResolvedValue({ width: 1, height: 1 });
+
+    const image = await createImage(imageBlob, {
+      owner: account._owner,
+      placeholder: false,
+      progressive: false,
+    });
+
+    expect(image).toBeDefined();
+
+    expect(image.originalSize).toEqual([1, 1]);
+    expect(image.placeholderDataURL).not.toBeDefined();
+    expect(image.progressive).toBe(false);
+    expect(image.original).toBeDefined();
+    expect(image[`1x1`]).toBeDefined();
+    expect(image[`1x1`]).toStrictEqual(image.original);
+  });
+
+  it("should create the image with original and placeholder", async () => {
+    const imageBlob = new Blob(
+      [Uint8Array.from(OnePixel, (c) => c.charCodeAt(0))],
+      { type: "image/png" },
+    );
+
+    getImageSize.mockResolvedValue({ width: 1, height: 1 });
+    getPlaceholderBase64.mockResolvedValue(
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
+    );
+
+    const image = await createImage(imageBlob, {
+      owner: account._owner,
+      placeholder: "blur",
+      progressive: false,
+    });
+
+    expect(image).toBeDefined();
+
+    expect(image.originalSize).toEqual([1, 1]);
+    expect(image.placeholderDataURL).toBeDefined();
+    expect(image.progressive).toBe(false);
+    expect(image.original).toBeDefined();
+  });
+
+  it("should create a resized image if maxSize is set", async () => {
     const imageBlob = new Blob(
       [Uint8Array.from(White1920, (c) => c.charCodeAt(0))],
       { type: "image/png" },
     );
 
+    getImageSize.mockResolvedValue({ width: 1920, height: 400 });
+    resize.mockResolvedValue(new Blob([White1920], { type: "image/png" }));
+
     const image = await createImage(imageBlob, {
-      progressive: true,
-      maxSize: 600,
-      placeholder: "blur",
-      owner: account,
+      owner: account._owner,
+      placeholder: false,
+      progressive: false,
+      maxSize: 256,
     });
 
-    expect(image.originalSize).toEqual([600, 125]);
-    expect(image["600x125"]).toBeDefined();
-    expect(image["256x53"]).toBeDefined();
+    expect(image).toBeDefined();
 
-    const imgOriginal = document.createElement("img");
-    imgOriginal.src = URL.createObjectURL(image.original!.toBlob()!);
+    expect(image.originalSize).toEqual([256, 53]);
+    expect(image.placeholderDataURL).not.toBeDefined();
+    expect(image.progressive).toBe(false);
+    expect(image.original).toBeDefined();
+    expect(image[`256x53`]).toStrictEqual(image.original);
 
-    await new Promise((resolve) => (imgOriginal.onload = resolve));
-
-    expect(imgOriginal.width).toBe(600);
-    expect(imgOriginal.height).toBe(125);
-
-    URL.revokeObjectURL(imgOriginal.src);
-
-    const imgResized = document.createElement("img");
-    imgResized.src = URL.createObjectURL(image["256x53"]!.toBlob()!);
-
-    await new Promise((resolve) => (imgResized.onload = resolve));
-
-    expect(imgResized.width).toBe(256);
-    expect(imgResized.height).toBe(53);
-
-    URL.revokeObjectURL(imgResized.src);
+    expect(resize).toHaveBeenCalledWith(imageBlob, 256, 53);
   });
 
-  it("should keep the original mime type", async () => {
-    const pngBlob = new Blob(
+  it("should not resize the original image if maxSize is higher than the original size", async () => {
+    const imageBlob = new Blob(
+      [Uint8Array.from(OnePixel, (c) => c.charCodeAt(0))],
+      { type: "image/png" },
+    );
+
+    getImageSize.mockResolvedValue({ width: 1, height: 1 });
+
+    const image = await createImage(imageBlob, {
+      owner: account._owner,
+      placeholder: false,
+      progressive: false,
+      maxSize: 256,
+    });
+
+    expect(image).toBeDefined();
+
+    expect(image.originalSize).toEqual([1, 1]);
+    expect(image.placeholderDataURL).not.toBeDefined();
+    expect(image.progressive).toBe(false);
+    expect(image.original).toBeDefined();
+    expect(image[`1x1`]).toStrictEqual(image.original);
+
+    expect(resize).not.toHaveBeenCalled();
+  });
+
+  it("should create an image with intermediate sizes for progressive loading", async () => {
+    const imageBlob = new Blob(
       [Uint8Array.from(White1920, (c) => c.charCodeAt(0))],
       { type: "image/png" },
     );
 
-    const pngImage = await createImage(pngBlob, {
+    getImageSize.mockResolvedValue({ width: 1920, height: 400 });
+    resize.mockResolvedValue(new Blob([White1920], { type: "image/png" }));
+
+    const image = await createImage(imageBlob, {
+      owner: account._owner,
       progressive: true,
-      maxSize: 600,
-      placeholder: "blur",
-      owner: account,
+      placeholder: false,
     });
 
-    expect(pngImage.original!.toBlob()!.type).toBe("image/png");
-    expect(pngImage["256x53"]!.toBlob()!.type).toBe("image/png");
+    expect(image).toBeDefined();
+    expect(image.originalSize).toEqual([1920, 400]);
+    expect(image.placeholderDataURL).not.toBeDefined();
 
-    const jpegBlob = new Blob(
+    expect(image[`256x53`]).toBeDefined();
+    expect(image[`1024x213`]).toBeDefined();
+    expect(image[`2048x427`]).not.toBeDefined();
+
+    expect(resize).toHaveBeenCalledWith(imageBlob, 256, 53);
+    expect(resize).toHaveBeenCalledWith(imageBlob, 1024, 213);
+    expect(resize).not.toHaveBeenCalledWith(imageBlob, 2048, 427);
+  });
+
+  it("should lose the original size and create image based on maxSize", async () => {
+    const imageBlob = new Blob(
       [Uint8Array.from(White1920, (c) => c.charCodeAt(0))],
-      { type: "image/jpeg" },
+      { type: "image/png" },
     );
 
-    const jpegImage = await createImage(jpegBlob, {
+    getImageSize.mockResolvedValue({ width: 1920, height: 400 });
+    resize.mockResolvedValue(new Blob([White1920], { type: "image/png" }));
+
+    const image = await createImage(imageBlob, {
+      owner: account._owner,
+      maxSize: 256,
+      placeholder: false,
       progressive: true,
-      maxSize: 600,
-      placeholder: "blur",
-      owner: account,
     });
 
-    expect(jpegImage.original!.toBlob()!.type).toBe("image/jpeg");
-    expect(jpegImage["256x53"]!.toBlob()!.type).toBe("image/jpeg");
+    expect(image).toBeDefined();
+
+    expect(image.originalSize).toEqual([256, 53]);
+    expect(image.placeholderDataURL).not.toBeDefined();
+    expect(image[`256x53`]).toBeDefined();
+    expect(image[`1024x213`]).not.toBeDefined();
+    expect(image[`2048x427`]).not.toBeDefined();
+
+    expect(resize).toHaveBeenCalledWith(imageBlob, 256, 53);
+    expect(resize).not.toHaveBeenCalledWith(imageBlob, 1024, 213);
+    expect(resize).not.toHaveBeenCalledWith(imageBlob, 2048, 427);
   });
 });
+
+// 1x1 png
+const OnePixel = atob(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
+);
 
 // Image 1920x400
 const White1920 = atob(

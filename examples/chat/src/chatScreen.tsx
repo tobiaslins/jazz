@@ -1,6 +1,7 @@
 import { Account } from "jazz-tools";
-import { createImage, useAccount, useCoState } from "jazz-tools/react";
+import { useAccount, useCoState } from "jazz-tools/react";
 import { useEffect, useState } from "react";
+import { createImage } from "jazz-tools/media";
 import { Chat, Message } from "./schema.ts";
 import {
   BubbleBody,
@@ -40,7 +41,11 @@ export function ChatScreen(props: { chatID: string }) {
       return;
     }
 
-    createImage(file, { owner: chat._owner }).then((image) => {
+    createImage(file, {
+      owner: chat._owner,
+      progressive: true,
+      placeholder: "blur",
+    }).then((image) => {
       chat.push(
         Message.create(
           {
