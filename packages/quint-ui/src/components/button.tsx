@@ -31,7 +31,7 @@ const button = tv({
   variants: {
     variant: {
       default:
-        "relative backdrop-blur-sm overflow-hidden transition-all duration-400 ease-in-out border-0 bg-gradient-to-br shadow-[0_6px_6px_rgba(0,0,0,0.2),0_0_20px_rgba(0,0,0,0.1)]",
+        "text-white relative backdrop-blur-sm overflow-hidden transition-all duration-400 ease-in-out border-0 bg-gradient-to-t from-1% via-50% to-99% shadow-[0_6px_6px_rgba(0,0,0,0.2),0_0_20px_rgba(0,0,0,0.1)]",
       secondary:
         "shadow-sm shadow-stone-400/20 focus:outline-none focus-visible:ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-opacity-10 bg-gradient-to-t from-7% via-50% to-95%",
       destructive:
@@ -65,73 +65,72 @@ const button = tv({
       variant: "default",
       intent: "default",
       className:
-        "text-white from-10% to-90% from-stone-400 to-stone-500 hover:from-stone-500 hover:to-zinc-400 active:from-zinc-400 active:to-stone-500 shadow-[inset_0_0_0_0.4px_rgba(120,113,108,0.2),inset_0_0.4px_0_rgba(245,245,244,0.4),inset_0_-0.4px_0_rgba(68,64,60,0.3)]",
+        "from-stone-400 to-stone-500 hover:from-stone-500 hover:via-stone-500/90 hover:to-zinc-400 active:from-zinc-400 active:to-stone-500 shadow-[inset_0_0_0_0.4px_rgba(120,113,108,0.2),inset_0_0.4px_0_rgba(245,245,244,0.4),inset_0_-0.4px_0_rgba(68,64,60,0.3)]",
     },
     {
       variant: "default",
       intent: "primary",
       className:
-        "text-white from-10% to-90% from-blue-500 to-blue-600 hover:from-blue-600 hover:to-sky-500 active:from-sky-500 active:to-blue-600 shadow-[inset_0_0_0_0.4px_rgba(59,130,246,0.2),inset_0_0.4px_0_rgba(147,197,253,0.4),inset_0_-0.4px_0_rgba(30,64,175,0.3)]",
+        "from-blue-400 to-blue-500 hover:from-blue-500 hover:via-blue-500/90 hover:to-sky-500 active:from-sky-500 active:to-blue-500 shadow-[inset_0_0_0_0.4px_rgba(59,130,246,0.2),inset_0_0.4px_0_rgba(147,197,253,0.4),inset_0_-0.4px_0_rgba(30,64,175,0.3)]",
     },
     {
       variant: "default",
       intent: "tip",
       className:
-        "text-white from-10% to-90% from-cyan-400 to-cyan-500 hover:from-cyan-500 hover:to-sky-400 active:from-sky-400 active:to-cyan-500 shadow-[inset_0_0_0_0.4px_rgba(6,182,212,0.2),inset_0_0.4px_0_rgba(207,250,254,0.4),inset_0_-0.4px_0_rgba(21,94,117,0.3)]",
+        "from-cyan-400 to-cyan-500 hover:from-cyan-400 hover:via-cyan-400 hover:to-sky-400 active:from-sky-400 active:to-cyan-500 shadow-[inset_0_0_0_0.4px_rgba(6,182,212,0.2),inset_0_0.4px_0_rgba(207,250,254,0.4),inset_0_-0.4px_0_rgba(21,94,117,0.3)]",
     },
     {
       variant: "default",
       intent: "info",
       className:
-        "text-white from-10% to-90% from-purple-500 to-purple-600 hover:from-purple-600 hover:to-violet-500 active:from-violet-500 active:to-purple-600 shadow-[inset_0_0_0_0.4px_rgba(147,51,234,0.2),inset_0_0.4px_0_rgba(221,214,254,0.4),inset_0_-0.4px_0_rgba(88,28,135,0.3)]",
+        "from-purple-400 to-purple-500 hover:from-purple-500 hover:via-purple-500/90 hover:to-violet-500 active:from-violet-500 active:to-purple-500 shadow-[inset_0_0_0_0.4px_rgba(147,51,234,0.2),inset_0_0.4px_0_rgba(221,214,254,0.4),inset_0_-0.4px_0_rgba(88,28,135,0.3)]",
     },
     {
       variant: "default",
       intent: "success",
       className:
-        "text-white from-10% to-90% from-green-500 to-green-600 hover:from-green-600 hover:to-emerald-500 active:from-emerald-500 active:to-green-600 shadow-[inset_0_0_0_0.4px_rgba(34,197,94,0.2),inset_0_0.4px_0_rgba(187,247,208,0.4),inset_0_-0.4px_0_rgba(22,101,52,0.3)]",
+        "from-green-400 to-green-500 hover:from-green-500 hover:via-green-500/90 hover:to-emerald-500 active:from-emerald-500 active:to-green-500 shadow-[inset_0_0_0_0.4px_rgba(34,197,94,0.2),inset_0_0.4px_0_rgba(187,247,208,0.4),inset_0_-0.4px_0_rgba(22,101,52,0.3)]",
     },
     {
       variant: "default",
       intent: "warning",
       className:
-        "text-white from-10% to-90% from-orange-500 to-orange-600 hover:from-orange-600 hover:to-amber-500 active:from-amber-500 active:to-orange-600 shadow-[inset_0_0_0_0.4px_rgba(249,115,22,0.2),inset_0_0.4px_0_rgba(254,240,138,0.4),inset_0_-0.4px_0_rgba(154,52,18,0.3)]",
+        "from-orange-400 to-orange-500 hover:from-orange-500 hover:via-orange-500/90 hover:to-amber-500 active:from-amber-500 active:to-orange-500 shadow-[inset_0_0_0_0.4px_rgba(249,115,22,0.2),inset_0_0.4px_0_rgba(254,240,138,0.4),inset_0_-0.4px_0_rgba(154,52,18,0.3)]",
     },
     {
       variant: "default",
       intent: "alert",
       className:
-        "text-white from-10% to-90% from-amber-400 to-amber-500 hover:from-amber-500 hover:to-yellow-400 active:from-yellow-400 active:to-amber-500 shadow-[inset_0_0_0_0.4px_rgba(234,179,8,0.2),inset_0_0.4px_0_rgba(254,249,195,0.4),inset_0_-0.4px_0_rgba(133,77,14,0.3)]",
+        "from-yellow-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 active:from-yellow-400 active:to-amber-400 shadow-[inset_0_0_0_0.4px_rgba(234,179,8,0.2),inset_0_0.4px_0_rgba(254,249,195,0.4),inset_0_-0.4px_0_rgba(133,77,14,0.3)]",
     },
     {
       variant: "default",
       intent: "danger",
       className:
-        "text-white from-10% to-90% from-red-500 to-red-600 hover:from-red-600 hover:to-rose-500 active:from-rose-500 active:to-red-600 shadow-[inset_0_0_0_0.4px_rgba(239,68,68,0.2),inset_0_0.4px_0_rgba(254,202,202,0.4),inset_0_-0.4px_0_rgba(153,27,27,0.3)]",
+        "from-red-400 to-red-500 hover:from-red-500 hover:to-rose-500 active:from-rose-500 active:to-red-500 shadow-[inset_0_0_0_0.4px_rgba(239,68,68,0.2),inset_0_0.4px_0_rgba(254,202,202,0.4),inset_0_-0.4px_0_rgba(153,27,27,0.3)]",
     },
     {
       variant: "default",
       intent: "muted",
       className:
-        "text-stone-700 dark:text-white from-10% to-90% from-stone-300 to-stone-400 hover:from-stone-400 hover:to-zinc-300 active:from-zinc-300 active:to-stone-400 shadow-[inset_0_0_0_0.4px_rgba(255,255,255,0.2),inset_0_0.4px_0_rgba(255,255,255,0.4),inset_0_-0.4px_0_rgba(156,163,175,0.3)]",
+        "from-stone-300 to-stone-400 hover:from-stone-400 hover:via-stone-400/90 hover:to-zinc-300 active:from-zinc-300 active:to-stone-400 shadow-[inset_0_0_0_0.4px_rgba(255,255,255,0.2),inset_0_0.4px_0_rgba(255,255,255,0.4),inset_0_-0.4px_0_rgba(156,163,175,0.3)]",
     },
     {
       variant: "default",
       intent: "strong",
       className:
-        "text-stone-100 dark:text-stone-900 from-10% to-90% from-stone-700 to-stone-800 hover:from-stone-800 hover:to-zinc-600 active:from-zinc-600 active:to-stone-800 shadow-[inset_0_0_0_0.4px_rgba(68,64,60,0.2),inset_0_0.4px_0_rgba(168,162,158,0.4),inset_0_-0.4px_0_rgba(41,37,36,0.3)]",
+        "text-stone-100 dark:text-stone-900 from-stone-700 to-stone-800 hover:from-stone-800 hover:to-zinc-600 active:from-zinc-600 active:to-stone-800 shadow-[inset_0_0_0_0.4px_rgba(68,64,60,0.2),inset_0_0.4px_0_rgba(168,162,158,0.4),inset_0_-0.4px_0_rgba(41,37,36,0.3)]",
     },
-    // Secondary Variant (alias for default-muted)
+    // Tailwind Classes
     {
       variant: "secondary",
       className:
-        "text-stone-100 dark:text-stone-900 from-stone-200 via-stone-300 to-stone-400 dark:from-stone-900 dark:via-stone-900 dark:to-stone-800 hover:from-stone-200 hover:to-stone-300 dark:hover:from-stone-900 dark:hover:to-stone-700/70 active:from-stone-300 active:to-stone-300 dark:active:from-stone-900 dark:active:to-stone-800 focus:ring-stone-200 dark:focus:ring-stone-900",
+        "text-white from-stone-300 to-stone-400 hover:from-stone-400 hover:to-zinc-300 active:from-zinc-300 active:to-stone-400 shadow-[inset_0_0_0_0.4px_rgba(255,255,255,0.2),inset_0_0.4px_0_rgba(255,255,255,0.4),inset_0_-0.4px_0_rgba(156,163,175,0.3)]",
     },
-    // Destructive Variant (alias for default-danger)
     {
       variant: "destructive",
       className:
-        "text-white from-danger-dark via-danger to-danger-light hover:from-danger-brightLight hover:to-danger-light active:from-danger-brightDark active:to-danger-light focus:ring-danger",
+        "text-white from-red-500 to-red-600 hover:from-red-600 hover:to-rose-500 active:from-rose-500 active:to-red-600 shadow-[inset_0_0_0_0.4px_rgba(239,68,68,0.2),inset_0_0.4px_0_rgba(254,202,202,0.4),inset_0_-0.4px_0_rgba(153,27,27,0.3)]",
     },
     // Outline Variant
     {
@@ -144,7 +143,7 @@ const button = tv({
       variant: "outline",
       intent: "primary",
       className:
-        "border-primary text-primary hover:text-primary-light active:bg-primary-20 shadow-[inset_0_0_0_0.4px_rgba(59,130,246,0.2),inset_0_0.4px_0_rgba(147,197,253,0.4),inset_0_-0.4px_0_rgba(30,64,175,0.3)]",
+        "border-primary text-primary hover:text-primary-light active:bg-blue/20 shadow-[inset_0_0_0_0.4px_rgba(59,130,246,0.2),inset_0_0.4px_0_rgba(147,197,253,0.4),inset_0_-0.4px_0_rgba(30,64,175,0.3)]",
     },
     {
       variant: "outline",
@@ -204,41 +203,41 @@ const button = tv({
     {
       variant: "inverted",
       intent: "primary",
-      className:
-        "text-primary hover:bg-primary-30 bg-primary-20 active:bg-primary-50",
+      className: "text-primary hover:bg-blue/30 bg-blue/20 active:bg-blue/50",
     },
     {
       variant: "inverted",
       intent: "tip",
-      className: "text-tip hover:bg-tip-30 bg-tip-20 active:bg-tip-50",
+      className: "text-tip hover:bg-cyan/30 bg-cyan/20 active:bg-cyan/50",
     },
     {
       variant: "inverted",
       intent: "info",
-      className: "text-info hover:bg-info-30 bg-info-20 active:bg-info-50",
+      className:
+        "text-info hover:bg-purple/30 bg-purple/20 active:bg-purple/50",
     },
     {
       variant: "inverted",
       intent: "success",
       className:
-        "text-success hover:bg-success-30 bg-success-20 active:bg-success-50",
+        "text-success hover:bg-green/30 bg-green/20 active:bg-green/50",
     },
     {
       variant: "inverted",
       intent: "warning",
       className:
-        "text-warning hover:bg-warning-30 bg-warning-20 active:bg-warning-50",
+        "text-warning hover:bg-yellow/30 bg-yellow/20 active:bg-yellow/50",
     },
     {
       variant: "inverted",
       intent: "alert",
-      className: "text-alert hover:bg-alert-30 bg-alert-20 active:bg-alert-50",
+      className:
+        "text-alert hover:bg-orange/30 bg-orange/20 active:bg-orange/50",
     },
     {
       variant: "inverted",
       intent: "danger",
-      className:
-        "text-danger hover:bg-danger-30 bg-danger-20 active:bg-danger-50",
+      className: "text-danger hover:bg-red/30 bg-red/20 active:bg-red/50",
     },
     {
       variant: "inverted",
@@ -262,32 +261,32 @@ const button = tv({
     {
       variant: "ghost",
       intent: "primary",
-      className: "text-primary hover:bg-primary-10 active:bg-primary-25",
+      className: "text-primary hover:bg-blue/10 active:bg-blue/25",
     },
     {
       variant: "ghost",
       intent: "tip",
-      className: "text-tip hover:bg-tip-10 active:bg-tip-25",
+      className: "text-tip hover:bg-cyan/10 active:bg-cyan/25",
     },
     {
       variant: "ghost",
       intent: "info",
-      className: "text-info hover:bg-info-10 active:bg-info-25",
+      className: "text-info hover:bg-purple/10 active:bg-purple/25",
     },
     {
       variant: "ghost",
       intent: "success",
-      className: "text-success hover:bg-success-10 active:bg-success-25",
+      className: "text-success hover:bg-green/10 active:bg-green/25",
     },
     {
       variant: "ghost",
       intent: "warning",
-      className: "text-warning hover:bg-warning-10 active:bg-warning-25",
+      className: "text-warning hover:bg-yellow/10 active:bg-yellow/25",
     },
     {
       variant: "ghost",
       intent: "alert",
-      className: "text-alert hover:bg-alert-10 active:bg-alert-25",
+      className: "text-alert hover:bg-orange/10 active:bg-orange/25",
     },
     {
       variant: "ghost",
