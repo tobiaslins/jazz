@@ -29,7 +29,6 @@ export default function IconPage() {
         </p>
       </div>
 
-      {/* Import Pattern */}
       <section className="space-y-4">
         <div>
           <h2 className="text-xl font-semibold text-stone-900 dark:text-white">
@@ -72,7 +71,6 @@ import { Icon } from "@/components/icon";
         </div>
       </section>
 
-      {/* Size Variants */}
       <section className="space-y-4">
         <div>
           <h2 className="text-xl font-semibold text-stone-900 dark:text-white">
@@ -113,7 +111,6 @@ import { Icon } from "@/components/icon";
         </pre>
       </section>
 
-      {/* Intent Variants */}
       <section className="space-y-4">
         <div>
           <h2 className="text-xl font-semibold text-stone-900 dark:text-white">
@@ -197,7 +194,6 @@ import { Icon } from "@/components/icon";
         </pre>
       </section>
 
-      {/* With Backgrounds */}
       <section className="space-y-4">
         <div>
           <h2 className="text-xl font-semibold text-stone-900 dark:text-white">
@@ -231,7 +227,6 @@ import { Icon } from "@/components/icon";
         </pre>
       </section>
 
-      {/* Custom SVG */}
       <section className="space-y-4">
         <div>
           <h2 className="text-xl font-semibold text-stone-900 dark:text-white">
@@ -262,7 +257,6 @@ import { Icon } from "@/components/icon";
         </pre>
       </section>
 
-      {/* Usage in Components */}
       <section className="space-y-4">
         <div>
           <h2 className="text-xl font-semibold text-stone-900 dark:text-white">
@@ -302,7 +296,6 @@ import { Icon } from "@/components/icon";
         </pre>
       </section>
 
-      {/* API Reference */}
       <section className="space-y-4">
         <div>
           <h2 className="text-xl font-semibold text-stone-900 dark:text-white">

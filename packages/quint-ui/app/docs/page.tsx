@@ -7,6 +7,7 @@ export default function DocsPage() {
       <ul className="my-4 text-lg font-semibold">
         <li>
           <Link href="/docs/button">Button</Link>
+          <Link href="/docs/icon">Icon</Link>
         </li>
       </ul>
     </div>
