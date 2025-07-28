@@ -245,7 +245,8 @@ export class VerifiedState {
 
     let currentPiece: NewContentMessage = createContentMessage(
       this.id,
-      knownState?.header ? undefined : this.header,
+      this.header,
+      !knownState?.header,
     );
 
     const pieces = [currentPiece];
@@ -309,7 +310,7 @@ export class VerifiedState {
               this.knownStateWithStreaming().sessions;
           }
 
-          currentPiece = createContentMessage(this.id, undefined);
+          currentPiece = createContentMessage(this.id, this.header, false);
           pieces.push(currentPiece);
           pieceSize = pieceSize - oldPieceSize;
         }

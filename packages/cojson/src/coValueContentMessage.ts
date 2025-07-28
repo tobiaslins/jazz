@@ -10,12 +10,13 @@ import { NewContentMessage } from "./sync.js";
 
 export function createContentMessage(
   id: RawCoID,
-  header?: CoValueHeader,
+  header: CoValueHeader,
+  includeHeader = true,
 ): NewContentMessage {
   return {
     action: "content",
     id,
-    header,
+    header: includeHeader ? header : undefined,
     priority: getPriorityFromHeader(header),
     new: {},
   };

@@ -45,7 +45,7 @@ export class CoValueSyncQueue {
       return;
     }
 
-    const content = createContentMessage(coValue.id, undefined);
+    const content = createContentMessage(coValue.id, coValue.header, false);
 
     addTransactionToContentMessage(
       content,
