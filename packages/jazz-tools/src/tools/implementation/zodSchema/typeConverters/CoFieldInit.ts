@@ -73,9 +73,9 @@ type InstanceOrPrimitiveOfSchemaInit<
           : S extends CoreCoFeedSchema<infer T>
             ? CoFeed<InstanceOrPrimitiveOfSchemaInit<T>> | null
             : S extends CorePlainTextSchema
-              ? CoPlainText | null
+              ? string | CoPlainText | null
               : S extends CoreRichTextSchema
-                ? CoRichText | null
+                ? string | CoRichText | null
                 : S extends CoreFileStreamSchema
                   ? FileStream | null
                   : S extends CoreCoOptionalSchema<infer T>

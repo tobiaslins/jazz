@@ -139,24 +139,26 @@ describe("CoMap", async () => {
       expect(person.dog?.breed).toEqual("Labrador");
     });
 
-    test("create CoMap with reference using JSON", () => {
+    test("create CoMap with references using JSON", () => {
       const Dog = co.map({
         name: z.string(),
         breed: z.string(),
       });
 
       const Person = co.map({
-        name: z.string(),
-        age: z.number(),
+        name: co.plainText(),
+        bio: co.richText(),
         dog: Dog,
       });
 
       const person = Person.create({
         name: "John",
-        age: 20,
+        bio: "I am a software engineer",
         dog: { name: "Rex", breed: "Labrador" },
       });
 
+      expect(person.name.toString()).toEqual("John");
+      expect(person.bio.toString()).toEqual("I am a software engineer");
       expect(person.dog?.name).toEqual("Rex");
       expect(person.dog?.breed).toEqual("Labrador");
     });
