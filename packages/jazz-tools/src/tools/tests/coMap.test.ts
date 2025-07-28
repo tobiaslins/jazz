@@ -120,7 +120,6 @@ describe("CoMap", async () => {
     test("create CoMap with reference using CoValue", () => {
       const Dog = co.map({
         name: z.string(),
-        breed: z.string(),
       });
 
       const Person = co.map({
@@ -132,35 +131,50 @@ describe("CoMap", async () => {
       const person = Person.create({
         name: "John",
         age: 20,
-        dog: Dog.create({ name: "Rex", breed: "Labrador" }),
+        dog: Dog.create({ name: "Rex" }),
       });
 
       expect(person.dog?.name).toEqual("Rex");
-      expect(person.dog?.breed).toEqual("Labrador");
     });
 
     test("create CoMap with references using JSON", () => {
       const Dog = co.map({
         name: z.string(),
-        breed: z.string(),
       });
 
       const Person = co.map({
         name: co.plainText(),
         bio: co.richText(),
         dog: Dog,
+        get friends() {
+          return co.list(Person);
+        },
       });
 
       const person = Person.create({
         name: "John",
         bio: "I am a software engineer",
-        dog: { name: "Rex", breed: "Labrador" },
+        dog: { name: "Rex" },
+        friends: [
+          {
+            name: "Jane",
+            bio: "I am a mechanical engineer",
+            dog: { name: "Fido" },
+            friends: [],
+          },
+        ],
       });
 
       expect(person.name.toString()).toEqual("John");
       expect(person.bio.toString()).toEqual("I am a software engineer");
       expect(person.dog?.name).toEqual("Rex");
-      expect(person.dog?.breed).toEqual("Labrador");
+      expect(person.friends.length).toEqual(1);
+      expect(person.friends[0]?.name.toString()).toEqual("Jane");
+      expect(person.friends[0]?.bio.toString()).toEqual(
+        "I am a mechanical engineer",
+      );
+      expect(person.friends[0]?.dog.name).toEqual("Fido");
+      expect(person.friends[0]?.friends.length).toEqual(0);
     });
 
     test("CoMap with self reference", () => {

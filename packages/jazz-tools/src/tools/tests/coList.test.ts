@@ -52,6 +52,40 @@ describe("Simple CoList operations", async () => {
     expect(list[2]).toBe("c");
   });
 
+  test("create CoList with reference using CoValue", () => {
+    const Dog = co.map({
+      name: z.string(),
+    });
+    const Person = co.map({
+      pets: co.list(Dog),
+    });
+
+    const person = Person.create({
+      pets: [Dog.create({ name: "Rex" }), Dog.create({ name: "Fido" })],
+    });
+
+    expect(person.pets.length).toEqual(2);
+    expect(person.pets[0]?.name).toEqual("Rex");
+    expect(person.pets[1]?.name).toEqual("Fido");
+  });
+
+  test("create CoList with reference using JSON", () => {
+    const Dog = co.map({
+      name: z.string(),
+    });
+    const Person = co.map({
+      pets: co.list(Dog),
+    });
+
+    const person = Person.create({
+      pets: [{ name: "Rex" }, { name: "Fido" }],
+    });
+
+    expect(person.pets.length).toEqual(2);
+    expect(person.pets[0]?.name).toEqual("Rex");
+    expect(person.pets[1]?.name).toEqual("Fido");
+  });
+
   test("list with nullable content", () => {
     const List = co.list(z.string().nullable());
     const list = List.create(["a", "b", "c", null]);

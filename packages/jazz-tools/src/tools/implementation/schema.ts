@@ -1,9 +1,11 @@
 import type { JsonValue, RawCoValue } from "cojson";
 import { CojsonInternalTypes } from "cojson";
 import {
+  Account,
   type CoValue,
   type CoValueClass,
   CoValueFromRaw,
+  Group,
   ItemsSym,
   JazzToolsSymbol,
   SchemaInit,
@@ -149,6 +151,20 @@ export function instantiateRefEncoded<V extends CoValue>(
     : (schema.ref as (raw: RawCoValue) => CoValueClass<V> & CoValueFromRaw<V>)(
         raw,
       ).fromRaw(raw);
+}
+
+export function instantiateRefEncodedWithInit<V extends CoValue>(
+  schema: RefEncoded<V>,
+  // TODO add a generic type to derive the type of initValues for each type of CoValue
+  initValues: any,
+  owner: Account | Group,
+): V {
+  if (!isCoValueClass<V>(schema.ref)) {
+    // TODO do we need to support (raw: RawCoValue) => CoValueClass<V> refs?
+    throw Error("Cannot create a CoMap with a reference to a non-CoValue");
+  }
+  // @ts-expect-error - create is a static method in all CoValue classes
+  return schema.ref.create(initValues, owner);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

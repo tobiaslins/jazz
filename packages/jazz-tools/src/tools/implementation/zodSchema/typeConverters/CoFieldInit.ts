@@ -36,6 +36,8 @@ export type CoFieldInit<T extends AnyZodOrCoValueSchema> =
 
 // Makes all of the value's fields nullable by default, to support using
 // partially-loaded CoValues to initialize new CoValues.
+// TODO this isn't correct: the input should either be a partially-loaded CoValue
+// or a "complete" JSON object that can be used to create a new CoValue.
 type InstanceOrPrimitiveOfSchemaInit<
   S extends CoValueClass | AnyZodOrCoValueSchema,
 > = S extends CoreCoValueSchema
@@ -69,7 +71,7 @@ type InstanceOrPrimitiveOfSchemaInit<
         : // TODO for now we're only allowing JSON inputs for creating CoMaps
           // TODO continue with the rest of the CoValue types
           S extends CoreCoListSchema<infer T>
-          ? CoList<InstanceOrPrimitiveOfSchemaInit<T>> | null
+          ? ReadonlyArray<InstanceOrPrimitiveOfSchemaInit<T>> | null
           : S extends CoreCoFeedSchema<infer T>
             ? CoFeed<InstanceOrPrimitiveOfSchemaInit<T>> | null
             : S extends CorePlainTextSchema
