@@ -5,6 +5,10 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --color-default: theme("colors.stone.700");
+  --color-strong: theme("colors.stone.800");
+  --color-muted: theme("colors.stone.300");
+
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-dark: var(--primary-dark);
@@ -171,8 +175,7 @@
 }
 
 .dark {
-  /*
-   * Dark mode styles.
-   * Here you can override the css variables above for dark mode.
-  */
+  --color-default: theme("colors.stone.100");
+  --color-strong: theme("colors.stone.900");
+  --color-muted: theme("colors.stone.500");
 }
