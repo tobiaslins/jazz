@@ -22,6 +22,7 @@ export type SchemaField =
   | CoValueClass
   | ZodPrimitiveSchema
   | z.core.$ZodOptional<z.core.$ZodType>
+  | z.core.$ZodNullable<z.core.$ZodType>
   | z.core.$ZodUnion<z.core.$ZodType[]>
   | z.core.$ZodDiscriminatedUnion<z.core.$ZodType[]>
   | z.core.$ZodObject<z.core.$ZodLooseShape>
@@ -49,9 +50,24 @@ export function schemaFieldToCoFieldDef(schema: SchemaField) {
   } else {
     if ("_zod" in schema) {
       const zodSchemaDef = schema._zod.def;
-      if (zodSchemaDef.type === "optional") {
+      if (
+        zodSchemaDef.type === "optional" ||
+        zodSchemaDef.type === "nullable"
+      ) {
         const inner = zodSchemaDef.innerType as ZodPrimitiveSchema;
-        return schemaFieldToCoFieldDef(inner);
+        const coFieldDef: any = schemaFieldToCoFieldDef(inner);
+        if (
+          zodSchemaDef.type === "nullable" &&
+          coFieldDef === coField.optional.Date
+        ) {
+          // We do not currently have a way to encode null Date coFields.
+          // We only support encoding optional (i.e. Date | undefined) coFields.
+          throw new Error("Nullable z.date() is not supported");
+        }
+        // Primitive coField types support null and undefined as values,
+        // so we can just return the inner type here and rely on support
+        // for null/undefined at the type level
+        return coFieldDef;
       } else if (zodSchemaDef.type === "string") {
         return coField.string;
       } else if (zodSchemaDef.type === "number") {

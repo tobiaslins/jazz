@@ -143,8 +143,7 @@ describe("CoMap", async () => {
       const Person = co.map({
         name: z.string(),
         age: z.number(),
-        // TODO: would be nice if this didn't need a type annotation
-        get friend(): co.Optional<typeof Person> {
+        get friend() {
           return co.optional(Person);
         },
       });
@@ -290,6 +289,74 @@ describe("CoMap", async () => {
         name: "John",
         age: 30,
       });
+    });
+
+    it("should allow extra properties when catchall is provided", () => {
+      const Person = co
+        .map({
+          name: z.string(),
+          age: z.number(),
+        })
+        .catchall(z.string());
+
+      const person = Person.create({ name: "John", age: 20 });
+      expect(person.name).toEqual("John");
+      expect(person.age).toEqual(20);
+      expect(person.extra).toBeUndefined();
+
+      person.name = "Jane";
+      person.age = 28;
+      person.extra = "extra";
+
+      expect(person.name).toEqual("Jane");
+      expect(person.age).toEqual(28);
+      expect(person.extra).toEqual("extra");
+    });
+
+    test("CoMap with reference can be created with a shallowly resolved reference", async () => {
+      const Dog = co.map({
+        name: z.string(),
+        breed: z.string(),
+      });
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+        pet: Dog,
+        get friend() {
+          return Person.optional();
+        },
+      });
+
+      const group = Group.create();
+      group.addMember("everyone", "writer");
+
+      const pet = Dog.create({ name: "Rex", breed: "Labrador" }, group);
+      const personA = Person.create(
+        {
+          name: "John",
+          age: 20,
+          pet,
+        },
+        { owner: group },
+      );
+
+      const userB = await createJazzTestAccount();
+      const loadedPersonA = await Person.load(personA.id, {
+        resolve: true,
+        loadAs: userB,
+      });
+
+      expect(loadedPersonA).not.toBeNull();
+      assert(loadedPersonA);
+
+      const personB = Person.create({
+        name: "Jane",
+        age: 28,
+        pet,
+        friend: loadedPersonA,
+      });
+
+      expect(personB.friend?.pet.name).toEqual("Rex");
     });
   });
 

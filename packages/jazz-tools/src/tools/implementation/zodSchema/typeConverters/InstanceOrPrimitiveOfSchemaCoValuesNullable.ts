@@ -49,13 +49,13 @@ export type InstanceOrPrimitiveOfSchemaCoValuesNullable<
                 -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchemaCoValuesNullable<
                   Shape[key]
                 >;
-              } & (unknown extends CatchAll
-                ? {}
-                : {
+              } & (CatchAll extends AnyZodOrCoValueSchema
+                ? {
                     [
-                      key: string // @ts-expect-error
+                      key: string
                     ]: InstanceOrPrimitiveOfSchemaCoValuesNullable<CatchAll>;
-                  }) &
+                  }
+                : {}) &
                 CoMap)
             | null
         : S extends CoreCoListSchema<infer T>
@@ -78,58 +78,60 @@ export type InstanceOrPrimitiveOfSchemaCoValuesNullable<
   : S extends z.core.$ZodType
     ? S extends z.core.$ZodOptional<infer Inner extends z.core.$ZodType>
       ? InstanceOrPrimitiveOfSchemaCoValuesNullable<Inner> | undefined
-      : S extends z.ZodJSONSchema
-        ? JsonValue
-        : S extends z.core.$ZodUnion<
-              infer Members extends readonly z.core.$ZodType[]
-            >
-          ? InstanceOrPrimitiveOfSchemaCoValuesNullable<Members[number]>
-          : // primitives below here - we manually traverse to ensure we only allow what we can handle
-            S extends z.core.$ZodObject<infer Shape>
-            ? {
-                -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchema<
-                  Shape[key]
-                >;
-              }
-            : S extends z.core.$ZodArray<infer Item extends z.core.$ZodType>
-              ? InstanceOrPrimitiveOfSchema<Item>[]
-              : S extends z.core.$ZodTuple<
-                    infer Items extends z.core.$ZodType[]
-                  >
-                ? {
-                    [key in keyof Items]: InstanceOrPrimitiveOfSchema<
-                      Items[key]
-                    >;
-                  }
-                : S extends z.core.$ZodString
-                  ? string
-                  : S extends z.core.$ZodNumber
-                    ? number
-                    : S extends z.core.$ZodBoolean
-                      ? boolean
-                      : S extends z.core.$ZodLiteral<infer Literal>
-                        ? Literal
-                        : S extends z.core.$ZodDate
-                          ? Date
-                          : S extends z.core.$ZodEnum<infer Enum>
-                            ? Enum[keyof Enum]
-                            : S extends z.core.$ZodTemplateLiteral<
-                                  infer pattern
-                                >
-                              ? pattern
-                              : S extends z.core.$ZodReadonly<
-                                    infer Inner extends z.core.$ZodType
+      : S extends z.core.$ZodNullable<infer Inner extends z.core.$ZodType>
+        ? InstanceOrPrimitiveOfSchemaCoValuesNullable<Inner> | null
+        : S extends z.ZodJSONSchema
+          ? JsonValue
+          : S extends z.core.$ZodUnion<
+                infer Members extends readonly z.core.$ZodType[]
+              >
+            ? InstanceOrPrimitiveOfSchemaCoValuesNullable<Members[number]>
+            : // primitives below here - we manually traverse to ensure we only allow what we can handle
+              S extends z.core.$ZodObject<infer Shape>
+              ? {
+                  -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchema<
+                    Shape[key]
+                  >;
+                }
+              : S extends z.core.$ZodArray<infer Item extends z.core.$ZodType>
+                ? InstanceOrPrimitiveOfSchema<Item>[]
+                : S extends z.core.$ZodTuple<
+                      infer Items extends z.core.$ZodType[]
+                    >
+                  ? {
+                      [key in keyof Items]: InstanceOrPrimitiveOfSchema<
+                        Items[key]
+                      >;
+                    }
+                  : S extends z.core.$ZodString
+                    ? string
+                    : S extends z.core.$ZodNumber
+                      ? number
+                      : S extends z.core.$ZodBoolean
+                        ? boolean
+                        : S extends z.core.$ZodLiteral<infer Literal>
+                          ? Literal
+                          : S extends z.core.$ZodDate
+                            ? Date
+                            : S extends z.core.$ZodEnum<infer Enum>
+                              ? Enum[keyof Enum]
+                              : S extends z.core.$ZodTemplateLiteral<
+                                    infer pattern
                                   >
-                                ? InstanceOrPrimitiveOfSchema<Inner>
-                                : S extends z.core.$ZodDefault<
-                                      infer Default extends z.core.$ZodType
+                                ? pattern
+                                : S extends z.core.$ZodReadonly<
+                                      infer Inner extends z.core.$ZodType
                                     >
-                                  ? InstanceOrPrimitiveOfSchema<Default>
-                                  : S extends z.core.$ZodCatch<
-                                        infer Catch extends z.core.$ZodType
+                                  ? InstanceOrPrimitiveOfSchema<Inner>
+                                  : S extends z.core.$ZodDefault<
+                                        infer Default extends z.core.$ZodType
                                       >
-                                    ? InstanceOrPrimitiveOfSchema<Catch>
-                                    : never
+                                    ? InstanceOrPrimitiveOfSchema<Default>
+                                    : S extends z.core.$ZodCatch<
+                                          infer Catch extends z.core.$ZodType
+                                        >
+                                      ? InstanceOrPrimitiveOfSchema<Catch>
+                                      : never
     : S extends CoValueClass
       ? InstanceType<S> | null
       : never;

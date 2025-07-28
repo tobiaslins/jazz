@@ -60,6 +60,44 @@ describe("co.map and Zod schema compatibility", () => {
       expect(map.createdAt).toEqual(undefined);
     });
 
+    it("should not handle nullable date fields", () => {
+      const schema = co.map({
+        updatedAt: z.date().nullable(),
+      });
+      expect(() => schema.create({ updatedAt: null })).toThrow(
+        "Nullable z.date() is not supported",
+      );
+    });
+
+    it("should handle nullable fields", () => {
+      const schema = co.map({
+        updatedAt: z.string().nullable(),
+      });
+
+      const map = schema.create({
+        updatedAt: null,
+      });
+      expect(map.updatedAt).toBeNull();
+
+      map.updatedAt = "Test";
+      expect(map.updatedAt).toEqual("Test");
+    });
+
+    it("should handle nullish fields", () => {
+      const schema = co.map({
+        updatedAt: z.string().nullish(),
+      });
+
+      const map = schema.create({});
+      expect(map.updatedAt).toBeUndefined();
+
+      map.updatedAt = null;
+      expect(map.updatedAt).toBeNull();
+
+      map.updatedAt = "Test";
+      expect(map.updatedAt).toEqual("Test");
+    });
+
     it("should handle literal fields", async () => {
       const schema = co.map({
         status: z.literal("active"),
