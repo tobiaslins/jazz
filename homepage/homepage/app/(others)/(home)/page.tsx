@@ -1,6 +1,5 @@
 import { ChatDemoSection } from "@/components/home/ChatDemoSection";
 import { CollaborationFeaturesSection } from "@/components/home/CollaborationFeaturesSection";
-import { ComingSoonSection } from "@/components/home/ComingSoonSection";
 import { EarlyAdopterSection } from "@/components/home/EarlyAdopterSection";
 import { EncryptionSection } from "@/components/home/EncryptionSection";
 import { FeaturesSection } from "@/components/home/FeaturesSection";
@@ -15,9 +14,9 @@ import { Testimonial } from "@garden-co/design-system/src/components/molecules/T
 export default function Home() {
   return (
     <>
-      <HeroSection />
-
+        <HeroSection />
       <div className="container flex flex-col gap-12 lg:gap-20">
+
         <GetStartedSnippetSelect />
         <SupportedEnvironmentsSection />
         <HowJazzWorksSection />
@@ -53,8 +52,6 @@ export default function Home() {
         </Testimonial>
 
         <FeaturesSection />
-
-        <ComingSoonSection />
 
         <EarlyAdopterSection />
       </div>
