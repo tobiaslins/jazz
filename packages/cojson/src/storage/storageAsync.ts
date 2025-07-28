@@ -17,7 +17,11 @@ import {
   emptyKnownState,
 } from "../sync.js";
 import { StorageKnownState } from "./knownState.js";
-import { collectNewTxs, getDependedOnCoValues } from "./syncUtils.js";
+import {
+  collectNewTxs,
+  getDependedOnCoValues,
+  getNewTransactionsSize,
+} from "./syncUtils.js";
 import type {
   CorrectionCallback,
   DBClientInterfaceAsync,
@@ -309,34 +313,31 @@ export class StorageApiAsync implements StorageAPI {
     storedCoValueRowID: number,
   ) {
     const newTransactions = msg.new[sessionID]?.newTransactions || [];
+    const lastIdx = sessionRow?.lastIdx || 0;
 
-    const actuallyNewOffset =
-      (sessionRow?.lastIdx || 0) - (msg.new[sessionID]?.after || 0);
+    const actuallyNewOffset = lastIdx - (msg.new[sessionID]?.after || 0);
 
     const actuallyNewTransactions = newTransactions.slice(actuallyNewOffset);
 
     if (actuallyNewTransactions.length === 0) {
-      return sessionRow?.lastIdx || 0;
+      return lastIdx;
     }
 
-    let newBytesSinceLastSignature =
-      (sessionRow?.bytesSinceLastSignature || 0) +
-      actuallyNewTransactions.reduce(
-        (sum, tx) => sum + getTransactionSize(tx),
-        0,
-      );
+    let bytesSinceLastSignature = sessionRow?.bytesSinceLastSignature || 0;
+    const newTransactionsSize = getNewTransactionsSize(actuallyNewTransactions);
 
-    const newLastIdx =
-      (sessionRow?.lastIdx || 0) + actuallyNewTransactions.length;
+    const newLastIdx = lastIdx + actuallyNewTransactions.length;
 
     let shouldWriteSignature = false;
 
-    if (exceedsRecommendedSize(newBytesSinceLastSignature)) {
+    if (exceedsRecommendedSize(bytesSinceLastSignature, newTransactionsSize)) {
       shouldWriteSignature = true;
-      newBytesSinceLastSignature = 0;
+      bytesSinceLastSignature = 0;
+    } else {
+      bytesSinceLastSignature += newTransactionsSize;
     }
 
-    const nextIdx = sessionRow?.lastIdx || 0;
+    const nextIdx = lastIdx;
 
     if (!msg.new[sessionID]) throw new Error("Session ID not found");
 
@@ -345,7 +346,7 @@ export class StorageApiAsync implements StorageAPI {
       sessionID,
       lastIdx: newLastIdx,
       lastSignature: msg.new[sessionID].lastSignature,
-      bytesSinceLastSignature: newBytesSinceLastSignature,
+      bytesSinceLastSignature,
     };
 
     const sessionRowID: number = await this.dbClient.addSessionUpdate({

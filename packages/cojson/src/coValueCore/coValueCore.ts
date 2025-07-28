@@ -605,8 +605,8 @@ export class CoValueCore {
     )._unsafeUnwrap({ withStackTrace: true });
 
     if (success) {
-      const txIdx =
-        this.verified.sessions.get(sessionID)?.transactions.length || 0;
+      const session = this.verified.sessions.get(sessionID);
+      const txIdx = session ? session.transactions.length - 1 : 0;
 
       this.node.syncManager.recordTransactionsSize([transaction], "local");
       this.node.syncManager.syncLocalTransaction(

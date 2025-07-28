@@ -18,7 +18,6 @@ import { RawCoID, SessionID, TransactionID } from "../ids.js";
 import { Stringified } from "../jsonStringify.js";
 import { JsonObject, JsonValue } from "../jsonValue.js";
 import { PermissionsDef as RulesetDef } from "../permissions.js";
-import { getPriorityFromHeader } from "../priority.js";
 import { CoValueKnownState, NewContentMessage } from "../sync.js";
 import { InvalidHashError, InvalidSignatureError } from "./coValueCore.js";
 import { TryAddTransactionsError } from "./coValueCore.js";
@@ -155,6 +154,17 @@ export class VerifiedState {
     return ok(true as const);
   }
 
+  getLastSignatureIdx(sessionID: SessionID): number {
+    const sessionLog = this.sessions.get(sessionID);
+
+    if (!sessionLog?.signatureAfter) return -1;
+
+    return Object.keys(sessionLog.signatureAfter).reduce(
+      (max, idx) => (parseInt(idx) > max ? parseInt(idx) : max),
+      -1,
+    );
+  }
+
   private doAddTransactions(
     sessionID: SessionID,
     newTransactions: Transaction[],
@@ -169,11 +179,7 @@ export class VerifiedState {
     }
 
     const signatureAfter = sessionLog?.signatureAfter ?? {};
-
-    const lastInbetweenSignatureIdx = Object.keys(signatureAfter).reduce(
-      (max, idx) => (parseInt(idx) > max ? parseInt(idx) : max),
-      -1,
-    );
+    const lastInbetweenSignatureIdx = this.getLastSignatureIdx(sessionID);
 
     const sizeOfTxsSinceLastInbetweenSignature = transactions
       .slice(lastInbetweenSignatureIdx + 1)

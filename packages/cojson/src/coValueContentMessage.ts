@@ -37,7 +37,7 @@ export function addTransactionToContentMessage(
     sessionContent.lastSignature = signature;
   } else {
     content.new[sessionID] = {
-      after: txIdx - 1,
+      after: txIdx,
       newTransactions: [transaction],
       lastSignature: signature,
     };
@@ -55,8 +55,8 @@ export function exceedsRecommendedSize(
   transactionSize?: number,
 ) {
   if (transactionSize === undefined) {
-    return baseSize >= MAX_RECOMMENDED_TX_SIZE;
+    return baseSize > MAX_RECOMMENDED_TX_SIZE;
   }
 
-  return baseSize + transactionSize >= MAX_RECOMMENDED_TX_SIZE;
+  return baseSize + transactionSize > MAX_RECOMMENDED_TX_SIZE;
 }

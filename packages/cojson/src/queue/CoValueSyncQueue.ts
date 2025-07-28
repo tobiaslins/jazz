@@ -1,8 +1,6 @@
 import {
   addTransactionToContentMessage,
   createContentMessage,
-  exceedsRecommendedSize,
-  getTransactionSize,
 } from "../coValueContentMessage.js";
 import { Transaction, VerifiedState } from "../coValueCore/verifiedState.js";
 import { Signature } from "../crypto/crypto.js";
@@ -11,24 +9,18 @@ import { NewContentMessage } from "../sync.js";
 import { LinkedList } from "./LinkedList.js";
 
 export class CoValueSyncQueue {
-  private readonly queue = new LinkedList<{
-    msg: NewContentMessage;
-    size: number;
-  }>();
+  private readonly queue = new LinkedList<NewContentMessage>();
 
   constructor(private readonly sync: (content: NewContentMessage) => void) {}
 
   syncHeader = (coValue: VerifiedState) => {
     const lastPendingSync = this.queue.tail?.value;
 
-    if (lastPendingSync?.msg.id === coValue.id) {
+    if (lastPendingSync?.id === coValue.id) {
       return;
     }
 
-    this.enqueue({
-      msg: createContentMessage(coValue.id, coValue.header),
-      size: 0,
-    });
+    this.enqueue(createContentMessage(coValue.id, coValue.header));
   };
 
   syncLocalTransaction = (
@@ -39,21 +31,16 @@ export class CoValueSyncQueue {
     txIdx: number,
   ) => {
     const lastPendingSync = this.queue.tail?.value;
+    const lastSignatureIdx = coValue.getLastSignatureIdx(sessionID);
 
-    const size = getTransactionSize(transaction);
-
-    if (
-      lastPendingSync?.msg.id === coValue.id &&
-      !exceedsRecommendedSize(lastPendingSync.size, size)
-    ) {
+    if (lastPendingSync?.id === coValue.id && lastSignatureIdx !== txIdx - 1) {
       addTransactionToContentMessage(
-        lastPendingSync.msg,
+        lastPendingSync,
         transaction,
         sessionID,
         signature,
         txIdx,
       );
-      lastPendingSync.size += size;
 
       return;
     }
@@ -68,13 +55,10 @@ export class CoValueSyncQueue {
       txIdx,
     );
 
-    this.enqueue({
-      msg: content,
-      size,
-    });
+    this.enqueue(content);
   };
 
-  enqueue(content: { msg: NewContentMessage; size: number }) {
+  enqueue(content: NewContentMessage) {
     this.queue.push(content);
 
     this.processPendingSyncs();
@@ -88,9 +72,9 @@ export class CoValueSyncQueue {
 
     queueMicrotask(() => {
       while (this.queue.head) {
-        const { msg } = this.queue.head.value;
+        const content = this.queue.head.value;
 
-        this.sync(msg);
+        this.sync(content);
 
         this.queue.shift();
       }
