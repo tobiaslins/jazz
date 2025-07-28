@@ -117,7 +117,7 @@ describe("CoMap", async () => {
       expect(emptyMap.color).toEqual(undefined);
     });
 
-    test("CoMap with reference", () => {
+    test("create CoMap with reference using CoValue", () => {
       const Dog = co.map({
         name: z.string(),
         breed: z.string(),
@@ -133,6 +133,28 @@ describe("CoMap", async () => {
         name: "John",
         age: 20,
         dog: Dog.create({ name: "Rex", breed: "Labrador" }),
+      });
+
+      expect(person.dog?.name).toEqual("Rex");
+      expect(person.dog?.breed).toEqual("Labrador");
+    });
+
+    test("create CoMap with reference using JSON", () => {
+      const Dog = co.map({
+        name: z.string(),
+        breed: z.string(),
+      });
+
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+        dog: Dog,
+      });
+
+      const person = Person.create({
+        name: "John",
+        age: 20,
+        dog: { name: "Rex", breed: "Labrador" },
       });
 
       expect(person.dog?.name).toEqual("Rex");

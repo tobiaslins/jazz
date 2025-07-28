@@ -37,6 +37,8 @@ import {
   activeAccountContext,
   ensureCoValueLoaded,
   inspect,
+  instantiateRefEncoded,
+  isCoValueClass,
   isRefEncoded,
   loadCoValueWithoutMe,
   makeRefs,
@@ -425,7 +427,19 @@ export class CoMap extends CoValueBase implements CoValue {
           rawInit[key] = initValue as JsonValue;
         } else if (isRefEncoded(descriptor)) {
           if (initValue) {
-            rawInit[key] = (initValue as unknown as CoValue).id;
+            let refId = (initValue as unknown as CoValue).id;
+            if (!refId) {
+              if (!isCoValueClass(descriptor.ref)) {
+                // TODO do we need to support (raw: RawCoValue) => CoValueClass<V> refs?
+                throw Error(
+                  "Cannot create a CoMap with a reference to a non-CoValue",
+                );
+              }
+              // @ts-expect-error - create is a static method in all CoValue classes
+              const coValue = descriptor.ref.create(initValue, owner);
+              refId = coValue.id;
+            }
+            rawInit[key] = refId;
           }
         } else if ("encoded" in descriptor) {
           rawInit[key] = descriptor.encoded.encode(
