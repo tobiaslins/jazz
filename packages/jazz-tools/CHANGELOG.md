@@ -1,5 +1,14 @@
 # jazz-tools
 
+## 0.16.1
+
+### Patch Changes
+
+- c62abef: Add support for nullable non-collaborative fields
+  - cojson@0.16.1
+  - cojson-storage-indexeddb@0.16.1
+  - cojson-transport-ws@0.16.1
+
 ## 0.16.0
 
 ### Minor Changes
