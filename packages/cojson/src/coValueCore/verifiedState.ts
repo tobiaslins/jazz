@@ -1,7 +1,10 @@
 import { Result, err, ok } from "neverthrow";
 import { AnyRawCoValue } from "../coValue.js";
-import { createContentMessage } from "../coValueContentMessage.js";
-import { MAX_RECOMMENDED_TX_SIZE } from "../config.js";
+import {
+  createContentMessage,
+  exceedsRecommendedSize,
+  getTransactionSize,
+} from "../coValueContentMessage.js";
 import {
   CryptoProvider,
   Encrypted,
@@ -174,16 +177,9 @@ export class VerifiedState {
 
     const sizeOfTxsSinceLastInbetweenSignature = transactions
       .slice(lastInbetweenSignatureIdx + 1)
-      .reduce(
-        (sum, tx) =>
-          sum +
-          (tx.privacy === "private"
-            ? tx.encryptedChanges.length
-            : tx.changes.length),
-        0,
-      );
+      .reduce((sum, tx) => sum + getTransactionSize(tx), 0);
 
-    if (sizeOfTxsSinceLastInbetweenSignature > MAX_RECOMMENDED_TX_SIZE) {
+    if (exceedsRecommendedSize(sizeOfTxsSinceLastInbetweenSignature)) {
       signatureAfter[transactions.length - 1] = newSignature;
     }
 
@@ -298,13 +294,10 @@ export class VerifiedState {
         const oldPieceSize = pieceSize;
         for (let txIdx = firstNewTxIdx; txIdx < afterLastNewTxIdx; txIdx++) {
           const tx = log.transactions[txIdx]!;
-          pieceSize +=
-            tx.privacy === "private"
-              ? tx.encryptedChanges.length
-              : tx.changes.length;
+          pieceSize += getTransactionSize(tx);
         }
 
-        if (pieceSize >= MAX_RECOMMENDED_TX_SIZE) {
+        if (exceedsRecommendedSize(pieceSize)) {
           if (!currentPiece.expectContentUntil && pieces.length === 1) {
             currentPiece.expectContentUntil =
               this.knownStateWithStreaming().sessions;

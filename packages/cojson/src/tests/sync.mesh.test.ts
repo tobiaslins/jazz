@@ -512,7 +512,9 @@ describe("multiple clients syncing with the a cloud-like server mesh", () => {
     ).toMatchInlineSnapshot(`
       [
         "edge -> storage | CONTENT Group header: true new: After: 0 New: 5",
-        "edge -> storage | CONTENT Map header: true new: After: 0 New: 200",
+        "edge -> storage | CONTENT Map header: true new: After: 0 New: 72",
+        "edge -> storage | CONTENT Map header: false new: After: 72 New: 72",
+        "edge -> storage | CONTENT Map header: false new: After: 144 New: 56",
       ]
     `);
 
@@ -559,11 +561,11 @@ describe("multiple clients syncing with the a cloud-like server mesh", () => {
         "edge -> storage | LOAD Map sessions: empty",
         "storage -> edge | CONTENT Group header: true new: After: 0 New: 5",
         "edge -> core | LOAD Group sessions: header/5",
-        "storage -> edge | CONTENT Map header: true new: After: 0 New: 200 expectContentUntil: header/200",
+        "storage -> edge | CONTENT Map header: true new: After: 0 New: 144 expectContentUntil: header/200",
         "edge -> core | LOAD Map sessions: header/200",
         "edge -> client | CONTENT Group header: true new: After: 0 New: 5",
         "edge -> client | CONTENT Map header: true new:  expectContentUntil: header/200",
-        "edge -> client | CONTENT Map header: false new: After: 0 New: 200",
+        "edge -> client | CONTENT Map header: false new: After: 0 New: 144",
         "core -> storage | LOAD Group sessions: empty",
         "storage -> core | KNOWN Group sessions: empty",
         "core -> edge | KNOWN Group sessions: empty",
@@ -574,18 +576,24 @@ describe("multiple clients syncing with the a cloud-like server mesh", () => {
         "client -> storage | CONTENT Group header: true new: After: 0 New: 5",
         "client -> edge | KNOWN Map sessions: header/0",
         "client -> storage | CONTENT Map header: true new:  expectContentUntil: header/200",
-        "client -> edge | KNOWN Map sessions: header/200",
-        "client -> storage | CONTENT Map header: false new: After: 0 New: 200",
-        "storage -> edge | CONTENT Map header: true new: After: 200 New: 0",
+        "client -> edge | KNOWN Map sessions: header/144",
+        "client -> storage | CONTENT Map header: false new: After: 0 New: 144",
+        "storage -> edge | CONTENT Map header: true new: After: 144 New: 56",
+        "edge -> client | CONTENT Map header: false new: After: 144 New: 56",
         "edge -> core | CONTENT Group header: true new: After: 0 New: 5",
         "edge -> core | CONTENT Map header: true new:  expectContentUntil: header/200",
-        "edge -> core | CONTENT Map header: false new: After: 0 New: 200",
+        "edge -> core | CONTENT Map header: false new: After: 0 New: 144",
+        "edge -> core | CONTENT Map header: false new: After: 144 New: 56",
+        "client -> edge | KNOWN Map sessions: header/200",
+        "client -> storage | CONTENT Map header: false new: After: 144 New: 56",
         "core -> edge | KNOWN Group sessions: header/5",
         "core -> storage | CONTENT Group header: true new: After: 0 New: 5",
         "core -> edge | KNOWN Map sessions: header/0",
         "core -> storage | CONTENT Map header: true new:  expectContentUntil: header/200",
+        "core -> edge | KNOWN Map sessions: header/144",
+        "core -> storage | CONTENT Map header: false new: After: 0 New: 144",
         "core -> edge | KNOWN Map sessions: header/200",
-        "core -> storage | CONTENT Map header: false new: After: 0 New: 200",
+        "core -> storage | CONTENT Map header: false new: After: 144 New: 56",
       ]
     `);
 

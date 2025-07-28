@@ -530,8 +530,8 @@ test("large coValue upload streaming", async () => {
     [
       "client -> LOAD Map sessions: empty",
       "storage -> CONTENT Group header: true new: After: 0 New: 3",
-      "storage -> CONTENT Map header: true new: After: 0 New: 200",
-      "storage -> CONTENT Map header: true new: After: 200 New: 0",
+      "storage -> CONTENT Map header: true new: After: 0 New: 192",
+      "storage -> CONTENT Map header: true new: After: 192 New: 8",
     ]
   `);
 });

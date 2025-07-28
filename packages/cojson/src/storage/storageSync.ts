@@ -1,8 +1,11 @@
 import { UpDownCounter, metrics } from "@opentelemetry/api";
-import { createContentMessage } from "../coValueContentMessage.js";
+import {
+  createContentMessage,
+  exceedsRecommendedSize,
+  getTransactionSize,
+} from "../coValueContentMessage.js";
 import {
   CoValueCore,
-  MAX_RECOMMENDED_TX_SIZE,
   RawCoID,
   type SessionID,
   type StorageAPI,
@@ -298,11 +301,7 @@ export class StorageApiSync implements StorageAPI {
     let newBytesSinceLastSignature =
       (sessionRow?.bytesSinceLastSignature || 0) +
       actuallyNewTransactions.reduce(
-        (sum, tx) =>
-          sum +
-          (tx.privacy === "private"
-            ? tx.encryptedChanges.length
-            : tx.changes.length),
+        (sum, tx) => sum + getTransactionSize(tx),
         0,
       );
 
@@ -311,7 +310,7 @@ export class StorageApiSync implements StorageAPI {
 
     let shouldWriteSignature = false;
 
-    if (newBytesSinceLastSignature > MAX_RECOMMENDED_TX_SIZE) {
+    if (exceedsRecommendedSize(newBytesSinceLastSignature)) {
       shouldWriteSignature = true;
       newBytesSinceLastSignature = 0;
     }
