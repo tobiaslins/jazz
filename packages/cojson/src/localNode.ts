@@ -351,7 +351,7 @@ export class LocalNode {
       new VerifiedState(id, this.crypto, header, new Map()),
     );
 
-    void this.syncManager.requestCoValueSync(coValue);
+    this.syncManager.syncHeader(coValue.verified);
 
     return coValue;
   }
@@ -739,8 +739,8 @@ export class LocalNode {
   }
 
   gracefulShutdown() {
-    this.storage?.close();
     this.syncManager.gracefulShutdown();
+    return this.storage?.close();
   }
 }
 

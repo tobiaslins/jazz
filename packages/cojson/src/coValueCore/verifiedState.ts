@@ -1,5 +1,6 @@
 import { Result, err, ok } from "neverthrow";
 import { AnyRawCoValue } from "../coValue.js";
+import { createContentMessage } from "../coValueContentMessage.js";
 import { MAX_RECOMMENDED_TX_SIZE } from "../config.js";
 import {
   CryptoProvider,
@@ -242,13 +243,10 @@ export class VerifiedState {
       return this._cachedNewContentSinceEmpty;
     }
 
-    let currentPiece: NewContentMessage = {
-      action: "content",
-      id: this.id,
-      header: knownState?.header ? undefined : this.header,
-      priority: getPriorityFromHeader(this.header),
-      new: {},
-    };
+    let currentPiece: NewContentMessage = createContentMessage(
+      this.id,
+      knownState?.header ? undefined : this.header,
+    );
 
     const pieces = [currentPiece];
 
@@ -311,13 +309,7 @@ export class VerifiedState {
               this.knownStateWithStreaming().sessions;
           }
 
-          currentPiece = {
-            action: "content",
-            id: this.id,
-            header: undefined,
-            new: {},
-            priority: getPriorityFromHeader(this.header),
-          };
+          currentPiece = createContentMessage(this.id, undefined);
           pieces.push(currentPiece);
           pieceSize = pieceSize - oldPieceSize;
         }

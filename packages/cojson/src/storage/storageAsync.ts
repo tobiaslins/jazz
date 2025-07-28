@@ -1,11 +1,12 @@
+import { createContentMessage } from "../coValueContentMessage.js";
 import {
   type CoValueCore,
   MAX_RECOMMENDED_TX_SIZE,
   type RawCoID,
   type SessionID,
   type StorageAPI,
+  logger,
 } from "../exports.js";
-import { getPriorityFromHeader } from "../priority.js";
 import { StoreQueue } from "../queue/StoreQueue.js";
 import {
   CoValueKnownState,
@@ -15,6 +16,7 @@ import {
 import { StorageKnownState } from "./knownState.js";
 import { collectNewTxs, getDependedOnCoValues } from "./syncUtils.js";
 import type {
+  CorrectionCallback,
   DBClientInterfaceAsync,
   SignatureAfterRow,
   StoredCoValueRow,
@@ -82,6 +84,7 @@ export class StorageApiAsync implements StorageAPI {
     );
 
     const knownState = this.knwonStates.getKnownState(coValueRow.id);
+    knownState.header = true;
 
     for (const sessionRow of allCoValueSessions) {
       knownState.sessions[sessionRow.sessionID] = sessionRow.lastIdx;
@@ -89,13 +92,7 @@ export class StorageApiAsync implements StorageAPI {
 
     this.loadedCoValues.add(coValueRow.id);
 
-    let contentMessage = {
-      action: "content",
-      id: coValueRow.id,
-      header: coValueRow.header,
-      new: {},
-      priority: getPriorityFromHeader(coValueRow.header),
-    } as NewContentMessage;
+    let contentMessage = createContentMessage(coValueRow.id, coValueRow.header);
 
     if (contentStreaming) {
       contentMessage.expectContentUntil = knownState["sessions"];
@@ -136,13 +133,10 @@ export class StorageApiAsync implements StorageAPI {
             contentMessage,
             callback,
           );
-          contentMessage = {
-            action: "content",
-            id: coValueRow.id,
-            header: coValueRow.header,
-            new: {},
-            priority: getPriorityFromHeader(coValueRow.header),
-          } satisfies NewContentMessage;
+          contentMessage = createContentMessage(
+            coValueRow.id,
+            coValueRow.header,
+          );
         }
       }
     }
@@ -194,33 +188,57 @@ export class StorageApiAsync implements StorageAPI {
 
   storeQueue = new StoreQueue();
 
-  async store(
-    msgs: NewContentMessage[],
-    correctionCallback: (data: CoValueKnownState) => void,
-  ) {
+  async store(msg: NewContentMessage, correctionCallback: CorrectionCallback) {
     /**
      * The store operations must be done one by one, because we can't start a new transaction when there
      * is already a transaction open.
      */
-    this.storeQueue.push(msgs, correctionCallback);
+    this.storeQueue.push(msg, correctionCallback);
 
     this.storeQueue.processQueue(async (data, correctionCallback) => {
-      for (const msg of data) {
-        const success = await this.storeSingle(msg, correctionCallback);
-
-        if (!success) {
-          // Stop processing the messages for this entry, because the data is out of sync with storage
-          // and the other transactions will be rejected anyway.
-          break;
-        }
-      }
+      return this.storeSingle(data, correctionCallback);
     });
+  }
+
+  private async handleCorrection(
+    knownState: CoValueKnownState,
+    correctionCallback: CorrectionCallback,
+  ) {
+    const correction = correctionCallback(knownState);
+
+    if (!correction) {
+      logger.error("Correction callback returned undefined", {
+        knownState,
+        correction: correction ?? null,
+      });
+      return false;
+    }
+
+    for (const msg of correction) {
+      const success = await this.storeSingle(msg, (knownState) => {
+        logger.error("Double correction requested", {
+          msg,
+          knownState,
+        });
+        return undefined;
+      });
+
+      if (!success) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   private async storeSingle(
     msg: NewContentMessage,
-    correctionCallback: (data: CoValueKnownState) => void,
+    correctionCallback: CorrectionCallback,
   ): Promise<boolean> {
+    if (this.storeQueue.closed) {
+      return false;
+    }
+
     const id = msg.id;
     const coValueRow = await this.dbClient.getCoValue(id);
 
@@ -231,8 +249,7 @@ export class StorageApiAsync implements StorageAPI {
       const knownState = emptyKnownState(id as RawCoID);
       this.knwonStates.setKnownState(id, knownState);
 
-      correctionCallback(knownState);
-      return false;
+      return this.handleCorrection(knownState, correctionCallback);
     }
 
     const storedCoValueRowID: number = coValueRow
@@ -276,8 +293,7 @@ export class StorageApiAsync implements StorageAPI {
     this.knwonStates.handleUpdate(id, knownState);
 
     if (invalidAssumptions) {
-      correctionCallback(knownState);
-      return false;
+      return this.handleCorrection(knownState, correctionCallback);
     }
 
     return true;
@@ -360,7 +376,6 @@ export class StorageApiAsync implements StorageAPI {
   }
 
   close() {
-    // Drain the store queue
-    this.storeQueue.drain();
+    return this.storeQueue.close();
   }
 }

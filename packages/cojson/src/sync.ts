@@ -3,12 +3,17 @@ import { PeerState } from "./PeerState.js";
 import { SyncStateManager } from "./SyncStateManager.js";
 import { CoValueCore } from "./coValueCore/coValueCore.js";
 import { getDependedOnCoValuesFromRawData } from "./coValueCore/utils.js";
-import { CoValueHeader, Transaction } from "./coValueCore/verifiedState.js";
+import {
+  CoValueHeader,
+  Transaction,
+  VerifiedState,
+} from "./coValueCore/verifiedState.js";
 import { Signature } from "./crypto/crypto.js";
-import { RawCoID, SessionID } from "./ids.js";
+import { RawCoID, SessionID, isRawCoID } from "./ids.js";
 import { LocalNode } from "./localNode.js";
 import { logger } from "./logger.js";
 import { CoValuePriority } from "./priority.js";
+import { CoValueSyncQueue } from "./queue/CoValueSyncQueue.js";
 import { IncomingMessagesQueue } from "./queue/IncomingMessagesQueue.js";
 import { accountOrAgentIDfromSessionID } from "./typeUtils/accountOrAgentIDfromSessionID.js";
 import { isAccountID } from "./typeUtils/isAccountID.js";
@@ -162,13 +167,9 @@ export class SyncManager {
   }
 
   handleSyncMessage(msg: SyncMessage, peer: PeerState) {
-    if (msg.id === undefined || msg.id === null) {
-      logger.warn("Received sync message with undefined id", {
-        msg,
-      });
-      return;
-    } else if (!msg.id.startsWith("co_z")) {
-      logger.warn("Received sync message with invalid id", {
+    if (!isRawCoID(msg.id)) {
+      const errorType = msg.id ? "invalid" : "undefined";
+      logger.warn(`Received sync message with ${errorType} id`, {
         msg,
       });
       return;
@@ -674,7 +675,7 @@ export class SyncManager {
     const syncedPeers = [];
 
     if (from !== "storage") {
-      this.storeCoValue(coValue, [msg]);
+      this.storeContent(msg);
     }
 
     for (const peer of this.peersInPriorityOrder()) {
@@ -736,61 +737,34 @@ export class SyncManager {
     };
   }
 
-  requestedSyncs = new Set<RawCoID>();
-  requestCoValueSync(coValue: CoValueCore) {
-    if (this.requestedSyncs.has(coValue.id)) {
-      return;
-    }
+  private syncQueue = new CoValueSyncQueue((content) =>
+    this.syncContent(content),
+  );
+  syncHeader = this.syncQueue.syncHeader;
+  syncLocalTransaction = this.syncQueue.syncLocalTransaction;
 
-    for (const trackingSet of this.dirtyCoValuesTrackingSets) {
-      trackingSet.add(coValue.id);
-    }
+  syncContent(content: NewContentMessage) {
+    const coValue = this.local.getCoValue(content.id);
 
-    queueMicrotask(() => {
-      if (this.requestedSyncs.has(coValue.id)) {
-        this.syncCoValue(coValue);
-      }
-    });
-
-    this.requestedSyncs.add(coValue.id);
+    this.storeContent(content);
+    this.syncCoValue(coValue);
   }
 
-  storeCoValue(coValue: CoValueCore, data: NewContentMessage[] | undefined) {
+  private storeContent(content: NewContentMessage) {
     const storage = this.local.storage;
 
-    if (!storage || !data) return;
+    if (!storage) return;
 
     // Try to store the content as-is for performance
     // In case that some transactions are missing, a correction will be requested, but it's an edge case
-    storage.store(data, (correction) => {
-      if (!coValue.hasVerifiedContent()) return;
-
-      const newContentPieces = coValue.verified.newContentSince(correction);
-
-      if (!newContentPieces) return;
-
-      storage.store(newContentPieces, (response) => {
-        logger.error(
-          "Correction requested by storage after sending a correction content",
-          {
-            response,
-            knownState: coValue.knownState(),
-          },
-        );
-      });
+    storage.store(content, (correction) => {
+      return this.local
+        .getCoValue(content.id)
+        .verified?.newContentSince(correction);
     });
   }
 
   syncCoValue(coValue: CoValueCore) {
-    this.requestedSyncs.delete(coValue.id);
-
-    if (this.local.storage && coValue.hasVerifiedContent()) {
-      const knownState = this.local.storage.getKnownState(coValue.id);
-      const newContentPieces = coValue.verified.newContentSince(knownState);
-
-      this.storeCoValue(coValue, newContentPieces);
-    }
-
     for (const peer of this.peersInPriorityOrder()) {
       if (peer.closed) continue;
       if (coValue.isErroredInPeer(peer.id)) continue;

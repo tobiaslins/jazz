@@ -1,12 +1,13 @@
 import { UpDownCounter, metrics } from "@opentelemetry/api";
+import { createContentMessage } from "../coValueContentMessage.js";
 import {
   CoValueCore,
   MAX_RECOMMENDED_TX_SIZE,
   RawCoID,
   type SessionID,
   type StorageAPI,
+  logger,
 } from "../exports.js";
-import { getPriorityFromHeader } from "../priority.js";
 import {
   CoValueKnownState,
   NewContentMessage,
@@ -15,6 +16,7 @@ import {
 import { StorageKnownState } from "./knownState.js";
 import { collectNewTxs, getDependedOnCoValues } from "./syncUtils.js";
 import type {
+  CorrectionCallback,
   DBClientInterfaceSync,
   SignatureAfterRow,
   StoredCoValueRow,
@@ -84,6 +86,7 @@ export class StorageApiSync implements StorageAPI {
     }
 
     const knownState = this.knwonStates.getKnownState(coValueRow.id);
+    knownState.header = true;
 
     for (const sessionRow of allCoValueSessions) {
       knownState.sessions[sessionRow.sessionID] = sessionRow.lastIdx;
@@ -91,13 +94,7 @@ export class StorageApiSync implements StorageAPI {
 
     this.loadedCoValues.add(coValueRow.id);
 
-    let contentMessage = {
-      action: "content",
-      id: coValueRow.id,
-      header: coValueRow.header,
-      new: {},
-      priority: getPriorityFromHeader(coValueRow.header),
-    } as NewContentMessage;
+    let contentMessage = createContentMessage(coValueRow.id, coValueRow.header);
 
     if (contentStreaming) {
       this.streamingCounter.add(1);
@@ -137,13 +134,10 @@ export class StorageApiSync implements StorageAPI {
             contentMessage,
             callback,
           );
-          contentMessage = {
-            action: "content",
-            id: coValueRow.id,
-            header: coValueRow.header,
-            new: {},
-            priority: getPriorityFromHeader(coValueRow.header),
-          } satisfies NewContentMessage;
+          contentMessage = createContentMessage(
+            coValueRow.id,
+            coValueRow.header,
+          );
 
           // Introduce a delay to not block the main thread
           // for the entire content processing
@@ -189,22 +183,44 @@ export class StorageApiSync implements StorageAPI {
     pushCallback(contentMessage);
   }
 
-  store(
-    msgs: NewContentMessage[],
-    correctionCallback: (data: CoValueKnownState) => void,
+  store(msg: NewContentMessage, correctionCallback: CorrectionCallback) {
+    return this.storeSingle(msg, correctionCallback);
+  }
+
+  private handleCorrection(
+    knownState: CoValueKnownState,
+    correctionCallback: CorrectionCallback,
   ) {
-    for (const msg of msgs) {
-      const success = this.storeSingle(msg, correctionCallback);
+    const correction = correctionCallback(knownState);
+
+    if (!correction) {
+      logger.error("Correction callback returned undefined", {
+        knownState,
+        correction: correction ?? null,
+      });
+      return false;
+    }
+
+    for (const msg of correction) {
+      const success = this.storeSingle(msg, (knownState) => {
+        logger.error("Double correction requested", {
+          msg,
+          knownState,
+        });
+        return undefined;
+      });
 
       if (!success) {
         return false;
       }
     }
+
+    return true;
   }
 
   private storeSingle(
     msg: NewContentMessage,
-    correctionCallback: (data: CoValueKnownState) => void,
+    correctionCallback: CorrectionCallback,
   ): boolean {
     const id = msg.id;
     const coValueRow = this.dbClient.getCoValue(id);
@@ -214,11 +230,9 @@ export class StorageApiSync implements StorageAPI {
 
     if (invalidAssumptionOnHeaderPresence) {
       const knownState = emptyKnownState(id as RawCoID);
-      correctionCallback(knownState);
-
       this.knwonStates.setKnownState(id, knownState);
 
-      return false;
+      return this.handleCorrection(knownState, correctionCallback);
     }
 
     const storedCoValueRowID: number = coValueRow
@@ -258,8 +272,7 @@ export class StorageApiSync implements StorageAPI {
     this.knwonStates.handleUpdate(id, knownState);
 
     if (invalidAssumptions) {
-      correctionCallback(knownState);
-      return false;
+      return this.handleCorrection(knownState, correctionCallback);
     }
 
     return true;
@@ -339,5 +352,7 @@ export class StorageApiSync implements StorageAPI {
     return this.knwonStates.waitForSync(id, coValue);
   }
 
-  close() {}
+  close() {
+    return undefined;
+  }
 }
