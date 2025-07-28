@@ -7,6 +7,7 @@ import {
 } from "@opentelemetry/sdk-metrics";
 import { expect, onTestFinished, vi } from "vitest";
 import { ControlledAccount, ControlledAgent } from "../coValues/account.js";
+import { PureJSCrypto } from "../crypto/PureJSCrypto.js";
 import { WasmCrypto } from "../crypto/WasmCrypto.js";
 import {
   type AgentSecret,
@@ -24,7 +25,7 @@ import { expectGroup } from "../typeUtils/expectGroup.js";
 import { toSimplifiedMessages } from "./messagesTestUtils.js";
 import { createAsyncStorage, createSyncStorage } from "./testStorage.js";
 
-const Crypto = await WasmCrypto.create();
+const Crypto = await PureJSCrypto.create();
 
 const syncServer: {
   current: undefined | LocalNode;
