@@ -60,6 +60,8 @@ export function schemaFieldToCoFieldDef(schema: SchemaField) {
           zodSchemaDef.type === "nullable" &&
           coFieldDef === coField.optional.Date
         ) {
+          // We do not currently have a way to encode null Date coFields.
+          // We only support encoding optional (i.e. Date | undefined) coFields.
           throw new Error("Nullable z.date() is not supported");
         }
         // Primitive coField types support null and undefined as values,
