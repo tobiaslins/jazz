@@ -14,7 +14,6 @@ export function Icon({
   children,
   size = "md",
   intent = "default",
-  hasBackground = false,
   className,
   hasHover = false,
   ...divProps
@@ -37,10 +36,7 @@ export function Icon({
   }
 
   return (
-    <div
-      className={icon({ intent, hasBackground, hasHover, size, className })}
-      {...divProps}
-    >
+    <div className={icon({ intent, hasHover, size, className })} {...divProps}>
       {iconToRender}
     </div>
   );
@@ -49,7 +45,7 @@ export function Icon({
 const icon = tv({
   variants: {
     intent: {
-      default: "text-stone-700 dark:text-stone-100",
+      default: "text-default",
       primary: "text-primary",
       tip: "text-tip",
       info: "text-info",
@@ -57,13 +53,9 @@ const icon = tv({
       warning: "text-warning",
       alert: "text-alert",
       danger: "text-danger",
-      muted: "text-stone-500 dark:text-stone-400",
-      strong: "text-stone-900 dark:text-white",
+      muted: "text-muted",
+      strong: "text-strong",
       white: "text-white",
-    },
-    hasBackground: {
-      true: "",
-      false: "",
     },
     hasHover: {
       true: "",
@@ -133,56 +125,6 @@ const icon = tv({
       intent: "white",
       hasHover: true,
       className: "hover:text-white/90",
-    },
-    {
-      intent: "default",
-      hasBackground: true,
-      className: "bg-stone-200/30 dark:bg-stone-900/30",
-    },
-    {
-      intent: "primary",
-      hasBackground: true,
-      className: "bg-primary-transparent",
-    },
-    {
-      intent: "tip",
-      hasBackground: true,
-      className: "bg-tip-transparent",
-    },
-    {
-      intent: "info",
-      hasBackground: true,
-      className: "bg-info-transparent",
-    },
-    {
-      intent: "success",
-      hasBackground: true,
-      className: "bg-success-transparent",
-    },
-    {
-      intent: "warning",
-      hasBackground: true,
-      className: "bg-warning-transparent",
-    },
-    {
-      intent: "alert",
-      hasBackground: true,
-      className: "bg-alert-transparent",
-    },
-    {
-      intent: "danger",
-      hasBackground: true,
-      className: "bg-danger-transparent",
-    },
-    {
-      intent: "muted",
-      hasBackground: true,
-      className: "bg-stone-300/30 dark:bg-stone-700/30",
-    },
-    {
-      intent: "strong",
-      hasBackground: true,
-      className: "bg-stone-900/30 dark:bg-stone-100/30",
     },
   ],
   defaultVariants: {

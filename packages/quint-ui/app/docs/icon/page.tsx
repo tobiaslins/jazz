@@ -70,11 +70,6 @@ import { Icon } from "@/components/icon";
             <BellIcon />
           </Icon>
         </div>
-        <pre className="bg-stone-100 dark:bg-stone-800 p-4 rounded-lg text-sm overflow-x-auto">
-          {`<Icon intent="primary" size="lg">
-  <HeartIcon />
-</Icon>`}
-        </pre>
       </section>
 
       {/* Size Variants */}
@@ -206,31 +201,31 @@ import { Icon } from "@/components/icon";
       <section className="space-y-4">
         <div>
           <h2 className="text-xl font-semibold text-stone-900 dark:text-white">
-            Background & Hover Effects
+            Hover Effects
           </h2>
           <p className="text-stone-600 dark:text-stone-400">
-            Add backgrounds and hover effects for interactive elements.
+            Add hover effects for interactive elements.
           </p>
         </div>
         <div className="flex flex-wrap gap-4 p-4 bg-stone-50 dark:bg-stone-900 rounded-lg">
-          <Icon intent="primary" hasBackground hasHover size="lg">
+          <Icon intent="primary" hasHover size="lg">
             <HeartIcon />
           </Icon>
-          <Icon intent="success" hasBackground hasHover size="lg">
+          <Icon intent="success" hasHover size="lg">
             <CheckIcon />
           </Icon>
-          <Icon intent="warning" hasBackground hasHover size="lg">
+          <Icon intent="warning" hasHover size="lg">
             <StarIcon />
           </Icon>
-          <Icon intent="danger" hasBackground hasHover size="lg">
+          <Icon intent="danger" hasHover size="lg">
             <TrashIcon />
           </Icon>
-          <Icon intent="info" hasBackground hasHover size="lg">
+          <Icon intent="info" hasHover size="lg">
             <BellIcon />
           </Icon>
         </div>
         <pre className="bg-stone-100 dark:bg-stone-800 p-4 rounded-lg text-sm overflow-x-auto">
-          {`<Icon intent="primary" hasBackground hasHover size="lg">
+          {`<Icon intent="primary" hasHover size="lg">
   <HeartIcon />
 </Icon>`}
         </pre>
