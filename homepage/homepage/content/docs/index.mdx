@@ -7,9 +7,11 @@ export const metadata = {
 
 # Learn some <span className="sr-only">Jazz</span> <JazzLogo className="h-[41px] -ml-0.5 -mt-[3px] inline" />
 
-**Jazz is a toolkit for building backendless apps**. You get data without needing a database — plus auth, permissions, files and multiplayer without needing a backend. Jazz lets you do everything right from the frontend and you'll ship better apps, faster.
+**Jazz is a new kind of database** that's **distributed** across your frontend, containers, serverless functions and its own storage cloud.
 
-Instead of wrestling with databases, APIs, and server infrastructure, you work with **CoValues** ("collaborative values") — your new cloud-synced building blocks that feel like local state but automatically sync across all devices and users in real-time.
+It syncs structured data, files and LLM streams instantly, and looks like local reactive JSON state.
+
+It also provides auth, orgs & teams, real-time multiplayer, edit histories, permissions, E2E encryption and offline-support out of the box.
 
 ---
 
@@ -19,7 +21,7 @@ You can use [`create-jazz-app`](/docs/tools/create-jazz-app) to create a new Jaz
 
 <CodeGroup>
   ```sh
-    npx create-jazz-app@latest --api-key you@example.com 
+    npx create-jazz-app@latest --api-key you@example.com
   ```
 </CodeGroup>
 
@@ -30,21 +32,10 @@ Or you can follow this [React step-by-step guide](/docs/react/guide) where we wa
 
 </ContentByFramework> */}
 
-## Why Jazz is different
-
-Most apps rebuild the same thing: shared state that syncs between users and devices. Jazz starts from that shared state, giving you:
-
-- **No backend required** — Focus on building features, not infrastructure
-- **Real-time sync** — Changes appear everywhere immediately
-- **Multiplayer by default** — Collaboration just works
-- **Local-first** — Your app works offline and feels instant
-
-Think Figma, Notion, or Linear — but you don't need years to build a custom stack.
-
 ## How it works
 
 1. **Define your data** with CoValues schemas
-2. **Connect to sync infrastructure** (Jazz Cloud or self-hosted)
+2. **Connect to storage infrastructure** (Jazz Cloud or self-hosted)
 3. **Create and edit CoValues** like normal objects
 4. **Get automatic sync and persistence** across all devices and users
 
