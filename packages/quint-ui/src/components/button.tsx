@@ -130,7 +130,7 @@ const button = tv({
     {
       variant: "destructive",
       className:
-        "text-white from-red-500 to-red-600 hover:from-red-600 hover:to-rose-500 active:from-rose-500 active:to-red-600 shadow-[inset_0_0_0_0.4px_rgba(239,68,68,0.2),inset_0_0.4px_0_rgba(254,202,202,0.4),inset_0_-0.4px_0_rgba(153,27,27,0.3)]",
+        "text-white from-red-400 to-red-500 hover:from-red-500 hover:to-rose-500 active:from-rose-500 active:to-red-500 shadow-[inset_0_0_0_0.4px_rgba(239,68,68,0.2),inset_0_0.4px_0_rgba(254,202,202,0.4),inset_0_-0.4px_0_rgba(153,27,27,0.3)]",
     },
     // Outline Variant
     {

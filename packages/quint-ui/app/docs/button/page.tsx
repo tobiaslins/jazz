@@ -16,9 +16,10 @@ export default function ButtonDocsPage() {
     "strong",
   ] as const;
   const [selectedVariant, setSelectedVariant] =
-    useState<(typeof variants)[number]>("tip");
+    useState<(typeof variants)[number]>("primary");
   return (
     <>
+      <h2 className="text-2xl mt-5 mb-2 font-bold">Buttons</h2>
       <h3 className="text-lg mt-5 mb-2 font-bold">Variants</h3>
 
       <p className="my-3">Buttons are styled with the variant prop.</p>
