@@ -13,15 +13,9 @@ import {
   FileStream,
   Group,
   co,
-  cojsonInternals,
   isControlledAccount,
   z,
 } from "../index.js";
-import {
-  Loaded,
-  createJazzContextFromExistingCredentials,
-  randomSessionProvider,
-} from "../internal.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 import { setupTwoNodes } from "./utils.js";
 
@@ -56,6 +50,14 @@ describe("Simple CoFeed operations", async () => {
   test("Construction", () => {
     expect(stream.perAccount[me.id]?.value).toEqual("milk");
     expect(stream.perSession[me.sessionID]?.value).toEqual("milk");
+  });
+
+  test("Construction with nullable values", () => {
+    const NullableTestStream = co.feed(z.string().nullable());
+    const stream = NullableTestStream.create(["milk", null], { owner: me });
+
+    expect(stream.perAccount[me.id]?.value).toEqual(null);
+    expect(stream.perSession[me.sessionID]?.value).toEqual(null);
   });
 
   test("Construction with an Account", () => {

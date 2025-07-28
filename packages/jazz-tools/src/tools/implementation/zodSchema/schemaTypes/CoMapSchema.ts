@@ -5,7 +5,6 @@ import {
   DiscriminableCoValueSchemaDefinition,
   DiscriminableCoreCoValueSchema,
   Group,
-  NotNull,
   PartialOnUndefined,
   RefsToResolve,
   RefsToResolveStrict,
@@ -18,6 +17,7 @@ import {
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { removeGetters } from "../../schemaUtils.js";
+import { CoFieldInit } from "../typeConverters/CoFieldInit.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { z } from "../zodReExport.js";
@@ -231,9 +231,7 @@ export function enrichCoMapSchema<
 // an index signature, we cannot accept catchall properties on creation
 export type CoMapSchemaInit<Shape extends z.core.$ZodLooseShape> =
   PartialOnUndefined<{
-    [key in keyof Shape]: NotNull<
-      InstanceOrPrimitiveOfSchemaCoValuesNullable<Shape[key]>
-    >;
+    [key in keyof Shape]: CoFieldInit<Shape[key]>;
   }>;
 
 export interface CoMapSchemaDefinition<

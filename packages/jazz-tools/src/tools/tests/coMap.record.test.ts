@@ -52,6 +52,15 @@ describe("CoMap.Record", async () => {
       expect(Object.keys(person)).toEqual(["age"]);
     });
 
+    test("create a Record with nullable values", () => {
+      const Person = co.record(z.string(), z.string().nullable());
+      const person = Person.create({ name: "John", age: null });
+      person.bio = null;
+      expect(person.name).toEqual("John");
+      expect(person.age).toEqual(null);
+      expect(person.bio).toEqual(null);
+    });
+
     test("property existence", () => {
       const Person = co.record(z.string(), z.string());
 
@@ -159,7 +168,7 @@ describe("CoMap.Record", async () => {
 
       person.name = "Jane";
 
-      const edits = person._edits.name?.all;
+      const edits = person.$jazz.getEdits().name?.all;
       expect(edits).toEqual([
         expect.objectContaining({
           value: "John",

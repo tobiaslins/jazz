@@ -2,7 +2,6 @@ import {
   Account,
   CoList,
   Group,
-  NotNull,
   RefsToResolve,
   RefsToResolveStrict,
   Resolved,
@@ -11,6 +10,7 @@ import {
   coOptionalDefiner,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
+import { CoFieldInit } from "../typeConverters/CoFieldInit.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { AnyZodOrCoValueSchema } from "../zodSchema.js";
@@ -18,7 +18,7 @@ import { CoOptionalSchema } from "./CoOptionalSchema.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 type CoListInit<T extends AnyZodOrCoValueSchema> = Simplify<
-  Array<NotNull<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>>>
+  Array<CoFieldInit<T>>
 >;
 
 export class CoListSchema<T extends AnyZodOrCoValueSchema>

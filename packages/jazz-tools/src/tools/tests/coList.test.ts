@@ -52,6 +52,16 @@ describe("Simple CoList operations", async () => {
     expect(list[2]).toBe("c");
   });
 
+  test("list with nullable content", () => {
+    const List = co.list(z.string().nullable());
+    const list = List.create(["a", "b", "c", null]);
+    expect(list.length).toBe(4);
+    expect(list[0]).toBe("a");
+    expect(list[1]).toBe("b");
+    expect(list[2]).toBe("c");
+    expect(list[3]).toBeNull();
+  });
+
   test("Construction with an Account", () => {
     const list = TestList.create(["milk"], me);
 
