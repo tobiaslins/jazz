@@ -139,6 +139,11 @@ describe("CoMap", async () => {
 
     test("create CoMap with references using JSON", () => {
       const Dog = co.map({
+        type: z.literal("dog"),
+        name: z.string(),
+      });
+      const Cat = co.map({
+        type: z.literal("cat"),
         name: z.string(),
       });
 
@@ -150,22 +155,25 @@ describe("CoMap", async () => {
           return co.list(Person);
         },
         reactions: co.feed(co.plainText()),
+        pet: co.discriminatedUnion("type", [Dog, Cat]),
       });
 
       const person = Person.create({
         name: "John",
         bio: "I am a software engineer",
-        dog: { name: "Rex" },
+        dog: { type: "dog", name: "Rex" },
         friends: [
           {
             name: "Jane",
             bio: "I am a mechanical engineer",
-            dog: { name: "Fido" },
+            dog: { type: "dog", name: "Fido" },
             friends: [],
             reactions: [],
+            pet: { type: "dog", name: "Fido" },
           },
         ],
         reactions: ["👎", "👍"],
+        pet: { type: "cat", name: "Whiskers" },
       });
 
       expect(person.name.toString()).toEqual("John");
@@ -179,6 +187,7 @@ describe("CoMap", async () => {
       expect(person.friends[0]?.dog.name).toEqual("Fido");
       expect(person.friends[0]?.friends.length).toEqual(0);
       expect(person.reactions.byMe?.value?.toString()).toEqual("👍");
+      expect(person.pet.name).toEqual("Whiskers");
     });
 
     test("CoMap with self reference", () => {

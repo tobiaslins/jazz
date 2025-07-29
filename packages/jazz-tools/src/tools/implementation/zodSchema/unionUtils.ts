@@ -7,6 +7,7 @@ import {
   CoreCoMapSchema,
   DiscriminableCoValueSchemas,
   DiscriminableCoreCoValueSchema,
+  SchemaUnionDiscriminator,
 } from "../../internal.js";
 import {
   hydrateCoreCoValueSchema,
@@ -56,21 +57,17 @@ export function schemaUnionDiscriminatorFor(
       }
     }
 
-    const determineSchema = (_raw: RawCoMap | RawAccount | RawCoList) => {
-      if (_raw instanceof RawCoList) {
-        throw new Error(
-          "co.discriminatedUnion() of collaborative types is not supported for CoLists",
-        );
-      }
-
+    const determineSchema: SchemaUnionDiscriminator<CoMap> = (
+      discriminable,
+    ) => {
       for (const option of availableOptions) {
         let match = true;
 
         for (const key of Object.keys(discriminatorMap)) {
           const discriminatorDef = (option as CoreCoMapSchema).getDefinition()
-            .shape[key as string];
+            .shape[key];
 
-          const discriminatorValue = (_raw as RawCoMap).get(key as string);
+          const discriminatorValue = discriminable.get(key);
 
           if (discriminatorValue && typeof discriminatorValue === "object") {
             throw new Error("Discriminator must be a primitive value");

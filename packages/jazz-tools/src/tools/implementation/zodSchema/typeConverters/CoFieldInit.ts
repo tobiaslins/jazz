@@ -68,9 +68,7 @@ type InstanceOrPrimitiveOfSchemaInit<
                   }
                 : {}))
             | null
-        : // TODO for now we're only allowing JSON inputs for creating CoMaps
-          // TODO continue with the rest of the CoValue types
-          S extends CoreCoListSchema<infer T>
+        : S extends CoreCoListSchema<infer T>
           ? ReadonlyArray<InstanceOrPrimitiveOfSchemaInit<T>> | null
           : S extends CoreCoFeedSchema<infer T>
             ?
