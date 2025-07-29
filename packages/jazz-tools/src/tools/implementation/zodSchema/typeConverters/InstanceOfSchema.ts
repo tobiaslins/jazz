@@ -11,7 +11,6 @@ import {
   CoreAccountSchema,
   CoreCoRecordSchema,
   FileStream,
-  Profile,
 } from "../../../internal.js";
 import { CoreCoFeedSchema } from "../schemaTypes/CoFeedSchema.js";
 import { CoreCoListSchema } from "../schemaTypes/CoListSchema.js";
