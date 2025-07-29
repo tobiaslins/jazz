@@ -1,4 +1,3 @@
-import { JsonValue } from "cojson";
 import {
   Account,
   AnyZodOrCoValueSchema,
@@ -12,7 +11,6 @@ import {
   CoreAccountSchema,
   CoreCoRecordSchema,
   FileStream,
-  InstanceOrPrimitiveOfSchema,
   Profile,
 } from "../../../internal.js";
 import { CoreCoFeedSchema } from "../schemaTypes/CoFeedSchema.js";
@@ -24,6 +22,7 @@ import { CoreFileStreamSchema } from "../schemaTypes/FileStreamSchema.js";
 import { CorePlainTextSchema } from "../schemaTypes/PlainTextSchema.js";
 import { CoreRichTextSchema } from "../schemaTypes/RichTextSchema.js";
 import { z } from "../zodReExport.js";
+import { TypeOfZodSchema } from "./TypeOfZodSchema.js";
 
 export type InstanceOrPrimitiveOfSchemaCoValuesNullable<
   S extends CoValueClass | AnyZodOrCoValueSchema,
@@ -76,62 +75,7 @@ export type InstanceOrPrimitiveOfSchemaCoValuesNullable<
                         >
                       : never
   : S extends z.core.$ZodType
-    ? S extends z.core.$ZodOptional<infer Inner extends z.core.$ZodType>
-      ? InstanceOrPrimitiveOfSchemaCoValuesNullable<Inner> | undefined
-      : S extends z.core.$ZodNullable<infer Inner extends z.core.$ZodType>
-        ? InstanceOrPrimitiveOfSchemaCoValuesNullable<Inner> | null
-        : S extends z.ZodJSONSchema
-          ? JsonValue
-          : S extends z.core.$ZodUnion<
-                infer Members extends readonly z.core.$ZodType[]
-              >
-            ? InstanceOrPrimitiveOfSchemaCoValuesNullable<Members[number]>
-            : // primitives below here - we manually traverse to ensure we only allow what we can handle
-              S extends z.core.$ZodObject<infer Shape>
-              ? {
-                  -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchema<
-                    Shape[key]
-                  >;
-                }
-              : S extends z.core.$ZodArray<infer Item extends z.core.$ZodType>
-                ? InstanceOrPrimitiveOfSchema<Item>[]
-                : S extends z.core.$ZodTuple<
-                      infer Items extends z.core.$ZodType[]
-                    >
-                  ? {
-                      [key in keyof Items]: InstanceOrPrimitiveOfSchema<
-                        Items[key]
-                      >;
-                    }
-                  : S extends z.core.$ZodString
-                    ? string
-                    : S extends z.core.$ZodNumber
-                      ? number
-                      : S extends z.core.$ZodBoolean
-                        ? boolean
-                        : S extends z.core.$ZodLiteral<infer Literal>
-                          ? Literal
-                          : S extends z.core.$ZodDate
-                            ? Date
-                            : S extends z.core.$ZodEnum<infer Enum>
-                              ? Enum[keyof Enum]
-                              : S extends z.core.$ZodTemplateLiteral<
-                                    infer pattern
-                                  >
-                                ? pattern
-                                : S extends z.core.$ZodReadonly<
-                                      infer Inner extends z.core.$ZodType
-                                    >
-                                  ? InstanceOrPrimitiveOfSchema<Inner>
-                                  : S extends z.core.$ZodDefault<
-                                        infer Default extends z.core.$ZodType
-                                      >
-                                    ? InstanceOrPrimitiveOfSchema<Default>
-                                    : S extends z.core.$ZodCatch<
-                                          infer Catch extends z.core.$ZodType
-                                        >
-                                      ? InstanceOrPrimitiveOfSchema<Catch>
-                                      : never
+    ? TypeOfZodSchema<S>
     : S extends CoValueClass
       ? InstanceType<S> | null
       : never;
