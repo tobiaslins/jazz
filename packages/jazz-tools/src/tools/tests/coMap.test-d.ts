@@ -54,7 +54,7 @@ describe("CoMap", async () => {
       expectTypeOf(john._owner).toEqualTypeOf<Account | Group>();
     });
 
-    test("CoMap with reference", () => {
+    test("create CoMap with reference using CoValue", () => {
       const Dog = co.map({
         name: z.string(),
         breed: z.string(),
@@ -76,6 +76,48 @@ describe("CoMap", async () => {
         name: string;
         age: number;
         dog: Loaded<typeof Dog>;
+      };
+
+      function matches(value: ExpectedType) {
+        return value;
+      }
+
+      matches(person);
+    });
+
+    test("create CoMap with reference using JSON", () => {
+      const Dog = co.map({
+        name: z.string(),
+        breed: z.string(),
+      });
+      const Person = co.map({
+        dog1: Dog,
+        dog2: Dog,
+        get friend() {
+          return Person.optional();
+        },
+      });
+
+      const person = Person.create({
+        // @ts-expect-error - breed is missing
+        dog1: { name: "Rex", items },
+        // @ts-expect-error - Object literal may only specify known properties
+        dog2: { name: "Fido", breed: "Labrador", extra: "extra" },
+        friend: {
+          dog1: {
+            name: "Rex",
+            breed: "Labrador",
+          },
+          dog2: { name: "Fido", breed: "Labrador" },
+          // TODO make undefined fields optional (!!!)
+          friend: undefined,
+        },
+      });
+
+      type ExpectedType = {
+        dog1: Loaded<typeof Dog>;
+        dog2: Loaded<typeof Dog>;
+        friend: Loaded<typeof Person> | undefined;
       };
 
       function matches(value: ExpectedType) {

@@ -23,11 +23,7 @@ import {
 } from "./schemaTypes/CoDiscriminatedUnionSchema.js";
 import { CoFeedSchema, CoreCoFeedSchema } from "./schemaTypes/CoFeedSchema.js";
 import { CoListSchema, CoreCoListSchema } from "./schemaTypes/CoListSchema.js";
-import {
-  CoMapSchema,
-  CoMapSchemaInit,
-  CoreCoMapSchema,
-} from "./schemaTypes/CoMapSchema.js";
+import { CoMapSchema, CoreCoMapSchema } from "./schemaTypes/CoMapSchema.js";
 import {
   CoOptionalSchema,
   CoreCoOptionalSchema,
@@ -122,9 +118,3 @@ export type ResolveQueryStrict<
   T extends CoValueClassOrSchema,
   R extends ResolveQuery<T>,
 > = RefsToResolveStrict<NonNullable<InstanceOfSchemaCoValuesNullable<T>>, R>;
-
-export type InitFor<T extends CoValueClassOrSchema> = T extends CoreCoMapSchema<
-  infer Shape
->
-  ? Simplify<CoMapSchemaInit<Shape>>
-  : never;

@@ -17,7 +17,7 @@ import {
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { removeGetters } from "../../schemaUtils.js";
-import { CoFieldInit } from "../typeConverters/CoFieldInit.js";
+import { CoMapSchemaInit } from "../typeConverters/CoFieldInit.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { z } from "../zodReExport.js";
@@ -30,7 +30,7 @@ export interface CoMapSchema<
   Owner extends Account | Group = Account | Group,
 > extends CoreCoMapSchema<Shape, CatchAll> {
   create: (
-    init: Simplify<CoMapSchemaInit<Shape>>,
+    init: Simplify<PartialOnUndefined<CoMapSchemaInit<Shape>>>,
     options?:
       | {
           owner: Owner;
@@ -226,13 +226,6 @@ export function enrichCoMapSchema<
   }) as unknown as CoMapSchema<Shape, CatchAll>;
   return coValueSchema;
 }
-
-// Due to a TS limitation with types that contain known properties and
-// an index signature, we cannot accept catchall properties on creation
-export type CoMapSchemaInit<Shape extends z.core.$ZodLooseShape> =
-  PartialOnUndefined<{
-    [key in keyof Shape]: CoFieldInit<Shape[key]>;
-  }>;
 
 export interface CoMapSchemaDefinition<
   Shape extends z.core.$ZodLooseShape = z.core.$ZodLooseShape,

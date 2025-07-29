@@ -260,7 +260,7 @@ describe("CoMap", async () => {
       const Person = co.map({
         name: z.string(),
         age: z.number(),
-        get friend(): co.Optional<typeof Person> {
+        get friend() {
           return co.optional(Person);
         },
       });
