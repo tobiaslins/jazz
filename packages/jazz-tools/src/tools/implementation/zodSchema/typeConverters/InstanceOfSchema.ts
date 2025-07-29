@@ -11,6 +11,7 @@ import {
   CoreAccountSchema,
   CoreCoRecordSchema,
   FileStream,
+  Profile,
 } from "../../../internal.js";
 import { CoreCoFeedSchema } from "../schemaTypes/CoFeedSchema.js";
 import { CoreCoListSchema } from "../schemaTypes/CoListSchema.js";
@@ -27,15 +28,20 @@ export type InstanceOfSchema<S extends CoValueClass | AnyZodOrCoValueSchema> =
   S extends CoreCoValueSchema
     ? S extends CoreAccountSchema<infer Shape>
       ? {
-          [key in keyof Shape]: InstanceOrPrimitiveOfSchema<Shape[key]>;
+          -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchema<
+            Shape[key]
+          >;
         } & Account
       : S extends CoreCoRecordSchema<infer K, infer V>
         ? {
-            [key in z.output<K> & string]: InstanceOrPrimitiveOfSchema<V>;
+            -readonly [key in z.output<K> &
+              string]: InstanceOrPrimitiveOfSchema<V>;
           } & CoMap
         : S extends CoreCoMapSchema<infer Shape, infer CatchAll>
           ? {
-              [key in keyof Shape]: InstanceOrPrimitiveOfSchema<Shape[key]>;
+              -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchema<
+                Shape[key]
+              >;
             } & (CatchAll extends AnyZodOrCoValueSchema
               ? {
                   [key: string]: InstanceOrPrimitiveOfSchema<CatchAll>;
@@ -53,7 +59,7 @@ export type InstanceOfSchema<S extends CoValueClass | AnyZodOrCoValueSchema> =
                   : S extends CoreFileStreamSchema
                     ? FileStream
                     : S extends CoreCoOptionalSchema<infer T>
-                      ? InstanceOrPrimitiveOfSchema<T>
+                      ? InstanceOrPrimitiveOfSchema<T> | undefined
                       : S extends CoDiscriminatedUnionSchema<infer Members>
                         ? InstanceOrPrimitiveOfSchema<Members[number]>
                         : never

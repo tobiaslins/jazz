@@ -84,8 +84,8 @@ export type CoValueSchemaFromCoreSchema<S extends CoreCoValueSchema> =
 export type CoValueClassFromAnySchema<S extends CoValueClassOrSchema> =
   S extends CoValueClass<any>
     ? S
-    : CoValueClass<InstanceOfSchema<S>> &
-        CoValueFromRaw<InstanceOfSchema<S>> &
+    : CoValueClass<NonNullable<InstanceOfSchema<S>>> &
+        CoValueFromRaw<NonNullable<InstanceOfSchema<S>>> &
         (S extends CoreAccountSchema ? AccountClassEssentials : {});
 
 type AccountClassEssentials = {
