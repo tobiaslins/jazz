@@ -73,7 +73,10 @@ type InstanceOrPrimitiveOfSchemaInit<
           S extends CoreCoListSchema<infer T>
           ? ReadonlyArray<InstanceOrPrimitiveOfSchemaInit<T>> | null
           : S extends CoreCoFeedSchema<infer T>
-            ? CoFeed<InstanceOrPrimitiveOfSchemaInit<T>> | null
+            ?
+                | ReadonlyArray<InstanceOrPrimitiveOfSchemaInit<T>>
+                | CoFeed<InstanceOrPrimitiveOfSchemaInit<T>>
+                | null
             : S extends CorePlainTextSchema
               ? string | CoPlainText | null
               : S extends CoreRichTextSchema

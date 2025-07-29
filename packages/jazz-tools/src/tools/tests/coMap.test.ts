@@ -149,6 +149,7 @@ describe("CoMap", async () => {
         get friends() {
           return co.list(Person);
         },
+        reactions: co.feed(co.plainText()),
       });
 
       const person = Person.create({
@@ -161,8 +162,10 @@ describe("CoMap", async () => {
             bio: "I am a mechanical engineer",
             dog: { name: "Fido" },
             friends: [],
+            reactions: [],
           },
         ],
+        reactions: ["👎", "👍"],
       });
 
       expect(person.name.toString()).toEqual("John");
@@ -175,6 +178,7 @@ describe("CoMap", async () => {
       );
       expect(person.friends[0]?.dog.name).toEqual("Fido");
       expect(person.friends[0]?.friends.length).toEqual(0);
+      expect(person.reactions.byMe?.value?.toString()).toEqual("👍");
     });
 
     test("CoMap with self reference", () => {
