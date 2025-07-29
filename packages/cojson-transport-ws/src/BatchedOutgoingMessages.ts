@@ -1,3 +1,4 @@
+import { ValueType, metrics } from "@opentelemetry/api";
 import type { DisconnectedError, SyncMessage } from "cojson";
 import type { Peer } from "cojson";
 import {
@@ -26,11 +27,19 @@ export class BatchedOutgoingMessages
   private queue: PriorityBasedMessageQueue;
   private processing = false;
   private closed = false;
+  private counter = metrics
+    .getMeter("cojson-transport-ws")
+    .createCounter("jazz.usage.egress", {
+      description: "egress",
+      unit: "bytes",
+      valueType: ValueType.INT,
+    });
 
   constructor(
     private websocket: AnyWebSocket,
     private batching: boolean,
     peerRole: Peer["role"],
+    private meta?: Record<string, string>,
   ) {
     this.queue = new PriorityBasedMessageQueue(
       CO_VALUE_PRIORITY.HIGH,
@@ -39,6 +48,9 @@ export class BatchedOutgoingMessages
         peerRole: peerRole,
       },
     );
+
+    // Initialize the counter by adding 0
+    this.counter.add(0, this.meta);
   }
 
   push(msg: SyncMessage | DisconnectedError) {
@@ -94,6 +106,26 @@ export class BatchedOutgoingMessages
   }
 
   processMessage(msg: SyncMessage) {
+    if (msg.action === "content") {
+      this.counter.add(
+        // TODO: We do this in a few different places, we should rafactor and extract this to a function
+        Object.entries(msg.new).reduce((acc, [, sessionNewContent]) => {
+          return (
+            acc +
+            sessionNewContent.newTransactions.reduce((acc, tx) => {
+              return (
+                acc +
+                (tx.privacy === "private"
+                  ? tx.encryptedChanges.length
+                  : tx.changes.length)
+              );
+            }, 0)
+          );
+        }, 0),
+        this.meta,
+      );
+    }
+
     if (!this.batching) {
       this.websocket.send(JSON.stringify(msg));
       return;

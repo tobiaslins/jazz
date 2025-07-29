@@ -1,3 +1,4 @@
+import { ValueType, metrics } from "@opentelemetry/api";
 import { type Peer, type SyncMessage, cojsonInternals, logger } from "cojson";
 import { BatchedOutgoingMessages } from "./BatchedOutgoingMessages.js";
 import { deserializeMessages } from "./serialization.js";
@@ -15,6 +16,7 @@ export type CreateWebSocketPeerOpts = {
   pingTimeout?: number;
   onClose?: () => void;
   onSuccess?: () => void;
+  meta?: Record<string, string>;
 };
 
 function createPingTimeoutListener(
@@ -64,7 +66,18 @@ export function createWebSocketPeer({
   pingTimeout = 10_000,
   onSuccess,
   onClose,
+  meta,
 }: CreateWebSocketPeerOpts): Peer {
+  const counter = metrics
+    .getMeter("cojson")
+    .createCounter("jazz.usage.ingress", {
+      description: "ingress",
+      unit: "bytes",
+      valueType: ValueType.INT,
+    });
+  // Initialize the counter by adding 0
+  counter.add(0, meta);
+
   const incoming = new ConnectedPeerChannel();
   const emitClosedEvent = createClosedEventEmitter(onClose);
 
@@ -132,9 +145,30 @@ export function createWebSocketPeer({
       outgoing.setBatching(true);
     }
 
+    // TODO: maybe ingress should be metered here instead?
     for (const msg of messages) {
       if (msg && "action" in msg) {
         incoming.push(msg);
+
+        if (msg.action === "content") {
+          // TODO: We do this in a few different places, we should rafactor and extract this to a function
+          counter.add(
+            Object.entries(msg.new).reduce((acc, [, sessionNewContent]) => {
+              return (
+                acc +
+                sessionNewContent.newTransactions.reduce((acc, tx) => {
+                  return (
+                    acc +
+                    (tx.privacy === "private"
+                      ? tx.encryptedChanges.length
+                      : tx.changes.length)
+                  );
+                }, 0)
+              );
+            }, 0),
+            meta,
+          );
+        }
       }
     }
   }
