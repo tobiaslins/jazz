@@ -7,7 +7,6 @@ import {
   CoValueFromRaw,
   Group,
   ItemsSym,
-  JazzToolsSymbol,
   SchemaInit,
   isCoValueClass,
 } from "../internal.js";
@@ -142,7 +141,7 @@ export function isRefEncoded<V extends CoValue>(
   );
 }
 
-export function instantiateRefEncoded<V extends CoValue>(
+export function instantiateRefEncodedFromRaw<V extends CoValue>(
   schema: RefEncoded<V>,
   raw: RawCoValue,
 ): V {
@@ -153,18 +152,26 @@ export function instantiateRefEncoded<V extends CoValue>(
       ).fromRaw(raw);
 }
 
+/**
+ * Creates a new CoValue of the given ref type, using the provided init values.
+ *
+ * @param schema - The schema of the CoValue to create.
+ * @param init - The init values to use to create the CoValue.
+ * @param owner - The owner of the CoValue.
+ * @returns The created CoValue.
+ */
 export function instantiateRefEncodedWithInit<V extends CoValue>(
   schema: RefEncoded<V>,
-  // TODO add a generic type to derive the type of initValues for each type of CoValue
-  initValues: any,
+  init: any,
   owner: Account | Group,
 ): V {
   if (!isCoValueClass<V>(schema.ref)) {
-    // TODO do we need to support (raw: RawCoValue) => CoValueClass<V> refs?
-    throw Error("Cannot create a CoMap with a reference to a non-CoValue");
+    throw Error(
+      `Cannot automatically create CoValue from value: ${JSON.stringify(init)}. Use the CoValue schema's create() method instead.`,
+    );
   }
   // @ts-expect-error - create is a static method in all CoValue classes
-  return schema.ref.create(initValues, owner);
+  return schema.ref.create(init, owner);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

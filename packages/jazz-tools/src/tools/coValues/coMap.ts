@@ -38,7 +38,6 @@ import {
   ensureCoValueLoaded,
   inspect,
   instantiateRefEncodedWithInit,
-  isCoValueClass,
   isRefEncoded,
   loadCoValueWithoutMe,
   makeRefs,
