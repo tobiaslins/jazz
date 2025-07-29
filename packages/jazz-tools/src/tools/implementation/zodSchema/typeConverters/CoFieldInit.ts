@@ -24,6 +24,7 @@ import { CoreCoValueSchema } from "../schemaTypes/CoValueSchema.js";
 import { CoreRichTextSchema } from "../schemaTypes/RichTextSchema.js";
 import { z } from "../zodReExport.js";
 import { AnyZodOrCoValueSchema } from "../zodSchema.js";
+import { TypeOfZodSchema } from "./TypeOfZodSchema.js";
 
 /**
  * Returns the type of the value that should be used to initialize a coField
@@ -87,62 +88,7 @@ type InstanceOrPrimitiveOfSchemaInit<
                       ? InstanceOrPrimitiveOfSchemaInit<Members[number]>
                       : never
   : S extends z.core.$ZodType
-    ? S extends z.core.$ZodOptional<infer Inner extends z.core.$ZodType>
-      ? InstanceOrPrimitiveOfSchemaInit<Inner> | undefined
-      : S extends z.core.$ZodNullable<infer Inner extends z.core.$ZodType>
-        ? InstanceOrPrimitiveOfSchemaInit<Inner> | null
-        : S extends z.ZodJSONSchema
-          ? JsonValue
-          : S extends z.core.$ZodUnion<
-                infer Members extends readonly z.core.$ZodType[]
-              >
-            ? InstanceOrPrimitiveOfSchemaInit<Members[number]>
-            : // primitives below here - we manually traverse to ensure we only allow what we can handle
-              S extends z.core.$ZodObject<infer Shape>
-              ? {
-                  -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchema<
-                    Shape[key]
-                  >;
-                }
-              : S extends z.core.$ZodArray<infer Item extends z.core.$ZodType>
-                ? InstanceOrPrimitiveOfSchema<Item>[]
-                : S extends z.core.$ZodTuple<
-                      infer Items extends z.core.$ZodType[]
-                    >
-                  ? {
-                      [key in keyof Items]: InstanceOrPrimitiveOfSchema<
-                        Items[key]
-                      >;
-                    }
-                  : S extends z.core.$ZodString
-                    ? string
-                    : S extends z.core.$ZodNumber
-                      ? number
-                      : S extends z.core.$ZodBoolean
-                        ? boolean
-                        : S extends z.core.$ZodLiteral<infer Literal>
-                          ? Literal
-                          : S extends z.core.$ZodDate
-                            ? Date
-                            : S extends z.core.$ZodEnum<infer Enum>
-                              ? Enum[keyof Enum]
-                              : S extends z.core.$ZodTemplateLiteral<
-                                    infer pattern
-                                  >
-                                ? pattern
-                                : S extends z.core.$ZodReadonly<
-                                      infer Inner extends z.core.$ZodType
-                                    >
-                                  ? InstanceOrPrimitiveOfSchema<Inner>
-                                  : S extends z.core.$ZodDefault<
-                                        infer Default extends z.core.$ZodType
-                                      >
-                                    ? InstanceOrPrimitiveOfSchema<Default>
-                                    : S extends z.core.$ZodCatch<
-                                          infer Catch extends z.core.$ZodType
-                                        >
-                                      ? InstanceOrPrimitiveOfSchema<Catch>
-                                      : never
+    ? TypeOfZodSchema<S>
     : S extends CoValueClass
       ? InstanceType<S> | null
       : never;

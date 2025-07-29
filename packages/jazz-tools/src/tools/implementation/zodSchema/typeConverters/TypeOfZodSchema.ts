@@ -13,7 +13,9 @@ export type TypeOfZodSchema<S extends z.core.$ZodType> =
       ? TypeOfZodSchema<Inner> | null
       : S extends z.ZodJSONSchema
         ? JsonValue
-        : S extends z.core.$ZodUnion<infer Members extends z.core.$ZodType[]>
+        : S extends z.core.$ZodUnion<
+              infer Members extends readonly z.core.$ZodType[]
+            >
           ? TypeOfZodSchema<Members[number]>
           : S extends z.core.$ZodObject<infer Shape>
             ? {
