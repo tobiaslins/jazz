@@ -64,7 +64,11 @@ import { DisconnectedError, SyncManager, emptyKnownState } from "./sync.js";
 type Value = JsonValue | AnyRawCoValue;
 
 export { PriorityBasedMessageQueue } from "./PriorityBasedMessageQueue.js";
-import { getDependedOnCoValuesFromRawData } from "./coValueCore/utils.js";
+import {
+  getContentMessageSize,
+  getDependedOnCoValuesFromRawData,
+  getTransactionSize,
+} from "./coValueCore/utils.js";
 import {
   CO_VALUE_LOADING_CONFIG,
   MAX_RECOMMENDED_TX_SIZE,
@@ -104,6 +108,8 @@ export const cojsonInternals = {
   ConnectedPeerChannel,
   textEncoder,
   textDecoder,
+  getTransactionSize,
+  getContentMessageSize,
 };
 
 export {

@@ -4,7 +4,7 @@ import { BatchedOutgoingMessages } from "./BatchedOutgoingMessages.js";
 import { deserializeMessages } from "./serialization.js";
 import type { AnyWebSocket } from "./types.js";
 
-const { ConnectedPeerChannel } = cojsonInternals;
+const { ConnectedPeerChannel, getContentMessageSize } = cojsonInternals;
 
 export type CreateWebSocketPeerOpts = {
   id: string;
@@ -16,7 +16,10 @@ export type CreateWebSocketPeerOpts = {
   pingTimeout?: number;
   onClose?: () => void;
   onSuccess?: () => void;
-  meta?: Record<string, string>;
+  /**
+   * Additional key-value attributes to add to the ingress metric.
+   */
+  meta?: Record<string, string | number>;
 };
 
 function createPingTimeoutListener(
@@ -68,15 +71,16 @@ export function createWebSocketPeer({
   onClose,
   meta,
 }: CreateWebSocketPeerOpts): Peer {
-  const counter = metrics
-    .getMeter("cojson")
+  const totalIngressBytesCounter = metrics
+    .getMeter("cojson-transport-ws")
     .createCounter("jazz.usage.ingress", {
-      description: "ingress",
+      description: "Total ingress bytes from peer",
       unit: "bytes",
       valueType: ValueType.INT,
     });
+
   // Initialize the counter by adding 0
-  counter.add(0, meta);
+  totalIngressBytesCounter.add(0, meta);
 
   const incoming = new ConnectedPeerChannel();
   const emitClosedEvent = createClosedEventEmitter(onClose);
@@ -145,29 +149,12 @@ export function createWebSocketPeer({
       outgoing.setBatching(true);
     }
 
-    // TODO: maybe ingress should be metered here instead?
     for (const msg of messages) {
       if (msg && "action" in msg) {
         incoming.push(msg);
 
         if (msg.action === "content") {
-          // TODO: We do this in a few different places, we should rafactor and extract this to a function
-          counter.add(
-            Object.entries(msg.new).reduce((acc, [, sessionNewContent]) => {
-              return (
-                acc +
-                sessionNewContent.newTransactions.reduce((acc, tx) => {
-                  return (
-                    acc +
-                    (tx.privacy === "private"
-                      ? tx.encryptedChanges.length
-                      : tx.changes.length)
-                  );
-                }, 0)
-              );
-            }, 0),
-            meta,
-          );
+          totalIngressBytesCounter.add(getContentMessageSize(msg), meta);
         }
       }
     }
