@@ -157,19 +157,22 @@ export function instantiateRefEncodedFromRaw<V extends CoValue>(
  *
  * @param schema - The schema of the CoValue to create.
  * @param init - The init values to use to create the CoValue.
- * @param owner - The owner of the CoValue.
+ * @param parentOwner - The owner of the referencing CoValue. Will be used
+ * as the parent group of the created CoValue's group
  * @returns The created CoValue.
  */
 export function instantiateRefEncodedWithInit<V extends CoValue>(
   schema: RefEncoded<V>,
   init: any,
-  owner: Account | Group,
+  parentOwner: Account | Group,
 ): V {
   if (!isCoValueClass<V>(schema.ref)) {
     throw Error(
       `Cannot automatically create CoValue from value: ${JSON.stringify(init)}. Use the CoValue schema's create() method instead.`,
     );
   }
+  const owner = Group.create();
+  owner.addMember(parentOwner.castAs(Group));
   // @ts-expect-error - create is a static method in all CoValue classes
   return schema.ref.create(init, owner);
 }

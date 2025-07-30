@@ -137,7 +137,7 @@ describe("CoMap", async () => {
       expect(person.dog?.name).toEqual("Rex");
     });
 
-    test("create CoMap with references using JSON", () => {
+    describe("create CoMap with references using JSON", () => {
       const Dog = co.map({
         type: z.literal("dog"),
         name: z.string(),
@@ -158,36 +158,56 @@ describe("CoMap", async () => {
         pet: co.discriminatedUnion("type", [Dog, Cat]),
       });
 
-      const person = Person.create({
-        name: "John",
-        bio: "I am a software engineer",
-        dog: { type: "dog", name: "Rex" },
-        friends: [
-          {
-            name: "Jane",
-            bio: "I am a mechanical engineer",
-            dog: { type: "dog", name: "Fido" },
-            friends: [],
-            reactions: [],
-            pet: { type: "dog", name: "Fido" },
-          },
-        ],
-        reactions: ["👎", "👍"],
-        pet: { type: "cat", name: "Whiskers" },
+      let person: ReturnType<typeof Person.create>;
+
+      beforeEach(() => {
+        person = Person.create({
+          name: "John",
+          bio: "I am a software engineer",
+          dog: { type: "dog", name: "Rex" },
+          friends: [
+            {
+              name: "Jane",
+              bio: "I am a mechanical engineer",
+              dog: { type: "dog", name: "Fido" },
+              friends: [],
+              reactions: [],
+              pet: { type: "dog", name: "Fido" },
+            },
+          ],
+          reactions: ["👎", "👍"],
+          pet: { type: "cat", name: "Whiskers" },
+        });
       });
 
-      expect(person.name.toString()).toEqual("John");
-      expect(person.bio.toString()).toEqual("I am a software engineer");
-      expect(person.dog?.name).toEqual("Rex");
-      expect(person.friends.length).toEqual(1);
-      expect(person.friends[0]?.name.toString()).toEqual("Jane");
-      expect(person.friends[0]?.bio.toString()).toEqual(
-        "I am a mechanical engineer",
-      );
-      expect(person.friends[0]?.dog.name).toEqual("Fido");
-      expect(person.friends[0]?.friends.length).toEqual(0);
-      expect(person.reactions.byMe?.value?.toString()).toEqual("👍");
-      expect(person.pet.name).toEqual("Whiskers");
+      it("automatically creates CoValues for each CoValue reference", () => {
+        expect(person.name.toString()).toEqual("John");
+        expect(person.bio.toString()).toEqual("I am a software engineer");
+        expect(person.dog?.name).toEqual("Rex");
+        expect(person.friends.length).toEqual(1);
+        expect(person.friends[0]?.name.toString()).toEqual("Jane");
+        expect(person.friends[0]?.bio.toString()).toEqual(
+          "I am a mechanical engineer",
+        );
+        expect(person.friends[0]?.dog.name).toEqual("Fido");
+        expect(person.friends[0]?.friends.length).toEqual(0);
+        expect(person.reactions.byMe?.value?.toString()).toEqual("👍");
+        expect(person.pet.name).toEqual("Whiskers");
+      });
+
+      it("creates a group for each new CoValue that is a child of the referencing CoValue's owner", () => {
+        for (const value of Object.values(person)) {
+          expect(
+            value._owner.getParentGroups().map((group: Group) => group.id),
+          ).toContain(person._owner.id);
+        }
+        const friend = person.friends[0]!;
+        for (const value of Object.values(friend)) {
+          expect(
+            value._owner.getParentGroups().map((group: Group) => group.id),
+          ).toContain(friend._owner.id);
+        }
+      });
     });
 
     test("CoMap with self reference", () => {
