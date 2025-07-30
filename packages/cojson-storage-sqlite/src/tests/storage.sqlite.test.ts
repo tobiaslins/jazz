@@ -212,10 +212,8 @@ test("should load dependencies correctly (group inheritance)", async () => {
   ).toMatchInlineSnapshot(`
     [
       "client -> CONTENT Group header: true new: After: 0 New: 3",
-      "client -> CONTENT ParentGroup header: true new: After: 0 New: 3",
-      "client -> CONTENT Group header: false new: After: 3 New: 1",
-      "client -> CONTENT ParentGroup header: false new: After: 3 New: 1",
-      "client -> CONTENT Group header: false new: After: 4 New: 1",
+      "client -> CONTENT ParentGroup header: true new: After: 0 New: 4",
+      "client -> CONTENT Group header: false new: After: 3 New: 2",
       "client -> CONTENT Map header: true new: After: 0 New: 1",
     ]
   `);
