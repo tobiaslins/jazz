@@ -10,9 +10,8 @@ import {
 import { Account, Group, cojsonInternals, z } from "../index.js";
 import {
   Loaded,
-  anySchemaToCoSchema,
   co,
-  createCoValueObservable,
+  coValueClassFromCoValueClassOrSchema,
   subscribeToCoValue,
 } from "../internal.js";
 import {
@@ -70,7 +69,7 @@ describe("subscribeToCoValue", () => {
     let result = null as Loaded<typeof ChatRoom, true> | null;
 
     const unsubscribe = subscribeToCoValue(
-      anySchemaToCoSchema(ChatRoom),
+      coValueClassFromCoValueClassOrSchema(ChatRoom),
       chatRoom.id,
       { loadAs: meOnSecondPeer },
       (value) => {
@@ -117,7 +116,7 @@ describe("subscribeToCoValue", () => {
     let result = null as Loaded<typeof ChatRoom, {}> | null;
 
     const unsubscribe = subscribeToCoValue(
-      anySchemaToCoSchema(ChatRoom),
+      coValueClassFromCoValueClassOrSchema(ChatRoom),
       chatRoom.id,
       {
         loadAs: meOnSecondPeer,
@@ -158,7 +157,7 @@ describe("subscribeToCoValue", () => {
     messages.push(createMessage(me, "Hello"));
 
     const unsubscribe = subscribeToCoValue(
-      anySchemaToCoSchema(ChatRoom),
+      coValueClassFromCoValueClassOrSchema(ChatRoom),
       chatRoom.id,
       {
         loadAs: meOnSecondPeer,
@@ -201,7 +200,7 @@ describe("subscribeToCoValue", () => {
     const updateFn = vi.fn();
 
     const unsubscribe = subscribeToCoValue(
-      anySchemaToCoSchema(ChatRoom),
+      coValueClassFromCoValueClassOrSchema(ChatRoom),
       chatRoom.id,
       {
         loadAs: meOnSecondPeer,
@@ -261,7 +260,7 @@ describe("subscribeToCoValue", () => {
     >[];
 
     const unsubscribe = subscribeToCoValue(
-      anySchemaToCoSchema(ChatRoom),
+      coValueClassFromCoValueClassOrSchema(ChatRoom),
       chatRoom.id,
       {
         loadAs: meOnSecondPeer,
@@ -332,7 +331,7 @@ describe("subscribeToCoValue", () => {
     const updateFn = vi.fn();
 
     const unsubscribe = subscribeToCoValue(
-      anySchemaToCoSchema(ChatRoom),
+      coValueClassFromCoValueClassOrSchema(ChatRoom),
       chatRoom.id,
       {
         loadAs: meOnSecondPeer,
@@ -396,7 +395,7 @@ describe("subscribeToCoValue", () => {
     const updateFn = vi.fn();
 
     const unsubscribe = subscribeToCoValue(
-      anySchemaToCoSchema(TestList),
+      coValueClassFromCoValueClassOrSchema(TestList),
       list.id,
       {
         loadAs: account,
@@ -457,7 +456,7 @@ describe("subscribeToCoValue", () => {
     const onUnauthorized = vi.fn();
 
     const unsubscribe = subscribeToCoValue(
-      anySchemaToCoSchema(TestList),
+      coValueClassFromCoValueClassOrSchema(TestList),
       list.id,
       {
         loadAs: reader,
@@ -528,7 +527,7 @@ describe("subscribeToCoValue", () => {
     const onUnavailable = vi.fn();
 
     const unsubscribe = subscribeToCoValue(
-      anySchemaToCoSchema(TestList),
+      coValueClassFromCoValueClassOrSchema(TestList),
       list.id,
       {
         loadAs: reader,
@@ -603,7 +602,7 @@ describe("subscribeToCoValue", () => {
     const onUnavailable = vi.fn();
 
     const unsubscribe = subscribeToCoValue(
-      anySchemaToCoSchema(TestList),
+      coValueClassFromCoValueClassOrSchema(TestList),
       list.id,
       {
         loadAs: reader,
@@ -673,7 +672,7 @@ describe("subscribeToCoValue", () => {
     const onUnavailable = vi.fn();
 
     const unsubscribe = subscribeToCoValue(
-      anySchemaToCoSchema(TestList),
+      coValueClassFromCoValueClassOrSchema(TestList),
       list.id,
       {
         loadAs: reader,
@@ -725,7 +724,7 @@ describe("subscribeToCoValue", () => {
     });
 
     const unsubscribe = subscribeToCoValue(
-      anySchemaToCoSchema(TestList),
+      coValueClassFromCoValueClassOrSchema(TestList),
       list.id,
       {
         loadAs: creator,
@@ -792,7 +791,7 @@ describe("subscribeToCoValue", () => {
     });
 
     const unsubscribe = subscribeToCoValue(
-      anySchemaToCoSchema(TestList),
+      coValueClassFromCoValueClassOrSchema(TestList),
       list.id,
       {
         loadAs: creator,
@@ -881,7 +880,7 @@ describe("subscribeToCoValue", () => {
     });
 
     const unsubscribe = subscribeToCoValue(
-      anySchemaToCoSchema(Person),
+      coValueClassFromCoValueClassOrSchema(Person),
       person.id,
       {
         loadAs: reader,
@@ -968,7 +967,7 @@ describe("subscribeToCoValue", () => {
     const onUnavailable = vi.fn();
 
     const unsubscribe = subscribeToCoValue(
-      anySchemaToCoSchema(TestList),
+      coValueClassFromCoValueClassOrSchema(TestList),
       list.id,
       {
         loadAs: reader,
@@ -1055,7 +1054,7 @@ describe("subscribeToCoValue", () => {
     const onUnavailable = vi.fn();
 
     const unsubscribe = subscribeToCoValue(
-      anySchemaToCoSchema(PersonList),
+      coValueClassFromCoValueClassOrSchema(PersonList),
       list.id,
       {
         loadAs: reader,
@@ -1151,7 +1150,7 @@ describe("subscribeToCoValue", () => {
     const onUnavailable = vi.fn();
 
     const unsubscribe = subscribeToCoValue(
-      anySchemaToCoSchema(PersonList),
+      coValueClassFromCoValueClassOrSchema(PersonList),
       list.id,
       {
         loadAs: reader,
@@ -1188,13 +1187,14 @@ describe("subscribeToCoValue", () => {
   it("should subscribe to a large coValue", async () => {
     const syncServer = await setupJazzTestSync({ asyncPeers: true });
 
+    const Data = co.list(z.string());
     const LargeDataset = co.map({
       metadata: z.object({
         name: z.string(),
         description: z.string(),
         createdAt: z.number(),
       }),
-      data: co.list(z.string()),
+      data: Data,
     });
 
     const group = Group.create(syncServer);
@@ -1206,7 +1206,7 @@ describe("subscribeToCoValue", () => {
             "A dataset with many entries for testing large coValue subscription",
           createdAt: Date.now(),
         },
-        data: LargeDataset.def.shape.data.create([], group),
+        data: Data.create([], group),
       },
       group,
     );
@@ -1234,7 +1234,7 @@ describe("subscribeToCoValue", () => {
 
     // Test subscribing to the large coValue
     const unsubscribe = subscribeToCoValue(
-      anySchemaToCoSchema(LargeDataset),
+      coValueClassFromCoValueClassOrSchema(LargeDataset),
       largeMap.id,
       {
         loadAs: alice,
@@ -1275,97 +1275,5 @@ describe("subscribeToCoValue", () => {
     expect(updateFn).toHaveBeenCalledTimes(1);
     expect(result.data.length).toBe(chunks + 1);
     expect(result.data[chunks]).toBe("new entry");
-  });
-});
-
-describe("createCoValueObservable", () => {
-  const TestMap = co.map({
-    color: z.string(),
-  });
-
-  function createTestMap(me: Account | Group) {
-    return TestMap.create({ color: "red" }, { owner: me });
-  }
-
-  it("should return undefined when there are no subscribers", async () => {
-    const observable = createCoValueObservable();
-
-    expect(observable.getCurrentValue()).toBeUndefined();
-  });
-
-  it("should update currentValue when subscribed", async () => {
-    const { me, meOnSecondPeer } = await setupAccount();
-    const testMap = createTestMap(me);
-    const observable = createCoValueObservable();
-    const mockListener = vi.fn();
-
-    const unsubscribe = observable.subscribe(
-      anySchemaToCoSchema(TestMap),
-      testMap.id,
-      {
-        loadAs: meOnSecondPeer,
-      },
-      () => {
-        mockListener();
-      },
-    );
-
-    testMap.color = "blue";
-
-    await waitFor(() => mockListener.mock.calls.length > 0);
-
-    expect(observable.getCurrentValue()).toMatchObject({
-      id: testMap.id,
-      color: "blue",
-    });
-
-    unsubscribe();
-  });
-
-  it("should reset to undefined after unsubscribe", async () => {
-    const { me, meOnSecondPeer } = await setupAccount();
-    const testMap = createTestMap(me);
-    const observable = createCoValueObservable();
-    const mockListener = vi.fn();
-
-    const unsubscribe = observable.subscribe(
-      anySchemaToCoSchema(TestMap),
-      testMap.id,
-      {
-        loadAs: meOnSecondPeer,
-      },
-      () => {
-        mockListener();
-      },
-    );
-
-    await waitFor(() => mockListener.mock.calls.length > 0);
-    expect(observable.getCurrentValue()).toBeDefined();
-
-    unsubscribe();
-    expect(observable.getCurrentValue()).toBeUndefined();
-  });
-
-  it("should return null if the coValue is not found", async () => {
-    const { meOnSecondPeer } = await setupAccount();
-    const observable = createCoValueObservable<
-      typeof TestMap,
-      Loaded<typeof TestMap, {}>
-    >();
-
-    const unsubscribe = observable.subscribe(
-      TestMap,
-      "co_z123",
-      { loadAs: meOnSecondPeer },
-      () => {},
-    );
-
-    expect(observable.getCurrentValue()).toBeUndefined();
-
-    await waitFor(() => {
-      expect(observable.getCurrentValue()).toBeNull();
-    });
-
-    unsubscribe();
   });
 });

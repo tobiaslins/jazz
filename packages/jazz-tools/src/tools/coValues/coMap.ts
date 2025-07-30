@@ -14,12 +14,14 @@ import type {
   CoValueClass,
   Group,
   ID,
+  PartialOnUndefined,
   RefEncoded,
   RefIfCoValue,
   RefsToResolve,
   RefsToResolveStrict,
   Resolved,
   Schema,
+  Simplify,
   SubscribeListenerOptions,
   SubscribeRestArgs,
 } from "../internal.js";
@@ -53,12 +55,6 @@ type CoMapEdit<V> = {
 };
 
 type LastAndAllCoMapEdits<V> = CoMapEdit<V> & { all: CoMapEdit<V>[] };
-
-export type Simplify<A> = {
-  [K in keyof A]: A[K];
-} extends infer B
-  ? B
-  : never;
 
 /**
  * CoMaps are collaborative versions of plain objects, mapping string-like keys to values.
@@ -783,13 +779,9 @@ type ForceRequiredRef<V> = V extends InstanceType<CoValueClass> | null
     ? V | null
     : V;
 
-export type CoMapInit<Map extends object> = {
-  [Key in CoKeys<Map> as undefined extends Map[Key]
-    ? never
-    : Key]: ForceRequiredRef<Map[Key]>;
-} & {
-  [Key in CoKeys<Map>]?: ForceRequiredRef<Map[Key]>;
-};
+export type CoMapInit<Map extends object> = PartialOnUndefined<{
+  [Key in CoKeys<Map>]: ForceRequiredRef<Map[Key]>;
+}>;
 
 // TODO: cache handlers per descriptor for performance?
 const CoMapProxyHandler: ProxyHandler<CoMap> = {

@@ -44,7 +44,8 @@ export class SubscriptionScope<D extends CoValue> {
     resolve: RefsToResolve<D>,
     public id: ID<D>,
     public schema: RefEncoded<D>,
-    public skipRetry?: boolean,
+    public skipRetry = false,
+    public bestEffortResolution = false,
   ) {
     this.resolve = resolve;
     this.value = { type: "unloaded", id };
@@ -171,6 +172,10 @@ export class SubscriptionScope<D extends CoValue> {
     let errorType: JazzError["type"] = "unavailable";
 
     if (this.childErrors.size === 0 && this.validationErrors.size === 0) {
+      return undefined;
+    }
+
+    if (this.bestEffortResolution) {
       return undefined;
     }
 
@@ -341,16 +346,14 @@ export class SubscriptionScope<D extends CoValue> {
       this.resolve = {};
     }
 
-    if (this.resolve.$each || key in this.resolve) {
-      return;
+    if (!this.resolve.$each && !(key in this.resolve)) {
+      const resolve = this.resolve as Record<string, any>;
+
+      // Adding the key to the resolve object to resolve the key when calling loadChildren
+      resolve[key] = true;
+      // Track the keys that are autoloaded to flag any id on that key as autoloaded
+      this.autoloadedKeys.add(key);
     }
-
-    const resolve = this.resolve as Record<string, any>;
-
-    // Adding the key to the resolve object to resolve the key when calling loadChildren
-    resolve[key] = true;
-    // Track the keys that are autoloaded to flag any id on that key as autoloaded
-    this.autoloadedKeys.add(key);
 
     if (this.value.type !== "loaded") {
       return;
@@ -397,6 +400,8 @@ export class SubscriptionScope<D extends CoValue> {
       true,
       id as ID<any>,
       descriptor,
+      this.skipRetry,
+      this.bestEffortResolution,
     );
     this.childNodes.set(id, child);
     child.setListener((value) => this.handleChildUpdate(id, value));
@@ -632,6 +637,8 @@ export class SubscriptionScope<D extends CoValue> {
       resolve,
       id as ID<any>,
       descriptor,
+      this.skipRetry,
+      this.bestEffortResolution,
     );
     this.childNodes.set(id, child);
     child.setListener((value) => this.handleChildUpdate(id, value, key));

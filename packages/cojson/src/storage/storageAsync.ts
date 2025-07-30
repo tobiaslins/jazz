@@ -1,4 +1,3 @@
-import { LinkedList } from "../PriorityBasedMessageQueue.js";
 import {
   type CoValueCore,
   MAX_RECOMMENDED_TX_SIZE,
@@ -7,12 +6,12 @@ import {
   type StorageAPI,
 } from "../exports.js";
 import { getPriorityFromHeader } from "../priority.js";
+import { StoreQueue } from "../queue/StoreQueue.js";
 import {
   CoValueKnownState,
   NewContentMessage,
   emptyKnownState,
 } from "../sync.js";
-import { StoreQueue } from "./StoreQueue.js";
 import { StorageKnownState } from "./knownState.js";
 import { collectNewTxs, getDependedOnCoValues } from "./syncUtils.js";
 import type {

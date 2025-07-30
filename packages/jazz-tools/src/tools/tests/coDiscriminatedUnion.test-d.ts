@@ -44,6 +44,44 @@ describe("co.discriminatedUnion", () => {
     matches(person);
   });
 
+  test("recursive co.discriminatedUnion", () => {
+    const Dog = co.map({
+      type: z.literal("dog"),
+      get friend() {
+        return co.optional(Pet);
+      },
+    });
+    const Cat = co.map({
+      type: z.literal("cat"),
+      get friend() {
+        return co.optional(Pet);
+      },
+    });
+
+    const Pet = co.discriminatedUnion("type", [Dog, Cat]);
+
+    const pallino = Cat.create({
+      type: "cat",
+      friend: Dog.create({
+        type: "dog",
+      }),
+    });
+
+    pallino.friend = Cat.create({
+      type: "cat",
+    });
+
+    type ExpectedType = {
+      friend: Loaded<typeof Dog> | Loaded<typeof Cat> | undefined;
+    };
+
+    function matches(value: ExpectedType) {
+      return value;
+    }
+
+    matches(pallino);
+  });
+
   test("cannot use co.discriminatedUnion with zod schemas as values", () => {
     const Person = co.map({
       pet: co.discriminatedUnion("type", [

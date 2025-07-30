@@ -17,7 +17,7 @@ export async function createImage(
     owner?: Group | Account;
     maxSize?: 256 | 1024 | 2048;
   },
-): Promise<Loaded<typeof ImageDefinition>> {
+): Promise<Loaded<typeof ImageDefinition, { $each: true }>> {
   // Get the original size of the image
   const { width: originalWidth, height: originalHeight } =
     await getImageSize(imageBlobOrFile);

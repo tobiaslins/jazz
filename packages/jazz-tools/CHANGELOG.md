@@ -1,5 +1,69 @@
 # jazz-tools
 
+## 0.16.1
+
+### Patch Changes
+
+- c62abef: Add support for nullable non-collaborative fields
+  - cojson@0.16.1
+  - cojson-storage-indexeddb@0.16.1
+  - cojson-transport-ws@0.16.1
+
+## 0.16.0
+
+### Minor Changes
+
+- c09dcdf: Change the root attribute to be public on Account. The root content will still follow the visiblity rules specified in their group.
+
+  Existing accounts will be gradually migrated as they are loaded.
+
+- 2bbb07b: Introduce a cleaner separation between Zod and CoValue schemas:
+  - Zod schemas and CoValue schemas are fully separated. Zod schemas can only be composed with other Zod schemas. CoValue schemas can be composed with either Zod or other CoValue schemas.
+  - `z.optional()` and `z.discriminatedUnion()` no longer work with CoValue schemas. Use `co.optional()` and `co.discriminatedUnion()` instead.
+  - Internal schema access is now simpler. You no longer need to use Zod’s `.def` to access internals. Use properties like `CoMapSchema.shape`, `CoListSchema.element`, and `CoOptionalSchema.innerType` directly.
+  - CoValue schema types are now namespaced under `co.`. Non-namespaced exports have been removed
+  - CoMap schemas no longer incorrectly inherit from Zod. Previously, methods like `.extend()` and `.partial()` appeared available but could cause unexpected behavior. These methods are now disabled. In their place, `.optional()` has been added, and more Zod-like methods will be introduced in future releases.
+  - Upgraded Zod from `3.25.28` to `3.25.76`.
+  - Removed deprecated `withHelpers` method from CoValue schemas
+  - Removed deprecated `createCoValueObservable` function
+
+### Patch Changes
+
+- Updated dependencies [c09dcdf]
+  - cojson@0.16.0
+  - cojson-storage-indexeddb@0.16.0
+  - cojson-transport-ws@0.16.0
+
+## 0.15.16
+
+### Patch Changes
+
+- 9633d01: Introduced a new HTTP based API to talk with Server Workers
+- 4beafb7: Fix property update when assigning an optional reference on CoMap
+  - cojson@0.15.16
+  - cojson-storage-indexeddb@0.15.16
+  - cojson-transport-ws@0.15.16
+
+## 0.15.15
+
+### Patch Changes
+
+- 3fe53a3: Fix property update when assigning an optional reference on CoMap
+  - cojson@0.15.15
+  - cojson-storage-indexeddb@0.15.15
+  - cojson-transport-ws@0.15.15
+
+## 0.15.14
+
+### Patch Changes
+
+- a584590: Prevent resolving discriminated union fields
+- 9acccb5: Export `WithHelpers` type used in CoValue schemas
+- Updated dependencies [70ce7c5]
+  - cojson-transport-ws@0.15.14
+  - cojson@0.15.14
+  - cojson-storage-indexeddb@0.15.14
+
 ## 0.15.13
 
 ### Patch Changes

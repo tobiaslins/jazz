@@ -5,7 +5,10 @@ import { CoFeedEntry } from "./coFeed.js";
 import { type CoKeys } from "./coMap.js";
 import { type CoValue, type ID } from "./interfaces.js";
 
-type NotNull<T> = Exclude<T, null>;
+/**
+ * Similar to {@link NonNullable}, but removes only `null` and preserves `undefined`.
+ */
+export type NotNull<T> = Exclude<T, null>;
 
 /**
  * Used to check if T is a union type.

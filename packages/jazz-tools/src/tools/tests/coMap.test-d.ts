@@ -1,7 +1,7 @@
 import { assert, describe, expectTypeOf, test } from "vitest";
 import { Group, co, z } from "../exports.js";
 import { Account } from "../index.js";
-import { CoListSchema, Loaded } from "../internal.js";
+import { CoMap, Loaded } from "../internal.js";
 
 describe("CoMap", async () => {
   describe("init", () => {
@@ -117,9 +117,10 @@ describe("CoMap", async () => {
     });
 
     test("CoMap create with partially loaded, reference and optional", () => {
+      const Breed = co.map({ type: z.literal("labrador"), value: z.string() });
       const Dog = co.map({
         name: z.string(),
-        breed: co.map({ type: z.literal("labrador"), value: z.string() }),
+        breed: Breed,
       });
       type Dog = co.loaded<typeof Dog>;
 
@@ -131,7 +132,7 @@ describe("CoMap", async () => {
 
       const dog = Dog.create({
         name: "Rex",
-        breed: Dog.def.shape.breed.create({
+        breed: Breed.create({
           type: "labrador",
           value: "Labrador",
         }),
@@ -158,8 +159,8 @@ describe("CoMap", async () => {
 
     test("Comap with recursive optional reference", () => {
       const Recursive = co.map({
-        get child(): z.ZodOptional<typeof Recursive> {
-          return co.optional(Recursive);
+        get child() {
+          return Recursive.optional();
         },
       });
 
@@ -183,8 +184,7 @@ describe("CoMap", async () => {
       const Person = co.map({
         name: z.string(),
         age: z.number(),
-        // TODO: would be nice if this didn't need a type annotation
-        get friend(): z.ZodOptional<typeof Person> {
+        get friend() {
           return co.optional(Person);
         },
       });
@@ -243,7 +243,7 @@ describe("CoMap", async () => {
     test("update a reference on a loaded value", () => {
       const Dog = co.map({
         name: z.string(),
-        get siblings(): CoListSchema<typeof Dog> {
+        get siblings() {
           return co.list(Dog);
         },
       });
@@ -406,6 +406,34 @@ describe("CoMap resolution", async () => {
           $onError: never; // TODO: Clean the $onError from the type
         })
       | null
+    >();
+  });
+
+  test("loading a map with a nullable field", async () => {
+    const Dog = co.map({
+      name: z.string(),
+      breed: z.string(),
+    });
+    const Person = co.map({
+      name: z.string(),
+      age: z.number().nullable(),
+      dog: Dog,
+    });
+
+    const person = Person.create({
+      name: "John",
+      age: 20,
+      dog: Dog.create({ name: "Rex", breed: "Labrador" }),
+    });
+
+    const loadedPerson = await Person.load(person.id);
+
+    expectTypeOf(loadedPerson!).toEqualTypeOf<
+      {
+        name: string;
+        age: number | null;
+        dog: Loaded<typeof Dog> | null;
+      } & CoMap
     >();
   });
 });

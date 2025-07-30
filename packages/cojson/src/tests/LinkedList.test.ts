@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { LinkedList } from "../PriorityBasedMessageQueue";
+import { LinkedList } from "../queue/LinkedList.js";
 
 describe("LinkedList", () => {
   let list: LinkedList<number>;

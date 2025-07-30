@@ -1,0 +1,78 @@
+export const metadata = {
+  description: "Use Jazz server-side through Server Workers which act like Jazz accounts."
+};
+
+import { CodeGroup } from "@/components/forMdx";
+import { Alert } from "@garden-co/design-system/src/components/atoms/Alert";
+
+# Running Jazz on the server
+
+Jazz is a distributed database that can be used on both clients or servers without any distinction.
+
+You can use servers to:
+- perform operations that can't be done on the client (e.g. sending emails, making HTTP requests, etc.)
+- validate actions that require a central authority (e.g. a payment gateway, booking a hotel, etc.)
+
+We call the code that runs on the server a "Server Worker".
+
+The main difference to keep in mind when working with Jazz compared to traditional systems is that server code doesn't have any
+special or privileged access to the user data. You need to be explicit about what you want to share with the server.
+
+This means that your server workers will have their own accounts, and they need to be explicitly given access to the CoValues they need to work on.
+
+## Generating credentials
+
+Server Workers typically have static credentials, consisting of a public Account ID and a private Account Secret.
+
+To generate new credentials for a Server Worker, you can run:
+
+<CodeGroup>
+```sh
+npx jazz-run account create --name "My Server Worker"
+```
+</CodeGroup>
+
+The name will be put in the public profile of the Server Worker's `Account`, which can be helpful when inspecting metadata of CoValue edits that the Server Worker has done.
+
+<Alert variant="info" className="mt-4">
+  **Note**: By default the account will be stored in Jazz Cloud. You can use the `--peer` flag to store the account on a different sync server.
+</Alert>
+
+## Running a server worker
+
+You can use `startWorker` to run a Server Worker. Similarly to setting up a client-side Jazz context, it:
+
+- takes a custom `AccountSchema` if you have one (for example, because the worker needs to store information in its private account root)
+- takes a URL for a sync & storage server
+
+The migration defined in the `AccountSchema` will be executed every time the worker starts, the same way as it would be for a client-side Jazz context.
+
+<CodeGroup>
+```ts twoslash
+import { co } from "jazz-tools";
+const MyWorkerAccount = co.account();
+type MyWorkerAccount = co.loaded<typeof MyWorkerAccount>;
+
+// ---cut---
+import { startWorker } from 'jazz-tools/worker';
+
+const { worker } = await startWorker({
+  AccountSchema: MyWorkerAccount,
+  syncServer: 'wss://cloud.jazz.tools/?key=you@example.com',
+  accountID: process.env.JAZZ_WORKER_ACCOUNT,
+  accountSecret: process.env.JAZZ_WORKER_SECRET,
+});
+```
+</CodeGroup>
+
+`worker` is an instance of the `Account` schema provided, and acts like `me` (as returned by `useAccount` on the client).
+
+It will implicitly become the current account, and you can avoid mentioning it in most cases.
+
+For this reason we also recommend running a single worker instance per server, because it makes your code much more predictable.
+
+## Storing & providing credentials
+
+Server Worker credentials are typically stored and provided as environment variables.
+
+**Take extra care with the Account Secret &mdash; handle it like any other secret environment variable such as a DB password.**

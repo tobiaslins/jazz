@@ -1,5 +1,4 @@
 import { Histogram, ValueType, metrics } from "@opentelemetry/api";
-import { IncomingMessagesQueue } from "./IncomingMessagesQueue.js";
 import { PeerState } from "./PeerState.js";
 import { SyncStateManager } from "./SyncStateManager.js";
 import { CoValueCore } from "./coValueCore/coValueCore.js";
@@ -13,6 +12,7 @@ import { RawCoID, SessionID } from "./ids.js";
 import { LocalNode } from "./localNode.js";
 import { logger } from "./logger.js";
 import { CoValuePriority } from "./priority.js";
+import { IncomingMessagesQueue } from "./queue/IncomingMessagesQueue.js";
 import { accountOrAgentIDfromSessionID } from "./typeUtils/accountOrAgentIDfromSessionID.js";
 import { isAccountID } from "./typeUtils/isAccountID.js";
 
@@ -440,9 +440,18 @@ export class SyncManager {
     }
   }
 
-  handleNewContent(msg: NewContentMessage, from: PeerState | "storage") {
+  handleNewContent(
+    msg: NewContentMessage,
+    from: PeerState | "storage" | "import",
+  ) {
     const coValue = this.local.getCoValue(msg.id);
-    const peer = from === "storage" ? undefined : from;
+    const peer = from === "storage" || from === "import" ? undefined : from;
+    const sourceRole =
+      from === "storage"
+        ? "storage"
+        : from === "import"
+          ? "import"
+          : peer?.role;
 
     if (!coValue.hasVerifiedContent()) {
       if (!msg.header) {
@@ -617,7 +626,9 @@ export class SyncManager {
         continue;
       }
 
-      this.recordTransactionsSize(newTransactions, peer?.role ?? "storage");
+      if (sourceRole && sourceRole !== "import") {
+        this.recordTransactionsSize(newTransactions, sourceRole);
+      }
 
       peer?.updateSessionCounter(
         msg.id,
@@ -708,10 +719,29 @@ export class SyncManager {
     return this.sendNewContentIncludingDependencies(msg.id, peer);
   }
 
+  dirtyCoValuesTrackingSets: Set<Set<RawCoID>> = new Set();
+  trackDirtyCoValues() {
+    const trackingSet = new Set<RawCoID>();
+
+    this.dirtyCoValuesTrackingSets.add(trackingSet);
+
+    return {
+      done: () => {
+        this.dirtyCoValuesTrackingSets.delete(trackingSet);
+
+        return trackingSet;
+      },
+    };
+  }
+
   requestedSyncs = new Set<RawCoID>();
   requestCoValueSync(coValue: CoValueCore) {
     if (this.requestedSyncs.has(coValue.id)) {
       return;
+    }
+
+    for (const trackingSet of this.dirtyCoValuesTrackingSets) {
+      trackingSet.add(coValue.id);
     }
 
     queueMicrotask(() => {
