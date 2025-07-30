@@ -154,13 +154,13 @@ export class VerifiedState {
     return ok(true as const);
   }
 
-  getLastSignatureIdx(sessionID: SessionID): number {
+  getLastSignatureCheckpoint(sessionID: SessionID): number {
     const sessionLog = this.sessions.get(sessionID);
 
     if (!sessionLog?.signatureAfter) return -1;
 
     return Object.keys(sessionLog.signatureAfter).reduce(
-      (max, idx) => (parseInt(idx) > max ? parseInt(idx) : max),
+      (max, idx) => Math.max(max, parseInt(idx)),
       -1,
     );
   }
@@ -179,7 +179,8 @@ export class VerifiedState {
     }
 
     const signatureAfter = sessionLog?.signatureAfter ?? {};
-    const lastInbetweenSignatureIdx = this.getLastSignatureIdx(sessionID);
+    const lastInbetweenSignatureIdx =
+      this.getLastSignatureCheckpoint(sessionID);
 
     const sizeOfTxsSinceLastInbetweenSignature = transactions
       .slice(lastInbetweenSignatureIdx + 1)

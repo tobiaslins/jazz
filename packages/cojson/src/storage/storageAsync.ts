@@ -207,6 +207,13 @@ export class StorageApiAsync implements StorageAPI {
     });
   }
 
+  /**
+   * This function is called when the storage lacks the information required to store the incoming content.
+   *
+   * It triggers a `correctionCallback` to ask the syncManager to provide the missing information.
+   *
+   * The correction is applied immediately, to ensure that, when applicable, the dependent content in the queue won't require additional corrections.
+   */
   private async handleCorrection(
     knownState: CoValueKnownState,
     correctionCallback: CorrectionCallback,

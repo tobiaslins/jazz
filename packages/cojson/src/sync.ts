@@ -739,7 +739,7 @@ export class SyncManager {
     this.syncContent(content),
   );
   syncHeader = this.syncQueue.syncHeader;
-  syncLocalTransaction = this.syncQueue.syncLocalTransaction;
+  syncLocalTransaction = this.syncQueue.syncTransaction;
 
   syncContent(content: NewContentMessage) {
     const coValue = this.local.getCoValue(content.id);

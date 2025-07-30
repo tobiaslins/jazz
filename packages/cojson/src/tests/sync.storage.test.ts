@@ -289,15 +289,13 @@ describe("client syncs with a server with storage", () => {
       }),
     ).toMatchInlineSnapshot(`
       [
-        "client -> storage | CONTENT Group header: true new: ",
+        "client -> storage | CONTENT Group header: true new: After: 0 New: 5",
         "client -> server | CONTENT Group header: true new: After: 0 New: 5",
-        "client -> storage | CONTENT Group header: false new: After: 0 New: 5",
-        "client -> storage | CONTENT Map header: true new: ",
+        "client -> storage | CONTENT Map header: true new: After: 0 New: 73",
         "client -> server | CONTENT Map header: true new:  expectContentUntil: header/200",
         "client -> server | CONTENT Map header: false new: After: 0 New: 73",
         "client -> server | CONTENT Map header: false new: After: 73 New: 73",
         "client -> server | CONTENT Map header: false new: After: 146 New: 54",
-        "client -> storage | CONTENT Map header: false new: After: 0 New: 73",
         "client -> storage | CONTENT Map header: false new: After: 73 New: 73",
         "client -> storage | CONTENT Map header: false new: After: 146 New: 54",
         "server -> client | KNOWN Group sessions: header/5",

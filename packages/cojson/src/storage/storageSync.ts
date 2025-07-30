@@ -194,6 +194,11 @@ export class StorageApiSync implements StorageAPI {
     return this.storeSingle(msg, correctionCallback);
   }
 
+  /**
+   * This function is called when the storage lacks the information required to store the incoming content.
+   *
+   * It triggers a `correctionCallback` to ask the syncManager to provide the missing information.
+   */
   private handleCorrection(
     knownState: CoValueKnownState,
     correctionCallback: CorrectionCallback,

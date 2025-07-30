@@ -23,7 +23,7 @@ export class CoValueSyncQueue {
     this.enqueue(createContentMessage(coValue.id, coValue.header));
   };
 
-  syncLocalTransaction = (
+  syncTransaction = (
     coValue: VerifiedState,
     transaction: Transaction,
     sessionID: SessionID,
@@ -31,9 +31,11 @@ export class CoValueSyncQueue {
     txIdx: number,
   ) => {
     const lastPendingSync = this.queue.tail?.value;
-    const lastSignatureIdx = coValue.getLastSignatureIdx(sessionID);
+    const lastSignatureIdx = coValue.getLastSignatureCheckpoint(sessionID);
+    const isSignatureCheckpoint =
+      lastSignatureIdx > -1 && lastSignatureIdx === txIdx - 1;
 
-    if (lastPendingSync?.id === coValue.id && lastSignatureIdx !== txIdx - 1) {
+    if (lastPendingSync?.id === coValue.id && !isSignatureCheckpoint) {
       addTransactionToContentMessage(
         lastPendingSync,
         transaction,

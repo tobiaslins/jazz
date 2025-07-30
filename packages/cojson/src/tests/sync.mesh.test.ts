@@ -82,12 +82,10 @@ describe("multiple clients syncing with the a cloud-like server mesh", () => {
       }),
     ).toMatchInlineSnapshot(`
       [
-        "edge-france -> storage | CONTENT Group header: true new: ",
+        "edge-france -> storage | CONTENT Group header: true new: After: 0 New: 3",
         "edge-france -> core | CONTENT Group header: true new: After: 0 New: 3",
-        "edge-france -> storage | CONTENT Group header: false new: After: 0 New: 3",
-        "edge-france -> storage | CONTENT Map header: true new: ",
+        "edge-france -> storage | CONTENT Map header: true new: After: 0 New: 1",
         "edge-france -> core | CONTENT Map header: true new: After: 0 New: 1",
-        "edge-france -> storage | CONTENT Map header: false new: After: 0 New: 1",
         "core -> edge-france | KNOWN Group sessions: header/3",
         "core -> storage | CONTENT Group header: true new: After: 0 New: 3",
         "core -> edge-france | KNOWN Map sessions: header/1",
@@ -144,18 +142,15 @@ describe("multiple clients syncing with the a cloud-like server mesh", () => {
       }),
     ).toMatchInlineSnapshot(`
       [
-        "edge-france -> storage | CONTENT Group header: true new: ",
+        "edge-france -> storage | CONTENT Group header: true new: After: 0 New: 3",
         "edge-france -> core | CONTENT ParentGroup header: true new: After: 0 New: 6",
         "edge-france -> core | CONTENT Group header: true new: After: 0 New: 5",
-        "edge-france -> storage | CONTENT Group header: false new: After: 0 New: 3",
-        "edge-france -> storage | CONTENT ParentGroup header: true new: ",
-        "edge-france -> storage | CONTENT ParentGroup header: false new: After: 0 New: 5",
+        "edge-france -> storage | CONTENT ParentGroup header: true new: After: 0 New: 5",
         "edge-france -> storage | CONTENT Group header: false new: After: 3 New: 1",
         "edge-france -> storage | CONTENT ParentGroup header: false new: After: 5 New: 1",
         "edge-france -> storage | CONTENT Group header: false new: After: 4 New: 1",
-        "edge-france -> storage | CONTENT Map header: true new: ",
+        "edge-france -> storage | CONTENT Map header: true new: After: 0 New: 1",
         "edge-france -> core | CONTENT Map header: true new: After: 0 New: 1",
-        "edge-france -> storage | CONTENT Map header: false new: After: 0 New: 1",
         "core -> edge-france | KNOWN ParentGroup sessions: header/6",
         "core -> storage | CONTENT ParentGroup header: true new: After: 0 New: 6",
         "core -> edge-france | KNOWN Group sessions: header/5",
@@ -275,12 +270,10 @@ describe("multiple clients syncing with the a cloud-like server mesh", () => {
     ).toMatchInlineSnapshot(`
       [
         "client -> edge-italy | LOAD Map sessions: empty",
-        "edge-italy -> storage | CONTENT Group header: true new: ",
+        "edge-italy -> storage | CONTENT Group header: true new: After: 0 New: 5",
         "edge-italy -> core | CONTENT Group header: true new: After: 0 New: 5",
-        "edge-italy -> storage | CONTENT Group header: false new: After: 0 New: 5",
-        "edge-italy -> storage | CONTENT Map header: true new: ",
+        "edge-italy -> storage | CONTENT Map header: true new: After: 0 New: 1",
         "edge-italy -> core | CONTENT Map header: true new: After: 0 New: 1",
-        "edge-italy -> storage | CONTENT Map header: false new: After: 0 New: 1",
         "edge-italy -> client | CONTENT Group header: true new: After: 0 New: 5",
         "edge-italy -> client | CONTENT Map header: true new: After: 0 New: 1",
         "core -> edge-italy | KNOWN Group sessions: header/5",
@@ -518,10 +511,8 @@ describe("multiple clients syncing with the a cloud-like server mesh", () => {
       }),
     ).toMatchInlineSnapshot(`
       [
-        "edge -> storage | CONTENT Group header: true new: ",
-        "edge -> storage | CONTENT Group header: false new: After: 0 New: 5",
-        "edge -> storage | CONTENT Map header: true new: ",
-        "edge -> storage | CONTENT Map header: false new: After: 0 New: 73",
+        "edge -> storage | CONTENT Group header: true new: After: 0 New: 5",
+        "edge -> storage | CONTENT Map header: true new: After: 0 New: 73",
         "edge -> storage | CONTENT Map header: false new: After: 73 New: 73",
         "edge -> storage | CONTENT Map header: false new: After: 146 New: 54",
       ]
