@@ -60,7 +60,7 @@ const button = tv({
     },
   },
   compoundVariants: [
-    // Default Variant
+    // Default Variants
     {
       variant: "default",
       intent: "default",
@@ -132,7 +132,7 @@ const button = tv({
       className:
         "text-white from-red-400 to-red-500 hover:from-red-500 hover:to-rose-500 active:from-rose-500 active:to-red-500 shadow-[inset_0_0_0_0.4px_rgba(239,68,68,0.2),inset_0_0.4px_0_rgba(254,202,202,0.4),inset_0_-0.4px_0_rgba(153,27,27,0.3)]",
     },
-    // Outline Variant
+    // Outline Variants
     {
       variant: "outline",
       intent: "default",
@@ -193,7 +193,7 @@ const button = tv({
       className:
         "border-stone-900 dark:border-stone-100 text-stone-900 dark:text-white hover:text-stone-700 dark:hover:text-stone-300 active:bg-stone-900/20 shadow-[inset_0_0_0_0.4px_rgba(68,64,60,0.2),inset_0_0.4px_0_rgba(168,162,158,0.4),inset_0_-0.4px_0_rgba(41,37,36,0.3)]",
     },
-    // Inverted Variant
+    // Inverted Variants
     {
       variant: "inverted",
       intent: "default",
@@ -251,7 +251,7 @@ const button = tv({
       className:
         "text-stone-900 dark:text-white hover:bg-stone-900/30 dark:hover:bg-stone-100/30 bg-stone-900/20 dark:bg-stone-100/50 active:bg-stone-800/40 dark:active:bg-stone-200/40",
     },
-    // Ghost Variant
+    // Ghost Variants
     {
       variant: "ghost",
       intent: "default",
@@ -305,7 +305,7 @@ const button = tv({
       className:
         "text-stone-900 dark:text-white hover:bg-stone-900/10 dark:hover:bg-stone-100/10 active:bg-stone-900/25 dark:active:bg-stone-100/25",
     },
-    // Link Variant
+    // Link Variants
     {
       variant: "link",
       intent: "default",
