@@ -109,8 +109,6 @@ describe("CoMap", async () => {
             breed: "Labrador",
           },
           dog2: { name: "Fido", breed: "Labrador" },
-          // TODO make undefined fields optional (!!!)
-          friend: undefined,
         },
       });
 

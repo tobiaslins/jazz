@@ -5,7 +5,6 @@ import {
   DiscriminableCoValueSchemaDefinition,
   DiscriminableCoreCoValueSchema,
   Group,
-  PartialOnUndefined,
   RefsToResolve,
   RefsToResolveStrict,
   Resolved,
@@ -30,7 +29,7 @@ export interface CoMapSchema<
   Owner extends Account | Group = Account | Group,
 > extends CoreCoMapSchema<Shape, CatchAll> {
   create: (
-    init: Simplify<PartialOnUndefined<CoMapSchemaInit<Shape>>>,
+    init: CoMapSchemaInit<Shape>,
     options?:
       | {
           owner: Owner;
