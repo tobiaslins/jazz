@@ -73,14 +73,22 @@ describe("Simple CoFeed operations", async () => {
       expect(coValue?.toString()).toEqual("milk");
     });
 
-    test("using JSON", () => {
-      const Text = co.plainText();
-      const TextStream = co.feed(Text);
+    describe("using JSON", () => {
+      test("automatically creates CoValues for nested objects", () => {
+        const Text = co.plainText();
+        const TextStream = co.feed(Text);
 
-      const stream = TextStream.create(["milk"], { owner: me });
+        const stream = TextStream.create(["milk"], { owner: me });
 
-      const coValue = stream.perAccount[me.id]?.value;
-      expect(coValue?.toString()).toEqual("milk");
+        const coValue = stream.perAccount[me.id]?.value;
+        expect(coValue?.toString()).toEqual("milk");
+      });
+
+      test("can create a coPlainText from an empty string", () => {
+        const Schema = co.feed(co.plainText());
+        const feed = Schema.create([""]);
+        expect(feed.perAccount[me.id]?.value?.toString()).toBe("");
+      });
     });
   });
 

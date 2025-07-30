@@ -425,7 +425,7 @@ export class CoMap extends CoValueBase implements CoValue {
         if (descriptor === "json") {
           rawInit[key] = initValue as JsonValue;
         } else if (isRefEncoded(descriptor)) {
-          if (initValue) {
+          if (initValue != null) {
             let refId = (initValue as unknown as CoValue).id;
             if (!refId) {
               const coValue = instantiateRefEncodedWithInit(

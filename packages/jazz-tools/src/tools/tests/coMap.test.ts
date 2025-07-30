@@ -208,6 +208,12 @@ describe("CoMap", async () => {
           ).toContain(friend._owner.id);
         }
       });
+
+      it("can create a coPlainText from an empty string", () => {
+        const Schema = co.map({ text: co.plainText() });
+        const map = Schema.create({ text: "" });
+        expect(map.text.toString()).toBe("");
+      });
     });
 
     test("CoMap with self reference", () => {

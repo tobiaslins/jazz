@@ -575,7 +575,7 @@ function toRawItems<Item>(
     rawItems = items?.map((e) => itemDescriptor.encoded.encode(e));
   } else if (isRefEncoded(itemDescriptor)) {
     rawItems = items?.map((value) => {
-      if (!value) return null;
+      if (value == null) return null;
       let refId = (value as unknown as CoValue).id;
       if (!refId) {
         const coValue = instantiateRefEncodedWithInit(
