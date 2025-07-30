@@ -212,7 +212,7 @@ the necessary CoValues automatically but it will also manage their group ownersh
 
 <CodeGroup>
 ```ts twoslash
-import { co } from "jazz-tools";
+import { co, z } from "jazz-tools";
 
 // ---cut---
 const Task = co.plainText();
@@ -240,7 +240,7 @@ If you prefer to manage permissions differently, you can always create CoValues 
 
 <CodeGroup>
 ```ts twoslash
-import { co } from "jazz-tools";
+import { co, Group, z } from "jazz-tools";
 
 const Task = co.plainText();
 const Column = co.list(Task);
@@ -254,7 +254,7 @@ const Board = co.map({
 const group = Group.create();
 const board = Board.create({
   title: "My board",
-  columns: co.list(Column, group).create([
+  columns: co.list(Column).create([
     Column.create([
       Task.create("Task 1.1", group),
       Task.create("Task 1.2", group),
@@ -263,7 +263,7 @@ const board = Board.create({
       Task.create("Task 2.1", group),
       Task.create("Task 2.2", group),
     ], group),
-  ]),
+  ], group),
 }, group);
 ```
 </CodeGroup>
