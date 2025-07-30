@@ -342,7 +342,7 @@ test("should recover from data loss", async () => {
       "client -> CONTENT Map header: true new: After: 0 New: 1",
       "client -> CONTENT Map header: false new: After: 3 New: 1",
       "storage -> KNOWN CORRECTION Map sessions: header/4",
-      "storage -> CONTENT Map header: false new: After: 1 New: 3",
+      "client -> CONTENT Map header: false new: After: 1 New: 3",
     ]
   `);
 

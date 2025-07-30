@@ -488,7 +488,7 @@ describe("StorageApiAsync", () => {
         [
           "test -> test-storage | CONTENT Core header: false new: After: 1 New: 2",
           "test-storage -> test | KNOWN CORRECTION Core sessions: empty",
-          "test-storage -> test | CONTENT Core header: true new: After: 0 New: 3",
+          "test -> test-storage | CONTENT Core header: true new: After: 0 New: 3",
           "test -> test-storage | CONTENT Core header: false new: After: 3 New: 2",
         ]
       `);
@@ -547,9 +547,9 @@ describe("StorageApiAsync", () => {
           "test -> test-storage | CONTENT Core header: false new: After: 2 New: 1",
           "test -> test-storage | CONTENT Core2 header: false new: After: 2 New: 1",
           "test-storage -> test | KNOWN CORRECTION Core sessions: empty",
-          "test-storage -> test | CONTENT Core header: true new: After: 0 New: 3",
+          "test -> test-storage | CONTENT Core header: true new: After: 0 New: 3",
           "test-storage -> test | KNOWN CORRECTION Core2 sessions: empty",
-          "test-storage -> test | CONTENT Core2 header: true new: After: 0 New: 3",
+          "test -> test-storage | CONTENT Core2 header: true new: After: 0 New: 3",
           "test -> test-storage | CONTENT Core header: false new: After: 3 New: 1",
           "test -> test-storage | CONTENT Core2 header: false new: After: 3 New: 1",
           "test -> test-storage | CONTENT Core header: false new: After: 4 New: 1",
@@ -608,19 +608,19 @@ describe("StorageApiAsync", () => {
           Core2: core2,
         }),
       ).toMatchInlineSnapshot(`
-          [
-            "test -> test-storage | CONTENT Core header: false new: After: 1 New: 1",
-            "test -> test-storage | CONTENT Core2 header: false new: After: 1 New: 1",
-            "test -> test-storage | CONTENT Core header: false new: After: 2 New: 1",
-            "test -> test-storage | CONTENT Core2 header: false new: After: 2 New: 1",
-            "test-storage -> test | KNOWN CORRECTION Core sessions: empty",
-            "test-storage -> test | CONTENT Core header: true new: After: 0 New: 3",
-            "test -> test-storage | CONTENT Core header: false new: After: 3 New: 1",
-            "test -> test-storage | CONTENT Core2 header: false new: After: 3 New: 1",
-            "test -> test-storage | CONTENT Core header: false new: After: 4 New: 1",
-            "test -> test-storage | CONTENT Core2 header: false new: After: 4 New: 1",
-          ]
-        `);
+        [
+          "test -> test-storage | CONTENT Core header: false new: After: 1 New: 1",
+          "test -> test-storage | CONTENT Core2 header: false new: After: 1 New: 1",
+          "test -> test-storage | CONTENT Core header: false new: After: 2 New: 1",
+          "test -> test-storage | CONTENT Core2 header: false new: After: 2 New: 1",
+          "test-storage -> test | KNOWN CORRECTION Core sessions: empty",
+          "test -> test-storage | CONTENT Core header: true new: After: 0 New: 3",
+          "test -> test-storage | CONTENT Core header: false new: After: 3 New: 1",
+          "test -> test-storage | CONTENT Core2 header: false new: After: 3 New: 1",
+          "test -> test-storage | CONTENT Core header: false new: After: 4 New: 1",
+          "test -> test-storage | CONTENT Core2 header: false new: After: 4 New: 1",
+        ]
+      `);
 
       expect(storage.getKnownState(core.id)).toEqual(knownState);
     });

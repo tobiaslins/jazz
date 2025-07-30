@@ -166,8 +166,8 @@ function trackStorageMessages(
       if (correctionMessages) {
         for (const msg of correctionMessages) {
           SyncMessagesLog.add({
-            from: storageName,
-            to: nodeName,
+            from: nodeName,
+            to: storageName,
             msg,
           });
         }

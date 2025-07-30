@@ -56,7 +56,7 @@ export function trackMessages() {
       if (correctionMessages) {
         for (const msg of correctionMessages) {
           messages.push({
-            from: "storage",
+            from: "client",
             msg,
           });
         }
