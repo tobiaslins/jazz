@@ -7,7 +7,7 @@ import { MAX_RECOMMENDED_TX_SIZE } from "./config.js";
 import { Signature } from "./crypto/crypto.js";
 import { RawCoID, SessionID } from "./ids.js";
 import { getPriorityFromHeader } from "./priority.js";
-import { NewContentMessage } from "./sync.js";
+import { NewContentMessage, emptyKnownState } from "./sync.js";
 
 export function createContentMessage(
   id: RawCoID,
@@ -59,4 +59,15 @@ export function exceedsRecommendedSize(
   }
 
   return baseSize + transactionSize > MAX_RECOMMENDED_TX_SIZE;
+}
+
+export function knownStateFromContent(content: NewContentMessage) {
+  const knownState = emptyKnownState(content.id);
+
+  for (const [sessionID, session] of Object.entries(content.new)) {
+    knownState.sessions[sessionID as SessionID] =
+      session.after + session.newTransactions.length;
+  }
+
+  return knownState;
 }

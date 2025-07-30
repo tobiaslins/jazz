@@ -1,7 +1,10 @@
 import { Histogram, ValueType, metrics } from "@opentelemetry/api";
 import { PeerState } from "./PeerState.js";
 import { SyncStateManager } from "./SyncStateManager.js";
-import { getTransactionSize } from "./coValueContentMessage.js";
+import {
+  getTransactionSize,
+  knownStateFromContent,
+} from "./coValueContentMessage.js";
 import { CoValueCore } from "./coValueCore/coValueCore.js";
 import { getDependedOnCoValuesFromRawData } from "./coValueCore/utils.js";
 import {
@@ -747,7 +750,31 @@ export class SyncManager {
     const coValue = this.local.getCoValue(content.id);
 
     this.storeContent(content);
-    this.syncCoValue(coValue);
+
+    const contentKnownState = knownStateFromContent(content);
+
+    for (const peer of this.peersInPriorityOrder()) {
+      if (peer.closed) continue;
+      if (coValue.isErroredInPeer(peer.id)) continue;
+
+      // Only subscribed CoValues are synced to clients
+      if (
+        peer.role === "client" &&
+        !peer.optimisticKnownStates.has(coValue.id)
+      ) {
+        continue;
+      }
+
+      // We assume that the peer already knows anything before this content
+      // Any eventual reconciliation will be handled through the known state messages exchange
+      this.trySendToPeer(peer, content);
+      peer.combineOptimisticWith(coValue.id, contentKnownState);
+      peer.trackToldKnownState(coValue.id);
+    }
+
+    for (const peer of this.getPeers()) {
+      this.syncState.triggerUpdate(peer.id, coValue.id);
+    }
   }
 
   private storeContent(content: NewContentMessage) {
@@ -762,27 +789,6 @@ export class SyncManager {
         .getCoValue(content.id)
         .verified?.newContentSince(correction);
     });
-  }
-
-  syncCoValue(coValue: CoValueCore) {
-    for (const peer of this.peersInPriorityOrder()) {
-      if (peer.closed) continue;
-      if (coValue.isErroredInPeer(peer.id)) continue;
-
-      // Only subscribed CoValues are synced to clients
-      if (
-        peer.role === "client" &&
-        !peer.optimisticKnownStates.has(coValue.id)
-      ) {
-        continue;
-      }
-
-      this.sendNewContentIncludingDependencies(coValue.id, peer);
-    }
-
-    for (const peer of this.getPeers()) {
-      this.syncState.triggerUpdate(peer.id, coValue.id);
-    }
   }
 
   waitForSyncWithPeer(peerId: PeerID, id: RawCoID, timeout: number) {

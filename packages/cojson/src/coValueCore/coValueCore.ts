@@ -380,7 +380,7 @@ export class CoValueCore {
   }
 
   knownStateWithStreaming(): CoValueKnownState {
-    if (this.isAvailable()) {
+    if (this.verified) {
       return this.verified.knownStateWithStreaming();
     } else {
       return emptyKnownState(this.id);
@@ -388,7 +388,7 @@ export class CoValueCore {
   }
 
   knownState(): CoValueKnownState {
-    if (this.isAvailable()) {
+    if (this.verified) {
       return this.verified.knownState();
     } else {
       return emptyKnownState(this.id);

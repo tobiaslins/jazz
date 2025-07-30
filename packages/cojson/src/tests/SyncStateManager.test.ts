@@ -38,14 +38,6 @@ describe("SyncStateManager", () => {
     const updateSpy: GlobalSyncStateListenerCallback = vi.fn();
     const unsubscribe = subscriptionManager.subscribeToUpdates(updateSpy);
 
-    await client.node.syncManager.syncCoValue(map.core);
-
-    expect(updateSpy).toHaveBeenCalledWith(
-      peerState.id,
-      emptyKnownState(map.core.id),
-      { uploaded: false },
-    );
-
     await waitFor(() => {
       return subscriptionManager.getCurrentSyncState(peerState.id, map.core.id)
         .uploaded;
@@ -98,13 +90,6 @@ describe("SyncStateManager", () => {
       unsubscribe2();
     });
 
-    client.node.syncManager.syncCoValue(map.core);
-
-    expect(updateToJazzCloudSpy).toHaveBeenCalledWith(
-      emptyKnownState(map.core.id),
-      { uploaded: false },
-    );
-
     await waitFor(() => {
       return subscriptionManager.getCurrentSyncState(peerState.id, map.core.id)
         .uploaded;
@@ -132,8 +117,6 @@ describe("SyncStateManager", () => {
     const group = client.node.createGroup();
     const map = group.createMap();
     map.set("key1", "value1", "trusting");
-
-    await client.node.syncManager.syncCoValue(map.core);
 
     const subscriptionManager = client.node.syncManager.syncState;
 
@@ -173,8 +156,6 @@ describe("SyncStateManager", () => {
 
     unsubscribe1();
     unsubscribe2();
-
-    await client.node.syncManager.syncCoValue(map.core);
 
     anyUpdateSpy.mockClear();
 
@@ -336,6 +317,6 @@ describe("SyncStateManager", () => {
 
     await map.core.waitForSync();
 
-    expect(client.node.getCoValue(map.id).isAvailable()).toBe(true);
+    expect(client.node.getCoValue(map.id).hasVerifiedContent()).toBe(true);
   });
 });
