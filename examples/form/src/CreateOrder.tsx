@@ -9,7 +9,6 @@ import {
   BubbleTeaOrder,
   DraftBubbleTeaOrder,
   JazzAccount,
-  ListOfBubbleTeaAddOns,
   validateDraftOrder,
 } from "./schema.ts";
 
