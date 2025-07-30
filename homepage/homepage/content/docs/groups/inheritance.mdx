@@ -205,6 +205,69 @@ console.log(containingGroup.getParentGroups()); // [addedGroup]
 ```
 </CodeGroup>
 
+## Group hierarchy on CoValue creation
+
+When creating CoValues that contain other CoValues using plain JSON objects, Jazz not only creates
+the necessary CoValues automatically but it will also manage their group ownership.
+
+<CodeGroup>
+```ts twoslash
+import { co } from "jazz-tools";
+
+// ---cut---
+const Task = co.plainText();
+const Column = co.list(Task);
+const Board = co.map({
+  title: z.string(),
+  columns: co.list(Column),
+});
+
+const board = Board.create({
+  title: "My board",
+  columns: [
+    ["Task 1.1", "Task 1.2"],
+    ["Task 2.1", "Task 2.2"],
+  ],
+});
+```
+</CodeGroup>
+
+For each created column and task CoValue, Jazz also creates a new group as its owner and
+adds the referencing CoValue's owner as a member of that group. This allows you to then manage
+permissions for each CoValue independently.
+
+If you prefer to manage permissions differently, you can always create CoValues explicitly:
+
+<CodeGroup>
+```ts twoslash
+import { co } from "jazz-tools";
+
+const Task = co.plainText();
+const Column = co.list(Task);
+const Board = co.map({
+  title: z.string(),
+  columns: co.list(Column),
+});
+
+// ---cut---
+// Set a single group as the owner of all CoValues
+const group = Group.create();
+const board = Board.create({
+  title: "My board",
+  columns: co.list(Column, group).create([
+    Column.create([
+      Task.create("Task 1.1", group),
+      Task.create("Task 1.2", group),
+    ], group),
+    Column.create([
+      Task.create("Task 2.1", group),
+      Task.create("Task 2.2", group),
+    ], group),
+  ]),
+}, group);
+```
+</CodeGroup>
+
 ## Example: Team Hierarchy
 
 Here's a practical example of using group inheritance for team permissions:
