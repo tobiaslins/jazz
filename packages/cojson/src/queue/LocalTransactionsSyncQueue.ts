@@ -8,7 +8,16 @@ import { SessionID } from "../ids.js";
 import { NewContentMessage } from "../sync.js";
 import { LinkedList } from "./LinkedList.js";
 
-export class CoValueSyncQueue {
+/**
+ * This queue is used to batch the sync of local transactions while preserving the order of updates between CoValues.
+ *
+ * We need to preserve the order of updates between CoValues to keep the state always consistent in case of shutdown in the middle of a sync.
+ *
+ * Examples:
+ * 1. When we extend a Group we need to always ensure that the parent group is persisted before persisting the extension transaction.
+ * 2. If we do multiple updates on the same CoMap, the updates will be batched because it's safe to do so.
+ */
+export class LocalTransactionsSyncQueue {
   private readonly queue = new LinkedList<NewContentMessage>();
 
   constructor(private readonly sync: (content: NewContentMessage) => void) {}

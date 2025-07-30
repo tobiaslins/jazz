@@ -14,8 +14,8 @@ import { RawCoID, SessionID, isRawCoID } from "./ids.js";
 import { LocalNode } from "./localNode.js";
 import { logger } from "./logger.js";
 import { CoValuePriority } from "./priority.js";
-import { CoValueSyncQueue } from "./queue/CoValueSyncQueue.js";
 import { IncomingMessagesQueue } from "./queue/IncomingMessagesQueue.js";
+import { LocalTransactionsSyncQueue } from "./queue/LocalTransactionsSyncQueue.js";
 import { accountOrAgentIDfromSessionID } from "./typeUtils/accountOrAgentIDfromSessionID.js";
 import { isAccountID } from "./typeUtils/isAccountID.js";
 
@@ -63,10 +63,12 @@ export type NewContentMessage = {
 };
 
 export type SessionNewContent = {
+  // The index where to start appending the new transactions. The index counting starts from 1.
   after: number;
   newTransactions: Transaction[];
   lastSignature: Signature;
 };
+
 export type DoneMessage = {
   action: "done";
   id: RawCoID;
@@ -735,7 +737,7 @@ export class SyncManager {
     };
   }
 
-  private syncQueue = new CoValueSyncQueue((content) =>
+  private syncQueue = new LocalTransactionsSyncQueue((content) =>
     this.syncContent(content),
   );
   syncHeader = this.syncQueue.syncHeader;
