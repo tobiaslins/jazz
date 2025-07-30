@@ -1,3 +1,5 @@
+import { Button } from "@/src/components/button";
+import { Icon } from "@/src/components/icon";
 import {
   BellIcon,
   CheckIcon,
@@ -13,7 +15,6 @@ import {
   XIcon,
 } from "lucide-react";
 import React from "react";
-import { Icon } from "../../../src/components/icon";
 
 export default function IconPage() {
   return (
@@ -230,36 +231,6 @@ import { Icon } from "@/components/icon";
       <section className="space-y-4">
         <div>
           <h2 className="text-xl font-semibold text-stone-900 dark:text-white">
-            Custom SVG Icons
-          </h2>
-          <p className="text-stone-600 dark:text-stone-400">
-            Use custom SVG icons while maintaining consistent styling.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-4 p-4 bg-stone-50 dark:bg-stone-900 rounded-lg">
-          <Icon intent="primary" size="lg">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-            </svg>
-          </Icon>
-          <Icon intent="danger" size="lg">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
-          </Icon>
-        </div>
-        <pre className="bg-stone-100 dark:bg-stone-800 p-4 rounded-lg text-sm overflow-x-auto">
-          {`<Icon intent="primary" size="lg">
-  <svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87..."/>
-  </svg>
-</Icon>`}
-        </pre>
-      </section>
-
-      <section className="space-y-4">
-        <div>
-          <h2 className="text-xl font-semibold text-stone-900 dark:text-white">
             Usage in Components
           </h2>
           <p className="text-stone-600 dark:text-stone-400">
@@ -267,24 +238,24 @@ import { Icon } from "@/components/icon";
           </p>
         </div>
         <div className="flex flex-wrap gap-4 p-4 bg-stone-50 dark:bg-stone-900 rounded-lg">
-          <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          <Button intent="primary">
             <Icon intent="white" size="sm">
               <PlusIcon />
             </Icon>
             Add Item
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-white rounded-lg hover:bg-stone-200 dark:hover:bg-stone-700">
+          </Button>
+          <Button intent="strong">
             <Icon intent="muted" size="sm">
               <SearchIcon />
             </Icon>
             Search
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+          </Button>
+          <Button intent="danger">
             <Icon intent="white" size="sm">
               <TrashIcon />
             </Icon>
             Delete
-          </button>
+          </Button>
         </div>
         <pre className="bg-stone-100 dark:bg-stone-800 p-4 rounded-lg text-sm overflow-x-auto">
           {`<button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg">
@@ -345,9 +316,6 @@ import { Icon } from "@/components/icon";
                 <td className="border border-stone-300 dark:border-stone-700 px-4 py-2 text-sm">
                   -
                 </td>
-                <td className="border border-stone-300 dark:border-stone-700 px-4 py-2 text-sm">
-                  Direct icon component prop
-                </td>
               </tr>
               <tr>
                 <td className="border border-stone-300 dark:border-stone-700 px-4 py-2 font-mono text-sm">
@@ -376,20 +344,6 @@ import { Icon } from "@/components/icon";
                 </td>
                 <td className="border border-stone-300 dark:border-stone-700 px-4 py-2 text-sm">
                   Color intent
-                </td>
-              </tr>
-              <tr>
-                <td className="border border-stone-300 dark:border-stone-700 px-4 py-2 font-mono text-sm">
-                  hasBackground
-                </td>
-                <td className="border border-stone-300 dark:border-stone-700 px-4 py-2 text-sm">
-                  boolean
-                </td>
-                <td className="border border-stone-300 dark:border-stone-700 px-4 py-2 text-sm">
-                  false
-                </td>
-                <td className="border border-stone-300 dark:border-stone-700 px-4 py-2 text-sm">
-                  Add background color
                 </td>
               </tr>
               <tr>
