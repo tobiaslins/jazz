@@ -318,5 +318,25 @@ describe("SyncStateManager", () => {
     await map.core.waitForSync();
 
     expect(client.node.getCoValue(map.id).hasVerifiedContent()).toBe(true);
+
+    // Since only the map is subscribed, the dependencies are pushed after the client requests them
+    await waitFor(() => {
+      expect(client.node.getCoValue(map.id).isAvailable()).toBe(true);
+    });
+
+    expect(
+      SyncMessagesLog.getMessages({
+        Map: map.core,
+        Group: group.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "server -> client | CONTENT Map header: true new: After: 0 New: 1",
+        "client -> server | LOAD Group sessions: empty",
+        "client -> server | KNOWN Map sessions: header/1",
+        "server -> client | CONTENT Group header: true new: After: 0 New: 3",
+        "client -> server | KNOWN Group sessions: header/3",
+      ]
+    `);
   });
 });
