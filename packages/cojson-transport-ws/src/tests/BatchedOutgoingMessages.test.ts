@@ -1,4 +1,4 @@
-import type { SessionID, SyncMessage } from "cojson";
+import type { SyncMessage } from "cojson";
 import { type Mocked, afterEach, describe, expect, test, vi } from "vitest";
 import { BatchedOutgoingMessages } from "../BatchedOutgoingMessages";
 import type { AnyWebSocket } from "../types";
@@ -28,30 +28,21 @@ describe("BatchedOutgoingMessages", () => {
         { test: "test" },
       );
 
-      const sessionID = "co_zsomething_session_zlow" as SessionID;
-      const encryptedChanges = "encrypted_U123" as const;
-      const messageWithPrivateTransactions: SyncMessage = {
+      const encryptedChanges = "Hello, world!";
+      vi.useFakeTimers();
+      outgoing.push({
         action: "content",
-        id: "co_zsomeid",
         new: {
-          [sessionID]: {
-            after: 0,
+          someSessionId: {
             newTransactions: [
               {
-                privacy: "private" as const,
-                madeAt: 0,
-                keyUsed: "key_zkey" as const,
+                privacy: "private",
                 encryptedChanges,
               },
             ],
-            lastSignature: "signature_1",
           },
         },
-        priority: 6,
-      };
-
-      vi.useFakeTimers();
-      outgoing.push(messageWithPrivateTransactions);
+      } as unknown as SyncMessage);
 
       await vi.runAllTimersAsync();
       vi.useRealTimers();
@@ -62,28 +53,22 @@ describe("BatchedOutgoingMessages", () => {
         }),
       ).toBe(encryptedChanges.length);
 
-      const trustingChanges = "Hello, world!";
-      const messageWithTrustingTransactions: SyncMessage = {
+      const trustingChanges = "Jazz is great!";
+      vi.useFakeTimers();
+      outgoing.push({
         action: "content",
-        id: "co_zsomeid",
         new: {
-          [sessionID]: {
+          someSessionId: {
             after: 0,
             newTransactions: [
               {
-                privacy: "trusting" as const,
-                madeAt: 0,
+                privacy: "trusting",
                 changes: trustingChanges,
               },
             ],
-            lastSignature: "signature_1",
           },
         },
-        priority: 6,
-      };
-
-      vi.useFakeTimers();
-      outgoing.push(messageWithTrustingTransactions);
+      } as unknown as SyncMessage);
 
       await vi.runAllTimersAsync();
       vi.useRealTimers();

@@ -1,4 +1,4 @@
-import type { CojsonInternalTypes, SessionID, SyncMessage } from "cojson";
+import type { CojsonInternalTypes, SyncMessage } from "cojson";
 import { cojsonInternals } from "cojson";
 import { type Mocked, afterEach, describe, expect, test, vi } from "vitest";
 import { MAX_OUTGOING_MESSAGES_CHUNK_BYTES } from "../BatchedOutgoingMessages.js";
@@ -545,74 +545,61 @@ describe("createWebSocketPeer", () => {
     test("should correctly measure incoming ingress", async () => {
       const metricReader = createTestMetricReader();
       const { listeners } = setup({
-        meta: { test: "test" },
+        meta: { label: "value" },
       });
-
-      const sessionID = "co_zsomething_session_zlow" as SessionID;
-      const encryptedChanges = "encrypted_U123" as const;
-      const messageWithPrivateTransactions: SyncMessage = {
-        action: "content",
-        id: "co_zsomeid",
-        new: {
-          [sessionID]: {
-            after: 0,
-            newTransactions: [
-              {
-                privacy: "private" as const,
-                madeAt: 0,
-                keyUsed: "key_zkey" as const,
-                encryptedChanges,
-              },
-            ],
-            lastSignature: "signature_1",
-          },
-        },
-        priority: 6,
-      };
-
-      const trustingChanges = "Hello, world!";
-      const messageWithTrustingTransactions: SyncMessage = {
-        action: "content",
-        id: "co_zsomeid",
-        new: {
-          [sessionID]: {
-            after: 0,
-            newTransactions: [
-              {
-                privacy: "trusting" as const,
-                madeAt: 0,
-                changes: trustingChanges,
-              },
-            ],
-            lastSignature: "signature_1",
-          },
-        },
-        priority: 6,
-      };
 
       const messageHandler = listeners.get("message");
 
+      const encryptedChanges = "Hello, world!";
       messageHandler?.(
         new MessageEvent("message", {
-          data: JSON.stringify(messageWithPrivateTransactions),
+          data: JSON.stringify({
+            action: "content",
+            new: {
+              someSessionId: {
+                after: 0,
+                newTransactions: [
+                  {
+                    privacy: "private" as const,
+                    madeAt: 0,
+                    keyUsed: "key_zkey" as const,
+                    encryptedChanges,
+                  },
+                ],
+              },
+            },
+          }),
         }),
       );
 
       expect(
         await metricReader.getMetricValue("jazz.usage.ingress", {
-          test: "test",
+          label: "value",
         }),
       ).toBe(encryptedChanges.length);
 
+      const trustingChanges = "Jazz is great!";
       messageHandler?.(
         new MessageEvent("message", {
-          data: JSON.stringify(messageWithTrustingTransactions),
+          data: JSON.stringify({
+            action: "content",
+            new: {
+              someSessionId: {
+                newTransactions: [
+                  {
+                    privacy: "trusting",
+                    changes: trustingChanges,
+                  },
+                ],
+              },
+            },
+          }),
         }),
       );
 
       expect(
         await metricReader.getMetricValue("jazz.usage.ingress", {
-          test: "test",
+          label: "value",
         }),
       ).toBe(encryptedChanges.length + trustingChanges.length);
     });
