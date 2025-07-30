@@ -65,7 +65,7 @@ function safeParseChanges(value: Stringified<JsonValue[]>): JsonValue[] {
 }
 
 export function getContentMessageSize(msg: NewContentMessage) {
-  return Object.entries(msg.new).reduce((acc, [, sessionNewContent]) => {
+  return Object.values(msg.new).reduce((acc, sessionNewContent) => {
     return (
       acc +
       sessionNewContent.newTransactions.reduce((acc, tx) => {
