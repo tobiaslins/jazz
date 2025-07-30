@@ -34,7 +34,7 @@ export function CreateOrder() {
 
     // reset the draft
     me.root.draft = DraftBubbleTeaOrder.create({
-      addOns: ListOfBubbleTeaAddOns.create([]),
+      addOns: [],
     });
 
     router.navigate("/");

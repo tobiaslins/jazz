@@ -73,15 +73,9 @@ export const JazzAccount = co
   })
   .withMigration((account) => {
     if (!account.root) {
-      const orders = co.list(BubbleTeaOrder).create([], account);
-      const draft = DraftBubbleTeaOrder.create(
-        {
-          addOns: ListOfBubbleTeaAddOns.create([], account),
-          instructions: co.plainText().create("", account),
-        },
+      account.root = AccountRoot.create(
+        { draft: { addOns: [], instructions: "" }, orders: [] },
         account,
       );
-
-      account.root = AccountRoot.create({ draft, orders }, account);
     }
   });
