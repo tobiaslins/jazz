@@ -49,23 +49,25 @@ export type CoFieldInit<S extends CoValueClass | AnyZodOrCoValueSchema> =
 
 // Due to a TS limitation with types that contain known properties and
 // an index signature, we cannot accept catchall properties on creation
-export type CoMapSchemaInit<Shape extends z.core.$ZodLooseShape> = {
-  /**
-   * Cannot use {@link PartialOnUndefined} because evaluating CoFieldInit<Shape[Key]>
-   * to know if the value can be undefined does not work with recursive types.
-   */
-  [Key in keyof Shape as Shape[Key] extends
-    | CoreCoOptionalSchema
-    | z.core.$ZodOptional
-    ? never
-    : Key]: CoFieldInit<Shape[Key]>;
-} & {
-  [Key in keyof Shape as Shape[Key] extends
-    | CoreCoOptionalSchema
-    | z.core.$ZodOptional
-    ? Key
-    : never]?: CoFieldInit<Shape[Key]>;
-};
+export type CoMapSchemaInit<Shape extends z.core.$ZodLooseShape> = Simplify<
+  {
+    /**
+     * Cannot use {@link PartialOnUndefined} because evaluating CoFieldInit<Shape[Key]>
+     * to know if the value can be undefined does not work with recursive types.
+     */
+    [Key in keyof Shape as Shape[Key] extends
+      | CoreCoOptionalSchema
+      | z.core.$ZodOptional
+      ? never
+      : Key]: CoFieldInit<Shape[Key]>;
+  } & {
+    [Key in keyof Shape as Shape[Key] extends
+      | CoreCoOptionalSchema
+      | z.core.$ZodOptional
+      ? Key
+      : never]?: CoFieldInit<Shape[Key]>;
+  }
+>;
 
 export type CoListInit<T extends AnyZodOrCoValueSchema> = Simplify<
   ReadonlyArray<CoFieldInit<T>>
