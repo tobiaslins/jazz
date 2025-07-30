@@ -1,5 +1,14 @@
 import { JsonValue } from "cojson";
+import { PartialOnUndefined } from "../../../internal.js";
 import { z } from "../zodReExport.js";
+
+// Copied from https://github.com/colinhacks/zod/blob/7e7e3461aceecf3633e158df50d6bc852e7cdf45/packages/zod/src/v4/core/schemas.ts#L1591,
+// since this type is not exported by Zod
+type OptionalInSchema = {
+  _zod: {
+    optin: "optional";
+  };
+};
 
 /**
  * Get type from Zod schema definition.
@@ -18,8 +27,18 @@ export type TypeOfZodSchema<S extends z.core.$ZodType> =
             >
           ? TypeOfZodSchema<Members[number]>
           : S extends z.core.$ZodObject<infer Shape>
-            ? {
-                -readonly [key in keyof Shape]: TypeOfZodSchema<Shape[key]>;
+            ? /**
+               * Cannot use {@link PartialOnUndefined} because evaluating TypeOfZodSchema<Shape[key]>
+               * to know if the value can be undefined does not work with recursive types.
+               */
+              {
+                -readonly [key in keyof Shape as Shape[key] extends OptionalInSchema
+                  ? never
+                  : key]: TypeOfZodSchema<Shape[key]>;
+              } & {
+                -readonly [key in keyof Shape as Shape[key] extends OptionalInSchema
+                  ? key
+                  : never]?: TypeOfZodSchema<Shape[key]>;
               }
             : S extends z.core.$ZodArray<infer Item extends z.core.$ZodType>
               ? TypeOfZodSchema<Item>[]
