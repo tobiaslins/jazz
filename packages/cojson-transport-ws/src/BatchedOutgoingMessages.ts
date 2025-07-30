@@ -16,7 +16,7 @@ import {
   waitForWebSocketOpen,
 } from "./utils.js";
 
-const { CO_VALUE_PRIORITY } = cojsonInternals;
+const { CO_VALUE_PRIORITY, getContentMessageSize } = cojsonInternals;
 
 export const MAX_OUTGOING_MESSAGES_CHUNK_BYTES = 25_000;
 
@@ -30,7 +30,7 @@ export class BatchedOutgoingMessages
   private counter = metrics
     .getMeter("cojson-transport-ws")
     .createCounter("jazz.usage.egress", {
-      description: "egress",
+      description: "Total egress bytes",
       unit: "bytes",
       valueType: ValueType.INT,
     });
@@ -39,7 +39,10 @@ export class BatchedOutgoingMessages
     private websocket: AnyWebSocket,
     private batching: boolean,
     peerRole: Peer["role"],
-    private meta?: Record<string, string>,
+    /**
+     * Additional key-value pair of attributes to add to the egress metric.
+     */
+    private meta?: Record<string, string | number>,
   ) {
     this.queue = new PriorityBasedMessageQueue(
       CO_VALUE_PRIORITY.HIGH,
@@ -105,25 +108,9 @@ export class BatchedOutgoingMessages
     this.processing = false;
   }
 
-  processMessage(msg: SyncMessage) {
+  private processMessage(msg: SyncMessage) {
     if (msg.action === "content") {
-      this.counter.add(
-        // TODO: We do this in a few different places, we should rafactor and extract this to a function
-        Object.entries(msg.new).reduce((acc, [, sessionNewContent]) => {
-          return (
-            acc +
-            sessionNewContent.newTransactions.reduce((acc, tx) => {
-              return (
-                acc +
-                (tx.privacy === "private"
-                  ? tx.encryptedChanges.length
-                  : tx.changes.length)
-              );
-            }, 0)
-          );
-        }, 0),
-        this.meta,
-      );
+      this.counter.add(getContentMessageSize(msg), this.meta);
     }
 
     if (!this.batching) {
@@ -148,7 +135,7 @@ export class BatchedOutgoingMessages
     }
   }
 
-  sendMessagesInBulk() {
+  private sendMessagesInBulk() {
     if (this.backlog.length > 0 && isWebSocketOpen(this.websocket)) {
       this.websocket.send(this.backlog);
       this.backlog = "";
