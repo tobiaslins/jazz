@@ -316,6 +316,60 @@ describe("Group inheritance", () => {
     expect(group.getRoleOf(bob.id)).toBe("reader");
     expect(group.getRoleOf(alice.id)).toBe(undefined);
   });
+
+  describe("when creating nested CoValues from a JSON object", () => {
+    const Task = co.plainText();
+    const Column = co.list(Task);
+    const Board = co.map({
+      title: z.string(),
+      columns: co.list(Column),
+    });
+
+    let board: ReturnType<typeof Board.create>;
+
+    beforeEach(async () => {
+      const me = co.account().getMe();
+      const writeAccess = Group.create();
+      writeAccess.addMember(me, "writer");
+
+      board = Board.create(
+        {
+          title: "My board",
+          columns: [
+            ["Task 1.1", "Task 1.2"],
+            ["Task 2.1", "Task 2.2"],
+          ],
+        },
+        writeAccess,
+      );
+    });
+
+    test("nested CoValues inherit permissions from the referencing CoValue", async () => {
+      const me = co.account().getMe();
+      const task = board.columns[0]![0]!;
+
+      const boardAsWriter = await Board.load(board.id, { loadAs: me });
+      expect(boardAsWriter?.title).toEqual("My board");
+      const taskAsWriter = await Task.load(task.id, { loadAs: me });
+      expect(taskAsWriter?.toString()).toEqual("Task 1.1");
+    });
+
+    test("nested CoValues inherit permissions from the referencing CoValue", async () => {
+      const me = co.account().getMe();
+      const reader = await co.account().createAs(me, {
+        creationProps: { name: "Reader" },
+      });
+
+      const task = board.columns[0]![0]!;
+      const taskGroup = task._owner.castAs(Group);
+      taskGroup.addMember(reader, "reader");
+
+      const taskAsReader = await Task.load(task.id, { loadAs: reader });
+      expect(taskAsReader?.toString()).toEqual("Task 1.1");
+      const boardAsReader = await Board.load(board.id, { loadAs: reader });
+      expect(boardAsReader).toBeNull();
+    });
+  });
 });
 
 describe("Group.getRoleOf", () => {

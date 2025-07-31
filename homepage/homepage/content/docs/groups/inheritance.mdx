@@ -251,7 +251,7 @@ const Board = co.map({
 });
 // ---cut---
 const writeAccess = Group.create();
-writeAccess.addMember(bob, "writer")
+writeAccess.addMember(bob, "writer");
 
 // Give Bob write access to the board, columns and tasks
 const board = Board.create({
