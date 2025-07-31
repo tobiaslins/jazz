@@ -102,10 +102,11 @@ export const TodoProject = co.map({
 import { Group } from "jazz-tools";
 import { TodoProject, ListOfTasks } from "./schema";
 
+const group = Group.create().makePublic();
 const project = TodoProject.create({
   title: "New Project",
-  tasks: [],
-});
+  tasks: [], // Permissions are inherited, so the tasks list will also be public
+}, group);
 ```
 </CodeGroup>
 

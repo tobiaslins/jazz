@@ -233,15 +233,49 @@ const board = Board.create({
 </CodeGroup>
 
 For each created column and task CoValue, Jazz also creates a new group as its owner and
-adds the referencing CoValue's owner as a member of that group. This allows you to then manage
-permissions for each CoValue independently.
+adds the referencing CoValue's owner as a member of that group. This means permissions for nested CoValues 
+are inherited from the CoValue that references them, but can also be modified independently for each CoValue
+if needed.
+
+<CodeGroup>
+```ts twoslash
+import { co, z, Group, Account } from "jazz-tools";
+
+const alice = {} as unknown as Account;
+const bob = {} as unknown as Account;
+const Task = co.plainText();
+const Column = co.list(Task);
+const Board = co.map({
+  title: z.string(),
+  columns: co.list(Column),
+});
+// ---cut---
+const writeAccess = Group.create();
+writeAccess.addMember(bob, "writer")
+
+// Give Bob write access to the board, columns and tasks
+const board = Board.create({
+  title: "My board",
+  columns: [
+    ["Task 1.1", "Task 1.2"],
+    ["Task 2.1", "Task 2.2"],
+  ],
+}, writeAccess);
+
+// Give Alice read access to one specific task
+const task = board.columns[0][0];
+const taskGroup = task._owner.castAs(Group);
+taskGroup.addMember(alice, "reader");
+```
+</CodeGroup>
 
 If you prefer to manage permissions differently, you can always create CoValues explicitly:
 
 <CodeGroup>
 ```ts twoslash
-import { co, Group, z } from "jazz-tools";
+import { co, Group, z, Account } from "jazz-tools";
 
+const bob = {} as unknown as Account;
 const Task = co.plainText();
 const Column = co.list(Task);
 const Board = co.map({
@@ -250,21 +284,19 @@ const Board = co.map({
 });
 
 // ---cut---
-// Set a single group as the owner of all CoValues
-const group = Group.create();
+const writeAccess = Group.create();
+writeAccess.addMember(bob, "writer");
+const readAccess =  Group.create();
+readAccess.addMember(bob, "reader");
+
+// Give Bob read access to the board and write access to the columns and tasks
 const board = Board.create({
   title: "My board",
   columns: co.list(Column).create([
-    Column.create([
-      Task.create("Task 1.1", group),
-      Task.create("Task 1.2", group),
-    ], group),
-    Column.create([
-      Task.create("Task 2.1", group),
-      Task.create("Task 2.2", group),
-    ], group),
-  ], group),
-}, group);
+    ["Task 1.1", "Task 1.2"],
+    ["Task 2.1", "Task 2.2"],
+  ], writeAccess),
+}, readAccess);
 ```
 </CodeGroup>
 
