@@ -100,7 +100,7 @@ afterEach(() => {
 
 describe("StorageApiAsync", () => {
   describe("getKnownState", () => {
-    test("should return known state for existing id", async () => {
+    test("should return known state for existing coValue ID", async () => {
       const { fixturesNode } = await createFixturesNode();
       const { storage } = await createTestNode();
 
@@ -111,7 +111,7 @@ describe("StorageApiAsync", () => {
       expect(storage.getKnownState(id)).toBe(knownState); // Should return same instance
     });
 
-    test("should return different known states for different ids", async () => {
+    test("should return different known states for different coValue IDs", async () => {
       const { storage } = await createTestNode();
       const id1 = "test-id-1";
       const id2 = "test-id-2";
@@ -124,7 +124,7 @@ describe("StorageApiAsync", () => {
   });
 
   describe("load", () => {
-    test("should handle non-existent coValue", async () => {
+    test("should handle non-existent coValue gracefully", async () => {
       const { storage } = await createTestNode();
       const id = "non-existent-id";
       const callback = vi.fn();
@@ -144,7 +144,7 @@ describe("StorageApiAsync", () => {
       expect(afterLoadKnownState).toEqual(initialKnownState);
     });
 
-    test("should load coValue with header only", async () => {
+    test("should load coValue with header only successfully", async () => {
       const { fixturesNode, dbPath } = await createFixturesNode();
       const { node, storage } = await createTestNode(dbPath);
       const callback = vi.fn((content) =>
@@ -182,7 +182,7 @@ describe("StorageApiAsync", () => {
       );
     });
 
-    test("should load coValue with sessions and transactions", async () => {
+    test("should load coValue with sessions and transactions successfully", async () => {
       const { fixturesNode, dbPath } = await createFixturesNode();
       const { node, storage } = await createTestNode(dbPath);
       const callback = vi.fn((content) =>
@@ -222,7 +222,7 @@ describe("StorageApiAsync", () => {
   });
 
   describe("store", () => {
-    test("should store new coValue with header", async () => {
+    test("should store new coValue with header successfully", async () => {
       const { fixturesNode } = await createFixturesNode();
       const { node, storage } = await createTestNode();
       // Create a real group and get its content message
@@ -253,7 +253,7 @@ describe("StorageApiAsync", () => {
       );
     });
 
-    test("should store coValue with transactions", async () => {
+    test("should store coValue with transactions successfully", async () => {
       const { fixturesNode } = await createFixturesNode();
       const { node, storage } = await createTestNode();
 
@@ -286,7 +286,7 @@ describe("StorageApiAsync", () => {
       expect(groupOnNode.get("everyone")).toEqual("reader");
     });
 
-    test("should handle invalid assumption on header presence", async () => {
+    test("should handle invalid assumption on header presence with correction", async () => {
       const { fixturesNode } = await createFixturesNode();
       const { node, storage } = await createTestNode();
 
@@ -320,7 +320,7 @@ describe("StorageApiAsync", () => {
       expect(groupOnNode.get("everyone")).toEqual("reader");
     });
 
-    test("should handle invalid assumption on new content", async () => {
+    test("should handle invalid assumption on new content with correction", async () => {
       const { fixturesNode } = await createFixturesNode();
       const { node, storage } = await createTestNode();
 
@@ -366,7 +366,7 @@ describe("StorageApiAsync", () => {
       expect(groupOnNode.get("everyone")).toEqual("writer");
     });
 
-    test("should handle log an error when the correction callback returns undefined", async () => {
+    test("should log an error when the correction callback returns undefined", async () => {
       const { fixturesNode } = await createFixturesNode();
       const { storage } = await createTestNode();
 
@@ -406,7 +406,7 @@ describe("StorageApiAsync", () => {
       errorSpy.mockClear();
     });
 
-    test("should handle log an error when the correction callback returns an invalid content message", async () => {
+    test("should log an error when the correction callback returns an invalid content message", async () => {
       const { fixturesNode } = await createFixturesNode();
       const { storage } = await createTestNode();
 
@@ -451,7 +451,7 @@ describe("StorageApiAsync", () => {
       errorSpy.mockClear();
     });
 
-    test("should handle invalid assumption when pushing multiple transactions", async () => {
+    test("should handle invalid assumption when pushing multiple transactions with correction", async () => {
       const { node, storage } = await createTestNode();
 
       const core = node.createCoValue({
@@ -494,7 +494,7 @@ describe("StorageApiAsync", () => {
       `);
     });
 
-    test("should handle invalid assumption when pushing multiple transactions on different covalues", async () => {
+    test("should handle invalid assumption when pushing multiple transactions on different coValues with correction", async () => {
       const { node, storage } = await createTestNode();
 
       const core = node.createCoValue({
@@ -558,7 +558,7 @@ describe("StorageApiAsync", () => {
       `);
     });
 
-    test("should handle close while pushing multiple transactions on different covalues with an invalid assumption", async () => {
+    test("should handle close while pushing multiple transactions on different coValues with an invalid assumption", async () => {
       const { node, storage } = await createTestNode();
 
       const core = node.createCoValue({
@@ -625,7 +625,7 @@ describe("StorageApiAsync", () => {
       expect(storage.getKnownState(core.id)).toEqual(knownState);
     });
 
-    test("should handle multiple sessions", async () => {
+    test("should handle multiple sessions correctly", async () => {
       const { fixturesNode, dbPath } = await createFixturesNode();
       const { fixturesNode: fixtureNode2 } = await createFixturesNode(dbPath);
       const { node, storage } = await createTestNode();
@@ -681,7 +681,7 @@ describe("StorageApiAsync", () => {
   });
 
   describe("dependencies", () => {
-    test("should push dependencies before the CoValue", async () => {
+    test("should push dependencies before the coValue", async () => {
       const { fixturesNode, dbPath } = await createFixturesNode();
       const { node, storage } = await createTestNode(dbPath);
 
@@ -733,7 +733,7 @@ describe("StorageApiAsync", () => {
       expect(mapOnNode.get("test")).toEqual("value");
     });
 
-    test("should handle dependencies that are already loaded", async () => {
+    test("should handle dependencies that are already loaded correctly", async () => {
       const { fixturesNode, dbPath } = await createFixturesNode();
       const { node, storage } = await createTestNode(dbPath);
 
@@ -788,7 +788,7 @@ describe("StorageApiAsync", () => {
   });
 
   describe("waitForSync", () => {
-    test("should resolve when the coValue is synced", async () => {
+    test("should resolve when the coValue is already synced", async () => {
       const { fixturesNode, dbPath } = await createFixturesNode();
       const { node, storage } = await createTestNode(dbPath);
 
@@ -820,7 +820,7 @@ describe("StorageApiAsync", () => {
   });
 
   describe("close", () => {
-    test("should not throw error", async () => {
+    test("should close without throwing an error", async () => {
       const { storage } = await createTestNode();
 
       expect(() => storage.close()).not.toThrow();

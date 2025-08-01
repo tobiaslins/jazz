@@ -82,7 +82,7 @@ async function createTestNode(dbPath?: string) {
 
 describe("StorageApiSync", () => {
   describe("getKnownState", () => {
-    test("should return known state for existing id", async () => {
+    test("should return empty known state for new coValue ID and cache the result", async () => {
       const { fixturesNode } = await createFixturesNode();
       const { storage } = await createTestNode();
 
@@ -93,7 +93,7 @@ describe("StorageApiSync", () => {
       expect(storage.getKnownState(id)).toBe(knownState); // Should return same instance
     });
 
-    test("should return different known states for different ids", async () => {
+    test("should return separate known state instances for different coValue IDs", async () => {
       const { storage } = await createTestNode();
       const id1 = "test-id-1";
       const id2 = "test-id-2";
@@ -106,7 +106,7 @@ describe("StorageApiSync", () => {
   });
 
   describe("load", () => {
-    test("should handle non-existent coValue", async () => {
+    test("should fail gracefully when loading non-existent coValue and preserve known state", async () => {
       const { storage } = await createTestNode();
       const id = "non-existent-id";
       const callback = vi.fn();
@@ -126,7 +126,7 @@ describe("StorageApiSync", () => {
       expect(afterLoadKnownState).toEqual(initialKnownState);
     });
 
-    test("should load coValue with header only", async () => {
+    test("should successfully load coValue with header and update known state", async () => {
       const { fixturesNode, dbPath } = await createFixturesNode();
       const { node, storage } = await createTestNode(dbPath);
       const callback = vi.fn((content) =>
@@ -164,7 +164,7 @@ describe("StorageApiSync", () => {
       );
     });
 
-    test("should load coValue with sessions and transactions", async () => {
+    test("should successfully load coValue with transactions and update known state", async () => {
       const { fixturesNode, dbPath } = await createFixturesNode();
       const { node, storage } = await createTestNode(dbPath);
       const callback = vi.fn((content) =>
@@ -204,7 +204,7 @@ describe("StorageApiSync", () => {
   });
 
   describe("store", () => {
-    test("should store new coValue with header", async () => {
+    test("should successfully store new coValue with header and update known state", async () => {
       const { fixturesNode } = await createFixturesNode();
       const { node, storage } = await createTestNode();
       // Create a real group and get its content message
@@ -234,7 +234,7 @@ describe("StorageApiSync", () => {
       );
     });
 
-    test("should store coValue with transactions", async () => {
+    test("should successfully store coValue with transactions and update known state", async () => {
       const { fixturesNode } = await createFixturesNode();
       const { node, storage } = await createTestNode();
 
@@ -266,7 +266,7 @@ describe("StorageApiSync", () => {
       expect(groupOnNode.get("everyone")).toEqual("reader");
     });
 
-    test("should handle invalid assumption on header presence", async () => {
+    test("should handle correction when header assumption is invalid", async () => {
       const { fixturesNode } = await createFixturesNode();
       const { node, storage } = await createTestNode();
 
@@ -300,7 +300,7 @@ describe("StorageApiSync", () => {
       expect(groupOnNode.get("everyone")).toEqual("reader");
     });
 
-    test("should handle invalid assumption on new content", async () => {
+    test("should handle correction when new content assumption is invalid", async () => {
       const { fixturesNode } = await createFixturesNode();
       const { node, storage } = await createTestNode();
 
@@ -350,7 +350,7 @@ describe("StorageApiSync", () => {
       expect(groupOnNode.get("everyone")).toEqual("writer");
     });
 
-    test("should handle log an error when the correction callback returns undefined", async () => {
+    test("should log error and fail when correction callback returns undefined", async () => {
       const { fixturesNode } = await createFixturesNode();
       const { storage } = await createTestNode();
 
@@ -389,7 +389,7 @@ describe("StorageApiSync", () => {
       errorSpy.mockClear();
     });
 
-    test("should handle log an error when the correction callback returns an invalid content message", async () => {
+    test("should log error and fail when correction callback returns invalid content message", async () => {
       const { fixturesNode } = await createFixturesNode();
       const { storage } = await createTestNode();
 
@@ -425,7 +425,7 @@ describe("StorageApiSync", () => {
       errorSpy.mockClear();
     });
 
-    test("should handle multiple sessions", async () => {
+    test("should successfully store coValue with multiple sessions", async () => {
       const { fixturesNode, dbPath } = await createFixturesNode();
       const { fixturesNode: fixtureNode2 } = await createFixturesNode(dbPath);
       const { node, storage } = await createTestNode();
@@ -480,7 +480,7 @@ describe("StorageApiSync", () => {
   });
 
   describe("dependencies", () => {
-    test("should push dependencies before the CoValue", async () => {
+    test("should load dependencies before dependent coValues and update all known states", async () => {
       const { fixturesNode, dbPath } = await createFixturesNode();
       const { node, storage } = await createTestNode(dbPath);
 
@@ -532,7 +532,7 @@ describe("StorageApiSync", () => {
       expect(mapOnNode.get("test")).toEqual("value");
     });
 
-    test("should handle dependencies that are already loaded", async () => {
+    test("should skip loading already loaded dependencies", async () => {
       const { fixturesNode, dbPath } = await createFixturesNode();
       const { node, storage } = await createTestNode(dbPath);
 
@@ -587,7 +587,7 @@ describe("StorageApiSync", () => {
   });
 
   describe("waitForSync", () => {
-    test("should resolve when the coValue is synced", async () => {
+    test("should resolve immediately when coValue is already synced", async () => {
       const { fixturesNode, dbPath } = await createFixturesNode();
       const { node, storage } = await createTestNode(dbPath);
 
@@ -619,7 +619,7 @@ describe("StorageApiSync", () => {
   });
 
   describe("close", () => {
-    test("should not throw error", async () => {
+    test("should close storage without throwing errors", async () => {
       const { storage } = await createTestNode();
 
       expect(() => storage.close()).not.toThrow();

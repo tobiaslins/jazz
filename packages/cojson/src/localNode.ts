@@ -738,7 +738,12 @@ export class LocalNode {
     }
   }
 
-  gracefulShutdown() {
+  /**
+   * Closes all the peer connections, drains all the queues and closes the storage.
+   *
+   * @returns Promise of the current pending store operation, if any.
+   */
+  gracefulShutdown(): Promise<unknown> | undefined {
     this.syncManager.gracefulShutdown();
     return this.storage?.close();
   }
