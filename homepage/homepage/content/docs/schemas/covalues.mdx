@@ -320,6 +320,10 @@ const Company = co.map({
 </CodeGroup>
 
 #### Optional References
+You can make schema fields optional using either `z.optional()` or `co.optional()`, depending on the type of value:  
+
+- Use `z.optional()` for primitive Zod values like `z.string()`, `z.number()`, or `z.boolean()`  
+- Use `co.optional()` for CoValues like `co.map()`, `co.list()`, or `co.record()`   
 
 You can make references optional with `co.optional()`:
 
@@ -331,7 +335,8 @@ const Pet = co.map({
 });
 // ---cut---
 const Person = co.map({
-  pet: co.optional(Pet),
+  age: z.optional(z.number()),      // primitive
+  pet: co.optional(Pet),            // CoValue
 });
 ```
 </CodeGroup>
@@ -353,37 +358,21 @@ const Person = co.map({
 ```
 </CodeGroup>
 
-You can use the same technique for mutually recursive references, but you'll need to help TypeScript along:
+You can use the same technique for mutually recursive references:
 
 <CodeGroup>
 ```ts twoslash
 // ---cut---
-import { co, z, CoListSchema } from "jazz-tools";
+import { co, z } from "jazz-tools";
 
 const Person = co.map({
   name: z.string(),
-  get friends(): CoListSchema<typeof Person> {
+  get friends() {
     return ListOfPeople;
   }
 });
 
 const ListOfPeople = co.list(Person);
-```
-
-</CodeGroup>
-
-Note: similarly, if you use modifiers like `co.optional()` you'll need to help TypeScript along:
-
-<CodeGroup>
-```ts twoslash
-import { co, z } from "jazz-tools";
-// ---cut---
-const Person = co.map({
-  name: z.string(),
-  get bestFriend(): z.ZodOptional<typeof Person> {
-    return co.optional(Person);
-  }
-});
 ```
 
 </CodeGroup>

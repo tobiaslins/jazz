@@ -53,9 +53,7 @@ import { co, z } from "jazz-tools";
 // ...somewhere in jazz-tools itself...
 const Account = co.account({
   root: co.map({}),
-  profile: co.profile({
-    name: z.string(),
-  }),
+  profile: co.profile(),
 });
 ```
 </CodeGroup>
@@ -91,7 +89,7 @@ export const MyAppRoot = co.map({
 
 export const MyAppProfile = co.profile({ // [!code ++:4]
   name: z.string(), // compatible with default Profile schema
-  avatar: z.optional(co.image()),
+  avatar: co.optional(co.image()),
 });
 
 export const MyAppAccount = co.account({
@@ -243,7 +241,7 @@ const MyAppProfile = co.profile({
 // ---cut---
 const MyAppRoot = co.map({
   myChats: co.list(Chat),
-  myBookmarks: z.optional(co.list(Bookmark)), // [!code ++:1]
+  myBookmarks: co.optional(co.list(Bookmark)), // [!code ++:1]
 });
 
 

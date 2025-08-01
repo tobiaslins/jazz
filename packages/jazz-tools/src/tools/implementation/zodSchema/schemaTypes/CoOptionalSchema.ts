@@ -1,33 +1,35 @@
-import { isAnyCoValueSchema } from "../runtimeConverters/zodSchemaToCoSchema.js";
-import { z } from "../zodReExport.js";
-import { AnyCoSchema, CoValueSchemaFromZodSchema } from "../zodSchema.js";
+import { CoValueSchemaFromCoreSchema } from "../zodSchema.js";
+import { CoreCoValueSchema } from "./CoValueSchema.js";
 
-export type AnyCoOptionalSchema<
-  Shape extends z.core.$ZodType = z.core.$ZodType,
-> = z.ZodOptional<Shape> & {
-  collaborative: true;
+type CoOptionalSchemaDefinition<
+  Shape extends CoreCoValueSchema = CoreCoValueSchema,
+> = {
+  innerType: Shape;
 };
 
-export type CoOptionalSchema<Shape extends z.core.$ZodType = z.core.$ZodType> =
-  AnyCoOptionalSchema<Shape> & {
-    getCoValueClass: () => CoValueSchemaFromZodSchema<AnyCoSchema>["getCoValueClass"];
-  };
-
-export function createCoOptionalSchema<T extends AnyCoSchema>(
-  schema: T,
-): CoOptionalSchema<T> {
-  return Object.assign(z.optional(schema), {
-    collaborative: true,
-    getCoValueClass: () => {
-      return (
-        schema as CoValueSchemaFromZodSchema<AnyCoSchema>
-      ).getCoValueClass();
-    },
-  }) as unknown as CoOptionalSchema<T>;
+export interface CoreCoOptionalSchema<
+  Shape extends CoreCoValueSchema = CoreCoValueSchema,
+> extends CoreCoValueSchema {
+  builtin: "CoOptional";
+  innerType: Shape;
+  getDefinition: () => CoOptionalSchemaDefinition<Shape>;
 }
 
-export function isAnyCoOptionalSchema(
-  schema: z.core.$ZodType,
-): schema is CoOptionalSchema<z.core.$ZodType> {
-  return isAnyCoValueSchema(schema) && schema._zod.def.type === "optional";
+export class CoOptionalSchema<
+  Shape extends CoreCoValueSchema = CoreCoValueSchema,
+> implements CoreCoOptionalSchema<Shape>
+{
+  readonly collaborative = true as const;
+  readonly builtin = "CoOptional" as const;
+  readonly getDefinition = () => ({
+    innerType: this.innerType,
+  });
+
+  constructor(public readonly innerType: Shape) {}
+
+  getCoValueClass(): ReturnType<
+    CoValueSchemaFromCoreSchema<Shape>["getCoValueClass"]
+  > {
+    return (this.innerType as any).getCoValueClass();
+  }
 }

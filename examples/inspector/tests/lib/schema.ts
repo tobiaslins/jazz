@@ -11,9 +11,9 @@ export const Issue = co.map({
   status: z.enum(["open", "closed"]),
   labels: co.list(z.string()),
   reactions: ReactionsList,
-  file: z.optional(co.fileStream()),
-  image: z.optional(co.image()),
-  lead: z.optional(co.account()),
+  file: co.optional(co.fileStream()),
+  image: co.optional(co.image()),
+  lead: co.optional(co.account()),
 });
 
 export const Project = co.map({

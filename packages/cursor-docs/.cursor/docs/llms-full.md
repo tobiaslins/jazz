@@ -7890,7 +7890,7 @@ export const JazzAccountRoot = co.map({
 export const JazzAccount = co
   .account({
     root: JazzAccountRoot,
-    profile: co.profile({}),
+    profile: co.profile(),
   })
   .withMigration((account) => {
     if (account.root === undefined) {
@@ -7950,7 +7950,7 @@ const JazzAccountRoot = co.map({
 
 const JazzAccount = co.account({
   root: JazzAccountRoot,
-  profile: co.profile({}),
+  profile: co.profile(),
 });
 
 // ---cut---

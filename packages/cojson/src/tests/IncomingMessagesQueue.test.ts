@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { IncomingMessagesQueue } from "../IncomingMessagesQueue.js";
 import { PeerState } from "../PeerState.js";
+import { IncomingMessagesQueue } from "../queue/IncomingMessagesQueue.js";
 import { ConnectedPeerChannel } from "../streamUtils.js";
 import { Peer, SyncMessage } from "../sync.js";
 import {
