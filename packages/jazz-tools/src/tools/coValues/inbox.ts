@@ -145,7 +145,7 @@ export class Inbox {
 
       for (const [sessionID, items] of Object.entries(stream.items) as [
         SessionID,
-        CoStreamItem<CoID<InboxMessage<InstanceOfSchema<M>, O>>>[],
+        CoStreamItem<CoID<InboxMessage<NonNullable<InstanceOfSchema<M>>, O>>>[],
       ][]) {
         const accountID = getAccountIDfromSessionID(sessionID);
 

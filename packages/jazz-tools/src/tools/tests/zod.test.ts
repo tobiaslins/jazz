@@ -98,6 +98,22 @@ describe("co.map and Zod schema compatibility", () => {
       expect(map.updatedAt).toEqual("Test");
     });
 
+    it("should handle nested optional fields", async () => {
+      const RecursiveZodSchema = z.object({
+        get optionalField() {
+          return RecursiveZodSchema.optional();
+        },
+      });
+      const CoMapSchema = co.map({ field: RecursiveZodSchema });
+
+      const map = CoMapSchema.create({
+        field: { optionalField: { optionalField: {} } },
+      });
+      expect(
+        map.field.optionalField!.optionalField!.optionalField,
+      ).toBeUndefined();
+    });
+
     it("should handle literal fields", async () => {
       const schema = co.map({
         status: z.literal("active"),

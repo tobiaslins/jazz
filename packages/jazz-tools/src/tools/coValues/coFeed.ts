@@ -34,6 +34,7 @@ import {
   coField,
   ensureCoValueLoaded,
   inspect,
+  instantiateRefEncodedWithInit,
   isRefEncoded,
   loadCoValueWithoutMe,
   parseCoValueCreateOptions,
@@ -278,7 +279,16 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
     } else if ("encoded" in itemDescriptor) {
       this._raw.push(itemDescriptor.encoded.encode(item));
     } else if (isRefEncoded(itemDescriptor)) {
-      this._raw.push((item as unknown as CoValue).id);
+      let refId = (item as unknown as CoValue).id;
+      if (!refId) {
+        const coValue = instantiateRefEncodedWithInit(
+          itemDescriptor,
+          item,
+          this._owner,
+        );
+        refId = coValue.id;
+      }
+      this._raw.push(refId);
     }
   }
 
@@ -418,9 +428,7 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
    *
    * @category Subscription & Loading
    */
-  waitForSync(options?: {
-    timeout?: number;
-  }) {
+  waitForSync(options?: { timeout?: number }) {
     return this._raw.core.waitForSync(options);
   }
 }

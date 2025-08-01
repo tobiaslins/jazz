@@ -4,7 +4,7 @@ import {
   CoValue,
   RefEncoded,
   coValueClassFromCoValueClassOrSchema,
-  instantiateRefEncoded,
+  instantiateRefEncodedFromRaw,
 } from "../internal.js";
 import { coValuesCache } from "../lib/cache.js";
 import { SubscriptionScope } from "./SubscriptionScope.js";
@@ -26,7 +26,7 @@ export function createCoValue<D extends CoValue>(
   raw: RawCoValue,
   subscriptionScope: SubscriptionScope<D>,
 ) {
-  const freshValueInstance = instantiateRefEncoded(ref, raw);
+  const freshValueInstance = instantiateRefEncodedFromRaw(ref, raw);
 
   Object.defineProperty(freshValueInstance, "_subscriptionScope", {
     value: subscriptionScope,
