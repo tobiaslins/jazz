@@ -6,12 +6,12 @@
   "version": "0.16.1",
   "exports": {
     "./startSyncServer": {
-      "import": "./dist/startSyncServer.js",
-      "types": "./dist/startSyncServer.d.ts"
+      "types": "./dist/startSyncServer.d.ts",
+      "default": "./dist/startSyncServer.js"
     },
     "./createWorkerAccount": {
-      "import": "./dist/createWorkerAccount.js",
-      "types": "./dist/createWorkerAccount.d.ts"
+      "types": "./dist/createWorkerAccount.d.ts",
+      "default": "./dist/createWorkerAccount.js"
     }
   },
   "scripts": {
