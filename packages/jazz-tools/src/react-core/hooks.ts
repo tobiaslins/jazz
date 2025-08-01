@@ -145,7 +145,7 @@ function useCoValueSubscription<
  * React hook for subscribing to CoValues and handling loading states.
  *
  * This hook provides a convenient way to subscribe to CoValues and automatically
- * handles subscription lifecycle (subscribe on mount, unsubscribe on unmount).
+ * handles the subscription lifecycle (subscribe on mount, unsubscribe on unmount).
  * It also supports deep loading of nested CoValues through resolve queries.
  *
  * @returns The loaded CoValue, or `undefined` if loading, or `null` if not found/not accessible
