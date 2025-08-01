@@ -81,7 +81,14 @@ export class CoValueCore {
   }
   private readonly peers = new Map<
     PeerID,
-    | { type: "unknown" | "pending" | "available" | "unavailable" }
+    | {
+        type:
+          | "unknown"
+          | "pending"
+          | "available"
+          | "unavailable"
+          | "garbageCollected";
+      }
     | {
         type: "errored";
         error: TryAddTransactionsError;
@@ -90,9 +97,8 @@ export class CoValueCore {
 
   // cached state and listeners
   private _cachedContent?: RawCoValue;
-  private readonly listeners: Set<
-    (core: CoValueCore, unsub: () => void) => void
-  > = new Set();
+  readonly listeners: Set<(core: CoValueCore, unsub: () => void) => void> =
+    new Set();
   private readonly _decryptionCache: {
     [key: Encrypted<JsonValue[], JsonValue>]: JsonValue[] | undefined;
   } = {};
@@ -211,6 +217,16 @@ export class CoValueCore {
       }
       this.counter.add(1, { state: newState });
     }
+  }
+
+  unmount() {
+    this.counter.add(-1, { state: this.loadingState });
+
+    if (this.groupInvalidationSubscription) {
+      this.groupInvalidationSubscription();
+      this.groupInvalidationSubscription = undefined;
+    }
+    this.listeners.clear();
   }
 
   markNotFoundInPeer(peerId: PeerID) {
