@@ -1842,19 +1842,19 @@ importers:
         specifier: ^0.25.5
         version: 0.25.8(effect@3.11.9)
       cojson:
-        specifier: workspace:0.16.1
+        specifier: workspace:0.16.2
         version: link:../cojson
       cojson-storage-sqlite:
-        specifier: workspace:0.16.1
+        specifier: workspace:0.16.2
         version: link:../cojson-storage-sqlite
       cojson-transport-ws:
-        specifier: workspace:0.16.1
+        specifier: workspace:0.16.2
         version: link:../cojson-transport-ws
       effect:
         specifier: ^3.6.5
         version: 3.11.9
       jazz-tools:
-        specifier: workspace:0.16.1
+        specifier: workspace:0.16.2
         version: link:../jazz-tools
       ws:
         specifier: ^8.14.2
@@ -12421,6 +12421,7 @@ packages:
   source-map@0.8.0-beta.0:
     resolution: {integrity: sha512-2ymg6oRBpebeZi9UUNsgQ89bhx01TcTkmNTGnNO88imTmbSgy4nfujrgVEFKWpMTEGA11EDkTt7mqObTPdigIA==}
     engines: {node: '>= 8'}
+    deprecated: The work that was done in this beta branch won't be included in future versions
 
   sourcemap-codec@1.4.8:
     resolution: {integrity: sha512-9NykojV5Uih4lgo5So5dtw+f0JgJX30KCNI8gwhz2J9A15wD0Ml6tjHKwf6fTSa6fAdVBdZeNOs9eJ71qCk8vA==}
