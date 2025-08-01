@@ -50,6 +50,7 @@ export type DecryptedTransaction = {
   txID: TransactionID;
   changes: JsonValue[];
   madeAt: number;
+  trusting?: boolean;
 };
 
 const readKeyCache = new WeakMap<CoValueCore, { [id: KeyID]: KeySecret }>();
@@ -657,6 +658,7 @@ export class CoValueCore {
             txID,
             madeAt: tx.madeAt,
             changes: parseJSON(tx.changes),
+            trusting: true,
           });
         } catch (e) {
           logger.error("Failed to parse trusting transaction on " + this.id, {
@@ -1056,37 +1058,33 @@ export class CoValueCore {
       return;
     }
 
-    const peersToActuallyLoadFrom = [] as PeerState[];
-
     for (const peer of peers) {
-      const currentState = this.peers.get(peer.id)?.type;
+      const currentState = this.peers.get(peer.id)?.type ?? "unknown";
 
-      if (
-        !currentState ||
-        currentState === "unknown" ||
-        currentState === "unavailable"
-      ) {
-        peersToActuallyLoadFrom.push(peer);
+      if (currentState === "unknown" || currentState === "unavailable") {
         this.markPending(peer.id);
+        this.internalLoadFromPeer(peer);
       }
-    }
-
-    for (const peer of peersToActuallyLoadFrom) {
-      this.internalLoadFromPeer(peer);
     }
   }
 
   internalLoadFromPeer(peer: PeerState) {
-    if (peer.closed) {
+    if (peer.closed && !peer.persistent) {
       this.markNotFoundInPeer(peer.id);
       return;
     }
 
-    peer.pushOutgoingMessage({
-      action: "load",
-      ...this.knownState(),
-    });
-    peer.trackLoadRequestSent(this.id);
+    /**
+     * On reconnection persistent peers will automatically fire the load request
+     * as part of the reconnection process.
+     */
+    if (!peer.closed) {
+      peer.pushOutgoingMessage({
+        action: "load",
+        ...this.knownState(),
+      });
+      peer.trackLoadRequestSent(this.id);
+    }
 
     return new Promise<void>((resolve) => {
       const markNotFound = () => {
@@ -1100,7 +1098,9 @@ export class CoValueCore {
       };
 
       const timeout = setTimeout(markNotFound, CO_VALUE_LOADING_CONFIG.TIMEOUT);
-      const removeCloseListener = peer.addCloseListener(markNotFound);
+      const removeCloseListener = peer.persistent
+        ? undefined
+        : peer.addCloseListener(markNotFound);
 
       const listener = (state: CoValueCore) => {
         const peerState = state.peers.get(peer.id);
@@ -1111,7 +1111,7 @@ export class CoValueCore {
           peerState?.type === "unavailable"
         ) {
           this.listeners.delete(listener);
-          removeCloseListener();
+          removeCloseListener?.();
           clearTimeout(timeout);
           resolve();
         }

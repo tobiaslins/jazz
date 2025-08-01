@@ -26,6 +26,7 @@ export * from "./subscribe/SubscriptionScope.js";
 export * from "./subscribe/types.js";
 export * from "./subscribe/index.js";
 export * from "./lib/cache.js";
+export * from "./lib/utilityTypes.js";
 export * from "./implementation/createContext.js";
 
 export * from "./types.js";
@@ -44,8 +45,8 @@ export * from "./implementation/zodSchema/typeConverters/InstanceOrPrimitiveOfSc
 export * from "./implementation/zodSchema/typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 export * from "./implementation/zodSchema/typeConverters/InstanceOfSchema.js";
 export * from "./implementation/zodSchema/typeConverters/InstanceOfSchemaCoValuesNullable.js";
-export * from "./implementation/zodSchema/runtimeConverters/zodSchemaToCoSchema.js";
-export * from "./implementation/zodSchema/runtimeConverters/zodFieldToCoFieldDef.js";
+export * from "./implementation/zodSchema/runtimeConverters/coValueSchemaTransformation.js";
+export * from "./implementation/zodSchema/runtimeConverters/schemaFieldToCoFieldDef.js";
 export * from "./coValues/extensions/imageDef.js";
 
 export * from "./implementation/ContextManager.js";

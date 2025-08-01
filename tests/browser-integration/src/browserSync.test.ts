@@ -1,11 +1,5 @@
 import { commands } from "@vitest/browser/context";
-import {
-  AuthSecretStorage,
-  Group,
-  co,
-  z,
-  zodSchemaToCoSchema,
-} from "jazz-tools";
+import { AuthSecretStorage, Group, co, z } from "jazz-tools";
 import {
   assert,
   afterAll,
@@ -47,7 +41,7 @@ describe("Browser sync", () => {
         peer: syncServer.url,
       },
       storage: "indexedDB",
-      AccountSchema: zodSchemaToCoSchema(CustomAccount),
+      AccountSchema: CustomAccount,
     });
 
     const group = Group.create(account1);
@@ -201,10 +195,10 @@ describe("Browser sync", () => {
 
     await map.waitForSync();
 
-    await syncServer.setOffline(true);
+    await syncServer.setOnline(true);
 
     onTestFinished(async () => {
-      await syncServer.setOffline(false);
+      await syncServer.setOnline(false);
     });
 
     // Clearing the credentials storage so the next auth will be a new account

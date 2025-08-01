@@ -5,15 +5,12 @@ import { join } from "node:path";
 import {
   Account,
   AccountClass,
-  AccountSchema,
   AnyAccountSchema,
-  CoMap,
   CoValueFromRaw,
   Group,
   InboxSender,
   Loaded,
   co,
-  coField,
   z,
 } from "jazz-tools";
 import { startWorker } from "jazz-tools/worker";
@@ -230,8 +227,7 @@ describe("startWorker integration", () => {
     await worker2.done();
   });
 
-  // Flaky test, fails randomly on CI
-  test.skip("worker reconnects when sync server is closed and reopened", async () => {
+  test("worker reconnects when sync server is closed and reopened", async () => {
     const worker1 = await setup();
     const worker2 = await setupWorker(worker1.syncServer);
 
@@ -266,10 +262,6 @@ describe("startWorker integration", () => {
       inMemory: true,
       db: "",
     });
-
-    // Wait for reconnection
-    await worker1.waitForConnection();
-    await worker2.waitForConnection();
 
     await worker1.worker.waitForAllCoValuesSync();
 

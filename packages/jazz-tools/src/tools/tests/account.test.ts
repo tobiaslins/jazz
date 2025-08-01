@@ -1,5 +1,5 @@
 import { assert, beforeEach, expect, test } from "vitest";
-import { Account, CoListSchema, Group, co, z } from "../exports.js";
+import { Account, Group, co, z } from "../exports.js";
 import {
   createJazzTestAccount,
   linkAccounts,
@@ -147,10 +147,10 @@ test("should support recursive props on co.profile", async () => {
     username: z.optional(z.string()),
     display_name: z.optional(z.string()),
     anonymous: z.boolean(),
-    get following(): CoListSchema<typeof User> {
+    get following(): co.List<typeof User> {
       return co.list(User);
     },
-    get followers(): CoListSchema<typeof User> {
+    get followers(): co.List<typeof User> {
       return co.list(User);
     },
   });
@@ -193,4 +193,66 @@ test("should support recursive props on co.profile", async () => {
   expect(account.root).toBeDefined();
   expect(account.profile.following.length).toBe(0);
   expect(account.profile.followers.length).toBe(0);
+});
+
+test("root and profile should be trusting by default", async () => {
+  const AccountSchema = co
+    .account({
+      profile: co.profile(),
+      root: co.map({
+        name: z.string(),
+      }),
+    })
+    .withMigration((me, creationProps) => {
+      const group = Group.create({ owner: me }).makePublic();
+
+      if (me.profile === undefined) {
+        me.profile = co.profile().create(
+          {
+            name: creationProps?.name ?? "Anonymous",
+          },
+          group,
+        );
+      }
+
+      if (me.root === undefined) {
+        me.root = co
+          .map({
+            name: z.string(),
+          })
+          .create(
+            {
+              name: creationProps?.name ?? "Anonymous",
+            },
+            group,
+          );
+      }
+    });
+
+  const bob = await createJazzTestAccount({
+    AccountSchema,
+    creationProps: {
+      name: "Bob",
+    },
+  });
+
+  const alice = await createJazzTestAccount({
+    AccountSchema,
+    creationProps: {
+      name: "Alice",
+    },
+  });
+
+  const bobAccountLoadedFromAlice = await AccountSchema.load(bob.id, {
+    loadAs: alice,
+    resolve: {
+      profile: true,
+      root: true,
+    },
+  });
+
+  assert(bobAccountLoadedFromAlice);
+
+  expect(bobAccountLoadedFromAlice.profile.name).toBe("Bob");
+  expect(bobAccountLoadedFromAlice.root.name).toBe("Bob");
 });

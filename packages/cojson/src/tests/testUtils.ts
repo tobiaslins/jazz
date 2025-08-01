@@ -429,6 +429,7 @@ export function getSyncServerConnectedPeer(opts: {
   ourName?: string;
   syncServer?: LocalNode;
   peerId: string;
+  persistent?: boolean;
 }) {
   const currentSyncServer = opts?.syncServer ?? syncServer.current;
 
@@ -451,6 +452,7 @@ export function getSyncServerConnectedPeer(opts: {
       role: "client",
       name: opts.ourName,
     },
+    persistent: opts?.persistent,
   });
 
   currentSyncServer.syncManager.addPeer(peer2);
@@ -483,6 +485,7 @@ export function setupTestNode(
     syncServerName?: string;
     ourName?: string;
     syncServer?: LocalNode;
+    persistent?: boolean;
   }) {
     const { peer, peerStateOnServer, peerOnServer } =
       getSyncServerConnectedPeer({
@@ -490,6 +493,7 @@ export function setupTestNode(
         syncServerName: opts?.syncServerName,
         ourName: opts?.ourName,
         syncServer: opts?.syncServer,
+        persistent: opts?.persistent,
       });
 
     node.syncManager.addPeer(peer);
@@ -646,11 +650,21 @@ export type SyncTestMessage = {
 export function connectedPeersWithMessagesTracking(opts: {
   peer1: { id: string; role: Peer["role"]; name?: string };
   peer2: { id: string; role: Peer["role"]; name?: string };
+  persistent?: boolean;
 }) {
   const [peer1, peer2] = connectedPeers(opts.peer1.id, opts.peer2.id, {
     peer1role: opts.peer1.role,
     peer2role: opts.peer2.role,
+    persistent: opts.persistent,
   });
+
+  // If the persistent option is not provided, we default to true for the server and false for the client
+  // Trying to mimic the real world behavior of the sync server
+  if (opts.persistent === undefined) {
+    peer1.persistent = opts.peer1.role === "server";
+
+    peer2.persistent = opts.peer2.role === "server";
+  }
 
   const peer1Push = peer1.outgoing.push;
   peer1.outgoing.push = (msg) => {

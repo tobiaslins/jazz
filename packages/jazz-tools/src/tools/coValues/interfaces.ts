@@ -1,8 +1,14 @@
-import type { CoValueUniqueness, RawCoValue } from "cojson";
 import {
-  type Account,
+  type CoValueUniqueness,
+  type CojsonInternalTypes,
+  type RawCoValue,
+  emptyKnownState,
+} from "cojson";
+import { AvailableCoValueCore } from "cojson/dist/coValueCore/coValueCore.js";
+import {
+  Account,
   AnonymousJazzAgent,
-  CoValueOrZodSchema,
+  CoValueClassOrSchema,
   type Group,
   Loaded,
   RefsToResolve,
@@ -14,7 +20,7 @@ import {
   SubscriptionScope,
   type SubscriptionValue,
   activeAccountContext,
-  anySchemaToCoSchema,
+  coValueClassFromCoValueClassOrSchema,
   inspect,
 } from "../internal.js";
 
@@ -304,71 +310,6 @@ export function subscribeToCoValue<
   return unsubscribe;
 }
 
-/**
- * @deprecated Used for the React integration in the past, but we moved to use SubscriptionScope directly.
- *
- * Going to be removed in the next minor version.
- */
-export function createCoValueObservable<
-  S extends CoValueOrZodSchema,
-  const R extends ResolveQuery<S>,
->(initialValue: undefined | null = undefined) {
-  let currentValue: Loaded<S, R> | undefined | null = initialValue;
-  let subscriberCount = 0;
-
-  function subscribe(
-    cls: S,
-    id: string,
-    options: {
-      loadAs: Account | AnonymousJazzAgent;
-      resolve?: ResolveQueryStrict<S, R>;
-      onUnavailable?: () => void;
-      onUnauthorized?: () => void;
-      syncResolution?: boolean;
-    },
-    listener: () => void,
-  ) {
-    subscriberCount++;
-
-    const unsubscribe = subscribeToCoValue(
-      anySchemaToCoSchema(cls),
-      id,
-      {
-        loadAs: options.loadAs,
-        resolve: options.resolve as any,
-        onUnavailable: () => {
-          currentValue = null;
-          options.onUnavailable?.();
-        },
-        onUnauthorized: () => {
-          currentValue = null;
-          options.onUnauthorized?.();
-        },
-        syncResolution: options.syncResolution,
-      },
-      (value) => {
-        currentValue = value as Loaded<S, R>;
-        listener();
-      },
-    );
-
-    return () => {
-      unsubscribe();
-      subscriberCount--;
-      if (subscriberCount === 0) {
-        currentValue = undefined;
-      }
-    };
-  }
-
-  const observable = {
-    getCurrentValue: () => currentValue,
-    subscribe,
-  };
-
-  return observable;
-}
-
 export function subscribeToExistingCoValue<
   V extends CoValue,
   const R extends RefsToResolve<V>,
@@ -461,4 +402,171 @@ export function parseGroupCreateOptions(
   return "_type" in options && isAccountInstance(options)
     ? { owner: options }
     : { owner: options.owner ?? activeAccountContext.get() };
+}
+
+/**
+ * Deeply export a CoValue to a content piece.
+ *
+ * @param cls - The class of the CoValue to export.
+ * @param id - The ID of the CoValue to export.
+ * @param options - The options for the export.
+ * @returns The content pieces that were exported.
+ *
+ * @example
+ * ```ts
+ * const Address = co.map({
+ *   street: z.string(),
+ *   city: z.string(),
+ * });
+ *
+ * const Person = co.map({
+ *   name: z.string(),
+ *   address: Address,
+ * });
+ *
+ * const group = Group.create();
+ * const address = Address.create(
+ *   { street: "123 Main St", city: "New York" },
+ *   group,
+ * );
+ * const person = Person.create({ name: "John", address }, group);
+ * group.addMember("everyone", "reader");
+ *
+ * // Export with nested references resolved, values can be serialized to JSON
+ * const exportedWithResolve = await exportCoValue(Person, person.id, {
+ *   resolve: { address: true },
+ * });
+ *
+ * // In another client or session
+ * // Load the exported content pieces into the node, they will be persisted
+ * importContentPieces(exportedWithResolve);
+ *
+ * // Now the person can be loaded from the node, even offline
+ * const person = await loadCoValue(Person, person.id, {
+ *   resolve: { address: true },
+ * });
+ * ```
+ */
+export async function exportCoValue<
+  S extends CoValueClassOrSchema,
+  const R extends ResolveQuery<S>,
+>(
+  cls: S,
+  id: ID<CoValue>,
+  options: {
+    resolve?: ResolveQueryStrict<S, R>;
+    loadAs: Account | AnonymousJazzAgent;
+    skipRetry?: boolean;
+    bestEffortResolution?: boolean;
+  },
+) {
+  const loadAs = options.loadAs ?? activeAccountContext.get();
+  const node = "node" in loadAs ? loadAs.node : loadAs._raw.core.node;
+
+  const resolve = options.resolve ?? true;
+
+  const rootNode = new SubscriptionScope<CoValue>(
+    node,
+    resolve as any,
+    id,
+    {
+      ref: coValueClassFromCoValueClassOrSchema(cls),
+      optional: false,
+    },
+    options.skipRetry,
+    options.bestEffortResolution,
+  );
+
+  const value = await new Promise<Loaded<S, R> | null>((resolve) => {
+    rootNode.setListener((value) => {
+      if (value.type === "unavailable") {
+        resolve(null);
+        console.error(value.toString());
+      } else if (value.type === "unauthorized") {
+        resolve(null);
+        console.error(value.toString());
+      } else if (value.type === "loaded") {
+        resolve(value.value as Loaded<S, R>);
+      }
+
+      rootNode.destroy();
+    });
+  });
+
+  if (!value) {
+    return null;
+  }
+
+  const valuesExported = new Set<string>();
+  const contentPieces: CojsonInternalTypes.NewContentMessage[] = [];
+
+  loadContentPiecesFromSubscription(rootNode, valuesExported, contentPieces);
+
+  return contentPieces;
+}
+
+function loadContentPiecesFromSubscription(
+  subscription: SubscriptionScope<any>,
+  valuesExported: Set<string>,
+  contentPieces: CojsonInternalTypes.NewContentMessage[],
+) {
+  if (valuesExported.has(subscription.id)) {
+    return;
+  }
+
+  valuesExported.add(subscription.id);
+
+  const core = subscription.getCurrentValue()?._raw
+    .core as AvailableCoValueCore;
+
+  if (core) {
+    loadContentPiecesFromCoValue(core, valuesExported, contentPieces);
+  }
+
+  for (const child of subscription.childNodes.values()) {
+    loadContentPiecesFromSubscription(child, valuesExported, contentPieces);
+  }
+}
+
+function loadContentPiecesFromCoValue(
+  core: AvailableCoValueCore,
+  valuesExported: Set<string>,
+  contentPieces: CojsonInternalTypes.NewContentMessage[],
+) {
+  for (const dependency of core.getDependedOnCoValues()) {
+    if (valuesExported.has(dependency)) {
+      continue;
+    }
+
+    const depCoValue = core.node.getCoValue(dependency);
+
+    if (depCoValue.isAvailable()) {
+      valuesExported.add(dependency);
+      loadContentPiecesFromCoValue(depCoValue, valuesExported, contentPieces);
+    }
+  }
+
+  const pieces = core.verified.newContentSince(emptyKnownState(core.id));
+
+  for (const piece of pieces ?? []) {
+    contentPieces.push(piece);
+  }
+}
+
+/**
+ * Import content pieces into the node.
+ *
+ * @param contentPieces - The content pieces to import.
+ * @param loadAs - The account to load the content pieces as.
+ */
+export function importContentPieces(
+  contentPieces: CojsonInternalTypes.NewContentMessage[],
+  loadAs?: Account | AnonymousJazzAgent,
+) {
+  const account = loadAs ?? Account.getMe();
+  const node = "node" in account ? account.node : account._raw.core.node;
+
+  for (const piece of contentPieces) {
+    node.syncManager.handleNewContent(piece, "import");
+  }
 }

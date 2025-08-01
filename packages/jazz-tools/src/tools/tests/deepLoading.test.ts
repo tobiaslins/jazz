@@ -1,4 +1,4 @@
-import { Profile, cojsonInternals } from "cojson";
+import { cojsonInternals } from "cojson";
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { assert, describe, expect, expectTypeOf, test, vi } from "vitest";
 import {
@@ -9,13 +9,7 @@ import {
   isControlledAccount,
   z,
 } from "../index.js";
-import {
-  Account,
-  CoListSchema,
-  Loaded,
-  co,
-  randomSessionProvider,
-} from "../internal.js";
+import { Account, Loaded, co, randomSessionProvider } from "../internal.js";
 import { createJazzTestAccount, linkAccounts } from "../testing.js";
 import { waitFor } from "./utils.js";
 
@@ -381,6 +375,64 @@ test("The resolve type doesn't accept extra keys", async () => {
   }
 });
 
+test("The resolve type accepts keys from optional fields", async () => {
+  const Person = co.map({
+    name: z.string(),
+  });
+  const Dog = co.map({
+    type: z.literal("dog"),
+    owner: Person.optional(),
+  });
+  const Pets = co.list(Dog);
+
+  const pets = await Pets.create([
+    Dog.create({ type: "dog", owner: Person.create({ name: "Rex" }) }),
+  ]);
+
+  await pets.ensureLoaded({
+    resolve: {
+      $each: { owner: true },
+    },
+  });
+
+  expect(pets[0]?.owner?.name).toEqual("Rex");
+});
+
+test("The resolve type doesn't accept keys from discriminated unions", async () => {
+  const Person = co.map({
+    name: z.string(),
+  });
+  const Dog = co.map({
+    type: z.literal("dog"),
+    owner: Person,
+  });
+  const Cat = co.map({
+    type: z.literal("cat"),
+  });
+  const Pet = co.discriminatedUnion("type", [Dog, Cat]);
+  const Pets = co.list(Pet);
+
+  const pets = await Pets.create([
+    Dog.create({ type: "dog", owner: Person.create({ name: "Rex" }) }),
+  ]);
+
+  await pets.ensureLoaded({
+    resolve: {
+      $each: true,
+    },
+  });
+
+  await pets.ensureLoaded({
+    // @ts-expect-error cannot resolve owner
+    resolve: { $each: { owner: true } },
+  });
+
+  expect(pets).toBeTruthy();
+  if (pets?.[0]?.type === "dog") {
+    expect(pets[0].owner?.name).toEqual("Rex");
+  }
+});
+
 describe("Deep loading with unauthorized account", async () => {
   const bob = await createJazzTestAccount({
     creationProps: { name: "Bob" },
@@ -736,11 +788,11 @@ describe("Deep loading with unauthorized account", async () => {
   test("unaccessible list element with $onError and $each with depth", async () => {
     const Person = co.map({
       name: z.string(),
-      get friends(): z.ZodOptional<typeof Friends> {
+      get friends(): co.Optional<typeof Friends> {
         return co.optional(Friends);
       },
     });
-    const Friends: CoListSchema<typeof Person> = co.list(Person); // TODO: annoying that we have to annotate
+    const Friends: co.List<typeof Person> = co.list(Person); // TODO: annoying that we have to annotate
 
     const list = Friends.create(
       [

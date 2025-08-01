@@ -10,6 +10,7 @@ import {
   DraftBubbleTeaOrder,
   JazzAccount,
   ListOfBubbleTeaAddOns,
+  validateDraftOrder,
 } from "./schema.ts";
 
 export function CreateOrder() {
@@ -22,8 +23,7 @@ export function CreateOrder() {
   if (!me?.root) return;
 
   const onSave = (draft: Loaded<typeof DraftBubbleTeaOrder>) => {
-    // validate if the draft is a valid order
-    const validation = DraftBubbleTeaOrder.validate(draft);
+    const validation = validateDraftOrder(draft);
     setErrors(validation.errors);
     if (validation.errors.length > 0) {
       return;

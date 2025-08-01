@@ -1,5 +1,5 @@
 export const marketingCopy = {
-  headline: "Whip up an app",
+  headline: "Smooth database.",
   description:
-    "Jazz gives you data without needing a database — plus auth, permissions, files and multiplayer without needing a backend. Do everything right from the frontend and ship better apps, faster.",
+    "Jazz is a database that's distributed across your frontend, containers and functions. It syncs structured data, files and LLM streams instantly and looks like local reactive JSON state.",
 };
