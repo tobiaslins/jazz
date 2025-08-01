@@ -1,9 +1,5 @@
-import {
-  DemoAuthBasicUI,
-  JazzInspector,
-  JazzVueProvider,
-} from "community-jazz-vue";
-import { createApp, defineComponent, h } from "vue";
+import { JazzVueProvider, PasskeyAuthBasicUI } from "community-jazz-vue";
+import { createApp, defineComponent, h, markRaw } from "vue";
 import App from "./App.vue";
 import "./assets/main.css";
 import { apiKey } from "./apiKey";
@@ -11,12 +7,7 @@ import router from "./router";
 import { TodoAccount } from "./schema";
 
 import "community-jazz-vue/dist/community-jazz-vue.css";
-
-declare module "community-jazz-vue" {
-  interface Register {
-    Account: typeof TodoAccount;
-  }
-}
+import "jazz-tools/inspector/register-custom-element";
 
 const RootComponent = defineComponent({
   name: "RootComponent",
@@ -32,13 +23,20 @@ const RootComponent = defineComponent({
         },
         () => [
           h(
-            DemoAuthBasicUI,
+            PasskeyAuthBasicUI,
             {
               appName: "Jazz Vue Todo",
             },
             () => h(App),
           ),
-          h(JazzInspector),
+          h("jazz-inspector", {
+            style: {
+              position: "fixed",
+              bottom: "20px",
+              right: "20px",
+              zIndex: 9999,
+            },
+          }),
         ],
       );
   },

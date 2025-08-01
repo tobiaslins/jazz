@@ -1,12 +1,6 @@
 // @vitest-environment happy-dom
 
-import {
-  CoMap,
-  type CoValue,
-  type ID,
-  coField,
-  cojsonInternals,
-} from "jazz-tools";
+import { type CoValue, type ID, co, cojsonInternals, z } from "jazz-tools";
 import { createJazzTestAccount, setupJazzTestSync } from "jazz-tools/testing";
 import { beforeEach, describe, expect, expectTypeOf, it } from "vitest";
 import type { ComputedRef, Ref, ShallowRef } from "vue";
@@ -21,9 +15,9 @@ cojsonInternals.setCoValueLoadingRetryDelay(300);
 
 describe("useCoState", () => {
   it("should return the correct value", async () => {
-    class TestMap extends CoMap {
-      content = coField.string;
-    }
+    const TestMap = co.map({
+      content: z.string(),
+    });
 
     const account = await createJazzTestAccount();
 
@@ -42,9 +36,9 @@ describe("useCoState", () => {
   });
 
   it("should update the value when the coValue changes", async () => {
-    class TestMap extends CoMap {
-      content = coField.string;
-    }
+    const TestMap = co.map({
+      content: z.string(),
+    });
 
     const account = await createJazzTestAccount();
 
@@ -67,14 +61,14 @@ describe("useCoState", () => {
   });
 
   it("should load nested values if requested", async () => {
-    class TestNestedMap extends CoMap {
-      content = coField.string;
-    }
+    const TestNestedMap = co.map({
+      content: z.string(),
+    });
 
-    class TestMap extends CoMap {
-      content = coField.string;
-      nested = coField.ref(TestNestedMap);
-    }
+    const TestMap = co.map({
+      content: z.string(),
+      nested: TestNestedMap,
+    });
 
     const account = await createJazzTestAccount();
 
@@ -108,14 +102,14 @@ describe("useCoState", () => {
   });
 
   it("should load nested values on access even if not requested", async () => {
-    class TestNestedMap extends CoMap {
-      content = coField.string;
-    }
+    const TestNestedMap = co.map({
+      content: z.string(),
+    });
 
-    class TestMap extends CoMap {
-      content = coField.string;
-      nested = coField.ref(TestNestedMap);
-    }
+    const TestMap = co.map({
+      content: z.string(),
+      nested: TestNestedMap,
+    });
 
     const account = await createJazzTestAccount();
 
@@ -141,16 +135,16 @@ describe("useCoState", () => {
   });
 
   it("should return null if the coValue is not found", async () => {
-    class TestMap extends CoMap {
-      content = coField.string;
-    }
+    const TestMap = co.map({
+      content: z.string(),
+    });
 
     await createJazzTestAccount({
       isCurrentActiveAccount: true,
     });
 
     const [result] = withJazzTestSetup(() =>
-      useCoState(TestMap, "co_z123" as ID<TestMap>, {}),
+      useCoState(TestMap, "co_z123" as ID<co.loaded<typeof TestMap>>, {}),
     );
 
     expect(result.value).toBeUndefined();
@@ -161,9 +155,9 @@ describe("useCoState", () => {
   });
 
   it("should return the same type as Schema", () => {
-    class TestMap extends CoMap {
-      value = coField.string;
-    }
+    const TestMap = co.map({
+      value: z.string(),
+    });
 
     const map = TestMap.create({
       value: "123",
@@ -174,6 +168,8 @@ describe("useCoState", () => {
         resolve: true,
       }),
     );
-    expectTypeOf(result).toEqualTypeOf<Ref<TestMap | null | undefined>>();
+    expectTypeOf(result).toEqualTypeOf<
+      Ref<co.loaded<typeof TestMap> | null | undefined>
+    >();
   });
 });

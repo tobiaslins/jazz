@@ -47,6 +47,8 @@
     "format-and-lint": "biome check .",
     "format-and-lint:fix": "biome check . --write",
     "typecheck": "vue-tsc --noEmit",
-    "build": "pnpm typecheck && rm -rf ./dist && vite build"
+    "build": "pnpm typecheck && rm -rf ./dist && vite build",
+    "test": "vitest run",
+    "test:watch": "vitest"
   }
 }

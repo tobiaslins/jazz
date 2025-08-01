@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { useClerk } from "@clerk/vue";
-import { JazzInspector, JazzVueProviderWithClerk } from "community-jazz-vue";
+import { JazzVueProviderWithClerk } from "community-jazz-vue";
+
 import { apiKey } from "../apiKey";
 
 const clerk = useClerk();
+
+import "jazz-tools/inspector/register-custom-element";
 </script>
 
 <template>
@@ -11,10 +14,15 @@ const clerk = useClerk();
     v-if="clerk"
     :clerk="clerk"
     :sync="{
-        peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
-      }"
+      peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
+    }"
   >
     <slot />
-    <JazzInspector position="bottom-left"/>
+    <jazz-inspector
+      style="position: fixed; bottom: 20px; left: 20px; z-index: 9999"
+    />
   </JazzVueProviderWithClerk>
+  <div v-else>
+    <p>Loading Clerk...</p>
+  </div>
 </template>

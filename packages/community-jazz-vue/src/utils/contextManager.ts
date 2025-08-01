@@ -1,4 +1,4 @@
-import { Account, JazzContextManager } from "jazz-tools";
+import type { Account, JazzContextManager } from "jazz-tools";
 
 // This was copied from react-core/utils.ts, so the changes from one does not impact the changes in another
 // But this is sub-par and should be merged since it's portable for now.

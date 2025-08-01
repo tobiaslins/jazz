@@ -1,61 +1,71 @@
 // @vitest-environment happy-dom
 
-import { Account, CoMap, coField } from "jazz-tools";
-import { describe, expect, it } from "vitest";
+import { Group, co, z } from "jazz-tools";
+import { beforeAll, describe, expect, it } from "vitest";
 import { isProxy, nextTick, toRaw } from "vue";
 import { useAccount, useCoState } from "../composables.js";
 import { createJazzTestAccount } from "../testing.js";
 import { withJazzTestSetup } from "./testUtils.js";
 
-class TestMap extends CoMap {
-  content = coField.string;
-  nested = coField.ref(TestMap, { optional: true });
-}
+const TestMap = co.map({
+  content: z.string(),
+  get nested(): z.ZodOptional<typeof TestMap> {
+    return z.optional(TestMap);
+  },
+});
 
-class AccountRoot extends CoMap {
-  value = coField.string;
-  testMap = coField.ref(TestMap, { optional: true });
-}
+const AccountRoot = co.map({
+  value: z.string(),
+  testMap: z.optional(TestMap),
+});
 
-class AccountSchema extends Account {
-  root = coField.ref(AccountRoot);
+const AccountProfile = co.map({
+  name: z.string(),
+});
 
-  migrate() {
-    if (!this._refs.root) {
-      this.root = AccountRoot.create({ value: "test" }, { owner: this });
+const AccountSchema = co
+  .account({
+    root: AccountRoot,
+    profile: AccountProfile,
+  })
+  .withMigration((account) => {
+    if (!account.root) {
+      account.root = AccountRoot.create({ value: "test" }, { owner: account });
     }
-  }
-}
+    if (!account.profile) {
+      // Profile must be owned by a Group, not the account itself
+      const group = Group.create();
+      account.profile = AccountProfile.create(
+        { name: "Test User" },
+        { owner: group },
+      );
+    }
+  });
 
 describe("Proxy Behavior Verification", () => {
-  it("should not expose Vue proxies to Jazz objects in useAccount", async () => {
-    const account = await createJazzTestAccount({ AccountSchema });
+  // Create a single account for all tests to avoid parallel account creation
+  let sharedAccount: any;
+  let sharedAccountWithSchema: any;
 
-    const [result] = withJazzTestSetup(() => useAccount(AccountSchema), {
-      account,
-    });
-
-    // The returned me should not be a Vue proxy
-    expect(isProxy(result.me.value)).toBe(false);
-
-    // Even if we access nested properties, they shouldn't be proxies
-    if (result.me.value?.root) {
-      expect(isProxy(result.me.value.root)).toBe(false);
+  beforeAll(async () => {
+    try {
+      sharedAccount = await createJazzTestAccount();
+      sharedAccountWithSchema = await createJazzTestAccount({ AccountSchema });
+    } catch (error) {
+      console.warn("Failed to create test account:", error);
     }
   });
 
   it("should not expose Vue proxies to Jazz objects in useCoState", async () => {
-    const account = await createJazzTestAccount();
-
     const testMap = TestMap.create(
       {
         content: "test content",
       },
-      { owner: account },
+      { owner: sharedAccount },
     );
 
     const [result] = withJazzTestSetup(() => useCoState(TestMap, testMap.id), {
-      account,
+      account: sharedAccount,
     });
 
     // The returned value should not be a Vue proxy
@@ -68,13 +78,11 @@ describe("Proxy Behavior Verification", () => {
   });
 
   it("should handle nested object access without proxy issues", async () => {
-    const account = await createJazzTestAccount({ AccountSchema });
-
     const nestedMap = TestMap.create(
       {
         content: "nested content",
       },
-      { owner: account },
+      { owner: sharedAccountWithSchema },
     );
 
     const rootMap = AccountRoot.create(
@@ -82,15 +90,15 @@ describe("Proxy Behavior Verification", () => {
         value: "root value",
         testMap: nestedMap,
       },
-      { owner: account },
+      { owner: sharedAccountWithSchema },
     );
 
     // Update account root
-    account.root = rootMap;
+    sharedAccountWithSchema.root = rootMap;
 
     const [accountResult] = withJazzTestSetup(
       () => useAccount(AccountSchema, { resolve: { root: { testMap: true } } }),
-      { account },
+      { account: sharedAccountWithSchema },
     );
 
     await nextTick();

@@ -9,13 +9,14 @@ import type {
 import { JazzBrowserContextManager } from "jazz-tools/browser";
 import {
   type PropType,
-  computed,
   defineComponent,
   markRaw,
+  nextTick,
   onUnmounted,
   provide,
   ref,
   shallowRef,
+  toRaw,
   watch,
 } from "vue";
 
@@ -29,7 +30,7 @@ export const JazzVueProvider = defineComponent({
   name: "JazzProvider",
   props: {
     AccountSchema: {
-      type: Function as unknown as PropType<
+      type: [Function, Object] as unknown as PropType<
         (AccountClass<Account> & CoValueFromRaw<Account>) | AnyAccountSchema
       >,
       required: false,
@@ -76,7 +77,7 @@ export const JazzVueProvider = defineComponent({
       }),
     );
 
-    // Use shallowRef to avoid deep reactivity on Jazz objects which can cause proxy errors
+    // Use shallowRef to avoid deep reactivity on Jazz objects
     const ctx = shallowRef<JazzContextType<any>>();
 
     provide(JazzContextSymbol, ctx);
@@ -86,47 +87,89 @@ export const JazzVueProvider = defineComponent({
       markRaw(contextManager.getAuthSecretStorage()),
     );
 
-    // Create stable callback references like React's useRefCallback
-    const logOutReplacementCallback = () => props.logOutReplacement?.();
+    // Simple context creation flag to prevent rapid recreation
+    let contextCreationInProgress = false;
 
-    const logoutReplacementActive = computed(() =>
-      Boolean(props.logOutReplacement),
-    );
-
+    // Watch for prop changes and recreate context when needed
     watch(
-      () => ({
-        peer: props.sync.peer,
-        syncWhen: props.sync.when,
-        storage: props.storage,
-        guestMode: props.guestMode,
-      }),
-      async () => {
-        contextManager
-          .createContext({
+      [
+        () => props.sync.peer,
+        () => props.sync.when,
+        () => props.storage,
+        () => props.guestMode,
+        () => props.AccountSchema,
+      ],
+      async (newValues, oldValues) => {
+        // Prevent rapid re-creation during initialization
+        if (contextCreationInProgress) return;
+
+        // Efficient O(1) change detection - skip if no actual changes
+        if (
+          oldValues &&
+          newValues[0] === oldValues[0] && // sync.peer
+          newValues[1] === oldValues[1] && // sync.when
+          newValues[2] === oldValues[2] && // storage
+          newValues[3] === oldValues[3] && // guestMode
+          newValues[4] === oldValues[4] // AccountSchema
+        ) {
+          return;
+        }
+
+        contextCreationInProgress = true;
+
+        try {
+          await contextManager.createContext({
             AccountSchema: props.AccountSchema,
             guestMode: props.guestMode,
             sync: props.sync,
             storage: props.storage,
             defaultProfileName: props.defaultProfileName,
             onLogOut: props.onLogOut,
-            logOutReplacement: logoutReplacementActive.value
-              ? logOutReplacementCallback
-              : undefined,
+            logOutReplacement: props.logOutReplacement,
             onAnonymousAccountDiscarded: props.onAnonymousAccountDiscarded,
-          })
-          .catch((error) => {
-            console.error("Error creating Jazz browser context:", error);
           });
+        } catch (error) {
+          console.error("Error creating Jazz browser context:", error);
+        } finally {
+          contextCreationInProgress = false;
+        }
       },
       { immediate: true },
     );
 
-    // Set up context manager subscription immediately, not waiting for onMounted
-    // This ensures we catch context changes (like logout) that happen before mounting
+    // Set up context manager subscription with complete isolation
+    let lastValue: any = undefined;
+    let isUpdating = false;
+
     const cleanup = contextManager.subscribe(() => {
-      const currentValue = contextManager.getCurrentValue();
-      // Use markRaw to prevent Vue from making Jazz objects reactive
-      ctx.value = currentValue ? markRaw(currentValue) : undefined;
+      if (isUpdating) return;
+
+      isUpdating = true;
+      try {
+        const rawContextManager = toRaw(contextManager);
+        let currentValue = rawContextManager.getCurrentValue();
+
+        if (currentValue === lastValue) return;
+
+        // Use markRaw to prevent Vue reactivity
+        if (currentValue && typeof currentValue === "object") {
+          currentValue = markRaw(toRaw(currentValue));
+        }
+
+        lastValue = currentValue;
+
+        // Use nextTick to defer context update and avoid sync reactive loops
+        nextTick(() => {
+          ctx.value = currentValue;
+        });
+      } catch (error) {
+        console.error("Error in context manager subscription:", error);
+        nextTick(() => {
+          ctx.value = undefined;
+        });
+      } finally {
+        isUpdating = false;
+      }
     });
 
     onUnmounted(() => {
@@ -136,19 +179,19 @@ export const JazzVueProvider = defineComponent({
     onUnmounted(() => {
       if (ctx.value) ctx.value.done?.();
 
-      // https://github.com/rizen/jazz-vue-vamp/blob/main/src/provider.ts#L167
       // Only call done() in production, not in development (for HMR)
       if (process.env.NODE_ENV !== "development") {
         contextManager.done();
       }
     });
 
+    // Simple render function - render children when context exists
     return () => (ctx.value ? slots.default?.() : null);
   },
 });
 
 /**
- * Alias to JazzVueProvider to be consistent with React yet backwards compatible
+ * Alias to JazzVueProvider for backward compatibility
  * @deprecated Use JazzVueProvider instead
  */
 export const JazzProvider = JazzVueProvider;

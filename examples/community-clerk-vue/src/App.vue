@@ -4,8 +4,6 @@ import { useIsAuthenticated, useJazzContext } from "community-jazz-vue";
 import { Account } from "jazz-tools";
 import { computed } from "vue";
 
-import "community-jazz-vue/dist/community-jazz-vue.css";
-
 const context = useJazzContext<Account>();
 const isAuthenticated = useIsAuthenticated();
 

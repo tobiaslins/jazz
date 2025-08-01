@@ -4,21 +4,18 @@
       peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
     }"
   >
-    <DemoAuthBasicUI appName="Jazz Vue Chat">
+    <PasskeyAuthBasicUI appName="Jazz Vue Chat">
       <App />
-    </DemoAuthBasicUI>
-    <JazzInspector />
+    </PasskeyAuthBasicUI>
+    <jazz-inspector
+      style="position: fixed; left: 20px; bottom: 20px; z-index: 9999"
+    />
   </JazzVueProvider>
 </template>
 
 <script setup lang="ts">
-import {
-  DemoAuthBasicUI,
-  JazzInspector,
-  JazzVueProvider,
-} from "community-jazz-vue";
+import { JazzVueProvider, PasskeyAuthBasicUI } from "community-jazz-vue";
+import "jazz-tools/inspector/register-custom-element";
 import App from "./App.vue";
 import { apiKey } from "./apiKey";
-
-import "community-jazz-vue/dist/community-jazz-vue.css";
 </script>

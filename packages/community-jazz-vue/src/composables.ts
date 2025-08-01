@@ -25,6 +25,8 @@ import {
   type ShallowRef,
   computed,
   inject,
+  markRaw,
+  nextTick,
   onMounted,
   onUnmounted,
   ref,
@@ -124,11 +126,8 @@ export function useAccount<
   return {
     me: computed(() => {
       const value =
-        options?.resolve === undefined
-          ? me.value || toRaw((context.value as any).me)
-          : me.value;
-
-      return value ? toRaw(value) : value;
+        options?.resolve === undefined ? me.value || contextMe : me.value;
+      return value ? markRaw(value) : value;
     }) as any,
     agent: agent,
     logOut: context.value.logOut,
@@ -154,44 +153,64 @@ export function useCoState<
   let unsubscribe: (() => void) | undefined;
 
   watch(
-    () => ({ id, context: context.value, Schema, options }),
+    () => id,
     () => {
-      if (unsubscribe) unsubscribe();
+      if (unsubscribe) {
+        unsubscribe();
+        unsubscribe = undefined;
+      }
 
-      if (!id) return;
+      if (!id || !context.value) {
+        state.value = undefined;
+        return;
+      }
 
-      unsubscribe = subscribeToCoValue(
-        anySchemaToCoSchema(Schema),
-        id as any,
-        {
-          resolve: options?.resolve as any,
-          loadAs:
-            "me" in context.value
-              ? toRaw(context.value.me)
-              : toRaw(context.value.guest),
-          onUnavailable: () => {
-            state.value = null;
+      const loadAsAgent =
+        "me" in context.value ? context.value.me : context.value.guest;
+      if (!loadAsAgent) {
+        state.value = undefined;
+        return;
+      }
+
+      const safeLoadAsAgent = toRaw(loadAsAgent);
+
+      try {
+        unsubscribe = subscribeToCoValue(
+          anySchemaToCoSchema(Schema),
+          id as any,
+          {
+            resolve: options?.resolve as any,
+            loadAs: safeLoadAsAgent,
+            onUnavailable: () => {
+              state.value = null;
+            },
+            onUnauthorized: () => {
+              state.value = null;
+            },
+            syncResolution: true,
           },
-          onUnauthorized: () => {
-            state.value = null;
+          (value: any) => {
+            // Use markRaw to prevent Vue from making Jazz objects reactive
+            // but still allow property access and mutations
+            state.value = value ? markRaw(value) : value;
           },
-          syncResolution: true,
-        },
-        (value: any) => {
-          state.value = value;
-        },
-      );
+        );
+      } catch (error) {
+        console.error("Error in useCoState subscription:", error);
+        state.value = null;
+      }
     },
-    { deep: true, immediate: true },
+    { immediate: true },
   );
 
   onUnmounted(() => {
-    if (unsubscribe) unsubscribe();
+    if (unsubscribe) {
+      unsubscribe();
+      unsubscribe = undefined;
+    }
   });
 
-  const computedState = computed(() => state.value);
-
-  return computedState;
+  return state;
 }
 
 export function useAcceptInvite<S extends CoValueOrZodSchema>({
@@ -231,8 +250,6 @@ export function useAcceptInvite<S extends CoValueOrZodSchema>({
 
   onMounted(() => {
     handleInvite();
-
-    // Listen for hashchange events like React version
     window.addEventListener("hashchange", handleInvite);
   });
 
@@ -290,7 +307,6 @@ export function experimental_useInboxSender<
     return inbox.sendMessage(message);
   };
 
-  // Reset inbox reference when inboxOwnerID changes
   watch(
     () => inboxOwnerID,
     () => {

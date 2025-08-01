@@ -17,7 +17,6 @@ export default defineConfig({
       entry: {
         index: path.resolve(__dirname, "src/index.ts"),
         testing: path.resolve(__dirname, "src/testing.ts"),
-        "inspector/index": path.resolve(__dirname, "src/inspector/index.ts"),
       },
       name: "JazzVue",
       formats: ["es"],

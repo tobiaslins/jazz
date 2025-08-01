@@ -1,19 +1,19 @@
 <template>
   <div class="home-container">
-    <h1 v-if="me?.root?.projects?.length">My Projects</h1>
-    
+    <h1 v-if="me?.root?.projects?.length > 0">My Projects</h1>
+
     <!-- Project List -->
     <div class="projects-list">
       <button
-        v-for="project in me?.root?.projects"
-        :key="project?.id"
-        @click="navigateToProject(project?.id)"
+        v-for="project in me?.root?.projects || []"
+        :key="project.id"
+        @click="navigateToProject(project.id)"
         class="project-button"
       >
-        {{ project?.title }}
+        {{ project.title }}
       </button>
     </div>
-    
+
     <!-- New Project Form -->
     <NewProjectForm />
   </div>

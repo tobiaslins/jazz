@@ -2,9 +2,9 @@
   <div class="project-container">
     <div class="project-header">
       <h1>
-        <template v-if="project?.title">
-          {{ project.title }} 
-          <span class="project-id">({{ project.id }})</span>
+        <template v-if="project?.title !== 'Untitled'">
+          {{ project?.title }}
+          <span class="project-id">({{ project?.id }})</span>
         </template>
         <div v-else class="skeleton skeleton-title"></div>
       </h1>
@@ -16,11 +16,11 @@
         <div class="header-cell header-done">Done</div>
         <div class="header-cell header-task">Task</div>
       </div>
-      
+
       <div class="table-body">
         <TaskRow
-          v-for="task in project?.tasks"
-          :key="task?.id"
+          v-for="task in project?.tasks || []"
+          :key="task.id"
           :task="task"
         />
         <NewTaskRow :createTask="createTask" :disabled="!project" />
@@ -117,7 +117,8 @@ h1 {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
