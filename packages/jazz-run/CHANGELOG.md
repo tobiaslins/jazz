@@ -1,5 +1,15 @@
 # jazz-run
 
+## 0.16.2
+
+### Patch Changes
+
+- 239da90: Fix jazz-run package.json exports
+  - cojson@0.16.2
+  - cojson-storage-sqlite@0.16.2
+  - cojson-transport-ws@0.16.2
+  - jazz-tools@0.16.2
+
 ## 0.16.1
 
 ### Patch Changes
