@@ -1,5 +1,16 @@
 # jazz-tools
 
+## 0.16.3
+
+### Patch Changes
+
+- 43d3511: Streamlined CoValue creation:
+  - CoValues can be created with plain JSON objects. Nested CoValues will be automatically created when necessary.
+  - Optional fields can be ommited (i.e. it's no longer necessary to provide an explicit `undefined` value).
+  - cojson@0.16.3
+  - cojson-storage-indexeddb@0.16.3
+  - cojson-transport-ws@0.16.3
+
 ## 0.16.2
 
 ### Patch Changes
