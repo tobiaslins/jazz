@@ -10,27 +10,34 @@ import { cn } from "@/lib/utils";
 import { Loaded } from "jazz-tools";
 import { useAccount, useCoState } from "jazz-tools/react";
 import { MoreHorizontal } from "lucide-react";
-import { Fragment } from "react/jsx-runtime";
-import { MusicTrackTitleInput } from "./MusicTrackTitleInput";
+import { Fragment, useCallback, useState } from "react";
+import { EditTrackDialog } from "./RenameTrackDialog";
 import { Button } from "./ui/button";
+
+function isPartOfThePlaylist(
+  trackId: string,
+  playlist: Loaded<typeof Playlist, { tracks: true }>,
+) {
+  return Array.from(playlist.tracks._refs).some((t) => t.id === trackId);
+}
 
 export function MusicTrackRow({
   trackId,
   isLoading,
   isPlaying,
   onClick,
-  showAddToPlaylist,
 }: {
   trackId: string;
   isLoading: boolean;
   isPlaying: boolean;
   onClick: (track: Loaded<typeof MusicTrack>) => void;
-  showAddToPlaylist: boolean;
 }) {
   const track = useCoState(MusicTrack, trackId);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const { me } = useAccount(MusicaAccount, {
-    resolve: { root: { playlists: { $each: true } } },
+    resolve: { root: { playlists: { $each: { tracks: true } } } },
   });
 
   const playlists = me?.root.playlists ?? [];
@@ -60,10 +67,18 @@ export function MusicTrackRow({
     }
   }
 
+  function handleEdit() {
+    setIsEditDialogOpen(true);
+  }
+
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDropdownOpen(true);
+  }, []);
+
   return (
     <li
       className={"flex gap-1 hover:bg-slate-200 group py-2 px-2 cursor-pointer"}
-      onClick={handleTrackClick}
     >
       <button
         className={cn(
@@ -81,50 +96,57 @@ export function MusicTrackRow({
           "▶️"
         )}
       </button>
-      <MusicTrackTitleInput trackId={trackId} />
+      <button
+        onContextMenu={handleContextMenu}
+        onClick={handleTrackClick}
+        className="w-full flex items-center overflow-hidden text-ellipsis whitespace-nowrap"
+      >
+        {track?.title}
+      </button>
       <div onClick={(evt) => evt.stopPropagation()}>
-        {showAddToPlaylist && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="h-8 w-8 p-0"
-                aria-label={`Open ${track?.title} menu`}
-              >
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                key={`delete`}
-                onSelect={async () => {
-                  if (!track) return;
-                  deleteTrack();
-                }}
-              >
-                Delete
-              </DropdownMenuItem>
-              {playlists.map((playlist, index) => (
-                <Fragment key={index}>
-                  <DropdownMenuItem
-                    key={`add-${index}`}
-                    onSelect={() => handleAddToPlaylist(playlist)}
-                  >
-                    Add to {playlist.title}
-                  </DropdownMenuItem>
+        <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="h-8 w-8 p-0"
+              aria-label={`Open ${track?.title} menu`}
+            >
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onSelect={handleEdit}>Edit</DropdownMenuItem>
+            {playlists.map((playlist, index) => (
+              <Fragment key={index}>
+                {isPartOfThePlaylist(trackId, playlist) ? (
                   <DropdownMenuItem
                     key={`remove-${index}`}
                     onSelect={() => handleRemoveFromPlaylist(playlist)}
                   >
                     Remove from {playlist.title}
                   </DropdownMenuItem>
-                </Fragment>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+                ) : (
+                  <DropdownMenuItem
+                    key={`add-${index}`}
+                    onSelect={() => handleAddToPlaylist(playlist)}
+                  >
+                    Add to {playlist.title}
+                  </DropdownMenuItem>
+                )}
+              </Fragment>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
+      {track && isEditDialogOpen && (
+        <EditTrackDialog
+          track={track}
+          isOpen={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          onDelete={deleteTrack}
+        />
+      )}
     </li>
   );
 }

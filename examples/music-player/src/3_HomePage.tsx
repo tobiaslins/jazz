@@ -11,6 +11,7 @@ import { uploadMusicTracks } from "./4_actions";
 import { MediaPlayer } from "./5_useMediaPlayer";
 import { FileUploadButton } from "./components/FileUploadButton";
 import { MusicTrackRow } from "./components/MusicTrackRow";
+import { PlayerControls } from "./components/PlayerControls";
 import { PlaylistTitleInput } from "./components/PlaylistTitleInput";
 import { SidePanel } from "./components/SidePanel";
 import { Button } from "./components/ui/button";
@@ -42,7 +43,11 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
   const playlistId = params.playlistId ?? me?.root._refs.rootPlaylist.id;
 
   const playlist = useCoState(Playlist, playlistId, {
-    resolve: { tracks: true },
+    resolve: {
+      tracks: {
+        $each: true,
+      },
+    },
   });
 
   const isRootPlaylist = !params.playlistId;
@@ -66,8 +71,8 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
   return (
     <SidebarInset className="flex flex-col h-screen text-gray-800 bg-blue-50">
       <div className="flex flex-1 overflow-hidden">
-        <SidePanel mediaPlayer={mediaPlayer} />
-        <main className="flex-1 p-6 overflow-y-auto overflow-x-hidden">
+        <SidePanel />
+        <main className="flex-1 p-6 overflow-y-auto overflow-x-hidden relative">
           <SidebarTrigger />
           <div className="flex items-center justify-between mb-6">
             {isRootPlaylist ? (
@@ -106,12 +111,12 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
                     onClick={() => {
                       mediaPlayer.setActiveTrack(track, playlist);
                     }}
-                    showAddToPlaylist={isRootPlaylist}
                   />
                 ),
             )}
           </ul>
         </main>
+        <PlayerControls mediaPlayer={mediaPlayer} />
       </div>
     </SidebarInset>
   );

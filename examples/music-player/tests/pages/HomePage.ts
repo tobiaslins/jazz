@@ -55,10 +55,20 @@ export class HomePage {
 
   async editTrackTitle(trackTitle: string, newTitle: string) {
     await this.page
-      .getByRole("textbox", {
-        name: `Edit track title: ${trackTitle}`,
+      .getByRole("button", {
+        name: `Open ${trackTitle} menu`,
       })
-      .fill(newTitle);
+      .click();
+
+    await this.page
+      .getByRole("menuitem", {
+        name: `Edit`,
+      })
+      .click();
+
+    await this.page.getByPlaceholder("Enter track name...").fill(newTitle);
+
+    await this.page.getByRole("button", { name: "Save" }).click();
   }
 
   async createPlaylist() {
