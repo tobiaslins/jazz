@@ -82,12 +82,7 @@ export class CoValueCore {
   private readonly peers = new Map<
     PeerID,
     | {
-        type:
-          | "unknown"
-          | "pending"
-          | "available"
-          | "unavailable"
-          | "garbageCollected";
+        type: "unknown" | "pending" | "available" | "unavailable";
       }
     | {
         type: "errored";
@@ -220,13 +215,18 @@ export class CoValueCore {
   }
 
   unmount() {
+    if (this.listeners.size > 0) {
+      return false; // The coValue is still in use
+    }
+
     this.counter.add(-1, { state: this.loadingState });
 
     if (this.groupInvalidationSubscription) {
       this.groupInvalidationSubscription();
       this.groupInvalidationSubscription = undefined;
     }
-    this.listeners.clear();
+
+    return true;
   }
 
   markNotFoundInPeer(peerId: PeerID) {

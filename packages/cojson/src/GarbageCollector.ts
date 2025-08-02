@@ -27,14 +27,17 @@ export class GarbageCollector {
     for (const [id, accessTime] of this.coValueAccess) {
       const coValue = this.coValues.get(id);
 
-      if (!coValue || coValue.listeners.size > 0) {
+      if (!coValue) {
         continue;
       }
 
       if (currentTime - accessTime > GARBAGE_COLLECTOR_CONFIG.MAX_AGE) {
-        coValue?.unmount();
-        this.coValues.delete(id);
-        this.coValueAccess.delete(id);
+        const unmounted = coValue.unmount();
+
+        if (unmounted) {
+          this.coValues.delete(id);
+          this.coValueAccess.delete(id);
+        }
       }
     }
   }

@@ -32,28 +32,6 @@ describe("garbage collector", () => {
     const coValue = client.node.getCoValue(map.id);
 
     expect(coValue.isAvailable()).toBe(false);
-    expect(group.core.listeners.size).toBe(0);
-  });
-
-  test("coValues are garbage collected when maxAge is reached", async () => {
-    const client = setupTestNode();
-
-    client.addStorage({
-      ourName: "client",
-    });
-    client.node.enableGarbageCollector();
-
-    const group = client.node.createGroup();
-    const map = group.createMap();
-    map.set("hello", "world", "trusting");
-
-    await new Promise((resolve) => setTimeout(resolve, 10));
-
-    client.node.garbageCollector?.collect();
-
-    const coValue = client.node.getCoValue(map.id);
-
-    expect(coValue.isAvailable()).toBe(false);
   });
 
   test("coValues are not garbage collected if they have listeners", async () => {
