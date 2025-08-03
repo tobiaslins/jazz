@@ -1,11 +1,6 @@
 import { getAudioFileData } from "@/lib/audio/getAudioFileData";
-import { FileStream, Group, co } from "jazz-tools";
-import {
-  MusicTrack,
-  MusicTrackWaveform,
-  MusicaAccount,
-  Playlist,
-} from "./1_schema";
+import { FileStream, Group } from "jazz-tools";
+import { MusicTrack, MusicaAccount, Playlist } from "./1_schema";
 
 /**
  * Walkthrough: Actions
@@ -72,11 +67,6 @@ export async function createNewPlaylist() {
       },
     },
   });
-
-  // Since playlists are meant to be shared we associate them
-  // to a group which will contain the keys required to get
-  // access to the "owned" values
-  const playlistGroup = Group.create();
 
   const playlist = Playlist.create({
     title: "New Playlist",
