@@ -51,7 +51,7 @@ export async function uploadMusicTracks(
       {
         file: fileStream,
         duration: data.duration,
-        waveform: MusicTrackWaveform.create({ data: data.waveform }, group),
+        waveform: { data: data.waveform },
         title: file.name,
         isExampleTrack,
       },
@@ -78,13 +78,10 @@ export async function createNewPlaylist() {
   // access to the "owned" values
   const playlistGroup = Group.create();
 
-  const playlist = Playlist.create(
-    {
-      title: "New Playlist",
-      tracks: co.list(MusicTrack).create([], playlistGroup),
-    },
-    playlistGroup,
-  );
+  const playlist = Playlist.create({
+    title: "New Playlist",
+    tracks: [],
+  });
 
   // Again, we associate the new playlist to the
   // user by pushing it into the playlists CoList
