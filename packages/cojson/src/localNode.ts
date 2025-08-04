@@ -105,7 +105,7 @@ export class LocalNode {
       this.coValues.set(id, entry);
     }
 
-    this.garbageCollector?.markCoValueAccess(entry);
+    this.garbageCollector?.trackCoValueAccess(entry);
 
     return entry;
   }
@@ -363,7 +363,7 @@ export class LocalNode {
       new VerifiedState(id, this.crypto, header, new Map()),
     );
 
-    this.garbageCollector?.markCoValueAccess(coValue);
+    this.garbageCollector?.trackCoValueAccess(coValue);
     this.syncManager.syncHeader(coValue.verified);
 
     return coValue;

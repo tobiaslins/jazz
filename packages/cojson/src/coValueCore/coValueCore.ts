@@ -215,6 +215,11 @@ export class CoValueCore {
   }
 
   unmount() {
+    // For simplicity, we don't unmount groups and accounts
+    if (this.verified?.header.ruleset.type === "group") {
+      return false;
+    }
+
     if (this.listeners.size > 0) {
       return false; // The coValue is still in use
     }

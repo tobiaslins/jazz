@@ -100,7 +100,7 @@ describe("garbage collector", () => {
 
     const getCurrentTime = vi.spyOn(garbageCollector, "getCurrentTime");
 
-    getCurrentTime.mockReturnValue(0);
+    getCurrentTime.mockReturnValue(1);
 
     const group = client.node.createGroup();
     const map1 = group.createMap();
