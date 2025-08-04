@@ -54,9 +54,9 @@ const button = tv({
       strong: "",
     },
     size: {
-      sm: "text-sm py-1 px-2",
-      md: "py-1.5 px-3 h-[36px]",
-      lg: "py-2 px-5 md:px-6 md:py-2.5",
+      sm: "text-sm p-1 px-2 [&>svg]:size-4 h-7",
+      md: "py-1.5 px-3 [&>svg]:size-4.5 h-9",
+      lg: "py-2 px-5 md:px-6 md:py-2.5 [&>svg]:size-5 h-10",
     },
   },
   compoundVariants: [

@@ -7,8 +7,8 @@ export default function IconsPage() {
 
       <h3 className="text-lg mt-5 mb-2 font-bold">Import Pattern</h3>
       <p className="mb-3">
-        Import icons individually from Lucide React for optimal bundle size
-        and tree-shaking.
+        Import icons individually from Lucide React for optimal bundle size and
+        tree-shaking.
       </p>
 
       <pre className="bg-stone-100 dark:bg-stone-800 p-4 rounded-lg text-sm overflow-x-auto">
