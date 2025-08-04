@@ -2268,7 +2268,9 @@ describe("co.map schema", () => {
         age: z.number(),
       });
 
-      const PersonWithName = Person.pick(["name"]);
+      const PersonWithName = Person.pick({
+        name: true,
+      });
 
       const person = PersonWithName.create({
         name: "John",
@@ -2285,7 +2287,9 @@ describe("co.map schema", () => {
         })
         .catchall(z.string());
 
-      const PersonWithName = Person.pick(["name"]);
+      const PersonWithName = Person.pick({
+        name: true,
+      });
 
       expect(PersonWithName.catchAll).toBeUndefined();
 

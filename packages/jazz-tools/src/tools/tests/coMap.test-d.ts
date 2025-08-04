@@ -362,7 +362,10 @@ describe("CoMap", async () => {
       }),
     });
 
-    const PersonWithoutDog = Person.pick(["name", "age"]);
+    const PersonWithoutDog = Person.pick({
+      name: true,
+      age: true,
+    });
 
     type ExpectedType = co.Map<{
       name: ZodString;
@@ -385,7 +388,10 @@ describe("CoMap", async () => {
         breed: z.string(),
       }),
       get friend() {
-        return Person.pick(["name", "age"]).optional();
+        return Person.pick({
+          name: true,
+          age: true,
+        }).optional();
       },
     });
 
@@ -444,7 +450,13 @@ describe("CoMap", async () => {
   test("CoMap.partial() with a recursive reference", () => {
     const Person = co.map({
       get draft() {
-        return Person.partial().pick(["name", "age", "dog"]).optional();
+        return Person.partial()
+          .pick({
+            name: true,
+            age: true,
+            dog: true,
+          })
+          .optional();
       },
       name: z.string(),
       age: z.number(),

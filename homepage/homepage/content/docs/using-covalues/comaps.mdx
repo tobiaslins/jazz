@@ -263,7 +263,10 @@ const Project = co.map({
   status: z.literal(["planning", "active", "completed"]),
 });
 
-const ProjectStep1 = Project.pick(["name", "startDate"]);
+const ProjectStep1 = Project.pick({
+  name: true,
+  startDate: true,
+});
 
 // We don't provide the status field
 const project = ProjectStep1.create({

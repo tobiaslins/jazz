@@ -143,7 +143,7 @@ export interface CoMapSchema<
    * @returns A new CoMap schema with the picked keys.
    */
   pick<Keys extends keyof Shape>(
-    keys: Keys[],
+    keys: { [key in Keys]: true },
   ): CoMapSchema<Simplify<Pick<Shape, Keys>>, unknown, Owner>;
 
   /**
@@ -240,12 +240,12 @@ export function enrichCoMapSchema<
     optional: () => {
       return coOptionalDefiner(coValueSchema);
     },
-    pick: <Keys extends keyof Shape>(keys: Keys[]) => {
-      const keysSet = new Set(keys);
+    pick: <Keys extends keyof Shape>(keys: { [key in Keys]: true }) => {
+      const keysSet = new Set(Object.keys(keys));
       const pickedShape: Record<string, AnyZodOrCoValueSchema> = {};
 
       for (const [key, value] of Object.entries(coValueSchema.shape)) {
-        if (keysSet.has(key as Keys)) {
+        if (keysSet.has(key)) {
           pickedShape[key] = value;
         }
       }
