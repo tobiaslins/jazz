@@ -1,5 +1,12 @@
 # cojson
 
+## 0.16.4
+
+### Patch Changes
+
+- f9d538f: Fix the error raised when extending a group without having child groups loaded
+- 802b5a3: Refactor local updates sync to ensure that the changes are synced respecting the insertion order
+
 ## 0.16.3
 
 ## 0.16.2

@@ -1,5 +1,12 @@
 # svelte-passkey-auth
 
+## 0.0.115
+
+### Patch Changes
+
+- Updated dependencies [16764f6]
+  - jazz-tools@0.16.4
+
 ## 0.0.114
 
 ### Patch Changes
