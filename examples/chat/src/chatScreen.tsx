@@ -62,8 +62,10 @@ export function ChatScreen(props: { chatID: string }) {
       <ChatBody>
         {chat.length > 0 ? (
           chat
+            // We call slice before reverse to avoid mutating the original array
             .slice(-showNLastMessages)
-            .reverse() // this plus flex-col-reverse on ChatBody gives us scroll-to-bottom behavior
+            // Reverse plus flex-col-reverse on ChatBody gives us scroll-to-bottom behavior
+            .reverse()
             .map(
               (msg) =>
                 msg?.text && <ChatBubble me={me} msg={msg} key={msg.id} />,
