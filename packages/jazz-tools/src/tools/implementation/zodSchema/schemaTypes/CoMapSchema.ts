@@ -137,10 +137,21 @@ export interface CoMapSchema<
 
   optional(): CoOptionalSchema<this>;
 
+  /**
+   * Creates a new CoMap schema by picking the specified keys from the original schema.
+   *
+   * @param keys - The keys to pick from the original schema.
+   * @returns A new CoMap schema with the picked keys.
+   */
   pick<Keys extends keyof Shape>(
     keys: Keys[],
   ): CoMapSchema<Simplify<Pick<Shape, Keys>>, unknown, Owner>;
 
+  /**
+   * Creates a new CoMap schema by making all fields optional.
+   *
+   * @returns A new CoMap schema with all fields optional.
+   */
   partial(): CoMapSchema<PartialShape<Shape>, CatchAll, Owner>;
 }
 
