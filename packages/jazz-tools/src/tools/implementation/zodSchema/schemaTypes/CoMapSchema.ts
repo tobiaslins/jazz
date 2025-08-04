@@ -1,5 +1,5 @@
 import { CoValueUniqueness } from "cojson";
-import { mapValues, pick } from "lodash";
+import { mapValues, pick } from "lodash-es";
 import {
   Account,
   CoMap,
