@@ -283,6 +283,7 @@ import { useState, useEffect } from "react";
 export const BubbleTeaOrder = co.map({
   name: z.string(),
 });
+export type BubbleTeaOrder = co.loaded<typeof BubbleTeaOrder>;
 
 export const DraftBubbleTeaOrder = BubbleTeaOrder.partial();
 export type DraftBubbleTeaOrder = co.loaded<typeof DraftBubbleTeaOrder>;
