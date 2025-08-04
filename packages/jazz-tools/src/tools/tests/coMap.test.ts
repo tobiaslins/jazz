@@ -2260,6 +2260,42 @@ describe("co.map schema", () => {
 
     expect(person.name.toString()).toEqual("John");
   });
+
+  describe("pick()", () => {
+    test("creates a new CoMap schema by picking fields of another CoMap schema", () => {
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+      });
+
+      const PersonWithName = Person.pick(["name"]);
+
+      const person = PersonWithName.create({
+        name: "John",
+      });
+
+      expect(person.name).toEqual("John");
+    });
+
+    test("the new schema does not include catchall properties", () => {
+      const Person = co
+        .map({
+          name: z.string(),
+          age: z.number(),
+        })
+        .catchall(z.string());
+
+      const PersonWithName = Person.pick(["name"]);
+
+      expect(PersonWithName.catchAll).toBeUndefined();
+
+      const person = PersonWithName.create({
+        name: "John",
+      });
+      // @ts-expect-error - property `extraField` does not exist in person
+      expect(person.extraField).toBeUndefined();
+    });
+  });
 });
 
 describe("Updating a nested reference", () => {

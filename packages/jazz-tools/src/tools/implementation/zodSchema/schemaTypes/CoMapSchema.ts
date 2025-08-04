@@ -1,4 +1,5 @@
 import { CoValueUniqueness } from "cojson";
+import { pick } from "lodash";
 import {
   Account,
   CoMap,
@@ -133,6 +134,10 @@ export interface CoMapSchema<
   getCoValueClass: () => typeof CoMap;
 
   optional(): CoOptionalSchema<this>;
+
+  pick<Keys extends keyof Shape>(
+    keys: Keys[],
+  ): CoMapSchema<Pick<Shape, Keys>, unknown, Owner>;
 }
 
 export function createCoreCoMapSchema<
@@ -218,9 +223,12 @@ export function enrichCoMapSchema<
     getCoValueClass: () => {
       return coValueClass;
     },
-
     optional: () => {
       return coOptionalDefiner(coValueSchema);
+    },
+    pick: <Keys extends keyof Shape>(keys: Keys[]) => {
+      const pickedShape = pick(coValueSchema.shape, keys);
+      return hydrateCoreCoValueSchema(createCoreCoMapSchema(pickedShape));
     },
   }) as unknown as CoMapSchema<Shape, CatchAll>;
   return coValueSchema;
