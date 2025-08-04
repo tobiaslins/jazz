@@ -1,5 +1,6 @@
 "use client";
 import { Button } from "@/src/components/button";
+import { ArrowRight, CloudHail, Rocket } from "lucide-react";
 import { useState } from "react";
 
 export default function ButtonDocsPage() {
@@ -84,6 +85,46 @@ export default function ButtonDocsPage() {
         <Button variant="secondary">secondary</Button>
         <Button variant="destructive">destructive</Button>
       </div>
+
+      <h3 className="text-lg mt-5 font-bold">Sizes</h3>
+      <p className="my-3">
+        Buttons are styled with the size prop. If icons are used, the button
+        size is inherited and styling is applied to the icon.
+      </p>
+
+      <div className=" mt-5">
+        <div className="flex gap-2">
+          <Button intent="primary" variant="outline">
+            Primary
+            <ArrowRight />
+          </Button>
+        </div>
+
+        <div className="flex gap-2 mt-2">
+          <Button intent="primary" variant="outline" size="sm">
+            Primary
+            <CloudHail />
+          </Button>
+        </div>
+
+        <div className="flex gap-2 mt-2">
+          <Button intent="primary" variant="outline" size="lg">
+            <Rocket />
+            Primary
+          </Button>
+        </div>
+      </div>
+
+      <h3 className="text-lg mt-5 font-bold">Icons</h3>
+
+      <p>Use Lucide Icons directly as children of the button.</p>
+
+      <pre className="bg-stone-100 dark:bg-stone-800 p-4 rounded-lg text-sm overflow-x-auto">
+        {`<Button intent="primary" variant="outline" size="lg">
+  <Rocket />
+  Primary
+</Button>`}
+      </pre>
     </>
   );
 }
