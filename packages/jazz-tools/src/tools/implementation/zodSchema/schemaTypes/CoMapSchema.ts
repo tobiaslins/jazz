@@ -1,5 +1,4 @@
 import { CoValueUniqueness } from "cojson";
-import { mapValues, pick } from "lodash-es";
 import {
   Account,
   CoMap,
@@ -242,16 +241,28 @@ export function enrichCoMapSchema<
       return coOptionalDefiner(coValueSchema);
     },
     pick: <Keys extends keyof Shape>(keys: Keys[]) => {
-      const pickedShape = pick(coValueSchema.shape, keys);
+      const keysSet = new Set(keys);
+      const pickedShape: Record<string, AnyZodOrCoValueSchema> = {};
+
+      for (const [key, value] of Object.entries(coValueSchema.shape)) {
+        if (keysSet.has(key as Keys)) {
+          pickedShape[key] = value;
+        }
+      }
+
       return coMapDefiner(pickedShape);
     },
     partial: () => {
-      const partialShape = mapValues(coValueSchema.shape, (fieldSchema) => {
-        if (isAnyCoValueSchema(fieldSchema)) {
-          return coOptionalDefiner(fieldSchema);
+      const partialShape: Record<string, AnyZodOrCoValueSchema> = {};
+
+      for (const [key, value] of Object.entries(coValueSchema.shape)) {
+        if (isAnyCoValueSchema(value)) {
+          partialShape[key] = coOptionalDefiner(value);
+        } else {
+          partialShape[key] = z.optional(coValueSchema.shape[key]);
         }
-        return z.optional(fieldSchema);
-      });
+      }
+
       const partialCoMapSchema = coMapDefiner(partialShape);
       if (coValueSchema.catchAll) {
         return partialCoMapSchema.catchall(
