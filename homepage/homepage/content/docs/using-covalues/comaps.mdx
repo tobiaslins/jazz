@@ -228,6 +228,54 @@ export type Project = co.loaded<typeof Project>;
 ```
 </CodeGroup>
 
+### Partial
+
+For convenience Jazz provies a dedicated API for making all the properties of a CoMap optional:
+
+<CodeGroup>
+```ts twoslash
+import { co, z } from "jazz-tools";
+
+const Project = co.map({
+  name: z.string(),
+  startDate: z.date(),
+  status: z.literal(["planning", "active", "completed"]),
+});
+
+const ProjectDraft = Project.partial();
+
+// The fields are all optional now
+const project = ProjectDraft.create({});
+```
+</CodeGroup>
+
+### Pick
+
+You can also pick specific fields from a CoMap:
+
+<CodeGroup>
+```ts twoslash
+import { co, z } from "jazz-tools";
+
+const Project = co.map({
+  name: z.string(),
+  startDate: z.date(),
+  status: z.literal(["planning", "active", "completed"]),
+});
+
+const ProjectStep1 = Project.pick({
+  name: true,
+  startDate: true,
+});
+
+// We don't provide the status field
+const project = ProjectStep1.create({
+  name: "My project",
+  startDate: new Date("2025-04-01"),
+});
+```
+</CodeGroup>
+
 ### Working with Record CoMaps
 
 For record-type CoMaps, you can access values using bracket notation:

@@ -1,4 +1,5 @@
 import { assert, describe, expectTypeOf, test } from "vitest";
+import { ZodNumber, ZodOptional, ZodString } from "zod/v4";
 import { Group, co, z } from "../exports.js";
 import { Account } from "../index.js";
 import { CoMap, Loaded } from "../internal.js";
@@ -349,6 +350,148 @@ describe("CoMap", async () => {
     if (mapWithEnum.child.type === "a") {
       matchesNarrowed(mapWithEnum.child);
     }
+  });
+
+  test("CoMap.pick()", () => {
+    const Person = co.map({
+      name: z.string(),
+      age: z.number(),
+      dog: co.map({
+        name: z.string(),
+        breed: z.string(),
+      }),
+    });
+
+    const PersonWithoutDog = Person.pick({
+      name: true,
+      age: true,
+    });
+
+    type ExpectedType = co.Map<{
+      name: ZodString;
+      age: ZodNumber;
+    }>;
+
+    function matches(value: ExpectedType) {
+      return value;
+    }
+
+    matches(PersonWithoutDog);
+  });
+
+  test("CoMap.pick() with a recursive reference", () => {
+    const Person = co.map({
+      name: z.string(),
+      age: z.number(),
+      dog: co.map({
+        name: z.string(),
+        breed: z.string(),
+      }),
+      get friend() {
+        return Person.pick({
+          name: true,
+          age: true,
+        }).optional();
+      },
+    });
+
+    type ExpectedType = co.Map<{
+      name: ZodString;
+      age: ZodNumber;
+      dog: co.Map<{
+        name: ZodString;
+        breed: ZodString;
+      }>;
+      friend: co.Optional<
+        co.Map<{
+          name: ZodString;
+          age: ZodNumber;
+        }>
+      >;
+    }>;
+
+    function matches(value: ExpectedType) {
+      return value;
+    }
+
+    matches(Person);
+  });
+
+  test("CoMap.partial()", () => {
+    const Person = co.map({
+      name: z.string(),
+      age: z.number(),
+      dog: co.map({
+        name: z.string(),
+        breed: z.string(),
+      }),
+    });
+
+    const PersonPartial = Person.partial();
+
+    type ExpectedType = co.Map<{
+      name: ZodOptional<ZodString>;
+      age: ZodOptional<ZodNumber>;
+      dog: co.Optional<
+        co.Map<{
+          name: ZodString;
+          breed: ZodString;
+        }>
+      >;
+    }>;
+
+    function matches(value: ExpectedType) {
+      return value;
+    }
+
+    matches(PersonPartial);
+  });
+
+  test("CoMap.partial() with a recursive reference", () => {
+    const Person = co.map({
+      get draft() {
+        return Person.partial()
+          .pick({
+            name: true,
+            age: true,
+            dog: true,
+          })
+          .optional();
+      },
+      name: z.string(),
+      age: z.number(),
+      dog: co.map({
+        name: z.string(),
+        breed: z.string(),
+      }),
+    });
+
+    type ExpectedType = co.Map<{
+      draft: co.Optional<
+        co.Map<{
+          name: ZodOptional<ZodString>;
+          age: ZodOptional<ZodNumber>;
+          dog: co.Optional<
+            co.Map<{
+              name: ZodString;
+              breed: ZodString;
+            }>
+          >;
+        }>
+      >;
+      name: ZodString;
+      age: ZodNumber;
+      dog: co.Map<{
+        name: ZodString;
+        breed: ZodString;
+      }>;
+    }>;
+
+    function matches(value: ExpectedType) {
+      return value;
+    }
+
+    matches(Person);
   });
 });
 
