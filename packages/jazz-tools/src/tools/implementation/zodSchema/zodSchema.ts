@@ -101,7 +101,7 @@ export type AnyCoreCoValueSchema =
   | CoreRichTextSchema
   | CoreFileStreamSchema;
 
-type AnyZodSchema = z.core.$ZodType;
+export type AnyZodSchema = z.core.$ZodType;
 
 export type AnyZodOrCoValueSchema = AnyZodSchema | CoreCoValueSchema;
 

@@ -1,5 +1,5 @@
 import { CoValueUniqueness } from "cojson";
-import { pick } from "lodash";
+import { mapValues, pick } from "lodash";
 import {
   Account,
   CoMap,
@@ -11,6 +11,7 @@ import {
   Resolved,
   Simplify,
   SubscribeListenerOptions,
+  coMapDefiner,
   coOptionalDefiner,
   hydrateCoreCoValueSchema,
   isAnyCoValueSchema,
@@ -21,8 +22,9 @@ import { CoMapSchemaInit } from "../typeConverters/CoFieldInit.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { z } from "../zodReExport.js";
-import { AnyZodOrCoValueSchema } from "../zodSchema.js";
+import { AnyZodOrCoValueSchema, AnyZodSchema } from "../zodSchema.js";
 import { CoOptionalSchema } from "./CoOptionalSchema.js";
+import { CoreCoValueSchema } from "./CoValueSchema.js";
 
 export interface CoMapSchema<
   Shape extends z.core.$ZodLooseShape,
@@ -137,7 +139,9 @@ export interface CoMapSchema<
 
   pick<Keys extends keyof Shape>(
     keys: Keys[],
-  ): CoMapSchema<Pick<Shape, Keys>, unknown, Owner>;
+  ): CoMapSchema<Simplify<Pick<Shape, Keys>>, unknown, Owner>;
+
+  partial(): CoMapSchema<PartialShape<Shape>, CatchAll, Owner>;
 }
 
 export function createCoreCoMapSchema<
@@ -228,7 +232,22 @@ export function enrichCoMapSchema<
     },
     pick: <Keys extends keyof Shape>(keys: Keys[]) => {
       const pickedShape = pick(coValueSchema.shape, keys);
-      return hydrateCoreCoValueSchema(createCoreCoMapSchema(pickedShape));
+      return coMapDefiner(pickedShape);
+    },
+    partial: () => {
+      const partialShape = mapValues(coValueSchema.shape, (fieldSchema) => {
+        if (isAnyCoValueSchema(fieldSchema)) {
+          return coOptionalDefiner(fieldSchema);
+        }
+        return z.optional(fieldSchema);
+      });
+      const partialCoMapSchema = coMapDefiner(partialShape);
+      if (coValueSchema.catchAll) {
+        return partialCoMapSchema.catchall(
+          coValueSchema.catchAll as unknown as AnyZodOrCoValueSchema,
+        );
+      }
+      return partialCoMapSchema;
     },
   }) as unknown as CoMapSchema<Shape, CatchAll>;
   return coValueSchema;
@@ -270,3 +289,11 @@ export type CoMapInstanceCoValuesNullable<Shape extends z.core.$ZodLooseShape> =
       Shape[key]
     >;
   };
+
+export type PartialShape<Shape extends z.core.$ZodLooseShape> = Simplify<{
+  -readonly [key in keyof Shape]: Shape[key] extends AnyZodSchema
+    ? z.ZodOptional<Shape[key]>
+    : Shape[key] extends CoreCoValueSchema
+      ? CoOptionalSchema<Shape[key]>
+      : never;
+}>;

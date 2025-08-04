@@ -2296,6 +2296,53 @@ describe("co.map schema", () => {
       expect(person.extraField).toBeUndefined();
     });
   });
+
+  describe("partial()", () => {
+    test("creates a new CoMap schema by making all properties optional", () => {
+      const Dog = co.map({
+        name: z.string(),
+        breed: z.string(),
+      });
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+        pet: Dog,
+      });
+
+      const DraftPerson = Person.partial();
+
+      const draftPerson = DraftPerson.create({});
+
+      expect(draftPerson.name).toBeUndefined();
+      expect(draftPerson.age).toBeUndefined();
+      expect(draftPerson.pet).toBeUndefined();
+
+      draftPerson.name = "John";
+      draftPerson.age = 20;
+      const rex = Dog.create({ name: "Rex", breed: "Labrador" });
+      draftPerson.pet = rex;
+
+      expect(draftPerson.name).toEqual("John");
+      expect(draftPerson.age).toEqual(20);
+      expect(draftPerson.pet).toEqual(rex);
+    });
+
+    test("the new schema includes catchall properties", () => {
+      const Person = co
+        .map({
+          name: z.string(),
+          age: z.number(),
+        })
+        .catchall(z.string());
+
+      const DraftPerson = Person.partial();
+
+      const draftPerson = DraftPerson.create({});
+      draftPerson.extraField = "extra";
+
+      expect(draftPerson.extraField).toEqual("extra");
+    });
+  });
 });
 
 describe("Updating a nested reference", () => {
