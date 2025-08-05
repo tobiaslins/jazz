@@ -52,13 +52,15 @@ export class MyAccount extends Account {
 <script lang="ts">
   import { JazzSvelteProvider } from 'jazz-tools/svelte';
 
+  let { children } = $props()
+
   // Example configuration for authentication and peer connection
   let sync = { peer: "wss://cloud.jazz.tools/?key=you@example.com" };
   let AccountSchema = MyAccount;
 </script>
 
 <JazzSvelteProvider {sync} {AccountSchema}>
-  <App />
+  {@render children?.()}
 </JazzSvelteProvider>
 ```
 </CodeGroup>
@@ -82,7 +84,7 @@ export class MyAccount extends Account {
   }
 </script>
 
-<button on:click={increment}>
+<button onclick={increment}>
   Count: {profile.current?.counter}
 </button>
 ```
