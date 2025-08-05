@@ -10,8 +10,10 @@ import type {
 } from "cojson";
 import {
   CoJsonIDBTransaction,
+  putIndexedDbStore,
   queryIndexedDbStore,
 } from "./CoJsonIDBTransaction.js";
+import { StoreName } from "./CoJsonIDBTransaction.js";
 
 export class IDBClient implements DBClientInterfaceAsync {
   private db;
@@ -45,6 +47,10 @@ export class IDBClient implements DBClientInterfaceAsync {
     return queryIndexedDbStore(this.db, "coValues", (store) =>
       store.index("coValuesById").get(coValueId),
     );
+  }
+
+  async getCoValueRowID(coValueId: RawCoID): Promise<number | undefined> {
+    return this.getCoValue(coValueId).then((row) => row?.rowID);
   }
 
   async getCoValueSessions(coValueRowId: number): Promise<StoredSessionRow[]> {
@@ -88,20 +94,18 @@ export class IDBClient implements DBClientInterfaceAsync {
     );
   }
 
-  async addCoValue(
-    msg: CojsonInternalTypes.NewContentMessage,
-  ): Promise<number> {
-    if (!msg.header) {
-      throw new Error(`Header is required, coId: ${msg.id}`);
+  async upsertCoValue(
+    id: RawCoID,
+    header?: CojsonInternalTypes.CoValueHeader,
+  ): Promise<number | undefined> {
+    if (!header) {
+      return this.getCoValueRowID(id);
     }
 
-    return (await this.makeRequest<IDBValidKey>((tx) =>
-      tx.getObjectStore("coValues").put({
-        id: msg.id,
-        // biome-ignore lint/style/noNonNullAssertion: TODO(JAZZ-561): Review
-        header: msg.header!,
-      } satisfies CoValueRow),
-    )) as number;
+    return putIndexedDbStore<CoValueRow, number>(this.db, "coValues", {
+      id,
+      header,
+    }).catch(() => this.getCoValueRowID(id));
   }
 
   async addSessionUpdate({

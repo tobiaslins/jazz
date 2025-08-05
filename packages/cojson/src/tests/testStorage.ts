@@ -123,7 +123,7 @@ export function createSyncStorage({
   return storage;
 }
 
-function getDbPath(defaultDbPath?: string) {
+export function getDbPath(defaultDbPath?: string) {
   const dbPath = defaultDbPath ?? join(tmpdir(), `test-${randomUUID()}.db`);
 
   if (!defaultDbPath) {
