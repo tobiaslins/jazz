@@ -71,12 +71,11 @@ export class MyAccount extends Account {
 ```svelte
 <!-- src/routes/+page.svelte -->
 <script lang="ts">
-  import { useCoState, useAccount } from 'jazz-tools/svelte';
-  import { MyProfile } from '$lib/schema';
+	import { CoState, AccountCoState } from 'jazz-tools/svelte'
+	import { MyProfile, UserAccount } from '$lib/schema'
 
-  const { me } = useAccount();
-
-  const profile = $derived(useCoState(MyProfile, me._refs.profile.id));
+	const me = new AccountCoState(UserAccount)
+	const profile = new CoState(MyProfile, me.current?._refs.profile?.id)
 
   function increment() {
     if (!profile.current) return;
