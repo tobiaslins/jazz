@@ -14,6 +14,8 @@
   --color-primary-dark: var(--primary-dark);
   --color-primary-light: var(--primary-light);
 
+  --color-highlight: var(--primary-highlight);
+
   --color-blue: #007aff;
   --color-blue-50: #f0f7ff;
   --color-blue-100: #d6eaff;
@@ -146,6 +148,8 @@
   );
   --primary-foreground: oklch(0.985 0.045 264.32);
 
+  --primary-highlight: lch(from var(--color-primary) l c h / 0.25);
+
   --alert: #fcae00;
   --alert-dark: oklch(0.773 0.212 90.04);
   --alert-light: oklch(0.883 0.232 80.04);
@@ -187,4 +191,5 @@
 
 .dark {
   --color-default: theme("colors.stone.100");
+  --color-primary-highlight: lch(from var(--color-primary) l c h / 0.5);
 }
