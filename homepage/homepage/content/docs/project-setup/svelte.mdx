@@ -72,7 +72,7 @@ export class MyAccount extends Account {
 <!-- src/routes/+page.svelte -->
 <script lang="ts">
   import { useCoState, useAccount } from 'jazz-tools/svelte';
-  import { MyProfile } from './schema';
+  import { MyProfile } from '$lib/schema';
 
   const { me } = useAccount();
 
