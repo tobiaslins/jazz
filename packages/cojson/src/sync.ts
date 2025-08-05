@@ -1,15 +1,24 @@
 import { Histogram, ValueType, metrics } from "@opentelemetry/api";
-import { IncomingMessagesQueue } from "./IncomingMessagesQueue.js";
 import { PeerState } from "./PeerState.js";
 import { SyncStateManager } from "./SyncStateManager.js";
+import {
+  getTransactionSize,
+  knownStateFromContent,
+} from "./coValueContentMessage.js";
 import { CoValueCore } from "./coValueCore/coValueCore.js";
 import { getDependedOnCoValuesFromRawData } from "./coValueCore/utils.js";
-import { CoValueHeader, Transaction } from "./coValueCore/verifiedState.js";
+import {
+  CoValueHeader,
+  Transaction,
+  VerifiedState,
+} from "./coValueCore/verifiedState.js";
 import { Signature } from "./crypto/crypto.js";
-import { RawCoID, SessionID } from "./ids.js";
+import { RawCoID, SessionID, isRawCoID } from "./ids.js";
 import { LocalNode } from "./localNode.js";
 import { logger } from "./logger.js";
 import { CoValuePriority } from "./priority.js";
+import { IncomingMessagesQueue } from "./queue/IncomingMessagesQueue.js";
+import { LocalTransactionsSyncQueue } from "./queue/LocalTransactionsSyncQueue.js";
 import { accountOrAgentIDfromSessionID } from "./typeUtils/accountOrAgentIDfromSessionID.js";
 import { isAccountID } from "./typeUtils/isAccountID.js";
 
@@ -57,10 +66,12 @@ export type NewContentMessage = {
 };
 
 export type SessionNewContent = {
+  // The index where to start appending the new transactions. The index counting starts from 1.
   after: number;
   newTransactions: Transaction[];
   lastSignature: Signature;
 };
+
 export type DoneMessage = {
   action: "done";
   id: RawCoID;
@@ -162,13 +173,9 @@ export class SyncManager {
   }
 
   handleSyncMessage(msg: SyncMessage, peer: PeerState) {
-    if (msg.id === undefined || msg.id === null) {
-      logger.warn("Received sync message with undefined id", {
-        msg,
-      });
-      return;
-    } else if (!msg.id.startsWith("co_z")) {
-      logger.warn("Received sync message with invalid id", {
+    if (!isRawCoID(msg.id)) {
+      const errorType = msg.id ? "invalid" : "undefined";
+      logger.warn(`Received sync message with ${errorType} id`, {
         msg,
       });
       return;
@@ -431,20 +438,26 @@ export class SyncManager {
 
   recordTransactionsSize(newTransactions: Transaction[], source: string) {
     for (const tx of newTransactions) {
-      const txLength =
-        tx.privacy === "private"
-          ? tx.encryptedChanges.length
-          : tx.changes.length;
+      const size = getTransactionSize(tx);
 
-      this.transactionsSizeHistogram.record(txLength, {
+      this.transactionsSizeHistogram.record(size, {
         source,
       });
     }
   }
 
-  handleNewContent(msg: NewContentMessage, from: PeerState | "storage") {
+  handleNewContent(
+    msg: NewContentMessage,
+    from: PeerState | "storage" | "import",
+  ) {
     const coValue = this.local.getCoValue(msg.id);
-    const peer = from === "storage" ? undefined : from;
+    const peer = from === "storage" || from === "import" ? undefined : from;
+    const sourceRole =
+      from === "storage"
+        ? "storage"
+        : from === "import"
+          ? "import"
+          : peer?.role;
 
     if (!coValue.hasVerifiedContent()) {
       if (!msg.header) {
@@ -619,7 +632,9 @@ export class SyncManager {
         continue;
       }
 
-      this.recordTransactionsSize(newTransactions, peer?.role ?? "storage");
+      if (sourceRole && sourceRole !== "import") {
+        this.recordTransactionsSize(newTransactions, sourceRole);
+      }
 
       peer?.updateSessionCounter(
         msg.id,
@@ -663,7 +678,7 @@ export class SyncManager {
     const syncedPeers = [];
 
     if (from !== "storage") {
-      this.storeCoValue(coValue, [msg]);
+      this.storeContent(msg);
     }
 
     for (const peer of this.peersInPriorityOrder()) {
@@ -710,56 +725,33 @@ export class SyncManager {
     return this.sendNewContentIncludingDependencies(msg.id, peer);
   }
 
-  requestedSyncs = new Set<RawCoID>();
-  requestCoValueSync(coValue: CoValueCore) {
-    if (this.requestedSyncs.has(coValue.id)) {
-      return;
-    }
+  dirtyCoValuesTrackingSets: Set<Set<RawCoID>> = new Set();
+  trackDirtyCoValues() {
+    const trackingSet = new Set<RawCoID>();
 
-    queueMicrotask(() => {
-      if (this.requestedSyncs.has(coValue.id)) {
-        this.syncCoValue(coValue);
-      }
-    });
+    this.dirtyCoValuesTrackingSets.add(trackingSet);
 
-    this.requestedSyncs.add(coValue.id);
+    return {
+      done: () => {
+        this.dirtyCoValuesTrackingSets.delete(trackingSet);
+
+        return trackingSet;
+      },
+    };
   }
 
-  storeCoValue(coValue: CoValueCore, data: NewContentMessage[] | undefined) {
-    const storage = this.local.storage;
+  private syncQueue = new LocalTransactionsSyncQueue((content) =>
+    this.syncContent(content),
+  );
+  syncHeader = this.syncQueue.syncHeader;
+  syncLocalTransaction = this.syncQueue.syncTransaction;
 
-    if (!storage || !data) return;
+  syncContent(content: NewContentMessage) {
+    const coValue = this.local.getCoValue(content.id);
 
-    // Try to store the content as-is for performance
-    // In case that some transactions are missing, a correction will be requested, but it's an edge case
-    storage.store(data, (correction) => {
-      if (!coValue.hasVerifiedContent()) return;
+    this.storeContent(content);
 
-      const newContentPieces = coValue.verified.newContentSince(correction);
-
-      if (!newContentPieces) return;
-
-      storage.store(newContentPieces, (response) => {
-        logger.error(
-          "Correction requested by storage after sending a correction content",
-          {
-            response,
-            knownState: coValue.knownState(),
-          },
-        );
-      });
-    });
-  }
-
-  syncCoValue(coValue: CoValueCore) {
-    this.requestedSyncs.delete(coValue.id);
-
-    if (this.local.storage && coValue.hasVerifiedContent()) {
-      const knownState = this.local.storage.getKnownState(coValue.id);
-      const newContentPieces = coValue.verified.newContentSince(knownState);
-
-      this.storeCoValue(coValue, newContentPieces);
-    }
+    const contentKnownState = knownStateFromContent(content);
 
     for (const peer of this.peersInPriorityOrder()) {
       if (peer.closed) continue;
@@ -773,12 +765,30 @@ export class SyncManager {
         continue;
       }
 
-      this.sendNewContentIncludingDependencies(coValue.id, peer);
+      // We assume that the peer already knows anything before this content
+      // Any eventual reconciliation will be handled through the known state messages exchange
+      this.trySendToPeer(peer, content);
+      peer.combineOptimisticWith(coValue.id, contentKnownState);
+      peer.trackToldKnownState(coValue.id);
     }
 
     for (const peer of this.getPeers()) {
       this.syncState.triggerUpdate(peer.id, coValue.id);
     }
+  }
+
+  private storeContent(content: NewContentMessage) {
+    const storage = this.local.storage;
+
+    if (!storage) return;
+
+    // Try to store the content as-is for performance
+    // In case that some transactions are missing, a correction will be requested, but it's an edge case
+    storage.store(content, (correction) => {
+      return this.local
+        .getCoValue(content.id)
+        .verified?.newContentSince(correction);
+    });
   }
 
   waitForSyncWithPeer(peerId: PeerID, id: RawCoID, timeout: number) {

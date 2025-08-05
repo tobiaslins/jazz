@@ -1,5 +1,83 @@
 # jazz-betterauth-server-plugin
 
+## 0.16.4
+
+### Patch Changes
+
+- Updated dependencies [f9d538f]
+- Updated dependencies [16764f6]
+- Updated dependencies [802b5a3]
+  - cojson@0.16.4
+  - jazz-tools@0.16.4
+
+## 0.16.3
+
+### Patch Changes
+
+- Updated dependencies [43d3511]
+  - jazz-tools@0.16.3
+  - cojson@0.16.3
+
+## 0.16.2
+
+### Patch Changes
+
+- cojson@0.16.2
+- jazz-tools@0.16.2
+
+## 0.16.1
+
+### Patch Changes
+
+- Updated dependencies [c62abef]
+  - jazz-tools@0.16.1
+  - cojson@0.16.1
+
+## 0.16.0
+
+### Patch Changes
+
+- 2bbb07b: Introduce a cleaner separation between Zod and CoValue schemas:
+  - Zod schemas and CoValue schemas are fully separated. Zod schemas can only be composed with other Zod schemas. CoValue schemas can be composed with either Zod or other CoValue schemas.
+  - `z.optional()` and `z.discriminatedUnion()` no longer work with CoValue schemas. Use `co.optional()` and `co.discriminatedUnion()` instead.
+  - Internal schema access is now simpler. You no longer need to use Zod’s `.def` to access internals. Use properties like `CoMapSchema.shape`, `CoListSchema.element`, and `CoOptionalSchema.innerType` directly.
+  - CoValue schema types are now namespaced under `co.`. Non-namespaced exports have been removed
+  - CoMap schemas no longer incorrectly inherit from Zod. Previously, methods like `.extend()` and `.partial()` appeared available but could cause unexpected behavior. These methods are now disabled. In their place, `.optional()` has been added, and more Zod-like methods will be introduced in future releases.
+  - Upgraded Zod from `3.25.28` to `3.25.76`.
+  - Removed deprecated `withHelpers` method from CoValue schemas
+  - Removed deprecated `createCoValueObservable` function
+- Updated dependencies [c09dcdf]
+- Updated dependencies [2bbb07b]
+  - jazz-tools@0.16.0
+  - cojson@0.16.0
+
+## 0.15.16
+
+### Patch Changes
+
+- Updated dependencies [9633d01]
+- Updated dependencies [4beafb7]
+  - jazz-tools@0.15.16
+  - cojson@0.15.16
+
+## 0.15.15
+
+### Patch Changes
+
+- Updated dependencies [3fe53a3]
+  - jazz-tools@0.15.15
+  - cojson@0.15.15
+
+## 0.15.14
+
+### Patch Changes
+
+- Updated dependencies [70ce7c5]
+- Updated dependencies [a584590]
+- Updated dependencies [9acccb5]
+  - cojson@0.15.14
+  - jazz-tools@0.15.14
+
 ## 0.15.13
 
 ### Patch Changes

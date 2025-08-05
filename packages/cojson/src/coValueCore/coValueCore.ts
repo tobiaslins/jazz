@@ -2,9 +2,9 @@ import { UpDownCounter, ValueType, metrics } from "@opentelemetry/api";
 import { Result, err } from "neverthrow";
 import { PeerState } from "../PeerState.js";
 import { RawCoValue } from "../coValue.js";
-import { ControlledAccountOrAgent, RawAccountID } from "../coValues/account.js";
+import { ControlledAccountOrAgent } from "../coValues/account.js";
 import { RawGroup } from "../coValues/group.js";
-import { CO_VALUE_LOADING_CONFIG, MAX_RECOMMENDED_TX_SIZE } from "../config.js";
+import { CO_VALUE_LOADING_CONFIG } from "../config.js";
 import { coreToCoValue } from "../coreToCoValue.js";
 import {
   CryptoProvider,
@@ -50,6 +50,7 @@ export type DecryptedTransaction = {
   txID: TransactionID;
   changes: JsonValue[];
   madeAt: number;
+  trusting?: boolean;
 };
 
 const readKeyCache = new WeakMap<CoValueCore, { [id: KeyID]: KeySecret }>();
@@ -379,7 +380,7 @@ export class CoValueCore {
   }
 
   knownStateWithStreaming(): CoValueKnownState {
-    if (this.isAvailable()) {
+    if (this.verified) {
       return this.verified.knownStateWithStreaming();
     } else {
       return emptyKnownState(this.id);
@@ -387,7 +388,7 @@ export class CoValueCore {
   }
 
   knownState(): CoValueKnownState {
-    if (this.isAvailable()) {
+    if (this.verified) {
       return this.verified.knownState();
     } else {
       return emptyKnownState(this.id);
@@ -604,8 +605,17 @@ export class CoValueCore {
     )._unsafeUnwrap({ withStackTrace: true });
 
     if (success) {
+      const session = this.verified.sessions.get(sessionID);
+      const txIdx = session ? session.transactions.length - 1 : 0;
+
       this.node.syncManager.recordTransactionsSize([transaction], "local");
-      void this.node.syncManager.requestCoValueSync(this);
+      this.node.syncManager.syncLocalTransaction(
+        this.verified,
+        transaction,
+        sessionID,
+        signature,
+        txIdx,
+      );
     }
 
     return success;
@@ -657,6 +667,7 @@ export class CoValueCore {
             txID,
             madeAt: tx.madeAt,
             changes: parseJSON(tx.changes),
+            trusting: true,
           });
         } catch (e) {
           logger.error("Failed to parse trusting transaction on " + this.id, {

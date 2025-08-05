@@ -4,7 +4,7 @@ import { Task, TodoProject } from "./1_schema";
 
 export function generateRandomProject(numTasks: number) {
   // Create a list of tasks
-  const tasks = TodoProject.def.shape.tasks.create([]);
+  const tasks = TodoProject.shape.tasks.create([]);
 
   // Generate random tasks
   function populateTasks() {

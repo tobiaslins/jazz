@@ -12,7 +12,7 @@ import {
 } from "vitest";
 import { Group, co, subscribeToCoValue, z } from "../exports.js";
 import { Account } from "../index.js";
-import { Loaded, anySchemaToCoSchema } from "../internal.js";
+import { Loaded, coValueClassFromCoValueClassOrSchema } from "../internal.js";
 import {
   createJazzTestAccount,
   getPeerConnectedToTestSyncServer,
@@ -117,10 +117,9 @@ describe("CoMap", async () => {
       expect(emptyMap.color).toEqual(undefined);
     });
 
-    test("CoMap with reference", () => {
+    test("create CoMap with reference using CoValue", () => {
       const Dog = co.map({
         name: z.string(),
-        breed: z.string(),
       });
 
       const Person = co.map({
@@ -132,19 +131,96 @@ describe("CoMap", async () => {
       const person = Person.create({
         name: "John",
         age: 20,
-        dog: Dog.create({ name: "Rex", breed: "Labrador" }),
+        dog: Dog.create({ name: "Rex" }),
       });
 
       expect(person.dog?.name).toEqual("Rex");
-      expect(person.dog?.breed).toEqual("Labrador");
+    });
+
+    describe("create CoMap with references using JSON", () => {
+      const Dog = co.map({
+        type: z.literal("dog"),
+        name: z.string(),
+      });
+      const Cat = co.map({
+        type: z.literal("cat"),
+        name: z.string(),
+      });
+
+      const Person = co.map({
+        name: co.plainText(),
+        bio: co.richText(),
+        dog: Dog,
+        get friends() {
+          return co.list(Person);
+        },
+        reactions: co.feed(co.plainText()),
+        pet: co.discriminatedUnion("type", [Dog, Cat]),
+      });
+
+      let person: ReturnType<typeof Person.create>;
+
+      beforeEach(() => {
+        person = Person.create({
+          name: "John",
+          bio: "I am a software engineer",
+          dog: { type: "dog", name: "Rex" },
+          friends: [
+            {
+              name: "Jane",
+              bio: "I am a mechanical engineer",
+              dog: { type: "dog", name: "Fido" },
+              friends: [],
+              reactions: [],
+              pet: { type: "dog", name: "Fido" },
+            },
+          ],
+          reactions: ["👎", "👍"],
+          pet: { type: "cat", name: "Whiskers" },
+        });
+      });
+
+      it("automatically creates CoValues for each CoValue reference", () => {
+        expect(person.name.toString()).toEqual("John");
+        expect(person.bio.toString()).toEqual("I am a software engineer");
+        expect(person.dog?.name).toEqual("Rex");
+        expect(person.friends.length).toEqual(1);
+        expect(person.friends[0]?.name.toString()).toEqual("Jane");
+        expect(person.friends[0]?.bio.toString()).toEqual(
+          "I am a mechanical engineer",
+        );
+        expect(person.friends[0]?.dog.name).toEqual("Fido");
+        expect(person.friends[0]?.friends.length).toEqual(0);
+        expect(person.reactions.byMe?.value?.toString()).toEqual("👍");
+        expect(person.pet.name).toEqual("Whiskers");
+      });
+
+      it("creates a group for each new CoValue that is a child of the referencing CoValue's owner", () => {
+        for (const value of Object.values(person)) {
+          expect(
+            value._owner.getParentGroups().map((group: Group) => group.id),
+          ).toContain(person._owner.id);
+        }
+        const friend = person.friends[0]!;
+        for (const value of Object.values(friend)) {
+          expect(
+            value._owner.getParentGroups().map((group: Group) => group.id),
+          ).toContain(friend._owner.id);
+        }
+      });
+
+      it("can create a coPlainText from an empty string", () => {
+        const Schema = co.map({ text: co.plainText() });
+        const map = Schema.create({ text: "" });
+        expect(map.text.toString()).toBe("");
+      });
     });
 
     test("CoMap with self reference", () => {
       const Person = co.map({
         name: z.string(),
         age: z.number(),
-        // TODO: would be nice if this didn't need a type annotation
-        get friend(): z.ZodOptional<typeof Person> {
+        get friend() {
           return co.optional(Person);
         },
       });
@@ -181,7 +257,7 @@ describe("CoMap", async () => {
       const Person = co.map({
         name: z.string(),
         age: z.number(),
-        get friend(): z.ZodOptional<typeof Person> {
+        get friend(): co.Optional<typeof Person> {
           return co.optional(Person);
         },
       });
@@ -210,7 +286,7 @@ describe("CoMap", async () => {
       const Person = co.map({
         name: z.string(),
         age: z.number(),
-        get friend(): z.ZodOptional<typeof Person> {
+        get friend() {
           return co.optional(Person);
         },
       });
@@ -290,6 +366,74 @@ describe("CoMap", async () => {
         name: "John",
         age: 30,
       });
+    });
+
+    it("should allow extra properties when catchall is provided", () => {
+      const Person = co
+        .map({
+          name: z.string(),
+          age: z.number(),
+        })
+        .catchall(z.string());
+
+      const person = Person.create({ name: "John", age: 20 });
+      expect(person.name).toEqual("John");
+      expect(person.age).toEqual(20);
+      expect(person.extra).toBeUndefined();
+
+      person.name = "Jane";
+      person.age = 28;
+      person.extra = "extra";
+
+      expect(person.name).toEqual("Jane");
+      expect(person.age).toEqual(28);
+      expect(person.extra).toEqual("extra");
+    });
+
+    test("CoMap with reference can be created with a shallowly resolved reference", async () => {
+      const Dog = co.map({
+        name: z.string(),
+        breed: z.string(),
+      });
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+        pet: Dog,
+        get friend() {
+          return Person.optional();
+        },
+      });
+
+      const group = Group.create();
+      group.addMember("everyone", "writer");
+
+      const pet = Dog.create({ name: "Rex", breed: "Labrador" }, group);
+      const personA = Person.create(
+        {
+          name: "John",
+          age: 20,
+          pet,
+        },
+        { owner: group },
+      );
+
+      const userB = await createJazzTestAccount();
+      const loadedPersonA = await Person.load(personA.id, {
+        resolve: true,
+        loadAs: userB,
+      });
+
+      expect(loadedPersonA).not.toBeNull();
+      assert(loadedPersonA);
+
+      const personB = Person.create({
+        name: "Jane",
+        age: 28,
+        pet,
+        friend: loadedPersonA,
+      });
+
+      expect(personB.friend?.pet.name).toEqual("Rex");
     });
   });
 
@@ -801,7 +945,7 @@ describe("CoMap resolution", async () => {
     const spy = vi.fn((person) => updates.push(person));
 
     subscribeToCoValue(
-      anySchemaToCoSchema(Person), // TODO: we should get rid of the conversion in the future
+      coValueClassFromCoValueClassOrSchema(Person), // TODO: we should get rid of the conversion in the future
       person.id,
       {
         syncResolution: true,
@@ -2037,69 +2181,271 @@ describe("CoMap migration", () => {
     expect(loaded?.friend?.name).toEqual("Charlie");
     expect(loaded?.friend?.version).toEqual(2);
   });
-  describe("Time", () => {
-    test("empty map created time", () => {
-      const currentTimestampInSeconds = Math.floor(Date.now() / 1000);
-      const emptyMap = co.map({}).create({});
-      const createdAtInSeconds = Math.floor(emptyMap._createdAt / 1000);
+});
 
-      expect(createdAtInSeconds).toEqual(currentTimestampInSeconds);
-      expect(emptyMap._lastUpdatedAt).toEqual(emptyMap._createdAt);
+describe("createdAt & lastUpdatedAt", () => {
+  test("empty map created time", () => {
+    const emptyMap = co.map({}).create({});
+
+    expect(emptyMap._lastUpdatedAt).toEqual(emptyMap._createdAt);
+  });
+
+  test("created time and last updated time", async () => {
+    const Person = co.map({
+      name: z.string(),
     });
 
-    test("created time and last updated time", async () => {
+    const person = Person.create({ name: "John" });
+
+    const createdAt = person._createdAt;
+    expect(person._lastUpdatedAt).toEqual(createdAt);
+
+    await new Promise((r) => setTimeout(r, 10));
+    person.name = "Jane";
+
+    expect(person._createdAt).toEqual(createdAt);
+    expect(person._lastUpdatedAt).not.toEqual(createdAt);
+  });
+});
+
+describe("co.map schema", () => {
+  test("can access the inner schemas of a co.map", () => {
+    const Person = co.map({
+      name: co.plainText(),
+    });
+
+    const person = Person.create({
+      name: Person.shape["name"].create("John"),
+    });
+
+    expect(person.name.toString()).toEqual("John");
+  });
+
+  describe("pick()", () => {
+    test("creates a new CoMap schema by picking fields of another CoMap schema", () => {
       const Person = co.map({
         name: z.string(),
+        age: z.number(),
       });
 
-      let currentTimestampInSeconds = Math.floor(Date.now() / 1000);
-      const person = Person.create({ name: "John" });
+      const PersonWithName = Person.pick({
+        name: true,
+      });
 
-      const createdAt = person._createdAt;
-      const createdAtInSeconds = Math.floor(createdAt / 1000);
-      expect(createdAtInSeconds).toEqual(currentTimestampInSeconds);
-      expect(person._lastUpdatedAt).toEqual(createdAt);
+      const person = PersonWithName.create({
+        name: "John",
+      });
 
-      await new Promise((r) => setTimeout(r, 1000));
-      currentTimestampInSeconds = Math.floor(Date.now() / 1000);
-      person.name = "Jane";
-
-      const lastUpdatedAtInSeconds = Math.floor(person._lastUpdatedAt / 1000);
-      expect(lastUpdatedAtInSeconds).toEqual(currentTimestampInSeconds);
-      expect(person._createdAt).toEqual(createdAt);
-      expect(person._lastUpdatedAt).not.toEqual(createdAt);
+      expect(person.name).toEqual("John");
     });
 
-    test("comap with custom uniqueness", () => {
+    test("the new schema does not include catchall properties", () => {
+      const Person = co
+        .map({
+          name: z.string(),
+          age: z.number(),
+        })
+        .catchall(z.string());
+
+      const PersonWithName = Person.pick({
+        name: true,
+      });
+
+      expect(PersonWithName.catchAll).toBeUndefined();
+
+      const person = PersonWithName.create({
+        name: "John",
+      });
+      // @ts-expect-error - property `extraField` does not exist in person
+      expect(person.extraField).toBeUndefined();
+    });
+  });
+
+  describe("partial()", () => {
+    test("creates a new CoMap schema by making all properties optional", () => {
+      const Dog = co.map({
+        name: z.string(),
+        breed: z.string(),
+      });
       const Person = co.map({
         name: z.string(),
+        age: z.number(),
+        pet: Dog,
       });
 
-      let currentTimestampInSeconds = Math.floor(Date.now() / 1000);
-      const person = Person.create(
-        { name: "John" },
-        { unique: "name", owner: Account.getMe() },
-      );
+      const DraftPerson = Person.partial();
 
-      const createdAt = person._createdAt;
-      const createdAtInSeconds = Math.floor(createdAt / 1000);
-      expect(createdAtInSeconds).toEqual(currentTimestampInSeconds);
+      const draftPerson = DraftPerson.create({});
+
+      expect(draftPerson.name).toBeUndefined();
+      expect(draftPerson.age).toBeUndefined();
+      expect(draftPerson.pet).toBeUndefined();
+
+      draftPerson.name = "John";
+      draftPerson.age = 20;
+      const rex = Dog.create({ name: "Rex", breed: "Labrador" });
+      draftPerson.pet = rex;
+
+      expect(draftPerson.name).toEqual("John");
+      expect(draftPerson.age).toEqual(20);
+      expect(draftPerson.pet).toEqual(rex);
     });
 
-    test("empty comap with custom uniqueness", () => {
-      const Person = co.map({
-        name: z.optional(z.string()),
-      });
+    test("the new schema includes catchall properties", () => {
+      const Person = co
+        .map({
+          name: z.string(),
+          age: z.number(),
+        })
+        .catchall(z.string());
 
-      let currentTimestampInSeconds = Math.floor(Date.now() / 1000);
-      const person = Person.create(
-        {},
-        { unique: "name", owner: Account.getMe() },
-      );
+      const DraftPerson = Person.partial();
 
-      const createdAt = person._createdAt;
-      const createdAtInSeconds = Math.floor(createdAt / 1000);
-      expect(createdAtInSeconds).toEqual(currentTimestampInSeconds);
+      const draftPerson = DraftPerson.create({});
+      draftPerson.extraField = "extra";
+
+      expect(draftPerson.extraField).toEqual("extra");
     });
+  });
+});
+
+describe("Updating a nested reference", () => {
+  test("should assign a resolved optional reference and expect value is not null", async () => {
+    // Define the schema similar to the server-worker-http example
+    const PlaySelection = co.map({
+      value: z.literal(["rock", "paper", "scissors"]),
+      group: Group,
+    });
+
+    const Player = co.map({
+      account: co.account(),
+      playSelection: PlaySelection.optional(),
+    });
+
+    const Game = co.map({
+      player1: Player,
+      player2: Player,
+      outcome: z.literal(["player1", "player2", "draw"]).optional(),
+      player1Score: z.number(),
+      player2Score: z.number(),
+    });
+
+    // Create accounts for the players
+    const player1Account = await createJazzTestAccount({
+      creationProps: { name: "Player 1" },
+    });
+    const player2Account = await createJazzTestAccount({
+      creationProps: { name: "Player 2" },
+    });
+
+    // Create a game
+    const game = Game.create({
+      player1: Player.create({
+        account: player1Account,
+      }),
+      player2: Player.create({
+        account: player2Account,
+      }),
+      player1Score: 0,
+      player2Score: 0,
+    });
+
+    // Create a group for the play selection (similar to the route logic)
+    const group = Group.create({ owner: Account.getMe() });
+    group.addMember(player1Account, "reader");
+
+    // Load the game to verify the assignment worked
+    const loadedGame = await Game.load(game.id, {
+      resolve: {
+        player1: {
+          account: true,
+          playSelection: true,
+        },
+        player2: {
+          account: true,
+          playSelection: true,
+        },
+      },
+    });
+
+    assert(loadedGame);
+
+    // Create a play selection
+    const playSelection = PlaySelection.create({ value: "rock", group }, group);
+
+    // Assign the play selection to player1 (similar to the route logic)
+    loadedGame.player1.playSelection = playSelection;
+
+    // Verify that the playSelection is not null and has the expected value
+    expect(loadedGame.player1.playSelection).not.toBeNull();
+    expect(loadedGame.player1.playSelection).toBeDefined();
+  });
+
+  test("should assign a resolved reference and expect value to update", async () => {
+    // Define the schema similar to the server-worker-http example
+    const PlaySelection = co.map({
+      value: z.literal(["rock", "paper", "scissors"]),
+    });
+
+    const Player = co.map({
+      account: co.account(),
+      playSelection: PlaySelection,
+    });
+
+    const Game = co.map({
+      player1: Player,
+      player2: Player,
+      outcome: z.literal(["player1", "player2", "draw"]).optional(),
+      player1Score: z.number(),
+      player2Score: z.number(),
+    });
+
+    // Create accounts for the players
+    const player1Account = await createJazzTestAccount({
+      creationProps: { name: "Player 1" },
+    });
+    const player2Account = await createJazzTestAccount({
+      creationProps: { name: "Player 2" },
+    });
+
+    // Create a game
+    const game = Game.create({
+      player1: Player.create({
+        account: player1Account,
+        playSelection: PlaySelection.create({ value: "rock" }),
+      }),
+      player2: Player.create({
+        account: player2Account,
+        playSelection: PlaySelection.create({ value: "paper" }),
+      }),
+      player1Score: 0,
+      player2Score: 0,
+    });
+
+    // Load the game to verify the assignment worked
+    const loadedGame = await Game.load(game.id, {
+      resolve: {
+        player1: {
+          account: true,
+          playSelection: true,
+        },
+        player2: {
+          account: true,
+          playSelection: true,
+        },
+      },
+    });
+
+    assert(loadedGame);
+
+    // Create a play selection
+    const playSelection = PlaySelection.create({ value: "scissors" });
+
+    // Assign the play selection to player1 (similar to the route logic)
+    loadedGame.player1.playSelection = playSelection;
+
+    // Verify that the playSelection is not null and has the expected value
+    expect(loadedGame.player1.playSelection.id).toBe(playSelection.id);
+    expect(loadedGame.player1.playSelection.value).toEqual("scissors");
   });
 });

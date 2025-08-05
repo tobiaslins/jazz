@@ -83,7 +83,7 @@ export function HowJazzWorksSection() {
       <div className="grid gap-3">
         <Kicker>How it works</Kicker>
 
-        <H2>Build entire apps using only client-side code</H2>
+        <H2>Build entire apps with collaborative state</H2>
       </div>
       <GappedGrid>
         <Step

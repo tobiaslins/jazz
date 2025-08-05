@@ -1,5 +1,36 @@
 # cojson
 
+## 0.16.4
+
+### Patch Changes
+
+- f9d538f: Fix the error raised when extending a group without having child groups loaded
+- 802b5a3: Refactor local updates sync to ensure that the changes are synced respecting the insertion order
+
+## 0.16.3
+
+## 0.16.2
+
+## 0.16.1
+
+## 0.16.0
+
+### Minor Changes
+
+- c09dcdf: Change the root attribute to be public on Account. The root content will still follow the visiblity rules specified in their group.
+
+  Existing accounts will be gradually migrated as they are loaded.
+
+## 0.15.16
+
+## 0.15.15
+
+## 0.15.14
+
+### Patch Changes
+
+- 70ce7c5: Introduce the persistent peers. Used to mark the WebSocket connections to the server as persistent, and wait for reconnection before failing load.
+
 ## 0.15.13
 
 ## 0.15.12

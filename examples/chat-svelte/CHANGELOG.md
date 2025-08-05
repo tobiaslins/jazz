@@ -1,5 +1,72 @@
 # passkey-svelte
 
+## 0.0.110
+
+### Patch Changes
+
+- Updated dependencies [16764f6]
+  - jazz-tools@0.16.4
+
+## 0.0.109
+
+### Patch Changes
+
+- Updated dependencies [43d3511]
+  - jazz-tools@0.16.3
+
+## 0.0.108
+
+### Patch Changes
+
+- jazz-tools@0.16.2
+
+## 0.0.107
+
+### Patch Changes
+
+- Updated dependencies [c62abef]
+  - jazz-tools@0.16.1
+
+## 0.0.106
+
+### Patch Changes
+
+- 2bbb07b: Introduce a cleaner separation between Zod and CoValue schemas:
+  - Zod schemas and CoValue schemas are fully separated. Zod schemas can only be composed with other Zod schemas. CoValue schemas can be composed with either Zod or other CoValue schemas.
+  - `z.optional()` and `z.discriminatedUnion()` no longer work with CoValue schemas. Use `co.optional()` and `co.discriminatedUnion()` instead.
+  - Internal schema access is now simpler. You no longer need to use Zod’s `.def` to access internals. Use properties like `CoMapSchema.shape`, `CoListSchema.element`, and `CoOptionalSchema.innerType` directly.
+  - CoValue schema types are now namespaced under `co.`. Non-namespaced exports have been removed
+  - CoMap schemas no longer incorrectly inherit from Zod. Previously, methods like `.extend()` and `.partial()` appeared available but could cause unexpected behavior. These methods are now disabled. In their place, `.optional()` has been added, and more Zod-like methods will be introduced in future releases.
+  - Upgraded Zod from `3.25.28` to `3.25.76`.
+  - Removed deprecated `withHelpers` method from CoValue schemas
+  - Removed deprecated `createCoValueObservable` function
+- Updated dependencies [c09dcdf]
+- Updated dependencies [2bbb07b]
+  - jazz-tools@0.16.0
+
+## 0.0.105
+
+### Patch Changes
+
+- Updated dependencies [9633d01]
+- Updated dependencies [4beafb7]
+  - jazz-tools@0.15.16
+
+## 0.0.104
+
+### Patch Changes
+
+- Updated dependencies [3fe53a3]
+  - jazz-tools@0.15.15
+
+## 0.0.103
+
+### Patch Changes
+
+- Updated dependencies [a584590]
+- Updated dependencies [9acccb5]
+  - jazz-tools@0.15.14
+
 ## 0.0.102
 
 ### Patch Changes

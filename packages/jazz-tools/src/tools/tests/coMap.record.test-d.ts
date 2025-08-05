@@ -81,9 +81,10 @@ describe("CoMap.Record", () => {
     });
 
     test("Record create with partially loaded, reference and optional", () => {
+      const Breed = co.map({ type: z.literal("labrador"), value: z.string() });
       const Dog = co.map({
         name: z.string(),
-        breed: co.map({ type: z.literal("labrador"), value: z.string() }),
+        breed: Breed,
       });
       type Dog = co.loaded<typeof Dog>;
 
@@ -91,11 +92,11 @@ describe("CoMap.Record", () => {
 
       const dog = Dog.create({
         name: "Rex",
-        breed: Dog.def.shape.breed.create({
+        breed: Breed.create({
           type: "labrador",
           value: "Labrador",
         }),
-      }) as Dog;
+      });
 
       const record = DogRecord.create({
         pet1: dog,
@@ -111,6 +112,33 @@ describe("CoMap.Record", () => {
       }
 
       matches(record);
+    });
+
+    test("Record with recursive reference", () => {
+      const Dog = co.map({
+        name: z.string(),
+        get owner() {
+          return Person.optional();
+        },
+      });
+
+      const Person = co.record(z.string(), Dog);
+
+      const person = Person.create({
+        pet1: Dog.create({ name: "Rex" }),
+      });
+
+      person.pet1!.owner = person;
+
+      type ExpectedType = {
+        [key: string]: Loaded<typeof Dog> | undefined;
+      };
+
+      function matches(value: ExpectedType) {
+        return value;
+      }
+
+      matches(person);
     });
   });
 
