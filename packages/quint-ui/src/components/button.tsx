@@ -14,9 +14,9 @@ export function Button({ render = <button />, ...props }: ButtonProps) {
     props: mergeProps<"button">(
       {
         className: button({
-          size: props.size,
-          variant: props.variant,
-          intent: props.intent,
+          size: props.size || "md",
+          variant: props.variant || "default",
+          intent: props.intent || "default",
         }),
       },
       props,
