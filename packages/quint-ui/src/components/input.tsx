@@ -30,18 +30,19 @@ export default function Input({
 }
 
 const input = tv({
-  base: "w-full rounded-md border border-gray-200 pl-3.5 text-base text-gray-900 focus:outline",
+  base: "w-full rounded-md border pl-3.5 text-base text-gray-900",
   variants: {
     base: "w-full rounded-md border px-2.5 py-1 shadow-sm h-[36px] font-medium text-stone-900 dark:text-white dark:bg-stone-925",
     intent: {
-      default: "focus:outline-blue-800",
-      primary: "focus:outline-blue-800",
-      secondary: "focus:outline-blue-800",
-      success: "focus:outline-blue-800",
-      warning: "focus:outline-blue-800",
-      danger: "focus:outline-blue-800",
-      muted: "focus:outline-blue-800",
-      strong: "focus:outline-blue-800",
+      default: "border-stone-500/50 focus:ring-stone-800/50",
+      primary: "border-primary focus:ring-blue/50",
+      success: "border-success focus:ring-green/50",
+      warning: "border-warning focus:ring-yellow/50",
+      danger: "border-danger focus:ring-red/50",
+      info: "border-info focus:ring-blue/50",
+      tip: "border-tip focus:ring-cyan/50",
+      muted: "border-muted focus:ring-gray/50",
+      strong: "border-strong focus:ring-stone-900/50",
     },
     sizeStyle: {
       sm: "text-sm py-1 px-2 [&>svg]:size-4 h-7",

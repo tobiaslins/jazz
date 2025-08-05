@@ -8,7 +8,7 @@ export default function InputPage() {
       <h2 className="text-2xl mb-2 font-bold">Input</h2>
       <p className="mb-3">
         Inputs are used in conjunction with a label and can be styled with the
-        size prop.
+        intent and size props.
       </p>
       <div className="flex flex-row gap-2">
         <Label htmlFor="input">Label</Label>
@@ -16,33 +16,33 @@ export default function InputPage() {
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="input">Label</Label>
-        <Input id="input" />
+        <Input id="input" intent="primary" />
       </div>
 
       <div className="flex flex-row gap-2">
         <Label htmlFor="input" size="sm">
           Label
         </Label>
-        <Input id="input" sizeStyle="sm" />
+        <Input id="input" intent="tip" sizeStyle="sm" />
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="input" size="sm">
           Label
         </Label>
-        <Input id="input" sizeStyle="sm" />
+        <Input id="input" intent="info" sizeStyle="sm" />
       </div>
 
       <div className="flex flex-row gap-2">
         <Label htmlFor="input" size="lg">
           Label
         </Label>
-        <Input id="input" sizeStyle="lg" />
+        <Input id="input" intent="warning" sizeStyle="lg" />
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="input" size="lg">
           Label
         </Label>
-        <Input id="input" sizeStyle="lg" />
+        <Input id="input" intent="danger" sizeStyle="lg" />
       </div>
 
       <p>
