@@ -118,6 +118,7 @@ export function createWebSocketPeer({
     websocket,
     batchingByDefault,
     role,
+    meta,
   );
   let isFirstMessage = true;
 
