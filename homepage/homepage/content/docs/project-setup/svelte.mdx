@@ -33,13 +33,13 @@ import { Account, Profile, coField } from "jazz-tools";
 export class MyProfile extends Profile {
   name = coField.string;
   counter = coField.number; // This will be publicly visible
-}
+};
 
 export class MyAccount extends Account {
   profile = coField.ref(MyProfile);
 
   // ...
-}
+};
 ```
 </CodeGroup>
 
@@ -49,9 +49,9 @@ export class MyAccount extends Account {
 ```svelte
 <!-- src/routes/+layout.svelte -->
 <script lang="ts">
-  import { JazzSvelteProvider } from 'jazz-tools/svelte';
+  import { JazzSvelteProvider } from "jazz-tools/svelte";
 
-  let { children } = $props()
+  let { children } = $props();
 
   // Example configuration for authentication and peer connection
   let sync = { peer: "wss://cloud.jazz.tools/?key=you@example.com" };
@@ -69,11 +69,11 @@ export class MyAccount extends Account {
 ```svelte
 <!-- src/routes/+page.svelte -->
 <script lang="ts">
-	import { CoState, AccountCoState } from 'jazz-tools/svelte'
-	import { MyProfile, UserAccount } from '$lib/schema'
+	import { CoState, AccountCoState } from "jazz-tools/svelte";
+	import { MyProfile, UserAccount } from "$lib/schema";
 
-	const me = new AccountCoState(UserAccount)
-	const profile = new CoState(MyProfile, me.current?._refs.profile?.id)
+	const me = new AccountCoState(UserAccount);
+	const profile = new CoState(MyProfile, me.current?._refs.profile?.id);
 
   function increment() {
     if (!profile.current) return;
