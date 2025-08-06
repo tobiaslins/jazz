@@ -28,18 +28,19 @@ See the [schema docs](/docs/schemas/covalues) for more information.
 <CodeGroup>
 ```ts
 // src/lib/schema.ts
-import { Account, Profile, coField } from "jazz-tools";
+import { co, z } from "jazz-tools"
 
-export class MyProfile extends Profile {
-  name = coField.string;
-  counter = coField.number; // This will be publicly visible
-};
+export const MyProfile = co.profile({
+	name: z.string(),
+	counter: z.number()
+});
 
-export class MyAccount extends Account {
-  profile = coField.ref(MyProfile);
+export const root = co.map({});
 
-  // ...
-};
+export const UserAccount = co.account({
+	root,
+	profile: MyProfile
+});
 ```
 </CodeGroup>
 
