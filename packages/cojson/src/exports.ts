@@ -63,9 +63,9 @@ import { DisconnectedError, SyncManager, emptyKnownState } from "./sync.js";
 
 import {
   getContentMessageSize,
-  getDependedOnCoValuesFromRawData,
   getTransactionSize,
-} from "./coValueCore/utils.js";
+} from "./coValueContentMessage.js";
+import { getDependedOnCoValuesFromRawData } from "./coValueCore/utils.js";
 import {
   CO_VALUE_LOADING_CONFIG,
   MAX_RECOMMENDED_TX_SIZE,
