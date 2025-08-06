@@ -16,25 +16,15 @@ import {
   SignerID,
   StreamingHash,
 } from "../crypto/crypto.js";
-import {
-  RawCoID,
-  SessionID,
-  TransactionID,
-  getParentGroupId,
-  isParentGroupReference,
-} from "../ids.js";
+import { RawCoID, SessionID, TransactionID } from "../ids.js";
 import { parseJSON, stableStringify } from "../jsonStringify.js";
 import { JsonValue } from "../jsonValue.js";
 import { LocalNode, ResolveAccountAgentError } from "../localNode.js";
 import { logger } from "../logger.js";
-import {
-  determineValidTransactions,
-  isKeyForKeyField,
-} from "../permissions.js";
+import { determineValidTransactions } from "../permissions.js";
 import { CoValueKnownState, PeerID, emptyKnownState } from "../sync.js";
 import { accountOrAgentIDfromSessionID } from "../typeUtils/accountOrAgentIDfromSessionID.js";
 import { expectGroup } from "../typeUtils/expectGroup.js";
-import { isAccountID } from "../typeUtils/isAccountID.js";
 import { getDependedOnCoValuesFromRawData } from "./utils.js";
 import { CoValueHeader, Transaction, VerifiedState } from "./verifiedState.js";
 
@@ -52,8 +42,6 @@ export type DecryptedTransaction = {
   madeAt: number;
   trusting?: boolean;
 };
-
-const readKeyCache = new WeakMap<CoValueCore, { [id: KeyID]: KeySecret }>();
 
 export type AvailableCoValueCore = CoValueCore & { verified: VerifiedState };
 
@@ -776,7 +764,7 @@ export class CoValueCore {
         throw new Error("No readKey set");
       }
 
-      const secret = this.getReadKey(currentKeyId);
+      const secret = content.getReadKey(currentKeyId);
 
       return {
         secret: secret,
@@ -793,181 +781,41 @@ export class CoValueCore {
     }
   }
 
+  readKeyCache = new Map<KeyID, KeySecret>();
   getReadKey(keyID: KeyID): KeySecret | undefined {
-    let key = readKeyCache.get(this)?.[keyID];
-    if (!key) {
-      key = this.getUncachedReadKey(keyID);
-      if (key) {
-        let cache = readKeyCache.get(this);
-        if (!cache) {
-          cache = {};
-          readKeyCache.set(this, cache);
-        }
-        cache[keyID] = key;
-      }
-    }
-    return key;
-  }
+    // We want to check the cache here, to skip re-computing the group content
+    const cachedSecret = this.readKeyCache.get(keyID);
 
-  getUncachedReadKey(keyID: KeyID): KeySecret | undefined {
+    if (cachedSecret) {
+      return cachedSecret;
+    }
+
     if (!this.verified) {
       throw new Error(
         "CoValueCore: getUncachedReadKey called on coValue without verified state",
       );
     }
 
+    // Getting the readKey from accounts
     if (this.verified.header.ruleset.type === "group") {
       const content = expectGroup(
-        this.getCurrentContent({ ignorePrivateTransactions: true }), // to prevent recursion
-      );
-      const keyForEveryone = content.get(`${keyID}_for_everyone`);
-      if (keyForEveryone) {
-        return keyForEveryone;
-      }
-
-      // Try to find key revelation for us
-      const currentAgentOrAccountID = accountOrAgentIDfromSessionID(
-        this.node.currentSessionID,
+        // load the account without private transactions, because we are here
+        // to be able to decrypt those
+        this.getCurrentContent({ ignorePrivateTransactions: true }),
       );
 
-      // being careful here to avoid recursion
-      const lookupAccountOrAgentID = isAccountID(currentAgentOrAccountID)
-        ? this.id === currentAgentOrAccountID
-          ? this.crypto.getAgentID(this.node.agentSecret) // in accounts, the read key is revealed for the primitive agent
-          : currentAgentOrAccountID // current account ID
-        : currentAgentOrAccountID; // current agent ID
-
-      const lastReadyKeyEdit = content.lastEditAt(
-        `${keyID}_for_${lookupAccountOrAgentID}`,
-      );
-
-      if (lastReadyKeyEdit?.value) {
-        const revealer = lastReadyKeyEdit.by;
-        const revealerAgent = this.node
-          .resolveAccountAgent(revealer, "Expected to know revealer")
-          ._unsafeUnwrap({ withStackTrace: true });
-
-        const secret = this.crypto.unseal(
-          lastReadyKeyEdit.value,
-          this.crypto.getAgentSealerSecret(this.node.agentSecret), // being careful here to avoid recursion
-          this.crypto.getAgentSealerID(revealerAgent),
-          {
-            in: this.id,
-            tx: lastReadyKeyEdit.tx,
-          },
-        );
-
-        if (secret) {
-          return secret as KeySecret;
-        }
-      }
-
-      // Try to find indirect revelation through previousKeys
-
-      for (const co of content.keys()) {
-        if (isKeyForKeyField(co) && co.startsWith(keyID)) {
-          const encryptingKeyID = co.split("_for_")[1] as KeyID;
-          const encryptingKeySecret = this.getReadKey(encryptingKeyID);
-
-          if (!encryptingKeySecret) {
-            continue;
-          }
-
-          const encryptedPreviousKey = content.get(co)!;
-
-          const secret = this.crypto.decryptKeySecret(
-            {
-              encryptedID: keyID,
-              encryptingID: encryptingKeyID,
-              encrypted: encryptedPreviousKey,
-            },
-            encryptingKeySecret,
-          );
-
-          if (secret) {
-            return secret as KeySecret;
-          } else {
-            logger.warn(
-              `Encrypting ${encryptingKeyID} key didn't decrypt ${keyID}`,
-            );
-          }
-        }
-      }
-
-      // try to find revelation to parent group read keys
-      for (const co of content.keys()) {
-        if (isParentGroupReference(co)) {
-          const parentGroupID = getParentGroupId(co);
-          const parentGroup = this.node.expectCoValueLoaded(
-            parentGroupID,
-            "Expected parent group to be loaded",
-          );
-
-          const parentKeys = this.findValidParentKeys(
-            keyID,
-            content,
-            parentGroup,
-          );
-
-          for (const parentKey of parentKeys) {
-            const revelationForParentKey = content.get(
-              `${keyID}_for_${parentKey.id}`,
-            );
-
-            if (revelationForParentKey) {
-              const secret = parentGroup.crypto.decryptKeySecret(
-                {
-                  encryptedID: keyID,
-                  encryptingID: parentKey.id,
-                  encrypted: revelationForParentKey,
-                },
-                parentKey.secret,
-              );
-
-              if (secret) {
-                return secret as KeySecret;
-              } else {
-                logger.warn(
-                  `Encrypting parent ${parentKey.id} key didn't decrypt ${keyID}`,
-                );
-              }
-            }
-          }
-        }
-      }
-
-      return undefined;
+      return content.getReadKey(keyID);
     } else if (this.verified.header.ruleset.type === "ownedByGroup") {
-      return this.node
-        .expectCoValueLoaded(this.verified.header.ruleset.group)
-        .getReadKey(keyID);
+      return expectGroup(
+        this.node
+          .expectCoValueLoaded(this.verified.header.ruleset.group)
+          .getCurrentContent(),
+      ).getReadKey(keyID);
     } else {
       throw new Error(
         "Only groups or values owned by groups have read secrets",
       );
     }
-  }
-
-  findValidParentKeys(keyID: KeyID, group: RawGroup, parentGroup: CoValueCore) {
-    const validParentKeys: { id: KeyID; secret: KeySecret }[] = [];
-
-    for (const co of group.keys()) {
-      if (isKeyForKeyField(co) && co.startsWith(keyID)) {
-        const encryptingKeyID = co.split("_for_")[1] as KeyID;
-        const encryptingKeySecret = parentGroup.getReadKey(encryptingKeyID);
-
-        if (!encryptingKeySecret) {
-          continue;
-        }
-
-        validParentKeys.push({
-          id: encryptingKeyID,
-          secret: encryptingKeySecret,
-        });
-      }
-    }
-
-    return validParentKeys;
   }
 
   getGroup(): RawGroup {
