@@ -3,21 +3,27 @@ import { RawCoList } from "../coValues/coList.js";
 import { RawCoMap } from "../coValues/coMap.js";
 import { RawCoStream } from "../coValues/coStream.js";
 import { RawBinaryCoStream } from "../coValues/coStream.js";
-import { WasmCrypto } from "../crypto/WasmCrypto.js";
-import { RawAccountID } from "../exports.js";
-import { NewContentMessage } from "../sync.js";
-import { expectGroup } from "../typeUtils/expectGroup.js";
+import type { RawCoValue, RawGroup } from "../exports.js";
+import type { NewContentMessage } from "../sync.js";
 import {
   createThreeConnectedNodes,
   createTwoConnectedNodes,
   loadCoValueOrFail,
   nodeWithRandomAgentAndSessionID,
-  randomAgentAndSessionID,
   setupTestNode,
-  waitFor,
 } from "./testUtils.js";
 
-const Crypto = await WasmCrypto.create();
+function expectGroup(content: RawCoValue): RawGroup {
+  if (content.type !== "comap") {
+    throw new Error("Expected group");
+  }
+
+  if (content.core.verified.header.ruleset.type !== "group") {
+    throw new Error("Expected group ruleset in group");
+  }
+
+  return content as RawGroup;
+}
 
 test("Can create a RawCoMap in a group", () => {
   const node = nodeWithRandomAgentAndSessionID();
@@ -310,7 +316,7 @@ test("Invites should have access to the new keys", async () => {
   expect(mapOnNode2.get("test")).toEqual("Written from node1");
 });
 
-test.only("Should heal the missing key_for_everyone", async () => {
+test("Should heal the missing key_for_everyone", async () => {
   const client = setupTestNode({
     secret:
       "sealerSecret_zBTPp7U58Fzq9o7EvJpu4KEziepi8QVf2Xaxuy5xmmXFx/signerSecret_z62DuviZdXCjz4EZWofvr9vaLYFXDeTaC9KWhoQiQjzKk",
@@ -396,11 +402,9 @@ test.only("Should heal the missing key_for_everyone", async () => {
     client.node.getCoValue(brokenGroupContent.id).getCurrentContent(),
   );
 
-  await waitFor(() => {
-    expect(group.get(`${group.get("readKey")!}_for_everyone`)).toBe(
-      group.core.getCurrentReadKey()?.secret,
-    );
-  });
+  expect(group.get(`${group.get("readKey")!}_for_everyone`)).toBe(
+    group.core.getCurrentReadKey()?.secret,
+  );
 });
 
 describe("writeOnly", () => {

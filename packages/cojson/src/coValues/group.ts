@@ -4,8 +4,8 @@ import type {
   AvailableCoValueCore,
   CoValueCore,
 } from "../coValueCore/coValueCore.js";
-import { CoValueUniqueness } from "../coValueCore/verifiedState.js";
-import {
+import type { CoValueUniqueness } from "../coValueCore/verifiedState.js";
+import type {
   CryptoProvider,
   Encrypted,
   KeyID,
@@ -70,6 +70,7 @@ function healMissingKeyForEveryone(group: RawGroup) {
   if (
     readKeyId &&
     canRead(group, EVERYONE) &&
+    canRead(group, group.core.node.getCurrentAgent().id) && // The current account is an explicit member of this group
     !group.get(`${readKeyId}_for_${EVERYONE}`)
   ) {
     const secret = group.getReadKey(readKeyId);
