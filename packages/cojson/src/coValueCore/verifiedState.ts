@@ -21,7 +21,6 @@ import { PermissionsDef as RulesetDef } from "../permissions.js";
 import { CoValueKnownState, NewContentMessage } from "../sync.js";
 import { InvalidHashError, InvalidSignatureError } from "./coValueCore.js";
 import { TryAddTransactionsError } from "./coValueCore.js";
-import { getTransactionSize } from "./utils.js";
 
 export type CoValueHeader = {
   type: AnyRawCoValue["type"];
