@@ -107,7 +107,6 @@ export {
   type CoreAccountSchema as AnyAccountSchema,
   type ResolveQuery,
   type ResolveQueryStrict,
-  type InitFor,
 } from "./internal.js";
 
 export {

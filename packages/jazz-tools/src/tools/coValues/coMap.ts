@@ -37,6 +37,7 @@ import {
   activeAccountContext,
   ensureCoValueLoaded,
   inspect,
+  instantiateRefEncodedWithInit,
   isRefEncoded,
   loadCoValueWithoutMe,
   makeRefs,
@@ -424,8 +425,17 @@ export class CoMap extends CoValueBase implements CoValue {
         if (descriptor === "json") {
           rawInit[key] = initValue as JsonValue;
         } else if (isRefEncoded(descriptor)) {
-          if (initValue) {
-            rawInit[key] = (initValue as unknown as CoValue).id;
+          if (initValue != null) {
+            let refId = (initValue as unknown as CoValue).id;
+            if (!refId) {
+              const coValue = instantiateRefEncodedWithInit(
+                descriptor,
+                initValue,
+                owner,
+              );
+              refId = coValue.id;
+            }
+            rawInit[key] = refId;
           }
         } else if ("encoded" in descriptor) {
           rawInit[key] = descriptor.encoded.encode(

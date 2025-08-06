@@ -29,6 +29,7 @@ import {
   coValuesCache,
   ensureCoValueLoaded,
   inspect,
+  instantiateRefEncodedWithInit,
   isRefEncoded,
   loadCoValueWithoutMe,
   makeRefs,
@@ -240,7 +241,7 @@ export class CoList<out Item = any> extends Array<Item> implements CoValue {
     const { owner } = parseCoValueCreateOptions(options);
     const instance = new this({ init: items, owner });
     const raw = owner._raw.createList(
-      toRawItems(items, instance._schema[ItemsSym]),
+      toRawItems(items, instance._schema[ItemsSym], owner),
     );
 
     Object.defineProperties(instance, {
@@ -256,7 +257,7 @@ export class CoList<out Item = any> extends Array<Item> implements CoValue {
 
   push(...items: Item[]): number {
     this._raw.appendItems(
-      toRawItems(items, this._schema[ItemsSym]),
+      toRawItems(items, this._schema[ItemsSym], this._owner),
       undefined,
       "private",
     );
@@ -265,7 +266,11 @@ export class CoList<out Item = any> extends Array<Item> implements CoValue {
   }
 
   unshift(...items: Item[]): number {
-    for (const item of toRawItems(items as Item[], this._schema[ItemsSym])) {
+    for (const item of toRawItems(
+      items as Item[],
+      this._schema[ItemsSym],
+      this._owner,
+    )) {
       this._raw.prepend(item);
     }
 
@@ -306,7 +311,11 @@ export class CoList<out Item = any> extends Array<Item> implements CoValue {
       this._raw.delete(idxToDelete);
     }
 
-    const rawItems = toRawItems(items as Item[], this._schema[ItemsSym]);
+    const rawItems = toRawItems(
+      items as Item[],
+      this._schema[ItemsSym],
+      this._owner,
+    );
 
     // If there are no items to insert, return the deleted items
     if (rawItems.length === 0) {
@@ -551,23 +560,36 @@ export class CoList<out Item = any> extends Array<Item> implements CoValue {
  * Convert an array of items to a raw array of items.
  * @param items - The array of items to convert.
  * @param itemDescriptor - The descriptor of the items.
+ * @param owner - The owner of the CoList.
  * @returns The raw array of items.
  */
-function toRawItems<Item>(items: Item[], itemDescriptor: Schema) {
-  const rawItems =
-    itemDescriptor === "json"
-      ? (items as JsonValue[])
-      : "encoded" in itemDescriptor
-        ? items?.map((e) => itemDescriptor.encoded.encode(e))
-        : isRefEncoded(itemDescriptor)
-          ? items?.map((v) => {
-              if (!v) return null;
-
-              return (v as unknown as CoValue).id;
-            })
-          : (() => {
-              throw new Error("Invalid element descriptor");
-            })();
+function toRawItems<Item>(
+  items: Item[],
+  itemDescriptor: Schema,
+  owner: Account | Group,
+) {
+  let rawItems: JsonValue[] = [];
+  if (itemDescriptor === "json") {
+    rawItems = items as JsonValue[];
+  } else if ("encoded" in itemDescriptor) {
+    rawItems = items?.map((e) => itemDescriptor.encoded.encode(e));
+  } else if (isRefEncoded(itemDescriptor)) {
+    rawItems = items?.map((value) => {
+      if (value == null) return null;
+      let refId = (value as unknown as CoValue).id;
+      if (!refId) {
+        const coValue = instantiateRefEncodedWithInit(
+          itemDescriptor,
+          value,
+          owner,
+        );
+        refId = coValue.id;
+      }
+      return refId;
+    });
+  } else {
+    throw new Error("Invalid element descriptor");
+  }
   return rawItems;
 }
 

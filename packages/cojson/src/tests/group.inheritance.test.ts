@@ -1,9 +1,18 @@
-import { describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import {
+  SyncMessagesLog,
   createThreeConnectedNodes,
   createTwoConnectedNodes,
   loadCoValueOrFail,
+  setupTestNode,
 } from "./testUtils";
+
+let jazzCloud: ReturnType<typeof setupTestNode>;
+
+beforeEach(async () => {
+  SyncMessagesLog.clear();
+  jazzCloud = setupTestNode({ isSyncServer: true });
+});
 
 describe("extend", () => {
   test("inherited writer roles should work correctly", async () => {
@@ -138,6 +147,132 @@ describe("extend", () => {
     group3.extend(group);
 
     const map = group.createMap();
+    map.set("test", "Hello!");
+
+    expect(map.get("test")).toEqual("Hello!");
+  });
+
+  test("should not break when checking for cycles on a loaded group", async () => {
+    const clientSession1 = setupTestNode({
+      connected: true,
+    });
+    const clientSession2 = clientSession1.spawnNewSession();
+
+    const group = clientSession1.node.createGroup();
+    const childGroup = clientSession1.node.createGroup();
+    const group2 = clientSession1.node.createGroup();
+    const group3 = clientSession1.node.createGroup();
+
+    childGroup.extend(group);
+    group.extend(group2);
+    group2.extend(group3);
+
+    await group.core.waitForSync();
+    await childGroup.core.waitForSync();
+    await group2.core.waitForSync();
+    await group3.core.waitForSync();
+
+    const groupOnClientSession2 = await loadCoValueOrFail(
+      clientSession2.node,
+      group.id,
+    );
+    const group3OnClientSession2 = await loadCoValueOrFail(
+      clientSession2.node,
+      group3.id,
+    );
+
+    expect(group3OnClientSession2.isSelfExtension(groupOnClientSession2)).toBe(
+      true,
+    );
+
+    // Child groups are not loaded as dependencies, and we want to make sure having a missing child doesn't break the extension
+    expect(clientSession2.node.getCoValue(childGroup.id).isAvailable()).toEqual(
+      false,
+    );
+
+    group3OnClientSession2.extend(groupOnClientSession2);
+
+    expect(group3OnClientSession2.getParentGroups()).toEqual([]);
+
+    const map = group3OnClientSession2.createMap();
+    map.set("test", "Hello!");
+
+    expect(map.get("test")).toEqual("Hello!");
+  });
+
+  test("should extend groups when loaded from a different session", async () => {
+    const clientSession1 = setupTestNode({
+      connected: true,
+    });
+    const clientSession2 = clientSession1.spawnNewSession();
+
+    const group = clientSession1.node.createGroup();
+    const group2 = clientSession1.node.createGroup();
+
+    await group.core.waitForSync();
+    await group2.core.waitForSync();
+
+    const groupOnClientSession2 = await loadCoValueOrFail(
+      clientSession2.node,
+      group.id,
+    );
+    const group2OnClientSession2 = await loadCoValueOrFail(
+      clientSession2.node,
+      group2.id,
+    );
+
+    group2OnClientSession2.extend(groupOnClientSession2);
+
+    expect(group2OnClientSession2.getParentGroups()).toEqual([
+      groupOnClientSession2,
+    ]);
+
+    const map = group2OnClientSession2.createMap();
+    map.set("test", "Hello!");
+
+    expect(map.get("test")).toEqual("Hello!");
+  });
+
+  test("should extend groups when there is a cycle in the parent groups", async () => {
+    const clientSession1 = setupTestNode({
+      connected: true,
+    });
+    const clientSession2 = clientSession1.spawnNewSession();
+
+    const group = clientSession1.node.createGroup();
+    const group2 = clientSession1.node.createGroup();
+
+    await group.core.waitForSync();
+    await group2.core.waitForSync();
+
+    const groupOnClientSession2 = await loadCoValueOrFail(
+      clientSession2.node,
+      group.id,
+    );
+    const group2OnClientSession2 = await loadCoValueOrFail(
+      clientSession2.node,
+      group2.id,
+    );
+
+    group.extend(group2);
+    group2OnClientSession2.extend(groupOnClientSession2);
+
+    expect(group.getParentGroups()).toEqual([group2]);
+
+    expect(group2OnClientSession2.getParentGroups()).toEqual([
+      groupOnClientSession2,
+    ]);
+
+    await group.core.waitForSync();
+    await group2OnClientSession2.core.waitForSync();
+
+    const group3 = clientSession1.node.createGroup();
+
+    group3.extend(group2);
+
+    expect(group3.getParentGroups()).toEqual([group2]);
+
+    const map = group3.createMap();
     map.set("test", "Hello!");
 
     expect(map.get("test")).toEqual("Hello!");

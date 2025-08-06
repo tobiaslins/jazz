@@ -1,4 +1,4 @@
-import { Loaded, co, z } from "jazz-tools";
+import { co, z } from "jazz-tools";
 
 export const BubbleTeaAddOnTypes = [
   "Pearl",
@@ -18,8 +18,9 @@ export const BubbleTeaBaseTeaTypes = [
 export const ListOfBubbleTeaAddOns = co.list(
   z.literal([...BubbleTeaAddOnTypes]),
 );
+export type ListOfBubbleTeaAddOns = co.loaded<typeof ListOfBubbleTeaAddOns>;
 
-function hasAddOnsChanges(list?: Loaded<typeof ListOfBubbleTeaAddOns> | null) {
+function hasAddOnsChanges(list?: ListOfBubbleTeaAddOns | null) {
   return list && Object.entries(list._raw.insertions).length > 0;
 }
 
@@ -30,16 +31,12 @@ export const BubbleTeaOrder = co.map({
   withMilk: z.boolean(),
   instructions: co.optional(co.plainText()),
 });
+export type BubbleTeaOrder = co.loaded<typeof BubbleTeaOrder>;
 
-export const DraftBubbleTeaOrder = co.map({
-  baseTea: z.optional(z.literal([...BubbleTeaBaseTeaTypes])),
-  addOns: co.optional(ListOfBubbleTeaAddOns),
-  deliveryDate: z.optional(z.date()),
-  withMilk: z.optional(z.boolean()),
-  instructions: co.optional(co.plainText()),
-});
+export const DraftBubbleTeaOrder = BubbleTeaOrder.partial();
+export type DraftBubbleTeaOrder = co.loaded<typeof DraftBubbleTeaOrder>;
 
-export function validateDraftOrder(order: Loaded<typeof DraftBubbleTeaOrder>) {
+export function validateDraftOrder(order: DraftBubbleTeaOrder) {
   const errors: string[] = [];
 
   if (!order.baseTea) {
@@ -52,7 +49,7 @@ export function validateDraftOrder(order: Loaded<typeof DraftBubbleTeaOrder>) {
   return { errors };
 }
 
-export function hasChanges(order?: Loaded<typeof DraftBubbleTeaOrder> | null) {
+export function hasChanges(order?: DraftBubbleTeaOrder | null) {
   return (
     !!order &&
     (Object.keys(order._edits).length > 1 || hasAddOnsChanges(order.addOns))
@@ -73,15 +70,9 @@ export const JazzAccount = co
   })
   .withMigration((account) => {
     if (!account.root) {
-      const orders = co.list(BubbleTeaOrder).create([], account);
-      const draft = DraftBubbleTeaOrder.create(
-        {
-          addOns: ListOfBubbleTeaAddOns.create([], account),
-          instructions: co.plainText().create("", account),
-        },
+      account.root = AccountRoot.create(
+        { draft: { addOns: [], instructions: "" }, orders: [] },
         account,
       );
-
-      account.root = AccountRoot.create({ draft, orders }, account);
     }
   });

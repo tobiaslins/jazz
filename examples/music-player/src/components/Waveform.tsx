@@ -7,6 +7,7 @@ import { useCoState } from "jazz-tools/react";
 export function Waveform(props: {
   track: Loaded<typeof MusicTrack>;
   height: number;
+  className?: string;
 }) {
   const { track, height } = props;
   const waveformData = useCoState(
@@ -36,7 +37,7 @@ export function Waveform(props: {
 
   return (
     <div
-      className="flex justify-center items-end w-full"
+      className={cn("flex justify-center items-end w-full", props.className)}
       style={{
         height,
         gap: 1,

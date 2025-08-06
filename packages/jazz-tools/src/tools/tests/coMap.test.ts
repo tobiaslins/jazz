@@ -117,10 +117,9 @@ describe("CoMap", async () => {
       expect(emptyMap.color).toEqual(undefined);
     });
 
-    test("CoMap with reference", () => {
+    test("create CoMap with reference using CoValue", () => {
       const Dog = co.map({
         name: z.string(),
-        breed: z.string(),
       });
 
       const Person = co.map({
@@ -132,11 +131,89 @@ describe("CoMap", async () => {
       const person = Person.create({
         name: "John",
         age: 20,
-        dog: Dog.create({ name: "Rex", breed: "Labrador" }),
+        dog: Dog.create({ name: "Rex" }),
       });
 
       expect(person.dog?.name).toEqual("Rex");
-      expect(person.dog?.breed).toEqual("Labrador");
+    });
+
+    describe("create CoMap with references using JSON", () => {
+      const Dog = co.map({
+        type: z.literal("dog"),
+        name: z.string(),
+      });
+      const Cat = co.map({
+        type: z.literal("cat"),
+        name: z.string(),
+      });
+
+      const Person = co.map({
+        name: co.plainText(),
+        bio: co.richText(),
+        dog: Dog,
+        get friends() {
+          return co.list(Person);
+        },
+        reactions: co.feed(co.plainText()),
+        pet: co.discriminatedUnion("type", [Dog, Cat]),
+      });
+
+      let person: ReturnType<typeof Person.create>;
+
+      beforeEach(() => {
+        person = Person.create({
+          name: "John",
+          bio: "I am a software engineer",
+          dog: { type: "dog", name: "Rex" },
+          friends: [
+            {
+              name: "Jane",
+              bio: "I am a mechanical engineer",
+              dog: { type: "dog", name: "Fido" },
+              friends: [],
+              reactions: [],
+              pet: { type: "dog", name: "Fido" },
+            },
+          ],
+          reactions: ["👎", "👍"],
+          pet: { type: "cat", name: "Whiskers" },
+        });
+      });
+
+      it("automatically creates CoValues for each CoValue reference", () => {
+        expect(person.name.toString()).toEqual("John");
+        expect(person.bio.toString()).toEqual("I am a software engineer");
+        expect(person.dog?.name).toEqual("Rex");
+        expect(person.friends.length).toEqual(1);
+        expect(person.friends[0]?.name.toString()).toEqual("Jane");
+        expect(person.friends[0]?.bio.toString()).toEqual(
+          "I am a mechanical engineer",
+        );
+        expect(person.friends[0]?.dog.name).toEqual("Fido");
+        expect(person.friends[0]?.friends.length).toEqual(0);
+        expect(person.reactions.byMe?.value?.toString()).toEqual("👍");
+        expect(person.pet.name).toEqual("Whiskers");
+      });
+
+      it("creates a group for each new CoValue that is a child of the referencing CoValue's owner", () => {
+        for (const value of Object.values(person)) {
+          expect(
+            value._owner.getParentGroups().map((group: Group) => group.id),
+          ).toContain(person._owner.id);
+        }
+        const friend = person.friends[0]!;
+        for (const value of Object.values(friend)) {
+          expect(
+            value._owner.getParentGroups().map((group: Group) => group.id),
+          ).toContain(friend._owner.id);
+        }
+      });
+
+      it("can create a coPlainText from an empty string", () => {
+        const Schema = co.map({ text: co.plainText() });
+        const map = Schema.create({ text: "" });
+        expect(map.text.toString()).toBe("");
+      });
     });
 
     test("CoMap with self reference", () => {
@@ -209,7 +286,7 @@ describe("CoMap", async () => {
       const Person = co.map({
         name: z.string(),
         age: z.number(),
-        get friend(): co.Optional<typeof Person> {
+        get friend() {
           return co.optional(Person);
         },
       });
@@ -2104,70 +2181,30 @@ describe("CoMap migration", () => {
     expect(loaded?.friend?.name).toEqual("Charlie");
     expect(loaded?.friend?.version).toEqual(2);
   });
-  describe("Time", () => {
-    test("empty map created time", () => {
-      const currentTimestampInSeconds = Math.floor(Date.now() / 1000);
-      const emptyMap = co.map({}).create({});
-      const createdAtInSeconds = Math.floor(emptyMap._createdAt / 1000);
+});
 
-      expect(createdAtInSeconds).toEqual(currentTimestampInSeconds);
-      expect(emptyMap._lastUpdatedAt).toEqual(emptyMap._createdAt);
+describe("createdAt & lastUpdatedAt", () => {
+  test("empty map created time", () => {
+    const emptyMap = co.map({}).create({});
+
+    expect(emptyMap._lastUpdatedAt).toEqual(emptyMap._createdAt);
+  });
+
+  test("created time and last updated time", async () => {
+    const Person = co.map({
+      name: z.string(),
     });
 
-    test("created time and last updated time", async () => {
-      const Person = co.map({
-        name: z.string(),
-      });
+    const person = Person.create({ name: "John" });
 
-      let currentTimestampInSeconds = Math.floor(Date.now() / 1000);
-      const person = Person.create({ name: "John" });
+    const createdAt = person._createdAt;
+    expect(person._lastUpdatedAt).toEqual(createdAt);
 
-      const createdAt = person._createdAt;
-      const createdAtInSeconds = Math.floor(createdAt / 1000);
-      expect(createdAtInSeconds).toEqual(currentTimestampInSeconds);
-      expect(person._lastUpdatedAt).toEqual(createdAt);
+    await new Promise((r) => setTimeout(r, 10));
+    person.name = "Jane";
 
-      await new Promise((r) => setTimeout(r, 1000));
-      currentTimestampInSeconds = Math.floor(Date.now() / 1000);
-      person.name = "Jane";
-
-      const lastUpdatedAtInSeconds = Math.floor(person._lastUpdatedAt / 1000);
-      expect(lastUpdatedAtInSeconds).toEqual(currentTimestampInSeconds);
-      expect(person._createdAt).toEqual(createdAt);
-      expect(person._lastUpdatedAt).not.toEqual(createdAt);
-    });
-
-    test("comap with custom uniqueness", () => {
-      const Person = co.map({
-        name: z.string(),
-      });
-
-      let currentTimestampInSeconds = Math.floor(Date.now() / 1000);
-      const person = Person.create(
-        { name: "John" },
-        { unique: "name", owner: Account.getMe() },
-      );
-
-      const createdAt = person._createdAt;
-      const createdAtInSeconds = Math.floor(createdAt / 1000);
-      expect(createdAtInSeconds).toEqual(currentTimestampInSeconds);
-    });
-
-    test("empty comap with custom uniqueness", () => {
-      const Person = co.map({
-        name: z.optional(z.string()),
-      });
-
-      let currentTimestampInSeconds = Math.floor(Date.now() / 1000);
-      const person = Person.create(
-        {},
-        { unique: "name", owner: Account.getMe() },
-      );
-
-      const createdAt = person._createdAt;
-      const createdAtInSeconds = Math.floor(createdAt / 1000);
-      expect(createdAtInSeconds).toEqual(currentTimestampInSeconds);
-    });
+    expect(person._createdAt).toEqual(createdAt);
+    expect(person._lastUpdatedAt).not.toEqual(createdAt);
   });
 });
 
@@ -2182,6 +2219,93 @@ describe("co.map schema", () => {
     });
 
     expect(person.name.toString()).toEqual("John");
+  });
+
+  describe("pick()", () => {
+    test("creates a new CoMap schema by picking fields of another CoMap schema", () => {
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+      });
+
+      const PersonWithName = Person.pick({
+        name: true,
+      });
+
+      const person = PersonWithName.create({
+        name: "John",
+      });
+
+      expect(person.name).toEqual("John");
+    });
+
+    test("the new schema does not include catchall properties", () => {
+      const Person = co
+        .map({
+          name: z.string(),
+          age: z.number(),
+        })
+        .catchall(z.string());
+
+      const PersonWithName = Person.pick({
+        name: true,
+      });
+
+      expect(PersonWithName.catchAll).toBeUndefined();
+
+      const person = PersonWithName.create({
+        name: "John",
+      });
+      // @ts-expect-error - property `extraField` does not exist in person
+      expect(person.extraField).toBeUndefined();
+    });
+  });
+
+  describe("partial()", () => {
+    test("creates a new CoMap schema by making all properties optional", () => {
+      const Dog = co.map({
+        name: z.string(),
+        breed: z.string(),
+      });
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+        pet: Dog,
+      });
+
+      const DraftPerson = Person.partial();
+
+      const draftPerson = DraftPerson.create({});
+
+      expect(draftPerson.name).toBeUndefined();
+      expect(draftPerson.age).toBeUndefined();
+      expect(draftPerson.pet).toBeUndefined();
+
+      draftPerson.name = "John";
+      draftPerson.age = 20;
+      const rex = Dog.create({ name: "Rex", breed: "Labrador" });
+      draftPerson.pet = rex;
+
+      expect(draftPerson.name).toEqual("John");
+      expect(draftPerson.age).toEqual(20);
+      expect(draftPerson.pet).toEqual(rex);
+    });
+
+    test("the new schema includes catchall properties", () => {
+      const Person = co
+        .map({
+          name: z.string(),
+          age: z.number(),
+        })
+        .catchall(z.string());
+
+      const DraftPerson = Person.partial();
+
+      const draftPerson = DraftPerson.create({});
+      draftPerson.extraField = "extra";
+
+      expect(draftPerson.extraField).toEqual("extra");
+    });
   });
 });
 

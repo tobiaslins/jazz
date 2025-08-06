@@ -1,10 +1,8 @@
-import { MusicTrack, MusicaAccount } from "@/1_schema";
+import { MusicaAccount } from "@/1_schema";
 import { createNewPlaylist, deletePlaylist } from "@/4_actions";
-import { MediaPlayer } from "@/5_useMediaPlayer";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -14,21 +12,17 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { usePlayState } from "@/lib/audio/usePlayState";
-import { useAccount, useCoState } from "jazz-tools/react";
-import { Home, Music, Pause, Play, Plus, Trash2 } from "lucide-react";
+import { useAccount } from "jazz-tools/react";
+import { Home, Music, Plus, Trash2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
 import { AuthButton } from "./AuthButton";
 
-export function SidePanel({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
+export function SidePanel() {
   const { playlistId } = useParams();
   const navigate = useNavigate();
   const { me } = useAccount(MusicaAccount, {
     resolve: { root: { playlists: { $each: true } } },
   });
-
-  const playState = usePlayState();
-  const isPlaying = playState.value === "play";
 
   function handleAllTracksClick() {
     navigate(`/`);
@@ -49,12 +43,6 @@ export function SidePanel({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
     const playlist = await createNewPlaylist();
     navigate(`/playlist/${playlist.id}`);
   }
-
-  const activeTrack = useCoState(MusicTrack, mediaPlayer.activeTrackId, {
-    resolve: { waveform: true },
-  });
-
-  const activeTrackTitle = activeTrack?.title;
 
   return (
     <Sidebar>
@@ -137,29 +125,6 @@ export function SidePanel({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      {activeTrack && (
-        <SidebarFooter>
-          <SidebarMenu>
-            <SidebarMenuItem className="flex justify-end">
-              <SidebarMenuButton
-                onClick={playState.toggle}
-                aria-label={
-                  isPlaying ? "Pause active track" : "Play active track"
-                }
-              >
-                <div className="w-[28px] h-[28px] flex items-center justify-center bg-blue-600 rounded-full text-white hover:bg-blue-700">
-                  {isPlaying ? (
-                    <Pause size={16} fill="currentColor" />
-                  ) : (
-                    <Play size={16} fill="currentColor" />
-                  )}
-                </div>
-                <span>{activeTrackTitle}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarFooter>
-      )}
     </Sidebar>
   );
 }
