@@ -15,6 +15,65 @@ beforeEach(async () => {
 });
 
 describe("Group.removeMember", () => {
+  test("revoking a member access should not affect everyone access", async () => {
+    const admin = await setupTestAccount({
+      connected: true,
+    });
+
+    const alice = await setupTestAccount({
+      connected: true,
+    });
+
+    const group = admin.node.createGroup();
+    group.addMember("everyone", "writer");
+
+    const aliceOnAdminNode = await loadCoValueOrFail(
+      admin.node,
+      alice.accountID,
+    );
+    group.addMember(aliceOnAdminNode, "writer");
+    group.removeMember(aliceOnAdminNode);
+
+    const groupOnAliceNode = await loadCoValueOrFail(alice.node, group.id);
+    expect(groupOnAliceNode.myRole()).toEqual("writer");
+
+    const map = groupOnAliceNode.createMap();
+
+    map.set("test", "test");
+    expect(map.get("test")).toEqual("test");
+  });
+
+  test("revoking a member access should not affect everyone access when everyone access is gained through a group extension", async () => {
+    const admin = await setupTestAccount({
+      connected: true,
+    });
+
+    const alice = await setupTestAccount({
+      connected: true,
+    });
+
+    const parentGroup = admin.node.createGroup();
+    const group = admin.node.createGroup();
+    parentGroup.addMember("everyone", "reader");
+    group.extend(parentGroup);
+
+    const aliceOnAdminNode = await loadCoValueOrFail(
+      admin.node,
+      alice.accountID,
+    );
+    group.addMember(aliceOnAdminNode, "writer");
+    group.removeMember(aliceOnAdminNode);
+
+    const map = group.createMap();
+    map.set("test", "test");
+
+    const groupOnAliceNode = await loadCoValueOrFail(alice.node, group.id);
+    expect(groupOnAliceNode.myRole()).toEqual("reader");
+
+    const mapOnAliceNode = await loadCoValueOrFail(alice.node, map.id);
+    expect(mapOnAliceNode.get("test")).toEqual("test");
+  });
+
   test("a reader member should be able to revoke themselves", async () => {
     const admin = await setupTestAccount({
       connected: true,

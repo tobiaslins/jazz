@@ -520,21 +520,19 @@ export class RawGroup<
 
   /** @internal */
   rotateReadKey(removedMemberKey?: RawAccountID | AgentID | "everyone") {
+    if (canRead(this, EVERYONE)) {
+      // When everyone has access to the group, rotating the key is useless
+      // because it would be stored unencrypted and available to everyone
+      return;
+    }
+
     const memberKeys = this.getMemberKeys().filter(
       (key) => key !== removedMemberKey,
     );
 
-    const currentlyPermittedReaders = memberKeys.filter((key) => {
-      const role = this.get(key);
-      return (
-        role === "admin" ||
-        role === "writer" ||
-        role === "reader" ||
-        role === "adminInvite" ||
-        role === "writerInvite" ||
-        role === "readerInvite"
-      );
-    });
+    const currentlyPermittedReaders = memberKeys.filter((key) =>
+      canRead(this, key),
+    );
 
     const writeOnlyMembers = memberKeys.filter((key) => {
       const role = this.get(key);
@@ -1022,3 +1020,18 @@ export function secretSeedFromInviteSecret(inviteSecret: InviteSecret) {
 
   return base58.decode(inviteSecret.slice("inviteSecret_z".length));
 }
+
+const canRead = (
+  group: RawGroup,
+  key: RawAccountID | AgentID | "everyone",
+): boolean => {
+  const role = group.get(key);
+  return (
+    role === "admin" ||
+    role === "writer" ||
+    role === "reader" ||
+    role === "adminInvite" ||
+    role === "writerInvite" ||
+    role === "readerInvite"
+  );
+};

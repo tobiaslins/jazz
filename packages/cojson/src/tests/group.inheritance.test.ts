@@ -96,6 +96,32 @@ describe("extend", () => {
     expect(mapOnNode2.get("test")).toEqual("Written from node2");
   });
 
+  test("inherited everyone roles should work correctly", async () => {
+    const { node1, node2 } = await createTwoConnectedNodes("server", "server");
+
+    const group = node1.node.createGroup();
+    group.addMember("everyone", "writer");
+
+    const childGroup = node1.node.createGroup();
+    childGroup.extend(group);
+
+    expect(childGroup.roleOf("everyone")).toEqual("writer");
+
+    const map = childGroup.createMap();
+    map.set("test", "Written from the admin");
+
+    await map.core.waitForSync();
+
+    const mapOnNode2 = await loadCoValueOrFail(node2.node, map.id);
+
+    // The writer role should be able to see the edits from the admin
+    expect(mapOnNode2.get("test")).toEqual("Written from the admin");
+
+    mapOnNode2.set("hello", "from node 2");
+
+    expect(mapOnNode2.get("hello")).toEqual("from node 2");
+  });
+
   test("a user should be able to extend a group when his role on the parent group is writeOnly", async () => {
     const { node1, node2 } = await createTwoConnectedNodes("server", "server");
 
@@ -311,6 +337,58 @@ describe("extend", () => {
       parentGroup.id,
     );
 
+    childGroup.extend(parentGroupOnNode2);
+
+    expect(childGroup.roleOf(alice.id)).toBe("writer");
+  });
+
+  test("should be possible to extend a group after getting revoked from the parent group", async () => {
+    const { node1, node2, node3 } = await createThreeConnectedNodes(
+      "server",
+      "server",
+      "server",
+    );
+
+    const parentGroup = node1.node.createGroup();
+
+    const alice = await loadCoValueOrFail(node1.node, node3.accountID);
+    const bob = await loadCoValueOrFail(node1.node, node2.accountID);
+    parentGroup.addMember(alice, "writer");
+    parentGroup.addMember(bob, "reader");
+    parentGroup.removeMember(bob);
+
+    const parentGroupOnNode2 = await loadCoValueOrFail(
+      node2.node,
+      parentGroup.id,
+    );
+
+    const childGroup = node2.node.createGroup();
+    childGroup.extend(parentGroupOnNode2);
+
+    expect(childGroup.roleOf(alice.id)).toBe("writer");
+  });
+
+  test("should be possible to extend when access is everyone reader and the account is revoked from the parent group", async () => {
+    const { node1, node2, node3 } = await createThreeConnectedNodes(
+      "server",
+      "server",
+      "server",
+    );
+
+    const parentGroup = node1.node.createGroup();
+    parentGroup.addMember("everyone", "reader");
+    const alice = await loadCoValueOrFail(node1.node, node3.accountID);
+    const bob = await loadCoValueOrFail(node1.node, node2.accountID);
+    parentGroup.addMember(alice, "writer");
+    parentGroup.addMember(bob, "reader");
+    parentGroup.removeMember(bob);
+
+    const parentGroupOnNode2 = await loadCoValueOrFail(
+      node2.node,
+      parentGroup.id,
+    );
+
+    const childGroup = node2.node.createGroup();
     childGroup.extend(parentGroupOnNode2);
 
     expect(childGroup.roleOf(alice.id)).toBe("writer");
