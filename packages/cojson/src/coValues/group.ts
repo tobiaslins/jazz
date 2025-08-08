@@ -65,18 +65,56 @@ export type GroupShape = {
   [child: ChildGroupReference]: "revoked" | "extend";
 };
 
+// We had a bug on key rotation, where the new read key was not revealed to everyone
+// TODO: remove this when we hit the 0.18.0 release (either the groups are healed or they are not used often, it's a minor issue anyway)
 function healMissingKeyForEveryone(group: RawGroup) {
   const readKeyId = group.get("readKey");
+
   if (
-    readKeyId &&
-    canRead(group, EVERYONE) &&
-    canRead(group, group.core.node.getCurrentAgent().id) && // The current account is an explicit member of this group
-    !group.get(`${readKeyId}_for_${EVERYONE}`)
+    !readKeyId ||
+    !canRead(group, EVERYONE) ||
+    group.get(`${readKeyId}_for_${EVERYONE}`)
   ) {
+    return;
+  }
+
+  const hasAccessToReadKey = canRead(
+    group,
+    group.core.node.getCurrentAgent().id,
+  );
+
+  // If the current account has access to the read key, we can fix the group
+  if (hasAccessToReadKey) {
     const secret = group.getReadKey(readKeyId);
     if (secret) {
       group.set(`${readKeyId}_for_${EVERYONE}`, secret, "trusting");
     }
+    return;
+  }
+
+  // Fallback to the latest readable key for everyone
+  const keys = group
+    .keys()
+    .filter((key) => key.startsWith("key_") && key.endsWith("_for_everyone"));
+
+  let latestKey = keys[0];
+
+  for (const key of keys) {
+    if (!latestKey) {
+      latestKey = key;
+      continue;
+    }
+
+    const keyEntry = group.getRaw(key);
+    const latestKeyEntry = group.getRaw(latestKey);
+
+    if (keyEntry && latestKeyEntry && keyEntry.madeAt > latestKeyEntry.madeAt) {
+      latestKey = key;
+    }
+  }
+
+  if (latestKey) {
+    group._lastReadableKeyId = latestKey.replace("_for_everyone", "") as KeyID;
   }
 }
 
@@ -105,6 +143,8 @@ export class RawGroup<
   Meta extends JsonObject | null = JsonObject | null,
 > extends RawCoMap<GroupShape, Meta> {
   protected readonly crypto: CryptoProvider;
+
+  _lastReadableKeyId?: KeyID;
 
   constructor(
     core: AvailableCoValueCore,
@@ -213,43 +253,7 @@ export class RawGroup<
     return groups;
   }
 
-  loadAllChildGroups() {
-    const requests: Promise<unknown>[] = [];
-    const peers = this.core.node.syncManager.getServerPeers();
-
-    for (const key of this.keys()) {
-      if (!isChildGroupReference(key)) {
-        continue;
-      }
-
-      const id = getChildGroupId(key);
-      const child = this.core.node.getCoValue(id);
-
-      if (
-        child.loadingState === "unknown" ||
-        child.loadingState === "unavailable"
-      ) {
-        child.load(peers);
-      }
-
-      requests.push(
-        child.waitForAvailableOrUnavailable().then((coValue) => {
-          if (!coValue.isAvailable()) {
-            throw new Error(`Child group ${child.id} is unavailable`);
-          }
-
-          // Recursively load child groups
-          return expectGroup(coValue.getCurrentContent()).loadAllChildGroups();
-        }),
-      );
-    }
-
-    return Promise.all(requests);
-  }
-
-  getChildGroups() {
-    const groups: RawGroup[] = [];
-
+  forEachChildGroup(callback: (child: RawGroup) => void) {
     for (const key of this.keys()) {
       if (isChildGroupReference(key)) {
         // Check if the child group reference is revoked
@@ -257,15 +261,22 @@ export class RawGroup<
           continue;
         }
 
-        const child = this.core.node.expectCoValueLoaded(
-          getChildGroupId(key),
-          "Expected child group to be loaded",
-        );
-        groups.push(expectGroup(child.getCurrentContent()));
+        const id = getChildGroupId(key);
+        const child = this.core.node.getCoValue(id);
+
+        if (child.isAvailable()) {
+          callback(expectGroup(child.getCurrentContent()));
+        } else {
+          this.core.node.load(id).then((child) => {
+            if (child !== "unavailable") {
+              callback(expectGroup(child));
+            } else {
+              logger.warn(`Unable to load child group ${id}, skipping`);
+            }
+          });
+        }
       }
     }
-
-    return groups;
   }
 
   /**
@@ -489,6 +500,10 @@ export class RawGroup<
   }
 
   getCurrentReadKeyId() {
+    if (this._lastReadableKeyId) {
+      return this._lastReadableKeyId;
+    }
+
     const myRole = this.myRole();
 
     if (myRole === "writeOnly") {
@@ -715,12 +730,12 @@ export class RawGroup<
 
     // Get these early, so we fail fast if they are unavailable
     const parentGroups = this.getParentGroups();
-    const childGroups = this.getChildGroups();
-
     const maybeCurrentReadKey = this.getCurrentReadKey();
 
     if (!maybeCurrentReadKey.secret) {
-      throw new Error("Can't rotate read key secret we don't have access to");
+      throw new NoReadKeyAccessError(
+        "Can't rotate read key secret we don't have access to",
+      );
     }
 
     const currentReadKey = {
@@ -827,16 +842,26 @@ export class RawGroup<
       );
     }
 
-    for (const child of childGroups) {
+    this.forEachChildGroup((child) => {
       // Since child references are mantained only for the key rotation,
       // circular references are skipped here because it's more performant
       // than always checking for circular references in childs inside the permission checks
       if (child.isSelfExtension(this)) {
-        continue;
+        return;
       }
 
-      child.rotateReadKey(removedMemberKey);
-    }
+      try {
+        child.rotateReadKey(removedMemberKey);
+      } catch (error) {
+        if (error instanceof NoReadKeyAccessError) {
+          logger.warn(
+            `Can't rotate read key on child ${child.id} because we don't have access to the read key`,
+          );
+        } else {
+          throw error;
+        }
+      }
+    });
   }
 
   /** Detect circular references in group inheritance */
@@ -874,47 +899,8 @@ export class RawGroup<
       throw new Error("No readKey set");
     }
 
-    const secret = this.getReadKey(keyId);
-
-    // We had a bug on key rotation, where the new read key was not revealed to everyone
-    // Using this to workaround the issue until the healing process fixes the affected groups.
-    // TODO: remove this when we hit the 0.18.0 release (either the groups are healed or they are not used often, it's a minor issue anyway)
-    if (!secret && canRead(this, EVERYONE)) {
-      const keys = this.keys().filter(
-        (key) => key.startsWith("key_") && key.endsWith("_for_everyone"),
-      );
-
-      let latestKey = keys[0];
-
-      for (const key of keys) {
-        if (!latestKey) {
-          latestKey = key;
-          continue;
-        }
-
-        const keyEntry = this.getRaw(key);
-        const latestKeyEntry = this.getRaw(latestKey);
-
-        if (
-          keyEntry &&
-          latestKeyEntry &&
-          keyEntry.madeAt > latestKeyEntry.madeAt
-        ) {
-          latestKey = key;
-        }
-      }
-
-      if (latestKey) {
-        const keyId = latestKey.replace("_for_everyone", "") as KeyID;
-        return {
-          secret: this.getReadKey(keyId),
-          id: keyId,
-        };
-      }
-    }
-
     return {
-      secret: secret,
+      secret: this.getReadKey(keyId),
       id: keyId,
     };
   }
@@ -980,7 +966,7 @@ export class RawGroup<
     );
   }
 
-  async revokeExtend(parent: RawGroup) {
+  revokeExtend(parent: RawGroup) {
     if (this.myRole() !== "admin") {
       throw new Error(
         "To unextend a group, the current account must be an admin in the child group",
@@ -1011,8 +997,6 @@ export class RawGroup<
     // Set the child key on the parent group to `revoked`
     parent.set(`child_${this.id}`, "revoked", "trusting");
 
-    await this.loadAllChildGroups();
-
     // Rotate the keys on the child group
     this.rotateReadKey();
   }
@@ -1024,19 +1008,7 @@ export class RawGroup<
    *
    * @category 2. Role changing
    */
-  async removeMember(
-    account: RawAccount | ControlledAccountOrAgent | Everyone,
-  ) {
-    // Ensure all child groups are loaded before removing a member
-    await this.loadAllChildGroups();
-
-    this.removeMemberInternal(account);
-  }
-
-  /** @internal */
-  removeMemberInternal(
-    account: RawAccount | ControlledAccountOrAgent | AgentID | Everyone,
-  ) {
+  removeMember(account: RawAccount | ControlledAccountOrAgent | Everyone) {
     const memberKey = typeof account === "string" ? account : account.id;
 
     if (this.myRole() === "admin") {
@@ -1262,3 +1234,10 @@ const canRead = (
     role === "readerInvite"
   );
 };
+
+class NoReadKeyAccessError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "NoReadKeyAccessError";
+  }
+}
