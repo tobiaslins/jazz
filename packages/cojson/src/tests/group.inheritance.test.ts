@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, test } from "vitest";
+import type { CoID, RawGroup } from "../exports";
+import { NewContentMessage } from "../sync";
 import {
   SyncMessagesLog,
   createThreeConnectedNodes,
@@ -392,6 +394,205 @@ describe("extend", () => {
     childGroup.extend(parentGroupOnNode2);
 
     expect(childGroup.roleOf(alice.id)).toBe("writer");
+  });
+
+  test("should be able to extend when the last read key is healed", async () => {
+    const clientWithAccess = setupTestNode({
+      secret:
+        "sealerSecret_zBTPp7U58Fzq9o7EvJpu4KEziepi8QVf2Xaxuy5xmmXFx/signerSecret_z62DuviZdXCjz4EZWofvr9vaLYFXDeTaC9KWhoQiQjzKk",
+      connected: true,
+    });
+    const clientWithoutAccess = setupTestNode({
+      connected: true,
+    });
+
+    const brokenGroupContent = {
+      action: "content",
+      id: "co_zW7F36Nnop9A7Er4gUzBcUXnZCK",
+      header: {
+        type: "comap",
+        ruleset: {
+          type: "group",
+          initialAdmin:
+            "sealer_z12QDazYB3ygPZtBV7sMm7iYKMRnNZ6Aaj1dfLXR7LSBm/signer_z2AskZQbc82qxo7iA3oiXoNExHLsAEXC2pHbwJzRnATWv",
+        },
+        meta: null,
+        createdAt: "2025-08-06T10:14:39.617Z",
+        uniqueness: "z3LJjnuPiPJaf5Qb9A",
+      },
+      priority: 0,
+      new: {
+        "sealer_z12QDazYB3ygPZtBV7sMm7iYKMRnNZ6Aaj1dfLXR7LSBm/signer_z2AskZQbc82qxo7iA3oiXoNExHLsAEXC2pHbwJzRnATWv_session_zYLsz2CiW9pW":
+          {
+            after: 0,
+            newTransactions: [
+              {
+                privacy: "trusting",
+                madeAt: 1754475279619,
+                changes:
+                  '[{"key":"sealer_z12QDazYB3ygPZtBV7sMm7iYKMRnNZ6Aaj1dfLXR7LSBm/signer_z2AskZQbc82qxo7iA3oiXoNExHLsAEXC2pHbwJzRnATWv","op":"set","value":"admin"}]',
+              },
+              {
+                privacy: "trusting",
+                madeAt: 1754475279621,
+                changes:
+                  '[{"key":"key_z5CVahfMkEWPj1B3zH_for_sealer_z12QDazYB3ygPZtBV7sMm7iYKMRnNZ6Aaj1dfLXR7LSBm/signer_z2AskZQbc82qxo7iA3oiXoNExHLsAEXC2pHbwJzRnATWv","op":"set","value":"sealed_UCg4UkytXF-W8PaIvaDffO3pZ3d9hdXUuNkQQEikPTAuOD9us92Pqb5Vgu7lx1Fpb0X8V5BJ2yxz6_D5WOzK3qjWBSsc7J1xDJA=="}]',
+              },
+              {
+                privacy: "trusting",
+                madeAt: 1754475279621,
+                changes:
+                  '[{"key":"readKey","op":"set","value":"key_z5CVahfMkEWPj1B3zH"}]',
+              },
+              {
+                privacy: "trusting",
+                madeAt: 1754475279622,
+                changes: '[{"key":"everyone","op":"set","value":"reader"}]',
+              },
+              {
+                privacy: "trusting",
+                madeAt: 1754475279623,
+                changes:
+                  '[{"key":"key_z5CVahfMkEWPj1B3zH_for_everyone","op":"set","value":"keySecret_z9U9gzkahQXCxDoSw7isiUnbobXwuLdcSkL9Ci6ZEEkaL"}]',
+              },
+              {
+                privacy: "trusting",
+                madeAt: 1754475279623,
+                changes:
+                  '[{"key":"key_z4Fi7hZNBx7XoVAKkP_for_sealer_z12QDazYB3ygPZtBV7sMm7iYKMRnNZ6Aaj1dfLXR7LSBm/signer_z2AskZQbc82qxo7iA3oiXoNExHLsAEXC2pHbwJzRnATWv","op":"set","value":"sealed_UuCBBfZkTnRTrGraqWWlzm9JE-VFduhsfu7WaZjpCbJYOTXpPhSNOnzGeS8qVuIsG6dORbME22lc5ltLxPjRqofQdDCNGQehCeQ=="}]',
+              },
+              {
+                privacy: "trusting",
+                madeAt: 1754475279624,
+                changes:
+                  '[{"key":"key_z5CVahfMkEWPj1B3zH_for_key_z4Fi7hZNBx7XoVAKkP","op":"set","value":"encrypted_USTrBuobwTCORwy5yHxy4sFZ7swfrafP6k5ZwcTf76f0MBu9Ie-JmsX3mNXad4mluI47gvGXzi8I_"}]',
+              },
+              {
+                privacy: "trusting",
+                madeAt: 1754475279624,
+                changes:
+                  '[{"key":"readKey","op":"set","value":"key_z4Fi7hZNBx7XoVAKkP"}]',
+              },
+            ],
+            lastSignature:
+              "signature_z3tsE7U1JaeNeUmZ4EY3Xq5uQ9jq9jDi6Rkhdt7T7b7z4NCnpMgB4bo8TwLXYVCrRdBm6PoyyPdK8fYFzHJUh5EzA",
+          },
+      },
+    } as unknown as NewContentMessage;
+
+    clientWithAccess.node.syncManager.handleNewContent(
+      brokenGroupContent,
+      "import",
+    );
+
+    // Load the CoValue to recover the key_for_everyone
+    await loadCoValueOrFail(
+      clientWithAccess.node,
+      brokenGroupContent.id as CoID<RawGroup>,
+    );
+
+    const group = await loadCoValueOrFail(
+      clientWithoutAccess.node,
+      brokenGroupContent.id as CoID<RawGroup>,
+    );
+    const childGroup = clientWithoutAccess.node.createGroup();
+    childGroup.extend(group);
+
+    expect(childGroup.getParentGroups()).toEqual([group]);
+  });
+
+  test("should be able to extend when the last read key is missing", async () => {
+    const clientWithoutAccess = setupTestNode({
+      connected: true,
+    });
+
+    const brokenGroupContent = {
+      action: "content",
+      id: "co_zW7F36Nnop9A7Er4gUzBcUXnZCK",
+      header: {
+        type: "comap",
+        ruleset: {
+          type: "group",
+          initialAdmin:
+            "sealer_z12QDazYB3ygPZtBV7sMm7iYKMRnNZ6Aaj1dfLXR7LSBm/signer_z2AskZQbc82qxo7iA3oiXoNExHLsAEXC2pHbwJzRnATWv",
+        },
+        meta: null,
+        createdAt: "2025-08-06T10:14:39.617Z",
+        uniqueness: "z3LJjnuPiPJaf5Qb9A",
+      },
+      priority: 0,
+      new: {
+        "sealer_z12QDazYB3ygPZtBV7sMm7iYKMRnNZ6Aaj1dfLXR7LSBm/signer_z2AskZQbc82qxo7iA3oiXoNExHLsAEXC2pHbwJzRnATWv_session_zYLsz2CiW9pW":
+          {
+            after: 0,
+            newTransactions: [
+              {
+                privacy: "trusting",
+                madeAt: 1754475279619,
+                changes:
+                  '[{"key":"sealer_z12QDazYB3ygPZtBV7sMm7iYKMRnNZ6Aaj1dfLXR7LSBm/signer_z2AskZQbc82qxo7iA3oiXoNExHLsAEXC2pHbwJzRnATWv","op":"set","value":"admin"}]',
+              },
+              {
+                privacy: "trusting",
+                madeAt: 1754475279621,
+                changes:
+                  '[{"key":"key_z5CVahfMkEWPj1B3zH_for_sealer_z12QDazYB3ygPZtBV7sMm7iYKMRnNZ6Aaj1dfLXR7LSBm/signer_z2AskZQbc82qxo7iA3oiXoNExHLsAEXC2pHbwJzRnATWv","op":"set","value":"sealed_UCg4UkytXF-W8PaIvaDffO3pZ3d9hdXUuNkQQEikPTAuOD9us92Pqb5Vgu7lx1Fpb0X8V5BJ2yxz6_D5WOzK3qjWBSsc7J1xDJA=="}]',
+              },
+              {
+                privacy: "trusting",
+                madeAt: 1754475279621,
+                changes:
+                  '[{"key":"readKey","op":"set","value":"key_z5CVahfMkEWPj1B3zH"}]',
+              },
+              {
+                privacy: "trusting",
+                madeAt: 1754475279622,
+                changes: '[{"key":"everyone","op":"set","value":"reader"}]',
+              },
+              {
+                privacy: "trusting",
+                madeAt: 1754475279623,
+                changes:
+                  '[{"key":"key_z5CVahfMkEWPj1B3zH_for_everyone","op":"set","value":"keySecret_z9U9gzkahQXCxDoSw7isiUnbobXwuLdcSkL9Ci6ZEEkaL"}]',
+              },
+              {
+                privacy: "trusting",
+                madeAt: 1754475279623,
+                changes:
+                  '[{"key":"key_z4Fi7hZNBx7XoVAKkP_for_sealer_z12QDazYB3ygPZtBV7sMm7iYKMRnNZ6Aaj1dfLXR7LSBm/signer_z2AskZQbc82qxo7iA3oiXoNExHLsAEXC2pHbwJzRnATWv","op":"set","value":"sealed_UuCBBfZkTnRTrGraqWWlzm9JE-VFduhsfu7WaZjpCbJYOTXpPhSNOnzGeS8qVuIsG6dORbME22lc5ltLxPjRqofQdDCNGQehCeQ=="}]',
+              },
+              {
+                privacy: "trusting",
+                madeAt: 1754475279624,
+                changes:
+                  '[{"key":"key_z5CVahfMkEWPj1B3zH_for_key_z4Fi7hZNBx7XoVAKkP","op":"set","value":"encrypted_USTrBuobwTCORwy5yHxy4sFZ7swfrafP6k5ZwcTf76f0MBu9Ie-JmsX3mNXad4mluI47gvGXzi8I_"}]',
+              },
+              {
+                privacy: "trusting",
+                madeAt: 1754475279624,
+                changes:
+                  '[{"key":"readKey","op":"set","value":"key_z4Fi7hZNBx7XoVAKkP"}]',
+              },
+            ],
+            lastSignature:
+              "signature_z3tsE7U1JaeNeUmZ4EY3Xq5uQ9jq9jDi6Rkhdt7T7b7z4NCnpMgB4bo8TwLXYVCrRdBm6PoyyPdK8fYFzHJUh5EzA",
+          },
+      },
+    } as unknown as NewContentMessage;
+
+    clientWithoutAccess.node.syncManager.handleNewContent(
+      brokenGroupContent,
+      "import",
+    );
+
+    const group = await loadCoValueOrFail(
+      clientWithoutAccess.node,
+      brokenGroupContent.id as CoID<RawGroup>,
+    );
+    const childGroup = clientWithoutAccess.node.createGroup();
+    childGroup.extend(group);
+
+    expect(childGroup.getParentGroups()).toEqual([group]);
   });
 });
 

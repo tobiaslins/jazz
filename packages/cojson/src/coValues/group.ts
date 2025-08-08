@@ -301,7 +301,7 @@ export class RawGroup<
           "Can't make everyone something other than reader, writer or writeOnly",
         );
       }
-      const currentReadKey = this.core.getCurrentReadKey();
+      const currentReadKey = this.getCurrentReadKey();
 
       if (!currentReadKey.secret) {
         throw new Error("Can't add member without read key secret");
@@ -371,7 +371,7 @@ export class RawGroup<
 
       this.internalCreateWriteOnlyKeyForMember(memberKey, agent);
     } else {
-      const currentReadKey = this.core.getCurrentReadKey();
+      const currentReadKey = this.getCurrentReadKey();
 
       if (!currentReadKey.secret) {
         throw new Error("Can't add member without read key secret");
@@ -717,7 +717,7 @@ export class RawGroup<
     const parentGroups = this.getParentGroups();
     const childGroups = this.getChildGroups();
 
-    const maybeCurrentReadKey = this.core.getCurrentReadKey();
+    const maybeCurrentReadKey = this.getCurrentReadKey();
 
     if (!maybeCurrentReadKey.secret) {
       throw new Error("Can't rotate read key secret we don't have access to");
@@ -803,7 +803,7 @@ export class RawGroup<
      */
     for (const parent of parentGroups) {
       const { id: parentReadKeyID, secret: parentReadKeySecret } =
-        parent.core.getCurrentReadKey();
+        parent.getCurrentReadKey();
 
       if (!parentReadKeySecret) {
         // We can't reveal the new child key to the parent group where we don't have access to the parent read key
@@ -867,6 +867,58 @@ export class RawGroup<
     }
   }
 
+  getCurrentReadKey() {
+    const keyId = this.getCurrentReadKeyId();
+
+    if (!keyId) {
+      throw new Error("No readKey set");
+    }
+
+    const secret = this.getReadKey(keyId);
+
+    // We had a bug on key rotation, where the new read key was not revealed to everyone
+    // Using this to workaround the issue until the healing process fixes the affected groups.
+    // TODO: remove this when we hit the 0.18.0 release (either the groups are healed or they are not used often, it's a minor issue anyway)
+    if (!secret && canRead(this, EVERYONE)) {
+      const keys = this.keys().filter(
+        (key) => key.startsWith("key_") && key.endsWith("_for_everyone"),
+      );
+
+      let latestKey = keys[0];
+
+      for (const key of keys) {
+        if (!latestKey) {
+          latestKey = key;
+          continue;
+        }
+
+        const keyEntry = this.getRaw(key);
+        const latestKeyEntry = this.getRaw(latestKey);
+
+        if (
+          keyEntry &&
+          latestKeyEntry &&
+          keyEntry.madeAt > latestKeyEntry.madeAt
+        ) {
+          latestKey = key;
+        }
+      }
+
+      if (latestKey) {
+        const keyId = latestKey.replace("_for_everyone", "") as KeyID;
+        return {
+          secret: this.getReadKey(keyId),
+          id: keyId,
+        };
+      }
+    }
+
+    return {
+      secret: secret,
+      id: keyId,
+    };
+  }
+
   extend(
     parent: RawGroup,
     role: "reader" | "writer" | "admin" | "inherit" = "inherit",
@@ -899,14 +951,15 @@ export class RawGroup<
       );
     }
 
-    const { id: parentReadKeyID, secret: parentReadKeySecret } =
-      parent.core.getCurrentReadKey();
+    let { id: parentReadKeyID, secret: parentReadKeySecret } =
+      parent.getCurrentReadKey();
+
     if (!parentReadKeySecret) {
       throw new Error("Can't extend group without parent read key secret");
     }
 
     const { id: childReadKeyID, secret: childReadKeySecret } =
-      this.core.getCurrentReadKey();
+      this.getCurrentReadKey();
     if (!childReadKeySecret) {
       throw new Error("Can't extend group without child read key secret");
     }

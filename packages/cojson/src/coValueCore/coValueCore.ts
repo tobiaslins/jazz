@@ -756,20 +756,7 @@ export class CoValueCore {
     }
 
     if (this.verified.header.ruleset.type === "group") {
-      const content = expectGroup(this.getCurrentContent());
-
-      const currentKeyId = content.getCurrentReadKeyId();
-
-      if (!currentKeyId) {
-        throw new Error("No readKey set");
-      }
-
-      const secret = content.getReadKey(currentKeyId);
-
-      return {
-        secret: secret,
-        id: currentKeyId,
-      };
+      return expectGroup(this.getCurrentContent()).getCurrentReadKey();
     } else if (this.verified.header.ruleset.type === "ownedByGroup") {
       return this.node
         .expectCoValueLoaded(this.verified.header.ruleset.group)
