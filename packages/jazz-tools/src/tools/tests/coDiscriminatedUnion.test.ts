@@ -308,4 +308,54 @@ describe("co.discriminatedUnion", () => {
 
     expect(updates[0]?.name).toEqual("Rex");
   });
+
+  test("should work when one of the options has a dicriminated union field", async () => {
+    const Collie = co.map({
+      type: z.literal("collie"),
+    });
+    const BorderCollie = co.map({
+      type: z.literal("border-collie"),
+    });
+    const Breed = co.discriminatedUnion("type", [Collie, BorderCollie]);
+
+    const Dog = co.map({
+      type: z.literal("dog"),
+      breed: Breed,
+    });
+
+    const Animal = co.discriminatedUnion("type", [Dog]);
+
+    const animal = Dog.create({
+      type: "dog",
+      breed: {
+        type: "collie",
+      },
+    });
+
+    const loadedAnimal = await Animal.load(animal.id);
+
+    expect(loadedAnimal?.breed?.type).toEqual("collie");
+  });
+
+  test("should work with a nested co.discriminatedUnion", async () => {
+    const Collie = co.map({
+      type: z.literal("collie"),
+    });
+    const BorderCollie = co.map({
+      type: z.literal("border-collie"),
+    });
+    const Breed = co.discriminatedUnion("type", [Collie, BorderCollie]);
+
+    const Dog = co.discriminatedUnion("type", [Breed]);
+
+    const Animal = co.discriminatedUnion("type", [Dog]);
+
+    const animal = Collie.create({
+      type: "collie",
+    });
+
+    const loadedAnimal = await Animal.load(animal.id);
+
+    expect(loadedAnimal?.type).toEqual("collie");
+  });
 });
