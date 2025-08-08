@@ -84,15 +84,14 @@ export const MusicaAccount = co
      *  You can use it to set up the account root and any other initial CoValues you need.
      */
     if (account.root === undefined) {
-      const tracks = co.list(MusicTrack).create([]);
       const rootPlaylist = Playlist.create({
-        tracks,
+        tracks: [],
         title: "",
       });
 
       account.root = MusicaAccountRoot.create({
         rootPlaylist,
-        playlists: co.list(Playlist).create([]),
+        playlists: [],
         activeTrack: undefined,
         activePlaylist: rootPlaylist,
         exampleDataLoaded: false,

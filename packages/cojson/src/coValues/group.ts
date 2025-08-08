@@ -669,19 +669,30 @@ export class RawGroup<
 
   /** Detect circular references in group inheritance */
   isSelfExtension(parent: RawGroup) {
-    if (parent.id === this.id) {
-      return true;
-    }
+    const checkedGroups = new Set<string>();
+    const queue = [parent];
 
-    const childGroups = this.getChildGroups();
+    while (true) {
+      const current = queue.pop();
 
-    for (const child of childGroups) {
-      if (child.isSelfExtension(parent)) {
+      if (!current) {
+        return false;
+      }
+
+      if (current.id === this.id) {
         return true;
       }
-    }
 
-    return false;
+      checkedGroups.add(current.id);
+
+      const parentGroups = current.getParentGroups();
+
+      for (const parent of parentGroups) {
+        if (!checkedGroups.has(parent.id)) {
+          queue.push(parent);
+        }
+      }
+    }
   }
 
   extend(
@@ -700,8 +711,8 @@ export class RawGroup<
 
     const value = role === "inherit" ? "extend" : role;
 
-    this.set(`parent_${parent.id}`, value, "trusting");
     parent.set(`child_${this.id}`, "extend", "trusting");
+    this.set(`parent_${parent.id}`, value, "trusting");
 
     if (
       parent.myRole() !== "admin" &&
