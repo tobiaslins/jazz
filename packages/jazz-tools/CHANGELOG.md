@@ -1,5 +1,23 @@
 # jazz-tools
 
+## 0.16.5
+
+### Patch Changes
+
+- 3cd1586: Makes the key rotation not fail when child groups are unavailable or their readkey is not accessible.
+
+  Also changes the Group.removeMember method to not return a Promise, because:
+
+  - All the locally available child groups are rotated immediately
+  - All the remote child groups are rotated in background, but since they are not locally available the user won't need the new key immediately
+
+- 33ebbf0: Fix error when using nested discriminatedUnion
+- Updated dependencies [3cd1586]
+- Updated dependencies [267f689]
+  - cojson@0.16.5
+  - cojson-storage-indexeddb@0.16.5
+  - cojson-transport-ws@0.16.5
+
 ## 0.16.4
 
 ### Patch Changes

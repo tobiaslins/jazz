@@ -1,6 +1,6 @@
 {
 	"name": "jazz-react-auth-betterauth",
-	"version": "0.16.4",
+	"version": "0.16.5",
 	"type": "module",
 	"main": "dist/index.js",
 	"types": "src/index.tsx",
