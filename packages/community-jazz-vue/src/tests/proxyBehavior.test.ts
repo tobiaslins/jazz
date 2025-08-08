@@ -9,14 +9,14 @@ import { withJazzTestSetup } from "./testUtils.js";
 
 const TestMap = co.map({
   content: z.string(),
-  get nested(): z.ZodOptional<typeof TestMap> {
-    return z.optional(TestMap);
+  get nested() {
+    return co.optional(TestMap);
   },
 });
 
 const AccountRoot = co.map({
   value: z.string(),
-  testMap: z.optional(TestMap),
+  testMap: co.optional(TestMap),
 });
 
 const AccountProfile = co.map({

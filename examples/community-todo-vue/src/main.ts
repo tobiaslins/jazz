@@ -6,7 +6,6 @@ import { apiKey } from "./apiKey";
 import router from "./router";
 import { TodoAccount } from "./schema";
 
-import "community-jazz-vue/dist/community-jazz-vue.css";
 import "jazz-tools/inspector/register-custom-element";
 
 const RootComponent = defineComponent({

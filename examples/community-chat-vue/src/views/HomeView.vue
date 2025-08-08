@@ -15,9 +15,9 @@ const { me } = useAccount();
 const isAuthenticated = useIsAuthenticated();
 
 watch(
-  me,
-  (currentMe) => {
-    if (currentMe && isAuthenticated.value) {
+  [me, isAuthenticated],
+  ([currentMe, authenticated]) => {
+    if (currentMe && authenticated) {
       try {
         const group = Group.create({ owner: currentMe });
         group.addMember("everyone", "writer");

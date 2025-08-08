@@ -5,7 +5,7 @@ import {
   AnyAccountSchema,
   type AuthSecretStorage,
   type CoValue,
-  CoValueOrZodSchema,
+  CoValueClassOrSchema,
   InboxSender,
   InstanceOfSchema,
   type JazzAuthContext,
@@ -15,7 +15,7 @@ import {
   type RefsToResolve,
   ResolveQuery,
   ResolveQueryStrict,
-  anySchemaToCoSchema,
+  coValueClassFromCoValueClassOrSchema,
   subscribeToCoValue,
 } from "jazz-tools";
 import { consumeInviteLinkFromWindowLocation } from "jazz-tools/browser";
@@ -135,7 +135,7 @@ export function useAccount<
 }
 
 export function useCoState<
-  S extends CoValueOrZodSchema,
+  S extends CoValueClassOrSchema,
   const R extends RefsToResolve<S> = true,
 >(
   Schema: S,
@@ -153,20 +153,20 @@ export function useCoState<
   let unsubscribe: (() => void) | undefined;
 
   watch(
-    () => id,
-    () => {
+    [() => id, context],
+    ([currentId, currentContext]) => {
       if (unsubscribe) {
         unsubscribe();
         unsubscribe = undefined;
       }
 
-      if (!id || !context.value) {
+      if (!currentId || !currentContext) {
         state.value = undefined;
         return;
       }
 
       const loadAsAgent =
-        "me" in context.value ? context.value.me : context.value.guest;
+        "me" in currentContext ? currentContext.me : currentContext.guest;
       if (!loadAsAgent) {
         state.value = undefined;
         return;
@@ -176,8 +176,8 @@ export function useCoState<
 
       try {
         unsubscribe = subscribeToCoValue(
-          anySchemaToCoSchema(Schema),
-          id as any,
+          coValueClassFromCoValueClassOrSchema(Schema),
+          currentId as any,
           {
             resolve: options?.resolve as any,
             loadAs: safeLoadAsAgent,
@@ -213,7 +213,7 @@ export function useCoState<
   return state;
 }
 
-export function useAcceptInvite<S extends CoValueOrZodSchema>({
+export function useAcceptInvite<S extends CoValueClassOrSchema>({
   invitedObjectSchema,
   onAccept,
   forValueHint,

@@ -5,8 +5,8 @@ export function useIsAuthenticated() {
   const authSecretStorage = useAuthSecretStorage();
   const isAuthenticated = ref(authSecretStorage.isAuthenticated);
 
-  const handleUpdate = () => {
-    isAuthenticated.value = authSecretStorage.isAuthenticated;
+  const handleUpdate = (newIsAuthenticated: boolean) => {
+    isAuthenticated.value = newIsAuthenticated;
   };
 
   // Set up the listener immediately, not waiting for onMounted

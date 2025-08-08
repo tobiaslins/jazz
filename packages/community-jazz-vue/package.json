@@ -21,8 +21,7 @@
     "./inspector/vue": {
       "types": "./dist/inspector/vue-index.d.ts",
       "default": "./dist/inspector/vue-index.js"
-    },
-    "./dist/community-jazz-vue.css": "./dist/community-jazz-vue.css"
+    }
   },
   "dependencies": {
     "cojson": "workspace:*",

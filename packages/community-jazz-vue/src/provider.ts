@@ -158,15 +158,10 @@ export const JazzVueProvider = defineComponent({
 
         lastValue = currentValue;
 
-        // Use nextTick to defer context update and avoid sync reactive loops
-        nextTick(() => {
-          ctx.value = currentValue;
-        });
+        ctx.value = currentValue;
       } catch (error) {
         console.error("Error in context manager subscription:", error);
-        nextTick(() => {
-          ctx.value = undefined;
-        });
+        ctx.value = undefined;
       } finally {
         isUpdating = false;
       }

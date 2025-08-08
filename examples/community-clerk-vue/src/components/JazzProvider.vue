@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useClerk } from "@clerk/vue";
 import { JazzVueProviderWithClerk } from "community-jazz-vue";
+import { h } from "vue";
 
 import { apiKey } from "../apiKey";
 
@@ -18,8 +19,10 @@ import "jazz-tools/inspector/register-custom-element";
     }"
   >
     <slot />
-    <jazz-inspector
-      style="position: fixed; bottom: 20px; left: 20px; z-index: 9999"
+    <component
+      :is="h('jazz-inspector', {
+        style: { position: 'fixed', bottom: '20px', left: '20px', zIndex: 9999 }
+      })"
     />
   </JazzVueProviderWithClerk>
   <div v-else>

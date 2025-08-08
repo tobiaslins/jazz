@@ -9,13 +9,7 @@ Vue bindings for Jazz (see [jazz.tools](https://jazz.tools)), a framework for di
 npm install community-jazz-vue
 ```
 
-### 2. Import CSS (Required for Inspector)
-```typescript
-// In your main.ts or main.js
-import 'community-jazz-vue/dist/community-jazz-vue.css'
-```
-
-### 3. Use Jazz Inspector
+### 2. Use Jazz Inspector
 ```vue
 <template>
   <JazzInspector position="bottom-right" />
