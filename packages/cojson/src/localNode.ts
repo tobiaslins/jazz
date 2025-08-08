@@ -1,14 +1,14 @@
 import { Result, err, ok } from "neverthrow";
-import { CoID } from "./coValue.js";
-import { RawCoValue } from "./coValue.js";
+import type { CoID } from "./coValue.js";
+import type { RawCoValue } from "./coValue.js";
 import {
-  AvailableCoValueCore,
+  type AvailableCoValueCore,
   CoValueCore,
   idforHeader,
 } from "./coValueCore/coValueCore.js";
 import {
-  CoValueHeader,
-  CoValueUniqueness,
+  type CoValueHeader,
+  type CoValueUniqueness,
   VerifiedState,
 } from "./coValueCore/verifiedState.js";
 import {
@@ -26,8 +26,8 @@ import {
   expectAccount,
 } from "./coValues/account.js";
 import {
-  InviteSecret,
-  RawGroup,
+  type InviteSecret,
+  type RawGroup,
   secretSeedFromInviteSecret,
 } from "./coValues/group.js";
 import { CO_VALUE_LOADING_CONFIG } from "./config.js";

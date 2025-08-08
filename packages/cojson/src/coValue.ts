@@ -1,7 +1,4 @@
-import {
-  AvailableCoValueCore,
-  CoValueCore,
-} from "./coValueCore/coValueCore.js";
+import { AvailableCoValueCore } from "./coValueCore/coValueCore.js";
 import { RawProfile as Profile, RawAccount } from "./coValues/account.js";
 import { RawCoList } from "./coValues/coList.js";
 import { RawCoMap } from "./coValues/coMap.js";
