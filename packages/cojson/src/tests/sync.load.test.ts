@@ -590,11 +590,14 @@ describe("loading coValues from server", () => {
         "client -> server | LOAD Map sessions: empty",
         "server -> client | CONTENT Group header: true new: After: 0 New: 5",
         "client -> server | KNOWN Group sessions: header/5",
-        "client -> server | LOAD Map sessions: empty",
-        "server -> client | KNOWN Group sessions: header/5",
+        "server -> client | CONTENT Group header: true new: After: 0 New: 5",
+        "client -> server | KNOWN Group sessions: header/5",
         "server -> client | CONTENT Map header: true new: After: 0 New: 1",
-        "client -> server | LOAD Group sessions: header/5",
         "client -> server | KNOWN Map sessions: header/1",
+        "client -> server | LOAD Group sessions: header/5",
+        "server -> client | KNOWN Group sessions: header/5",
+        "client -> server | LOAD Map sessions: header/1",
+        "server -> client | KNOWN Map sessions: header/1",
       ]
     `);
   });
