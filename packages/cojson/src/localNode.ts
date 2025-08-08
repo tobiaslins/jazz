@@ -62,7 +62,6 @@ export class LocalNode {
 
   /** @category 3. Low-level */
   syncManager = new SyncManager(this);
-  fixStorageSignatures = new Set<string>();
 
   crashed: Error | undefined = undefined;
 
@@ -149,10 +148,6 @@ export class LocalNode {
     return expectAccount(
       this.expectCoValueLoaded(accountID).getCurrentContent(),
     );
-  }
-
-  markAsStorageSignatureToFix(id: string) {
-    this.fixStorageSignatures.add(id);
   }
 
   static internalCreateAccount(opts: {
