@@ -81,8 +81,7 @@ export function schemaUnionDiscriminatorFor(
               continue;
             }
           }
-
-          if (discriminatorDef._zod.def.type !== "literal") {
+          if (discriminatorDef._zod?.def.type !== "literal") {
             break;
           }
 
@@ -140,4 +139,10 @@ export function isUnionOfPrimitivesDeeply(schema: AnyZodOrCoValueSchema) {
   } else {
     return !isAnyCoValueSchema(schema);
   }
+}
+
+function isCoDiscriminatedUnion(
+  def: any,
+): def is CoreCoDiscriminatedUnionSchema<any> {
+  return def.builtin === "CoDiscriminatedUnion";
 }
