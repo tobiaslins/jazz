@@ -173,6 +173,68 @@ describe("CoMap.Record", () => {
       matches(loadedPerson);
     });
 
+    test("loading a record with property resolve", async () => {
+      const Dog = co.map({
+        name: z.string(),
+        breed: z.string(),
+      });
+
+      const Person = co.record(z.string(), Dog);
+
+      const person = Person.create({
+        pet1: Dog.create({ name: "Rex", breed: "Labrador" }),
+        pet2: Dog.create({ name: "Fido", breed: "Poodle" }),
+      });
+
+      const loadedPerson = await Person.load(person.id, {
+        resolve: {
+          pet1: true,
+        },
+      });
+
+      type Expect = NonNullable<typeof loadedPerson> extends never
+        ? "error: is never"
+        : "ok";
+
+      expectTypeOf("ok" as const).toEqualTypeOf<Expect>();
+
+      expectTypeOf(loadedPerson?.pet1).toEqualTypeOf<
+        Loaded<typeof Dog> | undefined
+      >();
+      expectTypeOf(loadedPerson?.pet3).toEqualTypeOf<
+        Loaded<typeof Dog> | undefined | null
+      >();
+    });
+
+    test("loading a record with empty resolve", async () => {
+      const Dog = co.map({
+        name: z.string(),
+        breed: z.string(),
+      });
+
+      const Person = co.record(z.string(), Dog);
+
+      const person = Person.create({
+        pet1: Dog.create({ name: "Rex", breed: "Labrador" }),
+        pet2: Dog.create({ name: "Fido", breed: "Poodle" }),
+      });
+
+      const loadedPerson = await Person.load(person.id);
+
+      type Expect = NonNullable<typeof loadedPerson> extends never
+        ? "error: is never"
+        : "ok";
+
+      expectTypeOf("ok" as const).toEqualTypeOf<Expect>();
+
+      expectTypeOf(loadedPerson?.pet1).toEqualTypeOf<
+        Loaded<typeof Dog> | undefined | null
+      >();
+      expectTypeOf(loadedPerson?.pet3).toEqualTypeOf<
+        Loaded<typeof Dog> | undefined | null
+      >();
+    });
+
     test("loading a record with $onError", async () => {
       const Dog = co.map({
         name: z.string(),

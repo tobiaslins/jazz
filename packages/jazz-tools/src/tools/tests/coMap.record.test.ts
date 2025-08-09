@@ -213,6 +213,29 @@ describe("CoMap.Record", async () => {
       expect(loadedPerson.pet2?.name).toEqual("Fido");
     });
 
+    test("loading a locally available record with single resolve", async () => {
+      const Dog = co.map({
+        name: z.string(),
+        breed: z.string(),
+      });
+
+      const Person = co.record(z.string(), Dog);
+
+      const person = Person.create({
+        pet1: Dog.create({ name: "Rex", breed: "Labrador" }),
+        pet2: Dog.create({ name: "Fido", breed: "Poodle" }),
+      });
+
+      const loadedPerson = await Person.load(person.id, {
+        resolve: {
+          pet1: true,
+        },
+      });
+
+      assert(loadedPerson);
+      expect(loadedPerson.pet1?.name).toEqual("Rex");
+    });
+
     test("loading a locally available record using autoload for the refs", async () => {
       const Dog = co.map({
         name: z.string(),
