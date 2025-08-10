@@ -118,3 +118,23 @@ export class CoJsonIDBTransaction {
     }
   }
 }
+
+export function queryIndexedDbStore<T>(
+  db: IDBDatabase,
+  storeName: StoreName,
+  callback: (store: IDBObjectStore) => IDBRequest<T>,
+) {
+  return new Promise<T>((resolve, reject) => {
+    const tx = db.transaction(storeName, "readonly");
+    const request = callback(tx.objectStore(storeName));
+
+    request.onerror = () => {
+      reject(request.error);
+    };
+
+    request.onsuccess = () => {
+      resolve(request.result as T);
+      tx.commit();
+    };
+  });
+}
