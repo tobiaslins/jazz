@@ -220,10 +220,15 @@ describe("CoMap.Record", () => {
       });
 
       const userId: string = "pet1";
+      const userId2: string = "pet3";
 
       const loadedPerson = await Person.load(person.id, {
         resolve: {
           [userId]: true,
+          pet2: true,
+          [userId2]: {
+            $onError: null,
+          },
         },
       });
 
@@ -234,10 +239,13 @@ describe("CoMap.Record", () => {
       expectTypeOf("ok" as const).toEqualTypeOf<Expect>();
 
       expectTypeOf(loadedPerson?.pet1).toEqualTypeOf<
-        Loaded<typeof Dog> | undefined
+        Loaded<typeof Dog> | undefined | null
+      >();
+      expectTypeOf(loadedPerson?.pet2).toEqualTypeOf<
+        Loaded<typeof Dog> | undefined | null
       >();
       expectTypeOf(loadedPerson?.pet3).toEqualTypeOf<
-        Loaded<typeof Dog> | undefined
+        Loaded<typeof Dog> | undefined | null
       >();
     });
 
