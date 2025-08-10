@@ -4,8 +4,8 @@
 
 html {
   overflow: hidden;
-  max-width: 1200px;
   position: relative;
+  background-color: hsl(0 0% 99%);
 }
 
 :root {
