@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 
+import { createImage } from "jazz-tools/browser-media-images";
 import { createJazzTestAccount } from "jazz-tools/testing";
 import { describe, expect, it } from "vitest";
-import { createImage } from "./index.js";
 
 describe("createImage", () => {
   it("should create an image with a single size if width/height < 256", async () => {
