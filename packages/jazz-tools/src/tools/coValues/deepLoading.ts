@@ -164,19 +164,11 @@ export type DeeplyLoaded<
                       >
                     | onErrorNullEnabled<Depth["$each"]>;
                 } & V // same reason as in CoList
-              : // 1.2. Deeply loaded Record-like CoMap with { [key: string]: true | {$onError: null} }
+              : // 1.2. Deeply loaded Record-like CoMap with { [key: string]: true }
                 string extends keyof Depth
-                ? {
-                    [key in keyof Depth]:
-                      | DeeplyLoaded<
-                          V[ItemsSym],
-                          Depth[key],
-                          DepthLimit,
-                          [0, ...CurrentDepth]
-                        >
-                      | onErrorNullEnabled<Depth[key]>;
-                  } & V // same reason as in CoList
-                : // 1.2 Deeply loaded Record-like CoMap with single keys
+                ? // if at least one key is `string`, then we treat the resolve as it was empty
+                  DeeplyLoaded<V, {}, DepthLimit, [0, ...CurrentDepth]> & V
+                : // 1.3 Deeply loaded Record-like CoMap with single keys
                   CoMapLikeLoaded<V, Depth, DepthLimit, CurrentDepth>
             : // 2. Deeply loaded CoMap
               CoMapLikeLoaded<V, Depth, DepthLimit, CurrentDepth>
