@@ -19,11 +19,6 @@
       "types": "./dist/browser/index.d.ts",
       "default": "./dist/browser/index.js"
     },
-    "./browser-media-images": {
-      "@jazz-tools/source": "./src/browser-media-images/index.ts",
-      "types": "./dist/browser-media-images/index.d.ts",
-      "default": "./dist/browser-media-images/index.js"
-    },
     "./media": {
       "@jazz-tools/source": "./src/media/index.ts",
       "types": "./dist/media/index.d.ts",
