@@ -42,7 +42,7 @@ export class LocalTransactionsSyncQueue {
     const lastPendingSync = this.queue.tail?.value;
     const lastSignatureIdx = coValue.getLastSignatureCheckpoint(sessionID);
     const isSignatureCheckpoint =
-      lastSignatureIdx > -1 && lastSignatureIdx === txIdx - 1;
+      lastSignatureIdx > -1 && lastSignatureIdx === txIdx;
 
     if (lastPendingSync?.id === coValue.id && !isSignatureCheckpoint) {
       addTransactionToContentMessage(

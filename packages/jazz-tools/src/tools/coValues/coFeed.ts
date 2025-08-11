@@ -9,7 +9,7 @@ import type {
   RawCoStream,
   SessionID,
 } from "cojson";
-import { MAX_RECOMMENDED_TX_SIZE, cojsonInternals } from "cojson";
+import { cojsonInternals } from "cojson";
 import type {
   AnonymousJazzAgent,
   CoValue,
@@ -849,7 +849,8 @@ export class FileStream extends CoValueBase implements CoValue {
       totalSizeBytes: blob.size,
       fileName: blob instanceof File ? blob.name : undefined,
     });
-    const chunkSize = MAX_RECOMMENDED_TX_SIZE;
+    const chunkSize =
+      cojsonInternals.TRANSACTION_CONFIG.MAX_RECOMMENDED_TX_SIZE;
 
     let lastProgressUpdate = Date.now();
 
