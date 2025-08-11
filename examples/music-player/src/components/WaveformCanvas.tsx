@@ -111,10 +111,9 @@ function drawWaveform(props: DrawWaveformCanvasProps) {
   const totalBars = Math.floor(cssWidth / (barWidth + gap));
   const ds = buildPeaks(waveformData, totalBars);
 
-  const draw = (color: string, untilBar: number, opacity: number = 1) => {
-    ctx.globalAlpha = opacity;
+  const draw = (color: string, untilBar: number, start = 0) => {
     ctx.fillStyle = color;
-    for (let i = 0; i < untilBar; i++) {
+    for (let i = start; i < untilBar; i++) {
       const v = ds[i] || 0;
       const h = Math.max(2, v * (cssHeight - 8)); // margin
       const x = i * (barWidth + gap);
@@ -122,25 +121,23 @@ function drawWaveform(props: DrawWaveformCanvasProps) {
       // Apply staggered animation
       if (isAnimating) {
         const barProgress = Math.max(0, Math.min(1, animationProgress / 0.2));
-        const barOpacity = barProgress * opacity;
         const animatedHeight = h * barProgress;
 
-        ctx.globalAlpha = barOpacity;
+        ctx.globalAlpha = barProgress;
         ctx.fillRect(x, midY - animatedHeight / 2, barWidth, animatedHeight);
       } else {
         ctx.fillRect(x, midY - h / 2, barWidth, h);
       }
     }
-    ctx.globalAlpha = 1;
   };
 
-  // Base waveform
-  draw(barColor, totalBars);
   // Progress overlay
   const progressBars = Math.floor(
     totalBars * Math.max(0, Math.min(1, progress || 0)),
   );
   draw(progressColor, progressBars);
+  // Base waveform
+  draw(barColor, totalBars, progressBars);
 }
 
 type WaveformCanvasProps = {
