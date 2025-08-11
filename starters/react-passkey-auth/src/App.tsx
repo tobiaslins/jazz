@@ -2,7 +2,7 @@ import { useAccount, useIsAuthenticated } from "jazz-tools/react";
 import { AuthButton } from "./AuthButton.tsx";
 import { Form } from "./Form.tsx";
 import { Logo } from "./Logo.tsx";
-import { getUserAge, JazzAccount } from "./schema.ts";
+import { JazzAccount, getUserAge } from "./schema.ts";
 
 function App() {
   const { me } = useAccount(JazzAccount, {

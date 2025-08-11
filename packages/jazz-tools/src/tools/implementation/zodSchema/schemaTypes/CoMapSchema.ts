@@ -2,18 +2,18 @@ import { CoValueUniqueness } from "cojson";
 import {
   Account,
   CoMap,
-  coMapDefiner,
-  coOptionalDefiner,
-  DiscriminableCoreCoValueSchema,
   DiscriminableCoValueSchemaDefinition,
+  DiscriminableCoreCoValueSchema,
   Group,
-  hydrateCoreCoValueSchema,
-  isAnyCoValueSchema,
   RefsToResolve,
   RefsToResolveStrict,
   Resolved,
   Simplify,
   SubscribeListenerOptions,
+  coMapDefiner,
+  coOptionalDefiner,
+  hydrateCoreCoValueSchema,
+  isAnyCoValueSchema,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { removeGetters } from "../../schemaUtils.js";

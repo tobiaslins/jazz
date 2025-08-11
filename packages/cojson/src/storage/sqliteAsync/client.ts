@@ -166,11 +166,7 @@ export class SQLiteClientAsync implements DBClientInterfaceAsync {
     sessionRowID,
     idx,
     signature,
-  }: {
-    sessionRowID: number;
-    idx: number;
-    signature: Signature;
-  }) {
+  }: { sessionRowID: number; idx: number; signature: Signature }) {
     this.db.run(
       "INSERT INTO signatureAfter (ses, idx, signature) VALUES (?, ?, ?)",
       [sessionRowID, idx, signature],

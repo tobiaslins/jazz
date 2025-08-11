@@ -2,7 +2,7 @@
 
 import { AuthProvider } from "jazz-react-auth-betterauth";
 import { JazzReactProvider } from "jazz-tools/react";
-import { lazy, type ReactNode } from "react";
+import { type ReactNode, lazy } from "react";
 
 const JazzDevTools =
   process.env.NODE_ENV === "production"

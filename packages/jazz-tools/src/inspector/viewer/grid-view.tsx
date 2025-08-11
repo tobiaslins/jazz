@@ -1,11 +1,13 @@
-import { CoID, JsonObject, JsonValue, LocalNode, RawCoValue } from "cojson";
+import { CoID, LocalNode, RawCoValue } from "cojson";
+import { JsonObject, JsonValue } from "cojson";
+import { ResolveIcon } from "./type-icon.js";
+import { PageInfo, isCoId } from "./types.js";
+import { CoMapPreview, ValueRenderer } from "./value-renderer.js";
+
 import { Badge } from "../ui/badge.js";
 import { Card, CardBody, CardHeader } from "../ui/card.js";
 import { Grid } from "../ui/grid.js";
 import { Text } from "../ui/text.js";
-import { ResolveIcon } from "./type-icon.js";
-import { isCoId, PageInfo } from "./types.js";
-import { CoMapPreview, ValueRenderer } from "./value-renderer.js";
 
 function GridItem({
   entry,

@@ -1,6 +1,3 @@
-import { useAccount } from "jazz-tools/react";
-import { Home, Music, Plus, Trash2 } from "lucide-react";
-import { useNavigate, useParams } from "react-router";
 import { MusicaAccount } from "@/1_schema";
 import { createNewPlaylist, deletePlaylist } from "@/4_actions";
 import {
@@ -15,6 +12,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { useAccount } from "jazz-tools/react";
+import { Home, Music, Plus, Trash2 } from "lucide-react";
+import { useNavigate, useParams } from "react-router";
 import { AuthButton } from "./AuthButton";
 
 export function SidePanel() {

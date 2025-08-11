@@ -3,7 +3,8 @@
 import { Account, CoRichText } from "jazz-tools";
 import { createJazzTestAccount, setupJazzTestSync } from "jazz-tools/testing";
 import { schema } from "prosemirror-schema-basic";
-import { EditorState, Plugin, TextSelection } from "prosemirror-state";
+import { EditorState, TextSelection } from "prosemirror-state";
+import { Plugin } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createJazzPlugin } from "../lib/plugin";

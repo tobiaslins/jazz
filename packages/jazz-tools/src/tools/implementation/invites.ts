@@ -1,4 +1,4 @@
-import { cojsonInternals, type InviteSecret } from "cojson";
+import { type InviteSecret, cojsonInternals } from "cojson";
 import { Account } from "../coValues/account.js";
 import type {
   CoValue,

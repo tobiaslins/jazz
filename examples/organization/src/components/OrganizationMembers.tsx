@@ -4,9 +4,7 @@ import { Organization } from "../schema.ts";
 
 export function OrganizationMembers({
   organization,
-}: {
-  organization: Loaded<typeof Organization>;
-}) {
+}: { organization: Loaded<typeof Organization> }) {
   const group = organization._owner.castAs(Group);
 
   return (
@@ -27,11 +25,7 @@ function MemberItem({
   account,
   role,
   group,
-}: {
-  account: Account;
-  role: string;
-  group: Group;
-}) {
+}: { account: Account; role: string; group: Group }) {
   const { me } = useAccount();
 
   const canRemoveMember = group.myRole() === "admin" && account.id !== me?.id;

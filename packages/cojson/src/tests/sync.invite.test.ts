@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, test } from "vitest";
 
 import {
-  loadCoValueOrFail,
   SyncMessagesLog,
-  setupTestNode,
   TEST_NODE_CONFIG,
+  loadCoValueOrFail,
+  setupTestNode,
 } from "./testUtils";
 
 // We want to simulate a real world communication that happens asynchronously

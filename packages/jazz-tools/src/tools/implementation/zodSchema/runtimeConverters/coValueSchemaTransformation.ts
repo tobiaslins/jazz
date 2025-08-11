@@ -10,13 +10,13 @@ import {
   CoPlainText,
   CoRichText,
   CoValueClass,
-  enrichAccountSchema,
-  enrichCoMapSchema,
   FileStream,
   FileStreamSchema,
-  isCoValueClass,
   PlainTextSchema,
   SchemaUnion,
+  enrichAccountSchema,
+  enrichCoMapSchema,
+  isCoValueClass,
 } from "../../../internal.js";
 import { coField } from "../../schema.js";
 

@@ -23,7 +23,11 @@ const TestAccount = co
   });
 
 // React component that uses Jazz hooks for testing logout behavior
-function TestLogoutComponent({ onLogout }: { onLogout?: () => void }) {
+function TestLogoutComponent({
+  onLogout,
+}: {
+  onLogout?: () => void;
+}) {
   const { logOut, me } = useAccount(TestAccount, {
     resolve: {
       profile: true,

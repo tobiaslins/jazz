@@ -1,4 +1,5 @@
-import { CoID, cojsonInternals, LocalNode, RawCoValue } from "cojson";
+import { CoID, LocalNode, RawCoValue } from "cojson";
+import { cojsonInternals } from "cojson";
 import { Account } from "jazz-tools";
 import { TestJSCrypto } from "jazz-tools/testing";
 

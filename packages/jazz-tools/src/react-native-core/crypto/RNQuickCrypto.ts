@@ -1,15 +1,13 @@
 import { base58 } from "@scure/base";
 import {
-  base64URLtoBytes,
-  bytesToBase64url,
-  CojsonInternalTypes,
-  cojsonInternals,
   JsonValue,
   Stringified,
+  base64URLtoBytes,
+  bytesToBase64url,
 } from "cojson";
+import { CojsonInternalTypes, cojsonInternals } from "cojson";
 import { PureJSCrypto } from "cojson/dist/crypto/PureJSCrypto"; // Importing from dist to not rely on the exports field
 import { Ed, xsalsa20 } from "react-native-quick-crypto";
-
 const { stableStringify } = cojsonInternals;
 
 export class RNQuickCrypto extends PureJSCrypto {

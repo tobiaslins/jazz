@@ -1,4 +1,6 @@
-import { Histogram, metrics, ValueType } from "@opentelemetry/api";
+import { Histogram, ValueType, metrics } from "@opentelemetry/api";
+import { PeerState } from "./PeerState.js";
+import { SyncStateManager } from "./SyncStateManager.js";
 import {
   getTransactionSize,
   knownStateFromContent,
@@ -11,14 +13,12 @@ import {
   VerifiedState,
 } from "./coValueCore/verifiedState.js";
 import { Signature } from "./crypto/crypto.js";
-import { isRawCoID, RawCoID, SessionID } from "./ids.js";
+import { RawCoID, SessionID, isRawCoID } from "./ids.js";
 import { LocalNode } from "./localNode.js";
 import { logger } from "./logger.js";
-import { PeerState } from "./PeerState.js";
 import { CoValuePriority } from "./priority.js";
 import { IncomingMessagesQueue } from "./queue/IncomingMessagesQueue.js";
 import { LocalTransactionsSyncQueue } from "./queue/LocalTransactionsSyncQueue.js";
-import { SyncStateManager } from "./SyncStateManager.js";
 import { accountOrAgentIDfromSessionID } from "./typeUtils/accountOrAgentIDfromSessionID.js";
 import { isAccountID } from "./typeUtils/isAccountID.js";
 

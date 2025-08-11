@@ -1,5 +1,6 @@
-import { Account, JazzContextManager, JazzContextType } from "jazz-tools";
 import React from "react";
+
+import { Account, JazzContextManager, JazzContextType } from "jazz-tools";
 
 export const JazzContext = React.createContext<
   JazzContextType<Account> | undefined

@@ -1,7 +1,3 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
-import { experimental_useInboxSender, useCoState } from "jazz-tools/react";
-import { Badge, CircleHelp, Scissors, ScrollText } from "lucide-react";
-import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,6 +8,10 @@ import {
 } from "@/components/ui/card";
 import { WORKER_ID } from "@/constants";
 import { Game, NewGameIntent, PlayIntent } from "@/schema";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { experimental_useInboxSender, useCoState } from "jazz-tools/react";
+import { Badge, CircleHelp, Scissors, ScrollText } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const playIcon = (selection: "rock" | "paper" | "scissors" | undefined) => {
   switch (selection) {

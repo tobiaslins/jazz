@@ -1,11 +1,5 @@
 "use client";
 
-import { Account, co, JazzRequestError } from "jazz-tools";
-import { useCoState } from "jazz-tools/react-core";
-import { ClipboardCopyIcon, Loader2Icon } from "lucide-react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,6 +11,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { WaitingRoom } from "@/schema";
 import { serverApi } from "@/serverApi";
+import { Account, JazzRequestError, co } from "jazz-tools";
+import { useCoState } from "jazz-tools/react-core";
+import { ClipboardCopyIcon, Loader2Icon } from "lucide-react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 function useWindowLocation() {
   const [location, setLocation] = useState<string>("");

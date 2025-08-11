@@ -1,7 +1,7 @@
-import { Account, Group, JazzRequestError } from "jazz-tools";
 import { jazzServerAccount } from "@/jazzServerAccount";
-import { createGameState, Game } from "@/schema";
+import { Game, createGameState } from "@/schema";
 import { serverApi } from "@/serverApi";
+import { Account, Group, JazzRequestError } from "jazz-tools";
 
 export async function POST(request: Request) {
   return serverApi.joinGame.handle(

@@ -6,7 +6,7 @@
  */
 
 import type { BrowserCommand } from "vitest/node";
-import { startSyncServer, TestSyncServer } from "./syncServer";
+import { TestSyncServer, startSyncServer } from "./syncServer";
 
 const syncServers = new Map<string, TestSyncServer>();
 

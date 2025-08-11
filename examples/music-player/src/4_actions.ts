@@ -1,6 +1,6 @@
-import { FileStream, Group } from "jazz-tools";
 import { getAudioFileData } from "@/lib/audio/getAudioFileData";
-import { MusicaAccount, MusicTrack, Playlist } from "./1_schema";
+import { FileStream, Group } from "jazz-tools";
+import { MusicTrack, MusicaAccount, Playlist } from "./1_schema";
 
 /**
  * Walkthrough: Actions
@@ -116,7 +116,7 @@ export async function removeTrackFromPlaylist(
 
   if (track._owner._type === "Group" && playlist._owner._type === "Group") {
     const trackGroup = track._owner;
-    await trackGroup.removeMember(playlist._owner);
+    trackGroup.removeMember(playlist._owner);
 
     const index =
       playlist.tracks?.findIndex(

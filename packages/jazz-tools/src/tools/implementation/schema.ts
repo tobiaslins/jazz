@@ -7,8 +7,8 @@ import {
   CoValueFromRaw,
   Group,
   ItemsSym,
-  isCoValueClass,
   SchemaInit,
+  isCoValueClass,
 } from "../internal.js";
 
 /** @category Schema definition */

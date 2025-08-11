@@ -1,16 +1,17 @@
+import type { CojsonInternalTypes, RawCoID, SessionID } from "cojson";
 import type {
-  CojsonInternalTypes,
   CoValueRow,
   DBClientInterfaceAsync,
-  RawCoID,
-  SessionID,
   SessionRow,
   SignatureAfterRow,
   StoredCoValueRow,
   StoredSessionRow,
   TransactionRow,
 } from "cojson";
-import { CoJsonIDBTransaction } from "./CoJsonIDBTransaction.js";
+import {
+  CoJsonIDBTransaction,
+  queryIndexedDbStore,
+} from "./CoJsonIDBTransaction.js";
 
 export class IDBClient implements DBClientInterfaceAsync {
   private db;
@@ -41,17 +42,14 @@ export class IDBClient implements DBClientInterfaceAsync {
   }
 
   async getCoValue(coValueId: RawCoID): Promise<StoredCoValueRow | undefined> {
-    return this.makeRequest<StoredCoValueRow | undefined>((tx) =>
-      tx.getObjectStore("coValues").index("coValuesById").get(coValueId),
+    return queryIndexedDbStore(this.db, "coValues", (store) =>
+      store.index("coValuesById").get(coValueId),
     );
   }
 
   async getCoValueSessions(coValueRowId: number): Promise<StoredSessionRow[]> {
-    return this.makeRequest<StoredSessionRow[]>((tx) =>
-      tx
-        .getObjectStore("sessions")
-        .index("sessionsByCoValue")
-        .getAll(coValueRowId),
+    return queryIndexedDbStore(this.db, "sessions", (store) =>
+      store.index("sessionsByCoValue").getAll(coValueRowId),
     );
   }
 
@@ -59,11 +57,8 @@ export class IDBClient implements DBClientInterfaceAsync {
     coValueRowId: number,
     sessionID: SessionID,
   ): Promise<StoredSessionRow | undefined> {
-    return this.makeRequest<StoredSessionRow>((tx) =>
-      tx
-        .getObjectStore("sessions")
-        .index("uniqueSessions")
-        .get([coValueRowId, sessionID]),
+    return queryIndexedDbStore(this.db, "sessions", (store) =>
+      store.index("uniqueSessions").get([coValueRowId, sessionID]),
     );
   }
 
@@ -72,12 +67,10 @@ export class IDBClient implements DBClientInterfaceAsync {
     fromIdx: number,
     toIdx: number,
   ): Promise<TransactionRow[]> {
-    return this.makeRequest<TransactionRow[]>((tx) =>
-      tx
-        .getObjectStore("transactions")
-        .getAll(
-          IDBKeyRange.bound([sessionRowId, fromIdx], [sessionRowId, toIdx]),
-        ),
+    return queryIndexedDbStore(this.db, "transactions", (store) =>
+      store.getAll(
+        IDBKeyRange.bound([sessionRowId, fromIdx], [sessionRowId, toIdx]),
+      ),
     );
   }
 
@@ -85,15 +78,13 @@ export class IDBClient implements DBClientInterfaceAsync {
     sessionRowId: number,
     firstNewTxIdx: number,
   ): Promise<SignatureAfterRow[]> {
-    return this.makeRequest<SignatureAfterRow[]>((tx) =>
-      tx
-        .getObjectStore("signatureAfter")
-        .getAll(
-          IDBKeyRange.bound(
-            [sessionRowId, firstNewTxIdx],
-            [sessionRowId, Number.POSITIVE_INFINITY],
-          ),
+    return queryIndexedDbStore(this.db, "signatureAfter", (store) =>
+      store.getAll(
+        IDBKeyRange.bound(
+          [sessionRowId, firstNewTxIdx],
+          [sessionRowId, Number.POSITIVE_INFINITY],
         ),
+      ),
     );
   }
 
@@ -107,6 +98,7 @@ export class IDBClient implements DBClientInterfaceAsync {
     return (await this.makeRequest<IDBValidKey>((tx) =>
       tx.getObjectStore("coValues").put({
         id: msg.id,
+        // biome-ignore lint/style/noNonNullAssertion: TODO(JAZZ-561): Review
         header: msg.header!,
       } satisfies CoValueRow),
     )) as number;

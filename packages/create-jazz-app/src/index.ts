@@ -1,22 +1,22 @@
 #!/usr/bin/env node
 
-import chalk from "chalk";
 import { execSync } from "child_process";
+import fs from "fs";
+import path from "path";
+import chalk from "chalk";
 import { Command } from "commander";
 import degit from "degit";
-import fs from "fs";
 import inquirer from "inquirer";
 import ora from "ora";
-import path from "path";
 
 import {
   Framework,
   type FrameworkAuthPair,
-  frameworks,
-  frameworkToAuthExamples,
   PLATFORM,
+  frameworkToAuthExamples,
+  frameworks,
 } from "./config.js";
-import { getPkgManager, type PackageManager } from "./utils.js";
+import { type PackageManager, getPkgManager } from "./utils.js";
 
 // Handle SIGINT (Ctrl+C) gracefully
 process.on("SIGINT", () => {

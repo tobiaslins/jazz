@@ -1,7 +1,8 @@
-export {
-  cojsonInternals,
-  LogLevel,
-  logger,
-  MAX_RECOMMENDED_TX_SIZE,
-} from "cojson";
 export * from "./exports.js";
+
+export {
+  MAX_RECOMMENDED_TX_SIZE,
+  cojsonInternals,
+  logger,
+  LogLevel,
+} from "cojson";

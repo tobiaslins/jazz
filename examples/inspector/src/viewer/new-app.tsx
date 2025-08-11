@@ -7,10 +7,9 @@ import {
   RawAccountID,
   RawCoValue,
 } from "cojson";
-import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { createWebSocketPeer } from "cojson-transport-ws";
+import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import {
-  AccountOrGroupText,
   Breadcrumbs,
   Button,
   GlobalStyles,
@@ -19,7 +18,8 @@ import {
   PageStack,
   Select,
 } from "jazz-tools/inspector";
-import React, { useEffect, useState } from "react";
+import { AccountOrGroupText } from "jazz-tools/inspector";
+import React, { useState, useEffect } from "react";
 import { usePagePath } from "./use-page-path";
 
 interface Account {

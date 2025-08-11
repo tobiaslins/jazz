@@ -1,5 +1,5 @@
-import { Profile } from "jazz-tools";
 import { jazzSSR } from "@/jazzSSR";
+import { Profile } from "jazz-tools";
 
 export default async function ServerSidePage(props: {
   params: Promise<{ profileId: string }>;

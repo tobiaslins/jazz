@@ -1,9 +1,9 @@
-import { LocalNode } from "cojson";
 import { randomUUID } from "crypto";
-import { co, z } from "jazz-tools";
-import { startWorker } from "jazz-tools/worker";
 import { tmpdir } from "os";
 import { join } from "path";
+import { LocalNode } from "cojson";
+import { co, z } from "jazz-tools";
+import { startWorker } from "jazz-tools/worker";
 import { describe, expect, test } from "vitest";
 import { createWorkerAccount } from "../createWorkerAccount.js";
 import { startSyncServer } from "../startSyncServer.js";

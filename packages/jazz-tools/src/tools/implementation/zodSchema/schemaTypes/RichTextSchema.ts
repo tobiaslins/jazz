@@ -1,8 +1,8 @@
 import {
   Account,
   CoRichText,
-  coOptionalDefiner,
   Group,
+  coOptionalDefiner,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { CoOptionalSchema } from "./CoOptionalSchema.js";

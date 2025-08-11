@@ -1,3 +1,10 @@
+import React, {
+  useCallback,
+  useContext,
+  useRef,
+  useSyncExternalStore,
+} from "react";
+
 import {
   Account,
   AccountClass,
@@ -5,7 +12,6 @@ import {
   AnyAccountSchema,
   CoValue,
   CoValueClassOrSchema,
-  coValueClassFromCoValueClassOrSchema,
   InboxSender,
   InstanceOfSchema,
   JazzContextManager,
@@ -14,13 +20,8 @@ import {
   ResolveQuery,
   ResolveQueryStrict,
   SubscriptionScope,
+  coValueClassFromCoValueClassOrSchema,
 } from "jazz-tools";
-import React, {
-  useCallback,
-  useContext,
-  useRef,
-  useSyncExternalStore,
-} from "react";
 import { JazzContext, JazzContextManagerContext } from "./provider.js";
 import { getCurrentAccountFromContextManager } from "./utils.js";
 

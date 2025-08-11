@@ -1,8 +1,8 @@
-import { CryptoProvider, cojsonInternals, RawAccountID } from "cojson";
+import { CryptoProvider, RawAccountID, cojsonInternals } from "cojson";
 import {
   Account,
-  AuthenticateAccountFunction,
   AuthSecretStorage,
+  AuthenticateAccountFunction,
   ID,
 } from "jazz-tools";
 

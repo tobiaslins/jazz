@@ -1,10 +1,10 @@
 import {
-  CojsonInternalTypes,
   CoValueCore,
+  CojsonInternalTypes,
   CryptoProvider,
-  cojsonInternals,
   RawAccount,
   RawCoMap,
+  cojsonInternals,
 } from "cojson";
 import z from "zod/v4";
 import {
@@ -12,18 +12,18 @@ import {
   CoMap,
   CoMapSchema,
   CoMapSchemaInit,
-  CoreCoMapSchema,
   CoValueClass,
-  coMapDefiner,
-  coValueClassFromCoValueClassOrSchema,
-  exportCoValue,
+  CoreCoMapSchema,
   Group,
-  importContentPieces,
   Loaded,
-  loadCoValue,
   ResolveQuery,
   ResolveQueryStrict,
   Simplify,
+  coMapDefiner,
+  coValueClassFromCoValueClassOrSchema,
+  exportCoValue,
+  importContentPieces,
+  loadCoValue,
 } from "../internal.js";
 import { isCoValueId } from "../lib/id.js";
 import { Account } from "./account.js";

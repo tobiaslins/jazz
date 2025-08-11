@@ -5,16 +5,16 @@ import {
 } from "../coValueContentMessage.js";
 import {
   type CoValueCore,
-  logger,
   type RawCoID,
   type SessionID,
   type StorageAPI,
+  logger,
 } from "../exports.js";
 import { StoreQueue } from "../queue/StoreQueue.js";
 import {
   CoValueKnownState,
-  emptyKnownState,
   NewContentMessage,
+  emptyKnownState,
 } from "../sync.js";
 import { StorageKnownState } from "./knownState.js";
 import {

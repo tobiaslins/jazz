@@ -1,9 +1,10 @@
-import { CoValueClassOrSchema } from "jazz-tools";
 import { consumeInviteLinkFromWindowLocation } from "jazz-tools/browser";
-import { useJazzContext } from "jazz-tools/react-core";
 import { useEffect } from "react";
 
-export { useAuthSecretStorage, useCoState } from "jazz-tools/react-core";
+import { CoValueClassOrSchema } from "jazz-tools";
+import { useJazzContext } from "jazz-tools/react-core";
+
+export { useCoState, useAuthSecretStorage } from "jazz-tools/react-core";
 
 export function useAcceptInvite<S extends CoValueClassOrSchema>({
   invitedObjectSchema,
@@ -47,6 +48,6 @@ export function useAcceptInvite<S extends CoValueClassOrSchema>({
 
 export {
   experimental_useInboxSender,
-  useAccount,
   useJazzContext,
+  useAccount,
 } from "jazz-tools/react-core";

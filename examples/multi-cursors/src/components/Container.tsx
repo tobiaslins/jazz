@@ -12,11 +12,7 @@ function Avatar({
   name,
   color,
   active,
-}: {
-  name: string;
-  color: string;
-  active: boolean;
-}) {
+}: { name: string; color: string; active: boolean }) {
   return (
     <span
       title={name}

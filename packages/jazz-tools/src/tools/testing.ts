@@ -1,20 +1,21 @@
-import { cojsonInternals, LocalNode } from "cojson";
+import { LocalNode } from "cojson";
+import { cojsonInternals } from "cojson";
 import { PureJSCrypto } from "cojson/dist/crypto/PureJSCrypto";
 import {
   Account,
   AccountClass,
   type AnonymousJazzAgent,
   AuthCredentials,
-  activeAccountContext,
-  CoreAccountSchema,
   CoValueFromRaw,
-  coValueClassFromCoValueClassOrSchema,
-  createAnonymousJazzContext,
-  createJazzContext,
+  CoreAccountSchema,
   InstanceOfSchema,
   JazzContextManager,
   JazzContextManagerAuthProps,
   JazzContextManagerBaseProps,
+  activeAccountContext,
+  coValueClassFromCoValueClassOrSchema,
+  createAnonymousJazzContext,
+  createJazzContext,
   randomSessionProvider,
 } from "./internal.js";
 
@@ -304,9 +305,7 @@ export async function linkAccounts(
 
 export async function setupJazzTestSync({
   asyncPeers = false,
-}: {
-  asyncPeers?: boolean;
-} = {}) {
+}: { asyncPeers?: boolean } = {}) {
   if (syncServer.current) {
     syncServer.current.gracefulShutdown();
   }

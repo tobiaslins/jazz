@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
-import { co, InstanceOfSchema, Loaded, z } from "../../exports";
+import { InstanceOfSchema, Loaded, co, z } from "../../exports";
 import { createJazzTestAccount } from "../../testing";
 
 const QueuedNotification = co.map({

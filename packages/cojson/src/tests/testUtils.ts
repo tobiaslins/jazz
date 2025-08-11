@@ -657,6 +657,11 @@ export async function setupTestAccount(
     connectToSyncServer,
     addStorage,
     addAsyncStorage,
+    disconnect: () => {
+      ctx.node.syncManager.getPeers().forEach((peer) => {
+        peer.gracefulShutdown();
+      });
+    },
   };
 }
 

@@ -4,24 +4,18 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, onTestFinished, test, vi } from "vitest";
 import { WasmCrypto } from "../crypto/WasmCrypto.js";
-import {
-  CoID,
-  CoValueCore,
-  LocalNode,
-  logger,
-  RawCoID,
-  RawCoMap,
-} from "../exports.js";
+import { CoID, LocalNode, RawCoID, RawCoMap, logger } from "../exports.js";
+import { CoValueCore } from "../exports.js";
 import {
   CoValueKnownState,
-  emptyKnownState,
   NewContentMessage,
+  emptyKnownState,
 } from "../sync.js";
 import { createAsyncStorage } from "./testStorage.js";
 import {
+  SyncMessagesLog,
   loadCoValueOrFail,
   randomAgentAndSessionID,
-  SyncMessagesLog,
   waitFor,
 } from "./testUtils.js";
 

@@ -1,4 +1,4 @@
-import { logger, type Peer } from "cojson";
+import { type Peer, logger } from "cojson";
 import { createWebSocketPeer } from "./createWebSocketPeer.js";
 import type { AnyWebSocketConstructor } from "./types.js";
 

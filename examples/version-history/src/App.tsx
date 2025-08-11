@@ -4,7 +4,6 @@ import { useState } from "react";
 import { IssueComponent } from "./Issue.tsx";
 import { IssueVersionHistory } from "./IssueVersionHistory.tsx";
 import { Issue } from "./schema";
-
 function App() {
   const { me, logOut } = useAccount();
   const [issueID, setIssueID] = useState<string | undefined>(

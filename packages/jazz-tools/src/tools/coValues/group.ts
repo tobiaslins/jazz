@@ -22,17 +22,17 @@ import type {
 import {
   Account,
   AccountAndGroupProxyHandler,
+  CoValueBase,
+  Profile,
+  Ref,
+  RegisteredSchemas,
   accessChildById,
   activeAccountContext,
-  CoValueBase,
   ensureCoValueLoaded,
   isControlledAccount,
   loadCoValueWithoutMe,
-  Profile,
   parseGroupCreateOptions,
   parseSubscribeRestArgs,
-  Ref,
-  RegisteredSchemas,
   subscribeToCoValueWithoutMe,
   subscribeToExistingCoValue,
 } from "../internal.js";
@@ -167,15 +167,15 @@ export class Group extends CoValueBase implements CoValue {
     }
   }
 
-  removeMember(member: Everyone | Account): Promise<void>;
+  removeMember(member: Everyone | Account): void;
   /** @category Identity & Permissions
    * Revokes membership from members a parent group.
    * @param member The group that will lose access to this group.
    */
-  removeMember(member: Group): Promise<void>;
+  removeMember(member: Group): void;
   removeMember(member: Group | Everyone | Account) {
     if (member !== "everyone" && member._type === "Group") {
-      return this._raw.revokeExtend(member._raw);
+      this._raw.revokeExtend(member._raw);
     } else {
       return this._raw.removeMember(
         member === "everyone" ? member : member._raw,

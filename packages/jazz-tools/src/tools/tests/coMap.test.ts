@@ -10,9 +10,9 @@ import {
   test,
   vi,
 } from "vitest";
-import { co, Group, subscribeToCoValue, z } from "../exports.js";
+import { Group, co, subscribeToCoValue, z } from "../exports.js";
 import { Account } from "../index.js";
-import { coValueClassFromCoValueClassOrSchema, Loaded } from "../internal.js";
+import { Loaded, coValueClassFromCoValueClassOrSchema } from "../internal.js";
 import {
   createJazzTestAccount,
   getPeerConnectedToTestSyncServer,

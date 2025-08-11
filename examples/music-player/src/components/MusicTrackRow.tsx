@@ -1,8 +1,4 @@
-import { Loaded } from "jazz-tools";
-import { useAccount, useCoState } from "jazz-tools/react";
-import { MoreHorizontal } from "lucide-react";
-import { Fragment, useCallback, useState } from "react";
-import { MusicaAccount, MusicTrack, Playlist } from "@/1_schema";
+import { MusicTrack, MusicaAccount, Playlist } from "@/1_schema";
 import { addTrackToPlaylist, removeTrackFromPlaylist } from "@/4_actions";
 import {
   DropdownMenu,
@@ -11,7 +7,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { Loaded } from "jazz-tools";
+import { useAccount, useCoState } from "jazz-tools/react";
+import { MoreHorizontal, Pause, Play } from "lucide-react";
+import { Fragment, useCallback, useState } from "react";
 import { EditTrackDialog } from "./RenameTrackDialog";
+import { Waveform } from "./Waveform";
 import { Button } from "./ui/button";
 
 function isPartOfThePlaylist(
@@ -23,24 +24,26 @@ function isPartOfThePlaylist(
 
 export function MusicTrackRow({
   trackId,
-  isLoading,
   isPlaying,
   onClick,
+  index,
 }: {
   trackId: string;
-  isLoading: boolean;
   isPlaying: boolean;
   onClick: (track: Loaded<typeof MusicTrack>) => void;
+  index: number;
 }) {
   const track = useCoState(MusicTrack, trackId);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   const { me } = useAccount(MusicaAccount, {
     resolve: { root: { playlists: { $each: { tracks: true } } } },
   });
 
   const playlists = me?.root.playlists ?? [];
+  const isActiveTrack = trackId === me?.root._refs.activeTrack?.id;
 
   function handleTrackClick() {
     if (!track) return;
@@ -76,33 +79,65 @@ export function MusicTrackRow({
     setIsDropdownOpen(true);
   }, []);
 
+  const showWaveform = isHovered || isActiveTrack;
+
   return (
     <li
-      className={"flex gap-1 hover:bg-slate-200 group py-2 px-2 cursor-pointer"}
+      className={cn(
+        "flex gap-1 hover:bg-slate-200 group py-2 cursor-pointer rounded-lg",
+        isActiveTrack && "bg-slate-200",
+      )}
+      onMouseEnter={() => {
+        setIsHovered(true);
+      }}
+      onMouseLeave={() => {
+        setIsHovered(false);
+      }}
     >
       <button
         className={cn(
-          "flex items-center justify-center bg-transparent w-8 h-8 ",
-          !isPlaying && "group-hover:bg-slate-300 rounded-full",
+          "flex items-center justify-center bg-transparent w-8 h-8 transition-opacity cursor-pointer",
+          // Show play button on hover or when active, hide otherwise
+          "md:opacity-0 opacity-50 group-hover:opacity-100",
+          isActiveTrack && "md:opacity-100 opacity-100",
         )}
         onClick={handleTrackClick}
         aria-label={`${isPlaying ? "Pause" : "Play"} ${track?.title}`}
       >
-        {isLoading ? (
-          <div className="animate-spin">߷</div>
-        ) : isPlaying ? (
-          "⏸️"
+        {isPlaying ? (
+          <Pause height={16} width={16} fill="currentColor" />
         ) : (
-          "▶️"
+          <Play height={16} width={16} fill="currentColor" />
         )}
       </button>
+      {/* Show track index when play button is hidden - hidden on mobile */}
+      <div
+        className={cn(
+          "hidden md:flex items-center justify-center w-8 h-8 text-sm text-gray-500 font-mono transition-opacity",
+        )}
+      >
+        {index + 1}
+      </div>
       <button
         onContextMenu={handleContextMenu}
         onClick={handleTrackClick}
-        className="w-full flex items-center overflow-hidden text-ellipsis whitespace-nowrap"
+        className="flex items-center overflow-hidden text-ellipsis whitespace-nowrap cursor-pointer flex-1 min-w-0"
       >
         {track?.title}
       </button>
+
+      {/* Waveform that appears on hover */}
+      {track && showWaveform && (
+        <div className="flex-1 min-w-0 px-2 items-center hidden md:flex">
+          <Waveform
+            track={track}
+            height={20}
+            className="opacity-70 w-full"
+            showProgress={isActiveTrack}
+          />
+        </div>
+      )}
+
       <div onClick={(evt) => evt.stopPropagation()}>
         <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
           <DropdownMenuTrigger asChild>
@@ -117,18 +152,18 @@ export function MusicTrackRow({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onSelect={handleEdit}>Edit</DropdownMenuItem>
-            {playlists.map((playlist, index) => (
-              <Fragment key={index}>
+            {playlists.map((playlist, playlistIndex) => (
+              <Fragment key={playlistIndex}>
                 {isPartOfThePlaylist(trackId, playlist) ? (
                   <DropdownMenuItem
-                    key={`remove-${index}`}
+                    key={`remove-${playlistIndex}`}
                     onSelect={() => handleRemoveFromPlaylist(playlist)}
                   >
                     Remove from {playlist.title}
                   </DropdownMenuItem>
                 ) : (
                   <DropdownMenuItem
-                    key={`add-${index}`}
+                    key={`add-${playlistIndex}`}
                     onSelect={() => handleAddToPlaylist(playlist)}
                   >
                     Add to {playlist.title}

@@ -6,9 +6,7 @@ import { Organization } from "../schema.ts";
 
 export function InviteLink({
   organization,
-}: {
-  organization: Loaded<typeof Organization>;
-}) {
+}: { organization: Loaded<typeof Organization> }) {
   let [copyCount, setCopyCount] = useState(0);
   let copied = copyCount > 0;
 

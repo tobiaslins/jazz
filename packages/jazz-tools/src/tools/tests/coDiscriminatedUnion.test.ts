@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { CoPlainText, co, Loaded, z } from "../exports.js";
+import { CoPlainText, Loaded, co, z } from "../exports.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 import { waitFor } from "./utils.js";
 
@@ -307,5 +307,55 @@ describe("co.discriminatedUnion", () => {
     expect(spy).toHaveBeenCalledTimes(1);
 
     expect(updates[0]?.name).toEqual("Rex");
+  });
+
+  test("should work when one of the options has a dicriminated union field", async () => {
+    const Collie = co.map({
+      type: z.literal("collie"),
+    });
+    const BorderCollie = co.map({
+      type: z.literal("border-collie"),
+    });
+    const Breed = co.discriminatedUnion("type", [Collie, BorderCollie]);
+
+    const Dog = co.map({
+      type: z.literal("dog"),
+      breed: Breed,
+    });
+
+    const Animal = co.discriminatedUnion("type", [Dog]);
+
+    const animal = Dog.create({
+      type: "dog",
+      breed: {
+        type: "collie",
+      },
+    });
+
+    const loadedAnimal = await Animal.load(animal.id);
+
+    expect(loadedAnimal?.breed?.type).toEqual("collie");
+  });
+
+  test("should work with a nested co.discriminatedUnion", async () => {
+    const Collie = co.map({
+      type: z.literal("collie"),
+    });
+    const BorderCollie = co.map({
+      type: z.literal("border-collie"),
+    });
+    const Breed = co.discriminatedUnion("type", [Collie, BorderCollie]);
+
+    const Dog = co.discriminatedUnion("type", [Breed]);
+
+    const Animal = co.discriminatedUnion("type", [Dog]);
+
+    const animal = Collie.create({
+      type: "collie",
+    });
+
+    const loadedAnimal = await Animal.load(animal.id);
+
+    expect(loadedAnimal?.type).toEqual("collie");
   });
 });

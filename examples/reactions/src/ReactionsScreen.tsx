@@ -1,6 +1,6 @@
 import { Loaded } from "jazz-tools";
 import { useCoState } from "jazz-tools/react";
-import { Reactions, ReactionType, ReactionTypes } from "./schema.ts";
+import { ReactionType, ReactionTypes, Reactions } from "./schema.ts";
 
 const reactionEmojiMap: {
   [reaction in (typeof ReactionTypes)[number]]: string;
@@ -35,9 +35,7 @@ export function ReactionsScreen(props: { id: string }) {
 
 const ReactionButtons = ({
   reactions,
-}: {
-  reactions: Loaded<typeof Reactions>;
-}) => (
+}: { reactions: Loaded<typeof Reactions> }) => (
   <div className="reaction-buttons">
     {ReactionTypes.map((reactionType) => (
       <button
@@ -58,9 +56,7 @@ const ReactionButtons = ({
 
 const ReactionOverview = ({
   reactions,
-}: {
-  reactions: Loaded<typeof Reactions>;
-}) => (
+}: { reactions: Loaded<typeof Reactions> }) => (
   <>
     {Object.values(reactions.perAccount).map((reaction) => (
       <div key={reaction.by?.id} className="reaction-row">

@@ -1,37 +1,38 @@
-import { err, ok, Result } from "neverthrow";
-import { CO_VALUE_LOADING_CONFIG } from "./config.js";
-import { CoID, RawCoValue } from "./coValue.js";
+import { Result, err, ok } from "neverthrow";
+import type { CoID } from "./coValue.js";
+import type { RawCoValue } from "./coValue.js";
 import {
-  AvailableCoValueCore,
+  type AvailableCoValueCore,
   CoValueCore,
   idforHeader,
 } from "./coValueCore/coValueCore.js";
 import {
-  CoValueHeader,
-  CoValueUniqueness,
+  type CoValueHeader,
+  type CoValueUniqueness,
   VerifiedState,
 } from "./coValueCore/verifiedState.js";
 import {
   AccountMeta,
-  accountHeaderForInitialAgentSecret,
   ControlledAccount,
   ControlledAccountOrAgent,
   ControlledAgent,
-  expectAccount,
   InvalidAccountAgentIDError,
   RawProfile as Profile,
   RawAccount,
   RawAccountID,
   RawAccountMigration,
   RawProfile,
+  accountHeaderForInitialAgentSecret,
+  expectAccount,
 } from "./coValues/account.js";
 import {
-  InviteSecret,
-  RawGroup,
+  type InviteSecret,
+  type RawGroup,
   secretSeedFromInviteSecret,
 } from "./coValues/group.js";
+import { CO_VALUE_LOADING_CONFIG } from "./config.js";
 import { AgentSecret, CryptoProvider } from "./crypto/crypto.js";
-import { AgentID, isAgentID, RawCoID, SessionID } from "./ids.js";
+import { AgentID, RawCoID, SessionID, isAgentID } from "./ids.js";
 import { logger } from "./logger.js";
 import { StorageAPI } from "./storage/index.js";
 import { Peer, PeerID, SyncManager } from "./sync.js";

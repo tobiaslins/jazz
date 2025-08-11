@@ -1,3 +1,4 @@
+import { useToast } from "@/hooks/use-toast";
 import {
   createInviteLink,
   useAccount,
@@ -5,7 +6,6 @@ import {
   useIsAuthenticated,
 } from "jazz-tools/react";
 import { useParams } from "react-router";
-import { useToast } from "@/hooks/use-toast";
 import { MusicaAccount, Playlist } from "./1_schema";
 import { uploadMusicTracks } from "./4_actions";
 import { MediaPlayer } from "./5_useMediaPlayer";
@@ -69,16 +69,16 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
   const isAuthenticated = useIsAuthenticated();
 
   return (
-    <SidebarInset className="flex flex-col h-screen text-gray-800 bg-blue-50">
+    <SidebarInset className="flex flex-col h-screen text-gray-800">
       <div className="flex flex-1 overflow-hidden">
         <SidePanel />
-        <main className="flex-1 p-6 overflow-y-auto overflow-x-hidden relative">
-          <SidebarTrigger />
-          <div className="flex items-center justify-between mb-6">
+        <main className="flex-1 px-2 py-4 md:px-6 overflow-y-auto overflow-x-hidden relative sm:h-[calc(100vh-80px)] bg-white h-[calc(100vh-165px)]">
+          <SidebarTrigger className="md:hidden" />
+          <div className="flex flex-row items-center justify-between mb-4 pl-1 md:pl-10 pr-2 md:pr-0 mt-2 md:mt-0 w-full">
             {isRootPlaylist ? (
               <h1 className="text-2xl font-bold text-blue-800">All tracks</h1>
             ) : (
-              <PlaylistTitleInput playlistId={playlistId} />
+              <PlaylistTitleInput className="w-full" playlistId={playlistId} />
             )}
             <div className="flex items-center space-x-4">
               {isRootPlaylist && (
@@ -95,14 +95,14 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
               )}
             </div>
           </div>
-          <ul className="flex flex-col max-w-full">
+          <ul className="flex flex-col max-w-full sm:gap-1">
             {playlist?.tracks?.map(
-              (track) =>
+              (track, index) =>
                 track && (
                   <MusicTrackRow
                     trackId={track.id}
                     key={track.id}
-                    isLoading={mediaPlayer.loading === track.id}
+                    index={index}
                     isPlaying={
                       mediaPlayer.activeTrackId === track.id &&
                       isActivePlaylist &&

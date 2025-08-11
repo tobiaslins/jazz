@@ -8,8 +8,8 @@ import {
 import { useEffect, useMemo, useState } from "react";
 
 export * from "./contexts/Auth.js";
-export * from "./lib/social.js";
 export * from "./types/auth.js";
+export * from "./lib/social.js";
 
 /**
  * @category Auth Providers
@@ -35,7 +35,11 @@ export function useBetterAuth<T extends ClientOptions>(options?: T) {
 
   useEffect(() => {
     return authMethod.authClient.useSession.subscribe(
-      async ({ data }: { data: Data }) => {
+      async ({
+        data,
+      }: {
+        data: Data;
+      }) => {
         if (!data || !data.user) return;
         if (data.user.encryptedCredentials === account?.encryptedCredentials)
           return;

@@ -1,9 +1,7 @@
-import { CoPlainText, Loaded } from "jazz-tools";
-import { useCoState } from "jazz-tools/react";
 import { useCallback } from "react";
-import { useParams } from "react-router";
-import uniqolor from "uniqolor";
+
 import { Task, TodoProject } from "./1_schema";
+
 import {
   Checkbox,
   Skeleton,
@@ -15,6 +13,11 @@ import {
   TableHeader,
   TableRow,
 } from "./basicComponents";
+
+import { CoPlainText, Loaded } from "jazz-tools";
+import { useCoState } from "jazz-tools/react";
+import { useParams } from "react-router";
+import uniqolor from "uniqolor";
 import { InviteButton } from "./components/InviteButton";
 
 /** Walkthrough: Reactively rendering a todo project as a table,
