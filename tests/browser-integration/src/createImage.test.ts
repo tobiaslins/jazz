@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { createImage } from "jazz-tools/media";
-import { describe, expect, it } from "vitest";
 import { createJazzTestAccount } from "jazz-tools/testing";
+import { describe, expect, it } from "vitest";
 
 describe("createImage - Browser Edition", async () => {
   const account = await createJazzTestAccount();
