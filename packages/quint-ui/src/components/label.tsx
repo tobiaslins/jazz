@@ -1,5 +1,6 @@
 import { tv } from "tailwind-variants";
-import { cn } from "../lib/utils.js";
+// biome-ignore lint/correctness/useImportExtensions: <explanation>
+import { cn } from "../lib/utils";
 
 type LabelProps = React.HTMLAttributes<HTMLLabelElement> & {
   isHiddenVisually?: boolean;
