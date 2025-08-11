@@ -1,5 +1,19 @@
 # cojson-storage-indexeddb
 
+## 0.16.6
+
+### Patch Changes
+
+- 103d1b4: Fix Unknown transaction error on IndexedDB showing up sometimes when using a readwrite transaction to read values
+- 67e0968: Fix content streaming chunking, now chunks should be splitted always respecting the MAX_RECOMMENDED_TX_SIZE
+- 4b99ff1: Add a multi-storage scheduler to avoid conflicting store operations when having multiple storage instances open on the same database
+- Updated dependencies [67e0968]
+- Updated dependencies [ce9ca54]
+- Updated dependencies [4b99ff1]
+- Updated dependencies [ac5d20d]
+- Updated dependencies [9bf7946]
+  - cojson@0.16.6
+
 ## 0.16.5
 
 ### Patch Changes
