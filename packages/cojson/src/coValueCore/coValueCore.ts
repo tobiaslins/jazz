@@ -609,9 +609,7 @@ export class CoValueCore {
     return success;
   }
 
-  getCurrentContent(options?: {
-    ignorePrivateTransactions: true;
-  }): RawCoValue {
+  getCurrentContent(options?: { ignorePrivateTransactions: true }): RawCoValue {
     if (!this.verified) {
       throw new Error(
         "CoValueCore: getCurrentContent called on coValue without verified state",
@@ -851,9 +849,7 @@ export class CoValueCore {
     }
   }
 
-  waitForSync(options?: {
-    timeout?: number;
-  }) {
+  waitForSync(options?: { timeout?: number }) {
     return this.node.syncManager.waitForSync(this.id, options?.timeout);
   }
 

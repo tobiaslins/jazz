@@ -96,10 +96,7 @@ export function ChatScreen(props: { chatID: string }) {
   );
 }
 
-function ChatBubble(props: {
-  me: Account;
-  msg: Message;
-}) {
+function ChatBubble(props: { me: Account; msg: Message }) {
   if (!props.me.canRead(props.msg) || !props.msg.text?.toString()) {
     return (
       <BubbleContainer fromMe={false}>
