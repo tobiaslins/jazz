@@ -15,15 +15,15 @@ import {
   waitFor,
 } from "./testUtils";
 
-// We want to simulate a real world communication that happens asynchronously
-TEST_NODE_CONFIG.withAsyncPeers = true;
-
 let jazzCloud: ReturnType<typeof setupTestNode>;
 
 // Set a short timeout to make the tests on unavailable complete faster
 setCoValueLoadingRetryDelay(100);
 
 beforeEach(async () => {
+  // We want to simulate a real world communication that happens asynchronously
+  TEST_NODE_CONFIG.withAsyncPeers = true;
+
   SyncMessagesLog.clear();
   jazzCloud = setupTestNode({ isSyncServer: true });
 });
@@ -548,6 +548,8 @@ describe("loading coValues from server", () => {
   });
 
   test("should handle reconnections in the middle of a load with a persistent peer", async () => {
+    TEST_NODE_CONFIG.withAsyncPeers = false; // To avoid flakiness
+
     const client = setupTestNode();
     const connection1 = client.connectToSyncServer({
       persistent: true,
@@ -588,11 +590,14 @@ describe("loading coValues from server", () => {
         "client -> server | LOAD Map sessions: empty",
         "server -> client | CONTENT Group header: true new: After: 0 New: 5",
         "client -> server | KNOWN Group sessions: header/5",
-        "client -> server | LOAD Map sessions: empty",
-        "client -> server | LOAD Group sessions: header/5",
-        "server -> client | KNOWN Group sessions: header/5",
+        "server -> client | CONTENT Group header: true new: After: 0 New: 5",
+        "client -> server | KNOWN Group sessions: header/5",
         "server -> client | CONTENT Map header: true new: After: 0 New: 1",
         "client -> server | KNOWN Map sessions: header/1",
+        "client -> server | LOAD Group sessions: header/5",
+        "server -> client | KNOWN Group sessions: header/5",
+        "client -> server | LOAD Map sessions: header/1",
+        "server -> client | KNOWN Map sessions: header/1",
       ]
     `);
   });

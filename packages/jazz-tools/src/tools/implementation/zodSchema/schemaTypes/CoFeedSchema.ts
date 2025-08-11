@@ -3,23 +3,18 @@ import {
   AnyZodOrCoValueSchema,
   CoFeed,
   Group,
-  NotNull,
   RefsToResolve,
   RefsToResolveStrict,
   Resolved,
-  Simplify,
   SubscribeListenerOptions,
   coOptionalDefiner,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
+import { CoFeedInit } from "../typeConverters/CoFieldInit.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { CoOptionalSchema } from "./CoOptionalSchema.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
-
-type CoFeedInit<T extends AnyZodOrCoValueSchema> = Simplify<
-  Array<NotNull<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>>>
->;
 
 export class CoFeedSchema<T extends AnyZodOrCoValueSchema>
   implements CoreCoFeedSchema<T>
@@ -36,7 +31,7 @@ export class CoFeedSchema<T extends AnyZodOrCoValueSchema>
     init: CoFeedInit<T>,
     options?: { owner: Account | Group } | Account | Group,
   ): CoFeedInstance<T> {
-    return this.coValueClass.create(init, options) as CoFeedInstance<T>;
+    return this.coValueClass.create(init as any, options) as CoFeedInstance<T>;
   }
 
   load<const R extends RefsToResolve<CoFeedInstanceCoValuesNullable<T>> = true>(

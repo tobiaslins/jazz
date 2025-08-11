@@ -1,5 +1,5 @@
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { assert, beforeEach, describe, expect, test, vi } from "vitest";
 import { Account, Group, subscribeToCoValue, z } from "../index.js";
 import {
   Loaded,
@@ -50,6 +50,58 @@ describe("Simple CoList operations", async () => {
     expect(list[0]).toBe("a");
     expect(list[1]).toBe("b");
     expect(list[2]).toBe("c");
+  });
+
+  test("create CoList with reference using CoValue", () => {
+    const Dog = co.map({
+      name: z.string(),
+    });
+    const Person = co.map({
+      pets: co.list(Dog),
+    });
+
+    const person = Person.create({
+      pets: [Dog.create({ name: "Rex" }), Dog.create({ name: "Fido" })],
+    });
+
+    expect(person.pets.length).toEqual(2);
+    expect(person.pets[0]?.name).toEqual("Rex");
+    expect(person.pets[1]?.name).toEqual("Fido");
+  });
+
+  describe("create CoList with reference using JSON", () => {
+    test("automatically creates CoValues for nested objects", () => {
+      const Dog = co.map({
+        name: z.string(),
+      });
+      const Person = co.map({
+        pets: co.list(Dog),
+      });
+
+      const person = Person.create({
+        pets: [{ name: "Rex" }, { name: "Fido" }],
+      });
+
+      expect(person.pets.length).toEqual(2);
+      expect(person.pets[0]?.name).toEqual("Rex");
+      expect(person.pets[1]?.name).toEqual("Fido");
+    });
+
+    test("can create a coPlainText from an empty string", () => {
+      const Schema = co.list(co.plainText());
+      const list = Schema.create([""]);
+      expect(list[0]?.toString()).toBe("");
+    });
+  });
+
+  test("list with nullable content", () => {
+    const List = co.list(z.string().nullable());
+    const list = List.create(["a", "b", "c", null]);
+    expect(list.length).toBe(4);
+    expect(list[0]).toBe("a");
+    expect(list[1]).toBe("b");
+    expect(list[2]).toBe("c");
+    expect(list[3]).toBeNull();
   });
 
   test("Construction with an Account", () => {

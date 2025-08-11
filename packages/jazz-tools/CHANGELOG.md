@@ -1,5 +1,62 @@
 # jazz-tools
 
+## 0.16.5
+
+### Patch Changes
+
+- 3cd1586: Makes the key rotation not fail when child groups are unavailable or their readkey is not accessible.
+
+  Also changes the Group.removeMember method to not return a Promise, because:
+
+  - All the locally available child groups are rotated immediately
+  - All the remote child groups are rotated in background, but since they are not locally available the user won't need the new key immediately
+
+- 33ebbf0: Fix error when using nested discriminatedUnion
+- Updated dependencies [3cd1586]
+- Updated dependencies [267f689]
+  - cojson@0.16.5
+  - cojson-storage-indexeddb@0.16.5
+  - cojson-transport-ws@0.16.5
+
+## 0.16.4
+
+### Patch Changes
+
+- 16764f6: Added `pick()` and `partial()` methods to CoMapSchema
+- Updated dependencies [f9d538f]
+- Updated dependencies [802b5a3]
+  - cojson@0.16.4
+  - cojson-storage-indexeddb@0.16.4
+  - cojson-transport-ws@0.16.4
+
+## 0.16.3
+
+### Patch Changes
+
+- 43d3511: Streamlined CoValue creation:
+  - CoValues can be created with plain JSON objects. Nested CoValues will be automatically created when necessary.
+  - Optional fields can be ommited (i.e. it's no longer necessary to provide an explicit `undefined` value).
+  - cojson@0.16.3
+  - cojson-storage-indexeddb@0.16.3
+  - cojson-transport-ws@0.16.3
+
+## 0.16.2
+
+### Patch Changes
+
+- cojson@0.16.2
+- cojson-storage-indexeddb@0.16.2
+- cojson-transport-ws@0.16.2
+
+## 0.16.1
+
+### Patch Changes
+
+- c62abef: Add support for nullable non-collaborative fields
+  - cojson@0.16.1
+  - cojson-storage-indexeddb@0.16.1
+  - cojson-transport-ws@0.16.1
+
 ## 0.16.0
 
 ### Minor Changes

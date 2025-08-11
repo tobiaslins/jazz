@@ -7,7 +7,7 @@ import {
   type ID,
   type RefEncoded,
   type RefsToResolve,
-  instantiateRefEncoded,
+  instantiateRefEncodedFromRaw,
   isRefEncoded,
 } from "../internal.js";
 import { applyCoValueMigrations } from "../lib/migration.js";
@@ -75,7 +75,9 @@ export class SubscriptionScope<D extends CoValue> {
           }
 
           this.migrating = true;
-          applyCoValueMigrations(instantiateRefEncoded(this.schema, value));
+          applyCoValueMigrations(
+            instantiateRefEncodedFromRaw(this.schema, value),
+          );
           this.migrated = true;
           this.handleUpdate(lastUpdate);
           return;

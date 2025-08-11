@@ -5,7 +5,6 @@ import {
   CoMapSchemaDefinition,
   Group,
   ID,
-  NotNull,
   RefsToResolve,
   RefsToResolveStrict,
   Resolved,
@@ -13,6 +12,7 @@ import {
   SubscribeListenerOptions,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
+import { CoFieldInit } from "../typeConverters/CoFieldInit.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { z } from "../zodReExport.js";
@@ -24,7 +24,7 @@ type CoRecordInit<
   K extends z.core.$ZodString<string>,
   V extends AnyZodOrCoValueSchema,
 > = {
-  [key in z.output<K>]: NotNull<InstanceOrPrimitiveOfSchemaCoValuesNullable<V>>;
+  [key in z.output<K>]: CoFieldInit<V>;
 };
 
 export interface CoRecordSchema<

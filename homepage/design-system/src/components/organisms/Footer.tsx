@@ -41,7 +41,9 @@ export function Footer({
             </Link>
           </div>
           <p className="col-span-full sm:col-span-6 md:col-span-4 text-sm sm:text-base">
-            Playful software for serious problems.
+            Computers are magic.
+            <br />
+            Time to make them less complex.
           </p>
         </div>
         <div className="grid gap-y-8 grid-cols-12">

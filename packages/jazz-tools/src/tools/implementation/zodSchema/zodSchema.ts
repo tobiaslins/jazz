@@ -23,11 +23,7 @@ import {
 } from "./schemaTypes/CoDiscriminatedUnionSchema.js";
 import { CoFeedSchema, CoreCoFeedSchema } from "./schemaTypes/CoFeedSchema.js";
 import { CoListSchema, CoreCoListSchema } from "./schemaTypes/CoListSchema.js";
-import {
-  CoMapInitZod,
-  CoMapSchema,
-  CoreCoMapSchema,
-} from "./schemaTypes/CoMapSchema.js";
+import { CoMapSchema, CoreCoMapSchema } from "./schemaTypes/CoMapSchema.js";
 import {
   CoOptionalSchema,
   CoreCoOptionalSchema,
@@ -84,8 +80,8 @@ export type CoValueSchemaFromCoreSchema<S extends CoreCoValueSchema> =
 export type CoValueClassFromAnySchema<S extends CoValueClassOrSchema> =
   S extends CoValueClass<any>
     ? S
-    : CoValueClass<InstanceOfSchema<S>> &
-        CoValueFromRaw<InstanceOfSchema<S>> &
+    : CoValueClass<NonNullable<InstanceOfSchema<S>>> &
+        CoValueFromRaw<NonNullable<InstanceOfSchema<S>>> &
         (S extends CoreAccountSchema ? AccountClassEssentials : {});
 
 type AccountClassEssentials = {
@@ -105,7 +101,7 @@ export type AnyCoreCoValueSchema =
   | CoreRichTextSchema
   | CoreFileStreamSchema;
 
-type AnyZodSchema = z.core.$ZodType;
+export type AnyZodSchema = z.core.$ZodType;
 
 export type AnyZodOrCoValueSchema = AnyZodSchema | CoreCoValueSchema;
 
@@ -122,9 +118,3 @@ export type ResolveQueryStrict<
   T extends CoValueClassOrSchema,
   R extends ResolveQuery<T>,
 > = RefsToResolveStrict<NonNullable<InstanceOfSchemaCoValuesNullable<T>>, R>;
-
-export type InitFor<T extends CoValueClassOrSchema> = T extends CoreCoMapSchema<
-  infer Shape
->
-  ? Simplify<CoMapInitZod<Shape>>
-  : never;

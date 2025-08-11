@@ -29,7 +29,7 @@ export type InstanceOfSchemaCoValuesNullable<
   ? S extends CoreAccountSchema<infer Shape>
     ?
         | ({
-            [key in keyof Shape]: InstanceOrPrimitiveOfSchemaCoValuesNullable<
+            -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchemaCoValuesNullable<
               Shape[key]
             >;
           } & Account)
@@ -37,23 +37,23 @@ export type InstanceOfSchemaCoValuesNullable<
     : S extends CoreCoRecordSchema<infer K, infer V>
       ?
           | ({
-              [key in z.output<K> &
+              -readonly [key in z.output<K> &
                 string]: InstanceOrPrimitiveOfSchemaCoValuesNullable<V>;
             } & CoMap)
           | null
       : S extends CoreCoMapSchema<infer Shape, infer CatchAll>
         ?
             | ({
-                [key in keyof Shape]: InstanceOrPrimitiveOfSchemaCoValuesNullable<
+                -readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchemaCoValuesNullable<
                   Shape[key]
                 >;
-              } & (unknown extends CatchAll
-                ? {}
-                : {
+              } & (CatchAll extends AnyZodOrCoValueSchema
+                ? {
                     [
-                      key: string // @ts-expect-error
+                      key: string
                     ]: InstanceOrPrimitiveOfSchemaCoValuesNullable<CatchAll>;
-                  }) &
+                  }
+                : {}) &
                 CoMap)
             | null
         : S extends CoreCoListSchema<infer T>

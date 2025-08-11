@@ -1,5 +1,59 @@
 # jazz-run
 
+## 0.16.5
+
+### Patch Changes
+
+- Updated dependencies [3cd1586]
+- Updated dependencies [267f689]
+- Updated dependencies [33ebbf0]
+  - jazz-tools@0.16.5
+  - cojson@0.16.5
+  - cojson-storage-sqlite@0.16.5
+  - cojson-transport-ws@0.16.5
+
+## 0.16.4
+
+### Patch Changes
+
+- Updated dependencies [f9d538f]
+- Updated dependencies [16764f6]
+- Updated dependencies [802b5a3]
+  - cojson@0.16.4
+  - jazz-tools@0.16.4
+  - cojson-storage-sqlite@0.16.4
+  - cojson-transport-ws@0.16.4
+
+## 0.16.3
+
+### Patch Changes
+
+- Updated dependencies [43d3511]
+  - jazz-tools@0.16.3
+  - cojson@0.16.3
+  - cojson-storage-sqlite@0.16.3
+  - cojson-transport-ws@0.16.3
+
+## 0.16.2
+
+### Patch Changes
+
+- 239da90: Fix jazz-run package.json exports
+  - cojson@0.16.2
+  - cojson-storage-sqlite@0.16.2
+  - cojson-transport-ws@0.16.2
+  - jazz-tools@0.16.2
+
+## 0.16.1
+
+### Patch Changes
+
+- Updated dependencies [c62abef]
+  - jazz-tools@0.16.1
+  - cojson@0.16.1
+  - cojson-storage-sqlite@0.16.1
+  - cojson-transport-ws@0.16.1
+
 ## 0.16.0
 
 ### Patch Changes

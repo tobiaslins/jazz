@@ -2,24 +2,19 @@ import {
   Account,
   CoList,
   Group,
-  NotNull,
   RefsToResolve,
   RefsToResolveStrict,
   Resolved,
-  Simplify,
   SubscribeListenerOptions,
   coOptionalDefiner,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
+import { CoListInit } from "../typeConverters/CoFieldInit.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { AnyZodOrCoValueSchema } from "../zodSchema.js";
 import { CoOptionalSchema } from "./CoOptionalSchema.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
-
-type CoListInit<T extends AnyZodOrCoValueSchema> = Simplify<
-  Array<NotNull<InstanceOrPrimitiveOfSchemaCoValuesNullable<T>>>
->;
 
 export class CoListSchema<T extends AnyZodOrCoValueSchema>
   implements CoreCoListSchema<T>
@@ -36,7 +31,7 @@ export class CoListSchema<T extends AnyZodOrCoValueSchema>
     items: CoListInit<T>,
     options?: { owner: Account | Group } | Account | Group,
   ): CoListInstance<T> {
-    return this.coValueClass.create(items, options) as CoListInstance<T>;
+    return this.coValueClass.create(items as any, options) as CoListInstance<T>;
   }
 
   load<const R extends RefsToResolve<CoListInstanceCoValuesNullable<T>> = true>(

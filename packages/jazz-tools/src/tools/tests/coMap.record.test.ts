@@ -52,6 +52,15 @@ describe("CoMap.Record", async () => {
       expect(Object.keys(person)).toEqual(["age"]);
     });
 
+    test("create a Record with nullable values", () => {
+      const Person = co.record(z.string(), z.string().nullable());
+      const person = Person.create({ name: "John", age: null });
+      person.bio = null;
+      expect(person.name).toEqual("John");
+      expect(person.age).toEqual(null);
+      expect(person.bio).toEqual(null);
+    });
+
     test("property existence", () => {
       const Person = co.record(z.string(), z.string());
 
@@ -202,6 +211,51 @@ describe("CoMap.Record", async () => {
       assert(loadedPerson);
       expect(loadedPerson.pet1?.name).toEqual("Rex");
       expect(loadedPerson.pet2?.name).toEqual("Fido");
+    });
+
+    test("loading a locally available record with single resolve", async () => {
+      const Dog = co.map({
+        name: z.string(),
+        breed: z.string(),
+      });
+
+      const Person = co.record(z.string(), Dog);
+
+      const person = Person.create({
+        pet1: Dog.create({ name: "Rex", breed: "Labrador" }),
+        pet2: Dog.create({ name: "Fido", breed: "Poodle" }),
+      });
+
+      const loadedPerson = await Person.load(person.id, {
+        resolve: {
+          pet1: true,
+        },
+      });
+
+      assert(loadedPerson);
+      expect(loadedPerson.pet1?.name).toEqual("Rex");
+    });
+
+    test("loading a locally available record with unavailable single resolve", async () => {
+      const Dog = co.map({
+        name: z.string(),
+        breed: z.string(),
+      });
+
+      const Person = co.record(z.string(), Dog);
+
+      const person = Person.create({
+        pet1: Dog.create({ name: "Rex", breed: "Labrador" }),
+        pet2: Dog.create({ name: "Fido", breed: "Poodle" }),
+      });
+
+      const loadedPerson = await Person.load(person.id, {
+        resolve: {
+          pet3: true,
+        },
+      });
+
+      expect(loadedPerson).toEqual(null);
     });
 
     test("loading a locally available record using autoload for the refs", async () => {

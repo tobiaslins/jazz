@@ -40,6 +40,14 @@ export function randomAgentAndSessionID(): [ControlledAgent, SessionID] {
   return [new ControlledAgent(agentSecret, Crypto), sessionID];
 }
 
+export function agentAndSessionIDFromSecret(
+  secret: AgentSecret,
+): [ControlledAgent, SessionID] {
+  const sessionID = Crypto.newRandomSessionID(Crypto.getAgentID(secret));
+
+  return [new ControlledAgent(secret, Crypto), sessionID];
+}
+
 export function nodeWithRandomAgentAndSessionID() {
   const [agent, session] = randomAgentAndSessionID();
   return new LocalNode(agent.agentSecret, session, Crypto);
@@ -154,8 +162,8 @@ export function connectTwoPeers(
   bRole: "client" | "server",
 ) {
   const [aAsPeer, bAsPeer] = connectedPeers(
-    "peer:" + a.getCurrentAgent().id,
-    "peer:" + b.getCurrentAgent().id,
+    "peer:" + a.currentSessionID,
+    "peer:" + b.currentSessionID,
     {
       peer1role: aRole,
       peer2role: bRole,
@@ -443,7 +451,7 @@ export function getSyncServerConnectedPeer(opts: {
 
   const { peer1, peer2 } = connectedPeersWithMessagesTracking({
     peer1: {
-      id: currentSyncServer.getCurrentAgent().id,
+      id: currentSyncServer.currentSessionID,
       role: "server",
       name: opts.syncServerName,
     },
@@ -472,9 +480,13 @@ export function setupTestNode(
   opts: {
     isSyncServer?: boolean;
     connected?: boolean;
+    secret?: AgentSecret;
   } = {},
 ) {
-  const [admin, session] = randomAgentAndSessionID();
+  const [admin, session] = opts.secret
+    ? agentAndSessionIDFromSecret(opts.secret)
+    : randomAgentAndSessionID();
+
   let node = new LocalNode(admin.agentSecret, session, Crypto);
 
   if (opts.isSyncServer) {
@@ -489,7 +501,7 @@ export function setupTestNode(
   }) {
     const { peer, peerStateOnServer, peerOnServer } =
       getSyncServerConnectedPeer({
-        peerId: node.getCurrentAgent().id,
+        peerId: session,
         syncServerName: opts?.syncServerName,
         ourName: opts?.ourName,
         syncServer: opts?.syncServer,
@@ -550,6 +562,13 @@ export function setupTestNode(
       }
 
       return node;
+    },
+    spawnNewSession: () => {
+      return setupTestNode({
+        secret: node.agentSecret,
+        connected: opts.connected,
+        isSyncServer: opts.isSyncServer,
+      });
     },
   };
 
@@ -638,6 +657,11 @@ export async function setupTestAccount(
     connectToSyncServer,
     addStorage,
     addAsyncStorage,
+    disconnect: () => {
+      ctx.node.syncManager.getPeers().forEach((peer) => {
+        peer.gracefulShutdown();
+      });
+    },
   };
 }
 
