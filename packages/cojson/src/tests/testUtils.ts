@@ -530,10 +530,11 @@ export function setupTestNode(
     return { storage };
   }
 
-  async function addAsyncStorage(opts: { ourName?: string } = {}) {
+  async function addAsyncStorage(opts: { ourName?: string; filename?: string } = {}) {
     const storage = await createAsyncStorage({
       nodeName: opts.ourName ?? "client",
-      storageName: "storage",
+      storageName: "storage", 
+      filename: opts.filename,
     });
     node.setStorage(storage);
 

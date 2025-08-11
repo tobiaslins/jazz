@@ -138,3 +138,23 @@ export function queryIndexedDbStore<T>(
     };
   });
 }
+
+export function putIndexedDbStore<T, O extends IDBValidKey>(
+  db: IDBDatabase,
+  storeName: StoreName,
+  value: T,
+) {
+  return new Promise<O>((resolve, reject) => {
+    const tx = db.transaction(storeName, "readwrite");
+    const request = tx.objectStore(storeName).put(value);
+
+    request.onerror = () => {
+      reject(request.error);
+    };
+
+    request.onsuccess = () => {
+      resolve(request.result as O);
+      tx.commit();
+    };
+  });
+}

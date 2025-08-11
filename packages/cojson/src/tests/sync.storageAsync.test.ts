@@ -9,6 +9,7 @@ import {
   setupTestNode,
   waitFor,
 } from "./testUtils";
+import { getDbPath } from "./testStorage";
 
 // We want to simulate a real world communication that happens asynchronously
 TEST_NODE_CONFIG.withAsyncPeers = true;
@@ -525,5 +526,38 @@ describe("client syncs with a server with storage", () => {
         "server -> client | KNOWN Map sessions: header/10",
       ]
     `);
+  });
+
+  test("two storage instances open on the same file should not conflict with each other", async () => {
+    const client = setupTestNode();
+
+    client.connectToSyncServer({
+      syncServer: jazzCloud.node,
+    });
+    const dbPath = getDbPath();
+    await client.addAsyncStorage({
+      ourName: "client",
+      filename: dbPath,
+    });
+
+    const client2 = setupTestNode();
+    client2.connectToSyncServer({
+      syncServer: jazzCloud.node,
+    });
+    await client2.addAsyncStorage({
+      ourName: "client2",
+      filename: dbPath,
+    });
+
+    for (let i = 0; i < 10; i++) {
+      for (const node of [client.node, client2.node]) {
+        const group = node.createGroup();
+        const map = group.createMap();
+        map.set("hello", "world", "trusting");
+      }
+    }
+
+    await client.node.syncManager.waitForAllCoValuesSync();
+    await client2.node.syncManager.waitForAllCoValuesSync();
   });
 });
