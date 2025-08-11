@@ -4,7 +4,7 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   root: "./",
   test: {
-    workspace: [
+    projects: [
       "packages/*",
       "tests/browser-integration",
       "tests/cloudflare-workers",

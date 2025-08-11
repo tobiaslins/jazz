@@ -8,6 +8,7 @@ export function Waveform(props: {
   track: Loaded<typeof MusicTrack>;
   height: number;
   className?: string;
+  showProgress?: boolean;
 }) {
   const { track, height } = props;
   const waveformData = useCoState(
@@ -29,29 +30,24 @@ export function Waveform(props: {
   }
 
   const barCount = waveformData.length;
-  const activeBar = Math.ceil(barCount * (currentTime.value / duration));
-
-  function seek(i: number) {
-    currentTime.setValue((i / barCount) * duration);
-  }
+  const activeBar = props.showProgress
+    ? Math.ceil(barCount * (currentTime.value / duration))
+    : -1;
 
   return (
     <div
       className={cn("flex justify-center items-end w-full", props.className)}
       style={{
         height,
-        gap: 1,
       }}
     >
       {waveformData.map((value, i) => (
         <button
           type="button"
           key={i}
-          onClick={() => seek(i)}
           className={cn(
             "w-1 transition-colors rounded-none rounded-t-lg min-h-1",
-            activeBar >= i ? "bg-gray-500" : "bg-gray-300",
-            "hover:bg-black hover:border hover:border-solid hover:border-black",
+            activeBar >= i ? "bg-gray-800" : "bg-gray-400",
             "focus-visible:outline-black focus:outline-hidden",
           )}
           style={{

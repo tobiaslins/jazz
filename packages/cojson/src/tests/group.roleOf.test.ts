@@ -33,7 +33,7 @@ describe("roleOf", () => {
     const [agent2] = randomAgentAndSessionID();
 
     group.addMember(agent2, "writer");
-    group.removeMemberInternal(agent2);
+    group.removeMember(agent2);
     expect(group.roleOfInternal(agent2.id)).toEqual(undefined);
   });
 
@@ -63,7 +63,7 @@ describe("roleOf", () => {
 
     group.addMemberInternal("everyone", "reader");
     group.addMember(agent2, "writer");
-    group.removeMemberInternal("everyone");
+    group.removeMember("everyone");
     expect(group.roleOfInternal(agent2.id)).toEqual("writer");
     expect(group.roleOfInternal("123" as RawAccountID)).toEqual(undefined);
   });
