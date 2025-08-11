@@ -1,5 +1,5 @@
-import { cn } from "@/src/lib/utils";
 import { tv } from "tailwind-variants";
+import { cn } from "../lib/utils.js";
 
 type LabelProps = React.HTMLAttributes<HTMLLabelElement> & {
   isHiddenVisually?: boolean;
