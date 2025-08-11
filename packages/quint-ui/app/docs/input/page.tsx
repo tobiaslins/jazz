@@ -47,11 +47,11 @@ export default function InputPage() {
 
       <p>
         Labels should alway be used with an input, but can be hidden with the
-        isHidden prop.
+        isHiddenVisually prop.
       </p>
 
       <div className="flex flex-row gap-2 items-center">
-        <Label htmlFor="input" isHidden>
+        <Label htmlFor="input" isHiddenVisually>
           Label
         </Label>
         <SearchIcon />

@@ -1,8 +1,8 @@
-import clsx from "clsx";
+import { cn } from "@/src/lib/utils";
 import { tv } from "tailwind-variants";
 
 type LabelProps = React.HTMLAttributes<HTMLLabelElement> & {
-  isHidden?: boolean;
+  isHiddenVisually?: boolean;
   size?: "sm" | "md" | "lg";
   htmlFor?: HTMLLabelElement["htmlFor"];
 };
@@ -10,8 +10,11 @@ type LabelProps = React.HTMLAttributes<HTMLLabelElement> & {
 export default function Label({ ...props }: LabelProps) {
   return (
     <label
-      className={clsx(
-        label({ isHidden: props.isHidden || false, size: props.size || "md" }),
+      className={cn(
+        label({
+          isHiddenVisually: props.isHiddenVisually || false,
+          size: props.size || "md",
+        }),
         props.className,
       )}
       {...props}
@@ -22,7 +25,7 @@ export default function Label({ ...props }: LabelProps) {
 const label = tv({
   base: "block text-sm font-medium text-stone-900 dark:text-white flex items-center",
   variants: {
-    isHidden: {
+    isHiddenVisually: {
       true: "sr-only",
     },
     size: {
