@@ -1,5 +1,17 @@
 # jazz-tools
 
+## 0.17.0
+
+### Minor Changes
+
+- fcaf4b9: New image management APIs, refactoring imperative functions for creation and consumption, React and ReactNative components, and new Svelte componente
+
+### Patch Changes
+
+- cojson@0.17.0
+- cojson-storage-indexeddb@0.17.0
+- cojson-transport-ws@0.17.0
+
 ## 0.16.6
 
 ### Patch Changes
