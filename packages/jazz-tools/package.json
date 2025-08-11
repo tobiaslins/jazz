@@ -199,6 +199,7 @@
     "react-native-mmkv": "^3.2.0",
     "react-native-nitro-modules": "0.25.2",
     "react-native-quick-crypto": "1.0.0-beta.16",
+    "sharp": "^0.33.5",
     "svelte": "^5.0.0"
   },
   "peerDependenciesMeta": {
@@ -239,6 +240,9 @@
       "optional": true
     },
     "react-native-quick-crypto": {
+      "optional": true
+    },
+    "sharp": {
       "optional": true
     },
     "svelte": {

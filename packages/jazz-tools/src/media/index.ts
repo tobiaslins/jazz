@@ -5,6 +5,7 @@ import {
   createImageFactory,
 } from "./create-image.js";
 
+export { createImageSharp, SharpImageType } from "./sharp";
 export { highestResAvailable, loadImage, loadImageBySize } from "./utils.js";
 export { createImageFactory };
 
