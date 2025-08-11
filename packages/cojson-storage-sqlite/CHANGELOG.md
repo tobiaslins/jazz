@@ -1,5 +1,17 @@
 # cojson-storage-sqlite
 
+## 0.16.6
+
+### Patch Changes
+
+- 67e0968: Fix content streaming chunking, now chunks should be splitted always respecting the MAX_RECOMMENDED_TX_SIZE
+- Updated dependencies [67e0968]
+- Updated dependencies [ce9ca54]
+- Updated dependencies [4b99ff1]
+- Updated dependencies [ac5d20d]
+- Updated dependencies [9bf7946]
+  - cojson@0.16.6
+
 ## 0.16.5
 
 ### Patch Changes

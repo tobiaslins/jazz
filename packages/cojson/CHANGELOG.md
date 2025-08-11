@@ -1,5 +1,15 @@
 # cojson
 
+## 0.16.6
+
+### Patch Changes
+
+- 67e0968: Fix content streaming chunking, now chunks should be splitted always respecting the MAX_RECOMMENDED_TX_SIZE
+- ce9ca54: Chunk CoPlainText content to avoid generating bg messages when the user past a megabytes of text
+- 4b99ff1: Add a multi-storage scheduler to avoid conflicting store operations when having multiple storage instances open on the same database
+- ac5d20d: Add ingress and egress metering
+- 9bf7946: Added a TTL based optional garbage collection for covalues
+
 ## 0.16.5
 
 ### Patch Changes
