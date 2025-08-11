@@ -1,25 +1,20 @@
-import { Account, FileStream, Group, ImageDefinition } from "jazz-tools";
-import { CreateImageOptions, createImageFactory } from "./create-image.js";
+import { Account, FileStream, Group } from "jazz-tools";
+import { createImageFactory } from "./create-image.js";
 
 export { highestResAvailable, loadImage, loadImageBySize } from "./utils.js";
 
 export { createImageFactory };
 
-export async function createImage(
-  imageBlobOrFile: Blob | File | string,
-  options?: CreateImageOptions,
-) {
-  return createImageFactory({
-    createFileStreamFromSource,
-    getImageSize,
-    getPlaceholderBase64,
-    resize,
-  })(imageBlobOrFile, options || {});
-}
+export const createImage = createImageFactory({
+  createFileStreamFromSource,
+  getImageSize,
+  getPlaceholderBase64,
+  resize,
+});
 
 //  Image Manipulations
 async function createFileStreamFromSource(
-  imageBlobOrFile: Blob | File | string,
+  imageBlobOrFile: Blob | File,
   owner?: Account | Group,
 ): Promise<FileStream> {
   if (typeof imageBlobOrFile === "string") {
@@ -50,7 +45,7 @@ function getImageFromBlob(blob: Blob): Promise<HTMLImageElement> {
 }
 
 async function getImageSize(
-  imageBlobOrFile: Blob | File | string,
+  imageBlobOrFile: Blob | File,
 ): Promise<{ width: number; height: number }> {
   if (typeof imageBlobOrFile === "string") {
     throw new Error("getImageSize(string) is not supported on browser");
@@ -62,7 +57,7 @@ async function getImageSize(
 }
 
 async function getPlaceholderBase64(
-  imageBlobOrFile: Blob | File | string,
+  imageBlobOrFile: Blob | File,
 ): Promise<string> {
   if (typeof imageBlobOrFile === "string") {
     throw new Error("getPlaceholderBase64(string) is not supported on browser");
@@ -110,7 +105,7 @@ const resizeDimensionsKeepingAspectRatio = (
 };
 
 async function resize(
-  imageBlobOrFile: Blob | File | string,
+  imageBlobOrFile: Blob | File,
   width: number,
   height: number,
 ): Promise<Blob> {

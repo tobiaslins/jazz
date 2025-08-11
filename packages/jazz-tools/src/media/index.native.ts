@@ -1,30 +1,21 @@
 import ImageResizer from "@bam.tech/react-native-image-resizer";
-import type { Account, Group, ImageDefinition } from "jazz-tools";
+import type { Account, Group } from "jazz-tools";
 import { FileStream } from "jazz-tools";
 import { Image } from "react-native";
-import {
-  CreateImageOptions,
-  SourceType,
-  createImageFactory,
-} from "./create-image.js";
+import { createImageFactory } from "./create-image.js";
 
 export { highestResAvailable, loadImage, loadImageBySize } from "./utils.js";
 export { createImageFactory };
 
-export async function createImage(
-  imageBlobOrFile: Blob | File | string,
-  options?: CreateImageOptions,
-) {
-  return createImageFactory({
-    getImageSize,
-    getPlaceholderBase64,
-    createFileStreamFromSource,
-    resize,
-  })(imageBlobOrFile, options || {});
-}
+export const createImage = createImageFactory({
+  getImageSize,
+  getPlaceholderBase64,
+  createFileStreamFromSource,
+  resize,
+});
 
 async function getImageSize(
-  filePath: SourceType,
+  filePath: string,
 ): Promise<{ width: number; height: number }> {
   if (typeof filePath !== "string") {
     throw new Error(
@@ -37,7 +28,7 @@ async function getImageSize(
   return { width, height };
 }
 
-async function getPlaceholderBase64(filePath: SourceType): Promise<string> {
+async function getPlaceholderBase64(filePath: string): Promise<string> {
   if (typeof filePath !== "string") {
     throw new Error(
       "createImage(Blob | File) is not supported on this platform",
@@ -62,7 +53,7 @@ async function getPlaceholderBase64(filePath: SourceType): Promise<string> {
 }
 
 async function resize(
-  filePath: SourceType,
+  filePath: string,
   width: number,
   height: number,
 ): Promise<string> {
@@ -105,7 +96,7 @@ function contentTypeToFormat(contentType: string) {
 }
 
 export async function createFileStreamFromSource(
-  filePath: SourceType,
+  filePath: string,
   owner?: Account | Group,
 ): Promise<FileStream> {
   if (typeof filePath !== "string") {
