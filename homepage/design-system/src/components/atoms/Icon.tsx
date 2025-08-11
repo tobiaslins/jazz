@@ -1,4 +1,3 @@
-import clsx from "clsx";
 import {
   AlertTriangleIcon,
   ArrowDownIcon,
@@ -48,6 +47,8 @@ import {
   WifiOffIcon,
   XIcon,
 } from "lucide-react";
+
+import clsx from "clsx";
 import {
   Style,
   styleToTextHoverMap,

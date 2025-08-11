@@ -1,12 +1,13 @@
-import type { Metadata } from "next";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import type { Metadata } from "next";
 import "./globals.css";
-import { Copyright } from "@garden-co/design-system/src/components/atoms/Copyright";
 import { fontClasses } from "@garden-co/design-system/src/fonts";
-import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/next";
+
 import { GcmpNav } from "@/components/Nav";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Copyright } from "@garden-co/design-system/src/components/atoms/Copyright";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metaTags = {
   title: "garden computing",

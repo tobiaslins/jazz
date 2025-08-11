@@ -1,7 +1,7 @@
-import Link from "next/link";
-import PostCoverImage from "@/components/blog/PostCoverImage";
 import { FormattedDate } from "@/components/FormattedDate";
+import PostCoverImage from "@/components/blog/PostCoverImage";
 import { posts } from "@/lib/posts";
+import Link from "next/link";
 
 export function Posts() {
   return (

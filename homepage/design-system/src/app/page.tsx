@@ -1,5 +1,5 @@
-import Colors from "./views/colors/page";
 import { ViewsLayout } from "./views/ViewsLayout";
+import Colors from "./views/colors/page";
 
 export default function Home() {
   return (
