@@ -68,9 +68,10 @@ import {
 import { getDependedOnCoValuesFromRawData } from "./coValueCore/utils.js";
 import {
   CO_VALUE_LOADING_CONFIG,
-  MAX_RECOMMENDED_TX_SIZE,
+  TRANSACTION_CONFIG,
   setCoValueLoadingRetryDelay,
   setIncomingMessagesTimeBudget,
+  setMaxRecommendedTxSize,
 } from "./config.js";
 import { LogLevel, logger } from "./logger.js";
 import { CO_VALUE_PRIORITY, getPriorityFromHeader } from "./priority.js";
@@ -112,6 +113,8 @@ export const cojsonInternals = {
   textDecoder,
   getTransactionSize,
   getContentMessageSize,
+  TRANSACTION_CONFIG,
+  setMaxRecommendedTxSize,
 };
 
 export {
@@ -138,7 +141,6 @@ export {
   Media,
   CoValueCore,
   ControlledAgent,
-  MAX_RECOMMENDED_TX_SIZE,
   JsonObject,
   JsonValue,
   Peer,

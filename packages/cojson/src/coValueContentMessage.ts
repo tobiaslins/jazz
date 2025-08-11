@@ -3,7 +3,7 @@ import {
   Transaction,
   VerifiedState,
 } from "./coValueCore/verifiedState.js";
-import { MAX_RECOMMENDED_TX_SIZE } from "./config.js";
+import { TRANSACTION_CONFIG } from "./config.js";
 import { Signature } from "./crypto/crypto.js";
 import { RawCoID, SessionID } from "./ids.js";
 import { getPriorityFromHeader } from "./priority.js";
@@ -55,10 +55,12 @@ export function exceedsRecommendedSize(
   transactionSize?: number,
 ) {
   if (transactionSize === undefined) {
-    return baseSize > MAX_RECOMMENDED_TX_SIZE;
+    return baseSize > TRANSACTION_CONFIG.MAX_RECOMMENDED_TX_SIZE;
   }
 
-  return baseSize + transactionSize > MAX_RECOMMENDED_TX_SIZE;
+  return (
+    baseSize + transactionSize > TRANSACTION_CONFIG.MAX_RECOMMENDED_TX_SIZE
+  );
 }
 
 export function knownStateFromContent(content: NewContentMessage) {
