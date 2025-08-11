@@ -1,6 +1,6 @@
 import { Account, FileStream, Group } from "jazz-tools";
 import sharp from "sharp";
-import { createImageFactory } from "./create-image.js";
+import { createImageFactory } from "../create-image-factory";
 
 export type SharpImageType =
   | File
@@ -17,12 +17,40 @@ export type SharpImageType =
   | Float32Array
   | Float64Array;
 
-export const createImageSharp = createImageFactory<SharpImageType, Blob>({
-  createFileStreamFromSource,
-  getImageSize,
-  getPlaceholderBase64,
-  resize,
-});
+/**
+ * Creates an ImageDefinition from an image File, Blob or Buffer with built-in UX features.
+ *
+ * This function creates a specialized CoValue for managing images in Jazz applications.
+ * It supports blurry placeholders, built-in resizing, and progressive loading patterns.
+ *
+ * @returns Promise that resolves to an ImageDefinition
+ *
+ * @example
+ * ```ts
+ * import fs from "node:fs";
+ * import { createImage } from "jazz-tools/media";
+ *
+ * const imageBuffer = fs.readFileSync("path/to/image.jpg");
+ * const image = await createImage(imageBuffer, {
+ *   maxSize: 800,
+ *   placeholder: "blur",
+ *   progressive: false,
+ * });
+ * ```
+ */
+export const createImage = createImageFactory<SharpImageType, Blob>(
+  {
+    createFileStreamFromSource,
+    getImageSize,
+    getPlaceholderBase64,
+    resize,
+  },
+  (imageBlobOrFile) => {
+    if (typeof imageBlobOrFile === "string") {
+      throw new Error("createImage(string) is not supported on this platform");
+    }
+  },
+);
 
 function formatToMimeType(format: keyof sharp.FormatEnum | undefined) {
   const formatToTypeMap: Record<

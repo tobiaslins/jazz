@@ -1,9 +1,11 @@
+// @vitest-environment node
+
 import { createJazzTestAccount } from "jazz-tools/testing";
 import sharp from "sharp";
 import { describe, expect, it } from "vitest";
-import { createImageSharp } from "./sharp.js";
+import { createImage } from "./server";
 
-describe("createImageSharp", async () => {
+describe("createImage (server)", async () => {
   const account = await createJazzTestAccount();
 
   const getImageSize = async (blobOrBuffer: Blob | Buffer) => {
@@ -22,7 +24,7 @@ describe("createImageSharp", async () => {
       type: "image/png",
     });
 
-    const image = await createImageSharp(imageBlob, {
+    const image = await createImage(imageBlob, {
       owner: account._owner,
       progressive: true,
       placeholder: "blur",
@@ -42,7 +44,7 @@ describe("createImageSharp", async () => {
       type: "image/png",
     });
 
-    const image = await createImageSharp(imageBlob, {
+    const image = await createImage(imageBlob, {
       owner: account._owner,
       progressive: true,
       placeholder: "blur",

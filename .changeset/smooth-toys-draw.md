@@ -2,4 +2,4 @@
 "jazz-tools": patch
 ---
 
-Added `createImageSharp()` to create images in server environments using the "sharp" library
+Added a server implementation of `createImage()` to create images in server environments using the "sharp" library

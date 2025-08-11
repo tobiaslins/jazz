@@ -58,9 +58,12 @@ export type CreateImageImpl<
 
 export function createImageFactory<TSourceType, TResizeOutput>(
   impl: CreateImageImpl<TSourceType, TResizeOutput>,
+  imageTypeGuard?: (imageBlobOrFile: TSourceType) => void,
 ) {
-  return (source: TSourceType, options?: CreateImageOptions) =>
-    createImage(source, options ?? {}, impl);
+  return (source: TSourceType, options?: CreateImageOptions) => {
+    imageTypeGuard?.(source);
+    return createImage(source, options ?? {}, impl);
+  };
 }
 
 async function createImage<TSourceType, TResizeOutput>(
