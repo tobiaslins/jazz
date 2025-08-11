@@ -80,7 +80,9 @@ export function PlayerControls({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
 
 export function KeyboardListener({
   mediaPlayer,
-}: { mediaPlayer: MediaPlayer }) {
+}: {
+  mediaPlayer: MediaPlayer;
+}) {
   const playState = usePlayState();
 
   useMediaEndListener(mediaPlayer.playNextTrack);

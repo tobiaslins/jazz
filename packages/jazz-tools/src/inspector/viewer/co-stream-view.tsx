@@ -321,7 +321,7 @@ function RenderCoStream({
           {/* @ts-expect-error - TODO: fix types */}
           {value.items[streamPerUser[idx]]?.map(
             (item: CoStreamItem<JsonValue>) => (
-              <div>
+              <div key={item.tx.txIndex + item.tx.sessionID}>
                 {new Date(item.madeAt).toLocaleString()}{" "}
                 {JSON.stringify(item.value)}
               </div>
