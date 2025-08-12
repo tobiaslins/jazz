@@ -110,15 +110,6 @@ export class CoList<out Item = any> extends Array<Item> implements CoValue {
     return (this.constructor as typeof CoList)._schema;
   }
 
-  /** @category Collaboration */
-  get owner(): Account | Group {
-    return this.$jazz.raw.group instanceof RawAccount
-      ? coValueClassFromCoValueClassOrSchema(
-          RegisteredSchemas["Account"],
-        ).fromRaw(this.$jazz.raw.group)
-      : RegisteredSchemas["Group"].fromRaw(this.$jazz.raw.group);
-  }
-
   /**
    * If a `CoList`'s items are a `coField.ref(...)`, you can use `coList._refs[i]` to access
    * the `Ref` instead of the potentially loaded/null value.
@@ -153,7 +144,7 @@ export class CoList<out Item = any> extends Array<Item> implements CoValue {
           { length: this.$jazz.raw.entries().length },
           (_, idx) => idx,
         ),
-      this._loadedAs,
+      this.$jazz.loadedAs,
       (_idx) => this._schema[ItemsSym] as RefEncoded<CoValue>,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ) as any;
@@ -168,20 +159,6 @@ export class CoList<out Item = any> extends Array<Item> implements CoValue {
     };
   } {
     throw new Error("Not implemented");
-  }
-
-  get _loadedAs() {
-    const agent = this.$jazz.raw.core.node.getCurrentAgent();
-
-    if (agent instanceof ControlledAccount) {
-      return coValuesCache.get(agent.account, () =>
-        coValueClassFromCoValueClassOrSchema(
-          RegisteredSchemas["Account"],
-        ).fromRaw(agent.account),
-      );
-    }
-
-    return new AnonymousJazzAgent(this.$jazz.raw.core.node);
   }
 
   static get [Symbol.species]() {
@@ -258,7 +235,7 @@ export class CoList<out Item = any> extends Array<Item> implements CoValue {
 
   push(...items: Item[]): number {
     this.$jazz.raw.appendItems(
-      toRawItems(items, this._schema[ItemsSym], this.owner),
+      toRawItems(items, this._schema[ItemsSym], this.$jazz.owner),
       undefined,
       "private",
     );
@@ -270,7 +247,7 @@ export class CoList<out Item = any> extends Array<Item> implements CoValue {
     for (const item of toRawItems(
       items as Item[],
       this._schema[ItemsSym],
-      this.owner,
+      this.$jazz.owner,
     )) {
       this.$jazz.raw.prepend(item);
     }
@@ -315,7 +292,7 @@ export class CoList<out Item = any> extends Array<Item> implements CoValue {
     const rawItems = toRawItems(
       items as Item[],
       this._schema[ItemsSym],
-      this.owner,
+      this.$jazz.owner,
     );
 
     // If there are no items to insert, return the deleted items
@@ -543,13 +520,6 @@ export class CoList<out Item = any> extends Array<Item> implements CoValue {
     return subscribeToExistingCoValue(this, options, listener);
   }
 
-  /** @category Type Helpers */
-  castAs<Cl extends CoValueClass & CoValueFromRaw<CoValue>>(
-    cl: Cl,
-  ): InstanceType<Cl> {
-    return cl.fromRaw(this.$jazz.raw) as InstanceType<Cl>;
-  }
-
   /**
    * Wait for the `CoList` to be uploaded to the other peers.
    *
@@ -560,13 +530,13 @@ export class CoList<out Item = any> extends Array<Item> implements CoValue {
   }
 }
 
-export class CoListJazzApi<L extends CoList> extends CoValueJazzApi<L> {
+export class CoListJazzApi<L extends CoList>
+  implements Omit<CoValueJazzApi<L>, "castAs">
+{
   constructor(
-    coList: L,
+    private coList: L,
     public raw: RawCoList,
-  ) {
-    super(coList);
-  }
+  ) {}
 
   /**
    * The ID of this `CoList`
@@ -574,6 +544,37 @@ export class CoListJazzApi<L extends CoList> extends CoValueJazzApi<L> {
    */
   get id(): ID<L> {
     return this.raw.id;
+  }
+
+  /** @category Collaboration */
+  get owner(): Account | Group {
+    return this.raw.group instanceof RawAccount
+      ? coValueClassFromCoValueClassOrSchema(
+          RegisteredSchemas["Account"],
+        ).fromRaw(this.raw.group)
+      : RegisteredSchemas["Group"].fromRaw(this.raw.group);
+  }
+
+  /** @private */
+  get loadedAs() {
+    const agent = this.raw.core.node.getCurrentAgent();
+
+    if (agent instanceof ControlledAccount) {
+      return coValuesCache.get(agent.account, () =>
+        coValueClassFromCoValueClassOrSchema(
+          RegisteredSchemas["Account"],
+        ).fromRaw(agent.account),
+      );
+    }
+
+    return new AnonymousJazzAgent(this.raw.core.node);
+  }
+
+  /** @category Type Helpers */
+  castAs<Cl extends CoValueClass & CoValueFromRaw<CoValue>>(
+    cl: Cl,
+  ): InstanceType<Cl> {
+    return cl.fromRaw(this.raw) as InstanceType<Cl>;
   }
 }
 

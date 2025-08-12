@@ -172,7 +172,7 @@ export function instantiateRefEncodedWithInit<V extends CoValue>(
     );
   }
   const owner = Group.create();
-  owner.addMember(parentOwner.castAs(Group));
+  owner.addMember(parentOwner.$jazz.castAs(Group));
   // @ts-expect-error - create is a static method in all CoValue classes
   return schema.ref.create(init, owner);
 }

@@ -372,7 +372,7 @@ describe("Group inheritance", () => {
       });
 
       const task = board.columns[0]![0]!;
-      const taskGroup = task.owner.castAs(Group);
+      const taskGroup = task.$jazz.owner.$jazz.castAs(Group);
       taskGroup.addMember(reader, "reader");
 
       const taskAsReader = await Task.load(task.$jazz.id, { loadAs: reader });

@@ -53,25 +53,6 @@ export abstract class CoValueBase implements CoValue {
   [inspect]() {
     return this.toJSON();
   }
-
-  /** @category Type Helpers */
-  castAs<S extends CoValueClassOrSchema>(
-    schema: S,
-  ): S extends CoValueClass
-    ? InstanceType<S>
-    : S extends CoreCoValueSchema
-      ? NonNullable<InstanceOfSchemaCoValuesNullable<S>>
-      : never {
-    const cl = isCoValueSchema(schema) ? schema.getCoValueClass() : schema;
-
-    if (this.constructor === cl) {
-      return this as any;
-    }
-
-    return (cl as unknown as CoValueFromRaw<CoValue>).fromRaw(
-      this.$jazz.raw,
-    ) as any;
-  }
 }
 
 export abstract class CoValueJazzApi<V extends CoValue> {
@@ -105,5 +86,22 @@ export abstract class CoValueJazzApi<V extends CoValue> {
     }
 
     return new AnonymousJazzAgent(this.raw.core.node);
+  }
+
+  /** @category Type Helpers */
+  castAs<S extends CoValueClassOrSchema>(
+    schema: S,
+  ): S extends CoValueClass
+    ? InstanceType<S>
+    : S extends CoreCoValueSchema
+      ? NonNullable<InstanceOfSchemaCoValuesNullable<S>>
+      : never {
+    const cl = coValueClassFromCoValueClassOrSchema(schema);
+
+    if (this.coValue.constructor === cl) {
+      return this.coValue as any;
+    }
+
+    return (cl as unknown as CoValueFromRaw<CoValue>).fromRaw(this.raw) as any;
   }
 }

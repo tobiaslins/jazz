@@ -18,7 +18,9 @@ describe("parseCoValueCreateOptions", () => {
     const result = parseCoValueCreateOptions(undefined);
     expect(result.owner._type).toBe("Group");
     expect(
-      result.owner.castAs(Group).$jazz.raw.roleOf(Account.getMe().$jazz.raw.id),
+      result.owner.$jazz
+        .castAs(Group)
+        .$jazz.raw.roleOf(Account.getMe().$jazz.raw.id),
     ).toBe("admin");
     expect(result.uniqueness).toBeUndefined();
   });
@@ -35,7 +37,9 @@ describe("parseCoValueCreateOptions", () => {
     const result = parseCoValueCreateOptions(group);
     expect(result.owner).toBe(group);
     expect(
-      result.owner.castAs(Group).$jazz.raw.roleOf(Account.getMe().$jazz.raw.id),
+      result.owner.$jazz
+        .castAs(Group)
+        .$jazz.raw.roleOf(Account.getMe().$jazz.raw.id),
     ).toBe("admin");
     expect(result.uniqueness).toBeUndefined();
   });

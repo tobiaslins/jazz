@@ -2019,7 +2019,7 @@ describe("castAs", () => {
       name: "Alice",
     });
 
-    const personWithAge = person.castAs(PersonWithAge);
+    const personWithAge = person.$jazz.castAs(PersonWithAge);
 
     personWithAge.age = 20;
 
@@ -2047,7 +2047,7 @@ describe("castAs", () => {
       dog: Dog.create({ name: "Rex" }),
     });
 
-    const personWithAge = person.castAs(PersonWithAge);
+    const personWithAge = person.$jazz.castAs(PersonWithAge);
 
     personWithAge.age = 20;
 
@@ -2101,7 +2101,9 @@ describe("CoMap migration", () => {
         if (person.version === 1) {
           person.version = 2;
 
-          person.$jazz.owner.castAs(Group).addMember("everyone", "reader");
+          person.$jazz.owner.$jazz
+            .castAs(Group)
+            .addMember("everyone", "reader");
         }
       });
 
