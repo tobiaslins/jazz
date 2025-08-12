@@ -149,7 +149,7 @@ export async function loadImageBySize(
   wantedWidth: number,
   wantedHeight: number,
 ): Promise<{ width: number; height: number; image: FileStream } | null> {
-  const image =
+  const image: ImageDefinition | null =
     typeof imageOrId === "string"
       ? await ImageDefinition.load(imageOrId)
       : imageOrId;
@@ -184,7 +184,7 @@ export async function loadImageBySize(
   const bestTarget =
     sortedSizes.find((el) => el.match > 0.95) || sortedSizes.at(-1)!;
 
-  const deepLoaded = await ImageDefinition.load(image.id, {
+  const deepLoaded = await image.ensureLoaded({
     resolve: {
       [bestTarget.size[2]]: true,
     },
