@@ -110,57 +110,6 @@ export class CoList<out Item = any> extends Array<Item> implements CoValue {
     return (this.constructor as typeof CoList)._schema;
   }
 
-  /**
-   * If a `CoList`'s items are a `coField.ref(...)`, you can use `coList._refs[i]` to access
-   * the `Ref` instead of the potentially loaded/null value.
-   *
-   * This allows you to always get the ID or load the value manually.
-   *
-   * @example
-   * ```ts
-   * animals._refs[0].id; // => ID<Animal>
-   * animals._refs[0].value;
-   * // => Animal | null
-   * const animal = await animals._refs[0].load();
-   * ```
-   *
-   * @category Content
-   **/
-  get _refs(): {
-    [idx: number]: Exclude<Item, null> extends CoValue
-      ? Ref<Exclude<Item, null>>
-      : never;
-  } & {
-    length: number;
-    [Symbol.iterator](): IterableIterator<
-      Exclude<Item, null> extends CoValue ? Ref<Exclude<Item, null>> : never
-    >;
-  } {
-    return makeRefs<number>(
-      this,
-      (idx) => this.$jazz.raw.get(idx) as unknown as ID<CoValue>,
-      () =>
-        Array.from(
-          { length: this.$jazz.raw.entries().length },
-          (_, idx) => idx,
-        ),
-      this.$jazz.loadedAs,
-      (_idx) => this._schema[ItemsSym] as RefEncoded<CoValue>,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ) as any;
-  }
-
-  get _edits(): {
-    [idx: number]: {
-      value?: Item;
-      ref?: Item extends CoValue ? Ref<Item> : never;
-      by: Account | null;
-      madeAt: Date;
-    };
-  } {
-    throw new Error("Not implemented");
-  }
-
   static get [Symbol.species]() {
     return Array;
   }
@@ -530,7 +479,10 @@ export class CoList<out Item = any> extends Array<Item> implements CoValue {
   }
 }
 
-export class CoListJazzApi<L extends CoList>
+/** @internal */
+type CoListItem<L> = L extends CoList<infer Item> ? Item : never;
+
+export class CoListJazzApi<L extends CoList<any>>
   implements Omit<CoValueJazzApi<L>, "castAs">
 {
   constructor(
@@ -575,6 +527,60 @@ export class CoListJazzApi<L extends CoList>
     cl: Cl,
   ): InstanceType<Cl> {
     return cl.fromRaw(this.raw) as InstanceType<Cl>;
+  }
+
+  /**
+   * If a `CoList`'s items are a `coField.ref(...)`, you can use `coList._refs[i]` to access
+   * the `Ref` instead of the potentially loaded/null value.
+   *
+   * This allows you to always get the ID or load the value manually.
+   *
+   * @example
+   * ```ts
+   * animals._refs[0].id; // => ID<Animal>
+   * animals._refs[0].value;
+   * // => Animal | null
+   * const animal = await animals._refs[0].load();
+   * ```
+   *
+   * @category Content
+   **/
+  get refs(): {
+    [idx: number]: Exclude<CoListItem<L>, null> extends CoValue
+      ? Ref<Exclude<CoListItem<L>, null>>
+      : never;
+  } & {
+    length: number;
+    [Symbol.iterator](): IterableIterator<
+      Exclude<CoListItem<L>, null> extends CoValue
+        ? Ref<Exclude<CoListItem<L>, null>>
+        : never
+    >;
+  } {
+    return makeRefs<number>(
+      this.coList,
+      (idx) => this.raw.get(idx) as unknown as ID<CoValue>,
+      () => Array.from({ length: this.raw.entries().length }, (_, idx) => idx),
+      this.loadedAs,
+      (_idx) => this.coList._schema[ItemsSym] as RefEncoded<CoValue>,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ) as any;
+  }
+
+  /**
+   * Get the edits made to the CoList.
+   *
+   * @category Collaboration
+   */
+  getEdits(): {
+    [idx: number]: {
+      value?: CoListItem<L>;
+      ref?: CoListItem<L> extends CoValue ? Ref<CoListItem<L>> : never;
+      by: Account | null;
+      madeAt: Date;
+    };
+  } {
+    throw new Error("Not implemented");
   }
 }
 

@@ -545,6 +545,37 @@ describe("CoList resolution", async () => {
     expect(list[0]?.[0]?.$jazz.id).toBeDefined();
     expect(list[1]?.[0]?.[0]).toBe("c");
   });
+
+  test("accessing the value refs", async () => {
+    const Dog = co.map({
+      name: z.string(),
+      breed: z.string(),
+    });
+
+    const Pets = co.list(Dog);
+
+    const group = Group.create();
+    group.addMember("everyone", "writer");
+
+    const pets = Pets.create([{ name: "Rex", breed: "Labrador" }], group);
+
+    const userB = await createJazzTestAccount();
+    const loadedPets = await Pets.load(pets.$jazz.id, {
+      loadAs: userB,
+    });
+
+    assert(loadedPets);
+
+    const petReference = loadedPets.$jazz.refs[0];
+    expect(petReference).toBeDefined();
+    expect(petReference?.id).toBe(pets[0]?.$jazz.id);
+
+    const dog = await petReference?.load();
+
+    assert(dog);
+
+    expect(dog.name).toEqual("Rex");
+  });
 });
 
 describe("CoList subscription", async () => {

@@ -519,7 +519,7 @@ describe("CoMap", async () => {
       expect(john.dog?.name).toEqual("Fido");
     });
 
-    test("changes should be listed in _edits", () => {
+    test("changes should be listed in getEdits()", () => {
       const Person = co.map({
         name: z.string(),
         age: z.number(),
