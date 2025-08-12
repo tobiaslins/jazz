@@ -1,20 +1,23 @@
-import { tv } from "tailwind-variants";
+import { ComponentProps } from "react";
+import { VariantProps, tv } from "tailwind-variants";
 // biome-ignore lint/correctness/useImportExtensions: <explanation>
 import { cn } from "../lib/utils";
 
-type LabelProps = React.HTMLAttributes<HTMLLabelElement> & {
-  isHiddenVisually?: boolean;
-  size?: "sm" | "md" | "lg";
-  htmlFor?: HTMLLabelElement["htmlFor"];
-};
+type LabelVariants = VariantProps<typeof label>;
 
-export default function Label({ ...props }: LabelProps) {
+interface LabelProps extends ComponentProps<"label">, LabelVariants {}
+
+export default function Label({
+  size,
+  isHiddenVisually,
+  ...props
+}: LabelProps) {
   return (
     <label
       className={cn(
         label({
-          isHiddenVisually: props.isHiddenVisually || false,
-          size: props.size || "md",
+          isHiddenVisually: isHiddenVisually,
+          size: size,
         }),
         props.className,
       )}
@@ -34,5 +37,9 @@ const label = tv({
       md: "text-base",
       lg: "text-lg",
     },
+  },
+  defaultVariants: {
+    size: "md",
+    isHiddenVisually: false,
   },
 });
