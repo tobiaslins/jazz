@@ -1,32 +1,14 @@
 import { Input as BaseUiInput } from "@base-ui-components/react/input";
-import { mergeProps } from "@base-ui-components/react/merge-props";
-import { useRender } from "@base-ui-components/react/use-render";
 import * as React from "react";
-import { type VariantProps, tv } from "tailwind-variants";
+import { ComponentProps } from "react";
+import { VariantProps, tv } from "tailwind-variants";
 
 type InputVariants = VariantProps<typeof input>;
 
-interface InputProps
-  extends Omit<useRender.ComponentProps<"input">, keyof InputVariants>,
-    InputVariants {}
+interface InputProps extends ComponentProps<"input">, InputVariants {}
 
-export default function Input({
-  render = <BaseUiInput />,
-  ...props
-}: InputProps) {
-  const element = useRender({
-    render,
-    props: mergeProps<"input">(
-      {
-        className: input({
-          sizeStyle: props.sizeStyle || "md",
-          intent: props.intent || "default",
-        }),
-      },
-      props,
-    ),
-  });
-  return element;
+export default function Input({ sizeStyle, intent, ...props }: InputProps) {
+  return <BaseUiInput className={input({ sizeStyle, intent })} {...props} />;
 }
 
 const input = tv({
@@ -49,5 +31,9 @@ const input = tv({
       md: "py-1.5 px-3 h-[36px] [&>svg]:size-5 h-9",
       lg: "py-2 px-5 md:px-6 md:py-2.5 [&>svg]:size-6 h-10",
     },
+  },
+  defaultVariants: {
+    sizeStyle: "md",
+    intent: "default",
   },
 });
