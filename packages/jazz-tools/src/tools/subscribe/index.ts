@@ -2,7 +2,7 @@ import type { CoValue, CoValueClass, RefEncoded } from "../internal.js";
 import { SubscriptionScope } from "./SubscriptionScope.js";
 
 export function getSubscriptionScope<D extends CoValue>(value: D) {
-  const subscriptionScope = value._subscriptionScope;
+  const subscriptionScope = value.$jazz._subscriptionScope;
 
   if (subscriptionScope) {
     return subscriptionScope;
@@ -17,7 +17,7 @@ export function getSubscriptionScope<D extends CoValue>(value: D) {
     optional: false,
   });
 
-  Object.defineProperty(value, "_subscriptionScope", {
+  Object.defineProperty(value.$jazz, "_subscriptionScope", {
     value: subscriptionScope,
     writable: false,
     enumerable: false,

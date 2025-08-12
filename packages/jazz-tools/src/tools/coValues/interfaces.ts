@@ -50,10 +50,9 @@ export interface CoValue {
     readonly loadedAs: Account | AnonymousJazzAgent;
     /** @category Internals */
     raw: RawCoValue;
+    /** @internal */
+    _subscriptionScope?: SubscriptionScope<CoValue>;
   };
-
-  /** @internal */
-  _subscriptionScope?: SubscriptionScope<this>;
 
   /** @category Stringifying & Inspection */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

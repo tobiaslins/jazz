@@ -204,6 +204,7 @@ describe("CoFeed resolution", async () => {
 
   test("Subscription & auto-resolution", async () => {
     const { me, stream } = await initNodeAndStream();
+    const accountId = me.$jazz.id;
 
     const anotherAccount = await createJazzTestAccount();
 
@@ -219,8 +220,8 @@ describe("CoFeed resolution", async () => {
 
     const update1 = (await queue.next()).value;
     expect(
-      update1.perAccount[me.$jazz.id]?.value?.perAccount[me.$jazz.id]?.value
-        ?.perAccount[me.$jazz.id]?.value,
+      update1.perAccount[accountId]?.value?.perAccount[accountId]?.value
+        ?.perAccount[accountId]?.value,
     ).toBe("milk");
 
     // When assigning a new nested stream, we get an update
