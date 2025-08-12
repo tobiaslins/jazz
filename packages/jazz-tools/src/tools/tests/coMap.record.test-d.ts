@@ -186,7 +186,7 @@ describe("CoMap.Record", () => {
         pet2: Dog.create({ name: "Fido", breed: "Poodle" }),
       });
 
-      const loadedPerson = await Person.load(person.id, {
+      const loadedPerson = await Person.load(person.$jazz.id, {
         resolve: {
           pet1: true,
         },
@@ -222,7 +222,7 @@ describe("CoMap.Record", () => {
       const userId: string = "pet1";
       const userId2: string = "pet3";
 
-      const loadedPerson = await Person.load(person.id, {
+      const loadedPerson = await Person.load(person.$jazz.id, {
         resolve: {
           [userId]: true,
           pet2: true,
@@ -262,7 +262,7 @@ describe("CoMap.Record", () => {
         pet2: Dog.create({ name: "Fido", breed: "Poodle" }),
       });
 
-      const loadedPerson = await Person.load(person.id);
+      const loadedPerson = await Person.load(person.$jazz.id);
 
       type Expect = NonNullable<typeof loadedPerson> extends never
         ? "error: is never"

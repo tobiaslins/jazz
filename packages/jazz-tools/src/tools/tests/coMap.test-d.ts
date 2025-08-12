@@ -586,7 +586,7 @@ describe("CoMap resolution", async () => {
 
     const userId: string = "dog1";
 
-    const loadedPerson = await Person.load(person.id, {
+    const loadedPerson = await Person.load(person.$jazz.id, {
       resolve: {
         [userId]: true,
       },

@@ -231,7 +231,7 @@ describe("CoMap.Record", async () => {
         pet2: Dog.create({ name: "Fido", breed: "Poodle" }),
       });
 
-      const loadedPerson = await Person.load(person.id, {
+      const loadedPerson = await Person.load(person.$jazz.id, {
         resolve: {
           pet1: true,
         },
@@ -254,7 +254,7 @@ describe("CoMap.Record", async () => {
         pet2: Dog.create({ name: "Fido", breed: "Poodle" }),
       });
 
-      const loadedPerson = await Person.load(person.id, {
+      const loadedPerson = await Person.load(person.$jazz.id, {
         resolve: {
           pet3: true,
         },

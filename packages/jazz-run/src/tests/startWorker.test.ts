@@ -103,7 +103,9 @@ describe("startWorker integration", () => {
 
     await map.$jazz.waitForSync();
 
-    const mapOnWorker2 = await TestMap.load(map.id, { loadAs: worker2.worker });
+    const mapOnWorker2 = await TestMap.load(map.$jazz.id, {
+      loadAs: worker2.worker,
+    });
 
     expect(mapOnWorker2?.value).toBe("test");
 
@@ -184,7 +186,9 @@ describe("startWorker integration", () => {
 
     const worker2 = await setupWorker(worker1.syncServer);
 
-    const mapOnWorker2 = await TestMap.load(map.id, { loadAs: worker2.worker });
+    const mapOnWorker2 = await TestMap.load(map.$jazz.id, {
+      loadAs: worker2.worker,
+    });
 
     expect(mapOnWorker2?.value).toBe("test");
 
@@ -266,8 +270,10 @@ describe("startWorker integration", () => {
     await worker1.worker.$jazz.waitForAllCoValuesSync();
 
     // Verify both old and new values are synced
-    const mapOnWorker2 = await TestMap.load(map.id, { loadAs: worker2.worker });
-    const map2OnWorker2 = await TestMap.load(map2.id, {
+    const mapOnWorker2 = await TestMap.load(map.$jazz.id, {
+      loadAs: worker2.worker,
+    });
+    const map2OnWorker2 = await TestMap.load(map2.$jazz.id, {
       loadAs: worker2.worker,
     });
 

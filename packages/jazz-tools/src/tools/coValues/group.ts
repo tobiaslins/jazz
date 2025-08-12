@@ -177,7 +177,7 @@ export class Group extends CoValueBase implements CoValue {
   removeMember(member: Group): void;
   removeMember(member: Group | Everyone | Account) {
     if (member !== "everyone" && member._type === "Group") {
-      this._raw.revokeExtend(member._raw);
+      this.$jazz.raw.revokeExtend(member.$jazz.raw);
     } else {
       return this.$jazz.raw.removeMember(
         member === "everyone" ? member : member.$jazz.raw,

@@ -332,7 +332,7 @@ describe("co.discriminatedUnion", () => {
       },
     });
 
-    const loadedAnimal = await Animal.load(animal.id);
+    const loadedAnimal = await Animal.load(animal.$jazz.id);
 
     expect(loadedAnimal?.breed?.type).toEqual("collie");
   });
@@ -354,7 +354,7 @@ describe("co.discriminatedUnion", () => {
       type: "collie",
     });
 
-    const loadedAnimal = await Animal.load(animal.id);
+    const loadedAnimal = await Animal.load(animal.$jazz.id);
 
     expect(loadedAnimal?.type).toEqual("collie");
   });
