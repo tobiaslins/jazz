@@ -1,7 +1,11 @@
-import { Account, FileStream, ImageDefinition } from "jazz-tools";
-import { highestResAvailable, loadImageBySize } from "jazz-tools/media";
-import { createJazzTestAccount, setupJazzTestSync } from "jazz-tools/testing";
+import { Account, FileStream, Group, ImageDefinition } from "jazz-tools";
+import {
+  createJazzTestAccount,
+  setActiveAccount,
+  setupJazzTestSync,
+} from "jazz-tools/testing";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { highestResAvailable, loadImageBySize } from "./utils.js";
 
 const createFileStream = (account: any, blobSize?: number) => {
   return FileStream.createFromBlob(
@@ -209,23 +213,21 @@ describe("highestResAvailable", async () => {
 describe("loadImageBySize", async () => {
   let account: Account;
   beforeEach(async () => {
-    account = await createJazzTestAccount({
-      isCurrentActiveAccount: true,
-    });
-    vi.spyOn(Account, "getMe").mockReturnValue(account);
-    await setupJazzTestSync();
+    account = await setupJazzTestSync();
+    setActiveAccount(account);
   });
 
   const createImageDef = async (
     sizes: Array<[number, number]>,
     progressive = true,
+    owner: Account | Group = account,
   ) => {
     if (sizes.length === 0) throw new Error("sizes array must not be empty");
 
     const originalSize = sizes[sizes.length - 1]!;
     sizes = sizes.slice(0, -1);
 
-    const original = await createFileStream(account, 1);
+    const original = await createFileStream(owner, 1);
     // Ensure sizes array is not empty
     const imageDef = ImageDefinition.create(
       {
@@ -233,14 +235,14 @@ describe("loadImageBySize", async () => {
         progressive,
         original,
       },
-      { owner: account },
+      { owner },
     );
     imageDef[`${originalSize[0]}x${originalSize[1]}`] = original;
 
     for (const size of sizes) {
       if (!size) continue;
       const [w, h] = size;
-      imageDef[`${w}x${h}`] = await createFileStream(account, 1);
+      imageDef[`${w}x${h}`] = await createFileStream(owner, 1);
     }
     return imageDef;
   };
@@ -249,6 +251,24 @@ describe("loadImageBySize", async () => {
     const imageDef = await createImageDef([[1920, 1080]], false);
     const result = await loadImageBySize(imageDef, 256, 256);
     expect(result?.image.id).toBe(imageDef["1920x1080"]!.id);
+  });
+
+  it("returns the original image already loaded", async () => {
+    const account = await setupJazzTestSync({ asyncPeers: true });
+    const account2 = await createJazzTestAccount();
+
+    setActiveAccount(account);
+
+    const group = Group.create();
+    group.addMember("everyone", "reader");
+
+    const imageDef = await createImageDef([[1920, 1080]], false, group);
+    setActiveAccount(account2);
+
+    const result = await loadImageBySize(imageDef, 256, 256);
+    expect(result?.image.id).toBe(imageDef["1920x1080"]!.id);
+    expect(result?.image.isBinaryStreamEnded()).toBe(true);
+    expect(result?.image.asBase64()).toStrictEqual(expect.any(String));
   });
 
   it("returns null if no sizes are available", async () => {
@@ -323,5 +343,31 @@ describe("loadImageBySize", async () => {
     expect(result?.image.id).toBe(imageDef["1024x1024"]!.id);
     expect(result?.width).toBe(1024);
     expect(result?.height).toBe(1024);
+  });
+
+  it("returns the image already loaded", async () => {
+    const account = await setupJazzTestSync({ asyncPeers: true });
+    const account2 = await createJazzTestAccount();
+
+    setActiveAccount(account);
+
+    const group = Group.create();
+    group.addMember("everyone", "reader");
+
+    const imageDef = await createImageDef(
+      [
+        [512, 512],
+        [1024, 1024],
+      ],
+      undefined,
+      group,
+    );
+
+    setActiveAccount(account2);
+
+    const result = await loadImageBySize(imageDef, 1024, 1024);
+    expect(result?.image.id).toBe(imageDef["1024x1024"]!.id);
+    expect(result?.image.isBinaryStreamEnded()).toBe(true);
+    expect(result?.image.asBase64()).toStrictEqual(expect.any(String));
   });
 });
