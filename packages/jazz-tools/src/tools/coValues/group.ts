@@ -40,7 +40,6 @@ import {
 
 /** @category Identity & Permissions */
 export class Group extends CoValueBase implements CoValue {
-  declare id: ID<this>;
   declare _type: "Group";
   static {
     this.prototype._type = "Group";
@@ -122,10 +121,6 @@ export class Group extends CoValueBase implements CoValue {
     }
 
     Object.defineProperties(this, {
-      id: {
-        value: raw.id,
-        enumerable: false,
-      },
       $jazz: {
         value: new GroupJazzApi(this, raw),
         enumerable: false,
@@ -267,7 +262,7 @@ export class Group extends CoValueBase implements CoValue {
   getRoleOf(member: Everyone | ID<Account> | "me") {
     if (member === "me") {
       return this.$jazz.raw.roleOf(
-        activeAccountContext.get().id as unknown as RawAccountID,
+        activeAccountContext.get().$jazz.id as unknown as RawAccountID,
       );
     }
 
@@ -389,13 +384,17 @@ export class Group extends CoValueBase implements CoValue {
 export class GroupJazzApi<G extends Group> extends CoValueJazzApi<G> {
   constructor(
     group: G,
-    private _raw: RawGroup,
+    public raw: RawGroup,
   ) {
     super(group);
   }
 
-  override get raw(): RawGroup {
-    return this._raw;
+  /**
+   * The ID of this `Group`
+   * @category Content
+   */
+  get id(): ID<G> {
+    return this.raw.id;
   }
 }
 

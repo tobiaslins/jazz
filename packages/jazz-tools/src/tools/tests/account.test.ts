@@ -111,7 +111,7 @@ test("loading accounts should work", async () => {
 
   const otherAccount = await createJazzTestAccount();
 
-  const loadedAccount = await Account.load(account.id, {
+  const loadedAccount = await Account.load(account.$jazz.id, {
     loadAs: otherAccount,
     resolve: {
       profile: true,
@@ -129,7 +129,7 @@ test("loading raw accounts should work", async () => {
     },
   });
 
-  const loadedAccount = await Account.load(account.id, {
+  const loadedAccount = await Account.load(account.$jazz.id, {
     loadAs: account,
   });
 
@@ -243,7 +243,7 @@ test("root and profile should be trusting by default", async () => {
     },
   });
 
-  const bobAccountLoadedFromAlice = await AccountSchema.load(bob.id, {
+  const bobAccountLoadedFromAlice = await AccountSchema.load(bob.$jazz.id, {
     loadAs: alice,
     resolve: {
       profile: true,

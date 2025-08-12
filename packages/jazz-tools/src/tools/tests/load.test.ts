@@ -28,7 +28,7 @@ test("load a value", async () => {
 
   const alice = await createJazzTestAccount();
 
-  const john = await Person.load(map.id, { loadAs: alice });
+  const john = await Person.load(map.$jazz.id, { loadAs: alice });
   expect(john).not.toBeNull();
   expect(john?.name).toBe("John");
 });
@@ -58,7 +58,7 @@ test("load a missing optional value (co.optional)", async () => {
 
   const alice = await createJazzTestAccount();
 
-  const john = await Person.load(map.id, {
+  const john = await Person.load(map.$jazz.id, {
     loadAs: alice,
     resolve: { dog: true },
   });
@@ -85,7 +85,7 @@ test("load a missing optional value (Schema.optional)", async () => {
 
   const alice = await createJazzTestAccount();
 
-  const john = await Person.load(map.id, {
+  const john = await Person.load(map.$jazz.id, {
     loadAs: alice,
     resolve: { dog: true },
   });
@@ -118,7 +118,7 @@ test("load a missing optional value (optional discrminatedUnion)", async () => {
 
   const alice = await createJazzTestAccount();
 
-  const john = await Person.load(map.id, {
+  const john = await Person.load(map.$jazz.id, {
     loadAs: alice,
     resolve: { pet: true },
   });
@@ -147,7 +147,7 @@ test("retry an unavailable value", async () => {
 
   const alice = await createJazzTestAccount();
 
-  const promise = Person.load(map.id, { loadAs: alice });
+  const promise = Person.load(map.$jazz.id, { loadAs: alice });
 
   await new Promise((resolve) => setTimeout(resolve));
 
@@ -179,7 +179,7 @@ test("returns null if the value is unavailable after retries", async () => {
 
   const alice = await createJazzTestAccount();
 
-  const john = await Person.load(map.id, { loadAs: alice });
+  const john = await Person.load(map.$jazz.id, { loadAs: alice });
 
   expect(john).toBeNull();
 });
@@ -197,7 +197,7 @@ test("load works even when the coValue access is granted after the creation", as
 
   group.addMember("everyone", "reader");
 
-  const mapOnBob = await Person.load(map.id, { loadAs: bob });
+  const mapOnBob = await Person.load(map.$jazz.id, { loadAs: bob });
 
   expect(mapOnBob).not.toBeNull();
   expect(mapOnBob?.name).toBe("John");
@@ -247,7 +247,7 @@ test("load a large coValue", async () => {
   const alice = await createJazzTestAccount();
 
   // Test loading the large coValue
-  const loadedDataset = await LargeDataset.load(largeMap.id, {
+  const loadedDataset = await LargeDataset.load(largeMap.$jazz.id, {
     loadAs: alice,
     resolve: {
       data: true,

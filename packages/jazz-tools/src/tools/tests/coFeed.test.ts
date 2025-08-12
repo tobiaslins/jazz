@@ -48,7 +48,7 @@ describe("Simple CoFeed operations", async () => {
   const stream = TestStream.create(["milk"], { owner: me });
 
   test("Construction", () => {
-    expect(stream.perAccount[me.id]?.value).toEqual("milk");
+    expect(stream.perAccount[me.$jazz.id]?.value).toEqual("milk");
     expect(stream.perSession[me.$jazz.sessionID]?.value).toEqual("milk");
   });
 
@@ -69,7 +69,7 @@ describe("Simple CoFeed operations", async () => {
 
       const stream = TextStream.create([Text.create("milk")], { owner: me });
 
-      const coValue = stream.perAccount[me.id]?.value;
+      const coValue = stream.perAccount[me.$jazz.id]?.value;
       expect(coValue?.toString()).toEqual("milk");
     });
 
@@ -80,14 +80,14 @@ describe("Simple CoFeed operations", async () => {
 
         const stream = TextStream.create(["milk"], { owner: me });
 
-        const coValue = stream.perAccount[me.id]?.value;
+        const coValue = stream.perAccount[me.$jazz.id]?.value;
         expect(coValue?.toString()).toEqual("milk");
       });
 
       test("can create a coPlainText from an empty string", () => {
         const Schema = co.feed(co.plainText());
         const feed = Schema.create([""]);
-        expect(feed.perAccount[me.id]?.value?.toString()).toBe("");
+        expect(feed.perAccount[me.$jazz.id]?.value?.toString()).toBe("");
       });
     });
   });
@@ -96,14 +96,14 @@ describe("Simple CoFeed operations", async () => {
     const NullableTestStream = co.feed(z.string().nullable());
     const stream = NullableTestStream.create(["milk", null], { owner: me });
 
-    expect(stream.perAccount[me.id]?.value).toEqual(null);
+    expect(stream.perAccount[me.$jazz.id]?.value).toEqual(null);
     expect(stream.perSession[me.$jazz.sessionID]?.value).toEqual(null);
   });
 
   test("Construction with an Account", () => {
     const stream = TestStream.create(["milk"], me);
 
-    expect(stream.perAccount[me.id]?.value).toEqual("milk");
+    expect(stream.perAccount[me.$jazz.id]?.value).toEqual("milk");
     expect(stream.perSession[me.$jazz.sessionID]?.value).toEqual("milk");
   });
 
@@ -111,18 +111,18 @@ describe("Simple CoFeed operations", async () => {
     const group = Group.create(me);
     const stream = TestStream.create(["milk"], group);
 
-    expect(stream.perAccount[me.id]?.value).toEqual("milk");
+    expect(stream.perAccount[me.$jazz.id]?.value).toEqual("milk");
     expect(stream.perSession[me.$jazz.sessionID]?.value).toEqual("milk");
   });
 
   describe("Mutation", () => {
     test("pushing", () => {
       stream.push("bread");
-      expect(stream.perAccount[me.id]?.value).toEqual("bread");
+      expect(stream.perAccount[me.$jazz.id]?.value).toEqual("bread");
       expect(stream.perSession[me.$jazz.sessionID]?.value).toEqual("bread");
 
       stream.push("butter");
-      expect(stream.perAccount[me.id]?.value).toEqual("butter");
+      expect(stream.perAccount[me.$jazz.id]?.value).toEqual("butter");
       expect(stream.perSession[me.$jazz.sessionID]?.value).toEqual("butter");
     });
   });
@@ -160,9 +160,8 @@ describe("CoFeed resolution", async () => {
     // expectTypeOf(stream[me.id]).not.toBeAny();
 
     expect(
-      stream.perAccount[me.id]?.value?.perAccount[me.id]?.value?.perAccount[
-        me.id
-      ]?.value,
+      stream.perAccount[me.$jazz.id]?.value?.perAccount[me.$jazz.id]?.value
+        ?.perAccount[me.$jazz.id]?.value,
     ).toEqual("milk");
   });
 
@@ -171,13 +170,13 @@ describe("CoFeed resolution", async () => {
 
     const anotherAccount = await createJazzTestAccount();
 
-    const loadedStream = await TestStream.load(stream.id, {
+    const loadedStream = await TestStream.load(stream.$jazz.id, {
       loadAs: anotherAccount,
     });
 
     assert(loadedStream);
 
-    const myStream = loadedStream.perAccount[me.id];
+    const myStream = loadedStream.perAccount[me.$jazz.id];
 
     assert(myStream);
 
@@ -185,7 +184,7 @@ describe("CoFeed resolution", async () => {
 
     assert(myStream.value);
 
-    const loadedNestedStreamByMe = myStream.value.perAccount[me.id];
+    const loadedNestedStreamByMe = myStream.value.perAccount[me.$jazz.id];
 
     assert(loadedNestedStreamByMe);
 
@@ -194,7 +193,7 @@ describe("CoFeed resolution", async () => {
     assert(loadedNestedStreamByMe.value);
 
     const loadedTwiceNestedStreamByMe =
-      loadedNestedStreamByMe.value.perAccount[me.id];
+      loadedNestedStreamByMe.value.perAccount[me.$jazz.id];
 
     assert(loadedTwiceNestedStreamByMe);
 
@@ -211,7 +210,7 @@ describe("CoFeed resolution", async () => {
     const queue = new Channel();
 
     TestStream.subscribe(
-      stream.id,
+      stream.$jazz.id,
       { loadAs: anotherAccount },
       (subscribedStream) => {
         void queue.push(subscribedStream);
@@ -220,9 +219,8 @@ describe("CoFeed resolution", async () => {
 
     const update1 = (await queue.next()).value;
     expect(
-      update1.perAccount[me.id]?.value?.perAccount[me.id]?.value?.perAccount[
-        me.id
-      ]?.value,
+      update1.perAccount[me.$jazz.id]?.value?.perAccount[me.$jazz.id]?.value
+        ?.perAccount[me.$jazz.id]?.value,
     ).toBe("milk");
 
     // When assigning a new nested stream, we get an update
@@ -238,18 +236,16 @@ describe("CoFeed resolution", async () => {
 
     const update2 = (await queue.next()).value;
     expect(
-      update2.perAccount[me.id]?.value?.perAccount[me.id]?.value?.perAccount[
-        me.id
-      ]?.value,
+      update2.perAccount[me.$jazz.id]?.value?.perAccount[me.$jazz.id]?.value
+        ?.perAccount[me.$jazz.id]?.value,
     ).toBe("butter");
 
     // we get updates when the new nested stream changes
     newTwiceNested.push("jam");
     const update3 = (await queue.next()).value;
     expect(
-      update3.perAccount[me.id]?.value?.perAccount[me.id]?.value?.perAccount[
-        me.id
-      ]?.value,
+      update3.perAccount[me.$jazz.id]?.value?.perAccount[me.$jazz.id]?.value
+        ?.perAccount[me.$jazz.id]?.value,
     ).toBe("jam");
   });
 
@@ -258,24 +254,24 @@ describe("CoFeed resolution", async () => {
 
     const queue = new Channel();
 
-    TestStream.subscribe(stream.id, (subscribedStream) => {
+    TestStream.subscribe(stream.$jazz.id, (subscribedStream) => {
       void queue.push(subscribedStream);
     });
 
     const update1 = (await queue.next()).value;
     expect(
-      update1.perAccount[me.id]?.value?.perAccount[me.id]?.value?.perAccount[
-        me.id
-      ]?.value,
+      update1.perAccount[me.$jazz.id]?.value?.perAccount[me.$jazz.id]?.value
+        ?.perAccount[me.$jazz.id]?.value,
     ).toBe("milk");
 
-    stream.perAccount[me.id]!.value!.perAccount[me.id]!.value!.push("bread");
+    stream.perAccount[me.$jazz.id]!.value!.perAccount[me.$jazz.id]!.value!.push(
+      "bread",
+    );
 
     const update2 = (await queue.next()).value;
     expect(
-      update2.perAccount[me.id]?.value?.perAccount[me.id]?.value?.perAccount[
-        me.id
-      ]?.value,
+      update2.perAccount[me.$jazz.id]?.value?.perAccount[me.$jazz.id]?.value
+        ?.perAccount[me.$jazz.id]?.value,
     ).toBe("bread");
   });
 });
@@ -366,7 +362,7 @@ describe("FileStream loading & Subscription", async () => {
     const { stream } = await initNodeAndStream();
     const anotherAccount = await createJazzTestAccount();
 
-    const loadedStream = await FileStream.load(stream.id, {
+    const loadedStream = await FileStream.load(stream.$jazz.id, {
       loadAs: anotherAccount,
     });
 
@@ -388,7 +384,7 @@ describe("FileStream loading & Subscription", async () => {
     const queue = new Channel();
 
     FileStream.subscribe(
-      stream.id,
+      stream.$jazz.id,
       { loadAs: anotherAccount },
       (subscribedStream) => {
         void queue.push(subscribedStream);
@@ -451,7 +447,7 @@ describe("FileStream loading & Subscription", async () => {
 
     const queue = new Channel();
 
-    FileStream.subscribe(stream.id, (subscribedStream) => {
+    FileStream.subscribe(stream.$jazz.id, (subscribedStream) => {
       void queue.push(subscribedStream);
     });
 
@@ -503,7 +499,7 @@ describe("FileStream.load", async () => {
     const { stream, me } = await setup();
     stream.push(new Uint8Array([1]));
 
-    const promise = FileStream.load(stream.id, { loadAs: me });
+    const promise = FileStream.load(stream.$jazz.id, { loadAs: me });
 
     stream.push(new Uint8Array([2]));
     stream.end();
@@ -519,7 +515,7 @@ describe("FileStream.load", async () => {
     const { stream, me } = await setup();
     stream.push(new Uint8Array([1]));
 
-    const promise = FileStream.load(stream.id, {
+    const promise = FileStream.load(stream.$jazz.id, {
       loadAs: me,
       allowUnfinished: true,
     });
@@ -552,7 +548,7 @@ describe("FileStream.loadAsBlob", async () => {
     const { stream, me } = await setup();
     stream.push(new Uint8Array([1]));
 
-    const promise = FileStream.loadAsBlob(stream.id, { loadAs: me });
+    const promise = FileStream.loadAsBlob(stream.$jazz.id, { loadAs: me });
 
     stream.push(new Uint8Array([2]));
     stream.end();
@@ -568,7 +564,7 @@ describe("FileStream.loadAsBlob", async () => {
     const { stream, me } = await setup();
     stream.push(new Uint8Array([1]));
 
-    const promise = FileStream.loadAsBlob(stream.id, {
+    const promise = FileStream.loadAsBlob(stream.$jazz.id, {
       loadAs: me,
       allowUnfinished: true,
     });
@@ -602,7 +598,7 @@ describe("FileStream.loadAsBase64", async () => {
     const { stream, me } = await setup();
     stream.push(new Uint8Array([1]));
 
-    const promise = FileStream.loadAsBase64(stream.id, { loadAs: me });
+    const promise = FileStream.loadAsBase64(stream.$jazz.id, { loadAs: me });
 
     stream.push(new Uint8Array([2]));
     stream.end();
@@ -618,7 +614,7 @@ describe("FileStream.loadAsBase64", async () => {
     const { stream, me } = await setup();
     stream.push(new Uint8Array([1]));
 
-    const promise = FileStream.loadAsBase64(stream.id, {
+    const promise = FileStream.loadAsBase64(stream.$jazz.id, {
       loadAs: me,
       dataURL: true,
     });
@@ -637,7 +633,7 @@ describe("FileStream.loadAsBase64", async () => {
     const { stream, me } = await setup();
     stream.push(new Uint8Array([1]));
 
-    const promise = FileStream.loadAsBase64(stream.id, {
+    const promise = FileStream.loadAsBase64(stream.$jazz.id, {
       loadAs: me,
       allowUnfinished: true,
     });
@@ -717,7 +713,7 @@ describe("FileStream large file loading", async () => {
     const alice = await createJazzTestAccount();
 
     // Test loading the large FileStream
-    const loadedStream = await FileStream.load(largeStream.id, {
+    const loadedStream = await FileStream.load(largeStream.$jazz.id, {
       loadAs: alice,
       allowUnfinished: true,
     });
@@ -764,7 +760,7 @@ describe("FileStream large file loading", async () => {
     const alice = await createJazzTestAccount();
 
     // Test loading the large FileStream
-    const loadedStream = await FileStream.load(largeStream.id, {
+    const loadedStream = await FileStream.load(largeStream.$jazz.id, {
       loadAs: alice,
       allowUnfinished: false,
     });

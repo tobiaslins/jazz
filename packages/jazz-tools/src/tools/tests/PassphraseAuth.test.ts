@@ -315,7 +315,7 @@ describe("PassphraseAuth with TestJazzContextManager", () => {
       const context = contextManager.getCurrentValue();
 
       assert(context && "me" in context);
-      expect(context.me.id).toBe(accountId);
+      expect(context.me.$jazz.id).toBe(accountId);
       expect(context.me.profile?.name).toBe("Test User");
 
       expect(authSecretStorage.isAuthenticated).toBe(true);

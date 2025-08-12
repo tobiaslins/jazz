@@ -75,7 +75,7 @@ async function createInboxMessage<
   group.addMember(inboxOwner, "writer");
 
   const message = group.createMap<InboxMessage<I, O>>({
-    payload: payload.id,
+    payload: payload.$jazz.id,
     result: undefined,
     processed: false,
     error: undefined,
@@ -194,7 +194,7 @@ export class Inbox {
                   .getCurrentContent() as RawCoMap;
 
                 if (result) {
-                  inboxMessage.set("result", result.id);
+                  inboxMessage.set("result", result.$jazz.id);
                 }
 
                 inboxMessage.set("processed", true);

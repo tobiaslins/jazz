@@ -45,7 +45,7 @@ describe("createContext methods", () => {
       });
 
       const credentials: Credentials = {
-        accountID: account.id,
+        accountID: account.$jazz.id,
         secret: account.$jazz.localNode.getCurrentAgent().agentSecret,
       };
 
@@ -58,7 +58,7 @@ describe("createContext methods", () => {
 
       expect(context.node).toBeDefined();
       expect(context.account).toBeDefined();
-      expect(context.account.id).toBe(credentials.accountID);
+      expect(context.account.$jazz.id).toBe(credentials.accountID);
       expect(typeof context.done).toBe("function");
       expect(typeof context.logOut).toBe("function");
     });
@@ -76,7 +76,7 @@ describe("createContext methods", () => {
       });
 
       const credentials: Credentials = {
-        accountID: account.id,
+        accountID: account.$jazz.id,
         secret: account.$jazz.localNode.getCurrentAgent().agentSecret,
       };
 
@@ -102,7 +102,7 @@ describe("createContext methods", () => {
 
       const context = await createJazzContextFromExistingCredentials({
         credentials: {
-          accountID: account.id,
+          accountID: account.$jazz.id,
           secret: account.$jazz.localNode.getCurrentAgent().agentSecret,
         },
         peersToLoadFrom: [getPeerConnectedToTestSyncServer()],
@@ -125,7 +125,7 @@ describe("createContext methods", () => {
 
       const context = await createJazzContextFromExistingCredentials({
         credentials: {
-          accountID: account.id,
+          accountID: account.$jazz.id,
           secret: account.$jazz.localNode.getCurrentAgent().agentSecret,
         },
         peersToLoadFrom: [getPeerConnectedToTestSyncServer()],
@@ -145,7 +145,7 @@ describe("createContext methods", () => {
 
       const context = await createJazzContextFromExistingCredentials({
         credentials: {
-          accountID: account.id,
+          accountID: account.$jazz.id,
           secret: account.$jazz.localNode.getCurrentAgent().agentSecret,
         },
         peersToLoadFrom: [getPeerConnectedToTestSyncServer()],
@@ -284,7 +284,7 @@ describe("createContext methods", () => {
         sessionProvider: randomSessionProvider,
       });
 
-      expect(newContext.account.id).toBe(initialContext.account.id);
+      expect(newContext.account.$jazz.id).toBe(initialContext.account.$jazz.id);
     });
 
     test("uses provided new account props", async () => {

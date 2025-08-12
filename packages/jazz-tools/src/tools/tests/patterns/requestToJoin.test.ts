@@ -71,7 +71,7 @@ async function setup() {
     publicGroup,
   );
 
-  const organizationId = organization.id;
+  const organizationId = organization.$jazz.id;
 
   await admin1.$jazz.waitForAllCoValuesSync();
 
@@ -105,7 +105,7 @@ async function sendRequestToJoin(organizationId: string, account: Account) {
     group,
   );
 
-  organization.requests[account.id] = request;
+  organization.requests[account.$jazz.id] = request;
 
   await account.$jazz.waitForAllCoValuesSync();
 
@@ -126,11 +126,11 @@ async function approveRequest(
     throw new Error("Organization not found");
   }
 
-  const request = organization.requests[user.id];
+  const request = organization.requests[user.$jazz.id];
 
   if (
-    organization.statuses[user.id] === "approved" ||
-    organization.statuses[user.id] === "rejected"
+    organization.statuses[user.$jazz.id] === "approved" ||
+    organization.statuses[user.$jazz.id] === "rejected"
   ) {
     throw new Error("Request already processed");
   }
@@ -140,7 +140,7 @@ async function approveRequest(
   }
 
   request.status = "approved";
-  organization.statuses[user.id] = "approved";
+  organization.statuses[user.$jazz.id] = "approved";
 
   organization.mainGroup.addMember(user, "writer");
 
@@ -161,11 +161,11 @@ async function rejectRequest(
     throw new Error("Organization not found");
   }
 
-  const request = organization.requests[user.id];
+  const request = organization.requests[user.$jazz.id];
 
   if (
-    organization.statuses[user.id] === "approved" ||
-    organization.statuses[user.id] === "rejected"
+    organization.statuses[user.$jazz.id] === "approved" ||
+    organization.statuses[user.$jazz.id] === "rejected"
   ) {
     throw new Error("Request already processed");
   }
@@ -175,7 +175,7 @@ async function rejectRequest(
   }
 
   request.status = "rejected";
-  organization.statuses[user.id] = "rejected";
+  organization.statuses[user.$jazz.id] = "rejected";
 
   await admin.$jazz.waitForAllCoValuesSync();
 }
@@ -201,7 +201,7 @@ describe("Request to join", () => {
 
     const projectsOnUser = await co
       .list(z.string())
-      .load(organization.projects.id, {
+      .load(organization.projects.$jazz.id, {
         loadAs: user1,
       });
 
@@ -231,7 +231,7 @@ describe("Request to join", () => {
 
     const projectsOnUser = await co
       .list(z.string())
-      .load(organization.projects.id, {
+      .load(organization.projects.$jazz.id, {
         loadAs: user1,
       });
 
@@ -250,8 +250,8 @@ describe("Request to join", () => {
     });
 
     assert(organization);
-    expect(organization.statuses[user1.id]).toBe("approved");
-    const requestOnAdmin2 = await RequestToJoin.load(request.id, {
+    expect(organization.statuses[user1.$jazz.id]).toBe("approved");
+    const requestOnAdmin2 = await RequestToJoin.load(request.$jazz.id, {
       loadAs: admin2,
     });
     assert(requestOnAdmin2);
@@ -263,7 +263,7 @@ describe("Request to join", () => {
 
     const request = await sendRequestToJoin(organizationId, user1);
 
-    const requestOnUser2 = await RequestToJoin.load(request.id, {
+    const requestOnUser2 = await RequestToJoin.load(request.$jazz.id, {
       loadAs: user2,
     });
 

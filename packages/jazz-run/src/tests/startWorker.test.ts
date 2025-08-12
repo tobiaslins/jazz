@@ -151,7 +151,7 @@ describe("startWorker integration", () => {
     await worker1.done();
 
     const worker2 = await startWorker({
-      accountID: worker1.worker.id,
+      accountID: worker1.worker.$jazz.id,
       accountSecret:
         worker1.worker.$jazz.localNode.getCurrentAgent().agentSecret,
       syncServer: worker1.syncServer,
@@ -215,7 +215,7 @@ describe("startWorker integration", () => {
     const sender = await InboxSender.load<
       Loaded<typeof TestMap>,
       Loaded<typeof TestMap>
-    >(worker2.worker.id, worker1.worker);
+    >(worker2.worker.$jazz.id, worker1.worker);
 
     const resultId = await sender.sendMessage(map);
 

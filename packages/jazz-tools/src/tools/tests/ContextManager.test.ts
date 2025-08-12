@@ -125,7 +125,7 @@ describe("ContextManager", () => {
     await manager.createContext({});
 
     const credentials = {
-      accountID: account.id,
+      accountID: account.$jazz.id,
       accountSecret: account.$jazz.localNode.getCurrentAgent().agentSecret,
       provider: "test",
     };
@@ -133,7 +133,7 @@ describe("ContextManager", () => {
     // Authenticate with those credentials
     await manager.authenticate(credentials);
 
-    expect(getCurrentValue().me.id).toBe(credentials.accountID);
+    expect(getCurrentValue().me.$jazz.id).toBe(credentials.accountID);
   });
 
   test("handles race conditions on the context creation", async () => {
@@ -142,7 +142,7 @@ describe("ContextManager", () => {
     manager.createContext({});
 
     const credentials = {
-      accountID: account.id,
+      accountID: account.$jazz.id,
       accountSecret: account.$jazz.localNode.getCurrentAgent().agentSecret,
       provider: "test",
     };
@@ -150,7 +150,7 @@ describe("ContextManager", () => {
     // Authenticate without waiting for the previous context to be created
     await manager.authenticate(credentials);
 
-    expect(getCurrentValue().me.id).toBe(credentials.accountID);
+    expect(getCurrentValue().me.$jazz.id).toBe(credentials.accountID);
   });
 
   test("calls onLogOut callback when logging out", async () => {
@@ -205,7 +205,7 @@ describe("ContextManager", () => {
 
     // Authenticate with credentials
     await manager.authenticate({
-      accountID: account.id,
+      accountID: account.$jazz.id,
       accountSecret: account.$jazz.localNode.getCurrentAgent().agentSecret,
       provider: "test",
     });
@@ -219,7 +219,7 @@ describe("ContextManager", () => {
     const account = await createJazzTestAccount();
 
     await manager.getAuthSecretStorage().set({
-      accountID: account.id,
+      accountID: account.$jazz.id,
       accountSecret: account.$jazz.localNode.getCurrentAgent().agentSecret,
       provider: "test",
     });
@@ -229,7 +229,7 @@ describe("ContextManager", () => {
 
     // Authenticate with same credentials
     await manager.authenticate({
-      accountID: account.id,
+      accountID: account.$jazz.id,
       accountSecret: account.$jazz.localNode.getCurrentAgent().agentSecret,
       provider: "test",
     });
@@ -296,7 +296,7 @@ describe("ContextManager", () => {
     ).me;
 
     await customManager.authenticate({
-      accountID: account.id,
+      accountID: account.$jazz.id,
       accountSecret: account.$jazz.localNode.getCurrentAgent().agentSecret,
       provider: "test",
     });
@@ -327,7 +327,7 @@ describe("ContextManager", () => {
         account.root = AccountRoot.create({
           value: "Hello",
         });
-        lastRootId = account.root.id;
+        lastRootId = account.root.$jazz.id;
       });
 
     const customManager = new TestJazzContextManager<
@@ -346,7 +346,7 @@ describe("ContextManager", () => {
     ).me;
 
     await customManager.authenticate({
-      accountID: account.id,
+      accountID: account.$jazz.id,
       accountSecret: account.$jazz.localNode.getCurrentAgent().agentSecret,
       provider: "test",
     });
@@ -355,7 +355,7 @@ describe("ContextManager", () => {
       resolve: { root: true },
     });
 
-    expect(me.root.id).toBe(lastRootId);
+    expect(me.root.$jazz.id).toBe(lastRootId);
   });
 
   test("the migration should be applied correctly on existing accounts (2)", async () => {
@@ -397,7 +397,7 @@ describe("ContextManager", () => {
     ).me;
 
     await customManager.authenticate({
-      accountID: account.id,
+      accountID: account.$jazz.id,
       accountSecret: account.$jazz.localNode.getCurrentAgent().agentSecret,
       provider: "test",
     });
@@ -471,7 +471,7 @@ describe("ContextManager", () => {
     });
 
     await customManager.authenticate({
-      accountID: account.id,
+      accountID: account.$jazz.id,
       accountSecret: account.$jazz.localNode.getCurrentAgent().agentSecret,
       provider: "test",
     });
@@ -495,7 +495,7 @@ describe("ContextManager", () => {
     expect(accountId).toBeDefined();
     const context = getCurrentValue();
     expect(context.me.profile?.name).toBe("Test User");
-    expect(context.me.id).toBe(accountId);
+    expect(context.me.$jazz.id).toBe(accountId);
   });
 
   test("calls onAnonymousAccountDiscarded when registering from anonymous user", async () => {
@@ -514,7 +514,7 @@ describe("ContextManager", () => {
     const account = await createJazzTestAccount();
 
     await manager.getAuthSecretStorage().set({
-      accountID: account.id,
+      accountID: account.$jazz.id,
       accountSecret: account.$jazz.localNode.getCurrentAgent().agentSecret,
       provider: "test",
     });

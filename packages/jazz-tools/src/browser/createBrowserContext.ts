@@ -289,7 +289,7 @@ export function createInviteLink<C extends CoValue>(
   const inviteSecret = group.createInvite(role);
 
   return `${baseURL}#/invite/${valueHint ? valueHint + "/" : ""}${
-    value.id
+    value.$jazz.id
   }/${inviteSecret}`;
 }
 

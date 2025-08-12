@@ -31,7 +31,7 @@ export const createWorkerAccount = async ({
   await account.$jazz.waitForAllCoValuesSync({ timeout: 4_000 });
 
   return {
-    accountID: account.id,
+    accountID: account.$jazz.id,
     agentSecret: account.$jazz.localNode.getCurrentAgent().agentSecret,
   };
 };

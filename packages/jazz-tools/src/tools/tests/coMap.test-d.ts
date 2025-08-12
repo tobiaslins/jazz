@@ -538,7 +538,7 @@ describe("CoMap resolution", async () => {
       dog2: Dog.create({ name: "Fido", breed: "Poodle" }),
     });
 
-    const loadedPerson = await Person.load(person.id, {
+    const loadedPerson = await Person.load(person.$jazz.id, {
       resolve: {
         dog1: true,
       },
@@ -634,7 +634,7 @@ describe("CoMap resolution", async () => {
       dog2: Dog.create({ name: "Fido", breed: "Poodle" }),
     });
 
-    const loadedPerson = await Person.load(person.id, {
+    const loadedPerson = await Person.load(person.$jazz.id, {
       resolve: {
         dog1: true,
         dog2: { $onError: null },
@@ -681,7 +681,7 @@ describe("CoMap resolution", async () => {
       dog: Dog.create({ name: "Rex", breed: "Labrador" }),
     });
 
-    const loadedPerson = await Person.load(person.id);
+    const loadedPerson = await Person.load(person.$jazz.id);
 
     expectTypeOf(loadedPerson!).toEqualTypeOf<
       {

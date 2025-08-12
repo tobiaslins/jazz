@@ -22,7 +22,7 @@ describe("useInboxSender", () => {
         experimental_useInboxSender<
           Loaded<typeof TestMap>,
           Loaded<typeof TestMap>
-        >(inboxReceiver.id),
+        >(inboxReceiver.$jazz.id),
       {
         account,
       },

@@ -209,14 +209,18 @@ describe("CoMap", async () => {
       it("creates a group for each new CoValue that is a child of the referencing CoValue's owner", () => {
         for (const value of Object.values(person)) {
           expect(
-            value.$jazz.owner.getParentGroups().map((group: Group) => group.id),
-          ).toContain(person.$jazz.owner.id);
+            value.$jazz.owner
+              .getParentGroups()
+              .map((group: Group) => group.$jazz.id),
+          ).toContain(person.$jazz.owner.$jazz.id);
         }
         const friend = person.friends[0]!;
         for (const value of Object.values(friend)) {
           expect(
-            value.$jazz.owner.getParentGroups().map((group: Group) => group.id),
-          ).toContain(friend.$jazz.owner.id);
+            value.$jazz.owner
+              .getParentGroups()
+              .map((group: Group) => group.$jazz.id),
+          ).toContain(friend.$jazz.owner.$jazz.id);
         }
       });
 
@@ -268,7 +272,7 @@ describe("CoMap", async () => {
 
       expect(person.toJSON()).toEqual({
         _type: "CoMap",
-        id: person.id,
+        id: person.$jazz.id,
         name: "John",
         age: 20,
       });
@@ -291,12 +295,12 @@ describe("CoMap", async () => {
 
       expect(person.toJSON()).toEqual({
         _type: "CoMap",
-        id: person.id,
+        id: person.$jazz.id,
         name: "John",
         age: 20,
         friend: {
           _type: "CoMap",
-          id: person.friend?.id,
+          id: person.friend?.$jazz.id,
           name: "Jane",
           age: 21,
         },
@@ -321,11 +325,11 @@ describe("CoMap", async () => {
 
       expect(person.toJSON()).toEqual({
         _type: "CoMap",
-        id: person.id,
+        id: person.$jazz.id,
         name: "John",
         age: 20,
         friend: {
-          _circular: person.id,
+          _circular: person.$jazz.id,
         },
       });
     });
@@ -350,7 +354,7 @@ describe("CoMap", async () => {
         age: 20,
         birthday: birthday.toISOString(),
         _type: "CoMap",
-        id: john.id,
+        id: john.$jazz.id,
       });
     });
 
@@ -383,7 +387,7 @@ describe("CoMap", async () => {
 
       expect(john.toJSON()).toEqual({
         _type: "CoMap",
-        id: john.id,
+        id: john.$jazz.id,
         name: "John",
         age: 30,
       });
@@ -439,7 +443,7 @@ describe("CoMap", async () => {
       );
 
       const userB = await createJazzTestAccount();
-      const loadedPersonA = await Person.load(personA.id, {
+      const loadedPersonA = await Person.load(personA.$jazz.id, {
         resolve: true,
         loadAs: userB,
       });
@@ -488,7 +492,7 @@ describe("CoMap", async () => {
 
       expect(john.toJSON()).toEqual({
         _type: "CoMap",
-        id: john.id,
+        id: john.$jazz.id,
         name: "John",
       });
     });
@@ -543,11 +547,15 @@ describe("CoMap", async () => {
       ]);
       expect(john.$jazz.getEdits().age?.all[0]?.by).toMatchObject({
         _type: "Account",
-        id: me.id,
+        $jazz: expect.objectContaining({
+          id: me.$jazz.id,
+        }),
       });
       expect(john.$jazz.getEdits().age?.all[1]?.by).toMatchObject({
         _type: "Account",
-        id: me.id,
+        $jazz: expect.objectContaining({
+          id: me.$jazz.id,
+        }),
       });
     });
   });
@@ -579,7 +587,7 @@ describe("CoMap", async () => {
     expect(mapWithEnum.name).toEqual("enum");
     expect(mapWithEnum.child?.type).toEqual("a");
     expect(mapWithEnum.child?.value).toEqual(5);
-    expect(mapWithEnum.child?.id).toBeDefined();
+    expect(mapWithEnum.child?.$jazz.id).toBeDefined();
 
     // TODO: properly support narrowing once we get rid of the coField marker
     // if (mapWithEnum.child?.type === "a") {
@@ -607,7 +615,7 @@ describe("CoMap resolution", async () => {
       dog: Dog.create({ name: "Rex", breed: "Labrador" }),
     });
 
-    const loadedPerson = await Person.load(person.id, {
+    const loadedPerson = await Person.load(person.$jazz.id, {
       resolve: {
         dog: true,
       },
@@ -635,7 +643,7 @@ describe("CoMap resolution", async () => {
       dog: Dog.create({ name: "Rex", breed: "Labrador" }),
     });
 
-    const loadedPerson = await Person.load(person.id);
+    const loadedPerson = await Person.load(person.$jazz.id);
 
     assert(loadedPerson);
     expect(loadedPerson.dog?.name).toEqual("Rex");
@@ -667,7 +675,7 @@ describe("CoMap resolution", async () => {
 
     const userB = await createJazzTestAccount();
 
-    const loadedPerson = await Person.load(person.id, {
+    const loadedPerson = await Person.load(person.$jazz.id, {
       resolve: {
         dog: true,
       },
@@ -703,7 +711,7 @@ describe("CoMap resolution", async () => {
     );
 
     const userB = await createJazzTestAccount();
-    const loadedPerson = await Person.load(person.id, {
+    const loadedPerson = await Person.load(person.$jazz.id, {
       loadAs: userB,
     });
 
@@ -748,7 +756,7 @@ describe("CoMap resolution", async () => {
     const userB = await createJazzTestAccount();
 
     // We expect that the test doesn't hang here and immediately returns null
-    const loadedPerson = await Person.load(person.id, {
+    const loadedPerson = await Person.load(person.$jazz.id, {
       loadAs: userB,
       skipRetry: true,
     });
@@ -792,7 +800,7 @@ describe("CoMap resolution", async () => {
 
     const userB = await createJazzTestAccount();
     let resolved = false;
-    const promise = Person.load(person.id, {
+    const promise = Person.load(person.$jazz.id, {
       loadAs: userB,
       skipRetry: false,
     });
@@ -841,13 +849,13 @@ describe("CoMap resolution", async () => {
     );
 
     const userB = await createJazzTestAccount();
-    const loadedPerson = await Person.load(person.id, {
+    const loadedPerson = await Person.load(person.$jazz.id, {
       loadAs: userB,
     });
 
     assert(loadedPerson);
 
-    expect(loadedPerson.$jazz.refs.dog?.id).toBe(person.dog!.id);
+    expect(loadedPerson.$jazz.refs.dog?.id).toBe(person.dog!.$jazz.id);
 
     const dog = await loadedPerson.$jazz.refs.dog?.load();
 
@@ -878,7 +886,7 @@ describe("CoMap resolution", async () => {
     const spy = vi.fn((person) => updates.push(person));
 
     Person.subscribe(
-      person.id,
+      person.$jazz.id,
       {
         resolve: {
           dog: true,
@@ -925,7 +933,7 @@ describe("CoMap resolution", async () => {
     const updates: Loaded<typeof Person>[] = [];
     const spy = vi.fn((person) => updates.push(person));
 
-    Person.subscribe(person.id, {}, spy);
+    Person.subscribe(person.$jazz.id, {}, spy);
 
     expect(spy).not.toHaveBeenCalled();
 
@@ -967,7 +975,7 @@ describe("CoMap resolution", async () => {
 
     subscribeToCoValue(
       coValueClassFromCoValueClassOrSchema(Person), // TODO: we should get rid of the conversion in the future
-      person.id,
+      person.$jazz.id,
       {
         syncResolution: true,
         loadAs: Account.getMe(),
@@ -1021,7 +1029,7 @@ describe("CoMap resolution", async () => {
     const spy = vi.fn((person) => updates.push(person));
 
     Person.subscribe(
-      person.id,
+      person.$jazz.id,
       {
         resolve: {
           dog: true,
@@ -1078,7 +1086,7 @@ describe("CoMap resolution", async () => {
     const userB = await createJazzTestAccount();
 
     Person.subscribe(
-      person.id,
+      person.$jazz.id,
       {
         loadAs: userB,
       },
@@ -1124,7 +1132,7 @@ describe("CoMap resolution", async () => {
     const spy = vi.fn((person) => updates.push(person));
 
     Person.subscribe(
-      person.id,
+      person.$jazz.id,
       {
         resolve: {
           dog: true,
@@ -1469,7 +1477,10 @@ describe("Creating and finding unique CoMaps", async () => {
       { owner: group, unique: { name: "Alice" } },
     );
 
-    const foundAlice = await Person.loadUnique({ name: "Alice" }, group.id);
+    const foundAlice = await Person.loadUnique(
+      { name: "Alice" },
+      group.$jazz.id,
+    );
     expect(foundAlice).toEqual(alice);
   });
 
@@ -1492,7 +1503,7 @@ describe("Creating and finding unique CoMaps", async () => {
     // Pattern
     let activeEvent = await Event.loadUnique(
       { identifier: sourceData.identifier },
-      workspace.id,
+      workspace.$jazz.id,
     );
     if (!activeEvent) {
       activeEvent = Event.create(
@@ -1725,12 +1736,14 @@ describe("Creating and finding unique CoMaps", async () => {
       isCurrentActiveAccount: true,
     });
 
-    const shallowProjectList = await co.list(Project).load(fullProjectList.id, {
-      loadAs: account,
-    });
+    const shallowProjectList = await co
+      .list(Project)
+      .load(fullProjectList.$jazz.id, {
+        loadAs: account,
+      });
     assert(shallowProjectList);
 
-    const publicAccessAsNewAccount = await Group.load(publicAccess.id, {
+    const publicAccessAsNewAccount = await Group.load(publicAccess.$jazz.id, {
       loadAs: account,
     });
     assert(publicAccessAsNewAccount);
@@ -1751,7 +1764,7 @@ describe("Creating and finding unique CoMaps", async () => {
 
     assert(updatedOrg);
 
-    expect(updatedOrg.projects.id).toEqual(fullProjectList.id);
+    expect(updatedOrg.projects.$jazz.id).toEqual(fullProjectList.$jazz.id);
     expect(updatedOrg.projects.length).toBe(1);
     expect(updatedOrg.projects.at(0)?.name).toEqual("My project");
   });
@@ -1801,12 +1814,14 @@ describe("Creating and finding unique CoMaps", async () => {
       isCurrentActiveAccount: true,
     });
 
-    const shallowProjectList = await co.list(Project).load(fullProjectList.id, {
-      loadAs: account,
-    });
+    const shallowProjectList = await co
+      .list(Project)
+      .load(fullProjectList.$jazz.id, {
+        loadAs: account,
+      });
     assert(shallowProjectList);
 
-    const publicAccessAsNewAccount = await Group.load(publicAccess.id, {
+    const publicAccessAsNewAccount = await Group.load(publicAccess.$jazz.id, {
       loadAs: account,
     });
     assert(publicAccessAsNewAccount);
@@ -1827,10 +1842,10 @@ describe("Creating and finding unique CoMaps", async () => {
 
     assert(updatedOrg);
 
-    expect(updatedOrg.projects.id).toEqual(fullProjectList.id);
+    expect(updatedOrg.projects.$jazz.id).toEqual(fullProjectList.$jazz.id);
     expect(updatedOrg.projects.length).toBe(1);
     expect(updatedOrg.projects.at(0)?.name).toEqual("My project");
-    expect(updatedOrg.id).toEqual(myOrg.id);
+    expect(updatedOrg.$jazz.id).toEqual(myOrg.$jazz.id);
   });
 
   test("complex discriminated union", () => {
@@ -2069,7 +2084,7 @@ describe("CoMap migration", () => {
     expect(person?.name).toEqual("Bob");
     expect(person?.version).toEqual(1);
 
-    const loadedPerson = await Person.load(person.id);
+    const loadedPerson = await Person.load(person.$jazz.id);
 
     expect(loadedPerson?.name).toEqual("Bob");
     expect(loadedPerson?.age).toEqual(20);
@@ -2098,14 +2113,14 @@ describe("CoMap migration", () => {
     expect(person?.name).toEqual("Bob");
     expect(person?.version).toEqual(1);
 
-    const loadedPerson = await Person.load(person.id);
+    const loadedPerson = await Person.load(person.$jazz.id);
 
     expect(loadedPerson?.name).toEqual("Bob");
     expect(loadedPerson?.version).toEqual(2);
 
     const anotherAccount = await createJazzTestAccount();
 
-    const loadedPersonFromAnotherAccount = await Person.load(person.id, {
+    const loadedPersonFromAnotherAccount = await Person.load(person.$jazz.id, {
       loadAs: anotherAccount,
     });
 
@@ -2126,7 +2141,7 @@ describe("CoMap migration", () => {
       version: 1,
     });
 
-    await expect(Person.load(person.id)).rejects.toThrow(
+    await expect(Person.load(person.$jazz.id)).rejects.toThrow(
       "Migration function cannot be async",
     );
   });
@@ -2147,8 +2162,8 @@ describe("CoMap migration", () => {
       version: 1,
     });
 
-    await Person.load(person.id);
-    await Person.load(person.id);
+    await Person.load(person.$jazz.id);
+    await Person.load(person.$jazz.id);
     expect(spy).toHaveBeenCalledTimes(1);
   });
 
@@ -2188,7 +2203,7 @@ describe("CoMap migration", () => {
       friend: charlie,
     });
 
-    const loaded = await Person.load(bob.id, {
+    const loaded = await Person.load(bob.$jazz.id, {
       resolve: {
         friend: true,
       },
@@ -2375,7 +2390,7 @@ describe("Updating a nested reference", () => {
     group.addMember(player1Account, "reader");
 
     // Load the game to verify the assignment worked
-    const loadedGame = await Game.load(game.id, {
+    const loadedGame = await Game.load(game.$jazz.id, {
       resolve: {
         player1: {
           account: true,
@@ -2443,7 +2458,7 @@ describe("Updating a nested reference", () => {
     });
 
     // Load the game to verify the assignment worked
-    const loadedGame = await Game.load(game.id, {
+    const loadedGame = await Game.load(game.$jazz.id, {
       resolve: {
         player1: {
           account: true,
@@ -2465,7 +2480,9 @@ describe("Updating a nested reference", () => {
     loadedGame.player1.playSelection = playSelection;
 
     // Verify that the playSelection is not null and has the expected value
-    expect(loadedGame.player1.playSelection.id).toBe(playSelection.id);
+    expect(loadedGame.player1.playSelection.$jazz.id).toBe(
+      playSelection.$jazz.id,
+    );
     expect(loadedGame.player1.playSelection.value).toEqual("scissors");
   });
 });

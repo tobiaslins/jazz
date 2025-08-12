@@ -32,7 +32,7 @@ describe("CoPlainText", () => {
         crypto: Crypto,
       });
       const text = co.plainText().create("hello world", me);
-      expect(text.owner.id).toBe(me.id);
+      expect(text.owner.$jazz.id).toBe(me.$jazz.id);
     });
 
     test("should allow `create` from raw", async () => {
@@ -43,7 +43,7 @@ describe("CoPlainText", () => {
       const text = co.plainText().create("hello world", me);
       const raw = text.$jazz.raw;
       const text2 = co.plainText().fromRaw(raw);
-      expect(text2.owner.id).toBe(me.id);
+      expect(text2.owner.$jazz.id).toBe(me.$jazz.id);
     });
 
     test("should allow owner shorthand", async () => {
@@ -52,7 +52,7 @@ describe("CoPlainText", () => {
         crypto: Crypto,
       });
       const text = co.plainText().create("hello world", me);
-      expect(text.owner.id).toBe(me.id);
+      expect(text.owner.$jazz.id).toBe(me.$jazz.id);
     });
   });
 
@@ -162,7 +162,7 @@ describe("CoPlainText", () => {
   describe("Loading and availability", () => {
     test("can load text across peers", async () => {
       const { me, text } = await initNodeAndText();
-      const id = text.id;
+      const id = text.$jazz.id;
 
       // Set up peer connections
       const [initialAsPeer, secondPeer] = connectedPeers("initial", "second", {
@@ -177,7 +177,7 @@ describe("CoPlainText", () => {
       const { account: meOnSecondPeer } =
         await createJazzContextFromExistingCredentials({
           credentials: {
-            accountID: me.id,
+            accountID: me.$jazz.id,
             secret: me.$jazz.localNode.getCurrentAgent().agentSecret,
           },
           sessionProvider: randomSessionProvider,
@@ -208,7 +208,7 @@ describe("CoPlainText", () => {
     const { account: meOnSecondPeer } =
       await createJazzContextFromExistingCredentials({
         credentials: {
-          accountID: me.id,
+          accountID: me.$jazz.id,
           secret: me.$jazz.localNode.getCurrentAgent().agentSecret,
         },
         sessionProvider: randomSessionProvider,
@@ -220,7 +220,7 @@ describe("CoPlainText", () => {
 
     // Subscribe to text updates
     co.plainText().subscribe(
-      text.id,
+      text.$jazz.id,
       { loadAs: meOnSecondPeer },
       (subscribedText) => {
         void queue.push(subscribedText);

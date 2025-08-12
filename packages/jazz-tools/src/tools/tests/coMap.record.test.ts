@@ -137,7 +137,7 @@ describe("CoMap.Record", async () => {
 
       expect(person.toJSON()).toEqual({
         _type: "CoMap",
-        id: person.id,
+        id: person.$jazz.id,
         name: "John",
       });
     });
@@ -182,8 +182,14 @@ describe("CoMap.Record", async () => {
           madeAt: expect.any(Date),
         }),
       ]);
-      expect(edits?.[0]?.by).toMatchObject({ _type: "Account", id: me.id });
-      expect(edits?.[1]?.by).toMatchObject({ _type: "Account", id: me.id });
+      expect(edits?.[0]?.by).toMatchObject({
+        _type: "Account",
+        $jazz: expect.objectContaining({ id: me.$jazz.id }),
+      });
+      expect(edits?.[1]?.by).toMatchObject({
+        _type: "Account",
+        $jazz: expect.objectContaining({ id: me.$jazz.id }),
+      });
     });
   });
 
@@ -201,7 +207,7 @@ describe("CoMap.Record", async () => {
         pet2: Dog.create({ name: "Fido", breed: "Poodle" }),
       });
 
-      const loadedPerson = await Person.load(person.id, {
+      const loadedPerson = await Person.load(person.$jazz.id, {
         resolve: {
           $each: true,
         },
@@ -270,7 +276,7 @@ describe("CoMap.Record", async () => {
         pet2: Dog.create({ name: "Fido", breed: "Poodle" }),
       });
 
-      const loadedPerson = await Person.load(person.id);
+      const loadedPerson = await Person.load(person.$jazz.id);
 
       assert(loadedPerson);
       expect(loadedPerson.pet1?.name).toEqual("Rex");
@@ -293,7 +299,7 @@ describe("CoMap.Record", async () => {
       const spy = vi.fn((person) => updates.push(person));
 
       Person.subscribe(
-        person.id,
+        person.$jazz.id,
         {
           resolve: {
             $each: true,

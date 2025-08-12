@@ -176,7 +176,7 @@ describe("CoList", () => {
         Dog.create({ name: "Fido", breed: "Poodle" }),
       ]);
 
-      const loadedList = await DogList.load(list.id, {
+      const loadedList = await DogList.load(list.$jazz.id, {
         resolve: {
           $each: true,
         },
@@ -209,7 +209,7 @@ describe("CoList", () => {
         Dog.create({ name: "Fido", breed: "Poodle" }),
       ]);
 
-      const loadedList = await DogList.load(list.id, {
+      const loadedList = await DogList.load(list.$jazz.id, {
         resolve: {
           $each: { $onError: null },
         },
@@ -247,7 +247,7 @@ describe("CoList", () => {
         ]),
       ]);
 
-      const loadedList = await NestedList.load(list.id, {
+      const loadedList = await NestedList.load(list.$jazz.id, {
         resolve: {
           $each: {
             $each: true,

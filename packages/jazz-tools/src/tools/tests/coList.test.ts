@@ -488,7 +488,7 @@ describe("CoList applyDiff operations", async () => {
 
     list.applyDiff(list.filter((item) => item?.type !== "butter"));
 
-    expect(list.$jazz.raw.asArray()).toEqual([bread.id, onion.id]);
+    expect(list.$jazz.raw.asArray()).toEqual([bread.$jazz.id, onion.$jazz.id]);
   });
 
   test("applyDiff with mixed operations", () => {
@@ -542,7 +542,7 @@ describe("CoList resolution", async () => {
 
     expect(list[0]?.[0]?.[0]).toBe("a");
     expect(list[0]?.[0]?.join(",")).toBe("a,b");
-    expect(list[0]?.[0]?.id).toBeDefined();
+    expect(list[0]?.[0]?.$jazz.id).toBeDefined();
     expect(list[1]?.[0]?.[0]).toBe("c");
   });
 });
@@ -564,7 +564,7 @@ describe("CoList subscription", async () => {
     const spy = vi.fn((list) => updates.push(list));
 
     TestList.subscribe(
-      list.id,
+      list.$jazz.id,
       {
         resolve: {
           $each: true,
@@ -607,7 +607,7 @@ describe("CoList subscription", async () => {
     const updates: Loaded<typeof TestList>[] = [];
     const spy = vi.fn((list) => updates.push(list));
 
-    TestList.subscribe(list.id, {}, spy);
+    TestList.subscribe(list.$jazz.id, {}, spy);
 
     expect(spy).not.toHaveBeenCalled();
 
@@ -645,7 +645,7 @@ describe("CoList subscription", async () => {
 
     subscribeToCoValue(
       coValueClassFromCoValueClassOrSchema(TestList),
-      list.id,
+      list.$jazz.id,
       {
         syncResolution: true,
         loadAs: Account.getMe(),
@@ -695,7 +695,7 @@ describe("CoList subscription", async () => {
     const spy = vi.fn((list) => updates.push(list));
 
     TestList.subscribe(
-      list.id,
+      list.$jazz.id,
       {
         resolve: {
           $each: true,
@@ -748,7 +748,7 @@ describe("CoList subscription", async () => {
     const userB = await createJazzTestAccount();
 
     TestList.subscribe(
-      list.id,
+      list.$jazz.id,
       {
         loadAs: userB,
       },
@@ -790,7 +790,7 @@ describe("CoList subscription", async () => {
     const spy = vi.fn((list) => updates.push(list));
 
     TestList.subscribe(
-      list.id,
+      list.$jazz.id,
       {
         resolve: {
           $each: true,
@@ -842,7 +842,7 @@ describe("CoList subscription", async () => {
     const userB = await createJazzTestAccount();
 
     TestList.subscribe(
-      list.id,
+      list.$jazz.id,
       {
         loadAs: userB,
         resolve: {

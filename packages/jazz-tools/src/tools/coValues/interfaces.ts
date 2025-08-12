@@ -38,12 +38,12 @@ export interface CoValueFromRaw<V extends CoValue> {
 /** @category Abstract interfaces */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface CoValue {
-  /** @category Content */
-  readonly id: ID<this>;
   /** @category Type Helpers */
   _type: string;
 
   $jazz: {
+    /** @category Content */
+    readonly id: ID<CoValue>;
     /** @category Collaboration */
     owner: Account | Group;
     /** @internal */
@@ -152,7 +152,7 @@ export async function ensureCoValueLoaded<
 ): Promise<Resolved<V, R>> {
   const response = await loadCoValue(
     existing.constructor as CoValueClass<V>,
-    existing.id,
+    existing.$jazz.id,
     {
       loadAs: existing.$jazz.loadedAs,
       resolve: options?.resolve,
@@ -160,7 +160,7 @@ export async function ensureCoValueLoaded<
   );
 
   if (!response) {
-    throw new Error("Failed to deeply load CoValue " + existing.id);
+    throw new Error("Failed to deeply load CoValue " + existing.$jazz.id);
   }
 
   return response;
@@ -328,7 +328,7 @@ export function subscribeToExistingCoValue<
 ): () => void {
   return subscribeToCoValue(
     existing.constructor as CoValueClass<V>,
-    existing.id,
+    existing.$jazz.id,
     {
       loadAs: existing.$jazz.loadedAs,
       resolve: options?.resolve,

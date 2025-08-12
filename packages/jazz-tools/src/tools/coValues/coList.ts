@@ -90,10 +90,6 @@ export class CoList<out Item = any> extends Array<Item> implements CoValue {
     throw new Error("Can't use Array.of with CoLists");
   }
 
-  /**
-   * The ID of this `CoList`
-   * @category Content */
-  declare id: ID<this>;
   /** @category Type Helpers */
   declare _type: "CoList";
   static {
@@ -208,10 +204,6 @@ export class CoList<out Item = any> extends Array<Item> implements CoValue {
 
     if (options && "fromRaw" in options) {
       Object.defineProperties(this, {
-        id: {
-          value: options.fromRaw.id,
-          enumerable: false,
-        },
         $jazz: {
           value: new CoListJazzApi(this, options.fromRaw),
           enumerable: false,
@@ -255,10 +247,6 @@ export class CoList<out Item = any> extends Array<Item> implements CoValue {
     );
 
     Object.defineProperties(instance, {
-      id: {
-        value: raw.id,
-        enumerable: false,
-      },
       $jazz: {
         value: new CoListJazzApi(instance, raw),
         enumerable: false,
@@ -377,7 +365,8 @@ export class CoList<out Item = any> extends Array<Item> implements CoValue {
     const comparator = isRefEncoded(this._schema[ItemsSym])
       ? (aIdx: number, bIdx: number) => {
           return (
-            (current[aIdx] as CoValue)?.id === (result[bIdx] as CoValue)?.id
+            (current[aIdx] as CoValue)?.$jazz?.id ===
+            (result[bIdx] as CoValue)?.$jazz?.id
           );
         }
       : undefined;
@@ -399,11 +388,11 @@ export class CoList<out Item = any> extends Array<Item> implements CoValue {
         .map((e) => itemDescriptor.encoded.encode(e));
     } else if (isRefEncoded(itemDescriptor)) {
       return this.map((item, idx) =>
-        seenAbove?.includes((item as CoValue)?.id)
-          ? { _circular: (item as CoValue).id }
+        seenAbove?.includes((item as CoValue)?.$jazz.id)
+          ? { _circular: (item as CoValue).$jazz.id }
           : (item as unknown as CoValue)?.toJSON(idx + "", [
               ...(seenAbove || []),
-              this.id,
+              this.$jazz.id,
             ]),
       );
     } else {
@@ -578,6 +567,14 @@ export class CoListJazzApi<L extends CoList> extends CoValueJazzApi<L> {
   ) {
     super(coList);
   }
+
+  /**
+   * The ID of this `CoList`
+   * @category Content
+   */
+  get id(): ID<L> {
+    return this.raw.id;
+  }
 }
 
 /**
@@ -600,14 +597,14 @@ function toRawItems<Item>(
   } else if (isRefEncoded(itemDescriptor)) {
     rawItems = items?.map((value) => {
       if (value == null) return null;
-      let refId = (value as unknown as CoValue).id;
+      let refId = (value as unknown as CoValue).$jazz?.id;
       if (!refId) {
         const coValue = instantiateRefEncodedWithInit(
           itemDescriptor,
           value,
           owner,
         );
-        refId = coValue.id;
+        refId = coValue.$jazz.id;
       }
       return refId;
     });
@@ -662,8 +659,8 @@ const CoListProxyHandler: ProxyHandler<CoList> = {
               `Cannot set required reference ${key} to undefined`,
             );
           }
-        } else if (value?.id) {
-          rawValue = value.id;
+        } else if ((value as CoValue)?.$jazz?.id) {
+          rawValue = (value as CoValue).$jazz.id;
         } else {
           throw new Error(
             `Cannot set reference ${key} to a non-CoValue. Got ${value}`,

@@ -141,7 +141,7 @@ export async function createJazzTestAccount<
   });
 
   const account = AccountClass.fromNode(node);
-  SecretSeedMap.set(account.id, secretSeed);
+  SecretSeedMap.set(account.$jazz.id, secretSeed);
 
   if (options?.isCurrentActiveAccount) {
     activeAccountContext.set(account);
@@ -197,9 +197,9 @@ export class TestJazzContextManager<
     const node = account.$jazz.localNode;
 
     const credentials = {
-      accountID: account.id,
+      accountID: account.$jazz.id,
       accountSecret: node.getCurrentAgent().agentSecret,
-      secretSeed: SecretSeedMap.get(account.id),
+      secretSeed: SecretSeedMap.get(account.$jazz.id),
       provider,
     } satisfies AuthCredentials;
 
@@ -291,10 +291,14 @@ export async function linkAccounts(
   aRole: "server" | "client" = "server",
   bRole: "server" | "client" = "server",
 ) {
-  const [aPeer, bPeer] = cojsonInternals.connectedPeers(b.id, a.id, {
-    peer1role: aRole,
-    peer2role: bRole,
-  });
+  const [aPeer, bPeer] = cojsonInternals.connectedPeers(
+    b.$jazz.id,
+    a.$jazz.id,
+    {
+      peer1role: aRole,
+      peer2role: bRole,
+    },
+  );
 
   a.$jazz.localNode.syncManager.addPeer(aPeer);
   b.$jazz.localNode.syncManager.addPeer(bPeer);

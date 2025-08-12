@@ -100,10 +100,6 @@ type CoMapFieldSchema = {
  * @category CoValues
  *  */
 export class CoMap extends CoValueBase implements CoValue {
-  /**
-   * The ID of this `CoMap`
-   * @category Content */
-  declare id: ID<this>;
   /** @category Type Helpers */
   declare _type: "CoMap";
   static {
@@ -129,10 +125,6 @@ export class CoMap extends CoValueBase implements CoValue {
     if (options) {
       if ("fromRaw" in options) {
         Object.defineProperties(this, {
-          id: {
-            value: options.fromRaw.id as unknown as ID<this>,
-            enumerable: false,
-          },
           $jazz: {
             value: new CoMapJazzApi(this, () => options.fromRaw),
             enumerable: false,
@@ -187,7 +179,7 @@ export class CoMap extends CoValueBase implements CoValue {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   toJSON(_key?: string, processedValues?: ID<CoValue>[]): any {
     const result = {
-      id: this.id,
+      id: this.$jazz.id,
       _type: this._type,
     } as Record<string, any>;
 
@@ -204,7 +196,7 @@ export class CoMap extends CoValueBase implements CoValue {
       } else if (isRefEncoded(descriptor)) {
         const id = this.$jazz.raw.get(key) as ID<CoValue>;
 
-        if (processedValues?.includes(id) || id === this.id) {
+        if (processedValues?.includes(id) || id === this.$jazz.id) {
           result[key] = { _circular: id };
           continue;
         }
@@ -219,7 +211,7 @@ export class CoMap extends CoValueBase implements CoValue {
         ) {
           const jsonedRef = ref.toJSON(tKey, [
             ...(processedValues || []),
-            this.id,
+            this.$jazz.id,
           ]);
           result[key] = jsonedRef;
         }
@@ -258,11 +250,8 @@ export class CoMap extends CoValueBase implements CoValue {
 
     const raw = CoMap.rawFromInit(instance, init, owner, uniqueness);
 
+    // TODO delete
     Object.defineProperties(instance, {
-      id: {
-        value: raw.id,
-        enumerable: false,
-      },
       raw: { value: raw, enumerable: false },
     });
 
@@ -299,14 +288,14 @@ export class CoMap extends CoValueBase implements CoValue {
           rawInit[key] = initValue as JsonValue;
         } else if (isRefEncoded(descriptor)) {
           if (initValue != null) {
-            let refId = (initValue as unknown as CoValue).id;
+            let refId = (initValue as unknown as CoValue).$jazz?.id;
             if (!refId) {
               const coValue = instantiateRefEncodedWithInit(
                 descriptor,
                 initValue,
                 owner,
               );
-              refId = coValue.id;
+              refId = coValue.$jazz.id;
             }
             rawInit[key] = refId;
           }
@@ -497,7 +486,7 @@ export class CoMap extends CoValueBase implements CoValue {
       resolve?: RefsToResolveStrict<M, R>;
     },
   ): Promise<Resolved<M, R> | null> {
-    let mapId = CoMap._findUnique(options.unique, options.owner.id);
+    let mapId = CoMap._findUnique(options.unique, options.owner.$jazz.id);
     let map: Resolved<M, R> | null = await loadCoValueWithoutMe(this, mapId, {
       ...options,
       loadAs: options.owner.$jazz.loadedAs,
@@ -556,6 +545,14 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
   }
 
   /**
+   * The ID of this `CoMap`
+   * @category Content
+   */
+  get id(): ID<M> {
+    return this.raw.id;
+  }
+
+  /**
    * Set a value on the CoMap
    *
    * @param key The key to set
@@ -581,8 +578,8 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
         } else {
           throw Error(`Cannot set required reference ${key} to undefined`);
         }
-      } else if ((value as CoValue)?.id) {
-        this.raw.set(key, (value as CoValue).id);
+      } else if ((value as CoValue)?.$jazz?.id) {
+        this.raw.set(key, (value as CoValue).$jazz.id);
       } else {
         throw Error(
           `Cannot set reference ${key} to a non-CoValue. Got ${value}`,
@@ -615,8 +612,8 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
             this.set(tKey as any, newValue);
           }
         } else if (isRefEncoded(descriptor)) {
-          const currentId = (currentValue as CoValue | undefined)?.id;
-          const newId = (newValue as CoValue | undefined)?.id;
+          const currentId = (currentValue as CoValue | undefined)?.$jazz.id;
+          const newId = (newValue as CoValue | undefined)?.$jazz.id;
           if (currentId !== newId) {
             this.set(tKey as any, newValue);
           }

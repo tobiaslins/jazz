@@ -23,7 +23,6 @@ import type {
 /** @internal */
 
 export abstract class CoValueBase implements CoValue {
-  declare id: ID<this>;
   declare _type: string;
   /** @category Internals */
   declare _instanceID: string;
@@ -45,7 +44,7 @@ export abstract class CoValueBase implements CoValue {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   toJSON(): object | any[] | string {
     return {
-      id: this.id,
+      id: this.$jazz.id,
       type: this._type,
       error: "unknown CoValue class",
     };
@@ -78,6 +77,9 @@ export abstract class CoValueBase implements CoValue {
 export abstract class CoValueJazzApi<V extends CoValue> {
   constructor(private coValue: V) {}
 
+  abstract get id(): ID<V>;
+  abstract get raw(): RawCoValue;
+
   get owner(): Account | Group {
     const schema =
       this.raw.group instanceof RawAccount
@@ -104,6 +106,4 @@ export abstract class CoValueJazzApi<V extends CoValue> {
 
     return new AnonymousJazzAgent(this.raw.core.node);
   }
-
-  abstract get raw(): RawCoValue;
 }

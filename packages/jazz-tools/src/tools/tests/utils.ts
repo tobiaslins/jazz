@@ -34,7 +34,7 @@ export async function setupAccount() {
   const { account: meOnSecondPeer } =
     await createJazzContextFromExistingCredentials({
       credentials: {
-        accountID: me.id,
+        accountID: me.$jazz.id,
         secret: me.$jazz.localNode.getCurrentAgent().agentSecret,
       },
       sessionProvider: randomSessionProvider,

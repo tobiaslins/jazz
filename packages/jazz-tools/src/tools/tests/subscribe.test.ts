@@ -70,7 +70,7 @@ describe("subscribeToCoValue", () => {
 
     const unsubscribe = subscribeToCoValue(
       coValueClassFromCoValueClassOrSchema(ChatRoom),
-      chatRoom.id,
+      chatRoom.$jazz.id,
       { loadAs: meOnSecondPeer },
       (value) => {
         result = value;
@@ -85,7 +85,7 @@ describe("subscribeToCoValue", () => {
     });
 
     expect(result).not.toBeNull();
-    expect(result?.id).toBe(chatRoom.id);
+    expect(result?.$jazz.id).toBe(chatRoom.$jazz.id);
     expect(result?.messages).toEqual(null);
     expect(result?.name).toBe("General");
 
@@ -117,7 +117,7 @@ describe("subscribeToCoValue", () => {
 
     const unsubscribe = subscribeToCoValue(
       coValueClassFromCoValueClassOrSchema(ChatRoom),
-      chatRoom.id,
+      chatRoom.$jazz.id,
       {
         loadAs: meOnSecondPeer,
         resolve: {
@@ -138,7 +138,7 @@ describe("subscribeToCoValue", () => {
 
     expect(updateFn).toHaveBeenCalledTimes(1);
     expect(result).toMatchObject({
-      id: chatRoom.id,
+      $jazz: expect.objectContaining({ id: chatRoom.$jazz.id }),
       name: "General",
       messages: [],
     });
@@ -158,7 +158,7 @@ describe("subscribeToCoValue", () => {
 
     const unsubscribe = subscribeToCoValue(
       coValueClassFromCoValueClassOrSchema(ChatRoom),
-      chatRoom.id,
+      chatRoom.$jazz.id,
       {
         loadAs: meOnSecondPeer,
         resolve: {
@@ -181,7 +181,7 @@ describe("subscribeToCoValue", () => {
     expect(updateFn).toHaveBeenCalledTimes(1);
     expect(updateFn).toHaveBeenCalledWith(
       expect.objectContaining({
-        id: chatRoom.id,
+        $jazz: expect.objectContaining({ id: chatRoom.$jazz.id }),
       }),
       expect.any(Function),
     );
@@ -201,7 +201,7 @@ describe("subscribeToCoValue", () => {
 
     const unsubscribe = subscribeToCoValue(
       coValueClassFromCoValueClassOrSchema(ChatRoom),
-      chatRoom.id,
+      chatRoom.$jazz.id,
       {
         loadAs: meOnSecondPeer,
         resolve: {
@@ -261,7 +261,7 @@ describe("subscribeToCoValue", () => {
 
     const unsubscribe = subscribeToCoValue(
       coValueClassFromCoValueClassOrSchema(ChatRoom),
-      chatRoom.id,
+      chatRoom.$jazz.id,
       {
         loadAs: meOnSecondPeer,
         resolve: {
@@ -332,7 +332,7 @@ describe("subscribeToCoValue", () => {
 
     const unsubscribe = subscribeToCoValue(
       coValueClassFromCoValueClassOrSchema(ChatRoom),
-      chatRoom.id,
+      chatRoom.$jazz.id,
       {
         loadAs: meOnSecondPeer,
         resolve: {
@@ -396,7 +396,7 @@ describe("subscribeToCoValue", () => {
 
     const unsubscribe = subscribeToCoValue(
       coValueClassFromCoValueClassOrSchema(TestList),
-      list.id,
+      list.$jazz.id,
       {
         loadAs: account,
         resolve: {
@@ -457,7 +457,7 @@ describe("subscribeToCoValue", () => {
 
     const unsubscribe = subscribeToCoValue(
       coValueClassFromCoValueClassOrSchema(TestList),
-      list.id,
+      list.$jazz.id,
       {
         loadAs: reader,
         resolve: {
@@ -528,7 +528,7 @@ describe("subscribeToCoValue", () => {
 
     const unsubscribe = subscribeToCoValue(
       coValueClassFromCoValueClassOrSchema(TestList),
-      list.id,
+      list.$jazz.id,
       {
         loadAs: reader,
         resolve: {
@@ -603,7 +603,7 @@ describe("subscribeToCoValue", () => {
 
     const unsubscribe = subscribeToCoValue(
       coValueClassFromCoValueClassOrSchema(TestList),
-      list.id,
+      list.$jazz.id,
       {
         loadAs: reader,
         resolve: {
@@ -673,7 +673,7 @@ describe("subscribeToCoValue", () => {
 
     const unsubscribe = subscribeToCoValue(
       coValueClassFromCoValueClassOrSchema(TestList),
-      list.id,
+      list.$jazz.id,
       {
         loadAs: reader,
         resolve: {
@@ -725,7 +725,7 @@ describe("subscribeToCoValue", () => {
 
     const unsubscribe = subscribeToCoValue(
       coValueClassFromCoValueClassOrSchema(TestList),
-      list.id,
+      list.$jazz.id,
       {
         loadAs: creator,
         resolve: {
@@ -792,7 +792,7 @@ describe("subscribeToCoValue", () => {
 
     const unsubscribe = subscribeToCoValue(
       coValueClassFromCoValueClassOrSchema(TestList),
-      list.id,
+      list.$jazz.id,
       {
         loadAs: creator,
         resolve: {
@@ -881,7 +881,7 @@ describe("subscribeToCoValue", () => {
 
     const unsubscribe = subscribeToCoValue(
       coValueClassFromCoValueClassOrSchema(Person),
-      person.id,
+      person.$jazz.id,
       {
         loadAs: reader,
       },
@@ -894,11 +894,11 @@ describe("subscribeToCoValue", () => {
     expect(spy).toHaveBeenCalledTimes(1);
     expect(value?.name).toBe("creator");
 
-    const personOnWriter1 = await Person.load(person.id, {
+    const personOnWriter1 = await Person.load(person.$jazz.id, {
       loadAs: writer1,
     });
 
-    const personOnWriter2 = await Person.load(person.id, {
+    const personOnWriter2 = await Person.load(person.$jazz.id, {
       loadAs: writer2,
     });
 
@@ -968,7 +968,7 @@ describe("subscribeToCoValue", () => {
 
     const unsubscribe = subscribeToCoValue(
       coValueClassFromCoValueClassOrSchema(TestList),
-      list.id,
+      list.$jazz.id,
       {
         loadAs: reader,
         resolve: true,
@@ -1055,7 +1055,7 @@ describe("subscribeToCoValue", () => {
 
     const unsubscribe = subscribeToCoValue(
       coValueClassFromCoValueClassOrSchema(PersonList),
-      list.id,
+      list.$jazz.id,
       {
         loadAs: reader,
         resolve: {
@@ -1151,7 +1151,7 @@ describe("subscribeToCoValue", () => {
 
     const unsubscribe = subscribeToCoValue(
       coValueClassFromCoValueClassOrSchema(PersonList),
-      list.id,
+      list.$jazz.id,
       {
         loadAs: reader,
         resolve: {
@@ -1235,7 +1235,7 @@ describe("subscribeToCoValue", () => {
     // Test subscribing to the large coValue
     const unsubscribe = subscribeToCoValue(
       coValueClassFromCoValueClassOrSchema(LargeDataset),
-      largeMap.id,
+      largeMap.$jazz.id,
       {
         loadAs: alice,
         resolve: {

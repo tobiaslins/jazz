@@ -10,10 +10,10 @@ export function applyCoValueMigrations(instance: CoValue) {
     "migrate" in instance &&
     typeof instance.migrate === "function" &&
     instance._type !== "Account" &&
-    !migratedCoValues.has(instance.id)
+    !migratedCoValues.has(instance.$jazz.id)
   ) {
     // We flag this before the migration to avoid that internal loads trigger the migration again
-    migratedCoValues.add(instance.id);
+    migratedCoValues.add(instance.$jazz.id);
 
     const result = instance.migrate?.(instance);
     if (result && "then" in result) {

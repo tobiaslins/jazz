@@ -58,9 +58,11 @@ describe("Custom accounts and groups", async () => {
     const group = Group.create({ owner: me });
     group.addMember("everyone", "reader");
 
-    expect(group.members).toMatchObject([{ id: me.id, role: "admin" }]);
+    expect(group.members).toMatchObject([{ id: me.$jazz.id, role: "admin" }]);
 
-    const meAsMember = group.members.find((member) => member.id === me.id);
+    const meAsMember = group.members.find(
+      (member) => member.id === me.$jazz.id,
+    );
     assert(meAsMember?.account);
     expect((meAsMember?.account).profile?.name).toBe("Hermes Puggington");
   });
@@ -116,7 +118,9 @@ describe("Group inheritance", () => {
 
     const mapInChild = TestMap.create({ title: "In Child" }, { owner: group });
 
-    const mapAsReader = await TestMap.load(mapInChild.id, { loadAs: reader });
+    const mapAsReader = await TestMap.load(mapInChild.$jazz.id, {
+      loadAs: reader,
+    });
     expect(mapAsReader?.title).toBe("In Child");
 
     await parentGroup.removeMember(reader);
@@ -124,7 +128,7 @@ describe("Group inheritance", () => {
     mapInChild.title = "In Child (updated)";
 
     await waitFor(async () => {
-      const mapAsReaderAfterUpdate = await TestMap.load(mapInChild.id, {
+      const mapAsReaderAfterUpdate = await TestMap.load(mapInChild.$jazz.id, {
         loadAs: reader,
       });
       expect(mapAsReaderAfterUpdate).toBe(null);
@@ -155,7 +159,7 @@ describe("Group inheritance", () => {
       { owner: group },
     );
 
-    const mapAsReader = await TestMap.load(mapInGrandChild.id, {
+    const mapAsReader = await TestMap.load(mapInGrandChild.$jazz.id, {
       loadAs: reader,
     });
     expect(mapAsReader?.title).toBe("In Grand Child");
@@ -166,9 +170,12 @@ describe("Group inheritance", () => {
 
     mapInGrandChild.title = "In Grand Child (updated)";
 
-    const mapAsReaderAfterUpdate = await TestMap.load(mapInGrandChild.id, {
-      loadAs: reader,
-    });
+    const mapAsReaderAfterUpdate = await TestMap.load(
+      mapInGrandChild.$jazz.id,
+      {
+        loadAs: reader,
+      },
+    );
     expect(mapAsReaderAfterUpdate).toBe(null);
   });
 
@@ -189,11 +196,15 @@ describe("Group inheritance", () => {
 
     expect(parentGroups).toHaveLength(1);
     expect(parentGroups).toContainEqual(
-      expect.objectContaining({ id: parentGroup.id }),
+      expect.objectContaining({
+        $jazz: expect.objectContaining({ id: parentGroup.$jazz.id }),
+      }),
     );
 
     expect(parentGroups[0]?.getParentGroups()).toContainEqual(
-      expect.objectContaining({ id: grandParentGroup.id }),
+      expect.objectContaining({
+        $jazz: expect.objectContaining({ id: grandParentGroup.$jazz.id }),
+      }),
     );
   });
 
@@ -270,12 +281,12 @@ describe("Group inheritance", () => {
 
     expect(group.members).not.toContainEqual(
       expect.objectContaining({
-        id: account.id,
+        id: account.$jazz.id,
         role: "readerInvite",
       }),
     );
 
-    expect(group.getRoleOf(account.id)).toBe("readerInvite");
+    expect(group.getRoleOf(account.$jazz.id)).toBe("readerInvite");
   });
 
   test("adding a group member as writeOnly should fail", async () => {
@@ -299,22 +310,22 @@ describe("Group inheritance", () => {
     const parentGroup = Group.create();
     // `parentGroup` has `alice` as a writer
     parentGroup.addMember(alice, "writer");
-    expect(parentGroup.getRoleOf(alice.id)).toBe("writer");
+    expect(parentGroup.getRoleOf(alice.$jazz.id)).toBe("writer");
 
     const group = Group.create();
     // `group` has `bob` as a reader
     group.addMember(bob, "reader");
-    expect(group.getRoleOf(bob.id)).toBe("reader");
+    expect(group.getRoleOf(bob.$jazz.id)).toBe("reader");
 
     group.addMember(parentGroup);
     // `group` has `parentGroup`'s members (in this case, `alice` as a writer)
-    expect(group.getRoleOf(bob.id)).toBe("reader");
-    expect(group.getRoleOf(alice.id)).toBe("writer");
+    expect(group.getRoleOf(bob.$jazz.id)).toBe("reader");
+    expect(group.getRoleOf(alice.$jazz.id)).toBe("writer");
 
     // `group` no longer has `parentGroup`'s members
     await group.removeMember(parentGroup);
-    expect(group.getRoleOf(bob.id)).toBe("reader");
-    expect(group.getRoleOf(alice.id)).toBe(undefined);
+    expect(group.getRoleOf(bob.$jazz.id)).toBe("reader");
+    expect(group.getRoleOf(alice.$jazz.id)).toBe(undefined);
   });
 
   describe("when creating nested CoValues from a JSON object", () => {
@@ -348,9 +359,9 @@ describe("Group inheritance", () => {
       const me = co.account().getMe();
       const task = board.columns[0]![0]!;
 
-      const boardAsWriter = await Board.load(board.id, { loadAs: me });
+      const boardAsWriter = await Board.load(board.$jazz.id, { loadAs: me });
       expect(boardAsWriter?.title).toEqual("My board");
-      const taskAsWriter = await Task.load(task.id, { loadAs: me });
+      const taskAsWriter = await Task.load(task.$jazz.id, { loadAs: me });
       expect(taskAsWriter?.toString()).toEqual("Task 1.1");
     });
 
@@ -364,9 +375,11 @@ describe("Group inheritance", () => {
       const taskGroup = task.owner.castAs(Group);
       taskGroup.addMember(reader, "reader");
 
-      const taskAsReader = await Task.load(task.id, { loadAs: reader });
+      const taskAsReader = await Task.load(task.$jazz.id, { loadAs: reader });
       expect(taskAsReader?.toString()).toEqual("Task 1.1");
-      const boardAsReader = await Board.load(board.id, { loadAs: reader });
+      const boardAsReader = await Board.load(board.$jazz.id, {
+        loadAs: reader,
+      });
       expect(boardAsReader).toBeNull();
     });
   });
@@ -382,7 +395,7 @@ describe("Group.getRoleOf", () => {
     const admin = await createJazzTestAccount({});
     await admin.$jazz.waitForAllCoValuesSync();
     group.addMember(admin, "admin");
-    expect(group.getRoleOf(admin.id)).toBe("admin");
+    expect(group.getRoleOf(admin.$jazz.id)).toBe("admin");
     expect(group.getRoleOf("me")).toBe("admin");
   });
 
@@ -391,7 +404,7 @@ describe("Group.getRoleOf", () => {
     const writer = await createJazzTestAccount({});
     await writer.$jazz.waitForAllCoValuesSync();
     group.addMember(writer, "writer");
-    expect(group.getRoleOf(writer.id)).toBe("writer");
+    expect(group.getRoleOf(writer.$jazz.id)).toBe("writer");
   });
 
   test("returns correct role for reader", async () => {
@@ -399,7 +412,7 @@ describe("Group.getRoleOf", () => {
     const reader = await createJazzTestAccount({});
     await reader.$jazz.waitForAllCoValuesSync();
     group.addMember(reader, "reader");
-    expect(group.getRoleOf(reader.id)).toBe("reader");
+    expect(group.getRoleOf(reader.$jazz.id)).toBe("reader");
   });
 
   test("returns correct role for writeOnly", async () => {
@@ -407,7 +420,7 @@ describe("Group.getRoleOf", () => {
     const writeOnly = await createJazzTestAccount({});
     await writeOnly.$jazz.waitForAllCoValuesSync();
     group.addMember(writeOnly, "writeOnly");
-    expect(group.getRoleOf(writeOnly.id)).toBe("writeOnly");
+    expect(group.getRoleOf(writeOnly.$jazz.id)).toBe("writeOnly");
   });
 
   test("returns correct role for everyone", () => {
@@ -468,7 +481,7 @@ describe("Account permissions", () => {
     });
 
     // Account should be admin of itself
-    expect(account.getRoleOf(account.id)).toBe("admin");
+    expect(account.getRoleOf(account.$jazz.id)).toBe("admin");
 
     // The GlobalMe is not this account
     expect(account.getRoleOf("me")).toBe(undefined);
@@ -479,7 +492,7 @@ describe("Account permissions", () => {
       creationProps: { name: "Other Account" },
       crypto: Crypto,
     });
-    expect(account.getRoleOf(otherAccount.id)).toBeUndefined();
+    expect(account.getRoleOf(otherAccount.$jazz.id)).toBeUndefined();
 
     // Everyone should have no role
     expect(account.getRoleOf("everyone")).toBeUndefined();
@@ -492,7 +505,12 @@ describe("Account permissions", () => {
     });
 
     expect(account.members).toEqual([
-      { id: account.id, role: "admin", account: account, ref: expect.any(Ref) },
+      {
+        id: account.$jazz.id,
+        role: "admin",
+        account: account,
+        ref: expect.any(Ref),
+      },
     ]);
   });
 });
@@ -622,18 +640,22 @@ describe("Group.members", () => {
     await bob.$jazz.waitForAllCoValuesSync();
 
     childGroup.addMember(bob, "reader");
-    expect(childGroup.getRoleOf(bob.id)).toBe("reader");
+    expect(childGroup.getRoleOf(bob.$jazz.id)).toBe("reader");
 
     expect(childGroup.members).toEqual([
       expect.objectContaining({
         account: expect.objectContaining({
-          id: co.account().getMe().id,
+          $jazz: expect.objectContaining({
+            id: co.account().getMe().$jazz.id,
+          }),
         }),
         role: "admin",
       }),
       expect.objectContaining({
         account: expect.objectContaining({
-          id: bob.id,
+          $jazz: expect.objectContaining({
+            id: bob.$jazz.id,
+          }),
         }),
         role: "reader",
       }),
@@ -650,18 +672,22 @@ describe("Group.members", () => {
     parentGroup.addMember(bob, "writer");
     childGroup.addMember(parentGroup, "reader");
 
-    expect(childGroup.getRoleOf(bob.id)).toBe("reader");
+    expect(childGroup.getRoleOf(bob.$jazz.id)).toBe("reader");
 
     expect(childGroup.members).toEqual([
       expect.objectContaining({
         account: expect.objectContaining({
-          id: co.account().getMe().id,
+          $jazz: expect.objectContaining({
+            id: co.account().getMe().$jazz.id,
+          }),
         }),
         role: "admin",
       }),
       expect.objectContaining({
         account: expect.objectContaining({
-          id: bob.id,
+          $jazz: expect.objectContaining({
+            id: bob.$jazz.id,
+          }),
         }),
         role: "reader",
       }),
@@ -677,7 +703,9 @@ describe("Group.members", () => {
     expect(childGroup.members).toEqual([
       expect.objectContaining({
         account: expect.objectContaining({
-          id: co.account().getMe().id,
+          $jazz: expect.objectContaining({
+            id: co.account().getMe().$jazz.id,
+          }),
         }),
         role: "admin",
       }),
@@ -693,12 +721,14 @@ describe("Group.members", () => {
     childGroup.addMember(bob, "reader");
     await childGroup.removeMember(bob);
 
-    expect(childGroup.getRoleOf(bob.id)).toBeUndefined();
+    expect(childGroup.getRoleOf(bob.$jazz.id)).toBeUndefined();
 
     expect(childGroup.members).toEqual([
       expect.objectContaining({
         account: expect.objectContaining({
-          id: co.account().getMe().id,
+          $jazz: expect.objectContaining({
+            id: co.account().getMe().$jazz.id,
+          }),
         }),
         role: "admin",
       }),
@@ -724,12 +754,16 @@ describe("Group.getDirectMembers", () => {
     expect(childGroup.members).toEqual([
       expect.objectContaining({
         account: expect.objectContaining({
-          id: co.account().getMe().id,
+          $jazz: expect.objectContaining({
+            id: co.account().getMe().$jazz.id,
+          }),
         }),
       }),
       expect.objectContaining({
         account: expect.objectContaining({
-          id: bob.id,
+          $jazz: expect.objectContaining({
+            id: bob.$jazz.id,
+          }),
         }),
       }),
     ]);
@@ -738,7 +772,9 @@ describe("Group.getDirectMembers", () => {
     expect(childGroup.getDirectMembers()).toEqual([
       expect.objectContaining({
         account: expect.objectContaining({
-          id: co.account().getMe().id,
+          $jazz: expect.objectContaining({
+            id: co.account().getMe().$jazz.id,
+          }),
         }),
       }),
     ]);
@@ -747,7 +783,9 @@ describe("Group.getDirectMembers", () => {
     expect(childGroup.getDirectMembers()).not.toContainEqual(
       expect.objectContaining({
         account: expect.objectContaining({
-          id: bob.id,
+          $jazz: expect.objectContaining({
+            id: bob.$jazz.id,
+          }),
         }),
       }),
     );
@@ -756,12 +794,16 @@ describe("Group.getDirectMembers", () => {
     expect(parentGroup.getDirectMembers()).toEqual([
       expect.objectContaining({
         account: expect.objectContaining({
-          id: co.account().getMe().id,
+          $jazz: expect.objectContaining({
+            id: co.account().getMe().$jazz.id,
+          }),
         }),
       }),
       expect.objectContaining({
         account: expect.objectContaining({
-          id: bob.id,
+          $jazz: expect.objectContaining({
+            id: bob.$jazz.id,
+          }),
         }),
       }),
     ]);

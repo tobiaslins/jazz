@@ -267,7 +267,7 @@ describe("co.discriminatedUnion", () => {
     const Pet = co.discriminatedUnion("type", [Dog, Cat]);
 
     const dog = Dog.create({ type: "dog" });
-    const loadedPet = await Pet.load(dog.id);
+    const loadedPet = await Pet.load(dog.$jazz.id);
     expect(loadedPet?.type).toEqual("dog");
   });
 
@@ -295,7 +295,7 @@ describe("co.discriminatedUnion", () => {
     const updates: Loaded<typeof Pet>[] = [];
     const spy = vi.fn((pet) => updates.push(pet));
 
-    Pet.subscribe(dog.id, {}, (pet) => {
+    Pet.subscribe(dog.$jazz.id, {}, (pet) => {
       expect(pet.type).toEqual("dog");
       spy(pet);
     });

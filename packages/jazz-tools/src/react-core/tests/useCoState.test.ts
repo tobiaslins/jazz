@@ -40,7 +40,7 @@ describe("useCoState", () => {
       value: "123",
     });
 
-    const { result } = renderHook(() => useCoState(TestMap, map.id, {}), {
+    const { result } = renderHook(() => useCoState(TestMap, map.$jazz.id, {}), {
       account,
     });
 
@@ -80,7 +80,7 @@ describe("useCoState", () => {
       value: "123",
     });
 
-    const { result } = renderHook(() => useCoState(TestMap, map.id, {}), {
+    const { result } = renderHook(() => useCoState(TestMap, map.$jazz.id, {}), {
       account,
     });
 
@@ -116,7 +116,7 @@ describe("useCoState", () => {
 
     const { result } = renderHook(
       () =>
-        useCoState(TestMap, map.id, {
+        useCoState(TestMap, map.$jazz.id, {
           resolve: {
             nested: true,
           },
@@ -151,7 +151,7 @@ describe("useCoState", () => {
       }),
     });
 
-    const { result } = renderHook(() => useCoState(TestMap, map.id, {}), {
+    const { result } = renderHook(() => useCoState(TestMap, map.$jazz.id, {}), {
       account,
     });
 
@@ -176,7 +176,7 @@ describe("useCoState", () => {
       peer.gracefulShutdown();
     }
 
-    const { result } = renderHook(() => useCoState(TestMap, map.id), {
+    const { result } = renderHook(() => useCoState(TestMap, map.$jazz.id), {
       account,
     });
 
@@ -205,7 +205,7 @@ describe("useCoState", () => {
       isCurrentActiveAccount: true,
     });
 
-    const { result } = renderHook(() => useCoState(TestMap, map.id), {
+    const { result } = renderHook(() => useCoState(TestMap, map.$jazz.id), {
       account,
     });
 
@@ -237,7 +237,7 @@ describe("useCoState", () => {
       isCurrentActiveAccount: true,
     });
 
-    const { result } = renderHook(() => useCoState(TestMap, map.id), {
+    const { result } = renderHook(() => useCoState(TestMap, map.$jazz.id), {
       account,
     });
 
@@ -268,7 +268,7 @@ describe("useCoState", () => {
       isCurrentActiveAccount: true,
     });
 
-    const { result } = renderHook(() => useCoState(TestMap, map.id), {
+    const { result } = renderHook(() => useCoState(TestMap, map.$jazz.id), {
       account,
     });
 
@@ -311,7 +311,7 @@ describe("useCoState", () => {
 
     group.addMember(account, "reader");
 
-    const { result } = renderHook(() => useCoState(TestMap, map.id), {
+    const { result } = renderHook(() => useCoState(TestMap, map.$jazz.id), {
       account,
     });
 
@@ -371,7 +371,7 @@ describe("useCoState", () => {
 
     const { result } = renderHook(
       () =>
-        useCoState(TestMap, map.id, {
+        useCoState(TestMap, map.$jazz.id, {
           resolve: {
             nested: true,
           },
@@ -403,7 +403,7 @@ describe("useCoState", () => {
     });
 
     const { result } = renderHook(() =>
-      useCoState(TestMap, map.id as ID<CoValue>),
+      useCoState(TestMap, map.$jazz.id as ID<CoValue>),
     );
     expectTypeOf(result).toEqualTypeOf<{
       current: Loaded<typeof TestMap> | null | undefined;
@@ -422,7 +422,7 @@ describe("useCoState", () => {
     const { result, rerender } = renderHook(
       (props) => useCoState(TestMap, props.id),
       {
-        initialProps: { id: map.id } as { id: ID<CoValue> | undefined },
+        initialProps: { id: map.$jazz.id } as { id: ID<CoValue> | undefined },
       },
     );
 
@@ -457,7 +457,7 @@ describe("useCoState", () => {
     renderHook(
       () => {
         renderCount++;
-        useCoState(TestList, list.id, { resolve: { $each: true } });
+        useCoState(TestList, list.$jazz.id, { resolve: { $each: true } });
       },
       {
         account,
@@ -487,7 +487,7 @@ describe("useCoState", () => {
       },
     });
 
-    const janeOnJohn = await Account.load(jane.id, {
+    const janeOnJohn = await Account.load(jane.$jazz.id, {
       loadAs: john,
     });
 
@@ -504,7 +504,7 @@ describe("useCoState", () => {
     );
 
     const { result } = renderHook(
-      () => useCoState(Dog, dog.id)?.$jazz.owner.castAs(Group).members,
+      () => useCoState(Dog, dog.$jazz.id)?.$jazz.owner.castAs(Group).members,
       {
         account: john,
       },
@@ -542,7 +542,7 @@ describe("useCoState", () => {
     const renderings: boolean[] = [];
 
     renderHook(() => {
-      const data = useCoState(Thread, thread.id, {
+      const data = useCoState(Thread, thread.$jazz.id, {
         resolve: {
           messages: {
             $each: {

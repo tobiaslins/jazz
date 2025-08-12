@@ -33,7 +33,6 @@ import { RegisteredSchemas } from "./registeredSchemas.js";
 export type TextPos = OpID;
 
 export class CoPlainText extends String implements CoValue {
-  declare id: ID<this>;
   declare _type: "CoPlainText";
 
   declare $jazz: CoTextJazzApi<this>;
@@ -74,7 +73,6 @@ export class CoPlainText extends String implements CoValue {
       super(options.fromRaw.toString());
       const raw = options.fromRaw;
       Object.defineProperties(this, {
-        id: { value: raw.id, enumerable: false },
         _type: { value: "CoPlainText", enumerable: false },
         $jazz: {
           value: new CoTextJazzApi(this, raw),
@@ -88,7 +86,6 @@ export class CoPlainText extends String implements CoValue {
       super(options.text);
       const raw = options.owner.$jazz.raw.createPlainText(options.text);
       Object.defineProperties(this, {
-        id: { value: raw.id, enumerable: false },
         _type: { value: "CoPlainText", enumerable: false },
         $jazz: {
           value: new CoTextJazzApi(this, raw),
@@ -219,20 +216,6 @@ export class CoPlainText extends String implements CoValue {
     return loadCoValueWithoutMe(this, id, options);
   }
 
-  //   /**
-  //    * Effectful version of `CoMap.load()`.
-  //    *
-  //    * Needs to be run inside an `AccountCtx` context.
-  //    *
-  //    * @category Subscription & Loading
-  //    */
-  //   static loadEf<T extends CoPlainText>(
-  //     this: CoValueClass<T>,
-  //     id: ID<T>,
-  //   ): Effect.Effect<T, UnavailableError, AccountCtx> {
-  //     return loadCoValueEf(this, id, []);
-  //   }
-
   /**
    * Load and subscribe to a `CoPlainText` with a given ID, as a given account.
    *
@@ -308,5 +291,9 @@ export class CoTextJazzApi<T extends CoPlainText> extends CoValueJazzApi<T> {
     public raw: RawCoPlainText,
   ) {
     super(coText);
+  }
+
+  get id(): ID<T> {
+    return this.raw.id;
   }
 }

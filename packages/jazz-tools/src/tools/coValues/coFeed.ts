@@ -106,10 +106,6 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
     return cls;
   }
 
-  /**
-   * The ID of this `CoFeed`
-   * @category Content */
-  declare id: ID<this>;
   /** @category Type Helpers */
   declare _type: "CoStream";
   static {
@@ -133,7 +129,7 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
    */
   get byMe(): CoFeedEntry<Item> | undefined {
     if (this.$jazz.loadedAs._type === "Account") {
-      return this.perAccount[this.$jazz.loadedAs.id];
+      return this.perAccount[this.$jazz.loadedAs.$jazz.id];
     } else {
       return undefined;
     }
@@ -204,10 +200,6 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
 
     if (options && "fromRaw" in options) {
       Object.defineProperties(this, {
-        id: {
-          value: options.fromRaw.id,
-          enumerable: false,
-        },
         $jazz: {
           value: new CoFeedJazzApi(this, options.fromRaw),
           enumerable: false,
@@ -232,10 +224,6 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
     const raw = owner.$jazz.raw.createStream();
 
     Object.defineProperties(instance, {
-      id: {
-        value: raw.id,
-        enumerable: false,
-      },
       $jazz: {
         value: new CoFeedJazzApi(instance, raw),
         enumerable: false,
@@ -286,14 +274,14 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
     } else if ("encoded" in itemDescriptor) {
       this.$jazz.raw.push(itemDescriptor.encoded.encode(item));
     } else if (isRefEncoded(itemDescriptor)) {
-      let refId = (item as unknown as CoValue).id;
+      let refId = (item as unknown as CoValue).$jazz?.id;
       if (!refId) {
         const coValue = instantiateRefEncodedWithInit(
           itemDescriptor,
           item,
           this.$jazz.owner,
         );
-        refId = coValue.id;
+        refId = coValue.$jazz.id;
       }
       this.$jazz.raw.push(refId);
     }
@@ -315,10 +303,10 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
         ? (v: unknown) => v
         : "encoded" in itemDescriptor
           ? itemDescriptor.encoded.encode
-          : (v: unknown) => v && (v as CoValue).id;
+          : (v: unknown) => v && (v as CoValue).$jazz.id;
 
     return {
-      id: this.id,
+      id: this.$jazz.id,
       _type: this._type,
       ...Object.fromEntries(
         Object.entries(this).map(([account, entry]) => [
@@ -446,6 +434,14 @@ export class CoFeedJazzApi<F extends CoFeed> extends CoValueJazzApi<F> {
     public raw: RawCoStream,
   ) {
     super(coFeed);
+  }
+
+  /**
+   * The ID of this `CoFeed`
+   * @category Content
+   */
+  get id(): ID<F> {
+    return this.raw.id;
   }
 }
 
@@ -668,11 +664,6 @@ export { FileStream as BinaryCoStream };
 export class FileStream extends CoValueBase implements CoValue {
   declare $jazz: FileStreamJazzApi<this>;
 
-  /**
-   * The ID of this `FileStream`
-   * @category Content
-   */
-  declare id: ID<this>;
   /** @category Type Helpers */
   declare _type: "BinaryCoStream";
 
@@ -697,10 +688,6 @@ export class FileStream extends CoValueBase implements CoValue {
     }
 
     Object.defineProperties(this, {
-      id: {
-        value: raw.id,
-        enumerable: false,
-      },
       _type: { value: "BinaryCoStream", enumerable: false },
       $jazz: {
         value: new FileStreamJazzApi(this, raw),
@@ -945,7 +932,7 @@ export class FileStream extends CoValueBase implements CoValue {
     finished?: boolean;
   } {
     return {
-      id: this.id,
+      id: this.$jazz.id,
       _type: this._type,
       ...this.getChunks(),
     };
@@ -1044,5 +1031,13 @@ export class FileStreamJazzApi<F extends FileStream> extends CoValueJazzApi<F> {
     public raw: RawBinaryCoStream,
   ) {
     super(fileStream);
+  }
+
+  /**
+   * The ID of this `FileStream`
+   * @category Content
+   */
+  get id(): ID<F> {
+    return this.raw.id;
   }
 }

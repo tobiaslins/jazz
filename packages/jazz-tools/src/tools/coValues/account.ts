@@ -67,7 +67,6 @@ type AccountMembers<A extends Account> = [
 
 /** @category Identity & Permissions */
 export class Account extends CoValueBase implements CoValue {
-  declare id: ID<this>;
   declare _type: "Account";
 
   /**
@@ -103,10 +102,6 @@ export class Account extends CoValueBase implements CoValue {
     }
 
     Object.defineProperties(this, {
-      id: {
-        value: options.fromRaw.id,
-        enumerable: false,
-      },
       _type: { value: "Account", enumerable: false },
       $jazz: {
         value: new AccountJazzApi(this, options.fromRaw),
@@ -129,7 +124,7 @@ export class Account extends CoValueBase implements CoValue {
       return this.$jazz.isMe ? "admin" : undefined;
     }
 
-    if (member === this.id) {
+    if (member === this.$jazz.id) {
       return "admin";
     }
 
@@ -142,7 +137,7 @@ export class Account extends CoValueBase implements CoValue {
 
   get members(): AccountMembers<this> {
     const ref = new Ref<typeof this>(
-      this.id,
+      this.$jazz.id,
       this.$jazz.loadedAs,
       {
         ref: () => this.constructor as AccountClass<typeof this>,
@@ -151,11 +146,11 @@ export class Account extends CoValueBase implements CoValue {
       this,
     );
 
-    return [{ id: this.id, role: "admin", ref, account: this }];
+    return [{ id: this.$jazz.id, role: "admin", ref, account: this }];
   }
 
   canRead(value: CoValue) {
-    const role = value.$jazz.owner.getRoleOf(this.id);
+    const role = value.$jazz.owner.getRoleOf(this.$jazz.id);
 
     return (
       role === "admin" ||
@@ -166,13 +161,13 @@ export class Account extends CoValueBase implements CoValue {
   }
 
   canWrite(value: CoValue) {
-    const role = value.$jazz.owner.getRoleOf(this.id);
+    const role = value.$jazz.owner.getRoleOf(this.$jazz.id);
 
     return role === "admin" || role === "writer" || role === "writeOnly";
   }
 
   canAdmin(value: CoValue) {
-    return value.$jazz.owner.getRoleOf(this.id) === "admin";
+    return value.$jazz.owner.getRoleOf(this.$jazz.id) === "admin";
   }
 
   /** @private */
@@ -242,7 +237,7 @@ export class Account extends CoValueBase implements CoValue {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   toJSON(): object | any[] {
     return {
-      id: this.id,
+      id: this.$jazz.id,
       _type: this._type,
     };
   }
@@ -263,7 +258,7 @@ export class Account extends CoValueBase implements CoValue {
     } else if (this.profile && creationProps) {
       if (this.profile.$jazz.owner._type !== "Group") {
         throw new Error("Profile must be owned by a Group", {
-          cause: `The profile of the account "${this.id}" was created with an Account as owner, which is not allowed.`,
+          cause: `The profile of the account "${this.$jazz.id}" was created with an Account as owner, which is not allowed.`,
         });
       }
     }
@@ -337,6 +332,14 @@ class AccountJazzApi<A extends Account> extends CoValueJazzApi<A> {
     if (this.isLocalNodeOwner) {
       this.sessionID = this.localNode.currentSessionID;
     }
+  }
+
+  /**
+   * The ID of this `Account`
+   * @category Content
+   */
+  get id(): ID<A> {
+    return this.raw.id;
   }
 
   /**
@@ -454,7 +457,7 @@ class AccountJazzApi<A extends Account> extends CoValueJazzApi<A> {
    * Whether this account is the currently active account.
    */
   get isMe() {
-    return activeAccountContext.get().id === this.account.id;
+    return activeAccountContext.get().$jazz.id === this.account.$jazz.id;
   }
 
   /**
@@ -538,7 +541,7 @@ export const AccountAndGroupProxyHandler: ProxyHandler<Account | Group> = {
       if (value) {
         target.$jazz.raw.set(
           "profile",
-          value.id as unknown as CoID<RawCoMap>,
+          value.$jazz.id as unknown as CoID<RawCoMap>,
           "trusting",
         );
       }
@@ -548,7 +551,7 @@ export const AccountAndGroupProxyHandler: ProxyHandler<Account | Group> = {
       if (value) {
         target.$jazz.raw.set(
           "root",
-          value.id as unknown as CoID<RawCoMap>,
+          value.$jazz.id as unknown as CoID<RawCoMap>,
           "trusting",
         );
       }

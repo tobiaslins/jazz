@@ -10,7 +10,7 @@ export function getSubscriptionScope<D extends CoValue>(value: D) {
 
   const node = value.$jazz.raw.core.node;
   const resolve = true;
-  const id = value.id;
+  const id = value.$jazz.id;
 
   const newSubscriptionScope = new SubscriptionScope(node, resolve, id, {
     ref: value.constructor as CoValueClass<D>,
