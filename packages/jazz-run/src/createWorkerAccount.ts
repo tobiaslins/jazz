@@ -28,10 +28,10 @@ export const createWorkerAccount = async ({
     throw new Error("account is not a controlled account");
   }
 
-  await account.waitForAllCoValuesSync({ timeout: 4_000 });
+  await account.$jazz.waitForAllCoValuesSync({ timeout: 4_000 });
 
   return {
     accountID: account.id,
-    agentSecret: account._raw.core.node.getCurrentAgent().agentSecret,
+    agentSecret: account.$jazz.localNode.getCurrentAgent().agentSecret,
   };
 };

@@ -2207,7 +2207,7 @@ describe("createdAt & lastUpdatedAt", () => {
   test("empty map created time", () => {
     const emptyMap = co.map({}).create({});
 
-    expect(emptyMap._lastUpdatedAt).toEqual(emptyMap._createdAt);
+    expect(emptyMap.$jazz.lastUpdatedAt).toEqual(emptyMap.$jazz.createdAt);
   });
 
   test("created time and last updated time", async () => {
@@ -2217,14 +2217,14 @@ describe("createdAt & lastUpdatedAt", () => {
 
     const person = Person.create({ name: "John" });
 
-    const createdAt = person._createdAt;
-    expect(person._lastUpdatedAt).toEqual(createdAt);
+    const createdAt = person.$jazz.createdAt;
+    expect(person.$jazz.lastUpdatedAt).toEqual(createdAt);
 
     await new Promise((r) => setTimeout(r, 10));
     person.name = "Jane";
 
-    expect(person._createdAt).toEqual(createdAt);
-    expect(person._lastUpdatedAt).not.toEqual(createdAt);
+    expect(person.$jazz.createdAt).toEqual(createdAt);
+    expect(person.$jazz.lastUpdatedAt).not.toEqual(createdAt);
   });
 });
 

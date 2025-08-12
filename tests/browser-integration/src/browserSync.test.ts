@@ -48,7 +48,7 @@ describe("Browser sync", () => {
     const map = TestMap.create({ value: "test data" }, group);
     group.addMember("everyone", "reader");
 
-    await map.waitForSync();
+    await map.$jazz.waitForSync();
     contextManager.done();
 
     // Clearing the credentials storage so the next auth will be a new account
@@ -85,7 +85,7 @@ describe("Browser sync", () => {
     const map = TestMap.create({ value: "test data" }, group);
     group.addMember("everyone", "reader");
 
-    await map.waitForSync();
+    await map.$jazz.waitForSync();
     contextManager.done();
 
     const { account: account2 } = await createAccountContext({
@@ -115,7 +115,7 @@ describe("Browser sync", () => {
     const map = TestMap.create({ value: "test data" }, group);
     group.addMember("everyone", "reader");
 
-    await map.waitForSync();
+    await map.$jazz.waitForSync();
 
     // Clearing the credentials storage so the next auth will be a new account
     await contextManager.getAuthSecretStorage().clear();
@@ -153,7 +153,7 @@ describe("Browser sync", () => {
     const map = TestMap.create({ value: "test data" }, group);
     group.addMember("everyone", "reader");
 
-    await map.waitForSync();
+    await map.$jazz.waitForSync();
 
     // Clearing the credentials storage so the next auth will be a new account
     await contextManager.getAuthSecretStorage().clear();
@@ -193,7 +193,7 @@ describe("Browser sync", () => {
     const map = TestMap.create({ value: "test data" }, group);
     group.addMember("everyone", "reader");
 
-    await map.waitForSync();
+    await map.$jazz.waitForSync();
 
     await syncServer.setOnline(true);
 

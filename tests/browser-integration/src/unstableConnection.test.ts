@@ -96,7 +96,7 @@ describe("Browser sync on unstable connection", () => {
 
     await syncServer.setOnline(true);
 
-    await map.waitForSync();
+    await map.$jazz.waitForSync();
 
     contextManager.done();
 
