@@ -117,12 +117,7 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
   /** @internal */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static _schema: any;
-  /** @internal */
-  get _schema(): {
-    [ItemsSym]: SchemaFor<Item> | any;
-  } {
-    return (this.constructor as typeof CoFeed)._schema;
-  }
+
   /**
    * The current account's view of this `CoFeed`
    * @category Content
@@ -244,7 +239,7 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
     [key: string]: unknown;
     in: { [key: string]: unknown };
   } {
-    const itemDescriptor = this._schema[ItemsSym] as Schema;
+    const itemDescriptor = this.$jazz.schema[ItemsSym] as Schema;
     const mapper =
       itemDescriptor === "json"
         ? (v: unknown) => v
@@ -280,7 +275,7 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
   static schema<V extends CoFeed>(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this: { new (...args: any): V } & typeof CoFeed,
-    def: { [ItemsSym]: V["_schema"][ItemsSym] },
+    def: { [ItemsSym]: V["$jazz"]["schema"][ItemsSym] },
   ) {
     this._schema ||= {};
     Object.assign(this._schema, def);
@@ -372,7 +367,7 @@ export class CoFeedJazzApi<F extends CoFeed> extends CoValueJazzApi<F> {
   }
 
   private pushItem(item: CoFeedItem<F>) {
-    const itemDescriptor = this.coFeed._schema[ItemsSym] as Schema;
+    const itemDescriptor = this.schema[ItemsSym] as Schema;
 
     if (itemDescriptor === "json") {
       this.raw.push(item as JsonValue);
@@ -442,7 +437,14 @@ export class CoFeedJazzApi<F extends CoFeed> extends CoValueJazzApi<F> {
    * @internal
    */
   getItemsDescriptor(): Schema | undefined {
-    return this.coFeed._schema[ItemsSym];
+    return this.schema[ItemsSym];
+  }
+
+  /** @internal */
+  get schema(): {
+    [ItemsSym]: SchemaFor<CoFeedItem<F>> | any;
+  } {
+    return (this.coFeed.constructor as typeof CoFeed)._schema;
   }
 }
 
@@ -528,7 +530,7 @@ export const CoStreamPerAccountProxyHandler = (
         rawEntry,
         innerTarget.$jazz.loadedAs,
         key as unknown as ID<Account>,
-        innerTarget._schema[ItemsSym],
+        innerTarget.$jazz.schema[ItemsSym],
       );
 
       Object.defineProperty(entry, "all", {
@@ -545,7 +547,7 @@ export const CoStreamPerAccountProxyHandler = (
                 rawEntry.value,
                 innerTarget.$jazz.loadedAs,
                 key as unknown as ID<Account>,
-                innerTarget._schema[ItemsSym],
+                innerTarget.$jazz.schema[ItemsSym],
               );
             }
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -597,7 +599,7 @@ const CoStreamPerSessionProxyHandler = (
         cojsonInternals.isAccountID(by)
           ? (by as unknown as ID<Account>)
           : undefined,
-        innerTarget._schema[ItemsSym],
+        innerTarget.$jazz.schema[ItemsSym],
       );
 
       Object.defineProperty(entry, "all", {
@@ -614,7 +616,7 @@ const CoStreamPerSessionProxyHandler = (
                 cojsonInternals.isAccountID(by)
                   ? (by as unknown as ID<Account>)
                   : undefined,
-                innerTarget._schema[ItemsSym],
+                innerTarget.$jazz.schema[ItemsSym],
               );
             }
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
