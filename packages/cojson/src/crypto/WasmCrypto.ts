@@ -1,4 +1,4 @@
-import { SessionLog } from "cojson-core-wasm";
+import { SessionLog, initialize as initializeCoreWasm } from "cojson-core-wasm";
 import {
   Blake3Hasher,
   blake3_empty_state,
@@ -53,6 +53,7 @@ export class WasmCrypto extends CryptoProvider<Blake3State> {
 
   static async create(): Promise<WasmCrypto | PureJSCrypto> {
     try {
+      await initializeCoreWasm();
       await initialize();
     } catch (e) {
       logger.warn(

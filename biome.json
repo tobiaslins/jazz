@@ -9,6 +9,7 @@
     "ignoreUnknown": false,
     "ignore": [
       "jazz-tools.json",
+      "crates/cojson-core-wasm/**",
       "**/ios/**",
       "**/android/**",
       "tests/jazz-svelte/src/**",
