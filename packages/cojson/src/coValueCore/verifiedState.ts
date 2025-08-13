@@ -1,5 +1,4 @@
-import { SessionLog as WasmSessionLog } from "cojson-core-wasm";
-import { Result, err, ok } from "neverthrow";
+import { Result } from "neverthrow";
 import { AnyRawCoValue } from "../coValue.js";
 import { ControlledAccountOrAgent } from "../coValues/account.js";
 import { MAX_RECOMMENDED_TX_SIZE } from "../config.js";
@@ -9,7 +8,6 @@ import {
   Hash,
   KeyID,
   KeySecret,
-  SessionLogImpl,
   Signature,
   SignerID,
   StreamingHash,
@@ -20,7 +18,7 @@ import { JsonObject, JsonValue } from "../jsonValue.js";
 import { PermissionsDef as RulesetDef } from "../permissions.js";
 import { getPriorityFromHeader } from "../priority.js";
 import { CoValueKnownState, NewContentMessage } from "../sync.js";
-import { InvalidHashError, InvalidSignatureError } from "./coValueCore.js";
+import { SessionLog, SessionMap } from "./SessionMap.js";
 import { TryAddTransactionsError } from "./coValueCore.js";
 
 export type CoValueHeader = {
@@ -49,23 +47,11 @@ export type TrustingTransaction = {
 
 export type Transaction = PrivateTransaction | TrustingTransaction;
 
-type SessionLog = {
-  signerID: SignerID;
-  impl: SessionLogImpl;
-  transactions: Transaction[];
-  lastSignature: Signature | undefined;
-  // lastHash: Hash | undefined;
-  signatureAfter: { [txIdx: number]: Signature | undefined };
-  txSizeSinceLastInbetweenSignature: number;
-};
-
-export type ValidatedSessions = Map<SessionID, SessionLog>;
-
 export class VerifiedState {
   readonly id: RawCoID;
   readonly crypto: CryptoProvider;
   readonly header: CoValueHeader;
-  readonly sessions: ValidatedSessions;
+  readonly sessions: SessionMap;
   private _cachedKnownState?: CoValueKnownState;
   private _cachedNewContentSinceEmpty: NewContentMessage[] | undefined;
   private streamingKnownState?: CoValueKnownState["sessions"];
@@ -74,35 +60,24 @@ export class VerifiedState {
     id: RawCoID,
     crypto: CryptoProvider,
     header: CoValueHeader,
-    sessions: ValidatedSessions,
+    sessions?: SessionMap,
     streamingKnownState?: CoValueKnownState["sessions"],
   ) {
     this.id = id;
     this.crypto = crypto;
     this.header = header;
-    this.sessions = sessions;
+    this.sessions = sessions ?? new SessionMap(id, crypto);
     this.streamingKnownState = streamingKnownState
       ? { ...streamingKnownState }
       : undefined;
   }
 
   clone(): VerifiedState {
-    // do a deep clone, including the sessions
-    const clonedSessions = new Map();
-    for (let [sessionID, sessionLog] of this.sessions) {
-      clonedSessions.set(sessionID, {
-        impl: sessionLog.impl.clone(),
-        transactions: sessionLog.transactions.slice(),
-        lastSignature: sessionLog.lastSignature,
-        // lastHash: sessionLog.lastHash,
-        signatureAfter: { ...sessionLog.signatureAfter },
-      });
-    }
     return new VerifiedState(
       this.id,
       this.crypto,
       this.header,
-      clonedSessions,
+      this.sessions.clone(),
       this.streamingKnownState,
     );
   }
@@ -116,44 +91,20 @@ export class VerifiedState {
     skipVerify: boolean = false,
     givenNewStreamingHash?: StreamingHash,
   ): Result<true, TryAddTransactionsError> {
-    let sessionLog = this.sessions.get(sessionID);
-    if (!sessionLog) {
-      sessionLog = {
-        signerID,
-        impl: this.crypto.createSessionLog(this.id, sessionID, signerID),
-        transactions: [],
-        lastSignature: undefined,
-        // lastHash: undefined,
-        signatureAfter: {},
-        txSizeSinceLastInbetweenSignature: 0,
-      };
-      this.sessions.set(sessionID, sessionLog);
+    const result = this.sessions.addTransaction(
+      sessionID,
+      signerID,
+      newTransactions,
+      newSignature,
+      skipVerify,
+    );
+
+    if (result.isOk()) {
+      this._cachedNewContentSinceEmpty = undefined;
+      this._cachedKnownState = undefined;
     }
 
-    try {
-      const newHash = sessionLog.impl.tryAdd(
-        newTransactions.map((tx) => stableStringify(tx)),
-        newSignature,
-        skipVerify,
-      );
-      this.addTransactionsToJsLog(
-        sessionLog,
-        newTransactions,
-        newSignature,
-        newHash as Hash,
-      );
-
-      return ok(true as const);
-    } catch (e) {
-      return err({
-        type: "InvalidSignature",
-        id: this.id,
-        sessionID,
-        newSignature,
-        signerID,
-        error: e as Error,
-      } satisfies TryAddTransactionsError);
-    }
+    return result;
   }
 
   makeNewTransaction(
@@ -164,107 +115,24 @@ export class VerifiedState {
       | { type: "private"; keyID: KeyID; keySecret: KeySecret }
       | { type: "trusting" },
   ): { signature: Signature; transaction: Transaction } {
-    let sessionLog = this.sessions.get(sessionID);
-    if (!sessionLog) {
-      sessionLog = {
-        signerID: signerAgent.currentSignerID(),
-        impl: this.crypto.createSessionLog(
-          this.id,
-          sessionID,
-          signerAgent.currentSignerID(),
-        ),
-        transactions: [],
-        lastSignature: undefined,
-        // lastHash: undefined,
-        signatureAfter: {},
-        txSizeSinceLastInbetweenSignature: 0,
-      };
-      this.sessions.set(sessionID, sessionLog);
-    }
-
-    const madeAt = Date.now();
-
-    let signatureAndTxJson: string;
-
-    if (privacy.type === "private") {
-      signatureAndTxJson = sessionLog.impl.addNewPrivateTransaction(
-        stableStringify(changes),
-        signerAgent.currentSignerSecret(),
-        privacy.keySecret,
-        privacy.keyID,
-        madeAt,
-      ) as Signature;
-    } else {
-      signatureAndTxJson = sessionLog.impl.addNewTrustingTransaction(
-        stableStringify(changes),
-        signerAgent.currentSignerSecret(),
-        madeAt,
-      ) as Signature;
-    }
-
-    const { signature, transaction, hash } = JSON.parse(signatureAndTxJson);
-
-    this.addTransactionsToJsLog(sessionLog, [transaction], signature, hash);
-
-    return { signature, transaction };
-  }
-
-  private addTransactionsToJsLog(
-    sessionLog: SessionLog,
-    newTransactions: Transaction[],
-    signature: Signature,
-    hash: Hash,
-  ) {
-    sessionLog.transactions.push(...newTransactions);
-    sessionLog.lastSignature = signature;
-
-    sessionLog.txSizeSinceLastInbetweenSignature += newTransactions.reduce(
-      (sum, tx) =>
-        sum +
-        (tx.privacy === "private"
-          ? tx.encryptedChanges.length
-          : tx.changes.length),
-      0,
+    const result = this.sessions.makeNewTransaction(
+      sessionID,
+      signerAgent,
+      changes,
+      privacy,
     );
 
-    if (
-      sessionLog.txSizeSinceLastInbetweenSignature > MAX_RECOMMENDED_TX_SIZE
-    ) {
-      sessionLog.signatureAfter[sessionLog.transactions.length - 1] = signature;
-      sessionLog.txSizeSinceLastInbetweenSignature = 0;
-    }
-
-    // sessionLog.lastHash = hash;
     this._cachedNewContentSinceEmpty = undefined;
     this._cachedKnownState = undefined;
+
+    return result;
   }
 
   testExpectedHashAfter(
     sessionID: SessionID,
     transactions: Transaction[],
   ): { expectedNewHash: Hash } {
-    let sessionLog = this.sessions.get(sessionID);
-    if (!sessionLog) {
-      // TODO: this is ugly
-      const ephemeralSigner = this.crypto.newRandomSigner();
-      const ephemeralSignerID = this.crypto.getSignerID(ephemeralSigner);
-
-      const ephemeralSessionLog = new WasmSessionLog(
-        this.id,
-        sessionID,
-        ephemeralSignerID,
-      );
-      const result = ephemeralSessionLog.testExpectedHashAfter(
-        transactions.map((tx) => stableStringify(tx)),
-      );
-      ephemeralSessionLog.free();
-      return { expectedNewHash: result as Hash };
-    }
-    return {
-      expectedNewHash: sessionLog.impl.testExpectedHashAfter(
-        transactions.map((tx) => stableStringify(tx)),
-      ) as Hash,
-    };
+    return this.sessions.testExpectedHashAfter(sessionID, transactions);
   }
 
   newContentSince(
@@ -444,25 +312,10 @@ export class VerifiedState {
     if (this._cachedKnownState) {
       return this._cachedKnownState;
     } else {
-      const knownState = this.knownStateUncached();
+      const knownState = this.sessions.knownState();
       this._cachedKnownState = knownState;
       return knownState;
     }
-  }
-
-  /** @internal */
-  knownStateUncached(): CoValueKnownState {
-    const sessions: CoValueKnownState["sessions"] = {};
-
-    for (const [sessionID, sessionLog] of this.sessions.entries()) {
-      sessions[sessionID] = sessionLog.transactions.length;
-    }
-
-    return {
-      id: this.id,
-      header: true,
-      sessions,
-    };
   }
 }
 

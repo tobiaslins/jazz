@@ -1,15 +1,13 @@
 import { UpDownCounter, ValueType, metrics } from "@opentelemetry/api";
-import { SessionLog } from "cojson-core-wasm";
 import { Result, err } from "neverthrow";
 import { PeerState } from "../PeerState.js";
 import { RawCoValue } from "../coValue.js";
-import { ControlledAccountOrAgent, RawAccountID } from "../coValues/account.js";
+import { ControlledAccountOrAgent } from "../coValues/account.js";
 import { RawGroup } from "../coValues/group.js";
-import { CO_VALUE_LOADING_CONFIG, MAX_RECOMMENDED_TX_SIZE } from "../config.js";
+import { CO_VALUE_LOADING_CONFIG } from "../config.js";
 import { coreToCoValue } from "../coreToCoValue.js";
 import {
   CryptoProvider,
-  Encrypted,
   Hash,
   KeyID,
   KeySecret,
@@ -18,14 +16,13 @@ import {
   StreamingHash,
 } from "../crypto/crypto.js";
 import {
-  AgentID,
   RawCoID,
   SessionID,
   TransactionID,
   getParentGroupId,
   isParentGroupReference,
 } from "../ids.js";
-import { parseJSON, stableStringify } from "../jsonStringify.js";
+import { parseJSON } from "../jsonStringify.js";
 import { JsonValue } from "../jsonValue.js";
 import { LocalNode, ResolveAccountAgentError } from "../localNode.js";
 import { logger } from "../logger.js";
@@ -38,6 +35,7 @@ import { CoValueKnownState, PeerID, emptyKnownState } from "../sync.js";
 import { accountOrAgentIDfromSessionID } from "../typeUtils/accountOrAgentIDfromSessionID.js";
 import { expectGroup } from "../typeUtils/expectGroup.js";
 import { isAccountID } from "../typeUtils/isAccountID.js";
+import { SessionMap } from "./SessionMap.js";
 import { getDependedOnCoValuesFromRawData } from "./utils.js";
 import { CoValueHeader, Transaction, VerifiedState } from "./verifiedState.js";
 
@@ -115,12 +113,7 @@ export class CoValueCore {
     this.crypto = node.crypto;
     if ("header" in init) {
       this.id = idforHeader(init.header, node.crypto);
-      this._verified = new VerifiedState(
-        this.id,
-        node.crypto,
-        init.header,
-        new Map(),
-      );
+      this._verified = new VerifiedState(this.id, node.crypto, init.header);
     } else {
       this.id = init.id;
       this._verified = null;
@@ -296,7 +289,7 @@ export class CoValueCore {
       this.id,
       this.node.crypto,
       header,
-      new Map(),
+      new SessionMap(this.id, this.node.crypto),
       streamingKnownState,
     );
 

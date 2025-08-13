@@ -339,7 +339,7 @@ export class LocalNode {
 
     const coValue = this.putCoValue(
       id,
-      new VerifiedState(id, this.crypto, header, new Map()),
+      new VerifiedState(id, this.crypto, header),
     );
 
     void this.syncManager.requestCoValueSync(coValue);
