@@ -46,7 +46,7 @@ export type RefsToResolve<
                 }
               | boolean
           : // Basically V extends CoMap | Group | Account - but if we used that we'd introduce circularity into the definition of CoMap itself
-            V extends { _type: "CoMap" | "Group" | "Account" }
+            V extends { $type: "CoMap" | "Group" | "Account" }
             ?
                 | ({
                     [Key in CoKeys<V> as NonNullable<V[Key]> extends CoValue
@@ -69,7 +69,7 @@ export type RefsToResolve<
                     : never)
                 | boolean
             : V extends {
-                  _type: "CoStream";
+                  $type: "CoStream";
                   byMe: CoFeedEntry<infer Item> | undefined;
                 }
               ?
@@ -146,7 +146,7 @@ export type DeeplyLoaded<
           : never
         : V
       : // Basically V extends CoMap | Group | Account - but if we used that we'd introduce circularity into the definition of CoMap itself
-        [V] extends [{ _type: "CoMap" | "Group" | "Account" }]
+        [V] extends [{ $type: "CoMap" | "Group" | "Account" }]
         ? // If Depth = {} return V in any case
           keyof Depth extends never
           ? V
@@ -174,7 +174,7 @@ export type DeeplyLoaded<
               CoMapLikeLoaded<V, Depth, DepthLimit, CurrentDepth>
         : [V] extends [
               {
-                _type: "CoStream";
+                $type: "CoStream";
                 byMe: CoFeedEntry<infer Item> | undefined;
               },
             ]
@@ -188,13 +188,13 @@ export type DeeplyLoaded<
             } & { [key: ID<Account>]: { value: NotNull<Item> } } & V // same reason as in CoList
           : [V] extends [
                 {
-                  _type: "BinaryCoStream";
+                  $type: "BinaryCoStream";
                 },
               ]
             ? V
             : [V] extends [
                   {
-                    _type: "CoPlainText";
+                    $type: "CoPlainText";
                   },
                 ]
               ? V

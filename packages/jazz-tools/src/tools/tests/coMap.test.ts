@@ -271,7 +271,7 @@ describe("CoMap", async () => {
       person.$jazz.raw.set("extra", "extra");
 
       expect(person.toJSON()).toEqual({
-        _type: "CoMap",
+        $type: "CoMap",
         id: person.$jazz.id,
         name: "John",
         age: 20,
@@ -294,12 +294,12 @@ describe("CoMap", async () => {
       });
 
       expect(person.toJSON()).toEqual({
-        _type: "CoMap",
+        $type: "CoMap",
         id: person.$jazz.id,
         name: "John",
         age: 20,
         friend: {
-          _type: "CoMap",
+          $type: "CoMap",
           id: person.friend?.$jazz.id,
           name: "Jane",
           age: 21,
@@ -324,7 +324,7 @@ describe("CoMap", async () => {
       person.friend = person;
 
       expect(person.toJSON()).toEqual({
-        _type: "CoMap",
+        $type: "CoMap",
         id: person.$jazz.id,
         name: "John",
         age: 20,
@@ -353,7 +353,7 @@ describe("CoMap", async () => {
         name: "John",
         age: 20,
         birthday: birthday.toISOString(),
-        _type: "CoMap",
+        $type: "CoMap",
         id: john.$jazz.id,
       });
     });
@@ -386,7 +386,7 @@ describe("CoMap", async () => {
       const john = Person.create({ name: "John", age: 30, x: 1 });
 
       expect(john.toJSON()).toEqual({
-        _type: "CoMap",
+        $type: "CoMap",
         id: john.$jazz.id,
         name: "John",
         age: 30,
@@ -491,7 +491,7 @@ describe("CoMap", async () => {
       expect(john.age).toEqual(undefined);
 
       expect(john.toJSON()).toEqual({
-        _type: "CoMap",
+        $type: "CoMap",
         id: john.$jazz.id,
         name: "John",
       });
@@ -546,13 +546,13 @@ describe("CoMap", async () => {
         }),
       ]);
       expect(john.$jazz.getEdits().age?.all[0]?.by).toMatchObject({
-        _type: "Account",
+        $type: "Account",
         $jazz: expect.objectContaining({
           id: me.$jazz.id,
         }),
       });
       expect(john.$jazz.getEdits().age?.all[1]?.by).toMatchObject({
-        _type: "Account",
+        $type: "Account",
         $jazz: expect.objectContaining({
           id: me.$jazz.id,
         }),

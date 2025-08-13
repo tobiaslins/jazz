@@ -107,9 +107,9 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
   }
 
   /** @category Type Helpers */
-  declare _type: "CoStream";
+  declare $type: "CoStream";
   static {
-    this.prototype._type = "CoStream";
+    this.prototype.$type = "CoStream";
   }
 
   /** @internal This is only a marker type and doesn't exist at runtime */
@@ -128,7 +128,7 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
    * @category Content
    */
   get byMe(): CoFeedEntry<Item> | undefined {
-    if (this.$jazz.loadedAs._type === "Account") {
+    if (this.$jazz.loadedAs.$type === "Account") {
       return this.perAccount[this.$jazz.loadedAs.$jazz.id];
     } else {
       return undefined;
@@ -184,7 +184,7 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
    * @category Content
    */
   get inCurrentSession(): CoFeedEntry<Item> | undefined {
-    if (this.$jazz.loadedAs._type === "Account") {
+    if (this.$jazz.loadedAs.$type === "Account") {
       return this.perSession[this.$jazz.loadedAs.$jazz.sessionID!];
     } else {
       return undefined;
@@ -242,7 +242,7 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
    */
   toJSON(): {
     id: string;
-    _type: "CoStream";
+    $type: "CoStream";
     [key: string]: unknown;
     in: { [key: string]: unknown };
   } {
@@ -256,7 +256,7 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
 
     return {
       id: this.$jazz.id,
-      _type: this._type,
+      $type: this.$type,
       ...Object.fromEntries(
         Object.entries(this).map(([account, entry]) => [
           account,
@@ -275,7 +275,7 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
   /** @internal */
   [inspect](): {
     id: string;
-    _type: "CoStream";
+    $type: "CoStream";
     [key: string]: unknown;
     in: { [key: string]: unknown };
   } {
@@ -672,7 +672,7 @@ export class FileStream extends CoValueBase implements CoValue {
   declare $jazz: FileStreamJazzApi<this>;
 
   /** @category Type Helpers */
-  declare _type: "BinaryCoStream";
+  declare $type: "BinaryCoStream";
 
   constructor(
     options:
@@ -695,7 +695,7 @@ export class FileStream extends CoValueBase implements CoValue {
     }
 
     Object.defineProperties(this, {
-      _type: { value: "BinaryCoStream", enumerable: false },
+      $type: { value: "BinaryCoStream", enumerable: false },
       $jazz: {
         value: new FileStreamJazzApi(this, raw),
         enumerable: false,
@@ -931,7 +931,7 @@ export class FileStream extends CoValueBase implements CoValue {
    */
   toJSON(): {
     id: string;
-    _type: "BinaryCoStream";
+    $type: "BinaryCoStream";
     mimeType?: string;
     totalSizeBytes?: number;
     fileName?: string;
@@ -940,7 +940,7 @@ export class FileStream extends CoValueBase implements CoValue {
   } {
     return {
       id: this.$jazz.id,
-      _type: this._type,
+      $type: this.$type,
       ...this.getChunks(),
     };
   }

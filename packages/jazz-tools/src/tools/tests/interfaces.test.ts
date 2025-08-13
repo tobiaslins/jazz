@@ -16,7 +16,7 @@ beforeEach(async () => {
 describe("parseCoValueCreateOptions", () => {
   it("should create a new group when no options provided", () => {
     const result = parseCoValueCreateOptions(undefined);
-    expect(result.owner._type).toBe("Group");
+    expect(result.owner.$type).toBe("Group");
     expect(
       result.owner.$jazz
         .castAs(Group)

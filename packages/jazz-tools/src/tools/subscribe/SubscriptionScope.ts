@@ -371,11 +371,11 @@ export class SubscriptionScope<D extends CoValue> {
     // This helps alot with correctness when triggering the autoloading while rendering components (on React and Svelte)
     this.silenceUpdates = true;
 
-    if (value._type === "CoMap" || value._type === "Account") {
+    if (value.$type === "CoMap" || value.$type === "Account") {
       const map = value as CoMap;
 
       this.loadCoMapKey(map, key, true);
-    } else if (value._type === "CoList") {
+    } else if (value.$type === "CoList") {
       const list = value as CoList;
 
       this.loadCoListKey(list, key, true);
@@ -429,7 +429,7 @@ export class SubscriptionScope<D extends CoValue> {
 
     const idsToLoad = new Set<string>(this.idsSubscribed);
 
-    const coValueType = value._type;
+    const coValueType = value.$type;
 
     if (Object.keys(depth).length > 0) {
       if (coValueType === "CoMap" || coValueType === "Account") {
@@ -444,7 +444,7 @@ export class SubscriptionScope<D extends CoValue> {
             idsToLoad.add(id);
           }
         }
-      } else if (value._type === "CoList") {
+      } else if (value.$type === "CoList") {
         const list = value as CoList;
 
         const descriptor = list.$jazz.getItemsDescriptor();
@@ -463,7 +463,7 @@ export class SubscriptionScope<D extends CoValue> {
             }
           }
         }
-      } else if (value._type === "CoStream") {
+      } else if (value.$type === "CoStream") {
         const stream = value as CoFeed;
         const descriptor = stream.$jazz.getItemsDescriptor();
 

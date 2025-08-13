@@ -21,7 +21,7 @@ import type {
 
 /** @internal */
 export abstract class CoValueBase implements CoValue {
-  declare _type: string;
+  declare $type: string;
 
   declare abstract $jazz: CoValueJazzApi<this>;
 
@@ -34,7 +34,7 @@ export abstract class CoValueBase implements CoValue {
   toJSON(): object | any[] | string {
     return {
       id: this.$jazz.id,
-      type: this._type,
+      type: this.$type,
       error: "unknown CoValue class",
     };
   }

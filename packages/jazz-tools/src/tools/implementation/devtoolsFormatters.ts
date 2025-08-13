@@ -5,15 +5,15 @@ import { ItemsSym } from "./symbols.js";
 (globalThis as any).devtoolsFormatters = [
   {
     header: (object: any) => {
-      if (object._type === "CoMap") {
+      if (object.$type === "CoMap") {
         return ["div", {}, ["span", {}, object.constructor.name]];
-      } else if (object._type === "CoList") {
+      } else if (object.$type === "CoList") {
         return [
           "div",
           {},
           ["span", {}, object.constructor.name + "(" + object.length + ") "],
         ];
-      } else if (object._type === "Account") {
+      } else if (object.$type === "Account") {
         return [
           "div",
           {},
@@ -35,7 +35,7 @@ import { ItemsSym } from "./symbols.js";
       return true;
     },
     body: function (object: any) {
-      if (object._type === "CoMap" || object._type === "Account") {
+      if (object.$type === "CoMap" || object.$type === "Account") {
         return [
           "div",
           { style: "margin-left: 15px" },
@@ -60,7 +60,7 @@ import { ItemsSym } from "./symbols.js";
               : []),
           ]),
         ];
-      } else if (object._type === "CoList") {
+      } else if (object.$type === "CoList") {
         return [
           "div",
           { style: "margin-left: 15px" },

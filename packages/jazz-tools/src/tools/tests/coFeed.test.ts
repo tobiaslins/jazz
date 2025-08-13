@@ -822,7 +822,7 @@ describe("waitForSync", async () => {
     });
 
     const stream = FileStream.create();
-    expect(stream.$jazz.owner._type).toEqual("Group");
+    expect(stream.$jazz.owner.$type).toEqual("Group");
     expect(
       stream.$jazz.owner.$jazz
         .castAs(Group)

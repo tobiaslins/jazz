@@ -9,7 +9,7 @@ export function applyCoValueMigrations(instance: CoValue) {
   if (
     "migrate" in instance &&
     typeof instance.migrate === "function" &&
-    instance._type !== "Account" &&
+    instance.$type !== "Account" &&
     !migratedCoValues.has(instance.$jazz.id)
   ) {
     // We flag this before the migration to avoid that internal loads trigger the migration again

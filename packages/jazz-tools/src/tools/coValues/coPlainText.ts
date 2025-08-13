@@ -24,7 +24,7 @@ import { Group } from "./group.js";
 export type TextPos = OpID;
 
 export class CoPlainText extends String implements CoValue {
-  declare _type: "CoPlainText";
+  declare $type: "CoPlainText";
 
   declare $jazz: CoTextJazzApi<this>;
 
@@ -44,7 +44,7 @@ export class CoPlainText extends String implements CoValue {
       super(options.fromRaw.toString());
       const raw = options.fromRaw;
       Object.defineProperties(this, {
-        _type: { value: "CoPlainText", enumerable: false },
+        $type: { value: "CoPlainText", enumerable: false },
         $jazz: {
           value: new CoTextJazzApi(this, raw),
           enumerable: false,
@@ -57,7 +57,7 @@ export class CoPlainText extends String implements CoValue {
       super(options.text);
       const raw = options.owner.$jazz.raw.createPlainText(options.text);
       Object.defineProperties(this, {
-        _type: { value: "CoPlainText", enumerable: false },
+        $type: { value: "CoPlainText", enumerable: false },
         $jazz: {
           value: new CoTextJazzApi(this, raw),
           enumerable: false,

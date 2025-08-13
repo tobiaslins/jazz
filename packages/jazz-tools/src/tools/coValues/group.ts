@@ -40,9 +40,9 @@ import {
 
 /** @category Identity & Permissions */
 export class Group extends CoValueBase implements CoValue {
-  declare _type: "Group";
+  declare $type: "Group";
   static {
-    this.prototype._type = "Group";
+    this.prototype.$type = "Group";
   }
   declare $jazz: GroupJazzApi<this>;
 
@@ -78,7 +78,7 @@ export class Group extends CoValueBase implements CoValue {
     } else {
       const initOwner = options.owner;
       if (!initOwner) throw new Error("No owner provided");
-      if (initOwner._type === "Account" && isControlledAccount(initOwner)) {
+      if (initOwner.$type === "Account" && isControlledAccount(initOwner)) {
         const rawOwner = initOwner.$jazz.raw;
         raw = rawOwner.core.node.createGroup();
       } else {
@@ -123,7 +123,7 @@ export class Group extends CoValueBase implements CoValue {
     member: Group | Everyone | Account,
     role?: AccountRole | "inherit",
   ) {
-    if (member !== "everyone" && member._type === "Group") {
+    if (member !== "everyone" && member.$type === "Group") {
       if (role === "writeOnly")
         throw new Error("Cannot add group as member with write-only role");
       this.$jazz.raw.extend(member.$jazz.raw, role);
@@ -142,7 +142,7 @@ export class Group extends CoValueBase implements CoValue {
    */
   removeMember(member: Group): void;
   removeMember(member: Group | Everyone | Account) {
-    if (member !== "everyone" && member._type === "Group") {
+    if (member !== "everyone" && member.$type === "Group") {
       this.$jazz.raw.revokeExtend(member.$jazz.raw);
     } else {
       return this.$jazz.raw.removeMember(

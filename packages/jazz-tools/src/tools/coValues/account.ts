@@ -67,7 +67,7 @@ type AccountMembers<A extends Account> = [
 
 /** @category Identity & Permissions */
 export class Account extends CoValueBase implements CoValue {
-  declare _type: "Account";
+  declare $type: "Account";
 
   /**
    * Jazz methods for Accounts are inside this property.
@@ -102,7 +102,7 @@ export class Account extends CoValueBase implements CoValue {
     }
 
     Object.defineProperties(this, {
-      _type: { value: "Account", enumerable: false },
+      $type: { value: "Account", enumerable: false },
       $jazz: {
         value: new AccountJazzApi(this, options.fromRaw),
         enumerable: false,
@@ -238,7 +238,7 @@ export class Account extends CoValueBase implements CoValue {
   toJSON(): object | any[] {
     return {
       id: this.$jazz.id,
-      _type: this._type,
+      $type: this.$type,
     };
   }
 
@@ -256,7 +256,7 @@ export class Account extends CoValueBase implements CoValue {
       this.profile = Profile.create({ name: creationProps.name }, profileGroup);
       profileGroup.addMember("everyone", "reader");
     } else if (this.profile && creationProps) {
-      if (this.profile.$jazz.owner._type !== "Group") {
+      if (this.profile.$jazz.owner.$type !== "Group") {
         throw new Error("Profile must be owned by a Group", {
           cause: `The profile of the account "${this.$jazz.id}" was created with an Account as owner, which is not allowed.`,
         });

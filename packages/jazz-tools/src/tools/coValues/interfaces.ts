@@ -39,7 +39,7 @@ export interface CoValueFromRaw<V extends CoValue> {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface CoValue {
   /** @category Type Helpers */
-  _type: string;
+  $type: string;
 
   $jazz: {
     /** @category Content */
@@ -64,7 +64,7 @@ export interface CoValue {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isCoValue(value: any): value is CoValue {
-  return value && value._type !== undefined;
+  return value && value.$type !== undefined;
 }
 
 export function isCoValueClass<V extends CoValue>(
@@ -343,7 +343,7 @@ export function isAccountInstance(instance: unknown): instance is Account {
     return false;
   }
 
-  return "_type" in instance && instance._type === "Account";
+  return "$type" in instance && instance.$type === "Account";
 }
 
 export function isAnonymousAgentInstance(
@@ -353,7 +353,7 @@ export function isAnonymousAgentInstance(
     return false;
   }
 
-  return "_type" in instance && instance._type === "Anonymous";
+  return "$type" in instance && instance.$type === "Anonymous";
 }
 
 export function parseCoValueCreateOptions(
@@ -372,8 +372,8 @@ export function parseCoValueCreateOptions(
     return { owner: Group.create(), uniqueness: undefined };
   }
 
-  if ("_type" in options) {
-    if (options._type === "Account" || options._type === "Group") {
+  if ("$type" in options) {
+    if (options.$type === "Account" || options.$type === "Group") {
       return { owner: options, uniqueness: undefined };
     }
   }
@@ -400,7 +400,7 @@ export function parseGroupCreateOptions(
     return { owner: activeAccountContext.get() };
   }
 
-  return "_type" in options && isAccountInstance(options)
+  return "$type" in options && isAccountInstance(options)
     ? { owner: options }
     : { owner: options.owner ?? activeAccountContext.get() };
 }

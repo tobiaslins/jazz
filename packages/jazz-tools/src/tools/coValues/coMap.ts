@@ -101,9 +101,9 @@ type CoMapFieldSchema = {
  *  */
 export class CoMap extends CoValueBase implements CoValue {
   /** @category Type Helpers */
-  declare _type: "CoMap";
+  declare $type: "CoMap";
   static {
-    this.prototype._type = "CoMap";
+    this.prototype.$type = "CoMap";
   }
 
   /**
@@ -180,7 +180,7 @@ export class CoMap extends CoValueBase implements CoValue {
   toJSON(_key?: string, processedValues?: ID<CoValue>[]): any {
     const result = {
       id: this.$jazz.id,
-      _type: this._type,
+      $type: this.$type,
     } as Record<string, any>;
 
     for (const key of this.$jazz.raw.keys()) {
@@ -447,7 +447,7 @@ export class CoMap extends CoValueBase implements CoValue {
       uniqueness: unique,
     };
     const crypto =
-      as._type === "Anonymous" ? as.node.crypto : as.$jazz.raw.core.node.crypto;
+      as.$type === "Anonymous" ? as.node.crypto : as.$jazz.raw.core.node.crypto;
     return cojsonInternals.idforHeader(header, crypto) as ID<M>;
   }
 

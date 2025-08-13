@@ -98,9 +98,9 @@ export class CoList<out Item = any>
   }
 
   /** @category Type Helpers */
-  declare _type: "CoList";
+  declare $type: "CoList";
   static {
-    this.prototype._type = "CoList";
+    this.prototype.$type = "CoList";
   }
 
   /** @internal This is only a marker type and doesn't exist at runtime */

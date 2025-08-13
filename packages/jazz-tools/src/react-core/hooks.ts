@@ -274,7 +274,7 @@ function useAccountSubscription<
   const createSubscription = () => {
     const agent = getCurrentAccountFromContextManager(contextManager);
 
-    if (agent._type === "Anonymous") {
+    if (agent.$type === "Anonymous") {
       return {
         subscription: null,
         contextManager,

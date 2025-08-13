@@ -136,7 +136,7 @@ describe("CoMap.Record", async () => {
       expect("age" in person).toEqual(false);
 
       expect(person.toJSON()).toEqual({
-        _type: "CoMap",
+        $type: "CoMap",
         id: person.$jazz.id,
         name: "John",
       });
@@ -183,11 +183,11 @@ describe("CoMap.Record", async () => {
         }),
       ]);
       expect(edits?.[0]?.by).toMatchObject({
-        _type: "Account",
+        $type: "Account",
         $jazz: expect.objectContaining({ id: me.$jazz.id }),
       });
       expect(edits?.[1]?.by).toMatchObject({
-        _type: "Account",
+        $type: "Account",
         $jazz: expect.objectContaining({ id: me.$jazz.id }),
       });
     });
