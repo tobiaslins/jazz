@@ -68,40 +68,6 @@ export class Group extends CoValueBase implements CoValue {
   declare profile: Profile | null;
   declare root: CoMap | null;
 
-  get _refs(): {
-    profile: Ref<Profile> | undefined;
-    root: Ref<CoMap> | undefined;
-  } {
-    const profileID = this.$jazz.raw.get("profile") as unknown as
-      | ID<NonNullable<this["profile"]>>
-      | undefined;
-    const rootID = this.$jazz.raw.get("root") as unknown as
-      | ID<NonNullable<this["root"]>>
-      | undefined;
-    return {
-      profile: profileID
-        ? (new Ref(
-            profileID,
-            this.$jazz.loadedAs,
-            this._schema.profile as RefEncoded<NonNullable<this["profile"]>>,
-            this,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ) as any as this["profile"] extends Profile
-            ? Ref<this["profile"]>
-            : never)
-        : undefined,
-      root: rootID
-        ? (new Ref(
-            rootID,
-            this.$jazz.loadedAs,
-            this._schema.root as RefEncoded<NonNullable<this["root"]>>,
-            this,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ) as any as this["root"] extends CoMap ? Ref<this["root"]> : never)
-        : undefined,
-    };
-  }
-
   /** @deprecated Don't use constructor directly, use .create */
   constructor(options: { fromRaw: RawGroup } | { owner: Account | Group }) {
     super();
@@ -344,46 +310,11 @@ export class Group extends CoValueBase implements CoValue {
     const { options, listener } = parseSubscribeRestArgs(args);
     return subscribeToCoValueWithoutMe<G, R>(this, id, options, listener);
   }
-
-  /** @category Subscription & Loading */
-  ensureLoaded<G extends Group, const R extends RefsToResolve<G>>(
-    this: G,
-    options?: { resolve?: RefsToResolveStrict<G, R> },
-  ): Promise<Resolved<G, R>> {
-    return ensureCoValueLoaded(this, options);
-  }
-
-  /** @category Subscription & Loading */
-  subscribe<G extends Group, const R extends RefsToResolve<G>>(
-    this: G,
-    listener: (value: Resolved<G, R>, unsubscribe: () => void) => void,
-  ): () => void;
-  subscribe<G extends Group, const R extends RefsToResolve<G>>(
-    this: G,
-    options: { resolve?: RefsToResolveStrict<G, R> },
-    listener: (value: Resolved<G, R>, unsubscribe: () => void) => void,
-  ): () => void;
-  subscribe<G extends Group, const R extends RefsToResolve<G>>(
-    this: G,
-    ...args: SubscribeRestArgs<G, R>
-  ): () => void {
-    const { options, listener } = parseSubscribeRestArgs(args);
-    return subscribeToExistingCoValue(this, options, listener);
-  }
-
-  /**
-   * Wait for the `Group` to be uploaded to the other peers.
-   *
-   * @category Subscription & Loading
-   */
-  waitForSync(options?: { timeout?: number }) {
-    return this.$jazz.raw.core.waitForSync(options);
-  }
 }
 
 export class GroupJazzApi<G extends Group> extends CoValueJazzApi<G> {
   constructor(
-    group: G,
+    private group: G,
     public raw: RawGroup,
   ) {
     super(group);
@@ -395,6 +326,81 @@ export class GroupJazzApi<G extends Group> extends CoValueJazzApi<G> {
    */
   get id(): ID<G> {
     return this.raw.id;
+  }
+
+  /** @category Subscription & Loading */
+  ensureLoaded<G extends Group, const R extends RefsToResolve<G>>(
+    this: GroupJazzApi<G>,
+    options?: { resolve?: RefsToResolveStrict<G, R> },
+  ): Promise<Resolved<G, R>> {
+    return ensureCoValueLoaded(this.group, options);
+  }
+
+  /** @category Subscription & Loading */
+  subscribe<G extends Group, const R extends RefsToResolve<G>>(
+    this: GroupJazzApi<G>,
+    listener: (value: Resolved<G, R>, unsubscribe: () => void) => void,
+  ): () => void;
+  subscribe<G extends Group, const R extends RefsToResolve<G>>(
+    this: GroupJazzApi<G>,
+    options: { resolve?: RefsToResolveStrict<G, R> },
+    listener: (value: Resolved<G, R>, unsubscribe: () => void) => void,
+  ): () => void;
+  subscribe<G extends Group, const R extends RefsToResolve<G>>(
+    this: GroupJazzApi<G>,
+    ...args: SubscribeRestArgs<G, R>
+  ): () => void {
+    const { options, listener } = parseSubscribeRestArgs(args);
+    return subscribeToExistingCoValue(this.group, options, listener);
+  }
+
+  /**
+   * Wait for the `Group` to be uploaded to the other peers.
+   *
+   * @category Subscription & Loading
+   */
+  waitForSync(options?: { timeout?: number }) {
+    return this.raw.core.waitForSync(options);
+  }
+
+  /**
+   * You can use `group.$jazz.refs` to access the `profile` and `root`
+   * `Ref`s instead of the potentially loaded/null values.
+   *
+   * This allows you to always get the ID or load the value manually.
+   *
+   * @category Content
+   */
+  get refs(): {
+    profile: Ref<Profile> | undefined;
+    root: Ref<CoMap> | undefined;
+  } {
+    const profileID = this.raw.get("profile") as unknown as
+      | ID<NonNullable<G["profile"]>>
+      | undefined;
+    const rootID = this.raw.get("root") as unknown as
+      | ID<NonNullable<G["root"]>>
+      | undefined;
+    return {
+      profile: profileID
+        ? (new Ref(
+            profileID,
+            this.loadedAs,
+            this.group._schema.profile as RefEncoded<NonNullable<G["profile"]>>,
+            this.group,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ) as any as G["profile"] extends Profile ? Ref<G["profile"]> : never)
+        : undefined,
+      root: rootID
+        ? (new Ref(
+            rootID,
+            this.loadedAs,
+            this.group._schema.root as RefEncoded<NonNullable<G["root"]>>,
+            this.group,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ) as any as G["root"] extends CoMap ? Ref<G["root"]> : never)
+        : undefined,
+    };
   }
 }
 

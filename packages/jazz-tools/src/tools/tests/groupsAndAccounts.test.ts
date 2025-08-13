@@ -166,7 +166,7 @@ describe("Group inheritance", () => {
 
     await grandParentGroup.removeMember(reader);
 
-    await grandParentGroup.waitForSync();
+    await grandParentGroup.$jazz.waitForSync();
 
     mapInGrandChild.title = "In Grand Child (updated)";
 
@@ -224,7 +224,7 @@ describe("Group inheritance", () => {
 
     const group = Group.create({ owner: clientAccount });
 
-    await group.waitForSync({ timeout: 1000 });
+    await group.$jazz.waitForSync({ timeout: 1000 });
 
     // Killing the client node so the serverNode can't load the map from it
     clientNode.gracefulShutdown();
