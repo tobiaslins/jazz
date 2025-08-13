@@ -447,7 +447,7 @@ export class SubscriptionScope<D extends CoValue> {
       } else if (value._type === "CoList") {
         const list = value as CoList;
 
-        const descriptor = list.getItemsDescriptor();
+        const descriptor = list.$jazz.getItemsDescriptor();
 
         if (descriptor && isRefEncoded(descriptor)) {
           list.$jazz.raw.processNewTransactions();
@@ -571,7 +571,7 @@ export class SubscriptionScope<D extends CoValue> {
   }
 
   loadCoListKey(list: CoList, key: string, depth: Record<string, any> | true) {
-    const descriptor = list.getItemsDescriptor();
+    const descriptor = list.$jazz.getItemsDescriptor();
 
     if (!descriptor || !isRefEncoded(descriptor)) {
       return undefined;

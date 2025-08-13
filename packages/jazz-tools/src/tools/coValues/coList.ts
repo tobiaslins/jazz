@@ -114,10 +114,6 @@ export class CoList<out Item = any> extends Array<Item> implements CoValue {
     return Array;
   }
 
-  getItemsDescriptor() {
-    return this._schema?.[ItemsSym];
-  }
-
   constructor(options: { fromRaw: RawCoList } | undefined) {
     super();
 
@@ -527,6 +523,14 @@ export class CoListJazzApi<L extends CoList<any>>
     cl: Cl,
   ): InstanceType<Cl> {
     return cl.fromRaw(this.raw) as InstanceType<Cl>;
+  }
+
+  /**
+   * Get the descriptor for the items in the `CoList`
+   * @internal
+   */
+  getItemsDescriptor() {
+    return this.coList._schema[ItemsSym];
   }
 
   /**
