@@ -1010,31 +1010,11 @@ export class FileStream extends CoValueBase implements CoValue {
     const { options, listener } = parseSubscribeRestArgs(args);
     return subscribeToCoValueWithoutMe<F, R>(this, id, options, listener);
   }
-
-  /**
-   * An instance method to subscribe to an existing `FileStream`
-   * @category Subscription & Loading
-   */
-  subscribe<B extends FileStream>(
-    this: B,
-    listener: (value: Resolved<B, true>) => void,
-  ): () => void {
-    return subscribeToExistingCoValue(this, {}, listener);
-  }
-
-  /**
-   * Wait for the `FileStream` to be uploaded to the other peers.
-   *
-   * @category Subscription & Loading
-   */
-  waitForSync(options?: { timeout?: number }) {
-    return this.$jazz.raw.core.waitForSync(options);
-  }
 }
 
 export class FileStreamJazzApi<F extends FileStream> extends CoValueJazzApi<F> {
   constructor(
-    fileStream: F,
+    private fileStream: F,
     public raw: RawBinaryCoStream,
   ) {
     super(fileStream);
@@ -1046,5 +1026,25 @@ export class FileStreamJazzApi<F extends FileStream> extends CoValueJazzApi<F> {
    */
   get id(): ID<F> {
     return this.raw.id;
+  }
+
+  /**
+   * An instance method to subscribe to an existing `FileStream`
+   * @category Subscription & Loading
+   */
+  subscribe<B extends FileStream>(
+    this: FileStreamJazzApi<B>,
+    listener: (value: Resolved<B, true>) => void,
+  ): () => void {
+    return subscribeToExistingCoValue(this.fileStream, {}, listener);
+  }
+
+  /**
+   * Wait for the `FileStream` to be uploaded to the other peers.
+   *
+   * @category Subscription & Loading
+   */
+  waitForSync(options?: { timeout?: number }) {
+    return this.raw.core.waitForSync(options);
   }
 }

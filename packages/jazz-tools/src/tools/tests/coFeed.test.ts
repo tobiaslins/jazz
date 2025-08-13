@@ -709,7 +709,7 @@ describe("FileStream large file loading", async () => {
     largeStream.end();
 
     // Wait for the large FileStream to be fully synced
-    await largeStream.waitForSync();
+    await largeStream.$jazz.waitForSync();
 
     const alice = await createJazzTestAccount();
 
@@ -756,7 +756,7 @@ describe("FileStream large file loading", async () => {
     largeStream.end();
 
     // Wait for the large FileStream to be fully synced
-    await largeStream.waitForSync();
+    await largeStream.$jazz.waitForSync();
 
     const alice = await createJazzTestAccount();
 
@@ -806,7 +806,7 @@ describe("waitForSync", async () => {
     stream.push(new Uint8Array([2]));
     stream.end();
 
-    await stream.waitForSync({ timeout: 1000 });
+    await stream.$jazz.waitForSync({ timeout: 1000 });
 
     // Killing the client node so the serverNode can't load the map from it
     clientNode.gracefulShutdown();
