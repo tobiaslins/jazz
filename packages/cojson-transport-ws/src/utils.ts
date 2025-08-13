@@ -8,9 +8,7 @@ export function isWebSocketOpen(websocket: AnyWebSocket) {
 }
 
 export function hasWebSocketTooMuchBufferedData(websocket: AnyWebSocket) {
-  return (
-    (websocket.bufferedAmount || 0) > BUFFER_LIMIT && isWebSocketOpen(websocket)
-  );
+  return websocket.bufferedAmount > BUFFER_LIMIT && isWebSocketOpen(websocket);
 }
 
 export function waitForWebSocketOpen(websocket: AnyWebSocket) {
