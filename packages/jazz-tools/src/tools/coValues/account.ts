@@ -112,6 +112,44 @@ export class Account extends CoValueBase implements CoValue {
     return new Proxy(this, AccountAndGroupProxyHandler as ProxyHandler<this>);
   }
 
+  /**
+   * Whether this account is the currently active account.
+   */
+  get isMe() {
+    return activeAccountContext.get().$jazz.id === this.$jazz.id;
+  }
+
+  /**
+   * Accept an invite to a `CoValue` or `Group`.
+   *
+   * @param valueID The ID of the `CoValue` or `Group` to accept the invite to.
+   * @param inviteSecret The secret of the invite to accept.
+   * @param coValueClass The class of the `CoValue` or `Group` to accept the invite to.
+   * @returns The loaded `CoValue` or `Group`.
+   */
+  async acceptInvite<S extends CoValueClassOrSchema>(
+    valueID: string,
+    inviteSecret: InviteSecret,
+    coValueClass: S,
+  ): Promise<Resolved<InstanceOrPrimitiveOfSchema<S>, true> | null> {
+    if (!this.$jazz.isLocalNodeOwner) {
+      throw new Error("Only a controlled account can accept invites");
+    }
+
+    await this.$jazz.localNode.acceptInvite(
+      valueID as unknown as CoID<RawCoValue>,
+      inviteSecret,
+    );
+
+    return loadCoValue(
+      coValueClassFromCoValueClassOrSchema(coValueClass),
+      valueID,
+      {
+        loadAs: this,
+      },
+    ) as Resolved<InstanceOrPrimitiveOfSchema<S>, true> | null;
+  }
+
   // TODO Q: does it make sense to move Group methods into `$jazz` as well?
   myRole(): "admin" | undefined {
     if (this.$jazz.isLocalNodeOwner) {
@@ -121,7 +159,7 @@ export class Account extends CoValueBase implements CoValue {
 
   getRoleOf(member: Everyone | ID<Account> | "me") {
     if (member === "me") {
-      return this.$jazz.isMe ? "admin" : undefined;
+      return this.isMe ? "admin" : undefined;
     }
 
     if (member === this.$jazz.id) {
@@ -448,44 +486,6 @@ class AccountJazzApi<A extends Account> extends CoValueJazzApi<A> {
     root: Schema;
   } {
     return (this.account.constructor as typeof Account)._schema;
-  }
-
-  /**
-   * Whether this account is the currently active account.
-   */
-  get isMe() {
-    return activeAccountContext.get().$jazz.id === this.account.$jazz.id;
-  }
-
-  /**
-   * Accept an invite to a `CoValue` or `Group`.
-   *
-   * @param valueID The ID of the `CoValue` or `Group` to accept the invite to.
-   * @param inviteSecret The secret of the invite to accept.
-   * @param coValueClass The class of the `CoValue` or `Group` to accept the invite to.
-   * @returns The loaded `CoValue` or `Group`.
-   */
-  async acceptInvite<S extends CoValueClassOrSchema>(
-    valueID: string,
-    inviteSecret: InviteSecret,
-    coValueClass: S,
-  ): Promise<Resolved<InstanceOrPrimitiveOfSchema<S>, true> | null> {
-    if (!this.isLocalNodeOwner) {
-      throw new Error("Only a controlled account can accept invites");
-    }
-
-    await this.localNode.acceptInvite(
-      valueID as unknown as CoID<RawCoValue>,
-      inviteSecret,
-    );
-
-    return loadCoValue(
-      coValueClassFromCoValueClassOrSchema(coValueClass),
-      valueID,
-      {
-        loadAs: this.account,
-      },
-    ) as Resolved<InstanceOrPrimitiveOfSchema<S>, true> | null;
   }
 
   /** @internal */
