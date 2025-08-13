@@ -3,8 +3,8 @@ import { RegisteredSchemas } from "../coValues/registeredSchemas.js";
 import {
   CoValue,
   RefEncoded,
-  anySchemaToCoSchema,
-  instantiateRefEncoded,
+  coValueClassFromCoValueClassOrSchema,
+  instantiateRefEncodedFromRaw,
 } from "../internal.js";
 import { coValuesCache } from "../lib/cache.js";
 import { SubscriptionScope } from "./SubscriptionScope.js";
@@ -14,7 +14,9 @@ export function getOwnerFromRawValue(raw: RawCoValue) {
 
   return coValuesCache.get(owner, () =>
     owner instanceof RawAccount
-      ? anySchemaToCoSchema(RegisteredSchemas["Account"]).fromRaw(owner)
+      ? coValueClassFromCoValueClassOrSchema(
+          RegisteredSchemas["Account"],
+        ).fromRaw(owner)
       : RegisteredSchemas["Group"].fromRaw(owner as any),
   );
 }
@@ -24,7 +26,7 @@ export function createCoValue<D extends CoValue>(
   raw: RawCoValue,
   subscriptionScope: SubscriptionScope<D>,
 ) {
-  const freshValueInstance = instantiateRefEncoded(ref, raw);
+  const freshValueInstance = instantiateRefEncodedFromRaw(ref, raw);
 
   Object.defineProperty(freshValueInstance, "_subscriptionScope", {
     value: subscriptionScope,

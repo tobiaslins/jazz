@@ -11,7 +11,7 @@ import {
   AnonymousJazzAgent,
   AnyAccountSchema,
   CoValue,
-  CoValueOrZodSchema,
+  CoValueClassOrSchema,
   InboxSender,
   InstanceOfSchema,
   JazzContextManager,
@@ -20,7 +20,7 @@ import {
   ResolveQuery,
   ResolveQueryStrict,
   SubscriptionScope,
-  anySchemaToCoSchema,
+  coValueClassFromCoValueClassOrSchema,
 } from "jazz-tools";
 import { JazzContext, JazzContextManagerContext } from "./provider.js";
 import { getCurrentAccountFromContextManager } from "./utils.js";
@@ -80,7 +80,7 @@ export function useIsAuthenticated() {
 }
 
 function useCoValueSubscription<
-  S extends CoValueOrZodSchema,
+  S extends CoValueClassOrSchema,
   const R extends ResolveQuery<S>,
 >(
   Schema: S,
@@ -107,7 +107,7 @@ function useCoValueSubscription<
       options?.resolve ?? true,
       id,
       {
-        ref: anySchemaToCoSchema(Schema),
+        ref: coValueClassFromCoValueClassOrSchema(Schema),
         optional: true,
       },
     );
@@ -141,13 +141,102 @@ function useCoValueSubscription<
   return subscription.subscription;
 }
 
+/**
+ * React hook for subscribing to CoValues and handling loading states.
+ *
+ * This hook provides a convenient way to subscribe to CoValues and automatically
+ * handles the subscription lifecycle (subscribe on mount, unsubscribe on unmount).
+ * It also supports deep loading of nested CoValues through resolve queries.
+ *
+ * @returns The loaded CoValue, or `undefined` if loading, or `null` if not found/not accessible
+ *
+ * @example
+ * ```tsx
+ * // Deep loading with resolve queries
+ * const Project = co.map({
+ *   name: z.string(),
+ *   tasks: co.list(Task),
+ *   owner: TeamMember,
+ * });
+ *
+ * function ProjectView({ projectId }: { projectId: string }) {
+ *   const project = useCoState(Project, projectId, {
+ *     resolve: {
+ *       tasks: { $each: true },
+ *       owner: true,
+ *     },
+ *   });
+ *
+ *   if (!project) {
+ *     return project === null
+ *       ? "Project not found or not accessible"
+ *       : "Loading project...";
+ *   }
+ *
+ *   return (
+ *     <div>
+ *       <h1>{project.name}</h1>
+ *       <p>Owner: {project.owner.name}</p>
+ *       <ul>
+ *         {project.tasks.map((task) => (
+ *           <li key={task.id}>{task.title}</li>
+ *         ))}
+ *       </ul>
+ *     </div>
+ *   );
+ * }
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // Using with optional references and error handling
+ * const Task = co.map({
+ *   title: z.string(),
+ *   assignee: co.optional(TeamMember),
+ *   subtasks: co.list(Task),
+ * });
+ *
+ * function TaskDetail({ taskId }: { taskId: string }) {
+ *   const task = useCoState(Task, taskId, {
+ *     resolve: {
+ *       assignee: true,
+ *       subtasks: { $each: { $onError: null } },
+ *     },
+ *   });
+ *
+ *   if (!task) {
+ *     return task === null
+ *       ? "Task not found or not accessible"
+ *       : "Loading task...";
+ *   }
+ *
+ *   return (
+ *     <div>
+ *       <h2>{task.title}</h2>
+ *       {task.assignee && <p>Assigned to: {task.assignee.name}</p>}
+ *       <ul>
+ *         {task.subtasks.map((subtask, index) => (
+ *           subtask ? <li key={subtask.id}>{subtask.title}</li> : <li key={index}>Inaccessible subtask</li>
+ *         ))}
+ *       </ul>
+ *     </div>
+ *   );
+ * }
+ * ```
+ *
+ * For more examples, see the [subscription and deep loading](https://jazz.tools/docs/react/using-covalues/subscription-and-loading) documentation.
+ */
 export function useCoState<
-  S extends CoValueOrZodSchema,
+  S extends CoValueClassOrSchema,
   const R extends ResolveQuery<S> = true,
 >(
+  /** The CoValue schema or class constructor */
   Schema: S,
+  /** The ID of the CoValue to subscribe to. If `undefined`, returns `null` */
   id: string | undefined,
+  /** Optional configuration for the subscription */
   options?: {
+    /** Resolve query to specify which nested CoValues to load */
     resolve?: ResolveQueryStrict<S, R>;
   },
 ): Loaded<S, R> | undefined | null {
@@ -198,7 +287,7 @@ function useAccountSubscription<
 
     const node = contextManager.getCurrentValue()!.node;
     const subscription = new SubscriptionScope<any>(node, resolve, agent.id, {
-      ref: anySchemaToCoSchema(Schema),
+      ref: coValueClassFromCoValueClassOrSchema(Schema),
       optional: true,
     });
 
@@ -229,12 +318,66 @@ function useAccountSubscription<
   return subscription.subscription;
 }
 
+/**
+ * React hook for accessing the current user's account and authentication state.
+ * 
+ * This hook provides access to the current user's account profile and root data,
+ * along with authentication utilities. It automatically handles subscription to
+ * the user's account data and provides a logout function.
+ * 
+ * @returns An object containing:
+ * - `me`: The loaded account data, or `undefined` if loading, or `null` if not authenticated
+ * - `agent`: The current agent (anonymous or authenticated user). Can be used as `loadAs` parameter for load and subscribe methods.
+ * - `logOut`: Function to log out the current user
+
+ * @example
+ * ```tsx
+ * // Deep loading with resolve queries
+ * function ProjectListWithDetails() {
+ *   const { me } = useAccount(MyAppAccount, {
+ *     resolve: {
+ *       profile: true,
+ *       root: {
+ *         myProjects: {
+ *           $each: {
+ *             tasks: true,
+ *           },
+ *         },
+ *       },
+ *     },
+ *   });
+ * 
+ *   if (!me) {
+ *     return me === null
+ *       ? <div>Failed to load your projects</div>
+ *       : <div>Loading...</div>;
+ *   }
+ * 
+ *   return (
+ *     <div>
+ *       <h1>{me.profile.name}'s projects</h1>
+ *       <ul>
+ *         {me.root.myProjects.map((project) => (
+ *           <li key={project.id}>
+ *             {project.name} ({project.tasks.length} tasks)
+ *           </li>
+ *         ))}
+ *       </ul>
+ *     </div>
+ *   );
+ * }
+ * ```
+ * 
+ */
 export function useAccount<
   A extends AccountClass<Account> | AnyAccountSchema,
   R extends ResolveQuery<A> = true,
 >(
+  /** The account schema to use. Defaults to the base Account schema */
   AccountSchema: A = Account as unknown as A,
+  /** Optional configuration for the subscription */
   options?: {
+    /** Resolve query to specify which nested CoValues to load from the account */
     resolve?: ResolveQueryStrict<A, R>;
   },
 ): {

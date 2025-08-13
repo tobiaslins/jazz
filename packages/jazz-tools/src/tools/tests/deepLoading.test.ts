@@ -1,4 +1,4 @@
-import { Profile, cojsonInternals } from "cojson";
+import { cojsonInternals } from "cojson";
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { assert, describe, expect, expectTypeOf, test, vi } from "vitest";
 import {
@@ -9,13 +9,7 @@ import {
   isControlledAccount,
   z,
 } from "../index.js";
-import {
-  Account,
-  CoListSchema,
-  Loaded,
-  co,
-  randomSessionProvider,
-} from "../internal.js";
+import { Account, Loaded, co, randomSessionProvider } from "../internal.js";
 import { createJazzTestAccount, linkAccounts } from "../testing.js";
 import { waitFor } from "./utils.js";
 
@@ -794,11 +788,11 @@ describe("Deep loading with unauthorized account", async () => {
   test("unaccessible list element with $onError and $each with depth", async () => {
     const Person = co.map({
       name: z.string(),
-      get friends(): z.ZodOptional<typeof Friends> {
+      get friends(): co.Optional<typeof Friends> {
         return co.optional(Friends);
       },
     });
-    const Friends: CoListSchema<typeof Person> = co.list(Person); // TODO: annoying that we have to annotate
+    const Friends: co.List<typeof Person> = co.list(Person); // TODO: annoying that we have to annotate
 
     const list = Friends.create(
       [

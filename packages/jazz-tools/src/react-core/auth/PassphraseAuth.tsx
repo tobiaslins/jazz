@@ -13,11 +13,7 @@ import { useIsAuthenticated } from "../hooks.js";
  *
  * @category Auth Providers
  */
-export function usePassphraseAuth({
-  wordlist,
-}: {
-  wordlist: string[];
-}) {
+export function usePassphraseAuth({ wordlist }: { wordlist: string[] }) {
   const context = useJazzContext();
   const authSecretStorage = useAuthSecretStorage();
 

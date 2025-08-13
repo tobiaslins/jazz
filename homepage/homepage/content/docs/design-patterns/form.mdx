@@ -54,10 +54,10 @@ import { co, z, CoMap } from "jazz-tools";
 export const BubbleTeaOrder = co.map({
   name: z.string(),
 });
+export type BubbleTeaOrder = co.loaded<typeof BubbleTeaOrder>;
 
-export const DraftBubbleTeaOrder = co.map({
-  name: z.optional(z.string()),
-});
+export const DraftBubbleTeaOrder = BubbleTeaOrder.partial();
+export type DraftBubbleTeaOrder = co.loaded<typeof DraftBubbleTeaOrder>;
 ```
 </CodeGroup>
 
@@ -73,17 +73,17 @@ import { co, z } from "jazz-tools";
 export const BubbleTeaOrder = co.map({
   name: z.string(),
 });
+export type BubbleTeaOrder = co.loaded<typeof BubbleTeaOrder>;
 
-export const DraftBubbleTeaOrder = co.map({
-  name: z.optional(z.string()),
-});
+export const DraftBubbleTeaOrder = BubbleTeaOrder.partial();
+export type DraftBubbleTeaOrder = co.loaded<typeof DraftBubbleTeaOrder>;
 // ---cut---
 // OrderForm.tsx
 export function OrderForm({
   order,
   onSave,
 }: {
-  order: co.loaded<typeof BubbleTeaOrder> | co.loaded<typeof DraftBubbleTeaOrder>;
+  order: BubbleTeaOrder | DraftBubbleTeaOrder;
   onSave?: (e: React.FormEvent<HTMLFormElement>) => void;
 }) {
   return (
@@ -118,16 +118,16 @@ import * as React from "react";
 export const BubbleTeaOrder = co.map({
   name: z.string(),
 });
+export type BubbleTeaOrder = co.loaded<typeof BubbleTeaOrder>;
 
-export const DraftBubbleTeaOrder = co.map({
-  name: z.optional(z.string()),
-});
+export const DraftBubbleTeaOrder = BubbleTeaOrder.partial();
+export type DraftBubbleTeaOrder = co.loaded<typeof DraftBubbleTeaOrder>;
 
 export function OrderForm({
   order,
   onSave,
 }: {
-  order: co.loaded<typeof BubbleTeaOrder> | co.loaded<typeof DraftBubbleTeaOrder>;
+  order: BubbleTeaOrder | DraftBubbleTeaOrder;
   onSave?: (e: React.FormEvent<HTMLFormElement>) => void;
 }) {
   return (
@@ -177,10 +177,10 @@ import { useState, useEffect } from "react";
 export const BubbleTeaOrder = co.map({
   name: z.string(),
 });
+export type BubbleTeaOrder = co.loaded<typeof BubbleTeaOrder>;
 
-export const DraftBubbleTeaOrder = co.map({
-  name: z.optional(z.string()),
-});
+export const DraftBubbleTeaOrder = BubbleTeaOrder.partial();
+export type DraftBubbleTeaOrder = co.loaded<typeof DraftBubbleTeaOrder>;
 
 export const AccountRoot = co.map({
   draft: DraftBubbleTeaOrder,
@@ -218,7 +218,7 @@ export function OrderForm({
 // CreateOrder.tsx
 export function CreateOrder() {
   const { me } = useAccount();
-  const [draft, setDraft] = useState<co.loaded<typeof DraftBubbleTeaOrder>>();
+  const [draft, setDraft] = useState<DraftBubbleTeaOrder>();
 
   useEffect(() => {
     setDraft(DraftBubbleTeaOrder.create({}));
@@ -228,7 +228,7 @@ export function CreateOrder() {
     e.preventDefault();
     if (!draft || !draft.name) return;
 
-    const order = draft as co.loaded<typeof BubbleTeaOrder>; // TODO: this should narrow correctly
+    const order = draft as BubbleTeaOrder; // TODO: this should narrow correctly
 
     console.log("Order created:", order);
   };
@@ -244,26 +244,30 @@ export function CreateOrder() {
 
 In a `BubbleTeaOrder`, the `name` field is required, so it would be a good idea to validate this before turning the draft into a real order.
 
-Update the schema to include a `validate` helper.
+Update the schema to include a `validateDraftOrder` helper.
 
 <CodeGroup>
 ```ts twoslash
 import { co, z } from "jazz-tools";
 // ---cut---
 // schema.ts
-export const DraftBubbleTeaOrder = co.map({
-  name: z.optional(z.string()),
-}).withHelpers((Self) => ({ // [!code ++:11]
-  validate(draft: co.loaded<typeof Self>) {
-    const errors: string[] = [];
+export const BubbleTeaOrder = co.map({
+  name: z.string(),
+});
+export type BubbleTeaOrder = co.loaded<typeof BubbleTeaOrder>;
 
-    if (!draft.name) {
-      errors.push("Please enter a name.");
-    }
+export const DraftBubbleTeaOrder = BubbleTeaOrder.partial();
+export type DraftBubbleTeaOrder = co.loaded<typeof DraftBubbleTeaOrder>;
 
-    return { errors };
-  },
-}));
+export function validateDraftOrder(draft: DraftBubbleTeaOrder) { // [!code ++:9]
+  const errors: string[] = [];
+
+  if (!draft.name) {
+    errors.push("Please enter a name.");
+  }
+
+  return { errors };
+};
 ```
 </CodeGroup>
 
@@ -279,20 +283,20 @@ import { useState, useEffect } from "react";
 export const BubbleTeaOrder = co.map({
   name: z.string(),
 });
+export type BubbleTeaOrder = co.loaded<typeof BubbleTeaOrder>;
 
-export const DraftBubbleTeaOrder = co.map({
-  name: z.optional(z.string()),
-}).withHelpers((Self) => ({
-  validate(draft: co.loaded<typeof Self>) {
-    const errors: string[] = [];
+export const DraftBubbleTeaOrder = BubbleTeaOrder.partial();
+export type DraftBubbleTeaOrder = co.loaded<typeof DraftBubbleTeaOrder>;
 
-    if (!draft.name) {
-      errors.push("Please enter a name.");
-    }
+export function validateDraftOrder(draft: DraftBubbleTeaOrder) {
+  const errors: string[] = [];
 
-    return { errors };
-  },
-}));
+  if (!draft.name) {
+    errors.push("Please enter a name.");
+  }
+
+  return { errors };
+};
 
 export const AccountRoot = co.map({
   draft: DraftBubbleTeaOrder,
@@ -307,7 +311,7 @@ export function OrderForm({
   order,
   onSave,
 }: {
-  order: co.loaded<typeof BubbleTeaOrder> | co.loaded<typeof DraftBubbleTeaOrder>;
+  order: BubbleTeaOrder | DraftBubbleTeaOrder;
   onSave?: (e: React.FormEvent<HTMLFormElement>) => void;
 }) {
   return (
@@ -330,7 +334,7 @@ export function OrderForm({
 // CreateOrder.tsx
 export function CreateOrder() {
   const { me } = useAccount();
-  const [draft, setDraft] = useState<co.loaded<typeof DraftBubbleTeaOrder>>();
+  const [draft, setDraft] = useState<DraftBubbleTeaOrder>();
 
   useEffect(() => {
     setDraft(DraftBubbleTeaOrder.create({}));
@@ -340,13 +344,13 @@ export function CreateOrder() {
     e.preventDefault();
     if (!draft) return;
 
-    const validation = DraftBubbleTeaOrder.validate(draft); // [!code ++:5]
+    const validation = validateDraftOrder(draft); // [!code ++:5]
     if (validation.errors.length > 0) {
       console.log(validation.errors);
       return;
     }
 
-    const order = draft as co.loaded<typeof BubbleTeaOrder>;
+    const order = draft as BubbleTeaOrder;
 
     console.log("Order created:", order);
   };
@@ -372,10 +376,10 @@ import { co, z } from "jazz-tools";
 export const BubbleTeaOrder = co.map({
   name: z.string(),
 });
+export type BubbleTeaOrder = co.loaded<typeof BubbleTeaOrder>;
 
-export const DraftBubbleTeaOrder = co.map({
-  name: z.optional(z.string()),
-});
+export const DraftBubbleTeaOrder = BubbleTeaOrder.partial();
+export type DraftBubbleTeaOrder = co.loaded<typeof DraftBubbleTeaOrder>;
 
 export const AccountRoot = co.map({ // [!code ++:15]
   draft: DraftBubbleTeaOrder,
@@ -403,10 +407,10 @@ import { co, z } from "jazz-tools";
 export const BubbleTeaOrder = co.map({
   name: z.string(),
 });
+export type BubbleTeaOrder = co.loaded<typeof BubbleTeaOrder>;
 
-export const DraftBubbleTeaOrder = co.map({
-  name: z.optional(z.string()),
-});
+export const DraftBubbleTeaOrder = BubbleTeaOrder.partial();
+export type DraftBubbleTeaOrder = co.loaded<typeof DraftBubbleTeaOrder>;
 
 export const AccountRoot = co.map({
   draft: DraftBubbleTeaOrder,
@@ -452,20 +456,20 @@ import { co, z } from "jazz-tools";
 export const BubbleTeaOrder = co.map({
   name: z.string(),
 });
+export type BubbleTeaOrder = co.loaded<typeof BubbleTeaOrder>;
 
-export const DraftBubbleTeaOrder = co.map({
-  name: z.optional(z.string()),
-}).withHelpers((Self) => ({
-  validate(draft: co.loaded<typeof Self>) {
-    const errors: string[] = [];
+export const DraftBubbleTeaOrder = BubbleTeaOrder.partial();
+export type DraftBubbleTeaOrder = co.loaded<typeof DraftBubbleTeaOrder>;
 
-    if (!draft.name) {
-      errors.push("Please enter a name.");
-    }
+export function validateDraftOrder(draft: DraftBubbleTeaOrder) {
+  const errors: string[] = [];
 
-    return { errors };
-  },
-}));
+  if (!draft.name) {
+    errors.push("Please enter a name.");
+  }
+
+  return { errors };
+};
 
 export const AccountRoot = co.map({
   draft: DraftBubbleTeaOrder,
@@ -485,14 +489,14 @@ export const JazzAccount = co.account({
 // @filename: CreateOrder.tsx
 import * as React from "react";
 import { useCoState, useAccount } from "jazz-tools/react";
-import { BubbleTeaOrder, DraftBubbleTeaOrder, JazzAccount } from "schema";
+import { BubbleTeaOrder, DraftBubbleTeaOrder, JazzAccount, validateDraftOrder } from "schema";
 import { co } from "jazz-tools";
 
 export function OrderForm({
   order,
   onSave,
 }: {
-  order: co.loaded<typeof BubbleTeaOrder> | co.loaded<typeof DraftBubbleTeaOrder>;
+  order: BubbleTeaOrder | DraftBubbleTeaOrder;
   onSave?: (e: React.FormEvent<HTMLFormElement>) => void;
 }) {
   return (
@@ -527,13 +531,13 @@ export function CreateOrder() {
     const draft = me.root.draft; // [!code ++:2]
     if (!draft) return;
 
-    const validation = DraftBubbleTeaOrder.validate(draft);
+    const validation = validateDraftOrder(draft);
     if (validation.errors.length > 0) {
       console.log(validation.errors);
       return;
     }
 
-    const order = draft as co.loaded<typeof BubbleTeaOrder>;
+    const order = draft as BubbleTeaOrder;
     console.log("Order created:", order);
 
     // create a new empty draft
@@ -577,23 +581,27 @@ Simply add a `hasChanges` helper to your schema.
 import { co, z } from "jazz-tools";
 // ---cut---
 // schema.ts
-export const DraftBubbleTeaOrder = co.map({
-  name: z.optional(z.string()),
-}).withHelpers((Self) => ({
-  validate(draft: co.loaded<typeof Self>) {
-    const errors: string[] = [];
+export const BubbleTeaOrder = co.map({
+  name: z.string(),
+});
+export type BubbleTeaOrder = co.loaded<typeof BubbleTeaOrder>;
 
-    if (!draft.name) {
-      errors.push("Plese enter a name.");
-    }
+export const DraftBubbleTeaOrder = BubbleTeaOrder.partial();
+export type DraftBubbleTeaOrder = co.loaded<typeof DraftBubbleTeaOrder>;
 
-    return { errors };
-  },
+export function validateDraftOrder(draft: DraftBubbleTeaOrder) {
+  const errors: string[] = [];
 
-  hasChanges(draft?: co.loaded<typeof Self>) { // [!code ++:3]
-    return draft ? Object.keys(draft._edits).length : false;
-  },
-}));
+  if (!draft.name) {
+    errors.push("Please enter a name.");
+  }
+
+  return { errors };
+};
+
+export function hasChanges(draft?: DraftBubbleTeaOrder) { // [!code ++:3]
+  return draft ? Object.keys(draft._edits).length : false;
+};
 ```
 </CodeGroup>
 
@@ -608,24 +616,24 @@ import * as React from "react";
 export const BubbleTeaOrder = co.map({
   name: z.string(),
 });
+export type BubbleTeaOrder = co.loaded<typeof BubbleTeaOrder>;
 
-export const DraftBubbleTeaOrder = co.map({
-  name: z.optional(z.string()),
-}).withHelpers((Self) => ({
-  validate(draft: co.loaded<typeof Self>) {
-    const errors: string[] = [];
+export const DraftBubbleTeaOrder = BubbleTeaOrder.partial();
+export type DraftBubbleTeaOrder = co.loaded<typeof DraftBubbleTeaOrder>;
 
-    if (!draft.name) {
-      errors.push("Plese enter a name.");
-    }
+export function validateDraftOrder(draft: DraftBubbleTeaOrder) {
+  const errors: string[] = [];
 
-    return { errors };
-  },
+  if (!draft.name) {
+    errors.push("Please enter a name.");
+  }
 
-  hasChanges(draft?: co.loaded<typeof Self>) { // [!code ++:3]
-    return draft ? Object.keys(draft._edits).length : false;
-  },
-}));
+  return { errors };
+};
+
+export function hasChanges(draft?: DraftBubbleTeaOrder) {
+  return draft ? Object.keys(draft._edits).length : false;
+};
 
 export const AccountRoot = co.map({
   draft: DraftBubbleTeaOrder,
@@ -649,7 +657,7 @@ export function DraftIndicator() {
     resolve: { root: { draft: true } },
   });
 
-  if (DraftBubbleTeaOrder.hasChanges(me?.root.draft)) {
+  if (hasChanges(me?.root.draft)) {
     return (
       <p>You have a draft</p>
     );

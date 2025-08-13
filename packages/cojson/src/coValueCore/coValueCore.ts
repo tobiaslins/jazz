@@ -1,13 +1,14 @@
 import { UpDownCounter, ValueType, metrics } from "@opentelemetry/api";
 import { Result, err } from "neverthrow";
-import { PeerState } from "../PeerState.js";
-import { RawCoValue } from "../coValue.js";
-import { ControlledAccountOrAgent } from "../coValues/account.js";
-import { RawGroup } from "../coValues/group.js";
+import type { PeerState } from "../PeerState.js";
+import type { RawCoValue } from "../coValue.js";
+import type { ControlledAccountOrAgent } from "../coValues/account.js";
+import type { RawGroup } from "../coValues/group.js";
 import { CO_VALUE_LOADING_CONFIG } from "../config.js";
 import { coreToCoValue } from "../coreToCoValue.js";
 import {
   CryptoProvider,
+  Encrypted,
   Hash,
   KeyID,
   KeySecret,
@@ -15,29 +16,18 @@ import {
   SignerID,
   StreamingHash,
 } from "../crypto/crypto.js";
-import {
-  RawCoID,
-  SessionID,
-  TransactionID,
-  getParentGroupId,
-  isParentGroupReference,
-} from "../ids.js";
-import { parseJSON } from "../jsonStringify.js";
+import { RawCoID, SessionID, TransactionID } from "../ids.js";
+import { parseJSON, stableStringify } from "../jsonStringify.js";
 import { JsonValue } from "../jsonValue.js";
 import { LocalNode, ResolveAccountAgentError } from "../localNode.js";
 import { logger } from "../logger.js";
-import {
-  MemberState,
-  isKeyForKeyField,
-  validationPass,
-} from "../permissions.js";
+import { determineValidTransactions } from "../permissions.js";
 import { CoValueKnownState, PeerID, emptyKnownState } from "../sync.js";
 import { accountOrAgentIDfromSessionID } from "../typeUtils/accountOrAgentIDfromSessionID.js";
 import { expectGroup } from "../typeUtils/expectGroup.js";
-import { isAccountID } from "../typeUtils/isAccountID.js";
-import { SessionMap } from "./SessionMap.js";
 import { getDependedOnCoValuesFromRawData } from "./utils.js";
 import { CoValueHeader, Transaction, VerifiedState } from "./verifiedState.js";
+import { SessionMap } from "./SessionMap.js";
 
 export function idforHeader(
   header: CoValueHeader,
@@ -47,18 +37,14 @@ export function idforHeader(
   return `co_z${hash.slice("shortHash_z".length)}`;
 }
 
-const readKeyCache = new WeakMap<CoValueCore, { [id: KeyID]: KeySecret }>();
+export type DecryptedTransaction = {
+  txID: TransactionID;
+  changes: JsonValue[];
+  madeAt: number;
+  trusting?: boolean;
+};
 
 export type AvailableCoValueCore = CoValueCore & { verified: VerifiedState };
-
-export type ProcessedTransaction = {
-  txID: TransactionID;
-  tx: Transaction;
-  valid: true | false | null;
-  invalidReason?: string;
-  changes: JsonValue[] | null;
-  madeAt: number;
-};
 
 export class CoValueCore {
   // context
@@ -82,16 +68,11 @@ export class CoValueCore {
   get verified() {
     return this._verified;
   }
-
-  processedSorted: ProcessedTransaction[] = [];
-  nValidated: number = 0;
-  nDecrypted: number = 0;
-  // in Groups: own member state, in OwnedByGroup: group member state
-  memberState: MemberState | undefined;
-
   private readonly peers = new Map<
     PeerID,
-    | { type: "unknown" | "pending" | "available" | "unavailable" }
+    | {
+        type: "unknown" | "pending" | "available" | "unavailable";
+      }
     | {
         type: "errored";
         error: TryAddTransactionsError;
@@ -100,9 +81,11 @@ export class CoValueCore {
 
   // cached state and listeners
   private _cachedContent?: RawCoValue;
-  private readonly listeners: Set<
-    (core: CoValueCore, unsub: () => void) => void
-  > = new Set();
+  readonly listeners: Set<(core: CoValueCore, unsub: () => void) => void> =
+    new Set();
+  private readonly _decryptionCache: {
+    [key: Encrypted<JsonValue[], JsonValue>]: JsonValue[] | undefined;
+  } = {};
   private _cachedDependentOn?: Set<RawCoID>;
   private counter: UpDownCounter;
 
@@ -213,6 +196,26 @@ export class CoValueCore {
       }
       this.counter.add(1, { state: newState });
     }
+  }
+
+  unmount() {
+    // For simplicity, we don't unmount groups and accounts
+    if (this.verified?.header.ruleset.type === "group") {
+      return false;
+    }
+
+    if (this.listeners.size > 0) {
+      return false; // The coValue is still in use
+    }
+
+    this.counter.add(-1, { state: this.loadingState });
+
+    if (this.groupInvalidationSubscription) {
+      this.groupInvalidationSubscription();
+      this.groupInvalidationSubscription = undefined;
+    }
+
+    return true;
   }
 
   markNotFoundInPeer(peerId: PeerID) {
@@ -337,16 +340,6 @@ export class CoValueCore {
     this._verified = state.clone();
     this._cachedContent = undefined;
     this._cachedDependentOn = undefined;
-    for (const [sessionID, session] of this._verified.sessions.entries()) {
-      this.createProcessedTransactions(
-        sessionID,
-        session.transactions,
-        0,
-        null,
-      );
-    }
-    this.nValidated = 0;
-    this.nDecrypted = 0;
   }
 
   internalShamefullyResetCachedContent() {
@@ -374,10 +367,6 @@ export class CoValueCore {
       if (entry.isAvailable()) {
         this.groupInvalidationSubscription = entry.subscribe((_groupUpdate) => {
           this._cachedContent = undefined;
-          for (const tx of this.processedSorted) {
-            tx.valid = null;
-          }
-          this.nValidated = 0;
           this.notifyUpdate("immediate");
         }, false);
       } else {
@@ -396,7 +385,7 @@ export class CoValueCore {
   }
 
   knownStateWithStreaming(): CoValueKnownState {
-    if (this.isAvailable()) {
+    if (this.verified) {
       return this.verified.knownStateWithStreaming();
     } else {
       return emptyKnownState(this.id);
@@ -404,7 +393,7 @@ export class CoValueCore {
   }
 
   knownState(): CoValueKnownState {
-    if (this.isAvailable()) {
+    if (this.verified) {
       return this.verified.knownState();
     } else {
       return emptyKnownState(this.id);
@@ -461,9 +450,6 @@ export class CoValueCore {
 
         const signerID = this.crypto.getAgentSignerID(agent);
 
-        const nTxBefore =
-          this.verified.sessions.get(sessionID)?.transactions.length || 0;
-
         const result = this.verified.tryAddTransactions(
           sessionID,
           signerID,
@@ -475,72 +461,11 @@ export class CoValueCore {
         );
 
         if (result.isOk()) {
-          this.createProcessedTransactions(
-            sessionID,
-            newTransactions,
-            nTxBefore,
-            null,
-          );
-
           this.updateContentAndNotifyUpdate(notifyMode);
         }
 
         return result;
       });
-  }
-
-  createProcessedTransactions(
-    sessionID: SessionID,
-    newTransactions: Transaction[],
-    startTxIndex: number,
-    initialDecryptedChanges: JsonValue[][] | null,
-  ) {
-    for (const [idx, tx] of newTransactions.entries()) {
-      const processed: ProcessedTransaction = {
-        txID: {
-          sessionID,
-          txIndex: startTxIndex + idx,
-        },
-        tx,
-        valid: null,
-        changes: initialDecryptedChanges?.[idx] ?? null,
-        madeAt: tx.madeAt,
-      };
-
-      if (tx.privacy === "trusting" && !processed.changes) {
-        const changesString = tx.changes;
-        try {
-          processed.changes = parseJSON(changesString);
-        } catch (e) {
-          logger.error("Failed to parse trusting transaction on " + this.id, {
-            err: e,
-            txID: processed.txID,
-            changes: changesString.slice(0, 50),
-          });
-          processed.valid = false;
-          processed.invalidReason = "Failed to parse trusting changes";
-        }
-      }
-
-      // insert into processedSorted by ascending madeAt, then sessionID, then txIndex
-      const insertIndex = this.processedSorted.findIndex(
-        (tx) =>
-          tx.madeAt > processed.madeAt ||
-          (tx.madeAt === processed.madeAt &&
-            tx.txID.sessionID > processed.txID.sessionID) ||
-          (tx.madeAt === processed.madeAt &&
-            tx.txID.sessionID === processed.txID.sessionID &&
-            tx.txID.txIndex > processed.txID.txIndex),
-      );
-
-      if (insertIndex === -1) {
-        this.processedSorted.push(processed);
-      } else {
-        this.processedSorted.splice(insertIndex, 0, processed);
-        this.nValidated = Math.min(this.nValidated ?? 0, insertIndex);
-        this.nDecrypted = Math.min(this.nDecrypted ?? 0, insertIndex);
-      }
-    }
   }
 
   deferredUpdates = 0;
@@ -656,31 +581,35 @@ export class CoValueCore {
       privacyMode = { type: "trusting" };
     }
 
-    const nTxBefore =
-      this.verified.sessions.get(sessionID)?.transactions.length || 0;
-
-    const { transaction } = this.verified.makeNewTransaction(
+    const { transaction, signature } = this.verified.makeNewTransaction(
       sessionID,
       signerAgent,
       changes,
       privacyMode,
     );
 
-    this.createProcessedTransactions(sessionID, [transaction], nTxBefore, [
-      changes,
-    ]);
+    if (transaction.privacy === "private") {
+      this._decryptionCache[transaction.encryptedChanges] = changes;
+    }
 
     this.node.syncManager.recordTransactionsSize([transaction], "local");
 
+    const session = this.verified.sessions.get(sessionID);
+    const txIdx = session ? session.transactions.length - 1 : 0;
+
     this.updateContentAndNotifyUpdate("immediate");
-    void this.node.syncManager.requestCoValueSync(this);
+    this.node.syncManager.syncLocalTransaction(
+      this.verified,
+      transaction,
+      sessionID,
+      signature,
+      txIdx,
+    );
 
     return true;
   }
 
-  getCurrentContent(options?: {
-    ignorePrivateTransactions: true;
-  }): RawCoValue {
+  getCurrentContent(options?: { ignorePrivateTransactions: true }): RawCoValue {
     if (!this.verified) {
       throw new Error(
         "CoValueCore: getCurrentContent called on coValue without verified state",
@@ -702,106 +631,106 @@ export class CoValueCore {
     return newContent;
   }
 
-  validationPass() {
-    validationPass(this);
-    this.nValidated = this.processedSorted.length;
-  }
-
-  decryptionPass(options?: {
-    ignorePrivateTransactions: boolean;
-  }) {
-    let continouslyDescryptedUntil = this.nDecrypted;
-    for (let i = this.nDecrypted; i < this.processedSorted.length; i++) {
-      const processed = this.processedSorted[i]!;
-
-      if (!processed.changes && processed.valid === true) {
-        if (processed.tx.privacy === "trusting") {
-          logger.error(
-            "Trusting transaction should already have changes set " + this.id,
-            {
-              txID: processed.txID,
-              changes: processed.tx.changes.slice(0, 50),
-            },
-          );
-          processed.valid = false;
-          processed.invalidReason =
-            "Trusting transaction should already have changes set";
-          continue;
-        } else {
-          if (options?.ignorePrivateTransactions) {
-            continue;
-          }
-
-          const readKey = this.getReadKey(processed.tx.keyUsed);
-
-          if (!readKey) {
-            continue;
-          }
-
-          const decryptedString = this.crypto.decryptRawForTransaction(
-            processed.tx.encryptedChanges,
-            readKey,
-            {
-              in: this.id,
-              tx: processed.txID,
-            },
-          );
-
-          if (!decryptedString) {
-            processed.valid = false;
-            processed.invalidReason =
-              "Failed to decrypt private transaction despite having key";
-            continue;
-          }
-
-          try {
-            processed.changes = decryptedString && parseJSON(decryptedString);
-          } catch (e) {
-            logger.error("Failed to parse private transaction on " + this.id, {
-              err: e,
-              txID: processed.txID,
-              changes: decryptedString?.slice(0, 50),
-            });
-            processed.valid = false;
-            processed.invalidReason = "Failed to parse private changes";
-            continue;
-          }
-        }
-      }
-    }
-    this.nDecrypted = continouslyDescryptedUntil;
-  }
-
-  getValidDecryptedTransactions(options?: {
+  getValidTransactions(options?: {
     ignorePrivateTransactions: boolean;
     knownTransactions?: CoValueKnownState["sessions"];
-  }): (ProcessedTransaction & {
-    valid: true;
-    changes: JsonValue[];
-  })[] {
-    this.validationPass();
-    this.decryptionPass(options);
+  }): DecryptedTransaction[] {
+    const validTransactions = determineValidTransactions(
+      this,
+      options?.knownTransactions,
+    );
 
-    return this.processedSorted.filter(
-      (tx) =>
-        tx.valid === true &&
-        tx.changes !== null &&
-        (options?.ignorePrivateTransactions
-          ? tx.tx.privacy !== "private"
-          : true) &&
-        (options?.knownTransactions
-          ? tx.txID.txIndex >
-            (options.knownTransactions[tx.txID.sessionID] ?? -1)
-          : true),
-    ) as (ProcessedTransaction & {
-      valid: true;
-      changes: JsonValue[];
-    })[];
+    const allTransactions: DecryptedTransaction[] = [];
+
+    for (const { txID, tx } of validTransactions) {
+      if (options?.knownTransactions?.[txID.sessionID]! >= txID.txIndex) {
+        continue;
+      }
+
+      if (tx.privacy === "trusting") {
+        try {
+          allTransactions.push({
+            txID,
+            madeAt: tx.madeAt,
+            changes: parseJSON(tx.changes),
+            trusting: true,
+          });
+        } catch (e) {
+          logger.error("Failed to parse trusting transaction on " + this.id, {
+            err: e,
+            txID,
+            changes: tx.changes.slice(0, 50),
+          });
+        }
+        continue;
+      }
+
+      if (options?.ignorePrivateTransactions) {
+        continue;
+      }
+
+      const readKey = this.getReadKey(tx.keyUsed);
+
+      if (!readKey) {
+        continue;
+      }
+
+      let decryptedChanges = this._decryptionCache[tx.encryptedChanges];
+
+      if (!decryptedChanges) {
+        const decryptedString = this.crypto.decryptRawForTransaction(
+          tx.encryptedChanges,
+          readKey,
+          {
+            in: this.id,
+            tx: txID,
+          },
+        );
+
+        try {
+          decryptedChanges = decryptedString && parseJSON(decryptedString);
+        } catch (e) {
+          logger.error("Failed to parse private transaction on " + this.id, {
+            err: e,
+            txID,
+            changes: decryptedString?.slice(0, 50),
+          });
+          continue;
+        }
+        this._decryptionCache[tx.encryptedChanges] = decryptedChanges;
+      }
+
+      if (!decryptedChanges) {
+        logger.error("Failed to decrypt transaction despite having key", {
+          err: new Error("Failed to decrypt transaction despite having key"),
+        });
+        continue;
+      }
+
+      allTransactions.push({
+        txID,
+        madeAt: tx.madeAt,
+        changes: decryptedChanges,
+      });
+    }
+
+    return allTransactions;
+  }
+
+  getValidSortedTransactions(options?: {
+    ignorePrivateTransactions: boolean;
+    knownTransactions: CoValueKnownState["sessions"];
+  }): DecryptedTransaction[] {
+    const allTransactions = this.getValidTransactions(options);
+
+    allTransactions.sort(this.compareTransactions);
+
+    return allTransactions;
   }
 
   compareTransactions(
-    a: Pick<ProcessedTransaction, "madeAt" | "txID">,
-    b: Pick<ProcessedTransaction, "madeAt" | "txID">,
+    a: Pick<DecryptedTransaction, "madeAt" | "txID">,
+    b: Pick<DecryptedTransaction, "madeAt" | "txID">,
   ) {
     if (a.madeAt !== b.madeAt) {
       return a.madeAt - b.madeAt;
@@ -825,20 +754,7 @@ export class CoValueCore {
     }
 
     if (this.verified.header.ruleset.type === "group") {
-      const content = expectGroup(this.getCurrentContent());
-
-      const currentKeyId = content.getCurrentReadKeyId();
-
-      if (!currentKeyId) {
-        throw new Error("No readKey set");
-      }
-
-      const secret = this.getReadKey(currentKeyId);
-
-      return {
-        secret: secret,
-        id: currentKeyId,
-      };
+      return expectGroup(this.getCurrentContent()).getCurrentReadKey();
     } else if (this.verified.header.ruleset.type === "ownedByGroup") {
       return this.node
         .expectCoValueLoaded(this.verified.header.ruleset.group)
@@ -850,181 +766,41 @@ export class CoValueCore {
     }
   }
 
+  readKeyCache = new Map<KeyID, KeySecret>();
   getReadKey(keyID: KeyID): KeySecret | undefined {
-    let key = readKeyCache.get(this)?.[keyID];
-    if (!key) {
-      key = this.getUncachedReadKey(keyID);
-      if (key) {
-        let cache = readKeyCache.get(this);
-        if (!cache) {
-          cache = {};
-          readKeyCache.set(this, cache);
-        }
-        cache[keyID] = key;
-      }
-    }
-    return key;
-  }
+    // We want to check the cache here, to skip re-computing the group content
+    const cachedSecret = this.readKeyCache.get(keyID);
 
-  getUncachedReadKey(keyID: KeyID): KeySecret | undefined {
+    if (cachedSecret) {
+      return cachedSecret;
+    }
+
     if (!this.verified) {
       throw new Error(
         "CoValueCore: getUncachedReadKey called on coValue without verified state",
       );
     }
 
+    // Getting the readKey from accounts
     if (this.verified.header.ruleset.type === "group") {
       const content = expectGroup(
-        this.getCurrentContent({ ignorePrivateTransactions: true }), // to prevent recursion
-      );
-      const keyForEveryone = content.get(`${keyID}_for_everyone`);
-      if (keyForEveryone) {
-        return keyForEveryone;
-      }
-
-      // Try to find key revelation for us
-      const currentAgentOrAccountID = accountOrAgentIDfromSessionID(
-        this.node.currentSessionID,
+        // load the account without private transactions, because we are here
+        // to be able to decrypt those
+        this.getCurrentContent({ ignorePrivateTransactions: true }),
       );
 
-      // being careful here to avoid recursion
-      const lookupAccountOrAgentID = isAccountID(currentAgentOrAccountID)
-        ? this.id === currentAgentOrAccountID
-          ? this.crypto.getAgentID(this.node.agentSecret) // in accounts, the read key is revealed for the primitive agent
-          : currentAgentOrAccountID // current account ID
-        : currentAgentOrAccountID; // current agent ID
-
-      const lastReadyKeyEdit = content.lastEditAt(
-        `${keyID}_for_${lookupAccountOrAgentID}`,
-      );
-
-      if (lastReadyKeyEdit?.value) {
-        const revealer = lastReadyKeyEdit.by;
-        const revealerAgent = this.node
-          .resolveAccountAgent(revealer, "Expected to know revealer")
-          ._unsafeUnwrap({ withStackTrace: true });
-
-        const secret = this.crypto.unseal(
-          lastReadyKeyEdit.value,
-          this.crypto.getAgentSealerSecret(this.node.agentSecret), // being careful here to avoid recursion
-          this.crypto.getAgentSealerID(revealerAgent),
-          {
-            in: this.id,
-            tx: lastReadyKeyEdit.tx,
-          },
-        );
-
-        if (secret) {
-          return secret as KeySecret;
-        }
-      }
-
-      // Try to find indirect revelation through previousKeys
-
-      for (const co of content.keys()) {
-        if (isKeyForKeyField(co) && co.startsWith(keyID)) {
-          const encryptingKeyID = co.split("_for_")[1] as KeyID;
-          const encryptingKeySecret = this.getReadKey(encryptingKeyID);
-
-          if (!encryptingKeySecret) {
-            continue;
-          }
-
-          const encryptedPreviousKey = content.get(co)!;
-
-          const secret = this.crypto.decryptKeySecret(
-            {
-              encryptedID: keyID,
-              encryptingID: encryptingKeyID,
-              encrypted: encryptedPreviousKey,
-            },
-            encryptingKeySecret,
-          );
-
-          if (secret) {
-            return secret as KeySecret;
-          } else {
-            logger.warn(
-              `Encrypting ${encryptingKeyID} key didn't decrypt ${keyID}`,
-            );
-          }
-        }
-      }
-
-      // try to find revelation to parent group read keys
-      for (const co of content.keys()) {
-        if (isParentGroupReference(co)) {
-          const parentGroupID = getParentGroupId(co);
-          const parentGroup = this.node.expectCoValueLoaded(
-            parentGroupID,
-            "Expected parent group to be loaded",
-          );
-
-          const parentKeys = this.findValidParentKeys(
-            keyID,
-            content,
-            parentGroup,
-          );
-
-          for (const parentKey of parentKeys) {
-            const revelationForParentKey = content.get(
-              `${keyID}_for_${parentKey.id}`,
-            );
-
-            if (revelationForParentKey) {
-              const secret = parentGroup.crypto.decryptKeySecret(
-                {
-                  encryptedID: keyID,
-                  encryptingID: parentKey.id,
-                  encrypted: revelationForParentKey,
-                },
-                parentKey.secret,
-              );
-
-              if (secret) {
-                return secret as KeySecret;
-              } else {
-                logger.warn(
-                  `Encrypting parent ${parentKey.id} key didn't decrypt ${keyID}`,
-                );
-              }
-            }
-          }
-        }
-      }
-
-      return undefined;
+      return content.getReadKey(keyID);
     } else if (this.verified.header.ruleset.type === "ownedByGroup") {
-      return this.node
-        .expectCoValueLoaded(this.verified.header.ruleset.group)
-        .getReadKey(keyID);
+      return expectGroup(
+        this.node
+          .expectCoValueLoaded(this.verified.header.ruleset.group)
+          .getCurrentContent(),
+      ).getReadKey(keyID);
     } else {
       throw new Error(
         "Only groups or values owned by groups have read secrets",
       );
     }
-  }
-
-  findValidParentKeys(keyID: KeyID, group: RawGroup, parentGroup: CoValueCore) {
-    const validParentKeys: { id: KeyID; secret: KeySecret }[] = [];
-
-    for (const co of group.keys()) {
-      if (isKeyForKeyField(co) && co.startsWith(keyID)) {
-        const encryptingKeyID = co.split("_for_")[1] as KeyID;
-        const encryptingKeySecret = parentGroup.getReadKey(encryptingKeyID);
-
-        if (!encryptingKeySecret) {
-          continue;
-        }
-
-        validParentKeys.push({
-          id: encryptingKeyID,
-          secret: encryptingKeySecret,
-        });
-      }
-    }
-
-    return validParentKeys;
   }
 
   getGroup(): RawGroup {
@@ -1073,9 +849,7 @@ export class CoValueCore {
     }
   }
 
-  waitForSync(options?: {
-    timeout?: number;
-  }) {
+  waitForSync(options?: { timeout?: number }) {
     return this.node.syncManager.waitForSync(this.id, options?.timeout);
   }
 
@@ -1202,7 +976,6 @@ export type InvalidSignatureError = {
   newSignature: Signature;
   sessionID: SessionID;
   signerID: SignerID;
-  error: Error;
 };
 
 export type TriedToAddTransactionsWithoutVerifiedStateErrpr = {

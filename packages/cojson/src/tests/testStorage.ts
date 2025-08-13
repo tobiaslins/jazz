@@ -5,11 +5,7 @@ import { join } from "node:path";
 import Database, { type Database as DatabaseT } from "libsql";
 import { onTestFinished } from "vitest";
 import { RawCoID, StorageAPI } from "../exports";
-import {
-  SQLiteDatabaseDriver,
-  StorageApiAsync,
-  StorageApiSync,
-} from "../storage";
+import { SQLiteDatabaseDriver } from "../storage";
 import { getSqliteStorage } from "../storage/sqlite";
 import {
   SQLiteDatabaseDriverAsync,
@@ -99,7 +95,11 @@ export async function createAsyncStorage({
   filename,
   nodeName = "client",
   storageName = "storage",
-}: { filename?: string; nodeName: string; storageName: string }) {
+}: {
+  filename?: string;
+  nodeName: string;
+  storageName: string;
+}) {
   const storage = await getSqliteStorageAsync(
     new LibSQLSqliteAsyncDriver(getDbPath(filename)),
   );
@@ -117,7 +117,11 @@ export function createSyncStorage({
   filename,
   nodeName = "client",
   storageName = "storage",
-}: { filename?: string; nodeName: string; storageName: string }) {
+}: {
+  filename?: string;
+  nodeName: string;
+  storageName: string;
+}) {
   const storage = getSqliteStorage(
     new LibSQLSqliteSyncDriver(getDbPath(filename)),
   );
@@ -127,7 +131,7 @@ export function createSyncStorage({
   return storage;
 }
 
-function getDbPath(defaultDbPath?: string) {
+export function getDbPath(defaultDbPath?: string) {
   const dbPath = defaultDbPath ?? join(tmpdir(), `test-${randomUUID()}.db`);
 
   if (!defaultDbPath) {
@@ -148,13 +152,11 @@ function trackStorageMessages(
   const originalLoad = storage.load;
 
   storage.store = function (data, correctionCallback) {
-    for (const msg of data ?? []) {
-      SyncMessagesLog.add({
-        from: nodeName,
-        to: storageName,
-        msg,
-      });
-    }
+    SyncMessagesLog.add({
+      from: nodeName,
+      to: storageName,
+      msg: data,
+    });
 
     return originalStore.call(storage, data, (correction) => {
       SyncMessagesLog.add({
@@ -167,7 +169,19 @@ function trackStorageMessages(
         },
       });
 
-      return correctionCallback(correction);
+      const correctionMessages = correctionCallback(correction);
+
+      if (correctionMessages) {
+        for (const msg of correctionMessages) {
+          SyncMessagesLog.add({
+            from: nodeName,
+            to: storageName,
+            msg,
+          });
+        }
+      }
+
+      return correctionMessages;
     });
   };
 

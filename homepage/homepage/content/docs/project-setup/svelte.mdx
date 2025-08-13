@@ -28,18 +28,19 @@ See the [schema docs](/docs/schemas/covalues) for more information.
 <CodeGroup>
 ```ts
 // src/lib/schema.ts
-import { Account, Profile, coField } from "jazz-tools";
+import { co, z } from "jazz-tools"
 
-export class MyProfile extends Profile {
-  name = coField.string;
-  counter = coField.number; // This will be publically visible
-}
+export const MyProfile = co.profile({
+	name: z.string(),
+	counter: z.number()
+});
 
-export class MyAccount extends Account {
-  profile = coField.ref(MyProfile);
+export const root = co.map({});
 
-  // ...
-}
+export const UserAccount = co.account({
+	root,
+	profile: MyProfile
+});
 ```
 </CodeGroup>
 
@@ -48,17 +49,17 @@ export class MyAccount extends Account {
 <CodeGroup>
 ```svelte
 <!-- src/routes/+layout.svelte -->
-
 <script lang="ts">
-  import { JazzSvelteProvider } from 'jazz-tools/svelte';
+  import { JazzSvelteProvider } from "jazz-tools/svelte";
+
+  let { children } = $props();
 
   // Example configuration for authentication and peer connection
   let sync = { peer: "wss://cloud.jazz.tools/?key=you@example.com" };
-  let AccountSchema = MyAccount;
 </script>
 
-<JazzSvelteProvider {sync} {AccountSchema}>
-  <App />
+<JazzSvelteProvider {sync} AccountSchema={MyAccount}>
+  {@render children?.()}
 </JazzSvelteProvider>
 ```
 </CodeGroup>
@@ -69,12 +70,11 @@ export class MyAccount extends Account {
 ```svelte
 <!-- src/routes/+page.svelte -->
 <script lang="ts">
-  import { useCoState, useAccount } from 'jazz-tools/svelte';
-  import { MyProfile } from './schema';
+	import { CoState, AccountCoState } from "jazz-tools/svelte";
+	import { MyProfile, UserAccount } from "$lib/schema";
 
-  const { me } = useAccount();
-
-  const profile = $derived(useCoState(MyProfile, me._refs.profile.id));
+	const me = new AccountCoState(UserAccount);
+	const profile = new CoState(MyProfile, me.current?._refs.profile?.id);
 
   function increment() {
     if (!profile.current) return;
@@ -82,7 +82,7 @@ export class MyAccount extends Account {
   }
 </script>
 
-<button on:click={increment}>
+<button onclick={increment}>
   Count: {profile.current?.counter}
 </button>
 ```

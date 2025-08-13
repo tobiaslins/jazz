@@ -60,6 +60,60 @@ describe("co.map and Zod schema compatibility", () => {
       expect(map.createdAt).toEqual(undefined);
     });
 
+    it("should not handle nullable date fields", () => {
+      const schema = co.map({
+        updatedAt: z.date().nullable(),
+      });
+      expect(() => schema.create({ updatedAt: null })).toThrow(
+        "Nullable z.date() is not supported",
+      );
+    });
+
+    it("should handle nullable fields", () => {
+      const schema = co.map({
+        updatedAt: z.string().nullable(),
+      });
+
+      const map = schema.create({
+        updatedAt: null,
+      });
+      expect(map.updatedAt).toBeNull();
+
+      map.updatedAt = "Test";
+      expect(map.updatedAt).toEqual("Test");
+    });
+
+    it("should handle nullish fields", () => {
+      const schema = co.map({
+        updatedAt: z.string().nullish(),
+      });
+
+      const map = schema.create({});
+      expect(map.updatedAt).toBeUndefined();
+
+      map.updatedAt = null;
+      expect(map.updatedAt).toBeNull();
+
+      map.updatedAt = "Test";
+      expect(map.updatedAt).toEqual("Test");
+    });
+
+    it("should handle nested optional fields", async () => {
+      const RecursiveZodSchema = z.object({
+        get optionalField() {
+          return RecursiveZodSchema.optional();
+        },
+      });
+      const CoMapSchema = co.map({ field: RecursiveZodSchema });
+
+      const map = CoMapSchema.create({
+        field: { optionalField: { optionalField: {} } },
+      });
+      expect(
+        map.field.optionalField!.optionalField!.optionalField,
+      ).toBeUndefined();
+    });
+
     it("should handle literal fields", async () => {
       const schema = co.map({
         status: z.literal("active"),
@@ -368,51 +422,6 @@ describe("co.map and Zod schema compatibility", () => {
     //   expect(failedMap.result).toEqual({ status: "failed", error: "error" });
     // });
 
-    it("should handle discriminated unions of CoValues", () => {
-      const Dog = co.map({
-        type: z.literal("dog"),
-        breed: z.string(),
-      });
-
-      const Cat = co.map({
-        type: z.literal("cat"),
-        name: z.string(),
-      });
-
-      const Person = co.map({
-        pet: z.discriminatedUnion("type", [Dog, Cat]),
-      });
-
-      const person = Person.create({
-        pet: Dog.create({ type: "dog", breed: "Labrador" }),
-      });
-
-      expect(person.pet).toEqual({ type: "dog", breed: "Labrador" });
-
-      person.pet = Cat.create({ type: "cat", name: "Whiskers" });
-
-      expect(person.pet).toEqual({ type: "cat", name: "Whiskers" });
-    });
-
-    it("should handle optional CoValues", () => {
-      const Dog = co.map({
-        name: z.string(),
-        breed: z.string(),
-      });
-
-      const Person = co.map({
-        pet: z.optional(Dog),
-      });
-
-      const person = Person.create({});
-
-      expect(person.pet).toBeUndefined();
-
-      person.pet = Dog.create({ name: "Rex", breed: "Labrador" });
-
-      expect(person.pet).toEqual({ name: "Rex", breed: "Labrador" });
-    });
-
     // it("should handle intersections", async () => {
     //   const schema = co.map({
     //     value: z.intersection(
@@ -501,5 +510,55 @@ describe("co.map and Zod schema compatibility", () => {
       const map = schema.create({ readonly: { name: "John" } }, account);
       expect(map.readonly).toEqual({ name: "John" });
     });
+  });
+});
+
+describe("z.object() and CoValue schema compatibility", () => {
+  it("z.object() should throw an error when used with CoValue schema values", () => {
+    const coValueSchema = co.map({});
+    expect(() => z.object({ value: coValueSchema })).toThrow(
+      "z.object() does not support collaborative types as values. Use co.map() instead",
+    );
+  });
+
+  it("z.strictObject() should throw an error when used with CoValue schema values", () => {
+    const coValueSchema = co.map({});
+    expect(() => z.strictObject({ value: coValueSchema })).toThrow(
+      "z.strictObject() does not support collaborative types as values. Use co.map() instead",
+    );
+  });
+
+  it("z.object() should continue to work with cyclic references", () => {
+    const NoteItem = z.object({
+      type: z.literal("note"),
+      content: z.string(),
+    });
+
+    const ReferenceItem = z.object({
+      type: z.literal("reference"),
+      content: z.string(),
+
+      get child(): z.ZodDiscriminatedUnion<
+        [typeof NoteItem, typeof ReferenceItem]
+      > {
+        return ProjectContextItem;
+      },
+    });
+
+    const ProjectContextItem = z.discriminatedUnion("type", [
+      NoteItem,
+      ReferenceItem,
+    ]);
+
+    const referenceItem = ReferenceItem.parse({
+      type: "reference",
+      content: "Hello",
+      child: {
+        type: "note",
+        content: "Hello",
+      },
+    });
+
+    expect(referenceItem.child.type).toEqual("note");
   });
 });

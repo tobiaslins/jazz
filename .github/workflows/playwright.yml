@@ -55,6 +55,7 @@ jobs:
             "examples/inspector"
             "examples/music-player"
             "examples/organization"
+            "examples/server-worker-http"
             "starters/react-passkey-auth"
             "starters/svelte-passkey-auth"
             "tests/jazz-svelte"

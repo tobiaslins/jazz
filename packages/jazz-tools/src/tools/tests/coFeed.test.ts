@@ -13,15 +13,9 @@ import {
   FileStream,
   Group,
   co,
-  cojsonInternals,
   isControlledAccount,
   z,
 } from "../index.js";
-import {
-  Loaded,
-  createJazzContextFromExistingCredentials,
-  randomSessionProvider,
-} from "../internal.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 import { setupTwoNodes } from "./utils.js";
 
@@ -56,6 +50,54 @@ describe("Simple CoFeed operations", async () => {
   test("Construction", () => {
     expect(stream.perAccount[me.id]?.value).toEqual("milk");
     expect(stream.perSession[me.sessionID]?.value).toEqual("milk");
+  });
+
+  describe("Create CoFeed with a reference", () => {
+    let me: Account;
+
+    beforeEach(async () => {
+      await setupJazzTestSync();
+      me = await createJazzTestAccount({
+        isCurrentActiveAccount: true,
+        creationProps: { name: "Hermes Puggington" },
+      });
+    });
+
+    test("using a CoValue", () => {
+      const Text = co.plainText();
+      const TextStream = co.feed(Text);
+
+      const stream = TextStream.create([Text.create("milk")], { owner: me });
+
+      const coValue = stream.perAccount[me.id]?.value;
+      expect(coValue?.toString()).toEqual("milk");
+    });
+
+    describe("using JSON", () => {
+      test("automatically creates CoValues for nested objects", () => {
+        const Text = co.plainText();
+        const TextStream = co.feed(Text);
+
+        const stream = TextStream.create(["milk"], { owner: me });
+
+        const coValue = stream.perAccount[me.id]?.value;
+        expect(coValue?.toString()).toEqual("milk");
+      });
+
+      test("can create a coPlainText from an empty string", () => {
+        const Schema = co.feed(co.plainText());
+        const feed = Schema.create([""]);
+        expect(feed.perAccount[me.id]?.value?.toString()).toBe("");
+      });
+    });
+  });
+
+  test("Construction with nullable values", () => {
+    const NullableTestStream = co.feed(z.string().nullable());
+    const stream = NullableTestStream.create(["milk", null], { owner: me });
+
+    expect(stream.perAccount[me.id]?.value).toEqual(null);
+    expect(stream.perSession[me.sessionID]?.value).toEqual(null);
   });
 
   test("Construction with an Account", () => {

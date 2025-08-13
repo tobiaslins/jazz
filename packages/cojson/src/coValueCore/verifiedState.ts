@@ -1,7 +1,10 @@
-import { Result } from "neverthrow";
+import { Result, err, ok } from "neverthrow";
 import { AnyRawCoValue } from "../coValue.js";
-import { ControlledAccountOrAgent } from "../coValues/account.js";
-import { MAX_RECOMMENDED_TX_SIZE } from "../config.js";
+import {
+  createContentMessage,
+  exceedsRecommendedSize,
+  getTransactionSize,
+} from "../coValueContentMessage.js";
 import {
   CryptoProvider,
   Encrypted,
@@ -13,13 +16,14 @@ import {
   StreamingHash,
 } from "../crypto/crypto.js";
 import { RawCoID, SessionID, TransactionID } from "../ids.js";
-import { Stringified, stableStringify } from "../jsonStringify.js";
+import { Stringified } from "../jsonStringify.js";
 import { JsonObject, JsonValue } from "../jsonValue.js";
 import { PermissionsDef as RulesetDef } from "../permissions.js";
-import { getPriorityFromHeader } from "../priority.js";
 import { CoValueKnownState, NewContentMessage } from "../sync.js";
-import { SessionLog, SessionMap } from "./SessionMap.js";
+import { InvalidHashError, InvalidSignatureError } from "./coValueCore.js";
 import { TryAddTransactionsError } from "./coValueCore.js";
+import { SessionLog, SessionMap } from "./SessionMap.js";
+import { ControlledAccountOrAgent } from "../coValues/account.js";
 
 export type CoValueHeader = {
   type: AnyRawCoValue["type"];
@@ -55,6 +59,7 @@ export class VerifiedState {
   private _cachedKnownState?: CoValueKnownState;
   private _cachedNewContentSinceEmpty: NewContentMessage[] | undefined;
   private streamingKnownState?: CoValueKnownState["sessions"];
+  public lastAccessed: number | undefined;
 
   constructor(
     id: RawCoID,
@@ -78,7 +83,7 @@ export class VerifiedState {
       this.crypto,
       this.header,
       this.sessions.clone(),
-      this.streamingKnownState,
+      this.streamingKnownState ? { ...this.streamingKnownState } : undefined,
     );
   }
 
@@ -128,11 +133,22 @@ export class VerifiedState {
     return result;
   }
 
-  testExpectedHashAfter(
+  getLastSignatureCheckpoint(sessionID: SessionID): number {
+    const sessionLog = this.sessions.get(sessionID);
+
+    if (!sessionLog?.signatureAfter) return -1;
+
+    return Object.keys(sessionLog.signatureAfter).reduce(
+      (max, idx) => Math.max(max, parseInt(idx)),
+      -1,
+    );
+  }
+
+  expectedNewHashAfter(
     sessionID: SessionID,
-    transactions: Transaction[],
+    newTransactions: Transaction[],
   ): { expectedNewHash: Hash } {
-    return this.sessions.testExpectedHashAfter(sessionID, transactions);
+    return this.sessions.testExpectedHashAfter(sessionID, newTransactions);
   }
 
   newContentSince(
@@ -144,13 +160,11 @@ export class VerifiedState {
       return this._cachedNewContentSinceEmpty;
     }
 
-    let currentPiece: NewContentMessage = {
-      action: "content",
-      id: this.id,
-      header: knownState?.header ? undefined : this.header,
-      priority: getPriorityFromHeader(this.header),
-      new: {},
-    };
+    let currentPiece: NewContentMessage = createContentMessage(
+      this.id,
+      this.header,
+      !knownState?.header,
+    );
 
     const pieces = [currentPiece];
 
@@ -201,25 +215,16 @@ export class VerifiedState {
         const oldPieceSize = pieceSize;
         for (let txIdx = firstNewTxIdx; txIdx < afterLastNewTxIdx; txIdx++) {
           const tx = log.transactions[txIdx]!;
-          pieceSize +=
-            tx.privacy === "private"
-              ? tx.encryptedChanges.length
-              : tx.changes.length;
+          pieceSize += getTransactionSize(tx);
         }
 
-        if (pieceSize >= MAX_RECOMMENDED_TX_SIZE) {
+        if (exceedsRecommendedSize(pieceSize)) {
           if (!currentPiece.expectContentUntil && pieces.length === 1) {
             currentPiece.expectContentUntil =
               this.knownStateWithStreaming().sessions;
           }
 
-          currentPiece = {
-            action: "content",
-            id: this.id,
-            header: undefined,
-            new: {},
-            priority: getPriorityFromHeader(this.header),
-          };
+          currentPiece = createContentMessage(this.id, this.header, false);
           pieces.push(currentPiece);
           pieceSize = pieceSize - oldPieceSize;
         }
@@ -312,10 +317,25 @@ export class VerifiedState {
     if (this._cachedKnownState) {
       return this._cachedKnownState;
     } else {
-      const knownState = this.sessions.knownState();
+      const knownState = this.knownStateUncached();
       this._cachedKnownState = knownState;
       return knownState;
     }
+  }
+
+  /** @internal */
+  knownStateUncached(): CoValueKnownState {
+    const sessions: CoValueKnownState["sessions"] = {};
+
+    for (const [sessionID, sessionLog] of this.sessions.entries()) {
+      sessions[sessionID] = sessionLog.transactions.length;
+    }
+
+    return {
+      id: this.id,
+      header: true,
+      sessions,
+    };
   }
 }
 

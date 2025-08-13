@@ -1,5 +1,6 @@
 import { BunLogo } from "@/components/icons/BunLogo";
 import { CloudflareWorkerLogo } from "@/components/icons/CloudflareWorkerLogo";
+import { VercelLogo } from "@/components/icons/VercelLogo";
 import { ExpoLogo } from "@/components/icons/ExpoLogo";
 import { JavascriptLogo } from "@/components/icons/JavascriptLogo";
 import { NodejsLogo } from "@/components/icons/NodejsLogo";
@@ -45,13 +46,17 @@ const serverWorkers = [
     href: "/docs/react/server-workers",
   },
   {
-    name: "Cloudflare Workers",
-    icon: CloudflareWorkerLogo,
-  },
-  {
     name: "Bun",
     icon: BunLogo,
   },
+  {
+    name: "Vercel",
+    icon: VercelLogo,
+  },
+  {
+    name: "CF Workers",
+    icon: CloudflareWorkerLogo,
+  }
 ];
 
 export function SupportedEnvironmentsSection() {

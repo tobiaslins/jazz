@@ -1,6 +1,6 @@
 import { Result, err, ok } from "neverthrow";
 import { ControlledAccountOrAgent } from "../coValues/account.js";
-import { MAX_RECOMMENDED_TX_SIZE } from "../config.js";
+import { TRANSACTION_CONFIG } from "../config.js";
 import type {
   CryptoProvider,
   Hash,
@@ -16,6 +16,7 @@ import { JsonValue } from "../jsonValue.js";
 import { CoValueKnownState } from "../sync.js";
 import { TryAddTransactionsError } from "./coValueCore.js";
 import { Transaction } from "./verifiedState.js";
+import { exceedsRecommendedSize } from "../coValueContentMessage.js";
 
 export type SessionLog = {
   signerID: SignerID;
@@ -85,7 +86,6 @@ export class SessionMap {
         sessionID,
         newSignature,
         signerID,
-        error: e as Error,
       } satisfies TryAddTransactionsError);
     }
   }
@@ -150,9 +150,7 @@ export class SessionMap {
       0,
     );
 
-    if (
-      sessionLog.txSizeSinceLastInbetweenSignature > MAX_RECOMMENDED_TX_SIZE
-    ) {
+    if (exceedsRecommendedSize(sessionLog.txSizeSinceLastInbetweenSignature)) {
       sessionLog.signatureAfter[sessionLog.transactions.length - 1] = signature;
       sessionLog.txSizeSinceLastInbetweenSignature = 0;
     }

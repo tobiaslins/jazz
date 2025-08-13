@@ -15,15 +15,15 @@ import {
   waitFor,
 } from "./testUtils";
 
-// We want to simulate a real world communication that happens asynchronously
-TEST_NODE_CONFIG.withAsyncPeers = true;
-
 let jazzCloud: ReturnType<typeof setupTestNode>;
 
 // Set a short timeout to make the tests on unavailable complete faster
 setCoValueLoadingRetryDelay(100);
 
 beforeEach(async () => {
+  // We want to simulate a real world communication that happens asynchronously
+  TEST_NODE_CONFIG.withAsyncPeers = true;
+
   SyncMessagesLog.clear();
   jazzCloud = setupTestNode({ isSyncServer: true });
 });
@@ -295,10 +295,9 @@ describe("loading coValues from server", () => {
       [
         "client -> server | LOAD Group sessions: header/3",
         "client -> server | LOAD Map sessions: header/1",
-        "server -> client | CONTENT Group header: true new: After: 0 New: 3",
-        "server -> client | CONTENT Map header: true new: After: 0 New: 2",
         "server -> client | CONTENT Map header: false new: After: 1 New: 1",
-        "client -> server | KNOWN Group sessions: header/3",
+        "server -> client | KNOWN Group sessions: header/3",
+        "server -> client | CONTENT Map header: false new: After: 1 New: 1",
         "client -> server | KNOWN Map sessions: header/2",
         "client -> server | KNOWN Map sessions: header/2",
       ]
@@ -340,11 +339,10 @@ describe("loading coValues from server", () => {
       [
         "client -> server | LOAD Group sessions: header/5",
         "client -> server | LOAD Map sessions: header/2",
-        "server -> client | CONTENT Group header: true new: After: 0 New: 5",
-        "server -> client | CONTENT Map header: true new: After: 0 New: 2",
-        "client -> server | CONTENT Map header: false new: After: 0 New: 1",
         "server -> client | CONTENT Map header: false new: After: 1 New: 1",
-        "client -> server | KNOWN Group sessions: header/5",
+        "client -> server | CONTENT Map header: false new: After: 0 New: 1",
+        "server -> client | KNOWN Group sessions: header/5",
+        "server -> client | CONTENT Map header: false new: After: 1 New: 1",
         "client -> server | KNOWN Map sessions: header/3",
         "server -> client | KNOWN Map sessions: header/3",
         "client -> server | KNOWN Map sessions: header/3",
@@ -550,6 +548,8 @@ describe("loading coValues from server", () => {
   });
 
   test("should handle reconnections in the middle of a load with a persistent peer", async () => {
+    TEST_NODE_CONFIG.withAsyncPeers = false; // To avoid flakiness
+
     const client = setupTestNode();
     const connection1 = client.connectToSyncServer({
       persistent: true,
@@ -590,11 +590,14 @@ describe("loading coValues from server", () => {
         "client -> server | LOAD Map sessions: empty",
         "server -> client | CONTENT Group header: true new: After: 0 New: 5",
         "client -> server | KNOWN Group sessions: header/5",
-        "client -> server | LOAD Map sessions: empty",
-        "client -> server | LOAD Group sessions: header/5",
-        "server -> client | KNOWN Group sessions: header/5",
+        "server -> client | CONTENT Group header: true new: After: 0 New: 5",
+        "client -> server | KNOWN Group sessions: header/5",
         "server -> client | CONTENT Map header: true new: After: 0 New: 1",
         "client -> server | KNOWN Map sessions: header/1",
+        "client -> server | LOAD Group sessions: header/5",
+        "server -> client | KNOWN Group sessions: header/5",
+        "client -> server | LOAD Map sessions: header/1",
+        "server -> client | KNOWN Map sessions: header/1",
       ]
     `);
   });
@@ -634,7 +637,7 @@ describe("loading coValues from server", () => {
         "server -> client | CONTENT Map header: true new: After: 0 New: 1",
         "client -> server | KNOWN ParentGroup sessions: header/6",
         "client -> server | LOAD Group sessions: empty",
-        "client -> server | KNOWN Map sessions: empty",
+        "client -> server | KNOWN Map sessions: header/1",
         "server -> client | CONTENT Group header: true new: After: 0 New: 5",
         "client -> server | KNOWN Group sessions: header/5",
       ]
@@ -677,8 +680,8 @@ describe("loading coValues from server", () => {
         "server -> client | CONTENT Group header: true new: After: 0 New: 5",
         "server -> client | CONTENT Map header: true new: After: 0 New: 1",
         "client -> server | LOAD ParentGroup sessions: empty",
-        "client -> server | KNOWN Group sessions: empty",
-        "client -> server | KNOWN Map sessions: empty",
+        "client -> server | KNOWN Group sessions: header/5",
+        "client -> server | KNOWN Map sessions: header/1",
         "server -> client | CONTENT ParentGroup header: true new: After: 0 New: 6",
         "client -> server | KNOWN ParentGroup sessions: header/6",
       ]
@@ -723,8 +726,8 @@ describe("loading coValues from server", () => {
         "server -> client | CONTENT Group header: true new: After: 0 New: 5",
         "server -> client | CONTENT Map header: true new: After: 0 New: 1",
         "client -> server | LOAD Account sessions: empty",
-        "client -> server | KNOWN Group sessions: empty",
-        "client -> server | KNOWN Map sessions: empty",
+        "client -> server | KNOWN Group sessions: header/0",
+        "client -> server | KNOWN Map sessions: header/0",
         "server -> client | CONTENT Account header: true new: After: 0 New: 4",
         "client -> server | KNOWN Account sessions: header/4",
         "client -> server | KNOWN Group sessions: header/5",
@@ -787,7 +790,7 @@ describe("loading coValues from server", () => {
         "server -> client | CONTENT Map header: true new: After: 0 New: 1 | After: 0 New: 1",
         "client -> server | KNOWN Group sessions: header/5",
         "client -> server | LOAD Account sessions: empty",
-        "client -> server | KNOWN Map sessions: empty",
+        "client -> server | KNOWN Map sessions: header/1",
         "server -> client | CONTENT Account header: true new: After: 0 New: 4",
         "client -> server | KNOWN Account sessions: header/4",
         "client -> server | KNOWN Map sessions: header/2",
@@ -851,8 +854,8 @@ describe("loading coValues from server", () => {
         "server -> client | CONTENT Group header: true new: After: 0 New: 5",
         "server -> client | CONTENT Map header: true new: After: 0 New: 1",
         "client -> server | LOAD Account sessions: empty",
-        "client -> server | KNOWN Group sessions: empty",
-        "client -> server | KNOWN Map sessions: empty",
+        "client -> server | KNOWN Group sessions: header/0",
+        "client -> server | KNOWN Map sessions: header/0",
         "server -> client | CONTENT Account header: true new: After: 0 New: 4",
         "server -> client | CONTENT Account header: true new: After: 0 New: 4",
         "client -> server | KNOWN Account sessions: header/4",
@@ -922,7 +925,7 @@ describe("loading coValues from server", () => {
         "client -> server | LOAD Map sessions: empty",
         "server -> client | CONTENT Map header: true new: After: 0 New: 1",
         "client -> server | LOAD Account sessions: empty",
-        "client -> server | KNOWN Map sessions: empty",
+        "client -> server | KNOWN Map sessions: header/0",
         "server -> client | CONTENT Account header: true new: After: 0 New: 4",
         "server -> client | CONTENT Account header: true new: After: 0 New: 4",
         "client -> server | KNOWN Account sessions: header/4",
@@ -960,14 +963,17 @@ describe("loading coValues from server", () => {
       }),
     ).toMatchInlineSnapshot(`
       [
-        "client -> server | CONTENT ParentGroup header: true new: After: 0 New: 8",
-        "client -> server | CONTENT Group header: true new: After: 0 New: 6",
+        "client -> server | CONTENT Group header: true new: After: 0 New: 3",
+        "client -> server | CONTENT ParentGroup header: true new: After: 0 New: 6",
+        "client -> server | CONTENT Group header: false new: After: 3 New: 3",
+        "client -> server | CONTENT ParentGroup header: false new: After: 6 New: 2",
         "client -> server | CONTENT Map header: true new: After: 0 New: 1",
-        "server -> client | LOAD Group sessions: empty",
-        "server -> client | KNOWN ParentGroup sessions: empty",
+        "server -> client | KNOWN Group sessions: header/3",
+        "server -> client | KNOWN ParentGroup sessions: header/6",
         "server -> client | KNOWN Group sessions: header/6",
+        "server -> client | KNOWN ParentGroup sessions: header/8",
         "server -> client | KNOWN Map sessions: header/1",
-        "client -> server | CONTENT Group header: true new: After: 0 New: 6",
+        "client -> server | CONTENT ParentGroup header: true new: ",
       ]
     `);
   });

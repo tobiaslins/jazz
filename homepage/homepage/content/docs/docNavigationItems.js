@@ -48,11 +48,6 @@ export const docNavigationItems = [
         done: 100,
       },
       {
-        name: "Node.JS / server workers",
-        href: "/docs/project-setup/server-side",
-        done: 80,
-      },
-      {
         name: "Providers",
         href: "/docs/project-setup/providers",
         done: {
@@ -85,10 +80,45 @@ export const docNavigationItems = [
     ],
   },
   {
+    name: "Server-side",
+    items: [
+      {
+        name: "Setup",
+        href: "/docs/server-side/setup",
+        done: 100,
+      },
+      {
+        name: "Communicating with workers",
+        href: "/docs/server-side/communicating-with-workers",
+        done: 100,
+      },
+      {
+        name: "HTTP requests",
+        href: "/docs/server-side/http-requests",
+        done: 100,
+      },
+      {
+        name: "Inbox",
+        href: "/docs/server-side/inbox",
+        done: 100,
+      },
+    ],
+  },
+  {
     name: "Upgrade guides",
     // collapse: true,
     prefix: "/docs/upgrade",
     items: [
+      {
+        name: "0.17.0 - New image APIs",
+        href: "/docs/upgrade/0-17-0",
+        done: 100,
+      },
+      {
+        name: "0.16.0 - Cleaner separation between Zod and CoValue schemas",
+        href: "/docs/upgrade/0-16-0",
+        done: 100,
+      },
       {
         name: "0.15.0 - Everything inside `jazz-tools`",
         href: "/docs/upgrade/0-15-0",
@@ -205,6 +235,7 @@ export const docNavigationItems = [
           "react-native": 100,
           "react-native-expo": 100,
           vanilla: 100,
+          svelte: 100,
         },
       },
       {

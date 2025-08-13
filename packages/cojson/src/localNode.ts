@@ -1,14 +1,15 @@
 import { Result, err, ok } from "neverthrow";
-import { CoID } from "./coValue.js";
-import { RawCoValue } from "./coValue.js";
+import { GarbageCollector } from "./GarbageCollector.js";
+import type { CoID } from "./coValue.js";
+import type { RawCoValue } from "./coValue.js";
 import {
-  AvailableCoValueCore,
+  type AvailableCoValueCore,
   CoValueCore,
   idforHeader,
 } from "./coValueCore/coValueCore.js";
 import {
-  CoValueHeader,
-  CoValueUniqueness,
+  type CoValueHeader,
+  type CoValueUniqueness,
   VerifiedState,
 } from "./coValueCore/verifiedState.js";
 import {
@@ -26,11 +27,11 @@ import {
   expectAccount,
 } from "./coValues/account.js";
 import {
-  InviteSecret,
-  RawGroup,
+  type InviteSecret,
+  type RawGroup,
   secretSeedFromInviteSecret,
 } from "./coValues/group.js";
-import { CO_VALUE_LOADING_CONFIG } from "./config.js";
+import { CO_VALUE_LOADING_CONFIG, GARBAGE_COLLECTOR_CONFIG } from "./config.js";
 import { AgentSecret, CryptoProvider } from "./crypto/crypto.js";
 import { AgentID, RawCoID, SessionID, isAgentID } from "./ids.js";
 import { logger } from "./logger.js";
@@ -63,6 +64,7 @@ export class LocalNode {
   /** @category 3. Low-level */
   syncManager = new SyncManager(this);
 
+  garbageCollector: GarbageCollector | undefined = undefined;
   crashed: Error | undefined = undefined;
 
   storage?: StorageAPI;
@@ -76,6 +78,14 @@ export class LocalNode {
     this.agentSecret = agentSecret;
     this.currentSessionID = currentSessionID;
     this.crypto = crypto;
+  }
+
+  enableGarbageCollector() {
+    if (this.garbageCollector) {
+      return;
+    }
+
+    this.garbageCollector = new GarbageCollector(this.coValues);
   }
 
   setStorage(storage: StorageAPI) {
@@ -94,6 +104,8 @@ export class LocalNode {
       entry = CoValueCore.fromID(id, this);
       this.coValues.set(id, entry);
     }
+
+    this.garbageCollector?.trackCoValueAccess(entry);
 
     return entry;
   }
@@ -313,6 +325,15 @@ export class LocalNode {
         throw new Error("Account has no profile");
       }
 
+      const rootID = account.get("root");
+      if (rootID) {
+        const rawEntry = account.getRaw("root");
+
+        if (!rawEntry?.trusting) {
+          account.set("root", rootID, "trusting");
+        }
+      }
+
       // Preload the profile
       await node.load(profileID);
 
@@ -342,7 +363,8 @@ export class LocalNode {
       new VerifiedState(id, this.crypto, header),
     );
 
-    void this.syncManager.requestCoValueSync(coValue);
+    this.garbageCollector?.trackCoValueAccess(coValue);
+    this.syncManager.syncHeader(coValue.verified);
 
     return coValue;
   }
@@ -563,15 +585,14 @@ export class LocalNode {
             : "reader",
     );
 
-    group.core.internalShamefullyCloneVerifiedStateFrom(
-      groupAsInvite.core.verified,
-      { forceOverwrite: true },
-    );
+    const contentPieces =
+      groupAsInvite.core.verified.newContentSince(group.core.knownState()) ??
+      [];
 
-    group.processNewTransactions();
-
-    group.core.notifyUpdate("immediate");
-    this.syncManager.requestCoValueSync(group.core);
+    // Import the new transactions to the current localNode
+    for (const contentPiece of contentPieces) {
+      this.syncManager.handleNewContent(contentPiece, "import");
+    }
   }
 
   /** @internal */
@@ -730,9 +751,15 @@ export class LocalNode {
     }
   }
 
-  gracefulShutdown() {
-    this.storage?.close();
+  /**
+   * Closes all the peer connections, drains all the queues and closes the storage.
+   *
+   * @returns Promise of the current pending store operation, if any.
+   */
+  gracefulShutdown(): Promise<unknown> | undefined {
     this.syncManager.gracefulShutdown();
+    this.garbageCollector?.stop();
+    return this.storage?.close();
   }
 }
 

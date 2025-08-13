@@ -5,7 +5,13 @@
     This also means that we want to keep signatures roughly after each MAX_RECOMMENDED_TX size chunk,
     to be able to verify partially loaded CoValues or CoValues that are still being created (like a video live stream).
 **/
-export const MAX_RECOMMENDED_TX_SIZE = 100 * 1024;
+export const TRANSACTION_CONFIG = {
+  MAX_RECOMMENDED_TX_SIZE: 100 * 1024,
+};
+
+export function setMaxRecommendedTxSize(size: number) {
+  TRANSACTION_CONFIG.MAX_RECOMMENDED_TX_SIZE = size;
+}
 
 export const CO_VALUE_LOADING_CONFIG = {
   MAX_RETRIES: 1,
@@ -31,4 +37,17 @@ export const SYNC_SCHEDULER_CONFIG = {
 
 export function setIncomingMessagesTimeBudget(budget: number) {
   SYNC_SCHEDULER_CONFIG.INCOMING_MESSAGES_TIME_BUDGET = budget;
+}
+
+export const GARBAGE_COLLECTOR_CONFIG = {
+  MAX_AGE: 1000 * 60 * 10, // 10 minutes
+  INTERVAL: 1000 * 60 * 5, // 5 minutes
+};
+
+export function setGarbageCollectorMaxAge(maxAge: number) {
+  GARBAGE_COLLECTOR_CONFIG.MAX_AGE = maxAge;
+}
+
+export function setGarbageCollectorInterval(interval: number) {
+  GARBAGE_COLLECTOR_CONFIG.INTERVAL = interval;
 }

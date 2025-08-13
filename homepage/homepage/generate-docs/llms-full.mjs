@@ -5,6 +5,8 @@ import { readFile, readdir } from "fs/promises";
 import { DOC_SECTIONS } from "./utils/config.mjs";
 import { writeDocsFile } from "./utils/index.mjs";
 
+const exclude = [/\/upgrade\//];
+
 async function readMdxContent(url) {
   try {
     // Special case for the introduction
@@ -31,12 +33,17 @@ async function readMdxContent(url) {
 
     // If it's a directory, try to read all framework variants
     const fullPath = path.join(baseDir, relativePath);
+
+    if (exclude.some((pattern) => pattern.test(fullPath))) {
+      return null;
+    }
+
     try {
       const stats = await fs.stat(fullPath);
       if (stats.isDirectory()) {
         // Read all MDX files in the directory
         const files = await fs.readdir(fullPath);
-        const mdxFiles = files.filter((f) => f.endsWith(".mdx"));
+        const mdxFiles = files.filter((f) => f.endsWith(".mdx")).filter((f) => !exclude.some((pattern) => pattern.test(f)));
 
         if (mdxFiles.length === 0) return null;
 
