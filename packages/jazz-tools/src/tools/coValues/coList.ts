@@ -413,6 +413,34 @@ export class CoListJazzApi<L extends CoList<any>>
     return cl.fromRaw(this.raw) as InstanceType<Cl>;
   }
 
+  set(index: number, value: CoListItem<L>): void {
+    const itemDescriptor = this.coList._schema[ItemsSym] as Schema;
+    let rawValue: JsonValue;
+    if (itemDescriptor === "json") {
+      rawValue = value;
+    } else if ("encoded" in itemDescriptor) {
+      rawValue = itemDescriptor.encoded.encode(value);
+    } else if (isRefEncoded(itemDescriptor)) {
+      if (value === undefined) {
+        if (itemDescriptor.optional) {
+          rawValue = null;
+        } else {
+          throw new Error(
+            `Cannot set required reference ${index} to undefined`,
+          );
+        }
+      } else if ((value as CoValue)?.$jazz?.id) {
+        rawValue = (value as CoValue).$jazz.id;
+      } else {
+        throw new Error(
+          `Cannot set reference ${index} to a non-CoValue. Got ${value}`,
+        );
+      }
+    }
+    // @ts-expect-error TS incorrectly believes 'rawValue' is used before being assigned
+    this.raw.replace(index, rawValue);
+  }
+
   /**
    * Appends new elements to the end of an array, and returns the new length of the array.
    * @param items New elements to add to the array.
