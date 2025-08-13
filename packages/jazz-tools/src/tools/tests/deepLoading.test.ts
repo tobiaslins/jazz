@@ -389,7 +389,7 @@ test("The resolve type accepts keys from optional fields", async () => {
     Dog.create({ type: "dog", owner: Person.create({ name: "Rex" }) }),
   ]);
 
-  await pets.ensureLoaded({
+  await pets.$jazz.ensureLoaded({
     resolve: {
       $each: { owner: true },
     },
@@ -416,13 +416,13 @@ test("The resolve type doesn't accept keys from discriminated unions", async () 
     Dog.create({ type: "dog", owner: Person.create({ name: "Rex" }) }),
   ]);
 
-  await pets.ensureLoaded({
+  await pets.$jazz.ensureLoaded({
     resolve: {
       $each: true,
     },
   });
 
-  await pets.ensureLoaded({
+  await pets.$jazz.ensureLoaded({
     // @ts-expect-error cannot resolve owner
     resolve: { $each: { owner: true } },
   });

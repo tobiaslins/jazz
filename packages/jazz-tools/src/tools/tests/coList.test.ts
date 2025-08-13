@@ -7,7 +7,7 @@ import {
   coValueClassFromCoValueClassOrSchema,
 } from "../internal.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
-import { waitFor } from "./utils.js";
+import { setupTwoNodes, waitFor } from "./utils.js";
 
 const Crypto = await WasmCrypto.create();
 
@@ -575,6 +575,23 @@ describe("CoList resolution", async () => {
     assert(dog);
 
     expect(dog.name).toEqual("Rex");
+  });
+
+  test("waitForSync should resolve when the value is uploaded", async () => {
+    const TestList = co.list(z.number());
+
+    const { clientNode, serverNode, clientAccount } = await setupTwoNodes();
+
+    const list = TestList.create([1, 2, 3], { owner: clientAccount });
+
+    await list.$jazz.waitForSync({ timeout: 1000 });
+
+    // Killing the client node so the serverNode can't load the list from it
+    clientNode.gracefulShutdown();
+
+    const loadedMap = await serverNode.load(list.$jazz.raw.id);
+
+    expect(loadedMap).not.toBe("unavailable");
   });
 });
 

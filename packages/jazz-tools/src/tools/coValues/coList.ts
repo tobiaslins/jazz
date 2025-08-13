@@ -424,55 +424,6 @@ export class CoList<out Item = any> extends Array<Item> implements CoValue {
     const { options, listener } = parseSubscribeRestArgs(args);
     return subscribeToCoValueWithoutMe<L, R>(this, id, options, listener);
   }
-
-  /**
-   * Given an already loaded `CoList`, ensure that items are loaded to the specified depth.
-   *
-   * Works like `CoList.load()`, but you don't need to pass the ID or the account to load as again.
-   *
-   * @category Subscription & Loading
-   */
-  ensureLoaded<L extends CoList, const R extends RefsToResolve<L>>(
-    this: L,
-    options: { resolve: RefsToResolveStrict<L, R> },
-  ): Promise<Resolved<L, R>> {
-    return ensureCoValueLoaded(this, options);
-  }
-
-  /**
-   * Given an already loaded `CoList`, subscribe to updates to the `CoList` and ensure that items are loaded to the specified depth.
-   *
-   * Works like `CoList.subscribe()`, but you don't need to pass the ID or the account to load as again.
-   *
-   * Returns an unsubscribe function that you should call when you no longer need updates.
-   *
-   * @category Subscription & Loading
-   **/
-  subscribe<L extends CoList, const R extends RefsToResolve<L> = true>(
-    this: L,
-    listener: (value: Resolved<L, R>, unsubscribe: () => void) => void,
-  ): () => void;
-  subscribe<L extends CoList, const R extends RefsToResolve<L> = true>(
-    this: L,
-    options: { resolve?: RefsToResolveStrict<L, R> },
-    listener: (value: Resolved<L, R>, unsubscribe: () => void) => void,
-  ): () => void;
-  subscribe<L extends CoList, const R extends RefsToResolve<L>>(
-    this: L,
-    ...args: SubscribeRestArgs<L, R>
-  ): () => void {
-    const { options, listener } = parseSubscribeRestArgs(args);
-    return subscribeToExistingCoValue(this, options, listener);
-  }
-
-  /**
-   * Wait for the `CoList` to be uploaded to the other peers.
-   *
-   * @category Subscription & Loading
-   */
-  waitForSync(options?: { timeout?: number }) {
-    return this.$jazz.raw.core.waitForSync(options);
-  }
 }
 
 /** @internal */
@@ -523,6 +474,55 @@ export class CoListJazzApi<L extends CoList<any>>
     cl: Cl,
   ): InstanceType<Cl> {
     return cl.fromRaw(this.raw) as InstanceType<Cl>;
+  }
+
+  /**
+   * Given an already loaded `CoList`, ensure that items are loaded to the specified depth.
+   *
+   * Works like `CoList.load()`, but you don't need to pass the ID or the account to load as again.
+   *
+   * @category Subscription & Loading
+   */
+  ensureLoaded<L extends CoList, const R extends RefsToResolve<L>>(
+    this: CoListJazzApi<L>,
+    options: { resolve: RefsToResolveStrict<L, R> },
+  ): Promise<Resolved<L, R>> {
+    return ensureCoValueLoaded(this.coList, options);
+  }
+
+  /**
+   * Given an already loaded `CoList`, subscribe to updates to the `CoList` and ensure that items are loaded to the specified depth.
+   *
+   * Works like `CoList.subscribe()`, but you don't need to pass the ID or the account to load as again.
+   *
+   * Returns an unsubscribe function that you should call when you no longer need updates.
+   *
+   * @category Subscription & Loading
+   **/
+  subscribe<L extends CoList, const R extends RefsToResolve<L> = true>(
+    this: CoListJazzApi<L>,
+    listener: (value: Resolved<L, R>, unsubscribe: () => void) => void,
+  ): () => void;
+  subscribe<L extends CoList, const R extends RefsToResolve<L> = true>(
+    this: CoListJazzApi<L>,
+    options: { resolve?: RefsToResolveStrict<L, R> },
+    listener: (value: Resolved<L, R>, unsubscribe: () => void) => void,
+  ): () => void;
+  subscribe<L extends CoList, const R extends RefsToResolve<L>>(
+    this: CoListJazzApi<L>,
+    ...args: SubscribeRestArgs<L, R>
+  ): () => void {
+    const { options, listener } = parseSubscribeRestArgs(args);
+    return subscribeToExistingCoValue(this.coList, options, listener);
+  }
+
+  /**
+   * Wait for the `CoList` to be uploaded to the other peers.
+   *
+   * @category Subscription & Loading
+   */
+  async waitForSync(options?: { timeout?: number }): Promise<void> {
+    await this.raw.core.waitForSync(options);
   }
 
   /**
