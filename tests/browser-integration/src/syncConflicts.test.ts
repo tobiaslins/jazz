@@ -49,7 +49,7 @@ describe("Browser sync", () => {
       },
     );
 
-    const loadedIssue = await Issue.load(issue.id, {
+    const loadedIssue = await Issue.load(issue.$jazz.id, {
       loadAs: account2,
     });
 

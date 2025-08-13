@@ -30,7 +30,7 @@ function TestLogoutComponent({ onLogout }: { onLogout?: () => void }) {
     },
   });
 
-  const root = useCoState(TestAccount.shape.root, me?.root?.id, {
+  const root = useCoState(TestAccount.shape.root, me?.root?.$jazz.id, {
     resolve: {
       count: true,
     },

@@ -44,7 +44,7 @@ app.get("/", async (c) => {
   await account.$jazz.waitForAllCoValuesSync();
 
   const admin = await startWorker({
-    accountID: account.id,
+    accountID: account.$jazz.id,
     accountSecret: account.$jazz.localNode.getCurrentAgent().agentSecret,
     AccountSchema: MyAccount,
     syncServer,
