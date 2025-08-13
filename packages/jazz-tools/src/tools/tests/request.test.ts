@@ -115,7 +115,6 @@ describe("experimental_defineRequest", () => {
 
       // Verify the server received the correct data
       expect(receivedUser).toMatchObject({
-        $type: "CoMap",
         name: "John Doe",
         email: "john@example.com",
         age: 30,
@@ -343,7 +342,6 @@ describe("experimental_defineRequest", () => {
 
     // Verify the server received the correct data
     expect(receivedUser).toMatchObject({
-      $type: "CoMap",
       name: "John Doe",
       email: "john@example.com",
       age: 30,
@@ -425,7 +423,6 @@ describe("experimental_defineRequest", () => {
 
     // Verify the server received the correct data
     expect(receivedUser).toMatchObject({
-      $type: "CoMap",
       name: "John Doe",
       email: "john@example.com",
       age: 30,

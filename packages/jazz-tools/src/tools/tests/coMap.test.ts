@@ -271,8 +271,6 @@ describe("CoMap", async () => {
       person.$jazz.raw.set("extra", "extra");
 
       expect(person.toJSON()).toEqual({
-        $type: "CoMap",
-        id: person.$jazz.id,
         name: "John",
         age: 20,
       });
@@ -294,13 +292,9 @@ describe("CoMap", async () => {
       });
 
       expect(person.toJSON()).toEqual({
-        $type: "CoMap",
-        id: person.$jazz.id,
         name: "John",
         age: 20,
         friend: {
-          $type: "CoMap",
-          id: person.friend?.$jazz.id,
           name: "Jane",
           age: 21,
         },
@@ -324,8 +318,6 @@ describe("CoMap", async () => {
       person.friend = person;
 
       expect(person.toJSON()).toEqual({
-        $type: "CoMap",
-        id: person.$jazz.id,
         name: "John",
         age: 20,
         friend: {
@@ -353,8 +345,6 @@ describe("CoMap", async () => {
         name: "John",
         age: 20,
         birthday: birthday.toISOString(),
-        $type: "CoMap",
-        id: john.$jazz.id,
       });
     });
 
@@ -386,8 +376,6 @@ describe("CoMap", async () => {
       const john = Person.create({ name: "John", age: 30, x: 1 });
 
       expect(john.toJSON()).toEqual({
-        $type: "CoMap",
-        id: john.$jazz.id,
         name: "John",
         age: 30,
       });
@@ -491,8 +479,6 @@ describe("CoMap", async () => {
       expect(john.age).toEqual(undefined);
 
       expect(john.toJSON()).toEqual({
-        $type: "CoMap",
-        id: john.$jazz.id,
         name: "John",
       });
     });
