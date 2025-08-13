@@ -32,7 +32,7 @@ describe("CoPlainText", () => {
         crypto: Crypto,
       });
       const text = co.plainText().create("hello world", me);
-      expect(text.owner.$jazz.id).toBe(me.$jazz.id);
+      expect(text.$jazz.owner.$jazz.id).toBe(me.$jazz.id);
     });
 
     test("should allow `create` from raw", async () => {
@@ -43,7 +43,7 @@ describe("CoPlainText", () => {
       const text = co.plainText().create("hello world", me);
       const raw = text.$jazz.raw;
       const text2 = co.plainText().fromRaw(raw);
-      expect(text2.owner.$jazz.id).toBe(me.$jazz.id);
+      expect(text2.$jazz.owner.$jazz.id).toBe(me.$jazz.id);
     });
 
     test("should allow owner shorthand", async () => {
@@ -52,7 +52,7 @@ describe("CoPlainText", () => {
         crypto: Crypto,
       });
       const text = co.plainText().create("hello world", me);
-      expect(text.owner.$jazz.id).toBe(me.$jazz.id);
+      expect(text.$jazz.owner.$jazz.id).toBe(me.$jazz.id);
     });
   });
 
@@ -83,15 +83,15 @@ describe("CoPlainText", () => {
 
       test("applyDiff", () => {
         const text = co.plainText().create("hello world", { owner: me });
-        text.applyDiff("hello cruel world");
+        text.$jazz.applyDiff("hello cruel world");
         expect(text.toString()).toEqual("hello cruel world");
       });
 
       test("applyDiff with complex grapheme clusters", () => {
         const text = co.plainText().create(`😊`, { owner: me });
-        text.applyDiff(`😊안녕!`);
+        text.$jazz.applyDiff(`😊안녕!`);
         expect(text.toString()).toEqual(`😊안녕!`);
-        text.applyDiff(`😊👋 안녕!`);
+        text.$jazz.applyDiff(`😊👋 안녕!`);
         expect(text.toString()).toEqual(`😊👋 안녕!`);
       });
     });

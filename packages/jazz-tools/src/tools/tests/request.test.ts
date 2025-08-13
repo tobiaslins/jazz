@@ -271,7 +271,7 @@ describe("experimental_defineRequest", () => {
           request,
           worker,
           async ({ person }, madeBy) => {
-            person.address.street.owner.$jazz
+            person.address.street.$jazz.owner.$jazz
               .castAs(Group)
               .addMember(madeBy, "reader");
 

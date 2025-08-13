@@ -1,10 +1,4 @@
-import {
-  ControlledAccount,
-  type OpID,
-  RawAccount,
-  type RawCoPlainText,
-  stringifyOpID,
-} from "cojson";
+import { type OpID, type RawCoPlainText, stringifyOpID } from "cojson";
 import { calcPatch } from "fast-myers-diff";
 import {
   AnonymousJazzAgent,
@@ -15,7 +9,6 @@ import {
   Resolved,
   SubscribeListenerOptions,
   SubscribeRestArgs,
-  coValueClassFromCoValueClassOrSchema,
   parseCoValueCreateOptions,
 } from "../internal.js";
 import {
@@ -25,10 +18,8 @@ import {
   subscribeToCoValueWithoutMe,
   subscribeToExistingCoValue,
 } from "../internal.js";
-import { coValuesCache } from "../lib/cache.js";
 import { Account } from "./account.js";
 import { Group } from "./group.js";
-import { RegisteredSchemas } from "./registeredSchemas.js";
 
 export type TextPos = OpID;
 
@@ -36,26 +27,6 @@ export class CoPlainText extends String implements CoValue {
   declare _type: "CoPlainText";
 
   declare $jazz: CoTextJazzApi<this>;
-
-  get owner(): Account | Group {
-    return this.$jazz.raw.group instanceof RawAccount
-      ? Account.fromRaw(this.$jazz.raw.group)
-      : Group.fromRaw(this.$jazz.raw.group);
-  }
-
-  get loadedAs() {
-    const agent = this.$jazz.raw.core.node.getCurrentAgent();
-
-    if (agent instanceof ControlledAccount) {
-      return coValuesCache.get(agent.account, () =>
-        coValueClassFromCoValueClassOrSchema(
-          RegisteredSchemas["Account"],
-        ).fromRaw(agent.account),
-      );
-    }
-
-    return new AnonymousJazzAgent(this.$jazz.raw.core.node);
-  }
 
   /** @internal */
   constructor(
@@ -177,33 +148,6 @@ export class CoPlainText extends String implements CoValue {
   }
 
   /**
-   * Apply text, modifying the text in place. Calculates the diff and applies it to the CoValue.
-   *
-   * @category Mutation
-   */
-  applyDiff(other: string) {
-    const current = this.$jazz.raw.toString();
-
-    // Split both strings into grapheme arrays for proper comparison
-    const currentGraphemes = this.$jazz.raw.toGraphemes(current);
-    const otherGraphemes = this.$jazz.raw.toGraphemes(other);
-
-    // Calculate the diff on grapheme arrays
-    const patches = [...calcPatch(currentGraphemes, otherGraphemes)];
-
-    // Apply patches in reverse order to avoid index shifting issues
-    for (const [from, to, insert] of patches.reverse()) {
-      if (to > from) {
-        this.deleteRange({ from, to });
-      }
-      if (insert.length > 0) {
-        // Join the graphemes back into a string for insertion
-        this.insertBefore(from, this.$jazz.raw.fromGraphemes(insert));
-      }
-    }
-  }
-
-  /**
    * Load a `CoPlainText` with a given ID, as a given account.
    *
    * @category Subscription & Loading
@@ -250,22 +194,6 @@ export class CoPlainText extends String implements CoValue {
   }
 
   /**
-   * Given an already loaded `CoPlainText`, subscribe to updates to the `CoPlainText` and ensure that the specified fields are loaded to the specified depth.
-   *
-   * Works like `CoPlainText.subscribe()`, but you don't need to pass the ID or the account to load as again.
-   *
-   * Returns an unsubscribe function that you should call when you no longer need updates.
-   *
-   * @category Subscription & Loading
-   **/
-  subscribe<T extends CoPlainText>(
-    this: T,
-    listener: (value: Resolved<T, true>, unsubscribe: () => void) => void,
-  ): () => void {
-    return subscribeToExistingCoValue(this, {}, listener);
-  }
-
-  /**
    * Allow CoPlainText to behave like a primitive string in most contexts (e.g.,
    * string concatenation, template literals, React rendering, etc.) by implementing
    * Symbol.toPrimitive. This eliminates the need to call .toString() explicitly.
@@ -287,7 +215,7 @@ export class CoPlainText extends String implements CoValue {
 
 export class CoTextJazzApi<T extends CoPlainText> extends CoValueJazzApi<T> {
   constructor(
-    coText: T,
+    private coText: T,
     public raw: RawCoPlainText,
   ) {
     super(coText);
@@ -295,5 +223,48 @@ export class CoTextJazzApi<T extends CoPlainText> extends CoValueJazzApi<T> {
 
   get id(): ID<T> {
     return this.raw.id;
+  }
+
+  /**
+   * Apply text, modifying the text in place. Calculates the diff and applies it to the CoValue.
+   *
+   * @category Mutation
+   */
+  applyDiff(other: string) {
+    const current = this.raw.toString();
+
+    // Split both strings into grapheme arrays for proper comparison
+    const currentGraphemes = this.raw.toGraphemes(current);
+    const otherGraphemes = this.raw.toGraphemes(other);
+
+    // Calculate the diff on grapheme arrays
+    const patches = [...calcPatch(currentGraphemes, otherGraphemes)];
+
+    // Apply patches in reverse order to avoid index shifting issues
+    for (const [from, to, insert] of patches.reverse()) {
+      if (to > from) {
+        this.coText.deleteRange({ from, to });
+      }
+      if (insert.length > 0) {
+        // Join the graphemes back into a string for insertion
+        this.coText.insertBefore(from, this.raw.fromGraphemes(insert));
+      }
+    }
+  }
+
+  /**
+   * Given an already loaded `CoPlainText`, subscribe to updates to the `CoPlainText` and ensure that the specified fields are loaded to the specified depth.
+   *
+   * Works like `CoPlainText.subscribe()`, but you don't need to pass the ID or the account to load as again.
+   *
+   * Returns an unsubscribe function that you should call when you no longer need updates.
+   *
+   * @category Subscription & Loading
+   **/
+  subscribe<T extends CoPlainText>(
+    this: CoTextJazzApi<T>,
+    listener: (value: Resolved<T, true>, unsubscribe: () => void) => void,
+  ): () => void {
+    return subscribeToExistingCoValue(this.coText, {}, listener);
   }
 }
