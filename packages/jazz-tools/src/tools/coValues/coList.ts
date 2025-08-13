@@ -46,19 +46,26 @@ import {
  * @categoryDescription Content
  * You can access items on a `CoList` as if they were normal items on a plain array, using `[]` notation, etc.
  *
- * Since `CoList` is a subclass of `Array`, you can use all the normal array methods like `push`, `pop`, `splice`, etc.
+ * All readonly array methods are available on `CoList`. You can also use the `.$jazz` API to mutate the CoList.
+ *
+ * ```ts
+ * const colorList = ColorList.create(["red", "green", "blue"]);
+ * ```
  *
  * ```ts
  * colorList[0];
- * colorList[3] = "yellow";
- * colorList.push("Kawazaki Green");
- * colorList.splice(1, 1);
+ * colorList.$jazz.set(3, "yellow");
+ * colorList.$jazz.push("Kawazaki Green");
+ * colorList.$jazz.splice(1, 1);
  * ```
  *
  * @category CoValues
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export class CoList<out Item = any> extends Array<Item> implements CoValue {
+export class CoList<out Item = any>
+  extends Array<Item>
+  implements ReadonlyArray<Item>, CoValue
+{
   declare $jazz: CoListJazzApi<this>;
 
   /**
@@ -176,105 +183,6 @@ export class CoList<out Item = any> extends Array<Item> implements CoValue {
     });
 
     return instance;
-  }
-
-  push(...items: Item[]): number {
-    this.$jazz.raw.appendItems(
-      toRawItems(items, this._schema[ItemsSym], this.$jazz.owner),
-      undefined,
-      "private",
-    );
-
-    return this.$jazz.raw.entries().length;
-  }
-
-  unshift(...items: Item[]): number {
-    for (const item of toRawItems(
-      items as Item[],
-      this._schema[ItemsSym],
-      this.$jazz.owner,
-    )) {
-      this.$jazz.raw.prepend(item);
-    }
-
-    return this.$jazz.raw.entries().length;
-  }
-
-  pop(): Item | undefined {
-    const last = this[this.length - 1];
-
-    this.$jazz.raw.delete(this.length - 1);
-
-    return last;
-  }
-
-  shift(): Item | undefined {
-    const first = this[0];
-
-    this.$jazz.raw.delete(0);
-
-    return first;
-  }
-
-  /**
-   * Splice the `CoList` at a given index.
-   *
-   * @param start - The index to start the splice.
-   * @param deleteCount - The number of items to delete.
-   * @param items - The items to insert.
-   */
-  splice(start: number, deleteCount: number, ...items: Item[]): Item[] {
-    const deleted = this.slice(start, start + deleteCount);
-
-    for (
-      let idxToDelete = start + deleteCount - 1;
-      idxToDelete >= start;
-      idxToDelete--
-    ) {
-      this.$jazz.raw.delete(idxToDelete);
-    }
-
-    const rawItems = toRawItems(
-      items as Item[],
-      this._schema[ItemsSym],
-      this.$jazz.owner,
-    );
-
-    // If there are no items to insert, return the deleted items
-    if (rawItems.length === 0) {
-      return deleted;
-    }
-
-    // Fast path for single item insertion
-    if (rawItems.length === 1) {
-      const item = rawItems[0];
-      if (item === undefined) return deleted;
-      if (start === 0) {
-        this.$jazz.raw.prepend(item);
-      } else {
-        this.$jazz.raw.append(item, Math.max(start - 1, 0));
-      }
-      return deleted;
-    }
-
-    // Handle multiple items
-    if (start === 0) {
-      // Iterate in reverse order without creating a new array
-      for (let i = rawItems.length - 1; i >= 0; i--) {
-        const item = rawItems[i];
-        if (item === undefined) continue;
-        this.$jazz.raw.prepend(item);
-      }
-    } else {
-      let appendAfter = Math.max(start - 1, 0);
-      for (const item of rawItems) {
-        if (item === undefined) continue;
-        this.$jazz.raw.append(item, appendAfter);
-        appendAfter++;
-      }
-    }
-
-    return deleted;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -402,6 +310,57 @@ export class CoList<out Item = any> extends Array<Item> implements CoValue {
     const { options, listener } = parseSubscribeRestArgs(args);
     return subscribeToCoValueWithoutMe<L, R>(this, id, options, listener);
   }
+
+  // Override mutation methods defined on Array, as CoLists aren't meant to be mutated directly
+  override push(...items: Item[]): number {
+    throw new Error(
+      "Cannot mutate a CoList directly. Use .$jazz.push(...) instead.",
+    );
+  }
+  override unshift(...items: Item[]): number {
+    throw new Error(
+      "Cannot mutate a CoList directly. Use .$jazz.unshift(...) instead.",
+    );
+  }
+  override pop(): Item | undefined {
+    throw new Error(
+      "Cannot mutate a CoList directly. Use .$jazz.pop(...) instead.",
+    );
+  }
+  override shift(): Item | undefined {
+    throw new Error(
+      "Cannot mutate a CoList directly. Use .$jazz.shift(...) instead.",
+    );
+  }
+  override splice(
+    start: number,
+    deleteCount: number,
+    ...items: Item[]
+  ): Item[] {
+    throw new Error(
+      "Cannot mutate a CoList directly. Use .$jazz.splice(...) instead.",
+    );
+  }
+  override copyWithin(target: number, start: number, end: number): this {
+    throw new Error(
+      "Cannot mutate a CoList directly. Use .$jazz.set(...) instead.",
+    );
+  }
+  override fill(value: Item, start?: number, end?: number): this {
+    throw new Error(
+      "Cannot mutate a CoList directly. Use .$jazz.set(...) instead.",
+    );
+  }
+  override reverse(): this {
+    throw new Error(
+      "Cannot mutate a CoList directly. Use .toReversed() if you want a reversed copy, or .$jazz.set(...) to mutate the CoList.",
+    );
+  }
+  override sort(compareFn?: (a: Item, b: Item) => number): this {
+    throw new Error(
+      "Cannot mutate a CoList directly. Use .toSorted() if you want a sorted copy, or .$jazz.set(...) to mutate the CoList.",
+    );
+  }
 }
 
 /** @internal */
@@ -455,6 +414,135 @@ export class CoListJazzApi<L extends CoList<any>>
   }
 
   /**
+   * Appends new elements to the end of an array, and returns the new length of the array.
+   * @param items New elements to add to the array.
+   *
+   * @category Content
+   */
+  push(...items: CoListItem<L>[]): number {
+    this.raw.appendItems(
+      toRawItems(items, this.coList._schema[ItemsSym], this.owner),
+      undefined,
+      "private",
+    );
+
+    return this.raw.entries().length;
+  }
+
+  /**
+   * Inserts new elements at the start of an array, and returns the new length of the array.
+   * @param items Elements to insert at the start of the array.
+   *
+   * @category Content
+   */
+  unshift(...items: CoListItem<L>[]): number {
+    for (const item of toRawItems(
+      items as CoListItem<L>[],
+      this.coList._schema[ItemsSym],
+      this.owner,
+    )) {
+      this.raw.prepend(item);
+    }
+
+    return this.raw.entries().length;
+  }
+
+  /**
+   * Removes the last element from an array and returns it.
+   * If the array is empty, undefined is returned and the array is not modified.
+   *
+   * @category Content
+   */
+  pop(): CoListItem<L> | undefined {
+    const last = this.coList[this.coList.length - 1];
+
+    this.raw.delete(this.coList.length - 1);
+
+    return last;
+  }
+
+  /**
+   * Removes the first element from an array and returns it.
+   * If the array is empty, undefined is returned and the array is not modified.
+   *
+   * @category Content
+   */
+  shift(): CoListItem<L> | undefined {
+    const first = this.coList[0];
+
+    this.raw.delete(0);
+
+    return first;
+  }
+
+  /**
+   * Removes elements from an array and, if necessary, inserts new elements in their place, returning the deleted elements.
+   * @param start The zero-based location in the array from which to start removing elements.
+   * @param deleteCount The number of elements to remove.
+   * @param items Elements to insert into the array in place of the deleted elements.
+   * @returns An array containing the elements that were deleted.
+   *
+   * @category Content
+   */
+  splice(
+    start: number,
+    deleteCount: number,
+    ...items: CoListItem<L>[]
+  ): CoListItem<L>[] {
+    const deleted = this.coList.slice(start, start + deleteCount);
+
+    for (
+      let idxToDelete = start + deleteCount - 1;
+      idxToDelete >= start;
+      idxToDelete--
+    ) {
+      this.raw.delete(idxToDelete);
+    }
+
+    const rawItems = toRawItems(
+      items as CoListItem<L>[],
+      this.coList._schema[ItemsSym],
+      this.owner,
+    );
+
+    // If there are no items to insert, return the deleted items
+    if (rawItems.length === 0) {
+      return deleted;
+    }
+
+    // Fast path for single item insertion
+    if (rawItems.length === 1) {
+      const item = rawItems[0];
+      if (item === undefined) return deleted;
+      if (start === 0) {
+        this.raw.prepend(item);
+      } else {
+        this.raw.append(item, Math.max(start - 1, 0));
+      }
+      return deleted;
+    }
+
+    // Handle multiple items
+    if (start === 0) {
+      // Iterate in reverse order without creating a new array
+      for (let i = rawItems.length - 1; i >= 0; i--) {
+        const item = rawItems[i];
+        if (item === undefined) continue;
+        this.raw.prepend(item);
+      }
+    } else {
+      let appendAfter = Math.max(start - 1, 0);
+      for (const item of rawItems) {
+        if (item === undefined) continue;
+        this.raw.append(item, appendAfter);
+        appendAfter++;
+      }
+    }
+
+    return deleted;
+  }
+
+  /**
    * Modify the `CoList` to match another list, where the changes are managed internally.
    *
    * @param result - The resolved list of items.
@@ -475,7 +563,7 @@ export class CoListJazzApi<L extends CoList<any>>
 
     const patches = [...calcPatch(current, result, comparator)];
     for (const [from, to, insert] of patches.reverse()) {
-      this.coList.splice(from, to - from, ...insert);
+      this.splice(from, to - from, ...insert);
     }
     return this.coList;
   }

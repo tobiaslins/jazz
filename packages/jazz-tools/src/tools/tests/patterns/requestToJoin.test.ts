@@ -207,7 +207,7 @@ describe("Request to join", () => {
 
     assert(projectsOnUser);
 
-    projectsOnUser.push("project1");
+    projectsOnUser.$jazz.push("project1");
 
     expect(projectsOnUser[0]).toBe("project1");
   });

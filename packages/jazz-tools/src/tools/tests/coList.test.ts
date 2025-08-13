@@ -194,7 +194,7 @@ describe("Simple CoList operations", async () => {
       const list = TestList.create(["bread", "butter", "onion"], {
         owner: me,
       });
-      list.push("cheese");
+      list.$jazz.push("cheese");
       expect(list[3]).toBe("cheese");
       expect(list.$jazz.raw.asArray()).toEqual([
         "bread",
@@ -208,7 +208,7 @@ describe("Simple CoList operations", async () => {
       const list = TestList.create(["bread", "butter", "onion"], {
         owner: me,
       });
-      list.unshift("lettuce");
+      list.$jazz.unshift("lettuce");
       expect(list[0]).toBe("lettuce");
       expect(list.$jazz.raw.asArray()).toEqual([
         "lettuce",
@@ -222,7 +222,7 @@ describe("Simple CoList operations", async () => {
       const list = TestList.create(["bread", "butter", "onion"], {
         owner: me,
       });
-      expect(list.pop()).toBe("onion");
+      expect(list.$jazz.pop()).toBe("onion");
       expect(list.length).toBe(2);
       expect(list.$jazz.raw.asArray()).toEqual(["bread", "butter"]);
     });
@@ -231,7 +231,7 @@ describe("Simple CoList operations", async () => {
       const list = TestList.create(["bread", "butter", "onion"], {
         owner: me,
       });
-      expect(list.shift()).toBe("bread");
+      expect(list.$jazz.shift()).toBe("bread");
       expect(list.length).toBe(2);
       expect(list.$jazz.raw.asArray()).toEqual(["butter", "onion"]);
     });
@@ -241,7 +241,7 @@ describe("Simple CoList operations", async () => {
         const list = TestList.create(["bread", "butter", "onion"], {
           owner: me,
         });
-        list.splice(1, 1, "salt", "pepper");
+        list.$jazz.splice(1, 1, "salt", "pepper");
         expect(list.length).toBe(4);
         expect(list.$jazz.raw.asArray()).toEqual([
           "bread",
@@ -255,7 +255,7 @@ describe("Simple CoList operations", async () => {
         const list = TestList.create(["bread", "butter", "onion"], {
           owner: me,
         });
-        list.splice(0, 0, "salt", "pepper");
+        list.$jazz.splice(0, 0, "salt", "pepper");
         expect(list.length).toBe(5);
         expect(list.$jazz.raw.asArray()).toEqual([
           "salt",
@@ -270,7 +270,7 @@ describe("Simple CoList operations", async () => {
         const list = TestList.create(["bread", "butter", "onion"], {
           owner: me,
         });
-        list.splice(1, 0, "salt", "pepper");
+        list.$jazz.splice(1, 0, "salt", "pepper");
         expect(list.length).toBe(5);
         expect(list.$jazz.raw.asArray()).toEqual([
           "bread",
@@ -285,7 +285,7 @@ describe("Simple CoList operations", async () => {
         const list = TestList.create(["bread", "butter", "onion"], {
           owner: me,
         });
-        list.splice(2, 0, "salt", "pepper");
+        list.$jazz.splice(2, 0, "salt", "pepper");
         expect(list.length).toBe(5);
         expect(list.$jazz.raw.asArray()).toEqual([
           "bread",
@@ -295,56 +295,6 @@ describe("Simple CoList operations", async () => {
           "onion",
         ]);
       });
-    });
-
-    test("sort", () => {
-      const list = TestList.create(
-        ["hedgehog", "giraffe", "iguana", "flamingo"],
-        { owner: me },
-      );
-
-      list.sort();
-      expect(list.$jazz.raw.asArray()).toEqual([
-        "flamingo",
-        "giraffe",
-        "hedgehog",
-        "iguana",
-      ]);
-
-      list.sort((a, b) => b.localeCompare(a));
-      expect(list.$jazz.raw.asArray()).toEqual([
-        "iguana",
-        "hedgehog",
-        "giraffe",
-        "flamingo",
-      ]);
-    });
-
-    test("sort list of refs", async () => {
-      const Message = co.map({
-        text: z.string(),
-      });
-
-      const Chat = co.list(Message);
-
-      const chat = Chat.create(
-        [
-          Message.create({ text: "world" }, { owner: me }),
-          Message.create({ text: "hello" }, { owner: me }),
-        ],
-        { owner: me },
-      );
-
-      chat.sort((a, b) => a!.text.localeCompare(b!.text));
-      expect(chat.map((m) => m!.text)).toEqual(["hello", "world"]);
-
-      chat.push(Message.create({ text: "beans on toast" }, { owner: me }));
-      chat.sort((a, b) => a!.text.localeCompare(b!.text));
-      expect(chat.map((m) => m!.text)).toEqual([
-        "beans on toast",
-        "hello",
-        "world",
-      ]);
     });
 
     test("applyDiff", () => {
@@ -911,7 +861,7 @@ describe("CoList subscription", async () => {
 
     expect(spy).toHaveBeenCalledTimes(1);
 
-    list.push(Item.create({ name: "Item 3" }, group));
+    list.$jazz.push(Item.create({ name: "Item 3" }, group));
 
     await waitFor(() => expect(spy).toHaveBeenCalledTimes(2));
 

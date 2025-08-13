@@ -154,7 +154,7 @@ describe("subscribeToCoValue", () => {
       resolve: { messages: { $each: true } },
     });
 
-    messages.push(createMessage(me, "Hello"));
+    messages.$jazz.push(createMessage(me, "Hello"));
 
     const unsubscribe = subscribeToCoValue(
       coValueClassFromCoValueClassOrSchema(ChatRoom),
@@ -174,7 +174,7 @@ describe("subscribeToCoValue", () => {
 
     unsubscribe();
     chatRoom.name = "Lounge";
-    messages.push(createMessage(me, "Hello 2"));
+    messages.$jazz.push(createMessage(me, "Hello 2"));
 
     await new Promise((resolve) => setTimeout(resolve, 100));
 
@@ -195,7 +195,7 @@ describe("subscribeToCoValue", () => {
       me,
       "Hello Luigi, are you ready to save the princess?",
     );
-    chatRoom.messages?.push(message);
+    chatRoom.messages?.$jazz.push(message);
 
     const updateFn = vi.fn();
 
@@ -243,8 +243,8 @@ describe("subscribeToCoValue", () => {
       "Hello Luigi, are you ready to save the princess?",
     );
     const message2 = createMessage(me, "Let's go!");
-    chatRoom.messages?.push(message);
-    chatRoom.messages?.push(message2);
+    chatRoom.messages?.$jazz.push(message);
+    chatRoom.messages?.$jazz.push(message2);
 
     const updateFn = vi.fn();
 
@@ -325,8 +325,8 @@ describe("subscribeToCoValue", () => {
       "Hello Luigi, are you ready to save the princess?",
     );
     const message2 = createMessage(me, "Let's go!");
-    chatRoom.messages?.push(message);
-    chatRoom.messages?.push(message2);
+    chatRoom.messages?.$jazz.push(message);
+    chatRoom.messages?.$jazz.push(message2);
 
     const updateFn = vi.fn();
 
@@ -1219,7 +1219,7 @@ describe("subscribeToCoValue", () => {
     const value = "x".repeat(chunkSize);
 
     for (let i = 0; i < chunks; i++) {
-      largeMap.data.push(value);
+      largeMap.data.$jazz.push(value);
     }
 
     // Wait for the large coValue to be fully synced
@@ -1266,7 +1266,7 @@ describe("subscribeToCoValue", () => {
 
     // Test that updates to the large coValue are properly subscribed
     updateFn.mockClear();
-    largeMap.data.push("new entry");
+    largeMap.data.$jazz.push("new entry");
 
     await waitFor(() => {
       expect(updateFn).toHaveBeenCalled();

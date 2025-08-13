@@ -92,8 +92,8 @@ describe("exportCoValue", () => {
 
     const group = Group.create();
     const todos = TodoList.create([], group);
-    todos.push("Buy groceries");
-    todos.push("Walk the dog");
+    todos.$jazz.push("Buy groceries");
+    todos.$jazz.push("Walk the dog");
     group.addMember("everyone", "reader");
 
     const alice = await createJazzTestAccount();

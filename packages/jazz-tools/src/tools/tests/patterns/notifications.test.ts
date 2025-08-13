@@ -43,7 +43,7 @@ async function pushNotification(
     sent: false,
   });
 
-  workerAccount.root.notificationQueue.push(notification);
+  workerAccount.root.notificationQueue.$jazz.push(notification);
 
   return notification;
 }

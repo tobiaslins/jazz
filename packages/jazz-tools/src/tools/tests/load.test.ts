@@ -238,7 +238,7 @@ test("load a large coValue", async () => {
   const value = "x".repeat(chunkSize);
 
   for (let i = 0; i < chunks; i++) {
-    largeMap.data.push(value);
+    largeMap.data.$jazz.push(value);
   }
 
   // Wait for the large coValue to be fully synced
