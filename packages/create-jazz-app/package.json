@@ -20,8 +20,8 @@
     "@types/degit": "^2.8.3",
     "@types/gradient-string": "^1.1.2",
     "@types/inquirer": "^9.0.3",
-    "typescript": "catalog:",
-    "vitest": "catalog:"
+    "typescript": "catalog:default",
+    "vitest": "catalog:default"
   },
   "scripts": {
     "dev": "tsc --watch",

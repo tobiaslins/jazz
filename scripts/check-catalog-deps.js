@@ -33,7 +33,7 @@ function checkCatalogDependencies(packageJsonPath) {
   function checkDeps(deps, type) {
     if (!deps) return;
     for (const [pkg, version] of Object.entries(deps)) {
-      if (version === "catalog:") {
+      if (version.startsWith("catalog:")) {
         issues.push({
           package: pkg,
           type,
