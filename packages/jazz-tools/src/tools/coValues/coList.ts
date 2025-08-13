@@ -102,8 +102,6 @@ export class CoList<out Item = any>
   static {
     this.prototype._type = "CoList";
   }
-  /** @category Internals */
-  declare _instanceID: string;
 
   /** @internal This is only a marker type and doesn't exist at runtime */
   [ItemsSym]!: Item;
@@ -123,13 +121,6 @@ export class CoList<out Item = any>
 
   constructor(options: { fromRaw: RawCoList } | undefined) {
     super();
-
-    Object.defineProperties(this, {
-      _instanceID: {
-        value: `instance-${Math.random().toString(36).slice(2)}`,
-        enumerable: false,
-      },
-    });
 
     if (options && "fromRaw" in options) {
       Object.defineProperties(this, {
@@ -369,10 +360,20 @@ type CoListItem<L> = L extends CoList<infer Item> ? Item : never;
 export class CoListJazzApi<L extends CoList>
   implements Omit<CoValueJazzApi<L>, "castAs">
 {
+  /** @category Internals */
+  declare _instanceID: string;
+
   constructor(
     private coList: L,
     public raw: RawCoList,
-  ) {}
+  ) {
+    Object.defineProperties(this, {
+      _instanceID: {
+        value: `instance-${Math.random().toString(36).slice(2)}`,
+        enumerable: false,
+      },
+    });
+  }
 
   /**
    * The ID of this `CoList`

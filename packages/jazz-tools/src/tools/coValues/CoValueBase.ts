@@ -11,7 +11,6 @@ import {
   coValueClassFromCoValueClassOrSchema,
   coValuesCache,
   inspect,
-  isCoValueSchema,
 } from "../internal.js";
 import type {
   Account,
@@ -21,26 +20,16 @@ import type {
 } from "../internal.js";
 
 /** @internal */
-
 export abstract class CoValueBase implements CoValue {
   declare _type: string;
-  /** @category Internals */
-  declare _instanceID: string;
 
   declare abstract $jazz: CoValueJazzApi<this>;
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(..._args: any) {
-    Object.defineProperty(this, "_instanceID", {
-      value: `instance-${Math.random().toString(36).slice(2)}`,
-      enumerable: false,
-    });
-  }
 
   /** @category Internals */
   static fromRaw<V extends CoValue>(this: CoValueClass<V>, raw: RawCoValue): V {
     return new this({ fromRaw: raw });
   }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   toJSON(): object | any[] | string {
     return {
@@ -56,7 +45,15 @@ export abstract class CoValueBase implements CoValue {
 }
 
 export abstract class CoValueJazzApi<V extends CoValue> {
-  constructor(private coValue: V) {}
+  /** @category Internals */
+  declare _instanceID: string;
+
+  constructor(private coValue: V) {
+    Object.defineProperty(this, "_instanceID", {
+      value: `instance-${Math.random().toString(36).slice(2)}`,
+      enumerable: false,
+    });
+  }
 
   abstract get id(): ID<V>;
   abstract get raw(): RawCoValue;
