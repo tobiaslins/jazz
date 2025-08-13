@@ -46,28 +46,6 @@ export class Group extends CoValueBase implements CoValue {
   }
   declare $jazz: GroupJazzApi<this>;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static _schema: any;
-  get _schema(): {
-    profile: Schema;
-    root: Schema;
-  } {
-    return (this.constructor as typeof Group)._schema;
-  }
-  static {
-    this._schema = {
-      profile: "json" satisfies Schema,
-      root: "json" satisfies Schema,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-    Object.defineProperty(this.prototype, "_schema", {
-      get: () => this._schema,
-    });
-  }
-
-  declare profile: Profile | null;
-  declare root: CoMap | null;
-
   /** @deprecated Don't use constructor directly, use .create */
   constructor(options: { fromRaw: RawGroup } | { owner: Account | Group }) {
     super();
@@ -361,46 +339,6 @@ export class GroupJazzApi<G extends Group> extends CoValueJazzApi<G> {
    */
   waitForSync(options?: { timeout?: number }) {
     return this.raw.core.waitForSync(options);
-  }
-
-  /**
-   * You can use `group.$jazz.refs` to access the `profile` and `root`
-   * `Ref`s instead of the potentially loaded/null values.
-   *
-   * This allows you to always get the ID or load the value manually.
-   *
-   * @category Content
-   */
-  get refs(): {
-    profile: Ref<Profile> | undefined;
-    root: Ref<CoMap> | undefined;
-  } {
-    const profileID = this.raw.get("profile") as unknown as
-      | ID<NonNullable<G["profile"]>>
-      | undefined;
-    const rootID = this.raw.get("root") as unknown as
-      | ID<NonNullable<G["root"]>>
-      | undefined;
-    return {
-      profile: profileID
-        ? (new Ref(
-            profileID,
-            this.loadedAs,
-            this.group._schema.profile as RefEncoded<NonNullable<G["profile"]>>,
-            this.group,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ) as any as G["profile"] extends Profile ? Ref<G["profile"]> : never)
-        : undefined,
-      root: rootID
-        ? (new Ref(
-            rootID,
-            this.loadedAs,
-            this.group._schema.root as RefEncoded<NonNullable<G["root"]>>,
-            this.group,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ) as any as G["root"] extends CoMap ? Ref<G["root"]> : never)
-        : undefined,
-    };
   }
 }
 
