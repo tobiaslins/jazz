@@ -292,7 +292,7 @@ describe("subscribeToCoValue", () => {
     const initialMessage2 = initialValue?.messages[1];
     const initialMessageReactions = initialValue?.messages[0]?.reactions;
 
-    message.reactions?.push("👍");
+    message.reactions?.$jazz.push("👍");
 
     updateFn.mockClear();
 

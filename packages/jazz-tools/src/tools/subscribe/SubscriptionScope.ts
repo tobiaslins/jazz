@@ -465,7 +465,7 @@ export class SubscriptionScope<D extends CoValue> {
         }
       } else if (value._type === "CoStream") {
         const stream = value as CoFeed;
-        const descriptor = stream.getItemsDescriptor();
+        const descriptor = stream.$jazz.getItemsDescriptor();
 
         if (descriptor && isRefEncoded(descriptor)) {
           for (const session of stream.$jazz.raw.sessions()) {

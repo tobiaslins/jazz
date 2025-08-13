@@ -366,7 +366,7 @@ export class CoList<out Item = any>
 /** @internal */
 type CoListItem<L> = L extends CoList<infer Item> ? Item : never;
 
-export class CoListJazzApi<L extends CoList<any>>
+export class CoListJazzApi<L extends CoList>
   implements Omit<CoValueJazzApi<L>, "castAs">
 {
   constructor(
@@ -649,7 +649,7 @@ export class CoListJazzApi<L extends CoList<any>>
    * Get the descriptor for the items in the `CoList`
    * @internal
    */
-  getItemsDescriptor() {
+  getItemsDescriptor(): Schema | undefined {
     return this.coList._schema[ItemsSym];
   }
 

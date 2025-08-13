@@ -231,60 +231,9 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
     });
 
     if (init) {
-      instance.push(...init);
+      instance.$jazz.push(...init);
     }
     return instance;
-  }
-
-  getItemsDescriptor() {
-    return this._schema?.[ItemsSym];
-  }
-
-  /**
-   * Push items to this `CoFeed`
-   *
-   * Items are appended to the current session's log. Each session (tab, device, app instance)
-   * maintains its own append-only log, which is then aggregated into the per-account view.
-   *
-   * @example
-   * ```ts
-   * // Adds items to current session's log
-   * feed.push("item1", "item2");
-   *
-   * // View items from current session
-   * console.log(feed.inCurrentSession);
-   *
-   * // View aggregated items from all sessions for current account
-   * console.log(feed.byMe);
-   * ```
-   *
-   * @category Content
-   */
-  push(...items: Item[]) {
-    for (const item of items) {
-      this.pushItem(item);
-    }
-  }
-
-  private pushItem(item: Item) {
-    const itemDescriptor = this._schema[ItemsSym] as Schema;
-
-    if (itemDescriptor === "json") {
-      this.$jazz.raw.push(item as JsonValue);
-    } else if ("encoded" in itemDescriptor) {
-      this.$jazz.raw.push(itemDescriptor.encoded.encode(item));
-    } else if (isRefEncoded(itemDescriptor)) {
-      let refId = (item as unknown as CoValue).$jazz?.id;
-      if (!refId) {
-        const coValue = instantiateRefEncodedWithInit(
-          itemDescriptor,
-          item,
-          this.$jazz.owner,
-        );
-        refId = coValue.$jazz.id;
-      }
-      this.$jazz.raw.push(refId);
-    }
   }
 
   /**
@@ -381,56 +330,14 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
     const { options, listener } = parseSubscribeRestArgs(args);
     return subscribeToCoValueWithoutMe<F, R>(this, id, options, listener);
   }
-
-  /**
-   * Ensure a `CoFeed` is loaded to the specified depth
-   *
-   * @returns A new instance of the same CoFeed that's loaded to the specified depth
-   * @category Subscription & Loading
-   */
-  ensureLoaded<F extends CoFeed, const R extends RefsToResolve<F>>(
-    this: F,
-    options?: { resolve?: RefsToResolveStrict<F, R> },
-  ): Promise<Resolved<F, R>> {
-    return ensureCoValueLoaded(this, options);
-  }
-
-  /**
-   * An instance method to subscribe to an existing `CoFeed`
-   *
-   * No need to provide an ID or Account since they're already part of the instance.
-   * @category Subscription & Loading
-   */
-  subscribe<F extends CoFeed, const R extends RefsToResolve<F>>(
-    this: F,
-    listener: (value: Resolved<F, R>, unsubscribe: () => void) => void,
-  ): () => void;
-  subscribe<F extends CoFeed, const R extends RefsToResolve<F>>(
-    this: F,
-    options: { resolve?: RefsToResolveStrict<F, R> },
-    listener: (value: Resolved<F, R>, unsubscribe: () => void) => void,
-  ): () => void;
-  subscribe<F extends CoFeed, const R extends RefsToResolve<F>>(
-    this: F,
-    ...args: SubscribeRestArgs<F, R>
-  ): () => void {
-    const { options, listener } = parseSubscribeRestArgs(args);
-    return subscribeToExistingCoValue(this, options, listener);
-  }
-
-  /**
-   * Wait for the `CoFeed` to be uploaded to the other peers.
-   *
-   * @category Subscription & Loading
-   */
-  waitForSync(options?: { timeout?: number }) {
-    return this.$jazz.raw.core.waitForSync(options);
-  }
 }
+
+/** @internal */
+type CoFeedItem<L> = L extends CoFeed<infer Item> ? Item : never;
 
 export class CoFeedJazzApi<F extends CoFeed> extends CoValueJazzApi<F> {
   constructor(
-    coFeed: F,
+    private coFeed: F,
     public raw: RawCoStream,
   ) {
     super(coFeed);
@@ -442,6 +349,106 @@ export class CoFeedJazzApi<F extends CoFeed> extends CoValueJazzApi<F> {
    */
   get id(): ID<F> {
     return this.raw.id;
+  }
+
+  /**
+   * Push items to this `CoFeed`
+   *
+   * Items are appended to the current session's log. Each session (tab, device, app instance)
+   * maintains its own append-only log, which is then aggregated into the per-account view.
+   *
+   * @example
+   * ```ts
+   * // Adds items to current session's log
+   * feed.$jazz.push("item1", "item2");
+   *
+   * // View items from current session
+   * console.log(feed.inCurrentSession);
+   *
+   * // View aggregated items from all sessions for current account
+   * console.log(feed.byMe);
+   * ```
+   *
+   * @category Content
+   */
+  push(...items: CoFeedItem<F>[]): void {
+    for (const item of items) {
+      this.pushItem(item);
+    }
+  }
+
+  private pushItem(item: CoFeedItem<F>) {
+    const itemDescriptor = this.coFeed._schema[ItemsSym] as Schema;
+
+    if (itemDescriptor === "json") {
+      this.raw.push(item as JsonValue);
+    } else if ("encoded" in itemDescriptor) {
+      this.raw.push(itemDescriptor.encoded.encode(item));
+    } else if (isRefEncoded(itemDescriptor)) {
+      let refId = (item as unknown as CoValue).$jazz?.id;
+      if (!refId) {
+        const coValue = instantiateRefEncodedWithInit(
+          itemDescriptor,
+          item,
+          this.owner,
+        );
+        refId = coValue.$jazz.id;
+      }
+      this.raw.push(refId);
+    }
+  }
+
+  /**
+   * Ensure a `CoFeed` is loaded to the specified depth
+   *
+   * @returns A new instance of the same CoFeed that's loaded to the specified depth
+   * @category Subscription & Loading
+   */
+  ensureLoaded<F extends CoFeed, const R extends RefsToResolve<F>>(
+    this: CoFeedJazzApi<F>,
+    options?: { resolve?: RefsToResolveStrict<F, R> },
+  ): Promise<Resolved<F, R>> {
+    return ensureCoValueLoaded(this.coFeed, options);
+  }
+
+  /**
+   * An instance method to subscribe to an existing `CoFeed`
+   *
+   * No need to provide an ID or Account since they're already part of the instance.
+   * @category Subscription & Loading
+   */
+  subscribe<F extends CoFeed, const R extends RefsToResolve<F>>(
+    this: CoFeedJazzApi<F>,
+    listener: (value: Resolved<F, R>, unsubscribe: () => void) => void,
+  ): () => void;
+  subscribe<F extends CoFeed, const R extends RefsToResolve<F>>(
+    this: CoFeedJazzApi<F>,
+    options: { resolve?: RefsToResolveStrict<F, R> },
+    listener: (value: Resolved<F, R>, unsubscribe: () => void) => void,
+  ): () => void;
+  subscribe<F extends CoFeed, const R extends RefsToResolve<F>>(
+    this: CoFeedJazzApi<F>,
+    ...args: SubscribeRestArgs<F, R>
+  ): () => void {
+    const { options, listener } = parseSubscribeRestArgs(args);
+    return subscribeToExistingCoValue(this.coFeed, options, listener);
+  }
+
+  /**
+   * Wait for the `CoFeed` to be uploaded to the other peers.
+   *
+   * @category Subscription & Loading
+   */
+  waitForSync(options?: { timeout?: number }) {
+    return this.raw.core.waitForSync(options);
+  }
+
+  /**
+   * Get the descriptor for the items in the `CoFeed`
+   * @internal
+   */
+  getItemsDescriptor(): Schema | undefined {
+    return this.coFeed._schema[ItemsSym];
   }
 }
 

@@ -117,11 +117,11 @@ describe("Simple CoFeed operations", async () => {
 
   describe("Mutation", () => {
     test("pushing", () => {
-      stream.push("bread");
+      stream.$jazz.push("bread");
       expect(stream.perAccount[me.$jazz.id]?.value).toEqual("bread");
       expect(stream.perSession[me.$jazz.sessionID]?.value).toEqual("bread");
 
-      stream.push("butter");
+      stream.$jazz.push("butter");
       expect(stream.perAccount[me.$jazz.id]?.value).toEqual("butter");
       expect(stream.perSession[me.$jazz.sessionID]?.value).toEqual("butter");
     });
@@ -233,7 +233,7 @@ describe("CoFeed resolution", async () => {
       owner: stream.$jazz.owner,
     });
 
-    stream.push(newNested);
+    stream.$jazz.push(newNested);
 
     const update2 = (await queue.next()).value;
     expect(
@@ -242,7 +242,7 @@ describe("CoFeed resolution", async () => {
     ).toBe("butter");
 
     // we get updates when the new nested stream changes
-    newTwiceNested.push("jam");
+    newTwiceNested.$jazz.push("jam");
     const update3 = (await queue.next()).value;
     expect(
       update3.perAccount[me.$jazz.id]?.value?.perAccount[me.$jazz.id]?.value
@@ -265,9 +265,9 @@ describe("CoFeed resolution", async () => {
         ?.perAccount[me.$jazz.id]?.value,
     ).toBe("milk");
 
-    stream.perAccount[me.$jazz.id]!.value!.perAccount[me.$jazz.id]!.value!.push(
-      "bread",
-    );
+    stream.perAccount[me.$jazz.id]!.value!.perAccount[
+      me.$jazz.id
+    ]!.value!.$jazz.push("bread");
 
     const update2 = (await queue.next()).value;
     expect(
@@ -787,7 +787,7 @@ describe("waitForSync", async () => {
 
     const stream = TestStream.create(["1", "2", "3"], { owner: clientAccount });
 
-    await stream.waitForSync({ timeout: 1000 });
+    await stream.$jazz.waitForSync({ timeout: 1000 });
 
     // Killing the client node so the serverNode can't load the map from it
     clientNode.gracefulShutdown();

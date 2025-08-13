@@ -117,8 +117,8 @@ describe("exportCoValue", () => {
 
     const group = Group.create();
     const chat = ChatStream.create([], group);
-    chat.push("Hello");
-    chat.push("World");
+    chat.$jazz.push("Hello");
+    chat.$jazz.push("World");
     group.addMember("everyone", "reader");
 
     const alice = await createJazzTestAccount();
