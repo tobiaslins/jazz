@@ -1,16 +1,17 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useAuth } from "jazz-react-auth-betterauth";
-import { useAccount, useIsAuthenticated } from "jazz-tools/react";
+import { useBetterAuth } from "jazz-tools/better-auth/auth/react";
+import { useIsAuthenticated } from "jazz-tools/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { SSOButton } from "./SSOButton";
+import { ssoProviders } from "../app/auth/sso-providers";
 
 export function UserSettings() {
   const router = useRouter();
-  const { authClient } = useAuth();
-  const { logOut } = useAccount();
+  const authClient = useBetterAuth();
   const isAuthenticated = useIsAuthenticated();
 
   if (!isAuthenticated) {
@@ -33,23 +34,24 @@ export function UserSettings() {
       <div className="flex flex-col gap-8">
         <h1 className="text-4xl font-semibold">Settings</h1>
 
+        {ssoProviders.map((provider) => (
+          <SSOButton key={provider} provider={provider} link />
+        ))}
+
         <Button
           variant="destructive"
           className="relative"
           type="button"
           onClick={async (e) => {
             e.preventDefault();
-            authClient.deleteUser(undefined, {
-              onSuccess: () => {
-                logOut();
-                router.push("/");
-              },
-              onError: (error) => {
+            authClient
+              .deleteUser()
+              .then(() => router.push("/"))
+              .catch((error) =>
                 toast.error("Error", {
                   description: error.error.message,
-                });
-              },
-            });
+                }),
+              );
           }}
         >
           Delete account

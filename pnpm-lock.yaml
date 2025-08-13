@@ -104,8 +104,8 @@ importers:
         specifier: ^1.2.2
         version: 1.2.3(@types/react@19.1.0)(react@19.1.0)
       better-auth:
-        specifier: ^1.2.4
-        version: 1.2.7
+        specifier: ^1.3.0
+        version: 1.3.6(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(zod@3.25.76)
       better-sqlite3:
         specifier: ^11.9.1
         version: 11.10.0
@@ -115,15 +115,6 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
-      jazz-betterauth-client-plugin:
-        specifier: workspace:*
-        version: link:../../packages/jazz-betterauth-client-plugin
-      jazz-betterauth-server-plugin:
-        specifier: workspace:*
-        version: link:../../packages/jazz-betterauth-server-plugin
-      jazz-react-auth-betterauth:
-        specifier: workspace:*
-        version: link:../../packages/jazz-react-auth-betterauth
       jazz-tools:
         specifier: workspace:*
         version: link:../../packages/jazz-tools
