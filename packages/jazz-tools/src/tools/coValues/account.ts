@@ -147,7 +147,6 @@ export class Account extends CoValueBase implements CoValue {
     ) as Resolved<InstanceOrPrimitiveOfSchema<S>, true> | null;
   }
 
-  // TODO Q: does it make sense to move Group methods into `$jazz` as well?
   myRole(): "admin" | undefined {
     if (this.$jazz.isLocalNodeOwner) {
       return "admin";
