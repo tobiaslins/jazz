@@ -277,28 +277,6 @@ export class CoList<out Item = any> extends Array<Item> implements CoValue {
     return deleted;
   }
 
-  /**
-   * Modify the `CoList` to match another list, where the changes are managed internally.
-   *
-   * @param result - The resolved list of items.
-   */
-  applyDiff(result: Item[]) {
-    const current = this.$jazz.raw.asArray() as Item[];
-    const comparator = isRefEncoded(this._schema[ItemsSym])
-      ? (aIdx: number, bIdx: number) => {
-          return (
-            (current[aIdx] as CoValue)?.$jazz?.id ===
-            (result[bIdx] as CoValue)?.$jazz?.id
-          );
-        }
-      : undefined;
-
-    const patches = [...calcPatch(current, result, comparator)];
-    for (const [from, to, insert] of patches.reverse()) {
-      this.splice(from, to - from, ...insert);
-    }
-  }
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   toJSON(_key?: string, seenAbove?: ID<CoValue>[]): any[] {
     const itemDescriptor = this._schema[ItemsSym] as Schema;
@@ -474,6 +452,32 @@ export class CoListJazzApi<L extends CoList<any>>
     cl: Cl,
   ): InstanceType<Cl> {
     return cl.fromRaw(this.raw) as InstanceType<Cl>;
+  }
+
+  /**
+   * Modify the `CoList` to match another list, where the changes are managed internally.
+   *
+   * @param result - The resolved list of items.
+   * @returns The modified CoList.
+   *
+   * @category Content
+   */
+  applyDiff(result: CoListItem<L>[]): L {
+    const current = this.raw.asArray() as CoListItem<L>[];
+    const comparator = isRefEncoded(this.coList._schema[ItemsSym])
+      ? (aIdx: number, bIdx: number) => {
+          return (
+            (current[aIdx] as CoValue)?.$jazz?.id ===
+            (result[bIdx] as CoValue)?.$jazz?.id
+          );
+        }
+      : undefined;
+
+    const patches = [...calcPatch(current, result, comparator)];
+    for (const [from, to, insert] of patches.reverse()) {
+      this.coList.splice(from, to - from, ...insert);
+    }
+    return this.coList;
   }
 
   /**

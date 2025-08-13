@@ -352,13 +352,13 @@ describe("Simple CoList operations", async () => {
         owner: me,
       });
       // replace
-      list.applyDiff(["bread", "margarine", "onion"]);
+      list.$jazz.applyDiff(["bread", "margarine", "onion"]);
       expect(list.$jazz.raw.asArray()).toEqual(["bread", "margarine", "onion"]);
       // delete
-      list.applyDiff(["bread", "onion"]);
+      list.$jazz.applyDiff(["bread", "onion"]);
       expect(list.$jazz.raw.asArray()).toEqual(["bread", "onion"]);
       // insert multiple
-      list.applyDiff(["bread", "margarine", "onion", "cheese"]);
+      list.$jazz.applyDiff(["bread", "margarine", "onion", "cheese"]);
       expect(list.$jazz.raw.asArray()).toEqual([
         "bread",
         "margarine",
@@ -425,19 +425,19 @@ describe("CoList applyDiff operations", async () => {
     const list = StringList.create(["a", "b", "c"], { owner: me });
 
     // Test adding items
-    list.applyDiff(["a", "b", "c", "d", "e"]);
+    list.$jazz.applyDiff(["a", "b", "c", "d", "e"]);
     expect(list.$jazz.raw.asArray()).toEqual(["a", "b", "c", "d", "e"]);
 
     // Test removing items
-    list.applyDiff(["a", "c", "e"]);
+    list.$jazz.applyDiff(["a", "c", "e"]);
     expect(list.$jazz.raw.asArray()).toEqual(["a", "c", "e"]);
 
     // Test replacing items
-    list.applyDiff(["x", "y", "z"]);
+    list.$jazz.applyDiff(["x", "y", "z"]);
     expect(list.$jazz.raw.asArray()).toEqual(["x", "y", "z"]);
 
     // Test empty list
-    list.applyDiff([]);
+    list.$jazz.applyDiff([]);
     expect(list.$jazz.raw.asArray()).toEqual([]);
   });
 
@@ -453,23 +453,23 @@ describe("CoList applyDiff operations", async () => {
     const list = RefList.create([item1, item2], { owner: me });
 
     // Test adding reference items
-    list.applyDiff([item1, item2, item3]);
+    list.$jazz.applyDiff([item1, item2, item3]);
     expect(list.length).toBe(3);
     expect(list[2]?.[0]).toBe("item3");
 
     // Test removing reference items
-    list.applyDiff([item1, item3]);
+    list.$jazz.applyDiff([item1, item3]);
     expect(list.length).toBe(2);
     expect(list[0]?.[0]).toBe("item1");
     expect(list[1]?.[0]).toBe("item3");
 
     // Test replacing reference items
-    list.applyDiff([item4]);
+    list.$jazz.applyDiff([item4]);
     expect(list.length).toBe(1);
     expect(list[0]?.[0]).toBe("item4");
 
     // Test empty list
-    list.applyDiff([]);
+    list.$jazz.applyDiff([]);
     expect(list.$jazz.raw.asArray()).toEqual([]);
   });
 
@@ -486,7 +486,7 @@ describe("CoList applyDiff operations", async () => {
 
     const list = TestList.create([bread, butter, onion], me);
 
-    list.applyDiff(list.filter((item) => item?.type !== "butter"));
+    list.$jazz.applyDiff(list.filter((item) => item?.type !== "butter"));
 
     expect(list.$jazz.raw.asArray()).toEqual([bread.$jazz.id, onion.$jazz.id]);
   });
@@ -496,15 +496,15 @@ describe("CoList applyDiff operations", async () => {
     const list = StringList.create(["a", "b", "c", "d", "e"], { owner: me });
 
     // Test multiple operations at once
-    list.applyDiff(["a", "x", "c", "y", "e"]);
+    list.$jazz.applyDiff(["a", "x", "c", "y", "e"]);
     expect(list.$jazz.raw.asArray()).toEqual(["a", "x", "c", "y", "e"]);
 
     // Test reordering
-    list.applyDiff(["e", "c", "a", "y", "x"]);
+    list.$jazz.applyDiff(["e", "c", "a", "y", "x"]);
     expect(list.$jazz.raw.asArray()).toEqual(["e", "c", "a", "y", "x"]);
 
     // Test partial update
-    list.applyDiff(["e", "c", "new", "y", "x"]);
+    list.$jazz.applyDiff(["e", "c", "new", "y", "x"]);
     expect(list.$jazz.raw.asArray()).toEqual(["e", "c", "new", "y", "x"]);
   });
 });
