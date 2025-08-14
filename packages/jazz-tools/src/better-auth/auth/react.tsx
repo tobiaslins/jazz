@@ -14,47 +14,59 @@ import {
   useAuthSecretStorage,
   useJazzContext,
 } from "jazz-tools/react";
-import { useEffect, useMemo } from "react";
-import { type PropsWithChildren, createContext, useContext } from "react";
+import { useEffect } from "react";
+import { type PropsWithChildren, createContext } from "react";
 import { jazzPluginClient } from "./client.js";
 
-type AuthClient = ReturnType<typeof createAuthClient>;
+type AuthClient = ReturnType<
+  typeof createAuthClient<{
+    plugins: [ReturnType<typeof jazzPluginClient>];
+  }>
+>;
 
 export const AuthContext = createContext<AuthClient | null>(null);
 
-function AuthProvider({
+/**
+ * @param props.children - The children to render.
+ * @param props.betterAuthClient - The BetterAuth client with the Jazz plugin.
+ *
+ * @example
+ * ```ts
+ * const betterAuthClient = createAuthClient({
+ *   plugins: [
+ *     jazzPluginClient(),
+ *   ],
+ * });
+ *
+ * <AuthProvider betterAuthClient={betterAuthClient}>
+ *   <App />
+ * </AuthProvider>
+ * ```
+ */
+export function AuthProvider({
   children,
-  options,
+  betterAuthClient,
 }: PropsWithChildren<{
-  options?: ClientOptions;
+  betterAuthClient: AuthClient;
 }>) {
   const context = useJazzContext();
   const authSecretStorage = useAuthSecretStorage();
 
-  const authClient = useMemo(
-    () =>
-      createAuthClient({
-        ...options,
-        plugins: [
-          ...(options?.plugins || []),
-          jazzPluginClient(
-            context.authenticate,
-            context.logOut,
-            authSecretStorage,
-          ),
-        ],
-      }),
-    [options],
-  );
+  if (betterAuthClient.jazz === undefined) {
+    throw new Error(
+      "Better Auth client has been initialized without the jazzPluginClient",
+    );
+  }
 
   useEffect(() => {
-    // We need to subscribe to the session to let the plugin keep sync Jazz's and BetterAuth's session
-    return authClient.useSession.subscribe(() => {});
-  }, [authClient]);
+    betterAuthClient.jazz.setJazzContext(context);
+    betterAuthClient.jazz.setAuthSecretStorage(authSecretStorage);
 
-  return (
-    <AuthContext.Provider value={authClient}>{children}</AuthContext.Provider>
-  );
+    // We need to subscribe to the session to let the plugin keep sync Jazz's and BetterAuth's session
+    return betterAuthClient.useSession.subscribe(() => {});
+  }, [betterAuthClient, context, authSecretStorage]);
+
+  return children;
 }
 
 /**
@@ -81,19 +93,13 @@ export const JazzReactProviderWithBetterAuth = <
     | (AccountClass<Account> & CoValueFromRaw<Account>)
     | AnyAccountSchema,
 >(
-  props: { betterAuth?: ClientOptions } & JazzProviderProps<S>,
+  props: { betterAuthClient: AuthClient } & JazzProviderProps<S>,
 ) => {
   return (
     <JazzReactProvider {...props}>
-      <AuthProvider options={props.betterAuth}>{props.children}</AuthProvider>
+      <AuthProvider betterAuthClient={props.betterAuthClient}>
+        {props.children}
+      </AuthProvider>
     </JazzReactProvider>
   );
 };
-
-export function useBetterAuth<T extends ClientOptions>() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context as unknown as ReturnType<typeof createAuthClient<T>>;
-}

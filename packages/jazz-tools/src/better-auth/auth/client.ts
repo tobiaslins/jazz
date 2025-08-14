@@ -1,31 +1,24 @@
 import type { BetterAuthClientPlugin } from "better-auth";
 import type {
   AuthSecretStorage,
-  AuthenticateAccountFunction,
   AuthSetPayload,
+  Account,
+  JazzContextType,
 } from "jazz-tools";
 import { jazzPlugin } from "./server";
 
 /**
- * @param authenticationFunction - The function to authenticate the user, usually JazzContextManager.authenticate
- * @param logOutFunction - The function to log out the user, usually JazzContextManager.logOut
- * @param authSecretStorage - The storage to store the auth secret, usually JazzContextManager.authSecretStorage
- * @returns The BetterAuth client plugin.
- *
  * @example
  * ```ts
- * const context = useJazzContext();
- * const authSecretStorage = useAuthSecretStorage();
  * const auth = betterAuth({
- *   plugins: [jazzPluginClient(context.authenticate, context.logOut, authSecretStorage)],
+ *   plugins: [jazzPluginClient()],
  * });
  * ```
  */
-export const jazzPluginClient = (
-  authenticationFunction: AuthenticateAccountFunction,
-  logOutFunction: () => Promise<void> | void,
-  authSecretStorage: AuthSecretStorage,
-) => {
+export const jazzPluginClient = () => {
+  let jazzContext: JazzContextType<Account>;
+  let authSecretStorage: AuthSecretStorage;
+
   const authenticateOnJazz = async (jazzAuth: AuthSetPayload) => {
     const parsedJazzAuth = {
       ...jazzAuth,
@@ -34,13 +27,25 @@ export const jazzPluginClient = (
         : undefined,
     };
 
-    await authenticationFunction(parsedJazzAuth);
+    await jazzContext.authenticate(parsedJazzAuth);
     await authSecretStorage.set(parsedJazzAuth);
   };
 
   return {
     id: "jazz-plugin",
     $InferServerPlugin: {} as ReturnType<typeof jazzPlugin>,
+    getActions: () => {
+      return {
+        jazz: {
+          setJazzContext: (context: JazzContextType<Account>) => {
+            jazzContext = context;
+          },
+          setAuthSecretStorage: (storage: AuthSecretStorage) => {
+            authSecretStorage = storage;
+          },
+        },
+      };
+    },
     fetchPlugins: [
       {
         id: "jazz-plugin",
@@ -118,12 +123,12 @@ export const jazzPluginClient = (
             }
 
             if (context.request.url.toString().includes("/sign-out")) {
-              await logOutFunction();
+              await jazzContext.logOut();
               return;
             }
 
             if (context.request.url.toString().includes("/delete-user")) {
-              await logOutFunction();
+              await jazzContext.logOut();
               return;
             }
           },

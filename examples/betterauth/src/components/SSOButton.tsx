@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { betterAuthClient } from "@/lib/auth-client";
 import {
   SiApple,
   SiDiscord,
@@ -18,7 +19,6 @@ import {
   SiZoom,
 } from "@icons-pack/react-simple-icons";
 import type { SocialProviderList } from "better-auth/social-providers";
-import { useBetterAuth } from "jazz-tools/better-auth/auth/react";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { toast } from "sonner";
@@ -109,7 +109,6 @@ interface Props {
 }
 
 export function SSOButton({ provider, link = false }: Props) {
-  const auth = useBetterAuth();
   const router = useRouter();
 
   if (!socialProviderMap[provider]) {
@@ -122,9 +121,9 @@ export function SSOButton({ provider, link = false }: Props) {
       variant="outline"
       onClick={() => {
         if (link) {
-          auth.linkSocial({ provider });
+          betterAuthClient.linkSocial({ provider });
         } else {
-          auth.signIn.social({ provider });
+          betterAuthClient.signIn.social({ provider });
         }
       }}
     >

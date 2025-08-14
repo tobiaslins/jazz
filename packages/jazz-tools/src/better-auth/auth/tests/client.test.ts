@@ -33,17 +33,14 @@ describe("auth client", () => {
 
     authClient = createAuthClient({
       baseURL: "http://localhost:3000",
-      plugins: [
-        jazzPluginClient(
-          jazzContextManager.authenticate,
-          jazzContextManager.logOut,
-          authSecretStorage,
-        ),
-      ],
+      plugins: [jazzPluginClient()],
       fetchOptions: {
         customFetchImpl,
       },
     });
+
+    authClient.jazz.setJazzContext(jazzContextManager.getCurrentValue()!);
+    authClient.jazz.setAuthSecretStorage(authSecretStorage);
 
     customFetchImpl.mockReset();
   });

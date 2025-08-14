@@ -1,18 +1,17 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useBetterAuth } from "jazz-tools/better-auth/auth/react";
+import { betterAuthClient } from "@/lib/auth-client";
 import { useIsAuthenticated } from "jazz-tools/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback } from "react";
 
 export function Navbar() {
-  const authClient = useBetterAuth();
   const isAuthenticated = useIsAuthenticated();
 
   const signOut = useCallback(() => {
-    authClient.signOut().catch(console.error);
+    betterAuthClient.signOut().catch(console.error);
   }, []);
 
   return (

@@ -1,17 +1,16 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useBetterAuth } from "jazz-tools/better-auth/auth/react";
 import { useIsAuthenticated } from "jazz-tools/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { betterAuthClient } from "@/lib/auth-client";
 import { SSOButton } from "./SSOButton";
 import { ssoProviders } from "../app/auth/sso-providers";
 
 export function UserSettings() {
   const router = useRouter();
-  const authClient = useBetterAuth();
   const isAuthenticated = useIsAuthenticated();
 
   if (!isAuthenticated) {
@@ -44,7 +43,7 @@ export function UserSettings() {
           type="button"
           onClick={async (e) => {
             e.preventDefault();
-            authClient
+            betterAuthClient
               .deleteUser()
               .then(() => router.push("/"))
               .catch((error) =>
