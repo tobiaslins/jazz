@@ -632,6 +632,19 @@ export class CoListJazzApi<L extends CoList>
   }
 
   /**
+   * Retains only the elements matching the predicate from the array.
+   * @param predicate The predicate to match the elements to retain.
+   * @returns The removed elements.
+   *
+   * @category Content
+   */
+  retain(
+    predicate: (item: CoListItem<L>, index: number, coList: L) => boolean,
+  ): CoListItem<L>[] {
+    return this.remove((...args) => !predicate(...args));
+  }
+
+  /**
    * Modify the `CoList` to match another list, where the changes are managed internally.
    *
    * Changes are detected using `Object.is` for non-collaborative values and `$jazz.id` for collaborative values.
