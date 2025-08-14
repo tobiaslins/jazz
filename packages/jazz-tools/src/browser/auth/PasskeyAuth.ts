@@ -89,7 +89,7 @@ export class BrowserPasskeyAuth {
     });
 
     if (username.trim().length !== 0) {
-      currentAccount.profile.name = username;
+      currentAccount.profile.$jazz.set("name", username);
     }
 
     await this.authSecretStorage.set({

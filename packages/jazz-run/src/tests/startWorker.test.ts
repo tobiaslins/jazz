@@ -258,7 +258,7 @@ describe("startWorker integration", () => {
       { owner: group },
     );
 
-    map.value = "updated while offline";
+    map.$jazz.set("value", "updated while offline");
 
     // Start a new sync server on the same port
     const newServer = await startSyncServer({

@@ -49,7 +49,7 @@ function TestLogoutComponent({ onLogout }: { onLogout?: () => void }) {
         <button
           data-testid="increment-button"
           onClick={() => {
-            root.count.value++;
+            root.count.$jazz.set("value", root.count.value + 1);
           }}
         >
           Increment
