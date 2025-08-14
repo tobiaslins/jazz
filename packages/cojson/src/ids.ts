@@ -1,8 +1,8 @@
 import { base58 } from "@scure/base";
-import { CoID } from "./coValue.js";
-import { RawAccountID } from "./coValues/account.js";
+import type { CoID } from "./coValue.js";
+import type { RawAccountID } from "./coValues/account.js";
+import type { RawGroup } from "./coValues/group.js";
 import { shortHashLength } from "./crypto/crypto.js";
-import { RawGroup } from "./exports.js";
 
 export type RawCoID = `co_z${string}`;
 export type ParentGroupReference = `parent_${CoID<RawGroup>}`;

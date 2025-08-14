@@ -305,7 +305,9 @@ export async function linkAccounts(
 
 export async function setupJazzTestSync({
   asyncPeers = false,
-}: { asyncPeers?: boolean } = {}) {
+}: {
+  asyncPeers?: boolean;
+} = {}) {
   if (syncServer.current) {
     syncServer.current.gracefulShutdown();
   }

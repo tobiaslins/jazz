@@ -6,7 +6,7 @@ import {
   RawBinaryCoStream,
   RawCoStreamView,
 } from "../coValues/coStream.js";
-import { MAX_RECOMMENDED_TX_SIZE } from "../config.js";
+import { TRANSACTION_CONFIG } from "../config.js";
 import { WasmCrypto } from "../crypto/WasmCrypto.js";
 import { SessionID } from "../ids.js";
 import {
@@ -153,7 +153,9 @@ test("When adding large transactions (small fraction of MAX_RECOMMENDED_TX_SIZE)
   );
 
   for (let i = 0; i < 10; i++) {
-    const chunk = new Uint8Array(MAX_RECOMMENDED_TX_SIZE / 3 + 100);
+    const chunk = new Uint8Array(
+      TRANSACTION_CONFIG.MAX_RECOMMENDED_TX_SIZE / 3 + 100,
+    );
 
     content.pushBinaryStreamChunk(chunk, "trusting");
   }
@@ -226,7 +228,9 @@ test("When adding large transactions (bigger than MAX_RECOMMENDED_TX_SIZE), we s
     "trusting",
   );
 
-  const chunk = new Uint8Array(MAX_RECOMMENDED_TX_SIZE + 100);
+  const chunk = new Uint8Array(
+    TRANSACTION_CONFIG.MAX_RECOMMENDED_TX_SIZE + 100,
+  );
 
   for (let i = 0; i < 3; i++) {
     content.pushBinaryStreamChunk(chunk, "trusting");

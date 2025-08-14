@@ -1,9 +1,20 @@
-import { afterEach, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { expectPlainText } from "../coValue.js";
+import { setMaxRecommendedTxSize } from "../config.js";
 import { WasmCrypto } from "../crypto/WasmCrypto.js";
-import { nodeWithRandomAgentAndSessionID } from "./testUtils.js";
+import {
+  SyncMessagesLog,
+  loadCoValueOrFail,
+  nodeWithRandomAgentAndSessionID,
+  setupTestNode,
+} from "./testUtils.js";
 
 const Crypto = await WasmCrypto.create();
+
+beforeEach(() => {
+  setMaxRecommendedTxSize(100 * 1024);
+  SyncMessagesLog.clear();
+});
 
 afterEach(() => void vi.unstubAllGlobals());
 
@@ -185,8 +196,8 @@ test("insertBefore and insertAfter work as expected", () => {
   expect(content.toString()).toEqual("hey");
 
   // Insert '!' at start
-  content.insertBefore(0, "!", "trusting"); // "!hey"
-  expect(content.toString()).toEqual("!hey");
+  content.insertBefore(0, "!?", "trusting"); // "!?hey"
+  expect(content.toString()).toEqual("!?hey");
 });
 
 test("Can delete a single grapheme", () => {
@@ -285,4 +296,165 @@ test("Splits into and from grapheme string arrays", () => {
 
   const text = content.fromGraphemes(graphemes);
   expect(text).toEqual("👋 안녕!");
+});
+
+test("chunks transactions when when the chars are longer than MAX_RECOMMENDED_TX_SIZE", async () => {
+  setMaxRecommendedTxSize(5);
+
+  const client = setupTestNode();
+  const { storage } = client.addStorage();
+
+  const coValue = client.node.createCoValue({
+    type: "coplaintext",
+    ruleset: { type: "unsafeAllowAll" },
+    meta: null,
+    ...Crypto.createdNowUnique(),
+  });
+
+  const content = expectPlainText(coValue.getCurrentContent());
+
+  content.insertAfter(
+    content.entries().length,
+    "I'm writing you to test that coplaintext",
+    "trusting",
+  );
+  content.insertAfter(
+    content.entries().length,
+    " chunks transactions when when the chars are longer than MAX_RECOMMENDED_TX_SIZE.",
+    "trusting",
+  );
+  content.insertAfter(
+    content.entries().length,
+    "This is required because when a user paste 1Mb of text, we can split it in multiple websocket messages.",
+    "trusting",
+  );
+
+  content.insertBefore(0, "Dear reader,\n", "trusting");
+
+  expect(content.toString()).toMatchInlineSnapshot(
+    `"Dear reader,\nI'm writing you to test that coplaintext chunks transactions when when the chars are longer than MAX_RECOMMENDED_TX_SIZE.This is required because when a user paste 1Mb of text, we can split it in multiple websocket messages."`,
+  );
+
+  await coValue.waitForSync();
+
+  client.restart();
+  client.addStorage({
+    storage,
+  });
+
+  const loaded = await loadCoValueOrFail(client.node, content.id);
+  await loaded.core.waitForSync();
+
+  expect(loaded.toString()).toEqual(content.toString());
+
+  expect(
+    SyncMessagesLog.getMessages({
+      CoPlainText: coValue,
+    }),
+  ).toMatchInlineSnapshot(`
+		[
+		  "client -> storage | CONTENT CoPlainText header: true new: ",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 0 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 1 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 2 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 3 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 4 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 5 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 6 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 7 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 8 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 9 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 10 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 11 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 12 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 13 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 14 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 15 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 16 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 17 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 18 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 19 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 20 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 21 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 22 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 23 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 24 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 25 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 26 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 27 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 28 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 29 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 30 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 31 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 32 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 33 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 34 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 35 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 36 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 37 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 38 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 39 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 40 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 41 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 42 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 43 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 44 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 45 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 46 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 47 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 48 New: 1",
+		  "client -> storage | CONTENT CoPlainText header: false new: After: 49 New: 1",
+		  "client -> storage | LOAD CoPlainText sessions: empty",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 0 New: 1 expectContentUntil: header/50",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 1 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 2 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 3 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 4 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 5 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 6 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 7 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 8 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 9 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 10 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 11 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 12 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 13 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 14 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 15 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 16 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 17 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 18 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 19 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 20 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 21 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 22 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 23 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 24 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 25 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 26 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 27 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 28 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 29 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 30 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 31 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 32 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 33 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 34 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 35 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 36 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 37 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 38 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 39 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 40 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 41 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 42 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 43 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 44 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 45 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 46 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 47 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 48 New: 1",
+		  "storage -> client | CONTENT CoPlainText header: true new: After: 49 New: 1",
+		]
+	`);
 });

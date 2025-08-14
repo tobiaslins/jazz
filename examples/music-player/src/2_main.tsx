@@ -15,7 +15,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { JazzReactProvider } from "jazz-tools/react";
 import { onAnonymousAccountDiscarded } from "./4_actions";
 import { KeyboardListener } from "./components/PlayerControls";
-import { useUploadExampleData } from "./lib/useUploadExampleData";
+import { usePrepareAppState } from "./lib/usePrepareAppState";
 
 /**
  * Walkthrough: The top-level provider `<JazzReactProvider/>`
@@ -31,7 +31,7 @@ import { useUploadExampleData } from "./lib/useUploadExampleData";
 function Main() {
   const mediaPlayer = useMediaPlayer();
 
-  useUploadExampleData();
+  const isReady = usePrepareAppState(mediaPlayer);
 
   const router = createHashRouter([
     {
@@ -47,6 +47,8 @@ function Main() {
       element: <InvitePage />,
     },
   ]);
+
+  if (!isReady) return null;
 
   return (
     <>

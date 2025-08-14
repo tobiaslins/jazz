@@ -5,7 +5,8 @@ import { usePlayState } from "@/lib/audio/usePlayState";
 import { useKeyboardListener } from "@/lib/useKeyboardListener";
 import { useAccount, useCoState } from "jazz-tools/react";
 import { Pause, Play, SkipBack, SkipForward } from "lucide-react";
-import { Waveform } from "./Waveform";
+import WaveformCanvas from "./WaveformCanvas";
+import { Button } from "./ui/button";
 
 export function PlayerControls({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
   const playState = usePlayState();
@@ -15,57 +16,61 @@ export function PlayerControls({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
     resolve: { root: { activePlaylist: true } },
   }).me?.root.activePlaylist;
 
-  const activeTrack = useCoState(MusicTrack, mediaPlayer.activeTrackId, {
-    resolve: { waveform: true },
-  });
+  const activeTrack = useCoState(MusicTrack, mediaPlayer.activeTrackId);
 
   if (!activeTrack) return null;
 
   const activeTrackTitle = activeTrack.title;
 
   return (
-    <footer className="flex items-center justify-between p-2 sm:p-4 gap-2 sm:gap-4 bg-white border-t border-gray-200 absolute bottom-0 left-0 right-0 w-full z-50">
-      <div className="flex justify-center items-center space-x-1 sm:space-x-2 flex-shrink-0">
-        <div className="flex items-center space-x-2 sm:space-x-4">
-          <button
+    <footer className="flex flex-wrap sm:flex-nowrap items-center justify-between pt-4 p-2 sm:p-4 gap-4 sm:gap-4 bg-white border-t border-gray-200 absolute bottom-0 left-0 right-0 w-full z-50">
+      {/* Player Controls - Always on top */}
+      <div className="flex justify-center items-center space-x-1 sm:space-x-2 flex-shrink-0 w-full sm:w-auto order-1 sm:order-none">
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={mediaPlayer.playPrevTrack}
-            className="text-blue-600 hover:text-blue-800"
             aria-label="Previous track"
           >
-            <SkipBack size={16} className="sm:w-5 sm:h-5" />
-          </button>
-          <button
+            <SkipBack className="h-5 w-5" fill="currentColor" />
+          </Button>
+          <Button
+            size="icon"
             onClick={playState.toggle}
-            className="w-8 h-8 sm:w-[42px] sm:h-[42px] flex items-center justify-center bg-blue-600 rounded-full text-white hover:bg-blue-700"
+            className="bg-blue-600 text-white hover:bg-blue-700"
             aria-label={isPlaying ? "Pause active track" : "Play active track"}
           >
             {isPlaying ? (
-              <Pause size={16} className="sm:w-6 sm:h-6" fill="currentColor" />
+              <Pause className="h-5 w-5" fill="currentColor" />
             ) : (
-              <Play size={16} className="sm:w-6 sm:h-6" fill="currentColor" />
+              <Play className="h-5 w-5" fill="currentColor" />
             )}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={mediaPlayer.playNextTrack}
-            className="text-blue-600 hover:text-blue-800"
             aria-label="Next track"
           >
-            <SkipForward size={16} className="sm:w-5 sm:h-5" />
-          </button>
+            <SkipForward className="h-5 w-5" fill="currentColor" />
+          </Button>
         </div>
       </div>
-      <div className="md:hidden sm:hidden  lg:flex flex-1 justify-center items-center min-w-0 px-2">
-        <Waveform
-          track={activeTrack}
-          height={30}
-          className="h-5 sm:h-6 md:h-8 lg:h-10"
-        />
-      </div>
-      <div className="flex flex-col items-end gap-1 text-right min-w-fit flex-shrink-0">
-        <h4 className="font-medium text-blue-800 text-sm sm:text-base truncate max-w-32 sm:max-w-80">
+
+      {/* Waveform - Below controls on mobile, between controls and info on desktop */}
+      <WaveformCanvas
+        className="order-1 sm:order-none"
+        track={activeTrack}
+        height={50}
+      />
+
+      {/* Track Info - Below waveform on mobile, on the right on desktop */}
+      <div className="flex flex-col gap-1 min-w-fit sm:flex-shrink-0 text-center w-full sm:text-right items-center sm:items-end sm:w-auto order-0 sm:order-none">
+        <h4 className="font-medium text-blue-800 text-base sm:text-base truncate max-w-80 sm:max-w-80">
           {activeTrackTitle}
         </h4>
-        <p className="text-xs sm:text-sm text-gray-600 truncate max-w-32 sm:max-w-80">
+        <p className="hidden sm:block text-xs sm:text-sm text-gray-600 truncate sm:max-w-80">
           {activePlaylist?.title || "All tracks"}
         </p>
       </div>
@@ -75,7 +80,9 @@ export function PlayerControls({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
 
 export function KeyboardListener({
   mediaPlayer,
-}: { mediaPlayer: MediaPlayer }) {
+}: {
+  mediaPlayer: MediaPlayer;
+}) {
   const playState = usePlayState();
 
   useMediaEndListener(mediaPlayer.playNextTrack);

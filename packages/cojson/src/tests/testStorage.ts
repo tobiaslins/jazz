@@ -95,7 +95,11 @@ export async function createAsyncStorage({
   filename,
   nodeName = "client",
   storageName = "storage",
-}: { filename?: string; nodeName: string; storageName: string }) {
+}: {
+  filename?: string;
+  nodeName: string;
+  storageName: string;
+}) {
   const storage = await getSqliteStorageAsync(
     new LibSQLSqliteAsyncDriver(getDbPath(filename)),
   );
@@ -113,7 +117,11 @@ export function createSyncStorage({
   filename,
   nodeName = "client",
   storageName = "storage",
-}: { filename?: string; nodeName: string; storageName: string }) {
+}: {
+  filename?: string;
+  nodeName: string;
+  storageName: string;
+}) {
   const storage = getSqliteStorage(
     new LibSQLSqliteSyncDriver(getDbPath(filename)),
   );
@@ -123,7 +131,7 @@ export function createSyncStorage({
   return storage;
 }
 
-function getDbPath(defaultDbPath?: string) {
+export function getDbPath(defaultDbPath?: string) {
   const dbPath = defaultDbPath ?? join(tmpdir(), `test-${randomUUID()}.db`);
 
   if (!defaultDbPath) {

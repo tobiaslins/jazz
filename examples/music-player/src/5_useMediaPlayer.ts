@@ -5,6 +5,7 @@ import { FileStream } from "jazz-tools";
 import { useAccount } from "jazz-tools/react";
 import { useRef, useState } from "react";
 import { updateActivePlaylist, updateActiveTrack } from "./4_actions";
+import { useAudioManager } from "./lib/audio/AudioManager";
 import { getNextTrack, getPrevTrack } from "./lib/getters";
 
 export function useMediaPlayer() {
@@ -12,6 +13,7 @@ export function useMediaPlayer() {
     resolve: { root: true },
   });
 
+  const audioManager = useAudioManager();
   const playState = usePlayState();
   const playMedia = usePlayMedia();
 
@@ -24,8 +26,10 @@ export function useMediaPlayer() {
 
   async function loadTrack(track: MusicTrack) {
     lastLoadedTrackId.current = track.id;
+    audioManager.unloadCurrentAudio();
 
     setLoading(track.id);
+    updateActiveTrack(track);
 
     const file = await FileStream.loadAsBlob(track._refs.file!.id); // TODO: see if we can avoid !
 
@@ -39,8 +43,6 @@ export function useMediaPlayer() {
     if (lastLoadedTrackId.current !== track.id) {
       return;
     }
-
-    updateActiveTrack(track);
 
     await playMedia(file);
 
@@ -85,6 +87,7 @@ export function useMediaPlayer() {
     playNextTrack,
     playPrevTrack,
     loading,
+    loadTrack,
   };
 }
 

@@ -35,11 +35,7 @@ export function useBetterAuth<T extends ClientOptions>(options?: T) {
 
   useEffect(() => {
     return authMethod.authClient.useSession.subscribe(
-      async ({
-        data,
-      }: {
-        data: Data;
-      }) => {
+      async ({ data }: { data: Data }) => {
         if (!data || !data.user) return;
         if (data.user.encryptedCredentials === account?.encryptedCredentials)
           return;

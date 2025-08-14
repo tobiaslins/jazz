@@ -1,5 +1,38 @@
 # cojson-transport-nodejs-ws
 
+## 0.17.1
+
+### Patch Changes
+
+- Updated dependencies [2fd88b9]
+  - cojson@0.17.1
+
+## 0.17.0
+
+### Patch Changes
+
+- cojson@0.17.0
+
+## 0.16.6
+
+### Patch Changes
+
+- ac5d20d: Add ingress and egress metering
+- Updated dependencies [67e0968]
+- Updated dependencies [ce9ca54]
+- Updated dependencies [4b99ff1]
+- Updated dependencies [ac5d20d]
+- Updated dependencies [9bf7946]
+  - cojson@0.16.6
+
+## 0.16.5
+
+### Patch Changes
+
+- Updated dependencies [3cd1586]
+- Updated dependencies [267f689]
+  - cojson@0.16.5
+
 ## 0.16.4
 
 ### Patch Changes

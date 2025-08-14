@@ -1,5 +1,36 @@
 # cojson
 
+## 0.17.1
+
+### Patch Changes
+
+- 2fd88b9: Add debug info to sync correction errors
+
+## 0.17.0
+
+## 0.16.6
+
+### Patch Changes
+
+- 67e0968: Fix content streaming chunking, now chunks should be splitted always respecting the MAX_RECOMMENDED_TX_SIZE
+- ce9ca54: Chunk CoPlainText content to avoid generating bg messages when the user past a megabytes of text
+- 4b99ff1: Add a multi-storage scheduler to avoid conflicting store operations when having multiple storage instances open on the same database
+- ac5d20d: Add ingress and egress metering
+- 9bf7946: Added a TTL based optional garbage collection for covalues
+
+## 0.16.5
+
+### Patch Changes
+
+- 3cd1586: Makes the key rotation not fail when child groups are unavailable or their readkey is not accessible.
+
+  Also changes the Group.removeMember method to not return a Promise, because:
+
+  - All the locally available child groups are rotated immediately
+  - All the remote child groups are rotated in background, but since they are not locally available the user won't need the new key immediately
+
+- 267f689: Groups: fix the readkey not being revealed to everyone when doing a key rotation
+
 ## 0.16.4
 
 ### Patch Changes

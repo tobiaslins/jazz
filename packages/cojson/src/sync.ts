@@ -2,6 +2,7 @@ import { Histogram, ValueType, metrics } from "@opentelemetry/api";
 import { PeerState } from "./PeerState.js";
 import { SyncStateManager } from "./SyncStateManager.js";
 import {
+  getContenDebugInfo,
   getTransactionSize,
   knownStateFromContent,
 } from "./coValueContentMessage.js";
@@ -461,6 +462,22 @@ export class SyncManager {
 
     if (!coValue.hasVerifiedContent()) {
       if (!msg.header) {
+        const storageKnownState = this.local.storage?.getKnownState(msg.id);
+
+        if (storageKnownState?.header) {
+          // If the CoValue has been garbage collected, we load it from the storage before handling the new content
+          coValue.loadFromStorage((found) => {
+            if (found) {
+              this.handleNewContent(msg, from);
+            } else {
+              logger.error("Known CoValue not found in storage", {
+                id: msg.id,
+              });
+            }
+          });
+          return;
+        }
+
         if (peer) {
           this.trySendToPeer(peer, {
             action: "known",
@@ -657,6 +674,8 @@ export class SyncManager {
           "Invalid state assumed when handling new content from storage",
           {
             id: msg.id,
+            content: getContenDebugInfo(msg),
+            knownState: coValue.knownState(),
           },
         );
       }
@@ -782,12 +801,25 @@ export class SyncManager {
 
     if (!storage) return;
 
+    const value = this.local.getCoValue(content.id);
+
     // Try to store the content as-is for performance
     // In case that some transactions are missing, a correction will be requested, but it's an edge case
     storage.store(content, (correction) => {
-      return this.local
-        .getCoValue(content.id)
-        .verified?.newContentSince(correction);
+      if (!value.verified) {
+        logger.error(
+          "Correction requested for a CoValue with no verified content",
+          {
+            id: content.id,
+            content: getContenDebugInfo(content),
+            correction,
+            state: value.loadingState,
+          },
+        );
+        return undefined;
+      }
+
+      return value.verified.newContentSince(correction);
     });
   }
 

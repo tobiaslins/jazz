@@ -1,5 +1,63 @@
 # jazz-tools
 
+## 0.17.1
+
+### Patch Changes
+
+- 0bcbf55: Export the HttpRoute type
+- d1bdbf5: fix: ensure file downloaded in loadImageBySize
+- 4b73834: fix(jazz-tools/svelte): Make Image reactive to imageId change
+- Updated dependencies [2fd88b9]
+  - cojson@0.17.1
+  - cojson-storage-indexeddb@0.17.1
+  - cojson-transport-ws@0.17.1
+
+## 0.17.0
+
+### Minor Changes
+
+- fcaf4b9: New image management APIs, refactoring imperative functions for creation and consumption, React and ReactNative components, and new Svelte componente
+
+### Patch Changes
+
+- cojson@0.17.0
+- cojson-storage-indexeddb@0.17.0
+- cojson-transport-ws@0.17.0
+
+## 0.16.6
+
+### Patch Changes
+
+- 67e0968: Fix content streaming chunking, now chunks should be splitted always respecting the MAX_RECOMMENDED_TX_SIZE
+- 2c8120d: co.record partial deep loading now resolve correct type
+- Updated dependencies [103d1b4]
+- Updated dependencies [67e0968]
+- Updated dependencies [ce9ca54]
+- Updated dependencies [4b99ff1]
+- Updated dependencies [ac5d20d]
+- Updated dependencies [9bf7946]
+  - cojson-storage-indexeddb@0.16.6
+  - cojson@0.16.6
+  - cojson-transport-ws@0.16.6
+
+## 0.16.5
+
+### Patch Changes
+
+- 3cd1586: Makes the key rotation not fail when child groups are unavailable or their readkey is not accessible.
+
+  Also changes the Group.removeMember method to not return a Promise, because:
+
+  - All the locally available child groups are rotated immediately
+  - All the remote child groups are rotated in background, but since they are not locally available the user won't need the new key immediately
+
+- 33ebbf0: Fix error when using nested discriminatedUnion
+- Updated dependencies [3cd1586]
+- Updated dependencies [267f689]
+  - cojson@0.16.5
+  - cojson-storage-indexeddb@0.16.5
+  - cojson-transport-ws@0.16.5
+
 ## 0.16.4
 
 ### Patch Changes

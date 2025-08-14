@@ -116,7 +116,7 @@ export async function removeTrackFromPlaylist(
 
   if (track._owner._type === "Group" && playlist._owner._type === "Group") {
     const trackGroup = track._owner;
-    await trackGroup.removeMember(playlist._owner);
+    trackGroup.removeMember(playlist._owner);
 
     const index =
       playlist.tracks?.findIndex(

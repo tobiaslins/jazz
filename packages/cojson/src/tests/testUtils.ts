@@ -530,10 +530,13 @@ export function setupTestNode(
     return { storage };
   }
 
-  async function addAsyncStorage(opts: { ourName?: string } = {}) {
+  async function addAsyncStorage(
+    opts: { ourName?: string; filename?: string } = {},
+  ) {
     const storage = await createAsyncStorage({
       nodeName: opts.ourName ?? "client",
       storageName: "storage",
+      filename: opts.filename,
     });
     node.setStorage(storage);
 
@@ -657,6 +660,11 @@ export async function setupTestAccount(
     connectToSyncServer,
     addStorage,
     addAsyncStorage,
+    disconnect: () => {
+      ctx.node.syncManager.getPeers().forEach((peer) => {
+        peer.gracefulShutdown();
+      });
+    },
   };
 }
 
