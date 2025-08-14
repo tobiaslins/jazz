@@ -8,7 +8,7 @@ export * from "./auth/useClerkAuth.js";
 export { JazzVueProviderWithClerk } from "./auth/JazzVueProviderWithClerk.js";
 export { default as PasskeyAuthBasicUI } from "./auth/PasskeyAuthBasicUI.vue";
 
-export { default as ProgressiveImg } from "./ProgressiveImg.vue";
+export { default as Image } from "./Image.vue";
 
 export { createInviteLink, parseInviteLink } from "jazz-tools/browser";
-export { createImage } from "jazz-tools/browser-media-images";
+export { createImage } from "jazz-tools/media";

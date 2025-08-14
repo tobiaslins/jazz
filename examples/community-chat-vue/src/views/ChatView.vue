@@ -13,13 +13,13 @@
         Show more
       </button>
     </ChatBody>
-    <ChatInput @submit="handleSubmit" />
+    <ChatInput @submit="handleSubmit" @image-submit="handleImageSubmit" />
   </div>
   <div v-else class="flex-1 flex justify-center items-center">Loading...</div>
 </template>
 
 <script lang="ts">
-import { useCoState } from "community-jazz-vue";
+import { useCoState, createImage } from "community-jazz-vue";
 import { CoPlainText, type ID } from "jazz-tools";
 import { type PropType, computed, defineComponent, ref } from "vue";
 import ChatBody from "../components/ChatBody.vue";
@@ -65,12 +65,43 @@ export default defineComponent({
       }
     }
 
+    async function handleImageSubmit(file: File) {
+      if (!chat.value) return;
+
+      if (file.size > 5000000) {
+        alert("Please upload an image less than 5MB.");
+        return;
+      }
+
+      try {
+        const image = await createImage(file, {
+          owner: chat.value._owner,
+          progressive: true,
+          placeholder: "blur",
+        });
+
+        chat.value.push(
+          Message.create(
+            {
+              text: CoPlainText.create(file.name, chat.value._owner),
+              image: image,
+            },
+            chat.value._owner,
+          ),
+        );
+      } catch (error) {
+        console.error("Failed to upload image:", error);
+        alert("Failed to upload image. Please try again.");
+      }
+    }
+
     return {
       chat,
       showNLastMessages,
       displayedMessages,
       showMoreMessages,
       handleSubmit,
+      handleImageSubmit,
     };
   },
 });
