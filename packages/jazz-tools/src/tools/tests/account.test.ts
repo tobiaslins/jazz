@@ -86,11 +86,11 @@ test("Me gets updated correctly when creating a new account as active", async ()
 
 test("accounts should sync correctly", async () => {
   const account = await createJazzTestAccount({ isCurrentActiveAccount: true });
-  account.profile!.name = "test 1";
+  account.profile!.$jazz.set("name", "test 1");
   const otherAccount = await createJazzTestAccount({
     isCurrentActiveAccount: true,
   });
-  otherAccount.profile!.name = "test 2";
+  otherAccount.profile!.$jazz.set("name", "test 2");
 
   await linkAccounts(account, otherAccount);
 

@@ -88,7 +88,7 @@ export class PassphraseAuth {
         },
       });
 
-      currentAccount.profile.name = name;
+      currentAccount.profile.$jazz.set("name", name);
     }
 
     return passphrase;

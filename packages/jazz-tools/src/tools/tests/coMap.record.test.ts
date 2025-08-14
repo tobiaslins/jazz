@@ -55,7 +55,7 @@ describe("CoMap.Record", async () => {
     test("create a Record with nullable values", () => {
       const Person = co.record(z.string(), z.string().nullable());
       const person = Person.create({ name: "John", age: null });
-      person.bio = null;
+      person.$jazz.set("bio", null);
       expect(person.name).toEqual("John");
       expect(person.age).toEqual(null);
       expect(person.bio).toEqual(null);
@@ -121,7 +121,7 @@ describe("CoMap.Record", async () => {
 
       const person = Person.create({ name: "John" });
 
-      person.name = "Jane";
+      person.$jazz.set("name", "Jane");
 
       expect(person.name).toEqual("Jane");
     });
@@ -152,7 +152,7 @@ describe("CoMap.Record", async () => {
         pet1: Dog.create({ name: "Rex" }),
       });
 
-      person.pet1 = Dog.create({ name: "Fido" });
+      person.$jazz.set("pet1", Dog.create({ name: "Fido" }));
 
       expect(person.pet1?.name).toEqual("Fido");
     });
@@ -164,7 +164,7 @@ describe("CoMap.Record", async () => {
 
       const me = Account.getMe();
 
-      person.name = "Jane";
+      person.$jazz.set("name", "Jane");
 
       const edits = person.$jazz.getEdits().name?.all;
       expect(edits).toEqual([
@@ -315,7 +315,7 @@ describe("CoMap.Record", async () => {
 
       expect(updates[0]?.pet1?.name).toEqual("Rex");
 
-      person.pet1 = Dog.create({ name: "Fido", breed: "Poodle" });
+      person.$jazz.set("pet1", Dog.create({ name: "Fido", breed: "Poodle" }));
 
       await waitFor(() => expect(spy).toHaveBeenCalledTimes(2));
 

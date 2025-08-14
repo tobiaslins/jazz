@@ -621,7 +621,7 @@ describe("subscribeToCoValue", () => {
       expect(onUnavailable).toHaveBeenCalled();
     });
 
-    list[0] = TestMap.create({ value: "1" }, everyone);
+    list.$jazz.set(0, TestMap.create({ value: "1" }, everyone));
 
     await waitFor(() => {
       expect(updateFn).toHaveBeenCalled();
@@ -749,7 +749,7 @@ describe("subscribeToCoValue", () => {
 
     updateFn.mockClear();
 
-    list[0] = undefined;
+    list.$jazz.set(0, undefined);
 
     await waitFor(() => {
       expect(updateFn).toHaveBeenCalled();
@@ -817,7 +817,7 @@ describe("subscribeToCoValue", () => {
 
     // Replace the first item with a new map
     const newMap = TestMap.create({ value: "3" }, creator);
-    list[0] = newMap;
+    list.$jazz.set(0, newMap);
 
     await waitFor(() => {
       expect(updateFn).toHaveBeenCalled();
@@ -994,7 +994,7 @@ describe("subscribeToCoValue", () => {
 
     updateFn.mockClear();
 
-    list[1] = TestMap.create({ value: "updated" }, everyone);
+    list.$jazz.set(1, TestMap.create({ value: "updated" }, everyone));
 
     await waitFor(() => {
       expect(result?.[1]?.value).toBe("updated");

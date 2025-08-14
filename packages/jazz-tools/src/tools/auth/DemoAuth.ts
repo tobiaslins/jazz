@@ -70,7 +70,7 @@ export class DemoAuth {
       },
     });
 
-    currentAccount.profile.name = username;
+    currentAccount.profile.$jazz.set("name", username);
 
     await this.authSecretStorage.set({
       accountID: credentials.accountID,

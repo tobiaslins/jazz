@@ -122,7 +122,7 @@ describe("Simple CoList operations", async () => {
       const list = TestList.create(["bread", "butter", "onion"], {
         owner: me,
       });
-      list[1] = "margarine";
+      list.$jazz.set(1, "margarine");
       expect(list.$jazz.raw.asArray()).toEqual(["bread", "margarine", "onion"]);
       expect(list[1]).toBe("margarine");
     });
@@ -152,7 +152,7 @@ describe("Simple CoList operations", async () => {
         { owner: me },
       );
 
-      recipe[1] = Ingredient.create({ name: "margarine" }, me);
+      recipe.$jazz.set(1, Ingredient.create({ name: "margarine" }, me));
       expect(recipe[1]?.name).toBe("margarine");
     });
 
@@ -173,7 +173,7 @@ describe("Simple CoList operations", async () => {
       );
 
       expect(() => {
-        recipe[1] = undefined as unknown as Loaded<typeof Ingredient>;
+        recipe.$jazz.set(1, undefined as unknown as Loaded<typeof Ingredient>);
       }).toThrow("Cannot set required reference 1 to undefined");
 
       expect(recipe[1]?.name).toBe("butter");
@@ -195,7 +195,7 @@ describe("Simple CoList operations", async () => {
         { owner: me },
       );
 
-      recipe[1] = undefined;
+      recipe.$jazz.set(1, undefined);
       expect(recipe[1]).toBe(undefined);
     });
 
@@ -341,8 +341,11 @@ describe("Simple CoList operations", async () => {
       );
 
       expect(() => {
-        // @ts-expect-error
-        map.list = map.list?.filter((item) => item !== "butter");
+        map.$jazz.set(
+          "list",
+          // @ts-expect-error
+          map.list?.filter((item) => item !== "butter"),
+        );
       }).toThrow("Cannot set reference list to a non-CoValue. Got bread,onion");
 
       expect(map.list?.$jazz.raw.asArray()).toEqual([
@@ -364,8 +367,11 @@ describe("Simple CoList operations", async () => {
         { owner: me },
       );
 
-      // @ts-expect-error
-      list[0] = list[0]?.filter((item) => item !== "butter");
+      list.$jazz.set(
+        0,
+        // @ts-expect-error
+        list[0]?.filter((item) => item !== "butter"),
+      );
 
       expect(list[0]?.$jazz.raw.asArray()).toEqual(["bread", "onion"]);
     });
