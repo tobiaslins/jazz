@@ -18,7 +18,6 @@ export function JazzAndAuth({ children }: { children: ReactNode }) {
       sync={{
         peer: "wss://cloud.jazz.tools/?key=betterauth-example@garden.co",
       }}
-      betterAuth={{}}
     >
       {children}
       <JazzDevTools />
