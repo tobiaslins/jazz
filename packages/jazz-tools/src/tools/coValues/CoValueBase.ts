@@ -12,16 +12,17 @@ import {
   coValuesCache,
   inspect,
 } from "../internal.js";
-import type {
+import {
   Account,
   CoValueClassOrSchema,
   Group,
   InstanceOfSchemaCoValuesNullable,
+  TypeSym,
 } from "../internal.js";
 
 /** @internal */
 export abstract class CoValueBase implements CoValue {
-  declare $type: string;
+  declare [TypeSym]: string;
 
   declare abstract $jazz: CoValueJazzApi<this>;
 
@@ -34,7 +35,7 @@ export abstract class CoValueBase implements CoValue {
   toJSON(): object | any[] | string {
     return {
       id: this.$jazz.id,
-      type: this.$type,
+      type: this[TypeSym],
       error: "unknown CoValue class",
     };
   }

@@ -18,6 +18,7 @@ import {
 } from "../index.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 import { setupTwoNodes } from "./utils.js";
+import { TypeSym } from "../internal.js";
 
 const Crypto = await WasmCrypto.create();
 
@@ -822,7 +823,7 @@ describe("waitForSync", async () => {
     });
 
     const stream = FileStream.create();
-    expect(stream.$jazz.owner.$type).toEqual("Group");
+    expect(stream.$jazz.owner[TypeSym]).toEqual("Group");
     expect(
       stream.$jazz.owner.$jazz
         .castAs(Group)

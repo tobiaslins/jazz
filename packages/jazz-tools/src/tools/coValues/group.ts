@@ -6,8 +6,7 @@ import type {
   RawGroup,
   Role,
 } from "cojson";
-import type {
-  CoMap,
+import {
   CoValue,
   CoValueClass,
   ID,
@@ -15,16 +14,15 @@ import type {
   RefsToResolve,
   RefsToResolveStrict,
   Resolved,
-  Schema,
   SubscribeListenerOptions,
   SubscribeRestArgs,
+  TypeSym,
 } from "../internal.js";
 import {
   Account,
   AccountAndGroupProxyHandler,
   CoValueBase,
   CoValueJazzApi,
-  Profile,
   Ref,
   RegisteredSchemas,
   accessChildById,
@@ -40,9 +38,9 @@ import {
 
 /** @category Identity & Permissions */
 export class Group extends CoValueBase implements CoValue {
-  declare $type: "Group";
+  declare [TypeSym]: "Group";
   static {
-    this.prototype.$type = "Group";
+    this.prototype[TypeSym] = "Group";
   }
   declare $jazz: GroupJazzApi<this>;
 
@@ -56,7 +54,7 @@ export class Group extends CoValueBase implements CoValue {
     } else {
       const initOwner = options.owner;
       if (!initOwner) throw new Error("No owner provided");
-      if (initOwner.$type === "Account" && isControlledAccount(initOwner)) {
+      if (initOwner[TypeSym] === "Account" && isControlledAccount(initOwner)) {
         const rawOwner = initOwner.$jazz.raw;
         raw = rawOwner.core.node.createGroup();
       } else {
@@ -101,7 +99,7 @@ export class Group extends CoValueBase implements CoValue {
     member: Group | Everyone | Account,
     role?: AccountRole | "inherit",
   ) {
-    if (member !== "everyone" && member.$type === "Group") {
+    if (member !== "everyone" && member[TypeSym] === "Group") {
       if (role === "writeOnly")
         throw new Error("Cannot add group as member with write-only role");
       this.$jazz.raw.extend(member.$jazz.raw, role);
@@ -120,7 +118,7 @@ export class Group extends CoValueBase implements CoValue {
    */
   removeMember(member: Group): void;
   removeMember(member: Group | Everyone | Account) {
-    if (member !== "everyone" && member.$type === "Group") {
+    if (member !== "everyone" && member[TypeSym] === "Group") {
       this.$jazz.raw.revokeExtend(member.$jazz.raw);
     } else {
       return this.$jazz.raw.removeMember(

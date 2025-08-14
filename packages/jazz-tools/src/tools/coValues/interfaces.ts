@@ -18,6 +18,7 @@ import {
   Resolved,
   SubscriptionScope,
   type SubscriptionValue,
+  TypeSym,
   activeAccountContext,
   coValueClassFromCoValueClassOrSchema,
   inspect,
@@ -39,7 +40,7 @@ export interface CoValueFromRaw<V extends CoValue> {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface CoValue {
   /** @category Type Helpers */
-  $type: string;
+  [TypeSym]: string;
 
   $jazz: {
     /** @category Content */
@@ -64,7 +65,7 @@ export interface CoValue {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isCoValue(value: any): value is CoValue {
-  return value && value.$type !== undefined;
+  return value && value[TypeSym] !== undefined;
 }
 
 export function isCoValueClass<V extends CoValue>(
@@ -343,7 +344,7 @@ export function isAccountInstance(instance: unknown): instance is Account {
     return false;
   }
 
-  return "$type" in instance && instance.$type === "Account";
+  return TypeSym in instance && instance[TypeSym] === "Account";
 }
 
 export function isAnonymousAgentInstance(
@@ -353,7 +354,7 @@ export function isAnonymousAgentInstance(
     return false;
   }
 
-  return "$type" in instance && instance.$type === "Anonymous";
+  return TypeSym in instance && instance[TypeSym] === "Anonymous";
 }
 
 export function parseCoValueCreateOptions(
@@ -372,8 +373,8 @@ export function parseCoValueCreateOptions(
     return { owner: Group.create(), uniqueness: undefined };
   }
 
-  if ("$type" in options) {
-    if (options.$type === "Account" || options.$type === "Group") {
+  if (TypeSym in options) {
+    if (options[TypeSym] === "Account" || options[TypeSym] === "Group") {
       return { owner: options, uniqueness: undefined };
     }
   }
@@ -400,7 +401,7 @@ export function parseGroupCreateOptions(
     return { owner: activeAccountContext.get() };
   }
 
-  return "$type" in options && isAccountInstance(options)
+  return TypeSym in options && isAccountInstance(options)
     ? { owner: options }
     : { owner: options.owner ?? activeAccountContext.get() };
 }

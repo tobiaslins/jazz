@@ -4,6 +4,7 @@ import { Account } from "../exports";
 import {
   parseCoValueCreateOptions,
   parseGroupCreateOptions,
+  TypeSym,
 } from "../internal";
 import { createJazzTestAccount } from "../testing";
 
@@ -16,7 +17,7 @@ beforeEach(async () => {
 describe("parseCoValueCreateOptions", () => {
   it("should create a new group when no options provided", () => {
     const result = parseCoValueCreateOptions(undefined);
-    expect(result.owner.$type).toBe("Group");
+    expect(result.owner[TypeSym]).toBe("Group");
     expect(
       result.owner.$jazz
         .castAs(Group)

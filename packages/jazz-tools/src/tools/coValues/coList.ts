@@ -17,6 +17,7 @@ import {
   SchemaFor,
   SubscribeListenerOptions,
   SubscribeRestArgs,
+  TypeSym,
 } from "../internal.js";
 import {
   AnonymousJazzAgent,
@@ -98,9 +99,9 @@ export class CoList<out Item = any>
   }
 
   /** @category Type Helpers */
-  declare $type: "CoList";
+  declare [TypeSym]: "CoList";
   static {
-    this.prototype.$type = "CoList";
+    this.prototype[TypeSym] = "CoList";
   }
 
   /** @internal This is only a marker type and doesn't exist at runtime */

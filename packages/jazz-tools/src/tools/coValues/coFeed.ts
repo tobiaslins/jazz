@@ -10,7 +10,7 @@ import type {
   SessionID,
 } from "cojson";
 import { cojsonInternals } from "cojson";
-import type {
+import {
   AnonymousJazzAgent,
   CoValue,
   CoValueClass,
@@ -23,6 +23,7 @@ import type {
   SchemaFor,
   SubscribeListenerOptions,
   SubscribeRestArgs,
+  TypeSym,
 } from "../internal.js";
 import {
   Account,
@@ -107,9 +108,9 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
   }
 
   /** @category Type Helpers */
-  declare $type: "CoStream";
+  declare [TypeSym]: "CoStream";
   static {
-    this.prototype.$type = "CoStream";
+    this.prototype[TypeSym] = "CoStream";
   }
 
   /** @internal This is only a marker type and doesn't exist at runtime */
@@ -123,7 +124,7 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
    * @category Content
    */
   get byMe(): CoFeedEntry<Item> | undefined {
-    if (this.$jazz.loadedAs.$type === "Account") {
+    if (this.$jazz.loadedAs[TypeSym] === "Account") {
       return this.perAccount[this.$jazz.loadedAs.$jazz.id];
     } else {
       return undefined;
@@ -179,7 +180,7 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
    * @category Content
    */
   get inCurrentSession(): CoFeedEntry<Item> | undefined {
-    if (this.$jazz.loadedAs.$type === "Account") {
+    if (this.$jazz.loadedAs[TypeSym] === "Account") {
       return this.perSession[this.$jazz.loadedAs.$jazz.sessionID!];
     } else {
       return undefined;
@@ -668,7 +669,7 @@ export class FileStream extends CoValueBase implements CoValue {
   declare $jazz: FileStreamJazzApi<this>;
 
   /** @category Type Helpers */
-  declare $type: "BinaryCoStream";
+  declare [TypeSym]: "BinaryCoStream";
 
   constructor(
     options:
@@ -691,7 +692,7 @@ export class FileStream extends CoValueBase implements CoValue {
     }
 
     Object.defineProperties(this, {
-      $type: { value: "BinaryCoStream", enumerable: false },
+      [TypeSym]: { value: "BinaryCoStream", enumerable: false },
       $jazz: {
         value: new FileStreamJazzApi(this, raw),
         enumerable: false,

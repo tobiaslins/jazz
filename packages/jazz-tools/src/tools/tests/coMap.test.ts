@@ -12,7 +12,11 @@ import {
 } from "vitest";
 import { Group, co, subscribeToCoValue, z } from "../exports.js";
 import { Account } from "../index.js";
-import { Loaded, coValueClassFromCoValueClassOrSchema } from "../internal.js";
+import {
+  Loaded,
+  TypeSym,
+  coValueClassFromCoValueClassOrSchema,
+} from "../internal.js";
 import {
   createJazzTestAccount,
   getPeerConnectedToTestSyncServer,
@@ -532,13 +536,13 @@ describe("CoMap", async () => {
         }),
       ]);
       expect(john.$jazz.getEdits().age?.all[0]?.by).toMatchObject({
-        $type: "Account",
+        [TypeSym]: "Account",
         $jazz: expect.objectContaining({
           id: me.$jazz.id,
         }),
       });
       expect(john.$jazz.getEdits().age?.all[1]?.by).toMatchObject({
-        $type: "Account",
+        [TypeSym]: "Account",
         $jazz: expect.objectContaining({
           id: me.$jazz.id,
         }),

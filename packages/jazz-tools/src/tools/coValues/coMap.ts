@@ -8,7 +8,7 @@ import {
   type RawCoMap,
   cojsonInternals,
 } from "cojson";
-import type {
+import {
   AnonymousJazzAgent,
   CoValue,
   CoValueClass,
@@ -24,6 +24,7 @@ import type {
   Simplify,
   SubscribeListenerOptions,
   SubscribeRestArgs,
+  TypeSym,
 } from "../internal.js";
 import {
   Account,
@@ -101,9 +102,9 @@ type CoMapFieldSchema = {
  *  */
 export class CoMap extends CoValueBase implements CoValue {
   /** @category Type Helpers */
-  declare $type: "CoMap";
+  declare [TypeSym]: "CoMap";
   static {
-    this.prototype.$type = "CoMap";
+    this.prototype[TypeSym] = "CoMap";
   }
 
   /**
@@ -444,7 +445,9 @@ export class CoMap extends CoValueBase implements CoValue {
       uniqueness: unique,
     };
     const crypto =
-      as.$type === "Anonymous" ? as.node.crypto : as.$jazz.raw.core.node.crypto;
+      as[TypeSym] === "Anonymous"
+        ? as.node.crypto
+        : as.$jazz.raw.core.node.crypto;
     return cojsonInternals.idforHeader(header, crypto) as ID<M>;
   }
 

@@ -7,6 +7,7 @@ import {
   type ID,
   type RefEncoded,
   type RefsToResolve,
+  TypeSym,
   instantiateRefEncodedFromRaw,
   isRefEncoded,
 } from "../internal.js";
@@ -371,11 +372,11 @@ export class SubscriptionScope<D extends CoValue> {
     // This helps alot with correctness when triggering the autoloading while rendering components (on React and Svelte)
     this.silenceUpdates = true;
 
-    if (value.$type === "CoMap" || value.$type === "Account") {
+    if (value[TypeSym] === "CoMap" || value[TypeSym] === "Account") {
       const map = value as CoMap;
 
       this.loadCoMapKey(map, key, true);
-    } else if (value.$type === "CoList") {
+    } else if (value[TypeSym] === "CoList") {
       const list = value as CoList;
 
       this.loadCoListKey(list, key, true);
@@ -429,10 +430,14 @@ export class SubscriptionScope<D extends CoValue> {
 
     const idsToLoad = new Set<string>(this.idsSubscribed);
 
-    const coValueType = value.$type;
+    const coValueType = value[TypeSym];
 
     if (Object.keys(depth).length > 0) {
-      if (coValueType === "CoMap" || coValueType === "Account") {
+      if (
+        coValueType === "CoMap" ||
+        coValueType === "Account" ||
+        coValueType === "Group"
+      ) {
         const map = value as CoMap;
         const keys =
           "$each" in depth ? map.$jazz.raw.keys() : Object.keys(depth);
@@ -444,7 +449,7 @@ export class SubscriptionScope<D extends CoValue> {
             idsToLoad.add(id);
           }
         }
-      } else if (value.$type === "CoList") {
+      } else if (value[TypeSym] === "CoList") {
         const list = value as CoList;
 
         const descriptor = list.$jazz.getItemsDescriptor();
@@ -463,7 +468,7 @@ export class SubscriptionScope<D extends CoValue> {
             }
           }
         }
-      } else if (value.$type === "CoStream") {
+      } else if (value[TypeSym] === "CoStream") {
         const stream = value as CoFeed;
         const descriptor = stream.$jazz.getItemsDescriptor();
 

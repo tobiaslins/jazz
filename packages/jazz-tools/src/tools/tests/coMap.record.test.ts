@@ -13,6 +13,7 @@ import { Loaded } from "../implementation/zodSchema/zodSchema.js";
 import { Account } from "../index.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 import { waitFor } from "./utils.js";
+import { TypeSym } from "../internal.js";
 
 const Crypto = await WasmCrypto.create();
 
@@ -181,11 +182,11 @@ describe("CoMap.Record", async () => {
         }),
       ]);
       expect(edits?.[0]?.by).toMatchObject({
-        $type: "Account",
+        [TypeSym]: "Account",
         $jazz: expect.objectContaining({ id: me.$jazz.id }),
       });
       expect(edits?.[1]?.by).toMatchObject({
-        $type: "Account",
+        [TypeSym]: "Account",
         $jazz: expect.objectContaining({ id: me.$jazz.id }),
       });
     });

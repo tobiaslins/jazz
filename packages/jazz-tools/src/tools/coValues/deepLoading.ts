@@ -1,5 +1,5 @@
 import { SessionID } from "cojson";
-import { ItemsSym } from "../internal.js";
+import { ItemsSym, TypeSym } from "../internal.js";
 import { type Account } from "./account.js";
 import { CoFeedEntry } from "./coFeed.js";
 import { type CoKeys } from "./coMap.js";
@@ -46,7 +46,7 @@ export type RefsToResolve<
                 }
               | boolean
           : // Basically V extends CoMap | Group | Account - but if we used that we'd introduce circularity into the definition of CoMap itself
-            V extends { $type: "CoMap" | "Group" | "Account" }
+            V extends { [TypeSym]: "CoMap" | "Group" | "Account" }
             ?
                 | ({
                     [Key in CoKeys<V> as NonNullable<V[Key]> extends CoValue
@@ -69,7 +69,7 @@ export type RefsToResolve<
                     : never)
                 | boolean
             : V extends {
-                  $type: "CoStream";
+                  [TypeSym]: "CoStream";
                   byMe: CoFeedEntry<infer Item> | undefined;
                 }
               ?
@@ -146,7 +146,7 @@ export type DeeplyLoaded<
           : never
         : V
       : // Basically V extends CoMap | Group | Account - but if we used that we'd introduce circularity into the definition of CoMap itself
-        [V] extends [{ $type: "CoMap" | "Group" | "Account" }]
+        [V] extends [{ [TypeSym]: "CoMap" | "Group" | "Account" }]
         ? // If Depth = {} return V in any case
           keyof Depth extends never
           ? V
@@ -174,7 +174,7 @@ export type DeeplyLoaded<
               CoMapLikeLoaded<V, Depth, DepthLimit, CurrentDepth>
         : [V] extends [
               {
-                $type: "CoStream";
+                [TypeSym]: "CoStream";
                 byMe: CoFeedEntry<infer Item> | undefined;
               },
             ]
@@ -188,13 +188,13 @@ export type DeeplyLoaded<
             } & { [key: ID<Account>]: { value: NotNull<Item> } } & V // same reason as in CoList
           : [V] extends [
                 {
-                  $type: "BinaryCoStream";
+                  [TypeSym]: "BinaryCoStream";
                 },
               ]
             ? V
             : [V] extends [
                   {
-                    $type: "CoPlainText";
+                    [TypeSym]: "CoPlainText";
                   },
                 ]
               ? V

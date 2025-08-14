@@ -1,6 +1,7 @@
 import { LocalNode } from "cojson";
+import { TypeSym } from "./symbols";
 
 export class AnonymousJazzAgent {
-  $type = "Anonymous" as const;
+  [TypeSym] = "Anonymous" as const;
   constructor(public node: LocalNode) {}
 }

@@ -9,6 +9,7 @@ import {
   Resolved,
   SubscribeListenerOptions,
   SubscribeRestArgs,
+  TypeSym,
   parseCoValueCreateOptions,
 } from "../internal.js";
 import {
@@ -24,7 +25,7 @@ import { Group } from "./group.js";
 export type TextPos = OpID;
 
 export class CoPlainText extends String implements CoValue {
-  declare $type: "CoPlainText";
+  declare [TypeSym]: "CoPlainText";
 
   declare $jazz: CoTextJazzApi<this>;
 
@@ -44,7 +45,7 @@ export class CoPlainText extends String implements CoValue {
       super(options.fromRaw.toString());
       const raw = options.fromRaw;
       Object.defineProperties(this, {
-        $type: { value: "CoPlainText", enumerable: false },
+        [TypeSym]: { value: "CoPlainText", enumerable: false },
         $jazz: {
           value: new CoTextJazzApi(this, raw),
           enumerable: false,
@@ -57,7 +58,7 @@ export class CoPlainText extends String implements CoValue {
       super(options.text);
       const raw = options.owner.$jazz.raw.createPlainText(options.text);
       Object.defineProperties(this, {
-        $type: { value: "CoPlainText", enumerable: false },
+        [TypeSym]: { value: "CoPlainText", enumerable: false },
         $jazz: {
           value: new CoTextJazzApi(this, raw),
           enumerable: false,
