@@ -64,7 +64,7 @@ async function sendAllThePendingNotifications(
 
   for (const notification of workerAccount.root.notificationQueue) {
     if (!notification.sent) {
-      notification.sent = true;
+      notification.$jazz.set("sent", true);
       await sender(notification);
     }
   }

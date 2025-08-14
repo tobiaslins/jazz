@@ -105,7 +105,7 @@ async function sendRequestToJoin(organizationId: string, account: Account) {
     group,
   );
 
-  organization.requests[account.$jazz.id] = request;
+  organization.requests.$jazz.set(account.$jazz.id, request);
 
   await account.$jazz.waitForAllCoValuesSync();
 
@@ -139,8 +139,8 @@ async function approveRequest(
     throw new Error("Request not found");
   }
 
-  request.status = "approved";
-  organization.statuses[user.$jazz.id] = "approved";
+  request.$jazz.set("status", "approved");
+  organization.statuses.$jazz.set(user.$jazz.id, "approved");
 
   organization.mainGroup.addMember(user, "writer");
 
@@ -174,8 +174,8 @@ async function rejectRequest(
     throw new Error("Request not found");
   }
 
-  request.status = "rejected";
-  organization.statuses[user.$jazz.id] = "rejected";
+  request.$jazz.set("status", "rejected");
+  organization.statuses.$jazz.set(user.$jazz.id, "rejected");
 
   await admin.$jazz.waitForAllCoValuesSync();
 }

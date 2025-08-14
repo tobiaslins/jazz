@@ -278,7 +278,7 @@ describe("CoMap", async () => {
         dog: Dog.create({ name: "Rex" }),
       });
 
-      john.dog = Dog.create({ name: "Fido" });
+      john.$jazz.set("dog", Dog.create({ name: "Fido" }));
     });
 
     test("cannot update a non-existing key", () => {
@@ -323,10 +323,13 @@ describe("CoMap", async () => {
         dog: Dog.create({ name: "Rex", siblings: co.list(Dog).create([]) }),
       }) as Loaded<typeof Person, { dog: { siblings: true } }>;
 
-      john.dog = Dog.create({
-        name: "Fido",
-        siblings: co.list(Dog).create([]),
-      });
+      john.$jazz.set(
+        "dog",
+        Dog.create({
+          name: "Fido",
+          siblings: co.list(Dog).create([]),
+        }),
+      );
     });
   });
 
@@ -658,7 +661,7 @@ describe("CoMap resolution", async () => {
     expectTypeOf<typeof loadedPerson.dog1.name>().toEqualTypeOf<string>();
     expectTypeOf<typeof loadedPerson.dog2>().toEqualTypeOf<
       | (Loaded<typeof Dog> & {
-          $onError: never; // TODO: Clean the $onError from the type
+          readonly $onError: never; // TODO: Clean the $onError from the type
         })
       | null
     >();
@@ -685,9 +688,9 @@ describe("CoMap resolution", async () => {
 
     expectTypeOf(loadedPerson!).toEqualTypeOf<
       {
-        name: string;
-        age: number | null;
-        dog: Loaded<typeof Dog> | null;
+        readonly name: string;
+        readonly age: number | null;
+        readonly dog: Loaded<typeof Dog> | null;
       } & CoMap
     >();
   });

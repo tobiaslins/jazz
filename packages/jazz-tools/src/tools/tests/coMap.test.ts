@@ -319,7 +319,7 @@ describe("CoMap", async () => {
         age: 20,
       });
 
-      person.friend = person;
+      person.$jazz.set("friend", person);
 
       expect(person.toJSON()).toEqual({
         name: "John",
@@ -398,9 +398,9 @@ describe("CoMap", async () => {
       expect(person.age).toEqual(20);
       expect(person.extra).toBeUndefined();
 
-      person.name = "Jane";
-      person.age = 28;
-      person.extra = "extra";
+      person.$jazz.set("name", "Jane");
+      person.$jazz.set("age", 28);
+      person.$jazz.set("extra", "extra");
 
       expect(person.name).toEqual("Jane");
       expect(person.age).toEqual(28);
@@ -477,7 +477,7 @@ describe("CoMap", async () => {
 
       const john = Person.create({ name: "John", age: 20 });
 
-      delete john.age;
+      john.$jazz.set("age", undefined);
 
       expect(john.name).toEqual("John");
       expect(john.age).toEqual(undefined);
@@ -504,7 +504,7 @@ describe("CoMap", async () => {
         dog: Dog.create({ name: "Rex" }),
       });
 
-      john.dog = Dog.create({ name: "Fido" });
+      john.$jazz.set("dog", Dog.create({ name: "Fido" }));
 
       expect(john.dog?.name).toEqual("Fido");
     });
@@ -519,7 +519,7 @@ describe("CoMap", async () => {
 
       const me = Account.getMe();
 
-      john.age = 21;
+      john.$jazz.set("age", 21);
 
       expect(john.$jazz.getEdits().age?.all).toEqual([
         expect.objectContaining({
@@ -933,7 +933,7 @@ describe("CoMap resolution", async () => {
 
     expect(updates[0]?.dog?.name).toEqual("Rex");
 
-    person.dog!.name = "Fido";
+    person.dog!.$jazz.set("name", "Fido");
 
     await waitFor(() => expect(spy).toHaveBeenCalledTimes(2));
 
@@ -980,7 +980,7 @@ describe("CoMap resolution", async () => {
 
     expect(spy).toHaveBeenCalledTimes(1);
 
-    person.dog!.name = "Fido";
+    person.dog!.$jazz.set("name", "Fido");
 
     expect(spy).toHaveBeenCalledTimes(2);
 
@@ -1037,7 +1037,7 @@ describe("CoMap resolution", async () => {
 
     expect(updates[0]?.dog.name).toEqual("Rex");
 
-    person.dog!.name = "Fido";
+    person.dog!.$jazz.set("name", "Fido");
 
     await waitFor(() => expect(spy).toHaveBeenCalledTimes(2));
 
@@ -1091,7 +1091,7 @@ describe("CoMap resolution", async () => {
 
     expect(updates[0]?.dog?.name).toEqual("Rex");
 
-    person.dog!.name = "Fido";
+    person.dog!.$jazz.set("name", "Fido");
 
     await waitFor(() => expect(spy).toHaveBeenCalledTimes(2));
 
@@ -1139,7 +1139,7 @@ describe("CoMap resolution", async () => {
 
     expect(updates[0]?.dog.name).toEqual("Rex");
 
-    person.dog!.name = "Fido";
+    person.dog!.$jazz.set("name", "Fido");
 
     await waitFor(() => expect(spy).toHaveBeenCalledTimes(2));
 
@@ -2011,7 +2011,7 @@ describe("castAs", () => {
 
     const personWithAge = person.$jazz.castAs(PersonWithAge);
 
-    personWithAge.age = 20;
+    personWithAge.$jazz.set("age", 20);
 
     expect(personWithAge.age).toEqual(20);
   });
@@ -2039,7 +2039,7 @@ describe("castAs", () => {
 
     const personWithAge = person.$jazz.castAs(PersonWithAge);
 
-    personWithAge.age = 20;
+    personWithAge.$jazz.set("age", 20);
 
     expect(personWithAge.age).toEqual(20);
     expect(personWithAge.dog?.name).toEqual("Rex");
@@ -2061,8 +2061,8 @@ describe("CoMap migration", () => {
       })
       .withMigration((person) => {
         if (person.version === 1) {
-          person.age = 20;
-          person.version = 2;
+          person.$jazz.set("age", 20);
+          person.$jazz.set("version", 2);
         }
       });
 
@@ -2089,7 +2089,7 @@ describe("CoMap migration", () => {
       })
       .withMigration((person) => {
         if (person.version === 1) {
-          person.version = 2;
+          person.$jazz.set("version", 2);
 
           person.$jazz.owner.$jazz
             .castAs(Group)
@@ -2179,8 +2179,8 @@ describe("CoMap migration", () => {
       })
       .withMigration((person) => {
         if (person.version === 1) {
-          person.age = 20;
-          person.version = 2;
+          person.$jazz.set("age", 20);
+          person.$jazz.set("version", 2);
         }
       });
 
@@ -2228,7 +2228,7 @@ describe("createdAt & lastUpdatedAt", () => {
     expect(person.$jazz.lastUpdatedAt).toEqual(createdAt);
 
     await new Promise((r) => setTimeout(r, 10));
-    person.name = "Jane";
+    person.$jazz.set("name", "Jane");
 
     expect(person.$jazz.createdAt).toEqual(createdAt);
     expect(person.$jazz.lastUpdatedAt).not.toEqual(createdAt);
@@ -2308,10 +2308,10 @@ describe("co.map schema", () => {
       expect(draftPerson.age).toBeUndefined();
       expect(draftPerson.pet).toBeUndefined();
 
-      draftPerson.name = "John";
-      draftPerson.age = 20;
+      draftPerson.$jazz.set("name", "John");
+      draftPerson.$jazz.set("age", 20);
       const rex = Dog.create({ name: "Rex", breed: "Labrador" });
-      draftPerson.pet = rex;
+      draftPerson.$jazz.set("pet", rex);
 
       expect(draftPerson.name).toEqual("John");
       expect(draftPerson.age).toEqual(20);
@@ -2329,7 +2329,7 @@ describe("co.map schema", () => {
       const DraftPerson = Person.partial();
 
       const draftPerson = DraftPerson.create({});
-      draftPerson.extraField = "extra";
+      draftPerson.$jazz.set("extraField", "extra");
 
       expect(draftPerson.extraField).toEqual("extra");
     });
@@ -2469,7 +2469,7 @@ describe("Updating a nested reference", () => {
     const playSelection = PlaySelection.create({ value: "scissors" });
 
     // Assign the play selection to player1 (similar to the route logic)
-    loadedGame.player1.playSelection = playSelection;
+    loadedGame.player1.$jazz.set("playSelection", playSelection);
 
     // Verify that the playSelection is not null and has the expected value
     expect(loadedGame.player1.playSelection.$jazz.id).toBe(

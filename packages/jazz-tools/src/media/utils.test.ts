@@ -38,7 +38,7 @@ describe("highestResAvailable", async () => {
       { owner: account.$jazz.owner },
     );
 
-    imageDef["1920x1080"] = original;
+    imageDef.$jazz.set("1920x1080", original);
 
     const result = highestResAvailable(imageDef, 256, 256);
     expect(result?.image.$jazz.id).toBe(original.$jazz.id);
@@ -55,7 +55,7 @@ describe("highestResAvailable", async () => {
       { owner: account.$jazz.owner },
     );
 
-    imageDef["1920x1080"] = original;
+    imageDef.$jazz.set("1920x1080", original);
 
     const result = highestResAvailable(imageDef, 256, 256);
     expect(result?.image.$jazz.id).toBe(original.$jazz.id);
@@ -73,8 +73,8 @@ describe("highestResAvailable", async () => {
       { owner: account.$jazz.owner },
     );
 
-    imageDef["1920x1080"] = original;
-    imageDef["256x256"] = resize256;
+    imageDef.$jazz.set("1920x1080", original);
+    imageDef.$jazz.set("256x256", resize256);
 
     const result = highestResAvailable(imageDef, 256, 256);
     expect(result?.image.$jazz.id).toBe(resize256.$jazz.id);
@@ -91,7 +91,7 @@ describe("highestResAvailable", async () => {
       { owner: account.$jazz.owner },
     );
 
-    imageDef["1024x1024"] = original;
+    imageDef.$jazz.set("1024x1024", original);
 
     const result = highestResAvailable(imageDef, 1024, 1024);
     expect(result?.image.$jazz.id).toBe(original.$jazz.id);
@@ -111,9 +111,9 @@ describe("highestResAvailable", async () => {
       { owner: account.$jazz.owner },
     );
 
-    imageDef["256x256"] = resize256;
-    imageDef["1024x1024"] = resize1024;
-    imageDef["2048x2048"] = resize2048;
+    imageDef.$jazz.set("256x256", resize256);
+    imageDef.$jazz.set("1024x1024", resize1024);
+    imageDef.$jazz.set("2048x2048", resize2048);
 
     // Closest to 900x900 is 1024
     const result = highestResAvailable(imageDef, 900, 900);
@@ -137,9 +137,9 @@ describe("highestResAvailable", async () => {
       },
       { owner: account.$jazz.owner },
     );
-    imageDef["256x256"] = resize256;
-    imageDef["1024x1024"] = resize1024;
-    imageDef["2048x2048"] = resize2048;
+    imageDef.$jazz.set("256x256", resize256);
+    imageDef.$jazz.set("1024x1024", resize1024);
+    imageDef.$jazz.set("2048x2048", resize2048);
 
     // Closest to 900x900 is 1024
     const result = highestResAvailable(imageDef, 900, 900);
@@ -157,12 +157,12 @@ describe("highestResAvailable", async () => {
       { owner: account.$jazz.owner },
     );
 
-    imageDef["256x256"] = original;
+    imageDef.$jazz.set("256x256", original);
     // 1024 is not loaded yet
     const resize1024 = FileStream.create({ owner: account.$jazz.owner });
     resize1024.start({ mimeType: "image/jpeg" });
     // Don't end resize1024, so it has no chunks
-    imageDef["1024x1024"] = resize1024;
+    imageDef.$jazz.set("1024x1024", resize1024);
 
     const result = highestResAvailable(imageDef, 1024, 1024);
     // Only original is valid
@@ -183,7 +183,10 @@ describe("highestResAvailable", async () => {
       { owner: account.$jazz.owner },
     );
 
-    imageDef["256x256"] = await createFileStream(account.$jazz.owner, 1);
+    imageDef.$jazz.set(
+      "256x256",
+      await createFileStream(account.$jazz.owner, 1),
+    );
 
     const result = highestResAvailable(imageDef, 1024, 1024);
     // Only original is valid
@@ -202,8 +205,11 @@ describe("highestResAvailable", async () => {
       { owner: account.$jazz.owner },
     );
 
-    imageDef["256x256"] = await createFileStream(account.$jazz.owner, 1);
-    imageDef["300x300"] = original;
+    imageDef.$jazz.set(
+      "256x256",
+      await createFileStream(account.$jazz.owner, 1),
+    );
+    imageDef.$jazz.set("300x300", original);
 
     const result = highestResAvailable(imageDef, 1024, 1024);
     expect(result?.image.$jazz.id).toBe(original.$jazz.id);
@@ -237,12 +243,12 @@ describe("loadImageBySize", async () => {
       },
       { owner },
     );
-    imageDef[`${originalSize[0]}x${originalSize[1]}`] = original;
+    imageDef.$jazz.set(`${originalSize[0]}x${originalSize[1]}`, original);
 
     for (const size of sizes) {
       if (!size) continue;
       const [w, h] = size;
-      imageDef[`${w}x${h}`] = await createFileStream(owner, 1);
+      imageDef.$jazz.set(`${w}x${h}`, await createFileStream(owner, 1));
     }
     return imageDef;
   };

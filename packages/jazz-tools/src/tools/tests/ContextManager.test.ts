@@ -281,7 +281,7 @@ describe("ContextManager", () => {
           resolve: { root: true },
         });
 
-        me.root.transferredRoot = anonymousAccountWithRoot.root;
+        me.root.$jazz.set("transferredRoot", anonymousAccountWithRoot.root);
       },
     });
 
@@ -378,7 +378,7 @@ describe("ContextManager", () => {
             resolve: { root: true },
           });
 
-          root.value = 2;
+          root.$jazz.set("value", 2);
         }
       });
     const customManager = new TestJazzContextManager<
@@ -452,7 +452,7 @@ describe("ContextManager", () => {
         .castAs(Group)
         .addMember(meWithRoot, "admin");
 
-      meWithRoot.root.transferredRoot = rootToTransfer;
+      meWithRoot.root.$jazz.set("transferredRoot", rootToTransfer);
     };
 
     const customManager = new TestJazzContextManager<

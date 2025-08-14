@@ -294,8 +294,8 @@ describe("Image", async () => {
         },
       );
 
-      im["500x500"] = original;
-      im["256x256"] = await createDummyFileStream(256, account);
+      im.$jazz.set("500x500", original);
+      im.$jazz.set("256x256", await createDummyFileStream(256, account));
 
       const { container } = renderWithAccount({
         imageId: im.$jazz.id,
@@ -335,8 +335,8 @@ describe("Image", async () => {
         },
       );
 
-      im["1920x1080"] = original;
-      im["256x256"] = await createDummyFileStream(256, account);
+      im.$jazz.set("1920x1080", original);
+      im.$jazz.set("256x256", await createDummyFileStream(256, account));
 
       const { container } = renderWithAccount({
         imageId: im.$jazz.id,
@@ -353,7 +353,7 @@ describe("Image", async () => {
       expect(createObjectURLSpy).toHaveBeenCalledTimes(1);
 
       // Load higher resolution image
-      im["1024x1024"] = await createDummyFileStream(1024, account);
+      im.$jazz.set("1024x1024", await createDummyFileStream(1024, account));
 
       await waitFor(() => {
         expect((container.querySelector("img") as HTMLImageElement).src).toBe(
@@ -389,9 +389,9 @@ describe("Image", async () => {
         },
       );
 
-      im["100x100"] = original;
-      im["256x256"] = await createDummyFileStream(256, account);
-      im["1024x1024"] = await createDummyFileStream(1024, account);
+      im.$jazz.set("100x100", original);
+      im.$jazz.set("256x256", await createDummyFileStream(256, account));
+      im.$jazz.set("1024x1024", await createDummyFileStream(1024, account));
 
       const { container } = renderWithAccount({
         imageId: im.$jazz.id,
@@ -430,8 +430,8 @@ describe("Image", async () => {
         },
       );
 
-      im["100x100"] = original;
-      im["256x256"] = await createDummyFileStream(256, account);
+      im.$jazz.set("100x100", original);
+      im.$jazz.set("256x256", await createDummyFileStream(256, account));
 
       const { container } = renderWithAccount({
         imageId: im.$jazz.id,
@@ -469,8 +469,8 @@ describe("Image", async () => {
           owner: account,
         },
       );
-      im["256x256"] = original;
-      im["1024x1024"] = await createDummyFileStream(1024, account);
+      im.$jazz.set("256x256", original);
+      im.$jazz.set("1024x1024", await createDummyFileStream(1024, account));
 
       const { container, rerender } = renderWithAccount({
         imageId: im.$jazz.id,

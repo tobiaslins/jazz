@@ -125,7 +125,7 @@ describe("Group inheritance", () => {
 
     await parentGroup.removeMember(reader);
 
-    mapInChild.title = "In Child (updated)";
+    mapInChild.$jazz.set("title", "In Child (updated)");
 
     await waitFor(async () => {
       const mapAsReaderAfterUpdate = await TestMap.load(mapInChild.$jazz.id, {
@@ -168,7 +168,7 @@ describe("Group inheritance", () => {
 
     await grandParentGroup.$jazz.waitForSync();
 
-    mapInGrandChild.title = "In Grand Child (updated)";
+    mapInGrandChild.$jazz.set("title", "In Grand Child (updated)");
 
     const mapAsReaderAfterUpdate = await TestMap.load(
       mapInGrandChild.$jazz.id,

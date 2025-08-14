@@ -96,7 +96,7 @@ describe("Deep loading with depth arg", async () => {
     });
     expectTypeOf(map2).branded.toEqualTypeOf<
       | (Loaded<typeof TestMap> & {
-          list: Loaded<typeof TestList>;
+          readonly list: Loaded<typeof TestList>;
         })
       | null
     >();
@@ -112,7 +112,7 @@ describe("Deep loading with depth arg", async () => {
     });
     expectTypeOf(map3).toEqualTypeOf<
       | (Loaded<typeof TestMap> & {
-          list: Loaded<typeof TestList> &
+          readonly list: Loaded<typeof TestList> &
             ReadonlyArray<Loaded<typeof InnerMap>>;
         })
       | null
@@ -129,7 +129,7 @@ describe("Deep loading with depth arg", async () => {
     });
     expectTypeOf(map3a).branded.toEqualTypeOf<
       | (Loaded<typeof TestMap> & {
-          optionalRef: Loaded<typeof InnermostMap> | undefined;
+          readonly optionalRef: Loaded<typeof InnermostMap> | undefined;
         })
       | null
     >();
@@ -144,9 +144,11 @@ describe("Deep loading with depth arg", async () => {
     });
     expectTypeOf(map4).toEqualTypeOf<
       | (Loaded<typeof TestMap> & {
-          list: Loaded<typeof TestList> &
+          readonly list: Loaded<typeof TestList> &
             ReadonlyArray<
-              Loaded<typeof InnerMap> & { stream: Loaded<typeof TestFeed> }
+              Loaded<typeof InnerMap> & {
+                readonly stream: Loaded<typeof TestFeed>;
+              }
             >;
         })
       | null
@@ -164,10 +166,10 @@ describe("Deep loading with depth arg", async () => {
     });
     type ExpectedMap5 =
       | (Loaded<typeof TestMap> & {
-          list: Loaded<typeof TestList> &
+          readonly list: Loaded<typeof TestList> &
             ReadonlyArray<
               Loaded<typeof InnerMap> & {
-                stream: Loaded<typeof TestFeed> & {
+                readonly stream: Loaded<typeof TestFeed> & {
                   byMe?: { value: Loaded<typeof InnermostMap> };
                   inCurrentSession?: { value: Loaded<typeof InnermostMap> };
                   perSession: {
@@ -316,8 +318,8 @@ test("Deep loading a record-like coMap", async () => {
   });
   expectTypeOf(recordLoaded).toEqualTypeOf<
     | (Loaded<typeof RecordLike> & {
-        [key: string]: Loaded<typeof TestMap> & {
-          list: Loaded<typeof TestList> &
+        readonly [key: string]: Loaded<typeof TestMap> & {
+          readonly list: Loaded<typeof TestList> &
             ReadonlyArray<Loaded<typeof InnerMap>>;
         };
       })
@@ -669,7 +671,7 @@ describe("Deep loading with unauthorized account", async () => {
       bob,
     );
 
-    map.lv2!.lv3 = undefined;
+    map.lv2!.$jazz.set("lv3", undefined);
 
     const loadedMap = await Lv1.load(map.$jazz.id, {
       resolve: { lv2: { lv3: true } },

@@ -87,7 +87,7 @@ describe("useCoState", () => {
     expect(result.current?.value).toBe("123");
 
     act(() => {
-      map.value = "456";
+      map.$jazz.set("value", "456");
     });
 
     expect(result.current?.value).toBe("456");

@@ -103,7 +103,7 @@ type CoMapLikeLoaded<
   DepthLimit extends number,
   CurrentDepth extends number[],
 > = {
-  -readonly [Key in keyof Depth]-?: Key extends CoKeys<V>
+  readonly [Key in keyof Depth]-?: Key extends CoKeys<V>
     ? NonNullable<V[Key]> extends CoValue
       ?
           | DeeplyLoaded<
@@ -155,7 +155,7 @@ export type DeeplyLoaded<
             ? // 1.1. Deeply loaded Record-like CoMap with { $each: true | {$onError: null} }
               Depth extends { $each: infer ItemDepth }
               ? {
-                  [key: string]:
+                  readonly [key: string]:
                     | DeeplyLoaded<
                         NonNullable<V[ItemsSym]>,
                         ItemDepth,

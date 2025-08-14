@@ -110,7 +110,7 @@ describe("SchemaUnion", () => {
       },
     );
     currentValue = "Changed";
-    buttonWidget.label = "Changed";
+    buttonWidget.$jazz.set("label", "Changed");
     unsubscribe();
   });
 });

@@ -128,7 +128,7 @@ describe("CoMap.Record", () => {
         pet1: Dog.create({ name: "Rex" }),
       });
 
-      person.pet1!.owner = person;
+      person.pet1!.$jazz.set("owner", person);
 
       type ExpectedType = {
         [key: string]: Loaded<typeof Dog> | undefined;

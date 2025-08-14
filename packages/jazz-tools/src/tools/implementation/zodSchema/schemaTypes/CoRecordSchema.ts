@@ -111,5 +111,5 @@ export type CoRecordInstanceCoValuesNullable<
   K extends z.core.$ZodString<string>,
   V extends AnyZodOrCoValueSchema,
 > = {
-  [key in z.output<K>]: InstanceOrPrimitiveOfSchemaCoValuesNullable<V>;
+  readonly [key in z.output<K>]: InstanceOrPrimitiveOfSchemaCoValuesNullable<V>;
 } & CoMap;

@@ -583,7 +583,7 @@ describe("CoList subscription", async () => {
     expect(updates[0]?.[0]?.name).toEqual("Item 1");
     expect(updates[0]?.[1]?.name).toEqual("Item 2");
 
-    list[0]!.name = "Updated Item 1";
+    list[0]!.$jazz.set("name", "Updated Item 1");
 
     await waitFor(() => expect(spy).toHaveBeenCalledTimes(2));
 
@@ -619,7 +619,7 @@ describe("CoList subscription", async () => {
     expect(updates[0]?.[0]?.name).toEqual("Item 1");
     expect(updates[0]?.[1]?.name).toEqual("Item 2");
 
-    list[0]!.name = "Updated Item 1";
+    list[0]!.$jazz.set("name", "Updated Item 1");
 
     await waitFor(() => expect(spy).toHaveBeenCalledTimes(2));
 
@@ -662,7 +662,7 @@ describe("CoList subscription", async () => {
 
     expect(spy).toHaveBeenCalledTimes(1);
 
-    list[0]!.name = "Updated Item 1";
+    list[0]!.$jazz.set("name", "Updated Item 1");
 
     expect(spy).toHaveBeenCalledTimes(2);
 
@@ -715,7 +715,7 @@ describe("CoList subscription", async () => {
     expect(updates[0]?.[0]?.name).toEqual("Item 1");
     expect(updates[0]?.[1]?.name).toEqual("Item 2");
 
-    list[0]!.name = "Updated Item 1";
+    list[0]!.$jazz.set("name", "Updated Item 1");
 
     await waitFor(() => expect(spy).toHaveBeenCalledTimes(2));
 
@@ -765,7 +765,7 @@ describe("CoList subscription", async () => {
     expect(updates[0]?.[0]?.name).toEqual("Item 1");
     expect(updates[0]?.[1]?.name).toEqual("Item 2");
 
-    list[0]!.name = "Updated Item 1";
+    list[0]!.$jazz.set("name", "Updated Item 1");
 
     await waitFor(() => expect(spy).toHaveBeenCalledTimes(2));
 
@@ -809,7 +809,7 @@ describe("CoList subscription", async () => {
     expect(updates[0]?.[0]?.name).toEqual("Item 1");
     expect(updates[0]?.[1]?.name).toEqual("Item 2");
 
-    list[0] = Item.create({ name: "New Item 1" });
+    list.$jazz.set(0, Item.create({ name: "New Item 1" }));
 
     await waitFor(() => expect(spy).toHaveBeenCalledTimes(2));
 

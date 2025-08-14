@@ -98,7 +98,7 @@ describe("subscribeToCoValue", () => {
     expect(result?.messages).toEqual([]);
 
     updateFn.mockClear();
-    chatRoom.name = "Lounge";
+    chatRoom.$jazz.set("name", "Lounge");
 
     await waitFor(() => {
       expect(updateFn).toHaveBeenCalled();
@@ -173,7 +173,7 @@ describe("subscribeToCoValue", () => {
     });
 
     unsubscribe();
-    chatRoom.name = "Lounge";
+    chatRoom.$jazz.set("name", "Lounge");
     messages.$jazz.push(createMessage(me, "Hello 2"));
 
     await new Promise((resolve) => setTimeout(resolve, 100));
@@ -221,7 +221,7 @@ describe("subscribeToCoValue", () => {
       expect(lastValue?.messages?.[0]?.text).toBe(message.text);
     });
 
-    message.text = "Nevermind, she was gone to the supermarket";
+    message.$jazz.set("text", "Nevermind, she was gone to the supermarket");
     updateFn.mockClear();
 
     await waitFor(() => {
@@ -356,7 +356,7 @@ describe("subscribeToCoValue", () => {
     });
 
     const initialValue = updateFn.mock.lastCall?.[0];
-    chatRoom.name = "Me and Luigi";
+    chatRoom.$jazz.set("name", "Me and Luigi");
 
     updateFn.mockClear();
 
@@ -760,7 +760,7 @@ describe("subscribeToCoValue", () => {
 
     updateFn.mockClear();
 
-    firstItem.value = "3";
+    firstItem.$jazz.set("value", "3");
 
     expect(updateFn).not.toHaveBeenCalled();
   });
@@ -829,11 +829,11 @@ describe("subscribeToCoValue", () => {
 
     updateFn.mockClear();
 
-    firstItem.value = "4";
+    firstItem.$jazz.set("value", "4");
 
     expect(updateFn).not.toHaveBeenCalled();
 
-    newMap.value = "5";
+    newMap.$jazz.set("value", "5");
 
     expect(updateFn).toHaveBeenCalled();
     expect(result[0]?.value).toBe("5");
@@ -906,8 +906,8 @@ describe("subscribeToCoValue", () => {
 
     assert(personOnWriter1);
     assert(personOnWriter2);
-    personOnWriter1.name = "writer1";
-    personOnWriter2.name = "writer2";
+    personOnWriter1.$jazz.set("name", "writer1");
+    personOnWriter2.$jazz.set("name", "writer2");
 
     await waitFor(() => expect(spy).toHaveBeenCalled());
     expect(spy).toHaveBeenCalledTimes(1);
@@ -1084,13 +1084,13 @@ describe("subscribeToCoValue", () => {
       expect(result?.[2]?.dog?.name).toBe("Bella");
     });
 
-    list[0]!.dog = Dog.create({ name: "Ninja" });
+    list[0]!.$jazz.set("dog", Dog.create({ name: "Ninja" }));
 
     await waitFor(() => {
       expect(result?.[0]?.dog).toBe(null);
     });
 
-    list[1]!.dog = Dog.create({ name: "Pinkie" }, everyone);
+    list[1]!.$jazz.set("dog", Dog.create({ name: "Pinkie" }, everyone));
 
     await waitFor(() => {
       expect(result?.[1]?.dog?.name).toBe("Pinkie");
