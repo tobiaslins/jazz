@@ -3,6 +3,7 @@ import type { Account, AuthSecretStorage } from "jazz-tools";
 import {
   TestJazzContextManager,
   createJazzTestAccount,
+  setActiveAccount,
   setupJazzTestSync,
 } from "jazz-tools/testing";
 import { assert, beforeEach, describe, expect, it, vi } from "vitest";
@@ -20,10 +21,8 @@ describe("auth client", () => {
   let customFetchImpl = vi.fn();
 
   beforeEach(async () => {
-    await setupJazzTestSync();
-    account = await createJazzTestAccount({
-      isCurrentActiveAccount: true,
-    });
+    account = await setupJazzTestSync();
+    setActiveAccount(account);
 
     jazzContextManager = TestJazzContextManager.fromAccountOrGuest(account);
     authSecretStorage = jazzContextManager.getAuthSecretStorage();
@@ -243,4 +242,6 @@ describe("auth client", () => {
     const anonymousCredentials = await authSecretStorage.get();
     expect(anonymousCredentials).not.toMatchObject(credentials!);
   });
+
+  it.todo("should logout from Better Auth after Jazz's log-out");
 });

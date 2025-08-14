@@ -18,6 +18,7 @@ import { jazzPlugin } from "./server";
 export const jazzPluginClient = () => {
   let jazzContext: JazzContextType<Account>;
   let authSecretStorage: AuthSecretStorage;
+  let signOutUnsubscription: () => void;
 
   const authenticateOnJazz = async (jazzAuth: AuthSetPayload) => {
     const parsedJazzAuth = {
@@ -34,7 +35,7 @@ export const jazzPluginClient = () => {
   return {
     id: "jazz-plugin",
     $InferServerPlugin: {} as ReturnType<typeof jazzPlugin>,
-    getActions: () => {
+    getActions: ($fetch, $store) => {
       return {
         jazz: {
           setJazzContext: (context: JazzContextType<Account>) => {
@@ -42,6 +43,35 @@ export const jazzPluginClient = () => {
           },
           setAuthSecretStorage: (storage: AuthSecretStorage) => {
             authSecretStorage = storage;
+            if (signOutUnsubscription) signOutUnsubscription();
+
+            // This is a workaround to logout from Better Auth when user logs out directly from Jazz
+            signOutUnsubscription = authSecretStorage.onUpdate(
+              (isAuthenticated) => {
+                if (isAuthenticated === false) {
+                  const session = $store.atoms.session?.get();
+                  if (!session) return;
+
+                  // if the user logs out from Better Auth, the get session is immediately called
+                  // so we must wait the next fetched session to understand if we need to call sign-out
+                  if (session.isPending || session.isRefetching) {
+                    // listen once for next session's data
+                    const unsub = $store.atoms.session?.listen((session) => {
+                      unsub?.();
+                      // if the session is null, user has been already logged out from Better Auth
+                      if (session.data !== null) {
+                        $fetch("/sign-out", { method: "POST" });
+                      }
+                    });
+                  }
+                  // if the session is not pending, it means user logged out from Jazz only
+                  // so we call the sign-out api
+                  else {
+                    $fetch("/sign-out", { method: "POST" });
+                  }
+                }
+              },
+            );
           },
         },
       };
