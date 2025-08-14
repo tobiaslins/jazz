@@ -1972,6 +1972,9 @@ importers:
       ora:
         specifier: ^7.0.1
         version: 7.0.1
+      yaml:
+        specifier: ^2.3.4
+        version: 2.6.1
     devDependencies:
       '@types/degit':
         specifier: ^2.8.3
