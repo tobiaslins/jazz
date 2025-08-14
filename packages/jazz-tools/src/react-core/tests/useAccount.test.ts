@@ -168,8 +168,7 @@ describe("useAccount", () => {
       await result.current?.contextManager?.authenticate({
         accountID: accountToAuthenticate.$jazz.id,
         accountSecret:
-          accountToAuthenticate.$jazz.raw.core.node.getCurrentAgent()
-            .agentSecret,
+          accountToAuthenticate.$jazz.localNode.getCurrentAgent().agentSecret,
       });
     });
 

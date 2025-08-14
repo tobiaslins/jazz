@@ -1,4 +1,9 @@
-import { ControlledAccount, RawAccount, type RawCoValue } from "cojson";
+import {
+  ControlledAccount,
+  LocalNode,
+  RawAccount,
+  type RawCoValue,
+} from "cojson";
 import { CoreCoValueSchema } from "../implementation/zodSchema/schemaTypes/CoValueSchema.js";
 import {
   AnonymousJazzAgent,
@@ -71,9 +76,14 @@ export abstract class CoValueJazzApi<V extends CoValue> {
     });
   }
 
+  /** @internal */
+  get localNode(): LocalNode {
+    return this.raw.core.node;
+  }
+
   /** @private */
   get loadedAs() {
-    const agent = this.raw.core.node.getCurrentAgent();
+    const agent = this.localNode.getCurrentAgent();
 
     if (agent instanceof ControlledAccount) {
       return coValuesCache.get(agent.account, () =>
@@ -83,7 +93,7 @@ export abstract class CoValueJazzApi<V extends CoValue> {
       );
     }
 
-    return new AnonymousJazzAgent(this.raw.core.node);
+    return new AnonymousJazzAgent(this.localNode);
   }
 
   /** @category Type Helpers */

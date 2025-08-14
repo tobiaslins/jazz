@@ -1,4 +1,4 @@
-import type { JsonValue, RawCoList } from "cojson";
+import type { JsonValue, LocalNode, RawCoList } from "cojson";
 import { ControlledAccount, RawAccount } from "cojson";
 import { calcPatch } from "fast-myers-diff";
 import {
@@ -414,9 +414,14 @@ export class CoListJazzApi<L extends CoList>
       : RegisteredSchemas["Group"].fromRaw(this.raw.group);
   }
 
+  /** @internal */
+  get localNode(): LocalNode {
+    return this.raw.core.node;
+  }
+
   /** @private */
   get loadedAs() {
-    const agent = this.raw.core.node.getCurrentAgent();
+    const agent = this.localNode.getCurrentAgent();
 
     if (agent instanceof ControlledAccount) {
       return coValuesCache.get(agent.account, () =>
@@ -426,7 +431,7 @@ export class CoListJazzApi<L extends CoList>
       );
     }
 
-    return new AnonymousJazzAgent(this.raw.core.node);
+    return new AnonymousJazzAgent(this.localNode);
   }
 
   /** @category Type Helpers */

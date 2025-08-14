@@ -445,9 +445,7 @@ export class CoMap extends CoValueBase implements CoValue {
       uniqueness: unique,
     };
     const crypto =
-      as[TypeSym] === "Anonymous"
-        ? as.node.crypto
-        : as.$jazz.raw.core.node.crypto;
+      as[TypeSym] === "Anonymous" ? as.node.crypto : as.$jazz.localNode.crypto;
     return cojsonInternals.idforHeader(header, crypto) as ID<M>;
   }
 

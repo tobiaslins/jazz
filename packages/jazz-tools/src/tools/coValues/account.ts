@@ -485,11 +485,6 @@ class AccountJazzApi<A extends Account> extends CoValueJazzApi<A> {
     return (this.account.constructor as typeof Account)._schema;
   }
 
-  /** @internal */
-  get localNode(): LocalNode {
-    return this.raw.core.node;
-  }
-
   get owner(): Account {
     return this.account;
   }

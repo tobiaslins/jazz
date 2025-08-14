@@ -119,7 +119,7 @@ export class Inbox {
   ) {
     const processed = new Set<`${SessionID}/${number}`>();
     const failed = new Map<`${SessionID}/${number}`, string[]>();
-    const node = this.account.$jazz.raw.core.node;
+    const node = this.account.$jazz.localNode;
 
     this.processed.subscribe((stream) => {
       for (const items of Object.values(stream.items)) {
@@ -258,7 +258,7 @@ export class Inbox {
       throw new Error("The account has not set up their inbox");
     }
 
-    const node = account.$jazz.raw.core.node;
+    const node = account.$jazz.localNode;
 
     const root = await node.load(profile.inbox as CoID<InboxRoot>);
 
@@ -332,7 +332,7 @@ export class InboxSender<I extends CoValue, O extends CoValue | undefined> {
   >(inboxOwnerID: ID<Account>, currentAccount?: Account) {
     currentAccount ||= activeAccountContext.get();
 
-    const node = currentAccount.$jazz.raw.core.node;
+    const node = currentAccount.$jazz.localNode;
 
     const inboxOwnerRaw = await node.load(
       inboxOwnerID as unknown as CoID<RawAccount>,
@@ -393,7 +393,7 @@ async function acceptInvite(invite: string, account?: Account) {
     throw new Error("Account is not controlled");
   }
 
-  await account.$jazz.raw.core.node.acceptInvite(id, inviteSecret);
+  await account.$jazz.localNode.acceptInvite(id, inviteSecret);
 
   return id;
 }

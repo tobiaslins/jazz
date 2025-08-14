@@ -258,7 +258,7 @@ export function subscribeToCoValue<
   listener: SubscribeListener<V, R>,
 ): () => void {
   const loadAs = options.loadAs ?? activeAccountContext.get();
-  const node = "node" in loadAs ? loadAs.node : loadAs.$jazz.raw.core.node;
+  const node = "node" in loadAs ? loadAs.node : loadAs.$jazz.localNode;
 
   const resolve = options.resolve ?? true;
 
