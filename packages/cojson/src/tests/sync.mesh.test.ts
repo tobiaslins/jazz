@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { assert, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { expectMap } from "../coValue";
 import { setMaxRecommendedTxSize } from "../config";
@@ -11,6 +11,7 @@ import {
   setupTestNode,
   waitFor,
 } from "./testUtils";
+import { stableStringify } from "../jsonStringify";
 
 // We want to simulate a real world communication that happens asynchronously
 TEST_NODE_CONFIG.withAsyncPeers = true;
@@ -345,13 +346,20 @@ describe("multiple clients syncing with the a cloud-like server mesh", () => {
     expect(mapOnItalianClient.get("hello")).toEqual("world");
     expect(mapOnFrenchClient.get("hello")).toEqual("world");
 
-    // Return an invalid signature on the next transaction
-    vi.spyOn(italianClient.node.crypto, "sign").mockReturnValueOnce(
-      "signature_z2jYFqH6hey3Yy8EdgjFxDtD7MJWnNMkhBx5snKsBdFRNJgtPSNK73LrAyCjzMjH5f2nsssT5MbYm8r6tKJJGWDEB",
-    );
+    const msg = map.core.verified.newContentSince(undefined)?.[0];
+    assert(msg);
+
+    msg.new[mesh.edgeFrance.node.currentSessionID]!.newTransactions.push({
+      privacy: "trusting",
+      changes: stableStringify([{ op: "set", key: "hello", value: "updated" }]),
+      madeAt: Date.now(),
+    });
+
+    mesh.edgeFrance.node.syncManager.handleNewContent(msg, "storage");
+
+    await map.core.waitForSync();
 
     SyncMessagesLog.clear(); // We want to focus on the sync messages happening from now
-    mapOnItalianClient.set("hello", "updated", "trusting");
 
     await new Promise((resolve) => setTimeout(resolve, 100));
 
@@ -362,13 +370,7 @@ describe("multiple clients syncing with the a cloud-like server mesh", () => {
         Group: group.core,
         Map: map.core,
       }),
-    ).toMatchInlineSnapshot(`
-      [
-        "client -> edge-italy | CONTENT Map header: false new: After: 0 New: 1",
-        "edge-italy -> client | KNOWN Map sessions: header/1",
-        "edge-italy -> storage | CONTENT Map header: false new: After: 0 New: 1",
-      ]
-    `);
+    ).toMatchInlineSnapshot(`[]`);
   });
 
   test("load returns the coValue as soon as one of the peers return the content", async () => {
