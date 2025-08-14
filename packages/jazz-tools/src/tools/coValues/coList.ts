@@ -798,8 +798,7 @@ const CoListProxyHandler: ProxyHandler<CoList> = {
       return true;
     }
     if (typeof key === "string" && !isNaN(+key)) {
-      target.$jazz.set(Number(key), value);
-      return true;
+      throw Error("Cannot update a CoList directly. Use `$jazz.set` instead.");
     } else {
       return Reflect.set(target, key, value, receiver);
     }

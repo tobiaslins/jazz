@@ -41,7 +41,7 @@ export interface CoRecordSchema<
       | Account
       | Group,
   ) => {
-    [key in z.output<K>]: InstanceOrPrimitiveOfSchema<V>;
+    readonly [key in z.output<K>]: InstanceOrPrimitiveOfSchema<V>;
   } & CoMap;
 
   load<

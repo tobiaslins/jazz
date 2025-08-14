@@ -958,7 +958,7 @@ test("doesn't break on Map.Record key deletion when the key is referenced in the
   await waitFor(() => expect(spy).toHaveBeenCalled());
 
   spy.mockClear();
-  delete snapStore.profile1;
+  snapStore.$jazz.delete("profile1");
 
   expect(Object.keys(snapStore)).toEqual(["profile2"]);
 
@@ -1046,7 +1046,7 @@ test("should not throw when calling ensureLoaded a record with a deleted ref", a
 
   await waitFor(() => expect(value.profile).toBeDefined());
 
-  delete root.profile;
+  root.$jazz.delete("profile");
 
   await waitFor(() => expect(value.profile).toBeUndefined());
 

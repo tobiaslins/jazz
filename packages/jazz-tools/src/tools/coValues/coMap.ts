@@ -587,6 +587,21 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
   }
 
   /**
+   * Delete a value from a CoMap record.
+   *
+   * Only allows deletion of record properties. For optional fields in struct-like CoMaps,
+   * use `$jazz.set` with `undefined` instead.
+   *
+   * @param key The key to delete
+   *
+   * @category Content
+   */
+  // TODO restrict `delete` to only be available on record-like CoMaps
+  delete<K extends CoKeys<M>>(key: K): void {
+    this.raw.delete(key);
+  }
+
+  /**
    * Modify the `CoMap` to match another map.
    *
    * @param newValues - The new values to apply to the CoMap.
@@ -887,8 +902,7 @@ const CoMapProxyHandler: ProxyHandler<CoMap> = {
     if (!descriptor) return false;
 
     if (typeof key === "string") {
-      target.$jazz.set(key as never, value as never);
-      return true;
+      throw Error("Cannot update a CoMap directly. Use `$jazz.set` instead.");
     } else {
       return Reflect.set(target, key, value, receiver);
     }
@@ -946,8 +960,9 @@ const CoMapProxyHandler: ProxyHandler<CoMap> = {
     const descriptor = target.$jazz.getDescriptor(key as string);
 
     if (typeof key === "string" && descriptor) {
-      target.$jazz.raw.delete(key);
-      return true;
+      throw Error(
+        "Cannot delete a CoMap property directly. Use `$jazz.delete` instead.",
+      );
     } else {
       return Reflect.deleteProperty(target, key);
     }

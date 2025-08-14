@@ -131,7 +131,7 @@ describe("CoMap.Record", async () => {
 
       const person = Person.create({ name: "John", age: "20" });
 
-      delete person.age;
+      person.$jazz.delete("age");
 
       expect(person.name).toEqual("John");
       expect("age" in person).toEqual(false);
