@@ -1,5 +1,17 @@
 # jazz-tools
 
+## 0.17.1
+
+### Patch Changes
+
+- 0bcbf55: Export the HttpRoute type
+- d1bdbf5: fix: ensure file downloaded in loadImageBySize
+- 4b73834: fix(jazz-tools/svelte): Make Image reactive to imageId change
+- Updated dependencies [2fd88b9]
+  - cojson@0.17.1
+  - cojson-storage-indexeddb@0.17.1
+  - cojson-transport-ws@0.17.1
+
 ## 0.17.0
 
 ### Minor Changes

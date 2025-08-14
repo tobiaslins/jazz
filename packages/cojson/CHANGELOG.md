@@ -1,5 +1,11 @@
 # cojson
 
+## 0.17.1
+
+### Patch Changes
+
+- 2fd88b9: Add debug info to sync correction errors
+
 ## 0.17.0
 
 ## 0.16.6
