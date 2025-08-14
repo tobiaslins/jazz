@@ -2,7 +2,7 @@ import { AccountClass, isControlledAccount } from "../coValues/account";
 
 import { CoID, LocalNode, RawCoValue } from "cojson";
 import { cojsonInternals } from "cojson";
-import { PureJSCrypto } from "cojson/crypto/PureJSCrypto";
+import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import {
   Account,
   createJazzContextFromExistingCredentials,
@@ -10,7 +10,7 @@ import {
 } from "../index";
 import { CoValueFromRaw } from "../internal";
 
-const Crypto = await PureJSCrypto.create();
+const Crypto = await WasmCrypto.create();
 
 export async function setupAccount() {
   const me = await Account.create({
