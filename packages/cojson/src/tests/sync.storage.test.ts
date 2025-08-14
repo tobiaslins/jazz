@@ -438,4 +438,52 @@ describe("client syncs with a server with storage", () => {
       );
     });
   });
+
+  test("sessions with invalid assumptions should not be attempted to be stored", async () => {
+    const client = setupTestNode();
+    client.connectToSyncServer();
+
+    const serverStorage = jazzCloud.node.storage!;
+
+    const group = client.node.createGroup();
+    const map = group.createMap();
+
+    // Set an initial value on the map and let client/server sync
+    map.set("hello", "world", "trusting");
+    await map.core.waitForSync();
+
+    // Verify that the initial known state is in server storage
+    const initialKnownState = map.core.knownState();
+    expect(serverStorage.getKnownState(map.id)).toEqual(initialKnownState);
+
+    // Disable the next invocation of handleNewContent on the server
+    vi.spyOn(
+      jazzCloud.node.syncManager,
+      "handleNewContent",
+    ).mockImplementationOnce(() => {}); // noop
+
+    // Update the map and let the client try to send the new content to the server.
+    // The server won't receive it since it's disabled.
+    map.set("hello", "world2", "trusting");
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // Verify that the known state is still the same in server storage
+    expect(serverStorage.getKnownState(map.id)).toEqual(initialKnownState);
+
+    const storeSpy = vi.spyOn(serverStorage, "store");
+
+    // Update the map once again, causing the client to send an update that the server
+    // can't handle due to the previous transaction being missing. This will be followed
+    // up by another update containing the missing transaction.
+    map.set("hello", "world3", "trusting");
+    await map.core.waitForSync();
+
+    // We expect store() to have only been called once even though handleNewContent()
+    // will have been called twice. The first handleNewContent call would have been
+    // "unstorable" because of the missing transaction.
+    expect(storeSpy).toHaveBeenCalledTimes(1);
+
+    // Verify that the known state is updated in server storage
+    expect(serverStorage.getKnownState(map.id)).toEqual(map.core.knownState());
+  });
 });

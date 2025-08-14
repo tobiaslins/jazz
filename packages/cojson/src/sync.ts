@@ -802,10 +802,31 @@ export class SyncManager {
     if (!storage) return;
 
     const value = this.local.getCoValue(content.id);
+    const knownState = value.verified?.knownState();
+
+    // Only store sessions that have valid assumptions
+    const storableContent: NewContentMessage = {
+      ...content,
+      new: {},
+    };
+    for (const sessionID of Object.keys(content.new) as SessionID[]) {
+      const sessionNewContent = content.new[sessionID]!;
+      if (
+        !knownState ||
+        (knownState.sessions[sessionID] ?? 0) > sessionNewContent.after
+      ) {
+        storableContent.new[sessionID] = sessionNewContent;
+      }
+    }
+
+    if (Object.keys(storableContent.new).length === 0) {
+      // Nothing to store
+      return;
+    }
 
     // Try to store the content as-is for performance
     // In case that some transactions are missing, a correction will be requested, but it's an edge case
-    storage.store(content, (correction) => {
+    storage.store(storableContent, (correction) => {
       if (!value.verified) {
         logger.error(
           "Correction requested for a CoValue with no verified content",
