@@ -299,53 +299,79 @@ export class CoList<out Item = any>
   }
 
   // Override mutation methods defined on Array, as CoLists aren't meant to be mutated directly
-  override push(...items: Item[]): number {
+  /**
+   * @deprecated Use `.$jazz.push` instead.
+   */
+  override push(...items: never): never {
     throw new Error(
-      "Cannot mutate a CoList directly. Use .$jazz.push(...) instead.",
+      "Cannot mutate a CoList directly. Use `.$jazz.push` instead.",
     );
   }
-  override unshift(...items: Item[]): number {
+  /**
+   * @deprecated Use `.$jazz.unshift` instead.
+   */
+  override unshift(...items: never): number {
     throw new Error(
-      "Cannot mutate a CoList directly. Use .$jazz.unshift(...) instead.",
+      "Cannot mutate a CoList directly. Use `.$jazz.unshift` instead.",
     );
   }
-  override pop(): Item | undefined {
+  /**
+   * @deprecated Use `.$jazz.pop` instead.
+   */
+  // @ts-expect-error
+  override pop(value: never): never {
     throw new Error(
-      "Cannot mutate a CoList directly. Use .$jazz.pop(...) instead.",
+      "Cannot mutate a CoList directly. Use `.$jazz.pop` instead.",
     );
   }
-  override shift(): Item | undefined {
+  /**
+   * @deprecated Use `.$jazz.shift` instead.
+   */
+  // @ts-expect-error
+  override shift(value: never): never {
     throw new Error(
-      "Cannot mutate a CoList directly. Use .$jazz.shift(...) instead.",
+      "Cannot mutate a CoList directly. Use `.$jazz.shift` instead.",
     );
   }
-  override splice(
-    start: number,
-    deleteCount: number,
-    ...items: Item[]
-  ): Item[] {
+  /**
+   * @deprecated Use `.$jazz.splice` instead.
+   */
+  override splice(start: never, deleteCount: never, ...items: never): never {
     throw new Error(
-      "Cannot mutate a CoList directly. Use .$jazz.splice(...) instead.",
+      "Cannot mutate a CoList directly. Use `.$jazz.splice` instead.",
     );
   }
-  override copyWithin(target: number, start: number, end: number): this {
+  /**
+   * @deprecated Use `.$jazz.set` instead.
+   */
+  override copyWithin(target: never, start: never, end: never): never {
     throw new Error(
-      "Cannot mutate a CoList directly. Use .$jazz.set(...) instead.",
+      "Cannot mutate a CoList directly. Use `.$jazz.set` instead.",
     );
   }
-  override fill(value: Item, start?: number, end?: number): this {
+  /**
+   * @deprecated Use `.$jazz.set` instead.
+   */
+  override fill(value: never, start?: never, end?: never): never {
     throw new Error(
-      "Cannot mutate a CoList directly. Use .$jazz.set(...) instead.",
+      "Cannot mutate a CoList directly. Use `.$jazz.set` instead.",
     );
   }
-  override reverse(): this {
+  /**
+   * @deprecated Use `.toReversed` if you want a reversed copy, or `.$jazz.set` to mutate the CoList.
+   */
+  // @ts-expect-error
+  override reverse(value: never): never {
     throw new Error(
-      "Cannot mutate a CoList directly. Use .toReversed() if you want a reversed copy, or .$jazz.set(...) to mutate the CoList.",
+      "Cannot mutate a CoList directly. Use `.toReversed` if you want a reversed copy, or `.$jazz.set` to mutate the CoList.",
     );
   }
-  override sort(compareFn?: (a: Item, b: Item) => number): this {
+  /**
+   * @deprecated Use `.toSorted()` if you want a sorted copy, or `.$jazz.set` to mutate the CoList.
+   */
+  override sort(compareFn?: never): never {
     throw new Error(
-      "Cannot mutate a CoList directly. Use .toSorted() if you want a sorted copy, or .$jazz.set(...) to mutate the CoList.",
+      "Cannot mutate a CoList directly. Use `.toSorted` if you want a sorted copy, or `.$jazz.set` to mutate the CoList.",
     );
   }
 }

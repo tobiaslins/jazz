@@ -34,7 +34,7 @@ export type RefsToResolve<
       : IsUnion<NonNullable<V>> extends true
         ? true
         : // Basically V extends CoList - but if we used that we'd introduce circularity into the definition of CoList itself
-          V extends Array<infer Item>
+          V extends ReadonlyArray<infer Item>
           ?
               | {
                   $each: RefsToResolve<
@@ -128,11 +128,11 @@ export type DeeplyLoaded<
   : Depth extends boolean | undefined // Checking against boolean instead of true because the inference from RefsToResolveStrict transforms true into boolean
     ? V
     : // Basically V extends CoList - but if we used that we'd introduce circularity into the definition of CoList itself
-      [V] extends [Array<infer Item>]
+      [V] extends [ReadonlyArray<infer Item>]
       ? NotNull<Item> extends CoValue
         ? Depth extends { $each: infer ItemDepth }
           ? // Deeply loaded CoList
-            (
+            ReadonlyArray<
               | (NotNull<Item> &
                   DeeplyLoaded<
                     NotNull<Item>,
@@ -141,7 +141,7 @@ export type DeeplyLoaded<
                     [0, ...CurrentDepth]
                   >)
               | onErrorNullEnabled<Depth["$each"]>
-            )[] &
+            > &
               V // the CoList base type needs to be intersected after so that built-in methods return the correct narrowed array type
           : never
         : V

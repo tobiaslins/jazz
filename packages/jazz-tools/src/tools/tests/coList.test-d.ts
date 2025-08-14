@@ -10,7 +10,7 @@ describe("CoList", () => {
 
       const list = StringList.create(["a", "b", "c"]);
 
-      type ExpectedType = string[];
+      type ExpectedType = ReadonlyArray<string>;
 
       function matches(value: ExpectedType) {
         return value;
@@ -42,7 +42,7 @@ describe("CoList", () => {
         undefined,
       ]);
 
-      type ExpectedType = Loaded<typeof Dog>[];
+      type ExpectedType = ReadonlyArray<Loaded<typeof Dog>>;
 
       function matches(value: ExpectedType) {
         return value;
@@ -64,7 +64,7 @@ describe("CoList", () => {
         undefined,
       ]);
 
-      type ExpectedType = (Loaded<typeof Dog> | undefined)[];
+      type ExpectedType = ReadonlyArray<Loaded<typeof Dog> | undefined>;
 
       function matches(value: ExpectedType) {
         return value;
@@ -93,7 +93,7 @@ describe("CoList", () => {
 
       const list = DogList.create([dog, undefined]);
 
-      type ExpectedType = (Loaded<typeof Dog> | undefined)[];
+      type ExpectedType = ReadonlyArray<Loaded<typeof Dog> | undefined>;
 
       function matches(value: ExpectedType) {
         return value;
@@ -121,7 +121,7 @@ describe("CoList", () => {
 
       const list = DogList.create([rex]);
 
-      type ExpectedType = Loaded<typeof Dog>[];
+      type ExpectedType = ReadonlyArray<Loaded<typeof Dog>>;
 
       function matches(value: ExpectedType) {
         return value;
@@ -138,7 +138,7 @@ describe("CoList", () => {
         co.list(z.string()).create(["c", "d"]),
       ]);
 
-      type ExpectedType = string[][];
+      type ExpectedType = ReadonlyArray<ReadonlyArray<string>>;
 
       function matches(value: ExpectedType) {
         return value;
@@ -152,7 +152,7 @@ describe("CoList", () => {
 
       const list = EnumList.create(["a", "b", "c"]);
 
-      type ExpectedType = ("a" | "b" | "c")[];
+      type ExpectedType = ReadonlyArray<"a" | "b" | "c">;
 
       function matches(value: ExpectedType) {
         return value;
@@ -182,7 +182,7 @@ describe("CoList", () => {
         },
       });
 
-      type ExpectedType = Loaded<typeof Dog>[] | null;
+      type ExpectedType = ReadonlyArray<Loaded<typeof Dog>> | null;
 
       function matches(value: ExpectedType) {
         return value;
@@ -215,14 +215,12 @@ describe("CoList", () => {
         },
       });
 
-      type ExpectedType =
-        | (
-            | (Loaded<typeof Dog> & {
-                $onError: never;
-              })
-            | null
-          )[]
-        | null;
+      type ExpectedType = ReadonlyArray<
+        | (Loaded<typeof Dog> & {
+            $onError: never;
+          })
+        | null
+      > | null;
 
       function matches(value: ExpectedType) {
         return value;
@@ -255,7 +253,9 @@ describe("CoList", () => {
         },
       });
 
-      type ExpectedType = Loaded<typeof Dog>[][] | null;
+      type ExpectedType = ReadonlyArray<
+        ReadonlyArray<Loaded<typeof Dog>>
+      > | null;
 
       function matches(value: ExpectedType) {
         return value;
