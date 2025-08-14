@@ -364,16 +364,10 @@ describe("Simple CoList operations", async () => {
         { owner: me },
       );
 
-      expect(() => {
-        // @ts-expect-error
-        list[0] = list[0]?.filter((item) => item !== "butter");
-      }).toThrow("Cannot set reference 0 to a non-CoValue. Got bread,onion");
+      // @ts-expect-error
+      list[0] = list[0]?.filter((item) => item !== "butter");
 
-      expect(list[0]?.$jazz.raw.asArray()).toEqual([
-        "bread",
-        "butter",
-        "onion",
-      ]);
+      expect(list[0]?.$jazz.raw.asArray()).toEqual(["bread", "onion"]);
     });
   });
 });

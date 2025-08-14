@@ -411,30 +411,11 @@ export class CoListJazzApi<L extends CoList>
   }
 
   set(index: number, value: CoListItem<L>): void {
-    const itemDescriptor = this.schema[ItemsSym] as Schema;
-    let rawValue: JsonValue;
-    if (itemDescriptor === "json") {
-      rawValue = value;
-    } else if ("encoded" in itemDescriptor) {
-      rawValue = itemDescriptor.encoded.encode(value);
-    } else if (isRefEncoded(itemDescriptor)) {
-      if (value === undefined) {
-        if (itemDescriptor.optional) {
-          rawValue = null;
-        } else {
-          throw new Error(
-            `Cannot set required reference ${index} to undefined`,
-          );
-        }
-      } else if ((value as CoValue)?.$jazz?.id) {
-        rawValue = (value as CoValue).$jazz.id;
-      } else {
-        throw new Error(
-          `Cannot set reference ${index} to a non-CoValue. Got ${value}`,
-        );
-      }
+    const itemDescriptor = this.schema[ItemsSym];
+    const rawValue = toRawItems([value], itemDescriptor, this.owner)[0]!;
+    if (rawValue === null && !itemDescriptor.optional) {
+      throw new Error(`Cannot set required reference ${index} to undefined`);
     }
-    // @ts-expect-error TS incorrectly believes 'rawValue' is used before being assigned
     this.raw.replace(index, rawValue);
   }
 
@@ -728,7 +709,7 @@ function toRawItems<Item>(
   items: Item[],
   itemDescriptor: Schema,
   owner: Account | Group,
-) {
+): JsonValue[] {
   let rawItems: JsonValue[] = [];
   if (itemDescriptor === "json") {
     rawItems = items as JsonValue[];
@@ -736,7 +717,9 @@ function toRawItems<Item>(
     rawItems = items?.map((e) => itemDescriptor.encoded.encode(e));
   } else if (isRefEncoded(itemDescriptor)) {
     rawItems = items?.map((value) => {
-      if (value == null) return null;
+      if (value == null) {
+        return null;
+      }
       let refId = (value as unknown as CoValue).$jazz?.id;
       if (!refId) {
         const coValue = instantiateRefEncodedWithInit(
@@ -784,30 +767,7 @@ const CoListProxyHandler: ProxyHandler<CoList> = {
       return true;
     }
     if (typeof key === "string" && !isNaN(+key)) {
-      const itemDescriptor = target.$jazz.schema[ItemsSym] as Schema;
-      let rawValue;
-      if (itemDescriptor === "json") {
-        rawValue = value;
-      } else if ("encoded" in itemDescriptor) {
-        rawValue = itemDescriptor.encoded.encode(value);
-      } else if (isRefEncoded(itemDescriptor)) {
-        if (value === undefined) {
-          if (itemDescriptor.optional) {
-            rawValue = null;
-          } else {
-            throw new Error(
-              `Cannot set required reference ${key} to undefined`,
-            );
-          }
-        } else if ((value as CoValue)?.$jazz?.id) {
-          rawValue = (value as CoValue).$jazz.id;
-        } else {
-          throw new Error(
-            `Cannot set reference ${key} to a non-CoValue. Got ${value}`,
-          );
-        }
-      }
-      target.$jazz.raw.replace(Number(key), rawValue);
+      target.$jazz.set(Number(key), value);
       return true;
     } else {
       return Reflect.set(target, key, value, receiver);
