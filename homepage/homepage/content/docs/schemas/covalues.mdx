@@ -3,6 +3,7 @@ export const metadata = {
 };
 
 import { CodeGroup, ComingSoon } from "@/components/forMdx";
+import { Alert } from "@garden-co/design-system/src/components/atoms/Alert";
 
 # Defining schemas: CoValues
 
@@ -79,6 +80,40 @@ const project = TodoProject.create(
 ```
 
 </CodeGroup>
+
+When creating CoValues that contain other CoValues, you can pass in a plain JSON object.
+Jazz will automatically create the CoValues for you.
+
+<CodeGroup>
+```ts twoslash
+// @filename: schema.ts
+import { co, z, CoMap, CoList } from "jazz-tools";
+
+export const ListOfTasks = co.list(z.string());
+
+export const TodoProject = co.map({
+  title: z.string(),
+  tasks: ListOfTasks,
+});
+
+// @filename: app.ts
+// ---cut---
+// app.ts
+import { Group } from "jazz-tools";
+import { TodoProject, ListOfTasks } from "./schema";
+
+const group = Group.create().makePublic();
+const project = TodoProject.create({
+  title: "New Project",
+  tasks: [], // Permissions are inherited, so the tasks list will also be public
+}, group);
+```
+</CodeGroup>
+
+<Alert variant="info" className="flex gap-2 items-center my-4">
+To learn more about how permissions work when creating nested CoValues with plain JSON objects,
+refer to [Group hierarchy on CoValue creation](/docs/groups/inheritance#group-hierarchy-on-covalue-creation).
+</Alert>
 
 ## Types of CoValues
 
@@ -320,6 +355,10 @@ const Company = co.map({
 </CodeGroup>
 
 #### Optional References
+You can make schema fields optional using either `z.optional()` or `co.optional()`, depending on the type of value:  
+
+- Use `z.optional()` for primitive Zod values like `z.string()`, `z.number()`, or `z.boolean()`  
+- Use `co.optional()` for CoValues like `co.map()`, `co.list()`, or `co.record()`   
 
 You can make references optional with `co.optional()`:
 
@@ -331,7 +370,8 @@ const Pet = co.map({
 });
 // ---cut---
 const Person = co.map({
-  pet: co.optional(Pet),
+  age: z.optional(z.number()),      // primitive
+  pet: co.optional(Pet),            // CoValue
 });
 ```
 </CodeGroup>
@@ -353,37 +393,21 @@ const Person = co.map({
 ```
 </CodeGroup>
 
-You can use the same technique for mutually recursive references, but you'll need to help TypeScript along:
+You can use the same technique for mutually recursive references:
 
 <CodeGroup>
 ```ts twoslash
 // ---cut---
-import { co, z, CoListSchema } from "jazz-tools";
+import { co, z } from "jazz-tools";
 
 const Person = co.map({
   name: z.string(),
-  get friends(): CoListSchema<typeof Person> {
+  get friends() {
     return ListOfPeople;
   }
 });
 
 const ListOfPeople = co.list(Person);
-```
-
-</CodeGroup>
-
-Note: similarly, if you use modifiers like `co.optional()` you'll need to help TypeScript along:
-
-<CodeGroup>
-```ts twoslash
-import { co, z } from "jazz-tools";
-// ---cut---
-const Person = co.map({
-  name: z.string(),
-  get bestFriend(): z.ZodOptional<typeof Person> {
-    return co.optional(Person);
-  }
-});
 ```
 
 </CodeGroup>

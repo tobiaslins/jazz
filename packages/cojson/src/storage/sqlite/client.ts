@@ -112,24 +112,34 @@ export class SQLiteClient implements DBClientInterfaceSync {
     ) as SignatureAfterRow[];
   }
 
-  addCoValue(msg: NewContentMessage): number {
+  getCoValueRowID(id: RawCoID): number | undefined {
+    const row = this.db.get<{ rowID: number }>(
+      "SELECT rowID FROM coValues WHERE id = ?",
+      [id],
+    );
+    return row?.rowID;
+  }
+
+  upsertCoValue(id: RawCoID, header?: CoValueHeader): number | undefined {
+    if (!header) {
+      return this.getCoValueRowID(id);
+    }
+
     const result = this.db.get<{ rowID: number }>(
-      "INSERT INTO coValues (id, header) VALUES (?, ?) RETURNING rowID",
-      [msg.id, JSON.stringify(msg.header)],
+      `INSERT INTO coValues (id, header) VALUES (?, ?) 
+       ON CONFLICT(id) DO NOTHING
+       RETURNING rowID`,
+      [id, JSON.stringify(header)],
     );
 
     if (!result) {
-      throw new Error("Failed to add coValue");
+      return this.getCoValueRowID(id);
     }
 
     return result.rowID;
   }
 
-  addSessionUpdate({
-    sessionUpdate,
-  }: {
-    sessionUpdate: SessionRow;
-  }): number {
+  addSessionUpdate({ sessionUpdate }: { sessionUpdate: SessionRow }): number {
     const result = this.db.get<{ rowID: number }>(
       `INSERT INTO sessions (coValue, sessionID, lastIdx, lastSignature, bytesSinceLastSignature) VALUES (?, ?, ?, ?, ?)
                             ON CONFLICT(coValue, sessionID) DO UPDATE SET lastIdx=excluded.lastIdx, lastSignature=excluded.lastSignature, bytesSinceLastSignature=excluded.bytesSinceLastSignature
@@ -166,7 +176,11 @@ export class SQLiteClient implements DBClientInterfaceSync {
     sessionRowID,
     idx,
     signature,
-  }: { sessionRowID: number; idx: number; signature: Signature }) {
+  }: {
+    sessionRowID: number;
+    idx: number;
+    signature: Signature;
+  }) {
     this.db.run(
       "INSERT INTO signatureAfter (ses, idx, signature) VALUES (?, ?, ?)",
       [sessionRowID, idx, signature],

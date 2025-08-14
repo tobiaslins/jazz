@@ -9,15 +9,13 @@ import type {
   RawCoStream,
   SessionID,
 } from "cojson";
-import { MAX_RECOMMENDED_TX_SIZE, cojsonInternals } from "cojson";
+import { cojsonInternals } from "cojson";
 import type {
   AnonymousJazzAgent,
-  AnyAccountSchema,
   CoValue,
   CoValueClass,
   Group,
   ID,
-  InstanceOfSchema,
   RefsToResolve,
   RefsToResolveStrict,
   Resolved,
@@ -31,13 +29,12 @@ import {
   CoValueBase,
   ItemsSym,
   Ref,
-  RegisteredSchemas,
   SchemaInit,
   accessChildById,
-  anySchemaToCoSchema,
   coField,
   ensureCoValueLoaded,
   inspect,
+  instantiateRefEncodedWithInit,
   isRefEncoded,
   loadCoValueWithoutMe,
   parseCoValueCreateOptions,
@@ -282,7 +279,16 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
     } else if ("encoded" in itemDescriptor) {
       this._raw.push(itemDescriptor.encoded.encode(item));
     } else if (isRefEncoded(itemDescriptor)) {
-      this._raw.push((item as unknown as CoValue).id);
+      let refId = (item as unknown as CoValue).id;
+      if (!refId) {
+        const coValue = instantiateRefEncodedWithInit(
+          itemDescriptor,
+          item,
+          this._owner,
+        );
+        refId = coValue.id;
+      }
+      this._raw.push(refId);
     }
   }
 
@@ -422,9 +428,7 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
    *
    * @category Subscription & Loading
    */
-  waitForSync(options?: {
-    timeout?: number;
-  }) {
+  waitForSync(options?: { timeout?: number }) {
     return this._raw.core.waitForSync(options);
   }
 }
@@ -833,19 +837,52 @@ export class FileStream extends CoValueBase implements CoValue {
       | Account
       | Group,
   ): Promise<FileStream> {
+    const arrayBuffer = await blob.arrayBuffer();
+    return this.createFromArrayBuffer(
+      arrayBuffer,
+      blob.type,
+      blob instanceof File ? blob.name : undefined,
+      options,
+    );
+  }
+
+  /**
+   * Create a `FileStream` from a `Blob` or `File`
+   *
+   * @example
+   * ```ts
+   * import { coField, FileStream } from "jazz-tools";
+   *
+   * const fileStream = await FileStream.createFromBlob(file, {owner: group})
+   * ```
+   * @category Content
+   */
+  static async createFromArrayBuffer(
+    arrayBuffer: ArrayBuffer,
+    mimeType: string,
+    fileName: string | undefined,
+    options?:
+      | {
+          owner?: Group | Account;
+          onProgress?: (progress: number) => void;
+        }
+      | Account
+      | Group,
+  ): Promise<FileStream> {
     const stream = this.create(options);
     const onProgress =
       options && "onProgress" in options ? options.onProgress : undefined;
 
     const start = Date.now();
 
-    const data = new Uint8Array(await blob.arrayBuffer());
+    const data = new Uint8Array(arrayBuffer);
     stream.start({
-      mimeType: blob.type,
-      totalSizeBytes: blob.size,
-      fileName: blob instanceof File ? blob.name : undefined,
+      mimeType,
+      totalSizeBytes: arrayBuffer.byteLength,
+      fileName,
     });
-    const chunkSize = MAX_RECOMMENDED_TX_SIZE;
+    const chunkSize =
+      cojsonInternals.TRANSACTION_CONFIG.MAX_RECOMMENDED_TX_SIZE;
 
     let lastProgressUpdate = Date.now();
 
@@ -866,7 +903,7 @@ export class FileStream extends CoValueBase implements CoValue {
       "Finished creating binary stream in",
       (end - start) / 1000,
       "s - Throughput in MB/s",
-      (1000 * (blob.size / (end - start))) / (1024 * 1024),
+      (1000 * (arrayBuffer.byteLength / (end - start))) / (1024 * 1024),
     );
     onProgress?.(1);
 

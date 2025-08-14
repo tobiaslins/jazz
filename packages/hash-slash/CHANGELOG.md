@@ -1,5 +1,11 @@
 # hash-slash
 
+## 0.2.4
+
+### Patch Changes
+
+- e0d2723: Fix router update when calling navigate\
+
 ## 0.2.3
 
 ### Patch Changes

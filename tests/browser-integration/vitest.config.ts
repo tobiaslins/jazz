@@ -1,7 +1,9 @@
+import react from "@vitejs/plugin-react-swc";
 import { defineProject } from "vitest/config";
 import { customCommands } from "./src/commands";
 
 export default defineProject({
+  plugins: [react()],
   test: {
     name: "browser-integration-tests",
     browser: {

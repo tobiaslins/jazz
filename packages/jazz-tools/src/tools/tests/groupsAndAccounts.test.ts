@@ -1,7 +1,7 @@
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { assert, beforeEach, describe, expect, test } from "vitest";
 import { CoMap, Group, z } from "../exports.js";
-import { Loaded, Ref, co, zodSchemaToCoSchema } from "../internal.js";
+import { Loaded, Ref, co } from "../internal.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 import { setupTwoNodes, waitFor } from "./utils.js";
 
@@ -22,15 +22,16 @@ describe("Custom accounts and groups", async () => {
       color: z.string(),
     });
 
+    const Root = co.map({});
     const CustomAccount = co
       .account({
         profile: CustomProfile,
-        root: co.map({}),
+        root: Root,
       })
       .withMigration((account, creationProps?: { name: string }) => {
         // making sure that the inferred type of account.root & account.profile considers the root/profile not being loaded
         type R = typeof account.root;
-        const _r: R = {} as Loaded<typeof CustomAccount.def.shape.root> | null;
+        const _r: R = {} as Loaded<typeof Root> | null;
         type P = typeof account.profile;
         const _p: P = {} as Loaded<typeof CustomProfile> | null;
         if (creationProps) {
@@ -47,7 +48,7 @@ describe("Custom accounts and groups", async () => {
     const me = await createJazzTestAccount({
       creationProps: { name: "Hermes Puggington" },
       isCurrentActiveAccount: true,
-      AccountSchema: zodSchemaToCoSchema(CustomAccount),
+      AccountSchema: CustomAccount,
     });
 
     expect(me.profile).toBeDefined();
@@ -314,6 +315,60 @@ describe("Group inheritance", () => {
     await group.removeMember(parentGroup);
     expect(group.getRoleOf(bob.id)).toBe("reader");
     expect(group.getRoleOf(alice.id)).toBe(undefined);
+  });
+
+  describe("when creating nested CoValues from a JSON object", () => {
+    const Task = co.plainText();
+    const Column = co.list(Task);
+    const Board = co.map({
+      title: z.string(),
+      columns: co.list(Column),
+    });
+
+    let board: ReturnType<typeof Board.create>;
+
+    beforeEach(async () => {
+      const me = co.account().getMe();
+      const writeAccess = Group.create();
+      writeAccess.addMember(me, "writer");
+
+      board = Board.create(
+        {
+          title: "My board",
+          columns: [
+            ["Task 1.1", "Task 1.2"],
+            ["Task 2.1", "Task 2.2"],
+          ],
+        },
+        writeAccess,
+      );
+    });
+
+    test("nested CoValues inherit permissions from the referencing CoValue", async () => {
+      const me = co.account().getMe();
+      const task = board.columns[0]![0]!;
+
+      const boardAsWriter = await Board.load(board.id, { loadAs: me });
+      expect(boardAsWriter?.title).toEqual("My board");
+      const taskAsWriter = await Task.load(task.id, { loadAs: me });
+      expect(taskAsWriter?.toString()).toEqual("Task 1.1");
+    });
+
+    test("nested CoValues inherit permissions from the referencing CoValue", async () => {
+      const me = co.account().getMe();
+      const reader = await co.account().createAs(me, {
+        creationProps: { name: "Reader" },
+      });
+
+      const task = board.columns[0]![0]!;
+      const taskGroup = task._owner.castAs(Group);
+      taskGroup.addMember(reader, "reader");
+
+      const taskAsReader = await Task.load(task.id, { loadAs: reader });
+      expect(taskAsReader?.toString()).toEqual("Task 1.1");
+      const boardAsReader = await Board.load(board.id, { loadAs: reader });
+      expect(boardAsReader).toBeNull();
+    });
   });
 });
 

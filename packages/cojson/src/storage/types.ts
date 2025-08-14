@@ -6,6 +6,10 @@ import { Signature } from "../crypto/crypto.js";
 import type { CoValueCore, RawCoID, SessionID } from "../exports.js";
 import { CoValueKnownState, NewContentMessage } from "../sync.js";
 
+export type CorrectionCallback = (
+  correction: CoValueKnownState,
+) => NewContentMessage[] | undefined;
+
 /**
  * The StorageAPI is the interface that the StorageSync and StorageAsync classes implement.
  *
@@ -18,16 +22,13 @@ export interface StorageAPI {
     callback: (data: NewContentMessage) => void,
     done?: (found: boolean) => void,
   ): void;
-  store(
-    data: NewContentMessage[] | undefined,
-    handleCorrection: (correction: CoValueKnownState) => void,
-  ): void;
+  store(data: NewContentMessage, handleCorrection: CorrectionCallback): void;
 
   getKnownState(id: string): CoValueKnownState;
 
   waitForSync(id: string, coValue: CoValueCore): Promise<void>;
 
-  close(): void;
+  close(): Promise<unknown> | undefined;
 }
 
 export type CoValueRow = {
@@ -64,6 +65,11 @@ export interface DBClientInterfaceAsync {
     coValueId: string,
   ): Promise<StoredCoValueRow | undefined> | undefined;
 
+  upsertCoValue(
+    id: string,
+    header?: CoValueHeader,
+  ): Promise<number | undefined>;
+
   getCoValueSessions(coValueRowId: number): Promise<StoredSessionRow[]>;
 
   getSingleCoValueSession(
@@ -81,8 +87,6 @@ export interface DBClientInterfaceAsync {
     sessionRowId: number,
     firstNewTxIdx: number,
   ): Promise<SignatureAfterRow[]>;
-
-  addCoValue(msg: NewContentMessage): Promise<number>;
 
   addSessionUpdate({
     sessionUpdate,
@@ -114,6 +118,8 @@ export interface DBClientInterfaceAsync {
 export interface DBClientInterfaceSync {
   getCoValue(coValueId: string): StoredCoValueRow | undefined;
 
+  upsertCoValue(id: string, header?: CoValueHeader): number | undefined;
+
   getCoValueSessions(coValueRowId: number): StoredSessionRow[];
 
   getSingleCoValueSession(
@@ -131,8 +137,6 @@ export interface DBClientInterfaceSync {
     sessionRowId: number,
     firstNewTxIdx: number,
   ): Pick<SignatureAfterRow, "idx" | "signature">[];
-
-  addCoValue(msg: NewContentMessage): number;
 
   addSessionUpdate({
     sessionUpdate,

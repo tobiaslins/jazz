@@ -7,7 +7,6 @@ import {
 } from "@opentelemetry/sdk-metrics";
 import { expect, onTestFinished, vi } from "vitest";
 import { ControlledAccount, ControlledAgent } from "../coValues/account.js";
-import { PureJSCrypto } from "../crypto/PureJSCrypto.js";
 import { WasmCrypto } from "../crypto/WasmCrypto.js";
 import {
   type AgentSecret,
@@ -25,7 +24,7 @@ import { expectGroup } from "../typeUtils/expectGroup.js";
 import { toSimplifiedMessages } from "./messagesTestUtils.js";
 import { createAsyncStorage, createSyncStorage } from "./testStorage.js";
 
-const Crypto = await PureJSCrypto.create();
+const Crypto = await WasmCrypto.create();
 
 const syncServer: {
   current: undefined | LocalNode;
@@ -39,6 +38,14 @@ export function randomAgentAndSessionID(): [ControlledAgent, SessionID] {
   const sessionID = Crypto.newRandomSessionID(Crypto.getAgentID(agentSecret));
 
   return [new ControlledAgent(agentSecret, Crypto), sessionID];
+}
+
+export function agentAndSessionIDFromSecret(
+  secret: AgentSecret,
+): [ControlledAgent, SessionID] {
+  const sessionID = Crypto.newRandomSessionID(Crypto.getAgentID(secret));
+
+  return [new ControlledAgent(secret, Crypto), sessionID];
 }
 
 export function nodeWithRandomAgentAndSessionID() {
@@ -155,8 +162,8 @@ export function connectTwoPeers(
   bRole: "client" | "server",
 ) {
   const [aAsPeer, bAsPeer] = connectedPeers(
-    "peer:" + a.getCurrentAgent().id,
-    "peer:" + b.getCurrentAgent().id,
+    "peer:" + a.currentSessionID,
+    "peer:" + b.currentSessionID,
     {
       peer1role: aRole,
       peer2role: bRole,
@@ -444,7 +451,7 @@ export function getSyncServerConnectedPeer(opts: {
 
   const { peer1, peer2 } = connectedPeersWithMessagesTracking({
     peer1: {
-      id: currentSyncServer.getCurrentAgent().id,
+      id: currentSyncServer.currentSessionID,
       role: "server",
       name: opts.syncServerName,
     },
@@ -473,9 +480,13 @@ export function setupTestNode(
   opts: {
     isSyncServer?: boolean;
     connected?: boolean;
+    secret?: AgentSecret;
   } = {},
 ) {
-  const [admin, session] = randomAgentAndSessionID();
+  const [admin, session] = opts.secret
+    ? agentAndSessionIDFromSecret(opts.secret)
+    : randomAgentAndSessionID();
+
   let node = new LocalNode(admin.agentSecret, session, Crypto);
 
   if (opts.isSyncServer) {
@@ -490,7 +501,7 @@ export function setupTestNode(
   }) {
     const { peer, peerStateOnServer, peerOnServer } =
       getSyncServerConnectedPeer({
-        peerId: node.getCurrentAgent().id,
+        peerId: session,
         syncServerName: opts?.syncServerName,
         ourName: opts?.ourName,
         syncServer: opts?.syncServer,
@@ -519,10 +530,13 @@ export function setupTestNode(
     return { storage };
   }
 
-  async function addAsyncStorage(opts: { ourName?: string } = {}) {
+  async function addAsyncStorage(
+    opts: { ourName?: string; filename?: string } = {},
+  ) {
     const storage = await createAsyncStorage({
       nodeName: opts.ourName ?? "client",
       storageName: "storage",
+      filename: opts.filename,
     });
     node.setStorage(storage);
 
@@ -551,6 +565,13 @@ export function setupTestNode(
       }
 
       return node;
+    },
+    spawnNewSession: () => {
+      return setupTestNode({
+        secret: node.agentSecret,
+        connected: opts.connected,
+        isSyncServer: opts.isSyncServer,
+      });
     },
   };
 
@@ -639,6 +660,11 @@ export async function setupTestAccount(
     connectToSyncServer,
     addStorage,
     addAsyncStorage,
+    disconnect: () => {
+      ctx.node.syncManager.getPeers().forEach((peer) => {
+        peer.gracefulShutdown();
+      });
+    },
   };
 }
 

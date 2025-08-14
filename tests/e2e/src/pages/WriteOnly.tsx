@@ -87,9 +87,7 @@ export function WriteOnlyRole() {
   );
 }
 
-function EditSharedCoMap(props: {
-  id: ID<SharedCoMap>;
-}) {
+function EditSharedCoMap(props: { id: ID<SharedCoMap> }) {
   const coMap = useCoState(SharedCoMap, props.id, {});
 
   if (!coMap) return null;

@@ -16,6 +16,7 @@ type MapOp<K extends string, V extends JsonValue | undefined> = {
   madeAt: number;
   changeIdx: number;
   change: MapOpPayload<K, V>;
+  trusting?: boolean;
 };
 // TODO: add after TransactionID[] for conflicts/ordering
 
@@ -92,7 +93,7 @@ export class RawCoMapView<
       throw new Error("Cannot process transactions on a time travel entity");
     }
 
-    const newValidTransactions = this.core.getValidDecryptedTransactions({
+    const newValidTransactions = this.core.getValidTransactions({
       ignorePrivateTransactions: this.ignorePrivateTransactions,
       knownTransactions: this.knownTransactions,
     });
@@ -112,7 +113,7 @@ export class RawCoMapView<
       NonNullable<(typeof ops)[keyof typeof ops]>
     >();
 
-    for (const { txID, changes, madeAt } of newValidTransactions) {
+    for (const { txID, changes, madeAt, trusting } of newValidTransactions) {
       if (madeAt > this.latestTxMadeAt) {
         this.latestTxMadeAt = madeAt;
       }
@@ -127,6 +128,7 @@ export class RawCoMapView<
           madeAt,
           changeIdx,
           change,
+          trusting,
         };
 
         const entries = ops[change.key];

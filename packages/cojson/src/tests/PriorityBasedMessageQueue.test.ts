@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "vitest";
-import { PriorityBasedMessageQueue } from "../PriorityBasedMessageQueue.js";
 import { CO_VALUE_PRIORITY } from "../priority.js";
+import { PriorityBasedMessageQueue } from "../queue/PriorityBasedMessageQueue.js";
 import type { SyncMessage } from "../sync.js";
 import {
   createTestMetricReader,

@@ -59,7 +59,7 @@ test("Can create coValue with new agent credentials and add transaction to it", 
     ]),
   };
 
-  const { expectedNewHash } = coValue.verified.testExpectedHashAfter(
+  const { expectedNewHash } = coValue.verified.expectedNewHashAfter(
     node.currentSessionID,
     [transaction],
   );
@@ -98,7 +98,7 @@ test("transactions with wrong signature are rejected", () => {
     ]),
   };
 
-  const { expectedNewHash } = coValue.verified.testExpectedHashAfter(
+  const { expectedNewHash } = coValue.verified.expectedNewHashAfter(
     node.currentSessionID,
     [transaction],
   );
@@ -136,7 +136,7 @@ test("transactions with correctly signed, but wrong hash are rejected", () => {
     ]),
   };
 
-  const { expectedNewHash } = coValue.verified.testExpectedHashAfter(
+  const { expectedNewHash } = coValue.verified.expectedNewHashAfter(
     node.currentSessionID,
     [
       {
@@ -195,7 +195,7 @@ test("New transactions in a group correctly update owned values, including subsc
     ]),
   } satisfies Transaction;
 
-  const { expectedNewHash } = group.core.verified.testExpectedHashAfter(
+  const { expectedNewHash } = group.core.verified.expectedNewHashAfter(
     sessionID,
     [resignationThatWeJustLearnedAbout],
   );
@@ -205,7 +205,7 @@ test("New transactions in a group correctly update owned values, including subsc
     expectedNewHash,
   );
 
-  expect(map.core.getValidDecryptedTransactions().length).toBe(1);
+  expect(map.core.getValidSortedTransactions().length).toBe(1);
 
   const manuallyAdddedTxSuccess = group.core
     .tryAddTransactions(
@@ -222,7 +222,7 @@ test("New transactions in a group correctly update owned values, including subsc
   expect(listener.mock.calls.length).toBe(2);
   expect(listener.mock.calls[1]?.[0].get("hello")).toBe(undefined);
 
-  expect(map.core.getValidDecryptedTransactions().length).toBe(0);
+  expect(map.core.getValidSortedTransactions().length).toBe(0);
 });
 
 test("correctly records transactions", async () => {
@@ -359,7 +359,7 @@ test("listeners are notified even if the previous listener threw an error", asyn
   errorLog.mockRestore();
 });
 
-test("getValidDecryptedTransactions should skip trusting transactions with invalid JSON", () => {
+test("getValidTransactions should skip trusting transactions with invalid JSON", () => {
   const [agent, sessionID] = randomAgentAndSessionID();
   const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
 
@@ -378,7 +378,7 @@ test("getValidDecryptedTransactions should skip trusting transactions with inval
   };
 
   const { expectedNewHash: expectedNewHash1 } =
-    coValue.verified.testExpectedHashAfter(node.currentSessionID, [
+    coValue.verified.expectedNewHashAfter(node.currentSessionID, [
       validTransaction,
     ]);
 
@@ -400,7 +400,7 @@ test("getValidDecryptedTransactions should skip trusting transactions with inval
   };
 
   const { expectedNewHash: expectedNewHash2 } =
-    coValue.verified.testExpectedHashAfter(node.currentSessionID, [
+    coValue.verified.expectedNewHashAfter(node.currentSessionID, [
       invalidTransaction,
     ]);
 
@@ -415,13 +415,13 @@ test("getValidDecryptedTransactions should skip trusting transactions with inval
     ._unsafeUnwrap();
 
   // Get valid transactions - should only include the valid one
-  const validTransactions = coValue.getValidDecryptedTransactions();
+  const validTransactions = coValue.getValidTransactions();
 
   expect(validTransactions).toHaveLength(1);
   expect(validTransactions[0]?.changes).toEqual([{ hello: "world" }]);
 });
 
-test("getValidDecryptedTransactions should skip private transactions with invalid JSON", () => {
+test("getValidTransactions should skip private transactions with invalid JSON", () => {
   const [agent, sessionID] = randomAgentAndSessionID();
   const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
 
@@ -457,7 +457,7 @@ test("getValidDecryptedTransactions should skip private transactions with invali
   };
 
   const { expectedNewHash: expectedNewHash1 } =
-    coValue.verified.testExpectedHashAfter(node.currentSessionID, [
+    coValue.verified.expectedNewHashAfter(node.currentSessionID, [
       validTransaction,
     ]);
 
@@ -494,7 +494,7 @@ test("getValidDecryptedTransactions should skip private transactions with invali
   };
 
   const { expectedNewHash: expectedNewHash2 } =
-    coValue.verified.testExpectedHashAfter(node.currentSessionID, [
+    coValue.verified.expectedNewHashAfter(node.currentSessionID, [
       invalidTransaction,
     ]);
 
@@ -509,7 +509,7 @@ test("getValidDecryptedTransactions should skip private transactions with invali
     ._unsafeUnwrap();
 
   // Get valid transactions - should skip the invalid one
-  const validTransactions = coValue.getValidDecryptedTransactions({
+  const validTransactions = coValue.getValidTransactions({
     ignorePrivateTransactions: false,
   });
 
@@ -540,7 +540,6 @@ describe("markErrored and isErroredInPeer", () => {
       newSignature: "invalid-signature" as any,
       sessionID: sessionID,
       signerID: "test-signer" as any,
-      error: new Error("test invalid signature error"),
     };
 
     // Initially, the peer should not be errored
@@ -651,7 +650,6 @@ describe("markErrored and isErroredInPeer", () => {
       newSignature: "invalid-signature-1" as any,
       sessionID: sessionID,
       signerID: "test-signer-1" as any,
-      error: new Error("test invalid signature error"),
     };
 
     const error2 = {
@@ -723,7 +721,6 @@ describe("markErrored and isErroredInPeer", () => {
       newSignature: "invalid-sig" as any,
       sessionID: sessionID,
       signerID: "test-signer" as any,
-      error: new Error("test invalid signature error"),
     };
 
     coValue.markErrored(peerId, invalidSignatureError);
@@ -768,7 +765,6 @@ describe("markErrored and isErroredInPeer", () => {
       newSignature: "test-sig" as any,
       sessionID: sessionID,
       signerID: "test-signer" as any,
-      error: new Error("test error"),
     };
 
     let notificationCount = 0;

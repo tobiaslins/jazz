@@ -1,20 +1,32 @@
+import { JsonValue, RawCoMap } from "cojson";
 import {
   Account,
   AnonymousJazzAgent,
+  CoMapInit,
   CoValue,
   CoValueBase,
   CoValueClass,
   CoValueFromRaw,
+  Group,
   ID,
-  RefsToResolve,
-  RefsToResolveStrict,
   Resolved,
+  Simplify,
   SubscribeListenerOptions,
   SubscribeRestArgs,
   loadCoValueWithoutMe,
   parseSubscribeRestArgs,
   subscribeToCoValueWithoutMe,
 } from "../internal.js";
+
+/**
+ * Extends `SchemaUnion` with a non-abstract constructor.
+ */
+export type SchemaUnionConcreteSubclass<V extends CoValue> =
+  typeof SchemaUnion & CoValueClass<V>;
+
+export type SchemaUnionDiscriminator<V extends CoValue> = (discriminable: {
+  get(key: string): JsonValue | undefined;
+}) => CoValueClass<V> & CoValueFromRaw<V>;
 
 /**
  * SchemaUnion allows you to create union types of CoValues that can be discriminated at runtime.
@@ -85,19 +97,37 @@ export abstract class SchemaUnion extends CoValueBase implements CoValue {
    * @category Declaration
    **/
   static Of<V extends CoValue>(
-    discriminator: (raw: V["_raw"]) => CoValueClass<V> & CoValueFromRaw<V>,
-  ): CoValueClass<V> & typeof SchemaUnion {
+    discriminator: SchemaUnionDiscriminator<V>,
+  ): SchemaUnionConcreteSubclass<V> {
     return class SchemaUnionClass extends SchemaUnion {
+      static override create<V extends CoValue>(
+        this: CoValueClass<V>,
+        init: Simplify<CoMapInit<V>>,
+        owner: Account | Group,
+      ): V {
+        const ResolvedClass = discriminator(new Map(Object.entries(init)));
+        // @ts-expect-error - create is a static method in the CoMap class
+        return ResolvedClass.create(init, owner);
+      }
+
       static override fromRaw<T extends CoValue>(
         this: CoValueClass<T> & CoValueFromRaw<T>,
         raw: T["_raw"],
       ): T {
         const ResolvedClass = discriminator(
-          raw as V["_raw"],
+          raw as RawCoMap,
         ) as unknown as CoValueClass<T> & CoValueFromRaw<T>;
         return ResolvedClass.fromRaw(raw);
       }
-    } as unknown as CoValueClass<V> & typeof SchemaUnion;
+    } as unknown as SchemaUnionConcreteSubclass<V>;
+  }
+
+  static create<V extends CoValue>(
+    this: CoValueClass<V>,
+    init: Simplify<CoMapInit<V>>,
+    owner: Account | Group,
+  ): V {
+    throw new Error("Not implemented");
   }
 
   /**
@@ -106,7 +136,6 @@ export abstract class SchemaUnion extends CoValueBase implements CoValue {
    *
    * @internal
    */
-  // @ts-ignore
   static fromRaw<V extends CoValue>(this: CoValueClass<V>, raw: V["_raw"]): V {
     throw new Error("Not implemented");
   }

@@ -1,5 +1,134 @@
 # jazz-tools
 
+## 0.17.0
+
+### Minor Changes
+
+- fcaf4b9: New image management APIs, refactoring imperative functions for creation and consumption, React and ReactNative components, and new Svelte componente
+
+### Patch Changes
+
+- cojson@0.17.0
+- cojson-storage-indexeddb@0.17.0
+- cojson-transport-ws@0.17.0
+
+## 0.16.6
+
+### Patch Changes
+
+- 67e0968: Fix content streaming chunking, now chunks should be splitted always respecting the MAX_RECOMMENDED_TX_SIZE
+- 2c8120d: co.record partial deep loading now resolve correct type
+- Updated dependencies [103d1b4]
+- Updated dependencies [67e0968]
+- Updated dependencies [ce9ca54]
+- Updated dependencies [4b99ff1]
+- Updated dependencies [ac5d20d]
+- Updated dependencies [9bf7946]
+  - cojson-storage-indexeddb@0.16.6
+  - cojson@0.16.6
+  - cojson-transport-ws@0.16.6
+
+## 0.16.5
+
+### Patch Changes
+
+- 3cd1586: Makes the key rotation not fail when child groups are unavailable or their readkey is not accessible.
+
+  Also changes the Group.removeMember method to not return a Promise, because:
+
+  - All the locally available child groups are rotated immediately
+  - All the remote child groups are rotated in background, but since they are not locally available the user won't need the new key immediately
+
+- 33ebbf0: Fix error when using nested discriminatedUnion
+- Updated dependencies [3cd1586]
+- Updated dependencies [267f689]
+  - cojson@0.16.5
+  - cojson-storage-indexeddb@0.16.5
+  - cojson-transport-ws@0.16.5
+
+## 0.16.4
+
+### Patch Changes
+
+- 16764f6: Added `pick()` and `partial()` methods to CoMapSchema
+- Updated dependencies [f9d538f]
+- Updated dependencies [802b5a3]
+  - cojson@0.16.4
+  - cojson-storage-indexeddb@0.16.4
+  - cojson-transport-ws@0.16.4
+
+## 0.16.3
+
+### Patch Changes
+
+- 43d3511: Streamlined CoValue creation:
+  - CoValues can be created with plain JSON objects. Nested CoValues will be automatically created when necessary.
+  - Optional fields can be ommited (i.e. it's no longer necessary to provide an explicit `undefined` value).
+  - cojson@0.16.3
+  - cojson-storage-indexeddb@0.16.3
+  - cojson-transport-ws@0.16.3
+
+## 0.16.2
+
+### Patch Changes
+
+- cojson@0.16.2
+- cojson-storage-indexeddb@0.16.2
+- cojson-transport-ws@0.16.2
+
+## 0.16.1
+
+### Patch Changes
+
+- c62abef: Add support for nullable non-collaborative fields
+  - cojson@0.16.1
+  - cojson-storage-indexeddb@0.16.1
+  - cojson-transport-ws@0.16.1
+
+## 0.16.0
+
+### Minor Changes
+
+- c09dcdf: Change the root attribute to be public on Account. The root content will still follow the visiblity rules specified in their group.
+
+  Existing accounts will be gradually migrated as they are loaded.
+
+- 2bbb07b: Introduce a cleaner separation between Zod and CoValue schemas:
+  - Zod schemas and CoValue schemas are fully separated. Zod schemas can only be composed with other Zod schemas. CoValue schemas can be composed with either Zod or other CoValue schemas.
+  - `z.optional()` and `z.discriminatedUnion()` no longer work with CoValue schemas. Use `co.optional()` and `co.discriminatedUnion()` instead.
+  - Internal schema access is now simpler. You no longer need to use Zod’s `.def` to access internals. Use properties like `CoMapSchema.shape`, `CoListSchema.element`, and `CoOptionalSchema.innerType` directly.
+  - CoValue schema types are now namespaced under `co.`. Non-namespaced exports have been removed
+  - CoMap schemas no longer incorrectly inherit from Zod. Previously, methods like `.extend()` and `.partial()` appeared available but could cause unexpected behavior. These methods are now disabled. In their place, `.optional()` has been added, and more Zod-like methods will be introduced in future releases.
+  - Upgraded Zod from `3.25.28` to `3.25.76`.
+  - Removed deprecated `withHelpers` method from CoValue schemas
+  - Removed deprecated `createCoValueObservable` function
+
+### Patch Changes
+
+- Updated dependencies [c09dcdf]
+  - cojson@0.16.0
+  - cojson-storage-indexeddb@0.16.0
+  - cojson-transport-ws@0.16.0
+
+## 0.15.16
+
+### Patch Changes
+
+- 9633d01: Introduced a new HTTP based API to talk with Server Workers
+- 4beafb7: Fix property update when assigning an optional reference on CoMap
+  - cojson@0.15.16
+  - cojson-storage-indexeddb@0.15.16
+  - cojson-transport-ws@0.15.16
+
+## 0.15.15
+
+### Patch Changes
+
+- 3fe53a3: Fix property update when assigning an optional reference on CoMap
+  - cojson@0.15.15
+  - cojson-storage-indexeddb@0.15.15
+  - cojson-transport-ws@0.15.15
+
 ## 0.15.14
 
 ### Patch Changes

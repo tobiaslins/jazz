@@ -1,8 +1,8 @@
 import { CoID } from "./coValue.js";
-import { CoValueCore, ProcessedTransaction } from "./coValueCore/coValueCore.js";
+import { CoValueCore } from "./coValueCore/coValueCore.js";
 import { Transaction } from "./coValueCore/verifiedState.js";
 import { RawAccount, RawAccountID, RawProfile } from "./coValues/account.js";
-import { MapOpPayload } from "./coValues/coMap.js";
+import { MapOpPayload, RawCoMap } from "./coValues/coMap.js";
 import {
   EVERYONE,
   Everyone,
@@ -41,7 +41,8 @@ export type Role =
   | "readerInvite"
   | "writeOnlyInvite";
 
-export type MemberState = { [agent: RawAccountID | AgentID]: Role; [EVERYONE]?: Role };
+type ValidTransactionsResult = { txID: TransactionID; tx: Transaction };
+type MemberState = { [agent: RawAccountID | AgentID]: Role; [EVERYONE]?: Role };
 
 let logPermissionErrors = true;
 
@@ -60,7 +61,10 @@ function logPermissionError(
   logger.debug("Permission error: " + message, attributes);
 }
 
-export function validationPass(coValue: CoValueCore): void {
+export function determineValidTransactions(
+  coValue: CoValueCore,
+  knownTransactions?: CoValueKnownState["sessions"],
+): { txID: TransactionID; tx: Transaction }[] {
   if (!coValue.isAvailable()) {
     throw new Error("determineValidTransactions CoValue is not available");
   }
@@ -71,7 +75,8 @@ export function validationPass(coValue: CoValueCore): void {
       throw new Error("Group must have initialAdmin");
     }
 
-    groupValidationPass(coValue, initialAdmin);
+    return determineValidTransactionsForGroup(coValue, initialAdmin)
+      .validTransactions;
   } else if (coValue.verified.header.ruleset.type === "ownedByGroup") {
     const groupContent = expectGroup(
       coValue.node
@@ -86,52 +91,63 @@ export function validationPass(coValue: CoValueCore): void {
       throw new Error("Group must be a map");
     }
 
-    ownedByGroupValidationPass.call(coValue, groupContent);
-  } else if (coValue.verified.header.ruleset.type === "unsafeAllowAll") {
-    for (const tx of coValue.processedSorted) {
-      tx.valid = true;
+    const validTransactions: ValidTransactionsResult[] = [];
+
+    for (const [sessionID, sessionLog] of coValue.verified.sessions.entries()) {
+      const transactor = accountOrAgentIDfromSessionID(sessionID);
+      const knownTransactionsForSession = knownTransactions?.[sessionID] ?? -1;
+
+      sessionLog.transactions.forEach((tx, txIndex) => {
+        if (knownTransactionsForSession >= txIndex) {
+          return;
+        }
+
+        const groupAtTime = groupContent.atTime(tx.madeAt);
+        const effectiveTransactor = agentInAccountOrMemberInGroup(
+          transactor,
+          groupAtTime,
+        );
+
+        if (!effectiveTransactor) {
+          return;
+        }
+
+        const transactorRoleAtTxTime =
+          groupAtTime.roleOfInternal(effectiveTransactor);
+
+        if (
+          transactorRoleAtTxTime !== "admin" &&
+          transactorRoleAtTxTime !== "writer" &&
+          transactorRoleAtTxTime !== "writeOnly"
+        ) {
+          return;
+        }
+
+        validTransactions.push({ txID: { sessionID, txIndex }, tx });
+      });
     }
+
+    return validTransactions;
+  } else if (coValue.verified.header.ruleset.type === "unsafeAllowAll") {
+    const validTransactions: ValidTransactionsResult[] = [];
+
+    for (const [sessionID, sessionLog] of coValue.verified.sessions.entries()) {
+      const knownTransactionsForSession = knownTransactions?.[sessionID] ?? -1;
+
+      sessionLog.transactions.forEach((tx, txIndex) => {
+        if (knownTransactionsForSession >= txIndex) {
+          return;
+        }
+
+        validTransactions.push({ txID: { sessionID, txIndex }, tx });
+      });
+    }
+    return validTransactions;
   } else {
     throw new Error(
       "Unknown ruleset type " +
         (coValue.verified.header.ruleset as { type: string }).type,
     );
-  }
-}
-
-function ownedByGroupValidationPass(this: CoValueCore, groupContent: RawGroup) {
-  for (let i = this.nValidated; i < this.processedSorted.length; i++) {
-    const processed = this.processedSorted[i]!;
-    const transactor = accountOrAgentIDfromSessionID(processed.txID.sessionID);
-
-    if (processed.valid !== null) {
-      continue;
-    }
-
-    const groupAtTime = groupContent.atTime(processed.madeAt);
-    const effectiveTransactor = agentInAccountOrMemberInGroup(
-      transactor,
-      groupAtTime,
-    );
-
-    if (!effectiveTransactor) {
-      processed.valid = false;
-      continue;
-    }
-
-    const transactorRoleAtTxTime =
-      groupAtTime.roleOfInternal(effectiveTransactor);
-
-    if (
-      transactorRoleAtTxTime !== "admin" &&
-      transactorRoleAtTxTime !== "writer" &&
-      transactorRoleAtTxTime !== "writeOnly"
-    ) {
-      processed.valid = false;
-      continue;
-    }
-
-    processed.valid = true;
   }
 }
 
@@ -174,7 +190,7 @@ function resolveMemberStateFromParentReference(
   extendChain.add(parentGroup.id);
 
   const { memberState: parentGroupMemberState } =
-    groupValidationPass(parentGroup, initialAdmin, extendChain);
+    determineValidTransactionsForGroup(parentGroup, initialAdmin, extendChain);
 
   for (const agent of Object.keys(parentGroupMemberState) as Array<
     keyof MemberState
@@ -192,37 +208,61 @@ function resolveMemberStateFromParentReference(
   }
 }
 
-function groupValidationPass(
+function determineValidTransactionsForGroup(
   coValue: CoValueCore,
   initialAdmin: RawAccountID | AgentID,
   extendChain?: Set<CoValueCore["id"]>,
-): { memberState: MemberState } {
+): { validTransactions: ValidTransactionsResult[]; memberState: MemberState } {
+  const allTransactionsSorted: {
+    sessionID: SessionID;
+    txIndex: number;
+    tx: Transaction;
+  }[] = [];
+
+  for (const [sessionID, sessionLog] of coValue.verified?.sessions.entries() ??
+    []) {
+    sessionLog.transactions.forEach((tx, txIndex) => {
+      allTransactionsSorted.push({ sessionID, txIndex, tx });
+    });
+  }
+
+  allTransactionsSorted.sort((a, b) => {
+    return a.tx.madeAt - b.tx.madeAt;
+  });
+
   const memberState: MemberState = {};
   const writeOnlyKeys: Record<RawAccountID | AgentID, KeyID> = {};
+  const validTransactions: ValidTransactionsResult[] = [];
 
   const writeKeys = new Set<string>();
 
-  // always process all transactions in groups so we rebuild the full member state
-  // TODO: make this better
-  for (const processed of coValue.processedSorted) {
-    const transactor = accountOrAgentIDfromSessionID(processed.txID.sessionID);
+  for (const { sessionID, txIndex, tx } of allTransactionsSorted) {
+    const transactor = accountOrAgentIDfromSessionID(sessionID);
 
-    if (processed.tx.privacy === "private") {
+    if (tx.privacy === "private") {
       if (memberState[transactor] === "admin") {
-        processed.valid = true;
+        validTransactions.push({
+          txID: { sessionID, txIndex },
+          tx,
+        });
         continue;
       } else {
-        setInvalid(processed, "Only admins can make private transactions in groups");
+        logPermissionError(
+          "Only admins can make private transactions in groups",
+        );
         continue;
       }
     }
 
     let changes;
 
-    changes = processed.changes;
-
-    if (!changes) {
-      setInvalid(processed, "Expected decrypted changes in transaction");
+    try {
+      changes = parseJSON(tx.changes);
+    } catch (e) {
+      logPermissionError("Invalid JSON in transaction", {
+        id: coValue.id,
+        tx,
+      });
       continue;
     }
 
@@ -230,34 +270,43 @@ function groupValidationPass(
       | MapOpPayload<RawAccountID | AgentID | Everyone, Role>
       | MapOpPayload<"readKey", JsonValue>
       | MapOpPayload<"profile", CoID<RawProfile>>
+      | MapOpPayload<"root", CoID<RawCoMap>>
       | MapOpPayload<`parent_${CoID<RawGroup>}`, CoID<RawGroup>>
       | MapOpPayload<`child_${CoID<RawGroup>}`, CoID<RawGroup>>;
 
     if (changes.length !== 1) {
-      setInvalid(processed, "Group transaction must have exactly one change");
+      logPermissionError("Group transaction must have exactly one change");
       continue;
     }
 
     if (change.op !== "set") {
-      setInvalid(processed, "Group transaction must set a role or readKey");
+      logPermissionError("Group transaction must set a role or readKey");
       continue;
     }
 
     if (change.key === "readKey") {
       if (memberState[transactor] !== "admin") {
-        setInvalid(processed, "Only admins can set readKeys");
+        logPermissionError("Only admins can set readKeys");
         continue;
       }
 
-      processed.valid = true;
+      validTransactions.push({ txID: { sessionID, txIndex }, tx });
       continue;
     } else if (change.key === "profile") {
       if (memberState[transactor] !== "admin") {
-        setInvalid(processed, "Only admins can set profile");
+        logPermissionError("Only admins can set profile");
         continue;
       }
 
-      processed.valid = true;
+      validTransactions.push({ txID: { sessionID, txIndex }, tx });
+      continue;
+    } else if (change.key === "root") {
+      if (memberState[transactor] !== "admin") {
+        logPermissionError("Only admins can set root");
+        continue;
+      }
+
+      validTransactions.push({ txID: { sessionID, txIndex }, tx });
       continue;
     } else if (
       isKeyForKeyField(change.key) ||
@@ -271,16 +320,16 @@ function groupValidationPass(
         memberState[transactor] !== "writeOnlyInvite" &&
         !isOwnWriteKeyRevelation(change.key, transactor, writeOnlyKeys)
       ) {
-        setInvalid(processed, "Only admins can reveal keys");
+        logPermissionError("Only admins can reveal keys");
         continue;
       }
 
       // TODO: check validity of agents who the key is revealed to?
-      processed.valid = true;
+      validTransactions.push({ txID: { sessionID, txIndex }, tx });
       continue;
     } else if (isParentExtension(change.key)) {
       if (memberState[transactor] !== "admin") {
-        setInvalid(processed, "Only admins can set parent extensions");
+        logPermissionError("Only admins can set parent extensions");
         continue;
       }
 
@@ -296,14 +345,16 @@ function groupValidationPass(
 
       // Circular reference detected, drop all the transactions involved
       if (extendChain.has(coValue.id)) {
-        setInvalid(processed, "Circular extend detected, dropping the transaction");
+        logPermissionError(
+          "Circular extend detected, dropping the transaction",
+        );
         continue;
       }
 
-      processed.valid = true;
+      validTransactions.push({ txID: { sessionID, txIndex }, tx });
       continue;
     } else if (isChildExtension(change.key)) {
-      processed.valid = true;
+      validTransactions.push({ txID: { sessionID, txIndex }, tx });
       continue;
     } else if (isWriteKeyForMember(change.key)) {
       const memberKey = getAccountOrAgentFromWriteKeyForMember(change.key);
@@ -313,7 +364,7 @@ function groupValidationPass(
         memberState[transactor] !== "writeOnlyInvite" &&
         memberKey !== transactor
       ) {
-        setInvalid(processed, "Only admins can set writeKeys");
+        logPermissionError("Only admins can set writeKeys");
         continue;
       }
 
@@ -328,13 +379,15 @@ function groupValidationPass(
        * blocking them from accessing the group.ß
        */
       if (writeKeys.has(change.key) && memberState[transactor] !== "admin") {
-        setInvalid(processed, "Write key already exists and can't be overridden by invite");
+        logPermissionError(
+          "Write key already exists and can't be overridden by invite",
+        );
         continue;
       }
 
       writeKeys.add(change.key);
 
-      processed.valid = true;
+      validTransactions.push({ txID: { sessionID, txIndex }, tx });
       continue;
     }
 
@@ -352,7 +405,7 @@ function groupValidationPass(
       change.value !== "readerInvite" &&
       change.value !== "writeOnlyInvite"
     ) {
-      setInvalid(processed, "Group transaction must set a valid role");
+      logPermissionError("Group transaction must set a valid role");
       continue;
     }
 
@@ -365,7 +418,9 @@ function groupValidationPass(
         change.value === "revoked"
       )
     ) {
-      setInvalid(processed, "Everyone can only be set to reader, writer, writeOnly or revoked");
+      logPermissionError(
+        "Everyone can only be set to reader, writer, writeOnly or revoked",
+      );
       continue;
     }
 
@@ -388,40 +443,42 @@ function groupValidationPass(
           affectedMember !== transactor &&
           assignedRole !== "admin"
         ) {
-          setInvalid(processed, "Admins can only demote themselves.");
+          logPermissionError("Admins can only demote themselves.");
           continue;
         }
       } else if (memberState[transactor] === "adminInvite") {
         if (change.value !== "admin") {
-          setInvalid(processed, "AdminInvites can only create admins.");
+          logPermissionError("AdminInvites can only create admins.");
           continue;
         }
       } else if (memberState[transactor] === "writerInvite") {
         if (change.value !== "writer") {
-          setInvalid(processed, "WriterInvites can only create writers.");
+          logPermissionError("WriterInvites can only create writers.");
           continue;
         }
       } else if (memberState[transactor] === "readerInvite") {
         if (change.value !== "reader") {
-          setInvalid(processed, "ReaderInvites can only create reader.");
+          logPermissionError("ReaderInvites can only create reader.");
           continue;
         }
       } else if (memberState[transactor] === "writeOnlyInvite") {
         if (change.value !== "writeOnly") {
-          setInvalid(processed, "WriteOnlyInvites can only create writeOnly.");
+          logPermissionError("WriteOnlyInvites can only create writeOnly.");
           continue;
         }
       } else {
-        setInvalid(processed, "Group transaction must be made by current admin or invite");
+        logPermissionError(
+          "Group transaction must be made by current admin or invite",
+        );
         continue;
       }
     }
 
     memberState[affectedMember] = change.value;
-    processed.valid = true;
+    validTransactions.push({ txID: { sessionID, txIndex }, tx });
   }
 
-  return { memberState };
+  return { validTransactions, memberState };
 }
 
 function agentInAccountOrMemberInGroup(
@@ -480,10 +537,4 @@ function isOwnWriteKeyRevelation(
   const keyID = key.slice(0, key.indexOf("_for_"));
 
   return writeOnlyKeys[memberKey] === keyID;
-}
-
-function setInvalid(processed: ProcessedTransaction, reason: string) {
-  processed.valid = false;
-  processed.invalidReason = reason;
-  logPermissionError(reason);
 }
