@@ -254,7 +254,7 @@ describe("CoMap", async () => {
       expect(person.friend?.age).toEqual(21);
     });
 
-    test.skip("JSON.stringify should not include internal properties", () => {
+    test("JSON.stringify should not include internal properties", () => {
       const Person = co.map({
         name: z.string(),
       });
