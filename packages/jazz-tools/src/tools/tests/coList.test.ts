@@ -127,15 +127,6 @@ describe("Simple CoList operations", async () => {
       expect(list[1]).toBe("margarine");
     });
 
-    test("assignment with $jazz.set", () => {
-      const list = TestList.create(["bread", "butter", "onion"], {
-        owner: me,
-      });
-      list.$jazz.set(1, "margarine");
-      expect(list.$jazz.raw.asArray()).toEqual(["bread", "margarine", "onion"]);
-      expect(list[1]).toBe("margarine");
-    });
-
     test("assignment with ref", () => {
       const Ingredient = co.map({
         name: z.string(),
