@@ -248,11 +248,6 @@ export class CoMap extends CoValueBase implements CoValue {
 
     const raw = CoMap.rawFromInit(instance, init, owner, uniqueness);
 
-    // TODO delete
-    Object.defineProperties(instance, {
-      raw: { value: raw, enumerable: false },
-    });
-
     return instance;
   }
 
