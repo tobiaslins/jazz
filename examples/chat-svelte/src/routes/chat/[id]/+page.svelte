@@ -43,15 +43,15 @@
       return;
     }
 
-    createImage(file, { owner: chat.current._owner }).then((image) => {
+    createImage(file, { owner: chat.current.$jazz.owner }).then((image) => {
       if (!chat.current) return;
-      chat.current.push(
+      chat.current.$jazz.push(
         Message.create(
           {
-            text: CoPlainText.create(file.name, chat.current._owner),
+            text: CoPlainText.create(file.name, chat.current.$jazz.owner),
             image: image
           },
-          chat.current._owner
+          chat.current.$jazz.owner
         )
       );
     });
@@ -83,7 +83,7 @@
   {:else}
     <ChatBody>
       {#if chat.current && chat.current.length > 0}
-        {#each chat.current.slice(-showNLastMessages).reverse() as msg (msg.id)}
+        {#each chat.current.slice(-showNLastMessages).reverse() as msg (msg.$jazz.id)}
           <ChatBubble {me} {msg} />
         {/each}
       {:else}
@@ -103,10 +103,10 @@
       <TextInput
         onSubmit={(text: string) => {
           if (!chat.current) return;
-          chat.current.push(
+          chat.current.$jazz.push(
             Message.create(
-              { text: CoPlainText.create(text, chat.current._owner) },
-              chat.current._owner
+              { text: CoPlainText.create(text, chat.current.$jazz.owner) },
+              chat.current.$jazz.owner
             )
           );
         }}
