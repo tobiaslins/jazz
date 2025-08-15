@@ -132,6 +132,10 @@ describe("multiple clients syncing with the a cloud-like server mesh", () => {
 
     group.extend(parentGroup);
 
+    // We wait for sync here to avoid flakiness on CI
+    await parentGroup.core.waitForSync();
+    await group.core.waitForSync();
+
     const map = group.createMap();
     map.set("hello", "world");
 
@@ -154,20 +158,20 @@ describe("multiple clients syncing with the a cloud-like server mesh", () => {
         "edge-france -> core | CONTENT ParentGroup header: true new: After: 0 New: 6",
         "edge-france -> storage | CONTENT Group header: false new: After: 3 New: 2",
         "edge-france -> core | CONTENT Group header: false new: After: 3 New: 2",
-        "edge-france -> storage | CONTENT Map header: true new: After: 0 New: 1",
-        "edge-france -> core | CONTENT Map header: true new: After: 0 New: 1",
         "core -> edge-france | KNOWN Group sessions: header/3",
         "core -> storage | CONTENT Group header: true new: After: 0 New: 3",
         "core -> edge-france | KNOWN ParentGroup sessions: header/6",
         "core -> storage | CONTENT ParentGroup header: true new: After: 0 New: 6",
         "core -> edge-france | KNOWN Group sessions: header/5",
         "core -> storage | CONTENT Group header: false new: After: 3 New: 2",
-        "core -> edge-france | KNOWN Map sessions: header/1",
-        "core -> storage | CONTENT Map header: true new: After: 0 New: 1",
         "edge-france -> core | CONTENT ParentGroup header: true new: ",
-        "client -> edge-italy | LOAD Map sessions: empty",
+        "edge-france -> storage | CONTENT Map header: true new: After: 0 New: 1",
+        "edge-france -> core | CONTENT Map header: true new: After: 0 New: 1",
         "core -> edge-france | KNOWN ParentGroup sessions: header/6",
         "core -> storage | CONTENT ParentGroup header: true new: ",
+        "core -> edge-france | KNOWN Map sessions: header/1",
+        "core -> storage | CONTENT Map header: true new: After: 0 New: 1",
+        "client -> edge-italy | LOAD Map sessions: empty",
         "edge-italy -> storage | LOAD Map sessions: empty",
         "storage -> edge-italy | KNOWN Map sessions: empty",
         "edge-italy -> core | LOAD Map sessions: empty",
