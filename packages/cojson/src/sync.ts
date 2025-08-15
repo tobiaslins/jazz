@@ -551,6 +551,14 @@ export class SyncManager {
 
     let invalidStateAssumed = false;
 
+    const contentToStore: NewContentMessage = {
+      action: "content",
+      id: msg.id,
+      priority: msg.priority,
+      header: msg.header,
+      new: {},
+    };
+
     for (const [sessionID, newContentForSession] of Object.entries(msg.new) as [
       SessionID,
       SessionNewContent,
@@ -653,6 +661,8 @@ export class SyncManager {
         this.recordTransactionsSize(newTransactions, sourceRole);
       }
 
+      // The new content for this session has been verified, so we can store it
+      contentToStore.new[sessionID] = newContentForSession;
       peer?.updateSessionCounter(
         msg.id,
         sessionID,
@@ -696,8 +706,8 @@ export class SyncManager {
 
     const syncedPeers = [];
 
-    if (from !== "storage") {
-      this.storeContent(msg);
+    if (from !== "storage" && Object.keys(contentToStore.new).length > 0) {
+      this.storeContent(contentToStore);
     }
 
     for (const peer of this.peersInPriorityOrder()) {
