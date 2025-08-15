@@ -296,7 +296,7 @@ export function IssueComponent({ issue }: { issue: Issue }) {
             <select
                 value={issue.status}
                 onChange={(event) => {
-                    issue.status = event.target.value as "backlog" | "in progress" | "done"
+                    issue.$jazz.set("status", event.target.value as "backlog" | "in progress" | "done")
                 }}
             >
                 <option value="backlog">Backlog</option>
@@ -334,7 +334,7 @@ This works because CoValues
 
   <CodeGroup>
         ```ts
-        const unsub = issue.subscribe({ resolve: true }, (updatedIssue) => console.log(updatedIssue));
+        const unsub = issue.$jazz.subscribe({ resolve: true }, (updatedIssue) => console.log(updatedIssue));
         ```
   </CodeGroup>
 

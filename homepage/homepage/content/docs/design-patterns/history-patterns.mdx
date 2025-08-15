@@ -29,10 +29,10 @@ function getAuditLog(task: Task) {
   // Collect edits for all fields
   const fields = Object.keys(task);
   for (const field of fields) {
-    const editField = field as keyof typeof task._edits;
-    if (!task._edits[editField]) continue;
+    const editField = field as keyof typeof task.$jazz.getEdits();
+    if (!task.$jazz.getEdits()[editField]) continue;
 
-    for (const edit of task._edits[editField].all) {
+    for (const edit of task.$jazz.getEdits()[editField].all) {
       changes.push({
         field,
         value: edit.value,
@@ -89,11 +89,11 @@ function getRecentActivity(projects: Project[], since: Date) {
     
     // Check each field for edit history
     for (const field of fields) {
-      const editField = field as keyof typeof project._edits;
+      const editField = field as keyof typeof project.$jazz.getEdits();
       // Skip if no edits exist for this field
-      if (!project._edits[editField]) continue;
+      if (!project.$jazz.getEdits()[editField]) continue;
 
-      for (const edit of project._edits[editField].all) {
+      for (const edit of project.$jazz.getEdits()[editField].all) {
         // Only include edits made after the 'since' date
         if (edit.madeAt > since) {
           activity.push({
@@ -148,11 +148,11 @@ function getLastUpdated(task: Task) {
   let lastEdit: any = null;
   
   for (const field of Object.keys(task)) {
-    const editField = field as keyof typeof task._edits;
+    const editField = field as keyof typeof task.$jazz.getEdits();
     // Skip if no edits exist for this field
-    if (!task._edits[editField]) continue;
+    if (!task.$jazz.getEdits()[editField]) continue;
 
-    const fieldEdit = task._edits[editField];
+    const fieldEdit = task.$jazz.getEdits()[editField];
     if (fieldEdit && (!lastEdit || fieldEdit.madeAt > lastEdit.madeAt)) {
       lastEdit = fieldEdit;
     }
@@ -191,19 +191,19 @@ const Task = co.map({
 type Task = co.loaded<typeof Task>;
 const task = Task.create({ title: "New task", status: "todo" }, { owner: me });
 
-task.status = "completed";
-task.status = "in-progress";
-task.status = "completed";
+task.$jazz.set("status", "completed");
+task.$jazz.set("status", "in-progress");
+task.$jazz.set("status", "completed");
 
 // ---cut---
 // Find when a task was completed
 function findCompletionTime(task: Task): Date | null {
-  if (!task._edits.status) return null;
+  if (!task.$jazz.getEdits().status) return null;
   
   // find() returns the FIRST completion time
   // If status toggles (completed → in-progress → completed), 
   // this gives you the earliest completion, not the latest
-  const completionEdit = task._edits.status.all.find(
+  const completionEdit = task.$jazz.getEdits().status.all.find(
     edit => edit.value === "completed"
   );
   
@@ -212,10 +212,10 @@ function findCompletionTime(task: Task): Date | null {
 
 // To get the LATEST completion time instead reverse the array, then find:
 function findLatestCompletionTime(task: Task): Date | null {
-  if (!task._edits.status) return null;
+  if (!task.$jazz.getEdits().status) return null;
   
   // Reverse and find (stops at first match)
-  const latestCompletionEdit = task._edits.status.all
+  const latestCompletionEdit = task.$jazz.getEdits().status.all
     .slice() // Create copy to avoid mutating original
     .reverse()
     .find(edit => edit.value === "completed");
@@ -228,7 +228,7 @@ console.log(findLatestCompletionTime(task)); // Most recent completion
 
 // Find who made a specific change
 function findWhoChanged(task: Task, field: string, value: any) {
-  const edits = task._edits[field as keyof typeof task._edits];
+  const edits = task.$jazz.getEdits()[field as keyof typeof task.$jazz.getEdits()];
   if (!edits) return null;
   
   const matchingEdit = edits.all.find(edit => edit.value === value);

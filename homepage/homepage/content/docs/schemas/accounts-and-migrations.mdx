@@ -223,7 +223,7 @@ export const MyAppAccount = co.account({
 To add new fields to your `root` or `profile` schemas, amend their corresponding schema classes with new fields,
 and then implement a migration that will populate the new fields for existing users (by using initial data, or by using existing data from old fields).
 
-To do deeply nested migrations, you might need to use the asynchronous `ensureLoaded()` method before determining whether the field already exists, or is simply not loaded yet.
+To do deeply nested migrations, you might need to use the asynchronous `$jazz.ensureLoaded()` method before determining whether the field already exists, or is simply not loaded yet.
 
 Now let's say we want to add a `myBookmarks` field to the `root` schema:
 
@@ -256,7 +256,7 @@ export const MyAppAccount = co.account({
   }
 
   // We need to load the root field to check for the myContacts field
-  const { root } = await account.ensureLoaded({
+  const { root } = await account.$jazz.ensureLoaded({
     resolve: { root: true }
   });
 

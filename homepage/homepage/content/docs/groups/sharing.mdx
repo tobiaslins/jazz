@@ -275,7 +275,7 @@ async function approveJoinRequest(
 
   if (account) {
     targetGroup.addMember(account, "reader");
-    joinRequest.status = "approved";
+    joinRequest.$jazz.set("status", "approved");
 
     return true;
   } else {

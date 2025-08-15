@@ -600,7 +600,7 @@ export function validateDraftOrder(draft: DraftBubbleTeaOrder) {
 };
 
 export function hasChanges(draft?: DraftBubbleTeaOrder) { // [!code ++:3]
-  return draft ? Object.keys(draft._edits).length : false;
+  return draft ? Object.keys(draft.$jazz.getEdits()).length : false;
 };
 ```
 </CodeGroup>
@@ -632,7 +632,7 @@ export function validateDraftOrder(draft: DraftBubbleTeaOrder) {
 };
 
 export function hasChanges(draft?: DraftBubbleTeaOrder) {
-  return draft ? Object.keys(draft._edits).length : false;
+  return draft ? Object.keys(draft.$jazz.getEdits()).length : false;
 };
 
 export const AccountRoot = co.map({

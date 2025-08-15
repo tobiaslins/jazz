@@ -227,7 +227,7 @@ if(image.placeholderDataURL) {
 }
 
 // then listen to the image changes
-image.subscribe({}, (image) => {
+image.$jazz.subscribe({}, (image) => {
   const bestImage = highestResAvailable(image, 600, 600);
 
   if(bestImage) {
