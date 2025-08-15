@@ -33,11 +33,7 @@ export class GarbageCollector {
       const timeSinceLastAccessed = currentTime - verified.lastAccessed;
 
       if (timeSinceLastAccessed > GARBAGE_COLLECTOR_CONFIG.MAX_AGE) {
-        const unmounted = coValue.unmount();
-
-        if (unmounted) {
-          this.coValues.delete(coValue.id);
-        }
+        coValue.unmount();
       }
     }
   }
