@@ -1,5 +1,11 @@
 # cojson
 
+## 0.17.3
+
+### Patch Changes
+
+- f0c73d9: Allow storing empty content with header in handleNewContent
+
 ## 0.17.2
 
 ### Patch Changes
