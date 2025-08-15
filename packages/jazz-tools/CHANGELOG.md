@@ -1,5 +1,14 @@
 # jazz-tools
 
+## 0.17.4
+
+### Patch Changes
+
+- 7dd3d00: Export `Ref` class from jazz-tools package
+  - cojson@0.17.4
+  - cojson-storage-indexeddb@0.17.4
+  - cojson-transport-ws@0.17.4
+
 ## 0.17.3
 
 ### Patch Changes
