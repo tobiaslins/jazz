@@ -163,13 +163,10 @@ describe("sync after the garbage collector has run", () => {
         "edge -> storage | LOAD Map sessions: empty",
         "storage -> edge | CONTENT Group header: true new: After: 0 New: 5",
         "storage -> edge | CONTENT Map header: true new: After: 0 New: 1",
-        "edge -> server | CONTENT Map header: true new: ",
         "edge -> client | CONTENT Group header: true new: After: 0 New: 5",
         "edge -> client | CONTENT Map header: true new: After: 0 New: 1",
         "server -> edge | KNOWN Map sessions: header/1",
         "server -> storage | CONTENT Map header: true new: After: 0 New: 1",
-        "server -> edge | KNOWN Map sessions: header/1",
-        "server -> storage | CONTENT Map header: true new: ",
         "client -> edge | KNOWN Group sessions: header/5",
         "client -> edge | KNOWN Map sessions: header/1",
       ]
