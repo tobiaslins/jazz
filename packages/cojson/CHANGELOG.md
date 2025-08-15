@@ -1,5 +1,12 @@
 # cojson
 
+## 0.17.5
+
+### Patch Changes
+
+- 71c1411: Removed some unnecessary content messages sent after a local transaction when sending a value as dependency before the ack response
+- 2d11d44: Make the CoValueCore.unmount function detach the CoValue from LocalNode
+
 ## 0.17.4
 
 ## 0.17.3

@@ -1,5 +1,16 @@
 # jazz-tools
 
+## 0.17.5
+
+### Patch Changes
+
+- 5963658: Implement/expose loadUnique and upsertUnique on co.list and co.record
+- Updated dependencies [71c1411]
+- Updated dependencies [2d11d44]
+  - cojson@0.17.5
+  - cojson-storage-indexeddb@0.17.5
+  - cojson-transport-ws@0.17.5
+
 ## 0.17.4
 
 ### Patch Changes
