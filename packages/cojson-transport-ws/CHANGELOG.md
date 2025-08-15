@@ -1,5 +1,13 @@
 # cojson-transport-nodejs-ws
 
+## 0.17.5
+
+### Patch Changes
+
+- Updated dependencies [71c1411]
+- Updated dependencies [2d11d44]
+  - cojson@0.17.5
+
 ## 0.17.4
 
 ### Patch Changes
