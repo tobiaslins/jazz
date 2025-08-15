@@ -326,7 +326,7 @@ function TaskList({ tasks }: { tasks: co.loaded<typeof ListOfTasks> }) {
    <ul>
      {tasks.map(task => (
        task ? (
-        <li key={task.id}>
+        <li key={task.$jazz.id}>
           {task.title} - {task.status}
         </li>
       ): null

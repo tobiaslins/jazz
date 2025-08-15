@@ -110,7 +110,7 @@ Rules:
 
 ## Getting the Group of an existing CoValue
 
-You can get the group of an existing CoValue by using `coValue._owner`.
+You can get the group of an existing CoValue by using `coValue.$jazz.owner`.
 
 <CodeGroup>
 ```ts twoslash
@@ -123,7 +123,7 @@ const MyCoMap = co.map({
 });
 
 // ---cut---
-const group = existingCoValue._owner;
+const group = existingCoValue.$jazz.owner;
 const newValue = MyCoMap.create(
   { color: "red"},
   { owner: group }
@@ -131,7 +131,7 @@ const newValue = MyCoMap.create(
 ```
 </CodeGroup>
 
-Because `._owner` can be an `co.account` or a `Group`, in cases where you specifically need to use `Group` methods (such as for adding members or getting your own role), you can cast it to assert it to be a Group:
+Because `.$jazz.owner` can be an `co.account` or a `Group`, in cases where you specifically need to use `Group` methods (such as for adding members or getting your own role), you can cast it to assert it to be a Group:
 
 <CodeGroup>
 ```ts twoslash
@@ -151,10 +151,10 @@ const existingCoValue = MyCoMap.create(
 // ---cut---
 import { Group } from "jazz-tools";
 
-const group = existingCoValue._owner.castAs(Group);
+const group = existingCoValue.$jazz.owner.$jazz.castAs(Group);
 group.addMember(bob, "writer");
 
-const role = group.getRoleOf(bob.id);
+const role = group.getRoleOf(bob.$jazz.id);
 ```
 </CodeGroup>
 
@@ -196,7 +196,7 @@ const MyCoMap = co.map({
   color: z.string(),
 });
 const account = await createJazzTestAccount();
-const accountID = account.id;
+const accountID = account.$jazz.id;
 // ---cut---
 const value = await MyCoMap.create({ color: "red"})
 const bob = await co.account().load(accountID);

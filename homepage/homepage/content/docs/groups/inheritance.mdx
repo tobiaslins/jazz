@@ -102,7 +102,7 @@ const group = Group.create();
 const Company = co.map({});
 const company = Company.create({ owner: group });
 // ---cut---
-const companyGroup = company._owner.castAs(Group);
+const companyGroup = company.$jazz.owner.$jazz.castAs(Group);
 const teamGroup = Group.create();
 
 // Works only if I'm a member of `companyGroup`
@@ -264,7 +264,7 @@ const board = Board.create({
 
 // Give Alice read access to one specific task
 const task = board.columns[0][0];
-const taskGroup = task._owner.castAs(Group);
+const taskGroup = task.$jazz.owner.$jazz.castAs(Group);
 taskGroup.addMember(alice, "reader");
 ```
 </CodeGroup>

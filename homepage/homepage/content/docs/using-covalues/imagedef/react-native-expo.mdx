@@ -32,7 +32,9 @@ The easiest way to create and use images in your Jazz application is with the `c
 import { Account, Group, ImageDefinition } from "jazz-tools";
 
 declare const me: {
-  _owner: Account | Group;
+  $jazz: {
+    owner: Account | Group;
+  };
   profile: {
     image: ImageDefinition;
   };
@@ -54,7 +56,7 @@ async function handleImagePicker() {
     // Creates ImageDefinition with a blurry placeholder, limited to 1024px on the longest side, and multiple resolutions automatically.
     // See the options below for more details.
     const image = await createImage(result.assets[0].uri, {
-      owner: me._owner,
+      owner: me.$jazz.owner,
       maxSize: 1024,
       placeholder: "blur",
       progressive: true,

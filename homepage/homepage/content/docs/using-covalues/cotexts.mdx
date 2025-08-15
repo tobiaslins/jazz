@@ -388,7 +388,7 @@ function RichTextEditor() {
         viewRef.current = null;
       }
     };
-  }, [me?.profile.bio?.id]);
+  }, [me?.profile.bio?.$jazz.id]);
 
   if (!me) return null;
 

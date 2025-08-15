@@ -607,7 +607,7 @@ const learnJazzTask = await Task.create({
   text: "Let's learn some Jazz!",
 }, {
   unique: "learning-jazz",
-  owner: project._owner, // Different owner, different id
+  owner: project.$jazz.owner, // Different owner, different id
 });
 ```
 </CodeGroup>
@@ -633,7 +633,7 @@ const project = Project.create({
 // ---cut---
 const learnJazzTask = await Task.loadUnique(
   "learning-jazz",
-  project._owner.id
+  project.$jazz.owner.$jazz.id
 );
 ```
 </CodeGroup>
@@ -663,7 +663,7 @@ const learnJazzTask = await Task.upsertUnique(
       text: "Let's learn some Jazz!",
     },
     unique: "learning-jazz",
-    owner: project._owner,
+    owner: project.$jazz.owner,
   }
 );
 ```

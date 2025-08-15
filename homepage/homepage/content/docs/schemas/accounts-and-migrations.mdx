@@ -143,7 +143,7 @@ function DashboardPageComponent() {
           <p>Logged in as {me.profile.name}</p>
           <h2>My chats</h2>
           {me.root.myChats.map((chat) => (
-            <ChatPreview key={chat.id} chat={chat} />
+            <ChatPreview key={chat.$jazz.id} chat={chat} />
           ))}
         </div>
       ) : (

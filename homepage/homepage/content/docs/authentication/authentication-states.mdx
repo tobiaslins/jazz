@@ -51,10 +51,10 @@ function AuthStateIndicator() {
   const isAuthenticated = useIsAuthenticated();
 
   // Check if guest mode is enabled in JazzReactProvider
-  const isGuest = agent._type !== "Account"
+  const isGuest = agent.$type$ !== "Account"
 
   // Anonymous authentication: has an account but not fully authenticated
-  const isAnonymous = agent._type === "Account" && !isAuthenticated;
+  const isAnonymous = agent.$type$ === "Account" && !isAuthenticated;
   return (
     <div>
       {isGuest && <span>Guest Mode</span>}
@@ -127,7 +127,7 @@ export async function onAnonymousAccountDiscarded(
   for (const track of anonymousAccountRoot.rootPlaylist.tracks) {
     if (track.isExampleTrack) continue;
 
-    const trackGroup = track._owner.castAs(Group);
+    const trackGroup = track.$jazz.owner.$jazz.castAs(Group);
     trackGroup.addMember(me, "admin");
 
     me.root.rootPlaylist.tracks.push(track);

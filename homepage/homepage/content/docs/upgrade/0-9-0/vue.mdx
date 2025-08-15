@@ -152,7 +152,7 @@ your components and hooks using `JazzTestProvider`:
         }, account);
 
         // ✅ Set up test data
-        const { result } = renderComposableWithJazz(() => usePlaylist(playlist.id), {
+        const { result } = renderComposableWithJazz(() => usePlaylist(playlist.$jazz.id), {
           account,
         });
 

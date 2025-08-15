@@ -89,7 +89,7 @@ const Activity = co.map({
 
 const ActivityFeed = co.feed(Activity);
 const activityFeed = ActivityFeed.create([]);
-const sessionId = `${me.id}_session_z1` as SessionID;
+const sessionId = `${me.$jazz.id}_session_z1` as SessionID;
 
 // ---cut---
 // Get the feed for a specific session
@@ -116,7 +116,7 @@ const Activity = co.map({
 
 const ActivityFeed = co.feed(Activity);
 const activityFeed = ActivityFeed.create([]);
-const sessionId = `${me.id}_session_z1` as SessionID;
+const sessionId = `${me.$jazz.id}_session_z1` as SessionID;
 
 // ---cut---
 // Get the feed for the current session
@@ -145,7 +145,7 @@ const Activity = co.map({
 
 const ActivityFeed = co.feed(Activity);
 const activityFeed = ActivityFeed.create([]);
-const accountId = me.id;
+const accountId = me.$jazz.id;
 
 // ---cut---
 // Get the feed for a specific account
@@ -172,7 +172,7 @@ const Activity = co.map({
 
 const ActivityFeed = co.feed(Activity);
 const activityFeed = ActivityFeed.create([]);
-const accountId = me.id;
+const accountId = me.$jazz.id;
 
 // ---cut---
 // Get the feed for the current account
@@ -203,8 +203,8 @@ const Activity = co.map({
 
 const ActivityFeed = co.feed(Activity);
 const activityFeed = ActivityFeed.create([]);
-const accountId = me.id;
-const sessionId = `${me.id}_session_z1` as SessionID;
+const accountId = me.$jazz.id;
+const sessionId = `${me.$jazz.id}_session_z1` as SessionID;
 
 // ---cut---
 // Get the feeds for a specific account and session
@@ -351,7 +351,7 @@ const Activity = co.map({
 
 const ActivityFeed = co.feed(Activity);
 const activityFeed = ActivityFeed.create([]);
-const accountId = me.id;
+const accountId = me.$jazz.id;
 
 // ---cut---
 const accountFeed = activityFeed.perAccount[accountId];
@@ -379,7 +379,7 @@ const Activity = co.map({
 
 const ActivityFeed = co.feed(Activity);
 const activityFeed = ActivityFeed.create([]);
-const accountId = me.id;
+const accountId = me.$jazz.id;
 
 // ---cut---
 const accountFeed = activityFeed.perAccount[accountId];

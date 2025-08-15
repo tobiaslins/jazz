@@ -222,7 +222,7 @@ export function CreateOrder() {
 
   useEffect(() => {
     setDraft(DraftBubbleTeaOrder.create({}));
-  }, [me?.id]);
+  }, [me?.$jazz.id]);
 
   const onSave = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -338,7 +338,7 @@ export function CreateOrder() {
 
   useEffect(() => {
     setDraft(DraftBubbleTeaOrder.create({}));
-  }, [me?.id]);
+  }, [me?.$jazz.id]);
 
   const onSave = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -546,7 +546,7 @@ export function CreateOrder() {
     );
   };
 
-  return <CreateOrderForm id={me.root.draft.id} onSave={onSave} />
+  return <CreateOrderForm id={me.root.draft.$jazz.id} onSave={onSave} />
 }
 
 function CreateOrderForm({ // [!code ++:13]
