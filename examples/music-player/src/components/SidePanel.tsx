@@ -41,7 +41,7 @@ export function SidePanel() {
 
   async function handleCreatePlaylist() {
     const playlist = await createNewPlaylist();
-    navigate(`/playlist/${playlist.id}`);
+    navigate(`/playlist/${playlist.$jazz.id}`);
   }
 
   return (
@@ -100,19 +100,19 @@ export function SidePanel() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               {me?.root.playlists.map((playlist) => (
-                <SidebarMenuItem key={playlist.id}>
+                <SidebarMenuItem key={playlist.$jazz.id}>
                   <SidebarMenuButton
-                    onClick={() => handlePlaylistClick(playlist.id)}
-                    isActive={playlist.id === playlistId}
+                    onClick={() => handlePlaylistClick(playlist.$jazz.id)}
+                    isActive={playlist.$jazz.id === playlistId}
                   >
                     <div className="flex items-center gap-2">
                       <Music className="size-4" />
                       <span>{playlist.title}</span>
                     </div>
                   </SidebarMenuButton>
-                  {playlist.id === playlistId && (
+                  {playlist.$jazz.id === playlistId && (
                     <SidebarMenuAction
-                      onClick={() => handleDeletePlaylist(playlist.id)}
+                      onClick={() => handleDeletePlaylist(playlist.$jazz.id)}
                       className="text-red-600 hover:text-red-800"
                     >
                       <Trash2 className="size-4" />

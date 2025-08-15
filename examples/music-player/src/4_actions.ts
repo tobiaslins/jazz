@@ -20,7 +20,7 @@ export async function uploadMusicTracks(
   files: Iterable<File>,
   isExampleTrack: boolean = false,
 ) {
-  const { root } = await MusicaAccount.getMe().ensureLoaded({
+  const { root } = await MusicaAccount.getMe().$jazz.ensureLoaded({
     resolve: {
       root: {
         rootPlaylist: {
@@ -55,12 +55,12 @@ export async function uploadMusicTracks(
 
     // The newly created musicTrack can be associated to the
     // user track list using a simple push call
-    root.rootPlaylist.tracks.push(musicTrack);
+    root.rootPlaylist.tracks.$jazz.push(musicTrack);
   }
 }
 
 export async function createNewPlaylist() {
-  const { root } = await MusicaAccount.getMe().ensureLoaded({
+  const { root } = await MusicaAccount.getMe().$jazz.ensureLoaded({
     resolve: {
       root: {
         playlists: true,
@@ -75,7 +75,7 @@ export async function createNewPlaylist() {
 
   // Again, we associate the new playlist to the
   // user by pushing it into the playlists CoList
-  root.playlists.push(playlist);
+  root.playlists.$jazz.push(playlist);
 
   return playlist;
 }
@@ -85,21 +85,26 @@ export async function addTrackToPlaylist(
   track: MusicTrack,
 ) {
   const alreadyAdded = playlist.tracks?.some(
-    (t) => t?.id === track.id || t?._refs.sourceTrack?.id === track.id,
+    (t) =>
+      t?.$jazz.id === track.$jazz.id ||
+      t?.$jazz.refs.sourceTrack?.id === track.$jazz.id,
   );
 
   if (alreadyAdded) return;
 
   // Check if the track has been created after the Group inheritance was introduced
-  if (track._owner._type === "Group" && playlist._owner._type === "Group") {
+  if (
+    track.$jazz.owner.$type$ === "Group" &&
+    playlist.$jazz.owner.$type$ === "Group"
+  ) {
     /**
      * Extending the track with the Playlist group in order to make the music track
      * visible to the Playlist user
      */
-    const trackGroup = track._owner;
-    trackGroup.addMember(playlist._owner);
+    const trackGroup = track.$jazz.owner;
+    trackGroup.addMember(playlist.$jazz.owner);
 
-    playlist.tracks?.push(track);
+    playlist.tracks?.$jazz.push(track);
     return;
   }
 }
@@ -109,36 +114,43 @@ export async function removeTrackFromPlaylist(
   track: MusicTrack,
 ) {
   const notAdded = !playlist.tracks?.some(
-    (t) => t?.id === track.id || t?._refs.sourceTrack?.id === track.id,
+    (t) =>
+      t?.$jazz.id === track.$jazz.id ||
+      t?.$jazz.refs.sourceTrack?.id === track.$jazz.id,
   );
 
   if (notAdded) return;
 
-  if (track._owner._type === "Group" && playlist._owner._type === "Group") {
-    const trackGroup = track._owner;
-    trackGroup.removeMember(playlist._owner);
+  if (
+    track.$jazz.owner.$type$ === "Group" &&
+    playlist.$jazz.owner.$type$ === "Group"
+  ) {
+    const trackGroup = track.$jazz.owner;
+    trackGroup.removeMember(playlist.$jazz.owner);
 
     const index =
       playlist.tracks?.findIndex(
-        (t) => t?.id === track.id || t?._refs.sourceTrack?.id === track.id,
+        (t) =>
+          t?.$jazz.id === track.$jazz.id ||
+          t?.$jazz.refs.sourceTrack?.id === track.$jazz.id,
       ) ?? -1;
     if (index > -1) {
-      playlist.tracks?.splice(index, 1);
+      playlist.tracks?.$jazz.splice(index, 1);
     }
     return;
   }
 }
 
 export async function updatePlaylistTitle(playlist: Playlist, title: string) {
-  playlist.title = title;
+  playlist.$jazz.set("title", title);
 }
 
 export async function updateMusicTrackTitle(track: MusicTrack, title: string) {
-  track.title = title;
+  track.$jazz.set("title", title);
 }
 
 export async function updateActivePlaylist(playlist?: Playlist) {
-  const { root } = await MusicaAccount.getMe().ensureLoaded({
+  const { root } = await MusicaAccount.getMe().$jazz.ensureLoaded({
     resolve: {
       root: {
         activePlaylist: true,
@@ -147,35 +159,36 @@ export async function updateActivePlaylist(playlist?: Playlist) {
     },
   });
 
-  root.activePlaylist = playlist ?? root.rootPlaylist;
+  root.$jazz.set("activePlaylist", playlist ?? root.rootPlaylist);
 }
 
 export async function updateActiveTrack(track: MusicTrack) {
-  const { root } = await MusicaAccount.getMe().ensureLoaded({
+  const { root } = await MusicaAccount.getMe().$jazz.ensureLoaded({
     resolve: {
       root: {},
     },
   });
 
-  root.activeTrack = track;
+  root.$jazz.set("activeTrack", track);
 }
 
 export async function onAnonymousAccountDiscarded(
   anonymousAccount: MusicaAccount,
 ) {
-  const { root: anonymousAccountRoot } = await anonymousAccount.ensureLoaded({
-    resolve: {
-      root: {
-        rootPlaylist: {
-          tracks: {
-            $each: true,
+  const { root: anonymousAccountRoot } =
+    await anonymousAccount.$jazz.ensureLoaded({
+      resolve: {
+        root: {
+          rootPlaylist: {
+            tracks: {
+              $each: true,
+            },
           },
         },
       },
-    },
-  });
+    });
 
-  const me = await MusicaAccount.getMe().ensureLoaded({
+  const me = await MusicaAccount.getMe().$jazz.ensureLoaded({
     resolve: {
       root: {
         rootPlaylist: {
@@ -188,15 +201,15 @@ export async function onAnonymousAccountDiscarded(
   for (const track of anonymousAccountRoot.rootPlaylist.tracks) {
     if (track.isExampleTrack) continue;
 
-    const trackGroup = track._owner.castAs(Group);
+    const trackGroup = track.$jazz.owner.$jazz.castAs(Group);
     trackGroup.addMember(me, "admin");
 
-    me.root.rootPlaylist.tracks.push(track);
+    me.root.rootPlaylist.tracks.$jazz.push(track);
   }
 }
 
 export async function deletePlaylist(playlistId: string) {
-  const { root } = await MusicaAccount.getMe().ensureLoaded({
+  const { root } = await MusicaAccount.getMe().$jazz.ensureLoaded({
     resolve: {
       root: {
         playlists: true,
@@ -204,8 +217,8 @@ export async function deletePlaylist(playlistId: string) {
     },
   });
 
-  const index = root.playlists.findIndex((p) => p?.id === playlistId);
+  const index = root.playlists.findIndex((p) => p?.$jazz.id === playlistId);
   if (index > -1) {
-    root.playlists.splice(index, 1);
+    root.playlists?.$jazz.splice(index, 1);
   }
 }

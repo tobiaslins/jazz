@@ -19,7 +19,7 @@ function isPartOfThePlaylist(
   trackId: string,
   playlist: Loaded<typeof Playlist, { tracks: true }>,
 ) {
-  return Array.from(playlist.tracks._refs).some((t) => t.id === trackId);
+  return Array.from(playlist.tracks.$jazz.refs).some((t) => t.id === trackId);
 }
 
 export function MusicTrackRow({
@@ -43,7 +43,7 @@ export function MusicTrackRow({
   });
 
   const playlists = me?.root.playlists ?? [];
-  const isActiveTrack = trackId === me?.root._refs.activeTrack?.id;
+  const isActiveTrack = trackId === me?.root.$jazz.refs.activeTrack?.id;
 
   function handleTrackClick() {
     if (!track) return;
@@ -64,9 +64,9 @@ export function MusicTrackRow({
     if (!me || !track) return;
     const tracks = me.root.rootPlaylist?.tracks;
     if (!tracks) return;
-    const index = tracks.findIndex((t) => t?.id === trackId);
+    const index = tracks.findIndex((t) => t?.$jazz.id === trackId);
     if (index !== -1) {
-      tracks.splice(index, 1);
+      tracks?.$jazz.splice(index, 1);
     }
   }
 

@@ -14,7 +14,7 @@
 
   function handleDateOfBirthChange(event: Event & { currentTarget: HTMLInputElement }) {
     if (me && event.currentTarget.value) {
-      me.root.dateOfBirth = new Date(event.currentTarget.value);
+      me.root.$jazz.set("dateOfBirth", new Date(event.currentTarget.value));
     }
   }
 </script>

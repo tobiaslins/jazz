@@ -20,7 +20,7 @@ export function usePrepareAppState(mediaPlayer: MediaPlayer) {
 }
 
 async function loadInitialData(mediaPlayer: MediaPlayer) {
-  const me = await MusicaAccount.getMe().ensureLoaded({
+  const me = await MusicaAccount.getMe().$jazz.ensureLoaded({
     resolve: {
       root: {
         rootPlaylist: { tracks: { $each: true } },
@@ -41,14 +41,14 @@ async function loadInitialData(mediaPlayer: MediaPlayer) {
 async function uploadOnboardingData(root: co.loaded<typeof MusicaAccountRoot>) {
   if (root.exampleDataLoaded) return;
 
-  root.exampleDataLoaded = true;
+  root.$jazz.set("exampleDataLoaded", true);
 
   try {
     const trackFile = await (await fetch("/example.mp3")).blob();
 
     await uploadMusicTracks([new File([trackFile], "Example song")], true);
   } catch (error) {
-    root.exampleDataLoaded = false;
+    root.$jazz.set("exampleDataLoaded", false);
     throw error;
   }
 }

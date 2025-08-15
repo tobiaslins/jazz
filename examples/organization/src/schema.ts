@@ -62,7 +62,7 @@ export const JazzAccount = co
 
       const defaultOrgGroup = Group.create();
 
-      const { profile } = await account.ensureLoaded({
+      const { profile } = await account.$jazz.ensureLoaded({
         resolve: {
           profile: true,
         },

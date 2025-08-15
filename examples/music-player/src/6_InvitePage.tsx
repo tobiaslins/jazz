@@ -14,7 +14,7 @@ export function InvitePage() {
       async (playlistId: string) => {
         const playlist = await Playlist.load(playlistId, {});
 
-        const me = await MusicaAccount.getMe().ensureLoaded({
+        const me = await MusicaAccount.getMe().$jazz.ensureLoaded({
           resolve: {
             root: {
               playlists: true,
@@ -24,9 +24,11 @@ export function InvitePage() {
 
         if (
           playlist &&
-          !me.root.playlists.some((item) => playlist.id === item?.id)
+          !me.root.playlists.some(
+            (item) => playlist.$jazz.id === item?.$jazz.id,
+          )
         ) {
-          me.root.playlists.push(playlist);
+          me.root.playlists.$jazz.push(playlist);
         }
 
         navigate("/playlist/" + playlistId);

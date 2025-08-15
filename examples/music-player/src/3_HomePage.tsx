@@ -40,7 +40,7 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
   }
 
   const params = useParams<{ playlistId: string }>();
-  const playlistId = params.playlistId ?? me?.root._refs.rootPlaylist.id;
+  const playlistId = params.playlistId ?? me?.root.$jazz.refs.rootPlaylist.id;
 
   const playlist = useCoState(Playlist, playlistId, {
     resolve: {
@@ -51,8 +51,8 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
   });
 
   const isRootPlaylist = !params.playlistId;
-  const isPlaylistOwner = playlist?._owner.myRole() === "admin";
-  const isActivePlaylist = playlistId === me?.root.activePlaylist?.id;
+  const isPlaylistOwner = playlist?.$jazz.owner.myRole() === "admin";
+  const isActivePlaylist = playlistId === me?.root.activePlaylist?.$jazz.id;
 
   const handlePlaylistShareClick = async () => {
     if (!isPlaylistOwner) return;
@@ -100,11 +100,11 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
               (track, index) =>
                 track && (
                   <MusicTrackRow
-                    trackId={track.id}
-                    key={track.id}
+                    trackId={track.$jazz.id}
+                    key={track.$jazz.id}
                     index={index}
                     isPlaying={
-                      mediaPlayer.activeTrackId === track.id &&
+                      mediaPlayer.activeTrackId === track.$jazz.id &&
                       isActivePlaylist &&
                       isPlaying
                     }

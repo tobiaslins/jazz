@@ -20,7 +20,7 @@ export function App() {
     const group = Group.create();
     group.makePublic("writer");
     const chat = Chat.create([], group);
-    router.navigate("/#/chat/" + chat.id);
+    router.navigate("/#/chat/" + chat.$jazz.id);
 
     // for https://jazz.tools marketing site demo only
     onChatLoad(chat);
