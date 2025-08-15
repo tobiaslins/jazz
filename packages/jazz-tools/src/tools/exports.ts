@@ -54,6 +54,7 @@ export {
   SubscriptionScope,
   exportCoValue,
   importContentPieces,
+  Ref,
 } from "./internal.js";
 
 export {
