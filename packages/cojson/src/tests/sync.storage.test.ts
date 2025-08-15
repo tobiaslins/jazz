@@ -19,6 +19,7 @@ import {
   tearDownTestMetricReader,
   waitFor,
 } from "./testUtils";
+import { stableStringify } from "../jsonStringify";
 
 // We want to simulate a real world communication that happens asynchronously
 TEST_NODE_CONFIG.withAsyncPeers = true;
@@ -484,5 +485,74 @@ describe("client syncs with a server with storage", () => {
 
     // Verify that the known state is updated in server storage
     expect(serverStorage.getKnownState(map.id)).toEqual(map.core.knownState());
+  });
+
+  test("sessions with invalid signatures should not be attempted to be stored", async () => {
+    // Create a new client, to prepare the map
+    const alice = setupTestNode({
+      connected: true,
+    });
+    const group = alice.node.createGroup();
+    group.addMember("everyone", "writer");
+    const map = group.createMap();
+
+    // Set an initial value on the map and let client/server sync
+    map.set("hello", "world", "trusting");
+    await map.core.waitForSync();
+
+    const knwonStateAfterFirstUpdate = map.core.knownState();
+
+    // Spawn another client, to add a new session and generate the content with an invalid signature
+    const bob = setupTestNode({
+      connected: true,
+    });
+
+    // Load the map and update it with a new session
+    const mapOnBob = await loadCoValueOrFail(bob.node, map.id);
+    mapOnBob.set("hello", "world2", "trusting");
+    await mapOnBob.core.waitForSync();
+
+    const client = setupTestNode();
+    const { storage } = client.addStorage();
+
+    SyncMessagesLog.clear(); // We want to focus on the sync messages happening from now
+
+    // Import the group in the client, to have the dependencies availble and test that the import persists on storage
+    const groupContent = group.core.verified.newContentSince(undefined)?.[0];
+    assert(groupContent);
+    client.node.syncManager.handleNewContent(groupContent, "import");
+    expect(storage.getKnownState(groupContent.id)).toEqual(
+      group.core.knownState(),
+    );
+
+    // Export the map content with the two sessions
+    const mapContent = mapOnBob.core.verified.newContentSince(undefined)?.[0];
+    assert(mapContent);
+
+    // Tamper Bob's session
+    const invalidMapContent = structuredClone(mapContent);
+    invalidMapContent.new[bob.node.currentSessionID]!.newTransactions.push({
+      privacy: "trusting",
+      changes: stableStringify([{ op: "set", key: "hello", value: "updated" }]),
+      madeAt: Date.now(),
+    });
+    client.node.syncManager.handleNewContent(invalidMapContent, "import");
+
+    // We should store only Alice's session, because Bob's session is invalid
+    expect(client.node.storage?.getKnownState(map.id)).toEqual(
+      knwonStateAfterFirstUpdate,
+    );
+
+    expect(
+      SyncMessagesLog.getMessages({
+        Group: group.core,
+        Map: map.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "client -> storage | CONTENT Group header: true new: After: 0 New: 5",
+        "client -> storage | CONTENT Map header: true new: After: 0 New: 1",
+      ]
+    `);
   });
 });
