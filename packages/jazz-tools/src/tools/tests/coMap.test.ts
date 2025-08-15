@@ -469,7 +469,7 @@ describe("CoMap", async () => {
       expect(john.age).toEqual(20);
     });
 
-    test("delete an optional value", () => {
+    test("delete an optional value by setting it to undefined", () => {
       const Person = co.map({
         name: z.string(),
         age: z.number().optional(),
@@ -485,6 +485,57 @@ describe("CoMap", async () => {
       expect(john.toJSON()).toEqual({
         name: "John",
       });
+      // The CoMap proxy hides the age property from the `in` operator
+      expect("age" in john).toEqual(false);
+      // The key still exists, since age === undefined
+      expect(Object.keys(john)).toEqual(["name", "age"]);
+    });
+
+    test("delete optional properties using $jazz.delete", () => {
+      const Dog = co.map({
+        name: z.string(),
+      });
+
+      const Person = co.map({
+        name: z.string(),
+        age: z.number().optional(),
+        pet: Dog.optional(),
+      });
+
+      const john = Person.create({
+        name: "John",
+        age: 20,
+        pet: { name: "Rex" },
+      });
+
+      john.$jazz.delete("age");
+      john.$jazz.delete("pet");
+
+      expect(john.age).not.toBeDefined();
+      expect(john.pet).not.toBeDefined();
+      expect(john.toJSON()).toEqual({
+        name: "John",
+      });
+      expect("age" in john).toEqual(false);
+      expect("pet" in john).toEqual(false);
+      expect(Object.keys(john)).toEqual(["name"]);
+    });
+
+    test("cannot delete required properties using $jazz.delete", () => {
+      const Dog = co.map({
+        name: z.string(),
+      });
+      const Person = co.map({
+        name: z.string(),
+        pet: Dog,
+      });
+
+      const john = Person.create({ name: "John", pet: { name: "Rex" } });
+
+      // @ts-expect-error - should not allow deleting required primitive properties
+      john.$jazz.delete("name");
+      // @ts-expect-error - should not allow deleting required reference properties
+      john.$jazz.delete("pet");
     });
 
     test("update a reference", () => {

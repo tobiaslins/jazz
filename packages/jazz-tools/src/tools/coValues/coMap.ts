@@ -582,17 +582,18 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
   }
 
   /**
-   * Delete a value from a CoMap record.
+   * Delete a value from a CoMap.
    *
-   * Only allows deletion of record properties. For optional fields in struct-like CoMaps,
-   * use `$jazz.set` with `undefined` instead.
+   * For record-like CoMaps (created with `co.record`), any string key can be deleted.
+   * For struct-like CoMaps (created with `co.map`), only optional properties can be deleted.
    *
    * @param key The key to delete
    *
    * @category Content
    */
-  // TODO restrict `delete` to only be available on record-like CoMaps
-  delete<K extends CoKeys<M>>(key: K): void {
+  delete<
+    K extends OptionalCoKeys<M> | (string extends keyof M ? string : never),
+  >(key: K): void {
     this.raw.delete(key);
   }
 
@@ -813,6 +814,13 @@ export type CoKeys<Map extends object> = Exclude<
   keyof Map & string,
   keyof CoMap
 >;
+
+/**
+ * Extract keys of properties that can be undefined
+ */
+export type OptionalCoKeys<Map extends object> = {
+  [K in CoKeys<Map>]: undefined extends Map[K] ? K : never;
+}[CoKeys<Map>];
 
 /**
  * Force required ref fields to be non nullable

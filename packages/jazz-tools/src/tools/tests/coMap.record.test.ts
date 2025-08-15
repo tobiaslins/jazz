@@ -131,6 +131,9 @@ describe("CoMap.Record", async () => {
 
       const person = Person.create({ name: "John", age: "20" });
 
+      // Deleting a non-existent property does nothing
+      person.$jazz.delete("nonExistentProperty");
+
       person.$jazz.delete("age");
 
       expect(person.name).toEqual("John");
