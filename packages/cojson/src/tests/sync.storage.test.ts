@@ -555,4 +555,53 @@ describe("client syncs with a server with storage", () => {
       ]
     `);
   });
+
+  test("should store values with no transactions", async () => {
+    const alice = setupTestNode({
+      connected: true,
+    });
+    const group = alice.node.createGroup();
+    group.addMember("everyone", "writer");
+    const map = group.createMap();
+
+    await map.core.waitForSync();
+
+    const bob = setupTestNode();
+    bob.connectToSyncServer({
+      ourName: "bob",
+    });
+    const { storage } = bob.addStorage({
+      ourName: "bob",
+    });
+
+    SyncMessagesLog.clear(); // We want to focus on the sync messages happening from now
+
+    await loadCoValueOrFail(bob.node, map.id);
+
+    // The map should be stored in bob's storage
+    expect(storage.getKnownState(map.id)).toEqual({
+      header: true,
+      id: map.id,
+      sessions: {},
+    });
+
+    expect(
+      SyncMessagesLog.getMessages({
+        Group: group.core,
+        Map: map.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "bob -> storage | LOAD Map sessions: empty",
+        "storage -> bob | KNOWN Map sessions: empty",
+        "bob -> server | LOAD Map sessions: empty",
+        "server -> bob | CONTENT Group header: true new: After: 0 New: 5",
+        "server -> bob | CONTENT Map header: true new: ",
+        "bob -> server | KNOWN Group sessions: header/5",
+        "bob -> storage | CONTENT Group header: true new: After: 0 New: 5",
+        "bob -> server | KNOWN Map sessions: header/0",
+        "bob -> storage | CONTENT Map header: true new: ",
+      ]
+    `);
+  });
 });

@@ -706,7 +706,10 @@ export class SyncManager {
 
     const syncedPeers = [];
 
-    if (from !== "storage" && Object.keys(contentToStore.new).length > 0) {
+    const hasNewContent =
+      contentToStore.header || Object.keys(contentToStore.new).length > 0;
+
+    if (from !== "storage" && hasNewContent) {
       this.storeContent(contentToStore);
     }
 
