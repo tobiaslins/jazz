@@ -1,4 +1,4 @@
-import { createServer } from "http";
+import { createServer, type Server } from "node:http";
 import { mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
 import { LocalNode } from "cojson";
@@ -104,5 +104,7 @@ export const startSyncServer = async ({
     return _close.call(server);
   };
 
-  return server;
+  Object.defineProperty(server, "localNode", { value: localNode });
+
+  return server as Server & { localNode: LocalNode };
 };
