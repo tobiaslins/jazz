@@ -1,5 +1,16 @@
 # jazz-tools
 
+## 0.17.2
+
+### Patch Changes
+
+- 794681a: fix unused blob creation on react Image component
+- 83fc22f: React Native resizer is now imported dynamically, as it is an optional dependency
+- Updated dependencies [5b2b16a]
+  - cojson@0.17.2
+  - cojson-storage-indexeddb@0.17.2
+  - cojson-transport-ws@0.17.2
+
 ## 0.17.1
 
 ### Patch Changes

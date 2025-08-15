@@ -1,5 +1,11 @@
 # cojson
 
+## 0.17.2
+
+### Patch Changes
+
+- 5b2b16a: Filter invalid sessions when storing a content message
+
 ## 0.17.1
 
 ### Patch Changes

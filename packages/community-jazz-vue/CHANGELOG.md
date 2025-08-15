@@ -1,5 +1,16 @@
 # jazz-react
 
+## 0.17.2
+
+### Patch Changes
+
+- 6b3e029: New VueJS Jazz bindings, community maintained
+- Updated dependencies [794681a]
+- Updated dependencies [5b2b16a]
+- Updated dependencies [83fc22f]
+  - jazz-tools@0.17.2
+  - cojson@0.17.2
+
 ## 0.14.28
 
 ### Patch Changes
