@@ -1,5 +1,5 @@
-import type { JsonValue, RawCoList } from "cojson";
-import { ControlledAccount, RawAccount } from "cojson";
+import type { JsonValue, RawCoList, CoValueUniqueness, RawCoID } from "cojson";
+import { ControlledAccount, RawAccount, cojsonInternals } from "cojson";
 import { calcPatch } from "fast-myers-diff";
 import type {
   Account,
@@ -24,6 +24,7 @@ import {
   RegisteredSchemas,
   SchemaInit,
   accessChildByKey,
+  activeAccountContext,
   coField,
   coValueClassFromCoValueClassOrSchema,
   coValuesCache,
@@ -236,12 +237,21 @@ export class CoList<out Item = any> extends Array<Item> implements CoValue {
   static create<L extends CoList>(
     this: CoValueClass<L>,
     items: L[number][],
-    options?: { owner: Account | Group } | Account | Group,
+    options?:
+      | {
+          owner: Account | Group;
+          unique?: CoValueUniqueness["uniqueness"];
+        }
+      | Account
+      | Group,
   ) {
-    const { owner } = parseCoValueCreateOptions(options);
+    const { owner, uniqueness } = parseCoValueCreateOptions(options);
     const instance = new this({ init: items, owner });
     const raw = owner._raw.createList(
       toRawItems(items, instance._schema[ItemsSym], owner),
+      null,
+      "private",
+      uniqueness,
     );
 
     Object.defineProperties(instance, {
@@ -544,6 +554,116 @@ export class CoList<out Item = any> extends Array<Item> implements CoValue {
     cl: Cl,
   ): InstanceType<Cl> {
     return cl.fromRaw(this._raw) as InstanceType<Cl>;
+  }
+
+  /** @deprecated Use `CoList.upsertUnique` and `CoList.loadUnique` instead. */
+  static findUnique<L extends CoList>(
+    this: CoValueClass<L>,
+    unique: CoValueUniqueness["uniqueness"],
+    ownerID: ID<Account> | ID<Group>,
+    as?: Account | Group | AnonymousJazzAgent,
+  ) {
+    return CoList._findUnique(unique, ownerID, as);
+  }
+
+  /** @internal */
+  static _findUnique<L extends CoList>(
+    this: CoValueClass<L>,
+    unique: CoValueUniqueness["uniqueness"],
+    ownerID: ID<Account> | ID<Group>,
+    as?: Account | Group | AnonymousJazzAgent,
+  ) {
+    as ||= activeAccountContext.get();
+
+    const header = {
+      type: "colist" as const,
+      ruleset: {
+        type: "ownedByGroup" as const,
+        group: ownerID as RawCoID,
+      },
+      meta: null,
+      uniqueness: unique,
+    };
+    const crypto =
+      as._type === "Anonymous" ? as.node.crypto : as._raw.core.node.crypto;
+    return cojsonInternals.idforHeader(header, crypto) as ID<L>;
+  }
+
+  /**
+   * Given some data, updates an existing CoList or initialises a new one if none exists.
+   *
+   * Note: This method respects resolve options, and thus can return `null` if the references cannot be resolved.
+   *
+   * @example
+   * ```ts
+   * const activeItems = await ItemList.upsertUnique(
+   *   {
+   *     value: [item1, item2, item3],
+   *     unique: sourceData.identifier,
+   *     owner: workspace,
+   *   }
+   * );
+   * ```
+   *
+   * @param options The options for creating or loading the CoList. This includes the intended state of the CoList, its unique identifier, its owner, and the references to resolve.
+   * @returns Either an existing & modified CoList, or a new initialised CoList if none exists.
+   * @category Subscription & Loading
+   */
+  static async upsertUnique<
+    L extends CoList,
+    const R extends RefsToResolve<L> = true,
+  >(
+    this: CoValueClass<L>,
+    options: {
+      value: L[number][];
+      unique: CoValueUniqueness["uniqueness"];
+      owner: Account | Group;
+      resolve?: RefsToResolveStrict<L, R>;
+    },
+  ): Promise<Resolved<L, R> | null> {
+    let listId = CoList._findUnique(options.unique, options.owner.id);
+    let list: Resolved<L, R> | null = await loadCoValueWithoutMe(this, listId, {
+      ...options,
+      loadAs: options.owner._loadedAs,
+      skipRetry: true,
+    });
+    if (!list) {
+      list = (this as any).create(options.value, {
+        owner: options.owner,
+        unique: options.unique,
+      }) as Resolved<L, R>;
+    } else {
+      (list as L).applyDiff(options.value);
+    }
+
+    return await loadCoValueWithoutMe(this, listId, {
+      ...options,
+      loadAs: options.owner._loadedAs,
+      skipRetry: true,
+    });
+  }
+
+  /**
+   * Loads a CoList by its unique identifier and owner's ID.
+   * @param unique The unique identifier of the CoList to load.
+   * @param ownerID The ID of the owner of the CoList.
+   * @param options Additional options for loading the CoList.
+   * @returns The loaded CoList, or null if unavailable.
+   */
+  static loadUnique<L extends CoList, const R extends RefsToResolve<L> = true>(
+    this: CoValueClass<L>,
+    unique: CoValueUniqueness["uniqueness"],
+    ownerID: ID<Account> | ID<Group>,
+    options?: {
+      resolve?: RefsToResolveStrict<L, R>;
+      loadAs?: Account | AnonymousJazzAgent;
+    },
+  ): Promise<Resolved<L, R> | null> {
+    return loadCoValueWithoutMe(
+      this,
+      CoList._findUnique(unique, ownerID, options?.loadAs),
+      { ...options, skipRetry: true },
+    );
   }
 
   /**
