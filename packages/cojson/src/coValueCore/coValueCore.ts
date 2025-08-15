@@ -219,6 +219,8 @@ export class CoValueCore {
       this.groupInvalidationSubscription = undefined;
     }
 
+    this.node.internalDeleteCoValue(this.id);
+
     return true;
   }
 
