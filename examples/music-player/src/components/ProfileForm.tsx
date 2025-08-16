@@ -6,6 +6,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Separator } from "./ui/separator";
+import { Group } from "jazz-tools";
 
 interface ProfileFormProps {
   onSubmit?: (data: { username: string; avatar?: any }) => void;
@@ -56,7 +57,7 @@ export function ProfileForm({
     try {
       // Create image using the Image API from jazz-tools/media
       const image = await createImage(file, {
-        owner: me._owner,
+        owner: Group.create().makePublic(),
         maxSize: 256, // Good size for avatars
         placeholder: "blur",
         progressive: true,

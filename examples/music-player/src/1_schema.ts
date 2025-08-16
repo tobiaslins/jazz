@@ -1,4 +1,4 @@
-import { co, z } from "jazz-tools";
+import { co, Group, z } from "jazz-tools";
 
 /** Walkthrough: Defining the data model with CoJSON
  *
@@ -112,12 +112,24 @@ export const MusicaAccount = co
     }
 
     // Load the profile and root in memory, to have them ready
-    await account.ensureLoaded({
+    const { profile, root } = await account.ensureLoaded({
       resolve: {
-        profile: true,
+        profile: {
+          avatar: true,
+        },
         root: true,
       },
     });
+
+    // Clean up the private avatars (were created using the account as owner)
+    if (profile.avatar) {
+      const group = profile.avatar._owner.castAs(Group);
+
+      if (group.getRoleOf("everyone") !== "reader") {
+        root.accountSetupCompleted = false;
+        profile.avatar = undefined;
+      }
+    }
   });
 export type MusicaAccount = co.loaded<typeof MusicaAccount>;
 
