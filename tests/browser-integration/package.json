@@ -8,7 +8,7 @@
     "test:watch": "vitest --watch"
   },
   "devDependencies": {
-    "typescript": "catalog:default"
+    "typescript": "5.6.2"
   },
   "dependencies": {
     "cojson": "workspace:*",
@@ -16,8 +16,8 @@
     "cojson-storage-sqlite": "workspace:*",
     "cojson-transport-ws": "workspace:*",
     "jazz-tools": "workspace:*",
-    "react": "catalog:react",
-    "react-dom": "catalog:react",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
     "@vitejs/plugin-react-swc": "^3.10.1",
     "@testing-library/react": "16.2.0",
     "@testing-library/jest-dom": "6.6.3"
