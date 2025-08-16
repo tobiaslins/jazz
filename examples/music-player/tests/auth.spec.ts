@@ -44,7 +44,10 @@ test("sign up and log out", async ({ page: marioPage }) => {
 
   const marioHome = new HomePage(marioPage);
 
-  await marioHome.signUp("Mario");
+  await marioHome.fillUsername("Mario");
+  await marioPage.keyboard.press("Enter");
+
+  await marioHome.signUp();
 
   await marioHome.logoutButton.waitFor({
     state: "visible",
