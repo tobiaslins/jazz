@@ -31,14 +31,14 @@
   },
   "devDependencies": {
     "next": "15.4.2",
-    "react": "catalog:react",
-    "react-dom": "catalog:react",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
     "@tailwindcss/postcss": "^4.1.11",
     "@types/node": "^22.16.5",
-    "@types/react": "catalog:react",
-    "@types/react-dom": "catalog:react",
+    "@types/react": "19.1.0",
+    "@types/react-dom": "19.1.0",
     "lucide-react": "^0.525.0",
     "tailwindcss": "^4.1.11",
-    "typescript": "catalog:default"
+    "typescript": "5.6.2"
   }
 }
