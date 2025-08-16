@@ -59,7 +59,7 @@ export async function uploadMusicTracks(
   }
 }
 
-export async function createNewPlaylist() {
+export async function createNewPlaylist(title: string = "New Playlist") {
   const { root } = await MusicaAccount.getMe().ensureLoaded({
     resolve: {
       root: {
@@ -69,7 +69,7 @@ export async function createNewPlaylist() {
   });
 
   const playlist = Playlist.create({
-    title: "New Playlist",
+    title,
     tracks: [],
   });
 
