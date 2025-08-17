@@ -8,10 +8,12 @@ import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { WebSocketServer } from "ws";
 
 export const startSyncServer = async ({
+  host,
   port,
   inMemory,
   db,
 }: {
+  host: string | undefined;
   port: string | undefined;
   inMemory: boolean;
   db: string;
@@ -94,7 +96,7 @@ export const startSyncServer = async ({
     localNode.gracefulShutdown();
   });
 
-  server.listen(port ? parseInt(port) : undefined);
+  server.listen(port ? parseInt(port) : undefined, host);
 
   const _close = server.close;
 

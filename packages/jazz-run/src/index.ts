@@ -39,6 +39,11 @@ const accountCommand = Command.make("account").pipe(
   Command.withSubcommands([createAccountCommand]),
 );
 
+const hostOption = Options.text("host")
+  .pipe(Options.withAlias("h"))
+  .pipe(Options.withDescription("The host to listen on. Default is 127.0.0.1"))
+  .pipe(Options.withDefault("127.0.0.1"));
+
 const portOption = Options.text("port")
   .pipe(Options.withAlias("p"))
   .pipe(
@@ -62,13 +67,20 @@ const dbOption = Options.file("db")
 
 const startSyncServerCommand = Command.make(
   "sync",
-  { port: portOption, inMemory: inMemoryOption, db: dbOption },
-  ({ port, inMemory, db }) => {
+  {
+    host: hostOption,
+    port: portOption,
+    inMemory: inMemoryOption,
+    db: dbOption,
+  },
+  ({ host, port, inMemory, db }) => {
     return Effect.gen(function* () {
-      yield* Effect.promise(() => startSyncServer({ port, inMemory, db }));
+      yield* Effect.promise(() =>
+        startSyncServer({ host, port, inMemory, db }),
+      );
 
       yield* Console.log(
-        `COJSON sync server listening on ws://127.0.0.1:${port}`,
+        `COJSON sync server listening on ws://${host}:${port}`,
       );
 
       // Keep the server up
