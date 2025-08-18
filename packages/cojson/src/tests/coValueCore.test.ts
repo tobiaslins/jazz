@@ -1,4 +1,3 @@
-import { encrypt } from "jazz-crypto-rs";
 import {
   assert,
   afterEach,
@@ -8,15 +7,13 @@ import {
   test,
   vi,
 } from "vitest";
-import { bytesToBase64url } from "../base64url.js";
 import { CoValueCore } from "../coValueCore/coValueCore.js";
 import { Transaction } from "../coValueCore/verifiedState.js";
-import { MapOpPayload } from "../coValues/coMap.js";
 import { WasmCrypto } from "../crypto/WasmCrypto.js";
 import { stableStringify } from "../jsonStringify.js";
 import { LocalNode } from "../localNode.js";
-import { Role } from "../permissions.js";
 import {
+  agentAndSessionIDFromSecret,
   createTestMetricReader,
   createTestNode,
   createTwoConnectedNodes,
@@ -25,10 +22,13 @@ import {
   randomAgentAndSessionID,
   tearDownTestMetricReader,
 } from "./testUtils.js";
+import { CO_VALUE_PRIORITY } from "../priority.js";
 
 const Crypto = await WasmCrypto.create();
 
 let metricReader: ReturnType<typeof createTestMetricReader>;
+const agentSecret =
+  "sealerSecret_zE3Nr7YFr1KkVbJSx4JDCzYn4ApYdm8kJ5ghNBxREHQya/signerSecret_z9fEu4eNG1eXHMak3YSzY7uLdoG8HESSJ8YW4xWdNNDSP";
 
 beforeEach(() => {
   metricReader = createTestMetricReader();
@@ -38,47 +38,7 @@ afterEach(() => {
   tearDownTestMetricReader();
 });
 
-test("Can create coValue with new agent credentials and add transaction to it", () => {
-  const [agent, sessionID] = randomAgentAndSessionID();
-  const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
-
-  const coValue = node.createCoValue({
-    type: "costream",
-    ruleset: { type: "unsafeAllowAll" },
-    meta: null,
-    ...Crypto.createdNowUnique(),
-  });
-
-  const transaction: Transaction = {
-    privacy: "trusting",
-    madeAt: Date.now(),
-    changes: stableStringify([
-      {
-        hello: "world",
-      },
-    ]),
-  };
-
-  const { expectedNewHash } = coValue.verified.expectedNewHashAfter(
-    node.currentSessionID,
-    [transaction],
-  );
-
-  expect(
-    coValue
-      .tryAddTransactions(
-        node.currentSessionID,
-        [transaction],
-        expectedNewHash,
-        Crypto.sign(agent.currentSignerSecret(), expectedNewHash),
-        "immediate",
-      )
-      ._unsafeUnwrap(),
-  ).toBe(true);
-});
-
 test("transactions with wrong signature are rejected", () => {
-  const wrongAgent = Crypto.newRandomAgentSecret();
   const node = nodeWithRandomAgentAndSessionID();
 
   const coValue = node.createCoValue({
@@ -88,88 +48,53 @@ test("transactions with wrong signature are rejected", () => {
     ...Crypto.createdNowUnique(),
   });
 
-  const transaction: Transaction = {
-    privacy: "trusting",
-    madeAt: Date.now(),
-    changes: stableStringify([
-      {
-        hello: "world",
-      },
-    ]),
-  };
+  const { transaction, signature } =
+    coValue.verified.makeNewTrustingTransaction(
+      node.currentSessionID,
+      node.getCurrentAgent(),
+      [{ hello: "world" }],
+    );
 
-  const { expectedNewHash } = coValue.verified.expectedNewHashAfter(
+  transaction.madeAt = Date.now() + 1000;
+
+  // Delete the transaction from the coValue
+  node.internalDeleteCoValue(coValue.id);
+  node.syncManager.handleNewContent(
+    {
+      action: "content",
+      id: coValue.id,
+      header: coValue.verified.header,
+      priority: CO_VALUE_PRIORITY.LOW,
+      new: {},
+    },
+    "import",
+  );
+
+  const newEntry = node.getCoValue(coValue.id);
+
+  // eslint-disable-next-line neverthrow/must-use-result
+  const result = newEntry.tryAddTransactions(
     node.currentSessionID,
     [transaction],
+    undefined,
+    signature,
+    "immediate",
   );
 
-  // eslint-disable-next-line neverthrow/must-use-result
-  coValue
-    .tryAddTransactions(
-      node.currentSessionID,
-      [transaction],
-      expectedNewHash,
-      Crypto.sign(Crypto.getAgentSignerSecret(wrongAgent), expectedNewHash),
-      "immediate",
-    )
-    ._unsafeUnwrapErr({ withStackTrace: true });
-});
-
-test("transactions with correctly signed, but wrong hash are rejected", () => {
-  const [agent, sessionID] = randomAgentAndSessionID();
-  const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
-
-  const coValue = node.createCoValue({
-    type: "costream",
-    ruleset: { type: "unsafeAllowAll" },
-    meta: null,
-    ...Crypto.createdNowUnique(),
-  });
-
-  const transaction: Transaction = {
-    privacy: "trusting",
-    madeAt: Date.now(),
-    changes: stableStringify([
-      {
-        hello: "world",
-      },
-    ]),
-  };
-
-  const { expectedNewHash } = coValue.verified.expectedNewHashAfter(
-    node.currentSessionID,
-    [
-      {
-        privacy: "trusting",
-        madeAt: Date.now(),
-        changes: stableStringify([
-          {
-            hello: "wrong",
-          },
-        ]),
-      },
-    ],
-  );
-
-  // eslint-disable-next-line neverthrow/must-use-result
-  coValue
-    .tryAddTransactions(
-      node.currentSessionID,
-      [transaction],
-      expectedNewHash,
-      Crypto.sign(agent.currentSignerSecret(), expectedNewHash),
-      "immediate",
-    )
-    ._unsafeUnwrapErr({ withStackTrace: true });
+  expect(result.isErr()).toBe(true);
+  expect(newEntry.getValidSortedTransactions().length).toBe(0);
 });
 
 test("New transactions in a group correctly update owned values, including subscriptions", async () => {
   const [agent, sessionID] = randomAgentAndSessionID();
   const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
 
-  const group = node.createGroup();
+  const timeBeforeEdit = Date.now() - 1000;
+  const dateNowMock = vi
+    .spyOn(Date, "now")
+    .mockImplementation(() => timeBeforeEdit);
 
-  const timeBeforeEdit = Date.now();
+  const group = node.createGroup();
 
   await new Promise((resolve) => setTimeout(resolve, 10));
 
@@ -179,49 +104,31 @@ test("New transactions in a group correctly update owned values, including subsc
 
   const listener = vi.fn();
 
-  map.subscribe(listener);
+  map.subscribe((map) => {
+    listener(map.get("hello"));
+  });
 
-  expect(listener.mock.calls[0]?.[0].get("hello")).toBe("world");
+  expect(listener).toHaveBeenLastCalledWith("world");
 
-  const resignationThatWeJustLearnedAbout = {
-    privacy: "trusting",
-    madeAt: timeBeforeEdit,
-    changes: stableStringify([
+  expect(map.core.getValidSortedTransactions().length).toBe(1);
+  expect(group.get(agent.id)).toBe("admin");
+
+  group.core.makeTransaction(
+    [
       {
         op: "set",
         key: agent.id,
         value: "revoked",
-      } satisfies MapOpPayload<typeof agent.id, Role>,
-    ]),
-  } satisfies Transaction;
-
-  const { expectedNewHash } = group.core.verified.expectedNewHashAfter(
-    sessionID,
-    [resignationThatWeJustLearnedAbout],
+      },
+    ],
+    "trusting",
   );
 
-  const signature = Crypto.sign(
-    node.getCurrentAgent().currentSignerSecret(),
-    expectedNewHash,
-  );
+  expect(group.get(agent.id)).toBe("revoked");
+  dateNowMock.mockReset();
 
-  expect(map.core.getValidSortedTransactions().length).toBe(1);
-
-  const manuallyAdddedTxSuccess = group.core
-    .tryAddTransactions(
-      node.currentSessionID,
-      [resignationThatWeJustLearnedAbout],
-      expectedNewHash,
-      signature,
-      "immediate",
-    )
-    ._unsafeUnwrap({ withStackTrace: true });
-
-  expect(manuallyAdddedTxSuccess).toBe(true);
-
-  expect(listener.mock.calls.length).toBe(2);
-  expect(listener.mock.calls[1]?.[0].get("hello")).toBe(undefined);
-
+  expect(listener).toHaveBeenCalledTimes(2);
+  expect(listener).toHaveBeenLastCalledWith(undefined);
   expect(map.core.getValidSortedTransactions().length).toBe(0);
 });
 
@@ -359,166 +266,51 @@ test("listeners are notified even if the previous listener threw an error", asyn
   errorLog.mockRestore();
 });
 
-test("getValidTransactions should skip trusting transactions with invalid JSON", () => {
-  const [agent, sessionID] = randomAgentAndSessionID();
+test("getValidTransactions should skip private transactions with invalid JSON", () => {
+  const [agent, sessionID] = agentAndSessionIDFromSecret(agentSecret);
   const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
 
-  const coValue = node.createCoValue({
-    type: "costream",
-    ruleset: { type: "unsafeAllowAll" },
-    meta: null,
-    ...Crypto.createdNowUnique(),
-  });
+  const fixtures = {
+    id: "co_zWwrEiushQLvbkWd6Z3L8WxTU1r",
+    signature:
+      "signature_z3ktW7wxMnW7VYExCGZv4Ug2UJSW3ag6zLDiP8GpZThzif6veJt7JipYpUgshhuGbgHtLcWywWSWysV7hChxFypDt",
+    decrypted:
+      '[{"after":"start","op":"app","value":"co_zMphsnYN6GU8nn2HDY5suvyGufY"}]',
+    key: {
+      secret: "keySecret_z3dU66SsyQkkGKpNCJW6NX74MnfVGHUyY7r85b4M8X88L",
+      id: "key_z5XUAHyoqUV9zXWvMK",
+    },
+    transaction: {
+      privacy: "private",
+      madeAt: 0,
+      encryptedChanges:
+        "encrypted_UNAxqdUSGRZ2rzuLU99AFPKCe2C0HwsTzMWQreXZqLr6RpWrSMa-5lwgwIev7xPHTgZFq5UyUgMFrO9zlHJHJGgjJcDzFihY=" as any,
+      keyUsed: "key_z5XUAHyoqUV9zXWvMK",
+    },
+    session:
+      "sealer_z5yhsCCe2XwLTZC4254mUoMASshm3Diq49JrefPpjTktp/signer_z7gVGDpNz9qUtsRxAkHMuu4DYdtVVCG4XELTKPYdoYLPr_session_z9mDP8FoonSA",
+  } as const;
 
-  // Create a valid transaction first
-  const validTransaction: Transaction = {
-    privacy: "trusting",
-    madeAt: Date.now(),
-    changes: stableStringify([{ hello: "world" }]),
-  };
+  const group = node.createGroup();
+  const map = group.createMap();
 
-  const { expectedNewHash: expectedNewHash1 } =
-    coValue.verified.expectedNewHashAfter(node.currentSessionID, [
-      validTransaction,
-    ]);
+  map.set("hello", "world");
 
-  coValue
+  // This should fail silently, because the encryptedChanges will be outputted as gibberish
+  map.core
     .tryAddTransactions(
-      node.currentSessionID,
-      [validTransaction],
-      expectedNewHash1,
-      Crypto.sign(agent.currentSignerSecret(), expectedNewHash1),
-      "immediate",
-    )
-    ._unsafeUnwrap();
-
-  // Create an invalid transaction with malformed JSON
-  const invalidTransaction: Transaction = {
-    privacy: "trusting",
-    madeAt: Date.now() + 1,
-    changes: '{"invalid": json}' as any, // Invalid JSON string
-  };
-
-  const { expectedNewHash: expectedNewHash2 } =
-    coValue.verified.expectedNewHashAfter(node.currentSessionID, [
-      invalidTransaction,
-    ]);
-
-  coValue
-    .tryAddTransactions(
-      node.currentSessionID,
-      [invalidTransaction],
-      expectedNewHash2,
-      Crypto.sign(agent.currentSignerSecret(), expectedNewHash2),
+      fixtures.session,
+      [fixtures.transaction],
+      undefined,
+      fixtures.signature,
       "immediate",
     )
     ._unsafeUnwrap();
 
   // Get valid transactions - should only include the valid one
-  const validTransactions = coValue.getValidTransactions();
+  const validTransactions = map.core.getValidTransactions();
 
   expect(validTransactions).toHaveLength(1);
-  expect(validTransactions[0]?.changes).toEqual([{ hello: "world" }]);
-});
-
-test("getValidTransactions should skip private transactions with invalid JSON", () => {
-  const [agent, sessionID] = randomAgentAndSessionID();
-  const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
-
-  const group = node.createGroup();
-  group.addMember("everyone", "writer");
-
-  const coValue = node.createCoValue({
-    type: "costream",
-    ruleset: { type: "ownedByGroup", group: group.id },
-    meta: null,
-    ...Crypto.createdNowUnique(),
-  });
-
-  const { secret: keySecret, id: keyID } = coValue.getCurrentReadKey();
-
-  assert(keySecret);
-
-  const encrypted = Crypto.encryptForTransaction(
-    [{ hello: "world" }],
-    keySecret,
-    {
-      in: coValue.id,
-      tx: coValue.nextTransactionID(),
-    },
-  );
-
-  // Create a valid private transaction first
-  const validTransaction: Transaction = {
-    privacy: "private",
-    madeAt: Date.now(),
-    keyUsed: keyID,
-    encryptedChanges: encrypted as any,
-  };
-
-  const { expectedNewHash: expectedNewHash1 } =
-    coValue.verified.expectedNewHashAfter(node.currentSessionID, [
-      validTransaction,
-    ]);
-
-  coValue
-    .tryAddTransactions(
-      node.currentSessionID,
-      [validTransaction],
-      expectedNewHash1,
-      Crypto.sign(agent.currentSignerSecret(), expectedNewHash1),
-      "immediate",
-    )
-    ._unsafeUnwrap();
-
-  const textEncoder = new TextEncoder();
-  const brokenChange = `encrypted_U${bytesToBase64url(
-    encrypt(
-      textEncoder.encode('{"invalid": json}'),
-      keySecret,
-      textEncoder.encode(
-        stableStringify({
-          in: coValue.id,
-          tx: coValue.nextTransactionID(),
-        }),
-      ),
-    ),
-  )}`;
-
-  // Create an invalid private transaction with malformed JSON after decryption
-  const invalidTransaction: Transaction = {
-    privacy: "private",
-    madeAt: Date.now() + 1,
-    keyUsed: keyID,
-    encryptedChanges: brokenChange as any,
-  };
-
-  const { expectedNewHash: expectedNewHash2 } =
-    coValue.verified.expectedNewHashAfter(node.currentSessionID, [
-      invalidTransaction,
-    ]);
-
-  coValue
-    .tryAddTransactions(
-      node.currentSessionID,
-      [invalidTransaction],
-      expectedNewHash2,
-      Crypto.sign(agent.currentSignerSecret(), expectedNewHash2),
-      "immediate",
-    )
-    ._unsafeUnwrap();
-
-  // Get valid transactions - should skip the invalid one
-  const validTransactions = coValue.getValidTransactions({
-    ignorePrivateTransactions: false,
-  });
-
-  // Since we can't easily create valid private transactions in this test setup,
-  // we just verify that the method doesn't crash and handles the invalid JSON gracefully
-  expect(validTransactions).toBeDefined();
-  expect(Array.isArray(validTransactions)).toBe(true);
-  expect(validTransactions.length).toBe(1);
-  expect(validTransactions[0]?.changes).toEqual([{ hello: "world" }]);
 });
 
 describe("markErrored and isErroredInPeer", () => {

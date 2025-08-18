@@ -7,7 +7,6 @@ export class SessionLog {
   tryAdd(transactions_json: string[], new_signature_str: string, skip_verify: boolean): void;
   addNewPrivateTransaction(changes_json: string, signer_secret: string, encryption_key: string, key_id: string, made_at: number): string;
   addNewTrustingTransaction(changes_json: string, signer_secret: string, made_at: number): string;
-  testExpectedHashAfter(transactions_js: any): string;
   decryptNextTransactionChangesJson(tx_index: number, encryption_key: string): string;
 }
 
@@ -21,13 +20,11 @@ export interface InitOutput {
   readonly sessionlog_tryAdd: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number];
   readonly sessionlog_addNewPrivateTransaction: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => [number, number, number, number];
   readonly sessionlog_addNewTrustingTransaction: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
-  readonly sessionlog_testExpectedHashAfter: (a: number, b: any) => [number, number, number, number];
   readonly sessionlog_decryptNextTransactionChangesJson: (a: number, b: number, c: number, d: number) => [number, number, number, number];
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
-  readonly __wbindgen_exn_store: (a: number) => void;
+  readonly __wbindgen_export_2: WebAssembly.Table;
   readonly __externref_table_alloc: () => number;
-  readonly __wbindgen_export_4: WebAssembly.Table;
   readonly __externref_table_dealloc: (a: number) => void;
   readonly __wbindgen_free: (a: number, b: number, c: number) => void;
   readonly __wbindgen_start: () => void;

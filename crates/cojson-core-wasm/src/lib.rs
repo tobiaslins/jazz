@@ -134,17 +134,6 @@ impl SessionLog {
         Ok(signature.0)
     }
 
-    #[wasm_bindgen(js_name = testExpectedHashAfter)]
-    pub fn test_expected_hash_after(&self, transactions_js: JsValue) -> Result<String, CojsonCoreWasmError> {
-        let transactions_str: Vec<String> = serde_wasm_bindgen::from_value(transactions_js)?;
-        let transactions: Vec<Box<RawValue>> = transactions_str
-            .into_iter()
-            .map(|s| serde_json::from_str(&s).unwrap())
-            .collect();
-
-        Ok(self.internal.test_expected_hash_after(&transactions))
-    }
-
     #[wasm_bindgen(js_name = decryptNextTransactionChangesJson)]
     pub fn decrypt_next_transaction_changes_json(
         &self,

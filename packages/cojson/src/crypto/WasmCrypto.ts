@@ -269,12 +269,6 @@ class SessionLogAdapter {
     return { signature: output as Signature, transaction };
   }
 
-  testExpectedHashAfter(transactions: Transaction[]): Hash {
-    return this.sessionLog.testExpectedHashAfter(
-      transactions.map((tx) => stableStringify(tx)),
-    ) as Hash;
-  }
-
   decryptNextTransactionChangesJson(
     txIndex: number,
     keySecret: KeySecret,

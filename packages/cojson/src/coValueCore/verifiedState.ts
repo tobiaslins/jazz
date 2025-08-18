@@ -161,13 +161,6 @@ export class VerifiedState {
     );
   }
 
-  expectedNewHashAfter(
-    sessionID: SessionID,
-    newTransactions: Transaction[],
-  ): { expectedNewHash: Hash } {
-    return this.sessions.testExpectedHashAfter(sessionID, newTransactions);
-  }
-
   newContentSince(
     knownState: CoValueKnownState | undefined,
   ): NewContentMessage[] | undefined {

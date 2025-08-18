@@ -565,10 +565,6 @@ export class CoValueCore {
 
     const signerAgent = this.node.getCurrentAgent();
 
-    let privacyMode:
-      | { type: "private"; keyID: KeyID; keySecret: KeySecret }
-      | { type: "trusting" };
-
     let result: { signature: Signature; transaction: Transaction };
 
     if (privacy === "private") {

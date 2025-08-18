@@ -365,10 +365,6 @@ export class PureJSSessionLog implements SessionLogImpl {
     };
   }
 
-  testExpectedHashAfter(transactionsJson: string[]): string {
-    return this.expectedHashAfter(transactionsJson);
-  }
-
   decryptNextTransactionChangesJson(
     txIndex: number,
     keySecret: KeySecret,

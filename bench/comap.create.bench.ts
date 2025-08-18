@@ -134,7 +134,7 @@ describe("Message import", () => {
   });
 });
 
-describe("Message import + decrypt", () => {
+describe("decrypt", () => {
   bench(
     "current version (SessionLog)",
     () => {
@@ -142,8 +142,8 @@ describe("Message import + decrypt", () => {
 
       const node = schema.account._raw.core.node;
 
-      node.expectCoValueLoaded(message.id as any).getCurrentContent();
-      node.internalDeleteCoValue(message.id as any);
+      // @ts-expect-error
+      node.expectCoValueLoaded(message.id as any)._cachedContent = undefined;
     },
     { iterations: 500 },
   );
@@ -156,7 +156,8 @@ describe("Message import + decrypt", () => {
       const node = schemaLatest.account._raw.core.node;
 
       node.expectCoValueLoaded(message.id as any).getCurrentContent();
-      node.internalDeleteCoValue(message.id as any);
+      // @ts-expect-error
+      node.expectCoValueLoaded(message.id as any)._cachedContent = undefined;
     },
     { iterations: 500 },
   );

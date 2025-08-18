@@ -167,35 +167,6 @@ export class SessionMap {
     }
   }
 
-  // TODO: Shall we get rid of this?
-  testExpectedHashAfter(
-    sessionID: SessionID,
-    transactions: Transaction[],
-  ): { expectedNewHash: Hash } {
-    let sessionLog = this.sessions.get(sessionID);
-    if (!sessionLog) {
-      // TODO: this is ugly
-      const ephemeralSigner = this.crypto.newRandomSigner();
-      const ephemeralSignerID = this.crypto.getSignerID(ephemeralSigner);
-
-      const ephemeralSessionLog = this.crypto.createSessionLog(
-        this.id,
-        sessionID,
-        ephemeralSignerID,
-      );
-      const result = ephemeralSessionLog.testExpectedHashAfter(
-        transactions.map((tx) => stableStringify(tx)),
-      );
-      ephemeralSessionLog.free();
-      return { expectedNewHash: result as Hash };
-    }
-    return {
-      expectedNewHash: sessionLog.impl.testExpectedHashAfter(
-        transactions.map((tx) => stableStringify(tx)),
-      ) as Hash,
-    };
-  }
-
   knownState(): CoValueKnownState {
     const sessions: CoValueKnownState["sessions"] = {};
     for (const [sessionID, sessionLog] of this.sessions.entries()) {
