@@ -112,19 +112,36 @@ export class VerifiedState {
     return result;
   }
 
-  makeNewTransaction(
+  makeNewTrustingTransaction(
     sessionID: SessionID,
     signerAgent: ControlledAccountOrAgent,
     changes: JsonValue[],
-    privacy:
-      | { type: "private"; keyID: KeyID; keySecret: KeySecret }
-      | { type: "trusting" },
-  ): { signature: Signature; transaction: Transaction } {
-    const result = this.sessions.makeNewTransaction(
+  ) {
+    const result = this.sessions.makeNewTrustingTransaction(
       sessionID,
       signerAgent,
       changes,
-      privacy,
+    );
+
+    this._cachedNewContentSinceEmpty = undefined;
+    this._cachedKnownState = undefined;
+
+    return result;
+  }
+
+  makeNewPrivateTransaction(
+    sessionID: SessionID,
+    signerAgent: ControlledAccountOrAgent,
+    changes: JsonValue[],
+    keyID: KeyID,
+    keySecret: KeySecret,
+  ) {
+    const result = this.sessions.makeNewPrivateTransaction(
+      sessionID,
+      signerAgent,
+      changes,
+      keyID,
+      keySecret,
     );
 
     this._cachedNewContentSinceEmpty = undefined;

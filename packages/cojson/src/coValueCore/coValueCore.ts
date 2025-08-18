@@ -569,6 +569,8 @@ export class CoValueCore {
       | { type: "private"; keyID: KeyID; keySecret: KeySecret }
       | { type: "trusting" };
 
+    let result: { signature: Signature; transaction: Transaction };
+
     if (privacy === "private") {
       const { secret: keySecret, id: keyID } = this.getCurrentReadKey();
 
@@ -576,21 +578,26 @@ export class CoValueCore {
         throw new Error("Can't make transaction without read key secret");
       }
 
-      privacyMode = { type: "private", keyID, keySecret };
+      result = this.verified.makeNewPrivateTransaction(
+        sessionID,
+        signerAgent,
+        changes,
+        keyID,
+        keySecret,
+      );
+
+      if (result.transaction.privacy === "private") {
+        this._decryptionCache[result.transaction.encryptedChanges] = changes;
+      }
     } else {
-      privacyMode = { type: "trusting" };
+      result = this.verified.makeNewTrustingTransaction(
+        sessionID,
+        signerAgent,
+        changes,
+      );
     }
 
-    const { transaction, signature } = this.verified.makeNewTransaction(
-      sessionID,
-      signerAgent,
-      changes,
-      privacyMode,
-    );
-
-    if (transaction.privacy === "private") {
-      this._decryptionCache[transaction.encryptedChanges] = changes;
-    }
+    const { transaction, signature } = result;
 
     this.node.syncManager.recordTransactionsSize([transaction], "local");
 

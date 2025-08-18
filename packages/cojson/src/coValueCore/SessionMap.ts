@@ -1,6 +1,5 @@
 import { Result, err, ok } from "neverthrow";
 import { ControlledAccountOrAgent } from "../coValues/account.js";
-import { TRANSACTION_CONFIG } from "../config.js";
 import type {
   CryptoProvider,
   Hash,
@@ -69,12 +68,7 @@ export class SessionMap {
     const sessionLog = this.getOrCreateSessionLog(sessionID, signerID);
 
     try {
-      // TODO: we don't use the return value here
-      sessionLog.impl.tryAdd(
-        newTransactions.map((tx) => stableStringify(tx)),
-        newSignature,
-        skipVerify,
-      );
+      sessionLog.impl.tryAdd(newTransactions, newSignature, skipVerify);
 
       this.addTransactionsToJsLog(sessionLog, newTransactions, newSignature);
 
@@ -90,13 +84,12 @@ export class SessionMap {
     }
   }
 
-  makeNewTransaction(
+  makeNewPrivateTransaction(
     sessionID: SessionID,
     signerAgent: ControlledAccountOrAgent,
     changes: JsonValue[],
-    privacy:
-      | { type: "private"; keyID: KeyID; keySecret: KeySecret }
-      | { type: "trusting" },
+    keyID: KeyID,
+    keySecret: KeySecret,
   ): { signature: Signature; transaction: Transaction } {
     const sessionLog = this.getOrCreateSessionLog(
       sessionID,
@@ -105,30 +98,48 @@ export class SessionMap {
 
     const madeAt = Date.now();
 
-    let signatureAndTxJson: string;
+    const result = sessionLog.impl.addNewPrivateTransaction(
+      signerAgent,
+      changes,
+      keyID,
+      keySecret,
+      madeAt,
+    );
 
-    if (privacy.type === "private") {
-      signatureAndTxJson = sessionLog.impl.addNewPrivateTransaction(
-        stableStringify(changes),
-        signerAgent.currentSignerSecret(),
-        privacy.keySecret,
-        privacy.keyID,
-        madeAt,
-      ) as Signature;
-    } else {
-      signatureAndTxJson = sessionLog.impl.addNewTrustingTransaction(
-        stableStringify(changes),
-        signerAgent.currentSignerSecret(),
-        madeAt,
-      ) as Signature;
-    }
+    this.addTransactionsToJsLog(
+      sessionLog,
+      [result.transaction],
+      result.signature,
+    );
 
-    // TODO: we don't use the hash here
-    const { signature, transaction } = JSON.parse(signatureAndTxJson);
+    return result;
+  }
 
-    this.addTransactionsToJsLog(sessionLog, [transaction], signature);
+  makeNewTrustingTransaction(
+    sessionID: SessionID,
+    signerAgent: ControlledAccountOrAgent,
+    changes: JsonValue[],
+  ): { signature: Signature; transaction: Transaction } {
+    const sessionLog = this.getOrCreateSessionLog(
+      sessionID,
+      signerAgent.currentSignerID(),
+    );
 
-    return { signature, transaction };
+    const madeAt = Date.now();
+
+    const result = sessionLog.impl.addNewTrustingTransaction(
+      signerAgent,
+      changes,
+      madeAt,
+    );
+
+    this.addTransactionsToJsLog(
+      sessionLog,
+      [result.transaction],
+      result.signature,
+    );
+
+    return result;
   }
 
   private addTransactionsToJsLog(

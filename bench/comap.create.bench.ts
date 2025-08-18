@@ -51,11 +51,15 @@ async function createSchema(
   };
 }
 
+const PUREJS = true;
+
 // @ts-expect-error
-const schema = await createSchema(tools, WasmCrypto);
-const schemaLatest = await createSchema(toolsLatest, WasmCryptoLatest);
-// const schema = await createSchema(tools, PureJSCrypto);
-// const schemaLatest = await createSchema(toolsLatest, PureJSCryptoLatest);
+const schema = await createSchema(tools, PUREJS ? PureJSCrypto : WasmCrypto);
+const schemaLatest = await createSchema(
+  toolsLatest,
+  // @ts-expect-error
+  PUREJS ? PureJSCryptoLatest : WasmCryptoLatest,
+);
 
 const message = schema.Message.create(
   {
@@ -94,7 +98,7 @@ describe("Message.create", () => {
         schema.Group.create(schema.account),
       );
     },
-    { iterations: 1000 },
+    { iterations: 300 },
   );
 
   bench(
@@ -112,20 +116,20 @@ describe("Message.create", () => {
         schemaLatest.Group.create(schemaLatest.account),
       );
     },
-    { iterations: 1000 },
+    { iterations: 300 },
   );
 });
 
 describe("Message import", () => {
-  bench("current version (SessionLog)", () => {
-    tools.importContentPieces(content ?? [], schema.account as any);
-    schema.account._raw.core.node.internalDeleteCoValue(message.id as any);
-  });
-
   bench("latest version (0.17.2)", () => {
     toolsLatest.importContentPieces(content ?? [], schemaLatest.account);
     schemaLatest.account._raw.core.node.internalDeleteCoValue(
       message.id as any,
     );
+  });
+
+  bench("current version (SessionLog)", () => {
+    tools.importContentPieces(content ?? [], schema.account as any);
+    schema.account._raw.core.node.internalDeleteCoValue(message.id as any);
   });
 });

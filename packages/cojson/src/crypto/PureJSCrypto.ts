@@ -3,7 +3,11 @@ import { ed25519, x25519 } from "@noble/curves/ed25519";
 import { blake3 } from "@noble/hashes/blake3";
 import { base58 } from "@scure/base";
 import { base64URLtoBytes, bytesToBase64url } from "../base64url.js";
-import { Transaction } from "../coValueCore/verifiedState.js";
+import {
+  PrivateTransaction,
+  Transaction,
+  TrustingTransaction,
+} from "../coValueCore/verifiedState.js";
 import { RawCoID, SessionID, TransactionID } from "../ids.js";
 import { Stringified, stableStringify } from "../jsonStringify.js";
 import { JsonValue } from "../jsonValue.js";
@@ -24,6 +28,7 @@ import {
   textDecoder,
   textEncoder,
 } from "./crypto.js";
+import { ControlledAccountOrAgent } from "../coValues/account.js";
 
 type Blake3State = ReturnType<typeof blake3.create>;
 
@@ -241,30 +246,37 @@ export class PureJSSessionLog implements SessionLogImpl {
   }
 
   tryAdd(
-    transactionsJson: string[],
-    newSignatureStr: string,
+    transactions: Transaction[],
+    newSignature: Signature,
     skipVerify: boolean,
-  ): string {
+  ): void {
+    this.internalTryAdd(
+      transactions.map((tx) => stableStringify(tx)),
+      newSignature,
+      skipVerify,
+    );
+  }
+
+  internalTryAdd(
+    transactions: string[],
+    newSignature: Signature,
+    skipVerify: boolean,
+  ) {
     if (!skipVerify) {
       const checkHasher = this.crypto.cloneBlake3State(this.streamingHash);
-      for (const tx of transactionsJson) {
+
+      for (const tx of transactions) {
         checkHasher.update(textEncoder.encode(tx));
       }
       const newHash = checkHasher.digest();
       const newHashEncoded = `hash_z${base58.encode(newHash)}`;
 
-      if (
-        !this.crypto.verify(
-          newSignatureStr as Signature,
-          newHashEncoded,
-          this.signerID,
-        )
-      ) {
+      if (!this.crypto.verify(newSignature, newHashEncoded, this.signerID)) {
         throw new Error("Signature verification failed");
       }
     }
 
-    for (const tx of transactionsJson) {
+    for (const tx of transactions) {
       this.crypto.blake3IncrementalUpdate(
         this.streamingHash,
         textEncoder.encode(tx),
@@ -272,9 +284,9 @@ export class PureJSSessionLog implements SessionLogImpl {
       this.transactions.push(tx);
     }
 
-    this.lastSignature = newSignatureStr as Signature;
+    this.lastSignature = newSignature;
 
-    return newSignatureStr;
+    return newSignature;
   }
 
   expectedHashAfter(transactionsJson: string[]): string {
@@ -286,58 +298,71 @@ export class PureJSSessionLog implements SessionLogImpl {
     return `hash_z${base58.encode(newHash)}`;
   }
 
-  addNewPrivateTransaction(
-    changesJson: string,
-    signerSecret: string,
-    encryptionKey: string,
-    keyId: string,
-    madeAt: number,
-  ): string {
-    const encryptedChanges = this.crypto.encrypt(
-      JSON.parse(changesJson),
-      encryptionKey as KeySecret,
-      {
-        in: this.coID,
-        tx: { sessionID: this.sessionID, txIndex: this.transactions.length },
-      },
+  internalAddNewTransaction(
+    transaction: string,
+    signerAgent: ControlledAccountOrAgent,
+  ) {
+    this.crypto.blake3IncrementalUpdate(
+      this.streamingHash,
+      textEncoder.encode(transaction),
     );
+    const newHash = this.crypto.blake3DigestForState(this.streamingHash);
+    const newHashEncoded = `hash_z${base58.encode(newHash)}`;
+    const signature = this.crypto.sign(
+      signerAgent.currentSignerSecret(),
+      newHashEncoded,
+    );
+    this.transactions.push(transaction);
+    this.lastSignature = signature;
+
+    return signature;
+  }
+
+  addNewPrivateTransaction(
+    signerAgent: ControlledAccountOrAgent,
+    changes: JsonValue[],
+    keyID: KeyID,
+    keySecret: KeySecret,
+    madeAt: number,
+  ): { signature: Signature; transaction: PrivateTransaction } {
+    const encryptedChanges = this.crypto.encrypt(changes, keySecret, {
+      in: this.coID,
+      tx: { sessionID: this.sessionID, txIndex: this.transactions.length },
+    });
     const tx = {
       encryptedChanges: encryptedChanges,
       madeAt: madeAt,
       privacy: "private",
-      keyUsed: keyId as KeyID,
+      keyUsed: keyID,
     } satisfies Transaction;
-    const txJson = stableStringify(tx);
-    const hashAfter = this.expectedHashAfter([txJson]);
-    const signature = this.crypto.sign(signerSecret as SignerSecret, hashAfter);
-    const signatureStr = this.tryAdd([txJson], signature, false);
-    return JSON.stringify({
-      signature: signatureStr,
+    const signature = this.internalAddNewTransaction(
+      stableStringify(tx),
+      signerAgent,
+    );
+    return {
+      signature: signature as Signature,
       transaction: tx,
-      hash: hashAfter,
-    });
+    };
   }
 
   addNewTrustingTransaction(
-    changesJson: string,
-    signerSecret: string,
-
+    signerAgent: ControlledAccountOrAgent,
+    changes: JsonValue[],
     madeAt: number,
-  ): string {
+  ): { signature: Signature; transaction: TrustingTransaction } {
     const tx = {
-      changes: changesJson as Stringified<JsonValue[]>,
+      changes: stableStringify(changes),
       madeAt: madeAt,
       privacy: "trusting",
     } satisfies Transaction;
-    const txJson = stableStringify(tx);
-    const hashAfter = this.expectedHashAfter([txJson]);
-    const signature = this.crypto.sign(signerSecret as SignerSecret, hashAfter);
-    const signatureStr = this.tryAdd([txJson], signature, false);
-    return JSON.stringify({
-      signature: signatureStr,
+    const signature = this.internalAddNewTransaction(
+      stableStringify(tx),
+      signerAgent,
+    );
+    return {
+      signature: signature as Signature,
       transaction: tx,
-      hash: hashAfter,
-    });
+    };
   }
 
   testExpectedHashAfter(transactionsJson: string[]): string {

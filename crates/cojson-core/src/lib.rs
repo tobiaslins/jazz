@@ -241,7 +241,7 @@ impl SessionLogInternal {
         transactions: Vec<Box<RawValue>>,
         new_signature: &Signature,
         skip_verify: bool,
-    ) -> Result<Hash, CoJsonCoreError> {
+    ) -> Result<(), CoJsonCoreError> {
         if !skip_verify {
             let new_hash = self.expected_hash_after(&transactions);
             let new_hash_encoded_stringified = format!(
@@ -270,7 +270,7 @@ impl SessionLogInternal {
 
         self.last_signature = Some(new_signature.clone());
 
-        Ok(self.hasher.finalize().into())
+        Ok(())
     }
 
     pub fn add_new_transaction(
@@ -279,7 +279,7 @@ impl SessionLogInternal {
         mode: TransactionMode,
         signer_secret: &SignerSecret,
         made_at: u64,
-    ) -> (Hash, Signature, Transaction) {
+    ) -> (Signature, Transaction) {
         let new_tx = match mode {
             TransactionMode::Private { key_id, key_secret } => {
                 let tx_index = self.transactions_json.len() as u32;
@@ -333,7 +333,7 @@ impl SessionLogInternal {
 
         self.last_signature = Some(new_signature.clone());
 
-        (new_hash.into(), new_signature, new_tx)
+        (new_signature, new_tx)
     }
 
     pub fn decrypt_next_transaction_changes_json(
@@ -588,7 +588,7 @@ mod tests {
         let made_at = tx_from_example["madeAt"].as_u64().unwrap();
 
         // Call the function we are testing
-        let (_new_hash, new_signature, _new_tx) = session.add_new_transaction(
+        let (new_signature, _new_tx) = session.add_new_transaction(
             changes_json,
             TransactionMode::Private {
                 key_id: key_id,
