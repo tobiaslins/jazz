@@ -1,7 +1,7 @@
 import { LocalNode, Peer, RawAccountID } from "cojson";
 import { getIndexedDBStorage } from "cojson-storage-indexeddb";
 import { WebSocketPeerWithReconnection } from "cojson-transport-ws";
-import { WasmCrypto } from "cojson/crypto/WasmCrypto";
+import { PureJSCrypto } from "cojson/crypto/PureJSCrypto";
 import {
   Account,
   AccountClass,
@@ -48,7 +48,7 @@ class BrowserWebSocketPeerWithReconnection extends WebSocketPeerWithReconnection
 }
 
 async function setupPeers(options: BaseBrowserContextOptions) {
-  const crypto = options.crypto || (await WasmCrypto.create());
+  const crypto = options.crypto || (await PureJSCrypto.create());
   let node: LocalNode | undefined = undefined;
 
   const { useIndexedDB } = getStorageOptions(options.storage);
