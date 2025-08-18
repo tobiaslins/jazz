@@ -432,15 +432,23 @@ export class CoValueCore {
     };
   }
 
-  tryAddTransactions(
-    sessionID: SessionID,
-    newTransactions: Transaction[],
-    givenExpectedNewHash: Hash | undefined,
-    newSignature: Signature,
-    notifyMode: "immediate" | "deferred",
-    skipVerify: boolean = false,
-    givenNewStreamingHash?: StreamingHash,
-  ): Result<true, TryAddTransactionsError> {
+  tryAddTransactions({
+    sessionID,
+    newTransactions,
+    givenExpectedNewHash,
+    newSignature,
+    notifyMode,
+    skipVerify = false,
+    givenNewStreamingHash,
+  }: {
+    sessionID: SessionID;
+    newTransactions: Transaction[];
+    givenExpectedNewHash?: Hash;
+    newSignature: Signature;
+    notifyMode: "immediate" | "deferred";
+    skipVerify?: boolean;
+    givenNewStreamingHash?: StreamingHash;
+  }): Result<true, TryAddTransactionsError> {
     return this.node
       .resolveAccountAgent(
         accountOrAgentIDfromSessionID(sessionID),
@@ -456,7 +464,7 @@ export class CoValueCore {
 
         const signerID = this.crypto.getAgentSignerID(agent);
 
-        const result = this.verified.tryAddTransactions(
+        const result = this.verified.tryAddTransactions({
           sessionID,
           signerID,
           newTransactions,
@@ -464,7 +472,7 @@ export class CoValueCore {
           newSignature,
           skipVerify,
           givenNewStreamingHash,
-        );
+        });
 
         if (result.isOk()) {
           if (
@@ -605,15 +613,15 @@ export class CoValueCore {
       expectedNewHash,
     );
 
-    const success = this.tryAddTransactions(
+    const success = this.tryAddTransactions({
       sessionID,
-      [transaction],
-      expectedNewHash,
-      signature,
-      "immediate",
-      true,
-      newStreamingHash,
-    )._unsafeUnwrap({ withStackTrace: true });
+      newTransactions: [transaction],
+      givenExpectedNewHash: expectedNewHash,
+      newSignature: signature,
+      notifyMode: "immediate",
+      skipVerify: true,
+      givenNewStreamingHash: newStreamingHash,
+    })._unsafeUnwrap({ withStackTrace: true });
 
     if (success) {
       const session = this.verified.sessions.get(sessionID);

@@ -631,13 +631,13 @@ export class SyncManager {
         }
       }
 
-      const result = coValue.tryAddTransactions(
+      const result = coValue.tryAddTransactions({
         sessionID,
         newTransactions,
-        undefined,
-        newContentForSession.lastSignature,
-        "immediate",
-      );
+        givenExpectedNewHash: undefined,
+        newSignature: newContentForSession.lastSignature,
+        notifyMode: "immediate",
+      });
 
       if (result.isErr()) {
         if (peer) {

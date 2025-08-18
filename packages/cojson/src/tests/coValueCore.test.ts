@@ -66,13 +66,13 @@ test("Can create coValue with new agent credentials and add transaction to it", 
 
   expect(
     coValue
-      .tryAddTransactions(
-        node.currentSessionID,
-        [transaction],
-        expectedNewHash,
-        Crypto.sign(agent.currentSignerSecret(), expectedNewHash),
-        "immediate",
-      )
+      .tryAddTransactions({
+        sessionID: node.currentSessionID,
+        newTransactions: [transaction],
+        givenExpectedNewHash: expectedNewHash,
+        newSignature: Crypto.sign(agent.currentSignerSecret(), expectedNewHash),
+        notifyMode: "immediate",
+      })
       ._unsafeUnwrap(),
   ).toBe(true);
 });
@@ -105,13 +105,16 @@ test("transactions with wrong signature are rejected", () => {
 
   // eslint-disable-next-line neverthrow/must-use-result
   coValue
-    .tryAddTransactions(
-      node.currentSessionID,
-      [transaction],
-      expectedNewHash,
-      Crypto.sign(Crypto.getAgentSignerSecret(wrongAgent), expectedNewHash),
-      "immediate",
-    )
+    .tryAddTransactions({
+      sessionID: node.currentSessionID,
+      newTransactions: [transaction],
+      givenExpectedNewHash: expectedNewHash,
+      newSignature: Crypto.sign(
+        Crypto.getAgentSignerSecret(wrongAgent),
+        expectedNewHash,
+      ),
+      notifyMode: "immediate",
+    })
     ._unsafeUnwrapErr({ withStackTrace: true });
 });
 
@@ -153,13 +156,13 @@ test("transactions with correctly signed, but wrong hash are rejected", () => {
 
   // eslint-disable-next-line neverthrow/must-use-result
   coValue
-    .tryAddTransactions(
-      node.currentSessionID,
-      [transaction],
-      expectedNewHash,
-      Crypto.sign(agent.currentSignerSecret(), expectedNewHash),
-      "immediate",
-    )
+    .tryAddTransactions({
+      sessionID: node.currentSessionID,
+      newTransactions: [transaction],
+      givenExpectedNewHash: expectedNewHash,
+      newSignature: Crypto.sign(agent.currentSignerSecret(), expectedNewHash),
+      notifyMode: "immediate",
+    })
     ._unsafeUnwrapErr({ withStackTrace: true });
 });
 
@@ -208,13 +211,13 @@ test("New transactions in a group correctly update owned values, including subsc
   expect(map.core.getValidSortedTransactions().length).toBe(1);
 
   const manuallyAdddedTxSuccess = group.core
-    .tryAddTransactions(
-      node.currentSessionID,
-      [resignationThatWeJustLearnedAbout],
-      expectedNewHash,
-      signature,
-      "immediate",
-    )
+    .tryAddTransactions({
+      sessionID: node.currentSessionID,
+      newTransactions: [resignationThatWeJustLearnedAbout],
+      givenExpectedNewHash: expectedNewHash,
+      newSignature: signature,
+      notifyMode: "immediate",
+    })
     ._unsafeUnwrap({ withStackTrace: true });
 
   expect(manuallyAdddedTxSuccess).toBe(true);
@@ -383,13 +386,13 @@ test("getValidTransactions should skip trusting transactions with invalid JSON",
     ]);
 
   coValue
-    .tryAddTransactions(
-      node.currentSessionID,
-      [validTransaction],
-      expectedNewHash1,
-      Crypto.sign(agent.currentSignerSecret(), expectedNewHash1),
-      "immediate",
-    )
+    .tryAddTransactions({
+      sessionID: node.currentSessionID,
+      newTransactions: [validTransaction],
+      givenExpectedNewHash: expectedNewHash1,
+      newSignature: Crypto.sign(agent.currentSignerSecret(), expectedNewHash1),
+      notifyMode: "immediate",
+    })
     ._unsafeUnwrap();
 
   // Create an invalid transaction with malformed JSON
@@ -405,13 +408,13 @@ test("getValidTransactions should skip trusting transactions with invalid JSON",
     ]);
 
   coValue
-    .tryAddTransactions(
-      node.currentSessionID,
-      [invalidTransaction],
-      expectedNewHash2,
-      Crypto.sign(agent.currentSignerSecret(), expectedNewHash2),
-      "immediate",
-    )
+    .tryAddTransactions({
+      sessionID: node.currentSessionID,
+      newTransactions: [invalidTransaction],
+      givenExpectedNewHash: expectedNewHash2,
+      newSignature: Crypto.sign(agent.currentSignerSecret(), expectedNewHash2),
+      notifyMode: "immediate",
+    })
     ._unsafeUnwrap();
 
   // Get valid transactions - should only include the valid one
@@ -462,13 +465,13 @@ test("getValidTransactions should skip private transactions with invalid JSON", 
     ]);
 
   coValue
-    .tryAddTransactions(
-      node.currentSessionID,
-      [validTransaction],
-      expectedNewHash1,
-      Crypto.sign(agent.currentSignerSecret(), expectedNewHash1),
-      "immediate",
-    )
+    .tryAddTransactions({
+      sessionID: node.currentSessionID,
+      newTransactions: [validTransaction],
+      givenExpectedNewHash: expectedNewHash1,
+      newSignature: Crypto.sign(agent.currentSignerSecret(), expectedNewHash1),
+      notifyMode: "immediate",
+    })
     ._unsafeUnwrap();
 
   const textEncoder = new TextEncoder();
@@ -499,13 +502,13 @@ test("getValidTransactions should skip private transactions with invalid JSON", 
     ]);
 
   coValue
-    .tryAddTransactions(
-      node.currentSessionID,
-      [invalidTransaction],
-      expectedNewHash2,
-      Crypto.sign(agent.currentSignerSecret(), expectedNewHash2),
-      "immediate",
-    )
+    .tryAddTransactions({
+      sessionID: node.currentSessionID,
+      newTransactions: [invalidTransaction],
+      givenExpectedNewHash: expectedNewHash2,
+      newSignature: Crypto.sign(agent.currentSignerSecret(), expectedNewHash2),
+      notifyMode: "immediate",
+    })
     ._unsafeUnwrap();
 
   // Get valid transactions - should skip the invalid one
