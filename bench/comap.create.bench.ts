@@ -51,7 +51,7 @@ async function createSchema(
   };
 }
 
-const PUREJS = false;
+const PUREJS = true;
 
 // @ts-expect-error
 const schema = await createSchema(tools, PUREJS ? PureJSCrypto : WasmCrypto);
@@ -134,7 +134,7 @@ describe("Message import", () => {
   });
 });
 
-describe("decrypt", () => {
+describe("import+ decrypt", () => {
   bench(
     "current version (SessionLog)",
     () => {
@@ -142,8 +142,8 @@ describe("decrypt", () => {
 
       const node = schema.account._raw.core.node;
 
-      // @ts-expect-error
-      node.expectCoValueLoaded(message.id as any)._cachedContent = undefined;
+      node.expectCoValueLoaded(message.id as any).getCurrentContent();
+      node.internalDeleteCoValue(message.id as any);
     },
     { iterations: 500 },
   );
@@ -156,8 +156,7 @@ describe("decrypt", () => {
       const node = schemaLatest.account._raw.core.node;
 
       node.expectCoValueLoaded(message.id as any).getCurrentContent();
-      // @ts-expect-error
-      node.expectCoValueLoaded(message.id as any)._cachedContent = undefined;
+      node.internalDeleteCoValue(message.id as any);
     },
     { iterations: 500 },
   );
