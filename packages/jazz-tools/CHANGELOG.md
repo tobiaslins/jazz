@@ -1,5 +1,15 @@
 # jazz-tools
 
+## 0.17.6
+
+### Patch Changes
+
+- 82de51c: allow creating CoValues from JSON without an active account
+- 694b168: get resized image's id without triggering shallow load in `loadImageBySize`
+  - cojson@0.17.6
+  - cojson-storage-indexeddb@0.17.6
+  - cojson-transport-ws@0.17.6
+
 ## 0.17.5
 
 ### Patch Changes
