@@ -206,32 +206,64 @@ describe("Simple CoList operations", async () => {
       expect(recipe[1]?.name).toBe("margarine");
     });
 
-    test("push", () => {
-      const list = TestList.create(["bread", "butter", "onion"], {
-        owner: me,
+    describe("push", () => {
+      test("push into CoList of non-collaborative values", () => {
+        const list = TestList.create(["bread", "butter", "onion"], {
+          owner: me,
+        });
+        list.$jazz.push("cheese");
+        expect(list[3]).toBe("cheese");
+        expect(list.$jazz.raw.asArray()).toEqual([
+          "bread",
+          "butter",
+          "onion",
+          "cheese",
+        ]);
       });
-      list.$jazz.push("cheese");
-      expect(list[3]).toBe("cheese");
-      expect(list.$jazz.raw.asArray()).toEqual([
-        "bread",
-        "butter",
-        "onion",
-        "cheese",
-      ]);
+
+      test("push CoValue into list of CoValues", () => {
+        const Schema = co.list(co.plainText());
+        const list = Schema.create(["bread", "butter", "onion"]);
+        list.$jazz.push(Schema.element.create("cheese"));
+        expect(list[3]?.toString()).toBe("cheese");
+      });
+
+      test("push JSON into list of CoValues", () => {
+        const Schema = co.list(co.plainText());
+        const list = Schema.create(["bread", "butter", "onion"]);
+        list.$jazz.push("cheese");
+        expect(list[3]?.toString()).toBe("cheese");
+      });
     });
 
-    test("unshift", () => {
-      const list = TestList.create(["bread", "butter", "onion"], {
-        owner: me,
+    describe("unshift", () => {
+      test("add non-collaborative element at the beginning of the list", () => {
+        const list = TestList.create(["bread", "butter", "onion"], {
+          owner: me,
+        });
+        list.$jazz.unshift("lettuce");
+        expect(list[0]).toBe("lettuce");
+        expect(list.$jazz.raw.asArray()).toEqual([
+          "lettuce",
+          "bread",
+          "butter",
+          "onion",
+        ]);
       });
-      list.$jazz.unshift("lettuce");
-      expect(list[0]).toBe("lettuce");
-      expect(list.$jazz.raw.asArray()).toEqual([
-        "lettuce",
-        "bread",
-        "butter",
-        "onion",
-      ]);
+
+      test("add CoValue at the beginning of a CoValue CoList", () => {
+        const Schema = co.list(co.plainText());
+        const list = Schema.create(["bread", "butter", "onion"]);
+        list.$jazz.unshift(Schema.element.create("lettuce"));
+        expect(list[0]?.toString()).toBe("lettuce");
+      });
+
+      test("add JSON at the beginning of a CoValue CoList", () => {
+        const Schema = co.list(co.plainText());
+        const list = Schema.create(["bread", "butter", "onion"]);
+        list.$jazz.unshift("lettuce");
+        expect(list[0]?.toString()).toBe("lettuce");
+      });
     });
 
     test("pop", () => {
@@ -310,6 +342,20 @@ describe("Simple CoList operations", async () => {
           "pepper",
           "onion",
         ]);
+      });
+
+      test("insert CoValue into a CoValue CoList", () => {
+        const Schema = co.list(co.plainText());
+        const list = Schema.create(["bread", "butter", "onion"]);
+        list.$jazz.splice(1, 0, Schema.element.create("lettuce"));
+        expect(list[1]?.toString()).toBe("lettuce");
+      });
+
+      test("insert JSON into a CoValue CoList", () => {
+        const Schema = co.list(co.plainText());
+        const list = Schema.create(["bread", "butter", "onion"]);
+        list.$jazz.splice(1, 0, "lettuce");
+        expect(list[1]?.toString()).toBe("lettuce");
       });
     });
 

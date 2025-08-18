@@ -457,7 +457,7 @@ export class CoListJazzApi<L extends CoList>
    *
    * @category Content
    */
-  push(...items: CoListItem<L>[]): number {
+  push(...items: CoFieldInit<CoListItem<L>>[]): number {
     this.raw.appendItems(
       toRawItems(items, this.schema[ItemsSym], this.owner),
       undefined,
@@ -473,7 +473,7 @@ export class CoListJazzApi<L extends CoList>
    *
    * @category Content
    */
-  unshift(...items: CoListItem<L>[]): number {
+  unshift(...items: CoFieldInit<CoListItem<L>>[]): number {
     for (const item of toRawItems(
       items as CoListItem<L>[],
       this.schema[ItemsSym],
@@ -525,7 +525,7 @@ export class CoListJazzApi<L extends CoList>
   splice(
     start: number,
     deleteCount: number,
-    ...items: CoListItem<L>[]
+    ...items: CoFieldInit<CoListItem<L>>[]
   ): CoListItem<L>[] {
     const deleted = this.coList.slice(start, start + deleteCount);
 
