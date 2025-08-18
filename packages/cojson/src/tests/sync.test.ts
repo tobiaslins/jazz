@@ -160,6 +160,22 @@ test("should delete the peer state when the peer closes if persistent is false",
   expect(syncManager.peers[peer.id]).toBeUndefined();
 });
 
+test("should not verify transactions when SyncManager has verification disabled", async () => {
+  jazzCloud.node.syncManager.disableTransactionVerification();
+  const verifySpy = vi.spyOn(jazzCloud.node.crypto, "verify");
+
+  const client = await setupTestAccount({ connected: true });
+
+  const group = client.node.createGroup();
+  const map = group.createMap();
+  map.set("key1", "value1", "trusting");
+
+  await map.core.waitForSync();
+
+  expect(jazzCloud.node.getCoValue(map.id).isAvailable()).toBe(true);
+  expect(verifySpy).not.toHaveBeenCalled();
+});
+
 describe("sync - extra tests", () => {
   test("Node handles disconnection and reconnection of a peer gracefully", async () => {
     // Create two nodes

@@ -132,6 +132,11 @@ export class SyncManager {
   peers: { [key: PeerID]: PeerState } = {};
   local: LocalNode;
 
+  // When true, transactions will not be verified.
+  // This is useful when syncing only for storage purposes, with the expectation that
+  // the transactions have already been verified by the [trusted] peer that sent them.
+  private skipVerify: boolean = false;
+
   peersCounter = metrics.getMeter("cojson").createUpDownCounter("jazz.peers", {
     description: "Amount of connected peers",
     valueType: ValueType.INT,
@@ -153,6 +158,10 @@ export class SyncManager {
   }
 
   syncState: SyncStateManager;
+
+  disableTransactionVerification() {
+    this.skipVerify = true;
+  }
 
   peersInPriorityOrder(): PeerState[] {
     return Object.values(this.peers).sort((a, b) => {
@@ -637,6 +646,7 @@ export class SyncManager {
         givenExpectedNewHash: undefined,
         newSignature: newContentForSession.lastSignature,
         notifyMode: "immediate",
+        skipVerify: this.skipVerify,
       });
 
       if (result.isErr()) {
