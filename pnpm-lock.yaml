@@ -94,6 +94,15 @@ importers:
 
   bench:
     dependencies:
+      cojson:
+        specifier: workspace:*
+        version: link:../packages/cojson
+      cojson-latest:
+        specifier: npm:cojson@latest
+        version: cojson@0.17.5
+      jazz-tools:
+        specifier: workspace:*
+        version: link:../packages/jazz-tools
       jazz-tools-latest:
         specifier: npm:jazz-tools@latest
         version: jazz-tools@0.17.5(fcnzwos7wezy7dy4sqlslwz4mm)

@@ -3,10 +3,12 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "cojson": "workspace:*",
+    "jazz-tools": "workspace:*",
+    "cojson-latest": "npm:cojson@latest",
     "jazz-tools-latest": "npm:jazz-tools@latest"
   },
   "scripts": {
     "bench": "vitest bench"
-  },
-  "version": "0.0.0"
+  }
 }

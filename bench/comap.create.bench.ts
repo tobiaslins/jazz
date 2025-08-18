@@ -1,8 +1,8 @@
-import { describe, bench, beforeEach } from "vitest";
+import { describe, bench } from "vitest";
 import * as tools from "jazz-tools";
-import * as toolsTesting from "jazz-tools/testing";
 import * as toolsLatest from "jazz-tools-latest";
-import * as toolsTestingLatest from "jazz-tools-latest/testing";
+import { WasmCrypto } from "cojson/crypto/WasmCrypto";
+import { WasmCrypto as WasmCryptoLatest } from "cojson-latest/crypto/WasmCrypto";
 
 const sampleReactions = ["👍", "❤️", "😄", "🎉"];
 const sampleHiddenIn = ["user1", "user2", "user3"];
@@ -10,18 +10,13 @@ const sampleHiddenIn = ["user1", "user2", "user3"];
 // Define the schemas based on the provided Message schema
 async function createSchema(
   tools: typeof toolsLatest,
-  testing: typeof toolsTestingLatest,
+  WasmCrypto: typeof WasmCryptoLatest,
 ) {
   const Embed = tools.co.map({
     url: tools.z.string(),
     title: tools.z.string().optional(),
     description: tools.z.string().optional(),
     image: tools.z.string().optional(),
-  });
-
-  const ReactionList = tools.co.map({
-    reactions: tools.co.list(tools.z.string()),
-    counts: tools.co.map(tools.z.number()),
   });
 
   const Message = tools.co.map({
@@ -37,8 +32,12 @@ async function createSchema(
     threadId: tools.z.string().optional(),
   });
 
-  const account = await testing.createJazzTestAccount({
-    isCurrentActiveAccount: true,
+  const ctx = await tools.createJazzContextForNewAccount({
+    creationProps: {
+      name: "Test Account",
+    },
+    // @ts-expect-error
+    crypto: await WasmCrypto.create(),
   });
 
   return {
@@ -46,13 +45,13 @@ async function createSchema(
     sampleReactions,
     sampleHiddenIn,
     Group: tools.Group,
-    account,
+    account: ctx.account,
   };
 }
 
 // @ts-expect-error
-const schema = await createSchema(tools, toolsTesting);
-const schemaLatest = await createSchema(toolsLatest, toolsTestingLatest);
+const schema = await createSchema(tools, WasmCrypto);
+const schemaLatest = await createSchema(toolsLatest, WasmCryptoLatest);
 
 const message = schema.Message.create(
   {
@@ -63,7 +62,7 @@ const message = schema.Message.create(
     reactions: sampleReactions,
     author: "user123",
   },
-  schema.Group.create().makePublic(),
+  schema.Group.create(schema.account).makePublic(),
 );
 
 const content = await tools.exportCoValue(schema.Message, message.id, {
@@ -82,7 +81,7 @@ describe("Message.create", () => {
         reactions: sampleReactions,
         author: "user123",
       },
-      schema.Group.create(),
+      schema.Group.create(schema.account),
     );
   });
 
@@ -96,7 +95,7 @@ describe("Message.create", () => {
         reactions: sampleReactions,
         author: "user123",
       },
-      schemaLatest.Group.create(),
+      schemaLatest.Group.create(schemaLatest.account),
     );
   });
 });
