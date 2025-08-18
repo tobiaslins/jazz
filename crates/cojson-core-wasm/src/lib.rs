@@ -1,5 +1,5 @@
 use cojson_core::{
-    CoID, CoJsonCoreError, KeyID, KeySecret, SessionID, SessionLogInternal, Signature, SignerID, SignerSecret, Transaction, TransactionMode
+    CoID, CoJsonCoreError, KeyID, KeySecret, SessionID, SessionLogInternal, Signature, SignerID, SignerSecret, TransactionMode
 };
 use serde_json::value::RawValue;
 use serde::{Deserialize, Serialize};
@@ -149,10 +149,10 @@ impl SessionLog {
     pub fn decrypt_next_transaction_changes_json(
         &self,
         tx_index: u32,
-        key_secret: &[u8],
+        encryption_key: String,
     ) -> Result<String, CojsonCoreWasmError> {
         Ok(self
             .internal
-            .decrypt_next_transaction_changes_json(tx_index, key_secret)?)
+            .decrypt_next_transaction_changes_json(tx_index, KeySecret(encryption_key))?)
     }
 }

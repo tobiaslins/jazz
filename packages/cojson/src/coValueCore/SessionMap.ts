@@ -10,7 +10,7 @@ import type {
   SignerID,
 } from "../crypto/crypto.js";
 import { RawCoID, SessionID } from "../ids.js";
-import { stableStringify } from "../jsonStringify.js";
+import { parseJSON, stableStringify, Stringified } from "../jsonStringify.js";
 import { JsonValue } from "../jsonValue.js";
 import { CoValueKnownState } from "../sync.js";
 import { TryAddTransactionsError } from "./coValueCore.js";
@@ -202,6 +202,25 @@ export class SessionMap {
       sessions[sessionID] = sessionLog.transactions.length;
     }
     return { id: this.id, header: true, sessions };
+  }
+
+  decryptTransaction(
+    sessionID: SessionID,
+    txIndex: number,
+    keySecret: KeySecret,
+  ): JsonValue[] | undefined {
+    const sessionLog = this.sessions.get(sessionID);
+    if (!sessionLog) {
+      return undefined;
+    }
+    const decrypted = sessionLog.impl.decryptNextTransactionChangesJson(
+      txIndex,
+      keySecret,
+    );
+    if (!decrypted) {
+      return undefined;
+    }
+    return parseJSON(decrypted as Stringified<JsonValue[] | undefined>);
   }
 
   get size() {

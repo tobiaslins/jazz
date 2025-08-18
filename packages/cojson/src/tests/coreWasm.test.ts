@@ -154,9 +154,10 @@ describe("SessionLog WASM", () => {
       true,
     );
 
-    const keySecret = decodeZ(exampleSessions.knownKeys[0].secret);
-
-    const decrypted = session.decryptNextTransactionChangesJson(0, keySecret);
+    const decrypted = session.decryptNextTransactionChangesJson(
+      0,
+      exampleSessions.knownKeys[0].secret,
+    );
 
     expect(decrypted).toEqual(
       '[{"after":"start","op":"app","value":"co_zMphsnYN6GU8nn2HDY5suvyGufY"}]',

@@ -642,6 +642,12 @@ export class CoValueCore {
     ignorePrivateTransactions: boolean;
     knownTransactions?: CoValueKnownState["sessions"];
   }): DecryptedTransaction[] {
+    if (!this.verified) {
+      throw new Error(
+        "CoValueCore: getValidTransactions called on coValue without verified state",
+      );
+    }
+
     const validTransactions = determineValidTransactions(
       this,
       options?.knownTransactions,
@@ -685,25 +691,12 @@ export class CoValueCore {
       let decryptedChanges = this._decryptionCache[tx.encryptedChanges];
 
       if (!decryptedChanges) {
-        const decryptedString = this.crypto.decryptRawForTransaction(
-          tx.encryptedChanges,
+        decryptedChanges = this.verified.decryptTransaction(
+          txID.sessionID,
+          txID.txIndex,
           readKey,
-          {
-            in: this.id,
-            tx: txID,
-          },
         );
 
-        try {
-          decryptedChanges = decryptedString && parseJSON(decryptedString);
-        } catch (e) {
-          logger.error("Failed to parse private transaction on " + this.id, {
-            err: e,
-            txID,
-            changes: decryptedString?.slice(0, 50),
-          });
-          continue;
-        }
         this._decryptionCache[tx.encryptedChanges] = decryptedChanges;
       }
 

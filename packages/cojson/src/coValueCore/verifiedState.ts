@@ -354,6 +354,14 @@ export class VerifiedState {
       sessions,
     };
   }
+
+  decryptTransaction(
+    sessionID: SessionID,
+    txIndex: number,
+    keySecret: KeySecret,
+  ): JsonValue[] | undefined {
+    return this.sessions.decryptTransaction(sessionID, txIndex, keySecret);
+  }
 }
 
 function getNextKnownSignatureIdx(

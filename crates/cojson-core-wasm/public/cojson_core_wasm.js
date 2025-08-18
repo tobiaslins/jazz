@@ -183,13 +183,6 @@ function takeFromExternrefTable0(idx) {
     return value;
 }
 
-function passArray8ToWasm0(arg, malloc) {
-    const ptr = malloc(arg.length * 1, 1) >>> 0;
-    getUint8ArrayMemory0().set(arg, ptr / 1);
-    WASM_VECTOR_LEN = arg.length;
-    return ptr;
-}
-
 const SessionLogFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
     : new FinalizationRegistry(ptr => wasm.__wbg_sessionlog_free(ptr >>> 0, 1));
@@ -340,14 +333,14 @@ export class SessionLog {
     }
     /**
      * @param {number} tx_index
-     * @param {Uint8Array} key_secret
+     * @param {string} encryption_key
      * @returns {string}
      */
-    decryptNextTransactionChangesJson(tx_index, key_secret) {
+    decryptNextTransactionChangesJson(tx_index, encryption_key) {
         let deferred3_0;
         let deferred3_1;
         try {
-            const ptr0 = passArray8ToWasm0(key_secret, wasm.__wbindgen_malloc);
+            const ptr0 = passStringToWasm0(encryption_key, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
             const len0 = WASM_VECTOR_LEN;
             const ret = wasm.sessionlog_decryptNextTransactionChangesJson(this.__wbg_ptr, tx_index, ptr0, len0);
             var ptr2 = ret[0];

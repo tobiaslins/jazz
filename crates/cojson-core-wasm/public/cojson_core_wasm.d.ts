@@ -8,7 +8,7 @@ export class SessionLog {
   addNewPrivateTransaction(changes_json: string, signer_secret: string, encryption_key: string, key_id: string, made_at: number): string;
   addNewTrustingTransaction(changes_json: string, signer_secret: string, made_at: number): string;
   testExpectedHashAfter(transactions_js: any): string;
-  decryptNextTransactionChangesJson(tx_index: number, key_secret: Uint8Array): string;
+  decryptNextTransactionChangesJson(tx_index: number, encryption_key: string): string;
 }
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;

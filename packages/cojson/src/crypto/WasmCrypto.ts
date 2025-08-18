@@ -277,7 +277,7 @@ class SessionLogAdapter {
 
   decryptNextTransactionChangesJson(
     txIndex: number,
-    keySecret: Uint8Array,
+    keySecret: KeySecret,
   ): string {
     const output = this.sessionLog.decryptNextTransactionChangesJson(
       txIndex,

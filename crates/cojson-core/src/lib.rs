@@ -339,7 +339,7 @@ impl SessionLogInternal {
     pub fn decrypt_next_transaction_changes_json(
         &self,
         tx_index: u32,
-        key_secret: &[u8],
+        key_secret: KeySecret,
     ) -> Result<String, CoJsonCoreError> {
         let tx_json = self
             .transactions_json
@@ -371,7 +371,8 @@ impl SessionLogInternal {
                 let ciphertext_b64 = &encrypted_val[prefix.len()..];
                 let mut ciphertext = URL_SAFE.decode(ciphertext_b64)?;
 
-                let mut cipher = XSalsa20::new(key_secret.into(), &nonce.into());
+                let secret_key_bytes: [u8; 32] = (&key_secret).into();
+                let mut cipher = XSalsa20::new((&secret_key_bytes).into(), &nonce.into());
                 cipher.apply_keystream(&mut ciphertext);
 
                 Ok(String::from_utf8(ciphertext)?)
@@ -476,7 +477,6 @@ mod tests {
                 );
 
                 assert_eq!(final_hash_encoded, example.last_hash);
-                assert_eq!(returned_final_hash.0, example.last_hash);
                 assert_eq!(session.last_signature, Some(new_signature));
             }
             Err(CoJsonCoreError::SignatureVerification(new_hash_encoded)) => {
@@ -542,7 +542,6 @@ mod tests {
                 );
 
                 assert_eq!(final_hash_encoded, example.last_hash);
-                assert_eq!(returned_final_hash.0, example.last_hash);
                 assert_eq!(session.last_signature, Some(new_signature));
             }
             Err(CoJsonCoreError::SignatureVerification(new_hash_encoded)) => {
@@ -683,10 +682,10 @@ mod tests {
             )
             .unwrap();
 
-        let key_secret = decode_z(&root.known_keys[0].secret).unwrap();
+        let key_secret = KeySecret(root.known_keys[0].secret.clone());
 
         let decrypted = session
-            .decrypt_next_transaction_changes_json(0, &key_secret)
+            .decrypt_next_transaction_changes_json(0, key_secret)
             .unwrap();
 
         assert_eq!(

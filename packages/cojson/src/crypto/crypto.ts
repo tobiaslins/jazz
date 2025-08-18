@@ -375,7 +375,7 @@ export interface SessionLogImpl {
   testExpectedHashAfter(transactions_js: any): string;
   decryptNextTransactionChangesJson(
     tx_index: number,
-    key_secret: Uint8Array,
+    key_secret: KeySecret,
   ): string;
   free(): void;
 }
