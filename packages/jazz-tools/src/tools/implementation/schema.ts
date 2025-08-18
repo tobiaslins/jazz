@@ -171,7 +171,9 @@ export function instantiateRefEncodedWithInit<V extends CoValue>(
       `Cannot automatically create CoValue from value: ${JSON.stringify(init)}. Use the CoValue schema's create() method instead.`,
     );
   }
-  const owner = Group.create();
+  const node = parentOwner._raw.core.node;
+  const rawGroup = node.createGroup();
+  const owner = new Group({ fromRaw: rawGroup });
   owner.addMember(parentOwner.castAs(Group));
   // @ts-expect-error - create is a static method in all CoValue classes
   return schema.ref.create(init, owner);
