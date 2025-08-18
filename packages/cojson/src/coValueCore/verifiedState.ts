@@ -161,13 +161,6 @@ export class VerifiedState {
     );
   }
 
-  expectedNewHashAfter(
-    sessionID: SessionID,
-    newTransactions: Transaction[],
-  ): { expectedNewHash: Hash } {
-    return this.sessions.testExpectedHashAfter(sessionID, newTransactions);
-  }
-
   newContentSince(
     knownState: CoValueKnownState | undefined,
   ): NewContentMessage[] | undefined {
@@ -353,6 +346,14 @@ export class VerifiedState {
       header: true,
       sessions,
     };
+  }
+
+  decryptTransaction(
+    sessionID: SessionID,
+    txIndex: number,
+    keySecret: KeySecret,
+  ): JsonValue[] | undefined {
+    return this.sessions.decryptTransaction(sessionID, txIndex, keySecret);
   }
 }
 

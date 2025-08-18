@@ -365,13 +365,9 @@ export class PureJSSessionLog implements SessionLogImpl {
     };
   }
 
-  testExpectedHashAfter(transactionsJson: string[]): string {
-    return this.expectedHashAfter(transactionsJson);
-  }
-
   decryptNextTransactionChangesJson(
     txIndex: number,
-    keySecret: Uint8Array,
+    keySecret: KeySecret,
   ): string {
     const txJson = this.transactions[txIndex];
     if (!txJson) {
@@ -389,7 +385,10 @@ export class PureJSSessionLog implements SessionLogImpl {
       const ciphertext = base64URLtoBytes(
         tx.encryptedChanges.substring("encrypted_U".length),
       );
-      const plaintext = xsalsa20(keySecret, nOnce, ciphertext);
+      const keySecretBytes = base58.decode(
+        keySecret.substring("keySecret_z".length),
+      );
+      const plaintext = xsalsa20(keySecretBytes, nOnce, ciphertext);
 
       return textDecoder.decode(plaintext);
     } else {

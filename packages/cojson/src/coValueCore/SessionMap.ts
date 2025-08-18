@@ -10,7 +10,7 @@ import type {
   SignerID,
 } from "../crypto/crypto.js";
 import { RawCoID, SessionID } from "../ids.js";
-import { stableStringify } from "../jsonStringify.js";
+import { parseJSON, stableStringify, Stringified } from "../jsonStringify.js";
 import { JsonValue } from "../jsonValue.js";
 import { CoValueKnownState } from "../sync.js";
 import { TryAddTransactionsError } from "./coValueCore.js";
@@ -167,41 +167,31 @@ export class SessionMap {
     }
   }
 
-  // TODO: Shall we get rid of this?
-  testExpectedHashAfter(
-    sessionID: SessionID,
-    transactions: Transaction[],
-  ): { expectedNewHash: Hash } {
-    let sessionLog = this.sessions.get(sessionID);
-    if (!sessionLog) {
-      // TODO: this is ugly
-      const ephemeralSigner = this.crypto.newRandomSigner();
-      const ephemeralSignerID = this.crypto.getSignerID(ephemeralSigner);
-
-      const ephemeralSessionLog = this.crypto.createSessionLog(
-        this.id,
-        sessionID,
-        ephemeralSignerID,
-      );
-      const result = ephemeralSessionLog.testExpectedHashAfter(
-        transactions.map((tx) => stableStringify(tx)),
-      );
-      ephemeralSessionLog.free();
-      return { expectedNewHash: result as Hash };
-    }
-    return {
-      expectedNewHash: sessionLog.impl.testExpectedHashAfter(
-        transactions.map((tx) => stableStringify(tx)),
-      ) as Hash,
-    };
-  }
-
   knownState(): CoValueKnownState {
     const sessions: CoValueKnownState["sessions"] = {};
     for (const [sessionID, sessionLog] of this.sessions.entries()) {
       sessions[sessionID] = sessionLog.transactions.length;
     }
     return { id: this.id, header: true, sessions };
+  }
+
+  decryptTransaction(
+    sessionID: SessionID,
+    txIndex: number,
+    keySecret: KeySecret,
+  ): JsonValue[] | undefined {
+    const sessionLog = this.sessions.get(sessionID);
+    if (!sessionLog) {
+      return undefined;
+    }
+    const decrypted = sessionLog.impl.decryptNextTransactionChangesJson(
+      txIndex,
+      keySecret,
+    );
+    if (!decrypted) {
+      return undefined;
+    }
+    return parseJSON(decrypted as Stringified<JsonValue[] | undefined>);
   }
 
   get size() {
