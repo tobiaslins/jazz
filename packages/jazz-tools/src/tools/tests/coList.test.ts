@@ -359,26 +359,6 @@ describe("Simple CoList operations", async () => {
       });
     });
 
-    test("applyDiff", () => {
-      const list = TestList.create(["bread", "butter", "onion"], {
-        owner: me,
-      });
-      // replace
-      list.$jazz.applyDiff(["bread", "margarine", "onion"]);
-      expect(list.$jazz.raw.asArray()).toEqual(["bread", "margarine", "onion"]);
-      // delete
-      list.$jazz.applyDiff(["bread", "onion"]);
-      expect(list.$jazz.raw.asArray()).toEqual(["bread", "onion"]);
-      // insert multiple
-      list.$jazz.applyDiff(["bread", "margarine", "onion", "cheese"]);
-      expect(list.$jazz.raw.asArray()).toEqual([
-        "bread",
-        "margarine",
-        "onion",
-        "cheese",
-      ]);
-    });
-
     test("filter + assign to coMap", () => {
       const TestMap = co.map({
         list: TestList,
@@ -442,7 +422,7 @@ describe("CoList applyDiff operations", async () => {
     expect(list.$jazz.raw.asArray()).toEqual([]);
   });
 
-  test("applyDiff with reference values", () => {
+  test("applyDiff with reference values using CoValues", () => {
     const NestedItem = co.list(z.string());
     const RefList = co.list(NestedItem);
 
@@ -450,6 +430,38 @@ describe("CoList applyDiff operations", async () => {
     const item2 = NestedItem.create(["item2"], { owner: me });
     const item3 = NestedItem.create(["item3"], { owner: me });
     const item4 = NestedItem.create(["item4"], { owner: me });
+
+    const list = RefList.create([item1, item2], { owner: me });
+
+    // Test adding reference items
+    list.$jazz.applyDiff([item1, item2, item3]);
+    expect(list.length).toBe(3);
+    expect(list[2]?.[0]).toBe("item3");
+
+    // Test removing reference items
+    list.$jazz.applyDiff([item1, item3]);
+    expect(list.length).toBe(2);
+    expect(list[0]?.[0]).toBe("item1");
+    expect(list[1]?.[0]).toBe("item3");
+
+    // Test replacing reference items
+    list.$jazz.applyDiff([item4]);
+    expect(list.length).toBe(1);
+    expect(list[0]?.[0]).toBe("item4");
+
+    // Test empty list
+    list.$jazz.applyDiff([]);
+    expect(list.$jazz.raw.asArray()).toEqual([]);
+  });
+
+  test("applyDiff with reference values using JSON", () => {
+    const NestedItem = co.list(z.string());
+    const RefList = co.list(NestedItem);
+
+    const item1 = ["item1"];
+    const item2 = ["item2"];
+    const item3 = ["item3"];
+    const item4 = ["item4"];
 
     const list = RefList.create([item1, item2], { owner: me });
 
