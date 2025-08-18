@@ -17,7 +17,7 @@ import {
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { removeGetters } from "../../schemaUtils.js";
-import { CoMapSchemaInit } from "../typeConverters/CoFieldInit.js";
+import { CoMapSchemaInit } from "../typeConverters/CoFieldSchemaInit.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { z } from "../zodReExport.js";

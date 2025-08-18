@@ -10,6 +10,10 @@ import {
 } from "cojson";
 import {
   AnonymousJazzAgent,
+  CoFeed,
+  CoList,
+  CoPlainText,
+  CoRichText,
   CoValue,
   CoValueClass,
   Group,
@@ -553,30 +557,34 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
    *
    * @category Content
    */
-  set<K extends CoKeys<M>>(key: K, value: M[K]): void {
+  set<K extends CoKeys<M>>(key: K, value: CoFieldInit<M[K]>): void {
     const descriptor = this.getDescriptor(key as string);
 
     if (!descriptor) {
       throw Error(`Cannot set unknown key ${key}`);
     }
 
+    let refId = (value as CoValue)?.$jazz?.id;
     if (descriptor === "json") {
       this.raw.set(key, value as JsonValue | undefined);
     } else if ("encoded" in descriptor) {
       this.raw.set(key, descriptor.encoded.encode(value));
     } else if (isRefEncoded(descriptor)) {
       if (value === undefined) {
-        if (descriptor.optional) {
-          this.raw.set(key, null);
-        } else {
+        if (!descriptor.optional) {
           throw Error(`Cannot set required reference ${key} to undefined`);
         }
-      } else if ((value as CoValue)?.$jazz?.id) {
-        this.raw.set(key, (value as CoValue).$jazz.id);
+        this.raw.set(key, null);
       } else {
-        throw Error(
-          `Cannot set reference ${key} to a non-CoValue. Got ${value}`,
-        );
+        if (!refId) {
+          const coValue = instantiateRefEncodedWithInit(
+            descriptor,
+            value,
+            this.owner,
+          );
+          refId = coValue.$jazz.id;
+        }
+        this.raw.set(key, refId);
       }
     }
   }
@@ -816,6 +824,13 @@ export type CoKeys<Map extends object> = Exclude<
 >;
 
 /**
+ * Extract keys of properties that are required
+ */
+export type RequiredCoKeys<Map extends object> = {
+  [K in CoKeys<Map>]: undefined extends Map[K] ? never : K;
+}[CoKeys<Map>];
+
+/**
  * Extract keys of properties that can be undefined
  */
 export type OptionalCoKeys<Map extends object> = {
@@ -856,6 +871,25 @@ type ForceRequiredRef<V> = V extends InstanceType<CoValueClass> | null
 export type CoMapInit<Map extends object> = PartialOnUndefined<{
   [Key in CoKeys<Map>]: ForceRequiredRef<Map[Key]>;
 }>;
+
+// TODO simplify on $jazz.set hover
+export type CoFieldInit<V> =
+  | V
+  | (V extends CoValue
+      ? V extends CoMap
+        ? CoMapInit2<V>
+        : V extends CoList<infer T> | CoFeed<infer T>
+          ? ReadonlyArray<CoFieldInit<T>>
+          : V extends CoPlainText | CoRichText
+            ? string
+            : never
+      : never);
+
+export type CoMapInit2<Map extends object> = {
+  [K in RequiredCoKeys<Map>]: CoFieldInit<Map[K]>;
+} & {
+  [K in OptionalCoKeys<Map>]?: CoFieldInit<Map[K]> | undefined;
+};
 
 // TODO: cache handlers per descriptor for performance?
 const CoMapProxyHandler: ProxyHandler<CoMap> = {

@@ -538,7 +538,7 @@ describe("CoMap", async () => {
       john.$jazz.delete("pet");
     });
 
-    test("update a reference", () => {
+    test("update a reference using a CoValue", () => {
       const Dog = co.map({
         name: z.string(),
       });
@@ -558,6 +558,92 @@ describe("CoMap", async () => {
       john.$jazz.set("dog", Dog.create({ name: "Fido" }));
 
       expect(john.dog?.name).toEqual("Fido");
+    });
+
+    describe("update a reference using a JSON object", () => {
+      const Dog = co.map({
+        type: z.literal("dog"),
+        name: z.string(),
+      });
+      const Cat = co.map({
+        type: z.literal("cat"),
+        name: z.string(),
+      });
+      const Person = co.map({
+        name: co.plainText(),
+        bio: co.richText().optional(),
+        dog: Dog,
+        get friends() {
+          return co.list(Person);
+        },
+        reactions: co.feed(co.plainText()),
+        pet: co.discriminatedUnion("type", [Dog, Cat]),
+      });
+
+      let person: ReturnType<typeof Person.create>;
+
+      beforeEach(() => {
+        person = Person.create({
+          name: "John",
+          bio: "I am a software engineer",
+          dog: { type: "dog", name: "Rex" },
+          friends: [
+            {
+              name: "Jane",
+              bio: "I am a mechanical engineer",
+              dog: { type: "dog", name: "Fido" },
+              friends: [],
+              reactions: [],
+              pet: { type: "dog", name: "Fido" },
+            },
+          ],
+          reactions: ["👎", "👍"],
+          pet: { type: "cat", name: "Whiskers" },
+        });
+      });
+
+      test("automatically creates CoValues for each CoValue reference", () => {
+        person.$jazz.set("name", "Jack");
+        person.$jazz.set("bio", "I am a lawyer");
+        person.$jazz.set("dog", { type: "dog", name: "Fido" });
+        person.$jazz.set("friends", [
+          {
+            name: "Jane",
+            bio: "I am a mechanical engineer",
+            dog: { type: "dog", name: "Firulais" },
+            friends: [],
+            reactions: [],
+            pet: { type: "cat", name: "Nala" },
+          },
+        ]);
+        person.$jazz.set("reactions", ["🧑‍🔬"]);
+        person.$jazz.set("pet", { type: "cat", name: "Salem" });
+
+        expect(person.name.toString()).toEqual("Jack");
+        expect(person.bio!.toString()).toEqual("I am a lawyer");
+        expect(person.dog.name).toEqual("Fido");
+        expect(person.friends[0]!.name.toString()).toEqual("Jane");
+        expect(person.friends[0]!.dog.name).toEqual("Firulais");
+        expect(person.friends[0]!.pet.name).toEqual("Nala");
+        expect(person.reactions.byMe?.value?.toString()).toEqual("🧑‍🔬");
+        expect(person.pet.name).toEqual("Salem");
+      });
+
+      test("undefined properties can be ommited", () => {
+        person.$jazz.set("friends", [
+          {
+            name: "Jane",
+            // bio is omitted
+            dog: { type: "dog", name: "Firulais" },
+            friends: [],
+            reactions: [],
+            pet: { type: "cat", name: "Nala" },
+          },
+        ]);
+
+        expect(person.friends[0]!.name.toString()).toEqual("Jane");
+        expect(person.friends[0]!.bio).toBeUndefined();
+      });
     });
 
     test("changes should be listed in getEdits()", () => {

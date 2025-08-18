@@ -331,19 +331,12 @@ describe("Simple CoList operations", async () => {
         { owner: me },
       );
 
-      expect(() => {
-        map.$jazz.set(
-          "list",
-          // @ts-expect-error
-          map.list?.filter((item) => item !== "butter"),
-        );
-      }).toThrow("Cannot set reference list to a non-CoValue. Got bread,onion");
+      map.$jazz.set(
+        "list",
+        map.list?.filter((item) => item !== "butter"),
+      );
 
-      expect(map.list?.$jazz.raw.asArray()).toEqual([
-        "bread",
-        "butter",
-        "onion",
-      ]);
+      expect(map.list?.$jazz.raw.asArray()).toEqual(["bread", "onion"]);
     });
 
     test("filter + assign to CoList", () => {

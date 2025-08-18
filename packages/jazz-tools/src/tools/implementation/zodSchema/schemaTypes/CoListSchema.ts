@@ -9,7 +9,7 @@ import {
   coOptionalDefiner,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
-import { CoListInit } from "../typeConverters/CoFieldInit.js";
+import { CoListSchemaInit } from "../typeConverters/CoFieldSchemaInit.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { AnyZodOrCoValueSchema } from "../zodSchema.js";
@@ -28,7 +28,7 @@ export class CoListSchema<T extends AnyZodOrCoValueSchema>
   ) {}
 
   create(
-    items: CoListInit<T>,
+    items: CoListSchemaInit<T>,
     options?: { owner: Account | Group } | Account | Group,
   ): CoListInstance<T> {
     return this.coValueClass.create(items as any, options) as CoListInstance<T>;
