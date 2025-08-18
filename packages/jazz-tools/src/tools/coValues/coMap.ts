@@ -160,10 +160,12 @@ export class CoMap extends CoValueBase implements CoValue {
    * ```
    *
    * @category Creation
+   *
+   * @deprecated Use `co.map(...).create`.
    **/
   static create<M extends CoMap>(
     this: CoValueClass<M>,
-    init: Simplify<CoMapInit<M>>,
+    init: Simplify<CoMapInit_DEPRECATED<M>>,
     options?:
       | {
           owner: Account | Group;
@@ -234,7 +236,7 @@ export class CoMap extends CoValueBase implements CoValue {
    */
   static _createCoMap<M extends CoMap>(
     instance: M,
-    init: Simplify<CoMapInit<M>>,
+    init: Simplify<CoMapInit_DEPRECATED<M>>,
     options?:
       | {
           owner: Account | Group;
@@ -261,7 +263,7 @@ export class CoMap extends CoValueBase implements CoValue {
    */
   static rawFromInit<M extends CoMap, Fields extends object>(
     instance: M,
-    init: Simplify<CoMapInit<Fields>> | undefined,
+    init: Simplify<CoMapInit_DEPRECATED<Fields>> | undefined,
     owner: Account | Group,
     uniqueness?: CoValueUniqueness,
   ) {
@@ -355,6 +357,8 @@ export class CoMap extends CoValueBase implements CoValue {
    * ```
    *
    * @category Subscription & Loading
+   *
+   * @deprecated Use `co.map(...).load` instead.
    */
   static load<M extends CoMap, const R extends RefsToResolve<M> = true>(
     this: CoValueClass<M>,
@@ -394,6 +398,8 @@ export class CoMap extends CoValueBase implements CoValue {
    * ```
    *
    * @category Subscription & Loading
+   *
+   * @deprecated Use `co.map(...).subscribe` instead.
    */
   static subscribe<M extends CoMap, const R extends RefsToResolve<M> = true>(
     this: CoValueClass<M>,
@@ -470,6 +476,8 @@ export class CoMap extends CoValueBase implements CoValue {
    * @param options The options for creating or loading the CoMap. This includes the intended state of the CoMap, its unique identifier, its owner, and the references to resolve.
    * @returns Either an existing & modified CoMap, or a new initialised CoMap if none exists.
    * @category Subscription & Loading
+   *
+   * @deprecated Use `co.map(...).upsertUnique` instead.
    */
   static async upsertUnique<
     M extends CoMap,
@@ -477,7 +485,7 @@ export class CoMap extends CoValueBase implements CoValue {
   >(
     this: CoValueClass<M>,
     options: {
-      value: Simplify<CoMapInit<M>>;
+      value: Simplify<CoMapInit_DEPRECATED<M>>;
       unique: CoValueUniqueness["uniqueness"];
       owner: Account | Group;
       resolve?: RefsToResolveStrict<M, R>;
@@ -496,7 +504,9 @@ export class CoMap extends CoValueBase implements CoValue {
         unique: options.unique,
       }) as Resolved<M, R>;
     } else {
-      (map as M).$jazz.applyDiff(options.value as Partial<CoMapInit<M>>);
+      (map as M).$jazz.applyDiff(
+        options.value as Partial<CoMapInit_DEPRECATED<M>>,
+      );
     }
 
     return await loadCoValueWithoutMe(this, mapId, {
@@ -512,6 +522,8 @@ export class CoMap extends CoValueBase implements CoValue {
    * @param ownerID The ID of the owner of the CoMap.
    * @param options Additional options for loading the CoMap.
    * @returns The loaded CoMap, or null if unavailable.
+   *
+   * @deprecated Use `co.map(...).loadUnique` instead.
    */
   static loadUnique<M extends CoMap, const R extends RefsToResolve<M> = true>(
     this: CoValueClass<M>,
@@ -613,7 +625,7 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
    *
    * @category Content
    */
-  applyDiff<N extends Partial<CoMapInit<M>>>(newValues: N): M {
+  applyDiff<N extends Partial<CoMapInit_DEPRECATED<M>>>(newValues: N): M {
     for (const key in newValues) {
       if (Object.prototype.hasOwnProperty.call(newValues, key)) {
         const tKey = key as keyof typeof newValues & keyof this;
@@ -868,7 +880,7 @@ type ForceRequiredRef<V> = V extends InstanceType<CoValueClass> | null
     ? V | null
     : V;
 
-export type CoMapInit<Map extends object> = PartialOnUndefined<{
+export type CoMapInit_DEPRECATED<Map extends object> = PartialOnUndefined<{
   [Key in CoKeys<Map>]: ForceRequiredRef<Map[Key]>;
 }>;
 
@@ -877,7 +889,7 @@ export type CoFieldInit<V> =
   | V
   | (V extends CoValue
       ? V extends CoMap
-        ? CoMapInit2<V>
+        ? CoMapInit<V>
         : V extends CoList<infer T> | CoFeed<infer T>
           ? ReadonlyArray<CoFieldInit<T>>
           : V extends CoPlainText | CoRichText
@@ -885,7 +897,7 @@ export type CoFieldInit<V> =
             : never
       : never);
 
-export type CoMapInit2<Map extends object> = {
+export type CoMapInit<Map extends object> = {
   [K in RequiredCoKeys<Map>]: CoFieldInit<Map[K]>;
 } & {
   [K in OptionalCoKeys<Map>]?: CoFieldInit<Map[K]> | undefined;

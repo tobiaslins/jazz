@@ -1,7 +1,7 @@
 import {
   Account,
   CoMap,
-  CoMapInit,
+  CoMapInit_DEPRECATED,
   CoValueClass,
   Group,
   Simplify,
@@ -24,7 +24,7 @@ export class Profile extends CoMap {
    */
   static override create<M extends CoMap>(
     this: CoValueClass<M>,
-    init: Simplify<CoMapInit<M>>,
+    init: Simplify<CoMapInit_DEPRECATED<M>>,
     options?:
       | {
           owner: Group;
