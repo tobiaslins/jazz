@@ -1487,6 +1487,24 @@ describe("CoMap applyDiff", async () => {
       "Cannot set required reference nested to undefined",
     );
   });
+
+  test("applyDiff from JSON", () => {
+    const map = TestMap.create({
+      name: "Alice",
+      age: 30,
+      isActive: true,
+      birthday: new Date("1990-01-01"),
+      nested: NestedMap.create({ value: "original" }),
+    });
+
+    const newValues = {
+      nested: { value: "updated" },
+    };
+
+    map.$jazz.applyDiff(newValues);
+
+    expect(map.nested?.value).toEqual("updated");
+  });
 });
 
 describe("CoMap Typescript validation", async () => {

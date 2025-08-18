@@ -505,7 +505,7 @@ export class CoMap extends CoValueBase implements CoValue {
       }) as Resolved<M, R>;
     } else {
       (map as M).$jazz.applyDiff(
-        options.value as Partial<CoMapInit_DEPRECATED<M>>,
+        options.value as unknown as Partial<CoMapInit<M>>,
       );
     }
 
@@ -625,7 +625,7 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
    *
    * @category Content
    */
-  applyDiff<N extends Partial<CoMapInit_DEPRECATED<M>>>(newValues: N): M {
+  applyDiff<N extends Partial<CoMapInit<M>>>(newValues: N): M {
     for (const key in newValues) {
       if (Object.prototype.hasOwnProperty.call(newValues, key)) {
         const tKey = key as keyof typeof newValues & keyof this;
@@ -642,7 +642,7 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
           }
         } else if (isRefEncoded(descriptor)) {
           const currentId = (currentValue as CoValue | undefined)?.$jazz.id;
-          const newId = (newValue as CoValue | undefined)?.$jazz.id;
+          let newId = (newValue as CoValue | undefined)?.$jazz?.id;
           if (currentId !== newId) {
             this.set(tKey as any, newValue);
           }
