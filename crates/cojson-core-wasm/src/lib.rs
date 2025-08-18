@@ -37,10 +37,9 @@ pub struct SessionLog {
 }
 
 #[derive(Serialize, Deserialize)]
-struct MakeTransactionResult {
+struct PrivateTransactionResult {
     signature: String,
-    transaction: Transaction,
-    hash: String,
+    encrypted_changes: String,
 }
 
 #[wasm_bindgen]
@@ -67,7 +66,7 @@ impl SessionLog {
         transactions_json: Vec<String>,
         new_signature_str: String,
         skip_verify: bool,
-    ) -> Result<String, CojsonCoreWasmError> {
+    ) -> Result<(), CojsonCoreWasmError> {
         let transactions: Vec<Box<RawValue>> = transactions_json
             .into_iter()
             .map(|s| {
@@ -82,10 +81,10 @@ impl SessionLog {
 
         let new_signature = Signature(new_signature_str);
 
-        let new_hash = self.internal
+        self.internal
             .try_add(transactions, &new_signature, skip_verify)?;
 
-        Ok(new_hash.0)
+        Ok(())
     }
 
     #[wasm_bindgen(js_name = addNewPrivateTransaction)]
@@ -97,17 +96,22 @@ impl SessionLog {
         key_id: String,
         made_at: f64,
     ) -> Result<String, CojsonCoreWasmError> {
-        let (hash, signature, transaction) = self.internal.add_new_transaction(
+        let (signature, transaction) = self.internal.add_new_transaction(
             changes_json,
             TransactionMode::Private{key_id: KeyID(key_id), key_secret: KeySecret(encryption_key)},
             &SignerSecret(signer_secret),
             made_at as u64,
         );
 
-        let result = MakeTransactionResult{
+        // Extract encrypted_changes from the private transaction
+        let encrypted_changes = match transaction {
+            cojson_core::Transaction::Private(private_tx) => private_tx.encrypted_changes.value,
+            _ => return Err(CojsonCoreWasmError::Js(JsValue::from_str("Expected private transaction"))),
+        };
+
+        let result = PrivateTransactionResult{
             signature: signature.0,
-            transaction,
-            hash: hash.0,
+            encrypted_changes,
         };
 
         Ok(serde_json::to_string(&result)?)
@@ -120,20 +124,14 @@ impl SessionLog {
         signer_secret: String,
         made_at: f64,
     ) -> Result<String, CojsonCoreWasmError> {
-        let (hash, signature, transaction) = self.internal.add_new_transaction(
+        let (signature, _) = self.internal.add_new_transaction(
             changes_json,
             TransactionMode::Trusting,
             &SignerSecret(signer_secret),
             made_at as u64,
         );
 
-        let result = MakeTransactionResult{
-            signature: signature.0,
-            transaction,
-            hash: hash.0,
-        };
-
-        Ok(serde_json::to_string(&result)?)
+        Ok(signature.0)
     }
 
     #[wasm_bindgen(js_name = testExpectedHashAfter)]

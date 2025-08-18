@@ -92,6 +92,10 @@ export class ControlledAccount implements ControlledAccountOrAgent {
   account: RawAccount<AccountMeta>;
   agentSecret: AgentSecret;
   _cachedCurrentAgentID: AgentID | undefined;
+  _cachedCurrentSignerID: SignerID | undefined;
+  _cachedCurrentSignerSecret: SignerSecret | undefined;
+  _cachedCurrentSealerID: SealerID | undefined;
+  _cachedCurrentSealerSecret: SealerSecret | undefined;
   crypto: CryptoProvider;
 
   constructor(account: RawAccount<AccountMeta>, agentSecret: AgentSecret) {
@@ -114,19 +118,39 @@ export class ControlledAccount implements ControlledAccountOrAgent {
   }
 
   currentSignerID() {
-    return this.crypto.getAgentSignerID(this.currentAgentID());
+    if (this._cachedCurrentSignerID) {
+      return this._cachedCurrentSignerID;
+    }
+    const signerID = this.crypto.getAgentSignerID(this.currentAgentID());
+    this._cachedCurrentSignerID = signerID;
+    return signerID;
   }
 
   currentSignerSecret(): SignerSecret {
-    return this.crypto.getAgentSignerSecret(this.agentSecret);
+    if (this._cachedCurrentSignerSecret) {
+      return this._cachedCurrentSignerSecret;
+    }
+    const signerSecret = this.crypto.getAgentSignerSecret(this.agentSecret);
+    this._cachedCurrentSignerSecret = signerSecret;
+    return signerSecret;
   }
 
   currentSealerID() {
-    return this.crypto.getAgentSealerID(this.currentAgentID());
+    if (this._cachedCurrentSealerID) {
+      return this._cachedCurrentSealerID;
+    }
+    const sealerID = this.crypto.getAgentSealerID(this.currentAgentID());
+    this._cachedCurrentSealerID = sealerID;
+    return sealerID;
   }
 
   currentSealerSecret(): SealerSecret {
-    return this.crypto.getAgentSealerSecret(this.agentSecret);
+    if (this._cachedCurrentSealerSecret) {
+      return this._cachedCurrentSealerSecret;
+    }
+    const sealerSecret = this.crypto.getAgentSealerSecret(this.agentSecret);
+    this._cachedCurrentSealerSecret = sealerSecret;
+    return sealerSecret;
   }
 }
 

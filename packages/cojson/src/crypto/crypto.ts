@@ -1,10 +1,15 @@
 import { base58 } from "@scure/base";
-import { RawAccountID } from "../coValues/account.js";
+import { ControlledAccountOrAgent, RawAccountID } from "../coValues/account.js";
 import { AgentID, RawCoID, TransactionID } from "../ids.js";
 import { SessionID } from "../ids.js";
 import { Stringified, parseJSON, stableStringify } from "../jsonStringify.js";
 import { JsonValue } from "../jsonValue.js";
 import { logger } from "../logger.js";
+import {
+  PrivateTransaction,
+  Transaction,
+  TrustingTransaction,
+} from "../coValueCore/verifiedState.js";
 
 function randomBytes(bytesLength = 32): Uint8Array {
   return crypto.getRandomValues(new Uint8Array(bytesLength));
@@ -351,22 +356,22 @@ export const secretSeedLength = 32;
 export interface SessionLogImpl {
   clone(): SessionLogImpl;
   tryAdd(
-    transactions_json: string[],
-    new_signature_str: string,
-    skip_verify: boolean,
-  ): string;
+    transactions: Transaction[],
+    newSignature: Signature,
+    skipVerify: boolean,
+  ): void;
   addNewPrivateTransaction(
-    changes_json: string,
-    signer_secret: string,
-    encryption_key: string,
-    key_id: string,
-    made_at: number,
-  ): string;
+    signerAgent: ControlledAccountOrAgent,
+    changes: JsonValue[],
+    keyID: KeyID,
+    keySecret: KeySecret,
+    madeAt: number,
+  ): { signature: Signature; transaction: PrivateTransaction };
   addNewTrustingTransaction(
-    changes_json: string,
-    signer_secret: string,
-    made_at: number,
-  ): string;
+    signerAgent: ControlledAccountOrAgent,
+    changes: JsonValue[],
+    madeAt: number,
+  ): { signature: Signature; transaction: TrustingTransaction };
   testExpectedHashAfter(transactions_js: any): string;
   decryptNextTransactionChangesJson(
     tx_index: number,

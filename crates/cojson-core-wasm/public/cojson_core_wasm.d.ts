@@ -4,7 +4,7 @@ export class SessionLog {
   free(): void;
   constructor(co_id: string, session_id: string, signer_id: string);
   clone(): SessionLog;
-  tryAdd(transactions_json: string[], new_signature_str: string, skip_verify: boolean): string;
+  tryAdd(transactions_json: string[], new_signature_str: string, skip_verify: boolean): void;
   addNewPrivateTransaction(changes_json: string, signer_secret: string, encryption_key: string, key_id: string, made_at: number): string;
   addNewTrustingTransaction(changes_json: string, signer_secret: string, made_at: number): string;
   testExpectedHashAfter(transactions_js: any): string;
@@ -18,7 +18,7 @@ export interface InitOutput {
   readonly __wbg_sessionlog_free: (a: number, b: number) => void;
   readonly sessionlog_new: (a: number, b: number, c: number, d: number, e: number, f: number) => number;
   readonly sessionlog_clone: (a: number) => number;
-  readonly sessionlog_tryAdd: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
+  readonly sessionlog_tryAdd: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number];
   readonly sessionlog_addNewPrivateTransaction: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => [number, number, number, number];
   readonly sessionlog_addNewTrustingTransaction: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
   readonly sessionlog_testExpectedHashAfter: (a: number, b: any) => [number, number, number, number];

@@ -132,17 +132,25 @@ export class LocalNode {
     return accountOrAgentIDfromSessionID(this.currentSessionID);
   }
 
+  _cachedCurrentAgent: ControlledAccountOrAgent | undefined;
   getCurrentAgent(): ControlledAccountOrAgent {
-    const accountOrAgent = this.getCurrentAccountOrAgentID();
-    if (isAgentID(accountOrAgent)) {
-      return new ControlledAgent(this.agentSecret, this.crypto);
+    if (!this._cachedCurrentAgent) {
+      const accountOrAgent = this.getCurrentAccountOrAgentID();
+      if (isAgentID(accountOrAgent)) {
+        this._cachedCurrentAgent = new ControlledAgent(
+          this.agentSecret,
+          this.crypto,
+        );
+      } else {
+        this._cachedCurrentAgent = new ControlledAccount(
+          expectAccount(
+            this.expectCoValueLoaded(accountOrAgent).getCurrentContent(),
+          ),
+          this.agentSecret,
+        );
+      }
     }
-    return new ControlledAccount(
-      expectAccount(
-        this.expectCoValueLoaded(accountOrAgent).getCurrentContent(),
-      ),
-      this.agentSecret,
-    );
+    return this._cachedCurrentAgent;
   }
 
   expectCurrentAccountID(reason: string): RawAccountID {
