@@ -3,6 +3,8 @@ import * as tools from "jazz-tools";
 import * as toolsLatest from "jazz-tools-latest";
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { WasmCrypto as WasmCryptoLatest } from "cojson-latest/crypto/WasmCrypto";
+import { PureJSCrypto } from "cojson/crypto/PureJSCrypto";
+import { PureJSCrypto as PureJSCryptoLatest } from "cojson-latest/crypto/PureJSCrypto";
 
 const sampleReactions = ["👍", "❤️", "😄", "🎉"];
 const sampleHiddenIn = ["user1", "user2", "user3"];
@@ -52,6 +54,8 @@ async function createSchema(
 // @ts-expect-error
 const schema = await createSchema(tools, WasmCrypto);
 const schemaLatest = await createSchema(toolsLatest, WasmCryptoLatest);
+// const schema = await createSchema(tools, PureJSCrypto);
+// const schemaLatest = await createSchema(toolsLatest, PureJSCryptoLatest);
 
 const message = schema.Message.create(
   {
@@ -69,43 +73,59 @@ const content = await tools.exportCoValue(schema.Message, message.id, {
   // @ts-expect-error
   loadAs: schema.account,
 });
+tools.importContentPieces(content ?? [], schema.account as any);
+toolsLatest.importContentPieces(content ?? [], schemaLatest.account);
+schema.account._raw.core.node.internalDeleteCoValue(message.id as any);
+schemaLatest.account._raw.core.node.internalDeleteCoValue(message.id as any);
 
 describe("Message.create", () => {
-  bench("current version (SessionLog)", () => {
-    schema.Message.create(
-      {
-        content: "A".repeat(1024),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        hiddenIn: sampleHiddenIn,
-        reactions: sampleReactions,
-        author: "user123",
-      },
-      schema.Group.create(schema.account),
-    );
-  });
+  bench(
+    "current version (SessionLog)",
+    () => {
+      schema.Message.create(
+        {
+          content: "A".repeat(1024),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          hiddenIn: sampleHiddenIn,
+          reactions: sampleReactions,
+          author: "user123",
+        },
+        schema.Group.create(schema.account),
+      );
+    },
+    { iterations: 1000 },
+  );
 
-  bench("latest version (0.17.2)", () => {
-    schemaLatest.Message.create(
-      {
-        content: "A".repeat(1024),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        hiddenIn: sampleHiddenIn,
-        reactions: sampleReactions,
-        author: "user123",
-      },
-      schemaLatest.Group.create(schemaLatest.account),
-    );
-  });
+  bench(
+    "latest version (0.17.2)",
+    () => {
+      schemaLatest.Message.create(
+        {
+          content: "A".repeat(1024),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          hiddenIn: sampleHiddenIn,
+          reactions: sampleReactions,
+          author: "user123",
+        },
+        schemaLatest.Group.create(schemaLatest.account),
+      );
+    },
+    { iterations: 1000 },
+  );
 });
 
 describe("Message import", () => {
   bench("current version (SessionLog)", () => {
     tools.importContentPieces(content ?? [], schema.account as any);
+    schema.account._raw.core.node.internalDeleteCoValue(message.id as any);
   });
 
   bench("latest version (0.17.2)", () => {
     toolsLatest.importContentPieces(content ?? [], schemaLatest.account);
+    schemaLatest.account._raw.core.node.internalDeleteCoValue(
+      message.id as any,
+    );
   });
 });
