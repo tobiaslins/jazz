@@ -11,6 +11,7 @@ import {
 import {
   AnonymousJazzAgent,
   CoFeed,
+  CoFieldInit,
   CoList,
   CoPlainText,
   CoRichText,
@@ -883,19 +884,6 @@ type ForceRequiredRef<V> = V extends InstanceType<CoValueClass> | null
 export type CoMapInit_DEPRECATED<Map extends object> = PartialOnUndefined<{
   [Key in CoKeys<Map>]: ForceRequiredRef<Map[Key]>;
 }>;
-
-// TODO simplify on $jazz.set hover
-export type CoFieldInit<V> =
-  | V
-  | (V extends CoValue
-      ? V extends CoMap
-        ? CoMapInit<V>
-        : V extends CoList<infer T> | CoFeed<infer T>
-          ? ReadonlyArray<CoFieldInit<T>>
-          : V extends CoPlainText | CoRichText
-            ? string
-            : never
-      : never);
 
 export type CoMapInit<Map extends object> = {
   [K in RequiredCoKeys<Map>]: CoFieldInit<Map[K]>;
