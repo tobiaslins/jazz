@@ -4,6 +4,7 @@ packages:
   - 'starters/*'
   - 'tests/*'
   - 'crates/cojson-core-wasm'
+  - 'bench'
 
 catalog:
   "@biomejs/biome": 2.1.3

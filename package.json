@@ -27,6 +27,7 @@
     "vitest": "catalog:"
   },
   "scripts": {
+    "bench": "vitest bench",
     "dev": "turbo dev",
     "build": "turbo build && cd homepage/homepage && turbo build",
     "build:packages": "turbo build --filter='./packages/*'",

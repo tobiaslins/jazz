@@ -1,0 +1,12 @@
+{
+  "name": "jazz-tools-benchmark",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "jazz-tools-latest": "npm:jazz-tools@latest"
+  },
+  "scripts": {
+    "bench": "vitest bench"
+  },
+  "version": "0.0.0"
+}
