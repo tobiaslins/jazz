@@ -1,5 +1,15 @@
 # jazz-run
 
+## 0.17.7
+
+### Patch Changes
+
+- feaa69e: Add host option to the jazz-run sync command
+  - cojson@0.17.7
+  - cojson-storage-sqlite@0.17.7
+  - cojson-transport-ws@0.17.7
+  - jazz-tools@0.17.7
+
 ## 0.17.6
 
 ### Patch Changes

@@ -1,5 +1,13 @@
 # jazz-tools
 
+## 0.17.7
+
+### Patch Changes
+
+- cojson@0.17.7
+- cojson-storage-indexeddb@0.17.7
+- cojson-transport-ws@0.17.7
+
 ## 0.17.6
 
 ### Patch Changes
