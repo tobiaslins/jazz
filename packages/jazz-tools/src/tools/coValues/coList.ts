@@ -3,6 +3,7 @@ import { ControlledAccount, RawAccount } from "cojson";
 import { calcPatch } from "fast-myers-diff";
 import {
   Account,
+  CoFieldInit,
   CoValue,
   CoValueClass,
   CoValueFromRaw,
@@ -441,7 +442,7 @@ export class CoListJazzApi<L extends CoList>
     return cl.fromRaw(this.raw) as InstanceType<Cl>;
   }
 
-  set(index: number, value: CoListItem<L>): void {
+  set(index: number, value: CoFieldInit<CoListItem<L>>): void {
     const itemDescriptor = this.schema[ItemsSym];
     const rawValue = toRawItems([value], itemDescriptor, this.owner)[0]!;
     if (rawValue === null && !itemDescriptor.optional) {

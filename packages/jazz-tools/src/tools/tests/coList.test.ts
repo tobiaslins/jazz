@@ -127,7 +127,7 @@ describe("Simple CoList operations", async () => {
       expect(list[1]).toBe("margarine");
     });
 
-    test("assignment with ref", () => {
+    test("assignment with ref using CoValue", () => {
       const Ingredient = co.map({
         name: z.string(),
       });
@@ -188,6 +188,22 @@ describe("Simple CoList operations", async () => {
 
       recipe.$jazz.set(1, undefined);
       expect(recipe[1]).toBe(undefined);
+    });
+
+    test("assignment with ref using JSON", () => {
+      const Ingredient = co.map({
+        name: z.string(),
+      });
+
+      const Recipe = co.list(Ingredient);
+
+      const recipe = Recipe.create(
+        [{ name: "bread" }, { name: "butter" }, { name: "onion" }],
+        { owner: me },
+      );
+
+      recipe.$jazz.set(1, { name: "margarine" });
+      expect(recipe[1]?.name).toBe("margarine");
     });
 
     test("push", () => {
@@ -351,11 +367,7 @@ describe("Simple CoList operations", async () => {
         { owner: me },
       );
 
-      list.$jazz.set(
-        0,
-        // @ts-expect-error
-        list[0]?.filter((item) => item !== "butter"),
-      );
+      list.$jazz.set(0, list[0]?.filter((item) => item !== "butter") ?? []);
 
       expect(list[0]?.$jazz.raw.asArray()).toEqual(["bread", "onion"]);
     });
