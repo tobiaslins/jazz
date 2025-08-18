@@ -1,7 +1,7 @@
 import {
   AgentSecret,
   CoID,
-  ControlledAccount,
+  ControlledAccount as RawControlledAccount,
   CryptoProvider,
   Everyone,
   InviteSecret,
@@ -493,7 +493,7 @@ class AccountJazzApi<A extends Account> extends CoValueJazzApi<A> {
 
     const agent = this.localNode.getCurrentAgent();
 
-    if (agent instanceof ControlledAccount) {
+    if (agent instanceof RawControlledAccount) {
       return coValuesCache.get(agent.account, () =>
         Account.fromRaw(agent.account),
       );
@@ -565,14 +565,18 @@ export const AccountAndGroupProxyHandler: ProxyHandler<Account | Group> = {
   },
 };
 
-/** @category Identity & Permissions */
-export function isControlledAccount(account: Account): account is Account & {
+export type ControlledAccount = Account & {
   $jazz: {
     raw: RawAccount;
     isLocalNodeOwner: true;
     sessionID: SessionID;
   };
-} {
+};
+
+/** @category Identity & Permissions */
+export function isControlledAccount(
+  account: Account,
+): account is ControlledAccount {
   return account.$jazz.isLocalNodeOwner;
 }
 

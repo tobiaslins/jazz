@@ -18,35 +18,32 @@ import {
 } from "../index.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 import { setupTwoNodes } from "./utils.js";
-import { TypeSym } from "../internal.js";
+import { CoFeed, ControlledAccount, TypeSym } from "../internal.js";
 
 const Crypto = await WasmCrypto.create();
 
-let me = await Account.create({
-  creationProps: { name: "Hermes Puggington" },
-  crypto: Crypto,
-});
+let me: ControlledAccount;
 
 beforeEach(async () => {
   await setupJazzTestSync();
-
-  me = await createJazzTestAccount({
+  const account = await createJazzTestAccount({
     isCurrentActiveAccount: true,
     creationProps: { name: "Hermes Puggington" },
   });
+  if (!isControlledAccount(account)) {
+    throw new Error("account is not a controlled account");
+  }
+  me = account;
 });
 
 describe("Simple CoFeed operations", async () => {
-  const me = await Account.create({
-    creationProps: { name: "Hermes Puggington" },
-    crypto: Crypto,
-  });
-  if (!isControlledAccount(me)) {
-    throw "me is not a controlled account";
-  }
-  const TestStream = co.feed(z.string());
+  let TestStream: co.Feed<z.z.ZodString>;
+  let stream: CoFeed<string>;
 
-  const stream = TestStream.create(["milk"], { owner: me });
+  beforeEach(async () => {
+    TestStream = co.feed(z.string());
+    stream = TestStream.create(["milk"], { owner: me });
+  });
 
   test("Construction", () => {
     expect(stream.perAccount[me.$jazz.id]?.value).toEqual("milk");
@@ -54,21 +51,13 @@ describe("Simple CoFeed operations", async () => {
   });
 
   describe("Create CoFeed with a reference", () => {
-    let me: Account;
-
-    beforeEach(async () => {
-      await setupJazzTestSync();
-      me = await createJazzTestAccount({
-        isCurrentActiveAccount: true,
-        creationProps: { name: "Hermes Puggington" },
-      });
-    });
-
     test("using a CoValue", () => {
       const Text = co.plainText();
       const TextStream = co.feed(Text);
 
-      const stream = TextStream.create([Text.create("milk")], { owner: me });
+      const stream = TextStream.create([Text.create("milk")], {
+        owner: me,
+      });
 
       const coValue = stream.perAccount[me.$jazz.id]?.value;
       expect(coValue?.toString()).toEqual("milk");
@@ -117,7 +106,7 @@ describe("Simple CoFeed operations", async () => {
   });
 
   describe("Mutation", () => {
-    test("pushing", () => {
+    test("push element into CoFeed of non-collaborative values", () => {
       stream.$jazz.push("bread");
       expect(stream.perAccount[me.$jazz.id]?.value).toEqual("bread");
       expect(stream.perSession[me.$jazz.sessionID]?.value).toEqual("bread");
@@ -125,6 +114,30 @@ describe("Simple CoFeed operations", async () => {
       stream.$jazz.push("butter");
       expect(stream.perAccount[me.$jazz.id]?.value).toEqual("butter");
       expect(stream.perSession[me.$jazz.sessionID]?.value).toEqual("butter");
+    });
+
+    test("push CoValue into CoFeed of CoValues", () => {
+      const Schema = co.feed(co.plainText());
+      const stream = Schema.create(["milk"]);
+      stream.$jazz.push(Schema.element.create("bread"));
+      expect(stream.perAccount[me.$jazz.id]?.value?.toString()).toEqual(
+        "bread",
+      );
+      expect(stream.perSession[me.$jazz.sessionID]?.value?.toString()).toEqual(
+        "bread",
+      );
+    });
+
+    test("push JSON into CoFeed of CoValues", () => {
+      const Schema = co.feed(co.plainText());
+      const stream = Schema.create(["milk"]);
+      stream.$jazz.push("bread");
+      expect(stream.perAccount[me.$jazz.id]?.value?.toString()).toEqual(
+        "bread",
+      );
+      expect(stream.perSession[me.$jazz.sessionID]?.value?.toString()).toEqual(
+        "bread",
+      );
     });
   });
 });

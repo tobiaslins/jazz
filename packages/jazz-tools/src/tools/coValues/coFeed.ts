@@ -12,6 +12,7 @@ import type {
 import { cojsonInternals } from "cojson";
 import {
   AnonymousJazzAgent,
+  CoFieldInit,
   CoValue,
   CoValueClass,
   Group,
@@ -361,13 +362,13 @@ export class CoFeedJazzApi<F extends CoFeed> extends CoValueJazzApi<F> {
    *
    * @category Content
    */
-  push(...items: CoFeedItem<F>[]): void {
+  push(...items: CoFieldInit<CoFeedItem<F>>[]): void {
     for (const item of items) {
       this.pushItem(item);
     }
   }
 
-  private pushItem(item: CoFeedItem<F>) {
+  private pushItem(item: CoFieldInit<CoFeedItem<F>>) {
     const itemDescriptor = this.schema[ItemsSym] as Schema;
 
     if (itemDescriptor === "json") {
