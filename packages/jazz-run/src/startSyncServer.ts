@@ -1,4 +1,4 @@
-import { createServer, type Server } from "node:http";
+import { createServer } from "node:http";
 import { mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
 import { LocalNode } from "cojson";
@@ -6,16 +6,19 @@ import { getBetterSqliteStorage } from "cojson-storage-sqlite";
 import { createWebSocketPeer } from "cojson-transport-ws";
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { WebSocketServer } from "ws";
+import { type SyncServer } from "./types.js";
 
 export const startSyncServer = async ({
+  host,
   port,
   inMemory,
   db,
 }: {
+  host: string | undefined;
   port: string | undefined;
   inMemory: boolean;
   db: string;
-}) => {
+}): Promise<SyncServer> => {
   const crypto = await WasmCrypto.create();
 
   const server = createServer((req, res) => {
@@ -94,8 +97,6 @@ export const startSyncServer = async ({
     localNode.gracefulShutdown();
   });
 
-  server.listen(port ? parseInt(port) : undefined);
-
   const _close = server.close;
 
   server.close = () => {
@@ -106,5 +107,11 @@ export const startSyncServer = async ({
 
   Object.defineProperty(server, "localNode", { value: localNode });
 
-  return server as Server & { localNode: LocalNode };
+  server.listen(port ? parseInt(port) : undefined, host);
+
+  return new Promise((resolve) => {
+    server.once("listening", () => {
+      resolve(server as SyncServer);
+    });
+  });
 };
