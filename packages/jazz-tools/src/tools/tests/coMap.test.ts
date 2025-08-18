@@ -12,10 +12,15 @@ import {
 } from "vitest";
 import { Group, co, subscribeToCoValue, z } from "../exports.js";
 import { Account } from "../index.js";
-import { Loaded, coValueClassFromCoValueClassOrSchema } from "../internal.js";
+import {
+  Loaded,
+  activeAccountContext,
+  coValueClassFromCoValueClassOrSchema,
+} from "../internal.js";
 import {
   createJazzTestAccount,
   getPeerConnectedToTestSyncServer,
+  runWithoutActiveAccount,
   setupJazzTestSync,
 } from "../testing.js";
 import { setupTwoNodes, waitFor } from "./utils.js";
@@ -213,6 +218,19 @@ describe("CoMap", async () => {
         const Schema = co.map({ text: co.plainText() });
         const map = Schema.create({ text: "" });
         expect(map.text.toString()).toBe("");
+      });
+
+      it("creates a group for the new CoValue when there is no active account", () => {
+        const Schema = co.map({ text: co.plainText() });
+
+        const parentGroup = Group.create();
+        runWithoutActiveAccount(() => {
+          const map = Schema.create({ text: "Hello" }, parentGroup);
+
+          expect(
+            map.text._owner.getParentGroups().map((group: Group) => group.id),
+          ).toContain(parentGroup.id);
+        });
       });
     });
 
