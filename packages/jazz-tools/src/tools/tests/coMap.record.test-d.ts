@@ -29,7 +29,7 @@ describe("CoMap.Record", () => {
 
       const person = Person.create({ name: "John" }, Account.getMe());
 
-      expectTypeOf(person.$jazz.owner).toEqualTypeOf<Account | Group>();
+      expectTypeOf(person.$jazz.owner).toEqualTypeOf<Group>();
     });
 
     test("Record with reference", () => {

@@ -52,7 +52,7 @@ describe("CoMap", async () => {
 
       const john = Person.create({ name: "John" }, Account.getMe());
 
-      expectTypeOf(john.$jazz.owner).toEqualTypeOf<Account | Group>();
+      expectTypeOf(john.$jazz.owner).toEqualTypeOf<Group>();
     });
 
     test("create CoMap with reference using CoValue", () => {

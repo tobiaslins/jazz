@@ -15,7 +15,7 @@ import { applyCoValueMigrations } from "../lib/migration.js";
 import { CoValueCoreSubscription } from "./CoValueCoreSubscription.js";
 import { JazzError, type JazzErrorIssue } from "./JazzError.js";
 import type { SubscriptionValue, Unloaded } from "./types.js";
-import { createCoValue, getOwnerFromRawValue } from "./utils.js";
+import { createCoValue, myRoleFromRawValue } from "./utils.js";
 
 export class SubscriptionScope<D extends CoValue> {
   childNodes = new Map<string, SubscriptionScope<CoValue>>();
@@ -122,7 +122,7 @@ export class SubscriptionScope<D extends CoValue> {
     // Groups and accounts are accessible by everyone, for the other coValues we use the role to check access
     const hasAccess =
       ruleset.type !== "ownedByGroup" ||
-      getOwnerFromRawValue(update).myRole() !== undefined;
+      myRoleFromRawValue(update) !== undefined;
 
     if (!hasAccess) {
       if (this.value.type !== "unauthorized") {

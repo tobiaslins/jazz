@@ -45,7 +45,7 @@ export class Group extends CoValueBase implements CoValue {
   declare $jazz: GroupJazzApi<this>;
 
   /** @deprecated Don't use constructor directly, use .create */
-  constructor(options: { fromRaw: RawGroup } | { owner: Account | Group }) {
+  constructor(options: { fromRaw: RawGroup } | { owner: Account }) {
     super();
     let raw: RawGroup;
 
@@ -304,6 +304,13 @@ export class GroupJazzApi<G extends Group> extends CoValueJazzApi<G> {
     return this.raw.id;
   }
 
+  /**
+   * Groups have no owner. They can be accessed by everyone.
+   */
+  get owner(): undefined {
+    return undefined;
+  }
+
   /** @category Subscription & Loading */
   ensureLoaded<G extends Group, const R extends RefsToResolve<G>>(
     this: GroupJazzApi<G>,
@@ -344,4 +351,15 @@ RegisteredSchemas["Group"] = Group;
 
 export function isAccountID(id: RawAccountID | AgentID): id is RawAccountID {
   return id.startsWith("co_");
+}
+
+export function getCoValueOwner(coValue: CoValue): Group {
+  const group = accessChildById(coValue, coValue.$jazz.raw.group.id, {
+    ref: RegisteredSchemas["Group"],
+    optional: false,
+  });
+  if (!group) {
+    throw new Error("CoValue has no owner");
+  }
+  return group;
 }

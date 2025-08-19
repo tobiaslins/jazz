@@ -66,32 +66,6 @@ describe("Custom accounts and groups", async () => {
     assert(meAsMember?.account);
     expect((meAsMember?.account).profile?.name).toBe("Hermes Puggington");
   });
-
-  test("Should throw when creating a profile with an account as owner", async () => {
-    const CustomAccount = co
-      .account()
-      .withMigration(
-        (
-          account: Loaded<typeof CustomAccount>,
-          creationProps?: { name: string },
-        ) => {
-          if (creationProps) {
-            account.profile = co.profile().create(
-              { name: creationProps.name },
-              // @ts-expect-error - only groups can own profiles, but we want to also perform a runtime check
-              account,
-            );
-          }
-        },
-      );
-
-    await expect(() =>
-      CustomAccount.create({
-        creationProps: { name: "Hermes Puggington" },
-        crypto: Crypto,
-      }),
-    ).rejects.toThrowError("Profile must be owned by a Group");
-  });
 });
 
 describe("Group inheritance", () => {
@@ -206,17 +180,6 @@ describe("Group inheritance", () => {
         $jazz: expect.objectContaining({ id: grandParentGroup.$jazz.id }),
       }),
     );
-  });
-
-  test("Account.getParentGroups should return an empty array", async () => {
-    const account = await co.account().create({
-      creationProps: { name: "Test Account" },
-      crypto: Crypto,
-    });
-
-    const parentGroups = account.getParentGroups();
-
-    expect(parentGroups).toEqual([]);
   });
 
   test("waitForSync should resolve when the value is uploaded", async () => {
@@ -372,7 +335,7 @@ describe("Group inheritance", () => {
       });
 
       const task = board.columns[0]![0]!;
-      const taskGroup = task.$jazz.owner.$jazz.castAs(Group);
+      const taskGroup = task.$jazz.owner;
       taskGroup.addMember(reader, "reader");
 
       const taskAsReader = await Task.load(task.$jazz.id, { loadAs: reader });
@@ -496,22 +459,6 @@ describe("Account permissions", () => {
 
     // Everyone should have no role
     expect(account.getRoleOf("everyone")).toBeUndefined();
-  });
-
-  test("members array only contains self as admin", async () => {
-    const account = await co.account().create({
-      creationProps: { name: "Test Account" },
-      crypto: Crypto,
-    });
-
-    expect(account.members).toEqual([
-      {
-        id: account.$jazz.id,
-        role: "admin",
-        account: account,
-        ref: expect.any(Ref),
-      },
-    ]);
   });
 });
 

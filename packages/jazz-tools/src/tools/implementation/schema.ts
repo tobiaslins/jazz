@@ -164,7 +164,7 @@ export function instantiateRefEncodedFromRaw<V extends CoValue>(
 export function instantiateRefEncodedWithInit<V extends CoValue>(
   schema: RefEncoded<V>,
   init: any,
-  parentOwner: Account | Group,
+  parentOwner: Group,
 ): V {
   if (!isCoValueClass<V>(schema.ref)) {
     throw Error(
@@ -172,7 +172,7 @@ export function instantiateRefEncodedWithInit<V extends CoValue>(
     );
   }
   const owner = Group.create();
-  owner.addMember(parentOwner.$jazz.castAs(Group));
+  owner.addMember(parentOwner);
   // @ts-expect-error - create is a static method in all CoValue classes
   return schema.ref.create(init, owner);
 }

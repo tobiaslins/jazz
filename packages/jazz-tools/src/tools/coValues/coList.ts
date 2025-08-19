@@ -8,6 +8,7 @@ import {
   CoValueClass,
   CoValueFromRaw,
   CoValueJazzApi,
+  getCoValueOwner,
   Group,
   ID,
   RefEncoded,
@@ -410,12 +411,8 @@ export class CoListJazzApi<L extends CoList>
   }
 
   /** @category Collaboration */
-  get owner(): Account | Group {
-    return this.raw.group instanceof RawAccount
-      ? coValueClassFromCoValueClassOrSchema(
-          RegisteredSchemas["Account"],
-        ).fromRaw(this.raw.group)
-      : RegisteredSchemas["Group"].fromRaw(this.raw.group);
+  get owner(): Group {
+    return getCoValueOwner(this.coList);
   }
 
   /** @internal */
@@ -801,7 +798,7 @@ export class CoListJazzApi<L extends CoList>
 function toRawItems<Item>(
   items: Item[],
   itemDescriptor: Schema,
-  owner: Account | Group,
+  owner: Group,
 ): JsonValue[] {
   let rawItems: JsonValue[] = [];
   if (itemDescriptor === "json") {

@@ -2269,9 +2269,7 @@ describe("CoMap migration", () => {
         if (person.version === 1) {
           person.$jazz.set("version", 2);
 
-          person.$jazz.owner.$jazz
-            .castAs(Group)
-            .addMember("everyone", "reader");
+          person.$jazz.owner.addMember("everyone", "reader");
         }
       });
 

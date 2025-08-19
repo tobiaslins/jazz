@@ -17,6 +17,7 @@ import {
   CoRichText,
   CoValue,
   CoValueClass,
+  getCoValueOwner,
   Group,
   ID,
   PartialOnUndefined,
@@ -169,7 +170,7 @@ export class CoMap extends CoValueBase implements CoValue {
     init: Simplify<CoMapInit_DEPRECATED<M>>,
     options?:
       | {
-          owner: Account | Group;
+          owner?: Account | Group;
           unique?: CoValueUniqueness["uniqueness"];
         }
       | Account
@@ -240,7 +241,7 @@ export class CoMap extends CoValueBase implements CoValue {
     init: Simplify<CoMapInit_DEPRECATED<M>>,
     options?:
       | {
-          owner: Account | Group;
+          owner?: Account | Group;
           unique?: CoValueUniqueness["uniqueness"];
         }
       | Account
@@ -265,7 +266,7 @@ export class CoMap extends CoValueBase implements CoValue {
   static rawFromInit<M extends CoMap, Fields extends object>(
     instance: M,
     init: Simplify<CoMapInit_DEPRECATED<Fields>> | undefined,
-    owner: Account | Group,
+    owner: Group,
     uniqueness?: CoValueUniqueness,
   ) {
     const rawOwner = owner.$jazz.raw;
@@ -560,6 +561,10 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
    */
   get id(): ID<M> {
     return this.raw.id;
+  }
+
+  get owner(): Group {
+    return getCoValueOwner(this.coMap);
   }
 
   /**

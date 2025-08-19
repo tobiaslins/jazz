@@ -1,9 +1,4 @@
-import {
-  ControlledAccount,
-  LocalNode,
-  RawAccount,
-  type RawCoValue,
-} from "cojson";
+import { ControlledAccount, LocalNode, type RawCoValue } from "cojson";
 import { CoreCoValueSchema } from "../implementation/zodSchema/schemaTypes/CoValueSchema.js";
 import {
   AnonymousJazzAgent,
@@ -12,13 +7,11 @@ import {
   CoValueFromRaw,
   ID,
   RegisteredSchemas,
-  accessChildById,
   coValueClassFromCoValueClassOrSchema,
   coValuesCache,
   inspect,
 } from "../internal.js";
 import {
-  Account,
   CoValueClassOrSchema,
   Group,
   InstanceOfSchemaCoValuesNullable,
@@ -63,18 +56,7 @@ export abstract class CoValueJazzApi<V extends CoValue> {
 
   abstract get id(): ID<V>;
   abstract get raw(): RawCoValue;
-
-  get owner(): Account | Group {
-    const schema =
-      this.raw.group instanceof RawAccount
-        ? RegisteredSchemas["Account"]
-        : RegisteredSchemas["Group"];
-
-    return accessChildById(this.coValue, this.raw.group.id, {
-      ref: schema,
-      optional: false,
-    });
-  }
+  abstract get owner(): Group | undefined;
 
   /** @internal */
   get localNode(): LocalNode {

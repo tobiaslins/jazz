@@ -46,7 +46,7 @@ export interface CoValue {
     /** @category Content */
     readonly id: ID<CoValue>;
     /** @category Collaboration */
-    owner: Account | Group;
+    owner?: Group;
     /** @internal */
     readonly loadedAs: Account | AnonymousJazzAgent;
     /** @category Internals */
@@ -366,7 +366,10 @@ export function parseCoValueCreateOptions(
     | Account
     | Group
     | undefined,
-) {
+): {
+  owner: Group;
+  uniqueness?: CoValueUniqueness;
+} {
   const Group = RegisteredSchemas["Group"];
 
   if (!options) {
@@ -374,7 +377,9 @@ export function parseCoValueCreateOptions(
   }
 
   if (TypeSym in options) {
-    if (options[TypeSym] === "Account" || options[TypeSym] === "Group") {
+    if (options[TypeSym] === "Account") {
+      return { owner: options.$jazz.castAs(Group), uniqueness: undefined };
+    } else if (options[TypeSym] === "Group") {
       return { owner: options, uniqueness: undefined };
     }
   }
@@ -383,10 +388,11 @@ export function parseCoValueCreateOptions(
     ? { uniqueness: options.unique }
     : undefined;
 
-  return {
-    owner: options.owner ?? Group.create(),
+  const opts = {
+    owner: options.owner?.$jazz.castAs(Group) ?? Group.create(),
     uniqueness,
   };
+  return opts;
 }
 
 export function parseGroupCreateOptions(

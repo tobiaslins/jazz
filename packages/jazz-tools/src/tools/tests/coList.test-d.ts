@@ -24,7 +24,7 @@ describe("CoList", () => {
 
       const list = StringList.create(["a", "b", "c"], Account.getMe());
 
-      expectTypeOf(list.$jazz.owner).toEqualTypeOf<Account | Group>();
+      expectTypeOf(list.$jazz.owner).toEqualTypeOf<Group>();
     });
 
     test("CoList with reference", () => {

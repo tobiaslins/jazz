@@ -34,7 +34,7 @@ export interface CoMapSchema<
     init: CoMapSchemaInit<Shape>,
     options?:
       | {
-          owner: Owner;
+          owner?: Owner;
           unique?: CoValueUniqueness["uniqueness"];
         }
       | Owner,

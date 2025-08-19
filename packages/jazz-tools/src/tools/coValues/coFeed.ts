@@ -15,6 +15,7 @@ import {
   CoFieldInit,
   CoValue,
   CoValueClass,
+  getCoValueOwner,
   Group,
   ID,
   RefsToResolve,
@@ -343,6 +344,10 @@ export class CoFeedJazzApi<F extends CoFeed> extends CoValueJazzApi<F> {
    */
   get id(): ID<F> {
     return this.raw.id;
+  }
+
+  get owner(): Group {
+    return getCoValueOwner(this.coFeed);
   }
 
   /**
@@ -1029,6 +1034,10 @@ export class FileStreamJazzApi<F extends FileStream> extends CoValueJazzApi<F> {
    */
   get id(): ID<F> {
     return this.raw.id;
+  }
+
+  get owner(): Group {
+    return getCoValueOwner(this.fileStream);
   }
 
   /**
