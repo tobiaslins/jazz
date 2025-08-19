@@ -6,7 +6,7 @@ export function usePlayMedia() {
 
   const previousMediaLoad = useRef<Promise<unknown> | undefined>(undefined);
 
-  async function playMedia(file: Blob) {
+  async function playMedia(file: Blob, autoPlay = true) {
     // Wait for the previous load to finish
     // to avoid to incur into concurrency issues
     await previousMediaLoad.current;
@@ -17,7 +17,9 @@ export function usePlayMedia() {
 
     await promise;
 
-    audioManager.play();
+    if (autoPlay) {
+      audioManager.play();
+    }
   }
 
   return playMedia;

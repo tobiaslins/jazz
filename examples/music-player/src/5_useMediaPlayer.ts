@@ -24,7 +24,7 @@ export function useMediaPlayer() {
   // Reference used to avoid out-of-order track loads
   const lastLoadedTrackId = useRef<string | null>(null);
 
-  async function loadTrack(track: MusicTrack) {
+  async function loadTrack(track: MusicTrack, autoPlay = true) {
     lastLoadedTrackId.current = track.id;
     audioManager.unloadCurrentAudio();
 
@@ -44,7 +44,7 @@ export function useMediaPlayer() {
       return;
     }
 
-    await playMedia(file);
+    await playMedia(file, autoPlay);
 
     setLoading(null);
   }

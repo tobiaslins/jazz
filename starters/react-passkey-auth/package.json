@@ -1,7 +1,7 @@
 {
   "name": "jazz-react-passkey-auth-starter",
   "private": true,
-  "version": "0.0.145",
+  "version": "0.0.151",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -14,21 +14,21 @@
   },
   "dependencies": {
     "jazz-tools": "workspace:*",
-    "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.9.4",
+    "@biomejs/biome": "2.1.3",
     "@playwright/test": "^1.50.1",
     "@tailwindcss/postcss": "^4.1.10",
-    "@types/react": "~18.3.12",
-    "@types/react-dom": "^18.3.1",
+    "@types/react": "19.1.0",
+    "@types/react-dom": "19.1.0",
     "@vitejs/plugin-react": "^4.5.1",
     "globals": "^15.11.0",
     "is-ci": "^3.0.1",
     "postcss": "^8.4.27",
     "tailwindcss": "^4.1.10",
-    "typescript": "~5.6.2",
-    "vite": "^6.3.5"
+    "typescript": "5.6.2",
+    "vite": "6.3.5"
   }
 }

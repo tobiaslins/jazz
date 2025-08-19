@@ -86,7 +86,6 @@ describe("client to server upload", () => {
         "server -> client | KNOWN ParentGroup sessions: header/6",
         "server -> client | KNOWN Group sessions: header/5",
         "server -> client | KNOWN Map sessions: header/1",
-        "client -> server | CONTENT ParentGroup header: true new: ",
       ]
     `);
   });

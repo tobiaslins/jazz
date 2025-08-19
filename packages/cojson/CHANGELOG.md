@@ -1,5 +1,30 @@
 # cojson
 
+## 0.17.7
+
+## 0.17.6
+
+## 0.17.5
+
+### Patch Changes
+
+- 71c1411: Removed some unnecessary content messages sent after a local transaction when sending a value as dependency before the ack response
+- 2d11d44: Make the CoValueCore.unmount function detach the CoValue from LocalNode
+
+## 0.17.4
+
+## 0.17.3
+
+### Patch Changes
+
+- f0c73d9: Allow storing empty content with header in handleNewContent
+
+## 0.17.2
+
+### Patch Changes
+
+- 5b2b16a: Filter invalid sessions when storing a content message
+
 ## 0.17.1
 
 ### Patch Changes

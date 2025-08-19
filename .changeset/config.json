@@ -10,7 +10,8 @@
       "cojson-storage-sqlite",
       "cojson-transport-ws",
       "jazz-run",
-      "jazz-tools"
+      "jazz-tools",
+      "community-jazz-vue"
     ]
   ],
   "access": "public",
