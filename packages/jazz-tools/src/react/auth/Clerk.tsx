@@ -9,7 +9,7 @@ import {
 } from "jazz-tools";
 import { LocalStorageKVStore } from "jazz-tools/browser";
 import { useAuthSecretStorage, useJazzContext } from "jazz-tools/react-core";
-import { useEffect, useMemo, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import { JazzProviderProps, JazzReactProvider } from "../provider.js";
 
 function useJazzClerkAuth(clerk: MinimalClerkClient) {
@@ -43,7 +43,10 @@ export const JazzReactProviderWithClerk = <
     | (AccountClass<Account> & CoValueFromRaw<Account>)
     | AnyAccountSchema,
 >(
-  props: { clerk: MinimalClerkClient } & JazzProviderProps<S>,
+  props: {
+    clerk: MinimalClerkClient;
+    fallback?: ReactNode;
+  } & JazzProviderProps<S>,
 ) => {
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -61,11 +64,15 @@ export const JazzReactProviderWithClerk = <
   }, []);
 
   if (!isLoaded) {
-    return null;
+    return props.fallback ?? null;
   }
 
   return (
-    <JazzReactProvider {...props} logOutReplacement={props.clerk.signOut}>
+    <JazzReactProvider
+      {...props}
+      logOutReplacement={props.clerk.signOut}
+      fallback={props.fallback}
+    >
       <RegisterClerkAuth clerk={props.clerk}>
         {props.children}
       </RegisterClerkAuth>
