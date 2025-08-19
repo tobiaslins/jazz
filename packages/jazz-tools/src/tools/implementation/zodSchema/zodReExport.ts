@@ -88,6 +88,11 @@ function containsCoValueSchema(shape?: core.$ZodLooseShape): boolean {
 
 // Note: if you're editing this function, edit the `isAnyCoValueSchema`
 // function in `zodSchemaToCoSchema.ts` as well
-function isAnyCoValueSchema(schema: any): boolean {
-  return "collaborative" in schema && schema.collaborative === true;
+function isAnyCoValueSchema(schema: unknown): boolean {
+  return (
+    typeof schema === "object" &&
+    schema !== null &&
+    "collaborative" in schema &&
+    schema.collaborative === true
+  );
 }

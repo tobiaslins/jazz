@@ -47,8 +47,6 @@ describe("peer reconciliation", () => {
         "server -> client | KNOWN Map sessions: empty",
         "server -> client | KNOWN Group sessions: header/3",
         "server -> client | KNOWN Map sessions: header/1",
-        "client -> server | CONTENT Group header: true new: ",
-        "client -> server | CONTENT Map header: true new: ",
       ]
     `);
   });

@@ -5,6 +5,7 @@ import { NodeContext, NodeRuntime } from "@effect/platform-node";
 import { Console, Effect } from "effect";
 import { createWorkerAccount } from "./createWorkerAccount.js";
 import { startSyncServer } from "./startSyncServer.js";
+import { serverDefaults } from "./config.js";
 
 const jazzTools = Command.make("jazz-tools");
 
@@ -39,36 +40,63 @@ const accountCommand = Command.make("account").pipe(
   Command.withSubcommands([createAccountCommand]),
 );
 
+const hostOption = Options.text("host")
+  .pipe(Options.withAlias("h"))
+  .pipe(
+    Options.withDescription(
+      `The host to listen on. Default is ${serverDefaults.host}`,
+    ),
+  )
+  .pipe(Options.withDefault(serverDefaults.host));
+
 const portOption = Options.text("port")
   .pipe(Options.withAlias("p"))
   .pipe(
     Options.withDescription(
-      "Select a different port for the WebSocket server. Default is 4200",
+      `Select a different port for the WebSocket server. Default is ${serverDefaults.port}`,
     ),
   )
-  .pipe(Options.withDefault("4200"));
+  .pipe(Options.withDefault(serverDefaults.port.toString()));
 
 const inMemoryOption = Options.boolean("in-memory").pipe(
-  Options.withDescription("Use an in-memory storage instead of file-based"),
+  Options.withDescription("Use an in-memory storage instead of file-based."),
 );
 
 const dbOption = Options.file("db")
   .pipe(
     Options.withDescription(
-      "The path to the file where to store the data. Default is 'sync-db/storage.db'",
+      `The path to the file where to store the data. Default is '${serverDefaults.db}'`,
     ),
   )
-  .pipe(Options.withDefault("sync-db/storage.db"));
+  .pipe(Options.withDefault(serverDefaults.db));
 
 const startSyncServerCommand = Command.make(
   "sync",
-  { port: portOption, inMemory: inMemoryOption, db: dbOption },
-  ({ port, inMemory, db }) => {
+  {
+    host: hostOption,
+    port: portOption,
+    inMemory: inMemoryOption,
+    db: dbOption,
+  },
+  ({ host, port, inMemory, db }) => {
     return Effect.gen(function* () {
-      yield* Effect.promise(() => startSyncServer({ port, inMemory, db }));
+      const server = yield* Effect.promise(() =>
+        startSyncServer({ host, port, inMemory, db }),
+      );
+
+      const serverAddress = server.address();
+
+      if (!serverAddress) {
+        return yield* Effect.fail(new Error("Failed to start sync server."));
+      }
+
+      const socketAddress =
+        typeof serverAddress === "object"
+          ? `${serverAddress.address}:${serverAddress.port}`
+          : serverAddress;
 
       yield* Console.log(
-        `COJSON sync server listening on ws://127.0.0.1:${port}`,
+        `COJSON sync server listening on ws://${socketAddress}`,
       );
 
       // Keep the server up

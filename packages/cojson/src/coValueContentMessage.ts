@@ -1,8 +1,4 @@
-import {
-  CoValueHeader,
-  Transaction,
-  VerifiedState,
-} from "./coValueCore/verifiedState.js";
+import { CoValueHeader, Transaction } from "./coValueCore/verifiedState.js";
 import { TRANSACTION_CONFIG } from "./config.js";
 import { Signature } from "./crypto/crypto.js";
 import { RawCoID, SessionID } from "./ids.js";
@@ -65,6 +61,7 @@ export function exceedsRecommendedSize(
 
 export function knownStateFromContent(content: NewContentMessage) {
   const knownState = emptyKnownState(content.id);
+  knownState.header = Boolean(content.header);
 
   for (const [sessionID, session] of Object.entries(content.new)) {
     knownState.sessions[sessionID as SessionID] =
