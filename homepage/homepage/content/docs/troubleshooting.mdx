@@ -113,28 +113,8 @@ brew install python-setuptools
 </CodeGroup>
 <p><i>Workaround originally shared by @aheissenberger on Jun 24, 2025.</i></p>
 
-
 ---
-### For contributors running inside the Jazz monorepo
-If you’re running `npx jazz-run sync` from inside the Jazz repository itself (not a separate app), npm will try to use the local workspace version of jazz-run.
 
-To fix:
-1. Add jazz-run as a devDependency of the workspace:
-
-<CodeGroup>
-```sh
-pnpm add -D jazz-run@workspace:*
-```
-</CodeGroup>
-Then rerun:
-
-<CodeGroup>
-```sh
-npx jazz-run sync
-```
-</CodeGroup>
-
----
 ### Still having trouble?
 If none of the above fixes work:
 
