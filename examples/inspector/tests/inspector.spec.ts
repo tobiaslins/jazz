@@ -168,7 +168,7 @@ test("should show CoValue type", async ({ page }) => {
 test("should show Group members", async ({ page }) => {
   await addAccount(page, accountID, accountSecret);
 
-  organization.$jazz.owner.$jazz.castAs(Group).addMember("everyone", "reader");
+  organization.$jazz.owner.addMember("everyone", "reader");
 
   await account.$jazz.waitForAllCoValuesSync(); // Ensures that the organization is uploaded
   await inspectCoValue(page, organization.$jazz.id);
