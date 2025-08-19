@@ -1,5 +1,16 @@
 # jazz-tools
 
+## 0.17.8
+
+### Patch Changes
+
+- ac3e694: Fixed an issue where CoValue schemas could be incorrectly passed to `co.map` and `co.profile` schema definers.
+- 6dbb053: Prosemirror: fix RangeError triggered when creating invalid HTML
+- 1a182f0: Add missing BaseProfileShape export
+  - cojson@0.17.8
+  - cojson-storage-indexeddb@0.17.8
+  - cojson-transport-ws@0.17.8
+
 ## 0.17.7
 
 ### Patch Changes
