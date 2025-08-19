@@ -35,6 +35,7 @@ export type {
   TextPos,
   AccountClass,
   AccountCreationProps,
+  BaseProfileShape,
 } from "./internal.js";
 
 export {
