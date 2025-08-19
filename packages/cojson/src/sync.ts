@@ -640,14 +640,14 @@ export class SyncManager {
         }
       }
 
-      const result = coValue.tryAddTransactions({
+      const result = coValue.tryAddTransactions(
         sessionID,
         newTransactions,
-        givenExpectedNewHash: undefined,
-        newSignature: newContentForSession.lastSignature,
-        notifyMode: "immediate",
-        skipVerify: this.skipVerify,
-      });
+        undefined,
+        newContentForSession.lastSignature,
+        "immediate",
+        this.skipVerify,
+      );
 
       if (result.isErr()) {
         if (peer) {

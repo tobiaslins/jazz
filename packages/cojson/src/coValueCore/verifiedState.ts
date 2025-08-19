@@ -103,23 +103,15 @@ export class VerifiedState {
     );
   }
 
-  tryAddTransactions({
-    sessionID,
-    signerID,
-    newTransactions,
-    givenExpectedNewHash,
-    newSignature,
-    skipVerify = false,
-    givenNewStreamingHash,
-  }: {
-    sessionID: SessionID;
-    signerID: SignerID;
-    newTransactions: Transaction[];
-    givenExpectedNewHash: Hash | undefined;
-    newSignature: Signature;
-    skipVerify: boolean;
-    givenNewStreamingHash?: StreamingHash;
-  }): Result<true, TryAddTransactionsError> {
+  tryAddTransactions(
+    sessionID: SessionID,
+    signerID: SignerID,
+    newTransactions: Transaction[],
+    givenExpectedNewHash: Hash | undefined,
+    newSignature: Signature,
+    skipVerify: boolean = false,
+    givenNewStreamingHash?: StreamingHash,
+  ): Result<true, TryAddTransactionsError> {
     if (skipVerify === true) {
       this.doAddTransactions(
         sessionID,
