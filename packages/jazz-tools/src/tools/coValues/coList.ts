@@ -586,7 +586,9 @@ export class CoListJazzApi<L extends CoList>
   /**
    * Modify the `CoList` to match another list, where the changes are managed internally.
    *
-   * @param result - The resolved list of items.
+   * Changes are detected using `Object.is` for non-collaborative values and `$jazz.id` for collaborative values.
+   *
+   * @param result - The resolved list of items. For collaborative values, both CoValues and JSON values are supported.
    * @returns The modified CoList.
    *
    * @category Content

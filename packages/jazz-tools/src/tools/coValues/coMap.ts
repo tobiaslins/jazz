@@ -621,7 +621,11 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
   /**
    * Modify the `CoMap` to match another map.
    *
-   * @param newValues - The new values to apply to the CoMap.
+   * The new values are assigned to the CoMap, overwriting existing values
+   * when the property already exists.
+   *
+   * @param newValues - The new values to apply to the CoMap. For collaborative values,
+   * both CoValues and JSON values are supported.
    * @returns The modified CoMap.
    *
    * @category Content
