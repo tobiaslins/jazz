@@ -427,34 +427,37 @@ describe("CoList applyDiff operations", async () => {
   });
 
   test("applyDiff with reference values using CoValues", () => {
-    const NestedItem = co.list(z.string());
-    const RefList = co.list(NestedItem);
+    const TicTacToeRow = co.list(z.string());
+    const TicTacToeBoard = co.list(TicTacToeRow);
 
-    const item1 = NestedItem.create(["item1"], { owner: me });
-    const item2 = NestedItem.create(["item2"], { owner: me });
-    const item3 = NestedItem.create(["item3"], { owner: me });
-    const item4 = NestedItem.create(["item4"], { owner: me });
+    const row1 = TicTacToeRow.create(["X", "O", ""], { owner: me });
+    const row2 = TicTacToeRow.create(["", "X", "O"], { owner: me });
+    const row3 = TicTacToeRow.create(["O", "O", ""], { owner: me });
+    const winningRow = TicTacToeRow.create(["O", "O", "X"], { owner: me });
 
-    const list = RefList.create([item1, item2], { owner: me });
+    const list = TicTacToeBoard.create([row1, row2], { owner: me });
 
     // Test adding reference items
-    list.$jazz.applyDiff([item1, item2, item3]);
+    list.$jazz.applyDiff([row1, row2, row3]);
     expect(list.length).toBe(3);
-    expect(list[2]?.[0]).toBe("item3");
-
-    // Test removing reference items
-    list.$jazz.applyDiff([item1, item3]);
-    expect(list.length).toBe(2);
-    expect(list[0]?.[0]).toBe("item1");
-    expect(list[0]?.$jazz.id).toBe(item1?.$jazz.id);
-    expect(list[1]?.[0]).toBe("item3");
-    expect(list[1]?.$jazz.id).not.toBe(item2?.$jazz.id);
+    expect(list[2]?.toJSON()).toEqual(["O", "O", ""]);
 
     // Test replacing reference items
-    list.$jazz.applyDiff([item4]);
-    expect(list.length).toBe(1);
-    expect(list[0]?.[0]).toBe("item4");
-    expect(list[0]?.$jazz.id).not.toBe(item1?.$jazz.id);
+    list.$jazz.applyDiff([row1, row2, winningRow]);
+    expect(list.length).toBe(3);
+    expect(list[2]?.toJSON()).toEqual(["O", "O", "X"]);
+    // Only elements with different $jazz.id are replaced
+    expect(list[0]?.$jazz.id).toBe(row1?.$jazz.id);
+    expect(list[1]?.$jazz.id).toBe(row2?.$jazz.id);
+    expect(list[2]?.$jazz.id).not.toBe(row3?.$jazz.id);
+
+    // Test removing reference items
+    list.$jazz.applyDiff([row1, row3]);
+    expect(list.length).toBe(2);
+    expect(list[0]?.toJSON()).toEqual(["X", "O", ""]);
+    expect(list[0]?.$jazz.id).toBe(row1?.$jazz.id);
+    expect(list[1]?.toJSON()).toEqual(["O", "O", ""]);
+    expect(list[1]?.$jazz.id).not.toBe(row2?.$jazz.id);
 
     // Test empty list
     list.$jazz.applyDiff([]);
@@ -462,36 +465,40 @@ describe("CoList applyDiff operations", async () => {
   });
 
   test("applyDiff with reference values using JSON", () => {
-    const NestedItem = co.list(z.string());
-    const RefList = co.list(NestedItem);
+    const TicTacToeRow = co.list(z.string());
+    const TicTacToeBoard = co.list(TicTacToeRow);
 
-    const item1 = ["item1"];
-    const item2 = ["item2"];
-    const item3 = ["item3"];
-    const item4 = ["item4"];
+    const row1 = ["X", "O", ""];
+    const row2 = ["", "X", "O"];
+    const row3 = ["O", "O", ""];
+    const winningRow = ["O", "O", "X"];
 
-    const list = RefList.create([item1, item2], { owner: me });
-    const originalItem1 = list[0];
-    const originalItem2 = list[1];
+    const list = TicTacToeBoard.create([row1, row2], { owner: me });
+    const originalRow1 = list[0];
+    const originalRow2 = list[1];
+    const originalRow3 = list[2];
 
     // Test adding reference items
-    list.$jazz.applyDiff([item1, item2, item3]);
+    list.$jazz.applyDiff([row1, row2, row3]);
     expect(list.length).toBe(3);
-    expect(list[2]?.[0]).toBe("item3");
-
-    // Test removing reference items
-    list.$jazz.applyDiff([item1, item3]);
-    expect(list.length).toBe(2);
-    expect(list[0]?.[0]).toBe("item1");
-    expect(list[0]?.$jazz.id).not.toBe(originalItem1?.$jazz.id);
-    expect(list[1]?.[0]).toBe("item3");
-    expect(list[1]?.$jazz.id).not.toBe(originalItem2?.$jazz.id);
+    expect(list[2]?.toJSON()).toEqual(["O", "O", ""]);
 
     // Test replacing reference items
-    list.$jazz.applyDiff([item4]);
-    expect(list.length).toBe(1);
-    expect(list[0]?.[0]).toBe("item4");
-    expect(list[0]?.$jazz.id).not.toBe(originalItem1?.$jazz.id);
+    list.$jazz.applyDiff([row1, row2, winningRow]);
+    expect(list.length).toBe(3);
+    expect(list[2]?.toJSON()).toEqual(["O", "O", "X"]);
+    // All elements are replaced because new JSON values are set
+    expect(list[0]?.$jazz.id).not.toBe(originalRow1?.$jazz.id);
+    expect(list[1]?.$jazz.id).not.toBe(originalRow2?.$jazz.id);
+    expect(list[2]?.$jazz.id).not.toBe(originalRow3?.$jazz.id);
+
+    // Test removing reference items
+    list.$jazz.applyDiff([row1, row3]);
+    expect(list.length).toBe(2);
+    expect(list[0]?.toJSON()).toEqual(["X", "O", ""]);
+    expect(list[0]?.$jazz.id).not.toBe(originalRow1?.$jazz.id);
+    expect(list[1]?.toJSON()).toEqual(["O", "O", ""]);
+    expect(list[1]?.$jazz.id).not.toBe(originalRow2?.$jazz.id);
 
     // Test empty list
     list.$jazz.applyDiff([]);
