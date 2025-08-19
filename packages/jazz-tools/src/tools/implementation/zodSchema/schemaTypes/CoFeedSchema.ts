@@ -10,7 +10,7 @@ import {
   coOptionalDefiner,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
-import { CoFeedInit } from "../typeConverters/CoFieldInit.js";
+import { CoFeedSchemaInit } from "../typeConverters/CoFieldSchemaInit.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { CoOptionalSchema } from "./CoOptionalSchema.js";
@@ -28,7 +28,7 @@ export class CoFeedSchema<T extends AnyZodOrCoValueSchema>
   ) {}
 
   create(
-    init: CoFeedInit<T>,
+    init: CoFeedSchemaInit<T>,
     options?: { owner: Account | Group } | Account | Group,
   ): CoFeedInstance<T> {
     return this.coValueClass.create(init as any, options) as CoFeedInstance<T>;

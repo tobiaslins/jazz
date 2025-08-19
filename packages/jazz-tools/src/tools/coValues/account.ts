@@ -1,7 +1,7 @@
 import {
   AgentSecret,
   CoID,
-  ControlledAccount,
+  ControlledAccount as RawControlledAccount,
   CryptoProvider,
   Everyone,
   InviteSecret,
@@ -233,6 +233,9 @@ export class Account extends CoValueBase implements CoValue {
     return activeAccountContext.get() as A;
   }
 
+  /**
+   * @deprecated Use `co.account(...).createAs` instead.
+   */
   static async createAs<A extends Account>(
     this: CoValueClass<A> & typeof Account,
     as: Account,
@@ -311,7 +314,11 @@ export class Account extends CoValueBase implements CoValue {
     creationProps; // To avoid unused parameter warning
   }
 
-  /** @category Subscription & Loading */
+  /**
+   * Load an `Account`
+   * @category Subscription & Loading
+   * @deprecated Use `co.account(...).load` instead.
+   */
   static load<A extends Account, const R extends RefsToResolve<A> = true>(
     this: CoValueClass<A>,
     id: ID<A>,
@@ -323,7 +330,11 @@ export class Account extends CoValueBase implements CoValue {
     return loadCoValueWithoutMe(this, id, options);
   }
 
-  /** @category Subscription & Loading */
+  /**
+   * Subscribe to an `Account`, when you have an ID but don't have an `Account` instance yet
+   * @category Subscription & Loading
+   * @deprecated Use `co.account(...).subscribe` instead.
+   */
   static subscribe<A extends Account, const R extends RefsToResolve<A> = true>(
     this: CoValueClass<A>,
     id: ID<A>,
@@ -493,7 +504,7 @@ class AccountJazzApi<A extends Account> extends CoValueJazzApi<A> {
 
     const agent = this.localNode.getCurrentAgent();
 
-    if (agent instanceof ControlledAccount) {
+    if (agent instanceof RawControlledAccount) {
       return coValuesCache.get(agent.account, () =>
         Account.fromRaw(agent.account),
       );
@@ -565,14 +576,18 @@ export const AccountAndGroupProxyHandler: ProxyHandler<Account | Group> = {
   },
 };
 
-/** @category Identity & Permissions */
-export function isControlledAccount(account: Account): account is Account & {
+export type ControlledAccount = Account & {
   $jazz: {
     raw: RawAccount;
     isLocalNodeOwner: true;
     sessionID: SessionID;
   };
-} {
+};
+
+/** @category Identity & Permissions */
+export function isControlledAccount(
+  account: Account,
+): account is ControlledAccount {
   return account.$jazz.isLocalNodeOwner;
 }
 

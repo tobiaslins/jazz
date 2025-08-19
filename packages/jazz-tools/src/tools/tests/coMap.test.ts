@@ -538,7 +538,7 @@ describe("CoMap", async () => {
       john.$jazz.delete("pet");
     });
 
-    test("update a reference", () => {
+    test("update a reference using a CoValue", () => {
       const Dog = co.map({
         name: z.string(),
       });
@@ -558,6 +558,106 @@ describe("CoMap", async () => {
       john.$jazz.set("dog", Dog.create({ name: "Fido" }));
 
       expect(john.dog?.name).toEqual("Fido");
+    });
+
+    describe("update a reference using a JSON object", () => {
+      const Dog = co.map({
+        type: z.literal("dog"),
+        name: z.string(),
+      });
+      const Cat = co.map({
+        type: z.literal("cat"),
+        name: z.string(),
+      });
+      const Person = co.map({
+        name: co.plainText(),
+        bio: co.richText().optional(),
+        dog: Dog,
+        get friends() {
+          return co.list(Person);
+        },
+        reactions: co.feed(co.plainText()),
+        pet: co.discriminatedUnion("type", [Dog, Cat]),
+      });
+
+      let person: ReturnType<typeof Person.create>;
+
+      beforeEach(() => {
+        person = Person.create({
+          name: "John",
+          bio: "I am a software engineer",
+          dog: { type: "dog", name: "Rex" },
+          friends: [
+            {
+              name: "Jane",
+              bio: "I am a mechanical engineer",
+              dog: { type: "dog", name: "Fido" },
+              friends: [],
+              reactions: [],
+              pet: { type: "dog", name: "Fido" },
+            },
+          ],
+          reactions: ["👎", "👍"],
+          pet: { type: "cat", name: "Whiskers" },
+        });
+      });
+
+      test("automatically creates CoValues for plain text reference", () => {
+        person.$jazz.set("name", "Jack");
+        expect(person.name.toString()).toEqual("Jack");
+      });
+
+      test("automatically creates CoValues for rich text reference", () => {
+        person.$jazz.set("bio", "I am a lawyer");
+        expect(person.bio!.toString()).toEqual("I am a lawyer");
+      });
+
+      test("automatically creates CoValues for CoMap reference", () => {
+        person.$jazz.set("dog", { type: "dog", name: "Fido" });
+        expect(person.dog.name).toEqual("Fido");
+      });
+
+      test("automatically creates CoValues for CoList reference", () => {
+        person.$jazz.set("friends", [
+          {
+            name: "Jane",
+            bio: "I am a mechanical engineer",
+            dog: { type: "dog", name: "Firulais" },
+            friends: [],
+            reactions: [],
+            pet: { type: "cat", name: "Nala" },
+          },
+        ]);
+        expect(person.friends[0]!.name.toString()).toEqual("Jane");
+        expect(person.friends[0]!.dog.name).toEqual("Firulais");
+        expect(person.friends[0]!.pet.name).toEqual("Nala");
+      });
+
+      test("automatically creates CoValues for CoFeed reference", () => {
+        person.$jazz.set("reactions", ["🧑‍🔬"]);
+        expect(person.reactions.byMe?.value?.toString()).toEqual("🧑‍🔬");
+      });
+
+      test("automatically creates CoValues for discriminated union reference", () => {
+        person.$jazz.set("pet", { type: "cat", name: "Salem" });
+        expect(person.pet.name).toEqual("Salem");
+      });
+
+      test("undefined properties can be ommited", () => {
+        person.$jazz.set("friends", [
+          {
+            name: "Jane",
+            // bio is omitted
+            dog: { type: "dog", name: "Firulais" },
+            friends: [],
+            reactions: [],
+            pet: { type: "cat", name: "Nala" },
+          },
+        ]);
+
+        expect(person.friends[0]!.name.toString()).toEqual("Jane");
+        expect(person.friends[0]!.bio).toBeUndefined();
+      });
     });
 
     test("changes should be listed in getEdits()", () => {
@@ -1248,13 +1348,17 @@ describe("CoMap applyDiff", async () => {
   });
 
   test("applyDiff with nested changes", () => {
+    const originalNestedMap = NestedMap.create(
+      { value: "original" },
+      { owner: me },
+    );
     const map = TestMap.create(
       {
         name: "Charlie",
         age: 25,
         isActive: true,
         birthday: new Date("1995-01-01"),
-        nested: NestedMap.create({ value: "original" }, { owner: me }),
+        nested: originalNestedMap,
       },
       { owner: me },
     );
@@ -1269,6 +1373,8 @@ describe("CoMap applyDiff", async () => {
     expect(map.name).toEqual("David");
     expect(map.age).toEqual(25);
     expect(map.nested?.value).toEqual("updated");
+    // A new nested CoMap is created
+    expect(map.nested.$jazz.id).not.toBe(originalNestedMap.$jazz.id);
   });
 
   test("applyDiff with encoded fields", () => {
@@ -1400,6 +1506,27 @@ describe("CoMap applyDiff", async () => {
     expect(() => map.$jazz.applyDiff(newValues)).toThrowError(
       "Cannot set required reference nested to undefined",
     );
+  });
+
+  test("applyDiff from JSON", () => {
+    const map = TestMap.create({
+      name: "Alice",
+      age: 30,
+      isActive: true,
+      birthday: new Date("1990-01-01"),
+      nested: NestedMap.create({ value: "original" }),
+    });
+    const originalNestedMap = map.nested;
+
+    const newValues = {
+      nested: { value: "updated" },
+    };
+
+    map.$jazz.applyDiff(newValues);
+
+    expect(map.nested?.value).toEqual("updated");
+    // A new nested CoMap is created
+    expect(map.nested.$jazz.id).not.toBe(originalNestedMap.$jazz.id);
   });
 });
 

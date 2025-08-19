@@ -1,7 +1,7 @@
 import {
   Account,
   CoMap,
-  CoMapInit,
+  CoMapInit_DEPRECATED,
   CoValueClass,
   Group,
   Simplify,
@@ -21,10 +21,11 @@ export class Profile extends CoMap {
    * The owner (a Group) determines access rights to the Profile.
    *
    * @category Creation
+   * @deprecated Use `co.profile(...).create` instead.
    */
   static override create<M extends CoMap>(
     this: CoValueClass<M>,
-    init: Simplify<CoMapInit<M>>,
+    init: Simplify<CoMapInit_DEPRECATED<M>>,
     options?:
       | {
           owner: Group;

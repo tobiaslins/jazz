@@ -3,6 +3,7 @@ import { ControlledAccount, RawAccount } from "cojson";
 import { calcPatch } from "fast-myers-diff";
 import {
   Account,
+  CoFieldInit,
   CoValue,
   CoValueClass,
   CoValueFromRaw,
@@ -149,6 +150,7 @@ export class CoList<out Item = any>
    * ```
    *
    * @category Creation
+   * @deprecated Use `co.list(...).create` instead.
    **/
   static create<L extends CoList>(
     this: CoValueClass<L>,
@@ -238,6 +240,7 @@ export class CoList<out Item = any>
    * ```
    *
    * @category Subscription & Loading
+   * @deprecated Use `co.list(...).load` instead.
    */
   static load<L extends CoList, const R extends RefsToResolve<L> = true>(
     this: CoValueClass<L>,
@@ -277,6 +280,7 @@ export class CoList<out Item = any>
    * ```
    *
    * @category Subscription & Loading
+   * @deprecated Use `co.list(...).subscribe` instead.
    */
   static subscribe<L extends CoList, const R extends RefsToResolve<L> = true>(
     this: CoValueClass<L>,
@@ -441,7 +445,7 @@ export class CoListJazzApi<L extends CoList>
     return cl.fromRaw(this.raw) as InstanceType<Cl>;
   }
 
-  set(index: number, value: CoListItem<L>): void {
+  set(index: number, value: CoFieldInit<CoListItem<L>>): void {
     const itemDescriptor = this.schema[ItemsSym];
     const rawValue = toRawItems([value], itemDescriptor, this.owner)[0]!;
     if (rawValue === null && !itemDescriptor.optional) {
@@ -456,7 +460,7 @@ export class CoListJazzApi<L extends CoList>
    *
    * @category Content
    */
-  push(...items: CoListItem<L>[]): number {
+  push(...items: CoFieldInit<CoListItem<L>>[]): number {
     this.raw.appendItems(
       toRawItems(items, this.schema[ItemsSym], this.owner),
       undefined,
@@ -472,7 +476,7 @@ export class CoListJazzApi<L extends CoList>
    *
    * @category Content
    */
-  unshift(...items: CoListItem<L>[]): number {
+  unshift(...items: CoFieldInit<CoListItem<L>>[]): number {
     for (const item of toRawItems(
       items as CoListItem<L>[],
       this.schema[ItemsSym],
@@ -524,7 +528,7 @@ export class CoListJazzApi<L extends CoList>
   splice(
     start: number,
     deleteCount: number,
-    ...items: CoListItem<L>[]
+    ...items: CoFieldInit<CoListItem<L>>[]
   ): CoListItem<L>[] {
     const deleted = this.coList.slice(start, start + deleteCount);
 
@@ -582,19 +586,22 @@ export class CoListJazzApi<L extends CoList>
   /**
    * Modify the `CoList` to match another list, where the changes are managed internally.
    *
-   * @param result - The resolved list of items.
+   * Changes are detected using `Object.is` for non-collaborative values and `$jazz.id` for collaborative values.
+   *
+   * @param result - The resolved list of items. For collaborative values, both CoValues and JSON values are supported.
    * @returns The modified CoList.
    *
    * @category Content
    */
-  applyDiff(result: CoListItem<L>[]): L {
-    const current = this.raw.asArray() as CoListItem<L>[];
+  applyDiff(result: CoFieldInit<CoListItem<L>>[]): L {
+    const current = this.raw.asArray() as CoFieldInit<CoListItem<L>>[];
     const comparator = isRefEncoded(this.schema[ItemsSym])
       ? (aIdx: number, bIdx: number) => {
-          return (
-            (current[aIdx] as CoValue)?.$jazz?.id ===
-            (result[bIdx] as CoValue)?.$jazz?.id
-          );
+          const oldCoValueId = (current[aIdx] as CoValue)?.$jazz?.id;
+          const newCoValueId = (result[bIdx] as CoValue)?.$jazz?.id;
+          const isSame =
+            !!oldCoValueId && !!newCoValueId && oldCoValueId === newCoValueId;
+          return isSame;
         }
       : undefined;
 

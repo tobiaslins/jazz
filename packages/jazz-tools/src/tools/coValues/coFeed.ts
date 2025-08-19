@@ -12,6 +12,7 @@ import type {
 import { cojsonInternals } from "cojson";
 import {
   AnonymousJazzAgent,
+  CoFieldInit,
   CoValue,
   CoValueClass,
   Group,
@@ -209,6 +210,7 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
   /**
    * Create a new `CoFeed`
    * @category Creation
+   * @deprecated Use `co.feed(...).create` instead.
    */
   static create<S extends CoFeed>(
     this: CoValueClass<S>,
@@ -285,6 +287,7 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
   /**
    * Load a `CoFeed`
    * @category Subscription & Loading
+   * @deprecated Use `co.feed(...).load` instead.
    */
   static load<F extends CoFeed, const R extends RefsToResolve<F> = true>(
     this: CoValueClass<F>,
@@ -300,6 +303,7 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
   /**
    * Subscribe to a `CoFeed`, when you have an ID but don't have a `CoFeed` instance yet
    * @category Subscription & Loading
+   * @deprecated Use `co.feed(...).subscribe` instead.
    */
   static subscribe<F extends CoFeed, const R extends RefsToResolve<F> = true>(
     this: CoValueClass<F>,
@@ -361,13 +365,13 @@ export class CoFeedJazzApi<F extends CoFeed> extends CoValueJazzApi<F> {
    *
    * @category Content
    */
-  push(...items: CoFeedItem<F>[]): void {
+  push(...items: CoFieldInit<CoFeedItem<F>>[]): void {
     for (const item of items) {
       this.pushItem(item);
     }
   }
 
-  private pushItem(item: CoFeedItem<F>) {
+  private pushItem(item: CoFieldInit<CoFeedItem<F>>) {
     const itemDescriptor = this.schema[ItemsSym] as Schema;
 
     if (itemDescriptor === "json") {
@@ -722,6 +726,7 @@ export class FileStream extends CoValueBase implements CoValue {
    * For uploading an existing file or blob, use {@link FileStream.createFromBlob} instead.
    *
    * @category Creation
+   * @deprecated Use `co.fileStream(...).create` instead.
    */
   static create<S extends FileStream>(
     this: CoValueClass<S>,
@@ -775,6 +780,7 @@ export class FileStream extends CoValueBase implements CoValue {
    * Load a `FileStream` as a `Blob`
    *
    * @category Content
+   * @deprecated Use `co.fileStream(...).loadAsBlob` instead.
    */
   static async loadAsBlob(
     id: ID<FileStream>,
@@ -838,6 +844,7 @@ export class FileStream extends CoValueBase implements CoValue {
    * const fileStream = await FileStream.createFromBlob(file, {owner: group})
    * ```
    * @category Content
+   * @deprecated Use `co.fileStream(...).createFromBlob` instead.
    */
   static async createFromBlob(
     blob: Blob | File,
@@ -868,6 +875,7 @@ export class FileStream extends CoValueBase implements CoValue {
    * const fileStream = await FileStream.createFromBlob(file, {owner: group})
    * ```
    * @category Content
+   * @deprecated Use `co.fileStream(...).createFromArrayBuffer` instead.
    */
   static async createFromArrayBuffer(
     arrayBuffer: ArrayBuffer,
@@ -946,6 +954,7 @@ export class FileStream extends CoValueBase implements CoValue {
   /**
    * Load a `FileStream`
    * @category Subscription & Loading
+   * @deprecated Use `co.fileStream(...).load` instead.
    */
   static async load<C extends FileStream>(
     this: CoValueClass<C>,
@@ -983,6 +992,7 @@ export class FileStream extends CoValueBase implements CoValue {
   /**
    * Subscribe to a `FileStream`, when you have an ID but don't have a `FileStream` instance yet
    * @category Subscription & Loading
+   * @deprecated Use `co.fileStream(...).subscribe` instead.
    */
   static subscribe<F extends FileStream, const R extends RefsToResolve<F>>(
     this: CoValueClass<F>,

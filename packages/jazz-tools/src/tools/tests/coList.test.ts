@@ -127,7 +127,7 @@ describe("Simple CoList operations", async () => {
       expect(list[1]).toBe("margarine");
     });
 
-    test("assignment with ref", () => {
+    test("assignment with ref using CoValue", () => {
       const Ingredient = co.map({
         name: z.string(),
       });
@@ -142,9 +142,11 @@ describe("Simple CoList operations", async () => {
         ],
         { owner: me },
       );
+      const originalIngredient = recipe[1];
 
       recipe.$jazz.set(1, Ingredient.create({ name: "margarine" }, me));
       expect(recipe[1]?.name).toBe("margarine");
+      expect(recipe[1]?.$jazz.id).not.toBe(originalIngredient?.$jazz.id);
     });
 
     test("assign undefined on a required ref", () => {
@@ -190,32 +192,82 @@ describe("Simple CoList operations", async () => {
       expect(recipe[1]).toBe(undefined);
     });
 
-    test("push", () => {
-      const list = TestList.create(["bread", "butter", "onion"], {
-        owner: me,
+    test("assignment with ref using JSON", () => {
+      const Ingredient = co.map({
+        name: z.string(),
       });
-      list.$jazz.push("cheese");
-      expect(list[3]).toBe("cheese");
-      expect(list.$jazz.raw.asArray()).toEqual([
-        "bread",
-        "butter",
-        "onion",
-        "cheese",
-      ]);
+
+      const Recipe = co.list(Ingredient);
+
+      const recipe = Recipe.create(
+        [{ name: "bread" }, { name: "butter" }, { name: "onion" }],
+        { owner: me },
+      );
+      const originalIngredient = recipe[1];
+
+      recipe.$jazz.set(1, { name: "margarine" });
+      expect(recipe[1]?.name).toBe("margarine");
+      expect(recipe[1]?.$jazz.id).not.toBe(originalIngredient?.$jazz.id);
     });
 
-    test("unshift", () => {
-      const list = TestList.create(["bread", "butter", "onion"], {
-        owner: me,
+    describe("push", () => {
+      test("push into CoList of non-collaborative values", () => {
+        const list = TestList.create(["bread", "butter", "onion"], {
+          owner: me,
+        });
+        list.$jazz.push("cheese");
+        expect(list[3]).toBe("cheese");
+        expect(list.$jazz.raw.asArray()).toEqual([
+          "bread",
+          "butter",
+          "onion",
+          "cheese",
+        ]);
       });
-      list.$jazz.unshift("lettuce");
-      expect(list[0]).toBe("lettuce");
-      expect(list.$jazz.raw.asArray()).toEqual([
-        "lettuce",
-        "bread",
-        "butter",
-        "onion",
-      ]);
+
+      test("push CoValue into list of CoValues", () => {
+        const Schema = co.list(co.plainText());
+        const list = Schema.create(["bread", "butter", "onion"]);
+        list.$jazz.push(Schema.element.create("cheese"));
+        expect(list[3]?.toString()).toBe("cheese");
+      });
+
+      test("push JSON into list of CoValues", () => {
+        const Schema = co.list(co.plainText());
+        const list = Schema.create(["bread", "butter", "onion"]);
+        list.$jazz.push("cheese");
+        expect(list[3]?.toString()).toBe("cheese");
+      });
+    });
+
+    describe("unshift", () => {
+      test("add non-collaborative element at the beginning of the list", () => {
+        const list = TestList.create(["bread", "butter", "onion"], {
+          owner: me,
+        });
+        list.$jazz.unshift("lettuce");
+        expect(list[0]).toBe("lettuce");
+        expect(list.$jazz.raw.asArray()).toEqual([
+          "lettuce",
+          "bread",
+          "butter",
+          "onion",
+        ]);
+      });
+
+      test("add CoValue at the beginning of a CoValue CoList", () => {
+        const Schema = co.list(co.plainText());
+        const list = Schema.create(["bread", "butter", "onion"]);
+        list.$jazz.unshift(Schema.element.create("lettuce"));
+        expect(list[0]?.toString()).toBe("lettuce");
+      });
+
+      test("add JSON at the beginning of a CoValue CoList", () => {
+        const Schema = co.list(co.plainText());
+        const list = Schema.create(["bread", "butter", "onion"]);
+        list.$jazz.unshift("lettuce");
+        expect(list[0]?.toString()).toBe("lettuce");
+      });
     });
 
     test("pop", () => {
@@ -295,26 +347,20 @@ describe("Simple CoList operations", async () => {
           "onion",
         ]);
       });
-    });
 
-    test("applyDiff", () => {
-      const list = TestList.create(["bread", "butter", "onion"], {
-        owner: me,
+      test("insert CoValue into a CoValue CoList", () => {
+        const Schema = co.list(co.plainText());
+        const list = Schema.create(["bread", "butter", "onion"]);
+        list.$jazz.splice(1, 0, Schema.element.create("lettuce"));
+        expect(list[1]?.toString()).toBe("lettuce");
       });
-      // replace
-      list.$jazz.applyDiff(["bread", "margarine", "onion"]);
-      expect(list.$jazz.raw.asArray()).toEqual(["bread", "margarine", "onion"]);
-      // delete
-      list.$jazz.applyDiff(["bread", "onion"]);
-      expect(list.$jazz.raw.asArray()).toEqual(["bread", "onion"]);
-      // insert multiple
-      list.$jazz.applyDiff(["bread", "margarine", "onion", "cheese"]);
-      expect(list.$jazz.raw.asArray()).toEqual([
-        "bread",
-        "margarine",
-        "onion",
-        "cheese",
-      ]);
+
+      test("insert JSON into a CoValue CoList", () => {
+        const Schema = co.list(co.plainText());
+        const list = Schema.create(["bread", "butter", "onion"]);
+        list.$jazz.splice(1, 0, "lettuce");
+        expect(list[1]?.toString()).toBe("lettuce");
+      });
     });
 
     test("filter + assign to coMap", () => {
@@ -331,19 +377,12 @@ describe("Simple CoList operations", async () => {
         { owner: me },
       );
 
-      expect(() => {
-        map.$jazz.set(
-          "list",
-          // @ts-expect-error
-          map.list?.filter((item) => item !== "butter"),
-        );
-      }).toThrow("Cannot set reference list to a non-CoValue. Got bread,onion");
+      map.$jazz.set(
+        "list",
+        map.list?.filter((item) => item !== "butter"),
+      );
 
-      expect(map.list?.$jazz.raw.asArray()).toEqual([
-        "bread",
-        "butter",
-        "onion",
-      ]);
+      expect(map.list?.$jazz.raw.asArray()).toEqual(["bread", "onion"]);
     });
 
     test("filter + assign to CoList", () => {
@@ -358,11 +397,7 @@ describe("Simple CoList operations", async () => {
         { owner: me },
       );
 
-      list.$jazz.set(
-        0,
-        // @ts-expect-error
-        list[0]?.filter((item) => item !== "butter"),
-      );
+      list.$jazz.set(0, list[0]?.filter((item) => item !== "butter") ?? []);
 
       expect(list[0]?.$jazz.raw.asArray()).toEqual(["bread", "onion"]);
     });
@@ -391,32 +426,79 @@ describe("CoList applyDiff operations", async () => {
     expect(list.$jazz.raw.asArray()).toEqual([]);
   });
 
-  test("applyDiff with reference values", () => {
-    const NestedItem = co.list(z.string());
-    const RefList = co.list(NestedItem);
+  test("applyDiff with reference values using CoValues", () => {
+    const TicTacToeRow = co.list(z.string());
+    const TicTacToeBoard = co.list(TicTacToeRow);
 
-    const item1 = NestedItem.create(["item1"], { owner: me });
-    const item2 = NestedItem.create(["item2"], { owner: me });
-    const item3 = NestedItem.create(["item3"], { owner: me });
-    const item4 = NestedItem.create(["item4"], { owner: me });
+    const row1 = TicTacToeRow.create(["X", "O", ""], { owner: me });
+    const row2 = TicTacToeRow.create(["", "X", "O"], { owner: me });
+    const row3 = TicTacToeRow.create(["O", "O", ""], { owner: me });
+    const winningRow = TicTacToeRow.create(["O", "O", "X"], { owner: me });
 
-    const list = RefList.create([item1, item2], { owner: me });
+    const list = TicTacToeBoard.create([row1, row2], { owner: me });
 
     // Test adding reference items
-    list.$jazz.applyDiff([item1, item2, item3]);
+    list.$jazz.applyDiff([row1, row2, row3]);
     expect(list.length).toBe(3);
-    expect(list[2]?.[0]).toBe("item3");
-
-    // Test removing reference items
-    list.$jazz.applyDiff([item1, item3]);
-    expect(list.length).toBe(2);
-    expect(list[0]?.[0]).toBe("item1");
-    expect(list[1]?.[0]).toBe("item3");
+    expect(list[2]?.toJSON()).toEqual(["O", "O", ""]);
 
     // Test replacing reference items
-    list.$jazz.applyDiff([item4]);
-    expect(list.length).toBe(1);
-    expect(list[0]?.[0]).toBe("item4");
+    list.$jazz.applyDiff([row1, row2, winningRow]);
+    expect(list.length).toBe(3);
+    expect(list[2]?.toJSON()).toEqual(["O", "O", "X"]);
+    // Only elements with different $jazz.id are replaced
+    expect(list[0]?.$jazz.id).toBe(row1?.$jazz.id);
+    expect(list[1]?.$jazz.id).toBe(row2?.$jazz.id);
+    expect(list[2]?.$jazz.id).not.toBe(row3?.$jazz.id);
+
+    // Test removing reference items
+    list.$jazz.applyDiff([row1, row3]);
+    expect(list.length).toBe(2);
+    expect(list[0]?.toJSON()).toEqual(["X", "O", ""]);
+    expect(list[0]?.$jazz.id).toBe(row1?.$jazz.id);
+    expect(list[1]?.toJSON()).toEqual(["O", "O", ""]);
+    expect(list[1]?.$jazz.id).not.toBe(row2?.$jazz.id);
+
+    // Test empty list
+    list.$jazz.applyDiff([]);
+    expect(list.$jazz.raw.asArray()).toEqual([]);
+  });
+
+  test("applyDiff with reference values using JSON", () => {
+    const TicTacToeRow = co.list(z.string());
+    const TicTacToeBoard = co.list(TicTacToeRow);
+
+    const row1 = ["X", "O", ""];
+    const row2 = ["", "X", "O"];
+    const row3 = ["O", "O", ""];
+    const winningRow = ["O", "O", "X"];
+
+    const list = TicTacToeBoard.create([row1, row2], { owner: me });
+    const originalRow1 = list[0];
+    const originalRow2 = list[1];
+    const originalRow3 = list[2];
+
+    // Test adding reference items
+    list.$jazz.applyDiff([row1, row2, row3]);
+    expect(list.length).toBe(3);
+    expect(list[2]?.toJSON()).toEqual(["O", "O", ""]);
+
+    // Test replacing reference items
+    list.$jazz.applyDiff([row1, row2, winningRow]);
+    expect(list.length).toBe(3);
+    expect(list[2]?.toJSON()).toEqual(["O", "O", "X"]);
+    // All elements are replaced because new JSON values are set
+    expect(list[0]?.$jazz.id).not.toBe(originalRow1?.$jazz.id);
+    expect(list[1]?.$jazz.id).not.toBe(originalRow2?.$jazz.id);
+    expect(list[2]?.$jazz.id).not.toBe(originalRow3?.$jazz.id);
+
+    // Test removing reference items
+    list.$jazz.applyDiff([row1, row3]);
+    expect(list.length).toBe(2);
+    expect(list[0]?.toJSON()).toEqual(["X", "O", ""]);
+    expect(list[0]?.$jazz.id).not.toBe(originalRow1?.$jazz.id);
+    expect(list[1]?.toJSON()).toEqual(["O", "O", ""]);
+    expect(list[1]?.$jazz.id).not.toBe(originalRow2?.$jazz.id);
 
     // Test empty list
     list.$jazz.applyDiff([]);
