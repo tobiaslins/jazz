@@ -150,6 +150,7 @@ export class CoList<out Item = any>
    * ```
    *
    * @category Creation
+   * @deprecated Use `co.list(...).create` instead.
    **/
   static create<L extends CoList>(
     this: CoValueClass<L>,
@@ -239,6 +240,7 @@ export class CoList<out Item = any>
    * ```
    *
    * @category Subscription & Loading
+   * @deprecated Use `co.list(...).load` instead.
    */
   static load<L extends CoList, const R extends RefsToResolve<L> = true>(
     this: CoValueClass<L>,
@@ -278,6 +280,7 @@ export class CoList<out Item = any>
    * ```
    *
    * @category Subscription & Loading
+   * @deprecated Use `co.list(...).subscribe` instead.
    */
   static subscribe<L extends CoList, const R extends RefsToResolve<L> = true>(
     this: CoValueClass<L>,

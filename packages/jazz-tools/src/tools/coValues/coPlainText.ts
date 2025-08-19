@@ -83,6 +83,7 @@ export class CoPlainText extends String implements CoValue {
    * ```
    *
    * @category Creation
+   * @deprecated Use `co.plainText(...).create` instead.
    */
   static create<T extends CoPlainText>(
     this: CoValueClass<T>,
@@ -141,6 +142,7 @@ export class CoPlainText extends String implements CoValue {
     return this.$jazz.raw.mapping.idxAfterOpID[stringifyOpID(pos)];
   }
 
+  /** @category Internals */
   static fromRaw<V extends CoPlainText>(
     this: CoValueClass<V> & typeof CoPlainText,
     raw: RawCoPlainText,
@@ -152,6 +154,7 @@ export class CoPlainText extends String implements CoValue {
    * Load a `CoPlainText` with a given ID, as a given account.
    *
    * @category Subscription & Loading
+   * @deprecated Use `co.plainText(...).load` instead.
    */
   static load<T extends CoPlainText>(
     this: CoValueClass<T>,
@@ -173,6 +176,7 @@ export class CoPlainText extends String implements CoValue {
    * Also see the `useCoState` hook to reactively subscribe to a CoValue in a React component.
    *
    * @category Subscription & Loading
+   * @deprecated Use `co.plainText(...).subscribe` instead.
    */
   static subscribe<T extends CoPlainText>(
     this: CoValueClass<T>,

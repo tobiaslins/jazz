@@ -21,6 +21,7 @@ export class Profile extends CoMap {
    * The owner (a Group) determines access rights to the Profile.
    *
    * @category Creation
+   * @deprecated Use `co.profile(...).create` instead.
    */
   static override create<M extends CoMap>(
     this: CoValueClass<M>,
