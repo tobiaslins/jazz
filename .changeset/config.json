@@ -6,6 +6,7 @@
   "fixed": [
     [
       "cojson",
+      "cojson-core-wasm",
       "cojson-storage-indexeddb",
       "cojson-storage-sqlite",
       "cojson-transport-ws",

@@ -1,5 +1,6 @@
-import { SessionLog, initialize as initializeCoreWasm } from "cojson-core-wasm";
 import {
+  SessionLog,
+  initialize,
   Blake3Hasher,
   blake3_empty_state,
   blake3_hash_once,
@@ -8,14 +9,13 @@ import {
   encrypt,
   get_sealer_id,
   get_signer_id,
-  initialize,
   new_ed25519_signing_key,
   new_x25519_private_key,
   seal,
   sign,
   unseal,
   verify,
-} from "jazz-crypto-rs";
+} from "cojson-core-wasm";
 import { base64URLtoBytes, bytesToBase64url } from "../base64url.js";
 import { RawCoID, SessionID, TransactionID } from "../ids.js";
 import { Stringified, stableStringify } from "../jsonStringify.js";
@@ -47,7 +47,7 @@ import {
 type Blake3State = Blake3Hasher;
 
 /**
- * WebAssembly implementation of the CryptoProvider interface using jazz-crypto-rs.
+ * WebAssembly implementation of the CryptoProvider interface using cojson-core-wasm.
  * This provides the primary implementation using WebAssembly for optimal performance, offering:
  * - Signing/verifying (Ed25519)
  * - Encryption/decryption (XSalsa20)
@@ -61,7 +61,6 @@ export class WasmCrypto extends CryptoProvider<Blake3State> {
 
   static async create(): Promise<WasmCrypto | PureJSCrypto> {
     try {
-      await initializeCoreWasm();
       await initialize();
     } catch (e) {
       logger.warn(
