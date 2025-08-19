@@ -45,7 +45,6 @@ export const JazzReactProviderWithClerk = <
 >(
   props: {
     clerk: MinimalClerkClient;
-    fallback?: ReactNode;
   } & JazzProviderProps<S>,
 ) => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -68,11 +67,7 @@ export const JazzReactProviderWithClerk = <
   }
 
   return (
-    <JazzReactProvider
-      {...props}
-      logOutReplacement={props.clerk.signOut}
-      fallback={props.fallback}
-    >
+    <JazzReactProvider {...props} logOutReplacement={props.clerk.signOut}>
       <RegisterClerkAuth clerk={props.clerk}>
         {props.children}
       </RegisterClerkAuth>
