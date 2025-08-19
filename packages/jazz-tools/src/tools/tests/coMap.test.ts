@@ -2325,6 +2325,12 @@ describe("co.map schema", () => {
       expect(draftPerson.extraField).toEqual("extra");
     });
   });
+
+  test("co.map() should throw an error if passed a CoValue schema", () => {
+    expect(() => co.map(co.map({}))).toThrow(
+      "co.map() expects an object as its argument, not a CoValue schema",
+    );
+  });
 });
 
 describe("Updating a nested reference", () => {
