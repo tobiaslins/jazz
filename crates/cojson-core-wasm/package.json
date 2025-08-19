@@ -13,7 +13,8 @@
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
-    "build:wasm": "wasm-pack build --release --target web && node build.js"
+    "build:wasm": "wasm-pack build --release --target web && node build.js",
+    "build:dev": "wasm-pack build --dev --target web && node build.js"
   },
   "devDependencies": {
     "wasm-pack": "^0.13.1"
