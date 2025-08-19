@@ -1348,13 +1348,17 @@ describe("CoMap applyDiff", async () => {
   });
 
   test("applyDiff with nested changes", () => {
+    const originalNestedMap = NestedMap.create(
+      { value: "original" },
+      { owner: me },
+    );
     const map = TestMap.create(
       {
         name: "Charlie",
         age: 25,
         isActive: true,
         birthday: new Date("1995-01-01"),
-        nested: NestedMap.create({ value: "original" }, { owner: me }),
+        nested: originalNestedMap,
       },
       { owner: me },
     );
@@ -1369,6 +1373,8 @@ describe("CoMap applyDiff", async () => {
     expect(map.name).toEqual("David");
     expect(map.age).toEqual(25);
     expect(map.nested?.value).toEqual("updated");
+    // A new nested CoMap is created
+    expect(map.nested.$jazz.id).not.toBe(originalNestedMap.$jazz.id);
   });
 
   test("applyDiff with encoded fields", () => {
@@ -1510,6 +1516,7 @@ describe("CoMap applyDiff", async () => {
       birthday: new Date("1990-01-01"),
       nested: NestedMap.create({ value: "original" }),
     });
+    const originalNestedMap = map.nested;
 
     const newValues = {
       nested: { value: "updated" },
@@ -1518,6 +1525,8 @@ describe("CoMap applyDiff", async () => {
     map.$jazz.applyDiff(newValues);
 
     expect(map.nested?.value).toEqual("updated");
+    // A new nested CoMap is created
+    expect(map.nested.$jazz.id).not.toBe(originalNestedMap.$jazz.id);
   });
 });
 

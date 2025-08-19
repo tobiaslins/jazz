@@ -142,9 +142,11 @@ describe("Simple CoList operations", async () => {
         ],
         { owner: me },
       );
+      const originalIngredient = recipe[1];
 
       recipe.$jazz.set(1, Ingredient.create({ name: "margarine" }, me));
       expect(recipe[1]?.name).toBe("margarine");
+      expect(recipe[1]?.$jazz.id).not.toBe(originalIngredient?.$jazz.id);
     });
 
     test("assign undefined on a required ref", () => {
@@ -201,9 +203,11 @@ describe("Simple CoList operations", async () => {
         [{ name: "bread" }, { name: "butter" }, { name: "onion" }],
         { owner: me },
       );
+      const originalIngredient = recipe[1];
 
       recipe.$jazz.set(1, { name: "margarine" });
       expect(recipe[1]?.name).toBe("margarine");
+      expect(recipe[1]?.$jazz.id).not.toBe(originalIngredient?.$jazz.id);
     });
 
     describe("push", () => {
@@ -442,12 +446,15 @@ describe("CoList applyDiff operations", async () => {
     list.$jazz.applyDiff([item1, item3]);
     expect(list.length).toBe(2);
     expect(list[0]?.[0]).toBe("item1");
+    expect(list[0]?.$jazz.id).toBe(item1?.$jazz.id);
     expect(list[1]?.[0]).toBe("item3");
+    expect(list[1]?.$jazz.id).not.toBe(item2?.$jazz.id);
 
     // Test replacing reference items
     list.$jazz.applyDiff([item4]);
     expect(list.length).toBe(1);
     expect(list[0]?.[0]).toBe("item4");
+    expect(list[0]?.$jazz.id).not.toBe(item1?.$jazz.id);
 
     // Test empty list
     list.$jazz.applyDiff([]);
@@ -464,6 +471,8 @@ describe("CoList applyDiff operations", async () => {
     const item4 = ["item4"];
 
     const list = RefList.create([item1, item2], { owner: me });
+    const originalItem1 = list[0];
+    const originalItem2 = list[1];
 
     // Test adding reference items
     list.$jazz.applyDiff([item1, item2, item3]);
@@ -474,12 +483,15 @@ describe("CoList applyDiff operations", async () => {
     list.$jazz.applyDiff([item1, item3]);
     expect(list.length).toBe(2);
     expect(list[0]?.[0]).toBe("item1");
+    expect(list[0]?.$jazz.id).not.toBe(originalItem1?.$jazz.id);
     expect(list[1]?.[0]).toBe("item3");
+    expect(list[1]?.$jazz.id).not.toBe(originalItem2?.$jazz.id);
 
     // Test replacing reference items
     list.$jazz.applyDiff([item4]);
     expect(list.length).toBe(1);
     expect(list[0]?.[0]).toBe("item4");
+    expect(list[0]?.$jazz.id).not.toBe(originalItem1?.$jazz.id);
 
     // Test empty list
     list.$jazz.applyDiff([]);
