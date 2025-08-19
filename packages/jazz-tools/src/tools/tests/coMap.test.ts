@@ -602,10 +602,22 @@ describe("CoMap", async () => {
         });
       });
 
-      test("automatically creates CoValues for each CoValue reference", () => {
+      test("automatically creates CoValues for plain text reference", () => {
         person.$jazz.set("name", "Jack");
+        expect(person.name.toString()).toEqual("Jack");
+      });
+
+      test("automatically creates CoValues for rich text reference", () => {
         person.$jazz.set("bio", "I am a lawyer");
+        expect(person.bio!.toString()).toEqual("I am a lawyer");
+      });
+
+      test("automatically creates CoValues for CoMap reference", () => {
         person.$jazz.set("dog", { type: "dog", name: "Fido" });
+        expect(person.dog.name).toEqual("Fido");
+      });
+
+      test("automatically creates CoValues for CoList reference", () => {
         person.$jazz.set("friends", [
           {
             name: "Jane",
@@ -616,16 +628,18 @@ describe("CoMap", async () => {
             pet: { type: "cat", name: "Nala" },
           },
         ]);
-        person.$jazz.set("reactions", ["🧑‍🔬"]);
-        person.$jazz.set("pet", { type: "cat", name: "Salem" });
-
-        expect(person.name.toString()).toEqual("Jack");
-        expect(person.bio!.toString()).toEqual("I am a lawyer");
-        expect(person.dog.name).toEqual("Fido");
         expect(person.friends[0]!.name.toString()).toEqual("Jane");
         expect(person.friends[0]!.dog.name).toEqual("Firulais");
         expect(person.friends[0]!.pet.name).toEqual("Nala");
+      });
+
+      test("automatically creates CoValues for CoFeed reference", () => {
+        person.$jazz.set("reactions", ["🧑‍🔬"]);
         expect(person.reactions.byMe?.value?.toString()).toEqual("🧑‍🔬");
+      });
+
+      test("automatically creates CoValues for discriminated union reference", () => {
+        person.$jazz.set("pet", { type: "cat", name: "Salem" });
         expect(person.pet.name).toEqual("Salem");
       });
 
