@@ -639,13 +639,13 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
 
         if (descriptor === "json" || "encoded" in descriptor) {
           if (currentValue !== newValue) {
-            this.set(tKey as any, newValue);
+            this.set(tKey as any, newValue as CoFieldInit<M[keyof M]>);
           }
         } else if (isRefEncoded(descriptor)) {
           const currentId = (currentValue as CoValue | undefined)?.$jazz.id;
           let newId = (newValue as CoValue | undefined)?.$jazz?.id;
           if (currentId !== newId) {
-            this.set(tKey as any, newValue);
+            this.set(tKey as any, newValue as CoFieldInit<M[keyof M]>);
           }
         }
       }

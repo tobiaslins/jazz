@@ -592,7 +592,7 @@ export class CoListJazzApi<L extends CoList>
    * @category Content
    */
   applyDiff(result: CoFieldInit<CoListItem<L>>[]): L {
-    const current = this.raw.asArray() as CoListItem<L>[];
+    const current = this.raw.asArray() as CoFieldInit<CoListItem<L>>[];
     const comparator = isRefEncoded(this.schema[ItemsSym])
       ? (aIdx: number, bIdx: number) => {
           const oldCoValueId = (current[aIdx] as CoValue)?.$jazz?.id;
