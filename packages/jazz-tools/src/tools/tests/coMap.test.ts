@@ -2172,58 +2172,6 @@ describe("Creating and finding unique CoMaps", async () => {
   });
 });
 
-describe("castAs", () => {
-  test("should cast a co.map type", () => {
-    const Person = co.map({
-      name: z.string(),
-    });
-
-    const PersonWithAge = co.map({
-      name: z.string(),
-      age: z.number().optional(),
-    });
-
-    const person = Person.create({
-      name: "Alice",
-    });
-
-    const personWithAge = person.$jazz.castAs(PersonWithAge);
-
-    personWithAge.$jazz.set("age", 20);
-
-    expect(personWithAge.age).toEqual(20);
-  });
-
-  test("should still be able to autoload in-memory deps", () => {
-    const Dog = co.map({
-      name: z.string(),
-    });
-
-    const Person = co.map({
-      name: z.string(),
-      dog: Dog,
-    });
-
-    const PersonWithAge = co.map({
-      name: z.string(),
-      age: z.number().optional(),
-      dog: Dog,
-    });
-
-    const person = Person.create({
-      name: "Alice",
-      dog: Dog.create({ name: "Rex" }),
-    });
-
-    const personWithAge = person.$jazz.castAs(PersonWithAge);
-
-    personWithAge.$jazz.set("age", 20);
-
-    expect(personWithAge.age).toEqual(20);
-    expect(personWithAge.dog?.name).toEqual("Rex");
-  });
-});
-
 describe("CoMap migration", () => {
   test("should run on load", async () => {
     const PersonV1 = co.map({

@@ -47,9 +47,7 @@ describe("parseCoValueCreateOptions", () => {
       unique: "per-group",
       owner: group,
     });
-    // TODO uncomment when castAs is removed
-    // expect(result.owner).toBe(group);
-    expect(result.owner.$jazz.id).toBe(group.$jazz.id);
+    expect(result.owner).toBe(group);
     expect(result.uniqueness?.uniqueness).toBe("per-group");
   });
 

@@ -384,22 +384,12 @@ export class CoList<out Item = any>
 /** @internal */
 type CoListItem<L> = L extends CoList<infer Item> ? Item : never;
 
-export class CoListJazzApi<L extends CoList>
-  implements Omit<CoValueJazzApi<L>, "castAs">
-{
-  /** @category Internals */
-  declare _instanceID: string;
-
+export class CoListJazzApi<L extends CoList> extends CoValueJazzApi<L> {
   constructor(
     private coList: L,
     private getRaw: () => RawCoList,
   ) {
-    Object.defineProperties(this, {
-      _instanceID: {
-        value: `instance-${Math.random().toString(36).slice(2)}`,
-        enumerable: false,
-      },
-    });
+    super(coList);
   }
 
   /**
@@ -413,33 +403,6 @@ export class CoListJazzApi<L extends CoList>
   /** @category Collaboration */
   get owner(): Group {
     return getCoValueOwner(this.coList);
-  }
-
-  /** @internal */
-  get localNode(): LocalNode {
-    return this.raw.core.node;
-  }
-
-  /** @private */
-  get loadedAs() {
-    const agent = this.localNode.getCurrentAgent();
-
-    if (agent instanceof ControlledAccount) {
-      return coValuesCache.get(agent.account, () =>
-        coValueClassFromCoValueClassOrSchema(
-          RegisteredSchemas["Account"],
-        ).fromRaw(agent.account),
-      );
-    }
-
-    return new AnonymousJazzAgent(this.localNode);
-  }
-
-  /** @category Type Helpers */
-  castAs<Cl extends CoValueClass & CoValueFromRaw<CoValue>>(
-    cl: Cl,
-  ): InstanceType<Cl> {
-    return cl.fromRaw(this.raw) as InstanceType<Cl>;
   }
 
   set(index: number, value: CoFieldInit<CoListItem<L>>): void {
@@ -475,7 +438,7 @@ export class CoListJazzApi<L extends CoList>
    */
   unshift(...items: CoFieldInit<CoListItem<L>>[]): number {
     for (const item of toRawItems(
-      items as CoListItem<L>[],
+      items as CoFieldInit<CoListItem<L>>[],
       this.schema[ItemsSym],
       this.owner,
     )) {

@@ -378,7 +378,7 @@ export function parseCoValueCreateOptions(
 
   if (TypeSym in options) {
     if (options[TypeSym] === "Account") {
-      return { owner: options.$jazz.castAs(Group), uniqueness: undefined };
+      return { owner: accountOrGroupToGroup(options), uniqueness: undefined };
     } else if (options[TypeSym] === "Group") {
       return { owner: options, uniqueness: undefined };
     }
@@ -389,10 +389,19 @@ export function parseCoValueCreateOptions(
     : undefined;
 
   const opts = {
-    owner: options.owner?.$jazz.castAs(Group) ?? Group.create(),
+    owner: options.owner
+      ? accountOrGroupToGroup(options.owner)
+      : Group.create(),
     uniqueness,
   };
   return opts;
+}
+
+function accountOrGroupToGroup(accountOrGroup: Account | Group): Group {
+  if (accountOrGroup[TypeSym] === "Group") {
+    return accountOrGroup;
+  }
+  return RegisteredSchemas["Group"].fromRaw(accountOrGroup.$jazz.raw);
 }
 
 export function parseGroupCreateOptions(
