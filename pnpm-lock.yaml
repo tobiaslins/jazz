@@ -1659,9 +1659,6 @@ importers:
       cojson-core-wasm:
         specifier: workspace:*
         version: link:../../crates/cojson-core-wasm
-      jazz-crypto-rs:
-        specifier: 0.0.7
-        version: 0.0.7
       neverthrow:
         specifier: ^7.0.1
         version: 7.2.0

@@ -51,7 +51,7 @@ async function createSchema(
   };
 }
 
-const PUREJS = true;
+const PUREJS = false;
 
 // @ts-expect-error
 const schema = await createSchema(tools, PUREJS ? PureJSCrypto : WasmCrypto);
