@@ -49,18 +49,20 @@ if (bob) {
 ```
 </CodeGroup>
 
-**Note:** if the account ID is of type `string`, because it comes from a URL parameter or something similar, you need to cast it to `ID<Account>` first:
+**Note:** 
+- Both `Account.load(id)` and `co.account().load(id)` do the same thing — they load an account from its ID.
 
 <CodeGroup>
 ```tsx twoslash
 const bobsID = "co_z123";
-
+import { Group } from "jazz-tools";
 const group = Group.create();
 
 // ---cut---
-import { co, Group } from "jazz-tools";
+import { ID, Account, co } from "jazz-tools";
 
-const bob = await co.account().load(bobsID);
+const bob = await Account.load(bobsID);
+// Or: const bob = await co.account().load(bobsID);
 
 if (bob) {
   group.addMember(bob, "writer");
