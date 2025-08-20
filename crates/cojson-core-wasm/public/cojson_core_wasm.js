@@ -900,15 +900,15 @@ export class SessionLog {
     /**
      * @param {string} co_id
      * @param {string} session_id
-     * @param {string} signer_id
+     * @param {string | null} [signer_id]
      */
     constructor(co_id, session_id, signer_id) {
         const ptr0 = passStringToWasm0(co_id, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
         const ptr1 = passStringToWasm0(session_id, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len1 = WASM_VECTOR_LEN;
-        const ptr2 = passStringToWasm0(signer_id, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len2 = WASM_VECTOR_LEN;
+        var ptr2 = isLikeNone(signer_id) ? 0 : passStringToWasm0(signer_id, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len2 = WASM_VECTOR_LEN;
         const ret = wasm.sessionlog_new(ptr0, len0, ptr1, len1, ptr2, len2);
         this.__wbg_ptr = ret >>> 0;
         SessionLogFinalization.register(this, this.__wbg_ptr, this);

@@ -219,7 +219,6 @@ dependencies = [
  "getrandom",
  "hex",
  "js-sys",
- "once_cell",
  "rand",
  "salsa20",
  "serde",

@@ -176,22 +176,25 @@ pub enum CoJsonCoreError {
 pub struct SessionLogInternal {
     co_id: CoID,
     session_id: SessionID,
-    public_key: VerifyingKey,
+    public_key: Option<VerifyingKey>,
     hasher: blake3::Hasher,
     transactions_json: Vec<String>,
     last_signature: Option<Signature>,
 }
 
 impl SessionLogInternal {
-    pub fn new(co_id: CoID, session_id: SessionID, signer_id: SignerID) -> Self {
+    pub fn new(co_id: CoID, session_id: SessionID, signer_id: Option<SignerID>) -> Self {
         let hasher = blake3::Hasher::new();
 
-        let public_key = VerifyingKey::try_from(
-            decode_z(&signer_id.0)
-                .expect("Invalid public key")
-                .as_slice(),
-        )
-        .expect("Invalid public key");
+        let public_key = match signer_id {
+            Some(signer_id) => Some(VerifyingKey::try_from(
+                decode_z(&signer_id.0)
+                    .expect("Invalid public key")
+                    .as_slice(),
+            )
+            .expect("Invalid public key")),
+            None => None,
+        };
 
         Self {
             co_id,
@@ -233,16 +236,22 @@ impl SessionLogInternal {
                 bs58::encode(hasher.finalize().as_bytes()).into_string()
             );
 
-            match self.public_key.verify(
-                new_hash_encoded_stringified.as_bytes(),
-                &(new_signature).into(),
-            ) {
-                Ok(()) => {}
-                Err(_) => {
-                    return Err(CoJsonCoreError::SignatureVerification(
-                        new_hash_encoded_stringified.replace("\"", ""),
-                    ));
+            if let Some(public_key) = self.public_key {
+                match public_key.verify(
+                    new_hash_encoded_stringified.as_bytes(),
+                    &(new_signature).into(),
+                ) {
+                    Ok(()) => {}
+                    Err(_) => {
+                        return Err(CoJsonCoreError::SignatureVerification(
+                            new_hash_encoded_stringified.replace("\"", ""),
+                        ));
+                    }
                 }
+            } else {
+                return Err(CoJsonCoreError::SignatureVerification(
+                    new_hash_encoded_stringified.replace("\"", ""),
+                ));
             }
 
             self.hasher = hasher;

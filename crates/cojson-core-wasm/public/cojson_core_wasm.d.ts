@@ -207,7 +207,7 @@ export class Blake3Hasher {
 }
 export class SessionLog {
   free(): void;
-  constructor(co_id: string, session_id: string, signer_id: string);
+  constructor(co_id: string, session_id: string, signer_id?: string | null);
   clone(): SessionLog;
   tryAdd(transactions_json: string[], new_signature_str: string, skip_verify: boolean): void;
   addNewPrivateTransaction(changes_json: string, signer_secret: string, encryption_key: string, key_id: string, made_at: number): string;

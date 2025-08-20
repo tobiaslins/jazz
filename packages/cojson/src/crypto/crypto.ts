@@ -306,7 +306,7 @@ export abstract class CryptoProvider<Blake3State = any> {
   abstract createSessionLog(
     coID: RawCoID,
     sessionID: SessionID,
-    signerID: SignerID,
+    signerID?: SignerID,
   ): SessionLogImpl;
 }
 
