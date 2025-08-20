@@ -1,0 +1,26 @@
+name: "Validate CODEOWNERS"
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  sanity:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      # Checks-out your repository, which is validated in the next step
+      - uses: actions/checkout@v2
+      - name: GitHub CODEOWNERS Validator
+        uses: mszostok/codeowners-validator@v0.7.4
+        # input parameters
+        with:
+          checks: "files,duppatterns,syntax"
+          experimental_checks: "notowned,avoid-shadowing"
+          repository_path: "."
+          check_failure_level: "warning"
+          not_owned_checker_skip_patterns: ""
+          owner_checker_repository: "${{ github.repository }}"
+          owner_checker_allow_unowned_patterns: "true"
+          owner_checker_owners_must_be_teams: "true"
+          not_owned_checker_subdirectories: ""
