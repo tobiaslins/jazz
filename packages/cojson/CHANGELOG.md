@@ -1,5 +1,12 @@
 # cojson
 
+## 0.17.10
+
+### Patch Changes
+
+- c55297c: Move the session log management into WASM
+  - cojson-core-wasm@0.17.10
+
 ## 0.17.9
 
 ### Patch Changes
