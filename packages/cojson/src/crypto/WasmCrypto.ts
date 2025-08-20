@@ -206,28 +206,18 @@ export class WasmCrypto extends CryptoProvider<Blake3State> {
   }
 
   createSessionLog(coID: RawCoID, sessionID: SessionID, signerID?: SignerID) {
-    return new SessionLogAdapter(
-      new SessionLog(coID, sessionID, signerID),
-      Boolean(signerID),
-    );
+    return new SessionLogAdapter(new SessionLog(coID, sessionID, signerID));
   }
 }
 
 class SessionLogAdapter {
-  constructor(
-    private readonly sessionLog: SessionLog,
-    private readonly hasSignerID: boolean,
-  ) {}
+  constructor(private readonly sessionLog: SessionLog) {}
 
   tryAdd(
     transactions: Transaction[],
     newSignature: Signature,
     skipVerify: boolean,
   ): void {
-    if (!this.hasSignerID) {
-      throw new Error("Tried to add transactions without signer ID");
-    }
-
     this.sessionLog.tryAdd(
       transactions.map((tx) => stableStringify(tx)),
       newSignature,
