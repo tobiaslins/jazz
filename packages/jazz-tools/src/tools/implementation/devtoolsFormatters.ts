@@ -22,7 +22,7 @@ import { ItemsSym, TypeSym } from "./symbols.js";
             {},
             object.constructor.name +
               "(" +
-              object._refs.profile.value?.name +
+              object.$jazz.refs.profile.value?.name +
               (object.isMe ? " ME" : "") +
               ")",
           ],
@@ -52,7 +52,7 @@ import { ItemsSym, TypeSym } from "./symbols.js";
                       "span",
                       { style: "opacity: 0.5" },
                       ` (pending ${object._schema[k].name} `,
-                      ["object", { object: object._refs[k] }],
+                      ["object", { object: object.$jazz.refs[k] }],
                       ")",
                     ],
                   ]
@@ -77,7 +77,7 @@ import { ItemsSym, TypeSym } from "./symbols.js";
                       "span",
                       { style: "opacity: 0.5" },
                       ` (pending ${object._schema[ItemsSym].name} `,
-                      ["object", { object: object._refs[i] }],
+                      ["object", { object: object.$jazz.refs[i] }],
                       ")",
                     ],
                   ]

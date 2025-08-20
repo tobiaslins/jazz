@@ -725,17 +725,17 @@ export class CoListJazzApi<L extends CoList>
   }
 
   /**
-   * If a `CoList`'s items are a `coField.ref(...)`, you can use `coList._refs[i]` to access
+   * If a `CoList`'s items are a `coField.ref(...)`, you can use `coList.$jazz.refs[i]` to access
    * the `Ref` instead of the potentially loaded/null value.
    *
    * This allows you to always get the ID or load the value manually.
    *
    * @example
    * ```ts
-   * animals._refs[0].id; // => ID<Animal>
-   * animals._refs[0].value;
+   * animals.$jazz.refs[0].id; // => ID<Animal>
+   * animals.$jazz.refs[0].value;
    * // => Animal | null
-   * const animal = await animals._refs[0].load();
+   * const animal = await animals.$jazz.refs[0].load();
    * ```
    *
    * @category Content

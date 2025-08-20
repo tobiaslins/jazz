@@ -19,7 +19,7 @@
 </script>
 
 <div>
-  {#each me.current?.root?.people?._refs || [] as ref, index}
+  {#each me.current?.root?.people?.$jazz.refs || [] as ref, index}
     <button
       onclick={() => {
         id = ref.id;
