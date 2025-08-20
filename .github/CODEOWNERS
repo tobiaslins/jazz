@@ -1,9 +1,8 @@
-
-# ====== Packages ======
 ./packages @garden-co/framework
+./tests @garden-co/framework
 ./packages/quint-ui @garden-co/ui
 
-
-
+./homepage @garden-co/ui
 ./homepage/homepage/content/docs @garden-co/docs
-./homepage/design-system @garden-co/ui
+./starters @garden-co/docs
+./examples @garden-co/docs @garden-co/ui
