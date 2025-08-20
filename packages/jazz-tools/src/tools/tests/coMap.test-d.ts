@@ -99,10 +99,10 @@ describe("CoMap", async () => {
         },
       });
 
+      // @ts-expect-error - Object literal may only specify known properties
       const person = Person.create({
         // @ts-expect-error - breed is missing
         dog1: { name: "Rex", items },
-        // @ts-expect-error - Object literal may only specify known properties
         dog2: { name: "Fido", breed: "Labrador", extra: "extra" },
         friend: {
           dog1: {

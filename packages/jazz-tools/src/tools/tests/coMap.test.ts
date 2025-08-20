@@ -1547,9 +1547,9 @@ describe("CoMap Typescript validation", async () => {
     });
 
     expectTypeOf<typeof TestMap.create>().toBeCallableWith(
+      // @ts-expect-error null can't be passed to a non-optional field
       {
         optional: NestedMap.create({ value: "" }, { owner: me }),
-        // @ts-expect-error null can't be passed to a non-optional field
         required: null,
       },
       { owner: me },

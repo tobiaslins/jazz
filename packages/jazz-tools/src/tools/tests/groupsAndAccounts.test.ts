@@ -629,7 +629,11 @@ describe("Account permissions", () => {
           creationProps: { name: "Test Account" },
           crypto: Crypto,
         });
-        const group = Group.create({ owner: account });
+        const otherAccount = await co.account().create({
+          creationProps: { name: "Other Account" },
+          crypto: Crypto,
+        });
+        const group = Group.create({ owner: otherAccount });
 
         group.addMember(account, "writer");
 
@@ -641,11 +645,31 @@ describe("Account permissions", () => {
           creationProps: { name: "Test Account" },
           crypto: Crypto,
         });
-        const group = Group.create({ owner: account });
+        const otherAccount = await co.account().create({
+          creationProps: { name: "Other Account" },
+          crypto: Crypto,
+        });
+        const group = Group.create({ owner: otherAccount });
 
         group.addMember(account, "admin");
 
         expect(account.canWrite(group)).toBe(true);
+      });
+
+      test("cannot write Group if it has writeOnly permissions for that group", async () => {
+        const account = await co.account().create({
+          creationProps: { name: "Test Account" },
+          crypto: Crypto,
+        });
+        const otherAccount = await co.account().create({
+          creationProps: { name: "Other Account" },
+          crypto: Crypto,
+        });
+        const group = Group.create({ owner: otherAccount });
+
+        group.addMember(account, "writeOnly");
+
+        expect(account.canWrite(group)).toBe(false);
       });
 
       test("cannot write Group if it's a reader for that group", async () => {
@@ -653,7 +677,11 @@ describe("Account permissions", () => {
           creationProps: { name: "Test Account" },
           crypto: Crypto,
         });
-        const group = Group.create({ owner: account });
+        const otherAccount = await co.account().create({
+          creationProps: { name: "Other Account" },
+          crypto: Crypto,
+        });
+        const group = Group.create({ owner: otherAccount });
 
         group.addMember(account, "reader");
 
@@ -701,7 +729,11 @@ describe("Account permissions", () => {
           creationProps: { name: "Test Account" },
           crypto: Crypto,
         });
-        const group = Group.create({ owner: account });
+        const otherAccount = await co.account().create({
+          creationProps: { name: "Other Account" },
+          crypto: Crypto,
+        });
+        const group = Group.create({ owner: otherAccount });
 
         group.addMember(account, "admin");
 
@@ -713,9 +745,29 @@ describe("Account permissions", () => {
           creationProps: { name: "Test Account" },
           crypto: Crypto,
         });
-        const group = Group.create({ owner: account });
+        const otherAccount = await co.account().create({
+          creationProps: { name: "Other Account" },
+          crypto: Crypto,
+        });
+        const group = Group.create({ owner: otherAccount });
 
         group.addMember(account, "writer");
+
+        expect(account.canAdmin(group)).toBe(false);
+      });
+
+      test("cannot admin Group if it has writeOnly permissions for that group", async () => {
+        const account = await co.account().create({
+          creationProps: { name: "Test Account" },
+          crypto: Crypto,
+        });
+        const otherAccount = await co.account().create({
+          creationProps: { name: "Other Account" },
+          crypto: Crypto,
+        });
+        const group = Group.create({ owner: otherAccount });
+
+        group.addMember(account, "writeOnly");
 
         expect(account.canAdmin(group)).toBe(false);
       });
@@ -725,7 +777,11 @@ describe("Account permissions", () => {
           creationProps: { name: "Test Account" },
           crypto: Crypto,
         });
-        const group = Group.create({ owner: account });
+        const otherAccount = await co.account().create({
+          creationProps: { name: "Other Account" },
+          crypto: Crypto,
+        });
+        const group = Group.create({ owner: otherAccount });
 
         group.addMember(account, "reader");
 
