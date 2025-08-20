@@ -1,6 +1,5 @@
 # Rust
 /target
-Cargo.lock
 
 # Test artifacts
 lzy/compressed_66k.lzy
