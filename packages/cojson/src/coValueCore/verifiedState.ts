@@ -91,10 +91,8 @@ export class VerifiedState {
     sessionID: SessionID,
     signerID: SignerID,
     newTransactions: Transaction[],
-    givenExpectedNewHash: Hash | undefined,
     newSignature: Signature,
     skipVerify: boolean = false,
-    givenNewStreamingHash?: StreamingHash,
   ): Result<true, TryAddTransactionsError> {
     const result = this.sessions.addTransaction(
       sessionID,

@@ -643,9 +643,7 @@ export class SyncManager {
       const result = coValue.tryAddTransactions(
         sessionID,
         newTransactions,
-        undefined,
         newContentForSession.lastSignature,
-        "immediate",
         this.skipVerify,
       );
 
