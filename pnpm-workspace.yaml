@@ -3,7 +3,7 @@ packages:
   - 'examples/*'
   - 'starters/*'
   - 'tests/*'
-  - 'crates/cojson-core-wasm'
+  - 'crates/*'
   - 'bench'
 
 catalogs:
