@@ -180,9 +180,7 @@ test("should not verify transactions when SyncManager has verification disabled"
         madeAt: Date.now(),
       },
     ],
-    undefined,
     Crypto.sign(agent.currentSignerSecret(), "hash_z12345678"),
-    "immediate",
     true,
   );
 

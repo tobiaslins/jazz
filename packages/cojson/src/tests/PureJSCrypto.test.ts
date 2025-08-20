@@ -113,9 +113,7 @@ describe("PureJSCrypto", () => {
           madeAt: Date.now(),
         },
       ],
-      "hash_z12345678",
       "signature_z12345678",
-      "immediate",
       true,
     );
 

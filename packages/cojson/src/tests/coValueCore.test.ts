@@ -76,9 +76,7 @@ test("transactions with wrong signature are rejected", () => {
   const result = newEntry.tryAddTransactions(
     node.currentSessionID,
     [transaction],
-    undefined,
     signature,
-    "immediate",
   );
 
   expect(result.isErr()).toBe(true);
@@ -301,9 +299,7 @@ test("getValidTransactions should skip private transactions with invalid JSON", 
     .tryAddTransactions(
       fixtures.session,
       [fixtures.transaction],
-      undefined,
       fixtures.signature,
-      "immediate",
     )
     ._unsafeUnwrap();
 

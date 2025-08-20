@@ -431,11 +431,8 @@ export class CoValueCore {
   tryAddTransactions(
     sessionID: SessionID,
     newTransactions: Transaction[],
-    givenExpectedNewHash: Hash | undefined,
     newSignature: Signature,
-    notifyMode: "immediate" | "deferred",
     skipVerify: boolean = false,
-    givenNewStreamingHash?: StreamingHash,
   ): Result<true, TryAddTransactionsError> {
     return this.node
       .resolveAccountAgent(
@@ -456,14 +453,12 @@ export class CoValueCore {
           sessionID,
           signerID,
           newTransactions,
-          givenExpectedNewHash,
           newSignature,
           skipVerify,
-          givenNewStreamingHash,
         );
 
         if (result.isOk()) {
-          this.updateContentAndNotifyUpdate(notifyMode);
+          this.updateContentAndNotifyUpdate("immediate");
         }
 
         return result;
