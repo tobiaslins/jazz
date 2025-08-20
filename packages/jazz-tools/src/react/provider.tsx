@@ -20,7 +20,7 @@ export type JazzProviderProps<
 > = {
   children: React.ReactNode;
   enableSSR?: boolean;
-  fallback?: React.ReactNode;
+  fallback?: React.ReactNode | null;
 } & JazzContextManagerProps<S>;
 
 /** @category Context & Hooks */
@@ -39,7 +39,7 @@ export function JazzReactProvider<
   logOutReplacement,
   onAnonymousAccountDiscarded,
   enableSSR,
-  fallback,
+  fallback = null,
 }: JazzProviderProps<S>) {
   const [contextManager] = React.useState(
     () =>
@@ -102,7 +102,7 @@ export function JazzReactProvider<
   return (
     <JazzContext.Provider value={value}>
       <JazzContextManagerContext.Provider value={contextManager}>
-        {!fallback ? value && children : !value ? fallback : children}
+        {value ? children : fallback}
       </JazzContextManagerContext.Provider>
     </JazzContext.Provider>
   );
