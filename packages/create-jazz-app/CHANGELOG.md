@@ -1,5 +1,11 @@
 # create-jazz-app
 
+## 0.1.27
+
+### Patch Changes
+
+- 0aef170: Fix catalog management
+
 ## 0.1.26
 
 ### Patch Changes
