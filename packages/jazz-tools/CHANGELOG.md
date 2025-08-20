@@ -1,5 +1,15 @@
 # jazz-tools
 
+## 0.17.9
+
+### Patch Changes
+
+- 52ea0c7: Explicit loadAs in upsertUnique to use it without loaded context
+- Updated dependencies [7586c3b]
+  - cojson@0.17.9
+  - cojson-storage-indexeddb@0.17.9
+  - cojson-transport-ws@0.17.9
+
 ## 0.17.8
 
 ### Patch Changes

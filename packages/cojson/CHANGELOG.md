@@ -1,5 +1,11 @@
 # cojson
 
+## 0.17.9
+
+### Patch Changes
+
+- 7586c3b: Adds disableTransactionVerification() method to SyncManager
+
 ## 0.17.8
 
 ## 0.17.7
