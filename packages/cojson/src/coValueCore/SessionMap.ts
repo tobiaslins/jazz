@@ -85,7 +85,6 @@ export class SessionMap {
 
       return ok(true as const);
     } catch (e) {
-      console.log("error", e);
       return err({
         type: "InvalidSignature",
         id: this.id,

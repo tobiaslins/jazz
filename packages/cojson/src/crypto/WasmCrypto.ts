@@ -284,6 +284,6 @@ class SessionLogAdapter {
   }
 
   clone(): SessionLogAdapter {
-    return new SessionLogAdapter(this.sessionLog.clone(), this.hasSignerID);
+    return new SessionLogAdapter(this.sessionLog.clone());
   }
 }
