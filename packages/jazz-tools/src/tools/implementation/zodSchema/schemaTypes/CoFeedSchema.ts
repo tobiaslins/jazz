@@ -29,6 +29,15 @@ export class CoFeedSchema<T extends AnyZodOrCoValueSchema>
 
   create(
     init: CoFeedSchemaInit<T>,
+    options?: { owner: Group } | Group,
+  ): CoFeedInstance<T>;
+  /** @deprecated Creating CoValues with an Account as owner is deprecated. Use a Group instead. */
+  create(
+    init: CoFeedSchemaInit<T>,
+    options?: { owner: Account | Group } | Account | Group,
+  ): CoFeedInstance<T>;
+  create(
+    init: CoFeedSchemaInit<T>,
     options?: { owner: Account | Group } | Account | Group,
   ): CoFeedInstance<T> {
     return this.coValueClass.create(init as any, options) as CoFeedInstance<T>;

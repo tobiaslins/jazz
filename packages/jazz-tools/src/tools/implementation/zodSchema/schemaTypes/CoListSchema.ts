@@ -29,6 +29,15 @@ export class CoListSchema<T extends AnyZodOrCoValueSchema>
 
   create(
     items: CoListSchemaInit<T>,
+    options?: { owner: Group } | Group,
+  ): CoListInstance<T>;
+  /** @deprecated Creating CoValues with an Account as owner is deprecated. Use a Group instead. */
+  create(
+    items: CoListSchemaInit<T>,
+    options?: { owner: Account | Group } | Account | Group,
+  ): CoListInstance<T>;
+  create(
+    items: CoListSchemaInit<T>,
     options?: { owner: Account | Group } | Account | Group,
   ): CoListInstance<T> {
     return this.coValueClass.create(items as any, options) as CoListInstance<T>;

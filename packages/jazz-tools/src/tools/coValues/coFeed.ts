@@ -855,7 +855,7 @@ export class FileStream extends CoValueBase implements CoValue {
     blob: Blob | File,
     options?:
       | {
-          owner?: Group | Account;
+          owner?: Account | Group;
           onProgress?: (progress: number) => void;
         }
       | Account
@@ -888,7 +888,7 @@ export class FileStream extends CoValueBase implements CoValue {
     fileName: string | undefined,
     options?:
       | {
-          owner?: Group | Account;
+          owner?: Account | Group;
           onProgress?: (progress: number) => void;
         }
       | Account
