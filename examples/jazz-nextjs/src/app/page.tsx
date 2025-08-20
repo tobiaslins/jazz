@@ -31,7 +31,7 @@ export default function Home() {
               return;
             }
 
-            me.profile.name = e.target.value;
+            me.profile.$jazz.set("name", e.target.value);
           }}
         />
       </label>

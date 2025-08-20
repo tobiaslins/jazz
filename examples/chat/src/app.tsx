@@ -35,7 +35,7 @@ export function App() {
           className="bg-transparent"
           onChange={(e) => {
             if (!me?.profile) return;
-            me.profile.name = e.target.value;
+            me.profile.$jazz.set("name", e.target.value);
           }}
           placeholder="Set username"
         />

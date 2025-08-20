@@ -102,7 +102,7 @@ export class BetterAuth<T extends ClientOptions> {
         profile: true,
       },
     });
-    currentAccount.profile.name = session.user.name;
+    currentAccount.profile.$jazz.set("name", session.user.name);
     await BetterAuth.loadAuthData(this.authSecretStorage, credentials);
   };
 }

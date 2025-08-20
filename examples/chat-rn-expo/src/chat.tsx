@@ -107,7 +107,7 @@ export default function ChatScreen() {
             value={me?.profile.name ?? ""}
             onChangeText={(value) => {
               if (me?.profile) {
-                me.profile.name = value;
+                me.profile.$jazz.set("name", value);
               }
             }}
             textAlignVertical="center"

@@ -67,7 +67,7 @@
       onchange={(e) => {
         if (!me?.profile) return;
         const target = e.target as HTMLInputElement;
-        me.profile.name = target.value;
+        me.profile.$jazz.set('name', target.value);
       }}
       placeholder="Set username"
     />
