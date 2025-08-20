@@ -84,7 +84,7 @@ schemaLatest.account._raw.core.node.internalDeleteCoValue(message.id as any);
 
 describe("Message.create", () => {
   bench(
-    "current version (SessionLog)",
+    "current version",
     () => {
       schema.Message.create(
         {
@@ -102,7 +102,7 @@ describe("Message.create", () => {
   );
 
   bench(
-    "latest version (0.17.2)",
+    "Jazz 0.17.5",
     () => {
       schemaLatest.Message.create(
         {
@@ -126,7 +126,7 @@ describe("Message import", () => {
     schema.account._raw.core.node.internalDeleteCoValue(message.id as any);
   });
 
-  bench("latest version (0.17.2)", () => {
+  bench("Jazz 0.17.5", () => {
     toolsLatest.importContentPieces(content ?? [], schemaLatest.account);
     schemaLatest.account._raw.core.node.internalDeleteCoValue(
       message.id as any,
@@ -136,7 +136,7 @@ describe("Message import", () => {
 
 describe("import+ decrypt", () => {
   bench(
-    "current version (SessionLog)",
+    "current version",
     () => {
       tools.importContentPieces(content ?? [], schema.account as any);
 
@@ -149,7 +149,7 @@ describe("import+ decrypt", () => {
   );
 
   bench(
-    "latest version (0.17.2)",
+    "Jazz 0.17.5",
     () => {
       toolsLatest.importContentPieces(content ?? [], schemaLatest.account);
 
