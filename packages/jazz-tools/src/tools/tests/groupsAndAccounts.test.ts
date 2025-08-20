@@ -577,6 +577,176 @@ describe("Account permissions", () => {
     expect(nonMember.canWrite(testObject)).toBe(false);
     expect(nonMember.canAdmin(testObject)).toBe(false);
   });
+
+  describe("permissions over Groups and Accounts", () => {
+    describe("read", () => {
+      test("can read all Accounts", async () => {
+        const account = await co.account().create({
+          creationProps: { name: "Test Account" },
+          crypto: Crypto,
+        });
+        const otherAccount = await co.account().create({
+          creationProps: { name: "Other Account" },
+          crypto: Crypto,
+        });
+        expect(account.canRead(otherAccount)).toBe(true);
+      });
+
+      test("can read all groups", async () => {
+        const account = await co.account().create({
+          creationProps: { name: "Test Account" },
+          crypto: Crypto,
+        });
+        const group = Group.create();
+
+        expect(account.canRead(group)).toBe(true);
+      });
+    });
+
+    describe("write", () => {
+      test("can write Account if it's itself", async () => {
+        const account = await co.account().create({
+          creationProps: { name: "Test Account" },
+          crypto: Crypto,
+        });
+        expect(account.canWrite(account)).toBe(true);
+      });
+
+      test("cannot write other accounts", async () => {
+        const account = await co.account().create({
+          creationProps: { name: "Test Account" },
+          crypto: Crypto,
+        });
+        const otherAccount = await co.account().create({
+          creationProps: { name: "Other Account" },
+          crypto: Crypto,
+        });
+        expect(account.canWrite(otherAccount)).toBe(false);
+      });
+
+      test("can write Group if it's a writer for that group", async () => {
+        const account = await co.account().create({
+          creationProps: { name: "Test Account" },
+          crypto: Crypto,
+        });
+        const group = Group.create({ owner: account });
+
+        group.addMember(account, "writer");
+
+        expect(account.canWrite(group)).toBe(true);
+      });
+
+      test("can write Group if it's an admin for that group", async () => {
+        const account = await co.account().create({
+          creationProps: { name: "Test Account" },
+          crypto: Crypto,
+        });
+        const group = Group.create({ owner: account });
+
+        group.addMember(account, "admin");
+
+        expect(account.canWrite(group)).toBe(true);
+      });
+
+      test("cannot write Group if it's a reader for that group", async () => {
+        const account = await co.account().create({
+          creationProps: { name: "Test Account" },
+          crypto: Crypto,
+        });
+        const group = Group.create({ owner: account });
+
+        group.addMember(account, "reader");
+
+        expect(account.canWrite(group)).toBe(false);
+      });
+
+      test("cannot write Group if it has no permissions for that group", async () => {
+        const account = await co.account().create({
+          creationProps: { name: "Test Account" },
+          crypto: Crypto,
+        });
+        const otherAccount = await co.account().create({
+          creationProps: { name: "Other Account" },
+          crypto: Crypto,
+        });
+        const group = Group.create({ owner: otherAccount });
+
+        expect(account.canWrite(group)).toBe(false);
+      });
+    });
+
+    describe("admin", () => {
+      test("can admin Account if it's itself", async () => {
+        const account = await co.account().create({
+          creationProps: { name: "Test Account" },
+          crypto: Crypto,
+        });
+        expect(account.canAdmin(account)).toBe(true);
+      });
+
+      test("cannot admin other accounts", async () => {
+        const account = await co.account().create({
+          creationProps: { name: "Test Account" },
+          crypto: Crypto,
+        });
+        const otherAccount = await co.account().create({
+          creationProps: { name: "Other Account" },
+          crypto: Crypto,
+        });
+        expect(account.canAdmin(otherAccount)).toBe(false);
+      });
+
+      test("can admin Group if it's an admin for that group", async () => {
+        const account = await co.account().create({
+          creationProps: { name: "Test Account" },
+          crypto: Crypto,
+        });
+        const group = Group.create({ owner: account });
+
+        group.addMember(account, "admin");
+
+        expect(account.canAdmin(group)).toBe(true);
+      });
+
+      test("cannot admin Group if it's a writer for that group", async () => {
+        const account = await co.account().create({
+          creationProps: { name: "Test Account" },
+          crypto: Crypto,
+        });
+        const group = Group.create({ owner: account });
+
+        group.addMember(account, "writer");
+
+        expect(account.canAdmin(group)).toBe(false);
+      });
+
+      test("cannot write Group if it's a reader for that group", async () => {
+        const account = await co.account().create({
+          creationProps: { name: "Test Account" },
+          crypto: Crypto,
+        });
+        const group = Group.create({ owner: account });
+
+        group.addMember(account, "reader");
+
+        expect(account.canAdmin(group)).toBe(false);
+      });
+
+      test("cannot write Group if it has no permissions for that group", async () => {
+        const account = await co.account().create({
+          creationProps: { name: "Test Account" },
+          crypto: Crypto,
+        });
+        const otherAccount = await co.account().create({
+          creationProps: { name: "Other Account" },
+          crypto: Crypto,
+        });
+        const group = Group.create({ owner: otherAccount });
+
+        expect(account.canAdmin(group)).toBe(false);
+      });
+    });
+  });
 });
 
 describe("Group.members", () => {

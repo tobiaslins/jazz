@@ -12,7 +12,6 @@ import {
   RawCoValue,
   SessionID,
   cojsonInternals,
-  RawGroup,
 } from "cojson";
 import {
   AnonymousJazzAgent,
@@ -154,7 +153,8 @@ export class Account extends CoValueBase implements CoValue {
   canRead(value: CoValue): boolean {
     const valueOwner = value.$jazz.owner;
     if (!valueOwner) {
-      return false;
+      // Groups and Accounts are public
+      return true;
     }
     const role = valueOwner.getRoleOf(this.$jazz.id);
 
@@ -169,6 +169,13 @@ export class Account extends CoValueBase implements CoValue {
   canWrite(value: CoValue): boolean {
     const valueOwner = value.$jazz.owner;
     if (!valueOwner) {
+      if (value[TypeSym] === "Group") {
+        const roleInGroup = (value as Group).getRoleOf(this.$jazz.id);
+        return roleInGroup === "admin" || roleInGroup === "writer";
+      }
+      if (value[TypeSym] === "Account") {
+        return value.$jazz.id === this.$jazz.id;
+      }
       return false;
     }
     const role = valueOwner.getRoleOf(this.$jazz.id);
@@ -179,6 +186,13 @@ export class Account extends CoValueBase implements CoValue {
   canAdmin(value: CoValue): boolean {
     const valueOwner = value.$jazz.owner;
     if (!valueOwner) {
+      if (value[TypeSym] === "Group") {
+        const roleInGroup = (value as Group).getRoleOf(this.$jazz.id);
+        return roleInGroup === "admin";
+      }
+      if (value[TypeSym] === "Account") {
+        return value.$jazz.id === this.$jazz.id;
+      }
       return false;
     }
     return valueOwner.getRoleOf(this.$jazz.id) === "admin";
