@@ -14,7 +14,7 @@ import { LocalNode } from "../localNode.js";
 import { logger } from "../logger.js";
 import type { AccountRole, Role } from "../permissions.js";
 import { RawCoMap } from "./coMap.js";
-import { EVERYONE, InviteSecret, RawGroup } from "./group.js";
+import { Everyone, EVERYONE, InviteSecret, RawGroup } from "./group.js";
 
 export function accountHeaderForInitialAgentSecret(
   agentSecret: AgentSecret,
@@ -64,7 +64,7 @@ export class RawAccount<
     return agents[0]!;
   }
 
-  createInvite(_: AccountRole): InviteSecret {
+  override createInvite(_: AccountRole): InviteSecret {
     throw new Error("Cannot create invite from an account");
   }
 
@@ -75,6 +75,30 @@ export class RawAccount<
       return "admin";
     }
     return super.roleOfInternal(accountID);
+  }
+
+  override addMember(
+    account: RawAccount | ControlledAccountOrAgent | Everyone,
+    role: Role,
+  ) {
+    throw new Error("Cannot add a member to an account");
+  }
+
+  override removeMember(
+    account: RawAccount | ControlledAccountOrAgent | Everyone,
+  ) {
+    throw new Error("Cannot remove a member from an account");
+  }
+
+  override extend(
+    parent: RawGroup,
+    role: "reader" | "writer" | "admin" | "inherit" = "inherit",
+  ) {
+    throw new Error("Cannot extend an account");
+  }
+
+  override revokeExtend(parent: RawGroup) {
+    throw new Error("Cannot unextend an account");
   }
 }
 
