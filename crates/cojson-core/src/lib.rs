@@ -211,29 +211,13 @@ impl SessionLogInternal {
         self.last_signature.as_ref()
     }
 
-    fn expected_hash_after(&self, transactions: &[Box<RawValue>]) -> blake3::Hash {
+    fn expected_hash_after(&self, transactions: &[Box<RawValue>]) -> blake3::Hasher {
         let mut hasher = self.hasher.clone();
-        println!("Initial hash: {}", format!(
-            "\"hash_z{}\"",
-            bs58::encode(hasher.finalize().as_bytes()).into_string()
-        ));
         for tx in transactions {
             hasher.update(tx.get().as_bytes());
-            println!("incremental: {} {}", format!(
-                "\"hash_z{}\"",
-                bs58::encode(hasher.finalize().as_bytes()).into_string()
-            ), tx.get());
         }
 
-        hasher.finalize()
-    }
-
-    pub fn test_expected_hash_after(&self, transactions: &[Box<RawValue>]) -> String {
-        let new_hash = self.expected_hash_after(transactions);
-        format!(
-            "hash_z{}",
-            bs58::encode(new_hash.as_bytes()).into_string()
-        )
+        hasher
     }
 
     pub fn try_add(
@@ -243,10 +227,10 @@ impl SessionLogInternal {
         skip_verify: bool,
     ) -> Result<(), CoJsonCoreError> {
         if !skip_verify {
-            let new_hash = self.expected_hash_after(&transactions);
+            let hasher = self.expected_hash_after(&transactions);
             let new_hash_encoded_stringified = format!(
                 "\"hash_z{}\"",
-                bs58::encode(new_hash.as_bytes()).into_string()
+                bs58::encode(hasher.finalize().as_bytes()).into_string()
             );
 
             match self.public_key.verify(
@@ -260,12 +244,12 @@ impl SessionLogInternal {
                     ));
                 }
             }
+
+            self.hasher = hasher;
         }
 
         for tx in transactions {
-            let tx_json = tx.get();
-            self.hasher.update(tx_json.as_bytes());
-            self.transactions_json.push(tx_json.to_string());
+            self.transactions_json.push(tx.get().to_string());
         }
 
         self.last_signature = Some(new_signature.clone());
