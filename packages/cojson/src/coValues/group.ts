@@ -371,6 +371,15 @@ export class RawGroup<
       const previousRole = this.get(memberKey);
 
       if (
+        previousRole === "admin" &&
+        memberKey !== this.core.node.getCurrentAgent().id
+      ) {
+        throw new Error(
+          "Administrators cannot demote other administrators in a group",
+        );
+      }
+
+      if (
         previousRole === "reader" ||
         previousRole === "writer" ||
         previousRole === "admin"
