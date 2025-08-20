@@ -14,7 +14,6 @@ on:
 
 jobs:
   test-create-jazz-app-distribution:
-    if: contains(github.event.pull_request.labels.*.name, 'pre-release')
     runs-on: ubuntu-latest
 
     steps:
