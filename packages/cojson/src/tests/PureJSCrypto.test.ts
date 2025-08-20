@@ -148,6 +148,6 @@ describe("PureJSSessionLog", () => {
         "signature_z12345678",
         false,
       ),
-    ).toThrow("Can't verify signatures without a signer ID");
+    ).toThrow("Tried to add transactions without signer ID");
   });
 });
