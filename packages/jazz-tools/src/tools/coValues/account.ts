@@ -344,7 +344,7 @@ class AccountJazzApi<A extends Account> extends CoValueJazzApi<A> {
     public raw: RawAccount,
   ) {
     super(account);
-    this.isLocalNodeOwner = isLocalNodeOwner(this.raw);
+    this.isLocalNodeOwner = this.raw.id === this.localNode.getCurrentAgent().id;
     if (this.isLocalNodeOwner) {
       this.sessionID = this.localNode.currentSessionID;
     }
@@ -566,10 +566,6 @@ export function isControlledAccount(
   account: Account,
 ): account is ControlledAccount {
   return account.$jazz.isLocalNodeOwner;
-}
-
-export function isLocalNodeOwner(raw: RawGroup): boolean {
-  return raw.id == raw.core.node.getCurrentAgent().id;
 }
 
 export type AccountClass<Acc extends Account> = CoValueClass<Acc> & {

@@ -397,7 +397,7 @@ export function parseCoValueCreateOptions(
   return opts;
 }
 
-function accountOrGroupToGroup(accountOrGroup: Account | Group): Group {
+export function accountOrGroupToGroup(accountOrGroup: Account | Group): Group {
   if (accountOrGroup[TypeSym] === "Group") {
     return accountOrGroup;
   }

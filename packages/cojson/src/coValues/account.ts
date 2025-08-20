@@ -1,12 +1,5 @@
 import { CoID, RawCoValue } from "../coValue.js";
-import {
-  AvailableCoValueCore,
-  CoValueCore,
-} from "../coValueCore/coValueCore.js";
-import {
-  CoValueHeader,
-  CoValueUniqueness,
-} from "../coValueCore/verifiedState.js";
+import { CoValueHeader } from "../coValueCore/verifiedState.js";
 import {
   AgentSecret,
   CryptoProvider,
@@ -19,9 +12,9 @@ import { AgentID } from "../ids.js";
 import { JsonObject } from "../jsonValue.js";
 import { LocalNode } from "../localNode.js";
 import { logger } from "../logger.js";
-import type { AccountRole } from "../permissions.js";
+import type { AccountRole, Role } from "../permissions.js";
 import { RawCoMap } from "./coMap.js";
-import { InviteSecret, RawGroup } from "./group.js";
+import { EVERYONE, InviteSecret, RawGroup } from "./group.js";
 
 export function accountHeaderForInitialAgentSecret(
   agentSecret: AgentSecret,
@@ -73,6 +66,15 @@ export class RawAccount<
 
   createInvite(_: AccountRole): InviteSecret {
     throw new Error("Cannot create invite from an account");
+  }
+
+  override roleOfInternal(
+    accountID: RawAccountID | AgentID | typeof EVERYONE,
+  ): Role | undefined {
+    if (accountID === this.id) {
+      return "admin";
+    }
+    return super.roleOfInternal(accountID);
   }
 }
 

@@ -36,6 +36,13 @@ import {
   subscribeToExistingCoValue,
 } from "../internal.js";
 
+type GroupMember = {
+  id: string;
+  role: AccountRole;
+  ref: Ref<Account>;
+  account: Account;
+};
+
 /** @category Identity & Permissions */
 export class Group extends CoValueBase implements CoValue {
   declare [TypeSym]: "Group";
@@ -129,12 +136,7 @@ export class Group extends CoValueBase implements CoValue {
 
   private getMembersFromKeys(
     accountIDs: Iterable<RawAccountID | AgentID>,
-  ): Array<{
-    id: string;
-    role: AccountRole;
-    ref: Ref<Account>;
-    account: Account;
-  }> {
+  ): GroupMember[] {
     const members = [];
 
     const refEncodedAccountSchema = {
@@ -186,7 +188,7 @@ export class Group extends CoValueBase implements CoValue {
    *
    * @returns The members of the group.
    */
-  get members() {
+  get members(): GroupMember[] {
     return this.getMembersFromKeys(this.$jazz.raw.getAllMemberKeysSet());
   }
 
@@ -197,20 +199,18 @@ export class Group extends CoValueBase implements CoValue {
    * parent groups, use {@link Group.members|members} instead.
    * @returns The direct members of the group.
    */
-  getDirectMembers() {
+  getDirectMembers(): GroupMember[] {
     return this.getMembersFromKeys(this.$jazz.raw.getMemberKeys());
   }
 
-  getRoleOf(member: Everyone | ID<Account> | "me") {
-    if (member === "me") {
-      return this.$jazz.raw.roleOf(
-        activeAccountContext.get().$jazz.id as unknown as RawAccountID,
-      );
-    }
-
-    return this.$jazz.raw.roleOf(
-      member === "everyone" ? member : (member as unknown as RawAccountID),
-    );
+  getRoleOf(member: Everyone | ID<Account> | "me"): Role | undefined {
+    const accountId =
+      member === "me"
+        ? (activeAccountContext.get().$jazz.id as RawAccountID)
+        : member === "everyone"
+          ? member
+          : (member as RawAccountID);
+    return this.$jazz.raw.roleOf(accountId);
   }
 
   /**
@@ -220,7 +220,7 @@ export class Group extends CoValueBase implements CoValue {
    * @param role - Optional: the role to grant to everyone. Defaults to "reader".
    * @returns The group itself.
    */
-  makePublic(role: "reader" | "writer" = "reader") {
+  makePublic(role: "reader" | "writer" = "reader"): this {
     this.addMember("everyone", role);
     return this;
   }
@@ -241,7 +241,7 @@ export class Group extends CoValueBase implements CoValue {
   extend(
     parent: Group,
     roleMapping?: "reader" | "writer" | "admin" | "inherit",
-  ) {
+  ): this {
     this.$jazz.raw.extend(parent.$jazz.raw, roleMapping);
     return this;
   }
@@ -252,7 +252,7 @@ export class Group extends CoValueBase implements CoValue {
    * @param parent The group that will lose access to this group.
    * @returns This group.
    */
-  async revokeExtend(parent: Group) {
+  async revokeExtend(parent: Group): Promise<this> {
     await this.$jazz.raw.revokeExtend(parent.$jazz.raw);
     return this;
   }

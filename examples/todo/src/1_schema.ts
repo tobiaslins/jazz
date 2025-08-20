@@ -24,7 +24,6 @@ export const Task = co
       // we need to check if the text field is a string or a reference to a CoValue.
       // If it's a string, we migrate it to plainText.
       const textRef = task.$jazz.refs.text;
-      console.log("textRef", textRef);
       if (!textRef) {
         // The conversion is done automatically when assigning the string value to the plainText field
         task.$jazz.set("text", task.text);

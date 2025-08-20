@@ -1,26 +1,24 @@
-import { RawCoValue, Role } from "cojson";
+import { RawAccount, RawCoValue, Role } from "cojson";
 import { RegisteredSchemas } from "../coValues/registeredSchemas.js";
 import {
   CoValue,
   RefEncoded,
+  accountOrGroupToGroup,
   instantiateRefEncodedFromRaw,
-  isLocalNodeOwner,
 } from "../internal.js";
 import { coValuesCache } from "../lib/cache.js";
 import { SubscriptionScope } from "./SubscriptionScope.js";
 
-export function myRoleFromRawValue(raw: RawCoValue): Role | undefined {
+export function myRoleForRawValue(raw: RawCoValue): Role | undefined {
   const rawOwner = raw.group;
 
-  if (isLocalNodeOwner(rawOwner)) {
-    return "admin";
-  }
-
   const owner = coValuesCache.get(rawOwner, () =>
-    RegisteredSchemas["Group"].fromRaw(rawOwner),
+    rawOwner instanceof RawAccount
+      ? RegisteredSchemas["Account"].fromRaw(rawOwner)
+      : RegisteredSchemas["Group"].fromRaw(rawOwner),
   );
 
-  return owner.myRole();
+  return accountOrGroupToGroup(owner).myRole();
 }
 
 export function createCoValue<D extends CoValue>(
