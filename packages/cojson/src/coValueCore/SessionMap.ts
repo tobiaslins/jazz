@@ -68,16 +68,6 @@ export class SessionMap {
   ): Result<true, TryAddTransactionsError> {
     const sessionLog = this.getOrCreateSessionLog(sessionID, signerID);
 
-    if (!skipVerify && !sessionLog.signerID) {
-      if (!signerID) {
-        return err({
-          type: "TriedToAddTransactionsWithoutSignerID",
-          id: this.id,
-          sessionID,
-        } satisfies TryAddTransactionsError);
-      }
-    }
-
     try {
       sessionLog.impl.tryAdd(newTransactions, newSignature, skipVerify);
 
