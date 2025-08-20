@@ -24,6 +24,7 @@ function JazzProvider({ children }: { children: ReactNode }) {
       sync={{
         peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
       }}
+      fallback={<p>Loading...</p>}
     >
       {children}
     </JazzReactProviderWithClerk>
