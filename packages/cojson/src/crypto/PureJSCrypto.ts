@@ -3,23 +3,32 @@ import { ed25519, x25519 } from "@noble/curves/ed25519";
 import { blake3 } from "@noble/hashes/blake3";
 import { base58 } from "@scure/base";
 import { base64URLtoBytes, bytesToBase64url } from "../base64url.js";
-import { RawCoID, TransactionID } from "../ids.js";
+import {
+  PrivateTransaction,
+  Transaction,
+  TrustingTransaction,
+} from "../coValueCore/verifiedState.js";
+import { RawCoID, SessionID, TransactionID } from "../ids.js";
 import { Stringified, stableStringify } from "../jsonStringify.js";
 import { JsonValue } from "../jsonValue.js";
 import { logger } from "../logger.js";
 import {
   CryptoProvider,
   Encrypted,
+  KeyID,
   KeySecret,
   Sealed,
   SealerID,
   SealerSecret,
+  SessionLogImpl,
   Signature,
   SignerID,
   SignerSecret,
+  StreamingHash,
   textDecoder,
   textEncoder,
 } from "./crypto.js";
+import { ControlledAccountOrAgent } from "../coValues/account.js";
 
 type Blake3State = ReturnType<typeof blake3.create>;
 
@@ -67,7 +76,7 @@ export class PureJSCrypto extends CryptoProvider<Blake3State> {
     return this.blake3HashOnce(input).slice(0, 24);
   }
 
-  protected generateJsonNonce(material: JsonValue): Uint8Array {
+  generateJsonNonce(material: JsonValue): Uint8Array {
     return this.generateNonce(textEncoder.encode(stableStringify(material)));
   }
 
@@ -198,5 +207,196 @@ export class PureJSCrypto extends CryptoProvider<Blake3State> {
       logger.error("Failed to decrypt/parse sealed message", { err: e });
       return undefined;
     }
+  }
+
+  createSessionLog(
+    coID: RawCoID,
+    sessionID: SessionID,
+    signerID: SignerID,
+  ): SessionLogImpl {
+    return new PureJSSessionLog(coID, sessionID, signerID, this);
+  }
+}
+
+export class PureJSSessionLog implements SessionLogImpl {
+  transactions: string[] = [];
+  lastSignature: Signature | undefined;
+  streamingHash: Blake3State;
+
+  constructor(
+    private readonly coID: RawCoID,
+    private readonly sessionID: SessionID,
+    private readonly signerID: SignerID,
+    private readonly crypto: PureJSCrypto,
+  ) {
+    this.streamingHash = this.crypto.emptyBlake3State();
+  }
+
+  clone(): SessionLogImpl {
+    const newLog = new PureJSSessionLog(
+      this.coID,
+      this.sessionID,
+      this.signerID,
+      this.crypto,
+    );
+    newLog.transactions = this.transactions.slice();
+    newLog.lastSignature = this.lastSignature;
+    newLog.streamingHash = this.crypto.cloneBlake3State(this.streamingHash);
+    return newLog;
+  }
+
+  tryAdd(
+    transactions: Transaction[],
+    newSignature: Signature,
+    skipVerify: boolean,
+  ): void {
+    this.internalTryAdd(
+      transactions.map((tx) => stableStringify(tx)),
+      newSignature,
+      skipVerify,
+    );
+  }
+
+  internalTryAdd(
+    transactions: string[],
+    newSignature: Signature,
+    skipVerify: boolean,
+  ) {
+    if (!skipVerify) {
+      const checkHasher = this.crypto.cloneBlake3State(this.streamingHash);
+
+      for (const tx of transactions) {
+        checkHasher.update(textEncoder.encode(tx));
+      }
+      const newHash = checkHasher.digest();
+      const newHashEncoded = `hash_z${base58.encode(newHash)}`;
+
+      if (!this.crypto.verify(newSignature, newHashEncoded, this.signerID)) {
+        throw new Error("Signature verification failed");
+      }
+    }
+
+    for (const tx of transactions) {
+      this.crypto.blake3IncrementalUpdate(
+        this.streamingHash,
+        textEncoder.encode(tx),
+      );
+      this.transactions.push(tx);
+    }
+
+    this.lastSignature = newSignature;
+
+    return newSignature;
+  }
+
+  expectedHashAfter(transactionsJson: string[]): string {
+    const hasher = this.crypto.cloneBlake3State(this.streamingHash);
+    for (const tx of transactionsJson) {
+      hasher.update(textEncoder.encode(tx));
+    }
+    const newHash = hasher.digest();
+    return `hash_z${base58.encode(newHash)}`;
+  }
+
+  internalAddNewTransaction(
+    transaction: string,
+    signerAgent: ControlledAccountOrAgent,
+  ) {
+    this.crypto.blake3IncrementalUpdate(
+      this.streamingHash,
+      textEncoder.encode(transaction),
+    );
+    const newHash = this.crypto.blake3DigestForState(this.streamingHash);
+    const newHashEncoded = `hash_z${base58.encode(newHash)}`;
+    const signature = this.crypto.sign(
+      signerAgent.currentSignerSecret(),
+      newHashEncoded,
+    );
+    this.transactions.push(transaction);
+    this.lastSignature = signature;
+
+    return signature;
+  }
+
+  addNewPrivateTransaction(
+    signerAgent: ControlledAccountOrAgent,
+    changes: JsonValue[],
+    keyID: KeyID,
+    keySecret: KeySecret,
+    madeAt: number,
+  ): { signature: Signature; transaction: PrivateTransaction } {
+    const encryptedChanges = this.crypto.encrypt(changes, keySecret, {
+      in: this.coID,
+      tx: { sessionID: this.sessionID, txIndex: this.transactions.length },
+    });
+    const tx = {
+      encryptedChanges: encryptedChanges,
+      madeAt: madeAt,
+      privacy: "private",
+      keyUsed: keyID,
+    } satisfies Transaction;
+    const signature = this.internalAddNewTransaction(
+      stableStringify(tx),
+      signerAgent,
+    );
+    return {
+      signature: signature as Signature,
+      transaction: tx,
+    };
+  }
+
+  addNewTrustingTransaction(
+    signerAgent: ControlledAccountOrAgent,
+    changes: JsonValue[],
+    madeAt: number,
+  ): { signature: Signature; transaction: TrustingTransaction } {
+    const tx = {
+      changes: stableStringify(changes),
+      madeAt: madeAt,
+      privacy: "trusting",
+    } satisfies Transaction;
+    const signature = this.internalAddNewTransaction(
+      stableStringify(tx),
+      signerAgent,
+    );
+    return {
+      signature: signature as Signature,
+      transaction: tx,
+    };
+  }
+
+  decryptNextTransactionChangesJson(
+    txIndex: number,
+    keySecret: KeySecret,
+  ): string {
+    const txJson = this.transactions[txIndex];
+    if (!txJson) {
+      throw new Error("Transaction not found");
+    }
+    const tx = JSON.parse(txJson) as Transaction;
+    if (tx.privacy === "private") {
+      const nOnceMaterial = {
+        in: this.coID,
+        tx: { sessionID: this.sessionID, txIndex: txIndex },
+      };
+
+      const nOnce = this.crypto.generateJsonNonce(nOnceMaterial);
+
+      const ciphertext = base64URLtoBytes(
+        tx.encryptedChanges.substring("encrypted_U".length),
+      );
+      const keySecretBytes = base58.decode(
+        keySecret.substring("keySecret_z".length),
+      );
+      const plaintext = xsalsa20(keySecretBytes, nOnce, ciphertext);
+
+      return textDecoder.decode(plaintext);
+    } else {
+      return tx.changes;
+    }
+  }
+
+  free(): void {
+    // no-op
   }
 }

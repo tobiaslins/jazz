@@ -1,0 +1,14 @@
+{
+  "name": "jazz-tools-benchmark",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "cojson": "workspace:*",
+    "jazz-tools": "workspace:*",
+    "cojson-latest": "npm:cojson@latest",
+    "jazz-tools-latest": "npm:jazz-tools@latest"
+  },
+  "scripts": {
+    "bench": "vitest bench"
+  }
+}
