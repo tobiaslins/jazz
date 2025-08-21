@@ -159,6 +159,8 @@ export function setActiveAccount(account: Account) {
  *
  * Takes care of restoring the active account after the callback is run.
  *
+ * If the callback returns a promise, waits for it before restoring the active account.
+ *
  * @param callback - The callback to run.
  * @returns The result of the callback.
  */
@@ -168,6 +170,14 @@ export function runWithoutActiveAccount<Result>(
   const me = Account.getMe();
   activeAccountContext.set(null);
   const result = callback();
+
+  if (result instanceof Promise) {
+    return result.finally(() => {
+      activeAccountContext.set(me);
+      return result;
+    }) as Result;
+  }
+
   activeAccountContext.set(me);
   return result;
 }
