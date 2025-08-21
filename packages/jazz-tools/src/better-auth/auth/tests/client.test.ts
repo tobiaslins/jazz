@@ -2,7 +2,6 @@ import { createAuthClient } from "better-auth/client";
 import type { Account, AuthSecretStorage } from "jazz-tools";
 import {
   TestJazzContextManager,
-  createJazzTestAccount,
   setActiveAccount,
   setupJazzTestSync,
 } from "jazz-tools/testing";
@@ -38,7 +37,9 @@ describe("auth client", () => {
       },
     });
 
-    authClient.jazz.setJazzContext(jazzContextManager.getCurrentValue()!);
+    const context = jazzContextManager.getCurrentValue();
+    assert(context, "Jazz context is not available");
+    authClient.jazz.setJazzContext(context);
     authClient.jazz.setAuthSecretStorage(authSecretStorage);
 
     customFetchImpl.mockReset();
@@ -47,6 +48,7 @@ describe("auth client", () => {
   it("should send Jazz credentials over signup", async () => {
     const credentials = await authSecretStorage.get();
     expect(authSecretStorage.isAuthenticated).toBe(false);
+    assert(credentials, "Jazz credentials are not available");
 
     customFetchImpl.mockResolvedValue(
       new Response(
@@ -62,9 +64,9 @@ describe("auth client", () => {
             updatedAt: new Date(),
           },
           jazzAuth: {
-            accountID: credentials!.accountID,
-            secretSeed: credentials!.secretSeed,
-            accountSecret: credentials!.accountSecret,
+            accountID: credentials.accountID,
+            secretSeed: credentials.secretSeed,
+            accountSecret: credentials.accountSecret,
           },
         }),
       ),

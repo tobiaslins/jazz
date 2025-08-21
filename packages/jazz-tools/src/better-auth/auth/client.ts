@@ -5,7 +5,7 @@ import type {
   Account,
   JazzContextType,
 } from "jazz-tools";
-import { jazzPlugin } from "./server";
+import { jazzPlugin } from "./server.js";
 
 /**
  * @example
