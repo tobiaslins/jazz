@@ -18,6 +18,7 @@ import { afterAll, describe, expect, onTestFinished, test } from "vitest";
 import { createWorkerAccount } from "../createWorkerAccount.js";
 import { startSyncServer } from "../startSyncServer.js";
 import { waitFor } from "./utils.js";
+import { serverDefaults } from "../config.js";
 
 const dbPath = join(tmpdir(), `test-${randomUUID()}.db`);
 
@@ -30,9 +31,9 @@ async function setup<
     | (AccountClass<Account> & CoValueFromRaw<Account>)
     | AnyAccountSchema,
 >(AccountSchema?: S) {
-  const { server, port } = await setupSyncServer();
+  const { server, port, host } = await setupSyncServer();
 
-  const syncServer = `ws://localhost:${port}`;
+  const syncServer = `ws://${host}:${port}`;
 
   const { worker, done, waitForConnection, subscribeToConnectionChange } =
     await setupWorker(syncServer, AccountSchema);
@@ -43,13 +44,18 @@ async function setup<
     syncServer,
     server,
     port,
+    host,
     waitForConnection,
     subscribeToConnectionChange,
   };
 }
 
-async function setupSyncServer(defaultPort = "0") {
+async function setupSyncServer(
+  defaultHost = serverDefaults.host,
+  defaultPort = "0",
+) {
   const server = await startSyncServer({
+    host: defaultHost,
     port: defaultPort,
     inMemory: false,
     db: dbPath,
@@ -61,7 +67,7 @@ async function setupSyncServer(defaultPort = "0") {
     server.close();
   });
 
-  return { server, port };
+  return { server, port, host: defaultHost };
 }
 
 async function setupWorker<
@@ -262,6 +268,7 @@ describe("startWorker integration", () => {
 
     // Start a new sync server on the same port
     const newServer = await startSyncServer({
+      host: worker1.host,
       port: worker1.port,
       inMemory: true,
       db: "",
@@ -296,6 +303,7 @@ describe("startWorker integration", () => {
 
     // Start a new sync server on the same port
     const newServer = await startSyncServer({
+      host: worker1.host,
       port: worker1.port,
       inMemory: true,
       db: "",
@@ -332,6 +340,7 @@ describe("startWorker integration", () => {
 
     // Start a new sync server on the same port
     const newServer = await startSyncServer({
+      host: worker1.host,
       port: worker1.port,
       inMemory: true,
       db: "",

@@ -15,11 +15,13 @@ import { Account } from "../index.js";
 import {
   Loaded,
   TypeSym,
+  activeAccountContext,
   coValueClassFromCoValueClassOrSchema,
 } from "../internal.js";
 import {
   createJazzTestAccount,
   getPeerConnectedToTestSyncServer,
+  runWithoutActiveAccount,
   setupJazzTestSync,
 } from "../testing.js";
 import { setupTwoNodes, waitFor } from "./utils.js";
@@ -232,6 +234,21 @@ describe("CoMap", async () => {
         const Schema = co.map({ text: co.plainText() });
         const map = Schema.create({ text: "" });
         expect(map.text.toString()).toBe("");
+      });
+
+      it("creates a group for the new CoValue when there is no active account", () => {
+        const Schema = co.map({ text: co.plainText() });
+
+        const parentGroup = Group.create();
+        runWithoutActiveAccount(() => {
+          const map = Schema.create({ text: "Hello" }, parentGroup);
+
+          expect(
+            map.text.$jazz.owner
+              .getParentGroups()
+              .map((group: Group) => group.$jazz.id),
+          ).toContain(parentGroup.$jazz.id);
+        });
       });
     });
 
@@ -2511,6 +2528,12 @@ describe("co.map schema", () => {
 
       expect(draftPerson.extraField).toEqual("extra");
     });
+  });
+
+  test("co.map() should throw an error if passed a CoValue schema", () => {
+    expect(() => co.map(co.map({}))).toThrow(
+      "co.map() expects an object as its argument, not a CoValue schema",
+    );
   });
 });
 

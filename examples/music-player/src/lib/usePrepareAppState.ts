@@ -34,7 +34,7 @@ async function loadInitialData(mediaPlayer: MediaPlayer) {
 
   // Load the active track in the AudioManager
   if (me.root.activeTrack) {
-    mediaPlayer.loadTrack(me.root.activeTrack);
+    mediaPlayer.loadTrack(me.root.activeTrack, false);
   }
 }
 

@@ -137,6 +137,12 @@ test("loading raw accounts should work", async () => {
   expect(loadedAccount.profile!.name).toBe("test 1");
 });
 
+test("co.profile() should throw an error if passed a CoValue schema", async () => {
+  expect(() => co.profile(co.map({}))).toThrow(
+    "co.profile() expects an object as its argument, not a CoValue schema",
+  );
+});
+
 test("should support recursive props on co.profile", async () => {
   const User = co.profile({
     name: z.string(),

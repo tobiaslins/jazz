@@ -2,6 +2,7 @@ import { Histogram, ValueType, metrics } from "@opentelemetry/api";
 import { PeerState } from "./PeerState.js";
 import { SyncStateManager } from "./SyncStateManager.js";
 import {
+  getContenDebugInfo,
   getTransactionSize,
   knownStateFromContent,
 } from "./coValueContentMessage.js";
@@ -131,6 +132,11 @@ export class SyncManager {
   peers: { [key: PeerID]: PeerState } = {};
   local: LocalNode;
 
+  // When true, transactions will not be verified.
+  // This is useful when syncing only for storage purposes, with the expectation that
+  // the transactions have already been verified by the [trusted] peer that sent them.
+  private skipVerify: boolean = false;
+
   peersCounter = metrics.getMeter("cojson").createUpDownCounter("jazz.peers", {
     description: "Amount of connected peers",
     valueType: ValueType.INT,
@@ -152,6 +158,10 @@ export class SyncManager {
   }
 
   syncState: SyncStateManager;
+
+  disableTransactionVerification() {
+    this.skipVerify = true;
+  }
 
   peersInPriorityOrder(): PeerState[] {
     return Object.values(this.peers).sort((a, b) => {
@@ -550,6 +560,14 @@ export class SyncManager {
 
     let invalidStateAssumed = false;
 
+    const contentToStore: NewContentMessage = {
+      action: "content",
+      id: msg.id,
+      priority: msg.priority,
+      header: msg.header,
+      new: {},
+    };
+
     for (const [sessionID, newContentForSession] of Object.entries(msg.new) as [
       SessionID,
       SessionNewContent,
@@ -625,9 +643,8 @@ export class SyncManager {
       const result = coValue.tryAddTransactions(
         sessionID,
         newTransactions,
-        undefined,
         newContentForSession.lastSignature,
-        "immediate",
+        this.skipVerify,
       );
 
       if (result.isErr()) {
@@ -652,6 +669,8 @@ export class SyncManager {
         this.recordTransactionsSize(newTransactions, sourceRole);
       }
 
+      // The new content for this session has been verified, so we can store it
+      contentToStore.new[sessionID] = newContentForSession;
       peer?.updateSessionCounter(
         msg.id,
         sessionID,
@@ -673,6 +692,8 @@ export class SyncManager {
           "Invalid state assumed when handling new content from storage",
           {
             id: msg.id,
+            content: getContenDebugInfo(msg),
+            knownState: coValue.knownState(),
           },
         );
       }
@@ -693,8 +714,11 @@ export class SyncManager {
 
     const syncedPeers = [];
 
-    if (from !== "storage") {
-      this.storeContent(msg);
+    const hasNewContent =
+      contentToStore.header || Object.keys(contentToStore.new).length > 0;
+
+    if (from !== "storage" && hasNewContent) {
+      this.storeContent(contentToStore);
     }
 
     for (const peer of this.peersInPriorityOrder()) {
@@ -803,7 +827,20 @@ export class SyncManager {
     // Try to store the content as-is for performance
     // In case that some transactions are missing, a correction will be requested, but it's an edge case
     storage.store(content, (correction) => {
-      return value.verified?.newContentSince(correction);
+      if (!value.verified) {
+        logger.error(
+          "Correction requested for a CoValue with no verified content",
+          {
+            id: content.id,
+            content: getContenDebugInfo(content),
+            correction,
+            state: value.loadingState,
+          },
+        );
+        return undefined;
+      }
+
+      return value.verified.newContentSince(correction);
     });
   }
 

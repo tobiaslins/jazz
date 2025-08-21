@@ -154,6 +154,24 @@ export function setActiveAccount(account: Account) {
   activeAccountContext.set(account);
 }
 
+/**
+ * Run a callback without an active account.
+ *
+ * Takes care of restoring the active account after the callback is run.
+ *
+ * @param callback - The callback to run.
+ * @returns The result of the callback.
+ */
+export function runWithoutActiveAccount<Result>(
+  callback: () => Result,
+): Result {
+  const me = Account.getMe();
+  activeAccountContext.set(null);
+  const result = callback();
+  activeAccountContext.set(me);
+  return result;
+}
+
 export async function createJazzTestGuest() {
   const ctx = await createAnonymousJazzContext({
     crypto: await PureJSCrypto.create(),

@@ -2,12 +2,14 @@ import {
   Account,
   CoList,
   Group,
+  ID,
   RefsToResolve,
   RefsToResolveStrict,
   Resolved,
   SubscribeListenerOptions,
   coOptionalDefiner,
 } from "../../../internal.js";
+import { CoValueUniqueness } from "cojson";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { CoListSchemaInit } from "../typeConverters/CoFieldSchemaInit.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
@@ -29,7 +31,13 @@ export class CoListSchema<T extends AnyZodOrCoValueSchema>
 
   create(
     items: CoListSchemaInit<T>,
-    options?: { owner: Account | Group } | Account | Group,
+    options?:
+      | {
+          owner: Account | Group;
+          unique?: CoValueUniqueness["uniqueness"];
+        }
+      | Account
+      | Group,
   ): CoListInstance<T> {
     return this.coValueClass.create(items as any, options) as CoListInstance<T>;
   }
@@ -60,6 +68,41 @@ export class CoListSchema<T extends AnyZodOrCoValueSchema>
 
   getCoValueClass(): typeof CoList {
     return this.coValueClass;
+  }
+
+  /** @deprecated Use `CoList.upsertUnique` and `CoList.loadUnique` instead. */
+  findUnique(
+    unique: CoValueUniqueness["uniqueness"],
+    ownerID: ID<Account> | ID<Group>,
+    as?: Account | Group | AnonymousJazzAgent,
+  ): ID<CoListInstanceCoValuesNullable<T>> {
+    return this.coValueClass.findUnique(unique, ownerID, as);
+  }
+
+  upsertUnique<
+    const R extends RefsToResolve<CoListInstanceCoValuesNullable<T>> = true,
+  >(options: {
+    value: CoListSchemaInit<T>;
+    unique: CoValueUniqueness["uniqueness"];
+    owner: Account | Group;
+    resolve?: RefsToResolveStrict<CoListInstanceCoValuesNullable<T>, R>;
+  }): Promise<Resolved<CoListInstanceCoValuesNullable<T>, R> | null> {
+    // @ts-expect-error
+    return this.coValueClass.upsertUnique(options);
+  }
+
+  loadUnique<
+    const R extends RefsToResolve<CoListInstanceCoValuesNullable<T>> = true,
+  >(
+    unique: CoValueUniqueness["uniqueness"],
+    ownerID: ID<Account> | ID<Group>,
+    options?: {
+      resolve?: RefsToResolveStrict<CoListInstanceCoValuesNullable<T>, R>;
+      loadAs?: Account | AnonymousJazzAgent;
+    },
+  ): Promise<Resolved<CoListInstanceCoValuesNullable<T>, R> | null> {
+    // @ts-expect-error
+    return this.coValueClass.loadUnique(unique, ownerID, options);
   }
 
   optional(): CoOptionalSchema<this> {

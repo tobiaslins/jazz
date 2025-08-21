@@ -468,3 +468,113 @@ describe("CoMap.Record", async () => {
     }
   });
 });
+
+describe("CoRecord unique methods", () => {
+  test("loadUnique returns existing record", async () => {
+    const ItemRecord = co.record(z.string(), z.number());
+    const group = Group.create();
+
+    const originalRecord = ItemRecord.create(
+      { item1: 1, item2: 2, item3: 3 },
+      { owner: group, unique: "test-record" },
+    );
+
+    const foundRecord = await ItemRecord.loadUnique(
+      "test-record",
+      group.$jazz.id,
+    );
+    expect(foundRecord).toEqual(originalRecord);
+    expect(foundRecord?.item1).toBe(1);
+    expect(foundRecord?.item2).toBe(2);
+  });
+
+  test("loadUnique returns null for non-existent record", async () => {
+    const ItemRecord = co.record(z.string(), z.number());
+    const group = Group.create();
+
+    const foundRecord = await ItemRecord.loadUnique(
+      "non-existent",
+      group.$jazz.id,
+    );
+    expect(foundRecord).toBeNull();
+  });
+
+  test("upsertUnique creates new record when none exists", async () => {
+    const ItemRecord = co.record(z.string(), z.number());
+    const group = Group.create();
+
+    const sourceData = { item1: 1, item2: 2, item3: 3 };
+
+    const result = await ItemRecord.upsertUnique({
+      value: sourceData,
+      unique: "new-record",
+      owner: group,
+    });
+
+    expect(result).not.toBeNull();
+    expect(result?.item1).toBe(1);
+    expect(result?.item2).toBe(2);
+    expect(result?.item3).toBe(3);
+  });
+
+  test("upsertUnique updates existing record", async () => {
+    const ItemRecord = co.record(z.string(), z.number());
+    const group = Group.create();
+
+    // Create initial record
+    const originalRecord = ItemRecord.create(
+      { original1: 1, original2: 2 },
+      { owner: group, unique: "update-record" },
+    );
+
+    // Upsert with new data
+    const updatedRecord = await ItemRecord.upsertUnique({
+      value: { updated1: 10, updated2: 20, updated3: 30 },
+      unique: "update-record",
+      owner: group,
+    });
+
+    expect(updatedRecord).toEqual(originalRecord); // Should be the same instance
+    expect(updatedRecord?.updated1).toBe(10);
+    expect(updatedRecord?.updated2).toBe(20);
+    expect(updatedRecord?.updated3).toBe(30);
+  });
+
+  test("upsertUnique with CoValue items", async () => {
+    const Item = co.map({
+      name: z.string(),
+      value: z.number(),
+    });
+    const ItemRecord = co.record(z.string(), Item);
+    const group = Group.create();
+
+    const items = {
+      first: Item.create({ name: "First", value: 1 }, group),
+      second: Item.create({ name: "Second", value: 2 }, group),
+    };
+
+    const result = await ItemRecord.upsertUnique({
+      value: items,
+      unique: "item-record",
+      owner: group,
+      resolve: { first: true, second: true },
+    });
+
+    expect(result).not.toBeNull();
+    expect(result?.first?.name).toBe("First");
+    expect(result?.second?.name).toBe("Second");
+  });
+
+  test("findUnique returns correct ID", async () => {
+    const ItemRecord = co.record(z.string(), z.string());
+    const group = Group.create();
+
+    const originalRecord = ItemRecord.create(
+      { test: "value" },
+      { owner: group, unique: "find-test" },
+    );
+
+    const foundId = ItemRecord.findUnique("find-test", group.$jazz.id);
+    expect(foundId).toBe(originalRecord.$jazz.id);
+  });
+});

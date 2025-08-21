@@ -5,6 +5,7 @@ export default defineConfig({
   root: "./",
   test: {
     projects: [
+      "bench",
       "packages/*",
       "tests/browser-integration",
       "tests/cloudflare-workers",

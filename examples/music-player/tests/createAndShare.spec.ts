@@ -47,12 +47,14 @@ test("create a new playlist and share", async ({
 
   const marioHome = new HomePage(marioPage);
 
+  await marioHome.fillUsername("Mario");
+  await marioPage.keyboard.press("Enter");
+
   // The example song should be loaded
   await marioHome.expectMusicTrack("Example song");
   await marioHome.editTrackTitle("Example song", "Super Mario World");
 
-  await marioHome.createPlaylist();
-  await marioHome.editPlaylistTitle("Save the princess");
+  await marioHome.createPlaylist("Save the princess");
 
   await marioHome.navigateToPlaylist("All tracks");
   await marioHome.addTrackToPlaylist("Super Mario World", "Save the princess");
@@ -60,7 +62,7 @@ test("create a new playlist and share", async ({
   await marioHome.navigateToPlaylist("Save the princess");
   await marioHome.expectMusicTrack("Super Mario World");
 
-  await marioHome.signUp("Mario");
+  await marioHome.signUp();
 
   const url = await marioHome.getShareLink();
 
@@ -74,7 +76,10 @@ test("create a new playlist and share", async ({
 
   const luigiHome = new HomePage(luigiPage);
 
-  await luigiHome.signUp("Luigi");
+  await luigiHome.fillUsername("Luigi");
+  await luigiPage.keyboard.press("Enter");
+
+  await luigiHome.signUp();
 
   await luigiPage.goto(url);
 
@@ -90,15 +95,18 @@ test("create a new playlist, share, then remove track", async ({
   // Create playlist with a song and share
   await marioPage.goto("/");
   const marioHome = new HomePage(marioPage);
+
+  await marioHome.fillUsername("Mario");
+  await marioPage.keyboard.press("Enter");
+
   await marioHome.expectMusicTrack("Example song");
   await marioHome.editTrackTitle("Example song", "Super Mario World");
-  await marioHome.createPlaylist();
-  await marioHome.editPlaylistTitle("Save the princess");
+  await marioHome.createPlaylist("Save the princess");
   await marioHome.navigateToPlaylist("All tracks");
   await marioHome.addTrackToPlaylist("Super Mario World", "Save the princess");
   await marioHome.navigateToPlaylist("Save the princess");
   await marioHome.expectMusicTrack("Super Mario World");
-  await marioHome.signUp("Mario");
+  await marioHome.signUp();
   const url = await marioHome.getShareLink();
 
   await sleep(4000); // Wait for the sync to complete
@@ -109,7 +117,12 @@ test("create a new playlist, share, then remove track", async ({
   const luigiPage = await luigiContext.newPage();
   await luigiPage.goto("/");
   const luigiHome = new HomePage(luigiPage);
-  await luigiHome.signUp("Luigi");
+
+  await luigiHome.fillUsername("Luigi");
+  await luigiPage.keyboard.press("Enter");
+
+  await luigiHome.signUp();
+
   await luigiPage.goto(url);
   await luigiHome.expectMusicTrack("Super Mario World");
 

@@ -973,7 +973,6 @@ describe("loading coValues from server", () => {
         "server -> client | KNOWN Group sessions: header/6",
         "server -> client | KNOWN ParentGroup sessions: header/8",
         "server -> client | KNOWN Map sessions: header/1",
-        "client -> server | CONTENT ParentGroup header: true new: ",
       ]
     `);
   });

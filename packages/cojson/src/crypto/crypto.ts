@@ -1,10 +1,15 @@
 import { base58 } from "@scure/base";
-import { RawAccountID } from "../coValues/account.js";
+import { ControlledAccountOrAgent, RawAccountID } from "../coValues/account.js";
 import { AgentID, RawCoID, TransactionID } from "../ids.js";
 import { SessionID } from "../ids.js";
 import { Stringified, parseJSON, stableStringify } from "../jsonStringify.js";
 import { JsonValue } from "../jsonValue.js";
 import { logger } from "../logger.js";
+import {
+  PrivateTransaction,
+  Transaction,
+  TrustingTransaction,
+} from "../coValueCore/verifiedState.js";
 
 function randomBytes(bytesLength = 32): Uint8Array {
   return crypto.getRandomValues(new Uint8Array(bytesLength));
@@ -297,6 +302,12 @@ export abstract class CryptoProvider<Blake3State = any> {
   newRandomSessionID(accountID: RawAccountID | AgentID): SessionID {
     return `${accountID}_session_z${base58.encode(this.randomBytes(8))}`;
   }
+
+  abstract createSessionLog(
+    coID: RawCoID,
+    sessionID: SessionID,
+    signerID?: SignerID,
+  ): SessionLogImpl;
 }
 
 export type Hash = `hash_z${string}`;
@@ -341,3 +352,29 @@ export type KeySecret = `keySecret_z${string}`;
 export type KeyID = `key_z${string}`;
 
 export const secretSeedLength = 32;
+
+export interface SessionLogImpl {
+  clone(): SessionLogImpl;
+  tryAdd(
+    transactions: Transaction[],
+    newSignature: Signature,
+    skipVerify: boolean,
+  ): void;
+  addNewPrivateTransaction(
+    signerAgent: ControlledAccountOrAgent,
+    changes: JsonValue[],
+    keyID: KeyID,
+    keySecret: KeySecret,
+    madeAt: number,
+  ): { signature: Signature; transaction: PrivateTransaction };
+  addNewTrustingTransaction(
+    signerAgent: ControlledAccountOrAgent,
+    changes: JsonValue[],
+    madeAt: number,
+  ): { signature: Signature; transaction: TrustingTransaction };
+  decryptNextTransactionChangesJson(
+    tx_index: number,
+    key_secret: KeySecret,
+  ): string;
+  free(): void;
+}
