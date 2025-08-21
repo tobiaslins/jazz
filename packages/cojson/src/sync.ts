@@ -128,6 +128,11 @@ export function combinedKnownStates(
   };
 }
 
+export type ServerPeerSelector = (
+  id: RawCoID,
+  serverPeers: PeerState[],
+) => PeerState[];
+
 export class SyncManager {
   peers: { [key: PeerID]: PeerState } = {};
   local: LocalNode;
@@ -143,6 +148,8 @@ export class SyncManager {
     unit: "peer",
   });
   private transactionsSizeHistogram: Histogram;
+
+  serverPeerSelector?: ServerPeerSelector;
 
   constructor(local: LocalNode) {
     this.local = local;
@@ -176,10 +183,13 @@ export class SyncManager {
     return Object.values(this.peers);
   }
 
-  getServerPeers(excludePeerId?: PeerID): PeerState[] {
-    return this.getPeers().filter(
+  getServerPeers(id: RawCoID, excludePeerId?: PeerID): PeerState[] {
+    const serverPeers = this.getPeers().filter(
       (peer) => peer.role === "server" && peer.id !== excludePeerId,
     );
+    return this.serverPeerSelector
+      ? this.serverPeerSelector(id, serverPeers)
+      : serverPeers;
   }
 
   handleSyncMessage(msg: SyncMessage, peer: PeerState) {
@@ -421,7 +431,7 @@ export class SyncManager {
       return;
     }
 
-    const peers = this.getServerPeers(peer.id);
+    const peers = this.getServerPeers(msg.id, peer.id);
 
     coValue.load(peers);
 
@@ -547,7 +557,7 @@ export class SyncManager {
           if (!dependencyCoValue.hasVerifiedContent()) {
             coValue.markMissingDependency(dependency);
 
-            const peers = this.getServerPeers();
+            const peers = this.getServerPeers(dependencyCoValue.id);
 
             // if the peer that sent the content is a client, we add it to the list of peers
             // to also ask them for the dependency
@@ -630,7 +640,7 @@ export class SyncManager {
             // This covers the case where we are getting a new session on an already loaded coValue
             // where we need to load the account to get their public key
             if (!coValue.missingDependencies.has(accountId)) {
-              const peers = this.getServerPeers();
+              const peers = this.getServerPeers(account.id);
 
               if (peer?.role === "client") {
                 // if the peer that sent the content is a client, we add it to the list of peers
