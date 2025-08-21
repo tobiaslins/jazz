@@ -78,7 +78,7 @@ export function ProfileForm({
     if (!username.trim()) return;
 
     // Update username
-    me.profile.name = username.trim();
+    me.profile.$jazz.set("name", username.trim());
 
     // Call custom onSubmit if provided
     if (onSubmit) {

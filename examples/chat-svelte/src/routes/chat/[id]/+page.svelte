@@ -102,6 +102,7 @@
       <ImageInput onImageChange={sendImage} />
       <TextInput
         onSubmit={(text: string) => {
+          console.log({text})
           if (!chat.current) return;
           chat.current.$jazz.push(
             Message.create(

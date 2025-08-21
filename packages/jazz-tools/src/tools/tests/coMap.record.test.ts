@@ -160,7 +160,7 @@ describe("CoMap.Record", async () => {
       expect(person.pet1?.name).toEqual("Fido");
     });
 
-    test("changes should be listed in _edits", () => {
+    test("changes should be listed in getEdits()", () => {
       const Person = co.record(z.string(), z.string());
 
       const person = Person.create({ name: "John" });

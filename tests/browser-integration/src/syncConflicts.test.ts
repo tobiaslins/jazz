@@ -57,9 +57,9 @@ describe("Browser sync", () => {
 
     await syncServer.close();
 
-    loadedIssue.estimate = 2;
+    loadedIssue.$jazz.set("estimate", 2);
     await new Promise((resolve) => setTimeout(resolve, 10));
-    issue.estimate = 3;
+    issue.$jazz.set("estimate", 3);
 
     await new Promise((resolve) => setTimeout(resolve, 10));
 
