@@ -7,7 +7,11 @@ import {
   co,
   coValueClassFromCoValueClassOrSchema,
 } from "../internal.js";
-import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
+import {
+  createJazzTestAccount,
+  runWithoutActiveAccount,
+  setupJazzTestSync,
+} from "../testing.js";
 import { waitFor } from "./utils.js";
 
 const Crypto = await WasmCrypto.create();
@@ -909,16 +913,16 @@ describe("CoList unique methods", () => {
 
   test("upsertUnique without an active account", async () => {
     const account = activeAccountContext.get();
-    activeAccountContext.set(null);
-
     const ItemList = co.list(z.string());
 
     const sourceData = ["item1", "item2", "item3"];
 
-    const result = await ItemList.upsertUnique({
-      value: sourceData,
-      unique: "new-list",
-      owner: account,
+    const result = await runWithoutActiveAccount(() => {
+      return ItemList.upsertUnique({
+        value: sourceData,
+        unique: "new-list",
+        owner: account,
+      });
     });
 
     expect(result).not.toBeNull();

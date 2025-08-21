@@ -1551,8 +1551,6 @@ describe("Creating and finding unique CoMaps", async () => {
   test("upserting without an active account", async () => {
     const account = activeAccountContext.get();
 
-    activeAccountContext.set(null);
-
     // Schema
     const Event = co.map({
       title: z.string(),
@@ -1567,15 +1565,16 @@ describe("Creating and finding unique CoMaps", async () => {
       _id: "test-event-external-id",
     };
 
-    // Upserting
-    const activeEvent = await Event.upsertUnique({
-      value: {
-        title: sourceData.title,
-        identifier: sourceData.identifier,
-        external_id: sourceData._id,
-      },
-      unique: sourceData.identifier,
-      owner: account,
+    const activeEvent = await runWithoutActiveAccount(() => {
+      return Event.upsertUnique({
+        value: {
+          title: sourceData.title,
+          identifier: sourceData.identifier,
+          external_id: sourceData._id,
+        },
+        unique: sourceData.identifier,
+        owner: account,
+      });
     });
 
     expect(activeEvent).toEqual({
