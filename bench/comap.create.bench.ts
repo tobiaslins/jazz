@@ -98,11 +98,11 @@ describe("Message.create", () => {
         schema.Group.create(schema.account),
       );
     },
-    { iterations: 500 },
+    { iterations: 1000 },
   );
 
   bench(
-    "Jazz 0.17.5",
+    "Jazz 0.17.9",
     () => {
       schemaLatest.Message.create(
         {
@@ -116,22 +116,30 @@ describe("Message.create", () => {
         schemaLatest.Group.create(schemaLatest.account),
       );
     },
-    { iterations: 500 },
+    { iterations: 1000 },
   );
 });
 
 describe("Message import", () => {
-  bench("current version (SessionLog)", () => {
-    tools.importContentPieces(content ?? [], schema.account as any);
-    schema.account._raw.core.node.internalDeleteCoValue(message.id as any);
-  });
+  bench(
+    "current version",
+    () => {
+      tools.importContentPieces(content ?? [], schema.account as any);
+      schema.account._raw.core.node.internalDeleteCoValue(message.id as any);
+    },
+    { iterations: 5000 },
+  );
 
-  bench("Jazz 0.17.5", () => {
-    toolsLatest.importContentPieces(content ?? [], schemaLatest.account);
-    schemaLatest.account._raw.core.node.internalDeleteCoValue(
-      message.id as any,
-    );
-  });
+  bench(
+    "Jazz 0.17.9",
+    () => {
+      toolsLatest.importContentPieces(content ?? [], schemaLatest.account);
+      schemaLatest.account._raw.core.node.internalDeleteCoValue(
+        message.id as any,
+      );
+    },
+    { iterations: 5000 },
+  );
 });
 
 describe("import+ decrypt", () => {
@@ -145,11 +153,11 @@ describe("import+ decrypt", () => {
       node.expectCoValueLoaded(message.id as any).getCurrentContent();
       node.internalDeleteCoValue(message.id as any);
     },
-    { iterations: 500 },
+    { iterations: 5000 },
   );
 
   bench(
-    "Jazz 0.17.5",
+    "Jazz 0.17.9",
     () => {
       toolsLatest.importContentPieces(content ?? [], schemaLatest.account);
 
@@ -158,6 +166,6 @@ describe("import+ decrypt", () => {
       node.expectCoValueLoaded(message.id as any).getCurrentContent();
       node.internalDeleteCoValue(message.id as any);
     },
-    { iterations: 500 },
+    { iterations: 5000 },
   );
 });
