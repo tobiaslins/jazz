@@ -3,6 +3,7 @@ import { assert, beforeEach, describe, expect, test, vi } from "vitest";
 import { Account, Group, subscribeToCoValue, z } from "../index.js";
 import {
   Loaded,
+  activeAccountContext,
   co,
   coValueClassFromCoValueClassOrSchema,
 } from "../internal.js";
@@ -904,6 +905,29 @@ describe("CoList unique methods", () => {
     expect(result?.[0]).toBe("item1");
     expect(result?.[1]).toBe("item2");
     expect(result?.[2]).toBe("item3");
+  });
+
+  test("upsertUnique without an active account", async () => {
+    const account = activeAccountContext.get();
+    activeAccountContext.set(null);
+
+    const ItemList = co.list(z.string());
+
+    const sourceData = ["item1", "item2", "item3"];
+
+    const result = await ItemList.upsertUnique({
+      value: sourceData,
+      unique: "new-list",
+      owner: account,
+    });
+
+    expect(result).not.toBeNull();
+    expect(result?.length).toBe(3);
+    expect(result?.[0]).toBe("item1");
+    expect(result?.[1]).toBe("item2");
+    expect(result?.[2]).toBe("item3");
+
+    expect(result?._owner).toEqual(account);
   });
 
   test("upsertUnique updates existing list", async () => {
