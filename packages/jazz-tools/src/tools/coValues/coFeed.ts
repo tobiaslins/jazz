@@ -189,21 +189,16 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
     }
   }
 
-  constructor(
-    options:
-      | { init: Item[]; owner: Account | Group }
-      | { fromRaw: RawCoStream },
-  ) {
+  /** @internal */
+  constructor(options: { fromRaw: RawCoStream }) {
     super();
 
-    if (options && "fromRaw" in options) {
-      Object.defineProperties(this, {
-        $jazz: {
-          value: new CoFeedJazzApi(this, options.fromRaw),
-          enumerable: false,
-        },
-      });
-    }
+    Object.defineProperties(this, {
+      $jazz: {
+        value: new CoFeedJazzApi(this, options.fromRaw),
+        enumerable: false,
+      },
+    });
 
     return this;
   }
@@ -219,15 +214,8 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
     options?: { owner: Account | Group } | Account | Group,
   ) {
     const { owner } = parseCoValueCreateOptions(options);
-    const instance = new this({ init, owner });
     const raw = owner.$jazz.raw.createStream();
-
-    Object.defineProperties(instance, {
-      $jazz: {
-        value: new CoFeedJazzApi(instance, raw),
-        enumerable: false,
-      },
-    });
+    const instance = new this({ fromRaw: raw });
 
     if (init) {
       instance.$jazz.push(...init);

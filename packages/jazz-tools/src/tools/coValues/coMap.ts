@@ -10,11 +10,7 @@ import {
 } from "cojson";
 import {
   AnonymousJazzAgent,
-  CoFeed,
   CoFieldInit,
-  CoList,
-  CoPlainText,
-  CoRichText,
   CoValue,
   CoValueClass,
   getCoValueOwner,
@@ -249,9 +245,11 @@ export class CoMap extends CoValueBase implements CoValue {
   ): M {
     const { owner, uniqueness } = parseCoValueCreateOptions(options);
 
-    Object.defineProperty(instance, "$jazz", {
-      value: new CoMapJazzApi(instance, () => raw),
-      enumerable: false,
+    Object.defineProperties(instance, {
+      $jazz: {
+        value: new CoMapJazzApi(instance, () => raw),
+        enumerable: false,
+      },
     });
 
     const raw = CoMap.rawFromInit(instance, init, owner, uniqueness);
@@ -493,7 +491,11 @@ export class CoMap extends CoValueBase implements CoValue {
       resolve?: RefsToResolveStrict<M, R>;
     },
   ): Promise<Resolved<M, R> | null> {
-    let mapId = CoMap._findUnique(options.unique, options.owner.$jazz.id);
+    const mapId = CoMap._findUnique(
+      options.unique,
+      options.owner.$jazz.id,
+      options.owner.$jazz.loadedAs,
+    );
     let map: Resolved<M, R> | null = await loadCoValueWithoutMe(this, mapId, {
       ...options,
       loadAs: options.owner.$jazz.loadedAs,
@@ -565,6 +567,46 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
 
   get owner(): Group {
     return getCoValueOwner(this.coMap);
+  }
+
+  /**
+   * Get a value from the CoMap.
+   *
+   * @example
+   * ```ts
+   * person.$jazz.get("name"); // => "John"
+   * // This is equivalent to:
+   * person.name; // => "John"
+   * ```
+   *
+   * @param key The key to get
+   * @returns The value for the key
+   *
+   * @category Content
+   */
+  get<K extends CoKeys<M>>(key: K): M[K] {
+    const raw = this.raw.get(key);
+
+    const descriptor = this.getDescriptor(key as string);
+
+    if (!descriptor) {
+      throw Error(`Cannot get unknown key ${key}`);
+    }
+
+    if (descriptor === "json") {
+      return raw as M[K];
+    } else if ("encoded" in descriptor) {
+      return (
+        raw === undefined ? undefined : descriptor.encoded.decode(raw)
+      ) as M[K];
+    } else if (isRefEncoded(descriptor)) {
+      return (
+        raw === undefined || raw === null
+          ? undefined
+          : accessChildByKey(this.coMap, raw as string, key)
+      ) as M[K];
+    }
+    throw Error(`Cannot get unknown key ${key}`);
   }
 
   /**
@@ -644,7 +686,7 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
         if (!descriptor) continue;
 
         const newValue = newValues[tKey];
-        const currentValue = (this.coMap as unknown as N)[tKey];
+        const currentValue = this.get(tKey as any);
 
         if (descriptor === "json" || "encoded" in descriptor) {
           if (currentValue !== newValue) {
@@ -918,17 +960,7 @@ const CoMapProxyHandler: ProxyHandler<CoMap> = {
         return undefined;
       }
 
-      const raw = target.$jazz.raw.get(key);
-
-      if (descriptor === "json") {
-        return raw;
-      } else if ("encoded" in descriptor) {
-        return raw === undefined ? undefined : descriptor.encoded.decode(raw);
-      } else if (isRefEncoded(descriptor)) {
-        return raw === undefined || raw === null
-          ? undefined
-          : accessChildByKey(target, raw as string, key);
-      }
+      return target.$jazz.get(key as never);
     }
   },
   set(target, key, value, receiver) {
@@ -994,9 +1026,12 @@ const CoMapProxyHandler: ProxyHandler<CoMap> = {
     }
   },
   has(target, key) {
-    const descriptor = target.$jazz.getDescriptor(key as string);
+    // The `has` trap can be called when defining properties during CoMap creation
+    // when using the class-based syntax. In that case, $jazz may not yet be initialized,
+    // as it's defined afterwards in the create method.
+    const descriptor = target.$jazz?.getDescriptor(key as string);
 
-    if (target.$jazz.raw && typeof key === "string" && descriptor) {
+    if (target.$jazz?.raw && typeof key === "string" && descriptor) {
       return target.$jazz.raw.get(key) !== undefined;
     } else {
       return Reflect.has(target, key);

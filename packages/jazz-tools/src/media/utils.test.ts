@@ -353,7 +353,6 @@ describe("loadImageBySize", async () => {
 
   it("returns the image already loaded", async () => {
     const account = await setupJazzTestSync({ asyncPeers: true });
-    const account2 = await createJazzTestAccount();
 
     setActiveAccount(account);
 
@@ -369,9 +368,11 @@ describe("loadImageBySize", async () => {
       group,
     );
 
+    const account2 = await createJazzTestAccount();
     setActiveAccount(account2);
 
-    const result = await loadImageBySize(imageDef, 1024, 1024);
+    const result = await loadImageBySize(imageDef.$jazz.id, 1024, 1024);
+    expect(result).not.toBeNull();
     expect(result?.image.$jazz.id).toBe(imageDef["1024x1024"]!.$jazz.id);
     expect(result?.image.isBinaryStreamEnded()).toBe(true);
     expect(result?.image.asBase64()).toStrictEqual(expect.any(String));

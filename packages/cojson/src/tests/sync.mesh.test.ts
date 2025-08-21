@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { assert, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { expectMap } from "../coValue";
 import { setMaxRecommendedTxSize } from "../config";
@@ -11,6 +11,7 @@ import {
   setupTestNode,
   waitFor,
 } from "./testUtils";
+import { stableStringify } from "../jsonStringify";
 
 // We want to simulate a real world communication that happens asynchronously
 TEST_NODE_CONFIG.withAsyncPeers = true;
@@ -131,6 +132,10 @@ describe("multiple clients syncing with the a cloud-like server mesh", () => {
 
     group.extend(parentGroup);
 
+    // We wait for sync here to avoid flakiness on CI
+    await parentGroup.core.waitForSync();
+    await group.core.waitForSync();
+
     const map = group.createMap();
     map.set("hello", "world");
 
@@ -153,20 +158,17 @@ describe("multiple clients syncing with the a cloud-like server mesh", () => {
         "edge-france -> core | CONTENT ParentGroup header: true new: After: 0 New: 6",
         "edge-france -> storage | CONTENT Group header: false new: After: 3 New: 2",
         "edge-france -> core | CONTENT Group header: false new: After: 3 New: 2",
-        "edge-france -> storage | CONTENT Map header: true new: After: 0 New: 1",
-        "edge-france -> core | CONTENT Map header: true new: After: 0 New: 1",
         "core -> edge-france | KNOWN Group sessions: header/3",
         "core -> storage | CONTENT Group header: true new: After: 0 New: 3",
         "core -> edge-france | KNOWN ParentGroup sessions: header/6",
         "core -> storage | CONTENT ParentGroup header: true new: After: 0 New: 6",
         "core -> edge-france | KNOWN Group sessions: header/5",
         "core -> storage | CONTENT Group header: false new: After: 3 New: 2",
+        "edge-france -> storage | CONTENT Map header: true new: After: 0 New: 1",
+        "edge-france -> core | CONTENT Map header: true new: After: 0 New: 1",
         "core -> edge-france | KNOWN Map sessions: header/1",
         "core -> storage | CONTENT Map header: true new: After: 0 New: 1",
-        "edge-france -> core | CONTENT ParentGroup header: true new: ",
         "client -> edge-italy | LOAD Map sessions: empty",
-        "core -> edge-france | KNOWN ParentGroup sessions: header/6",
-        "core -> storage | CONTENT ParentGroup header: true new: ",
         "edge-italy -> storage | LOAD Map sessions: empty",
         "storage -> edge-italy | KNOWN Map sessions: empty",
         "edge-italy -> core | LOAD Map sessions: empty",
@@ -305,7 +307,7 @@ describe("multiple clients syncing with the a cloud-like server mesh", () => {
         "edge-italy -> storage | CONTENT Map header: true new: After: 0 New: 1 | After: 0 New: 1",
         "edge-italy -> core | CONTENT Map header: false new: After: 0 New: 1",
         "edge-italy -> core | KNOWN Map sessions: header/3",
-        "edge-italy -> storage | CONTENT Map header: true new: After: 0 New: 1 | After: 0 New: 1",
+        "edge-italy -> storage | CONTENT Map header: true new: After: 0 New: 1",
         "edge-italy -> client | CONTENT Map header: false new: After: 0 New: 1",
         "core -> edge-italy | KNOWN Map sessions: header/3",
         "core -> storage | CONTENT Map header: false new: After: 0 New: 1",
@@ -345,13 +347,20 @@ describe("multiple clients syncing with the a cloud-like server mesh", () => {
     expect(mapOnItalianClient.get("hello")).toEqual("world");
     expect(mapOnFrenchClient.get("hello")).toEqual("world");
 
-    // Return an invalid signature on the next transaction
-    vi.spyOn(italianClient.node.crypto, "sign").mockReturnValueOnce(
-      "signature_z2jYFqH6hey3Yy8EdgjFxDtD7MJWnNMkhBx5snKsBdFRNJgtPSNK73LrAyCjzMjH5f2nsssT5MbYm8r6tKJJGWDEB",
-    );
+    const msg = map.core.verified.newContentSince(undefined)?.[0];
+    assert(msg);
+
+    msg.new[mesh.edgeFrance.node.currentSessionID]!.newTransactions.push({
+      privacy: "trusting",
+      changes: stableStringify([{ op: "set", key: "hello", value: "updated" }]),
+      madeAt: Date.now(),
+    });
+
+    mesh.edgeFrance.node.syncManager.handleNewContent(msg, "storage");
+
+    await map.core.waitForSync();
 
     SyncMessagesLog.clear(); // We want to focus on the sync messages happening from now
-    mapOnItalianClient.set("hello", "updated", "trusting");
 
     await new Promise((resolve) => setTimeout(resolve, 100));
 
@@ -362,13 +371,7 @@ describe("multiple clients syncing with the a cloud-like server mesh", () => {
         Group: group.core,
         Map: map.core,
       }),
-    ).toMatchInlineSnapshot(`
-      [
-        "client -> edge-italy | CONTENT Map header: false new: After: 0 New: 1",
-        "edge-italy -> client | KNOWN Map sessions: header/1",
-        "edge-italy -> storage | CONTENT Map header: false new: After: 0 New: 1",
-      ]
-    `);
+    ).toMatchInlineSnapshot(`[]`);
   });
 
   test("load returns the coValue as soon as one of the peers return the content", async () => {
@@ -587,7 +590,7 @@ describe("multiple clients syncing with the a cloud-like server mesh", () => {
         "client -> edge | KNOWN Group sessions: header/5",
         "client -> storage | CONTENT Group header: true new: After: 0 New: 5",
         "client -> edge | KNOWN Map sessions: header/0",
-        "client -> storage | CONTENT Map header: true new:  expectContentUntil: header/100",
+        "client -> storage | CONTENT Map header: true new: ",
         "client -> edge | KNOWN Map sessions: header/41",
         "client -> storage | CONTENT Map header: false new: After: 0 New: 41",
         "storage -> edge | CONTENT Map header: true new: After: 41 New: 21",
@@ -604,7 +607,7 @@ describe("multiple clients syncing with the a cloud-like server mesh", () => {
         "core -> edge | KNOWN Group sessions: header/5",
         "core -> storage | CONTENT Group header: true new: After: 0 New: 5",
         "core -> edge | KNOWN Map sessions: header/0",
-        "core -> storage | CONTENT Map header: true new:  expectContentUntil: header/100",
+        "core -> storage | CONTENT Map header: true new: ",
         "core -> edge | KNOWN Map sessions: header/41",
         "core -> storage | CONTENT Map header: false new: After: 0 New: 41",
         "core -> edge | KNOWN Map sessions: header/62",

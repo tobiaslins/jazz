@@ -19,6 +19,10 @@ export class HomePage {
     name: "Sign out",
   });
 
+  async fillUsername(username: string) {
+    await this.page.getByRole("textbox", { name: "Username" }).fill(username);
+  }
+
   async expectActiveTrackPlaying() {
     await expect(
       this.page.getByRole("button", {
@@ -71,12 +75,10 @@ export class HomePage {
     await this.page.getByRole("button", { name: "Save" }).click();
   }
 
-  async createPlaylist() {
+  async createPlaylist(playlistTitle: string) {
     await this.newPlaylistButton.click();
-  }
-
-  async editPlaylistTitle(playlistTitle: string) {
     await this.playlistTitleInput.fill(playlistTitle);
+    await this.page.getByRole("button", { name: "Create Playlist" }).click();
   }
 
   async navigateToPlaylist(playlistTitle: string) {
@@ -98,7 +100,7 @@ export class HomePage {
   async getShareLink() {
     await this.page
       .getByRole("button", {
-        name: "Share playlist",
+        name: "Share",
       })
       .click();
 
@@ -139,9 +141,8 @@ export class HomePage {
       .click();
   }
 
-  async signUp(name: string) {
+  async signUp() {
     await this.page.getByRole("button", { name: "Sign up" }).click();
-    await this.page.getByRole("textbox", { name: "Username" }).fill(name);
     await this.page
       .getByRole("button", { name: "Sign up with passkey" })
       .click();
@@ -156,10 +157,12 @@ export class HomePage {
   async logOut() {
     await this.logoutButton.click();
 
-    await this.loginButton.waitFor({
+    await this.page.getByRole("textbox", { name: "Username" }).waitFor({
       state: "visible",
     });
 
-    await expect(this.loginButton).toBeVisible();
+    await expect(
+      this.page.getByRole("textbox", { name: "Username" }),
+    ).toBeVisible();
   }
 }

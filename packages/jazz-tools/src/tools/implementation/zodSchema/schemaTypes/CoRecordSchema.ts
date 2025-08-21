@@ -33,12 +33,17 @@ export interface CoRecordSchema<
 > extends CoreCoRecordSchema<K, V> {
   create(
     init: Simplify<CoRecordInit<K, V>>,
-    options?: { owner: Group } | Group,
+    options?:
+      | { owner: Group; unique?: CoValueUniqueness["uniqueness"] }
+      | Group,
   ): CoRecordInstanceShape<K, V> & CoMap;
   /** @deprecated Creating CoValues with an Account as owner is deprecated. Use a Group instead. */
   create(
     init: Simplify<CoRecordInit<K, V>>,
-    options?: { owner: Account | Group } | Account | Group,
+    options?:
+      | { owner: Account | Group; unique?: CoValueUniqueness["uniqueness"] }
+      | Account
+      | Group,
   ): CoRecordInstanceShape<K, V> & CoMap;
 
   load<
@@ -69,11 +74,36 @@ export interface CoRecordSchema<
     ) => void,
   ): () => void;
 
+  /** @deprecated Use `CoMap.upsertUnique` and `CoMap.loadUnique` instead. */
   findUnique(
     unique: CoValueUniqueness["uniqueness"],
     ownerID: ID<Account> | ID<Group>,
     as?: Account | Group | AnonymousJazzAgent,
   ): ID<CoRecordInstanceCoValuesNullable<K, V>>;
+
+  upsertUnique<
+    const R extends RefsToResolve<
+      CoRecordInstanceCoValuesNullable<K, V>
+    > = true,
+  >(options: {
+    value: Simplify<CoRecordInit<K, V>>;
+    unique: CoValueUniqueness["uniqueness"];
+    owner: Account | Group;
+    resolve?: RefsToResolveStrict<CoRecordInstanceCoValuesNullable<K, V>, R>;
+  }): Promise<Resolved<CoRecordInstanceCoValuesNullable<K, V>, R> | null>;
+
+  loadUnique<
+    const R extends RefsToResolve<
+      CoRecordInstanceCoValuesNullable<K, V>
+    > = true,
+  >(
+    unique: CoValueUniqueness["uniqueness"],
+    ownerID: ID<Account> | ID<Group>,
+    options?: {
+      resolve?: RefsToResolveStrict<CoRecordInstanceCoValuesNullable<K, V>, R>;
+      loadAs?: Account | AnonymousJazzAgent;
+    },
+  ): Promise<Resolved<CoRecordInstanceCoValuesNullable<K, V>, R> | null>;
 
   getCoValueClass: () => typeof CoMap;
 

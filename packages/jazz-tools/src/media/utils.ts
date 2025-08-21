@@ -187,13 +187,17 @@ export async function loadImageBySize(
   const bestTarget =
     sortedSizes.find((el) => el.match > 0.95) || sortedSizes.at(-1)!;
 
-  const file = image[bestTarget.size[2]];
+  // The image's `wxh` keys reference FileStream.
+  // image[bestTarget.size[2]] returns undefined if FileStream hasn't loaded yet.
+  // Since we only need the file's ID to fetch it later, we check the raw _refs
+  // which contain only the linked covalue's ID.
+  const file = image.$jazz.refs[bestTarget.size[2]];
 
   if (!file) {
     return null;
   }
 
-  const loadedFile = await FileStream.load(file.$jazz.id);
+  const loadedFile = await FileStream.load(file.id);
 
   if (!loadedFile) {
     return null;

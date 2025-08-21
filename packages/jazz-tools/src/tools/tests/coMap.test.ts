@@ -15,11 +15,13 @@ import { Account } from "../index.js";
 import {
   Loaded,
   TypeSym,
+  activeAccountContext,
   coValueClassFromCoValueClassOrSchema,
 } from "../internal.js";
 import {
   createJazzTestAccount,
   getPeerConnectedToTestSyncServer,
+  runWithoutActiveAccount,
   setupJazzTestSync,
 } from "../testing.js";
 import { setupTwoNodes, waitFor } from "./utils.js";
@@ -232,6 +234,21 @@ describe("CoMap", async () => {
         const Schema = co.map({ text: co.plainText() });
         const map = Schema.create({ text: "" });
         expect(map.text.toString()).toBe("");
+      });
+
+      it("creates a group for the new CoValue when there is no active account", () => {
+        const Schema = co.map({ text: co.plainText() });
+
+        const parentGroup = Group.create();
+        runWithoutActiveAccount(() => {
+          const map = Schema.create({ text: "Hello" }, parentGroup);
+
+          expect(
+            map.text.$jazz.owner
+              .getParentGroups()
+              .map((group: Group) => group.$jazz.id),
+          ).toContain(parentGroup.$jazz.id);
+        });
       });
     });
 
@@ -451,6 +468,70 @@ describe("CoMap", async () => {
       });
 
       expect(personB.friend?.pet.name).toEqual("Rex");
+    });
+  });
+
+  describe("get", () => {
+    test("get a primitive value from a CoMap", () => {
+      const Person = co.map({ name: z.string() });
+      const person = Person.create({ name: "John" });
+      expect(person.$jazz.get("name")).toEqual("John");
+    });
+
+    test("get an optional primitive value from a CoMap", () => {
+      const Person = co.map({ name: z.string().optional() });
+      const person = Person.create({});
+      expect(person.$jazz.get("name")).toBeUndefined();
+    });
+
+    test("get an encoded value from a CoMap", () => {
+      const Person = co.map({ birthdate: z.date() });
+      const person = Person.create({ birthdate: new Date("1990-01-01") });
+      expect(person.$jazz.get("birthdate").toISOString()).toEqual(
+        new Date("1990-01-01").toISOString(),
+      );
+    });
+
+    test("get an optional encoded value from a CoMap", () => {
+      const Person = co.map({ birthdate: z.date().optional() });
+      const person = Person.create({});
+      expect(person.$jazz.get("birthdate")).toBeUndefined();
+    });
+
+    test("get a reference value from a CoMap", () => {
+      const Person = co.map({ name: co.plainText() });
+      const person = Person.create({ name: "John" });
+      expect(person.$jazz.get("name").toString()).toEqual("John");
+    });
+
+    test("get an optional reference value from a CoMap", () => {
+      const Person = co.map({ name: co.plainText().optional() });
+      const person = Person.create({});
+      expect(person.$jazz.get("name")).toBeUndefined();
+    });
+
+    test("attempting to get an unknown key should throw", () => {
+      const Person = co.map({ name: z.string() });
+      const person = Person.create({ name: "John" });
+      // @ts-expect-error - unknown is not a valid key
+      expect(() => person.$jazz.get("unknownKey")).toThrow(
+        "Cannot get unknown key unknownKey",
+      );
+    });
+
+    describe("when catchall is provided", () => {
+      test("an existing string key return its value", () => {
+        const Person = co.map({}).catchall(z.string());
+        const person = Person.create({});
+        person.$jazz.set("name", "John");
+        expect(person.$jazz.get("name")).toEqual("John");
+      });
+
+      test("an unknown key returns undefined", () => {
+        const Person = co.map({}).catchall(z.string());
+        const person = Person.create({});
+        expect(person.$jazz.get("unknownKey")).toBeUndefined();
+      });
     });
   });
 
@@ -1729,6 +1810,46 @@ describe("Creating and finding unique CoMaps", async () => {
     });
   });
 
+  test("upserting without an active account", async () => {
+    const account = activeAccountContext.get();
+
+    // Schema
+    const Event = co.map({
+      title: z.string(),
+      identifier: z.string(),
+      external_id: z.string(),
+    });
+
+    // Data
+    const sourceData = {
+      title: "Test Event Title",
+      identifier: "test-event-identifier",
+      _id: "test-event-external-id",
+    };
+
+    const activeEvent = await runWithoutActiveAccount(() => {
+      return Event.upsertUnique({
+        value: {
+          title: sourceData.title,
+          identifier: sourceData.identifier,
+          external_id: sourceData._id,
+        },
+        unique: sourceData.identifier,
+        owner: account,
+      });
+    });
+
+    expect(activeEvent).toEqual({
+      title: sourceData.title,
+      identifier: sourceData.identifier,
+      external_id: sourceData._id,
+    });
+
+    assert(activeEvent);
+
+    expect(activeEvent.$jazz.owner).toEqual(account);
+  });
+
   test("upserting an existing value", async () => {
     // Schema
     const Event = co.map({
@@ -2457,6 +2578,12 @@ describe("co.map schema", () => {
 
       expect(draftPerson.extraField).toEqual("extra");
     });
+  });
+
+  test("co.map() should throw an error if passed a CoValue schema", () => {
+    expect(() => co.map(co.map({}))).toThrow(
+      "co.map() expects an object as its argument, not a CoValue schema",
+    );
   });
 });
 

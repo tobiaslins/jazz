@@ -6,6 +6,7 @@
   "fixed": [
     [
       "cojson",
+      "cojson-core-wasm",
       "cojson-storage-indexeddb",
       "cojson-storage-sqlite",
       "cojson-transport-ws",
@@ -14,7 +15,8 @@
       "jazz-betterauth-server-plugin",
       "jazz-react-auth-betterauth",
       "jazz-run",
-      "jazz-tools"
+      "jazz-tools",
+      "community-jazz-vue"
     ]
   ],
   "access": "public",

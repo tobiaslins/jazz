@@ -1,4 +1,4 @@
-import { co, z } from "jazz-tools";
+import { co, Group, z } from "jazz-tools";
 
 /** Walkthrough: Defining the data model with CoJSON
  *
@@ -70,15 +70,22 @@ export const MusicaAccountRoot = co.map({
   activePlaylist: Playlist,
 
   exampleDataLoaded: z.optional(z.boolean()),
+  accountSetupCompleted: z.optional(z.boolean()),
 });
 export type MusicaAccountRoot = co.loaded<typeof MusicaAccountRoot>;
+
+export const MusicaAccountProfile = co.profile({
+  avatar: co.optional(co.image()),
+});
+export type MusicaAccountProfile = co.loaded<typeof MusicaAccountProfile>;
+
 export const MusicaAccount = co
   .account({
     /** the default user profile with a name */
-    profile: co.profile(),
+    profile: MusicaAccountProfile,
     root: MusicaAccountRoot,
   })
-  .withMigration((account) => {
+  .withMigration(async (account) => {
     /**
      *  The account migration is run on account creation and on every log-in.
      *  You can use it to set up the account root and any other initial CoValues you need.
@@ -96,6 +103,32 @@ export const MusicaAccount = co
         activePlaylist: rootPlaylist,
         exampleDataLoaded: false,
       });
+    }
+
+    if (account.profile === undefined) {
+      account.profile = MusicaAccountProfile.create({
+        name: "",
+      });
+    }
+
+    // Load the profile and root in memory, to have them ready
+    const { profile, root } = await account.$jazz.ensureLoaded({
+      resolve: {
+        profile: {
+          avatar: true,
+        },
+        root: true,
+      },
+    });
+
+    // Clean up the private avatars (were created using the account as owner)
+    if (profile.avatar) {
+      const group = profile.avatar.$jazz.owner.$jazz.castAs(Group);
+
+      if (group.getRoleOf("everyone") !== "reader") {
+        root.$jazz.set("accountSetupCompleted", false);
+        profile.$jazz.set("avatar", undefined);
+      }
     }
   });
 export type MusicaAccount = co.loaded<typeof MusicaAccount>;

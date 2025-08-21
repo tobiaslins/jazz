@@ -7,12 +7,13 @@ import { RouterProvider, createHashRouter } from "react-router-dom";
 import { HomePage } from "./3_HomePage";
 import { useMediaPlayer } from "./5_useMediaPlayer";
 import { InvitePage } from "./6_InvitePage";
+import { WelcomeScreen } from "./components/WelcomeScreen";
 import "./index.css";
 
 import { MusicaAccount } from "@/1_schema";
 import { apiKey } from "@/apiKey.ts";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { JazzReactProvider } from "jazz-tools/react";
+import { JazzReactProvider, useAccount } from "jazz-tools/react";
 import { onAnonymousAccountDiscarded } from "./4_actions";
 import { KeyboardListener } from "./components/PlayerControls";
 import { usePrepareAppState } from "./lib/usePrepareAppState";
@@ -28,10 +29,21 @@ import { usePrepareAppState } from "./lib/usePrepareAppState";
  * `<JazzReactProvider/>` also runs our account migration
  */
 
-function Main() {
-  const mediaPlayer = useMediaPlayer();
+function AppContent({
+  mediaPlayer,
+}: {
+  mediaPlayer: ReturnType<typeof useMediaPlayer>;
+}) {
+  const { me } = useAccount(MusicaAccount, {
+    resolve: { root: true },
+  });
 
   const isReady = usePrepareAppState(mediaPlayer);
+
+  // Show welcome screen if account setup is not completed
+  if (me && !me.root.accountSetupCompleted) {
+    return <WelcomeScreen />;
+  }
 
   const router = createHashRouter([
     {
@@ -56,6 +68,17 @@ function Main() {
       <KeyboardListener mediaPlayer={mediaPlayer} />
       <Toaster />
     </>
+  );
+}
+
+function Main() {
+  const mediaPlayer = useMediaPlayer();
+
+  return (
+    <SidebarProvider>
+      <AppContent mediaPlayer={mediaPlayer} />
+      <JazzInspector />
+    </SidebarProvider>
   );
 }
 

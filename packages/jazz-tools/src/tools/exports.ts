@@ -35,6 +35,7 @@ export type {
   TextPos,
   AccountClass,
   AccountCreationProps,
+  BaseProfileShape,
 } from "./internal.js";
 
 export {
@@ -54,6 +55,7 @@ export {
   SubscriptionScope,
   exportCoValue,
   importContentPieces,
+  Ref,
 } from "./internal.js";
 
 export {

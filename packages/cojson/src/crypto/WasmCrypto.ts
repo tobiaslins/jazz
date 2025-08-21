@@ -1,4 +1,6 @@
 import {
+  SessionLog,
+  initialize,
   Blake3Hasher,
   blake3_empty_state,
   blake3_hash_once,
@@ -7,16 +9,15 @@ import {
   encrypt,
   get_sealer_id,
   get_signer_id,
-  initialize,
   new_ed25519_signing_key,
   new_x25519_private_key,
   seal,
   sign,
   unseal,
   verify,
-} from "jazz-crypto-rs";
+} from "cojson-core-wasm";
 import { base64URLtoBytes, bytesToBase64url } from "../base64url.js";
-import { RawCoID, TransactionID } from "../ids.js";
+import { RawCoID, SessionID, TransactionID } from "../ids.js";
 import { Stringified, stableStringify } from "../jsonStringify.js";
 import { JsonValue } from "../jsonValue.js";
 import { logger } from "../logger.js";
@@ -24,6 +25,8 @@ import { PureJSCrypto } from "./PureJSCrypto.js";
 import {
   CryptoProvider,
   Encrypted,
+  Hash,
+  KeyID,
   KeySecret,
   Sealed,
   SealerID,
@@ -34,11 +37,17 @@ import {
   textDecoder,
   textEncoder,
 } from "./crypto.js";
+import { ControlledAccountOrAgent } from "../coValues/account.js";
+import {
+  PrivateTransaction,
+  Transaction,
+  TrustingTransaction,
+} from "../coValueCore/verifiedState.js";
 
 type Blake3State = Blake3Hasher;
 
 /**
- * WebAssembly implementation of the CryptoProvider interface using jazz-crypto-rs.
+ * WebAssembly implementation of the CryptoProvider interface using cojson-core-wasm.
  * This provides the primary implementation using WebAssembly for optimal performance, offering:
  * - Signing/verifying (Ed25519)
  * - Encryption/decryption (XSalsa20)
@@ -194,5 +203,87 @@ export class WasmCrypto extends CryptoProvider<Blake3State> {
       logger.error("Failed to decrypt/parse sealed message", { err: e });
       return undefined;
     }
+  }
+
+  createSessionLog(coID: RawCoID, sessionID: SessionID, signerID?: SignerID) {
+    return new SessionLogAdapter(new SessionLog(coID, sessionID, signerID));
+  }
+}
+
+class SessionLogAdapter {
+  constructor(private readonly sessionLog: SessionLog) {}
+
+  tryAdd(
+    transactions: Transaction[],
+    newSignature: Signature,
+    skipVerify: boolean,
+  ): void {
+    this.sessionLog.tryAdd(
+      transactions.map((tx) => stableStringify(tx)),
+      newSignature,
+      skipVerify,
+    );
+  }
+
+  addNewPrivateTransaction(
+    signerAgent: ControlledAccountOrAgent,
+    changes: JsonValue[],
+    keyID: KeyID,
+    keySecret: KeySecret,
+    madeAt: number,
+  ): { signature: Signature; transaction: PrivateTransaction } {
+    const output = this.sessionLog.addNewPrivateTransaction(
+      stableStringify(changes),
+      signerAgent.currentSignerSecret(),
+      keySecret,
+      keyID,
+      madeAt,
+    );
+    const parsedOutput = JSON.parse(output);
+    const transaction: PrivateTransaction = {
+      privacy: "private",
+      madeAt,
+      encryptedChanges: parsedOutput.encrypted_changes,
+      keyUsed: keyID,
+    };
+    return { signature: parsedOutput.signature, transaction };
+  }
+
+  addNewTrustingTransaction(
+    signerAgent: ControlledAccountOrAgent,
+    changes: JsonValue[],
+    madeAt: number,
+  ): { signature: Signature; transaction: TrustingTransaction } {
+    const stringifiedChanges = stableStringify(changes);
+    const output = this.sessionLog.addNewTrustingTransaction(
+      stringifiedChanges,
+      signerAgent.currentSignerSecret(),
+      madeAt,
+    );
+    const transaction: TrustingTransaction = {
+      privacy: "trusting",
+      madeAt,
+      changes: stringifiedChanges,
+    };
+    return { signature: output as Signature, transaction };
+  }
+
+  decryptNextTransactionChangesJson(
+    txIndex: number,
+    keySecret: KeySecret,
+  ): string {
+    const output = this.sessionLog.decryptNextTransactionChangesJson(
+      txIndex,
+      keySecret,
+    );
+    return output;
+  }
+
+  free() {
+    this.sessionLog.free();
+  }
+
+  clone(): SessionLogAdapter {
+    return new SessionLogAdapter(this.sessionLog.clone());
   }
 }

@@ -20,11 +20,13 @@ import {
   createTestNode,
   loadCoValueOrFail,
   nodeWithRandomAgentAndSessionID,
+  randomAgentAndSessionID,
   setupTestAccount,
   setupTestNode,
   tearDownTestMetricReader,
   waitFor,
 } from "./testUtils.js";
+import { stableStringify } from "../jsonStringify.js";
 
 // We want to simulate a real world communication that happens asynchronously
 TEST_NODE_CONFIG.withAsyncPeers = true;
@@ -158,6 +160,34 @@ test("should delete the peer state when the peer closes if persistent is false",
   await waitFor(() => peerState?.closed);
 
   expect(syncManager.peers[peer.id]).toBeUndefined();
+});
+
+test("should not verify transactions when SyncManager has verification disabled", async () => {
+  jazzCloud.node.syncManager.disableTransactionVerification();
+
+  const [agent] = randomAgentAndSessionID();
+  const client = await setupTestAccount({ connected: true });
+
+  const group = client.node.createGroup();
+  const map = group.createMap();
+
+  map.core.tryAddTransactions(
+    client.node.currentSessionID,
+    [
+      {
+        privacy: "trusting",
+        changes: stableStringify([{ op: "set", key: "hello", value: "world" }]),
+        madeAt: Date.now(),
+      },
+    ],
+    Crypto.sign(agent.currentSignerSecret(), "hash_z12345678"),
+    true,
+  );
+
+  await map.core.waitForSync();
+
+  const loadedMap = await loadCoValueOrFail(jazzCloud.node, map.id);
+  expect(loadedMap.get("hello")).toEqual("world");
 });
 
 describe("sync - extra tests", () => {

@@ -38,9 +38,14 @@ import {
 // Note: if you're editing this function, edit the `isAnyCoValueSchema`
 // function in `zodReExport.ts` as well
 export function isAnyCoValueSchema(
-  schema: AnyZodOrCoValueSchema | CoValueClass,
+  schema: unknown,
 ): schema is AnyCoreCoValueSchema {
-  return "collaborative" in schema && schema.collaborative === true;
+  return (
+    typeof schema === "object" &&
+    schema !== null &&
+    "collaborative" in schema &&
+    schema.collaborative === true
+  );
 }
 
 export function isCoValueSchema(

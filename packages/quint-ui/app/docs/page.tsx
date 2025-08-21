@@ -8,6 +8,7 @@ export default function DocsPage() {
         <li>
           <Link href="/docs/button">Button</Link>
           <Link href="/docs/icon">Icon</Link>
+          <Link href="/docs/input">Input</Link>
         </li>
       </ul>
     </div>

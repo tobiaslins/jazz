@@ -2,6 +2,7 @@ import { Histogram, ValueType, metrics } from "@opentelemetry/api";
 import { PeerState } from "./PeerState.js";
 import { SyncStateManager } from "./SyncStateManager.js";
 import {
+  getContenDebugInfo,
   getTransactionSize,
   knownStateFromContent,
 } from "./coValueContentMessage.js";
@@ -131,6 +132,11 @@ export class SyncManager {
   peers: { [key: PeerID]: PeerState } = {};
   local: LocalNode;
 
+  // When true, transactions will not be verified.
+  // This is useful when syncing only for storage purposes, with the expectation that
+  // the transactions have already been verified by the [trusted] peer that sent them.
+  private skipVerify: boolean = false;
+
   peersCounter = metrics.getMeter("cojson").createUpDownCounter("jazz.peers", {
     description: "Amount of connected peers",
     valueType: ValueType.INT,
@@ -152,6 +158,10 @@ export class SyncManager {
   }
 
   syncState: SyncStateManager;
+
+  disableTransactionVerification() {
+    this.skipVerify = true;
+  }
 
   peersInPriorityOrder(): PeerState[] {
     return Object.values(this.peers).sort((a, b) => {
@@ -501,28 +511,31 @@ export class SyncManager {
         (content) => content.newTransactions,
       );
 
-      for (const dependency of getDependedOnCoValuesFromRawData(
-        msg.id,
-        msg.header,
-        sessionIDs,
-        transactions,
-      )) {
-        const dependencyCoValue = this.local.getCoValue(dependency);
+      // If we'll be performing transaction verification, ensure all the dependencies available.
+      if (!this.skipVerify) {
+        for (const dependency of getDependedOnCoValuesFromRawData(
+          msg.id,
+          msg.header,
+          sessionIDs,
+          transactions,
+        )) {
+          const dependencyCoValue = this.local.getCoValue(dependency);
 
-        if (!dependencyCoValue.hasVerifiedContent()) {
-          coValue.markMissingDependency(dependency);
+          if (!dependencyCoValue.hasVerifiedContent()) {
+            coValue.markMissingDependency(dependency);
 
-          const peers = this.getServerPeers();
+            const peers = this.getServerPeers();
 
-          // if the peer that sent the content is a client, we add it to the list of peers
-          // to also ask them for the dependency
-          if (peer?.role === "client") {
-            peers.push(peer);
+            // if the peer that sent the content is a client, we add it to the list of peers
+            // to also ask them for the dependency
+            if (peer?.role === "client") {
+              peers.push(peer);
+            }
+
+            dependencyCoValue.load(peers);
+          } else if (!dependencyCoValue.isAvailable()) {
+            coValue.markMissingDependency(dependency);
           }
-
-          dependencyCoValue.load(peers);
-        } else if (!dependencyCoValue.isAvailable()) {
-          coValue.markMissingDependency(dependency);
         }
       }
 
@@ -550,6 +563,14 @@ export class SyncManager {
 
     let invalidStateAssumed = false;
 
+    const contentToStore: NewContentMessage = {
+      action: "content",
+      id: msg.id,
+      priority: msg.priority,
+      header: msg.header,
+      new: {},
+    };
+
     for (const [sessionID, newContentForSession] of Object.entries(msg.new) as [
       SessionID,
       SessionNewContent,
@@ -574,60 +595,62 @@ export class SyncManager {
         continue;
       }
 
-      const accountId = accountOrAgentIDfromSessionID(sessionID);
+      // If we'll be performing transaction verification, ensure the account is available.
+      if (!this.skipVerify) {
+        const accountId = accountOrAgentIDfromSessionID(sessionID);
 
-      if (isAccountID(accountId)) {
-        const account = this.local.getCoValue(accountId);
+        if (isAccountID(accountId)) {
+          const account = this.local.getCoValue(accountId);
 
-        // We can't verify the transaction without the account, so we delay the session content handling until the account is available
-        if (!account.isAvailable()) {
-          // This covers the case where we are getting a new session on an already loaded coValue
-          // where we need to load the account to get their public key
-          if (!coValue.missingDependencies.has(accountId)) {
-            const peers = this.getServerPeers();
+          // We can't verify the transaction without the account, so we delay the session content handling until the account is available
+          if (!account.isAvailable()) {
+            // This covers the case where we are getting a new session on an already loaded coValue
+            // where we need to load the account to get their public key
+            if (!coValue.missingDependencies.has(accountId)) {
+              const peers = this.getServerPeers();
 
-            if (peer?.role === "client") {
-              // if the peer that sent the content is a client, we add it to the list of peers
-              // to also ask them for the dependency
-              peers.push(peer);
+              if (peer?.role === "client") {
+                // if the peer that sent the content is a client, we add it to the list of peers
+                // to also ask them for the dependency
+                peers.push(peer);
+              }
+
+              account.load(peers);
             }
 
-            account.load(peers);
-          }
-
-          // We need to wait for the account to be available before we can verify the transaction
-          // Currently doing this by delaying the handleNewContent for the session to when we have the account
-          //
-          // This is not the best solution, because the knownState is not updated and the ACK response will be given
-          // by excluding the session.
-          // This is good enough implementation for now because the only case for the account to be missing are out-of-order
-          // dependencies push, so the gap should be short lived.
-          //
-          // When we are going to have sharded-peers we should revisit this, and store unverified sessions that are considered as part of the
-          // knwonState, but not actively used until they can be verified.
-          void account.waitForAvailable().then(() => {
-            this.handleNewContent(
-              {
-                action: "content",
-                id: coValue.id,
-                new: {
-                  [sessionID]: newContentForSession,
+            // We need to wait for the account to be available before we can verify the transaction
+            // Currently doing this by delaying the handleNewContent for the session to when we have the account
+            //
+            // This is not the best solution, because the knownState is not updated and the ACK response will be given
+            // by excluding the session.
+            // This is good enough implementation for now because the only case for the account to be missing are out-of-order
+            // dependencies push, so the gap should be short lived.
+            //
+            // When we are going to have sharded-peers we should revisit this, and store unverified sessions that are considered as part of the
+            // knwonState, but not actively used until they can be verified.
+            void account.waitForAvailable().then(() => {
+              this.handleNewContent(
+                {
+                  action: "content",
+                  id: coValue.id,
+                  new: {
+                    [sessionID]: newContentForSession,
+                  },
+                  priority: msg.priority,
                 },
-                priority: msg.priority,
-              },
-              from,
-            );
-          });
-          continue;
+                from,
+              );
+            });
+            continue;
+          }
         }
       }
 
       const result = coValue.tryAddTransactions(
         sessionID,
         newTransactions,
-        undefined,
         newContentForSession.lastSignature,
-        "immediate",
+        this.skipVerify,
       );
 
       if (result.isErr()) {
@@ -652,6 +675,8 @@ export class SyncManager {
         this.recordTransactionsSize(newTransactions, sourceRole);
       }
 
+      // The new content for this session has been verified, so we can store it
+      contentToStore.new[sessionID] = newContentForSession;
       peer?.updateSessionCounter(
         msg.id,
         sessionID,
@@ -673,6 +698,8 @@ export class SyncManager {
           "Invalid state assumed when handling new content from storage",
           {
             id: msg.id,
+            content: getContenDebugInfo(msg),
+            knownState: coValue.knownState(),
           },
         );
       }
@@ -693,8 +720,11 @@ export class SyncManager {
 
     const syncedPeers = [];
 
-    if (from !== "storage") {
-      this.storeContent(msg);
+    const hasNewContent =
+      contentToStore.header || Object.keys(contentToStore.new).length > 0;
+
+    if (from !== "storage" && hasNewContent) {
+      this.storeContent(contentToStore);
     }
 
     for (const peer of this.peersInPriorityOrder()) {
@@ -803,7 +833,20 @@ export class SyncManager {
     // Try to store the content as-is for performance
     // In case that some transactions are missing, a correction will be requested, but it's an edge case
     storage.store(content, (correction) => {
-      return value.verified?.newContentSince(correction);
+      if (!value.verified) {
+        logger.error(
+          "Correction requested for a CoValue with no verified content",
+          {
+            id: content.id,
+            content: getContenDebugInfo(content),
+            correction,
+            state: value.loadingState,
+          },
+        );
+        return undefined;
+      }
+
+      return value.verified.newContentSince(correction);
     });
   }
 
