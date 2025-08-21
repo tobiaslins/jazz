@@ -244,9 +244,11 @@ export class CoMap extends CoValueBase implements CoValue {
   ): M {
     const { owner, uniqueness } = parseCoValueCreateOptions(options);
 
-    Object.defineProperty(instance, "$jazz", {
-      value: new CoMapJazzApi(instance, () => raw),
-      enumerable: false,
+    Object.defineProperties(instance, {
+      $jazz: {
+        value: new CoMapJazzApi(instance, () => raw),
+        enumerable: false,
+      },
     });
 
     const raw = CoMap.rawFromInit(instance, init, owner, uniqueness);
@@ -563,6 +565,46 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
   }
 
   /**
+   * Get a value from the CoMap.
+   *
+   * @example
+   * ```ts
+   * person.$jazz.get("name"); // => "John"
+   * // This is equivalent to:
+   * person.name; // => "John"
+   * ```
+   *
+   * @param key The key to get
+   * @returns The value for the key
+   *
+   * @category Content
+   */
+  get<K extends CoKeys<M>>(key: K): M[K] {
+    const raw = this.raw.get(key);
+
+    const descriptor = this.getDescriptor(key as string);
+
+    if (!descriptor) {
+      throw Error(`Cannot get unknown key ${key}`);
+    }
+
+    if (descriptor === "json") {
+      return raw as M[K];
+    } else if ("encoded" in descriptor) {
+      return (
+        raw === undefined ? undefined : descriptor.encoded.decode(raw)
+      ) as M[K];
+    } else if (isRefEncoded(descriptor)) {
+      return (
+        raw === undefined || raw === null
+          ? undefined
+          : accessChildByKey(this.coMap, raw as string, key)
+      ) as M[K];
+    }
+    throw Error(`Cannot get unknown key ${key}`);
+  }
+
+  /**
    * Set a value on the CoMap
    *
    * @param key The key to set
@@ -639,7 +681,7 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
         if (!descriptor) continue;
 
         const newValue = newValues[tKey];
-        const currentValue = (this.coMap as unknown as N)[tKey];
+        const currentValue = this.get(tKey as any);
 
         if (descriptor === "json" || "encoded" in descriptor) {
           if (currentValue !== newValue) {
@@ -913,17 +955,7 @@ const CoMapProxyHandler: ProxyHandler<CoMap> = {
         return undefined;
       }
 
-      const raw = target.$jazz.raw.get(key);
-
-      if (descriptor === "json") {
-        return raw;
-      } else if ("encoded" in descriptor) {
-        return raw === undefined ? undefined : descriptor.encoded.decode(raw);
-      } else if (isRefEncoded(descriptor)) {
-        return raw === undefined || raw === null
-          ? undefined
-          : accessChildByKey(target, raw as string, key);
-      }
+      return target.$jazz.get(key as never);
     }
   },
   set(target, key, value, receiver) {
