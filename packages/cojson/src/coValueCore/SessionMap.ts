@@ -18,7 +18,7 @@ import { Transaction } from "./verifiedState.js";
 import { exceedsRecommendedSize } from "../coValueContentMessage.js";
 
 export type SessionLog = {
-  signerID: SignerID;
+  signerID?: SignerID;
   impl: SessionLogImpl;
   transactions: Transaction[];
   lastSignature: Signature | undefined;
@@ -40,7 +40,7 @@ export class SessionMap {
 
   private getOrCreateSessionLog(
     sessionID: SessionID,
-    signerID: SignerID,
+    signerID?: SignerID,
   ): SessionLog {
     let sessionLog = this.sessions.get(sessionID);
     if (!sessionLog) {
@@ -58,9 +58,10 @@ export class SessionMap {
     return sessionLog;
   }
 
+  signerID: SignerID | undefined;
   addTransaction(
     sessionID: SessionID,
-    signerID: SignerID,
+    signerID: SignerID | undefined,
     newTransactions: Transaction[],
     newSignature: Signature,
     skipVerify: boolean = false,
@@ -95,7 +96,6 @@ export class SessionMap {
       sessionID,
       signerAgent.currentSignerID(),
     );
-
     const madeAt = Date.now();
 
     const result = sessionLog.impl.addNewPrivateTransaction(
@@ -124,7 +124,6 @@ export class SessionMap {
       sessionID,
       signerAgent.currentSignerID(),
     );
-
     const madeAt = Date.now();
 
     const result = sessionLog.impl.addNewTrustingTransaction(

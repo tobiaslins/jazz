@@ -89,7 +89,7 @@ export class VerifiedState {
 
   tryAddTransactions(
     sessionID: SessionID,
-    signerID: SignerID,
+    signerID: SignerID | undefined,
     newTransactions: Transaction[],
     newSignature: Signature,
     skipVerify: boolean = false,

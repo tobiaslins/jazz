@@ -212,7 +212,7 @@ export class PureJSCrypto extends CryptoProvider<Blake3State> {
   createSessionLog(
     coID: RawCoID,
     sessionID: SessionID,
-    signerID: SignerID,
+    signerID?: SignerID,
   ): SessionLogImpl {
     return new PureJSSessionLog(coID, sessionID, signerID, this);
   }
@@ -226,7 +226,7 @@ export class PureJSSessionLog implements SessionLogImpl {
   constructor(
     private readonly coID: RawCoID,
     private readonly sessionID: SessionID,
-    private readonly signerID: SignerID,
+    private readonly signerID: SignerID | undefined,
     private readonly crypto: PureJSCrypto,
   ) {
     this.streamingHash = this.crypto.emptyBlake3State();
@@ -263,6 +263,10 @@ export class PureJSSessionLog implements SessionLogImpl {
     skipVerify: boolean,
   ) {
     if (!skipVerify) {
+      if (!this.signerID) {
+        throw new Error("Tried to add transactions without signer ID");
+      }
+
       const checkHasher = this.crypto.cloneBlake3State(this.streamingHash);
 
       for (const tx of transactions) {

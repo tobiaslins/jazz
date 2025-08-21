@@ -205,7 +205,7 @@ export class WasmCrypto extends CryptoProvider<Blake3State> {
     }
   }
 
-  createSessionLog(coID: RawCoID, sessionID: SessionID, signerID: SignerID) {
+  createSessionLog(coID: RawCoID, sessionID: SessionID, signerID?: SignerID) {
     return new SessionLogAdapter(new SessionLog(coID, sessionID, signerID));
   }
 }

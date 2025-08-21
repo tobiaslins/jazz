@@ -4,6 +4,7 @@ import {
   setCurrentTestCryptoProvider,
   setupTestNode,
   setupTestAccount,
+  randomAgentAndSessionID,
 } from "./testUtils";
 import { PureJSCrypto } from "../crypto/PureJSCrypto";
 import { stableStringify } from "../jsonStringify";
@@ -124,5 +125,29 @@ describe("PureJSCrypto", () => {
     client.node.syncManager.handleNewContent(content, "storage");
 
     expect(map.get("count")).toEqual(0);
+  });
+});
+
+describe("PureJSSessionLog", () => {
+  it("fails to verify signatures without a signer ID", async () => {
+    const agentSecret = jsCrypto.newRandomAgentSecret();
+    const sessionID = jsCrypto.newRandomSessionID(
+      jsCrypto.getAgentID(agentSecret),
+    );
+
+    const sessionLog = jsCrypto.createSessionLog("co_z12345678", sessionID);
+    expect(() =>
+      sessionLog.tryAdd(
+        [
+          {
+            privacy: "trusting",
+            changes: stableStringify([{ op: "set", key: "count", value: 1 }]),
+            madeAt: Date.now(),
+          },
+        ],
+        "signature_z12345678",
+        false,
+      ),
+    ).toThrow("Tried to add transactions without signer ID");
   });
 });

@@ -1,5 +1,5 @@
 import { UpDownCounter, ValueType, metrics } from "@opentelemetry/api";
-import { Result, err } from "neverthrow";
+import { Result, err, ok } from "neverthrow";
 import type { PeerState } from "../PeerState.js";
 import type { RawCoValue } from "../coValue.js";
 import type { ControlledAccountOrAgent } from "../coValues/account.js";
@@ -434,35 +434,43 @@ export class CoValueCore {
     newSignature: Signature,
     skipVerify: boolean = false,
   ): Result<true, TryAddTransactionsError> {
-    return this.node
-      .resolveAccountAgent(
-        accountOrAgentIDfromSessionID(sessionID),
-        "Expected to know signer of transaction",
-      )
-      .andThen((agent) => {
-        if (!this.verified) {
-          return err({
-            type: "TriedToAddTransactionsWithoutVerifiedState",
-            id: this.id,
-          } satisfies TriedToAddTransactionsWithoutVerifiedStateErrpr);
-        }
+    let result: Result<SignerID | undefined, TryAddTransactionsError>;
 
-        const signerID = this.crypto.getAgentSignerID(agent);
+    if (skipVerify) {
+      result = ok(undefined);
+    } else {
+      result = this.node
+        .resolveAccountAgent(
+          accountOrAgentIDfromSessionID(sessionID),
+          "Expected to know signer of transaction",
+        )
+        .andThen((agent) => {
+          return ok(this.crypto.getAgentSignerID(agent));
+        });
+    }
 
-        const result = this.verified.tryAddTransactions(
-          sessionID,
-          signerID,
-          newTransactions,
-          newSignature,
-          skipVerify,
-        );
+    return result.andThen((signerID) => {
+      if (!this.verified) {
+        return err({
+          type: "TriedToAddTransactionsWithoutVerifiedState",
+          id: this.id,
+        } satisfies TriedToAddTransactionsWithoutVerifiedStateErrpr);
+      }
 
-        if (result.isOk()) {
-          this.updateContentAndNotifyUpdate("immediate");
-        }
+      const result = this.verified.tryAddTransactions(
+        sessionID,
+        signerID,
+        newTransactions,
+        newSignature,
+        skipVerify,
+      );
 
-        return result;
-      });
+      if (result.isOk()) {
+        this.updateContentAndNotifyUpdate("immediate");
+      }
+
+      return result;
+    });
   }
 
   deferredUpdates = 0;
@@ -968,7 +976,7 @@ export type InvalidSignatureError = {
   id: RawCoID;
   newSignature: Signature;
   sessionID: SessionID;
-  signerID: SignerID;
+  signerID: SignerID | undefined;
 };
 
 export type TriedToAddTransactionsWithoutVerifiedStateErrpr = {
@@ -976,8 +984,15 @@ export type TriedToAddTransactionsWithoutVerifiedStateErrpr = {
   id: RawCoID;
 };
 
+export type TriedToAddTransactionsWithoutSignerIDError = {
+  type: "TriedToAddTransactionsWithoutSignerID";
+  id: RawCoID;
+  sessionID: SessionID;
+};
+
 export type TryAddTransactionsError =
   | TriedToAddTransactionsWithoutVerifiedStateErrpr
+  | TriedToAddTransactionsWithoutSignerIDError
   | ResolveAccountAgentError
   | InvalidHashError
   | InvalidSignatureError;
