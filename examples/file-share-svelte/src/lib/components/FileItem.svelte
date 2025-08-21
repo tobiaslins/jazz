@@ -67,7 +67,7 @@
         <input
           class="w-full py-1 font-medium text-gray-900"
           type="text"
-          bind:value={file.name}
+          bind:value={() => file.name, newValue => file.$jazz.set("name", newValue)}
           id={`file-name-${file.$jazz.id}`}
         />
       {:else}
