@@ -7,8 +7,9 @@ import { Alert } from "@garden-co/design-system/src/components/atoms/Alert";
 
 # Better Auth authentication
 
-[Better Auth](https://better-auth.com/) is a framework-agnostic authentication and authorization framework for TypeScript. Jazz can be integrated with Better Auth for the authentication phase, to store the [Jazz's Account keys](./overview) on Better Auth's users.
-Despite other cloud solutions, Better Auth is self-hosted.
+[Better Auth](https://better-auth.com/) is a self-hosted, framework-agnostic authentication and authorisation framework for TypeScript. 
+
+You can integrate Better Auth with your Jazz app, allowing your Jazz user's account keys to be saved with the corresponding Better Auth user.
 
 ## How it works
 
@@ -112,8 +113,8 @@ export const auth = betterAuth({
 
 Now run [migrations](https://www.better-auth.com/docs/concepts/database#running-migrations) to add the new fields to the users table.
 
-<Alert variant="warning" className="mt-4">
-  **Note**: the server-side plugin intercepts the custom header `x-jazz-auth` sent by client-side plugin. If server is behind a proxy, the header must be forwarded. If the server runs on a different origin than the client, the header must be allowed for cross-origin requests.
+<Alert variant="warning" className="mt-4" title="Note">
+  The server-side plugin intercepts the custom header `x-jazz-auth` sent by client-side plugin. If server is behind a proxy, the header must be forwarded. If the server runs on a different origin than the client, the header must be allowed for cross-origin requests.
 </Alert>
 
 ### Client Setup
@@ -152,7 +153,7 @@ import { betterAuthClient } from "@/lib/auth-client";
 
 export function App() {
   return (
-    /* The other providers */
+    /* Other providers (e.g. your Jazz Provider) */
     <AuthProvider betterAuthClient={betterAuthClient}>
       {/* your app */}
     </AuthProvider>
@@ -165,7 +166,7 @@ export function App() {
 
 <ContentByFramework framework={["vanilla", "svelte"]}>
 
-Set JazzContext and AuthSecretStorage in the better auth client:
+Set JazzContext and AuthSecretStorage in the Better Auth client:
 
 <CodeGroup>
 ```ts
@@ -183,7 +184,7 @@ betterAuthClient.jazz.setAuthSecretStorage(authSecretStorage);
 
 The Jazz plugin intercepts the Better Auth client's calls, so you can use the Better Auth [methods](https://www.better-auth.com/docs/basic-usage) as usual.
 
-Here is how to signUp with email and password, and transform the Jazz's anonymous account into a logged in user:
+Here is how to sign up with email and password, and transform an anonymous Jazz account into a logged in user authenticated by Better Auth:
 
 <CodeGroup>
 ```ts
@@ -207,7 +208,7 @@ await betterAuthClient.signUp.email(
 ```
 </CodeGroup>
 
-And here is how to signIn with email and password and signOut:
+You can then use the `signIn` and `signOut` methods on the `betterAuthClient`:
 
 <CodeGroup>
 ```ts
@@ -224,14 +225,14 @@ await betterAuthClient.signOut();
 
 ## Authentication states
 
-Although Better Auth is not fully local-first, the Jazz's client plugin tries to keep the Jazz's authentication state in sync with Better Auth's. The best practice to check if the user is authenticated is using the Jazz's methods [described here](./authentication-states#detecting-authentication-state).
+Although Better Auth is not fully local-first, the Jazz client plugin tries to keep Jazz's authentication state in sync with Better Auth's. The best practice to check if the user is authenticated is using Jazz's methods [as described here](./authentication-states#detecting-authentication-state).
 
-If you want to check the Better Auth's state, you can use its [native methods](https://www.better-auth.com/docs/basic-usage#session).
+You can use Better Auth's [native methods](https://www.better-auth.com/docs/basic-usage#session) if you need to check the Better Auth state directly.
 
 
 ## Server-side hooks
 
-Better Auth provides [database hooks](https://www.better-auth.com/docs/reference/options#databasehooks) to run code when things happen. When using Jazz's plugin, the Jazz's AccountID is always available in the `user` object. This means you can access it in any part of Better Auth's hooks.
+Better Auth provides [database hooks](https://www.better-auth.com/docs/reference/options#databasehooks) to run code when things happen. When using the Jazz, the user's Jazz account ID is always available in the `user` object. This means you can access it anywhere in Better Auth hooks.
 
 <CodeGroup>
 ```ts
