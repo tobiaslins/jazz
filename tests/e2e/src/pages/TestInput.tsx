@@ -28,7 +28,7 @@ export function TestInput() {
       value={coMap?.title ?? ""}
       onChange={(e) => {
         if (!coMap) return;
-        coMap.title = e.target.value;
+        coMap.$jazz.set("title", e.target.value);
       }}
     />
   );

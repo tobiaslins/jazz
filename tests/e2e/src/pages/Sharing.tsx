@@ -107,7 +107,7 @@ function SharedCoMapWithChildren(props: {
       { value: "CoValue child " + nextLevel },
       { owner: group },
     );
-    coMap.child = child;
+    coMap.$jazz.set("child", child);
   };
 
   const extendParentGroup = async () => {

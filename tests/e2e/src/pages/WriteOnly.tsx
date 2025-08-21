@@ -98,7 +98,7 @@ function EditSharedCoMap(props: { id: ID<SharedCoMap> }) {
       <div>{coMap.value}</div>
       <input
         value={coMap.value}
-        onChange={(e) => (coMap.value = e.target.value)}
+        onChange={(e) => coMap.$jazz.set("value", e.target.value)}
       />
     </>
   );
