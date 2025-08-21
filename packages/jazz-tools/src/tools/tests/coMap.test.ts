@@ -1548,6 +1548,47 @@ describe("Creating and finding unique CoMaps", async () => {
     });
   });
 
+  test("upserting without an active account", async () => {
+    const account = activeAccountContext.get();
+
+    activeAccountContext.set(null);
+
+    // Schema
+    const Event = co.map({
+      title: z.string(),
+      identifier: z.string(),
+      external_id: z.string(),
+    });
+
+    // Data
+    const sourceData = {
+      title: "Test Event Title",
+      identifier: "test-event-identifier",
+      _id: "test-event-external-id",
+    };
+
+    // Upserting
+    const activeEvent = await Event.upsertUnique({
+      value: {
+        title: sourceData.title,
+        identifier: sourceData.identifier,
+        external_id: sourceData._id,
+      },
+      unique: sourceData.identifier,
+      owner: account,
+    });
+
+    expect(activeEvent).toEqual({
+      title: sourceData.title,
+      identifier: sourceData.identifier,
+      external_id: sourceData._id,
+    });
+
+    assert(activeEvent);
+
+    expect(activeEvent._owner).toEqual(account);
+  });
+
   test("upserting an existing value", async () => {
     // Schema
     const Event = co.map({
