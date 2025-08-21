@@ -2,4 +2,4 @@
 "jazz-tools": patch
 ---
 
-Accept { $onError: null } when as resolve query for co.list references
+Accept { $onError: null } as resolve query for co.list references
