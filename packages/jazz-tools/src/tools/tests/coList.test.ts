@@ -3,10 +3,15 @@ import { assert, beforeEach, describe, expect, test, vi } from "vitest";
 import { Account, Group, subscribeToCoValue, z } from "../index.js";
 import {
   Loaded,
+  activeAccountContext,
   co,
   coValueClassFromCoValueClassOrSchema,
 } from "../internal.js";
-import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
+import {
+  createJazzTestAccount,
+  runWithoutActiveAccount,
+  setupJazzTestSync,
+} from "../testing.js";
 import { setupTwoNodes, waitFor } from "./utils.js";
 
 const Crypto = await WasmCrypto.create();
@@ -1019,6 +1024,42 @@ describe("CoList subscription", async () => {
 
     expect(spy).toHaveBeenCalledTimes(2);
   });
+
+  test("loading a nested list with deep resolve and $onError", async () => {
+    const Dog = co.map({
+      name: z.string(),
+      breed: z.string(),
+    });
+
+    const Person = co.map({
+      name: z.string(),
+      age: z.number(),
+      dogs: co.list(Dog),
+    });
+
+    const person = Person.create(
+      {
+        name: "John",
+        age: 20,
+        dogs: Person.shape.dogs.create([
+          { name: "Rex", breed: "Labrador" },
+          { name: "Fido", breed: "Poodle" },
+        ]),
+      },
+      Group.create().makePublic(),
+    );
+
+    const bob = await createJazzTestAccount();
+
+    const loadedPerson = await Person.load(person.$jazz.id, {
+      resolve: { dogs: { $onError: null } },
+      loadAs: bob,
+    });
+
+    assert(loadedPerson);
+    expect(loadedPerson.name).toBe("John");
+    expect(loadedPerson.dogs).toBeNull();
+  });
 });
 
 describe("CoList unique methods", () => {
@@ -1062,6 +1103,29 @@ describe("CoList unique methods", () => {
     expect(result?.[0]).toBe("item1");
     expect(result?.[1]).toBe("item2");
     expect(result?.[2]).toBe("item3");
+  });
+
+  test("upsertUnique without an active account", async () => {
+    const account = activeAccountContext.get();
+    const ItemList = co.list(z.string());
+
+    const sourceData = ["item1", "item2", "item3"];
+
+    const result = await runWithoutActiveAccount(() => {
+      return ItemList.upsertUnique({
+        value: sourceData,
+        unique: "new-list",
+        owner: account,
+      });
+    });
+
+    expect(result).not.toBeNull();
+    expect(result?.length).toBe(3);
+    expect(result?.[0]).toBe("item1");
+    expect(result?.[1]).toBe("item2");
+    expect(result?.[2]).toBe("item3");
+
+    expect(result?.$jazz.owner).toEqual(account);
   });
 
   test("upsertUnique updates existing list", async () => {

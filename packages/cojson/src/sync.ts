@@ -511,28 +511,31 @@ export class SyncManager {
         (content) => content.newTransactions,
       );
 
-      for (const dependency of getDependedOnCoValuesFromRawData(
-        msg.id,
-        msg.header,
-        sessionIDs,
-        transactions,
-      )) {
-        const dependencyCoValue = this.local.getCoValue(dependency);
+      // If we'll be performing transaction verification, ensure all the dependencies available.
+      if (!this.skipVerify) {
+        for (const dependency of getDependedOnCoValuesFromRawData(
+          msg.id,
+          msg.header,
+          sessionIDs,
+          transactions,
+        )) {
+          const dependencyCoValue = this.local.getCoValue(dependency);
 
-        if (!dependencyCoValue.hasVerifiedContent()) {
-          coValue.markMissingDependency(dependency);
+          if (!dependencyCoValue.hasVerifiedContent()) {
+            coValue.markMissingDependency(dependency);
 
-          const peers = this.getServerPeers();
+            const peers = this.getServerPeers();
 
-          // if the peer that sent the content is a client, we add it to the list of peers
-          // to also ask them for the dependency
-          if (peer?.role === "client") {
-            peers.push(peer);
+            // if the peer that sent the content is a client, we add it to the list of peers
+            // to also ask them for the dependency
+            if (peer?.role === "client") {
+              peers.push(peer);
+            }
+
+            dependencyCoValue.load(peers);
+          } else if (!dependencyCoValue.isAvailable()) {
+            coValue.markMissingDependency(dependency);
           }
-
-          dependencyCoValue.load(peers);
-        } else if (!dependencyCoValue.isAvailable()) {
-          coValue.markMissingDependency(dependency);
         }
       }
 
@@ -592,51 +595,54 @@ export class SyncManager {
         continue;
       }
 
-      const accountId = accountOrAgentIDfromSessionID(sessionID);
+      // If we'll be performing transaction verification, ensure the account is available.
+      if (!this.skipVerify) {
+        const accountId = accountOrAgentIDfromSessionID(sessionID);
 
-      if (isAccountID(accountId)) {
-        const account = this.local.getCoValue(accountId);
+        if (isAccountID(accountId)) {
+          const account = this.local.getCoValue(accountId);
 
-        // We can't verify the transaction without the account, so we delay the session content handling until the account is available
-        if (!account.isAvailable()) {
-          // This covers the case where we are getting a new session on an already loaded coValue
-          // where we need to load the account to get their public key
-          if (!coValue.missingDependencies.has(accountId)) {
-            const peers = this.getServerPeers();
+          // We can't verify the transaction without the account, so we delay the session content handling until the account is available
+          if (!account.isAvailable()) {
+            // This covers the case where we are getting a new session on an already loaded coValue
+            // where we need to load the account to get their public key
+            if (!coValue.missingDependencies.has(accountId)) {
+              const peers = this.getServerPeers();
 
-            if (peer?.role === "client") {
-              // if the peer that sent the content is a client, we add it to the list of peers
-              // to also ask them for the dependency
-              peers.push(peer);
+              if (peer?.role === "client") {
+                // if the peer that sent the content is a client, we add it to the list of peers
+                // to also ask them for the dependency
+                peers.push(peer);
+              }
+
+              account.load(peers);
             }
 
-            account.load(peers);
-          }
-
-          // We need to wait for the account to be available before we can verify the transaction
-          // Currently doing this by delaying the handleNewContent for the session to when we have the account
-          //
-          // This is not the best solution, because the knownState is not updated and the ACK response will be given
-          // by excluding the session.
-          // This is good enough implementation for now because the only case for the account to be missing are out-of-order
-          // dependencies push, so the gap should be short lived.
-          //
-          // When we are going to have sharded-peers we should revisit this, and store unverified sessions that are considered as part of the
-          // knwonState, but not actively used until they can be verified.
-          void account.waitForAvailable().then(() => {
-            this.handleNewContent(
-              {
-                action: "content",
-                id: coValue.id,
-                new: {
-                  [sessionID]: newContentForSession,
+            // We need to wait for the account to be available before we can verify the transaction
+            // Currently doing this by delaying the handleNewContent for the session to when we have the account
+            //
+            // This is not the best solution, because the knownState is not updated and the ACK response will be given
+            // by excluding the session.
+            // This is good enough implementation for now because the only case for the account to be missing are out-of-order
+            // dependencies push, so the gap should be short lived.
+            //
+            // When we are going to have sharded-peers we should revisit this, and store unverified sessions that are considered as part of the
+            // knwonState, but not actively used until they can be verified.
+            void account.waitForAvailable().then(() => {
+              this.handleNewContent(
+                {
+                  action: "content",
+                  id: coValue.id,
+                  new: {
+                    [sessionID]: newContentForSession,
+                  },
+                  priority: msg.priority,
                 },
-                priority: msg.priority,
-              },
-              from,
-            );
-          });
-          continue;
+                from,
+              );
+            });
+            continue;
+          }
         }
       }
 

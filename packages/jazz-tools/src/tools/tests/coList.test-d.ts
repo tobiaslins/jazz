@@ -1,7 +1,7 @@
 import { assert, describe, expectTypeOf, test } from "vitest";
 import { Group, co, z } from "../exports.js";
 import { Account } from "../index.js";
-import { Loaded } from "../internal.js";
+import { CoList, CoMap, Loaded } from "../internal.js";
 
 describe("CoList", () => {
   describe("init", () => {
@@ -269,6 +269,52 @@ describe("CoList", () => {
       const firstDog = firstList[0];
       assert(firstDog);
       expectTypeOf(firstDog.name).toEqualTypeOf<string>();
+    });
+
+    test("loading a nested list with deep resolve and $onError", async () => {
+      const Dog = co.map({
+        name: z.string(),
+        breed: z.string(),
+      });
+
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+        dogs: co.list(Dog),
+      });
+
+      const person = Person.create({
+        name: "John",
+        age: 20,
+        dogs: [
+          { name: "Rex", breed: "Labrador" },
+          { name: "Fido", breed: "Poodle" },
+        ],
+      });
+
+      const loadedPerson = await Person.load(person.$jazz.id, {
+        resolve: { dogs: { $onError: null } },
+      });
+
+      type ExpectedType =
+        | ({
+            name: string;
+            age: number;
+            dogs: CoList<
+              | ({
+                  name: string;
+                  breed: string;
+                } & CoMap)
+              | null
+            > | null;
+          } & CoMap)
+        | null;
+
+      function matches(value: ExpectedType) {
+        return value;
+      }
+
+      matches(loadedPerson);
     });
   });
 });

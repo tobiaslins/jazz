@@ -383,7 +383,11 @@ export class CoList<out Item = any>
       resolve?: RefsToResolveStrict<L, R>;
     },
   ): Promise<Resolved<L, R> | null> {
-    let listId = CoList._findUnique(options.unique, options.owner.$jazz.id);
+    const listId = CoList._findUnique(
+      options.unique,
+      options.owner.$jazz.id,
+      options.owner.$jazz.loadedAs,
+    );
     let list: Resolved<L, R> | null = await loadCoValueWithoutMe(this, listId, {
       ...options,
       loadAs: options.owner.$jazz.loadedAs,
