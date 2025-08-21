@@ -10,11 +10,7 @@ import {
 } from "cojson";
 import {
   AnonymousJazzAgent,
-  CoFeed,
   CoFieldInit,
-  CoList,
-  CoPlainText,
-  CoRichText,
   CoValue,
   CoValueClass,
   Group,
@@ -993,9 +989,12 @@ const CoMapProxyHandler: ProxyHandler<CoMap> = {
     }
   },
   has(target, key) {
-    const descriptor = target.$jazz.getDescriptor(key as string);
+    // The `has` trap can be called when defining properties during CoMap creation
+    // when using the class-based syntax. In that case, $jazz may not yet be initialized,
+    // as it's defined afterwards in the create method.
+    const descriptor = target.$jazz?.getDescriptor(key as string);
 
-    if (target.$jazz.raw && typeof key === "string" && descriptor) {
+    if (target.$jazz?.raw && typeof key === "string" && descriptor) {
       return target.$jazz.raw.get(key) !== undefined;
     } else {
       return Reflect.has(target, key);
