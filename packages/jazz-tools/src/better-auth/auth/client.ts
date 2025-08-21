@@ -5,7 +5,7 @@ import type {
   Account,
   JazzContextType,
 } from "jazz-tools";
-import { jazzPlugin } from "./server.js";
+import type { jazzPlugin } from "./server.js";
 
 /**
  * @example
@@ -117,7 +117,7 @@ export const jazzPluginClient = () => {
               if (context.data === null) {
                 if (authSecretStorage.isAuthenticated === true) {
                   console.warn(
-                    "Jazz is not authenticated, but the session is null",
+                    "Jazz is authenticated, but the session is null",
                   );
                 }
                 return;
