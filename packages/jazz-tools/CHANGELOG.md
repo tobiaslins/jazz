@@ -1,5 +1,18 @@
 # jazz-tools
 
+## 0.17.11
+
+### Patch Changes
+
+- 8f3852b: Accept { $onError: null } as resolve query for co.list references
+- bb9d837: Explicit loadAs in CoList.upsertUnique to use it without loaded context
+- Updated dependencies [68b2f37]
+- Updated dependencies [257ded3]
+- Updated dependencies [e301ad6]
+  - cojson@0.17.11
+  - cojson-storage-indexeddb@0.17.11
+  - cojson-transport-ws@0.17.11
+
 ## 0.17.10
 
 ### Patch Changes

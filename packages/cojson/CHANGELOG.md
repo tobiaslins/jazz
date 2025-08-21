@@ -1,5 +1,16 @@
 # cojson
 
+## 0.17.11
+
+### Patch Changes
+
+- 68b2f37: Only request covalue dependencies when transaction verification is enabled
+- 257ded3: Fix admin permission downgrade to writeOnly
+  - Allow admin to self-downgrade to writeOnly
+  - Prevent admin from downgrading other admins to writeOnly
+- e301ad6: Skip agent resolution when skipVerify is true
+  - cojson-core-wasm@0.17.11
+
 ## 0.17.10
 
 ### Patch Changes
