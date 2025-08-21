@@ -1,4 +1,4 @@
-import { expect, test } from "vitest";
+import { describe, expect, test } from "vitest";
 import { expectAccount } from "../coValues/account.js";
 import { WasmCrypto } from "../crypto/WasmCrypto.js";
 import { LocalNode } from "../localNode.js";
@@ -149,16 +149,36 @@ test("myRole returns 'admin' for the current account", async () => {
   expect(account.myRole()).toEqual("admin");
 });
 
-test("roleOf returns 'admin' when the accountID is the same as the receiver account", async () => {
-  const { node, accountID } = await LocalNode.withNewlyCreatedAccount({
-    creationProps: { name: "Hermes Puggington" },
-    crypto: Crypto,
+describe("roleOf", () => {
+  test("returns 'admin' when the accountID is the same as the receiver account", async () => {
+    const { node, accountID } = await LocalNode.withNewlyCreatedAccount({
+      creationProps: { name: "Hermes Puggington" },
+      crypto: Crypto,
+    });
+
+    const account = await node.load(accountID);
+    if (account === "unavailable") throw new Error("Account unavailable");
+
+    expect(account.roleOf(accountID)).toEqual("admin");
   });
 
-  const account = await node.load(accountID);
-  if (account === "unavailable") throw new Error("Account unavailable");
+  test("returns undefined when the accountID is not the same as the receiver account", async () => {
+    const { node, accountID } = await LocalNode.withNewlyCreatedAccount({
+      creationProps: { name: "Hermes Puggington" },
+      crypto: Crypto,
+    });
 
-  expect(account.roleOf(accountID)).toEqual("admin");
+    const { accountID: anotherAccountID } =
+      await LocalNode.withNewlyCreatedAccount({
+        creationProps: { name: "Hermes Puggington" },
+        crypto: Crypto,
+      });
+
+    const account = await node.load(accountID);
+    if (account === "unavailable") throw new Error("Account unavailable");
+
+    expect(account.roleOf(anotherAccountID)).not.toBeDefined();
+  });
 });
 
 test("throws an error if the user tried to add a member to an account", async () => {

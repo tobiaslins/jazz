@@ -71,10 +71,7 @@ export class RawAccount<
   override roleOfInternal(
     accountID: RawAccountID | AgentID | typeof EVERYONE,
   ): Role | undefined {
-    if (accountID === this.id) {
-      return "admin";
-    }
-    return super.roleOfInternal(accountID);
+    return accountID === this.id ? "admin" : undefined;
   }
 
   override addMember(
