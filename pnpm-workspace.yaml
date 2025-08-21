@@ -35,3 +35,8 @@ catalogs:
   expo:
     "expo": "54.0.0-preview.4"
     "react": "19.1.0"
+  svelte:
+    "@sveltejs/kit": "^2.36.1"
+    "@sveltejs/vite-plugin-svelte": "^5.1.1"
+    "svelte": "5.38.2"
+    "svelte-check": "4.3.1"
