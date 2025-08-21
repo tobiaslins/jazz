@@ -123,7 +123,7 @@ export function useAccount<
 
   const me = useCoState(
     AccountSchema as any,
-    contextMe.$jazz.id,
+    toRaw(contextMe).$jazz.id,
     options as any,
   );
 
