@@ -37,7 +37,7 @@ export type RefsToResolve<
           V extends Array<infer Item>
           ?
               | {
-                  $each: RefsToResolve<
+                  $each?: RefsToResolve<
                     NotNull<Item>,
                     DepthLimit,
                     [0, ...CurrentDepth]

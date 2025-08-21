@@ -866,6 +866,42 @@ describe("CoList subscription", async () => {
 
     expect(spy).toHaveBeenCalledTimes(2);
   });
+
+  test("loading a nested list with deep resolve and $onError", async () => {
+    const Dog = co.map({
+      name: z.string(),
+      breed: z.string(),
+    });
+
+    const Person = co.map({
+      name: z.string(),
+      age: z.number(),
+      dogs: co.list(Dog),
+    });
+
+    const person = Person.create(
+      {
+        name: "John",
+        age: 20,
+        dogs: Person.shape.dogs.create([
+          { name: "Rex", breed: "Labrador" },
+          { name: "Fido", breed: "Poodle" },
+        ]),
+      },
+      Group.create().makePublic(),
+    );
+
+    const bob = await createJazzTestAccount();
+
+    const loadedPerson = await Person.load(person.id, {
+      resolve: { dogs: { $onError: null } },
+      loadAs: bob,
+    });
+
+    assert(loadedPerson);
+    expect(loadedPerson.name).toBe("John");
+    expect(loadedPerson.dogs).toBeNull();
+  });
 });
 
 describe("CoList unique methods", () => {
