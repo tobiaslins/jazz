@@ -1043,7 +1043,7 @@ describe("loading coValues from server", () => {
     });
     const account = client.expectCurrentAccount(accountID);
 
-    // Prepare a group and a map
+    // Prepare a group -- this will be a non-account dependency of a forthcoming map.
     const group = client.createGroup();
     group.addMember("everyone", "writer");
 
@@ -1058,7 +1058,7 @@ describe("loading coValues from server", () => {
     });
 
     // Disable reconciliation while we setup syncing because we don't want the
-    // server to know about our map's dependencies (group + account).
+    // server to know about our forthcoming map's dependencies (group + account).
     const blocker = blockMessageTypeOnOutgoingPeer(peer, "load", {});
     client.syncManager.addPeer(peer);
     blocker.unblock();
