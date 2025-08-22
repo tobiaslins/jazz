@@ -197,8 +197,7 @@ describe("End-to-End CLI Tests", () => {
           react: "19.1.0",
         },
         expo: {
-          "react-native": "0.81.0",
-          expo: "54.0.0-canary-20250701-6a945c5",
+          expo: "54.0.0-preview.4",
           "expo-crypto": "~14.1.5",
         },
       });
@@ -214,9 +213,7 @@ describe("End-to-End CLI Tests", () => {
       const workspaceConfig = YAML.parse(workspaceContent);
 
       expect(workspaceConfig.catalogs.rn["react-native"]).toBe("0.80.0");
-      expect(workspaceConfig.catalogs.expo.expo).toBe(
-        "54.0.0-canary-20250701-6a945c5",
-      );
+      expect(workspaceConfig.catalogs.expo.expo).toBe("54.0.0-preview.4");
       expect(workspaceConfig.catalogs.expo["expo-crypto"]).toBe("~14.1.5");
     });
 
