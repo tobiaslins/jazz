@@ -17,38 +17,112 @@ It will generate an app with an API key for you.
 
 ![Jazz Cloud screenshot with API key generated](/jazz-cloud-api-key.png)
 
-In your `JazzProvider`, replace the API key in the sync server URL with your API key.
+<ContentByFramework framework={["vanilla"]}>
 
-<ContentByFramework framework={["vue", "svelte", "react-native", "react-native-expo", "vanilla"]}>
-<CodeGroup>
-```
-wss://cloud.jazz.tools/?key=YOUR_API_KEY
-```
-</CodeGroup>
+  Rreplace the API key in the sync server URL with your API key.
+  <CodeGroup>
+  ```
+  wss://cloud.jazz.tools/?key=YOUR_API_KEY
+  ```
+  </CodeGroup>
+</ContentByFramework>
+
+<ContentByFramework framework={["react", "react-native", "react-native-expo", "svelte"]}>
+  Replace the API key in the Jazz provider sync server URL with your API key:
 </ContentByFramework>
 
 <ContentByFramework framework="react">
-<CodeGroup>
-```tsx twoslash
-import * as React from "react";
-import { JazzReactProvider } from "jazz-tools/react";
-// ---cut---
-const apiKey = "Replace with API key from dashboard.jazz.tools";
+  <CodeGroup>
+  ```tsx twoslash
+  import * as React from "react";
+  import { JazzReactProvider } from "jazz-tools/react";
+  const apiKey = "Replace with API key from dashboard.jazz.tools";
+  
+  // ---cut---
+  export function MyApp({ children }: { children: React.ReactNode }) {
+    return (
+      <JazzReactProvider
+        sync={{
+          peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
+          // ...
+        }}
+      >
+        {children}
+      </JazzReactProvider>
+    );
+  }
+  ```
+  </CodeGroup>
+</ContentByFramework>
 
-export function MyApp({ children }: { children: React.ReactNode }) {
-  return (
-    <JazzReactProvider
-      sync={{
-        peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
-        // ...
-      }}
-    >
-      {children}
-    </JazzReactProvider>
-  );
-}
-```
-</CodeGroup>
+<ContentByFramework framework="react-native">
+  <CodeGroup>
+  ```tsx twoslash
+  import * as React from "react";
+  import { JazzReactNativeProvider } from "jazz-tools/react-native";
+  const apiKey = "Replace with API key from dashboard.jazz.tools";
+  
+  // ---cut---
+  export function MyApp({ children }: { children: React.ReactNode }) {
+    return (
+      <JazzReactNativeProvider
+        sync={{
+          peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
+          // ...
+        }}
+      >
+        {children}
+      </JazzReactNativeProvider>
+    );
+  }
+  ```
+  </CodeGroup>
+</ContentByFramework>
+
+<ContentByFramework framework="react-native-expo">
+  <CodeGroup>
+  ```tsx twoslash
+  import * as React from "react";
+  import { JazzExpoProvider } from "jazz-tools/expo";
+  const apiKey = "Replace with API key from dashboard.jazz.tools";
+  
+  // ---cut---
+  export function MyApp({ children }: { children: React.ReactNode }) {
+    return (
+      <JazzExpoProvider
+        sync={{
+          peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
+          // ...
+        }}
+      >
+        {children}
+      </JazzExpoProvider>
+    );
+  }
+  ```
+  </CodeGroup>
+</ContentByFramework>
+
+<ContentByFramework framework="svelte">
+  <CodeGroup>
+  ```svelte twoslash
+  <script lang="ts">
+    import { JazzSvelteProvider } from "jazz-tools/svelte";
+    import { MyAppAccount } from "$lib/schema";
+    let { children } = $props();
+    let apiKey = "Replace with API key from dashboard.jazz.tools";
+  </script>
+
+  <JazzSvelteProvider
+    sync={{ 
+      peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
+    }}
+    AccountSchema={MyAppAccount}
+  >
+    {@render children()}
+  </JazzSvelteProvider>
+  ```
+  </CodeGroup>
 </ContentByFramework>
 
 Jazz Cloud will
