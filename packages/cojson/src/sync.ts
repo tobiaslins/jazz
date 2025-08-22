@@ -170,8 +170,13 @@ export class SyncManager {
     this.skipVerify = true;
   }
 
-  peersInPriorityOrder(): PeerState[] {
-    return Object.values(this.peers).sort((a, b) => {
+  peersInPriorityOrder(id: RawCoID): PeerState[] {
+    const clientPeers = Object.values(this.peers).filter(
+      (peer) => peer.role === "client",
+    );
+    const serverPeers = this.getServerPeers(id);
+
+    return [...serverPeers, ...clientPeers].sort((a, b) => {
       const aPriority = a.priority || 0;
       const bPriority = b.priority || 0;
 
@@ -760,7 +765,7 @@ export class SyncManager {
       this.storeContent(contentToStore);
     }
 
-    for (const peer of this.peersInPriorityOrder()) {
+    for (const peer of this.peersInPriorityOrder(coValue.id)) {
       /**
        * We sync the content against the source peer if it is a client or server peers
        * to upload any content that is available on the current node and not on the source peer.
@@ -818,7 +823,7 @@ export class SyncManager {
 
     const contentKnownState = knownStateFromContent(content);
 
-    for (const peer of this.peersInPriorityOrder()) {
+    for (const peer of this.peersInPriorityOrder(coValue.id)) {
       if (peer.closed) continue;
       if (coValue.isErroredInPeer(peer.id)) continue;
 
