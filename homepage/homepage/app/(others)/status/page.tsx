@@ -233,6 +233,9 @@ export default async function Page() {
             <th scope="col" className="px-3 py-3.5">
               Status
             </th>
+            <th scope="col" className="px-3 py-3.5">
+              Uptime
+            </th>
             <th>
               <span className="sr-only">Location</span>
             </th>
@@ -250,7 +253,7 @@ export default async function Page() {
               <Fragment key={region}>
                 <tr>
                   <th
-                    colSpan={5}
+                    colSpan={6}
                     className="py-2 px-3 text-sm font-semibold text-right"
                   >
                     {region}
@@ -285,10 +288,12 @@ export default async function Page() {
                           <div className="size-1.5 rounded-full bg-current" />
                         </div>
                         {row.up ? "Up" : "Down"}
-                        <span className="text-xs text-gray-500">
-                          {formatUptime(row.upRatio)}
-                        </span>
                       </div>
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-2 text-sm">
+                      <span className="text-xs text-gray-500">
+                        {formatUptime(row.upRatio)}
+                      </span>
                     </td>
                     <td className="whitespace-nowrap px-3 py-2 text-sm">
                       {label}
