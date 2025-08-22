@@ -25,6 +25,11 @@ export const docNavigationItems = [
         excludeFromNavigation: true,
       },
       { name: "FAQs", href: "/docs/faq", done: 100 },
+      {
+        name: "Troubleshooting",
+        href: "/docs/troubleshooting",
+        done: 100,
+      },
     ],
   },
   {
@@ -46,11 +51,6 @@ export const docNavigationItems = [
         name: "Sync and storage",
         href: "/docs/sync-and-storage",
         done: 100,
-      },
-      {
-        name: "Node.JS / server workers",
-        href: "/docs/project-setup/server-side",
-        done: 80,
       },
       {
         name: "Providers",
@@ -85,10 +85,50 @@ export const docNavigationItems = [
     ],
   },
   {
+    name: "Server-side",
+    items: [
+      {
+        name: "Setup",
+        href: "/docs/server-side/setup",
+        done: 100,
+      },
+      {
+        name: "Communicating with workers",
+        href: "/docs/server-side/communicating-with-workers",
+        done: 100,
+      },
+      {
+        name: "HTTP requests",
+        href: "/docs/server-side/http-requests",
+        done: 100,
+      },
+      {
+        name: "Inbox",
+        href: "/docs/server-side/inbox",
+        done: 100,
+      },
+    ],
+  },
+  {
     name: "Upgrade guides",
     // collapse: true,
     prefix: "/docs/upgrade",
     items: [
+      {
+        name: "0.17.0 - New image APIs",
+        href: "/docs/upgrade/0-17-0",
+        done: 100,
+      },
+      {
+        name: "0.16.0 - Cleaner separation between Zod and CoValue schemas",
+        href: "/docs/upgrade/0-16-0",
+        done: 100,
+      },
+      {
+        name: "0.15.0 - Everything inside `jazz-tools`",
+        href: "/docs/upgrade/0-15-0",
+        done: 100,
+      },
       {
         name: "0.14.0 - Zod-based schemas",
         href: "/docs/upgrade/0-14-0",
@@ -200,7 +240,13 @@ export const docNavigationItems = [
           "react-native": 100,
           "react-native-expo": 100,
           vanilla: 100,
+          svelte: 100,
         },
+      },
+      {
+        name: "Connecting CoValues",
+        href: "/docs/using-covalues/connecting-covalues",
+        done: 100,
       },
       {
         name: "SchemaUnions",
@@ -213,9 +259,9 @@ export const docNavigationItems = [
         done: 80,
       },
       {
-        name: "History & time travel",
+        name: "History",
         href: "/docs/using-covalues/history",
-        done: 0,
+        done: 100,
       },
     ],
   },
@@ -233,7 +279,7 @@ export const docNavigationItems = [
         done: 10,
       },
       {
-        name: "Group inheritance",
+        name: "Groups as members",
         href: "/docs/groups/inheritance",
         done: 100,
       },
@@ -296,11 +342,21 @@ export const docNavigationItems = [
         href: "/docs/design-patterns/organization",
         done: 80,
       },
+      {
+        name: "History Patterns",
+        href: "/docs/design-patterns/history-patterns",
+        done: 100,
+      },
     ],
   },
   {
     name: "Resources",
     items: [
+      {
+        name: "Encryption",
+        href: "/docs/resources/encryption",
+        done: 100,
+      },
       {
         name: "Jazz under the hood",
         href: "/docs/jazz-under-the-hood",

@@ -8,15 +8,18 @@
     "test:watch": "vitest --watch"
   },
   "devDependencies": {
-    "typescript": "catalog:"
+    "typescript": "catalog:default"
   },
   "dependencies": {
     "cojson": "workspace:*",
-    "cojson-transport-ws": "workspace:*",
     "cojson-storage-indexeddb": "workspace:*",
     "cojson-storage-sqlite": "workspace:*",
-    "jazz-browser": "workspace:*",
-    "jazz-browser-media-images": "workspace:*",
-    "jazz-tools": "workspace:*"
+    "cojson-transport-ws": "workspace:*",
+    "jazz-tools": "workspace:*",
+    "react": "catalog:react",
+    "react-dom": "catalog:react",
+    "@vitejs/plugin-react-swc": "^3.10.1",
+    "@testing-library/react": "16.2.0",
+    "@testing-library/jest-dom": "6.6.3"
   }
 }

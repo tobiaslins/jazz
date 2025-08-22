@@ -87,7 +87,7 @@ Jazz provides a `useCoState` hook that provides a convenient way to subscribe to
 <CodeGroup>
 ```tsx twoslash
 import React from "react";
-import { co, z, ID, Loaded } from "jazz-tools";
+import { co, z } from "jazz-tools";
 
 const Task = co.map({
   title: z.string(),
@@ -98,7 +98,7 @@ const Project = co.map({
   tasks: co.list(Task),
 });
 // ---cut-before---
-import { useCoState } from "jazz-react";
+import { useCoState } from "jazz-tools/react";
 
 function GardenPlanner({ projectId }: { projectId: string }) {
   // Subscribe to a project and its tasks
@@ -122,7 +122,7 @@ function GardenPlanner({ projectId }: { projectId: string }) {
   );
 }
 
-function TaskList({ tasks }: { tasks: Loaded<typeof Task>[] }) {
+function TaskList({ tasks }: { tasks: co.loaded<typeof Task>[] }) {
   return (
     <ul>
       {tasks.map((task) => (
@@ -169,7 +169,7 @@ const MyAppAccount = co.account({
 });
 
 // ---cut-before---
-import { useAccount } from "jazz-react";
+import { useAccount } from "jazz-tools/react";
 
 function ProjectList() {
   const { me } = useAccount(MyAppAccount, {
@@ -220,14 +220,14 @@ This allows you to handle loading, error, and success states in your application
 
 <CodeGroup>
 ```ts twoslash
-import { co, z, Loaded } from "jazz-tools";
+import { co, z } from "jazz-tools";
 const Task = co.map({
   title: z.string(),
 });
 
 const taskId = "co_123";
 // ---cut-before---
-Task.subscribe(taskId, {}, (task: Loaded<typeof Task>) => {
+Task.subscribe(taskId, {}, (task: co.loaded<typeof Task>) => {
   if (task === undefined) {
     console.log("Task is loading...");
   } else if (task === null) {
@@ -249,7 +249,7 @@ Resolve queries let you declare exactly which references to load and how deep to
 
 <CodeGroup>
 ```ts twoslash
-import { co, z, CoListSchema } from "jazz-tools";
+import { co, z } from "jazz-tools";
 const projectId = "co_123";
 
 // ---cut-before---
@@ -259,8 +259,8 @@ const TeamMember = co.map({
 
 const Task = co.map({
   title: z.string(),
-  assignee: z.optional(TeamMember),
-  get subtasks(): CoListSchema<typeof Task> { return co.list(Task) },
+  assignee: co.optional(TeamMember),
+  get subtasks(): co.List<typeof Task> { return co.list(Task) },
 });
 
 const Project = co.map({
@@ -349,7 +349,7 @@ When a user tries to load a reference they don't have access to:
 
 <CodeGroup>
 ```ts twoslash
-import { co, z, CoListSchema } from "jazz-tools";
+import { co, z } from "jazz-tools";
 
 const TeamMember = co.map({
   name: z.string(),
@@ -357,8 +357,8 @@ const TeamMember = co.map({
 
 const Task = co.map({
   title: z.string(),
-  assignee: z.optional(TeamMember),
-  get subtasks(): CoListSchema<typeof Task> { return co.list(Task) },
+  assignee: co.optional(TeamMember),
+  get subtasks(): co.List<typeof Task> { return co.list(Task) },
 });
 
 const Project = co.map({
@@ -388,7 +388,7 @@ When a list contains references to items the user can't access:
 
 <CodeGroup>
 ```ts twoslash
-import { co, z, CoListSchema } from "jazz-tools";
+import { co, z } from "jazz-tools";
 
 const TeamMember = co.map({
   name: z.string(),
@@ -396,8 +396,8 @@ const TeamMember = co.map({
 
 const Task = co.map({
   title: z.string(),
-  assignee: z.optional(TeamMember),
-  get subtasks(): CoListSchema<typeof Task> { return co.list(Task) },
+  assignee: co.optional(TeamMember),
+  get subtasks(): co.List<typeof Task> { return co.list(Task) },
 });
 
 const Project = co.map({
@@ -424,7 +424,7 @@ When trying to load an object with an inaccessible reference without directly re
 
 <CodeGroup>
 ```ts twoslash
-import { co, z, CoListSchema } from "jazz-tools";
+import { co, z } from "jazz-tools";
 
 const TeamMember = co.map({
   name: z.string(),
@@ -432,8 +432,8 @@ const TeamMember = co.map({
 
 const Task = co.map({
   title: z.string(),
-  assignee: z.optional(TeamMember),
-  get subtasks(): CoListSchema<typeof Task> { return co.list(Task) },
+  assignee: co.optional(TeamMember),
+  get subtasks(): co.List<typeof Task> { return co.list(Task) },
 });
 
 const Project = co.map({
@@ -468,7 +468,7 @@ This way the inaccessible items are replaced with `null` in the returned list.
 
 <CodeGroup>
 ```ts twoslash
-import { co, z, CoListSchema, Group } from "jazz-tools";
+import { co, z, Group } from "jazz-tools";
 import { createJazzTestAccount } from "jazz-tools/testing";
 
 const me = await createJazzTestAccount();
@@ -644,16 +644,16 @@ console.log(friends?.[0]?.dog); // => null
 ```
 </CodeGroup>
 
-## Type Safety with Loaded Type
+## Type Safety with `co.loaded` Type
 
-Jazz provides the `Loaded` type to help you define and enforce the structure of deeply loaded data in your application. This makes it easier to ensure that components receive the data they expect with proper TypeScript validation.
+Jazz provides the `co.loaded` type to help you define and enforce the structure of deeply loaded data in your application. This makes it easier to ensure that components receive the data they expect with proper TypeScript validation.
 
-The `Loaded` type is especially useful when passing data between components, as it guarantees that all necessary nested data has been loaded:
+The `co.loaded` type is especially useful when passing data between components, as it guarantees that all necessary nested data has been loaded:
 
 <ContentByFramework framework="react">
 <CodeGroup>
 ```tsx twoslash
-import { CoListSchema, Loaded, co, z } from "jazz-tools";
+import { co, z } from "jazz-tools";
 import React from "react";
 
 const TeamMember = co.map({
@@ -662,8 +662,8 @@ const TeamMember = co.map({
 
 const Task = co.map({
   title: z.string(),
-  assignee: z.optional(TeamMember),
-  get subtasks(): CoListSchema<typeof Task> {
+  assignee: co.optional(TeamMember),
+  get subtasks(): co.List<typeof Task> {
     return co.list(Task);
   },
 });
@@ -676,7 +676,7 @@ const Project = co.map({
 
 // ---cut-before---
 // Define a type that includes loaded nested data
-type ProjectWithTasks = Loaded<
+type ProjectWithTasks = co.loaded<
   typeof Project,
   {
     tasks: { $each: true };
@@ -696,7 +696,7 @@ function TaskList({ project }: { project: ProjectWithTasks }) {
 }
 
 // For more complex resolutions
-type FullyLoadedProject = Loaded<
+type FullyLoadedProject = co.loaded<
   typeof Project,
   {
     tasks: {
@@ -727,7 +727,7 @@ function processProject(project: FullyLoadedProject) {
 <ContentByFramework framework="vanilla">
 <CodeGroup>
 ```ts twoslash
-import { CoListSchema, Loaded, co, z } from "jazz-tools";
+import { co, z } from "jazz-tools";
 
 const TeamMember = co.map({
   name: z.string(),
@@ -735,8 +735,8 @@ const TeamMember = co.map({
 
 const Task = co.map({
   title: z.string(),
-  assignee: z.optional(TeamMember),
-  get subtasks(): CoListSchema<typeof Task> {
+  assignee: co.optional(TeamMember),
+  get subtasks(): co.List<typeof Task> {
     return co.list(Task);
   },
 });
@@ -749,7 +749,7 @@ const Project = co.map({
 
 // ---cut-before---
 // Define a type that includes loaded nested data
-type ProjectWithTasks = Loaded<
+type ProjectWithTasks = co.loaded<
   typeof Project,
   {
     tasks: { $each: true };
@@ -763,7 +763,7 @@ async function taskList({ project }: { project: ProjectWithTasks }) {
 }
 
 // For more complex resolutions
-type FullyLoadedProject = Loaded<
+type FullyLoadedProject = co.loaded<
   typeof Project,
   {
     tasks: {
@@ -791,7 +791,7 @@ function processProject(project: FullyLoadedProject) {
 </CodeGroup>
 </ContentByFramework>
 
-Using the `Loaded` type helps catch errors at compile time rather than runtime, ensuring that your components and functions receive data with the proper resolution depth. This is especially useful for larger applications where data is passed between many components.
+Using the `co.loaded` type helps catch errors at compile time rather than runtime, ensuring that your components and functions receive data with the proper resolution depth. This is especially useful for larger applications where data is passed between many components.
 
 ## Ensuring Data is Loaded
 
@@ -799,7 +799,7 @@ Sometimes you need to make sure data is loaded before proceeding with an operati
 
 <CodeGroup>
 ```ts twoslash
-import { CoListSchema, Loaded, co, z } from "jazz-tools";
+import { co, z } from "jazz-tools";
 
 const TeamMember = co.map({
   name: z.string(),
@@ -809,7 +809,7 @@ const Task = co.map({
   title: z.string(),
   status: z.literal(["todo", "in-progress", "completed"]),
   assignee: z.string().optional(),
-  get subtasks(): CoListSchema<typeof Task> {
+  get subtasks(): co.List<typeof Task> {
     return co.list(Task);
   },
 });
@@ -851,4 +851,4 @@ async function completeAllTasks(projectId: string) {
 2. **Use framework integrations**: They handle subscription lifecycle automatically
 3. **Clean up subscriptions**: Always store and call the unsubscribe function when you're done
 4. **Handle all loading states**: Check for undefined (loading), null (not found), and success states
-5. **Use the Loaded type**: Add compile-time type safety for components that require specific resolution patterns
+5. **Use the `co.loaded` type**: Add compile-time type safety for components that require specific resolution patterns

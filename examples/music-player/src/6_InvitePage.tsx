@@ -1,4 +1,4 @@
-import { useAcceptInvite, useIsAuthenticated } from "jazz-react";
+import { useAcceptInvite, useIsAuthenticated } from "jazz-tools/react";
 import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { MusicaAccount, Playlist } from "./1_schema";

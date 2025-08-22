@@ -1,17 +1,16 @@
 {
   "name": "jazz-betterauth-server-plugin",
-  "version": "0.14.2",
+  "version": "0.17.11",
   "type": "module",
   "main": "dist/index.js",
   "types": "src/index.ts",
   "license": "MIT",
   "dependencies": {
     "cojson": "workspace:*",
-    "jazz-browser": "workspace:*",
     "jazz-tools": "workspace:*",
     "better-auth": "^1.2.4",
     "better-sqlite3": "^11.9.1",
-    "zod": "3.25.0-beta.20250518T002810"
+    "zod": "3.25.76"
   },
   "scripts": {
     "format-and-lint": "biome check .",

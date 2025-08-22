@@ -1,36 +1,78 @@
-import type { LocalNode, SyncMessage } from "cojson";
-import { StorageManagerAsync } from "cojson-storage";
+import type { RawCoID, SyncMessage } from "cojson";
+import { StorageApiAsync } from "cojson";
 import { onTestFinished } from "vitest";
 
-export function trackMessages(node: LocalNode) {
+export function trackMessages() {
   const messages: {
     from: "client" | "server" | "storage";
     msg: SyncMessage;
   }[] = [];
 
-  const originalHandleSyncMessage =
-    StorageManagerAsync.prototype.handleSyncMessage;
-  const originalNodeSyncMessage = node.syncManager.handleSyncMessage;
+  const originalLoad = StorageApiAsync.prototype.load;
+  const originalStore = StorageApiAsync.prototype.store;
 
-  StorageManagerAsync.prototype.handleSyncMessage = async function (msg) {
+  StorageApiAsync.prototype.load = async function (id, callback, done) {
     messages.push({
       from: "client",
-      msg,
+      msg: {
+        action: "load",
+        id: id as RawCoID,
+        header: false,
+        sessions: {},
+      },
     });
-    return originalHandleSyncMessage.call(this, msg);
+    return originalLoad.call(
+      this,
+      id,
+      (msg) => {
+        messages.push({
+          from: "storage",
+          msg,
+        });
+        callback(msg);
+      },
+      done,
+    );
   };
 
-  node.syncManager.handleSyncMessage = async function (msg, peer) {
+  StorageApiAsync.prototype.store = async function (data, correctionCallback) {
     messages.push({
-      from: "storage",
-      msg,
+      from: "client",
+      msg: data,
     });
-    return originalNodeSyncMessage.call(this, msg, peer);
+
+    return originalStore.call(this, data, (msg) => {
+      messages.push({
+        from: "storage",
+        msg: {
+          action: "known",
+          isCorrection: true,
+          ...msg,
+        },
+      });
+      const correctionMessages = correctionCallback(msg);
+
+      if (correctionMessages) {
+        for (const msg of correctionMessages) {
+          messages.push({
+            from: "client",
+            msg,
+          });
+        }
+      }
+
+      return correctionMessages;
+    });
   };
 
   const restore = () => {
-    StorageManagerAsync.prototype.handleSyncMessage = originalHandleSyncMessage;
-    node.syncManager.handleSyncMessage = originalNodeSyncMessage;
+    StorageApiAsync.prototype.load = originalLoad;
+    StorageApiAsync.prototype.store = originalStore;
+    messages.length = 0;
+  };
+
+  const clear = () => {
+    messages.length = 0;
   };
 
   onTestFinished(() => {
@@ -40,6 +82,7 @@ export function trackMessages(node: LocalNode) {
   return {
     messages,
     restore,
+    clear,
   };
 }
 

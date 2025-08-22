@@ -2,15 +2,24 @@ import { Histogram, ValueType, metrics } from "@opentelemetry/api";
 import { PeerState } from "./PeerState.js";
 import { SyncStateManager } from "./SyncStateManager.js";
 import {
-  AvailableCoValueCore,
-  CoValueCore,
-} from "./coValueCore/coValueCore.js";
-import { CoValueHeader, Transaction } from "./coValueCore/verifiedState.js";
+  getContenDebugInfo,
+  getTransactionSize,
+  knownStateFromContent,
+} from "./coValueContentMessage.js";
+import { CoValueCore } from "./coValueCore/coValueCore.js";
+import { getDependedOnCoValuesFromRawData } from "./coValueCore/utils.js";
+import {
+  CoValueHeader,
+  Transaction,
+  VerifiedState,
+} from "./coValueCore/verifiedState.js";
 import { Signature } from "./crypto/crypto.js";
-import { RawCoID, SessionID } from "./ids.js";
+import { RawCoID, SessionID, isRawCoID } from "./ids.js";
 import { LocalNode } from "./localNode.js";
 import { logger } from "./logger.js";
 import { CoValuePriority } from "./priority.js";
+import { IncomingMessagesQueue } from "./queue/IncomingMessagesQueue.js";
+import { LocalTransactionsSyncQueue } from "./queue/LocalTransactionsSyncQueue.js";
 import { accountOrAgentIDfromSessionID } from "./typeUtils/accountOrAgentIDfromSessionID.js";
 import { isAccountID } from "./typeUtils/isAccountID.js";
 
@@ -52,13 +61,18 @@ export type NewContentMessage = {
   new: {
     [sessionID: SessionID]: SessionNewContent;
   };
+  expectContentUntil?: {
+    [sessionID: SessionID]: number;
+  };
 };
 
 export type SessionNewContent = {
+  // The index where to start appending the new transactions. The index counting starts from 1.
   after: number;
   newTransactions: Transaction[];
   lastSignature: Signature;
 };
+
 export type DoneMessage = {
   action: "done";
   id: RawCoID;
@@ -68,24 +82,25 @@ export type PeerID = string;
 
 export type DisconnectedError = "Disconnected";
 
-export type PingTimeoutError = "PingTimeout";
-
-export type IncomingSyncStream = AsyncIterable<
-  SyncMessage | DisconnectedError | PingTimeoutError
->;
-export type OutgoingSyncQueue = {
-  push: (msg: SyncMessage) => Promise<unknown>;
+export interface IncomingPeerChannel {
   close: () => void;
-};
+  onMessage: (callback: (msg: SyncMessage | DisconnectedError) => void) => void;
+  onClose: (callback: () => void) => void;
+}
+
+export interface OutgoingPeerChannel {
+  push: (msg: SyncMessage | DisconnectedError) => void;
+  close: () => void;
+  onClose: (callback: () => void) => void;
+}
 
 export interface Peer {
   id: PeerID;
-  incoming: IncomingSyncStream;
-  outgoing: OutgoingSyncQueue;
-  role: "server" | "client" | "storage";
+  incoming: IncomingPeerChannel;
+  outgoing: OutgoingPeerChannel;
+  role: "server" | "client";
   priority?: number;
-  crashOnClose: boolean;
-  deletePeerStateOnClose?: boolean;
+  persistent?: boolean;
 }
 
 export function combinedKnownStates(
@@ -117,6 +132,11 @@ export class SyncManager {
   peers: { [key: PeerID]: PeerState } = {};
   local: LocalNode;
 
+  // When true, transactions will not be verified.
+  // This is useful when syncing only for storage purposes, with the expectation that
+  // the transactions have already been verified by the [trusted] peer that sent them.
+  private skipVerify: boolean = false;
+
   peersCounter = metrics.getMeter("cojson").createUpDownCounter("jazz.peers", {
     description: "Amount of connected peers",
     valueType: ValueType.INT,
@@ -139,6 +159,10 @@ export class SyncManager {
 
   syncState: SyncStateManager;
 
+  disableTransactionVerification() {
+    this.skipVerify = true;
+  }
+
   peersInPriorityOrder(): PeerState[] {
     return Object.values(this.peers).sort((a, b) => {
       const aPriority = a.priority || 0;
@@ -152,29 +176,16 @@ export class SyncManager {
     return Object.values(this.peers);
   }
 
-  getServerAndStoragePeers(excludePeerId?: PeerID): PeerState[] {
-    return this.peersInPriorityOrder().filter(
-      (peer) =>
-        peer.isServerOrStoragePeer() &&
-        peer.id !== excludePeerId &&
-        !peer.closed,
-    );
-  }
-
-  hasStoragePeers(): boolean {
-    return this.getPeers().some(
-      (peer) => peer.role === "storage" && !peer.closed,
+  getServerPeers(excludePeerId?: PeerID): PeerState[] {
+    return this.getPeers().filter(
+      (peer) => peer.role === "server" && peer.id !== excludePeerId,
     );
   }
 
   handleSyncMessage(msg: SyncMessage, peer: PeerState) {
-    if (msg.id === undefined || msg.id === null) {
-      logger.warn("Received sync message with undefined id", {
-        msg,
-      });
-      return;
-    } else if (!msg.id.startsWith("co_z")) {
-      logger.warn("Received sync message with invalid id", {
+    if (!isRawCoID(msg.id)) {
+      const errorType = msg.id ? "invalid" : "undefined";
+      logger.warn(`Received sync message with ${errorType} id`, {
         msg,
       });
       return;
@@ -198,7 +209,7 @@ export class SyncManager {
       case "content":
         return this.handleNewContent(msg, peer);
       case "done":
-        return this.handleUnsubscribe(msg);
+        return;
       default:
         throw new Error(
           `Unknown message type ${(msg as { action: "string" }).action}`,
@@ -206,7 +217,17 @@ export class SyncManager {
     }
   }
 
-  sendNewContentIncludingDependencies(id: RawCoID, peer: PeerState) {
+  sendNewContentIncludingDependencies(
+    id: RawCoID,
+    peer: PeerState,
+    seen: Set<RawCoID> = new Set(),
+  ) {
+    if (seen.has(id)) {
+      return;
+    }
+
+    seen.add(id);
+
     const coValue = this.local.getCoValue(id);
 
     if (!coValue.isAvailable()) {
@@ -214,7 +235,7 @@ export class SyncManager {
     }
 
     for (const dependency of coValue.getDependedOnCoValues()) {
-      this.sendNewContentIncludingDependencies(dependency, peer);
+      this.sendNewContentIncludingDependencies(dependency, peer, seen);
     }
 
     const newContentPieces = coValue.verified.newContentSince(
@@ -230,7 +251,7 @@ export class SyncManager {
     } else if (!peer.toldKnownState.has(id)) {
       this.trySendToPeer(peer, {
         action: "known",
-        ...coValue.knownState(),
+        ...coValue.knownStateWithStreaming(),
       });
     }
 
@@ -300,6 +321,19 @@ export class SyncManager {
     }
   }
 
+  messagesQueue = new IncomingMessagesQueue();
+  pushMessage(incoming: SyncMessage, peer: PeerState) {
+    this.messagesQueue.push(incoming, peer);
+
+    if (this.messagesQueue.processing) {
+      return;
+    }
+
+    this.messagesQueue.processQueue((msg, peer) => {
+      this.handleSyncMessage(msg, peer);
+    });
+  }
+
   addPeer(peer: Peer) {
     const prevPeer = this.peers[peer.id];
 
@@ -318,45 +352,27 @@ export class SyncManager {
       },
     );
 
-    if (peerState.isServerOrStoragePeer()) {
+    if (peerState.role === "server") {
       void this.startPeerReconciliation(peerState);
     }
 
-    peerState
-      .processIncomingMessages((msg) => {
-        this.handleSyncMessage(msg, peerState);
-      })
-      .then(() => {
-        if (peer.crashOnClose) {
-          logger.error("Unexepcted close from peer", {
-            peerId: peer.id,
-            peerRole: peer.role,
-          });
-          this.local.crashed = new Error("Unexpected close from peer");
-          throw new Error("Unexpected close from peer");
-        }
-      })
-      .catch((e) => {
-        logger.error("Error processing messages from peer", {
-          err: e,
-          peerId: peer.id,
-          peerRole: peer.role,
-        });
-
-        if (peer.crashOnClose) {
-          this.local.crashed = e;
-          throw new Error(e);
-        }
-      })
-      .finally(() => {
+    peerState.incoming.onMessage((msg) => {
+      if (msg === "Disconnected") {
         peerState.gracefulShutdown();
-        unsubscribeFromKnownStatesUpdates();
-        this.peersCounter.add(-1, { role: peer.role });
+        return;
+      }
 
-        if (peer.deletePeerStateOnClose && this.peers[peer.id] === peerState) {
-          delete this.peers[peer.id];
-        }
-      });
+      this.pushMessage(msg, peerState);
+    });
+
+    peerState.addCloseListener(() => {
+      unsubscribeFromKnownStatesUpdates();
+      this.peersCounter.add(-1, { role: peer.role });
+
+      if (!peer.persistent && this.peers[peer.id] === peerState) {
+        delete this.peers[peer.id];
+      }
+    });
   }
 
   trySendToPeer(peer: PeerState, msg: SyncMessage) {
@@ -386,12 +402,16 @@ export class SyncManager {
       return;
     }
 
-    const eligiblePeers = this.getServerAndStoragePeers(peer.id);
+    const peers = this.getServerPeers(peer.id);
 
-    if (eligiblePeers.length === 0) {
-      // We don't have any eligible peers to load the coValue from
-      // so we send a known state back to the sender to let it know
-      // that the coValue is unavailable
+    coValue.load(peers);
+
+    const handleLoadResult = () => {
+      if (coValue.isAvailable()) {
+        this.sendNewContentIncludingDependencies(msg.id, peer);
+        return;
+      }
+
       peer.trackToldKnownState(msg.id);
       this.trySendToPeer(peer, {
         action: "known",
@@ -399,41 +419,15 @@ export class SyncManager {
         header: false,
         sessions: {},
       });
+    };
 
-      return;
+    if (peers.length > 0 || this.local.storage) {
+      coValue.waitForAvailableOrUnavailable().then(handleLoadResult);
+    } else {
+      handleLoadResult();
     }
-
-    coValue.loadFromPeers(eligiblePeers).catch((e) => {
-      logger.error("Error loading coValue in handleLoad", { err: e });
-    });
-
-    // We need to return from handleLoad immediately and wait for the CoValue to be loaded
-    // in a new task, otherwise we might block further incoming content messages that would
-    // resolve the CoValue as available. This can happen when we receive fresh
-    // content from a client, but we are a server with our own upstream server(s)
-    coValue
-      .waitForAvailableOrUnavailable()
-      .then((value) => {
-        if (!value.isAvailable()) {
-          peer.trackToldKnownState(msg.id);
-          this.trySendToPeer(peer, {
-            action: "known",
-            id: msg.id,
-            header: false,
-            sessions: {},
-          });
-
-          return;
-        }
-
-        this.sendNewContentIncludingDependencies(msg.id, peer);
-      })
-      .catch((e) => {
-        logger.error("Error loading coValue in handleLoad loading state", {
-          err: e,
-        });
-      });
   }
+
   handleKnownState(msg: KnownStateMessage, peer: PeerState) {
     const coValue = this.local.getCoValue(msg.id);
 
@@ -454,63 +448,46 @@ export class SyncManager {
 
   recordTransactionsSize(newTransactions: Transaction[], source: string) {
     for (const tx of newTransactions) {
-      const txLength =
-        tx.privacy === "private"
-          ? tx.encryptedChanges.length
-          : tx.changes.length;
+      const size = getTransactionSize(tx);
 
-      this.transactionsSizeHistogram.record(txLength, {
+      this.transactionsSizeHistogram.record(size, {
         source,
       });
     }
   }
 
-  handleNewContent(msg: NewContentMessage, peer: PeerState) {
+  handleNewContent(
+    msg: NewContentMessage,
+    from: PeerState | "storage" | "import",
+  ) {
     const coValue = this.local.getCoValue(msg.id);
+    const peer = from === "storage" || from === "import" ? undefined : from;
+    const sourceRole =
+      from === "storage"
+        ? "storage"
+        : from === "import"
+          ? "import"
+          : peer?.role;
 
-    if (!coValue.isAvailable()) {
+    if (!coValue.hasVerifiedContent()) {
       if (!msg.header) {
-        this.trySendToPeer(peer, {
-          action: "known",
-          isCorrection: true,
-          id: msg.id,
-          header: false,
-          sessions: {},
-        });
-        return;
-      }
+        const storageKnownState = this.local.storage?.getKnownState(msg.id);
 
-      let dependencyMissing = false;
-      const sessionIDs = Object.keys(msg.new) as SessionID[];
-      for (const dependency of coValue.getDependedOnCoValuesFromHeaderAndSessions(
-        msg.header,
-        sessionIDs,
-      )) {
-        const dependencyCoValue = this.local.getCoValue(dependency);
-
-        if (!dependencyCoValue.isAvailable()) {
-          if (peer.role !== "storage") {
-            this.trySendToPeer(peer, {
-              action: "load",
-              id: dependency,
-              header: false,
-              sessions: {},
-            });
-          }
-
-          dependencyMissing = true;
+        if (storageKnownState?.header) {
+          // If the CoValue has been garbage collected, we load it from the storage before handling the new content
+          coValue.loadFromStorage((found) => {
+            if (found) {
+              this.handleNewContent(msg, from);
+            } else {
+              logger.error("Known CoValue not found in storage", {
+                id: msg.id,
+              });
+            }
+          });
+          return;
         }
-      }
 
-      if (dependencyMissing) {
-        if (peer.role !== "storage") {
-          /**
-           * If we have missing dependencies, we send a known state message to the peer
-           * to let it know that we need a correction update.
-           *
-           * Sync-wise is sub-optimal, but it gives us correctness until
-           * https://github.com/garden-co/jazz/issues/1917 is implemented.
-           */
+        if (peer) {
           this.trySendToPeer(peer, {
             action: "known",
             isCorrection: true,
@@ -519,22 +496,80 @@ export class SyncManager {
             sessions: {},
           });
         } else {
-          /** Cases of broken deps from storage are recovered by falling back to the server peers */
-          coValue.loadFromPeers(this.getServerAndStoragePeers(peer.id));
+          logger.error(
+            "Received new content with no header on a missing CoValue",
+            {
+              id: msg.id,
+            },
+          );
         }
-
         return;
       }
 
-      peer.updateHeader(msg.id, true);
-      coValue.markAvailable(msg.header, peer.id);
+      const sessionIDs = Object.keys(msg.new) as SessionID[];
+      const transactions = Object.values(msg.new).map(
+        (content) => content.newTransactions,
+      );
+
+      // If we'll be performing transaction verification, ensure all the dependencies available.
+      if (!this.skipVerify) {
+        for (const dependency of getDependedOnCoValuesFromRawData(
+          msg.id,
+          msg.header,
+          sessionIDs,
+          transactions,
+        )) {
+          const dependencyCoValue = this.local.getCoValue(dependency);
+
+          if (!dependencyCoValue.hasVerifiedContent()) {
+            coValue.markMissingDependency(dependency);
+
+            const peers = this.getServerPeers();
+
+            // if the peer that sent the content is a client, we add it to the list of peers
+            // to also ask them for the dependency
+            if (peer?.role === "client") {
+              peers.push(peer);
+            }
+
+            dependencyCoValue.load(peers);
+          } else if (!dependencyCoValue.isAvailable()) {
+            coValue.markMissingDependency(dependency);
+          }
+        }
+      }
+
+      peer?.updateHeader(msg.id, true);
+      coValue.provideHeader(
+        msg.header,
+        peer?.id ?? "storage",
+        msg.expectContentUntil,
+      );
+
+      if (msg.expectContentUntil) {
+        peer?.combineWith(msg.id, {
+          id: msg.id,
+          header: true,
+          sessions: msg.expectContentUntil,
+        });
+      }
     }
 
-    if (!coValue.isAvailable()) {
-      throw new Error("Unreachable: CoValue should be available in every case");
+    if (!coValue.hasVerifiedContent()) {
+      throw new Error(
+        "Unreachable: CoValue should always have a verified state at this point",
+      );
     }
 
     let invalidStateAssumed = false;
+
+    const contentToStore: NewContentMessage = {
+      action: "content",
+      id: msg.id,
+      priority: msg.priority,
+      header: msg.header,
+      new: {},
+    };
 
     for (const [sessionID, newContentForSession] of Object.entries(msg.new) as [
       SessionID,
@@ -560,40 +595,89 @@ export class SyncManager {
         continue;
       }
 
-      const accountId = accountOrAgentIDfromSessionID(sessionID);
+      // If we'll be performing transaction verification, ensure the account is available.
+      if (!this.skipVerify) {
+        const accountId = accountOrAgentIDfromSessionID(sessionID);
 
-      if (isAccountID(accountId)) {
-        const account = this.local.getCoValue(accountId);
+        if (isAccountID(accountId)) {
+          const account = this.local.getCoValue(accountId);
 
-        if (!account.isAvailable()) {
-          account.loadFromPeers([peer]);
-          invalidStateAssumed = true;
-          continue;
+          // We can't verify the transaction without the account, so we delay the session content handling until the account is available
+          if (!account.isAvailable()) {
+            // This covers the case where we are getting a new session on an already loaded coValue
+            // where we need to load the account to get their public key
+            if (!coValue.missingDependencies.has(accountId)) {
+              const peers = this.getServerPeers();
+
+              if (peer?.role === "client") {
+                // if the peer that sent the content is a client, we add it to the list of peers
+                // to also ask them for the dependency
+                peers.push(peer);
+              }
+
+              account.load(peers);
+            }
+
+            // We need to wait for the account to be available before we can verify the transaction
+            // Currently doing this by delaying the handleNewContent for the session to when we have the account
+            //
+            // This is not the best solution, because the knownState is not updated and the ACK response will be given
+            // by excluding the session.
+            // This is good enough implementation for now because the only case for the account to be missing are out-of-order
+            // dependencies push, so the gap should be short lived.
+            //
+            // When we are going to have sharded-peers we should revisit this, and store unverified sessions that are considered as part of the
+            // knwonState, but not actively used until they can be verified.
+            void account.waitForAvailable().then(() => {
+              this.handleNewContent(
+                {
+                  action: "content",
+                  id: coValue.id,
+                  new: {
+                    [sessionID]: newContentForSession,
+                  },
+                  priority: msg.priority,
+                },
+                from,
+              );
+            });
+            continue;
+          }
         }
       }
 
       const result = coValue.tryAddTransactions(
         sessionID,
         newTransactions,
-        undefined,
         newContentForSession.lastSignature,
-        "immediate", // TODO: can we change this to deferred?
+        this.skipVerify,
       );
 
       if (result.isErr()) {
-        console.error("Failed to add transactions", {
-          peerId: peer.id,
-          peerRole: peer.role,
-          id: msg.id,
-          err: result.error,
-        });
-        coValue.markErrored(peer.id, result.error);
+        if (peer) {
+          logger.error("Failed to add transactions", {
+            peerId: peer.id,
+            peerRole: peer.role,
+            id: msg.id,
+            err: result.error,
+          });
+          coValue.markErrored(peer.id, result.error);
+        } else {
+          logger.error("Failed to add transactions from storage", {
+            id: msg.id,
+            err: result.error,
+          });
+        }
         continue;
       }
 
-      this.recordTransactionsSize(newTransactions, peer.role);
+      if (sourceRole && sourceRole !== "import") {
+        this.recordTransactionsSize(newTransactions, sourceRole);
+      }
 
-      peer.updateSessionCounter(
+      // The new content for this session has been verified, so we can store it
+      contentToStore.new[sessionID] = newContentForSession;
+      peer?.updateSessionCounter(
         msg.id,
         sessionID,
         newContentForSession.after +
@@ -602,13 +686,24 @@ export class SyncManager {
     }
 
     if (invalidStateAssumed) {
-      this.trySendToPeer(peer, {
-        action: "known",
-        isCorrection: true,
-        ...coValue.knownState(),
-      });
-      peer.trackToldKnownState(msg.id);
-    } else {
+      if (peer) {
+        this.trySendToPeer(peer, {
+          action: "known",
+          isCorrection: true,
+          ...coValue.knownState(),
+        });
+        peer.trackToldKnownState(msg.id);
+      } else {
+        logger.error(
+          "Invalid state assumed when handling new content from storage",
+          {
+            id: msg.id,
+            content: getContenDebugInfo(msg),
+            knownState: coValue.knownState(),
+          },
+        );
+      }
+    } else if (peer) {
       /**
        * We are sending a known state message to the peer to acknowledge the
        * receipt of the new content.
@@ -623,18 +718,20 @@ export class SyncManager {
       peer.trackToldKnownState(msg.id);
     }
 
-    const sourcePeer = peer;
     const syncedPeers = [];
+
+    const hasNewContent =
+      contentToStore.header || Object.keys(contentToStore.new).length > 0;
+
+    if (from !== "storage" && hasNewContent) {
+      this.storeContent(contentToStore);
+    }
 
     for (const peer of this.peersInPriorityOrder()) {
       /**
        * We sync the content against the source peer if it is a client or server peers
        * to upload any content that is available on the current node and not on the source peer.
-       *
-       * We don't need to do this with storage peers because we don't get updates from those peers,
-       * only load and store content.
        */
-      if (peer.id === sourcePeer.id && sourcePeer.role === "storage") continue;
       if (peer.closed) continue;
       if (coValue.isErroredInPeer(peer.id)) continue;
 
@@ -643,7 +740,7 @@ export class SyncManager {
         this.sendNewContentIncludingDependencies(coValue.id, peer);
         syncedPeers.push(peer);
       } else if (
-        peer.isServerOrStoragePeer() &&
+        peer.role === "server" &&
         !peer.loadRequestSent.has(coValue.id)
       ) {
         const state = coValue.getStateForPeer(peer.id)?.type;
@@ -655,7 +752,7 @@ export class SyncManager {
           // before sending the new content
           this.trySendToPeer(peer, {
             action: "load",
-            ...coValue.knownState(),
+            ...coValue.knownStateWithStreaming(),
           });
           peer.trackLoadRequestSent(coValue.id);
           syncedPeers.push(peer);
@@ -674,25 +771,33 @@ export class SyncManager {
     return this.sendNewContentIncludingDependencies(msg.id, peer);
   }
 
-  handleUnsubscribe(_msg: DoneMessage) {}
+  dirtyCoValuesTrackingSets: Set<Set<RawCoID>> = new Set();
+  trackDirtyCoValues() {
+    const trackingSet = new Set<RawCoID>();
 
-  requestedSyncs = new Set<RawCoID>();
-  requestCoValueSync(coValue: CoValueCore) {
-    if (this.requestedSyncs.has(coValue.id)) {
-      return;
-    }
+    this.dirtyCoValuesTrackingSets.add(trackingSet);
 
-    queueMicrotask(() => {
-      if (this.requestedSyncs.has(coValue.id)) {
-        this.syncCoValue(coValue);
-      }
-    });
+    return {
+      done: () => {
+        this.dirtyCoValuesTrackingSets.delete(trackingSet);
 
-    this.requestedSyncs.add(coValue.id);
+        return trackingSet;
+      },
+    };
   }
 
-  syncCoValue(coValue: CoValueCore) {
-    this.requestedSyncs.delete(coValue.id);
+  private syncQueue = new LocalTransactionsSyncQueue((content) =>
+    this.syncContent(content),
+  );
+  syncHeader = this.syncQueue.syncHeader;
+  syncLocalTransaction = this.syncQueue.syncTransaction;
+
+  syncContent(content: NewContentMessage) {
+    const coValue = this.local.getCoValue(content.id);
+
+    this.storeContent(content);
+
+    const contentKnownState = knownStateFromContent(content);
 
     for (const peer of this.peersInPriorityOrder()) {
       if (peer.closed) continue;
@@ -706,12 +811,43 @@ export class SyncManager {
         continue;
       }
 
-      this.sendNewContentIncludingDependencies(coValue.id, peer);
+      // We assume that the peer already knows anything before this content
+      // Any eventual reconciliation will be handled through the known state messages exchange
+      this.trySendToPeer(peer, content);
+      peer.combineOptimisticWith(coValue.id, contentKnownState);
+      peer.trackToldKnownState(coValue.id);
     }
 
     for (const peer of this.getPeers()) {
       this.syncState.triggerUpdate(peer.id, coValue.id);
     }
+  }
+
+  private storeContent(content: NewContentMessage) {
+    const storage = this.local.storage;
+
+    if (!storage) return;
+
+    const value = this.local.getCoValue(content.id);
+
+    // Try to store the content as-is for performance
+    // In case that some transactions are missing, a correction will be requested, but it's an edge case
+    storage.store(content, (correction) => {
+      if (!value.verified) {
+        logger.error(
+          "Correction requested for a CoValue with no verified content",
+          {
+            id: content.id,
+            content: getContenDebugInfo(content),
+            correction,
+            state: value.loadingState,
+          },
+        );
+        return undefined;
+      }
+
+      return value.verified.newContentSince(correction);
+    });
   }
 
   waitForSyncWithPeer(peerId: PeerID, id: RawCoID, timeout: number) {
@@ -726,8 +862,8 @@ export class SyncManager {
 
     const peerState = this.peers[peerId];
 
-    // The peer has been closed, so it isn't possible to sync
-    if (!peerState || peerState.closed) {
+    // The peer has been closed and is not persistent, so it isn't possible to sync
+    if (!peerState) {
       return;
     }
 
@@ -758,21 +894,17 @@ export class SyncManager {
     });
   }
 
-  waitForStorageSync(id: RawCoID, timeout = 30_000) {
+  waitForStorageSync(id: RawCoID) {
+    return this.local.storage?.waitForSync(id, this.local.getCoValue(id));
+  }
+
+  waitForSync(id: RawCoID, timeout = 60_000) {
     const peers = this.getPeers();
 
     return Promise.all(
       peers
-        .filter((peer) => peer.role === "storage")
-        .map((peer) => this.waitForSyncWithPeer(peer.id, id, timeout)),
-    );
-  }
-
-  waitForSync(id: RawCoID, timeout = 30_000) {
-    const peers = this.getPeers();
-
-    return Promise.all(
-      peers.map((peer) => this.waitForSyncWithPeer(peer.id, id, timeout)),
+        .map((peer) => this.waitForSyncWithPeer(peer.id, id, timeout))
+        .concat(this.waitForStorageSync(id)),
     );
   }
 

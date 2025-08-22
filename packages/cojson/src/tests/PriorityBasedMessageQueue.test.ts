@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "vitest";
-import { PriorityBasedMessageQueue } from "../PriorityBasedMessageQueue.js";
 import { CO_VALUE_PRIORITY } from "../priority.js";
+import { PriorityBasedMessageQueue } from "../queue/PriorityBasedMessageQueue.js";
 import type { SyncMessage } from "../sync.js";
 import {
   createTestMetricReader,
@@ -9,7 +9,11 @@ import {
 
 function setup(attrs?: Record<string, string | number>) {
   const metricReader = createTestMetricReader();
-  const queue = new PriorityBasedMessageQueue(CO_VALUE_PRIORITY.MEDIUM, attrs);
+  const queue = new PriorityBasedMessageQueue(
+    CO_VALUE_PRIORITY.MEDIUM,
+    "outgoing",
+    attrs,
+  );
   return { queue, metricReader };
 }
 
@@ -29,21 +33,21 @@ describe("PriorityBasedMessageQueue", () => {
       };
 
       expect(
-        await metricReader.getMetricValue("jazz.messagequeue.pushed", {
+        await metricReader.getMetricValue("jazz.messagequeue.outgoing.pushed", {
           priority: CO_VALUE_PRIORITY.MEDIUM,
         }),
       ).toBe(0);
 
       void queue.push(message);
       expect(
-        await metricReader.getMetricValue("jazz.messagequeue.pushed", {
+        await metricReader.getMetricValue("jazz.messagequeue.outgoing.pushed", {
           priority: CO_VALUE_PRIORITY.MEDIUM,
         }),
       ).toBe(1);
 
       void queue.push(message);
       expect(
-        await metricReader.getMetricValue("jazz.messagequeue.pushed", {
+        await metricReader.getMetricValue("jazz.messagequeue.outgoing.pushed", {
           priority: CO_VALUE_PRIORITY.MEDIUM,
         }),
       ).toBe(2);
@@ -59,14 +63,14 @@ describe("PriorityBasedMessageQueue", () => {
       };
 
       expect(
-        await metricReader.getMetricValue("jazz.messagequeue.pulled", {
+        await metricReader.getMetricValue("jazz.messagequeue.outgoing.pulled", {
           priority: CO_VALUE_PRIORITY.MEDIUM,
         }),
       ).toBe(0);
 
       void queue.push(message);
       expect(
-        await metricReader.getMetricValue("jazz.messagequeue.pulled", {
+        await metricReader.getMetricValue("jazz.messagequeue.outgoing.pulled", {
           priority: CO_VALUE_PRIORITY.MEDIUM,
         }),
       ).toBe(0);
@@ -74,7 +78,7 @@ describe("PriorityBasedMessageQueue", () => {
       void queue.pull();
 
       expect(
-        await metricReader.getMetricValue("jazz.messagequeue.pulled", {
+        await metricReader.getMetricValue("jazz.messagequeue.outgoing.pulled", {
           priority: CO_VALUE_PRIORITY.MEDIUM,
         }),
       ).toBe(1);
@@ -82,7 +86,7 @@ describe("PriorityBasedMessageQueue", () => {
       // We only have one item in the queue, so this should not change the metric value
       void queue.pull();
       expect(
-        await metricReader.getMetricValue("jazz.messagequeue.pulled", {
+        await metricReader.getMetricValue("jazz.messagequeue.outgoing.pulled", {
           priority: CO_VALUE_PRIORITY.MEDIUM,
         }),
       ).toBe(1);
@@ -98,13 +102,13 @@ describe("PriorityBasedMessageQueue", () => {
       };
 
       expect(
-        await metricReader.getMetricValue("jazz.messagequeue.pushed", {
+        await metricReader.getMetricValue("jazz.messagequeue.outgoing.pushed", {
           priority: CO_VALUE_PRIORITY.MEDIUM,
           role: "server",
         }),
       ).toBe(0);
       expect(
-        await metricReader.getMetricValue("jazz.messagequeue.pushed", {
+        await metricReader.getMetricValue("jazz.messagequeue.outgoing.pushed", {
           priority: CO_VALUE_PRIORITY.MEDIUM,
           role: "client",
         }),
@@ -112,13 +116,13 @@ describe("PriorityBasedMessageQueue", () => {
 
       void queue.push(message);
       expect(
-        await metricReader.getMetricValue("jazz.messagequeue.pushed", {
+        await metricReader.getMetricValue("jazz.messagequeue.outgoing.pushed", {
           priority: CO_VALUE_PRIORITY.MEDIUM,
           role: "server",
         }),
       ).toBe(1);
       expect(
-        await metricReader.getMetricValue("jazz.messagequeue.pulled", {
+        await metricReader.getMetricValue("jazz.messagequeue.outgoing.pulled", {
           priority: CO_VALUE_PRIORITY.MEDIUM,
           role: "server",
         }),
@@ -127,13 +131,13 @@ describe("PriorityBasedMessageQueue", () => {
       void queue.pull();
 
       expect(
-        await metricReader.getMetricValue("jazz.messagequeue.pushed", {
+        await metricReader.getMetricValue("jazz.messagequeue.outgoing.pushed", {
           priority: CO_VALUE_PRIORITY.MEDIUM,
           role: "server",
         }),
       ).toBe(1);
       expect(
-        await metricReader.getMetricValue("jazz.messagequeue.pulled", {
+        await metricReader.getMetricValue("jazz.messagequeue.outgoing.pulled", {
           priority: CO_VALUE_PRIORITY.MEDIUM,
           role: "server",
         }),

@@ -1,8 +1,8 @@
+import { Account, CoMap, Group, ID, Inbox, coField } from "jazz-tools";
 import {
   useAccount,
   experimental_useInboxSender as useInboxSender,
-} from "jazz-react";
-import { Account, CoMap, Group, ID, Inbox, coField } from "jazz-tools";
+} from "jazz-tools/react";
 import { useEffect, useRef, useState } from "react";
 import { createCredentiallessIframe } from "../lib/createCredentiallessIframe";
 
@@ -20,14 +20,17 @@ export function InboxPage() {
   const [id] = useState(getIdParam);
   const { me } = useAccount();
   const [pingPong, setPingPong] = useState<PingPong | null>(null);
-  const iframeRef = useRef<HTMLIFrameElement>();
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
+    if (!me) return;
+
     let unsubscribe = () => {};
     let unmounted = false;
+    const account = me;
 
     async function load() {
-      const inbox = await Inbox.load(me);
+      const inbox = await Inbox.load(account);
 
       if (unmounted) return;
 

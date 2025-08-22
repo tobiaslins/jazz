@@ -1,4 +1,4 @@
-import { JazzProvider } from "jazz-react";
+import { JazzReactProvider } from "jazz-tools/react";
 
 const url = new URL(window.location.href);
 
@@ -22,12 +22,12 @@ function getUserInfo() {
 
 export function AuthAndJazz({ children }: { children: React.ReactNode }) {
   return (
-    <JazzProvider
+    <JazzReactProvider
       sync={{
         peer: `${peer}?key=${key}`,
       }}
     >
       {children}
-    </JazzProvider>
+    </JazzReactProvider>
   );
 }

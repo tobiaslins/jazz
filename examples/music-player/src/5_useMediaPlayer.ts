@@ -1,10 +1,11 @@
 import { MusicTrack, MusicaAccount, Playlist } from "@/1_schema";
 import { usePlayMedia } from "@/lib/audio/usePlayMedia";
 import { usePlayState } from "@/lib/audio/usePlayState";
-import { useAccount } from "jazz-react";
-import { FileStream, Loaded } from "jazz-tools";
+import { FileStream } from "jazz-tools";
+import { useAccount } from "jazz-tools/react";
 import { useRef, useState } from "react";
 import { updateActivePlaylist, updateActiveTrack } from "./4_actions";
+import { useAudioManager } from "./lib/audio/AudioManager";
 import { getNextTrack, getPrevTrack } from "./lib/getters";
 
 export function useMediaPlayer() {
@@ -12,6 +13,7 @@ export function useMediaPlayer() {
     resolve: { root: true },
   });
 
+  const audioManager = useAudioManager();
   const playState = usePlayState();
   const playMedia = usePlayMedia();
 
@@ -22,10 +24,12 @@ export function useMediaPlayer() {
   // Reference used to avoid out-of-order track loads
   const lastLoadedTrackId = useRef<string | null>(null);
 
-  async function loadTrack(track: Loaded<typeof MusicTrack>) {
+  async function loadTrack(track: MusicTrack, autoPlay = true) {
     lastLoadedTrackId.current = track.id;
+    audioManager.unloadCurrentAudio();
 
     setLoading(track.id);
+    updateActiveTrack(track);
 
     const file = await FileStream.loadAsBlob(track._refs.file!.id); // TODO: see if we can avoid !
 
@@ -40,9 +44,7 @@ export function useMediaPlayer() {
       return;
     }
 
-    updateActiveTrack(track);
-
-    await playMedia(file);
+    await playMedia(file, autoPlay);
 
     setLoading(null);
   }
@@ -64,10 +66,7 @@ export function useMediaPlayer() {
     }
   }
 
-  async function setActiveTrack(
-    track: Loaded<typeof MusicTrack>,
-    playlist?: Loaded<typeof Playlist>,
-  ) {
+  async function setActiveTrack(track: MusicTrack, playlist?: Playlist) {
     if (activeTrackId === track.id && lastLoadedTrackId.current !== null) {
       playState.toggle();
       return;
@@ -88,6 +87,7 @@ export function useMediaPlayer() {
     playNextTrack,
     playPrevTrack,
     loading,
+    loadTrack,
   };
 }
 

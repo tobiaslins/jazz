@@ -5,45 +5,249 @@
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
+      "@jazz-tools/source": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
     "./testing": {
+      "@jazz-tools/source": "./src/testing.ts",
       "types": "./dist/testing.d.ts",
       "default": "./dist/testing.js"
     },
-    "./dist/*": "./dist/*",
-    "./src/*": "./src/*"
+    "./browser": {
+      "@jazz-tools/source": "./src/browser/index.ts",
+      "types": "./dist/browser/index.d.ts",
+      "default": "./dist/browser/index.js"
+    },
+    "./browser-media-images": {
+      "@jazz-tools/source": "./src/browser-media-images/index.ts",
+      "types": "./dist/browser-media-images/index.d.ts",
+      "default": "./dist/browser-media-images/index.js"
+    },
+    "./media": {
+      "@jazz-tools/source": "./src/media/index.ts",
+      "types": "./dist/media/index.d.ts",
+      "react-native": "./dist/media/index.native.js",
+      "default": "./dist/media/index.browser.js"
+    },
+    "./expo": {
+      "@jazz-tools/source": "./src/expo/index.ts",
+      "types": "./dist/expo/index.d.ts",
+      "default": "./dist/expo/index.js"
+    },
+    "./expo/crypto": {
+      "@jazz-tools/source": "./src/expo/crypto.ts",
+      "types": "./dist/expo/crypto.d.ts",
+      "default": "./dist/expo/crypto.js"
+    },
+    "./expo/testing": {
+      "@jazz-tools/source": "./src/expo/testing.tsx",
+      "types": "./dist/expo/testing.d.ts",
+      "default": "./dist/expo/testing.js"
+    },
+    "./inspector": {
+      "@jazz-tools/source": "./src/inspector/index.ts",
+      "types": "./dist/inspector/index.d.ts",
+      "default": "./dist/inspector/index.js"
+    },
+    "./inspector/register-custom-element": {
+      "@jazz-tools/source": "./src/inspector/register-custom-element.ts",
+      "types": "./dist/inspector/register-custom-element.d.ts",
+      "default": "./dist/inspector/register-custom-element.js"
+    },
+    "./prosemirror": {
+      "@jazz-tools/source": "./src/prosemirror/index.ts",
+      "types": "./dist/prosemirror/index.d.ts",
+      "default": "./dist/prosemirror/index.js"
+    },
+    "./react": {
+      "@jazz-tools/source": "./src/react/index.ts",
+      "types": "./dist/react/index.d.ts",
+      "default": "./dist/react/index.js"
+    },
+    "./react/testing": {
+      "@jazz-tools/source": "./src/react/testing.tsx",
+      "types": "./dist/react/testing.d.ts",
+      "default": "./dist/react/testing.js"
+    },
+    "./react/ssr": {
+      "@jazz-tools/source": "./src/react/ssr.ts",
+      "types": "./dist/react/ssr.d.ts",
+      "default": "./dist/react/ssr.js"
+    },
+    "./react-core": {
+      "@jazz-tools/source": "./src/react-core/index.ts",
+      "types": "./dist/react-core/index.d.ts",
+      "default": "./dist/react-core/index.js"
+    },
+    "./react-core/testing": {
+      "@jazz-tools/source": "./src/react-core/testing.tsx",
+      "types": "./dist/react-core/testing.d.ts",
+      "default": "./dist/react-core/testing.js"
+    },
+    "./react-native": {
+      "@jazz-tools/source": "./src/react-native/index.ts",
+      "types": "./dist/react-native/index.d.ts",
+      "default": "./dist/react-native/index.js"
+    },
+    "./react-native/crypto": {
+      "@jazz-tools/source": "./src/react-native/crypto.ts",
+      "types": "./dist/react-native/crypto.d.ts",
+      "default": "./dist/react-native/crypto.js"
+    },
+    "./react-native/testing": {
+      "@jazz-tools/source": "./src/react-native/testing.tsx",
+      "types": "./dist/react-native/testing.d.ts",
+      "default": "./dist/react-native/testing.js"
+    },
+    "./react-native-core": {
+      "@jazz-tools/source": "./src/react-native-core/index.ts",
+      "types": "./dist/react-native-core/index.d.ts",
+      "default": "./dist/react-native-core/index.js"
+    },
+    "./react-native-core/crypto": {
+      "@jazz-tools/source": "./src/react-native-core/crypto/index.ts",
+      "types": "./dist/react-native-core/crypto.d.ts",
+      "default": "./dist/react-native-core/crypto.js"
+    },
+    "./react-native-core/testing": {
+      "@jazz-tools/source": "./src/react-native-core/testing.tsx",
+      "types": "./dist/react-native-core/testing.d.ts",
+      "default": "./dist/react-native-core/testing.js"
+    },
+    "./svelte": {
+      "svelte": "./dist/svelte/index.js",
+      "@jazz-tools/source": "./src/svelte/index.ts",
+      "types": "./dist/svelte/index.d.ts",
+      "default": "./dist/svelte/index.js"
+    },
+    "./svelte/testing": {
+      "svelte": "./dist/svelte/index.js",
+      "@jazz-tools/source": "./src/svelte/testing.ts",
+      "types": "./dist/svelte/testing.d.ts",
+      "default": "./dist/svelte/testing.js"
+    },
+    "./tiptap": {
+      "@jazz-tools/source": "./src/tiptap/index.ts",
+      "types": "./dist/tiptap/index.d.ts",
+      "default": "./dist/tiptap/index.js"
+    },
+    "./worker": {
+      "@jazz-tools/source": "./src/worker/index.ts",
+      "types": "./dist/worker/index.d.ts",
+      "default": "./dist/worker/index.js"
+    }
   },
   "type": "module",
   "license": "MIT",
-  "version": "0.14.2",
+  "version": "0.17.11",
   "dependencies": {
+    "@manuscripts/prosemirror-recreate-steps": "^0.1.4",
+    "@scure/base": "1.2.1",
     "@scure/bip39": "^1.3.0",
+    "@tiptap/core": "^2.12.0",
+    "clsx": "^2.0.0",
     "cojson": "workspace:*",
+    "cojson-storage-indexeddb": "workspace:*",
+    "cojson-transport-ws": "workspace:*",
     "fast-myers-diff": "^3.2.0",
-    "zod": "3.25.0-beta.20250518T002810"
+    "goober": "^2.1.16",
+    "prosemirror-example-setup": "^1.2.2",
+    "prosemirror-menu": "^1.2.4",
+    "prosemirror-model": "^1.21.1",
+    "prosemirror-schema-basic": "^1.2.2",
+    "prosemirror-state": "^1.4.3",
+    "prosemirror-transform": "^1.9.0",
+    "zod": "3.25.76"
   },
   "scripts": {
+    "check": "tsc --noEmit",
     "format-and-lint": "biome check .",
     "format-and-lint:fix": "biome check . --write",
     "dev": "tsup --watch --dts",
     "test": "vitest --run --root ../../ --project jazz-tools",
     "test:watch": "vitest --watch --root ../../ --project jazz-tools",
     "types": "tsc --outDir dist",
-    "build": "tsup && pnpm types"
+    "build:svelte": "rm -rf dist/svelte && svelte-package -i src/svelte -o dist/svelte --tsconfig tsconfig.svelte.json",
+    "build": "tsup && pnpm types && pnpm build:svelte"
   },
   "devDependencies": {
-    "tsup": "8.3.5",
-    "typescript": "catalog:",
-    "vitest": "catalog:",
+    "@scure/bip39": "^1.3.0",
+    "@sveltejs/package": "^2.0.0",
+    "@sveltejs/vite-plugin-svelte": "^6.1.0",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "16.2.0",
+    "@testing-library/svelte": "^5.2.6",
+    "@types/react": "19.1.0",
+    "@types/react-dom": "19.1.0",
+    "@vitest/browser": "^3.2.4",
+    "msw": "^2.10.3",
+    "playwright": "^1.50.1",
+    "queueueue": "^4.1.2",
+    "tsup": "8.5.0",
+    "typescript": "catalog:default",
+    "vitest": "catalog:default",
     "ws": "^8.14.2"
   },
-  "madge": {
-    "detectiveOptions": {
-      "ts": {
-        "skipTypeImports": true
-      }
+  "peerDependencies": {
+    "@bam.tech/react-native-image-resizer": "*",
+    "@op-engineering/op-sqlite": "^11.4.8",
+    "@react-native-community/netinfo": "*",
+    "expo-file-system": "*",
+    "expo-secure-store": "*",
+    "expo-sqlite": "15.2.9",
+    "react": "*",
+    "react-dom": "*",
+    "react-native": "*",
+    "react-native-fast-encoder": "^0.2.0",
+    "react-native-mmkv": "^3.2.0",
+    "react-native-nitro-modules": "0.25.2",
+    "react-native-quick-crypto": "1.0.0-beta.16",
+    "svelte": "^5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@bam.tech/react-native-image-resizer": {
+      "optional": true
+    },
+    "@op-engineering/op-sqlite": {
+      "optional": true
+    },
+    "@react-native-community/netinfo": {
+      "optional": true
+    },
+    "expo-file-system": {
+      "optional": true
+    },
+    "expo-secure-store": {
+      "optional": true
+    },
+    "expo-sqlite": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    },
+    "react-native": {
+      "optional": true
+    },
+    "react-native-fast-encoder": {
+      "optional": true
+    },
+    "react-native-mmkv": {
+      "optional": true
+    },
+    "react-native-nitro-modules": {
+      "optional": true
+    },
+    "react-native-quick-crypto": {
+      "optional": true
+    },
+    "svelte": {
+      "optional": true
     }
   }
 }

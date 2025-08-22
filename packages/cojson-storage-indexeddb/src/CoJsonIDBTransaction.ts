@@ -9,7 +9,7 @@ export type StoreName =
 // in a single transaction.
 export class CoJsonIDBTransaction {
   db: IDBDatabase;
-  tx: IDBTransaction;
+  declare tx: IDBTransaction;
 
   pendingRequests: ((txEntry: this) => void)[] = [];
   rejectHandlers: (() => void)[] = [];
@@ -23,6 +23,10 @@ export class CoJsonIDBTransaction {
   constructor(db: IDBDatabase) {
     this.db = db;
 
+    this.refresh();
+  }
+
+  refresh() {
     this.tx = this.db.transaction(
       ["coValues", "sessions", "transactions", "signatureAfter"],
       "readwrite",
@@ -39,11 +43,16 @@ export class CoJsonIDBTransaction {
   startedAt = performance.now();
   isReusable() {
     const delta = performance.now() - this.startedAt;
-    return !this.done && delta <= 20;
+    return !this.done && !this.failed && delta <= 100;
   }
 
   getObjectStore(name: StoreName) {
-    return this.tx.objectStore(name);
+    try {
+      return this.tx.objectStore(name);
+    } catch (error) {
+      this.refresh();
+      return this.tx.objectStore(name);
+    }
   }
 
   private pushRequest<T>(
@@ -108,4 +117,44 @@ export class CoJsonIDBTransaction {
       this.tx.commit();
     }
   }
+}
+
+export function queryIndexedDbStore<T>(
+  db: IDBDatabase,
+  storeName: StoreName,
+  callback: (store: IDBObjectStore) => IDBRequest<T>,
+) {
+  return new Promise<T>((resolve, reject) => {
+    const tx = db.transaction(storeName, "readonly");
+    const request = callback(tx.objectStore(storeName));
+
+    request.onerror = () => {
+      reject(request.error);
+    };
+
+    request.onsuccess = () => {
+      resolve(request.result as T);
+      tx.commit();
+    };
+  });
+}
+
+export function putIndexedDbStore<T, O extends IDBValidKey>(
+  db: IDBDatabase,
+  storeName: StoreName,
+  value: T,
+) {
+  return new Promise<O>((resolve, reject) => {
+    const tx = db.transaction(storeName, "readwrite");
+    const request = tx.objectStore(storeName).put(value);
+
+    request.onerror = () => {
+      reject(request.error);
+    };
+
+    request.onsuccess = () => {
+      resolve(request.result as O);
+      tx.commit();
+    };
+  });
 }

@@ -31,7 +31,7 @@ Collaborative Values (CoValues), build a UI and subscribe to changes, set permis
         (If you make changes to the code, the app will automatically refresh.)
     </small>
 
-2. Install `jazz-tools` and `jazz-react`<br/>
+2. Install `jazz-tools` and `jazz-tools/react`<br/>
 
     <small>(in a new terminal window):</small>
 
@@ -39,31 +39,29 @@ Collaborative Values (CoValues), build a UI and subscribe to changes, set permis
     {/* prettier-ignore */}
     ```bash
     cd circular
-    npm install jazz-tools jazz-react
+    npm install jazz-tools jazz-tools/react
     ```
 </CodeGroup>
 
 3. Modify `src/main.tsx` to set up a Jazz context:
 
 <CodeGroup>
-const apiKey = "Replace with API key from dashboard.jazz.tools";
-// ---cut---
     {/* prettier-ignore */}
     ```tsx
     import React from "react";
     import ReactDOM from "react-dom/client";
     import App from "./App.tsx";
     import "./index.css";
-    import { JazzProvider } from "jazz-react";  // [!code ++]
+    import { JazzReactProvider } from "jazz-tools/react";  // [!code ++]
 
     ReactDOM.createRoot(document.getElementById("root")!).render(
         <React.StrictMode>
-            <JazzProvider // [!code ++:6]
+            <JazzReactProvider // [!code ++:6]
                 // replace `you@example.com` with your email as a temporary API key
-                sync={{ peer: `wss://cloud.jazz.tools/?${apiKey}` }}
+                sync={{ peer: `wss://cloud.jazz.tools/?you@example.com` }}
             >
                 <App />
-            </JazzProvider>
+            </JazzReactProvider>
         </React.StrictMode>
     );
     ```
@@ -241,7 +239,7 @@ Let's modify `src/App.tsx`:
 import { useState } from "react";
 import { Issue } from "./schema";
 import { IssueComponent } from "./components/Issue.tsx";
-import { useCoState } from "jazz-react"; // [!code ++]
+import { useCoState } from "jazz-tools/react"; // [!code ++]
 import { ID } from "jazz-tools" // [!code ++]
 
 function App() {
@@ -388,7 +386,7 @@ So let's store the ID in the browser's URL and make sure our useState is in sync
 import { useState } from "react";
 import { Issue } from "./schema";
 import { IssueComponent } from "./components/Issue.tsx";
-import { useCoState } from "jazz-react";
+import { useCoState } from "jazz-tools/react";
 import { ID } from "jazz-tools"
 
 function App() {
@@ -447,7 +445,7 @@ All we have to do is create a new group to own each new issue and add "everyone"
 import { useState } from "react";
 import { Issue } from "./schema";
 import { IssueComponent } from "./components/Issue.tsx";
-import { useAccount, useCoState } from "jazz-react"; // [!code ++:2]
+import { useAccount, useCoState } from "jazz-tools/react"; // [!code ++:2]
 import { ID, Group } from "jazz-tools"
 
 function App() {
@@ -586,7 +584,7 @@ Create a new file `src/components/Project.tsx` and add the following:
 import { ID } from "jazz-tools";
 import { Project, Issue } from "../schema";
 import { IssueComponent } from "./Issue.tsx";
-import { useCoState } from "jazz-react";
+import { useCoState } from "jazz-tools/react";
 
 export function ProjectComponent({ projectID }: { projectID: ID<Project> }) {
     const project = useCoState(Project, projectID);
@@ -639,7 +637,7 @@ But you can also take more precise control over loading by defining a minimum-de
 import { ID } from "jazz-tools";
 import { Project, Issue } from "../schema";
 import { IssueComponent } from "./Issue.tsx";
-import { useCoState } from "jazz-react";
+import { useCoState } from "jazz-tools/react";
 
 export function ProjectComponent({ projectID }: { projectID: ID<Project> }) {
     const project = useCoState(
@@ -753,8 +751,8 @@ Now, inside ProjectComponent, let's add a button to invite guests (read-only) or
 import { ID } from "jazz-tools";
 import { Project, Issue } from "../schema";
 import { IssueComponent } from "./Issue.tsx";
-import { useCoState } from "jazz-react";
-import { createInviteLink } from "jazz-react"; // [!code ++]
+import { useCoState } from "jazz-tools/react";
+import { createInviteLink } from "jazz-tools/react"; // [!code ++]
 
 
 export function ProjectComponent({ projectID }: { projectID: ID<Project> }) {

@@ -2,17 +2,16 @@ import { randomUUID } from "node:crypto";
 import { unlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { LocalNode, cojsonInternals } from "cojson";
-import { StorageManagerSync } from "cojson-storage";
+import { LocalNode, StorageApiSync, cojsonInternals } from "cojson";
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { expect, onTestFinished, test, vi } from "vitest";
-import { SQLiteNode } from "../index.js";
+import { getBetterSqliteStorage } from "../index.js";
 import { toSimplifiedMessages } from "./messagesTestUtils.js";
 import { trackMessages, waitFor } from "./testUtils.js";
 
 const Crypto = await WasmCrypto.create();
 
-async function createSQLiteStorage(defaultDbPath?: string) {
+function createSQLiteStorage(defaultDbPath?: string) {
   const dbPath = defaultDbPath ?? join(tmpdir(), `test-${randomUUID()}.db`);
 
   if (!defaultDbPath) {
@@ -22,28 +21,10 @@ async function createSQLiteStorage(defaultDbPath?: string) {
   }
 
   return {
-    peer: await SQLiteNode.asPeer({
-      filename: dbPath,
-    }),
+    storage: getBetterSqliteStorage(dbPath),
     dbPath,
   };
 }
-
-test("Should be able to initialize and load from empty DB", async () => {
-  const agentSecret = Crypto.newRandomAgentSecret();
-
-  const node = new LocalNode(
-    agentSecret,
-    Crypto.newRandomSessionID(Crypto.getAgentID(agentSecret)),
-    Crypto,
-  );
-
-  node.syncManager.addPeer((await createSQLiteStorage()).peer);
-
-  await new Promise((resolve) => setTimeout(resolve, 200));
-
-  expect(node.syncManager.peers.storage).toBeDefined();
-});
 
 test("should sync and load data from storage", async () => {
   const agentSecret = Crypto.newRandomAgentSecret();
@@ -54,11 +35,11 @@ test("should sync and load data from storage", async () => {
     Crypto,
   );
 
-  const node1Sync = trackMessages(node1);
+  const node1Sync = trackMessages();
 
-  const { peer, dbPath } = await createSQLiteStorage();
+  const { storage, dbPath } = createSQLiteStorage();
 
-  node1.syncManager.addPeer(peer);
+  node1.setStorage(storage);
 
   const group = node1.createGroup();
 
@@ -79,9 +60,7 @@ test("should sync and load data from storage", async () => {
   ).toMatchInlineSnapshot(`
     [
       "client -> CONTENT Group header: true new: After: 0 New: 3",
-      "storage -> KNOWN Group sessions: header/3",
       "client -> CONTENT Map header: true new: After: 0 New: 1",
-      "storage -> KNOWN Map sessions: header/1",
     ]
   `);
 
@@ -93,11 +72,9 @@ test("should sync and load data from storage", async () => {
     Crypto,
   );
 
-  const node2Sync = trackMessages(node2);
+  const node2Sync = trackMessages();
 
-  const { peer: peer2 } = await createSQLiteStorage(dbPath);
-
-  node2.syncManager.addPeer(peer2);
+  node2.setStorage(createSQLiteStorage(dbPath).storage);
 
   const map2 = await node2.load(map.id);
   if (map2 === "unavailable") {
@@ -118,9 +95,7 @@ test("should sync and load data from storage", async () => {
     [
       "client -> LOAD Map sessions: empty",
       "storage -> CONTENT Group header: true new: After: 0 New: 3",
-      "client -> KNOWN Group sessions: header/3",
       "storage -> CONTENT Map header: true new: After: 0 New: 1",
-      "client -> KNOWN Map sessions: header/1",
     ]
   `);
 
@@ -136,11 +111,11 @@ test("should send an empty content message if there is no content", async () => 
     Crypto,
   );
 
-  const node1Sync = trackMessages(node1);
+  const node1Sync = trackMessages();
 
-  const { peer, dbPath } = await createSQLiteStorage();
+  const { storage, dbPath } = createSQLiteStorage();
 
-  node1.syncManager.addPeer(peer);
+  node1.setStorage(storage);
 
   const group = node1.createGroup();
 
@@ -159,9 +134,7 @@ test("should send an empty content message if there is no content", async () => 
   ).toMatchInlineSnapshot(`
     [
       "client -> CONTENT Group header: true new: After: 0 New: 3",
-      "storage -> KNOWN Group sessions: header/3",
       "client -> CONTENT Map header: true new: ",
-      "storage -> KNOWN Map sessions: header/0",
     ]
   `);
 
@@ -173,11 +146,9 @@ test("should send an empty content message if there is no content", async () => 
     Crypto,
   );
 
-  const node2Sync = trackMessages(node2);
+  const node2Sync = trackMessages();
 
-  const { peer: peer2 } = await createSQLiteStorage(dbPath);
-
-  node2.syncManager.addPeer(peer2);
+  node2.setStorage(createSQLiteStorage(dbPath).storage);
 
   const map2 = await node2.load(map.id);
   if (map2 === "unavailable") {
@@ -196,9 +167,7 @@ test("should send an empty content message if there is no content", async () => 
     [
       "client -> LOAD Map sessions: empty",
       "storage -> CONTENT Group header: true new: After: 0 New: 3",
-      "client -> KNOWN Group sessions: header/3",
       "storage -> CONTENT Map header: true new: ",
-      "client -> KNOWN Map sessions: header/0",
     ]
   `);
 
@@ -214,11 +183,11 @@ test("should load dependencies correctly (group inheritance)", async () => {
     Crypto,
   );
 
-  const node1Sync = trackMessages(node1);
+  const node1Sync = trackMessages();
 
-  const { peer, dbPath } = await createSQLiteStorage();
+  const { storage, dbPath } = createSQLiteStorage();
 
-  node1.syncManager.addPeer(peer);
+  node1.setStorage(storage);
 
   const group = node1.createGroup();
   const parentGroup = node1.createGroup();
@@ -242,12 +211,10 @@ test("should load dependencies correctly (group inheritance)", async () => {
     ),
   ).toMatchInlineSnapshot(`
     [
+      "client -> CONTENT Group header: true new: After: 0 New: 3",
       "client -> CONTENT ParentGroup header: true new: After: 0 New: 4",
-      "storage -> KNOWN ParentGroup sessions: header/4",
-      "client -> CONTENT Group header: true new: After: 0 New: 5",
-      "storage -> KNOWN Group sessions: header/5",
+      "client -> CONTENT Group header: false new: After: 3 New: 2",
       "client -> CONTENT Map header: true new: After: 0 New: 1",
-      "storage -> KNOWN Map sessions: header/1",
     ]
   `);
 
@@ -259,11 +226,9 @@ test("should load dependencies correctly (group inheritance)", async () => {
     Crypto,
   );
 
-  const node2Sync = trackMessages(node2);
+  const node2Sync = trackMessages();
 
-  const { peer: peer2 } = await createSQLiteStorage(dbPath);
-
-  node2.syncManager.addPeer(peer2);
+  node2.setStorage(createSQLiteStorage(dbPath).storage);
 
   await node2.load(map.id);
 
@@ -284,11 +249,8 @@ test("should load dependencies correctly (group inheritance)", async () => {
     [
       "client -> LOAD Map sessions: empty",
       "storage -> CONTENT ParentGroup header: true new: After: 0 New: 4",
-      "client -> KNOWN ParentGroup sessions: header/4",
       "storage -> CONTENT Group header: true new: After: 0 New: 5",
-      "client -> KNOWN Group sessions: header/5",
       "storage -> CONTENT Map header: true new: After: 0 New: 1",
-      "client -> KNOWN Map sessions: header/1",
     ]
   `);
 });
@@ -302,11 +264,11 @@ test("should not send the same dependency value twice", async () => {
     Crypto,
   );
 
-  const node1Sync = trackMessages(node1);
+  const node1Sync = trackMessages();
 
-  const { peer, dbPath } = await createSQLiteStorage();
+  const { storage, dbPath } = createSQLiteStorage();
 
-  node1.syncManager.addPeer(peer);
+  node1.setStorage(storage);
 
   const group = node1.createGroup();
   const parentGroup = node1.createGroup();
@@ -329,11 +291,9 @@ test("should not send the same dependency value twice", async () => {
     Crypto,
   );
 
-  const node2Sync = trackMessages(node2);
+  const node2Sync = trackMessages();
 
-  const { peer: peer2 } = await createSQLiteStorage(dbPath);
-
-  node2.syncManager.addPeer(peer2);
+  node2.setStorage(createSQLiteStorage(dbPath).storage);
 
   await node2.load(map.id);
   await node2.load(mapFromParent.id);
@@ -357,14 +317,10 @@ test("should not send the same dependency value twice", async () => {
     [
       "client -> LOAD Map sessions: empty",
       "storage -> CONTENT ParentGroup header: true new: After: 0 New: 4",
-      "client -> KNOWN ParentGroup sessions: header/4",
       "storage -> CONTENT Group header: true new: After: 0 New: 5",
-      "client -> KNOWN Group sessions: header/5",
       "storage -> CONTENT Map header: true new: After: 0 New: 1",
-      "client -> KNOWN Map sessions: header/1",
       "client -> LOAD MapFromParent sessions: empty",
       "storage -> CONTENT MapFromParent header: true new: After: 0 New: 1",
-      "client -> KNOWN MapFromParent sessions: header/1",
     ]
   `);
 });
@@ -378,11 +334,11 @@ test("should recover from data loss", async () => {
     Crypto,
   );
 
-  const node1Sync = trackMessages(node1);
+  const node1Sync = trackMessages();
 
-  const { peer, dbPath } = await createSQLiteStorage();
+  const { storage, dbPath } = createSQLiteStorage();
 
-  node1.syncManager.addPeer(peer);
+  node1.setStorage(storage);
 
   const group = node1.createGroup();
 
@@ -393,8 +349,8 @@ test("should recover from data loss", async () => {
   await new Promise((resolve) => setTimeout(resolve, 200));
 
   const mock = vi
-    .spyOn(StorageManagerSync.prototype, "handleSyncMessage")
-    .mockImplementation(() => Promise.resolve());
+    .spyOn(StorageApiSync.prototype, "store")
+    .mockImplementation(() => false);
 
   map.set("1", 1);
   map.set("2", 2);
@@ -418,13 +374,10 @@ test("should recover from data loss", async () => {
   ).toMatchInlineSnapshot(`
     [
       "client -> CONTENT Group header: true new: After: 0 New: 3",
-      "storage -> KNOWN Group sessions: header/3",
       "client -> CONTENT Map header: true new: After: 0 New: 1",
-      "storage -> KNOWN Map sessions: header/1",
       "client -> CONTENT Map header: false new: After: 3 New: 1",
-      "storage -> KNOWN CORRECTION Map sessions: header/1",
+      "storage -> KNOWN CORRECTION Map sessions: header/4",
       "client -> CONTENT Map header: false new: After: 1 New: 3",
-      "storage -> KNOWN Map sessions: header/4",
     ]
   `);
 
@@ -436,11 +389,9 @@ test("should recover from data loss", async () => {
     Crypto,
   );
 
-  const node2Sync = trackMessages(node2);
+  const node2Sync = trackMessages();
 
-  const { peer: peer2 } = await createSQLiteStorage(dbPath);
-
-  node2.syncManager.addPeer(peer2);
+  node2.setStorage(createSQLiteStorage(dbPath).storage);
 
   const map2 = await node2.load(map.id);
 
@@ -467,9 +418,7 @@ test("should recover from data loss", async () => {
     [
       "client -> LOAD Map sessions: empty",
       "storage -> CONTENT Group header: true new: After: 0 New: 3",
-      "client -> KNOWN Group sessions: header/3",
       "storage -> CONTENT Map header: true new: After: 0 New: 4",
-      "client -> KNOWN Map sessions: header/4",
     ]
   `);
 });
@@ -500,24 +449,25 @@ test("should recover missing dependencies from storage", async () => {
   node1.syncManager.addPeer(serverPeer);
   serverNode.syncManager.addPeer(clientPeer);
 
-  const handleSyncMessage = StorageManagerSync.prototype.handleSyncMessage;
+  const store = StorageApiSync.prototype.store;
 
   const mock = vi
-    .spyOn(StorageManagerSync.prototype, "handleSyncMessage")
-    .mockImplementation(function (this: StorageManagerSync, msg) {
-      if (
-        msg.action === "content" &&
-        [group.core.id, account.core.id].includes(msg.id)
-      ) {
-        return Promise.resolve();
+    .spyOn(StorageApiSync.prototype, "store")
+    .mockImplementation(function (
+      this: StorageApiSync,
+      data,
+      correctionCallback,
+    ) {
+      if ([group.core.id, account.core.id as string].includes(data.id)) {
+        return false;
       }
 
-      return handleSyncMessage.call(this, msg);
+      return store.call(this, data, correctionCallback);
     });
 
-  const { peer, dbPath } = await createSQLiteStorage();
+  const { storage, dbPath } = createSQLiteStorage();
 
-  node1.syncManager.addPeer(peer);
+  node1.setStorage(storage);
 
   const group = node1.createGroup();
   group.addMember("everyone", "writer");
@@ -548,9 +498,7 @@ test("should recover missing dependencies from storage", async () => {
   node2.syncManager.addPeer(serverPeer2);
   serverNode.syncManager.addPeer(clientPeer2);
 
-  const { peer: peer2 } = await createSQLiteStorage(dbPath);
-
-  node2.syncManager.addPeer(peer2);
+  node2.setStorage(createSQLiteStorage(dbPath).storage);
 
   const map2 = await node2.load(map.id);
 
@@ -572,9 +520,9 @@ test("should sync multiple sessions in a single content message", async () => {
     Crypto,
   );
 
-  const { peer, dbPath } = await createSQLiteStorage();
+  const { storage, dbPath } = createSQLiteStorage();
 
-  node1.syncManager.addPeer(peer);
+  node1.setStorage(storage);
 
   const group = node1.createGroup();
 
@@ -592,7 +540,7 @@ test("should sync multiple sessions in a single content message", async () => {
     Crypto,
   );
 
-  node2.syncManager.addPeer((await createSQLiteStorage(dbPath)).peer);
+  node2.setStorage(createSQLiteStorage(dbPath).storage);
 
   const map2 = await node2.load(map.id);
   if (map2 === "unavailable") {
@@ -613,9 +561,9 @@ test("should sync multiple sessions in a single content message", async () => {
     Crypto,
   );
 
-  const node3Sync = trackMessages(node3);
+  const node3Sync = trackMessages();
 
-  node3.syncManager.addPeer((await createSQLiteStorage(dbPath)).peer);
+  node3.setStorage(createSQLiteStorage(dbPath).storage);
 
   const map3 = await node3.load(map.id);
   if (map3 === "unavailable") {
@@ -636,9 +584,7 @@ test("should sync multiple sessions in a single content message", async () => {
     [
       "client -> LOAD Map sessions: empty",
       "storage -> CONTENT Group header: true new: After: 0 New: 3",
-      "client -> KNOWN Group sessions: header/3",
       "storage -> CONTENT Map header: true new: After: 0 New: 1 | After: 0 New: 1",
-      "client -> KNOWN Map sessions: header/2",
     ]
   `);
 
@@ -654,9 +600,9 @@ test("large coValue upload streaming", async () => {
     Crypto,
   );
 
-  const { peer, dbPath } = await createSQLiteStorage();
+  const { storage, dbPath } = createSQLiteStorage();
 
-  node1.syncManager.addPeer(peer);
+  node1.setStorage(storage);
 
   const group = node1.createGroup();
   const largeMap = group.createMap();
@@ -682,11 +628,9 @@ test("large coValue upload streaming", async () => {
     Crypto,
   );
 
-  const node2Sync = trackMessages(node2);
+  const node2Sync = trackMessages();
 
-  const { peer: peer2 } = await createSQLiteStorage(dbPath);
-
-  node2.syncManager.addPeer(peer2);
+  node2.setStorage(createSQLiteStorage(dbPath).storage);
 
   const largeMapOnNode2 = await node2.load(largeMap.id);
 
@@ -713,15 +657,9 @@ test("large coValue upload streaming", async () => {
   ).toMatchInlineSnapshot(`
     [
       "client -> LOAD Map sessions: empty",
-      "storage -> KNOWN Map sessions: header/200",
       "storage -> CONTENT Group header: true new: After: 0 New: 3",
-      "client -> KNOWN Group sessions: header/3",
-      "storage -> CONTENT Map header: true new: After: 0 New: 97",
-      "client -> KNOWN Map sessions: header/97",
-      "storage -> CONTENT Map header: true new: After: 97 New: 97",
-      "client -> KNOWN Map sessions: header/194",
-      "storage -> CONTENT Map header: true new: After: 194 New: 6",
-      "client -> KNOWN Map sessions: header/200",
+      "storage -> CONTENT Map header: true new: After: 0 New: 193",
+      "storage -> CONTENT Map header: true new: After: 193 New: 7",
     ]
   `);
 });

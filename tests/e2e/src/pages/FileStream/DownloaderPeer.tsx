@@ -1,5 +1,5 @@
-import { useAccount, useCoState } from "jazz-react";
 import { Account, FileStream } from "jazz-tools";
+import { useAccount, useCoState } from "jazz-tools/react";
 import { useEffect, useState } from "react";
 import { UploadedFile } from "./schema";
 export function DownloaderPeer(props: { testCoMapId: string }) {
@@ -8,6 +8,10 @@ export function DownloaderPeer(props: { testCoMapId: string }) {
   const [synced, setSynced] = useState(false);
 
   useEffect(() => {
+    if (!account.me) {
+      return;
+    }
+
     async function run(me: Account, uploadedFileId: string) {
       const uploadedFile = await UploadedFile.load(uploadedFileId, {
         loadAs: me,

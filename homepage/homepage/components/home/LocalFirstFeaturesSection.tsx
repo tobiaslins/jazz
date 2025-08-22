@@ -53,7 +53,7 @@ export function LocalFirstFeaturesSection() {
   return (
     <div>
       <SectionHeader
-        title="The best of all worlds"
+        title="Local-first state with global sync"
         slogan={
           <>
             <p>

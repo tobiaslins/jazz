@@ -1,4 +1,4 @@
-import { useAcceptInvite, useAccount } from "jazz-react";
+import { useAcceptInvite, useAccount } from "jazz-tools/react";
 import { useNavigate } from "react-router";
 import { JazzAccount, Organization } from "./schema.ts";
 

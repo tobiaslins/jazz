@@ -1,12 +1,12 @@
 export const metadata = {
-  description: "Configure your JazzProvider - the core component that connects your app to Jazz, handling sync, storage, account schema, and auth."
+  description: "Configure your JazzExpoProvider - the core component that connects your app to Jazz, handling sync, storage, account schema, and auth."
 };
 
 import { CodeGroup } from "@/components/forMdx";
 
 # Providers
 
-`<JazzProvider />` is the core component that connects your Expo application to Jazz. It handles:
+`<JazzExpoProvider />` is the core component that connects your Expo application to Jazz. It handles:
 
 - **Data Synchronization**: Manages connections to peers and the Jazz cloud
 - **Local Storage**: Persists data locally between app sessions
@@ -15,33 +15,24 @@ import { CodeGroup } from "@/components/forMdx";
 
 ## Setting up the provider
 
-Wrap your app components with the `<JazzProvider />` component:
+Wrap your app components with the `<JazzExpoProvider />` component:
 
 <CodeGroup>
 ```tsx twoslash
-const apiKey = "Replace with API key from dashboard.jazz.tools";
-// ---cut---
 // @noErrors: 2307 7031 2304 2686 2664
 // App.tsx
-import { JazzProvider } from "jazz-expo";
+import { JazzExpoProvider } from "jazz-tools/expo";
 import { MyAppAccount } from "./schema";
 
 export function MyJazzProvider({ children }: { children: React.ReactNode }) {
   return (
-    <JazzProvider
-      sync={{ peer: `wss://cloud.jazz.tools/?key=${apiKey}` }}
+    <JazzExpoProvider
+      sync={{ peer: "wss://cloud.jazz.tools/?key=you@example.com" }}
       AccountSchema={MyAppAccount}
     >
       {children}
-    </JazzProvider>
+    </JazzExpoProvider>
   );
-}
-
-// Register the Account schema so `useAccount` returns our custom `MyAppAccount`
-declare module "jazz-expo" {
-  interface Register {
-    Account: MyAppAccount;
-  }
 }
 ```
 </CodeGroup>
@@ -58,9 +49,9 @@ declare module "jazz-expo" {
 
 ## Authentication in the Provider
 
-`<JazzProvider />` works with various authentication methods, with PassphraseAuth being the easiest way to get started for development and testing. For authentication details, refer to our [Authentication Overview](/docs/authentication/overview) guide.
+`<JazzExpoProvider />` works with various authentication methods, with PassphraseAuth being the easiest way to get started for development and testing. For authentication details, refer to our [Authentication Overview](/docs/authentication/overview) guide.
 
-The authentication hooks must always be used inside the `<JazzProvider />` component.
+The authentication hooks must always be used inside the `<JazzExpoProvider />` component.
 
 Implementing PassphraseAuth is straightforward:
 
@@ -75,10 +66,9 @@ import React, { ReactNode } from "react";
 function SignInScreen({ auth }: { auth: any }) {
   return null;
 }
-const apiKey = "Replace with API key from dashboard.jazz.tools";
 // ---cut-before---
 // Example with PassphraseAuth
-import { JazzProvider, usePassphraseAuth } from "jazz-expo";
+import { JazzExpoProvider, usePassphraseAuth } from "jazz-tools/expo";
 import { englishWordlist } from "./wordlist";
 
 function JazzAuthentication({ children }: { children: ReactNode }) {
@@ -97,13 +87,13 @@ function JazzAuthentication({ children }: { children: ReactNode }) {
 
 function AuthenticatedProvider({ children }: { children: ReactNode }) {
   return (
-    <JazzProvider
-      sync={{ peer: `wss://cloud.jazz.tools/?key=${apiKey}`}}
+    <JazzExpoProvider
+      sync={{ peer: "wss://cloud.jazz.tools/?key=you@example.com" }}
     >
       <JazzAuthentication>
         {children}
       </JazzAuthentication>
-    </JazzProvider>
+    </JazzExpoProvider>
   );
 }
 ```
@@ -119,3 +109,61 @@ Jazz for Expo includes built-in local persistence using SQLite. Following Expo's
 - **Key-Value Storage**: `expo-secure-store` - Expo's secure storage system
 
 Local persistence is enabled by default with no additional configuration required. Your data will automatically persist across app restarts.
+
+## Quick Crypto
+
+For accelerated crypto operations, you can use the `RNQuickCrypto` crypto provider. 
+
+To use it, install the following Packages:
+
+<CodeGroup>
+```bash
+pnpm add react-native-quick-crypto@1.0.0-beta.18 react-native-nitro-modules react-native-fast-encoder
+```
+</CodeGroup>
+
+Then add the following to your `JazzExpoProvider`:
+
+<CodeGroup>
+```tsx twoslash
+// @noErrors: 2307 2322
+import React, { ReactNode } from "react";
+function SignInScreen({ auth }: { auth: any }) {
+  return null;
+}
+// ---cut-before---
+import { JazzExpoProvider } from "jazz-tools/expo";
+import { RNQuickCrypto } from "jazz-tools/expo/crypto";
+
+function MyJazzProvider({ children }: { children: ReactNode }) {
+  return (
+    <JazzExpoProvider
+      sync={{ peer: "wss://cloud.jazz.tools/?key=your-api-key" }}
+      CryptoProvider={RNQuickCrypto}
+    >
+      {children}
+    </JazzExpoProvider>
+  );
+}
+```
+</CodeGroup>
+
+For configuration, use the RNQC Expo config plugin:
+
+<CodeGroup>
+```json twoslash
+// app.json
+{
+  "expo": {
+    "plugins": [
+      [
+        "react-native-quick-crypto",
+        {
+          "sodiumEnabled": true
+        }
+      ]
+    ]
+  }
+}
+```
+</CodeGroup>

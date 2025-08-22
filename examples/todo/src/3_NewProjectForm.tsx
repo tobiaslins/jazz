@@ -4,14 +4,16 @@ import { Task, TodoAccount, TodoProject } from "./1_schema";
 
 import { SubmittableInput } from "./basicComponents";
 
-import { useAccount } from "jazz-react";
 import { Group, co } from "jazz-tools";
+import { useAccount } from "jazz-tools/react";
 import { useNavigate } from "react-router";
 
 export function NewProjectForm() {
   // `me` represents the current user account, which will determine
   // access rights to CoValues. We get it from the top-level provider `<WithJazz/>`.
-  const { me } = useAccount(TodoAccount);
+  const { me } = useAccount(TodoAccount, {
+    resolve: { root: { projects: { $each: { $onError: null } } } },
+  });
   const navigate = useNavigate();
 
   const createProject = useCallback(

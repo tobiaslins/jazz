@@ -1,12 +1,15 @@
 import { Playlist } from "@/1_schema";
 import { updatePlaylistTitle } from "@/4_actions";
-import { useCoState } from "jazz-react";
+import { cn } from "@/lib/utils";
+import { useCoState } from "jazz-tools/react";
 import { ChangeEvent, useState } from "react";
 
 export function PlaylistTitleInput({
   playlistId,
+  className,
 }: {
   playlistId: string | undefined;
+  className?: string;
 }) {
   const playlist = useCoState(Playlist, playlistId);
   const [isEditing, setIsEditing] = useState(false);
@@ -33,7 +36,10 @@ export function PlaylistTitleInput({
     <input
       value={inputValue}
       onChange={handleTitleChange}
-      className="text-2xl font-bold text-blue-800 bg-transparent"
+      className={cn(
+        "text-2xl font-bold text-blue-800 bg-transparent",
+        className,
+      )}
       onFocus={handleFoucsIn}
       onBlur={handleFocusOut}
       aria-label={`Playlist title`}

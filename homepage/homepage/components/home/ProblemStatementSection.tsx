@@ -6,10 +6,10 @@ import { SectionHeader } from "@garden-co/design-system/src/components/molecules
 
 export default function ProblemStatementSection() {
   return (
-    <div className="container grid gap-4 lg:gap-8">
+    <div className="grid gap-4 lg:gap-8">
       <SectionHeader
         className="sm:text-center sm:mx-auto"
-        title={"Powered by the first “flat stack”"}
+        title={"A database that does what's actually needed"}
         slogan="A perspective shift worth 10,000 hours"
       />
 
@@ -41,8 +41,7 @@ export default function ProblemStatementSection() {
           <Prose>
             <p>
               For each new app you tackle a{" "}
-              <strong>mess of moving parts and infra worries.</strong> Or, you
-              haven't even tried because "you're not full-stack".
+              <strong>mess of moving parts and infra worries.</strong> Your backend is responsible for shuffling data around in a myriad of ways.
             </p>
             <p>
               Want to build a <strong>modern app</strong> with multiplayer or
@@ -68,7 +67,7 @@ export default function ProblemStatementSection() {
               <strong>With users &amp; permissions built-in.</strong>
             </p>
             <p>
-              With completely <strong>app-independent infra,</strong> you get to
+              With a <strong>DB and infra made for modern apps</strong> you get to
               focus on <strong>building the app your users want.</strong> You'll
               notice that <strong>90% of the work is now the UI.</strong>
             </p>

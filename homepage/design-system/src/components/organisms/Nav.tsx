@@ -134,6 +134,7 @@ export function MobileNav({
   sections,
   themeToggle: ThemeToggle,
   navBarClassName,
+  cta,
 }: NavProps & {
   navBarClassName?: string;
 }) {
@@ -169,6 +170,7 @@ export function MobileNav({
                 {item.title}
               </NavLink>
             ))}
+          {cta}
         </div>
       </>
     ),
@@ -362,14 +364,14 @@ export function Nav(props: NavProps) {
             />
           ))}
 
+          {cta}
+
           <SocialLinks
             {...props.socials}
             className={
               !items.find((item) => item.firstOnRight) ? "ml-auto" : ""
             }
           />
-
-          {cta}
         </PopoverGroup>
       </div>
       {!hideMobileNav && <MobileNav {...props} />}

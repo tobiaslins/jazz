@@ -1,15 +1,15 @@
 import { Result, err, ok } from "neverthrow";
-import { CoID } from "./coValue.js";
-import { RawCoValue } from "./coValue.js";
+import { GarbageCollector } from "./GarbageCollector.js";
+import type { CoID } from "./coValue.js";
+import type { RawCoValue } from "./coValue.js";
 import {
-  AvailableCoValueCore,
-  CO_VALUE_LOADING_CONFIG,
+  type AvailableCoValueCore,
   CoValueCore,
   idforHeader,
 } from "./coValueCore/coValueCore.js";
 import {
-  CoValueHeader,
-  CoValueUniqueness,
+  type CoValueHeader,
+  type CoValueUniqueness,
   VerifiedState,
 } from "./coValueCore/verifiedState.js";
 import {
@@ -27,13 +27,15 @@ import {
   expectAccount,
 } from "./coValues/account.js";
 import {
-  InviteSecret,
-  RawGroup,
+  type InviteSecret,
+  type RawGroup,
   secretSeedFromInviteSecret,
 } from "./coValues/group.js";
+import { CO_VALUE_LOADING_CONFIG, GARBAGE_COLLECTOR_CONFIG } from "./config.js";
 import { AgentSecret, CryptoProvider } from "./crypto/crypto.js";
 import { AgentID, RawCoID, SessionID, isAgentID } from "./ids.js";
 import { logger } from "./logger.js";
+import { StorageAPI } from "./storage/index.js";
 import { Peer, PeerID, SyncManager } from "./sync.js";
 import { accountOrAgentIDfromSessionID } from "./typeUtils/accountOrAgentIDfromSessionID.js";
 import { expectGroup } from "./typeUtils/expectGroup.js";
@@ -62,7 +64,10 @@ export class LocalNode {
   /** @category 3. Low-level */
   syncManager = new SyncManager(this);
 
+  garbageCollector: GarbageCollector | undefined = undefined;
   crashed: Error | undefined = undefined;
+
+  storage?: StorageAPI;
 
   /** @category 3. Low-level */
   constructor(
@@ -75,6 +80,23 @@ export class LocalNode {
     this.crypto = crypto;
   }
 
+  enableGarbageCollector() {
+    if (this.garbageCollector) {
+      return;
+    }
+
+    this.garbageCollector = new GarbageCollector(this.coValues);
+  }
+
+  setStorage(storage: StorageAPI) {
+    this.storage = storage;
+  }
+
+  removeStorage() {
+    this.storage?.close();
+    this.storage = undefined;
+  }
+
   getCoValue(id: RawCoID) {
     let entry = this.coValues.get(id);
 
@@ -82,6 +104,8 @@ export class LocalNode {
       entry = CoValueCore.fromID(id, this);
       this.coValues.set(id, entry);
     }
+
+    this.garbageCollector?.trackCoValueAccess(entry);
 
     return entry;
   }
@@ -108,17 +132,25 @@ export class LocalNode {
     return accountOrAgentIDfromSessionID(this.currentSessionID);
   }
 
+  _cachedCurrentAgent: ControlledAccountOrAgent | undefined;
   getCurrentAgent(): ControlledAccountOrAgent {
-    const accountOrAgent = this.getCurrentAccountOrAgentID();
-    if (isAgentID(accountOrAgent)) {
-      return new ControlledAgent(this.agentSecret, this.crypto);
+    if (!this._cachedCurrentAgent) {
+      const accountOrAgent = this.getCurrentAccountOrAgentID();
+      if (isAgentID(accountOrAgent)) {
+        this._cachedCurrentAgent = new ControlledAgent(
+          this.agentSecret,
+          this.crypto,
+        );
+      } else {
+        this._cachedCurrentAgent = new ControlledAccount(
+          expectAccount(
+            this.expectCoValueLoaded(accountOrAgent).getCurrentContent(),
+          ),
+          this.agentSecret,
+        );
+      }
     }
-    return new ControlledAccount(
-      expectAccount(
-        this.expectCoValueLoaded(accountOrAgent).getCurrentContent(),
-      ),
-      this.agentSecret,
-    );
+    return this._cachedCurrentAgent;
   }
 
   expectCurrentAccountID(reason: string): RawAccountID {
@@ -142,6 +174,7 @@ export class LocalNode {
     crypto: CryptoProvider;
     initialAgentSecret?: AgentSecret;
     peersToLoadFrom?: Peer[];
+    storage?: StorageAPI;
   }): RawAccount {
     const {
       crypto,
@@ -159,6 +192,10 @@ export class LocalNode {
       crypto.newRandomSessionID(accountID as RawAccountID),
       crypto,
     );
+
+    if (opts.storage) {
+      node.setStorage(opts.storage);
+    }
 
     for (const peer of peersToLoadFrom) {
       node.syncManager.addPeer(peer);
@@ -198,12 +235,14 @@ export class LocalNode {
     migration,
     crypto,
     initialAgentSecret = crypto.newRandomAgentSecret(),
+    storage,
   }: {
     creationProps: { name: string };
     peersToLoadFrom?: Peer[];
     migration?: RawAccountMigration<AccountMeta>;
     crypto: CryptoProvider;
     initialAgentSecret?: AgentSecret;
+    storage?: StorageAPI;
   }): Promise<{
     node: LocalNode;
     accountID: RawAccountID;
@@ -214,6 +253,7 @@ export class LocalNode {
       crypto,
       initialAgentSecret,
       peersToLoadFrom,
+      storage,
     });
     const node = account.core.node;
 
@@ -234,7 +274,7 @@ export class LocalNode {
       throw new Error("Must set account profile in initial migration");
     }
 
-    if (node.syncManager.hasStoragePeers()) {
+    if (node.storage) {
       await Promise.all([
         node.syncManager.waitForStorageSync(account.id),
         node.syncManager.waitForStorageSync(profileId),
@@ -257,6 +297,7 @@ export class LocalNode {
     peersToLoadFrom,
     crypto,
     migration,
+    storage,
   }: {
     accountID: RawAccountID;
     accountSecret: AgentSecret;
@@ -264,6 +305,7 @@ export class LocalNode {
     peersToLoadFrom: Peer[];
     crypto: CryptoProvider;
     migration?: RawAccountMigration<AccountMeta>;
+    storage?: StorageAPI;
   }): Promise<LocalNode> {
     try {
       const node = new LocalNode(
@@ -271,6 +313,10 @@ export class LocalNode {
         sessionID || crypto.newRandomSessionID(accountID),
         crypto,
       );
+
+      if (storage) {
+        node.setStorage(storage);
+      }
 
       for (const peer of peersToLoadFrom) {
         node.syncManager.addPeer(peer);
@@ -285,6 +331,15 @@ export class LocalNode {
       const profileID = account.get("profile");
       if (!profileID) {
         throw new Error("Account has no profile");
+      }
+
+      const rootID = account.get("root");
+      if (rootID) {
+        const rawEntry = account.getRaw("root");
+
+        if (!rawEntry?.trusting) {
+          account.set("root", rootID, "trusting");
+        }
       }
 
       // Preload the profile
@@ -313,10 +368,11 @@ export class LocalNode {
 
     const coValue = this.putCoValue(
       id,
-      new VerifiedState(id, this.crypto, header, new Map()),
+      new VerifiedState(id, this.crypto, header),
     );
 
-    void this.syncManager.requestCoValueSync(coValue);
+    this.garbageCollector?.trackCoValueAccess(coValue);
+    this.syncManager.syncHeader(coValue.verified);
 
     return coValue;
   }
@@ -325,13 +381,12 @@ export class LocalNode {
   async loadCoValueCore(
     id: RawCoID,
     skipLoadingFromPeer?: PeerID,
+    skipRetry?: boolean,
   ): Promise<CoValueCore> {
-    if (!id) {
-      throw new Error("Trying to load CoValue with undefined id");
-    }
-
-    if (!id.startsWith("co_z")) {
-      throw new Error(`Trying to load CoValue with invalid id ${id}`);
+    if (typeof id !== "string" || !id.startsWith("co_z")) {
+      throw new TypeError(
+        `Trying to load CoValue with invalid id ${Array.isArray(id) ? JSON.stringify(id) : id}`,
+      );
     }
 
     if (this.crashed) {
@@ -353,25 +408,19 @@ export class LocalNode {
         coValue.loadingState === "unknown" ||
         coValue.loadingState === "unavailable"
       ) {
-        const peers =
-          this.syncManager.getServerAndStoragePeers(skipLoadingFromPeer);
+        const peers = this.syncManager.getServerPeers(skipLoadingFromPeer);
 
-        if (peers.length === 0) {
+        if (!this.storage && peers.length === 0) {
           return coValue;
         }
 
-        coValue.loadFromPeers(peers).catch((e) => {
-          logger.error("Error loading from peers", {
-            id,
-            err: e,
-          });
-        });
+        coValue.load(peers);
       }
 
       const result = await coValue.waitForAvailableOrUnavailable();
-
       if (
         result.isAvailable() ||
+        skipRetry ||
         retries >= CO_VALUE_LOADING_CONFIG.MAX_RETRIES
       ) {
         return result;
@@ -395,8 +444,11 @@ export class LocalNode {
    *
    * @category 3. Low-level
    */
-  async load<T extends RawCoValue>(id: CoID<T>): Promise<T | "unavailable"> {
-    const core = await this.loadCoValueCore(id);
+  async load<T extends RawCoValue>(
+    id: CoID<T>,
+    skipRetry?: boolean,
+  ): Promise<T | "unavailable"> {
+    const core = await this.loadCoValueCore(id, undefined, skipRetry);
 
     if (!core.isAvailable()) {
       return "unavailable";
@@ -419,11 +471,12 @@ export class LocalNode {
   subscribe<T extends RawCoValue>(
     id: CoID<T>,
     callback: (update: T | "unavailable") => void,
+    skipRetry?: boolean,
   ): () => void {
     let stopped = false;
     let unsubscribe!: () => void;
 
-    this.load(id)
+    this.load(id, skipRetry)
       .then((coValue) => {
         if (stopped) {
           return;
@@ -540,15 +593,14 @@ export class LocalNode {
             : "reader",
     );
 
-    group.core.internalShamefullyCloneVerifiedStateFrom(
-      groupAsInvite.core.verified,
-      { forceOverwrite: true },
-    );
+    const contentPieces =
+      groupAsInvite.core.verified.newContentSince(group.core.knownState()) ??
+      [];
 
-    group.processNewTransactions();
-
-    group.core.notifyUpdate("immediate");
-    this.syncManager.requestCoValueSync(group.core);
+    // Import the new transactions to the current localNode
+    for (const contentPiece of contentPieces) {
+      this.syncManager.handleNewContent(contentPiece, "import");
+    }
   }
 
   /** @internal */
@@ -707,8 +759,15 @@ export class LocalNode {
     }
   }
 
-  gracefulShutdown() {
+  /**
+   * Closes all the peer connections, drains all the queues and closes the storage.
+   *
+   * @returns Promise of the current pending store operation, if any.
+   */
+  gracefulShutdown(): Promise<unknown> | undefined {
     this.syncManager.gracefulShutdown();
+    this.garbageCollector?.stop();
+    return this.storage?.close();
   }
 }
 

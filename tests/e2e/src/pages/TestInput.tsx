@@ -1,5 +1,5 @@
-import { useAccount, useCoState } from "jazz-react";
 import { CoMap, Group, ID, coField } from "jazz-tools";
+import { useAccount, useCoState } from "jazz-tools/react";
 import { useEffect, useState } from "react";
 
 export class InputTestCoMap extends CoMap {

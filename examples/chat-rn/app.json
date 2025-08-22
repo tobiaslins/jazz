@@ -2,9 +2,9 @@
   "name": "ChatRN",
   "displayName": "ChatRN",
   "android": {
-    "package": "com.anonymous.ChatRN"
+    "package": "tools.jazz.chatrn"
   },
   "ios": {
-    "bundleIdentifier": "com.anonymous.ChatRN"
+    "bundleIdentifier": "tools.jazz.chatrn"
   }
 }

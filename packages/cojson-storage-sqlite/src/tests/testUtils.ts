@@ -1,36 +1,75 @@
-import type { LocalNode, SyncMessage } from "cojson";
-import { StorageManagerSync } from "cojson-storage";
+import type { LocalNode, RawCoID, SyncMessage } from "cojson";
+import { StorageApiSync } from "cojson";
 import { onTestFinished } from "vitest";
 
-export function trackMessages(node: LocalNode) {
+export function trackMessages() {
   const messages: {
     from: "client" | "server" | "storage";
     msg: SyncMessage;
   }[] = [];
 
-  const originalHandleSyncMessage =
-    StorageManagerSync.prototype.handleSyncMessage;
-  const originalNodeSyncMessage = node.syncManager.handleSyncMessage;
+  const originalLoad = StorageApiSync.prototype.load;
+  const originalStore = StorageApiSync.prototype.store;
 
-  StorageManagerSync.prototype.handleSyncMessage = async function (msg) {
+  StorageApiSync.prototype.load = async function (id, callback, done) {
     messages.push({
       from: "client",
-      msg,
+      msg: {
+        action: "load",
+        id: id as RawCoID,
+        header: false,
+        sessions: {},
+      },
     });
-    return originalHandleSyncMessage.call(this, msg);
+    return originalLoad.call(
+      this,
+      id,
+      (msg) => {
+        messages.push({
+          from: "storage",
+          msg,
+        });
+        callback(msg);
+      },
+      done,
+    );
   };
 
-  node.syncManager.handleSyncMessage = async function (msg, peer) {
+  StorageApiSync.prototype.store = function (data, correctionCallback) {
     messages.push({
-      from: "storage",
-      msg,
+      from: "client",
+      msg: data,
     });
-    return originalNodeSyncMessage.call(this, msg, peer);
+
+    return originalStore.call(this, data, (msg) => {
+      messages.push({
+        from: "storage",
+        msg: {
+          action: "known",
+          isCorrection: true,
+          ...msg,
+        },
+      });
+
+      const correctionMessages = correctionCallback(msg);
+
+      if (correctionMessages) {
+        for (const msg of correctionMessages) {
+          messages.push({
+            from: "client",
+            msg,
+          });
+        }
+      }
+
+      return correctionMessages;
+    });
   };
 
   const restore = () => {
-    StorageManagerSync.prototype.handleSyncMessage = originalHandleSyncMessage;
-    node.syncManager.handleSyncMessage = originalNodeSyncMessage;
+    StorageApiSync.prototype.load = originalLoad;
+    StorageApiSync.prototype.store = originalStore;
+    messages.length = 0;
   };
 
   onTestFinished(() => {

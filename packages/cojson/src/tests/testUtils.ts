@@ -12,17 +12,27 @@ import {
   type AgentSecret,
   type CoID,
   type CoValueCore,
+  CryptoProvider,
   type RawAccount,
   type RawCoValue,
+  StorageAPI,
 } from "../exports.js";
-import type { SessionID } from "../ids.js";
+import type { RawCoID, SessionID } from "../ids.js";
 import { LocalNode } from "../localNode.js";
 import { connectedPeers } from "../streamUtils.js";
 import type { Peer, SyncMessage } from "../sync.js";
 import { expectGroup } from "../typeUtils/expectGroup.js";
 import { toSimplifiedMessages } from "./messagesTestUtils.js";
+import { createAsyncStorage, createSyncStorage } from "./testStorage.js";
+import { PureJSCrypto } from "../crypto/PureJSCrypto.js";
 
-const Crypto = await WasmCrypto.create();
+let Crypto = await WasmCrypto.create();
+
+export function setCurrentTestCryptoProvider(
+  crypto: WasmCrypto | PureJSCrypto,
+) {
+  Crypto = crypto;
+}
 
 const syncServer: {
   current: undefined | LocalNode;
@@ -36,6 +46,14 @@ export function randomAgentAndSessionID(): [ControlledAgent, SessionID] {
   const sessionID = Crypto.newRandomSessionID(Crypto.getAgentID(agentSecret));
 
   return [new ControlledAgent(agentSecret, Crypto), sessionID];
+}
+
+export function agentAndSessionIDFromSecret(
+  secret: AgentSecret,
+): [ControlledAgent, SessionID] {
+  const sessionID = Crypto.newRandomSessionID(Crypto.getAgentID(secret));
+
+  return [new ControlledAgent(secret, Crypto), sessionID];
 }
 
 export function nodeWithRandomAgentAndSessionID() {
@@ -152,8 +170,8 @@ export function connectTwoPeers(
   bRole: "client" | "server",
 ) {
   const [aAsPeer, bAsPeer] = connectedPeers(
-    "peer:" + a.getCurrentAgent().id,
-    "peer:" + b.getCurrentAgent().id,
+    "peer:" + a.currentSessionID,
+    "peer:" + b.currentSessionID,
     {
       peer1role: aRole,
       peer2role: bRole,
@@ -276,8 +294,9 @@ export function waitFor(
 export async function loadCoValueOrFail<V extends RawCoValue>(
   node: LocalNode,
   id: CoID<V>,
+  skipRetry?: boolean,
 ): Promise<V> {
-  const value = await node.load(id);
+  const value = await node.load(id, skipRetry);
   if (value === "unavailable") {
     throw new Error("CoValue not found");
   }
@@ -287,15 +306,26 @@ export async function loadCoValueOrFail<V extends RawCoValue>(
 export function blockMessageTypeOnOutgoingPeer(
   peer: Peer,
   messageType: SyncMessage["action"],
+  opts: {
+    id?: string;
+    once?: boolean;
+  },
 ) {
   const push = peer.outgoing.push;
   const pushSpy = vi.spyOn(peer.outgoing, "push");
 
   const blockedMessages: SyncMessage[] = [];
+  const blockedIds = new Set<string>();
 
   pushSpy.mockImplementation(async (msg) => {
-    if (msg.action === messageType) {
+    if (
+      typeof msg === "object" &&
+      msg.action === messageType &&
+      (!opts.id || msg.id === opts.id) &&
+      (!opts.once || !blockedIds.has(msg.id))
+    ) {
       blockedMessages.push(msg);
+      blockedIds.add(msg.id);
       return Promise.resolve();
     }
 
@@ -415,6 +445,7 @@ export function getSyncServerConnectedPeer(opts: {
   ourName?: string;
   syncServer?: LocalNode;
   peerId: string;
+  persistent?: boolean;
 }) {
   const currentSyncServer = opts?.syncServer ?? syncServer.current;
 
@@ -428,7 +459,7 @@ export function getSyncServerConnectedPeer(opts: {
 
   const { peer1, peer2 } = connectedPeersWithMessagesTracking({
     peer1: {
-      id: currentSyncServer.getCurrentAgent().id,
+      id: currentSyncServer.currentSessionID,
       role: "server",
       name: opts.syncServerName,
     },
@@ -437,6 +468,7 @@ export function getSyncServerConnectedPeer(opts: {
       role: "client",
       name: opts.ourName,
     },
+    persistent: opts?.persistent,
   });
 
   currentSyncServer.syncManager.addPeer(peer2);
@@ -448,39 +480,21 @@ export function getSyncServerConnectedPeer(opts: {
   };
 }
 
-export function createMockStoragePeer(opts: {
-  ourName?: string;
-  peerId: string;
-}) {
-  const storage = createTestNode();
-
-  const { peer1, peer2 } = connectedPeersWithMessagesTracking({
-    peer1: { id: storage.getCurrentAgent().id, role: "storage" },
-    peer2: {
-      id: opts.peerId,
-      role: "client",
-      name: opts.ourName,
-    },
-  });
-
-  peer1.role = "storage";
-  peer1.priority = 100;
-
-  storage.syncManager.addPeer(peer2);
-
-  return {
-    storage,
-    peer: peer1,
-  };
-}
+export const TEST_NODE_CONFIG = {
+  withAsyncPeers: false,
+};
 
 export function setupTestNode(
   opts: {
     isSyncServer?: boolean;
     connected?: boolean;
+    secret?: AgentSecret;
   } = {},
 ) {
-  const [admin, session] = randomAgentAndSessionID();
+  const [admin, session] = opts.secret
+    ? agentAndSessionIDFromSecret(opts.secret)
+    : randomAgentAndSessionID();
+
   let node = new LocalNode(admin.agentSecret, session, Crypto);
 
   if (opts.isSyncServer) {
@@ -491,13 +505,15 @@ export function setupTestNode(
     syncServerName?: string;
     ourName?: string;
     syncServer?: LocalNode;
+    persistent?: boolean;
   }) {
     const { peer, peerStateOnServer, peerOnServer } =
       getSyncServerConnectedPeer({
-        peerId: node.getCurrentAgent().id,
+        peerId: session,
         syncServerName: opts?.syncServerName,
         ourName: opts?.ourName,
         syncServer: opts?.syncServer,
+        persistent: opts?.persistent,
       });
 
     node.syncManager.addPeer(peer);
@@ -510,25 +526,44 @@ export function setupTestNode(
     };
   }
 
-  function addStoragePeer(opts: { ourName?: string } = {}) {
-    const { peer, storage } = createMockStoragePeer({
-      peerId: node.getCurrentAgent().id,
-      ourName: opts.ourName,
+  function addStorage(opts: { ourName?: string; storage?: StorageAPI } = {}) {
+    const storage =
+      opts.storage ??
+      createSyncStorage({
+        nodeName: opts.ourName ?? "client",
+        storageName: "storage",
+      });
+    node.setStorage(storage);
+
+    return { storage };
+  }
+
+  async function addAsyncStorage(
+    opts: { ourName?: string; filename?: string } = {},
+  ) {
+    const storage = await createAsyncStorage({
+      nodeName: opts.ourName ?? "client",
+      storageName: "storage",
+      filename: opts.filename,
     });
+    node.setStorage(storage);
 
-    node.syncManager.addPeer(peer);
-
-    return { peer, peerState: node.syncManager.peers[peer.id]!, storage };
+    return { storage };
   }
 
   if (opts.connected) {
     connectToSyncServer();
   }
 
+  onTestFinished(() => {
+    node.gracefulShutdown();
+  });
+
   const ctx = {
     node,
     connectToSyncServer,
-    addStoragePeer,
+    addStorage,
+    addAsyncStorage,
     restart: () => {
       node.gracefulShutdown();
       ctx.node = node = new LocalNode(admin.agentSecret, session, Crypto);
@@ -539,6 +574,13 @@ export function setupTestNode(
 
       return node;
     },
+    spawnNewSession: () => {
+      return setupTestNode({
+        secret: node.agentSecret,
+        connected: opts.connected,
+        isSyncServer: opts.isSyncServer,
+      });
+    },
   };
 
   return ctx;
@@ -548,12 +590,14 @@ export async function setupTestAccount(
   opts: {
     isSyncServer?: boolean;
     connected?: boolean;
+    storage?: StorageAPI;
   } = {},
 ) {
   const ctx = await LocalNode.withNewlyCreatedAccount({
     peersToLoadFrom: [],
     crypto: Crypto,
     creationProps: { name: "Client" },
+    storage: opts.storage,
   });
 
   if (opts.isSyncServer) {
@@ -588,26 +632,47 @@ export async function setupTestAccount(
     };
   }
 
-  function addStoragePeer(opts: { ourName?: string } = {}) {
-    const { peer, storage } = createMockStoragePeer({
-      peerId: ctx.node.getCurrentAgent().id,
-      ourName: opts.ourName,
+  function addStorage(opts: { ourName?: string; storage?: StorageAPI } = {}) {
+    const storage =
+      opts.storage ??
+      createSyncStorage({
+        nodeName: opts.ourName ?? "client",
+        storageName: "storage",
+      });
+    ctx.node.setStorage(storage);
+
+    return { storage };
+  }
+
+  async function addAsyncStorage(opts: { ourName?: string } = {}) {
+    const storage = await createAsyncStorage({
+      nodeName: opts.ourName ?? "client",
+      storageName: "storage",
     });
+    ctx.node.setStorage(storage);
 
-    ctx.node.syncManager.addPeer(peer);
-
-    return { peer, peerState: ctx.node.syncManager.peers[peer.id]!, storage };
+    return { storage };
   }
 
   if (opts.connected) {
     connectToSyncServer();
   }
 
+  onTestFinished(() => {
+    ctx.node.gracefulShutdown();
+  });
+
   return {
     node: ctx.node,
     accountID: ctx.accountID,
     connectToSyncServer,
-    addStoragePeer,
+    addStorage,
+    addAsyncStorage,
+    disconnect: () => {
+      ctx.node.syncManager.getPeers().forEach((peer) => {
+        peer.gracefulShutdown();
+      });
+    },
   };
 }
 
@@ -620,30 +685,60 @@ export type SyncTestMessage = {
 export function connectedPeersWithMessagesTracking(opts: {
   peer1: { id: string; role: Peer["role"]; name?: string };
   peer2: { id: string; role: Peer["role"]; name?: string };
+  persistent?: boolean;
 }) {
   const [peer1, peer2] = connectedPeers(opts.peer1.id, opts.peer2.id, {
     peer1role: opts.peer1.role,
     peer2role: opts.peer2.role,
+    persistent: opts.persistent,
   });
+
+  // If the persistent option is not provided, we default to true for the server and false for the client
+  // Trying to mimic the real world behavior of the sync server
+  if (opts.persistent === undefined) {
+    peer1.persistent = opts.peer1.role === "server";
+
+    peer2.persistent = opts.peer2.role === "server";
+  }
 
   const peer1Push = peer1.outgoing.push;
   peer1.outgoing.push = (msg) => {
-    SyncMessagesLog.add({
-      from: opts.peer2.name ?? opts.peer2.role,
-      to: opts.peer1.name ?? opts.peer1.role,
-      msg,
-    });
-    return peer1Push.call(peer1.outgoing, msg);
+    if (typeof msg !== "string") {
+      SyncMessagesLog.add({
+        from: opts.peer2.name ?? opts.peer2.role,
+        to: opts.peer1.name ?? opts.peer1.role,
+        msg,
+      });
+    }
+
+    if (!TEST_NODE_CONFIG.withAsyncPeers) {
+      peer1Push.call(peer1.outgoing, msg);
+    } else {
+      // Simulate the async nature of the real push
+      setTimeout(() => {
+        peer1Push.call(peer1.outgoing, msg);
+      }, 0);
+    }
   };
 
   const peer2Push = peer2.outgoing.push;
   peer2.outgoing.push = (msg) => {
-    SyncMessagesLog.add({
-      from: opts.peer1.name ?? opts.peer1.role,
-      to: opts.peer2.name ?? opts.peer2.role,
-      msg,
-    });
-    return peer2Push.call(peer2.outgoing, msg);
+    if (typeof msg !== "string") {
+      SyncMessagesLog.add({
+        from: opts.peer1.name ?? opts.peer1.role,
+        to: opts.peer2.name ?? opts.peer2.role,
+        msg,
+      });
+    }
+
+    if (!TEST_NODE_CONFIG.withAsyncPeers) {
+      peer2Push.call(peer2.outgoing, msg);
+    } else {
+      // Simulate the async nature of the real push
+      setTimeout(() => {
+        peer2Push.call(peer2.outgoing, msg);
+      }, 0);
+    }
   };
 
   return {

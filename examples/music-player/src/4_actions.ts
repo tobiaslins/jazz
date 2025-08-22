@@ -1,11 +1,6 @@
 import { getAudioFileData } from "@/lib/audio/getAudioFileData";
-import { FileStream, Group, Loaded, co } from "jazz-tools";
-import {
-  MusicTrack,
-  MusicTrackWaveform,
-  MusicaAccount,
-  Playlist,
-} from "./1_schema";
+import { FileStream, Group } from "jazz-tools";
+import { MusicTrack, MusicaAccount, Playlist } from "./1_schema";
 
 /**
  * Walkthrough: Actions
@@ -51,7 +46,7 @@ export async function uploadMusicTracks(
       {
         file: fileStream,
         duration: data.duration,
-        waveform: MusicTrackWaveform.create({ data: data.waveform }, group),
+        waveform: { data: data.waveform },
         title: file.name,
         isExampleTrack,
       },
@@ -64,7 +59,7 @@ export async function uploadMusicTracks(
   }
 }
 
-export async function createNewPlaylist() {
+export async function createNewPlaylist(title: string = "New Playlist") {
   const { root } = await MusicaAccount.getMe().ensureLoaded({
     resolve: {
       root: {
@@ -73,18 +68,10 @@ export async function createNewPlaylist() {
     },
   });
 
-  // Since playlists are meant to be shared we associate them
-  // to a group which will contain the keys required to get
-  // access to the "owned" values
-  const playlistGroup = Group.create();
-
-  const playlist = Playlist.create(
-    {
-      title: "New Playlist",
-      tracks: co.list(MusicTrack).create([], playlistGroup),
-    },
-    playlistGroup,
-  );
+  const playlist = Playlist.create({
+    title,
+    tracks: [],
+  });
 
   // Again, we associate the new playlist to the
   // user by pushing it into the playlists CoList
@@ -94,8 +81,8 @@ export async function createNewPlaylist() {
 }
 
 export async function addTrackToPlaylist(
-  playlist: Loaded<typeof Playlist>,
-  track: Loaded<typeof MusicTrack>,
+  playlist: Playlist,
+  track: MusicTrack,
 ) {
   const alreadyAdded = playlist.tracks?.some(
     (t) => t?.id === track.id || t?._refs.sourceTrack?.id === track.id,
@@ -110,7 +97,7 @@ export async function addTrackToPlaylist(
      * visible to the Playlist user
      */
     const trackGroup = track._owner;
-    trackGroup.extend(playlist._owner);
+    trackGroup.addMember(playlist._owner);
 
     playlist.tracks?.push(track);
     return;
@@ -118,8 +105,8 @@ export async function addTrackToPlaylist(
 }
 
 export async function removeTrackFromPlaylist(
-  playlist: Loaded<typeof Playlist>,
-  track: Loaded<typeof MusicTrack>,
+  playlist: Playlist,
+  track: MusicTrack,
 ) {
   const notAdded = !playlist.tracks?.some(
     (t) => t?.id === track.id || t?._refs.sourceTrack?.id === track.id,
@@ -129,7 +116,7 @@ export async function removeTrackFromPlaylist(
 
   if (track._owner._type === "Group" && playlist._owner._type === "Group") {
     const trackGroup = track._owner;
-    await trackGroup.revokeExtend(playlist._owner);
+    trackGroup.removeMember(playlist._owner);
 
     const index =
       playlist.tracks?.findIndex(
@@ -142,21 +129,15 @@ export async function removeTrackFromPlaylist(
   }
 }
 
-export async function updatePlaylistTitle(
-  playlist: Loaded<typeof Playlist>,
-  title: string,
-) {
+export async function updatePlaylistTitle(playlist: Playlist, title: string) {
   playlist.title = title;
 }
 
-export async function updateMusicTrackTitle(
-  track: Loaded<typeof MusicTrack>,
-  title: string,
-) {
+export async function updateMusicTrackTitle(track: MusicTrack, title: string) {
   track.title = title;
 }
 
-export async function updateActivePlaylist(playlist?: Loaded<typeof Playlist>) {
+export async function updateActivePlaylist(playlist?: Playlist) {
   const { root } = await MusicaAccount.getMe().ensureLoaded({
     resolve: {
       root: {
@@ -169,7 +150,7 @@ export async function updateActivePlaylist(playlist?: Loaded<typeof Playlist>) {
   root.activePlaylist = playlist ?? root.rootPlaylist;
 }
 
-export async function updateActiveTrack(track: Loaded<typeof MusicTrack>) {
+export async function updateActiveTrack(track: MusicTrack) {
   const { root } = await MusicaAccount.getMe().ensureLoaded({
     resolve: {
       root: {},
@@ -180,7 +161,7 @@ export async function updateActiveTrack(track: Loaded<typeof MusicTrack>) {
 }
 
 export async function onAnonymousAccountDiscarded(
-  anonymousAccount: Loaded<typeof MusicaAccount>,
+  anonymousAccount: MusicaAccount,
 ) {
   const { root: anonymousAccountRoot } = await anonymousAccount.ensureLoaded({
     resolve: {

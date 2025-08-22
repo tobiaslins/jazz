@@ -1,7 +1,6 @@
 {
   "name": "clerk",
   "private": true,
-  "version": "0.0.101",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -14,20 +13,18 @@
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.4.1",
-    "jazz-react": "workspace:*",
-    "jazz-react-auth-clerk": "workspace:*",
     "jazz-tools": "workspace:*",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react": "catalog:react",
+    "react-dom": "catalog:react"
   },
   "devDependencies": {
     "@playwright/test": "^1.50.1",
-    "@biomejs/biome": "1.9.4",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
-    "@vitejs/plugin-react": "^4.3.3",
+    "@biomejs/biome": "catalog:default",
+    "@types/react": "catalog:react",
+    "@types/react-dom": "catalog:react",
+    "@vitejs/plugin-react": "^4.5.1",
     "globals": "^15.11.0",
-    "typescript": "5.6.2",
-    "vite": "6.0.11"
+    "typescript": "catalog:default",
+    "vite": "catalog:default"
   }
 }

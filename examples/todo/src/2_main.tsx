@@ -6,41 +6,40 @@ import {
 } from "react-router-dom";
 import "./index.css";
 
+import { JazzInspector } from "jazz-tools/inspector";
 import {
-  JazzProvider,
+  JazzReactProvider,
   PassphraseAuthBasicUI,
   useAcceptInvite,
   useAccount,
-} from "jazz-react";
-
+} from "jazz-tools/react";
 import React from "react";
 import { TodoAccount, TodoProject } from "./1_schema.ts";
 import { NewProjectForm } from "./3_NewProjectForm.tsx";
 import { ProjectTodoTable } from "./4_ProjectTodoTable.tsx";
-import { apiKey } from "./apiKey";
+import { apiKey } from "./apiKey.ts";
 import {
   Button,
   ThemeProvider,
   TitleAndLogo,
 } from "./basicComponents/index.ts";
-import { TaskGenerator } from "./components/TaskGenerator.tsx";
 import { wordlist } from "./wordlist.ts";
 
 /**
- * Walkthrough: The top-level provider `<JazzProvider/>`
+ * Walkthrough: The top-level provider `<JazzReactProvider/>`
  *
- * This shows how to use the top-level provider `<JazzProvider/>`,
+ * This shows how to use the top-level provider `<JazzReactProvider/>`,
  * which provides the rest of the app with a controlled account (used through `useAccount` later).
  * Here we use `PasskeyAuth`, which uses Passkeys (aka WebAuthn) to store a user's account secret
  * - no backend needed.
  *
- * `<JazzProvider/>` also runs our account migration
+ * `<JazzReactProvider/>` also runs our account migration
  */
 const appName = "Jazz Todo List Example";
 
 function JazzAndAuth({ children }: { children: React.ReactNode }) {
   return (
-    <JazzProvider
+    <JazzReactProvider
       sync={{
         peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
       }}
@@ -49,9 +48,11 @@ function JazzAndAuth({ children }: { children: React.ReactNode }) {
       <PassphraseAuthBasicUI appName={appName} wordlist={wordlist}>
         {children}
       </PassphraseAuthBasicUI>
-    </JazzProvider>
+    </JazzReactProvider>
   );
 }
+
+// http://localhost:5173/#/project/co_znUD6vciCQazKwAKi4hFwRodxEk
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -62,6 +63,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <App />
         </div>
       </ThemeProvider>
+      <JazzInspector />
     </JazzAndAuth>
   </React.StrictMode>,
 );
@@ -74,7 +76,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
  * - which can also contain invite links.
  */
 export default function App() {
-  // logOut logs out the AuthProvider passed to `<JazzProvider/>` above.
+  // logOut logs out the AuthProvider passed to `<JazzReactProvider/>` above.
   const { logOut } = useAccount();
 
   const router = createHashRouter([
@@ -89,10 +91,6 @@ export default function App() {
     {
       path: "/invite/*",
       element: <p>Accepting invite...</p>,
-    },
-    {
-      path: "/generate",
-      element: <TaskGenerator />,
     },
   ]);
 
@@ -120,7 +118,7 @@ export default function App() {
 
 function HomeScreen() {
   const { me } = useAccount(TodoAccount, {
-    resolve: { root: { projects: { $each: true } } },
+    resolve: { root: { projects: { $each: { $onError: null } } } },
   });
   const navigate = useNavigate();
 
@@ -128,6 +126,8 @@ function HomeScreen() {
     <>
       {me?.root.projects.length ? <h1>My Projects</h1> : null}
       {me?.root.projects.map((project) => {
+        if (!project) return null;
+
         return (
           <Button
             key={project.id}

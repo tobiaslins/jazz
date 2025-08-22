@@ -9,12 +9,11 @@ import {
 } from "vitest";
 import { expectMap } from "../coValue.js";
 import { RawCoMap } from "../coValues/coMap.js";
-import type { RawGroup } from "../coValues/group.js";
 import { WasmCrypto } from "../crypto/WasmCrypto.js";
-import { LocalNode } from "../localNode.js";
 import { connectedPeers, newQueuePair } from "../streamUtils.js";
 import type { LoadMessage } from "../sync.js";
 import {
+  TEST_NODE_CONFIG,
   blockMessageTypeOnOutgoingPeer,
   connectTwoPeers,
   createTestMetricReader,
@@ -27,12 +26,14 @@ import {
   tearDownTestMetricReader,
   waitFor,
 } from "./testUtils.js";
+import { stableStringify } from "../jsonStringify.js";
+
+// We want to simulate a real world communication that happens asynchronously
+TEST_NODE_CONFIG.withAsyncPeers = true;
 
 const Crypto = await WasmCrypto.create();
 
-let jazzCloud = setupTestNode({
-  isSyncServer: true,
-});
+let jazzCloud: ReturnType<typeof setupTestNode>;
 
 beforeEach(async () => {
   jazzCloud = setupTestNode({
@@ -47,16 +48,14 @@ test("If we add a client peer, but it never subscribes to a coValue, it won't ge
 
   const map = group.createMap();
 
-  const [inRx, _inTx] = newQueuePair();
-  const [outRx, outTx] = newQueuePair();
-  const outRxQ = outRx[Symbol.asyncIterator]();
+  const [inRx] = newQueuePair();
+  const [, outTx] = newQueuePair();
 
   node.syncManager.addPeer({
     id: "test",
     incoming: inRx,
     outgoing: outTx,
     role: "client",
-    crashOnClose: true,
   });
 
   map.set("hello", "world", "trusting");
@@ -66,7 +65,9 @@ test("If we add a client peer, but it never subscribes to a coValue, it won't ge
   );
 
   const result = await Promise.race([
-    outRxQ.next().then((value) => value.value),
+    new Promise((resolve) => {
+      inRx.onMessage((msg) => resolve(msg));
+    }),
     timeoutPromise,
   ]);
 
@@ -101,21 +102,26 @@ test("Can sync a coValue with private transactions through a server to another c
 
   const map = group.createMap();
   map.set("hello", "world", "private");
+
   group.addMember("everyone", "reader");
 
   const { node: client2 } = await setupTestAccount({
     connected: true,
   });
 
-  const mapOnClient2 = await loadCoValueOrFail(client2, map.id);
+  await waitFor(async () => {
+    const loadedMap = await loadCoValueOrFail(client2, map.id);
 
-  expect(mapOnClient2.get("hello")).toEqual("world");
+    expect(loadedMap.get("hello")).toEqual("world");
+  });
 });
 
-test("should keep the peer state when the peer closes", async () => {
+test("should keep the peer state when the peer closes if persistent is true", async () => {
   const client = setupTestNode();
 
-  const { peer, peerState } = client.connectToSyncServer();
+  const { peer, peerState, peerOnServer } = client.connectToSyncServer({
+    persistent: true,
+  });
 
   const group = jazzCloud.node.createGroup();
   const map = group.createMap();
@@ -125,20 +131,21 @@ test("should keep the peer state when the peer closes", async () => {
 
   const syncManager = client.node.syncManager;
 
-  // @ts-expect-error Simulating a peer closing, leveraging the direct connection between the client/server peers
-  await peer.outgoing.push("Disconnected");
+  peerOnServer.outgoing.push("Disconnected");
 
-  await waitFor(() => peerState?.closed);
+  await waitFor(() => {
+    return peerState.closed;
+  });
 
   expect(syncManager.peers[peer.id]).not.toBeUndefined();
 });
 
-test("should delete the peer state when the peer closes if deletePeerStateOnClose is true", async () => {
+test("should delete the peer state when the peer closes if persistent is false", async () => {
   const client = setupTestNode();
 
-  const { peer, peerState } = client.connectToSyncServer();
-
-  peer.deletePeerStateOnClose = true;
+  const { peer, peerState, peerOnServer } = client.connectToSyncServer({
+    persistent: false,
+  });
 
   const group = jazzCloud.node.createGroup();
   const map = group.createMap();
@@ -148,12 +155,39 @@ test("should delete the peer state when the peer closes if deletePeerStateOnClos
 
   const syncManager = client.node.syncManager;
 
-  // @ts-expect-error Simulating a peer closing, leveraging the direct connection between the client/server peers
-  await peer.outgoing.push("Disconnected");
+  peerOnServer.outgoing.push("Disconnected");
 
   await waitFor(() => peerState?.closed);
 
   expect(syncManager.peers[peer.id]).toBeUndefined();
+});
+
+test("should not verify transactions when SyncManager has verification disabled", async () => {
+  jazzCloud.node.syncManager.disableTransactionVerification();
+
+  const [agent] = randomAgentAndSessionID();
+  const client = await setupTestAccount({ connected: true });
+
+  const group = client.node.createGroup();
+  const map = group.createMap();
+
+  map.core.tryAddTransactions(
+    client.node.currentSessionID,
+    [
+      {
+        privacy: "trusting",
+        changes: stableStringify([{ op: "set", key: "hello", value: "world" }]),
+        madeAt: Date.now(),
+      },
+    ],
+    Crypto.sign(agent.currentSignerSecret(), "hash_z12345678"),
+    true,
+  );
+
+  await map.core.waitForSync();
+
+  const loadedMap = await loadCoValueOrFail(jazzCloud.node, map.id);
+  expect(loadedMap.get("hello")).toEqual("world");
 });
 
 describe("sync - extra tests", () => {
@@ -562,8 +596,6 @@ describe("SyncManager - knownStates vs optimisticKnownStates", () => {
     const mapOnClient = group.createMap();
     mapOnClient.set("key1", "value1", "trusting");
 
-    await client.syncManager.syncCoValue(mapOnClient.core);
-
     // Wait for the full sync to complete
     await mapOnClient.core.waitForSync();
 
@@ -593,7 +625,6 @@ describe("SyncManager - knownStates vs optimisticKnownStates", () => {
     const map = group.createMap();
     map.set("key1", "value1", "trusting");
 
-    await client.node.syncManager.syncCoValue(map.core);
     await map.core.waitForSync();
 
     // Block the content messages
@@ -601,11 +632,11 @@ describe("SyncManager - knownStates vs optimisticKnownStates", () => {
     // optimisticKnownStates is updated when the content messages are sent,
     // while knownStates is only updated when we receive the "known" messages
     // that are acknowledging the receipt of the content messages
-    const outgoing = blockMessageTypeOnOutgoingPeer(peer, "content");
+    const outgoing = blockMessageTypeOnOutgoingPeer(peer, "content", {});
 
     map.set("key2", "value2", "trusting");
 
-    await client.node.syncManager.syncCoValue(map.core);
+    await new Promise<void>(queueMicrotask);
 
     expect(peerState.optimisticKnownStates.get(map.core.id)).not.toEqual(
       peerState.knownStates.get(map.core.id),
@@ -637,8 +668,6 @@ describe("SyncManager.addPeer", () => {
     const map = group.createMap();
     map.set("key1", "value1", "trusting");
 
-    await client.node.syncManager.syncCoValue(map.core);
-
     // Wait for initial sync
     await map.core.waitForSync();
 
@@ -669,8 +698,6 @@ describe("SyncManager.addPeer", () => {
     const group = client.node.createGroup();
     const map = group.createMap();
     map.set("key1", "value1", "trusting");
-
-    await client.node.syncManager.syncCoValue(map.core);
 
     // Wait for initial sync
     await map.core.waitForSync();
@@ -842,8 +869,6 @@ describe("waitForSyncWithPeer", () => {
     const map = group.createMap();
     map.set("key1", "value1", "trusting");
 
-    await client.node.syncManager.syncCoValue(map.core);
-
     await expect(
       client.node.syncManager.waitForSyncWithPeer(
         peerState.id,
@@ -866,8 +891,6 @@ describe("waitForSyncWithPeer", () => {
     vi.spyOn(peerState, "pushOutgoingMessage").mockImplementation(async () => {
       return Promise.resolve();
     });
-
-    await client.node.syncManager.syncCoValue(map.core);
 
     await expect(
       client.node.syncManager.waitForSyncWithPeer(
@@ -929,7 +952,6 @@ describe("metrics", () => {
       incoming: inPeer1,
       outgoing: outPeer1,
       role: "client",
-      crashOnClose: false,
     });
 
     connectedPeers = await metricReader.getMetricValue("jazz.peers", {
@@ -944,7 +966,6 @@ describe("metrics", () => {
       incoming: inPeer2,
       outgoing: outPeer2,
       role: "client",
-      crashOnClose: false,
     });
 
     connectedPeers = await metricReader.getMetricValue("jazz.peers", {
@@ -959,7 +980,6 @@ describe("metrics", () => {
       incoming: inServer1,
       outgoing: outServer1,
       role: "server",
-      crashOnClose: false,
     });
     connectedServerPeers = await metricReader.getMetricValue("jazz.peers", {
       role: "server",
@@ -970,7 +990,6 @@ describe("metrics", () => {
     });
     expect(connectedPeers).toBe(2);
 
-    // @ts-expect-error Simulating peer-1 closing
     await outPeer1.push("Disconnected");
     await waitFor(() => node.syncManager.peers["peer-1"]?.closed);
 
@@ -979,7 +998,6 @@ describe("metrics", () => {
     });
     expect(connectedPeers).toBe(1);
 
-    // @ts-expect-error Simulating server-1 closing
     await outServer1.push("Disconnected");
 
     await waitFor(() => node.syncManager.peers["server-1"]?.closed);
@@ -997,7 +1015,7 @@ describe("LocalNode.load", () => {
 
     // @ts-expect-error Testing with undefined ID
     await expect(client.node.load(undefined)).rejects.toThrow(
-      "Trying to load CoValue with undefined id",
+      "Trying to load CoValue with invalid id undefined",
     );
   });
 

@@ -1,5 +1,565 @@
 # jazz-tools
 
+## 0.17.11
+
+### Patch Changes
+
+- 8f3852b: Accept { $onError: null } as resolve query for co.list references
+- bb9d837: Explicit loadAs in CoList.upsertUnique to use it without loaded context
+- Updated dependencies [68b2f37]
+- Updated dependencies [257ded3]
+- Updated dependencies [e301ad6]
+  - cojson@0.17.11
+  - cojson-storage-indexeddb@0.17.11
+  - cojson-transport-ws@0.17.11
+
+## 0.17.10
+
+### Patch Changes
+
+- Updated dependencies [c55297c]
+  - cojson@0.17.10
+  - cojson-storage-indexeddb@0.17.10
+  - cojson-transport-ws@0.17.10
+
+## 0.17.9
+
+### Patch Changes
+
+- 52ea0c7: Explicit loadAs in upsertUnique to use it without loaded context
+- Updated dependencies [7586c3b]
+  - cojson@0.17.9
+  - cojson-storage-indexeddb@0.17.9
+  - cojson-transport-ws@0.17.9
+
+## 0.17.8
+
+### Patch Changes
+
+- ac3e694: Fixed an issue where CoValue schemas could be incorrectly passed to `co.map` and `co.profile` schema definers.
+- 6dbb053: Prosemirror: fix RangeError triggered when creating invalid HTML
+- 1a182f0: Add missing BaseProfileShape export
+  - cojson@0.17.8
+  - cojson-storage-indexeddb@0.17.8
+  - cojson-transport-ws@0.17.8
+
+## 0.17.7
+
+### Patch Changes
+
+- cojson@0.17.7
+- cojson-storage-indexeddb@0.17.7
+- cojson-transport-ws@0.17.7
+
+## 0.17.6
+
+### Patch Changes
+
+- 82de51c: allow creating CoValues from JSON without an active account
+- 694b168: get resized image's id without triggering shallow load in `loadImageBySize`
+  - cojson@0.17.6
+  - cojson-storage-indexeddb@0.17.6
+  - cojson-transport-ws@0.17.6
+
+## 0.17.5
+
+### Patch Changes
+
+- 5963658: Implement/expose loadUnique and upsertUnique on co.list and co.record
+- Updated dependencies [71c1411]
+- Updated dependencies [2d11d44]
+  - cojson@0.17.5
+  - cojson-storage-indexeddb@0.17.5
+  - cojson-transport-ws@0.17.5
+
+## 0.17.4
+
+### Patch Changes
+
+- 7dd3d00: Export `Ref` class from jazz-tools package
+  - cojson@0.17.4
+  - cojson-storage-indexeddb@0.17.4
+  - cojson-transport-ws@0.17.4
+
+## 0.17.3
+
+### Patch Changes
+
+- Updated dependencies [f0c73d9]
+  - cojson@0.17.3
+  - cojson-storage-indexeddb@0.17.3
+  - cojson-transport-ws@0.17.3
+
+## 0.17.2
+
+### Patch Changes
+
+- 794681a: fix unused blob creation on react Image component
+- 83fc22f: React Native resizer is now imported dynamically, as it is an optional dependency
+- Updated dependencies [5b2b16a]
+  - cojson@0.17.2
+  - cojson-storage-indexeddb@0.17.2
+  - cojson-transport-ws@0.17.2
+
+## 0.17.1
+
+### Patch Changes
+
+- 0bcbf55: Export the HttpRoute type
+- d1bdbf5: fix: ensure file downloaded in loadImageBySize
+- 4b73834: fix(jazz-tools/svelte): Make Image reactive to imageId change
+- Updated dependencies [2fd88b9]
+  - cojson@0.17.1
+  - cojson-storage-indexeddb@0.17.1
+  - cojson-transport-ws@0.17.1
+
+## 0.17.0
+
+### Minor Changes
+
+- fcaf4b9: New image management APIs, refactoring imperative functions for creation and consumption, React and ReactNative components, and new Svelte componente
+
+### Patch Changes
+
+- cojson@0.17.0
+- cojson-storage-indexeddb@0.17.0
+- cojson-transport-ws@0.17.0
+
+## 0.16.6
+
+### Patch Changes
+
+- 67e0968: Fix content streaming chunking, now chunks should be splitted always respecting the MAX_RECOMMENDED_TX_SIZE
+- 2c8120d: co.record partial deep loading now resolve correct type
+- Updated dependencies [103d1b4]
+- Updated dependencies [67e0968]
+- Updated dependencies [ce9ca54]
+- Updated dependencies [4b99ff1]
+- Updated dependencies [ac5d20d]
+- Updated dependencies [9bf7946]
+  - cojson-storage-indexeddb@0.16.6
+  - cojson@0.16.6
+  - cojson-transport-ws@0.16.6
+
+## 0.16.5
+
+### Patch Changes
+
+- 3cd1586: Makes the key rotation not fail when child groups are unavailable or their readkey is not accessible.
+
+  Also changes the Group.removeMember method to not return a Promise, because:
+
+  - All the locally available child groups are rotated immediately
+  - All the remote child groups are rotated in background, but since they are not locally available the user won't need the new key immediately
+
+- 33ebbf0: Fix error when using nested discriminatedUnion
+- Updated dependencies [3cd1586]
+- Updated dependencies [267f689]
+  - cojson@0.16.5
+  - cojson-storage-indexeddb@0.16.5
+  - cojson-transport-ws@0.16.5
+
+## 0.16.4
+
+### Patch Changes
+
+- 16764f6: Added `pick()` and `partial()` methods to CoMapSchema
+- Updated dependencies [f9d538f]
+- Updated dependencies [802b5a3]
+  - cojson@0.16.4
+  - cojson-storage-indexeddb@0.16.4
+  - cojson-transport-ws@0.16.4
+
+## 0.16.3
+
+### Patch Changes
+
+- 43d3511: Streamlined CoValue creation:
+  - CoValues can be created with plain JSON objects. Nested CoValues will be automatically created when necessary.
+  - Optional fields can be ommited (i.e. it's no longer necessary to provide an explicit `undefined` value).
+  - cojson@0.16.3
+  - cojson-storage-indexeddb@0.16.3
+  - cojson-transport-ws@0.16.3
+
+## 0.16.2
+
+### Patch Changes
+
+- cojson@0.16.2
+- cojson-storage-indexeddb@0.16.2
+- cojson-transport-ws@0.16.2
+
+## 0.16.1
+
+### Patch Changes
+
+- c62abef: Add support for nullable non-collaborative fields
+  - cojson@0.16.1
+  - cojson-storage-indexeddb@0.16.1
+  - cojson-transport-ws@0.16.1
+
+## 0.16.0
+
+### Minor Changes
+
+- c09dcdf: Change the root attribute to be public on Account. The root content will still follow the visiblity rules specified in their group.
+
+  Existing accounts will be gradually migrated as they are loaded.
+
+- 2bbb07b: Introduce a cleaner separation between Zod and CoValue schemas:
+  - Zod schemas and CoValue schemas are fully separated. Zod schemas can only be composed with other Zod schemas. CoValue schemas can be composed with either Zod or other CoValue schemas.
+  - `z.optional()` and `z.discriminatedUnion()` no longer work with CoValue schemas. Use `co.optional()` and `co.discriminatedUnion()` instead.
+  - Internal schema access is now simpler. You no longer need to use Zod’s `.def` to access internals. Use properties like `CoMapSchema.shape`, `CoListSchema.element`, and `CoOptionalSchema.innerType` directly.
+  - CoValue schema types are now namespaced under `co.`. Non-namespaced exports have been removed
+  - CoMap schemas no longer incorrectly inherit from Zod. Previously, methods like `.extend()` and `.partial()` appeared available but could cause unexpected behavior. These methods are now disabled. In their place, `.optional()` has been added, and more Zod-like methods will be introduced in future releases.
+  - Upgraded Zod from `3.25.28` to `3.25.76`.
+  - Removed deprecated `withHelpers` method from CoValue schemas
+  - Removed deprecated `createCoValueObservable` function
+
+### Patch Changes
+
+- Updated dependencies [c09dcdf]
+  - cojson@0.16.0
+  - cojson-storage-indexeddb@0.16.0
+  - cojson-transport-ws@0.16.0
+
+## 0.15.16
+
+### Patch Changes
+
+- 9633d01: Introduced a new HTTP based API to talk with Server Workers
+- 4beafb7: Fix property update when assigning an optional reference on CoMap
+  - cojson@0.15.16
+  - cojson-storage-indexeddb@0.15.16
+  - cojson-transport-ws@0.15.16
+
+## 0.15.15
+
+### Patch Changes
+
+- 3fe53a3: Fix property update when assigning an optional reference on CoMap
+  - cojson@0.15.15
+  - cojson-storage-indexeddb@0.15.15
+  - cojson-transport-ws@0.15.15
+
+## 0.15.14
+
+### Patch Changes
+
+- a584590: Prevent resolving discriminated union fields
+- 9acccb5: Export `WithHelpers` type used in CoValue schemas
+- Updated dependencies [70ce7c5]
+  - cojson-transport-ws@0.15.14
+  - cojson@0.15.14
+  - cojson-storage-indexeddb@0.15.14
+
+## 0.15.13
+
+### Patch Changes
+
+- 6c76ff8: Fix load failures when loading a missing ref declared with z.optional and Schema.optional
+  - cojson@0.15.13
+  - cojson-storage-indexeddb@0.15.13
+  - cojson-transport-ws@0.15.13
+
+## 0.15.12
+
+### Patch Changes
+
+- d1c1b0c: Fix stuck authentication when using onAnonymousAccountDiscarded with a storage
+- cf4ad72: fix unhandled rejection on CoValue.load
+  - cojson@0.15.12
+  - cojson-storage-indexeddb@0.15.12
+  - cojson-transport-ws@0.15.12
+
+## 0.15.11
+
+### Patch Changes
+
+- bdc9aee: - Add `co.optional` and `co.discriminatedUnion`. You can now `load` and `subcribe` to schemas created with `co.discriminatedUnion`.
+  - Improved type-checking around `z.` schemas to prevent invalid combinations with `co.` schemas.
+  - cojson@0.15.11
+  - cojson-storage-indexeddb@0.15.11
+  - cojson-transport-ws@0.15.11
+
+## 0.15.10
+
+### Patch Changes
+
+- 9815ec6: Export the z.ZodDiscriminatedUnion type
+- b4fdab4: Exposed the current Account's ID in unauthorized error message
+  - cojson@0.15.10
+  - cojson-storage-indexeddb@0.15.10
+  - cojson-transport-ws@0.15.10
+
+## 0.15.9
+
+### Patch Changes
+
+- 27b4837: Wait for the full streaming before return values in load and subscribe
+- Updated dependencies [27b4837]
+- Updated dependencies [2776263]
+  - cojson@0.15.9
+  - cojson-storage-indexeddb@0.15.9
+  - cojson-transport-ws@0.15.9
+
+## 0.15.8
+
+### Patch Changes
+
+- 3844666: Refactor AccountSchema types to solve "This is likely not portable. A type annotation is necessary" issue when using co.account()
+  - cojson@0.15.8
+  - cojson-storage@0.15.8
+  - cojson-storage-indexeddb@0.15.8
+  - cojson-transport-ws@0.15.8
+
+## 0.15.7
+
+### Patch Changes
+
+- c09b636: Fix react bundling in jazz-tools/inspector/register-custom-element
+  - cojson@0.15.7
+  - cojson-storage@0.15.7
+  - cojson-storage-indexeddb@0.15.7
+  - cojson-transport-ws@0.15.7
+
+## 0.15.6
+
+### Patch Changes
+
+- a5ceaff: add Group.getDirectMembers to get only direct members of a group
+  - cojson@0.15.6
+  - cojson-storage@0.15.6
+  - cojson-storage-indexeddb@0.15.6
+  - cojson-transport-ws@0.15.6
+
+## 0.15.5
+
+### Patch Changes
+
+- 23bfea5: Make all React Native dependencies in `jazz-tools` optional peer dependencies
+- e4ba23c: Fix type error with `RNQuickCrypto` that prevented using it as a `CryptoProvider`
+- 4b89838: Changes that verify the BetterAuth package for React also works with React Native and Expo apps
+  - cojson@0.15.5
+  - cojson-storage@0.15.5
+  - cojson-storage-indexeddb@0.15.5
+  - cojson-transport-ws@0.15.5
+
+## 0.15.4
+
+### Patch Changes
+
+- Updated dependencies [277e4d4]
+  - cojson@0.15.4
+  - cojson-storage@0.15.4
+  - cojson-storage-indexeddb@0.15.4
+  - cojson-transport-ws@0.15.4
+
+## 0.15.3
+
+### Patch Changes
+
+- 45f73a7: fix image `originalSize` to be coherent with the highest resolution
+- Updated dependencies [535c460]
+  - cojson-storage-indexeddb@0.15.3
+  - cojson@0.15.3
+  - cojson-storage@0.15.3
+  - cojson-transport-ws@0.15.3
+
+## 0.15.2
+
+### Patch Changes
+
+- 0e7e532: inspector: improve CoPlainText view
+- Updated dependencies [4b964ed]
+  - cojson@0.15.2
+  - cojson-storage@0.15.2
+  - cojson-storage-indexeddb@0.15.2
+  - cojson-transport-ws@0.15.2
+
+## 0.15.1
+
+### Patch Changes
+
+- 0e3a4d2: Add FileStream.loadAsBase64 API
+- b110f00: Added `CoMap.upsertUnique` & `CoMap.loadUnique` methods (deprecating `CoMap.findUnique`) and added `skipRetry` option to `CoMap.load`
+- Updated dependencies [b110f00]
+  - cojson@0.15.1
+  - cojson-storage@0.15.1
+  - cojson-storage-indexeddb@0.15.1
+  - cojson-transport-ws@0.15.1
+
+## 0.15.0
+
+### Minor Changes
+
+- 1378a1f: Moved all the framework adapters in jazz-tools to simplify dependency management
+- 0fa051a: Remove the experimental prefix from enableSSR, change the useAccount type to make me always nullable and remove useAccountOrGuest
+
+### Patch Changes
+
+- cojson@0.15.0
+- cojson-storage@0.15.0
+- cojson-storage-indexeddb@0.15.0
+- cojson-transport-ws@0.15.0
+
+## 0.14.28
+
+### Patch Changes
+
+- 06c5a1c: Resolve FileStream.load() only when the stream is fully downloaded
+  - cojson@0.14.28
+
+## 0.14.27
+
+### Patch Changes
+
+- a026073: Export CoRecordSchema & CoProfileSchema types
+  - cojson@0.14.27
+
+## 0.14.26
+
+### Patch Changes
+
+- Updated dependencies [e74a077]
+  - cojson@0.14.26
+
+## 0.14.25
+
+### Patch Changes
+
+- 99a2d9b: Deprecated `Group.extend` and `Group.revokeExtend` (use `Group.addMember` and `Group.removeMember` respectively)
+  - cojson@0.14.25
+
+## 0.14.24
+
+### Patch Changes
+
+- cojson@0.14.24
+
+## 0.14.23
+
+### Patch Changes
+
+- 9177579: Fixs coText applyDiff out of bounds insertion with emoji
+- Updated dependencies [1ca9299]
+  - cojson@0.14.23
+
+## 0.14.22
+
+### Patch Changes
+
+- 048ac1d: Fix: Ensure the types on withMigration expect a shallowly loaded Account
+- Updated dependencies [57fb69f]
+  - cojson@0.14.22
+
+## 0.14.21
+
+### Patch Changes
+
+- e7e505e: Adds `makePublic(role)` alias for `group.addMember("everyone", role)`
+- 13b57aa: Fix creation of z.discriminatedUnions of CoValue schemas in Inbox and other places
+- 5662faa: Add `_createdAt` and `_lastUpdatedAt` getters for CoMaps
+- 2116a59: Improve SubscriptionScope.getCurrentValue to be the basis of the new React integration
+- Updated dependencies [c3d8779]
+  - cojson@0.14.21
+
+## 0.14.20
+
+### Patch Changes
+
+- 6f72419: Add support for per-CoMap migrations
+- 04b20c2: Make Zod schemas compatible with castAs
+  - cojson@0.14.20
+
+## 0.14.19
+
+### Patch Changes
+
+- cojson@0.14.19
+
+## 0.14.18
+
+### Patch Changes
+
+- 4b950bc: Fixes support for recursive props on co.profile and for co.image inside z.discriminatedUnion
+- d6d9c0a: Make checks on the discriminator field on z.discriminatedUnion more specific and less strict
+- c559054: Add support for optional dates
+- Updated dependencies [0d5ee3e]
+  - cojson@0.14.18
+
+## 0.14.17
+
+### Patch Changes
+
+- e512df4: Move to latest stable version of Zod
+
+## 0.14.16
+
+### Patch Changes
+
+- Updated dependencies [5e253cc]
+  - cojson@0.14.16
+
+## 0.14.15
+
+### Patch Changes
+
+- Updated dependencies [23daa7c]
+  - cojson@0.14.15
+
+## 0.14.14
+
+### Patch Changes
+
+- e32a1f7: Add useAnonymousFallback option in JazzContextManager
+
+## 0.14.10
+
+### Patch Changes
+
+- dc746a2: Make the react peerDependency definition more relaxed
+- f869d9a: Deprecated the withHelpers method in favor of standalone functions
+- 3fe6832: Add support for z.catch/default. We ignore them for the moment and flag a warning.
+
+## 0.14.9
+
+### Patch Changes
+
+- 22c2600: Move back to zod as dependency and clean up zod re-export
+
+## 0.14.8
+
+### Patch Changes
+
+- 637ae13: Use our Zod v4 fork with the React Native fixes
+
+## 0.14.7
+
+### Patch Changes
+
+- 365b0ea: reduce the z exported APIs to the ones we support and fix compatible types
+
+## 0.14.6
+
+### Patch Changes
+
+- 9d6d9fe: Fixes co.fileStream create and createFromBlob types
+- 9d6d9fe: Fixes init type for CoList, CoFeed and CoRecord to accept optional partially loaded values
+
+## 0.14.5
+
+### Patch Changes
+
+- 91cbb2f: Fix CoMap.create with optional types
+- 20b3d88: Add co.loaded utility
+
+## 0.14.4
+
+### Patch Changes
+
+- 011af55: Support z.enum in the schema definitions
+
 ## 0.14.2
 
 ### Patch Changes

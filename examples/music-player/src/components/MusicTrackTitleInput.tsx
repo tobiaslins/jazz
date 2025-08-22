@@ -1,6 +1,6 @@
 import { MusicTrack } from "@/1_schema";
 import { updateMusicTrackTitle } from "@/4_actions";
-import { useCoState } from "jazz-react";
+import { useCoState } from "jazz-tools/react";
 import { ChangeEvent, useState } from "react";
 
 export function MusicTrackTitleInput({
@@ -31,7 +31,7 @@ export function MusicTrackTitleInput({
 
   return (
     <div
-      className="relative flex-grow"
+      className="relative grow max-w-64"
       onClick={(evt) => evt.stopPropagation()}
     >
       <input

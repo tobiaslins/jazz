@@ -1,13 +1,8 @@
 import { splitGraphemes } from "unicode-segmenter/grapheme";
 import { AvailableCoValueCore } from "../coValueCore/coValueCore.js";
+import { TRANSACTION_CONFIG } from "../config.js";
 import { JsonObject } from "../jsonValue.js";
 import { DeletionOpPayload, OpID, RawCoList } from "./coList.js";
-
-declare const navigator:
-  | {
-      language: string;
-    }
-  | undefined;
 
 export type StringifiedOpID = string & { __stringifiedOpID: true };
 
@@ -63,15 +58,6 @@ export class RawCoPlainText<
   constructor(core: AvailableCoValueCore) {
     super(core);
     this._cachedMapping = new WeakMap();
-
-    // Use locale from meta if provided, fallback to browser locale, or 'en' as last resort
-    const effectiveLocale =
-      (core.verified.header.meta &&
-      typeof core.verified.header.meta === "object" &&
-      "locale" in core.verified.header.meta
-        ? (core.verified.header.meta.locale as string)
-        : undefined) ||
-      (typeof navigator !== "undefined" ? navigator.language : "en");
   }
 
   get mapping() {
@@ -125,16 +111,34 @@ export class RawCoPlainText<
     text: string,
     privacy: "private" | "trusting" = "private",
   ) {
-    const graphemes = [...splitGraphemes(text)];
+    const graphemes = Array.from(splitGraphemes(text));
 
     if (idx === 0) {
-      // For insertions at start, prepend each character in reverse
-      for (const grapheme of graphemes.reverse()) {
-        this.prepend(grapheme, 0, privacy);
+      // For insertions at start, prepend the first char and append the rest
+      const firstChar = graphemes[0];
+
+      if (firstChar) {
+        this.prepend(firstChar, 0, privacy);
+      }
+
+      if (graphemes.length > 1) {
+        this.appendChars(graphemes.slice(1), 0, privacy);
       }
     } else {
       // For other insertions, append after the previous character
-      this.appendItems(graphemes, idx - 1, privacy);
+      this.appendChars(graphemes, idx - 1, privacy);
+    }
+  }
+
+  appendChars(
+    text: string[],
+    position: number,
+    privacy: "private" | "trusting" = "private",
+  ) {
+    const chunks = splitIntoChunks(text);
+    for (const chunk of chunks) {
+      this.appendItems(chunk, position, privacy);
+      position += chunk.length;
     }
   }
 
@@ -151,11 +155,12 @@ export class RawCoPlainText<
     text: string,
     privacy: "private" | "trusting" = "private",
   ) {
-    const graphemes = [...splitGraphemes(text)];
+    const graphemes = Array.from(splitGraphemes(text));
+
     if (idx >= this.entries().length) {
-      this.appendItems(graphemes, idx - 1, privacy);
+      this.appendChars(graphemes, idx - 1, privacy);
     } else {
-      this.appendItems(graphemes, idx, privacy);
+      this.appendChars(graphemes, idx, privacy);
     }
   }
 
@@ -182,4 +187,26 @@ export class RawCoPlainText<
     this.core.makeTransaction(ops, privacy);
     this.processNewTransactions();
   }
+
+  /** @internal Helper method to split text into graphemes */
+  toGraphemes(text: string): string[] {
+    return [...splitGraphemes(text)];
+  }
+
+  /** @internal Helper method to join graphemes into a string */
+  fromGraphemes(graphemes: string[]): string {
+    return graphemes.join("");
+  }
+}
+
+function splitIntoChunks(text: string[]) {
+  const chunks: string[][] = [];
+  for (
+    let i = 0;
+    i < text.length;
+    i += TRANSACTION_CONFIG.MAX_RECOMMENDED_TX_SIZE
+  ) {
+    chunks.push(text.slice(i, i + TRANSACTION_CONFIG.MAX_RECOMMENDED_TX_SIZE));
+  }
+  return chunks;
 }

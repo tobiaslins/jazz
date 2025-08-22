@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.1.3/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -7,38 +7,36 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "ignore": [
-      "jazz-tools.json",
-      "**/ios/**",
-      "**/android/**",
-      "packages/jazz-svelte/**",
-      "examples/*svelte*/**",
-      "examples/jazz-paper-scissors/src/routeTree.gen.ts",
-      "homepage/homepage/**",
-      "**/package.json"
+    "includes": [
+      "**",
+      "!crates/**",
+      "!**/jazz-tools.json",
+      "!**/ios/**",
+      "!**/android/**",
+      "!**/tests/jazz-svelte/src/**",
+      "!**/examples/**/*svelte*/**",
+      "!**/starters/**/*svelte*/**",
+      "!**/examples/server-worker-inbox/src/routeTree.gen.ts",
+      "!**/homepage/homepage/**",
+      "!**/package.json",
+      "!**/*svelte*/**"
     ]
   },
   "formatter": {
     "enabled": true,
     "indentStyle": "space"
   },
-  "organizeImports": {
-    "enabled": true
-  },
+  "assist": { "actions": { "source": { "organizeImports": "off" } } },
   "linter": {
     "enabled": false,
     "rules": {
       "recommended": true,
       "correctness": {
+        "useExhaustiveDependencies": "off",
         "useImportExtensions": {
           "level": "error",
           "options": {
-            "suggestedExtensions": {
-              "ts": {
-                "module": "js",
-                "component": "jsx"
-              }
-            }
+            "forceJsExtensions": true
           }
         }
       }
@@ -46,16 +44,7 @@
   },
   "overrides": [
     {
-      "include": ["packages/**/src/**"],
-      "linter": {
-        "enabled": true,
-        "rules": {
-          "recommended": false
-        }
-      }
-    },
-    {
-      "include": ["packages/cojson-storage*/**", "cojson-transport-ws/**"],
+      "includes": ["packages/community-jazz-vue/src/**"],
       "linter": {
         "enabled": true,
         "rules": {
@@ -64,7 +53,28 @@
       }
     },
     {
-      "include": ["packages/**/src/tests/**"],
+      "includes": ["**/packages/**/src/**"],
+      "linter": {
+        "enabled": true,
+        "rules": {
+          "recommended": false
+        }
+      }
+    },
+    {
+      "includes": [
+        "**/packages/cojson/src/storage/**/*/**",
+        "**/cojson-transport-ws/**"
+      ],
+      "linter": {
+        "enabled": true,
+        "rules": {
+          "recommended": true
+        }
+      }
+    },
+    {
+      "includes": ["**/tests/**"],
       "linter": {
         "rules": {
           "correctness": {
@@ -74,7 +84,7 @@
             "noNonNullAssertion": "off"
           },
           "suspicious": {
-            "noExplicitAny": "info"
+            "noExplicitAny": "off"
           }
         }
       }

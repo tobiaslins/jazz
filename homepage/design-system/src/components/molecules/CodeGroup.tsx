@@ -8,7 +8,13 @@ export function CopyButton({
   code,
   size,
   className,
-}: { code: string; size: "md" | "lg"; className?: string }) {
+  onCopy,
+}: {
+  code: string;
+  size: "sm" | "md" | "lg";
+  className?: string;
+  onCopy?: () => void;
+}) {
   const [copyCount, setCopyCount] = useState(0);
   const copied = copyCount > 0;
 
@@ -26,18 +32,19 @@ export function CopyButton({
       type="button"
       className={clsx(
         className,
-        "group/button absolute overflow-hidden rounded text-2xs font-medium md:opacity-0 backdrop-blur transition md:focus:opacity-100 group-hover:opacity-100",
+        "group/button absolute overflow-hidden rounded text-2xs font-medium md:opacity-0 backdrop-blur transition md:focus:opacity-100 group-hover:opacity-100 items-center align-middle p-0",
         copied
-          ? "bg-emerald-400/10 ring-1 ring-inset ring-emerald-400/20"
+          ? "bg-blue-400/10 ring-1 ring-inset ring-blue-400/20"
           : "bg-white/5 hover:bg-white/7.5 dark:bg-white/2.5 dark:hover:bg-white/5",
-        size == "md"
+        size === "md"
           ? "right-[8.5px] top-[8.5px] py-[2px] pl-1 pr-2"
-          : "right-2 top-2 py-1 pl-2 pr-3",
+          : "right-2 top-2 py-1 pl-2 pr-2",
       )}
       onClick={() => {
         window.navigator.clipboard.writeText(code).then(() => {
           setCopyCount((count) => count + 1);
         });
+        onCopy?.();
       }}
     >
       <span
@@ -53,18 +60,22 @@ export function CopyButton({
           className={clsx(
             size === "md" ? "size-3" : "size-4",
             "stroke-stone-500 transition-colors group-hover/button:stroke-stone-600 dark:group-hover/button:stroke-stone-400",
+            copied && "stroke-primary",
           )}
         />
-        Copy
+        {size !== "sm" && "Copy"}
       </span>
       <span
         aria-hidden={!copied}
         className={clsx(
-          "pointer-events-none absolute inset-0 flex items-center justify-center text-emerald-600 transition duration-300 dark:text-emerald-400",
+          "pointer-events-none absolute inset-0 flex items-center justify-center text-primary transition duration-300",
           !copied && "translate-y-1.5 opacity-0",
         )}
       >
-        Copied!
+        {size === "sm" && (
+          <Icon name="copySuccess" size="xs" className="stroke-primary" />
+        )}
+        {size !== "sm" && "Copied!"}
       </span>
     </button>
   );
@@ -74,11 +85,13 @@ export function CodeGroup({
   children,
   size = "md",
   className,
+  onCopy,
 }: {
   children?: React.ReactNode;
   text?: string;
   size?: "md" | "lg";
   className?: string;
+  onCopy?: () => void;
 }) {
   const textRef = useRef<HTMLPreElement | null>(null);
   const [code, setCode] = useState<string>();
@@ -120,7 +133,7 @@ export function CodeGroup({
         {children}
       </pre>
 
-      {code ? <CopyButton size={size} code={code} /> : <></>}
+      {code ? <CopyButton onCopy={onCopy} size={size} code={code} /> : <></>}
     </div>
   );
 }

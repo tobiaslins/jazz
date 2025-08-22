@@ -1,4 +1,4 @@
-export const metadata = { 
+export const metadata = {
   description: "Learn about Jazz's authentication states: anonymous, guest, and fully authenticated."
 };
 
@@ -37,24 +37,24 @@ When a user loads a Jazz application for the first time, we create a new Account
 
 ## Detecting Authentication State
 
-You can detect the current authentication state using `useAccountOrGuest` and `useIsAuthenticated`.
+You can detect the current authentication state using `useAccount` and `useIsAuthenticated`.
 
 <ContentByFramework framework="react">
 <CodeGroup>
 ```tsx twoslash
 import * as React from "react";
 // ---cut---
-import { useAccountOrGuest, useIsAuthenticated } from "jazz-react";
+import { useAccount, useIsAuthenticated } from "jazz-tools/react";
 
 function AuthStateIndicator() {
-  const { me } = useAccountOrGuest();
+  const { agent } = useAccount();
   const isAuthenticated = useIsAuthenticated();
 
-  // Check if guest mode is enabled in JazzProvider
-  const isGuest = me._type !== "Account"
+  // Check if guest mode is enabled in JazzReactProvider
+  const isGuest = agent._type !== "Account"
 
   // Anonymous authentication: has an account but not fully authenticated
-  const isAnonymous =  me._type === "Account" && !isAuthenticated;
+  const isAnonymous = agent._type === "Account" && !isAuthenticated;
   return (
     <div>
       {isGuest && <span>Guest Mode</span>}
@@ -77,24 +77,26 @@ This example from our [music player example app](https://github.com/garden-co/ja
 
 <CodeGroup>
 ```ts twoslash
-import { Account, Group, CoMap, coField, CoList } from "jazz-tools";
+import { co, z, Group } from "jazz-tools";
 
-class MusicTrack extends CoMap {
-  title = coField.string;
-  duration = coField.number;
-  isExampleTrack = coField.optional.boolean;
-}
-class ListOfTracks extends CoList.Of(coField.ref(MusicTrack)) {}
-class Playlist extends CoMap {
-  title = coField.string;
-  tracks = coField.ref(ListOfTracks);
-}
-class MusicaAccountRoot extends CoMap {
-  rootPlaylist = coField.ref(Playlist);
-}
-class MusicaAccount extends Account {
-  root = coField.ref(MusicaAccountRoot);
-}
+const MusicTrack = co.map({
+  title: z.string(),
+  duration: z.number(),
+  isExampleTrack: z.boolean().optional(),
+});
+const Playlist = co.map({
+  title: z.string(),
+  tracks: co.list(MusicTrack),
+});
+const MusicaAccountRoot = co.map({
+  rootPlaylist: Playlist,
+});
+
+const MusicaAccount = co.account({
+  root: MusicaAccountRoot,
+  profile: co.profile(),
+});
+type MusicaAccount = co.loaded<typeof MusicaAccount>
 
 // ---cut---
 export async function onAnonymousAccountDiscarded(
@@ -134,11 +136,11 @@ export async function onAnonymousAccountDiscarded(
 ```
 </CodeGroup>
 
-To see how this works, try uploading a song in the [music player demo](https://music-demo.jazz.tools/) and then log in with an existing account.
+To see how this works, try uploading a song in the [music player demo](https://music.demo.jazz.tools/) and then log in with an existing account.
 
 ## Provider Configuration for Authentication
 
-You can configure how authentication states work in your app with the [JazzProvider](/docs/project-setup/providers/). The provider offers several options that impact authentication behavior:
+You can configure how authentication states work in your app with the [JazzReactProvider](/docs/project-setup/providers/). The provider offers several options that impact authentication behavior:
 
 - `guestMode`: Enable/disable Guest Mode
 - `onAnonymousAccountDiscarded`: Handle data migration when switching accounts
@@ -159,13 +161,13 @@ You can control network sync with [Providers](/docs/project-setup/providers/) ba
 <CodeGroup>
 ```tsx twoslash
 import * as React from "react";
-import { JazzProvider } from "jazz-react";
-const apiKey = "Replace with API key from dashboard.jazz.tools";
+import { JazzReactProvider } from "jazz-tools/react";
+const apiKey = "you@example.com";
 function App() {
   return <div>Hello World</div>;
 }
 // ---cut---
-<JazzProvider
+<JazzReactProvider
   sync={{
     peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
      // Controls when sync is enabled for
@@ -174,7 +176,7 @@ function App() {
   }}
 >
   <App />
-</JazzProvider>
+</JazzReactProvider>
 ```
 </CodeGroup>
 </ContentByFramework>
@@ -189,13 +191,13 @@ For example, you may want to give users with Anonymous Authentication the opport
 <CodeGroup>
 ```tsx twoslash
 import * as React from "react";
-import { JazzProvider } from "jazz-react";
+import { JazzReactProvider } from "jazz-tools/react";
 const apiKey = "you@example.com";
 function App() {
   return <div>Hello World</div>;
 }
 // ---cut---
-<JazzProvider
+<JazzReactProvider
   sync={{
     peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
      // This makes the app work in local mode when using Anonymous Authentication
@@ -203,7 +205,7 @@ function App() {
   }}
 >
   <App />
-</JazzProvider>
+</JazzReactProvider>
 ```
 </CodeGroup>
 </ContentByFramework>
@@ -216,13 +218,13 @@ You can configure Guest Mode access with the `guestMode` prop for [Providers](/d
 <CodeGroup>
 ```tsx twoslash
 import * as React from "react";
-import { JazzProvider } from "jazz-react";
+import { JazzReactProvider } from "jazz-tools/react";
 const apiKey = "you@example.com";
 function App() {
   return <div>Hello World</div>;
 }
 // ---cut---
-<JazzProvider
+<JazzReactProvider
   // Enable Guest Mode for public content
   guestMode={true}
   sync={{
@@ -232,7 +234,7 @@ function App() {
   }}
 >
   <App />
-</JazzProvider>
+</JazzReactProvider>
 ```
 </CodeGroup>
 </ContentByFramework>

@@ -192,10 +192,10 @@ describe("CoValueCore loading state", () => {
     const peer1 = createMockPeerState(
       {
         id: "peer1",
-        role: "storage",
+        role: "server",
       },
       async () => {
-        state.markAvailable({} as CoValueHeader, "peer1");
+        state.provideHeader({} as CoValueHeader, "peer1");
       },
     );
     const peer2 = createMockPeerState(
@@ -236,7 +236,7 @@ describe("CoValueCore loading state", () => {
     const peer1 = createMockPeerState(
       {
         id: "peer1",
-        role: "storage",
+        role: "server",
       },
       async () => {
         return new Promise(() => {});
@@ -248,7 +248,7 @@ describe("CoValueCore loading state", () => {
         role: "server",
       },
       async () => {
-        state.markAvailable({} as CoValueHeader, "peer2");
+        state.provideHeader({} as CoValueHeader, "peer2");
       },
     );
 

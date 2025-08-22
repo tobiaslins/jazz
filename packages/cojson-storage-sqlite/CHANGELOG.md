@@ -1,5 +1,359 @@
 # cojson-storage-sqlite
 
+## 0.17.11
+
+### Patch Changes
+
+- Updated dependencies [68b2f37]
+- Updated dependencies [257ded3]
+- Updated dependencies [e301ad6]
+  - cojson@0.17.11
+
+## 0.17.10
+
+### Patch Changes
+
+- Updated dependencies [c55297c]
+  - cojson@0.17.10
+
+## 0.17.9
+
+### Patch Changes
+
+- Updated dependencies [7586c3b]
+  - cojson@0.17.9
+
+## 0.17.8
+
+### Patch Changes
+
+- cojson@0.17.8
+
+## 0.17.7
+
+### Patch Changes
+
+- cojson@0.17.7
+
+## 0.17.6
+
+### Patch Changes
+
+- cojson@0.17.6
+
+## 0.17.5
+
+### Patch Changes
+
+- Updated dependencies [71c1411]
+- Updated dependencies [2d11d44]
+  - cojson@0.17.5
+
+## 0.17.4
+
+### Patch Changes
+
+- cojson@0.17.4
+
+## 0.17.3
+
+### Patch Changes
+
+- Updated dependencies [f0c73d9]
+  - cojson@0.17.3
+
+## 0.17.2
+
+### Patch Changes
+
+- Updated dependencies [5b2b16a]
+  - cojson@0.17.2
+
+## 0.17.1
+
+### Patch Changes
+
+- Updated dependencies [2fd88b9]
+  - cojson@0.17.1
+
+## 0.17.0
+
+### Patch Changes
+
+- cojson@0.17.0
+
+## 0.16.6
+
+### Patch Changes
+
+- 67e0968: Fix content streaming chunking, now chunks should be splitted always respecting the MAX_RECOMMENDED_TX_SIZE
+- Updated dependencies [67e0968]
+- Updated dependencies [ce9ca54]
+- Updated dependencies [4b99ff1]
+- Updated dependencies [ac5d20d]
+- Updated dependencies [9bf7946]
+  - cojson@0.16.6
+
+## 0.16.5
+
+### Patch Changes
+
+- Updated dependencies [3cd1586]
+- Updated dependencies [267f689]
+  - cojson@0.16.5
+
+## 0.16.4
+
+### Patch Changes
+
+- Updated dependencies [f9d538f]
+- Updated dependencies [802b5a3]
+  - cojson@0.16.4
+
+## 0.16.3
+
+### Patch Changes
+
+- cojson@0.16.3
+
+## 0.16.2
+
+### Patch Changes
+
+- cojson@0.16.2
+
+## 0.16.1
+
+### Patch Changes
+
+- cojson@0.16.1
+
+## 0.16.0
+
+### Patch Changes
+
+- Updated dependencies [c09dcdf]
+  - cojson@0.16.0
+
+## 0.15.16
+
+### Patch Changes
+
+- cojson@0.15.16
+
+## 0.15.15
+
+### Patch Changes
+
+- cojson@0.15.15
+
+## 0.15.14
+
+### Patch Changes
+
+- Updated dependencies [70ce7c5]
+  - cojson@0.15.14
+
+## 0.15.13
+
+### Patch Changes
+
+- cojson@0.15.13
+
+## 0.15.12
+
+### Patch Changes
+
+- cojson@0.15.12
+
+## 0.15.11
+
+### Patch Changes
+
+- cojson@0.15.11
+
+## 0.15.10
+
+### Patch Changes
+
+- cojson@0.15.10
+
+## 0.15.9
+
+### Patch Changes
+
+- Updated dependencies [27b4837]
+- Updated dependencies [2776263]
+  - cojson@0.15.9
+
+## 0.15.8
+
+### Patch Changes
+
+- cojson@0.15.8
+- cojson-storage@0.15.8
+
+## 0.15.7
+
+### Patch Changes
+
+- cojson@0.15.7
+- cojson-storage@0.15.7
+
+## 0.15.6
+
+### Patch Changes
+
+- cojson@0.15.6
+- cojson-storage@0.15.6
+
+## 0.15.5
+
+### Patch Changes
+
+- cojson@0.15.5
+- cojson-storage@0.15.5
+
+## 0.15.4
+
+### Patch Changes
+
+- Updated dependencies [277e4d4]
+  - cojson@0.15.4
+  - cojson-storage@0.15.4
+
+## 0.15.3
+
+### Patch Changes
+
+- cojson@0.15.3
+- cojson-storage@0.15.3
+
+## 0.15.2
+
+### Patch Changes
+
+- Updated dependencies [4b964ed]
+  - cojson@0.15.2
+  - cojson-storage@0.15.2
+
+## 0.15.1
+
+### Patch Changes
+
+- Updated dependencies [b110f00]
+  - cojson@0.15.1
+  - cojson-storage@0.15.1
+
+## 0.15.0
+
+### Patch Changes
+
+- cojson@0.15.0
+- cojson-storage@0.15.0
+
+## 0.14.28
+
+### Patch Changes
+
+- cojson@0.14.28
+- cojson-storage@0.14.28
+
+## 0.14.27
+
+### Patch Changes
+
+- cojson@0.14.27
+- cojson-storage@0.14.27
+
+## 0.14.26
+
+### Patch Changes
+
+- Updated dependencies [e74a077]
+- Updated dependencies [680a2e2]
+  - cojson@0.14.26
+  - cojson-storage@0.14.26
+
+## 0.14.25
+
+### Patch Changes
+
+- cojson@0.14.25
+- cojson-storage@0.14.25
+
+## 0.14.24
+
+### Patch Changes
+
+- cojson@0.14.24
+- cojson-storage@0.14.24
+
+## 0.14.23
+
+### Patch Changes
+
+- 5f42c97: Close the DB connection when the node/context is closed
+- Updated dependencies [1ca9299]
+- Updated dependencies [5f42c97]
+  - cojson@0.14.23
+  - cojson-storage@0.14.23
+
+## 0.14.22
+
+### Patch Changes
+
+- Updated dependencies [57fb69f]
+  - cojson@0.14.22
+  - cojson-storage@0.14.22
+
+## 0.14.21
+
+### Patch Changes
+
+- Updated dependencies [c3d8779]
+  - cojson@0.14.21
+  - cojson-storage@0.14.21
+
+## 0.14.20
+
+### Patch Changes
+
+- cojson@0.14.20
+- cojson-storage@0.14.20
+
+## 0.14.19
+
+### Patch Changes
+
+- cojson@0.14.19
+- cojson-storage@0.14.19
+
+## 0.14.18
+
+### Patch Changes
+
+- Updated dependencies [0d5ee3e]
+- Updated dependencies [be7c4c2]
+  - cojson@0.14.18
+  - cojson-storage@0.14.18
+
+## 0.14.16
+
+### Patch Changes
+
+- Updated dependencies [5e253cc]
+  - cojson@0.14.16
+  - cojson-storage@0.14.16
+
+## 0.14.15
+
+### Patch Changes
+
+- Updated dependencies [23daa7c]
+  - cojson-storage@0.14.15
+  - cojson@0.14.15
+
 ## 0.14.1
 
 ### Patch Changes

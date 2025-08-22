@@ -1,5 +1,17 @@
 # hash-slash
 
+## 0.2.4
+
+### Patch Changes
+
+- e0d2723: Fix router update when calling navigate\
+
+## 0.2.3
+
+### Patch Changes
+
+- dc746a2: Make the react peerDependency definition more relaxed
+
 ## 0.2.2
 
 ### Patch Changes

@@ -1,21 +1,24 @@
-import { createServer } from "http";
+import { createServer } from "node:http";
 import { mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
 import { LocalNode } from "cojson";
-import { SQLiteStorage } from "cojson-storage-sqlite";
+import { getBetterSqliteStorage } from "cojson-storage-sqlite";
 import { createWebSocketPeer } from "cojson-transport-ws";
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { WebSocketServer } from "ws";
+import { type SyncServer } from "./types.js";
 
 export const startSyncServer = async ({
+  host,
   port,
   inMemory,
   db,
 }: {
+  host: string | undefined;
   port: string | undefined;
   inMemory: boolean;
   db: string;
-}) => {
+}): Promise<SyncServer> => {
   const crypto = await WasmCrypto.create();
 
   const server = createServer((req, res) => {
@@ -38,10 +41,12 @@ export const startSyncServer = async ({
   if (!inMemory) {
     await mkdir(dirname(db), { recursive: true });
 
-    const storage = await SQLiteStorage.asPeer({ filename: db });
+    const storage = getBetterSqliteStorage(db);
 
-    localNode.syncManager.addPeer(storage);
+    localNode.setStorage(storage);
   }
+
+  localNode.enableGarbageCollector();
 
   wss.on("connection", function connection(ws, req) {
     // ping/pong for the connection liveness
@@ -92,8 +97,6 @@ export const startSyncServer = async ({
     localNode.gracefulShutdown();
   });
 
-  server.listen(port ? parseInt(port) : undefined);
-
   const _close = server.close;
 
   server.close = () => {
@@ -102,5 +105,13 @@ export const startSyncServer = async ({
     return _close.call(server);
   };
 
-  return server;
+  Object.defineProperty(server, "localNode", { value: localNode });
+
+  server.listen(port ? parseInt(port) : undefined, host);
+
+  return new Promise((resolve) => {
+    server.once("listening", () => {
+      resolve(server as SyncServer);
+    });
+  });
 };

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from '$app/stores';
-  import {  CoState } from 'jazz-svelte';
+  import { CoState } from 'jazz-tools/svelte';
   import { SharedFile } from '$lib/schema';
   import { File, FileDown, Link2 } from 'lucide-svelte';
   import { FileStream } from 'jazz-tools';
@@ -9,7 +9,7 @@
 
   const fileId = $page.params.fileId;
 
-  const file = $derived(new CoState(SharedFile, fileId ));
+  const file = $derived(new CoState(SharedFile, fileId));
   const isAdmin = $derived(file.current?._owner?.myRole() === 'admin');
 
   const fileStreamId = $derived(file.current?._refs?.file?.id);
@@ -51,7 +51,7 @@
 </svelte:head>
 
 {#if file.current}
-  <div class="container mx-auto max-w-3xl p-4">
+  <div class="mx-auto max-w-3xl p-4">
     <div class="rounded-lg bg-white p-6 shadow-md">
       <div class="mb-6 flex items-center justify-between">
         <div class="flex items-center gap-3">
@@ -88,7 +88,7 @@
     </div>
   </div>
 {:else}
-  <div class="container mx-auto max-w-3xl p-4">
+  <div class="mx-auto max-w-3xl p-4">
     <div class="rounded-lg bg-white p-6 shadow-md">
       <p class="text-gray-600">Loading file...</p>
     </div>

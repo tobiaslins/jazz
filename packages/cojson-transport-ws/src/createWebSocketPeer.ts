@@ -1,17 +1,10 @@
-import {
-  type DisconnectedError,
-  type Peer,
-  type PingTimeoutError,
-  type SyncMessage,
-  cojsonInternals,
-  logger,
-} from "cojson";
+import { ValueType, metrics } from "@opentelemetry/api";
+import { type Peer, type SyncMessage, cojsonInternals, logger } from "cojson";
 import { BatchedOutgoingMessages } from "./BatchedOutgoingMessages.js";
 import { deserializeMessages } from "./serialization.js";
 import type { AnyWebSocket } from "./types.js";
 
-export const BUFFER_LIMIT = 100_000;
-export const BUFFER_LIMIT_POLLING_INTERVAL = 10;
+const { ConnectedPeerChannel, getContentMessageSize } = cojsonInternals;
 
 export type CreateWebSocketPeerOpts = {
   id: string;
@@ -23,6 +16,10 @@ export type CreateWebSocketPeerOpts = {
   pingTimeout?: number;
   onClose?: () => void;
   onSuccess?: () => void;
+  /**
+   * Additional key-value attributes to add to the ingress metric.
+   */
+  meta?: Record<string, string | number>;
 };
 
 function createPingTimeoutListener(
@@ -52,70 +49,6 @@ function createPingTimeoutListener(
   };
 }
 
-function waitForWebSocketOpen(websocket: AnyWebSocket) {
-  return new Promise<void>((resolve) => {
-    if (websocket.readyState === 1) {
-      resolve();
-    } else {
-      websocket.addEventListener("open", () => resolve(), { once: true });
-    }
-  });
-}
-
-function createOutgoingMessagesManager(
-  websocket: AnyWebSocket,
-  batchingByDefault: boolean,
-) {
-  let closed = false;
-  const outgoingMessages = new BatchedOutgoingMessages((messages) => {
-    if (websocket.readyState === 1) {
-      websocket.send(messages);
-    }
-  });
-
-  let batchingEnabled = batchingByDefault;
-
-  async function sendMessage(msg: SyncMessage) {
-    if (closed) {
-      return Promise.reject(new Error("WebSocket closed"));
-    }
-
-    if (websocket.readyState !== 1) {
-      await waitForWebSocketOpen(websocket);
-    }
-
-    while (
-      websocket.bufferedAmount > BUFFER_LIMIT &&
-      websocket.readyState === 1
-    ) {
-      await new Promise<void>((resolve) =>
-        setTimeout(resolve, BUFFER_LIMIT_POLLING_INTERVAL),
-      );
-    }
-
-    if (websocket.readyState !== 1) {
-      return;
-    }
-
-    if (!batchingEnabled) {
-      websocket.send(JSON.stringify(msg));
-    } else {
-      outgoingMessages.push(msg);
-    }
-  }
-
-  return {
-    sendMessage,
-    setBatchingEnabled(enabled: boolean) {
-      batchingEnabled = enabled;
-    },
-    close() {
-      closed = true;
-      outgoingMessages.close();
-    },
-  };
-}
-
 function createClosedEventEmitter(callback = () => {}) {
   let disconnected = false;
 
@@ -136,18 +69,24 @@ export function createWebSocketPeer({
   pingTimeout = 10_000,
   onSuccess,
   onClose,
+  meta,
 }: CreateWebSocketPeerOpts): Peer {
-  const incoming = new cojsonInternals.Channel<
-    SyncMessage | DisconnectedError | PingTimeoutError
-  >();
+  const totalIngressBytesCounter = metrics
+    .getMeter("cojson-transport-ws")
+    .createCounter("jazz.usage.ingress", {
+      description: "Total ingress bytes from peer",
+      unit: "bytes",
+      valueType: ValueType.INT,
+    });
+
+  // Initialize the counter by adding 0
+  totalIngressBytesCounter.add(0, meta);
+
+  const incoming = new ConnectedPeerChannel();
   const emitClosedEvent = createClosedEventEmitter(onClose);
 
   function handleClose() {
-    incoming
-      .push("Disconnected")
-      .catch((e) =>
-        logger.error("Error while pushing disconnect msg", { err: e }),
-      );
+    incoming.push("Disconnected");
     emitClosedEvent();
   }
 
@@ -166,18 +105,20 @@ export function createWebSocketPeer({
     expectPings,
     pingTimeout,
     () => {
-      incoming
-        .push("PingTimeout")
-        .catch((e) =>
-          logger.error("Error while pushing ping timeout", { err: e }),
-        );
+      incoming.push("Disconnected");
+      logger.error("Ping timeout from peer", {
+        peerId: id,
+        peerRole: role,
+      });
       emitClosedEvent();
     },
   );
 
-  const outgoingMessages = createOutgoingMessagesManager(
+  const outgoing = new BatchedOutgoingMessages(
     websocket,
     batchingByDefault,
+    role,
+    meta,
   );
   let isFirstMessage = true;
 
@@ -206,50 +147,46 @@ export function createWebSocketPeer({
 
     if (messages.length > 1) {
       // If more than one message is received, the other peer supports batching
-      outgoingMessages.setBatchingEnabled(true);
+      outgoing.setBatching(true);
     }
 
     for (const msg of messages) {
       if (msg && "action" in msg) {
-        incoming
-          .push(msg)
-          .catch((e) =>
-            logger.error("Error while pushing incoming msg", { err: e }),
-          );
+        incoming.push(msg);
+
+        if (msg.action === "content") {
+          totalIngressBytesCounter.add(getContentMessageSize(msg), meta);
+        }
       }
     }
   }
 
   websocket.addEventListener("message", handleIncomingMsg);
 
+  outgoing.onClose(() => {
+    websocket.removeEventListener("message", handleIncomingMsg);
+    websocket.removeEventListener("close", handleClose);
+    pingTimeoutListener.clear();
+    emitClosedEvent();
+
+    if (websocket.readyState === 0) {
+      websocket.addEventListener(
+        "open",
+        function handleClose() {
+          websocket.close();
+        },
+        { once: true },
+      );
+    } else if (websocket.readyState === 1) {
+      websocket.close();
+    }
+  });
+
   return {
     id,
     incoming,
-    outgoing: {
-      push: outgoingMessages.sendMessage,
-      close() {
-        outgoingMessages.close();
-
-        websocket.removeEventListener("message", handleIncomingMsg);
-        websocket.removeEventListener("close", handleClose);
-        pingTimeoutListener.clear();
-        emitClosedEvent();
-
-        if (websocket.readyState === 0) {
-          websocket.addEventListener(
-            "open",
-            function handleClose() {
-              websocket.close();
-            },
-            { once: true },
-          );
-        } else if (websocket.readyState === 1) {
-          websocket.close();
-        }
-      },
-    },
+    outgoing,
     role,
-    crashOnClose: false,
-    deletePeerStateOnClose,
+    persistent: !deletePeerStateOnClose,
   };
 }

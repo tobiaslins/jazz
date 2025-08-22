@@ -1,10 +1,18 @@
 import { commands } from "@vitest/browser/context";
 import { internal_setDatabaseName } from "cojson-storage-indexeddb";
 import {
+  Account,
+  AccountClass,
+  AnyAccountSchema,
+  CoValueFromRaw,
+  JazzContextManagerAuthProps,
+  SyncMessage,
+  cojsonInternals,
+} from "jazz-tools";
+import {
   JazzBrowserContextManager,
   JazzContextManagerProps,
-} from "jazz-browser";
-import { Account, JazzContextManagerAuthProps } from "jazz-tools";
+} from "jazz-tools/browser";
 import { onTestFinished } from "vitest";
 
 export function waitFor(callback: () => boolean | void) {
@@ -35,7 +43,11 @@ export function waitFor(callback: () => boolean | void) {
   });
 }
 
-export async function createAccountContext<Acc extends Account>(
+export async function createAccountContext<
+  Acc extends
+    | (AccountClass<Account> & CoValueFromRaw<Account>)
+    | AnyAccountSchema,
+>(
   props: JazzContextManagerProps<Acc> & { databaseName?: string },
   authProps?: JazzContextManagerAuthProps,
 ) {
@@ -76,7 +88,7 @@ export async function startSyncServer(port?: number, dbName?: string) {
     url,
     port: syncServerPort,
     disconnectAllClients: () => commands.disconnectAllClients(url),
-    setOffline: (active: boolean) => commands.setOffline(url, active),
+    setOnline: (active: boolean) => commands.setOnline(url, active),
     close,
   };
 }

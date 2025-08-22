@@ -1,5 +1,59 @@
 # create-jazz-app
 
+## 0.1.27
+
+### Patch Changes
+
+- 0aef170: Fix catalog management
+
+## 0.1.26
+
+### Patch Changes
+
+- 86bd87e: Replace catalog entries on package.json with their current catalog value
+
+## 0.1.25
+
+### Patch Changes
+
+- b774bb3: Add default project name
+
+## 0.1.24
+
+### Patch Changes
+
+- 6f5731b: Fix the metro.config.js for react-native plain projects and Expo. Introduce .npmrc file to allow the installation with pnpm
+
+## 0.1.23
+
+### Patch Changes
+
+- 2d19908: use new svelte starter
+
+## 0.1.22
+
+### Patch Changes
+
+- 5bb1252: delete .env.test file
+
+## 0.1.21
+
+### Patch Changes
+
+- e005ecd: Sets selected package manager based on command runner
+
+## 0.1.20
+
+### Patch Changes
+
+- f5bae09: Remove React Native specific steps as not required anymore
+
+## 0.1.19
+
+### Patch Changes
+
+- 4508524: Rename demo to minimal, change React Native template to minimal auth
+
 ## 0.1.18
 
 ### Patch Changes

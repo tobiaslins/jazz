@@ -2,7 +2,7 @@ import { CoID } from "./coValue.js";
 import { CoValueCore } from "./coValueCore/coValueCore.js";
 import { Transaction } from "./coValueCore/verifiedState.js";
 import { RawAccount, RawAccountID, RawProfile } from "./coValues/account.js";
-import { MapOpPayload } from "./coValues/coMap.js";
+import { MapOpPayload, RawCoMap } from "./coValues/coMap.js";
 import {
   EVERYONE,
   Everyone,
@@ -31,7 +31,23 @@ export type PermissionsDef =
   | { type: "ownedByGroup"; group: RawCoID }
   | { type: "unsafeAllowAll" };
 
-export type AccountRole = "reader" | "writer" | "admin" | "writeOnly";
+export type AccountRole =
+  /**
+   * Can read the group's CoValues
+   */
+  | "reader"
+  /**
+   * Can read and write to the group's CoValues
+   */
+  | "writer"
+  /**
+   * Can read and write to the group, and change group member roles
+   */
+  | "admin"
+  /**
+   * Can only write to the group's CoValues and read their own changes
+   */
+  | "writeOnly";
 
 export type Role =
   | AccountRole
@@ -270,6 +286,7 @@ function determineValidTransactionsForGroup(
       | MapOpPayload<RawAccountID | AgentID | Everyone, Role>
       | MapOpPayload<"readKey", JsonValue>
       | MapOpPayload<"profile", CoID<RawProfile>>
+      | MapOpPayload<"root", CoID<RawCoMap>>
       | MapOpPayload<`parent_${CoID<RawGroup>}`, CoID<RawGroup>>
       | MapOpPayload<`child_${CoID<RawGroup>}`, CoID<RawGroup>>;
 
@@ -294,6 +311,14 @@ function determineValidTransactionsForGroup(
     } else if (change.key === "profile") {
       if (memberState[transactor] !== "admin") {
         logPermissionError("Only admins can set profile");
+        continue;
+      }
+
+      validTransactions.push({ txID: { sessionID, txIndex }, tx });
+      continue;
+    } else if (change.key === "root") {
+      if (memberState[transactor] !== "admin") {
+        logPermissionError("Only admins can set root");
         continue;
       }
 

@@ -1,7 +1,6 @@
 {
   "name": "organization",
   "private": true,
-  "version": "0.0.94",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -13,26 +12,25 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
-    "jazz-react": "workspace:*",
     "jazz-tools": "workspace:*",
-    "lucide-react": "^0.274.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "lucide-react": "^0.536.0",
+    "react": "catalog:react",
+    "react-dom": "catalog:react",
     "react-router": "^6.16.0",
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "catalog:default",
     "@playwright/test": "^1.50.1",
-    "@biomejs/biome": "1.9.4",
-    "@tailwindcss/forms": "^0.5.9",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
-    "@vitejs/plugin-react": "^4.3.3",
-    "autoprefixer": "^10.4.20",
+    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/postcss": "^4.1.10",
+    "@types/react": "catalog:react",
+    "@types/react-dom": "catalog:react",
+    "@vitejs/plugin-react": "^4.5.1",
     "globals": "^15.11.0",
-    "postcss": "^8.4.27",
-    "tailwindcss": "^3.4.17",
-    "typescript": "5.6.2",
-    "vite": "6.0.11"
+    "postcss": "^8.4.40",
+    "tailwindcss": "^4.1.10",
+    "typescript": "catalog:default",
+    "vite": "catalog:default"
   }
 }

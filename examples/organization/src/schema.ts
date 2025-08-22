@@ -10,24 +10,24 @@ export const Organization = co.map({
   projects: co.list(Project),
 });
 
-export const DraftOrganization = co
-  .map({
-    name: z.optional(z.string()),
-    projects: co.list(Project),
-  })
-  .withHelpers((Self) => ({
-    validate(org: Loaded<typeof Self>) {
-      const errors: string[] = [];
+export const DraftOrganization = co.map({
+  name: z.optional(z.string()),
+  projects: co.list(Project),
+});
 
-      if (!org.name) {
-        errors.push("Please enter a name.");
-      }
+export function validateDraftOrganization(
+  org: Loaded<typeof DraftOrganization>,
+) {
+  const errors: string[] = [];
 
-      return {
-        errors,
-      };
-    },
-  }));
+  if (!org.name) {
+    errors.push("Please enter a name.");
+  }
+
+  return {
+    errors,
+  };
+}
 
 export const JazzAccountRoot = co.map({
   organizations: co.list(Organization),

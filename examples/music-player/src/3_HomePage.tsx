@@ -4,18 +4,21 @@ import {
   useAccount,
   useCoState,
   useIsAuthenticated,
-} from "jazz-react";
-import { useNavigate, useParams } from "react-router";
+} from "jazz-tools/react";
+import { useParams } from "react-router";
 import { MusicaAccount, Playlist } from "./1_schema";
-import { createNewPlaylist, uploadMusicTracks } from "./4_actions";
+import { uploadMusicTracks } from "./4_actions";
 import { MediaPlayer } from "./5_useMediaPlayer";
-import { AuthButton } from "./components/AuthButton";
 import { FileUploadButton } from "./components/FileUploadButton";
 import { MusicTrackRow } from "./components/MusicTrackRow";
-import { PlaylistTitleInput } from "./components/PlaylistTitleInput";
+import { PlayerControls } from "./components/PlayerControls";
+import { EditPlaylistModal } from "./components/EditPlaylistModal";
+import { PlaylistMembers } from "./components/PlaylistMembers";
 import { SidePanel } from "./components/SidePanel";
 import { Button } from "./components/ui/button";
+import { SidebarInset, SidebarTrigger } from "./components/ui/sidebar";
 import { usePlayState } from "./lib/audio/usePlayState";
+import { useState } from "react";
 
 export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
   /**
@@ -26,10 +29,10 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
     resolve: { root: { rootPlaylist: true, playlists: true } },
   });
 
-  const navigate = useNavigate();
   const playState = usePlayState();
   const isPlaying = playState.value === "play";
   const { toast } = useToast();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   async function handleFileLoad(files: FileList) {
     /**
@@ -39,19 +42,18 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
     await uploadMusicTracks(files);
   }
 
-  async function handleCreatePlaylist() {
-    const playlist = await createNewPlaylist();
-
-    navigate(`/playlist/${playlist.id}`);
-  }
-
   const params = useParams<{ playlistId: string }>();
   const playlistId = params.playlistId ?? me?.root._refs.rootPlaylist.id;
 
   const playlist = useCoState(Playlist, playlistId, {
-    resolve: { tracks: true },
+    resolve: {
+      tracks: {
+        $each: true,
+      },
+    },
   });
 
+  const membersIds = playlist?._owner.members.map((member) => member.id);
   const isRootPlaylist = !params.playlistId;
   const isPlaylistOwner = playlist?._owner.myRole() === "admin";
   const isActivePlaylist = playlistId === me?.root.activePlaylist?.id;
@@ -68,18 +70,29 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
     });
   };
 
+  const handleEditClick = () => {
+    setIsEditModalOpen(true);
+  };
+
   const isAuthenticated = useIsAuthenticated();
 
   return (
-    <div className="flex flex-col h-screen text-gray-800 bg-blue-50">
+    <SidebarInset className="flex flex-col h-screen text-gray-800">
       <div className="flex flex-1 overflow-hidden">
         <SidePanel />
-        <main className="flex-1 p-6 overflow-y-auto">
-          <div className="flex items-center justify-between mb-6">
+        <main className="flex-1 px-2 py-4 md:px-6 overflow-y-auto overflow-x-hidden relative sm:h-[calc(100vh-80px)] bg-white h-[calc(100vh-165px)]">
+          <SidebarTrigger className="md:hidden" />
+
+          <div className="flex flex-row items-center justify-between mb-4 pl-1 md:pl-10 pr-2 md:pr-0 mt-2 md:mt-0 w-full">
             {isRootPlaylist ? (
               <h1 className="text-2xl font-bold text-blue-800">All tracks</h1>
             ) : (
-              <PlaylistTitleInput playlistId={playlistId} />
+              <div className="flex items-center space-x-4">
+                <h1 className="text-2xl font-bold text-blue-800">
+                  {playlist?.title}
+                </h1>
+                {membersIds && <PlaylistMembers memberIds={membersIds} />}
+              </div>
             )}
             <div className="flex items-center space-x-4">
               {isRootPlaylist && (
@@ -87,25 +100,26 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
                   <FileUploadButton onFileLoad={handleFileLoad}>
                     Add file
                   </FileUploadButton>
-                  <Button onClick={handleCreatePlaylist}>New playlist</Button>
                 </>
               )}
               {!isRootPlaylist && isAuthenticated && (
-                <Button onClick={handlePlaylistShareClick}>
-                  Share playlist
-                </Button>
+                <>
+                  <Button onClick={handleEditClick} variant="outline">
+                    Edit
+                  </Button>
+                  <Button onClick={handlePlaylistShareClick}>Share</Button>
+                </>
               )}
-              <AuthButton />
             </div>
           </div>
-          <ul className="flex flex-col">
+          <ul className="flex flex-col max-w-full sm:gap-1">
             {playlist?.tracks?.map(
-              (track) =>
+              (track, index) =>
                 track && (
                   <MusicTrackRow
                     trackId={track.id}
                     key={track.id}
-                    isLoading={mediaPlayer.loading === track.id}
+                    index={index}
                     isPlaying={
                       mediaPlayer.activeTrackId === track.id &&
                       isActivePlaylist &&
@@ -114,13 +128,20 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
                     onClick={() => {
                       mediaPlayer.setActiveTrack(track, playlist);
                     }}
-                    showAddToPlaylist={isRootPlaylist}
                   />
                 ),
             )}
           </ul>
         </main>
+        <PlayerControls mediaPlayer={mediaPlayer} />
       </div>
-    </div>
+
+      {/* Playlist Title Edit Modal */}
+      <EditPlaylistModal
+        playlistId={playlistId}
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+      />
+    </SidebarInset>
   );
 }

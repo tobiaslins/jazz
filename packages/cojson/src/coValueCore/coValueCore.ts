@@ -1,9 +1,10 @@
 import { UpDownCounter, ValueType, metrics } from "@opentelemetry/api";
-import { Result, err } from "neverthrow";
-import { PeerState } from "../PeerState.js";
-import { RawCoValue } from "../coValue.js";
-import { ControlledAccountOrAgent, RawAccountID } from "../coValues/account.js";
-import { RawGroup } from "../coValues/group.js";
+import { Result, err, ok } from "neverthrow";
+import type { PeerState } from "../PeerState.js";
+import type { RawCoValue } from "../coValue.js";
+import type { ControlledAccountOrAgent } from "../coValues/account.js";
+import type { RawGroup } from "../coValues/group.js";
+import { CO_VALUE_LOADING_CONFIG } from "../config.js";
 import { coreToCoValue } from "../coreToCoValue.js";
 import {
   CryptoProvider,
@@ -15,36 +16,18 @@ import {
   SignerID,
   StreamingHash,
 } from "../crypto/crypto.js";
-import {
-  RawCoID,
-  SessionID,
-  TransactionID,
-  getGroupDependentKeyList,
-  getParentGroupId,
-  isParentGroupReference,
-} from "../ids.js";
+import { RawCoID, SessionID, TransactionID } from "../ids.js";
 import { parseJSON, stableStringify } from "../jsonStringify.js";
 import { JsonValue } from "../jsonValue.js";
 import { LocalNode, ResolveAccountAgentError } from "../localNode.js";
 import { logger } from "../logger.js";
-import {
-  determineValidTransactions,
-  isKeyForKeyField,
-} from "../permissions.js";
+import { determineValidTransactions } from "../permissions.js";
 import { CoValueKnownState, PeerID, emptyKnownState } from "../sync.js";
 import { accountOrAgentIDfromSessionID } from "../typeUtils/accountOrAgentIDfromSessionID.js";
 import { expectGroup } from "../typeUtils/expectGroup.js";
-import { isAccountID } from "../typeUtils/isAccountID.js";
+import { getDependedOnCoValuesFromRawData } from "./utils.js";
 import { CoValueHeader, Transaction, VerifiedState } from "./verifiedState.js";
-
-/**
-    In order to not block other concurrently syncing CoValues we introduce a maximum size of transactions,
-    since they are the smallest unit of progress that can be synced within a CoValue.
-    This is particularly important for storing binary data in CoValues, since they are likely to be at least on the order of megabytes.
-    This also means that we want to keep signatures roughly after each MAX_RECOMMENDED_TX size chunk,
-    to be able to verify partially loaded CoValues or CoValues that are still being created (like a video live stream).
-**/
-export const MAX_RECOMMENDED_TX_SIZE = 100 * 1024;
+import { SessionMap } from "./SessionMap.js";
 
 export function idforHeader(
   header: CoValueHeader,
@@ -58,17 +41,10 @@ export type DecryptedTransaction = {
   txID: TransactionID;
   changes: JsonValue[];
   madeAt: number;
+  trusting?: boolean;
 };
-
-const readKeyCache = new WeakMap<CoValueCore, { [id: KeyID]: KeySecret }>();
 
 export type AvailableCoValueCore = CoValueCore & { verified: VerifiedState };
-
-export const CO_VALUE_LOADING_CONFIG = {
-  MAX_RETRIES: 1,
-  TIMEOUT: 30_000,
-  RETRY_DELAY: 3000,
-};
 
 export class CoValueCore {
   // context
@@ -94,7 +70,9 @@ export class CoValueCore {
   }
   private readonly peers = new Map<
     PeerID,
-    | { type: "unknown" | "pending" | "available" | "unavailable" }
+    | {
+        type: "unknown" | "pending" | "available" | "unavailable";
+      }
     | {
         type: "errored";
         error: TryAddTransactionsError;
@@ -103,9 +81,8 @@ export class CoValueCore {
 
   // cached state and listeners
   private _cachedContent?: RawCoValue;
-  private readonly listeners: Set<
-    (core: CoValueCore, unsub: () => void) => void
-  > = new Set();
+  readonly listeners: Set<(core: CoValueCore, unsub: () => void) => void> =
+    new Set();
   private readonly _decryptionCache: {
     [key: Encrypted<JsonValue[], JsonValue>]: JsonValue[] | undefined;
   } = {};
@@ -119,12 +96,7 @@ export class CoValueCore {
     this.crypto = node.crypto;
     if ("header" in init) {
       this.id = idforHeader(init.header, node.crypto);
-      this._verified = new VerifiedState(
-        this.id,
-        node.crypto,
-        init.header,
-        new Map(),
-      );
+      this._verified = new VerifiedState(this.id, node.crypto, init.header);
     } else {
       this.id = init.id;
       this._verified = null;
@@ -172,6 +144,10 @@ export class CoValueCore {
   }
 
   isAvailable(): this is AvailableCoValueCore {
+    return this.hasVerifiedContent() && this.missingDependencies.size === 0;
+  }
+
+  hasVerifiedContent(): this is AvailableCoValueCore {
     return !!this.verified;
   }
 
@@ -222,6 +198,28 @@ export class CoValueCore {
     }
   }
 
+  unmount() {
+    // For simplicity, we don't unmount groups and accounts
+    if (this.verified?.header.ruleset.type === "group") {
+      return false;
+    }
+
+    if (this.listeners.size > 0) {
+      return false; // The coValue is still in use
+    }
+
+    this.counter.add(-1, { state: this.loadingState });
+
+    if (this.groupInvalidationSubscription) {
+      this.groupInvalidationSubscription();
+      this.groupInvalidationSubscription = undefined;
+    }
+
+    this.node.internalDeleteCoValue(this.id);
+
+    return true;
+  }
+
   markNotFoundInPeer(peerId: PeerID) {
     const previousState = this.loadingState;
     this.peers.set(peerId, { type: "unavailable" });
@@ -229,23 +227,79 @@ export class CoValueCore {
     this.notifyUpdate("immediate");
   }
 
-  // TODO: rename to "provided"
-  markAvailable(header: CoValueHeader, fromPeerId: PeerID) {
+  missingDependencies = new Set<RawCoID>();
+
+  // Checks if the current CoValueCore is already a missing dependency of the given CoValueCore
+  checkCircularDependencies(dependency: CoValueCore) {
+    const visited = new Set<RawCoID>();
+    const stack = [dependency];
+
+    while (stack.length > 0) {
+      const current = stack.pop();
+
+      if (!current) {
+        return true;
+      }
+
+      visited.add(current.id);
+
+      for (const dependency of current.missingDependencies) {
+        if (dependency === this.id) {
+          return false;
+        }
+
+        if (!visited.has(dependency)) {
+          stack.push(this.node.getCoValue(dependency));
+        }
+      }
+    }
+
+    return true;
+  }
+
+  markMissingDependency(dependency: RawCoID) {
+    const value = this.node.getCoValue(dependency);
+
+    if (value.isAvailable()) {
+      this.missingDependencies.delete(dependency);
+    } else if (this.checkCircularDependencies(value)) {
+      const unsubscribe = value.subscribe(() => {
+        if (value.isAvailable()) {
+          this.missingDependencies.delete(dependency);
+          unsubscribe();
+        }
+
+        if (this.isAvailable()) {
+          this.notifyUpdate("immediate");
+        }
+      });
+
+      this.missingDependencies.add(dependency);
+    }
+  }
+
+  provideHeader(
+    header: CoValueHeader,
+    fromPeerId: PeerID,
+    streamingKnownState?: CoValueKnownState["sessions"],
+  ) {
     const previousState = this.loadingState;
 
     if (this._verified?.sessions.size) {
       throw new Error(
-        "CoValueCore: markAvailable called on coValue with verified sessions present!",
+        "CoValueCore: provideHeader called on coValue with verified sessions present!",
       );
     }
     this._verified = new VerifiedState(
       this.id,
       this.node.crypto,
       header,
-      new Map(),
+      new SessionMap(this.id, this.node.crypto),
+      streamingKnownState,
     );
 
     this.peers.set(fromPeerId, { type: "available" });
+
     this.updateCounter(previousState);
     this.notifyUpdate("immediate");
   }
@@ -269,7 +323,7 @@ export class CoValueCore {
     this.notifyUpdate("immediate");
   }
 
-  private markPending(peerId: PeerID) {
+  markPending(peerId: PeerID) {
     const previousState = this.loadingState;
     this.peers.set(peerId, { type: "pending" });
     this.updateCounter(previousState);
@@ -332,8 +386,16 @@ export class CoValueCore {
       .getCurrentContent();
   }
 
+  knownStateWithStreaming(): CoValueKnownState {
+    if (this.verified) {
+      return this.verified.knownStateWithStreaming();
+    } else {
+      return emptyKnownState(this.id);
+    }
+  }
+
   knownState(): CoValueKnownState {
-    if (this.isAvailable()) {
+    if (this.verified) {
       return this.verified.knownState();
     } else {
       return emptyKnownState(this.id);
@@ -369,59 +431,66 @@ export class CoValueCore {
   tryAddTransactions(
     sessionID: SessionID,
     newTransactions: Transaction[],
-    givenExpectedNewHash: Hash | undefined,
     newSignature: Signature,
-    notifyMode: "immediate" | "deferred",
     skipVerify: boolean = false,
-    givenNewStreamingHash?: StreamingHash,
   ): Result<true, TryAddTransactionsError> {
-    return this.node
-      .resolveAccountAgent(
-        accountOrAgentIDfromSessionID(sessionID),
-        "Expected to know signer of transaction",
-      )
-      .andThen((agent) => {
-        if (!this.verified) {
-          return err({
-            type: "TriedToAddTransactionsWithoutVerifiedState",
-            id: this.id,
-          } satisfies TriedToAddTransactionsWithoutVerifiedStateErrpr);
-        }
+    let result: Result<SignerID | undefined, TryAddTransactionsError>;
 
-        const signerID = this.crypto.getAgentSignerID(agent);
+    if (skipVerify) {
+      result = ok(undefined);
+    } else {
+      result = this.node
+        .resolveAccountAgent(
+          accountOrAgentIDfromSessionID(sessionID),
+          "Expected to know signer of transaction",
+        )
+        .andThen((agent) => {
+          return ok(this.crypto.getAgentSignerID(agent));
+        });
+    }
 
-        const result = this.verified.tryAddTransactions(
-          sessionID,
-          signerID,
-          newTransactions,
-          givenExpectedNewHash,
-          newSignature,
-          skipVerify,
-          givenNewStreamingHash,
-        );
+    return result.andThen((signerID) => {
+      if (!this.verified) {
+        return err({
+          type: "TriedToAddTransactionsWithoutVerifiedState",
+          id: this.id,
+        } satisfies TriedToAddTransactionsWithoutVerifiedStateErrpr);
+      }
 
-        if (result.isOk()) {
-          if (
-            this._cachedContent &&
-            "processNewTransactions" in this._cachedContent &&
-            typeof this._cachedContent.processNewTransactions === "function"
-          ) {
-            this._cachedContent.processNewTransactions();
-          } else {
-            this._cachedContent = undefined;
-          }
+      const result = this.verified.tryAddTransactions(
+        sessionID,
+        signerID,
+        newTransactions,
+        newSignature,
+        skipVerify,
+      );
 
-          this._cachedDependentOn = undefined;
+      if (result.isOk()) {
+        this.updateContentAndNotifyUpdate("immediate");
+      }
 
-          this.notifyUpdate(notifyMode);
-        }
-
-        return result;
-      });
+      return result;
+    });
   }
 
   deferredUpdates = 0;
   nextDeferredNotify: Promise<void> | undefined;
+
+  updateContentAndNotifyUpdate(notifyMode: "immediate" | "deferred") {
+    if (
+      this._cachedContent &&
+      "processNewTransactions" in this._cachedContent &&
+      typeof this._cachedContent.processNewTransactions === "function"
+    ) {
+      this._cachedContent.processNewTransactions();
+    } else {
+      this._cachedContent = undefined;
+    }
+
+    this._cachedDependentOn = undefined;
+
+    this.notifyUpdate(notifyMode);
+  }
 
   notifyUpdate(notifyMode: "immediate" | "deferred") {
     if (this.listeners.size === 0) {
@@ -490,38 +559,6 @@ export class CoValueCore {
       );
     }
 
-    const madeAt = Date.now();
-
-    let transaction: Transaction;
-
-    if (privacy === "private") {
-      const { secret: keySecret, id: keyID } = this.getCurrentReadKey();
-
-      if (!keySecret) {
-        throw new Error("Can't make transaction without read key secret");
-      }
-
-      const encrypted = this.crypto.encryptForTransaction(changes, keySecret, {
-        in: this.id,
-        tx: this.nextTransactionID(),
-      });
-
-      this._decryptionCache[encrypted] = changes;
-
-      transaction = {
-        privacy: "private",
-        madeAt,
-        keyUsed: keyID,
-        encryptedChanges: encrypted,
-      };
-    } else {
-      transaction = {
-        privacy: "trusting",
-        madeAt,
-        changes: stableStringify(changes),
-      };
-    }
-
     // This is an ugly hack to get a unique but stable session ID for editing the current account
     const sessionID =
       this.verified.header.meta?.type === "account"
@@ -531,35 +568,56 @@ export class CoValueCore {
           ) as SessionID)
         : this.node.currentSessionID;
 
-    const { expectedNewHash, newStreamingHash } =
-      this.verified.expectedNewHashAfter(sessionID, [transaction]);
+    const signerAgent = this.node.getCurrentAgent();
 
-    const signature = this.crypto.sign(
-      this.node.getCurrentAgent().currentSignerSecret(),
-      expectedNewHash,
-    );
+    let result: { signature: Signature; transaction: Transaction };
 
-    const success = this.tryAddTransactions(
-      sessionID,
-      [transaction],
-      expectedNewHash,
-      signature,
-      "immediate",
-      true,
-      newStreamingHash,
-    )._unsafeUnwrap({ withStackTrace: true });
+    if (privacy === "private") {
+      const { secret: keySecret, id: keyID } = this.getCurrentReadKey();
 
-    if (success) {
-      this.node.syncManager.recordTransactionsSize([transaction], "local");
-      void this.node.syncManager.requestCoValueSync(this);
+      if (!keySecret) {
+        throw new Error("Can't make transaction without read key secret");
+      }
+
+      result = this.verified.makeNewPrivateTransaction(
+        sessionID,
+        signerAgent,
+        changes,
+        keyID,
+        keySecret,
+      );
+
+      if (result.transaction.privacy === "private") {
+        this._decryptionCache[result.transaction.encryptedChanges] = changes;
+      }
+    } else {
+      result = this.verified.makeNewTrustingTransaction(
+        sessionID,
+        signerAgent,
+        changes,
+      );
     }
 
-    return success;
+    const { transaction, signature } = result;
+
+    this.node.syncManager.recordTransactionsSize([transaction], "local");
+
+    const session = this.verified.sessions.get(sessionID);
+    const txIdx = session ? session.transactions.length - 1 : 0;
+
+    this.updateContentAndNotifyUpdate("immediate");
+    this.node.syncManager.syncLocalTransaction(
+      this.verified,
+      transaction,
+      sessionID,
+      signature,
+      txIdx,
+    );
+
+    return true;
   }
 
-  getCurrentContent(options?: {
-    ignorePrivateTransactions: true;
-  }): RawCoValue {
+  getCurrentContent(options?: { ignorePrivateTransactions: true }): RawCoValue {
     if (!this.verified) {
       throw new Error(
         "CoValueCore: getCurrentContent called on coValue without verified state",
@@ -585,6 +643,12 @@ export class CoValueCore {
     ignorePrivateTransactions: boolean;
     knownTransactions?: CoValueKnownState["sessions"];
   }): DecryptedTransaction[] {
+    if (!this.verified) {
+      throw new Error(
+        "CoValueCore: getValidTransactions called on coValue without verified state",
+      );
+    }
+
     const validTransactions = determineValidTransactions(
       this,
       options?.knownTransactions,
@@ -598,11 +662,20 @@ export class CoValueCore {
       }
 
       if (tx.privacy === "trusting") {
-        allTransactions.push({
-          txID,
-          madeAt: tx.madeAt,
-          changes: parseJSON(tx.changes),
-        });
+        try {
+          allTransactions.push({
+            txID,
+            madeAt: tx.madeAt,
+            changes: parseJSON(tx.changes),
+            trusting: true,
+          });
+        } catch (e) {
+          logger.error("Failed to parse trusting transaction on " + this.id, {
+            err: e,
+            txID,
+            changes: tx.changes.slice(0, 50),
+          });
+        }
         continue;
       }
 
@@ -619,15 +692,12 @@ export class CoValueCore {
       let decryptedChanges = this._decryptionCache[tx.encryptedChanges];
 
       if (!decryptedChanges) {
-        const decryptedString = this.crypto.decryptRawForTransaction(
-          tx.encryptedChanges,
+        decryptedChanges = this.verified.decryptTransaction(
+          txID.sessionID,
+          txID.txIndex,
           readKey,
-          {
-            in: this.id,
-            tx: txID,
-          },
         );
-        decryptedChanges = decryptedString && parseJSON(decryptedString);
+
         this._decryptionCache[tx.encryptedChanges] = decryptedChanges;
       }
 
@@ -685,20 +755,7 @@ export class CoValueCore {
     }
 
     if (this.verified.header.ruleset.type === "group") {
-      const content = expectGroup(this.getCurrentContent());
-
-      const currentKeyId = content.getCurrentReadKeyId();
-
-      if (!currentKeyId) {
-        throw new Error("No readKey set");
-      }
-
-      const secret = this.getReadKey(currentKeyId);
-
-      return {
-        secret: secret,
-        id: currentKeyId,
-      };
+      return expectGroup(this.getCurrentContent()).getCurrentReadKey();
     } else if (this.verified.header.ruleset.type === "ownedByGroup") {
       return this.node
         .expectCoValueLoaded(this.verified.header.ruleset.group)
@@ -710,181 +767,41 @@ export class CoValueCore {
     }
   }
 
+  readKeyCache = new Map<KeyID, KeySecret>();
   getReadKey(keyID: KeyID): KeySecret | undefined {
-    let key = readKeyCache.get(this)?.[keyID];
-    if (!key) {
-      key = this.getUncachedReadKey(keyID);
-      if (key) {
-        let cache = readKeyCache.get(this);
-        if (!cache) {
-          cache = {};
-          readKeyCache.set(this, cache);
-        }
-        cache[keyID] = key;
-      }
-    }
-    return key;
-  }
+    // We want to check the cache here, to skip re-computing the group content
+    const cachedSecret = this.readKeyCache.get(keyID);
 
-  getUncachedReadKey(keyID: KeyID): KeySecret | undefined {
+    if (cachedSecret) {
+      return cachedSecret;
+    }
+
     if (!this.verified) {
       throw new Error(
         "CoValueCore: getUncachedReadKey called on coValue without verified state",
       );
     }
 
+    // Getting the readKey from accounts
     if (this.verified.header.ruleset.type === "group") {
       const content = expectGroup(
-        this.getCurrentContent({ ignorePrivateTransactions: true }), // to prevent recursion
-      );
-      const keyForEveryone = content.get(`${keyID}_for_everyone`);
-      if (keyForEveryone) {
-        return keyForEveryone;
-      }
-
-      // Try to find key revelation for us
-      const currentAgentOrAccountID = accountOrAgentIDfromSessionID(
-        this.node.currentSessionID,
+        // load the account without private transactions, because we are here
+        // to be able to decrypt those
+        this.getCurrentContent({ ignorePrivateTransactions: true }),
       );
 
-      // being careful here to avoid recursion
-      const lookupAccountOrAgentID = isAccountID(currentAgentOrAccountID)
-        ? this.id === currentAgentOrAccountID
-          ? this.crypto.getAgentID(this.node.agentSecret) // in accounts, the read key is revealed for the primitive agent
-          : currentAgentOrAccountID // current account ID
-        : currentAgentOrAccountID; // current agent ID
-
-      const lastReadyKeyEdit = content.lastEditAt(
-        `${keyID}_for_${lookupAccountOrAgentID}`,
-      );
-
-      if (lastReadyKeyEdit?.value) {
-        const revealer = lastReadyKeyEdit.by;
-        const revealerAgent = this.node
-          .resolveAccountAgent(revealer, "Expected to know revealer")
-          ._unsafeUnwrap({ withStackTrace: true });
-
-        const secret = this.crypto.unseal(
-          lastReadyKeyEdit.value,
-          this.crypto.getAgentSealerSecret(this.node.agentSecret), // being careful here to avoid recursion
-          this.crypto.getAgentSealerID(revealerAgent),
-          {
-            in: this.id,
-            tx: lastReadyKeyEdit.tx,
-          },
-        );
-
-        if (secret) {
-          return secret as KeySecret;
-        }
-      }
-
-      // Try to find indirect revelation through previousKeys
-
-      for (const co of content.keys()) {
-        if (isKeyForKeyField(co) && co.startsWith(keyID)) {
-          const encryptingKeyID = co.split("_for_")[1] as KeyID;
-          const encryptingKeySecret = this.getReadKey(encryptingKeyID);
-
-          if (!encryptingKeySecret) {
-            continue;
-          }
-
-          const encryptedPreviousKey = content.get(co)!;
-
-          const secret = this.crypto.decryptKeySecret(
-            {
-              encryptedID: keyID,
-              encryptingID: encryptingKeyID,
-              encrypted: encryptedPreviousKey,
-            },
-            encryptingKeySecret,
-          );
-
-          if (secret) {
-            return secret as KeySecret;
-          } else {
-            logger.warn(
-              `Encrypting ${encryptingKeyID} key didn't decrypt ${keyID}`,
-            );
-          }
-        }
-      }
-
-      // try to find revelation to parent group read keys
-      for (const co of content.keys()) {
-        if (isParentGroupReference(co)) {
-          const parentGroupID = getParentGroupId(co);
-          const parentGroup = this.node.expectCoValueLoaded(
-            parentGroupID,
-            "Expected parent group to be loaded",
-          );
-
-          const parentKeys = this.findValidParentKeys(
-            keyID,
-            content,
-            parentGroup,
-          );
-
-          for (const parentKey of parentKeys) {
-            const revelationForParentKey = content.get(
-              `${keyID}_for_${parentKey.id}`,
-            );
-
-            if (revelationForParentKey) {
-              const secret = parentGroup.crypto.decryptKeySecret(
-                {
-                  encryptedID: keyID,
-                  encryptingID: parentKey.id,
-                  encrypted: revelationForParentKey,
-                },
-                parentKey.secret,
-              );
-
-              if (secret) {
-                return secret as KeySecret;
-              } else {
-                logger.warn(
-                  `Encrypting parent ${parentKey.id} key didn't decrypt ${keyID}`,
-                );
-              }
-            }
-          }
-        }
-      }
-
-      return undefined;
+      return content.getReadKey(keyID);
     } else if (this.verified.header.ruleset.type === "ownedByGroup") {
-      return this.node
-        .expectCoValueLoaded(this.verified.header.ruleset.group)
-        .getReadKey(keyID);
+      return expectGroup(
+        this.node
+          .expectCoValueLoaded(this.verified.header.ruleset.group)
+          .getCurrentContent(),
+      ).getReadKey(keyID);
     } else {
       throw new Error(
         "Only groups or values owned by groups have read secrets",
       );
     }
-  }
-
-  findValidParentKeys(keyID: KeyID, group: RawGroup, parentGroup: CoValueCore) {
-    const validParentKeys: { id: KeyID; secret: KeySecret }[] = [];
-
-    for (const co of group.keys()) {
-      if (isKeyForKeyField(co) && co.startsWith(keyID)) {
-        const encryptingKeyID = co.split("_for_")[1] as KeyID;
-        const encryptingKeySecret = parentGroup.getReadKey(encryptingKeyID);
-
-        if (!encryptingKeySecret) {
-          continue;
-        }
-
-        validParentKeys.push({
-          id: encryptingKeyID,
-          secret: encryptingKeySecret,
-        });
-      }
-    }
-
-    return validParentKeys;
   }
 
   getGroup(): RawGroup {
@@ -919,130 +836,96 @@ export class CoValueCore {
         return new Set();
       }
 
-      const dependentOn = this.getDependedOnCoValuesFromHeaderAndSessions(
+      const dependentOn = getDependedOnCoValuesFromRawData(
+        this.id,
         this.verified.header,
         this.verified.sessions.keys(),
+        Array.from(
+          this.verified.sessions.values(),
+          (session) => session.transactions,
+        ),
       );
       this._cachedDependentOn = dependentOn;
       return dependentOn;
     }
   }
 
-  /** @internal */
-  getDependedOnCoValuesFromHeaderAndSessions(
-    header: CoValueHeader,
-    sessions: Iterable<SessionID>,
-  ): Set<RawCoID> {
-    const deps = new Set<RawCoID>();
-
-    for (const session of sessions) {
-      const accountId = accountOrAgentIDfromSessionID(session);
-
-      if (isAccountID(accountId) && accountId !== this.id) {
-        deps.add(accountId);
-      }
-    }
-
-    if (header.ruleset.type === "group") {
-      if (isAccountID(header.ruleset.initialAdmin)) {
-        deps.add(header.ruleset.initialAdmin);
-      }
-
-      if (this.verified) {
-        for (const id of getGroupDependentKeyList(
-          expectGroup(this.getCurrentContent()).keys(),
-        )) {
-          deps.add(id);
-        }
-      }
-    }
-
-    if (header.ruleset.type === "ownedByGroup") {
-      deps.add(header.ruleset.group);
-    }
-
-    return deps;
-  }
-
-  waitForSync(options?: {
-    timeout?: number;
-  }) {
+  waitForSync(options?: { timeout?: number }) {
     return this.node.syncManager.waitForSync(this.id, options?.timeout);
   }
 
-  async loadFromPeers(peers: PeerState[]) {
+  load(peers: PeerState[]) {
+    this.loadFromStorage((found) => {
+      // When found the load is triggered by handleNewContent
+      if (!found) {
+        this.loadFromPeers(peers);
+      }
+    });
+  }
+
+  loadFromStorage(done?: (found: boolean) => void) {
+    const node = this.node;
+
+    if (!node.storage) {
+      done?.(false);
+      return;
+    }
+
+    const currentState = this.peers.get("storage");
+
+    if (currentState && currentState.type !== "unknown") {
+      done?.(currentState.type === "available");
+      return;
+    }
+
+    this.markPending("storage");
+    node.storage.load(
+      this.id,
+      (data) => {
+        node.syncManager.handleNewContent(data, "storage");
+      },
+      (found) => {
+        if (!found) {
+          this.markNotFoundInPeer("storage");
+        }
+
+        done?.(found);
+      },
+    );
+  }
+
+  loadFromPeers(peers: PeerState[]) {
     if (peers.length === 0) {
       return;
     }
 
-    const peersToActuallyLoadFrom = {
-      storage: [] as PeerState[],
-      server: [] as PeerState[],
-    };
-
     for (const peer of peers) {
-      const currentState = this.peers.get(peer.id);
+      const currentState = this.peers.get(peer.id)?.type ?? "unknown";
 
-      if (
-        currentState?.type === "available" ||
-        currentState?.type === "pending"
-      ) {
-        continue;
-      }
-
-      if (currentState?.type === "errored") {
-        continue;
-      }
-
-      if (currentState?.type === "unavailable") {
-        if (peer.role === "server") {
-          peersToActuallyLoadFrom.server.push(peer);
-          this.markPending(peer.id);
-        }
-
-        continue;
-      }
-
-      if (!currentState || currentState?.type === "unknown") {
-        if (peer.role === "storage") {
-          peersToActuallyLoadFrom.storage.push(peer);
-        } else {
-          peersToActuallyLoadFrom.server.push(peer);
-        }
-
+      if (currentState === "unknown" || currentState === "unavailable") {
         this.markPending(peer.id);
+        this.internalLoadFromPeer(peer);
       }
-    }
-
-    // Load from storage peers first, then from server peers
-    if (peersToActuallyLoadFrom.storage.length > 0) {
-      await Promise.all(
-        peersToActuallyLoadFrom.storage.map((peer) =>
-          this.internalLoadFromPeer(peer),
-        ),
-      );
-    }
-
-    if (peersToActuallyLoadFrom.server.length > 0) {
-      await Promise.all(
-        peersToActuallyLoadFrom.server.map((peer) =>
-          this.internalLoadFromPeer(peer),
-        ),
-      );
     }
   }
 
   internalLoadFromPeer(peer: PeerState) {
-    if (peer.closed) {
+    if (peer.closed && !peer.persistent) {
       this.markNotFoundInPeer(peer.id);
       return;
     }
 
-    peer.pushOutgoingMessage({
-      action: "load",
-      ...this.knownState(),
-    });
-    peer.trackLoadRequestSent(this.id);
+    /**
+     * On reconnection persistent peers will automatically fire the load request
+     * as part of the reconnection process.
+     */
+    if (!peer.closed) {
+      peer.pushOutgoingMessage({
+        action: "load",
+        ...this.knownState(),
+      });
+      peer.trackLoadRequestSent(this.id);
+    }
 
     return new Promise<void>((resolve) => {
       const markNotFound = () => {
@@ -1056,7 +939,9 @@ export class CoValueCore {
       };
 
       const timeout = setTimeout(markNotFound, CO_VALUE_LOADING_CONFIG.TIMEOUT);
-      const removeCloseListener = peer.addCloseListener(markNotFound);
+      const removeCloseListener = peer.persistent
+        ? undefined
+        : peer.addCloseListener(markNotFound);
 
       const listener = (state: CoValueCore) => {
         const peerState = state.peers.get(peer.id);
@@ -1067,7 +952,7 @@ export class CoValueCore {
           peerState?.type === "unavailable"
         ) {
           this.listeners.delete(listener);
-          removeCloseListener();
+          removeCloseListener?.();
           clearTimeout(timeout);
           resolve();
         }
@@ -1091,7 +976,7 @@ export type InvalidSignatureError = {
   id: RawCoID;
   newSignature: Signature;
   sessionID: SessionID;
-  signerID: SignerID;
+  signerID: SignerID | undefined;
 };
 
 export type TriedToAddTransactionsWithoutVerifiedStateErrpr = {
@@ -1099,8 +984,15 @@ export type TriedToAddTransactionsWithoutVerifiedStateErrpr = {
   id: RawCoID;
 };
 
+export type TriedToAddTransactionsWithoutSignerIDError = {
+  type: "TriedToAddTransactionsWithoutSignerID";
+  id: RawCoID;
+  sessionID: SessionID;
+};
+
 export type TryAddTransactionsError =
   | TriedToAddTransactionsWithoutVerifiedStateErrpr
+  | TriedToAddTransactionsWithoutSignerIDError
   | ResolveAccountAgentError
   | InvalidHashError
   | InvalidSignatureError;

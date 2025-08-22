@@ -1,4 +1,4 @@
-import { co, z } from "jazz-tools";
+import { co, Group, z } from "jazz-tools";
 
 /** Walkthrough: Defining the data model with CoJSON
  *
@@ -13,6 +13,7 @@ import { co, z } from "jazz-tools";
 export const MusicTrackWaveform = co.map({
   data: z.array(z.number()),
 });
+export type MusicTrackWaveform = co.loaded<typeof MusicTrackWaveform>;
 
 export const MusicTrack = co.map({
   /**
@@ -40,16 +41,17 @@ export const MusicTrack = co.map({
   /**
    * You can use getters for recusrive relations
    */
-  get sourceTrack(): z.ZodOptional<typeof MusicTrack> {
-    return z.optional(MusicTrack);
+  get sourceTrack() {
+    return MusicTrack.optional();
   },
 });
+export type MusicTrack = co.loaded<typeof MusicTrack>;
 
 export const Playlist = co.map({
   title: z.string(),
   tracks: co.list(MusicTrack), // CoList is the collaborative version of Array
 });
-
+export type Playlist = co.loaded<typeof Playlist>;
 /** The account root is an app-specific per-user private `CoMap`
  *  where you can store top-level objects for that user */
 export const MusicaAccountRoot = co.map({
@@ -64,38 +66,71 @@ export const MusicaAccountRoot = co.map({
   // track and playlist
   // You can also add the position in time if you want make it possible
   // to resume the song
-  activeTrack: z.optional(MusicTrack),
+  activeTrack: co.optional(MusicTrack),
   activePlaylist: Playlist,
 
   exampleDataLoaded: z.optional(z.boolean()),
+  accountSetupCompleted: z.optional(z.boolean()),
 });
+export type MusicaAccountRoot = co.loaded<typeof MusicaAccountRoot>;
+
+export const MusicaAccountProfile = co.profile({
+  avatar: co.optional(co.image()),
+});
+export type MusicaAccountProfile = co.loaded<typeof MusicaAccountProfile>;
 
 export const MusicaAccount = co
   .account({
     /** the default user profile with a name */
-    profile: co.profile(),
+    profile: MusicaAccountProfile,
     root: MusicaAccountRoot,
   })
-  .withMigration((account) => {
+  .withMigration(async (account) => {
     /**
      *  The account migration is run on account creation and on every log-in.
      *  You can use it to set up the account root and any other initial CoValues you need.
      */
     if (account.root === undefined) {
-      const tracks = co.list(MusicTrack).create([]);
       const rootPlaylist = Playlist.create({
-        tracks,
+        tracks: [],
         title: "",
       });
 
       account.root = MusicaAccountRoot.create({
         rootPlaylist,
-        playlists: co.list(Playlist).create([]),
+        playlists: [],
         activeTrack: undefined,
         activePlaylist: rootPlaylist,
         exampleDataLoaded: false,
       });
     }
+
+    if (account.profile === undefined) {
+      account.profile = MusicaAccountProfile.create({
+        name: "",
+      });
+    }
+
+    // Load the profile and root in memory, to have them ready
+    const { profile, root } = await account.ensureLoaded({
+      resolve: {
+        profile: {
+          avatar: true,
+        },
+        root: true,
+      },
+    });
+
+    // Clean up the private avatars (were created using the account as owner)
+    if (profile.avatar) {
+      const group = profile.avatar._owner.castAs(Group);
+
+      if (group.getRoleOf("everyone") !== "reader") {
+        root.accountSetupCompleted = false;
+        profile.avatar = undefined;
+      }
+    }
   });
+export type MusicaAccount = co.loaded<typeof MusicaAccount>;
 
 /** Walkthrough: Continue with ./2_main.tsx */

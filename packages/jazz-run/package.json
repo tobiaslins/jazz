@@ -3,15 +3,15 @@
   "bin": "./dist/index.js",
   "type": "module",
   "license": "MIT",
-  "version": "0.14.2",
+  "version": "0.17.11",
   "exports": {
     "./startSyncServer": {
-      "import": "./dist/startSyncServer.js",
-      "types": "./dist/startSyncServer.d.ts"
+      "types": "./dist/startSyncServer.d.ts",
+      "default": "./dist/startSyncServer.js"
     },
     "./createWorkerAccount": {
-      "import": "./dist/createWorkerAccount.js",
-      "types": "./dist/createWorkerAccount.d.ts"
+      "types": "./dist/createWorkerAccount.d.ts",
+      "default": "./dist/createWorkerAccount.js"
     }
   },
   "scripts": {
@@ -28,15 +28,15 @@
     "@effect/printer-ansi": "^0.34.5",
     "@effect/schema": "^0.71.1",
     "@effect/typeclass": "^0.25.5",
-    "cojson": "workspace:0.14.1",
-    "cojson-storage-sqlite": "workspace:0.14.1",
-    "cojson-transport-ws": "workspace:0.14.1",
+    "cojson": "workspace:0.17.11",
+    "cojson-storage-sqlite": "workspace:0.17.11",
+    "cojson-transport-ws": "workspace:0.17.11",
     "effect": "^3.6.5",
-    "jazz-tools": "workspace:0.14.2",
+    "jazz-tools": "workspace:0.17.11",
     "ws": "^8.14.2"
   },
   "devDependencies": {
     "@types/ws": "8.5.10",
-    "typescript": "catalog:"
+    "typescript": "catalog:default"
   }
 }

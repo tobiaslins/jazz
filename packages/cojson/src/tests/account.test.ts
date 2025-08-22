@@ -3,7 +3,7 @@ import { expectAccount } from "../coValues/account.js";
 import { WasmCrypto } from "../crypto/WasmCrypto.js";
 import { LocalNode } from "../localNode.js";
 import { connectedPeers } from "../streamUtils.js";
-import { createMockStoragePeer } from "./testUtils.js";
+import { createAsyncStorage } from "./testStorage.js";
 
 const Crypto = await WasmCrypto.create();
 
@@ -74,6 +74,69 @@ test("Can create account with one node, and then load it on another", async () =
   expect(map2.get("foo")).toEqual("bar");
 });
 
+test("Should migrate the root from private to trusting", async () => {
+  const { node, accountID, accountSecret } =
+    await LocalNode.withNewlyCreatedAccount({
+      creationProps: { name: "Hermes Puggington" },
+      crypto: Crypto,
+    });
+
+  const group = await node.createGroup();
+  expect(group).not.toBeNull();
+
+  const map = group.createMap();
+  map.set("foo", "bar", "private");
+  expect(map.get("foo")).toEqual("bar");
+
+  const peers1 = connectedPeers("node1", "node2", {
+    peer1role: "server",
+    peer2role: "client",
+  });
+
+  const account = await node.load(accountID);
+  if (account === "unavailable") throw new Error("Account unavailable");
+
+  account.set("root", map.id, "private");
+
+  node.syncManager.addPeer(peers1[1]);
+
+  const node2 = await LocalNode.withLoadedAccount({
+    accountID,
+    accountSecret,
+    sessionID: Crypto.newRandomSessionID(accountID),
+    peersToLoadFrom: [peers1[0]],
+    crypto: Crypto,
+  });
+
+  const account2 = await node2.load(accountID);
+  if (account2 === "unavailable") throw new Error("Account unavailable");
+
+  expect(account2.getRaw("root")?.trusting).toEqual(true);
+
+  node2.gracefulShutdown(); // Stop getting updates from node1
+
+  const peers2 = connectedPeers("node2", "node3", {
+    peer1role: "server",
+    peer2role: "client",
+  });
+
+  node.syncManager.addPeer(peers2[1]);
+
+  const node3 = await LocalNode.withLoadedAccount({
+    accountID,
+    accountSecret,
+    sessionID: Crypto.newRandomSessionID(accountID),
+    peersToLoadFrom: [peers2[0]],
+    crypto: Crypto,
+  });
+
+  const account3 = await node3.load(accountID);
+  if (account3 === "unavailable") throw new Error("Account unavailable");
+
+  expect(account3.getRaw("root")?.trusting).toEqual(true);
+  expect(account3.ops).toEqual(account2.ops); // No new transactions were made
+});
+
 test("throws an error if the user tried to create an invite from an account", async () => {
   const { node, accountID } = await LocalNode.withNewlyCreatedAccount({
     creationProps: { name: "Hermes Puggington" },
@@ -89,23 +152,22 @@ test("throws an error if the user tried to create an invite from an account", as
 });
 
 test("wait for storage sync before resolving withNewlyCreatedAccount", async () => {
-  const { storage, peer } = createMockStoragePeer({
-    peerId: "account-node",
+  const storage = await createAsyncStorage({
+    nodeName: "account-node",
+    storageName: "storage",
   });
 
-  const { node, accountID } = await LocalNode.withNewlyCreatedAccount({
+  const { accountID, node } = await LocalNode.withNewlyCreatedAccount({
     creationProps: { name: "Hermes Puggington" },
     crypto: Crypto,
-    peersToLoadFrom: [peer],
+    storage,
   });
 
-  const account = storage.getCoValue(accountID);
+  expect(storage.getKnownState(accountID).header).toBe(true);
 
-  expect(account.isAvailable()).toBe(true);
+  const profileId = expectAccount(
+    node.getCoValue(accountID).getCurrentContent(),
+  ).get("profile")!;
 
-  const profile = storage.getCoValue(
-    expectAccount(account.getCurrentContent()).get("profile")!,
-  );
-
-  expect(profile.isAvailable()).toBe(true);
+  expect(storage.getKnownState(profileId).header).toBe(true);
 });

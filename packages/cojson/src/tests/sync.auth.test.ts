@@ -4,12 +4,16 @@ import { WasmCrypto } from "../crypto/WasmCrypto";
 import { LocalNode } from "../localNode";
 import {
   SyncMessagesLog,
+  TEST_NODE_CONFIG,
   getSyncServerConnectedPeer,
   setupTestNode,
 } from "./testUtils";
 
 const Crypto = await WasmCrypto.create();
-let jazzCloud = setupTestNode({ isSyncServer: true });
+let jazzCloud: ReturnType<typeof setupTestNode>;
+
+// We want to simulate a real world communication that happens asynchronously
+TEST_NODE_CONFIG.withAsyncPeers = true;
 
 beforeEach(async () => {
   SyncMessagesLog.clear();
@@ -49,12 +53,14 @@ describe("LocalNode auth sync", () => {
       }),
     ).toMatchInlineSnapshot(`
       [
-        "client -> server | CONTENT Account header: true new: After: 0 New: 4",
-        "server -> client | KNOWN Account sessions: header/4",
+        "client -> server | CONTENT Account header: true new: After: 0 New: 3",
         "client -> server | CONTENT ProfileGroup header: true new: After: 0 New: 5",
-        "server -> client | KNOWN ProfileGroup sessions: header/5",
         "client -> server | CONTENT Profile header: true new: After: 0 New: 1",
+        "client -> server | CONTENT Account header: false new: After: 3 New: 1",
+        "server -> client | KNOWN Account sessions: header/3",
+        "server -> client | KNOWN ProfileGroup sessions: header/5",
         "server -> client | KNOWN Profile sessions: header/1",
+        "server -> client | KNOWN Account sessions: header/4",
       ]
     `);
   });
@@ -110,12 +116,18 @@ describe("LocalNode auth sync", () => {
       }),
     ).toMatchInlineSnapshot(`
       [
-        "client -> server | CONTENT Account header: true new: After: 0 New: 5",
-        "server -> client | KNOWN Account sessions: header/5",
-        "client -> server | CONTENT Root header: true new: After: 0 New: 1",
+        "client -> server | CONTENT Account header: true new: After: 0 New: 3",
+        "client -> server | CONTENT Root header: true new: ",
+        "client -> server | CONTENT Profile header: true new: ",
+        "client -> server | CONTENT Root header: false new: After: 0 New: 1",
+        "client -> server | CONTENT Profile header: false new: After: 0 New: 1",
+        "client -> server | CONTENT Account header: false new: After: 3 New: 2",
+        "server -> client | KNOWN Account sessions: header/3",
+        "server -> client | KNOWN Root sessions: header/0",
+        "server -> client | KNOWN Profile sessions: header/0",
         "server -> client | KNOWN Root sessions: header/1",
-        "client -> server | CONTENT Profile header: true new: After: 0 New: 1",
         "server -> client | KNOWN Profile sessions: header/1",
+        "server -> client | KNOWN Account sessions: header/5",
       ]
     `);
   });
@@ -164,19 +176,21 @@ describe("LocalNode auth sync", () => {
       }),
     ).toMatchInlineSnapshot(`
       [
-        "creation-node -> server | CONTENT Account header: true new: After: 0 New: 4",
-        "auth-node -> server | LOAD Account sessions: empty",
-        "server -> creation-node | KNOWN Account sessions: header/4",
+        "creation-node -> server | CONTENT Account header: true new: After: 0 New: 3",
         "creation-node -> server | CONTENT ProfileGroup header: true new: After: 0 New: 5",
-        "server -> auth-node | CONTENT Account header: true new: After: 0 New: 4",
-        "server -> creation-node | KNOWN ProfileGroup sessions: header/5",
         "creation-node -> server | CONTENT Profile header: true new: After: 0 New: 1",
-        "auth-node -> server | KNOWN Account sessions: header/4",
+        "creation-node -> server | CONTENT Account header: false new: After: 3 New: 1",
+        "auth-node -> server | LOAD Account sessions: empty",
+        "server -> creation-node | KNOWN Account sessions: header/3",
+        "server -> creation-node | KNOWN ProfileGroup sessions: header/5",
         "server -> creation-node | KNOWN Profile sessions: header/1",
+        "server -> creation-node | KNOWN Account sessions: header/4",
+        "server -> auth-node | CONTENT Account header: true new: After: 0 New: 4",
+        "auth-node -> server | KNOWN Account sessions: header/4",
         "auth-node -> server | LOAD Profile sessions: empty",
         "server -> auth-node | CONTENT ProfileGroup header: true new: After: 0 New: 5",
-        "auth-node -> server | KNOWN ProfileGroup sessions: header/5",
         "server -> auth-node | CONTENT Profile header: true new: After: 0 New: 1",
+        "auth-node -> server | KNOWN ProfileGroup sessions: header/5",
         "auth-node -> server | KNOWN Profile sessions: header/1",
       ]
     `);
@@ -200,6 +214,7 @@ describe("LocalNode auth sync", () => {
       crypto: Crypto,
     });
 
+    await creationNode.syncManager.waitForAllCoValuesSync();
     creationNode.gracefulShutdown();
 
     const { peer: existingAccountPeer } = getSyncServerConnectedPeer({
@@ -231,15 +246,22 @@ describe("LocalNode auth sync", () => {
       }),
     ).toMatchInlineSnapshot(`
       [
-        "creation-node -> server | CONTENT Account header: true new: After: 0 New: 4",
-        "auth-node -> server | LOAD Account sessions: empty",
+        "creation-node -> server | CONTENT Account header: true new: After: 0 New: 3",
+        "creation-node -> server | CONTENT ProfileGroup header: true new: After: 0 New: 5",
+        "creation-node -> server | CONTENT Profile header: true new: After: 0 New: 1",
+        "creation-node -> server | CONTENT Account header: false new: After: 3 New: 1",
+        "server -> creation-node | KNOWN Account sessions: header/3",
+        "server -> creation-node | KNOWN ProfileGroup sessions: header/5",
+        "server -> creation-node | KNOWN Profile sessions: header/1",
         "server -> creation-node | KNOWN Account sessions: header/4",
+        "auth-node -> server | LOAD Account sessions: empty",
         "server -> auth-node | CONTENT Account header: true new: After: 0 New: 4",
         "auth-node -> server | KNOWN Account sessions: header/4",
         "auth-node -> server | LOAD Profile sessions: empty",
-        "server -> auth-node | KNOWN Profile sessions: empty",
-        "auth-node -> server | LOAD Profile sessions: empty",
-        "server -> auth-node | KNOWN Profile sessions: empty",
+        "server -> auth-node | CONTENT ProfileGroup header: true new: After: 0 New: 5",
+        "server -> auth-node | CONTENT Profile header: true new: After: 0 New: 1",
+        "auth-node -> server | KNOWN ProfileGroup sessions: header/5",
+        "auth-node -> server | KNOWN Profile sessions: header/1",
       ]
     `);
   });

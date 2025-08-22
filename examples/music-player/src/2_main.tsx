@@ -1,5 +1,5 @@
 import { Toaster } from "@/components/ui/toaster";
-import { JazzInspector } from "jazz-inspector";
+import { JazzInspector } from "jazz-tools/inspector";
 /* eslint-disable react-refresh/only-export-components */
 import React from "react";
 import ReactDOM from "react-dom/client";
@@ -7,30 +7,43 @@ import { RouterProvider, createHashRouter } from "react-router-dom";
 import { HomePage } from "./3_HomePage";
 import { useMediaPlayer } from "./5_useMediaPlayer";
 import { InvitePage } from "./6_InvitePage";
-import { PlayerControls } from "./components/PlayerControls";
+import { WelcomeScreen } from "./components/WelcomeScreen";
 import "./index.css";
 
 import { MusicaAccount } from "@/1_schema";
 import { apiKey } from "@/apiKey.ts";
-import { JazzProvider } from "jazz-react";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { JazzReactProvider, useAccount } from "jazz-tools/react";
 import { onAnonymousAccountDiscarded } from "./4_actions";
-import { useUploadExampleData } from "./lib/useUploadExampleData";
+import { KeyboardListener } from "./components/PlayerControls";
+import { usePrepareAppState } from "./lib/usePrepareAppState";
 
 /**
- * Walkthrough: The top-level provider `<JazzProvider/>`
+ * Walkthrough: The top-level provider `<JazzReactProvider/>`
  *
- * This shows how to use the top-level provider `<JazzProvider/>`,
+ * This shows how to use the top-level provider `<JazzReactProvider/>`,
  * which provides the rest of the app with a controlled account (used through `useAccount` later).
  * Here we use `DemoAuth` which is great for prototyping you app without wasting time on figuring out
  * the best way to do auth.
  *
- * `<JazzProvider/>` also runs our account migration
+ * `<JazzReactProvider/>` also runs our account migration
  */
 
-function Main() {
-  const mediaPlayer = useMediaPlayer();
+function AppContent({
+  mediaPlayer,
+}: {
+  mediaPlayer: ReturnType<typeof useMediaPlayer>;
+}) {
+  const { me } = useAccount(MusicaAccount, {
+    resolve: { root: true },
+  });
 
-  useUploadExampleData();
+  const isReady = usePrepareAppState(mediaPlayer);
+
+  // Show welcome screen if account setup is not completed
+  if (me && !me.root.accountSetupCompleted) {
+    return <WelcomeScreen />;
+  }
 
   const router = createHashRouter([
     {
@@ -47,12 +60,25 @@ function Main() {
     },
   ]);
 
+  if (!isReady) return null;
+
   return (
     <>
       <RouterProvider router={router} />
-      <PlayerControls mediaPlayer={mediaPlayer} />
+      <KeyboardListener mediaPlayer={mediaPlayer} />
       <Toaster />
     </>
+  );
+}
+
+function Main() {
+  const mediaPlayer = useMediaPlayer();
+
+  return (
+    <SidebarProvider>
+      <AppContent mediaPlayer={mediaPlayer} />
+      <JazzInspector />
+    </SidebarProvider>
   );
 }
 
@@ -63,7 +89,7 @@ const peer =
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <JazzProvider
+    <JazzReactProvider
       sync={{
         peer,
       }}
@@ -72,8 +98,10 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       defaultProfileName="Anonymous unicorn"
       onAnonymousAccountDiscarded={onAnonymousAccountDiscarded}
     >
-      <Main />
-      <JazzInspector />
-    </JazzProvider>
+      <SidebarProvider>
+        <Main />
+        <JazzInspector />
+      </SidebarProvider>
+    </JazzReactProvider>
   </React.StrictMode>,
 );

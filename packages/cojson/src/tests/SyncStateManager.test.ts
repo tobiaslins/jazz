@@ -11,8 +11,11 @@ import {
   setupTestNode,
   waitFor,
 } from "./testUtils.js";
+import { TEST_NODE_CONFIG } from "./testUtils.js";
 
-let jazzCloud = setupTestNode({ isSyncServer: true });
+TEST_NODE_CONFIG.withAsyncPeers = true;
+
+let jazzCloud: ReturnType<typeof setupTestNode>;
 
 beforeEach(async () => {
   SyncMessagesLog.clear();
@@ -34,14 +37,6 @@ describe("SyncStateManager", () => {
 
     const updateSpy: GlobalSyncStateListenerCallback = vi.fn();
     const unsubscribe = subscriptionManager.subscribeToUpdates(updateSpy);
-
-    await client.node.syncManager.syncCoValue(map.core);
-
-    expect(updateSpy).toHaveBeenCalledWith(
-      peerState.id,
-      emptyKnownState(map.core.id),
-      { uploaded: false },
-    );
 
     await waitFor(() => {
       return subscriptionManager.getCurrentSyncState(peerState.id, map.core.id)
@@ -95,13 +90,6 @@ describe("SyncStateManager", () => {
       unsubscribe2();
     });
 
-    await client.node.syncManager.syncCoValue(map.core);
-
-    expect(updateToJazzCloudSpy).toHaveBeenCalledWith(
-      emptyKnownState(map.core.id),
-      { uploaded: false },
-    );
-
     await waitFor(() => {
       return subscriptionManager.getCurrentSyncState(peerState.id, map.core.id)
         .uploaded;
@@ -114,7 +102,7 @@ describe("SyncStateManager", () => {
       { uploaded: true },
     );
 
-    expect(updateToStorageSpy).toHaveBeenLastCalledWith(
+    expect(updateToStorageSpy).toHaveBeenCalledWith(
       emptyKnownState(group.core.id),
       { uploaded: false },
     );
@@ -129,8 +117,6 @@ describe("SyncStateManager", () => {
     const group = client.node.createGroup();
     const map = group.createMap();
     map.set("key1", "value1", "trusting");
-
-    await client.node.syncManager.syncCoValue(map.core);
 
     const subscriptionManager = client.node.syncManager.syncState;
 
@@ -170,8 +156,6 @@ describe("SyncStateManager", () => {
 
     unsubscribe1();
     unsubscribe2();
-
-    await client.node.syncManager.syncCoValue(map.core);
 
     anyUpdateSpy.mockClear();
 
@@ -248,9 +232,11 @@ describe("SyncStateManager", () => {
     ).toEqual({ uploaded: true });
   });
 
-  test("should skip closed peers", async () => {
+  test("should skip non-persistent closed peers", async () => {
     const client = setupTestNode();
-    const { peerState } = client.connectToSyncServer();
+    const { peerState } = client.connectToSyncServer({
+      persistent: false,
+    });
 
     peerState.gracefulShutdown();
 
@@ -258,6 +244,42 @@ describe("SyncStateManager", () => {
     const map = group.createMap();
 
     await map.core.waitForSync();
+  });
+
+  test("should wait for persistent closed peers to reconnect", async () => {
+    const client = setupTestNode();
+    const { peerState } = client.connectToSyncServer({
+      persistent: true,
+    });
+
+    peerState.gracefulShutdown();
+
+    const group = client.node.createGroup();
+    const map = group.createMap();
+
+    const promise = map.core.waitForSync().then(() => "waitForSync");
+
+    const result = await Promise.race([
+      promise,
+      new Promise((resolve) => {
+        setTimeout(() => resolve("timeout"), 10);
+      }),
+    ]);
+
+    expect(result).toBe("timeout");
+
+    client.connectToSyncServer({
+      persistent: true,
+    });
+
+    const result2 = await Promise.race([
+      promise,
+      new Promise((resolve) => {
+        setTimeout(() => resolve("timeout"), 10);
+      }),
+    ]);
+
+    expect(result2).toBe("waitForSync");
   });
 
   test("should skip client peers that are not subscribed to the coValue", async () => {
@@ -295,6 +317,26 @@ describe("SyncStateManager", () => {
 
     await map.core.waitForSync();
 
-    expect(client.node.getCoValue(map.id).isAvailable()).toBe(true);
+    expect(client.node.getCoValue(map.id).hasVerifiedContent()).toBe(true);
+
+    // Since only the map is subscribed, the dependencies are pushed after the client requests them
+    await waitFor(() => {
+      expect(client.node.getCoValue(map.id).isAvailable()).toBe(true);
+    });
+
+    expect(
+      SyncMessagesLog.getMessages({
+        Map: map.core,
+        Group: group.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "server -> client | CONTENT Map header: true new: After: 0 New: 1",
+        "client -> server | LOAD Group sessions: empty",
+        "client -> server | KNOWN Map sessions: header/1",
+        "server -> client | CONTENT Group header: true new: After: 0 New: 3",
+        "client -> server | KNOWN Group sessions: header/3",
+      ]
+    `);
   });
 });

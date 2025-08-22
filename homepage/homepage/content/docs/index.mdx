@@ -1,4 +1,5 @@
-import { CodeGroup, ContentByFramework, JazzLogo } from '@/components/forMdx'
+import { CodeGroup, ContentByFramework, JazzLogo } from "@/components/forMdx";
+import { Alert } from "@garden-co/design-system/src/components/atoms/Alert";
 
 export const metadata = {
   title: "Documentation",
@@ -6,57 +7,57 @@ export const metadata = {
 
 # Learn some <span className="sr-only">Jazz</span> <JazzLogo className="h-[41px] -ml-0.5 -mt-[3px] inline" />
 
-Welcome to the Jazz documentation!
+**Jazz is a new kind of database** that's **distributed** across your frontend, containers, serverless functions and its own storage cloud.
 
-**Note:** We just released [Jazz 0.14.0](/docs/upgrade/0-14-0) with a bunch of breaking changes and are still cleaning the docs up - see the [upgrade guide](/docs/upgrade/0-14-0) for details.
+It syncs structured data, files and LLM streams instantly, and looks like local reactive JSON state.
+
+It also provides auth, orgs & teams, real-time multiplayer, edit histories, permissions, E2E encryption and offline-support out of the box.
+
+---
 
 ## Quickstart
 
 You can use [`create-jazz-app`](/docs/tools/create-jazz-app) to create a new Jazz project from one of our starter templates or example apps:
 
 <CodeGroup>
-```sh
-npx create-jazz-app@latest --api-key YOUR_API_KEY
-```
+  ```sh
+    npx create-jazz-app@latest --api-key you@example.com
+  ```
 </CodeGroup>
 
-**Note**: Get your free API key from [dashboard.jazz.tools](https://dashboard.jazz.tools).
-
-Or set up Jazz yourself, using the following instructions for your framework of choice:
-
-- [React](/docs/react/project-setup)
-- [Next.js](/docs/react/project-setup#nextjs)
-- [React Native](/docs/react-native/project-setup)
-- [React Native Expo](/docs/react-native-expo/project-setup)
-- [Vue](/docs/vue/project-setup)
-- [Svelte](/docs/svelte/project-setup)
+<Alert variant="info" className="mt-4 flex gap-2 items-center">
+ Requires at least Node.js v20.
+ See our [Troubleshooting Guide](https://jazz.tools/docs/troubleshooting) for quick fixes.
+</Alert>
 
 {/* <ContentByFramework framework="react">
-  Or you can follow this [React step-by-step guide](/docs/react/guide) where we walk you through building an issue tracker app.
+Or you can follow this [React step-by-step guide](/docs/react/guide) where we walk you through building an issue tracker app.
+
 </ContentByFramework> */}
 
-## Example apps
+## How it works
 
-You can also find [example apps](/examples) with code most similar to what you want to build. These apps
-make use of different features such as auth, file upload, and more.
+1. **Define your data** with CoValues schemas
+2. **Connect to storage infrastructure** (Jazz Cloud or self-hosted)
+3. **Create and edit CoValues** like normal objects
+4. **Get automatic sync and persistence** across all devices and users
+
+Your UI updates instantly on every change, everywhere. It's like having reactive local state that happens to be shared with the world.
+
+## Ready to see Jazz in action?
+
+Have a look at our [example apps](/examples) for inspiration and to see what's possible with Jazz. From real-time chat and collaborative editors to file sharing and social features — these are just the beginning of what you can build.
+
+## Core concepts
+
+Learn how to structure your data using [collaborative values](/docs/schemas/covalues) — the building blocks that make Jazz apps work.
 
 ## Sync and storage
 
-Sync and persist your data by setting up a [sync and storage infrastructure](/docs/sync-and-storage) using Jazz Cloud, or do it yourself.
+Sync and persist your data by setting up [sync and storage infrastructure](/docs/sync-and-storage) using Jazz Cloud, or host it yourself.
 
-## Collaborative values
-
-Learn how to structure your data using [collaborative values](/docs/schemas/covalues).
-
-## API Reference
-
-Many of the packages provided are documented in the [API Reference](/api-reference).
-
-## LLM Docs
+## Going deeper
 
 Get better results with AI by [importing the Jazz docs](/docs/ai-tools) into your context window.
 
-## Get support
-
-If you have any questions or need assistance, please don't hesitate to reach out to us on [Discord](https://discord.gg/utDMjHYg42).
-We would love to help you get started.
+If you have any questions or need assistance, please don't hesitate to reach out to us on [Discord](https://discord.gg/utDMjHYg42). We'd love to help you get started.

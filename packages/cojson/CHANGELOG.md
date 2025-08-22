@@ -1,5 +1,220 @@
 # cojson
 
+## 0.17.11
+
+### Patch Changes
+
+- 68b2f37: Only request covalue dependencies when transaction verification is enabled
+- 257ded3: Fix admin permission downgrade to writeOnly
+  - Allow admin to self-downgrade to writeOnly
+  - Prevent admin from downgrading other admins to writeOnly
+- e301ad6: Skip agent resolution when skipVerify is true
+  - cojson-core-wasm@0.17.11
+
+## 0.17.10
+
+### Patch Changes
+
+- c55297c: Move the session log management into WASM
+  - cojson-core-wasm@0.17.10
+
+## 0.17.9
+
+### Patch Changes
+
+- 7586c3b: Adds disableTransactionVerification() method to SyncManager
+
+## 0.17.8
+
+## 0.17.7
+
+## 0.17.6
+
+## 0.17.5
+
+### Patch Changes
+
+- 71c1411: Removed some unnecessary content messages sent after a local transaction when sending a value as dependency before the ack response
+- 2d11d44: Make the CoValueCore.unmount function detach the CoValue from LocalNode
+
+## 0.17.4
+
+## 0.17.3
+
+### Patch Changes
+
+- f0c73d9: Allow storing empty content with header in handleNewContent
+
+## 0.17.2
+
+### Patch Changes
+
+- 5b2b16a: Filter invalid sessions when storing a content message
+
+## 0.17.1
+
+### Patch Changes
+
+- 2fd88b9: Add debug info to sync correction errors
+
+## 0.17.0
+
+## 0.16.6
+
+### Patch Changes
+
+- 67e0968: Fix content streaming chunking, now chunks should be splitted always respecting the MAX_RECOMMENDED_TX_SIZE
+- ce9ca54: Chunk CoPlainText content to avoid generating bg messages when the user past a megabytes of text
+- 4b99ff1: Add a multi-storage scheduler to avoid conflicting store operations when having multiple storage instances open on the same database
+- ac5d20d: Add ingress and egress metering
+- 9bf7946: Added a TTL based optional garbage collection for covalues
+
+## 0.16.5
+
+### Patch Changes
+
+- 3cd1586: Makes the key rotation not fail when child groups are unavailable or their readkey is not accessible.
+
+  Also changes the Group.removeMember method to not return a Promise, because:
+
+  - All the locally available child groups are rotated immediately
+  - All the remote child groups are rotated in background, but since they are not locally available the user won't need the new key immediately
+
+- 267f689: Groups: fix the readkey not being revealed to everyone when doing a key rotation
+
+## 0.16.4
+
+### Patch Changes
+
+- f9d538f: Fix the error raised when extending a group without having child groups loaded
+- 802b5a3: Refactor local updates sync to ensure that the changes are synced respecting the insertion order
+
+## 0.16.3
+
+## 0.16.2
+
+## 0.16.1
+
+## 0.16.0
+
+### Minor Changes
+
+- c09dcdf: Change the root attribute to be public on Account. The root content will still follow the visiblity rules specified in their group.
+
+  Existing accounts will be gradually migrated as they are loaded.
+
+## 0.15.16
+
+## 0.15.15
+
+## 0.15.14
+
+### Patch Changes
+
+- 70ce7c5: Introduce the persistent peers. Used to mark the WebSocket connections to the server as persistent, and wait for reconnection before failing load.
+
+## 0.15.13
+
+## 0.15.12
+
+## 0.15.11
+
+## 0.15.10
+
+## 0.15.9
+
+### Patch Changes
+
+- 27b4837: Wait for the full streaming before return values in load and subscribe
+- 2776263: - Refactored the Peer incoming/outgoing channels to be syncronous
+  - Changed the storage communication to work with an explicit API and removed the storage role on peers
+  - Added scheduling of the incoming messages using a round-robin over the peers and a timer to do collaborative scheduling with the event loop
+  - Added expectContentUntil on the content messages to optimize content syncing with servers during streaming
+
+## 0.15.8
+
+## 0.15.7
+
+## 0.15.6
+
+## 0.15.5
+
+## 0.15.4
+
+### Patch Changes
+
+- 277e4d4: Fix sync with circular deps
+
+## 0.15.3
+
+## 0.15.2
+
+### Patch Changes
+
+- 4b964ed: Add debug code on transactions parsing
+
+## 0.15.1
+
+### Patch Changes
+
+- b110f00: Added `CoMap.upsertUnique` & `CoMap.loadUnique` methods (deprecating `CoMap.findUnique`) and added `skipRetry` option to `CoMap.load`
+
+## 0.15.0
+
+## 0.14.28
+
+## 0.14.27
+
+## 0.14.26
+
+### Patch Changes
+
+- e74a077: Improve the missing dependencies recovery & management
+
+## 0.14.25
+
+## 0.14.24
+
+## 0.14.23
+
+### Patch Changes
+
+- 1ca9299: Adds grapheme split helpers for coText
+
+## 0.14.22
+
+### Patch Changes
+
+- 57fb69f: fix: clarify `Group.addMember` error message when attempting to set roles with insufficient permissions
+
+## 0.14.21
+
+### Patch Changes
+
+- c3d8779: Fix setting latestTxMadeAt when the transaction is empty. (can happen when calling assign with an empty object)
+
+## 0.14.20
+
+## 0.14.19
+
+## 0.14.18
+
+### Patch Changes
+
+- 0d5ee3e: Enable react-native-quick-crypto xsalsa20 accelerated algorithm for encrypt/decrypt functions
+
+## 0.14.16
+
+### Patch Changes
+
+- 5e253cc: Version bump
+
+## 0.14.15
+
+### Patch Changes
+
+- 23daa7c: Align the processing of the group dependencies between LocalNode and Storage.
+
 ## 0.14.1
 
 ### Patch Changes

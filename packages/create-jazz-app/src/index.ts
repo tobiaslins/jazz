@@ -16,10 +16,15 @@ import {
   frameworkToAuthExamples,
   frameworks,
 } from "./config.js";
+import { type PackageManager, getPkgManager } from "./utils.js";
+import { parseCatalogDefinitions, resolveCatalogVersion } from "./catalog.js";
+
+// Handle SIGINT (Ctrl+C) gracefully
+process.on("SIGINT", () => {
+  process.exit(0);
+});
 
 const program = new Command();
-
-type PackageManager = "npm" | "yarn" | "pnpm" | "bun" | "deno";
 
 type ScaffoldOptions = {
   template: FrameworkAuthPair | string;
@@ -121,8 +126,7 @@ async function scaffoldProject({
     platform: getPlatformFromTemplateName(template),
   };
 
-  const devCommand =
-    starterConfig.platform === PLATFORM.REACT_NATIVE ? "ios" : "dev";
+  let devCommand = "dev";
 
   if (!starterConfig.repo) {
     throw new Error(
@@ -143,6 +147,20 @@ async function scaffoldProject({
       verbose: true,
     });
     await emitter.clone(projectName);
+
+    // Remove .env.test file if it exists
+    const envTestFilePath = `${projectName}/.env.test`;
+    if (fs.existsSync(envTestFilePath)) {
+      fs.unlinkSync(envTestFilePath);
+    }
+
+    if (
+      starterConfig.platform === PLATFORM.REACT_NATIVE &&
+      packageManager === "pnpm"
+    ) {
+      fs.writeFileSync(`${projectName}/.npmrc`, "node-linker=hoisted");
+    }
+
     cloneSpinner.succeed(chalk.green("Template cloned successfully"));
   } catch (error) {
     cloneSpinner.fail(chalk.red("Failed to clone template"));
@@ -159,7 +177,10 @@ async function scaffoldProject({
     const packageJsonPath = `${projectName}/package.json`;
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
 
-    // Helper function to update workspace dependencies
+    // Parse catalog definitions once
+    const catalogs = parseCatalogDefinitions();
+
+    // Helper function to update workspace and catalog dependencies
     async function updateWorkspaceDependencies(
       dependencyType: "dependencies" | "devDependencies",
     ) {
@@ -170,8 +191,27 @@ async function scaffoldProject({
 
         Object.entries(packageJson[dependencyType]).forEach(
           ([pkg, version]) => {
-            if (typeof version === "string" && version.includes("workspace:")) {
-              packageJson[dependencyType][pkg] = latestVersions[pkg];
+            if (typeof version === "string") {
+              if (version.includes("workspace:")) {
+                // Handle workspace: dependencies
+                packageJson[dependencyType][pkg] = latestVersions[pkg];
+              } else if (version.startsWith("catalog:")) {
+                // Handle catalog: dependencies
+                const resolvedVersion = resolveCatalogVersion(
+                  pkg,
+                  version,
+                  catalogs,
+                );
+                if (resolvedVersion) {
+                  packageJson[dependencyType][pkg] = resolvedVersion;
+                } else {
+                  console.warn(
+                    chalk.yellow(
+                      `Warning: Could not resolve catalog dependency "${pkg}": "${version}"`,
+                    ),
+                  );
+                }
+              }
             }
           },
         );
@@ -256,20 +296,39 @@ async function scaffoldProject({
     }).start();
 
     try {
-      execSync(`cd "${projectName}" && npx expo prebuild`, { stdio: "pipe" });
-      execSync(`cd "${projectName}" && npx pod-install`, { stdio: "pipe" });
-
-      // Update metro.config.js
       const metroConfigPath = `${projectName}/metro.config.js`;
-      const metroConfig = `
-const { getDefaultConfig } = require("expo/metro-config");
-const { withNativeWind } = require("nativewind/metro");
+      const appJsonPath = `${projectName}/app.json`;
+      const appJson = JSON.parse(fs.readFileSync(appJsonPath, "utf8"));
+      const isExpo = appJson.expo !== undefined;
 
+      if (isExpo) {
+        devCommand = "start";
+        // Replace monorepo metro.config.js with default one
+        const metroConfig = `const { getDefaultConfig } = require("expo/metro-config");
 const config = getDefaultConfig(__dirname);
 
-module.exports = withNativeWind(config, { input: "./global.css" });
-`;
-      fs.writeFileSync(metroConfigPath, metroConfig);
+config.resolver.sourceExts = ["mjs", "js", "json", "ts", "tsx"];
+config.resolver.requireCycleIgnorePatterns = [/(^|\\/|\\\\)node_modules($|\\/|\\\\)/];
+
+module.exports = config;`;
+        fs.writeFileSync(metroConfigPath, metroConfig);
+        execSync(`cd "${projectName}" && npx expo prebuild`, { stdio: "pipe" });
+      } else {
+        devCommand = "ios";
+        // Replace monorepo metro.config.js with default one
+        const metroConfig = `const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
+
+const config = {
+  resolver: {
+    sourceExts: ["mjs", "js", "json", "ts", "tsx"],
+    requireCycleIgnorePatterns: [/(^|\\/|\\\\)node_modules($|\\/|\\\\)/],
+  }
+};
+
+module.exports = mergeConfig(getDefaultConfig(__dirname), config);`;
+        fs.writeFileSync(metroConfigPath, metroConfig);
+        execSync(`cd "${projectName}" && npx pod-install`, { stdio: "pipe" });
+      }
 
       rnSpinner.succeed(chalk.green("React Native setup completed"));
     } catch (error) {
@@ -439,6 +498,8 @@ async function promptUser(
   }
 
   if (!partialOptions.packageManager) {
+    const defaultPackageManager = getPkgManager();
+
     questions.push({
       type: "list",
       name: "packageManager",
@@ -450,15 +511,29 @@ async function promptUser(
         { name: chalk.white("bun"), value: "bun" },
         { name: chalk.white("deno"), value: "deno" },
       ],
-      default: "npm",
+      default: defaultPackageManager,
     });
   }
 
   if (!partialOptions.projectName) {
+    // Determine a default project name if possible
+    let defaultProjectName = undefined;
+    if (partialOptions.example) {
+      // Use the example name, affixed with -app if not already
+      defaultProjectName = partialOptions.example.endsWith("-app")
+        ? partialOptions.example
+        : `${partialOptions.example}-app`;
+    } else if (partialOptions.starter) {
+      // Use the starter name, affixed with -app if not already
+      defaultProjectName = partialOptions.starter.endsWith("-app")
+        ? partialOptions.starter
+        : `${partialOptions.starter}-app`;
+    }
     questions.push({
       type: "input",
       name: "projectName",
       message: chalk.cyan("Enter your project name:"),
+      default: defaultProjectName,
       validate: (input: string) =>
         input ? true : chalk.red("Project name cannot be empty"),
     });
@@ -552,6 +627,17 @@ program
       } else if (directory && !options.projectName) {
         // If directory is provided but not project name, use directory as project name
         partialOptions.projectName = directory;
+      } else if (!directory && !options.projectName) {
+        // If no directory or projectName, and example is provided, use example as default
+        if (options.example) {
+          partialOptions.projectName = options.example.endsWith("-app")
+            ? options.example
+            : `${options.example}-app`;
+        } else if (options.starter) {
+          partialOptions.projectName = options.starter.endsWith("-app")
+            ? options.starter
+            : `${options.starter}-app`;
+        }
       }
 
       if (options.starter)
