@@ -43,7 +43,7 @@ const serverWorkers = [
   {
     name: "Node.js",
     icon: NodejsLogo,
-    href: "/docs/react/server-workers",
+    href: "/docs/react/server-side/setup",
   },
   {
     name: "Bun",
