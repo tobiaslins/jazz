@@ -25,7 +25,7 @@ To update a CoValue, we simply assign the new value directly as changes happen. 
 <input
   type="text"
   value={order.name}
-  onChange={(e) => order.name = e.target.value}
+  onChange={(e) => order.$jazz.set("name", e.target.value)}
 />
 ```
 </CodeGroup>
@@ -93,7 +93,7 @@ export function OrderForm({
         <input
           type="text"
           value={order.name}
-          onChange={(e) => (order.name = e.target.value)}
+          onChange={(e) => order.$jazz.set("name", e.target.value)}
           required
         />
       </label>
@@ -137,7 +137,7 @@ export function OrderForm({
         <input
           type="text"
           value={order.name}
-          onChange={(e) => (order.name = e.target.value)}
+          onChange={(e) => (order.$jazz.set("name", e.target.value))}
           required
         />
       </label>
@@ -205,7 +205,7 @@ export function OrderForm({
         <input
           type="text"
           value={order.name}
-          onChange={(e) => (order.name = e.target.value)}
+          onChange={(e) => (order.$jazz.set("name", e.target.value))}
           required
         />
       </label>
@@ -321,7 +321,7 @@ export function OrderForm({
         <input
           type="text"
           value={order.name}
-          onChange={(e) => (order.name = e.target.value)}
+          onChange={(e) => (order.$jazz.set("name", e.target.value))}
           required
         />
       </label>
@@ -506,7 +506,7 @@ export function OrderForm({
         <input
           type="text"
           value={order.name}
-          onChange={(e) => (order.name = e.target.value)}
+          onChange={(e) => (order.$jazz.set("name", e.target.value))}
           required
         />
       </label>
@@ -541,9 +541,7 @@ export function CreateOrder() {
     console.log("Order created:", order);
 
     // create a new empty draft
-    me.root.draft = DraftBubbleTeaOrder.create( // [!code ++:3]
-      {},
-    );
+    me.root.$jazz.set("draft", {}); // [!code ++]
   };
 
   return <CreateOrderForm id={me.root.draft.$jazz.id} onSave={onSave} />

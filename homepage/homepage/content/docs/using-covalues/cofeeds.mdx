@@ -280,7 +280,7 @@ const activityFeed = ActivityFeed.create([]);
 
 // ---cut---
 // Log a new activity
-activityFeed.push(Activity.create({
+activityFeed.$jazz.push(Activity.create({
   timestamp: new Date(),
   action: "watering",
   notes: "Extra water for new seedlings"
@@ -312,14 +312,14 @@ const fromBrowserFeed = ActivityFeed.create([]);
 
 // ---cut---
 // On mobile device:
-fromMobileFeed.push(Activity.create({
+fromMobileFeed.$jazz.push(Activity.create({
   timestamp: new Date(),
   action: "harvesting",
   notes: "Vegetable patch"
 }));
 
 // On web browser (same user):
-fromBrowserFeed.push(Activity.create({
+fromBrowserFeed.$jazz.push(Activity.create({
   timestamp: new Date(),
   action: "planting",
   notes: "Flower bed"

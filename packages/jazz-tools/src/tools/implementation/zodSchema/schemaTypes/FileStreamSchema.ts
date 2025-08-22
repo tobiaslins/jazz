@@ -34,7 +34,9 @@ export class FileStreamSchema implements CoreFileStreamSchema {
 
   createFromBlob(
     blob: Blob | File,
-    options?: { owner: Group } | Group,
+    options?:
+      | { owner?: Group; onProgress?: (progress: number) => void }
+      | Group,
   ): Promise<FileStream>;
   /** @deprecated Creating CoValues with an Account as owner is deprecated. Use a Group instead. */
   createFromBlob(

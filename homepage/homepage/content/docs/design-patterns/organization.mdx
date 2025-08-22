@@ -149,7 +149,7 @@ export function AcceptInvitePage() {
           );
           if (ids.includes(organizationId)) return;
 
-          me.root.organizations.push(organization);
+          me.root.organizations.$jazz.push(organization);
         }
       });
     }

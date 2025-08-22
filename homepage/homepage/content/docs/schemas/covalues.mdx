@@ -465,8 +465,8 @@ type Person = co.loaded<typeof Person>;
 
 export function updatePersonName(person: Person, fullName: string) {
   const [firstName, lastName] = fullName.split(" ");
-  person.firstName = firstName;
-  person.lastName = lastName;
+  person.$jazz.set("firstName", firstName);
+  person.$jazz.set("lastName", lastName);
 }
 
 const person = Person.create({

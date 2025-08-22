@@ -324,8 +324,8 @@ const project = Project.create(
   },
 );
 // ---cut---
-project.name = "Spring Vegetable Garden";    // Update name
-project.startDate = new Date("2025-03-20");  // Update date
+project.$jazz.set("name", "Spring Vegetable Garden");    // Update name
+project.$jazz.set("startDate", new Date("2025-03-20"));  // Update date
 ```
 </CodeGroup>
 
@@ -356,9 +356,9 @@ const project = Project.create(
   },
 );
 // ---cut---
-project.name = "Spring Vegetable Planting";  // ✓ Valid string
-// @errors: 2322
-project.startDate = "2025-03-15"; // ✗ Type error: expected Date
+project.$jazz.set("name", "Spring Vegetable Planting");  // ✓ Valid string
+// @errors: 2345
+project.$jazz.set("startDate", "2025-03-15"); // ✗ Type error: expected Date
 ```
 </CodeGroup>
 
@@ -411,10 +411,10 @@ const inventory = Inventory.create({
   basil: 12
 });
 // ---cut---
-delete inventory["basil"];  // Remove a key-value pair
+inventory.$jazz.delete("basil");  // Remove a key-value pair
 
 // For optional fields in struct-like CoMaps
-project.coordinator = undefined;  // Remove the reference
+project.$jazz.set("coordinator", undefined);  // Remove the reference
 ```
 </CodeGroup>
 
@@ -440,9 +440,9 @@ const Task = co
   })
   .withMigration((task) => {
     if (task.version === 1) {
-      task.priority = "medium";
+      task.$jazz.set("priority", "medium");
       // Upgrade the version so the migration won't run again
-      task.version = 2;
+      task.$jazz.set("version", 2);
     }
   });
 ```
@@ -486,8 +486,8 @@ const TaskV2 = co.map({
 }).withMigration((task) => {
   // @ts-expect-error - check if we need to run the migration
   if (task.version === 1) {
-    task.version = 2;
-    task.priority = "medium";
+    task.$jazz.set("version", 2);
+    task.$jazz.set("priority", "medium");
   }
 });
 

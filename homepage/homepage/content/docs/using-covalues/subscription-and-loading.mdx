@@ -122,7 +122,7 @@ function GardenPlanner({ projectId }: { projectId: string }) {
   );
 }
 
-function TaskList({ tasks }: { tasks: co.loaded<typeof Task>[] }) {
+function TaskList({ tasks }: { tasks: ReadonlyArray<co.loaded<typeof Task>> }) {
   return (
     <ul>
       {tasks.map((task) => (

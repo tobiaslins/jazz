@@ -263,7 +263,7 @@ export const MyAppAccount = co.account({
   // we specifically need to check for undefined,
   // because myBookmarks might simply be not loaded (`null`) yet
   if (root.myBookmarks === undefined) { // [!code ++:3]
-    root.myBookmarks = co.list(Bookmark).create([], Group.create());
+    root.$jazz.set("myBookmarks", co.list(Bookmark).create([], Group.create()));
   }
 });
 ```

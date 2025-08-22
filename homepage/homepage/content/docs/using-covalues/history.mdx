@@ -11,7 +11,7 @@ Let's use the following schema to see how we can use the edit history.
 
 
 <CodeGroup>
-  ```ts twoslash
+```ts twoslash
 import { co, z } from "jazz-tools";
 // ---cut---
 const Task = co.map({
@@ -19,7 +19,7 @@ const Task = co.map({
     status: z.literal(["todo", "in-progress", "completed"]),
 });
 export type Task = co.loaded<typeof Task>;
-  ```
+```
 </CodeGroup>
 
 ## The $jazz.getEdits() method
@@ -30,8 +30,9 @@ how to get the edit history for `task.status`:
 <CodeGroup>
 ```ts twoslash
 import { createJazzTestAccount } from "jazz-tools/testing";
-const me = await createJazzTestAccount();
 import { co, z } from "jazz-tools";
+
+const me = await createJazzTestAccount();
 
 const Task = co.map({
   title: z.string(),
@@ -49,7 +50,7 @@ task.$jazz.getEdits().status?.all
 
 // Check if edits exist
 if (task.$jazz.getEdits().status) {
-  const name = task.$jazz.getEdits().status.by?.profile?.name;
+  const name = task.$jazz.getEdits().status?.by?.profile?.name;
   console.log(`Last changed by ${name}`);
 }
 ```
@@ -171,7 +172,7 @@ console.log(`Started as: ${initialValue}`);
 
 ### Created Date and Last Updated Date
 
-To show created date and last updated date, use the `_createdAt` and `_lastUpdatedAt` getters.
+To show created date and last updated date, use the `$jazz.createdAt` and `$jazz.lastUpdatedAt` getters.
 
 <CodeGroup>
 ```tsx twoslash
@@ -182,8 +183,8 @@ const Task = co.map({
 });
 const task = Task.create({ title: "New task", status: "todo" });
 // ---cut---
-console.log(new Date(task._createdAt));
-console.log(new Date(task._lastUpdatedAt));
+console.log(new Date(task.$jazz.createdAt));
+console.log(new Date(task.$jazz.lastUpdatedAt));
 ```
 </CodeGroup>
 

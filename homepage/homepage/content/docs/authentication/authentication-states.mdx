@@ -130,7 +130,7 @@ export async function onAnonymousAccountDiscarded(
     const trackGroup = track.$jazz.owner;
     trackGroup.addMember(me, "admin");
 
-    me.root.rootPlaylist.tracks.push(track);
+    me.root.rootPlaylist.tracks.$jazz.push(track);
   }
 }
 ```

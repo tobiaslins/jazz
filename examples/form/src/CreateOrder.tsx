@@ -31,12 +31,7 @@ export function CreateOrder() {
     me.root.orders.$jazz.push(draft as BubbleTeaOrder);
 
     // reset the draft
-    me.root.$jazz.set(
-      "draft",
-      DraftBubbleTeaOrder.create({
-        addOns: [],
-      }),
-    );
+    me.root.$jazz.set("draft", { addOns: [] });
 
     router.navigate("/");
   };
