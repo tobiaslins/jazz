@@ -3,6 +3,7 @@ export const metadata = {
 };
 
 import { CodeGroup } from "@/components/forMdx";
+import { Alert } from "@garden-co/design-system/src/components/atoms/Alert";
 
 # Providers
 
@@ -48,7 +49,7 @@ export function MyApp({ children }: { children: React.ReactNode }) {
   return (
     <JazzReactProvider
       sync={{
-        peer: `wss://cloud.jazz.tools/?key=you@example.com`,
+        peer: "wss://cloud.jazz.tools/?key=YOUR_API_KEY",
         when: "always" // When to sync: "always", "never", or "signedUp"
       }}
       AccountSchema={MyAppAccount}
@@ -59,6 +60,10 @@ export function MyApp({ children }: { children: React.ReactNode }) {
 }
 ```
 </CodeGroup>
+
+<Alert className="mt-4 flex gap-2 items-center" variant="info">
+**Tip**: Get a free API key from [dashboard.jazz.tools](https://dashboard.jazz.tools).
+</Alert>
 
 ## Provider Options
 
@@ -72,7 +77,7 @@ import { type SyncConfig } from "jazz-tools";
 
 const syncConfig: SyncConfig = {
   // Connection to Jazz Cloud or your own sync server
-  peer: `wss://cloud.jazz.tools/?key=you@example.com`,
+  peer: "wss://cloud.jazz.tools/?key=YOUR_API_KEY",
 
   // When to sync: "always" (default), "never", or "signedUp"
   when: "always",
@@ -112,7 +117,7 @@ import { JazzReactProvider } from "jazz-tools/react";
 import { SyncConfig } from "jazz-tools";
 
 const syncConfig: SyncConfig = {
-  peer: `wss://cloud.jazz.tools/?key=you@example.com`,
+  peer: "wss://cloud.jazz.tools/?key=YOUR_API_KEY",
   when: "always",
 }
 
@@ -145,7 +150,7 @@ import { JazzReactProvider } from "jazz-tools/react";
 import { SyncConfig } from "jazz-tools";
 
 const syncConfig: SyncConfig = {
-  peer: `wss://cloud.jazz.tools/?key=you@example.com`,
+  peer: "wss://cloud.jazz.tools/?key=YOUR_API_KEY",
   when: "always",
 }
 
