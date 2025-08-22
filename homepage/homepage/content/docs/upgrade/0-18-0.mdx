@@ -70,13 +70,14 @@ person.$jazz.set("dog", { name: "Fido" });
 </CodeGroup>
 
 CoValues are created automatically, and permissions are handled in the same way than when creating CoValues from JSON
-(see [docs](/docs/vanilla/groups/inheritance#group-hierarchy-on-covalue-creation)).
+(see [docs](/docs/vanilla/groups/inheritance#ownership-on-implicit-covalue-creation)).
 
 This feature is now available on all methods that mutate CoValues (like `CoList.$jazz.push`, `CoList.$jazz.splice` and `CoFeed.$jazz.push`).
 
 #### New CoList Utility Methods
 Jazz 0.18.0 introduces two new utility methods for easier CoList editing:
 
+<CodeGroup>
 ```ts
 // Remove items
 list.$jazz.remove(1); // By index
@@ -85,6 +86,7 @@ list.$jazz.remove(item => item.completed); // By predicate
 // Keep only items matching the predicate
 list.$jazz.retain(item => !item.completed);
 ```
+</CodeGroup>
 
 They allow editing a CoList in-place with a simpler API than `$jazz.splice`.
 
@@ -95,7 +97,7 @@ They allow editing a CoList in-place with a simpler API than `$jazz.splice`.
 All Jazz properties are now available in the `$jazz` namespace.
 
 <CodeGroup>
-```tsx
+```ts
 // Before
 coValue.id; // [!code --:4]
 coValue._owner;
@@ -128,11 +130,11 @@ delete person.age; // [!code --]
 person.$jazz.delete("age"); // [!code ++]
 
 // Update multiple properties
-person.applyDiff({ // [!code --:3]
+person.applyDiff({ // [!code --:4]
   name: "Alice",
   age: 42,
 });
-person.$jazz.applyDiff({ // [!code --:4]
+person.$jazz.applyDiff({ // [!code ++:4]
   name: "Alice",
   age: 42,
 });
@@ -148,11 +150,13 @@ CoLists are now readonly arrays. All mutation methods have been moved to `$jazz`
 
 <CodeGroup>
 ```ts
+// Before
 list.push("item"); // [!code --:4]
 list.unshift("first");
 list.splice(1, 1, "replacement");
 list[0] = "new value";
 
+// After
 list.$jazz.push("item"); // [!code ++:4]
 list.$jazz.unshift("first");
 list.$jazz.splice(1, 1, "replacement");
@@ -165,6 +169,7 @@ The following methods have been deprecated and should not be used:
 - `reverse()` 
 - `fill()` 
 - `copyWithin()`
+
 These methods could behave inconsistently with CoLists. `$jazz` replacements may be introduced in future releases.
 
 ### Ownership Changes

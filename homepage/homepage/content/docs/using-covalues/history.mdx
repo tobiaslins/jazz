@@ -49,8 +49,9 @@ task.$jazz.getEdits().status?.all
 // Returns array of all edits in chronological order
 
 // Check if edits exist
-if (task.$jazz.getEdits().status) {
-  const name = task.$jazz.getEdits().status?.by?.profile?.name;
+const statusEdits = task.$jazz.getEdits().status;
+if (statusEdits) {
+  const name = statusEdits.by?.profile?.name;
   console.log(`Last changed by ${name}`);
 }
 ```
