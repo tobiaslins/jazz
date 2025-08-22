@@ -201,6 +201,23 @@ test("should support recursive props on co.profile", async () => {
   expect(account.profile.followers.length).toBe(0);
 });
 
+test("cannot update account profile properties directly", async () => {
+  const account = await createJazzTestAccount({
+    creationProps: {
+      name: "test 1",
+    },
+  });
+
+  assert(account.profile);
+
+  // @ts-expect-error - cannot update profile properties directly
+  expect(() => (account.profile.name = "test 2")).toThrow(
+    "Cannot update a CoMap directly. Use `$jazz.set` instead.",
+  );
+  account.profile.$jazz.set("name", "test 3");
+  expect(account.profile.name).toBe("test 3");
+});
+
 test("root and profile should be trusting by default", async () => {
   const AccountSchema = co
     .account({

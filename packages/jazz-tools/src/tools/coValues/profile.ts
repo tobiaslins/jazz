@@ -11,9 +11,9 @@ import {
 
 /** @category Identity & Permissions */
 export class Profile extends CoMap {
-  name = coField.string;
-  inbox? = coField.optional.string;
-  inboxInvite? = coField.optional.string;
+  readonly name = coField.string;
+  readonly inbox? = coField.optional.string;
+  readonly inboxInvite? = coField.optional.string;
 
   /**
    * Creates a new profile with the given initial values and owner.
