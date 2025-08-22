@@ -25,6 +25,5 @@ the CoValues automatically (similarly to CoValue `create` methods).
   in future releases.
 - `.$jazz.owner` now always returns a Group (instead of a Group or an Account). We'll be migrating away of having Accounts as CoValue owners in future releases.
 - Removed `castAs`, since it's an inherently unsafe operation that bypassed typechecking and enabled using CoValues in unsupported ways.
-- Removed `id` and `_type` from `toJSON()`'s output in Account, CoMap, CoFeed & FileStream.
-- Removed `root` & `profile` fields from Group.
-
+- Removed the `id` and `_type` fields from `toJSON()`'s output in Account, CoMap, CoFeed & FileStream, to make CoValues behave more similarly to JSON objects.
+- Removed the `root` and `profile` fields from Group.
