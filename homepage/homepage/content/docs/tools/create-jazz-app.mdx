@@ -3,6 +3,7 @@ export const metadata = {
 };
 
 import { CodeGroup } from "@/components/forMdx";
+import { Alert } from "@garden-co/design-system/src/components/atoms/Alert";
 
 # create-jazz-app
 
@@ -21,7 +22,9 @@ npx create-jazz-app@latest --api-key YOUR_API_KEY
 ```
 </CodeGroup>
 
-**Note**: Get your free API key from [dashboard.jazz.tools](https://dashboard.jazz.tools).
+<Alert className="mt-4 flex gap-2 items-center" variant="info">
+**Tip**: Get a free API key from [dashboard.jazz.tools](https://dashboard.jazz.tools).
+</Alert>
 
 This launches an interactive CLI that guides you through selecting:
 - Pre-configured frameworks and authentication methods (See [Available Starters](#available-starters))
