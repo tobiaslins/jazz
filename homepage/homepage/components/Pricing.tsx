@@ -1,4 +1,3 @@
-import { GetStartedButton } from "@/components/GetStartedButton";
 import { Button } from "@garden-co/design-system/src/components/atoms/Button";
 import { clsx } from "clsx";
 import {
@@ -86,7 +85,14 @@ export function Pricing() {
             </ul>
           </div>
 
-          <GetStartedButton tier="starter" />
+          <Button
+            href="https://dashboard.jazz.tools?utm_source=cloud_cta_starter"
+            newTab
+            variant="outline"
+            intent="primary"
+          >
+            Get Starter API key
+          </Button>
 
           <p className="text-sm">No credit card required. Takes 20s.</p>
         </div>
@@ -131,8 +137,13 @@ export function Pricing() {
             </ul>
           </div>
 
-          <GetStartedButton tier="indie" />
-
+          <Button
+            href="https://dashboard.jazz.tools?utm_source=cloud_cta_indie"
+            newTab
+            intent="primary"
+          >
+            Get Indie API key
+          </Button>
           <p className="text-sm">
             One month free trial. Unlimited projects. Takes 1min.
           </p>
