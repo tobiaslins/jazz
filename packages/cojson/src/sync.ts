@@ -222,6 +222,23 @@ export class SyncManager {
     peer: PeerState,
     seen: Set<RawCoID> = new Set(),
   ) {
+    this.sendNewContent(id, peer, seen, true);
+  }
+
+  sendNewContentWithoutDependencies(
+    id: RawCoID,
+    peer: PeerState,
+    seen: Set<RawCoID> = new Set(),
+  ) {
+    this.sendNewContent(id, peer, seen, false);
+  }
+
+  private sendNewContent(
+    id: RawCoID,
+    peer: PeerState,
+    seen: Set<RawCoID> = new Set(),
+    includeDependencies: boolean,
+  ) {
     if (seen.has(id)) {
       return;
     }
@@ -234,8 +251,10 @@ export class SyncManager {
       return;
     }
 
-    for (const dependency of coValue.getDependedOnCoValues()) {
-      this.sendNewContentIncludingDependencies(dependency, peer, seen);
+    if (includeDependencies) {
+      for (const dependency of coValue.getDependedOnCoValues()) {
+        this.sendNewContentIncludingDependencies(dependency, peer, seen);
+      }
     }
 
     const newContentPieces = coValue.verified.newContentSince(
@@ -442,7 +461,11 @@ export class SyncManager {
     }
 
     if (coValue.isAvailable()) {
-      this.sendNewContentIncludingDependencies(msg.id, peer);
+      if (peer.role === "server") {
+        this.sendNewContentWithoutDependencies(msg.id, peer);
+      } else {
+        this.sendNewContentIncludingDependencies(msg.id, peer);
+      }
     }
   }
 
