@@ -804,26 +804,12 @@ export class SyncManager {
     return this.sendNewContentIncludingDependencies(msg.id, peer);
   }
 
-  dirtyCoValuesTrackingSets: Set<Set<RawCoID>> = new Set();
-  trackDirtyCoValues() {
-    const trackingSet = new Set<RawCoID>();
-
-    this.dirtyCoValuesTrackingSets.add(trackingSet);
-
-    return {
-      done: () => {
-        this.dirtyCoValuesTrackingSets.delete(trackingSet);
-
-        return trackingSet;
-      },
-    };
-  }
-
   private syncQueue = new LocalTransactionsSyncQueue((content) =>
     this.syncContent(content),
   );
   syncHeader = this.syncQueue.syncHeader;
   syncLocalTransaction = this.syncQueue.syncTransaction;
+  trackDirtyCoValues = this.syncQueue.trackDirtyCoValues;
 
   syncContent(content: NewContentMessage) {
     const coValue = this.local.getCoValue(content.id);

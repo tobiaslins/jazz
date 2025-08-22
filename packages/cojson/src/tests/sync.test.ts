@@ -1115,3 +1115,46 @@ describe("SyncManager.handleSyncMessage", () => {
     expect(peerState.knownStates.has(group.id)).toBe(true);
   });
 });
+
+describe("SyncManager.trackDirtyCoValues", () => {
+  test("should track the dirty coValues", async () => {
+    const node = createTestNode();
+
+    const tracking = node.syncManager.trackDirtyCoValues();
+
+    const group = node.createGroup();
+    const map = group.createMap();
+    map.set("key1", "value1", "trusting");
+
+    const trackedValues = tracking.done();
+    expect(trackedValues.size).toBe(2);
+    expect(trackedValues.has(map.id)).toBe(true);
+    expect(trackedValues.has(group.id)).toBe(true);
+  });
+
+  test("should track the dirty coValues only when active", async () => {
+    const node = createTestNode();
+
+    const group = node.createGroup();
+
+    const tracking1 = node.syncManager.trackDirtyCoValues();
+
+    const map1 = group.createMap();
+    map1.set("key1", "value1", "trusting");
+
+    const tracking2 = node.syncManager.trackDirtyCoValues();
+
+    const map2 = group.createMap();
+    map2.set("key2", "value2", "trusting");
+
+    const tracked1 = tracking1.done();
+
+    const map3 = group.createMap();
+    map3.set("key3", "value3", "trusting");
+
+    const tracked2 = tracking2.done();
+
+    expect(Array.from(tracked1)).toEqual([map1.id, map2.id]);
+    expect(Array.from(tracked2)).toEqual([map2.id, map3.id]);
+  });
+});
