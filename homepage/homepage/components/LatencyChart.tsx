@@ -2,12 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { useMemo } from "react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "./tooltip";
+import * as HoverCard from "@radix-ui/react-hover-card";
 
 const ranges = [
   {
@@ -44,79 +39,101 @@ const ranges = [
   },
 ];
 interface Props {
-  data: [number[], number[]];
+  intervalMin: number;
+  latencyOverTime: [number[], number[]];
+  upOverTime: [number[], number[]];
+  upCountOverTime: [number[], number[]];
 }
-export default function LatencyChart({ data }: Props) {
+export default function LatencyChart({ latencyOverTime, upOverTime, upCountOverTime, intervalMin }: Props) {
   const series = useMemo(() => {
-    return data[1].map((value, index) => ({
-      ts: data[0][index],
+    return latencyOverTime[1].map((value, index) => ({
+      ts: latencyOverTime[0][index],
       value: Math.round(value),
+      up: upOverTime[1][index],
+      upCount: upCountOverTime[1][index],
     }));
-  }, [data]);
+  }, [latencyOverTime, upOverTime]);
 
   return (
-    <>
-      <TooltipProvider delayDuration={0} skipDelayDuration={0}>
-        <figure className="flex items-stretch w-full gap-px justify-end">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div
-                className={cn(
-                  "rounded-md grow hover:opacity-50 dark:bg-gray-900 bg-gray-200",
-                )}
-              />
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>
-                <span className="font-semibold">No data</span>
+    <figure className="flex items-stretch w-full justify-end">
+      <HoverCard.Root openDelay={0} closeDelay={0}>
+        <HoverCard.Trigger asChild>
+          <div
+            className={cn(
+              "rounded-md grow hover:opacity-50 dark:bg-gray-900 bg-gray-200",
+            )}
+          />
+        </HoverCard.Trigger>
+        <HoverCard.Content className="border border-stone-500 bg-white dark:bg-black shadow-lg absolute w-[150px] -ml-[75px] l-[50%] rounded-md p-2">
+          <HoverCard.Arrow className="fill-stone-500" />
+          <p>
+            <span className="font-semibold">No data</span>
+          </p>
+        </HoverCard.Content>
+      </HoverCard.Root>
+      {series.map(({ value, ts, up, upCount }) => {
+        const valueClass = getClassForLatencyAndUp(value, up / upCount);
+
+        const downtimeMin = (1 - up / upCount) * intervalMin;
+        return (
+          <HoverCard.Root key={ts} openDelay={0} closeDelay={0}>
+            <HoverCard.Trigger asChild >
+              <div className="p-[0.5px]">
+                <div
+                  className={cn(
+                    "h-4 w-1 lg:w-2 rounded-sm hover:opacity-50",
+                    valueClass,
+                  )}
+                />
+              </div>
+            </HoverCard.Trigger>
+            <HoverCard.Content className="border border-stone-500 bg-white dark:bg-black shadow-lg absolute w-[150px] -ml-[75px] l-[50%] rounded-md p-2">
+              <HoverCard.Arrow className="fill-stone-500" />
+
+              <time
+                className="text-xs"
+                dateTime={new Date(ts).toISOString()}
+              >
+                {new Date(ts).toLocaleString()}
+              </time>
+              <p className="text-sm text-right">
+                <span
+                  className={cn(
+                    "rounded-md size-3 inline-block mr-1",
+                    getClassForLatencyAndUp(value, 1),
+                  )}
+                />
+                <span className="font-semibold">{value}</span> ms
               </p>
-            </TooltipContent>
-          </Tooltip>
-          {series.map(({ value, ts }) => {
-            const valueClass = getClassForValue(value);
-            return (
-              <Tooltip key={ts}>
-                <TooltipTrigger asChild>
-                  <div
-                    className={cn(
-                      "h-6 w-1 lg:w-2 rounded-md hover:opacity-50",
-                      valueClass,
-                    )}
-                  />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <time
-                    className="text-xs"
-                    dateTime={new Date(ts).toISOString()}
-                  >
-                    {new Date(ts).toLocaleString()}
-                  </time>
-                  <p className="text-sm text-right">
-                    <span
-                      className={cn(
-                        "rounded-md size-3 inline-block mr-1",
-                        valueClass,
-                      )}
-                    />
-                    <span className="font-semibold">{value}</span> ms
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            );
-          })}
-        </figure>
-      </TooltipProvider>
-    </>
+              <p className="text-sm text-right">
+                <span
+                  className={cn(
+                    "rounded-md size-3 inline-block mr-1",
+                    getClassForLatencyAndUp(0, up / upCount),
+                  )}
+                />
+                <span className="font-semibold">{Math.round(downtimeMin)}/{intervalMin}min</span> down
+              </p>                </HoverCard.Content>
+          </HoverCard.Root>
+        );
+      })}
+    </figure>
   );
 }
 
-function getClassForValue(value: number) {
-  for (let i = 0; i < ranges.length; i++) {
-    const { from } = ranges[i];
-    if (value < from) {
-      return ranges[i - 1].className;
+function getClassForLatencyAndUp(value: number, up: number) {
+  if (up >= 0.99) {
+    for (let i = 0; i < ranges.length; i++) {
+      const { from } = ranges[i];
+      if (value < from) {
+        return ranges[i - 1].className;
+      }
     }
+  } else if (up >= 0.9) {
+    return "bg-yellow-400";
+  } else if (up >= 0.8) {
+    return "bg-orange-500";
   }
 
-  return ranges[ranges.length - 1].className;
+  return "bg-[#ff001e]";
 }

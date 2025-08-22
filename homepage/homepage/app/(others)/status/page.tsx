@@ -16,9 +16,9 @@ export const metadata: Metadata = {
 };
 
 const PROBES = [
-  "Montreal",
   "NorthCalifornia",
   "NorthVirginia",
+  "Montreal",
   "SaoPaulo",
   "Mumbai",
   "Singapore",
@@ -33,10 +33,15 @@ const PROBES = [
 
 interface DataRow {
   up: boolean;
+  upRatio: number;
+  upOverTime: [number[], number[]];
+  upCountOverTime: [number[], number[]];
   latencyOverTime: [number[], number[]];
   avgLatency: number;
   p99Latency: number;
 }
+
+const intervalMin = 120;
 
 const query = async () => {
   const res = await fetch("https://gcmp.grafana.net/api/ds/query", {
@@ -67,10 +72,42 @@ const query = async () => {
             type: "prometheus",
             uid: "grafanacloud-prom",
           },
+          expr: `avg_over_time(probe_success{instance="https://mesh.jazz.tools/self-sync-check", job="self-sync-check", probe=~"${PROBES.join("|")}"}[$__range])`,
+          instant: true,
+          range: false,
+          refId: "up_ratio",
+        },
+        {
+          datasource: {
+            type: "prometheus",
+            uid: "grafanacloud-prom",
+          },
+          expr: `sum_over_time(probe_success{instance="https://mesh.jazz.tools/self-sync-check", job="self-sync-check", probe=~"${PROBES.join("|")}"}[$__interval])`,
+          instant: false,
+          range: true,
+          interval: intervalMin + "m",
+          refId: "up_over_time",
+        },
+        {
+          datasource: {
+            type: "prometheus",
+            uid: "grafanacloud-prom",
+          },
+          expr: `count_over_time(probe_success{instance="https://mesh.jazz.tools/self-sync-check", job="self-sync-check", probe=~"${PROBES.join("|")}"}[$__interval])`,
+          instant: false,
+          range: true,
+          interval: intervalMin + "m",
+          refId: "up_count_over_time",
+        },
+        {
+          datasource: {
+            type: "prometheus",
+            uid: "grafanacloud-prom",
+          },
           expr: `1000 * sum(avg_over_time(probe_duration_seconds{instance="https://mesh.jazz.tools/self-sync-check", job="self-sync-check", probe=~"${PROBES.join("|")}"}[$__interval])) by (probe) / 2`,
           instant: false,
           range: true,
-          interval: "15m",
+          interval: intervalMin + "m",
           refId: "latency_over_time",
         },
         {
@@ -96,6 +133,9 @@ const query = async () => {
   });
 
   if (!res.ok) {
+    console.error(res);
+    console.error(await res.text());
+
     return;
   }
 
@@ -111,9 +151,24 @@ const query = async () => {
     };
   }
 
+  for (const frame of responseData.results.up_ratio.frames) {
+    const probe = startCase(frame.schema.fields[1].labels.probe);
+    byProbe[probe].upRatio = frame.data.values[1][0];
+  }
+
   for (const frame of responseData.results.latency_over_time.frames) {
     const probe = startCase(frame.schema.fields[1].labels.probe);
     byProbe[probe].latencyOverTime = frame.data.values;
+  }
+
+  for (const frame of responseData.results.up_over_time.frames) {
+    const probe = startCase(frame.schema.fields[1].labels.probe);
+    byProbe[probe].upOverTime = frame.data.values;
+  }
+
+  for (const frame of responseData.results.up_count_over_time.frames) {
+    const probe = startCase(frame.schema.fields[1].labels.probe);
+    byProbe[probe].upCountOverTime = frame.data.values;
   }
 
   for (const frame of responseData.results.avg_latency.frames) {
@@ -167,7 +222,7 @@ export default async function Page() {
               scope="col"
               className="py-3.5 pl-4 pr-3 sm:pl-3 w-3/5 hidden md:table-cell"
             >
-              Latency (last 7 days)
+              Latency & uptime (last 7 days)
             </th>
             <th scope="col" className="px-3 py-3.5">
               Average <span className="md:hidden">latency</span>
@@ -196,23 +251,28 @@ export default async function Page() {
                 <tr>
                   <th
                     colSpan={5}
-                    className="py-4 px-3 text-sm font-semibold text-right"
+                    className="py-2 px-3 text-sm font-semibold text-right"
                   >
                     {region}
                   </th>
                 </tr>
                 {Object.entries(byProbe).map(([label, row]) => (
                   <tr key={label} className="border-t">
-                    <td className="px-3 py-4 hidden md:table-cell">
-                      <LatencyChart data={row.latencyOverTime} />
+                    <td className="px-3 py-2 hidden md:table-cell">
+                      <LatencyChart
+                        latencyOverTime={row.latencyOverTime}
+                        upOverTime={row.upOverTime}
+                        upCountOverTime={row.upCountOverTime}
+                        intervalMin={intervalMin}
+                      />
                     </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm">
+                    <td className="whitespace-nowrap px-3 py-2 text-sm">
                       {Math.round(row.avgLatency)} ms
                     </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm">
+                    <td className="whitespace-nowrap px-3 py-2 text-sm">
                       {Math.round(row.p99Latency)} ms
                     </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm">
+                    <td className="whitespace-nowrap px-3 py-2 text-sm">
                       <div className="flex items-center gap-2">
                         <div
                           className={clsx(
@@ -225,9 +285,12 @@ export default async function Page() {
                           <div className="size-1.5 rounded-full bg-current" />
                         </div>
                         {row.up ? "Up" : "Down"}
+                        <span className="text-xs text-gray-500">
+                          {formatUptime(row.upRatio)}
+                        </span>
                       </div>
                     </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm">
+                    <td className="whitespace-nowrap px-3 py-2 text-sm">
                       {label}
                     </td>
                   </tr>
@@ -239,6 +302,19 @@ export default async function Page() {
       </table>
     </div>
   );
+}
+
+function formatUptime(upRatio: number) {
+  if (upRatio === 1) return "100%";
+
+  const upPercentage = upRatio * 100;
+
+  // count leading nines and truncate after first non-nine
+  const firstNonNine = upPercentage.toString().split("").findIndex((char) => char !== "9" && char !== ".");
+  if (firstNonNine === 1) {
+    return upPercentage.toString().slice(0, 4) + "%";
+  }
+  return upPercentage.toString().slice(0, firstNonNine + 1) + "%";
 }
 
 function startCase(str: string) {
