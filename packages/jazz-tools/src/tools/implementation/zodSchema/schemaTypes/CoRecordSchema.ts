@@ -31,18 +31,20 @@ export interface CoRecordSchema<
   K extends z.core.$ZodString<string>,
   V extends AnyZodOrCoValueSchema,
 > extends CoreCoRecordSchema<K, V> {
-  create: (
+  create(
     init: Simplify<CoRecordInit<K, V>>,
     options?:
-      | {
-          owner: Account | Group;
-          unique?: CoValueUniqueness["uniqueness"];
-        }
+      | { owner: Group; unique?: CoValueUniqueness["uniqueness"] }
+      | Group,
+  ): CoRecordInstanceShape<K, V> & CoMap;
+  /** @deprecated Creating CoValues with an Account as owner is deprecated. Use a Group instead. */
+  create(
+    init: Simplify<CoRecordInit<K, V>>,
+    options?:
+      | { owner: Account | Group; unique?: CoValueUniqueness["uniqueness"] }
       | Account
       | Group,
-  ) => {
-    readonly [key in z.output<K>]: InstanceOrPrimitiveOfSchema<V>;
-  } & CoMap;
+  ): CoRecordInstanceShape<K, V> & CoMap;
 
   load<
     const R extends RefsToResolve<
@@ -138,3 +140,10 @@ export type CoRecordInstanceCoValuesNullable<
 > = {
   readonly [key in z.output<K>]: InstanceOrPrimitiveOfSchemaCoValuesNullable<V>;
 } & CoMap;
+
+export type CoRecordInstanceShape<
+  K extends z.core.$ZodString<string>,
+  V extends AnyZodOrCoValueSchema,
+> = {
+  readonly [key in z.output<K>]: InstanceOrPrimitiveOfSchema<V>;
+};

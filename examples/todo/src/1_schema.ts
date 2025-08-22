@@ -1,4 +1,4 @@
-import { CoPlainText, co, z } from "jazz-tools";
+import { co, z } from "jazz-tools";
 
 /** Walkthrough: Defining the data model with CoJSON
  *
@@ -19,26 +19,18 @@ export const Task = co
   })
   .withMigration((task) => {
     if (!task.version) {
-      // Cast to the v1 version
-      const task_v1 = task.$jazz.castAs(Task_V1);
-
-      // Check if the task text field is a string or an id
-      // if it's a string migrate to plaintext
-      // We need to do this check because some tasks with plainText have been created before we added the version field
-      if (!task_v1.text.startsWith("co_z")) {
-        task.$jazz.set(
-          "text",
-          CoPlainText.create(task_v1.text, task.$jazz.owner),
-        );
+      // In the Task v0 schema, the text field was a string.
+      // Since some tasks with string text fields were created before we added the version field,
+      // we need to check if the text field is a string or a reference to a CoValue.
+      // If it's a string, we migrate it to plainText.
+      const textRef = task.$jazz.refs.text;
+      if (!textRef) {
+        // The conversion is done automatically when assigning the string value to the plainText field
+        task.$jazz.set("text", task.text);
       }
       task.$jazz.set("version", 1);
     }
   });
-
-const Task_V1 = co.map({
-  done: z.boolean(),
-  text: z.string(),
-});
 
 /** Our top level object: a project with a title, referencing a list of tasks */
 export const TodoProject = co.map({

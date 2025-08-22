@@ -1628,9 +1628,9 @@ describe("CoMap Typescript validation", async () => {
     });
 
     expectTypeOf<typeof TestMap.create>().toBeCallableWith(
+      // @ts-expect-error null can't be passed to a non-optional field
       {
         optional: NestedMap.create({ value: "" }, { owner: me }),
-        // @ts-expect-error null can't be passed to a non-optional field
         required: null,
       },
       { owner: me },
@@ -2293,58 +2293,6 @@ describe("Creating and finding unique CoMaps", async () => {
   });
 });
 
-describe("castAs", () => {
-  test("should cast a co.map type", () => {
-    const Person = co.map({
-      name: z.string(),
-    });
-
-    const PersonWithAge = co.map({
-      name: z.string(),
-      age: z.number().optional(),
-    });
-
-    const person = Person.create({
-      name: "Alice",
-    });
-
-    const personWithAge = person.$jazz.castAs(PersonWithAge);
-
-    personWithAge.$jazz.set("age", 20);
-
-    expect(personWithAge.age).toEqual(20);
-  });
-
-  test("should still be able to autoload in-memory deps", () => {
-    const Dog = co.map({
-      name: z.string(),
-    });
-
-    const Person = co.map({
-      name: z.string(),
-      dog: Dog,
-    });
-
-    const PersonWithAge = co.map({
-      name: z.string(),
-      age: z.number().optional(),
-      dog: Dog,
-    });
-
-    const person = Person.create({
-      name: "Alice",
-      dog: Dog.create({ name: "Rex" }),
-    });
-
-    const personWithAge = person.$jazz.castAs(PersonWithAge);
-
-    personWithAge.$jazz.set("age", 20);
-
-    expect(personWithAge.age).toEqual(20);
-    expect(personWithAge.dog?.name).toEqual("Rex");
-  });
-});
-
 describe("CoMap migration", () => {
   test("should run on load", async () => {
     const PersonV1 = co.map({
@@ -2390,9 +2338,7 @@ describe("CoMap migration", () => {
         if (person.version === 1) {
           person.$jazz.set("version", 2);
 
-          person.$jazz.owner.$jazz
-            .castAs(Group)
-            .addMember("everyone", "reader");
+          person.$jazz.owner.addMember("everyone", "reader");
         }
       });
 

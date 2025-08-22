@@ -1,4 +1,4 @@
-import { co, Group, z } from "jazz-tools";
+import { co, z } from "jazz-tools";
 
 /** Walkthrough: Defining the data model with CoJSON
  *
@@ -123,7 +123,7 @@ export const MusicaAccount = co
 
     // Clean up the private avatars (were created using the account as owner)
     if (profile.avatar) {
-      const group = profile.avatar.$jazz.owner.$jazz.castAs(Group);
+      const group = profile.avatar.$jazz.owner;
 
       if (group.getRoleOf("everyone") !== "reader") {
         root.$jazz.set("accountSetupCompleted", false);

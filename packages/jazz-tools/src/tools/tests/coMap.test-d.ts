@@ -52,7 +52,7 @@ describe("CoMap", async () => {
 
       const john = Person.create({ name: "John" }, Account.getMe());
 
-      expectTypeOf(john.$jazz.owner).toEqualTypeOf<Account | Group>();
+      expectTypeOf(john.$jazz.owner).toEqualTypeOf<Group>();
     });
 
     test("create CoMap with reference using CoValue", () => {
@@ -99,10 +99,10 @@ describe("CoMap", async () => {
         },
       });
 
+      // @ts-expect-error - Object literal may only specify known properties
       const person = Person.create({
         // @ts-expect-error - breed is missing
         dog1: { name: "Rex", items },
-        // @ts-expect-error - Object literal may only specify known properties
         dog2: { name: "Fido", breed: "Labrador", extra: "extra" },
         friend: {
           dog1: {

@@ -56,7 +56,7 @@ describe("experimental_defineRequest", () => {
 
       let receivedUser: unknown;
       let receivedMadeBy: unknown;
-      let requestOwner: Account | Group;
+      let requestOwner: Group;
 
       server.use(
         http.post("https://api.example.com/api/user", async ({ request }) => {
@@ -270,9 +270,7 @@ describe("experimental_defineRequest", () => {
           request,
           worker,
           async ({ person }, madeBy) => {
-            person.address.street.$jazz.owner.$jazz
-              .castAs(Group)
-              .addMember(madeBy, "reader");
+            person.address.street.$jazz.owner.addMember(madeBy, "reader");
 
             // The request should handle the error gracefully when trying to resolve
             // child covalues that the worker doesn't have access to

@@ -24,7 +24,7 @@ describe("CoFeed", () => {
 
       const feed = StringFeed.create(["milk"], Account.getMe());
 
-      expectTypeOf(feed.$jazz.owner).toEqualTypeOf<Account | Group>();
+      expectTypeOf(feed.$jazz.owner).toEqualTypeOf<Group>();
     });
 
     test("CoFeed with reference", () => {

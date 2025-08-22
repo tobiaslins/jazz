@@ -20,7 +20,7 @@ import {
   subscribeToExistingCoValue,
 } from "../internal.js";
 import { Account } from "./account.js";
-import { Group } from "./group.js";
+import { getCoValueOwner, Group } from "./group.js";
 
 export type TextPos = OpID;
 
@@ -228,6 +228,10 @@ export class CoTextJazzApi<T extends CoPlainText> extends CoValueJazzApi<T> {
 
   get id(): ID<T> {
     return this.raw.id;
+  }
+
+  get owner(): Group {
+    return getCoValueOwner(this.coText);
   }
 
   /**

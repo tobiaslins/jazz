@@ -30,15 +30,25 @@ export interface CoMapSchema<
   CatchAll extends AnyZodOrCoValueSchema | unknown = unknown,
   Owner extends Account | Group = Account | Group,
 > extends CoreCoMapSchema<Shape, CatchAll> {
-  create: (
+  create(
     init: CoMapSchemaInit<Shape>,
     options?:
       | {
-          owner: Owner;
+          owner?: Group;
+          unique?: CoValueUniqueness["uniqueness"];
+        }
+      | Group,
+  ): CoMapInstanceShape<Shape, CatchAll> & CoMap;
+  /** @deprecated Creating CoValues with an Account as owner is deprecated. Use a Group instead. */
+  create(
+    init: CoMapSchemaInit<Shape>,
+    options?:
+      | {
+          owner?: Owner;
           unique?: CoValueUniqueness["uniqueness"];
         }
       | Owner,
-  ) => CoMapInstanceShape<Shape, CatchAll> & CoMap;
+  ): CoMapInstanceShape<Shape, CatchAll> & CoMap;
 
   load<
     const R extends RefsToResolve<

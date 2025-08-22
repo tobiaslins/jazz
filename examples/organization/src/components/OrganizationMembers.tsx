@@ -7,7 +7,7 @@ export function OrganizationMembers({
 }: {
   organization: Loaded<typeof Organization>;
 }) {
-  const group = organization.$jazz.owner.$jazz.castAs(Group);
+  const group = organization.$jazz.owner;
 
   return (
     <>

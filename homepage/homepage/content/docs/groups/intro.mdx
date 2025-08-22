@@ -133,33 +133,6 @@ const newValue = MyCoMap.create(
 ```
 </CodeGroup>
 
-Because `.$jazz.owner` can be an `co.account` or a `Group`, in cases where you specifically need to use `Group` methods (such as for adding members or getting your own role), you can cast it to assert it to be a Group:
-
-<CodeGroup>
-```ts twoslash
-import { createJazzTestAccount } from 'jazz-tools/testing';
-import { co, z } from "jazz-tools";
-const bob = await createJazzTestAccount();
-
-const MyCoMap = co.map({
-  color: z.string(),
-});
-
-const existingCoValue = MyCoMap.create(
-  { color: "red"},
-  { owner: bob }
-);
-
-// ---cut---
-import { Group } from "jazz-tools";
-
-const group = existingCoValue.$jazz.owner.$jazz.castAs(Group);
-group.addMember(bob, "writer");
-
-const role = group.getRoleOf(bob.$jazz.id);
-```
-</CodeGroup>
-
 ## Checking the permissions
 
 You can check the permissions of an account on a CoValue by using the `canRead`, `canWrite` and `canAdmin` methods.

@@ -504,8 +504,7 @@ describe("useCoState", () => {
     );
 
     const { result } = renderHook(
-      () =>
-        useCoState(Dog, dog.$jazz.id)?.$jazz.owner.$jazz.castAs(Group).members,
+      () => useCoState(Dog, dog.$jazz.id)?.$jazz.owner.members,
       {
         account: john,
       },

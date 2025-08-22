@@ -10,7 +10,6 @@ import {
   RawAccount,
   RawCoMap,
   RawCoValue,
-  Role,
   SessionID,
   cojsonInternals,
 } from "cojson";
@@ -22,7 +21,7 @@ import {
   CoValueClass,
   CoValueClassOrSchema,
   CoValueJazzApi,
-  type Group,
+  Group,
   ID,
   InstanceOrPrimitiveOfSchema,
   Profile,
@@ -56,15 +55,6 @@ export type AccountCreationProps = {
   name: string;
   onboarding?: boolean;
 };
-
-type AccountMembers<A extends Account> = [
-  {
-    id: string | "everyone";
-    role: Role;
-    ref: Ref<A>;
-    account: A;
-  },
-];
 
 /** @category Identity & Permissions */
 export class Account extends CoValueBase implements CoValue {
@@ -148,13 +138,7 @@ export class Account extends CoValueBase implements CoValue {
     ) as Resolved<InstanceOrPrimitiveOfSchema<S>, true> | null;
   }
 
-  myRole(): "admin" | undefined {
-    if (this.$jazz.isLocalNodeOwner) {
-      return "admin";
-    }
-  }
-
-  getRoleOf(member: Everyone | ID<Account> | "me") {
+  getRoleOf(member: Everyone | ID<Account> | "me"): "admin" | undefined {
     if (member === "me") {
       return this.isMe ? "admin" : undefined;
     }
@@ -166,26 +150,13 @@ export class Account extends CoValueBase implements CoValue {
     return undefined;
   }
 
-  getParentGroups(): Array<Group> {
-    return [];
-  }
-
-  get members(): AccountMembers<this> {
-    const ref = new Ref<typeof this>(
-      this.$jazz.id,
-      this.$jazz.loadedAs,
-      {
-        ref: () => this.constructor as AccountClass<typeof this>,
-        optional: false,
-      },
-      this,
-    );
-
-    return [{ id: this.$jazz.id, role: "admin", ref, account: this }];
-  }
-
-  canRead(value: CoValue) {
-    const role = value.$jazz.owner.getRoleOf(this.$jazz.id);
+  canRead(value: CoValue): boolean {
+    const valueOwner = value.$jazz.owner;
+    if (!valueOwner) {
+      // Groups and Accounts are public
+      return true;
+    }
+    const role = valueOwner.getRoleOf(this.$jazz.id);
 
     return (
       role === "admin" ||
@@ -195,14 +166,36 @@ export class Account extends CoValueBase implements CoValue {
     );
   }
 
-  canWrite(value: CoValue) {
-    const role = value.$jazz.owner.getRoleOf(this.$jazz.id);
+  canWrite(value: CoValue): boolean {
+    const valueOwner = value.$jazz.owner;
+    if (!valueOwner) {
+      if (value[TypeSym] === "Group") {
+        const roleInGroup = (value as Group).getRoleOf(this.$jazz.id);
+        return roleInGroup === "admin" || roleInGroup === "writer";
+      }
+      if (value[TypeSym] === "Account") {
+        return value.$jazz.id === this.$jazz.id;
+      }
+      return false;
+    }
+    const role = valueOwner.getRoleOf(this.$jazz.id);
 
     return role === "admin" || role === "writer" || role === "writeOnly";
   }
 
-  canAdmin(value: CoValue) {
-    return value.$jazz.owner.getRoleOf(this.$jazz.id) === "admin";
+  canAdmin(value: CoValue): boolean {
+    const valueOwner = value.$jazz.owner;
+    if (!valueOwner) {
+      if (value[TypeSym] === "Group") {
+        const roleInGroup = (value as Group).getRoleOf(this.$jazz.id);
+        return roleInGroup === "admin";
+      }
+      if (value[TypeSym] === "Account") {
+        return value.$jazz.id === this.$jazz.id;
+      }
+      return false;
+    }
+    return valueOwner.getRoleOf(this.$jazz.id) === "admin";
   }
 
   /** @private */
@@ -290,12 +283,6 @@ export class Account extends CoValueBase implements CoValue {
 
       this.profile = Profile.create({ name: creationProps.name }, profileGroup);
       profileGroup.addMember("everyone", "reader");
-    } else if (this.profile && creationProps) {
-      if (this.profile.$jazz.owner[TypeSym] !== "Group") {
-        throw new Error("Profile must be owned by a Group", {
-          cause: `The profile of the account "${this.$jazz.id}" was created with an Account as owner, which is not allowed.`,
-        });
-      }
     }
 
     const profile = this.$jazz.localNode
@@ -371,7 +358,7 @@ class AccountJazzApi<A extends Account> extends CoValueJazzApi<A> {
     public raw: RawAccount,
   ) {
     super(account);
-    this.isLocalNodeOwner = this.raw.id == this.localNode.getCurrentAgent().id;
+    this.isLocalNodeOwner = this.raw.id === this.localNode.getCurrentAgent().id;
     if (this.isLocalNodeOwner) {
       this.sessionID = this.localNode.currentSessionID;
     }
@@ -496,9 +483,13 @@ class AccountJazzApi<A extends Account> extends CoValueJazzApi<A> {
     return (this.account.constructor as typeof Account)._schema;
   }
 
-  get owner(): Account {
-    return this.account;
+  /**
+   * Accounts have no owner. They can be accessed by everyone.
+   */
+  get owner(): undefined {
+    return undefined;
   }
+
   get loadedAs(): Account | AnonymousJazzAgent {
     if (this.isLocalNodeOwner) return this.account;
 

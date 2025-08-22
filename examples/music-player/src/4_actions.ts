@@ -201,7 +201,7 @@ export async function onAnonymousAccountDiscarded(
   for (const track of anonymousAccountRoot.rootPlaylist.tracks) {
     if (track.isExampleTrack) continue;
 
-    const trackGroup = track.$jazz.owner.$jazz.castAs(Group);
+    const trackGroup = track.$jazz.owner;
     trackGroup.addMember(me, "admin");
 
     me.root.rootPlaylist.tracks.$jazz.push(track);

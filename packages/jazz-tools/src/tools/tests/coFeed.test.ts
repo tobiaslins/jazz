@@ -837,10 +837,8 @@ describe("waitForSync", async () => {
 
     const stream = FileStream.create();
     expect(stream.$jazz.owner[TypeSym]).toEqual("Group");
-    expect(
-      stream.$jazz.owner.$jazz
-        .castAs(Group)
-        .$jazz.raw.roleOf(account.$jazz.raw.id),
-    ).toEqual("admin");
+    expect(stream.$jazz.owner.$jazz.raw.roleOf(account.$jazz.raw.id)).toEqual(
+      "admin",
+    );
   });
 });

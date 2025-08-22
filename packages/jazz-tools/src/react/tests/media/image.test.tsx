@@ -27,7 +27,7 @@ describe("Image", async () => {
     });
 
     it("should render an empty image if the image is not loaded yet", async () => {
-      const original = FileStream.create({ owner: account.$jazz.owner });
+      const original = FileStream.create({ owner: account });
       original.start({ mimeType: "image/jpeg" });
       // Don't end original, so it has no chunks
 
@@ -58,7 +58,7 @@ describe("Image", async () => {
       const placeholderDataUrl =
         "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
 
-      const original = FileStream.create({ owner: account.$jazz.owner });
+      const original = FileStream.create({ owner: account });
       original.start({ mimeType: "image/jpeg" });
       // Don't end original, so it has no chunks
 
