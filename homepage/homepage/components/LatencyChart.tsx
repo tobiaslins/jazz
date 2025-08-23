@@ -72,9 +72,10 @@ export default function LatencyChart({ latencyOverTime, upOverTime, upCountOverT
         </HoverCard.Content>
       </HoverCard.Root>
       {series.map(({ value, ts, up, upCount }) => {
-        const valueClass = getClassForLatencyAndUp(value, up / upCount);
+        const upPercentage = up / upCount;
+        const valueClass = getClassForLatencyAndUp(value, upPercentage);
 
-        const downtimeMin = (1 - up / upCount) * intervalMin;
+        const downtimeMin = (1 - upPercentage) * intervalMin;
         return (
           <HoverCard.Root key={ts} openDelay={0} closeDelay={0}>
             <HoverCard.Trigger asChild >
@@ -87,33 +88,54 @@ export default function LatencyChart({ latencyOverTime, upOverTime, upCountOverT
                 />
               </div>
             </HoverCard.Trigger>
-            <HoverCard.Content className="border border-stone-500 bg-white dark:bg-black shadow-lg absolute w-[150px] -ml-[75px] l-[50%] rounded-md p-2">
+            <HoverCard.Content className="border border-stone-500 bg-white dark:bg-black shadow-lg absolute w-[150px] -ml-[75px] l-[50%] rounded-md py-1 px-2">
               <HoverCard.Arrow className="fill-stone-500" />
-
-              <time
-                className="text-xs"
-                dateTime={new Date(ts).toISOString()}
-              >
-                {new Date(ts).toLocaleString()}
-              </time>
-              <p className="text-sm text-right">
-                <span
-                  className={cn(
-                    "rounded-md size-3 inline-block mr-1",
-                    getClassForLatencyAndUp(value, 1),
-                  )}
-                />
-                <span className="font-semibold">{value}</span> ms
-              </p>
-              <p className="text-sm text-right">
-                <span
-                  className={cn(
-                    "rounded-md size-3 inline-block mr-1",
-                    getClassForLatencyAndUp(0, up / upCount),
-                  )}
-                />
-                <span className="font-semibold">{Math.round(downtimeMin)}/{intervalMin}min</span> down
-              </p>                </HoverCard.Content>
+                <div className="text-right">
+                  <time
+                    className="text-xs"
+                    dateTime={new Date(ts).toISOString()}
+                    >
+                    {new Date(ts).toLocaleString()}
+                  </time>
+                </div>
+                <div className="text-sm text-right flex items-center justify-between">
+                  <span className="flex items-center">
+                    <span
+                      className={cn(
+                        "rounded-md size-2.5 inline-block mr-1",
+                        getClassForLatencyAndUp(value, 1),
+                      )}
+                    />
+                    Latency
+                  </span>
+                  <span>
+                    <span className="font-semibold">{value}</span> ms
+                    
+                  </span>
+                </div>
+                {upPercentage < 0.99 && (
+                  <div className="text-sm text-right flex items-center justify-between">
+                    <span className="flex items-center">
+                      <span
+                        className={cn(
+                          "rounded-md size-2.5 inline-block mr-1",
+                          getClassForLatencyAndUp(0, upPercentage),
+                        )}
+                      />
+                      Downtime
+                      </span>
+                    <span>
+                    <span className="font-semibold">
+                      {Math.round(downtimeMin)}</span> min
+                    </span>
+                </div>
+                  
+                )}
+                
+                <p className="text-sm text-right">
+                  
+                </p>                
+              </HoverCard.Content>
           </HoverCard.Root>
         );
       })}
