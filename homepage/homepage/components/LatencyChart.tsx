@@ -76,6 +76,23 @@ export default function LatencyChart({ latencyOverTime, upOverTime, upCountOverT
         const valueClass = getClassForLatencyAndUp(value, upPercentage);
 
         const downtimeMin = (1 - upPercentage) * intervalMin;
+
+        const from = new Date(ts);
+        const to = new Date(ts + intervalMin * 60 * 1000);
+
+        let fromH = Intl.DateTimeFormat("en-US", {
+          hour: "numeric",
+        }).formatToParts(from);
+        const toH = Intl.DateTimeFormat("en-US", {
+          hour: "numeric",
+        }).formatToParts(to);
+
+
+        // remove the (PM) or (AM) if the "from" if its the same as the "to"
+        if(fromH[2].value === toH[2].value) {
+          fromH = fromH.filter(({type}) => type !== "literal").slice(0, 1);
+        }
+        
         return (
           <HoverCard.Root key={ts} openDelay={0} closeDelay={0}>
             <HoverCard.Trigger asChild >
@@ -88,14 +105,28 @@ export default function LatencyChart({ latencyOverTime, upOverTime, upCountOverT
                 />
               </div>
             </HoverCard.Trigger>
-            <HoverCard.Content className="border border-stone-500 bg-white dark:bg-black shadow-lg absolute w-[150px] -ml-[75px] l-[50%] rounded-md py-1 px-2">
+            <HoverCard.Content className="border border-stone-500 bg-white dark:bg-black shadow-lg absolute w-[180px] -ml-[90px] l-[50%] rounded-md py-1 px-2">
               <HoverCard.Arrow className="fill-stone-500" />
                 <div className="text-right">
                   <time
-                    className="text-xs"
-                    dateTime={new Date(ts).toISOString()}
+                    className="text-xs flex justify-between"
+                    dateTime={from.toISOString()}
                     >
-                    {new Date(ts).toLocaleString()}
+                      <span>
+                        {Intl.DateTimeFormat("en-US", {
+                          dateStyle: "medium",
+                        }).format(from)}
+                      </span>
+
+                      <span className="whitespace-nowrap">
+                        {fromH.map((part, index) => (
+                          <span key={index}>{part.value}</span>
+                        ))}
+                        {' – '}
+                        {toH.map((part, index) => (
+                          <span key={index}>{part.value}</span>
+                        ))}
+                      </span>
                   </time>
                 </div>
                 <div className="text-sm text-right flex items-center justify-between">
