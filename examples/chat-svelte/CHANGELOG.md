@@ -1,5 +1,13 @@
 # passkey-svelte
 
+## 0.0.125
+
+### Patch Changes
+
+- 1ccae1a: RN Expo E2E dependency fixes w catalog
+- Updated dependencies [1ccae1a]
+  - jazz-tools@0.17.12
+
 ## 0.0.124
 
 ### Patch Changes

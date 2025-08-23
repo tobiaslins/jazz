@@ -1,5 +1,17 @@
 # jazz-tools
 
+## 0.17.12
+
+### Patch Changes
+
+- 1ccae1a: RN Expo E2E dependency fixes w catalog
+- Updated dependencies [c2daf3e]
+- Updated dependencies [72a63bf]
+- Updated dependencies [234bf91]
+  - cojson@0.17.12
+  - cojson-storage-indexeddb@0.17.12
+  - cojson-transport-ws@0.17.12
+
 ## 0.17.11
 
 ### Patch Changes
