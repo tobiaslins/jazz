@@ -1,5 +1,13 @@
 # svelte-passkey-auth
 
+## 0.0.130
+
+### Patch Changes
+
+- 1ccae1a: RN Expo E2E dependency fixes w catalog
+- Updated dependencies [1ccae1a]
+  - jazz-tools@0.17.12
+
 ## 0.0.129
 
 ### Patch Changes
