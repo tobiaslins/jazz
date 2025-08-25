@@ -33,7 +33,6 @@ import {
   RefsToResolveStrict,
   RegisteredSchemas,
   Resolved,
-  type Schema,
   SchemaInit,
   SubscribeListenerOptions,
   SubscribeRestArgs,
@@ -92,15 +91,20 @@ export class Account extends CoValueBase implements CoValue {
       throw new Error("Can only construct account from raw or with .create()");
     }
 
+    const proxy = new Proxy(
+      this,
+      AccountAndGroupProxyHandler as ProxyHandler<this>,
+    );
+
     Object.defineProperties(this, {
       [TypeSym]: { value: "Account", enumerable: false },
       $jazz: {
-        value: new AccountJazzApi(this, options.fromRaw),
+        value: new AccountJazzApi(proxy, options.fromRaw),
         enumerable: false,
       },
     });
 
-    return new Proxy(this, AccountAndGroupProxyHandler as ProxyHandler<this>);
+    return proxy;
   }
 
   /**

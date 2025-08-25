@@ -413,6 +413,30 @@ describe("Simple CoList operations", async () => {
           expect(list.$jazz.raw.asArray()).toEqual(["bread", "onion"]);
         });
       });
+
+      test("removes elements from loaded CoLists", async () => {
+        const NestedList = co.list(co.map({ title: z.string() }));
+        const list = NestedList.create([
+          { title: "bread" },
+          { title: "butter" },
+          { title: "onion" },
+        ]);
+        const bread = list[0];
+        const butter = list[1];
+        const onion = list[2];
+
+        const loadedList = await NestedList.load(list.$jazz.id, {
+          resolve: { $each: true },
+        });
+
+        assert(loadedList);
+
+        expect(
+          loadedList.$jazz.remove((item) => item?.title === "butter"),
+        ).toEqual([butter]);
+        expect(loadedList[0]).toEqual(bread);
+        expect(loadedList[1]).toEqual(onion);
+      });
     });
 
     describe("retain", () => {

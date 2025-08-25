@@ -125,11 +125,13 @@ export class CoMap extends CoValueBase implements CoValue {
   constructor(options: { fromRaw: RawCoMap } | undefined) {
     super();
 
+    const proxy = new Proxy(this, CoMapProxyHandler as ProxyHandler<this>);
+
     if (options) {
       if ("fromRaw" in options) {
         Object.defineProperties(this, {
           $jazz: {
-            value: new CoMapJazzApi(this, () => options.fromRaw),
+            value: new CoMapJazzApi(proxy, () => options.fromRaw),
             enumerable: false,
           },
         });
@@ -138,7 +140,7 @@ export class CoMap extends CoValueBase implements CoValue {
       }
     }
 
-    return new Proxy(this, CoMapProxyHandler as ProxyHandler<this>);
+    return proxy;
   }
 
   /**

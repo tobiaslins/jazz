@@ -1,18 +1,11 @@
-import type {
-  CoValueUniqueness,
-  JsonValue,
-  LocalNode,
-  RawCoID,
-  RawCoList,
-} from "cojson";
-import { ControlledAccount, RawAccount, cojsonInternals } from "cojson";
+import type { CoValueUniqueness, JsonValue, RawCoID, RawCoList } from "cojson";
+import { cojsonInternals } from "cojson";
 import { calcPatch } from "fast-myers-diff";
 import {
   Account,
   CoFieldInit,
   CoValue,
   CoValueClass,
-  CoValueFromRaw,
   CoValueJazzApi,
   getCoValueOwner,
   Group,
@@ -31,13 +24,10 @@ import {
   AnonymousJazzAgent,
   ItemsSym,
   Ref,
-  RegisteredSchemas,
   SchemaInit,
   accessChildByKey,
   activeAccountContext,
   coField,
-  coValueClassFromCoValueClassOrSchema,
-  coValuesCache,
   ensureCoValueLoaded,
   inspect,
   instantiateRefEncodedWithInit,
@@ -126,16 +116,18 @@ export class CoList<out Item = any>
   constructor(options: { fromRaw: RawCoList } | undefined) {
     super();
 
+    const proxy = new Proxy(this, CoListProxyHandler as ProxyHandler<this>);
+
     if (options && "fromRaw" in options) {
       Object.defineProperties(this, {
         $jazz: {
-          value: new CoListJazzApi(this, () => options.fromRaw),
+          value: new CoListJazzApi(proxy, () => options.fromRaw),
           enumerable: false,
         },
       });
     }
 
-    return new Proxy(this, CoListProxyHandler as ProxyHandler<this>);
+    return proxy;
   }
 
   /**
@@ -172,7 +164,7 @@ export class CoList<out Item = any>
       | Group,
   ) {
     const { owner, uniqueness } = parseCoValueCreateOptions(options);
-    const instance = new this({ init: items, owner });
+    const instance = new this();
 
     Object.defineProperties(instance, {
       $jazz: {
@@ -701,7 +693,9 @@ export class CoListJazzApi<L extends CoList> extends CoValueJazzApi<L> {
     let indices: number[] = [];
     if (predicate) {
       for (let i = 0; i < this.coList.length; i++) {
-        if (predicate(this.coList[i], i, this.coList)) indices.push(i);
+        if (predicate(this.coList[i], i, this.coList)) {
+          indices.push(i);
+        }
       }
     } else {
       indices = (args as number[])

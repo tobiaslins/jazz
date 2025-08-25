@@ -69,14 +69,19 @@ export class Group extends CoValueBase implements CoValue {
       }
     }
 
+    const proxy = new Proxy(
+      this,
+      AccountAndGroupProxyHandler as ProxyHandler<this>,
+    );
+
     Object.defineProperties(this, {
       $jazz: {
-        value: new GroupJazzApi(this, raw),
+        value: new GroupJazzApi(proxy, raw),
         enumerable: false,
       },
     });
 
-    return new Proxy(this, AccountAndGroupProxyHandler as ProxyHandler<this>);
+    return proxy;
   }
 
   static create<G extends Group>(
