@@ -30,7 +30,7 @@ export function MusicTrackRow({
 }: {
   trackId: string;
   isPlaying: boolean;
-  onClick: (track: Loaded<typeof MusicTrack>) => void;
+  onClick: (track: MusicTrack) => void;
   index: number;
 }) {
   const track = useCoState(MusicTrack, trackId);
@@ -50,12 +50,12 @@ export function MusicTrackRow({
     onClick(track);
   }
 
-  function handleAddToPlaylist(playlist: Loaded<typeof Playlist>) {
+  function handleAddToPlaylist(playlist: Playlist) {
     if (!track) return;
     addTrackToPlaylist(playlist, track);
   }
 
-  function handleRemoveFromPlaylist(playlist: Loaded<typeof Playlist>) {
+  function handleRemoveFromPlaylist(playlist: Playlist) {
     if (!track) return;
     removeTrackFromPlaylist(playlist, track);
   }

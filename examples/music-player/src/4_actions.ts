@@ -1,5 +1,5 @@
 import { getAudioFileData } from "@/lib/audio/getAudioFileData";
-import { FileStream, Group } from "jazz-tools";
+import { co, FileStream, Group } from "jazz-tools";
 import { MusicTrack, MusicaAccount, Playlist } from "./1_schema";
 
 /**
@@ -40,22 +40,16 @@ export async function uploadMusicTracks(
     // We transform the file blob into a FileStream
     // making it a collaborative value that is encrypted, easy
     // to share across devices and users and available offline!
-    const fileStream = await FileStream.createFromBlob(file, group);
+    const fileStream = await MusicTrack.shape.file.createFromBlob(file, group);
 
-    const musicTrack = MusicTrack.create(
-      {
-        file: fileStream,
-        duration: data.duration,
-        waveform: { data: data.waveform },
-        title: file.name,
-        isExampleTrack,
-      },
-      group,
-    );
-
-    // The newly created musicTrack can be associated to the
-    // user track list using a simple push call
-    root.rootPlaylist.tracks.$jazz.push(musicTrack);
+    // We create a new music track and add it to the root playlist
+    root.rootPlaylist.tracks.$jazz.push({
+      file: fileStream,
+      duration: data.duration,
+      waveform: { data: data.waveform },
+      title: file.name,
+      isExampleTrack,
+    });
   }
 }
 
@@ -73,7 +67,7 @@ export async function createNewPlaylist(title: string = "New Playlist") {
     tracks: [],
   });
 
-  // Again, we associate the new playlist to the
+  // We associate the new playlist to the
   // user by pushing it into the playlists CoList
   root.playlists.$jazz.push(playlist);
 
@@ -84,61 +78,40 @@ export async function addTrackToPlaylist(
   playlist: Playlist,
   track: MusicTrack,
 ) {
-  const alreadyAdded = playlist.tracks?.some(
-    (t) =>
-      t?.$jazz.id === track.$jazz.id ||
-      t?.$jazz.refs.sourceTrack?.id === track.$jazz.id,
-  );
+  const { tracks } = await playlist.$jazz.ensureLoaded({
+    resolve: {
+      tracks: { $each: true },
+    },
+  });
 
-  if (alreadyAdded) return;
+  const isPartOfThePlaylist = tracks.some((t) => t.$jazz.id === track.$jazz.id);
+  if (isPartOfThePlaylist) return;
 
-  // Check if the track has been created after the Group inheritance was introduced
-  if (
-    track.$jazz.owner.$type$ === "Group" &&
-    playlist.$jazz.owner.$type$ === "Group"
-  ) {
-    /**
-     * Extending the track with the Playlist group in order to make the music track
-     * visible to the Playlist user
-     */
-    const trackGroup = track.$jazz.owner;
-    trackGroup.addMember(playlist.$jazz.owner);
+  const trackGroup = track.$jazz.owner;
+  trackGroup.addMember(playlist.$jazz.owner);
 
-    playlist.tracks?.$jazz.push(track);
-    return;
-  }
+  tracks.$jazz.push(track);
 }
 
 export async function removeTrackFromPlaylist(
   playlist: Playlist,
   track: MusicTrack,
 ) {
-  const notAdded = !playlist.tracks?.some(
-    (t) =>
-      t?.$jazz.id === track.$jazz.id ||
-      t?.$jazz.refs.sourceTrack?.id === track.$jazz.id,
-  );
+  const { tracks } = await playlist.$jazz.ensureLoaded({
+    resolve: {
+      tracks: { $each: true },
+    },
+  });
 
-  if (notAdded) return;
+  const isPartOfThePlaylist = tracks.some((t) => t.$jazz.id === track.$jazz.id);
 
-  if (
-    track.$jazz.owner.$type$ === "Group" &&
-    playlist.$jazz.owner.$type$ === "Group"
-  ) {
-    const trackGroup = track.$jazz.owner;
-    trackGroup.removeMember(playlist.$jazz.owner);
+  if (!isPartOfThePlaylist) return;
 
-    const index =
-      playlist.tracks?.findIndex(
-        (t) =>
-          t?.$jazz.id === track.$jazz.id ||
-          t?.$jazz.refs.sourceTrack?.id === track.$jazz.id,
-      ) ?? -1;
-    if (index > -1) {
-      playlist.tracks?.$jazz.splice(index, 1);
-    }
-    return;
-  }
+  const trackGroup = track.$jazz.owner;
+  trackGroup.removeMember(playlist.$jazz.owner);
+
+  // @ts-expect-error The t is nullable, but it shouldn't be
+  tracks.$jazz.remove((t) => t.$jazz.id === track.$jazz.id);
 }
 
 export async function updatePlaylistTitle(playlist: Playlist, title: string) {

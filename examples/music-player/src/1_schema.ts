@@ -37,13 +37,6 @@ export const MusicTrack = co.map({
   file: co.fileStream(),
 
   isExampleTrack: z.optional(z.boolean()),
-
-  /**
-   * You can use getters for recusrive relations
-   */
-  get sourceTrack() {
-    return MusicTrack.optional();
-  },
 });
 export type MusicTrack = co.loaded<typeof MusicTrack>;
 
