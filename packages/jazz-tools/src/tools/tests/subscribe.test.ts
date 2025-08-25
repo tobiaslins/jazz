@@ -503,9 +503,11 @@ describe("subscribeToCoValue", () => {
     });
 
     // Disconnect the creator from the sync server
-    creator._raw.core.node.syncManager.getPeers().forEach((peer) => {
-      peer.gracefulShutdown();
-    });
+    creator._raw.core.node.syncManager
+      .getServerPeers(creator._raw.id)
+      .forEach((peer) => {
+        peer.gracefulShutdown();
+      });
 
     const everyone = Group.create(creator);
     everyone.addMember("everyone", "reader");
@@ -867,9 +869,11 @@ describe("subscribeToCoValue", () => {
     await person.waitForSync();
 
     // Disconnect from the sync server, so we can change permissions but not sync them
-    creator._raw.core.node.syncManager.getPeers().forEach((peer) => {
-      peer.gracefulShutdown();
-    });
+    creator._raw.core.node.syncManager
+      .getServerPeers(creator._raw.id)
+      .forEach((peer) => {
+        peer.gracefulShutdown();
+      });
 
     group.removeMember(writer1);
     group.addMember(writer2, "writer");

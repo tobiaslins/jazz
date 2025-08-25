@@ -599,8 +599,12 @@ describe("SyncManager - knownStates vs optimisticKnownStates", () => {
     // Wait for the full sync to complete
     await mapOnClient.core.waitForSync();
 
-    const peerStateClient = client.syncManager.getPeers()[0]!;
-    const peerStateJazzCloud = jazzCloud.node.syncManager.getPeers()[0]!;
+    const peerStateClient = client.syncManager.getPeers(
+      mapOnClient.core.id,
+    )[0]!;
+    const peerStateJazzCloud = jazzCloud.node.syncManager.getPeers(
+      mapOnClient.core.id,
+    )[0]!;
 
     // The optimisticKnownStates should be the same as the knownStates after the full sync is complete
     expect(
