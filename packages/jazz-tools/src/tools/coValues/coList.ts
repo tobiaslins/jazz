@@ -504,7 +504,7 @@ export class CoList<out Item = any>
 }
 
 /** @internal */
-type CoListItem<L> = L extends CoList<infer Item> ? Item : never;
+type CoListItem<L> = L extends CoList<unknown> ? L[number] : never;
 
 export class CoListJazzApi<L extends CoList> extends CoValueJazzApi<L> {
   constructor(

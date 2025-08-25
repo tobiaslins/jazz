@@ -414,6 +414,8 @@ describe("Simple CoList operations", async () => {
         });
       });
 
+      // CoListItem's type was being incorrectly inferred as nullable when using ensureLoaded
+      // on loaded CoLists. Keeping this test to ensure it doesn't regress.
       test("removes elements from loaded CoLists", async () => {
         const NestedList = co.list(co.map({ title: z.string() }));
         const list = NestedList.create([
@@ -425,17 +427,18 @@ describe("Simple CoList operations", async () => {
         const butter = list[1];
         const onion = list[2];
 
-        const loadedList = await NestedList.load(list.$jazz.id, {
+        const shallowlyLoadedList = await NestedList.load(list.$jazz.id);
+        assert(shallowlyLoadedList);
+
+        const loadedList = await shallowlyLoadedList.$jazz.ensureLoaded({
           resolve: { $each: true },
         });
 
-        assert(loadedList);
-
         expect(
-          loadedList.$jazz.remove((item) => item?.title === "butter"),
+          loadedList.$jazz.remove((item) => item.title === "butter"),
         ).toEqual([butter]);
-        expect(loadedList[0]).toEqual(bread);
-        expect(loadedList[1]).toEqual(onion);
+        expect(shallowlyLoadedList[0]).toEqual(bread);
+        expect(shallowlyLoadedList[1]).toEqual(onion);
       });
     });
 
