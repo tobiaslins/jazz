@@ -19,7 +19,7 @@ import {
 import { base64URLtoBytes, bytesToBase64url } from "../base64url.js";
 import { RawCoID, SessionID, TransactionID } from "../ids.js";
 import { Stringified, stableStringify } from "../jsonStringify.js";
-import { JsonValue } from "../jsonValue.js";
+import { JsonObject, JsonValue } from "../jsonValue.js";
 import { logger } from "../logger.js";
 import { PureJSCrypto } from "./PureJSCrypto.js";
 import {
@@ -231,6 +231,7 @@ class SessionLogAdapter {
     keyID: KeyID,
     keySecret: KeySecret,
     madeAt: number,
+    meta: JsonObject | undefined,
   ): { signature: Signature; transaction: PrivateTransaction } {
     const output = this.sessionLog.addNewPrivateTransaction(
       stableStringify(changes),
@@ -238,6 +239,7 @@ class SessionLogAdapter {
       keySecret,
       keyID,
       madeAt,
+      meta ? stableStringify(meta) : undefined,
     );
     const parsedOutput = JSON.parse(output);
     const transaction: PrivateTransaction = {
@@ -245,6 +247,7 @@ class SessionLogAdapter {
       madeAt,
       encryptedChanges: parsedOutput.encrypted_changes,
       keyUsed: keyID,
+      meta: parsedOutput.meta,
     };
     return { signature: parsedOutput.signature, transaction };
   }
@@ -253,17 +256,21 @@ class SessionLogAdapter {
     signerAgent: ControlledAccountOrAgent,
     changes: JsonValue[],
     madeAt: number,
+    meta: JsonObject | undefined,
   ): { signature: Signature; transaction: TrustingTransaction } {
     const stringifiedChanges = stableStringify(changes);
+    const stringifiedMeta = meta ? stableStringify(meta) : undefined;
     const output = this.sessionLog.addNewTrustingTransaction(
       stringifiedChanges,
       signerAgent.currentSignerSecret(),
       madeAt,
+      stringifiedMeta,
     );
     const transaction: TrustingTransaction = {
       privacy: "trusting",
       madeAt,
       changes: stringifiedChanges,
+      meta: stringifiedMeta,
     };
     return { signature: output as Signature, transaction };
   }
@@ -277,6 +284,13 @@ class SessionLogAdapter {
       keySecret,
     );
     return output;
+  }
+
+  decryptNextTransactionMetaJson(
+    txIndex: number,
+    keySecret: KeySecret,
+  ): string | undefined {
+    return this.sessionLog.decryptNextTransactionMetaJson(txIndex, keySecret);
   }
 
   free() {

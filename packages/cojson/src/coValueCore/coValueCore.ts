@@ -14,11 +14,10 @@ import {
   KeySecret,
   Signature,
   SignerID,
-  StreamingHash,
 } from "../crypto/crypto.js";
 import { RawCoID, SessionID, TransactionID } from "../ids.js";
-import { parseJSON, stableStringify } from "../jsonStringify.js";
-import { JsonValue } from "../jsonValue.js";
+import { JsonObject, JsonValue } from "../jsonValue.js";
+import { parseJSON } from "../jsonStringify.js";
 import { LocalNode, ResolveAccountAgentError } from "../localNode.js";
 import { logger } from "../logger.js";
 import { determineValidTransactions } from "../permissions.js";
@@ -85,6 +84,7 @@ export class CoValueCore {
     new Set();
   private readonly _decryptionCache: {
     [key: Encrypted<JsonValue[], JsonValue>]: JsonValue[] | undefined;
+    [key: Encrypted<JsonObject, JsonValue>]: JsonObject | undefined;
   } = {};
   private _cachedDependentOn?: Set<RawCoID>;
   private counter: UpDownCounter;
@@ -552,6 +552,7 @@ export class CoValueCore {
   makeTransaction(
     changes: JsonValue[],
     privacy: "private" | "trusting",
+    meta?: JsonObject,
   ): boolean {
     if (!this.verified) {
       throw new Error(
@@ -585,16 +586,22 @@ export class CoValueCore {
         changes,
         keyID,
         keySecret,
+        meta,
       );
 
       if (result.transaction.privacy === "private") {
         this._decryptionCache[result.transaction.encryptedChanges] = changes;
+
+        if (result.transaction.meta) {
+          this._decryptionCache[result.transaction.meta] = meta;
+        }
       }
     } else {
       result = this.verified.makeNewTrustingTransaction(
         sessionID,
         signerAgent,
         changes,
+        meta,
       );
     }
 
@@ -661,57 +668,55 @@ export class CoValueCore {
         continue;
       }
 
-      if (tx.privacy === "trusting") {
-        try {
-          allTransactions.push({
-            txID,
-            madeAt: tx.madeAt,
-            changes: parseJSON(tx.changes),
-            trusting: true,
+      let changes: JsonValue[];
+
+      if (tx.privacy === "private") {
+        if (options?.ignorePrivateTransactions) {
+          continue;
+        }
+
+        const readKey = this.getReadKey(tx.keyUsed);
+
+        if (!readKey) {
+          continue;
+        }
+
+        let decryptedChanges = this._decryptionCache[tx.encryptedChanges];
+
+        if (!decryptedChanges) {
+          decryptedChanges = this.verified.decryptTransaction(
+            txID.sessionID,
+            txID.txIndex,
+            readKey,
+          );
+
+          this._decryptionCache[tx.encryptedChanges] = decryptedChanges;
+        }
+
+        if (!decryptedChanges) {
+          logger.error("Failed to decrypt transaction despite having key", {
+            err: new Error("Failed to decrypt transaction despite having key"),
           });
+          continue;
+        }
+
+        changes = decryptedChanges;
+      } else {
+        try {
+          changes = parseJSON(tx.changes);
         } catch (e) {
           logger.error("Failed to parse trusting transaction on " + this.id, {
             err: e,
-            txID,
-            changes: tx.changes.slice(0, 50),
           });
+          continue;
         }
-        continue;
-      }
-
-      if (options?.ignorePrivateTransactions) {
-        continue;
-      }
-
-      const readKey = this.getReadKey(tx.keyUsed);
-
-      if (!readKey) {
-        continue;
-      }
-
-      let decryptedChanges = this._decryptionCache[tx.encryptedChanges];
-
-      if (!decryptedChanges) {
-        decryptedChanges = this.verified.decryptTransaction(
-          txID.sessionID,
-          txID.txIndex,
-          readKey,
-        );
-
-        this._decryptionCache[tx.encryptedChanges] = decryptedChanges;
-      }
-
-      if (!decryptedChanges) {
-        logger.error("Failed to decrypt transaction despite having key", {
-          err: new Error("Failed to decrypt transaction despite having key"),
-        });
-        continue;
       }
 
       allTransactions.push({
         txID,
         madeAt: tx.madeAt,
-        changes: decryptedChanges,
+        changes,
+        trusting: tx.privacy === "trusting",
       });
     }
 
