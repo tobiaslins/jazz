@@ -36,16 +36,6 @@
       "types": "./dist/media/index.d.ts",
       "default": "./dist/media/index.js"
     },
-    "./media/browser": {
-      "@jazz-tools/source": "./src/media/create-image/browser.ts",
-      "types": "./dist/media/create-image/browser.d.ts",
-      "default": "./dist/media/create-image/browser.js"
-    },
-    "./media/react-native": {
-      "@jazz-tools/source": "./src/media/create-image/react-native.ts",
-      "types": "./dist/media/create-image/react-native.d.ts",
-      "default": "./dist/media/create-image/react-native.js"
-    },
     "./media/server": {
       "@jazz-tools/source": "./src/media/create-image/server.ts",
       "types": "./dist/media/create-image/server.d.ts",
