@@ -24,8 +24,8 @@ async function loadInitialData(mediaPlayer: MediaPlayer) {
     resolve: {
       root: {
         rootPlaylist: { tracks: { $each: true } },
-        activeTrack: true,
-        activePlaylist: true,
+        activeTrack: { $onError: null },
+        activePlaylist: { $onError: null },
       },
     },
   });

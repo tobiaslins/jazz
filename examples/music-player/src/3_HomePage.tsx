@@ -74,8 +74,6 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
     setIsEditModalOpen(true);
   };
 
-  const isAuthenticated = useIsAuthenticated();
-
   return (
     <SidebarInset className="flex flex-col h-screen text-gray-800">
       <div className="flex flex-1 overflow-hidden">
@@ -91,7 +89,12 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
                 <h1 className="text-2xl font-bold text-blue-800">
                   {playlist?.title}
                 </h1>
-                {membersIds && <PlaylistMembers memberIds={membersIds} />}
+                {membersIds && playlist && (
+                  <PlaylistMembers
+                    memberIds={membersIds}
+                    group={playlist.$jazz.owner}
+                  />
+                )}
               </div>
             )}
             <div className="flex items-center space-x-4">
@@ -102,7 +105,7 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
                   </FileUploadButton>
                 </>
               )}
-              {!isRootPlaylist && isAuthenticated && (
+              {!isRootPlaylist && (
                 <>
                   <Button onClick={handleEditClick} variant="outline">
                     Edit

@@ -1,7 +1,6 @@
 import { MusicTrack, MusicaAccount, Playlist } from "@/1_schema";
 import { usePlayMedia } from "@/lib/audio/usePlayMedia";
 import { usePlayState } from "@/lib/audio/usePlayState";
-import { FileStream } from "jazz-tools";
 import { useAccount } from "jazz-tools/react";
 import { useRef, useState } from "react";
 import { updateActivePlaylist, updateActiveTrack } from "./4_actions";
@@ -31,7 +30,9 @@ export function useMediaPlayer() {
     setLoading(track.$jazz.id);
     updateActiveTrack(track);
 
-    const file = await FileStream.loadAsBlob(track.$jazz.refs.file!.id); // TODO: see if we can avoid !
+    const file = await MusicTrack.shape.file.loadAsBlob(
+      track.$jazz.refs.file!.id,
+    ); // TODO: see if we can avoid !
 
     if (!file) {
       setLoading(null);

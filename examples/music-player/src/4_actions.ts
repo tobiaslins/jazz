@@ -1,5 +1,5 @@
 import { getAudioFileData } from "@/lib/audio/getAudioFileData";
-import { FileStream, Group } from "jazz-tools";
+import { Group } from "jazz-tools";
 import { MusicTrack, MusicaAccount, Playlist } from "./1_schema";
 
 /**
@@ -40,9 +40,9 @@ export async function uploadMusicTracks(
     // We transform the file blob into a FileStream
     // making it a collaborative value that is encrypted, easy
     // to share across devices and users and available offline!
-    const fileStream = await FileStream.createFromBlob(file, group);
+    const fileStream = await MusicTrack.shape.file.createFromBlob(file, group);
 
-    const musicTrack = MusicTrack.create(
+    const track = MusicTrack.create(
       {
         file: fileStream,
         duration: data.duration,
@@ -53,9 +53,8 @@ export async function uploadMusicTracks(
       group,
     );
 
-    // The newly created musicTrack can be associated to the
-    // user track list using a simple push call
-    root.rootPlaylist.tracks.$jazz.push(musicTrack);
+    // We create a new music track and add it to the root playlist
+    root.rootPlaylist.tracks.$jazz.push(track);
   }
 }
 
@@ -73,7 +72,7 @@ export async function createNewPlaylist(title: string = "New Playlist") {
     tracks: [],
   });
 
-  // Again, we associate the new playlist to the
+  // We associate the new playlist to the
   // user by pushing it into the playlists CoList
   root.playlists.$jazz.push(playlist);
 
@@ -84,60 +83,64 @@ export async function addTrackToPlaylist(
   playlist: Playlist,
   track: MusicTrack,
 ) {
-  const alreadyAdded = playlist.tracks?.some(
-    (t) =>
-      t?.$jazz.id === track.$jazz.id ||
-      t?.$jazz.refs.sourceTrack?.id === track.$jazz.id,
-  );
+  const { tracks } = await playlist.$jazz.ensureLoaded({
+    resolve: {
+      tracks: { $each: true },
+    },
+  });
 
-  if (alreadyAdded) return;
+  const isPartOfThePlaylist = tracks.some((t) => t.$jazz.id === track.$jazz.id);
+  if (isPartOfThePlaylist) return;
 
-  // Check if the track has been created after the Group inheritance was introduced
-  if (
-    track.$jazz.owner.$type$ === "Group" &&
-    playlist.$jazz.owner.$type$ === "Group"
-  ) {
-    /**
-     * Extending the track with the Playlist group in order to make the music track
-     * visible to the Playlist user
-     */
-    const trackGroup = track.$jazz.owner;
-    trackGroup.addMember(playlist.$jazz.owner);
-
-    playlist.tracks?.$jazz.push(track);
-    return;
-  }
+  track.$jazz.owner.addMember(playlist.$jazz.owner);
+  tracks.$jazz.push(track);
 }
 
 export async function removeTrackFromPlaylist(
   playlist: Playlist,
   track: MusicTrack,
 ) {
-  const notAdded = !playlist.tracks?.some(
-    (t) =>
-      t?.$jazz.id === track.$jazz.id ||
-      t?.$jazz.refs.sourceTrack?.id === track.$jazz.id,
-  );
+  const { tracks } = await playlist.$jazz.ensureLoaded({
+    resolve: {
+      tracks: { $each: true },
+    },
+  });
 
-  if (notAdded) return;
+  const isPartOfThePlaylist = tracks.some((t) => t.$jazz.id === track.$jazz.id);
 
-  if (
-    track.$jazz.owner.$type$ === "Group" &&
-    playlist.$jazz.owner.$type$ === "Group"
-  ) {
-    const trackGroup = track.$jazz.owner;
-    trackGroup.removeMember(playlist.$jazz.owner);
+  if (!isPartOfThePlaylist) return;
 
-    const index =
-      playlist.tracks?.findIndex(
-        (t) =>
-          t?.$jazz.id === track.$jazz.id ||
-          t?.$jazz.refs.sourceTrack?.id === track.$jazz.id,
-      ) ?? -1;
-    if (index > -1) {
-      playlist.tracks?.$jazz.splice(index, 1);
-    }
-    return;
+  // We remove the track before removing the access
+  // because the removeMember might remove our own access
+  // tracks.$jazz.remove((t) => t.$jazz.id === track.$jazz.id);
+  const index = tracks.findIndex((t) => t.$jazz.id === track.$jazz.id);
+  if (index > -1) {
+    tracks.$jazz.raw.delete(index);
+  }
+
+  track.$jazz.owner.removeMember(playlist.$jazz.owner);
+}
+
+export async function removeTrackFromAllPlaylists(track: MusicTrack) {
+  const { root } = await MusicaAccount.getMe().$jazz.ensureLoaded({
+    resolve: {
+      root: {
+        playlists: {
+          $each: {
+            $onError: null,
+          },
+        },
+        rootPlaylist: true,
+      },
+    },
+  });
+
+  const playlists = root.playlists;
+
+  for (const playlist of playlists) {
+    if (!playlist) continue;
+
+    removeTrackFromPlaylist(playlist, track);
   }
 }
 

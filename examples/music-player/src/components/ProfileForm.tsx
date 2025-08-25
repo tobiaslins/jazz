@@ -15,7 +15,6 @@ interface ProfileFormProps {
   headerTitle?: string;
   headerDescription?: string;
   initialUsername?: string;
-  initialAvatar?: any;
   onCancel?: () => void;
   showCancelButton?: boolean;
   cancelButtonText?: string;
@@ -29,7 +28,6 @@ export function ProfileForm({
   headerTitle = "Profile Settings",
   headerDescription = "Update your profile information",
   initialUsername = "",
-  initialAvatar,
   onCancel,
   showCancelButton = false,
   cancelButtonText = "Cancel",
@@ -86,7 +84,7 @@ export function ProfileForm({
     }
   };
 
-  const currentAvatar = initialAvatar || me.profile.avatar;
+  const currentAvatar = me.profile.avatar;
   const canSubmit = username.trim();
 
   return (
@@ -116,7 +114,7 @@ export function ProfileForm({
               <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
                 {currentAvatar ? (
                   <Image
-                    imageId={currentAvatar.id}
+                    imageId={currentAvatar.$jazz.id}
                     width={96}
                     height={96}
                     alt="Profile"
