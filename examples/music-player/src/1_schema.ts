@@ -1,4 +1,4 @@
-import { co, z } from "jazz-tools";
+import { co, Group, z } from "jazz-tools";
 
 /** Walkthrough: Defining the data model with CoJSON
  *
@@ -67,9 +67,15 @@ export const MusicaAccountRoot = co.map({
 });
 export type MusicaAccountRoot = co.loaded<typeof MusicaAccountRoot>;
 
-export const MusicaAccountProfile = co.profile({
-  avatar: co.optional(co.image()),
-});
+export const MusicaAccountProfile = co
+  .profile({
+    avatar: co.optional(co.image()),
+  })
+  .withMigration((profile) => {
+    if (profile.$jazz.owner.getRoleOf("everyone") !== "reader") {
+      profile.$jazz.owner.addMember("everyone", "reader");
+    }
+  });
 export type MusicaAccountProfile = co.loaded<typeof MusicaAccountProfile>;
 
 export const MusicaAccount = co
@@ -99,29 +105,12 @@ export const MusicaAccount = co
     }
 
     if (account.profile === undefined) {
-      account.profile = MusicaAccountProfile.create({
-        name: "",
-      });
-    }
-
-    // Load the profile and root in memory, to have them ready
-    const { profile, root } = await account.$jazz.ensureLoaded({
-      resolve: {
-        profile: {
-          avatar: true,
+      account.profile = MusicaAccountProfile.create(
+        {
+          name: "",
         },
-        root: true,
-      },
-    });
-
-    // Clean up the private avatars (were created using the account as owner)
-    if (profile.avatar) {
-      const group = profile.avatar.$jazz.owner;
-
-      if (group.getRoleOf("everyone") !== "reader") {
-        root.$jazz.set("accountSetupCompleted", false);
-        profile.$jazz.set("avatar", undefined);
-      }
+        Group.create().makePublic(),
+      );
     }
   });
 export type MusicaAccount = co.loaded<typeof MusicaAccount>;

@@ -91,7 +91,12 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
                 <h1 className="text-2xl font-bold text-blue-800">
                   {playlist?.title}
                 </h1>
-                {membersIds && <PlaylistMembers memberIds={membersIds} />}
+                {membersIds && playlist && (
+                  <PlaylistMembers
+                    memberIds={membersIds}
+                    group={playlist.$jazz.owner}
+                  />
+                )}
               </div>
             )}
             <div className="flex items-center space-x-4">

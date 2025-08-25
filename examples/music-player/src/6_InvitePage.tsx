@@ -17,7 +17,11 @@ export function InvitePage() {
         const me = await MusicaAccount.getMe().$jazz.ensureLoaded({
           resolve: {
             root: {
-              playlists: true,
+              playlists: {
+                $each: {
+                  $onError: null,
+                },
+              },
             },
           },
         });

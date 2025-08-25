@@ -114,6 +114,32 @@ export async function removeTrackFromPlaylist(
   tracks.$jazz.remove((t) => t.$jazz.id === track.$jazz.id);
 }
 
+export async function removeTrackFromAllPlaylists(track: MusicTrack) {
+  const { root } = await MusicaAccount.getMe().$jazz.ensureLoaded({
+    resolve: {
+      root: {
+        playlists: {
+          $each: {
+            $onError: null,
+            tracks: { $each: true },
+          },
+        },
+        rootPlaylist: {
+          tracks: { $each: true },
+        },
+      },
+    },
+  });
+
+  const playlists = root.playlists;
+
+  for (const playlist of playlists) {
+    if (!playlist) continue;
+
+    removeTrackFromPlaylist(playlist, track);
+  }
+}
+
 export async function updatePlaylistTitle(playlist: Playlist, title: string) {
   playlist.$jazz.set("title", title);
 }
