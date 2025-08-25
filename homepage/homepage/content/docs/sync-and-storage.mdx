@@ -17,7 +17,7 @@ It will generate an app with an API key for you.
 
 <ContentByFramework framework={["vanilla"]}>
 
-  Rreplace the API key in the sync server URL with your API key.
+  Replace the API key in the sync server URL with your API key.
   <CodeGroup>
   ```
   wss://cloud.jazz.tools/?key=YOUR_API_KEY
@@ -34,7 +34,12 @@ It will generate an app with an API key for you.
   ```tsx twoslash
   import * as React from "react";
   import { JazzReactProvider } from "jazz-tools/react";
-  const apiKey = "Replace with API key from dashboard.jazz.tools";
+  /**
+   * Get a free API Key at dashboard.jazz.tools
+   * 
+   * @link https://dashboard.jazz.tools
+  */
+  const apiKey = "you@example.com";
   
   // ---cut---
   export function MyApp({ children }: { children: React.ReactNode }) {
@@ -58,8 +63,12 @@ It will generate an app with an API key for you.
   ```tsx twoslash
   import * as React from "react";
   import { JazzReactNativeProvider } from "jazz-tools/react-native";
-  const apiKey = "Replace with API key from dashboard.jazz.tools";
-  
+  /**
+   * Get a free API Key at dashboard.jazz.tools
+   * 
+   * @link https://dashboard.jazz.tools
+  */
+  const apiKey = "you@example.com";  
   // ---cut---
   export function MyApp({ children }: { children: React.ReactNode }) {
     return (
@@ -82,8 +91,12 @@ It will generate an app with an API key for you.
   ```tsx twoslash
   import * as React from "react";
   import { JazzExpoProvider } from "jazz-tools/expo";
-  const apiKey = "Replace with API key from dashboard.jazz.tools";
-  
+  /**
+   * Get a free API Key at dashboard.jazz.tools
+   * 
+   * @link https://dashboard.jazz.tools
+  */
+  const apiKey = "you@example.com";  
   // ---cut---
   export function MyApp({ children }: { children: React.ReactNode }) {
     return (
@@ -108,7 +121,7 @@ It will generate an app with an API key for you.
     import { JazzSvelteProvider } from "jazz-tools/svelte";
     import { MyAppAccount } from "$lib/schema";
     let { children } = $props();
-    let apiKey = "Replace with API key from dashboard.jazz.tools";
+    let apiKey = "Get a free API Key at dashboard.jazz.tools";
   </script>
 
   <JazzSvelteProvider
