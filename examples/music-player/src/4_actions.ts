@@ -112,7 +112,11 @@ export async function removeTrackFromPlaylist(
 
   // We remove the track before removing the access
   // because the removeMember might remove our own access
-  tracks.$jazz.remove((t) => t?.$jazz.id === track.$jazz.id);
+  // tracks.$jazz.remove((t) => t.$jazz.id === track.$jazz.id);
+  const index = tracks.findIndex((t) => t.$jazz.id === track.$jazz.id);
+  if (index > -1) {
+    tracks.$jazz.raw.delete(index);
+  }
 
   track.$jazz.owner.removeMember(playlist.$jazz.owner);
 }

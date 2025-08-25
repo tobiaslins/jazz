@@ -74,8 +74,6 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
     setIsEditModalOpen(true);
   };
 
-  const isAuthenticated = useIsAuthenticated();
-
   return (
     <SidebarInset className="flex flex-col h-screen text-gray-800">
       <div className="flex flex-1 overflow-hidden">
@@ -107,7 +105,7 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
                   </FileUploadButton>
                 </>
               )}
-              {!isRootPlaylist && isAuthenticated && (
+              {!isRootPlaylist && (
                 <>
                   <Button onClick={handleEditClick} variant="outline">
                     Edit
