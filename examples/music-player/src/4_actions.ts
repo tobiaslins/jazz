@@ -42,14 +42,19 @@ export async function uploadMusicTracks(
     // to share across devices and users and available offline!
     const fileStream = await MusicTrack.shape.file.createFromBlob(file, group);
 
+    const track = MusicTrack.create(
+      {
+        file: fileStream,
+        duration: data.duration,
+        waveform: { data: data.waveform },
+        title: file.name,
+        isExampleTrack,
+      },
+      group,
+    );
+
     // We create a new music track and add it to the root playlist
-    root.rootPlaylist.tracks.$jazz.push({
-      file: fileStream,
-      duration: data.duration,
-      waveform: { data: data.waveform },
-      title: file.name,
-      isExampleTrack,
-    });
+    root.rootPlaylist.tracks.$jazz.push(track);
   }
 }
 
@@ -87,9 +92,7 @@ export async function addTrackToPlaylist(
   const isPartOfThePlaylist = tracks.some((t) => t.$jazz.id === track.$jazz.id);
   if (isPartOfThePlaylist) return;
 
-  const trackGroup = track.$jazz.owner;
-  trackGroup.addMember(playlist.$jazz.owner);
-
+  track.$jazz.owner.addMember(playlist.$jazz.owner);
   tracks.$jazz.push(track);
 }
 
@@ -107,11 +110,11 @@ export async function removeTrackFromPlaylist(
 
   if (!isPartOfThePlaylist) return;
 
-  const trackGroup = track.$jazz.owner;
-  trackGroup.removeMember(playlist.$jazz.owner);
+  // We remove the track before removing the access
+  // because the removeMember might remove our own access
+  tracks.$jazz.remove((t) => t?.$jazz.id === track.$jazz.id);
 
-  // @ts-expect-error The t is nullable, but it shouldn't be
-  tracks.$jazz.remove((t) => t.$jazz.id === track.$jazz.id);
+  track.$jazz.owner.removeMember(playlist.$jazz.owner);
 }
 
 export async function removeTrackFromAllPlaylists(track: MusicTrack) {
@@ -121,12 +124,9 @@ export async function removeTrackFromAllPlaylists(track: MusicTrack) {
         playlists: {
           $each: {
             $onError: null,
-            tracks: { $each: true },
           },
         },
-        rootPlaylist: {
-          tracks: { $each: true },
-        },
+        rootPlaylist: true,
       },
     },
   });

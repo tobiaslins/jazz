@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Group } from "jazz-tools";
 import { Member } from "./Member";
 import { MemberAccessModal } from "./MemberAccessModal";
-import { MusicaAccount } from "@/1_schema";
 
 interface PlaylistMembersProps {
   memberIds: string[];
