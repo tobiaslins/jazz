@@ -1,4 +1,4 @@
-import { CoID, LocalNode, RawCoStream, RawCoValue } from "cojson";
+import { CoID, LocalNode, RawCoList, RawCoStream, RawCoValue } from "cojson";
 import { styled } from "goober";
 import React from "react";
 import { Badge } from "../ui/badge.js";
@@ -86,6 +86,16 @@ type PageProps = {
   className?: string;
 };
 
+function canEdit(value: RawCoValue) {
+  try {
+    const myRole = value.group.myRole();
+
+    return myRole === "writer" || myRole === "admin" || myRole === "writeOnly";
+  } catch (e) {
+    return false;
+  }
+}
+
 function View(
   props: PageProps & { coValue: Awaited<ReturnType<typeof resolveCoValue>> },
 ) {
@@ -119,7 +129,23 @@ function View(
   }
 
   if (type === "colist" || extendedType === "record") {
-    return <TableView data={snapshot} node={node} onNavigate={onNavigate} />;
+    const onRemove =
+      canEdit(value) && type === "colist"
+        ? (index: number) => {
+            if (confirm("Are you sure you want to remove this item?")) {
+              const list = value as RawCoList;
+              list.delete(index);
+            }
+          }
+        : undefined;
+    return (
+      <TableView
+        data={snapshot}
+        node={node}
+        onNavigate={onNavigate}
+        onRemove={onRemove}
+      />
+    );
   }
 
   return <GridView data={snapshot} onNavigate={onNavigate} node={node} />;

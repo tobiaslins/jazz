@@ -29,10 +29,12 @@ function CoValuesTableView({
   data,
   node,
   onNavigate,
+  onRemove,
 }: {
   data: JsonObject;
   node: LocalNode;
   onNavigate: (pages: PageInfo[]) => void;
+  onRemove?: (index: number) => void;
 }) {
   const [visibleRowsCount, setVisibleRowsCount] = useState(10);
   const [coIdArray, visibleRows] = useMemo(() => {
@@ -74,6 +76,7 @@ function CoValuesTableView({
             {[...keys, "Action"].map((key) => (
               <TableHeader key={key}>{key}</TableHeader>
             ))}
+            {onRemove && <TableHeader></TableHeader>}
           </TableRow>
         </TableHead>
         <TableBody>
@@ -118,6 +121,13 @@ function CoValuesTableView({
                   View
                 </Button>
               </TableCell>
+              {onRemove && (
+                <TableCell>
+                  <Button variant="secondary" onClick={() => onRemove(index)}>
+                    Remove
+                  </Button>
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>
@@ -141,10 +151,12 @@ export function TableView({
   data,
   node,
   onNavigate,
+  onRemove,
 }: {
   data: JsonObject;
   node: LocalNode;
   onNavigate: (pages: PageInfo[]) => void;
+  onRemove?: (index: number) => void;
 }) {
   const isListOfCoValues = useMemo(() => {
     return Array.isArray(data) && data.every((k) => isCoId(k));
@@ -153,7 +165,12 @@ export function TableView({
   // if data is a list of covalue ids, we need to resolve those covalues
   if (isListOfCoValues) {
     return (
-      <CoValuesTableView data={data} node={node} onNavigate={onNavigate} />
+      <CoValuesTableView
+        data={data}
+        node={node}
+        onNavigate={onNavigate}
+        onRemove={onRemove}
+      />
     );
   }
 
@@ -164,6 +181,7 @@ export function TableView({
         <TableRow>
           <TableHeader style={{ width: "5rem" }}>Index</TableHeader>
           <TableHeader>Value</TableHeader>
+          {onRemove && <TableHeader>Action</TableHeader>}
         </TableRow>
       </TableHead>
       <TableBody>
@@ -176,6 +194,13 @@ export function TableView({
               <TableCell>
                 <ValueRenderer json={value} />
               </TableCell>
+              {onRemove && (
+                <TableCell>
+                  <Button variant="secondary" onClick={() => onRemove(index)}>
+                    Remove
+                  </Button>
+                </TableCell>
+              )}
             </TableRow>
           ))}
       </TableBody>
