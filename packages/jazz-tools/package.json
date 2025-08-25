@@ -122,7 +122,7 @@
       "default": "./dist/svelte/index.js"
     },
     "./svelte/testing": {
-      "svelte": "./dist/svelte/index.js",
+      "svelte": "./dist/svelte/testing.js",
       "@jazz-tools/source": "./src/svelte/testing.ts",
       "types": "./dist/svelte/testing.d.ts",
       "default": "./dist/svelte/testing.js"
