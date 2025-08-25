@@ -2,4 +2,4 @@
 "cojson": patch
 ---
 
-Use getServerPeers() in peersInPriorityOrder()
+Apply `serverPeerSelector` in all the peers getters
