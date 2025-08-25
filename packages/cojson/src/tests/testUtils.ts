@@ -12,6 +12,7 @@ import {
   type AgentSecret,
   type CoID,
   type CoValueCore,
+  CryptoProvider,
   type RawAccount,
   type RawCoValue,
   StorageAPI,
@@ -23,8 +24,15 @@ import type { Peer, SyncMessage } from "../sync.js";
 import { expectGroup } from "../typeUtils/expectGroup.js";
 import { toSimplifiedMessages } from "./messagesTestUtils.js";
 import { createAsyncStorage, createSyncStorage } from "./testStorage.js";
+import { PureJSCrypto } from "../crypto/PureJSCrypto.js";
 
-const Crypto = await WasmCrypto.create();
+let Crypto = await WasmCrypto.create();
+
+export function setCurrentTestCryptoProvider(
+  crypto: WasmCrypto | PureJSCrypto,
+) {
+  Crypto = crypto;
+}
 
 const syncServer: {
   current: undefined | LocalNode;

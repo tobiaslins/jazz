@@ -628,7 +628,11 @@ export class CoMap extends CoValueBase implements CoValue {
       resolve?: RefsToResolveStrict<M, R>;
     },
   ): Promise<Resolved<M, R> | null> {
-    let mapId = CoMap._findUnique(options.unique, options.owner.id);
+    const mapId = CoMap._findUnique(
+      options.unique,
+      options.owner.id,
+      options.owner._loadedAs,
+    );
     let map: Resolved<M, R> | null = await loadCoValueWithoutMe(this, mapId, {
       ...options,
       loadAs: options.owner._loadedAs,

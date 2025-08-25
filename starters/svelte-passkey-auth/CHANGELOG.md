@@ -1,5 +1,94 @@
 # svelte-passkey-auth
 
+## 0.0.130
+
+### Patch Changes
+
+- 1ccae1a: RN Expo E2E dependency fixes w catalog
+- Updated dependencies [1ccae1a]
+  - jazz-tools@0.17.12
+
+## 0.0.129
+
+### Patch Changes
+
+- Updated dependencies [8f3852b]
+- Updated dependencies [bb9d837]
+  - jazz-tools@0.17.11
+
+## 0.0.128
+
+### Patch Changes
+
+- jazz-tools@0.17.10
+
+## 0.0.127
+
+### Patch Changes
+
+- Updated dependencies [52ea0c7]
+  - jazz-tools@0.17.9
+
+## 0.0.126
+
+### Patch Changes
+
+- Updated dependencies [ac3e694]
+- Updated dependencies [6dbb053]
+- Updated dependencies [1a182f0]
+  - jazz-tools@0.17.8
+
+## 0.0.125
+
+### Patch Changes
+
+- jazz-tools@0.17.7
+
+## 0.0.124
+
+### Patch Changes
+
+- Updated dependencies [82de51c]
+- Updated dependencies [694b168]
+  - jazz-tools@0.17.6
+
+## 0.0.123
+
+### Patch Changes
+
+- Updated dependencies [5963658]
+  - jazz-tools@0.17.5
+
+## 0.0.122
+
+### Patch Changes
+
+- Updated dependencies [7dd3d00]
+  - jazz-tools@0.17.4
+
+## 0.0.121
+
+### Patch Changes
+
+- jazz-tools@0.17.3
+
+## 0.0.120
+
+### Patch Changes
+
+- Updated dependencies [794681a]
+- Updated dependencies [83fc22f]
+  - jazz-tools@0.17.2
+
+## 0.0.119
+
+### Patch Changes
+
+- Updated dependencies [0bcbf55]
+- Updated dependencies [d1bdbf5]
+- Updated dependencies [4b73834]
+  - jazz-tools@0.17.1
+
 ## 0.0.118
 
 ### Patch Changes

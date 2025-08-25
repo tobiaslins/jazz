@@ -12,10 +12,15 @@ import {
 } from "vitest";
 import { Group, co, subscribeToCoValue, z } from "../exports.js";
 import { Account } from "../index.js";
-import { Loaded, coValueClassFromCoValueClassOrSchema } from "../internal.js";
+import {
+  Loaded,
+  activeAccountContext,
+  coValueClassFromCoValueClassOrSchema,
+} from "../internal.js";
 import {
   createJazzTestAccount,
   getPeerConnectedToTestSyncServer,
+  runWithoutActiveAccount,
   setupJazzTestSync,
 } from "../testing.js";
 import { setupTwoNodes, waitFor } from "./utils.js";
@@ -213,6 +218,19 @@ describe("CoMap", async () => {
         const Schema = co.map({ text: co.plainText() });
         const map = Schema.create({ text: "" });
         expect(map.text.toString()).toBe("");
+      });
+
+      it("creates a group for the new CoValue when there is no active account", () => {
+        const Schema = co.map({ text: co.plainText() });
+
+        const parentGroup = Group.create();
+        runWithoutActiveAccount(() => {
+          const map = Schema.create({ text: "Hello" }, parentGroup);
+
+          expect(
+            map.text._owner.getParentGroups().map((group: Group) => group.id),
+          ).toContain(parentGroup.id);
+        });
       });
     });
 
@@ -1530,6 +1548,46 @@ describe("Creating and finding unique CoMaps", async () => {
     });
   });
 
+  test("upserting without an active account", async () => {
+    const account = activeAccountContext.get();
+
+    // Schema
+    const Event = co.map({
+      title: z.string(),
+      identifier: z.string(),
+      external_id: z.string(),
+    });
+
+    // Data
+    const sourceData = {
+      title: "Test Event Title",
+      identifier: "test-event-identifier",
+      _id: "test-event-external-id",
+    };
+
+    const activeEvent = await runWithoutActiveAccount(() => {
+      return Event.upsertUnique({
+        value: {
+          title: sourceData.title,
+          identifier: sourceData.identifier,
+          external_id: sourceData._id,
+        },
+        unique: sourceData.identifier,
+        owner: account,
+      });
+    });
+
+    expect(activeEvent).toEqual({
+      title: sourceData.title,
+      identifier: sourceData.identifier,
+      external_id: sourceData._id,
+    });
+
+    assert(activeEvent);
+
+    expect(activeEvent._owner).toEqual(account);
+  });
+
   test("upserting an existing value", async () => {
     // Schema
     const Event = co.map({
@@ -2306,6 +2364,12 @@ describe("co.map schema", () => {
 
       expect(draftPerson.extraField).toEqual("extra");
     });
+  });
+
+  test("co.map() should throw an error if passed a CoValue schema", () => {
+    expect(() => co.map(co.map({}))).toThrow(
+      "co.map() expects an object as its argument, not a CoValue schema",
+    );
   });
 });
 

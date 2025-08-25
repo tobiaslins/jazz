@@ -31,7 +31,23 @@ export type PermissionsDef =
   | { type: "ownedByGroup"; group: RawCoID }
   | { type: "unsafeAllowAll" };
 
-export type AccountRole = "reader" | "writer" | "admin" | "writeOnly";
+export type AccountRole =
+  /**
+   * Can read the group's CoValues
+   */
+  | "reader"
+  /**
+   * Can read and write to the group's CoValues
+   */
+  | "writer"
+  /**
+   * Can read and write to the group, and change group member roles
+   */
+  | "admin"
+  /**
+   * Can only write to the group's CoValues and read their own changes
+   */
+  | "writeOnly";
 
 export type Role =
   | AccountRole

@@ -20,11 +20,13 @@ import {
   createTestNode,
   loadCoValueOrFail,
   nodeWithRandomAgentAndSessionID,
+  randomAgentAndSessionID,
   setupTestAccount,
   setupTestNode,
   tearDownTestMetricReader,
   waitFor,
 } from "./testUtils.js";
+import { stableStringify } from "../jsonStringify.js";
 
 // We want to simulate a real world communication that happens asynchronously
 TEST_NODE_CONFIG.withAsyncPeers = true;
@@ -158,6 +160,34 @@ test("should delete the peer state when the peer closes if persistent is false",
   await waitFor(() => peerState?.closed);
 
   expect(syncManager.peers[peer.id]).toBeUndefined();
+});
+
+test("should not verify transactions when SyncManager has verification disabled", async () => {
+  jazzCloud.node.syncManager.disableTransactionVerification();
+
+  const [agent] = randomAgentAndSessionID();
+  const client = await setupTestAccount({ connected: true });
+
+  const group = client.node.createGroup();
+  const map = group.createMap();
+
+  map.core.tryAddTransactions(
+    client.node.currentSessionID,
+    [
+      {
+        privacy: "trusting",
+        changes: stableStringify([{ op: "set", key: "hello", value: "world" }]),
+        madeAt: Date.now(),
+      },
+    ],
+    Crypto.sign(agent.currentSignerSecret(), "hash_z12345678"),
+    true,
+  );
+
+  await map.core.waitForSync();
+
+  const loadedMap = await loadCoValueOrFail(jazzCloud.node, map.id);
+  expect(loadedMap.get("hello")).toEqual("world");
 });
 
 describe("sync - extra tests", () => {
@@ -1083,5 +1113,48 @@ describe("SyncManager.handleSyncMessage", () => {
 
     // Verify that the message was processed
     expect(peerState.knownStates.has(group.id)).toBe(true);
+  });
+});
+
+describe("SyncManager.trackDirtyCoValues", () => {
+  test("should track the dirty coValues", async () => {
+    const node = createTestNode();
+
+    const tracking = node.syncManager.trackDirtyCoValues();
+
+    const group = node.createGroup();
+    const map = group.createMap();
+    map.set("key1", "value1", "trusting");
+
+    const trackedValues = tracking.done();
+    expect(trackedValues.size).toBe(2);
+    expect(trackedValues.has(map.id)).toBe(true);
+    expect(trackedValues.has(group.id)).toBe(true);
+  });
+
+  test("should track the dirty coValues only when active", async () => {
+    const node = createTestNode();
+
+    const group = node.createGroup();
+
+    const tracking1 = node.syncManager.trackDirtyCoValues();
+
+    const map1 = group.createMap();
+    map1.set("key1", "value1", "trusting");
+
+    const tracking2 = node.syncManager.trackDirtyCoValues();
+
+    const map2 = group.createMap();
+    map2.set("key2", "value2", "trusting");
+
+    const tracked1 = tracking1.done();
+
+    const map3 = group.createMap();
+    map3.set("key3", "value3", "trusting");
+
+    const tracked2 = tracking2.done();
+
+    expect(Array.from(tracked1)).toEqual([map1.id, map2.id]);
+    expect(Array.from(tracked2)).toEqual([map2.id, map3.id]);
   });
 });

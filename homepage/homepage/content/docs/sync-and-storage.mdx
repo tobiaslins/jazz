@@ -1,4 +1,5 @@
 import { ContentByFramework, CodeGroup } from '@/components/forMdx'
+import { Alert } from "@garden-co/design-system/src/components/atoms/Alert";
 
 export const metadata = { 
   description: "Learn how to sync and persist your data using Jazz Cloud, or run your own sync server."
@@ -44,8 +45,14 @@ And then use `ws://localhost:4200` as the sync server URL.
 You can also run this simple sync server behind a proxy that supports WebSockets, for example to provide TLS.
 In this case, provide the WebSocket endpoint your proxy exposes as the sync server URL.
 
+<Alert variant="info" className="mt-4 flex gap-2 items-center">
+ Requires at least Node.js v20.
+ See our [Troubleshooting Guide](https://jazz.tools/docs/troubleshooting) for quick fixes.
+</Alert>
+
 ### Command line options:
 
+- `--host` / `-h` - the host to run the sync server on. Defaults to 127.0.0.1.
 - `--port` / `-p` - the port to run the sync server on. Defaults to 4200.
 - `--in-memory` - keep CoValues in-memory only and do sync only, no persistence. Persistence is enabled by default.
 - `--db` - the path to the file where to store the data (SQLite). Defaults to `sync-db/storage.db`.

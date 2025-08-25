@@ -1,5 +1,5 @@
 import { UpDownCounter, ValueType, metrics } from "@opentelemetry/api";
-import { Result, err } from "neverthrow";
+import { Result, err, ok } from "neverthrow";
 import type { PeerState } from "../PeerState.js";
 import type { RawCoValue } from "../coValue.js";
 import type { ControlledAccountOrAgent } from "../coValues/account.js";
@@ -27,6 +27,7 @@ import { accountOrAgentIDfromSessionID } from "../typeUtils/accountOrAgentIDfrom
 import { expectGroup } from "../typeUtils/expectGroup.js";
 import { getDependedOnCoValuesFromRawData } from "./utils.js";
 import { CoValueHeader, Transaction, VerifiedState } from "./verifiedState.js";
+import { SessionMap } from "./SessionMap.js";
 
 export function idforHeader(
   header: CoValueHeader,
@@ -95,12 +96,7 @@ export class CoValueCore {
     this.crypto = node.crypto;
     if ("header" in init) {
       this.id = idforHeader(init.header, node.crypto);
-      this._verified = new VerifiedState(
-        this.id,
-        node.crypto,
-        init.header,
-        new Map(),
-      );
+      this._verified = new VerifiedState(this.id, node.crypto, init.header);
     } else {
       this.id = init.id;
       this._verified = null;
@@ -219,6 +215,8 @@ export class CoValueCore {
       this.groupInvalidationSubscription = undefined;
     }
 
+    this.node.internalDeleteCoValue(this.id);
+
     return true;
   }
 
@@ -296,7 +294,7 @@ export class CoValueCore {
       this.id,
       this.node.crypto,
       header,
-      new Map(),
+      new SessionMap(this.id, this.node.crypto),
       streamingKnownState,
     );
 
@@ -433,59 +431,66 @@ export class CoValueCore {
   tryAddTransactions(
     sessionID: SessionID,
     newTransactions: Transaction[],
-    givenExpectedNewHash: Hash | undefined,
     newSignature: Signature,
-    notifyMode: "immediate" | "deferred",
     skipVerify: boolean = false,
-    givenNewStreamingHash?: StreamingHash,
   ): Result<true, TryAddTransactionsError> {
-    return this.node
-      .resolveAccountAgent(
-        accountOrAgentIDfromSessionID(sessionID),
-        "Expected to know signer of transaction",
-      )
-      .andThen((agent) => {
-        if (!this.verified) {
-          return err({
-            type: "TriedToAddTransactionsWithoutVerifiedState",
-            id: this.id,
-          } satisfies TriedToAddTransactionsWithoutVerifiedStateErrpr);
-        }
+    let result: Result<SignerID | undefined, TryAddTransactionsError>;
 
-        const signerID = this.crypto.getAgentSignerID(agent);
+    if (skipVerify) {
+      result = ok(undefined);
+    } else {
+      result = this.node
+        .resolveAccountAgent(
+          accountOrAgentIDfromSessionID(sessionID),
+          "Expected to know signer of transaction",
+        )
+        .andThen((agent) => {
+          return ok(this.crypto.getAgentSignerID(agent));
+        });
+    }
 
-        const result = this.verified.tryAddTransactions(
-          sessionID,
-          signerID,
-          newTransactions,
-          givenExpectedNewHash,
-          newSignature,
-          skipVerify,
-          givenNewStreamingHash,
-        );
+    return result.andThen((signerID) => {
+      if (!this.verified) {
+        return err({
+          type: "TriedToAddTransactionsWithoutVerifiedState",
+          id: this.id,
+        } satisfies TriedToAddTransactionsWithoutVerifiedStateErrpr);
+      }
 
-        if (result.isOk()) {
-          if (
-            this._cachedContent &&
-            "processNewTransactions" in this._cachedContent &&
-            typeof this._cachedContent.processNewTransactions === "function"
-          ) {
-            this._cachedContent.processNewTransactions();
-          } else {
-            this._cachedContent = undefined;
-          }
+      const result = this.verified.tryAddTransactions(
+        sessionID,
+        signerID,
+        newTransactions,
+        newSignature,
+        skipVerify,
+      );
 
-          this._cachedDependentOn = undefined;
+      if (result.isOk()) {
+        this.updateContentAndNotifyUpdate("immediate");
+      }
 
-          this.notifyUpdate(notifyMode);
-        }
-
-        return result;
-      });
+      return result;
+    });
   }
 
   deferredUpdates = 0;
   nextDeferredNotify: Promise<void> | undefined;
+
+  updateContentAndNotifyUpdate(notifyMode: "immediate" | "deferred") {
+    if (
+      this._cachedContent &&
+      "processNewTransactions" in this._cachedContent &&
+      typeof this._cachedContent.processNewTransactions === "function"
+    ) {
+      this._cachedContent.processNewTransactions();
+    } else {
+      this._cachedContent = undefined;
+    }
+
+    this._cachedDependentOn = undefined;
+
+    this.notifyUpdate(notifyMode);
+  }
 
   notifyUpdate(notifyMode: "immediate" | "deferred") {
     if (this.listeners.size === 0) {
@@ -554,38 +559,6 @@ export class CoValueCore {
       );
     }
 
-    const madeAt = Date.now();
-
-    let transaction: Transaction;
-
-    if (privacy === "private") {
-      const { secret: keySecret, id: keyID } = this.getCurrentReadKey();
-
-      if (!keySecret) {
-        throw new Error("Can't make transaction without read key secret");
-      }
-
-      const encrypted = this.crypto.encryptForTransaction(changes, keySecret, {
-        in: this.id,
-        tx: this.nextTransactionID(),
-      });
-
-      this._decryptionCache[encrypted] = changes;
-
-      transaction = {
-        privacy: "private",
-        madeAt,
-        keyUsed: keyID,
-        encryptedChanges: encrypted,
-      };
-    } else {
-      transaction = {
-        privacy: "trusting",
-        madeAt,
-        changes: stableStringify(changes),
-      };
-    }
-
     // This is an ugly hack to get a unique but stable session ID for editing the current account
     const sessionID =
       this.verified.header.meta?.type === "account"
@@ -595,39 +568,53 @@ export class CoValueCore {
           ) as SessionID)
         : this.node.currentSessionID;
 
-    const { expectedNewHash, newStreamingHash } =
-      this.verified.expectedNewHashAfter(sessionID, [transaction]);
+    const signerAgent = this.node.getCurrentAgent();
 
-    const signature = this.crypto.sign(
-      this.node.getCurrentAgent().currentSignerSecret(),
-      expectedNewHash,
-    );
+    let result: { signature: Signature; transaction: Transaction };
 
-    const success = this.tryAddTransactions(
-      sessionID,
-      [transaction],
-      expectedNewHash,
-      signature,
-      "immediate",
-      true,
-      newStreamingHash,
-    )._unsafeUnwrap({ withStackTrace: true });
+    if (privacy === "private") {
+      const { secret: keySecret, id: keyID } = this.getCurrentReadKey();
 
-    if (success) {
-      const session = this.verified.sessions.get(sessionID);
-      const txIdx = session ? session.transactions.length - 1 : 0;
+      if (!keySecret) {
+        throw new Error("Can't make transaction without read key secret");
+      }
 
-      this.node.syncManager.recordTransactionsSize([transaction], "local");
-      this.node.syncManager.syncLocalTransaction(
-        this.verified,
-        transaction,
+      result = this.verified.makeNewPrivateTransaction(
         sessionID,
-        signature,
-        txIdx,
+        signerAgent,
+        changes,
+        keyID,
+        keySecret,
+      );
+
+      if (result.transaction.privacy === "private") {
+        this._decryptionCache[result.transaction.encryptedChanges] = changes;
+      }
+    } else {
+      result = this.verified.makeNewTrustingTransaction(
+        sessionID,
+        signerAgent,
+        changes,
       );
     }
 
-    return success;
+    const { transaction, signature } = result;
+
+    this.node.syncManager.recordTransactionsSize([transaction], "local");
+
+    const session = this.verified.sessions.get(sessionID);
+    const txIdx = session ? session.transactions.length - 1 : 0;
+
+    this.updateContentAndNotifyUpdate("immediate");
+    this.node.syncManager.syncLocalTransaction(
+      this.verified,
+      transaction,
+      sessionID,
+      signature,
+      txIdx,
+    );
+
+    return true;
   }
 
   getCurrentContent(options?: { ignorePrivateTransactions: true }): RawCoValue {
@@ -656,6 +643,12 @@ export class CoValueCore {
     ignorePrivateTransactions: boolean;
     knownTransactions?: CoValueKnownState["sessions"];
   }): DecryptedTransaction[] {
+    if (!this.verified) {
+      throw new Error(
+        "CoValueCore: getValidTransactions called on coValue without verified state",
+      );
+    }
+
     const validTransactions = determineValidTransactions(
       this,
       options?.knownTransactions,
@@ -699,25 +692,12 @@ export class CoValueCore {
       let decryptedChanges = this._decryptionCache[tx.encryptedChanges];
 
       if (!decryptedChanges) {
-        const decryptedString = this.crypto.decryptRawForTransaction(
-          tx.encryptedChanges,
+        decryptedChanges = this.verified.decryptTransaction(
+          txID.sessionID,
+          txID.txIndex,
           readKey,
-          {
-            in: this.id,
-            tx: txID,
-          },
         );
 
-        try {
-          decryptedChanges = decryptedString && parseJSON(decryptedString);
-        } catch (e) {
-          logger.error("Failed to parse private transaction on " + this.id, {
-            err: e,
-            txID,
-            changes: decryptedString?.slice(0, 50),
-          });
-          continue;
-        }
         this._decryptionCache[tx.encryptedChanges] = decryptedChanges;
       }
 
@@ -996,7 +976,7 @@ export type InvalidSignatureError = {
   id: RawCoID;
   newSignature: Signature;
   sessionID: SessionID;
-  signerID: SignerID;
+  signerID: SignerID | undefined;
 };
 
 export type TriedToAddTransactionsWithoutVerifiedStateErrpr = {
@@ -1004,8 +984,15 @@ export type TriedToAddTransactionsWithoutVerifiedStateErrpr = {
   id: RawCoID;
 };
 
+export type TriedToAddTransactionsWithoutSignerIDError = {
+  type: "TriedToAddTransactionsWithoutSignerID";
+  id: RawCoID;
+  sessionID: SessionID;
+};
+
 export type TryAddTransactionsError =
   | TriedToAddTransactionsWithoutVerifiedStateErrpr
+  | TriedToAddTransactionsWithoutSignerIDError
   | ResolveAccountAgentError
   | InvalidHashError
   | InvalidSignatureError;

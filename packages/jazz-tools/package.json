@@ -57,7 +57,7 @@
       "default": "./dist/expo/index.js"
     },
     "./expo/crypto": {
-      "@jazz-tools/source": "./src/expo/crypto/index.ts",
+      "@jazz-tools/source": "./src/expo/crypto.ts",
       "types": "./dist/expo/crypto.d.ts",
       "default": "./dist/expo/crypto.js"
     },
@@ -112,7 +112,7 @@
       "default": "./dist/react-native/index.js"
     },
     "./react-native/crypto": {
-      "@jazz-tools/source": "./src/react-native/crypto/index.ts",
+      "@jazz-tools/source": "./src/react-native/crypto.ts",
       "types": "./dist/react-native/crypto.d.ts",
       "default": "./dist/react-native/crypto.js"
     },
@@ -143,7 +143,7 @@
       "default": "./dist/svelte/index.js"
     },
     "./svelte/testing": {
-      "svelte": "./dist/svelte/index.js",
+      "svelte": "./dist/svelte/testing.js",
       "@jazz-tools/source": "./src/svelte/testing.ts",
       "types": "./dist/svelte/testing.d.ts",
       "default": "./dist/svelte/testing.js"
@@ -161,7 +161,7 @@
   },
   "type": "module",
   "license": "MIT",
-  "version": "0.17.0",
+  "version": "0.17.12",
   "dependencies": {
     "@manuscripts/prosemirror-recreate-steps": "^0.1.4",
     "@scure/base": "1.2.1",
@@ -207,24 +207,24 @@
     "playwright": "^1.50.1",
     "queueueue": "^4.1.2",
     "tsup": "8.5.0",
-    "typescript": "catalog:",
-    "vitest": "catalog:",
+    "typescript": "catalog:default",
+    "vitest": "catalog:default",
     "ws": "^8.14.2"
   },
   "peerDependencies": {
     "@bam.tech/react-native-image-resizer": "*",
-    "@op-engineering/op-sqlite": "^11.4.8",
+    "@op-engineering/op-sqlite": "*",
     "@react-native-community/netinfo": "*",
     "expo-file-system": "*",
     "expo-secure-store": "*",
-    "expo-sqlite": "15.2.9",
+    "expo-sqlite": "*",
     "react": "*",
     "react-dom": "*",
     "react-native": "*",
     "react-native-fast-encoder": "^0.2.0",
-    "react-native-mmkv": "^3.2.0",
-    "react-native-nitro-modules": "0.25.2",
-    "react-native-quick-crypto": "1.0.0-beta.16",
+    "react-native-mmkv": "^3.3.0",
+    "react-native-nitro-modules": "^0.26.4",
+    "react-native-quick-crypto": "^1.0.0-beta.18",
     "sharp": "^0.33.5",
     "svelte": "^5.0.0"
   },

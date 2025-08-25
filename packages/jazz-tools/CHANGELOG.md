@@ -1,5 +1,130 @@
 # jazz-tools
 
+## 0.17.12
+
+### Patch Changes
+
+- 1ccae1a: RN Expo E2E dependency fixes w catalog
+- Updated dependencies [c2daf3e]
+- Updated dependencies [72a63bf]
+- Updated dependencies [234bf91]
+  - cojson@0.17.12
+  - cojson-storage-indexeddb@0.17.12
+  - cojson-transport-ws@0.17.12
+
+## 0.17.11
+
+### Patch Changes
+
+- 8f3852b: Accept { $onError: null } as resolve query for co.list references
+- bb9d837: Explicit loadAs in CoList.upsertUnique to use it without loaded context
+- Updated dependencies [68b2f37]
+- Updated dependencies [257ded3]
+- Updated dependencies [e301ad6]
+  - cojson@0.17.11
+  - cojson-storage-indexeddb@0.17.11
+  - cojson-transport-ws@0.17.11
+
+## 0.17.10
+
+### Patch Changes
+
+- Updated dependencies [c55297c]
+  - cojson@0.17.10
+  - cojson-storage-indexeddb@0.17.10
+  - cojson-transport-ws@0.17.10
+
+## 0.17.9
+
+### Patch Changes
+
+- 52ea0c7: Explicit loadAs in upsertUnique to use it without loaded context
+- Updated dependencies [7586c3b]
+  - cojson@0.17.9
+  - cojson-storage-indexeddb@0.17.9
+  - cojson-transport-ws@0.17.9
+
+## 0.17.8
+
+### Patch Changes
+
+- ac3e694: Fixed an issue where CoValue schemas could be incorrectly passed to `co.map` and `co.profile` schema definers.
+- 6dbb053: Prosemirror: fix RangeError triggered when creating invalid HTML
+- 1a182f0: Add missing BaseProfileShape export
+  - cojson@0.17.8
+  - cojson-storage-indexeddb@0.17.8
+  - cojson-transport-ws@0.17.8
+
+## 0.17.7
+
+### Patch Changes
+
+- cojson@0.17.7
+- cojson-storage-indexeddb@0.17.7
+- cojson-transport-ws@0.17.7
+
+## 0.17.6
+
+### Patch Changes
+
+- 82de51c: allow creating CoValues from JSON without an active account
+- 694b168: get resized image's id without triggering shallow load in `loadImageBySize`
+  - cojson@0.17.6
+  - cojson-storage-indexeddb@0.17.6
+  - cojson-transport-ws@0.17.6
+
+## 0.17.5
+
+### Patch Changes
+
+- 5963658: Implement/expose loadUnique and upsertUnique on co.list and co.record
+- Updated dependencies [71c1411]
+- Updated dependencies [2d11d44]
+  - cojson@0.17.5
+  - cojson-storage-indexeddb@0.17.5
+  - cojson-transport-ws@0.17.5
+
+## 0.17.4
+
+### Patch Changes
+
+- 7dd3d00: Export `Ref` class from jazz-tools package
+  - cojson@0.17.4
+  - cojson-storage-indexeddb@0.17.4
+  - cojson-transport-ws@0.17.4
+
+## 0.17.3
+
+### Patch Changes
+
+- Updated dependencies [f0c73d9]
+  - cojson@0.17.3
+  - cojson-storage-indexeddb@0.17.3
+  - cojson-transport-ws@0.17.3
+
+## 0.17.2
+
+### Patch Changes
+
+- 794681a: fix unused blob creation on react Image component
+- 83fc22f: React Native resizer is now imported dynamically, as it is an optional dependency
+- Updated dependencies [5b2b16a]
+  - cojson@0.17.2
+  - cojson-storage-indexeddb@0.17.2
+  - cojson-transport-ws@0.17.2
+
+## 0.17.1
+
+### Patch Changes
+
+- 0bcbf55: Export the HttpRoute type
+- d1bdbf5: fix: ensure file downloaded in loadImageBySize
+- 4b73834: fix(jazz-tools/svelte): Make Image reactive to imageId change
+- Updated dependencies [2fd88b9]
+  - cojson@0.17.1
+  - cojson-storage-indexeddb@0.17.1
+  - cojson-transport-ws@0.17.1
+
 ## 0.17.0
 
 ### Minor Changes

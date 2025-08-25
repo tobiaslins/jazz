@@ -1,8 +1,10 @@
-import ImageResizer from "@bam.tech/react-native-image-resizer";
+import type ImageResizerType from "@bam.tech/react-native-image-resizer";
 import type { Account, Group } from "jazz-tools";
 import { FileStream } from "jazz-tools";
 import { Image } from "react-native";
 import { createImageFactory } from "../create-image-factory";
+
+let ImageResizer: typeof ImageResizerType | undefined;
 
 /**
  * Creates an ImageDefinition from an image file path with built-in UX features.
@@ -43,6 +45,21 @@ export const createImage = createImageFactory(
   },
 );
 
+async function getResizer(): Promise<typeof ImageResizerType> {
+  if (!ImageResizer) {
+    try {
+      ImageResizer = (await import("@bam.tech/react-native-image-resizer"))
+        .default;
+    } catch (e) {
+      throw new Error(
+        "ImageResizer is not installed, please run `npm install @bam.tech/react-native-image-resizer`",
+      );
+    }
+  }
+
+  return ImageResizer;
+}
+
 async function getImageSize(
   filePath: string,
 ): Promise<{ width: number; height: number }> {
@@ -52,11 +69,7 @@ async function getImageSize(
 }
 
 async function getPlaceholderBase64(filePath: string): Promise<string> {
-  if (typeof ImageResizer === "undefined" || ImageResizer === null) {
-    throw new Error(
-      "ImageResizer is not installed, please run `npm install @bam.tech/react-native-image-resizer`",
-    );
-  }
+  const ImageResizer = await getResizer();
 
   const { uri } = await ImageResizer.createResizedImage(
     filePath,
@@ -74,11 +87,7 @@ async function resize(
   width: number,
   height: number,
 ): Promise<string> {
-  if (typeof ImageResizer === "undefined" || ImageResizer === null) {
-    throw new Error(
-      "ImageResizer is not installed, please run `npm install @bam.tech/react-native-image-resizer`",
-    );
-  }
+  const ImageResizer = await getResizer();
 
   const mimeType = await getMimeType(filePath);
 

@@ -1,5 +1,71 @@
 # cojson
 
+## 0.17.12
+
+### Patch Changes
+
+- c2daf3e: Don't greedily send dependencies to servers in "known" replies
+- 72a63bf: Ability to filter getServerPeers() result based on covalue id
+- 234bf91: Correctly wait for updated CoValues when handling HTTP requests on server workers before sending the response
+  - cojson-core-wasm@0.17.12
+
+## 0.17.11
+
+### Patch Changes
+
+- 68b2f37: Only request covalue dependencies when transaction verification is enabled
+- 257ded3: Fix admin permission downgrade to writeOnly
+  - Allow admin to self-downgrade to writeOnly
+  - Prevent admin from downgrading other admins to writeOnly
+- e301ad6: Skip agent resolution when skipVerify is true
+  - cojson-core-wasm@0.17.11
+
+## 0.17.10
+
+### Patch Changes
+
+- c55297c: Move the session log management into WASM
+  - cojson-core-wasm@0.17.10
+
+## 0.17.9
+
+### Patch Changes
+
+- 7586c3b: Adds disableTransactionVerification() method to SyncManager
+
+## 0.17.8
+
+## 0.17.7
+
+## 0.17.6
+
+## 0.17.5
+
+### Patch Changes
+
+- 71c1411: Removed some unnecessary content messages sent after a local transaction when sending a value as dependency before the ack response
+- 2d11d44: Make the CoValueCore.unmount function detach the CoValue from LocalNode
+
+## 0.17.4
+
+## 0.17.3
+
+### Patch Changes
+
+- f0c73d9: Allow storing empty content with header in handleNewContent
+
+## 0.17.2
+
+### Patch Changes
+
+- 5b2b16a: Filter invalid sessions when storing a content message
+
+## 0.17.1
+
+### Patch Changes
+
+- 2fd88b9: Add debug info to sync correction errors
+
 ## 0.17.0
 
 ## 0.16.6

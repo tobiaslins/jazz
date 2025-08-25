@@ -1,5 +1,118 @@
 # jazz-betterauth-server-plugin
 
+## 0.17.12
+
+### Patch Changes
+
+- Updated dependencies [c2daf3e]
+- Updated dependencies [1ccae1a]
+- Updated dependencies [72a63bf]
+- Updated dependencies [234bf91]
+  - cojson@0.17.12
+  - jazz-tools@0.17.12
+
+## 0.17.11
+
+### Patch Changes
+
+- Updated dependencies [8f3852b]
+- Updated dependencies [bb9d837]
+- Updated dependencies [68b2f37]
+- Updated dependencies [257ded3]
+- Updated dependencies [e301ad6]
+  - jazz-tools@0.17.11
+  - cojson@0.17.11
+
+## 0.17.10
+
+### Patch Changes
+
+- Updated dependencies [c55297c]
+  - cojson@0.17.10
+  - jazz-tools@0.17.10
+
+## 0.17.9
+
+### Patch Changes
+
+- Updated dependencies [52ea0c7]
+- Updated dependencies [7586c3b]
+  - jazz-tools@0.17.9
+  - cojson@0.17.9
+
+## 0.17.8
+
+### Patch Changes
+
+- Updated dependencies [ac3e694]
+- Updated dependencies [6dbb053]
+- Updated dependencies [1a182f0]
+  - jazz-tools@0.17.8
+  - cojson@0.17.8
+
+## 0.17.7
+
+### Patch Changes
+
+- cojson@0.17.7
+- jazz-tools@0.17.7
+
+## 0.17.6
+
+### Patch Changes
+
+- Updated dependencies [82de51c]
+- Updated dependencies [694b168]
+  - jazz-tools@0.17.6
+  - cojson@0.17.6
+
+## 0.17.5
+
+### Patch Changes
+
+- Updated dependencies [71c1411]
+- Updated dependencies [2d11d44]
+- Updated dependencies [5963658]
+  - cojson@0.17.5
+  - jazz-tools@0.17.5
+
+## 0.17.4
+
+### Patch Changes
+
+- Updated dependencies [7dd3d00]
+  - jazz-tools@0.17.4
+  - cojson@0.17.4
+
+## 0.17.3
+
+### Patch Changes
+
+- Updated dependencies [f0c73d9]
+  - cojson@0.17.3
+  - jazz-tools@0.17.3
+
+## 0.17.2
+
+### Patch Changes
+
+- Updated dependencies [794681a]
+- Updated dependencies [5b2b16a]
+- Updated dependencies [83fc22f]
+  - jazz-tools@0.17.2
+  - cojson@0.17.2
+
+## 0.17.1
+
+### Patch Changes
+
+- Updated dependencies [0bcbf55]
+- Updated dependencies [2fd88b9]
+- Updated dependencies [d1bdbf5]
+- Updated dependencies [4b73834]
+  - jazz-tools@0.17.1
+  - cojson@0.17.1
+
 ## 0.17.0
 
 ### Patch Changes

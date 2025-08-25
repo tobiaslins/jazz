@@ -330,7 +330,7 @@ function parseSchemaAndResolve<
   };
 }
 
-class HttpRoute<
+export class HttpRoute<
   RequestShape extends MessageShape = z.core.$ZodLooseShape,
   RequestResolve extends ResolveQuery<CoMapSchema<RequestShape>> = any,
   ResponseShape extends MessageShape = z.core.$ZodLooseShape,

@@ -19,6 +19,7 @@ import {
   createCoreCoPlainTextSchema,
   createCoreFileStreamSchema,
   hydrateCoreCoValueSchema,
+  isAnyCoValueSchema,
 } from "../../internal.js";
 import {
   CoDiscriminatedUnionSchema,
@@ -36,6 +37,11 @@ import { z } from "./zodReExport.js";
 export const coMapDefiner = <Shape extends z.core.$ZodLooseShape>(
   shape: Shape,
 ): CoMapSchema<Shape> => {
+  if (isAnyCoValueSchema(shape as any)) {
+    throw new Error(
+      "co.map() expects an object as its argument, not a CoValue schema",
+    );
+  }
   const coreSchema = createCoreCoMapSchema(shape);
   return hydrateCoreCoValueSchema(coreSchema);
 };
@@ -116,6 +122,11 @@ export const coProfileDefiner = <
 >(
   shape: Shape & Partial<DefaultProfileShape> = {} as any,
 ): CoProfileSchema<Shape> => {
+  if (isAnyCoValueSchema(shape as any)) {
+    throw new Error(
+      "co.profile() expects an object as its argument, not a CoValue schema",
+    );
+  }
   const ehnancedShape = Object.assign(shape, {
     name: z.string(),
     inbox: z.optional(z.string()),
