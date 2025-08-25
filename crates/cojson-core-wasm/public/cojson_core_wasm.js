@@ -167,10 +167,13 @@ function debugString(val) {
     return className;
 }
 
-function passArray8ToWasm0(arg, malloc) {
-    const ptr = malloc(arg.length * 1, 1) >>> 0;
-    getUint8ArrayMemory0().set(arg, ptr / 1);
-    WASM_VECTOR_LEN = arg.length;
+function passArrayJsValueToWasm0(array, malloc) {
+    const ptr = malloc(array.length * 4, 4) >>> 0;
+    for (let i = 0; i < array.length; i++) {
+        const add = addToExternrefTable0(array[i]);
+        getDataViewMemory0().setUint32(ptr + 4 * i, add, true);
+    }
+    WASM_VECTOR_LEN = array.length;
     return ptr;
 }
 
@@ -178,6 +181,13 @@ function takeFromExternrefTable0(idx) {
     const value = wasm.__wbindgen_export_4.get(idx);
     wasm.__externref_table_dealloc(idx);
     return value;
+}
+
+function passArray8ToWasm0(arg, malloc) {
+    const ptr = malloc(arg.length * 1, 1) >>> 0;
+    getUint8ArrayMemory0().set(arg, ptr / 1);
+    WASM_VECTOR_LEN = arg.length;
+    return ptr;
 }
 
 function getArrayU8FromWasm0(ptr, len) {
@@ -240,15 +250,6 @@ export function decrypt_xsalsa20(key, nonce_material, ciphertext) {
     return v4;
 }
 
-function passArrayJsValueToWasm0(array, malloc) {
-    const ptr = malloc(array.length * 4, 4) >>> 0;
-    for (let i = 0; i < array.length; i++) {
-        const add = addToExternrefTable0(array[i]);
-        getDataViewMemory0().setUint32(ptr + 4 * i, add, true);
-    }
-    WASM_VECTOR_LEN = array.length;
-    return ptr;
-}
 /**
  * Generate a new Ed25519 signing key using secure random number generation.
  * Returns 32 bytes of raw key material suitable for use with other Ed25519 functions.
@@ -513,108 +514,6 @@ export function get_signer_id(secret) {
 }
 
 /**
- * Generate a 24-byte nonce from input material using BLAKE3.
- * - `nonce_material`: Raw bytes to derive the nonce from
- * Returns 24 bytes suitable for use as a nonce in cryptographic operations.
- * This function is deterministic - the same input will produce the same nonce.
- * @param {Uint8Array} nonce_material
- * @returns {Uint8Array}
- */
-export function generate_nonce(nonce_material) {
-    const ptr0 = passArray8ToWasm0(nonce_material, wasm.__wbindgen_malloc);
-    const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.generate_nonce(ptr0, len0);
-    var v2 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
-    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
-    return v2;
-}
-
-/**
- * Hash data once using BLAKE3.
- * - `data`: Raw bytes to hash
- * Returns 32 bytes of hash output.
- * This is the simplest way to compute a BLAKE3 hash of a single piece of data.
- * @param {Uint8Array} data
- * @returns {Uint8Array}
- */
-export function blake3_hash_once(data) {
-    const ptr0 = passArray8ToWasm0(data, wasm.__wbindgen_malloc);
-    const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.blake3_hash_once(ptr0, len0);
-    var v2 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
-    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
-    return v2;
-}
-
-/**
- * Hash data once using BLAKE3 with a context prefix.
- * - `data`: Raw bytes to hash
- * - `context`: Context bytes to prefix to the data
- * Returns 32 bytes of hash output.
- * This is useful for domain separation - the same data hashed with different contexts will produce different outputs.
- * @param {Uint8Array} data
- * @param {Uint8Array} context
- * @returns {Uint8Array}
- */
-export function blake3_hash_once_with_context(data, context) {
-    const ptr0 = passArray8ToWasm0(data, wasm.__wbindgen_malloc);
-    const len0 = WASM_VECTOR_LEN;
-    const ptr1 = passArray8ToWasm0(context, wasm.__wbindgen_malloc);
-    const len1 = WASM_VECTOR_LEN;
-    const ret = wasm.blake3_hash_once_with_context(ptr0, len0, ptr1, len1);
-    var v3 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
-    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
-    return v3;
-}
-
-/**
- * Get an empty BLAKE3 state for incremental hashing.
- * Returns a new Blake3Hasher instance for incremental hashing.
- * @returns {Blake3Hasher}
- */
-export function blake3_empty_state() {
-    const ret = wasm.blake3_empty_state();
-    return Blake3Hasher.__wrap(ret);
-}
-
-function _assertClass(instance, klass) {
-    if (!(instance instanceof klass)) {
-        throw new Error(`expected instance of ${klass.name}`);
-    }
-}
-/**
- * Update a BLAKE3 state with new data for incremental hashing.
- * - `state`: Current Blake3Hasher instance
- * - `data`: New data to incorporate into the hash
- * Returns the updated Blake3Hasher.
- * @param {Blake3Hasher} state
- * @param {Uint8Array} data
- */
-export function blake3_update_state(state, data) {
-    _assertClass(state, Blake3Hasher);
-    const ptr0 = passArray8ToWasm0(data, wasm.__wbindgen_malloc);
-    const len0 = WASM_VECTOR_LEN;
-    wasm.blake3_update_state(state.__wbg_ptr, ptr0, len0);
-}
-
-/**
- * Get the final hash from a BLAKE3 state.
- * - `state`: The Blake3Hasher to finalize
- * Returns 32 bytes of hash output.
- * This finalizes an incremental hashing operation.
- * @param {Blake3Hasher} state
- * @returns {Uint8Array}
- */
-export function blake3_digest_for_state(state) {
-    _assertClass(state, Blake3Hasher);
-    var ptr0 = state.__destroy_into_raw();
-    const ret = wasm.blake3_digest_for_state(ptr0);
-    var v2 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
-    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
-    return v2;
-}
-
-/**
  * Generate a new X25519 private key using secure random number generation.
  * Returns 32 bytes of raw key material suitable for use with other X25519 functions.
  * This key can be reused for multiple Diffie-Hellman exchanges.
@@ -759,6 +658,108 @@ export function unseal(sealed_message, recipient_secret, sender_id, nonce_materi
     var v5 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
     wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
     return v5;
+}
+
+/**
+ * Generate a 24-byte nonce from input material using BLAKE3.
+ * - `nonce_material`: Raw bytes to derive the nonce from
+ * Returns 24 bytes suitable for use as a nonce in cryptographic operations.
+ * This function is deterministic - the same input will produce the same nonce.
+ * @param {Uint8Array} nonce_material
+ * @returns {Uint8Array}
+ */
+export function generate_nonce(nonce_material) {
+    const ptr0 = passArray8ToWasm0(nonce_material, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.generate_nonce(ptr0, len0);
+    var v2 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+    return v2;
+}
+
+/**
+ * Hash data once using BLAKE3.
+ * - `data`: Raw bytes to hash
+ * Returns 32 bytes of hash output.
+ * This is the simplest way to compute a BLAKE3 hash of a single piece of data.
+ * @param {Uint8Array} data
+ * @returns {Uint8Array}
+ */
+export function blake3_hash_once(data) {
+    const ptr0 = passArray8ToWasm0(data, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.blake3_hash_once(ptr0, len0);
+    var v2 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+    return v2;
+}
+
+/**
+ * Hash data once using BLAKE3 with a context prefix.
+ * - `data`: Raw bytes to hash
+ * - `context`: Context bytes to prefix to the data
+ * Returns 32 bytes of hash output.
+ * This is useful for domain separation - the same data hashed with different contexts will produce different outputs.
+ * @param {Uint8Array} data
+ * @param {Uint8Array} context
+ * @returns {Uint8Array}
+ */
+export function blake3_hash_once_with_context(data, context) {
+    const ptr0 = passArray8ToWasm0(data, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passArray8ToWasm0(context, wasm.__wbindgen_malloc);
+    const len1 = WASM_VECTOR_LEN;
+    const ret = wasm.blake3_hash_once_with_context(ptr0, len0, ptr1, len1);
+    var v3 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+    return v3;
+}
+
+/**
+ * Get an empty BLAKE3 state for incremental hashing.
+ * Returns a new Blake3Hasher instance for incremental hashing.
+ * @returns {Blake3Hasher}
+ */
+export function blake3_empty_state() {
+    const ret = wasm.blake3_empty_state();
+    return Blake3Hasher.__wrap(ret);
+}
+
+function _assertClass(instance, klass) {
+    if (!(instance instanceof klass)) {
+        throw new Error(`expected instance of ${klass.name}`);
+    }
+}
+/**
+ * Update a BLAKE3 state with new data for incremental hashing.
+ * - `state`: Current Blake3Hasher instance
+ * - `data`: New data to incorporate into the hash
+ * Returns the updated Blake3Hasher.
+ * @param {Blake3Hasher} state
+ * @param {Uint8Array} data
+ */
+export function blake3_update_state(state, data) {
+    _assertClass(state, Blake3Hasher);
+    const ptr0 = passArray8ToWasm0(data, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    wasm.blake3_update_state(state.__wbg_ptr, ptr0, len0);
+}
+
+/**
+ * Get the final hash from a BLAKE3 state.
+ * - `state`: The Blake3Hasher to finalize
+ * Returns 32 bytes of hash output.
+ * This finalizes an incremental hashing operation.
+ * @param {Blake3Hasher} state
+ * @returns {Uint8Array}
+ */
+export function blake3_digest_for_state(state) {
+    _assertClass(state, Blake3Hasher);
+    var ptr0 = state.__destroy_into_raw();
+    const ret = wasm.blake3_digest_for_state(ptr0);
+    var v2 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+    return v2;
 }
 
 /**
@@ -942,11 +943,12 @@ export class SessionLog {
      * @param {string} encryption_key
      * @param {string} key_id
      * @param {number} made_at
+     * @param {string | null} [meta]
      * @returns {string}
      */
-    addNewPrivateTransaction(changes_json, signer_secret, encryption_key, key_id, made_at) {
-        let deferred6_0;
-        let deferred6_1;
+    addNewPrivateTransaction(changes_json, signer_secret, encryption_key, key_id, made_at, meta) {
+        let deferred7_0;
+        let deferred7_1;
         try {
             const ptr0 = passStringToWasm0(changes_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
             const len0 = WASM_VECTOR_LEN;
@@ -956,46 +958,51 @@ export class SessionLog {
             const len2 = WASM_VECTOR_LEN;
             const ptr3 = passStringToWasm0(key_id, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
             const len3 = WASM_VECTOR_LEN;
-            const ret = wasm.sessionlog_addNewPrivateTransaction(this.__wbg_ptr, ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3, made_at);
-            var ptr5 = ret[0];
-            var len5 = ret[1];
+            var ptr4 = isLikeNone(meta) ? 0 : passStringToWasm0(meta, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            var len4 = WASM_VECTOR_LEN;
+            const ret = wasm.sessionlog_addNewPrivateTransaction(this.__wbg_ptr, ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3, made_at, ptr4, len4);
+            var ptr6 = ret[0];
+            var len6 = ret[1];
             if (ret[3]) {
-                ptr5 = 0; len5 = 0;
+                ptr6 = 0; len6 = 0;
                 throw takeFromExternrefTable0(ret[2]);
             }
-            deferred6_0 = ptr5;
-            deferred6_1 = len5;
-            return getStringFromWasm0(ptr5, len5);
+            deferred7_0 = ptr6;
+            deferred7_1 = len6;
+            return getStringFromWasm0(ptr6, len6);
         } finally {
-            wasm.__wbindgen_free(deferred6_0, deferred6_1, 1);
+            wasm.__wbindgen_free(deferred7_0, deferred7_1, 1);
         }
     }
     /**
      * @param {string} changes_json
      * @param {string} signer_secret
      * @param {number} made_at
+     * @param {string | null} [meta]
      * @returns {string}
      */
-    addNewTrustingTransaction(changes_json, signer_secret, made_at) {
-        let deferred4_0;
-        let deferred4_1;
+    addNewTrustingTransaction(changes_json, signer_secret, made_at, meta) {
+        let deferred5_0;
+        let deferred5_1;
         try {
             const ptr0 = passStringToWasm0(changes_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
             const len0 = WASM_VECTOR_LEN;
             const ptr1 = passStringToWasm0(signer_secret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
             const len1 = WASM_VECTOR_LEN;
-            const ret = wasm.sessionlog_addNewTrustingTransaction(this.__wbg_ptr, ptr0, len0, ptr1, len1, made_at);
-            var ptr3 = ret[0];
-            var len3 = ret[1];
+            var ptr2 = isLikeNone(meta) ? 0 : passStringToWasm0(meta, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            var len2 = WASM_VECTOR_LEN;
+            const ret = wasm.sessionlog_addNewTrustingTransaction(this.__wbg_ptr, ptr0, len0, ptr1, len1, made_at, ptr2, len2);
+            var ptr4 = ret[0];
+            var len4 = ret[1];
             if (ret[3]) {
-                ptr3 = 0; len3 = 0;
+                ptr4 = 0; len4 = 0;
                 throw takeFromExternrefTable0(ret[2]);
             }
-            deferred4_0 = ptr3;
-            deferred4_1 = len3;
-            return getStringFromWasm0(ptr3, len3);
+            deferred5_0 = ptr4;
+            deferred5_1 = len4;
+            return getStringFromWasm0(ptr4, len4);
         } finally {
-            wasm.__wbindgen_free(deferred4_0, deferred4_1, 1);
+            wasm.__wbindgen_free(deferred5_0, deferred5_1, 1);
         }
     }
     /**
@@ -1022,6 +1029,25 @@ export class SessionLog {
         } finally {
             wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
         }
+    }
+    /**
+     * @param {number} tx_index
+     * @param {string} encryption_key
+     * @returns {string | undefined}
+     */
+    decryptNextTransactionMetaJson(tx_index, encryption_key) {
+        const ptr0 = passStringToWasm0(encryption_key, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.sessionlog_decryptNextTransactionMetaJson(this.__wbg_ptr, tx_index, ptr0, len0);
+        if (ret[3]) {
+            throw takeFromExternrefTable0(ret[2]);
+        }
+        let v2;
+        if (ret[0] !== 0) {
+            v2 = getStringFromWasm0(ret[0], ret[1]).slice();
+            wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+        }
+        return v2;
     }
 }
 

@@ -409,3 +409,22 @@ test("totalValidTransactions should return the number of valid transactions proc
     listOnOtherClient.core.getCurrentContent().totalValidTransactions,
   ).toEqual(2);
 });
+
+test("Should ignore unknown meta transactions", () => {
+  const node = nodeWithRandomAgentAndSessionID();
+
+  const coValue = node.createCoValue({
+    type: "colist",
+    ruleset: { type: "unsafeAllowAll" },
+    meta: null,
+    ...Crypto.createdNowUnique(),
+  });
+
+  coValue.makeTransaction([], "trusting", { unknownMeta: 1 });
+
+  const content = expectList(coValue.getCurrentContent());
+
+  content.append("first", 0, "trusting");
+
+  expect(content.toJSON()).toEqual(["first"]);
+});

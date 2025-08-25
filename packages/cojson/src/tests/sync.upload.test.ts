@@ -9,6 +9,7 @@ import {
   setupTestNode,
   waitFor,
 } from "./testUtils";
+import { determineValidTransactions } from "../permissions";
 
 // We want to simulate a real world communication that happens asynchronously
 TEST_NODE_CONFIG.withAsyncPeers = true;
@@ -35,6 +36,40 @@ describe("client to server upload", () => {
 
     const mapOnServer = await loadCoValueOrFail(jazzCloud.node, map.id);
     expect(mapOnServer.get("hello")).toEqual("world");
+
+    expect(
+      SyncMessagesLog.getMessages({
+        Group: group.core,
+        Map: map.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "client -> server | CONTENT Group header: true new: After: 0 New: 3",
+        "client -> server | CONTENT Map header: true new: After: 0 New: 1",
+        "server -> client | KNOWN Group sessions: header/3",
+        "server -> client | KNOWN Map sessions: header/1",
+      ]
+    `);
+  });
+
+  test("syncs meta information", async () => {
+    const client = setupTestNode({
+      connected: true,
+    });
+
+    const group = client.node.createGroup();
+    const map = group.createMap();
+    map.core.makeTransaction([], "trusting", {
+      meta: true,
+    });
+
+    await map.core.waitForSync();
+
+    const loadedValue = await loadCoValueOrFail(jazzCloud.node, map.id);
+
+    const validTransactions = determineValidTransactions(loadedValue.core);
+
+    expect(validTransactions[0]?.tx.meta).toBe(`{"meta":true}`);
 
     expect(
       SyncMessagesLog.getMessages({

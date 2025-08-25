@@ -298,6 +298,24 @@ test("Splits into and from grapheme string arrays", () => {
   expect(text).toEqual("👋 안녕!");
 });
 
+test("Should ignore unknown meta transactions", () => {
+  const node = nodeWithRandomAgentAndSessionID();
+
+  const coValue = node.createCoValue({
+    type: "coplaintext",
+    ruleset: { type: "unsafeAllowAll" },
+    meta: null,
+    ...Crypto.createdNowUnique(),
+  });
+
+  coValue.makeTransaction([], "trusting", { unknownMeta: 1 });
+
+  const content = expectPlainText(coValue.getCurrentContent());
+
+  content.insertAfter(0, "hello", "trusting");
+  expect(content.toString()).toEqual("hello");
+});
+
 test("chunks transactions when when the chars are longer than MAX_RECOMMENDED_TX_SIZE", async () => {
   setMaxRecommendedTxSize(5);
 
