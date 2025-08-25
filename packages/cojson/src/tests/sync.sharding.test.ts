@@ -74,7 +74,7 @@ describe("sharding", () => {
     );
   });
 
-  test("peersInPriorityOrder respects the serverPeerSelector", async () => {
+  test("getPeers respects the serverPeerSelector", async () => {
     const firstPeer: ServerPeerSelector = (id, serverPeers) => {
       return serverPeers.slice(0, 1);
     };
@@ -112,7 +112,7 @@ describe("sharding", () => {
       edge.syncManager.addPeer(peer);
     }
 
-    expect(edge.syncManager.peersInPriorityOrder("co_z12345").length).toBe(
+    expect(edge.syncManager.getPeers("co_z12345").length).toBe(
       2 + 1, // 2 clients + 1 selected core
     );
   });
