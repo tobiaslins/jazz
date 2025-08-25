@@ -103,7 +103,7 @@ type CoMapLikeLoaded<
   DepthLimit extends number,
   CurrentDepth extends number[],
 > = {
-  readonly [Key in keyof Depth]-?: Key extends CoKeys<V>
+  readonly [Key in keyof Omit<Depth, "$onError">]-?: Key extends CoKeys<V>
     ? NonNullable<V[Key]> extends CoValue
       ?
           | DeeplyLoaded<

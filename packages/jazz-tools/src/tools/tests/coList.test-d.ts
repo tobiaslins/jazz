@@ -215,12 +215,7 @@ describe("CoList", () => {
         },
       });
 
-      type ExpectedType = ReadonlyArray<
-        | (Loaded<typeof Dog> & {
-            $onError: never;
-          })
-        | null
-      > | null;
+      type ExpectedType = ReadonlyArray<Loaded<typeof Dog> | null> | null;
 
       function matches(value: ExpectedType) {
         return value;

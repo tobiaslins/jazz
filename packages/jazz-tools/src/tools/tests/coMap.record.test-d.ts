@@ -298,11 +298,7 @@ describe("CoMap.Record", () => {
       });
 
       type ExpectedType = {
-        [key: string]:
-          | (Loaded<typeof Dog> & {
-              $onError: never;
-            })
-          | null;
+        [key: string]: Loaded<typeof Dog> | null;
       } | null;
 
       function matches(value: ExpectedType) {

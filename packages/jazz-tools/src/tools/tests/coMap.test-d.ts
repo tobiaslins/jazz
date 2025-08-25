@@ -659,12 +659,9 @@ describe("CoMap resolution", async () => {
 
     assert(loadedPerson);
     expectTypeOf<typeof loadedPerson.dog1.name>().toEqualTypeOf<string>();
-    expectTypeOf<typeof loadedPerson.dog2>().toEqualTypeOf<
-      | (Loaded<typeof Dog> & {
-          readonly $onError: never; // TODO: Clean the $onError from the type
-        })
-      | null
-    >();
+    expectTypeOf<typeof loadedPerson.dog2>().branded.toEqualTypeOf<Loaded<
+      typeof Dog
+    > | null>();
   });
 
   test("loading a map with a nullable field", async () => {
