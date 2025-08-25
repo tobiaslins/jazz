@@ -10,6 +10,7 @@ import { accountOrAgentIDfromSessionID } from "../typeUtils/accountOrAgentIDfrom
 import { isCoValue } from "../typeUtils/isCoValue.js";
 import { RawAccountID } from "./account.js";
 import { RawGroup } from "./group.js";
+import { Transaction } from "../coValueCore/verifiedState.js";
 
 export type OpID = TransactionID & { changeIdx: number };
 
@@ -86,8 +87,12 @@ export class RawCoList<
     opID: OpID;
   }[];
   /** @internal */
-  totalValidTransactions = 0;
-  knownTransactions: CoValueKnownState["sessions"] = {};
+  knownTransactions: Set<Transaction>;
+
+  get totalValidTransactions() {
+    return this.knownTransactions.size;
+  }
+
   lastValidTransaction: number | undefined;
 
   /** @internal */
@@ -99,7 +104,7 @@ export class RawCoList<
     this.deletionsByInsertion = {};
     this.afterStart = [];
     this.beforeEnd = [];
-    this.knownTransactions = {};
+    this.knownTransactions = new Set<Transaction>();
 
     this.processNewTransactions();
   }
@@ -114,7 +119,6 @@ export class RawCoList<
       return;
     }
 
-    this.totalValidTransactions += transactions.length;
     let lastValidTransaction: number | undefined = undefined;
     let oldestValidTransaction: number | undefined = undefined;
     this._cachedEntries = undefined;
@@ -124,11 +128,6 @@ export class RawCoList<
       oldestValidTransaction = Math.min(
         oldestValidTransaction ?? Infinity,
         madeAt,
-      );
-
-      this.knownTransactions[txID.sessionID] = Math.max(
-        this.knownTransactions[txID.sessionID] ?? 0,
-        txID.txIndex,
       );
 
       for (const [changeIdx, changeUntyped] of changes.entries()) {
@@ -624,7 +623,6 @@ export class RawCoList<
     this.afterStart = listAfter.afterStart;
     this.beforeEnd = listAfter.beforeEnd;
     this.insertions = listAfter.insertions;
-    this.totalValidTransactions = listAfter.totalValidTransactions;
     this.lastValidTransaction = listAfter.lastValidTransaction;
     this.knownTransactions = listAfter.knownTransactions;
     this.deletionsByInsertion = listAfter.deletionsByInsertion;

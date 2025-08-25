@@ -27,6 +27,13 @@ import { expectGroup } from "../typeUtils/expectGroup.js";
 import { getDependedOnCoValuesFromRawData } from "./utils.js";
 import { CoValueHeader, Transaction, VerifiedState } from "./verifiedState.js";
 import { SessionMap } from "./SessionMap.js";
+import {
+  MergeCommit,
+  createBranch,
+  getBranchId,
+  getBranchSource,
+  mergeBranch,
+} from "./branching.js";
 
 export function idforHeader(
   header: CoValueHeader,
@@ -40,7 +47,7 @@ export type DecryptedTransaction = {
   txID: TransactionID;
   changes: JsonValue[];
   madeAt: number;
-  trusting?: boolean;
+  tx: Transaction;
 };
 
 export type AvailableCoValueCore = CoValueCore & { verified: VerifiedState };
@@ -82,10 +89,6 @@ export class CoValueCore {
   private _cachedContent?: RawCoValue;
   readonly listeners: Set<(core: CoValueCore, unsub: () => void) => void> =
     new Set();
-  private readonly _decryptionCache: {
-    [key: Encrypted<JsonValue[], JsonValue>]: JsonValue[] | undefined;
-    [key: Encrypted<JsonObject, JsonValue>]: JsonObject | undefined;
-  } = {};
   private _cachedDependentOn?: Set<RawCoID>;
   private counter: UpDownCounter;
 
@@ -340,13 +343,13 @@ export class CoValueCore {
       );
     }
     this._verified = state.clone();
-    this._cachedContent = undefined;
-    this._cachedDependentOn = undefined;
+    this.internalShamefullyResetCachedContent();
   }
 
   internalShamefullyResetCachedContent() {
     this._cachedContent = undefined;
     this._cachedDependentOn = undefined;
+    this.resetParsedTransactions();
   }
 
   groupInvalidationSubscription?: () => void;
@@ -368,7 +371,7 @@ export class CoValueCore {
 
       if (entry.isAvailable()) {
         this.groupInvalidationSubscription = entry.subscribe((_groupUpdate) => {
-          this._cachedContent = undefined;
+          this.internalShamefullyResetCachedContent();
           this.notifyUpdate("immediate");
         }, false);
       } else {
@@ -589,13 +592,7 @@ export class CoValueCore {
         meta,
       );
 
-      if (result.transaction.privacy === "private") {
-        this._decryptionCache[result.transaction.encryptedChanges] = changes;
-
-        if (result.transaction.meta) {
-          this._decryptionCache[result.transaction.meta] = meta;
-        }
-      }
+      this.verified.hydrateDecryptionCache(result.transaction, changes, meta);
     } else {
       result = this.verified.makeNewTrustingTransaction(
         sessionID,
@@ -646,86 +643,221 @@ export class CoValueCore {
     return newContent;
   }
 
-  getValidTransactions(options?: {
-    ignorePrivateTransactions: boolean;
-    knownTransactions?: CoValueKnownState["sessions"];
-  }): DecryptedTransaction[] {
+  validatedTransactionsSet = new Set<Transaction>();
+  parsedTransactionsSet = new Set<Transaction>();
+  parsedChanges: DecryptedTransaction[] = [];
+  branchStart:
+    | { branch: CoValueKnownState["sessions"]; madeAt: number }
+    | undefined;
+  mergeCommits: { commit: MergeCommit; madeAt: number }[] = [];
+
+  resetParsedTransactions() {
+    this.parsedChanges = [];
+    this.branchStart = undefined;
+    this.mergeCommits = [];
+    this.validatedTransactionsSet = new Set();
+    this.parsedTransactionsSet = new Set();
+  }
+
+  parseNewTransactions(ignorePrivateTransactions: boolean) {
     if (!this.verified) {
-      throw new Error(
-        "CoValueCore: getValidTransactions called on coValue without verified state",
-      );
+      return;
     }
 
-    const validTransactions = determineValidTransactions(
+    let validTransactions = determineValidTransactions(
       this,
-      options?.knownTransactions,
+      this.validatedTransactionsSet,
     );
 
-    const allTransactions: DecryptedTransaction[] = [];
-
     for (const { txID, tx } of validTransactions) {
-      if (options?.knownTransactions?.[txID.sessionID]! >= txID.txIndex) {
+      if (tx.privacy === "private" && ignorePrivateTransactions) {
         continue;
       }
 
-      let changes: JsonValue[];
-
-      if (tx.privacy === "private") {
-        if (options?.ignorePrivateTransactions) {
-          continue;
-        }
-
-        const readKey = this.getReadKey(tx.keyUsed);
-
-        if (!readKey) {
-          continue;
-        }
-
-        let decryptedChanges = this._decryptionCache[tx.encryptedChanges];
-
-        if (!decryptedChanges) {
-          decryptedChanges = this.verified.decryptTransaction(
-            txID.sessionID,
-            txID.txIndex,
-            readKey,
-          );
-
-          this._decryptionCache[tx.encryptedChanges] = decryptedChanges;
-        }
-
-        if (!decryptedChanges) {
-          logger.error("Failed to decrypt transaction despite having key", {
-            err: new Error("Failed to decrypt transaction despite having key"),
-          });
-          continue;
-        }
-
-        changes = decryptedChanges;
-      } else {
-        try {
-          changes = parseJSON(tx.changes);
-        } catch (e) {
-          logger.error("Failed to parse trusting transaction on " + this.id, {
-            err: e,
-          });
-          continue;
-        }
+      if (this.parsedTransactionsSet.has(tx)) {
+        continue;
       }
 
-      allTransactions.push({
+      const data = this.getTxData({ txID, tx });
+
+      if (!data) {
+        continue;
+      }
+
+      this.parsedTransactionsSet.add(tx);
+
+      this.parsedChanges.push({
         txID,
         madeAt: tx.madeAt,
-        changes,
-        trusting: tx.privacy === "trusting",
+        changes: data.changes,
+        tx,
       });
+
+      if (
+        data.meta?.["branch"] &&
+        (!this.branchStart || tx.madeAt < this.branchStart.madeAt)
+      ) {
+        this.branchStart = {
+          branch: data.meta.branch as CoValueKnownState["sessions"],
+          madeAt: tx.madeAt,
+        };
+      }
+
+      if (data.meta?.["merge"]) {
+        const mergeCommit = data.meta as MergeCommit;
+
+        this.mergeCommits.push({
+          commit: mergeCommit,
+          madeAt: tx.madeAt,
+        });
+      }
+    }
+  }
+
+  getTxData({
+    txID,
+    tx,
+  }: {
+    txID: TransactionID;
+    tx: Transaction;
+  }): { changes: JsonValue[]; meta: JsonObject | undefined } | undefined {
+    if (!this.verified) {
+      return undefined;
     }
 
-    return allTransactions;
+    if (tx.privacy === "private") {
+      const readKey = this.getReadKey(tx.keyUsed);
+
+      if (!readKey) {
+        return undefined;
+      }
+
+      const changes = this.verified.decryptTransaction(
+        txID.sessionID,
+        txID.txIndex,
+        readKey,
+        tx.encryptedChanges,
+      );
+
+      if (tx.meta) {
+        const meta = this.verified.decryptTransactionMeta(
+          txID.sessionID,
+          txID.txIndex,
+          readKey,
+          tx.meta,
+        );
+
+        return { changes, meta };
+      }
+
+      return { changes, meta: undefined };
+    }
+
+    let changes: JsonValue[];
+
+    try {
+      changes = parseJSON(tx.changes);
+    } catch (e) {
+      logger.error("Failed to parse trusting transaction on " + this.id, {
+        err: e,
+      });
+      changes = [];
+    }
+
+    let meta: JsonObject | undefined;
+
+    if (tx.meta) {
+      try {
+        meta = parseJSON(tx.meta);
+      } catch (e) {
+        logger.error(
+          "Failed to parse trusting transaction meta on " + this.id,
+          {
+            err: e,
+          },
+        );
+      }
+    }
+
+    return { changes, meta };
+  }
+
+  getValidTransactions(options?: {
+    ignorePrivateTransactions: boolean;
+    // Expects the sessions object that marks the count of transactions
+    from?: CoValueKnownState["sessions"];
+    to?: CoValueKnownState["sessions"];
+    knownTransactions?: Set<Transaction>;
+    skipBranchSource?: boolean;
+  }): DecryptedTransaction[] {
+    if (!this.verified) {
+      return [];
+    }
+
+    this.parseNewTransactions(options?.ignorePrivateTransactions ?? false);
+
+    const newTransactions: DecryptedTransaction[] = [];
+
+    for (const value of this.parsedChanges) {
+      if (options?.knownTransactions?.has(value.tx)) {
+        continue;
+      }
+
+      options?.knownTransactions?.add(value.tx);
+
+      const { txID, madeAt } = value;
+
+      const from = options?.from?.[txID.sessionID] ?? -1;
+      const to = options?.to?.[txID.sessionID] ?? Infinity;
+
+      // The txIndex starts at 0 and from/to are referring to the count of transactions
+      if (from > txID.txIndex || to < txID.txIndex) {
+        continue;
+      }
+
+      newTransactions.push(value);
+    }
+
+    const source = getBranchSource(this);
+
+    if (source && this.branchStart && !options?.skipBranchSource) {
+      const sourceTransactions = source.getValidTransactions({
+        to: this.branchStart.branch,
+        ignorePrivateTransactions: options?.ignorePrivateTransactions ?? false,
+        knownTransactions: options?.knownTransactions,
+      });
+
+      for (const { txID, madeAt, changes, tx } of sourceTransactions) {
+        newTransactions.push({
+          txID: {
+            sessionID: `${txID.sessionID}_branch_${source.id}`,
+            txIndex: txID.txIndex,
+          },
+          madeAt,
+          changes,
+          tx,
+        });
+      }
+    }
+
+    return newTransactions;
+  }
+
+  createBranch(name: string, ownerId: RawCoID) {
+    return createBranch(this, name, ownerId);
+  }
+
+  mergeBranch() {
+    return mergeBranch(this);
+  }
+
+  getBranchId(name: string, ownerId: RawCoID) {
+    return getBranchId(this, name, ownerId);
   }
 
   getValidSortedTransactions(options?: {
     ignorePrivateTransactions: boolean;
-    knownTransactions: CoValueKnownState["sessions"];
+    knownTransactions?: Set<Transaction>;
   }): DecryptedTransaction[] {
     const allTransactions = this.getValidTransactions(options);
 

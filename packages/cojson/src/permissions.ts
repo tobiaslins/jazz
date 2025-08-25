@@ -79,7 +79,7 @@ function logPermissionError(
 
 export function determineValidTransactions(
   coValue: CoValueCore,
-  knownTransactions?: CoValueKnownState["sessions"],
+  validatedTransactionsSet?: Set<Transaction>,
 ): { txID: TransactionID; tx: Transaction }[] {
   if (!coValue.isAvailable()) {
     throw new Error("determineValidTransactions CoValue is not available");
@@ -111,12 +111,11 @@ export function determineValidTransactions(
 
     for (const [sessionID, sessionLog] of coValue.verified.sessions.entries()) {
       const transactor = accountOrAgentIDfromSessionID(sessionID);
-      const knownTransactionsForSession = knownTransactions?.[sessionID] ?? -1;
-
       sessionLog.transactions.forEach((tx, txIndex) => {
-        if (knownTransactionsForSession >= txIndex) {
+        if (validatedTransactionsSet?.has(tx)) {
           return;
         }
+        validatedTransactionsSet?.add(tx);
 
         const groupAtTime = groupContent.atTime(tx.madeAt);
         const effectiveTransactor = agentInAccountOrMemberInGroup(
@@ -148,13 +147,11 @@ export function determineValidTransactions(
     const validTransactions: ValidTransactionsResult[] = [];
 
     for (const [sessionID, sessionLog] of coValue.verified.sessions.entries()) {
-      const knownTransactionsForSession = knownTransactions?.[sessionID] ?? -1;
-
       sessionLog.transactions.forEach((tx, txIndex) => {
-        if (knownTransactionsForSession >= txIndex) {
+        if (validatedTransactionsSet?.has(tx)) {
           return;
         }
-
+        validatedTransactionsSet?.add(tx);
         validTransactions.push({ txID: { sessionID, txIndex }, tx });
       });
     }
