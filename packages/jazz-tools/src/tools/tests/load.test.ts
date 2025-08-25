@@ -137,7 +137,7 @@ test("retry an unavailable value", async () => {
   const currentAccount = Account.getMe();
 
   // Disconnect the current account
-  currentAccount._raw.core.node.syncManager.getPeers().forEach((peer) => {
+  currentAccount._raw.core.node.syncManager.getClientPeers().forEach((peer) => {
     peer.gracefulShutdown();
   });
 
@@ -169,9 +169,11 @@ test("returns null if the value is unavailable after retries", async () => {
   const currentAccount = Account.getMe();
 
   // Disconnect the current account
-  currentAccount._raw.core.node.syncManager.getPeers().forEach((peer) => {
-    peer.gracefulShutdown();
-  });
+  currentAccount._raw.core.node.syncManager
+    .getServerPeers(currentAccount._raw.id)
+    .forEach((peer) => {
+      peer.gracefulShutdown();
+    });
 
   const group = Group.create();
   const map = Person.create({ name: "John" }, group);

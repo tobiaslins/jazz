@@ -726,9 +726,11 @@ describe("CoMap resolution", async () => {
     const currentAccount = Account.getMe();
 
     // Disconnect the current account
-    currentAccount._raw.core.node.syncManager.getPeers().forEach((peer) => {
-      peer.gracefulShutdown();
-    });
+    currentAccount._raw.core.node.syncManager
+      .getServerPeers(currentAccount._raw.id)
+      .forEach((peer) => {
+        peer.gracefulShutdown();
+      });
 
     const group = Group.create();
     group.addMember("everyone", "writer");
@@ -771,9 +773,11 @@ describe("CoMap resolution", async () => {
     const currentAccount = Account.getMe();
 
     // Disconnect the current account
-    currentAccount._raw.core.node.syncManager.getPeers().forEach((peer) => {
-      peer.gracefulShutdown();
-    });
+    currentAccount._raw.core.node.syncManager
+      .getServerPeers(currentAccount._raw.id)
+      .forEach((peer) => {
+        peer.gracefulShutdown();
+      });
 
     const group = Group.create();
     group.addMember("everyone", "writer");
