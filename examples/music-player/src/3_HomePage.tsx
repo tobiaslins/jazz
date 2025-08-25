@@ -1,10 +1,5 @@
 import { useToast } from "@/hooks/use-toast";
-import {
-  createInviteLink,
-  useAccount,
-  useCoState,
-  useIsAuthenticated,
-} from "jazz-tools/react";
+import { createInviteLink, useAccount, useCoState } from "jazz-tools/react";
 import { useParams } from "react-router";
 import { MusicaAccount, Playlist } from "./1_schema";
 import { uploadMusicTracks } from "./4_actions";
