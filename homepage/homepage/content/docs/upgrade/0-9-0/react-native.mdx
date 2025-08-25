@@ -106,7 +106,7 @@ This change improves IDE intellisense support and simplifies imports:
         }, account);
 
         // ✅ Use JazzTestProvider in your tests
-        const { result } = renderHook(() => usePlaylist(playlist.$jazz.id), {
+        const { result } = renderHook(() => usePlaylist(playlist.id), {
           wrapper: ({ children }) => (
             <JazzTestProvider account={account}>
               {children}

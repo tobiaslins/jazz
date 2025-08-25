@@ -103,7 +103,7 @@ your components and hooks using `JazzTestProvider`:
         }, account);
 
         // ✅ Use JazzTestProvider in your tests
-        const { result } = renderHook(() => usePlaylist(playlist.$jazz.id), {
+        const { result } = renderHook(() => usePlaylist(playlist.id), {
           wrapper: ({ children }) => (
             <JazzTestProvider account={account}>
               {children}
