@@ -90,7 +90,7 @@ function canEdit(value: RawCoValue) {
   try {
     const myRole = value.group.myRole();
 
-    return myRole === "writer" || myRole === "admin" || myRole === "writeOnly";
+    return myRole === "writer" || myRole === "admin";
   } catch (e) {
     return false;
   }
@@ -128,24 +128,26 @@ function View(
     return <CoPlainTextView data={snapshot} />;
   }
 
-  if (type === "colist" || extendedType === "record") {
-    const onRemove =
-      canEdit(value) && type === "colist"
-        ? (index: number) => {
-            if (confirm("Are you sure you want to remove this item?")) {
-              const list = value as RawCoList;
-              list.delete(index);
-            }
-          }
-        : undefined;
+  if (type === "colist") {
+    const handleRemove = (index: number) => {
+      if (confirm("Are you sure you want to remove this item?")) {
+        const list = value as RawCoList;
+        list.delete(index);
+      }
+    };
+
     return (
       <TableView
         data={snapshot}
         node={node}
         onNavigate={onNavigate}
-        onRemove={onRemove}
+        onRemove={canEdit(value) ? handleRemove : undefined}
       />
     );
+  }
+
+  if (extendedType === "record") {
+    return <TableView data={snapshot} node={node} onNavigate={onNavigate} />;
   }
 
   return <GridView data={snapshot} onNavigate={onNavigate} node={node} />;
