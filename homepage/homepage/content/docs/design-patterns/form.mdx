@@ -390,9 +390,7 @@ export const JazzAccount = co.account({
   profile: co.map({ name: z.string() }),
 }).withMigration((account, creationProps?: { name: string }) => {
   if (account.root === undefined) {
-    const draft = DraftBubbleTeaOrder.create({});
-
-    account.root = AccountRoot.create({ draft });
+    account.$jazz.set("root", { draft: {} });
   }
 });
 ```
@@ -421,9 +419,7 @@ export const JazzAccount = co.account({
   profile: co.map({ name: z.string() }),
 }).withMigration((account, creationProps?: { name: string }) => {
   if (account.root === undefined) {
-    const draft = DraftBubbleTeaOrder.create({});
-
-    account.root = AccountRoot.create({ draft });
+    account.$jazz.set("root", { draft: {} });
   }
 });
 
@@ -480,9 +476,7 @@ export const JazzAccount = co.account({
   profile: co.map({ name: z.string() }),
 }).withMigration((account, creationProps?: { name: string }) => {
   if (account.root === undefined) {
-    const draft = DraftBubbleTeaOrder.create({});
-
-    account.root = AccountRoot.create({ draft });
+    account.$jazz.set("root", { draft: {} });
   }
 });
 
@@ -642,9 +636,7 @@ export const JazzAccount = co.account({
   profile: co.map({ name: z.string() }),
 }).withMigration((account, creationProps?: { name: string }) => {
   if (account.root === undefined) {
-    const draft = DraftBubbleTeaOrder.create({});
-
-    account.root = AccountRoot.create({ draft });
+    account.$jazz.set("root", { draft: {} });
   }
 });
 

@@ -26,20 +26,17 @@ export const TestAccount = co
       const publicGroup = Group.create();
       publicGroup.makePublic("writer");
 
-      account.root = Root.create(
-        {
-          people: People.create([
-            Person.create(
-              { name: "John", age: 30, dog: Dog.create({ name: "Rex" }) },
-              publicGroup,
-            ),
-            Person.create(
-              { name: "Mathieu", age: 30, dog: Dog.create({ name: "Bibi" }) },
-              publicGroup,
-            ),
-          ]),
-        },
-        publicGroup,
+      account.$jazz.set(
+        "root",
+        Root.create(
+          {
+            people: [
+              { name: "John", age: 30, dog: { name: "Rex" } },
+              { name: "Mathieu", age: 30, dog: { name: "Bibi" } },
+            ],
+          },
+          publicGroup,
+        ),
       );
     }
   });

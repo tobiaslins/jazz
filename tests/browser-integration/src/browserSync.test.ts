@@ -20,7 +20,7 @@ const CustomAccount = co
   })
   .withMigration((account) => {
     if (!account.root) {
-      account.root = TestMap.create({ value: "initial" }, { owner: account });
+      account.$jazz.set("root", { value: "initial" });
     }
   });
 

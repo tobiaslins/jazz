@@ -71,9 +71,9 @@ export const JazzAccount = co
   })
   .withMigration((account) => {
     if (!account.root) {
-      account.root = AccountRoot.create(
-        { draft: { addOns: [], instructions: "" }, orders: [] },
-        account,
-      );
+      account.$jazz.set("root", {
+        draft: { addOns: [], instructions: "" },
+        orders: [],
+      });
     }
   });

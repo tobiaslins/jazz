@@ -202,11 +202,8 @@ export const MyAppAccount = co.account({
   // we specifically need to check for undefined,
   // because the root might simply be not loaded (`null`) yet
   if (account.root === undefined) {
-    account.root = MyAppRoot.create({
-      // Using a group to set the owner is always a good idea.
-      // This way if in the future we want to share
-      // this coValue we can do so easily.
-      myChats: co.list(Chat).create([], Group.create()),
+    account.$jazz.set("root", {
+      myChats: [],
     });
   }
 
@@ -256,8 +253,8 @@ export const MyAppAccount = co.account({
   profile: MyAppProfile,
 }).withMigration(async (account) => {
   if (account.root === undefined) {
-    account.root = MyAppRoot.create({
-      myChats: co.list(Chat).create([], Group.create()),
+    account.$jazz.set("root", {
+      myChats: [],
     });
   }
 

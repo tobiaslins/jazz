@@ -27,48 +27,30 @@ export const TestAccount = co
       const publicGroup = Group.create();
       publicGroup.makePublic("writer");
 
-      account.root = Root.create(
-        {
-          people: PeopleRecord.create({
-            alice: People.create(
-              Array.from({ length: 50 }, (_, i) =>
-                Person.create(
-                  {
-                    name: `Alice ${i}`,
-                    age: 30,
-                    dog: Dog.create({ name: `Dog ${i}` }),
-                  },
-                  publicGroup,
-                ),
-              ),
-            ),
-            bob: People.create(
-              Array.from({ length: 50 }, (_, i) =>
-                Person.create(
-                  {
-                    name: `Bob ${i}`,
-                    age: 30,
-                    dog: Dog.create({ name: `Dog ${i}` }),
-                  },
-                  publicGroup,
-                ),
-              ),
-            ),
-            john: People.create(
-              Array.from({ length: 50 }, (_, i) =>
-                Person.create(
-                  {
-                    name: `John ${i}`,
-                    age: 30,
-                    dog: Dog.create({ name: `Dog ${i}` }),
-                  },
-                  publicGroup,
-                ),
-              ),
-            ),
-          }),
-        },
-        publicGroup,
+      account.$jazz.set(
+        "root",
+        Root.create(
+          {
+            people: {
+              alice: Array.from({ length: 50 }, (_, i) => ({
+                name: `Alice ${i}`,
+                age: 30,
+                dog: { name: `Dog ${i}` },
+              })),
+              bob: Array.from({ length: 50 }, (_, i) => ({
+                name: `Bob ${i}`,
+                age: 30,
+                dog: { name: `Dog ${i}` },
+              })),
+              john: Array.from({ length: 50 }, (_, i) => ({
+                name: `John ${i}`,
+                age: 30,
+                dog: { name: `Dog ${i}` },
+              })),
+            },
+          },
+          publicGroup,
+        ),
       );
     }
   });

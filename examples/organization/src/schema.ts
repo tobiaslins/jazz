@@ -78,7 +78,7 @@ export const JazzAccount = co
         ),
       ]);
 
-      account.root = JazzAccountRoot.create({
+      account.$jazz.set("root", {
         draftOrganization,
         organizations,
       });

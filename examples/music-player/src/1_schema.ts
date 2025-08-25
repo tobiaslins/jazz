@@ -95,7 +95,7 @@ export const MusicaAccount = co
         title: "",
       });
 
-      account.root = MusicaAccountRoot.create({
+      account.$jazz.set("root", {
         rootPlaylist,
         playlists: [],
         activeTrack: undefined,

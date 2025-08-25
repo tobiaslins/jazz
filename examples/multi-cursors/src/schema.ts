@@ -23,14 +23,14 @@ export const CursorAccount = co
   })
   .withMigration((account) => {
     if (account.root === undefined) {
-      account.root = CursorRoot.create({
+      account.$jazz.set("root", {
         camera: {
           position: {
             x: 0,
             y: 0,
           },
         },
-        cursors: CursorFeed.create([]),
+        cursors: [],
       });
     }
 
