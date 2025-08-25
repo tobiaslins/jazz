@@ -36,12 +36,7 @@ describe("Jazz Test Sync", () => {
       })
       .withMigration((account) => {
         if (account.root === undefined) {
-          account.$jazz.set(
-            "root",
-            MyRoot.create({
-              value: "ok",
-            }),
-          );
+          account.$jazz.set("root", { value: "ok" });
         }
       });
 
@@ -65,12 +60,7 @@ describe("Jazz Test Sync", () => {
       })
       .withMigration((account) => {
         if (account.root === undefined) {
-          account.$jazz.set(
-            "root",
-            MyRoot.create({
-              value: "ok",
-            }),
-          );
+          account.$jazz.set("root", { value: "ok" });
         }
       });
 

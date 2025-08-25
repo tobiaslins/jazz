@@ -39,12 +39,14 @@ import {
   SubscribeRestArgs,
   TypeSym,
   accessChildByKey,
+  accountOrGroupToGroup,
   activeAccountContext,
   coValueClassFromCoValueClassOrSchema,
   coValuesCache,
   createInboxRoot,
   ensureCoValueLoaded,
   inspect,
+  instantiateRefEncodedWithInit,
   loadCoValue,
   loadCoValueWithoutMe,
   parseSubscribeRestArgs,
@@ -284,7 +286,7 @@ export class Account extends CoValueBase implements CoValue {
 
       this.$jazz.set(
         "profile",
-        Profile.create({ name: creationProps.name }, profileGroup),
+        Profile.create({ name: creationProps.name }, profileGroup) as any,
       );
       profileGroup.addMember("everyone", "reader");
     }
@@ -391,13 +393,24 @@ class AccountJazzApi<A extends Account> extends CoValueJazzApi<A> {
    *
    * @category Content
    */
-  set<K extends "root" | "profile">(key: K, value: NonNullable<Account[K]>) {
+  set<K extends "root" | "profile">(
+    key: K,
+    value: CoFieldInit<NonNullable<A[K]>>,
+  ) {
     if (value) {
-      this.raw.set(
-        key,
-        value.$jazz.id as unknown as CoID<RawCoMap>,
-        "trusting",
-      );
+      let refId = (value as unknown as CoValue).$jazz?.id as
+        | CoID<RawCoMap>
+        | undefined;
+      if (!refId) {
+        const descriptor = this.schema[key];
+        const coValue = instantiateRefEncodedWithInit(
+          descriptor,
+          value,
+          accountOrGroupToGroup(this.account),
+        );
+        refId = coValue.$jazz.id as CoID<RawCoMap>;
+      }
+      this.raw.set(key, refId, "trusting");
     }
   }
 
@@ -506,8 +519,8 @@ class AccountJazzApi<A extends Account> extends CoValueJazzApi<A> {
 
   /** @internal */
   get schema(): {
-    profile: Schema;
-    root: Schema;
+    profile: RefEncoded<Profile>;
+    root: RefEncoded<CoMap>;
   } {
     return (this.account.constructor as typeof Account)._schema;
   }

@@ -327,12 +327,9 @@ describe("ContextManager", () => {
         profile: co.profile(),
       })
       .withMigration(async (account: Account) => {
-        account.$jazz.set(
-          "root",
-          AccountRoot.create({
-            value: "Hello",
-          }),
-        );
+        account.$jazz.set("root", {
+          value: "Hello",
+        });
         lastRootId = account.root!.$jazz.id;
       });
 
