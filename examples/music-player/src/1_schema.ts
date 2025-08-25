@@ -95,7 +95,7 @@ export const MusicaAccount = co
         title: "",
       });
 
-      account.root = MusicaAccountRoot.create({
+      account.$jazz.set("root", {
         rootPlaylist,
         playlists: [],
         activeTrack: undefined,
@@ -105,11 +105,14 @@ export const MusicaAccount = co
     }
 
     if (account.profile === undefined) {
-      account.profile = MusicaAccountProfile.create(
-        {
-          name: "",
-        },
-        Group.create().makePublic(),
+      account.$jazz.set(
+        "profile",
+        MusicaAccountProfile.create(
+          {
+            name: "",
+          },
+          Group.create().makePublic(),
+        ),
       );
     }
   });

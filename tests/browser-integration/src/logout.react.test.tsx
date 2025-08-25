@@ -15,10 +15,7 @@ const TestAccount = co
   })
   .withMigration((account) => {
     if (!account.root) {
-      account.root = TestMap.create(
-        { count: TestMap.shape.count.create({ value: 0 }) },
-        { owner: account },
-      );
+      account.$jazz.set("root", { count: { value: 0 } });
     }
   });
 

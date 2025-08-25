@@ -1,4 +1,4 @@
-import { assert, beforeEach, expect, test } from "vitest";
+import { assert, beforeEach, describe, expect, test } from "vitest";
 import { Account, Group, co, z } from "../exports.js";
 import {
   createJazzTestAccount,
@@ -170,21 +170,24 @@ test("should support recursive props on co.profile", async () => {
       if (me.profile === undefined) {
         const group = Group.create({ owner: me });
         group.addMember("everyone", "reader");
-        me.profile = User.create(
-          {
-            name: "test 1",
-            created: new Date(),
-            updated: new Date(),
-            anonymous: false,
-            following: co.list(User).create([], group),
-            followers: co.list(User).create([], group),
-          },
-          group,
+        me.$jazz.set(
+          "profile",
+          User.create(
+            {
+              name: "test 1",
+              created: new Date(),
+              updated: new Date(),
+              anonymous: false,
+              following: co.list(User).create([], group),
+              followers: co.list(User).create([], group),
+            },
+            group,
+          ),
         );
       }
 
       if (me.root === undefined) {
-        me.root = co.map({}).create({});
+        me.$jazz.set("root", {});
       }
     });
 
@@ -218,64 +221,114 @@ test("cannot update account profile properties directly", async () => {
   expect(account.profile.name).toBe("test 3");
 });
 
-test("root and profile should be trusting by default", async () => {
-  const AccountSchema = co
-    .account({
-      profile: co.profile(),
-      root: co.map({
-        name: z.string(),
-      }),
-    })
-    .withMigration((me, creationProps) => {
-      const group = Group.create({ owner: me }).makePublic();
+describe("root and profile", () => {
+  test("root and profile should be trusting by default", async () => {
+    const AccountSchema = co
+      .account({
+        profile: co.profile(),
+        root: co.map({
+          name: z.string(),
+        }),
+      })
+      .withMigration((me, creationProps) => {
+        const group = Group.create({ owner: me }).makePublic();
 
-      if (me.profile === undefined) {
-        me.profile = co.profile().create(
-          {
-            name: creationProps?.name ?? "Anonymous",
-          },
-          group,
-        );
-      }
-
-      if (me.root === undefined) {
-        me.root = co
-          .map({
-            name: z.string(),
-          })
-          .create(
-            {
-              name: creationProps?.name ?? "Anonymous",
-            },
-            group,
+        if (me.profile === undefined) {
+          me.$jazz.set(
+            "profile",
+            co.profile().create(
+              {
+                name: creationProps?.name ?? "Anonymous",
+              },
+              group,
+            ),
           );
-      }
+        }
+
+        if (me.root === undefined) {
+          me.$jazz.set(
+            "root",
+            co
+              .map({
+                name: z.string(),
+              })
+              .create(
+                {
+                  name: creationProps?.name ?? "Anonymous",
+                },
+                group,
+              ),
+          );
+        }
+      });
+
+    const bob = await createJazzTestAccount({
+      AccountSchema,
+      creationProps: {
+        name: "Bob",
+      },
     });
 
-  const bob = await createJazzTestAccount({
-    AccountSchema,
-    creationProps: {
-      name: "Bob",
-    },
+    const alice = await createJazzTestAccount({
+      AccountSchema,
+      creationProps: {
+        name: "Alice",
+      },
+    });
+
+    const bobAccountLoadedFromAlice = await AccountSchema.load(bob.$jazz.id, {
+      loadAs: alice,
+      resolve: {
+        profile: true,
+        root: true,
+      },
+    });
+
+    assert(bobAccountLoadedFromAlice);
+
+    expect(bobAccountLoadedFromAlice.profile.name).toBe("Bob");
+    expect(bobAccountLoadedFromAlice.root.name).toBe("Bob");
   });
 
-  const alice = await createJazzTestAccount({
-    AccountSchema,
-    creationProps: {
-      name: "Alice",
-    },
+  test("can be initialized using JSON objects", async () => {
+    const Avatar = co.map({
+      url: z.string(),
+    });
+    const CustomProfile = co.profile({
+      avatar: Avatar,
+    });
+    const CustomRoot = co.map({
+      name: z.string(),
+    });
+    const AccountSchema = co
+      .account({
+        profile: CustomProfile,
+        root: CustomRoot,
+      })
+      .withMigration((me, creationProps) => {
+        if (me.profile === undefined) {
+          me.$jazz.set("profile", {
+            name: creationProps?.name ?? "Anonymous",
+            avatar: {
+              url: "https://example.com/avatar.png",
+            },
+          });
+        }
+
+        if (me.root === undefined) {
+          me.$jazz.set("root", { name: creationProps?.name ?? "Anonymous" });
+        }
+      });
+
+    const account = await createJazzTestAccount({
+      AccountSchema,
+      creationProps: {
+        name: "test 1",
+      },
+    });
+
+    expect(account.profile.name).toBe("test 1");
+    expect(account.profile.avatar.url).toBe("https://example.com/avatar.png");
+    expect(account.root.name).toBe("test 1");
   });
-
-  const bobAccountLoadedFromAlice = await AccountSchema.load(bob.$jazz.id, {
-    loadAs: alice,
-    resolve: {
-      profile: true,
-      root: true,
-    },
-  });
-
-  assert(bobAccountLoadedFromAlice);
-
-  expect(bobAccountLoadedFromAlice.profile.name).toBe("Bob");
-  expect(bobAccountLoadedFromAlice.root.name).toBe("Bob");
 });

@@ -30,15 +30,10 @@ const AccountSchema = co
   })
   .withMigration((account) => {
     if (!account.root) {
-      account.root = AccountRoot.create({ value: "test" }, { owner: account });
+      account.$jazz.set("root", { value: "test" });
     }
     if (!account.profile) {
-      // Profile must be owned by a Group, not the account itself
-      const group = Group.create();
-      account.profile = AccountProfile.create(
-        { name: "Test User" },
-        { owner: group },
-      );
+      account.$jazz.set("profile", { name: "Test User" });
     }
   });
 
@@ -97,7 +92,7 @@ describe("Proxy Behavior Verification", () => {
     );
 
     // Update account root
-    sharedAccountWithSchema.root = rootMap;
+    sharedAccountWithSchema.$jazz.set("root", rootMap);
 
     const [accountResult] = withJazzTestSetup(
       () => useAccount(AccountSchema, { resolve: { root: { testMap: true } } }),

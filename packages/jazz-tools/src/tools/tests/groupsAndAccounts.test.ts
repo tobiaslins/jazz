@@ -35,12 +35,14 @@ describe("Custom accounts and groups", async () => {
         type P = typeof account.profile;
         const _p: P = {} as Loaded<typeof CustomProfile> | null;
         if (creationProps) {
-          console.log("In migration!");
           const profileGroup = Group.create({ owner: account });
           profileGroup.addMember("everyone", "reader");
-          account.profile = CustomProfile.create(
-            { name: creationProps.name, color: "blue" },
-            profileGroup,
+          account.$jazz.set(
+            "profile",
+            CustomProfile.create(
+              { name: creationProps.name, color: "blue" },
+              profileGroup,
+            ),
           );
         }
       });

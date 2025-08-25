@@ -139,12 +139,9 @@ describe("startWorker integration", () => {
 
           shouldReloadPreviousAccount = true;
 
-          account.root = AccountRoot.create(
-            {
-              value: "test",
-            },
-            account,
-          );
+          account.$jazz.set("root", {
+            value: "test",
+          });
         }
       });
 

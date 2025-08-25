@@ -3,6 +3,7 @@ export const metadata = {
 };
 
 import { CodeGroup, ComingSoon, ContentByFramework } from "@/components/forMdx";
+import { Alert } from "@garden-co/design-system/src/components/atoms/Alert";
 
 # Accounts & Migrations
 
@@ -98,6 +99,11 @@ export const MyAppAccount = co.account({
 });
 ```
 </CodeGroup>
+
+<Alert variant="info" className="mt-4 flex gap-2 items-center">
+  When using custom profile schemas, you need to take care of initializing the `profile` field in a migration,
+  and set up the correct permissions for it. See [Adding/changing fields to root and profile](#addingchanging-fields-to-root-and-profile).
+</Alert>
 
 ## Resolving CoValues starting at `profile` or `root`
 
@@ -196,11 +202,8 @@ export const MyAppAccount = co.account({
   // we specifically need to check for undefined,
   // because the root might simply be not loaded (`null`) yet
   if (account.root === undefined) {
-    account.root = MyAppRoot.create({
-      // Using a group to set the owner is always a good idea.
-      // This way if in the future we want to share
-      // this coValue we can do so easily.
-      myChats: co.list(Chat).create([], Group.create()),
+    account.$jazz.set("root", {
+      myChats: [],
     });
   }
 
@@ -209,10 +212,13 @@ export const MyAppAccount = co.account({
     // Unlike the root, we want the profile to be publicly readable.
     profileGroup.makePublic();
 
-    account.profile = MyAppProfile.create({
-      name: creationProps?.name ?? "New user",
-      bookmarks: co.list(Bookmark).create([], profileGroup),
-    }, profileGroup);
+    account.$jazz.set(
+      "profile",
+      MyAppProfile.create({
+        name: creationProps?.name ?? "New user",
+        bookmarks: co.list(Bookmark).create([], profileGroup),
+      }, profileGroup),
+    );
   }
 });
 ```
@@ -250,8 +256,8 @@ export const MyAppAccount = co.account({
   profile: MyAppProfile,
 }).withMigration(async (account) => {
   if (account.root === undefined) {
-    account.root = MyAppRoot.create({
-      myChats: co.list(Chat).create([], Group.create()),
+    account.$jazz.set("root", {
+      myChats: [],
     });
   }
 

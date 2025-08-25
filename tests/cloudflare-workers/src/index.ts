@@ -16,7 +16,7 @@ class MyAccount extends Account {
 
   migrate(): void {
     if (this.root === undefined) {
-      this.root = MyAccountRoot.create({
+      this.$jazz.set("root", {
         text: "Hello world!",
       });
     }

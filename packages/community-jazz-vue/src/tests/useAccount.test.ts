@@ -21,15 +21,12 @@ const AccountSchema = co
   })
   .withMigration((account) => {
     if (!account.root) {
-      account.root = AccountRoot.create({ value: "123" }, { owner: account });
+      account.$jazz.set("root", { value: "123" });
     }
     if (!account.profile) {
       // Profile must be owned by a Group, not the account itself
       const group = Group.create();
-      account.profile = AccountProfile.create(
-        { name: "Test User" },
-        { owner: group },
-      );
+      account.$jazz.set("profile", { name: "Test User" });
     }
   });
 

@@ -18,8 +18,8 @@ const WorkerAccount = co
   })
   .withMigration((account) => {
     if (account.root === undefined) {
-      account.root = WorkerRoot.create({
-        notificationQueue: co.list(QueuedNotification).create([]),
+      account.$jazz.set("root", {
+        notificationQueue: [],
       });
     }
   });

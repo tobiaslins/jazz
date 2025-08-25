@@ -15,6 +15,7 @@ import {
 } from "cojson";
 import {
   AnonymousJazzAgent,
+  CoFieldInit,
   type CoMap,
   type CoValue,
   CoValueBase,
@@ -38,12 +39,14 @@ import {
   SubscribeRestArgs,
   TypeSym,
   accessChildByKey,
+  accountOrGroupToGroup,
   activeAccountContext,
   coValueClassFromCoValueClassOrSchema,
   coValuesCache,
   createInboxRoot,
   ensureCoValueLoaded,
   inspect,
+  instantiateRefEncodedWithInit,
   loadCoValue,
   loadCoValueWithoutMe,
   parseSubscribeRestArgs,
@@ -80,8 +83,8 @@ export class Account extends CoValueBase implements CoValue {
     } satisfies RefEncoded<CoMap>,
   };
 
-  declare profile: Profile | null;
-  declare root: CoMap | null;
+  declare readonly profile: Profile | null;
+  declare readonly root: CoMap | null;
 
   constructor(options: { fromRaw: RawAccount }) {
     super();
@@ -103,7 +106,7 @@ export class Account extends CoValueBase implements CoValue {
   /**
    * Whether this account is the currently active account.
    */
-  get isMe() {
+  get isMe(): boolean {
     return activeAccountContext.get().$jazz.id === this.$jazz.id;
   }
 
@@ -281,7 +284,10 @@ export class Account extends CoValueBase implements CoValue {
     if (this.profile === undefined && creationProps) {
       const profileGroup = RegisteredSchemas["Group"].create({ owner: this });
 
-      this.profile = Profile.create({ name: creationProps.name }, profileGroup);
+      this.$jazz.set(
+        "profile",
+        Profile.create({ name: creationProps.name }, profileGroup) as any,
+      );
       profileGroup.addMember("everyone", "reader");
     }
 
@@ -370,6 +376,42 @@ class AccountJazzApi<A extends Account> extends CoValueJazzApi<A> {
    */
   get id(): ID<A> {
     return this.raw.id;
+  }
+
+  /**
+   * Accounts have no owner. They can be accessed by everyone.
+   */
+  get owner(): undefined {
+    return undefined;
+  }
+
+  /**
+   * Set the value of a key in the account.
+   *
+   * @param key The key to set.
+   * @param value The value to set.
+   *
+   * @category Content
+   */
+  set<K extends "root" | "profile">(
+    key: K,
+    value: CoFieldInit<NonNullable<A[K]>>,
+  ) {
+    if (value) {
+      let refId = (value as unknown as CoValue).$jazz?.id as
+        | CoID<RawCoMap>
+        | undefined;
+      if (!refId) {
+        const descriptor = this.schema[key];
+        const coValue = instantiateRefEncodedWithInit(
+          descriptor,
+          value,
+          accountOrGroupToGroup(this.account),
+        );
+        refId = coValue.$jazz.id as CoID<RawCoMap>;
+      }
+      this.raw.set(key, refId, "trusting");
+    }
   }
 
   /**
@@ -477,17 +519,10 @@ class AccountJazzApi<A extends Account> extends CoValueJazzApi<A> {
 
   /** @internal */
   get schema(): {
-    profile: Schema;
-    root: Schema;
+    profile: RefEncoded<Profile>;
+    root: RefEncoded<CoMap>;
   } {
     return (this.account.constructor as typeof Account)._schema;
-  }
-
-  /**
-   * Accounts have no owner. They can be accessed by everyone.
-   */
-  get owner(): undefined {
-    return undefined;
   }
 
   get loadedAs(): Account | AnonymousJazzAgent {
@@ -521,6 +556,7 @@ export const AccountAndGroupProxyHandler: ProxyHandler<Account | Group> = {
   },
   set(target, key, value, receiver) {
     if (
+      target instanceof Account &&
       (key === "profile" || key === "root") &&
       typeof value === "object" &&
       SchemaInit in value
@@ -528,24 +564,14 @@ export const AccountAndGroupProxyHandler: ProxyHandler<Account | Group> = {
       (target.constructor as typeof Account)._schema ||= {};
       (target.constructor as typeof Account)._schema[key] = value[SchemaInit];
       return true;
-    } else if (key === "profile") {
+    } else if (
+      target instanceof Account &&
+      (key === "profile" || key === "root")
+    ) {
       if (value) {
-        target.$jazz.raw.set(
-          "profile",
-          value.$jazz.id as unknown as CoID<RawCoMap>,
-          "trusting",
-        );
+        target.$jazz.set(key, value);
       }
 
-      return true;
-    } else if (key === "root") {
-      if (value) {
-        target.$jazz.raw.set(
-          "root",
-          value.$jazz.id as unknown as CoID<RawCoMap>,
-          "trusting",
-        );
-      }
       return true;
     } else {
       return Reflect.set(target, key, value, receiver);

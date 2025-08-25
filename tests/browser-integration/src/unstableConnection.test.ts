@@ -14,7 +14,7 @@ const CustomAccount = co
   })
   .withMigration((me) => {
     if (me.root === undefined) {
-      me.root = TestMAP.create({ value: "initial" }, { owner: me });
+      me.$jazz.set("root", { value: "initial" });
     }
   });
 
