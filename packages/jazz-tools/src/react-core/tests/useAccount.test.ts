@@ -38,9 +38,9 @@ describe("useAccount", () => {
       })
       .withMigration((account, creationProps) => {
         if (!account.$jazz.refs.root) {
-          account.root = AccountRoot.create(
-            { value: "123" },
-            { owner: account },
+          account.$jazz.set(
+            "root",
+            AccountRoot.create({ value: "123" }, { owner: account }),
           );
         }
       });
@@ -201,10 +201,7 @@ describe("useAccount", () => {
       })
       .withMigration((account, creationProps) => {
         if (!account.$jazz.refs.root) {
-          account.root = AccountRoot.create(
-            { value: "123" },
-            { owner: account },
-          );
+          account.$jazz.set("root", AccountRoot.create({ value: "123" }));
         }
       });
 

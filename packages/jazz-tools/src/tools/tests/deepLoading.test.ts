@@ -205,16 +205,19 @@ const CustomAccount = co
   .withMigration(async (account, creationProps) => {
     if (creationProps) {
       const profileGroup = Group.create(account);
-      account.profile = CustomProfile.create(
-        {
-          name: creationProps.name,
-          stream: TestFeed.create([], account),
-        },
-        profileGroup,
+      account.$jazz.set(
+        "profile",
+        CustomProfile.create(
+          {
+            name: creationProps.name,
+            stream: TestFeed.create([], account),
+          },
+          profileGroup,
+        ),
       );
-      account.root = TestMap.create(
-        { list: TestList.create([], account) },
-        account,
+      account.$jazz.set(
+        "root",
+        TestMap.create({ list: TestList.create([], account) }, account),
       );
     }
 

@@ -170,21 +170,24 @@ test("should support recursive props on co.profile", async () => {
       if (me.profile === undefined) {
         const group = Group.create({ owner: me });
         group.addMember("everyone", "reader");
-        me.profile = User.create(
-          {
-            name: "test 1",
-            created: new Date(),
-            updated: new Date(),
-            anonymous: false,
-            following: co.list(User).create([], group),
-            followers: co.list(User).create([], group),
-          },
-          group,
+        me.$jazz.set(
+          "profile",
+          User.create(
+            {
+              name: "test 1",
+              created: new Date(),
+              updated: new Date(),
+              anonymous: false,
+              following: co.list(User).create([], group),
+              followers: co.list(User).create([], group),
+            },
+            group,
+          ),
         );
       }
 
       if (me.root === undefined) {
-        me.root = co.map({}).create({});
+        me.$jazz.set("root", co.map({}).create({}));
       }
     });
 
@@ -230,25 +233,31 @@ test("root and profile should be trusting by default", async () => {
       const group = Group.create({ owner: me }).makePublic();
 
       if (me.profile === undefined) {
-        me.profile = co.profile().create(
-          {
-            name: creationProps?.name ?? "Anonymous",
-          },
-          group,
-        );
-      }
-
-      if (me.root === undefined) {
-        me.root = co
-          .map({
-            name: z.string(),
-          })
-          .create(
+        me.$jazz.set(
+          "profile",
+          co.profile().create(
             {
               name: creationProps?.name ?? "Anonymous",
             },
             group,
-          );
+          ),
+        );
+      }
+
+      if (me.root === undefined) {
+        me.$jazz.set(
+          "root",
+          co
+            .map({
+              name: z.string(),
+            })
+            .create(
+              {
+                name: creationProps?.name ?? "Anonymous",
+              },
+              group,
+            ),
+        );
       }
     });
 

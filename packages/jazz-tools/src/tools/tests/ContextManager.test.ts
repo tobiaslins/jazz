@@ -256,11 +256,14 @@ describe("ContextManager", () => {
         profile: co.profile(),
       })
       .withMigration(async (account) => {
-        account.root = AccountRoot.create(
-          {
-            value: "Hello",
-          },
-          Group.create(this).makePublic(),
+        account.$jazz.set(
+          "root",
+          AccountRoot.create(
+            {
+              value: "Hello",
+            },
+            Group.create(this).makePublic(),
+          ),
         );
       });
 
@@ -323,11 +326,14 @@ describe("ContextManager", () => {
         root: AccountRoot,
         profile: co.profile(),
       })
-      .withMigration(async (account) => {
-        account.root = AccountRoot.create({
-          value: "Hello",
-        });
-        lastRootId = account.root.$jazz.id;
+      .withMigration(async (account: Account) => {
+        account.$jazz.set(
+          "root",
+          AccountRoot.create({
+            value: "Hello",
+          }),
+        );
+        lastRootId = account.root!.$jazz.id;
       });
 
     const customManager = new TestJazzContextManager<
@@ -370,9 +376,12 @@ describe("ContextManager", () => {
       })
       .withMigration(async (account) => {
         if (account.root === undefined) {
-          account.root = AccountRoot.create({
-            value: 1,
-          });
+          account.$jazz.set(
+            "root",
+            AccountRoot.create({
+              value: 1,
+            }),
+          );
         } else {
           const { root } = await account.$jazz.ensureLoaded({
             resolve: { root: true },
@@ -424,9 +433,12 @@ describe("ContextManager", () => {
       })
       .withMigration(async (account) => {
         if (account.root === undefined) {
-          account.root = AccountRoot.create({
-            value: "Hello",
-          });
+          account.$jazz.set(
+            "root",
+            AccountRoot.create({
+              value: "Hello",
+            }),
+          );
         }
       });
 
