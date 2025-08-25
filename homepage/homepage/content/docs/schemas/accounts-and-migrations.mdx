@@ -212,10 +212,13 @@ export const MyAppAccount = co.account({
     // Unlike the root, we want the profile to be publicly readable.
     profileGroup.makePublic();
 
-    account.profile = MyAppProfile.create({
-      name: creationProps?.name ?? "New user",
-      bookmarks: co.list(Bookmark).create([], profileGroup),
-    }, profileGroup);
+    account.$jazz.set(
+      "profile",
+      MyAppProfile.create({
+        name: creationProps?.name ?? "New user",
+        bookmarks: co.list(Bookmark).create([], profileGroup),
+      }, profileGroup),
+    );
   }
 });
 ```

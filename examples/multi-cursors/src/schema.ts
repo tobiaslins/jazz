@@ -38,11 +38,14 @@ export const CursorAccount = co
       const group = Group.create();
       group.makePublic(); // The profile info is visible to everyone
 
-      account.profile = CursorProfile.create(
-        {
-          name: "Anonymous user",
-        },
-        group,
+      account.$jazz.set(
+        "profile",
+        CursorProfile.create(
+          {
+            name: "Anonymous user",
+          },
+          group,
+        ),
       );
     }
   });
