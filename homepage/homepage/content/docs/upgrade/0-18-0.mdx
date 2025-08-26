@@ -6,28 +6,18 @@ This release introduces a new `$jazz` field to CoValues. This field serves as a 
 
 ## Motivation
 
-Jazz aims to make CoValues work seamlessly with plain JSON objects. Originally, this meant CoValues behaved exactly like
-JSON objects: you could read and edit CoMaps and CoLists just like regular objects and arrays.
+Jazz aims to make CoValues as similar as possible to JSON objects, but collaborative objects have unique requirements that create challenges:
 
-However, collaborative objects have unique requirements that create some challenges, both from a user and implementation perspective.
+1. **Property conflicts**: Developers need to define collaborative objects with custom fields and Jazz-specific properties (`id`, `owner`),
+without naming conflicts
+2. **Direct property assignments**: Direct assignments clash with modern front-end frameworks that discourage mutations, like Vue, Svelte and the
+upcoming React Compiler.
+3. **Tracking changes to CoValues**: Proxies are currently used for tracking changes to CoValues, but they introduce several usability problems.
+They make debugging and serialization unnecessarily complex, introduce issues with object identity, and behave inconsistently in different environments.
 
-For example, developers want to define any key they need in a CoMap, but they also need access to CoValue-specific properties
-like `id` and `owner`. These Jazz properties shouldn't conflict with user-defined fields.
-
-From an implementation perspective, we need to track changes as CoValues are edited. We rely on proxies for this, but they
-come with significant drawbacks:
-- Many front-end frameworks (like Vue and Svelte) don't play well with proxies, forcing us into suboptimal integration patterns
-- Debugging and serialization become unnecessarily complex with proxies
-
-Direct property assignments also clash with modern front-end frameworks, which discourage this pattern. For example, the React Compiler
-flags direct assignments as mutations and won't memoize components that use them.
-
-Additionally, relying on direct assignments limits our ability to provide a more ergonomic API. With the new `$jazz.set` method,
-you can now update CoValues using either CoValues or plain JSON objects!
-
-By making CoValues behave like readonly JSON objects while providing Jazz-specific methods in the `$jazz` namespace, we've found a
-good balance between plain-JSON-compatibility and the requirements of collaborative objects. This approach also sets us up
-to remove proxies entirely in a future release.
+The new `$jazz` namespace solves these issues by making CoValues behave like readonly JSON objects while providing Jazz-specific methods
+in a dedicated namespace. This approach enables more ergonomic APIs (like `$jazz.set` accepting plain JSON) and sets us up to remove
+proxies entirely in the future.
 
 ## Changes
 
