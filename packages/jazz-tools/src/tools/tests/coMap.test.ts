@@ -163,7 +163,7 @@ describe("CoMap", async () => {
         type: z.literal("cat"),
         name: z.string(),
       });
-
+      const Pet = co.discriminatedUnion("type", [Dog, Cat]);
       const Person = co.map({
         name: co.plainText(),
         bio: co.richText(),
@@ -172,7 +172,8 @@ describe("CoMap", async () => {
           return co.list(Person);
         },
         reactions: co.feed(co.plainText()),
-        pet: co.discriminatedUnion("type", [Dog, Cat]),
+        pet: Pet,
+        pets: co.record(z.string(), Pet),
       });
 
       let person: ReturnType<typeof Person.create>;
@@ -190,10 +191,17 @@ describe("CoMap", async () => {
               friends: [],
               reactions: [],
               pet: { type: "dog", name: "Fido" },
+              pets: {
+                dog: { type: "dog", name: "Fido" },
+              },
             },
           ],
           reactions: ["👎", "👍"],
           pet: { type: "cat", name: "Whiskers" },
+          pets: {
+            dog: { type: "dog", name: "Rex" },
+            cat: { type: "cat", name: "Whiskers" },
+          },
         });
       });
 
@@ -210,6 +218,8 @@ describe("CoMap", async () => {
         expect(person.friends[0]?.friends.length).toEqual(0);
         expect(person.reactions.byMe?.value?.toString()).toEqual("👍");
         expect(person.pet.name).toEqual("Whiskers");
+        expect(person.pets.dog?.name).toEqual("Rex");
+        expect(person.pets.cat?.name).toEqual("Whiskers");
       });
 
       it("creates a group for each new CoValue that is a child of the referencing CoValue's owner", () => {
@@ -650,6 +660,7 @@ describe("CoMap", async () => {
         type: z.literal("cat"),
         name: z.string(),
       });
+      const Pet = co.discriminatedUnion("type", [Dog, Cat]);
       const Person = co.map({
         name: co.plainText(),
         bio: co.richText().optional(),
@@ -658,7 +669,8 @@ describe("CoMap", async () => {
           return co.list(Person);
         },
         reactions: co.feed(co.plainText()),
-        pet: co.discriminatedUnion("type", [Dog, Cat]),
+        pet: Pet,
+        pets: co.record(z.string(), Pet),
       });
 
       let person: ReturnType<typeof Person.create>;
@@ -676,10 +688,15 @@ describe("CoMap", async () => {
               friends: [],
               reactions: [],
               pet: { type: "dog", name: "Fido" },
+              pets: {},
             },
           ],
           reactions: ["👎", "👍"],
           pet: { type: "cat", name: "Whiskers" },
+          pets: {
+            dog: { type: "dog", name: "Rex" },
+            cat: { type: "cat", name: "Whiskers" },
+          },
         });
       });
 
@@ -698,6 +715,13 @@ describe("CoMap", async () => {
         expect(person.dog.name).toEqual("Fido");
       });
 
+      test("automatically creates CoValues for CoRecord reference", () => {
+        person.$jazz.set("pets", {
+          dog: { type: "dog", name: "Fido" },
+        });
+        expect(person.pets.dog?.name).toEqual("Fido");
+      });
+
       test("automatically creates CoValues for CoList reference", () => {
         person.$jazz.set("friends", [
           {
@@ -707,6 +731,7 @@ describe("CoMap", async () => {
             friends: [],
             reactions: [],
             pet: { type: "cat", name: "Nala" },
+            pets: {},
           },
         ]);
         expect(person.friends[0]!.name.toString()).toEqual("Jane");
@@ -733,6 +758,7 @@ describe("CoMap", async () => {
             friends: [],
             reactions: [],
             pet: { type: "cat", name: "Nala" },
+            pets: {},
           },
         ]);
 
