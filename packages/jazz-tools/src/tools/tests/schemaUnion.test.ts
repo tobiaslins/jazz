@@ -1,5 +1,5 @@
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
-import { assert, beforeAll, describe, expect, it } from "vitest";
+import { assert, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import {
   Account,
   CryptoProvider,
@@ -9,11 +9,13 @@ import {
   subscribeToCoValue,
   z,
 } from "../exports.js";
+import { createJazzTestAccount } from "../testing.js";
 
 const RedButtonWidget = co.map({
   type: z.literal("button"),
   color: z.literal("red"),
   label: z.string(),
+  disabled: z.boolean().optional(),
 });
 
 const BlueButtonWidget = co.map({
@@ -21,6 +23,7 @@ const BlueButtonWidget = co.map({
   color: z.literal("blue"),
   label: z.string(),
   blueness: z.number(),
+  disabled: z.boolean().optional(),
 });
 
 const ButtonWidget = co.discriminatedUnion("type", [
@@ -51,9 +54,9 @@ describe("SchemaUnion", () => {
 
   beforeAll(async () => {
     Crypto = await WasmCrypto.create();
-    me = await Account.create({
+    me = await createJazzTestAccount({
+      isCurrentActiveAccount: true,
       creationProps: { name: "Hermes Puggington" },
-      crypto: Crypto,
     });
   });
 
@@ -112,5 +115,53 @@ describe("SchemaUnion", () => {
     currentValue = "Changed";
     buttonWidget.$jazz.set("label", "Changed");
     unsubscribe();
+  });
+
+  describe("methods available on all members of the union type are available on the union", () => {
+    const Buttons = co.list(ButtonWidget);
+    let buttons: ReturnType<typeof Buttons.create>;
+
+    beforeEach(() => {
+      buttons = Buttons.create([
+        {
+          type: "button",
+          color: "red",
+          label: "Delete",
+          disabled: true,
+        },
+      ]);
+    });
+
+    it("$jazz.applyDiff", () => {
+      assert(buttons[0]);
+      buttons[0].$jazz.applyDiff({ label: "Remove" });
+      expect(buttons[0].label).toBe("Remove");
+    });
+
+    it("$jazz.delete", () => {
+      assert(buttons[0]);
+
+      buttons[0].$jazz.delete("disabled");
+
+      expect(buttons[0].disabled).toBeUndefined();
+    });
+  });
+
+  describe("methods with constrained type parameters are not available on the union", () => {
+    it("$jazz.set", () => {
+      const Buttons = co.list(ButtonWidget);
+      const buttons = Buttons.create([
+        {
+          type: "button",
+          color: "red",
+          label: "Delete",
+        },
+      ]);
+
+      assert(buttons[0]);
+      // @ts-expect-error Typescript does not allow calling the union of methods with constrained type parameters
+      buttons[0].$jazz.set("label", "Remove");
+      expect(buttons[0].label).toBe("Remove");
+    });
   });
 });

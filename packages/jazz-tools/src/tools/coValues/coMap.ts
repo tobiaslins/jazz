@@ -661,9 +661,9 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
    *
    * @category Content
    */
-  delete<
-    K extends OptionalCoKeys<M> | (string extends keyof M ? string : never),
-  >(key: K): void {
+  delete(
+    key: OptionalCoKeys<M> | (string extends keyof M ? string : never),
+  ): void {
     this.raw.delete(key);
   }
 
@@ -679,7 +679,7 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
    *
    * @category Content
    */
-  applyDiff<N extends Partial<CoMapInit<M>>>(newValues: N): M {
+  applyDiff(newValues: Partial<CoMapInit<M>>): M {
     for (const key in newValues) {
       if (Object.prototype.hasOwnProperty.call(newValues, key)) {
         const tKey = key as keyof typeof newValues & keyof this;
@@ -688,7 +688,7 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
         if (!descriptor) continue;
 
         const newValue = newValues[tKey];
-        const currentValue = this.get(tKey as any);
+        const currentValue = this.coMap[tKey];
 
         if (descriptor === "json" || "encoded" in descriptor) {
           if (currentValue !== newValue) {
