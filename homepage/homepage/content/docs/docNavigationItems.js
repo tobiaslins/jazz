@@ -254,9 +254,9 @@ export const docNavigationItems = [
         done: 100,
       },
       {
-        name: "SchemaUnions",
+        name: "Schema Unions",
         href: "/docs/using-covalues/schemaunions",
-        done: 0,
+        done: 100,
       },
       {
         name: "Subscriptions & Deep Loading",
