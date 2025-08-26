@@ -1,4 +1,4 @@
-import { assert, beforeEach, expect, test } from "vitest";
+import { assert, beforeEach, describe, expect, test } from "vitest";
 import { Account, Group, co, z } from "../exports.js";
 import {
   createJazzTestAccount,
@@ -137,10 +137,20 @@ test("loading raw accounts should work", async () => {
   expect(loadedAccount.profile!.name).toBe("test 1");
 });
 
-test("co.profile() should throw an error if passed a CoValue schema", async () => {
-  expect(() => co.profile(co.map({}))).toThrow(
-    "co.profile() expects an object as its argument, not a CoValue schema",
-  );
+describe("co.profile() schema", () => {
+  test("co.profile() should throw an error if passed a CoValue schema", async () => {
+    expect(() => co.profile(co.map({}))).toThrow(
+      "co.profile() expects an object as its argument, not a CoValue schema",
+    );
+  });
+
+  test("co.profile() should throw an error if its shape does not contain valid schemas", () => {
+    expect(() =>
+      co.profile({
+        field: "a string is not a valid schema",
+      }),
+    ).toThrow("co.profile() supports only Zod v4 schemas and CoValue schemas");
+  });
 });
 
 test("should support recursive props on co.profile", async () => {
