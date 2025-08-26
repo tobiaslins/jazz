@@ -45,7 +45,7 @@ export function SocialLinks(props: SocialLinksProps & { className?: string }) {
     <div
       className={clsx(
         props.className,
-        "inline-flex gap-3 items-center sm:gap-6",
+        "inline-flex gap-3 items-center sm:gap-4 lg:gap-6",
       )}
     >
       {socials.map(
