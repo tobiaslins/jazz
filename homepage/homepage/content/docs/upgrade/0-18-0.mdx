@@ -137,6 +137,7 @@ runtime errors prompting you to use `$jazz.set`.
 ### CoList Changes
 
 CoLists are now readonly arrays. All mutation methods have been moved to `$jazz` and using array mutation methods directly will cause type errors.
+This means CoLists are no longer a subtype of Array. If you were previously treating CoLists as Arrays, you'll need to migrate to using `ReadonlyArray`.
 
 <CodeGroup>
 ```ts
