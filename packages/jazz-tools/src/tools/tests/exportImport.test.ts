@@ -275,7 +275,7 @@ describe("importContentPieces", () => {
     const alice = await createJazzTestAccount();
     const bob = await createJazzTestAccount();
 
-    bob.$jazz.localNode.syncManager.getPeers().forEach((peer) => {
+    bob.$jazz.localNode.syncManager.getClientPeers().forEach((peer) => {
       peer.gracefulShutdown();
     });
 
@@ -318,7 +318,7 @@ describe("importContentPieces", () => {
     const alice = await createJazzTestAccount();
     const bob = await createJazzTestAccount();
 
-    bob.$jazz.localNode.syncManager.getPeers().forEach((peer) => {
+    bob.$jazz.localNode.syncManager.getClientPeers().forEach((peer) => {
       peer.gracefulShutdown();
     });
 
@@ -358,7 +358,7 @@ describe("importContentPieces", () => {
     const alice = await createJazzTestAccount();
     const { guest } = await createJazzTestGuest();
 
-    guest.node.syncManager.getPeers().forEach((peer) => {
+    guest.node.syncManager.getClientPeers().forEach((peer) => {
       peer.gracefulShutdown();
     });
 
@@ -394,7 +394,7 @@ describe("importContentPieces", () => {
       isCurrentActiveAccount: true,
     });
 
-    bob.$jazz.localNode.syncManager.getPeers().forEach((peer) => {
+    bob.$jazz.localNode.syncManager.getClientPeers().forEach((peer) => {
       peer.gracefulShutdown();
     });
 
@@ -435,7 +435,7 @@ describe("importContentPieces", () => {
     const alice = await createJazzTestAccount();
     const bob = await createJazzTestAccount();
 
-    bob.$jazz.localNode.syncManager.getPeers().forEach((peer) => {
+    bob.$jazz.localNode.syncManager.getClientPeers().forEach((peer) => {
       peer.gracefulShutdown();
     });
 
@@ -499,7 +499,7 @@ describe("importContentPieces", () => {
     const alice = await createJazzTestAccount();
     const bob = await createJazzTestAccount();
 
-    bob.$jazz.localNode.syncManager.getPeers().forEach((peer) => {
+    bob.$jazz.localNode.syncManager.getClientPeers().forEach((peer) => {
       peer.gracefulShutdown();
     });
 

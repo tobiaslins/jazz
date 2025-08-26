@@ -1,5 +1,22 @@
 # cojson
 
+## 0.17.13
+
+### Patch Changes
+
+- 7dc3160: Apply `serverPeerSelector` in all the peers getters
+- 474881d: Add support for meta field in transactions and ignore all unkonwn meta when getting valid transactions
+  - cojson-core-wasm@0.17.13
+
+## 0.17.12
+
+### Patch Changes
+
+- c2daf3e: Don't greedily send dependencies to servers in "known" replies
+- 72a63bf: Ability to filter getServerPeers() result based on covalue id
+- 234bf91: Correctly wait for updated CoValues when handling HTTP requests on server workers before sending the response
+  - cojson-core-wasm@0.17.12
+
 ## 0.17.11
 
 ### Patch Changes

@@ -217,6 +217,27 @@ test("Can set items in bulk with assign", () => {
   });
 });
 
+test("Should ignore unknown meta transactions", () => {
+  const node = nodeWithRandomAgentAndSessionID();
+
+  const coValue = node.createCoValue({
+    type: "comap",
+    ruleset: { type: "unsafeAllowAll" },
+    meta: null,
+    ...Crypto.createdNowUnique(),
+  });
+
+  coValue.makeTransaction([], "trusting", { unknownMeta: 1 });
+
+  const content = expectMap(coValue.getCurrentContent());
+
+  expect(content.type).toEqual("comap");
+
+  content.set("key1", "set1", "trusting");
+
+  expect(content.get("key1")).toEqual("set1");
+});
+
 test("totalValidTransactions should return the number of valid transactions processed", async () => {
   const client = setupTestNode({
     connected: true,

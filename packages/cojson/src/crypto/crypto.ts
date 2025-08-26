@@ -3,7 +3,7 @@ import { ControlledAccountOrAgent, RawAccountID } from "../coValues/account.js";
 import { AgentID, RawCoID, TransactionID } from "../ids.js";
 import { SessionID } from "../ids.js";
 import { Stringified, parseJSON, stableStringify } from "../jsonStringify.js";
-import { JsonValue } from "../jsonValue.js";
+import { JsonObject, JsonValue } from "../jsonValue.js";
 import { logger } from "../logger.js";
 import {
   PrivateTransaction,
@@ -366,15 +366,21 @@ export interface SessionLogImpl {
     keyID: KeyID,
     keySecret: KeySecret,
     madeAt: number,
+    meta: JsonObject | undefined,
   ): { signature: Signature; transaction: PrivateTransaction };
   addNewTrustingTransaction(
     signerAgent: ControlledAccountOrAgent,
     changes: JsonValue[],
     madeAt: number,
+    meta: JsonObject | undefined,
   ): { signature: Signature; transaction: TrustingTransaction };
   decryptNextTransactionChangesJson(
     tx_index: number,
     key_secret: KeySecret,
   ): string;
   free(): void;
+  decryptNextTransactionMetaJson(
+    tx_index: number,
+    key_secret: KeySecret,
+  ): string | undefined;
 }

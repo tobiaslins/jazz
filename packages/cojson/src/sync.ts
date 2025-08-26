@@ -170,21 +170,16 @@ export class SyncManager {
     this.skipVerify = true;
   }
 
-  peersInPriorityOrder(): PeerState[] {
-    return Object.values(this.peers).sort((a, b) => {
-      const aPriority = a.priority || 0;
-      const bPriority = b.priority || 0;
-
-      return bPriority - aPriority;
-    });
+  getPeers(id: RawCoID): PeerState[] {
+    return this.getServerPeers(id).concat(this.getClientPeers());
   }
 
-  getPeers(): PeerState[] {
-    return Object.values(this.peers);
+  getClientPeers(): PeerState[] {
+    return Object.values(this.peers).filter((peer) => peer.role === "client");
   }
 
   getServerPeers(id: RawCoID, excludePeerId?: PeerID): PeerState[] {
-    const serverPeers = this.getPeers().filter(
+    const serverPeers = Object.values(this.peers).filter(
       (peer) => peer.role === "server" && peer.id !== excludePeerId,
     );
     return this.serverPeerSelector
@@ -760,7 +755,7 @@ export class SyncManager {
       this.storeContent(contentToStore);
     }
 
-    for (const peer of this.peersInPriorityOrder()) {
+    for (const peer of this.getPeers(coValue.id)) {
       /**
        * We sync the content against the source peer if it is a client or server peers
        * to upload any content that is available on the current node and not on the source peer.
@@ -804,26 +799,12 @@ export class SyncManager {
     return this.sendNewContentIncludingDependencies(msg.id, peer);
   }
 
-  dirtyCoValuesTrackingSets: Set<Set<RawCoID>> = new Set();
-  trackDirtyCoValues() {
-    const trackingSet = new Set<RawCoID>();
-
-    this.dirtyCoValuesTrackingSets.add(trackingSet);
-
-    return {
-      done: () => {
-        this.dirtyCoValuesTrackingSets.delete(trackingSet);
-
-        return trackingSet;
-      },
-    };
-  }
-
   private syncQueue = new LocalTransactionsSyncQueue((content) =>
     this.syncContent(content),
   );
   syncHeader = this.syncQueue.syncHeader;
   syncLocalTransaction = this.syncQueue.syncTransaction;
+  trackDirtyCoValues = this.syncQueue.trackDirtyCoValues;
 
   syncContent(content: NewContentMessage) {
     const coValue = this.local.getCoValue(content.id);
@@ -832,7 +813,7 @@ export class SyncManager {
 
     const contentKnownState = knownStateFromContent(content);
 
-    for (const peer of this.peersInPriorityOrder()) {
+    for (const peer of this.getPeers(coValue.id)) {
       if (peer.closed) continue;
       if (coValue.isErroredInPeer(peer.id)) continue;
 
@@ -851,7 +832,7 @@ export class SyncManager {
       peer.trackToldKnownState(coValue.id);
     }
 
-    for (const peer of this.getPeers()) {
+    for (const peer of this.getPeers(coValue.id)) {
       this.syncState.triggerUpdate(peer.id, coValue.id);
     }
   }
@@ -932,7 +913,7 @@ export class SyncManager {
   }
 
   waitForSync(id: RawCoID, timeout = 60_000) {
-    const peers = this.getPeers();
+    const peers = this.getPeers(id);
 
     return Promise.all(
       peers

@@ -10,7 +10,7 @@ import {
 } from "../coValueCore/verifiedState.js";
 import { RawCoID, SessionID, TransactionID } from "../ids.js";
 import { Stringified, stableStringify } from "../jsonStringify.js";
-import { JsonValue } from "../jsonValue.js";
+import { JsonObject, JsonValue } from "../jsonValue.js";
 import { logger } from "../logger.js";
 import {
   CryptoProvider,
@@ -328,16 +328,26 @@ export class PureJSSessionLog implements SessionLogImpl {
     keyID: KeyID,
     keySecret: KeySecret,
     madeAt: number,
+    meta: JsonObject | undefined,
   ): { signature: Signature; transaction: PrivateTransaction } {
     const encryptedChanges = this.crypto.encrypt(changes, keySecret, {
       in: this.coID,
       tx: { sessionID: this.sessionID, txIndex: this.transactions.length },
     });
+
+    const encryptedMeta = meta
+      ? this.crypto.encrypt(meta, keySecret, {
+          in: this.coID,
+          tx: { sessionID: this.sessionID, txIndex: this.transactions.length },
+        })
+      : undefined;
+
     const tx = {
       encryptedChanges: encryptedChanges,
       madeAt: madeAt,
       privacy: "private",
       keyUsed: keyID,
+      meta: encryptedMeta,
     } satisfies Transaction;
     const signature = this.internalAddNewTransaction(
       stableStringify(tx),
@@ -353,11 +363,13 @@ export class PureJSSessionLog implements SessionLogImpl {
     signerAgent: ControlledAccountOrAgent,
     changes: JsonValue[],
     madeAt: number,
+    meta: JsonObject | undefined,
   ): { signature: Signature; transaction: TrustingTransaction } {
     const tx = {
       changes: stableStringify(changes),
       madeAt: madeAt,
       privacy: "trusting",
+      meta: meta ? stableStringify(meta) : undefined,
     } satisfies Transaction;
     const signature = this.internalAddNewTransaction(
       stableStringify(tx),
@@ -397,6 +409,42 @@ export class PureJSSessionLog implements SessionLogImpl {
       return textDecoder.decode(plaintext);
     } else {
       return tx.changes;
+    }
+  }
+
+  decryptNextTransactionMetaJson(
+    txIndex: number,
+    keySecret: KeySecret,
+  ): string | undefined {
+    const txJson = this.transactions[txIndex];
+    if (!txJson) {
+      throw new Error("Transaction not found");
+    }
+    const tx = JSON.parse(txJson) as Transaction;
+
+    if (!tx.meta) {
+      return undefined;
+    }
+
+    if (tx.privacy === "private") {
+      const nOnceMaterial = {
+        in: this.coID,
+        tx: { sessionID: this.sessionID, txIndex: txIndex },
+      };
+
+      const nOnce = this.crypto.generateJsonNonce(nOnceMaterial);
+
+      const ciphertext = base64URLtoBytes(
+        tx.meta.substring("encrypted_U".length),
+      );
+      const keySecretBytes = base58.decode(
+        keySecret.substring("keySecret_z".length),
+      );
+      const plaintext = xsalsa20(keySecretBytes, nOnce, ciphertext);
+
+      return textDecoder.decode(plaintext);
+    } else {
+      return tx.meta;
     }
   }
 

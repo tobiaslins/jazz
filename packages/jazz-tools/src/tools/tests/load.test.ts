@@ -137,9 +137,11 @@ test("retry an unavailable value", async () => {
   const currentAccount = Account.getMe();
 
   // Disconnect the current account
-  currentAccount.$jazz.localNode.syncManager.getPeers().forEach((peer) => {
-    peer.gracefulShutdown();
-  });
+  currentAccount.$jazz.localNode.syncManager
+    .getClientPeers()
+    .forEach((peer) => {
+      peer.gracefulShutdown();
+    });
 
   const group = Group.create();
   const map = Person.create({ name: "John" }, group);
@@ -169,9 +171,11 @@ test("returns null if the value is unavailable after retries", async () => {
   const currentAccount = Account.getMe();
 
   // Disconnect the current account
-  currentAccount.$jazz.localNode.syncManager.getPeers().forEach((peer) => {
-    peer.gracefulShutdown();
-  });
+  currentAccount.$jazz.localNode.syncManager
+    .getServerPeers(currentAccount.$jazz.raw.id)
+    .forEach((peer) => {
+      peer.gracefulShutdown();
+    });
 
   const group = Group.create();
   const map = Person.create({ name: "John" }, group);

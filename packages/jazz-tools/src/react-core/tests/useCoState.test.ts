@@ -172,7 +172,7 @@ describe("useCoState", () => {
       isCurrentActiveAccount: true,
     });
 
-    for (const peer of account.$jazz.localNode.syncManager.getPeers()) {
+    for (const peer of account.$jazz.localNode.syncManager.getClientPeers()) {
       peer.gracefulShutdown();
     }
 

@@ -921,9 +921,11 @@ describe("CoMap resolution", async () => {
     const currentAccount = Account.getMe();
 
     // Disconnect the current account
-    currentAccount.$jazz.localNode.syncManager.getPeers().forEach((peer) => {
-      peer.gracefulShutdown();
-    });
+    currentAccount.$jazz.localNode.syncManager
+      .getServerPeers(currentAccount.$jazz.raw.id)
+      .forEach((peer) => {
+        peer.gracefulShutdown();
+      });
 
     const group = Group.create();
     group.addMember("everyone", "writer");
@@ -966,9 +968,11 @@ describe("CoMap resolution", async () => {
     const currentAccount = Account.getMe();
 
     // Disconnect the current account
-    currentAccount.$jazz.localNode.syncManager.getPeers().forEach((peer) => {
-      peer.gracefulShutdown();
-    });
+    currentAccount.$jazz.localNode.syncManager
+      .getServerPeers(currentAccount.$jazz.raw.id)
+      .forEach((peer) => {
+        peer.gracefulShutdown();
+      });
 
     const group = Group.create();
     group.addMember("everyone", "writer");
