@@ -16,7 +16,7 @@ This quickstart guide will take you from an empty project to a working app with 
 ## Create your React App
 We'll be using Next.js and TypeScript with `pnpm` for this guide, but Jazz works great with vanilla React too.
 
-You can accept the defaults for all the questions, or customize the project as you like.
+You can accept the defaults for all the questions, or customise the project as you like.
 
 <CodeGroup>
 ```sh
@@ -28,7 +28,7 @@ cd jazzfest
 
 ## Install Jazz
 
-The `jazz-tools` package includes everything you’re going to need to build your first Jazz app.
+The `jazz-tools` package includes everything you're going to need to build your first Jazz app.
 
 <CodeGroup>
 ```sh
@@ -48,9 +48,10 @@ export const apiKey = "you@example.com"; // or your API key
 </CodeGroup>
 
 ## Define a Schema
-Jazz uses Zod for more simple data types (like strings, numbers, booleans), and composes these with CoSchemas to create collaborative data structures known as CoValues. These collaborative data structures are synced in real-time with end-to-end encryption.
+Jazz uses Zod for more simple data types (like strings, numbers, booleans), and its own schemas to create collaborative data structures known as CoValues.  CoValues are automatically persisted across your devices and the cloud and synced in real-time. Here we're defining a schema made up of both Zod types and CoValues. 
 
-Here we're defining a schema composed of both Zod types and CoValues. We're also adding a migration which runs when the user logs in to ensure that the root is always defined. Without this, we would get an error when trying to access `myFestival` later.
+Adding a `root` to the user's account gives us a container that can be used to keep a track of all the data a user might need to use the app. The migration runs when the user logs in, and ensures the account is properly set up before we try to use it.
+
 <CodeGroup>
 ```ts
 // app/schema.ts
@@ -82,12 +83,14 @@ export const JazzFestAccount = co
 </CodeGroup>
 
 ## Add the Jazz Provider
-Wrap your app with `JazzReactProvider` so components can use Jazz. Jazz also provides a basic UI for passkey-based authentication, which we'll use here.
+
+Wrap your app with `JazzReactProvider` so components can use Jazz.
+
 <CodeGroup>
 ```tsx
 // app/layout.tsx
 "use client";
-import { JazzReactProvider, PasskeyAuthBasicUI } from "jazz-tools/react";
+import { JazzReactProvider } from "jazz-tools/react";
 import { apiKey } from "@/app/apiKey";
 import { JazzFestAccount } from "@/app/schema";
 
@@ -103,7 +106,6 @@ export default function RootLayout({
           sync={{ peer: `wss://cloud.jazz.tools/?key=${apiKey}` }}
           AccountSchema={JazzFestAccount}
         >
-          <PasskeyAuthBasicUI appName="JazzFest" />
           {children}
         </JazzReactProvider>
       </body>
@@ -134,7 +136,7 @@ If everything's going according to plan, you should see a login prompt!
 - Ask for help on [Discord](https://discord.gg/utDMjHYg42).
 
 ## Create data
-Let's create a simple form to add a new band to the festival.
+Let's create a simple form to add a new band to the festival. We'll use the `useAccount` hook to get the current account and tell Jazz to load the `myFestival` CoValue by passing a `resolve` query.
 
 <CodeGroup className="mt-4 [&_span]:[tab-size:2]" preferWrap>
 ```tsx
@@ -149,7 +151,7 @@ export function NewBand() {
   const [name, setName] = useState("");
 
   const handleSave = () => {
-    if (!me) return; // Not logged in
+    if (!me) return; // not loaded yet
     me.root.myFestival.push(Band.create({ name }));
     setName("");
   };
@@ -181,7 +183,7 @@ import { JazzFestAccount } from "@/app/schema";
 
 export function MyFestival() {
   const { me } = useAccount(JazzFestAccount, { resolve: { root: { myFestival: true } } });
-  if (!me) return null; // Not logged in
+  if (!me) return null; // not loaded yet
   return (
     <ul>
       {me?.root.myFestival.map((band) => band && <li key={band.$jazz.id}>{band.name}</li>)}
