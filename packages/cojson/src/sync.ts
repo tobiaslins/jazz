@@ -279,17 +279,32 @@ export class SyncManager {
     peer.trackToldKnownState(id);
   }
 
+  reconcileServerPeers() {
+    const serverPeers = Object.values(this.peers).filter(
+      (peer) => peer.role === "server",
+    );
+    for (const peer of serverPeers) {
+      this.startPeerReconciliation(peer);
+    }
+  }
+
   startPeerReconciliation(peer: PeerState) {
     const coValuesOrderedByDependency: CoValueCore[] = [];
 
-    const gathered = new Set<string>();
-
+    const seen = new Set<string>();
     const buildOrderedCoValueList = (coValue: CoValueCore) => {
-      if (gathered.has(coValue.id)) {
+      if (seen.has(coValue.id)) {
         return;
       }
+      seen.add(coValue.id);
 
-      gathered.add(coValue.id);
+      // Ignore the covalue if this peer isn't relevant to it
+      if (
+        this.getServerPeers(coValue.id).find((p) => p.id === peer.id) ===
+        undefined
+      ) {
+        return;
+      }
 
       for (const id of coValue.getDependedOnCoValues()) {
         const coValue = this.local.getCoValue(id);
@@ -355,7 +370,7 @@ export class SyncManager {
     });
   }
 
-  addPeer(peer: Peer) {
+  addPeer(peer: Peer, skipReconciliation: boolean = false) {
     const prevPeer = this.peers[peer.id];
 
     if (prevPeer && !prevPeer.closed) {
@@ -373,7 +388,7 @@ export class SyncManager {
       },
     );
 
-    if (peerState.role === "server") {
+    if (!skipReconciliation && peerState.role === "server") {
       void this.startPeerReconciliation(peerState);
     }
 
