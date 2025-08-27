@@ -1,5 +1,13 @@
 # cojson
 
+## 0.17.14
+
+### Patch Changes
+
+- 1094b7c: Prevent adding and removing members from Account owners.
+- 6378ad5: Expose a server peer selector that implements the Highest Weighted Random algorithm.
+  - cojson-core-wasm@0.17.14
+
 ## 0.17.13
 
 ### Patch Changes
