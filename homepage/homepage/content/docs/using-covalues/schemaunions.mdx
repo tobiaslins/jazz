@@ -181,7 +181,7 @@ const unsubscribe = Widget.subscribe(widgetId, {}, (widget) => {
 
 <Alert variant="info" className="mt-4 flex gap-2 items-center">
  Resolve queries are not supported in schema unions yet. If you need to [deeply load](/using-covalues/subscription-and-loading#deep-loading) a schema union,
- you'll need to first shallowly load the union, and then load the nested properties.
+ you'll need to first shallowly load the union, and then load the nested properties after narrowing the union type (using `$jazz.ensureLoaded` or `useCoState`).
 </Alert>
 
 ## Nested schema unions
