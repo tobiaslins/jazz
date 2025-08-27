@@ -1,37 +1,32 @@
+export const metadata = {
+  description: "Get started building a simple React app with Jazz."
+};
+
 import { CodeGroup } from "@/components/forMdx";
 import { Alert } from "@garden-co/design-system/src/components/atoms/Alert";
 import { TextLink } from "@garden-co/design-system/src/components/atoms/TextLink";
 
-# React Quickstart
+# Get started with React in 10 minutes
+This quickstart guide will take you from an empty project to a working app with authentication and a simple data model.
 
-This guide will walk you through the process of creating a simple React app with Jazz. We'll start by creating a new Next.js app, then install Jazz and add some basic functionality. By the end of the guide, you'll have a working app with authentication, data creation, viewing, and editing.
+## Create your React App
+We'll be using Next.js and TypeScript with `pnpm` for this guide, but Jazz works great with vanilla React too.
 
-If you'd like to learn how to put together a Jazz app and start to get to grips with some of the key concepts, this is the right place to start. 
-
-On the other hand, if you'd prefer to skip the manual set up and begin from a starter project, you can use our CLI tool: `npx create-jazz-app@latest`. 
-
-## First steps
-### Create your React App
-Create an app using the Next.js framework.
+You can accept the defaults for all the questions, or customize the project as you like.
 
 <CodeGroup>
 ```sh
-npx create-next-app@latest 
+pnpx create-next-app@latest --typescript jazzfest
+cd jazzfest
 ```
 </CodeGroup>
-Once you've created your app, you can `cd` into the project directory and start the development server with the following command:
 
-<CodeGroup>
-```sh
-pnpm run dev
-```
-</CodeGroup>
 
 <Alert variant="info" className="mt-4 flex gap-2 items-center">
-  We're using Next.js in this guide, but Jazz works well with both frameworks and vanilla React. Requires Node.js 20+ and React 18+.
+  Requires Node.js 20+ and React 18+.
 </Alert>
 
-### Install Jazz
+## Install Jazz
 
 The `jazz-tools` package includes everything you’re going to need to build your first Jazz app.
 
@@ -41,131 +36,94 @@ pnpm add jazz-tools
 ```
 </CodeGroup>
 
-### Get your free API key
+## Get your free API key
 
-Sign up for a free API key at [dashboard.jazz.tools](https://dashboard.jazz.tools) for higher limits or production use, or use your email as a temporary key if you want to get started with prototyping quickly.
+Sign up for a free API key at [dashboard.jazz.tools](https://dashboard.jazz.tools) for higher limits or production use, or use your email address as a temporary key to get started quickly.
 
 <CodeGroup>
 ```ts
 // app/apiKey.ts
-export const apiKey = "you@example.com";
+export const apiKey = "you@example.com"; // or your API key
 ```
 </CodeGroup>
 
-## Configure your app
-### Design your data model
-Start using Zod primitives and CoValues to describe the data in your app. Zod types allow you define how your data looks, while CoValues allow you to build collaborative data structures quickly and easily. Each user has an account with a `root`, which is a great place to keep track of data your users create. <TextLink href="/docs/react/schemas/covalues" target="_blank" rel="noopener">Read more about CoValues here.</TextLink>
-
+## Define a Schema
+Jazz uses Zod to define primitive data types, and CoSchemas to define collaborative data type. We're adding a migration which runs when the user logs in to ensure that the root is always defined.
 <CodeGroup>
 ```ts
 // app/schema.ts
 import { co, z } from "jazz-tools";
 
 export const Band = co.map({
-  name: z.string()
+  name: z.string(), // Zod primitive type
 });
-export const Festival = co.list(Band);
-export const AccountRoot = co.map({
-  myFestival: Festival
+
+export const JazzFestAccountRoot = co.map({
+  myFestival: co.list(Band),
 });
-export const FestivalAppAccount = co.account({
-  root: AccountRoot,
-  profile: co.profile()
-});
+
+export const JazzFestAccount = co
+  .account({
+    root: JazzFestAccountRoot,
+    profile: co.profile(),
+  })
+  .withMigration((account) => {
+    // We need to check specifically for undefined
+    // because the root may be null (still loading)
+    if (account.root === undefined) {
+      account.root = JazzFestAccountRoot.create({
+        myFestival: [],
+      });
+    }
+  });
 ```
 </CodeGroup>
 
-### Add the Jazz Provider
-Add a Jazz Provider at the root of your app. Let Jazz know what your user account schema and get started quickly with Jazz Cloud with an API key.
-
+## Add the Jazz Provider
+Wrap your app with `JazzReactProvider` so components can use Jazz. Jazz also provides a basic UI for authentication with passkeys, which we'll use here.
 <CodeGroup>
 ```tsx
 // app/layout.tsx
 "use client";
-import { JazzReactProvider } from "jazz-tools/react";
+import { JazzReactProvider, PasskeyAuthBasicUI } from "jazz-tools/react";
 import { apiKey } from "@/app/apiKey";
-import { FestivalAppAccount } from "@/app/schema";
+import { JazzFestAccount } from "@/app/schema";
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
         <JazzReactProvider
           sync={{ peer: `wss://cloud.jazz.tools/?key=${apiKey}` }}
-          AccountSchema={FestivalAppAccount}
+          AccountSchema={JazzFestAccount}
         >
+          <PasskeyAuthBasicUI appName="JazzFest" />
           {children}
         </JazzReactProvider>
       </body>
     </html>
   );
 }
-
 ```
 </CodeGroup>
 
 <Alert variant="info" className="mt-4 flex gap-2 items-center">
-  We're including `"use client";` here to tell Next.js that this component should be rendered on the client. If you're not using Next.js, you can remove this line.
+  `"use client";` tells Next.js that this component can't be server-side rendered. If you're not using Next.js, you can remove it.
 </Alert>
 
-### Add Log In Functionality
-Passkey Authentication is quick and easy to implement, and a basic UI is included with Jazz. We'll also add a migration. This is a function that runs once when a user's account is created, making it the perfect place to set up initial data, like creating their empty festival list. We'll use a [Group to make the list public](/docs/react/groups/intro). The list container will be made public, but any items added to the list will have their own permissions.
+## Start your app
+Moment of truth&thinsp;—&thinsp;time to start your app and see if it works.
 
-<CodeGroup preferWrap>
-```tsx
-// app/layout.tsx
-"use client";
-// [!code --:1]
-import { JazzReactProvider } from "jazz-tools/react";
-// [!code ++:1]
-import { JazzReactProvider, PasskeyAuthBasicUI } from "jazz-tools/react";
-// ... existing code ...
-
-<JazzReactProvider
-  sync={{ peer: `wss://cloud.jazz.tools/?key=${apiKey}` }}
-  AccountSchema={FestivalAppAccount}
->
-{/* [!code ++:1] */}
-  <PasskeyAuthBasicUI appName="JazzFest" />
-  {children}
-</JazzReactProvider>
+<CodeGroup>
+```sh
+pnpm run dev
 ```
 </CodeGroup>
 
+If everything's going according to plan, you should see a login prompt! No log in prompt? Ask for help on [Discord](https://discord.gg/utDMjHYg42).
 
-<CodeGroup className="mt-4">
-```ts
-// app/schema.ts
-// [!code --:1]
-import { co, z } from "jazz-tools";
-// [!code ++:1]
-import { co, Group, z } from "jazz-tools";
-
-// ... existing code ...
-
-export const FestivalAppAccount = co.account({
-  root: AccountRoot,
-  profile: co.profile()
-})
-// [!code ++:7]
-  .withMigration((account) => {
-    if (account.root === undefined) { // If the user has no root, create one
-      account.root = AccountRoot.create({
-        myFestival: Festival.create([], Group.create().makePublic()),
-      });
-    };
-  });
-```
-</CodeGroup>
-
-## Work with your data
-### Create some data
-
-You can use Jazz alongside traditional React state. We'll use our [account's root to save our data](/docs/react/schemas/accounts-and-migrations#accountroot---private-data-a-user-cares-about), making sure that each band gets added to the `myFestival` list. Using a 'resolve' query allows us to tell Jazz to deeply load the `myFestival` on the user's account.
+## Create data
+Let's create a simple form to add a new band to the festival.
 
 <CodeGroup className="mt-4 [&_span]:[tab-size:2]" preferWrap>
 ```tsx
@@ -173,219 +131,77 @@ You can use Jazz alongside traditional React state. We'll use our [account's roo
 "use client";
 import { useAccount } from "jazz-tools/react";
 import { useState } from "react";
-import { Band, FestivalAppAccount } from "@/app/schema";
+import { Band, JazzFestAccount } from "@/app/schema";
 
 export function NewBand() {
-  const { me } = useAccount(FestivalAppAccount, {
-    resolve: {
-      root: { myFestival: true },
-    },
-  });
-  const [bandName, setBandName] = useState("");
+  const { me } = useAccount(JazzFestAccount, { resolve: { root: { myFestival: true } } });
+  const [name, setName] = useState("");
+
   const handleSave = () => {
-    if (!me) return;
-    me.root.myFestival.push(Band.create({ name: bandName }));
-    setBandName("");
+    if (!me) return; // Not logged in
+    me.root.myFestival.push(Band.create({ name }));
+    setName("");
   };
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setBandName(e.target.value);
-  };
+
   return (
     <div>
-      <label htmlFor="band">🎶 Add New Band</label>
-      <input type="text" value={bandName} onChange={handleChange} />
-      <button type="button" onClick={handleSave}>
-        💾 Save
-      </button>
+      <input
+        type="text"
+        value={name}
+        placeholder="Band name"
+        onChange={(e) => setName(e.target.value)}
+      />
+      <button type="button" onClick={handleSave}>Add</button>
     </div>
   );
 }
 ```
 </CodeGroup>
 
-<Alert variant="info" className="mt-4 flex gap-2 items-center">
-  A more complete guide on how to create more complex forms with drafts and autosaving is [available here](https://jazz.tools/docs/react/design-patterns/form).
-</Alert>
-
-### Display your data
-Now you've created some data, let's display it. We'll load our data from the user's account root:
-
-<CodeGroup className="mt-4 [&_span]:[tab-size:2]">
-```tsx
-// app/components/ViewBand.tsx
-"use client";
-import { useCoState } from "jazz-tools/react";
-import { Band } from "@/app/schema";
-
-export function ViewBand({ id }: { id: string }) {
-  const band = useCoState(Band, id);
-  if (!band) return null;
-  return <li>🎶 {band.name}</li>;
-}
-
-```
-</CodeGroup>
+## Display your data
+Now we've got a way to create data, so let's add a component to display it.
 
 <CodeGroup className="mt-4 [&_span]:[tab-size:2]">
 ```tsx
 // app/components/MyFestival.tsx
 "use client";
 import { useAccount } from "jazz-tools/react";
-import { ViewBand } from "@/app/components/ViewBand";
-import { FestivalAppAccount } from "@/app/schema";
+import { JazzFestAccount } from "@/app/schema";
 
 export function MyFestival() {
-  const { me } = useAccount(FestivalAppAccount, {
-    resolve: {
-      root: { myFestival: true },
-    },
-  });
-  const myFestival = me?.root.myFestival;
+  const { me } = useAccount(JazzFestAccount, { resolve: { root: { myFestival: true } } });
+  if (!me) return null; // Not logged in
   return (
-    <section>
-      <h1>🎪 My Festival</h1>
-      <ul>
-        {myFestival?.map((band) => {
-          if (!band) return null;
-          return <ViewBand id={band.id} key={band.id} />;
-        })}
-      </ul>
-    </section>
+    <ul>
+      {me?.root.myFestival.map((band) => band && <li key={band.id}>{band.name}</li>)}
+    </ul>
   );
 }
 ```
 </CodeGroup>
 
-<CodeGroup className="mt-4">
+## Put it together
+You've built all your components, time to put them together.
+<CodeGroup className="mt-4 [&_span]:[tab-size:2]">
 ```tsx
 // app/page.tsx
-import { MyFestival } from '@/app/components/MyFestival';
-import { NewBand } from '@/app/components/NewBand';
+import { NewBand } from "@/app/components/NewBand";
+import { MyFestival } from "@/app/components/MyFestival";
 
 export default function Home() {
   return (
     <main>
+      <h1>🎶 My Bands</h1>
       <NewBand />
       <MyFestival />
     </main>
-  )
-}
-```
-</CodeGroup>
-
-### Edit your data
-Editing your data is just as easy. We'll create a simple edit form allowing you to update the band name, then add a button to our page to toggle between editing mode and viewing. To modify a CoValue, we use its `$jazz` property to make your changes. When we're working with CoMaps, we use `$jazz.set(key, value)`. Any updates you make will be automatically synced to everyone who has access to the CoValue.
-
-<CodeGroup className="mt-4 [&_span]:[tab-size:2]" preferWrap>
-```tsx
-// app/components/EditBand.tsx
-"use client";
-import { useCoState } from "jazz-tools/react";
-import { Band } from "@/app/schema";
-
-export function EditBand({ id }: { id: string }) {
-  const band = useCoState(Band, id);
-  if (!band) return null;
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    band.$jazz.set("name", e.target.value);
-  };
-  return (
-    <li>
-      <label htmlFor="band-name">Band Name</label>
-      <input
-        type="text"
-        value={band.name}
-        id={`edit-band-${id}`}
-        onChange={handleChange}
-      />
-    </li>
   );
 }
 ```
 </CodeGroup>
 
-<CodeGroup className="mt-4 [&_span]:[tab-size:2]">
-```tsx
-// app/components/MyFestival.tsx
-"use client";
-import { useAccount } from "jazz-tools/react";
-import { useState } from "react";
-import { EditBand } from "@/app/components/EditBand";
-import { ViewBand } from "@/app/components/ViewBand";
-import { FestivalAppAccount } from "@/app/schema";
+You should now be able to add a band to your festival, and see it in the list! 
 
-export function MyFestival() {
-  const { me } = useAccount(FestivalAppAccount, {
-    resolve: {
-      root: { myFestival: true },
-    },
-  });
-  const myFestival = me?.root.myFestival;
-  const [isEditing, setIsEditing] = useState(false);
-  return (
-    <section>
-      <h1>🎪 My Festival</h1>
-      <button type="button" onClick={() => setIsEditing(!isEditing)}>
-        {isEditing ? '✅ Done' : '✏️ Edit'}
-      </button>
-      <ul>
-        {myFestival?.map((band) => {
-          if (!band) return null;
-          return isEditing ? <EditBand id={band.id} key={band.id} /> : <ViewBand id={band.id} key={band.id} />
-        })}
-      </ul>
-    </section>
-  )
-}
-```
-</CodeGroup>
-
-### Share your data
-
-So far, all your data has been private. But CoValues are designed to be collaborative, and so Jazz allows you to quickly share data with other users. 
-
-We'll add a button to our page to 'announce' bands to the public. Every CoValue has an `owner` property, which is a `Group` object. This `Group` object is used to manage the permissions for the CoValue. We can use the `getRoleOf` method to check if the current user has a specific role in the group, and we can use the `addMember` and `removeMember` methods to change the permissions. The special member 'everyone' represents all users, and is used to manage public permissions, or you can use `makePublic()` to add 'everyone' as a reader.
-
-As well as 'everyone', you can add any user or group by ID, with `reader`, `writer`, `admin`, or `writeOnly` permissions. You can read more about [groups and permissions here](/docs/react/groups/intro).
-
-<CodeGroup className="mt-4 [&_span]:[tab-size:2]" preferWrap>
-```tsx
-// app/components/EditBand.tsx
-import { useCoState } from "jazz-tools/react";
-import { Band } from "@/app/schema";
-
-export function EditBand({ id }: { id: string }) {
-  const band = useCoState(Band, id);
-  if (!band) return null;
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    band.$jazz.set("name", e.target.value);
-  };
-  const isPublic = band.$jazz.owner.getRoleOf("everyone") === "reader";
-  const handleTogglePublic = () => {
-    if (!isPublic) {
-      band.$jazz.owner.addMember("everyone", "reader");
-    } else {
-      band.$jazz.owner.removeMember("everyone");
-    }
-  };
-  return (
-    <li>
-      <label htmlFor="band-name">Band Name</label>
-      <input
-        type="text"
-        value={band.name}
-        id={`edit-band-${id}`}
-        onChange={handleChange}
-      />
-      <button type="button" onClick={handleTogglePublic}>
-        {isPublic ? "✖️ Unannounce" : "📢 Announce"}
-      </button>
-    </li>
-  );
-}
-```
-</CodeGroup>
-
-Congratulations, you've now built a simple app with authentication, data creation, viewing, editing, and sharing! 
-
-If you're ready for the next step, you can learn how to [set up SSR](/docs/project-setup/ssr) to render public data on the server.
+## Next steps
+- Learn how to edit data with [drafts](/docs/react/design-patterns/drafts)
+- Learn how to share and collaborate on data

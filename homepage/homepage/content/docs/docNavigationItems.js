@@ -54,15 +54,7 @@ export const docNavigationItems = [
           "react-native-expo": 100,
           svelte: 100,
         },
-      },
-      {
-        name: "SSR",
-        href: "/docs/project-setup/ssr",
-        done: {
-          react: 100,
-        },
-        excludeFromNavigation: true,
-      },
+      }
     ],
   },
   {
