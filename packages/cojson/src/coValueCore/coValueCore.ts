@@ -371,6 +371,7 @@ export class CoValueCore {
 
       if (entry.isAvailable()) {
         this.groupInvalidationSubscription = entry.subscribe((_groupUpdate) => {
+          // When the group is updated, we need to reset the cached content because the transactions validity might have changed
           this.internalShamefullyResetCachedContent();
           this.notifyUpdate("immediate");
         }, false);
@@ -592,6 +593,7 @@ export class CoValueCore {
         meta,
       );
 
+      // We pre-populate the decryption cache for private transactions, to skip the decryption step later
       this.verified.hydrateDecryptionCache(result.transaction, changes, meta);
     } else {
       result = this.verified.makeNewTrustingTransaction(
@@ -643,14 +645,24 @@ export class CoValueCore {
     return newContent;
   }
 
+  // The transactions that have already been validated
   validatedTransactionsSet = new Set<Transaction>();
+
+  // The transactions that have already been parsed
   parsedTransactionsSet = new Set<Transaction>();
+
+  // The CoValue changes that have been successfully decrypted & parsed
   parsedChanges: DecryptedTransaction[] = [];
+
+  // The starting point of the branch, in case this CoValue is a branch
   branchStart:
     | { branch: CoValueKnownState["sessions"]; madeAt: number }
     | undefined;
+
+  // The list of merge commits that have been made
   mergeCommits: { commit: MergeCommit; madeAt: number }[] = [];
 
+  // Reset the parsed transactions and branches, to validate them again from scratch when the group is updated
   resetParsedTransactions() {
     this.parsedChanges = [];
     this.branchStart = undefined;
@@ -659,12 +671,15 @@ export class CoValueCore {
     this.parsedTransactionsSet = new Set();
   }
 
+  /**
+   * Goes through the CoValue transactions, and load the new changes & meta in memory
+   */
   parseNewTransactions(ignorePrivateTransactions: boolean) {
     if (!this.verified) {
       return;
     }
 
-    let validTransactions = determineValidTransactions(
+    const validTransactions = determineValidTransactions(
       this,
       this.validatedTransactionsSet,
     );
@@ -782,21 +797,29 @@ export class CoValueCore {
     return { changes, meta };
   }
 
+  /**
+   * Returns the valid transactions matching the criteria specified in the options
+   */
   getValidTransactions(options?: {
     ignorePrivateTransactions: boolean;
-    // Expects the sessions object that marks the count of transactions
+    // The range, described as knownState sessions, to filter the transactions returned
     from?: CoValueKnownState["sessions"];
     to?: CoValueKnownState["sessions"];
+
+    // The transactions that have already been processed, used for the incremental updates
     knownTransactions?: Set<Transaction>;
+
+    // If true, the branch source transactions will be skipped. Used to gather the transactions for the merge operation.
     skipBranchSource?: boolean;
   }): DecryptedTransaction[] {
     if (!this.verified) {
       return [];
     }
 
+    // Parse the new transactions, to load the new changes & meta in memory
     this.parseNewTransactions(options?.ignorePrivateTransactions ?? false);
 
-    const newTransactions: DecryptedTransaction[] = [];
+    const matchingTransactions: DecryptedTransaction[] = [];
 
     for (const value of this.parsedChanges) {
       if (options?.knownTransactions?.has(value.tx)) {
@@ -815,11 +838,12 @@ export class CoValueCore {
         continue;
       }
 
-      newTransactions.push(value);
+      matchingTransactions.push(value);
     }
 
     const source = getBranchSource(this);
 
+    // If this is a branch, we load the valid transactions from the source
     if (source && this.branchStart && !options?.skipBranchSource) {
       const sourceTransactions = source.getValidTransactions({
         to: this.branchStart.branch,
@@ -828,7 +852,7 @@ export class CoValueCore {
       });
 
       for (const { txID, madeAt, changes, tx } of sourceTransactions) {
-        newTransactions.push({
+        matchingTransactions.push({
           txID: {
             sessionID: `${txID.sessionID}_branch_${source.id}`,
             txIndex: txID.txIndex,
@@ -840,7 +864,7 @@ export class CoValueCore {
       }
     }
 
-    return newTransactions;
+    return matchingTransactions;
   }
 
   createBranch(name: string, ownerId: RawCoID) {

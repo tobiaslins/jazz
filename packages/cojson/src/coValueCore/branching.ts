@@ -17,18 +17,26 @@ export function getBranchHeader({
 }): CoValueHeader {
   return {
     type,
+    // Branch name and source id are stored in the meta field
+    // and used to generate the unique id for the branch
     meta: {
       branch: branchName,
       source: sourceId,
     },
     ruleset: {
       type: "ownedByGroup",
+      // The owner is part of the id generation, making it possible to have multiple branches with the same name
+      // but different owners
       group: ownerId,
     },
+    // The meta is enough to have reproducible unique id for the branch
     uniqueness: "",
   };
 }
 
+/**
+ * Given a coValue, a branch name and an owner id, returns the id for the branch
+ */
 export function getBranchId(
   coValue: CoValueCore,
   name: string,
@@ -54,6 +62,9 @@ export type BranchCommit = {
   branch: CoValueKnownState["sessions"];
 };
 
+/**
+ * Given a coValue, a branch name and an owner id, creates a new branch CoValue
+ */
 export function createBranch(
   coValue: CoValueCore,
   name: string,
@@ -74,6 +85,7 @@ export function createBranch(
 
   const value = coValue.node.createCoValue(header);
 
+  // Create a branch commit to identify the starting point of the branch
   value.makeTransaction([], "private", {
     branch: coValue.knownState().sessions,
   } satisfies BranchCommit);
@@ -81,6 +93,9 @@ export function createBranch(
   return value;
 }
 
+/**
+ * Given a branch coValue, returns the source coValue if available
+ */
 export function getBranchSource(
   coValue: CoValueCore,
 ): AvailableCoValueCore | undefined {
@@ -109,6 +124,9 @@ export type MergeCommit = {
   count: number;
 };
 
+/**
+ * Given a branch coValue, merges the branch into the source coValue
+ */
 export function mergeBranch(branch: CoValueCore): CoValueCore {
   if (!branch.verified) {
     throw new Error(
@@ -128,6 +146,8 @@ export function mergeBranch(branch: CoValueCore): CoValueCore {
     throw new Error("CoValueCore: unable to find source branch");
   }
 
+  // Look for previous merge commits, to see which transactions needs to be merged
+  // Done mostly for performance reasons, as we could merge all the transactions every time and nothing would change
   const mergedTransactions = target.mergeCommits.reduce(
     (acc, { commit }) => {
       if (commit.id !== branch.id) {
@@ -146,6 +166,7 @@ export function mergeBranch(branch: CoValueCore): CoValueCore {
     {} as CoValueKnownState["sessions"],
   );
 
+  // Get the valid transactions from the branch, skipping the branch source and the previously merged transactions
   const branchValidTransactions = branch
     .getValidTransactions({
       from: mergedTransactions,
@@ -154,13 +175,18 @@ export function mergeBranch(branch: CoValueCore): CoValueCore {
     })
     .filter((tx) => tx.changes.length > 0);
 
+  // If there are no valid transactions to merge, we don't want to create a merge commit
   if (branchValidTransactions.length === 0) {
     return target;
   }
 
+  // Create a merge commit to identify the merge point
   target.makeTransaction([], "private", {
+    // The point where the branch was merged
     merge: { ...branch.knownState().sessions },
+    // The id of the branch
     id: branch.id,
+    // The number of transactions to merge, will be used in the future to handle the edits history properly
     count: branchValidTransactions.length,
   } satisfies MergeCommit);
 
