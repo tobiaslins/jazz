@@ -2551,6 +2551,14 @@ describe("co.map schema", () => {
       "co.map() expects an object as its argument, not a CoValue schema",
     );
   });
+
+  test("co.map() should throw an error if its shape does not contain valid schemas", () => {
+    expect(() =>
+      co.map({
+        field: "a string is not a valid schema",
+      }),
+    ).toThrow("co.map() supports only Zod v4 schemas and CoValue schemas");
+  });
 });
 
 describe("Updating a nested reference", () => {
