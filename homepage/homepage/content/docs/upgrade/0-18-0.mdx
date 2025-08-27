@@ -193,19 +193,20 @@ We provide a codemod to make the upgrade to the new `$jazz` field quicker.
 
 The codemod is type-aware, and it is required to have `jazz-tools` already upgraded to 0.18.
 
+
+<CodeGroup>
 ```bash
 npx jazz-tools-codemod-0-18@latest
 ```
+</CodeGroup>
 
 Or if you want to run it on a specific path or file:
 
+<CodeGroup>
 ```bash
 npx jazz-tools-codemod-0-18@latest ./path/to/your/src
 ```
-
-<Alert type="warning">
-Be sure to run the codemod on a clean project, without any other changes.
-</Alert>
+</CodeGroup>
 
 The goal of this codemod is to get you through the 90% of the work quickly, running a TypeScript check after the codemod will help you to find the remaining issues.
 
