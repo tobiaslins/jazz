@@ -66,7 +66,7 @@ export const docNavigationItems = [
   },
   {
     name: "Upgrade guides",
-    // collapse: true,
+    collapse: true,
     prefix: "/docs/upgrade",
     items: [
       {
