@@ -1,5 +1,16 @@
 # jazz-tools
 
+## 0.17.14
+
+### Patch Changes
+
+- cc2f774: Detect incompatible Zod schemas when creating `co.map`s and `co.profile`s
+- Updated dependencies [1094b7c]
+- Updated dependencies [6378ad5]
+  - cojson@0.17.14
+  - cojson-storage-indexeddb@0.17.14
+  - cojson-transport-ws@0.17.14
+
 ## 0.17.13
 
 ### Patch Changes
