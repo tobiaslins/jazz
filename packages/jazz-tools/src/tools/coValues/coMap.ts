@@ -572,6 +572,19 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
   }
 
   /**
+   * Check if a key is defined in the CoMap.
+   *
+   * This check does not load the referenced value or validate permissions.
+   *
+   * @param key The key to check
+   * @returns True if the key is defined, false otherwise
+   * @category Content
+   */
+  has(key: CoKeys<M>): boolean {
+    return this.raw.get(key) !== undefined;
+  }
+
+  /**
    * Set a value on the CoMap
    *
    * @param key The key to set
@@ -1004,7 +1017,7 @@ const CoMapProxyHandler: ProxyHandler<CoMap> = {
     const descriptor = target.$jazz?.getDescriptor(key as string);
 
     if (target.$jazz?.raw && typeof key === "string" && descriptor) {
-      return target.$jazz.raw.get(key) !== undefined;
+      return target.$jazz.has(key as CoKeys<typeof target>);
     } else {
       return Reflect.has(target, key);
     }
