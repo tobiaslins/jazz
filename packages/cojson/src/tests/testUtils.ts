@@ -506,6 +506,7 @@ export function setupTestNode(
     ourName?: string;
     syncServer?: LocalNode;
     persistent?: boolean;
+    skipReconciliation?: boolean;
   }) {
     const { peer, peerStateOnServer, peerOnServer } =
       getSyncServerConnectedPeer({
@@ -516,7 +517,7 @@ export function setupTestNode(
         persistent: opts?.persistent,
       });
 
-    node.syncManager.addPeer(peer);
+    node.syncManager.addPeer(peer, opts?.skipReconciliation);
 
     return {
       peerState: node.syncManager.peers[peer.id]!,

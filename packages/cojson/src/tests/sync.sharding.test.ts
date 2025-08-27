@@ -223,4 +223,76 @@ describe("sharding", () => {
       );
     });
   });
+
+  test("peer reconciliation respects server sharding", async () => {
+    const client = setupTestNode();
+    const server1 = setupTestNode({ isSyncServer: true });
+    const server2 = setupTestNode({ isSyncServer: true });
+    const server3 = setupTestNode({ isSyncServer: true });
+    server1.node.syncManager.disableTransactionVerification();
+    server2.node.syncManager.disableTransactionVerification();
+    server3.node.syncManager.disableTransactionVerification();
+
+    const group = client.node.createGroup();
+    const map = group.createMap();
+    map.set("hello", "world", "trusting");
+
+    // Custom server peer selector that routes the group to server1 and the map to server3
+    client.node.syncManager.serverPeerSelector = (id, serverPeers) => {
+      if (id === group.id) {
+        return [
+          serverPeers.find((p) => p.id === server1.node.currentSessionID)!,
+        ];
+      }
+      if (id === map.id) {
+        return [
+          serverPeers.find((p) => p.id === server3.node.currentSessionID)!,
+        ];
+      }
+      return [];
+    };
+
+    // Connect the client to all servers, but don't reconcile them yet
+    client.connectToSyncServer({
+      ourName: "client",
+      syncServer: server1.node,
+      syncServerName: "server1",
+      skipReconciliation: true,
+    });
+    client.connectToSyncServer({
+      ourName: "client",
+      syncServer: server2.node,
+      syncServerName: "server2",
+      skipReconciliation: true,
+    });
+    client.connectToSyncServer({
+      ourName: "client",
+      syncServer: server3.node,
+      syncServerName: "server3",
+      skipReconciliation: true,
+    });
+
+    // Now that the full peer membership is known, we can reconcile
+    client.node.syncManager.reconcileServerPeers();
+
+    await map.core.waitForSync();
+
+    expect(
+      SyncMessagesLog.getMessages({
+        Group: group.core,
+        Map: map.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "client -> server1 | LOAD Group sessions: header/3",
+        "client -> server3 | LOAD Map sessions: header/1",
+        "client -> server1 | CONTENT Group header: true new: After: 0 New: 3",
+        "client -> server3 | CONTENT Map header: true new: After: 0 New: 1",
+        "server1 -> client | KNOWN Group sessions: empty",
+        "server3 -> client | KNOWN Map sessions: empty",
+        "server1 -> client | KNOWN Group sessions: header/3",
+        "server3 -> client | KNOWN Map sessions: header/1",
+      ]
+    `);
+  });
 });
