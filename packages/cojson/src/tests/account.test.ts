@@ -137,6 +137,30 @@ test("Should migrate the root from private to trusting", async () => {
   expect(account3.ops).toEqual(account2.ops); // No new transactions were made
 });
 
+test("myRole returns 'admin' for the current account", async () => {
+  const { node, accountID } = await LocalNode.withNewlyCreatedAccount({
+    creationProps: { name: "Hermes Puggington" },
+    crypto: Crypto,
+  });
+
+  const account = await node.load(accountID);
+  if (account === "unavailable") throw new Error("Account unavailable");
+
+  expect(account.myRole()).toEqual("admin");
+});
+
+test("roleOf returns 'admin' when the accountID is the same as the receiver account", async () => {
+  const { node, accountID } = await LocalNode.withNewlyCreatedAccount({
+    creationProps: { name: "Hermes Puggington" },
+    crypto: Crypto,
+  });
+
+  const account = await node.load(accountID);
+  if (account === "unavailable") throw new Error("Account unavailable");
+
+  expect(account.roleOf(accountID)).toEqual("admin");
+});
+
 test("throws an error if the user tried to add a member to an account", async () => {
   const { node, accountID } = await LocalNode.withNewlyCreatedAccount({
     creationProps: { name: "Hermes Puggington" },
