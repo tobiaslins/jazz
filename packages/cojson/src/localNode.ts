@@ -457,6 +457,46 @@ export class LocalNode {
     return core.getCurrentContent() as T;
   }
 
+  /**
+   * Loads a branch from a group coValue, creating a new one if it doesn't exist.
+   *
+   * Returns "unavailable" in case of errors or missing source.
+   */
+  async checkoutBranch<T extends RawCoValue>(
+    id: CoID<T>,
+    branch: string,
+    branchOwnerID?: RawCoID,
+  ): Promise<T | "unavailable"> {
+    const source = await this.loadCoValueCore(id);
+
+    if (!source.isAvailable()) {
+      return "unavailable";
+    }
+
+    const header = source.verified.header;
+
+    // Group and account coValues can't have branches
+    if (header.ruleset.type !== "ownedByGroup") {
+      logger.error("Can't load a branch from a group coValue", {
+        id,
+      });
+      return "unavailable";
+    }
+
+    const ownerID = branchOwnerID || header.ruleset.group;
+
+    const branchID = source.getBranchId(branch, ownerID);
+
+    // Passing skipRetry to true because otherwise creating a new branch would always take 1 retry delay
+    let branchCoValue = await this.loadCoValueCore(branchID, undefined, true);
+
+    if (!branchCoValue.isAvailable()) {
+      branchCoValue = source.createBranch(branch, ownerID);
+    }
+
+    return branchCoValue.getCurrentContent() as T;
+  }
+
   getLoaded<T extends RawCoValue>(id: CoID<T>): T | undefined {
     const coValue = this.getCoValue(id);
 

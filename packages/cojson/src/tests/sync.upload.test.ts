@@ -52,6 +52,56 @@ describe("client to server upload", () => {
     `);
   });
 
+  test("creating a branch", async () => {
+    const client = setupTestNode({
+      connected: true,
+    });
+
+    const group = jazzCloud.node.createGroup();
+    group.addMember("everyone", "writer");
+    const map = group.createMap();
+    const branchName = "feature-branch";
+
+    map.set("key1", "value1");
+    map.set("key2", "value2");
+
+    await map.core.waitForSync();
+
+    SyncMessagesLog.clear();
+
+    const branch = await client.node.checkoutBranch(map.id, branchName);
+
+    if (branch === "unavailable") {
+      throw new Error("Branch is unavailable");
+    }
+
+    branch.set("branchKey", "branchValue");
+
+    await branch.core.waitForSync();
+
+    expect(
+      SyncMessagesLog.getMessages({
+        Group: group.core,
+        Map: map.core,
+        Branch: branch.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "client -> server | LOAD Map sessions: empty",
+        "server -> client | CONTENT Group header: true new: After: 0 New: 5",
+        "server -> client | CONTENT Map header: true new: After: 0 New: 2",
+        "client -> server | KNOWN Group sessions: header/5",
+        "client -> server | KNOWN Map sessions: header/2",
+        "client -> server | LOAD Branch sessions: empty",
+        "server -> client | KNOWN Branch sessions: empty",
+        "client -> server | CONTENT Branch header: true new: After: 0 New: 1",
+        "client -> server | CONTENT Branch header: false new: After: 1 New: 1",
+        "server -> client | KNOWN Branch sessions: header/1",
+        "server -> client | KNOWN Branch sessions: header/2",
+      ]
+    `);
+  });
+
   test("syncs meta information", async () => {
     const client = setupTestNode({
       connected: true,
