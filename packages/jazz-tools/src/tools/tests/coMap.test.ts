@@ -744,6 +744,105 @@ describe("CoMap", async () => {
     });
   });
 
+  describe("has", () => {
+    test("should return true if the key is defined", () => {
+      const Person = co.map({
+        name: z.string(),
+        age: z.number().optional(),
+      });
+
+      const person = Person.create({ name: "John", age: 20 });
+
+      expect(person.$jazz.has("name")).toBe(true);
+      expect(person.$jazz.has("age")).toBe(true);
+    });
+
+    test("should return true if the key was set to undefined", () => {
+      const Person = co.map({
+        name: z.string(),
+        age: z.number().optional(),
+      });
+
+      const person = Person.create({ name: "John" });
+
+      person.$jazz.set("age", undefined);
+
+      expect(person.$jazz.has("age")).toBe(true);
+    });
+
+    test("should return false if the key is not defined", () => {
+      const Person = co.map({
+        name: z.string(),
+        age: z.number().optional(),
+      });
+
+      const person = Person.create({ name: "John" });
+
+      expect(person.$jazz.has("age")).toBe(false);
+    });
+
+    test("should return false if the key was deleted", () => {
+      const Person = co.map({
+        name: z.string(),
+        age: z.number().optional(),
+      });
+
+      const person = Person.create({ name: "John", age: 20 });
+
+      person.$jazz.delete("age");
+
+      expect(person.$jazz.has("age")).toBe(false);
+    });
+
+    test("should not load the referenced CoValue", async () => {
+      const Person = co.map({
+        name: co.plainText(),
+      });
+
+      const { clientAccount, serverAccount } = await setupTwoNodes();
+
+      const person = Person.create(
+        {
+          name: "John",
+        },
+        { owner: Group.create(serverAccount).makePublic() },
+      );
+
+      const loadedPerson = await Person.load(person.$jazz.id, {
+        resolve: true,
+        loadAs: clientAccount,
+      });
+
+      assert(loadedPerson);
+      expect(loadedPerson.$jazz.has("name")).toBe(true);
+      expect(loadedPerson.name).toBeNull();
+    });
+
+    test("should return true even if the viewer doesn't have access to the referenced CoValue", async () => {
+      const Person = co.map({
+        name: co.plainText(),
+      });
+
+      const person = Person.create(
+        // UserB has no access to name
+        { name: co.plainText().create("John", Group.create()) },
+        // UserB has access to person
+        { owner: Group.create().makePublic() },
+      );
+
+      const userB = await createJazzTestAccount();
+
+      const loadedPerson = await Person.load(person.$jazz.id, {
+        resolve: true,
+        loadAs: userB,
+      });
+
+      assert(loadedPerson);
+      expect(loadedPerson.$jazz.has("name")).toBe(true);
+      expect(loadedPerson.name).toBeNull();
+    });
+  });
+
   test("Enum of maps", () => {
     const ChildA = co.map({
       type: z.literal("a"),

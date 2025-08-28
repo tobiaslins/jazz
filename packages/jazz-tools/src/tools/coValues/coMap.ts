@@ -572,6 +572,20 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
   }
 
   /**
+   * Check if a key is defined in the CoMap.
+   *
+   * This check does not load the referenced value or validate permissions.
+   *
+   * @param key The key to check
+   * @returns True if the key is defined, false otherwise
+   * @category Content
+   */
+  has(key: CoKeys<M>): boolean {
+    const entry = this.raw.getRaw(key);
+    return entry?.change !== undefined && entry.change.op !== "del";
+  }
+
+  /**
    * Set a value on the CoMap
    *
    * @param key The key to set
