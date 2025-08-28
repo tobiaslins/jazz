@@ -60,7 +60,8 @@ describe("WebSocket Peer Integration", () => {
     });
 
     expect(connectionEstablished).toBe(true);
-    expect(clientNode.syncManager.getPeers()).toHaveLength(1);
+    expect(clientNode.syncManager.getServerPeers("co_z12345")).toHaveLength(1);
+    expect(clientNode.syncManager.getClientPeers()).toHaveLength(0);
   });
 
   test("should sync data between nodes through WebSocket connection", async () => {
@@ -183,7 +184,7 @@ describe("WebSocket Peer Integration", () => {
       expect(server.wss.clients.size).toBe(1);
     });
 
-    const peerOnServer = server.localNode.syncManager.getPeers()[0];
+    const peerOnServer = server.localNode.syncManager.getClientPeers()[0];
 
     for (const client of server.wss.clients) {
       client.terminate();

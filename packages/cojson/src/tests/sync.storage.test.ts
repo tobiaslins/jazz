@@ -206,7 +206,7 @@ describe("client with storage syncs with server", () => {
     const mapOnClient = await loadCoValueOrFail(client.node, map.id);
     expect(mapOnClient.get("hello")).toEqual("world");
 
-    client.node.syncManager.getPeers()[0]?.gracefulShutdown();
+    client.node.syncManager.getPeers(map.id)[0]?.gracefulShutdown();
 
     SyncMessagesLog.clear();
     map.set("hello", "updated", "trusting");
