@@ -757,6 +757,19 @@ describe("CoMap", async () => {
       expect(person.$jazz.has("age")).toBe(true);
     });
 
+    test("should return true if the key was set to undefined", () => {
+      const Person = co.map({
+        name: z.string(),
+        age: z.number().optional(),
+      });
+
+      const person = Person.create({ name: "John" });
+
+      person.$jazz.set("age", undefined);
+
+      expect(person.$jazz.has("age")).toBe(true);
+    });
+
     test("should return false if the key is not defined", () => {
       const Person = co.map({
         name: z.string(),
@@ -764,6 +777,19 @@ describe("CoMap", async () => {
       });
 
       const person = Person.create({ name: "John" });
+
+      expect(person.$jazz.has("age")).toBe(false);
+    });
+
+    test("should return false if the key was deleted", () => {
+      const Person = co.map({
+        name: z.string(),
+        age: z.number().optional(),
+      });
+
+      const person = Person.create({ name: "John", age: 20 });
+
+      person.$jazz.delete("age");
 
       expect(person.$jazz.has("age")).toBe(false);
     });
@@ -779,14 +805,12 @@ describe("CoMap", async () => {
         {
           name: "John",
         },
-        { owner: Group.create(clientAccount).makePublic() },
+        { owner: Group.create(serverAccount).makePublic() },
       );
-
-      await person.$jazz.waitForSync({ timeout: 1000 });
 
       const loadedPerson = await Person.load(person.$jazz.id, {
         resolve: true,
-        loadAs: serverAccount,
+        loadAs: clientAccount,
       });
 
       assert(loadedPerson);

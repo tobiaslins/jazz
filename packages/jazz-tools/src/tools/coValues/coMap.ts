@@ -581,7 +581,8 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
    * @category Content
    */
   has(key: CoKeys<M>): boolean {
-    return this.raw.get(key) !== undefined;
+    const entry = this.raw.getRaw(key);
+    return entry?.change !== undefined && entry.change.op !== "del";
   }
 
   /**
@@ -1017,7 +1018,7 @@ const CoMapProxyHandler: ProxyHandler<CoMap> = {
     const descriptor = target.$jazz?.getDescriptor(key as string);
 
     if (target.$jazz?.raw && typeof key === "string" && descriptor) {
-      return target.$jazz.has(key as CoKeys<typeof target>);
+      return target.$jazz.raw.get(key) !== undefined;
     } else {
       return Reflect.has(target, key);
     }
