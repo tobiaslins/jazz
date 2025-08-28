@@ -15,7 +15,7 @@ import type { Account, AuthCredentials, ID } from "jazz-tools";
  * });
  * ```
  */
-export const jazzPlugin = () => {
+export const jazzPlugin = (): BetterAuthPlugin => {
   return {
     id: "jazz-plugin",
     schema: {
@@ -44,7 +44,7 @@ export const jazzPlugin = () => {
               create: {
                 before: async (user, context) => {
                   // If the user is created without a jazzAuth, it will throw an error.
-                  if (!context?.context?.jazzAuth) {
+                  if (!contextContainsJazzAuth(context)) {
                     throw new APIError(422, {
                       message: "JazzAuth is required",
                     });
@@ -52,9 +52,9 @@ export const jazzPlugin = () => {
                   // Decorate the user with the jazz's credentials.
                   return {
                     data: {
-                      accountID: context?.context?.jazzAuth?.accountID,
+                      accountID: context?.jazzAuth?.accountID,
                       encryptedCredentials:
-                        context?.context?.jazzAuth?.encryptedCredentials,
+                        context?.jazzAuth?.encryptedCredentials,
                     },
                   };
                 },
@@ -64,11 +64,11 @@ export const jazzPlugin = () => {
               create: {
                 before: async (verification, context) => {
                   // If a jazzAuth is provided, save it for later usage.
-                  if (context?.context?.jazzAuth) {
+                  if (contextContainsJazzAuth(context)) {
                     const parsed = JSON.parse(verification.value);
                     const newValue = JSON.stringify({
                       ...parsed,
-                      jazzAuth: context?.context?.jazzAuth,
+                      jazzAuth: context.jazzAuth,
                     });
 
                     return {
@@ -111,9 +111,14 @@ export const jazzPlugin = () => {
               data: JSON.stringify(credentials),
             });
 
-            ctx.context.jazzAuth = {
-              accountID: jazzAuth.accountID,
-              encryptedCredentials: encryptedCredentials,
+            return {
+              context: {
+                ...ctx,
+                jazzAuth: {
+                  accountID: jazzAuth.accountID,
+                  encryptedCredentials: encryptedCredentials,
+                },
+              },
             };
           }),
         },
@@ -193,8 +198,17 @@ export const jazzPlugin = () => {
         },
       ],
     },
-  } satisfies BetterAuthPlugin;
+  };
 };
+
+function contextContainsJazzAuth(ctx: unknown): ctx is {
+  jazzAuth: {
+    accountID: string;
+    encryptedCredentials: string;
+  };
+} {
+  return !!ctx && typeof ctx === "object" && "jazzAuth" in ctx;
+}
 
 async function extractJazzAuth(
   userId: string,
