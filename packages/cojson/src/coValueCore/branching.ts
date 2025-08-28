@@ -119,8 +119,11 @@ export function getBranchSource(
 }
 
 export type MergeCommit = {
+  // The point where the branch was merged
   merge: CoValueKnownState["sessions"];
+  // The id of the branch that was merged
   id: RawCoID;
+  // The number of transactions that were merged, will be used in the future to handle the edits history properly
   count: number;
 };
 
@@ -182,11 +185,8 @@ export function mergeBranch(branch: CoValueCore): CoValueCore {
 
   // Create a merge commit to identify the merge point
   target.makeTransaction([], "private", {
-    // The point where the branch was merged
     merge: { ...branch.knownState().sessions },
-    // The id of the branch
     id: branch.id,
-    // The number of transactions to merge, will be used in the future to handle the edits history properly
     count: branchValidTransactions.length,
   } satisfies MergeCommit);
 

@@ -46,16 +46,29 @@ export function idforHeader(
 }
 
 export type VerifiedTransaction = {
+  // The account or agent that made the transaction
   author: RawAccountID | AgentID;
+  // An object containing the session ID and the transaction index
   txID: TransactionID;
   tx: Transaction;
+  // The Unix time when the transaction was made
   madeAt: number;
+  // Whether the transaction has been validated, used to track if determinedValidTransactions needs to be check this
   isValidated: boolean;
+  // The decoded changes of the transaction
   changes: JsonValue[] | undefined;
+  // The decoded meta information of the transaction
   meta: JsonObject | undefined;
+
+  // Whether the transaction is valid, as per membership rules
   isValid: boolean;
+
+  // True if we encountered an error while decoding the changes
   hasInvalidChanges: boolean;
+  // True if we encountered an error while parsing the meta
   hasInvalidMeta: boolean;
+
+  // True if the meta information has been parsed and loaded in the CoValueCore
   hasMetaBeenParsed: boolean;
 };
 
@@ -681,7 +694,7 @@ export class CoValueCore {
   }
 
   verifiedTransactions: VerifiedTransaction[] = [];
-  verifiedTransactionsKnownSessions: CoValueKnownState["sessions"] = {};
+  private verifiedTransactionsKnownSessions: CoValueKnownState["sessions"] = {};
 
   /**
    * Loads the new transaction from the SessionMap into verifiedTransactions as a VerifiedTransaction.
@@ -738,14 +751,14 @@ export class CoValueCore {
   /**
    * Iterates over the verifiedTransactions and marks them as valid or invalid, based on the group membership of the authors of the transactions  .
    */
-  determineValidTransactions() {
+  private determineValidTransactions() {
     determineValidTransactions(this);
   }
 
   /**
    * Parses the meta information of a transaction, and set the branchStart and mergeCommits.
    */
-  parseMetaInformation(transaction: VerifiedTransaction) {
+  private parseMetaInformation(transaction: VerifiedTransaction) {
     if (
       !transaction.meta ||
       !transaction.isValid ||
@@ -782,7 +795,7 @@ export class CoValueCore {
    * - Decodes the changes & meta for each transaction
    * - Parses the meta information of the transaction
    */
-  parseNewTransactions(ignorePrivateTransactions: boolean) {
+  private parseNewTransactions(ignorePrivateTransactions: boolean) {
     if (!this.isAvailable()) {
       return;
     }
@@ -809,7 +822,7 @@ export class CoValueCore {
     from?: CoValueKnownState["sessions"];
     to?: CoValueKnownState["sessions"];
 
-    // The transactions that have already been processed, used for the incremental updates
+    // The transactions that have already been processed, used for the incremental builds of the content views
     knownTransactions?: Set<Transaction>;
 
     // If true, the branch source transactions will be skipped. Used to gather the transactions for the merge operation.
@@ -887,6 +900,8 @@ export class CoValueCore {
 
   getValidSortedTransactions(options?: {
     ignorePrivateTransactions: boolean;
+
+    // The transactions that have already been processed, used for the incremental builds of the content views
     knownTransactions?: Set<Transaction>;
   }): DecryptedTransaction[] {
     const allTransactions = this.getValidTransactions(options);
