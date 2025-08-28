@@ -51,7 +51,7 @@ export function SignupForm({ providers }: Props) {
       {
         onSuccess: async () => {
           if (account?.me?.profile) {
-            account.me.profile.name = name;
+            account.me.profile.$jazz.set("name", name);
           }
           router.push("/");
         },
