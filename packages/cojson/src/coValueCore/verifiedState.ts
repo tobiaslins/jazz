@@ -41,7 +41,6 @@ export type PrivateTransaction = {
   encryptedChanges: Encrypted<JsonValue[], { in: RawCoID; tx: TransactionID }>;
   meta?: Encrypted<JsonObject, { in: RawCoID; tx: TransactionID }>;
 };
-
 export type TrustingTransaction = {
   privacy: "trusting";
   madeAt: number;
@@ -350,86 +349,20 @@ export class VerifiedState {
     };
   }
 
-  private readonly _decryptionCache: {
-    [key: Encrypted<JsonValue[], JsonValue>]: JsonValue[] | undefined;
-    [key: Encrypted<JsonObject, JsonValue>]: JsonObject | undefined;
-  } = {};
-
-  hydrateDecryptionCache(
-    tx: Transaction,
-    changes: JsonValue[],
-    meta: JsonObject | undefined,
-  ) {
-    if (tx.privacy === "private") {
-      this._decryptionCache[tx.encryptedChanges] = changes;
-
-      if (tx.meta) {
-        this._decryptionCache[tx.meta] = meta;
-      }
-    }
-  }
-
   decryptTransaction(
     sessionID: SessionID,
     txIndex: number,
     keySecret: KeySecret,
-    encryptedChanges?: Encrypted<
-      JsonValue[],
-      { in: RawCoID; tx: TransactionID }
-    >,
-  ): JsonValue[] {
-    if (encryptedChanges && this._decryptionCache[encryptedChanges]) {
-      return this._decryptionCache[encryptedChanges];
-    }
-
-    const decryptedChanges = this.sessions.decryptTransaction(
-      sessionID,
-      txIndex,
-      keySecret,
-    );
-
-    if (!decryptedChanges) {
-      logger.error("Failed to decrypt transaction despite having key", {
-        err: new Error("Failed to decrypt transaction despite having key"),
-      });
-      return [];
-    }
-
-    if (encryptedChanges) {
-      this._decryptionCache[encryptedChanges] = decryptedChanges;
-    }
-
-    return decryptedChanges;
+  ): JsonValue[] | undefined {
+    return this.sessions.decryptTransaction(sessionID, txIndex, keySecret);
   }
 
   decryptTransactionMeta(
     sessionID: SessionID,
     txIndex: number,
     keySecret: KeySecret,
-    encryptedMeta?: Encrypted<JsonObject, { in: RawCoID; tx: TransactionID }>,
   ): JsonObject | undefined {
-    if (encryptedMeta && this._decryptionCache[encryptedMeta]) {
-      return this._decryptionCache[encryptedMeta];
-    }
-
-    const decryptedMeta = this.sessions.decryptTransactionMeta(
-      sessionID,
-      txIndex,
-      keySecret,
-    );
-
-    if (!decryptedMeta) {
-      logger.error("Failed to decrypt transaction meta despite having key", {
-        err: new Error("Failed to decrypt transaction meta despite having key"),
-      });
-      return undefined;
-    }
-
-    if (encryptedMeta) {
-      this._decryptionCache[encryptedMeta] = decryptedMeta;
-    }
-
-    return decryptedMeta;
+    return this.sessions.decryptTransactionMeta(sessionID, txIndex, keySecret);
   }
 }
 

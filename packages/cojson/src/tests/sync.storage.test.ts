@@ -173,9 +173,9 @@ describe("client with storage syncs with server", () => {
 
     const loadedValue = await loadCoValueOrFail(client.node, map.id);
 
-    const validTransactions = determineValidTransactions(loadedValue.core);
-
-    expect(validTransactions[0]?.tx.meta).toBe(`{"meta":true}`);
+    expect(loadedValue.core.verifiedTransactions[0]?.tx.meta).toBe(
+      `{"meta":true}`,
+    );
 
     expect(
       SyncMessagesLog.getMessages({
