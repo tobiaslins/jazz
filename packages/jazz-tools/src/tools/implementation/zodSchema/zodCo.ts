@@ -101,7 +101,7 @@ export const coMapDefiner = <Shape extends z.core.$ZodLooseShape>(
  *   }),
  * }).withMigration(async (account) => {
  *   // Migration logic for existing accounts
- *   if (account.profile === undefined) {
+ *   if (!account.$jazz.has("profile")) {
  *     const group = Group.create();
  *     account.$jazz.set("profile", co.profile().create(
  *       { name: getRandomUsername() },

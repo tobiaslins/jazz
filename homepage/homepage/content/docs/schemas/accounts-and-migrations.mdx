@@ -199,15 +199,14 @@ export const MyAppAccount = co.account({
   root: MyAppRoot,
   profile: MyAppProfile,
 }).withMigration((account, creationProps?: { name: string }) => {
-  // we specifically need to check for undefined,
-  // because the root might simply be not loaded (`null`) yet
-  if (account.root === undefined) {
+  // we use has to check if the root has ever been set
+  if (!account.$jazz.has("root")) {
     account.$jazz.set("root", {
       myChats: [],
     });
   }
 
-  if (account.profile === undefined) {
+  if (!account.$jazz.has("profile")) {
     const profileGroup = Group.create();
     // Unlike the root, we want the profile to be publicly readable.
     profileGroup.makePublic();
@@ -255,7 +254,7 @@ export const MyAppAccount = co.account({
   root: MyAppRoot,
   profile: MyAppProfile,
 }).withMigration(async (account) => {
-  if (account.root === undefined) {
+  if (!account.$jazz.has("root")) {
     account.$jazz.set("root", {
       myChats: [],
     });

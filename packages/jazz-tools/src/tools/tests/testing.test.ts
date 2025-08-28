@@ -35,7 +35,7 @@ describe("Jazz Test Sync", () => {
         profile: co.profile(),
       })
       .withMigration((account) => {
-        if (account.root === undefined) {
+        if (!account.$jazz.has("root")) {
           account.$jazz.set("root", { value: "ok" });
         }
       });
@@ -59,7 +59,7 @@ describe("Jazz Test Sync", () => {
         profile: co.profile(),
       })
       .withMigration((account) => {
-        if (account.root === undefined) {
+        if (!account.$jazz.has("root")) {
           account.$jazz.set("root", { value: "ok" });
         }
       });

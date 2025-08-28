@@ -17,7 +17,7 @@ const WorkerAccount = co
     profile: co.profile(),
   })
   .withMigration((account) => {
-    if (account.root === undefined) {
+    if (!account.$jazz.has("root")) {
       account.$jazz.set("root", {
         notificationQueue: [],
       });

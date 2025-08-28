@@ -89,7 +89,7 @@ export const MusicaAccount = co
      *  The account migration is run on account creation and on every log-in.
      *  You can use it to set up the account root and any other initial CoValues you need.
      */
-    if (account.root === undefined) {
+    if (!account.$jazz.has("root")) {
       const rootPlaylist = Playlist.create({
         tracks: [],
         title: "",
@@ -104,7 +104,7 @@ export const MusicaAccount = co
       });
     }
 
-    if (account.profile === undefined) {
+    if (!account.$jazz.has("profile")) {
       account.$jazz.set(
         "profile",
         MusicaAccountProfile.create(

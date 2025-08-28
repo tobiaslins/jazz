@@ -372,7 +372,7 @@ describe("ContextManager", () => {
         profile: co.profile(),
       })
       .withMigration(async (account) => {
-        if (account.root === undefined) {
+        if (!account.$jazz.has("root")) {
           account.$jazz.set(
             "root",
             AccountRoot.create({
@@ -429,7 +429,7 @@ describe("ContextManager", () => {
         profile: co.profile(),
       })
       .withMigration(async (account) => {
-        if (account.root === undefined) {
+        if (!account.$jazz.has("root")) {
           account.$jazz.set(
             "root",
             AccountRoot.create({

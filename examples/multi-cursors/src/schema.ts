@@ -22,7 +22,7 @@ export const CursorAccount = co
     root: CursorRoot,
   })
   .withMigration((account) => {
-    if (account.root === undefined) {
+    if (!account.$jazz.has("root")) {
       account.$jazz.set("root", {
         camera: {
           position: {
@@ -34,7 +34,7 @@ export const CursorAccount = co
       });
     }
 
-    if (account.profile === undefined) {
+    if (!account.$jazz.has("profile")) {
       const group = Group.create();
       group.makePublic(); // The profile info is visible to everyone
 
