@@ -277,9 +277,8 @@ test("creates a transaction with trusting meta information", async () => {
     meta: true,
   });
 
-  const validTransactions = determineValidTransactions(map.core);
-
-  expect(validTransactions[0]?.tx.meta).toBe(`{"meta":true}`);
+  expect(map.core.verifiedTransactions[0]?.tx.meta).toBe(`{"meta":true}`);
+  expect(map.core.verifiedTransactions[0]?.meta).toEqual({ meta: true });
 });
 
 test("creates a transaction with private meta information", async () => {

@@ -15,9 +15,9 @@ import {
   Signature,
   SignerID,
 } from "../crypto/crypto.js";
-import { RawCoID, SessionID, TransactionID } from "../ids.js";
+import { AgentID, RawCoID, SessionID, TransactionID } from "../ids.js";
 import { JsonObject, JsonValue } from "../jsonValue.js";
-import { parseJSON } from "../jsonStringify.js";
+import { parseJSON, safeParseJSON } from "../jsonStringify.js";
 import { LocalNode, ResolveAccountAgentError } from "../localNode.js";
 import { logger } from "../logger.js";
 import { determineValidTransactions } from "../permissions.js";
@@ -27,6 +27,15 @@ import { expectGroup } from "../typeUtils/expectGroup.js";
 import { getDependedOnCoValuesFromRawData } from "./utils.js";
 import { CoValueHeader, Transaction, VerifiedState } from "./verifiedState.js";
 import { SessionMap } from "./SessionMap.js";
+import {
+  MergeCommit,
+  createBranch,
+  getBranchId,
+  getBranchSource,
+  mergeBranch,
+} from "./branching.js";
+import { type RawAccountID } from "../coValues/account.js";
+import { decodeTransactionChangesAndMeta } from "./decodeTransactionChangesAndMeta.js";
 
 export function idforHeader(
   header: CoValueHeader,
@@ -36,11 +45,38 @@ export function idforHeader(
   return `co_z${hash.slice("shortHash_z".length)}`;
 }
 
+export type VerifiedTransaction = {
+  // The account or agent that made the transaction
+  author: RawAccountID | AgentID;
+  // An object containing the session ID and the transaction index
+  txID: TransactionID;
+  tx: Transaction;
+  // The Unix time when the transaction was made
+  madeAt: number;
+  // Whether the transaction has been validated, used to track if determinedValidTransactions needs to be check this
+  isValidated: boolean;
+  // The decoded changes of the transaction
+  changes: JsonValue[] | undefined;
+  // The decoded meta information of the transaction
+  meta: JsonObject | undefined;
+
+  // Whether the transaction is valid, as per membership rules
+  isValid: boolean;
+
+  // True if we encountered an error while decoding the changes
+  hasInvalidChanges: boolean;
+  // True if we encountered an error while parsing the meta
+  hasInvalidMeta: boolean;
+
+  // True if the meta information has been parsed and loaded in the CoValueCore
+  hasMetaBeenParsed: boolean;
+};
+
 export type DecryptedTransaction = {
   txID: TransactionID;
   changes: JsonValue[];
   madeAt: number;
-  trusting?: boolean;
+  tx: Transaction;
 };
 
 export type AvailableCoValueCore = CoValueCore & { verified: VerifiedState };
@@ -82,10 +118,6 @@ export class CoValueCore {
   private _cachedContent?: RawCoValue;
   readonly listeners: Set<(core: CoValueCore, unsub: () => void) => void> =
     new Set();
-  private readonly _decryptionCache: {
-    [key: Encrypted<JsonValue[], JsonValue>]: JsonValue[] | undefined;
-    [key: Encrypted<JsonObject, JsonValue>]: JsonObject | undefined;
-  } = {};
   private _cachedDependentOn?: Set<RawCoID>;
   private counter: UpDownCounter;
 
@@ -340,13 +372,13 @@ export class CoValueCore {
       );
     }
     this._verified = state.clone();
-    this._cachedContent = undefined;
-    this._cachedDependentOn = undefined;
+    this.internalShamefullyResetCachedContent();
   }
 
   internalShamefullyResetCachedContent() {
     this._cachedContent = undefined;
     this._cachedDependentOn = undefined;
+    this.resetParsedTransactions();
   }
 
   groupInvalidationSubscription?: () => void;
@@ -368,7 +400,8 @@ export class CoValueCore {
 
       if (entry.isAvailable()) {
         this.groupInvalidationSubscription = entry.subscribe((_groupUpdate) => {
-          this._cachedContent = undefined;
+          // When the group is updated, we need to reset the cached content because the transactions validity might have changed
+          this.internalShamefullyResetCachedContent();
           this.notifyUpdate("immediate");
         }, false);
       } else {
@@ -588,14 +621,6 @@ export class CoValueCore {
         keySecret,
         meta,
       );
-
-      if (result.transaction.privacy === "private") {
-        this._decryptionCache[result.transaction.encryptedChanges] = changes;
-
-        if (result.transaction.meta) {
-          this._decryptionCache[result.transaction.meta] = meta;
-        }
-      }
     } else {
       result = this.verified.makeNewTrustingTransaction(
         sessionID,
@@ -608,6 +633,9 @@ export class CoValueCore {
     const { transaction, signature } = result;
 
     this.node.syncManager.recordTransactionsSize([transaction], "local");
+
+    // We pre-populate the parsed transactions and meta for the new transaction, to skip the parsing step later
+    this.loadVerifiedTransactionsFromLogs({ transaction, changes, meta });
 
     const session = this.verified.sessions.get(sessionID);
     const txIdx = session ? session.transactions.length - 1 : 0;
@@ -646,86 +674,235 @@ export class CoValueCore {
     return newContent;
   }
 
-  getValidTransactions(options?: {
-    ignorePrivateTransactions: boolean;
-    knownTransactions?: CoValueKnownState["sessions"];
-  }): DecryptedTransaction[] {
+  // The starting point of the branch, in case this CoValue is a branch
+  branchStart:
+    | { branch: CoValueKnownState["sessions"]; madeAt: number }
+    | undefined;
+
+  // The list of merge commits that have been made
+  mergeCommits: { commit: MergeCommit; madeAt: number }[] = [];
+
+  // Reset the parsed transactions and branches, to validate them again from scratch when the group is updated
+  resetParsedTransactions() {
+    this.branchStart = undefined;
+    this.mergeCommits = [];
+
+    for (const transaction of this.verifiedTransactions) {
+      transaction.isValidated = false;
+      transaction.hasMetaBeenParsed = false;
+    }
+  }
+
+  verifiedTransactions: VerifiedTransaction[] = [];
+  private verifiedTransactionsKnownSessions: CoValueKnownState["sessions"] = {};
+
+  /**
+   * Loads the new transaction from the SessionMap into verifiedTransactions as a VerifiedTransaction.
+   *
+   * If the transaction is already loaded from the SessionMap in the past, it will not be loaded again.
+   *
+   * Used to have a fast way to iterate over the CoValue transactions, and track their validation/decoding state.
+   *
+   * @param preload - Optional preload object containing the transaction, changes, and meta.
+   * If provided, the transaction will be preloaded with the given changes and meta.
+   *
+   * @internal
+   * */
+  loadVerifiedTransactionsFromLogs(preload?: {
+    transaction: Transaction;
+    changes: JsonValue[];
+    meta: JsonObject | undefined;
+  }) {
     if (!this.verified) {
-      throw new Error(
-        "CoValueCore: getValidTransactions called on coValue without verified state",
-      );
+      return;
     }
 
-    const validTransactions = determineValidTransactions(
-      this,
-      options?.knownTransactions,
-    );
+    for (const [sessionID, sessionLog] of this.verified.sessions.entries()) {
+      const count = this.verifiedTransactionsKnownSessions[sessionID] ?? 0;
 
-    const allTransactions: DecryptedTransaction[] = [];
+      sessionLog.transactions.forEach((tx, txIndex) => {
+        if (txIndex < count) {
+          return;
+        }
 
-    for (const { txID, tx } of validTransactions) {
-      if (options?.knownTransactions?.[txID.sessionID]! >= txID.txIndex) {
+        this.verifiedTransactions.push({
+          author: accountOrAgentIDfromSessionID(sessionID),
+          txID: {
+            sessionID,
+            txIndex,
+          },
+          madeAt: tx.madeAt,
+          isValidated: false,
+          isValid: false,
+          changes: tx === preload?.transaction ? preload.changes : undefined,
+          meta: tx === preload?.transaction ? preload.meta : undefined,
+          hasInvalidChanges: false,
+          hasInvalidMeta: false,
+          hasMetaBeenParsed: false,
+          tx,
+        });
+      });
+
+      this.verifiedTransactionsKnownSessions[sessionID] =
+        sessionLog.transactions.length;
+    }
+  }
+
+  /**
+   * Iterates over the verifiedTransactions and marks them as valid or invalid, based on the group membership of the authors of the transactions  .
+   */
+  private determineValidTransactions() {
+    determineValidTransactions(this);
+  }
+
+  /**
+   * Parses the meta information of a transaction, and set the branchStart and mergeCommits.
+   */
+  private parseMetaInformation(transaction: VerifiedTransaction) {
+    if (
+      !transaction.meta ||
+      !transaction.isValid ||
+      transaction.hasMetaBeenParsed
+    ) {
+      return;
+    }
+
+    transaction.hasMetaBeenParsed = true;
+
+    if (
+      transaction.meta?.["branch"] &&
+      (!this.branchStart || transaction.madeAt < this.branchStart.madeAt)
+    ) {
+      this.branchStart = {
+        branch: transaction.meta.branch as CoValueKnownState["sessions"],
+        madeAt: transaction.madeAt,
+      };
+    }
+
+    if (transaction.meta?.["merge"]) {
+      const mergeCommit = transaction.meta as MergeCommit;
+
+      this.mergeCommits.push({
+        commit: mergeCommit,
+        madeAt: transaction.madeAt,
+      });
+    }
+  }
+
+  /**
+   * Loads the new transactions from SessionMap and:
+   * - Validates each transaction based on the group membership of the authors
+   * - Decodes the changes & meta for each transaction
+   * - Parses the meta information of the transaction
+   */
+  private parseNewTransactions(ignorePrivateTransactions: boolean) {
+    if (!this.isAvailable()) {
+      return;
+    }
+
+    this.loadVerifiedTransactionsFromLogs();
+    this.determineValidTransactions();
+
+    for (const transaction of this.verifiedTransactions) {
+      decodeTransactionChangesAndMeta(
+        this,
+        transaction,
+        ignorePrivateTransactions,
+      );
+      this.parseMetaInformation(transaction);
+    }
+  }
+
+  /**
+   * Returns the valid transactions matching the criteria specified in the options
+   */
+  getValidTransactions(options?: {
+    ignorePrivateTransactions: boolean;
+    // The range, described as knownState sessions, to filter the transactions returned
+    from?: CoValueKnownState["sessions"];
+    to?: CoValueKnownState["sessions"];
+
+    // The transactions that have already been processed, used for the incremental builds of the content views
+    knownTransactions?: Set<Transaction>;
+
+    // If true, the branch source transactions will be skipped. Used to gather the transactions for the merge operation.
+    skipBranchSource?: boolean;
+  }): DecryptedTransaction[] {
+    if (!this.verified) {
+      return [];
+    }
+
+    this.parseNewTransactions(options?.ignorePrivateTransactions ?? false);
+
+    const matchingTransactions: DecryptedTransaction[] = [];
+
+    for (const transaction of this.verifiedTransactions) {
+      if (!isValidTransactionWithChanges(transaction)) {
         continue;
       }
 
-      let changes: JsonValue[];
-
-      if (tx.privacy === "private") {
-        if (options?.ignorePrivateTransactions) {
-          continue;
-        }
-
-        const readKey = this.getReadKey(tx.keyUsed);
-
-        if (!readKey) {
-          continue;
-        }
-
-        let decryptedChanges = this._decryptionCache[tx.encryptedChanges];
-
-        if (!decryptedChanges) {
-          decryptedChanges = this.verified.decryptTransaction(
-            txID.sessionID,
-            txID.txIndex,
-            readKey,
-          );
-
-          this._decryptionCache[tx.encryptedChanges] = decryptedChanges;
-        }
-
-        if (!decryptedChanges) {
-          logger.error("Failed to decrypt transaction despite having key", {
-            err: new Error("Failed to decrypt transaction despite having key"),
-          });
-          continue;
-        }
-
-        changes = decryptedChanges;
-      } else {
-        try {
-          changes = parseJSON(tx.changes);
-        } catch (e) {
-          logger.error("Failed to parse trusting transaction on " + this.id, {
-            err: e,
-          });
-          continue;
-        }
+      if (options?.knownTransactions?.has(transaction.tx)) {
+        continue;
       }
 
-      allTransactions.push({
-        txID,
-        madeAt: tx.madeAt,
-        changes,
-        trusting: tx.privacy === "trusting",
-      });
+      options?.knownTransactions?.add(transaction.tx);
+
+      const { txID, madeAt } = transaction;
+
+      const from = options?.from?.[txID.sessionID] ?? -1;
+      const to = options?.to?.[txID.sessionID] ?? Infinity;
+
+      // The txIndex starts at 0 and from/to are referring to the count of transactions
+      if (from > txID.txIndex || to < txID.txIndex) {
+        continue;
+      }
+
+      matchingTransactions.push(transaction);
     }
 
-    return allTransactions;
+    const source = getBranchSource(this);
+
+    // If this is a branch, we load the valid transactions from the source
+    if (source && this.branchStart && !options?.skipBranchSource) {
+      const sourceTransactions = source.getValidTransactions({
+        to: this.branchStart.branch,
+        ignorePrivateTransactions: options?.ignorePrivateTransactions ?? false,
+        knownTransactions: options?.knownTransactions,
+      });
+
+      for (const { changes, tx, madeAt, txID } of sourceTransactions) {
+        matchingTransactions.push({
+          txID: {
+            sessionID: `${txID.sessionID}_branch_${source.id}`,
+            txIndex: txID.txIndex,
+          },
+          madeAt,
+          changes,
+          tx,
+        });
+      }
+    }
+
+    return matchingTransactions;
+  }
+
+  createBranch(name: string, ownerId: RawCoID) {
+    return createBranch(this, name, ownerId);
+  }
+
+  mergeBranch() {
+    return mergeBranch(this);
+  }
+
+  getBranchId(name: string, ownerId: RawCoID) {
+    return getBranchId(this, name, ownerId);
   }
 
   getValidSortedTransactions(options?: {
     ignorePrivateTransactions: boolean;
-    knownTransactions: CoValueKnownState["sessions"];
+
+    // The transactions that have already been processed, used for the incremental builds of the content views
+    knownTransactions?: Set<Transaction>;
   }): DecryptedTransaction[] {
     const allTransactions = this.getValidTransactions(options);
 
@@ -1001,3 +1178,9 @@ export type TryAddTransactionsError =
   | ResolveAccountAgentError
   | InvalidHashError
   | InvalidSignatureError;
+
+function isValidTransactionWithChanges(
+  transaction: VerifiedTransaction,
+): transaction is VerifiedTransaction & { changes: JsonValue[] } {
+  return Boolean(transaction.isValid && transaction.changes);
+}

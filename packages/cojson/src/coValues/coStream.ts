@@ -13,6 +13,7 @@ import { isAccountID } from "../typeUtils/isAccountID.js";
 import { isCoValue } from "../typeUtils/isCoValue.js";
 import { RawAccountID } from "./account.js";
 import { RawGroup } from "./group.js";
+import { Transaction } from "../coValueCore/verifiedState.js";
 
 export type BinaryStreamInfo = {
   mimeType: string;
@@ -58,15 +59,18 @@ export class RawCoStreamView<
     [key: SessionID]: CoStreamItem<Item>[];
   };
   /** @internal */
-  knownTransactions: CoValueKnownState["sessions"];
-  totalValidTransactions = 0;
+  knownTransactions: Set<Transaction>;
   readonly _item!: Item;
+
+  get totalValidTransactions() {
+    return this.knownTransactions.size;
+  }
 
   constructor(core: AvailableCoValueCore) {
     this.id = core.id as CoID<this>;
     this.core = core;
     this.items = {};
-    this.knownTransactions = {};
+    this.knownTransactions = new Set<Transaction>();
     this.processNewTransactions();
   }
 
@@ -113,7 +117,6 @@ export class RawCoStreamView<
     }
 
     for (const { txID, madeAt, changes } of newValidTransactions) {
-      this.totalValidTransactions++;
       for (const changeUntyped of changes) {
         const change = changeUntyped as Item;
         let entries = this.items[txID.sessionID];
@@ -124,10 +127,6 @@ export class RawCoStreamView<
         entries.push({ value: change, madeAt, tx: txID });
         changeEntries.add(entries);
       }
-      this.knownTransactions[txID.sessionID] = Math.max(
-        this.knownTransactions[txID.sessionID] ?? 0,
-        txID.txIndex,
-      );
     }
 
     for (const entries of changeEntries) {

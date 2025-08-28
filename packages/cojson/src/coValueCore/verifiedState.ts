@@ -21,6 +21,7 @@ import { CoValueKnownState, NewContentMessage } from "../sync.js";
 import { TryAddTransactionsError } from "./coValueCore.js";
 import { SessionLog, SessionMap } from "./SessionMap.js";
 import { ControlledAccountOrAgent } from "../coValues/account.js";
+import { logger } from "../logger.js";
 
 export type CoValueHeader = {
   type: AnyRawCoValue["type"];
@@ -40,7 +41,6 @@ export type PrivateTransaction = {
   encryptedChanges: Encrypted<JsonValue[], { in: RawCoID; tx: TransactionID }>;
   meta?: Encrypted<JsonObject, { in: RawCoID; tx: TransactionID }>;
 };
-
 export type TrustingTransaction = {
   privacy: "trusting";
   madeAt: number;
