@@ -132,7 +132,7 @@ describe("startWorker integration", () => {
         profile: co.profile(),
       })
       .withMigration((account) => {
-        if (account.root === undefined) {
+        if (!account.$jazz.has("root")) {
           if (shouldReloadPreviousAccount) {
             throw new Error("Previous account not found");
           }

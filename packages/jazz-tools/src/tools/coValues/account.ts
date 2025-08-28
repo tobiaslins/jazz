@@ -418,6 +418,11 @@ class AccountJazzApi<A extends Account> extends CoValueJazzApi<A> {
     }
   }
 
+  has(key: "root" | "profile"): boolean {
+    const entry = this.raw.getRaw(key);
+    return entry?.change !== undefined && entry.change.op !== "del";
+  }
+
   /**
    * Get the descriptor for a given key
    * @internal
