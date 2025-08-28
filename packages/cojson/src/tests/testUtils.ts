@@ -12,6 +12,7 @@ import {
   type AgentSecret,
   type CoID,
   type CoValueCore,
+  CryptoProvider,
   type RawAccount,
   type RawCoValue,
   StorageAPI,
@@ -23,8 +24,15 @@ import type { Peer, SyncMessage } from "../sync.js";
 import { expectGroup } from "../typeUtils/expectGroup.js";
 import { toSimplifiedMessages } from "./messagesTestUtils.js";
 import { createAsyncStorage, createSyncStorage } from "./testStorage.js";
+import { PureJSCrypto } from "../crypto/PureJSCrypto.js";
 
-const Crypto = await WasmCrypto.create();
+let Crypto = await WasmCrypto.create();
+
+export function setCurrentTestCryptoProvider(
+  crypto: WasmCrypto | PureJSCrypto,
+) {
+  Crypto = crypto;
+}
 
 const syncServer: {
   current: undefined | LocalNode;
@@ -498,6 +506,7 @@ export function setupTestNode(
     ourName?: string;
     syncServer?: LocalNode;
     persistent?: boolean;
+    skipReconciliation?: boolean;
   }) {
     const { peer, peerStateOnServer, peerOnServer } =
       getSyncServerConnectedPeer({
@@ -508,7 +517,7 @@ export function setupTestNode(
         persistent: opts?.persistent,
       });
 
-    node.syncManager.addPeer(peer);
+    node.syncManager.addPeer(peer, opts?.skipReconciliation);
 
     return {
       peerState: node.syncManager.peers[peer.id]!,
@@ -661,9 +670,11 @@ export async function setupTestAccount(
     addStorage,
     addAsyncStorage,
     disconnect: () => {
-      ctx.node.syncManager.getPeers().forEach((peer) => {
+      const allPeers = ctx.node.syncManager.getPeers(ctx.accountID);
+      allPeers.forEach((peer) => {
         peer.gracefulShutdown();
       });
+      ctx.node.syncManager.peers = {};
     },
   };
 }

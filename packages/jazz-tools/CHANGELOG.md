@@ -1,5 +1,114 @@
 # jazz-tools
 
+## 0.18.0
+
+### Minor Changes
+
+- f263856: Add `$jazz` field to CoValues:
+  - This field contains Jazz methods that cluttered CoValues' API, as well as Jazz internal properties. This field is not enumerable, to allow CoValues to behave similarly to JSON objects.
+  - Added a `$jazz.set` method to update a CoValue's fields. When updating collaborative fields, you can pass in JSON objects instead of CoValues and Jazz will create
+    the CoValues automatically (similarly to CoValue `create` methods).
+  - All CoMap methods have been moved into `$jazz`, to allow defining any arbitrary key in the CoMap (except for `$jazz`) without conflicts.
+    - For CoMaps created with `co.map`, fields are now `readonly` to prevent setting properties directly. Use the `$jazz.set` method instead.
+    - CoMaps created with class schemas don't get type errors on direct property assignments, but they get a runtime errors prompting indicating to use `$jazz.set`.
+    - the `delete` operator can no longer be used to delete CoRecord properties. Use `$jazz.delete` instead.
+  - CoList's array-mutation methods have been moved into `$jazz`, in order to prevent using methods
+    - CoLists are now readonly arrays. Trying to use any mutation method yields a type error.
+    - `$jazz.set` can be used in place of direct element assignments.
+    - Added two new utility methods: `$jazz.remove` and `$jazz.retain`. They allow editing a CoList in-place with a simpler API than `$jazz.splice`.
+    - `sort`, `reverse`, `fill` and `copyWithin` have been deprecated, given that they could behave inconsistently with CoLists. `$jazz` replacements may be introduced
+      in future releases.
+  - `.$jazz.owner` now always returns a Group (instead of a Group or an Account). We'll be migrating away of having Accounts as CoValue owners in future releases.
+  - Removed `castAs`, since it's an inherently unsafe operation that bypassed typechecking and enabled using CoValues in unsupported ways.
+  - Removed the `id` and `_type` fields from `toJSON()`'s output in Account, CoMap, CoFeed & FileStream, to make CoValues behave more similarly to JSON objects.
+  - Removed the `root` and `profile` fields from Group.
+
+### Patch Changes
+
+- Updated dependencies [b709494]
+- Updated dependencies [f263856]
+  - cojson@0.18.0
+  - cojson-storage-indexeddb@0.18.0
+  - cojson-transport-ws@0.18.0
+
+## 0.17.14
+
+### Patch Changes
+
+- cc2f774: Detect incompatible Zod schemas when creating `co.map`s and `co.profile`s
+- Updated dependencies [1094b7c]
+- Updated dependencies [6378ad5]
+  - cojson@0.17.14
+  - cojson-storage-indexeddb@0.17.14
+  - cojson-transport-ws@0.17.14
+
+## 0.17.13
+
+### Patch Changes
+
+- d208cd1: Add remove action for CoList table in the inspector
+- 7821a8b: fix: sign out Jazz account when signing out from Clerk
+- Updated dependencies [7dc3160]
+- Updated dependencies [474881d]
+  - cojson@0.17.13
+  - cojson-storage-indexeddb@0.17.13
+  - cojson-transport-ws@0.17.13
+
+## 0.17.12
+
+### Patch Changes
+
+- 1ccae1a: RN Expo E2E dependency fixes w catalog
+- Updated dependencies [c2daf3e]
+- Updated dependencies [72a63bf]
+- Updated dependencies [234bf91]
+  - cojson@0.17.12
+  - cojson-storage-indexeddb@0.17.12
+  - cojson-transport-ws@0.17.12
+
+## 0.17.11
+
+### Patch Changes
+
+- 8f3852b: Accept { $onError: null } as resolve query for co.list references
+- bb9d837: Explicit loadAs in CoList.upsertUnique to use it without loaded context
+- Updated dependencies [68b2f37]
+- Updated dependencies [257ded3]
+- Updated dependencies [e301ad6]
+  - cojson@0.17.11
+  - cojson-storage-indexeddb@0.17.11
+  - cojson-transport-ws@0.17.11
+
+## 0.17.10
+
+### Patch Changes
+
+- Updated dependencies [c55297c]
+  - cojson@0.17.10
+  - cojson-storage-indexeddb@0.17.10
+  - cojson-transport-ws@0.17.10
+
+## 0.17.9
+
+### Patch Changes
+
+- 52ea0c7: Explicit loadAs in upsertUnique to use it without loaded context
+- Updated dependencies [7586c3b]
+  - cojson@0.17.9
+  - cojson-storage-indexeddb@0.17.9
+  - cojson-transport-ws@0.17.9
+
+## 0.17.8
+
+### Patch Changes
+
+- ac3e694: Fixed an issue where CoValue schemas could be incorrectly passed to `co.map` and `co.profile` schema definers.
+- 6dbb053: Prosemirror: fix RangeError triggered when creating invalid HTML
+- 1a182f0: Add missing BaseProfileShape export
+  - cojson@0.17.8
+  - cojson-storage-indexeddb@0.17.8
+  - cojson-transport-ws@0.17.8
+
 ## 0.17.7
 
 ### Patch Changes

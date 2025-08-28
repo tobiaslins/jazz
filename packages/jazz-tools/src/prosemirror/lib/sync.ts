@@ -1,6 +1,6 @@
 import { recreateTransform } from "@manuscripts/prosemirror-recreate-steps";
 import { CoRichText } from "jazz-tools";
-import { Transaction } from "prosemirror-state";
+import { EditorState, Transaction } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { htmlToProseMirror, proseMirrorToHtml } from "./converter.js";
 
@@ -34,6 +34,8 @@ export const META_KEY = "fromJazz";
 export function createSyncHandlers(coRichText: CoRichText | undefined) {
   // Store the editor view in a closure
   let view: EditorView | undefined;
+  let localChange = false;
+  let remoteChange = false;
 
   /**
    * Handles changes from CoRichText by updating the ProseMirror editor.
@@ -47,24 +49,47 @@ export function createSyncHandlers(coRichText: CoRichText | undefined) {
    * @param newText - The updated CoRichText instance
    */
   function handleCoRichTextChange(newText: CoRichText) {
-    if (!view || !newText) return;
+    if (!view || !newText || localChange || remoteChange) return;
 
-    const pmDoc = htmlToProseMirror(
-      newText.toString(),
-      view.state.doc.type.schema,
-    );
-    const transform = recreateTransform(view.state.doc, pmDoc);
+    const currentView = view;
+    remoteChange = true;
 
-    // Create a new transaction
-    const tr = view.state.tr;
+    // Changes on CoPlainText are emitted word by word, which means that it creates
+    // invalid intermediate states when wrapping a document with HTML tags
+    // To fix the issue, we throttle the changes to the next microtask
+    queueMicrotask(() => {
+      const pmDoc = htmlToProseMirror(
+        newText.toString(),
+        currentView.state.doc.type.schema,
+      );
 
-    // Apply all steps from the transform to the transaction
-    transform.steps.forEach((step) => {
-      tr.step(step);
+      try {
+        const transform = recreateTransform(currentView.state.doc, pmDoc);
+
+        // Create a new transaction
+        const tr = currentView.state.tr;
+
+        // Apply all steps from the transform to the transaction
+        transform.steps.forEach((step) => {
+          tr.step(step);
+        });
+
+        tr.setMeta(META_KEY, true);
+
+        currentView.dispatch(tr);
+      } catch (err) {
+        // Sometimes recreateTransform fails, so we just rebuild the doc from scratch
+        const newState = EditorState.create({
+          schema: currentView.state.schema,
+          doc: pmDoc,
+          plugins: currentView.state.plugins,
+          selection: currentView.state.selection,
+        });
+        currentView.updateState(newState);
+      } finally {
+        remoteChange = false;
+      }
     });
-
-    tr.setMeta(META_KEY, true);
-    view.dispatch(tr);
   }
 
   /**
@@ -82,7 +107,12 @@ export function createSyncHandlers(coRichText: CoRichText | undefined) {
 
     if (tr.docChanged) {
       const str = proseMirrorToHtml(tr.doc);
-      coRichText.applyDiff(str);
+      localChange = true;
+      try {
+        coRichText.$jazz.applyDiff(str);
+      } finally {
+        localChange = false;
+      }
     }
   }
 

@@ -1,5 +1,17 @@
 # create-jazz-app
 
+## 0.1.28
+
+### Patch Changes
+
+- 1ccae1a: RN Expo E2E dependency fixes w catalog
+
+## 0.1.27
+
+### Patch Changes
+
+- 0aef170: Fix catalog management
+
 ## 0.1.26
 
 ### Patch Changes

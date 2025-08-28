@@ -370,16 +370,24 @@ export class RawGroup<
     if (role === "writeOnly" || role === "writeOnlyInvite") {
       const previousRole = this.get(memberKey);
 
-      this.set(memberKey, role, "trusting");
+      if (
+        previousRole === "admin" &&
+        memberKey !== this.core.node.getCurrentAgent().id
+      ) {
+        throw new Error(
+          "Administrators cannot demote other administrators in a group",
+        );
+      }
 
       if (
         previousRole === "reader" ||
         previousRole === "writer" ||
         previousRole === "admin"
       ) {
-        this.rotateReadKey();
+        this.rotateReadKey(memberKey);
       }
 
+      this.set(memberKey, role, "trusting");
       this.internalCreateWriteOnlyKeyForMember(memberKey, agent);
     } else {
       const currentReadKey = this.getCurrentReadKey();

@@ -20,6 +20,7 @@ import {
   waitFor,
 } from "./testUtils";
 import { stableStringify } from "../jsonStringify";
+import { determineValidTransactions } from "../permissions";
 
 // We want to simulate a real world communication that happens asynchronously
 TEST_NODE_CONFIG.withAsyncPeers = true;
@@ -151,6 +152,47 @@ describe("client with storage syncs with server", () => {
     `);
   });
 
+  test("persists meta information", async () => {
+    const client = setupTestNode();
+
+    const { storage } = client.addStorage();
+
+    const group = client.node.createGroup();
+    const map = group.createMap();
+    map.core.makeTransaction([], "trusting", {
+      meta: true,
+    });
+
+    await map.core.waitForSync();
+
+    client.restart();
+
+    client.addStorage({
+      storage,
+    });
+
+    const loadedValue = await loadCoValueOrFail(client.node, map.id);
+
+    const validTransactions = determineValidTransactions(loadedValue.core);
+
+    expect(validTransactions[0]?.tx.meta).toBe(`{"meta":true}`);
+
+    expect(
+      SyncMessagesLog.getMessages({
+        Group: group.core,
+        Map: map.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "client -> storage | CONTENT Group header: true new: After: 0 New: 3",
+        "client -> storage | CONTENT Map header: true new: After: 0 New: 1",
+        "client -> storage | LOAD Map sessions: empty",
+        "storage -> client | CONTENT Group header: true new: After: 0 New: 3",
+        "storage -> client | CONTENT Map header: true new: After: 0 New: 1",
+      ]
+    `);
+  });
+
   test("updating a coValue while offline", async () => {
     const client = setupTestNode();
 
@@ -164,7 +206,7 @@ describe("client with storage syncs with server", () => {
     const mapOnClient = await loadCoValueOrFail(client.node, map.id);
     expect(mapOnClient.get("hello")).toEqual("world");
 
-    client.node.syncManager.getPeers()[0]?.gracefulShutdown();
+    client.node.syncManager.getPeers(map.id)[0]?.gracefulShutdown();
 
     SyncMessagesLog.clear();
     map.set("hello", "updated", "trusting");

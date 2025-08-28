@@ -100,7 +100,7 @@ describe("auth client", () => {
     // Verify the profile name has been updated
     const context = jazzContextManager.getCurrentValue();
     assert(context && "me" in context);
-    expect(context.me.id).toBe(credentials!.accountID);
+    expect(context.me.$jazz.id).toBe(credentials!.accountID);
   });
 
   it("should become logged in Jazz credentials after sign-in", async () => {

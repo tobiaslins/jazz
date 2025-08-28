@@ -141,7 +141,7 @@ export async function createJazzTestAccount<
   });
 
   const account = AccountClass.fromNode(node);
-  SecretSeedMap.set(account.id, secretSeed);
+  SecretSeedMap.set(account.$jazz.id, secretSeed);
 
   if (options?.isCurrentActiveAccount) {
     activeAccountContext.set(account);
@@ -159,6 +159,8 @@ export function setActiveAccount(account: Account) {
  *
  * Takes care of restoring the active account after the callback is run.
  *
+ * If the callback returns a promise, waits for it before restoring the active account.
+ *
  * @param callback - The callback to run.
  * @returns The result of the callback.
  */
@@ -168,6 +170,14 @@ export function runWithoutActiveAccount<Result>(
   const me = Account.getMe();
   activeAccountContext.set(null);
   const result = callback();
+
+  if (result instanceof Promise) {
+    return result.finally(() => {
+      activeAccountContext.set(me);
+      return result;
+    }) as Result;
+  }
+
   activeAccountContext.set(me);
   return result;
 }
@@ -212,12 +222,12 @@ export class TestJazzContextManager<
 
     const provider = props?.isAuthenticated ? "testProvider" : "anonymous";
     const storage = context.getAuthSecretStorage();
-    const node = account._raw.core.node;
+    const node = account.$jazz.localNode;
 
     const credentials = {
-      accountID: account.id,
+      accountID: account.$jazz.id,
       accountSecret: node.getCurrentAgent().agentSecret,
-      secretSeed: SecretSeedMap.get(account.id),
+      secretSeed: SecretSeedMap.get(account.$jazz.id),
       provider,
     } satisfies AuthCredentials;
 
@@ -309,16 +319,20 @@ export async function linkAccounts(
   aRole: "server" | "client" = "server",
   bRole: "server" | "client" = "server",
 ) {
-  const [aPeer, bPeer] = cojsonInternals.connectedPeers(b.id, a.id, {
-    peer1role: aRole,
-    peer2role: bRole,
-  });
+  const [aPeer, bPeer] = cojsonInternals.connectedPeers(
+    b.$jazz.id,
+    a.$jazz.id,
+    {
+      peer1role: aRole,
+      peer2role: bRole,
+    },
+  );
 
-  a._raw.core.node.syncManager.addPeer(aPeer);
-  b._raw.core.node.syncManager.addPeer(bPeer);
+  a.$jazz.localNode.syncManager.addPeer(aPeer);
+  b.$jazz.localNode.syncManager.addPeer(bPeer);
 
-  await a.waitForAllCoValuesSync();
-  await b.waitForAllCoValuesSync();
+  await a.$jazz.waitForAllCoValuesSync();
+  await b.$jazz.waitForAllCoValuesSync();
 }
 
 export async function setupJazzTestSync({
@@ -337,7 +351,7 @@ export async function setupJazzTestSync({
     crypto: await TestJSCrypto.create(),
   });
 
-  syncServer.current = account._raw.core.node;
+  syncServer.current = account.$jazz.localNode;
   syncServer.asyncPeers = asyncPeers;
 
   return account;
