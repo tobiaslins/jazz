@@ -779,7 +779,7 @@ describe("CoMap", async () => {
         {
           name: "John",
         },
-        { owner: Group.create().makePublic() },
+        { owner: Group.create(clientAccount).makePublic() },
       );
 
       await person.$jazz.waitForSync({ timeout: 1000 });
