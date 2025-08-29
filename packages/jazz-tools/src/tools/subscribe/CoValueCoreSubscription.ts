@@ -47,25 +47,24 @@ export class CoValueCoreSubscription {
    * Either subscribes directly or attempts to get the requested branch.
    */
   private handleAvailableSource(source: CoValueCore): void {
-    if (this.branch) {
-      const branchName = this.branch.name;
-      const branchOwnerId = this.branch.ownerId as RawCoID | undefined;
-
-      // Try to get the specific branch from the available source
-      const branch = source.getBranch(branchName, branchOwnerId);
-
-      if (branch.isAvailable()) {
-        // Branch is available, subscribe to it
-        this.subscribe(branch.getCurrentContent());
-        return;
-      } else {
-        // Branch not available, fall through to checkout logic
-        this.handleBranchCheckout();
-      }
-    } else {
-      // No branch requested, subscribe directly to the source
+    if (!this.branch) {
       this.subscribe(source.getCurrentContent());
       return;
+    }
+
+    const branchName = this.branch.name;
+    const branchOwnerId = this.branch.ownerId as RawCoID | undefined;
+
+    // Try to get the specific branch from the available source
+    const branch = source.getBranch(branchName, branchOwnerId);
+
+    if (branch.isAvailable()) {
+      // Branch is available, subscribe to it
+      this.subscribe(branch.getCurrentContent());
+      return;
+    } else {
+      // Branch not available, fall through to checkout logic
+      this.handleBranchCheckout();
     }
   }
 
