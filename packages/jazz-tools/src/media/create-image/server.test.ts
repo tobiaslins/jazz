@@ -25,7 +25,7 @@ describe("createImage (server)", async () => {
     });
 
     const image = await createImage(imageBlob, {
-      owner: account._owner,
+      owner: account,
       progressive: true,
       placeholder: "blur",
     });
@@ -45,7 +45,7 @@ describe("createImage (server)", async () => {
     });
 
     const image = await createImage(imageBlob, {
-      owner: account._owner,
+      owner: account,
       progressive: true,
       placeholder: "blur",
     });
@@ -54,7 +54,7 @@ describe("createImage (server)", async () => {
       original,
       "256x53": s1,
       "1024x213": s2,
-    } = await image.ensureLoaded({
+    } = await image.$jazz.ensureLoaded({
       resolve: { original: true, [`256x53`]: true, [`1024x213`]: true },
     });
 
