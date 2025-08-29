@@ -13,9 +13,7 @@ export const docNavigationItems = [
       }, {
         name: "Quickstart",
         href: "/docs/getting-started/quickstart",
-        done: {
-          react: 100,
-        },
+        done: 100,
       },
       { name: "FAQs", href: "/docs/faq", done: 100 },
       {
@@ -80,6 +78,11 @@ export const docNavigationItems = [
   {
     name: "Server-side",
     items: [
+      {
+        name: "Quickstart",
+        href: "/docs/server-side/quickstart",
+        done: 100,
+      },
       {
         name: "Setup",
         href: "/docs/server-side/setup",
