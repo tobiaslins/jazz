@@ -20,6 +20,7 @@ import {
   waitFor,
 } from "./testUtils";
 import { stableStringify } from "../jsonStringify";
+import { determineValidTransactions } from "../permissions";
 
 // We want to simulate a real world communication that happens asynchronously
 TEST_NODE_CONFIG.withAsyncPeers = true;
@@ -151,6 +152,98 @@ describe("client with storage syncs with server", () => {
     `);
   });
 
+  test("persists meta information", async () => {
+    const client = setupTestNode();
+
+    const { storage } = client.addStorage();
+
+    const group = client.node.createGroup();
+    const map = group.createMap();
+    map.core.makeTransaction([], "trusting", {
+      meta: true,
+    });
+
+    await map.core.waitForSync();
+
+    client.restart();
+
+    client.addStorage({
+      storage,
+    });
+
+    const loadedValue = await loadCoValueOrFail(client.node, map.id);
+
+    expect(loadedValue.core.verifiedTransactions[0]?.tx.meta).toBe(
+      `{"meta":true}`,
+    );
+
+    expect(
+      SyncMessagesLog.getMessages({
+        Group: group.core,
+        Map: map.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "client -> storage | CONTENT Group header: true new: After: 0 New: 3",
+        "client -> storage | CONTENT Map header: true new: After: 0 New: 1",
+        "client -> storage | LOAD Map sessions: empty",
+        "storage -> client | CONTENT Group header: true new: After: 0 New: 3",
+        "storage -> client | CONTENT Map header: true new: After: 0 New: 1",
+      ]
+    `);
+  });
+
+  test("loading a branch from storage", async () => {
+    const client = setupTestNode({
+      connected: true,
+    });
+    const { storage } = client.addStorage();
+
+    const group = client.node.createGroup();
+    const map = group.createMap();
+    const branchName = "feature-branch";
+
+    map.set("key1", "value1");
+    map.set("key2", "value2");
+
+    const branch = await client.node.checkoutBranch(map.id, branchName);
+
+    if (branch === "unavailable") {
+      throw new Error("Branch is unavailable");
+    }
+
+    branch.set("branchKey", "branchValue");
+    await branch.core.waitForSync();
+
+    client.restart();
+    client.addStorage({
+      storage,
+    });
+
+    SyncMessagesLog.clear();
+
+    const loadedBranch = await loadCoValueOrFail(client.node, branch.id);
+
+    expect(branch.get("key1")).toBe("value1");
+    expect(branch.get("key2")).toBe("value2");
+    expect(branch.get("branchKey")).toBe("branchValue");
+
+    expect(
+      SyncMessagesLog.getMessages({
+        Group: group.core,
+        Map: map.core,
+        Branch: branch.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "client -> storage | LOAD Branch sessions: empty",
+        "storage -> client | CONTENT Group header: true new: After: 0 New: 3",
+        "storage -> client | CONTENT Map header: true new: After: 0 New: 2",
+        "storage -> client | CONTENT Branch header: true new: After: 0 New: 2",
+      ]
+    `);
+  });
+
   test("updating a coValue while offline", async () => {
     const client = setupTestNode();
 
@@ -164,7 +257,7 @@ describe("client with storage syncs with server", () => {
     const mapOnClient = await loadCoValueOrFail(client.node, map.id);
     expect(mapOnClient.get("hello")).toEqual("world");
 
-    client.node.syncManager.getPeers()[0]?.gracefulShutdown();
+    client.node.syncManager.getPeers(map.id)[0]?.gracefulShutdown();
 
     SyncMessagesLog.clear();
     map.set("hello", "updated", "trusting");

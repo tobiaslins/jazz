@@ -125,4 +125,92 @@ describe("WasmCrypto", () => {
 
     expect(map.get("count")).toEqual(0);
   });
+
+  it("can add a meta to a private transaction", async () => {
+    const client = setupTestNode({
+      connected: true,
+    });
+
+    const group = client.node.createGroup();
+    const map = group.createMap();
+
+    map.core.makeTransaction([], "private", {
+      meta: {
+        count: 1,
+      },
+    });
+
+    await map.core.waitForSync();
+
+    const session2 = client.spawnNewSession();
+
+    const mapInOtherSession = await loadCoValueOrFail(session2.node, map.id);
+
+    const decryptedMeta =
+      mapInOtherSession.core.verified.decryptTransactionMeta(
+        client.node.currentSessionID,
+        0,
+        mapInOtherSession.core.getCurrentReadKey().secret!,
+      );
+
+    expect(decryptedMeta).toEqual({
+      meta: {
+        count: 1,
+      },
+    });
+  });
+
+  it("can add a meta to a trusting transaction", async () => {
+    const client = setupTestNode({
+      connected: true,
+    });
+
+    const group = client.node.createGroup();
+    const map = group.createMap();
+
+    map.core.makeTransaction([], "trusting", {
+      meta: {
+        count: 1,
+      },
+    });
+
+    await map.core.waitForSync();
+
+    const session2 = client.spawnNewSession();
+
+    const mapInOtherSession = await loadCoValueOrFail(session2.node, map.id);
+
+    const transferredMeta = JSON.parse(
+      mapInOtherSession.core.verified.sessions.get(client.node.currentSessionID)
+        ?.transactions[0]?.meta!,
+    );
+
+    expect(transferredMeta).toEqual({
+      meta: {
+        count: 1,
+      },
+    });
+  });
+
+  it("fails to verify signatures without a signer ID", async () => {
+    const agentSecret = wasmCrypto.newRandomAgentSecret();
+    const sessionID = wasmCrypto.newRandomSessionID(
+      wasmCrypto.getAgentID(agentSecret),
+    );
+
+    const sessionLog = wasmCrypto.createSessionLog("co_z12345678", sessionID);
+    expect(() =>
+      sessionLog.tryAdd(
+        [
+          {
+            privacy: "trusting",
+            changes: stableStringify([{ op: "set", key: "count", value: 1 }]),
+            madeAt: Date.now(),
+          },
+        ],
+        "signature_z12345678",
+        false,
+      ),
+    ).toThrow(expect.stringContaining("Signature verification failed"));
+  });
 });

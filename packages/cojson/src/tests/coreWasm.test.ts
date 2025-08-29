@@ -85,6 +85,7 @@ describe("SessionLog WASM", () => {
       key.id,
       key.secret,
       0,
+      undefined,
     );
 
     expect(signature).toMatch(/^signature_z[a-zA-Z0-9]+$/);

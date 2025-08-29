@@ -20,9 +20,11 @@ import {
   loadCoValueOrFail,
   nodeWithRandomAgentAndSessionID,
   randomAgentAndSessionID,
+  setupTestNode,
   tearDownTestMetricReader,
 } from "./testUtils.js";
 import { CO_VALUE_PRIORITY } from "../priority.js";
+import { determineValidTransactions } from "../permissions.js";
 
 const Crypto = await WasmCrypto.create();
 
@@ -32,6 +34,7 @@ const agentSecret =
 
 beforeEach(() => {
   metricReader = createTestMetricReader();
+  setupTestNode({ isSyncServer: true });
 });
 
 afterEach(() => {
@@ -53,6 +56,7 @@ test("transactions with wrong signature are rejected", () => {
       node.currentSessionID,
       node.getCurrentAgent(),
       [{ hello: "world" }],
+      undefined,
     );
 
   transaction.madeAt = Date.now() + 1000;
@@ -262,6 +266,50 @@ test("listeners are notified even if the previous listener threw an error", asyn
   expect(mapOnNode2.get("hello")).toBe("world");
 
   errorLog.mockRestore();
+});
+
+test("creates a transaction with trusting meta information", async () => {
+  const client = setupTestNode();
+
+  const group = client.node.createGroup();
+  const map = group.createMap();
+  map.core.makeTransaction([], "trusting", {
+    meta: true,
+  });
+
+  expect(map.core.verifiedTransactions[0]?.tx.meta).toBe(`{"meta":true}`);
+  expect(map.core.verifiedTransactions[0]?.meta).toEqual({ meta: true });
+});
+
+test("creates a transaction with private meta information", async () => {
+  const client = setupTestNode({ connected: true });
+
+  const group = client.node.createGroup();
+  const map = group.createMap();
+  map.core.makeTransaction([], "private", {
+    meta: true,
+  });
+
+  const localTransactionMeta = map.core.verified.decryptTransactionMeta(
+    client.node.currentSessionID,
+    0,
+    map.core.getCurrentReadKey().secret!,
+  );
+
+  expect(localTransactionMeta).toEqual({ meta: true });
+
+  const newSession = client.spawnNewSession();
+
+  const mapOnNewSession = await loadCoValueOrFail(newSession.node, map.id);
+
+  const syncedTransactionMeta =
+    mapOnNewSession.core.verified.decryptTransactionMeta(
+      client.node.currentSessionID,
+      0,
+      mapOnNewSession.core.getCurrentReadKey().secret!,
+    );
+
+  expect(syncedTransactionMeta).toEqual({ meta: true });
 });
 
 test("getValidTransactions should skip private transactions with invalid JSON", () => {

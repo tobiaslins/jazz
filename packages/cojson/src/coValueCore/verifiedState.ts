@@ -8,22 +8,20 @@ import {
 import {
   CryptoProvider,
   Encrypted,
-  Hash,
   KeyID,
   KeySecret,
   Signature,
   SignerID,
-  StreamingHash,
 } from "../crypto/crypto.js";
 import { RawCoID, SessionID, TransactionID } from "../ids.js";
 import { Stringified } from "../jsonStringify.js";
 import { JsonObject, JsonValue } from "../jsonValue.js";
 import { PermissionsDef as RulesetDef } from "../permissions.js";
 import { CoValueKnownState, NewContentMessage } from "../sync.js";
-import { InvalidHashError, InvalidSignatureError } from "./coValueCore.js";
 import { TryAddTransactionsError } from "./coValueCore.js";
 import { SessionLog, SessionMap } from "./SessionMap.js";
 import { ControlledAccountOrAgent } from "../coValues/account.js";
+import { logger } from "../logger.js";
 
 export type CoValueHeader = {
   type: AnyRawCoValue["type"];
@@ -41,12 +39,13 @@ export type PrivateTransaction = {
   madeAt: number;
   keyUsed: KeyID;
   encryptedChanges: Encrypted<JsonValue[], { in: RawCoID; tx: TransactionID }>;
+  meta?: Encrypted<JsonObject, { in: RawCoID; tx: TransactionID }>;
 };
-
 export type TrustingTransaction = {
   privacy: "trusting";
   madeAt: number;
   changes: Stringified<JsonValue[]>;
+  meta?: Stringified<JsonObject>;
 };
 
 export type Transaction = PrivateTransaction | TrustingTransaction;
@@ -114,11 +113,13 @@ export class VerifiedState {
     sessionID: SessionID,
     signerAgent: ControlledAccountOrAgent,
     changes: JsonValue[],
+    meta: JsonObject | undefined,
   ) {
     const result = this.sessions.makeNewTrustingTransaction(
       sessionID,
       signerAgent,
       changes,
+      meta,
     );
 
     this._cachedNewContentSinceEmpty = undefined;
@@ -133,6 +134,7 @@ export class VerifiedState {
     changes: JsonValue[],
     keyID: KeyID,
     keySecret: KeySecret,
+    meta: JsonObject | undefined,
   ) {
     const result = this.sessions.makeNewPrivateTransaction(
       sessionID,
@@ -140,6 +142,7 @@ export class VerifiedState {
       changes,
       keyID,
       keySecret,
+      meta,
     );
 
     this._cachedNewContentSinceEmpty = undefined;
@@ -352,6 +355,14 @@ export class VerifiedState {
     keySecret: KeySecret,
   ): JsonValue[] | undefined {
     return this.sessions.decryptTransaction(sessionID, txIndex, keySecret);
+  }
+
+  decryptTransactionMeta(
+    sessionID: SessionID,
+    txIndex: number,
+    keySecret: KeySecret,
+  ): JsonObject | undefined {
+    return this.sessions.decryptTransactionMeta(sessionID, txIndex, keySecret);
   }
 }
 
