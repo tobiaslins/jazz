@@ -1,4 +1,4 @@
-import { CoValueCore, LocalNode, RawCoID, RawCoMap, RawCoValue } from "cojson";
+import { CoValueCore, LocalNode, RawCoID, RawCoValue } from "cojson";
 
 /**
  * Manages subscriptions to CoValue cores, handling both direct subscriptions
@@ -36,6 +36,7 @@ export class CoValueCoreSubscription {
     // If a specific branch is requested while the source is not available, attempt to checkout that branch
     if (this.branch) {
       this.handleBranchCheckout();
+      return;
     }
 
     // If we don't have a branch requested, load the CoValue
@@ -104,13 +105,13 @@ export class CoValueCoreSubscription {
   private handleUnavailableBranch(): void {
     const source = this.node.getCoValue(this.id as any);
     if (source.isAvailable()) {
-      // This should be impossible - if source is available, branch should be too
+      // This should be impossible - if source is available we can create the branch and it should be available
       throw new Error("Branch is unavailable");
-    } else {
-      // Source isn't available either, subscribe to state changes and report unavailability
-      this.subscribeToUnavailableSource();
-      this.listener("unavailable");
     }
+
+    // Source isn't available either, subscribe to state changes and report unavailability
+    this.subscribeToUnavailableSource();
+    this.listener("unavailable");
   }
 
   /**
@@ -147,24 +148,24 @@ export class CoValueCoreSubscription {
     const source = this.node.getCoValue(this.id as any);
 
     const handleStateChange = (
-      _: CoValueCore, // Unused parameter, but required by the subscription API
+      _: CoValueCore,
       unsubFromStateChange: () => void,
     ) => {
-      if (this.unsubscribed) {
-        unsubFromStateChange();
+      // We are waiting for the source to become available, it's ok to wait indefinitiely
+      // until either this becomes available or we unsubscribe, because we have already
+      // emitted an "unavailable" event.
+      if (!source.isAvailable()) {
         return;
       }
 
-      // Source became available, handle it appropriately
-      if (source.isAvailable()) {
-        if (this.branch) {
-          // Branch was requested, attempt checkout again
-          this.handleBranchCheckout();
-        } else {
-          // No branch requested, subscribe directly and cleanup state subscription
-          this.subscribe(source.getCurrentContent());
-          unsubFromStateChange();
-        }
+      unsubFromStateChange();
+
+      if (this.branch) {
+        // Branch was requested, attempt checkout again
+        this.handleBranchCheckout();
+      } else {
+        // No branch requested, subscribe directly and cleanup state subscription
+        this.subscribe(source.getCurrentContent());
       }
     };
 
