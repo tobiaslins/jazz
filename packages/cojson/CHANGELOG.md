@@ -1,5 +1,13 @@
 # cojson
 
+## 0.18.2
+
+### Patch Changes
+
+- 82ba2dd: Add basic branching system for single CoValues with createBranch, checkoutBranch, and mergeBranch
+- 01f4889: Fix self-revoke check to correctly validate against the author of the change
+  - cojson-core-wasm@0.18.2
+
 ## 0.18.1
 
 ### Patch Changes
