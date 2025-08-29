@@ -77,236 +77,138 @@ describe("Group.removeMember", () => {
     expect(mapOnAliceNode.get("test")).toEqual("test");
   });
 
-  test("a reader member should be able to revoke themselves", async () => {
+  for (const member of ["writer", "reader", "writeOnly", "admin"] as const) {
+    test(`${member} member should be able to revoke themselves`, async () => {
+      const admin = await setupTestAccount({
+        connected: true,
+      });
+
+      const client = await setupTestAccount({
+        connected: true,
+      });
+
+      const group = admin.node.createGroup();
+      group.addMember(
+        await loadCoValueOrFail(admin.node, client.accountID),
+        member,
+      );
+
+      await group.core.waitForSync();
+
+      const loadedGroup = await loadCoValueOrFail(client.node, group.id);
+      expect(loadedGroup.myRole()).toEqual(member);
+
+      await loadedGroup.removeMember(client.node.expectCurrentAccount(member));
+
+      expect(loadedGroup.myRole()).toEqual(undefined);
+    });
+  }
+
+  for (const member of ["writer", "reader", "writeOnly"] as const) {
+    test(`${member} member cannot remove other accounts`, async () => {
+      const admin = await setupTestAccount({
+        connected: true,
+      });
+
+      const writer = await setupTestAccount({
+        connected: true,
+      });
+
+      const writeOnly = await setupTestAccount({
+        connected: true,
+      });
+
+      const reader = await setupTestAccount({
+        connected: true,
+      });
+
+      const client = await setupTestAccount({
+        connected: true,
+      });
+
+      const group = admin.node.createGroup();
+      group.addMember(
+        await loadCoValueOrFail(admin.node, writer.accountID),
+        "writer",
+      );
+      group.addMember(
+        await loadCoValueOrFail(admin.node, reader.accountID),
+        "reader",
+      );
+      group.addMember(
+        await loadCoValueOrFail(admin.node, writeOnly.accountID),
+        "writeOnly",
+      );
+      group.addMember(
+        await loadCoValueOrFail(admin.node, client.accountID),
+        member,
+      );
+
+      const loadedGroup = await loadCoValueOrFail(client.node, group.id);
+
+      loadedGroup.removeMember(
+        await loadCoValueOrFail(client.node, reader.accountID),
+      );
+      loadedGroup.removeMember(
+        await loadCoValueOrFail(client.node, writeOnly.accountID),
+      );
+      loadedGroup.removeMember(
+        await loadCoValueOrFail(client.node, writer.accountID),
+      );
+      loadedGroup.removeMember(
+        await loadCoValueOrFail(client.node, admin.accountID),
+      );
+
+      expect(loadedGroup.roleOf(reader.accountID)).toEqual("reader");
+      expect(loadedGroup.roleOf(writer.accountID)).toEqual("writer");
+      expect(loadedGroup.roleOf(writeOnly.accountID)).toEqual("writeOnly");
+      expect(loadedGroup.roleOf(admin.accountID)).toEqual("admin");
+
+      await loadedGroup.core.waitForSync();
+
+      expect((await loadCoValueOrFail(reader.node, group.id)).myRole()).toEqual(
+        "reader",
+      );
+      expect((await loadCoValueOrFail(writer.node, group.id)).myRole()).toEqual(
+        "writer",
+      );
+      expect(
+        (await loadCoValueOrFail(writeOnly.node, group.id)).myRole(),
+      ).toEqual("writeOnly");
+      expect((await loadCoValueOrFail(admin.node, group.id)).myRole()).toEqual(
+        "admin",
+      );
+    });
+  }
+
+  test(`admin member cannot remove other admins`, async () => {
     const admin = await setupTestAccount({
       connected: true,
     });
 
-    const reader = await setupTestAccount({
+    const client = await setupTestAccount({
       connected: true,
     });
 
     const group = admin.node.createGroup();
-    const readerOnAdminNode = await loadCoValueOrFail(
-      admin.node,
-      reader.accountID,
-    );
-    group.addMember(readerOnAdminNode, "reader");
-
-    const groupOnReaderNode = await loadCoValueOrFail(reader.node, group.id);
-    expect(groupOnReaderNode.myRole()).toEqual("reader");
-
-    await groupOnReaderNode.removeMember(
-      reader.node.expectCurrentAccount("reader"),
+    group.addMember(
+      await loadCoValueOrFail(admin.node, client.accountID),
+      "admin",
     );
 
-    expect(groupOnReaderNode.myRole()).toEqual(undefined);
-  });
+    const loadedGroup = await loadCoValueOrFail(client.node, group.id);
 
-  test("a writer member should be able to revoke themselves", async () => {
-    const admin = await setupTestAccount({
-      connected: true,
-    });
-
-    const writer = await setupTestAccount({
-      connected: true,
-    });
-
-    const group = admin.node.createGroup();
-    const writerOnAdminNode = await loadCoValueOrFail(
-      admin.node,
-      writer.accountID,
-    );
-    group.addMember(writerOnAdminNode, "writer");
-
-    const groupOnWriterNode = await loadCoValueOrFail(writer.node, group.id);
-    expect(groupOnWriterNode.myRole()).toEqual("writer");
-
-    await groupOnWriterNode.removeMember(
-      writer.node.expectCurrentAccount("writer"),
+    loadedGroup.removeMember(
+      await loadCoValueOrFail(client.node, admin.accountID),
     );
 
-    expect(groupOnWriterNode.myRole()).toEqual(undefined);
-  });
+    expect(loadedGroup.roleOf(admin.accountID)).toEqual("admin");
 
-  test("a writeOnly member should be able to revoke themselves", async () => {
-    const admin = await setupTestAccount({
-      connected: true,
-    });
+    await loadedGroup.core.waitForSync();
 
-    const writeOnly = await setupTestAccount({
-      connected: true,
-    });
-
-    const group = admin.node.createGroup();
-    const writeOnlyOnAdminNode = await loadCoValueOrFail(
-      admin.node,
-      writeOnly.accountID,
+    expect((await loadCoValueOrFail(admin.node, group.id)).myRole()).toEqual(
+      "admin",
     );
-    group.addMember(writeOnlyOnAdminNode, "writeOnly");
-
-    const groupOnWriteOnlyNode = await loadCoValueOrFail(
-      writeOnly.node,
-      group.id,
-    );
-    expect(groupOnWriteOnlyNode.myRole()).toEqual("writeOnly");
-
-    await groupOnWriteOnlyNode.removeMember(
-      writeOnly.node.expectCurrentAccount("writeOnly"),
-    );
-
-    expect(groupOnWriteOnlyNode.myRole()).toEqual(undefined);
-  });
-
-  test("an admin member should be able to revoke themselves", async () => {
-    const admin = await setupTestAccount({
-      connected: true,
-    });
-
-    const otherAdmin = await setupTestAccount({
-      connected: true,
-    });
-
-    const group = admin.node.createGroup();
-    const otherAdminOnAdminNode = await loadCoValueOrFail(
-      admin.node,
-      otherAdmin.accountID,
-    );
-    group.addMember(otherAdminOnAdminNode, "admin");
-
-    const groupOnOtherAdminNode = await loadCoValueOrFail(
-      otherAdmin.node,
-      group.id,
-    );
-    expect(groupOnOtherAdminNode.myRole()).toEqual("admin");
-
-    await groupOnOtherAdminNode.removeMember(
-      otherAdmin.node.expectCurrentAccount("admin"),
-    );
-
-    expect(groupOnOtherAdminNode.myRole()).toEqual(undefined);
-  });
-
-  test("a writer member cannot remove other accounts", async () => {
-    const admin = await setupTestAccount({
-      connected: true,
-    });
-
-    const writer = await setupTestAccount({
-      connected: true,
-    });
-
-    const otherMember = await setupTestAccount({
-      connected: true,
-    });
-
-    const group = admin.node.createGroup();
-    const writerOnAdminNode = await loadCoValueOrFail(
-      admin.node,
-      writer.accountID,
-    );
-    const otherMemberOnAdminNode = await loadCoValueOrFail(
-      admin.node,
-      otherMember.accountID,
-    );
-
-    group.addMember(writerOnAdminNode, "writer");
-    group.addMember(otherMemberOnAdminNode, "reader");
-
-    const groupOnWriterNode = await loadCoValueOrFail(writer.node, group.id);
-    expect(groupOnWriterNode.myRole()).toEqual("writer");
-
-    const otherMemberOnWriterNode = await loadCoValueOrFail(
-      writer.node,
-      otherMember.accountID,
-    );
-
-    await groupOnWriterNode.removeMember(otherMemberOnWriterNode);
-
-    expect(groupOnWriterNode.roleOf(otherMember.accountID)).toEqual("reader");
-  });
-
-  test("a writeOnly member cannot remove other accounts", async () => {
-    const admin = await setupTestAccount({
-      connected: true,
-    });
-
-    const writeOnly = await setupTestAccount({
-      connected: true,
-    });
-
-    const otherMember = await setupTestAccount({
-      connected: true,
-    });
-
-    const group = admin.node.createGroup();
-    const writeOnlyOnAdminNode = await loadCoValueOrFail(
-      admin.node,
-      writeOnly.accountID,
-    );
-    const otherMemberOnAdminNode = await loadCoValueOrFail(
-      admin.node,
-      otherMember.accountID,
-    );
-
-    group.addMember(writeOnlyOnAdminNode, "writeOnly");
-    group.addMember(otherMemberOnAdminNode, "reader");
-
-    const groupOnWriteOnlyNode = await loadCoValueOrFail(
-      writeOnly.node,
-      group.id,
-    );
-    expect(groupOnWriteOnlyNode.myRole()).toEqual("writeOnly");
-
-    const otherMemberOnWriteOnlyNode = await loadCoValueOrFail(
-      writeOnly.node,
-      otherMember.accountID,
-    );
-
-    await groupOnWriteOnlyNode.removeMember(otherMemberOnWriteOnlyNode);
-
-    expect(groupOnWriteOnlyNode.roleOf(otherMember.accountID)).toEqual(
-      "reader",
-    );
-  });
-
-  test("a reader member cannot remove other accounts", async () => {
-    const admin = await setupTestAccount({
-      connected: true,
-    });
-
-    const reader = await setupTestAccount({
-      connected: true,
-    });
-
-    const otherMember = await setupTestAccount({
-      connected: true,
-    });
-
-    const group = admin.node.createGroup();
-    const readerOnAdminNode = await loadCoValueOrFail(
-      admin.node,
-      reader.accountID,
-    );
-    const otherMemberOnAdminNode = await loadCoValueOrFail(
-      admin.node,
-      otherMember.accountID,
-    );
-
-    group.addMember(readerOnAdminNode, "reader");
-    group.addMember(otherMemberOnAdminNode, "writer");
-
-    const groupOnReaderNode = await loadCoValueOrFail(reader.node, group.id);
-    expect(groupOnReaderNode.myRole()).toEqual("reader");
-
-    const otherMemberOnReaderNode = await loadCoValueOrFail(
-      reader.node,
-      otherMember.accountID,
-    );
-
-    await groupOnReaderNode.removeMember(otherMemberOnReaderNode);
-
-    expect(groupOnReaderNode.roleOf(otherMember.accountID)).toEqual("writer");
   });
 
   test("removing a member when inheriting a group where the user lacks read rights", async () => {
