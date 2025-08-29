@@ -1,5 +1,5 @@
 import { Account, FileStream, Group } from "jazz-tools";
-import sharp from "sharp";
+import type sharp from "sharp";
 import { createImageFactory } from "../create-image-factory";
 
 export type SharpImageType =
@@ -16,6 +16,16 @@ export type SharpImageType =
   | Int32Array
   | Float32Array
   | Float64Array;
+
+let sharpModule: typeof import("sharp");
+
+async function getSharp() {
+  if (!sharpModule) {
+    sharpModule = await import("sharp").then((m) => m.default);
+  }
+
+  return sharpModule;
+}
 
 /**
  * Creates an ImageDefinition from an image File, Blob or Buffer with built-in UX features.
@@ -88,6 +98,8 @@ async function createFileStreamFromSource(
     return FileStream.createFromBlob(imageBlobOrBuffer, { owner });
   }
 
+  const sharp = await getSharp();
+
   const image = sharp(imageBlobOrBuffer);
   const metadata = await image.metadata();
   const format = metadata.format;
@@ -109,6 +121,7 @@ async function getImageSize(
       ? await imageBlobOrBuffer.arrayBuffer()
       : imageBlobOrBuffer;
 
+  const sharp = await getSharp();
   const image = sharp(imageBuffer);
   const metadata = await image.metadata();
 
@@ -122,6 +135,8 @@ async function getPlaceholderBase64(
     imageBlobOrBuffer instanceof Blob
       ? await imageBlobOrBuffer.arrayBuffer()
       : imageBlobOrBuffer;
+
+  const sharp = await getSharp();
 
   const image = sharp(imageBuffer);
   const placeholder = await image
@@ -145,6 +160,8 @@ async function resize(
     imageBlobOrBuffer instanceof Blob
       ? await imageBlobOrBuffer.arrayBuffer()
       : imageBlobOrBuffer;
+
+  const sharp = await getSharp();
 
   const image = sharp(imageBuffer);
   const metadata = await image.metadata();
