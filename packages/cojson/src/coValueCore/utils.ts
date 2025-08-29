@@ -52,6 +52,10 @@ export function getDependedOnCoValuesFromRawData(
     deps.add(header.ruleset.group);
   }
 
+  if (header.meta?.source) {
+    deps.add(header.meta.source as RawCoID);
+  }
+
   return deps;
 }
 

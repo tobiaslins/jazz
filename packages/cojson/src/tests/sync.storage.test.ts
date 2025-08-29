@@ -193,6 +193,57 @@ describe("client with storage syncs with server", () => {
     `);
   });
 
+  test("loading a branch from storage", async () => {
+    const client = setupTestNode({
+      connected: true,
+    });
+    const { storage } = client.addStorage();
+
+    const group = client.node.createGroup();
+    const map = group.createMap();
+    const branchName = "feature-branch";
+
+    map.set("key1", "value1");
+    map.set("key2", "value2");
+
+    const branch = await client.node.checkoutBranch(map.id, branchName);
+
+    if (branch === "unavailable") {
+      throw new Error("Branch is unavailable");
+    }
+
+    branch.set("branchKey", "branchValue");
+    await branch.core.waitForSync();
+
+    client.restart();
+    client.addStorage({
+      storage,
+    });
+
+    SyncMessagesLog.clear();
+
+    const loadedBranch = await loadCoValueOrFail(client.node, branch.id);
+
+    expect(branch.get("key1")).toBe("value1");
+    expect(branch.get("key2")).toBe("value2");
+    expect(branch.get("branchKey")).toBe("branchValue");
+
+    expect(
+      SyncMessagesLog.getMessages({
+        Group: group.core,
+        Map: map.core,
+        Branch: branch.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "client -> storage | LOAD Branch sessions: empty",
+        "storage -> client | CONTENT Group header: true new: After: 0 New: 3",
+        "storage -> client | CONTENT Map header: true new: After: 0 New: 2",
+        "storage -> client | CONTENT Branch header: true new: After: 0 New: 2",
+      ]
+    `);
+  });
+
   test("updating a coValue while offline", async () => {
     const client = setupTestNode();
 
