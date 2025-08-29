@@ -506,6 +506,7 @@ export function setupTestNode(
     ourName?: string;
     syncServer?: LocalNode;
     persistent?: boolean;
+    skipReconciliation?: boolean;
   }) {
     const { peer, peerStateOnServer, peerOnServer } =
       getSyncServerConnectedPeer({
@@ -516,7 +517,7 @@ export function setupTestNode(
         persistent: opts?.persistent,
       });
 
-    node.syncManager.addPeer(peer);
+    node.syncManager.addPeer(peer, opts?.skipReconciliation);
 
     return {
       peerState: node.syncManager.peers[peer.id]!,
@@ -669,9 +670,11 @@ export async function setupTestAccount(
     addStorage,
     addAsyncStorage,
     disconnect: () => {
-      ctx.node.syncManager.getPeers().forEach((peer) => {
+      const allPeers = ctx.node.syncManager.getPeers(ctx.accountID);
+      allPeers.forEach((peer) => {
         peer.gracefulShutdown();
       });
+      ctx.node.syncManager.peers = {};
     },
   };
 }

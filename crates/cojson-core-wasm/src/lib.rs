@@ -58,6 +58,8 @@ pub struct SessionLog {
 struct PrivateTransactionResult {
     signature: String,
     encrypted_changes: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    meta: Option<String>,
 }
 
 #[wasm_bindgen]
@@ -113,23 +115,24 @@ impl SessionLog {
         encryption_key: String,
         key_id: String,
         made_at: f64,
+        meta: Option<String>,
     ) -> Result<String, CojsonCoreWasmError> {
         let (signature, transaction) = self.internal.add_new_transaction(
             changes_json,
             TransactionMode::Private{key_id: KeyID(key_id), key_secret: KeySecret(encryption_key)},
             &SignerSecret(signer_secret),
             made_at as u64,
+            meta,
         );
 
         // Extract encrypted_changes from the private transaction
-        let encrypted_changes = match transaction {
-            cojson_core::Transaction::Private(private_tx) => private_tx.encrypted_changes.value,
+        let result = match transaction {
+            cojson_core::Transaction::Private(private_tx) => PrivateTransactionResult{
+                signature: signature.0,
+                encrypted_changes: private_tx.encrypted_changes.value,
+                meta: private_tx.meta.map(|meta| meta.value),
+            },
             _ => return Err(CojsonCoreWasmError::Js(JsValue::from_str("Expected private transaction"))),
-        };
-
-        let result = PrivateTransactionResult{
-            signature: signature.0,
-            encrypted_changes,
         };
 
         Ok(serde_json::to_string(&result)?)
@@ -141,12 +144,14 @@ impl SessionLog {
         changes_json: &str,
         signer_secret: String,
         made_at: f64,
+        meta: Option<String>,
     ) -> Result<String, CojsonCoreWasmError> {
         let (signature, _) = self.internal.add_new_transaction(
             changes_json,
             TransactionMode::Trusting,
             &SignerSecret(signer_secret),
             made_at as u64,
+            meta,
         );
 
         Ok(signature.0)
@@ -161,5 +166,14 @@ impl SessionLog {
         Ok(self
             .internal
             .decrypt_next_transaction_changes_json(tx_index, KeySecret(encryption_key))?)
+    }
+
+    #[wasm_bindgen(js_name = decryptNextTransactionMetaJson)]
+    pub fn decrypt_next_transaction_meta_json(
+        &self,
+        tx_index: u32,
+        encryption_key: String,
+    ) -> Result<Option<String>, CojsonCoreWasmError> {
+        Ok(self.internal.decrypt_next_transaction_meta_json(tx_index, KeySecret(encryption_key))?)
     }
 }

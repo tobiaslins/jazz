@@ -79,7 +79,10 @@ pub struct Hash(pub String);
 
 impl From<blake3::Hash> for Hash {
     fn from(hash: blake3::Hash) -> Self {
-        Hash(format!("hash_z{}", bs58::encode(hash.as_bytes()).into_string()))
+        Hash(format!(
+            "hash_z{}",
+            bs58::encode(hash.as_bytes()).into_string()
+        ))
     }
 }
 
@@ -125,6 +128,8 @@ pub struct PrivateTransaction {
     pub key_used: KeyID,
     #[serde(rename = "madeAt")]
     pub made_at: Number,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub meta: Option<Encrypted<JsonValue>>,
     pub privacy: String,
 }
 
@@ -133,6 +138,8 @@ pub struct TrustingTransaction {
     pub changes: String,
     #[serde(rename = "madeAt")]
     pub made_at: Number,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub meta: Option<String>,
     pub privacy: String,
 }
 
@@ -187,12 +194,14 @@ impl SessionLogInternal {
         let hasher = blake3::Hasher::new();
 
         let public_key = match signer_id {
-            Some(signer_id) => Some(VerifyingKey::try_from(
-                decode_z(&signer_id.0)
-                    .expect("Invalid public key")
-                    .as_slice(),
-            )
-            .expect("Invalid public key")),
+            Some(signer_id) => Some(
+                VerifyingKey::try_from(
+                    decode_z(&signer_id.0)
+                        .expect("Invalid public key")
+                        .as_slice(),
+                )
+                .expect("Invalid public key"),
+            ),
             None => None,
         };
 
@@ -272,22 +281,13 @@ impl SessionLogInternal {
         mode: TransactionMode,
         signer_secret: &SignerSecret,
         made_at: u64,
+        meta: Option<String>,
     ) -> (Signature, Transaction) {
         let new_tx = match mode {
             TransactionMode::Private { key_id, key_secret } => {
                 let tx_index = self.transactions_json.len() as u32;
 
-                let nonce_material = JsonValue::Object(serde_json::Map::from_iter(vec![
-                    ("in".to_string(), JsonValue::String(self.co_id.0.clone())),
-                    (
-                        "tx".to_string(),
-                        serde_json::to_value(TransactionID {
-                            session_id: self.session_id.clone(),
-                            tx_index,
-                        })
-                        .unwrap(),
-                    ),
-                ]));
+                let nonce_material = self.generate_nonce_material(tx_index);
 
                 let nonce = self.generate_json_nonce(&nonce_material);
 
@@ -298,6 +298,19 @@ impl SessionLogInternal {
                 cipher.apply_keystream(&mut ciphertext);
                 let encrypted_str = format!("encrypted_U{}", URL_SAFE.encode(&ciphertext));
 
+                let encrypted_meta = meta.map(|meta| {
+                    let mut ciphertext = meta.as_bytes().to_vec();
+                    let mut cipher = XSalsa20::new(&secret_key_bytes.into(), &nonce.into());
+                    cipher.apply_keystream(&mut ciphertext);
+
+                    let encrypted_meta = format!("encrypted_U{}", URL_SAFE.encode(&ciphertext));
+
+                    return Encrypted {
+                        value: encrypted_meta,
+                        _phantom: std::marker::PhantomData,
+                    };
+                });
+
                 Transaction::Private(PrivateTransaction {
                     encrypted_changes: Encrypted {
                         value: encrypted_str,
@@ -305,12 +318,14 @@ impl SessionLogInternal {
                     },
                     key_used: key_id.clone(),
                     made_at: Number::from(made_at),
+                    meta: encrypted_meta,
                     privacy: "private".to_string(),
                 })
             }
             TransactionMode::Trusting => Transaction::Trusting(TrustingTransaction {
                 changes: changes_json.to_string(),
                 made_at: Number::from(made_at),
+                meta: meta,
                 privacy: "trusting".to_string(),
             }),
         };
@@ -320,9 +335,14 @@ impl SessionLogInternal {
         self.transactions_json.push(tx_json);
 
         let new_hash = self.hasher.finalize();
-        let new_hash_encoded_stringified = format!("\"hash_z{}\"", bs58::encode(new_hash.as_bytes()).into_string());
+        let new_hash_encoded_stringified = format!(
+            "\"hash_z{}\"",
+            bs58::encode(new_hash.as_bytes()).into_string()
+        );
         let signing_key: SigningKey = signer_secret.into();
-        let new_signature: Signature = signing_key.sign(new_hash_encoded_stringified.as_bytes()).into();
+        let new_signature: Signature = signing_key
+            .sign(new_hash_encoded_stringified.as_bytes())
+            .into();
 
         self.last_signature = Some(new_signature.clone());
 
@@ -342,17 +362,7 @@ impl SessionLogInternal {
 
         match tx {
             Transaction::Private(private_tx) => {
-                let nonce_material = JsonValue::Object(serde_json::Map::from_iter(vec![
-                    ("in".to_string(), JsonValue::String(self.co_id.0.clone())),
-                    (
-                        "tx".to_string(),
-                        serde_json::to_value(TransactionID {
-                            session_id: self.session_id.clone(),
-                            tx_index,
-                        })?,
-                    ),
-                ]));
-
+                let nonce_material = self.generate_nonce_material(tx_index);
                 let nonce = self.generate_json_nonce(&nonce_material);
 
                 let encrypted_val = private_tx.encrypted_changes.value;
@@ -372,6 +382,61 @@ impl SessionLogInternal {
             }
             Transaction::Trusting(trusting_tx) => Ok(trusting_tx.changes),
         }
+    }
+
+    pub fn decrypt_next_transaction_meta_json(
+        &self,
+        tx_index: u32,
+        key_secret: KeySecret,
+    ) -> Result<Option<String>, CoJsonCoreError> {
+        let tx_json = self
+            .transactions_json
+            .get(tx_index as usize)
+            .ok_or(CoJsonCoreError::TransactionNotFound(tx_index))?;
+        let tx: Transaction = serde_json::from_str(tx_json)?;
+
+        match tx {
+            Transaction::Private(private_tx) => {
+                if let Some(encrypted_meta) = private_tx.meta {
+                    let nonce_material = self.generate_nonce_material(tx_index);
+                    let nonce = self.generate_json_nonce(&nonce_material);
+
+                    let encrypted_val = encrypted_meta.value;
+                    let prefix = "encrypted_U";
+                    if !encrypted_val.starts_with(prefix) {
+                        return Err(CoJsonCoreError::InvalidEncryptedPrefix);
+                    }
+
+                    let ciphertext_b64 = &encrypted_val[prefix.len()..];
+                    let mut ciphertext = URL_SAFE.decode(ciphertext_b64)?;
+
+                    let secret_key_bytes: [u8; 32] = (&key_secret).into();
+                    let mut cipher = XSalsa20::new((&secret_key_bytes).into(), &nonce.into());
+                    cipher.apply_keystream(&mut ciphertext);
+
+                    Ok(Some(String::from_utf8(ciphertext)?))
+                } else {
+                    Ok(None)
+                }
+            }
+            Transaction::Trusting(trusting_tx) => Ok(trusting_tx.meta),
+        }
+    }
+
+    fn generate_nonce_material(&self, tx_index: u32) -> JsonValue {
+        let nonce_material = JsonValue::Object(serde_json::Map::from_iter(vec![
+            ("in".to_string(), JsonValue::String(self.co_id.0.clone())),
+            (
+                "tx".to_string(),
+                serde_json::to_value(TransactionID {
+                    session_id: self.session_id.clone(),
+                    tx_index,
+                })
+                .unwrap(),
+            ),
+        ]));
+
+        return nonce_material;
     }
 
     fn generate_nonce(&self, material: &[u8]) -> [u8; 24] {
@@ -411,7 +476,7 @@ mod tests {
         let session = SessionLogInternal::new(
             CoID("co_test1".to_string()),
             SessionID("session_test1".to_string()),
-            verifying_key.into(),
+            Some(verifying_key.into()),
         );
 
         assert!(session.last_signature.is_none());
@@ -451,7 +516,7 @@ mod tests {
                 .to_string(),
         );
 
-        let mut session = SessionLogInternal::new(co_id, session_id, root.signer_id);
+        let mut session = SessionLogInternal::new(co_id, session_id, Some(root.signer_id));
 
         let new_signature = example.last_signature;
 
@@ -516,12 +581,16 @@ mod tests {
                 .to_string(),
         );
 
-        let mut session = SessionLogInternal::new(co_id, session_id, root.signer_id);
+        let mut session = SessionLogInternal::new(co_id, session_id, Some(root.signer_id));
 
         let new_signature = example.last_signature;
 
         let result = session.try_add(
-            example.transactions.into_iter().map(|tx| tx.to_owned()).collect(),
+            example
+                .transactions
+                .into_iter()
+                .map(|tx| tx.to_owned())
+                .collect(),
             &new_signature,
             false,
         );
@@ -567,7 +636,7 @@ mod tests {
         let mut session = SessionLogInternal::new(
             CoID(root["coID"].as_str().unwrap().to_string()),
             SessionID("co_zkNajJ1BhLzR962jpzvXxx917ZB_session_zXzrQLTtp8rR".to_string()),
-            public_key.into(),
+            Some(public_key.into()),
         );
 
         // The plaintext changes we want to add
@@ -588,6 +657,7 @@ mod tests {
             },
             &signing_key.into(),
             made_at,
+            None,
         );
 
         // 1. Check that the transaction we created matches the one in the file
@@ -606,17 +676,34 @@ mod tests {
             session_data["lastHash"].as_str().unwrap()
         );
 
-        let final_hash_encoded_stringified = format!(
-            "\"{}\"",
-            final_hash_encoded
-        );
+        let final_hash_encoded_stringified = format!("\"{}\"", final_hash_encoded);
 
         // 3. Check that the signature is valid for our generated key
         assert!(session
             .public_key
-            .verify(final_hash_encoded_stringified.as_bytes(), &(&new_signature).into())
+            .expect("Public key should be present")
+            .verify(
+                final_hash_encoded_stringified.as_bytes(),
+                &(&new_signature).into()
+            )
             .is_ok());
-        assert_eq!(session.last_signature, Some(new_signature));
+        assert_eq!(session.last_signature, Some(new_signature.clone()));
+
+        let mut session2 = SessionLogInternal::new(
+            CoID(root["coID"].as_str().unwrap().to_string()),
+            SessionID("co_zkNajJ1BhLzR962jpzvXxx917ZB_session_zXzrQLTtp8rR".to_string()),
+            Some(public_key.into()),
+        );
+
+        session2
+            .try_add(
+                vec![serde_json::from_str(&created_tx_json).unwrap()],
+                &new_signature,
+                false,
+            )
+            .unwrap();
+
+        assert_eq!(session2.transactions_json, session.transactions_json);
     }
 
     #[test]
@@ -659,7 +746,7 @@ mod tests {
             VerifyingKey::from_bytes(&decode_z(&root.signer_id.0).unwrap().try_into().unwrap())
                 .unwrap();
 
-        let mut session = SessionLogInternal::new(root.co_id, session_id, public_key.into());
+        let mut session = SessionLogInternal::new(root.co_id, session_id, Some(public_key.into()));
 
         let new_signature = Signature(example.last_signature);
 

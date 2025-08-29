@@ -19,13 +19,19 @@ export const FileShareAccount = co.account({
   profile: co.profile(),
   root: FileShareAccountRoot,
 }).withMigration((account) => {
-  if (account.root === undefined) {
+  if (!account.$jazz.has("root")) {
     const publicGroup = Group.create({ owner: account });
     publicGroup.addMember('everyone', 'reader');
 
-    account.root = FileShareAccountRoot.create({
-      type: 'file-share-account',
-      sharedFiles: co.list(SharedFile).create([], publicGroup),
-    }, publicGroup);
+    account.$jazz.set(
+      'root',
+      FileShareAccountRoot.create(
+        {
+          type: 'file-share-account',
+          sharedFiles: co.list(SharedFile).create([], publicGroup)
+        },
+        publicGroup
+      )
+    );
   }
 });

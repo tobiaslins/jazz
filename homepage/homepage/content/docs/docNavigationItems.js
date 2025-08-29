@@ -65,55 +65,15 @@ export const docNavigationItems = [
     ],
   },
   {
-    name: "Tools",
-    items: [
-      {
-        name: "AI tools",
-        href: "/docs/ai-tools",
-        done: 100,
-      },
-      {
-        name: "create-jazz-app",
-        href: "/docs/tools/create-jazz-app",
-        done: 100,
-      },
-      {
-        name: "Inspector",
-        href: "/docs/inspector",
-        done: 100,
-      },
-    ],
-  },
-  {
-    name: "Server-side",
-    items: [
-      {
-        name: "Setup",
-        href: "/docs/server-side/setup",
-        done: 100,
-      },
-      {
-        name: "Communicating with workers",
-        href: "/docs/server-side/communicating-with-workers",
-        done: 100,
-      },
-      {
-        name: "HTTP requests",
-        href: "/docs/server-side/http-requests",
-        done: 100,
-      },
-      {
-        name: "Inbox",
-        href: "/docs/server-side/inbox",
-        done: 100,
-      },
-    ],
-  },
-  {
     name: "Upgrade guides",
-    // collapse: true,
+    collapse: true,
     prefix: "/docs/upgrade",
     items: [
+      {
+        name: "0.18.0 - New `$jazz` field in CoValues",
+        href: "/docs/upgrade/0-18-0",
+        done: 100,
+      },
       {
         name: "0.17.0 - New image APIs",
         href: "/docs/upgrade/0-17-0",
@@ -249,9 +209,9 @@ export const docNavigationItems = [
         done: 100,
       },
       {
-        name: "SchemaUnions",
+        name: "Schema Unions",
         href: "/docs/using-covalues/schemaunions",
-        done: 0,
+        done: 100,
       },
       {
         name: "Subscriptions & Deep Loading",
@@ -323,9 +283,39 @@ export const docNavigationItems = [
         done: 100,
       },
       {
+        name: "Better Auth",
+        href: "/docs/authentication/better-auth",
+        done: 100,
+      },
+      {
         name: "Writing your own",
         href: "/docs/authentication/writing-your-own",
         done: 0,
+      },
+    ],
+  },
+  {
+    name: "Server-side",
+    items: [
+      {
+        name: "Setup",
+        href: "/docs/server-side/setup",
+        done: 100,
+      },
+      {
+        name: "Communicating with workers",
+        href: "/docs/server-side/communicating-with-workers",
+        done: 100,
+      },
+      {
+        name: "HTTP requests",
+        href: "/docs/server-side/http-requests",
+        done: 100,
+      },
+      {
+        name: "Inbox",
+        href: "/docs/server-side/inbox",
+        done: 100,
       },
     ],
   },
@@ -345,6 +335,26 @@ export const docNavigationItems = [
       {
         name: "History Patterns",
         href: "/docs/design-patterns/history-patterns",
+        done: 100,
+      },
+    ],
+  },
+  {
+    name: "Tools",
+    items: [
+      {
+        name: "AI tools",
+        href: "/docs/ai-tools",
+        done: 100,
+      },
+      {
+        name: "create-jazz-app",
+        href: "/docs/tools/create-jazz-app",
+        done: 100,
+      },
+      {
+        name: "Inspector",
+        href: "/docs/inspector",
         done: 100,
       },
     ],
