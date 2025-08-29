@@ -477,7 +477,7 @@ export class LocalNode {
 
     // Group and account coValues can't have branches
     if (header.ruleset.type !== "ownedByGroup") {
-      logger.error("Can't load a branch from a group coValue", {
+      logger.error("Can't checkout a branch from a group coValue", {
         id,
       });
       return "unavailable";

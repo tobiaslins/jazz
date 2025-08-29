@@ -208,7 +208,7 @@ describe("Branching Logic", () => {
 
       originalBranch.set("branchKey", "branchValue");
 
-      // Load the branch - it should create a new one since it doesn't exist
+      // Load the branch - it should return the already created branch
       const branch = await client.node.checkoutBranch(
         originalMap.id,
         branchName,
@@ -244,20 +244,19 @@ describe("Branching Logic", () => {
 
       originalBranch.set("branchKey", "branchValue");
 
-      // Load the branch - it should create a new one since it doesn't exist
+      // Load the branch - it should return the already created branch
       const branch = await client.node.load(originalBranch.id);
 
       expect(branch).not.toBe("unavailable");
 
       if (branch !== "unavailable") {
-        // The branch should inherit the original data
         expect(branch.get("key1")).toBe("value1");
         expect(branch.get("key2")).toBe("value2");
         expect(branch.get("branchKey")).toBe("branchValue");
       }
     });
 
-    test("should create a branch with a different group when passing the group was ownerId", async () => {
+    test("should create a branch with a different group when passing the group as ownerId", async () => {
       const client = setupTestNode({
         connected: true,
       });
@@ -313,7 +312,7 @@ describe("Branching Logic", () => {
       }
     });
 
-    test("should return unavailable if the user tries to load a group branch", async () => {
+    test("should return unavailable if the user tries to checkout a branch from a group", async () => {
       const client = setupTestNode({
         connected: true,
       });
