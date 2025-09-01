@@ -15,6 +15,13 @@ import { useEffect, useState } from "react";
 
 import { TAB_CHANGE_EVENT } from "@garden-co/design-system/src/components/molecules/TabbedCodeGroup";
 
+// Extend the global WindowEventMap to include the TAB_CHANGE_EVENT
+declare global {
+  interface WindowEventMap {
+    [TAB_CHANGE_EVENT]: CustomEvent<{ framework: string }>; 
+  }
+}
+
 export function FrameworkSelect({
   onSelect,
   size = "md",
@@ -30,8 +37,16 @@ export function FrameworkSelect({
   const defaultFramework = useFramework();
   const [selectedFramework, setSelectedFramework] =
     useState<Framework>(defaultFramework);
+  const [initialized, setInitialized] = useState(false);
 
   const path = usePathname();
+
+  useEffect(() => {
+    if (!initialized) {
+      setSelectedFramework(defaultFramework);
+      setInitialized(true);
+    }
+  }, [defaultFramework, initialized]);
 
   const handleFrameworkChange = (event: CustomEvent) => {
       if (event.detail.key === 'framework') {
@@ -43,11 +58,11 @@ export function FrameworkSelect({
 
   useEffect(() => {
       window.addEventListener(
-        TAB_CHANGE_EVENT as any, // Yes, ugly type hack, because otherwise I need to create a new definition for window
+        TAB_CHANGE_EVENT,
         handleFrameworkChange,
       );
       return () => {
-        window.removeEventListener(TAB_CHANGE_EVENT as any, handleFrameworkChange);
+        window.removeEventListener(TAB_CHANGE_EVENT, handleFrameworkChange);
       };
     }, []);
 
