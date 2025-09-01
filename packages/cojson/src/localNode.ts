@@ -463,7 +463,7 @@ export class LocalNode {
    * Returns "unavailable" in case of errors or missing source.
    */
   async checkoutBranch<T extends RawCoValue>(
-    id: CoID<T>,
+    id: CoID<T> | RawCoID,
     branchName: string,
     branchOwnerID?: RawCoID,
   ): Promise<T | "unavailable"> {

@@ -1,4 +1,7 @@
 import { CoValueCore, LocalNode, RawCoID, RawCoValue } from "cojson";
+import type { Account, Group } from "../internal.js";
+
+export type BranchDefinition = { name: string; owner?: Group | Account };
 
 /**
  * Manages subscriptions to CoValue cores, handling both direct subscriptions
@@ -10,13 +13,27 @@ export class CoValueCoreSubscription {
   private _unsubscribe: () => void = () => {};
   private unsubscribed = false;
 
+  private branchOwnerId?: RawCoID;
+  private branchName?: string;
+  private source: CoValueCore;
+  private localNode: LocalNode;
+  private listener: (value: RawCoValue | "unavailable") => void;
+  private skipRetry?: boolean;
+
   constructor(
-    public node: LocalNode,
-    public id: string,
-    public listener: (value: RawCoValue | "unavailable") => void,
-    public skipRetry?: boolean,
-    public branch?: { name: string; ownerId?: string },
+    localNode: LocalNode,
+    id: string,
+    listener: (value: RawCoValue | "unavailable") => void,
+    skipRetry?: boolean,
+    branch?: BranchDefinition,
   ) {
+    this.localNode = localNode;
+    this.listener = listener;
+    this.skipRetry = skipRetry;
+    this.branchName = branch?.name;
+    this.branchOwnerId = branch?.owner?.$jazz.raw.id;
+    this.source = localNode.getCoValue(id as RawCoID);
+
     this.initializeSubscription();
   }
 
@@ -25,7 +42,7 @@ export class CoValueCoreSubscription {
    * Determines the subscription strategy based on current availability and branch requirements.
    */
   private initializeSubscription(): void {
-    const source = this.node.getCoValue(this.id as any);
+    const source = this.source;
 
     // If the CoValue is already available, handle it immediately
     if (source.isAvailable()) {
@@ -34,7 +51,7 @@ export class CoValueCoreSubscription {
     }
 
     // If a specific branch is requested while the source is not available, attempt to checkout that branch
-    if (this.branch) {
+    if (this.branchName) {
       this.handleBranchCheckout();
       return;
     }
@@ -48,16 +65,13 @@ export class CoValueCoreSubscription {
    * Either subscribes directly or attempts to get the requested branch.
    */
   private handleAvailableSource(source: CoValueCore): void {
-    if (!this.branch) {
+    if (!this.branchName) {
       this.subscribe(source.getCurrentContent());
       return;
     }
 
-    const branchName = this.branch.name;
-    const branchOwnerId = this.branch.ownerId as RawCoID | undefined;
-
     // Try to get the specific branch from the available source
-    const branch = source.getBranch(branchName, branchOwnerId);
+    const branch = source.getBranch(this.branchName, this.branchOwnerId);
 
     if (branch.isAvailable()) {
       // Branch is available, subscribe to it
@@ -74,12 +88,8 @@ export class CoValueCoreSubscription {
    * This is called when the source isn't available but a branch is requested.
    */
   private handleBranchCheckout(): void {
-    this.node
-      .checkoutBranch(
-        this.id as any,
-        this.branch!.name,
-        this.branch!.ownerId as RawCoID | undefined,
-      )
+    this.localNode
+      .checkoutBranch(this.source.id, this.branchName!, this.branchOwnerId)
       .then((value) => {
         if (this.unsubscribed) return;
 
@@ -94,7 +104,7 @@ export class CoValueCoreSubscription {
       .catch((error) => {
         // Handle unexpected errors during branch checkout
         console.error(error);
-        this.listener("unavailable");
+        this.emit("unavailable");
       });
   }
 
@@ -103,7 +113,7 @@ export class CoValueCoreSubscription {
    * Determines whether to retry or report unavailability.
    */
   private handleUnavailableBranch(): void {
-    const source = this.node.getCoValue(this.id as any);
+    const source = this.source;
     if (source.isAvailable()) {
       // This should be impossible - if source is available we can create the branch and it should be available
       throw new Error("Branch is unavailable");
@@ -111,7 +121,7 @@ export class CoValueCoreSubscription {
 
     // Source isn't available either, subscribe to state changes and report unavailability
     this.subscribeToUnavailableSource();
-    this.listener("unavailable");
+    this.emit("unavailable");
   }
 
   /**
@@ -119,8 +129,8 @@ export class CoValueCoreSubscription {
    * This is the fallback strategy when immediate availability fails.
    */
   private loadCoValue(): void {
-    this.node
-      .loadCoValueCore(this.id as RawCoID, undefined, this.skipRetry)
+    this.localNode
+      .loadCoValueCore(this.source.id, undefined, this.skipRetry)
       .then((value) => {
         if (this.unsubscribed) return;
 
@@ -130,13 +140,13 @@ export class CoValueCoreSubscription {
         } else {
           // Loading failed, subscribe to state changes and report unavailability
           this.subscribeToUnavailableSource();
-          this.listener("unavailable");
+          this.emit("unavailable");
         }
       })
       .catch((error) => {
         // Handle unexpected errors during loading
         console.error(error);
-        this.listener("unavailable");
+        this.emit("unavailable");
       });
   }
 
@@ -145,7 +155,7 @@ export class CoValueCoreSubscription {
    * This allows the subscription to become active when the source becomes available after a first loading attempt.
    */
   private subscribeToUnavailableSource(): void {
-    const source = this.node.getCoValue(this.id as any);
+    const source = this.source;
 
     const handleStateChange = (
       _: CoValueCore,
@@ -160,7 +170,7 @@ export class CoValueCoreSubscription {
 
       unsubFromStateChange();
 
-      if (this.branch) {
+      if (this.branchName) {
         // Branch was requested, attempt checkout again
         this.handleBranchCheckout();
       } else {
@@ -182,8 +192,14 @@ export class CoValueCoreSubscription {
 
     // Subscribe to the value and store the unsubscribe function
     this._unsubscribe = value.subscribe((value) => {
-      this.listener(value);
+      this.emit(value);
     });
+  }
+
+  emit(value: RawCoValue | "unavailable"): void {
+    if (this.unsubscribed) return;
+
+    this.listener(value);
   }
 
   /**

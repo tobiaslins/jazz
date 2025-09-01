@@ -82,7 +82,7 @@ describe("CoValueCoreSubscription", async () => {
           listener(result);
         },
         false,
-        { name: "main", ownerId: person.$jazz.owner.$jazz.id },
+        { name: "main", owner: person.$jazz.owner },
       );
 
       // Should immediately call the listener with branch data
@@ -121,7 +121,9 @@ describe("CoValueCoreSubscription", async () => {
       // Wait for the branch to be created and loaded
       await waitFor(() => expect(listener).toHaveBeenCalled());
 
-      // Should return the source CoValue when branch isn't available
+      expect(listener).toHaveBeenCalledTimes(1);
+
+      // Should return the branch, that contains the source data
       expect(lastResult.get("name")).toEqual("John");
       expect(lastResult.id).not.toBe(person.$jazz.id); // Should be a different instance
 
@@ -255,7 +257,7 @@ describe("CoValueCoreSubscription", async () => {
           listener(result);
         },
         false,
-        { name: "main", ownerId: person.$jazz.owner.$jazz.id },
+        { name: "main", owner: person.$jazz.owner },
       );
 
       // Should not call listener immediately since source isn't available
@@ -308,7 +310,7 @@ describe("CoValueCoreSubscription", async () => {
           listener(result);
         },
         false,
-        { name: "main", ownerId: bob.$jazz.id },
+        { name: "main", owner: bob },
       );
 
       // Should not call listener immediately since private branch needs to be created
@@ -377,7 +379,7 @@ describe("CoValueCoreSubscription", async () => {
           listener(result);
         },
         false,
-        { name: "main", ownerId: bob.$jazz.id },
+        { name: "main", owner: bob },
       );
 
       // Should not call listener immediately since ID is invalid
@@ -392,11 +394,21 @@ describe("CoValueCoreSubscription", async () => {
       subscription.unsubscribe();
     });
 
-    test("should handle return unavailable when the owner id is invalid", async () => {
+    test("should handle return unavailable when the owner is unavailable", async () => {
       const Person = co.map({
         name: z.string(),
         age: z.number(),
       });
+
+      const alice = await createJazzTestAccount();
+
+      // Disconnect all peers to not sync the unavailable group
+      alice.$jazz.localNode.syncManager
+        .getServerPeers(alice.$jazz.raw.id)
+        .forEach((peer) => peer.gracefulShutdown());
+
+      const unavailableGroup = Group.create(alice).makePublic("writer");
+
       const bob = await createJazzTestAccount();
 
       // Create a person that bob can access
@@ -416,10 +428,10 @@ describe("CoValueCoreSubscription", async () => {
           listener(result);
         },
         true,
-        { name: "main", ownerId: "invalid-owner-id" },
+        { name: "main", owner: unavailableGroup },
       );
 
-      // Should not call listener immediately since owner ID is invalid
+      // Should not call listener immediately since owner is unavailable
       expect(listener).not.toHaveBeenCalled();
 
       // Wait for the error handling to complete
@@ -874,7 +886,7 @@ describe("CoValueCoreSubscription", async () => {
           listener(result);
         },
         false,
-        { name: "main", ownerId: person.$jazz.owner.$jazz.id },
+        { name: "main", owner: person.$jazz.owner },
       );
 
       // Initial call with branch value
@@ -926,7 +938,7 @@ describe("CoValueCoreSubscription", async () => {
           listener(result);
         },
         false,
-        { name: "main", ownerId: person.$jazz.owner.$jazz.id },
+        { name: "main", owner: person.$jazz.owner },
       );
 
       // Initial call with branch value
