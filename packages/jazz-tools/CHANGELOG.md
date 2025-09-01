@@ -1,5 +1,15 @@
 # jazz-tools
 
+## 0.18.3
+
+### Patch Changes
+
+- b526ab6: Set 18.x as latest
+- d69aa68: Added a server implementation of `createImage()` to create images in server environments using the "sharp" library
+  - cojson@0.18.3
+  - cojson-storage-indexeddb@0.18.3
+  - cojson-transport-ws@0.18.3
+
 ## 0.18.2
 
 ### Patch Changes
