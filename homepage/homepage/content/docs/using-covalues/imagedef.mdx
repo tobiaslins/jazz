@@ -135,6 +135,31 @@ const imageSet = ProductImage.create({
 ```
 </CodeGroup>
 
+### Creating images from server side
+
+We provide a `createImage` function to create images from server side using the same options as the browser version, using the package `jazz-tools/media/server`. Check the [server worker](../server-side/setup) documentation to learn more.
+
+The resize features are based on the `sharp` library, then it is requested as peer dependency in order to use it.
+
+<CodeGroup>
+```bash
+pnpm install sharp
+```
+</CodeGroup>
+
+<CodeGroup>
+```ts
+import fs from "node:fs";
+import { createImage } from "jazz-tools/media/server";
+
+const image = fs.readFileSync(new URL("./image.jpg", import.meta.url));
+
+await createImage(image, {
+  // options
+});
+```
+</CodeGroup>
+
 ## Displaying Images
 
 Like other CoValues, `ImageDefinition` can be used to load the object.
