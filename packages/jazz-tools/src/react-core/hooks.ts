@@ -286,7 +286,7 @@ export function useCoState<
  *
  * function ProjectTitle({ projectId }: { projectId: string }) {
  *   // Only re-render when the project name changes, not other fields
- *   const projectName = useCoStateSelector(
+ *   const projectName = useCoStateWithSelector(
  *     Project,
  *     projectId,
  *     {
@@ -304,7 +304,7 @@ export function useCoState<
  * const TaskList = co.list(Task);
  *
  * function TaskCount({ listId }: { listId: string }) {
- *   const taskStats = useCoStateSelector(
+ *   const taskStats = useCoStateWithSelector(
  *     TaskList,
  *     listId,
  *     {
@@ -339,7 +339,7 @@ export function useCoState<
  * });
  *
  * function TeamSummary({ teamId }: { teamId: string }) {
- *   const summary = useCoStateSelector(
+ *   const summary = useCoStateWithSelector(
  *     Team,
  *     teamId,
  *     {
@@ -380,7 +380,7 @@ export function useCoState<
  *
  * For more examples, see the [subscription and deep loading](https://jazz.tools/docs/react/using-covalues/subscription-and-loading) documentation.
  */
-export function useCoStateSelector<
+export function useCoStateWithSelector<
   S extends CoValueClassOrSchema,
   TSelectorReturn,
   TSelectorReturnDerived extends TSelectorReturn = TSelectorReturn,
