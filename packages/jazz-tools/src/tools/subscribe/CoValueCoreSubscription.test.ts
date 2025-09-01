@@ -210,7 +210,7 @@ describe("CoValueCoreSubscription", async () => {
       // Wait for the async loading to complete
       await waitFor(() => expect(listener).toHaveBeenCalled());
 
-      // Should return the source CoValue when branch isn't available
+      // Should return the branch, that contains the source data
       expect(lastResult.get("name")).toEqual("John");
       expect(lastResult.id).not.toBe(person.$jazz.id); // Should be a different instance
 
