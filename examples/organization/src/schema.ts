@@ -40,7 +40,7 @@ export const JazzAccount = co
     root: JazzAccountRoot,
   })
   .withMigration(async (account) => {
-    if (account.profile === undefined) {
+    if (!account.$jazz.has("profile")) {
       const group = Group.create();
       account.$jazz.set(
         "profile",
@@ -54,7 +54,7 @@ export const JazzAccount = co
       group.addMember("everyone", "reader");
     }
 
-    if (account.root === undefined) {
+    if (!account.$jazz.has("root")) {
       const draftOrgGroup = Group.create();
       const draftOrganization = DraftOrganization.create(
         {

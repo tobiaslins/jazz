@@ -266,12 +266,6 @@ importers:
       github-slugger:
         specifier: ^2.0.0
         version: 2.0.0
-      jazz-auth-betterauth:
-        specifier: link:../../packages/jazz-auth-betterauth
-        version: link:../../packages/jazz-auth-betterauth
-      jazz-react-auth-betterauth:
-        specifier: link:../../packages/jazz-react-auth-betterauth
-        version: link:../../packages/jazz-react-auth-betterauth
       jazz-tools:
         specifier: link:../../packages/jazz-tools
         version: link:../../packages/jazz-tools

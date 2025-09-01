@@ -342,3 +342,54 @@ describe("root and profile", () => {
     expect(account.root.name).toBe("test 1");
   });
 });
+
+describe("account.$jazz.has", () => {
+  test("should return true if the key is defined", async () => {
+    const account = await createJazzTestAccount({
+      creationProps: { name: "John" },
+    });
+
+    expect(account.$jazz.has("profile")).toBe(true);
+    expect(account.$jazz.has("root")).toBe(false);
+  });
+
+  test("should work as migration check", async () => {
+    const CustomProfile = co.profile({
+      name: z.string(),
+      email: z.string().optional(),
+    });
+
+    const CustomRoot = co.map({
+      settings: z.string(),
+    });
+
+    const CustomAccount = co
+      .account({
+        profile: CustomProfile,
+        root: CustomRoot,
+      })
+      .withMigration((me, creationProps) => {
+        if (!me.$jazz.has("profile")) {
+          me.$jazz.set("profile", {
+            name: creationProps?.name ?? "Anonymous",
+            email: "test@example.com",
+          });
+        }
+
+        if (!me.$jazz.has("root")) {
+          me.$jazz.set("root", { settings: "default" });
+        }
+      });
+
+    const account = await createJazzTestAccount({
+      AccountSchema: CustomAccount,
+      creationProps: { name: "Custom User" },
+    });
+
+    expect(account.$jazz.has("profile")).toBe(true);
+    expect(account.$jazz.has("root")).toBe(true);
+
+    expect(account.profile.email).toBe("test@example.com");
+    expect(account.root.settings).toBe("default");
+  });
+});
