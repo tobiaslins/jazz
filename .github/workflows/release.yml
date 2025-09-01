@@ -24,10 +24,22 @@ jobs:
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
+        if: github.ref_name == 'main'
         uses: changesets/action@v1
         with:
           version: pnpm changeset-version
           publish: pnpm release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create Release Pull Request or Publish to npm (backports)
+        id: changesets-backport
+        if: startsWith(github.ref_name, 'backport/')
+        uses: changesets/action@v1
+        with:
+          version: pnpm changeset-version
+          publish: pnpm release:backports
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
