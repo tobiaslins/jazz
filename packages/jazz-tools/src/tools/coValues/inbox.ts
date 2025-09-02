@@ -150,6 +150,8 @@ class MessageQueue {
 
     try {
       await this.processMessage(txKey, messageId);
+    } catch (error) {
+      this.handleError(txKey, messageId, error as Error);
     } finally {
       this.processing.delete(txKey);
       this.activeCount--;
@@ -172,6 +174,24 @@ class MessageQueue {
     ) => Promise<void>,
   ) {
     this.processMessage = handler;
+  }
+
+  private handleError(
+    txKey: TxKey,
+    messageId: CoID<InboxMessage<CoValue, any>>,
+    error: Error,
+  ) {
+    throw new Error("handleError must be implemented by the caller");
+  }
+
+  setErrorHandler(
+    handler: (
+      txKey: TxKey,
+      messageId: CoID<InboxMessage<CoValue, any>>,
+      error: Error,
+    ) => void,
+  ) {
+    this.handleError = handler;
   }
 }
 
@@ -214,7 +234,7 @@ export class Inbox {
 
     const processedFeed = new IncreamentalFeed(this.processed);
 
-    // Invoked immediately
+    // Track the already processed messages, triggered immediately so we know the messages processed in the previous sessions
     this.processed.subscribe(() => {
       for (const { changes } of processedFeed.getNewItems()) {
         processed.add(changes[0] as TxKey);
@@ -227,64 +247,64 @@ export class Inbox {
 
     // Set up the message processing handler for the queue
     messageQueue.setProcessMessageHandler(async (txKey, messageId) => {
+      const message = await node.load(messageId);
+      if (message === "unavailable") {
+        throw new Error(`Inbox: message ${messageId} is unavailable`);
+      }
+
+      const value = await loadCoValue(
+        coValueClassFromCoValueClassOrSchema(Schema),
+        message.get("payload")!,
+        {
+          loadAs: account,
+        },
+      );
+
+      if (!value) {
+        throw new Error(
+          `Inbox: Unable to load the payload of message ${messageId}`,
+        );
+      }
+
+      const accountID = getAccountIDfromSessionID(
+        txKey.split("/")[0] as SessionID,
+      );
+      if (!accountID) {
+        throw new Error(`Inbox: Unknown account for message ${messageId}`);
+      }
+
+      const result = await callback(value as InstanceOfSchema<M>, accountID);
+
+      const inboxMessage = node
+        .expectCoValueLoaded(messageId)
+        .getCurrentContent() as RawCoMap;
+
+      if (result) {
+        inboxMessage.set("result", result.$jazz.id);
+      }
+
+      inboxMessage.set("processed", true);
+      this.processed.push(txKey);
+    });
+
+    messageQueue.setErrorHandler((txKey, messageId, error) => {
+      console.error(error);
+
+      const errors = failed.get(txKey) ?? [];
+      const stringifiedError = String(error);
+      errors.push(stringifiedError);
+
+      this.processed.push(txKey);
+      this.failed.push({ errors, value: messageId });
+
       try {
-        const message = await node.load(messageId);
-        if (message === "unavailable") {
-          throw new Error(`Inbox: message ${messageId} is unavailable`);
-        }
-
-        const value = await loadCoValue(
-          coValueClassFromCoValueClassOrSchema(Schema),
-          message.get("payload")!,
-          {
-            loadAs: account,
-          },
-        );
-
-        if (!value) {
-          throw new Error(
-            `Inbox: Unable to load the payload of message ${messageId}`,
-          );
-        }
-
-        const accountID = getAccountIDfromSessionID(
-          txKey.split("/")[0] as SessionID,
-        );
-        if (!accountID) {
-          throw new Error(`Inbox: Unknown account for message ${messageId}`);
-        }
-
-        const result = await callback(value as InstanceOfSchema<M>, accountID);
-
         const inboxMessage = node
           .expectCoValueLoaded(messageId)
           .getCurrentContent() as RawCoMap;
 
-        if (result) {
-          inboxMessage.set("result", result.$jazz.id);
-        }
-
+        inboxMessage.set("error", stringifiedError);
         inboxMessage.set("processed", true);
-        this.processed.push(txKey);
-      } catch (error) {
-        console.error(error);
-        const errors = failed.get(txKey) ?? [];
-        const stringifiedError = String(error);
-        errors.push(stringifiedError);
-
-        this.failed.push({ errors, value: messageId });
-
-        try {
-          const inboxMessage = node
-            .expectCoValueLoaded(messageId)
-            .getCurrentContent() as RawCoMap;
-
-          inboxMessage.set("error", stringifiedError);
-          inboxMessage.set("processed", true);
-        } catch (error) {}
-
-        this.processed.push(txKey);
-      }
+      } catch (error) {}
     });
 
     const handleNewMessages = () => {
