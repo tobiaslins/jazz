@@ -393,3 +393,15 @@ describe("account.$jazz.has", () => {
     expect(account.root.settings).toBe("default");
   });
 });
+
+describe("account.toJSON", () => {
+  test("returns only the acccount's Jazz id", async () => {
+    const account = await createJazzTestAccount({
+      creationProps: { name: "John" },
+    });
+
+    expect(account.toJSON()).toEqual({
+      "$jazz.id": account.$jazz.id,
+    });
+  });
+});
