@@ -836,6 +836,8 @@ export class CoValueCore {
 
     const matchingTransactions: DecryptedTransaction[] = [];
 
+    const source = getBranchSource(this);
+
     for (const transaction of this.verifiedTransactions) {
       if (!isValidTransactionWithChanges(transaction)) {
         continue;
@@ -847,7 +849,7 @@ export class CoValueCore {
 
       options?.knownTransactions?.add(transaction.tx);
 
-      const { txID, madeAt } = transaction;
+      const { txID } = transaction;
 
       const from = options?.from?.[txID.sessionID] ?? -1;
       const to = options?.to?.[txID.sessionID] ?? Infinity;
@@ -857,10 +859,22 @@ export class CoValueCore {
         continue;
       }
 
-      matchingTransactions.push(transaction);
+      // Are we in a branch?
+      if (source) {
+        matchingTransactions.push({
+          txID: {
+            sessionID: txID.sessionID,
+            txIndex: txID.txIndex,
+            branch: this.id,
+          },
+          madeAt: transaction.madeAt,
+          changes: transaction.changes,
+          tx: transaction.tx,
+        });
+      } else {
+        matchingTransactions.push(transaction);
+      }
     }
-
-    const source = getBranchSource(this);
 
     // If this is a branch, we load the valid transactions from the source
     if (source && this.branchStart && !options?.skipBranchSource) {
@@ -870,16 +884,8 @@ export class CoValueCore {
         knownTransactions: options?.knownTransactions,
       });
 
-      for (const { changes, tx, madeAt, txID } of sourceTransactions) {
-        matchingTransactions.push({
-          txID: {
-            sessionID: `${txID.sessionID}_branch_${source.id}`,
-            txIndex: txID.txIndex,
-          },
-          madeAt,
-          changes,
-          tx,
-        });
+      for (const transaction of sourceTransactions) {
+        matchingTransactions.push(transaction);
       }
     }
 
@@ -896,6 +902,14 @@ export class CoValueCore {
 
   getBranch(name: string, ownerId?: RawCoID) {
     return this.node.getCoValue(getBranchId(this, name, ownerId));
+  }
+
+  getCurrentBranchName() {
+    return this.verified?.header.meta?.branch as string | undefined;
+  }
+
+  getCurrentBranchSourceId() {
+    return this.verified?.header.meta?.source as RawCoID | undefined;
   }
 
   getValidSortedTransactions(options?: {

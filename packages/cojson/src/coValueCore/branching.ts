@@ -1,8 +1,9 @@
-import { CoValueCore } from "../exports.js";
-import { RawCoID, SessionID } from "../ids.js";
-import { AvailableCoValueCore, idforHeader } from "./coValueCore.js";
-import { CoValueHeader } from "./verifiedState.js";
-import { CoValueKnownState } from "../sync.js";
+import type { CoValueCore, JsonValue } from "../exports.js";
+import type { RawCoID, SessionID, TransactionID } from "../ids.js";
+import { type AvailableCoValueCore, idforHeader } from "./coValueCore.js";
+import type { CoValueHeader } from "./verifiedState.js";
+import type { CoValueKnownState } from "../sync.js";
+import type { ListOpPayload, OpID } from "../coValues/coList.js";
 
 export function getBranchHeader({
   type,
@@ -125,7 +126,7 @@ export function getBranchSource(
     return undefined;
   }
 
-  const sourceId = coValue.verified.header.meta?.source;
+  const sourceId = coValue.getCurrentBranchSourceId();
 
   if (!sourceId) {
     return undefined;
@@ -159,7 +160,11 @@ export function mergeBranch(branch: CoValueCore): CoValueCore {
     );
   }
 
-  const sourceId = branch.verified.header.meta?.source;
+  if (branch.verified.header.ruleset.type !== "ownedByGroup") {
+    return branch;
+  }
+
+  const sourceId = branch.getCurrentBranchSourceId();
 
   if (!sourceId) {
     throw new Error("CoValueCore: mergeBranch called on a non-branch coValue");
@@ -212,9 +217,86 @@ export function mergeBranch(branch: CoValueCore): CoValueCore {
     count: branchValidTransactions.length,
   } satisfies MergeCommit);
 
-  for (const { tx, changes } of branchValidTransactions) {
-    target.makeTransaction(changes, tx.privacy);
+  const currentSessionID = target.node.currentSessionID;
+
+  if (
+    target.verified.header.type === "colist" ||
+    target.verified.header.type === "coplaintext"
+  ) {
+    const mapping: Record<`${SessionID}:${number}`, number> = {};
+
+    const session = target.verified.sessions.get(currentSessionID);
+    let txIdx = session ? session.transactions.length : 0;
+
+    for (const { txID } of branchValidTransactions) {
+      mapping[`${txID.sessionID}:${txID.txIndex}`] = txIdx;
+      txIdx++;
+    }
+
+    for (const { tx, changes } of branchValidTransactions) {
+      const mappedChanges = changes.map((changeUntyped) => {
+        const change = changeUntyped as ListOpPayload<JsonValue>;
+        if (change.op === "app") {
+          if (change.after === "start") {
+            return change;
+          }
+
+          return {
+            ...change,
+            after: convertOpID(change.after, currentSessionID, mapping),
+          };
+        }
+
+        if (change.op === "del") {
+          return {
+            ...change,
+            insertion: convertOpID(change.insertion, currentSessionID, mapping),
+          };
+        }
+
+        if (change.op === "pre") {
+          if (change.before === "end") {
+            return change;
+          }
+
+          return {
+            ...change,
+            before: convertOpID(change.before, currentSessionID, mapping),
+          };
+        }
+
+        return change;
+      });
+
+      target.makeTransaction(mappedChanges, tx.privacy);
+    }
+  } else {
+    for (const { tx, changes } of branchValidTransactions) {
+      target.makeTransaction(changes, tx.privacy);
+    }
   }
 
   return target;
+}
+
+function convertOpID(
+  opID: OpID,
+  sessionID: SessionID,
+  mapping: Record<`${SessionID}:${number}`, number>,
+) {
+  if (!opID.branch) {
+    return opID;
+  }
+
+  const mappedIndex = mapping[`${opID.sessionID}:${opID.txIndex}`];
+
+  if (mappedIndex === undefined) {
+    return opID;
+  }
+
+  return {
+    sessionID: sessionID,
+    txIndex: mapping[`${opID.sessionID}:${opID.txIndex}`],
+    changeIdx: opID.changeIdx,
+  };
 }
