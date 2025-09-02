@@ -216,10 +216,8 @@ export class Inbox {
 
     // Invoked immediately
     this.processed.subscribe(() => {
-      for (const {
-        changes: [txKey],
-      } of processedFeed.getNewItems()) {
-        processed.add(txKey as TxKey);
+      for (const { changes } of processedFeed.getNewItems()) {
+        processed.add(changes[0] as TxKey);
       }
     });
 
