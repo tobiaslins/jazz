@@ -17,28 +17,20 @@ This quickstart guide will take you from an empty project to a server worker whi
 
 ## Create your Node App
 
-We're going to use plain old Node.js with TypeScript here, but you can use frameworks like Express, Hono, or more complex meta-frameworks too.
+We're going to use Next.js for this guide, but you can use any framework you like.
 
 <TabbedCodeGroup default="pnpm" savedPreferenceKey="package-manager">
 <TabbedCodeGroupItem label="npm">
 ```sh
-mkdir jazz-server-worker && cd jazz-server-worker
-npm init && npm add -D typescript @types/node ts-node env-cmd
-npx tsc --init
+npx create-next-app@latest --typescript jazz-server-worker
 ```
 </TabbedCodeGroupItem>
 <TabbedCodeGroupItem label="pnpm">
 ```sh
-mkdir jazz-server-worker && cd jazz-server-worker
-pnpm init && pnpm add -D typescript @types/node ts-node env-cmd
-npx tsc --init
+pnpx create-next-app@latest --typescript jazz-server-worker
 ```
 </TabbedCodeGroupItem>
 </TabbedCodeGroup>
-
-<Alert variant="info" className="mt-4 flex gap-2 items-center">
-  To keep things minimal, we're using `ts-node` to run our TypeScript code, and `env-cmd` to load environment variables from a `.env` file. You'll likely want to use a more robust solution for your own projects.
-</Alert>
 
 ## Install Jazz
 
@@ -68,60 +60,42 @@ JAZZ_API_KEY=you@example.com
 ```
 </CodeGroup>
 
-## Extend your Schema
-Your schema should be the same as the one you use in your client-side app so that your server worker can interact with the same data. We're going to build on the one we used in the [React Quickstart](/docs/getting-started/quickstart/react).
+## Define your schema
+We're going to define a simple schema for our server worker. We'll use the `root` on the worker to store a list of bands. We're also going to add a migration to initialise the `root` if it doesn't exist.
 
-We'll use the `profile` on the worker to store a list of festivals. By default, profiles are readable by everyone, but only writable by the account owner, which makes them a perfect place to store this data.
-
-<ContentByFramework framework="react">
-<FileName>../frontend/app/schema.ts</FileName>
-</ContentByFramework>
-<ContentByFramework framework="svelte">
-<FileName>../frontend/src/lib/schema.ts</FileName>
-</ContentByFramework>
+<FileName>app/schema.ts</FileName>
 
 <CodeGroup>
 ```ts
 import { co, z } from "jazz-tools";
 
 export const Band = co.map({
-  name: z.string(), // Zod primitive type
+  name: z.string(),
 });
 
-export const Festival = co.list(Band);
+export const BandList = co.list(Band);
 
-// Client-side accounts
-export const JazzFestAccountRoot = co.map({
-  myFestival: Festival,
-});
-
-export const JazzFestAccount = co
+export const JazzFestWorkerAccount = co
   .account({
-    root: JazzFestAccountRoot,
+    root: co.map({
+      bandList: BandList,
+    }),
     profile: co.profile(),
   })
   .withMigration((account) => {
-    if (!account.$jazz.has('root')) {
-      account.$jazz.set('root', { myFestival: [] });
-    }
-  });
-
-// Server worker accounts
-export const JazzFestWorkerAccount = co
-  .account({
-    root: co.map({}),
-    profile: co.profile({
-      festivalList: co.list(Festival)
-    }),
-  })
-  .withMigration((account) => {
-    if (!account.$jazz.has('profile')) {
-       account.$jazz.set('profile', { festivalList: [] });
-       account.profile.$jazz.owner.makePublic();
+    if (!account.$jazz.has("root")) {
+      account.$jazz.set("root", {
+        bandList: [],
+      });
+      account.root?.$jazz.owner.makePublic();
     }
   });
 ```
 </CodeGroup>
+
+<Alert variant="info" className="mt-4 flex gap-2 items-center">
+  If you're continuing from the [front-end Quickstart](/docs/getting-started/quickstart), you can extend your existing schema.
+</Alert>
 
 ## Create a Server Worker
 
@@ -145,209 +119,190 @@ You can copy the output of this command and paste it directly into your `.env` f
 <FileName>.env</FileName>
 <CodeGroup>
 ```bash
-JAZZ_API_KEY=you@example.com
-# Credentials for Jazz account "JazzFest Server Worker":
-JAZZ_WORKER_ACCOUNT=co_z...
+NEXT_PUBLIC_JAZZ_API_KEY=you@example.com
+NEXT_PUBLIC_JAZZ_WORKER_ACCOUNT=co_z...
 JAZZ_WORKER_SECRET=sealerSecret_z.../signerSecret_z...
 ```
 </CodeGroup>
+<Alert variant="info" className="mt-4 flex gap-2 items-center">
+  If you're using Next.js, you should use the `NEXT_PUBLIC_` prefix for your public environment variables. Your `JAZZ_WORKER_SECRET` should **never** be exposed to the client.
+</Alert>
 
-## Using the Inbox API
+## Defining your HTTP request schema
 
-Jazz provides a simple inbox API to send messages to your server worker. We're going to write a simple server worker which will listen for messages and add new festivals to the `festivalList` CoValue.
+Next, we're going to set up an HTTP request schema to define our request and response. Here, we tell Jazz that we will send a `Band` under the key `band` and expect a `bandList` in response, which is a list of `Band`s. 
 
-### Define a Message schema
-We're going to define a simple message schema to announce a new festival. Our clients will create messages using this schema to be sent to our server worker.
+We also need to tell Jazz which keys should be treated as loaded in the request and response using the `resolve` query.
 
-<ContentByFramework framework="react">
-<FileName>../frontend/app/schema.ts</FileName>
-</ContentByFramework>
-<ContentByFramework framework="svelte">
-<FileName>../frontend/src/lib/schema.ts</FileName>
-</ContentByFramework>
+<FileName>app/announceBandSchema.ts</FileName>
+
 <CodeGroup>
 ```ts
-// ... existing code ...
+import { co, experimental_defineRequest } from "jazz-tools";
+import { Band, BandList } from "./schema";
 
-// [!code ++:3]
-export const AnnounceFestivalMessage = co.map({
-  festival: Festival,
+const workerId = process.env.NEXT_PUBLIC_JAZZ_WORKER_ACCOUNT;
+
+if (!workerId) throw new Error("JAZZ_WORKER_ACCOUNT is not set");
+
+export const announceBand = experimental_defineRequest({
+  url: "/api/announce-band",
+  workerId: workerId,
+  request: { schema: { band: Band }, resolve: { band: true } },
+  response: { schema: { bandList: BandList }, resolve: { bandList: true } },
 });
 ```
 </CodeGroup>
 
-### Listen for messages
+## Configure your Server Worker
 
-We're going to start our worker using the `startWorker` function. This will give us an `inbox` we can subscribe to.
+We're going to use the `startWorker` function to start our server worker, and register a `POST` handler, which will listen for the requests being sent to our server worker.
 
-<FileName>index.ts</FileName>
+We'll also use a `resolve` query here to make sure that the `bandList` is loaded on the worker's root.
+
+<FileName>app/api/announce-band/route.ts</FileName>
 <CodeGroup>
 ```ts
 import { startWorker } from "jazz-tools/worker";
-import { AnnounceFestivalMessage, JazzFestWorkerAccount } from "./schema.ts";
+import { announceBand } from "@/app/announceBandSchema";
+import { JazzFestWorkerAccount } from "@/app/schema";
 
-const { JAZZ_WORKER_ACCOUNT, JAZZ_WORKER_SECRET, API_KEY } = process.env;
-if (!JAZZ_WORKER_ACCOUNT || !JAZZ_WORKER_SECRET || !API_KEY) {
-	throw new Error("Missing environment variables");
+export const { worker } = await startWorker({
+  syncServer: `wss://cloud.jazz.tools/?key=${process.env.NEXT_PUBLIC_JAZZ_API_KEY}`,
+  accountID: process.env.NEXT_PUBLIC_JAZZ_WORKER_ACCOUNT,
+  accountSecret: process.env.JAZZ_WORKER_SECRET,
+  AccountSchema: JazzFestWorkerAccount,
+});
+
+export async function POST(request: Request) {
+  return announceBand.handle(request, worker, async ({ band }) => {
+    if (!band) {
+      throw new Error("Band is required");
+    }
+    const {
+      root: { bandList },
+    } = await worker.$jazz.ensureLoaded({
+      resolve: {
+        root: {
+          bandList: true,
+        },
+      },
+    });
+    bandList.$jazz.push(band);
+    return { bandList: worker.root.bandList };
+  });
 }
-
-const {
-	worker,
-	experimental: { inbox },
-} = await startWorker({
-	accountID: JAZZ_WORKER_ACCOUNT,
-	accountSecret: JAZZ_WORKER_SECRET,
-	syncServer: `wss://cloud.jazz.tools/?key=${API_KEY}`,
-	AccountSchema: JazzFestWorkerAccount,
-});
-
-inbox.subscribe(AnnounceFestivalMessage, async (message) => {
-	const { festival } = message;
-	await worker.$jazz.ensureLoaded({
-		resolve: {
-			profile: {
-				festivalList: true,
-			},
-		},
-	});
-	worker.profile.festivalList.$jazz.push(festival);
-	console.log("Added a new festival to the list!");
-});
-
-console.log("Worker is running!");
 ```
 </CodeGroup>
 
-We can start our server now, and it will begin listening for messages from our client. Run the command below and look for the message "Worker is running!" in the terminal.
+## Start your server worker
+
+We can now start our development server to make sure everything is working.
 
 <TabbedCodeGroup default="pnpm" savedPreferenceKey="package-manager">
 <TabbedCodeGroupItem label="npm">
 ```sh
-npx env-cmd -f .env ts-node index.ts
+npm run dev
 ```
 </TabbedCodeGroupItem>
 <TabbedCodeGroupItem label="pnpm">
 ```sh
-pnpx env-cmd -f .env ts-node index.ts
+pnpm run dev
 ```
 </TabbedCodeGroupItem>
 </TabbedCodeGroup>
 
-#### Worker not starting?
+If you open your browser, you should see the default Next.js welcome page.
+
+### Not working? 
 - Check you set up your `.env` file correctly
 - Check you're importing `startWorker` from `jazz-tools/worker`
 - Ask for help on [Discord](https://discord.gg/utDMjHYg42).
 
-### Interacting with your worker
+## Send requests to your server worker
 
-We can interact with your worker by sending messages to it. We'll re-use the `MyFestival` component from the [React Quickstart](/docs/getting-started/quickstart), and add a button to announce a new festival by sending a message to our worker.
+### Creating a Jazz Client
 
-<ContentByFramework framework="react">
-- We have to make our worker ID available to our client. We can do this by adding a `NEXT_PUBLIC_WORKER_ID` environment variable to our `.env` file with the ID of our worker (`JAZZ_WORKER_ACCOUNT`).
-</ContentByFramework>
-<ContentByFramework framework="svelte">
-- We have to make our worker ID available to our client. We can do this by adding a `PUBLIC_WORKER_ID` environment variable to our `.env` file with the ID of our worker (`JAZZ_WORKER_ACCOUNT`).
-</ContentByFramework>
+We're going to wrap our Next.js app in a JazzProvider so that we can use Jazz on our client.
 
-
-- We have to make sure our worker can read the `festivalList` CoValue. We can do this by using `$jazz.owner.makePublic()` to tell Jazz that we want `everyone` to be able to read the `festivalList` CoValue.
-
-<Alert variant="warning" className="my-4 flex gap-2 items-center">
-  You should never expose `JAZZ_WORKER_SECRET` to the client.
-</Alert>
-
-<ContentByFramework framework="react">
-<FileName>../frontend/app/components/MyFestival.tsx</FileName>
-</ContentByFramework>
-<ContentByFramework framework="svelte">
-<FileName>../frontend/src/lib/components/MyFestival.svelte</FileName>
-</ContentByFramework>
-<TabbedCodeGroup default="react" savedPreferenceKey="framework">
-<TabbedCodeGroupItem icon={<ReactLogo />} label="React" value="react" className="[&_span]:[tab-size:2]" preferWrap>
+<FileName>app/layout.tsx</FileName>
+<CodeGroup>
 ```tsx
-"use client";
-import { experimental_useInboxSender, useAccount } from "jazz-tools/react";
-import { AnnounceFestivalMessage, JazzFestAccount } from "@/app/schema";
+import { JazzReactProvider } from "jazz-tools/react";
 
-export function MyFestival() {
-  const { me } = useAccount(JazzFestAccount, {
-    resolve: { root: { myFestival: true } },
-  });
-  const sendInboxMessage = experimental_useInboxSender(
-    process.env.NEXT_PUBLIC_WORKER_ID,
-  );
-  if (!me) return null; // not loaded yet
-
-  const announceFestival = async () => {
-    const myFestival = me.root.myFestival;
-    myFestival.$jazz.owner.makePublic();
-    const message = AnnounceFestivalMessage.create({
-      festival: myFestival,
-    });
-    await sendInboxMessage(message);
-  };
-
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <>
-      <button type="button" onClick={announceFestival}>
-        Announce Festival!
-      </button>
-      <ul>
-        {me?.root.myFestival.map(
-          (band) => band && <li key={band.$jazz.id}>{band.name}</li>,
-        )}
-      </ul>
-    </>
+    <html lang="en">
+      <body>
+        <JazzReactProvider
+          sync={{
+            peer: `wss://cloud.jazz.tools/?key=${process.env.NEXT_PUBLIC_JAZZ_API_KEY}`,
+          }}
+        >
+          {children}
+        </JazzReactProvider>
+      </body>
+    </html>
   );
 }
 ```
-</TabbedCodeGroupItem>
-<TabbedCodeGroupItem logo={<SvelteLogo />} label="Svelte" value="svelte" className="[&_span]:[tab-size:2]" preferWrap>
-```svelte
-<script lang="ts">
-  import { experimental_useInboxSender, AccountCoState } from "jazz-tools/svelte";
-  import { JazzFestAccount } from "$lib/schema";
-  import {
-		PUBLIC_WORKER_ID
-	} from '$env/static/public';
-  
-  const me = new AccountCoState(JazzFestAccount, { 
-    resolve: { root: { myFestival: true } } 
-  });
+</CodeGroup>
 
-  const sendInboxMessage = experimental_useInboxSender(
-    PUBLIC_WORKER_ID,
-  );
-  
-  async function announceFestival() {
-    if (!me) return null; // not loaded yet
-    me.current.root.myFestival.$jazz.owner.makePublic();
-    const message = AnnounceFestivalMessage.create({
-      festival: me.current.root.myFestival,
+### Creating your page component
+
+We're going to send a request to our server worker to announce a new band. Our worker will respond with a list of bands that we can display on our page.
+
+<FileName>app/page.tsx</FileName>
+<CodeGroup>
+```tsx
+"use client";
+import type { co } from "jazz-tools";
+import { useState } from "react";
+import { announceBand } from "@/app/announceBandSchema";
+import type { BandList } from "@/app/schema";
+
+export default function Home() {
+  const [bandName, setBandName] = useState("");
+  const [bandList, setBandList] = useState<co.loaded<typeof BandList>>();
+  const handleAnnounceBand = async () => {
+    const bandListResponse = await announceBand.send({
+      band: { name: bandName },
     });
-    await sendInboxMessage(message);
+    setBandName("");
+    if (bandListResponse.bandList) {
+      setBandList(bandListResponse.bandList);
+    }
   };
-</script>
-<button type="button" onclick={announceFestival}>
-  Announce Festival!
-</button>
-<ul>
-  {#each me.current?.root?.myFestival || [] as band}
-    <li>{band?.name}</li>
-  {/each}
-</ul>
 
-
-<ul>
-  {#each me.current?.root?.myFestival || [] as band}
-    <li>{band?.name}</li>
-  {/each}
-</ul>
+  return (
+    <div>
+      <input
+        type="text"
+        value={bandName}
+        onChange={(e) => setBandName(e.target.value)}
+      />
+      <button type="button" onClick={handleAnnounceBand}>
+        Announce Band
+      </button>
+      <div>
+        {bandList?.map(
+          (band) => band && <div key={band?.$jazz.id}>{band?.name}</div>,
+        )}
+      </div>
+    </div>
+  );
+}
 ```
-</TabbedCodeGroupItem>
-</TabbedCodeGroup>
+</CodeGroup>
+
+## Try it out!
+Your browser should now be showing you a page with an input field and a button. If you enter a band name and click the button, your server worker will receive the request and add the band to the list!
 
 ## Next steps
-- Learn more about [CoValues](/docs/react/schemas/covalues)
-- Learn how to edit data with [drafts](/docs/react/design-patterns/drafts)
-- Learn how to share and [collaborate on data](/docs/react/groups/intro)
+- Complete the [front-end quickstart](/docs/getting-started/quickstart) to learn more about how to use Jazz on the client
+- Learn more about [error handling](/docs/server-side/http-requests#error-handling)
+- Learn how to share and [collaborate on data](/docs/groups/intro) with complex permissions

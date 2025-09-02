@@ -91,7 +91,7 @@ export const apiKey = "you@example.com"; // or your API key
 ```
 </CodeGroup>
 
-## Define a Schema
+## Define your schema
 Jazz uses Zod for more simple data types (like strings, numbers, booleans), and its own schemas to create collaborative data structures known as CoValues.  CoValues are automatically persisted across your devices and the cloud and synced in real-time. Here we're defining a schema made up of both Zod types and CoValues. 
 
 Adding a `root` to the user's account gives us a container that can be used to keep a track of all the data a user might need to use the app. The migration runs when the user logs in, and ensures the account is properly set up before we try to use it.
@@ -391,5 +391,5 @@ You've begun to scratch the surface of what's possible with Jazz! Behind the sce
 ## Next steps
 - Learn how to [add authentication](/docs/authentication/overview) to your app so that you can log in to view your data wherever you are!
 - Learn more about [CoValues](/docs/schemas/covalues)
-- Learn how to edit data with [forms](/docs/design-patterns/forms)
 - Learn how to share and [collaborate on data](/docs/groups/intro)
+- Complete the [server-side quickstart](/docs/server-side/quickstart) to learn more about how to use Jazz on the server
