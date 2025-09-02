@@ -210,6 +210,7 @@
     "@types/react-dom": "19.1.0",
     "@vitest/browser": "^3.2.4",
     "msw": "^2.10.3",
+    "oauth2-mock-server": "^8.1.0",
     "playwright": "^1.50.1",
     "queueueue": "^4.1.2",
     "tsup": "8.5.0",
