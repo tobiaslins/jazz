@@ -115,13 +115,72 @@ async function createInboxMessage<
   return message;
 }
 
+class MessageQueue {
+  private queue: Array<{
+    txKey: TxKey;
+    messageId: CoID<InboxMessage<CoValue, any>>;
+  }> = [];
+  private processing = new Set<TxKey>();
+  private concurrencyLimit: number;
+  private activeCount = 0;
+
+  constructor(concurrencyLimit: number = 10) {
+    this.concurrencyLimit = concurrencyLimit;
+  }
+
+  enqueue(txKey: TxKey, messageId: CoID<InboxMessage<CoValue, any>>) {
+    this.queue.push({ txKey, messageId });
+    this.processNext();
+  }
+
+  private async processNext() {
+    if (this.activeCount >= this.concurrencyLimit || this.queue.length === 0) {
+      return;
+    }
+
+    const { txKey, messageId } = this.queue.shift()!;
+
+    if (this.processing.has(txKey)) {
+      this.processNext();
+      return;
+    }
+
+    this.processing.add(txKey);
+    this.activeCount++;
+
+    try {
+      await this.processMessage(txKey, messageId);
+    } finally {
+      this.processing.delete(txKey);
+      this.activeCount--;
+      this.processNext();
+    }
+  }
+
+  private async processMessage(
+    txKey: TxKey,
+    messageId: CoID<InboxMessage<CoValue, any>>,
+  ) {
+    // This will be implemented in the subscribe function
+    throw new Error("processMessage must be implemented by the caller");
+  }
+
+  setProcessMessageHandler(
+    handler: (
+      txKey: TxKey,
+      messageId: CoID<InboxMessage<CoValue, any>>,
+    ) => Promise<void>,
+  ) {
+    this.processMessage = handler;
+  }
+}
+
 export class Inbox {
   account: Account;
   messages: MessagesStream;
   processed: TxKeyStream;
   failed: FailedMessagesStream;
   root: InboxRoot;
-  processing = new Set<`${SessionID}/${number}`>();
 
   private constructor(
     account: Account,
@@ -143,10 +202,15 @@ export class Inbox {
       message: InstanceOfSchema<M>,
       senderAccountID: ID<Account>,
     ) => Promise<O | undefined | void>,
+    options?: { concurrencyLimit?: number },
   ) {
     const processed = new Set<`${SessionID}/${number}`>();
     const failed = new Map<`${SessionID}/${number}`, string[]>();
     const node = this.account.$jazz.localNode;
+
+    // Create queue instance inside subscribe function
+    const concurrencyLimit = options?.concurrencyLimit ?? 10;
+    const messageQueue = new MessageQueue(concurrencyLimit);
 
     const processedFeed = new IncreamentalFeed(this.processed);
 
@@ -162,6 +226,68 @@ export class Inbox {
     const { account } = this;
 
     const messagesFeed = new IncreamentalFeed(this.messages);
+
+    // Set up the message processing handler for the queue
+    messageQueue.setProcessMessageHandler(async (txKey, messageId) => {
+      try {
+        const message = await node.load(messageId);
+        if (message === "unavailable") {
+          throw new Error(`Inbox: message ${messageId} is unavailable`);
+        }
+
+        const value = await loadCoValue(
+          coValueClassFromCoValueClassOrSchema(Schema),
+          message.get("payload")!,
+          {
+            loadAs: account,
+          },
+        );
+
+        if (!value) {
+          throw new Error(
+            `Inbox: Unable to load the payload of message ${messageId}`,
+          );
+        }
+
+        const accountID = getAccountIDfromSessionID(
+          txKey.split("/")[0] as SessionID,
+        );
+        if (!accountID) {
+          throw new Error(`Inbox: Unknown account for message ${messageId}`);
+        }
+
+        const result = await callback(value as InstanceOfSchema<M>, accountID);
+
+        const inboxMessage = node
+          .expectCoValueLoaded(messageId)
+          .getCurrentContent() as RawCoMap;
+
+        if (result) {
+          inboxMessage.set("result", result.$jazz.id);
+        }
+
+        inboxMessage.set("processed", true);
+        this.processed.push(txKey);
+      } catch (error) {
+        console.error(error);
+        const errors = failed.get(txKey) ?? [];
+        const stringifiedError = String(error);
+        errors.push(stringifiedError);
+
+        this.failed.push({ errors, value: messageId });
+
+        try {
+          const inboxMessage = node
+            .expectCoValueLoaded(messageId)
+            .getCurrentContent() as RawCoMap;
+
+          inboxMessage.set("error", stringifiedError);
+          inboxMessage.set("processed", true);
+        } catch (error) {}
+
+        this.processed.push(txKey);
+      }
+    });
 
     const handleNewMessages = () => {
       for (const tx of messagesFeed.getNewItems()) {
@@ -183,74 +309,12 @@ export class Inbox {
 
         const txKey = `${tx.txID.sessionID}/${tx.txID.txIndex}` as const;
 
-        if (processed.has(txKey) || this.processing.has(txKey)) {
+        if (processed.has(txKey)) {
           continue;
         }
 
-        this.processing.add(txKey);
-
-        node
-          .load(id)
-          .then((message) => {
-            if (message === "unavailable") {
-              return Promise.reject(
-                new Error(`Inbox: message ${id} is unavailable`),
-              );
-            }
-
-            return loadCoValue(
-              coValueClassFromCoValueClassOrSchema(Schema),
-              message.get("payload")!,
-              {
-                loadAs: account,
-              },
-            );
-          })
-          .then((value) => {
-            if (!value) {
-              return Promise.reject(
-                new Error(`Inbox: Unable to load the payload of message ${id}`),
-              );
-            }
-
-            return callback(value as InstanceOfSchema<M>, accountID);
-          })
-          .then((result) => {
-            const inboxMessage = node
-              .expectCoValueLoaded(id)
-              .getCurrentContent() as RawCoMap;
-
-            if (result) {
-              inboxMessage.set("result", result.$jazz.id);
-            }
-
-            inboxMessage.set("processed", true);
-            this.processing.delete(txKey);
-            this.processed.push(txKey);
-          })
-          .catch((error) => {
-            this.processing.delete(txKey);
-            this.processed.push(txKey);
-
-            console.error(error);
-            const errors = failed.get(txKey) ?? [];
-
-            const stringifiedError = String(error);
-            errors.push(stringifiedError);
-
-            this.failed.push({ errors, value: id });
-
-            let inboxMessage: RawCoMap | undefined;
-
-            try {
-              inboxMessage = node
-                .expectCoValueLoaded(id)
-                .getCurrentContent() as RawCoMap;
-
-              inboxMessage.set("error", stringifiedError);
-              inboxMessage.set("processed", true);
-            } catch (error) {}
-          });
+        // Enqueue the message for processing
+        messageQueue.enqueue(txKey, id);
       }
     };
 

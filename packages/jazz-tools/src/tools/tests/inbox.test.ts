@@ -517,4 +517,132 @@ describe("Inbox", () => {
 
     expect(subscribeEmitted).toBe(false);
   });
+
+  describe("Concurrency control", () => {
+    it("should respect concurrency limit of 1", async () => {
+      const { clientAccount: sender, serverAccount: receiver } =
+        await setupTwoNodes();
+
+      const receiverInbox = await Inbox.load(receiver);
+      const inboxSender = await InboxSender.load(receiver.$jazz.id, sender);
+
+      const group = Group.create({ owner: sender });
+
+      const processingOrder: string[] = [];
+
+      const Message = co.map({
+        text: z.string(),
+        value: z.number(),
+      });
+
+      // Create messages that take time to process
+      const messages = Array.from({ length: 5 }, (_, i) =>
+        Message.create({ text: `Message ${i}`, value: i }, group),
+      );
+
+      // Subscribe with concurrency limit of 1
+      const unsubscribe = receiverInbox.subscribe(
+        Message,
+        async (message) => {
+          const messageText = message.text;
+          processingOrder.push(`start-${messageText}`);
+
+          // Simulate processing time
+          await new Promise((resolve) =>
+            setTimeout(resolve, 20 - message.value * 10),
+          );
+
+          processingOrder.push(`end-${messageText}`);
+        },
+        { concurrencyLimit: 1 },
+      );
+
+      // Send all messages at once
+      messages.forEach((message) => {
+        inboxSender.sendMessage(message);
+      });
+
+      // Wait for all messages to be processed
+      await waitFor(() => processingOrder.length === 10); // 5 start + 5 end
+
+      expect(processingOrder).toMatchInlineSnapshot(`
+        [
+          "start-Message 0",
+          "end-Message 0",
+          "start-Message 1",
+          "end-Message 1",
+          "start-Message 2",
+          "end-Message 2",
+          "start-Message 3",
+          "end-Message 3",
+          "start-Message 4",
+          "end-Message 4",
+        ]
+      `);
+      unsubscribe();
+    });
+
+    it("should allow concurrent processing with higher concurrency limit", async () => {
+      const { clientAccount: sender, serverAccount: receiver } =
+        await setupTwoNodes();
+
+      const receiverInbox = await Inbox.load(receiver);
+      const inboxSender = await InboxSender.load(receiver.$jazz.id, sender);
+
+      const group = Group.create({ owner: sender });
+
+      // Track processing order and timing
+      const processingOrder: string[] = [];
+
+      const Message = co.map({
+        text: z.string(),
+        value: z.number(),
+      });
+
+      // Create messages that take time to process
+      const messages = Array.from({ length: 5 }, (_, i) =>
+        Message.create({ text: `Message ${i}`, value: i }, group),
+      );
+
+      // Subscribe with concurrency limit of 1
+      const unsubscribe = receiverInbox.subscribe(
+        Message,
+        async (message) => {
+          const messageText = message.text;
+          processingOrder.push(`start-${messageText}`);
+
+          // Simulate processing time
+          await new Promise((resolve) =>
+            setTimeout(resolve, 20 - message.value * 10),
+          );
+
+          processingOrder.push(`end-${messageText}`);
+        },
+        { concurrencyLimit: 3 },
+      );
+
+      // Send all messages at once
+      messages.forEach((message) => {
+        inboxSender.sendMessage(message);
+      });
+
+      await waitFor(() => processingOrder.length === 10);
+
+      expect(processingOrder).toMatchInlineSnapshot(`
+        [
+          "start-Message 0",
+          "start-Message 1",
+          "start-Message 2",
+          "end-Message 2",
+          "start-Message 3",
+          "end-Message 3",
+          "start-Message 4",
+          "end-Message 4",
+          "end-Message 1",
+          "end-Message 0",
+        ]
+      `);
+      unsubscribe();
+    });
+  });
 });
