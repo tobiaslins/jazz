@@ -281,14 +281,16 @@ describe("CoMap", async () => {
       expect(person.friend?.age).toEqual(21);
     });
 
-    test("JSON.stringify should not include internal properties", () => {
+    test("JSON.stringify should include user-defined properties + $jazz.id", () => {
       const Person = co.map({
         name: z.string(),
       });
 
       const person = Person.create({ name: "John" });
 
-      expect(JSON.stringify(person)).toEqual('{"name":"John"}');
+      expect(JSON.stringify(person)).toEqual(
+        `{"$jazz":{"id":"${person.$jazz.id}"},"name":"John"}`,
+      );
     });
 
     test("toJSON should not fail when there is a key in the raw value not represented in the schema", () => {
@@ -302,6 +304,7 @@ describe("CoMap", async () => {
       person.$jazz.raw.set("extra", "extra");
 
       expect(person.toJSON()).toEqual({
+        $jazz: { id: person.$jazz.id },
         name: "John",
         age: 20,
       });
@@ -323,9 +326,11 @@ describe("CoMap", async () => {
       });
 
       expect(person.toJSON()).toEqual({
+        $jazz: { id: person.$jazz.id },
         name: "John",
         age: 20,
         friend: {
+          $jazz: { id: person.friend?.$jazz.id },
           name: "Jane",
           age: 21,
         },
@@ -349,6 +354,7 @@ describe("CoMap", async () => {
       person.$jazz.set("friend", person);
 
       expect(person.toJSON()).toEqual({
+        $jazz: { id: person.$jazz.id },
         name: "John",
         age: 20,
         friend: {
@@ -373,6 +379,7 @@ describe("CoMap", async () => {
       });
 
       expect(john.toJSON()).toMatchObject({
+        $jazz: { id: john.$jazz.id },
         name: "John",
         age: 20,
         birthday: birthday.toISOString(),
@@ -407,6 +414,7 @@ describe("CoMap", async () => {
       const john = Person.create({ name: "John", age: 30, x: 1 });
 
       expect(john.toJSON()).toEqual({
+        $jazz: { id: john.$jazz.id },
         name: "John",
         age: 30,
       });
@@ -510,6 +518,7 @@ describe("CoMap", async () => {
       expect(john.age).toEqual(undefined);
 
       expect(john.toJSON()).toEqual({
+        $jazz: { id: john.$jazz.id },
         name: "John",
       });
       // The CoMap proxy hides the age property from the `in` operator
@@ -541,6 +550,7 @@ describe("CoMap", async () => {
       expect(john.age).not.toBeDefined();
       expect(john.pet).not.toBeDefined();
       expect(john.toJSON()).toEqual({
+        $jazz: { id: john.$jazz.id },
         name: "John",
       });
       expect("age" in john).toEqual(false);

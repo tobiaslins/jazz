@@ -228,6 +228,7 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
    * @category
    */
   toJSON(): {
+    $jazz: { id: string };
     [key: string]: unknown;
     in: { [key: string]: unknown };
   } {
@@ -240,6 +241,7 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
           : (v: unknown) => v && (v as CoValue).$jazz.id;
 
     return {
+      $jazz: { id: this.$jazz.id },
       ...Object.fromEntries(
         Object.entries(this).map(([account, entry]) => [
           account,
@@ -257,6 +259,7 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
 
   /** @internal */
   [inspect](): {
+    $jazz: { id: string };
     [key: string]: unknown;
     in: { [key: string]: unknown };
   } {
@@ -928,6 +931,7 @@ export class FileStream extends CoValueBase implements CoValue {
    * @category Content
    */
   toJSON(): {
+    $jazz: { id: string };
     mimeType?: string;
     totalSizeBytes?: number;
     fileName?: string;
@@ -935,6 +939,7 @@ export class FileStream extends CoValueBase implements CoValue {
     finished?: boolean;
   } {
     return {
+      $jazz: { id: this.$jazz.id },
       ...this.getChunks(),
     };
   }

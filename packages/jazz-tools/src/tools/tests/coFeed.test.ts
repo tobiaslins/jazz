@@ -105,6 +105,15 @@ describe("Simple CoFeed operations", async () => {
     expect(stream.perSession[me.$jazz.sessionID]?.value).toEqual("milk");
   });
 
+  test("toJSON", () => {
+    expect(stream.toJSON()).toEqual({
+      $jazz: { id: stream.$jazz.id },
+      in: {
+        [me.$jazz.sessionID]: stream.perSession[me.$jazz.sessionID]?.value,
+      },
+    });
+  });
+
   describe("Mutation", () => {
     test("push element into CoFeed of non-collaborative values", () => {
       stream.$jazz.push("bread");
@@ -302,6 +311,22 @@ describe("Simple FileStream operations", async () => {
   describe("FileStream", () => {
     test("Construction", () => {
       expect(stream.getChunks()).toBe(undefined);
+    });
+
+    test("toJSON", () => {
+      stream.start({ mimeType: "text/plain" });
+      stream.push(new Uint8Array([1, 2, 3]));
+      stream.push(new Uint8Array([4, 5, 6]));
+      stream.end();
+
+      expect(stream.toJSON()).toEqual({
+        $jazz: { id: stream.$jazz.id },
+        mimeType: "text/plain",
+        chunks: [new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])],
+        filename: undefined,
+        finished: true,
+        totalSizeBytes: undefined,
+      });
     });
 
     test("Mutation", () => {

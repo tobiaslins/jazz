@@ -185,7 +185,9 @@ export class CoMap extends CoValueBase implements CoValue {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   toJSON(_key?: string, processedValues?: ID<CoValue>[]): any {
-    const result = {} as Record<string, any>;
+    const result = {
+      $jazz: { id: this.$jazz.id },
+    } as Record<string, any>;
 
     for (const key of this.$jazz.raw.keys()) {
       const tKey = key as CoKeys<this>;
