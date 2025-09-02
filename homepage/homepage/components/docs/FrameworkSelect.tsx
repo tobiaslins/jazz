@@ -84,7 +84,10 @@ export function FrameworkSelect({
     setSelectedFramework(newFramework);
     onSelect && onSelect(newFramework);
     localStorage.setItem("_tcgpref_framework", newFramework);
-    routerPush && router.push(path.replace(defaultFramework, newFramework));
+    if (routerPush) {
+      const newPath = path.replace(defaultFramework, newFramework);
+      router.replace(newPath, { scroll: false });
+    }
   };
 
   return (
