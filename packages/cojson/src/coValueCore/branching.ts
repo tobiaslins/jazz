@@ -228,47 +228,21 @@ export function mergeBranch(branch: CoValueCore): CoValueCore {
     const session = target.verified.sessions.get(currentSessionID);
     let txIdx = session ? session.transactions.length : 0;
 
+    // Create a mapping from the branch transactions to the target transactions
     for (const { txID } of branchValidTransactions) {
       mapping[`${txID.sessionID}:${txID.txIndex}`] = txIdx;
       txIdx++;
     }
 
     for (const { tx, changes } of branchValidTransactions) {
-      const mappedChanges = changes.map((changeUntyped) => {
-        const change = changeUntyped as ListOpPayload<JsonValue>;
-        if (change.op === "app") {
-          if (change.after === "start") {
-            return change;
-          }
-
-          return {
-            ...change,
-            after: convertOpID(change.after, currentSessionID, mapping),
-          };
-        }
-
-        if (change.op === "del") {
-          return {
-            ...change,
-            insertion: convertOpID(change.insertion, currentSessionID, mapping),
-          };
-        }
-
-        if (change.op === "pre") {
-          if (change.before === "end") {
-            return change;
-          }
-
-          return {
-            ...change,
-            before: convertOpID(change.before, currentSessionID, mapping),
-          };
-        }
-
-        return change;
-      });
-
-      target.makeTransaction(mappedChanges, tx.privacy);
+      target.makeTransaction(
+        mapCoListChangesToTarget(
+          changes as ListOpPayload<JsonValue>[],
+          currentSessionID,
+          mapping,
+        ),
+        tx.privacy,
+      );
     }
   } else {
     for (const { tx, changes } of branchValidTransactions) {
@@ -279,24 +253,68 @@ export function mergeBranch(branch: CoValueCore): CoValueCore {
   return target;
 }
 
+/**
+ * Given a list of changes, maps the opIDs to the target transactions
+ */
+function mapCoListChangesToTarget(
+  changes: ListOpPayload<JsonValue>[],
+  currentSessionID: SessionID,
+  mapping: Record<`${SessionID}:${number}`, number>,
+) {
+  return changes.map((change) => {
+    if (change.op === "app") {
+      if (change.after === "start") {
+        return change;
+      }
+
+      return {
+        ...change,
+        after: convertOpID(change.after, currentSessionID, mapping),
+      };
+    }
+
+    if (change.op === "del") {
+      return {
+        ...change,
+        insertion: convertOpID(change.insertion, currentSessionID, mapping),
+      };
+    }
+
+    if (change.op === "pre") {
+      if (change.before === "end") {
+        return change;
+      }
+
+      return {
+        ...change,
+        before: convertOpID(change.before, currentSessionID, mapping),
+      };
+    }
+
+    return change;
+  });
+}
+
 function convertOpID(
   opID: OpID,
   sessionID: SessionID,
   mapping: Record<`${SessionID}:${number}`, number>,
 ) {
+  // If the opID comes from the source branch, we don't need to map it
   if (!opID.branch) {
     return opID;
   }
 
   const mappedIndex = mapping[`${opID.sessionID}:${opID.txIndex}`];
 
+  // If the opID doesn't exist in the mapping, we don't need to map it
   if (mappedIndex === undefined) {
     return opID;
   }
 
   return {
     sessionID: sessionID,
-    txIndex: mapping[`${opID.sessionID}:${opID.txIndex}`],
+    txIndex: mappedIndex,
     changeIdx: opID.changeIdx,
   };
 }
