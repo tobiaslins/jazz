@@ -158,7 +158,12 @@ export const jazzPlugin = (): BetterAuthPlugin => {
             const parsed = JSON.parse(data.value);
 
             if (parsed && "jazzAuth" in parsed) {
-              ctx.context.jazzAuth = parsed.jazzAuth;
+              return {
+                context: {
+                  ...ctx,
+                  jazzAuth: parsed.jazzAuth,
+                },
+              };
             } else {
               throw new APIError(404, {
                 message: "JazzAuth not found in verification value",
