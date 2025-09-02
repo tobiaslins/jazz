@@ -140,7 +140,7 @@ describe("CoMap.Record", async () => {
       expect("age" in person).toEqual(false);
 
       expect(person.toJSON()).toEqual({
-        "$jazz.id": person.$jazz.id,
+        $jazz: { id: person.$jazz.id },
         name: "John",
       });
     });

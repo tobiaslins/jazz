@@ -107,7 +107,7 @@ describe("Simple CoFeed operations", async () => {
 
   test("toJSON", () => {
     expect(stream.toJSON()).toEqual({
-      "$jazz.id": stream.$jazz.id,
+      $jazz: { id: stream.$jazz.id },
       in: {
         [me.$jazz.sessionID]: stream.perSession[me.$jazz.sessionID]?.value,
       },
@@ -320,7 +320,7 @@ describe("Simple FileStream operations", async () => {
       stream.end();
 
       expect(stream.toJSON()).toEqual({
-        "$jazz.id": stream.$jazz.id,
+        $jazz: { id: stream.$jazz.id },
         mimeType: "text/plain",
         chunks: [new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])],
         filename: undefined,

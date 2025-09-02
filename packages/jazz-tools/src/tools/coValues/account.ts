@@ -275,7 +275,7 @@ export class Account extends CoValueBase implements CoValue {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   toJSON(): object | any[] {
     return {
-      "$jazz.id": this.$jazz.id,
+      $jazz: { id: this.$jazz.id },
     };
   }
 

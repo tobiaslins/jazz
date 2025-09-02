@@ -401,7 +401,7 @@ describe("account.toJSON", () => {
     });
 
     expect(account.toJSON()).toEqual({
-      "$jazz.id": account.$jazz.id,
+      $jazz: { id: account.$jazz.id },
     });
   });
 });

@@ -243,6 +243,26 @@ describe("Simple CoList operations", async () => {
         list.$jazz.push("cheese");
         expect(list[3]?.toString()).toBe("cheese");
       });
+
+      test("cannot push a shallowly-loaded CoValue into a deeply-loaded CoList", async () => {
+        const Task = co.map({ title: co.plainText() });
+        const TaskList = co.list(Task);
+
+        const task = Task.create({ title: "Do the dishes" });
+        const taskList = TaskList.create([]);
+
+        const loadedTask = await Task.load(task.$jazz.id);
+        const loadedTaskList = await TaskList.load(taskList.$jazz.id, {
+          resolve: { $each: { title: true } },
+        });
+
+        assert(loadedTask);
+        assert(loadedTaskList);
+        // @ts-expect-error loadedTask may not have its `title` loaded
+        loadedTaskList.$jazz.push(loadedTask);
+        // In this case the title is loaded, so the assertion passes
+        expect(loadedTaskList.at(-1)?.title.toString()).toBe("Do the dishes");
+      });
     });
 
     describe("unshift", () => {
