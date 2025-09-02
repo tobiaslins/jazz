@@ -1,5 +1,12 @@
 # cojson
 
+## 0.18.4
+
+### Patch Changes
+
+- Updated dependencies [e5283c2]
+  - cojson-core-wasm@0.18.4
+
 ## 0.18.3
 
 ### Patch Changes

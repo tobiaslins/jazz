@@ -1,5 +1,11 @@
 # cojson-core-wasm
 
+## 0.18.4
+
+### Patch Changes
+
+- e5283c2: Directly load the WASM module data to avoid issues with envs where Response is overwritten
+
 ## 0.18.3
 
 ## 0.18.2

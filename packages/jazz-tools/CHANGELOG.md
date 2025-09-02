@@ -1,5 +1,15 @@
 # jazz-tools
 
+## 0.18.4
+
+### Patch Changes
+
+- 84313aa: Add `$jazz.id` to `toJSON` in Account, CoMap, CoFeed & FileStream
+- 89aab7b: Deprecate `co.map().catchall`. Use a `co.record` nested inside a `co.map` if you need to store key-value properties.
+  - cojson@0.18.4
+  - cojson-storage-indexeddb@0.18.4
+  - cojson-transport-ws@0.18.4
+
 ## 0.18.3
 
 ### Patch Changes
