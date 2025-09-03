@@ -46,15 +46,15 @@ export const jazzPlugin = (): BetterAuthPlugin => {
                   // If the user is created without a jazzAuth, it will throw an error.
                   if (!contextContainsJazzAuth(context)) {
                     throw new APIError(422, {
-                      message: "JazzAuth is required",
+                      message: "JazzAuth is required on user creation",
                     });
                   }
                   // Decorate the user with the jazz's credentials.
                   return {
                     data: {
-                      accountID: context?.jazzAuth?.accountID,
+                      accountID: context.jazzAuth.accountID,
                       encryptedCredentials:
-                        context?.jazzAuth?.encryptedCredentials,
+                        context.jazzAuth.encryptedCredentials,
                     },
                   };
                 },
@@ -131,7 +131,10 @@ export const jazzPlugin = (): BetterAuthPlugin => {
          */
         {
           matcher: (context) => {
-            return context.path.startsWith("/callback");
+            return (
+              context.path.startsWith("/callback") ||
+              context.path.startsWith("/oauth2/callback")
+            );
           },
           handler: createAuthMiddleware(async (ctx) => {
             const state = ctx.query?.state || ctx.body?.state;
@@ -158,7 +161,12 @@ export const jazzPlugin = (): BetterAuthPlugin => {
             const parsed = JSON.parse(data.value);
 
             if (parsed && "jazzAuth" in parsed) {
-              ctx.context.jazzAuth = parsed.jazzAuth;
+              return {
+                context: {
+                  ...ctx,
+                  jazzAuth: parsed.jazzAuth,
+                },
+              };
             } else {
               throw new APIError(404, {
                 message: "JazzAuth not found in verification value",
