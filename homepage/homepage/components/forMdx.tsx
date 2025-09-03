@@ -10,6 +10,7 @@ import { FileDownloadLink as FileDownloadLinkClient } from "./FileDownloadLink";
 import { Framework as FrameworkClient } from "./docs/Framework";
 import { IssueTrackerPreview as IssueTrackerPreviewClient } from "./docs/IssueTrackerPreview";
 import { FileName as FileNameClient } from "./docs/FileName";
+import { StuckCTA as StuckCTAClient } from "./docs/StuckCTA";
 
 export function CodeGroup(props: { children: React.ReactNode }) {
   return <CodeGroupClient {...props}></CodeGroupClient>;
@@ -44,12 +45,16 @@ export function FileDownloadLink(
   return <FileDownloadLinkClient {...props} />;
 }
 
+export function Framework() {
+  return <FrameworkClient />;
+}
+
 export function FileName(
   props: { children: React.ReactNode },
 ) {
   return <FileNameClient {...props} />;
 }
 
-export function Framework() {
-  return <FrameworkClient />;
+export function StuckCTA() {
+  return <StuckCTAClient />;
 }
