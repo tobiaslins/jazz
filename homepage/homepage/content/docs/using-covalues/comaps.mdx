@@ -28,6 +28,7 @@ const Project = co.map({
   coordinator: co.optional(Member),
 });
 export type Project = co.loaded<typeof Project>;
+export type ProjectInitShape = co.input<typeof Project>; // type accepted by `Project.create`
 ```
 </CodeGroup>
 

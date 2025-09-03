@@ -6,7 +6,6 @@ import {
   CoreCoMapSchema,
   CoreCoRecordSchema,
   CorePlainTextSchema,
-  PartialOnUndefined,
   Simplify,
 } from "../../../internal.js";
 import { CoreCoOptionalSchema } from "../schemaTypes/CoOptionalSchema.js";
@@ -76,3 +75,11 @@ export type CoListSchemaInit<T extends AnyZodOrCoValueSchema> = Simplify<
 export type CoFeedSchemaInit<T extends AnyZodOrCoValueSchema> = Simplify<
   ReadonlyArray<CoFieldSchemaInit<T>>
 >;
+
+/**
+ * The convenience type for extracting the init type of a CoValue schema.
+ */
+export type CoInput<S extends CoValueClass | AnyZodOrCoValueSchema> =
+  S extends CoreCoValueSchema
+    ? Exclude<CoFieldSchemaInit<S>, Loaded<S>>
+    : CoFieldSchemaInit<S>;

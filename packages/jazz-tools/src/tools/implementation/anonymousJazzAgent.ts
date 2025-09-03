@@ -1,5 +1,5 @@
 import { LocalNode } from "cojson";
-import { TypeSym } from "./symbols";
+import { TypeSym } from "./symbols.js";
 
 export class AnonymousJazzAgent {
   [TypeSym] = "Anonymous" as const;
