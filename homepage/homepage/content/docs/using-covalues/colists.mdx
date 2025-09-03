@@ -27,6 +27,7 @@ export type ListOfResources = co.loaded<typeof ListOfResources>;
 
 const ListOfTasks = co.list(Task);
 export type ListOfTasks = co.loaded<typeof ListOfTasks>;
+export type ListOfTasksInitShape = co.init<typeof ListOfTasks>; // type accepted by `ListOfTasks.create`
 ```
 </CodeGroup>
 
