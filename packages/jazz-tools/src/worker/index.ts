@@ -107,7 +107,7 @@ export async function startWorker<
   };
 
   return {
-    worker: context.account as InstanceOfSchema<S>,
+    worker: context.account as Loaded<S>,
     experimental: {
       inbox: inboxPublicApi,
     },
