@@ -11,7 +11,7 @@ import {
 } from "@garden-co/design-system/src/components/organisms/Dropdown";
 import clsx from "clsx";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import { TAB_CHANGE_EVENT } from "@garden-co/design-system/src/components/molecules/TabbedCodeGroup";
 
@@ -40,6 +40,11 @@ export function FrameworkSelect({
   const [initialized, setInitialized] = useState(false);
 
   const path = usePathname();
+  const pathRef = useRef(path);
+  
+  useEffect(() => {
+    pathRef.current = path;
+  }, [path]);
 
   useEffect(() => {
     if (!initialized) {
@@ -50,7 +55,6 @@ export function FrameworkSelect({
 
   const handleFrameworkChange = (event: CustomEvent) => {
       if (event.detail.key === 'framework') {
-        const newTab = event.detail.value;
         selectFramework(event.detail.value);
       }
     };
@@ -85,7 +89,8 @@ export function FrameworkSelect({
     onSelect && onSelect(newFramework);
     localStorage.setItem("_tcgpref_framework", newFramework);
     if (routerPush) {
-      const newPath = path.replace(defaultFramework, newFramework);
+      const currentPath = pathRef.current;
+      const newPath = currentPath.replace(selectedFramework, newFramework);
       router.replace(newPath, { scroll: false });
     }
   };
