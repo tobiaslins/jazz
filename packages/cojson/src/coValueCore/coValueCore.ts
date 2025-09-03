@@ -717,6 +717,8 @@ export class CoValueCore {
       return;
     }
 
+    const isBranch = this.isBranch();
+
     for (const [sessionID, sessionLog] of this.verified.sessions.entries()) {
       const count = this.verifiedTransactionsKnownSessions[sessionID] ?? 0;
 
@@ -725,12 +727,20 @@ export class CoValueCore {
           return;
         }
 
+        const txID = isBranch
+          ? {
+              sessionID,
+              txIndex,
+              branch: this.id,
+            }
+          : {
+              sessionID,
+              txIndex,
+            };
+
         this.verifiedTransactions.push({
           author: accountOrAgentIDfromSessionID(sessionID),
-          txID: {
-            sessionID,
-            txIndex,
-          },
+          txID,
           madeAt: tx.madeAt,
           isValidated: false,
           isValid: false,
@@ -859,21 +869,7 @@ export class CoValueCore {
         continue;
       }
 
-      // Are we in a branch?
-      if (source) {
-        matchingTransactions.push({
-          txID: {
-            sessionID: txID.sessionID,
-            txIndex: txID.txIndex,
-            branch: this.id,
-          },
-          madeAt: transaction.madeAt,
-          changes: transaction.changes,
-          tx: transaction.tx,
-        });
-      } else {
-        matchingTransactions.push(transaction);
-      }
+      matchingTransactions.push(transaction);
     }
 
     // If this is a branch, we load the valid transactions from the source
@@ -910,6 +906,10 @@ export class CoValueCore {
 
   getCurrentBranchSourceId() {
     return this.verified?.header.meta?.source as RawCoID | undefined;
+  }
+
+  isBranch() {
+    return Boolean(this.getCurrentBranchSourceId());
   }
 
   getValidSortedTransactions(options?: {
