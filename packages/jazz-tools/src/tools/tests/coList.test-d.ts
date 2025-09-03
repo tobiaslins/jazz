@@ -19,7 +19,7 @@ describe("CoList", () => {
       matches(list);
     });
 
-    test("co.init returns the type for the init payload", () => {
+    test("co.input returns the type for the init payload", () => {
       const ListSchema = co.list(
         co.map({
           name: z.string(),
@@ -31,7 +31,7 @@ describe("CoList", () => {
         }),
       );
 
-      const init: co.init<typeof ListSchema> = [];
+      const init: co.input<typeof ListSchema> = [];
 
       ListSchema.create(init);
     });

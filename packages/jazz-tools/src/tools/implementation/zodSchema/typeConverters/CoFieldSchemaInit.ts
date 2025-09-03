@@ -79,7 +79,7 @@ export type CoFeedSchemaInit<T extends AnyZodOrCoValueSchema> = Simplify<
 /**
  * The convenience type for extracting the init type of a CoValue schema.
  */
-export type CoInit<S extends CoValueClass | AnyZodOrCoValueSchema> =
+export type CoInput<S extends CoValueClass | AnyZodOrCoValueSchema> =
   S extends CoreCoValueSchema
     ? Exclude<CoFieldSchemaInit<S>, Loaded<S>>
     : CoFieldSchemaInit<S>;

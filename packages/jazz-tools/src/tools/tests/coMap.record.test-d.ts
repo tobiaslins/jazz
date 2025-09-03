@@ -24,7 +24,7 @@ describe("CoMap.Record", () => {
       matches(person);
     });
 
-    test("co.init returns the type for the init payload", () => {
+    test("co.input returns the type for the init payload", () => {
       const Person = co.record(
         z.string(),
         co.map({
@@ -37,7 +37,7 @@ describe("CoMap.Record", () => {
         }),
       );
 
-      const init: co.init<typeof Person> = {};
+      const init: co.input<typeof Person> = {};
 
       Person.create(init);
     });

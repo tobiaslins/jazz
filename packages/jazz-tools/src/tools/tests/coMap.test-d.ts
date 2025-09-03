@@ -45,7 +45,7 @@ describe("CoMap", async () => {
       matches(john);
     });
 
-    test("co.init returns the type for the init payload", () => {
+    test("co.input returns the type for the init payload", () => {
       const Person = co.map({
         name: z.string(),
         age: z.number(),
@@ -55,7 +55,7 @@ describe("CoMap", async () => {
         }),
       });
 
-      const init = {} as co.init<typeof Person>;
+      const init = {} as co.input<typeof Person>;
 
       Person.create(init);
     });
