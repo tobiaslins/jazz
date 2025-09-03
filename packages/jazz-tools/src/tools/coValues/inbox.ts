@@ -6,7 +6,7 @@ import {
   RawCoMap,
   SessionID,
 } from "cojson";
-import { CoStreamItem, RawCoStream } from "cojson";
+import { type AvailableCoValueCore, type RawCoStream } from "cojson";
 import {
   type Account,
   CoValue,
@@ -63,21 +63,20 @@ export function createInboxRoot(account: Account) {
   };
 }
 
-class IncreamentalFeed<C extends RawCoStream> {
-  feed: C;
-
-  constructor(feed: C) {
-    this.feed = feed;
-  }
+/**
+ * An abstraction on top of CoStream to get the new items in a performant way.
+ */
+class IncrementalFeed {
+  constructor(private feed: AvailableCoValueCore) {}
 
   private sessions = {};
   getNewItems() {
-    const items = this.feed.core.getValidTransactions({
+    const items = this.feed.getValidTransactions({
       ignorePrivateTransactions: false,
       from: this.sessions,
     });
 
-    this.sessions = this.feed.core.knownState().sessions;
+    this.sessions = this.feed.knownState().sessions;
 
     return items;
   }
@@ -124,7 +123,18 @@ class MessageQueue {
   private concurrencyLimit: number;
   private activeCount = 0;
 
-  constructor(concurrencyLimit: number = 10) {
+  constructor(
+    concurrencyLimit: number = 10,
+    private processMessage: (
+      txKey: TxKey,
+      messageId: CoID<InboxMessage<CoValue, any>>,
+    ) => Promise<void>,
+    private handleError: (
+      txKey: TxKey,
+      messageId: CoID<InboxMessage<CoValue, any>>,
+      error: Error,
+    ) => void,
+  ) {
     this.concurrencyLimit = concurrencyLimit;
   }
 
@@ -158,41 +168,6 @@ class MessageQueue {
       this.processNext();
     }
   }
-
-  private async processMessage(
-    txKey: TxKey,
-    messageId: CoID<InboxMessage<CoValue, any>>,
-  ) {
-    // This will be implemented in the subscribe function
-    throw new Error("processMessage must be implemented by the caller");
-  }
-
-  setProcessMessageHandler(
-    handler: (
-      txKey: TxKey,
-      messageId: CoID<InboxMessage<CoValue, any>>,
-    ) => Promise<void>,
-  ) {
-    this.processMessage = handler;
-  }
-
-  private handleError(
-    txKey: TxKey,
-    messageId: CoID<InboxMessage<CoValue, any>>,
-    error: Error,
-  ) {
-    throw new Error("handleError must be implemented by the caller");
-  }
-
-  setErrorHandler(
-    handler: (
-      txKey: TxKey,
-      messageId: CoID<InboxMessage<CoValue, any>>,
-      error: Error,
-    ) => void,
-  ) {
-    this.handleError = handler;
-  }
 }
 
 export class Inbox {
@@ -225,14 +200,12 @@ export class Inbox {
     options?: { concurrencyLimit?: number },
   ) {
     const processed = new Set<`${SessionID}/${number}`>();
-    const failed = new Map<`${SessionID}/${number}`, string[]>();
     const node = this.account.$jazz.localNode;
 
     // Create queue instance inside subscribe function
     const concurrencyLimit = options?.concurrencyLimit ?? 10;
-    const messageQueue = new MessageQueue(concurrencyLimit);
 
-    const processedFeed = new IncreamentalFeed(this.processed);
+    const processedFeed = new IncrementalFeed(this.processed.core);
 
     // Track the already processed messages, triggered immediately so we know the messages processed in the previous sessions
     this.processed.subscribe(() => {
@@ -243,10 +216,13 @@ export class Inbox {
 
     const { account } = this;
 
-    const messagesFeed = new IncreamentalFeed(this.messages);
+    const messagesFeed = new IncrementalFeed(this.messages.core);
 
     // Set up the message processing handler for the queue
-    messageQueue.setProcessMessageHandler(async (txKey, messageId) => {
+    const processMessage = async (
+      txKey: TxKey,
+      messageId: CoID<InboxMessage<CoValue, any>>,
+    ) => {
       const message = await node.load(messageId);
       if (message === "unavailable") {
         throw new Error(`Inbox: message ${messageId} is unavailable`);
@@ -285,17 +261,19 @@ export class Inbox {
 
       inboxMessage.set("processed", true);
       this.processed.push(txKey);
-    });
+    };
 
-    messageQueue.setErrorHandler((txKey, messageId, error) => {
+    const handleError = (
+      txKey: TxKey,
+      messageId: CoID<InboxMessage<CoValue, any>>,
+      error: Error,
+    ) => {
       console.error(error);
 
-      const errors = failed.get(txKey) ?? [];
       const stringifiedError = String(error);
-      errors.push(stringifiedError);
 
       this.processed.push(txKey);
-      this.failed.push({ errors, value: messageId });
+      this.failed.push({ errors: [stringifiedError], value: messageId });
 
       try {
         const inboxMessage = node
@@ -305,7 +283,13 @@ export class Inbox {
         inboxMessage.set("error", stringifiedError);
         inboxMessage.set("processed", true);
       } catch (error) {}
-    });
+    };
+
+    const messageQueue = new MessageQueue(
+      concurrencyLimit,
+      processMessage,
+      handleError,
+    );
 
     const handleNewMessages = () => {
       for (const tx of messagesFeed.getNewItems()) {
@@ -376,7 +360,7 @@ export class Inbox {
       throw new Error("Inbox not found");
     }
 
-    await waitForFullStreaming(processed.core);
+    await processed.core.waitForFullStreaming();
 
     return new Inbox(account, root, messages, processed, failed);
   }
@@ -505,15 +489,4 @@ function getAccountIDfromSessionID(sessionID: SessionID) {
   }
 
   return;
-}
-
-function waitForFullStreaming(coValue: CoValueCore) {
-  return new Promise<void>((resolve) => {
-    coValue.subscribe((_: CoValueCore, unsubscribe) => {
-      if (coValue.isAvailable() && !coValue.verified.isStreaming()) {
-        resolve();
-        unsubscribe();
-      }
-    });
-  });
 }

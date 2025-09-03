@@ -433,7 +433,6 @@ describe("Inbox", () => {
 
     const subscribeEmitted = await new Promise((resolve) => {
       const unsubscribe = reloadedInbox.subscribe(Message, async (message) => {
-        console.log("Got a message", message.text);
         // Got a message
         resolve(true);
       });
@@ -505,7 +504,6 @@ describe("Inbox", () => {
 
     const subscribeEmitted = await new Promise((resolve) => {
       const unsubscribe = reloadedInbox.subscribe(Message, async (message) => {
-        console.log("Got a message", message.text);
         // Got a message
         resolve(true);
       });
