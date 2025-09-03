@@ -210,9 +210,17 @@ pnpm run dev
 </TabbedCodeGroupItem>
 </TabbedCodeGroup>
 
-If everything's going according to plan, you should see a login prompt! 
+<ContentByFramework framework="react">
+If everything's going according to plan, you should see the default Next.js welcome page! 
+</ContentByFramework>
+<ContentByFramework framework="svelte">
+If everything's going according to plan, you should see the default SvelteKit welcome page!
+</ContentByFramework>
 
-### No log in prompt? 
+### Not loading? 
+
+If you're not seeing the welcome page:
+
 <ContentByFramework framework="react">
 - Check you wrapped your app with the Jazz Provider in `app/layout.tsx`
 - Check your schema is properly defined in `app/schema.ts`
