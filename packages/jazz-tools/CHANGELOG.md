@@ -1,5 +1,17 @@
 # jazz-tools
 
+## 0.18.5
+
+### Patch Changes
+
+- ff35d8c: fix: accountID property presence on typescript for Better Auth user's shape
+- f23a7a7: fix: Jazz credentials were not properly retrieved during SSO flows in Better Auth
+- f5d8424: Fallback to random session when running Jazz in a browser without navigator.lock support
+- 4e976b8: Added the co.input convenience type, to easily extract the create payload type.
+  - cojson@0.18.5
+  - cojson-storage-indexeddb@0.18.5
+  - cojson-transport-ws@0.18.5
+
 ## 0.18.4
 
 ### Patch Changes
