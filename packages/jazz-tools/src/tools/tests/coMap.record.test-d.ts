@@ -24,6 +24,24 @@ describe("CoMap.Record", () => {
       matches(person);
     });
 
+    test("co.init returns the type for the init payload", () => {
+      const Person = co.record(
+        z.string(),
+        co.map({
+          name: z.string(),
+          age: z.number(),
+          address: co.map({
+            street: z.string(),
+            city: z.string(),
+          }),
+        }),
+      );
+
+      const init: co.init<typeof Person> = {};
+
+      Person.create(init);
+    });
+
     test("has the owner property", () => {
       const Person = co.record(z.string(), z.string());
 

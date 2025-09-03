@@ -6,6 +6,7 @@ export { CoFeedSchema as Feed } from "./schemaTypes/CoFeedSchema.js";
 export { PlainTextSchema as PlainText } from "./schemaTypes/PlainTextSchema.js";
 export { RichTextSchema as RichText } from "./schemaTypes/RichTextSchema.js";
 export { FileStreamSchema as FileStream } from "./schemaTypes/FileStreamSchema.js";
+export { CoInit as init } from "./typeConverters/CoFieldSchemaInit.js";
 export {
   AccountSchema as Account,
   CoProfileSchema as Profile,
