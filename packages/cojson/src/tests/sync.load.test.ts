@@ -507,9 +507,9 @@ describe("loading coValues from server", () => {
       connected: true,
     });
 
-    await loadCoValueOrFail(client.node, largeMap.id);
+    const mapOnClient = await loadCoValueOrFail(client.node, largeMap.id);
 
-    await largeMap.core.waitForSync();
+    await mapOnClient.core.waitForFullStreaming();
 
     expect(
       SyncMessagesLog.getMessages({

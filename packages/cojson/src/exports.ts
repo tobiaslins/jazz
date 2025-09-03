@@ -1,6 +1,10 @@
 import { base64URLtoBytes, bytesToBase64url } from "./base64url.js";
 import { type RawCoValue } from "./coValue.js";
-import { CoValueCore, idforHeader } from "./coValueCore/coValueCore.js";
+import {
+  CoValueCore,
+  idforHeader,
+  type AvailableCoValueCore,
+} from "./coValueCore/coValueCore.js";
 import { CoValueUniqueness } from "./coValueCore/verifiedState.js";
 import {
   ControlledAccount,
@@ -171,6 +175,7 @@ export type {
   BinaryStreamStart,
   OpID,
   AccountRole,
+  AvailableCoValueCore,
 };
 
 export * from "./storage/index.js";

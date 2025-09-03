@@ -215,6 +215,20 @@ export class CoValueCore {
     });
   }
 
+  waitForFullStreaming(): Promise<CoValueCore> {
+    return new Promise<CoValueCore>((resolve) => {
+      const listener = (core: CoValueCore) => {
+        if (core.isAvailable() && !core.verified.isStreaming()) {
+          resolve(core);
+          this.listeners.delete(listener);
+        }
+      };
+
+      this.listeners.add(listener);
+      listener(this);
+    });
+  }
+
   getStateForPeer(peerId: PeerID) {
     return this.peers.get(peerId);
   }
