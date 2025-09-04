@@ -1,5 +1,6 @@
 import { products } from "@/content/showcase";
 import { HeroHeader } from "@garden-co/design-system/src/components/molecules/HeroHeader";
+import { ContactForm } from "@/components/ContactForm";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -24,7 +25,7 @@ export default function Page() {
         slogan="Great apps by smart people."
       />
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
         {products.map((product) => (
           <Link
             href={product.url}
@@ -46,6 +47,11 @@ export default function Page() {
             </div>
           </Link>
         ))}
+      </div>
+
+      {/* Contact Form Section */}
+      <div className="py-16 bg-stone-50 dark:bg-stone-900/50 rounded-lg">
+        <ContactForm />
       </div>
     </div>
   );
