@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Input, Button, Label } from 'quint-ui';
-import { Textarea } from './Textarea';
 
 interface FormData {
   appName: string;
@@ -32,7 +31,6 @@ interface FormData {
 
 export function ContactForm() {
   const [formData, setFormData] = useState<FormData>(defaultFormData);
-
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -143,6 +141,7 @@ export function ContactForm() {
               id="description"
               type="text"
               value={formData.description}
+              intent={errors.description ? 'danger' : 'default'}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('description', e.target.value)}
               sizeStyle="md"
               placeholder="Brief description of your app"
@@ -159,7 +158,7 @@ export function ContactForm() {
               id="contactMethod"
               value={formData.preferredCommunication}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleInputChange('preferredCommunication', e.target.value)}
-              className="w-full rounded-md border px-3 py-2 text-base font-medium text-stone-900 dark:text-white dark:bg-stone-925 border-stone-500/50 focus:ring-stone-800/50 focus:outline-none focus:ring-2"
+              className="w-full rounded-md border pl-3.5 text-base text-gray-900 px-2.5 py-1 shadow-sm h-[36px] font-medium text-stone-900 dark:text-white border-stone-500/50"
             >
               <option value="email">Email</option>
               <option value="discord">Discord</option>
@@ -217,12 +216,12 @@ export function ContactForm() {
           <Label htmlFor="message" size="md">
             Message (optional)
           </Label>
-          <Textarea
+          <textarea
             id="message"
             value={formData.message}
                           onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleInputChange('message', e.target.value)}
-            sizeStyle="md"
-            placeholder="Tell us about your project..."
+            className="w-full rounded-md border py-1.5 px-3 h-24 text-base text-gray-900"
+            placeholder="Anything else you'd like to add?"
             rows={5}
           />
         </div>
@@ -242,7 +241,7 @@ export function ContactForm() {
           <Button
             type="submit"
             disabled={isSubmitting}
-            variant="default"
+            variant="outline"
             intent="primary"
             size="lg"
             className="w-full md:w-auto px-8"
