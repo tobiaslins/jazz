@@ -114,7 +114,7 @@ config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, "node_modules"),
   path.resolve(workspaceRoot, "node_modules"),
 ];
-config.resolver.sourceExts = ["mjs", "js", "json", "ts", "tsx", "css"];
+config.resolver.sourceExts = ["mjs", "js", "json", "ts", "tsx"];
 config.resolver.requireCycleIgnorePatterns = [/(^|\/|\\)node_modules($|\/|\\)/];
 config.cacheStores = [
   new FileStore({
