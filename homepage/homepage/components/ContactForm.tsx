@@ -20,8 +20,7 @@ interface FormData {
     description?: string;
   }
 
-export function ContactForm() {
-  const [formData, setFormData] = useState<FormData>({
+  const defaultFormData: FormData = {
     appName: '',
     description: '',
     website: '',
@@ -29,7 +28,10 @@ export function ContactForm() {
     preferredCommunication: 'email',
     handle: '',
     message: ''
-  });
+  }
+
+export function ContactForm() {
+  const [formData, setFormData] = useState<FormData>(defaultFormData);
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -82,15 +84,7 @@ export function ContactForm() {
         setSubmitStatus('success');
         setSubmitMessage(result.message);
         // Reset form on success
-        setFormData({
-          appName: '',
-          description: '',
-          website: '',
-          repo: '',
-          preferredCommunication: 'email',
-          handle: '',
-          message: ''
-        });
+        setFormData(defaultFormData);
       } else {
         setSubmitStatus('error');
         setSubmitMessage(result.error || 'Something went wrong. Please try again.');
@@ -142,8 +136,24 @@ export function ContactForm() {
             )}
           </div>
           <div>
+            <Label htmlFor="description" size="md">
+              Description *
+            </Label>
+            <Input
+              id="description"
+              type="text"
+              value={formData.description}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('description', e.target.value)}
+              sizeStyle="md"
+              placeholder="Brief description of your app"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
             <Label htmlFor="contactMethod" size="md">
-              Contact Method *
+              Preferred Contact Method *
             </Label>
             <select
               id="contactMethod"
@@ -155,9 +165,6 @@ export function ContactForm() {
               <option value="discord">Discord</option>
             </select>
           </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <Label htmlFor="handle" size="md">
               Email/Discord Handle *
@@ -175,19 +182,6 @@ export function ContactForm() {
               <p className="text-sm text-red-600 mt-1">{errors.handle}</p>
             )}
           </div>
-          <div>
-            <Label htmlFor="description" size="md">
-              Description *
-            </Label>
-            <Input
-              id="description"
-              type="text"
-              value={formData.description}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('description', e.target.value)}
-              sizeStyle="md"
-              placeholder="Brief description of your app"
-            />
-          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -204,8 +198,6 @@ export function ContactForm() {
               placeholder="Your project url"
             />
           </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <Label htmlFor="repo" size="md">
               Project Repository (optional)
@@ -220,7 +212,7 @@ export function ContactForm() {
             />
           </div>
         </div>
-
+        <div className="grid grid-cols-1 gap-6">
         <div>
           <Label htmlFor="message" size="md">
             Message (optional)
@@ -233,6 +225,7 @@ export function ContactForm() {
             placeholder="Tell us about your project..."
             rows={5}
           />
+        </div>
         </div>
 
         {submitStatus !== 'idle' && (
@@ -254,7 +247,7 @@ export function ContactForm() {
             size="lg"
             className="w-full md:w-auto px-8"
           >
-            {isSubmitting ? 'Sending...' : 'Send Message'}
+            {isSubmitting ? 'Sending...' : 'Submit'}
           </Button>
         </div>
       </form>

@@ -117,70 +117,83 @@ async function addToNotion(data: ContactFormData) {
   }
 }
 
-// async function sendDiscordAlert(data: ContactFormData) {
-//   const discordWebhookUrl = process.env.DISCORD_WEBHOOK_URL;
+async function sendDiscordAlert(data: ContactFormData) {
+  const discordWebhookUrl = process.env.DISCORD_WEBHOOK_URL;
   
-//   if (!discordWebhookUrl) {
-//     console.warn('Discord webhook not configured');
-//     return;
-//   }
+  if (!discordWebhookUrl) {
+    console.warn('Discord webhook not configured');
+    return;
+  }
 
-//   try {
-//     const embed = {
-//       title: '🎉 New Contact Form Submission',
-//       color: 0x00ff00,
-//       fields: [
-//         {
-//           name: 'Name',
-//           value: data.name,
-//           inline: true,
-//         },
-//         {
-//           name: 'Email',
-//           value: data.email,
-//           inline: true,
-//         },
-//         {
-//           name: 'Company',
-//           value: data.company || 'N/A',
-//           inline: true,
-//         },
-//         {
-//           name: 'Project Type',
-//           value: data.projectType || 'General Inquiry',
-//           inline: true,
-//         },
-//         {
-//           name: 'Message',
-//           value: data.message.length > 1024 
-//             ? data.message.substring(0, 1021) + '...' 
-//             : data.message,
-//           inline: false,
-//         },
-//       ],
-//       timestamp: new Date().toISOString(),
-//     };
+  try {
+    const embed = {
+      title: '🎉 New Contact Form Submission',
+      color: 0x00ff00,
+      fields: [
+        {
+          name: 'App Name',
+          value: data.appName,
+          inline: true,
+        },
+        {
+          name: 'Description',
+          value: data.description,
+          inline: true,
+        },
+        {
+          name: 'Website',
+          value: data.website,
+          inline: true,
+        },
+        {
+          name: 'Repo',
+          value: data.repo,
+          inline: true,
+        },
+        {
+          name: 'Preferred Communication',
+          value: data.preferredCommunication,
+          inline: true,
+        },
+        {
+          name: 'Handle',
+          value: data.handle,
+          inline: true,
+        },
+        {
+          name: 'Message',
+          value: data.message,
+          inline: false,
+        },
+        {
+          name: 'Date',
+          value: new Date().toISOString(),
+          inline: true,
+        },
+      ],
+      timestamp: new Date().toISOString(),
+    };
 
-//     const response = await fetch(discordWebhookUrl, {
-//       method: 'POST',
-//       headers: {
-//         'Content-Type': 'application/json',
-//       },
-//       body: JSON.stringify({
-//         embeds: [embed],
-//       }),
-//     });
+    const response = await fetch(discordWebhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        embeds: [embed],
+      }),
+    });
 
-//     if (!response.ok) {
-//       throw new Error(`Discord webhook error: ${response.statusText}`);
-//     }
+    if (!response.ok) {
+      throw new Error(`Discord webhook error: ${response.statusText}`);
+    }
 
-//     console.log('Successfully sent Discord alert');
-//   } catch (error) {
-//     console.error('Error sending Discord alert:', error);
-//     throw error;
-//   }
-// }
+    console.log('Successfully sent Discord alert');
+  } catch (error) {
+    console.error('Error sending Discord alert:', error);
+    throw error;
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -240,7 +253,7 @@ export async function POST(request: NextRequest) {
     // Process the form submission with configured integrations
     await Promise.allSettled([
       addToNotion({ appName, description, website, repo, preferredCommunication, handle, message }),
-    //   sendDiscordAlert({ name, email, company, message, projectType }),
+      sendDiscordAlert({ appName, description, website, repo, preferredCommunication, handle, message}),
     ]);
 
     return NextResponse.json(
