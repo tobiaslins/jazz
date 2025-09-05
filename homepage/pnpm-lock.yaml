@@ -290,6 +290,9 @@ importers:
       qrcode:
         specifier: ^1.5.4
         version: 1.5.4
+      quint-ui:
+        specifier: link:../../packages/quint-ui
+        version: link:../../packages/quint-ui
       react:
         specifier: catalog:react
         version: 19.1.0
