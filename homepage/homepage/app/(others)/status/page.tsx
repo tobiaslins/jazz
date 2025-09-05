@@ -305,6 +305,9 @@ export default async function Page() {
           )}
         </tbody>
       </table>
+        <p className="text-sm text-gray-500 text-right">
+          All times are expressed in <span className="font-bold">UTC</span>
+        </p>
     </div>
   );
 }
