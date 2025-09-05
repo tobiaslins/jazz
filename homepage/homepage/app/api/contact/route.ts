@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 interface ContactFormData {
     appName: string;
     description: string;
-    website: string;
+    projectUrl: string;
     repo: string;
     preferredCommunication: string;
     handle: string;
@@ -52,7 +52,7 @@ async function addToNotion(data: ContactFormData) {
             rich_text: [
               {
                 text: {
-                  content: data.website,
+                  content: data.projectUrl,
                 },
               },
             ],
@@ -142,7 +142,7 @@ async function sendDiscordAlert(data: ContactFormData) {
         },
         {
           name: 'Website',
-          value: data.website,
+          value: data.projectUrl,
           inline: true,
         },
         {
@@ -198,12 +198,12 @@ async function sendDiscordAlert(data: ContactFormData) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { appName, description, website, repo, preferredCommunication, handle, message }: ContactFormData = body;
+    const { appName, description, projectUrl, repo, preferredCommunication, handle, message }: ContactFormData = body;
 
     // Basic validation
-    if (!appName || !handle || !website || !description) {
+    if (!appName || !handle || !description) {
       return NextResponse.json(
-        { error: 'App name, contact information, website, and description are required' },
+        { error: 'App name, contact information, and description are required' },
         { status: 400 }
       );
     }
@@ -218,42 +218,18 @@ export async function POST(request: NextRequest) {
         );
       }
     }
-
-    // Check if integrations are configured
-    const hasNotion = process.env.NOTION_TOKEN && process.env.NOTION_DATABASE_ID;
-    // const hasDiscord = process.env.DISCORD_WEBHOOK_URL;
-
-    console.log('Environment check:', {
-      hasNotion,
-      notionToken: process.env.NOTION_TOKEN ? 'present' : 'missing',
-      notionDatabaseId: process.env.NOTION_DATABASE_ID ? 'present' : 'missing',
-      databaseIdLength: process.env.NOTION_DATABASE_ID?.length,
-      databaseIdFormat: process.env.NOTION_DATABASE_ID?.includes('-') ? 'with-hyphens' : 'no-hyphens'
-    });
-
-    if (!hasNotion) {
-      // If no integrations are configured, just log the submission
-      console.log('Contact form submission (no integrations configured):', {
-        appName,
-        description,
-        website,
-        repo,
-        preferredCommunication,
-        handle,
-        message,
-        timestamp: new Date().toISOString(),
-      });
-      
-      return NextResponse.json(
-        { message: 'Thank you for your message! We\'ll get back to you soon. (Demo mode - no integrations configured)' },
-        { status: 200 }
-      );
-    }
+    // bot protection, should be empty by actual user
+    if (body.nickName && body.nickName.trim() !== "") {
+        return NextResponse.json(
+          { error: "Spam detected" },
+          { status: 400 }
+        );
+      }
 
     // Process the form submission with configured integrations
     await Promise.allSettled([
-      addToNotion({ appName, description, website, repo, preferredCommunication, handle, message }),
-      sendDiscordAlert({ appName, description, website, repo, preferredCommunication, handle, message}),
+      addToNotion({ appName, description, projectUrl, repo, preferredCommunication, handle, message }),
+      sendDiscordAlert({ appName, description, projectUrl, repo, preferredCommunication, handle, message}),
     ]);
 
     return NextResponse.json(
