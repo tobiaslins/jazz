@@ -25,7 +25,7 @@ export default function Page() {
         slogan="Great apps by smart people."
       />
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {products.map((product) => (
           <Link
             href={product.url}
