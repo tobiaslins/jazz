@@ -23,7 +23,7 @@ This quickstart guide will take you from an empty project to a working app with 
 
   You can accept the defaults for all the questions, or customise the project as you like.
 
-  <TabbedCodeGroup default="pnpm" savedPreferenceKey="package-manager">
+  <TabbedCodeGroup id="create-react-app" default="pnpm" savedPreferenceKey="package-manager">
   <TabbedCodeGroupItem label="npm">
   ```sh
   npx create-next-app@latest --typescript jazzfest
@@ -40,7 +40,7 @@ This quickstart guide will take you from an empty project to a working app with 
 
 </ContentByFramework>
 <ContentByFramework framework="svelte">
-  <TabbedCodeGroup default="pnpm" savedPreferenceKey="package-manager">
+  <TabbedCodeGroup default="pnpm" savedPreferenceKey="package-manager" id="create-svelte-app">
   <TabbedCodeGroupItem label="npm">
   ```sh
   npx sv create --types ts --template minimal jazzfest
@@ -145,7 +145,7 @@ export function JazzWrapper({ children }: {
   <FileName>src/routes/+layout.svelte</FileName>
 </ContentByFramework>
 
-<TabbedCodeGroup savedPreferenceKey="framework">
+<TabbedCodeGroup id="jazz-provider" savedPreferenceKey="framework">
 <TabbedCodeGroupItem label="React" value="react" className="[&_span]:[tab-size:2]" icon={<ReactLogo />} preferWrap>
   ```tsx
   import { JazzWrapper } from "@/app/components/JazzWrapper";
@@ -223,7 +223,7 @@ Let's create a simple form to add a new band to the festival. We'll use the `use
   <FileName>src/lib/components/NewBand.svelte</FileName>
 </ContentByFramework>
 
-<TabbedCodeGroup default="react" savedPreferenceKey="framework"
+<TabbedCodeGroup id="new-band-component" default="react" savedPreferenceKey="framework"
 >
 <TabbedCodeGroupItem label="React" value="react" icon={<ReactLogo />} className="[&_span]:[tab-size:2]" preferWrap>
 ```tsx
@@ -292,7 +292,7 @@ Now we've got a way to create data, so let's add a component to display it.
   <FileName>src/lib/components/Festival.svelte</FileName>
 </ContentByFramework>
 
-<TabbedCodeGroup default="react" savedPreferenceKey="framework">
+<TabbedCodeGroup id="my-festival-component" default="react" savedPreferenceKey="framework">
 <TabbedCodeGroupItem icon={<ReactLogo />} label="React" value="react" className="[&_span]:[tab-size:2]" preferWrap>
 ```tsx
 "use client";
@@ -341,7 +341,7 @@ You've built all your components, time to put them together.
   <FileName>src/routes/+page.svelte</FileName>
 </ContentByFramework>
 
-<TabbedCodeGroup default="react" savedPreferenceKey="framework">
+<TabbedCodeGroup id="home-page" default="react" savedPreferenceKey="framework">
 <TabbedCodeGroupItem label="React" value="react" className="[&_span]:[tab-size:2]" icon={<ReactLogo />} preferWrap>
 ```tsx
 import { Festival } from "@/app/components/Festival";
