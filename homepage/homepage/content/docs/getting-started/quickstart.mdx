@@ -23,7 +23,7 @@ This quickstart guide will take you from an empty project to a working app with 
 
   You can accept the defaults for all the questions, or customise the project as you like.
 
-  <TabbedCodeGroup id="create-react-app" default="pnpm" savedPreferenceKey="package-manager">
+  <TabbedCodeGroup id="create-react-app" id="create-react-app" default="pnpm" savedPreferenceKey="package-manager">
   <TabbedCodeGroupItem label="npm">
   ```sh
   npx create-next-app@latest --typescript jazzfest
@@ -145,7 +145,7 @@ export function JazzWrapper({ children }: {
   <FileName>src/routes/+layout.svelte</FileName>
 </ContentByFramework>
 
-<TabbedCodeGroup id="jazz-provider" savedPreferenceKey="framework">
+<TabbedCodeGroup id="jazz-provider" id="jazz-provider" savedPreferenceKey="framework">
 <TabbedCodeGroupItem label="React" value="react" className="[&_span]:[tab-size:2]" icon={<ReactLogo />} preferWrap>
   ```tsx
   import { JazzWrapper } from "@/app/components/JazzWrapper";

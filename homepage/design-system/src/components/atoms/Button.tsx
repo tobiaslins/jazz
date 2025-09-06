@@ -62,6 +62,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       iconPosition = "left",
       type = "button",
       onClick,
+      onClick,
       ...buttonProps
     },
     ref,
@@ -91,6 +92,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           href={href}
           target={newTab ? "_blank" : undefined}
           className={classNames}
+          onClick={onClick}
           onClick={onClick}
         >
           {icon && (
