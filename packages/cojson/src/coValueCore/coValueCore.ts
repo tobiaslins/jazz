@@ -77,9 +77,6 @@ export type VerifiedTransaction = {
 
   // The previous verified transaction for the same session
   previous: VerifiedTransaction | undefined;
-
-  // True if part of the merge operation, last transaction of the merge operation will have this set to false
-  merging: boolean;
 };
 
 export type DecryptedTransaction = {
@@ -780,7 +777,6 @@ export class CoValueCore {
           hasInvalidChanges: false,
           hasInvalidMeta: false,
           hasMetaBeenParsed: false,
-          merging: false,
           tx,
           previous: this.lastVerifiedTransactionBySessionID[sessionID],
         };
