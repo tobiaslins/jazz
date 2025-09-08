@@ -1,10 +1,11 @@
-import { beforeEach, describe, expect, test } from "vitest";
+import { assert, beforeEach, describe, expect, test } from "vitest";
 import {
   createTestNode,
   setupTestNode,
   loadCoValueOrFail,
 } from "./testUtils.js";
 import { expectList, expectMap, expectPlainText } from "../coValue.js";
+import { RawCoMap } from "../exports.js";
 
 let jazzCloud: ReturnType<typeof setupTestNode>;
 
@@ -94,7 +95,7 @@ describe("Branching Logic", () => {
       const result = expectMap(branch.core.mergeBranch().getCurrentContent());
 
       // Verify only one merge commit was created
-      expect(result.core.mergeCommits.length).toBe(1);
+      expect(branch.core.mergeCommits.length).toBe(1);
 
       // Verify source contains branch transactions
       expect(result.get("key1")).toBe("branchValue1");
@@ -154,7 +155,7 @@ describe("Branching Logic", () => {
       branch.core.mergeBranch();
 
       // Verify two merge commits exist
-      expect(originalMap.core.mergeCommits.length).toBe(2);
+      expect(branch.core.mergeCommits.length).toBe(2);
 
       // Verify both changes are now in original map
       expect(originalMap.get("key1")).toBe("branchValue1");
@@ -210,6 +211,8 @@ describe("Branching Logic", () => {
           .getCurrentContent(),
       );
 
+      await new Promise((resolve) => setTimeout(resolve, 5));
+
       // Add different items to second branch
       branch2.appendItems(["apples", "oranges", "carrots"]);
 
@@ -233,18 +236,20 @@ describe("Branching Logic", () => {
 
       expect(list.toJSON()).toEqual([
         "bread",
-        "cheese",
         "apples",
         "oranges",
         "carrots",
         "tomatoes",
         "cucumber",
+        "cheese",
       ]);
     });
 
-    test("should work with co.plainText when branching from different session", async () => {
-      const node = createTestNode();
-      const group = node.createGroup();
+    test("should work with co.plainText when merging the same branch twice on different sessions", async () => {
+      const client = setupTestNode({
+        connected: true,
+      });
+      const group = client.node.createGroup();
       const plainText = group.createPlainText();
 
       plainText.insertAfter(0, "hello");
@@ -255,12 +260,28 @@ describe("Branching Logic", () => {
           .getCurrentContent(),
       );
 
+      branch.insertAfter("hello".length, " world");
+
+      const anotherSession = client.spawnNewSession();
+
+      const loadedBranch = await loadCoValueOrFail(
+        anotherSession.node,
+        branch.id,
+      );
+      assert(loadedBranch);
+
+      anotherSession.connectToSyncServer().peerState.gracefulShutdown();
+
       // Add more items to the branch
-      branch.insertAfter("hello".length, "world");
+      loadedBranch.insertAfter("hello world".length, " people");
 
       branch.core.mergeBranch();
+      const loadedBranchMergeResult = loadedBranch.core.mergeBranch();
 
-      expect(plainText.toString()).toEqual("helloworld");
+      anotherSession.connectToSyncServer();
+      await loadedBranchMergeResult.waitForSync();
+
+      expect(plainText.toString()).toEqual("hello world people");
     });
   });
 
@@ -525,6 +546,134 @@ describe("Branching Logic", () => {
       // Verify both branches now contain data from the other
       expect(bobBranch.get("alice")).toBe(true);
       expect(aliceBranch.get("bob")).toBe(true);
+    });
+  });
+
+  test("should alias the txID when a transaction comes from a merge", async () => {
+    const client = setupTestNode({
+      connected: true,
+    });
+    const group = client.node.createGroup();
+    const map = group.createMap();
+
+    map.set("key", "value");
+
+    const branch = map.core
+      .createBranch("feature-branch", group.id)
+      .getCurrentContent() as RawCoMap;
+    branch.set("branchKey", "branchValue");
+
+    const originalTxID = branch.core
+      .getValidTransactions({
+        skipBranchSource: true,
+        ignorePrivateTransactions: false,
+      })
+      .at(-1)?.txID;
+
+    branch.core.mergeBranch();
+
+    map.set("key2", "value2");
+
+    const validSortedTransactions = map.core.getValidSortedTransactions();
+
+    // Only the merged transaction should have the txId changed
+    const mergedTransactionIdx = validSortedTransactions.findIndex(
+      (tx) => tx.txID.branch,
+    );
+
+    expect(validSortedTransactions[mergedTransactionIdx - 1]?.txID.branch).toBe(
+      undefined,
+    );
+    expect(validSortedTransactions[mergedTransactionIdx]?.txID).toEqual(
+      originalTxID,
+    );
+    expect(validSortedTransactions[mergedTransactionIdx + 1]?.txID.branch).toBe(
+      undefined,
+    );
+  });
+
+  describe("hasBranch", () => {
+    test("should work when the branch owner is the source owner", () => {
+      const client = setupTestNode({
+        connected: true,
+      });
+      const group = client.node.createGroup();
+      const map = group.createMap();
+
+      map.set("key", "value");
+
+      const branch = map.core.createBranch("feature-branch", group.id);
+
+      expect(map.core.hasBranch("feature-branch")).toBe(true);
+      expect(map.core.hasBranch("feature-branch", group.id)).toBe(true);
+      expect(branch.hasBranch("feature-branch")).toBe(false);
+    });
+
+    test("should work when the branch onwer is implicit", () => {
+      const client = setupTestNode({
+        connected: true,
+      });
+      const group = client.node.createGroup();
+      const map = group.createMap();
+
+      map.set("key", "value");
+
+      const branch = map.core.createBranch("feature-branch");
+
+      expect(map.core.hasBranch("feature-branch")).toBe(true);
+      expect(map.core.hasBranch("feature-branch", group.id)).toBe(true);
+      expect(branch.hasBranch("feature-branch")).toBe(false);
+    });
+
+    test("should return false for non-existent branch name", () => {
+      const client = setupTestNode({
+        connected: true,
+      });
+      const group = client.node.createGroup();
+      const map = group.createMap();
+
+      map.set("key", "value");
+
+      expect(map.core.hasBranch("non-existent-branch")).toBe(false);
+    });
+
+    test("should work with explicit ownerId parameter", () => {
+      const client = setupTestNode({
+        connected: true,
+      });
+      const group = client.node.createGroup();
+      const map = group.createMap();
+
+      map.set("key", "value");
+
+      const differentGroup = client.node.createGroup();
+
+      map.core.createBranch("feature-branch", differentGroup.id);
+
+      // Test with explicit ownerId
+      expect(map.core.hasBranch("feature-branch", differentGroup.id)).toBe(
+        true,
+      );
+      expect(map.core.hasBranch("feature-branch")).toBe(false);
+    });
+
+    test("should work when the transactions have not been parsed yet", async () => {
+      const client = setupTestNode({
+        connected: true,
+      });
+      const group = client.node.createGroup();
+      const map = group.createMap();
+
+      map.set("key", "value");
+
+      map.core.createBranch("feature-branch", group.id);
+
+      await map.core.waitForSync();
+
+      const newSession = client.spawnNewSession();
+      const loadedMapCore = await newSession.node.loadCoValueCore(map.core.id);
+
+      expect(loadedMapCore.hasBranch("feature-branch", group.id)).toBe(true);
     });
   });
 });

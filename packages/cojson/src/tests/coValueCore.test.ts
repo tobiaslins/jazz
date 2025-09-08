@@ -56,6 +56,7 @@ test("transactions with wrong signature are rejected", () => {
       node.getCurrentAgent(),
       [{ hello: "world" }],
       undefined,
+      Date.now(),
     );
 
   transaction.madeAt = Date.now() + 1000;
