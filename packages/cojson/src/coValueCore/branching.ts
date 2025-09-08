@@ -1,9 +1,41 @@
-import type { CoValueCore, JsonValue } from "../exports.js";
-import type { RawCoID, SessionID, TransactionID } from "../ids.js";
+import type { CoValueCore } from "../exports.js";
+import type { RawCoID, SessionID } from "../ids.js";
 import { type AvailableCoValueCore, idforHeader } from "./coValueCore.js";
 import type { CoValueHeader } from "./verifiedState.js";
 import type { CoValueKnownState } from "../sync.js";
-import type { ListOpPayload, OpID } from "../coValues/coList.js";
+
+/**
+ * Commit to identify the starting point of the branch
+ *
+ * In case of clonflicts, the first commit of this kind is considered the source of truth
+ */
+export type BranchStartCommit = {
+  from: CoValueKnownState["sessions"];
+};
+
+/**
+ * Commit that tracks a branch creation
+ */
+export type BranchPointerCommit = {
+  branch: string;
+  ownerId?: RawCoID;
+};
+
+/**
+ * Meta information attached to each merged transaction to retrieve the original transaction ID
+ */
+export type MergedTransactionMetadata = {
+  mi: number; // Transaction index and marker of a merge commit
+  s?: SessionID;
+  b?: RawCoID;
+};
+
+/**
+ * Merge commit located in a branch to track how many transactions have already been merged
+ */
+export type MergeCommit = {
+  merged: CoValueKnownState["sessions"];
+};
 
 export function getBranchHeader({
   type,
@@ -65,15 +97,6 @@ export function getBranchId(
   return idforHeader(header, coValue.node.crypto);
 }
 
-export type BranchCommit = {
-  from: CoValueKnownState["sessions"];
-};
-
-export type BranchPointerCommit = {
-  branch: string;
-  ownerId?: RawCoID;
-};
-
 export function getBranchOwnerId(coValue: CoValueCore) {
   if (!coValue.verified) {
     throw new Error(
@@ -123,7 +146,7 @@ export function createBranch(
   // Create a branch commit to identify the starting point of the branch
   branch.makeTransaction([], "private", {
     from: sessions,
-  } satisfies BranchCommit);
+  } satisfies BranchStartCommit);
 
   // Create a branch pointer, to identify that we created a branch
   coValue.makeTransaction([], "private", {
@@ -158,24 +181,6 @@ export function getBranchSource(
 
   return source;
 }
-
-export type MergeCommit = {
-  i: number;
-  s?: SessionID;
-  b?: RawCoID;
-  mergeEnd?: 1;
-};
-
-export type MergeStartCommit = {
-  mergeStart: RawCoID;
-  b?: RawCoID;
-  s: SessionID;
-  i: number;
-};
-
-export type BranchMergedCommit = {
-  merged: CoValueKnownState["sessions"];
-};
 
 /**
  * Given a branch coValue, merges the branch into the source coValue
@@ -232,37 +237,33 @@ export function mergeBranch(branch: CoValueCore): CoValueCore {
   // To reduce the cost of the meta we skip the repeated information
   let lastSessionId: string | undefined = undefined;
   let lastBranchId: string | undefined = undefined;
-  branchValidTransactions.forEach((tx, i) => {
-    const mergeMeta: MergeCommit & Partial<MergeStartCommit> = {
-      i: tx.txID.txIndex,
+
+  for (const tx of branchValidTransactions) {
+    const mergeMeta: MergedTransactionMetadata = {
+      mi: tx.txID.txIndex,
     };
-
-    if (i === 0) {
-      mergeMeta.mergeStart = branch.id;
-      lastBranchId = branch.id;
-    }
-
-    if (i === branchValidTransactions.length - 1) {
-      mergeMeta.mergeEnd = 1;
-    }
 
     if (lastSessionId !== tx.txID.sessionID) {
       mergeMeta.s = tx.txID.sessionID;
     }
 
     if (lastBranchId !== tx.txID.branch) {
-      mergeMeta.b = branch.id;
+      mergeMeta.b = tx.txID.branch;
     }
 
     target.makeTransaction(tx.changes, tx.tx.privacy, mergeMeta, tx.madeAt);
     lastSessionId = tx.txID.sessionID;
     lastBranchId = tx.txID.branch;
-  });
+
+    if (tx.txID.txIndex === 0) {
+      mergeMeta.b = branch.id;
+    }
+  }
 
   // Track the merged transactions for the branch, so future merges will know which transactions have already been merged
   branch.makeTransaction([], "private", {
     merged: branch.knownState().sessions,
-  } satisfies BranchMergedCommit);
+  } satisfies MergeCommit);
 
   return target;
 }

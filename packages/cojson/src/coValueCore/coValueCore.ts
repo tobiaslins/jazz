@@ -28,15 +28,15 @@ import { getDependedOnCoValuesFromRawData } from "./utils.js";
 import { CoValueHeader, Transaction, VerifiedState } from "./verifiedState.js";
 import { SessionMap } from "./SessionMap.js";
 import {
-  BranchMergedCommit,
-  BranchPointerCommit,
   MergeCommit,
-  MergeStartCommit,
+  BranchPointerCommit,
+  MergedTransactionMetadata,
   createBranch,
   getBranchId,
   getBranchOwnerId,
   getBranchSource,
   mergeBranch,
+  BranchStartCommit,
 } from "./branching.js";
 import { type RawAccountID } from "../coValues/account.js";
 import { decodeTransactionChangesAndMeta } from "./decodeTransactionChangesAndMeta.js";
@@ -702,12 +702,10 @@ export class CoValueCore {
   }
 
   // The starting point of the branch, in case this CoValue is a branch
-  branchStart:
-    | { from: CoValueKnownState["sessions"]; madeAt: number }
-    | undefined;
+  branchStart: { from: BranchStartCommit["from"]; madeAt: number } | undefined;
 
   // The list of merge commits that have been made
-  mergeCommits: BranchMergedCommit[] = [];
+  mergeCommits: MergeCommit[] = [];
   branches: BranchPointerCommit[] = [];
 
   // Reset the parsed transactions and branches, to validate them again from scratch when the group is updated
@@ -818,61 +816,50 @@ export class CoValueCore {
 
     transaction.hasMetaBeenParsed = true;
 
-    if (
-      this.isBranch() &&
-      transaction.meta?.from &&
-      (!this.branchStart || transaction.madeAt < this.branchStart.madeAt)
-    ) {
-      this.branchStart = {
-        from: transaction.meta.from as CoValueKnownState["sessions"],
-        madeAt: transaction.madeAt,
-      };
+    // Check if the transaction is a branch start
+    if (this.isBranch() && "from" in transaction.meta) {
+      if (!this.branchStart || transaction.madeAt < this.branchStart.madeAt) {
+        const commit = transaction.meta as BranchStartCommit;
+
+        this.branchStart = {
+          from: commit.from,
+          madeAt: transaction.madeAt,
+        };
+      }
     }
 
     // Check if the transaction is a branch pointer
-    if (transaction.meta?.branch) {
+    if ("branch" in transaction.meta) {
       const branch = transaction.meta as BranchPointerCommit;
 
       this.branches.push(branch);
     }
 
-    // Check if the transaction is a merge start
-    if (transaction.meta?.mergeStart) {
-      const mergeCommit = transaction.meta as MergeStartCommit;
+    // Check if the transaction has been merged from a branch
+    if ("mi" in transaction.meta) {
+      const meta = transaction.meta as MergedTransactionMetadata;
 
-      transaction.merging = true;
+      // Check if the transaction is a merge commit
+      const previousTransaction = transaction.previous?.txID;
+      const sessionID = meta.s ?? previousTransaction?.sessionID;
 
-      // Override the transaction ID with the original transaction ID
-      transaction.txID = {
-        sessionID: mergeCommit.s,
-        txIndex: mergeCommit.i,
-        branch: mergeCommit.b ?? mergeCommit.mergeStart,
-      };
+      if (sessionID) {
+        transaction.txID = {
+          sessionID,
+          txIndex: meta.mi,
+          branch: meta.b ?? previousTransaction?.branch,
+        };
+      } else {
+        logger.error("Merge commit without session ID", {
+          txID: transaction.txID,
+          prev: previousTransaction ?? null,
+        });
+      }
     }
 
-    // Check if the transaction is a merge commit
-    const previousTransaction = transaction.previous;
-
-    if (previousTransaction?.merging) {
+    // Check if the transaction is a merged checkpoint for a branch
+    if ("merged" in transaction.meta) {
       const mergeCommit = transaction.meta as MergeCommit;
-
-      transaction.txID = {
-        sessionID: mergeCommit.s ?? previousTransaction.txID.sessionID,
-        txIndex: mergeCommit.i,
-        branch: mergeCommit.b ?? previousTransaction.txID.branch,
-      };
-
-      transaction.merging = true;
-    }
-
-    // Check if the transaction is a merge end
-    if (transaction.meta?.mergeEnd) {
-      transaction.merging = false;
-    }
-
-    // Merged checkpoint for a branch
-    if (transaction.meta?.merged) {
-      const mergeCommit = transaction.meta as BranchMergedCommit;
       this.mergeCommits.push(mergeCommit);
     }
   }
@@ -883,7 +870,7 @@ export class CoValueCore {
    * - Decodes the changes & meta for each transaction
    * - Parses the meta information of the transaction
    */
-  parseNewTransactions(ignorePrivateTransactions: boolean) {
+  private parseNewTransactions(ignorePrivateTransactions: boolean) {
     if (!this.isAvailable()) {
       return;
     }
@@ -940,6 +927,8 @@ export class CoValueCore {
       const { txID } = transaction;
 
       const from = options?.from?.[txID.sessionID] ?? -1;
+
+      // Load the to filter index. Sessions that are not in the to filter will be skipped
       const to = options?.to ? (options.to[txID.sessionID] ?? -1) : Infinity;
 
       // The txIndex starts at 0 and from/to are referring to the count of transactions

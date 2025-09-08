@@ -549,6 +549,49 @@ describe("Branching Logic", () => {
     });
   });
 
+  test("should alias the txID when a transaction comes from a merge", async () => {
+    const client = setupTestNode({
+      connected: true,
+    });
+    const group = client.node.createGroup();
+    const map = group.createMap();
+
+    map.set("key", "value");
+
+    const branch = map.core
+      .createBranch("feature-branch", group.id)
+      .getCurrentContent() as RawCoMap;
+    branch.set("branchKey", "branchValue");
+
+    const originalTxID = branch.core
+      .getValidTransactions({
+        skipBranchSource: true,
+        ignorePrivateTransactions: false,
+      })
+      .at(-1)?.txID;
+
+    branch.core.mergeBranch();
+
+    map.set("key2", "value2");
+
+    const validSortedTransactions = map.core.getValidSortedTransactions();
+
+    // Only the merged transaction should have the txId changed
+    const mergedTransactionIdx = validSortedTransactions.findIndex(
+      (tx) => tx.txID.branch,
+    );
+
+    expect(validSortedTransactions[mergedTransactionIdx - 1]?.txID.branch).toBe(
+      undefined,
+    );
+    expect(validSortedTransactions[mergedTransactionIdx]?.txID).toEqual(
+      originalTxID,
+    );
+    expect(validSortedTransactions[mergedTransactionIdx + 1]?.txID.branch).toBe(
+      undefined,
+    );
+  });
+
   describe("hasBranch", () => {
     test("should work when the branch owner is the source owner", () => {
       const client = setupTestNode({
@@ -631,49 +674,6 @@ describe("Branching Logic", () => {
       const loadedMapCore = await newSession.node.loadCoValueCore(map.core.id);
 
       expect(loadedMapCore.hasBranch("feature-branch", group.id)).toBe(true);
-    });
-
-    test("should alias the txID when a transaction comes from a merge", async () => {
-      const client = setupTestNode({
-        connected: true,
-      });
-      const group = client.node.createGroup();
-      const map = group.createMap();
-
-      map.set("key", "value");
-
-      const branch = map.core
-        .createBranch("feature-branch", group.id)
-        .getCurrentContent() as RawCoMap;
-      branch.set("branchKey", "branchValue");
-
-      const originalTxID = branch.core
-        .getValidTransactions({
-          skipBranchSource: true,
-          ignorePrivateTransactions: false,
-        })
-        .at(-1)?.txID;
-
-      branch.core.mergeBranch();
-
-      map.set("key2", "value2");
-
-      const validSortedTransactions = map.core.getValidSortedTransactions();
-
-      // Only the merged transaction should have the txId changed
-      const mergedTransactionIdx = validSortedTransactions.findIndex(
-        (tx) => tx.txID.branch,
-      );
-
-      expect(
-        validSortedTransactions[mergedTransactionIdx - 1]?.txID.branch,
-      ).toBe(undefined);
-      expect(validSortedTransactions[mergedTransactionIdx]?.txID).toEqual(
-        originalTxID,
-      );
-      expect(
-        validSortedTransactions[mergedTransactionIdx + 1]?.txID.branch,
-      ).toBe(undefined);
     });
   });
 });
