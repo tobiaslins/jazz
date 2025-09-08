@@ -113,7 +113,6 @@ export const cojsonInternals = {
   getGroupDependentKey,
   disablePermissionErrors,
   SyncManager,
-  hwrServerPeerSelector,
   CO_VALUE_LOADING_CONFIG,
   CO_VALUE_PRIORITY,
   setIncomingMessagesTimeBudget,
@@ -169,6 +168,7 @@ export {
   LogLevel,
   base64URLtoBytes,
   bytesToBase64url,
+  hwrServerPeerSelector,
 };
 
 export type {
