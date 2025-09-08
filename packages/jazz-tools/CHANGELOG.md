@@ -1,5 +1,252 @@
 # jazz-tools
 
+## 0.18.6
+
+### Patch Changes
+
+- 975d1c3: Fixed the startWorker type to return a shallowly-loaded worker account.
+- ccbb795: Add skipInboxLoad option to startWorker
+- 0dae338: Add concurrency limit on the Inbox subscribe, and simplify the failed messages management
+- 934679c: feat: Better Auth EmailOTP plugin is now supported
+- 28defd0: Fix peer role to be client when connecting the test accounts to the test sync server
+- e0f17ed: Fix the react dependency error when loading the inspector as custom element
+- 88ef339: fix: removed unwanted browser dependency in order to make better-auth provider works on react-native
+- Updated dependencies [9e792c7]
+  - cojson@0.18.6
+  - cojson-storage-indexeddb@0.18.6
+  - cojson-transport-ws@0.18.6
+
+## 0.18.5
+
+### Patch Changes
+
+- ff35d8c: fix: accountID property presence on typescript for Better Auth user's shape
+- f23a7a7: fix: Jazz credentials were not properly retrieved during SSO flows in Better Auth
+- f5d8424: Fallback to random session when running Jazz in a browser without navigator.lock support
+- 4e976b8: Added the co.input convenience type, to easily extract the create payload type.
+  - cojson@0.18.5
+  - cojson-storage-indexeddb@0.18.5
+  - cojson-transport-ws@0.18.5
+
+## 0.18.4
+
+### Patch Changes
+
+- 84313aa: Add `$jazz.id` to `toJSON` in Account, CoMap, CoFeed & FileStream
+- 89aab7b: Deprecate `co.map().catchall`. Use a `co.record` nested inside a `co.map` if you need to store key-value properties.
+  - cojson@0.18.4
+  - cojson-storage-indexeddb@0.18.4
+  - cojson-transport-ws@0.18.4
+
+## 0.18.3
+
+### Patch Changes
+
+- b526ab6: Set 18.x as latest
+- d69aa68: Added a server implementation of `createImage()` to create images in server environments using the "sharp" library
+  - cojson@0.18.3
+  - cojson-storage-indexeddb@0.18.3
+  - cojson-transport-ws@0.18.3
+
+## 0.18.2
+
+### Patch Changes
+
+- Updated dependencies [82ba2dd]
+- Updated dependencies [01f4889]
+  - cojson@0.18.2
+  - cojson-storage-indexeddb@0.18.2
+  - cojson-transport-ws@0.18.2
+
+## 0.18.1
+
+### Patch Changes
+
+- af5fbe7: New BetterAuth plugins to store Jazz's credentials
+- 9837459: Add `CoMap.$jazz.has` and `Account.$jazz.has` method to check for property existance without loading referenced CoValues or checking permissions
+  - cojson@0.18.1
+  - cojson-storage-indexeddb@0.18.1
+  - cojson-transport-ws@0.18.1
+
+## 0.18.0
+
+### Minor Changes
+
+- f263856: Add `$jazz` field to CoValues:
+  - This field contains Jazz methods that cluttered CoValues' API, as well as Jazz internal properties. This field is not enumerable, to allow CoValues to behave similarly to JSON objects.
+  - Added a `$jazz.set` method to update a CoValue's fields. When updating collaborative fields, you can pass in JSON objects instead of CoValues and Jazz will create
+    the CoValues automatically (similarly to CoValue `create` methods).
+  - All CoMap methods have been moved into `$jazz`, to allow defining any arbitrary key in the CoMap (except for `$jazz`) without conflicts.
+    - For CoMaps created with `co.map`, fields are now `readonly` to prevent setting properties directly. Use the `$jazz.set` method instead.
+    - CoMaps created with class schemas don't get type errors on direct property assignments, but they get a runtime errors prompting indicating to use `$jazz.set`.
+    - the `delete` operator can no longer be used to delete CoRecord properties. Use `$jazz.delete` instead.
+  - CoList's array-mutation methods have been moved into `$jazz`, in order to prevent using methods
+    - CoLists are now readonly arrays. Trying to use any mutation method yields a type error.
+    - `$jazz.set` can be used in place of direct element assignments.
+    - Added two new utility methods: `$jazz.remove` and `$jazz.retain`. They allow editing a CoList in-place with a simpler API than `$jazz.splice`.
+    - `sort`, `reverse`, `fill` and `copyWithin` have been deprecated, given that they could behave inconsistently with CoLists. `$jazz` replacements may be introduced
+      in future releases.
+  - `.$jazz.owner` now always returns a Group (instead of a Group or an Account). We'll be migrating away of having Accounts as CoValue owners in future releases.
+  - Removed `castAs`, since it's an inherently unsafe operation that bypassed typechecking and enabled using CoValues in unsupported ways.
+  - Removed the `id` and `_type` fields from `toJSON()`'s output in Account, CoMap, CoFeed & FileStream, to make CoValues behave more similarly to JSON objects.
+  - Removed the `root` and `profile` fields from Group.
+
+### Patch Changes
+
+- Updated dependencies [b709494]
+- Updated dependencies [f263856]
+  - cojson@0.18.0
+  - cojson-storage-indexeddb@0.18.0
+  - cojson-transport-ws@0.18.0
+
+## 0.17.14
+
+### Patch Changes
+
+- cc2f774: Detect incompatible Zod schemas when creating `co.map`s and `co.profile`s
+- Updated dependencies [1094b7c]
+- Updated dependencies [6378ad5]
+  - cojson@0.17.14
+  - cojson-storage-indexeddb@0.17.14
+  - cojson-transport-ws@0.17.14
+
+## 0.17.13
+
+### Patch Changes
+
+- d208cd1: Add remove action for CoList table in the inspector
+- 7821a8b: fix: sign out Jazz account when signing out from Clerk
+- Updated dependencies [7dc3160]
+- Updated dependencies [474881d]
+  - cojson@0.17.13
+  - cojson-storage-indexeddb@0.17.13
+  - cojson-transport-ws@0.17.13
+
+## 0.17.12
+
+### Patch Changes
+
+- 1ccae1a: RN Expo E2E dependency fixes w catalog
+- Updated dependencies [c2daf3e]
+- Updated dependencies [72a63bf]
+- Updated dependencies [234bf91]
+  - cojson@0.17.12
+  - cojson-storage-indexeddb@0.17.12
+  - cojson-transport-ws@0.17.12
+
+## 0.17.11
+
+### Patch Changes
+
+- 8f3852b: Accept { $onError: null } as resolve query for co.list references
+- bb9d837: Explicit loadAs in CoList.upsertUnique to use it without loaded context
+- Updated dependencies [68b2f37]
+- Updated dependencies [257ded3]
+- Updated dependencies [e301ad6]
+  - cojson@0.17.11
+  - cojson-storage-indexeddb@0.17.11
+  - cojson-transport-ws@0.17.11
+
+## 0.17.10
+
+### Patch Changes
+
+- Updated dependencies [c55297c]
+  - cojson@0.17.10
+  - cojson-storage-indexeddb@0.17.10
+  - cojson-transport-ws@0.17.10
+
+## 0.17.9
+
+### Patch Changes
+
+- 52ea0c7: Explicit loadAs in upsertUnique to use it without loaded context
+- Updated dependencies [7586c3b]
+  - cojson@0.17.9
+  - cojson-storage-indexeddb@0.17.9
+  - cojson-transport-ws@0.17.9
+
+## 0.17.8
+
+### Patch Changes
+
+- ac3e694: Fixed an issue where CoValue schemas could be incorrectly passed to `co.map` and `co.profile` schema definers.
+- 6dbb053: Prosemirror: fix RangeError triggered when creating invalid HTML
+- 1a182f0: Add missing BaseProfileShape export
+  - cojson@0.17.8
+  - cojson-storage-indexeddb@0.17.8
+  - cojson-transport-ws@0.17.8
+
+## 0.17.7
+
+### Patch Changes
+
+- cojson@0.17.7
+- cojson-storage-indexeddb@0.17.7
+- cojson-transport-ws@0.17.7
+
+## 0.17.6
+
+### Patch Changes
+
+- 82de51c: allow creating CoValues from JSON without an active account
+- 694b168: get resized image's id without triggering shallow load in `loadImageBySize`
+  - cojson@0.17.6
+  - cojson-storage-indexeddb@0.17.6
+  - cojson-transport-ws@0.17.6
+
+## 0.17.5
+
+### Patch Changes
+
+- 5963658: Implement/expose loadUnique and upsertUnique on co.list and co.record
+- Updated dependencies [71c1411]
+- Updated dependencies [2d11d44]
+  - cojson@0.17.5
+  - cojson-storage-indexeddb@0.17.5
+  - cojson-transport-ws@0.17.5
+
+## 0.17.4
+
+### Patch Changes
+
+- 7dd3d00: Export `Ref` class from jazz-tools package
+  - cojson@0.17.4
+  - cojson-storage-indexeddb@0.17.4
+  - cojson-transport-ws@0.17.4
+
+## 0.17.3
+
+### Patch Changes
+
+- Updated dependencies [f0c73d9]
+  - cojson@0.17.3
+  - cojson-storage-indexeddb@0.17.3
+  - cojson-transport-ws@0.17.3
+
+## 0.17.2
+
+### Patch Changes
+
+- 794681a: fix unused blob creation on react Image component
+- 83fc22f: React Native resizer is now imported dynamically, as it is an optional dependency
+- Updated dependencies [5b2b16a]
+  - cojson@0.17.2
+  - cojson-storage-indexeddb@0.17.2
+  - cojson-transport-ws@0.17.2
+
+## 0.17.1
+
+### Patch Changes
+
+- 0bcbf55: Export the HttpRoute type
+- d1bdbf5: fix: ensure file downloaded in loadImageBySize
+- 4b73834: fix(jazz-tools/svelte): Make Image reactive to imageId change
+- Updated dependencies [2fd88b9]
+  - cojson@0.17.1
+  - cojson-storage-indexeddb@0.17.1
+  - cojson-transport-ws@0.17.1
+
 ## 0.17.0
 
 ### Minor Changes

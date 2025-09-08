@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { expectMap } from "../coValue.js";
 import {
   SyncMessagesLog,
-  TEST_NODE_CONFIG,
   loadCoValueOrFail,
   setupTestAccount,
   setupTestNode,
@@ -220,68 +219,75 @@ describe("Group.addMember", () => {
     expect(personOnReaderNode.get("name")).toEqual(undefined);
   });
 
-  test("an admin should not be able downgrade an admin", async () => {
-    const admin = await setupTestAccount({
-      connected: true,
-    });
+  test.each(["writer", "reader", "writeOnly"] as const)(
+    "an admin should not be able to downgrade an admin to %s",
+    async (targetRole) => {
+      const admin = await setupTestAccount({
+        connected: true,
+      });
 
-    const otherAdmin = await setupTestAccount({
-      connected: true,
-    });
+      const otherAdmin = await setupTestAccount({
+        connected: true,
+      });
 
-    const group = admin.node.createGroup();
-    const person = group.createMap({
-      name: "John Doe",
-    });
+      const group = admin.node.createGroup();
+      const person = group.createMap({
+        name: "John Doe",
+      });
 
-    const otherAdminOnAdminNode = await loadCoValueOrFail(
-      admin.node,
-      otherAdmin.accountID,
-    );
-    group.addMember(otherAdminOnAdminNode, "admin");
+      const otherAdminOnAdminNode = await loadCoValueOrFail(
+        admin.node,
+        otherAdmin.accountID,
+      );
+      group.addMember(otherAdminOnAdminNode, "admin");
 
-    // Try to downgrade other admin
-    try {
-      group.addMember(otherAdminOnAdminNode, "writer");
-    } catch (e) {
-      expect(e).toBeDefined();
-    }
+      // Try to downgrade other admin
+      expect(() => group.addMember(otherAdminOnAdminNode, targetRole)).toThrow(
+        "Administrators cannot demote other administrators in a group",
+      );
 
-    expect(group.roleOf(otherAdmin.accountID)).toEqual("admin");
+      expect(group.roleOf(otherAdmin.accountID)).toEqual("admin");
 
-    // Verify other admin still has admin access by adding a new member
-    const reader = await setupTestAccount({
-      connected: true,
-    });
+      // Verify other admin still has admin access by adding a new member
+      const reader = await setupTestAccount({
+        connected: true,
+      });
 
-    const readerOnOtherAdminNode = await loadCoValueOrFail(
-      otherAdmin.node,
-      reader.accountID,
-    );
-    group.addMember(readerOnOtherAdminNode, "reader");
+      const readerOnOtherAdminNode = await loadCoValueOrFail(
+        otherAdmin.node,
+        reader.accountID,
+      );
+      group.addMember(readerOnOtherAdminNode, "reader");
 
-    const personOnReaderNode = await loadCoValueOrFail(reader.node, person.id);
+      const personOnReaderNode = await loadCoValueOrFail(
+        reader.node,
+        person.id,
+      );
 
-    await waitFor(() => {
-      expect(
-        expectMap(personOnReaderNode.core.getCurrentContent()).get("name"),
-      ).toEqual("John Doe");
-    });
-  });
+      await waitFor(() => {
+        expect(
+          expectMap(personOnReaderNode.core.getCurrentContent()).get("name"),
+        ).toEqual("John Doe");
+      });
+    },
+  );
 
-  test("an admin should be able downgrade themselves", async () => {
-    const admin = await setupTestAccount({
-      connected: true,
-    });
+  test.each(["writer", "reader", "writeOnly"] as const)(
+    "an admin should be able downgrade themselves to %s",
+    async (targetRole) => {
+      const admin = await setupTestAccount({
+        connected: true,
+      });
 
-    const group = admin.node.createGroup();
+      const group = admin.node.createGroup();
 
-    const account = await loadCoValueOrFail(admin.node, admin.accountID);
+      const account = await loadCoValueOrFail(admin.node, admin.accountID);
 
-    // Downgrade self to writer
-    group.addMember(account, "writer");
-    expect(group.roleOf(admin.accountID)).toEqual("writer");
-  });
+      // Downgrade self to target role
+      group.addMember(account, targetRole);
+      expect(group.roleOf(admin.accountID)).toEqual(targetRole);
+    },
+  );
 
   test("an admin should be able downgrade a writeOnly to reader", async () => {
     const admin = await setupTestAccount({

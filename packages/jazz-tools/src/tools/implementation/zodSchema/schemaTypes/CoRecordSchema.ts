@@ -12,7 +12,7 @@ import {
   SubscribeListenerOptions,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
-import { CoFieldInit } from "../typeConverters/CoFieldInit.js";
+import { CoFieldSchemaInit } from "../typeConverters/CoFieldSchemaInit.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { z } from "../zodReExport.js";
@@ -24,25 +24,27 @@ type CoRecordInit<
   K extends z.core.$ZodString<string>,
   V extends AnyZodOrCoValueSchema,
 > = {
-  [key in z.output<K>]: CoFieldInit<V>;
+  [key in z.output<K>]: CoFieldSchemaInit<V>;
 };
 
 export interface CoRecordSchema<
   K extends z.core.$ZodString<string>,
   V extends AnyZodOrCoValueSchema,
 > extends CoreCoRecordSchema<K, V> {
-  create: (
+  create(
     init: Simplify<CoRecordInit<K, V>>,
     options?:
-      | {
-          owner: Account | Group;
-          unique?: CoValueUniqueness["uniqueness"];
-        }
+      | { owner: Group; unique?: CoValueUniqueness["uniqueness"] }
+      | Group,
+  ): CoRecordInstanceShape<K, V> & CoMap;
+  /** @deprecated Creating CoValues with an Account as owner is deprecated. Use a Group instead. */
+  create(
+    init: Simplify<CoRecordInit<K, V>>,
+    options?:
+      | { owner: Account | Group; unique?: CoValueUniqueness["uniqueness"] }
       | Account
       | Group,
-  ) => {
-    [key in z.output<K>]: InstanceOrPrimitiveOfSchema<V>;
-  } & CoMap;
+  ): CoRecordInstanceShape<K, V> & CoMap;
 
   load<
     const R extends RefsToResolve<
@@ -72,11 +74,36 @@ export interface CoRecordSchema<
     ) => void,
   ): () => void;
 
+  /** @deprecated Use `CoMap.upsertUnique` and `CoMap.loadUnique` instead. */
   findUnique(
     unique: CoValueUniqueness["uniqueness"],
     ownerID: ID<Account> | ID<Group>,
     as?: Account | Group | AnonymousJazzAgent,
   ): ID<CoRecordInstanceCoValuesNullable<K, V>>;
+
+  upsertUnique<
+    const R extends RefsToResolve<
+      CoRecordInstanceCoValuesNullable<K, V>
+    > = true,
+  >(options: {
+    value: Simplify<CoRecordInit<K, V>>;
+    unique: CoValueUniqueness["uniqueness"];
+    owner: Account | Group;
+    resolve?: RefsToResolveStrict<CoRecordInstanceCoValuesNullable<K, V>, R>;
+  }): Promise<Resolved<CoRecordInstanceCoValuesNullable<K, V>, R> | null>;
+
+  loadUnique<
+    const R extends RefsToResolve<
+      CoRecordInstanceCoValuesNullable<K, V>
+    > = true,
+  >(
+    unique: CoValueUniqueness["uniqueness"],
+    ownerID: ID<Account> | ID<Group>,
+    options?: {
+      resolve?: RefsToResolveStrict<CoRecordInstanceCoValuesNullable<K, V>, R>;
+      loadAs?: Account | AnonymousJazzAgent;
+    },
+  ): Promise<Resolved<CoRecordInstanceCoValuesNullable<K, V>, R> | null>;
 
   getCoValueClass: () => typeof CoMap;
 
@@ -111,5 +138,12 @@ export type CoRecordInstanceCoValuesNullable<
   K extends z.core.$ZodString<string>,
   V extends AnyZodOrCoValueSchema,
 > = {
-  [key in z.output<K>]: InstanceOrPrimitiveOfSchemaCoValuesNullable<V>;
+  readonly [key in z.output<K>]: InstanceOrPrimitiveOfSchemaCoValuesNullable<V>;
 } & CoMap;
+
+export type CoRecordInstanceShape<
+  K extends z.core.$ZodString<string>,
+  V extends AnyZodOrCoValueSchema,
+> = {
+  readonly [key in z.output<K>]: InstanceOrPrimitiveOfSchema<V>;
+};

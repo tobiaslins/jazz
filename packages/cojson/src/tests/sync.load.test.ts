@@ -9,6 +9,7 @@ import {
   SyncMessagesLog,
   TEST_NODE_CONFIG,
   blockMessageTypeOnOutgoingPeer,
+  getSyncServerConnectedPeer,
   loadCoValueOrFail,
   setupTestAccount,
   setupTestNode,
@@ -127,6 +128,54 @@ describe("loading coValues from server", () => {
         "server -> client2 | KNOWN Map sessions: empty",
         "client -> server | LOAD Group sessions: header/3",
         "client -> server | LOAD Map sessions: header/1",
+      ]
+    `);
+  });
+
+  test("loading a branch", async () => {
+    const client = setupTestNode({
+      connected: true,
+    });
+
+    const group = jazzCloud.node.createGroup();
+    group.addMember("everyone", "writer");
+    const map = group.createMap();
+    const branchName = "feature-branch";
+
+    map.set("key1", "value1");
+    map.set("key2", "value2");
+
+    const branch = await jazzCloud.node.checkoutBranch(map.id, branchName);
+
+    if (branch === "unavailable") {
+      throw new Error("Branch is unavailable");
+    }
+
+    branch.set("branchKey", "branchValue");
+
+    SyncMessagesLog.clear();
+
+    const loadedBranch = await loadCoValueOrFail(client.node, branch.id);
+
+    expect(branch.get("key1")).toBe("value1");
+    expect(branch.get("key2")).toBe("value2");
+    expect(branch.get("branchKey")).toBe("branchValue");
+
+    expect(
+      SyncMessagesLog.getMessages({
+        Group: group.core,
+        Map: map.core,
+        Branch: branch.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "client -> server | LOAD Branch sessions: empty",
+        "server -> client | CONTENT Group header: true new: After: 0 New: 5",
+        "server -> client | CONTENT Map header: true new: After: 0 New: 2",
+        "server -> client | CONTENT Branch header: true new: After: 0 New: 2",
+        "client -> server | KNOWN Group sessions: header/5",
+        "client -> server | KNOWN Map sessions: header/2",
+        "client -> server | KNOWN Branch sessions: header/2",
       ]
     `);
   });
@@ -458,9 +507,9 @@ describe("loading coValues from server", () => {
       connected: true,
     });
 
-    await loadCoValueOrFail(client.node, largeMap.id);
+    const mapOnClient = await loadCoValueOrFail(client.node, largeMap.id);
 
-    await largeMap.core.waitForSync();
+    await mapOnClient.core.waitForFullStreaming();
 
     expect(
       SyncMessagesLog.getMessages({
@@ -973,7 +1022,6 @@ describe("loading coValues from server", () => {
         "server -> client | KNOWN Group sessions: header/6",
         "server -> client | KNOWN ParentGroup sessions: header/8",
         "server -> client | KNOWN Map sessions: header/1",
-        "client -> server | CONTENT ParentGroup header: true new: ",
       ]
     `);
   });
@@ -1034,5 +1082,56 @@ describe("loading coValues from server", () => {
     `);
 
     vi.useRealTimers();
+  });
+
+  test("should not request dependencies if transaction verification is disabled", async () => {
+    // Create a disconnected client
+    const { node: client, accountID } = await setupTestAccount({
+      connected: false,
+    });
+    const account = client.expectCurrentAccount(accountID);
+
+    // Prepare a group -- this will be a non-account dependency of a forthcoming map.
+    const group = client.createGroup();
+    group.addMember("everyone", "writer");
+
+    // Create a sync server and disable transaction verification
+    const syncServer = await setupTestAccount({ isSyncServer: true });
+    syncServer.node.syncManager.disableTransactionVerification();
+
+    // Connect the client, but don't setup syncing just yet...
+    const { peer } = getSyncServerConnectedPeer({
+      peerId: client.getCurrentAgent().id,
+      syncServer: syncServer.node,
+    });
+
+    // Disable reconciliation while we setup syncing because we don't want the
+    // server to know about our forthcoming map's dependencies (group + account).
+    const blocker = blockMessageTypeOnOutgoingPeer(peer, "load", {});
+    client.syncManager.addPeer(peer);
+    blocker.unblock();
+
+    // Create a map and set a value on it.
+    // If transaction verification were enabled, this would trigger LOAD messages
+    // from the server to the client asking for the group and account. However, we
+    // don't expect to see those messages since we disabled transaction verification.
+    const map = group.createMap();
+    map.set("hello", "world");
+    await map.core.waitForSync();
+
+    const syncMessages = SyncMessagesLog.getMessages({
+      Account: account.core,
+      Group: group.core,
+      Map: map.core,
+    });
+    expect(
+      syncMessages.some(
+        (msg) => msg.includes("LOAD Account") || msg.includes("LOAD Group"),
+      ),
+    ).toBe(false);
+
+    // Verify the map is available on the server (transaction was accepted)
+    const mapOnServerCore = await syncServer.node.loadCoValueCore(map.core.id);
+    expect(mapOnServerCore.isAvailable()).toBe(true);
   });
 });

@@ -1,6 +1,6 @@
 {
   "name": "svelte-passkey-auth",
-  "version": "0.0.118",
+  "version": "0.0.139",
   "type": "module",
   "private": true,
   "scripts": {
@@ -19,8 +19,8 @@
   "devDependencies": {
     "@playwright/test": "^1.50.1",
     "@sveltejs/adapter-auto": "^6.0.1",
-    "@sveltejs/kit": "^2.21.4",
-    "@sveltejs/vite-plugin-svelte": "^5.1.0",
+    "@sveltejs/kit": "catalog:svelte",
+    "@sveltejs/vite-plugin-svelte": "catalog:svelte",
     "@types/eslint": "^9.6.0",
     "eslint": "^9.7.0",
     "eslint-config-prettier": "^9.1.0",
@@ -30,8 +30,8 @@
     "postcss": "^8.4.27",
     "prettier": "^3.3.2",
     "prettier-plugin-svelte": "^3.2.6",
-    "svelte": "^5.33.19",
-    "svelte-check": "^4.0.0",
+    "svelte": "catalog:svelte",
+    "svelte-check": "catalog:svelte",
     "tailwindcss": "^4.1.10",
     "@tailwindcss/postcss": "^4.1.11",
     "typescript": "5.6.2",

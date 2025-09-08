@@ -1,10 +1,5 @@
 import { useToast } from "@/hooks/use-toast";
-import {
-  createInviteLink,
-  useAccount,
-  useCoState,
-  useIsAuthenticated,
-} from "jazz-tools/react";
+import { createInviteLink, useAccount, useCoState } from "jazz-tools/react";
 import { useParams } from "react-router";
 import { MusicaAccount, Playlist } from "./1_schema";
 import { uploadMusicTracks } from "./4_actions";
@@ -12,11 +7,13 @@ import { MediaPlayer } from "./5_useMediaPlayer";
 import { FileUploadButton } from "./components/FileUploadButton";
 import { MusicTrackRow } from "./components/MusicTrackRow";
 import { PlayerControls } from "./components/PlayerControls";
-import { PlaylistTitleInput } from "./components/PlaylistTitleInput";
+import { EditPlaylistModal } from "./components/EditPlaylistModal";
+import { PlaylistMembers } from "./components/PlaylistMembers";
 import { SidePanel } from "./components/SidePanel";
 import { Button } from "./components/ui/button";
 import { SidebarInset, SidebarTrigger } from "./components/ui/sidebar";
 import { usePlayState } from "./lib/audio/usePlayState";
+import { useState } from "react";
 
 export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
   /**
@@ -30,6 +27,7 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
   const playState = usePlayState();
   const isPlaying = playState.value === "play";
   const { toast } = useToast();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   async function handleFileLoad(files: FileList) {
     /**
@@ -40,7 +38,7 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
   }
 
   const params = useParams<{ playlistId: string }>();
-  const playlistId = params.playlistId ?? me?.root._refs.rootPlaylist.id;
+  const playlistId = params.playlistId ?? me?.root.$jazz.refs.rootPlaylist.id;
 
   const playlist = useCoState(Playlist, playlistId, {
     resolve: {
@@ -50,9 +48,10 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
     },
   });
 
+  const membersIds = playlist?.$jazz.owner.members.map((member) => member.id);
   const isRootPlaylist = !params.playlistId;
-  const isPlaylistOwner = playlist?._owner.myRole() === "admin";
-  const isActivePlaylist = playlistId === me?.root.activePlaylist?.id;
+  const isPlaylistOwner = playlist?.$jazz.owner.myRole() === "admin";
+  const isActivePlaylist = playlistId === me?.root.activePlaylist?.$jazz.id;
 
   const handlePlaylistShareClick = async () => {
     if (!isPlaylistOwner) return;
@@ -66,7 +65,9 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
     });
   };
 
-  const isAuthenticated = useIsAuthenticated();
+  const handleEditClick = () => {
+    setIsEditModalOpen(true);
+  };
 
   return (
     <SidebarInset className="flex flex-col h-screen text-gray-800">
@@ -74,11 +75,22 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
         <SidePanel />
         <main className="flex-1 px-2 py-4 md:px-6 overflow-y-auto overflow-x-hidden relative sm:h-[calc(100vh-80px)] bg-white h-[calc(100vh-165px)]">
           <SidebarTrigger className="md:hidden" />
+
           <div className="flex flex-row items-center justify-between mb-4 pl-1 md:pl-10 pr-2 md:pr-0 mt-2 md:mt-0 w-full">
             {isRootPlaylist ? (
               <h1 className="text-2xl font-bold text-blue-800">All tracks</h1>
             ) : (
-              <PlaylistTitleInput className="w-full" playlistId={playlistId} />
+              <div className="flex items-center space-x-4">
+                <h1 className="text-2xl font-bold text-blue-800">
+                  {playlist?.title}
+                </h1>
+                {membersIds && playlist && (
+                  <PlaylistMembers
+                    memberIds={membersIds}
+                    group={playlist.$jazz.owner}
+                  />
+                )}
+              </div>
             )}
             <div className="flex items-center space-x-4">
               {isRootPlaylist && (
@@ -88,10 +100,13 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
                   </FileUploadButton>
                 </>
               )}
-              {!isRootPlaylist && isAuthenticated && (
-                <Button onClick={handlePlaylistShareClick}>
-                  Share playlist
-                </Button>
+              {!isRootPlaylist && (
+                <>
+                  <Button onClick={handleEditClick} variant="outline">
+                    Edit
+                  </Button>
+                  <Button onClick={handlePlaylistShareClick}>Share</Button>
+                </>
               )}
             </div>
           </div>
@@ -100,11 +115,11 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
               (track, index) =>
                 track && (
                   <MusicTrackRow
-                    trackId={track.id}
-                    key={track.id}
+                    trackId={track.$jazz.id}
+                    key={track.$jazz.id}
                     index={index}
                     isPlaying={
-                      mediaPlayer.activeTrackId === track.id &&
+                      mediaPlayer.activeTrackId === track.$jazz.id &&
                       isActivePlaylist &&
                       isPlaying
                     }
@@ -118,6 +133,13 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
         </main>
         <PlayerControls mediaPlayer={mediaPlayer} />
       </div>
+
+      {/* Playlist Title Edit Modal */}
+      <EditPlaylistModal
+        playlistId={playlistId}
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+      />
     </SidebarInset>
   );
 }

@@ -1,5 +1,4 @@
 import { JsonValue } from "cojson";
-import { PartialOnUndefined } from "../../../internal.js";
 import { z } from "../zodReExport.js";
 
 // Copied from https://github.com/colinhacks/zod/blob/7e7e3461aceecf3633e158df50d6bc852e7cdf45/packages/zod/src/v4/core/schemas.ts#L1591,

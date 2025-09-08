@@ -18,6 +18,7 @@ import { afterAll, describe, expect, onTestFinished, test } from "vitest";
 import { createWorkerAccount } from "../createWorkerAccount.js";
 import { startSyncServer } from "../startSyncServer.js";
 import { waitFor } from "./utils.js";
+import { serverDefaults } from "../config.js";
 
 const dbPath = join(tmpdir(), `test-${randomUUID()}.db`);
 
@@ -30,9 +31,9 @@ async function setup<
     | (AccountClass<Account> & CoValueFromRaw<Account>)
     | AnyAccountSchema,
 >(AccountSchema?: S) {
-  const { server, port } = await setupSyncServer();
+  const { server, port, host } = await setupSyncServer();
 
-  const syncServer = `ws://localhost:${port}`;
+  const syncServer = `ws://${host}:${port}`;
 
   const { worker, done, waitForConnection, subscribeToConnectionChange } =
     await setupWorker(syncServer, AccountSchema);
@@ -43,13 +44,18 @@ async function setup<
     syncServer,
     server,
     port,
+    host,
     waitForConnection,
     subscribeToConnectionChange,
   };
 }
 
-async function setupSyncServer(defaultPort = "0") {
+async function setupSyncServer(
+  defaultHost = serverDefaults.host,
+  defaultPort = "0",
+) {
   const server = await startSyncServer({
+    host: defaultHost,
     port: defaultPort,
     inMemory: false,
     db: dbPath,
@@ -61,7 +67,7 @@ async function setupSyncServer(defaultPort = "0") {
     server.close();
   });
 
-  return { server, port };
+  return { server, port, host: defaultHost };
 }
 
 async function setupWorker<
@@ -101,9 +107,11 @@ describe("startWorker integration", () => {
       { owner: group },
     );
 
-    await map.waitForSync();
+    await map.$jazz.waitForSync();
 
-    const mapOnWorker2 = await TestMap.load(map.id, { loadAs: worker2.worker });
+    const mapOnWorker2 = await TestMap.load(map.$jazz.id, {
+      loadAs: worker2.worker,
+    });
 
     expect(mapOnWorker2?.value).toBe("test");
 
@@ -124,25 +132,22 @@ describe("startWorker integration", () => {
         profile: co.profile(),
       })
       .withMigration((account) => {
-        if (account.root === undefined) {
+        if (!account.$jazz.has("root")) {
           if (shouldReloadPreviousAccount) {
             throw new Error("Previous account not found");
           }
 
           shouldReloadPreviousAccount = true;
 
-          account.root = AccountRoot.create(
-            {
-              value: "test",
-            },
-            account,
-          );
+          account.$jazz.set("root", {
+            value: "test",
+          });
         }
       });
 
     const worker1 = await setup(CustomAccount);
 
-    const { root } = await worker1.worker.ensureLoaded({
+    const { root } = await worker1.worker.$jazz.ensureLoaded({
       resolve: { root: true },
     });
 
@@ -151,14 +156,14 @@ describe("startWorker integration", () => {
     await worker1.done();
 
     const worker2 = await startWorker({
-      accountID: worker1.worker.id,
+      accountID: worker1.worker.$jazz.id,
       accountSecret:
-        worker1.worker._raw.core.node.getCurrentAgent().agentSecret,
+        worker1.worker.$jazz.localNode.getCurrentAgent().agentSecret,
       syncServer: worker1.syncServer,
       AccountSchema: CustomAccount,
     });
 
-    const { root: root2 } = await worker2.worker.ensureLoaded({
+    const { root: root2 } = await worker2.worker.$jazz.ensureLoaded({
       resolve: { root: true },
     });
 
@@ -184,7 +189,9 @@ describe("startWorker integration", () => {
 
     const worker2 = await setupWorker(worker1.syncServer);
 
-    const mapOnWorker2 = await TestMap.load(map.id, { loadAs: worker2.worker });
+    const mapOnWorker2 = await TestMap.load(map.$jazz.id, {
+      loadAs: worker2.worker,
+    });
 
     expect(mapOnWorker2?.value).toBe("test");
 
@@ -208,14 +215,14 @@ describe("startWorker integration", () => {
         {
           value: value.value + " Responded from the inbox",
         },
-        { owner: value._owner },
+        { owner: value.$jazz.owner },
       );
     });
 
     const sender = await InboxSender.load<
       Loaded<typeof TestMap>,
       Loaded<typeof TestMap>
-    >(worker2.worker.id, worker1.worker);
+    >(worker2.worker.$jazz.id, worker1.worker);
 
     const resultId = await sender.sendMessage(map);
 
@@ -241,7 +248,7 @@ describe("startWorker integration", () => {
       { owner: group },
     );
 
-    await map.waitForSync();
+    await map.$jazz.waitForSync();
 
     // Close the sync server
     worker1.server.close();
@@ -254,20 +261,23 @@ describe("startWorker integration", () => {
       { owner: group },
     );
 
-    map.value = "updated while offline";
+    map.$jazz.set("value", "updated while offline");
 
     // Start a new sync server on the same port
     const newServer = await startSyncServer({
+      host: worker1.host,
       port: worker1.port,
       inMemory: true,
       db: "",
     });
 
-    await worker1.worker.waitForAllCoValuesSync();
+    await worker1.worker.$jazz.waitForAllCoValuesSync();
 
     // Verify both old and new values are synced
-    const mapOnWorker2 = await TestMap.load(map.id, { loadAs: worker2.worker });
-    const map2OnWorker2 = await TestMap.load(map2.id, {
+    const mapOnWorker2 = await TestMap.load(map.$jazz.id, {
+      loadAs: worker2.worker,
+    });
+    const map2OnWorker2 = await TestMap.load(map2.$jazz.id, {
       loadAs: worker2.worker,
     });
 
@@ -290,6 +300,7 @@ describe("startWorker integration", () => {
 
     // Start a new sync server on the same port
     const newServer = await startSyncServer({
+      host: worker1.host,
       port: worker1.port,
       inMemory: true,
       db: "",
@@ -326,6 +337,7 @@ describe("startWorker integration", () => {
 
     // Start a new sync server on the same port
     const newServer = await startSyncServer({
+      host: worker1.host,
       port: worker1.port,
       inMemory: true,
       db: "",
@@ -340,5 +352,51 @@ describe("startWorker integration", () => {
     unsubscribe();
     await worker1.done();
     newServer.close();
+  });
+
+  test("startWorker should be able to skip the inbox load", async () => {
+    const UserAccount = co.account({
+      root: co.map({}),
+      profile: co.profile(),
+    });
+
+    const syncServer = await setupSyncServer();
+    const syncServerUrl = `ws://${syncServer.host}:${syncServer.port}`;
+    const { accountID, agentSecret } = await createWorkerAccount({
+      name: "test-worker",
+      peer: syncServerUrl,
+    });
+
+    const { worker } = await startWorker({
+      AccountSchema: UserAccount,
+      syncServer: syncServerUrl,
+      accountID: accountID,
+      accountSecret: agentSecret,
+      skipInboxLoad: true,
+    });
+
+    const { profile } = await worker.$jazz.ensureLoaded({
+      resolve: { profile: true },
+    });
+
+    // Set the inbox manually, so that the inbox load would fail
+    profile.$jazz.set("inbox", "co_z3AUWm546svxm8xYEh7KnHqMpP2");
+    profile.$jazz.set(
+      "inboxInvite",
+      "https://cloud.jazz.tools/inbox/co_z3AUWm546svxm8xYEh7KnHqMpP2",
+    );
+
+    await worker.$jazz.waitForAllCoValuesSync();
+
+    let workerResult = await startWorker({
+      AccountSchema: UserAccount,
+      syncServer: syncServerUrl,
+      accountID: accountID,
+      accountSecret: agentSecret,
+      skipInboxLoad: true,
+    });
+
+    // Loads successfully even with an unavailable inbox
+    expect(workerResult.worker.$jazz.id).toBe(accountID);
   });
 });

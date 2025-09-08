@@ -7,8 +7,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useAccount, usePasskeyAuth } from "jazz-tools/react";
 import { useState } from "react";
 
@@ -18,7 +16,6 @@ interface AuthModalProps {
 }
 
 export function AuthModal({ open, onOpenChange }: AuthModalProps) {
-  const [username, setUsername] = useState("");
   const [isSignUp, setIsSignUp] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,6 +28,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
           },
         },
       },
+      profile: true,
     },
   });
 
@@ -48,7 +46,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
 
     try {
       if (isSignUp) {
-        await auth.signUp(username);
+        await auth.signUp(me?.profile.name || "");
       } else {
         await auth.logIn();
       }
@@ -84,18 +82,6 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {isSignUp && (
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter your username"
-                required
-              />
-            </div>
-          )}
           {error && <div className="text-sm text-red-500">{error}</div>}
           {shouldShowTransferRootPlaylist && (
             <div className="text-sm text-red-500">

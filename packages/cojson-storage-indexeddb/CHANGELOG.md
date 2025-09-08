@@ -1,5 +1,153 @@
 # cojson-storage-indexeddb
 
+## 0.18.6
+
+### Patch Changes
+
+- Updated dependencies [9e792c7]
+  - cojson@0.18.6
+
+## 0.18.5
+
+### Patch Changes
+
+- cojson@0.18.5
+
+## 0.18.4
+
+### Patch Changes
+
+- cojson@0.18.4
+
+## 0.18.3
+
+### Patch Changes
+
+- cojson@0.18.3
+
+## 0.18.2
+
+### Patch Changes
+
+- Updated dependencies [82ba2dd]
+- Updated dependencies [01f4889]
+  - cojson@0.18.2
+
+## 0.18.1
+
+### Patch Changes
+
+- cojson@0.18.1
+
+## 0.18.0
+
+### Patch Changes
+
+- Updated dependencies [b709494]
+- Updated dependencies [f263856]
+  - cojson@0.18.0
+
+## 0.17.14
+
+### Patch Changes
+
+- Updated dependencies [1094b7c]
+- Updated dependencies [6378ad5]
+  - cojson@0.17.14
+
+## 0.17.13
+
+### Patch Changes
+
+- Updated dependencies [7dc3160]
+- Updated dependencies [474881d]
+  - cojson@0.17.13
+
+## 0.17.12
+
+### Patch Changes
+
+- Updated dependencies [c2daf3e]
+- Updated dependencies [72a63bf]
+- Updated dependencies [234bf91]
+  - cojson@0.17.12
+
+## 0.17.11
+
+### Patch Changes
+
+- Updated dependencies [68b2f37]
+- Updated dependencies [257ded3]
+- Updated dependencies [e301ad6]
+  - cojson@0.17.11
+
+## 0.17.10
+
+### Patch Changes
+
+- Updated dependencies [c55297c]
+  - cojson@0.17.10
+
+## 0.17.9
+
+### Patch Changes
+
+- Updated dependencies [7586c3b]
+  - cojson@0.17.9
+
+## 0.17.8
+
+### Patch Changes
+
+- cojson@0.17.8
+
+## 0.17.7
+
+### Patch Changes
+
+- cojson@0.17.7
+
+## 0.17.6
+
+### Patch Changes
+
+- cojson@0.17.6
+
+## 0.17.5
+
+### Patch Changes
+
+- Updated dependencies [71c1411]
+- Updated dependencies [2d11d44]
+  - cojson@0.17.5
+
+## 0.17.4
+
+### Patch Changes
+
+- cojson@0.17.4
+
+## 0.17.3
+
+### Patch Changes
+
+- Updated dependencies [f0c73d9]
+  - cojson@0.17.3
+
+## 0.17.2
+
+### Patch Changes
+
+- Updated dependencies [5b2b16a]
+  - cojson@0.17.2
+
+## 0.17.1
+
+### Patch Changes
+
+- Updated dependencies [2fd88b9]
+  - cojson@0.17.1
+
 ## 0.17.0
 
 ### Patch Changes

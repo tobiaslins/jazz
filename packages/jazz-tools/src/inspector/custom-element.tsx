@@ -1,6 +1,6 @@
 import { Account } from "jazz-tools";
 import { createRoot } from "react-dom/client";
-import { JazzInspectorInternal } from "./index.js";
+import { JazzInspectorInternal } from "./viewer/new-app.js";
 
 export class JazzInspectorElement extends HTMLElement {
   private root: ReturnType<typeof createRoot> | null = null;
@@ -53,8 +53,8 @@ export class JazzInspectorElement extends HTMLElement {
 
     this.root?.render(
       <JazzInspectorInternal
-        localNode={this.account._raw.core.node}
-        accountId={this.account._raw.id}
+        localNode={this.account.$jazz.localNode}
+        accountId={this.account.$jazz.raw.id}
       />,
     );
   }

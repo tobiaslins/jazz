@@ -5,11 +5,13 @@ import { describe, expect, it, onTestFinished } from "vitest";
 import { WebSocket } from "ws";
 import { createWorkerAccount } from "../createWorkerAccount.js";
 import { startSyncServer } from "../startSyncServer.js";
+import { serverDefaults } from "../config.js";
 
 describe("createWorkerAccount - integration tests", () => {
   it("should create a worker account using the local sync server", async () => {
     // Pass port: undefined to let the server choose a random port
     const server = await startSyncServer({
+      host: serverDefaults.host,
       port: undefined,
       inMemory: true,
       db: "",

@@ -6,7 +6,7 @@ export function highestResAvailable(
   wantedWidth: number,
   wantedHeight: number,
 ): { width: number; height: number; image: FileStream } | null {
-  const availableSizes: [number, number, string][] = image._raw
+  const availableSizes: [number, number, string][] = image.$jazz.raw
     .keys()
     .filter((key) => /^\d+x\d+$/.test(key))
     .map((key) => {
@@ -29,7 +29,9 @@ export function highestResAvailable(
       return {
         size,
         match: sizesMatchWanted(size[0], size[1], wantedWidth, wantedHeight),
-        isLoaded: isLoaded(image._raw.get(size[2]) as CoID<any> | undefined),
+        isLoaded: isLoaded(
+          image.$jazz.raw.get(size[2]) as CoID<any> | undefined,
+        ),
       };
     })
     .sort((a, b) => a.match - b.match);
@@ -102,7 +104,7 @@ function isLoaded(id: CoID<any> | null | undefined): boolean {
     return false;
   }
 
-  return !!Account.getMe()._raw.core.node.getLoaded(id);
+  return !!Account.getMe().$jazz.localNode.getLoaded(id);
 }
 
 export async function loadImage(
@@ -126,13 +128,14 @@ export async function loadImage(
     };
   }
 
-  await imageOrId.ensureLoaded({
-    resolve: {
-      original: true,
-    },
-  });
-
   if (!imageOrId.original) {
+    console.warn("Unable to find the original image");
+    return null;
+  }
+
+  const loadedOriginal = await FileStream.load(imageOrId.original.$jazz.id);
+
+  if (!loadedOriginal) {
     console.warn("Unable to find the original image");
     return null;
   }
@@ -140,7 +143,7 @@ export async function loadImage(
   return {
     width: imageOrId.originalSize[0],
     height: imageOrId.originalSize[1],
-    image: imageOrId.original,
+    image: loadedOriginal,
   };
 }
 
@@ -149,7 +152,8 @@ export async function loadImageBySize(
   wantedWidth: number,
   wantedHeight: number,
 ): Promise<{ width: number; height: number; image: FileStream } | null> {
-  const image =
+  // @ts-expect-error The resolved type for CoMap does not include catchall properties
+  const image: ImageDefinition | null =
     typeof imageOrId === "string"
       ? await ImageDefinition.load(imageOrId)
       : imageOrId;
@@ -162,7 +166,7 @@ export async function loadImageBySize(
     return loadImage(imageOrId);
   }
 
-  const availableSizes: [number, number, string][] = image._raw
+  const availableSizes: [number, number, string][] = image.$jazz.raw
     .keys()
     .filter((key) => /^\d+x\d+$/.test(key))
     .map((key) => {
@@ -184,19 +188,25 @@ export async function loadImageBySize(
   const bestTarget =
     sortedSizes.find((el) => el.match > 0.95) || sortedSizes.at(-1)!;
 
-  const deepLoaded = await ImageDefinition.load(image.id, {
-    resolve: {
-      [bestTarget.size[2]]: true,
-    },
-  });
+  // The image's `wxh` keys reference FileStream.
+  // image[bestTarget.size[2]] returns undefined if FileStream hasn't loaded yet.
+  // Since we only need the file's ID to fetch it later, we check the raw _refs
+  // which contain only the linked covalue's ID.
+  const file = image.$jazz.refs[bestTarget.size[2]];
 
-  if (deepLoaded === null || deepLoaded[bestTarget.size[2]] === undefined) {
+  if (!file) {
+    return null;
+  }
+
+  const loadedFile = await FileStream.load(file.id);
+
+  if (!loadedFile) {
     return null;
   }
 
   return {
     width: bestTarget.size[0],
     height: bestTarget.size[1],
-    image: deepLoaded[bestTarget.size[2]]!,
+    image: loadedFile,
   };
 }

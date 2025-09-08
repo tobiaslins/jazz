@@ -27,8 +27,6 @@ pnpm install jazz-tools
 ```
 </CodeGroup>
 
-<Alert variant="info" className="mt-4 flex gap-2 items-center">Requires at least Node.js v20.</Alert>
-
 ## Write your schema
 
 Define your data schema using [CoValues](/docs/schemas/covalues) from `jazz-tools`.
@@ -49,7 +47,7 @@ export const AccountRoot = co.map({
 
 export const MyAppAccount = co.account({
   root: AccountRoot,
-  profile: co.map({ name: z.string() }),
+  profile: co.profile(),
 });
 ```
 </CodeGroup>
@@ -76,7 +74,7 @@ export const AccountRoot = co.map({
 
 export const MyAppAccount = co.account({
   root: AccountRoot,
-  profile: co.map({ name: z.string() }),
+  profile: co.profile(),
 });
 // @filename: app.tsx
 import * as React from "react";
@@ -131,7 +129,7 @@ export const AccountRoot = co.map({
 
 export const MyAppAccount = co.account({
   root: AccountRoot,
-  profile: co.map({ name: z.string() }),
+  profile: co.profile(),
 });
 // @filename: app.tsx
 import * as React from "react";
@@ -173,7 +171,7 @@ export const AccountRoot = co.map({
 
 export const MyAppAccount = co.account({
   root: AccountRoot,
-  profile: co.map({ name: z.string() }),
+  profile: co.profile(),
 });
 // @filename: app.tsx
 import * as React from "react";

@@ -22,27 +22,30 @@ export const CursorAccount = co
     root: CursorRoot,
   })
   .withMigration((account) => {
-    if (account.root === undefined) {
-      account.root = CursorRoot.create({
+    if (!account.$jazz.has("root")) {
+      account.$jazz.set("root", {
         camera: {
           position: {
             x: 0,
             y: 0,
           },
         },
-        cursors: CursorFeed.create([]),
+        cursors: [],
       });
     }
 
-    if (account.profile === undefined) {
+    if (!account.$jazz.has("profile")) {
       const group = Group.create();
       group.makePublic(); // The profile info is visible to everyone
 
-      account.profile = CursorProfile.create(
-        {
-          name: "Anonymous user",
-        },
-        group,
+      account.$jazz.set(
+        "profile",
+        CursorProfile.create(
+          {
+            name: "Anonymous user",
+          },
+          group,
+        ),
       );
     }
   });

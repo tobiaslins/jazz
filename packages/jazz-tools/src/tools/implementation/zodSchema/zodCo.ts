@@ -19,7 +19,10 @@ import {
   createCoreCoPlainTextSchema,
   createCoreFileStreamSchema,
   hydrateCoreCoValueSchema,
+  isAnyCoValueSchema,
+  isCoValueClass,
 } from "../../internal.js";
+import { removeGetters } from "../schemaUtils.js";
 import {
   CoDiscriminatedUnionSchema,
   DiscriminableCoValueSchemas,
@@ -33,9 +36,41 @@ import {
 } from "./schemaTypes/RichTextSchema.js";
 import { z } from "./zodReExport.js";
 
+/**
+ * Checking for the presence of the `_zod` property is the recommended way
+ * to determine if a schema is a Zod v4 schema.
+ *
+ * @see https://zod.dev/library-authors?id=how-to-support-zod-3-and-zod-4-simultaneously
+ */
+const isZodV4Schema = (schema: unknown): schema is z.core.$ZodType => {
+  return typeof schema === "object" && schema !== null && "_zod" in schema;
+};
+
+const isValidShape = (shape: z.core.$ZodLooseShape) => {
+  return Object.values(removeGetters(shape)).every(
+    (schema) =>
+      isZodV4Schema(schema) ||
+      isAnyCoValueSchema(schema) ||
+      isCoValueClass(schema),
+  );
+};
+
+const validateCoMapShape = (shape: z.core.$ZodLooseShape) => {
+  if (isAnyCoValueSchema(shape as any)) {
+    throw new Error(
+      "co.map() expects an object as its argument, not a CoValue schema",
+    );
+  } else if (!isValidShape(shape)) {
+    throw new Error(
+      "co.map() supports only Zod v4 schemas and CoValue schemas",
+    );
+  }
+};
+
 export const coMapDefiner = <Shape extends z.core.$ZodLooseShape>(
   shape: Shape,
 ): CoMapSchema<Shape> => {
+  validateCoMapShape(shape);
   const coreSchema = createCoreCoMapSchema(shape);
   return hydrateCoreCoValueSchema(coreSchema);
 };
@@ -66,12 +101,12 @@ export const coMapDefiner = <Shape extends z.core.$ZodLooseShape>(
  *   }),
  * }).withMigration(async (account) => {
  *   // Migration logic for existing accounts
- *   if (account.profile === undefined) {
+ *   if (!account.$jazz.has("profile")) {
  *     const group = Group.create();
- *     account.profile = co.profile().create(
+ *     account.$jazz.set("profile", co.profile().create(
  *       { name: getRandomUsername() },
  *       group
- *     );
+ *     ));
  *     group.addMember("everyone", "reader");
  *   }
  * });
@@ -111,11 +146,24 @@ export const coListDefiner = <T extends AnyZodOrCoValueSchema>(
   return hydrateCoreCoValueSchema(coreSchema);
 };
 
+const validateProfileShape = (shape: z.core.$ZodLooseShape) => {
+  if (isAnyCoValueSchema(shape as any)) {
+    throw new Error(
+      "co.profile() expects an object as its argument, not a CoValue schema",
+    );
+  } else if (!isValidShape(shape)) {
+    throw new Error(
+      "co.profile() supports only Zod v4 schemas and CoValue schemas",
+    );
+  }
+};
+
 export const coProfileDefiner = <
   Shape extends z.core.$ZodLooseShape = Simplify<DefaultProfileShape>,
 >(
   shape: Shape & Partial<DefaultProfileShape> = {} as any,
 ): CoProfileSchema<Shape> => {
+  validateProfileShape(shape);
   const ehnancedShape = Object.assign(shape, {
     name: z.string(),
     inbox: z.optional(z.string()),

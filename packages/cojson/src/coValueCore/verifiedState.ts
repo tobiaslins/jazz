@@ -8,19 +8,20 @@ import {
 import {
   CryptoProvider,
   Encrypted,
-  Hash,
   KeyID,
+  KeySecret,
   Signature,
   SignerID,
-  StreamingHash,
 } from "../crypto/crypto.js";
 import { RawCoID, SessionID, TransactionID } from "../ids.js";
 import { Stringified } from "../jsonStringify.js";
 import { JsonObject, JsonValue } from "../jsonValue.js";
 import { PermissionsDef as RulesetDef } from "../permissions.js";
 import { CoValueKnownState, NewContentMessage } from "../sync.js";
-import { InvalidHashError, InvalidSignatureError } from "./coValueCore.js";
 import { TryAddTransactionsError } from "./coValueCore.js";
+import { SessionLog, SessionMap } from "./SessionMap.js";
+import { ControlledAccountOrAgent } from "../coValues/account.js";
+import { logger } from "../logger.js";
 
 export type CoValueHeader = {
   type: AnyRawCoValue["type"];
@@ -38,30 +39,22 @@ export type PrivateTransaction = {
   madeAt: number;
   keyUsed: KeyID;
   encryptedChanges: Encrypted<JsonValue[], { in: RawCoID; tx: TransactionID }>;
+  meta?: Encrypted<JsonObject, { in: RawCoID; tx: TransactionID }>;
 };
-
 export type TrustingTransaction = {
   privacy: "trusting";
   madeAt: number;
   changes: Stringified<JsonValue[]>;
+  meta?: Stringified<JsonObject>;
 };
 
 export type Transaction = PrivateTransaction | TrustingTransaction;
-
-type SessionLog = {
-  readonly transactions: Transaction[];
-  streamingHash?: StreamingHash;
-  readonly signatureAfter: { [txIdx: number]: Signature | undefined };
-  lastSignature: Signature;
-};
-
-export type ValidatedSessions = Map<SessionID, SessionLog>;
 
 export class VerifiedState {
   readonly id: RawCoID;
   readonly crypto: CryptoProvider;
   readonly header: CoValueHeader;
-  readonly sessions: ValidatedSessions;
+  readonly sessions: SessionMap;
   private _cachedKnownState?: CoValueKnownState;
   private _cachedNewContentSinceEmpty: NewContentMessage[] | undefined;
   private streamingKnownState?: CoValueKnownState["sessions"];
@@ -71,88 +64,91 @@ export class VerifiedState {
     id: RawCoID,
     crypto: CryptoProvider,
     header: CoValueHeader,
-    sessions: ValidatedSessions,
+    sessions?: SessionMap,
     streamingKnownState?: CoValueKnownState["sessions"],
   ) {
     this.id = id;
     this.crypto = crypto;
     this.header = header;
-    this.sessions = sessions;
+    this.sessions = sessions ?? new SessionMap(id, crypto);
     this.streamingKnownState = streamingKnownState
       ? { ...streamingKnownState }
       : undefined;
   }
 
   clone(): VerifiedState {
-    // do a deep clone, including the sessions
-    const clonedSessions = new Map();
-    for (let [sessionID, sessionLog] of this.sessions) {
-      clonedSessions.set(sessionID, {
-        lastSignature: sessionLog.lastSignature,
-        streamingHash: sessionLog.streamingHash?.clone(),
-        signatureAfter: { ...sessionLog.signatureAfter },
-        transactions: sessionLog.transactions.slice(),
-      } satisfies SessionLog);
-    }
     return new VerifiedState(
       this.id,
       this.crypto,
       this.header,
-      clonedSessions,
-      this.streamingKnownState,
+      this.sessions.clone(),
+      this.streamingKnownState ? { ...this.streamingKnownState } : undefined,
     );
   }
 
   tryAddTransactions(
     sessionID: SessionID,
-    signerID: SignerID,
+    signerID: SignerID | undefined,
     newTransactions: Transaction[],
-    givenExpectedNewHash: Hash | undefined,
     newSignature: Signature,
     skipVerify: boolean = false,
-    givenNewStreamingHash?: StreamingHash,
   ): Result<true, TryAddTransactionsError> {
-    if (skipVerify === true) {
-      this.doAddTransactions(
-        sessionID,
-        newTransactions,
-        newSignature,
-        givenNewStreamingHash,
-      );
-    } else {
-      const { expectedNewHash, newStreamingHash } = this.expectedNewHashAfter(
-        sessionID,
-        newTransactions,
-      );
+    const result = this.sessions.addTransaction(
+      sessionID,
+      signerID,
+      newTransactions,
+      newSignature,
+      skipVerify,
+    );
 
-      if (givenExpectedNewHash && givenExpectedNewHash !== expectedNewHash) {
-        return err({
-          type: "InvalidHash",
-          id: this.id,
-          expectedNewHash,
-          givenExpectedNewHash,
-        } satisfies InvalidHashError);
-      }
-
-      if (!this.crypto.verify(newSignature, expectedNewHash, signerID)) {
-        return err({
-          type: "InvalidSignature",
-          id: this.id,
-          newSignature,
-          sessionID,
-          signerID,
-        } satisfies InvalidSignatureError);
-      }
-
-      this.doAddTransactions(
-        sessionID,
-        newTransactions,
-        newSignature,
-        newStreamingHash,
-      );
+    if (result.isOk()) {
+      this._cachedNewContentSinceEmpty = undefined;
+      this._cachedKnownState = undefined;
     }
 
-    return ok(true as const);
+    return result;
+  }
+
+  makeNewTrustingTransaction(
+    sessionID: SessionID,
+    signerAgent: ControlledAccountOrAgent,
+    changes: JsonValue[],
+    meta: JsonObject | undefined,
+  ) {
+    const result = this.sessions.makeNewTrustingTransaction(
+      sessionID,
+      signerAgent,
+      changes,
+      meta,
+    );
+
+    this._cachedNewContentSinceEmpty = undefined;
+    this._cachedKnownState = undefined;
+
+    return result;
+  }
+
+  makeNewPrivateTransaction(
+    sessionID: SessionID,
+    signerAgent: ControlledAccountOrAgent,
+    changes: JsonValue[],
+    keyID: KeyID,
+    keySecret: KeySecret,
+    meta: JsonObject | undefined,
+  ) {
+    const result = this.sessions.makeNewPrivateTransaction(
+      sessionID,
+      signerAgent,
+      changes,
+      keyID,
+      keySecret,
+      meta,
+    );
+
+    this._cachedNewContentSinceEmpty = undefined;
+    this._cachedKnownState = undefined;
+
+    return result;
   }
 
   getLastSignatureCheckpoint(sessionID: SessionID): number {
@@ -164,78 +160,6 @@ export class VerifiedState {
       (max, idx) => Math.max(max, parseInt(idx)),
       -1,
     );
-  }
-
-  private doAddTransactions(
-    sessionID: SessionID,
-    newTransactions: Transaction[],
-    newSignature: Signature,
-    newStreamingHash?: StreamingHash,
-  ) {
-    const sessionLog = this.sessions.get(sessionID);
-    const transactions = sessionLog?.transactions ?? [];
-
-    for (const tx of newTransactions) {
-      transactions.push(tx);
-    }
-
-    const signatureAfter = sessionLog?.signatureAfter ?? {};
-    const lastInbetweenSignatureIdx =
-      this.getLastSignatureCheckpoint(sessionID);
-
-    const sizeOfTxsSinceLastInbetweenSignature = transactions
-      .slice(lastInbetweenSignatureIdx + 1)
-      .reduce((sum, tx) => sum + getTransactionSize(tx), 0);
-
-    if (exceedsRecommendedSize(sizeOfTxsSinceLastInbetweenSignature)) {
-      signatureAfter[transactions.length - 1] = newSignature;
-    }
-
-    this.sessions.set(sessionID, {
-      transactions,
-      streamingHash: newStreamingHash,
-      lastSignature: newSignature,
-      signatureAfter: signatureAfter,
-    });
-
-    this._cachedNewContentSinceEmpty = undefined;
-    this._cachedKnownState = undefined;
-  }
-
-  expectedNewHashAfter(
-    sessionID: SessionID,
-    newTransactions: Transaction[],
-  ): { expectedNewHash: Hash; newStreamingHash: StreamingHash } {
-    const sessionLog = this.sessions.get(sessionID);
-
-    if (!sessionLog?.streamingHash) {
-      const streamingHash = new StreamingHash(this.crypto);
-      const oldTransactions = sessionLog?.transactions ?? [];
-
-      for (const transaction of oldTransactions) {
-        streamingHash.update(transaction);
-      }
-
-      for (const transaction of newTransactions) {
-        streamingHash.update(transaction);
-      }
-
-      return {
-        expectedNewHash: streamingHash.digest(),
-        newStreamingHash: streamingHash,
-      };
-    }
-
-    const streamingHash = sessionLog.streamingHash.clone();
-
-    for (const transaction of newTransactions) {
-      streamingHash.update(transaction);
-    }
-
-    return {
-      expectedNewHash: streamingHash.digest(),
-      newStreamingHash: streamingHash,
-    };
   }
 
   newContentSince(
@@ -423,6 +347,22 @@ export class VerifiedState {
       header: true,
       sessions,
     };
+  }
+
+  decryptTransaction(
+    sessionID: SessionID,
+    txIndex: number,
+    keySecret: KeySecret,
+  ): JsonValue[] | undefined {
+    return this.sessions.decryptTransaction(sessionID, txIndex, keySecret);
+  }
+
+  decryptTransactionMeta(
+    sessionID: SessionID,
+    txIndex: number,
+    keySecret: KeySecret,
+  ): JsonObject | undefined {
+    return this.sessions.decryptTransactionMeta(sessionID, txIndex, keySecret);
   }
 }
 

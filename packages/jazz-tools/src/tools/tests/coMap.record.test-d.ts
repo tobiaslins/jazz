@@ -24,12 +24,30 @@ describe("CoMap.Record", () => {
       matches(person);
     });
 
-    test("has the _owner property", () => {
+    test("co.input returns the type for the init payload", () => {
+      const Person = co.record(
+        z.string(),
+        co.map({
+          name: z.string(),
+          age: z.number(),
+          address: co.map({
+            street: z.string(),
+            city: z.string(),
+          }),
+        }),
+      );
+
+      const init: co.input<typeof Person> = {};
+
+      Person.create(init);
+    });
+
+    test("has the owner property", () => {
       const Person = co.record(z.string(), z.string());
 
       const person = Person.create({ name: "John" }, Account.getMe());
 
-      expectTypeOf(person._owner).toEqualTypeOf<Account | Group>();
+      expectTypeOf(person.$jazz.owner).toEqualTypeOf<Group>();
     });
 
     test("Record with reference", () => {
@@ -128,7 +146,7 @@ describe("CoMap.Record", () => {
         pet1: Dog.create({ name: "Rex" }),
       });
 
-      person.pet1!.owner = person;
+      person.pet1!.$jazz.set("owner", person);
 
       type ExpectedType = {
         [key: string]: Loaded<typeof Dog> | undefined;
@@ -156,7 +174,7 @@ describe("CoMap.Record", () => {
         pet2: Dog.create({ name: "Fido", breed: "Poodle" }),
       });
 
-      const loadedPerson = await Person.load(person.id, {
+      const loadedPerson = await Person.load(person.$jazz.id, {
         resolve: {
           $each: true,
         },
@@ -186,7 +204,7 @@ describe("CoMap.Record", () => {
         pet2: Dog.create({ name: "Fido", breed: "Poodle" }),
       });
 
-      const loadedPerson = await Person.load(person.id, {
+      const loadedPerson = await Person.load(person.$jazz.id, {
         resolve: {
           pet1: true,
         },
@@ -222,7 +240,7 @@ describe("CoMap.Record", () => {
       const userId: string = "pet1";
       const userId2: string = "pet3";
 
-      const loadedPerson = await Person.load(person.id, {
+      const loadedPerson = await Person.load(person.$jazz.id, {
         resolve: {
           [userId]: true,
           pet2: true,
@@ -262,7 +280,7 @@ describe("CoMap.Record", () => {
         pet2: Dog.create({ name: "Fido", breed: "Poodle" }),
       });
 
-      const loadedPerson = await Person.load(person.id);
+      const loadedPerson = await Person.load(person.$jazz.id);
 
       type Expect = NonNullable<typeof loadedPerson> extends never
         ? "error: is never"
@@ -291,18 +309,14 @@ describe("CoMap.Record", () => {
         pet2: Dog.create({ name: "Fido", breed: "Poodle" }),
       });
 
-      const loadedPerson = await Person.load(person.id, {
+      const loadedPerson = await Person.load(person.$jazz.id, {
         resolve: {
           $each: { $onError: null },
         },
       });
 
       type ExpectedType = {
-        [key: string]:
-          | (Loaded<typeof Dog> & {
-              $onError: never;
-            })
-          | null;
+        [key: string]: Loaded<typeof Dog> | null;
       } | null;
 
       function matches(value: ExpectedType) {

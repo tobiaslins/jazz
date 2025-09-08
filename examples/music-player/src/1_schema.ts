@@ -1,4 +1,4 @@
-import { co, z } from "jazz-tools";
+import { co, Group, z } from "jazz-tools";
 
 /** Walkthrough: Defining the data model with CoJSON
  *
@@ -37,13 +37,6 @@ export const MusicTrack = co.map({
   file: co.fileStream(),
 
   isExampleTrack: z.optional(z.boolean()),
-
-  /**
-   * You can use getters for recusrive relations
-   */
-  get sourceTrack() {
-    return MusicTrack.optional();
-  },
 });
 export type MusicTrack = co.loaded<typeof MusicTrack>;
 
@@ -70,32 +63,57 @@ export const MusicaAccountRoot = co.map({
   activePlaylist: Playlist,
 
   exampleDataLoaded: z.optional(z.boolean()),
+  accountSetupCompleted: z.optional(z.boolean()),
 });
 export type MusicaAccountRoot = co.loaded<typeof MusicaAccountRoot>;
+
+export const MusicaAccountProfile = co
+  .profile({
+    avatar: co.optional(co.image()),
+  })
+  .withMigration((profile) => {
+    if (profile.$jazz.owner.getRoleOf("everyone") !== "reader") {
+      profile.$jazz.owner.addMember("everyone", "reader");
+    }
+  });
+export type MusicaAccountProfile = co.loaded<typeof MusicaAccountProfile>;
+
 export const MusicaAccount = co
   .account({
     /** the default user profile with a name */
-    profile: co.profile(),
+    profile: MusicaAccountProfile,
     root: MusicaAccountRoot,
   })
-  .withMigration((account) => {
+  .withMigration(async (account) => {
     /**
      *  The account migration is run on account creation and on every log-in.
      *  You can use it to set up the account root and any other initial CoValues you need.
      */
-    if (account.root === undefined) {
+    if (!account.$jazz.has("root")) {
       const rootPlaylist = Playlist.create({
         tracks: [],
         title: "",
       });
 
-      account.root = MusicaAccountRoot.create({
+      account.$jazz.set("root", {
         rootPlaylist,
         playlists: [],
         activeTrack: undefined,
         activePlaylist: rootPlaylist,
         exampleDataLoaded: false,
       });
+    }
+
+    if (!account.$jazz.has("profile")) {
+      account.$jazz.set(
+        "profile",
+        MusicaAccountProfile.create(
+          {
+            name: "",
+          },
+          Group.create().makePublic(),
+        ),
+      );
     }
   });
 export type MusicaAccount = co.loaded<typeof MusicaAccount>;

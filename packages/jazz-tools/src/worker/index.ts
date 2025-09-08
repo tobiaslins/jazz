@@ -11,6 +11,7 @@ import {
   CoValueFromRaw,
   Inbox,
   InstanceOfSchema,
+  Loaded,
   createJazzContextFromExistingCredentials,
   randomSessionProvider,
 } from "jazz-tools";
@@ -26,6 +27,10 @@ type WorkerOptions<
   WebSocket?: AnyWebSocketConstructor;
   AccountSchema?: S;
   crypto?: CryptoProvider;
+  /**
+   * If true, the inbox will not be loaded.
+   */
+  skipInboxLoad?: boolean;
 };
 
 /** @category Context Creation */
@@ -39,6 +44,7 @@ export async function startWorker<
     accountSecret = process.env.JAZZ_WORKER_SECRET,
     syncServer = "wss://cloud.jazz.tools",
     AccountSchema = Account as unknown as S,
+    skipInboxLoad = false,
   } = options;
 
   let node: LocalNode | undefined = undefined;
@@ -87,27 +93,31 @@ export async function startWorker<
   });
 
   const account = context.account as InstanceOfSchema<S>;
-  node = account._raw.core.node;
+  node = account.$jazz.localNode;
 
-  if (!account._refs.profile?.id) {
+  if (!account.$jazz.refs.profile?.id) {
     throw new Error("Account has no profile");
   }
 
-  const inbox = await Inbox.load(account);
+  const inbox = skipInboxLoad ? undefined : await Inbox.load(account);
 
   async function done() {
-    await context.account.waitForAllCoValuesSync();
+    await context.account.$jazz.waitForAllCoValuesSync();
 
     wsPeer.disable();
     context.done();
   }
 
-  const inboxPublicApi = {
-    subscribe: inbox.subscribe.bind(inbox) as Inbox["subscribe"],
-  };
+  const inboxPublicApi = inbox
+    ? {
+        subscribe: inbox.subscribe.bind(inbox) as Inbox["subscribe"],
+      }
+    : {
+        subscribe: () => {},
+      };
 
   return {
-    worker: context.account as InstanceOfSchema<S>,
+    worker: context.account as Loaded<S>,
     experimental: {
       inbox: inboxPublicApi,
     },

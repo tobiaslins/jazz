@@ -30,11 +30,12 @@ export type {
   Resolved,
   RefsToResolve,
   RefsToResolveStrict,
-  CoMapInit,
+  CoMapInit_DEPRECATED as CoMapInit,
   CoFeedEntry,
   TextPos,
   AccountClass,
   AccountCreationProps,
+  BaseProfileShape,
 } from "./internal.js";
 
 export {
@@ -54,6 +55,7 @@ export {
   SubscriptionScope,
   exportCoValue,
   importContentPieces,
+  Ref,
 } from "./internal.js";
 
 export {
@@ -113,4 +115,5 @@ export {
   experimental_defineRequest,
   JazzRequestError,
   isJazzRequestError,
+  type HttpRoute,
 } from "./coValues/request.js";

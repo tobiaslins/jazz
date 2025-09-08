@@ -70,7 +70,7 @@ export const JazzAccount = co
     profile: co.profile(),
   })
   .withMigration((account) => {
-    if (account.root === undefined) {
+    if (!account.$jazz.has("root")) {
       // Using a Group as an owner allows you to give access to other users
       const organizationGroup = Group.create();
 
@@ -84,7 +84,7 @@ export const JazzAccount = co
           organizationGroup,
         ),
       ]);
-      account.root = JazzAccountRoot.create({ organizations });
+      account.$jazz.set("root", { organizations });
     }
   });
 ```
@@ -145,11 +145,11 @@ export function AcceptInvitePage() {
         if (organization) {
           // avoid duplicates
           const ids = me.root.organizations.map(
-            (organization) => organization?.id,
+            (organization) => organization?.$jazz.id,
           );
           if (ids.includes(organizationId)) return;
 
-          me.root.organizations.push(organization);
+          me.root.organizations.$jazz.push(organization);
         }
       });
     }

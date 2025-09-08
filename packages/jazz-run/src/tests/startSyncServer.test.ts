@@ -1,24 +1,29 @@
 import { randomUUID } from "crypto";
 import { tmpdir } from "os";
 import { join } from "path";
-import { LocalNode } from "cojson";
 import { co, z } from "jazz-tools";
 import { startWorker } from "jazz-tools/worker";
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, afterAll } from "vitest";
 import { createWorkerAccount } from "../createWorkerAccount.js";
 import { startSyncServer } from "../startSyncServer.js";
+import { serverDefaults } from "../config.js";
+import { unlinkSync } from "node:fs";
 
 const TestMap = co.map({
   value: z.string(),
 });
 
+const dbPath = join(tmpdir(), `test-${randomUUID()}.db`);
+
+afterAll(() => {
+  unlinkSync(dbPath);
+});
+
 describe("startSyncServer", () => {
   test("persists values in storage and loads them after restart", async () => {
-    // Create a temporary database file
-    const dbPath = join(tmpdir(), `test-${randomUUID()}.db`);
-
     // Start first server instance
     const server1 = await startSyncServer({
+      host: serverDefaults.host,
       port: "0", // Random available port
       inMemory: false,
       db: dbPath,
@@ -48,6 +53,7 @@ describe("startSyncServer", () => {
 
     // Start second server instance with same DB
     const server2 = await startSyncServer({
+      host: serverDefaults.host,
       port: "0",
       inMemory: false,
       db: dbPath,
@@ -64,7 +70,7 @@ describe("startSyncServer", () => {
     });
 
     // Try to load the previously created map
-    const loadedMap = await TestMap.load(map.id, {});
+    const loadedMap = await TestMap.load(map.$jazz.id, {});
 
     // Verify the data persisted
     expect(loadedMap).not.toBe(null);
@@ -73,5 +79,22 @@ describe("startSyncServer", () => {
     // Cleanup
     await worker2.done();
     server2.close();
+  });
+
+  test("starts a sync server with a specific host and port", async () => {
+    const server = await startSyncServer({
+      host: "0.0.0.0",
+      port: "4900",
+      inMemory: false,
+      db: dbPath,
+    });
+
+    expect(server.address()).toEqual({
+      address: "0.0.0.0",
+      port: 4900,
+      family: "IPv4",
+    });
+
+    server.close();
   });
 });

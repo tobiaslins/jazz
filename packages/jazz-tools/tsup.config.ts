@@ -32,6 +32,7 @@ export default defineConfig([
       index: "src/media/index.ts",
       "index.browser": "src/media/index.browser.ts",
       "index.native": "src/media/index.native.ts",
+      "index.server": "src/media/index.server.ts",
     },
     outDir: "dist/media",
   },
@@ -47,7 +48,7 @@ export default defineConfig([
   {
     ...cfg,
     entry: {
-      index: "src/inspector/index.ts",
+      index: "src/inspector/index.tsx",
     },
     outDir: "dist/inspector",
     esbuildOptions: (options) => {
@@ -136,5 +137,14 @@ export default defineConfig([
       index: "src/worker/index.ts",
     },
     outDir: "dist/worker",
+  },
+  {
+    ...cfg,
+    entry: {
+      client: "src/better-auth/auth/client.ts",
+      server: "src/better-auth/auth/server.ts",
+      react: "src/better-auth/auth/react.tsx",
+    },
+    outDir: "dist/better-auth/auth",
   },
 ]);

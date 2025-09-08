@@ -132,17 +132,25 @@ export class LocalNode {
     return accountOrAgentIDfromSessionID(this.currentSessionID);
   }
 
+  _cachedCurrentAgent: ControlledAccountOrAgent | undefined;
   getCurrentAgent(): ControlledAccountOrAgent {
-    const accountOrAgent = this.getCurrentAccountOrAgentID();
-    if (isAgentID(accountOrAgent)) {
-      return new ControlledAgent(this.agentSecret, this.crypto);
+    if (!this._cachedCurrentAgent) {
+      const accountOrAgent = this.getCurrentAccountOrAgentID();
+      if (isAgentID(accountOrAgent)) {
+        this._cachedCurrentAgent = new ControlledAgent(
+          this.agentSecret,
+          this.crypto,
+        );
+      } else {
+        this._cachedCurrentAgent = new ControlledAccount(
+          expectAccount(
+            this.expectCoValueLoaded(accountOrAgent).getCurrentContent(),
+          ),
+          this.agentSecret,
+        );
+      }
     }
-    return new ControlledAccount(
-      expectAccount(
-        this.expectCoValueLoaded(accountOrAgent).getCurrentContent(),
-      ),
-      this.agentSecret,
-    );
+    return this._cachedCurrentAgent;
   }
 
   expectCurrentAccountID(reason: string): RawAccountID {
@@ -360,7 +368,7 @@ export class LocalNode {
 
     const coValue = this.putCoValue(
       id,
-      new VerifiedState(id, this.crypto, header, new Map()),
+      new VerifiedState(id, this.crypto, header),
     );
 
     this.garbageCollector?.trackCoValueAccess(coValue);
@@ -400,7 +408,7 @@ export class LocalNode {
         coValue.loadingState === "unknown" ||
         coValue.loadingState === "unavailable"
       ) {
-        const peers = this.syncManager.getServerPeers(skipLoadingFromPeer);
+        const peers = this.syncManager.getServerPeers(id, skipLoadingFromPeer);
 
         if (!this.storage && peers.length === 0) {
           return coValue;
@@ -447,6 +455,40 @@ export class LocalNode {
     }
 
     return core.getCurrentContent() as T;
+  }
+
+  /**
+   * Loads a branch from a group coValue, creating a new one if it doesn't exist.
+   *
+   * Returns "unavailable" in case of errors or missing source.
+   */
+  async checkoutBranch<T extends RawCoValue>(
+    id: CoID<T> | RawCoID,
+    branchName: string,
+    branchOwnerID?: RawCoID,
+  ): Promise<T | "unavailable"> {
+    const source = await this.loadCoValueCore(id);
+
+    if (!source.isAvailable()) {
+      return "unavailable";
+    }
+
+    const branch = source.getBranch(branchName, branchOwnerID);
+
+    if (branch.isAvailable()) {
+      return branch.getCurrentContent() as T;
+    }
+
+    // Passing skipRetry to true because otherwise creating a new branch would always take 1 retry delay
+    await this.loadCoValueCore(branch.id, undefined, true);
+
+    if (!branch.isAvailable()) {
+      return source
+        .createBranch(branchName, branchOwnerID)
+        .getCurrentContent() as T;
+    }
+
+    return branch.getCurrentContent() as T;
   }
 
   getLoaded<T extends RawCoValue>(id: CoID<T>): T | undefined {

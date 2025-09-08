@@ -13,6 +13,7 @@ import { Loaded } from "../implementation/zodSchema/zodSchema.js";
 import { Account } from "../index.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
 import { waitFor } from "./utils.js";
+import { TypeSym } from "../internal.js";
 
 const Crypto = await WasmCrypto.create();
 
@@ -54,7 +55,7 @@ describe("CoMap.Record", async () => {
     test("create a Record with nullable values", () => {
       const Person = co.record(z.string(), z.string().nullable());
       const person = Person.create({ name: "John", age: null });
-      person.bio = null;
+      person.$jazz.set("bio", null);
       expect(person.name).toEqual("John");
       expect(person.age).toEqual(null);
       expect(person.bio).toEqual(null);
@@ -75,7 +76,7 @@ describe("CoMap.Record", async () => {
       const person = Person.create({ name: "John" }, Account.getMe());
 
       expect(person.name).toEqual("John");
-      expect(person._raw.get("name")).toEqual("John");
+      expect(person.$jazz.raw.get("name")).toEqual("John");
     });
 
     test("create a Record with a group as owner", () => {
@@ -84,7 +85,7 @@ describe("CoMap.Record", async () => {
       const person = Person.create({ name: "John" }, Group.create());
 
       expect(person.name).toEqual("John");
-      expect(person._raw.get("name")).toEqual("John");
+      expect(person.$jazz.raw.get("name")).toEqual("John");
     });
 
     test("Empty schema", () => {
@@ -120,7 +121,7 @@ describe("CoMap.Record", async () => {
 
       const person = Person.create({ name: "John" });
 
-      person.name = "Jane";
+      person.$jazz.set("name", "Jane");
 
       expect(person.name).toEqual("Jane");
     });
@@ -130,14 +131,16 @@ describe("CoMap.Record", async () => {
 
       const person = Person.create({ name: "John", age: "20" });
 
-      delete person.age;
+      // Deleting a non-existent property does nothing
+      person.$jazz.delete("nonExistentProperty");
+
+      person.$jazz.delete("age");
 
       expect(person.name).toEqual("John");
       expect("age" in person).toEqual(false);
 
       expect(person.toJSON()).toEqual({
-        _type: "CoMap",
-        id: person.id,
+        $jazz: { id: person.$jazz.id },
         name: "John",
       });
     });
@@ -153,21 +156,21 @@ describe("CoMap.Record", async () => {
         pet1: Dog.create({ name: "Rex" }),
       });
 
-      person.pet1 = Dog.create({ name: "Fido" });
+      person.$jazz.set("pet1", Dog.create({ name: "Fido" }));
 
       expect(person.pet1?.name).toEqual("Fido");
     });
 
-    test("changes should be listed in _edits", () => {
+    test("changes should be listed in getEdits()", () => {
       const Person = co.record(z.string(), z.string());
 
       const person = Person.create({ name: "John" });
 
       const me = Account.getMe();
 
-      person.name = "Jane";
+      person.$jazz.set("name", "Jane");
 
-      const edits = person._edits.name?.all;
+      const edits = person.$jazz.getEdits().name?.all;
       expect(edits).toEqual([
         expect.objectContaining({
           value: "John",
@@ -182,8 +185,14 @@ describe("CoMap.Record", async () => {
           madeAt: expect.any(Date),
         }),
       ]);
-      expect(edits?.[0]?.by).toMatchObject({ _type: "Account", id: me.id });
-      expect(edits?.[1]?.by).toMatchObject({ _type: "Account", id: me.id });
+      expect(edits?.[0]?.by).toMatchObject({
+        [TypeSym]: "Account",
+        $jazz: expect.objectContaining({ id: me.$jazz.id }),
+      });
+      expect(edits?.[1]?.by).toMatchObject({
+        [TypeSym]: "Account",
+        $jazz: expect.objectContaining({ id: me.$jazz.id }),
+      });
     });
   });
 
@@ -201,7 +210,7 @@ describe("CoMap.Record", async () => {
         pet2: Dog.create({ name: "Fido", breed: "Poodle" }),
       });
 
-      const loadedPerson = await Person.load(person.id, {
+      const loadedPerson = await Person.load(person.$jazz.id, {
         resolve: {
           $each: true,
         },
@@ -225,7 +234,7 @@ describe("CoMap.Record", async () => {
         pet2: Dog.create({ name: "Fido", breed: "Poodle" }),
       });
 
-      const loadedPerson = await Person.load(person.id, {
+      const loadedPerson = await Person.load(person.$jazz.id, {
         resolve: {
           pet1: true,
         },
@@ -248,7 +257,7 @@ describe("CoMap.Record", async () => {
         pet2: Dog.create({ name: "Fido", breed: "Poodle" }),
       });
 
-      const loadedPerson = await Person.load(person.id, {
+      const loadedPerson = await Person.load(person.$jazz.id, {
         resolve: {
           pet3: true,
         },
@@ -270,7 +279,7 @@ describe("CoMap.Record", async () => {
         pet2: Dog.create({ name: "Fido", breed: "Poodle" }),
       });
 
-      const loadedPerson = await Person.load(person.id);
+      const loadedPerson = await Person.load(person.$jazz.id);
 
       assert(loadedPerson);
       expect(loadedPerson.pet1?.name).toEqual("Rex");
@@ -293,7 +302,7 @@ describe("CoMap.Record", async () => {
       const spy = vi.fn((person) => updates.push(person));
 
       Person.subscribe(
-        person.id,
+        person.$jazz.id,
         {
           resolve: {
             $each: true,
@@ -310,7 +319,7 @@ describe("CoMap.Record", async () => {
 
       expect(updates[0]?.pet1?.name).toEqual("Rex");
 
-      person.pet1 = Dog.create({ name: "Fido", breed: "Poodle" });
+      person.$jazz.set("pet1", Dog.create({ name: "Fido", breed: "Poodle" }));
 
       await waitFor(() => expect(spy).toHaveBeenCalledTimes(2));
 
@@ -458,5 +467,115 @@ describe("CoMap.Record", async () => {
       expect(record.john.name).toEqual("John");
       expect(record.john.type).toEqual("repro");
     }
+  });
+});
+
+describe("CoRecord unique methods", () => {
+  test("loadUnique returns existing record", async () => {
+    const ItemRecord = co.record(z.string(), z.number());
+    const group = Group.create();
+
+    const originalRecord = ItemRecord.create(
+      { item1: 1, item2: 2, item3: 3 },
+      { owner: group, unique: "test-record" },
+    );
+
+    const foundRecord = await ItemRecord.loadUnique(
+      "test-record",
+      group.$jazz.id,
+    );
+    expect(foundRecord).toEqual(originalRecord);
+    expect(foundRecord?.item1).toBe(1);
+    expect(foundRecord?.item2).toBe(2);
+  });
+
+  test("loadUnique returns null for non-existent record", async () => {
+    const ItemRecord = co.record(z.string(), z.number());
+    const group = Group.create();
+
+    const foundRecord = await ItemRecord.loadUnique(
+      "non-existent",
+      group.$jazz.id,
+    );
+    expect(foundRecord).toBeNull();
+  });
+
+  test("upsertUnique creates new record when none exists", async () => {
+    const ItemRecord = co.record(z.string(), z.number());
+    const group = Group.create();
+
+    const sourceData = { item1: 1, item2: 2, item3: 3 };
+
+    const result = await ItemRecord.upsertUnique({
+      value: sourceData,
+      unique: "new-record",
+      owner: group,
+    });
+
+    expect(result).not.toBeNull();
+    expect(result?.item1).toBe(1);
+    expect(result?.item2).toBe(2);
+    expect(result?.item3).toBe(3);
+  });
+
+  test("upsertUnique updates existing record", async () => {
+    const ItemRecord = co.record(z.string(), z.number());
+    const group = Group.create();
+
+    // Create initial record
+    const originalRecord = ItemRecord.create(
+      { original1: 1, original2: 2 },
+      { owner: group, unique: "update-record" },
+    );
+
+    // Upsert with new data
+    const updatedRecord = await ItemRecord.upsertUnique({
+      value: { updated1: 10, updated2: 20, updated3: 30 },
+      unique: "update-record",
+      owner: group,
+    });
+
+    expect(updatedRecord).toEqual(originalRecord); // Should be the same instance
+    expect(updatedRecord?.updated1).toBe(10);
+    expect(updatedRecord?.updated2).toBe(20);
+    expect(updatedRecord?.updated3).toBe(30);
+  });
+
+  test("upsertUnique with CoValue items", async () => {
+    const Item = co.map({
+      name: z.string(),
+      value: z.number(),
+    });
+    const ItemRecord = co.record(z.string(), Item);
+    const group = Group.create();
+
+    const items = {
+      first: Item.create({ name: "First", value: 1 }, group),
+      second: Item.create({ name: "Second", value: 2 }, group),
+    };
+
+    const result = await ItemRecord.upsertUnique({
+      value: items,
+      unique: "item-record",
+      owner: group,
+      resolve: { first: true, second: true },
+    });
+
+    expect(result).not.toBeNull();
+    expect(result?.first?.name).toBe("First");
+    expect(result?.second?.name).toBe("Second");
+  });
+
+  test("findUnique returns correct ID", async () => {
+    const ItemRecord = co.record(z.string(), z.string());
+    const group = Group.create();
+
+    const originalRecord = ItemRecord.create(
+      { test: "value" },
+      { owner: group, unique: "find-test" },
+    );
+
+    const foundId = ItemRecord.findUnique("find-test", group.$jazz.id);
+    expect(foundId).toBe(originalRecord.$jazz.id);
   });
 });
