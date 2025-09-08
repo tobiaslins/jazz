@@ -138,7 +138,13 @@ export class RawCoList<
       sessionEntry[opID.txIndex] = txEntry;
     }
 
+    // Check if the change index already exists, may be the case of double merges
+    if (txEntry[opID.changeIdx]) {
+      return false;
+    }
+
     txEntry[opID.changeIdx] = value;
+    return true;
   }
 
   private isDeleted(opID: OpID) {
@@ -216,12 +222,17 @@ export class RawCoList<
         };
 
         if (change.op === "pre" || change.op === "app") {
-          this.createInsertionsEntry(opID, {
+          const created = this.createInsertionsEntry(opID, {
             madeAt,
             predecessors: [],
             successors: [],
             change,
           });
+
+          // If the change index already exists, we don't need to process it again
+          if (!created) {
+            continue;
+          }
 
           if (change.op === "pre") {
             if (change.before === "end") {

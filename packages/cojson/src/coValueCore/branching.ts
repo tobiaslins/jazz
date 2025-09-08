@@ -49,21 +49,16 @@ export function getBranchId(
     );
   }
 
-  if (!ownerId) {
-    const header = coValue.verified.header;
+  const currentOwnerId = ownerId ?? getBranchOwnerId(coValue);
 
-    // Group and account coValues can't have branches, so we return the source id
-    if (header.ruleset.type !== "ownedByGroup") {
-      return coValue.id;
-    }
-
-    ownerId = header.ruleset.group;
+  if (!currentOwnerId) {
+    return coValue.id;
   }
 
   const header = getBranchHeader({
     type: coValue.verified.header.type,
     branchName: name,
-    ownerId,
+    ownerId: currentOwnerId,
     sourceId: coValue.id,
   });
 
@@ -71,8 +66,29 @@ export function getBranchId(
 }
 
 export type BranchCommit = {
-  branch: CoValueKnownState["sessions"];
+  from: CoValueKnownState["sessions"];
 };
+
+export type BranchPointerCommit = {
+  branch: string;
+  ownerId?: RawCoID;
+};
+
+export function getBranchOwnerId(coValue: CoValueCore) {
+  if (!coValue.verified) {
+    throw new Error(
+      "CoValueCore: getBranchOwnerId called on coValue without verified state",
+    );
+  }
+
+  const header = coValue.verified.header;
+
+  if (header.ruleset.type !== "ownedByGroup") {
+    return undefined;
+  }
+
+  return header.ruleset.group;
+}
 
 /**
  * Given a coValue, a branch name and an owner id, creates a new branch CoValue
@@ -88,32 +104,34 @@ export function createBranch(
     );
   }
 
-  if (!ownerId) {
-    const header = coValue.verified.header;
+  const branchOwnerId = ownerId ?? getBranchOwnerId(coValue);
 
-    // Group and account coValues can't have branches, so we return the source coValue
-    if (header.ruleset.type !== "ownedByGroup") {
-      return coValue;
-    }
-
-    ownerId = header.ruleset.group;
+  if (!branchOwnerId) {
+    return coValue;
   }
 
   const header = getBranchHeader({
     type: coValue.verified.header.type,
     branchName: name,
-    ownerId,
+    ownerId: branchOwnerId,
     sourceId: coValue.id,
   });
 
-  const value = coValue.node.createCoValue(header);
+  const branch = coValue.node.createCoValue(header);
+  const sessions = { ...coValue.knownState().sessions };
 
   // Create a branch commit to identify the starting point of the branch
-  value.makeTransaction([], "private", {
-    branch: coValue.knownState().sessions,
+  branch.makeTransaction([], "private", {
+    from: sessions,
   } satisfies BranchCommit);
 
-  return value;
+  // Create a branch pointer, to identify that we created a branch
+  coValue.makeTransaction([], "private", {
+    branch: name,
+    ownerId,
+  } satisfies BranchPointerCommit);
+
+  return branch;
 }
 
 /**
@@ -142,12 +160,21 @@ export function getBranchSource(
 }
 
 export type MergeCommit = {
-  // The point where the branch was merged
-  merge: CoValueKnownState["sessions"];
-  // The id of the branch that was merged
-  id: RawCoID;
-  // The number of transactions that were merged, will be used in the future to handle the edits history properly
-  count: number;
+  i: number;
+  s?: SessionID;
+  b?: RawCoID;
+  mergeEnd?: 1;
+};
+
+export type MergeStartCommit = {
+  mergeStart: RawCoID;
+  b?: RawCoID;
+  s: SessionID;
+  i: number;
+};
+
+export type BranchMergedCommit = {
+  merged: CoValueKnownState["sessions"];
 };
 
 /**
@@ -164,12 +191,6 @@ export function mergeBranch(branch: CoValueCore): CoValueCore {
     return branch;
   }
 
-  const sourceId = branch.getCurrentBranchSourceId();
-
-  if (!sourceId) {
-    throw new Error("CoValueCore: mergeBranch called on a non-branch coValue");
-  }
-
   const target = getBranchSource(branch);
 
   if (!target) {
@@ -178,13 +199,9 @@ export function mergeBranch(branch: CoValueCore): CoValueCore {
 
   // Look for previous merge commits, to see which transactions needs to be merged
   // Done mostly for performance reasons, as we could merge all the transactions every time and nothing would change
-  const mergedTransactions = target.mergeCommits.reduce(
-    (acc, { commit }) => {
-      if (commit.id !== branch.id) {
-        return acc;
-      }
-
-      for (const [sessionID, count] of Object.entries(commit.merge) as [
+  const mergedTransactions = branch.getMergeCommits().reduce(
+    (acc, { merged }) => {
+      for (const [sessionID, count] of Object.entries(merged) as [
         SessionID,
         number,
       ][]) {
@@ -210,111 +227,42 @@ export function mergeBranch(branch: CoValueCore): CoValueCore {
     return target;
   }
 
-  // Create a merge commit to identify the merge point
-  target.makeTransaction([], "private", {
-    merge: { ...branch.knownState().sessions },
-    id: branch.id,
-    count: branchValidTransactions.length,
-  } satisfies MergeCommit);
+  // We do track in the meta information the original txID to make sure that
+  // the CoList opid still point to the correct transaction
+  // To reduce the cost of the meta we skip the repeated information
+  let lastSessionId: string | undefined = undefined;
+  let lastBranchId: string | undefined = undefined;
+  branchValidTransactions.forEach((tx, i) => {
+    const mergeMeta: MergeCommit & Partial<MergeStartCommit> = {
+      i: tx.txID.txIndex,
+    };
 
-  const currentSessionID = target.node.currentSessionID;
-
-  if (
-    target.verified.header.type === "colist" ||
-    target.verified.header.type === "coplaintext"
-  ) {
-    const mapping: Record<`${SessionID}:${number}`, number> = {};
-
-    const session = target.verified.sessions.get(currentSessionID);
-    let txIdx = session ? session.transactions.length : 0;
-
-    // Create a mapping from the branch transactions to the target transactions
-    for (const { txID } of branchValidTransactions) {
-      mapping[`${txID.sessionID}:${txID.txIndex}`] = txIdx;
-      txIdx++;
+    if (i === 0) {
+      mergeMeta.mergeStart = branch.id;
+      lastBranchId = branch.id;
     }
 
-    for (const { tx, changes } of branchValidTransactions) {
-      target.makeTransaction(
-        mapCoListChangesToTarget(
-          changes as ListOpPayload<JsonValue>[],
-          currentSessionID,
-          mapping,
-        ),
-        tx.privacy,
-      );
+    if (i === branchValidTransactions.length - 1) {
+      mergeMeta.mergeEnd = 1;
     }
-  } else {
-    for (const { tx, changes } of branchValidTransactions) {
-      target.makeTransaction(changes, tx.privacy);
+
+    if (lastSessionId !== tx.txID.sessionID) {
+      mergeMeta.s = tx.txID.sessionID;
     }
-  }
+
+    if (lastBranchId !== tx.txID.branch) {
+      mergeMeta.b = branch.id;
+    }
+
+    target.makeTransaction(tx.changes, tx.tx.privacy, mergeMeta, tx.madeAt);
+    lastSessionId = tx.txID.sessionID;
+    lastBranchId = tx.txID.branch;
+  });
+
+  // Track the merged transactions for the branch, so future merges will know which transactions have already been merged
+  branch.makeTransaction([], "private", {
+    merged: branch.knownState().sessions,
+  } satisfies BranchMergedCommit);
 
   return target;
-}
-
-/**
- * Given a list of changes, maps the opIDs to the target transactions
- */
-function mapCoListChangesToTarget(
-  changes: ListOpPayload<JsonValue>[],
-  currentSessionID: SessionID,
-  mapping: Record<`${SessionID}:${number}`, number>,
-) {
-  return changes.map((change) => {
-    if (change.op === "app") {
-      if (change.after === "start") {
-        return change;
-      }
-
-      return {
-        ...change,
-        after: convertOpID(change.after, currentSessionID, mapping),
-      };
-    }
-
-    if (change.op === "del") {
-      return {
-        ...change,
-        insertion: convertOpID(change.insertion, currentSessionID, mapping),
-      };
-    }
-
-    if (change.op === "pre") {
-      if (change.before === "end") {
-        return change;
-      }
-
-      return {
-        ...change,
-        before: convertOpID(change.before, currentSessionID, mapping),
-      };
-    }
-
-    return change;
-  });
-}
-
-function convertOpID(
-  opID: OpID,
-  sessionID: SessionID,
-  mapping: Record<`${SessionID}:${number}`, number>,
-) {
-  // If the opID comes from the source branch, we don't need to map it
-  if (!opID.branch) {
-    return opID;
-  }
-
-  const mappedIndex = mapping[`${opID.sessionID}:${opID.txIndex}`];
-
-  // If the opID doesn't exist in the mapping, we don't need to map it
-  if (mappedIndex === undefined) {
-    return opID;
-  }
-
-  return {
-    sessionID: sessionID,
-    txIndex: mappedIndex,
-    changeIdx: opID.changeIdx,
-  };
 }
