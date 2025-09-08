@@ -254,10 +254,6 @@ export function mergeBranch(branch: CoValueCore): CoValueCore {
     target.makeTransaction(tx.changes, tx.tx.privacy, mergeMeta, tx.madeAt);
     lastSessionId = tx.txID.sessionID;
     lastBranchId = tx.txID.branch;
-
-    if (tx.txID.txIndex === 0) {
-      mergeMeta.b = branch.id;
-    }
   }
 
   // Track the merged transactions for the branch, so future merges will know which transactions have already been merged
