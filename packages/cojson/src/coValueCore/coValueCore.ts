@@ -5,10 +5,10 @@ import type { RawCoValue } from "../coValue.js";
 import type { ControlledAccountOrAgent } from "../coValues/account.js";
 import type { RawGroup } from "../coValues/group.js";
 import { CO_VALUE_LOADING_CONFIG } from "../config.js";
+import { validateTxSizeLimitInBytes } from "../coValueContentMessage.js";
 import { coreToCoValue } from "../coreToCoValue.js";
 import {
   CryptoProvider,
-  Encrypted,
   Hash,
   KeyID,
   KeySecret,
@@ -17,7 +17,6 @@ import {
 } from "../crypto/crypto.js";
 import { AgentID, RawCoID, SessionID, TransactionID } from "../ids.js";
 import { JsonObject, JsonValue } from "../jsonValue.js";
-import { parseJSON, safeParseJSON } from "../jsonStringify.js";
 import { LocalNode, ResolveAccountAgentError } from "../localNode.js";
 import { logger } from "../logger.js";
 import { determineValidTransactions } from "../permissions.js";
@@ -606,6 +605,8 @@ export class CoValueCore {
         "CoValueCore: makeTransaction called on coValue without verified state",
       );
     }
+
+    validateTxSizeLimitInBytes(changes);
 
     // This is an ugly hack to get a unique but stable session ID for editing the current account
     const sessionID =
