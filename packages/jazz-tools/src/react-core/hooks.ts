@@ -383,7 +383,6 @@ export function useCoState<
 export function useCoStateWithSelector<
   S extends CoValueClassOrSchema,
   TSelectorReturn,
-  TSelectorReturnDerived extends TSelectorReturn = TSelectorReturn,
   const R extends ResolveQuery<S> = true,
 >(
   /** The CoValue schema or class constructor */
@@ -396,6 +395,7 @@ export function useCoStateWithSelector<
     resolve?: ResolveQueryStrict<S, R>;
     /** Select which value to return */
     select: (value: Loaded<S, R> | undefined | null) => TSelectorReturn;
+    /** Equality function to determine if the selected value has changed, defaults to `Object.is` */
     equalityFn?: (a: TSelectorReturn, b: TSelectorReturn) => boolean;
   },
 ): TSelectorReturn {
