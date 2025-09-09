@@ -1,1 +1,1 @@
-export const apiKey = "server-side-validation@garden.co";
+export const apiKey = process.env.NEXT_PUBLIC_JAZZ_API_KEY;

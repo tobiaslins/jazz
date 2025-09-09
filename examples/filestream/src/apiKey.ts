@@ -1,1 +1,1 @@
-export const apiKey = "filestream-example-jazz@garden.co";
+export const apiKey = import.meta.env.VITE_JAZZ_API_KEY;

@@ -37,6 +37,11 @@ Go to the new project directory.
 cd richtext-app
 ```
 
+Create a `.env` file and add an API key (available for free from https://dashboard.jazz.tools)
+```
+VITE_JAZZ_API_KEY=<your key>
+```
+
 Run the dev server.
 ```bash
 npm run dev
@@ -59,6 +64,11 @@ pnpm i && npx turbo build
 Go to the example directory.
 ```bash
 cd jazz/examples/richtext/
+```
+
+Create a `.env` file and add an API key (available for free from https://dashboard.jazz.tools)
+```
+VITE_JAZZ_API_KEY=<your key>
 ```
 
 Start the dev server.
