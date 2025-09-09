@@ -540,4 +540,186 @@ describe("ContextManager", () => {
       manager.register(secret, { name: "Test User" }),
     ).rejects.toThrow("Props required");
   });
+
+  describe("Race condition handling", () => {
+    test("prevents concurrent authentication attempts", async () => {
+      const account = await createJazzTestAccount();
+      const onAnonymousAccountDiscarded = vi.fn();
+
+      // Create initial anonymous context
+      await manager.createContext({ onAnonymousAccountDiscarded });
+
+      const credentials = {
+        accountID: account.$jazz.id,
+        accountSecret: account.$jazz.localNode.getCurrentAgent().agentSecret,
+        provider: "test",
+      };
+
+      // Start multiple concurrent authentication attempts
+      const promises = [];
+      for (let i = 0; i < 5; i++) {
+        promises.push(manager.authenticate(credentials));
+      }
+
+      await Promise.all(promises);
+
+      // onAnonymousAccountDiscarded should only be called once despite multiple authenticate calls
+      expect(onAnonymousAccountDiscarded).toHaveBeenCalledTimes(1);
+    });
+
+    test("prevents concurrent registration attempts", async () => {
+      const onAnonymousAccountDiscarded = vi.fn();
+      await manager.createContext({ onAnonymousAccountDiscarded });
+
+      const secret = Crypto.newRandomAgentSecret();
+
+      // Start multiple concurrent registration attempts
+      const promises = [];
+      for (let i = 0; i < 3; i++) {
+        promises.push(manager.register(secret, { name: "Test User" }));
+      }
+
+      await Promise.allSettled(promises);
+
+      // onAnonymousAccountDiscarded should only be called once
+      expect(onAnonymousAccountDiscarded).toHaveBeenCalledTimes(1);
+    });
+
+    test("allows authentication after logout", async () => {
+      const account = await createJazzTestAccount();
+      const onAnonymousAccountDiscarded = vi.fn();
+
+      // Create initial context and authenticate
+      await manager.createContext({ onAnonymousAccountDiscarded });
+
+      await manager.authenticate({
+        accountID: account.$jazz.id,
+        accountSecret: account.$jazz.localNode.getCurrentAgent().agentSecret,
+        provider: "test",
+      });
+
+      expect(onAnonymousAccountDiscarded).toHaveBeenCalledTimes(1);
+
+      // Log out
+      await manager.logOut();
+
+      // Should be able to authenticate again
+      const account2 = await createJazzTestAccount();
+
+      await manager.authenticate({
+        accountID: account2.$jazz.id,
+        accountSecret: account2.$jazz.localNode.getCurrentAgent().agentSecret,
+        provider: "test",
+      });
+
+      // Should be called again since we logged out and reset the migration state
+      expect(onAnonymousAccountDiscarded).toHaveBeenCalledTimes(2);
+    });
+
+    test("handles authentication in progress correctly", async () => {
+      const account = await createJazzTestAccount();
+      const onAnonymousAccountDiscarded = vi.fn();
+
+      await manager.createContext({ onAnonymousAccountDiscarded });
+
+      const credentials = {
+        accountID: account.$jazz.id,
+        accountSecret: account.$jazz.localNode.getCurrentAgent().agentSecret,
+        provider: "test",
+      };
+
+      // Start first authentication
+      const firstAuth = manager.authenticate(credentials);
+
+      // Try to authenticate while first is in progress
+      await manager.authenticate(credentials);
+
+      // Wait for first to complete
+      await firstAuth;
+
+      // Should only have been called once
+      expect(onAnonymousAccountDiscarded).toHaveBeenCalledTimes(1);
+    });
+
+    test("prevents duplicate onAnonymousAccountDiscarded calls during complex migration", async () => {
+      const AccountRoot = co.map({
+        value: z.string(),
+        get transferredRoot(): co.Optional<typeof AccountRoot> {
+          return co.optional(AccountRoot);
+        },
+      });
+
+      const CustomAccount = co
+        .account({
+          root: AccountRoot,
+          profile: co.profile(),
+        })
+        .withMigration(async (account) => {
+          account.$jazz.set(
+            "root",
+            AccountRoot.create(
+              { value: "Hello" },
+              Group.create(this).makePublic(),
+            ),
+          );
+        });
+
+      const customManager = new TestJazzContextManager<
+        InstanceOfSchema<typeof CustomAccount>
+      >();
+
+      const onAnonymousAccountDiscarded = vi
+        .fn()
+        .mockImplementation(async (anonymousAccount) => {
+          // Simulate complex migration work
+          await new Promise((resolve) => setTimeout(resolve, 10));
+
+          const anonymousAccountWithRoot =
+            await anonymousAccount.$jazz.ensureLoaded({
+              resolve: { root: true },
+            });
+
+          const me = await CustomAccount.getMe().$jazz.ensureLoaded({
+            resolve: { root: true },
+          });
+
+          me.root.$jazz.set("transferredRoot", anonymousAccountWithRoot.root);
+        });
+
+      await customManager.createContext({
+        AccountSchema: coValueClassFromCoValueClassOrSchema(CustomAccount),
+        onAnonymousAccountDiscarded,
+      });
+
+      const account = (
+        customManager.getCurrentValue() as JazzAuthContext<
+          InstanceOfSchema<typeof CustomAccount>
+        >
+      ).me;
+
+      // Start multiple concurrent authentication attempts
+      const promises = [];
+      for (let i = 0; i < 3; i++) {
+        promises.push(
+          customManager.authenticate({
+            accountID: account.$jazz.id,
+            accountSecret:
+              account.$jazz.localNode.getCurrentAgent().agentSecret,
+            provider: "test",
+          }),
+        );
+      }
+
+      await Promise.all(promises);
+
+      // Migration should only happen once
+      expect(onAnonymousAccountDiscarded).toHaveBeenCalledTimes(1);
+
+      const me = await CustomAccount.getMe().$jazz.ensureLoaded({
+        resolve: { root: { transferredRoot: true } },
+      });
+
+      expect(me.root.transferredRoot?.value).toBe("Hello");
+    });
+  });
 });

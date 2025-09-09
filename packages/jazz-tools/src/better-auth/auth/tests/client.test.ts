@@ -334,4 +334,142 @@ describe("Better-Auth client plugin", () => {
       }),
     );
   });
+
+  describe("Race condition handling", () => {
+    it("should handle multiple concurrent get-session calls without errors", async () => {
+      const credentials = await authSecretStorage.get();
+      assert(credentials, "Jazz credentials are not available");
+
+      // Mock multiple get-session responses with fresh Response objects
+      customFetchImpl.mockImplementation(() =>
+        Promise.resolve(
+          new Response(
+            JSON.stringify({
+              user: {
+                id: "YW5kcmVpYnVkb2k",
+                email: "test@jazz.dev",
+                name: "andreibudoi",
+                accountID: credentials.accountID,
+              },
+              jazzAuth: {
+                accountID: credentials.accountID,
+                secretSeed: credentials.secretSeed,
+                accountSecret: credentials.accountSecret,
+                provider: "better-auth",
+              },
+            }),
+          ),
+        ),
+      );
+
+      // Simulate multiple concurrent get-session calls (like during OAuth)
+      const promises = [];
+      for (let i = 0; i < 5; i++) {
+        promises.push(authClient.$fetch("/get-session", { method: "GET" }));
+      }
+
+      // Should complete without errors due to race condition handling
+      await expect(Promise.all(promises)).resolves.toBeDefined();
+
+      // Should have been called multiple times by better-auth
+      expect(customFetchImpl).toHaveBeenCalledTimes(5);
+
+      // User should be authenticated
+      expect(authSecretStorage.isAuthenticated).toBe(true);
+    });
+
+    it("should handle credentials mismatch scenario without errors", async () => {
+      const originalCredentials = await authSecretStorage.get();
+      assert(originalCredentials, "Jazz credentials are not available");
+
+      // Create a test account for the mismatch scenario
+      const testAccount = await setupJazzTestSync();
+
+      // Mock get-session response with different account using fresh Response objects
+      customFetchImpl.mockImplementation(() =>
+        Promise.resolve(
+          new Response(
+            JSON.stringify({
+              user: {
+                id: "RGlmZmVyZW50IFVzZXI",
+                email: "different@jazz.dev",
+                name: "Different User",
+                accountID: testAccount.$jazz.id,
+              },
+              jazzAuth: {
+                accountID: testAccount.$jazz.id,
+                secretSeed: new Uint8Array([4, 5, 6]),
+                accountSecret:
+                  testAccount.$jazz.localNode.getCurrentAgent().agentSecret,
+                provider: "better-auth",
+              },
+            }),
+          ),
+        ),
+      );
+
+      // Simulate multiple concurrent get-session calls with mismatched credentials
+      const promises = [];
+      for (let i = 0; i < 3; i++) {
+        promises.push(authClient.$fetch("/get-session", { method: "GET" }));
+      }
+
+      // Should complete without errors despite credential mismatch
+      await expect(Promise.all(promises)).resolves.toBeDefined();
+
+      // Should have been called multiple times by better-auth
+      expect(customFetchImpl).toHaveBeenCalledTimes(3);
+
+      // Should be authenticated with the new account
+      expect(authSecretStorage.isAuthenticated).toBe(true);
+      const currentCredentials = await authSecretStorage.get();
+      expect(currentCredentials?.accountID).toBe(testAccount.$jazz.id);
+    });
+
+    it("should allow authentication after sign out without being blocked", async () => {
+      const credentials = await authSecretStorage.get();
+      assert(credentials, "Jazz credentials are not available");
+
+      const getSessionResponseData = {
+        user: {
+          id: "123",
+          accountID: credentials.accountID,
+        },
+        jazzAuth: {
+          accountID: credentials.accountID,
+          secretSeed: credentials.secretSeed,
+          accountSecret: credentials.accountSecret,
+          provider: "better-auth",
+        },
+      };
+
+      // First authenticate
+      customFetchImpl.mockResolvedValueOnce(
+        new Response(JSON.stringify(getSessionResponseData)),
+      );
+
+      await authClient.$fetch("/get-session", { method: "GET" });
+      expect(authSecretStorage.isAuthenticated).toBe(true);
+
+      // Then sign out
+      customFetchImpl.mockResolvedValueOnce(
+        new Response(JSON.stringify({ success: true })),
+      );
+
+      await authClient.signOut();
+      expect(authSecretStorage.isAuthenticated).toBe(false);
+
+      // Authenticating again should work without being blocked
+      customFetchImpl.mockResolvedValueOnce(
+        new Response(JSON.stringify(getSessionResponseData)),
+      );
+
+      // Should complete without hanging or errors
+      await expect(
+        authClient.$fetch("/get-session", { method: "GET" }),
+      ).resolves.toBeDefined();
+
+      expect(authSecretStorage.isAuthenticated).toBe(true);
+    });
+  });
 });

@@ -68,6 +68,8 @@ export class JazzContextManager<
   protected authSecretStorage = new AuthSecretStorage();
   protected keepContextOpen = false;
   contextPromise: Promise<void> | undefined;
+  private authenticationInProgress = false;
+  private migrationCompleted = false;
 
   constructor(opts?: {
     useAnonymousFallback?: boolean;
@@ -168,6 +170,10 @@ export class JazzContextManager<
       return;
     }
 
+    // Reset migration state on logout
+    this.migrationCompleted = false;
+    this.authenticationInProgress = false;
+
     await this.props.onLogOut?.();
 
     if (this.props.logOutReplacement) {
@@ -206,17 +212,32 @@ export class JazzContextManager<
       throw new Error("Props required");
     }
 
-    const prevContext = this.context;
-    const migratingAnonymousAccount =
-      await this.shouldMigrateAnonymousAccount();
+    // Prevent concurrent authentication attempts
+    if (this.authenticationInProgress) {
+      console.warn(
+        "Authentication already in progress, skipping duplicate request",
+      );
+      return;
+    }
 
-    this.keepContextOpen = migratingAnonymousAccount;
-    await this.createContext(this.props, { credentials }).finally(() => {
-      this.keepContextOpen = false;
-    });
+    this.authenticationInProgress = true;
 
-    if (migratingAnonymousAccount) {
-      await this.handleAnonymousAccountMigration(prevContext);
+    try {
+      const prevContext = this.context;
+      const migratingAnonymousAccount =
+        await this.shouldMigrateAnonymousAccount();
+
+      this.keepContextOpen = migratingAnonymousAccount;
+      await this.createContext(this.props, { credentials }).finally(() => {
+        this.keepContextOpen = false;
+      });
+
+      if (migratingAnonymousAccount && !this.migrationCompleted) {
+        await this.handleAnonymousAccountMigration(prevContext);
+        this.migrationCompleted = true;
+      }
+    } finally {
+      this.authenticationInProgress = false;
     }
   };
 
@@ -228,29 +249,44 @@ export class JazzContextManager<
       throw new Error("Props required");
     }
 
-    const prevContext = this.context;
-    const migratingAnonymousAccount =
-      await this.shouldMigrateAnonymousAccount();
-
-    this.keepContextOpen = migratingAnonymousAccount;
-    await this.createContext(this.props, {
-      newAccountProps: {
-        secret: accountSecret,
-        creationProps,
-      },
-    }).finally(() => {
-      this.keepContextOpen = false;
-    });
-
-    if (migratingAnonymousAccount) {
-      await this.handleAnonymousAccountMigration(prevContext);
+    // Prevent concurrent authentication attempts
+    if (this.authenticationInProgress) {
+      console.warn(
+        "Authentication already in progress, skipping duplicate registration request",
+      );
+      throw new Error("Authentication already in progress");
     }
 
-    if (this.context && "me" in this.context) {
-      return this.context.me.$jazz.id;
-    }
+    this.authenticationInProgress = true;
 
-    throw new Error("The registration hasn't created a new account");
+    try {
+      const prevContext = this.context;
+      const migratingAnonymousAccount =
+        await this.shouldMigrateAnonymousAccount();
+
+      this.keepContextOpen = migratingAnonymousAccount;
+      await this.createContext(this.props, {
+        newAccountProps: {
+          secret: accountSecret,
+          creationProps,
+        },
+      }).finally(() => {
+        this.keepContextOpen = false;
+      });
+
+      if (migratingAnonymousAccount && !this.migrationCompleted) {
+        await this.handleAnonymousAccountMigration(prevContext);
+        this.migrationCompleted = true;
+      }
+
+      if (this.context && "me" in this.context) {
+        return this.context.me.$jazz.id;
+      }
+
+      throw new Error("The registration hasn't created a new account");
+    } finally {
+      this.authenticationInProgress = false;
+    }
   };
 
   private async handleAnonymousAccountMigration(

@@ -26,8 +26,33 @@ export const jazzPluginClient = () => {
   let jazzContext: JazzContextType<Account>;
   let authSecretStorage: AuthSecretStorage;
   let signOutUnsubscription: () => void;
+  let pendingAuthentication: Promise<void> | null = null;
+  let lastAuthenticatedAccountID: string | null = null;
 
   const authenticateOnJazz = async (jazzAuth: AuthSetPayload) => {
+    if (
+      pendingAuthentication &&
+      lastAuthenticatedAccountID === jazzAuth.accountID
+    ) {
+      console.info(
+        "Authentication already pending for account",
+        jazzAuth.accountID,
+        "waiting for completion",
+      );
+      await pendingAuthentication;
+      return;
+    }
+
+    if (pendingAuthentication) {
+      console.info(
+        "Different authentication in progress, waiting for completion before starting new auth for",
+        jazzAuth.accountID,
+      );
+      await pendingAuthentication;
+    }
+
+    lastAuthenticatedAccountID = jazzAuth.accountID;
+
     const parsedJazzAuth = {
       ...jazzAuth,
       secretSeed: jazzAuth.secretSeed
@@ -35,8 +60,17 @@ export const jazzPluginClient = () => {
         : undefined,
     };
 
-    await jazzContext.authenticate(parsedJazzAuth);
-    await authSecretStorage.set(parsedJazzAuth);
+    pendingAuthentication = (async () => {
+      try {
+        await jazzContext.authenticate(parsedJazzAuth);
+        await authSecretStorage.set(parsedJazzAuth);
+      } finally {
+        pendingAuthentication = null;
+        lastAuthenticatedAccountID = null;
+      }
+    })();
+
+    await pendingAuthentication;
   };
 
   return {
@@ -133,6 +167,20 @@ export const jazzPluginClient = () => {
                 return;
               }
 
+              const sessionAccountID = context.data.user.accountID;
+
+              // Skip if we're already authenticating this account
+              if (
+                pendingAuthentication &&
+                lastAuthenticatedAccountID === sessionAccountID
+              ) {
+                console.log(
+                  "better-auth: Authentication already in progress for account",
+                  sessionAccountID,
+                );
+                return;
+              }
+
               if (authSecretStorage.isAuthenticated === false) {
                 console.info(
                   "Jazz is not authenticated, using Better Auth stored credentials",
@@ -140,8 +188,6 @@ export const jazzPluginClient = () => {
                 await authenticateOnJazz(context.data.jazzAuth);
                 return;
               }
-
-              const sessionAccountID = context.data.user.accountID;
 
               const credentials = await authSecretStorage.get();
 
@@ -159,11 +205,17 @@ export const jazzPluginClient = () => {
             }
 
             if (context.request.url.toString().includes("/sign-out")) {
+              // Reset authentication state on sign out
+              pendingAuthentication = null;
+              lastAuthenticatedAccountID = null;
               await jazzContext.logOut();
               return;
             }
 
             if (context.request.url.toString().includes("/delete-user")) {
+              // Reset authentication state on user deletion
+              pendingAuthentication = null;
+              lastAuthenticatedAccountID = null;
               await jazzContext.logOut();
               return;
             }
