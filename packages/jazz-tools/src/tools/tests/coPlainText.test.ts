@@ -183,6 +183,7 @@ describe("CoPlainText", () => {
           sessionProvider: randomSessionProvider,
           peersToLoadFrom: [initialAsPeer],
           crypto: Crypto,
+          asActiveAccount: true,
         });
 
       // Load the text on the second peer
@@ -214,6 +215,7 @@ describe("CoPlainText", () => {
         sessionProvider: randomSessionProvider,
         peersToLoadFrom: [initialAsPeer],
         crypto: Crypto,
+        asActiveAccount: true,
       });
 
     const queue = new Channel();
