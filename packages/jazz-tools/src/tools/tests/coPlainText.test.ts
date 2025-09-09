@@ -244,3 +244,25 @@ describe("CoPlainText", () => {
     expect(update3.toString()).toBe("hello world");
   });
 });
+
+describe("lastUpdatedAt", () => {
+  test("empty text last updated time", () => {
+    const text = co.plainText().create("");
+
+    expect(text.$jazz.lastUpdatedAt).toEqual(text.$jazz.createdAt);
+    expect(text.$jazz.lastUpdatedAt).not.toEqual(0);
+  });
+
+  test("last update should change on push", async () => {
+    const text = co.plainText().create("John");
+
+    expect(text.$jazz.lastUpdatedAt).not.toEqual(0);
+
+    const updatedAt = text.$jazz.lastUpdatedAt;
+
+    await new Promise((r) => setTimeout(r, 10));
+    text.$jazz.applyDiff("Jane");
+
+    expect(text.$jazz.lastUpdatedAt).not.toEqual(updatedAt);
+  });
+});

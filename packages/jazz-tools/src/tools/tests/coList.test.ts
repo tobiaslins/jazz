@@ -1333,3 +1333,25 @@ describe("co.list schema", () => {
     expect(keywords[1]?.toString()).toEqual("world");
   });
 });
+
+describe("lastUpdatedAt", () => {
+  test("empty list last updated time", () => {
+    const emptyList = co.list(z.number()).create([]);
+
+    expect(emptyList.$jazz.lastUpdatedAt).not.toEqual(0);
+    expect(emptyList.$jazz.lastUpdatedAt).toEqual(emptyList.$jazz.createdAt);
+  });
+
+  test("last update should change on push", async () => {
+    const list = co.list(z.string()).create(["John"]);
+
+    expect(list.$jazz.lastUpdatedAt).not.toEqual(0);
+
+    const updatedAt = list.$jazz.lastUpdatedAt;
+
+    await new Promise((r) => setTimeout(r, 10));
+    list.$jazz.push("Jane");
+
+    expect(list.$jazz.lastUpdatedAt).not.toEqual(updatedAt);
+  });
+});
