@@ -584,10 +584,6 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
     return this.raw.core.getCurrentBranchName();
   }
 
-  get branchId(): ID<M> {
-    return this.raw.id;
-  }
-
   get owner(): Group {
     return getCoValueOwner(this.coMap);
   }

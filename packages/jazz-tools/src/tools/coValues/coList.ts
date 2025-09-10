@@ -537,10 +537,6 @@ export class CoListJazzApi<L extends CoList> extends CoValueJazzApi<L> {
     return this.raw.core.getCurrentBranchName();
   }
 
-  get branchId(): ID<L> {
-    return this.raw.id;
-  }
-
   /** @category Collaboration */
   get owner(): Group {
     return getCoValueOwner(this.coList);

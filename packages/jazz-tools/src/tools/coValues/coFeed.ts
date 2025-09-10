@@ -344,10 +344,6 @@ export class CoFeedJazzApi<F extends CoFeed> extends CoValueJazzApi<F> {
     return this.raw.id;
   }
 
-  get branchId(): ID<F> {
-    return this.raw.id;
-  }
-
   get branchName(): string | undefined {
     return this.raw.core.getCurrentBranchName();
   }
@@ -1069,10 +1065,6 @@ export class FileStreamJazzApi<F extends FileStream> extends CoValueJazzApi<F> {
 
   get branchName(): string | undefined {
     return this.raw.core.getCurrentBranchName();
-  }
-
-  get branchId(): ID<F> {
-    return this.raw.id;
   }
 
   get owner(): Group {

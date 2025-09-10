@@ -245,10 +245,6 @@ export class CoTextJazzApi<T extends CoPlainText> extends CoValueJazzApi<T> {
     return this.raw.core.getCurrentBranchName();
   }
 
-  get branchId(): ID<T> {
-    return this.raw.id;
-  }
-
   get owner(): Group {
     return getCoValueOwner(this.coText);
   }
