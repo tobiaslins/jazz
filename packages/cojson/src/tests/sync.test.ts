@@ -862,6 +862,27 @@ describe("loadCoValueCore with retry", () => {
   });
 });
 
+describe("SyncManager.removePeer", () => {
+  test("when removing a peer, the peer is closed", async () => {
+    const client = await setupTestAccount();
+
+    const { peerState } = client.connectToSyncServer();
+
+    // Store reference to peer and spy on gracefulShutdown
+    const closeSpy = vi.spyOn(peerState, "gracefulShutdown");
+
+    // Remove the peer
+    client.node.syncManager.removePeer(peerState.id);
+
+    // Verify that the peer was closed correctly
+    expect(closeSpy).toHaveBeenCalled();
+    expect(peerState.closed).toBe(true);
+
+    // Verify that the peer is no longer in the peers map
+    expect(client.node.syncManager.peers[peerState.id]).toBeUndefined();
+  });
+});
+
 describe("waitForSyncWithPeer", () => {
   test("should resolve when the coValue is fully uploaded into the peer", async () => {
     const client = await setupTestAccount();
