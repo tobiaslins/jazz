@@ -16,6 +16,7 @@ import {
   getCoValueOwner,
   Group,
   ID,
+  unstable_mergeBranch,
   PartialOnUndefined,
   RefEncoded,
   RefIfCoValue,
@@ -566,6 +567,24 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
    * @category Content
    */
   get id(): ID<M> {
+    const sourceId = this.raw.core.getCurrentBranchSourceId();
+
+    if (sourceId) {
+      return sourceId as ID<M>;
+    }
+
+    return this.raw.id;
+  }
+
+  get isBranch(): boolean {
+    return this.raw.core.isBranch();
+  }
+
+  get branchName(): string | undefined {
+    return this.raw.core.getCurrentBranchName();
+  }
+
+  get branchId(): ID<M> {
     return this.raw.id;
   }
 
@@ -839,6 +858,15 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
   /** @internal */
   get schema(): CoMapFieldSchema {
     return (this.coMap.constructor as typeof CoMap)._schema;
+  }
+
+  /**
+   * Deeply merge the current branch into the main CoValues.
+   *
+   * Doesn't have any effect when there are no changes to merge, or the current CoValue is not a branch
+   */
+  unstable_merge() {
+    unstable_mergeBranch(this.coMap);
   }
 }
 
