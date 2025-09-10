@@ -823,15 +823,24 @@ export class CoValueCore {
 
     transaction.hasMetaBeenParsed = true;
 
-    // Check if the transaction is a branch start
-    if (this.isBranch() && "from" in transaction.meta) {
-      if (!this.branchStart || transaction.madeAt < this.branchStart.madeAt) {
-        const commit = transaction.meta as BranchStartCommit;
+    // Branch related meta information
+    if (this.isBranch()) {
+      // Check if the transaction is a branch start
+      if ("from" in transaction.meta) {
+        if (!this.branchStart || transaction.madeAt < this.branchStart.madeAt) {
+          const commit = transaction.meta as BranchStartCommit;
 
-        this.branchStart = {
-          from: commit.from,
-          madeAt: transaction.madeAt,
-        };
+          this.branchStart = {
+            from: commit.from,
+            madeAt: transaction.madeAt,
+          };
+        }
+      }
+
+      // Check if the transaction is a merged checkpoint for a branch
+      if ("merged" in transaction.meta) {
+        const mergeCommit = transaction.meta as MergeCommit;
+        this.mergeCommits.push(mergeCommit);
       }
     }
 
@@ -862,12 +871,6 @@ export class CoValueCore {
           prev: previousTransaction ?? null,
         });
       }
-    }
-
-    // Check if the transaction is a merged checkpoint for a branch
-    if ("merged" in transaction.meta) {
-      const mergeCommit = transaction.meta as MergeCommit;
-      this.mergeCommits.push(mergeCommit);
     }
   }
 
