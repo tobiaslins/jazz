@@ -139,6 +139,13 @@ export class SyncManager {
   // the transactions have already been verified by the [trusted] peer that sent them.
   private skipVerify: boolean = false;
 
+  // When true, coValues that arrive from server peers will be ignored if they had not
+  // explicitly been requested via a load message.
+  private _ignoreUnknownCoValuesFromServers: boolean = false;
+  ignoreUnknownCoValuesFromServers() {
+    this._ignoreUnknownCoValuesFromServers = true;
+  }
+
   peersCounter = metrics.getMeter("cojson").createUpDownCounter("jazz.peers", {
     description: "Amount of connected peers",
     valueType: ValueType.INT,
@@ -191,7 +198,28 @@ export class SyncManager {
         msg,
       });
       return;
-    } else if (this.local.getCoValue(msg.id).isErroredInPeer(peer.id)) {
+    }
+
+    // Prevent core shards from storing content that belongs to other shards.
+    //
+    // This can happen because a covalue "miss" on a core shard will cause a load message to
+    // be sent to the original unsharded core. The original core, treating the peer as a client,
+    // will respond with the covalue and its dependencies. Those dependencies might not belong
+    // to this shard, so they should be ignored.
+    //
+    // TODO: remove once core has been sharded.
+    if (
+      peer.role === "server" &&
+      this._ignoreUnknownCoValuesFromServers &&
+      !this.local.hasCoValue(msg.id)
+    ) {
+      logger.warn(
+        `Ignoring message ${msg.action} on unknown coValue ${msg.id} from peer ${peer.id}`,
+      );
+      return;
+    }
+
+    if (this.local.getCoValue(msg.id).isErroredInPeer(peer.id)) {
       logger.warn(
         `Skipping message ${msg.action} on errored coValue ${msg.id} from peer ${peer.id}`,
       );
