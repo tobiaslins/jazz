@@ -2,4 +2,4 @@
 "jazz-tools": patch
 ---
 
-Add `useCoStateSelector` for granular reactivity
+Add `useCoStateWithSelector` for granular reactivity
