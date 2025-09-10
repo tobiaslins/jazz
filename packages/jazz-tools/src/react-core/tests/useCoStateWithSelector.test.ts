@@ -46,7 +46,7 @@ describe("useCoStateWithSelector", () => {
 
     const { result } = renderHook(() =>
       useRenderCount(() =>
-        useCoStateWithSelector(TestMap, map.id, {
+        useCoStateWithSelector(TestMap, map.$jazz.id, {
           resolve: {
             nested: true,
           },
@@ -60,8 +60,8 @@ describe("useCoStateWithSelector", () => {
     });
 
     for (let i = 0; i < 100; i++) {
-      map.nested!.value = `${i}`;
-      await Account.getMe().waitForAllCoValuesSync();
+      map.nested!.$jazz.set("value", `${i}`);
+      await Account.getMe().$jazz.waitForAllCoValuesSync();
     }
 
     expect(result.current.result).toEqual("1");
@@ -85,7 +85,7 @@ describe("useCoStateWithSelector", () => {
 
     const { result } = renderHook(() =>
       useRenderCount(() =>
-        useCoStateWithSelector(TestMap, map.id, {
+        useCoStateWithSelector(TestMap, map.$jazz.id, {
           resolve: {
             nested: true,
           },
@@ -99,8 +99,8 @@ describe("useCoStateWithSelector", () => {
     });
 
     for (let i = 1; i <= 100; i++) {
-      map.nested!.value = `${i}`;
-      await Account.getMe().waitForAllCoValuesSync();
+      map.nested!.$jazz.set("value", `${i}`);
+      await Account.getMe().$jazz.waitForAllCoValuesSync();
     }
 
     expect(result.current.result).toEqual("100");
@@ -128,7 +128,7 @@ describe("useCoStateWithSelector", () => {
 
     const { result } = renderHook(() =>
       useRenderCount(() =>
-        useCoStateWithSelector(TestMap, map.id, {
+        useCoStateWithSelector(TestMap, map.$jazz.id, {
           resolve: {
             nested: true,
           },
@@ -139,8 +139,8 @@ describe("useCoStateWithSelector", () => {
     );
 
     for (let i = 1; i <= 100; i++) {
-      map.nested!.value = `${i}`;
-      await Account.getMe().waitForAllCoValuesSync();
+      map.nested!.$jazz.set("value", `${i}`);
+      await Account.getMe().$jazz.waitForAllCoValuesSync();
     }
 
     expect(result.current.result).toEqual("1");
