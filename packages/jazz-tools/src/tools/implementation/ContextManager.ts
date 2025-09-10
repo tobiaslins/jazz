@@ -170,7 +170,6 @@ export class JazzContextManager<
       return;
     }
 
-    // Reset migration state on logout
     this.migrationCompleted = false;
     this.authenticationInProgress = false;
 
@@ -212,7 +211,6 @@ export class JazzContextManager<
       throw new Error("Props required");
     }
 
-    // Prevent concurrent authentication attempts
     if (this.authenticationInProgress) {
       console.warn(
         "Authentication already in progress, skipping duplicate request",
@@ -249,7 +247,6 @@ export class JazzContextManager<
       throw new Error("Props required");
     }
 
-    // Prevent concurrent authentication attempts
     if (this.authenticationInProgress) {
       console.warn(
         "Authentication already in progress, skipping duplicate registration request",

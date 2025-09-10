@@ -600,7 +600,6 @@ describe("ContextManager", () => {
 
       expect(onAnonymousAccountDiscarded).toHaveBeenCalledTimes(1);
 
-      // Log out
       await manager.logOut();
 
       // Should be able to authenticate again

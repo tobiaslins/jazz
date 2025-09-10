@@ -175,7 +175,7 @@ export const jazzPluginClient = () => {
                 lastAuthenticatedAccountID === sessionAccountID
               ) {
                 console.log(
-                  "better-auth: Authentication already in progress for account",
+                  "Authentication with better-auth already in progress for account",
                   sessionAccountID,
                 );
                 return;
@@ -205,7 +205,6 @@ export const jazzPluginClient = () => {
             }
 
             if (context.request.url.toString().includes("/sign-out")) {
-              // Reset authentication state on sign out
               pendingAuthentication = null;
               lastAuthenticatedAccountID = null;
               await jazzContext.logOut();
@@ -213,7 +212,6 @@ export const jazzPluginClient = () => {
             }
 
             if (context.request.url.toString().includes("/delete-user")) {
-              // Reset authentication state on user deletion
               pendingAuthentication = null;
               lastAuthenticatedAccountID = null;
               await jazzContext.logOut();
