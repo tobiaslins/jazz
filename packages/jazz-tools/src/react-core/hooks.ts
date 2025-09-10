@@ -267,10 +267,10 @@ export function useCoState<
     /** Resolve query to specify which nested CoValues to load */
     resolve?: ResolveQueryStrict<S, R>;
     /**
-     * Create a branch for version control and collaborative editing.
+     * Create or load a branch for isolated editing.
      *
      * Branches allow you to work on CoValues in isolation before merging changes back.
-     * This is useful for implementing features like drafts, collaborative editing,
+     * This is useful for implementing features like drafts, isolated editing,
      * or any scenario where you want to make changes without immediately affecting
      * the main version.
      *
@@ -477,6 +477,16 @@ export function useCoStateWithSelector<
     select: (value: Loaded<S, R> | undefined | null) => TSelectorReturn;
     /** Equality function to determine if the selected value has changed, defaults to `Object.is` */
     equalityFn?: (a: TSelectorReturn, b: TSelectorReturn) => boolean;
+    /**
+     * Create or load a branch for isolated editing.
+     *
+     * Branches allow you to work on CoValues in isolation before merging changes back.
+     * This is useful for implementing features like drafts, isolated editing,
+     * or any scenario where you want to make changes without immediately affecting
+     * the main version.
+     *
+     */
+    unstable_branch?: { name: string; owner?: Account | Group | null };
   },
 ): TSelectorReturn {
   const subscription = useCoValueSubscription(Schema, id, options);
