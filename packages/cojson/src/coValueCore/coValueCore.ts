@@ -705,6 +705,8 @@ export class CoValueCore {
   // The list of merge commits that have been made
   mergeCommits: MergeCommit[] = [];
   branches: BranchPointerCommit[] = [];
+  earliestTxMadeAt: number = Number.MAX_SAFE_INTEGER;
+  latestTxMadeAt: number = 0;
 
   // Reset the parsed transactions and branches, to validate them again from scratch when the group is updated
   resetParsedTransactions() {
@@ -781,6 +783,14 @@ export class CoValueCore {
           tx,
           previous: this.lastVerifiedTransactionBySessionID[sessionID],
         };
+
+        if (verifiedTransaction.madeAt > this.latestTxMadeAt) {
+          this.latestTxMadeAt = verifiedTransaction.madeAt;
+        }
+
+        if (verifiedTransaction.madeAt < this.earliestTxMadeAt) {
+          this.earliestTxMadeAt = verifiedTransaction.madeAt;
+        }
 
         this.verifiedTransactions.push(verifiedTransaction);
         this.lastVerifiedTransactionBySessionID[sessionID] =
