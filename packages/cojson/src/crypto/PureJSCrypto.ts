@@ -32,6 +32,11 @@ import { ControlledAccountOrAgent } from "../coValues/account.js";
 
 type Blake3State = ReturnType<typeof blake3.create>;
 
+const caches = {
+  sealSharedSecret: new Map<string, Uint8Array>(),
+  unsealSharedSecret: new Map<string, Uint8Array>(),
+};
+
 /**
  * Pure JavaScript implementation of the CryptoProvider interface using noble-curves and noble-ciphers libraries.
  * This provides a fallback implementation that doesn't require WebAssembly, offering:
@@ -164,15 +169,19 @@ export class PureJSCrypto extends CryptoProvider<Blake3State> {
     to: SealerID;
     nOnceMaterial: { in: RawCoID; tx: TransactionID };
   }): Sealed<T> {
+    const cacheKey = `${from}-${to}`;
+
+    let sharedSecret = caches.sealSharedSecret.get(cacheKey);
+
+    if (!sharedSecret) {
+      const sealerPub = base58.decode(to.substring("sealer_z".length));
+      const senderPriv = base58.decode(from.substring("sealerSecret_z".length));
+      sharedSecret = x25519.getSharedSecret(senderPriv, sealerPub);
+      caches.sealSharedSecret.set(cacheKey, sharedSecret);
+    }
+
     const nOnce = this.generateJsonNonce(nOnceMaterial);
-
-    const sealerPub = base58.decode(to.substring("sealer_z".length));
-
-    const senderPriv = base58.decode(from.substring("sealerSecret_z".length));
-
     const plaintext = textEncoder.encode(stableStringify(message));
-
-    const sharedSecret = x25519.getSharedSecret(senderPriv, sealerPub);
 
     const sealedBytes = xsalsa20poly1305(sharedSecret, nOnce).encrypt(
       plaintext,
@@ -189,13 +198,20 @@ export class PureJSCrypto extends CryptoProvider<Blake3State> {
   ): T | undefined {
     const nOnce = this.generateJsonNonce(nOnceMaterial);
 
-    const sealerPriv = base58.decode(sealer.substring("sealerSecret_z".length));
+    const cacheKey = `${sealer}-${from}`;
 
-    const senderPub = base58.decode(from.substring("sealer_z".length));
+    let sharedSecret = caches.unsealSharedSecret.get(cacheKey);
+
+    if (!sharedSecret) {
+      const sealerPub = base58.decode(from.substring("sealer_z".length));
+      const senderPriv = base58.decode(
+        sealer.substring("sealerSecret_z".length),
+      );
+      sharedSecret = x25519.getSharedSecret(senderPriv, sealerPub);
+      caches.unsealSharedSecret.set(cacheKey, sharedSecret);
+    }
 
     const sealedBytes = base64URLtoBytes(sealed.substring("sealed_U".length));
-
-    const sharedSecret = x25519.getSharedSecret(sealerPriv, senderPub);
 
     const plaintext = xsalsa20poly1305(sharedSecret, nOnce).decrypt(
       sealedBytes,
