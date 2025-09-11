@@ -56,7 +56,7 @@ You can also include nested CoValues in your branch by using a [`resolve` query]
 
 ### Making Changes
 
-Once you have a branch, you can make changes using the same methods as the original CoValue:
+Once you have a branch, you can make changes just as you would with the original CoValue:
 
 <ContentByFramework framework={["react", "react-native", "expo", "vue", "vanilla"]}>  
 <CodeGroup>
@@ -196,7 +196,7 @@ originalProject.$jazz.applyDiff({ priority: "urgent" });
 // Merge the branch
 branch.$jazz.unstable_merge();
 
-// Main's value wins ("urgent") because it was written later
+// Main's value ("urgent") wins because it was written later
 console.log(originalProject.priority); // "urgent"
 ```
 </CodeGroup>
@@ -239,7 +239,7 @@ const branch = await Project.load(projectId, {
   unstable_branch: { name: "feature-branch" }
 });
 
-// Branch ID is the same as source
+console.log(branch.$jazz.id); // Branch ID is the same as source
 console.log(branch.$jazz.branchName); // "feature-branch"
 console.log(branch.$jazz.isBranch); // true
 ```
