@@ -1,1 +1,1 @@
-export const apiKey = import.meta.env.VITE_JAZZ_API_KEY;
+export const apiKey = "react-passkey-auth@garden.co";
