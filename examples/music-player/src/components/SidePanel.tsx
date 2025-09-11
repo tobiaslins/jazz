@@ -24,7 +24,7 @@ export function SidePanel() {
   const navigate = useNavigate();
   const playlists = useAccountWithSelector(MusicaAccount, {
     resolve: { root: { playlists: { $each: { $onError: null } } } },
-    select: (me) => me?.root.playlists ?? [],
+    select: (me) => me?.root.playlists,
   });
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
@@ -107,7 +107,7 @@ export function SidePanel() {
                     <span>Add a new playlist</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-                {playlists.map(
+                {playlists?.map(
                   (playlist) =>
                     playlist && (
                       <SidebarMenuItem key={playlist.$jazz.id}>

@@ -297,7 +297,7 @@ import { useAccountWithSelector } from "jazz-tools/react";
 
 function ProfileName() {
   // Subscribe to a project and its tasks
-  const project = useAccountWithSelector(MyAppAccount, {
+  const profileName = useAccountWithSelector(MyAppAccount, {
     resolve: {
       profile: true,
     },
@@ -306,7 +306,7 @@ function ProfileName() {
 
   return (
     <div>
-      {name}
+      {profileName}
     </div>
   );
 }

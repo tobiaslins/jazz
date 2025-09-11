@@ -46,7 +46,7 @@ export function MusicTrackRow({
     resolve: {
       root: { playlists: { $onError: null, $each: { tracks: true } } },
     },
-    select: (account) => account?.root.playlists ?? [],
+    select: (account) => account?.root.playlists,
   });
 
   const isActiveTrack = useAccountWithSelector(MusicaAccount, {
@@ -162,7 +162,7 @@ export function MusicTrackRow({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onSelect={handleEdit}>Edit</DropdownMenuItem>
-              {playlists.filter(Boolean).map((playlist, playlistIndex) => (
+              {playlists?.filter(Boolean).map((playlist, playlistIndex) => (
                 <Fragment key={playlistIndex}>
                   {isPartOfThePlaylist(trackId, playlist) ? (
                     <DropdownMenuItem
