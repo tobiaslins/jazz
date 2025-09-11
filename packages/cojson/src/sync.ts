@@ -414,9 +414,20 @@ export class SyncManager {
       this.peersCounter.add(-1, { role: peer.role });
 
       if (!peer.persistent && this.peers[peer.id] === peerState) {
-        delete this.peers[peer.id];
+        this.removePeer(peer.id);
       }
     });
+  }
+
+  removePeer(peerId: PeerID) {
+    const peer = this.peers[peerId];
+    if (!peer) {
+      return;
+    }
+    if (!peer.closed) {
+      peer.gracefulShutdown();
+    }
+    delete this.peers[peer.id];
   }
 
   trySendToPeer(peer: PeerState, msg: SyncMessage) {
