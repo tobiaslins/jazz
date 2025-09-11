@@ -1,5 +1,12 @@
 # cojson
 
+## 0.18.9
+
+### Patch Changes
+
+- f058875: Add removePeer() method to SyncManager
+  - cojson-core-wasm@0.18.9
+
 ## 0.18.8
 
 ### Patch Changes

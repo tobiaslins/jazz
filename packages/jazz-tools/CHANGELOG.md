@@ -1,5 +1,16 @@
 # jazz-tools
 
+## 0.18.9
+
+### Patch Changes
+
+- c8167de: fix: improve handling of concurrent authentication attempts in ContextManager
+- 910b8d6: Added useAccountWithSelector hook for granular account data selection with custom equality checking
+- Updated dependencies [f058875]
+  - cojson@0.18.9
+  - cojson-storage-indexeddb@0.18.9
+  - cojson-transport-ws@0.18.9
+
 ## 0.18.8
 
 ### Patch Changes
