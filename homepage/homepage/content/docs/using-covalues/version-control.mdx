@@ -48,7 +48,13 @@ const branch = new CoState(Project, projectId, {
 </CodeGroup>
 </ContentByFramework>
 
-You can also include nested CoValues in your branch by using a [`resolve` query](/docs/using-covalues/subscription-and-loading#resolve-queries). All of the nested CoValues will have their own branched versions created, and you can access them in the same way you would normally access a deeply loaded property.
+You can also include nested CoValues in your branch by using a [`resolve` query](/docs/using-covalues/subscription-and-loading#resolve-queries). When you create a branch, the branch selection automatically propagates to all sub-properties and nested CoValues:
+
+- **Every sub-property** that comes from the branched CoValue will also be branched
+- **All subscriptions** using `branch.$jazz.ensureLoaded()` and `branch.$jazz.subscribe()` will have the branch checkout applied to their results
+- **Nested CoValues** will have their own branched versions created automatically
+
+This means you can access branched nested CoValues in the same way you would normally access a deeply loaded property, and all operations will work within the branch context.
 
 <Alert variant="info" className="mt-4 flex gap-2 items-center">
   In case you create a separate reference to a nested CoValue (for example by loading it by its ID), you will need to specify the branch you wish to load.
@@ -168,7 +174,7 @@ Calling `unstable_merge()` will merge every change done in the project and the l
 
 The merge is idempotent, so you can merge the same branch multiple times without changing the result.
 
-The merge operation is scoped, so if you call `unstable_merge()` on a task, only the changes to the task will be merged
+The merge operation cascades down to the CoValue's children, but not to its parents. So if you call `unstable_merge()` on a task, only the changes to the task and their children will be merged
 
 <CodeGroup>
 ```tsx 
@@ -224,10 +230,13 @@ const privateBranch = useCoState(Project, projectId, {
 ```
 </CodeGroup>
 
-
 You can use private branches both to make the changes to the branches "private" until merged, or to give controlled write access to a group of users.
 
 Only users with both write access to the main branch and read access to the private branch have the rights to merge the branch.
+
+<Alert variant="info" className="mt-4 flex gap-2 items-center">
+  <strong>Important:</strong> Branch names are scoped to their owner. The same branch name with different owners creates completely separate branches. For example, a branch named "feature-branch" owned by User A is completely different from a branch named "feature-branch" owned by User B.
+</Alert>
 
 ## Branch Identification
 
