@@ -19,21 +19,43 @@ import { createSubscriber } from "svelte/reactivity";
 import { useIsAuthenticated } from "./auth/useIsAuthenticated.svelte.js";
 import { getJazzContext } from "./jazz.svelte";
 
+type CoStateOptions<V extends CoValueClassOrSchema, R extends ResolveQuery<V>> = { 
+  resolve?: ResolveQueryStrict<V, R>,
+  /**
+   * Create or load a branch for isolated editing.
+   *
+   * Branching lets you take a snapshot of the current state and start modifying it without affecting the canonical/shared version.
+   * It's a fork of your data graph: the same schema, but with diverging values.
+   *
+   * The checkout of the branch is applied on all the resolved values.
+   *
+   * @param name - A unique name for the branch. This identifies the branch
+   *   and can be used to switch between different branches of the same CoValue.
+   * @param owner - The owner of the branch. Determines who can access and modify
+   *   the branch. If not provided, the branch is owned by the current user.
+   *
+   * For more info see the [branching](https://jazz.tools/docs/svelte/using-covalues/version-control) documentation.
+  */
+  unstable_branch?: BranchDefinition
+};
+
+type CoStateId = string | undefined | null;
+
 export class CoState<
   V extends CoValueClassOrSchema,
   R extends ResolveQuery<V> = true,
 > {
   #value: Loaded<V, R> | undefined | null = undefined;
   #ctx = getJazzContext<InstanceOfSchema<AccountClass<Account>>>();
-  #id: string | undefined | null;
+  #id: CoStateId;
   #subscribe: () => void;
   #update = () => {};
-  #options: { resolve?: ResolveQueryStrict<V, R>, unstable_branch?: BranchDefinition } | undefined;
+  #options: CoStateOptions<V, R> | undefined;
 
   constructor(
     Schema: V,
-    id: string | undefined | null | (() => string | undefined | null),
-    options?: { resolve?: ResolveQueryStrict<V, R>, unstable_branch?: BranchDefinition } | (() => { resolve?: ResolveQueryStrict<V, R>, unstable_branch?: BranchDefinition }),
+    id: CoStateId | (() => CoStateId),
+    options?: CoStateOptions<V, R> | (() => CoStateOptions<V, R>),
   ) {
     this.#id = $derived.by(typeof id === "function" ? id : () => id);
     this.#options = $derived.by(typeof options === "function" ? options : () => options);
@@ -95,14 +117,14 @@ export class CoState<
 
 export class AccountCoState<
   A extends
-    | (AccountClass<Account> & CoValueFromRaw<Account>)
-    | AnyAccountSchema,
+  | (AccountClass<Account> & CoValueFromRaw<Account>)
+  | AnyAccountSchema,
   R extends ResolveQuery<A> = true,
 > {
   #value: Loaded<A, R> | undefined | null = undefined;
   #ctx = getJazzContext<InstanceOfSchema<A>>();
   #subscribe: () => void;
-  #update = () => {};
+  #update = () => { };
 
   constructor(Schema: A, options?: { resolve?: ResolveQueryStrict<A, R> }) {
     this.#subscribe = createSubscriber((update) => {

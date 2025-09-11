@@ -269,10 +269,8 @@ export function useCoState<
     /**
      * Create or load a branch for isolated editing.
      *
-     * Branches allow you to work on CoValues in isolation before merging changes back.
-     * This is useful for implementing features like drafts, isolated editing,
-     * or any scenario where you want to make changes without immediately affecting
-     * the main version.
+     * Branching lets you take a snapshot of the current state and start modifying it without affecting the canonical/shared version.
+     * It's a fork of your data graph: the same schema, but with diverging values.
      *
      * The checkout of the branch is applied on all the resolved values.
      *
@@ -281,42 +279,7 @@ export function useCoState<
      * @param owner - The owner of the branch. Determines who can access and modify
      *   the branch. If not provided, the branch is owned by the current user.
      *
-     * @example
-     * ```tsx
-     * // Create a private branch for temporary edits
-     * const owner = useMemo(() => Group.create(), []);
-     * const order = useCoState(BubbleTeaOrder, orderId, {
-     *   unstable_branch: {
-     *     name: "edit-order",
-     *     owner, // Private group - only accessible to this component instance
-     *   },
-     * });
-     *
-     * // Changes are isolated until explicitly merged
-     * order?.$jazz.unstable_merge();
-     * ```
-     *
-     * @example
-     * ```tsx
-     * // Branch management with dynamic branch switching
-     * const [currentBranch, setCurrentBranch] = useState<string | undefined>();
-     *
-     * const document = useCoState(Document, documentId, {
-     *   unstable_branch: currentBranch ? {
-     *     name: currentBranch, // No owner, the branch has same permissions as the main
-     *   } : undefined,
-     * });
-     *
-     * // Switch between branches
-     * const switchToBranch = (branchName: string) => {
-     *   setCurrentBranch(branchName);
-     * };
-     *
-     * // Work on main branch
-     * const workOnMain = () => {
-     *   setCurrentBranch(undefined);
-     * };
-     * ```
+     * For more info see the [branching](https://jazz.tools/docs/react/using-covalues/version-control) documentation.
      */
     unstable_branch?: { name: string; owner?: Account | Group | null };
   },
@@ -480,11 +443,17 @@ export function useCoStateWithSelector<
     /**
      * Create or load a branch for isolated editing.
      *
-     * Branches allow you to work on CoValues in isolation before merging changes back.
-     * This is useful for implementing features like drafts, isolated editing,
-     * or any scenario where you want to make changes without immediately affecting
-     * the main version.
+     * Branching lets you take a snapshot of the current state and start modifying it without affecting the canonical/shared version.
+     * It's a fork of your data graph: the same schema, but with diverging values.
      *
+     * The checkout of the branch is applied on all the resolved values.
+     *
+     * @param name - A unique name for the branch. This identifies the branch
+     *   and can be used to switch between different branches of the same CoValue.
+     * @param owner - The owner of the branch. Determines who can access and modify
+     *   the branch. If not provided, the branch is owned by the current user.
+     *
+     * For more info see the [branching](https://jazz.tools/docs/react/using-covalues/version-control) documentation.
      */
     unstable_branch?: { name: string; owner?: Account | Group | null };
   },

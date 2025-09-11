@@ -95,7 +95,6 @@ export {
   type Credentials,
   type JazzContextWithAccount,
   type BranchDefinition,
-  unstable_mergeBranch,
 } from "./internal.js";
 
 export type * from "./types.js";
