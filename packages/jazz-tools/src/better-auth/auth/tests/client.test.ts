@@ -471,5 +471,95 @@ describe("Better-Auth client plugin", () => {
 
       expect(authSecretStorage.isAuthenticated).toBe(true);
     });
+
+    it("should fail fast when trying to authenticate different accounts concurrently", async () => {
+      const originalCredentials = await authSecretStorage.get();
+      assert(originalCredentials, "Jazz credentials are not available");
+
+      const testAccount1 = await setupJazzTestSync();
+      const testAccount2 = await setupJazzTestSync();
+      const testAccount3 = await setupJazzTestSync();
+
+      const accounts = [testAccount1, testAccount2, testAccount3];
+      let callCount = 0;
+
+      customFetchImpl.mockImplementation(() => {
+        const accountIndex = callCount % 3;
+        const account = accounts[accountIndex]!;
+        callCount++;
+
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              user: {
+                id: `user-${accountIndex + 1}`,
+                email: `user${accountIndex + 1}@jazz.dev`,
+                name: `User ${accountIndex + 1}`,
+                accountID: account.$jazz.id,
+              },
+              jazzAuth: {
+                accountID: account.$jazz.id,
+                secretSeed: new Uint8Array([
+                  accountIndex + 1,
+                  accountIndex + 2,
+                  accountIndex + 3,
+                ]),
+                accountSecret:
+                  account.$jazz.localNode.getCurrentAgent().agentSecret,
+                provider: "better-auth",
+              },
+            }),
+          ),
+        );
+      });
+
+      const promises = [];
+      for (let i = 0; i < 3; i++) {
+        promises.push(authClient.$fetch("/get-session", { method: "GET" }));
+      }
+
+      await expect(Promise.all(promises)).rejects.toThrow();
+
+      expect(customFetchImpl).toHaveBeenCalledTimes(3);
+    });
+
+    it("should deduplicate auth requests for the same account", async () => {
+      const credentials = await authSecretStorage.get();
+      assert(credentials, "Jazz credentials are not available");
+
+      customFetchImpl.mockImplementation(() =>
+        Promise.resolve(
+          new Response(
+            JSON.stringify({
+              user: {
+                id: "test-user",
+                email: "test@jazz.dev",
+                name: "Test User",
+                accountID: credentials.accountID,
+              },
+              jazzAuth: {
+                accountID: credentials.accountID,
+                secretSeed: credentials.secretSeed,
+                accountSecret: credentials.accountSecret,
+                provider: "better-auth",
+              },
+            }),
+          ),
+        ),
+      );
+
+      const promises = [];
+      for (let i = 0; i < 3; i++) {
+        promises.push(authClient.$fetch("/get-session", { method: "GET" }));
+      }
+
+      await expect(Promise.all(promises)).resolves.toBeDefined();
+
+      expect(customFetchImpl).toHaveBeenCalledTimes(3);
+
+      expect(authSecretStorage.isAuthenticated).toBe(true);
+      const finalCredentials = await authSecretStorage.get();
+      expect(finalCredentials?.accountID).toBe(credentials.accountID);
+    });
   });
 });

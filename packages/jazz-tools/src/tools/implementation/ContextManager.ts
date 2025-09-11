@@ -68,8 +68,8 @@ export class JazzContextManager<
   protected authSecretStorage = new AuthSecretStorage();
   protected keepContextOpen = false;
   contextPromise: Promise<void> | undefined;
-  private authenticationInProgress = false;
-  private migrationCompleted = false;
+  protected authenticationInProgress = false;
+  protected authenticatingAccountID: string | null = null;
 
   constructor(opts?: {
     useAnonymousFallback?: boolean;
@@ -165,13 +165,21 @@ export class JazzContextManager<
     return this.authSecretStorage;
   }
 
+  getAuthenticationInProgress() {
+    return this.authenticationInProgress;
+  }
+
+  getAuthenticatingAccountID() {
+    return this.authenticatingAccountID;
+  }
+
   logOut = async () => {
     if (!this.context || !this.props) {
       return;
     }
 
-    this.migrationCompleted = false;
     this.authenticationInProgress = false;
+    this.authenticatingAccountID = null;
 
     await this.props.onLogOut?.();
 
@@ -211,14 +219,29 @@ export class JazzContextManager<
       throw new Error("Props required");
     }
 
-    if (this.authenticationInProgress) {
-      console.warn(
-        "Authentication already in progress, skipping duplicate request",
+    if (
+      this.authenticationInProgress &&
+      this.authenticatingAccountID === credentials.accountID
+    ) {
+      console.info(
+        "Authentication already in progress for account",
+        credentials.accountID,
+        "skipping duplicate request",
       );
       return;
     }
 
+    if (
+      this.authenticationInProgress &&
+      this.authenticatingAccountID !== credentials.accountID
+    ) {
+      throw new Error(
+        `Authentication already in progress for different account (${this.authenticatingAccountID}), cannot authenticate ${credentials.accountID}`,
+      );
+    }
+
     this.authenticationInProgress = true;
+    this.authenticatingAccountID = credentials.accountID;
 
     try {
       const prevContext = this.context;
@@ -230,12 +253,12 @@ export class JazzContextManager<
         this.keepContextOpen = false;
       });
 
-      if (migratingAnonymousAccount && !this.migrationCompleted) {
+      if (migratingAnonymousAccount) {
         await this.handleAnonymousAccountMigration(prevContext);
-        this.migrationCompleted = true;
       }
     } finally {
       this.authenticationInProgress = false;
+      this.authenticatingAccountID = null;
     }
   };
 
@@ -255,6 +278,8 @@ export class JazzContextManager<
     }
 
     this.authenticationInProgress = true;
+    // For registration, we don't know the account ID yet, so we'll set it to null
+    this.authenticatingAccountID = null;
 
     try {
       const prevContext = this.context;
@@ -271,9 +296,8 @@ export class JazzContextManager<
         this.keepContextOpen = false;
       });
 
-      if (migratingAnonymousAccount && !this.migrationCompleted) {
+      if (migratingAnonymousAccount) {
         await this.handleAnonymousAccountMigration(prevContext);
-        this.migrationCompleted = true;
       }
 
       if (this.context && "me" in this.context) {
@@ -283,6 +307,7 @@ export class JazzContextManager<
       throw new Error("The registration hasn't created a new account");
     } finally {
       this.authenticationInProgress = false;
+      this.authenticatingAccountID = null;
     }
   };
 

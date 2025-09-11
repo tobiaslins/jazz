@@ -720,5 +720,35 @@ describe("ContextManager", () => {
 
       expect(me.root.transferredRoot?.value).toBe("Hello");
     });
+
+    test("fails fast when trying to authenticate different accounts concurrently", async () => {
+      const account1 = await createJazzTestAccount();
+      const account2 = await createJazzTestAccount();
+
+      await manager.createContext({});
+
+      const credentials1 = {
+        accountID: account1.$jazz.id,
+        accountSecret: account1.$jazz.localNode.getCurrentAgent().agentSecret,
+        provider: "test",
+      };
+
+      const credentials2 = {
+        accountID: account2.$jazz.id,
+        accountSecret: account2.$jazz.localNode.getCurrentAgent().agentSecret,
+        provider: "test",
+      };
+
+      const auth1Promise = manager.authenticate(credentials1);
+
+      // Try to authenticate account2 while account1 is in progress
+      await expect(manager.authenticate(credentials2)).rejects.toThrow();
+
+      // First authentication should still complete successfully
+      await expect(auth1Promise).resolves.toBeUndefined();
+
+      // After first auth completes, second account should be able to authenticate
+      await expect(manager.authenticate(credentials2)).resolves.toBeUndefined();
+    });
   });
 });
