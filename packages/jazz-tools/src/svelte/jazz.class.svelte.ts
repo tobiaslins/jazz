@@ -124,15 +124,19 @@ export class AccountCoState<
   #value: Loaded<A, R> | undefined | null = undefined;
   #ctx = getJazzContext<InstanceOfSchema<A>>();
   #subscribe: () => void;
+  #options: CoStateOptions<A, R> | undefined;
   #update = () => { };
 
-  constructor(Schema: A, options?: { resolve?: ResolveQueryStrict<A, R> }) {
+  constructor(Schema: A, options?: CoStateOptions<A, R> | (() => CoStateOptions<A, R>)) {
+    this.#options = $derived.by(typeof options === "function" ? options : () => options);
+
     this.#subscribe = createSubscriber((update) => {
       this.#update = update;
     });
 
     $effect.pre(() => {
       const ctx = this.#ctx.current;
+      const options = this.#options;
 
       return untrack(() => {
         if (!ctx || !("me" in ctx)) {
@@ -155,6 +159,7 @@ export class AccountCoState<
               this.update(null);
             },
             syncResolution: true,
+            unstable_branch: options?.unstable_branch,
           },
           (value) => {
             this.update(value as Loaded<A, R>);
