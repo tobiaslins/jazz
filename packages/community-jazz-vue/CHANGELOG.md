@@ -1,5 +1,12 @@
 # jazz-react
 
+## 0.18.10
+
+### Patch Changes
+
+- jazz-tools@0.18.10
+- cojson@0.18.10
+
 ## 0.18.9
 
 ### Patch Changes

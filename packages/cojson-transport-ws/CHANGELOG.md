@@ -1,5 +1,12 @@
 # cojson-transport-nodejs-ws
 
+## 0.18.10
+
+### Patch Changes
+
+- 95cc9af: Downgrade the ping timeout logs to warning
+  - cojson@0.18.10
+
 ## 0.18.9
 
 ### Patch Changes
