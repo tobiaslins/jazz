@@ -12,7 +12,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { useAccount } from "jazz-tools/react";
+import { useAccountWithSelector } from "jazz-tools/react";
 import { Home, Music, Plus, Trash2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
 import { useState } from "react";
@@ -22,8 +22,9 @@ import { CreatePlaylistModal } from "./CreatePlaylistModal";
 export function SidePanel() {
   const { playlistId } = useParams();
   const navigate = useNavigate();
-  const { me } = useAccount(MusicaAccount, {
+  const playlists = useAccountWithSelector(MusicaAccount, {
     resolve: { root: { playlists: { $each: { $onError: null } } } },
+    select: (me) => me?.root.playlists ?? [],
   });
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
@@ -106,7 +107,7 @@ export function SidePanel() {
                     <span>Add a new playlist</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-                {me?.root.playlists.map(
+                {playlists.map(
                   (playlist) =>
                     playlist && (
                       <SidebarMenuItem key={playlist.$jazz.id}>
