@@ -60,9 +60,7 @@ describe("useAccountWithSelector", () => {
       },
     );
 
-    expect(result.current.selected).toBe("123");
-    expect(result.current.agent).toBe(account);
-    expect(typeof result.current.logOut).toBe("function");
+    expect(result.current).toBe("123");
   });
 
   it("should load nested values if requested", async () => {
@@ -113,7 +111,7 @@ describe("useAccountWithSelector", () => {
       },
     );
 
-    expect(result.current.selected).toBe("456");
+    expect(result.current).toBe("456");
   });
 
   it("should not re-render when a nested coValue is updated and not selected", async () => {
@@ -176,7 +174,7 @@ describe("useAccountWithSelector", () => {
       await account.$jazz.waitForAllCoValuesSync();
     });
 
-    expect(result.current.result.selected).toEqual("1");
+    expect(result.current.result).toEqual("1");
     expect(result.current.renderCount).toEqual(1);
   });
 
@@ -241,7 +239,7 @@ describe("useAccountWithSelector", () => {
       await account.$jazz.waitForAllCoValuesSync();
     });
 
-    expect(result.current.result.selected).toEqual("100");
+    expect(result.current.result).toEqual("100");
     expect(result.current.renderCount).toEqual(2); // Initial render + update
   });
 
@@ -307,7 +305,7 @@ describe("useAccountWithSelector", () => {
       await account.$jazz.waitForAllCoValuesSync();
     });
 
-    expect(result.current.result.selected).toEqual("1"); // Should still be "1" due to equalityFn
+    expect(result.current.result).toEqual("1"); // Should still be "1" due to equalityFn
     expect(result.current.renderCount).toEqual(1); // Should not re-render
   });
 
@@ -342,8 +340,7 @@ describe("useAccountWithSelector", () => {
       },
     );
 
-    expect(result.current.selected).toBe("Guest");
-    expect(result.current.agent).toBe(account.guest);
+    expect(result.current).toBe("Guest");
   });
 
   it("should handle undefined account gracefully", async () => {
@@ -359,7 +356,56 @@ describe("useAccountWithSelector", () => {
       },
     );
 
-    expect(result.current.selected).toBe("No account");
-    expect(typeof result.current.logOut).toBe("function");
+    expect(result.current).toBe("No account");
+  });
+
+  it("should re-render when selector result changes due to external prop changes", async () => {
+    const AccountRoot = co.map({
+      value: z.string(),
+    });
+
+    const AccountSchema = co
+      .account({
+        root: AccountRoot,
+        profile: co.profile(),
+      })
+      .withMigration((account, creationProps) => {
+        if (!account.$jazz.refs.root) {
+          account.$jazz.set("root", { value: "initial" });
+        }
+      });
+
+    const account = await createJazzTestAccount({
+      AccountSchema,
+    });
+
+    let externalProp = "suffix1";
+
+    const { result, rerender } = renderHook(
+      () =>
+        useRenderCount(() =>
+          useAccountWithSelector(AccountSchema, {
+            resolve: {
+              root: true,
+            },
+            select: (account) => {
+              const baseValue = account?.root?.value ?? "loading";
+              return `${baseValue}-${externalProp}`;
+            },
+          }),
+        ),
+      {
+        account,
+      },
+    );
+
+    expect(result.current.result).toEqual("initial-suffix1");
+    expect(result.current.renderCount).toEqual(1);
+
+    // Change external prop and rerender
+    externalProp = "suffix2";
+    rerender();
+
+    expect(result.current.result).toEqual("initial-suffix2");
   });
 });

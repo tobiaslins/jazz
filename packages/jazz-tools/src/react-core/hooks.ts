@@ -591,10 +591,7 @@ export function useAccount<
  * The hook automatically handles the subscription lifecycle and supports deep loading of nested
  * CoValues through resolve queries, just like `useAccount`.
  *
- * @returns An object containing:
- * - `selected`: The result of the selector function applied to the loaded account data
- * - `agent`: The current agent (anonymous or authenticated user). Can be used as `loadAs` parameter for load and subscribe methods.
- * - `logOut`: Function to log out the current user
+ * @returns The result of the selector function applied to the loaded account data
  *
  * @example
  * ```tsx
@@ -610,7 +607,7 @@ export function useAccount<
  *
  * function UserProfile({ accountId }: { accountId: string }) {
  *   // Only re-render when the profile name changes, not other fields
- *   const { selected: profileName } = useAccountWithSelector(
+ *   const profileName = useAccountWithSelector(
  *     MyAppAccount,
  *     {
  *       resolve: {
@@ -643,17 +640,10 @@ export function useAccountWithSelector<
     /** Equality function to determine if the selected value has changed, defaults to `Object.is` */
     equalityFn?: (a: TSelectorReturn, b: TSelectorReturn) => boolean;
   },
-): {
-  selected: TSelectorReturn;
-  agent: AnonymousJazzAgent | Loaded<A, true>;
-  logOut: () => void;
-} {
-  const contextManager = useJazzContextManager<InstanceOfSchema<A>>();
+): TSelectorReturn {
   const subscription = useAccountSubscription(AccountSchema, options);
 
-  const agent = getCurrentAccountFromContextManager(contextManager);
-
-  const selected = useSyncExternalStoreWithSelector<
+  return useSyncExternalStoreWithSelector<
     Loaded<A, R> | undefined | null,
     TSelectorReturn
   >(
@@ -672,12 +662,6 @@ export function useAccountWithSelector<
     options.select,
     options.equalityFn ?? Object.is,
   );
-
-  return {
-    selected,
-    agent,
-    logOut: contextManager.logOut,
-  };
 }
 
 export function experimental_useInboxSender<
