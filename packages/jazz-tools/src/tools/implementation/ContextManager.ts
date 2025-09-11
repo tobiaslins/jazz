@@ -68,12 +68,9 @@ export class JazzContextManager<
   protected authSecretStorage = new AuthSecretStorage();
   protected keepContextOpen = false;
   contextPromise: Promise<void> | undefined;
-  protected authenticationInProgress = false;
   protected authenticatingAccountID: string | null = null;
 
-  constructor(opts?: {
-    useAnonymousFallback?: boolean;
-  }) {
+  constructor(opts?: { useAnonymousFallback?: boolean }) {
     KvStoreContext.getInstance().initialize(this.getKvStore());
 
     if (opts?.useAnonymousFallback) {
@@ -165,10 +162,6 @@ export class JazzContextManager<
     return this.authSecretStorage;
   }
 
-  getAuthenticationInProgress() {
-    return this.authenticationInProgress;
-  }
-
   getAuthenticatingAccountID() {
     return this.authenticatingAccountID;
   }
@@ -178,7 +171,6 @@ export class JazzContextManager<
       return;
     }
 
-    this.authenticationInProgress = false;
     this.authenticatingAccountID = null;
 
     await this.props.onLogOut?.();
@@ -220,7 +212,7 @@ export class JazzContextManager<
     }
 
     if (
-      this.authenticationInProgress &&
+      this.authenticatingAccountID &&
       this.authenticatingAccountID === credentials.accountID
     ) {
       console.info(
@@ -232,7 +224,7 @@ export class JazzContextManager<
     }
 
     if (
-      this.authenticationInProgress &&
+      this.authenticatingAccountID &&
       this.authenticatingAccountID !== credentials.accountID
     ) {
       throw new Error(
@@ -240,7 +232,6 @@ export class JazzContextManager<
       );
     }
 
-    this.authenticationInProgress = true;
     this.authenticatingAccountID = credentials.accountID;
 
     try {
@@ -257,7 +248,6 @@ export class JazzContextManager<
         await this.handleAnonymousAccountMigration(prevContext);
       }
     } finally {
-      this.authenticationInProgress = false;
       this.authenticatingAccountID = null;
     }
   };
@@ -270,16 +260,12 @@ export class JazzContextManager<
       throw new Error("Props required");
     }
 
-    if (this.authenticationInProgress) {
-      console.warn(
-        "Authentication already in progress, skipping duplicate registration request",
-      );
+    if (this.authenticatingAccountID) {
       throw new Error("Authentication already in progress");
     }
 
-    this.authenticationInProgress = true;
-    // For registration, we don't know the account ID yet, so we'll set it to null
-    this.authenticatingAccountID = null;
+    // For registration, we don't know the account ID yet, so we'll set it to "register"
+    this.authenticatingAccountID = "register";
 
     try {
       const prevContext = this.context;
@@ -306,7 +292,6 @@ export class JazzContextManager<
 
       throw new Error("The registration hasn't created a new account");
     } finally {
-      this.authenticationInProgress = false;
       this.authenticatingAccountID = null;
     }
   };

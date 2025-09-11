@@ -2,6 +2,7 @@ import { createAuthClient } from "better-auth/client";
 import type { Account, AuthSecretStorage } from "jazz-tools";
 import {
   TestJazzContextManager,
+  createJazzTestAccount,
   setActiveAccount,
   setupJazzTestSync,
 } from "jazz-tools/testing";
@@ -383,7 +384,7 @@ describe("Better-Auth client plugin", () => {
       assert(originalCredentials, "Jazz credentials are not available");
 
       // Create a test account for the mismatch scenario
-      const testAccount = await setupJazzTestSync();
+      const testAccount = await createJazzTestAccount();
 
       // Mock get-session response with different account using fresh Response objects
       customFetchImpl.mockImplementation(() =>
@@ -476,9 +477,9 @@ describe("Better-Auth client plugin", () => {
       const originalCredentials = await authSecretStorage.get();
       assert(originalCredentials, "Jazz credentials are not available");
 
-      const testAccount1 = await setupJazzTestSync();
-      const testAccount2 = await setupJazzTestSync();
-      const testAccount3 = await setupJazzTestSync();
+      const testAccount1 = await createJazzTestAccount();
+      const testAccount2 = await createJazzTestAccount();
+      const testAccount3 = await createJazzTestAccount();
 
       const accounts = [testAccount1, testAccount2, testAccount3];
       let callCount = 0;

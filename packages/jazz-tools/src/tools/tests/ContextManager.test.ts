@@ -750,5 +750,46 @@ describe("ContextManager", () => {
       // After first auth completes, second account should be able to authenticate
       await expect(manager.authenticate(credentials2)).resolves.toBeUndefined();
     });
+
+    test("throws error when authenticating with different credentials simultaneously", async () => {
+      const account1 = await createJazzTestAccount();
+      const account2 = await createJazzTestAccount();
+
+      await manager.createContext({});
+
+      const credentials1 = {
+        accountID: account1.$jazz.id,
+        accountSecret: account1.$jazz.localNode.getCurrentAgent().agentSecret,
+        provider: "test",
+      };
+
+      const credentials2 = {
+        accountID: account2.$jazz.id,
+        accountSecret: account2.$jazz.localNode.getCurrentAgent().agentSecret,
+        provider: "test",
+      };
+
+      const results = await Promise.allSettled([
+        manager.authenticate(credentials1),
+        manager.authenticate(credentials2),
+      ]);
+
+      // One should succeed and one should fail
+      const successCount = results.filter(
+        (r) => r.status === "fulfilled",
+      ).length;
+      const failureCount = results.filter(
+        (r) => r.status === "rejected",
+      ).length;
+
+      expect(successCount).toBe(1);
+      expect(failureCount).toBe(1);
+
+      // Verify the successful authentication resulted in a valid context
+      const currentAccount = getCurrentValue().me;
+      expect([credentials1.accountID, credentials2.accountID]).toContain(
+        currentAccount.$jazz.id,
+      );
+    });
   });
 });
