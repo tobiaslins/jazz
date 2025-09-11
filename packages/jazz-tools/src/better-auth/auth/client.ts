@@ -1,8 +1,8 @@
 import type { BetterAuthClientPlugin } from "better-auth";
 import type {
+  Account,
   AuthSecretStorage,
   AuthSetPayload,
-  Account,
   JazzContextType,
 } from "jazz-tools";
 import type { jazzPlugin } from "./server.js";
