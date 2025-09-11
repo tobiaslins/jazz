@@ -1,5 +1,12 @@
 # cojson
 
+## 0.18.8
+
+### Patch Changes
+
+- 9a4caf2: Ability for SyncManager to ignore unknown covalues arriving from server peers
+  - cojson-core-wasm@0.18.8
+
 ## 0.18.7
 
 ### Patch Changes

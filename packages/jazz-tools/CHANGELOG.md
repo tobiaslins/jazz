@@ -1,5 +1,16 @@
 # jazz-tools
 
+## 0.18.8
+
+### Patch Changes
+
+- 700fe46: fix: in 32d1444 was used the wrong Better Auth internal function to delete old verification codes
+- aba0d55: Support the selection of a subset of keys to make optional in `co.map().partial()`
+- Updated dependencies [9a4caf2]
+  - cojson@0.18.8
+  - cojson-storage-indexeddb@0.18.8
+  - cojson-transport-ws@0.18.8
+
 ## 0.18.7
 
 ### Patch Changes
