@@ -749,7 +749,7 @@ export class CoValueCore {
       return;
     }
 
-    const isBranch = this.isBranch();
+    const isBranched = this.isBranched();
 
     for (const [sessionID, sessionLog] of this.verified.sessions.entries()) {
       const count = this.verifiedTransactionsKnownSessions[sessionID] ?? 0;
@@ -759,7 +759,7 @@ export class CoValueCore {
           return;
         }
 
-        const txID = isBranch
+        const txID = isBranched
           ? {
               sessionID,
               txIndex,
@@ -825,7 +825,7 @@ export class CoValueCore {
     transaction.hasMetaBeenParsed = true;
 
     // Branch related meta information
-    if (this.isBranch()) {
+    if (this.isBranched()) {
       // Check if the transaction is a branch start
       if ("from" in transaction.meta) {
         const meta = transaction.meta as BranchStartCommit;
@@ -988,7 +988,7 @@ export class CoValueCore {
     return this.verified?.branchSourceId;
   }
 
-  isBranch() {
+  isBranched() {
     return Boolean(this.verified?.branchSourceId);
   }
 

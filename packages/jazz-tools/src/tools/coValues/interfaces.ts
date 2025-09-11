@@ -608,7 +608,7 @@ export function importContentPieces(
 }
 
 export function unstable_mergeBranch<V extends CoValue>(existing: V) {
-  if (!existing.$jazz.raw.core.isBranch()) {
+  if (!existing.$jazz.raw.core.isBranched()) {
     throw new Error("CoValue is not a branch");
   }
 

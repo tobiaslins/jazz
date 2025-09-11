@@ -166,7 +166,7 @@ describe("CoValueCoreSubscription", async () => {
       expect(listener).toHaveBeenCalledTimes(1);
 
       // Should return the branch, that contains the source data
-      expect(lastResult.core.isBranch()).toEqual(true);
+      expect(lastResult.core.isBranched()).toEqual(true);
 
       await waitFor(() => {
         expect(lastResult.get("name")).toEqual("John");

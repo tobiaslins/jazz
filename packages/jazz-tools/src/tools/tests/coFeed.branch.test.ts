@@ -43,7 +43,7 @@ describe("CoFeed Branching", async () => {
       assert(branchFeed);
 
       expect(branchFeed.$jazz.branchName).toBe("feature-branch");
-      expect(branchFeed.$jazz.isBranch).toBe(true);
+      expect(branchFeed.$jazz.isBranched).toBe(true);
 
       // Edit the branch
       branchFeed.$jazz.push("jam");
@@ -86,7 +86,7 @@ describe("CoFeed Branching", async () => {
       assert(branchFeed);
 
       expect(branchFeed.$jazz.branchName).toBe("no-changes-branch");
-      expect(branchFeed.$jazz.isBranch).toBe(true);
+      expect(branchFeed.$jazz.isBranched).toBe(true);
 
       // Verify branch has same values as original
       expect(branchFeed.perAccount[me.$jazz.id]?.value).toEqual("butter");
@@ -432,7 +432,7 @@ describe("CoFeed Branching", async () => {
       const spy = vi.fn();
       const unsubscribe = branch.$jazz.subscribe((feed) => {
         expect(feed.$jazz.branchName).toBe("subscribe-branch");
-        expect(feed.$jazz.isBranch).toBe(true);
+        expect(feed.$jazz.isBranched).toBe(true);
         spy();
       });
 
@@ -468,7 +468,7 @@ describe("CoFeed Branching", async () => {
       assert(loadedFeed);
 
       expect(loadedFeed.$jazz.branchName).toBe("ensure-loaded-branch");
-      expect(loadedFeed.$jazz.isBranch).toBe(true);
+      expect(loadedFeed.$jazz.isBranched).toBe(true);
 
       // Verify we get the branch data, not the original data
       expect(loadedFeed.perAccount[me.$jazz.id]?.value).toBe("cheese");
@@ -500,7 +500,7 @@ describe("CoFeed Branching", async () => {
         },
         (feed) => {
           expect(feed.$jazz.branchName).toBe("schema-subscribe-branch");
-          expect(feed.$jazz.isBranch).toBe(true);
+          expect(feed.$jazz.isBranched).toBe(true);
           updates.push(feed);
         },
       );

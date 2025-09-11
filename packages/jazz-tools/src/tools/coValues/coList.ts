@@ -529,8 +529,8 @@ export class CoListJazzApi<L extends CoList> extends CoValueJazzApi<L> {
     return this.raw.id;
   }
 
-  get isBranch(): boolean {
-    return this.raw.core.isBranch();
+  get isBranched(): boolean {
+    return this.raw.core.isBranched();
   }
 
   get branchName(): string | undefined {

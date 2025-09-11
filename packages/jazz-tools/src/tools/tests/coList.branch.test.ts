@@ -550,7 +550,7 @@ describe("CoList Branching", async () => {
         { resolve: { $each: true } },
         (taskList) => {
           expect(taskList.$jazz.branchName).toBe("subscribe-branch");
-          expect(taskList.$jazz.isBranch).toBe(true);
+          expect(taskList.$jazz.isBranched).toBe(true);
           expect(taskList[0]?.$jazz.branchName).toBe("subscribe-branch");
           spy();
         },
@@ -623,9 +623,9 @@ describe("CoList Branching", async () => {
       assert(loadedTaskList);
 
       expect(loadedTaskList.$jazz.branchName).toBe("ensure-loaded-branch");
-      expect(loadedTaskList.$jazz.isBranch).toBe(true);
+      expect(loadedTaskList.$jazz.isBranched).toBe(true);
       expect(loadedTaskList[0]?.$jazz.branchName).toBe("ensure-loaded-branch");
-      expect(loadedTaskList[0]?.$jazz.isBranch).toBe(true);
+      expect(loadedTaskList[0]?.$jazz.isBranched).toBe(true);
 
       // Verify we get the branch data, not the original data
       expect(loadedTaskList[0]?.title).toBe("Buy organic groceries");
@@ -688,7 +688,7 @@ describe("CoList Branching", async () => {
         },
         (taskList) => {
           expect(taskList.$jazz.branchName).toBe("schema-subscribe-branch");
-          expect(taskList.$jazz.isBranch).toBe(true);
+          expect(taskList.$jazz.isBranched).toBe(true);
           updates.push(taskList);
         },
       );

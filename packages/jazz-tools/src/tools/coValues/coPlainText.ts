@@ -237,8 +237,8 @@ export class CoTextJazzApi<T extends CoPlainText> extends CoValueJazzApi<T> {
     return this.raw.id;
   }
 
-  get isBranch(): boolean {
-    return this.raw.core.isBranch();
+  get isBranched(): boolean {
+    return this.raw.core.isBranched();
   }
 
   get branchName(): string | undefined {

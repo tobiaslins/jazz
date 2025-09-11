@@ -646,7 +646,7 @@ describe("CoMap Branching", async () => {
         { resolve: { dog: true } },
         (person) => {
           expect(person.$jazz.branchName).toBe("subscribe-branch");
-          expect(person.$jazz.isBranch).toBe(true);
+          expect(person.$jazz.isBranched).toBe(true);
           expect(person.dog.$jazz.branchName).toBe("subscribe-branch");
           spy();
         },
@@ -709,9 +709,9 @@ describe("CoMap Branching", async () => {
       assert(loadedPerson);
 
       expect(loadedPerson.$jazz.branchName).toBe("ensure-loaded-branch");
-      expect(loadedPerson.$jazz.isBranch).toBe(true);
+      expect(loadedPerson.$jazz.isBranched).toBe(true);
       expect(loadedPerson.dog.$jazz.branchName).toBe("ensure-loaded-branch");
-      expect(loadedPerson.dog.$jazz.isBranch).toBe(true);
+      expect(loadedPerson.dog.$jazz.isBranched).toBe(true);
 
       // Verify we get the branch data, not the original data
       expect(loadedPerson.name).toBe("John Smith");
@@ -760,7 +760,7 @@ describe("CoMap Branching", async () => {
         },
         (person) => {
           expect(person.$jazz.branchName).toBe("schema-subscribe-branch");
-          expect(person.$jazz.isBranch).toBe(true);
+          expect(person.$jazz.isBranched).toBe(true);
           updates.push(person);
         },
       );

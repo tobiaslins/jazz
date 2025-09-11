@@ -348,8 +348,8 @@ export class CoFeedJazzApi<F extends CoFeed> extends CoValueJazzApi<F> {
     return this.raw.core.getCurrentBranchName();
   }
 
-  get isBranch(): boolean {
-    return this.raw.core.isBranch();
+  get isBranched(): boolean {
+    return this.raw.core.isBranched();
   }
 
   get owner(): Group {
@@ -1059,8 +1059,8 @@ export class FileStreamJazzApi<F extends FileStream> extends CoValueJazzApi<F> {
     return this.raw.id;
   }
 
-  get isBranch(): boolean {
-    return this.raw.core.isBranch();
+  get isBranched(): boolean {
+    return this.raw.core.isBranched();
   }
 
   get branchName(): string | undefined {
