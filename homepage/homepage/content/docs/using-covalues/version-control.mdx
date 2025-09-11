@@ -172,7 +172,7 @@ All the changes made to the branch will be merged into the main CoValue, preserv
 
 Calling `unstable_merge()` will merge every change done in the project and the loaded tasks.
 
-The merge is idempotent, so you can merge the same branch multiple times without changing the result.
+The merge is idempotent, so you can merge the same branch multiple times, the result will always depend on the branch changes and loading state.
 
 The merge operation cascades down to the CoValue's children, but not to its parents. So if you call `unstable_merge()` on a task, only the changes to the task and their children will be merged
 
