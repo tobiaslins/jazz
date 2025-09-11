@@ -19,11 +19,6 @@ npm i
 yarn
 ```
 
-Create a `.env` file and add an API key (available for free from https://dashboard.jazz.tools)
-```
-VITE_JAZZ_API_KEY=<your key>
-```
-
 Then, run the development server:
 
 ```bash
