@@ -246,6 +246,11 @@ export const docNavigationItems = [
   {
     name: "Authentication",
     items: [
+      { 
+        name: "Quickstart",
+        href: "/docs/authentication/quickstart",
+        done: 100,
+      },
       {
         name: "Overview",
         href: "/docs/authentication/overview",

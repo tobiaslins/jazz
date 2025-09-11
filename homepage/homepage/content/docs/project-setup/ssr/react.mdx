@@ -146,9 +146,9 @@ export default async function ServerSidePage(props: {
 
 ## Linking to your server-rendered page
 
-The last step is to link to your server-rendered page from your MyFestival component so that you can find it easily!
+The last step is to link to your server-rendered page from your `Festival` component so that you can find it easily!
 
-<FileName>app/components/MyFestival.tsx</FileName>
+<FileName>app/components/Festival.tsx</FileName>
 <CodeGroup className="[&_span]:[tab-size:2]" preferWrap>
 ```tsx
 "use client";
@@ -157,7 +157,7 @@ import { useAccount } from "jazz-tools/react";
 import Link from "next/link";
 import { JazzFestAccount } from "@/app/schema";
 
-export function MyFestival() {
+export function Festival() {
   const { me } = useAccount(JazzFestAccount, {
     resolve: { root: { myFestival: true } },
   });
