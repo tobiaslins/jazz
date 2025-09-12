@@ -29,6 +29,6 @@
     ".next/types/**/*.ts",
     "mdx.d.ts",
     "lib/docNavigationItems.js"
-, "components/docs/snippets/StuckCTA.mdx"  ],
+  ],
   "exclude": ["node_modules"]
 }
