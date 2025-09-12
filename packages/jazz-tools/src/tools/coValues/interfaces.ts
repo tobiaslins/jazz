@@ -55,6 +55,13 @@ export interface CoValue {
     raw: RawCoValue;
     /** @internal */
     _subscriptionScope?: SubscriptionScope<CoValue>;
+
+    /** @internal */
+    isBranched: boolean;
+    /** @internal */
+    branchName: string | undefined;
+    /** @internal */
+    unstable_merge: () => Promise<void>;
   };
 
   /** @category Stringifying & Inspection */
@@ -607,12 +614,12 @@ export function importContentPieces(
   }
 }
 
-export function unstable_mergeBranch<V extends CoValue>(existing: V) {
-  if (!existing.$jazz.raw.core.isBranched()) {
-    throw new Error("CoValue is not a branch");
+export function unstable_mergeBranch(
+  subscriptionScope: SubscriptionScope<CoValue>,
+) {
+  if (!subscriptionScope.unstable_branch) {
+    return;
   }
-
-  const subscriptionScope = getSubscriptionScope<CoValue>(existing);
 
   function handleMerge(subscriptionNode: SubscriptionScope<CoValue>) {
     if (subscriptionNode.value.type === "loaded") {

@@ -515,28 +515,6 @@ export class CoListJazzApi<L extends CoList> extends CoValueJazzApi<L> {
     super(coList);
   }
 
-  /**
-   * The ID of this `CoList`
-   * @category Content
-   */
-  get id(): ID<L> {
-    const sourceId = this.raw.core.getCurrentBranchSourceId();
-
-    if (sourceId) {
-      return sourceId as ID<L>;
-    }
-
-    return this.raw.id;
-  }
-
-  get isBranched(): boolean {
-    return this.raw.core.isBranched();
-  }
-
-  get branchName(): string | undefined {
-    return this.raw.core.getCurrentBranchName();
-  }
-
   /** @category Collaboration */
   get owner(): Group {
     return getCoValueOwner(this.coList);
@@ -887,15 +865,6 @@ export class CoListJazzApi<L extends CoList> extends CoValueJazzApi<L> {
     [ItemsSym]: SchemaFor<CoListItem<L>> | any;
   } {
     return (this.coList.constructor as typeof CoList)._schema;
-  }
-
-  /**
-   * Deeply merge the current branch into the main CoValues.
-   *
-   * Doesn't have any effect when there are no changes to merge, or the current CoValue is not a branch
-   */
-  unstable_merge() {
-    unstable_mergeBranch(this.coList);
   }
 }
 

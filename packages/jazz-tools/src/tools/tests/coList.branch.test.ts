@@ -56,7 +56,7 @@ describe("CoList Branching", async () => {
       expect(branchList.length).toBe(3);
 
       // Merge the branch back
-      branchList.$jazz.unstable_merge();
+      await branchList.$jazz.unstable_merge();
 
       // Verify the original now has the merged changes
       expect(originalList[0]).toBe("Buy organic groceries");
@@ -90,7 +90,7 @@ describe("CoList Branching", async () => {
       expect(branchList.length).toBe(3);
 
       // Merge the branch without changes
-      branchList.$jazz.unstable_merge();
+      await branchList.$jazz.unstable_merge();
 
       // Verify original is still the same (no changes to merge)
       expect(originalList[0]).toBe("Buy groceries");
@@ -141,7 +141,7 @@ describe("CoList Branching", async () => {
       expect(branch2[1]).toBe("Walk the cat");
 
       // Merge the branch
-      branch1.$jazz.unstable_merge();
+      await branch1.$jazz.unstable_merge();
 
       // Verify original has all changes
       expect(originalList[0]).toBe("Buy organic groceries");
@@ -202,8 +202,8 @@ describe("CoList Branching", async () => {
       expect(branch2[3]).toBe("Schedule dentist");
 
       // Merge the branch
-      branch1.$jazz.unstable_merge();
-      branch2.$jazz.unstable_merge();
+      await branch1.$jazz.unstable_merge();
+      await branch2.$jazz.unstable_merge();
 
       await alice.$jazz.waitForAllCoValuesSync();
       await bob.$jazz.waitForAllCoValuesSync();
@@ -237,7 +237,7 @@ describe("CoList Branching", async () => {
       branch.$jazz.push("Call mom");
 
       // First merge
-      branch.$jazz.unstable_merge();
+      await branch.$jazz.unstable_merge();
 
       expect(originalList[0]).toBe("Buy organic groceries");
       expect(originalList[3]).toBe("Call mom");
@@ -246,7 +246,7 @@ describe("CoList Branching", async () => {
       branch.$jazz.set(1, "Walk the cat");
 
       // Second merge
-      branch.$jazz.unstable_merge();
+      await branch.$jazz.unstable_merge();
 
       // Verify all changes are applied
       expect(originalList[0]).toBe("Buy organic groceries");
@@ -300,7 +300,7 @@ describe("CoList Branching", async () => {
       expect(branch2[3]).toBe("Schedule dentist");
 
       // User 1 merges first
-      branch1.$jazz.unstable_merge();
+      await branch1.$jazz.unstable_merge();
 
       await alice.$jazz.waitForAllCoValuesSync();
 
@@ -309,7 +309,7 @@ describe("CoList Branching", async () => {
       expect(originalList[2]).toBe("Finish project");
 
       // User 2 merges (should be idempotent)
-      branch2.$jazz.unstable_merge();
+      await branch2.$jazz.unstable_merge();
 
       await bob.$jazz.waitForAllCoValuesSync();
 
@@ -371,7 +371,7 @@ describe("CoList Branching", async () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Merge the branch
-      branch.$jazz.unstable_merge();
+      await branch.$jazz.unstable_merge();
 
       expect(originalList[0]).toBe("Buy organic groceries");
       expect(originalList[1]).toBe("Walk the hamster");
@@ -499,7 +499,7 @@ describe("CoList Branching", async () => {
       expect(branch.length).toBe(5);
 
       // Merge the task list
-      branch.$jazz.unstable_merge();
+      await branch.$jazz.unstable_merge();
 
       // Verify all changes are merged
       expect(loadedTaskList[0]!.title).toBe("Buy organic groceries");

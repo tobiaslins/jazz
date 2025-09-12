@@ -304,7 +304,7 @@ describe("useAccount", () => {
     expect(mainAccount.me.root?.email).toBe("john@example.com");
 
     // Merge the branch back
-    branchAccount.me.root.$jazz.unstable_merge();
+    await branchAccount.me.root.$jazz.unstable_merge();
 
     // Verify the original now has the merged changes
     expect(mainAccount.me.root?.name).toBe("John Smith");

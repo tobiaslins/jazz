@@ -65,7 +65,7 @@ describe("CoMap Branching", async () => {
       expect(branchPerson.email).toBe("john.smith@example.com");
 
       // Merge the branch back
-      branchPerson.$jazz.unstable_merge();
+      await branchPerson.$jazz.unstable_merge();
 
       // Verify the original now has the merged changes
       expect(originalPerson.name).toBe("John Smith");
@@ -105,7 +105,7 @@ describe("CoMap Branching", async () => {
       expect(branchPerson.email).toBe("john@example.com");
 
       // Merge the branch without changes
-      branchPerson.$jazz.unstable_merge();
+      await branchPerson.$jazz.unstable_merge();
 
       // Verify original is still the same (no changes to merge)
       expect(originalPerson.name).toBe("John Doe");
@@ -167,7 +167,7 @@ describe("CoMap Branching", async () => {
       expect(branch2.email).toBe("john.smith@newdomain.com");
 
       // Merge the branch
-      branch1.$jazz.unstable_merge();
+      await branch1.$jazz.unstable_merge();
 
       // Verify original has all changes
       expect(originalPerson.name).toBe("John Smith");
@@ -238,8 +238,8 @@ describe("CoMap Branching", async () => {
       expect(branch2.email).toBe("john.smith@newdomain.com");
 
       // Merge the branch
-      branch1.$jazz.unstable_merge();
-      branch2.$jazz.unstable_merge();
+      await branch1.$jazz.unstable_merge();
+      await branch2.$jazz.unstable_merge();
 
       await alice.$jazz.waitForAllCoValuesSync();
       await bob.$jazz.waitForAllCoValuesSync();
@@ -281,7 +281,7 @@ describe("CoMap Branching", async () => {
       });
 
       // First merge
-      branch.$jazz.unstable_merge();
+      await branch.$jazz.unstable_merge();
 
       expect(originalPerson.name).toBe("John Smith");
       expect(originalPerson.age).toBe(31);
@@ -292,7 +292,7 @@ describe("CoMap Branching", async () => {
       });
 
       // Second merge
-      branch.$jazz.unstable_merge();
+      await branch.$jazz.unstable_merge();
 
       // Verify all changes are applied
       expect(originalPerson.name).toBe("John Smith");
@@ -357,7 +357,7 @@ describe("CoMap Branching", async () => {
       expect(branch2.email).toBe("john.smith@newdomain.com");
 
       // User 1 merges first
-      branch1.$jazz.unstable_merge();
+      await branch1.$jazz.unstable_merge();
 
       await alice.$jazz.waitForAllCoValuesSync();
 
@@ -366,7 +366,7 @@ describe("CoMap Branching", async () => {
       expect(originalPerson.email).toBe("john@example.com");
 
       // User 2 merges (should be idempotent)
-      branch2.$jazz.unstable_merge();
+      await branch2.$jazz.unstable_merge();
 
       await bob.$jazz.waitForAllCoValuesSync();
 
@@ -448,7 +448,7 @@ describe("CoMap Branching", async () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Merge the branch
-      branch.$jazz.unstable_merge();
+      await branch.$jazz.unstable_merge();
 
       expect(originalPerson.name).toBe("John Smith");
       expect(originalPerson.email).toBe("john.doe@company.com");
@@ -596,7 +596,7 @@ describe("CoMap Branching", async () => {
       expect(branch.tags).toContain("updated");
 
       // Merge the large document
-      branch.$jazz.unstable_merge();
+      await branch.$jazz.unstable_merge();
 
       // Verify all changes are merged
       expect(loadedLargeDoc.title).toBe("Large Document - Updated");

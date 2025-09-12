@@ -626,7 +626,7 @@ describe("useCoState", () => {
     expect(result.current?.main?.email).toBe("john@example.com");
 
     // Merge the branch back
-    branchPerson.$jazz.unstable_merge();
+    await branchPerson.$jazz.unstable_merge();
 
     // Verify the original now has the merged changes
     expect(result.current?.main?.name).toBe("John Smith");

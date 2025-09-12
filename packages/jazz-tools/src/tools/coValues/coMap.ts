@@ -562,28 +562,6 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
     super(coMap);
   }
 
-  /**
-   * The ID of this `CoMap`
-   * @category Content
-   */
-  get id(): ID<M> {
-    const sourceId = this.raw.core.getCurrentBranchSourceId();
-
-    if (sourceId) {
-      return sourceId as ID<M>;
-    }
-
-    return this.raw.id;
-  }
-
-  get isBranched(): boolean {
-    return this.raw.core.isBranched();
-  }
-
-  get branchName(): string | undefined {
-    return this.raw.core.getCurrentBranchName();
-  }
-
   get owner(): Group {
     return getCoValueOwner(this.coMap);
   }
@@ -854,15 +832,6 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
   /** @internal */
   get schema(): CoMapFieldSchema {
     return (this.coMap.constructor as typeof CoMap)._schema;
-  }
-
-  /**
-   * Deeply merge the current branch into the main CoValues.
-   *
-   * Doesn't have any effect when there are no changes to merge, or the current CoValue is not a branch
-   */
-  unstable_merge() {
-    unstable_mergeBranch(this.coMap);
   }
 }
 

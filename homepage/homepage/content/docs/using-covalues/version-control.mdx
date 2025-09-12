@@ -160,9 +160,9 @@ To merge a branch back to the main version, call `unstable_merge()`:
 
 <CodeGroup>
 ```tsx 
-function handleSave() {
+async function handleSave() {
   // Merge the branch changes back to main
-  project.$jazz.unstable_merge();
+  await project.$jazz.unstable_merge();
   router.navigate("/");
 }
 ```
@@ -178,10 +178,10 @@ The merge operation cascades down to the CoValue's children, but not to its pare
 
 <CodeGroup>
 ```tsx 
-function handleTaskSave(index: number) {
+async function handleTaskSave(index: number) {
   const task = project.tasks[index];
   // Only the changes to the task will be merged
-  task?.$jazz.unstable_merge();
+  await task?.$jazz.unstable_merge();
 }
 ```
 </CodeGroup>
@@ -200,7 +200,7 @@ branch.$jazz.applyDiff({ priority: "high" });
 originalProject.$jazz.applyDiff({ priority: "urgent" });
 
 // Merge the branch
-branch.$jazz.unstable_merge();
+await branch.$jazz.unstable_merge();
 
 // Main's value ("urgent") wins because it was written later
 console.log(originalProject.priority); // "urgent"
