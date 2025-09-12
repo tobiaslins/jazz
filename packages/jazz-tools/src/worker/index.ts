@@ -128,7 +128,7 @@ export async function startWorker<
     worker: context.account as Loaded<S>,
     experimental: {
       /**
-       * AI to subscribe to the inbox messages.
+       * API to subscribe to the inbox messages.
        *
        * More info on the Inbox API: https://jazz.tools/docs/react/server-side/inbox
        */
