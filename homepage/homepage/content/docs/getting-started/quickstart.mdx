@@ -173,8 +173,8 @@ export function JazzWrapper({ children }: {
   import { JazzSvelteProvider } from "jazz-tools/svelte";
   import { JazzFestAccount } from "$lib/schema";
 	import { PUBLIC_JAZZ_API_KEY } from "$env/static/public";
-  const apiKey = PUBLIC_JAZZ_API_KEY;
 
+  const apiKey = PUBLIC_JAZZ_API_KEY;
   let { children } = $props();
   const sync = { peer: `wss://cloud.jazz.tools/?key=${apiKey}` };
 </script>
