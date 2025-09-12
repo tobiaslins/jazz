@@ -91,7 +91,6 @@ export async function startWorker<
       secret: accountSecret as AgentSecret,
     },
     AccountSchema,
-    // TODO: locked sessions similar to browser
     sessionProvider: randomSessionProvider,
     peersToLoadFrom,
     crypto: options.crypto ?? (await WasmCrypto.create()),
@@ -123,10 +122,23 @@ export async function startWorker<
       };
 
   return {
+    /**
+     * The worker account instance.
+     */
     worker: context.account as Loaded<S>,
     experimental: {
+      /**
+       * API to subscribe to the inbox messages.
+       *
+       * More info on the Inbox API: https://jazz.tools/docs/react/server-side/inbox
+       */
       inbox: inboxPublicApi,
     },
+    /**
+     * Wait for the connection to the sync server to be established.
+     *
+     * If already connected, it will resolve immediately.
+     */
     waitForConnection() {
       return wsPeer.waitUntilConnected();
     },
@@ -137,6 +149,21 @@ export async function startWorker<
         wsPeer.unsubscribe(listener);
       };
     },
+    /**
+     * Waits for all CoValues to sync and then shuts down the worker.
+     *
+     * To only wait for sync use worker.$jazz.waitForAllCoValuesSync()
+     *
+     * @deprecated Use shutdownWorker
+     */
     done,
+    /**
+     * Waits for all CoValues to sync and then shuts down the worker.
+     *
+     * To only wait for sync use worker.$jazz.waitForAllCoValuesSync()
+     */
+    shutdownWorker() {
+      return done();
+    },
   };
 }
