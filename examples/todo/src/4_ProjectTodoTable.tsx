@@ -3,6 +3,7 @@ import { useCallback } from "react";
 import { Task, TodoProject } from "./1_schema";
 
 import {
+  Button,
   Checkbox,
   Skeleton,
   SubmittableInput,
@@ -18,6 +19,7 @@ import { Loaded } from "jazz-tools";
 import { useCoState } from "jazz-tools/react";
 import { useParams } from "react-router";
 import uniqolor from "uniqolor";
+import { Trash2 } from "lucide-react";
 import { InviteButton } from "./components/InviteButton";
 
 /** Walkthrough: Reactively rendering a todo project as a table,
@@ -66,6 +68,15 @@ export function ProjectTodoTable() {
     [project?.tasks, project?.$jazz.owner],
   );
 
+  const deleteTask = useCallback(
+    (taskId: string) => {
+      if (!project?.tasks) return;
+      // similarly, removing a task will update everyone that is subscribed to this project's tasks
+      project.tasks.$jazz.remove((t) => t?.$jazz.id === taskId);
+    },
+    [project?.tasks],
+  );
+
   return (
     <div className="max-w-full w-xl">
       <div className="flex justify-between items-center gap-4 mb-4">
@@ -94,7 +105,14 @@ export function ProjectTodoTable() {
         </TableHeader>
         <TableBody>
           {project?.tasks.map(
-            (task) => task && <TaskRow key={task.$jazz.id} task={task} />,
+            (task) =>
+              task && (
+                <TaskRow
+                  key={task.$jazz.id}
+                  task={task}
+                  deleteTask={deleteTask}
+                />
+              ),
           )}
           <NewTaskInputRow createTask={createTask} disabled={!project} />
         </TableBody>
@@ -103,7 +121,13 @@ export function ProjectTodoTable() {
   );
 }
 
-export function TaskRow({ task }: { task: Loaded<typeof Task> | undefined }) {
+export function TaskRow({
+  task,
+  deleteTask,
+}: {
+  task: Loaded<typeof Task> | undefined;
+  deleteTask: (taskId: string) => void;
+}) {
   return (
     <TableRow>
       <TableCell>
@@ -145,6 +169,17 @@ export function TaskRow({ task }: { task: Loaded<typeof Task> | undefined }) {
           }
         </div>
       </TableCell>
+      <TableCell>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => deleteTask(task?.$jazz.id ?? "")}
+          disabled={!task}
+          className="border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-400"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </TableCell>
     </TableRow>
   );
 }
@@ -171,6 +206,7 @@ function NewTaskInputRow({
           disabled={disabled}
         />
       </TableCell>
+      <TableCell>{/* Empty cell for delete button column */}</TableCell>
     </TableRow>
   );
 }
