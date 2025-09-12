@@ -55,13 +55,9 @@ export interface CoValue {
     raw: RawCoValue;
     /** @internal */
     _subscriptionScope?: SubscriptionScope<CoValue>;
-
-    /** @internal */
     isBranched: boolean;
-    /** @internal */
     branchName: string | undefined;
-    /** @internal */
-    unstable_merge: () => Promise<void>;
+    unstable_merge: () => void;
   };
 
   /** @category Stringifying & Inspection */

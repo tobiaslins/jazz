@@ -135,7 +135,7 @@ export abstract class CoValueJazzApi<V extends CoValue> {
    *
    * Doesn't have any effect when there are no changes to merge, or the current CoValue is not a branch
    */
-  async unstable_merge() {
+  unstable_merge() {
     const subscriptionScope = this._subscriptionScope;
 
     if (!subscriptionScope) {

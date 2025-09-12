@@ -62,7 +62,7 @@ describe("CoFeed Branching", async () => {
       );
 
       // Merge the branch back
-      await branchFeed.$jazz.unstable_merge();
+      branchFeed.$jazz.unstable_merge();
 
       // Verify the original now has the merged changes
       expect(originalFeed.perAccount[me.$jazz.id]?.value).toEqual("cheese");
@@ -95,7 +95,7 @@ describe("CoFeed Branching", async () => {
       );
 
       // Merge the branch without changes
-      await branchFeed.$jazz.unstable_merge();
+      branchFeed.$jazz.unstable_merge();
 
       // Verify original is still the same (no changes to merge)
       expect(originalFeed.perAccount[me.$jazz.id]?.value).toEqual("butter");
@@ -131,7 +131,7 @@ describe("CoFeed Branching", async () => {
       expect(branch1.perAccount[me.$jazz.id]?.value).toEqual("cheese");
       expect(branch2.perAccount[me.$jazz.id]?.value).toEqual("cheese");
 
-      await branch1.$jazz.unstable_merge();
+      branch1.$jazz.unstable_merge();
 
       expect(originalFeed.perAccount[me.$jazz.id]?.value).toEqual("cheese");
       expect(originalFeed.perSession[me.$jazz.sessionID]?.value).toEqual(
@@ -210,7 +210,7 @@ describe("CoFeed Branching", async () => {
       branch.$jazz.push("jam");
 
       // First merge
-      await branch.$jazz.unstable_merge();
+      branch.$jazz.unstable_merge();
 
       expect(originalFeed.perAccount[me.$jazz.id]?.value).toEqual("jam");
 
@@ -218,7 +218,7 @@ describe("CoFeed Branching", async () => {
       branch.$jazz.push("cheese");
 
       // Second merge
-      await branch.$jazz.unstable_merge();
+      branch.$jazz.unstable_merge();
 
       // Verify all changes are applied
       expect(originalFeed.perAccount[me.$jazz.id]?.value).toEqual("cheese");
@@ -266,14 +266,14 @@ describe("CoFeed Branching", async () => {
       expect(branch2.perAccount[me.$jazz.id]?.value).toEqual("butter");
 
       // User 1 merges first
-      await branch1.$jazz.unstable_merge();
+      branch1.$jazz.unstable_merge();
 
       await alice.$jazz.waitForAllCoValuesSync();
 
       expect(originalFeed.perAccount[alice.$jazz.id]?.value).toEqual("jam");
 
       // User 2 merges (should be idempotent)
-      await branch2.$jazz.unstable_merge();
+      branch2.$jazz.unstable_merge();
 
       await bob.$jazz.waitForAllCoValuesSync();
 
@@ -325,7 +325,7 @@ describe("CoFeed Branching", async () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Merge the branch
-      await branch.$jazz.unstable_merge();
+      branch.$jazz.unstable_merge();
 
       expect(originalFeed.perAccount[me.$jazz.id]?.value).toEqual("olive oil");
     });
@@ -405,7 +405,7 @@ describe("CoFeed Branching", async () => {
       expect(branch.perAccount[me.$jazz.id]?.value?.toString()).toBe("cheese");
 
       // Merge the text feed
-      await branch.$jazz.unstable_merge();
+      branch.$jazz.unstable_merge();
 
       // Verify all changes are merged
       expect(loadedTextFeed.perAccount[me.$jazz.id]?.value?.toString()).toBe(
@@ -547,7 +547,7 @@ describe("CoFeed Branching", async () => {
       expect(branch.perAccount[me.$jazz.id]?.value).toEqual(null);
 
       // Merge the branch back
-      await branch.$jazz.unstable_merge();
+      branch.$jazz.unstable_merge();
 
       // Verify the original now has the merged changes
       expect(originalFeed.perAccount[me.$jazz.id]?.value).toEqual(null);
@@ -600,7 +600,7 @@ describe("CoFeed Branching", async () => {
       ).toEqual("bread");
 
       // Merge the branch
-      await branch.$jazz.unstable_merge();
+      branch.$jazz.unstable_merge();
 
       // Verify the original now has the merged changes
       expect(

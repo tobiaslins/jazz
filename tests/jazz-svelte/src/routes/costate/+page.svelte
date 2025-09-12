@@ -34,9 +34,9 @@
   }
 
   // Function to merge current branch into main
-  async function mergeBranch() {
+  function mergeBranch() {
     if (person.current && currentBranch !== 'main') {
-      await person.current.$jazz.unstable_merge();
+      person.current.$jazz.unstable_merge();
       // Switch back to main after merge
       currentBranch = 'main';
     }
