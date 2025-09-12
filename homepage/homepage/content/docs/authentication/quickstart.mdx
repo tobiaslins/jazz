@@ -18,7 +18,7 @@ This guide will take your festival app even further by showing you how to authen
 </Alert>
 
 ## Add passkey authentication
-Jazz has a built-in passkey authentication component that you can use to add authentication to your app. This is the easiest way to get started with securely authenticating users into your application.
+Jazz has a built-in passkey authentication component that you can use to add authentication to your app. This is the easiest way to get started with securely authenticating users into your application. By adding this component, when users access your app, they'll be greeted with an input where they can enter their name, and create a passkey.
 
 <ContentByFramework framework="react">
   <FileName>app/components/JazzWrapper.tsx</FileName>
@@ -76,7 +76,7 @@ export function JazzWrapper({ children }: {
 
 <JazzSvelteProvider {sync} AccountSchema={JazzFestAccount}>
   <!-- [!code ++:1] -->
-  <PasskeyAuthBasicUI appName="Jazzfest" />
+  <PasskeyAuthBasicUI appName="JazzFest" />
   {@render children?.()}
 </JazzSvelteProvider>
 ```
@@ -567,7 +567,117 @@ export default function FestivalPage(props: {
 <details>
 <summary>Already completed the server-side rendering guide?</summary>
 
-There's more to follow here on how to server-side render initially and then hydrate the client based on the user's authentication state.
+You'll need to make a couple of small changes to your structure in order for the festival to be rendered on the server, and then hydrated on the client.
+
+<FileName>app/components/JazzWrapper.tsx</FileName>
+<CodeGroup className="[&_span]:[tab-size:2]" preferWrap>
+```tsx
+"use client"; // tells Next.js that this component can't be server-side rendered. If you're not using Next.js, you can remove it.
+// [!code --:1]
+import { JazzReactProvider, PasskeyAuthBasicUI } from "jazz-tools/react"; 
+// [!code ++:1]
+import { JazzReactProvider, PasskeyAuthBasicUI, useAccount } from "jazz-tools/react"; 
+import { JazzFestAccount } from "@/app/schema";
+
+const apiKey = process.env.NEXT_PUBLIC_JAZZ_API_KEY;
+
+export function JazzWrapper({ children }: {
+  children: React.ReactNode
+}) {
+
+  return (
+    <JazzReactProvider
+      sync={{
+        peer: `wss://cloud.jazz.tools/?key=${apiKey}`
+      }}
+      AccountSchema={JazzFestAccount}
+      enableSSR
+    >
+    {/* [!code --:3] */}
+      <PasskeyAuthBasicUI appName="JazzFest">
+        {children}
+      </PasskeyAuthBasicUI>
+    {/* [!code ++:1] */}
+      <Auth>{children}</Auth>
+    </JazzReactProvider>
+  );
+}
+
+// [!code ++:10]
+export function Auth({ children }: { children: React.ReactNode }) {
+  const { agent } = useAccount();
+  const isGuest = agent.$type$ !== "Account"
+  if (isGuest) return children;
+  return (
+    <PasskeyAuthBasicUI appName="JazzFest">
+      {children}
+    </PasskeyAuthBasicUI>
+  )
+}
+```
+</CodeGroup>
+
+<FileName>app/components/Festival.tsx</FileName>
+<CodeGroup>
+```tsx
+"use client";
+import {
+  createInviteLink,
+  useAcceptInvite,
+  useAccount,
+  useCoState
+} from "jazz-tools/react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Festival as FestivalSchema, JazzFestAccount } from "@/app/schema";
+
+export function Festival({id}: {id?: string}) {
+  const [inviteLink, setInviteLink] = useState<string>("");
+  // [!code --:1]
+  const { me } = useAccount(JazzFestAccount, {
+  // [!code ++:1]
+  const { me, agent } = useAccount(JazzFestAccount, {
+    resolve: { root: { myFestival: true } },
+  });
+  const router = useRouter();
+  // [!code ++:2]
+  const isGuest = agent.$type$ !== "Account"
+  if (!isGuest) {
+    useAcceptInvite({
+      invitedObjectSchema: FestivalSchema,
+      onAccept: (festivalID: string) => {
+        router.push(`/festival/${festivalID}`);
+      },
+    });
+  // [!code ++:1]
+  }
+  
+  const festivalId = id ?? me?.root.myFestival.$jazz.id;
+  const festival = useCoState(FestivalSchema, festivalId);
+  if (!festival) return null; // not loaded yet
+  const inviteLinkClickHandler = () => {
+    const link = createInviteLink(festival, "writer");
+    setInviteLink(link);
+  };
+  return (
+    <>
+      <ul>
+        {festival.map(
+          (band) => band && <li key={band.$jazz.id}>{band.name}</li>,
+        )}
+      </ul>
+      <input type="text" value={inviteLink} readOnly />
+      <button type="button" onClick={inviteLinkClickHandler}>
+        Create Invite Link
+      </button>
+    </>
+  );
+}
+```
+</CodeGroup>
+
+You'll also need to be aware that the server agent can only render public CoValues, and the schema above does not publicly share any data (neither bands nor festivals).
+
 </details>
 </ContentByFramework>
 
