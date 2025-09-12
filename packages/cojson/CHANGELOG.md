@@ -1,5 +1,12 @@
 # cojson
 
+## 0.18.11
+
+### Patch Changes
+
+- a4a9a1e: Fix CoPlainText applyDiff chunking to ensure we fit in the TRANSACTION_CONFIG.MAX_RECOMMENDED_TX_SIZE for each transaction
+  - cojson-core-wasm@0.18.11
+
 ## 0.18.10
 
 ### Patch Changes

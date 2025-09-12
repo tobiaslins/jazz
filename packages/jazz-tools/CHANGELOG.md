@@ -1,5 +1,16 @@
 # jazz-tools
 
+## 0.18.11
+
+### Patch Changes
+
+- 06b4617: Update the Svelte InviteListener to listen to hash change events
+- 70eb465: Add docs to the worker API and deprecate done in favor of shutdownWorker
+- Updated dependencies [a4a9a1e]
+  - cojson@0.18.11
+  - cojson-storage-indexeddb@0.18.11
+  - cojson-transport-ws@0.18.11
+
 ## 0.18.10
 
 ### Patch Changes
