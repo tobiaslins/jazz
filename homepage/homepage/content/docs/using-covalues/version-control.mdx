@@ -154,6 +154,35 @@ function EditProject({ projectId, currentBranchName }) {
 </CodeGroup>
 </ContentByFramework>
 
+### Account & Group
+
+Branching does not bring isolation on Account and Group CoValues.
+
+This means that, adding a member on a branched Group will also add the member to the main Group.
+
+<CodeGroup>
+```tsx 
+const branch = await Project.load(projectId, {
+  unstable_branch: { name: "feature-branch" }
+});
+branch.$jazz.owner.addMember(member, "writer"); // Will also add the member to the main Group
+```
+</CodeGroup>
+
+On account only root and profile replacements are not affected by the branching.
+
+<CodeGroup>
+```tsx 
+const me = useAccount(MyAccount, {
+  resolve: { root: true },
+  unstable_branch: { name: "feature-branch" }
+});
+
+me.$jazz.set("root", { value: "Feature Branch" }); // Will also modify the main account
+me.root.$jazz.set("value", "Feature Branch"); // This only modifies the branch
+```
+</CodeGroup>
+
 ### Merging
 
 To merge a branch back to the main version, call `unstable_merge()`:

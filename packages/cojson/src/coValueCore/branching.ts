@@ -69,6 +69,13 @@ export function getBranchHeader({
 }
 
 /**
+ * Checks if the coValue can be branched
+ */
+export function canBeBranched(coValue: CoValueCore): boolean {
+  return coValue.verified?.header.ruleset.type === "ownedByGroup";
+}
+
+/**
  * Given a coValue, a branch name and an owner id, returns the id for the branch
  */
 export function getBranchId(
@@ -193,7 +200,7 @@ export function mergeBranch(branch: CoValueCore): CoValueCore {
     );
   }
 
-  if (branch.verified.header.ruleset.type !== "ownedByGroup") {
+  if (!canBeBranched(branch)) {
     return branch;
   }
 
