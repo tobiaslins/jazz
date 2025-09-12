@@ -8,7 +8,7 @@ import type {
 } from "jazz-tools";
 import { Account } from "jazz-tools";
 import { consumeInviteLinkFromWindowLocation } from "jazz-tools/browser";
-import { getContext, untrack } from "svelte";
+import { getContext, onDestroy, untrack } from "svelte";
 import Provider from "./Provider.svelte";
 
 export { Provider as JazzSvelteProvider };
@@ -73,37 +73,33 @@ export class InviteListener<V extends CoValueClassOrSchema> {
     forValueHint,
   }: {
     invitedObjectSchema: V;
-    onAccept: (projectID: ID<V>) => void;
+    onAccept: (coValueID: ID<V>) => void;
     forValueHint?: string;
   }) {
-    // TODO Listen to the hashchange event
     const _onAccept = onAccept;
+    const ctx = getJazzContext<InstanceOfSchema<AccountClass<Account>>>();
 
-    // Subscribe to the onAccept function.
+    const tryConsume = () => {
+      if (!ctx.current || !("me" in ctx.current)) return;
+
+      consumeInviteLinkFromWindowLocation({
+        as: ctx.current.me,
+        invitedObjectSchema,
+        forValueHint,
+      })
+        .then((result) => result && _onAccept(result.valueID))
+        .catch((e) => console.error("Failed to accept invite", e));
+    };
+
+    // run once when instantiated
     $effect(() => {
-      const ctx = getJazzContext<InstanceOfSchema<AccountClass<Account>>>();
+      untrack(tryConsume);
+    });
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-      _onAccept;
-      // Subscribe to the onAccept function.
-      untrack(() => {
-        // If there is no context, return.
-        if (!ctx.current) return;
-        if (!("me" in ctx.current)) return;
+    window.addEventListener("hashchange", tryConsume);
 
-        // Consume the invite link from the window location.
-        const result = consumeInviteLinkFromWindowLocation({
-          as: ctx.current.me,
-          invitedObjectSchema,
-          forValueHint,
-        });
-        // If the result is valid, call the onAccept function.
-        result
-          .then((result) => result && _onAccept(result?.valueID))
-          .catch((e) => {
-            console.error("Failed to accept invite", e);
-          });
-      });
+    onDestroy(() => {
+      window.removeEventListener("hashchange", tryConsume);
     });
   }
 }
