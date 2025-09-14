@@ -7,3 +7,4 @@ export * from "./media/image.js";
 export { SQLiteDatabaseDriverAsync } from "cojson";
 export { parseInviteLink } from "jazz-tools";
 export { createInviteLink, setupKvStore } from "./platform.js";
+export { ReactNativeContextManager, type JazzContextManagerProps } from "./ReactNativeContextManager.js"
