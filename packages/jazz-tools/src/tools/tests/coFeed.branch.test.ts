@@ -461,7 +461,7 @@ describe("CoFeed Branching", async () => {
   });
 
   describe("subscription & loading", () => {
-    test("should carry the selected branch when calling value.subscribe", async () => {
+    test("should carry the selected branch when calling value.subscribe, unless specified otherwise", async () => {
       const TestStream = co.feed(z.string());
 
       const originalFeed = TestStream.create(["milk", "bread", "butter"], {
@@ -476,22 +476,35 @@ describe("CoFeed Branching", async () => {
       assert(branch);
 
       const spy = vi.fn();
-      const unsubscribe = branch.$jazz.subscribe((feed) => {
-        expect(feed.$jazz.branchName).toBe("subscribe-branch");
-        expect(feed.$jazz.isBranched).toBe(true);
+      const unsubscribe = branch.$jazz.subscribe((feed, unsubscribe) => {
+        expect(feed.$jazz.branchName).not.toBe("subscribe-branch");
+        expect(feed.$jazz.isBranched).toBe(false);
         spy();
+        unsubscribe();
       });
 
-      branch.$jazz.push("jam");
+      branch.$jazz.subscribe(
+        {
+          unstable_branch: { name: "subscribe-branch" },
+        },
+        (feed, unsubscribe) => {
+          expect(feed.$jazz.branchName).toBe("subscribe-branch");
+          expect(feed.$jazz.isBranched).toBe(true);
+          spy();
+          unsubscribe();
+        },
+      );
+
+      originalFeed.$jazz.push("jam");
       branch.$jazz.push("cheese");
 
       // Wait for initial subscription
-      await waitFor(() => expect(spy).toHaveBeenCalled());
+      await waitFor(() => expect(spy).toHaveBeenCalledTimes(2));
 
       unsubscribe();
     });
 
-    test("should carry the selected branch when calling value.ensureLoaded", async () => {
+    test("should not carry the selected branch when calling value.ensureLoaded, unless specified otherwise", async () => {
       const TestStream = co.feed(z.string());
 
       const originalFeed = TestStream.create(["milk", "bread", "butter"], {
@@ -511,13 +524,18 @@ describe("CoFeed Branching", async () => {
       // Load the branch using ensureLoaded
       const loadedFeed = await branch.$jazz.ensureLoaded();
 
-      assert(loadedFeed);
+      expect(loadedFeed.$jazz.branchName).not.toBe("ensure-loaded-branch");
+      expect(loadedFeed.$jazz.isBranched).toBe(false);
 
-      expect(loadedFeed.$jazz.branchName).toBe("ensure-loaded-branch");
-      expect(loadedFeed.$jazz.isBranched).toBe(true);
+      // Load the branch using ensureLoaded
+      const withBranch = await branch.$jazz.ensureLoaded({
+        unstable_branch: { name: "ensure-loaded-branch" },
+      });
 
       // Verify we get the branch data, not the original data
-      expect(loadedFeed.perAccount[me.$jazz.id]?.value).toBe("cheese");
+      expect(withBranch.$jazz.branchName).toBe("ensure-loaded-branch");
+      expect(withBranch.$jazz.isBranched).toBe(true);
+      expect(withBranch.perAccount[me.$jazz.id]?.value).toBe("cheese");
     });
 
     test("should checkout the branch when calling Schema.subscribe", async () => {

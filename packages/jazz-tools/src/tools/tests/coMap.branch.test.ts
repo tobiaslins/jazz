@@ -674,7 +674,7 @@ describe("CoMap Branching", async () => {
   });
 
   describe("subscription & loading", () => {
-    test("should carry the selected branch when calling value.subscribe", async () => {
+    test("should not carry the selected branch when calling value.subscribe, unless specified otherwise", async () => {
       const Person = co.map({
         name: z.string(),
         age: z.number(),
@@ -706,29 +706,46 @@ describe("CoMap Branching", async () => {
       assert(branch);
 
       const spy = vi.fn();
-      const unsubscribe = branch.$jazz.subscribe(
+      branch.$jazz.subscribe(
         { resolve: { dog: true } },
-        (person) => {
-          expect(person.$jazz.branchName).toBe("subscribe-branch");
-          expect(person.$jazz.isBranched).toBe(true);
-          expect(person.dog.$jazz.branchName).toBe("subscribe-branch");
+        (person, unsubscribe) => {
+          expect(person.$jazz.branchName).not.toBe("subscribe-branch");
+          expect(person.$jazz.isBranched).toBe(false);
+          expect(person.dog.$jazz.branchName).not.toBe("subscribe-branch");
+          expect(person.dog.$jazz.isBranched).toBe(false);
           spy();
+          unsubscribe();
         },
       );
 
+      branch.$jazz.subscribe(
+        {
+          resolve: { dog: true },
+          unstable_branch: { name: "subscribe-branch" },
+        },
+        (person, unsubscribe) => {
+          expect(person.$jazz.branchName).toBe("subscribe-branch");
+          expect(person.$jazz.isBranched).toBe(true);
+          expect(person.dog.$jazz.branchName).toBe("subscribe-branch");
+          expect(person.dog.$jazz.isBranched).toBe(true);
+          spy();
+          unsubscribe();
+        },
+      );
+
+      originalPerson.$jazz.applyDiff({
+        age: 31,
+      });
+
       branch.$jazz.applyDiff({
         name: "John Smith",
-        age: 31,
-        email: "john.smith@example.com",
       });
 
       // Wait for initial subscription
-      await waitFor(() => expect(spy).toHaveBeenCalled());
-
-      unsubscribe();
+      await waitFor(() => expect(spy).toHaveBeenCalledTimes(2));
     });
 
-    test("should carry the selected branch when calling value.ensureLoaded", async () => {
+    test("should not carry the selected branch when calling value.ensureLoaded, unless specified otherwise", async () => {
       const Person = co.map({
         name: z.string(),
         age: z.number(),
@@ -770,17 +787,27 @@ describe("CoMap Branching", async () => {
         resolve: { dog: true },
       });
 
-      assert(loadedPerson);
+      expect(loadedPerson.$jazz.branchName).not.toBe("ensure-loaded-branch");
+      expect(loadedPerson.$jazz.isBranched).toBe(false);
+      expect(loadedPerson.dog.$jazz.branchName).not.toBe(
+        "ensure-loaded-branch",
+      );
+      expect(loadedPerson.dog.$jazz.isBranched).toBe(false);
 
-      expect(loadedPerson.$jazz.branchName).toBe("ensure-loaded-branch");
-      expect(loadedPerson.$jazz.isBranched).toBe(true);
-      expect(loadedPerson.dog.$jazz.branchName).toBe("ensure-loaded-branch");
-      expect(loadedPerson.dog.$jazz.isBranched).toBe(true);
+      const withBranch = await branch.$jazz.ensureLoaded({
+        resolve: { dog: true },
+        unstable_branch: { name: "ensure-loaded-branch" },
+      });
+
+      expect(withBranch.$jazz.branchName).toBe("ensure-loaded-branch");
+      expect(withBranch.$jazz.isBranched).toBe(true);
+      expect(withBranch.dog.$jazz.branchName).toBe("ensure-loaded-branch");
+      expect(withBranch.dog.$jazz.isBranched).toBe(true);
 
       // Verify we get the branch data, not the original data
-      expect(loadedPerson.name).toBe("John Smith");
-      expect(loadedPerson.age).toBe(31);
-      expect(loadedPerson.email).toBe("john.smith@example.com");
+      expect(withBranch.name).toBe("John Smith");
+      expect(withBranch.age).toBe(31);
+      expect(withBranch.email).toBe("john.smith@example.com");
     });
 
     test("should checkout the branch when calling Schema.subscribe", async () => {

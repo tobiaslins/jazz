@@ -157,17 +157,20 @@ export async function ensureCoValueLoaded<
   const R extends RefsToResolve<V>,
 >(
   existing: V,
-  options?: { resolve?: RefsToResolveStrict<V, R> } | undefined,
+  options?:
+    | {
+        resolve?: RefsToResolveStrict<V, R>;
+        unstable_branch?: BranchDefinition;
+      }
+    | undefined,
 ): Promise<Resolved<V, R>> {
-  const subscriptionScope = getSubscriptionScope<V>(existing);
-
   const response = await loadCoValue(
     existing.constructor as CoValueClass<V>,
     existing.$jazz.id,
     {
       loadAs: existing.$jazz.loadedAs,
       resolve: options?.resolve,
-      unstable_branch: subscriptionScope?.unstable_branch,
+      unstable_branch: options?.unstable_branch,
     },
   );
 
@@ -339,12 +342,11 @@ export function subscribeToExistingCoValue<
         resolve?: RefsToResolveStrict<V, R>;
         onUnavailable?: () => void;
         onUnauthorized?: () => void;
+        unstable_branch?: BranchDefinition;
       }
     | undefined,
   listener: SubscribeListener<V, R>,
 ): () => void {
-  const subscriptionScope = existing.$jazz._subscriptionScope;
-
   return subscribeToCoValue(
     existing.constructor as CoValueClass<V>,
     existing.$jazz.id,
@@ -353,7 +355,7 @@ export function subscribeToExistingCoValue<
       resolve: options?.resolve,
       onUnavailable: options?.onUnavailable,
       onUnauthorized: options?.onUnauthorized,
-      unstable_branch: subscriptionScope?.unstable_branch,
+      unstable_branch: options?.unstable_branch,
     },
     listener,
   );

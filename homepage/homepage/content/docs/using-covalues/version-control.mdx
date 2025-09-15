@@ -48,11 +48,11 @@ const branch = new CoState(Project, projectId, {
 </CodeGroup>
 </ContentByFramework>
 
-You can also include nested CoValues in your branch by using a [`resolve` query](/docs/using-covalues/subscription-and-loading#resolve-queries). When you create a branch, the branch selection automatically propagates to all sub-properties and nested CoValues:
+You can also include nested CoValues in your branch by using a [`resolve` query](/docs/using-covalues/subscription-and-loading#resolve-queries). 
 
-- **Every sub-property** that comes from the branched CoValue will also be branched
-- **All subscriptions** using `branch.$jazz.ensureLoaded()` and `branch.$jazz.subscribe()` will have the branch checkout applied to their results
-- **Nested CoValues** will have their own branched versions created automatically
+When you create a branch, the branch selection automatically propagates to nested CoValues:
+- **Nested CoValues** will have their own branched versions created automatically when using a `resolve` query
+- `branch.$jazz.ensureLoaded()` and `branch.$jazz.subscribe()` won't have the branch checkout applied to their results, unless specified otherwise
 
 This means you can access branched nested CoValues in the same way you would normally access a deeply loaded property, and all operations will work within the branch context.
 

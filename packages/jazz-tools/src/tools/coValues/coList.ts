@@ -20,6 +20,7 @@ import {
   SubscribeListenerOptions,
   SubscribeRestArgs,
   TypeSym,
+  BranchDefinition,
 } from "../internal.js";
 import {
   AnonymousJazzAgent,
@@ -753,7 +754,10 @@ export class CoListJazzApi<L extends CoList> extends CoValueJazzApi<L> {
    */
   ensureLoaded<L extends CoList, const R extends RefsToResolve<L>>(
     this: CoListJazzApi<L>,
-    options: { resolve: RefsToResolveStrict<L, R> },
+    options: {
+      resolve: RefsToResolveStrict<L, R>;
+      unstable_branch?: BranchDefinition;
+    },
   ): Promise<Resolved<L, R>> {
     return ensureCoValueLoaded(this.coList, options);
   }
@@ -773,7 +777,10 @@ export class CoListJazzApi<L extends CoList> extends CoValueJazzApi<L> {
   ): () => void;
   subscribe<L extends CoList, const R extends RefsToResolve<L> = true>(
     this: CoListJazzApi<L>,
-    options: { resolve?: RefsToResolveStrict<L, R> },
+    options: {
+      resolve?: RefsToResolveStrict<L, R>;
+      unstable_branch?: BranchDefinition;
+    },
     listener: (value: Resolved<L, R>, unsubscribe: () => void) => void,
   ): () => void;
   subscribe<L extends CoList, const R extends RefsToResolve<L>>(
