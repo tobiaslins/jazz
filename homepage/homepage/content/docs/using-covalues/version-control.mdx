@@ -187,7 +187,7 @@ me.root.$jazz.set("value", "Feature Branch"); // This only modifies the branch
 
 There are two ways to merge a branch in Jazz, each with different characteristics:
 
-#### 1. Branch-level merge: `branch.$jazz.unstable_merge()`
+#### 1. Merge loaded values
 
 This method merges all the values that are currently loaded inside the branch. It happens synchronously and there is no possibility of errors because the values are already loaded.
 
@@ -207,7 +207,7 @@ This approach is recommended when you can co-locate the merge operation with the
   <strong>Important:</strong> The merge operation will only affect values loaded in the current subscription scope. Values loaded via `ensureLoaded` or `subscribe` will not be affected.
 </Alert>
 
-#### 2. Schema-level merge: `Schema.unstable_merge()`
+#### 2. Merge with resolve query
 
 This is a shortcut for loading a value and calling `branch.$jazz.unstable_merge()` on it and will fail if the load isn't possible due to permission errors or network issues.
 
