@@ -43,6 +43,8 @@ import {
 } from "./schemaTypes/RichTextSchema.js";
 import { InstanceOfSchemaCoValuesNullable } from "./typeConverters/InstanceOfSchemaCoValuesNullable.js";
 import { z } from "./zodReExport.js";
+import { CoreGroupSchema } from "./schemaTypes/GroupSchema.js";
+import { GroupSchema } from "./schemaTypes/GroupSchema.js";
 
 export type ZodPrimitiveSchema =
   | z.core.$ZodString
@@ -57,25 +59,27 @@ export type CoValueClassOrSchema = CoValueClass | CoreCoValueSchema;
 export type CoValueSchemaFromCoreSchema<S extends CoreCoValueSchema> =
   S extends CoreAccountSchema<infer Shape extends BaseAccountShape>
     ? AccountSchema<Shape>
-    : S extends CoreCoRecordSchema<infer K, infer V>
-      ? CoRecordSchema<K, V>
-      : S extends CoreCoMapSchema<infer Shape, infer Config>
-        ? CoMapSchema<Shape, Config>
-        : S extends CoreCoListSchema<infer T>
-          ? CoListSchema<T>
-          : S extends CoreCoFeedSchema<infer T>
-            ? CoFeedSchema<T>
-            : S extends CorePlainTextSchema
-              ? PlainTextSchema
-              : S extends CoreRichTextSchema
-                ? RichTextSchema
-                : S extends CoreFileStreamSchema
-                  ? FileStreamSchema
-                  : S extends CoreCoOptionalSchema<infer Inner>
-                    ? CoOptionalSchema<Inner>
-                    : S extends CoreCoDiscriminatedUnionSchema<infer Members>
-                      ? CoDiscriminatedUnionSchema<Members>
-                      : never;
+    : S extends CoreGroupSchema
+      ? GroupSchema
+      : S extends CoreCoRecordSchema<infer K, infer V>
+        ? CoRecordSchema<K, V>
+        : S extends CoreCoMapSchema<infer Shape, infer Config>
+          ? CoMapSchema<Shape, Config>
+          : S extends CoreCoListSchema<infer T>
+            ? CoListSchema<T>
+            : S extends CoreCoFeedSchema<infer T>
+              ? CoFeedSchema<T>
+              : S extends CorePlainTextSchema
+                ? PlainTextSchema
+                : S extends CoreRichTextSchema
+                  ? RichTextSchema
+                  : S extends CoreFileStreamSchema
+                    ? FileStreamSchema
+                    : S extends CoreCoOptionalSchema<infer Inner>
+                      ? CoOptionalSchema<Inner>
+                      : S extends CoreCoDiscriminatedUnionSchema<infer Members>
+                        ? CoDiscriminatedUnionSchema<Members>
+                        : never;
 
 export type CoValueClassFromAnySchema<S extends CoValueClassOrSchema> =
   S extends CoValueClass<any>
@@ -92,6 +96,7 @@ type AccountClassEssentials = {
 export type AnyCoreCoValueSchema =
   | CoreCoMapSchema
   | CoreAccountSchema
+  | CoreGroupSchema
   | CoreCoRecordSchema
   | CoreCoListSchema
   | CoreCoFeedSchema

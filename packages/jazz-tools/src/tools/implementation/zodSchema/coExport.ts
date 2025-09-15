@@ -12,6 +12,7 @@ export {
   AccountSchema as Account,
   CoProfileSchema as Profile,
 } from "./schemaTypes/AccountSchema.js";
+export { GroupSchema as Group } from "./schemaTypes/GroupSchema.js";
 export { CoOptionalSchema as Optional } from "./schemaTypes/CoOptionalSchema.js";
 export { CoDiscriminatedUnionSchema as DiscriminatedUnion } from "./schemaTypes/CoDiscriminatedUnionSchema.js";
 export {
@@ -24,6 +25,7 @@ export {
   coFileStreamDefiner as fileStream,
   coImageDefiner as image,
   coAccountDefiner as account,
+  coGroupDefiner as group,
   coProfileDefiner as profile,
   coOptionalDefiner as optional,
   coDiscriminatedUnionDefiner as discriminatedUnion,
