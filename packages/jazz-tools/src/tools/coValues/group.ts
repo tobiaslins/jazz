@@ -112,7 +112,7 @@ export class Group extends CoValueBase implements CoValue {
     member: Group | Everyone | Account,
     role?: AccountRole | "inherit",
   ) {
-    if (member !== "everyone" && isGroupValue(member)) {
+    if (isGroupValue(member)) {
       if (role === "writeOnly")
         throw new Error("Cannot add group as member with write-only role");
       this.$jazz.raw.extend(member.$jazz.raw, role);
@@ -131,7 +131,7 @@ export class Group extends CoValueBase implements CoValue {
    */
   removeMember(member: Group): void;
   removeMember(member: Group | Everyone | Account) {
-    if (member !== "everyone" && isGroupValue(member)) {
+    if (isGroupValue(member)) {
       this.$jazz.raw.revokeExtend(member.$jazz.raw);
     } else {
       return this.$jazz.raw.removeMember(
