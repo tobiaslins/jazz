@@ -92,14 +92,20 @@ describe("Branching Logic", () => {
 
       // Merge branch twice - second merge should not create new commit
       expectMap(branch.core.mergeBranch().getCurrentContent());
-      const result = expectMap(branch.core.mergeBranch().getCurrentContent());
 
-      // Verify only one merge commit was created
-      expect(branch.core.mergeCommits.length).toBe(1);
+      const knownState = originalMap.core.knownState();
+
+      expectMap(branch.core.mergeBranch().getCurrentContent());
+
+      // Verify the known state is the same
+      expect(originalMap.core.knownState()).toEqual(knownState);
 
       // Verify source contains branch transactions
-      expect(result.get("key1")).toBe("branchValue1");
-      expect(result.get("key2")).toBe("value2");
+      expect(originalMap.get("key1")).toBe("branchValue1");
+      expect(originalMap.get("key2")).toBe("value2");
+
+      // Verify only one merge commit was created
+      expect(originalMap.core.mergeCommits.length).toBe(1);
     });
 
     test("should not create merge commit when merging empty branch", () => {
@@ -118,10 +124,10 @@ describe("Branching Logic", () => {
       );
 
       // Merge empty branch
-      const result = expectMap(branch.core.mergeBranch().getCurrentContent());
+      expectMap(branch.core.mergeBranch().getCurrentContent());
 
       // Verify no merge commit was created
-      expect(result.core.mergeCommits.length).toBe(0);
+      expect(originalMap.core.mergeCommits.length).toBe(0);
     });
 
     test("should merge only new changes from branch after previous merge", () => {
@@ -155,7 +161,7 @@ describe("Branching Logic", () => {
       branch.core.mergeBranch();
 
       // Verify two merge commits exist
-      expect(branch.core.mergeCommits.length).toBe(2);
+      expect(originalMap.core.mergeCommits.length).toBe(2);
 
       // Verify both changes are now in original map
       expect(originalMap.get("key1")).toBe("branchValue1");

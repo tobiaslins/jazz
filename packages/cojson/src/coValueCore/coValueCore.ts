@@ -839,12 +839,6 @@ export class CoValueCore {
           this.branchStart = meta.from;
         }
       }
-
-      // Check if the transaction is a merged checkpoint for a branch
-      if ("merged" in transaction.meta) {
-        const mergeCommit = transaction.meta as MergeCommit;
-        this.mergeCommits.push(mergeCommit);
-      }
     }
 
     // Check if the transaction is a branch pointer
@@ -852,6 +846,12 @@ export class CoValueCore {
       const branch = transaction.meta as BranchPointerCommit;
 
       this.branches.push(branch);
+    }
+
+    // Check if the transaction is a merged checkpoint for a branch
+    if ("merged" in transaction.meta) {
+      const mergeCommit = transaction.meta as MergeCommit;
+      this.mergeCommits.push(mergeCommit);
     }
 
     // Check if the transaction has been merged from a branch
