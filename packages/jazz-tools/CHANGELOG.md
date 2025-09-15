@@ -1,5 +1,15 @@
 # jazz-tools
 
+## 0.18.12
+
+### Patch Changes
+
+- c16ce4b: Fix addMember with account owners, by detecting the accounts from their raw value
+- 0b1b050: Export ReactNativeContextManager from react-native-core
+  - cojson@0.18.12
+  - cojson-storage-indexeddb@0.18.12
+  - cojson-transport-ws@0.18.12
+
 ## 0.18.11
 
 ### Patch Changes
