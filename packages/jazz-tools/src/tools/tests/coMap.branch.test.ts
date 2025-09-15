@@ -73,6 +73,70 @@ describe("CoMap Branching", async () => {
       expect(originalPerson.email).toBe("john.smith@example.com");
     });
 
+    test("CoMap.unstable_merge static method", async () => {
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+        email: z.string(),
+        dog: co.map({
+          name: z.string(),
+          breed: z.string(),
+        }),
+      });
+
+      // Create a group to own the CoMap
+      const group = Group.create();
+      group.addMember("everyone", "writer");
+
+      // Create the original CoMap
+      const originalPerson = Person.create(
+        {
+          name: "John Doe",
+          age: 30,
+          email: "john@example.com",
+          dog: { name: "Rex", breed: "Labrador" },
+        },
+        group,
+      );
+
+      // Create a branch
+      const branchPerson = await Person.load(originalPerson.$jazz.id, {
+        resolve: {
+          dog: true,
+        },
+        unstable_branch: { name: "feature-branch" },
+      });
+
+      assert(branchPerson);
+
+      // Edit the branch
+      branchPerson.$jazz.applyDiff({
+        name: "John Smith",
+        age: 31,
+        email: "john.smith@example.com",
+      });
+
+      branchPerson.dog.$jazz.applyDiff({
+        name: "Giggino",
+        breed: "Border Collie",
+      });
+
+      // Merge the branch back
+      await Person.unstable_merge(originalPerson.$jazz.id, {
+        resolve: {
+          dog: true,
+        },
+        branch: { name: "feature-branch" },
+      });
+
+      // Verify the original now has the merged changes
+      expect(originalPerson.name).toBe("John Smith");
+      expect(originalPerson.age).toBe(31);
+      expect(originalPerson.email).toBe("john.smith@example.com");
+      expect(originalPerson.dog.name).toBe("Giggino");
+      expect(originalPerson.dog.breed).toBe("Border Collie");
+    });
+
     test("create branch and merge without doing any changes", async () => {
       const Person = co.map({
         name: z.string(),

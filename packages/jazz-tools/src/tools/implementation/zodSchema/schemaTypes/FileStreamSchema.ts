@@ -4,6 +4,7 @@ import {
   FileStream,
   Group,
   coOptionalDefiner,
+  unstable_mergeBranchWithResolve,
 } from "../../../internal.js";
 import { CoOptionalSchema } from "./CoOptionalSchema.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
@@ -80,6 +81,14 @@ export class FileStreamSchema implements CoreFileStreamSchema {
     options: { loadAs: Account | AnonymousJazzAgent },
   ): Promise<FileStream | null> {
     return this.coValueClass.load(id, options);
+  }
+
+  unstable_merge(
+    id: string,
+    options: { loadAs: Account | AnonymousJazzAgent },
+  ): Promise<void> {
+    // @ts-expect-error
+    return unstable_mergeBranchWithResolve(this.coValueClass, id, options);
   }
 
   subscribe(

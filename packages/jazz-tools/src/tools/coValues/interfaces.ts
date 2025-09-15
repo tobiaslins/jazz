@@ -629,3 +629,50 @@ export function unstable_mergeBranch(
 
   handleMerge(subscriptionScope);
 }
+
+export async function unstable_mergeBranchWithResolve<
+  S extends CoValueClassOrSchema,
+  const R extends ResolveQuery<S>,
+>(
+  cls: S,
+  id: ID<CoValue>,
+  options: {
+    resolve?: ResolveQueryStrict<S, R>;
+    loadAs: Account | AnonymousJazzAgent;
+    branch: BranchDefinition;
+  },
+) {
+  const loadAs = options.loadAs ?? activeAccountContext.get();
+  const node = "node" in loadAs ? loadAs.node : loadAs.$jazz.localNode;
+
+  const resolve = options.resolve ?? true;
+
+  const rootNode = new SubscriptionScope<CoValue>(
+    node,
+    resolve as any,
+    id,
+    {
+      ref: coValueClassFromCoValueClassOrSchema(cls),
+      optional: false,
+    },
+    false,
+    false,
+    options.branch,
+  );
+
+  await new Promise<void>((resolve, reject) => {
+    rootNode.setListener((value) => {
+      if (value.type === "unavailable") {
+        reject(new Error("Unable to load the branch. " + value.toString()));
+      } else if (value.type === "unauthorized") {
+        reject(new Error("Unable to load the branch. " + value.toString()));
+      } else if (value.type === "loaded") {
+        resolve();
+      }
+
+      rootNode.destroy();
+    });
+  });
+
+  unstable_mergeBranch(rootNode);
+}

@@ -71,6 +71,52 @@ describe("CoFeed Branching", async () => {
       );
     });
 
+    test("CoFeed.unstable_merge static method", async () => {
+      const TestStream = co.feed(z.string());
+
+      // Create the original CoFeed
+      const originalFeed = TestStream.create(["milk", "bread", "butter"], {
+        owner: me,
+      });
+
+      // Create a branch
+      const branchFeed = await TestStream.load(originalFeed.$jazz.id, {
+        unstable_branch: { name: "feature-branch" },
+      });
+
+      assert(branchFeed);
+
+      expect(branchFeed.$jazz.branchName).toBe("feature-branch");
+      expect(branchFeed.$jazz.isBranched).toBe(true);
+
+      // Edit the branch
+      branchFeed.$jazz.push("jam");
+      branchFeed.$jazz.push("cheese");
+
+      // Verify the original is unchanged
+      expect(originalFeed.perAccount[me.$jazz.id]?.value).toEqual("butter");
+      expect(originalFeed.perSession[me.$jazz.sessionID]?.value).toEqual(
+        "butter",
+      );
+
+      // Verify the branch has the changes
+      expect(branchFeed.perAccount[me.$jazz.id]?.value).toEqual("cheese");
+      expect(branchFeed.perSession[me.$jazz.sessionID]?.value).toEqual(
+        "cheese",
+      );
+
+      // Merge the branch back
+      await TestStream.unstable_merge(originalFeed.$jazz.id, {
+        branch: { name: "feature-branch" },
+      });
+
+      // Verify the original now has the merged changes
+      expect(originalFeed.perAccount[me.$jazz.id]?.value).toEqual("cheese");
+      expect(originalFeed.perSession[me.$jazz.sessionID]?.value).toEqual(
+        "cheese",
+      );
+    });
+
     test("create branch and merge without doing any changes", async () => {
       const TestStream = co.feed(z.string());
 

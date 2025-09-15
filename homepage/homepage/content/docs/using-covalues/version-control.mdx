@@ -183,27 +183,58 @@ me.root.$jazz.set("value", "Feature Branch"); // This only modifies the branch
 ```
 </CodeGroup>
 
-### Merging
+### Merging Branches
 
-To merge a branch back to the main version, call `unstable_merge()`:
+There are two ways to merge a branch in Jazz, each with different characteristics:
+
+#### 1. Branch-level merge: `branch.$jazz.unstable_merge()`
+
+This method merges all the values that are currently loaded inside the branch. It happens synchronously and there is no possibility of errors because the values are already loaded.
 
 <CodeGroup>
 ```tsx 
 async function handleSave() {
-  // Merge the branch changes back to main
-  project.$jazz.unstable_merge();
+  // Merge all currently loaded values in the branch
+  branch.$jazz.unstable_merge();
   router.navigate("/");
 }
 ```
 </CodeGroup>
 
-All the changes made to the branch will be merged into the main CoValue, preserving both author and timestamp.
+This approach is recommended when you can co-locate the merge operation with the branch load, keeping at a glance what the merge operation will affect.
 
-Calling `unstable_merge()` will merge every change done in the project and the loaded tasks.
+#### 2. Schema-level merge: `Schema.unstable_merge()`
+
+This is a shortcut for loading a value and calling `branch.$jazz.unstable_merge()` on it and will fail if the load isn't possible due to permission errors or network issues.
+
+<CodeGroup>
+```tsx 
+async function handleSave() {
+  // Merge the branch changes back to main
+  await Project.unstable_merge(projectId, {
+    resolve: {
+      tasks: { $each: true }
+    },
+    branch: { name: "feature-branch" }
+  });
+  router.navigate("/");
+}
+```
+</CodeGroup>
+
+This approach is recommended for more complex merge operations where it's not possible to co-locate the merge with the branch load.
+
+#### Best Practices
+
+When using version control with Jazz, always be exhaustive when defining the resolve query to keep the depth of the branch under control and ensure that the merge covers all the branched values.
+
+The mechanism that Jazz uses to automatically load accessed values should be avoided with branching, as it might lead to cases where merge won't reach all the branch changes.
+
+All the changes made to the branch will be merged into the main CoValue, preserving both author and timestamp.
 
 The merge is idempotent, so you can merge the same branch multiple times, the result will always depend on the branch changes and loading state.
 
-The merge operation cascades down to the CoValue's children, but not to its parents. So if you call `unstable_merge()` on a task, only the changes to the task and their children will be merged
+The merge operation cascades down to the CoValue's children, but not to its parents. So if you call `unstable_merge()` on a task, only the changes to the task and their children will be merged:
 
 <CodeGroup>
 ```tsx 

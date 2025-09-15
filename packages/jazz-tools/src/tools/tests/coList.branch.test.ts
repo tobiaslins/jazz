@@ -65,6 +65,55 @@ describe("CoList Branching", async () => {
       expect(originalList.length).toBe(3);
     });
 
+    test("CoList.unstable_merge static method", async () => {
+      const TodoList = co.list(z.string());
+
+      // Create a group to own the CoList
+      const group = Group.create();
+      group.addMember("everyone", "writer");
+
+      // Create the original CoList
+      const originalList = TodoList.create(
+        ["Buy groceries", "Walk the dog", "Finish project"],
+        group,
+      );
+
+      // Create a branch
+      const branchList = await TodoList.load(originalList.$jazz.id, {
+        unstable_branch: { name: "feature-branch" },
+      });
+
+      assert(branchList);
+
+      // Edit the branch
+      branchList.$jazz.set(0, "Buy organic groceries");
+      branchList.$jazz.push("Call mom");
+      branchList.$jazz.splice(1, 1); // Remove "Walk the dog"
+
+      // Verify the original is unchanged
+      expect(originalList[0]).toBe("Buy groceries");
+      expect(originalList[1]).toBe("Walk the dog");
+      expect(originalList[2]).toBe("Finish project");
+      expect(originalList.length).toBe(3);
+
+      // Verify the branch has the changes
+      expect(branchList[0]).toBe("Buy organic groceries");
+      expect(branchList[1]).toBe("Finish project");
+      expect(branchList[2]).toBe("Call mom");
+      expect(branchList.length).toBe(3);
+
+      // Merge the branch back
+      await TodoList.unstable_merge(originalList.$jazz.id, {
+        branch: { name: "feature-branch" },
+      });
+
+      // Verify the original now has the merged changes
+      expect(originalList[0]).toBe("Buy organic groceries");
+      expect(originalList[1]).toBe("Finish project");
+      expect(originalList[2]).toBe("Call mom");
+      expect(originalList.length).toBe(3);
+    });
+
     test("create branch and merge without doing any changes", async () => {
       const TodoList = co.list(z.string());
 

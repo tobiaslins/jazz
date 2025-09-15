@@ -5,6 +5,7 @@ import {
   CoPlainText,
   Group,
   coOptionalDefiner,
+  unstable_mergeBranchWithResolve,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { CoOptionalSchema } from "./CoOptionalSchema.js";
@@ -65,6 +66,14 @@ export class PlainTextSchema implements CorePlainTextSchema {
   subscribe(...args: [any, ...any[]]) {
     // @ts-expect-error
     return this.coValueClass.subscribe(...args);
+  }
+
+  unstable_merge(
+    id: string,
+    options: { loadAs: Account | AnonymousJazzAgent },
+  ): Promise<void> {
+    // @ts-expect-error
+    return unstable_mergeBranchWithResolve(this.coValueClass, id, options);
   }
 
   fromRaw(raw: RawCoPlainText): CoPlainText {
