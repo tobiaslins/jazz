@@ -1,22 +1,20 @@
 import "jazz-tools/load-edge-wasm";
 import { createWebSocketPeer } from "cojson-transport-ws";
-import { WasmCrypto } from "cojson/crypto/WasmCrypto";
-import { Hono } from "hono";
 import { CoMap, coField } from "jazz-tools";
 import { Account } from "jazz-tools";
 import { startWorker } from "jazz-tools/worker";
-
-const app = new Hono();
+import { NextResponse } from "next/server";
+import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 
 class MyAccountRoot extends CoMap {
   text = coField.string;
 }
-
 class MyAccount extends Account {
   root = coField.ref(MyAccountRoot);
 
   migrate(): void {
     if (this.root === undefined) {
+      //@ts-ignore
       this.$jazz.set("root", {
         text: "Hello world!",
       });
@@ -24,11 +22,11 @@ class MyAccount extends Account {
   }
 }
 
+export const runtime = "edge"; // 'nodejs' is the default
 const syncServer = "wss://cloud.jazz.tools/?key=jazz@jazz.tools";
 
-app.get("/", async (c) => {
+export async function GET(request: Request) {
   const crypto = await WasmCrypto.create();
-
   const peer = createWebSocketPeer({
     id: "upstream",
     websocket: new WebSocket(syncServer),
@@ -57,10 +55,8 @@ app.get("/", async (c) => {
 
   await admin.done();
 
-  return c.json({
+  return NextResponse.json({
     text: root.text,
     isWasmCrypto: crypto instanceof WasmCrypto,
   });
-});
-
-export default app;
+}

@@ -135,6 +135,7 @@ export default defineConfig([
     ...cfg,
     entry: {
       index: "src/worker/index.ts",
+      "edge-wasm": "src/worker/edge-wasm.ts",
     },
     outDir: "dist/worker",
   },

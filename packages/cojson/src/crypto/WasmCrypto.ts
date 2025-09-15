@@ -46,6 +46,7 @@ import {
 
 type Blake3State = Blake3Hasher;
 
+let wasmInit = initialize;
 /**
  * WebAssembly implementation of the CryptoProvider interface using cojson-core-wasm.
  * This provides the primary implementation using WebAssembly for optimal performance, offering:
@@ -59,9 +60,13 @@ export class WasmCrypto extends CryptoProvider<Blake3State> {
     super();
   }
 
+  static setInit(value: typeof initialize) {
+    wasmInit = value;
+  }
+
   static async create(): Promise<WasmCrypto | PureJSCrypto> {
     try {
-      await initialize();
+      await wasmInit();
     } catch (e) {
       logger.warn(
         "Failed to initialize WasmCrypto, falling back to PureJSCrypto",

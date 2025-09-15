@@ -9,6 +9,7 @@ export default defineConfig({
       "packages/*",
       "tests/browser-integration",
       "tests/cloudflare-workers",
+      "tests/vercel-functions",
     ],
     maxConcurrency: 5,
   },

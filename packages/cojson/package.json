@@ -20,6 +20,10 @@
       "types": "./dist/crypto/WasmCrypto.d.ts",
       "default": "./dist/crypto/WasmCrypto.js"
     },
+    "./crypto/WasmCrypto/edge": {
+      "types": "./dist/crypto/WasmCryptoEdge.d.ts",
+      "default": "./dist/crypto/WasmCryptoEdge.js"
+    },
     "./dist/*": "./dist/*",
     "./src/*": "./src/*"
   },
