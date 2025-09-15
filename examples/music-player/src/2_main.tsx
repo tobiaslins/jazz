@@ -13,7 +13,7 @@ import "./index.css";
 import { MusicaAccount } from "@/1_schema";
 import { apiKey } from "@/apiKey.ts";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { JazzReactProvider, useAccount } from "jazz-tools/react";
+import { JazzReactProvider, useAccountWithSelector } from "jazz-tools/react";
 import { onAnonymousAccountDiscarded } from "./4_actions";
 import { KeyboardListener } from "./components/PlayerControls";
 import { usePrepareAppState } from "./lib/usePrepareAppState";
@@ -28,20 +28,20 @@ import { usePrepareAppState } from "./lib/usePrepareAppState";
  *
  * `<JazzReactProvider/>` also runs our account migration
  */
-
 function AppContent({
   mediaPlayer,
 }: {
   mediaPlayer: ReturnType<typeof useMediaPlayer>;
 }) {
-  const { me } = useAccount(MusicaAccount, {
+  const showWelcomeScreen = useAccountWithSelector(MusicaAccount, {
     resolve: { root: true },
+    select: (me) => Boolean(me && !me.root.accountSetupCompleted),
   });
 
   const isReady = usePrepareAppState(mediaPlayer);
 
   // Show welcome screen if account setup is not completed
-  if (me && !me.root.accountSetupCompleted) {
+  if (showWelcomeScreen) {
     return <WelcomeScreen />;
   }
 

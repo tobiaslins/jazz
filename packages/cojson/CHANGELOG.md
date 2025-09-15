@@ -1,5 +1,38 @@
 # cojson
 
+## 0.18.12
+
+### Patch Changes
+
+- cojson-core-wasm@0.18.12
+
+## 0.18.11
+
+### Patch Changes
+
+- a4a9a1e: Fix CoPlainText applyDiff chunking to ensure we fit in the TRANSACTION_CONFIG.MAX_RECOMMENDED_TX_SIZE for each transaction
+  - cojson-core-wasm@0.18.11
+
+## 0.18.10
+
+### Patch Changes
+
+- cojson-core-wasm@0.18.10
+
+## 0.18.9
+
+### Patch Changes
+
+- f058875: Add removePeer() method to SyncManager
+  - cojson-core-wasm@0.18.9
+
+## 0.18.8
+
+### Patch Changes
+
+- 9a4caf2: Ability for SyncManager to ignore unknown covalues arriving from server peers
+  - cojson-core-wasm@0.18.8
+
 ## 0.18.7
 
 ### Patch Changes

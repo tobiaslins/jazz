@@ -1,5 +1,51 @@
 # jazz-react
 
+## 0.18.12
+
+### Patch Changes
+
+- Updated dependencies [c16ce4b]
+- Updated dependencies [0b1b050]
+  - jazz-tools@0.18.12
+  - cojson@0.18.12
+
+## 0.18.11
+
+### Patch Changes
+
+- Updated dependencies [a4a9a1e]
+- Updated dependencies [06b4617]
+- Updated dependencies [70eb465]
+  - cojson@0.18.11
+  - jazz-tools@0.18.11
+
+## 0.18.10
+
+### Patch Changes
+
+- jazz-tools@0.18.10
+- cojson@0.18.10
+
+## 0.18.9
+
+### Patch Changes
+
+- Updated dependencies [c8167de]
+- Updated dependencies [f058875]
+- Updated dependencies [910b8d6]
+  - jazz-tools@0.18.9
+  - cojson@0.18.9
+
+## 0.18.8
+
+### Patch Changes
+
+- Updated dependencies [700fe46]
+- Updated dependencies [aba0d55]
+- Updated dependencies [9a4caf2]
+  - jazz-tools@0.18.8
+  - cojson@0.18.8
+
 ## 0.18.7
 
 ### Patch Changes

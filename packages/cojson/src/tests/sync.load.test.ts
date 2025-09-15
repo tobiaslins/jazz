@@ -1134,4 +1134,21 @@ describe("loading coValues from server", () => {
     const mapOnServerCore = await syncServer.node.loadCoValueCore(map.core.id);
     expect(mapOnServerCore.isAvailable()).toBe(true);
   });
+
+  test("unknown coValues are ignored if ignoreUnrequestedCoValues is true", async () => {
+    const group = jazzCloud.node.createGroup();
+    const map = group.createMap();
+    map.set("hello", "world", "trusting");
+
+    const { node: shardedCoreNode } = setupTestNode({
+      connected: true,
+    });
+    shardedCoreNode.syncManager.disableTransactionVerification();
+    shardedCoreNode.syncManager.ignoreUnknownCoValuesFromServers();
+
+    await shardedCoreNode.loadCoValueCore(map.id);
+
+    expect(shardedCoreNode.hasCoValue(map.id)).toBe(true);
+    expect(shardedCoreNode.hasCoValue(group.id)).toBe(false);
+  });
 });

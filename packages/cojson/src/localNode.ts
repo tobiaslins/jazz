@@ -98,6 +98,10 @@ export class LocalNode {
     this.storage = undefined;
   }
 
+  hasCoValue(id: RawCoID) {
+    return this.coValues.has(id);
+  }
+
   getCoValue(id: RawCoID) {
     let entry = this.coValues.get(id);
 

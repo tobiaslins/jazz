@@ -2646,6 +2646,43 @@ describe("co.map schema", () => {
       expect(draftPerson.pet).toEqual(rex);
     });
 
+    test("creates a new CoMap schema by making some properties optional", () => {
+      const Dog = co.map({
+        name: z.string(),
+        breed: z.string(),
+      });
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+        pet: Dog,
+      });
+
+      const DraftPerson = Person.partial({
+        pet: true,
+      });
+
+      const draftPerson = DraftPerson.create({
+        name: "John",
+        age: 20,
+      });
+
+      expect(draftPerson.$jazz.has("pet")).toBe(false);
+
+      const rex = Dog.create({ name: "Rex", breed: "Labrador" });
+      draftPerson.$jazz.set("pet", rex);
+
+      expect(draftPerson.pet).toEqual(rex);
+
+      expect(draftPerson.$jazz.has("pet")).toBe(true);
+
+      draftPerson.$jazz.delete("pet");
+
+      expect(draftPerson.$jazz.has("pet")).toBe(false);
+
+      // @ts-expect-error - should not allow deleting required properties
+      draftPerson.$jazz.delete("age");
+    });
+
     test("the new schema includes catchall properties", () => {
       const Person = co
         .map({
