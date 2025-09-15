@@ -203,6 +203,10 @@ async function handleSave() {
 
 This approach is recommended when you can co-locate the merge operation with the branch load, keeping at a glance what the merge operation will affect.
 
+<Alert variant="info" className="mt-4 flex gap-2 items-center">
+  <strong>Important:</strong> The merge operation will only affect values loaded in the current subscription scope. Values loaded via `ensureLoaded` or `subscribe` will not be affected.
+</Alert>
+
 #### 2. Schema-level merge: `Schema.unstable_merge()`
 
 This is a shortcut for loading a value and calling `branch.$jazz.unstable_merge()` on it and will fail if the load isn't possible due to permission errors or network issues.
