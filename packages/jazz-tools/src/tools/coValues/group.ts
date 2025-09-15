@@ -1,10 +1,11 @@
-import type {
-  AccountRole,
-  AgentID,
-  Everyone,
-  RawAccountID,
-  RawGroup,
-  Role,
+import {
+  RawAccount,
+  type AccountRole,
+  type AgentID,
+  type Everyone,
+  type RawAccountID,
+  type RawGroup,
+  type Role,
 } from "cojson";
 import {
   CoValue,
@@ -111,7 +112,7 @@ export class Group extends CoValueBase implements CoValue {
     member: Group | Everyone | Account,
     role?: AccountRole | "inherit",
   ) {
-    if (member !== "everyone" && member[TypeSym] === "Group") {
+    if (member !== "everyone" && isGroupValue(member)) {
       if (role === "writeOnly")
         throw new Error("Cannot add group as member with write-only role");
       this.$jazz.raw.extend(member.$jazz.raw, role);
@@ -130,7 +131,7 @@ export class Group extends CoValueBase implements CoValue {
    */
   removeMember(member: Group): void;
   removeMember(member: Group | Everyone | Account) {
-    if (member !== "everyone" && member[TypeSym] === "Group") {
+    if (member !== "everyone" && isGroupValue(member)) {
       this.$jazz.raw.revokeExtend(member.$jazz.raw);
     } else {
       return this.$jazz.raw.removeMember(
@@ -367,4 +368,8 @@ export function getCoValueOwner(coValue: CoValue): Group {
     throw new Error("CoValue has no owner");
   }
   return group;
+}
+
+function isGroupValue(value: Group | Everyone | Account): value is Group {
+  return value !== "everyone" && !(value.$jazz.raw instanceof RawAccount);
 }

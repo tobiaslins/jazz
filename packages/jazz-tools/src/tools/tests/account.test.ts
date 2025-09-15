@@ -340,6 +340,10 @@ describe("root and profile", () => {
     expect(account.profile.name).toBe("test 1");
     expect(account.profile.avatar.url).toBe("https://example.com/avatar.png");
     expect(account.root.name).toBe("test 1");
+
+    // The account when setting the owner, the owner should not extend the account
+    expect(account.root.$jazz.owner.getParentGroups()).toEqual([]);
+    expect(account.profile.$jazz.owner.getParentGroups()).toEqual([]);
   });
 });
 
