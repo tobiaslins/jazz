@@ -1,24 +1,17 @@
-import { Role } from "cojson";
 import { Group } from "../../../coValues/group.js";
 import {
-  CoValueClass,
   ID,
   SubscribeListenerOptions,
   SubscribeRestArgs,
 } from "../../../coValues/interfaces.js";
 import {
   Account,
-  CoreCoMapSchema,
   RefsToResolve,
   RefsToResolveStrict,
   Resolved,
   ResolveQuery,
-  AnonymousJazzAgent,
-  Loaded,
 } from "../../../internal.js";
-import { co } from "../../../internal.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
-import { z } from "../zodReExport.js";
 import { coOptionalDefiner } from "../zodCo.js";
 import { CoOptionalSchema } from "./CoOptionalSchema.js";
 
@@ -51,8 +44,8 @@ export class GroupSchema implements CoreGroupSchema {
     return this.coValueClass.create(options);
   }
 
-  load<R extends ResolveQuery<GroupSchema>>(
-    id: string,
+  load<G extends Group, R extends ResolveQuery<GroupSchema>>(
+    id: ID<G>,
     options?: {
       loadAs?: Account;
       resolve?: RefsToResolveStrict<Group, R>;
