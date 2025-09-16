@@ -3,15 +3,8 @@ import { expect, test } from "@playwright/test";
 test("create and edit an order", async ({ page }) => {
   await page.goto("/");
   // start an order
-  await page.getByRole("button", { name: "Add new order" }).click();
+  await page.getByRole("button", { name: "Create your first order" }).click();
   await page.getByLabel("Base tea").selectOption("Oolong");
-
-  // test draft indicator
-  await page.getByRole("link", { name: /Back to all orders/ }).click();
-  await expect(page.getByText("You have a draft")).toBeVisible();
-
-  // fill out the rest of order form
-  await page.getByRole("button", { name: "Add new order" }).click();
   await page.getByLabel("Pearl").check();
   await page.getByLabel("Taro").check();
   await page.getByLabel("Delivery date").fill("2024-12-21");
@@ -20,9 +13,6 @@ test("create and edit an order", async ({ page }) => {
   await page.getByRole("button", { name: "Submit" }).click();
 
   await page.waitForURL("/");
-
-  // the draft indicator should be gone because the order was submitted
-  await expect(page.getByText("You have a draft")).toHaveCount(0);
 
   // check if order was created correctly
   const firstOrder = page.getByRole("link", { name: "Oolong milk tea" });

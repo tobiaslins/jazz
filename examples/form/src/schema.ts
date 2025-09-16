@@ -27,14 +27,14 @@ export const BubbleTeaOrder = co.map({
 });
 export type BubbleTeaOrder = co.loaded<typeof BubbleTeaOrder>;
 
-export const DraftBubbleTeaOrder = BubbleTeaOrder.partial({
+export const PartialBubbleTeaOrder = BubbleTeaOrder.partial({
   baseTea: true,
   deliveryDate: true,
   withMilk: true,
 });
-export type DraftBubbleTeaOrder = co.loaded<typeof DraftBubbleTeaOrder>;
+export type PartialBubbleTeaOrder = co.loaded<typeof PartialBubbleTeaOrder>;
 
-export function validateDraftOrder(order: DraftBubbleTeaOrder) {
+export function validatePartialBubbleTeaOrder(order: PartialBubbleTeaOrder) {
   const errors: string[] = [];
 
   if (!order.baseTea) {
@@ -47,40 +47,9 @@ export function validateDraftOrder(order: DraftBubbleTeaOrder) {
   return { errors };
 }
 
-export function getLastDraftId(root: AccountRoot) {
-  if (root.$jazz.refs.draft?.id) return root.$jazz.refs.draft.id;
-
-  const draft = DraftBubbleTeaOrder.create({
-    addOns: [],
-    instructions: "",
-  });
-
-  root.$jazz.set("draft", draft);
-
-  return draft.$jazz.id;
-}
-
-export function hasChanges(
-  order?: co.loaded<
-    typeof DraftBubbleTeaOrder,
-    { addOns: true; instructions: true }
-  > | null,
-) {
-  if (!order) return false;
-
-  return (
-    order.addOns.length > 0 ||
-    order.instructions.length > 0 ||
-    order.baseTea ||
-    order.deliveryDate ||
-    order.withMilk
-  );
-}
-
 /** The root is an app-specific per-user private `CoMap`
  *  where you can store top-level objects for that user */
 export const AccountRoot = co.map({
-  draft: DraftBubbleTeaOrder.optional(),
   orders: co.list(BubbleTeaOrder),
 });
 export type AccountRoot = co.loaded<typeof AccountRoot>;

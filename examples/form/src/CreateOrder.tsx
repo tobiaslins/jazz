@@ -6,54 +6,38 @@ import { LinkToHome } from "./LinkToHome.tsx";
 import { OrderForm } from "./OrderForm.tsx";
 import {
   BubbleTeaOrder,
-  DraftBubbleTeaOrder,
-  getLastDraftId,
-  hasChanges,
   JazzAccount,
-  validateDraftOrder,
+  PartialBubbleTeaOrder,
+  validatePartialBubbleTeaOrder,
 } from "./schema.ts";
 
 export function CreateOrder(props: { id: string }) {
   const { me } = useAccount(JazzAccount, {
-    resolve: { root: { draft: true, orders: true } },
+    resolve: { root: { orders: true } },
   });
   const router = useIframeHashRouter();
   const [errors, setErrors] = useState<string[]>([]);
 
-  const draft = useCoState(DraftBubbleTeaOrder, props.id, {
+  const newOrder = useCoState(PartialBubbleTeaOrder, props.id, {
     resolve: { addOns: true, instructions: true },
   });
 
-  if (!draft) return;
+  if (!newOrder) return;
 
   const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!me) return;
 
-    const validation = validateDraftOrder(draft);
+    const validation = validatePartialBubbleTeaOrder(newOrder);
     setErrors(validation.errors);
     if (validation.errors.length > 0) {
       return;
     }
 
     // turn the draft into a real order
-    me.root.orders.$jazz.push(draft as BubbleTeaOrder);
-
-    // reset the draft
-    me.root.$jazz.set("draft", undefined);
+    me.root.orders.$jazz.push(newOrder as BubbleTeaOrder);
 
     router.navigate("/");
-  };
-
-  const handleReset = () => {
-    if (!me) return;
-
-    if (!hasChanges(draft)) {
-      return;
-    }
-
-    me.root.$jazz.set("draft", undefined);
-    router.navigate("/#/new-order/" + getLastDraftId(me.root));
   };
 
   return (
@@ -65,10 +49,7 @@ export function CreateOrder(props: { id: string }) {
       </h1>
 
       <Errors errors={errors} />
-
-      {draft && (
-        <OrderForm order={draft} onSave={handleSave} onReset={handleReset} />
-      )}
+      <OrderForm order={newOrder} onSave={handleSave} />
     </>
   );
 }

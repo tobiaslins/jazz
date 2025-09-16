@@ -2,8 +2,7 @@ import { co } from "jazz-tools";
 import {
   BubbleTeaAddOnTypes,
   BubbleTeaBaseTeaTypes,
-  BubbleTeaOrder,
-  DraftBubbleTeaOrder,
+  PartialBubbleTeaOrder,
 } from "./schema.ts";
 
 type ResolveQuery = {
@@ -14,14 +13,10 @@ export function OrderForm({
   order,
   onSave,
   onCancel,
-  onReset,
 }: {
-  order:
-    | co.loaded<typeof BubbleTeaOrder, ResolveQuery>
-    | co.loaded<typeof DraftBubbleTeaOrder, ResolveQuery>;
+  order: co.loaded<typeof PartialBubbleTeaOrder, ResolveQuery>;
   onSave: (e: React.FormEvent<HTMLFormElement>) => void;
   onCancel?: () => void;
-  onReset?: () => void;
 }) {
   // Handles updates to the instructions field of the order.
   // If instructions already exist, applyDiff updates them incrementally.
@@ -126,15 +121,6 @@ export function OrderForm({
             className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded cursor-pointer"
           >
             Cancel
-          </button>
-        )}
-        {onReset && (
-          <button
-            type="button"
-            onClick={onReset}
-            className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded cursor-pointer"
-          >
-            Reset
           </button>
         )}
         <button

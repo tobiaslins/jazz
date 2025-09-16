@@ -18,6 +18,7 @@ export function EditOrder(props: { id: string }) {
       addOns: {
         $each: true,
       },
+      instructions: true,
     },
     unstable_branch: {
       name: "edit-order",
