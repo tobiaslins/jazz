@@ -67,7 +67,7 @@ export function BranchManagement({
           >
             <option value="">Main branch</option>
             {branches?.map((item) => (
-              <option key={item} value={item} selected={item === currentBranch}>
+              <option key={item} value={item}>
                 {item}
               </option>
             ))}
