@@ -17,11 +17,13 @@ import {
   enrichAccountSchema,
   enrichCoMapSchema,
   isCoValueClass,
+  Group,
 } from "../../../internal.js";
 import { coField } from "../../schema.js";
 
 import { CoreCoValueSchema } from "../schemaTypes/CoValueSchema.js";
 import { RichTextSchema } from "../schemaTypes/RichTextSchema.js";
+import { GroupSchema } from "../schemaTypes/GroupSchema.js";
 import { schemaUnionDiscriminatorFor } from "../unionUtils.js";
 import {
   AnyCoreCoValueSchema,
@@ -131,6 +133,8 @@ export function hydrateCoreCoValueSchema<S extends AnyCoreCoValueSchema>(
     const coValueClass = SchemaUnion.Of(schemaUnionDiscriminatorFor(schema));
     const coValueSchema = new CoDiscriminatedUnionSchema(schema, coValueClass);
     return coValueSchema as CoValueSchemaFromCoreSchema<S>;
+  } else if (schema.builtin === "Group") {
+    return new GroupSchema() as CoValueSchemaFromCoreSchema<S>;
   } else {
     const notReachable: never = schema;
     throw new Error(

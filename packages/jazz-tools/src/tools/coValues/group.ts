@@ -263,7 +263,10 @@ export class Group extends CoValueBase implements CoValue {
     return this;
   }
 
-  /** @category Subscription & Loading */
+  /** @category Subscription & Loading
+   *
+   * @deprecated Use `co.group(...).load` instead.
+   */
   static load<G extends Group, const R extends RefsToResolve<G>>(
     this: CoValueClass<G>,
     id: ID<G>,
@@ -272,7 +275,10 @@ export class Group extends CoValueBase implements CoValue {
     return loadCoValueWithoutMe(this, id, options);
   }
 
-  /** @category Subscription & Loading */
+  /** @category Subscription & Loading
+   *
+   * @deprecated Use `co.group(...).subscribe` instead.
+   */
   static subscribe<G extends Group, const R extends RefsToResolve<G>>(
     this: CoValueClass<G>,
     id: ID<G>,

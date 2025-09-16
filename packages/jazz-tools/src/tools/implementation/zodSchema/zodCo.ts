@@ -35,6 +35,10 @@ import {
   createCoreCoRichTextSchema,
 } from "./schemaTypes/RichTextSchema.js";
 import { z } from "./zodReExport.js";
+import {
+  createCoreGroupSchema,
+  GroupSchema,
+} from "./schemaTypes/GroupSchema.js";
 
 /**
  * Checking for the presence of the `_zod` property is the recommended way
@@ -123,6 +127,11 @@ export const coAccountDefiner = <Shape extends BaseAccountShape>(
   } as unknown as Shape,
 ): AccountSchema<Shape> => {
   const coreSchema = createCoreAccountSchema(shape);
+  return hydrateCoreCoValueSchema(coreSchema);
+};
+
+export const coGroupDefiner = (): GroupSchema => {
+  const coreSchema = createCoreGroupSchema();
   return hydrateCoreCoValueSchema(coreSchema);
 };
 
