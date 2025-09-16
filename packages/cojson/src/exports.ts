@@ -27,7 +27,6 @@ import { EVERYONE, RawGroup } from "./coValues/group.js";
 import type { Everyone } from "./coValues/group.js";
 import {
   CryptoProvider,
-  StreamingHash,
   secretSeedLength,
   shortHashLength,
 } from "./crypto/crypto.js";
@@ -107,7 +106,6 @@ export const cojsonInternals = {
   isAccountID,
   accountHeaderForInitialAgentSecret,
   idforHeader,
-  StreamingHash,
   getPriorityFromHeader,
   getGroupDependentKeyList,
   getGroupDependentKey,
