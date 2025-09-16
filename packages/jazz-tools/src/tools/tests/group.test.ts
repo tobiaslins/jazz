@@ -59,5 +59,19 @@ describe("Group", () => {
       expectTypeOf(g.create).toBeCallableWith(Account.getMe());
       expectTypeOf(g.create).toBeCallableWith(undefined);
     });
+
+    it("should allow optional group fields in schemas", () => {
+      const Schema = co.map({
+        group: co.group().optional(),
+      });
+
+      const SchemaWithRequiredGroup = co.map({
+        group: co.group(),
+      });
+
+      expectTypeOf(Schema.create).toBeCallableWith({});
+      // @ts-expect-error - the group field is required
+      expectTypeOf(SchemaWithRequiredGroup.create).toBeCallableWith({});
+    });
   });
 });

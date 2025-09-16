@@ -30,10 +30,8 @@ export class GroupSchema implements CoreGroupSchema {
   readonly collaborative = true as const;
   readonly builtin = "Group" as const;
 
-  constructor(private coValueClass: typeof Group) {}
-
   getCoValueClass(): typeof Group {
-    return this.coValueClass;
+    return Group;
   }
 
   optional(): CoOptionalSchema<this> {
@@ -41,7 +39,7 @@ export class GroupSchema implements CoreGroupSchema {
   }
 
   create(options?: { owner: Account } | Account) {
-    return this.coValueClass.create(options);
+    return Group.create(options);
   }
 
   load<G extends Group, R extends ResolveQuery<GroupSchema>>(
@@ -51,7 +49,7 @@ export class GroupSchema implements CoreGroupSchema {
       resolve?: RefsToResolveStrict<Group, R>;
     },
   ): Promise<Group | null> {
-    return this.coValueClass.load(id, options);
+    return Group.load(id, options);
   }
 
   subscribe<G extends Group, const R extends RefsToResolve<G>>(
