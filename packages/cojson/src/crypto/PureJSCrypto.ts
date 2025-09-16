@@ -24,7 +24,6 @@ import {
   Signature,
   SignerID,
   SignerSecret,
-  StreamingHash,
   textDecoder,
   textEncoder,
 } from "./crypto.js";
@@ -68,14 +67,6 @@ export class PureJSCrypto extends CryptoProvider<Blake3State> {
     return new PureJSCrypto();
   }
 
-  emptyBlake3State(): Blake3State {
-    return blake3.create({});
-  }
-
-  cloneBlake3State(state: Blake3State): Blake3State {
-    return state.clone();
-  }
-
   blake3HashOnce(data: Uint8Array) {
     return blake3(data);
   }
@@ -85,14 +76,6 @@ export class PureJSCrypto extends CryptoProvider<Blake3State> {
     { context }: { context: Uint8Array },
   ) {
     return blake3.create({}).update(context).update(data).digest();
-  }
-
-  blake3IncrementalUpdate(state: Blake3State, data: Uint8Array) {
-    return state.update(data);
-  }
-
-  blake3DigestForState(state: Blake3State): Uint8Array {
-    return state.clone().digest();
   }
 
   generateNonce(input: Uint8Array): Uint8Array {
@@ -241,7 +224,7 @@ export class PureJSSessionLog implements SessionLogImpl {
     private readonly signerID: SignerID | undefined,
     private readonly crypto: PureJSCrypto,
   ) {
-    this.streamingHash = this.crypto.emptyBlake3State();
+    this.streamingHash = blake3.create({});
   }
 
   clone(): SessionLogImpl {
@@ -253,7 +236,7 @@ export class PureJSSessionLog implements SessionLogImpl {
     );
     newLog.transactions = this.transactions.slice();
     newLog.lastSignature = this.lastSignature;
-    newLog.streamingHash = this.crypto.cloneBlake3State(this.streamingHash);
+    newLog.streamingHash = this.streamingHash.clone();
     return newLog;
   }
 
@@ -274,29 +257,29 @@ export class PureJSSessionLog implements SessionLogImpl {
     newSignature: Signature,
     skipVerify: boolean,
   ) {
+    for (const tx of transactions) {
+      this.streamingHash.update(textEncoder.encode(tx));
+    }
+
     if (!skipVerify) {
       if (!this.signerID) {
         throw new Error("Tried to add transactions without signer ID");
       }
 
-      const checkHasher = this.crypto.cloneBlake3State(this.streamingHash);
-
-      for (const tx of transactions) {
-        checkHasher.update(textEncoder.encode(tx));
-      }
-      const newHash = checkHasher.digest();
+      const newHash = this.streamingHash.clone().digest();
       const newHashEncoded = `hash_z${base58.encode(newHash)}`;
 
       if (!this.crypto.verify(newSignature, newHashEncoded, this.signerID)) {
+        // Rebuild the streaming hash to the original state
+        this.streamingHash = blake3.create({});
+        for (const tx of this.transactions) {
+          this.streamingHash.update(textEncoder.encode(tx));
+        }
         throw new Error("Signature verification failed");
       }
     }
 
     for (const tx of transactions) {
-      this.crypto.blake3IncrementalUpdate(
-        this.streamingHash,
-        textEncoder.encode(tx),
-      );
       this.transactions.push(tx);
     }
 
@@ -305,24 +288,12 @@ export class PureJSSessionLog implements SessionLogImpl {
     return newSignature;
   }
 
-  expectedHashAfter(transactionsJson: string[]): string {
-    const hasher = this.crypto.cloneBlake3State(this.streamingHash);
-    for (const tx of transactionsJson) {
-      hasher.update(textEncoder.encode(tx));
-    }
-    const newHash = hasher.digest();
-    return `hash_z${base58.encode(newHash)}`;
-  }
-
   internalAddNewTransaction(
     transaction: string,
     signerAgent: ControlledAccountOrAgent,
   ) {
-    this.crypto.blake3IncrementalUpdate(
-      this.streamingHash,
-      textEncoder.encode(transaction),
-    );
-    const newHash = this.crypto.blake3DigestForState(this.streamingHash);
+    this.streamingHash.update(textEncoder.encode(transaction));
+    const newHash = this.streamingHash.clone().digest();
     const newHashEncoded = `hash_z${base58.encode(newHash)}`;
     const signature = this.crypto.sign(
       signerAgent.currentSignerSecret(),
