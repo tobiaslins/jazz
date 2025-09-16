@@ -134,8 +134,7 @@ export function hydrateCoreCoValueSchema<S extends AnyCoreCoValueSchema>(
     const coValueSchema = new CoDiscriminatedUnionSchema(schema, coValueClass);
     return coValueSchema as CoValueSchemaFromCoreSchema<S>;
   } else if (schema.builtin === "Group") {
-    const coValueClass = Group;
-    return new GroupSchema(coValueClass) as CoValueSchemaFromCoreSchema<S>;
+    return new GroupSchema() as CoValueSchemaFromCoreSchema<S>;
   } else {
     const notReachable: never = schema;
     throw new Error(
