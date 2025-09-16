@@ -66,6 +66,6 @@ export class GroupSchema implements CoreGroupSchema {
     ...args: SubscribeRestArgs<G, R>
   ): () => void {
     // @ts-expect-error
-    return this.coValueClass.subscribe<G, R>(id, ...args);
+    return Group.subscribe<G, R>(id, ...args);
   }
 }
