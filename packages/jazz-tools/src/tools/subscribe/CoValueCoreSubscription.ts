@@ -1,4 +1,10 @@
-import { CoValueCore, LocalNode, RawCoID, RawCoValue } from "cojson";
+import {
+  cojsonInternals,
+  CoValueCore,
+  LocalNode,
+  RawCoID,
+  RawCoValue,
+} from "cojson";
 import type { BranchDefinition } from "./types.js";
 
 /**
@@ -63,10 +69,7 @@ export class CoValueCoreSubscription {
    * Either subscribes directly or attempts to get the requested branch.
    */
   private handleAvailableSource(): void {
-    if (
-      !this.branchName ||
-      this.source.verified?.header.ruleset.type !== "ownedByGroup"
-    ) {
+    if (!this.branchName || !cojsonInternals.canBeBranched(this.source)) {
       this.subscribe(this.source.getCurrentContent());
       return;
     }

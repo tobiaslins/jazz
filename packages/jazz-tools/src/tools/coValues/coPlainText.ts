@@ -227,28 +227,6 @@ export class CoTextJazzApi<T extends CoPlainText> extends CoValueJazzApi<T> {
     super(coText);
   }
 
-  get id(): ID<T> {
-    const sourceId = this.raw.core.getCurrentBranchSourceId();
-
-    if (sourceId) {
-      return sourceId as ID<T>;
-    }
-
-    return this.raw.id;
-  }
-
-  get isBranch(): boolean {
-    return this.raw.core.isBranch();
-  }
-
-  get branchName(): string | undefined {
-    return this.raw.core.getCurrentBranchName();
-  }
-
-  get branchId(): ID<T> {
-    return this.raw.id;
-  }
-
   get owner(): Group {
     return getCoValueOwner(this.coText);
   }
@@ -294,14 +272,5 @@ export class CoTextJazzApi<T extends CoPlainText> extends CoValueJazzApi<T> {
     listener: (value: Resolved<T, true>, unsubscribe: () => void) => void,
   ): () => void {
     return subscribeToExistingCoValue(this.coText, {}, listener);
-  }
-
-  /**
-   * Merges a branch into their main CoValue.
-   *
-   * Doesn't have any effect when there are no changes to merge, or the current CoValue is not a branch
-   */
-  unstable_merge() {
-    unstable_mergeBranch(this.coText);
   }
 }

@@ -43,7 +43,7 @@ describe("CoFeed Branching", async () => {
       assert(branchFeed);
 
       expect(branchFeed.$jazz.branchName).toBe("feature-branch");
-      expect(branchFeed.$jazz.isBranch).toBe(true);
+      expect(branchFeed.$jazz.isBranched).toBe(true);
 
       // Edit the branch
       branchFeed.$jazz.push("jam");
@@ -71,6 +71,52 @@ describe("CoFeed Branching", async () => {
       );
     });
 
+    test("CoFeed.unstable_merge static method", async () => {
+      const TestStream = co.feed(z.string());
+
+      // Create the original CoFeed
+      const originalFeed = TestStream.create(["milk", "bread", "butter"], {
+        owner: me,
+      });
+
+      // Create a branch
+      const branchFeed = await TestStream.load(originalFeed.$jazz.id, {
+        unstable_branch: { name: "feature-branch" },
+      });
+
+      assert(branchFeed);
+
+      expect(branchFeed.$jazz.branchName).toBe("feature-branch");
+      expect(branchFeed.$jazz.isBranched).toBe(true);
+
+      // Edit the branch
+      branchFeed.$jazz.push("jam");
+      branchFeed.$jazz.push("cheese");
+
+      // Verify the original is unchanged
+      expect(originalFeed.perAccount[me.$jazz.id]?.value).toEqual("butter");
+      expect(originalFeed.perSession[me.$jazz.sessionID]?.value).toEqual(
+        "butter",
+      );
+
+      // Verify the branch has the changes
+      expect(branchFeed.perAccount[me.$jazz.id]?.value).toEqual("cheese");
+      expect(branchFeed.perSession[me.$jazz.sessionID]?.value).toEqual(
+        "cheese",
+      );
+
+      // Merge the branch back
+      await TestStream.unstable_merge(originalFeed.$jazz.id, {
+        branch: { name: "feature-branch" },
+      });
+
+      // Verify the original now has the merged changes
+      expect(originalFeed.perAccount[me.$jazz.id]?.value).toEqual("cheese");
+      expect(originalFeed.perSession[me.$jazz.sessionID]?.value).toEqual(
+        "cheese",
+      );
+    });
+
     test("create branch and merge without doing any changes", async () => {
       const TestStream = co.feed(z.string());
 
@@ -86,7 +132,7 @@ describe("CoFeed Branching", async () => {
       assert(branchFeed);
 
       expect(branchFeed.$jazz.branchName).toBe("no-changes-branch");
-      expect(branchFeed.$jazz.isBranch).toBe(true);
+      expect(branchFeed.$jazz.isBranched).toBe(true);
 
       // Verify branch has same values as original
       expect(branchFeed.perAccount[me.$jazz.id]?.value).toEqual("butter");
@@ -415,7 +461,7 @@ describe("CoFeed Branching", async () => {
   });
 
   describe("subscription & loading", () => {
-    test("should carry the selected branch when calling value.subscribe", async () => {
+    test("should carry the selected branch when calling value.subscribe, unless specified otherwise", async () => {
       const TestStream = co.feed(z.string());
 
       const originalFeed = TestStream.create(["milk", "bread", "butter"], {
@@ -430,22 +476,35 @@ describe("CoFeed Branching", async () => {
       assert(branch);
 
       const spy = vi.fn();
-      const unsubscribe = branch.$jazz.subscribe((feed) => {
-        expect(feed.$jazz.branchName).toBe("subscribe-branch");
-        expect(feed.$jazz.isBranch).toBe(true);
+      const unsubscribe = branch.$jazz.subscribe((feed, unsubscribe) => {
+        expect(feed.$jazz.branchName).not.toBe("subscribe-branch");
+        expect(feed.$jazz.isBranched).toBe(false);
         spy();
+        unsubscribe();
       });
 
-      branch.$jazz.push("jam");
+      branch.$jazz.subscribe(
+        {
+          unstable_branch: { name: "subscribe-branch" },
+        },
+        (feed, unsubscribe) => {
+          expect(feed.$jazz.branchName).toBe("subscribe-branch");
+          expect(feed.$jazz.isBranched).toBe(true);
+          spy();
+          unsubscribe();
+        },
+      );
+
+      originalFeed.$jazz.push("jam");
       branch.$jazz.push("cheese");
 
       // Wait for initial subscription
-      await waitFor(() => expect(spy).toHaveBeenCalled());
+      await waitFor(() => expect(spy).toHaveBeenCalledTimes(2));
 
       unsubscribe();
     });
 
-    test("should carry the selected branch when calling value.ensureLoaded", async () => {
+    test("should not carry the selected branch when calling value.ensureLoaded, unless specified otherwise", async () => {
       const TestStream = co.feed(z.string());
 
       const originalFeed = TestStream.create(["milk", "bread", "butter"], {
@@ -465,13 +524,18 @@ describe("CoFeed Branching", async () => {
       // Load the branch using ensureLoaded
       const loadedFeed = await branch.$jazz.ensureLoaded();
 
-      assert(loadedFeed);
+      expect(loadedFeed.$jazz.branchName).not.toBe("ensure-loaded-branch");
+      expect(loadedFeed.$jazz.isBranched).toBe(false);
 
-      expect(loadedFeed.$jazz.branchName).toBe("ensure-loaded-branch");
-      expect(loadedFeed.$jazz.isBranch).toBe(true);
+      // Load the branch using ensureLoaded
+      const withBranch = await branch.$jazz.ensureLoaded({
+        unstable_branch: { name: "ensure-loaded-branch" },
+      });
 
       // Verify we get the branch data, not the original data
-      expect(loadedFeed.perAccount[me.$jazz.id]?.value).toBe("cheese");
+      expect(withBranch.$jazz.branchName).toBe("ensure-loaded-branch");
+      expect(withBranch.$jazz.isBranched).toBe(true);
+      expect(withBranch.perAccount[me.$jazz.id]?.value).toBe("cheese");
     });
 
     test("should checkout the branch when calling Schema.subscribe", async () => {
@@ -500,7 +564,7 @@ describe("CoFeed Branching", async () => {
         },
         (feed) => {
           expect(feed.$jazz.branchName).toBe("schema-subscribe-branch");
-          expect(feed.$jazz.isBranch).toBe(true);
+          expect(feed.$jazz.isBranched).toBe(true);
           updates.push(feed);
         },
       );

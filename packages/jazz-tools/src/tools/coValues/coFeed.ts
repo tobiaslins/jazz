@@ -27,6 +27,7 @@ import {
   SubscribeListenerOptions,
   SubscribeRestArgs,
   TypeSym,
+  BranchDefinition,
 } from "../internal.js";
 import {
   Account,
@@ -330,32 +331,6 @@ export class CoFeedJazzApi<F extends CoFeed> extends CoValueJazzApi<F> {
     super(coFeed);
   }
 
-  /**
-   * The ID of this `CoFeed`
-   * @category Content
-   */
-  get id(): ID<F> {
-    const sourceId = this.raw.core.getCurrentBranchSourceId();
-
-    if (sourceId) {
-      return sourceId as ID<F>;
-    }
-
-    return this.raw.id;
-  }
-
-  get branchId(): ID<F> {
-    return this.raw.id;
-  }
-
-  get branchName(): string | undefined {
-    return this.raw.core.getCurrentBranchName();
-  }
-
-  get isBranch(): boolean {
-    return this.raw.core.isBranch();
-  }
-
   get owner(): Group {
     return getCoValueOwner(this.coFeed);
   }
@@ -415,7 +390,10 @@ export class CoFeedJazzApi<F extends CoFeed> extends CoValueJazzApi<F> {
    */
   ensureLoaded<F extends CoFeed, const R extends RefsToResolve<F>>(
     this: CoFeedJazzApi<F>,
-    options?: { resolve?: RefsToResolveStrict<F, R> },
+    options?: {
+      resolve?: RefsToResolveStrict<F, R>;
+      unstable_branch?: BranchDefinition;
+    },
   ): Promise<Resolved<F, R>> {
     return ensureCoValueLoaded(this.coFeed, options);
   }
@@ -432,7 +410,10 @@ export class CoFeedJazzApi<F extends CoFeed> extends CoValueJazzApi<F> {
   ): () => void;
   subscribe<F extends CoFeed, const R extends RefsToResolve<F>>(
     this: CoFeedJazzApi<F>,
-    options: { resolve?: RefsToResolveStrict<F, R> },
+    options: {
+      resolve?: RefsToResolveStrict<F, R>;
+      unstable_branch?: BranchDefinition;
+    },
     listener: (value: Resolved<F, R>, unsubscribe: () => void) => void,
   ): () => void;
   subscribe<F extends CoFeed, const R extends RefsToResolve<F>>(
@@ -465,15 +446,6 @@ export class CoFeedJazzApi<F extends CoFeed> extends CoValueJazzApi<F> {
     [ItemsSym]: SchemaFor<CoFeedItem<F>> | any;
   } {
     return (this.coFeed.constructor as typeof CoFeed)._schema;
-  }
-
-  /**
-   * Deeply merge the current branch into the main CoValues.
-   *
-   * Doesn't have any effect when there are no changes to merge, or the current CoValue is not a branch
-   */
-  unstable_merge() {
-    unstable_mergeBranch(this.coFeed);
   }
 }
 
@@ -1047,32 +1019,6 @@ export class FileStreamJazzApi<F extends FileStream> extends CoValueJazzApi<F> {
     public raw: RawBinaryCoStream,
   ) {
     super(fileStream);
-  }
-
-  /**
-   * The ID of this `FileStream`
-   * @category Content
-   */
-  get id(): ID<F> {
-    const sourceId = this.raw.core.getCurrentBranchSourceId();
-
-    if (sourceId) {
-      return sourceId as ID<F>;
-    }
-
-    return this.raw.id;
-  }
-
-  get isBranch(): boolean {
-    return this.raw.core.isBranch();
-  }
-
-  get branchName(): string | undefined {
-    return this.raw.core.getCurrentBranchName();
-  }
-
-  get branchId(): ID<F> {
-    return this.raw.id;
   }
 
   get owner(): Group {

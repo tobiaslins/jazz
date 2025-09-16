@@ -200,13 +200,12 @@ export class RawCoPlainText<
 }
 
 function splitIntoChunks(text: string[]) {
+  const maxChunkSize = Math.ceil(
+    TRANSACTION_CONFIG.MAX_RECOMMENDED_TX_SIZE / 200,
+  );
   const chunks: string[][] = [];
-  for (
-    let i = 0;
-    i < text.length;
-    i += TRANSACTION_CONFIG.MAX_RECOMMENDED_TX_SIZE
-  ) {
-    chunks.push(text.slice(i, i + TRANSACTION_CONFIG.MAX_RECOMMENDED_TX_SIZE));
+  for (let i = 0; i < text.length; i += maxChunkSize) {
+    chunks.push(text.slice(i, i + maxChunkSize));
   }
   return chunks;
 }

@@ -20,6 +20,7 @@ import {
   SubscribeListenerOptions,
   SubscribeRestArgs,
   TypeSym,
+  BranchDefinition,
 } from "../internal.js";
 import {
   AnonymousJazzAgent,
@@ -515,32 +516,6 @@ export class CoListJazzApi<L extends CoList> extends CoValueJazzApi<L> {
     super(coList);
   }
 
-  /**
-   * The ID of this `CoList`
-   * @category Content
-   */
-  get id(): ID<L> {
-    const sourceId = this.raw.core.getCurrentBranchSourceId();
-
-    if (sourceId) {
-      return sourceId as ID<L>;
-    }
-
-    return this.raw.id;
-  }
-
-  get isBranch(): boolean {
-    return this.raw.core.isBranch();
-  }
-
-  get branchName(): string | undefined {
-    return this.raw.core.getCurrentBranchName();
-  }
-
-  get branchId(): ID<L> {
-    return this.raw.id;
-  }
-
   /** @category Collaboration */
   get owner(): Group {
     return getCoValueOwner(this.coList);
@@ -779,7 +754,10 @@ export class CoListJazzApi<L extends CoList> extends CoValueJazzApi<L> {
    */
   ensureLoaded<L extends CoList, const R extends RefsToResolve<L>>(
     this: CoListJazzApi<L>,
-    options: { resolve: RefsToResolveStrict<L, R> },
+    options: {
+      resolve: RefsToResolveStrict<L, R>;
+      unstable_branch?: BranchDefinition;
+    },
   ): Promise<Resolved<L, R>> {
     return ensureCoValueLoaded(this.coList, options);
   }
@@ -799,7 +777,10 @@ export class CoListJazzApi<L extends CoList> extends CoValueJazzApi<L> {
   ): () => void;
   subscribe<L extends CoList, const R extends RefsToResolve<L> = true>(
     this: CoListJazzApi<L>,
-    options: { resolve?: RefsToResolveStrict<L, R> },
+    options: {
+      resolve?: RefsToResolveStrict<L, R>;
+      unstable_branch?: BranchDefinition;
+    },
     listener: (value: Resolved<L, R>, unsubscribe: () => void) => void,
   ): () => void;
   subscribe<L extends CoList, const R extends RefsToResolve<L>>(
@@ -891,15 +872,6 @@ export class CoListJazzApi<L extends CoList> extends CoValueJazzApi<L> {
     [ItemsSym]: SchemaFor<CoListItem<L>> | any;
   } {
     return (this.coList.constructor as typeof CoList)._schema;
-  }
-
-  /**
-   * Deeply merge the current branch into the main CoValues.
-   *
-   * Doesn't have any effect when there are no changes to merge, or the current CoValue is not a branch
-   */
-  unstable_merge() {
-    unstable_mergeBranch(this.coList);
   }
 }
 

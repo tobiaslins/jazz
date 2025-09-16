@@ -1,5 +1,57 @@
 # jazz-tools
 
+## 0.18.12
+
+### Patch Changes
+
+- c16ce4b: Fix addMember with account owners, by detecting the accounts from their raw value
+- 0b1b050: Export ReactNativeContextManager from react-native-core
+  - cojson@0.18.12
+  - cojson-storage-indexeddb@0.18.12
+  - cojson-transport-ws@0.18.12
+
+## 0.18.11
+
+### Patch Changes
+
+- 06b4617: Update the Svelte InviteListener to listen to hash change events
+- 70eb465: Add docs to the worker API and deprecate done in favor of shutdownWorker
+- Updated dependencies [a4a9a1e]
+  - cojson@0.18.11
+  - cojson-storage-indexeddb@0.18.11
+  - cojson-transport-ws@0.18.11
+
+## 0.18.10
+
+### Patch Changes
+
+- Updated dependencies [95cc9af]
+  - cojson-transport-ws@0.18.10
+  - cojson@0.18.10
+  - cojson-storage-indexeddb@0.18.10
+
+## 0.18.9
+
+### Patch Changes
+
+- c8167de: fix: improve handling of concurrent authentication attempts in ContextManager
+- 910b8d6: Added useAccountWithSelector hook for granular account data selection with custom equality checking
+- Updated dependencies [f058875]
+  - cojson@0.18.9
+  - cojson-storage-indexeddb@0.18.9
+  - cojson-transport-ws@0.18.9
+
+## 0.18.8
+
+### Patch Changes
+
+- 700fe46: fix: in 32d1444 was used the wrong Better Auth internal function to delete old verification codes
+- aba0d55: Support the selection of a subset of keys to make optional in `co.map().partial()`
+- Updated dependencies [9a4caf2]
+  - cojson@0.18.8
+  - cojson-storage-indexeddb@0.18.8
+  - cojson-transport-ws@0.18.8
+
 ## 0.18.7
 
 ### Patch Changes

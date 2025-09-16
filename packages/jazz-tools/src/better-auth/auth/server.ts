@@ -96,7 +96,7 @@ export const jazzPlugin: () => JazzPlugin = () => {
                     verification.identifier.startsWith("sign-in-otp-")
                   ) {
                     const identifier = `jazz-auth-${verification.identifier}`;
-                    await context.context.internalAdapter.deleteVerificationValue(
+                    await context.context.internalAdapter.deleteVerificationByIdentifier(
                       identifier,
                     );
                     await context.context.internalAdapter.createVerificationValue(

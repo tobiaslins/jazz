@@ -125,7 +125,7 @@
     <div class="person-info">
       <div class="branch-status" data-testid="branch-status">
         <strong>Branch Status:</strong>
-        {person.current.$jazz.isBranch ? `Branch: ${person.current.$jazz.branchName}` : 'Main branch'}
+        {person.current.$jazz.isBranched ? `Branch: ${person.current.$jazz.branchName}` : 'Main branch'}
       </div>
       
       <div class="person-fields">

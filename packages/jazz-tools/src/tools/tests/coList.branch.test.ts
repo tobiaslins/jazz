@@ -65,6 +65,55 @@ describe("CoList Branching", async () => {
       expect(originalList.length).toBe(3);
     });
 
+    test("CoList.unstable_merge static method", async () => {
+      const TodoList = co.list(z.string());
+
+      // Create a group to own the CoList
+      const group = Group.create();
+      group.addMember("everyone", "writer");
+
+      // Create the original CoList
+      const originalList = TodoList.create(
+        ["Buy groceries", "Walk the dog", "Finish project"],
+        group,
+      );
+
+      // Create a branch
+      const branchList = await TodoList.load(originalList.$jazz.id, {
+        unstable_branch: { name: "feature-branch" },
+      });
+
+      assert(branchList);
+
+      // Edit the branch
+      branchList.$jazz.set(0, "Buy organic groceries");
+      branchList.$jazz.push("Call mom");
+      branchList.$jazz.splice(1, 1); // Remove "Walk the dog"
+
+      // Verify the original is unchanged
+      expect(originalList[0]).toBe("Buy groceries");
+      expect(originalList[1]).toBe("Walk the dog");
+      expect(originalList[2]).toBe("Finish project");
+      expect(originalList.length).toBe(3);
+
+      // Verify the branch has the changes
+      expect(branchList[0]).toBe("Buy organic groceries");
+      expect(branchList[1]).toBe("Finish project");
+      expect(branchList[2]).toBe("Call mom");
+      expect(branchList.length).toBe(3);
+
+      // Merge the branch back
+      await TodoList.unstable_merge(originalList.$jazz.id, {
+        branch: { name: "feature-branch" },
+      });
+
+      // Verify the original now has the merged changes
+      expect(originalList[0]).toBe("Buy organic groceries");
+      expect(originalList[1]).toBe("Finish project");
+      expect(originalList[2]).toBe("Call mom");
+      expect(originalList.length).toBe(3);
+    });
+
     test("create branch and merge without doing any changes", async () => {
       const TodoList = co.list(z.string());
 
@@ -514,7 +563,7 @@ describe("CoList Branching", async () => {
   });
 
   describe("subscription & loading", () => {
-    test("should carry the selected branch when calling value.subscribe", async () => {
+    test("should not carry the selected branch when calling value.subscribe, unless specified otherwise", async () => {
       const Task = co.map({
         title: z.string(),
         completed: z.boolean(),
@@ -546,17 +595,34 @@ describe("CoList Branching", async () => {
       assert(branch);
 
       const spy = vi.fn();
-      const unsubscribe = branch.$jazz.subscribe(
+      branch.$jazz.subscribe(
         { resolve: { $each: true } },
-        (taskList) => {
-          expect(taskList.$jazz.branchName).toBe("subscribe-branch");
-          expect(taskList.$jazz.isBranch).toBe(true);
-          expect(taskList[0]?.$jazz.branchName).toBe("subscribe-branch");
+        (taskList, unsubscribe) => {
+          expect(taskList.$jazz.branchName).not.toBe("subscribe-branch");
+          expect(taskList.$jazz.isBranched).toBe(false);
+          expect(taskList[0]?.$jazz.branchName).not.toBe("subscribe-branch");
+          expect(taskList[0]?.$jazz.isBranched).toBe(false);
           spy();
+          unsubscribe();
         },
       );
 
-      branch.$jazz.set(0, {
+      branch.$jazz.subscribe(
+        {
+          resolve: { $each: true },
+          unstable_branch: { name: "subscribe-branch" },
+        },
+        (taskList, unsubscribe) => {
+          expect(taskList.$jazz.branchName).toBe("subscribe-branch");
+          expect(taskList.$jazz.isBranched).toBe(true);
+          expect(taskList[0]?.$jazz.branchName).toBe("subscribe-branch");
+          expect(taskList[0]?.$jazz.isBranched).toBe(true);
+          spy();
+          unsubscribe();
+        },
+      );
+
+      originalTaskList.$jazz.set(0, {
         title: "Buy organic groceries",
         completed: false,
         priority: "high",
@@ -568,12 +634,10 @@ describe("CoList Branching", async () => {
       });
 
       // Wait for initial subscription
-      await waitFor(() => expect(spy).toHaveBeenCalled());
-
-      unsubscribe();
+      await waitFor(() => expect(spy).toHaveBeenCalledTimes(2));
     });
 
-    test("should carry the selected branch when calling value.ensureLoaded", async () => {
+    test("should not carry the selected branch when calling value.ensureLoaded, unless specified otherwise", async () => {
       const Task = co.map({
         title: z.string(),
         completed: z.boolean(),
@@ -620,18 +684,28 @@ describe("CoList Branching", async () => {
         resolve: { $each: true },
       });
 
-      assert(loadedTaskList);
+      expect(loadedTaskList.$jazz.branchName).not.toBe("ensure-loaded-branch");
+      expect(loadedTaskList.$jazz.isBranched).toBe(false);
+      expect(loadedTaskList[0]?.$jazz.branchName).not.toBe(
+        "ensure-loaded-branch",
+      );
+      expect(loadedTaskList[0]?.$jazz.isBranched).toBe(false);
 
-      expect(loadedTaskList.$jazz.branchName).toBe("ensure-loaded-branch");
-      expect(loadedTaskList.$jazz.isBranch).toBe(true);
-      expect(loadedTaskList[0]?.$jazz.branchName).toBe("ensure-loaded-branch");
-      expect(loadedTaskList[0]?.$jazz.isBranch).toBe(true);
+      const withBranch = await branch.$jazz.ensureLoaded({
+        resolve: { $each: true },
+        unstable_branch: { name: "ensure-loaded-branch" },
+      });
+
+      expect(withBranch.$jazz.branchName).toBe("ensure-loaded-branch");
+      expect(withBranch.$jazz.isBranched).toBe(true);
+      expect(withBranch[0]?.$jazz.branchName).toBe("ensure-loaded-branch");
+      expect(withBranch[0]?.$jazz.isBranched).toBe(true);
 
       // Verify we get the branch data, not the original data
-      expect(loadedTaskList[0]?.title).toBe("Buy organic groceries");
-      expect(loadedTaskList[0]?.priority).toBe("high");
-      expect(loadedTaskList[3]?.title).toBe("Call mom");
-      expect(loadedTaskList[3]?.priority).toBe("low");
+      expect(withBranch[0]?.title).toBe("Buy organic groceries");
+      expect(withBranch[0]?.priority).toBe("high");
+      expect(withBranch[3]?.title).toBe("Call mom");
+      expect(withBranch[3]?.priority).toBe("low");
     });
 
     test("should checkout the branch when calling Schema.subscribe", async () => {
@@ -688,7 +762,7 @@ describe("CoList Branching", async () => {
         },
         (taskList) => {
           expect(taskList.$jazz.branchName).toBe("schema-subscribe-branch");
-          expect(taskList.$jazz.isBranch).toBe(true);
+          expect(taskList.$jazz.isBranched).toBe(true);
           updates.push(taskList);
         },
       );

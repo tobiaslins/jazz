@@ -51,4 +51,5 @@ export {
   useJazzContext,
   useAccount,
   useCoStateWithSelector,
+  useAccountWithSelector,
 } from "jazz-tools/react-core";

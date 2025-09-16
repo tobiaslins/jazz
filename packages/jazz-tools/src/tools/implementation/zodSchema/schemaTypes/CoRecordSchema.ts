@@ -60,6 +60,19 @@ export interface CoRecordSchema<
     },
   ): Promise<Resolved<CoRecordInstanceCoValuesNullable<K, V>, R> | null>;
 
+  unstable_merge<
+    const R extends RefsToResolve<
+      CoRecordInstanceCoValuesNullable<K, V>
+    > = true,
+  >(
+    id: string,
+    options?: {
+      resolve?: RefsToResolveStrict<CoRecordInstanceCoValuesNullable<K, V>, R>;
+      loadAs?: Account | AnonymousJazzAgent;
+      branch: BranchDefinition;
+    },
+  ): Promise<void>;
+
   subscribe<
     const R extends RefsToResolve<
       CoRecordInstanceCoValuesNullable<K, V>
