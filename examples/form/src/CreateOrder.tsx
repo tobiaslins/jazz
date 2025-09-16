@@ -1,5 +1,5 @@
 import { useIframeHashRouter } from "hash-slash";
-import { useAccount, useCoState } from "jazz-tools/react";
+import { useAccountWithSelector, useCoState } from "jazz-tools/react";
 import { useState } from "react";
 import { Errors } from "./Errors.tsx";
 import { LinkToHome } from "./LinkToHome.tsx";
@@ -12,8 +12,9 @@ import {
 } from "./schema.ts";
 
 export function CreateOrder(props: { id: string }) {
-  const { me } = useAccount(JazzAccount, {
+  const orders = useAccountWithSelector(JazzAccount, {
     resolve: { root: { orders: true } },
+    select: (account) => account?.root.orders,
   });
   const router = useIframeHashRouter();
   const [errors, setErrors] = useState<string[]>([]);
@@ -26,7 +27,7 @@ export function CreateOrder(props: { id: string }) {
 
   const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!me) return;
+    if (!orders) return;
 
     const validation = validatePartialBubbleTeaOrder(newOrder);
     setErrors(validation.errors);
@@ -35,7 +36,7 @@ export function CreateOrder(props: { id: string }) {
     }
 
     // turn the draft into a real order
-    me.root.orders.$jazz.push(newOrder as BubbleTeaOrder);
+    orders.$jazz.push(newOrder as BubbleTeaOrder);
 
     router.navigate("/");
   };
