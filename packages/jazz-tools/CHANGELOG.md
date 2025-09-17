@@ -1,5 +1,20 @@
 # jazz-tools
 
+## 0.18.13
+
+### Patch Changes
+
+- 2ddf4d9: Introducing version control APIs, unstable_branch and unstable_merge
+
+  Flagged as unstable because branch & merge scope & propagation needs to be validated.
+
+- 45981cf: Add co.group schema definer
+- Updated dependencies [48837f2]
+- Updated dependencies [2ddf4d9]
+  - cojson@0.18.13
+  - cojson-storage-indexeddb@0.18.13
+  - cojson-transport-ws@0.18.13
+
 ## 0.18.12
 
 ### Patch Changes
