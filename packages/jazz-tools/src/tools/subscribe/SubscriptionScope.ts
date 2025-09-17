@@ -40,6 +40,9 @@ export class SubscriptionScope<D extends CoValue> {
 
   silenceUpdates = false;
 
+  // Performance optimization: track unloaded children to avoid O(n) iteration in shouldSendUpdates
+  private unloadedChildrenCount = 0;
+
   constructor(
     public node: LocalNode,
     resolve: RefsToResolve<D>,
@@ -227,7 +230,13 @@ export class SubscriptionScope<D extends CoValue> {
       return;
     }
 
+    const previousValue = this.childValues.get(id);
     this.childValues.set(id, value);
+
+    // If we had an unloaded child and now it's loaded, decrease the counter
+    if (previousValue?.type === "unloaded" && !this.autoloaded.has(id)) {
+      this.unloadedChildrenCount--;
+    }
 
     if (value.type === "unavailable" || value.type === "unauthorized") {
       this.childErrors.set(id, value.prependPath(key ?? id));
@@ -262,15 +271,8 @@ export class SubscriptionScope<D extends CoValue> {
       return false;
     }
 
-    for (const value of this.childValues.values()) {
-      // We don't wait for autoloaded values to be loaded, in order to stream updates
-      // on autoloaded lists or records
-      if (value.type === "unloaded" && !this.autoloaded.has(value.id)) {
-        return false;
-      }
-    }
-
-    return true;
+    // Check if there are any unloaded children that are not autoloaded
+    return this.unloadedChildrenCount === 0;
   }
 
   getCurrentValue() {
@@ -402,6 +404,8 @@ export class SubscriptionScope<D extends CoValue> {
     this.silenceUpdates = true;
 
     this.childValues.set(id, { type: "unloaded", id });
+    // Note: autoloaded children don't count towards unloadedChildrenCount
+
     const child = new SubscriptionScope(
       this.node,
       true,
@@ -518,9 +522,14 @@ export class SubscriptionScope<D extends CoValue> {
       if (!idsToLoad.has(id)) {
         hasChanged = true;
         const childNode = this.childNodes.get(id);
+        const childValue = this.childValues.get(id);
 
         if (childNode) {
           childNode.destroy();
+        }
+
+        if (childValue?.type === "unloaded" && !this.autoloaded.has(id)) {
+          this.unloadedChildrenCount--;
         }
 
         this.childNodes.delete(id);
@@ -626,7 +635,8 @@ export class SubscriptionScope<D extends CoValue> {
       return;
     }
 
-    if (key && this.autoloadedKeys.has(key)) {
+    const isAutoloaded = key && this.autoloadedKeys.has(key);
+    if (isAutoloaded) {
       this.autoloaded.add(id);
     }
 
@@ -645,6 +655,11 @@ export class SubscriptionScope<D extends CoValue> {
       typeof query === "object" && query !== null ? { ...query } : query;
 
     this.childValues.set(id, { type: "unloaded", id });
+
+    if (!isAutoloaded) {
+      this.unloadedChildrenCount++;
+    }
+
     const child = new SubscriptionScope(
       this.node,
       resolve,
