@@ -1,6 +1,7 @@
 import { CoValueUniqueness } from "cojson";
 import {
   Account,
+  BranchDefinition,
   CoMap,
   DiscriminableCoValueSchemaDefinition,
   DiscriminableCoreCoValueSchema,
@@ -14,6 +15,7 @@ import {
   coOptionalDefiner,
   hydrateCoreCoValueSchema,
   isAnyCoValueSchema,
+  unstable_mergeBranchWithResolve,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { removeGetters } from "../../schemaUtils.js";
@@ -63,11 +65,28 @@ export interface CoMapSchema<
       >;
       loadAs?: Account | AnonymousJazzAgent;
       skipRetry?: boolean;
+      unstable_branch?: BranchDefinition;
     },
   ): Promise<Resolved<
     Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
     R
   > | null>;
+
+  unstable_merge<
+    const R extends RefsToResolve<
+      Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap
+    > = true,
+  >(
+    id: string,
+    options?: {
+      resolve?: RefsToResolveStrict<
+        Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
+        R
+      >;
+      loadAs?: Account | AnonymousJazzAgent;
+      branch: BranchDefinition;
+    },
+  ): Promise<void>;
 
   subscribe<
     const R extends RefsToResolve<
@@ -251,6 +270,10 @@ export function enrichCoMapSchema<
     loadUnique: (...args: [any, ...any[]]) => {
       // @ts-expect-error
       return coValueClass.loadUnique(...args);
+    },
+    unstable_merge: (...args: any[]) => {
+      // @ts-expect-error
+      return unstable_mergeBranchWithResolve(coValueClass, ...args);
     },
     catchall: (catchAll: AnyZodOrCoValueSchema) => {
       const schemaWithCatchAll = createCoreCoMapSchema(

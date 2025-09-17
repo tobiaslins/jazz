@@ -15,6 +15,7 @@ import {
 } from "cojson";
 import {
   AnonymousJazzAgent,
+  BranchDefinition,
   CoFieldInit,
   type CoMap,
   type CoValue,
@@ -377,14 +378,6 @@ class AccountJazzApi<A extends Account> extends CoValueJazzApi<A> {
   }
 
   /**
-   * The ID of this `Account`
-   * @category Content
-   */
-  get id(): ID<A> {
-    return this.raw.id;
-  }
-
-  /**
    * Accounts have no owner. They can be accessed by everyone.
    */
   get owner(): undefined {
@@ -487,6 +480,7 @@ class AccountJazzApi<A extends Account> extends CoValueJazzApi<A> {
     this: AccountJazzApi<A>,
     options: {
       resolve: RefsToResolveStrict<A, R>;
+      unstable_branch?: BranchDefinition;
     },
   ): Promise<Resolved<A, R>> {
     return ensureCoValueLoaded(this.account as unknown as A, options);
@@ -499,7 +493,10 @@ class AccountJazzApi<A extends Account> extends CoValueJazzApi<A> {
   ): () => void;
   subscribe<A extends Account, const R extends RefsToResolve<A>>(
     this: AccountJazzApi<A>,
-    options: { resolve?: RefsToResolveStrict<A, R> },
+    options: {
+      resolve?: RefsToResolveStrict<A, R>;
+      unstable_branch?: BranchDefinition;
+    },
     listener: (value: Resolved<A, R>, unsubscribe: () => void) => void,
   ): () => void;
   subscribe<A extends Account, const R extends RefsToResolve<A>>(

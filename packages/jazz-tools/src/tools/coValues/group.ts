@@ -8,6 +8,7 @@ import {
   type Role,
 } from "cojson";
 import {
+  BranchDefinition,
   CoValue,
   CoValueClass,
   ID,

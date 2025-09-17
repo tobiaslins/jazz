@@ -1,6 +1,7 @@
 import {
   Account,
   AnyZodOrCoValueSchema,
+  BranchDefinition,
   CoFeed,
   Group,
   RefsToResolve,
@@ -8,6 +9,7 @@ import {
   Resolved,
   SubscribeListenerOptions,
   coOptionalDefiner,
+  unstable_mergeBranchWithResolve,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { CoFeedSchemaInit } from "../typeConverters/CoFieldSchemaInit.js";
@@ -48,10 +50,25 @@ export class CoFeedSchema<T extends AnyZodOrCoValueSchema>
     options?: {
       resolve?: RefsToResolveStrict<CoFeedInstanceCoValuesNullable<T>, R>;
       loadAs?: Account | AnonymousJazzAgent;
+      unstable_branch?: BranchDefinition;
     },
   ): Promise<Resolved<CoFeedInstanceCoValuesNullable<T>, R> | null> {
     // @ts-expect-error
     return this.coValueClass.load(id, options);
+  }
+
+  unstable_merge<
+    const R extends RefsToResolve<CoFeedInstanceCoValuesNullable<T>> = true,
+  >(
+    id: string,
+    options?: {
+      resolve?: RefsToResolveStrict<CoFeedInstanceCoValuesNullable<T>, R>;
+      loadAs?: Account | AnonymousJazzAgent;
+      branch: BranchDefinition;
+    },
+  ): Promise<void> {
+    // @ts-expect-error
+    return unstable_mergeBranchWithResolve(this.coValueClass, id, options);
   }
 
   subscribe(

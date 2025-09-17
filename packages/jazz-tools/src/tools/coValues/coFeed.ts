@@ -18,6 +18,7 @@ import {
   getCoValueOwner,
   Group,
   ID,
+  unstable_mergeBranch,
   RefsToResolve,
   RefsToResolveStrict,
   Resolved,
@@ -26,6 +27,7 @@ import {
   SubscribeListenerOptions,
   SubscribeRestArgs,
   TypeSym,
+  BranchDefinition,
 } from "../internal.js";
 import {
   Account,
@@ -329,14 +331,6 @@ export class CoFeedJazzApi<F extends CoFeed> extends CoValueJazzApi<F> {
     super(coFeed);
   }
 
-  /**
-   * The ID of this `CoFeed`
-   * @category Content
-   */
-  get id(): ID<F> {
-    return this.raw.id;
-  }
-
   get owner(): Group {
     return getCoValueOwner(this.coFeed);
   }
@@ -396,7 +390,10 @@ export class CoFeedJazzApi<F extends CoFeed> extends CoValueJazzApi<F> {
    */
   ensureLoaded<F extends CoFeed, const R extends RefsToResolve<F>>(
     this: CoFeedJazzApi<F>,
-    options?: { resolve?: RefsToResolveStrict<F, R> },
+    options?: {
+      resolve?: RefsToResolveStrict<F, R>;
+      unstable_branch?: BranchDefinition;
+    },
   ): Promise<Resolved<F, R>> {
     return ensureCoValueLoaded(this.coFeed, options);
   }
@@ -413,7 +410,10 @@ export class CoFeedJazzApi<F extends CoFeed> extends CoValueJazzApi<F> {
   ): () => void;
   subscribe<F extends CoFeed, const R extends RefsToResolve<F>>(
     this: CoFeedJazzApi<F>,
-    options: { resolve?: RefsToResolveStrict<F, R> },
+    options: {
+      resolve?: RefsToResolveStrict<F, R>;
+      unstable_branch?: BranchDefinition;
+    },
     listener: (value: Resolved<F, R>, unsubscribe: () => void) => void,
   ): () => void;
   subscribe<F extends CoFeed, const R extends RefsToResolve<F>>(
@@ -1019,14 +1019,6 @@ export class FileStreamJazzApi<F extends FileStream> extends CoValueJazzApi<F> {
     public raw: RawBinaryCoStream,
   ) {
     super(fileStream);
-  }
-
-  /**
-   * The ID of this `FileStream`
-   * @category Content
-   */
-  get id(): ID<F> {
-    return this.raw.id;
   }
 
   get owner(): Group {

@@ -219,6 +219,11 @@ export const docNavigationItems = [
         done: 80,
       },
       {
+        name: "Version control",
+        href: "/docs/using-covalues/version-control",
+        done: 100,
+      },
+      {
         name: "History",
         href: "/docs/using-covalues/history",
         done: 100,
@@ -323,7 +328,7 @@ export const docNavigationItems = [
     name: "Design patterns",
     items: [
       {
-        name: "Autosaving forms",
+        name: "Forms",
         href: "/docs/design-patterns/form",
         done: 100,
       },
