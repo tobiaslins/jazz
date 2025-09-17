@@ -23,8 +23,8 @@
     "@vitest/ui": "catalog:default",
     "happy-dom": "^17.4.4",
     "jazz-run": "workspace:*",
-    "jazz-tools-codemod-0-18": "workspace:*",
     "jazz-tools": "workspace:*",
+    "jazz-tools-codemod-0-18": "workspace:*",
     "lefthook": "^1.8.2",
     "pkg-pr-new": "^0.0.39",
     "playwright": "^1.50.1",
@@ -66,6 +66,28 @@
       "react-dom": "catalog:react",
       "vite": "catalog:default",
       "esbuild": "0.24.0"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "@biomejs/biome",
+      "@clerk/shared",
+      "@parcel/watcher",
+      "@swc/core",
+      "@tailwindcss/oxide",
+      "better-sqlite3",
+      "browser-tabs-lock",
+      "core-js",
+      "edgedriver",
+      "esbuild",
+      "geckodriver",
+      "lefthook",
+      "msw",
+      "react-native-nitro-modules",
+      "sharp",
+      "wasm-pack",
+      "workerd"
+    ],
+    "ignoredBuiltDependencies": [
+      "react-native-nitro-modules"
+    ]
   }
 }
