@@ -85,9 +85,6 @@
       "sharp",
       "wasm-pack",
       "workerd"
-    ],
-    "ignoredBuiltDependencies": [
-      "react-native-nitro-modules"
     ]
   }
 }
