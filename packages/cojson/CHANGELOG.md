@@ -1,5 +1,16 @@
 # cojson
 
+## 0.18.13
+
+### Patch Changes
+
+- 48837f2: Validate incoming id/header to ensure that the id matches the header hash
+- 2ddf4d9: Introducing version control APIs, unstable_branch and unstable_merge
+
+  Flagged as unstable because branch & merge scope & propagation needs to be validated.
+
+  - cojson-core-wasm@0.18.13
+
 ## 0.18.12
 
 ### Patch Changes
