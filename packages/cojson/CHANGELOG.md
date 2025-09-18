@@ -1,5 +1,100 @@
 # cojson
 
+## 0.18.14
+
+### Patch Changes
+
+- cojson-core-wasm@0.18.14
+
+## 0.18.13
+
+### Patch Changes
+
+- 48837f2: Validate incoming id/header to ensure that the id matches the header hash
+- 2ddf4d9: Introducing version control APIs, unstable_branch and unstable_merge
+
+  Flagged as unstable because branch & merge scope & propagation needs to be validated.
+
+  - cojson-core-wasm@0.18.13
+
+## 0.18.12
+
+### Patch Changes
+
+- cojson-core-wasm@0.18.12
+
+## 0.18.11
+
+### Patch Changes
+
+- a4a9a1e: Fix CoPlainText applyDiff chunking to ensure we fit in the TRANSACTION_CONFIG.MAX_RECOMMENDED_TX_SIZE for each transaction
+  - cojson-core-wasm@0.18.11
+
+## 0.18.10
+
+### Patch Changes
+
+- cojson-core-wasm@0.18.10
+
+## 0.18.9
+
+### Patch Changes
+
+- f058875: Add removePeer() method to SyncManager
+  - cojson-core-wasm@0.18.9
+
+## 0.18.8
+
+### Patch Changes
+
+- 9a4caf2: Ability for SyncManager to ignore unknown covalues arriving from server peers
+  - cojson-core-wasm@0.18.8
+
+## 0.18.7
+
+### Patch Changes
+
+- c2d8bf7: Avoid greedily sending covalue dependencies to server peers
+- dccb464: Optimize seal and unseal in PureJSCrypto by caching the shared key generation
+- a3cd9c8: Add lastUpdatedAt & createdAt properties to $jazz in all the coValue types
+- e8e7bf8: Enforce a 1MB size limit for transactions
+- 51d3558: Export the highest weighted random server peer selector
+  - cojson-core-wasm@0.18.7
+
+## 0.18.6
+
+### Patch Changes
+
+- 9e792c7: Fixed the merge operation for RawCoList and RawCoPlainText and done a small performance optimization on RawCoList
+  - cojson-core-wasm@0.18.6
+
+## 0.18.5
+
+### Patch Changes
+
+- cojson-core-wasm@0.18.5
+
+## 0.18.4
+
+### Patch Changes
+
+- Updated dependencies [e5283c2]
+  - cojson-core-wasm@0.18.4
+
+## 0.18.3
+
+### Patch Changes
+
+- cojson-core-wasm@0.18.3
+
+## 0.18.2
+
+### Patch Changes
+
+- 82ba2dd: Add basic branching system for single CoValues with createBranch, checkoutBranch, and mergeBranch
+- 01f4889: Fix self-revoke check to correctly validate against the author of the change
+  - cojson-core-wasm@0.18.2
+
 ## 0.18.1
 
 ### Patch Changes

@@ -1,6 +1,7 @@
 import { CoValueUniqueness } from "cojson";
 import {
   Account,
+  BranchDefinition,
   CoMap,
   DiscriminableCoValueSchemaDefinition,
   DiscriminableCoreCoValueSchema,
@@ -14,6 +15,7 @@ import {
   coOptionalDefiner,
   hydrateCoreCoValueSchema,
   isAnyCoValueSchema,
+  unstable_mergeBranchWithResolve,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { removeGetters } from "../../schemaUtils.js";
@@ -63,11 +65,28 @@ export interface CoMapSchema<
       >;
       loadAs?: Account | AnonymousJazzAgent;
       skipRetry?: boolean;
+      unstable_branch?: BranchDefinition;
     },
   ): Promise<Resolved<
     Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
     R
   > | null>;
+
+  unstable_merge<
+    const R extends RefsToResolve<
+      Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap
+    > = true,
+  >(
+    id: string,
+    options?: {
+      resolve?: RefsToResolveStrict<
+        Simplify<CoMapInstanceCoValuesNullable<Shape>> & CoMap,
+        R
+      >;
+      loadAs?: Account | AnonymousJazzAgent;
+      branch: BranchDefinition;
+    },
+  ): Promise<void>;
 
   subscribe<
     const R extends RefsToResolve<
@@ -131,6 +150,25 @@ export interface CoMapSchema<
     R
   > | null>;
 
+  /**
+   * @deprecated Use `co.map().catchall` will be removed in an upcoming version.
+   *
+   * Use a `co.record` nested inside a `co.map` if you need to store key-value properties.
+   *
+   * @example
+   * ```ts
+   * // Instead of:
+   * const Image = co.map({
+   *   original: co.fileStream(),
+   * }).catchall(co.fileStream());
+   *
+   * // Use:
+   * const Image = co.map({
+   *   original: co.fileStream(),
+   *   resolutions: co.record(z.string(), co.fileStream()),
+   * });
+   * ```
+   */
   catchall<T extends AnyZodOrCoValueSchema>(schema: T): CoMapSchema<Shape, T>;
 
   withMigration(
@@ -161,7 +199,9 @@ export interface CoMapSchema<
    *
    * @returns A new CoMap schema with all fields optional.
    */
-  partial(): CoMapSchema<PartialShape<Shape>, CatchAll, Owner>;
+  partial<Keys extends keyof Shape = keyof Shape>(
+    keys?: { [key in Keys]: true },
+  ): CoMapSchema<PartialShape<Shape, Keys>, CatchAll, Owner>;
 }
 
 export function createCoreCoMapSchema<
@@ -231,6 +271,10 @@ export function enrichCoMapSchema<
       // @ts-expect-error
       return coValueClass.loadUnique(...args);
     },
+    unstable_merge: (...args: any[]) => {
+      // @ts-expect-error
+      return unstable_mergeBranchWithResolve(coValueClass, ...args);
+    },
     catchall: (catchAll: AnyZodOrCoValueSchema) => {
       const schemaWithCatchAll = createCoreCoMapSchema(
         coValueSchema.getDefinition().shape,
@@ -262,10 +306,17 @@ export function enrichCoMapSchema<
 
       return coMapDefiner(pickedShape);
     },
-    partial: () => {
+    partial: <Keys extends keyof Shape = keyof Shape>(
+      keys?: { [key in Keys]: true },
+    ) => {
       const partialShape: Record<string, AnyZodOrCoValueSchema> = {};
 
       for (const [key, value] of Object.entries(coValueSchema.shape)) {
+        if (keys && !keys[key as Keys]) {
+          partialShape[key] = value;
+          continue;
+        }
+
         if (isAnyCoValueSchema(value)) {
           partialShape[key] = coOptionalDefiner(value);
         } else {
@@ -322,10 +373,15 @@ export type CoMapInstanceCoValuesNullable<Shape extends z.core.$ZodLooseShape> =
     >;
   };
 
-export type PartialShape<Shape extends z.core.$ZodLooseShape> = Simplify<{
-  -readonly [key in keyof Shape]: Shape[key] extends AnyZodSchema
-    ? z.ZodOptional<Shape[key]>
-    : Shape[key] extends CoreCoValueSchema
-      ? CoOptionalSchema<Shape[key]>
-      : never;
+export type PartialShape<
+  Shape extends z.core.$ZodLooseShape,
+  PartialKeys extends keyof Shape = keyof Shape,
+> = Simplify<{
+  -readonly [key in keyof Shape]: key extends PartialKeys
+    ? Shape[key] extends AnyZodSchema
+      ? z.ZodOptional<Shape[key]>
+      : Shape[key] extends CoreCoValueSchema
+        ? CoOptionalSchema<Shape[key]>
+        : never
+    : Shape[key];
 }>;

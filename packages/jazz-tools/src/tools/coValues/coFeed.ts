@@ -18,6 +18,7 @@ import {
   getCoValueOwner,
   Group,
   ID,
+  unstable_mergeBranch,
   RefsToResolve,
   RefsToResolveStrict,
   Resolved,
@@ -26,6 +27,7 @@ import {
   SubscribeListenerOptions,
   SubscribeRestArgs,
   TypeSym,
+  BranchDefinition,
 } from "../internal.js";
 import {
   Account,
@@ -228,6 +230,7 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
    * @category
    */
   toJSON(): {
+    $jazz: { id: string };
     [key: string]: unknown;
     in: { [key: string]: unknown };
   } {
@@ -240,6 +243,7 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
           : (v: unknown) => v && (v as CoValue).$jazz.id;
 
     return {
+      $jazz: { id: this.$jazz.id },
       ...Object.fromEntries(
         Object.entries(this).map(([account, entry]) => [
           account,
@@ -257,6 +261,7 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
 
   /** @internal */
   [inspect](): {
+    $jazz: { id: string };
     [key: string]: unknown;
     in: { [key: string]: unknown };
   } {
@@ -326,14 +331,6 @@ export class CoFeedJazzApi<F extends CoFeed> extends CoValueJazzApi<F> {
     super(coFeed);
   }
 
-  /**
-   * The ID of this `CoFeed`
-   * @category Content
-   */
-  get id(): ID<F> {
-    return this.raw.id;
-  }
-
   get owner(): Group {
     return getCoValueOwner(this.coFeed);
   }
@@ -393,7 +390,10 @@ export class CoFeedJazzApi<F extends CoFeed> extends CoValueJazzApi<F> {
    */
   ensureLoaded<F extends CoFeed, const R extends RefsToResolve<F>>(
     this: CoFeedJazzApi<F>,
-    options?: { resolve?: RefsToResolveStrict<F, R> },
+    options?: {
+      resolve?: RefsToResolveStrict<F, R>;
+      unstable_branch?: BranchDefinition;
+    },
   ): Promise<Resolved<F, R>> {
     return ensureCoValueLoaded(this.coFeed, options);
   }
@@ -410,7 +410,10 @@ export class CoFeedJazzApi<F extends CoFeed> extends CoValueJazzApi<F> {
   ): () => void;
   subscribe<F extends CoFeed, const R extends RefsToResolve<F>>(
     this: CoFeedJazzApi<F>,
-    options: { resolve?: RefsToResolveStrict<F, R> },
+    options: {
+      resolve?: RefsToResolveStrict<F, R>;
+      unstable_branch?: BranchDefinition;
+    },
     listener: (value: Resolved<F, R>, unsubscribe: () => void) => void,
   ): () => void;
   subscribe<F extends CoFeed, const R extends RefsToResolve<F>>(
@@ -928,6 +931,7 @@ export class FileStream extends CoValueBase implements CoValue {
    * @category Content
    */
   toJSON(): {
+    $jazz: { id: string };
     mimeType?: string;
     totalSizeBytes?: number;
     fileName?: string;
@@ -935,6 +939,7 @@ export class FileStream extends CoValueBase implements CoValue {
     finished?: boolean;
   } {
     return {
+      $jazz: { id: this.$jazz.id },
       ...this.getChunks(),
     };
   }
@@ -1014,14 +1019,6 @@ export class FileStreamJazzApi<F extends FileStream> extends CoValueJazzApi<F> {
     public raw: RawBinaryCoStream,
   ) {
     super(fileStream);
-  }
-
-  /**
-   * The ID of this `FileStream`
-   * @category Content
-   */
-  get id(): ID<F> {
-    return this.raw.id;
   }
 
   get owner(): Group {

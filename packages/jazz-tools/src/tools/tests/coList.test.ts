@@ -122,6 +122,25 @@ describe("Simple CoList operations", async () => {
     expect(list[0]).toEqual("milk");
   });
 
+  test("CoList keys can be iterated over just like an array's", () => {
+    const TestList = co.list(z.string());
+    const list = ["a", "b", "c", "d", "e"];
+    const coList = TestList.create(list);
+    const keys = [];
+    for (const key in coList) {
+      keys.push(key);
+    }
+    expect(keys).toEqual(Object.keys(list));
+    expect(Object.keys(coList)).toEqual(Object.keys(list));
+  });
+
+  test("a CoList is structurally equal to an array", () => {
+    const TestList = co.list(z.string());
+    const list = ["a", "b", "c", "d", "e"];
+    const coList = TestList.create(list);
+    expect(coList).toEqual(list);
+  });
+
   describe("Mutation", () => {
     test("assignment", () => {
       const list = TestList.create(["bread", "butter", "onion"], {
@@ -242,6 +261,26 @@ describe("Simple CoList operations", async () => {
         const list = Schema.create(["bread", "butter", "onion"]);
         list.$jazz.push("cheese");
         expect(list[3]?.toString()).toBe("cheese");
+      });
+
+      test("cannot push a shallowly-loaded CoValue into a deeply-loaded CoList", async () => {
+        const Task = co.map({ title: co.plainText() });
+        const TaskList = co.list(Task);
+
+        const task = Task.create({ title: "Do the dishes" });
+        const taskList = TaskList.create([]);
+
+        const loadedTask = await Task.load(task.$jazz.id);
+        const loadedTaskList = await TaskList.load(taskList.$jazz.id, {
+          resolve: { $each: { title: true } },
+        });
+
+        assert(loadedTask);
+        assert(loadedTaskList);
+        // @ts-expect-error loadedTask may not have its `title` loaded
+        loadedTaskList.$jazz.push(loadedTask);
+        // In this case the title is loaded, so the assertion passes
+        expect(loadedTaskList.at(-1)?.title.toString()).toBe("Do the dishes");
       });
     });
 
@@ -943,17 +982,19 @@ describe("CoList subscription", async () => {
 
     expect(spy).toHaveBeenCalledTimes(1);
 
-    expect(updates[0]?.[0]?.name).toEqual("Item 1");
-    expect(updates[0]?.[1]?.name).toEqual("Item 2");
+    await waitFor(() => {
+      expect(updates[0]?.[0]?.name).toEqual("Item 1");
+      expect(updates[0]?.[1]?.name).toEqual("Item 2");
+    });
 
     list[0]!.$jazz.set("name", "Updated Item 1");
 
-    await waitFor(() => expect(spy).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(spy).toHaveBeenCalledTimes(4));
 
     expect(updates[1]?.[0]?.name).toEqual("Updated Item 1");
     expect(updates[1]?.[1]?.name).toEqual("Item 2");
 
-    expect(spy).toHaveBeenCalledTimes(2);
+    expect(spy).toHaveBeenCalledTimes(4);
   });
 
   test("replacing list items triggers updates", async () => {
@@ -1290,5 +1331,27 @@ describe("co.list schema", () => {
 
     expect(keywords[0]?.toString()).toEqual("hello");
     expect(keywords[1]?.toString()).toEqual("world");
+  });
+});
+
+describe("lastUpdatedAt", () => {
+  test("empty list last updated time", () => {
+    const emptyList = co.list(z.number()).create([]);
+
+    expect(emptyList.$jazz.lastUpdatedAt).not.toEqual(0);
+    expect(emptyList.$jazz.lastUpdatedAt).toEqual(emptyList.$jazz.createdAt);
+  });
+
+  test("last update should change on push", async () => {
+    const list = co.list(z.string()).create(["John"]);
+
+    expect(list.$jazz.lastUpdatedAt).not.toEqual(0);
+
+    const updatedAt = list.$jazz.lastUpdatedAt;
+
+    await new Promise((r) => setTimeout(r, 10));
+    list.$jazz.push("Jane");
+
+    expect(list.$jazz.lastUpdatedAt).not.toEqual(updatedAt);
   });
 });

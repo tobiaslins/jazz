@@ -33,6 +33,8 @@ mv .env.example .env
 
 Update `VITE_CLERK_PUBLISHABLE_KEY` with your [Publishable Key](https://clerk.com/docs/deployments/clerk-environment-variables#clerk-publishable-and-secret-keys) from Clerk.
 
+Update `VITE_JAZZ_API_KEY` with an API key from https://dashboard.jazz.tools
+
 Run the dev server.
 
 ```bash
@@ -68,6 +70,8 @@ mv .env.example .env
 ```
 
 Update `VITE_CLERK_PUBLISHABLE_KEY` with your [Publishable Key](https://clerk.com/docs/deployments/clerk-environment-variables#clerk-publishable-and-secret-keys) from Clerk.
+
+Update `VITE_JAZZ_API_KEY` with an API key from https://dashboard.jazz.tools
 
 Start the dev server.
 

@@ -50,7 +50,7 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
 
   const membersIds = playlist?.$jazz.owner.members.map((member) => member.id);
   const isRootPlaylist = !params.playlistId;
-  const isPlaylistOwner = playlist?.$jazz.owner.myRole() === "admin";
+  const isPlaylistOwner = playlist && me?.canAdmin(playlist);
   const isActivePlaylist = playlistId === me?.root.activePlaylist?.$jazz.id;
 
   const handlePlaylistShareClick = async () => {

@@ -4,13 +4,7 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
-    inputs:
-      debug_enabled:
-        type: boolean
-        description: "Run tmate session for debugging"
-        required: false
-        default: false
+      - backport/**
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
@@ -30,6 +24,7 @@ jobs:
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
+        if: github.ref_name == 'main'
         uses: changesets/action@v1
         with:
           version: pnpm changeset-version
@@ -38,9 +33,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      # Enable tmate debugging only if the workflow is manually triggered, debug_enabled is true, and the workflow failed
-      - name: Setup tmate session for debugging
-        if: ${{ failure() && github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
-        uses: mxschmitt/action-tmate@v3
+      - name: Create Release Pull Request or Publish to npm (backports)
+        id: changesets-backport
+        if: startsWith(github.ref_name, 'backport/')
+        uses: changesets/action@v1
         with:
-          timeout-minutes: 15
+          version: pnpm changeset-version
+          publish: pnpm release:backports
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

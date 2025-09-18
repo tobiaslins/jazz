@@ -540,4 +540,256 @@ describe("ContextManager", () => {
       manager.register(secret, { name: "Test User" }),
     ).rejects.toThrow("Props required");
   });
+
+  describe("Race condition handling", () => {
+    test("prevents concurrent authentication attempts", async () => {
+      const account = await createJazzTestAccount();
+      const onAnonymousAccountDiscarded = vi.fn();
+
+      // Create initial anonymous context
+      await manager.createContext({ onAnonymousAccountDiscarded });
+
+      const credentials = {
+        accountID: account.$jazz.id,
+        accountSecret: account.$jazz.localNode.getCurrentAgent().agentSecret,
+        provider: "test",
+      };
+
+      // Start multiple concurrent authentication attempts
+      const promises = [];
+      for (let i = 0; i < 5; i++) {
+        promises.push(manager.authenticate(credentials));
+      }
+
+      await Promise.all(promises);
+
+      // onAnonymousAccountDiscarded should only be called once despite multiple authenticate calls
+      expect(onAnonymousAccountDiscarded).toHaveBeenCalledTimes(1);
+    });
+
+    test("prevents concurrent registration attempts", async () => {
+      const onAnonymousAccountDiscarded = vi.fn();
+      await manager.createContext({ onAnonymousAccountDiscarded });
+
+      const secret = Crypto.newRandomAgentSecret();
+
+      // Start multiple concurrent registration attempts
+      const promises = [];
+      for (let i = 0; i < 3; i++) {
+        promises.push(manager.register(secret, { name: "Test User" }));
+      }
+
+      await Promise.allSettled(promises);
+
+      // onAnonymousAccountDiscarded should only be called once
+      expect(onAnonymousAccountDiscarded).toHaveBeenCalledTimes(1);
+    });
+
+    test("allows authentication after logout", async () => {
+      const account = await createJazzTestAccount();
+      const onAnonymousAccountDiscarded = vi.fn();
+
+      // Create initial context and authenticate
+      await manager.createContext({ onAnonymousAccountDiscarded });
+
+      await manager.authenticate({
+        accountID: account.$jazz.id,
+        accountSecret: account.$jazz.localNode.getCurrentAgent().agentSecret,
+        provider: "test",
+      });
+
+      expect(onAnonymousAccountDiscarded).toHaveBeenCalledTimes(1);
+
+      await manager.logOut();
+
+      // Should be able to authenticate again
+      const account2 = await createJazzTestAccount();
+
+      await manager.authenticate({
+        accountID: account2.$jazz.id,
+        accountSecret: account2.$jazz.localNode.getCurrentAgent().agentSecret,
+        provider: "test",
+      });
+
+      // Should be called again since we logged out and reset the migration state
+      expect(onAnonymousAccountDiscarded).toHaveBeenCalledTimes(2);
+    });
+
+    test("handles authentication in progress correctly", async () => {
+      const account = await createJazzTestAccount();
+      const onAnonymousAccountDiscarded = vi.fn();
+
+      await manager.createContext({ onAnonymousAccountDiscarded });
+
+      const credentials = {
+        accountID: account.$jazz.id,
+        accountSecret: account.$jazz.localNode.getCurrentAgent().agentSecret,
+        provider: "test",
+      };
+
+      // Start first authentication
+      const firstAuth = manager.authenticate(credentials);
+
+      // Try to authenticate while first is in progress
+      await manager.authenticate(credentials);
+
+      // Wait for first to complete
+      await firstAuth;
+
+      // Should only have been called once
+      expect(onAnonymousAccountDiscarded).toHaveBeenCalledTimes(1);
+    });
+
+    test("prevents duplicate onAnonymousAccountDiscarded calls during complex migration", async () => {
+      const AccountRoot = co.map({
+        value: z.string(),
+        get transferredRoot(): co.Optional<typeof AccountRoot> {
+          return co.optional(AccountRoot);
+        },
+      });
+
+      const CustomAccount = co
+        .account({
+          root: AccountRoot,
+          profile: co.profile(),
+        })
+        .withMigration(async (account) => {
+          account.$jazz.set(
+            "root",
+            AccountRoot.create(
+              { value: "Hello" },
+              Group.create(this).makePublic(),
+            ),
+          );
+        });
+
+      const customManager = new TestJazzContextManager<
+        InstanceOfSchema<typeof CustomAccount>
+      >();
+
+      const onAnonymousAccountDiscarded = vi
+        .fn()
+        .mockImplementation(async (anonymousAccount) => {
+          // Simulate complex migration work
+          await new Promise((resolve) => setTimeout(resolve, 10));
+
+          const anonymousAccountWithRoot =
+            await anonymousAccount.$jazz.ensureLoaded({
+              resolve: { root: true },
+            });
+
+          const me = await CustomAccount.getMe().$jazz.ensureLoaded({
+            resolve: { root: true },
+          });
+
+          me.root.$jazz.set("transferredRoot", anonymousAccountWithRoot.root);
+        });
+
+      await customManager.createContext({
+        AccountSchema: coValueClassFromCoValueClassOrSchema(CustomAccount),
+        onAnonymousAccountDiscarded,
+      });
+
+      const account = (
+        customManager.getCurrentValue() as JazzAuthContext<
+          InstanceOfSchema<typeof CustomAccount>
+        >
+      ).me;
+
+      // Start multiple concurrent authentication attempts
+      const promises = [];
+      for (let i = 0; i < 3; i++) {
+        promises.push(
+          customManager.authenticate({
+            accountID: account.$jazz.id,
+            accountSecret:
+              account.$jazz.localNode.getCurrentAgent().agentSecret,
+            provider: "test",
+          }),
+        );
+      }
+
+      await Promise.all(promises);
+
+      // Migration should only happen once
+      expect(onAnonymousAccountDiscarded).toHaveBeenCalledTimes(1);
+
+      const me = await CustomAccount.getMe().$jazz.ensureLoaded({
+        resolve: { root: { transferredRoot: true } },
+      });
+
+      expect(me.root.transferredRoot?.value).toBe("Hello");
+    });
+
+    test("fails fast when trying to authenticate different accounts concurrently", async () => {
+      const account1 = await createJazzTestAccount();
+      const account2 = await createJazzTestAccount();
+
+      await manager.createContext({});
+
+      const credentials1 = {
+        accountID: account1.$jazz.id,
+        accountSecret: account1.$jazz.localNode.getCurrentAgent().agentSecret,
+        provider: "test",
+      };
+
+      const credentials2 = {
+        accountID: account2.$jazz.id,
+        accountSecret: account2.$jazz.localNode.getCurrentAgent().agentSecret,
+        provider: "test",
+      };
+
+      const auth1Promise = manager.authenticate(credentials1);
+
+      // Try to authenticate account2 while account1 is in progress
+      await expect(manager.authenticate(credentials2)).rejects.toThrow();
+
+      // First authentication should still complete successfully
+      await expect(auth1Promise).resolves.toBeUndefined();
+
+      // After first auth completes, second account should be able to authenticate
+      await expect(manager.authenticate(credentials2)).resolves.toBeUndefined();
+    });
+
+    test("throws error when authenticating with different credentials simultaneously", async () => {
+      const account1 = await createJazzTestAccount();
+      const account2 = await createJazzTestAccount();
+
+      await manager.createContext({});
+
+      const credentials1 = {
+        accountID: account1.$jazz.id,
+        accountSecret: account1.$jazz.localNode.getCurrentAgent().agentSecret,
+        provider: "test",
+      };
+
+      const credentials2 = {
+        accountID: account2.$jazz.id,
+        accountSecret: account2.$jazz.localNode.getCurrentAgent().agentSecret,
+        provider: "test",
+      };
+
+      const results = await Promise.allSettled([
+        manager.authenticate(credentials1),
+        manager.authenticate(credentials2),
+      ]);
+
+      // One should succeed and one should fail
+      const successCount = results.filter(
+        (r) => r.status === "fulfilled",
+      ).length;
+      const failureCount = results.filter(
+        (r) => r.status === "rejected",
+      ).length;
+
+      expect(successCount).toBe(1);
+      expect(failureCount).toBe(1);
+
+      // Verify the successful authentication resulted in a valid context
+      const currentAccount = getCurrentValue().me;
+      expect([credentials1.accountID, credentials2.accountID]).toContain(
+        currentAccount.$jazz.id,
+      );
+    });
+  });
 });

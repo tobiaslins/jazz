@@ -1,1 +1,2 @@
-export const apiKey = "reactions-example@garden.co";
+export const apiKey =
+  import.meta.env.VITE_JAZZ_API_KEY ?? "reactions-example@garden.co";

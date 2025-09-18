@@ -1,6 +1,5 @@
 import { CoID, LocalNode, RawAccount, RawCoValue } from "cojson";
 import { styled } from "goober";
-import { useJazzContext } from "jazz-tools/react-core";
 import React, { useState } from "react";
 import { Button } from "../ui/button.js";
 import { Input } from "../ui/input.js";
@@ -8,11 +7,11 @@ import { Breadcrumbs } from "./breadcrumbs.js";
 import { PageStack } from "./page-stack.js";
 import { usePagePath } from "./use-page-path.js";
 
-import { Account } from "jazz-tools";
 import { GlobalStyles } from "../ui/global-styles.js";
 import { Heading } from "../ui/heading.js";
-import { InspectorButton, type Position } from "./inpsector-button.js";
+import { InspectorButton, type Position } from "./inspector-button.js";
 import { useOpenInspector } from "./use-open-inspector.js";
+import { DeleteLocalData } from "./delete-local-data.js";
 
 const InspectorContainer = styled("div")`
   position: fixed;
@@ -61,22 +60,6 @@ const OrText = styled("p")`
   text-align: center;
 `;
 
-export function JazzInspector({ position = "right" }: { position?: Position }) {
-  const context = useJazzContext<Account>();
-  const localNode = context.node;
-  const me = "me" in context ? context.me : undefined;
-
-  if (process.env.NODE_ENV !== "development") return null;
-
-  return (
-    <JazzInspectorInternal
-      position={position}
-      localNode={localNode}
-      accountId={me?.$jazz.raw.id}
-    />
-  );
-}
-
 export function JazzInspectorInternal({
   position = "right",
   localNode,
@@ -120,6 +103,7 @@ export function JazzInspectorInternal({
             />
           )}
         </Form>
+        <DeleteLocalData />
         <Button variant="plain" type="button" onClick={() => setOpen(false)}>
           Close
         </Button>

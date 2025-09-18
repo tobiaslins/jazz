@@ -1,8 +1,43 @@
-import { CoValueCore } from "../exports.js";
-import { RawCoID, SessionID } from "../ids.js";
-import { AvailableCoValueCore, idforHeader } from "./coValueCore.js";
-import { CoValueHeader } from "./verifiedState.js";
-import { CoValueKnownState } from "../sync.js";
+import type { CoValueCore } from "../exports.js";
+import type { RawCoID, SessionID } from "../ids.js";
+import { type AvailableCoValueCore, idforHeader } from "./coValueCore.js";
+import type { CoValueHeader } from "./verifiedState.js";
+import type { CoValueKnownState } from "../sync.js";
+import { combineKnownStateSessions } from "../knownState.js";
+
+/**
+ * Commit to identify the starting point of the branch
+ *
+ * In case of clonflicts, the first commit of this kind is considered the source of truth
+ */
+export type BranchStartCommit = {
+  from: CoValueKnownState["sessions"];
+};
+
+/**
+ * Commit that tracks a branch creation
+ */
+export type BranchPointerCommit = {
+  branch: string;
+  ownerId?: RawCoID;
+};
+
+/**
+ * Meta information attached to each merged transaction to retrieve the original transaction ID
+ */
+export type MergedTransactionMetadata = {
+  mi: number; // Transaction index and marker of a merge commit
+  s?: SessionID;
+  b?: RawCoID;
+};
+
+/**
+ * Merge commit located in a branch to track how many transactions have already been merged
+ */
+export type MergeCommit = {
+  merged: CoValueKnownState["sessions"];
+  branch: RawCoID;
+};
 
 export function getBranchHeader({
   type,
@@ -35,12 +70,19 @@ export function getBranchHeader({
 }
 
 /**
+ * Checks if the coValue can be branched
+ */
+export function canBeBranched(coValue: CoValueCore): boolean {
+  return coValue.verified?.header.ruleset.type === "ownedByGroup";
+}
+
+/**
  * Given a coValue, a branch name and an owner id, returns the id for the branch
  */
 export function getBranchId(
   coValue: CoValueCore,
   name: string,
-  ownerId: RawCoID,
+  ownerId?: RawCoID,
 ): RawCoID {
   if (!coValue.verified) {
     throw new Error(
@@ -48,19 +90,37 @@ export function getBranchId(
     );
   }
 
+  const currentOwnerId = ownerId ?? getBranchOwnerId(coValue);
+
+  if (!currentOwnerId) {
+    return coValue.id;
+  }
+
   const header = getBranchHeader({
     type: coValue.verified.header.type,
     branchName: name,
-    ownerId,
+    ownerId: currentOwnerId,
     sourceId: coValue.id,
   });
 
   return idforHeader(header, coValue.node.crypto);
 }
 
-export type BranchCommit = {
-  branch: CoValueKnownState["sessions"];
-};
+export function getBranchOwnerId(coValue: CoValueCore) {
+  if (!coValue.verified) {
+    throw new Error(
+      "CoValueCore: getBranchOwnerId called on coValue without verified state",
+    );
+  }
+
+  const header = coValue.verified.header;
+
+  if (header.ruleset.type !== "ownedByGroup") {
+    return undefined;
+  }
+
+  return header.ruleset.group;
+}
 
 /**
  * Given a coValue, a branch name and an owner id, creates a new branch CoValue
@@ -68,7 +128,7 @@ export type BranchCommit = {
 export function createBranch(
   coValue: CoValueCore,
   name: string,
-  ownerId: RawCoID,
+  ownerId?: RawCoID,
 ): CoValueCore {
   if (!coValue.verified) {
     throw new Error(
@@ -76,21 +136,34 @@ export function createBranch(
     );
   }
 
+  const branchOwnerId = ownerId ?? getBranchOwnerId(coValue);
+
+  if (!branchOwnerId) {
+    return coValue;
+  }
+
   const header = getBranchHeader({
     type: coValue.verified.header.type,
     branchName: name,
-    ownerId,
+    ownerId: branchOwnerId,
     sourceId: coValue.id,
   });
 
-  const value = coValue.node.createCoValue(header);
+  const branch = coValue.node.createCoValue(header);
+  const sessions = { ...coValue.knownState().sessions };
 
   // Create a branch commit to identify the starting point of the branch
-  value.makeTransaction([], "private", {
-    branch: coValue.knownState().sessions,
-  } satisfies BranchCommit);
+  branch.makeTransaction([], "private", {
+    from: sessions,
+  } satisfies BranchStartCommit);
 
-  return value;
+  // Create a branch pointer, to identify that we created a branch
+  coValue.makeTransaction([], "private", {
+    branch: name,
+    ownerId,
+  } satisfies BranchPointerCommit);
+
+  return branch;
 }
 
 /**
@@ -103,7 +176,7 @@ export function getBranchSource(
     return undefined;
   }
 
-  const sourceId = coValue.verified.header.meta?.source;
+  const sourceId = coValue.getCurrentBranchSourceId();
 
   if (!sourceId) {
     return undefined;
@@ -118,15 +191,6 @@ export function getBranchSource(
   return source;
 }
 
-export type MergeCommit = {
-  // The point where the branch was merged
-  merge: CoValueKnownState["sessions"];
-  // The id of the branch that was merged
-  id: RawCoID;
-  // The number of transactions that were merged, will be used in the future to handle the edits history properly
-  count: number;
-};
-
 /**
  * Given a branch coValue, merges the branch into the source coValue
  */
@@ -137,10 +201,8 @@ export function mergeBranch(branch: CoValueCore): CoValueCore {
     );
   }
 
-  const sourceId = branch.verified.header.meta?.source;
-
-  if (!sourceId) {
-    throw new Error("CoValueCore: mergeBranch called on a non-branch coValue");
+  if (!canBeBranched(branch)) {
+    return branch;
   }
 
   const target = getBranchSource(branch);
@@ -151,23 +213,15 @@ export function mergeBranch(branch: CoValueCore): CoValueCore {
 
   // Look for previous merge commits, to see which transactions needs to be merged
   // Done mostly for performance reasons, as we could merge all the transactions every time and nothing would change
-  const mergedTransactions = target.mergeCommits.reduce(
-    (acc, { commit }) => {
-      if (commit.id !== branch.id) {
-        return acc;
-      }
-
-      for (const [sessionID, count] of Object.entries(commit.merge) as [
-        SessionID,
-        number,
-      ][]) {
-        acc[sessionID] = Math.max(acc[sessionID] ?? 0, count);
-      }
-
-      return acc;
-    },
-    {} as CoValueKnownState["sessions"],
-  );
+  let mergedTransactions = {} as CoValueKnownState["sessions"];
+  for (const item of target.getMergeCommits()) {
+    if (item.branch === branch.id) {
+      mergedTransactions = combineKnownStateSessions(
+        mergedTransactions,
+        item.merged,
+      );
+    }
+  }
 
   // Get the valid transactions from the branch, skipping the branch source and the previously merged transactions
   const branchValidTransactions = branch
@@ -183,16 +237,50 @@ export function mergeBranch(branch: CoValueCore): CoValueCore {
     return target;
   }
 
-  // Create a merge commit to identify the merge point
-  target.makeTransaction([], "private", {
-    merge: { ...branch.knownState().sessions },
-    id: branch.id,
-    count: branchValidTransactions.length,
-  } satisfies MergeCommit);
+  // We do track in the meta information the original txID to make sure that
+  // the CoList opid still point to the correct transaction
+  // To reduce the cost of the meta we skip the repeated information
+  let lastSessionId: string | undefined = undefined;
+  let lastBranchId: string | undefined = undefined;
 
-  for (const { tx, changes } of branchValidTransactions) {
-    target.makeTransaction(changes, tx.privacy);
+  for (const tx of branchValidTransactions) {
+    const mergeMeta: MergedTransactionMetadata = {
+      mi: tx.txID.txIndex,
+    };
+
+    if (lastSessionId !== tx.txID.sessionID) {
+      mergeMeta.s = tx.txID.sessionID;
+    }
+
+    if (lastBranchId !== tx.txID.branch) {
+      mergeMeta.b = tx.txID.branch;
+    }
+
+    target.makeTransaction(tx.changes, tx.tx.privacy, mergeMeta, tx.madeAt);
+    lastSessionId = tx.txID.sessionID;
+    lastBranchId = tx.txID.branch;
   }
+
+  // Track the merged transactions for the branch, so future merges will know which transactions have already been merged
+  // Store only the diff of sessions between the branch and already merged transactions
+  const currentSessions = branch.knownState().sessions;
+  const prevMergedSessions = mergedTransactions;
+  const diff = {} as CoValueKnownState["sessions"];
+
+  for (const [sessionId, count] of Object.entries(currentSessions) as [
+    SessionID,
+    number,
+  ][]) {
+    const prevMergedSession = prevMergedSessions[sessionId] ?? 0;
+    if (prevMergedSession < count) {
+      diff[sessionId] = count;
+    }
+  }
+
+  target.makeTransaction([], "private", {
+    merged: diff,
+    branch: branch.id,
+  } satisfies MergeCommit);
 
   return target;
 }

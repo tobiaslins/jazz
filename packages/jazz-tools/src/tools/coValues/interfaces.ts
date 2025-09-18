@@ -21,8 +21,10 @@ import {
   TypeSym,
   activeAccountContext,
   coValueClassFromCoValueClassOrSchema,
+  getSubscriptionScope,
   inspect,
 } from "../internal.js";
+import type { BranchDefinition } from "../subscribe/types.js";
 
 /** @category Abstract interfaces */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -53,6 +55,9 @@ export interface CoValue {
     raw: RawCoValue;
     /** @internal */
     _subscriptionScope?: SubscriptionScope<CoValue>;
+    isBranched: boolean;
+    branchName: string | undefined;
+    unstable_merge: () => void;
   };
 
   /** @category Stringifying & Inspection */
@@ -99,11 +104,13 @@ export function loadCoValueWithoutMe<
     resolve?: RefsToResolveStrict<V, R>;
     loadAs?: Account | AnonymousJazzAgent;
     skipRetry?: boolean;
+    unstable_branch?: BranchDefinition;
   },
 ): Promise<Resolved<V, R> | null> {
   return loadCoValue(cls, id, {
     ...options,
     loadAs: options?.loadAs ?? activeAccountContext.get(),
+    unstable_branch: options?.unstable_branch,
   });
 }
 
@@ -117,6 +124,7 @@ export function loadCoValue<
     resolve?: RefsToResolveStrict<V, R>;
     loadAs: Account | AnonymousJazzAgent;
     skipRetry?: boolean;
+    unstable_branch?: BranchDefinition;
   },
 ): Promise<Resolved<V, R> | null> {
   return new Promise((resolve) => {
@@ -134,6 +142,7 @@ export function loadCoValue<
         onUnauthorized: () => {
           resolve(null);
         },
+        unstable_branch: options.unstable_branch,
       },
       (value, unsubscribe) => {
         resolve(value);
@@ -148,7 +157,12 @@ export async function ensureCoValueLoaded<
   const R extends RefsToResolve<V>,
 >(
   existing: V,
-  options?: { resolve?: RefsToResolveStrict<V, R> } | undefined,
+  options?:
+    | {
+        resolve?: RefsToResolveStrict<V, R>;
+        unstable_branch?: BranchDefinition;
+      }
+    | undefined,
 ): Promise<Resolved<V, R>> {
   const response = await loadCoValue(
     existing.constructor as CoValueClass<V>,
@@ -156,6 +170,7 @@ export async function ensureCoValueLoaded<
     {
       loadAs: existing.$jazz.loadedAs,
       resolve: options?.resolve,
+      unstable_branch: options?.unstable_branch,
     },
   );
 
@@ -179,6 +194,7 @@ export type SubscribeListenerOptions<
   loadAs?: Account | AnonymousJazzAgent;
   onUnauthorized?: () => void;
   onUnavailable?: () => void;
+  unstable_branch?: BranchDefinition;
 };
 
 export type SubscribeRestArgs<V extends CoValue, R extends RefsToResolve<V>> =
@@ -206,6 +222,7 @@ export function parseSubscribeRestArgs<
           loadAs: args[0].loadAs,
           onUnauthorized: args[0].onUnauthorized,
           onUnavailable: args[0].onUnavailable,
+          unstable_branch: args[0].unstable_branch,
         },
         listener: args[1],
       };
@@ -254,6 +271,7 @@ export function subscribeToCoValue<
     onUnauthorized?: () => void;
     syncResolution?: boolean;
     skipRetry?: boolean;
+    unstable_branch?: BranchDefinition;
   },
   listener: SubscribeListener<V, R>,
 ): () => void {
@@ -273,6 +291,8 @@ export function subscribeToCoValue<
       optional: false,
     },
     options.skipRetry,
+    false,
+    options.unstable_branch,
   );
 
   const handleUpdate = (value: SubscriptionValue<V, any>) => {
@@ -322,6 +342,7 @@ export function subscribeToExistingCoValue<
         resolve?: RefsToResolveStrict<V, R>;
         onUnavailable?: () => void;
         onUnauthorized?: () => void;
+        unstable_branch?: BranchDefinition;
       }
     | undefined,
   listener: SubscribeListener<V, R>,
@@ -334,6 +355,7 @@ export function subscribeToExistingCoValue<
       resolve: options?.resolve,
       onUnavailable: options?.onUnavailable,
       onUnauthorized: options?.onUnauthorized,
+      unstable_branch: options?.unstable_branch,
     },
     listener,
   );
@@ -475,6 +497,7 @@ export async function exportCoValue<
     loadAs: Account | AnonymousJazzAgent;
     skipRetry?: boolean;
     bestEffortResolution?: boolean;
+    unstable_branch?: BranchDefinition;
   },
 ) {
   const loadAs = options.loadAs ?? activeAccountContext.get();
@@ -492,6 +515,7 @@ export async function exportCoValue<
     },
     options.skipRetry,
     options.bestEffortResolution,
+    options.unstable_branch,
   );
 
   const value = await new Promise<Loaded<S, R> | null>((resolve) => {
@@ -586,4 +610,71 @@ export function importContentPieces(
   for (const piece of contentPieces) {
     node.syncManager.handleNewContent(piece, "import");
   }
+}
+
+export function unstable_mergeBranch(
+  subscriptionScope: SubscriptionScope<CoValue>,
+) {
+  if (!subscriptionScope.unstable_branch) {
+    return;
+  }
+
+  function handleMerge(subscriptionNode: SubscriptionScope<CoValue>) {
+    if (subscriptionNode.value.type === "loaded") {
+      subscriptionNode.value.value.$jazz.raw.core.mergeBranch();
+    }
+
+    for (const childNode of subscriptionNode.childNodes.values()) {
+      handleMerge(childNode);
+    }
+  }
+
+  handleMerge(subscriptionScope);
+}
+
+export async function unstable_mergeBranchWithResolve<
+  S extends CoValueClassOrSchema,
+  const R extends ResolveQuery<S>,
+>(
+  cls: S,
+  id: ID<CoValue>,
+  options: {
+    resolve?: ResolveQueryStrict<S, R>;
+    loadAs: Account | AnonymousJazzAgent;
+    branch: BranchDefinition;
+  },
+) {
+  const loadAs = options.loadAs ?? activeAccountContext.get();
+  const node = "node" in loadAs ? loadAs.node : loadAs.$jazz.localNode;
+
+  const resolve = options.resolve ?? true;
+
+  const rootNode = new SubscriptionScope<CoValue>(
+    node,
+    resolve as any,
+    id,
+    {
+      ref: coValueClassFromCoValueClassOrSchema(cls),
+      optional: false,
+    },
+    false,
+    false,
+    options.branch,
+  );
+
+  await new Promise<void>((resolve, reject) => {
+    rootNode.setListener((value) => {
+      if (value.type === "unavailable") {
+        reject(new Error("Unable to load the branch. " + value.toString()));
+      } else if (value.type === "unauthorized") {
+        reject(new Error("Unable to load the branch. " + value.toString()));
+      } else if (value.type === "loaded") {
+        resolve();
+      }
+
+      rootNode.destroy();
+    });
+  });
+
+  unstable_mergeBranch(rootNode);
 }

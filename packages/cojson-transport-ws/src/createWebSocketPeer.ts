@@ -106,7 +106,7 @@ export function createWebSocketPeer({
     pingTimeout,
     () => {
       incoming.push("Disconnected");
-      logger.error("Ping timeout from peer", {
+      logger.warn("Ping timeout from peer", {
         peerId: id,
         peerRole: role,
       });

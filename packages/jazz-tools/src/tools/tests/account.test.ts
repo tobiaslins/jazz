@@ -340,6 +340,10 @@ describe("root and profile", () => {
     expect(account.profile.name).toBe("test 1");
     expect(account.profile.avatar.url).toBe("https://example.com/avatar.png");
     expect(account.root.name).toBe("test 1");
+
+    // The account when setting the owner, the owner should not extend the account
+    expect(account.root.$jazz.owner.getParentGroups()).toEqual([]);
+    expect(account.profile.$jazz.owner.getParentGroups()).toEqual([]);
   });
 });
 
@@ -391,5 +395,17 @@ describe("account.$jazz.has", () => {
 
     expect(account.profile.email).toBe("test@example.com");
     expect(account.root.settings).toBe("default");
+  });
+});
+
+describe("account.toJSON", () => {
+  test("returns only the acccount's Jazz id", async () => {
+    const account = await createJazzTestAccount({
+      creationProps: { name: "John" },
+    });
+
+    expect(account.toJSON()).toEqual({
+      $jazz: { id: account.$jazz.id },
+    });
   });
 });

@@ -15,6 +15,7 @@ import {
 } from "cojson";
 import {
   AnonymousJazzAgent,
+  BranchDefinition,
   CoFieldInit,
   type CoMap,
   type CoValue,
@@ -274,7 +275,9 @@ export class Account extends CoValueBase implements CoValue {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   toJSON(): object | any[] {
-    return {};
+    return {
+      $jazz: { id: this.$jazz.id },
+    };
   }
 
   [inspect]() {
@@ -372,14 +375,6 @@ class AccountJazzApi<A extends Account> extends CoValueJazzApi<A> {
     if (this.isLocalNodeOwner) {
       this.sessionID = this.localNode.currentSessionID;
     }
-  }
-
-  /**
-   * The ID of this `Account`
-   * @category Content
-   */
-  get id(): ID<A> {
-    return this.raw.id;
   }
 
   /**
@@ -485,6 +480,7 @@ class AccountJazzApi<A extends Account> extends CoValueJazzApi<A> {
     this: AccountJazzApi<A>,
     options: {
       resolve: RefsToResolveStrict<A, R>;
+      unstable_branch?: BranchDefinition;
     },
   ): Promise<Resolved<A, R>> {
     return ensureCoValueLoaded(this.account as unknown as A, options);
@@ -497,7 +493,10 @@ class AccountJazzApi<A extends Account> extends CoValueJazzApi<A> {
   ): () => void;
   subscribe<A extends Account, const R extends RefsToResolve<A>>(
     this: AccountJazzApi<A>,
-    options: { resolve?: RefsToResolveStrict<A, R> },
+    options: {
+      resolve?: RefsToResolveStrict<A, R>;
+      unstable_branch?: BranchDefinition;
+    },
     listener: (value: Resolved<A, R>, unsubscribe: () => void) => void,
   ): () => void;
   subscribe<A extends Account, const R extends RefsToResolve<A>>(

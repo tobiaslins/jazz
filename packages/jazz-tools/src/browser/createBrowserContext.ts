@@ -214,6 +214,14 @@ export function provideBrowserLockSession(
   accountID: ID<Account> | AgentID,
   crypto: CryptoProvider,
 ) {
+  if (typeof navigator === "undefined" || !navigator.locks?.request) {
+    // Fallback to random session ID for each tab session
+    return Promise.resolve({
+      sessionID: crypto.newRandomSessionID(accountID as RawAccountID | AgentID),
+      sessionDone: () => {},
+    });
+  }
+
   let sessionDone!: () => void;
   const donePromise = new Promise<void>((resolve) => {
     sessionDone = resolve;

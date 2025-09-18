@@ -5,10 +5,10 @@ import type { RawCoValue } from "../coValue.js";
 import type { ControlledAccountOrAgent } from "../coValues/account.js";
 import type { RawGroup } from "../coValues/group.js";
 import { CO_VALUE_LOADING_CONFIG } from "../config.js";
+import { validateTxSizeLimitInBytes } from "../coValueContentMessage.js";
 import { coreToCoValue } from "../coreToCoValue.js";
 import {
   CryptoProvider,
-  Encrypted,
   Hash,
   KeyID,
   KeySecret,
@@ -17,7 +17,6 @@ import {
 } from "../crypto/crypto.js";
 import { AgentID, RawCoID, SessionID, TransactionID } from "../ids.js";
 import { JsonObject, JsonValue } from "../jsonValue.js";
-import { parseJSON, safeParseJSON } from "../jsonStringify.js";
 import { LocalNode, ResolveAccountAgentError } from "../localNode.js";
 import { logger } from "../logger.js";
 import { determineValidTransactions } from "../permissions.js";
@@ -29,13 +28,18 @@ import { CoValueHeader, Transaction, VerifiedState } from "./verifiedState.js";
 import { SessionMap } from "./SessionMap.js";
 import {
   MergeCommit,
+  BranchPointerCommit,
+  MergedTransactionMetadata,
   createBranch,
   getBranchId,
+  getBranchOwnerId,
   getBranchSource,
   mergeBranch,
+  BranchStartCommit,
 } from "./branching.js";
 import { type RawAccountID } from "../coValues/account.js";
 import { decodeTransactionChangesAndMeta } from "./decodeTransactionChangesAndMeta.js";
+import { combineKnownStateSessions } from "../knownState.js";
 
 export function idforHeader(
   header: CoValueHeader,
@@ -70,6 +74,9 @@ export type VerifiedTransaction = {
 
   // True if the meta information has been parsed and loaded in the CoValueCore
   hasMetaBeenParsed: boolean;
+
+  // The previous verified transaction for the same session
+  previous: VerifiedTransaction | undefined;
 };
 
 export type DecryptedTransaction = {
@@ -215,6 +222,20 @@ export class CoValueCore {
     });
   }
 
+  waitForFullStreaming(): Promise<CoValueCore> {
+    return new Promise<CoValueCore>((resolve) => {
+      const listener = (core: CoValueCore) => {
+        if (core.isAvailable() && !core.verified.isStreaming()) {
+          resolve(core);
+          this.listeners.delete(listener);
+        }
+      };
+
+      this.listeners.add(listener);
+      listener(this);
+    });
+  }
+
   getStateForPeer(peerId: PeerID) {
     return this.peers.get(peerId);
   }
@@ -317,6 +338,12 @@ export class CoValueCore {
   ) {
     const previousState = this.loadingState;
 
+    const expectedId = idforHeader(header, this.node.crypto);
+
+    if (this.id !== expectedId) {
+      return false;
+    }
+
     if (this._verified?.sessions.size) {
       throw new Error(
         "CoValueCore: provideHeader called on coValue with verified sessions present!",
@@ -334,6 +361,8 @@ export class CoValueCore {
 
     this.updateCounter(previousState);
     this.notifyUpdate("immediate");
+
+    return true;
   }
 
   internalMarkMagicallyAvailable(
@@ -586,12 +615,15 @@ export class CoValueCore {
     changes: JsonValue[],
     privacy: "private" | "trusting",
     meta?: JsonObject,
+    madeAt?: number,
   ): boolean {
     if (!this.verified) {
       throw new Error(
         "CoValueCore: makeTransaction called on coValue without verified state",
       );
     }
+
+    validateTxSizeLimitInBytes(changes);
 
     // This is an ugly hack to get a unique but stable session ID for editing the current account
     const sessionID =
@@ -620,6 +652,7 @@ export class CoValueCore {
         keyID,
         keySecret,
         meta,
+        madeAt ?? Date.now(),
       );
     } else {
       result = this.verified.makeNewTrustingTransaction(
@@ -627,6 +660,7 @@ export class CoValueCore {
         signerAgent,
         changes,
         meta,
+        madeAt ?? Date.now(),
       );
     }
 
@@ -675,12 +709,13 @@ export class CoValueCore {
   }
 
   // The starting point of the branch, in case this CoValue is a branch
-  branchStart:
-    | { branch: CoValueKnownState["sessions"]; madeAt: number }
-    | undefined;
+  branchStart: BranchStartCommit["from"] | undefined;
 
   // The list of merge commits that have been made
-  mergeCommits: { commit: MergeCommit; madeAt: number }[] = [];
+  mergeCommits: MergeCommit[] = [];
+  branches: BranchPointerCommit[] = [];
+  earliestTxMadeAt: number = Number.MAX_SAFE_INTEGER;
+  latestTxMadeAt: number = 0;
 
   // Reset the parsed transactions and branches, to validate them again from scratch when the group is updated
   resetParsedTransactions() {
@@ -695,6 +730,11 @@ export class CoValueCore {
 
   verifiedTransactions: VerifiedTransaction[] = [];
   private verifiedTransactionsKnownSessions: CoValueKnownState["sessions"] = {};
+
+  private lastVerifiedTransactionBySessionID: Record<
+    SessionID,
+    VerifiedTransaction
+  > = {};
 
   /**
    * Loads the new transaction from the SessionMap into verifiedTransactions as a VerifiedTransaction.
@@ -717,6 +757,8 @@ export class CoValueCore {
       return;
     }
 
+    const isBranched = this.isBranched();
+
     for (const [sessionID, sessionLog] of this.verified.sessions.entries()) {
       const count = this.verifiedTransactionsKnownSessions[sessionID] ?? 0;
 
@@ -725,12 +767,20 @@ export class CoValueCore {
           return;
         }
 
-        this.verifiedTransactions.push({
+        const txID = isBranched
+          ? {
+              sessionID,
+              txIndex,
+              branch: this.id,
+            }
+          : {
+              sessionID,
+              txIndex,
+            };
+
+        const verifiedTransaction = {
           author: accountOrAgentIDfromSessionID(sessionID),
-          txID: {
-            sessionID,
-            txIndex,
-          },
+          txID,
           madeAt: tx.madeAt,
           isValidated: false,
           isValid: false,
@@ -740,7 +790,20 @@ export class CoValueCore {
           hasInvalidMeta: false,
           hasMetaBeenParsed: false,
           tx,
-        });
+          previous: this.lastVerifiedTransactionBySessionID[sessionID],
+        };
+
+        if (verifiedTransaction.madeAt > this.latestTxMadeAt) {
+          this.latestTxMadeAt = verifiedTransaction.madeAt;
+        }
+
+        if (verifiedTransaction.madeAt < this.earliestTxMadeAt) {
+          this.earliestTxMadeAt = verifiedTransaction.madeAt;
+        }
+
+        this.verifiedTransactions.push(verifiedTransaction);
+        this.lastVerifiedTransactionBySessionID[sessionID] =
+          verifiedTransaction;
       });
 
       this.verifiedTransactionsKnownSessions[sessionID] =
@@ -769,23 +832,56 @@ export class CoValueCore {
 
     transaction.hasMetaBeenParsed = true;
 
-    if (
-      transaction.meta?.["branch"] &&
-      (!this.branchStart || transaction.madeAt < this.branchStart.madeAt)
-    ) {
-      this.branchStart = {
-        branch: transaction.meta.branch as CoValueKnownState["sessions"],
-        madeAt: transaction.madeAt,
-      };
+    // Branch related meta information
+    if (this.isBranched()) {
+      // Check if the transaction is a branch start
+      if ("from" in transaction.meta) {
+        const meta = transaction.meta as BranchStartCommit;
+
+        if (this.branchStart) {
+          this.branchStart = combineKnownStateSessions(
+            this.branchStart,
+            meta.from,
+          );
+        } else {
+          this.branchStart = meta.from;
+        }
+      }
     }
 
-    if (transaction.meta?.["merge"]) {
-      const mergeCommit = transaction.meta as MergeCommit;
+    // Check if the transaction is a branch pointer
+    if ("branch" in transaction.meta) {
+      const branch = transaction.meta as BranchPointerCommit;
 
-      this.mergeCommits.push({
-        commit: mergeCommit,
-        madeAt: transaction.madeAt,
-      });
+      this.branches.push(branch);
+    }
+
+    // Check if the transaction is a merged checkpoint for a branch
+    if ("merged" in transaction.meta) {
+      const mergeCommit = transaction.meta as MergeCommit;
+      this.mergeCommits.push(mergeCommit);
+    }
+
+    // Check if the transaction has been merged from a branch
+    if ("mi" in transaction.meta) {
+      const meta = transaction.meta as MergedTransactionMetadata;
+
+      // Check if the transaction is a merge commit
+      const previousTransaction = transaction.previous?.txID;
+      const sessionID = meta.s ?? previousTransaction?.sessionID;
+
+      if (sessionID) {
+        transaction.txID = {
+          sessionID,
+          txIndex: meta.mi,
+          branch: meta.b ?? previousTransaction?.branch,
+        };
+      } else {
+        logger.error("Merge commit without session ID", {
+          txID: transaction.txID,
+          prev: previousTransaction ?? null,
+        });
+      }
     }
   }
 
@@ -836,6 +932,8 @@ export class CoValueCore {
 
     const matchingTransactions: DecryptedTransaction[] = [];
 
+    const source = getBranchSource(this);
+
     for (const transaction of this.verifiedTransactions) {
       if (!isValidTransactionWithChanges(transaction)) {
         continue;
@@ -847,10 +945,12 @@ export class CoValueCore {
 
       options?.knownTransactions?.add(transaction.tx);
 
-      const { txID, madeAt } = transaction;
+      const { txID } = transaction;
 
       const from = options?.from?.[txID.sessionID] ?? -1;
-      const to = options?.to?.[txID.sessionID] ?? Infinity;
+
+      // Load the to filter index. Sessions that are not in the to filter will be skipped
+      const to = options?.to ? (options.to[txID.sessionID] ?? -1) : Infinity;
 
       // The txIndex starts at 0 and from/to are referring to the count of transactions
       if (from > txID.txIndex || to < txID.txIndex) {
@@ -860,33 +960,23 @@ export class CoValueCore {
       matchingTransactions.push(transaction);
     }
 
-    const source = getBranchSource(this);
-
     // If this is a branch, we load the valid transactions from the source
     if (source && this.branchStart && !options?.skipBranchSource) {
       const sourceTransactions = source.getValidTransactions({
-        to: this.branchStart.branch,
+        to: this.branchStart,
         ignorePrivateTransactions: options?.ignorePrivateTransactions ?? false,
         knownTransactions: options?.knownTransactions,
       });
 
-      for (const { changes, tx, madeAt, txID } of sourceTransactions) {
-        matchingTransactions.push({
-          txID: {
-            sessionID: `${txID.sessionID}_branch_${source.id}`,
-            txIndex: txID.txIndex,
-          },
-          madeAt,
-          changes,
-          tx,
-        });
+      for (const transaction of sourceTransactions) {
+        matchingTransactions.push(transaction);
       }
     }
 
     return matchingTransactions;
   }
 
-  createBranch(name: string, ownerId: RawCoID) {
+  createBranch(name: string, ownerId?: RawCoID) {
     return createBranch(this, name, ownerId);
   }
 
@@ -894,8 +984,49 @@ export class CoValueCore {
     return mergeBranch(this);
   }
 
-  getBranchId(name: string, ownerId: RawCoID) {
-    return getBranchId(this, name, ownerId);
+  getBranch(name: string, ownerId?: RawCoID) {
+    return this.node.getCoValue(getBranchId(this, name, ownerId));
+  }
+
+  getCurrentBranchName() {
+    return this.verified?.branchName;
+  }
+
+  getCurrentBranchSourceId() {
+    return this.verified?.branchSourceId;
+  }
+
+  isBranched() {
+    return Boolean(this.verified?.branchSourceId);
+  }
+
+  hasBranch(name: string, ownerId?: RawCoID) {
+    // This function requires the meta information to be parsed, which might not be the case
+    // if the value content hasn't been loaded yet
+    this.parseNewTransactions(false);
+
+    const currentOwnerId = getBranchOwnerId(this);
+    return this.branches.some((item) => {
+      if (item.branch !== name) {
+        return false;
+      }
+
+      if (item.ownerId === ownerId) {
+        return true;
+      }
+
+      if (!ownerId) {
+        return item.ownerId === currentOwnerId;
+      }
+
+      if (!item.ownerId) {
+        return ownerId === currentOwnerId;
+      }
+    });
+  }
+
+  getMergeCommits() {
+    return this.mergeCommits;
   }
 
   getValidSortedTransactions(options?: {

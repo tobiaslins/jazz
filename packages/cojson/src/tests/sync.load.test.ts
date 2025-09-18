@@ -171,10 +171,10 @@ describe("loading coValues from server", () => {
       [
         "client -> server | LOAD Branch sessions: empty",
         "server -> client | CONTENT Group header: true new: After: 0 New: 5",
-        "server -> client | CONTENT Map header: true new: After: 0 New: 2",
+        "server -> client | CONTENT Map header: true new: After: 0 New: 3",
         "server -> client | CONTENT Branch header: true new: After: 0 New: 2",
         "client -> server | KNOWN Group sessions: header/5",
-        "client -> server | KNOWN Map sessions: header/2",
+        "client -> server | KNOWN Map sessions: header/3",
         "client -> server | KNOWN Branch sessions: header/2",
       ]
     `);
@@ -507,9 +507,9 @@ describe("loading coValues from server", () => {
       connected: true,
     });
 
-    await loadCoValueOrFail(client.node, largeMap.id);
+    const mapOnClient = await loadCoValueOrFail(client.node, largeMap.id);
 
-    await largeMap.core.waitForSync();
+    await mapOnClient.core.waitForFullStreaming();
 
     expect(
       SyncMessagesLog.getMessages({
@@ -1133,5 +1133,22 @@ describe("loading coValues from server", () => {
     // Verify the map is available on the server (transaction was accepted)
     const mapOnServerCore = await syncServer.node.loadCoValueCore(map.core.id);
     expect(mapOnServerCore.isAvailable()).toBe(true);
+  });
+
+  test("unknown coValues are ignored if ignoreUnrequestedCoValues is true", async () => {
+    const group = jazzCloud.node.createGroup();
+    const map = group.createMap();
+    map.set("hello", "world", "trusting");
+
+    const { node: shardedCoreNode } = setupTestNode({
+      connected: true,
+    });
+    shardedCoreNode.syncManager.disableTransactionVerification();
+    shardedCoreNode.syncManager.ignoreUnknownCoValuesFromServers();
+
+    await shardedCoreNode.loadCoValueCore(map.id);
+
+    expect(shardedCoreNode.hasCoValue(map.id)).toBe(true);
+    expect(shardedCoreNode.hasCoValue(group.id)).toBe(false);
   });
 });

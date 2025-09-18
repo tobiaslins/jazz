@@ -267,6 +267,7 @@ export default async function Page() {
                         upOverTime={row.upOverTime}
                         upCountOverTime={row.upCountOverTime}
                         intervalMin={intervalMin}
+                        isUp={row.up}
                       />
                     </td>
                     <td className="whitespace-nowrap px-3 py-2 text-sm">
@@ -281,8 +282,8 @@ export default async function Page() {
                           className={clsx(
                             "flex-none rounded-full p-1",
                             row.up
-                              ? "text-green-400 bg-green-400/10"
-                              : "text-rose-400 bg-rose-400/10",
+                              ? "text-green-400 bg-green-400/30"
+                              : "text-red-500 bg-red-400/30",
                           )}
                         >
                           <div className="size-1.5 rounded-full bg-current" />
@@ -305,6 +306,9 @@ export default async function Page() {
           )}
         </tbody>
       </table>
+        <p className="text-sm text-gray-500 text-right">
+          All times are expressed in <span className="font-bold">UTC</span>
+        </p>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { wordlist } from "./wordlist.ts";
+import { apiKey } from "./apiKey.ts";
 
 function PassphraseAuthBasicUI(props: {
   appName: string;
@@ -142,7 +143,7 @@ function JazzAndAuth({ children }: { children: React.ReactNode }) {
   return (
     <JazzReactProvider
       sync={{
-        peer: "wss://cloud.jazz.tools/?key=minimal-auth-passphrase-example@garden.co",
+        peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
       }}
     >
       <PassphraseAuthBasicUI

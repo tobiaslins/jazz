@@ -154,6 +154,29 @@ describe("CoMap", async () => {
       expect(person.dog?.name).toEqual("Rex");
     });
 
+    test("assign a child by only passing the id", () => {
+      const Dog = co.map({
+        name: z.string(),
+      });
+
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+        dog: Dog,
+      });
+
+      const dog = Dog.create({ name: "Rex" });
+
+      const person = Person.create({
+        name: "John",
+        age: 20,
+        // @ts-expect-error - This is an hack to test the behavior
+        dog: { $jazz: { id: dog.$jazz.id } },
+      });
+
+      expect(person.dog?.name).toEqual("Rex");
+    });
+
     describe("create CoMap with references using JSON", () => {
       const Dog = co.map({
         type: z.literal("dog"),
@@ -281,14 +304,16 @@ describe("CoMap", async () => {
       expect(person.friend?.age).toEqual(21);
     });
 
-    test("JSON.stringify should not include internal properties", () => {
+    test("JSON.stringify should include user-defined properties + $jazz.id", () => {
       const Person = co.map({
         name: z.string(),
       });
 
       const person = Person.create({ name: "John" });
 
-      expect(JSON.stringify(person)).toEqual('{"name":"John"}');
+      expect(JSON.stringify(person)).toEqual(
+        `{"$jazz":{"id":"${person.$jazz.id}"},"name":"John"}`,
+      );
     });
 
     test("toJSON should not fail when there is a key in the raw value not represented in the schema", () => {
@@ -302,6 +327,7 @@ describe("CoMap", async () => {
       person.$jazz.raw.set("extra", "extra");
 
       expect(person.toJSON()).toEqual({
+        $jazz: { id: person.$jazz.id },
         name: "John",
         age: 20,
       });
@@ -323,9 +349,11 @@ describe("CoMap", async () => {
       });
 
       expect(person.toJSON()).toEqual({
+        $jazz: { id: person.$jazz.id },
         name: "John",
         age: 20,
         friend: {
+          $jazz: { id: person.friend?.$jazz.id },
           name: "Jane",
           age: 21,
         },
@@ -349,6 +377,7 @@ describe("CoMap", async () => {
       person.$jazz.set("friend", person);
 
       expect(person.toJSON()).toEqual({
+        $jazz: { id: person.$jazz.id },
         name: "John",
         age: 20,
         friend: {
@@ -373,6 +402,7 @@ describe("CoMap", async () => {
       });
 
       expect(john.toJSON()).toMatchObject({
+        $jazz: { id: john.$jazz.id },
         name: "John",
         age: 20,
         birthday: birthday.toISOString(),
@@ -407,6 +437,7 @@ describe("CoMap", async () => {
       const john = Person.create({ name: "John", age: 30, x: 1 });
 
       expect(john.toJSON()).toEqual({
+        $jazz: { id: john.$jazz.id },
         name: "John",
         age: 30,
       });
@@ -510,6 +541,7 @@ describe("CoMap", async () => {
       expect(john.age).toEqual(undefined);
 
       expect(john.toJSON()).toEqual({
+        $jazz: { id: john.$jazz.id },
         name: "John",
       });
       // The CoMap proxy hides the age property from the `in` operator
@@ -541,6 +573,7 @@ describe("CoMap", async () => {
       expect(john.age).not.toBeDefined();
       expect(john.pet).not.toBeDefined();
       expect(john.toJSON()).toEqual({
+        $jazz: { id: john.$jazz.id },
         name: "John",
       });
       expect("age" in john).toEqual(false);
@@ -999,7 +1032,10 @@ describe("CoMap resolution", async () => {
     });
 
     assert(loadedPerson);
-    expect(loadedPerson.dog?.name).toEqual("Rex");
+
+    await waitFor(() => {
+      expect(loadedPerson.dog?.name).toEqual("Rex");
+    });
   });
 
   test("loading a remotely available map with skipRetry set to true", async () => {
@@ -1108,7 +1144,10 @@ describe("CoMap resolution", async () => {
 
     expect(resolved).toBe(true);
     assert(loadedPerson);
-    expect(loadedPerson.dog?.name).toEqual("Rex");
+
+    await waitFor(() => {
+      expect(loadedPerson.dog?.name).toEqual("Rex");
+    });
   });
 
   test("accessing the value refs", async () => {
@@ -1386,15 +1425,17 @@ describe("CoMap resolution", async () => {
 
     expect(spy).toHaveBeenCalledTimes(1);
 
-    expect(updates[0]?.dog?.name).toEqual("Rex");
+    await waitFor(() => {
+      expect(updates[0]?.dog?.name).toEqual("Rex");
+    });
 
     person.dog!.$jazz.set("name", "Fido");
 
-    await waitFor(() => expect(spy).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(spy).toHaveBeenCalledTimes(3));
 
     expect(updates[1]?.dog?.name).toEqual("Fido");
 
-    expect(spy).toHaveBeenCalledTimes(2);
+    expect(spy).toHaveBeenCalledTimes(3);
   });
 
   test("replacing nested object triggers updates", async () => {
@@ -2626,6 +2667,43 @@ describe("co.map schema", () => {
       expect(draftPerson.name).toEqual("John");
       expect(draftPerson.age).toEqual(20);
       expect(draftPerson.pet).toEqual(rex);
+    });
+
+    test("creates a new CoMap schema by making some properties optional", () => {
+      const Dog = co.map({
+        name: z.string(),
+        breed: z.string(),
+      });
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+        pet: Dog,
+      });
+
+      const DraftPerson = Person.partial({
+        pet: true,
+      });
+
+      const draftPerson = DraftPerson.create({
+        name: "John",
+        age: 20,
+      });
+
+      expect(draftPerson.$jazz.has("pet")).toBe(false);
+
+      const rex = Dog.create({ name: "Rex", breed: "Labrador" });
+      draftPerson.$jazz.set("pet", rex);
+
+      expect(draftPerson.pet).toEqual(rex);
+
+      expect(draftPerson.$jazz.has("pet")).toBe(true);
+
+      draftPerson.$jazz.delete("pet");
+
+      expect(draftPerson.$jazz.has("pet")).toBe(false);
+
+      // @ts-expect-error - should not allow deleting required properties
+      draftPerson.$jazz.delete("age");
     });
 
     test("the new schema includes catchall properties", () => {

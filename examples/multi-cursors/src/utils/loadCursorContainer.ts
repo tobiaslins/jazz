@@ -43,41 +43,41 @@ export async function loadCursorContainer(
   groupID: string,
 ): Promise<string | undefined> {
   if (!me) return;
-  console.log("Loading group...");
+
   const group = await loadGroup(me, groupID);
 
+  // Using the origin as part of the unique identifier
+  // to have different cursors for different origins
+  const cursorUID = { feed: cursorFeedID, origin: location.origin };
+
   const cursorContainer = await CursorContainer.loadUnique(
-    cursorFeedID,
+    cursorUID,
     group?.$jazz.id,
-    {
-      resolve: {
-        cursorFeed: true,
-      },
-    },
   );
-  console.log(`Loading cursor container: ${cursorContainer?.$jazz.id}`);
 
   if (cursorContainer === null || cursorContainer === undefined) {
     console.log("Global cursors does not exist, creating...");
-    const cursorContainer = CursorContainer.create(
-      {
+    const cursorContainer = await CursorContainer.upsertUnique({
+      value: {
         cursorFeed: CursorFeed.create([], group),
       },
-      {
-        owner: group,
-        unique: cursorFeedID,
+      resolve: {
+        cursorFeed: true,
       },
-    );
-    console.log("Created global cursors", cursorContainer.$jazz.id);
-    if (cursorContainer.cursorFeed === null) {
-      throw new Error("cursorFeed is null");
+      unique: cursorUID,
+      owner: group,
+    });
+    if (cursorContainer === null) {
+      throw new Error("Unable to create global cursors");
     }
+
     return cursorContainer.cursorFeed.$jazz.id;
   } else {
-    console.log(
-      "Global cursors already exists, loading...",
-      cursorContainer.$jazz.id,
-    );
-    return cursorContainer.cursorFeed?.$jazz.id;
+    const { cursorFeed } = await cursorContainer.$jazz.ensureLoaded({
+      resolve: {
+        cursorFeed: true,
+      },
+    });
+    return cursorFeed.$jazz.id;
   }
 }

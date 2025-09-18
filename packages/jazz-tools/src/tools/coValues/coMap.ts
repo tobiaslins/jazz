@@ -27,6 +27,7 @@ import {
   SubscribeListenerOptions,
   SubscribeRestArgs,
   TypeSym,
+  BranchDefinition,
 } from "../internal.js";
 import {
   Account,
@@ -185,7 +186,9 @@ export class CoMap extends CoValueBase implements CoValue {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   toJSON(_key?: string, processedValues?: ID<CoValue>[]): any {
-    const result = {} as Record<string, any>;
+    const result = {
+      $jazz: { id: this.$jazz.id },
+    } as Record<string, any>;
 
     for (const key of this.$jazz.raw.keys()) {
       const tKey = key as CoKeys<this>;
@@ -559,14 +562,6 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
     super(coMap);
   }
 
-  /**
-   * The ID of this `CoMap`
-   * @category Content
-   */
-  get id(): ID<M> {
-    return this.raw.id;
-  }
-
   get owner(): Group {
     return getCoValueOwner(this.coMap);
   }
@@ -691,6 +686,7 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
     this: CoMapJazzApi<Map>,
     options: {
       resolve: RefsToResolveStrict<Map, R>;
+      unstable_branch?: BranchDefinition;
     },
   ): Promise<Resolved<Map, R>> {
     return ensureCoValueLoaded(this.coMap, options);
@@ -711,7 +707,10 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
   ): () => void;
   subscribe<Map extends CoMap, const R extends RefsToResolve<Map> = true>(
     this: CoMapJazzApi<Map>,
-    options: { resolve?: RefsToResolveStrict<Map, R> },
+    options: {
+      resolve?: RefsToResolveStrict<Map, R>;
+      unstable_branch?: BranchDefinition;
+    },
     listener: (value: Resolved<Map, R>, unsubscribe: () => void) => void,
   ): () => void;
   subscribe<Map extends CoMap, const R extends RefsToResolve<Map>>(
@@ -832,24 +831,6 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
   /** @internal */
   override get raw() {
     return this.getRaw();
-  }
-
-  /**
-   * The timestamp of the creation time of the CoMap
-   *
-   * @category Content
-   */
-  get createdAt(): number {
-    return this.raw.earliestTxMadeAt ?? Number.MAX_SAFE_INTEGER;
-  }
-
-  /**
-   * The timestamp of the last updated time of the CoMap
-   *
-   * @category Content
-   */
-  get lastUpdatedAt(): number {
-    return this.raw.latestTxMadeAt;
   }
 
   /** @internal */

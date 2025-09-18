@@ -28,6 +28,7 @@ const Project = co.map({
   coordinator: co.optional(Member),
 });
 export type Project = co.loaded<typeof Project>;
+export type ProjectInitShape = co.input<typeof Project>; // type accepted by `Project.create`
 ```
 </CodeGroup>
 
@@ -184,7 +185,7 @@ if (project.coordinator) {
 
 ### Recursive references
 
-CoMaps can reference themselves recursively:
+You can wrap references in getters. This allows you to defer evaluation until the property is accessed. This technique is particularly useful for defining circular references, including recursive (self-referencing) schemas, or mutually recursive schemas. 
 
 <CodeGroup>
 ```ts twoslash
