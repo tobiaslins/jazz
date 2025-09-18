@@ -1,5 +1,14 @@
 # jazz-tools
 
+## 0.18.14
+
+### Patch Changes
+
+- a04435e: Optimized updates on large subscriptions
+  - cojson@0.18.14
+  - cojson-storage-indexeddb@0.18.14
+  - cojson-transport-ws@0.18.14
+
 ## 0.18.13
 
 ### Patch Changes
