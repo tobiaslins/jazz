@@ -1,7 +1,7 @@
 {
   "name": "cojson-core-wasm",
   "type": "module",
-  "version": "0.18.14",
+  "version": "0.18.15",
   "files": [
     "public/cojson_core_wasm.js",
     "public/cojson_core_wasm.d.ts",
@@ -19,12 +19,12 @@
   },
   "exports": {
     ".": {
-        "default": "./index.js",
-        "types": "./index.d.ts"
+      "default": "./index.js",
+      "types": "./index.d.ts"
     },
     "./edge-lite": {
-        "default": "./edge-lite.js",
-        "types": "./index.d.ts"
+      "default": "./edge-lite.js",
+      "types": "./index.d.ts"
     }
   },
   "devDependencies": {
