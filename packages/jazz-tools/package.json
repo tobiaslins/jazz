@@ -163,6 +163,11 @@
       "@jazz-tools/source": "./src/better-auth/auth/server.ts",
       "types": "./dist/better-auth/auth/server.d.ts",
       "default": "./dist/better-auth/auth/server.js"
+    },
+    "./load-edge-wasm": {
+      "@jazz-tools/source": "./src/worker/edge-wasm.ts",
+      "types": "./dist/worker/edge-wasm.d.ts",
+      "default": "./dist/worker/edge-wasm.js"
     }
   },
   "type": "module",

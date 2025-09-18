@@ -78,3 +78,34 @@ In case you want to avoid setting the current account, you can pass `asActiveAcc
 Server Worker credentials are typically stored and provided as environment variables.
 
 **Take extra care with the Account Secret &mdash; handle it like any other secret environment variable such as a DB password.**
+
+## Wasm on Edge runtimes
+
+To maximize compatibility, Jazz falls back to a slower, JavaScript crypto implementation if the faster WASM implementation is not available.
+
+On some edge platforms, such as Cloudflare Workers or Vercel Edge Functions, environment security restrictions may trigger this fallback unnecessarily.
+
+You can ensure that Jazz uses the faster WASM implementation by importing the WASM loader before using Jazz. For example:
+
+<CodeGroup>
+```ts
+import "jazz-tools/load-edge-wasm"
+// Other Jazz Imports
+
+export default {
+  async fetch(request, env, ctx) {
+    // Jazz application logic
+    return new Response("Hello from Jazz on Cloudflare!");
+  },
+};
+```
+</CodeGroup>
+
+Currently, the Jazz Loader is tested on the following edge environments:
+- Cloudflare Workers 
+- Vercel Functions
+
+### Requirements
+
+- Edge runtime environment that supports WebAssembly
+- `jazz-tools/load-edge-wasm` must be imported before any Jazz import
