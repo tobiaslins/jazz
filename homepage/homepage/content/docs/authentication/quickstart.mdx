@@ -447,8 +447,8 @@ export function NewBand({ id }: { id?: string }) {
   const [name, setName] = useState("");
 
   // [!code ++:2]
-  const festivalId = $derived(id ?? me.current?.root.myFestival.$jazz.id);
-	const festival = $derived(new CoState(Festival, festivalId));
+  const festivalId = id ?? me?.root.myFestival.$jazz.id;
+  const festival = useCoState(Festival, festivalId);
   
   const handleSave = () => {
     // [!code --:2]
