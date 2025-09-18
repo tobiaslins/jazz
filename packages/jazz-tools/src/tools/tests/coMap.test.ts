@@ -154,6 +154,29 @@ describe("CoMap", async () => {
       expect(person.dog?.name).toEqual("Rex");
     });
 
+    test("assign a child by only passing the id", () => {
+      const Dog = co.map({
+        name: z.string(),
+      });
+
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+        dog: Dog,
+      });
+
+      const dog = Dog.create({ name: "Rex" });
+
+      const person = Person.create({
+        name: "John",
+        age: 20,
+        // @ts-expect-error - This is an hack to test the behavior
+        dog: { $jazz: { id: dog.$jazz.id } },
+      });
+
+      expect(person.dog?.name).toEqual("Rex");
+    });
+
     describe("create CoMap with references using JSON", () => {
       const Dog = co.map({
         type: z.literal("dog"),

@@ -16,7 +16,6 @@ import {
   getCoValueOwner,
   Group,
   ID,
-  unstable_mergeBranch,
   PartialOnUndefined,
   RefEncoded,
   RefIfCoValue,
