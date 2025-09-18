@@ -1,7 +1,7 @@
 ---
-"cojson-core-wasm": minor
-"jazz-tools": minor
-"cojson": minor
+"cojson-core-wasm": patch
+"jazz-tools": patch
+"cojson": patch
 ---
 
 Add WasmCrypto support for Cloudflare Workers and edge runtimes by importing `jazz-tools/load-edge-wasm`.
