@@ -40,15 +40,9 @@ export abstract class CoValueBase implements CoValue {
 
 export abstract class CoValueJazzApi<V extends CoValue> {
   /** @category Internals */
-  declare _instanceID: string;
   declare _subscriptionScope: SubscriptionScope<CoValue> | undefined;
 
-  constructor(private coValue: V) {
-    Object.defineProperty(this, "_instanceID", {
-      value: `instance-${Math.random().toString(36).slice(2)}`,
-      enumerable: false,
-    });
-  }
+  constructor(private coValue: V) {}
 
   get id(): string {
     const sourceId = this.raw.core.getCurrentBranchSourceId();

@@ -113,10 +113,7 @@ export class RawCoMapView<
 
     const { ops } = this;
 
-    const changedEntries = new Map<
-      keyof typeof ops,
-      NonNullable<(typeof ops)[keyof typeof ops]>
-    >();
+    const changedEntries = new Set<keyof typeof ops>();
 
     for (const { txID, changes, madeAt, tx } of newValidTransactions) {
       for (let changeIdx = 0; changeIdx < changes.length; changeIdx++) {
@@ -136,20 +133,20 @@ export class RawCoMapView<
         if (!entries) {
           const entries = [entry];
           ops[change.key] = entries;
-          changedEntries.set(change.key, entries);
         } else {
           entries.push(entry);
-          changedEntries.set(change.key, entries);
         }
+        changedEntries.add(change.key);
       }
     }
 
-    for (const entries of changedEntries.values()) {
-      entries.sort(this.core.compareTransactions);
-    }
+    for (const key of changedEntries) {
+      const entries = ops[key];
 
-    for (const [key, entries] of changedEntries.entries()) {
-      this.latest[key] = entries[entries.length - 1];
+      if (entries) {
+        entries.sort(this.core.compareTransactions);
+        this.latest[key] = entries[entries.length - 1];
+      }
     }
   }
 
