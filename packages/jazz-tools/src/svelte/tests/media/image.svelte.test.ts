@@ -12,7 +12,6 @@ describe("Image", async () => {
   });
 
   const renderWithAccount = (props: ImageProps) =>
-    // @ts-expect-error Svelte new Component type is not compatible with @testing-library/svelte
     render(Image, props, { account });
 
   describe("initial rendering", () => {
