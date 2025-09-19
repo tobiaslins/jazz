@@ -232,6 +232,11 @@ export const docNavigationItems = [
     name: "Groups, permissions & sharing",
     items: [
       {
+        name: "Quickstart",
+        href: "/docs/groups/quickstart",
+        done: 100,
+      },
+      {
         name: "Groups as permission scopes",
         href: "/docs/groups/intro",
         done: 10,
