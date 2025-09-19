@@ -1,5 +1,14 @@
 # cojson-core-wasm
 
+## 0.18.15
+
+### Patch Changes
+
+- a584ab3: Add WasmCrypto support for Cloudflare Workers and edge runtimes by importing `jazz-tools/load-edge-wasm`.
+
+  - Enable WasmCrypto functionality by initializing the WebAssembly environment with the import: `import "jazz-tools/load-edge-wasm"` in edge runtimes.
+  - Guarantee compatibility across Cloudflare Workers and other edge runtime environments.
+
 ## 0.18.14
 
 ## 0.18.13

@@ -1,12 +1,13 @@
 {
   "name": "cojson-core-wasm",
   "type": "module",
-  "version": "0.18.14",
+  "version": "0.18.15",
   "files": [
     "public/cojson_core_wasm.js",
     "public/cojson_core_wasm.d.ts",
     "public/cojson_core_wasm.wasm.js",
     "public/cojson_core_wasm.wasm.d.ts",
+    "public/cojson_core_wasm.wasm",
     "index.js",
     "index.d.ts"
   ],
@@ -15,6 +16,16 @@
   "scripts": {
     "build:wasm": "wasm-pack build --release --target web && node build.js",
     "build:dev": "wasm-pack build --dev --target web && node build.js"
+  },
+  "exports": {
+    ".": {
+      "default": "./index.js",
+      "types": "./index.d.ts"
+    },
+    "./edge-lite": {
+      "default": "./edge-lite.js",
+      "types": "./index.d.ts"
+    }
   },
   "devDependencies": {
     "wasm-pack": "^0.13.1"
