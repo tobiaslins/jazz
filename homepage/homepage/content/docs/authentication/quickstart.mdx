@@ -353,10 +353,12 @@ export function Festival({id}: {id?: string}) {
           (band) => band && <li key={band.$jazz.id}>{band.name}</li>,
         )}
       </ul>
-      <input type="text" value={inviteLink} readOnly />
-      <button type="button" onClick={inviteLinkClickHandler}>
-        Create Invite Link
-      </button>
+   {me?.canAdmin(festival) && (
+          <input type="text" value={inviteLink} readOnly />
+          <button type="button" onClick={inviteLinkClickHandler}>
+             Create Invite Link
+          </button>
+   )}
     </>
   );
 }
