@@ -78,22 +78,19 @@ export function hydrateCoreCoValueSchema<S extends AnyCoreCoValueSchema>(
     const def = schema.getDefinition();
     const ClassToExtend = schema.builtin === "Account" ? Account : CoMap;
 
-    const properties: Record<string, any> = {};
-
-    for (const [fieldName, fieldType] of Object.entries(def.shape)) {
-      properties[fieldName] = schemaFieldToCoFieldDef(fieldType as SchemaField);
-    }
-
-    if (def.catchall) {
-      properties[coField.items] = schemaFieldToCoFieldDef(
-        def.catchall as SchemaField,
-      );
-    }
-
     const coValueClass = class ZCoMap extends ClassToExtend {
       constructor(options: { fromRaw: RawCoMap } | undefined) {
         super(options);
-        Object.assign(this, properties);
+        for (const [fieldName, fieldType] of Object.entries(def.shape)) {
+          (this as any)[fieldName] = schemaFieldToCoFieldDef(
+            fieldType as SchemaField,
+          );
+        }
+        if (def.catchall) {
+          (this as any)[coField.items] = schemaFieldToCoFieldDef(
+            def.catchall as SchemaField,
+          );
+        }
       }
     };
 
