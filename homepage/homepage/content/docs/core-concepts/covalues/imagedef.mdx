@@ -228,7 +228,7 @@ async function handleImagePicker() {
 
 The `createImage()` function:
 - Creates an `ImageDefinition` with the right properties
-- Generates a small placeholder for immediate display
+- Optionally generates a small placeholder for immediate display
 - Creates multiple resolution variants of your image
 - Returns the created `ImageDefinition`
 
@@ -242,7 +242,7 @@ declare function createImage(
   image: Blob | File | string,
   options: {
     owner?: Group | Account;
-    placeholder?: "blur" | false;
+    placeholder?: false | "blur";
     maxSize?: number;
     progressive?: boolean;
   }): Loaded<
@@ -268,7 +268,7 @@ The owner of the `ImageDefinition`. This is used to control access to the image.
 
 #### `placeholder`
 
-The placeholder is a base64 encoded image that is displayed while the image is loading. Currently, only `"blur"` is a supported.
+Disabled by default. This option allows you to automatically generate a low resolution preview for use while the image is loading. Currently, only `"blur"` is a supported.
 
 #### `maxSize`
 
