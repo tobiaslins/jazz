@@ -1,5 +1,14 @@
 # jazz-tools
 
+## 0.18.16
+
+### Patch Changes
+
+- 67b95b7: Introduced new Better Auth database adapter based on Jazz
+  - cojson@0.18.16
+  - cojson-storage-indexeddb@0.18.16
+  - cojson-transport-ws@0.18.16
+
 ## 0.18.15
 
 ### Patch Changes
