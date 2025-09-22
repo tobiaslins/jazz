@@ -41,6 +41,16 @@ export class CoValueCoreSubscription {
     this.initializeSubscription();
   }
 
+  rehydrate() {
+    if (!this.unsubscribed) {
+      return;
+    }
+
+    this.unsubscribed = false;
+    this.initializeSubscription();
+    this.unsubscribe();
+  }
+
   /**
    * Main entry point for subscription initialization.
    * Determines the subscription strategy based on current availability and branch requirements.

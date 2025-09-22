@@ -45,6 +45,7 @@ export class SubscriptionScope<D extends CoValue> {
   totalValidTransactions = 0;
   migrated = false;
   migrating = false;
+  closed = false;
 
   silenceUpdates = false;
 
@@ -69,7 +70,6 @@ export class SubscriptionScope<D extends CoValue> {
 
         if (skipRetry && value === "unavailable") {
           this.handleUpdate(value);
-          this.destroy();
           return;
         }
 
@@ -398,8 +398,39 @@ export class SubscriptionScope<D extends CoValue> {
     );
   }
 
+  /**
+   * Checks if the currently unloaded value has got some updates
+   *
+   * Used to make the autoload work on closed subscription scopes
+   */
+  rehydrate(listener: (value: SubscriptionValue<D, any>) => void) {
+    if (!this.closed) {
+      throw new Error("Cannot rehydrate a non-closed subscription scope");
+    }
+
+    if (this.value.type === "loaded") {
+      return;
+    }
+
+    this.subscription.rehydrate();
+    this.setListener(listener);
+    this.destroy();
+  }
+
   subscribeToId(id: string, descriptor: RefEncoded<any>) {
     if (this.isSubscribedToId(id)) {
+      if (this.closed !== true) {
+        return;
+      }
+
+      const child = this.childNodes.get(id);
+
+      // If the subscription is closed, check if we missed the value
+      // load event
+      if (child) {
+        child.rehydrate((value) => this.handleChildUpdate(id, value));
+      }
+
       return;
     }
 
@@ -425,6 +456,14 @@ export class SubscriptionScope<D extends CoValue> {
     );
     this.childNodes.set(id, child);
     child.setListener((value) => this.handleChildUpdate(id, value));
+
+    /**
+     * If the current subscription scope is closed, spawn
+     * child nodes only to load in-memory values
+     */
+    if (this.closed) {
+      child.destroy();
+    }
 
     this.silenceUpdates = false;
   }
@@ -676,9 +715,19 @@ export class SubscriptionScope<D extends CoValue> {
     );
     this.childNodes.set(id, child);
     child.setListener((value) => this.handleChildUpdate(id, value, key));
+
+    /**
+     * If the current subscription scope is closed, spawn
+     * child nodes only to load in-memory values
+     */
+    if (this.closed) {
+      child.destroy();
+    }
   }
 
   destroy() {
+    this.closed = true;
+
     this.subscription.unsubscribe();
     this.subscribers.clear();
     this.childNodes.forEach((child) => child.destroy());
