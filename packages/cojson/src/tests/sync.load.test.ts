@@ -132,6 +132,54 @@ describe("loading coValues from server", () => {
     `);
   });
 
+  test("loading a branch", async () => {
+    const client = setupTestNode({
+      connected: true,
+    });
+
+    const group = jazzCloud.node.createGroup();
+    group.addMember("everyone", "writer");
+    const map = group.createMap();
+    const branchName = "feature-branch";
+
+    map.set("key1", "value1");
+    map.set("key2", "value2");
+
+    const branch = await jazzCloud.node.checkoutBranch(map.id, branchName);
+
+    if (branch === "unavailable") {
+      throw new Error("Branch is unavailable");
+    }
+
+    branch.set("branchKey", "branchValue");
+
+    SyncMessagesLog.clear();
+
+    const loadedBranch = await loadCoValueOrFail(client.node, branch.id);
+
+    expect(branch.get("key1")).toBe("value1");
+    expect(branch.get("key2")).toBe("value2");
+    expect(branch.get("branchKey")).toBe("branchValue");
+
+    expect(
+      SyncMessagesLog.getMessages({
+        Group: group.core,
+        Map: map.core,
+        Branch: branch.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "client -> server | LOAD Branch sessions: empty",
+        "server -> client | CONTENT Group header: true new: After: 0 New: 5",
+        "server -> client | CONTENT Map header: true new: After: 0 New: 3",
+        "server -> client | CONTENT Branch header: true new: After: 0 New: 2",
+        "client -> server | KNOWN Group sessions: header/5",
+        "client -> server | KNOWN Map sessions: header/3",
+        "client -> server | KNOWN Branch sessions: header/2",
+      ]
+    `);
+  });
+
   test("unavailable coValue retry with skipRetry set to false", async () => {
     const client = setupTestNode();
     const client2 = setupTestNode();
@@ -459,9 +507,9 @@ describe("loading coValues from server", () => {
       connected: true,
     });
 
-    await loadCoValueOrFail(client.node, largeMap.id);
+    const mapOnClient = await loadCoValueOrFail(client.node, largeMap.id);
 
-    await largeMap.core.waitForSync();
+    await mapOnClient.core.waitForFullStreaming();
 
     expect(
       SyncMessagesLog.getMessages({
@@ -1085,5 +1133,22 @@ describe("loading coValues from server", () => {
     // Verify the map is available on the server (transaction was accepted)
     const mapOnServerCore = await syncServer.node.loadCoValueCore(map.core.id);
     expect(mapOnServerCore.isAvailable()).toBe(true);
+  });
+
+  test("unknown coValues are ignored if ignoreUnrequestedCoValues is true", async () => {
+    const group = jazzCloud.node.createGroup();
+    const map = group.createMap();
+    map.set("hello", "world", "trusting");
+
+    const { node: shardedCoreNode } = setupTestNode({
+      connected: true,
+    });
+    shardedCoreNode.syncManager.disableTransactionVerification();
+    shardedCoreNode.syncManager.ignoreUnknownCoValuesFromServers();
+
+    await shardedCoreNode.loadCoValueCore(map.id);
+
+    expect(shardedCoreNode.hasCoValue(map.id)).toBe(true);
+    expect(shardedCoreNode.hasCoValue(group.id)).toBe(false);
   });
 });

@@ -39,6 +39,7 @@ import { StorageAPI } from "./storage/index.js";
 import { Peer, PeerID, SyncManager } from "./sync.js";
 import { accountOrAgentIDfromSessionID } from "./typeUtils/accountOrAgentIDfromSessionID.js";
 import { expectGroup } from "./typeUtils/expectGroup.js";
+import { canBeBranched } from "./coValueCore/branching.js";
 
 /** A `LocalNode` represents a local view of a set of loaded `CoValue`s, from the perspective of a particular account (or primitive cryptographic agent).
 
@@ -95,6 +96,10 @@ export class LocalNode {
   removeStorage() {
     this.storage?.close();
     this.storage = undefined;
+  }
+
+  hasCoValue(id: RawCoID) {
+    return this.coValues.has(id);
   }
 
   getCoValue(id: RawCoID) {
@@ -408,7 +413,7 @@ export class LocalNode {
         coValue.loadingState === "unknown" ||
         coValue.loadingState === "unavailable"
       ) {
-        const peers = this.syncManager.getServerPeers(skipLoadingFromPeer);
+        const peers = this.syncManager.getServerPeers(id, skipLoadingFromPeer);
 
         if (!this.storage && peers.length === 0) {
           return coValue;
@@ -455,6 +460,50 @@ export class LocalNode {
     }
 
     return core.getCurrentContent() as T;
+  }
+
+  /**
+   * Loads a branch from a group coValue, creating a new one if it doesn't exist.
+   *
+   * Returns "unavailable" in case of errors or missing source.
+   */
+  async checkoutBranch<T extends RawCoValue>(
+    id: CoID<T> | RawCoID,
+    branchName: string,
+    branchOwnerID?: RawCoID,
+  ): Promise<T | "unavailable"> {
+    const source = await this.loadCoValueCore(id);
+
+    if (!source.isAvailable()) {
+      return "unavailable";
+    }
+
+    if (!canBeBranched(source)) {
+      return source.getCurrentContent() as T;
+    }
+
+    const branch = source.getBranch(branchName, branchOwnerID);
+
+    if (branch.isAvailable()) {
+      return branch.getCurrentContent() as T;
+    }
+
+    // Do a synchronous check to see if the branch exists, if not we don't need to try to load the branch
+    if (!source.hasBranch(branchName, branchOwnerID)) {
+      return source
+        .createBranch(branchName, branchOwnerID)
+        .getCurrentContent() as T;
+    }
+
+    await this.loadCoValueCore(branch.id);
+
+    if (!branch.isAvailable()) {
+      return source
+        .createBranch(branchName, branchOwnerID)
+        .getCurrentContent() as T;
+    }
+
+    return branch.getCurrentContent() as T;
   }
 
   getLoaded<T extends RawCoValue>(id: CoID<T>): T | undefined {

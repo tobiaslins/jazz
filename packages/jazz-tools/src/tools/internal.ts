@@ -1,5 +1,6 @@
 export * from "./coValues/interfaces.js";
 export * from "./coValues/CoValueBase.js";
+export * from "./coValues/CoFieldInit.js";
 export * from "./implementation/inspect.js";
 export * from "./implementation/symbols.js";
 
@@ -15,6 +16,8 @@ export * from "./coValues/inbox.js";
 export * from "./coValues/coPlainText.js";
 export * from "./coValues/coRichText.js";
 export * from "./coValues/schemaUnion.js";
+
+export type * from "./subscribe/types.js";
 
 export * from "./coValues/deepLoading.js";
 export * from "./implementation/anonymousJazzAgent.js";
@@ -45,7 +48,7 @@ export * from "./implementation/zodSchema/typeConverters/InstanceOrPrimitiveOfSc
 export * from "./implementation/zodSchema/typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 export * from "./implementation/zodSchema/typeConverters/InstanceOfSchema.js";
 export * from "./implementation/zodSchema/typeConverters/InstanceOfSchemaCoValuesNullable.js";
-export * from "./implementation/zodSchema/typeConverters/CoFieldInit.js";
+export * from "./implementation/zodSchema/typeConverters/CoFieldSchemaInit.js";
 export * from "./implementation/zodSchema/runtimeConverters/coValueSchemaTransformation.js";
 export * from "./implementation/zodSchema/runtimeConverters/schemaFieldToCoFieldDef.js";
 export * from "./coValues/extensions/imageDef.js";

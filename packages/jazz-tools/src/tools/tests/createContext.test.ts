@@ -45,8 +45,8 @@ describe("createContext methods", () => {
       });
 
       const credentials: Credentials = {
-        accountID: account.id,
-        secret: account._raw.core.node.getCurrentAgent().agentSecret,
+        accountID: account.$jazz.id,
+        secret: account.$jazz.localNode.getCurrentAgent().agentSecret,
       };
 
       const context = await createJazzContextFromExistingCredentials({
@@ -54,11 +54,12 @@ describe("createContext methods", () => {
         peersToLoadFrom: [getPeerConnectedToTestSyncServer()],
         crypto: Crypto,
         sessionProvider: randomSessionProvider,
+        asActiveAccount: true,
       });
 
       expect(context.node).toBeDefined();
       expect(context.account).toBeDefined();
-      expect(context.account.id).toBe(credentials.accountID);
+      expect(context.account.$jazz.id).toBe(credentials.accountID);
       expect(typeof context.done).toBe("function");
       expect(typeof context.logOut).toBe("function");
     });
@@ -76,8 +77,8 @@ describe("createContext methods", () => {
       });
 
       const credentials: Credentials = {
-        accountID: account.id,
-        secret: account._raw.core.node.getCurrentAgent().agentSecret,
+        accountID: account.$jazz.id,
+        secret: account.$jazz.localNode.getCurrentAgent().agentSecret,
       };
 
       const context = await createJazzContextFromExistingCredentials({
@@ -86,6 +87,7 @@ describe("createContext methods", () => {
         crypto: Crypto,
         AccountSchema: CustomAccount,
         sessionProvider: randomSessionProvider,
+        asActiveAccount: true,
       });
 
       expect(context.account).toBeInstanceOf(
@@ -102,13 +104,14 @@ describe("createContext methods", () => {
 
       const context = await createJazzContextFromExistingCredentials({
         credentials: {
-          accountID: account.id,
-          secret: account._raw.core.node.getCurrentAgent().agentSecret,
+          accountID: account.$jazz.id,
+          secret: account.$jazz.localNode.getCurrentAgent().agentSecret,
         },
         peersToLoadFrom: [getPeerConnectedToTestSyncServer()],
         crypto: Crypto,
         sessionProvider: randomSessionProvider,
         onLogOut,
+        asActiveAccount: true,
       });
 
       context.logOut();
@@ -120,17 +123,18 @@ describe("createContext methods", () => {
         isCurrentActiveAccount: true,
       });
 
-      const coMap = account._raw.createMap();
+      const coMap = account.$jazz.raw.createMap();
       coMap.set("test", "test", "trusting");
 
       const context = await createJazzContextFromExistingCredentials({
         credentials: {
-          accountID: account.id,
-          secret: account._raw.core.node.getCurrentAgent().agentSecret,
+          accountID: account.$jazz.id,
+          secret: account.$jazz.localNode.getCurrentAgent().agentSecret,
         },
         peersToLoadFrom: [getPeerConnectedToTestSyncServer()],
         crypto: Crypto,
         sessionProvider: randomSessionProvider,
+        asActiveAccount: true,
       });
 
       const loadedMap = await loadCoValueOrFail(context.node, coMap.id);
@@ -145,15 +149,35 @@ describe("createContext methods", () => {
 
       const context = await createJazzContextFromExistingCredentials({
         credentials: {
-          accountID: account.id,
-          secret: account._raw.core.node.getCurrentAgent().agentSecret,
+          accountID: account.$jazz.id,
+          secret: account.$jazz.localNode.getCurrentAgent().agentSecret,
         },
         peersToLoadFrom: [getPeerConnectedToTestSyncServer()],
         crypto: Crypto,
         sessionProvider: randomSessionProvider,
+        asActiveAccount: true,
       });
 
       expect(activeAccountContext.get()).toBe(context.account);
+    });
+
+    test("does not set the active account when asActiveAccount is false", async () => {
+      const account = await createJazzTestAccount({
+        isCurrentActiveAccount: false,
+      });
+
+      const context = await createJazzContextFromExistingCredentials({
+        credentials: {
+          accountID: account.$jazz.id,
+          secret: account.$jazz.localNode.getCurrentAgent().agentSecret,
+        },
+        peersToLoadFrom: [getPeerConnectedToTestSyncServer()],
+        crypto: Crypto,
+        sessionProvider: randomSessionProvider,
+        asActiveAccount: false,
+      });
+
+      expect(activeAccountContext.get()).not.toBe(context.account);
     });
   });
 
@@ -229,7 +253,7 @@ describe("createContext methods", () => {
         isCurrentActiveAccount: true,
       });
 
-      const coMap = account._raw.createMap();
+      const coMap = account.$jazz.raw.createMap();
       coMap.set("test", "test", "trusting");
 
       const context = await createAnonymousJazzContext({
@@ -284,7 +308,7 @@ describe("createContext methods", () => {
         sessionProvider: randomSessionProvider,
       });
 
-      expect(newContext.account.id).toBe(initialContext.account.id);
+      expect(newContext.account.$jazz.id).toBe(initialContext.account.$jazz.id);
     });
 
     test("uses provided new account props", async () => {

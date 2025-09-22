@@ -1,10 +1,10 @@
 import { useCallback } from "react";
 
-import { Task, TodoAccount, TodoProject } from "./1_schema";
+import { TodoAccount, TodoProject } from "./1_schema";
 
 import { SubmittableInput } from "./basicComponents";
 
-import { Group, co } from "jazz-tools";
+import { Group } from "jazz-tools";
 import { useAccount } from "jazz-tools/react";
 import { useNavigate } from "react-router";
 
@@ -16,9 +16,11 @@ export function NewProjectForm() {
   });
   const navigate = useNavigate();
 
+  const projects = me?.root?.projects;
+
   const createProject = useCallback(
     (title: string) => {
-      if (!me || !title) return;
+      if (!projects || !title) return;
 
       // To create a new todo project, we first create a `Group`,
       // which is a scope for defining access rights (reader/writer/admin)
@@ -29,16 +31,16 @@ export function NewProjectForm() {
       const project = TodoProject.create(
         {
           title,
-          tasks: co.list(Task).create([], { owner: projectGroup }),
+          tasks: [],
         },
         { owner: projectGroup },
       );
 
-      me.root?.projects?.push(project);
+      projects?.$jazz.push(project);
 
-      navigate("/project/" + project.id);
+      navigate("/project/" + project.$jazz.id);
     },
-    [me, navigate],
+    [projects, navigate],
   );
 
   return (

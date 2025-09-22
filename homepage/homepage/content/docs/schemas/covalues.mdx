@@ -112,7 +112,7 @@ const project = TodoProject.create({
 
 <Alert variant="info" className="flex gap-2 items-center my-4">
 To learn more about how permissions work when creating nested CoValues with plain JSON objects,
-refer to [Group hierarchy on CoValue creation](/docs/groups/inheritance#group-hierarchy-on-covalue-creation).
+refer to [Ownership on implicit CoValue creation](/docs/groups/inheritance#ownership-on-implicit-covalue-creation).
 </Alert>
 
 ## Types of CoValues
@@ -257,12 +257,11 @@ const SliderWidget = co.map({
 
 const WidgetUnion = co.discriminatedUnion("type", [ButtonWidget, SliderWidget]);
 ```
-
 </CodeGroup>
 
-See the corresponding sections for [creating](/docs/using-covalues/schemaunions#creating-schemaunions),
+See the corresponding sections for [creating](/docs/using-covalues/schemaunions#creating-schema-unions),
 [subscribing/loading](/docs/using-covalues/subscription-and-loading) and
-[narrowing](/docs/using-covalues/schemaunions#narrowing) SchemaUnions.
+[narrowing](/docs/using-covalues/schemaunions#narrowing-unions) schema unions.
 
 ## CoValue field/item types
 
@@ -378,7 +377,7 @@ const Person = co.map({
 
 #### Recursive References
 
-You can refer to the same schema from within itself using getters:
+You can wrap references in getters. This allows you to defer evaluation until the property is accessed. This technique is particularly useful for defining circular references, including recursive (self-referencing) schemas, or mutually recursive schemas. 
 
 <CodeGroup>
 ```ts twoslash
@@ -411,6 +410,8 @@ const ListOfPeople = co.list(Person);
 ```
 
 </CodeGroup>
+
+If you try to reference `ListOfPeople` in `Person` without using a getter, you'll run into a `ReferenceError` because of the [temporal dead zone](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let#temporal_dead_zone_tdz).
 
 ### Helper methods
 
@@ -465,8 +466,8 @@ type Person = co.loaded<typeof Person>;
 
 export function updatePersonName(person: Person, fullName: string) {
   const [firstName, lastName] = fullName.split(" ");
-  person.firstName = firstName;
-  person.lastName = lastName;
+  person.$jazz.set("firstName", firstName);
+  person.$jazz.set("lastName", lastName);
 }
 
 const person = Person.create({

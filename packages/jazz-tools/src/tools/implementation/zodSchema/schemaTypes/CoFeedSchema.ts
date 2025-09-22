@@ -1,6 +1,7 @@
 import {
   Account,
   AnyZodOrCoValueSchema,
+  BranchDefinition,
   CoFeed,
   Group,
   RefsToResolve,
@@ -8,9 +9,10 @@ import {
   Resolved,
   SubscribeListenerOptions,
   coOptionalDefiner,
+  unstable_mergeBranchWithResolve,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
-import { CoFeedInit } from "../typeConverters/CoFieldInit.js";
+import { CoFeedSchemaInit } from "../typeConverters/CoFieldSchemaInit.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { CoOptionalSchema } from "./CoOptionalSchema.js";
@@ -28,7 +30,16 @@ export class CoFeedSchema<T extends AnyZodOrCoValueSchema>
   ) {}
 
   create(
-    init: CoFeedInit<T>,
+    init: CoFeedSchemaInit<T>,
+    options?: { owner: Group } | Group,
+  ): CoFeedInstance<T>;
+  /** @deprecated Creating CoValues with an Account as owner is deprecated. Use a Group instead. */
+  create(
+    init: CoFeedSchemaInit<T>,
+    options?: { owner: Account | Group } | Account | Group,
+  ): CoFeedInstance<T>;
+  create(
+    init: CoFeedSchemaInit<T>,
     options?: { owner: Account | Group } | Account | Group,
   ): CoFeedInstance<T> {
     return this.coValueClass.create(init as any, options) as CoFeedInstance<T>;
@@ -39,10 +50,25 @@ export class CoFeedSchema<T extends AnyZodOrCoValueSchema>
     options?: {
       resolve?: RefsToResolveStrict<CoFeedInstanceCoValuesNullable<T>, R>;
       loadAs?: Account | AnonymousJazzAgent;
+      unstable_branch?: BranchDefinition;
     },
   ): Promise<Resolved<CoFeedInstanceCoValuesNullable<T>, R> | null> {
     // @ts-expect-error
     return this.coValueClass.load(id, options);
+  }
+
+  unstable_merge<
+    const R extends RefsToResolve<CoFeedInstanceCoValuesNullable<T>> = true,
+  >(
+    id: string,
+    options?: {
+      resolve?: RefsToResolveStrict<CoFeedInstanceCoValuesNullable<T>, R>;
+      loadAs?: Account | AnonymousJazzAgent;
+      branch: BranchDefinition;
+    },
+  ): Promise<void> {
+    // @ts-expect-error
+    return unstable_mergeBranchWithResolve(this.coValueClass, id, options);
   }
 
   subscribe(

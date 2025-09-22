@@ -30,7 +30,7 @@ export type {
   Resolved,
   RefsToResolve,
   RefsToResolveStrict,
-  CoMapInit,
+  CoMapInit_DEPRECATED as CoMapInit,
   CoFeedEntry,
   TextPos,
   AccountClass,
@@ -94,6 +94,7 @@ export {
   type AuthResult,
   type Credentials,
   type JazzContextWithAccount,
+  type BranchDefinition,
 } from "./internal.js";
 
 export type * from "./types.js";

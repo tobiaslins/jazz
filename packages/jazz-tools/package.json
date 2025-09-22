@@ -19,16 +19,28 @@
       "types": "./dist/browser/index.d.ts",
       "default": "./dist/browser/index.js"
     },
-    "./browser-media-images": {
-      "@jazz-tools/source": "./src/browser-media-images/index.ts",
-      "types": "./dist/browser-media-images/index.d.ts",
-      "default": "./dist/browser-media-images/index.js"
-    },
     "./media": {
       "@jazz-tools/source": "./src/media/index.ts",
+      "react-native": {
+        "types": "./dist/media/index.native.d.ts",
+        "default": "./dist/media/index.native.js"
+      },
+      "browser": {
+        "types": "./dist/media/index.browser.d.ts",
+        "default": "./dist/media/index.browser.js"
+      },
+      "node": {
+        "@jazz-tools/source": "./src/media/index.server.ts",
+        "types": "./dist/media/index.server.d.ts",
+        "default": "./dist/media/index.server.js"
+      },
       "types": "./dist/media/index.d.ts",
-      "react-native": "./dist/media/index.native.js",
-      "default": "./dist/media/index.browser.js"
+      "default": "./dist/media/index.js"
+    },
+    "./media/server": {
+      "@jazz-tools/source": "./src/media/index.server.ts",
+      "types": "./dist/media/index.server.d.ts",
+      "default": "./dist/media/index.server.js"
     },
     "./expo": {
       "@jazz-tools/source": "./src/expo/index.ts",
@@ -122,7 +134,7 @@
       "default": "./dist/svelte/index.js"
     },
     "./svelte/testing": {
-      "svelte": "./dist/svelte/index.js",
+      "svelte": "./dist/svelte/testing.js",
       "@jazz-tools/source": "./src/svelte/testing.ts",
       "types": "./dist/svelte/testing.d.ts",
       "default": "./dist/svelte/testing.js"
@@ -136,11 +148,36 @@
       "@jazz-tools/source": "./src/worker/index.ts",
       "types": "./dist/worker/index.d.ts",
       "default": "./dist/worker/index.js"
+    },
+    "./better-auth/auth/client": {
+      "@jazz-tools/source": "./src/better-auth/auth/client.ts",
+      "types": "./dist/better-auth/auth/client.d.ts",
+      "default": "./dist/better-auth/auth/client.js"
+    },
+    "./better-auth/auth/react": {
+      "@jazz-tools/source": "./src/better-auth/auth/react.tsx",
+      "types": "./dist/better-auth/auth/react.d.ts",
+      "default": "./dist/better-auth/auth/react.js"
+    },
+    "./better-auth/auth/server": {
+      "@jazz-tools/source": "./src/better-auth/auth/server.ts",
+      "types": "./dist/better-auth/auth/server.d.ts",
+      "default": "./dist/better-auth/auth/server.js"
+    },
+    "./better-auth/database-adapter": {
+      "@jazz-tools/source": "./src/better-auth/database-adapter/index.ts",
+      "types": "./dist/better-auth/database-adapter/index.d.ts",
+      "default": "./dist/better-auth/database-adapter/index.js"
+    },
+    "./load-edge-wasm": {
+      "@jazz-tools/source": "./src/worker/edge-wasm.ts",
+      "types": "./dist/worker/edge-wasm.d.ts",
+      "default": "./dist/worker/edge-wasm.js"
     }
   },
   "type": "module",
   "license": "MIT",
-  "version": "0.17.11",
+  "version": "0.18.16",
   "dependencies": {
     "@manuscripts/prosemirror-recreate-steps": "^0.1.4",
     "@scure/base": "1.2.1",
@@ -158,6 +195,7 @@
     "prosemirror-schema-basic": "^1.2.2",
     "prosemirror-state": "^1.4.3",
     "prosemirror-transform": "^1.9.0",
+    "use-sync-external-store": "^1.5.0",
     "zod": "3.25.76"
   },
   "scripts": {
@@ -181,8 +219,10 @@
     "@testing-library/svelte": "^5.2.6",
     "@types/react": "19.1.0",
     "@types/react-dom": "19.1.0",
+    "@types/use-sync-external-store": "^1.5.0",
     "@vitest/browser": "^3.2.4",
     "msw": "^2.10.3",
+    "oauth2-mock-server": "^8.1.0",
     "playwright": "^1.50.1",
     "queueueue": "^4.1.2",
     "tsup": "8.5.0",
@@ -192,18 +232,20 @@
   },
   "peerDependencies": {
     "@bam.tech/react-native-image-resizer": "*",
-    "@op-engineering/op-sqlite": "^11.4.8",
+    "@op-engineering/op-sqlite": "*",
     "@react-native-community/netinfo": "*",
+    "better-auth": "^1.3.2",
     "expo-file-system": "*",
     "expo-secure-store": "*",
-    "expo-sqlite": "15.2.9",
+    "expo-sqlite": "*",
     "react": "*",
     "react-dom": "*",
     "react-native": "*",
     "react-native-fast-encoder": "^0.2.0",
-    "react-native-mmkv": "^3.2.0",
-    "react-native-nitro-modules": "0.25.2",
-    "react-native-quick-crypto": "1.0.0-beta.16",
+    "react-native-mmkv": "^3.3.0",
+    "react-native-nitro-modules": "^0.26.4",
+    "react-native-quick-crypto": "^1.0.0-beta.18",
+    "sharp": "^0.33.5",
     "svelte": "^5.0.0"
   },
   "peerDependenciesMeta": {
@@ -214,6 +256,9 @@
       "optional": true
     },
     "@react-native-community/netinfo": {
+      "optional": true
+    },
+    "better-auth": {
       "optional": true
     },
     "expo-file-system": {
@@ -244,6 +289,9 @@
       "optional": true
     },
     "react-native-quick-crypto": {
+      "optional": true
+    },
+    "sharp": {
       "optional": true
     },
     "svelte": {

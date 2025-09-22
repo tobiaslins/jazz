@@ -1,17 +1,22 @@
-import { CoPlainText } from "jazz-tools";
+import { co } from "jazz-tools";
 import {
   BubbleTeaAddOnTypes,
   BubbleTeaBaseTeaTypes,
-  BubbleTeaOrder,
-  DraftBubbleTeaOrder,
+  PartialBubbleTeaOrder,
 } from "./schema.ts";
+
+type ResolveQuery = {
+  addOns: true;
+};
 
 export function OrderForm({
   order,
   onSave,
+  onCancel,
 }: {
-  order: BubbleTeaOrder | DraftBubbleTeaOrder;
-  onSave?: (e: React.FormEvent<HTMLFormElement>) => void;
+  order: co.loaded<typeof PartialBubbleTeaOrder, ResolveQuery>;
+  onSave: (e: React.FormEvent<HTMLFormElement>) => void;
+  onCancel?: () => void;
 }) {
   // Handles updates to the instructions field of the order.
   // If instructions already exist, applyDiff updates them incrementally.
@@ -20,9 +25,9 @@ export function OrderForm({
     e: React.ChangeEvent<HTMLTextAreaElement>,
   ) => {
     if (order.instructions) {
-      return order.instructions.applyDiff(e.target.value);
+      return order.instructions.$jazz.applyDiff(e.target.value);
     }
-    order.instructions = CoPlainText.create(e.target.value, order._owner);
+    order.$jazz.set("instructions", e.target.value);
   };
 
   return (
@@ -34,7 +39,7 @@ export function OrderForm({
           id="baseTea"
           value={order.baseTea || ""}
           className="dark:bg-transparent"
-          onChange={(e) => (order.baseTea = e.target.value as any)}
+          onChange={(e) => order.$jazz.set("baseTea", e.target.value as any)}
           required
         >
           <option value="" disabled>
@@ -58,12 +63,12 @@ export function OrderForm({
               value={addOn}
               name={addOn}
               id={addOn}
-              checked={order.addOns?.includes(addOn) || false}
+              checked={order.addOns.includes(addOn) || false}
               onChange={(e) => {
                 if (e.target.checked) {
-                  order.addOns?.push(addOn);
+                  order.addOns.$jazz.push(addOn);
                 } else {
-                  order.addOns?.splice(order.addOns?.indexOf(addOn), 1);
+                  order.addOns.$jazz.remove((item) => item === addOn);
                 }
               }}
             />
@@ -80,7 +85,9 @@ export function OrderForm({
           id="deliveryDate"
           className="dark:bg-transparent"
           value={order.deliveryDate?.toISOString().split("T")[0] || ""}
-          onChange={(e) => (order.deliveryDate = new Date(e.target.value))}
+          onChange={(e) =>
+            order.$jazz.set("deliveryDate", new Date(e.target.value))
+          }
           required
         />
       </div>
@@ -91,7 +98,7 @@ export function OrderForm({
           name="withMilk"
           id="withMilk"
           checked={order.withMilk}
-          onChange={(e) => (order.withMilk = e.target.checked)}
+          onChange={(e) => order.$jazz.set("withMilk", e.target.checked)}
         />
         <label htmlFor="withMilk">With milk?</label>
       </div>
@@ -106,15 +113,23 @@ export function OrderForm({
           onChange={handleInstructionsChange}
         ></textarea>
       </div>
-
-      {onSave && (
+      <div className="flex gap-2 justify-end">
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded cursor-pointer"
+          >
+            Cancel
+          </button>
+        )}
         <button
           type="submit"
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded cursor-pointer"
         >
           Submit
         </button>
-      )}
+      </div>
     </form>
   );
 }

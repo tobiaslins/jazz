@@ -20,12 +20,16 @@
       "types": "./dist/crypto/WasmCrypto.d.ts",
       "default": "./dist/crypto/WasmCrypto.js"
     },
+    "./crypto/WasmCrypto/edge": {
+      "types": "./dist/crypto/WasmCryptoEdge.d.ts",
+      "default": "./dist/crypto/WasmCryptoEdge.js"
+    },
     "./dist/*": "./dist/*",
     "./src/*": "./src/*"
   },
   "type": "module",
   "license": "MIT",
-  "version": "0.17.11",
+  "version": "0.18.16",
   "devDependencies": {
     "@opentelemetry/sdk-metrics": "^2.0.0",
     "libsql": "^0.5.13",

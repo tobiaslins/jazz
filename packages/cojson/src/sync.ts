@@ -1,3 +1,4 @@
+import { md5 } from "@noble/hashes/legacy";
 import { Histogram, ValueType, metrics } from "@opentelemetry/api";
 import { PeerState } from "./PeerState.js";
 import { SyncStateManager } from "./SyncStateManager.js";
@@ -8,11 +9,7 @@ import {
 } from "./coValueContentMessage.js";
 import { CoValueCore } from "./coValueCore/coValueCore.js";
 import { getDependedOnCoValuesFromRawData } from "./coValueCore/utils.js";
-import {
-  CoValueHeader,
-  Transaction,
-  VerifiedState,
-} from "./coValueCore/verifiedState.js";
+import { CoValueHeader, Transaction } from "./coValueCore/verifiedState.js";
 import { Signature } from "./crypto/crypto.js";
 import { RawCoID, SessionID, isRawCoID } from "./ids.js";
 import { LocalNode } from "./localNode.js";
@@ -128,6 +125,11 @@ export function combinedKnownStates(
   };
 }
 
+export type ServerPeerSelector = (
+  id: RawCoID,
+  serverPeers: PeerState[],
+) => PeerState[];
+
 export class SyncManager {
   peers: { [key: PeerID]: PeerState } = {};
   local: LocalNode;
@@ -137,12 +139,21 @@ export class SyncManager {
   // the transactions have already been verified by the [trusted] peer that sent them.
   private skipVerify: boolean = false;
 
+  // When true, coValues that arrive from server peers will be ignored if they had not
+  // explicitly been requested via a load message.
+  private _ignoreUnknownCoValuesFromServers: boolean = false;
+  ignoreUnknownCoValuesFromServers() {
+    this._ignoreUnknownCoValuesFromServers = true;
+  }
+
   peersCounter = metrics.getMeter("cojson").createUpDownCounter("jazz.peers", {
     description: "Amount of connected peers",
     valueType: ValueType.INT,
     unit: "peer",
   });
   private transactionsSizeHistogram: Histogram;
+
+  serverPeerSelector?: ServerPeerSelector;
 
   constructor(local: LocalNode) {
     this.local = local;
@@ -163,23 +174,21 @@ export class SyncManager {
     this.skipVerify = true;
   }
 
-  peersInPriorityOrder(): PeerState[] {
-    return Object.values(this.peers).sort((a, b) => {
-      const aPriority = a.priority || 0;
-      const bPriority = b.priority || 0;
-
-      return bPriority - aPriority;
-    });
+  getPeers(id: RawCoID): PeerState[] {
+    return this.getServerPeers(id).concat(this.getClientPeers());
   }
 
-  getPeers(): PeerState[] {
-    return Object.values(this.peers);
+  getClientPeers(): PeerState[] {
+    return Object.values(this.peers).filter((peer) => peer.role === "client");
   }
 
-  getServerPeers(excludePeerId?: PeerID): PeerState[] {
-    return this.getPeers().filter(
+  getServerPeers(id: RawCoID, excludePeerId?: PeerID): PeerState[] {
+    const serverPeers = Object.values(this.peers).filter(
       (peer) => peer.role === "server" && peer.id !== excludePeerId,
     );
+    return this.serverPeerSelector
+      ? this.serverPeerSelector(id, serverPeers)
+      : serverPeers;
   }
 
   handleSyncMessage(msg: SyncMessage, peer: PeerState) {
@@ -189,7 +198,28 @@ export class SyncManager {
         msg,
       });
       return;
-    } else if (this.local.getCoValue(msg.id).isErroredInPeer(peer.id)) {
+    }
+
+    // Prevent core shards from storing content that belongs to other shards.
+    //
+    // This can happen because a covalue "miss" on a core shard will cause a load message to
+    // be sent to the original unsharded core. The original core, treating the peer as a client,
+    // will respond with the covalue and its dependencies. Those dependencies might not belong
+    // to this shard, so they should be ignored.
+    //
+    // TODO: remove once core has been sharded.
+    if (
+      peer.role === "server" &&
+      this._ignoreUnknownCoValuesFromServers &&
+      !this.local.hasCoValue(msg.id)
+    ) {
+      logger.warn(
+        `Ignoring message ${msg.action} on unknown coValue ${msg.id} from peer ${peer.id}`,
+      );
+      return;
+    }
+
+    if (this.local.getCoValue(msg.id).isErroredInPeer(peer.id)) {
       logger.warn(
         `Skipping message ${msg.action} on errored coValue ${msg.id} from peer ${peer.id}`,
       );
@@ -217,11 +247,7 @@ export class SyncManager {
     }
   }
 
-  sendNewContentIncludingDependencies(
-    id: RawCoID,
-    peer: PeerState,
-    seen: Set<RawCoID> = new Set(),
-  ) {
+  sendNewContent(id: RawCoID, peer: PeerState, seen: Set<RawCoID> = new Set()) {
     if (seen.has(id)) {
       return;
     }
@@ -234,8 +260,11 @@ export class SyncManager {
       return;
     }
 
-    for (const dependency of coValue.getDependedOnCoValues()) {
-      this.sendNewContentIncludingDependencies(dependency, peer, seen);
+    const includeDependencies = peer.role !== "server";
+    if (includeDependencies) {
+      for (const dependency of coValue.getDependedOnCoValues()) {
+        this.sendNewContent(dependency, peer, seen);
+      }
     }
 
     const newContentPieces = coValue.verified.newContentSince(
@@ -258,17 +287,32 @@ export class SyncManager {
     peer.trackToldKnownState(id);
   }
 
+  reconcileServerPeers() {
+    const serverPeers = Object.values(this.peers).filter(
+      (peer) => peer.role === "server",
+    );
+    for (const peer of serverPeers) {
+      this.startPeerReconciliation(peer);
+    }
+  }
+
   startPeerReconciliation(peer: PeerState) {
     const coValuesOrderedByDependency: CoValueCore[] = [];
 
-    const gathered = new Set<string>();
-
+    const seen = new Set<string>();
     const buildOrderedCoValueList = (coValue: CoValueCore) => {
-      if (gathered.has(coValue.id)) {
+      if (seen.has(coValue.id)) {
         return;
       }
+      seen.add(coValue.id);
 
-      gathered.add(coValue.id);
+      // Ignore the covalue if this peer isn't relevant to it
+      if (
+        this.getServerPeers(coValue.id).find((p) => p.id === peer.id) ===
+        undefined
+      ) {
+        return;
+      }
 
       for (const id of coValue.getDependedOnCoValues()) {
         const coValue = this.local.getCoValue(id);
@@ -334,7 +378,7 @@ export class SyncManager {
     });
   }
 
-  addPeer(peer: Peer) {
+  addPeer(peer: Peer, skipReconciliation: boolean = false) {
     const prevPeer = this.peers[peer.id];
 
     if (prevPeer && !prevPeer.closed) {
@@ -352,7 +396,7 @@ export class SyncManager {
       },
     );
 
-    if (peerState.role === "server") {
+    if (!skipReconciliation && peerState.role === "server") {
       void this.startPeerReconciliation(peerState);
     }
 
@@ -370,9 +414,20 @@ export class SyncManager {
       this.peersCounter.add(-1, { role: peer.role });
 
       if (!peer.persistent && this.peers[peer.id] === peerState) {
-        delete this.peers[peer.id];
+        this.removePeer(peer.id);
       }
     });
+  }
+
+  removePeer(peerId: PeerID) {
+    const peer = this.peers[peerId];
+    if (!peer) {
+      return;
+    }
+    if (!peer.closed) {
+      peer.gracefulShutdown();
+    }
+    delete this.peers[peer.id];
   }
 
   trySendToPeer(peer: PeerState, msg: SyncMessage) {
@@ -398,17 +453,17 @@ export class SyncManager {
     const coValue = this.local.getCoValue(msg.id);
 
     if (coValue.isAvailable()) {
-      this.sendNewContentIncludingDependencies(msg.id, peer);
+      this.sendNewContent(msg.id, peer);
       return;
     }
 
-    const peers = this.getServerPeers(peer.id);
+    const peers = this.getServerPeers(msg.id, peer.id);
 
     coValue.load(peers);
 
     const handleLoadResult = () => {
       if (coValue.isAvailable()) {
-        this.sendNewContentIncludingDependencies(msg.id, peer);
+        this.sendNewContent(msg.id, peer);
         return;
       }
 
@@ -442,7 +497,7 @@ export class SyncManager {
     }
 
     if (coValue.isAvailable()) {
-      this.sendNewContentIncludingDependencies(msg.id, peer);
+      this.sendNewContent(msg.id, peer);
     }
   }
 
@@ -524,7 +579,7 @@ export class SyncManager {
           if (!dependencyCoValue.hasVerifiedContent()) {
             coValue.markMissingDependency(dependency);
 
-            const peers = this.getServerPeers();
+            const peers = this.getServerPeers(dependencyCoValue.id);
 
             // if the peer that sent the content is a client, we add it to the list of peers
             // to also ask them for the dependency
@@ -539,12 +594,21 @@ export class SyncManager {
         }
       }
 
-      peer?.updateHeader(msg.id, true);
-      coValue.provideHeader(
+      const success = coValue.provideHeader(
         msg.header,
         peer?.id ?? "storage",
         msg.expectContentUntil,
       );
+
+      if (!success) {
+        logger.error("Failed to provide header", {
+          id: msg.id,
+          header: msg.header,
+        });
+        return;
+      }
+
+      peer?.updateHeader(msg.id, true);
 
       if (msg.expectContentUntil) {
         peer?.combineWith(msg.id, {
@@ -607,7 +671,7 @@ export class SyncManager {
             // This covers the case where we are getting a new session on an already loaded coValue
             // where we need to load the account to get their public key
             if (!coValue.missingDependencies.has(accountId)) {
-              const peers = this.getServerPeers();
+              const peers = this.getServerPeers(account.id);
 
               if (peer?.role === "client") {
                 // if the peer that sent the content is a client, we add it to the list of peers
@@ -727,7 +791,7 @@ export class SyncManager {
       this.storeContent(contentToStore);
     }
 
-    for (const peer of this.peersInPriorityOrder()) {
+    for (const peer of this.getPeers(coValue.id)) {
       /**
        * We sync the content against the source peer if it is a client or server peers
        * to upload any content that is available on the current node and not on the source peer.
@@ -737,7 +801,7 @@ export class SyncManager {
 
       // We directly forward the new content to peers that have an active subscription
       if (peer.optimisticKnownStates.has(coValue.id)) {
-        this.sendNewContentIncludingDependencies(coValue.id, peer);
+        this.sendNewContent(coValue.id, peer);
         syncedPeers.push(peer);
       } else if (
         peer.role === "server" &&
@@ -768,22 +832,7 @@ export class SyncManager {
   handleCorrection(msg: KnownStateMessage, peer: PeerState) {
     peer.setKnownState(msg.id, knownStateIn(msg));
 
-    return this.sendNewContentIncludingDependencies(msg.id, peer);
-  }
-
-  dirtyCoValuesTrackingSets: Set<Set<RawCoID>> = new Set();
-  trackDirtyCoValues() {
-    const trackingSet = new Set<RawCoID>();
-
-    this.dirtyCoValuesTrackingSets.add(trackingSet);
-
-    return {
-      done: () => {
-        this.dirtyCoValuesTrackingSets.delete(trackingSet);
-
-        return trackingSet;
-      },
-    };
+    return this.sendNewContent(msg.id, peer);
   }
 
   private syncQueue = new LocalTransactionsSyncQueue((content) =>
@@ -791,6 +840,7 @@ export class SyncManager {
   );
   syncHeader = this.syncQueue.syncHeader;
   syncLocalTransaction = this.syncQueue.syncTransaction;
+  trackDirtyCoValues = this.syncQueue.trackDirtyCoValues;
 
   syncContent(content: NewContentMessage) {
     const coValue = this.local.getCoValue(content.id);
@@ -799,7 +849,7 @@ export class SyncManager {
 
     const contentKnownState = knownStateFromContent(content);
 
-    for (const peer of this.peersInPriorityOrder()) {
+    for (const peer of this.getPeers(coValue.id)) {
       if (peer.closed) continue;
       if (coValue.isErroredInPeer(peer.id)) continue;
 
@@ -818,7 +868,7 @@ export class SyncManager {
       peer.trackToldKnownState(coValue.id);
     }
 
-    for (const peer of this.getPeers()) {
+    for (const peer of this.getPeers(coValue.id)) {
       this.syncState.triggerUpdate(peer.id, coValue.id);
     }
   }
@@ -899,7 +949,7 @@ export class SyncManager {
   }
 
   waitForSync(id: RawCoID, timeout = 60_000) {
-    const peers = this.getPeers();
+    const peers = this.getPeers(id);
 
     return Promise.all(
       peers
@@ -933,5 +983,47 @@ function knownStateIn(msg: LoadMessage | KnownStateMessage) {
     id: msg.id,
     header: msg.header,
     sessions: msg.sessions,
+  };
+}
+
+/**
+ * Returns a ServerPeerSelector that implements the Highest Weighted Random (HWR) algorithm.
+ *
+ * The HWR algorithm deterministically selects the top `n` peers for a given CoValue ID by assigning
+ * each peer a "weight" based on the MD5 hash of the concatenation of the CoValue ID and the peer's ID.
+ * The first 4 bytes of the hash are interpreted as a 32-bit unsigned integer, which serves as the peer's weight.
+ * Peers are then sorted in descending order of weight, and the top `n` are selected.
+ */
+export function hwrServerPeerSelector(n: number): ServerPeerSelector {
+  if (n === 0) {
+    throw new Error("n must be greater than 0");
+  }
+
+  const enc = new TextEncoder();
+
+  // Take the md5 hash of the peer ID and CoValue ID and convert the first 4 bytes to a 32-bit unsigned integer
+  const getWeight = (id: RawCoID, peer: PeerState): number => {
+    const hash = md5(enc.encode(id + peer.id));
+    return (
+      ((hash[0]! << 24) | (hash[1]! << 16) | (hash[2]! << 8) | hash[3]!) >>> 0
+    );
+  };
+
+  return (id, serverPeers) => {
+    if (serverPeers.length <= n) {
+      return serverPeers;
+    }
+
+    const weightedPeers = serverPeers.map((peer) => {
+      return {
+        peer,
+        weight: getWeight(id, peer),
+      };
+    });
+
+    return weightedPeers
+      .sort((a, b) => b.weight - a.weight)
+      .slice(0, n)
+      .map((wp) => wp.peer);
   };
 }

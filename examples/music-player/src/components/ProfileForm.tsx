@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { Image, useAccount } from "jazz-tools/react";
+import { Image, useAccountWithSelector } from "jazz-tools/react";
 import { createImage } from "jazz-tools/media";
 import { MusicaAccount } from "../1_schema";
 import { Button } from "./ui/button";
@@ -15,7 +15,6 @@ interface ProfileFormProps {
   headerTitle?: string;
   headerDescription?: string;
   initialUsername?: string;
-  initialAvatar?: any;
   onCancel?: () => void;
   showCancelButton?: boolean;
   cancelButtonText?: string;
@@ -29,23 +28,23 @@ export function ProfileForm({
   headerTitle = "Profile Settings",
   headerDescription = "Update your profile information",
   initialUsername = "",
-  initialAvatar,
   onCancel,
   showCancelButton = false,
   cancelButtonText = "Cancel",
   className = "",
 }: ProfileFormProps) {
-  const { me } = useAccount(MusicaAccount, {
-    resolve: { profile: true, root: true },
+  const profile = useAccountWithSelector(MusicaAccount, {
+    resolve: { profile: true },
+    select: (me) => me?.profile,
   });
 
   const [username, setUsername] = useState(
-    initialUsername || me?.profile?.name || "",
+    initialUsername || profile?.name || "",
   );
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  if (!me) return null;
+  if (!profile) return null;
 
   const handleAvatarUpload = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -64,7 +63,7 @@ export function ProfileForm({
       });
 
       // Update the profile with the new avatar
-      me.profile.avatar = image;
+      profile.$jazz.set("avatar", image);
     } catch (error) {
       console.error("Failed to upload avatar:", error);
     } finally {
@@ -78,15 +77,15 @@ export function ProfileForm({
     if (!username.trim()) return;
 
     // Update username
-    me.profile.name = username.trim();
+    profile.$jazz.set("name", username.trim());
 
     // Call custom onSubmit if provided
     if (onSubmit) {
-      onSubmit({ username: username.trim(), avatar: me.profile.avatar });
+      onSubmit({ username: username.trim(), avatar: profile.avatar });
     }
   };
 
-  const currentAvatar = initialAvatar || me.profile.avatar;
+  const currentAvatar = profile.avatar;
   const canSubmit = username.trim();
 
   return (
@@ -116,7 +115,7 @@ export function ProfileForm({
               <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
                 {currentAvatar ? (
                   <Image
-                    imageId={currentAvatar.id}
+                    imageId={currentAvatar.$jazz.id}
                     width={96}
                     height={96}
                     alt="Profile"

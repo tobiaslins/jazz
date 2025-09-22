@@ -50,4 +50,6 @@ export {
   experimental_useInboxSender,
   useJazzContext,
   useAccount,
+  useCoStateWithSelector,
+  useAccountWithSelector,
 } from "jazz-tools/react-core";

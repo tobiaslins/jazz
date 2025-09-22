@@ -47,7 +47,7 @@ export const AccountRoot = co.map({
 
 export const MyAppAccount = co.account({
   root: AccountRoot,
-  profile: co.map({ name: z.string() }),
+  profile: co.profile(),
 });
 ```
 </CodeGroup>
@@ -74,7 +74,7 @@ export const AccountRoot = co.map({
 
 export const MyAppAccount = co.account({
   root: AccountRoot,
-  profile: co.map({ name: z.string() }),
+  profile: co.profile(),
 });
 // @filename: app.tsx
 import * as React from "react";
@@ -140,7 +140,7 @@ export const AccountRoot = co.map({
 
 export const MyAppAccount = co.account({
   root: AccountRoot,
-  profile: co.map({ name: z.string() }),
+  profile: co.profile(),
 });
 // @filename: app.tsx
 import * as React from "react";
@@ -189,7 +189,7 @@ export const AccountRoot = co.map({
 
 export const MyAppAccount = co.account({
   root: AccountRoot,
-  profile: co.map({ name: z.string() }),
+  profile: co.profile(),
 });
 // @filename: app.tsx
 import * as React from "react";

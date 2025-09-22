@@ -4,7 +4,7 @@ import {
 } from "../coValueContentMessage.js";
 import { Transaction, VerifiedState } from "../coValueCore/verifiedState.js";
 import { Signature } from "../crypto/crypto.js";
-import { SessionID } from "../ids.js";
+import { RawCoID, SessionID } from "../ids.js";
 import { NewContentMessage } from "../sync.js";
 import { LinkedList } from "./LinkedList.js";
 
@@ -73,7 +73,38 @@ export class LocalTransactionsSyncQueue {
     this.queue.push(content);
 
     this.processPendingSyncs();
+
+    for (const trackingSet of this.dirtyCoValuesTrackingSets) {
+      trackingSet.add(content.id);
+    }
   }
+
+  private dirtyCoValuesTrackingSets: Set<Set<RawCoID>> = new Set();
+
+  /**
+   * It starts tracking all changed CoValues. Returns a `done()` function that returns a set of coValues' ids that have been modified since the start.
+   *
+   * @example
+   * ```ts
+   * const tracking = node.syncManager.trackDirtyCoValues();
+   * // Any CoValue mutation
+   * const tracked = tracking.done();
+   * console.log("CoValue mutated: " Array.from(tracked))
+   * ```
+   */
+  trackDirtyCoValues = () => {
+    const trackingSet = new Set<RawCoID>();
+
+    this.dirtyCoValuesTrackingSets.add(trackingSet);
+
+    return {
+      done: () => {
+        this.dirtyCoValuesTrackingSets.delete(trackingSet);
+
+        return trackingSet;
+      },
+    };
+  };
 
   private processingSyncs = false;
   processPendingSyncs() {

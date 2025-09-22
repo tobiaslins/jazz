@@ -3,6 +3,7 @@
   "main": "index.ts",
   "scripts": {
     "build": "expo prebuild",
+    "build:clean": "expo prebuild --clean",
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
@@ -11,22 +12,22 @@
   "dependencies": {
     "@azure/core-asynciterator-polyfill": "^1.0.2",
     "@bacons/text-decoder": "^0.0.0",
-    "@bam.tech/react-native-image-resizer": "^3.0.11",
     "@react-native-community/netinfo": "11.4.1",
     "expo": "catalog:expo",
-    "expo-clipboard": "catalog:expo",
-    "expo-secure-store": "catalog:expo",
-    "expo-sqlite": "catalog:expo",
+    "expo-clipboard": "8.0.2",
+    "expo-secure-store": "15.0.2",
+    "expo-sqlite": "16.0.3",
     "jazz-tools": "workspace:*",
     "react": "catalog:expo",
-    "react-native": "catalog:expo",
+    "react-native": "0.81.0",
     "react-native-get-random-values": "^1.11.0",
+    "react-native-nitro-modules": "0.26.4",
     "readable-stream": "^4.7.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
-    "@types/react": "~19.0.10",
-    "typescript": "~5.8.3"
+    "@types/react": "19.1.10",
+    "typescript": "~5.9.2"
   },
   "private": true
 }

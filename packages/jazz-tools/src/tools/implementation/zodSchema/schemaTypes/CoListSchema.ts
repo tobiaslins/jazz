@@ -1,5 +1,6 @@
 import {
   Account,
+  BranchDefinition,
   CoList,
   Group,
   ID,
@@ -8,10 +9,11 @@ import {
   Resolved,
   SubscribeListenerOptions,
   coOptionalDefiner,
+  unstable_mergeBranchWithResolve,
 } from "../../../internal.js";
 import { CoValueUniqueness } from "cojson";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
-import { CoListInit } from "../typeConverters/CoFieldInit.js";
+import { CoListSchemaInit } from "../typeConverters/CoFieldSchemaInit.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesNullable } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesNullable.js";
 import { AnyZodOrCoValueSchema } from "../zodSchema.js";
@@ -30,12 +32,23 @@ export class CoListSchema<T extends AnyZodOrCoValueSchema>
   ) {}
 
   create(
-    items: CoListInit<T>,
+    items: CoListSchemaInit<T>,
     options?:
-      | {
-          owner: Account | Group;
-          unique?: CoValueUniqueness["uniqueness"];
-        }
+      | { owner: Group; unique?: CoValueUniqueness["uniqueness"] }
+      | Group,
+  ): CoListInstance<T>;
+  /** @deprecated Creating CoValues with an Account as owner is deprecated. Use a Group instead. */
+  create(
+    items: CoListSchemaInit<T>,
+    options?:
+      | { owner: Account | Group; unique?: CoValueUniqueness["uniqueness"] }
+      | Account
+      | Group,
+  ): CoListInstance<T>;
+  create(
+    items: CoListSchemaInit<T>,
+    options?:
+      | { owner: Account | Group; unique?: CoValueUniqueness["uniqueness"] }
       | Account
       | Group,
   ): CoListInstance<T> {
@@ -47,10 +60,25 @@ export class CoListSchema<T extends AnyZodOrCoValueSchema>
     options?: {
       resolve?: RefsToResolveStrict<CoListInstanceCoValuesNullable<T>, R>;
       loadAs?: Account | AnonymousJazzAgent;
+      unstable_branch?: BranchDefinition;
     },
   ): Promise<Resolved<CoListInstanceCoValuesNullable<T>, R> | null> {
     // @ts-expect-error
     return this.coValueClass.load(id, options);
+  }
+
+  unstable_merge<
+    const R extends RefsToResolve<CoListInstanceCoValuesNullable<T>> = true,
+  >(
+    id: string,
+    options?: {
+      resolve?: RefsToResolveStrict<CoListInstanceCoValuesNullable<T>, R>;
+      loadAs?: Account | AnonymousJazzAgent;
+      branch: BranchDefinition;
+    },
+  ): Promise<void> {
+    // @ts-expect-error
+    return unstable_mergeBranchWithResolve(this.coValueClass, id, options);
   }
 
   subscribe<
@@ -82,7 +110,7 @@ export class CoListSchema<T extends AnyZodOrCoValueSchema>
   upsertUnique<
     const R extends RefsToResolve<CoListInstanceCoValuesNullable<T>> = true,
   >(options: {
-    value: CoListInit<T>;
+    value: CoListSchemaInit<T>;
     unique: CoValueUniqueness["uniqueness"];
     owner: Account | Group;
     resolve?: RefsToResolveStrict<CoListInstanceCoValuesNullable<T>, R>;

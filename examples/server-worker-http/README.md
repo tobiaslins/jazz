@@ -26,12 +26,17 @@ This example demonstrates how to use the **Jazz HTTP API** with **Next.js** to i
    pnpm generate-env
    ```
 
-3. **Start the development server**:
+3. **Add your API key** (available free from https://dashboard.jazz.tools)
+   ```
+   NEXT_PUBLIC_JAZZ_API_KEY=
+   ```
+
+4. **Start the development server**:
    ```bash
    pnpm dev
    ```
 
-4. **Open your browser** to [http://localhost:3000](http://localhost:3000)
+5. **Open your browser** to [http://localhost:3000](http://localhost:3000)
 
 ### Environment Setup
 

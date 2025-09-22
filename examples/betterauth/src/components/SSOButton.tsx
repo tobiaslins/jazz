@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { betterAuthClient } from "@/lib/auth-client";
 import {
   SiApple,
   SiDiscord,
@@ -7,9 +8,13 @@ import {
   SiGithub,
   SiGitlab,
   SiGoogle,
+  SiHuggingface,
   SiKick,
+  SiLinear,
+  SiNotion,
   SiReddit,
   SiRoblox,
+  SiSlack,
   SiSpotify,
   SiTiktok,
   SiTwitch,
@@ -17,7 +22,7 @@ import {
   SiX,
   SiZoom,
 } from "@icons-pack/react-simple-icons";
-import { type SSOProviderType, useAuth } from "jazz-react-auth-betterauth";
+import type { SocialProviderList } from "better-auth/social-providers";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { toast } from "sonner";
@@ -27,7 +32,9 @@ interface SocialProvider {
   icon?: ReactNode;
 }
 
-const socialProviderMap: Record<SSOProviderType, SocialProvider> = {
+const socialProviderMap: Partial<
+  Record<SocialProviderList[number], SocialProvider>
+> = {
   github: {
     name: "GitHub",
     icon: <SiGithub />,
@@ -98,40 +105,50 @@ const socialProviderMap: Record<SSOProviderType, SocialProvider> = {
     name: "Spotify",
     icon: <SiSpotify />,
   },
+  slack: {
+    name: "Slack",
+    icon: <SiSlack />,
+  },
+  linear: {
+    name: "Linear",
+    icon: <SiLinear />,
+  },
+  notion: {
+    name: "Notion",
+    icon: <SiNotion />,
+  },
+  huggingface: {
+    name: "Hugging Face",
+    icon: <SiHuggingface />,
+  },
 };
 
 interface Props {
-  provider: SSOProviderType;
+  provider: SocialProviderList[number];
+  link?: boolean;
 }
 
-export function SSOButton({ provider }: Props) {
-  const auth = useAuth();
+export function SSOButton({ provider, link = false }: Props) {
   const router = useRouter();
+
+  if (!socialProviderMap[provider]) {
+    return <div>Provider not supported</div>;
+  }
 
   return (
     <Button
       type="button"
       variant="outline"
       onClick={() => {
-        auth.authClient.signIn.social(
-          {
-            provider,
-          },
-          {
-            onSuccess: () => {
-              router.push("/");
-            },
-            onError: (error) => {
-              toast.error("Error", {
-                description: error.error.message,
-              });
-            },
-          },
-        );
+        if (link) {
+          betterAuthClient.linkSocial({ provider });
+        } else {
+          betterAuthClient.signIn.social({ provider });
+        }
       }}
     >
       {socialProviderMap[provider].icon}
-      Continue with {socialProviderMap[provider].name}
+      {link ? "Link" : "Continue with"} {socialProviderMap[provider].name}
     </Button>
   );
 }

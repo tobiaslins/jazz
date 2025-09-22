@@ -127,6 +127,42 @@ test("Can push into RawBinaryCoStream", () => {
   });
 });
 
+test("Should ignore meta transactions on RawBinaryCoStream", () => {
+  const node = nodeWithRandomAgentAndSessionID();
+
+  const coValue = node.createCoValue({
+    type: "costream",
+    ruleset: { type: "unsafeAllowAll" },
+    meta: { type: "binary" },
+    ...Crypto.createdNowUnique(),
+  });
+
+  coValue.makeTransaction([], "trusting", { unknownMeta: 1 });
+
+  const content = coValue.getCurrentContent();
+
+  if (
+    content.type !== "costream" ||
+    content.headerMeta?.type !== "binary" ||
+    !(content instanceof RawBinaryCoStream)
+  ) {
+    throw new Error("Expected binary stream");
+  }
+
+  content.startBinaryStream(
+    { mimeType: "text/plain", fileName: "test.txt" },
+    "trusting",
+  );
+  content.pushBinaryStreamChunk(new Uint8Array([1, 2, 3]), "trusting");
+  content.endBinaryStream("trusting");
+  expect(content.getBinaryChunks()).toEqual({
+    mimeType: "text/plain",
+    fileName: "test.txt",
+    chunks: [new Uint8Array([1, 2, 3])],
+    finished: true,
+  });
+});
+
 test("When adding large transactions (small fraction of MAX_RECOMMENDED_TX_SIZE), we store an inbetween signature every time we reach MAX_RECOMMENDED_TX_SIZE and split up newContentSince accordingly", () => {
   const node = nodeWithRandomAgentAndSessionID();
 

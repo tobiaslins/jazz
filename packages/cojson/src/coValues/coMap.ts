@@ -10,6 +10,7 @@ import { accountOrAgentIDfromSessionID } from "../typeUtils/accountOrAgentIDfrom
 import { isCoValue } from "../typeUtils/isCoValue.js";
 import { RawAccountID } from "./account.js";
 import type { RawGroup } from "./group.js";
+import { Transaction } from "../coValueCore/verifiedState.js";
 
 type MapOp<K extends string, V extends JsonValue | undefined> = {
   txID: TransactionID;
@@ -48,16 +49,23 @@ export class RawCoMapView<
   latest: {
     [Key in keyof Shape & string]?: MapOp<Key, Shape[Key]>;
   };
+
   /** @internal */
-  latestTxMadeAt: number;
+  get latestTxMadeAt(): number {
+    return this.core.latestTxMadeAt;
+  }
+
   /** @internal */
-  earliestTxMadeAt: number | null;
+  get earliestTxMadeAt(): number {
+    return this.core.earliestTxMadeAt;
+  }
+
   /** @internal */
   ops: {
     [Key in keyof Shape & string]?: MapOp<Key, Shape[Key]>[];
   };
   /** @internal */
-  knownTransactions: CoValueKnownState["sessions"];
+  knownTransactions: Set<Transaction>;
 
   /** @internal */
   ignorePrivateTransactions: boolean;
@@ -66,7 +74,9 @@ export class RawCoMapView<
   /** @category 6. Meta */
   readonly _shape!: Shape;
 
-  totalValidTransactions = 0;
+  get totalValidTransactions() {
+    return this.knownTransactions.size;
+  }
 
   /** @internal */
   constructor(
@@ -77,13 +87,12 @@ export class RawCoMapView<
   ) {
     this.id = core.id as CoID<this>;
     this.core = core;
-    this.latestTxMadeAt = 0;
-    this.earliestTxMadeAt = null;
+
     this.ignorePrivateTransactions =
       options?.ignorePrivateTransactions ?? false;
     this.ops = {};
     this.latest = {};
-    this.knownTransactions = {};
+    this.knownTransactions = new Set<Transaction>();
 
     this.processNewTransactions();
   }
@@ -102,10 +111,6 @@ export class RawCoMapView<
       return;
     }
 
-    if (this.earliestTxMadeAt === null && newValidTransactions[0]) {
-      this.earliestTxMadeAt = newValidTransactions[0].madeAt;
-    }
-
     const { ops } = this;
 
     const changedEntries = new Map<
@@ -113,11 +118,7 @@ export class RawCoMapView<
       NonNullable<(typeof ops)[keyof typeof ops]>
     >();
 
-    for (const { txID, changes, madeAt, trusting } of newValidTransactions) {
-      if (madeAt > this.latestTxMadeAt) {
-        this.latestTxMadeAt = madeAt;
-      }
-
+    for (const { txID, changes, madeAt, tx } of newValidTransactions) {
       for (let changeIdx = 0; changeIdx < changes.length; changeIdx++) {
         const change = changes[changeIdx] as MapOpPayload<
           keyof Shape & string,
@@ -128,7 +129,7 @@ export class RawCoMapView<
           madeAt,
           changeIdx,
           change,
-          trusting,
+          trusting: tx.privacy === "trusting",
         };
 
         const entries = ops[change.key];
@@ -140,14 +141,8 @@ export class RawCoMapView<
           entries.push(entry);
           changedEntries.set(change.key, entries);
         }
-        this.knownTransactions[txID.sessionID] = Math.max(
-          this.knownTransactions[txID.sessionID] ?? 0,
-          txID.txIndex,
-        );
       }
     }
-
-    this.totalValidTransactions += newValidTransactions.length;
 
     for (const entries of changedEntries.values()) {
       entries.sort(this.core.compareTransactions);

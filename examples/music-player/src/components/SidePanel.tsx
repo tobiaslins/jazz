@@ -12,7 +12,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { useAccount } from "jazz-tools/react";
+import { useAccountWithSelector } from "jazz-tools/react";
 import { Home, Music, Plus, Trash2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
 import { useState } from "react";
@@ -22,8 +22,9 @@ import { CreatePlaylistModal } from "./CreatePlaylistModal";
 export function SidePanel() {
   const { playlistId } = useParams();
   const navigate = useNavigate();
-  const { me } = useAccount(MusicaAccount, {
-    resolve: { root: { playlists: { $each: true } } },
+  const playlists = useAccountWithSelector(MusicaAccount, {
+    resolve: { root: { playlists: { $each: { $onError: null } } } },
+    select: (me) => me?.root.playlists,
   });
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
@@ -106,28 +107,35 @@ export function SidePanel() {
                     <span>Add a new playlist</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-                {me?.root.playlists.map((playlist) => (
-                  <SidebarMenuItem key={playlist.id}>
-                    <SidebarMenuButton
-                      onClick={() => handlePlaylistClick(playlist.id)}
-                      isActive={playlist.id === playlistId}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Music className="size-4" />
-                        <span>{playlist.title}</span>
-                      </div>
-                    </SidebarMenuButton>
-                    {playlist.id === playlistId && (
-                      <SidebarMenuAction
-                        onClick={() => handleDeletePlaylist(playlist.id)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <Trash2 className="size-4" />
-                        <span className="sr-only">Delete {playlist.title}</span>
-                      </SidebarMenuAction>
-                    )}
-                  </SidebarMenuItem>
-                ))}
+                {playlists?.map(
+                  (playlist) =>
+                    playlist && (
+                      <SidebarMenuItem key={playlist.$jazz.id}>
+                        <SidebarMenuButton
+                          onClick={() => handlePlaylistClick(playlist.$jazz.id)}
+                          isActive={playlist.$jazz.id === playlistId}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Music className="size-4" />
+                            <span>{playlist.title}</span>
+                          </div>
+                        </SidebarMenuButton>
+                        {playlist.$jazz.id === playlistId && (
+                          <SidebarMenuAction
+                            onClick={() =>
+                              handleDeletePlaylist(playlist.$jazz.id)
+                            }
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            <Trash2 className="size-4" />
+                            <span className="sr-only">
+                              Delete {playlist.title}
+                            </span>
+                          </SidebarMenuAction>
+                        )}
+                      </SidebarMenuItem>
+                    ),
+                )}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

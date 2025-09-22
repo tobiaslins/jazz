@@ -1,5 +1,178 @@
 # cojson
 
+## 0.18.16
+
+### Patch Changes
+
+- Updated dependencies [629c275]
+  - cojson-core-wasm@0.18.16
+
+## 0.18.15
+
+### Patch Changes
+
+- a584ab3: Add WasmCrypto support for Cloudflare Workers and edge runtimes by importing `jazz-tools/load-edge-wasm`.
+
+  - Enable WasmCrypto functionality by initializing the WebAssembly environment with the import: `import "jazz-tools/load-edge-wasm"` in edge runtimes.
+  - Guarantee compatibility across Cloudflare Workers and other edge runtime environments.
+
+- Updated dependencies [a584ab3]
+  - cojson-core-wasm@0.18.15
+
+## 0.18.14
+
+### Patch Changes
+
+- cojson-core-wasm@0.18.14
+
+## 0.18.13
+
+### Patch Changes
+
+- 48837f2: Validate incoming id/header to ensure that the id matches the header hash
+- 2ddf4d9: Introducing version control APIs, unstable_branch and unstable_merge
+
+  Flagged as unstable because branch & merge scope & propagation needs to be validated.
+
+  - cojson-core-wasm@0.18.13
+
+## 0.18.12
+
+### Patch Changes
+
+- cojson-core-wasm@0.18.12
+
+## 0.18.11
+
+### Patch Changes
+
+- a4a9a1e: Fix CoPlainText applyDiff chunking to ensure we fit in the TRANSACTION_CONFIG.MAX_RECOMMENDED_TX_SIZE for each transaction
+  - cojson-core-wasm@0.18.11
+
+## 0.18.10
+
+### Patch Changes
+
+- cojson-core-wasm@0.18.10
+
+## 0.18.9
+
+### Patch Changes
+
+- f058875: Add removePeer() method to SyncManager
+  - cojson-core-wasm@0.18.9
+
+## 0.18.8
+
+### Patch Changes
+
+- 9a4caf2: Ability for SyncManager to ignore unknown covalues arriving from server peers
+  - cojson-core-wasm@0.18.8
+
+## 0.18.7
+
+### Patch Changes
+
+- c2d8bf7: Avoid greedily sending covalue dependencies to server peers
+- dccb464: Optimize seal and unseal in PureJSCrypto by caching the shared key generation
+- a3cd9c8: Add lastUpdatedAt & createdAt properties to $jazz in all the coValue types
+- e8e7bf8: Enforce a 1MB size limit for transactions
+- 51d3558: Export the highest weighted random server peer selector
+  - cojson-core-wasm@0.18.7
+
+## 0.18.6
+
+### Patch Changes
+
+- 9e792c7: Fixed the merge operation for RawCoList and RawCoPlainText and done a small performance optimization on RawCoList
+  - cojson-core-wasm@0.18.6
+
+## 0.18.5
+
+### Patch Changes
+
+- cojson-core-wasm@0.18.5
+
+## 0.18.4
+
+### Patch Changes
+
+- Updated dependencies [e5283c2]
+  - cojson-core-wasm@0.18.4
+
+## 0.18.3
+
+### Patch Changes
+
+- cojson-core-wasm@0.18.3
+
+## 0.18.2
+
+### Patch Changes
+
+- 82ba2dd: Add basic branching system for single CoValues with createBranch, checkoutBranch, and mergeBranch
+- 01f4889: Fix self-revoke check to correctly validate against the author of the change
+  - cojson-core-wasm@0.18.2
+
+## 0.18.1
+
+### Patch Changes
+
+- cojson-core-wasm@0.18.1
+
+## 0.18.0
+
+### Minor Changes
+
+- f263856: Add `$jazz` field to CoValues:
+  - This field contains Jazz methods that cluttered CoValues' API, as well as Jazz internal properties. This field is not enumerable, to allow CoValues to behave similarly to JSON objects.
+  - Added a `$jazz.set` method to update a CoValue's fields. When updating collaborative fields, you can pass in JSON objects instead of CoValues and Jazz will create
+    the CoValues automatically (similarly to CoValue `create` methods).
+  - All CoMap methods have been moved into `$jazz`, to allow defining any arbitrary key in the CoMap (except for `$jazz`) without conflicts.
+    - For CoMaps created with `co.map`, fields are now `readonly` to prevent setting properties directly. Use the `$jazz.set` method instead.
+    - CoMaps created with class schemas don't get type errors on direct property assignments, but they get a runtime errors prompting indicating to use `$jazz.set`.
+    - the `delete` operator can no longer be used to delete CoRecord properties. Use `$jazz.delete` instead.
+  - CoList's array-mutation methods have been moved into `$jazz`, in order to prevent using methods
+    - CoLists are now readonly arrays. Trying to use any mutation method yields a type error.
+    - `$jazz.set` can be used in place of direct element assignments.
+    - Added two new utility methods: `$jazz.remove` and `$jazz.retain`. They allow editing a CoList in-place with a simpler API than `$jazz.splice`.
+    - `sort`, `reverse`, `fill` and `copyWithin` have been deprecated, given that they could behave inconsistently with CoLists. `$jazz` replacements may be introduced
+      in future releases.
+  - `.$jazz.owner` now always returns a Group (instead of a Group or an Account). We'll be migrating away of having Accounts as CoValue owners in future releases.
+  - Removed `castAs`, since it's an inherently unsafe operation that bypassed typechecking and enabled using CoValues in unsupported ways.
+  - Removed the `id` and `_type` fields from `toJSON()`'s output in Account, CoMap, CoFeed & FileStream, to make CoValues behave more similarly to JSON objects.
+  - Removed the `root` and `profile` fields from Group.
+
+### Patch Changes
+
+- b709494: Allow adding server peers without reconciliation
+  - cojson-core-wasm@0.18.0
+
+## 0.17.14
+
+### Patch Changes
+
+- 1094b7c: Prevent adding and removing members from Account owners.
+- 6378ad5: Expose a server peer selector that implements the Highest Weighted Random algorithm.
+  - cojson-core-wasm@0.17.14
+
+## 0.17.13
+
+### Patch Changes
+
+- 7dc3160: Apply `serverPeerSelector` in all the peers getters
+- 474881d: Add support for meta field in transactions and ignore all unkonwn meta when getting valid transactions
+  - cojson-core-wasm@0.17.13
+
+## 0.17.12
+
+### Patch Changes
+
+- c2daf3e: Don't greedily send dependencies to servers in "known" replies
+- 72a63bf: Ability to filter getServerPeers() result based on covalue id
+- 234bf91: Correctly wait for updated CoValues when handling HTTP requests on server workers before sending the response
+  - cojson-core-wasm@0.17.12
+
 ## 0.17.11
 
 ### Patch Changes

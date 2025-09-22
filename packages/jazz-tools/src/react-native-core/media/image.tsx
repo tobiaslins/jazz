@@ -69,7 +69,10 @@ export const Image = forwardRef<RNImage, ImageProps>(function Image(
   ref,
 ) {
   const image = useCoState(ImageDefinition, imageId);
-  const [src, setSrc] = useState<string | undefined>(image?.placeholderDataURL);
+  const [src, setSrc] = useState<string | undefined>(
+    image?.placeholderDataURL ??
+      "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==",
+  );
 
   const dimensions: { width: number | undefined; height: number | undefined } =
     useMemo(() => {
@@ -116,7 +119,7 @@ export const Image = forwardRef<RNImage, ImageProps>(function Image(
     let lastBestImage: FileStream | string | undefined =
       image.placeholderDataURL;
 
-    const unsub = image.subscribe({}, (update) => {
+    const unsub = image.$jazz.subscribe({}, (update) => {
       if (lastBestImage === undefined && update.placeholderDataURL) {
         setSrc(update.placeholderDataURL);
         lastBestImage = update.placeholderDataURL;

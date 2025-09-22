@@ -12,7 +12,7 @@ function createGroup(me: Account) {
   });
   group.addMember("everyone", "writer");
   console.log("Created group");
-  console.log(`Add "VITE_GROUP_ID=${group.id}" to your .env file`);
+  console.log(`Add "VITE_GROUP_ID=${group.$jazz.id}" to your .env file`);
   return group;
 }
 
@@ -43,41 +43,41 @@ export async function loadCursorContainer(
   groupID: string,
 ): Promise<string | undefined> {
   if (!me) return;
-  console.log("Loading group...");
+
   const group = await loadGroup(me, groupID);
 
+  // Using the origin as part of the unique identifier
+  // to have different cursors for different origins
+  const cursorUID = { feed: cursorFeedID, origin: location.origin };
+
   const cursorContainer = await CursorContainer.loadUnique(
-    cursorFeedID,
-    group?.id,
-    {
-      resolve: {
-        cursorFeed: true,
-      },
-    },
+    cursorUID,
+    group?.$jazz.id,
   );
-  console.log(`Loading cursor container: ${cursorContainer?.id}`);
 
   if (cursorContainer === null || cursorContainer === undefined) {
     console.log("Global cursors does not exist, creating...");
-    const cursorContainer = CursorContainer.create(
-      {
+    const cursorContainer = await CursorContainer.upsertUnique({
+      value: {
         cursorFeed: CursorFeed.create([], group),
       },
-      {
-        owner: group,
-        unique: cursorFeedID,
+      resolve: {
+        cursorFeed: true,
       },
-    );
-    console.log("Created global cursors", cursorContainer.id);
-    if (cursorContainer.cursorFeed === null) {
-      throw new Error("cursorFeed is null");
+      unique: cursorUID,
+      owner: group,
+    });
+    if (cursorContainer === null) {
+      throw new Error("Unable to create global cursors");
     }
-    return cursorContainer.cursorFeed.id;
+
+    return cursorContainer.cursorFeed.$jazz.id;
   } else {
-    console.log(
-      "Global cursors already exists, loading...",
-      cursorContainer.id,
-    );
-    return cursorContainer.cursorFeed?.id;
+    const { cursorFeed } = await cursorContainer.$jazz.ensureLoaded({
+      resolve: {
+        cursorFeed: true,
+      },
+    });
+    return cursorFeed.$jazz.id;
   }
 }

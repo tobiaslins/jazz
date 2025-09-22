@@ -24,6 +24,11 @@ Go to the new project directory.
 cd multi-cursors-app
 ```
 
+Create a `.env` file and add an API key (available for free from https://dashboard.jazz.tools)
+```
+VITE_JAZZ_API_KEY=<your key>
+```
+
 Run the dev server.
 
 ```bash
@@ -58,6 +63,11 @@ Go to the example directory.
 
 ```bash
 cd jazz/examples/multi-cursors/
+```
+
+Create a `.env` file and add an API key (available for free from https://dashboard.jazz.tools)
+```
+VITE_JAZZ_API_KEY=<your key>
 ```
 
 Start the dev server.

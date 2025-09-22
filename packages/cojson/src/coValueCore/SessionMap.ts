@@ -11,7 +11,7 @@ import type {
 } from "../crypto/crypto.js";
 import { RawCoID, SessionID } from "../ids.js";
 import { parseJSON, stableStringify, Stringified } from "../jsonStringify.js";
-import { JsonValue } from "../jsonValue.js";
+import { JsonObject, JsonValue } from "../jsonValue.js";
 import { CoValueKnownState } from "../sync.js";
 import { TryAddTransactionsError } from "./coValueCore.js";
 import { Transaction } from "./verifiedState.js";
@@ -91,12 +91,13 @@ export class SessionMap {
     changes: JsonValue[],
     keyID: KeyID,
     keySecret: KeySecret,
+    meta: JsonObject | undefined,
+    madeAt: number,
   ): { signature: Signature; transaction: Transaction } {
     const sessionLog = this.getOrCreateSessionLog(
       sessionID,
       signerAgent.currentSignerID(),
     );
-    const madeAt = Date.now();
 
     const result = sessionLog.impl.addNewPrivateTransaction(
       signerAgent,
@@ -104,6 +105,7 @@ export class SessionMap {
       keyID,
       keySecret,
       madeAt,
+      meta,
     );
 
     this.addTransactionsToJsLog(
@@ -119,17 +121,19 @@ export class SessionMap {
     sessionID: SessionID,
     signerAgent: ControlledAccountOrAgent,
     changes: JsonValue[],
+    meta: JsonObject | undefined,
+    madeAt: number,
   ): { signature: Signature; transaction: Transaction } {
     const sessionLog = this.getOrCreateSessionLog(
       sessionID,
       signerAgent.currentSignerID(),
     );
-    const madeAt = Date.now();
 
     const result = sessionLog.impl.addNewTrustingTransaction(
       signerAgent,
       changes,
       madeAt,
+      meta,
     );
 
     this.addTransactionsToJsLog(
@@ -191,6 +195,25 @@ export class SessionMap {
       return undefined;
     }
     return parseJSON(decrypted as Stringified<JsonValue[] | undefined>);
+  }
+
+  decryptTransactionMeta(
+    sessionID: SessionID,
+    txIndex: number,
+    keySecret: KeySecret,
+  ): JsonObject | undefined {
+    const sessionLog = this.sessions.get(sessionID);
+    if (!sessionLog?.transactions[txIndex]?.meta) {
+      return undefined;
+    }
+    const decrypted = sessionLog.impl.decryptNextTransactionMetaJson(
+      txIndex,
+      keySecret,
+    );
+    if (!decrypted) {
+      return undefined;
+    }
+    return parseJSON(decrypted as Stringified<JsonObject | undefined>);
   }
 
   get size() {

@@ -1,6 +1,10 @@
 import { base64URLtoBytes, bytesToBase64url } from "./base64url.js";
 import { type RawCoValue } from "./coValue.js";
-import { CoValueCore, idforHeader } from "./coValueCore/coValueCore.js";
+import {
+  CoValueCore,
+  idforHeader,
+  type AvailableCoValueCore,
+} from "./coValueCore/coValueCore.js";
 import { CoValueUniqueness } from "./coValueCore/verifiedState.js";
 import {
   ControlledAccount,
@@ -23,7 +27,6 @@ import { EVERYONE, RawGroup } from "./coValues/group.js";
 import type { Everyone } from "./coValues/group.js";
 import {
   CryptoProvider,
-  StreamingHash,
   secretSeedLength,
   shortHashLength,
 } from "./crypto/crypto.js";
@@ -59,7 +62,12 @@ import type { JsonObject, JsonValue } from "./jsonValue.js";
 import type * as Media from "./media.js";
 import { disablePermissionErrors } from "./permissions.js";
 import type { Peer, SyncMessage } from "./sync.js";
-import { DisconnectedError, SyncManager, emptyKnownState } from "./sync.js";
+import {
+  DisconnectedError,
+  SyncManager,
+  emptyKnownState,
+  hwrServerPeerSelector,
+} from "./sync.js";
 
 import {
   getContentMessageSize,
@@ -76,6 +84,7 @@ import {
 import { LogLevel, logger } from "./logger.js";
 import { CO_VALUE_PRIORITY, getPriorityFromHeader } from "./priority.js";
 import { getDependedOnCoValues } from "./storage/syncUtils.js";
+import { canBeBranched } from "./coValueCore/branching.js";
 
 type Value = JsonValue | AnyRawCoValue;
 
@@ -98,7 +107,6 @@ export const cojsonInternals = {
   isAccountID,
   accountHeaderForInitialAgentSecret,
   idforHeader,
-  StreamingHash,
   getPriorityFromHeader,
   getGroupDependentKeyList,
   getGroupDependentKey,
@@ -115,6 +123,7 @@ export const cojsonInternals = {
   getContentMessageSize,
   TRANSACTION_CONFIG,
   setMaxRecommendedTxSize,
+  canBeBranched,
 };
 
 export {
@@ -159,6 +168,7 @@ export {
   LogLevel,
   base64URLtoBytes,
   bytesToBase64url,
+  hwrServerPeerSelector,
 };
 
 export type {
@@ -171,6 +181,7 @@ export type {
   BinaryStreamStart,
   OpID,
   AccountRole,
+  AvailableCoValueCore,
 };
 
 export * from "./storage/index.js";

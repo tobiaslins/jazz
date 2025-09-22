@@ -10,7 +10,7 @@ import {
 } from "../coValueCore/verifiedState.js";
 import { RawCoID, SessionID, TransactionID } from "../ids.js";
 import { Stringified, stableStringify } from "../jsonStringify.js";
-import { JsonValue } from "../jsonValue.js";
+import { JsonObject, JsonValue } from "../jsonValue.js";
 import { logger } from "../logger.js";
 import {
   CryptoProvider,
@@ -24,13 +24,35 @@ import {
   Signature,
   SignerID,
   SignerSecret,
-  StreamingHash,
   textDecoder,
   textEncoder,
 } from "./crypto.js";
 import { ControlledAccountOrAgent } from "../coValues/account.js";
 
 type Blake3State = ReturnType<typeof blake3.create>;
+
+const x25519SharedSecretCache = new Map<string, Uint8Array>();
+
+function getx25519SharedSecret(
+  privateKeyA: SealerSecret,
+  publicKeyB: SealerID,
+): Uint8Array {
+  const cacheKey = `${privateKeyA}-${publicKeyB}`;
+  let sharedSecret = x25519SharedSecretCache.get(cacheKey);
+
+  if (!sharedSecret) {
+    const privateKeyABytes = base58.decode(
+      privateKeyA.substring("sealerSecret_z".length),
+    );
+    const publicKeyBBytes = base58.decode(
+      publicKeyB.substring("sealer_z".length),
+    );
+    sharedSecret = x25519.getSharedSecret(privateKeyABytes, publicKeyBBytes);
+    x25519SharedSecretCache.set(cacheKey, sharedSecret);
+  }
+
+  return sharedSecret;
+}
 
 /**
  * Pure JavaScript implementation of the CryptoProvider interface using noble-curves and noble-ciphers libraries.
@@ -45,14 +67,6 @@ export class PureJSCrypto extends CryptoProvider<Blake3State> {
     return new PureJSCrypto();
   }
 
-  emptyBlake3State(): Blake3State {
-    return blake3.create({});
-  }
-
-  cloneBlake3State(state: Blake3State): Blake3State {
-    return state.clone();
-  }
-
   blake3HashOnce(data: Uint8Array) {
     return blake3(data);
   }
@@ -62,14 +76,6 @@ export class PureJSCrypto extends CryptoProvider<Blake3State> {
     { context }: { context: Uint8Array },
   ) {
     return blake3.create({}).update(context).update(data).digest();
-  }
-
-  blake3IncrementalUpdate(state: Blake3State, data: Uint8Array) {
-    return state.update(data);
-  }
-
-  blake3DigestForState(state: Blake3State): Uint8Array {
-    return state.clone().digest();
   }
 
   generateNonce(input: Uint8Array): Uint8Array {
@@ -164,15 +170,9 @@ export class PureJSCrypto extends CryptoProvider<Blake3State> {
     to: SealerID;
     nOnceMaterial: { in: RawCoID; tx: TransactionID };
   }): Sealed<T> {
+    const sharedSecret = getx25519SharedSecret(from, to);
     const nOnce = this.generateJsonNonce(nOnceMaterial);
-
-    const sealerPub = base58.decode(to.substring("sealer_z".length));
-
-    const senderPriv = base58.decode(from.substring("sealerSecret_z".length));
-
     const plaintext = textEncoder.encode(stableStringify(message));
-
-    const sharedSecret = x25519.getSharedSecret(senderPriv, sealerPub);
 
     const sealedBytes = xsalsa20poly1305(sharedSecret, nOnce).encrypt(
       plaintext,
@@ -189,13 +189,8 @@ export class PureJSCrypto extends CryptoProvider<Blake3State> {
   ): T | undefined {
     const nOnce = this.generateJsonNonce(nOnceMaterial);
 
-    const sealerPriv = base58.decode(sealer.substring("sealerSecret_z".length));
-
-    const senderPub = base58.decode(from.substring("sealer_z".length));
-
+    const sharedSecret = getx25519SharedSecret(sealer, from);
     const sealedBytes = base64URLtoBytes(sealed.substring("sealed_U".length));
-
-    const sharedSecret = x25519.getSharedSecret(sealerPriv, senderPub);
 
     const plaintext = xsalsa20poly1305(sharedSecret, nOnce).decrypt(
       sealedBytes,
@@ -229,7 +224,7 @@ export class PureJSSessionLog implements SessionLogImpl {
     private readonly signerID: SignerID | undefined,
     private readonly crypto: PureJSCrypto,
   ) {
-    this.streamingHash = this.crypto.emptyBlake3State();
+    this.streamingHash = blake3.create({});
   }
 
   clone(): SessionLogImpl {
@@ -241,7 +236,7 @@ export class PureJSSessionLog implements SessionLogImpl {
     );
     newLog.transactions = this.transactions.slice();
     newLog.lastSignature = this.lastSignature;
-    newLog.streamingHash = this.crypto.cloneBlake3State(this.streamingHash);
+    newLog.streamingHash = this.streamingHash.clone();
     return newLog;
   }
 
@@ -262,29 +257,29 @@ export class PureJSSessionLog implements SessionLogImpl {
     newSignature: Signature,
     skipVerify: boolean,
   ) {
+    for (const tx of transactions) {
+      this.streamingHash.update(textEncoder.encode(tx));
+    }
+
     if (!skipVerify) {
       if (!this.signerID) {
         throw new Error("Tried to add transactions without signer ID");
       }
 
-      const checkHasher = this.crypto.cloneBlake3State(this.streamingHash);
-
-      for (const tx of transactions) {
-        checkHasher.update(textEncoder.encode(tx));
-      }
-      const newHash = checkHasher.digest();
+      const newHash = this.streamingHash.clone().digest();
       const newHashEncoded = `hash_z${base58.encode(newHash)}`;
 
       if (!this.crypto.verify(newSignature, newHashEncoded, this.signerID)) {
+        // Rebuild the streaming hash to the original state
+        this.streamingHash = blake3.create({});
+        for (const tx of this.transactions) {
+          this.streamingHash.update(textEncoder.encode(tx));
+        }
         throw new Error("Signature verification failed");
       }
     }
 
     for (const tx of transactions) {
-      this.crypto.blake3IncrementalUpdate(
-        this.streamingHash,
-        textEncoder.encode(tx),
-      );
       this.transactions.push(tx);
     }
 
@@ -293,24 +288,12 @@ export class PureJSSessionLog implements SessionLogImpl {
     return newSignature;
   }
 
-  expectedHashAfter(transactionsJson: string[]): string {
-    const hasher = this.crypto.cloneBlake3State(this.streamingHash);
-    for (const tx of transactionsJson) {
-      hasher.update(textEncoder.encode(tx));
-    }
-    const newHash = hasher.digest();
-    return `hash_z${base58.encode(newHash)}`;
-  }
-
   internalAddNewTransaction(
     transaction: string,
     signerAgent: ControlledAccountOrAgent,
   ) {
-    this.crypto.blake3IncrementalUpdate(
-      this.streamingHash,
-      textEncoder.encode(transaction),
-    );
-    const newHash = this.crypto.blake3DigestForState(this.streamingHash);
+    this.streamingHash.update(textEncoder.encode(transaction));
+    const newHash = this.streamingHash.clone().digest();
     const newHashEncoded = `hash_z${base58.encode(newHash)}`;
     const signature = this.crypto.sign(
       signerAgent.currentSignerSecret(),
@@ -328,16 +311,26 @@ export class PureJSSessionLog implements SessionLogImpl {
     keyID: KeyID,
     keySecret: KeySecret,
     madeAt: number,
+    meta: JsonObject | undefined,
   ): { signature: Signature; transaction: PrivateTransaction } {
     const encryptedChanges = this.crypto.encrypt(changes, keySecret, {
       in: this.coID,
       tx: { sessionID: this.sessionID, txIndex: this.transactions.length },
     });
+
+    const encryptedMeta = meta
+      ? this.crypto.encrypt(meta, keySecret, {
+          in: this.coID,
+          tx: { sessionID: this.sessionID, txIndex: this.transactions.length },
+        })
+      : undefined;
+
     const tx = {
       encryptedChanges: encryptedChanges,
       madeAt: madeAt,
       privacy: "private",
       keyUsed: keyID,
+      meta: encryptedMeta,
     } satisfies Transaction;
     const signature = this.internalAddNewTransaction(
       stableStringify(tx),
@@ -353,11 +346,13 @@ export class PureJSSessionLog implements SessionLogImpl {
     signerAgent: ControlledAccountOrAgent,
     changes: JsonValue[],
     madeAt: number,
+    meta: JsonObject | undefined,
   ): { signature: Signature; transaction: TrustingTransaction } {
     const tx = {
       changes: stableStringify(changes),
       madeAt: madeAt,
       privacy: "trusting",
+      meta: meta ? stableStringify(meta) : undefined,
     } satisfies Transaction;
     const signature = this.internalAddNewTransaction(
       stableStringify(tx),
@@ -397,6 +392,42 @@ export class PureJSSessionLog implements SessionLogImpl {
       return textDecoder.decode(plaintext);
     } else {
       return tx.changes;
+    }
+  }
+
+  decryptNextTransactionMetaJson(
+    txIndex: number,
+    keySecret: KeySecret,
+  ): string | undefined {
+    const txJson = this.transactions[txIndex];
+    if (!txJson) {
+      throw new Error("Transaction not found");
+    }
+    const tx = JSON.parse(txJson) as Transaction;
+
+    if (!tx.meta) {
+      return undefined;
+    }
+
+    if (tx.privacy === "private") {
+      const nOnceMaterial = {
+        in: this.coID,
+        tx: { sessionID: this.sessionID, txIndex: txIndex },
+      };
+
+      const nOnce = this.crypto.generateJsonNonce(nOnceMaterial);
+
+      const ciphertext = base64URLtoBytes(
+        tx.meta.substring("encrypted_U".length),
+      );
+      const keySecretBytes = base58.decode(
+        keySecret.substring("keySecret_z".length),
+      );
+      const plaintext = xsalsa20(keySecretBytes, nOnce, ciphertext);
+
+      return textDecoder.decode(plaintext);
+    } else {
+      return tx.meta;
     }
   }
 
