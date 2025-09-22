@@ -13,6 +13,22 @@ describe("Image", async () => {
   vi.spyOn(Account, "getMe").mockReturnValue(account);
 
   describe("initial rendering", () => {
+    it("should render a blank placeholder while waiting for the coValue to load", async () => {
+      const { container } = render(
+        <Image imageId="co_zMTubMby3QiKDYnW9e2BEXW7Xaq" alt="test" />,
+        { account },
+      );
+
+      const img = container.querySelector("img");
+      expect(img).toBeDefined();
+      expect(img!.getAttribute("width")).toBe(null);
+      expect(img!.getAttribute("height")).toBe(null);
+      expect(img!.alt).toBe("test");
+      expect(img!.src).toBe(
+        "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==",
+      );
+    });
+
     it("should render nothing if coValue is not found", async () => {
       const { container } = render(
         <Image imageId="co_zMTubMby3QiKDYnW9e2BEXW7Xaq" alt="test" />,
