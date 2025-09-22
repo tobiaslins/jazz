@@ -21,12 +21,14 @@ describe("Image", async () => {
         alt: "test",
       });
 
-      const img = container.querySelector("img");
-      expect(img).toBeDefined();
-      expect(img!.getAttribute("width")).toBe(null);
-      expect(img!.getAttribute("height")).toBe(null);
-      expect(img!.alt).toBe("test");
-      expect(img!.src).toBe("");
+      await waitFor(() => {
+        const img = container.querySelector("img");
+        expect(img).toBeDefined();
+        expect(img!.getAttribute("width")).toBe(null);
+        expect(img!.getAttribute("height")).toBe(null);
+        expect(img!.alt).toBe("test");
+        expect(img!.src).toBe("");
+      });
     });
 
     it("should render an empty image if the image is not loaded yet", async () => {
