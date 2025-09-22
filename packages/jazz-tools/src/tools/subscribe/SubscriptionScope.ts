@@ -403,7 +403,7 @@ export class SubscriptionScope<D extends CoValue> {
    *
    * Used to make the autoload work on closed subscription scopes
    */
-  rehydrate(listener: (value: SubscriptionValue<D, any>) => void) {
+  pullValue(listener: (value: SubscriptionValue<D, any>) => void) {
     if (!this.closed) {
       throw new Error("Cannot rehydrate a non-closed subscription scope");
     }
@@ -412,9 +412,21 @@ export class SubscriptionScope<D extends CoValue> {
       return;
     }
 
-    this.subscription.rehydrate();
-    this.setListener(listener);
-    this.destroy();
+    // Try to pull the value from the subscription
+    // into the SubscriptionScope update flow
+    this.subscription.pullValue();
+
+    // Check if the value is now available
+    const value = this.getCurrentValue();
+
+    // If the value is available, trigger the listener
+    if (value) {
+      listener({
+        type: "loaded",
+        value,
+        id: this.id,
+      });
+    }
   }
 
   subscribeToId(id: string, descriptor: RefEncoded<any>) {
@@ -428,7 +440,7 @@ export class SubscriptionScope<D extends CoValue> {
       // If the subscription is closed, check if we missed the value
       // load event
       if (child) {
-        child.rehydrate((value) => this.handleChildUpdate(id, value));
+        child.pullValue((value) => this.handleChildUpdate(id, value));
       }
 
       return;

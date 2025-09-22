@@ -41,11 +41,15 @@ export class CoValueCoreSubscription {
     this.initializeSubscription();
   }
 
-  rehydrate() {
+  /**
+   * Rehydrates the subscription by resetting the unsubscribed flag and initializing the subscription again
+   */
+  pullValue() {
     if (!this.unsubscribed) {
       return;
     }
 
+    // Reset the unsubscribed flag so we can initialize the subscription again
     this.unsubscribed = false;
     this.initializeSubscription();
     this.unsubscribe();

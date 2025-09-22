@@ -49,7 +49,7 @@ export function accessChildByKey<D extends CoValue>(
   if (!subscriptionScope.isSubscribedToId(childId)) {
     subscriptionScope.subscribeToKey(key);
   } else if (node && node.closed) {
-    node.rehydrate((value) =>
+    node.pullValue((value) =>
       subscriptionScope.handleChildUpdate(childId, value),
     );
   }
