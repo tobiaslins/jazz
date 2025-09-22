@@ -1,3 +1,4 @@
+import "jazz-tools/load-edge-wasm";
 import { createWebSocketPeer } from "cojson-transport-ws";
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import { Hono } from "hono";
@@ -58,6 +59,7 @@ app.get("/", async (c) => {
 
   return c.json({
     text: root.text,
+    isWasmCrypto: crypto instanceof WasmCrypto,
   });
 });
 

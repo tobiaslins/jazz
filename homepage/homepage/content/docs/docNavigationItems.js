@@ -10,19 +10,10 @@ export const docNavigationItems = [
         href: "/docs",
         done: 100,
         excludeFromNavigation: true,
-      },
-      // {
-      //   name: "Guide",
-      //   href: "/docs/guide",
-      //   done: {
-      //     react: 100,
-      //   },
-      // },
-      {
-        name: "Example apps",
-        href: "/examples",
-        done: 30,
-        excludeFromNavigation: true,
+      }, {
+        name: "Quickstart",
+        href: "/docs/getting-started/quickstart",
+        done: 100,
       },
       { name: "FAQs", href: "/docs/faq", done: 100 },
       {
@@ -61,7 +52,7 @@ export const docNavigationItems = [
           "react-native-expo": 100,
           svelte: 100,
         },
-      },
+      }
     ],
   },
   {
@@ -219,6 +210,11 @@ export const docNavigationItems = [
         done: 80,
       },
       {
+        name: "Version control",
+        href: "/docs/using-covalues/version-control",
+        done: 100,
+      },
+      {
         name: "History",
         href: "/docs/using-covalues/history",
         done: 100,
@@ -288,6 +284,11 @@ export const docNavigationItems = [
         done: 100,
       },
       {
+        name: "Jazz database adapter for Better Auth",
+        href: "/docs/authentication/better-auth-database-adapter",
+        done: 100,
+      },
+      {
         name: "Writing your own",
         href: "/docs/authentication/writing-your-own",
         done: 0,
@@ -296,7 +297,11 @@ export const docNavigationItems = [
   },
   {
     name: "Server-side",
-    items: [
+    items: [{
+        name: "Quickstart",
+        href: "/docs/server-side/quickstart",
+        done: 100,
+      },
       {
         name: "Setup",
         href: "/docs/server-side/setup",
@@ -323,7 +328,7 @@ export const docNavigationItems = [
     name: "Design patterns",
     items: [
       {
-        name: "Autosaving forms",
+        name: "Forms",
         href: "/docs/design-patterns/form",
         done: 100,
       },

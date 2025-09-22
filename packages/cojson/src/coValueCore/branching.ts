@@ -3,6 +3,7 @@ import type { RawCoID, SessionID } from "../ids.js";
 import { type AvailableCoValueCore, idforHeader } from "./coValueCore.js";
 import type { CoValueHeader } from "./verifiedState.js";
 import type { CoValueKnownState } from "../sync.js";
+import { combineKnownStateSessions } from "../knownState.js";
 
 /**
  * Commit to identify the starting point of the branch
@@ -35,6 +36,7 @@ export type MergedTransactionMetadata = {
  */
 export type MergeCommit = {
   merged: CoValueKnownState["sessions"];
+  branch: RawCoID;
 };
 
 export function getBranchHeader({
@@ -65,6 +67,13 @@ export function getBranchHeader({
     // The meta is enough to have reproducible unique id for the branch
     uniqueness: "",
   };
+}
+
+/**
+ * Checks if the coValue can be branched
+ */
+export function canBeBranched(coValue: CoValueCore): boolean {
+  return coValue.verified?.header.ruleset.type === "ownedByGroup";
 }
 
 /**
@@ -192,7 +201,7 @@ export function mergeBranch(branch: CoValueCore): CoValueCore {
     );
   }
 
-  if (branch.verified.header.ruleset.type !== "ownedByGroup") {
+  if (!canBeBranched(branch)) {
     return branch;
   }
 
@@ -204,19 +213,15 @@ export function mergeBranch(branch: CoValueCore): CoValueCore {
 
   // Look for previous merge commits, to see which transactions needs to be merged
   // Done mostly for performance reasons, as we could merge all the transactions every time and nothing would change
-  const mergedTransactions = branch.getMergeCommits().reduce(
-    (acc, { merged }) => {
-      for (const [sessionID, count] of Object.entries(merged) as [
-        SessionID,
-        number,
-      ][]) {
-        acc[sessionID] = Math.max(acc[sessionID] ?? 0, count);
-      }
-
-      return acc;
-    },
-    {} as CoValueKnownState["sessions"],
-  );
+  let mergedTransactions = {} as CoValueKnownState["sessions"];
+  for (const item of target.getMergeCommits()) {
+    if (item.branch === branch.id) {
+      mergedTransactions = combineKnownStateSessions(
+        mergedTransactions,
+        item.merged,
+      );
+    }
+  }
 
   // Get the valid transactions from the branch, skipping the branch source and the previously merged transactions
   const branchValidTransactions = branch
@@ -257,8 +262,24 @@ export function mergeBranch(branch: CoValueCore): CoValueCore {
   }
 
   // Track the merged transactions for the branch, so future merges will know which transactions have already been merged
-  branch.makeTransaction([], "private", {
-    merged: branch.knownState().sessions,
+  // Store only the diff of sessions between the branch and already merged transactions
+  const currentSessions = branch.knownState().sessions;
+  const prevMergedSessions = mergedTransactions;
+  const diff = {} as CoValueKnownState["sessions"];
+
+  for (const [sessionId, count] of Object.entries(currentSessions) as [
+    SessionID,
+    number,
+  ][]) {
+    const prevMergedSession = prevMergedSessions[sessionId] ?? 0;
+    if (prevMergedSession < count) {
+      diff[sessionId] = count;
+    }
+  }
+
+  target.makeTransaction([], "private", {
+    merged: diff,
+    branch: branch.id,
   } satisfies MergeCommit);
 
   return target;

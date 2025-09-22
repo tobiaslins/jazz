@@ -1,5 +1,121 @@
 # jazz-tools
 
+## 0.18.16
+
+### Patch Changes
+
+- 67b95b7: Introduced new Better Auth database adapter based on Jazz
+  - cojson@0.18.16
+  - cojson-storage-indexeddb@0.18.16
+  - cojson-transport-ws@0.18.16
+
+## 0.18.15
+
+### Patch Changes
+
+- a584ab3: Add WasmCrypto support for Cloudflare Workers and edge runtimes by importing `jazz-tools/load-edge-wasm`.
+
+  - Enable WasmCrypto functionality by initializing the WebAssembly environment with the import: `import "jazz-tools/load-edge-wasm"` in edge runtimes.
+  - Guarantee compatibility across Cloudflare Workers and other edge runtime environments.
+
+- Updated dependencies [a584ab3]
+  - cojson@0.18.15
+  - cojson-storage-indexeddb@0.18.15
+  - cojson-transport-ws@0.18.15
+
+## 0.18.14
+
+### Patch Changes
+
+- a04435e: Optimized updates on large subscriptions
+  - cojson@0.18.14
+  - cojson-storage-indexeddb@0.18.14
+  - cojson-transport-ws@0.18.14
+
+## 0.18.13
+
+### Patch Changes
+
+- 2ddf4d9: Introducing version control APIs, unstable_branch and unstable_merge
+
+  Flagged as unstable because branch & merge scope & propagation needs to be validated.
+
+- 45981cf: Add co.group schema definer
+- Updated dependencies [48837f2]
+- Updated dependencies [2ddf4d9]
+  - cojson@0.18.13
+  - cojson-storage-indexeddb@0.18.13
+  - cojson-transport-ws@0.18.13
+
+## 0.18.12
+
+### Patch Changes
+
+- c16ce4b: Fix addMember with account owners, by detecting the accounts from their raw value
+- 0b1b050: Export ReactNativeContextManager from react-native-core
+  - cojson@0.18.12
+  - cojson-storage-indexeddb@0.18.12
+  - cojson-transport-ws@0.18.12
+
+## 0.18.11
+
+### Patch Changes
+
+- 06b4617: Update the Svelte InviteListener to listen to hash change events
+- 70eb465: Add docs to the worker API and deprecate done in favor of shutdownWorker
+- Updated dependencies [a4a9a1e]
+  - cojson@0.18.11
+  - cojson-storage-indexeddb@0.18.11
+  - cojson-transport-ws@0.18.11
+
+## 0.18.10
+
+### Patch Changes
+
+- Updated dependencies [95cc9af]
+  - cojson-transport-ws@0.18.10
+  - cojson@0.18.10
+  - cojson-storage-indexeddb@0.18.10
+
+## 0.18.9
+
+### Patch Changes
+
+- c8167de: fix: improve handling of concurrent authentication attempts in ContextManager
+- 910b8d6: Added useAccountWithSelector hook for granular account data selection with custom equality checking
+- Updated dependencies [f058875]
+  - cojson@0.18.9
+  - cojson-storage-indexeddb@0.18.9
+  - cojson-transport-ws@0.18.9
+
+## 0.18.8
+
+### Patch Changes
+
+- 700fe46: fix: in 32d1444 was used the wrong Better Auth internal function to delete old verification codes
+- aba0d55: Support the selection of a subset of keys to make optional in `co.map().partial()`
+- Updated dependencies [9a4caf2]
+  - cojson@0.18.8
+  - cojson-storage-indexeddb@0.18.8
+  - cojson-transport-ws@0.18.8
+
+## 0.18.7
+
+### Patch Changes
+
+- cf26739: Add `useCoStateWithSelector` for granular reactivity
+- a3cd9c8: Add lastUpdatedAt & createdAt properties to $jazz in all the coValue types
+- ca5cd26: Make CoLists structurally equal to arrays
+- 32d1444: fix: ensure better-auth email-otp verification uniqueness
+- Updated dependencies [c2d8bf7]
+- Updated dependencies [dccb464]
+- Updated dependencies [a3cd9c8]
+- Updated dependencies [e8e7bf8]
+- Updated dependencies [51d3558]
+  - cojson@0.18.7
+  - cojson-storage-indexeddb@0.18.7
+  - cojson-transport-ws@0.18.7
+
 ## 0.18.6
 
 ### Patch Changes

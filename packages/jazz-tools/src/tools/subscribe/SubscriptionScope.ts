@@ -14,15 +14,23 @@ import {
 import { applyCoValueMigrations } from "../lib/migration.js";
 import { CoValueCoreSubscription } from "./CoValueCoreSubscription.js";
 import { JazzError, type JazzErrorIssue } from "./JazzError.js";
-import type { SubscriptionValue, Unloaded } from "./types.js";
+import type { BranchDefinition, SubscriptionValue, Unloaded } from "./types.js";
 import { createCoValue, myRoleForRawValue } from "./utils.js";
 
 export class SubscriptionScope<D extends CoValue> {
   childNodes = new Map<string, SubscriptionScope<CoValue>>();
-  childValues: Map<string, SubscriptionValue<any, any> | Unloaded> = new Map<
+  childValues: Map<string, SubscriptionValue<any, any>> = new Map<
     string,
     SubscriptionValue<D, any>
   >();
+  /**
+   * Explicitly-loaded child ids that are unloaded
+   */
+  pendingLoadedChildren: Set<string> = new Set();
+  /**
+   * Autoloaded child ids that are unloaded
+   */
+  pendingAutoloadedChildren: Set<string> = new Set();
   value: SubscriptionValue<D, any> | Unloaded;
   childErrors: Map<string, JazzError> = new Map();
   validationErrors: Map<string, JazzError> = new Map();
@@ -47,6 +55,7 @@ export class SubscriptionScope<D extends CoValue> {
     public schema: RefEncoded<D>,
     public skipRetry = false,
     public bestEffortResolution = false,
+    public unstable_branch?: BranchDefinition,
   ) {
     this.resolve = resolve;
     this.value = { type: "unloaded", id };
@@ -87,6 +96,7 @@ export class SubscriptionScope<D extends CoValue> {
         this.handleUpdate(value);
       },
       skipRetry,
+      this.unstable_branch,
     );
   }
 
@@ -225,6 +235,8 @@ export class SubscriptionScope<D extends CoValue> {
       return;
     }
 
+    this.pendingLoadedChildren.delete(id);
+    this.pendingAutoloadedChildren.delete(id);
     this.childValues.set(id, value);
 
     if (value.type === "unavailable" || value.type === "unauthorized") {
@@ -260,15 +272,7 @@ export class SubscriptionScope<D extends CoValue> {
       return false;
     }
 
-    for (const value of this.childValues.values()) {
-      // We don't wait for autoloaded values to be loaded, in order to stream updates
-      // on autoloaded lists or records
-      if (value.type === "unloaded" && !this.autoloaded.has(value.id)) {
-        return false;
-      }
-    }
-
-    return true;
+    return this.pendingLoadedChildren.size === 0;
   }
 
   getCurrentValue() {
@@ -385,8 +389,17 @@ export class SubscriptionScope<D extends CoValue> {
     this.silenceUpdates = false;
   }
 
+  isSubscribedToId(id: string) {
+    return (
+      this.idsSubscribed.has(id) ||
+      this.childValues.has(id) ||
+      this.pendingAutoloadedChildren.has(id) ||
+      this.pendingLoadedChildren.has(id)
+    );
+  }
+
   subscribeToId(id: string, descriptor: RefEncoded<any>) {
-    if (this.idsSubscribed.has(id) || this.childValues.has(id)) {
+    if (this.isSubscribedToId(id)) {
       return;
     }
 
@@ -399,7 +412,8 @@ export class SubscriptionScope<D extends CoValue> {
     // This helps alot with correctness when triggering the autoloading while rendering components (on React and Svelte)
     this.silenceUpdates = true;
 
-    this.childValues.set(id, { type: "unloaded", id });
+    this.pendingAutoloadedChildren.add(id);
+
     const child = new SubscriptionScope(
       this.node,
       true,
@@ -407,6 +421,7 @@ export class SubscriptionScope<D extends CoValue> {
       descriptor,
       this.skipRetry,
       this.bestEffortResolution,
+      this.unstable_branch,
     );
     this.childNodes.set(id, child);
     child.setListener((value) => this.handleChildUpdate(id, value));
@@ -520,6 +535,8 @@ export class SubscriptionScope<D extends CoValue> {
           childNode.destroy();
         }
 
+        this.pendingLoadedChildren.delete(id);
+        this.pendingAutoloadedChildren.delete(id);
         this.childNodes.delete(id);
         this.childValues.delete(id);
       }
@@ -619,11 +636,12 @@ export class SubscriptionScope<D extends CoValue> {
     descriptor: RefEncoded<any>,
     key?: string,
   ) {
-    if (this.childValues.has(id)) {
+    if (this.isSubscribedToId(id)) {
       return;
     }
 
-    if (key && this.autoloadedKeys.has(key)) {
+    const isAutoloaded = key && this.autoloadedKeys.has(key);
+    if (isAutoloaded) {
       this.autoloaded.add(id);
     }
 
@@ -641,7 +659,12 @@ export class SubscriptionScope<D extends CoValue> {
     const resolve =
       typeof query === "object" && query !== null ? { ...query } : query;
 
-    this.childValues.set(id, { type: "unloaded", id });
+    if (!isAutoloaded) {
+      this.pendingLoadedChildren.add(id);
+    } else {
+      this.pendingAutoloadedChildren.add(id);
+    }
+
     const child = new SubscriptionScope(
       this.node,
       resolve,
@@ -649,6 +672,7 @@ export class SubscriptionScope<D extends CoValue> {
       descriptor,
       this.skipRetry,
       this.bestEffortResolution,
+      this.unstable_branch,
     );
     this.childNodes.set(id, child);
     child.setListener((value) => this.handleChildUpdate(id, value, key));

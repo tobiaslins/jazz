@@ -7,6 +7,7 @@ packages:
   - 'bench'
   - 'homepage'
 
+minimumReleaseAge: 1440 # 24 hours
 catalogs:
   default:
     "@biomejs/biome": 2.1.3

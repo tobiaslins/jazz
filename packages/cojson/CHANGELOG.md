@@ -1,5 +1,85 @@
 # cojson
 
+## 0.18.16
+
+### Patch Changes
+
+- Updated dependencies [629c275]
+  - cojson-core-wasm@0.18.16
+
+## 0.18.15
+
+### Patch Changes
+
+- a584ab3: Add WasmCrypto support for Cloudflare Workers and edge runtimes by importing `jazz-tools/load-edge-wasm`.
+
+  - Enable WasmCrypto functionality by initializing the WebAssembly environment with the import: `import "jazz-tools/load-edge-wasm"` in edge runtimes.
+  - Guarantee compatibility across Cloudflare Workers and other edge runtime environments.
+
+- Updated dependencies [a584ab3]
+  - cojson-core-wasm@0.18.15
+
+## 0.18.14
+
+### Patch Changes
+
+- cojson-core-wasm@0.18.14
+
+## 0.18.13
+
+### Patch Changes
+
+- 48837f2: Validate incoming id/header to ensure that the id matches the header hash
+- 2ddf4d9: Introducing version control APIs, unstable_branch and unstable_merge
+
+  Flagged as unstable because branch & merge scope & propagation needs to be validated.
+
+  - cojson-core-wasm@0.18.13
+
+## 0.18.12
+
+### Patch Changes
+
+- cojson-core-wasm@0.18.12
+
+## 0.18.11
+
+### Patch Changes
+
+- a4a9a1e: Fix CoPlainText applyDiff chunking to ensure we fit in the TRANSACTION_CONFIG.MAX_RECOMMENDED_TX_SIZE for each transaction
+  - cojson-core-wasm@0.18.11
+
+## 0.18.10
+
+### Patch Changes
+
+- cojson-core-wasm@0.18.10
+
+## 0.18.9
+
+### Patch Changes
+
+- f058875: Add removePeer() method to SyncManager
+  - cojson-core-wasm@0.18.9
+
+## 0.18.8
+
+### Patch Changes
+
+- 9a4caf2: Ability for SyncManager to ignore unknown covalues arriving from server peers
+  - cojson-core-wasm@0.18.8
+
+## 0.18.7
+
+### Patch Changes
+
+- c2d8bf7: Avoid greedily sending covalue dependencies to server peers
+- dccb464: Optimize seal and unseal in PureJSCrypto by caching the shared key generation
+- a3cd9c8: Add lastUpdatedAt & createdAt properties to $jazz in all the coValue types
+- e8e7bf8: Enforce a 1MB size limit for transactions
+- 51d3558: Export the highest weighted random server peer selector
+  - cojson-core-wasm@0.18.7
+
 ## 0.18.6
 
 ### Patch Changes

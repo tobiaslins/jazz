@@ -154,6 +154,29 @@ describe("CoMap", async () => {
       expect(person.dog?.name).toEqual("Rex");
     });
 
+    test("assign a child by only passing the id", () => {
+      const Dog = co.map({
+        name: z.string(),
+      });
+
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+        dog: Dog,
+      });
+
+      const dog = Dog.create({ name: "Rex" });
+
+      const person = Person.create({
+        name: "John",
+        age: 20,
+        // @ts-expect-error - This is an hack to test the behavior
+        dog: { $jazz: { id: dog.$jazz.id } },
+      });
+
+      expect(person.dog?.name).toEqual("Rex");
+    });
+
     describe("create CoMap with references using JSON", () => {
       const Dog = co.map({
         type: z.literal("dog"),
@@ -2644,6 +2667,43 @@ describe("co.map schema", () => {
       expect(draftPerson.name).toEqual("John");
       expect(draftPerson.age).toEqual(20);
       expect(draftPerson.pet).toEqual(rex);
+    });
+
+    test("creates a new CoMap schema by making some properties optional", () => {
+      const Dog = co.map({
+        name: z.string(),
+        breed: z.string(),
+      });
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+        pet: Dog,
+      });
+
+      const DraftPerson = Person.partial({
+        pet: true,
+      });
+
+      const draftPerson = DraftPerson.create({
+        name: "John",
+        age: 20,
+      });
+
+      expect(draftPerson.$jazz.has("pet")).toBe(false);
+
+      const rex = Dog.create({ name: "Rex", breed: "Labrador" });
+      draftPerson.$jazz.set("pet", rex);
+
+      expect(draftPerson.pet).toEqual(rex);
+
+      expect(draftPerson.$jazz.has("pet")).toBe(true);
+
+      draftPerson.$jazz.delete("pet");
+
+      expect(draftPerson.$jazz.has("pet")).toBe(false);
+
+      // @ts-expect-error - should not allow deleting required properties
+      draftPerson.$jazz.delete("age");
     });
 
     test("the new schema includes catchall properties", () => {

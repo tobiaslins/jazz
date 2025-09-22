@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { Loaded } from "jazz-tools";
-import { useAccount, useCoState } from "jazz-tools/react";
+import { useAccountWithSelector, useCoState } from "jazz-tools/react";
 import { MoreHorizontal, Pause, Play } from "lucide-react";
 import { Fragment, useCallback, useState } from "react";
 import { EditTrackDialog } from "./RenameTrackDialog";
@@ -42,14 +42,21 @@ export function MusicTrackRow({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
-  const { me } = useAccount(MusicaAccount, {
+  const playlists = useAccountWithSelector(MusicaAccount, {
     resolve: {
       root: { playlists: { $onError: null, $each: { tracks: true } } },
     },
+    select: (account) => account?.root.playlists,
   });
 
-  const playlists = me?.root.playlists ?? [];
-  const isActiveTrack = trackId === me?.root.$jazz.refs.activeTrack?.id;
+  const isActiveTrack = useAccountWithSelector(MusicaAccount, {
+    resolve: { root: { activeTrack: true } },
+    select: (account) => account?.root.activeTrack?.$jazz.id === trackId,
+  });
+
+  const canEditTrack = useAccountWithSelector(MusicaAccount, {
+    select: (account) => Boolean(track && account?.canWrite(track)),
+  });
 
   function handleTrackClick() {
     if (!track) return;
@@ -82,7 +89,6 @@ export function MusicTrackRow({
   }, []);
 
   const showWaveform = isHovered || isActiveTrack;
-  const canEdit = track && me?.canWrite(track);
 
   return (
     <li
@@ -141,7 +147,7 @@ export function MusicTrackRow({
         </div>
       )}
 
-      {canEdit && (
+      {canEditTrack && (
         <div onClick={(evt) => evt.stopPropagation()}>
           <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
             <DropdownMenuTrigger asChild>
@@ -156,7 +162,7 @@ export function MusicTrackRow({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onSelect={handleEdit}>Edit</DropdownMenuItem>
-              {playlists.filter(Boolean).map((playlist, playlistIndex) => (
+              {playlists?.filter(Boolean).map((playlist, playlistIndex) => (
                 <Fragment key={playlistIndex}>
                   {isPartOfThePlaylist(trackId, playlist) ? (
                     <DropdownMenuItem

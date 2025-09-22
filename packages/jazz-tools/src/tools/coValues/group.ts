@@ -1,12 +1,14 @@
-import type {
-  AccountRole,
-  AgentID,
-  Everyone,
-  RawAccountID,
-  RawGroup,
-  Role,
+import {
+  RawAccount,
+  type AccountRole,
+  type AgentID,
+  type Everyone,
+  type RawAccountID,
+  type RawGroup,
+  type Role,
 } from "cojson";
 import {
+  BranchDefinition,
   CoValue,
   CoValueClass,
   ID,
@@ -111,7 +113,7 @@ export class Group extends CoValueBase implements CoValue {
     member: Group | Everyone | Account,
     role?: AccountRole | "inherit",
   ) {
-    if (member !== "everyone" && member[TypeSym] === "Group") {
+    if (isGroupValue(member)) {
       if (role === "writeOnly")
         throw new Error("Cannot add group as member with write-only role");
       this.$jazz.raw.extend(member.$jazz.raw, role);
@@ -130,7 +132,7 @@ export class Group extends CoValueBase implements CoValue {
    */
   removeMember(member: Group): void;
   removeMember(member: Group | Everyone | Account) {
-    if (member !== "everyone" && member[TypeSym] === "Group") {
+    if (isGroupValue(member)) {
       this.$jazz.raw.revokeExtend(member.$jazz.raw);
     } else {
       return this.$jazz.raw.removeMember(
@@ -262,7 +264,10 @@ export class Group extends CoValueBase implements CoValue {
     return this;
   }
 
-  /** @category Subscription & Loading */
+  /** @category Subscription & Loading
+   *
+   * @deprecated Use `co.group(...).load` instead.
+   */
   static load<G extends Group, const R extends RefsToResolve<G>>(
     this: CoValueClass<G>,
     id: ID<G>,
@@ -271,7 +276,10 @@ export class Group extends CoValueBase implements CoValue {
     return loadCoValueWithoutMe(this, id, options);
   }
 
-  /** @category Subscription & Loading */
+  /** @category Subscription & Loading
+   *
+   * @deprecated Use `co.group(...).subscribe` instead.
+   */
   static subscribe<G extends Group, const R extends RefsToResolve<G>>(
     this: CoValueClass<G>,
     id: ID<G>,
@@ -367,4 +375,8 @@ export function getCoValueOwner(coValue: CoValue): Group {
     throw new Error("CoValue has no owner");
   }
   return group;
+}
+
+function isGroupValue(value: Group | Everyone | Account): value is Group {
+  return value !== "everyone" && !(value.$jazz.raw instanceof RawAccount);
 }

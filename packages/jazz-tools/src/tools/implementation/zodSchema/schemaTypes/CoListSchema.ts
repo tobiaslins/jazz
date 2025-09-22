@@ -1,5 +1,6 @@
 import {
   Account,
+  BranchDefinition,
   CoList,
   Group,
   ID,
@@ -8,6 +9,7 @@ import {
   Resolved,
   SubscribeListenerOptions,
   coOptionalDefiner,
+  unstable_mergeBranchWithResolve,
 } from "../../../internal.js";
 import { CoValueUniqueness } from "cojson";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
@@ -58,10 +60,25 @@ export class CoListSchema<T extends AnyZodOrCoValueSchema>
     options?: {
       resolve?: RefsToResolveStrict<CoListInstanceCoValuesNullable<T>, R>;
       loadAs?: Account | AnonymousJazzAgent;
+      unstable_branch?: BranchDefinition;
     },
   ): Promise<Resolved<CoListInstanceCoValuesNullable<T>, R> | null> {
     // @ts-expect-error
     return this.coValueClass.load(id, options);
+  }
+
+  unstable_merge<
+    const R extends RefsToResolve<CoListInstanceCoValuesNullable<T>> = true,
+  >(
+    id: string,
+    options?: {
+      resolve?: RefsToResolveStrict<CoListInstanceCoValuesNullable<T>, R>;
+      loadAs?: Account | AnonymousJazzAgent;
+      branch: BranchDefinition;
+    },
+  ): Promise<void> {
+    // @ts-expect-error
+    return unstable_mergeBranchWithResolve(this.coValueClass, id, options);
   }
 
   subscribe<

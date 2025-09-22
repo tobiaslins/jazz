@@ -2,6 +2,7 @@ import { CryptoProvider } from "cojson";
 import {
   Account,
   AccountCreationProps,
+  BranchDefinition,
   Group,
   RefsToResolveStrict,
 } from "../../../internal.js";
@@ -12,7 +13,6 @@ import { z } from "../zodReExport.js";
 import { AnyZodOrCoValueSchema, Loaded, ResolveQuery } from "../zodSchema.js";
 import {
   CoMapSchema,
-  CoMapSchemaDefinition,
   CoreCoMapSchema,
   createCoreCoMapSchema,
 } from "./CoMapSchema.js";
@@ -43,6 +43,7 @@ export interface AccountSchema<
       | "create"
       | "load"
       | "withMigration"
+      | "unstable_merge"
       | "getCoValueClass"
     > {
   builtin: "Account";
@@ -66,6 +67,15 @@ export interface AccountSchema<
       creationProps?: { name: string };
     },
   ) => Promise<AccountInstance<Shape>>;
+
+  unstable_merge: <R extends ResolveQuery<AccountSchema<Shape>>>(
+    id: string,
+    options?: {
+      loadAs?: Account | AnonymousJazzAgent;
+      resolve?: RefsToResolveStrict<AccountSchema<Shape>, R>;
+      branch: BranchDefinition;
+    },
+  ) => Promise<void>;
 
   getMe: () => AccountInstanceCoValuesNullable<Shape>;
 
@@ -116,6 +126,10 @@ export function enrichAccountSchema<Shape extends BaseAccountShape>(
     fromRaw: (...args: any[]) => {
       // @ts-expect-error
       return coValueClass.fromRaw(...args);
+    },
+    unstable_merge: (...args: any[]) => {
+      // @ts-expect-error
+      return unstable_mergeBranchWithResolve(coValueClass, ...args);
     },
     withMigration: (
       migration: (

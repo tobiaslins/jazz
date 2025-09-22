@@ -39,6 +39,7 @@ import {
 } from "./branching.js";
 import { type RawAccountID } from "../coValues/account.js";
 import { decodeTransactionChangesAndMeta } from "./decodeTransactionChangesAndMeta.js";
+import { combineKnownStateSessions } from "../knownState.js";
 
 export function idforHeader(
   header: CoValueHeader,
@@ -337,6 +338,12 @@ export class CoValueCore {
   ) {
     const previousState = this.loadingState;
 
+    const expectedId = idforHeader(header, this.node.crypto);
+
+    if (this.id !== expectedId) {
+      return false;
+    }
+
     if (this._verified?.sessions.size) {
       throw new Error(
         "CoValueCore: provideHeader called on coValue with verified sessions present!",
@@ -354,6 +361,8 @@ export class CoValueCore {
 
     this.updateCounter(previousState);
     this.notifyUpdate("immediate");
+
+    return true;
   }
 
   internalMarkMagicallyAvailable(
@@ -700,11 +709,13 @@ export class CoValueCore {
   }
 
   // The starting point of the branch, in case this CoValue is a branch
-  branchStart: { from: BranchStartCommit["from"]; madeAt: number } | undefined;
+  branchStart: BranchStartCommit["from"] | undefined;
 
   // The list of merge commits that have been made
   mergeCommits: MergeCommit[] = [];
   branches: BranchPointerCommit[] = [];
+  earliestTxMadeAt: number = Number.MAX_SAFE_INTEGER;
+  latestTxMadeAt: number = 0;
 
   // Reset the parsed transactions and branches, to validate them again from scratch when the group is updated
   resetParsedTransactions() {
@@ -746,7 +757,7 @@ export class CoValueCore {
       return;
     }
 
-    const isBranch = this.isBranch();
+    const isBranched = this.isBranched();
 
     for (const [sessionID, sessionLog] of this.verified.sessions.entries()) {
       const count = this.verifiedTransactionsKnownSessions[sessionID] ?? 0;
@@ -756,7 +767,7 @@ export class CoValueCore {
           return;
         }
 
-        const txID = isBranch
+        const txID = isBranched
           ? {
               sessionID,
               txIndex,
@@ -781,6 +792,14 @@ export class CoValueCore {
           tx,
           previous: this.lastVerifiedTransactionBySessionID[sessionID],
         };
+
+        if (verifiedTransaction.madeAt > this.latestTxMadeAt) {
+          this.latestTxMadeAt = verifiedTransaction.madeAt;
+        }
+
+        if (verifiedTransaction.madeAt < this.earliestTxMadeAt) {
+          this.earliestTxMadeAt = verifiedTransaction.madeAt;
+        }
 
         this.verifiedTransactions.push(verifiedTransaction);
         this.lastVerifiedTransactionBySessionID[sessionID] =
@@ -813,15 +832,20 @@ export class CoValueCore {
 
     transaction.hasMetaBeenParsed = true;
 
-    // Check if the transaction is a branch start
-    if (this.isBranch() && "from" in transaction.meta) {
-      if (!this.branchStart || transaction.madeAt < this.branchStart.madeAt) {
-        const commit = transaction.meta as BranchStartCommit;
+    // Branch related meta information
+    if (this.isBranched()) {
+      // Check if the transaction is a branch start
+      if ("from" in transaction.meta) {
+        const meta = transaction.meta as BranchStartCommit;
 
-        this.branchStart = {
-          from: commit.from,
-          madeAt: transaction.madeAt,
-        };
+        if (this.branchStart) {
+          this.branchStart = combineKnownStateSessions(
+            this.branchStart,
+            meta.from,
+          );
+        } else {
+          this.branchStart = meta.from;
+        }
       }
     }
 
@@ -830,6 +854,12 @@ export class CoValueCore {
       const branch = transaction.meta as BranchPointerCommit;
 
       this.branches.push(branch);
+    }
+
+    // Check if the transaction is a merged checkpoint for a branch
+    if ("merged" in transaction.meta) {
+      const mergeCommit = transaction.meta as MergeCommit;
+      this.mergeCommits.push(mergeCommit);
     }
 
     // Check if the transaction has been merged from a branch
@@ -852,12 +882,6 @@ export class CoValueCore {
           prev: previousTransaction ?? null,
         });
       }
-    }
-
-    // Check if the transaction is a merged checkpoint for a branch
-    if ("merged" in transaction.meta) {
-      const mergeCommit = transaction.meta as MergeCommit;
-      this.mergeCommits.push(mergeCommit);
     }
   }
 
@@ -939,7 +963,7 @@ export class CoValueCore {
     // If this is a branch, we load the valid transactions from the source
     if (source && this.branchStart && !options?.skipBranchSource) {
       const sourceTransactions = source.getValidTransactions({
-        to: this.branchStart.from,
+        to: this.branchStart,
         ignorePrivateTransactions: options?.ignorePrivateTransactions ?? false,
         knownTransactions: options?.knownTransactions,
       });
@@ -972,7 +996,7 @@ export class CoValueCore {
     return this.verified?.branchSourceId;
   }
 
-  isBranch() {
+  isBranched() {
     return Boolean(this.verified?.branchSourceId);
   }
 
@@ -1002,8 +1026,6 @@ export class CoValueCore {
   }
 
   getMergeCommits() {
-    this.parseNewTransactions(false);
-
     return this.mergeCommits;
   }
 

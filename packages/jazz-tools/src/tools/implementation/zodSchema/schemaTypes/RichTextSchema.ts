@@ -1,8 +1,10 @@
 import {
   Account,
+  BranchDefinition,
   CoRichText,
   Group,
   coOptionalDefiner,
+  unstable_mergeBranchWithResolve,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { CoOptionalSchema } from "./CoOptionalSchema.js";
@@ -40,14 +42,20 @@ export class RichTextSchema implements CoreRichTextSchema {
 
   load(
     id: string,
-    options: { loadAs: Account | AnonymousJazzAgent },
+    options: {
+      loadAs: Account | AnonymousJazzAgent;
+      unstable_branch?: BranchDefinition;
+    },
   ): Promise<CoRichText | null> {
     return this.coValueClass.load(id, options);
   }
 
   subscribe(
     id: string,
-    options: { loadAs: Account | AnonymousJazzAgent },
+    options: {
+      loadAs: Account | AnonymousJazzAgent;
+      unstable_branch?: BranchDefinition;
+    },
     listener: (value: CoRichText, unsubscribe: () => void) => void,
   ): () => void;
   subscribe(
@@ -57,6 +65,14 @@ export class RichTextSchema implements CoreRichTextSchema {
   subscribe(...args: [any, ...any[]]) {
     // @ts-expect-error
     return this.coValueClass.subscribe(...args);
+  }
+
+  unstable_merge(
+    id: string,
+    options: { loadAs: Account | AnonymousJazzAgent },
+  ): Promise<void> {
+    // @ts-expect-error
+    return unstable_mergeBranchWithResolve(this.coValueClass, id, options);
   }
 
   getCoValueClass(): typeof CoRichText {

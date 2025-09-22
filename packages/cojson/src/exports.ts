@@ -27,7 +27,6 @@ import { EVERYONE, RawGroup } from "./coValues/group.js";
 import type { Everyone } from "./coValues/group.js";
 import {
   CryptoProvider,
-  StreamingHash,
   secretSeedLength,
   shortHashLength,
 } from "./crypto/crypto.js";
@@ -85,6 +84,7 @@ import {
 import { LogLevel, logger } from "./logger.js";
 import { CO_VALUE_PRIORITY, getPriorityFromHeader } from "./priority.js";
 import { getDependedOnCoValues } from "./storage/syncUtils.js";
+import { canBeBranched } from "./coValueCore/branching.js";
 
 type Value = JsonValue | AnyRawCoValue;
 
@@ -107,7 +107,6 @@ export const cojsonInternals = {
   isAccountID,
   accountHeaderForInitialAgentSecret,
   idforHeader,
-  StreamingHash,
   getPriorityFromHeader,
   getGroupDependentKeyList,
   getGroupDependentKey,
@@ -124,6 +123,7 @@ export const cojsonInternals = {
   getContentMessageSize,
   TRANSACTION_CONFIG,
   setMaxRecommendedTxSize,
+  canBeBranched,
 };
 
 export {

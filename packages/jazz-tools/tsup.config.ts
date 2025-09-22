@@ -135,6 +135,7 @@ export default defineConfig([
     ...cfg,
     entry: {
       index: "src/worker/index.ts",
+      "edge-wasm": "src/worker/edge-wasm.ts",
     },
     outDir: "dist/worker",
   },
@@ -146,5 +147,12 @@ export default defineConfig([
       react: "src/better-auth/auth/react.tsx",
     },
     outDir: "dist/better-auth/auth",
+  },
+  {
+    ...cfg,
+    entry: {
+      index: "src/better-auth/database-adapter/index.ts",
+    },
+    outDir: "dist/better-auth/database-adapter",
   },
 ]);

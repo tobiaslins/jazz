@@ -1,17 +1,22 @@
-import { CoPlainText } from "jazz-tools";
+import { co } from "jazz-tools";
 import {
   BubbleTeaAddOnTypes,
   BubbleTeaBaseTeaTypes,
-  BubbleTeaOrder,
-  DraftBubbleTeaOrder,
+  PartialBubbleTeaOrder,
 } from "./schema.ts";
+
+type ResolveQuery = {
+  addOns: true;
+};
 
 export function OrderForm({
   order,
   onSave,
+  onCancel,
 }: {
-  order: BubbleTeaOrder | DraftBubbleTeaOrder;
-  onSave?: (e: React.FormEvent<HTMLFormElement>) => void;
+  order: co.loaded<typeof PartialBubbleTeaOrder, ResolveQuery>;
+  onSave: (e: React.FormEvent<HTMLFormElement>) => void;
+  onCancel?: () => void;
 }) {
   // Handles updates to the instructions field of the order.
   // If instructions already exist, applyDiff updates them incrementally.
@@ -22,10 +27,7 @@ export function OrderForm({
     if (order.instructions) {
       return order.instructions.$jazz.applyDiff(e.target.value);
     }
-    order.$jazz.set(
-      "instructions",
-      CoPlainText.create(e.target.value, order.$jazz.owner),
-    );
+    order.$jazz.set("instructions", e.target.value);
   };
 
   return (
@@ -61,12 +63,12 @@ export function OrderForm({
               value={addOn}
               name={addOn}
               id={addOn}
-              checked={order.addOns?.includes(addOn) || false}
+              checked={order.addOns.includes(addOn) || false}
               onChange={(e) => {
                 if (e.target.checked) {
-                  order.addOns?.$jazz.push(addOn);
+                  order.addOns.$jazz.push(addOn);
                 } else {
-                  order.addOns?.$jazz.splice(order.addOns?.indexOf(addOn), 1);
+                  order.addOns.$jazz.remove((item) => item === addOn);
                 }
               }}
             />
@@ -111,15 +113,23 @@ export function OrderForm({
           onChange={handleInstructionsChange}
         ></textarea>
       </div>
-
-      {onSave && (
+      <div className="flex gap-2 justify-end">
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded cursor-pointer"
+          >
+            Cancel
+          </button>
+        )}
         <button
           type="submit"
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded cursor-pointer"
         >
           Submit
         </button>
-      )}
+      </div>
     </form>
   );
 }

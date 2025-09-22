@@ -1,39 +1,60 @@
-import { useAccount } from "jazz-tools/react";
-import { DraftIndicator } from "./DraftIndicator.tsx";
+import { useAccountWithSelector } from "jazz-tools/react";
 import { OrderThumbnail } from "./OrderThumbnail.tsx";
-import { JazzAccount } from "./schema.ts";
+import { JazzAccount, PartialBubbleTeaOrder } from "./schema.ts";
+import { useHashRouter } from "hash-slash";
 
 export function Orders() {
-  const { me } = useAccount(JazzAccount, {
-    resolve: { root: { orders: true } },
+  const router = useHashRouter();
+
+  const orders = useAccountWithSelector(JazzAccount, {
+    resolve: {
+      root: {
+        orders: {
+          $each: {
+            addOns: true,
+            instructions: true,
+          },
+        },
+      },
+    },
+    select: (me) => me?.root.orders,
   });
+
+  const hasOrders = !!orders?.length;
+  const createButtonText = hasOrders
+    ? "Create a new order"
+    : "Create your first order";
+
+  const handleCreateOrder = () => {
+    const order = PartialBubbleTeaOrder.create({
+      addOns: [],
+      instructions: "",
+    });
+    router.navigate(`/#/new-order/${order.$jazz.id}`);
+  };
 
   return (
     <>
-      <section className="space-y-5">
-        <a
-          href={`/#/order`}
-          className="block relative p-3 bg-white border border-stone-200 text-center rounded-md dark:bg-stone-900 dark:border-stone-900"
+      {hasOrders && (
+        <section className="space-y-5">
+          <div className="space-y-3">
+            <h1 className="text-lg pb-2 border-b mb-3 border-stone-200 dark:border-stone-700">
+              <strong>Your orders 🧋</strong>
+            </h1>
+
+            {orders.map((order) => (
+              <OrderThumbnail key={order.$jazz.id} order={order} />
+            ))}
+          </div>
+        </section>
+      )}
+      <section className="flex gap-3">
+        <button
+          onClick={handleCreateOrder}
+          className="p-3 bg-white border border-stone-200 text-center rounded-md dark:bg-stone-900 dark:border-stone-900 cursor-pointer"
         >
-          <strong>Add new order</strong>
-          <DraftIndicator />
-        </a>
-
-        <div className="space-y-3">
-          <h1 className="text-lg pb-2 border-b mb-3 border-stone-200 dark:border-stone-700">
-            <strong>Your orders 🧋</strong>
-          </h1>
-
-          {me?.root?.orders?.length ? (
-            me?.root?.orders.map((order) =>
-              order ? (
-                <OrderThumbnail key={order.$jazz.id} order={order} />
-              ) : null,
-            )
-          ) : (
-            <p>You have no orders yet.</p>
-          )}
-        </div>
+          <strong>{createButtonText}</strong>
+        </button>
       </section>
     </>
   );

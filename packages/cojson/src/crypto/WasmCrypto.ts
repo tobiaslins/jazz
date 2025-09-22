@@ -2,7 +2,6 @@ import {
   SessionLog,
   initialize,
   Blake3Hasher,
-  blake3_empty_state,
   blake3_hash_once,
   blake3_hash_once_with_context,
   decrypt,
@@ -25,7 +24,6 @@ import { PureJSCrypto } from "./PureJSCrypto.js";
 import {
   CryptoProvider,
   Encrypted,
-  Hash,
   KeyID,
   KeySecret,
   Sealed,
@@ -46,6 +44,7 @@ import {
 
 type Blake3State = Blake3Hasher;
 
+let wasmInit = initialize;
 /**
  * WebAssembly implementation of the CryptoProvider interface using cojson-core-wasm.
  * This provides the primary implementation using WebAssembly for optimal performance, offering:
@@ -59,9 +58,13 @@ export class WasmCrypto extends CryptoProvider<Blake3State> {
     super();
   }
 
+  static setInit(value: typeof initialize) {
+    wasmInit = value;
+  }
+
   static async create(): Promise<WasmCrypto | PureJSCrypto> {
     try {
-      await initialize();
+      await wasmInit();
     } catch (e) {
       logger.warn(
         "Failed to initialize WasmCrypto, falling back to PureJSCrypto",
@@ -73,14 +76,6 @@ export class WasmCrypto extends CryptoProvider<Blake3State> {
     return new WasmCrypto();
   }
 
-  emptyBlake3State(): Blake3State {
-    return blake3_empty_state();
-  }
-
-  cloneBlake3State(state: Blake3State): Blake3State {
-    return state.clone();
-  }
-
   blake3HashOnce(data: Uint8Array) {
     return blake3_hash_once(data);
   }
@@ -90,15 +85,6 @@ export class WasmCrypto extends CryptoProvider<Blake3State> {
     { context }: { context: Uint8Array },
   ) {
     return blake3_hash_once_with_context(data, context);
-  }
-
-  blake3IncrementalUpdate(state: Blake3State, data: Uint8Array): Blake3State {
-    state.update(data);
-    return state;
-  }
-
-  blake3DigestForState(state: Blake3State): Uint8Array {
-    return state.finalize();
   }
 
   newEd25519SigningKey(): Uint8Array {
