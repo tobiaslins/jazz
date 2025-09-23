@@ -205,6 +205,11 @@ export const docNavigationItems = [
         done: 100,
       },
       {
+        name: "Codecs",
+        href: "/docs/using-covalues/codecs",
+        done: 100,
+      },
+      {
         name: "Subscriptions & Deep Loading",
         href: "/docs/using-covalues/subscription-and-loading",
         done: 80,
