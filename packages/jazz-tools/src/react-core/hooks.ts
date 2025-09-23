@@ -784,7 +784,16 @@ export function experimental_useInboxSender<
   return sendMessage;
 }
 
-export function useConnectionStatus() {
+/**
+ * Hook that returns the current connection status to the Jazz sync server.
+ *
+ * @returns `true` when connected to the server, `false` when disconnected
+ *
+ * @remarks
+ * On connection drop, this hook will return `false` only when Jazz detects the disconnection
+ * after 5 seconds of not receiving a ping from the server.
+ */
+export function useSyncConnectionStatus() {
   const context = useJazzContext();
 
   const connected = useSyncExternalStore(

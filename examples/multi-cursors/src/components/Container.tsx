@@ -3,7 +3,7 @@ import { CursorFeed } from "../schema";
 import { getColor } from "../utils/getColor.ts";
 import { getName } from "../utils/getName";
 import Canvas from "./Canvas";
-import { useConnectionStatus } from "jazz-tools/react-core";
+import { useSyncConnectionStatus } from "jazz-tools/react-core";
 
 const OLD_CURSOR_AGE_SECONDS = Number(
   import.meta.env.VITE_OLD_CURSOR_AGE_SECONDS,
@@ -37,7 +37,7 @@ function Container({ cursorFeedID }: { cursorFeedID: string }) {
   const { me } = useAccount();
   const cursors = useCoState(CursorFeed, cursorFeedID, { resolve: true });
 
-  const connected = useConnectionStatus();
+  const connected = useSyncConnectionStatus();
 
   const remoteCursors = Object.values(cursors?.perSession ?? {})
     .map((entry) => ({

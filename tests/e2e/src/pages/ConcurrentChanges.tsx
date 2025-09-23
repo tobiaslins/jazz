@@ -1,12 +1,13 @@
-import { CoFeed, Group, ID, coField } from "jazz-tools";
+import { Group, co, z } from "jazz-tools";
 import { useAccount, useCoState } from "jazz-tools/react";
 import { useEffect, useState } from "react";
 
-export class Counter extends CoFeed.Of(coField.json<{ value: number }>()) {}
+export const Counter = co.feed(z.object({ value: z.number() }));
+export type Counter = co.loaded<typeof Counter>;
 
 function getIdParam() {
   const url = new URL(window.location.href);
-  return (url.searchParams.get("id") as ID<Counter>) ?? undefined;
+  return url.searchParams.get("id") ?? undefined;
 }
 
 export function ConcurrentChanges() {

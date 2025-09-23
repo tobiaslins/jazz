@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { Link, RouterProvider, createBrowserRouter } from "react-router-dom";
 import { AuthAndJazz } from "./jazz";
 import { ConcurrentChanges } from "./pages/ConcurrentChanges";
+import { ConnectionStatus } from "./pages/ConnectionStatus";
 import { FileStreamTest } from "./pages/FileStream";
 import { InboxPage } from "./pages/Inbox";
 import { ResumeSyncState } from "./pages/ResumeSyncState";
@@ -31,6 +32,9 @@ function Index() {
       </li>
       <li>
         <Link to="/write-only">Write Only</Link>
+      </li>
+      <li>
+        <Link to="/connection-status">Connection Status</Link>
       </li>
       <li>
         <Link to="/concurrent-changes">Concurrent Changes</Link>
@@ -74,6 +78,10 @@ const router = createBrowserRouter([
   {
     path: "/concurrent-changes",
     element: <ConcurrentChanges />,
+  },
+  {
+    path: "/connection-status",
+    element: <ConnectionStatus />,
   },
   {
     path: "/",

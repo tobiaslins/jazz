@@ -1,4 +1,4 @@
-import { Account, CoMap, Group, ID, Inbox, coField } from "jazz-tools";
+import { Account, Group, Inbox, co, z } from "jazz-tools";
 import {
   useAccount,
   experimental_useInboxSender as useInboxSender,
@@ -6,14 +6,15 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { createCredentiallessIframe } from "../lib/createCredentiallessIframe";
 
-export class PingPong extends CoMap {
-  ping = coField.json<number>();
-  pong = coField.optional.json<number>();
-}
+export const PingPong = co.map({
+  ping: z.number(),
+  pong: z.number().optional(),
+});
+export type PingPong = co.loaded<typeof PingPong>;
 
 function getIdParam() {
   const url = new URL(window.location.href);
-  return (url.searchParams.get("id") as ID<Account> | undefined) ?? undefined;
+  return url.searchParams.get("id") ?? undefined;
 }
 
 export function InboxPage() {

@@ -15,7 +15,7 @@ export {
   useAccount,
   useCoStateWithSelector,
   useAccountWithSelector,
-  useConnectionStatus,
+  useSyncConnectionStatus,
 } from "jazz-tools/react-core";
 
 export function useAcceptInviteNative<S extends CoValueClassOrSchema>({

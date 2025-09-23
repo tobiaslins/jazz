@@ -193,6 +193,23 @@ export async function createJazzTestGuest() {
   };
 }
 
+export class MockConnectionStatus {
+  static connected: boolean = true;
+  static connectionListeners = new Set<(isConnected: boolean) => void>();
+  static setIsConnected(isConnected: boolean) {
+    MockConnectionStatus.connected = isConnected;
+    for (const listener of MockConnectionStatus.connectionListeners) {
+      listener(isConnected);
+    }
+  }
+  static addConnectionListener(listener: (isConnected: boolean) => void) {
+    MockConnectionStatus.connectionListeners.add(listener);
+    return () => {
+      MockConnectionStatus.connectionListeners.delete(listener);
+    };
+  }
+}
+
 export type TestJazzContextManagerProps<Acc extends Account> =
   JazzContextManagerBaseProps<Acc> & {
     defaultProfileName?: string;
@@ -249,8 +266,10 @@ export class TestJazzContextManager<
           await storage.clear();
           node.gracefulShutdown();
         },
-        addConnectionListener: () => () => {},
-        connected: () => false,
+        addConnectionListener: (listener) => {
+          return MockConnectionStatus.addConnectionListener(listener);
+        },
+        connected: () => MockConnectionStatus.connected,
       },
       {
         credentials,
@@ -276,8 +295,10 @@ export class TestJazzContextManager<
       logOut: async () => {
         node.gracefulShutdown();
       },
-      addConnectionListener: () => () => {},
-      connected: () => false,
+      addConnectionListener: (listener) => {
+        return MockConnectionStatus.addConnectionListener(listener);
+      },
+      connected: () => MockConnectionStatus.connected,
     });
 
     return context;
@@ -313,8 +334,10 @@ export class TestJazzContextManager<
       logOut: () => {
         return context.logOut();
       },
-      addConnectionListener: () => () => {},
-      connected: () => false,
+      addConnectionListener: (listener: (isConnected: boolean) => void) => {
+        return MockConnectionStatus.addConnectionListener(listener);
+      },
+      connected: () => MockConnectionStatus.connected,
     };
   }
 }
