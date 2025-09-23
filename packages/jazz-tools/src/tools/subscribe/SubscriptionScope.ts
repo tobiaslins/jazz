@@ -405,7 +405,7 @@ export class SubscriptionScope<D extends CoValue> {
    */
   pullValue(listener: (value: SubscriptionValue<D, any>) => void) {
     if (!this.closed) {
-      throw new Error("Cannot rehydrate a non-closed subscription scope");
+      throw new Error("Cannot pull a non-closed subscription scope");
     }
 
     if (this.value.type === "loaded") {
@@ -431,7 +431,7 @@ export class SubscriptionScope<D extends CoValue> {
 
   subscribeToId(id: string, descriptor: RefEncoded<any>) {
     if (this.isSubscribedToId(id)) {
-      if (this.closed !== true) {
+      if (!this.closed) {
         return;
       }
 
