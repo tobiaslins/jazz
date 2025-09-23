@@ -50,9 +50,7 @@ export default function Page() {
       </div>
 
       {/* Contact Form Section */}
-      <div className="py-16 bg-stone-50 dark:bg-stone-900/50 rounded-lg">
-        <ContactForm />
-      </div>
+      <ContactForm />
     </div>
   );
 }

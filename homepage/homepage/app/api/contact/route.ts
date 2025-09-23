@@ -219,11 +219,8 @@ export async function POST(request: NextRequest) {
       }
     }
     // bot protection, should be empty by actual user
-    if (body.nickName && body.nickName.trim() !== "") {
-        return NextResponse.json(
-          { error: "Spam detected" },
-          { status: 400 }
-        );
+      if (body.nickName && body.nickName.trim() !== "") {
+        return NextResponse.json({ status:200, message: "Thanks for your submission." });
       }
 
     // Process the form submission with configured integrations

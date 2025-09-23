@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Input, Button, Label } from 'quint-ui';
+import { HeroHeader } from '@garden-co/design-system/src/components/molecules/HeroHeader';
 
 interface FormData {
     appName: string;
@@ -122,18 +123,16 @@ export function ContactForm() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-lg dark:bg-stone-900 dark:text-white">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-stone-900 dark:text-white mb-2">
-          Submit a Project
-        </h2>
-        <p className="text-stone-600 dark:text-stone-400">
-          We'd love to hear more about your jazz app. Please fill out the form below and we'll get back to you as soon as possible.
-        </p>
-      </div>
-
+    <div className="mx-auto p-6 border bg-stone shadow-sm dark:bg-stone rounded-lg">
+      <HeroHeader
+        level='h2'
+        title="Submit a Project"
+        slogan="We'd love to hear more about your Jazz app. Please fill out the form below and we'll get back to you as soon as possible."
+        className='pt-0'
+        pt={false}
+      />
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 ">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <Label htmlFor="appName" size="md">
               App Name *
@@ -238,13 +237,12 @@ export function ContactForm() {
             className="w-full rounded-md border py-1.5 px-3 h-24 text-base font-medium dark:text-white border-stone-500/50 focus:ring-stone-800/50 focus:outline-none focus:ring-2"
             placeholder="Anything else you'd like to add?"
             autoComplete="off"
-            tabIndex={-1}
             rows={5}
           />
         </div>
         {/* this is a bot protection field, hidden from the user */}
         <div className="hidden" aria-hidden="true">
-            <label htmlFor="nickName">Last Name</label>
+            <label htmlFor="nickName">Nickname</label>
             <input
                 id="nickName"
                 name="nickName"
@@ -268,7 +266,7 @@ export function ContactForm() {
           </div>
         )}
 
-        <div className="text-center">
+        <div className="text-right">
           <Button
             type="submit"
             disabled={isSubmitting}
