@@ -53,7 +53,7 @@ export const UserAccount = co.account({
   let { children } = $props();
 
   // Example configuration for authentication and peer connection
-  let sync = { peer: "wss://cloud.jazz.tools/?key=you@example.com" };
+  let sync = { peer: `wss://cloud.jazz.tools/?key=${apiKey}` };
 </script>
 
 <JazzSvelteProvider {sync} AccountSchema={MyAccount}>

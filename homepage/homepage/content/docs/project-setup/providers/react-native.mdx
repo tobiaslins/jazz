@@ -23,11 +23,12 @@ Wrap your app components with the `<JazzReactNativeProvider />` component:
 // App.tsx
 import { JazzReactNativeProvider } from "jazz-tools/react-native";
 import { MyAppAccount } from "./schema";
+const apiKey = process.env.JAZZ_API_KEY;
 
 export function MyJazzProvider({ children }: { children: React.ReactNode }) {
   return (
     <JazzReactNativeProvider
-      sync={{ peer: "wss://cloud.jazz.tools/?key=you@example.com" }}
+      sync={{ peer: `wss://cloud.jazz.tools/?key=${apiKey}` }}
       AccountSchema={MyAppAccount}
     >
       {children}

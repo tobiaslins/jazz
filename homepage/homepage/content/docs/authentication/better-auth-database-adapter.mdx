@@ -27,10 +27,11 @@ The package `jazz-tools/better-auth/database-adapter` is a database adapter for 
   ```typescript
   import { betterAuth } from "better-auth";
   import { JazzBetterAuthDatabaseAdapter } from "jazz-tools/better-auth/database-adapter";
+  const apiKey = process.env.JAZZ_API_KEY;
 
   const auth = betterAuth({
     database: JazzBetterAuthDatabaseAdapter({
-      syncServer: "wss://cloud.jazz.tools/?key=you@example.com",
+      syncServer: `wss://cloud.jazz.tools/?key=${apiKey}`,
       accountID: "auth-worker-account-id",
       accountSecret: "your-worker-account-secret",
     }),
@@ -58,10 +59,11 @@ The easiest way to access the database is using the same Server Worker's credent
 ```typescript
 import { startWorker } from 'jazz-tools/worker';
 import { co, z } from 'jazz-tools';
+const apiKey = process.env.JAZZ_API_KEY;
 
 
 const worker1 = await startWorker({
-  syncServer: "wss://cloud.jazz.tools/?key=you@example.com",
+  syncServer: `wss://cloud.jazz.tools/?key=${apiKey}`,
   accountID: process.env.WORKER_ACCOUNT_ID,
   accountSecret: process.env.WORKER_ACCOUNT_SECRET,
 });
@@ -98,10 +100,11 @@ If you need to change the worker, you can create a new one and add it to the mas
 ```typescript
 import { Account } from 'jazz-tools';
 import { startWorker } from 'jazz-tools/worker';
+const apiKey = process.env.JAZZ_API_KEY;
 
 // Start the main worker and fetch database reference
 const { worker } = await startWorker({
-  syncServer: "wss://cloud.jazz.tools/?key=you@example.com",
+  syncServer: `wss://cloud.jazz.tools/?key=${apiKey}`,
   accountID: process.env.WORKER_ACCOUNT_ID,
   accountSecret: process.env.WORKER_ACCOUNT_SECRET,
 });
@@ -129,7 +132,7 @@ await db.group.$jazz.waitForSync();
 
 // Now the new worker can access the tables
 const { worker: newWorker } = await startWorker({
-  syncServer: "wss://cloud.jazz.tools/?key=you@example.com",
+  syncServer: `wss://cloud.jazz.tools/?key=${apiKey}`,
   accountID: process.env.NEW_WORKER_ACCOUNT_ID,
   accountSecret: process.env.NEW_WORKER_ACCOUNT_SECRET,
 });

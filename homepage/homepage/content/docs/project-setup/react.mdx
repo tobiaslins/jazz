@@ -83,6 +83,7 @@ import { createRoot } from 'react-dom/client';
 function App() {
     return <div>Hello, world!</div>;
 }
+const apiKey = "get_your_free_api_key@dashboard.jazz.tools";
 // ---cut---
 // app.tsx
 import { JazzReactProvider } from "jazz-tools/react";
@@ -90,7 +91,7 @@ import { MyAppAccount } from "./schema";
 
 createRoot(document.getElementById("root")!).render(
   <JazzReactProvider
-    sync={{ peer: "wss://cloud.jazz.tools/?key=you@example.com" }}
+    sync={{ peer: `wss://cloud.jazz.tools/?key=${apiKey}` }}
     AccountSchema={MyAppAccount}
   >
     <App />
@@ -133,6 +134,7 @@ export const MyAppAccount = co.account({
 });
 // @filename: app.tsx
 import * as React from "react";
+const apiKey = "get_your_free_api_key@dashboard.jazz.tools";
 // ---cut---
 import { JazzReactProvider } from "jazz-tools/react";
 import { MyAppAccount } from "./schema";
@@ -141,7 +143,7 @@ export function JazzWrapper({ children }: { children: React.ReactNode }) {
   return (
     <JazzReactProvider
       enableSSR // Renders the components tree in the server using an agent
-      sync={{ peer: "wss://cloud.jazz.tools/?key=you@example.com" }}
+      sync={{ peer: `wss://cloud.jazz.tools/?key=${apiKey}` }}
       AccountSchema={MyAppAccount}
     >
       {children}
