@@ -73,6 +73,8 @@ class TestJazzContextManager<Acc extends Account> extends JazzContextManager<
       logOut: async () => {
         await context.logOut();
       },
+      addConnectionListener: () => () => {},
+      connected: () => false,
     };
   }
 }
@@ -80,14 +82,12 @@ class TestJazzContextManager<Acc extends Account> extends JazzContextManager<
 describe("ContextManager", () => {
   let manager: TestJazzContextManager<Account>;
   let authSecretStorage: AuthSecretStorage;
-  let storage: StorageAPI;
 
   function getCurrentValue() {
     return manager.getCurrentValue() as JazzAuthContext<Account>;
   }
 
   beforeEach(async () => {
-    storage = await createAsyncStorage({});
     KvStoreContext.getInstance().initialize(new InMemoryKVStore());
     authSecretStorage = new AuthSecretStorage();
     await authSecretStorage.clear();
