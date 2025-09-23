@@ -22,7 +22,7 @@ export function QuickSearch() {
     >
       <Icon name="search" size="xs" intent="default" />
       <span className="font-normal flex-1 text-left text-sm xl:not-sr-only">
-        Search docs
+        Search<span className="md:hidden xl:inline"> docs</span>
       </span>
       <kbd className="hidden gap-0.5 xl:text-sm lg:inline-flex">
         <kbd className="font-sans">{isMac ? "⌘" : "Ctrl"}</kbd>
