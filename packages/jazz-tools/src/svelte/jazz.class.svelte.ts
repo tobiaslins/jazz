@@ -248,9 +248,4 @@ export class SyncConnectionStatus {
     this.#subscribe();
     return this.#ctx.current?.connected() ?? false;
   }
-
-  /** @deprecated Use `current` instead */
-  get value() {
-    return this.current;
-  }
 }
