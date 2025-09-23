@@ -69,19 +69,14 @@ function Container({ cursorFeedID }: { cursorFeedID: string }) {
           ))}
         </div>
       </div>
-      <div className="absolute top-16 right-4 bg-white p-2 rounded-lg shadow">
-        {connected ? (
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span className="text-sm text-gray-700">Connected</span>
-          </div>
-        ) : (
+      {!connected && (
+        <div className="absolute top-16 right-4 bg-white p-2 rounded-lg shadow">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
             <span className="text-sm text-gray-700">Connecting...</span>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <Canvas
         onCursorMove={(move) => {
