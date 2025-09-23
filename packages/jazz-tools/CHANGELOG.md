@@ -1,5 +1,16 @@
 # jazz-tools
 
+## 0.18.17
+
+### Patch Changes
+
+- 75d1afa: Fix an issue where a flash of alt text displays while an image definition is loading from storage
+- 8aa4acd: Optimized the inactive subscriptions, improving performance of updates on created and loaded values by 2.5x
+- Updated dependencies [925da72]
+  - cojson@0.18.17
+  - cojson-storage-indexeddb@0.18.17
+  - cojson-transport-ws@0.18.17
+
 ## 0.18.16
 
 ### Patch Changes
