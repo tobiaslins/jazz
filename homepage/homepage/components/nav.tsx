@@ -22,17 +22,16 @@ export function JazzNav({
       items={navigationItems}
       socials={socials}
       hideMobileNav={hideMobileNav}
-      cta={<>
+      cta={<div className="flex items-center gap-3 md:mr-2">
         <QuickSearch />
         <Button
           intent="primary"
           href="https://dashboard.jazz.tools"
-          className="mr-3"
           newTab
         >
           Dashboard
         </Button>
-      </>
+      </div>
     }
     ></Nav>
   );
@@ -47,12 +46,11 @@ export function JazzMobileNav({ sections }: { sections?: NavSection[] }) {
       themeToggle={ThemeToggle}
       items={navigationItems}
       socials={socials}
-      cta={<div className="flex items-center justify-between">
+      cta={<div className="flex items-center gap-2">
         <QuickSearch />
         <Button
           intent="primary"
           href="https://dashboard.jazz.tools"
-          className="mr-3"
           newTab
         >
           Dashboard
