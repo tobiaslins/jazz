@@ -24,6 +24,8 @@ export function getSubscriptionScope<D extends CoValue>(value: D) {
     configurable: false,
   });
 
+  newSubscriptionScope.destroy();
+
   return newSubscriptionScope;
 }
 
@@ -42,8 +44,14 @@ export function accessChildByKey<D extends CoValue>(
 ) {
   const subscriptionScope = getSubscriptionScope(parent);
 
+  const node = subscriptionScope.childNodes.get(childId);
+
   if (!subscriptionScope.isSubscribedToId(childId)) {
     subscriptionScope.subscribeToKey(key);
+  } else if (node && node.closed) {
+    node.pullValue((value) =>
+      subscriptionScope.handleChildUpdate(childId, value),
+    );
   }
 
   const value = subscriptionScope.childValues.get(childId);
