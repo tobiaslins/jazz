@@ -35,6 +35,7 @@ Use `<JazzReactProviderWithClerk />` to wrap your app:
 ```tsx twoslash
 import * as React from "react";
 import { createRoot } from "react-dom/client";
+
 /**
  * Use your email as a temporary key, or get a free
  * API Key at dashboard.jazz.tools for higher limits.
@@ -42,6 +43,7 @@ import { createRoot } from "react-dom/client";
  * @link https://dashboard.jazz.tools
 */
 const apiKey = "you@example.com";
+
 const PUBLISHABLE_KEY = "fake_key";
 function App() {
   return <div>Hello World</div>;
@@ -82,6 +84,7 @@ Use `<JazzExpoProviderWithClerk />` to wrap your app.
 <CodeGroup>
 ```tsx twoslash
 import * as React from "react";
+
 /**
  * Use your email as a temporary key, or get a free
  * API Key at dashboard.jazz.tools for higher limits.
@@ -89,6 +92,7 @@ import * as React from "react";
  * @link https://dashboard.jazz.tools
 */
 const apiKey = "you@example.com";
+
 const tokenCache = {
   getToken: async (key: string) => {
     return null;
