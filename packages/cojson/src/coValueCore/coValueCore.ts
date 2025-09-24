@@ -536,7 +536,7 @@ export class CoValueCore {
     });
   }
 
-  updateCurrentContent() {
+  private updateCurrentContent() {
     if (
       this._cachedContent &&
       "processNewTransactions" in this._cachedContent &&
@@ -550,8 +550,9 @@ export class CoValueCore {
     this._cachedDependentOn = undefined;
   }
 
-  #batching = false;
+  #isNotificationScheduled = false;
   #batchedUpdates = false;
+
   private scheduleNotifyUpdate() {
     if (this.listeners.size === 0) {
       return;
@@ -559,11 +560,11 @@ export class CoValueCore {
 
     this.#batchedUpdates = true;
 
-    if (!this.#batching) {
-      this.#batching = true;
+    if (!this.#isNotificationScheduled) {
+      this.#isNotificationScheduled = true;
 
       queueMicrotask(() => {
-        this.#batching = false;
+        this.#isNotificationScheduled = false;
 
         // Check if an immediate update has been notified
         if (this.#batchedUpdates) {
@@ -674,7 +675,7 @@ export class CoValueCore {
     this.updateCurrentContent();
 
     // force immediate notification because local updates may come from the UI
-    // where we need syncronous updates
+    // where we need synchronous updates
     this.notifyUpdate();
     this.node.syncManager.syncLocalTransaction(
       this.verified,
