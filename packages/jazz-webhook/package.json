@@ -16,7 +16,8 @@
     "cojson": "workspace:*",
     "cojson-storage-sqlite": "workspace:*",
     "cojson-transport-ws": "workspace:*",
-    "jazz-tools": "workspace:*"
+    "jazz-tools": "workspace:*",
+    "hono": "^4.6.12"
   },
   "devDependencies": {
     "@types/ws": "8.5.10",

@@ -2,7 +2,11 @@ import { describe, expect, test, onTestFinished, assert } from "vitest";
 import { co, z, Group } from "jazz-tools";
 import { createJazzTestAccount } from "jazz-tools/testing";
 import { WebhookTestServer } from "./http-server.js";
-import { JazzWebhook, WebhookRegistration, WebhookRegistry } from "../index.js";
+import {
+  JazzWebhook,
+  WebhookRegistration,
+  WebhookRegistry,
+} from "../webhook.js";
 
 // Define test schemas
 const TestCoMap = co.map({
