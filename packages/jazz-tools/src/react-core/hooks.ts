@@ -719,6 +719,22 @@ export function useAccountWithSelector<
     select: (account: Loaded<A, R> | undefined | null) => TSelectorReturn;
     /** Equality function to determine if the selected value has changed, defaults to `Object.is` */
     equalityFn?: (a: TSelectorReturn, b: TSelectorReturn) => boolean;
+    /**
+     * Create or load a branch for isolated editing.
+     *
+     * Branching lets you take a snapshot of the current state and start modifying it without affecting the canonical/shared version.
+     * It's a fork of your data graph: the same schema, but with diverging values.
+     *
+     * The checkout of the branch is applied on all the resolved values.
+     *
+     * @param name - A unique name for the branch. This identifies the branch
+     *   and can be used to switch between different branches of the same CoValue.
+     * @param owner - The owner of the branch. Determines who can access and modify
+     *   the branch. If not provided, the branch is owned by the current user.
+     *
+     * For more info see the [branching](https://jazz.tools/docs/react/using-covalues/version-control) documentation.
+     */
+    unstable_branch?: BranchDefinition;
   },
 ): TSelectorReturn {
   const subscription = useAccountSubscription(AccountSchema, options);
