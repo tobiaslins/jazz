@@ -2510,6 +2510,48 @@ describe("CoMap migration", () => {
     expect(spy).toHaveBeenCalledTimes(1);
   });
 
+  test("should run only when the value is fully loaded", async () => {
+    await setupJazzTestSync({
+      asyncPeers: true,
+    });
+    await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+      creationProps: { name: "Hermes Puggington" },
+    });
+
+    const migration = vi.fn();
+    const Person = co
+      .map({
+        name: z.string(),
+        update: z.number(),
+      })
+      .withMigration((person) => {
+        migration(person.update);
+      });
+
+    const person = Person.create({
+      name: "Bob",
+      update: 1,
+    });
+
+    // Pump the value to reach streaming
+    for (let i = 0; i <= 300; i++) {
+      person.$jazz.raw.assign({
+        name: "1".repeat(1024),
+        update: i,
+      });
+    }
+
+    // Upload and unmount, to force the streaming download
+    await person.$jazz.waitForSync();
+    person.$jazz.raw.core.unmount();
+
+    // Load the value and expect the migration to run only once
+    await Person.load(person.$jazz.id);
+    expect(migration).toHaveBeenCalledTimes(1);
+    expect(migration).toHaveBeenCalledWith(300);
+  });
+
   test("should not break recursive schemas", async () => {
     const PersonV1 = co.map({
       name: z.string(),

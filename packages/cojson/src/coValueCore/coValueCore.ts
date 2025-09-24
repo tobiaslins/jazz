@@ -277,7 +277,7 @@ export class CoValueCore {
     const previousState = this.loadingState;
     this.peers.set(peerId, { type: "unavailable" });
     this.updateCounter(previousState);
-    this.notifyUpdate("immediate");
+    this.scheduleNotifyUpdate();
   }
 
   missingDependencies = new Set<RawCoID>();
@@ -323,7 +323,7 @@ export class CoValueCore {
         }
 
         if (this.isAvailable()) {
-          this.notifyUpdate("immediate");
+          this.scheduleNotifyUpdate();
         }
       });
 
@@ -360,7 +360,7 @@ export class CoValueCore {
     this.peers.set(fromPeerId, { type: "available" });
 
     this.updateCounter(previousState);
-    this.notifyUpdate("immediate");
+    this.scheduleNotifyUpdate();
 
     return true;
   }
@@ -374,21 +374,21 @@ export class CoValueCore {
       forceOverwrite,
     });
     this.updateCounter(previousState);
-    this.notifyUpdate("immediate");
+    this.scheduleNotifyUpdate();
   }
 
   markErrored(peerId: PeerID, error: TryAddTransactionsError) {
     const previousState = this.loadingState;
     this.peers.set(peerId, { type: "errored", error });
     this.updateCounter(previousState);
-    this.notifyUpdate("immediate");
+    this.scheduleNotifyUpdate();
   }
 
   markPending(peerId: PeerID) {
     const previousState = this.loadingState;
     this.peers.set(peerId, { type: "pending" });
     this.updateCounter(previousState);
-    this.notifyUpdate("immediate");
+    this.scheduleNotifyUpdate();
   }
 
   internalShamefullyCloneVerifiedStateFrom(
@@ -431,7 +431,7 @@ export class CoValueCore {
         this.groupInvalidationSubscription = entry.subscribe((_groupUpdate) => {
           // When the group is updated, we need to reset the cached content because the transactions validity might have changed
           this.internalShamefullyResetCachedContent();
-          this.notifyUpdate("immediate");
+          this.scheduleNotifyUpdate();
         }, false);
       } else {
         logger.error("CoValueCore: Owner group not available", {
@@ -528,17 +528,15 @@ export class CoValueCore {
       );
 
       if (result.isOk()) {
-        this.updateContentAndNotifyUpdate("immediate");
+        this.updateCurrentContent();
+        this.scheduleNotifyUpdate();
       }
 
       return result;
     });
   }
 
-  deferredUpdates = 0;
-  nextDeferredNotify: Promise<void> | undefined;
-
-  updateContentAndNotifyUpdate(notifyMode: "immediate" | "deferred") {
+  private updateCurrentContent() {
     if (
       this._cachedContent &&
       "processNewTransactions" in this._cachedContent &&
@@ -550,47 +548,47 @@ export class CoValueCore {
     }
 
     this._cachedDependentOn = undefined;
-
-    this.notifyUpdate(notifyMode);
   }
 
-  notifyUpdate(notifyMode: "immediate" | "deferred") {
+  #isNotificationScheduled = false;
+  #batchedUpdates = false;
+
+  private scheduleNotifyUpdate() {
     if (this.listeners.size === 0) {
       return;
     }
 
-    if (notifyMode === "immediate") {
-      for (const listener of this.listeners) {
-        try {
-          listener(this, () => {
-            this.listeners.delete(listener);
-          });
-        } catch (e) {
-          logger.error("Error in listener for coValue " + this.id, { err: e });
+    this.#batchedUpdates = true;
+
+    if (!this.#isNotificationScheduled) {
+      this.#isNotificationScheduled = true;
+
+      queueMicrotask(() => {
+        this.#isNotificationScheduled = false;
+
+        // Check if an immediate update has been notified
+        if (this.#batchedUpdates) {
+          this.notifyUpdate();
         }
-      }
-    } else {
-      if (!this.nextDeferredNotify) {
-        this.nextDeferredNotify = new Promise((resolve) => {
-          setTimeout(() => {
-            this.nextDeferredNotify = undefined;
-            this.deferredUpdates = 0;
-            for (const listener of this.listeners) {
-              try {
-                listener(this, () => {
-                  this.listeners.delete(listener);
-                });
-              } catch (e) {
-                logger.error("Error in listener for coValue " + this.id, {
-                  err: e,
-                });
-              }
-            }
-            resolve();
-          }, 0);
+      });
+    }
+  }
+
+  private notifyUpdate() {
+    if (this.listeners.size === 0) {
+      return;
+    }
+
+    this.#batchedUpdates = false;
+
+    for (const listener of this.listeners) {
+      try {
+        listener(this, () => {
+          this.listeners.delete(listener);
         });
+      } catch (e) {
+        logger.error("Error in listener for coValue " + this.id, { err: e });
       }
-      this.deferredUpdates++;
     }
   }
 
@@ -674,7 +672,11 @@ export class CoValueCore {
     const session = this.verified.sessions.get(sessionID);
     const txIdx = session ? session.transactions.length - 1 : 0;
 
-    this.updateContentAndNotifyUpdate("immediate");
+    this.updateCurrentContent();
+
+    // force immediate notification because local updates may come from the UI
+    // where we need synchronous updates
+    this.notifyUpdate();
     this.node.syncManager.syncLocalTransaction(
       this.verified,
       transaction,
