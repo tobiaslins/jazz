@@ -52,4 +52,5 @@ export {
   useAccount,
   useCoStateWithSelector,
   useAccountWithSelector,
+  useSyncConnectionStatus,
 } from "jazz-tools/react-core";

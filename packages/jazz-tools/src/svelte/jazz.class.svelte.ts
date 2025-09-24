@@ -205,3 +205,47 @@ export class AccountCoState<
     return this.#isAuthenticated.current;
   }
 }
+
+/**
+ * Class that provides the current connection status to the Jazz sync server.
+ *
+ * @returns `true` when connected to the server, `false` when disconnected
+ *
+ * @remarks
+ * On connection drop, this will return `false` only when Jazz detects the disconnection
+ * after 5 seconds of not receiving a ping from the server.
+ */
+export class SyncConnectionStatus {
+  #ctx = getJazzContext<InstanceOfSchema<AccountClass<Account>>>();
+  #subscribe: () => void;
+  #update = () => {};
+
+  constructor() {
+    this.#subscribe = createSubscriber((update) => {
+      this.#update = update;
+    });
+
+    $effect.pre(() => {
+      const ctx = this.#ctx.current;
+
+      return untrack(() => {
+        if (!ctx) {
+          return;
+        }
+
+        const unsubscribe = ctx.addConnectionListener(() => {
+          this.#update();
+        });
+
+        return () => {
+          unsubscribe();
+        };
+      });
+    });
+  }
+
+  get current() {
+    this.#subscribe();
+    return this.#ctx.current?.connected() ?? false;
+  }
+}
