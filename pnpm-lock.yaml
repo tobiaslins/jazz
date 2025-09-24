@@ -2238,6 +2238,52 @@ importers:
         specifier: ^8.14.2
         version: 8.18.1
 
+  packages/jazz-webhook:
+    dependencies:
+      '@effect/cli':
+        specifier: ^0.41.2
+        version: 0.41.5(@effect/platform@0.62.5(@effect/schema@0.71.4(effect@3.11.9))(effect@3.11.9))(@effect/printer-ansi@0.34.8(@effect/typeclass@0.25.8(effect@3.11.9))(effect@3.11.9))(@effect/printer@0.34.8(@effect/typeclass@0.25.8(effect@3.11.9))(effect@3.11.9))(@effect/schema@0.71.4(effect@3.11.9))(effect@3.11.9)
+      '@effect/platform-node':
+        specifier: ^0.57.2
+        version: 0.57.5(@effect/platform@0.62.5(@effect/schema@0.71.4(effect@3.11.9))(effect@3.11.9))(effect@3.11.9)
+      '@effect/printer':
+        specifier: ^0.34.5
+        version: 0.34.8(@effect/typeclass@0.25.8(effect@3.11.9))(effect@3.11.9)
+      '@effect/printer-ansi':
+        specifier: ^0.34.5
+        version: 0.34.8(@effect/typeclass@0.25.8(effect@3.11.9))(effect@3.11.9)
+      '@effect/schema':
+        specifier: ^0.71.1
+        version: 0.71.4(effect@3.11.9)
+      '@effect/typeclass':
+        specifier: ^0.25.5
+        version: 0.25.8(effect@3.11.9)
+      cojson:
+        specifier: workspace:0.18.15
+        version: link:../cojson
+      cojson-storage-sqlite:
+        specifier: workspace:0.18.15
+        version: link:../cojson-storage-sqlite
+      cojson-transport-ws:
+        specifier: workspace:0.18.15
+        version: link:../cojson-transport-ws
+      effect:
+        specifier: ^3.6.5
+        version: 3.11.9
+      jazz-tools:
+        specifier: workspace:0.18.15
+        version: link:../jazz-tools
+      ws:
+        specifier: ^8.14.2
+        version: 8.18.2
+    devDependencies:
+      '@types/ws':
+        specifier: 8.5.10
+        version: 8.5.10
+      typescript:
+        specifier: catalog:default
+        version: 5.6.2
+
   packages/quint-ui:
     dependencies:
       '@base-ui-components/react':
