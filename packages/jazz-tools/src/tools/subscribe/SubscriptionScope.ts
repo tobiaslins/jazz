@@ -79,7 +79,11 @@ export class SubscriptionScope<D extends CoValue> {
         // - Run the migration only once
         // - Skip all the updates until the migration is done
         // - Trigger handleUpdate only with the final value
-        if (!this.migrated && value !== "unavailable") {
+        if (
+          !this.migrated &&
+          value !== "unavailable" &&
+          !value.core.verified.isStreaming()
+        ) {
           if (this.migrating) {
             return;
           }
