@@ -1,5 +1,12 @@
 # cojson
 
+## 0.18.18
+
+### Patch Changes
+
+- ed7e353: Add batching on per-coValue updates when the update doesn't come from a local change
+  - cojson-core-wasm@0.18.18
+
 ## 0.18.17
 
 ### Patch Changes

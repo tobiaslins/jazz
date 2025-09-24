@@ -1,5 +1,21 @@
 # jazz-tools
 
+## 0.18.18
+
+### Patch Changes
+
+- f2f478a: Add connection status API for React and Svelte
+
+  - **React**: Added `useSyncConnectionStatus()` hook that returns the current connection status to the Jazz sync server
+  - **Svelte**: Added `SyncConnectionStatus` class that provides reactive connection status monitoring
+
+- ed7e353: Bugfix: wait for full streaming before triggering migrations on comap
+- 1698d41: Add `unstable_branch` option to useAccountWithSelector
+- Updated dependencies [ed7e353]
+  - cojson@0.18.18
+  - cojson-storage-indexeddb@0.18.18
+  - cojson-transport-ws@0.18.18
+
 ## 0.18.17
 
 ### Patch Changes
