@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 
-import { Account, RefsToResolve, co, z } from "jazz-tools";
-import { beforeEach, describe, expect, it } from "vitest";
+import { Account, RefsToResolve, co, z, Group } from "jazz-tools";
+import { assert, beforeEach, describe, expect, it } from "vitest";
 import { useAccountWithSelector, useJazzContextManager } from "../hooks.js";
 import { useIsAuthenticated } from "../index.js";
 import {
@@ -407,5 +407,101 @@ describe("useAccountWithSelector", () => {
     rerender();
 
     expect(result.current.result).toEqual("initial-suffix2");
+  });
+
+  it("should work with branches - create branch, edit and merge", async () => {
+    const AccountRoot = co.map({
+      name: z.string(),
+      age: z.number(),
+      email: z.string(),
+    });
+
+    const AccountSchema = co
+      .account({
+        root: AccountRoot,
+        profile: co.profile(),
+      })
+      .withMigration((account, creationProps) => {
+        if (!account.$jazz.refs.root) {
+          account.$jazz.set("root", {
+            name: "John Doe",
+            age: 30,
+            email: "john@example.com",
+          });
+        }
+      });
+
+    const account = await createJazzTestAccount({
+      AccountSchema,
+      isCurrentActiveAccount: true,
+    });
+
+    const group = Group.create();
+    group.addMember("everyone", "writer");
+    const { result } = renderHook(
+      () => {
+        const branchAccountRoot = useAccountWithSelector(AccountSchema, {
+          resolve: {
+            root: true,
+          },
+          select: (account) => account?.root,
+          unstable_branch: { name: "feature-branch" },
+        });
+
+        const mainAccountRoot = useAccountWithSelector(AccountSchema, {
+          resolve: {
+            root: true,
+          },
+          select: (account) => account?.root,
+        });
+
+        return {
+          branchAccountRoot,
+          mainAccountRoot,
+        };
+      },
+      {
+        account,
+      },
+    );
+
+    await act(async () => {
+      // Wait for the account to be loaded
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    });
+
+    expect(result.current).not.toBeNull();
+
+    const branchAccountRoot = result.current.branchAccountRoot;
+    const mainAccountRoot = result.current.mainAccountRoot;
+
+    assert(branchAccountRoot);
+    assert(mainAccountRoot);
+
+    act(() => {
+      branchAccountRoot.$jazz.applyDiff({
+        name: "John Smith",
+        age: 31,
+        email: "john.smith@example.com",
+      });
+    });
+
+    // Verify the branch has the changes
+    expect(branchAccountRoot.name).toBe("John Smith");
+    expect(branchAccountRoot.age).toBe(31);
+    expect(branchAccountRoot.email).toBe("john.smith@example.com");
+
+    // Verify the original is unchanged
+    expect(mainAccountRoot.name).toBe("John Doe");
+    expect(mainAccountRoot.age).toBe(30);
+    expect(mainAccountRoot.email).toBe("john@example.com");
+
+    // Merge the branch back
+    branchAccountRoot.$jazz.unstable_merge();
+
+    // Verify the original now has the merged changes
+    expect(mainAccountRoot.name).toBe("John Smith");
+    expect(mainAccountRoot.age).toBe(31);
+    expect(mainAccountRoot.email).toBe("john.smith@example.com");
   });
 });
