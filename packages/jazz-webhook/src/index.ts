@@ -54,7 +54,9 @@ export class JazzWebhook {
       throw new Error(`Webhook registry with ID ${registryId} not found`);
     }
 
-    return new JazzWebhook(registry, options);
+    const webhook = new JazzWebhook(registry, options);
+    webhook.start();
+    return webhook;
   }
 
   /**
@@ -86,7 +88,7 @@ export class JazzWebhook {
 
     this.registry.$jazz.set(registration.$jazz.id, registration);
 
-    this.subscribe(registration.$jazz.id);
+    this.subscribe(registration);
 
     return registration.$jazz.id;
   }
@@ -117,12 +119,7 @@ export class JazzWebhook {
    *
    * @param webhookId - The ID of the webhook to start monitoring
    */
-  private subscribe(webhookId: string) {
-    const webhook = this.registry[webhookId];
-    if (!webhook) {
-      throw new Error(`Webhook with ID ${webhookId} not found`);
-    }
-
+  private subscribe(webhook: WebhookRegistration) {
     const coValueId = webhook.coValueId as `co_z${string}`;
 
     if (!coValueId.startsWith("co_z")) {
@@ -150,11 +147,28 @@ export class JazzWebhook {
       emitter.schedule(hash);
     });
 
-    this.activeSubscriptions.set(webhookId, () => {
+    this.activeSubscriptions.set(webhook.$jazz.id, () => {
       unsubscribe();
       emitter.stop();
-      this.activeSubscriptions.delete(webhookId);
+      this.activeSubscriptions.delete(webhook.$jazz.id);
     });
+  }
+
+  /**
+   * Starts monitoring all active webhooks in the registry.
+   *
+   * This method iterates through all webhooks in the registry and starts
+   * subscriptions for any active webhooks that don't already have active
+   * subscriptions. This is useful for resuming webhook monitoring after
+   * a shutdown or when loading an existing registry.
+   */
+  start(): void {
+    for (const webhook of Object.values(this.registry)) {
+      // Only start subscriptions for active webhooks that don't already have active subscriptions
+      if (webhook.active && !this.activeSubscriptions.has(webhook.$jazz.id)) {
+        this.subscribe(webhook);
+      }
+    }
   }
 
   shutdown(): void {

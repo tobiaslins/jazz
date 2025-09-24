@@ -333,40 +333,35 @@ describe("jazz-webhook", () => {
       const coValueId = testMap.$jazz.id as `co_z${string}`;
 
       // Set up server with slow response
-      webhookServer.setResponse(0, 200, "Success", 10);
-      webhookServer.setResponse(1, 200, "Success", 10);
-      webhookServer.setResponse(2, 200, "Success", 10);
+      webhookServer.setResponse(0, 200, "Success", 50);
+      webhookServer.setResponse(1, 200, "Success", 50);
+      webhookServer.setResponse(2, 200, "Success", 50);
+      webhookServer.setResponse(3, 200, "Success", 50);
 
       const webhookId = webhookManager.register(
         webhookServer.getUrl(),
         coValueId,
       );
 
-      const webhook = await WebhookRegistration.load(webhookId, {
-        resolve: {
-          lastSuccessfulEmit: true,
-        },
-      });
-      assert(webhook);
+      const hash = await getWebhookHash(webhookId);
 
       testMap.$jazz.set("value", "changed1");
 
-      let lastSuccessfulEmit = webhook.lastSuccessfulEmit.v;
-
+      const hash2 = await waitForWebhookEmitted(webhookId, hash);
       await webhookServer.waitForRequests(1, 5000);
-
-      await waitFor(() => {
-        expect(webhook.lastSuccessfulEmit.v).not.toBe(lastSuccessfulEmit);
-      });
-
-      lastSuccessfulEmit = webhook.lastSuccessfulEmit.v;
 
       // It should run the first one and enqueue the last one
       testMap.$jazz.set("value", "changed2");
       testMap.$jazz.set("value", "changed3");
       testMap.$jazz.set("value", "changed4");
       testMap.$jazz.set("value", "changed5");
+      testMap.$jazz.set("value", "changed6");
+      testMap.$jazz.set("value", "changed7");
+      testMap.$jazz.set("value", "changed8");
+      testMap.$jazz.set("value", "changed9");
+      testMap.$jazz.set("value", "changed10");
 
+      await waitForWebhookEmitted(webhookId, hash2);
       await webhookServer.waitForRequests(3, 5000);
 
       const requests = webhookServer.requests;
@@ -402,12 +397,157 @@ describe("jazz-webhook", () => {
 
       expect(webhookServer.getRequestCount()).toBe(initialRequestCount);
     });
+
+    test("should start all active webhook subscriptions", async () => {
+      const { account, webhookServer, webhookManager } = await setupTest();
+
+      const testMap1 = TestCoMap.create({ value: "initial1" }, account.root);
+      const testMap2 = TestCoMap.create({ value: "initial2" }, account.root);
+      const coValueId1 = testMap1.$jazz.id as `co_z${string}`;
+      const coValueId2 = testMap2.$jazz.id as `co_z${string}`;
+
+      // Register webhooks (this automatically starts subscriptions)
+      const webhookId1 = webhookManager.register(
+        webhookServer.getUrl(),
+        coValueId1,
+      );
+      const webhookId2 = webhookManager.register(
+        webhookServer.getUrl(),
+        coValueId2,
+      );
+
+      // Shutdown all subscriptions
+      webhookManager.shutdown();
+
+      // Verify no subscriptions are active
+      expect(webhookManager["activeSubscriptions"].size).toBe(0);
+
+      // Start all active webhook subscriptions
+      webhookManager.start();
+
+      // Verify subscriptions are active again
+      expect(webhookManager["activeSubscriptions"].size).toBe(2);
+      expect(webhookManager["activeSubscriptions"].has(webhookId1)).toBe(true);
+      expect(webhookManager["activeSubscriptions"].has(webhookId2)).toBe(true);
+
+      // Make changes to both CoValues to verify webhooks are working
+      testMap1.$jazz.set("value", "changed1");
+      testMap2.$jazz.set("value", "changed2");
+
+      // Wait for webhooks to be emitted
+      const requests = await webhookServer.waitForRequests(2, 3000);
+
+      expect(requests.length).toBeGreaterThanOrEqual(2);
+
+      // Verify both webhooks were triggered
+      const coValueIds = requests.map((req) => req.coValueId);
+      expect(coValueIds).toContain(coValueId1);
+      expect(coValueIds).toContain(coValueId2);
+    });
+
+    test("should when restarting, only the changed covalues should trigger webhooks", async () => {
+      const { account, webhookServer, webhookManager } = await setupTest();
+
+      const testMap1 = TestCoMap.create({ value: "initial1" }, account.root);
+      const testMap2 = TestCoMap.create({ value: "initial2" }, account.root);
+      const coValueId1 = testMap1.$jazz.id as `co_z${string}`;
+      const coValueId2 = testMap2.$jazz.id as `co_z${string}`;
+
+      // Register webhooks (this automatically starts subscriptions)
+      const webhookId1 = webhookManager.register(
+        webhookServer.getUrl(),
+        coValueId1,
+      );
+      const webhookId2 = webhookManager.register(
+        webhookServer.getUrl(),
+        coValueId2,
+      );
+
+      const hash1 = await waitForWebhookEmitted(webhookId1, "");
+      const finalHash2 = await waitForWebhookEmitted(webhookId2, "");
+
+      webhookManager.shutdown();
+
+      testMap1.$jazz.set("value", "changed");
+
+      webhookManager.start();
+
+      const finalHash1 = await waitForWebhookEmitted(webhookId1, hash1);
+
+      // Wait some extra time to ensure that we have only one extra request
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      expect(await getWebhookHash(webhookId1)).toBe(finalHash1);
+      expect(await getWebhookHash(webhookId2)).toBe(finalHash2);
+
+      // The two initial updates, plus the one we made before restarting
+      expect(webhookServer.getRequestCount()).toBe(3);
+    });
+
+    test("should not start subscriptions for inactive webhooks", async () => {
+      const { account, webhookServer, webhookManager } = await setupTest();
+
+      const testMap = TestCoMap.create({ value: "initial" }, account.root);
+      const coValueId = testMap.$jazz.id as `co_z${string}`;
+
+      // Register webhook
+      const webhookId = webhookManager.register(
+        webhookServer.getUrl(),
+        coValueId,
+      );
+
+      // Deactivate the webhook
+      const webhook = webhookManager.registry[webhookId];
+      expect(webhook).toBeDefined();
+      webhook!.$jazz.set("active", false);
+
+      // Shutdown all subscriptions
+      webhookManager.shutdown();
+
+      // Start all active webhook subscriptions
+      webhookManager.start();
+
+      // Verify no subscriptions are active (since webhook is inactive)
+      expect(webhookManager["activeSubscriptions"].size).toBe(0);
+
+      // Make a change - should not trigger webhook
+      testMap.$jazz.set("value", "changed");
+
+      // Wait a bit to ensure no webhook is sent
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
+      expect(webhookServer.getRequestCount()).toBe(0);
+    });
   });
 });
 
-export function waitFor(
-  callback: () => boolean | void | Promise<boolean | void>,
-) {
+async function getWebhookHash(id: string) {
+  const webhook = await WebhookRegistration.load(id, {
+    resolve: {
+      lastSuccessfulEmit: true,
+    },
+  });
+  assert(webhook);
+  return webhook.lastSuccessfulEmit.v;
+}
+
+async function waitForWebhookEmitted(id: string, hash: string) {
+  const webhook = await WebhookRegistration.load(id, {
+    resolve: {
+      lastSuccessfulEmit: true,
+    },
+  });
+
+  assert(webhook);
+
+  await waitFor(() => {
+    expect(webhook.lastSuccessfulEmit.v).not.toBe(hash);
+  });
+
+  return webhook.lastSuccessfulEmit.v;
+}
+
+function waitFor(callback: () => boolean | void | Promise<boolean | void>) {
   return new Promise<void>((resolve, reject) => {
     const checkPassed = async () => {
       try {
