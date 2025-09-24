@@ -110,7 +110,7 @@ async function setupPeers(options: BaseBrowserContextOptions) {
       };
     },
     connected() {
-      return !wsPeer.closed;
+      return wsPeer.connected;
     },
     peersToLoadFrom,
     storage,

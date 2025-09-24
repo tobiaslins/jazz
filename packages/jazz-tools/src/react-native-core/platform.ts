@@ -105,7 +105,7 @@ async function setupPeers(options: BaseReactNativeContextOptions) {
         wsPeer.unsubscribe(listener);
       };
     },
-    connected: () => !wsPeer.closed,
+    connected: () => wsPeer.connected,
     peersToLoadFrom,
     setNode,
     crypto,
