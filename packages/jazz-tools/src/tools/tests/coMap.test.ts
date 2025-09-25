@@ -1207,7 +1207,7 @@ describe("CoMap resolution", async () => {
 
     expect(loadedPerson.$jazz.refs.dog.id).toBe(person.dog.$jazz.id);
 
-    const dog = await loadedPerson.$jazz.refs.dog?.load();
+    const dog = await loadedPerson.$jazz.refs.dog.load();
 
     assert(dog);
 
