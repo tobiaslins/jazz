@@ -103,8 +103,6 @@ When you're working with related CoValues (like tasks in a project), you often n
 
 This is particularly the case when working with [CoMaps](https://jazz.tools/docs/react/using-covalues/comaps) that refer to other CoValues or [CoLists](https://jazz.tools/docs/react/using-covalues/colists) of CoValues. You can use `resolve` queries to tell Jazz what data you need to use.
 
-The opposite of deep loading is shallow loading. We say a CoValue is *shallowly loaded* when all of its primitive fields are loaded, but none of its references.
-
 ### Using Resolve Queries
 
 A `resolve` query tells Jazz how deeply to load data for your app to use. We can use `true` to tell Jazz to shallowly load the tasks list here. Note that this does *not* cause the tasks themselves to load, just the CoList that holds the tasks.
@@ -496,10 +494,6 @@ function ProfileName() {
 ```
 </TabbedCodeGroupItem>
 </TabbedCodeGroup>
-
-<Alert variant="info" title="Note" className="mt-4">
-With `useCoStateWithSelector` and `useAccountWithSelector`, the subscription returns the value from your `select` function, not the full CoValue.
-</Alert>
 
 ## Ensuring data is loaded
 
