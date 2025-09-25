@@ -133,8 +133,6 @@ export class JazzWebhook {
     }
 
     const localNode = webhook.$jazz.localNode;
-    const crypto = localNode.crypto;
-
     const coValue = localNode.getCoValue(coValueId);
 
     if (!coValue.isAvailable()) {
