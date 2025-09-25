@@ -34,6 +34,91 @@ export const docNavigationItems = [
     ],
   },
   {
+    name: "Upgrade guides",
+    collapse: true,
+    prefix: "/docs/upgrade",
+    items: [
+      {
+        name: "0.18.0 - New `$jazz` field in CoValues",
+        href: "/docs/upgrade/0-18-0",
+        done: 100,
+      },
+      {
+        name: "0.17.0 - New image APIs",
+        href: "/docs/upgrade/0-17-0",
+        done: 100,
+      },
+      {
+        name: "0.16.0 - Cleaner separation between Zod and CoValue schemas",
+        href: "/docs/upgrade/0-16-0",
+        done: 100,
+      },
+      {
+        name: "0.15.0 - Everything inside `jazz-tools`",
+        href: "/docs/upgrade/0-15-0",
+        done: 100,
+      },
+      {
+        name: "0.14.0 - Zod-based schemas",
+        href: "/docs/upgrade/0-14-0",
+        done: 100,
+      },
+      // {
+      //   name: "0.13.0 - React Native Split",
+      //   href: "/docs/upgrade/0-13-0",
+      //   done: 100,
+      //   excludeFromNavigation: true,
+      // },
+      // {
+      //   // upgrade guides
+      //   name: "0.12.0 - Deeply Resolved Data",
+      //   href: "/docs/upgrade/0-12-0",
+      //   done: 100,
+      //   excludeFromNavigation: true,
+      // },
+      // {
+      //   // upgrade guides
+      //   name: "0.11.0 - Roles and permissions",
+      //   href: "/docs/upgrade/0-11-0",
+      //   done: 100,
+      //   excludeFromNavigation: true,
+      // },
+      // {
+      //   // upgrade guides
+      //   name: "0.10.0 - New authentication flow",
+      //   href: "/docs/upgrade/0-10-0",
+      //   done: 100,
+      // },
+      // {
+      //   // upgrade guides
+      //   name: "0.9.8 - Without me!",
+      //   href: "/docs/upgrade/0-9-8",
+      //   done: 100,
+      // },
+      // {
+      //   // upgrade guides
+      //   name: "0.9.2 - Local persistence on React Native",
+      //   href: "/docs/upgrade/react-native-local-persistence",
+      //   done: 100,
+      //   framework: "react-native",
+      // },
+      // {
+      //   // upgrade guides
+      //   name: "0.9.2 - Local persistence on React Native Expo",
+      //   href: "/docs/upgrade/react-native-local-persistence",
+      //   done: 100,
+      //   framework: "react-native-expo",
+      //   excludeFromNavigation: true,
+      // },
+      // {
+      //   // upgrade guides
+      //   name: "0.9.0 - Top level imports",
+      //   href: "/docs/upgrade/0-9-0",
+      //   done: 100,
+      // },
+    ],
+  },
+  {
     name: "Core Concepts",
     href: '/docs',
     items: [
@@ -184,28 +269,23 @@ export const docNavigationItems = [
           done: 100,
         },
       ],
-    }, {
-      name: "Data Flow",
-      collapse: true,
-      startClosed: true,
-      items: [
-        {
-          name: "Subscriptions & Deep Loading",
-          href: "/docs/using-covalues/subscription-and-loading",
-          done: 80,
-        },
-        {
-          name: "Version control",
-          href: "/docs/using-covalues/version-control",
-          done: 100,
-        },
-        {
-          name: "History",
-          href: "/docs/using-covalues/history",
-          done: 100,
-        },
-      ],
-    }]
+    },
+    {
+      name: "Subscriptions & Deep Loading",
+      href: "/docs/using-covalues/subscription-and-loading",
+      done: 80,
+    },
+    {
+      name: "Version control",
+      href: "/docs/using-covalues/version-control",
+      done: 100,
+    },
+    {
+      name: "History",
+      href: "/docs/using-covalues/history",
+      done: 100,
+    },
+    ]
   },
   {
     name: "Server-Side Development",
@@ -260,94 +340,6 @@ export const docNavigationItems = [
 
     ],
   },
-  {
-    name: "Upgrade guides",
-    collapse: true,
-    prefix: "/docs/upgrade",
-    items: [
-      {
-        name: "0.18.0 - New `$jazz` field in CoValues",
-        href: "/docs/upgrade/0-18-0",
-        done: 100,
-      },
-      {
-        name: "0.17.0 - New image APIs",
-        href: "/docs/upgrade/0-17-0",
-        done: 100,
-      },
-      {
-        name: "0.16.0 - Cleaner separation between Zod and CoValue schemas",
-        href: "/docs/upgrade/0-16-0",
-        done: 100,
-      },
-      {
-        name: "0.15.0 - Everything inside `jazz-tools`",
-        href: "/docs/upgrade/0-15-0",
-        done: 100,
-      },
-      {
-        name: "0.14.0 - Zod-based schemas",
-        href: "/docs/upgrade/0-14-0",
-        done: 100,
-      },
-      // {
-      //   name: "0.13.0 - React Native Split",
-      //   href: "/docs/upgrade/0-13-0",
-      //   done: 100,
-      //   excludeFromNavigation: true,
-      // },
-      // {
-      //   // upgrade guides
-      //   name: "0.12.0 - Deeply Resolved Data",
-      //   href: "/docs/upgrade/0-12-0",
-      //   done: 100,
-      //   excludeFromNavigation: true,
-      // },
-      // {
-      //   // upgrade guides
-      //   name: "0.11.0 - Roles and permissions",
-      //   href: "/docs/upgrade/0-11-0",
-      //   done: 100,
-      //   excludeFromNavigation: true,
-      // },
-      // {
-      //   // upgrade guides
-      //   name: "0.10.0 - New authentication flow",
-      //   href: "/docs/upgrade/0-10-0",
-      //   done: 100,
-      // },
-      // {
-      //   // upgrade guides
-      //   name: "0.9.8 - Without me!",
-      //   href: "/docs/upgrade/0-9-8",
-      //   done: 100,
-      // },
-      // {
-      //   // upgrade guides
-      //   name: "0.9.2 - Local persistence on React Native",
-      //   href: "/docs/upgrade/react-native-local-persistence",
-      //   done: 100,
-      //   framework: "react-native",
-      // },
-      // {
-      //   // upgrade guides
-      //   name: "0.9.2 - Local persistence on React Native Expo",
-      //   href: "/docs/upgrade/react-native-local-persistence",
-      //   done: 100,
-      //   framework: "react-native-expo",
-      //   excludeFromNavigation: true,
-      // },
-      // {
-      //   // upgrade guides
-      //   name: "0.9.0 - Top level imports",
-      //   href: "/docs/upgrade/0-9-0",
-      //   done: 100,
-      // },
-    ],
-  }
-
-  ,
-
   {
     name: "Tooling & Resources",
     items: [
