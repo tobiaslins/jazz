@@ -1,54 +1,19 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
-import { Account, Group } from "jazz-tools";
 import {
   JazzWebhook,
-  WebhookRegistry,
   JazzWebhookOptions,
   WebhookRegistration,
 } from "./webhook.js";
-
-export interface WebhookServiceOptions extends JazzWebhookOptions {
-  /** Port to run the service on (default: 3000) */
-  port?: number;
-  /** Host to bind the service to (default: "localhost") */
-  host?: string;
-  /** Enable CORS for all origins (default: true) */
-  enableCors?: boolean;
-  /** API key for authentication (optional) */
-  apiKey?: string;
-}
-
-export interface RegisterWebhookRequest {
-  callback: string;
-  coValueId: string;
-}
-
-export interface RegisterWebhookResponse {
-  webhookId: string;
-  message: string;
-}
-
-export interface WebhookInfo {
-  id: string;
-  callback: string;
-  coValueId: string;
-  active: boolean;
-  lastSuccessfulEmit: string;
-}
-
-export interface ListWebhooksResponse {
-  webhooks: WebhookInfo[];
-  count: number;
-}
-
-export interface WebhookServiceResponse {
-  success: boolean;
-  message?: string;
-  data?: any;
-  error?: string;
-}
+import {
+  WebhookServiceOptions,
+  RegisterWebhookRequest,
+  RegisterWebhookResponse,
+  WebhookInfo,
+  WebhookServiceResponses,
+  WebhookServiceStatusCodes,
+} from "./types.js";
 
 export function startWebhookService(
   webhook: JazzWebhook,
@@ -62,27 +27,6 @@ export function startWebhookService(
   }
 
   app.use("*", logger());
-
-  // API key authentication middleware (if provided)
-  if (options.apiKey) {
-    app.use("/api/*", async (c, next) => {
-      const apiKey =
-        c.req.header("Authorization")?.replace("Bearer ", "") ||
-        c.req.header("X-API-Key");
-
-      if (!apiKey || apiKey !== options.apiKey) {
-        return c.json(
-          {
-            success: false,
-            error: "Invalid or missing API key",
-          },
-          401,
-        );
-      }
-
-      await next();
-    });
-  }
 
   /**
    * GET /api/webhooks/:id
@@ -98,13 +42,11 @@ export function startWebhookService(
       });
 
       if (!webhookRegistration) {
-        return c.json(
-          {
-            success: false,
-            error: `Webhook with ID ${webhookId} not found`,
-          },
-          404,
-        );
+        const errorResponse: WebhookServiceResponses["WebhookNotFoundError"] = {
+          success: false,
+          error: `Webhook with ID ${webhookId} not found`,
+        };
+        return c.json(errorResponse, WebhookServiceStatusCodes.NOT_FOUND);
       }
 
       const webhookInfo: WebhookInfo = {
@@ -115,17 +57,20 @@ export function startWebhookService(
         lastSuccessfulEmit: webhookRegistration.lastSuccessfulEmit.v,
       };
 
-      return c.json({
+      const successResponse: WebhookServiceResponses["WebhookInfoSuccess"] = {
         success: true,
         data: webhookInfo,
-      });
+      };
+
+      return c.json(successResponse);
     } catch (error) {
+      const errorResponse: WebhookServiceResponses["InternalServerError"] = {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
       return c.json(
-        {
-          success: false,
-          error: error instanceof Error ? error.message : "Unknown error",
-        },
-        500,
+        errorResponse,
+        WebhookServiceStatusCodes.INTERNAL_SERVER_ERROR,
       );
     }
   });
@@ -139,13 +84,11 @@ export function startWebhookService(
       const body = (await c.req.json()) as RegisterWebhookRequest;
 
       if (!body.callback || !body.coValueId) {
-        return c.json(
-          {
-            success: false,
-            error: "Missing required fields: callback and coValueId",
-          },
-          400,
-        );
+        const errorResponse: WebhookServiceResponses["ValidationError"] = {
+          success: false,
+          error: "Missing required fields: callback and coValueId",
+        };
+        return c.json(errorResponse, WebhookServiceStatusCodes.BAD_REQUEST);
       }
 
       const webhookId = webhook.register(body.callback, body.coValueId);
@@ -155,21 +98,19 @@ export function startWebhookService(
         message: "Webhook registered successfully",
       };
 
-      return c.json(
+      const successResponse: WebhookServiceResponses["RegisterWebhookSuccess"] =
         {
           success: true,
           data: response,
-        },
-        201,
-      );
+        };
+
+      return c.json(successResponse, WebhookServiceStatusCodes.CREATED);
     } catch (error) {
-      return c.json(
-        {
-          success: false,
-          error: error instanceof Error ? error.message : "Unknown error",
-        },
-        400,
-      );
+      const errorResponse: WebhookServiceResponses["ValidationError"] = {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
+      return c.json(errorResponse, WebhookServiceStatusCodes.BAD_REQUEST);
     }
   });
 
@@ -182,18 +123,17 @@ export function startWebhookService(
       const webhookId = c.req.param("id");
       webhook.unregister(webhookId);
 
-      return c.json({
+      const successResponse: WebhookServiceResponses["DeleteWebhookSuccess"] = {
         success: true,
         message: "Webhook unregistered successfully",
-      });
+      };
+      return c.json(successResponse);
     } catch (error) {
-      return c.json(
-        {
-          success: false,
-          error: error instanceof Error ? error.message : "Unknown error",
-        },
-        404,
-      );
+      const errorResponse: WebhookServiceResponses["WebhookNotFoundError"] = {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
+      return c.json(errorResponse, WebhookServiceStatusCodes.NOT_FOUND);
     }
   });
 
@@ -202,17 +142,16 @@ export function startWebhookService(
    * Health check endpoint
    */
   app.get("/health", (c) => {
-    return c.json({
+    const successResponse: WebhookServiceResponses["HealthCheckSuccess"] = {
       success: true,
       message: "Webhook service is running",
       data: {
         timestamp: new Date().toISOString(),
         webhookCount: Object.keys(webhook.registry).length,
-        activeWebhookCount: Object.values(webhook.registry).filter(
-          (w) => w.active,
-        ).length,
       },
-    });
+    };
+
+    return c.json(successResponse);
   });
 
   return app;
