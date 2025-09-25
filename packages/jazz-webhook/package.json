@@ -1,6 +1,8 @@
 {
   "name": "jazz-webhook",
-  "bin": "./dist/index.js",
+  "module": "dist/index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "type": "module",
   "license": "MIT",
   "version": "0.18.15",
