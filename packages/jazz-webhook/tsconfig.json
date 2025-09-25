@@ -13,13 +13,5 @@
     "declaration": true,
     "declarationMap": true
   },
-  "include": ["./src/**/*"],
-  "references": [
-    {
-      "path": "../cojson"
-    },
-    {
-      "path": "../jazz-tools"
-    }
-  ]
+  "include": ["./src/**/*"]
 }
