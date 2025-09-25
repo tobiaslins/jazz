@@ -25,7 +25,7 @@ const webhookIdParamSchema = z.object({
 export function startWebhookService(
   webhook: JazzWebhook,
   options: WebhookServiceOptions = {},
-): Hono {
+) {
   const app = new Hono();
 
   // Middleware
@@ -35,66 +35,60 @@ export function startWebhookService(
 
   app.use("*", logger());
 
-  /**
-   * GET /webhooks/:id
-   * Get a specific webhook by ID
-   */
-  app.get(
-    "/webhooks/:id",
-    zValidator("param", webhookIdParamSchema),
-    async (c) => {
-      try {
-        const { id: webhookId } = c.req.valid("param");
-        const webhookRegistration = await WebhookRegistration.load(webhookId, {
-          resolve: {
-            lastSuccessfulEmit: true,
-          },
-        });
+  const router = app
+    .get(
+      "/webhooks/:id",
+      zValidator("param", webhookIdParamSchema),
+      async (c) => {
+        try {
+          const { id: webhookId } = c.req.valid("param");
+          const webhookRegistration = await WebhookRegistration.load(
+            webhookId,
+            {
+              resolve: {
+                lastSuccessfulEmit: true,
+              },
+            },
+          );
 
-        if (!webhookRegistration) {
-          const errorResponse: WebhookServiceResponses["WebhookNotFoundError"] =
+          if (!webhookRegistration) {
+            const errorResponse: WebhookServiceResponses["WebhookNotFoundError"] =
+              {
+                success: false,
+                error: `Webhook with ID ${webhookId} not found`,
+              };
+            return c.json(errorResponse, WebhookServiceStatusCodes.NOT_FOUND);
+          }
+
+          const webhookInfo: WebhookInfo = {
+            id: webhookRegistration.$jazz.id,
+            webhookUrl: webhookRegistration.callback,
+            coValueId: webhookRegistration.coValueId,
+            active: webhookRegistration.active,
+            updates: webhookRegistration.lastSuccessfulEmit.v,
+          };
+
+          const successResponse: WebhookServiceResponses["WebhookInfoSuccess"] =
+            {
+              success: true,
+              data: webhookInfo,
+            };
+
+          return c.json(successResponse);
+        } catch (error) {
+          const errorResponse: WebhookServiceResponses["InternalServerError"] =
             {
               success: false,
-              error: `Webhook with ID ${webhookId} not found`,
+              error: error instanceof Error ? error.message : "Unknown error",
             };
-          return c.json(errorResponse, WebhookServiceStatusCodes.NOT_FOUND);
+          return c.json(
+            errorResponse,
+            WebhookServiceStatusCodes.INTERNAL_SERVER_ERROR,
+          );
         }
-
-        const webhookInfo: WebhookInfo = {
-          id: webhookRegistration.$jazz.id,
-          webhookUrl: webhookRegistration.callback,
-          coValueId: webhookRegistration.coValueId,
-          active: webhookRegistration.active,
-          updates: webhookRegistration.lastSuccessfulEmit.v,
-        };
-
-        const successResponse: WebhookServiceResponses["WebhookInfoSuccess"] = {
-          success: true,
-          data: webhookInfo,
-        };
-
-        return c.json(successResponse);
-      } catch (error) {
-        const errorResponse: WebhookServiceResponses["InternalServerError"] = {
-          success: false,
-          error: error instanceof Error ? error.message : "Unknown error",
-        };
-        return c.json(
-          errorResponse,
-          WebhookServiceStatusCodes.INTERNAL_SERVER_ERROR,
-        );
-      }
-    },
-  );
-
-  /**
-   * POST /webhooks
-   * Register a new webhook
-   */
-  app.post(
-    "/webhooks",
-    zValidator("json", registerWebhookSchema),
-    async (c) => {
+      },
+    )
+    .post("/webhooks", zValidator("json", registerWebhookSchema), async (c) => {
       try {
         const body = c.req.valid("json");
 
@@ -119,17 +113,8 @@ export function startWebhookService(
         };
         return c.json(errorResponse, WebhookServiceStatusCodes.BAD_REQUEST);
       }
-    },
-  );
-
-  /**
-   * DELETE /webhooks/:id
-   * Unregister a webhook
-   */
-  app.delete(
-    "/webhooks/:id",
-    zValidator("param", webhookIdParamSchema),
-    (c) => {
+    })
+    .delete("/webhooks/:id", zValidator("param", webhookIdParamSchema), (c) => {
       try {
         const { id: webhookId } = c.req.valid("param");
         webhook.unregister(webhookId);
@@ -147,27 +132,21 @@ export function startWebhookService(
         };
         return c.json(errorResponse, WebhookServiceStatusCodes.NOT_FOUND);
       }
-    },
-  );
+    })
+    .get("/health", (c) => {
+      const successResponse: WebhookServiceResponses["HealthCheckSuccess"] = {
+        success: true,
+        message: "Webhook service is running",
+        data: {
+          timestamp: new Date().toISOString(),
+          webhookCount: Object.keys(webhook.registry).length,
+        },
+      };
 
-  /**
-   * GET /health
-   * Health check endpoint
-   */
-  app.get("/health", (c) => {
-    const successResponse: WebhookServiceResponses["HealthCheckSuccess"] = {
-      success: true,
-      message: "Webhook service is running",
-      data: {
-        timestamp: new Date().toISOString(),
-        webhookCount: Object.keys(webhook.registry).length,
-      },
-    };
+      return c.json(successResponse);
+    });
 
-    return c.json(successResponse);
-  });
-
-  return app;
+  return router;
 }
 
 // Export the app type for RPC client usage
