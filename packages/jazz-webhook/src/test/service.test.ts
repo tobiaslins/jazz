@@ -2,23 +2,16 @@ import { describe, expect, test, beforeEach } from "vitest";
 import { createJazzTestAccount } from "jazz-tools/testing";
 import { startWebhookService } from "../service.js";
 import { JazzWebhook } from "../webhook.js";
-import {
-  WebhookServiceResponses,
-  WebhookServiceResponse,
-  isHealthCheckSuccess,
-  isRegisterWebhookSuccess,
-  isValidationError,
-  isWebhookInfoSuccess,
-  isWebhookNotFoundError,
-  isDeleteWebhookSuccess,
-} from "../types.js";
+import { WebhookServiceResponses } from "../types.js";
 
 describe("WebhookService", () => {
   let service: ReturnType<typeof startWebhookService>;
   let webhook: JazzWebhook;
 
   beforeEach(async () => {
-    const account = await createJazzTestAccount();
+    const account = await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+    });
     webhook = new JazzWebhook(JazzWebhook.createRegistry(account));
     service = startWebhookService(webhook);
   });
@@ -26,16 +19,13 @@ describe("WebhookService", () => {
   test("should have health endpoint", async () => {
     const req = new Request("http://localhost:3000/health");
     const res = await service.fetch(req);
-    const data = (await res.json()) as WebhookServiceResponse;
+    const data = await res.json();
 
     expect(res.status).toBe(200);
-    expect(isHealthCheckSuccess(data)).toBe(true);
-    if (isHealthCheckSuccess(data)) {
-      expect(data.success).toBe(true);
-      expect(data.message).toBe("Webhook service is running");
-      expect(data.data.timestamp).toBeDefined();
-      expect(typeof data.data.webhookCount).toBe("number");
-    }
+    expect(data.success).toBe(true);
+    expect(data.message).toBe("Webhook service is running");
+    expect(data.data.timestamp).toBeDefined();
+    expect(typeof data.data.webhookCount).toBe("number");
   });
 
   test("should register a webhook", async () => {
@@ -53,15 +43,12 @@ describe("WebhookService", () => {
     });
 
     const res = await service.fetch(req);
-    const data = (await res.json()) as WebhookServiceResponse;
+    const data = await res.json();
 
     expect(res.status).toBe(201);
-    expect(isRegisterWebhookSuccess(data)).toBe(true);
-    if (isRegisterWebhookSuccess(data)) {
-      expect(data.success).toBe(true);
-      expect(data.data.webhookId).toBeDefined();
-      expect(data.data.message).toBe("Webhook registered successfully");
-    }
+    expect(data.success).toBe(true);
+    expect(data.data.webhookId).toBeDefined();
+    expect(data.data.message).toBe("Webhook registered successfully");
   });
 
   test("should reject invalid webhook registration", async () => {
@@ -79,14 +66,10 @@ describe("WebhookService", () => {
     });
 
     const res = await service.fetch(req);
-    const data = (await res.json()) as WebhookServiceResponse;
+    const data = await res.json();
 
     expect(res.status).toBe(400);
-    expect(isValidationError(data)).toBe(true);
-    if (isValidationError(data)) {
-      expect(data.success).toBe(false);
-      expect(data.error).toContain("Invalid callback URL");
-    }
+    expect(data.success).toBe(false);
   });
 
   test("should reject missing required fields", async () => {
@@ -104,14 +87,10 @@ describe("WebhookService", () => {
     });
 
     const res = await service.fetch(req);
-    const data = (await res.json()) as WebhookServiceResponse;
+    const data = await res.json();
 
     expect(res.status).toBe(400);
-    expect(isValidationError(data)).toBe(true);
-    if (isValidationError(data)) {
-      expect(data.success).toBe(false);
-      expect(data.error).toContain("Missing required fields");
-    }
+    expect(data.success).toBe(false);
   });
 
   test("should get specific webhook by ID", async () => {
@@ -130,30 +109,23 @@ describe("WebhookService", () => {
     });
 
     const registerRes = await service.fetch(registerReq);
-    const registerData = (await registerRes.json()) as WebhookServiceResponse;
+    const registerData = await registerRes.json();
 
-    let webhookId: string;
-    if (isRegisterWebhookSuccess(registerData)) {
-      webhookId = registerData.data.webhookId;
-    } else {
-      throw new Error("Failed to register webhook for test");
-    }
+    expect(registerData.success).toBe(true);
+    const webhookId = registerData.data.webhookId;
 
     // Then get the specific webhook
     const getReq = new Request(
       `http://localhost:3000/api/webhooks/${webhookId}`,
     );
     const res = await service.fetch(getReq);
-    const data = (await res.json()) as WebhookServiceResponse;
+    const data = await res.json();
 
     expect(res.status).toBe(200);
-    expect(isWebhookInfoSuccess(data)).toBe(true);
-    if (isWebhookInfoSuccess(data)) {
-      expect(data.success).toBe(true);
-      expect(data.data.id).toBe(webhookId);
-      expect(data.data.callback).toBe(webhookData.callback);
-      expect(data.data.coValueId).toBe(webhookData.coValueId);
-    }
+    expect(data.success).toBe(true);
+    expect(data.data.id).toBe(webhookId);
+    expect(data.data.callback).toBe(webhookData.callback);
+    expect(data.data.coValueId).toBe(webhookData.coValueId);
   });
 
   test("should return 404 for non-existent webhook", async () => {
@@ -161,14 +133,11 @@ describe("WebhookService", () => {
       "http://localhost:3000/api/webhooks/non-existent-id",
     );
     const res = await service.fetch(req);
-    const data = (await res.json()) as WebhookServiceResponse;
+    const data = await res.json();
 
     expect(res.status).toBe(404);
-    expect(isWebhookNotFoundError(data)).toBe(true);
-    if (isWebhookNotFoundError(data)) {
-      expect(data.success).toBe(false);
-      expect(data.error).toContain("not found");
-    }
+    expect(data.success).toBe(false);
+    expect(data.error).toContain("not found");
   });
 
   test("should delete a webhook", async () => {
@@ -187,14 +156,10 @@ describe("WebhookService", () => {
     });
 
     const registerRes = await service.fetch(registerReq);
-    const registerData = (await registerRes.json()) as WebhookServiceResponse;
+    const registerData = await registerRes.json();
 
-    let webhookId: string;
-    if (isRegisterWebhookSuccess(registerData)) {
-      webhookId = registerData.data.webhookId;
-    } else {
-      throw new Error("Failed to register webhook for test");
-    }
+    expect(registerData.success).toBe(true);
+    const webhookId = registerData.data.webhookId;
 
     // Then delete the webhook
     const deleteReq = new Request(
@@ -204,13 +169,10 @@ describe("WebhookService", () => {
       },
     );
     const res = await service.fetch(deleteReq);
-    const data = (await res.json()) as WebhookServiceResponse;
+    const data = await res.json();
 
     expect(res.status).toBe(200);
-    expect(isDeleteWebhookSuccess(data)).toBe(true);
-    if (isDeleteWebhookSuccess(data)) {
-      expect(data.success).toBe(true);
-      expect(data.message).toContain("unregistered successfully");
-    }
+    expect(data.success).toBe(true);
+    expect(data.message).toContain("unregistered successfully");
   });
 });

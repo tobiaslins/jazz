@@ -2240,6 +2240,9 @@ importers:
 
   packages/jazz-webhook:
     dependencies:
+      '@hono/zod-validator':
+        specifier: ^0.7.3
+        version: 0.7.3(hono@4.7.2)(zod@3.25.76)
       cojson:
         specifier: workspace:*
         version: link:../cojson
@@ -2255,6 +2258,9 @@ importers:
       jazz-tools:
         specifier: workspace:*
         version: link:../jazz-tools
+      zod:
+        specifier: 3.25.76
+        version: 3.25.76
     devDependencies:
       '@types/ws':
         specifier: 8.5.10
@@ -4862,6 +4868,12 @@ packages:
 
   '@hexagon/base64@1.1.28':
     resolution: {integrity: sha512-lhqDEAvWixy3bZ+UOYbPwUbBkwBq5C1LAJ/xPC8Oi+lL54oyakv/npbA0aU2hgCsx/1NUd4IBvV03+aUBWxerw==}
+
+  '@hono/zod-validator@0.7.3':
+    resolution: {integrity: sha512-uYGdgVib3RlGD698WR5dVM0zB3UuPY5vHKXffGUbUh7r4xY+mFIhF3/v4AcQVLrU5CQdBso8BJr4wuVoCrjTuQ==}
+    peerDependencies:
+      hono: '>=3.9.0'
+      zod: ^3.25.0 || ^4.0.0
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -19669,6 +19681,11 @@ snapshots:
       '@hapi/hoek': 9.3.0
 
   '@hexagon/base64@1.1.28': {}
+
+  '@hono/zod-validator@0.7.3(hono@4.7.2)(zod@3.25.76)':
+    dependencies:
+      hono: 4.7.2
+      zod: 3.25.76
 
   '@humanfs/core@0.19.1': {}
 
