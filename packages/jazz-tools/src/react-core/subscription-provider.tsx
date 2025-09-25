@@ -12,8 +12,8 @@ import {
   useAccountSubscription,
   useCoValueSubscription,
   useSubscriptionSelector,
-} from "./hooks";
-import type { CoValueSubscription } from "./types";
+} from "./hooks.js";
+import type { CoValueSubscription } from "./types.js";
 
 export function createCoValueSubscriptionContext<
   S extends CoValueClassOrSchema,
@@ -58,7 +58,7 @@ export function createCoValueSubscriptionContext<
         <Context.Provider value={subscription}>{children}</Context.Provider>
       );
     },
-    useSelector: <TSelectorReturn,>(options?: {
+    useSelector: <TSelectorReturn = Loaded<S, R>>(options?: {
       select?: (value: Loaded<S, R>) => TSelectorReturn;
       equalityFn?: (a: TSelectorReturn, b: TSelectorReturn) => boolean;
     }) => {
@@ -121,7 +121,7 @@ export function createAccountSubscriptionContext<
         <Context.Provider value={subscription}>{children}</Context.Provider>
       );
     },
-    useSelector: <TSelectorReturn,>(options?: {
+    useSelector: <TSelectorReturn = Loaded<A, R>>(options?: {
       select?: (value: Loaded<A, R>) => TSelectorReturn;
       equalityFn?: (a: TSelectorReturn, b: TSelectorReturn) => boolean;
     }) => {
