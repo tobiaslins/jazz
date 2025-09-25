@@ -34,6 +34,7 @@ import {
   CoValueBase,
   CoValueJazzApi,
   ItemsSym,
+  NotNull,
   Ref,
   RegisteredSchemas,
   SchemaInit,
@@ -760,11 +761,10 @@ class CoMapJazzApi<M extends CoMap> extends CoValueJazzApi<M> {
         ? Key
         : never]?: RefIfCoValue<M[Key]>;
     } & {
-      [Key in CoKeys<M> as M[Key] extends undefined
-        ? never
-        : M[Key] extends CoValue
-          ? Key
-          : never]: RefIfCoValue<M[Key]>;
+      // Non-loaded CoValue refs (i.e. refs with type CoValue | null) are still required refs
+      [Key in CoKeys<M> as NotNull<M[Key]> extends CoValue
+        ? Key
+        : never]: RefIfCoValue<M[Key]>;
     }
   > {
     return makeRefs<CoKeys<this>>(
