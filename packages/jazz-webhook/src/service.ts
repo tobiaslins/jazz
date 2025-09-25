@@ -65,7 +65,7 @@ export function startWebhookService(
           webhookUrl: webhookRegistration.callback,
           coValueId: webhookRegistration.coValueId,
           active: webhookRegistration.active,
-          lastSuccessfulEmit: webhookRegistration.lastSuccessfulEmit.v,
+          updates: webhookRegistration.lastSuccessfulEmit.v,
         };
 
         const successResponse: WebhookServiceResponses["WebhookInfoSuccess"] = {

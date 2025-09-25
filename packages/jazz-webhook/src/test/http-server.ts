@@ -4,7 +4,7 @@ import { EventEmitter } from "events";
 
 export interface WebhookRequest {
   coValueId: string;
-  hash: string;
+  updates: number;
   timestamp: number;
 }
 

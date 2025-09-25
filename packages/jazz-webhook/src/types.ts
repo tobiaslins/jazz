@@ -25,7 +25,7 @@ export interface WebhookInfo {
   webhookUrl: string;
   coValueId: string;
   active: boolean;
-  lastSuccessfulEmit: string;
+  updates: number;
 }
 
 export interface RegisterWebhookResponse {

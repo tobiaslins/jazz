@@ -1,7 +1,7 @@
 import { co, z, Account, Group } from "jazz-tools";
 
 export const LastSuccessfulEmit = co.map({
-  v: z.string(),
+  v: z.number(),
 });
 export type LastSuccessfulEmit = co.loaded<typeof LastSuccessfulEmit>;
 
@@ -85,7 +85,7 @@ export class JazzWebhook {
         coValueId,
         active: true,
         lastSuccessfulEmit: LastSuccessfulEmit.create(
-          { v: "" },
+          { v: -1 },
           this.registry.$jazz.owner,
         ),
       },
@@ -146,11 +146,14 @@ export class JazzWebhook {
     const unsubscribe = coValue.subscribe(() => {
       if (!coValue.isAvailable()) return;
 
-      const hash = crypto
-        .shortHash(coValue.knownState())
-        .replace("shortHash_z", "");
+      const updates = Object.values(coValue.knownState().sessions).reduce(
+        (acc, tx) => {
+          return acc + tx;
+        },
+        0,
+      );
 
-      emitter.schedule(hash);
+      emitter.schedule(updates);
     });
 
     this.activeSubscriptions.set(webhook.$jazz.id, () => {
@@ -199,7 +202,7 @@ export class JazzWebhook {
  */
 class WebhookEmitter {
   /** The next hash to be emitted, null if no queued emissions */
-  private nextHash: string | null = null;
+  private nextSchedule: number | null = null;
   /** Whether a webhook is currently being sent */
   private running: boolean = false;
   /** Timeout ID for retry scheduling, null if no retry scheduled */
@@ -224,7 +227,7 @@ class WebhookEmitter {
 
     this.lastSuccessfulEmit = lastSuccessfulEmit;
 
-    this.emitNextHash();
+    this.runNextSchedule();
   }
 
   /** Number of consecutive failures for the current webhook attempt */
@@ -243,14 +246,14 @@ class WebhookEmitter {
    *
    * @param hash - The CoValue state hash to emit in the webhook payload
    */
-  schedule(hash: string) {
-    this.nextHash = hash;
+  schedule(updates: number) {
+    this.nextSchedule = updates;
 
     if (this.running) {
       return;
     }
 
-    this.emitNextHash();
+    this.runNextSchedule();
   }
 
   /**
@@ -262,7 +265,7 @@ class WebhookEmitter {
    *
    * @param hash - The CoValue state hash to send in the webhook payload
    */
-  private async emitWebhook(hash: string): Promise<void> {
+  private async emitWebhook(updates: number): Promise<void> {
     try {
       const response = await fetch(this.webhook.callback, {
         method: "POST",
@@ -271,14 +274,13 @@ class WebhookEmitter {
         },
         body: JSON.stringify({
           coValueId: this.webhook.coValueId,
-          hash: hash,
-          timestamp: Date.now(),
+          updates: updates,
         }),
       });
 
       if (response.ok) {
-        this.trackSuccess(hash);
-        this.emitNextHash();
+        this.trackSuccess(updates);
+        this.runNextSchedule();
       } else {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
@@ -289,8 +291,8 @@ class WebhookEmitter {
         error,
       );
 
-      if (!this.nextHash) {
-        this.nextHash = hash;
+      if (!this.nextSchedule) {
+        this.nextSchedule = updates;
       }
       this.scheduleRetry();
     }
@@ -316,17 +318,17 @@ class WebhookEmitter {
 
     this.retryTimeoutId = setTimeout(() => {
       this.retryTimeoutId = null;
-      this.emitNextHash();
+      this.runNextSchedule();
     }, delay);
   }
 
-  trackSuccess(hash: string) {
+  trackSuccess(updates: number) {
     if (!this.lastSuccessfulEmit) {
       throw new Error("Last successful emit not initialized");
     }
 
     this.failures = 0;
-    this.lastSuccessfulEmit.$jazz.set("v", hash);
+    this.lastSuccessfulEmit.$jazz.set("v", updates);
   }
 
   /**
@@ -337,8 +339,8 @@ class WebhookEmitter {
    *
    * @private
    */
-  private emitNextHash() {
-    if (!this.nextHash) {
+  private runNextSchedule() {
+    if (!this.nextSchedule) {
       this.running = false;
       return;
     }
@@ -347,14 +349,14 @@ class WebhookEmitter {
       return;
     }
 
-    if (this.lastSuccessfulEmit.v === this.nextHash) {
-      this.nextHash = null;
+    if (this.lastSuccessfulEmit.v === this.nextSchedule) {
+      this.nextSchedule = null;
       this.running = false;
       return;
     }
 
-    const next = this.nextHash;
-    this.nextHash = null;
+    const next = this.nextSchedule;
+    this.nextSchedule = null;
     this.running = true;
     this.emitWebhook(next);
   }
@@ -373,6 +375,6 @@ class WebhookEmitter {
     }
 
     this.running = false;
-    this.nextHash = null;
+    this.nextSchedule = null;
   }
 }

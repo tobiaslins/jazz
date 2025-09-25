@@ -101,7 +101,7 @@ describe("jazz-webhook", () => {
       expect(registry[webhookId].callback).toBe(webhookServer.getUrl());
       expect(registry[webhookId].coValueId).toBe("co_z1234567890abcdef");
       expect(registry[webhookId].active).toBe(true);
-      expect(registry[webhookId].lastSuccessfulEmit.v).toBe("");
+      expect(registry[webhookId].lastSuccessfulEmit.v).toBe(-1);
     });
 
     test("should throw error for invalid callback URL", async () => {
@@ -209,9 +209,7 @@ describe("jazz-webhook", () => {
       expect(requests.length).toBeGreaterThanOrEqual(1);
       const lastRequest = webhookServer.getLastRequest();
       expect(lastRequest.coValueId).toBe(coValueId);
-      expect(lastRequest.hash).toBeDefined();
-      expect(lastRequest.timestamp).toBeTypeOf("number");
-      expect(lastRequest.timestamp).toBeGreaterThan(Date.now() - 10000);
+      expect(lastRequest.updates).toBeDefined();
     });
 
     test("should queue multiple changes and emit only the latest", async () => {
@@ -261,7 +259,7 @@ describe("jazz-webhook", () => {
 
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      expect(webhook.lastSuccessfulEmit.v).toBe(lastRequest.hash);
+      expect(webhook.lastSuccessfulEmit.v).toBe(lastRequest.updates);
     });
 
     test("should retry failed webhooks with exponential backoff", async () => {
@@ -347,7 +345,7 @@ describe("jazz-webhook", () => {
         coValueId,
       );
 
-      const hash = await getWebhookHash(webhookId);
+      const hash = await getWebhookUpdates(webhookId);
 
       testMap.$jazz.set("value", "changed1");
 
@@ -467,8 +465,8 @@ describe("jazz-webhook", () => {
         coValueId2,
       );
 
-      const hash1 = await waitForWebhookEmitted(webhookId1, "");
-      const finalHash2 = await waitForWebhookEmitted(webhookId2, "");
+      const hash1 = await waitForWebhookEmitted(webhookId1, -1);
+      const finalHash2 = await waitForWebhookEmitted(webhookId2, -1);
 
       webhookManager.shutdown();
 
@@ -481,8 +479,8 @@ describe("jazz-webhook", () => {
       // Wait some extra time to ensure that we have only one extra request
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      expect(await getWebhookHash(webhookId1)).toBe(finalHash1);
-      expect(await getWebhookHash(webhookId2)).toBe(finalHash2);
+      expect(await getWebhookUpdates(webhookId1)).toBe(finalHash1);
+      expect(await getWebhookUpdates(webhookId2)).toBe(finalHash2);
 
       // The two initial updates, plus the one we made before restarting
       expect(webhookServer.getRequestCount()).toBe(3);
@@ -525,7 +523,7 @@ describe("jazz-webhook", () => {
   });
 });
 
-async function getWebhookHash(id: string) {
+async function getWebhookUpdates(id: string) {
   const webhook = await WebhookRegistration.load(id, {
     resolve: {
       lastSuccessfulEmit: true,
@@ -535,7 +533,7 @@ async function getWebhookHash(id: string) {
   return webhook.lastSuccessfulEmit.v;
 }
 
-async function waitForWebhookEmitted(id: string, hash: string) {
+async function waitForWebhookEmitted(id: string, hash: number) {
   const webhook = await WebhookRegistration.load(id, {
     resolve: {
       lastSuccessfulEmit: true,
