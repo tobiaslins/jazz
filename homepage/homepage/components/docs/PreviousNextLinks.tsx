@@ -1,22 +1,19 @@
 import {
-  docNavigationItems,
   flatItemsWithNavLinks,
 } from "@/content/docs/docNavigationItems";
 import { DocNavigationItem } from "@/content/docs/docNavigationItemsTypes";
 import { Icon } from "@garden-co/design-system/src/components/atoms/Icon";
-import { Separator } from "@garden-co/design-system/src/components/atoms/Separator";
 import Link from "next/link";
-
 interface PreviousNextLinksProps {
   slug?: string[];
   framework: string;
 }
 
 export function PreviousNextLinks({ slug, framework }: PreviousNextLinksProps) {
-  const currentItem = flatItemsWithNavLinks.find((item) => {
+  const currentItem = flatItemsWithNavLinks.find((item: DocNavigationItem) => {
     if (!item.href) return false;
     const itemPath = item.href.replace("/docs", `/docs/${framework}`);
-    const currentPath = slug
+    const currentPath = slug && slug.length > 0
       ? `/docs/${framework}/${slug.join("/")}`
       : `/docs/${framework}`;
     return currentPath === itemPath;
