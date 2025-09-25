@@ -18,7 +18,7 @@ export function getSubscriptionScope<D extends CoValue>(value: D) {
   });
 
   Object.defineProperty(value.$jazz, "_subscriptionScope", {
-    value: subscriptionScope,
+    value: newSubscriptionScope,
     writable: false,
     enumerable: false,
     configurable: false,
