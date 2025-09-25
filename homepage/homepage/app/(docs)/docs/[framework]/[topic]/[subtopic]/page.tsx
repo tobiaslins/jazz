@@ -60,7 +60,7 @@ export async function generateStaticParams() {
     for (const item of heading?.items) {
       processItem(item);
     }
-
-    return paths;
   }
+
+  return paths;
 }

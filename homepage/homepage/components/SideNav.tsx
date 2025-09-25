@@ -1,5 +1,4 @@
 import { SideNavItem } from "@/components/SideNavItem";
-import { Framework } from "@/content/framework";
 import { DoneStatus } from "@/content/docs/docNavigationItemsTypes";
 import { clsx } from "clsx";
 import Link from "next/link";
