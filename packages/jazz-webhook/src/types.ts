@@ -15,14 +15,14 @@ export interface WebhookServiceOptions {
 }
 
 export interface RegisterWebhookRequest {
-  callback: string;
+  webhookUrl: string;
   coValueId: string;
 }
 
 // Data types
 export interface WebhookInfo {
   id: string;
-  callback: string;
+  webhookUrl: string;
   coValueId: string;
   active: boolean;
   lastSuccessfulEmit: string;

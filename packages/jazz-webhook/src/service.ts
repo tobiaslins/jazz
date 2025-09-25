@@ -14,7 +14,7 @@ import {
 
 // Zod schemas for validation
 const registerWebhookSchema = z.object({
-  callback: z.string().url("Invalid callback URL"),
+  webhookUrl: z.string().url("Invalid webhook URL"),
   coValueId: z.string().min(1, "coValueId is required"),
 });
 
@@ -36,11 +36,11 @@ export function startWebhookService(
   app.use("*", logger());
 
   /**
-   * GET /api/webhooks/:id
+   * GET /webhooks/:id
    * Get a specific webhook by ID
    */
   app.get(
-    "/api/webhooks/:id",
+    "/webhooks/:id",
     zValidator("param", webhookIdParamSchema),
     async (c) => {
       try {
@@ -62,7 +62,7 @@ export function startWebhookService(
 
         const webhookInfo: WebhookInfo = {
           id: webhookRegistration.$jazz.id,
-          callback: webhookRegistration.callback,
+          webhookUrl: webhookRegistration.callback,
           coValueId: webhookRegistration.coValueId,
           active: webhookRegistration.active,
           lastSuccessfulEmit: webhookRegistration.lastSuccessfulEmit.v,
@@ -88,17 +88,17 @@ export function startWebhookService(
   );
 
   /**
-   * POST /api/webhooks
+   * POST /webhooks
    * Register a new webhook
    */
   app.post(
-    "/api/webhooks",
+    "/webhooks",
     zValidator("json", registerWebhookSchema),
     async (c) => {
       try {
         const body = c.req.valid("json");
 
-        const webhookId = webhook.register(body.callback, body.coValueId);
+        const webhookId = webhook.register(body.webhookUrl, body.coValueId);
 
         const response: RegisterWebhookResponse = {
           webhookId,
@@ -123,11 +123,11 @@ export function startWebhookService(
   );
 
   /**
-   * DELETE /api/webhooks/:id
+   * DELETE /webhooks/:id
    * Unregister a webhook
    */
   app.delete(
-    "/api/webhooks/:id",
+    "/webhooks/:id",
     zValidator("param", webhookIdParamSchema),
     (c) => {
       try {
@@ -171,4 +171,4 @@ export function startWebhookService(
 }
 
 // Export the app type for RPC client usage
-export type AppType = typeof startWebhookService;
+export type AppType = ReturnType<typeof startWebhookService>;

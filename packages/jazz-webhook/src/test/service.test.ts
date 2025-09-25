@@ -31,11 +31,11 @@ describe("WebhookService", () => {
 
   test("should register a webhook", async () => {
     const webhookData = {
-      callback: "https://example.com/webhook",
+      webhookUrl: "https://example.com/webhook",
       coValueId: "co_z1234567890abcdef",
     };
 
-    const req = new Request("http://localhost:3000/api/webhooks", {
+    const req = new Request("http://localhost:3000/webhooks", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -55,11 +55,11 @@ describe("WebhookService", () => {
 
   test("should reject invalid webhook registration", async () => {
     const invalidData = {
-      callback: "not-a-url",
+      webhookUrl: "not-a-url",
       coValueId: "invalid-id",
     };
 
-    const req = new Request("http://localhost:3000/api/webhooks", {
+    const req = new Request("http://localhost:3000/webhooks", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -77,11 +77,11 @@ describe("WebhookService", () => {
 
   test("should reject missing required fields", async () => {
     const incompleteData = {
-      callback: "https://example.com/webhook",
+      webhookUrl: "https://example.com/webhook",
       // missing coValueId
     };
 
-    const req = new Request("http://localhost:3000/api/webhooks", {
+    const req = new Request("http://localhost:3000/webhooks", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -100,11 +100,11 @@ describe("WebhookService", () => {
   test("should get specific webhook by ID", async () => {
     // First register a webhook
     const webhookData = {
-      callback: "https://example.com/webhook",
+      webhookUrl: "https://example.com/webhook",
       coValueId: "co_z1234567890abcdef",
     };
 
-    const registerReq = new Request("http://localhost:3000/api/webhooks", {
+    const registerReq = new Request("http://localhost:3000/webhooks", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -120,9 +120,7 @@ describe("WebhookService", () => {
     const webhookId = registerData.data.webhookId;
 
     // Then get the specific webhook
-    const getReq = new Request(
-      `http://localhost:3000/api/webhooks/${webhookId}`,
-    );
+    const getReq = new Request(`http://localhost:3000/webhooks/${webhookId}`);
     const res = await service.fetch(getReq);
     const data =
       (await res.json()) as WebhookServiceResponses["WebhookInfoSuccess"];
@@ -130,14 +128,12 @@ describe("WebhookService", () => {
     expect(res.status).toBe(200);
     expect(data.success).toBe(true);
     expect(data.data.id).toBe(webhookId);
-    expect(data.data.callback).toBe(webhookData.callback);
+    expect(data.data.webhookUrl).toBe(webhookData.webhookUrl);
     expect(data.data.coValueId).toBe(webhookData.coValueId);
   });
 
   test("should return 404 for non-existent webhook", async () => {
-    const req = new Request(
-      "http://localhost:3000/api/webhooks/non-existent-id",
-    );
+    const req = new Request("http://localhost:3000/webhooks/non-existent-id");
     const res = await service.fetch(req);
     const data =
       (await res.json()) as WebhookServiceResponses["WebhookNotFoundError"];
@@ -150,11 +146,11 @@ describe("WebhookService", () => {
   test("should delete a webhook", async () => {
     // First register a webhook
     const webhookData = {
-      callback: "https://example.com/webhook",
+      webhookUrl: "https://example.com/webhook",
       coValueId: "co_z1234567890abcdef",
     };
 
-    const registerReq = new Request("http://localhost:3000/api/webhooks", {
+    const registerReq = new Request("http://localhost:3000/webhooks", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -171,7 +167,7 @@ describe("WebhookService", () => {
 
     // Then delete the webhook
     const deleteReq = new Request(
-      `http://localhost:3000/api/webhooks/${webhookId}`,
+      `http://localhost:3000/webhooks/${webhookId}`,
       {
         method: "DELETE",
       },
