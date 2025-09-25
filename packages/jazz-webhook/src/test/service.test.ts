@@ -19,7 +19,8 @@ describe("WebhookService", () => {
   test("should have health endpoint", async () => {
     const req = new Request("http://localhost:3000/health");
     const res = await service.fetch(req);
-    const data = await res.json();
+    const data =
+      (await res.json()) as WebhookServiceResponses["HealthCheckSuccess"];
 
     expect(res.status).toBe(200);
     expect(data.success).toBe(true);
@@ -43,7 +44,8 @@ describe("WebhookService", () => {
     });
 
     const res = await service.fetch(req);
-    const data = await res.json();
+    const data =
+      (await res.json()) as WebhookServiceResponses["RegisterWebhookSuccess"];
 
     expect(res.status).toBe(201);
     expect(data.success).toBe(true);
@@ -66,7 +68,8 @@ describe("WebhookService", () => {
     });
 
     const res = await service.fetch(req);
-    const data = await res.json();
+    const data =
+      (await res.json()) as WebhookServiceResponses["ValidationError"];
 
     expect(res.status).toBe(400);
     expect(data.success).toBe(false);
@@ -87,7 +90,8 @@ describe("WebhookService", () => {
     });
 
     const res = await service.fetch(req);
-    const data = await res.json();
+    const data =
+      (await res.json()) as WebhookServiceResponses["ValidationError"];
 
     expect(res.status).toBe(400);
     expect(data.success).toBe(false);
@@ -109,7 +113,8 @@ describe("WebhookService", () => {
     });
 
     const registerRes = await service.fetch(registerReq);
-    const registerData = await registerRes.json();
+    const registerData =
+      (await registerRes.json()) as WebhookServiceResponses["RegisterWebhookSuccess"];
 
     expect(registerData.success).toBe(true);
     const webhookId = registerData.data.webhookId;
@@ -119,7 +124,8 @@ describe("WebhookService", () => {
       `http://localhost:3000/api/webhooks/${webhookId}`,
     );
     const res = await service.fetch(getReq);
-    const data = await res.json();
+    const data =
+      (await res.json()) as WebhookServiceResponses["WebhookInfoSuccess"];
 
     expect(res.status).toBe(200);
     expect(data.success).toBe(true);
@@ -133,7 +139,8 @@ describe("WebhookService", () => {
       "http://localhost:3000/api/webhooks/non-existent-id",
     );
     const res = await service.fetch(req);
-    const data = await res.json();
+    const data =
+      (await res.json()) as WebhookServiceResponses["WebhookNotFoundError"];
 
     expect(res.status).toBe(404);
     expect(data.success).toBe(false);
@@ -156,7 +163,8 @@ describe("WebhookService", () => {
     });
 
     const registerRes = await service.fetch(registerReq);
-    const registerData = await registerRes.json();
+    const registerData =
+      (await registerRes.json()) as WebhookServiceResponses["RegisterWebhookSuccess"];
 
     expect(registerData.success).toBe(true);
     const webhookId = registerData.data.webhookId;
@@ -169,7 +177,8 @@ describe("WebhookService", () => {
       },
     );
     const res = await service.fetch(deleteReq);
-    const data = await res.json();
+    const data =
+      (await res.json()) as WebhookServiceResponses["DeleteWebhookSuccess"];
 
     expect(res.status).toBe(200);
     expect(data.success).toBe(true);
