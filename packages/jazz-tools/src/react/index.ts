@@ -10,6 +10,9 @@ export {
   useCoStateWithSelector,
   useAccountWithSelector,
   useSyncConnectionStatus,
+  useCoValueSubscription,
+  useAccountSubscription,
+  useSubscriptionSelector,
 } from "./hooks.js";
 
 export { createInviteLink, parseInviteLink } from "jazz-tools/browser";
