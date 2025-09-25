@@ -1,5 +1,16 @@
 # jazz-tools
 
+## 0.18.19
+
+### Patch Changes
+
+- f88db5f: Ensure subscription scope is cached for each CoValue
+- 8eac2fc: Fix refs in partially loaded CoMaps being incorrectly marked as optional
+- 08b6c03: fix: keep sync between Better Auth's session and Jazz's
+  - cojson@0.18.19
+  - cojson-storage-indexeddb@0.18.19
+  - cojson-transport-ws@0.18.19
+
 ## 0.18.18
 
 ### Patch Changes
