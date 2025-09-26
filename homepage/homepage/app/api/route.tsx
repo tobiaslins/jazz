@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { ImageResponse } from "next/og";
 import { JazzLogo } from "@/components/forMdx";
+import { imageSize, loadManropeLocalFont } from "@/lib/docMdxContent";
 
 export const runtime = "edge"; // important for ImageResponse
 
