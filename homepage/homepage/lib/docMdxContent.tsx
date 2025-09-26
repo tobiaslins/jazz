@@ -23,6 +23,8 @@ export async function getMdxSource(framework: string, slugPath?: string) {
     }
     return await import(`../content/docs/${slugPath}/${framework}.mdx`);
   } catch (error) {
+    // Fallback to vanilla
+    console.log(`Falling back to vanilla for ${slugPath}`);
     return await import(`../content/docs/${slugPath}.mdx`);
   }
 }
@@ -74,7 +76,9 @@ export function getDocMetadata(framework:string, slugPath: string[]) {
   return {
     title: mdxSource.frontmatter.title ?? `${framework} Docs`,
     description: mdxSource.frontmatter.description ?? `Documentation for ${framework}`,
-    image:  mdxSource?.frontmatter.image ?? "/jazz-logo.png",
+    image: mdxSource?.frontmatter.image ?? "/jazz-logo.png",
+    topic: slugPath[0] ?? undefined,
+    subtopic: slugPath[1] ?? undefined,
   };
 }
 
@@ -118,6 +122,7 @@ export async function DocPage({
     const { default: ComingSoon } = await import(
       "../content/docs/coming-soon.mdx"
     );
+    console.error("Error loading MDX:", error);
     return (
       <DocsLayout nav={<DocNav />} tocItems={[]} pagefindIgnore>
         <DocProse>
