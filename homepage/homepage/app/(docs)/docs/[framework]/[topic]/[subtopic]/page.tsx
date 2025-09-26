@@ -1,5 +1,4 @@
-import { DocPage, getDocMetadata } from "@/lib/docMdxContent";
-import { generateOGMetadata } from "@/lib/metadata";
+import { DocPage, generateOGMetadata, getDocMetadata } from "@/lib/docMdxContent";
 
 export async function generateMetadata({
   params,
