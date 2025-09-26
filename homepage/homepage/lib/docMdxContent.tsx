@@ -58,20 +58,22 @@ export function getDocBySlug(framework: string, slug: string[]) {
 export function getDocMetadata(framework:string, slugPath: string[]) {
   const mdxSource = getDocBySlug(framework, slugPath);
 
-  if (!mdxSource) {
+    if (!mdxSource) {
     return {
       title: `${framework} Docs`,
       description: `Documentation for ${framework}`,
-      image: "/opengraph-image", 
+      image: "/jazz-logo.png",
+      topic: slugPath[0] ?? "",
+      subtopic: slugPath[1] ?? "",
     };
   }
 
   return {
     title: mdxSource.frontmatter.title ?? `${framework} Docs`,
     description: mdxSource.frontmatter.description ?? `Documentation for ${framework}`,
-    image: mdxSource?.frontmatter.image,
-    topic: slugPath[0] ?? undefined,
-    subtopic: slugPath[1] ?? undefined,
+    image: mdxSource.frontmatter.image ?? "/jazz-logo.png",
+    topic: slugPath[0] ?? "",
+    subtopic: slugPath[1] ?? "",
   };
 }
 
@@ -185,6 +187,7 @@ export function generateOGMetadata(
   docMeta: { title: string; description: string; image?: string; topic?: string; subtopic?: string }
 ) {
   const { title, description, image, topic, subtopic } = docMeta;
+  const imageUrl = image ?? "/jazz-logo.png"; 
 
   return {
     title,
@@ -196,7 +199,7 @@ export function generateOGMetadata(
       url: `https://jazz.tools/docs/${[framework, ...slug].join("/")}`,
       images: [
         {
-          url: `/opengraph-image?title=${encodeURIComponent(title)}&framework=${encodeURIComponent(framework)}`,
+          url: `/opengraph-image?title=${encodeURIComponent(title)}&framework=${encodeURIComponent(framework)}${topic ? `&topic=${encodeURIComponent(topic)}` : ""}${subtopic ? `&subtopic=${encodeURIComponent(subtopic)}` : ""}`,
           width: 1200,
           height: 630,
           alt: title,
@@ -207,7 +210,7 @@ export function generateOGMetadata(
       card: "summary_large_image",
       title,
       description,
-      images: [image],
+      images: [imageUrl],
     },
   };
 }
