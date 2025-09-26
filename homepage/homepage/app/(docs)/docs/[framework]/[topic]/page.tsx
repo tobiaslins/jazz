@@ -1,24 +1,22 @@
-import { docNavigationItems } from "@/content/docs/docNavigationItems";
-import { Framework, frameworks } from "@/content/framework";
 import { DocPage, getDocMetadata } from "@/lib/docMdxContent";
+import { generateOGMetadata } from "@/lib/metadata";
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ topic: string; framework: string }>;
+  params: Promise<{ framework: string; topic: string }>;
 }) {
-  const { topic, framework } = await params;
-
-  return getDocMetadata(framework, [topic]);
+  const { framework, topic } = await params;
+  const docMeta = getDocMetadata(framework, [topic]);
+  return generateOGMetadata(framework, [topic], docMeta);
 }
 
 export default async function Page({
   params,
 }: {
-  params: Promise<{ topic: string; framework: string }>;
+  params: Promise<{ framework: string; topic: string }>;
 }) {
-  const { topic, framework } = await params;
-
+  const { framework, topic } = await params;
   return <DocPage framework={framework} slug={[topic]} />;
 }
 
