@@ -187,7 +187,10 @@ export function generateOGMetadata(
   docMeta: { title: string; description: string; image?: string; topic?: string; subtopic?: string }
 ) {
   const { title, description, image, topic, subtopic } = docMeta;
-  const imageUrl = image ?? "/jazz-logo.png"; 
+  const baseUrl = "https://jazz.tools";
+  const imageUrl = image
+  ? `${baseUrl}/opengraph-image?title=${encodeURIComponent(title)}&framework=${encodeURIComponent(framework)}${topic ? `&topic=${encodeURIComponent(topic)}` : ""}${subtopic ? `&subtopic=${encodeURIComponent(subtopic)}` : ""}`
+  : "/jazz-logo.png";
 
   return {
     title,
@@ -199,7 +202,7 @@ export function generateOGMetadata(
       url: `https://jazz.tools/docs/${[framework, ...slug].join("/")}`,
       images: [
         {
-          url: `/opengraph-image?title=${encodeURIComponent(title)}&framework=${encodeURIComponent(framework)}${topic ? `&topic=${encodeURIComponent(topic)}` : ""}${subtopic ? `&subtopic=${encodeURIComponent(subtopic)}` : ""}`,
+          url: imageUrl,
           width: 1200,
           height: 630,
           alt: title,
