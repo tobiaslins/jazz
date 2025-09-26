@@ -1,30 +1,34 @@
 export function generateOGMetadata(
   framework: string,
   slug: string[],
-  docMeta: { title: string; description: string; image?: string }
+  docMeta: { title: string; description: string; image?: string; topic?: string; subtopic?: string }
 ) {
+  const { title, description, image, topic, subtopic } = docMeta;
+
   return {
-    title: docMeta.title,
-    description: docMeta.description,
+    title,
+    description,
     openGraph: {
-      title: docMeta.title,
-      description: docMeta.description,
+      title,
+      description,
       type: "article",
       url: `https://jazz.tools/docs/${[framework, ...slug].join("/")}`,
       images: [
         {
-          url: docMeta.image ?? "/jazz-logo.png", 
+          url: `/opengraph-image?title=${encodeURIComponent(title)}&framework=${framework}${
+            topic ? `&topic=${encodeURIComponent(topic)}` : ""
+          }${subtopic ? `&subtopic=${encodeURIComponent(subtopic)}` : ""}`,
           width: 1200,
           height: 630,
-          alt: docMeta.title,
+          alt: title,
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: docMeta.title,
-      description: docMeta.description,
-      images: [docMeta.image ?? "/jazz-logo.png"], 
+      title,
+      description,
+      images: [image ?? "/jazz-logo.png"],
     },
   };
 }
