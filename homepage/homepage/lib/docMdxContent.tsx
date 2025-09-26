@@ -4,9 +4,17 @@ import { HelpLinks } from "@/components/docs/HelpLinks";
 import { PreviousNextLinks } from "@/components/docs/PreviousNextLinks";
 import { Prose } from "@garden-co/design-system/src/components/molecules/Prose";
 import { Toc } from "@stefanprobst/rehype-extract-toc";
-import fs from "fs";
-import path from "path";
+import fs, { readFileSync } from "fs";
+import path, { join } from "path";
 import matter from "gray-matter";
+
+export const imageSize = { width: 1200, height: 630 };
+
+export async function loadManropeLocalFont() {
+  const fontPath = join(process.cwd(), "public/fonts/Manrope-SemiBold.ttf");
+  const fontData = readFileSync(fontPath);
+  return fontData.buffer;
+}
 
 export async function getMdxSource(framework: string, slugPath?: string) {
   try {
