@@ -15,9 +15,7 @@ export function generateOGMetadata(
       url: `https://jazz.tools/docs/${[framework, ...slug].join("/")}`,
       images: [
         {
-          url: `/opengraph-image?title=${encodeURIComponent(title)}&framework=${framework}${
-            topic ? `&topic=${encodeURIComponent(topic)}` : ""
-          }${subtopic ? `&subtopic=${encodeURIComponent(subtopic)}` : ""}`,
+          url: `/opengraph-image?title=${encodeURIComponent(title)}&framework=${encodeURIComponent(framework)}`,
           width: 1200,
           height: 630,
           alt: title,
@@ -28,7 +26,7 @@ export function generateOGMetadata(
       card: "summary_large_image",
       title,
       description,
-      images: [image ?? "/jazz-logo.png"],
+      images: [image],
     },
   };
 }

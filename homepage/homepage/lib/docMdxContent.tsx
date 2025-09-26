@@ -8,14 +8,6 @@ import fs, { readFileSync } from "fs";
 import path, { join } from "path";
 import matter from "gray-matter";
 
-export const imageSize = { width: 1200, height: 630 };
-
-export async function loadManropeLocalFont() {
-  const fontPath = join(process.cwd(), "public/fonts/Manrope-SemiBold.ttf");
-  const fontData = readFileSync(fontPath);
-  return fontData.buffer;
-}
-
 export async function getMdxSource(framework: string, slugPath?: string) {
   try {
     if (!slugPath) {
@@ -76,7 +68,7 @@ export function getDocMetadata(framework:string, slugPath: string[]) {
   return {
     title: mdxSource.frontmatter.title ?? `${framework} Docs`,
     description: mdxSource.frontmatter.description ?? `Documentation for ${framework}`,
-    image: mdxSource?.frontmatter.image ?? "/jazz-logo.png",
+    image: mdxSource?.frontmatter.image,
     topic: slugPath[0] ?? undefined,
     subtopic: slugPath[1] ?? undefined,
   };
