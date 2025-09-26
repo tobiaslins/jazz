@@ -9,6 +9,7 @@ import path, { join } from "path";
 import matter from "gray-matter";
 
 export async function getMdxSource(framework: string, slugPath?: string) {
+  // Try to import the framework-specific file first
   try {
     if (!slugPath) {
       return await import("../content/docs/index.mdx");
