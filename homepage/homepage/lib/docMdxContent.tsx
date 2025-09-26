@@ -2,52 +2,74 @@ import DocsLayout from "@/components/docs/DocsLayout";
 import { DocNav } from "@/components/docs/DocsNav";
 import { HelpLinks } from "@/components/docs/HelpLinks";
 import { PreviousNextLinks } from "@/components/docs/PreviousNextLinks";
-import { Separator } from "@garden-co/design-system/src/components/atoms/Separator";
 import { Prose } from "@garden-co/design-system/src/components/molecules/Prose";
 import { Toc } from "@stefanprobst/rehype-extract-toc";
+import fs from "fs";
+import path from "path";
+import matter from "gray-matter";
 
 export async function getMdxSource(framework: string, slugPath?: string) {
-  // Try to import the framework-specific file first
   try {
     if (!slugPath) {
       return await import("../content/docs/index.mdx");
     }
     return await import(`../content/docs/${slugPath}/${framework}.mdx`);
   } catch (error) {
-    // Fallback to vanilla
-    console.log(`Falling back to vanilla for ${slugPath}`);
     return await import(`../content/docs/${slugPath}.mdx`);
   }
 }
 
-export async function getDocMetadata(framework: string, slug?: string[]) {
-  const slugPath = slug?.join("/");
+export type DocMetadata = {
+  title: string;
+  description: string;
+  image: string;
+};
 
-  try {
-    const mdxSource = await getMdxSource(framework, slugPath);
+export function getDocBySlug(framework: string, slug: string[]) {
+  const baseDir = path.join(process.cwd(), "content", "docs", framework);
 
-    const title =
-      mdxSource.metadata.title ||
-      mdxSource.tableOfContents?.[0].value ||
-      "Documentation";
+  let filePath: string;
 
+  if (slug.length === 0) {
+    // framework-level
+    filePath = path.join(baseDir, "index.mdx");
+  } else if (slug.length === 1) {
+    // topic-level 
+    filePath = path.join(baseDir, slug[0], "index.mdx");
+  } else if (slug.length === 2) {
+    // subtopic-level 
+    filePath = path.join(baseDir, slug[0], `${slug[1]}.mdx`);
+  } else {
+    // unsupported depth
+    return undefined;
+  }
+
+  if (!fs.existsSync(filePath)) return undefined;
+
+  const source = fs.readFileSync(filePath, "utf-8");
+  const { data: frontmatter } = matter(source);
+
+  return { frontmatter, source };
+}
+
+export function getDocMetadata(framework:string, slugPath: string[]) {
+  const mdxSource = getDocBySlug(framework, slugPath);
+
+  if (!mdxSource) {
     return {
-      title,
-      description: mdxSource.metadata.description,
-      openGraph: {
-        title,
-      },
-    };
-  } catch (error) {
-    const title = "Documentation";
-    return {
-      title,
-      openGraph: {
-        title,
-      },
+      title: `${framework} Docs`,
+      description: `Documentation for ${framework}`,
+      image: "/opengraph-image", 
     };
   }
+
+  return {
+    title: mdxSource.frontmatter.title ?? `${framework} Docs`,
+    description: mdxSource.frontmatter.description ?? `Documentation for ${framework}`,
+    image:  mdxSource?.frontmatter.image ?? "/jazz-logo.png",
+  };
 }
+
 
 function DocProse({ children }: { children: React.ReactNode }) {
   return (
