@@ -520,13 +520,13 @@ export class SyncManager {
           ? "import"
           : peer?.role;
 
-    coValue.addDependenciesFromContentMessage(msg, this.skipVerify);
+    coValue.addDependenciesFromContentMessage(msg);
 
     // If some of the dependencies are missing, we wait for them to be available
     // before handling the new content
     // This must happen even if the dependencies are not related to this content
     // but the content we've got before
-    if (coValue.hasMissingDependencies()) {
+    if (!this.skipVerify && coValue.hasMissingDependencies()) {
       coValue.addNewContentToQueue(msg, from);
 
       for (const dependency of coValue.missingDependencies) {

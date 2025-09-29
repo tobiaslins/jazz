@@ -195,7 +195,7 @@ export class CoValueCore {
   }
 
   isAvailable(): this is AvailableCoValueCore {
-    return this.hasVerifiedContent() && !this.hasMissingDependencies();
+    return this.hasVerifiedContent();
   }
 
   hasVerifiedContent(): this is AvailableCoValueCore {
@@ -368,9 +368,9 @@ export class CoValueCore {
     });
   }
 
-  addDependencyFromHeader(header: CoValueHeader, skipVerify: boolean = true) {
+  addDependencyFromHeader(header: CoValueHeader) {
     for (const dep of getDependenciesFromHeader(header)) {
-      this.addDependency(dep, skipVerify);
+      this.addDependency(dep);
     }
   }
 
@@ -387,7 +387,7 @@ export class CoValueCore {
       }
     }
 
-    this.addDependencyFromHeader(header, skipVerify);
+    this.addDependencyFromHeader(header);
 
     if (this._verified?.sessions.size) {
       throw new Error(
@@ -499,14 +499,11 @@ export class CoValueCore {
     };
   }
 
-  addDependenciesFromContentMessage(
-    newContent: NewContentMessage,
-    skipVerify: boolean = false,
-  ) {
+  addDependenciesFromContentMessage(newContent: NewContentMessage) {
     const dependencies = getDependenciesFromContentMessage(this, newContent);
 
     for (const dependency of dependencies) {
-      this.addDependency(dependency, skipVerify);
+      this.addDependency(dependency);
     }
   }
 
@@ -715,7 +712,7 @@ export class CoValueCore {
       for (const dependency of getDependenciesFromGroupRawTransactions([
         transaction,
       ])) {
-        this.addDependency(dependency, true);
+        this.addDependency(dependency);
       }
     }
   }
@@ -1016,33 +1013,29 @@ export class CoValueCore {
   }
 
   dependencies: Set<RawCoID> = new Set();
-  private addDependency(dependency: RawCoID, skipVerify: boolean) {
+  private addDependency(dependency: RawCoID) {
     if (this.dependencies.has(dependency)) {
       return true;
     }
 
     this.dependencies.add(dependency);
 
-    if (!skipVerify) {
-      const dependencyCoValue = this.node.getCoValue(dependency);
+    const dependencyCoValue = this.node.getCoValue(dependency);
 
-      if (
-        !dependencyCoValue.isAvailable() &&
-        !this.isCircularMissingDependency(dependencyCoValue)
-      ) {
-        this.missingDependencies.add(dependency);
+    if (
+      !dependencyCoValue.isAvailable() &&
+      !this.isCircularMissingDependency(dependencyCoValue)
+    ) {
+      this.missingDependencies.add(dependency);
 
-        dependencyCoValue.subscribe((dependencyCoValue, unsubscribe) => {
-          if (dependencyCoValue.isAvailable()) {
-            unsubscribe();
-            this.markDependencyAvailable(dependency);
-          }
-        });
-        return false;
-      }
+      dependencyCoValue.subscribe((dependencyCoValue, unsubscribe) => {
+        if (dependencyCoValue.isAvailable()) {
+          unsubscribe();
+          this.markDependencyAvailable(dependency);
+        }
+      });
+      return false;
     }
-
-    return true;
   }
 
   createBranch(name: string, ownerId?: RawCoID) {
