@@ -406,18 +406,6 @@ export class CoValueCore {
     return true;
   }
 
-  internalMarkMagicallyAvailable(
-    verified: VerifiedState,
-    { forceOverwrite = false }: { forceOverwrite?: boolean } = {},
-  ) {
-    const previousState = this.loadingState;
-    this.internalShamefullyCloneVerifiedStateFrom(verified, {
-      forceOverwrite,
-    });
-    this.updateCounter(previousState);
-    this.scheduleNotifyUpdate();
-  }
-
   markErrored(peerId: PeerID, error: TryAddTransactionsError) {
     const previousState = this.loadingState;
     this.peers.set(peerId, { type: "errored", error });
@@ -430,24 +418,6 @@ export class CoValueCore {
     this.peers.set(peerId, { type: "pending" });
     this.updateCounter(previousState);
     this.scheduleNotifyUpdate();
-  }
-
-  internalShamefullyCloneVerifiedStateFrom(
-    state: VerifiedState,
-    { forceOverwrite = false }: { forceOverwrite?: boolean } = {},
-  ) {
-    if (!forceOverwrite && this._verified?.sessions.size) {
-      throw new Error(
-        "CoValueCore: internalShamefullyCloneVerifiedStateFrom called on coValue with verified sessions present!",
-      );
-    }
-    this._verified = state.clone();
-    this.internalShamefullyResetCachedContent();
-  }
-
-  internalShamefullyResetCachedContent() {
-    this._cachedContent = undefined;
-    this.resetParsedTransactions();
   }
 
   groupInvalidationSubscription?: () => void;
@@ -470,7 +440,7 @@ export class CoValueCore {
       if (entry.isAvailable()) {
         this.groupInvalidationSubscription = entry.subscribe((_groupUpdate) => {
           // When the group is updated, we need to reset the cached content because the transactions validity might have changed
-          this.internalShamefullyResetCachedContent();
+          this.resetParsedTransactions();
           this.scheduleNotifyUpdate();
         }, false);
       } else {
@@ -784,6 +754,8 @@ export class CoValueCore {
 
   // Reset the parsed transactions and branches, to validate them again from scratch when the group is updated
   resetParsedTransactions() {
+    this._cachedContent = undefined;
+
     this.branchStart = undefined;
     this.mergeCommits = [];
 
@@ -1063,8 +1035,8 @@ export class CoValueCore {
 
         dependencyCoValue.subscribe((dependencyCoValue, unsubscribe) => {
           if (dependencyCoValue.isAvailable()) {
-            this.markDependencyAvailable(dependency);
             unsubscribe();
+            this.markDependencyAvailable(dependency);
           }
         });
         return false;
