@@ -263,9 +263,11 @@ export class CoValueCore {
     }
   }
 
-  unmount() {
-    // For simplicity, we don't unmount groups and accounts
-    if (this.verified?.header.ruleset.type === "group") {
+  unmount(garbageCollectGroups = false) {
+    if (
+      !garbageCollectGroups &&
+      this.verified?.header.ruleset.type === "group"
+    ) {
       return false;
     }
 
