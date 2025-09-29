@@ -638,7 +638,7 @@ describe("co.map and Zod schema compatibility", () => {
           },
         }),
       ).toThrow(
-        "z.codec() is only supported if the input schema is already supported: Unsupported zod type: map",
+        "z.codec() is only supported if the input schema is already supported. Unsupported zod type: map",
       );
     });
   });

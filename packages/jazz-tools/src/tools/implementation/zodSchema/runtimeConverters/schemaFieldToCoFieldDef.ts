@@ -173,7 +173,7 @@ export function schemaFieldToCoFieldDef(schema: SchemaField) {
           schemaFieldToCoFieldDef(zodSchemaDef.in as SchemaField);
         } catch (error) {
           if (error instanceof Error) {
-            error.message = `z.codec() is only supported if the input schema is already supported: ${error.message}`;
+            error.message = `z.codec() is only supported if the input schema is already supported. ${error.message}`;
           }
 
           throw error;
