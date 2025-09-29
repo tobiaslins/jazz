@@ -65,11 +65,10 @@ describe("CoValueCore loading state", () => {
   test("should create available state", async () => {
     const mockVerified = createMockCoValueVerified(mockCoValueId);
     const state = CoValueCore.fromID(mockCoValueId, mockNode);
-    state.internalMarkMagicallyAvailable(mockVerified);
+    state.provideHeader(mockVerified.header);
 
     expect(state.id).toBe(mockCoValueId);
     expect(state.loadingState).toBe("available");
-    expect(state.verified).toBe(mockVerified);
     await expect(state.waitForAvailableOrUnavailable()).resolves.toMatchObject({
       verified: mockVerified,
     });
@@ -101,7 +100,7 @@ describe("CoValueCore loading state", () => {
 
     const stateValuePromise = state.waitForAvailableOrUnavailable();
 
-    state.internalMarkMagicallyAvailable(mockVerified);
+    state.provideHeader(mockVerified.header);
 
     const result = await state.waitForAvailableOrUnavailable();
     expect(result).toMatchObject({ verified: mockVerified });
@@ -181,9 +180,7 @@ describe("CoValueCore loading state", () => {
 
     await vi.runAllTimersAsync();
 
-    state.internalMarkMagicallyAvailable(
-      createMockCoValueVerified(mockCoValueId),
-    );
+    state.provideHeader(createMockCoValueVerified(mockCoValueId).header);
 
     await loadPromise;
 

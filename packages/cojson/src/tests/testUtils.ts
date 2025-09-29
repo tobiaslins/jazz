@@ -756,9 +756,11 @@ export function createAccountInNode(node: LocalNode) {
   });
 
   const accountCoreEntry = node.getCoValue(accountOnTempNode.id);
-  accountCoreEntry.internalMarkMagicallyAvailable(
-    accountOnTempNode.core.verified,
-  );
+
+  const content =
+    accountOnTempNode.core.verified.newContentSince(undefined)?.[0]!;
+
+  node.syncManager.handleNewContent(content, "import");
 
   return new ControlledAccount(
     accountCoreEntry.getCurrentContent() as RawAccount,
