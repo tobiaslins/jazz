@@ -591,8 +591,18 @@ export class CoValueCore {
     }
   }
 
+  #isNotifyUpdatePaused = false;
+  pauseNotifyUpdate() {
+    this.#isNotifyUpdatePaused = true;
+  }
+
+  resumeNotifyUpdate() {
+    this.#isNotifyUpdatePaused = false;
+    this.notifyUpdate();
+  }
+
   private notifyUpdate() {
-    if (this.listeners.size === 0) {
+    if (this.listeners.size === 0 || this.#isNotifyUpdatePaused) {
       return;
     }
 

@@ -739,9 +739,20 @@ export class CoListJazzApi<L extends CoList> extends CoValueJazzApi<L> {
       : undefined;
 
     const patches = [...calcPatch(current, result, comparator)];
+
+    if (patches.length === 0) {
+      return this.coList;
+    }
+
+    // Turns off updates in the middle of applyDiff to improve the performance
+    this.raw.core.pauseNotifyUpdate();
+
     for (const [from, to, insert] of patches.reverse()) {
       this.splice(from, to - from, ...insert);
     }
+
+    this.raw.core.resumeNotifyUpdate();
+
     return this.coList;
   }
 
