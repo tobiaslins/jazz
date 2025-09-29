@@ -1,5 +1,17 @@
 # cojson
 
+## 0.18.20
+
+### Patch Changes
+
+- e75b3d6: Stop new content processing until all the dependencies are available, preventing inconsistent statuses on sync.
+
+  This targets a bug that would show up only after we roll out the sync server sharding features.
+
+- ecf4967: Add garbageCollectGroups option to enableGarbageCollector
+- d0e2210: Batch subscribe updates during the applyDiff execution
+  - cojson-core-wasm@0.18.20
+
 ## 0.18.19
 
 ### Patch Changes
