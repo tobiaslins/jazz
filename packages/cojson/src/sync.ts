@@ -594,6 +594,8 @@ export class SyncManager {
         return;
       }
 
+      const previousState = coValue.loadingState;
+
       /**
        * We are getting the full CoValue, so we can instantiate it
        */
@@ -611,7 +613,7 @@ export class SyncManager {
         return;
       }
 
-      coValue.markFoundInPeer(peer?.id ?? "storage");
+      coValue.markFoundInPeer(peer?.id ?? "storage", previousState);
       peer?.updateHeader(msg.id, true);
 
       if (msg.expectContentUntil) {

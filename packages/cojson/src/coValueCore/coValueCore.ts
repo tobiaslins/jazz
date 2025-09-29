@@ -292,8 +292,7 @@ export class CoValueCore {
     this.scheduleNotifyUpdate();
   }
 
-  markFoundInPeer(peerId: PeerID) {
-    const previousState = this.loadingState;
+  markFoundInPeer(peerId: PeerID, previousState: string) {
     this.peers.set(peerId, { type: "available" });
     this.updateCounter(previousState);
     this.scheduleNotifyUpdate();
