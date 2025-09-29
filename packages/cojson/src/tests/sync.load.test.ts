@@ -1052,8 +1052,12 @@ describe("loading coValues from server", () => {
       syncServerName: "core",
     });
 
-    const client = setupTestNode({
-      connected: true,
+    const client = setupTestNode();
+
+    client.connectToSyncServer({
+      ourName: "client",
+      syncServerName: "edge",
+      syncServer: edgeServer.node,
     });
 
     const group = coreServer.node.createGroup();
@@ -1091,7 +1095,7 @@ describe("loading coValues from server", () => {
       }),
     ).toMatchInlineSnapshot(`
       [
-        "client -> server | LOAD Map sessions: empty",
+        "client -> edge | LOAD Map sessions: empty",
         "edge -> core | LOAD Map sessions: empty",
         "core -> edge | CONTENT Map header: true new: After: 0 New: 1",
         "edge -> core | LOAD Group sessions: empty",
@@ -1101,12 +1105,12 @@ describe("loading coValues from server", () => {
         "edge -> core | KNOWN Account sessions: header/4",
         "edge -> core | KNOWN Group sessions: header/5",
         "edge -> core | KNOWN Map sessions: header/1",
-        "server -> client | CONTENT Account header: true new: After: 0 New: 4",
-        "server -> client | CONTENT Group header: true new: After: 0 New: 5",
-        "server -> client | CONTENT Map header: true new: After: 0 New: 1",
-        "client -> server | KNOWN Account sessions: header/4",
-        "client -> server | KNOWN Group sessions: header/5",
-        "client -> server | KNOWN Map sessions: header/1",
+        "edge -> client | CONTENT Account header: true new: After: 0 New: 4",
+        "edge -> client | CONTENT Group header: true new: After: 0 New: 5",
+        "edge -> client | CONTENT Map header: true new: After: 0 New: 1",
+        "client -> edge | KNOWN Account sessions: header/4",
+        "client -> edge | KNOWN Group sessions: header/5",
+        "client -> edge | KNOWN Map sessions: header/1",
       ]
     `);
 
