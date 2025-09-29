@@ -20,13 +20,18 @@ import { JsonObject, JsonValue } from "../jsonValue.js";
 import { LocalNode, ResolveAccountAgentError } from "../localNode.js";
 import { logger } from "../logger.js";
 import { determineValidTransactions } from "../permissions.js";
-import { CoValueKnownState, PeerID, emptyKnownState } from "../sync.js";
+import {
+  CoValueKnownState,
+  NewContentMessage,
+  PeerID,
+  emptyKnownState,
+} from "../sync.js";
 import { accountOrAgentIDfromSessionID } from "../typeUtils/accountOrAgentIDfromSessionID.js";
 import { expectGroup } from "../typeUtils/expectGroup.js";
 import {
-  getDependedOnCoValuesFromRawData,
+  getDependenciesFromContentMessage,
   getDependenciesFromGroupRawTransactions,
-  getDependenciesFromSessions,
+  getDependenciesFromHeader,
 } from "./utils.js";
 import { CoValueHeader, Transaction, VerifiedState } from "./verifiedState.js";
 import { SessionMap } from "./SessionMap.js";
@@ -185,8 +190,12 @@ export class CoValueCore {
     return "unavailable";
   }
 
+  hasMissingDependencies() {
+    return this.missingDependencies.size > 0;
+  }
+
   isAvailable(): this is AvailableCoValueCore {
-    return this.hasVerifiedContent() && this.missingDependencies.size === 0;
+    return this.hasVerifiedContent() && !this.hasMissingDependencies();
   }
 
   hasVerifiedContent(): this is AvailableCoValueCore {
@@ -283,10 +292,16 @@ export class CoValueCore {
     this.scheduleNotifyUpdate();
   }
 
+  markFoundInPeer(peerId: PeerID) {
+    const previousState = this.loadingState;
+    this.peers.set(peerId, { type: "available" });
+    this.updateCounter(previousState);
+    this.scheduleNotifyUpdate();
+  }
+
   missingDependencies = new Set<RawCoID>();
 
-  // Checks if the current CoValueCore is already a missing dependency of the given CoValueCore
-  checkCircularDependencies(dependency: CoValueCore) {
+  isCircularMissingDependency(dependency: CoValueCore) {
     const visited = new Set<RawCoID>();
     const stack = [dependency];
 
@@ -294,14 +309,14 @@ export class CoValueCore {
       const current = stack.pop();
 
       if (!current) {
-        return true;
+        return false;
       }
 
       visited.add(current.id);
 
       for (const dependency of current.missingDependencies) {
         if (dependency === this.id) {
-          return false;
+          return true;
         }
 
         if (!visited.has(dependency)) {
@@ -310,42 +325,49 @@ export class CoValueCore {
       }
     }
 
-    return true;
+    return false;
   }
 
-  markMissingDependency(dependency: RawCoID) {
-    const value = this.node.getCoValue(dependency);
+  markDependencyAvailable(dependency: RawCoID) {
+    this.missingDependencies.delete(dependency);
 
-    if (value.isAvailable()) {
-      this.missingDependencies.delete(dependency);
-    } else if (this.checkCircularDependencies(value)) {
-      const unsubscribe = value.subscribe(() => {
-        if (value.isAvailable()) {
-          this.missingDependencies.delete(dependency);
-          unsubscribe();
-        }
+    if (this.missingDependencies.size === 0) {
+      this.scheduleNotifyUpdate();
+    }
+  }
 
-        if (this.isAvailable()) {
-          this.scheduleNotifyUpdate();
-        }
-      });
+  delayHandleNewContent(
+    msg: NewContentMessage,
+    from: PeerState | "storage" | "import",
+  ) {
+    this.subscribe((core, unsubscribe) => {
+      if (!core.hasMissingDependencies()) {
+        this.node.syncManager.handleNewContent(msg, from);
+        unsubscribe();
+      }
+    });
+  }
 
-      this.missingDependencies.add(dependency);
+  addDependencyFromHeader(header: CoValueHeader, skipVerify: boolean = true) {
+    for (const dep of getDependenciesFromHeader(header)) {
+      this.addDependency(dep, skipVerify);
     }
   }
 
   provideHeader(
     header: CoValueHeader,
-    fromPeerId: PeerID,
     streamingKnownState?: CoValueKnownState["sessions"],
+    skipVerify?: boolean,
   ) {
-    const previousState = this.loadingState;
+    if (!skipVerify) {
+      const expectedId = idforHeader(header, this.node.crypto);
 
-    const expectedId = idforHeader(header, this.node.crypto);
-
-    if (this.id !== expectedId) {
-      return false;
+      if (this.id !== expectedId) {
+        return false;
+      }
     }
+
+    this.addDependencyFromHeader(header, skipVerify);
 
     if (this._verified?.sessions.size) {
       throw new Error(
@@ -359,11 +381,6 @@ export class CoValueCore {
       new SessionMap(this.id, this.node.crypto),
       streamingKnownState,
     );
-
-    this.peers.set(fromPeerId, { type: "available" });
-
-    this.updateCounter(previousState);
-    this.scheduleNotifyUpdate();
 
     return true;
   }
@@ -447,7 +464,7 @@ export class CoValueCore {
   contentInClonedNodeWithDifferentAccount(account: ControlledAccountOrAgent) {
     return this.node
       .loadCoValueAsDifferentAgent(this.id, account.agentSecret, account.id)
-      .getCurrentContent();
+      .then((core) => core.getCurrentContent());
   }
 
   knownStateWithStreaming(): CoValueKnownState {
@@ -492,6 +509,17 @@ export class CoValueCore {
     };
   }
 
+  addDependenciesFromContentMessage(
+    newContent: NewContentMessage,
+    skipVerify: boolean = false,
+  ) {
+    const dependencies = getDependenciesFromContentMessage(this, newContent);
+
+    for (const dependency of dependencies) {
+      this.addDependency(dependency, skipVerify);
+    }
+  }
+
   tryAddTransactions(
     sessionID: SessionID,
     newTransactions: Transaction[],
@@ -530,7 +558,7 @@ export class CoValueCore {
       );
 
       if (result.isOk()) {
-        this.processNewTransactions(sessionID, newTransactions);
+        this.processNewTransactions();
         this.scheduleNotifyUpdate();
       }
 
@@ -538,12 +566,7 @@ export class CoValueCore {
     });
   }
 
-  private processNewTransactions(
-    sessionID: SessionID,
-    transactions: Transaction[],
-  ) {
-    this.processNewTransactionsDependencies(sessionID, transactions);
-
+  private processNewTransactions() {
     if (this._cachedContent) {
       // Does the cached content support incremental processing?
       if (
@@ -680,7 +703,8 @@ export class CoValueCore {
     const session = this.verified.sessions.get(sessionID);
     const txIdx = session ? session.transactions.length - 1 : 0;
 
-    this.processNewTransactions(sessionID, [transaction]);
+    this.processNewTransactions();
+    this.addDependenciesFromNewTransaction(transaction);
 
     // force immediate notification because local updates may come from the UI
     // where we need synchronous updates
@@ -694,6 +718,16 @@ export class CoValueCore {
     );
 
     return true;
+  }
+
+  addDependenciesFromNewTransaction(transaction: Transaction) {
+    if (this.verified?.header.ruleset.type === "group") {
+      for (const dependency of getDependenciesFromGroupRawTransactions([
+        transaction,
+      ])) {
+        this.addDependency(dependency, true);
+      }
+    }
   }
 
   getCurrentContent(options?: { ignorePrivateTransactions: true }): RawCoValue {
@@ -989,43 +1023,36 @@ export class CoValueCore {
     return matchingTransactions;
   }
 
-  dependenciesProcessed = false;
   dependencies: Set<RawCoID> = new Set();
-  processCoValueDependencies() {
-    if (!this.verified || this.dependenciesProcessed) {
-      return;
+  private addDependency(dependency: RawCoID, skipVerify: boolean) {
+    if (this.dependencies.has(dependency)) {
+      return true;
     }
 
-    this.dependencies = getDependedOnCoValuesFromRawData(
-      this.id,
-      this.verified.header,
-      this.verified.sessions.keys(),
-      Array.from(
-        this.verified.sessions.values(),
-        (session) => session.transactions,
-      ),
-    );
-    this.dependenciesProcessed = true;
+    this.dependencies.add(dependency);
+
+    if (!skipVerify) {
+      const dependencyCoValue = this.node.getCoValue(dependency);
+
+      if (
+        !dependencyCoValue.isAvailable() &&
+        !this.isCircularMissingDependency(dependencyCoValue)
+      ) {
+        this.missingDependencies.add(dependency);
+
+        dependencyCoValue.subscribe((dependencyCoValue, unsubscribe) => {
+          if (dependencyCoValue.isAvailable()) {
+            this.markDependencyAvailable(dependency);
+            unsubscribe();
+          }
+        });
+        return false;
+      }
+    }
+
+    return true;
   }
 
-  processNewTransactionsDependencies(
-    sessionID: SessionID,
-    transactions: Transaction[],
-  ) {
-    if (!this.verified) {
-      return;
-    }
-
-    if (!this.dependenciesProcessed) {
-      this.processCoValueDependencies();
-      return;
-    }
-
-    getDependenciesFromSessions([sessionID], this.dependencies);
-    if (this.verified.header.ruleset.type === "group") {
-      getDependenciesFromGroupRawTransactions(transactions, this.dependencies);
-    }
-  }
   createBranch(name: string, ownerId?: RawCoID) {
     return createBranch(this, name, ownerId);
   }
@@ -1192,12 +1219,6 @@ export class CoValueCore {
   }
 
   getDependedOnCoValues(): Set<RawCoID> {
-    if (!this.verified) {
-      return new Set();
-    }
-
-    this.processCoValueDependencies();
-
     return this.dependencies;
   }
 
