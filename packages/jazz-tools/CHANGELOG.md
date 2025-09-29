@@ -1,5 +1,21 @@
 # jazz-tools
 
+## 0.18.20
+
+### Patch Changes
+
+- c34a793: Allow usage of z.codec with custom encoders in CoValues
+- 2c01529: Increased passkey challenge length to improve compatibility with KeePassXC
+- 7b0facc: Upgrade Zod to 4.1
+- 47c7dd3: fix: regenerate InboxSender when active account changes
+- d0e2210: Batch subscribe updates during the applyDiff execution
+- Updated dependencies [e75b3d6]
+- Updated dependencies [ecf4967]
+- Updated dependencies [d0e2210]
+  - cojson@0.18.20
+  - cojson-storage-indexeddb@0.18.20
+  - cojson-transport-ws@0.18.20
+
 ## 0.18.19
 
 ### Patch Changes

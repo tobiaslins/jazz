@@ -1,5 +1,19 @@
 # jazz-react
 
+## 0.18.20
+
+### Patch Changes
+
+- Updated dependencies [c34a793]
+- Updated dependencies [e75b3d6]
+- Updated dependencies [2c01529]
+- Updated dependencies [ecf4967]
+- Updated dependencies [7b0facc]
+- Updated dependencies [47c7dd3]
+- Updated dependencies [d0e2210]
+  - jazz-tools@0.18.20
+  - cojson@0.18.20
+
 ## 0.18.19
 
 ### Patch Changes
