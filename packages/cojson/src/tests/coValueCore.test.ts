@@ -539,7 +539,7 @@ describe("markErrored and isErroredInPeer", () => {
 
     expect(coValue.isAvailable()).toBe(false);
 
-    const success = coValue.provideHeader(header, "peerId");
+    const success = coValue.provideHeader(header);
     expect(success).toBe(true);
     expect(coValue.isAvailable()).toBe(true);
   });
@@ -559,7 +559,7 @@ describe("markErrored and isErroredInPeer", () => {
 
     expect(coValue.isAvailable()).toBe(false);
 
-    const success = coValue.provideHeader(header, "peerId");
+    const success = coValue.provideHeader(header);
     expect(success).toBe(false);
     expect(coValue.isAvailable()).toBe(false);
   });
