@@ -680,6 +680,40 @@ describe("CoList applyDiff operations", async () => {
     list.$jazz.applyDiff(["e", "c", "new", "y", "x"]);
     expect(list.$jazz.raw.asArray()).toEqual(["e", "c", "new", "y", "x"]);
   });
+
+  test("applyDiff should emit a single update", () => {
+    const TestMap = co.map({
+      type: z.string(),
+    });
+
+    const TestList = co.list(TestMap);
+
+    const bread = TestMap.create({ type: "bread" }, me);
+    const butter = TestMap.create({ type: "butter" }, me);
+    const onion = TestMap.create({ type: "onion" }, me);
+
+    const list = TestList.create([bread, butter, onion], me);
+
+    const updateFn = vi.fn();
+
+    const unsubscribe = TestList.subscribe(
+      list.$jazz.id,
+      {
+        resolve: {
+          $each: true,
+        },
+      },
+      updateFn,
+    );
+
+    updateFn.mockClear();
+
+    list.$jazz.applyDiff([bread]);
+
+    expect(updateFn).toHaveBeenCalledTimes(1);
+
+    unsubscribe();
+  });
 });
 
 describe("CoList resolution", async () => {
