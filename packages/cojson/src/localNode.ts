@@ -100,7 +100,13 @@ export class LocalNode {
   }
 
   hasCoValue(id: RawCoID) {
-    return this.coValues.has(id);
+    const coValue = this.coValues.get(id);
+
+    if (!coValue) {
+      return false;
+    }
+
+    return coValue.loadingState !== "unknown";
   }
 
   getCoValue(id: RawCoID) {
