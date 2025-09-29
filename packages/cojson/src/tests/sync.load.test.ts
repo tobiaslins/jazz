@@ -1202,6 +1202,93 @@ describe("loading coValues from server", () => {
     blocker.unblock();
   });
 
+  test("edge servers should wait for all the session dependencies to be available before sending an update", async () => {
+    // Create a core -> edge -> client network
+    const coreServer = setupTestNode({ isSyncServer: true });
+
+    const edgeServer = setupTestNode({ isSyncServer: true });
+    const { peerOnServer: coreToEdgePeer } = edgeServer.connectToSyncServer({
+      syncServer: coreServer.node,
+      ourName: "edge",
+      syncServerName: "core",
+    });
+
+    const client = setupTestNode();
+    client.connectToSyncServer({
+      ourName: "client",
+      syncServerName: "edge",
+    });
+
+    // Create the map on the client
+    const group = client.node.createGroup();
+    group.addMember("everyone", "writer");
+
+    const map = group.createMap();
+    map.set("hello", "world");
+
+    // Connect a new client and link it directly to the core
+    const newAccountClient = await setupTestAccount();
+    newAccountClient.connectToSyncServer({
+      syncServer: coreServer.node,
+      ourName: "newAccountClient",
+      syncServerName: "core",
+    });
+    await newAccountClient.node.syncManager.waitForAllCoValuesSync();
+
+    // Load the map on the new client
+    const mapOnNewAccountClient = await loadCoValueOrFail(
+      newAccountClient.node,
+      map.id,
+    );
+    const account = newAccountClient.node.expectCurrentAccount(
+      newAccountClient.accountID,
+    );
+
+    SyncMessagesLog.clear();
+
+    // Update the map on the new client, creating a new session
+    mapOnNewAccountClient.set("newAccountClient", true);
+
+    // Block the content message from the core peer to simulate the situation where we won't push the dependency
+    const blocker = blockMessageTypeOnOutgoingPeer(coreToEdgePeer, "content", {
+      id: account.id,
+      once: true,
+    });
+
+    // Wait for the update to arrive on the initial client
+    await waitFor(() => {
+      const mapOnClient = expectMap(
+        client.node.getCoValue(map.core.id).getCurrentContent(),
+      );
+      expect(mapOnClient.get("newAccountClient")).toBe(true);
+    });
+
+    // The edge server should wait for the new Account to be available before sending the Map update
+    expect(
+      SyncMessagesLog.getMessages({
+        Account: account.core,
+        Group: group.core,
+        Map: map.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "newAccountClient -> core | CONTENT Map header: false new: After: 0 New: 1",
+        "core -> newAccountClient | KNOWN Map sessions: header/2",
+        "core -> edge | CONTENT Map header: false new: After: 0 New: 1",
+        "edge -> core | LOAD Account sessions: empty",
+        "core -> edge | CONTENT Account header: true new: After: 0 New: 4",
+        "edge -> core | KNOWN Account sessions: header/4",
+        "edge -> core | KNOWN Map sessions: header/2",
+        "edge -> client | CONTENT Account header: true new: After: 0 New: 4",
+        "edge -> client | CONTENT Map header: false new: After: 0 New: 1",
+        "client -> edge | KNOWN Account sessions: header/4",
+        "client -> edge | KNOWN Map sessions: header/2",
+      ]
+    `);
+
+    blocker.unblock();
+  });
+
   test("coValue with circular deps loading", async () => {
     const client = setupTestNode({
       connected: true,
