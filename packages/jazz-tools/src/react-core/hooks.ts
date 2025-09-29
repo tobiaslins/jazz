@@ -786,7 +786,8 @@ export function experimental_useInboxSender<
 
       let inbox = await inboxRef.current;
 
-      if (inbox.owner.id !== inboxOwnerID) {
+      // Regenerate the InboxSender if the inbox owner or current account changes
+      if (inbox.owner.id !== inboxOwnerID || inbox.currentAccount !== me) {
         const req = InboxSender.load<I, O>(inboxOwnerID, me);
         inboxRef.current = req;
         inbox = await req;
@@ -794,7 +795,7 @@ export function experimental_useInboxSender<
 
       return inbox.sendMessage(message);
     },
-    [inboxOwnerID],
+    [inboxOwnerID, me.$jazz.id],
   );
 
   return sendMessage;
