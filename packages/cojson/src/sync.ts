@@ -527,7 +527,7 @@ export class SyncManager {
     // This must happen even if the dependencies are not related to this content
     // but the content we've got before
     if (coValue.hasMissingDependencies()) {
-      coValue.delayHandleNewContent(msg, from);
+      coValue.addNewContentToQueue(msg, from);
 
       for (const dependency of coValue.missingDependencies) {
         const dependencyCoValue = this.local.getCoValue(dependency);

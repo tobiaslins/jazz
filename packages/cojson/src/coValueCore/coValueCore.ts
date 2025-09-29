@@ -336,14 +336,35 @@ export class CoValueCore {
     }
   }
 
-  delayHandleNewContent(
+  newContentQueue: {
+    msg: NewContentMessage;
+    from: PeerState | "storage" | "import";
+  }[] = [];
+  /**
+   * Add a new content to the queue and handle it when the dependencies are available
+   */
+  addNewContentToQueue(
     msg: NewContentMessage,
     from: PeerState | "storage" | "import",
   ) {
+    const alreadyEnqueued = this.newContentQueue.length > 0;
+
+    this.newContentQueue.push({ msg, from });
+
+    if (alreadyEnqueued) {
+      return;
+    }
+
     this.subscribe((core, unsubscribe) => {
       if (!core.hasMissingDependencies()) {
-        this.node.syncManager.handleNewContent(msg, from);
         unsubscribe();
+
+        const enqueuedNewContent = this.newContentQueue;
+        this.newContentQueue = [];
+
+        for (const { msg, from } of enqueuedNewContent) {
+          this.node.syncManager.handleNewContent(msg, from);
+        }
       }
     });
   }
