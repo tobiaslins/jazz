@@ -1,6 +1,6 @@
 import { StorageAPI } from "cojson";
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 import {
   Account,
   AccountClass,
@@ -539,6 +539,14 @@ describe("ContextManager", () => {
     await expect(
       manager.register(secret, { name: "Test User" }),
     ).rejects.toThrow("Props required");
+  });
+
+  describe("configurable storage key", () => {
+    test("uses the configured storage key", async () => {
+      const KEY = "test-auth-secret";
+      const manager = new TestJazzContextManager<Account>({ storageKey: KEY });
+      expect(manager.getAuthSecretStorage().getStorageKey()).toBe(KEY);
+    });
   });
 
   describe("Race condition handling", () => {
