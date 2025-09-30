@@ -12,6 +12,7 @@ import {
   BranchDefinition,
   CoValue,
   CoValueClass,
+  CoValueLoadingState,
   ID,
   RefEncoded,
   RefsToResolve,
@@ -53,6 +54,7 @@ export class Group extends CoValueBase implements CoValue {
     this.prototype[TypeSym] = "Group";
   }
   declare $jazz: GroupJazzApi<this>;
+  declare $jazzState: typeof CoValueLoadingState.LOADED;
 
   /** @deprecated Don't use constructor directly, use .create */
   constructor(options: { fromRaw: RawGroup } | { owner: Account }) {
@@ -82,6 +84,7 @@ export class Group extends CoValueBase implements CoValue {
         value: new GroupJazzApi(proxy, raw),
         enumerable: false,
       },
+      $jazzState: { value: CoValueLoadingState.LOADED, enumerable: false },
     });
 
     return proxy;
