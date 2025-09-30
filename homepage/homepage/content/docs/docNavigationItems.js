@@ -212,6 +212,11 @@ export const docNavigationItems = [
         done: 100,
       },
       {
+        name: "Codecs",
+        href: "/docs/using-covalues/codecs",
+        done: 100,
+      },
+      {
         name: "Subscriptions & Deep Loading",
         href: "/docs/using-covalues/subscription-and-loading",
         done: 80,
@@ -298,6 +303,11 @@ export const docNavigationItems = [
       {
         name: "Better Auth",
         href: "/docs/authentication/better-auth",
+        done: 100,
+      },
+      {
+        name: "Jazz database adapter for Better Auth",
+        href: "/docs/authentication/better-auth-database-adapter",
         done: 100,
       },
       {

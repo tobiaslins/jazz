@@ -719,6 +719,22 @@ export function useAccountWithSelector<
     select: (account: Loaded<A, R> | undefined | null) => TSelectorReturn;
     /** Equality function to determine if the selected value has changed, defaults to `Object.is` */
     equalityFn?: (a: TSelectorReturn, b: TSelectorReturn) => boolean;
+    /**
+     * Create or load a branch for isolated editing.
+     *
+     * Branching lets you take a snapshot of the current state and start modifying it without affecting the canonical/shared version.
+     * It's a fork of your data graph: the same schema, but with diverging values.
+     *
+     * The checkout of the branch is applied on all the resolved values.
+     *
+     * @param name - A unique name for the branch. This identifies the branch
+     *   and can be used to switch between different branches of the same CoValue.
+     * @param owner - The owner of the branch. Determines who can access and modify
+     *   the branch. If not provided, the branch is owned by the current user.
+     *
+     * For more info see the [branching](https://jazz.tools/docs/react/using-covalues/version-control) documentation.
+     */
+    unstable_branch?: BranchDefinition;
   },
 ): TSelectorReturn {
   const subscription = useAccountSubscription(AccountSchema, options);
@@ -770,7 +786,8 @@ export function experimental_useInboxSender<
 
       let inbox = await inboxRef.current;
 
-      if (inbox.owner.id !== inboxOwnerID) {
+      // Regenerate the InboxSender if the inbox owner or current account changes
+      if (inbox.owner.id !== inboxOwnerID || inbox.currentAccount !== me) {
         const req = InboxSender.load<I, O>(inboxOwnerID, me);
         inboxRef.current = req;
         inbox = await req;
@@ -778,8 +795,34 @@ export function experimental_useInboxSender<
 
       return inbox.sendMessage(message);
     },
-    [inboxOwnerID],
+    [inboxOwnerID, me.$jazz.id],
   );
 
   return sendMessage;
+}
+
+/**
+ * Hook that returns the current connection status to the Jazz sync server.
+ *
+ * @returns `true` when connected to the server, `false` when disconnected
+ *
+ * @remarks
+ * On connection drop, this hook will return `false` only when Jazz detects the disconnection
+ * after 5 seconds of not receiving a ping from the server.
+ */
+export function useSyncConnectionStatus() {
+  const context = useJazzContext();
+
+  const connected = useSyncExternalStore(
+    useCallback(
+      (callback) => {
+        return context.addConnectionListener(callback);
+      },
+      [context],
+    ),
+    () => context.connected(),
+    () => context.connected(),
+  );
+
+  return connected;
 }

@@ -21,6 +21,7 @@ import {
   randomAgentAndSessionID,
   setupTestNode,
   tearDownTestMetricReader,
+  waitFor,
 } from "./testUtils.js";
 import { CO_VALUE_PRIORITY } from "../priority.js";
 import { setMaxTxSizeBytes } from "../config.js";
@@ -189,7 +190,9 @@ test("New transactions in a group correctly update owned values, including subsc
   expect(group.get(agent.id)).toBe("revoked");
   dateNowMock.mockReset();
 
-  expect(listener).toHaveBeenCalledTimes(2);
+  // Group invalidation updates are async
+  await waitFor(() => expect(listener).toHaveBeenCalledTimes(2));
+
   expect(listener).toHaveBeenLastCalledWith(undefined);
   expect(map.core.getValidSortedTransactions().length).toBe(0);
 });
@@ -536,7 +539,7 @@ describe("markErrored and isErroredInPeer", () => {
 
     expect(coValue.isAvailable()).toBe(false);
 
-    const success = coValue.provideHeader(header, "peerId");
+    const success = coValue.provideHeader(header);
     expect(success).toBe(true);
     expect(coValue.isAvailable()).toBe(true);
   });
@@ -556,7 +559,7 @@ describe("markErrored and isErroredInPeer", () => {
 
     expect(coValue.isAvailable()).toBe(false);
 
-    const success = coValue.provideHeader(header, "peerId");
+    const success = coValue.provideHeader(header);
     expect(success).toBe(false);
     expect(coValue.isAvailable()).toBe(false);
   });

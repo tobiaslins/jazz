@@ -1,5 +1,19 @@
 # cojson-core-wasm
 
+## 0.18.20
+
+## 0.18.19
+
+## 0.18.18
+
+## 0.18.17
+
+## 0.18.16
+
+### Patch Changes
+
+- 629c275: Missing `edge-lite.js` script in pkg
+
 ## 0.18.15
 
 ### Patch Changes

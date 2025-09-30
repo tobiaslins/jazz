@@ -1,5 +1,68 @@
 # jazz-tools
 
+## 0.18.20
+
+### Patch Changes
+
+- c34a793: Allow usage of z.codec with custom encoders in CoValues
+- 2c01529: Increased passkey challenge length to improve compatibility with KeePassXC
+- 7b0facc: Upgrade Zod to 4.1
+- 47c7dd3: fix: regenerate InboxSender when active account changes
+- d0e2210: Batch subscribe updates during the applyDiff execution
+- Updated dependencies [e75b3d6]
+- Updated dependencies [ecf4967]
+- Updated dependencies [d0e2210]
+  - cojson@0.18.20
+  - cojson-storage-indexeddb@0.18.20
+  - cojson-transport-ws@0.18.20
+
+## 0.18.19
+
+### Patch Changes
+
+- f88db5f: Ensure subscription scope is cached for each CoValue
+- 8eac2fc: Fix refs in partially loaded CoMaps being incorrectly marked as optional
+- 08b6c03: fix: keep sync between Better Auth's session and Jazz's
+  - cojson@0.18.19
+  - cojson-storage-indexeddb@0.18.19
+  - cojson-transport-ws@0.18.19
+
+## 0.18.18
+
+### Patch Changes
+
+- f2f478a: Add connection status API for React and Svelte
+
+  - **React**: Added `useSyncConnectionStatus()` hook that returns the current connection status to the Jazz sync server
+  - **Svelte**: Added `SyncConnectionStatus` class that provides reactive connection status monitoring
+
+- ed7e353: Bugfix: wait for full streaming before triggering migrations on comap
+- 1698d41: Add `unstable_branch` option to useAccountWithSelector
+- Updated dependencies [ed7e353]
+  - cojson@0.18.18
+  - cojson-storage-indexeddb@0.18.18
+  - cojson-transport-ws@0.18.18
+
+## 0.18.17
+
+### Patch Changes
+
+- 75d1afa: Fix an issue where a flash of alt text displays while an image definition is loading from storage
+- 8aa4acd: Optimized the inactive subscriptions, improving performance of updates on created and loaded values by 2.5x
+- Updated dependencies [925da72]
+  - cojson@0.18.17
+  - cojson-storage-indexeddb@0.18.17
+  - cojson-transport-ws@0.18.17
+
+## 0.18.16
+
+### Patch Changes
+
+- 67b95b7: Introduced new Better Auth database adapter based on Jazz
+  - cojson@0.18.16
+  - cojson-storage-indexeddb@0.18.16
+  - cojson-transport-ws@0.18.16
+
 ## 0.18.15
 
 ### Patch Changes

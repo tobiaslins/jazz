@@ -9,6 +9,7 @@ export {
   useAuthSecretStorage,
   useCoStateWithSelector,
   useAccountWithSelector,
+  useSyncConnectionStatus,
 } from "./hooks.js";
 
 export { createInviteLink, parseInviteLink } from "jazz-tools/browser";
