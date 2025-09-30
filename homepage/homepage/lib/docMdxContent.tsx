@@ -20,14 +20,28 @@ function DocProse({ children }: { children: React.ReactNode }) {
 export async function getDocModule(framework: string, slug?: string[]) {
   const slugPath = slug?.join("/");
 
-  try {
-    if (slugPath) return await import(`../content/docs/${slugPath}/${framework}.mdx`);
-    return await import(`../content/docs/index.mdx`);
-  } catch {
-    if (slugPath) return await import(`../content/docs/${slugPath}.mdx`);
-    return null;
+  // First try framework-specific MDX
+  if (slugPath) {
+    try {
+      return await import(`../content/docs/${slugPath}/${framework}.mdx`);
+    } catch {}
   }
+
+  // Fallback to generic MDX
+  if (slugPath) {
+    try {
+      return await import(`../content/docs/${slugPath}.mdx`);
+    } catch {}
+  }
+
+  // Top-level index fallback
+  try {
+    return await import(`../content/docs/index.mdx`);
+  } catch {}
+
+  return null; 
 }
+
 
 /**
  * Get content and TOC for the page
@@ -80,17 +94,22 @@ function filterTocItemsForFramework(
  * Get page metadata, including frontmatter and exported metadata
  */
 export async function getDocMetadata(framework: string, slug?: string[]) {
-  const mdxModule = await getDocModule(framework, slug);  
+  const mdxModule = await getDocModule(framework, slug ?? []);
   // Fallback metadata if no MDX file found
   if (!mdxModule) {
     const topic = slug?.[0] ?? "";
     const subtopic = slug?.[1] ?? "";
+    const capitalizedFramework = framework
+      .split("-")
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+
     return {
       fm: {
         title: topic
-          ? `${framework} Docs: ${topic}${subtopic ? " / " + subtopic : ""}`
-          : `${framework} Docs`,
-        description: `Documentation for ${framework}`,
+          ? `${capitalizedFramework} Docs: ${topic}${subtopic ? " / " + subtopic : ""}`
+          : `${capitalizedFramework} Docs`,
+        description: `Documentation for ${capitalizedFramework}`,
         image: "/jazz-logo.png",
         topic,
         subtopic,
@@ -101,10 +120,18 @@ export async function getDocMetadata(framework: string, slug?: string[]) {
 
   const fm = mdxModule.frontmatter ?? {};
   const ex = mdxModule.metadata ?? {};
-  const tableOfContents = mdxModule.tableOfContents[0] ?? {}
-  const title = tableOfContents.value ?? fm.title ?? `${framework.charAt(0).toUpperCase()} Docs`;
-  const description = fm.description ?? ex.description ?? `Documentation for ${framework}`;
+  const firstTocItem = mdxModule.tableOfContents?.[0];
+  const titleFromToc = firstTocItem?.value;
+
+  const capitalizedFramework = framework
+    .split("-")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+
+  const title = titleFromToc ?? fm.title ?? `${capitalizedFramework} Docs`;
+  const description = fm.description ?? ex.description ?? `Documentation for ${capitalizedFramework}`;
   const image = fm.image ?? ex.image ?? "/jazz-logo.png";
+
   const topic = slug?.[0] ?? "";
   const subtopic = slug?.[1] ?? "";
 
@@ -120,7 +147,6 @@ export async function getDocMetadata(framework: string, slug?: string[]) {
 export async function DocPage({ framework, slug }: { framework: string; slug?: string[] }) {
   try {
     const { Content, tocItems } = await getMdxWithToc(framework, slug);
-
     return (
       <DocsLayout nav={<DocNav />} tocItems={tocItems}>
         <DocProse>

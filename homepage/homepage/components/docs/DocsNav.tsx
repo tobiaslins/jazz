@@ -6,7 +6,6 @@ import { FrameworkSelect } from "@/components/docs/FrameworkSelect";
 import { docNavigationItems } from "@/content/docs/docNavigationItems";
 import { DocNavigationSection } from "@/content/docs/docNavigationItemsTypes";
 import { Framework, isValidFramework, DEFAULT_FRAMEWORK } from "@/content/framework";
-import { useFramework } from "@/lib/use-framework";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
@@ -52,7 +51,6 @@ export function DocNav() {
   return (
     <SideNav>
       <FrameworkSelect />
-
       <SideNavBody>
         {items.map((item) => (
           <SideNavSection item={item} key={item.name} />
