@@ -74,7 +74,6 @@ export function DocNav() {
   return (
     <SideNav>
       <FrameworkSelect />
-
       <SideNavBody>
         {items.map((item) => (
           <SideNavSection item={item} key={item.name} />

@@ -1,7 +1,6 @@
 import { DocPage, generateOGMetadata, getDocMetadata } from "@/lib/docMdxContent";
 import fs from "fs";
 import path from "path";
-import { frameworks } from "@/content/framework";
 
 type Params = {
   framework: string;
@@ -16,64 +15,90 @@ type Frontmatter = {
   subtopic?: string;
 };
 
-type DocMeta = {
-  fm: Frontmatter;
-  ex?: any;
-};
-
 export async function generateMetadata({ params }: { params: Params }) {
-    const awaitedParams = await params; 
+  const awaitedParams = await params; 
   const framework = awaitedParams.framework;
   const slug = awaitedParams.slug ?? [];
 
   const docMeta = await getDocMetadata(framework, slug);
-//   console.log("Doc metadata for OG:", docMeta);
 
-  // Pass only the frontmatter to generateOGMetadata
   return generateOGMetadata(framework, slug, docMeta.fm);
 }
 
 export default async function Page({ params }: { params: Params }) {
-    const awaitedParams = await params; 
+  const awaitedParams = await params; 
   const framework = awaitedParams.framework;
   const slug = awaitedParams.slug ?? [];
 
   const docMeta = await getDocMetadata(framework, slug);
-
-  // Optional fallback
   if (!docMeta?.fm) {
     return <p>Documentation not found for {framework}/{slug.join("/")}</p>;
   }
 
-  // Only pass what DocPage expects (framework + slug)
   return <DocPage framework={framework} slug={slug} />;
 }
 
-
 // --- Static Params for SSG ---
-function getAllDocPaths(): Params[] {
-  const allPaths: Params[] = [];
+const DOCS_DIR = path.join(process.cwd(), "content", "docs");
 
-  frameworks.forEach((framework) => {
-    const frameworkDir = path.join(process.cwd(), "content/docs", framework);
+const SUPPORTED_FRAMEWORKS = [
+  "react",
+  "react-native",
+  "react-native-expo",
+  "svelte",
+  "vanilla",
+];
 
-    function walk(dir: string, slug: string[] = []) {
-      const entries = fs.readdirSync(dir, { withFileTypes: true });
+/**
+ * Recursively walks a directory and returns all MDX file paths relative to DOCS_DIR
+ */
+function walkDocsDir(dir: string, prefix: string[] = []): string[][] {
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  const paths: string[][] = [];
 
-      entries.forEach((entry) => {
-        if (entry.isDirectory()) {
-          walk(path.join(dir, entry.name), [...slug, entry.name]);
-        } else if (entry.isFile() && entry.name.endsWith(".mdx")) {
-          const nameWithoutExt = entry.name.replace(/\.mdx$/, "");
-          allPaths.push({ framework, slug: [...slug, nameWithoutExt] });
-        }
-      });
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      paths.push(...walkDocsDir(fullPath, [...prefix, entry.name]));
+    } else if (entry.isFile() && entry.name.endsWith(".mdx")) {
+      const nameWithoutExt = entry.name.replace(/\.mdx$/, "");
+      paths.push([...prefix, nameWithoutExt]);
     }
+  }
 
-    if (fs.existsSync(frameworkDir)) {
-      walk(frameworkDir);
+  return paths;
+}
+
+/**
+ * Generates all static paths for Next.js
+ */
+export function getAllDocPaths() {
+  const allSlugPaths = walkDocsDir(DOCS_DIR);
+
+  const allPaths: { framework: string; slug: string[] }[] = [];
+
+  for (const slug of allSlugPaths) {
+    // If the MDX file is already framework-specific (e.g., project-setup/react.mdx)
+    const lastSegment = slug[slug.length - 1];
+    const isFrameworkSpecific = SUPPORTED_FRAMEWORKS.includes(lastSegment);
+
+    if (isFrameworkSpecific) {
+      const framework = lastSegment;
+      const genericSlug = slug.slice(0, -1);
+      allPaths.push({ framework, slug: genericSlug });
+    } else {
+      // Generic MDX → replicate for all supported frameworks
+      for (const framework of SUPPORTED_FRAMEWORKS) {
+        allPaths.push({ framework, slug });
+      }
     }
-  });
+  }
+
+  // Add top-level /docs/[framework] pages (slug = [])
+  for (const framework of SUPPORTED_FRAMEWORKS) {
+    allPaths.push({ framework, slug: [] });
+  }
 
   return allPaths;
 }
