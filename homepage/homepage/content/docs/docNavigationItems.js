@@ -129,6 +129,10 @@ export const docNavigationItems = [
         collapse: true,
         startClosed: true,
         items: [{
+          name: "Overview",
+          href: '/docs/schemas/covalues',
+          done: 100,
+        }, {
           name: "CoMaps",
           href: "/docs/using-covalues/comaps",
           done: 100,
@@ -164,7 +168,7 @@ export const docNavigationItems = [
           }
         }],
       }, {
-        name: 'Defining Schemas',
+        name: 'Schemas',
         done: 100,
         collapse: true,
         items: [{
@@ -182,7 +186,12 @@ export const docNavigationItems = [
           href: "/docs/using-covalues/schemaunions",
           done: 100,
         }]
-      }, {
+      }, 
+    {
+      name: "Subscriptions & Deep Loading",
+      href: "/docs/using-covalues/subscription-and-loading",
+      done: 100,
+    }, {
         // jazz mesh, setting api key, free plan, unlimited
         name: "Sync and storage",
         href: "/docs/sync-and-storage",
@@ -197,17 +206,19 @@ export const docNavigationItems = [
       name: 'Authentication',
       startClosed: true,
       collapse: true,
+      href: "/docs/authentication/overview",
       items: [
-        {
-          name: "Quickstart",
-          href: "/docs/authentication/quickstart",
-          done: 100,
-        },
         {
           name: "Overview",
           href: "/docs/authentication/overview",
           done: 100,
         },
+        {
+          name: "Quickstart",
+          href: "/docs/authentication/quickstart",
+          done: 100,
+        },
+        
         {
           name: "Authentication States",
           href: "/docs/authentication/authentication-states",
@@ -269,11 +280,6 @@ export const docNavigationItems = [
           done: 100,
         },
       ],
-    },
-    {
-      name: "Subscriptions & Deep Loading",
-      href: "/docs/using-covalues/subscription-and-loading",
-      done: 80,
     },
     {
       name: "Version control",
