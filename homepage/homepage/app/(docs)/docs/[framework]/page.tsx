@@ -21,6 +21,7 @@ export default async function Page({
   return <DocPage framework={framework} slug={[]} />;
 }
 
+// https://nextjs.org/docs/app/api-reference/functions/generate-static-params
 export const dynamicParams = false;
 export const dynamic = "force-static";
 

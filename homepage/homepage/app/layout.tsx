@@ -48,7 +48,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="h-full" suppressHydrationWarning>
-      <body
+       <body
         className={[
           ...fontClasses,
           "min-h-full flex flex-col items-center [&_*]:scroll-mt-[5rem]",
@@ -62,12 +62,12 @@ export default function RootLayout({
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
-        >
+        > 
           {children}
           <JazzFooter />
           <PagefindSearch />
         </ThemeProvider>
-      </body>
+      </body> 
     </html>
   );
 }
