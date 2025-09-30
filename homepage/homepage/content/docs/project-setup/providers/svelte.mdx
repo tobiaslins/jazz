@@ -4,6 +4,8 @@ export const metadata = {
 };
 
 import { CodeGroup } from "@/components/forMdx";
+import { Alert } from "@garden-co/design-system/src/components/atoms/Alert";
+import GetAPIKey from "@/components/docs/snippets/GetAPIKey.mdx";
 
 # Providers
 
@@ -39,6 +41,9 @@ The `<JazzSvelteProvider />` accepts several configuration options:
 </JazzSvelteProvider>
 ```
 </CodeGroup>
+<Alert className="mt-4" variant="info" title="Tip">
+<GetAPIKey hideFileName={true} hideCodeGroup={true} />
+</Alert> 
 
 ## Provider Options
 
@@ -88,7 +93,7 @@ The `AccountSchema` property defines your application's account structure:
 </JazzSvelteProvider>
 ```
 </CodeGroup>
-
+  
 ### Additional Options
 
 The provider accepts these additional options:
