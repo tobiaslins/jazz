@@ -408,7 +408,7 @@ export function Festival({id}: {id?: string}) {
   {/each}
 </ul>
 
-{#if me.current?.canAdmin(festival)}
+{#if me.current?.canAdmin(festival.current)}
 <input type="text" bind:value={inviteLink} readonly />
 <button onclick={inviteLinkClickHandler}>
   Create Invite Link
