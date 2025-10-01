@@ -1,6 +1,6 @@
 import { StorageAPI } from "cojson";
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
-import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import {
   Account,
   AccountClass,

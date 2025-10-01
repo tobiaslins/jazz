@@ -18,11 +18,11 @@
 
   let props: JazzContextManagerProps<S> & {
     children?: Snippet;
-    storageKey?: string;
+    authSecretStorageKey?: string;
   } = $props();
 
   const contextManager = new JazzBrowserContextManager<S>({
-    storageKey: props.storageKey,
+    authSecretStorageKey: props.authSecretStorageKey,
   });
 
   const ctx = $state<JazzContext<InstanceOfSchema<S>>>({ current: undefined });
