@@ -544,7 +544,9 @@ describe("ContextManager", () => {
   describe("configurable storage key", () => {
     test("uses the configured storage key", async () => {
       const KEY = "test-auth-secret";
-      const manager = new TestJazzContextManager<Account>({ storageKey: KEY });
+      const manager = new TestJazzContextManager<Account>({
+        authSecretStorageKey: KEY,
+      });
       expect(manager.getAuthSecretStorage().getStorageKey()).toBe(KEY);
     });
   });
