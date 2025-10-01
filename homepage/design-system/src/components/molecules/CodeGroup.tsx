@@ -105,7 +105,7 @@ export function CodeGroup({
         node.classList.contains("twoslash-completion-cursor") ||
         node.classList.contains("remove"))
     ) {
-      return ""; // Empty the line if it's a 'remove'. I
+      return "";
     }
     if (node.nodeType === Node.TEXT_NODE) {
       return node.textContent ?? "";
