@@ -26,6 +26,8 @@ export function startWebhookService(
   webhook: JazzWebhook,
   options: WebhookServiceOptions = {},
 ) {
+  webhook.start();
+
   const app = new Hono();
 
   // Middleware

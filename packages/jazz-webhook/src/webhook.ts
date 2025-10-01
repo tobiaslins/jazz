@@ -94,8 +94,6 @@ export class JazzWebhook {
 
     this.registry.$jazz.set(registration.$jazz.id, registration);
 
-    this.subscribe(registration);
-
     return registration.$jazz.id;
   }
 
@@ -112,12 +110,6 @@ export class JazzWebhook {
 
     this.registry.$jazz.delete(webhookId);
     webhook.$jazz.set("active", false);
-
-    // Stop any active subscription
-    const unsubscribe = this.activeSubscriptions.get(webhookId);
-    if (unsubscribe) {
-      unsubscribe();
-    }
   }
 
   /**
@@ -170,12 +162,26 @@ export class JazzWebhook {
    * a shutdown or when loading an existing registry.
    */
   start(): void {
-    for (const webhook of Object.values(this.registry)) {
-      // Only start subscriptions for active webhooks that don't already have active subscriptions
-      if (webhook.active && !this.activeSubscriptions.has(webhook.$jazz.id)) {
-        this.subscribe(webhook);
+    const createAndDeleteSubscriptions = (registry: WebhookRegistry) => {
+      for (const webhook of Object.values(registry)) {
+        const exists = this.activeSubscriptions.has(webhook.$jazz.id);
+        if (webhook.active && !exists) {
+          this.subscribe(webhook);
+        }
       }
-    }
+      for (const [id, unsubscribe] of this.activeSubscriptions.entries()) {
+        if (!registry[id]) {
+          unsubscribe();
+          this.activeSubscriptions.delete(id);
+        }
+      }
+    };
+    // TODO: this would be much more efficient with subscription diffs
+    this.registry.$jazz.subscribe(
+      { resolve: { $each: true } },
+      createAndDeleteSubscriptions,
+    );
+    createAndDeleteSubscriptions(this.registry);
   }
 
   shutdown(): void {

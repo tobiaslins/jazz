@@ -70,12 +70,14 @@ async function setupTest(): Promise<TestContext> {
   const webhookManager = new JazzWebhook(registry, {
     baseDelayMs: 1,
   });
+  webhookManager.start();
 
   // Set up cleanup for this test
   onTestFinished(async () => {
     if (webhookServer) {
       webhookServer.close();
     }
+    webhookManager.shutdown();
   });
 
   return {
