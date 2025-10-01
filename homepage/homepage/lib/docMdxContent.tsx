@@ -162,7 +162,7 @@ export async function DocPage({ framework, slug }: { framework: string; slug?: s
     console.error("Error loading MDX:", err);
     const { default: ComingSoon } = await import("../content/docs/coming-soon.mdx");
     return (
-      <DocsLayout nav={<DocNav />} tocItems={[]} >
+      <DocsLayout nav={<DocNav />} tocItems={[]} pagefindIgnore>
         <DocProse>
           <ComingSoon />
         </DocProse>
