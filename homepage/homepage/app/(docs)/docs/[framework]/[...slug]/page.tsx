@@ -30,12 +30,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
   const awaitedParams = await params; 
   const framework = awaitedParams.framework;
   const slug = awaitedParams.slug ?? [];
-
-  const docMeta = await getDocMetadata(framework, slug);
-  if (!docMeta?.fm) {
-    return <p>Documentation not found for {framework}/{slug.join("/")}</p>;
-  }
-
+  
   return <DocPage framework={framework} slug={slug} />;
 }
 

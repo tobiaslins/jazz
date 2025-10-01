@@ -4,6 +4,7 @@ import { HelpLinks } from "@/components/docs/HelpLinks";
 import { PreviousNextLinks } from "@/components/docs/PreviousNextLinks";
 import { Prose } from "@garden-co/design-system/src/components/molecules/Prose";
 import { Toc } from "@stefanprobst/rehype-extract-toc";
+import { error } from "console";
 
 function DocProse({ children }: { children: React.ReactNode }) {
   return (
@@ -50,8 +51,7 @@ export async function getMdxWithToc(framework: string, slug?: string[]) {
   const mdxModule = await getDocModule(framework, slug);
 
   if (!mdxModule) {
-    const { default: ComingSoon } = await import("../content/docs/coming-soon.mdx");
-    return { Content: ComingSoon, tocItems: [], ex: {} };
+    throw new Error("MDX file not found");
   }
 
   const Content = mdxModule.default;
@@ -148,7 +148,7 @@ export async function DocPage({ framework, slug }: { framework: string; slug?: s
   try {
     const { Content, tocItems } = await getMdxWithToc(framework, slug);
     return (
-      <DocsLayout nav={<DocNav />} tocItems={tocItems}>
+      <DocsLayout nav={<DocNav />} tocItems={tocItems} pagefindLowPriority={slug?.length ? slug[0] === "upgrade" : false}>
         <DocProse>
           <Content />
           <div className="divide-y mt-12">
@@ -162,7 +162,7 @@ export async function DocPage({ framework, slug }: { framework: string; slug?: s
     console.error("Error loading MDX:", err);
     const { default: ComingSoon } = await import("../content/docs/coming-soon.mdx");
     return (
-      <DocsLayout nav={<DocNav />} tocItems={[]}>
+      <DocsLayout nav={<DocNav />} tocItems={[]} >
         <DocProse>
           <ComingSoon />
         </DocProse>
