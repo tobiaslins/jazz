@@ -427,7 +427,7 @@ describe("jazz-webhook", () => {
       expect(webhookManager["activeSubscriptions"].size).toBe(0);
 
       // Start all active webhook subscriptions
-      webhookManager.start();
+      await webhookManager.start();
 
       // Verify subscriptions are active again
       expect(webhookManager["activeSubscriptions"].size).toBe(2);
