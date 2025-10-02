@@ -1,38 +1,68 @@
-# sv
+# Server-side rendering with Jazz and SvelteKit
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+## Getting started
 
-## Creating a project
+You can either
 
-If you're seeing this, you've probably already done this step. Congrats!
+1. Clone the jazz repository, and run the app within the monorepo.
+2. Or create a new Jazz project using this example as a template.
 
-```sh
-# create a new project in the current directory
-npx sv create
+### Using the example as a template
 
-# create a new project in my-app
-npx sv create my-app
+Create a new Jazz project, and use this example as a template.
+
+```bash
+npx create-jazz-app@latest jazz-sveltekit --example jazz-sveltekit
 ```
 
-## Developing
+Go to the new project directory.
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+```bash
+cd jazz-sveltekit
+```
 
-```sh
+Run the dev server.
+
+```bash
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
 ```
 
-## Building
+### Using the monorepo
 
-To create a production version of your app:
+This requires `pnpm` to be installed, see [https://pnpm.io/installation](https://pnpm.io/installation).
 
-```sh
-npm run build
+Clone the jazz repository.
+
+```bash
+git clone https://github.com/garden-co/jazz.git
 ```
 
-You can preview the production build with `npm run preview`.
+Install and build dependencies.
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+```bash
+pnpm i && npx turbo build
+```
+
+Go to the example directory.
+
+```bash
+cd jazz/examples/jazz-sveltekit/
+```
+
+Start the dev server.
+
+```bash
+pnpm dev
+```
+
+Open [http://localhost:5173](http://localhost:5173) with your browser to see the result.
+
+## Questions / problems / feedback
+
+If you have feedback, let us know on [Discord](https://discord.gg/utDMjHYg42) or open an issue or PR to fix something that seems wrong.
+
+## Configuration: sync server
+
+By default, the example app uses [Jazz Cloud](https://jazz.tools/cloud) (`wss://cloud.jazz.tools`) - so cross-device use, invites and collaboration should just work.
+
+You can also run a local sync server by running `npx jazz-run sync`, and setting the `sync` parameter of `JazzSvelteProvider` in [./src/routes/+layout.svelte](./src/routes/+layout.svelte) and in [./src/lib/jazzSSR.ts](./src/lib/jazzSSR.ts) to `{ peer: "ws://localhost:4200" }`.
