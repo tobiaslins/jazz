@@ -16,6 +16,7 @@ export default defineConfig([
     entry: {
       index: "src/index.ts",
       testing: "src/testing.ts",
+      "tools/ssr": "src/tools/ssr/index.ts",
     },
     outDir: "dist",
   },
@@ -76,15 +77,9 @@ export default defineConfig([
   {
     ...cfg,
     entry: {
-      ssr: "src/react/ssr.ts",
-    },
-    outDir: "dist/react",
-  },
-  {
-    ...cfg,
-    entry: {
       index: "src/react/index.ts",
       testing: "src/react/testing.tsx",
+      ssr: "src/react/ssr.ts",
     },
     outDir: "dist/react",
     esbuildOptions: (options) => {

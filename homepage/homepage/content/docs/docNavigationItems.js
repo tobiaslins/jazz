@@ -58,6 +58,7 @@ export const docNavigationItems = [
         href: "/docs/project-setup/ssr",
         done: {
           react: 100,
+          svelte: 100
         }
       },
     ],
