@@ -26,6 +26,38 @@ const PaginationContainer = styled("div")`
   gap: 0.5rem;
 `;
 
+const RedTooltip = styled("span")`
+  position:relative; /* making the .tooltip span a container for the tooltip text */
+  border-bottom:1px dashed #000; /* little indicater to indicate it's hoverable */
+
+  &:before {
+    content: attr(data-text);
+    background-color: red;
+    position:absolute;
+
+    /* vertically center */
+    top:50%;
+    transform:translateY(-50%);
+
+    /* move to right */
+    left:100%;
+    margin-left:15px; /* and add a small left margin */
+
+    /* basic styles */
+    width:200px;
+    padding:10px;
+    border-radius:10px;
+    color: #fff;
+    text-align:center;
+
+    display:none; /* hide by default */
+  }
+
+  &:hover:before {
+    display:block;
+  }
+`;
+
 function CoValuesTableView({
   data,
   node,
@@ -89,25 +121,28 @@ function CoValuesTableView({
             <TableRow key={index}>
               <TableCell>
                 <Text mono>
-                  {item.snapshot === "unavailable" && (
-                    <Icon
-                      name="caution"
-                      color="red"
-                      style={{ display: "inline-block", marginRight: "0.5rem" }}
-                    />
+                  {item.snapshot === "unavailable" ? (
+                    <RedTooltip data-text="Unavailable">
+                      <Icon
+                        name="caution"
+                        color="red"
+                        style={{
+                          display: "inline-block",
+                          marginRight: "0.5rem",
+                        }}
+                      />
+                      {visibleRows[index]}
+                    </RedTooltip>
+                  ) : (
+                    visibleRows[index]
                   )}
-                  {visibleRows[index]}
                 </Text>
               </TableCell>
-              {item.snapshot === "unavailable" ? (
-                <TableCell colSpan={Math.max(keys.length, 1)}>
-                  <Text>Unavailable</Text>
-                </TableCell>
-              ) : (
-                keys.map((key) => (
-                  <TableCell key={key}>
+              {keys.map((key) => (
+                <TableCell key={key}>
+                  {item.snapshot !== "unavailable" && (
                     <ValueRenderer
-                      json={(item.snapshot as JsonObject)[key]}
+                      json={item.snapshot[key]}
                       onCoIDClick={(coId) => {
                         async function handleClick() {
                           onNavigate([
@@ -125,9 +160,9 @@ function CoValuesTableView({
                         handleClick();
                       }}
                     />
-                  </TableCell>
-                ))
-              )}
+                  )}
+                </TableCell>
+              ))}
 
               <TableCell>
                 <Button

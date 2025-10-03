@@ -2,4 +2,4 @@
 "jazz-tools": patch
 ---
 
-Inspector now show the CoID of list items and handle correctly unavailable items
+Inspector now shows the CoID of list items and handles unavailable items correctly
