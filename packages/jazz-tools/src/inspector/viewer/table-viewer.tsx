@@ -16,6 +16,7 @@ import {
   TableRow,
 } from "../ui/table.js";
 import { Text } from "../ui/text.js";
+import { Icon } from "../ui/icon.js";
 
 const PaginationContainer = styled("div")`
   padding: 1rem 0;
@@ -61,7 +62,11 @@ function CoValuesTableView({
   }
 
   const keys = Array.from(
-    new Set(resolvedRows.flatMap((item) => Object.keys(item.snapshot || {}))),
+    new Set(
+      resolvedRows
+        .filter((item) => item.snapshot !== "unavailable")
+        .flatMap((item) => Object.keys(item.snapshot || {})),
+    ),
   );
 
   const loadMore = () => {
@@ -73,7 +78,7 @@ function CoValuesTableView({
       <Table>
         <TableHead>
           <TableRow>
-            {[...keys, "Action"].map((key) => (
+            {["ID", ...keys, "Action"].map((key) => (
               <TableHeader key={key}>{key}</TableHeader>
             ))}
             {onRemove && <TableHeader></TableHeader>}
@@ -82,29 +87,47 @@ function CoValuesTableView({
         <TableBody>
           {resolvedRows.slice(0, visibleRowsCount).map((item, index) => (
             <TableRow key={index}>
-              {keys.map((key) => (
-                <TableCell key={key}>
-                  <ValueRenderer
-                    json={(item.snapshot as JsonObject)[key]}
-                    onCoIDClick={(coId) => {
-                      async function handleClick() {
-                        onNavigate([
-                          {
-                            coId: item.value!.id,
-                            name: index.toString(),
-                          },
-                          {
-                            coId: coId,
-                            name: key,
-                          },
-                        ]);
-                      }
-
-                      handleClick();
-                    }}
-                  />
+              <TableCell>
+                <Text mono>
+                  {item.snapshot === "unavailable" && (
+                    <Icon
+                      name="caution"
+                      color="red"
+                      style={{ display: "inline-block", marginRight: "0.5rem" }}
+                    />
+                  )}
+                  {visibleRows[index]}
+                </Text>
+              </TableCell>
+              {item.snapshot === "unavailable" ? (
+                <TableCell colSpan={Math.min(keys.length, 1)}>
+                  <Text>Unavailable</Text>
                 </TableCell>
-              ))}
+              ) : (
+                keys.map((key) => (
+                  <TableCell key={key}>
+                    <ValueRenderer
+                      json={(item.snapshot as JsonObject)[key]}
+                      onCoIDClick={(coId) => {
+                        async function handleClick() {
+                          onNavigate([
+                            {
+                              coId: item.value!.id,
+                              name: index.toString(),
+                            },
+                            {
+                              coId: coId,
+                              name: key,
+                            },
+                          ]);
+                        }
+
+                        handleClick();
+                      }}
+                    />
+                  </TableCell>
+                ))
+              )}
 
               <TableCell>
                 <Button
