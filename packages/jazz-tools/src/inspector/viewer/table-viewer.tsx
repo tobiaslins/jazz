@@ -100,7 +100,7 @@ function CoValuesTableView({
                 </Text>
               </TableCell>
               {item.snapshot === "unavailable" ? (
-                <TableCell colSpan={Math.min(keys.length, 1)}>
+                <TableCell colSpan={Math.max(keys.length, 1)}>
                   <Text>Unavailable</Text>
                 </TableCell>
               ) : (
