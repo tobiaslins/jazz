@@ -50,7 +50,7 @@ Normally, Jazz expects a logged in user (or an anonymous user) to be accessing d
 </ContentByFramework>
 
 <TabbedCodeGroup savedPreferenceKey="framework" id="enable-ssr">
-<TabbedCodeGroupItem label="React" value="react" className="[&_span]:[tab-size:2]" icon={<ReactLogo />} preferWrap>
+<TabbedCodeGroupItem label="React" value="react" icon={<ReactLogo />} preferWrap>
 ```tsx
 "use client";
 import { JazzReactProvider } from "jazz-tools/react";
@@ -72,7 +72,7 @@ export function JazzWrapper({ children }: { children: React.ReactNode }) {
 }
 ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem label="Svelte" value="svelte" className="[&_span]:[tab-size:2]" icon={<SvelteLogo />} preferWrap>
+<TabbedCodeGroupItem label="Svelte" value="svelte" icon={<SvelteLogo />} preferWrap>
 ```svelte
 <script lang="ts">
   import { JazzSvelteProvider } from "jazz-tools/svelte";
@@ -99,7 +99,7 @@ By default, when you create data in Jazz, it's private and only accessible to th
 However, the SSR agent is credential-less and unauthenticated, so it can only read data which has been made public. Although Jazz allows you to define [complex, role-based permissions](docs/svelte/groups/intro), here, we'll focus on making the CoValues public.
 
 <FileName>app/schema.ts</FileName>
-<CodeGroup className="[&_span]:[tab-size:2]" preferWrap>
+<CodeGroup preferWrap>
 ```ts
 import { co, z } from "jazz-tools";
 
@@ -147,7 +147,7 @@ Now let's set up a page which will be read by the agent we created earlier, and 
 </ContentByFramework>
 
 <TabbedCodeGroup savedPreferenceKey="framework" id="add-wrapper">
-<TabbedCodeGroupItem label="React" value="react" className="[&_span]:[tab-size:2]" icon={<ReactLogo />} preferWrap>
+<TabbedCodeGroupItem label="React" value="react" icon={<ReactLogo />} preferWrap>
 ```tsx
 import { jazzSSR } from "@/app/jazzSSR";
 import { Festival } from "@/app/schema";
@@ -180,7 +180,7 @@ export default async function ServerSidePage(props: {
 }
 ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem label="Svelte" value="svelte" className="[&_span]:[tab-size:2]" icon={<SvelteLogo />} preferWrap>
+<TabbedCodeGroupItem label="Svelte" value="svelte" icon={<SvelteLogo />} preferWrap>
 ```svelte
 <script lang="ts">
   import { jazzSSR } from "$lib/jazzSSR";
@@ -233,7 +233,7 @@ The last step is to link to your server-rendered page from your `Festival` compo
 </ContentByFramework>
 
 <TabbedCodeGroup savedPreferenceKey="framework" id="link-to-page">
-<TabbedCodeGroupItem label="React" value="react" className="[&_span]:[tab-size:2]" icon={<ReactLogo />} preferWrap>
+<TabbedCodeGroupItem label="React" value="react" icon={<ReactLogo />} preferWrap>
 ```tsx
 "use client";
 import { useAccount } from "jazz-tools/react";
@@ -262,7 +262,7 @@ export function Festival() {
 }
 ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem label="Svelte" value="svelte" className="[&_span]:[tab-size:2]" icon={<SvelteLogo />} preferWrap>
+<TabbedCodeGroupItem label="Svelte" value="svelte" icon={<SvelteLogo />} preferWrap>
 ```svelte
 <script lang="ts">
   import { AccountCoState } from "jazz-tools/svelte";
