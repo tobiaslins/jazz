@@ -23,7 +23,7 @@ export function FileDownloadLink(
       <Icon name="file" size="sm" className="mr-2" />
       {children}
 
-      <a href={href} download className="ml-12">
+      <a href={href} download className="ml-12" aria-label="download">
         Download
       </a>
     </div>

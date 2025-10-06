@@ -35,15 +35,18 @@ export default function Cloud() {
         <LatencyMap />
         <GappedGrid>
           <GridCard>
-            <H3>Optimal cloud routing</H3>
-
+            <H2 className="text-stone-950 dark:text-white font-display text-xl md:text-2xl mb-2 font-semibold tracking-tight">
+              Optimal cloud routing
+            </H2>
             <P>
               Get ultra-low latency between any group of users with our
               decentralized cloud interconnect.
             </P>
           </GridCard>
           <GridCard>
-            <H3>Smart caching</H3>
+            <H2 className="text-stone-950 dark:text-white font-display text-xl md:text-2xl mb-2 font-semibold tracking-tight">
+              Smart caching
+            </H2>
 
             <P>
               Give users instant load times, with their latest data state always
@@ -51,7 +54,9 @@ export default function Cloud() {
             </P>
           </GridCard>
           <GridCard>
-            <H3>Blob storage & media streaming</H3>
+            <H2 className="text-stone-950 dark:text-white font-display text-xl md:text-2xl mb-2 font-semibold tracking-tight">
+              Blob storage & media streaming
+            </H2>
 
             <P>
               Store files and media streams as idiomatic `CoValues` without S3.
@@ -79,17 +84,17 @@ export default function Cloud() {
             nodes &mdash; in a variety of setups.
           </P>
           <GappedGrid>
-            <GridCard>
+            <GridCard headingLevel={3}>
               <Prose>
                 <CloudPlusBackup />
               </Prose>
             </GridCard>
-            <GridCard>
+            <GridCard headingLevel={3}>
               <Prose>
                 <CloudPlusDIY />
               </Prose>
             </GridCard>
-            <GridCard>
+            <GridCard headingLevel={3}>
               <Prose>
                 <CompletelyDIY />
               </Prose>
