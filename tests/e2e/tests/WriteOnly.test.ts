@@ -1,4 +1,4 @@
-import { Browser, Page, expect, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 test.describe("WriteOnly role", () => {
   test("should share simple coValues", async ({ page, browser }) => {
@@ -93,7 +93,7 @@ async function waitForReady(page: Page) {
   });
 }
 
-async function createIsolatedPage(browser: Browser) {
+async function createIsolatedPage(browser: any) {
   const context = await browser.newContext();
   const page = await context.newPage();
 
