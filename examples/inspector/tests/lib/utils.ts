@@ -1,4 +1,4 @@
-import { Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
 import { createWebSocketPeer } from "cojson-transport-ws";
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 import {
