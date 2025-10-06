@@ -1,16 +1,16 @@
-import { type Page, expect } from "@playwright/test";
+import { type Page, type Locator, expect } from "@playwright/test";
 
 export class HomePage {
   page: Page;
-  usernameInput;
-  emailInput;
-  passwordInput;
-  confirmPasswordInput;
-  signUpButton;
-  signInButton;
-  signUpLink;
-  signInLink;
-  logoutButton;
+  usernameInput: Locator;
+  emailInput: Locator;
+  passwordInput: Locator;
+  confirmPasswordInput: Locator;
+  signUpButton: Locator;
+  signInButton: Locator;
+  signUpLink: Locator;
+  signInLink: Locator;
+  logoutButton: Locator;
 
   constructor(page: Page) {
     this.page = page;
