@@ -40,6 +40,7 @@ import { Peer, PeerID, SyncManager } from "./sync.js";
 import { accountOrAgentIDfromSessionID } from "./typeUtils/accountOrAgentIDfromSessionID.js";
 import { expectGroup } from "./typeUtils/expectGroup.js";
 import { canBeBranched } from "./coValueCore/branching.js";
+import { connectedPeers } from "./streamUtils.js";
 
 /** A `LocalNode` represents a local view of a set of loaded `CoValue`s, from the perspective of a particular account (or primitive cryptographic agent).
 
@@ -81,12 +82,15 @@ export class LocalNode {
     this.crypto = crypto;
   }
 
-  enableGarbageCollector() {
+  enableGarbageCollector(opts?: { garbageCollectGroups?: boolean }) {
     if (this.garbageCollector) {
       return;
     }
 
-    this.garbageCollector = new GarbageCollector(this.coValues);
+    this.garbageCollector = new GarbageCollector(
+      this.coValues,
+      opts?.garbageCollectGroups ?? false,
+    );
   }
 
   setStorage(storage: StorageAPI) {
@@ -99,7 +103,13 @@ export class LocalNode {
   }
 
   hasCoValue(id: RawCoID) {
-    return this.coValues.has(id);
+    const coValue = this.coValues.get(id);
+
+    if (!coValue) {
+      return false;
+    }
+
+    return coValue.loadingState !== "unknown";
   }
 
   getCoValue(id: RawCoID) {
@@ -117,16 +127,6 @@ export class LocalNode {
 
   allCoValues() {
     return this.coValues.values();
-  }
-
-  private putCoValue(
-    id: RawCoID,
-    verified: VerifiedState,
-    { forceOverwrite = false }: { forceOverwrite?: boolean } = {},
-  ): AvailableCoValueCore {
-    const entry = this.getCoValue(id);
-    entry.internalMarkMagicallyAvailable(verified, { forceOverwrite });
-    return entry as AvailableCoValueCore;
   }
 
   internalDeleteCoValue(id: RawCoID) {
@@ -371,10 +371,13 @@ export class LocalNode {
 
     const id = idforHeader(header, this.crypto);
 
-    const coValue = this.putCoValue(
-      id,
-      new VerifiedState(id, this.crypto, header),
-    );
+    const coValue = this.getCoValue(id);
+
+    coValue.provideHeader(header);
+
+    if (!coValue.hasVerifiedContent()) {
+      throw new Error("CoValue not available after providing header");
+    }
 
     this.garbageCollector?.trackCoValueAccess(coValue);
     this.syncManager.syncHeader(coValue.verified);
@@ -624,11 +627,13 @@ export class LocalNode {
       return;
     }
 
+    const groupCoreAsDifferentAgent = await this.loadCoValueAsDifferentAgent(
+      group.id,
+      inviteAgentSecret,
+    );
+
     const groupAsInvite = expectGroup(
-      this.loadCoValueAsDifferentAgent(
-        group.id,
-        inviteAgentSecret,
-      ).getCurrentContent(),
+      groupCoreAsDifferentAgent.getCurrentContent(),
     );
 
     groupAsInvite.addMemberInternal(
@@ -755,7 +760,7 @@ export class LocalNode {
     return group;
   }
 
-  loadCoValueAsDifferentAgent(
+  async loadCoValueAsDifferentAgent(
     id: RawCoID,
     secret: AgentSecret,
     accountId?: RawAccountID | AgentID,
@@ -768,44 +773,34 @@ export class LocalNode {
       this.crypto,
     );
 
-    newNode.cloneVerifiedStateFrom(this, id);
+    await newNode.loadVerifiedStateFrom(this, id);
 
     return newNode.expectCoValueLoaded(id);
   }
 
   /** @internal */
-  cloneVerifiedStateFrom(otherNode: LocalNode, id: RawCoID) {
-    const coValuesIdsToCopy = [id];
+  async loadVerifiedStateFrom(otherNode: LocalNode, id: RawCoID) {
+    const connection = connectedPeers("source-" + id, "target-" + id, {
+      peer1role: "server",
+      peer2role: "client",
+    });
 
-    // Scan all the dependencies and add them to the list
-    for (let i = 0; i < coValuesIdsToCopy.length; i++) {
-      const coValueID = coValuesIdsToCopy[i]!;
-      const coValue = otherNode.getCoValue(coValueID);
+    this.syncManager.addPeer(connection[0], true);
+    otherNode.syncManager.addPeer(connection[1], true);
 
-      if (!coValue.isAvailable()) {
-        continue;
-      }
+    const coValue = this.getCoValue(id);
 
-      for (const dep of coValue.getDependedOnCoValues()) {
-        coValuesIdsToCopy.push(dep);
-      }
+    const peerState = this.syncManager.peers[connection[0].id];
+
+    if (!peerState) {
+      throw new Error("Peer state not found");
     }
 
-    // Copy the coValue all the dependencies by following the dependency order
-    while (coValuesIdsToCopy.length > 0) {
-      const coValueID = coValuesIdsToCopy.pop()!;
-      const coValue = otherNode.getCoValue(coValueID);
+    coValue.loadFromPeers([peerState]);
 
-      if (!coValue.isAvailable()) {
-        continue;
-      }
+    await coValue.waitForAvailable();
 
-      if (this.coValues.get(coValueID)?.isAvailable()) {
-        continue;
-      }
-
-      this.putCoValue(coValueID, coValue.verified);
-    }
+    peerState.gracefulShutdown();
   }
 
   /**

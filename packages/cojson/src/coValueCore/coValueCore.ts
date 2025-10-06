@@ -20,10 +20,19 @@ import { JsonObject, JsonValue } from "../jsonValue.js";
 import { LocalNode, ResolveAccountAgentError } from "../localNode.js";
 import { logger } from "../logger.js";
 import { determineValidTransactions } from "../permissions.js";
-import { CoValueKnownState, PeerID, emptyKnownState } from "../sync.js";
+import {
+  CoValueKnownState,
+  NewContentMessage,
+  PeerID,
+  emptyKnownState,
+} from "../sync.js";
 import { accountOrAgentIDfromSessionID } from "../typeUtils/accountOrAgentIDfromSessionID.js";
 import { expectGroup } from "../typeUtils/expectGroup.js";
-import { getDependedOnCoValuesFromRawData } from "./utils.js";
+import {
+  getDependenciesFromContentMessage,
+  getDependenciesFromGroupRawTransactions,
+  getDependenciesFromHeader,
+} from "./utils.js";
 import { CoValueHeader, Transaction, VerifiedState } from "./verifiedState.js";
 import { SessionMap } from "./SessionMap.js";
 import {
@@ -125,7 +134,6 @@ export class CoValueCore {
   private _cachedContent?: RawCoValue;
   readonly listeners: Set<(core: CoValueCore, unsub: () => void) => void> =
     new Set();
-  private _cachedDependentOn?: Set<RawCoID>;
   private counter: UpDownCounter;
 
   private constructor(
@@ -182,8 +190,12 @@ export class CoValueCore {
     return "unavailable";
   }
 
+  hasMissingDependencies() {
+    return this.missingDependencies.size > 0;
+  }
+
   isAvailable(): this is AvailableCoValueCore {
-    return this.hasVerifiedContent() && this.missingDependencies.size === 0;
+    return this.hasVerifiedContent();
   }
 
   hasVerifiedContent(): this is AvailableCoValueCore {
@@ -251,9 +263,11 @@ export class CoValueCore {
     }
   }
 
-  unmount() {
-    // For simplicity, we don't unmount groups and accounts
-    if (this.verified?.header.ruleset.type === "group") {
+  unmount(garbageCollectGroups = false) {
+    if (
+      !garbageCollectGroups &&
+      this.verified?.header.ruleset.type === "group"
+    ) {
       return false;
     }
 
@@ -280,10 +294,15 @@ export class CoValueCore {
     this.scheduleNotifyUpdate();
   }
 
+  markFoundInPeer(peerId: PeerID, previousState: string) {
+    this.peers.set(peerId, { type: "available" });
+    this.updateCounter(previousState);
+    this.scheduleNotifyUpdate();
+  }
+
   missingDependencies = new Set<RawCoID>();
 
-  // Checks if the current CoValueCore is already a missing dependency of the given CoValueCore
-  checkCircularDependencies(dependency: CoValueCore) {
+  isCircularMissingDependency(dependency: CoValueCore) {
     const visited = new Set<RawCoID>();
     const stack = [dependency];
 
@@ -291,14 +310,14 @@ export class CoValueCore {
       const current = stack.pop();
 
       if (!current) {
-        return true;
+        return false;
       }
 
       visited.add(current.id);
 
       for (const dependency of current.missingDependencies) {
         if (dependency === this.id) {
-          return false;
+          return true;
         }
 
         if (!visited.has(dependency)) {
@@ -307,42 +326,70 @@ export class CoValueCore {
       }
     }
 
-    return true;
+    return false;
   }
 
-  markMissingDependency(dependency: RawCoID) {
-    const value = this.node.getCoValue(dependency);
+  markDependencyAvailable(dependency: RawCoID) {
+    this.missingDependencies.delete(dependency);
 
-    if (value.isAvailable()) {
-      this.missingDependencies.delete(dependency);
-    } else if (this.checkCircularDependencies(value)) {
-      const unsubscribe = value.subscribe(() => {
-        if (value.isAvailable()) {
-          this.missingDependencies.delete(dependency);
-          unsubscribe();
+    if (this.missingDependencies.size === 0) {
+      this.scheduleNotifyUpdate();
+    }
+  }
+
+  newContentQueue: {
+    msg: NewContentMessage;
+    from: PeerState | "storage" | "import";
+  }[] = [];
+  /**
+   * Add a new content to the queue and handle it when the dependencies are available
+   */
+  addNewContentToQueue(
+    msg: NewContentMessage,
+    from: PeerState | "storage" | "import",
+  ) {
+    const alreadyEnqueued = this.newContentQueue.length > 0;
+
+    this.newContentQueue.push({ msg, from });
+
+    if (alreadyEnqueued) {
+      return;
+    }
+
+    this.subscribe((core, unsubscribe) => {
+      if (!core.hasMissingDependencies()) {
+        unsubscribe();
+
+        const enqueuedNewContent = this.newContentQueue;
+        this.newContentQueue = [];
+
+        for (const { msg, from } of enqueuedNewContent) {
+          this.node.syncManager.handleNewContent(msg, from);
         }
+      }
+    });
+  }
 
-        if (this.isAvailable()) {
-          this.scheduleNotifyUpdate();
-        }
-      });
-
-      this.missingDependencies.add(dependency);
+  addDependencyFromHeader(header: CoValueHeader) {
+    for (const dep of getDependenciesFromHeader(header)) {
+      this.addDependency(dep);
     }
   }
 
   provideHeader(
     header: CoValueHeader,
-    fromPeerId: PeerID,
     streamingKnownState?: CoValueKnownState["sessions"],
+    skipVerify?: boolean,
   ) {
-    const previousState = this.loadingState;
+    if (!skipVerify) {
+      const expectedId = idforHeader(header, this.node.crypto);
 
-    const expectedId = idforHeader(header, this.node.crypto);
-
-    if (this.id !== expectedId) {
-      return false;
+      if (this.id !== expectedId) {
+        return false;
+      }
     }
+
+    this.addDependencyFromHeader(header);
 
     if (this._verified?.sessions.size) {
       throw new Error(
@@ -357,24 +404,7 @@ export class CoValueCore {
       streamingKnownState,
     );
 
-    this.peers.set(fromPeerId, { type: "available" });
-
-    this.updateCounter(previousState);
-    this.scheduleNotifyUpdate();
-
     return true;
-  }
-
-  internalMarkMagicallyAvailable(
-    verified: VerifiedState,
-    { forceOverwrite = false }: { forceOverwrite?: boolean } = {},
-  ) {
-    const previousState = this.loadingState;
-    this.internalShamefullyCloneVerifiedStateFrom(verified, {
-      forceOverwrite,
-    });
-    this.updateCounter(previousState);
-    this.scheduleNotifyUpdate();
   }
 
   markErrored(peerId: PeerID, error: TryAddTransactionsError) {
@@ -389,25 +419,6 @@ export class CoValueCore {
     this.peers.set(peerId, { type: "pending" });
     this.updateCounter(previousState);
     this.scheduleNotifyUpdate();
-  }
-
-  internalShamefullyCloneVerifiedStateFrom(
-    state: VerifiedState,
-    { forceOverwrite = false }: { forceOverwrite?: boolean } = {},
-  ) {
-    if (!forceOverwrite && this._verified?.sessions.size) {
-      throw new Error(
-        "CoValueCore: internalShamefullyCloneVerifiedStateFrom called on coValue with verified sessions present!",
-      );
-    }
-    this._verified = state.clone();
-    this.internalShamefullyResetCachedContent();
-  }
-
-  internalShamefullyResetCachedContent() {
-    this._cachedContent = undefined;
-    this._cachedDependentOn = undefined;
-    this.resetParsedTransactions();
   }
 
   groupInvalidationSubscription?: () => void;
@@ -430,7 +441,7 @@ export class CoValueCore {
       if (entry.isAvailable()) {
         this.groupInvalidationSubscription = entry.subscribe((_groupUpdate) => {
           // When the group is updated, we need to reset the cached content because the transactions validity might have changed
-          this.internalShamefullyResetCachedContent();
+          this.resetParsedTransactions();
           this.scheduleNotifyUpdate();
         }, false);
       } else {
@@ -445,7 +456,7 @@ export class CoValueCore {
   contentInClonedNodeWithDifferentAccount(account: ControlledAccountOrAgent) {
     return this.node
       .loadCoValueAsDifferentAgent(this.id, account.agentSecret, account.id)
-      .getCurrentContent();
+      .then((core) => core.getCurrentContent());
   }
 
   knownStateWithStreaming(): CoValueKnownState {
@@ -490,6 +501,14 @@ export class CoValueCore {
     };
   }
 
+  addDependenciesFromContentMessage(newContent: NewContentMessage) {
+    const dependencies = getDependenciesFromContentMessage(this, newContent);
+
+    for (const dependency of dependencies) {
+      this.addDependency(dependency);
+    }
+  }
+
   tryAddTransactions(
     sessionID: SessionID,
     newTransactions: Transaction[],
@@ -528,7 +547,7 @@ export class CoValueCore {
       );
 
       if (result.isOk()) {
-        this.updateCurrentContent();
+        this.processNewTransactions();
         this.scheduleNotifyUpdate();
       }
 
@@ -536,18 +555,18 @@ export class CoValueCore {
     });
   }
 
-  private updateCurrentContent() {
-    if (
-      this._cachedContent &&
-      "processNewTransactions" in this._cachedContent &&
-      typeof this._cachedContent.processNewTransactions === "function"
-    ) {
-      this._cachedContent.processNewTransactions();
-    } else {
-      this._cachedContent = undefined;
+  private processNewTransactions() {
+    if (this._cachedContent) {
+      // Does the cached content support incremental processing?
+      if (
+        "processNewTransactions" in this._cachedContent &&
+        typeof this._cachedContent.processNewTransactions === "function"
+      ) {
+        this._cachedContent.processNewTransactions();
+      } else {
+        this._cachedContent = undefined;
+      }
     }
-
-    this._cachedDependentOn = undefined;
   }
 
   #isNotificationScheduled = false;
@@ -574,8 +593,18 @@ export class CoValueCore {
     }
   }
 
+  #isNotifyUpdatePaused = false;
+  pauseNotifyUpdate() {
+    this.#isNotifyUpdatePaused = true;
+  }
+
+  resumeNotifyUpdate() {
+    this.#isNotifyUpdatePaused = false;
+    this.notifyUpdate();
+  }
+
   private notifyUpdate() {
-    if (this.listeners.size === 0) {
+    if (this.listeners.size === 0 || this.#isNotifyUpdatePaused) {
       return;
     }
 
@@ -664,15 +693,17 @@ export class CoValueCore {
 
     const { transaction, signature } = result;
 
-    this.node.syncManager.recordTransactionsSize([transaction], "local");
+    // Assign pre-parsed meta and changes to skip the parse/decrypt operation when loading
+    // this transaction in the current content
+    this.parsingCache.set(transaction, { changes, meta });
 
-    // We pre-populate the parsed transactions and meta for the new transaction, to skip the parsing step later
-    this.loadVerifiedTransactionsFromLogs({ transaction, changes, meta });
+    this.node.syncManager.recordTransactionsSize([transaction], "local");
 
     const session = this.verified.sessions.get(sessionID);
     const txIdx = session ? session.transactions.length - 1 : 0;
 
-    this.updateCurrentContent();
+    this.processNewTransactions();
+    this.addDependenciesFromNewTransaction(transaction);
 
     // force immediate notification because local updates may come from the UI
     // where we need synchronous updates
@@ -686,6 +717,16 @@ export class CoValueCore {
     );
 
     return true;
+  }
+
+  addDependenciesFromNewTransaction(transaction: Transaction) {
+    if (this.verified?.header.ruleset.type === "group") {
+      for (const dependency of getDependenciesFromGroupRawTransactions([
+        transaction,
+      ])) {
+        this.addDependency(dependency);
+      }
+    }
   }
 
   getCurrentContent(options?: { ignorePrivateTransactions: true }): RawCoValue {
@@ -721,6 +762,8 @@ export class CoValueCore {
 
   // Reset the parsed transactions and branches, to validate them again from scratch when the group is updated
   resetParsedTransactions() {
+    this._cachedContent = undefined;
+
     this.branchStart = undefined;
     this.mergeCommits = [];
 
@@ -738,23 +781,21 @@ export class CoValueCore {
     VerifiedTransaction
   > = {};
 
+  private parsingCache = new Map<
+    Transaction,
+    { changes: JsonValue[]; meta: JsonObject | undefined }
+  >();
+
   /**
    * Loads the new transaction from the SessionMap into verifiedTransactions as a VerifiedTransaction.
    *
    * If the transaction is already loaded from the SessionMap in the past, it will not be loaded again.
    *
    * Used to have a fast way to iterate over the CoValue transactions, and track their validation/decoding state.
-   *
-   * @param preload - Optional preload object containing the transaction, changes, and meta.
-   * If provided, the transaction will be preloaded with the given changes and meta.
-   *
-   * @internal
+
+  * @internal
    * */
-  loadVerifiedTransactionsFromLogs(preload?: {
-    transaction: Transaction;
-    changes: JsonValue[];
-    meta: JsonObject | undefined;
-  }) {
+  loadVerifiedTransactionsFromLogs() {
     if (!this.verified) {
       return;
     }
@@ -780,14 +821,19 @@ export class CoValueCore {
               txIndex,
             };
 
+        const cache = this.parsingCache.get(tx);
+        if (cache) {
+          this.parsingCache.delete(tx);
+        }
+
         const verifiedTransaction = {
           author: accountOrAgentIDfromSessionID(sessionID),
           txID,
           madeAt: tx.madeAt,
           isValidated: false,
           isValid: false,
-          changes: tx === preload?.transaction ? preload.changes : undefined,
-          meta: tx === preload?.transaction ? preload.meta : undefined,
+          changes: cache?.changes,
+          meta: cache?.meta,
           hasInvalidChanges: false,
           hasInvalidMeta: false,
           hasMetaBeenParsed: false,
@@ -978,6 +1024,32 @@ export class CoValueCore {
     return matchingTransactions;
   }
 
+  dependencies: Set<RawCoID> = new Set();
+  private addDependency(dependency: RawCoID) {
+    if (this.dependencies.has(dependency)) {
+      return true;
+    }
+
+    this.dependencies.add(dependency);
+
+    const dependencyCoValue = this.node.getCoValue(dependency);
+
+    if (
+      !dependencyCoValue.isAvailable() &&
+      !this.isCircularMissingDependency(dependencyCoValue)
+    ) {
+      this.missingDependencies.add(dependency);
+
+      dependencyCoValue.subscribe((dependencyCoValue, unsubscribe) => {
+        if (dependencyCoValue.isAvailable()) {
+          unsubscribe();
+          this.markDependencyAvailable(dependency);
+        }
+      });
+      return false;
+    }
+  }
+
   createBranch(name: string, ownerId?: RawCoID) {
     return createBranch(this, name, ownerId);
   }
@@ -1144,25 +1216,7 @@ export class CoValueCore {
   }
 
   getDependedOnCoValues(): Set<RawCoID> {
-    if (this._cachedDependentOn) {
-      return this._cachedDependentOn;
-    } else {
-      if (!this.verified) {
-        return new Set();
-      }
-
-      const dependentOn = getDependedOnCoValuesFromRawData(
-        this.id,
-        this.verified.header,
-        this.verified.sessions.keys(),
-        Array.from(
-          this.verified.sessions.values(),
-          (session) => session.transactions,
-        ),
-      );
-      this._cachedDependentOn = dependentOn;
-      return dependentOn;
-    }
+    return this.dependencies;
   }
 
   waitForSync(options?: { timeout?: number }) {

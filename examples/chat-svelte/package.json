@@ -1,6 +1,6 @@
 {
   "name": "chat-svelte",
-  "version": "0.0.146",
+  "version": "0.0.148",
   "type": "module",
   "private": true,
   "scripts": {
@@ -31,7 +31,8 @@
     "svelte-check": "catalog:svelte",
     "typescript": "5.6.2",
     "typescript-eslint": "^8.32.1",
-    "vite": "6.0.11"
+    "vite": "6.0.11",
+    "zod": "^4.1.11"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.7",

@@ -52,7 +52,15 @@ export const docNavigationItems = [
           "react-native-expo": 100,
           svelte: 100,
         },
-      }
+      },
+            {
+        name: "Server-side rendering",
+        href: "/docs/project-setup/ssr",
+        done: {
+          react: 100,
+          svelte: 100
+        }
+      },
     ],
   },
   {
@@ -205,6 +213,11 @@ export const docNavigationItems = [
         done: 100,
       },
       {
+        name: "Codecs",
+        href: "/docs/using-covalues/codecs",
+        done: 100,
+      },
+      {
         name: "Subscriptions & Deep Loading",
         href: "/docs/using-covalues/subscription-and-loading",
         done: 80,
@@ -225,6 +238,11 @@ export const docNavigationItems = [
     name: "Groups, permissions & sharing",
     items: [
       {
+        name: "Quickstart",
+        href: "/docs/groups/quickstart",
+        done: 100,
+      },
+      {
         name: "Groups as permission scopes",
         href: "/docs/groups/intro",
         done: 10,
@@ -244,6 +262,11 @@ export const docNavigationItems = [
   {
     name: "Authentication",
     items: [
+      { 
+        name: "Quickstart",
+        href: "/docs/authentication/quickstart",
+        done: 100,
+      },
       {
         name: "Overview",
         href: "/docs/authentication/overview",

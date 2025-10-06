@@ -1150,6 +1150,30 @@ describe("CoMap resolution", async () => {
     });
   });
 
+  test("obtaining coMap refs", async () => {
+    const Dog = co.map({
+      name: z.string().optional(),
+      breed: z.string(),
+      owner: co.plainText(),
+      get parent() {
+        return co.optional(Dog);
+      },
+    });
+
+    const dog = Dog.create({
+      name: "Rex",
+      breed: "Labrador",
+      owner: "John",
+      parent: { name: "Fido", breed: "Labrador", owner: "Jane" },
+    });
+
+    const refs = dog.$jazz.refs;
+
+    expect(Object.keys(refs)).toEqual(["owner", "parent"]);
+    expect(refs.owner.id).toEqual(dog.owner.$jazz.id);
+    expect(refs.parent?.id).toEqual(dog.parent!.$jazz.id);
+  });
+
   test("accessing the value refs", async () => {
     const Dog = co.map({
       name: z.string(),
@@ -1181,9 +1205,9 @@ describe("CoMap resolution", async () => {
 
     assert(loadedPerson);
 
-    expect(loadedPerson.$jazz.refs.dog?.id).toBe(person.dog!.$jazz.id);
+    expect(loadedPerson.$jazz.refs.dog.id).toBe(person.dog.$jazz.id);
 
-    const dog = await loadedPerson.$jazz.refs.dog?.load();
+    const dog = await loadedPerson.$jazz.refs.dog.load();
 
     assert(dog);
 
