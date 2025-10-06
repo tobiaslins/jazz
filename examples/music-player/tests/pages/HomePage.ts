@@ -1,11 +1,11 @@
-import { type Page, expect } from "@playwright/test";
+import { type Locator, type Page, expect } from "@playwright/test";
 
 export class HomePage {
   page: Page;
-  newPlaylistButton;
-  playlistTitleInput;
-  loginButton;
-  logoutButton;
+  newPlaylistButton: Locator;
+  playlistTitleInput: Locator;
+  loginButton: Locator;
+  logoutButton: Locator;
 
   constructor(page: Page) {
     this.page = page;
