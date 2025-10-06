@@ -35,7 +35,7 @@ When we create a link, we can choose what level of permission to grant. Here, we
 </ContentByFramework>
 
 <TabbedCodeGroup default="react" savedPreferenceKey="framework" id="create-invite-link">
-<TabbedCodeGroupItem icon={<ReactLogo />} label="React" value="react" className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem icon={<ReactLogo />} label="React" value="react" preferWrap>
 ```tsx
 "use client";
 // [!code --:1]
@@ -74,7 +74,7 @@ export function Festival() {
 }
 ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem icon={<SvelteLogo />} label="Svelte" value="svelte" className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem icon={<SvelteLogo />} label="Svelte" value="svelte" preferWrap>
 ```svelte
 <script lang="ts">
   // [!code --:1]
@@ -123,7 +123,7 @@ Jazz provides a handler which we can add to our `Festival` component to accept t
 </ContentByFramework>
 
 <TabbedCodeGroup savedPreferenceKey="framework" id="accept-invite">
-<TabbedCodeGroupItem icon={<ReactLogo />} label="React" value="react" className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem icon={<ReactLogo />} label="React" value="react" preferWrap>
 ```tsx
 "use client";
 // [!code --:1]
@@ -171,7 +171,7 @@ export function Festival() {
 }
 ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem icon={<SvelteLogo />} label="Svelte" value="svelte" className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem icon={<SvelteLogo />} label="Svelte" value="svelte" preferWrap>
 ```svelte
 <script lang="ts">
   // [!code --:2]
@@ -300,7 +300,7 @@ We're going to continue updating our existing `Festival` component so that it ca
 </ContentByFramework>
 
 <TabbedCodeGroup default="react" savedPreferenceKey="framework">
-<TabbedCodeGroupItem icon={<ReactLogo />} label="React" value="react" className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem icon={<ReactLogo />} label="React" value="react" preferWrap>
 ```tsx
 "use client";
 import {
@@ -365,7 +365,7 @@ export function Festival({id}: {id?: string}) {
 }
 ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem label="Svelte" value="svelte" icon={<SvelteLogo />} className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem label="Svelte" value="svelte" icon={<SvelteLogo />} preferWrap>
 ```svelte
 <script lang="ts">
   // [!code --:1]
@@ -431,7 +431,7 @@ We'll also update our `NewBand` component so that it can take a prop for the fes
 
 <TabbedCodeGroup default="react" savedPreferenceKey="framework"
 >
-<TabbedCodeGroupItem label="React" value="react" icon={<ReactLogo />} className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem label="React" value="react" icon={<ReactLogo />} preferWrap>
 ```tsx
 "use client";
 // [!code --:2]
@@ -479,7 +479,7 @@ export function NewBand({ id }: { id?: string }) {
 }
 ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem label="Svelte" value="svelte" icon={<SvelteLogo />} className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem label="Svelte" value="svelte" icon={<SvelteLogo />} preferWrap>
 ```svelte
 <script lang="ts">
   // [!code --:2]
@@ -528,7 +528,7 @@ export function NewBand({ id }: { id?: string }) {
 </ContentByFramework>
 
 <TabbedCodeGroup savedPreferenceKey="framework" id="create-festival-page">
-<TabbedCodeGroupItem icon={<ReactLogo />} label="React" value="react" className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem icon={<ReactLogo />} label="React" value="react" preferWrap>
 ```tsx
 "use client";
 import { use } from "react";
@@ -550,7 +550,7 @@ export default function FestivalPage(props: {
 }
 ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem icon={<SvelteLogo />} label="Svelte" value="svelte" className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem icon={<SvelteLogo />} label="Svelte" value="svelte" preferWrap>
 ```svelte
 <script lang="ts">
 	import { page } from '$app/state';
@@ -578,4 +578,9 @@ Now we can test it out by inviting someone to collaborate on our festival.
 4. You should be able to invite someone to collaborate on the festival.
 5. Paste the invite link into the incognito window. You should be able to add bands to the festival!
 
-**Congratulations! 🎉** You've added authentication and public sharing to your app! You've also learned about how to migrate data from anonymous to authenticated accounts, and have begun to see how you can use groups and permissions to control access to your data.
+**Congratulations! 🎉** You've added public sharing to your app! You've learned what groups are, and how Jazz manages permissions, as well as how to invite others to collaborate on data in your app with you.
+
+## Next steps
+- Learn how to [authenticate users](/docs/authentication/quickstart) so you can access data wherever you are.
+- Discover how you can use [groups as members of other groups](/docs/groups/inheritance) to build advanced permissions structures.
+- Find out how to [use server workers](/docs/server-side/quickstart) to build more complex applications

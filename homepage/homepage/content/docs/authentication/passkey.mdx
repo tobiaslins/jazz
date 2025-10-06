@@ -27,7 +27,7 @@ Passkey authentication is based on the [Web Authentication API](https://develope
 Using passkeys in Jazz is as easy as this:
 
 <TabbedCodeGroup default="react" savedPreferenceKey="framework" id="use-passkey-auth">
-<TabbedCodeGroupItem icon={<ReactLogo />} label="React" value="react" className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem icon={<ReactLogo />} label="React" value="react" preferWrap>
 ```tsx twoslash
 import * as React from "react";
 import { useState } from "react";
@@ -68,7 +68,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
 }
 ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem icon={<SvelteLogo />} label="Svelte" value="svelte" className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem icon={<SvelteLogo />} label="Svelte" value="svelte" preferWrap>
 ```svelte
 <script lang="ts">
   import { usePasskeyAuth } from 'jazz-tools/svelte';

@@ -71,7 +71,7 @@ Wrap your application with a provider to connect to the Jazz network and define 
 </ContentByFramework>
 
 <TabbedCodeGroup savedPreferenceKey="framework" id="add-provider">
-<TabbedCodeGroupItem label="React" value="react" className="[&_span]:[tab-size:2]" icon={<ReactLogo />} preferWrap>
+<TabbedCodeGroupItem label="React" value="react" icon={<ReactLogo />} preferWrap>
 ```tsx
 import { JazzReactProvider } from "jazz-tools/react";
 import { MyAppAccount } from "./schema";
@@ -86,7 +86,7 @@ createRoot(document.getElementById("root")!).render(
 );
 ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem label="Svelte" value="svelte" className="[&_span]:[tab-size:2]" icon={<SvelteLogo />} preferWrap>
+<TabbedCodeGroupItem label="Svelte" value="svelte" icon={<SvelteLogo />} preferWrap>
 ```svelte
 <script lang="ts">
   import { JazzSvelteProvider } from "jazz-tools/svelte";
@@ -134,7 +134,7 @@ In order to tell Jazz to allow children to be loaded even in an account-less con
 </ContentByFramework>
 
 <TabbedCodeGroup savedPreferenceKey="framework" id="add-ssr">
-<TabbedCodeGroupItem label="React" value="react" className="[&_span]:[tab-size:2]" icon={<ReactLogo />} preferWrap>
+<TabbedCodeGroupItem label="React" value="react" icon={<ReactLogo />} preferWrap>
 ```tsx
 import { JazzReactProvider } from "jazz-tools/react";
 import { MyAppAccount } from "./schema";
@@ -152,7 +152,7 @@ export function JazzWrapper({ children }: { children: React.ReactNode }) {
 }
 ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem label="Svelte" value="svelte" className="[&_span]:[tab-size:2]" icon={<SvelteLogo />} preferWrap>
+<TabbedCodeGroupItem label="Svelte" value="svelte" icon={<SvelteLogo />} preferWrap>
 ```svelte
 <script lang="ts">
   import { JazzSvelteProvider } from "jazz-tools/svelte";
@@ -188,7 +188,7 @@ In order to actually load and render data, you need to tell Jazz how to do this 
 </ContentByFramework>
 
 <TabbedCodeGroup savedPreferenceKey="framework" id="ssr-page">
-<TabbedCodeGroupItem label="React" value="react" className="[&_span]:[tab-size:2]" icon={<ReactLogo />} preferWrap>
+<TabbedCodeGroupItem label="React" value="react" icon={<ReactLogo />} preferWrap>
 ```tsx
 import { createSSRJazzAgent } from "jazz-tools/ssr";
 import { TodoItem } from "./schema";
@@ -220,7 +220,7 @@ export default async function ServerSidePage(props: {
 }
 ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem label="Svelte" value="svelte" className="[&_span]:[tab-size:2]" icon={<SvelteLogo />} preferWrap>
+<TabbedCodeGroupItem label="Svelte" value="svelte" icon={<SvelteLogo />} preferWrap>
 ```svelte
 <script lang="ts">
   import { page } from '$app/state';
