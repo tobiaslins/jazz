@@ -139,7 +139,7 @@ You can copy the output of this command and paste it directly into your `.env` f
 
 <FileName>.env</FileName>
 <TabbedCodeGroup id="worker-env-vars" default="react" savedPreferenceKey="framework">
-<TabbedCodeGroupItem label="Next.js" icon={<ReactLogo />} value="react" className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem label="Next.js" icon={<ReactLogo />} value="react" preferWrap>
 ```bash
 NEXT_PUBLIC_JAZZ_API_KEY=you@example.com # or your API key
 #[!code ++:2]
@@ -147,7 +147,7 @@ NEXT_PUBLIC_JAZZ_WORKER_ACCOUNT=co_z...
 JAZZ_WORKER_SECRET=sealerSecret_z.../signerSecret_z...
 ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem label="SvelteKit" icon={<SvelteLogo />} value="svelte" className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem label="SvelteKit" icon={<SvelteLogo />} value="svelte" preferWrap>
 ```bash
 PUBLIC_JAZZ_API_KEY=you@example.com # or your API key
 #[!code ++:2]
@@ -172,7 +172,7 @@ We also need to tell Jazz which keys should be treated as loaded in the request 
 <FileName>src/lib/announceBandSchema.ts</FileName>
 </ContentByFramework>
 <TabbedCodeGroup id="request-schema" default="react" savedPreferenceKey="framework">
-<TabbedCodeGroupItem label="Next.js" icon={<ReactLogo />} value="react" className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem label="Next.js" icon={<ReactLogo />} value="react" preferWrap>
 ```ts
 import { experimental_defineRequest } from "jazz-tools";
 import { Band, BandList } from "./schema";
@@ -189,7 +189,7 @@ export const announceBand = experimental_defineRequest({
 });
 ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem label="SvelteKit" icon={<SvelteLogo />} value="svelte" className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem label="SvelteKit" icon={<SvelteLogo />} value="svelte" preferWrap>
 ```ts
 import { experimental_defineRequest } from "jazz-tools";
 import { Band, BandList } from "./schema";
@@ -222,7 +222,7 @@ We'll also use a `resolve` query here to make sure that the `bandList` is loaded
 <FileName>src/routes/api/announce-band/+server.ts</FileName>
 </ContentByFramework>
 <TabbedCodeGroup id="worker-config" default="react" savedPreferenceKey="framework">
-<TabbedCodeGroupItem label="Next.js" icon={<ReactLogo />} value="react" className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem label="Next.js" icon={<ReactLogo />} value="react" preferWrap>
 ```ts
 import { startWorker } from "jazz-tools/worker";
 import { announceBand } from "@/app/announceBandSchema";
@@ -255,7 +255,7 @@ export async function POST(request: Request) {
 }
 ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem label="SvelteKit" icon={<SvelteLogo />} value="svelte" className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem label="SvelteKit" icon={<SvelteLogo />} value="svelte" preferWrap>
 ```ts
 import { startWorker } from "jazz-tools/worker";
 import { announceBand } from "$lib/announceBandSchema";
@@ -338,7 +338,7 @@ We're going to wrap our SvelteKit app in a `JazzSvelteProvider` so that we can u
 </ContentByFramework>
 
 <TabbedCodeGroup id="add-provider" savedPreferenceKey="framework">
-<TabbedCodeGroupItem label="React" value="react" className="[&_span]:[tab-size:2]" icon={<ReactLogo />} preferWrap>
+<TabbedCodeGroupItem label="React" value="react" icon={<ReactLogo />} preferWrap>
   ```tsx
   import { JazzReactProvider } from "jazz-tools/react";
 
@@ -363,7 +363,7 @@ We're going to wrap our SvelteKit app in a `JazzSvelteProvider` so that we can u
   }
   ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem label="Svelte" value="svelte" className="[&_span]:[tab-size:2]" icon={<SvelteLogo />} preferWrap>
+<TabbedCodeGroupItem label="Svelte" value="svelte" icon={<SvelteLogo />} preferWrap>
 ```svelte
 <script lang="ts">
   import { JazzSvelteProvider } from "jazz-tools/svelte";
@@ -391,7 +391,7 @@ We're going to send a request to our server worker to announce a new band. Our w
 </ContentByFramework>
 
 <TabbedCodeGroup id="page-component" default="react" savedPreferenceKey="framework">
-<TabbedCodeGroupItem label="React" value="react" className="[&_span]:[tab-size:2]" icon={<ReactLogo />} preferWrap>
+<TabbedCodeGroupItem label="React" value="react" icon={<ReactLogo />} preferWrap>
 ```tsx
 "use client";
 import type { co } from "jazz-tools";
@@ -432,7 +432,7 @@ export default function Home() {
 }
 ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem label="Svelte" value="svelte" className="[&_span]:[tab-size:2]" icon={<SvelteLogo />} preferWrap>
+<TabbedCodeGroupItem label="Svelte" value="svelte" icon={<SvelteLogo />} preferWrap>
 ```svelte
 <script lang="ts">
   import type { co } from "jazz-tools";
