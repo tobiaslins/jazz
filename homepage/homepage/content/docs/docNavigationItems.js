@@ -121,6 +121,7 @@ export const docNavigationItems = [
   {
     name: "Core Concepts",
     href: '/docs',
+    done: 100,
     items: [
       {
         name: "CoValues",
@@ -157,7 +158,7 @@ export const docNavigationItems = [
           done: 80,
         },
         {
-          name: "ImageDefinition",
+          name: "ImageDefinitions",
           href: "/docs/using-covalues/imagedef",
           done: {
             react: 100,
@@ -199,6 +200,7 @@ export const docNavigationItems = [
       },
     ],
   },
+
   {
     name: "Key Features",
     done: 100,
@@ -343,7 +345,6 @@ export const docNavigationItems = [
           svelte: 100,
         },
       },
-
     ],
   },
   {
@@ -365,7 +366,8 @@ export const docNavigationItems = [
           href: "/docs/ai-tools",
           done: 100,
         }]
-      }, {
+      }, 
+    {
         name: "Reference",
         items: [{
           name: "Encryption",
