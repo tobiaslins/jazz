@@ -1,5 +1,12 @@
 # create-jazz-app
 
+## 0.1.29
+
+### Patch Changes
+
+- 0e63af1: fix: add missing dependency for `expo-sqlite` in the React Native starter app
+- ee03a3d: fix: create-jazz-app not working with RN after Zod v4 upgrade
+
 ## 0.1.28
 
 ### Patch Changes
