@@ -14,9 +14,9 @@ import StuckCTA from "@/components/docs/snippets/StuckCTA.mdx";
 # Get started with <span className="sr-only">Jazz</span> <JazzLogo className="h-[41px] -ml-0.5 -mt-[3px] inline" /> in 10 minutes
 This quickstart guide will take you from an empty project to a working app with a simple data model and components to create and display your data.
 
-<ContentByFramework framework="react">
-  ## Create your React App
-  
+## Create your App
+
+<ContentByFramework framework="react">  
   We'll be using Next.js and TypeScript with `pnpm` for this guide, but Jazz works great with vanilla React too.
 
   You can accept the defaults for all the questions, or customise the project as you like.
@@ -38,9 +38,7 @@ This quickstart guide will take you from an empty project to a working app with 
 
 </ContentByFramework>
 <ContentByFramework framework="svelte">
-  ## Create your Svelte App
-
-  <TabbedCodeGroup id="create-svelte-app" default="pnpm" savedPreferenceKey="package-manager">
+  <TabbedCodeGroup default="pnpm" savedPreferenceKey="package-manager" id="create-svelte-app">
   <TabbedCodeGroupItem label="npm">
   ```sh
   npx sv create --types ts --template minimal jazzfest
@@ -63,7 +61,7 @@ The `jazz-tools` package includes everything you're going to need to build your 
 
 <InstallJazz />
 
-## Set your API key
+## Get your free API key
 
 <GetAPIKey />
 
@@ -190,7 +188,6 @@ export function JazzWrapper({ children }: {
 Moment of truth&hairsp;—&hairsp;time to start your app and see if it works.
 
 <RunDevServer />
-
 
 <ContentByFramework framework="react">
 If everything's going according to plan, you should see the default Next.js welcome page! 
