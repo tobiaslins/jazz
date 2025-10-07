@@ -24,6 +24,6 @@ export const products = [
     description:
       "A relationship journal so simple that you actually use it.",
     url: "https://tilly.social/",
-    imageUrl: "/tilly.png",
+    imageUrl: "/tilly-screen.png",
   },
 ];
