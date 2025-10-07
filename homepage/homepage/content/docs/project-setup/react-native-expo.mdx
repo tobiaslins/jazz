@@ -81,7 +81,7 @@ const { withNativeWind } = require("nativewind/metro");
 
 const config = getDefaultConfig(__dirname);
 
-config.resolver.sourceExts = ["mjs", "js", "json", "ts", "tsx"];
+config.resolver.sourceExts = ["mjs", "js", "json", "ts", "tsx", "cjs"];
 config.resolver.requireCycleIgnorePatterns = [/(^|\/|\\)node_modules($|\/|\\)/];
 
 module.exports = withNativeWind(config, { input: "./src/global.css" });
@@ -114,7 +114,7 @@ config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, "node_modules"),
   path.resolve(workspaceRoot, "node_modules"),
 ];
-config.resolver.sourceExts = ["mjs", "js", "json", "ts", "tsx"];
+config.resolver.sourceExts = ["mjs", "js", "json", "ts", "tsx", "cjs"];
 config.resolver.requireCycleIgnorePatterns = [/(^|\/|\\)node_modules($|\/|\\)/];
 config.cacheStores = [
   new FileStore({
