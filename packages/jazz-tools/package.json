@@ -14,6 +14,11 @@
       "types": "./dist/testing.d.ts",
       "default": "./dist/testing.js"
     },
+    "./ssr": {
+      "@jazz-tools/source": "./src/tools/ssr/index.ts",
+      "types": "./dist/tools/ssr/ssr.d.ts",
+      "default": "./dist/tools/ssr.js"
+    },
     "./browser": {
       "@jazz-tools/source": "./src/browser/index.ts",
       "types": "./dist/browser/index.d.ts",
@@ -77,15 +82,15 @@
       "types": "./dist/react/index.d.ts",
       "default": "./dist/react/index.js"
     },
-    "./react/testing": {
-      "@jazz-tools/source": "./src/react/testing.tsx",
-      "types": "./dist/react/testing.d.ts",
-      "default": "./dist/react/testing.js"
-    },
     "./react/ssr": {
       "@jazz-tools/source": "./src/react/ssr.ts",
       "types": "./dist/react/ssr.d.ts",
       "default": "./dist/react/ssr.js"
+    },
+    "./react/testing": {
+      "@jazz-tools/source": "./src/react/testing.tsx",
+      "types": "./dist/react/testing.d.ts",
+      "default": "./dist/react/testing.js"
     },
     "./react-core": {
       "@jazz-tools/source": "./src/react-core/index.ts",
@@ -177,7 +182,7 @@
   },
   "type": "module",
   "license": "MIT",
-  "version": "0.18.20",
+  "version": "0.18.21",
   "dependencies": {
     "@manuscripts/prosemirror-recreate-steps": "^0.1.4",
     "@scure/base": "1.2.1",

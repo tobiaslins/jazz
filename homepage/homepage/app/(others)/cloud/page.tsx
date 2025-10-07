@@ -12,22 +12,33 @@ import CloudPlusBackup from "./cloudPlusBackup.mdx";
 import CloudPlusDIY from "./cloudPlusDIY.mdx";
 import CompletelyDIY from "./completelyDIY.mdx";
 
-const title = "Jazz Cloud";
-const description = "Serverless sync & storage for Jazz apps.";
+const metaTags = {
+  title: "Jazz Cloud",
+  description: "Serverless sync & storage for Jazz apps.",
+  url: "https://jazz.tools",
+}
+
 
 export const metadata: Metadata = {
-  title,
-  description,
+  title: metaTags.title,
+  description: metaTags.description,
   openGraph: {
-    title,
-    description,
+    title: metaTags.title,
+    description: metaTags.description,
+    images: [
+      {
+        url: `${metaTags.url}/opengraph-image`,
+        height: 630,
+        alt: metaTags.title,
+      },
+    ],
   },
 };
 
 export default function Cloud() {
   return (
     <div className="space-y-16">
-      <div className="container space-y-12 overflow-x-hidden sm:overflow-x-visible">
+      <div className="container space-y-12 overflow-hidden">
         <HeroHeader
           title="Jazz Cloud"
           slogan="Real-time sync and storage infrastructure that scales up to millions of users."

@@ -31,7 +31,7 @@ The `CoState` class allows you to reactively subscribe to CoValues in your Svelt
 </ContentByFramework>
 
 <TabbedCodeGroup id="usecostate" default="react" savedPreferenceKey="framework">
-<TabbedCodeGroupItem label="React" value="react" className="[&_span]:[tab-size:2]" icon={<ReactLogo />} preferWrap>
+<TabbedCodeGroupItem label="React" value="react" icon={<ReactLogo />} preferWrap>
 ```tsx
 import { useCoState } from "jazz-tools/react";
 
@@ -60,7 +60,7 @@ function ProjectView({ projectId }: { projectId: string }) {
 }
 ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem label="Svelte" value="svelte" className="[&_span]:[tab-size:2]" icon={<SvelteLogo />} preferWrap>
+<TabbedCodeGroupItem label="Svelte" value="svelte" icon={<SvelteLogo />} preferWrap>
 ```svelte
 <script lang="ts">
   import { CoState } from "jazz-tools/svelte";
@@ -102,7 +102,7 @@ function ProjectView({ projectId }: { projectId: string }) {
 </ContentByFramework>
 
 <TabbedCodeGroup id="usecostate" default="react" savedPreferenceKey="framework">
-<TabbedCodeGroupItem label="React" value="react" className="[&_span]:[tab-size:2]" icon={<ReactLogo />} preferWrap>
+<TabbedCodeGroupItem label="React" value="react" icon={<ReactLogo />} preferWrap>
 ```tsx
 import { useAccount } from "jazz-tools/react";
 
@@ -123,7 +123,7 @@ function ProjectList() {
 }
 ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem label="Svelte" value="svelte" className="[&_span]:[tab-size:2]" icon={<SvelteLogo />} preferWrap>
+<TabbedCodeGroupItem label="Svelte" value="svelte" icon={<SvelteLogo />} preferWrap>
 ```svelte
 <script lang="ts">
   import { AccountCoState } from "jazz-tools/svelte";
@@ -262,7 +262,7 @@ Expecting data to be there which is not explicitly included in your `resolve` qu
 The syntax for resolve queries is shared throughout Jazz. As well as using them in `load` and `subscribe` method calls, you can pass a resolve query to a front-end hook.
 
 <TabbedCodeGroup id="resolve" default="react" savedPreferenceKey="framework">
-<TabbedCodeGroupItem label="React" value="react" className="[&_span]:[tab-size:2]" icon={<ReactLogo />} preferWrap>
+<TabbedCodeGroupItem label="React" value="react" icon={<ReactLogo />} preferWrap>
 ```tsx
 const projectWithTasksShallow = useCoState(Project, projectId, {
   resolve: {
@@ -271,7 +271,7 @@ const projectWithTasksShallow = useCoState(Project, projectId, {
 });
 ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem label="Svelte" value="svelte" className="[&_span]:[tab-size:2]" icon={<SvelteLogo />} preferWrap>
+<TabbedCodeGroupItem label="Svelte" value="svelte" icon={<SvelteLogo />} preferWrap>
 ```svelte
 <script lang="ts">
   import { CoState } from "jazz-tools/svelte";
@@ -434,7 +434,7 @@ You can tell your application how deeply your data is loaded by using the `co.lo
 The `co.loaded` type is especially useful when passing data between components, because it allows TypeScript to check at compile time whether data your application depends is properly loaded. The second argument lets you pass a `resolve` query to specify how deeply your data is loaded.
 
 <TabbedCodeGroup id="coloaded" default="react" savedPreferenceKey="framework">
-<TabbedCodeGroupItem label="React" value="react" className="[&_span]:[tab-size:2]" icon={<ReactLogo />} preferWrap>
+<TabbedCodeGroupItem label="React" value="react" icon={<ReactLogo />} preferWrap>
 ```tsx
 type ProjectWithTasks = co.loaded<typeof Project, 
   {
@@ -457,7 +457,7 @@ function TaskList({ project }: { project: ProjectWithTasks }) {
 }
 ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem label="Svelte" value="svelte" className="[&_span]:[tab-size:2]" icon={<SvelteLogo />} preferWrap>
+<TabbedCodeGroupItem label="Svelte" value="svelte" icon={<SvelteLogo />} preferWrap>
 ```svelte
 <script lang="ts">
   import { co } from "jazz-tools";

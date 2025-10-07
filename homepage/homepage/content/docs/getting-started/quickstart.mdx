@@ -14,9 +14,9 @@ import StuckCTA from "@/components/docs/snippets/StuckCTA.mdx";
 # Get started with <span className="sr-only">Jazz</span> <JazzLogo className="h-[41px] -ml-0.5 -mt-[3px] inline" /> in 10 minutes
 This quickstart guide will take you from an empty project to a working app with a simple data model and components to create and display your data.
 
-<ContentByFramework framework="react">
-  ## Create your React App
-  
+## Create your App
+
+<ContentByFramework framework="react">  
   We'll be using Next.js and TypeScript with `pnpm` for this guide, but Jazz works great with vanilla React too.
 
   You can accept the defaults for all the questions, or customise the project as you like.
@@ -38,9 +38,7 @@ This quickstart guide will take you from an empty project to a working app with 
 
 </ContentByFramework>
 <ContentByFramework framework="svelte">
-  ## Create your Svelte App
-
-  <TabbedCodeGroup id="create-svelte-app" default="pnpm" savedPreferenceKey="package-manager">
+  <TabbedCodeGroup default="pnpm" savedPreferenceKey="package-manager" id="create-svelte-app">
   <TabbedCodeGroupItem label="npm">
   ```sh
   npx sv create --types ts --template minimal jazzfest
@@ -63,7 +61,7 @@ The `jazz-tools` package includes everything you're going to need to build your 
 
 <InstallJazz />
 
-## Set your API key
+## Get your free API key
 
 <GetAPIKey />
 
@@ -79,7 +77,7 @@ Adding a `root` to the user's account gives us a container that can be used to k
 <FileName>src/lib/schema.ts</FileName>
 </ContentByFramework>
 
-<CodeGroup className="[&_span]:[tab-size:2]" preferWrap>
+<CodeGroup preferWrap>
 ```ts
 import { co, z } from "jazz-tools";
 
@@ -113,7 +111,7 @@ Wrap your app with a provider so components can use Jazz.
 
 <ContentByFramework framework="react">
   <FileName>app/components/JazzWrapper.tsx</FileName>
-<CodeGroup className="[&_span]:[tab-size:2]" preferWrap>
+<CodeGroup preferWrap>
 ```tsx
 "use client"; // tells Next.js that this component can't be server-side rendered. If you're not using Next.js, you can remove it.
 import { JazzReactProvider } from "jazz-tools/react";
@@ -146,7 +144,7 @@ export function JazzWrapper({ children }: {
 </ContentByFramework>
 
 <TabbedCodeGroup id="jazz-provider" savedPreferenceKey="framework">
-<TabbedCodeGroupItem label="React" value="react" className="[&_span]:[tab-size:2]" icon={<ReactLogo />} preferWrap>
+<TabbedCodeGroupItem label="React" value="react" icon={<ReactLogo />} preferWrap>
   ```tsx
   import { JazzWrapper } from "@/app/components/JazzWrapper";
 
@@ -167,7 +165,7 @@ export function JazzWrapper({ children }: {
   }
   ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem label="Svelte" value="svelte" className="[&_span]:[tab-size:2]" icon={<SvelteLogo />} preferWrap>
+<TabbedCodeGroupItem label="Svelte" value="svelte" icon={<SvelteLogo />} preferWrap>
 ```svelte
 <script lang="ts">
   import { JazzSvelteProvider } from "jazz-tools/svelte";
@@ -190,7 +188,6 @@ export function JazzWrapper({ children }: {
 Moment of truth&hairsp;—&hairsp;time to start your app and see if it works.
 
 <RunDevServer />
-
 
 <ContentByFramework framework="react">
 If everything's going according to plan, you should see the default Next.js welcome page! 
@@ -226,7 +223,7 @@ Let's create a simple form to add a new band to the festival. We'll use the `use
 
 <TabbedCodeGroup id="new-band-component" default="react" savedPreferenceKey="framework"
 >
-<TabbedCodeGroupItem label="React" value="react" icon={<ReactLogo />} className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem label="React" value="react" icon={<ReactLogo />} preferWrap>
 ```tsx
 "use client";
 import { useAccount } from "jazz-tools/react";
@@ -257,7 +254,7 @@ export function NewBand() {
 }
 ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem label="Svelte" value="svelte" icon={<SvelteLogo />} className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem label="Svelte" value="svelte" icon={<SvelteLogo />} preferWrap>
 ```svelte
 <script lang="ts">
 	import { AccountCoState } from "jazz-tools/svelte";
@@ -294,7 +291,7 @@ Now we've got a way to create data, so let's add a component to display it.
 </ContentByFramework>
 
 <TabbedCodeGroup id="my-festival-component" default="react" savedPreferenceKey="framework">
-<TabbedCodeGroupItem icon={<ReactLogo />} label="React" value="react" className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem icon={<ReactLogo />} label="React" value="react" preferWrap>
 ```tsx
 "use client";
 import { useAccount } from "jazz-tools/react";
@@ -313,7 +310,7 @@ export function Festival() {
 }
 ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem icon={<SvelteLogo />} label="Svelte" value="svelte" className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem icon={<SvelteLogo />} label="Svelte" value="svelte" preferWrap>
 ```svelte
 <script lang="ts">
   import { AccountCoState } from "jazz-tools/svelte";
@@ -343,7 +340,7 @@ You've built all your components, time to put them together.
 </ContentByFramework>
 
 <TabbedCodeGroup id="home-page" default="react" savedPreferenceKey="framework">
-<TabbedCodeGroupItem label="React" value="react" className="[&_span]:[tab-size:2]" icon={<ReactLogo />} preferWrap>
+<TabbedCodeGroupItem label="React" value="react" icon={<ReactLogo />} preferWrap>
 ```tsx
 import { Festival } from "@/app/components/Festival";
 import { NewBand } from "@/app/components/NewBand";
@@ -359,7 +356,7 @@ export default function Home() {
 }
 ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem icon={<SvelteLogo />} label="Svelte" value="svelte" className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem icon={<SvelteLogo />} label="Svelte" value="svelte" preferWrap>
 ```svelte
 <script lang="ts">
   import NewBand from "$lib/components/NewBand.svelte";
