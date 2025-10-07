@@ -326,9 +326,7 @@ export const docNavigationItems = [
     }, {
       name: "Server-side rendering",
       href: "/docs/project-setup/ssr",
-      done: {
-        react: 100,
-      }
+      done: 100
     },
     ],
   },
