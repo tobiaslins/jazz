@@ -8,6 +8,7 @@ import {
   loadCoValueOrFail,
   setupTestNode,
 } from "./testUtils";
+import { expectMap } from "../coValue.js";
 
 let jazzCloud: ReturnType<typeof setupTestNode>;
 
@@ -342,6 +343,53 @@ describe("extend", () => {
     childGroup.extend(parentGroupOnNode2);
 
     expect(childGroup.roleOf(alice.id)).toBe("writer");
+  });
+
+  test("group inheritance should work for groups extended without having membership in the parent group", async () => {
+    const { node1, node2, node3 } = await createThreeConnectedNodes(
+      "server",
+      "server",
+      "server",
+    );
+
+    const parentGroup = node1.node.createGroup();
+    const account2OnNode1 = await loadCoValueOrFail(
+      node1.node,
+      node2.accountID,
+    );
+    parentGroup.addMember(account2OnNode1, "admin");
+
+    const childGroup = node1.node.createGroup();
+    childGroup.extend(parentGroup, "admin");
+
+    const sharedGroup = node3.node.createGroup();
+
+    // Account3 does not have permissions over the childGroup being extended
+    const childGroupOnNode3 = await loadCoValueOrFail(
+      node3.node,
+      childGroup.id,
+    );
+    sharedGroup.extend(childGroupOnNode3, "admin");
+
+    expect(sharedGroup.roleOf(node1.accountID)).toEqual("admin");
+    expect(sharedGroup.roleOf(node2.accountID)).toEqual("admin");
+    expect(sharedGroup.roleOf(node3.accountID)).toEqual("admin");
+
+    // Create a map owned by sharedGroup
+    const testMap = sharedGroup.createMap();
+    testMap.set("name", "Test");
+
+    // node1 should be able to access the map because it is admin of the childGroup
+    const testMapOnNode1 = expectMap(
+      await loadCoValueOrFail(node1.node, testMap.id),
+    );
+    expect(testMapOnNode1.get("name")).toEqual("Test");
+
+    // node2 should also be able to access the map because it is admin of parentGroup
+    const testMapOnNode2 = expectMap(
+      await loadCoValueOrFail(node2.node, testMap.id),
+    );
+    expect(testMapOnNode2.get("name")).toEqual("Test");
   });
 
   test("should be possible to extend a group after getting revoked from the parent group", async () => {
