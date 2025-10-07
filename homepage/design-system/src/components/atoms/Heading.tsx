@@ -28,7 +28,7 @@ export function Heading({
       {...props}
       className={clsx(
         "text-stone-950 dark:text-white font-display",
-        classes[size],
+        className ? className : classes[size],
       )}
     />
   );

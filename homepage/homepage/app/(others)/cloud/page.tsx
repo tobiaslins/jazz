@@ -83,18 +83,18 @@ export default function Cloud() {
             Because Jazz is open-source, you can optionally run your own sync
             nodes &mdash; in a variety of setups.
           </P>
-          <GappedGrid>
-            <GridCard headingLevel={3}>
+          <GappedGrid className="text-lg font-bold tracking-tight mb-2">
+            <GridCard>
               <Prose>
                 <CloudPlusBackup />
               </Prose>
             </GridCard>
-            <GridCard headingLevel={3}>
+            <GridCard className="text-lg font-bold tracking-tight mb-2">
               <Prose>
                 <CloudPlusDIY />
               </Prose>
             </GridCard>
-            <GridCard headingLevel={3}>
+            <GridCard className="text-lg font-bold tracking-tight mb-2">
               <Prose>
                 <CompletelyDIY />
               </Prose>

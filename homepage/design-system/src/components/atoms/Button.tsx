@@ -79,6 +79,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const classNames = clsx(
       "inline-flex items-center justify-center gap-2 rounded-lg text-center transition-colors w-fit text-nowrap",
+      "after:absolute after:inset-[-6px] after:content-[''] after:pointer-events-none",
       getClasses({ variant }),
       "disabled:pointer-events-none disabled:opacity-70",
       disabled && "opacity-50 cursor-not-allowed pointer-events-none",
@@ -92,6 +93,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           target={newTab ? "_blank" : undefined}
           className={classNames}
           onClick={onClick}
+          aria-label={type}
         >
           {icon && (
             <Icon
@@ -119,6 +121,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         className={classNames}
         type={type}
         onClick={onClick}
+        aria-label={type}
       >
         {loading ? (
           <Spinner className="size-5" />

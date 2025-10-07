@@ -27,7 +27,9 @@ export function GetStartedSnippetSelect() {
         <CopyButton
           code="npx create-jazz-app@latest"
           size="sm"
-          className={clsx("mt-0.5 mr-0.5 z-100 md:opacity-100 hidden md:block")}
+          className={clsx(
+            "mt-0.5 mr-0.5 z-100 md:opacity-100 hidden md:block",
+          )}
           onCopy={() => track("create-jazz-app command copied from hero")}
         />
         <NpxCreateJazzApp />
@@ -37,9 +39,14 @@ export function GetStartedSnippetSelect() {
           <FrameworkSelect onSelect={setSelectedFramework} size="md" routerPush={false} className="h-full md:px-4" />
         </div>
         <div className="flex h-full items-center">
-          <Button intent="primary" size="lg" className="w-full">
-            <Link className="my-[0.11rem]" href={`/docs/${selectedFramework}`}>Get started</Link>
-          </Button>
+            <Button
+              intent="primary"
+              size="lg"
+              className="w-full"
+              href={`/docs/${selectedFramework}`}
+            >
+              Get started
+            </Button>
         </div>
       </div>
     </GappedGrid>
