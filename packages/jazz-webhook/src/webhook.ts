@@ -6,15 +6,15 @@ export const LastSuccessfulEmit = co.map({
 export type LastSuccessfulEmit = co.loaded<typeof LastSuccessfulEmit>;
 
 export const WebhookRegistration = co.map({
-  callback: z.string(),
+  webhookUrl: z.string(),
   coValueId: z.string(),
   active: z.boolean(),
   lastSuccessfulEmit: LastSuccessfulEmit,
 });
 export type WebhookRegistration = co.loaded<typeof WebhookRegistration>;
 
-export const WebhookRegistry = co.record(z.string(), WebhookRegistration);
-export type WebhookRegistry = co.loaded<typeof WebhookRegistry>;
+export const RegistryState = co.record(z.string(), WebhookRegistration);
+export type RegistryState = co.loaded<typeof RegistryState>;
 
 export interface JazzWebhookOptions {
   /** Maximum number of retry attempts for failed webhooks (default: 5) */
@@ -23,29 +23,33 @@ export interface JazzWebhookOptions {
   baseDelayMs?: number;
 }
 
-export class JazzWebhook {
-  public registry: WebhookRegistry;
+export class WebhookRegistry {
+  public state: RegistryState;
   private activeSubscriptions = new Map<string, () => void>();
+  private rootUnsubscribe: (() => void) | null = null;
 
   constructor(
-    registry: WebhookRegistry,
+    registry: RegistryState,
     private options: JazzWebhookOptions = {},
   ) {
-    this.registry = registry;
+    this.state = registry;
   }
 
-  static createRegistry(owner: Group | Account): WebhookRegistry {
-    return WebhookRegistry.create({}, owner);
+  static createRegistry(owner: Group | Account): RegistryState {
+    return RegistryState.create({}, owner);
   }
 
-  static async load(registryId: string, options: JazzWebhookOptions = {}) {
-    const registry = await WebhookRegistry.load(registryId);
+  static async loadAndStart(
+    registryId: string,
+    options: JazzWebhookOptions = {},
+  ) {
+    const registry = await RegistryState.load(registryId);
 
     if (!registry) {
       throw new Error(`Webhook registry with ID ${registryId} not found`);
     }
 
-    const webhook = new JazzWebhook(registry, options);
+    const webhook = new WebhookRegistry(registry, options);
     webhook.start();
     return webhook;
   }
@@ -53,39 +57,12 @@ export class JazzWebhook {
   /**
    * Registers a new webhook for a CoValue.
    *
-   * @param callback - The HTTP URL to call when the CoValue changes
+   * @param webhookUrl - The HTTP URL to call when the CoValue changes
    * @param coValueId - The ID of the CoValue to monitor (must start with "co_z")
    * @returns The ID of the registered webhook
    */
-  register(callback: string, coValueId: string): string {
-    try {
-      new URL(callback);
-    } catch {
-      throw new Error(`Invalid callback URL: ${callback}`);
-    }
-
-    if (!coValueId.startsWith("co_z")) {
-      throw new Error(
-        `Invalid CoValue ID format: ${coValueId}. Expected format: co_z...`,
-      );
-    }
-
-    const registration = WebhookRegistration.create(
-      {
-        callback,
-        coValueId,
-        active: true,
-        lastSuccessfulEmit: LastSuccessfulEmit.create(
-          { v: -1 },
-          this.registry.$jazz.owner,
-        ),
-      },
-      this.registry.$jazz.owner,
-    );
-
-    this.registry.$jazz.set(registration.$jazz.id, registration);
-
-    return registration.$jazz.id;
+  register(webhookUrl: string, coValueId: string): Promise<string> {
+    return registerWebhook(this.state.$jazz.id, webhookUrl, coValueId);
   }
 
   /**
@@ -94,12 +71,12 @@ export class JazzWebhook {
    * @param webhookId - The ID of the webhook to unregister
    */
   unregister(webhookId: string): void {
-    const webhook = this.registry[webhookId];
+    const webhook = this.state[webhookId];
     if (!webhook) {
       throw new Error(`Webhook with ID ${webhookId} not found`);
     }
 
-    this.registry.$jazz.delete(webhookId);
+    this.state.$jazz.delete(webhookId);
     webhook.$jazz.set("active", false);
   }
 
@@ -153,11 +130,13 @@ export class JazzWebhook {
    * a shutdown or when loading an existing registry.
    */
   async start(): Promise<void> {
-    const fullyLoadedRegistry = await this.registry.$jazz.ensureLoaded({
-      resolve: { $each: true },
-    });
+    if (this.rootUnsubscribe) {
+      return;
+    }
+
+    // TODO: this would be much more efficient with subscription diffs
     const createAndDeleteSubscriptions = (
-      registry: co.loaded<typeof WebhookRegistry, { $each: true }>,
+      registry: co.loaded<typeof RegistryState, { $each: true }>,
     ) => {
       for (const webhook of Object.values(registry)) {
         const exists = this.activeSubscriptions.has(webhook.$jazz.id);
@@ -172,18 +151,21 @@ export class JazzWebhook {
         }
       }
     };
-    // TODO: this would be much more efficient with subscription diffs
-    fullyLoadedRegistry.$jazz.subscribe(
-      { resolve: { $each: true } },
+
+    this.rootUnsubscribe = this.state.$jazz.subscribe(
+      {
+        resolve: { $each: true },
+      },
       createAndDeleteSubscriptions,
     );
-    createAndDeleteSubscriptions(fullyLoadedRegistry);
   }
 
   shutdown(): void {
     for (const unsubscribe of this.activeSubscriptions.values()) {
       unsubscribe();
     }
+    this.rootUnsubscribe?.();
+    this.rootUnsubscribe = null;
   }
 }
 
@@ -267,7 +249,7 @@ class WebhookEmitter {
    */
   private async emitWebhook(updates: number): Promise<void> {
     try {
-      const response = await fetch(this.webhook.callback, {
+      const response = await fetch(this.webhook.webhookUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -378,3 +360,50 @@ class WebhookEmitter {
     this.nextSchedule = null;
   }
 }
+
+export const registerWebhook = async (
+  registryId: string,
+  webhookUrl: string,
+  coValueId: string,
+): Promise<string> => {
+  try {
+    new URL(webhookUrl);
+  } catch {
+    throw new Error(`Invalid webhook URL: ${webhookUrl}`);
+  }
+
+  if (!registryId.startsWith("co_z")) {
+    throw new Error(
+      `Invalid Registry ID format: ${coValueId}. Expected format: co_z...`,
+    );
+  }
+
+  if (!coValueId.startsWith("co_z")) {
+    throw new Error(
+      `Invalid CoValue ID format: ${coValueId}. Expected format: co_z...`,
+    );
+  }
+
+  const registry = await RegistryState.load(registryId);
+
+  if (!registry) {
+    throw new Error(`Couldn't load registry with ID ${registryId}`);
+  }
+
+  const registration = WebhookRegistration.create(
+    {
+      webhookUrl,
+      coValueId,
+      active: true,
+      lastSuccessfulEmit: LastSuccessfulEmit.create(
+        { v: -1 },
+        registry.$jazz.owner,
+      ),
+    },
+    registry.$jazz.owner,
+  );
+
+  registry.$jazz.set(registration.$jazz.id, registration);
+
+  return registration.$jazz.id;
+};

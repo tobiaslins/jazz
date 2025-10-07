@@ -1,18 +1,18 @@
 import { describe, expect, test, beforeEach } from "vitest";
 import { createJazzTestAccount } from "jazz-tools/testing";
 import { startWebhookService } from "../service.js";
-import { JazzWebhook } from "../webhook.js";
+import { WebhookRegistry } from "../webhook.js";
 import { WebhookServiceResponses } from "../types.js";
 
 describe("WebhookService", () => {
   let service: ReturnType<typeof startWebhookService>;
-  let webhook: JazzWebhook;
+  let webhook: WebhookRegistry;
 
   beforeEach(async () => {
     const account = await createJazzTestAccount({
       isCurrentActiveAccount: true,
     });
-    webhook = new JazzWebhook(JazzWebhook.createRegistry(account));
+    webhook = new WebhookRegistry(WebhookRegistry.createRegistry(account));
     service = startWebhookService(webhook);
   });
 

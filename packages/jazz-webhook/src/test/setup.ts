@@ -1,6 +1,5 @@
 import { beforeEach, afterEach } from "vitest";
-import { setupJazzTestSync, createJazzTestAccount } from "jazz-tools/testing";
-import { WebhookRegistry } from "../index.js";
+import { setupJazzTestSync } from "jazz-tools/testing";
 
 // Global test setup
 beforeEach(async () => {

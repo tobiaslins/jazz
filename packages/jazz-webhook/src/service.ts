@@ -3,7 +3,7 @@ import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { JazzWebhook, WebhookRegistration } from "./webhook.js";
+import { WebhookRegistry, WebhookRegistration } from "./webhook.js";
 import {
   WebhookServiceOptions,
   RegisterWebhookResponse,
@@ -23,7 +23,7 @@ const webhookIdParamSchema = z.object({
 });
 
 export function startWebhookService(
-  webhook: JazzWebhook,
+  webhook: WebhookRegistry,
   options: WebhookServiceOptions = {},
 ) {
   webhook.start();
@@ -64,7 +64,7 @@ export function startWebhookService(
 
           const webhookInfo: WebhookInfo = {
             id: webhookRegistration.$jazz.id,
-            webhookUrl: webhookRegistration.callback,
+            webhookUrl: webhookRegistration.webhookUrl,
             coValueId: webhookRegistration.coValueId,
             active: webhookRegistration.active,
             updates: webhookRegistration.lastSuccessfulEmit.v,
@@ -94,7 +94,10 @@ export function startWebhookService(
       try {
         const body = c.req.valid("json");
 
-        const webhookId = webhook.register(body.webhookUrl, body.coValueId);
+        const webhookId = await webhook.register(
+          body.webhookUrl,
+          body.coValueId,
+        );
 
         const response: RegisterWebhookResponse = {
           webhookId,
@@ -141,7 +144,7 @@ export function startWebhookService(
         message: "Webhook service is running",
         data: {
           timestamp: new Date().toISOString(),
-          webhookCount: Object.keys(webhook.registry).length,
+          webhookCount: Object.keys(webhook.state).length,
         },
       };
 

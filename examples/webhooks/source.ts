@@ -1,6 +1,6 @@
 import { startWorker } from "jazz-tools/worker";
 import { co, z } from "jazz-tools";
-import { JazzWebhook } from "jazz-webhook";
+import { registerWebhook } from "jazz-webhook";
 
 startWorker({
   syncServer: "wss://cloud.jazz.tools/?key=webhook-example@garden.co",
@@ -15,11 +15,8 @@ startWorker({
 
   console.log(myCoMap);
 
-  const registry = await JazzWebhook.load(
+  const webhookId = await registerWebhook(
     process.env.JAZZ_WEBHOOK_REGISTRY_ID!,
-  );
-
-  const webhookId = registry.register(
     "http://localhost:4444",
     myCoMap.$jazz.id,
   );

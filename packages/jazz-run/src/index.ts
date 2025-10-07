@@ -7,7 +7,7 @@ import { createWorkerAccount } from "./createWorkerAccount.js";
 import { startSyncServer } from "./startSyncServer.js";
 import { serverDefaults } from "./config.js";
 import { startWorker } from "jazz-tools/worker";
-import { JazzWebhook } from "jazz-webhook";
+import { RegistryState, WebhookRegistry } from "jazz-webhook";
 import { co } from "jazz-tools";
 
 const jazzTools = Command.make("jazz-tools");
@@ -125,10 +125,8 @@ const webhookRunCommand = Command.make(
       );
 
       const webhook = yield* Effect.promise(() =>
-        JazzWebhook.load(process.env.JAZZ_WEBHOOK_REGISTRY_ID!),
+        WebhookRegistry.loadAndStart(process.env.JAZZ_WEBHOOK_REGISTRY_ID!),
       );
-
-      yield* Effect.promise(() => webhook.start());
 
       yield* Effect.addFinalizer(() => Effect.sync(() => webhook.shutdown()));
       yield* Effect.addFinalizer(() => Effect.promise(() => shutdownWorker()));
@@ -180,7 +178,7 @@ const webhookGrantCommand = Command.make(
       }
 
       const registry = yield* Effect.promise(() =>
-        JazzWebhook.load(registryID),
+        RegistryState.load(registryID),
       );
 
       const account = yield* Effect.promise(() => co.account().load(accountID));
@@ -189,7 +187,11 @@ const webhookGrantCommand = Command.make(
         throw new Error("Account not found");
       }
 
-      registry.registry.$jazz.owner.addMember(account, "writer");
+      if (!registry) {
+        throw new Error("Couldn't load registry with ID " + registryID);
+      }
+
+      registry.$jazz.owner.addMember(account, "writer");
 
       yield* Console.log(
         "Webhook registration rights granted to " +
@@ -240,7 +242,7 @@ const webhookCreateRegistryCommand = Command.make(
       );
 
       const registryGroup = co.group().create({ owner: worker });
-      const registry = JazzWebhook.createRegistry(registryGroup);
+      const registry = WebhookRegistry.createRegistry(registryGroup);
 
       yield* Console.log("JAZZ_WEBHOOK_REGISTRY_ID=" + registry.$jazz.id);
       yield* Effect.promise(() => shutdownWorker());
