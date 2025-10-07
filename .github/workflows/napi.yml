@@ -10,8 +10,9 @@ env:
   push:
     paths:
       - 'crates/cojson-core-napi/**'
+      - 'crates/cojson-core/**'
       - '.github/workflows/napi.yml'
-      - '.github/workflows/napi.yml'
+      - '.github/workflows/reusable-napi.yml'
     branches:
       - main
     tags-ignore:
@@ -20,6 +21,7 @@ env:
     types: [opened, synchronize, reopened]
     paths:
       - 'crates/cojson-core-napi/**'
+      - 'crates/cojson-core/**'
       - '.github/workflows/napi.yml'
       - '.github/workflows/reusable-napi.yml'
 jobs:
