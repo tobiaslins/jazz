@@ -4,7 +4,6 @@
   "type": "module",
   "dependencies": {
     "cojson": "workspace:*",
-    "cojson-latest": "npm:cojson@0.18.18",
     "vitest": "catalog:default"
   },
   "scripts": {
