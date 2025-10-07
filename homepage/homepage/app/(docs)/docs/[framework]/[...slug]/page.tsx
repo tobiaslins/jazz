@@ -17,7 +17,7 @@ type Frontmatter = {
 };
 
 export async function generateMetadata({ params }: { params: Promise<Params> }) {
-  const awaitedParams = await params; 
+  const awaitedParams = await params;
   const framework = awaitedParams.framework;
   const slug = awaitedParams.slug ?? [];
 
@@ -27,10 +27,10 @@ export async function generateMetadata({ params }: { params: Promise<Params> }) 
 }
 
 export default async function Page({ params }: { params: Promise<Params> }) {
-  const awaitedParams = await params; 
+  const awaitedParams = await params;
   const framework = awaitedParams.framework;
   const slug = awaitedParams.slug ?? [];
-  
+
   return <DocPage framework={framework} slug={slug} />;
 }
 
@@ -83,12 +83,9 @@ function getAllDocPaths() {
     }
   }
 
-  // Add top-level /docs/[framework] pages (slug = [])
-  for (const framework of frameworks) {
-    allPaths.push({ framework, slug: [] });
-  }
-
-  return allPaths;
+  // Don't generate empty slugs here - those are handled by /docs/[framework]/page.tsx
+  // The required catch-all [...slug] only handles paths with at least one segment
+  return allPaths.filter(path => path.slug.length > 0);
 }
 
 export async function generateStaticParams() {

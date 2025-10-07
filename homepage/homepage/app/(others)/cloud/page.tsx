@@ -38,7 +38,7 @@ export const metadata: Metadata = {
 export default function Cloud() {
   return (
     <div className="space-y-16">
-      <div className="container space-y-12 overflow-x-hidden sm:overflow-x-visible">
+      <div className="container space-y-12 overflow-hidden">
         <HeroHeader
           title="Jazz Cloud"
           slogan="Real-time sync and storage infrastructure that scales up to millions of users."

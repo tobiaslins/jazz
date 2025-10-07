@@ -67,7 +67,7 @@ const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
 
 const config = {
   resolver: {
-    sourceExts: ["mjs", "js", "json", "ts", "tsx"],
+    sourceExts: ["mjs", "js", "json", "ts", "tsx", "cjs"],
     requireCycleIgnorePatterns: [/(^|\/|\\)node_modules($|\/|\\)/]
   }
 };
@@ -111,7 +111,7 @@ module.exports = makeMetroConfig({
     resolveRequest: MetroSymlinksResolver(),
     extraNodeModules,
     nodeModulesPaths,
-    sourceExts: ["mjs", "js", "json", "ts", "tsx"],
+    sourceExts: ["mjs", "js", "json", "ts", "tsx", "cjs"],
   },
   watchFolders,
 });
