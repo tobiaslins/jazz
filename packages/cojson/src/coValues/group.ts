@@ -366,8 +366,9 @@ export class RawGroup<
     /**
      * WriteOnly members can only see their own changes.
      *
-     * We don't want to reveal the readKey to them so we create a new one specifically for them and also reveal it to everyone else with a reader or higher-capability role (but crucially not to other writer-only members)
-     * to everyone else.
+     * We don't want to reveal the readKey to them so we create a new one specifically for them
+     * and also reveal it to everyone else with a reader or higher-capability role
+     * (but crucially not to other writer-only members).
      *
      * To never reveal the readKey to writeOnly members we also create a dedicated writeKey for the
      * invite.
@@ -449,6 +450,7 @@ export class RawGroup<
       writeKeyForNewMember.secret,
     );
 
+    // Reveal the write key to Account members
     for (const otherMemberKey of this.getMemberKeys()) {
       const memberRole = this.get(otherMemberKey);
 
@@ -475,6 +477,11 @@ export class RawGroup<
         );
       }
     }
+
+    // Reveal the write key to the parent groups
+    for (const parentGroup of this.getParentGroups()) {
+      this.revealReadKeyToParentGroup(parentGroup);
+    }
   }
 
   private storeKeyRevelationForMember(
@@ -494,6 +501,28 @@ export class RawGroup<
           tx: this.core.nextTransactionID(),
         },
       }),
+      "trusting",
+    );
+  }
+
+  private storeKeyRevelationForParentGroup(
+    parentReadKeyID: KeyID,
+    parentReadKeySecret: KeySecret,
+    childReadKeyID: KeyID,
+    childReadKeySecret: KeySecret,
+  ) {
+    this.set(
+      `${childReadKeyID}_for_${parentReadKeyID}`,
+      this.crypto.encryptKeySecret({
+        encrypting: {
+          id: parentReadKeyID,
+          secret: parentReadKeySecret,
+        },
+        toEncrypt: {
+          id: childReadKeyID,
+          secret: childReadKeySecret,
+        },
+      }).encrypted,
       "trusting",
     );
   }
@@ -556,7 +585,7 @@ export class RawGroup<
     });
   }
 
-  getAllMemberKeysSet() {
+  getAllMemberKeysSet(): Set<RawAccountID | AgentID> {
     const memberKeys = new Set(this.getMemberKeys());
 
     for (const group of this.getParentGroups()) {
@@ -698,7 +727,7 @@ export class RawGroup<
     return undefined;
   }
 
-  findValidParentKeys(keyID: KeyID, parentGroup: CoValueCore) {
+  private findValidParentKeys(keyID: KeyID, parentGroup: CoValueCore) {
     const validParentKeys: { id: KeyID; secret: KeySecret }[] = [];
 
     for (const co of this.keys()) {
@@ -937,6 +966,10 @@ export class RawGroup<
     parent.set(`child_${this.id}`, "extend", "trusting");
     this.set(`parent_${parent.id}`, value, "trusting");
 
+    this.revealReadKeyToParentGroup(parent);
+  }
+
+  private revealReadKeyToParentGroup(parent: RawGroup) {
     if (!isAccountRole(parent.myRole())) {
       // Create a writeOnly key in the parent group to be able to reveal the current child key to the parent group
       parent.internalCreateWriteOnlyKeyForMember(
@@ -958,19 +991,11 @@ export class RawGroup<
       throw new Error("Can't extend group without child read key secret");
     }
 
-    this.set(
-      `${childReadKeyID}_for_${parentReadKeyID}`,
-      this.crypto.encryptKeySecret({
-        encrypting: {
-          id: parentReadKeyID,
-          secret: parentReadKeySecret,
-        },
-        toEncrypt: {
-          id: childReadKeyID,
-          secret: childReadKeySecret,
-        },
-      }).encrypted,
-      "trusting",
+    this.storeKeyRevelationForParentGroup(
+      parentReadKeyID,
+      parentReadKeySecret,
+      childReadKeyID,
+      childReadKeySecret,
     );
   }
 
