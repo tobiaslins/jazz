@@ -805,9 +805,14 @@ export class CoValueCore {
     for (const [sessionID, sessionLog] of this.verified.sessions.entries()) {
       const count = this.verifiedTransactionsKnownSessions[sessionID] ?? 0;
 
-      sessionLog.transactions.forEach((tx, txIndex) => {
-        if (txIndex < count) {
-          return;
+      for (
+        let txIndex = count;
+        txIndex < sessionLog.transactions.length;
+        txIndex++
+      ) {
+        const tx = sessionLog.transactions[txIndex];
+        if (!tx) {
+          continue;
         }
 
         const txID = isBranched
@@ -852,7 +857,7 @@ export class CoValueCore {
         this.verifiedTransactions.push(verifiedTransaction);
         this.lastVerifiedTransactionBySessionID[sessionID] =
           verifiedTransaction;
-      });
+      }
 
       this.verifiedTransactionsKnownSessions[sessionID] =
         sessionLog.transactions.length;
