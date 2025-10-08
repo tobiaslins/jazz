@@ -9,8 +9,13 @@ env:
   TARGET_CC: 'clang'
 'on':
   workflow_call:
+    inputs:
+      concurrency:
+        type: string
+        description: The concurrency group to use for the workflow.
+        default: napi
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.concurrency }}
   cancel-in-progress: true
 jobs:
   lint:
