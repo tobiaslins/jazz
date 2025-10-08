@@ -54,7 +54,7 @@ export default function Cloud() {
               decentralized cloud interconnect.
             </P>
           </GridCard>
-          <GridCard className="text-xl mb-2 font-semibold tracking-tight">
+          <GridCard>
             <H2 className="text-xl mb-2 font-semibold tracking-tight">
               Smart caching
             </H2>
