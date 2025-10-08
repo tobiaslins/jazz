@@ -43,6 +43,7 @@ export interface ButtonProps
   className?: string;
   disabled?: boolean;
   onClick?: React.MouseEventHandler;
+  ariaLabel?: string;
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -62,6 +63,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       iconPosition = "left",
       type = "button",
       onClick,
+      ariaLabel,
       ...buttonProps
     },
     ref,
@@ -93,7 +95,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           target={newTab ? "_blank" : undefined}
           className={classNames}
           onClick={onClick}
-          aria-label={type}
+          aria-label={ariaLabel}
         >
           {icon && (
             <Icon
@@ -121,7 +123,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         className={classNames}
         type={type}
         onClick={onClick}
-        aria-label={type}
+        aria-label={ariaLabel}
       >
         {loading ? (
           <Spinner className="size-5" />

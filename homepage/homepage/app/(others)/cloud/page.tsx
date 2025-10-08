@@ -46,7 +46,7 @@ export default function Cloud() {
         <LatencyMap />
         <GappedGrid>
           <GridCard>
-            <H2 className="text-stone-950 dark:text-white font-display text-xl md:text-2xl mb-2 font-semibold tracking-tight">
+            <H2 className="text-xl mb-2 font-semibold tracking-tight">
               Optimal cloud routing
             </H2>
             <P>
@@ -54,8 +54,8 @@ export default function Cloud() {
               decentralized cloud interconnect.
             </P>
           </GridCard>
-          <GridCard>
-            <H2 className="text-stone-950 dark:text-white font-display text-xl md:text-2xl mb-2 font-semibold tracking-tight">
+          <GridCard className="text-xl mb-2 font-semibold tracking-tight">
+            <H2 className="text-xl mb-2 font-semibold tracking-tight">
               Smart caching
             </H2>
 
@@ -65,7 +65,7 @@ export default function Cloud() {
             </P>
           </GridCard>
           <GridCard>
-            <H2 className="text-stone-950 dark:text-white font-display text-xl md:text-2xl mb-2 font-semibold tracking-tight">
+            <H2 className="text-xl mb-2 font-semibold tracking-tight">
               Blob storage & media streaming
             </H2>
 
@@ -94,19 +94,19 @@ export default function Cloud() {
             Because Jazz is open-source, you can optionally run your own sync
             nodes &mdash; in a variety of setups.
           </P>
-          <GappedGrid className="text-lg font-bold tracking-tight mb-2">
+          <GappedGrid>
             <GridCard>
-              <Prose>
+              <Prose size="sm">
                 <CloudPlusBackup />
               </Prose>
             </GridCard>
-            <GridCard className="text-lg font-bold tracking-tight mb-2">
-              <Prose>
+            <GridCard>
+              <Prose size="sm">
                 <CloudPlusDIY />
               </Prose>
             </GridCard>
-            <GridCard className="text-lg font-bold tracking-tight mb-2">
-              <Prose>
+            <GridCard>
+              <Prose size="sm">
                 <CompletelyDIY />
               </Prose>
             </GridCard>

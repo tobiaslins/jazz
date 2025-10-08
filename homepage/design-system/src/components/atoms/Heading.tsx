@@ -23,13 +23,18 @@ export function Heading({
   let Element: `h${typeof level}` = `h${level}`;
   const size = customSize || level;
 
-  return (
-    <Element
-      {...props}
-      className={clsx(
-        "text-stone-950 dark:text-white font-display",
-        className ? className : classes[size],
-      )}
-    />
+  // Separate out default classes
+  const defaultClasses = classes[size];
+
+  // Check if user passed a text-* class
+  const hasTextOverride = className?.split(" ").some((c) => /^text-/.test(c));
+
+  const finalClasses = clsx(
+    "text-stone-950 dark:text-white font-display",
+    hasTextOverride
+      ? defaultClasses.filter((c) => !/^text-/.test(c))
+      : defaultClasses,
+    className,
   );
+  return <Element {...props} className={finalClasses} />;
 }
