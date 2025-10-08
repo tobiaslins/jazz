@@ -121,7 +121,9 @@ Currently, the Jazz Loader is tested on the following edge environments:
 
 ## Node-API
 
-Jazz supports a native Node.js implementation of its core crypto, but it is not enabled by default.
+Jazz uses a WASM-based crypto implementation for maximum compatibility and performance across a wide variety of environments. 
+
+If you’re in full control of your runtime and know it will always run on Node.js with a supported hardware configuration, you can enable the faster native Node.js crypto implementation instead.
 
 You can use it as follows:
 
