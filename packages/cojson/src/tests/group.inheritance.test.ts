@@ -3,6 +3,7 @@ import type { CoID, RawGroup } from "../exports";
 import { NewContentMessage } from "../sync";
 import {
   SyncMessagesLog,
+  createNConnectedNodes,
   createThreeConnectedNodes,
   createTwoConnectedNodes,
   loadCoValueOrFail,
@@ -22,17 +23,12 @@ describe("extend", () => {
     const { node1, node2 } = await createTwoConnectedNodes("server", "server");
 
     const group = node1.node.createGroup();
-    group.addMember(
-      await loadCoValueOrFail(node1.node, node2.accountID),
-      "writer",
-    );
+    const node2OnNode1 = await loadCoValueOrFail(node1.node, node2.accountID);
+    group.addMember(node2OnNode1, "writer");
 
     const childGroup = node1.node.createGroup();
     childGroup.extend(group);
-    childGroup.addMember(
-      await loadCoValueOrFail(node1.node, node2.accountID),
-      "writeOnly",
-    );
+    childGroup.addMember(node2OnNode1, "writeOnly");
 
     const map = childGroup.createMap();
     map.set("test", "Written from the admin");
@@ -390,6 +386,57 @@ describe("extend", () => {
       await loadCoValueOrFail(node2.node, testMap.id),
     );
     expect(testMapOnNode2.get("name")).toEqual("Test");
+  });
+
+  test("adding new group members should work for groups extended without having membership in the parent group", async () => {
+    const nodes = await createNConnectedNodes(
+      "server",
+      "server",
+      "server",
+      "server",
+    );
+    const node1 = nodes[0]!;
+    const node2 = nodes[1]!;
+    const node3 = nodes[2]!;
+    const node4 = nodes[3]!;
+
+    const parentGroup = node1.node.createGroup();
+    const account2OnNode1 = await loadCoValueOrFail(
+      node1.node,
+      node2.accountID,
+    );
+    parentGroup.addMember(account2OnNode1, "admin");
+
+    const childGroup = node1.node.createGroup();
+    childGroup.extend(parentGroup, "admin");
+
+    const sharedGroup = node3.node.createGroup();
+
+    // Account3 does not have permissions over the childGroup being extended
+    const childGroupOnNode3 = await loadCoValueOrFail(
+      node3.node,
+      childGroup.id,
+    );
+    sharedGroup.extend(childGroupOnNode3, "admin");
+
+    // Add a new parent group to the previously extended child group
+    const newParentGroup = node1.node.createGroup();
+    const account4OnNode1 = await loadCoValueOrFail(
+      node1.node,
+      node4.accountID,
+    );
+    newParentGroup.addMember(account4OnNode1, "admin");
+    childGroup.extend(newParentGroup);
+
+    // Create a map owned by sharedGroup
+    const testMap = sharedGroup.createMap();
+    testMap.set("name", "Test");
+
+    // Account4 should be able to access the map because it is admin of newParentGroup
+    const testMapOnNode4 = expectMap(
+      await loadCoValueOrFail(node4.node, testMap.id),
+    );
+    expect(testMapOnNode4.get("name")).toEqual("Test");
   });
 
   test("should be possible to extend a group after getting revoked from the parent group", async () => {

@@ -108,9 +108,6 @@ export async function createNConnectedNodes(...nodeRoles: Peer["role"][]) {
   );
   for (let i = 0; i < nodes.length; i++) {
     for (let j = i + 1; j < nodes.length; j++) {
-      if (i === j) {
-        continue;
-      }
       connectTwoPeers(
         nodes[i]!.node,
         nodes[j]!.node,

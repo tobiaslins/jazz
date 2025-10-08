@@ -435,10 +435,10 @@ export class RawGroup<
     }
   }
 
-  internalCreateWriteOnlyKeyForMember(
+  private internalCreateWriteOnlyKeyForMember(
     memberKey: RawAccountID | AgentID,
     agent: AgentID,
-  ) {
+  ): KeyID {
     const writeKeyForNewMember = this.crypto.newRandomKeySecret();
 
     this.set(`writeKeyFor_${memberKey}`, writeKeyForNewMember.id, "trusting");
@@ -478,10 +478,19 @@ export class RawGroup<
       }
     }
 
-    // Reveal the write key to the parent groups
+    // Reveal the new writeOnly key to parent groups
     for (const parentGroup of this.getParentGroups()) {
-      this.revealReadKeyToParentGroup(parentGroup);
+      this.revealReadKeyToParentGroup(
+        parentGroup,
+        writeKeyForNewMember.id,
+        writeKeyForNewMember.secret,
+        {
+          revealAllWriteOnlyKeys: false,
+        },
+      );
     }
+
+    return writeKeyForNewMember.id;
   }
 
   private storeKeyRevelationForMember(
@@ -966,13 +975,33 @@ export class RawGroup<
     parent.set(`child_${this.id}`, "extend", "trusting");
     this.set(`parent_${parent.id}`, value, "trusting");
 
-    this.revealReadKeyToParentGroup(parent);
+    const { id: childReadKeyID, secret: childReadKeySecret } =
+      this.getCurrentReadKey();
+    if (childReadKeySecret === undefined) {
+      throw new Error("Can't extend group without child read key secret");
+    }
+
+    this.revealReadKeyToParentGroup(
+      parent,
+      childReadKeyID,
+      childReadKeySecret,
+      {
+        revealAllWriteOnlyKeys: true,
+      },
+    );
   }
 
-  private revealReadKeyToParentGroup(parent: RawGroup) {
+  private revealReadKeyToParentGroup(
+    parent: RawGroup,
+    readKeyId: KeyID,
+    readKeySecret: KeySecret,
+    { revealAllWriteOnlyKeys }: { revealAllWriteOnlyKeys: boolean },
+  ) {
+    let writeOnlyKeyID: KeyID | undefined;
+
     if (!isAccountRole(parent.myRole())) {
       // Create a writeOnly key in the parent group to be able to reveal the current child key to the parent group
-      parent.internalCreateWriteOnlyKeyForMember(
+      writeOnlyKeyID = parent.internalCreateWriteOnlyKeyForMember(
         this.core.node.getCurrentAgent().id,
         this.core.node.getCurrentAgent().currentAgentID(),
       );
@@ -985,18 +1014,35 @@ export class RawGroup<
       throw new Error("Can't extend group without parent read key secret");
     }
 
-    const { id: childReadKeyID, secret: childReadKeySecret } =
-      this.getCurrentReadKey();
-    if (!childReadKeySecret) {
-      throw new Error("Can't extend group without child read key secret");
-    }
-
     this.storeKeyRevelationForParentGroup(
       parentReadKeyID,
       parentReadKeySecret,
-      childReadKeyID,
-      childReadKeySecret,
+      readKeyId,
+      readKeySecret,
     );
+
+    if (revealAllWriteOnlyKeys) {
+      for (const keyID of this.getWriteOnlyKeys()) {
+        // If there's a new writeOnly key, it's already been revealed
+        if (keyID === writeOnlyKeyID) {
+          continue;
+        }
+
+        const secret = this.core.getReadKey(keyID);
+
+        if (!secret) {
+          logger.error("Can't find key " + keyID);
+          continue;
+        }
+
+        this.storeKeyRevelationForParentGroup(
+          parentReadKeyID,
+          parentReadKeySecret,
+          keyID,
+          secret,
+        );
+      }
+    }
   }
 
   revokeExtend(parent: RawGroup) {
