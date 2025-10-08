@@ -23,18 +23,25 @@ export function Heading({
   let Element: `h${typeof level}` = `h${level}`;
   const size = customSize || level;
 
-  // Separate out default classes
   const defaultClasses = classes[size];
 
-  // Check if user passed a text-* class
-  const hasTextOverride = className?.split(" ").some((c) => /^text-/.test(c));
+  // Matches text size classes only (e.g., text-sm, text-3xl, lg:text-2xl)
+  const textSizePattern =
+    /(^|\s)([a-z:]*text-(xs|sm|base|lg|xl|\d{1,2}xl))($|\s)/;
+  // Check if user supplied a text-size override (not alignment/wrapping)
+  const hasTextSizeOverride = className
+    ? textSizePattern.test(className)
+    : false;
 
   const finalClasses = clsx(
     "text-stone-950 dark:text-white font-display",
-    hasTextOverride
-      ? defaultClasses.filter((c) => !/^text-/.test(c))
+    hasTextSizeOverride
+      ? defaultClasses.filter(
+          (c) => !/^text-(xs|sm|base|lg|xl|\d{1,2}xl)/.test(c),
+        )
       : defaultClasses,
     className,
   );
+
   return <Element {...props} className={finalClasses} />;
 }
