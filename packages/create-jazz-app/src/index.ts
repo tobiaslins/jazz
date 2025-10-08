@@ -368,6 +368,12 @@ module.exports = mergeConfig(getDefaultConfig(__dirname), config);`;
 
     // Clean up temp directory
     fs.rmSync(tempDocsDir, { recursive: true, force: true });
+    // Fetch the latest llms-full.txt from the web
+    const response = await fetch("https://jazz.tools/llms-full.txt");
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const text = await response.text();
+    fs.writeFileSync(`${projectName}/.cursor/docs/llms-full.md`, text, "utf-8");
+    docsSpinner.succeed(chalk.green("Fetched latest llms-full.md"));
   } catch (error) {
     docsSpinner.fail(chalk.red("Failed to add .cursor directory"));
     throw error;
