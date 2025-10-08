@@ -46,11 +46,8 @@ pnpm install cojson-core-napi
 ```
 
 The package includes pre-built binaries for the following platforms:
-- Windows (x64, x86, ARM64)
 - macOS (x64, ARM64)
 - Linux (x64, ARM64, ARM, musl)
-- FreeBSD (x64)
-- Android (ARM64, ARM)
 
 ## API Reference
 

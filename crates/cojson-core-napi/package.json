@@ -20,19 +20,13 @@
     "binaryName": "cojson-core-napi",
     "packageName": "cojson-core-napi",
     "targets": [
-      "x86_64-pc-windows-msvc",
       "x86_64-apple-darwin",
       "x86_64-unknown-linux-gnu",
       "x86_64-unknown-linux-musl",
       "aarch64-unknown-linux-gnu",
-      "i686-pc-windows-msvc",
       "armv7-unknown-linux-gnueabihf",
       "aarch64-apple-darwin",
-      "aarch64-linux-android",
-      "x86_64-unknown-freebsd",
-      "aarch64-unknown-linux-musl",
-      "aarch64-pc-windows-msvc",
-      "armv7-linux-androideabi"
+      "aarch64-unknown-linux-musl"
     ]
   },
   "engines": {
@@ -110,18 +104,12 @@
     "arrowParens": "always"
   },
   "optionalDependencies": {
-    "cojson-core-napi-win32-x64-msvc": "workspace:*",
     "cojson-core-napi-darwin-x64": "workspace:*",
     "cojson-core-napi-linux-x64-gnu": "workspace:*",
     "cojson-core-napi-linux-x64-musl": "workspace:*",
     "cojson-core-napi-linux-arm64-gnu": "workspace:*",
-    "cojson-core-napi-win32-ia32-msvc": "workspace:*",
     "cojson-core-napi-linux-arm-gnueabihf": "workspace:*",
     "cojson-core-napi-darwin-arm64": "workspace:*",
-    "cojson-core-napi-android-arm64": "workspace:*",
-    "cojson-core-napi-freebsd-x64": "workspace:*",
-    "cojson-core-napi-linux-arm64-musl": "workspace:*",
-    "cojson-core-napi-win32-arm64-msvc": "workspace:*",
-    "cojson-core-napi-android-arm-eabi": "workspace:*"
+    "cojson-core-napi-linux-arm64-musl": "workspace:*"
   }
 }
