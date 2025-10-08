@@ -121,6 +121,78 @@ describe("extend", () => {
     expect(mapOnNode2.get("hello")).toEqual("from node 2");
   });
 
+  test("existing parent groups have access to new writeOnly keys in the child group", async () => {
+    const { node1, node2, node3 } = await createThreeConnectedNodes(
+      "server",
+      "server",
+      "server",
+    );
+
+    const parentGroup = node1.node.createGroup();
+    const account2OnNode1 = await loadCoValueOrFail(
+      node1.node,
+      node2.accountID,
+    );
+    parentGroup.addMember(account2OnNode1, "admin");
+
+    const childGroup = node1.node.createGroup();
+    const account3OnNode1 = await loadCoValueOrFail(
+      node1.node,
+      node3.accountID,
+    );
+    childGroup.extend(parentGroup);
+    // The existing parent group should have access to content written by
+    // an account with writeOnly permission
+    childGroup.addMember(account3OnNode1, "writeOnly");
+
+    const map = childGroup.createMap();
+
+    const mapOnNode3 = await loadCoValueOrFail(node3.node, map.id);
+    mapOnNode3.set("test", "Written by writeOnly member");
+
+    expect(mapOnNode3.get("test")).toEqual("Written by writeOnly member");
+    await mapOnNode3.core.waitForSync();
+
+    const mapOnNode2 = await loadCoValueOrFail(node2.node, map.id);
+    expect(mapOnNode2.get("test")).toEqual("Written by writeOnly member");
+  });
+
+  test("new parent groups have access to existing writeOnly keys in the child group", async () => {
+    const { node1, node2, node3 } = await createThreeConnectedNodes(
+      "server",
+      "server",
+      "server",
+    );
+
+    const parentGroup = node1.node.createGroup();
+    const account2OnNode1 = await loadCoValueOrFail(
+      node1.node,
+      node2.accountID,
+    );
+    parentGroup.addMember(account2OnNode1, "admin");
+
+    const childGroup = node1.node.createGroup();
+    const account3OnNode1 = await loadCoValueOrFail(
+      node1.node,
+      node3.accountID,
+    );
+    childGroup.addMember(account3OnNode1, "writeOnly");
+    // The new parent group should have access to content written by
+    // an account with writeOnly permission
+    childGroup.extend(parentGroup);
+
+    const map = childGroup.createMap();
+
+    const mapOnNode3 = await loadCoValueOrFail(node3.node, map.id);
+    mapOnNode3.set("test", "Written by writeOnly member");
+
+    expect(mapOnNode3.get("test")).toEqual("Written by writeOnly member");
+    await mapOnNode3.core.waitForSync();
+
+    const mapOnNode2 = await loadCoValueOrFail(node2.node, map.id);
+    expect(mapOnNode2.get("test")).toEqual("Written by writeOnly member");
+  });
+
   test("a user should be able to extend a group when his role on the parent group is writeOnly", async () => {
     const { node1, node2 } = await createTwoConnectedNodes("server", "server");
 
