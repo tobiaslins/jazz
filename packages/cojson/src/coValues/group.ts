@@ -24,7 +24,12 @@ import {
 } from "../ids.js";
 import { JsonObject } from "../jsonValue.js";
 import { logger } from "../logger.js";
-import { AccountRole, Role, isKeyForKeyField } from "../permissions.js";
+import {
+  AccountRole,
+  Role,
+  isAccountRole,
+  isKeyForKeyField,
+} from "../permissions.js";
 import { accountOrAgentIDfromSessionID } from "../typeUtils/accountOrAgentIDfromSessionID.js";
 import { expectGroup } from "../typeUtils/expectGroup.js";
 import { isAccountID } from "../typeUtils/isAccountID.js";
@@ -932,12 +937,7 @@ export class RawGroup<
     parent.set(`child_${this.id}`, "extend", "trusting");
     this.set(`parent_${parent.id}`, value, "trusting");
 
-    if (
-      parent.myRole() !== "admin" &&
-      parent.myRole() !== "writer" &&
-      parent.myRole() !== "reader" &&
-      parent.myRole() !== "writeOnly"
-    ) {
+    if (!isAccountRole(parent.myRole())) {
       // Create a writeOnly key in the parent group to be able to reveal the current child key to the parent group
       parent.internalCreateWriteOnlyKeyForMember(
         this.core.node.getCurrentAgent().id,
@@ -981,12 +981,7 @@ export class RawGroup<
       );
     }
 
-    if (
-      parent.myRole() !== "admin" &&
-      parent.myRole() !== "writer" &&
-      parent.myRole() !== "reader" &&
-      parent.myRole() !== "writeOnly"
-    ) {
+    if (!isAccountRole(parent.myRole())) {
       throw new Error(
         "To unextend a group, the current account must be a member of the parent group",
       );
