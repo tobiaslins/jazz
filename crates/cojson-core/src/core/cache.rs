@@ -20,6 +20,7 @@ impl CryptoCache {
     }
 
     /// Get or derive the XSalsa20 key from a KeySecret, using the cache.
+    /// This avoid to run bs58 decoding multiple times for the same key.
     pub fn get_xsalsa20_key(&self, key_secret: &KeySecret) -> Result<Key<XSalsa20>, CoJsonCoreError> {
         let mut cache = self.xsalsa20_key_cache.borrow_mut();
         if let Some(key) = cache.get(key_secret) {
@@ -33,6 +34,7 @@ impl CryptoCache {
     }
 
     /// Get or derive the Ed25519 SigningKey from a SignerSecret, using the cache.
+    /// This avoid to run bs58 decoding multiple times for the same key.
     pub fn get_ed25519_signing_key(&self, signer_secret: &SignerSecret) -> Result<SigningKey, CoJsonCoreError> {
         let mut cache = self.ed25519_signing_key_cache.borrow_mut();
         if let Some(signing_key) = cache.get(signer_secret) {
