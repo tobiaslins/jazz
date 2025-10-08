@@ -29,9 +29,6 @@ jobs:
       - name: Setup source code
         uses: ./.github/actions/source-code/
 
-      - name: Build all packages
-        run: pnpm exec turbo run build --filter='./packages/*'
-
       # Create a release PR on main branch if there are unpublished changesets
       - name: Create Release Pull Request (main)
         id: changesets
@@ -60,6 +57,7 @@ jobs:
     uses: ./.github/workflows/napi-build-reusable.yml
     with:
       concurrency: release-napi
+      disableTest: true
     # Only run if there are no pending changesets (i.e., ready to publish)
     if: ${{ needs.release.outputs.hasChangesets != 'true' && needs.release.outputs.hasChangesetsBackport != 'true' }}
 
@@ -92,7 +90,7 @@ jobs:
       - name: List NAPI packages and binaries
         run: ls -R ./npm
         shell: bash
-        working-directory: crates/cojson-core-napi/artifacts
+        working-directory: crates/cojson-core-napi
 
       # Publish to npm on main branch
       - name: Publish (main)
