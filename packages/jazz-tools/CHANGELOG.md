@@ -1,5 +1,16 @@
 # jazz-tools
 
+## 0.18.22
+
+### Patch Changes
+
+- 22200ac: Inspector now shows the CoID of list items and handles unavailable items correctly
+- 1e20db6: Added cojson-core-napi
+- Updated dependencies [1e20db6]
+  - cojson@0.18.22
+  - cojson-storage-indexeddb@0.18.22
+  - cojson-transport-ws@0.18.22
+
 ## 0.18.21
 
 ### Patch Changes

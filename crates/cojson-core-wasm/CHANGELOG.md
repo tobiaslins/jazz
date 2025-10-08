@@ -1,5 +1,11 @@
 # cojson-core-wasm
 
+## 0.18.22
+
+### Patch Changes
+
+- 1e20db6: Added cojson-core-napi
+
 ## 0.18.21
 
 ## 0.18.20
