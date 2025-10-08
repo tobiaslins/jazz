@@ -115,6 +115,9 @@ dist
 
 npm/**/*.node
 
+# Generated files
+index.js
+
 #Added by cargo
 
 /target
