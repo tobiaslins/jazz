@@ -36,6 +36,7 @@ export const metadata: Metadata = {
 };
 
 export default function Cloud() {
+  const h3Style = "text-xl md:text-2xl mb-2 font-semibold tracking-tight"
   return (
     <div className="space-y-16">
       <div className="container space-y-12 overflow-hidden">
@@ -46,7 +47,7 @@ export default function Cloud() {
         <LatencyMap />
         <GappedGrid>
           <GridCard>
-            <H2 className="text-xl mb-2 font-semibold tracking-tight">
+            <H2 className={h3Style}>
               Optimal cloud routing
             </H2>
             <P>
@@ -55,7 +56,7 @@ export default function Cloud() {
             </P>
           </GridCard>
           <GridCard>
-            <H2 className="text-xl mb-2 font-semibold tracking-tight">
+            <H2 className={h3Style}>
               Smart caching
             </H2>
 
@@ -65,7 +66,7 @@ export default function Cloud() {
             </P>
           </GridCard>
           <GridCard>
-            <H2 className="text-xl mb-2 font-semibold tracking-tight">
+            <H2 className={h3Style}>
               Blob storage & media streaming
             </H2>
 
