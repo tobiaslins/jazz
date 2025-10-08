@@ -120,10 +120,10 @@ Currently, the Jazz Loader is tested on the following edge environments:
 
 
 ## Node-API
+Jazz uses a WASM-based crypto implementation that provides near-native performance while ensuring full compatibility across a wide variety of environments.
 
-Jazz uses a WASM-based crypto implementation for maximum compatibility and performance across a wide variety of environments. 
-
-If you’re in full control of your runtime and know it will always run on Node.js with a supported hardware configuration, you can enable the faster native Node.js crypto implementation instead.
+For even higher performance on Node.js or Deno, you can enable the native crypto (Node-API) implementation. Node-API is Node.js's native API for building modules in Native Code (Rust/C++) 
+that interact directly with the underlying system, allowing for true native execution speed.
 
 You can use it as follows:
 
