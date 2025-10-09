@@ -96,6 +96,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       storage="indexedDB"
       AccountSchema={MusicaAccount}
       defaultProfileName="Anonymous unicorn"
+      authSecretStorageKey="examples/music-player"
       onAnonymousAccountDiscarded={onAnonymousAccountDiscarded}
     >
       <SidebarProvider>
