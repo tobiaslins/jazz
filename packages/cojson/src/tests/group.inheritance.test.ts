@@ -3,11 +3,13 @@ import type { CoID, RawGroup } from "../exports";
 import { NewContentMessage } from "../sync";
 import {
   SyncMessagesLog,
+  createNConnectedNodes,
   createThreeConnectedNodes,
   createTwoConnectedNodes,
   loadCoValueOrFail,
   setupTestNode,
 } from "./testUtils";
+import { expectMap } from "../coValue.js";
 
 let jazzCloud: ReturnType<typeof setupTestNode>;
 
@@ -21,17 +23,12 @@ describe("extend", () => {
     const { node1, node2 } = await createTwoConnectedNodes("server", "server");
 
     const group = node1.node.createGroup();
-    group.addMember(
-      await loadCoValueOrFail(node1.node, node2.accountID),
-      "writer",
-    );
+    const node2OnNode1 = await loadCoValueOrFail(node1.node, node2.accountID);
+    group.addMember(node2OnNode1, "writer");
 
     const childGroup = node1.node.createGroup();
     childGroup.extend(group);
-    childGroup.addMember(
-      await loadCoValueOrFail(node1.node, node2.accountID),
-      "writeOnly",
-    );
+    childGroup.addMember(node2OnNode1, "writeOnly");
 
     const map = childGroup.createMap();
     map.set("test", "Written from the admin");
@@ -122,6 +119,115 @@ describe("extend", () => {
     mapOnNode2.set("hello", "from node 2");
 
     expect(mapOnNode2.get("hello")).toEqual("from node 2");
+  });
+
+  test("existing parent groups have access to new writeOnly keys in the child group", async () => {
+    const { node1, node2, node3 } = await createThreeConnectedNodes(
+      "server",
+      "server",
+      "server",
+    );
+
+    const parentGroup = node1.node.createGroup();
+    const account2OnNode1 = await loadCoValueOrFail(
+      node1.node,
+      node2.accountID,
+    );
+    parentGroup.addMember(account2OnNode1, "admin");
+
+    const childGroup = node1.node.createGroup();
+    const account3OnNode1 = await loadCoValueOrFail(
+      node1.node,
+      node3.accountID,
+    );
+    childGroup.extend(parentGroup);
+    // The existing parent group should have access to content written by
+    // an account with writeOnly permission
+    childGroup.addMember(account3OnNode1, "writeOnly");
+
+    const map = childGroup.createMap();
+
+    const mapOnNode3 = await loadCoValueOrFail(node3.node, map.id);
+    mapOnNode3.set("test", "Written by writeOnly member");
+
+    expect(mapOnNode3.get("test")).toEqual("Written by writeOnly member");
+    await mapOnNode3.core.waitForSync();
+
+    const mapOnNode2 = await loadCoValueOrFail(node2.node, map.id);
+    expect(mapOnNode2.get("test")).toEqual("Written by writeOnly member");
+  });
+
+  test("new parent groups have access to existing writeOnly keys in the child group", async () => {
+    const { node1, node2, node3 } = await createThreeConnectedNodes(
+      "server",
+      "server",
+      "server",
+    );
+
+    const parentGroup = node1.node.createGroup();
+    const account2OnNode1 = await loadCoValueOrFail(
+      node1.node,
+      node2.accountID,
+    );
+    parentGroup.addMember(account2OnNode1, "admin");
+
+    const childGroup = node1.node.createGroup();
+    const account3OnNode1 = await loadCoValueOrFail(
+      node1.node,
+      node3.accountID,
+    );
+    childGroup.addMember(account3OnNode1, "writeOnly");
+    // The new parent group should have access to content written by
+    // an account with writeOnly permission
+    childGroup.extend(parentGroup);
+
+    const map = childGroup.createMap();
+
+    const mapOnNode3 = await loadCoValueOrFail(node3.node, map.id);
+    mapOnNode3.set("test", "Written by writeOnly member");
+
+    expect(mapOnNode3.get("test")).toEqual("Written by writeOnly member");
+    await mapOnNode3.core.waitForSync();
+
+    const mapOnNode2 = await loadCoValueOrFail(node2.node, map.id);
+    expect(mapOnNode2.get("test")).toEqual("Written by writeOnly member");
+  });
+
+  test("writeOnly keys are rotated for parent groups", async () => {
+    const { node1, node2, node3 } = await createThreeConnectedNodes(
+      "server",
+      "server",
+      "server",
+    );
+
+    const parentGroup = node1.node.createGroup();
+    const account2OnNode1 = await loadCoValueOrFail(
+      node1.node,
+      node2.accountID,
+    );
+    parentGroup.addMember(account2OnNode1, "admin");
+
+    const childGroup = node1.node.createGroup();
+    const account3OnNode1 = await loadCoValueOrFail(
+      node1.node,
+      node3.accountID,
+    );
+    childGroup.addMember(account3OnNode1, "writeOnly");
+    childGroup.extend(parentGroup);
+
+    childGroup.rotateReadKey();
+
+    const childGroupOnNode3 = await loadCoValueOrFail(
+      node3.node,
+      childGroup.id,
+    );
+    const map = childGroupOnNode3.createMap();
+    map.set("test", "Written by writeOnly member");
+
+    await map.core.waitForSync();
+
+    const mapOnNode2 = await loadCoValueOrFail(node2.node, map.id);
+    expect(mapOnNode2.get("test")).toEqual("Written by writeOnly member");
   });
 
   test("a user should be able to extend a group when his role on the parent group is writeOnly", async () => {
@@ -342,6 +448,104 @@ describe("extend", () => {
     childGroup.extend(parentGroupOnNode2);
 
     expect(childGroup.roleOf(alice.id)).toBe("writer");
+  });
+
+  test("group inheritance should work for groups extended without having membership in the parent group", async () => {
+    const { node1, node2, node3 } = await createThreeConnectedNodes(
+      "server",
+      "server",
+      "server",
+    );
+
+    const parentGroup = node1.node.createGroup();
+    const account2OnNode1 = await loadCoValueOrFail(
+      node1.node,
+      node2.accountID,
+    );
+    parentGroup.addMember(account2OnNode1, "admin");
+
+    const childGroup = node1.node.createGroup();
+    childGroup.extend(parentGroup, "admin");
+
+    const sharedGroup = node3.node.createGroup();
+
+    // Account3 does not have permissions over the childGroup being extended
+    const childGroupOnNode3 = await loadCoValueOrFail(
+      node3.node,
+      childGroup.id,
+    );
+    sharedGroup.extend(childGroupOnNode3, "admin");
+
+    expect(sharedGroup.roleOf(node1.accountID)).toEqual("admin");
+    expect(sharedGroup.roleOf(node2.accountID)).toEqual("admin");
+    expect(sharedGroup.roleOf(node3.accountID)).toEqual("admin");
+
+    // Create a map owned by sharedGroup
+    const testMap = sharedGroup.createMap();
+    testMap.set("name", "Test");
+
+    // node1 should be able to access the map because it is admin of the childGroup
+    const testMapOnNode1 = expectMap(
+      await loadCoValueOrFail(node1.node, testMap.id),
+    );
+    expect(testMapOnNode1.get("name")).toEqual("Test");
+
+    // node2 should also be able to access the map because it is admin of parentGroup
+    const testMapOnNode2 = expectMap(
+      await loadCoValueOrFail(node2.node, testMap.id),
+    );
+    expect(testMapOnNode2.get("name")).toEqual("Test");
+  });
+
+  test("adding new group members should work for groups extended without having membership in the parent group", async () => {
+    const nodes = await createNConnectedNodes(
+      "server",
+      "server",
+      "server",
+      "server",
+    );
+    const node1 = nodes[0]!;
+    const node2 = nodes[1]!;
+    const node3 = nodes[2]!;
+    const node4 = nodes[3]!;
+
+    const parentGroup = node1.node.createGroup();
+    const account2OnNode1 = await loadCoValueOrFail(
+      node1.node,
+      node2.accountID,
+    );
+    parentGroup.addMember(account2OnNode1, "admin");
+
+    const childGroup = node1.node.createGroup();
+    childGroup.extend(parentGroup, "admin");
+
+    const sharedGroup = node3.node.createGroup();
+
+    // Account3 does not have permissions over the childGroup being extended
+    const childGroupOnNode3 = await loadCoValueOrFail(
+      node3.node,
+      childGroup.id,
+    );
+    sharedGroup.extend(childGroupOnNode3, "admin");
+
+    // Add a new parent group to the previously extended child group
+    const newParentGroup = node1.node.createGroup();
+    const account4OnNode1 = await loadCoValueOrFail(
+      node1.node,
+      node4.accountID,
+    );
+    newParentGroup.addMember(account4OnNode1, "admin");
+    childGroup.extend(newParentGroup);
+
+    // Create a map owned by sharedGroup
+    const testMap = sharedGroup.createMap();
+    testMap.set("name", "Test");
+
+    // Account4 should be able to access the map because it is admin of newParentGroup
+    const testMapOnNode4 = expectMap(
+      await loadCoValueOrFail(node4.node, testMap.id),
+    );
+    expect(testMapOnNode4.get("name")).toEqual("Test");
   });
 
   test("should be possible to extend a group after getting revoked from the parent group", async () => {
