@@ -150,3 +150,28 @@ const { worker } = await startWorker({
 
   It does not work in edge runtimes.
 </Alert>
+
+### On Next.js
+
+To use Node-API (native crypto) with Next.js on the server (for example, in a Vercel Function), you need to tell Next.js to 
+include the required native modules. Add them to the [`serverExternalPackages`](https://nextjs.org/docs/app/api-reference/config/next-config-js/serverExternalPackages) array in your `next.config.js`. 
+
+This step is necessary for Next.js to bundle and deploy the Node-API implementation correctly. As example:
+
+<CodeGroup>
+```ts
+// next.config.js
+module.exports = {
+    serverExternalPackages: [
+        "cojson-core-napi",
+        "cojson-core-napi-linux-x64-gnu",
+        "cojson-core-napi-linux-x64-musl",
+        "cojson-core-napi-linux-arm64-gnu",
+        "cojson-core-napi-linux-arm64-musl",
+        "cojson-core-napi-darwin-x64",
+        "cojson-core-napi-darwin-arm64"
+        "cojson-core-napi-linux-arm-gnueabihf",
+    ],
+};
+```
+</CodeGroup>
