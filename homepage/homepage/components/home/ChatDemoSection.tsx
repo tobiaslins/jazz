@@ -27,6 +27,7 @@ function Iframe(
       <iframe
         {...props}
         src={src}
+        title="Jazz chat demo"
         className="w-full"
         width="200"
         height="390"
@@ -141,9 +142,9 @@ export function ChatDemoSection() {
         }
       />
       <GappedGrid className="gap-y-8">
-        <Iframe src={server1} user={user1} />
+        <Iframe src={server1} user={user1} title="Jazz chat demo user 1" />
         {server2WithSameChatId && (
-          <Iframe src={server2WithSameChatId} user={user2} />
+          <Iframe src={server2WithSameChatId} user={user2} title="Jazz chat demo user 2" />
         )}
         <div className="col-span-2 md:col-span-full lg:col-span-2">
           {chatId && shareUrl && (
@@ -157,6 +158,7 @@ export function ChatDemoSection() {
                 <img
                   src={qrCode}
                   className="size-48 border mx-auto rounded-lg"
+                  alt="Scan this QR code to join the chat"
                 />
               )}
               <div className="flex items-center gap-2">

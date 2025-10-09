@@ -18,10 +18,12 @@
 
   let props: JazzContextManagerProps<S> & {
     children?: Snippet;
+    enableSSR?: boolean;
     authSecretStorageKey?: string;
   } = $props();
 
   const contextManager = new JazzBrowserContextManager<S>({
+    useAnonymousFallback: props.enableSSR,
     authSecretStorageKey: props.authSecretStorageKey,
   });
 

@@ -10,6 +10,12 @@ export const metadata = {
 Schema unions allow you to create types that can be one of several different schemas, similar to TypeScript union types.
 They use a discriminator field to determine which specific schema an instance represents at runtime, enabling type-safe polymorphism in your Jazz applications.
 
+The following operations are not available in schema unions:
+
+* `$jazz.ensureLoaded`&hairsp;—&hairsp;use the union schema's `load` method, or narrow the type first
+* `$jazz.subscribe`&hairsp;—&hairsp;use the union schema's `subscribe` method
+* `$jazz.set`&hairsp;—&hairsp;use `$jazz.applyDiff`
+
 ## Creating schema unions
 
 Schema unions are defined with `co.discriminatedUnion()` by providing an array of schemas and a discriminator field.
@@ -249,16 +255,16 @@ function handleResponse(response: co.loaded<typeof ApiResponse>) {
 
 ## Limitations with schema unions
 
-Schema unions have some limitations that you should be aware of. They are due to Typescript behavior with type unions:
-when the type members of the union have methods with generic parameters, Typescript will not allow calling
-those methods on the union type. This affect some of the methods on the `$jazz` namespace.
+Schema unions have some limitations that you should be aware of. They are due to TypeScript behaviour with type unions: when the type members of the union have methods with generic parameters, TypeScript will not allow calling those methods on the union type. This affects some of the methods on the `$jazz` namespace.
 
-#### `$jazz.ensureLoaded` and `$jazz.subscribe` not supported
+Note that these methods may still work at runtime, but their use is not recommended as you will lose type safety.
+
+### `$jazz.ensureLoaded` and `$jazz.subscribe` not supported
 
 The `$jazz.ensureLoaded` and `$jazz.subscribe` methods are not available in schema unions.
 Instead, use the union schema's `load` and `subscribe` methods.
 
-#### Updating union fields
+### Updating union fields
 
 You can't use `$jazz.set` to modify a schema union's fields (even if the field is present in all the union members).
 Use `$jazz.applyDiff` instead.

@@ -117,3 +117,36 @@ Currently, the Jazz Loader is tested on the following edge environments:
 
 - Edge runtime environment that supports WebAssembly
 - `jazz-tools/load-edge-wasm` must be imported before any Jazz import
+
+
+## Node-API
+Jazz uses a WASM-based crypto implementation that provides near-native performance while ensuring full compatibility across a wide variety of environments.
+
+For even higher performance on Node.js or Deno, you can enable the native crypto (Node-API) implementation. Node-API is Node.js's native API for building modules in Native Code (Rust/C++) 
+that interact directly with the underlying system, allowing for true native execution speed.
+
+You can use it as follows:
+
+<CodeGroup>
+```ts
+import { startWorker } from "jazz-tools/worker";
+import { NapiCrypto } from "jazz-tools/napi";
+
+const { worker } = await startWorker({
+  syncServer: `wss://cloud.jazz.tools/?key=${apiKey}`,
+  accountID: process.env.JAZZ_WORKER_ACCOUNT,
+  accountSecret: process.env.JAZZ_WORKER_SECRET,
+  crypto: await NapiCrypto.create(),
+});
+
+```
+</CodeGroup>
+
+<Alert variant="info" className="mt-4" title="Note">
+  The Node-API implementation is not available on all platforms. It is only available on Node.js 20.x and higher.
+  The supported platforms are:
+  - macOS (x64, ARM64)
+  - Linux (x64, ARM64, ARM, musl)
+
+  It does not work in edge runtimes.
+</Alert>

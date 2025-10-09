@@ -14,6 +14,7 @@
     "@bacons/text-decoder": "^0.0.0",
     "@react-native-community/netinfo": "11.4.1",
     "expo": "catalog:expo",
+    "expo-asset": "12.0.8",
     "expo-clipboard": "8.0.2",
     "expo-secure-store": "15.0.2",
     "expo-sqlite": "16.0.3",

@@ -46,6 +46,7 @@ export function CopyButton({
         });
         onCopy?.();
       }}
+      aria-label="copy to clipboard"
     >
       <span
         aria-hidden={copied}
@@ -102,7 +103,8 @@ export function CodeGroup({
     if (
       node instanceof Element &&
       (node.classList.contains("twoslash-popup-container") ||
-        node.classList.contains("twoslash-completion-cursor"))
+        node.classList.contains("twoslash-completion-cursor") ||
+        node.classList.contains("remove"))
     ) {
       return "";
     }

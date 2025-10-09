@@ -23,13 +23,25 @@ export function Heading({
   let Element: `h${typeof level}` = `h${level}`;
   const size = customSize || level;
 
-  return (
-    <Element
-      {...props}
-      className={clsx(
-        "text-stone-950 dark:text-white font-display",
-        classes[size],
-      )}
-    />
+  const defaultClasses = classes[size];
+
+  // Matches text size classes only (e.g., text-sm, text-3xl, lg:text-2xl)
+  const textSizePattern =
+    /(^|\s)([a-z:]*text-(xs|sm|base|lg|xl|\d{1,2}xl))($|\s)/;
+  // Check if user supplied a text-size override (not alignment/wrapping)
+  const hasTextSizeOverride = className
+    ? textSizePattern.test(className)
+    : false;
+
+  const finalClasses = clsx(
+    "text-stone-950 dark:text-white font-display",
+    hasTextSizeOverride
+      ? defaultClasses.filter(
+          (c) => !/^text-(xs|sm|base|lg|xl|\d{1,2}xl)/.test(c),
+        )
+      : defaultClasses,
+    className,
   );
+
+  return <Element {...props} className={finalClasses} />;
 }

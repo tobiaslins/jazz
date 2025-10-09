@@ -2,11 +2,15 @@ export const metadata = {
   description: "Get started building a simple server worker with Jazz in 10 minutes."
 };
 
-import { CodeGroup, ContentByFramework, FileName, TabbedCodeGroup, TabbedCodeGroupItem, StuckCTA } from "@/components/forMdx";
+import { CodeGroup, ContentByFramework, FileName, TabbedCodeGroup, TabbedCodeGroupItem } from "@/components/forMdx";
 import { Alert } from "@garden-co/design-system/src/components/atoms/Alert";
 import { TextLink } from "@garden-co/design-system/src/components/atoms/TextLink";
 import { ReactLogo } from "@/components/icons/ReactLogo";
 import { SvelteLogo } from "@/components/icons/SvelteLogo";
+import GetAPIKey from "@/components/docs/snippets/GetAPIKey.mdx";
+import InstallJazz from "@/components/docs/snippets/InstallJazz.mdx";
+import RunDevServer from "@/components/docs/snippets/RunDevServer.mdx";
+import StuckCTA from "@/components/docs/snippets/StuckCTA.mdx";
 
 # Get started with Server Workers in 10 minutes
 This quickstart guide will take you from an empty project to a server worker which can interact with your Jazz application. 
@@ -61,40 +65,16 @@ This quickstart guide will take you from an empty project to a server worker whi
 <Alert variant="info" className="mt-4 flex gap-2 items-center">
   Requires Node.js 20+
 </Alert>
+
 ## Install Jazz
 
 The `jazz-tools` package includes everything you're going to need to build your first Jazz server worker.
 
-<TabbedCodeGroup id="install-jazz" default="pnpm" savedPreferenceKey="package-manager">
-<TabbedCodeGroupItem label="npm">
-```sh
-npm install jazz-tools
-```
-</TabbedCodeGroupItem>
-<TabbedCodeGroupItem label="pnpm">
-```sh
-pnpm add jazz-tools
-```
-</TabbedCodeGroupItem>
-</TabbedCodeGroup>
+<InstallJazz />
 
-## Get your free API key
+## Set your API key
 
-Sign up for a free API key at [dashboard.jazz.tools](https://dashboard.jazz.tools) for higher limits or production use, or use your email address as a temporary key to get started quickly.
-
-<FileName>.env</FileName>
-<TabbedCodeGroup id="api-key" default="react" savedPreferenceKey="framework">
-<TabbedCodeGroupItem label="Next.js" icon={<ReactLogo />} value="react" className="[&_span]:[tab-size:2]" preferWrap>
-```bash
-NEXT_PUBLIC_JAZZ_API_KEY=you@example.com # or your API key
-```
-</TabbedCodeGroupItem>
-<TabbedCodeGroupItem label="SvelteKit" icon={<SvelteLogo />} value="svelte" className="[&_span]:[tab-size:2]" preferWrap>
-```bash
-PUBLIC_JAZZ_API_KEY=you@example.com # or your API key
-```
-</TabbedCodeGroupItem>
-</TabbedCodeGroup>
+<GetAPIKey />
 
 ## Define your schema
 We're going to define a simple schema for our server worker. We'll use the `root` on the worker to store a list of bands. We're also going to add a migration to initialise the `root` if it doesn't exist.
@@ -159,7 +139,7 @@ You can copy the output of this command and paste it directly into your `.env` f
 
 <FileName>.env</FileName>
 <TabbedCodeGroup id="worker-env-vars" default="react" savedPreferenceKey="framework">
-<TabbedCodeGroupItem label="Next.js" icon={<ReactLogo />} value="react" className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem label="Next.js" icon={<ReactLogo />} value="react" preferWrap>
 ```bash
 NEXT_PUBLIC_JAZZ_API_KEY=you@example.com # or your API key
 #[!code ++:2]
@@ -167,7 +147,7 @@ NEXT_PUBLIC_JAZZ_WORKER_ACCOUNT=co_z...
 JAZZ_WORKER_SECRET=sealerSecret_z.../signerSecret_z...
 ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem label="SvelteKit" icon={<SvelteLogo />} value="svelte" className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem label="SvelteKit" icon={<SvelteLogo />} value="svelte" preferWrap>
 ```bash
 PUBLIC_JAZZ_API_KEY=you@example.com # or your API key
 #[!code ++:2]
@@ -192,7 +172,7 @@ We also need to tell Jazz which keys should be treated as loaded in the request 
 <FileName>src/lib/announceBandSchema.ts</FileName>
 </ContentByFramework>
 <TabbedCodeGroup id="request-schema" default="react" savedPreferenceKey="framework">
-<TabbedCodeGroupItem label="Next.js" icon={<ReactLogo />} value="react" className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem label="Next.js" icon={<ReactLogo />} value="react" preferWrap>
 ```ts
 import { experimental_defineRequest } from "jazz-tools";
 import { Band, BandList } from "./schema";
@@ -209,7 +189,7 @@ export const announceBand = experimental_defineRequest({
 });
 ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem label="SvelteKit" icon={<SvelteLogo />} value="svelte" className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem label="SvelteKit" icon={<SvelteLogo />} value="svelte" preferWrap>
 ```ts
 import { experimental_defineRequest } from "jazz-tools";
 import { Band, BandList } from "./schema";
@@ -242,7 +222,7 @@ We'll also use a `resolve` query here to make sure that the `bandList` is loaded
 <FileName>src/routes/api/announce-band/+server.ts</FileName>
 </ContentByFramework>
 <TabbedCodeGroup id="worker-config" default="react" savedPreferenceKey="framework">
-<TabbedCodeGroupItem label="Next.js" icon={<ReactLogo />} value="react" className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem label="Next.js" icon={<ReactLogo />} value="react" preferWrap>
 ```ts
 import { startWorker } from "jazz-tools/worker";
 import { announceBand } from "@/app/announceBandSchema";
@@ -275,7 +255,7 @@ export async function POST(request: Request) {
 }
 ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem label="SvelteKit" icon={<SvelteLogo />} value="svelte" className="[&_span]:[tab-size:2]" preferWrap>
+<TabbedCodeGroupItem label="SvelteKit" icon={<SvelteLogo />} value="svelte" preferWrap>
 ```ts
 import { startWorker } from "jazz-tools/worker";
 import { announceBand } from "$lib/announceBandSchema";
@@ -317,18 +297,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 We can now start our development server to make sure everything is working.
 
-<TabbedCodeGroup id="start-server" default="pnpm" savedPreferenceKey="package-manager">
-<TabbedCodeGroupItem label="npm">
-```sh
-npm run dev
-```
-</TabbedCodeGroupItem>
-<TabbedCodeGroupItem label="pnpm">
-```sh
-pnpm run dev
-```
-</TabbedCodeGroupItem>
-</TabbedCodeGroup>
+<RunDevServer />
 
 <ContentByFramework framework="react">
 If you open your browser, you should see the default Next.js welcome page.
@@ -368,7 +337,7 @@ We're going to wrap our SvelteKit app in a `JazzSvelteProvider` so that we can u
 </ContentByFramework>
 
 <TabbedCodeGroup id="add-provider" savedPreferenceKey="framework">
-<TabbedCodeGroupItem label="React" value="react" className="[&_span]:[tab-size:2]" icon={<ReactLogo />} preferWrap>
+<TabbedCodeGroupItem label="React" value="react" icon={<ReactLogo />} preferWrap>
   ```tsx
   import { JazzReactProvider } from "jazz-tools/react";
 
@@ -393,7 +362,7 @@ We're going to wrap our SvelteKit app in a `JazzSvelteProvider` so that we can u
   }
   ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem label="Svelte" value="svelte" className="[&_span]:[tab-size:2]" icon={<SvelteLogo />} preferWrap>
+<TabbedCodeGroupItem label="Svelte" value="svelte" icon={<SvelteLogo />} preferWrap>
 ```svelte
 <script lang="ts">
   import { JazzSvelteProvider } from "jazz-tools/svelte";
@@ -421,7 +390,7 @@ We're going to send a request to our server worker to announce a new band. Our w
 </ContentByFramework>
 
 <TabbedCodeGroup id="page-component" default="react" savedPreferenceKey="framework">
-<TabbedCodeGroupItem label="React" value="react" className="[&_span]:[tab-size:2]" icon={<ReactLogo />} preferWrap>
+<TabbedCodeGroupItem label="React" value="react" icon={<ReactLogo />} preferWrap>
 ```tsx
 "use client";
 import type { co } from "jazz-tools";
@@ -462,7 +431,7 @@ export default function Home() {
 }
 ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem label="Svelte" value="svelte" className="[&_span]:[tab-size:2]" icon={<SvelteLogo />} preferWrap>
+<TabbedCodeGroupItem label="Svelte" value="svelte" icon={<SvelteLogo />} preferWrap>
 ```svelte
 <script lang="ts">
   import type { co } from "jazz-tools";
