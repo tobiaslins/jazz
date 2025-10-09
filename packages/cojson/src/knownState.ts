@@ -1,5 +1,5 @@
-import type { SessionID } from "./exports";
-import type { CoValueKnownState } from "./sync";
+import type { SessionID } from "./exports.js";
+import type { CoValueKnownState } from "./sync.js";
 
 export function combineKnownStateSessions(
   a: CoValueKnownState["sessions"],
