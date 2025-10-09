@@ -100,13 +100,16 @@ The provider accepts these additional options:
   import { JazzSvelteProvider } from "jazz-tools/svelte";
   import { syncConfig } from "$lib/syncConfig";
   let { children } = $props();
-  
+
   // Enable guest mode for account-less access
-  const guestMode = false; 
-  
+  const guestMode = false;
+
   // Default name for new user profiles
-  const defaultProfileName = "New User"; 
-  
+  const defaultProfileName = "New User";
+
+  // Override the default storage key
+  const authSecretStorageKey = "jazz-logged-in-secret";
+
   // Handle user logout
   const onLogOut = () => {
     console.log("User logged out");
@@ -126,6 +129,7 @@ The provider accepts these additional options:
   {defaultProfileName}
   {onLogOut}
   {onAnonymousAccountDiscarded}
+  {authSecretStorageKey}
 >
   {@render children}
 </JazzSvelteProvider>

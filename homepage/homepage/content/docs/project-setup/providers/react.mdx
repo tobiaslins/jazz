@@ -192,6 +192,9 @@ export function MyApp ({ children }: { children: React.ReactNode }) {
       // Set default name for new user profiles
       defaultProfileName="New User"
 
+      // Override the default storage key
+      authSecretStorageKey="jazz-logged-in-secret"
+
       // Handle user logout
       onLogOut={() => {
         console.log("User logged out");
