@@ -259,12 +259,12 @@ Schema unions have some limitations that you should be aware of. They are due to
 
 Note that these methods may still work at runtime, but their use is not recommended as you will lose type safety.
 
-#### `$jazz.ensureLoaded` and `$jazz.subscribe` not supported
+### `$jazz.ensureLoaded` and `$jazz.subscribe` not supported
 
 The `$jazz.ensureLoaded` and `$jazz.subscribe` methods are not available in schema unions.
 Instead, use the union schema's `load` and `subscribe` methods.
 
-#### Updating union fields
+### Updating union fields
 
 You can't use `$jazz.set` to modify a schema union's fields (even if the field is present in all the union members).
 Use `$jazz.applyDiff` instead.
