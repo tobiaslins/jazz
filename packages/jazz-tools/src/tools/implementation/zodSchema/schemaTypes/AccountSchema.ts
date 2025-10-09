@@ -1,10 +1,10 @@
-import { CryptoProvider } from "cojson";
 import {
   Account,
   AccountCreationProps,
   BranchDefinition,
   Group,
   RefsToResolveStrict,
+  Simplify,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
@@ -48,10 +48,9 @@ export interface AccountSchema<
     > {
   builtin: "Account";
 
-  create: (options: {
-    creationProps?: { name: string };
-    crypto?: CryptoProvider;
-  }) => Promise<AccountInstance<Shape>>;
+  create: (
+    options: Simplify<Parameters<(typeof Account)["create"]>[0]>,
+  ) => Promise<AccountInstance<Shape>>;
 
   load: <R extends ResolveQuery<AccountSchema<Shape>>>(
     id: string,
@@ -61,6 +60,7 @@ export interface AccountSchema<
     },
   ) => Promise<Loaded<AccountSchema<Shape>, R> | null>;
 
+  /** @internal */
   createAs: (
     as: Account,
     options: {
