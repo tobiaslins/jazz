@@ -193,6 +193,43 @@ describe("extend", () => {
     expect(mapOnNode2.get("test")).toEqual("Written by writeOnly member");
   });
 
+  test("writeOnly keys are rotated for parent groups", async () => {
+    const { node1, node2, node3 } = await createThreeConnectedNodes(
+      "server",
+      "server",
+      "server",
+    );
+
+    const parentGroup = node1.node.createGroup();
+    const account2OnNode1 = await loadCoValueOrFail(
+      node1.node,
+      node2.accountID,
+    );
+    parentGroup.addMember(account2OnNode1, "admin");
+
+    const childGroup = node1.node.createGroup();
+    const account3OnNode1 = await loadCoValueOrFail(
+      node1.node,
+      node3.accountID,
+    );
+    childGroup.addMember(account3OnNode1, "writeOnly");
+    childGroup.extend(parentGroup);
+
+    childGroup.rotateReadKey();
+
+    const childGroupOnNode3 = await loadCoValueOrFail(
+      node3.node,
+      childGroup.id,
+    );
+    const map = childGroupOnNode3.createMap();
+    map.set("test", "Written by writeOnly member");
+
+    await map.core.waitForSync();
+
+    const mapOnNode2 = await loadCoValueOrFail(node2.node, map.id);
+    expect(mapOnNode2.get("test")).toEqual("Written by writeOnly member");
+  });
+
   test("a user should be able to extend a group when his role on the parent group is writeOnly", async () => {
     const { node1, node2 } = await createTwoConnectedNodes("server", "server");
 

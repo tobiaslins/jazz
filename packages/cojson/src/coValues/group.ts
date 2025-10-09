@@ -484,9 +484,7 @@ export class RawGroup<
         parentGroup,
         writeKeyForNewMember.id,
         writeKeyForNewMember.secret,
-        {
-          revealAllWriteOnlyKeys: false,
-        },
+        { revealAllWriteOnlyKeys: false },
       );
     }
 
@@ -849,6 +847,15 @@ export class RawGroup<
           writeOnlyKey.secret,
         );
       }
+
+      for (const parentGroup of this.getParentGroups()) {
+        this.revealReadKeyToParentGroup(
+          parentGroup,
+          writeOnlyKey.id,
+          writeOnlyKey.secret,
+          { revealAllWriteOnlyKeys: false },
+        );
+      }
     }
 
     this.set(
@@ -980,9 +987,7 @@ export class RawGroup<
       parent,
       childReadKeyID,
       childReadKeySecret,
-      {
-        revealAllWriteOnlyKeys: true,
-      },
+      { revealAllWriteOnlyKeys: true },
     );
   }
 
