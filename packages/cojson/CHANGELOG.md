@@ -1,5 +1,13 @@
 # cojson
 
+## 0.18.24
+
+### Patch Changes
+
+- b09785e: fix: reveal child groups' writeOnly keys to parent groups
+  - cojson-core-wasm@0.18.24
+  - cojson-core-napi@0.18.24
+
 ## 0.18.23
 
 ### Patch Changes
