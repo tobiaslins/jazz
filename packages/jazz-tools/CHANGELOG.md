@@ -1,5 +1,16 @@
 # jazz-tools
 
+## 0.18.24
+
+### Patch Changes
+
+- f4c4ee9: fix: Account.create() type now accepts peersToLoadFrom and initialAgentSecret"
+- a15e2ba: Expose subscription scope react hooks and new `createCoValueSubscriptionContext` and `createAccountSubscriptionContext` helper functions
+- Updated dependencies [b09785e]
+  - cojson@0.18.24
+  - cojson-storage-indexeddb@0.18.24
+  - cojson-transport-ws@0.18.24
+
 ## 0.18.23
 
 ### Patch Changes
