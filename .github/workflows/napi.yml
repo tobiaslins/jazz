@@ -12,7 +12,7 @@ env:
       - 'crates/cojson-core-napi/**'
       - 'crates/cojson-core/**'
       - '.github/workflows/napi.yml'
-      - '.github/workflows/reusable-napi.yml'
+      - '.github/workflows/napi-build-reusable.yml'
     branches:
       - main
     tags-ignore:
@@ -23,7 +23,7 @@ env:
       - 'crates/cojson-core-napi/**'
       - 'crates/cojson-core/**'
       - '.github/workflows/napi.yml'
-      - '.github/workflows/reusable-napi.yml'
+      - '.github/workflows/napi-build-reusable.yml'
 jobs:
   napi-build:
     name: NAPI Build and Test Bindings
