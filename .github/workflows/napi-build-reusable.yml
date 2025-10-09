@@ -134,6 +134,12 @@ jobs:
           path: |
             ${{ env.PATH_BUILD }}/${{ env.APP_NAME }}.*.node
           if-no-files-found: error
+      - name: Upload index.js
+        uses: actions/upload-artifact@v4
+        with:
+          name: index.js
+          overwrite: true
+          path: ${{ env.PATH_BUILD }}/index.js
   test-macOS-windows-binding:
     name: Test bindings on ${{ matrix.settings.target }} - node@${{ matrix.node }}
     if: ${{ !inputs.disableTest }}
@@ -176,6 +182,11 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           name: bindings-${{ matrix.settings.target }}
+          path: ${{ env.PATH_BUILD }}/.
+      - name: Download index.js
+        uses: actions/download-artifact@v5
+        with:
+          name: index.js
           path: ${{ env.PATH_BUILD }}/.
       - name: List packages
         run: ls -R ${{ env.PATH_BUILD }}
@@ -236,6 +247,11 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           name: bindings-${{ matrix.target }}
+          path: ${{ env.PATH_BUILD }}/.
+      - name: Download index.js
+        uses: actions/download-artifact@v5
+        with:
+          name: index.js
           path: ${{ env.PATH_BUILD }}/.
       - name: List packages
         run: ls -R .
