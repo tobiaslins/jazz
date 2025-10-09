@@ -450,7 +450,7 @@ export class RawGroup<
       writeKeyForNewMember.secret,
     );
 
-    // Reveal the write key to Account members
+    // Reveal the new writeOnly key to Account members
     for (const otherMemberKey of this.getMemberKeys()) {
       const memberRole = this.get(otherMemberKey);
 
