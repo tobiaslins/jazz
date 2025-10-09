@@ -880,16 +880,11 @@ export class RawGroup<
         continue;
       }
 
-      this.set(
-        `${newReadKey.id}_for_${parentReadKeyID}`,
-        this.crypto.encryptKeySecret({
-          encrypting: {
-            id: parentReadKeyID,
-            secret: parentReadKeySecret,
-          },
-          toEncrypt: newReadKey,
-        }).encrypted,
-        "trusting",
+      this.storeKeyRevelationForParentGroup(
+        parentReadKeyID,
+        parentReadKeySecret,
+        newReadKey.id,
+        newReadKey.secret,
       );
     }
 
