@@ -1,5 +1,7 @@
 # cojson-core-wasm
 
+## 0.18.23
+
 ## 0.18.22
 
 ### Patch Changes
