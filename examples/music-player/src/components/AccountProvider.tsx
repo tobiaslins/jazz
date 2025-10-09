@@ -9,9 +9,13 @@ export const { Provider: AccountProvider, useSelector: useAccountSelector } =
           $each: true,
         },
       },
-      playlists: true,
-      activeTrack: true,
-      activePlaylist: true,
+      playlists: {
+        $each: {
+          $onError: null,
+        },
+      },
+      activeTrack: { $onError: null },
+      activePlaylist: { $onError: null },
     },
     profile: true,
   });
