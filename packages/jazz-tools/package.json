@@ -179,7 +179,7 @@
       "types": "./dist/worker/edge-wasm.d.ts",
       "default": "./dist/worker/edge-wasm.js"
     },
-    "./workers/napi-crypto": {
+    "./napi": {
       "@jazz-tools/source": "./src/worker/napi-crypto.ts",
       "types": "./dist/worker/napi-crypto.d.ts",
       "default": "./dist/worker/napi-crypto.js"
