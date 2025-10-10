@@ -3,6 +3,7 @@ import {
   AccountCreationProps,
   BranchDefinition,
   Group,
+  MaybeLoaded,
   RefsToResolveStrict,
   Simplify,
 } from "../../../internal.js";
@@ -58,7 +59,7 @@ export interface AccountSchema<
       loadAs?: Account | AnonymousJazzAgent;
       resolve?: RefsToResolveStrict<AccountSchema<Shape>, R>;
     },
-  ) => Promise<Loaded<AccountSchema<Shape>, R> | null>;
+  ) => Promise<MaybeLoaded<Loaded<AccountSchema<Shape>, R>>>;
 
   /** @internal */
   createAs: (

@@ -304,7 +304,7 @@ describe("root and profile", () => {
       },
     });
 
-    assert(bobAccountLoadedFromAlice);
+    assertLoaded(bobAccountLoadedFromAlice);
 
     expect(bobAccountLoadedFromAlice.profile.name).toBe("Bob");
     expect(bobAccountLoadedFromAlice.root.name).toBe("Bob");
