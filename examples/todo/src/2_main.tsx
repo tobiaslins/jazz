@@ -122,11 +122,13 @@ function HomeScreen() {
   });
   const navigate = useNavigate();
 
+  const projects = me.$isLoaded ? me.root.projects : [];
+
   return (
     <>
-      {me?.root.projects.length ? <h1>My Projects</h1> : null}
-      {me?.root.projects.map((project) => {
-        if (!project) return null;
+      {projects.length ? <h1>My Projects</h1> : null}
+      {projects.map((project) => {
+        if (!project.$isLoaded) return null;
 
         return (
           <Button

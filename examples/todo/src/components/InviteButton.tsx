@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import QRCode from "qrcode";
 
-import { CoValue } from "jazz-tools";
+import { CoValue, MaybeLoaded } from "jazz-tools";
 import { createInviteLink, useAccount } from "jazz-tools/react";
 import { Button, useToast } from "../basicComponents";
 
@@ -10,7 +10,7 @@ export function InviteButton<T extends CoValue>({
   value,
   valueHint,
 }: {
-  value?: T | null;
+  value: MaybeLoaded<T>;
   valueHint?: string;
 }) {
   const [existingInviteLink, setExistingInviteLink] = useState<string>();
@@ -18,8 +18,9 @@ export function InviteButton<T extends CoValue>({
   const { me } = useAccount();
 
   return (
-    value &&
-    me?.canAdmin(value) && (
+    value.$isLoaded &&
+    me.$isLoaded &&
+    me.canAdmin(value) && (
       <Button
         size="sm"
         className="py-0"

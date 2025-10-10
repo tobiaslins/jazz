@@ -16,7 +16,7 @@ export function NewProjectForm() {
   });
   const navigate = useNavigate();
 
-  const projects = me?.root?.projects;
+  const projects = me.$isLoaded ? me.root.projects : null;
 
   const createProject = useCallback(
     (title: string) => {

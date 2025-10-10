@@ -1,4 +1,4 @@
-import { Account, co } from "jazz-tools";
+import { Account } from "jazz-tools";
 import { createImage } from "jazz-tools/media";
 import { useAccount, useCoState } from "jazz-tools/react";
 import { useEffect, useState } from "react";
@@ -106,15 +106,9 @@ export function ChatScreen(props: { chatID: string }) {
   );
 }
 
-function ChatBubble({
-  me,
-  msg,
-}: {
-  me: Account;
-  msg: co.loaded<typeof Message, { text: true }>;
-}) {
+function ChatBubble({ me, msg }: { me: Account; msg: Message }) {
   const { text, image } = msg;
-  if (!me.canRead(msg)) {
+  if (!me.canRead(msg) || !text.$isLoaded) {
     return (
       <BubbleContainer fromMe={false}>
         <BubbleBody fromMe={false}>

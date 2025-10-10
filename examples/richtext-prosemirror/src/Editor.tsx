@@ -1,5 +1,5 @@
 import { createJazzPlugin } from "jazz-tools/prosemirror";
-import { useAccount, useCoState } from "jazz-tools/react";
+import { useAccountWithSelector, useCoState } from "jazz-tools/react";
 import { exampleSetup } from "prosemirror-example-setup";
 import { Schema } from "prosemirror-model";
 import { schema as basicSchema } from "prosemirror-schema-basic";
@@ -11,16 +11,20 @@ import { JazzAccount, JazzProfile } from "./schema";
 import { BranchManagement } from "./BranchManagement";
 
 export function Editor() {
-  const { me } = useAccount(JazzAccount, {
-    resolve: { profile: { branches: true } },
+  const bioId = useAccountWithSelector(JazzAccount, {
+    resolve: { profile: true },
+    select: (me) => (me.$isLoaded ? me.profile.$jazz.refs.bio.id : undefined),
   });
   const editorRef = useRef<HTMLDivElement>(null);
 
-  const bioId = me.$isLoaded ? me.profile.$jazz.refs.bio.id : undefined;
   const [branch, setBranch] = useState<string | undefined>(undefined);
-  const bio = useCoState(JazzProfile.shape.bio, bioId, {
-    unstable_branch:
+  const selectedBranch = useAccountWithSelector(JazzAccount, {
+    select: (me) =>
       branch && me.$isLoaded ? { name: branch, owner: me } : undefined,
+  });
+
+  const bio = useCoState(JazzProfile.shape.bio, bioId, {
+    unstable_branch: selectedBranch,
   });
 
   const bioBranchName = bio.$isLoaded ? bio.$jazz.branchName : undefined;
@@ -48,9 +52,9 @@ export function Editor() {
     return () => {
       view.destroy();
     };
-  }, [bioId, bioBranchName]); // Only recreate if the account or the branch change
+  }, [bioId, bio.$jazzState, bioBranchName]); // Only recreate if the loaded bio or the branch change
 
-  if (!me.$isLoaded || !bio.$isLoaded) return null;
+  if (!bio.$isLoaded) return null;
 
   return (
     <div className="flex flex-col">
