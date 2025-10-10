@@ -31,7 +31,7 @@ async function loadInitialData(mediaPlayer: MediaPlayer) {
   uploadOnboardingData(me.root);
 
   // Load the active track in the AudioManager
-  if (me.root.activeTrack) {
+  if (me.root.activeTrack?.$isLoaded) {
     mediaPlayer.loadTrack(me.root.activeTrack, false);
   }
 }

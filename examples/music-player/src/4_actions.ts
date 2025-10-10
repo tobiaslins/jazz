@@ -134,7 +134,7 @@ export async function removeTrackFromAllPlaylists(track: MusicTrack) {
   const playlists = root.playlists;
 
   for (const playlist of playlists) {
-    if (!playlist) continue;
+    if (!playlist.$isLoaded) continue;
 
     removeTrackFromPlaylist(playlist, track);
   }

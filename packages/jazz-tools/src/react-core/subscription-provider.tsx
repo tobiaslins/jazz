@@ -5,6 +5,7 @@ import {
   AnyAccountSchema,
   CoValueClassOrSchema,
   Loaded,
+  MaybeLoaded,
   ResolveQuery,
   ResolveQueryStrict,
 } from "jazz-tools";
@@ -121,8 +122,8 @@ export function createAccountSubscriptionContext<
         <Context.Provider value={subscription}>{children}</Context.Provider>
       );
     },
-    useSelector: <TSelectorReturn = Loaded<A, R>>(options?: {
-      select?: (value: Loaded<A, R>) => TSelectorReturn;
+    useSelector: <TSelectorReturn = MaybeLoaded<Loaded<A, R>>>(options?: {
+      select?: (value: MaybeLoaded<Loaded<A, R>>) => TSelectorReturn;
       equalityFn?: (a: TSelectorReturn, b: TSelectorReturn) => boolean;
     }) => {
       const subscription = React.useContext(Context);

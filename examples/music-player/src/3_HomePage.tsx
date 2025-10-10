@@ -1,5 +1,5 @@
 import { useToast } from "@/hooks/use-toast";
-import { createInviteLink, useCoState } from "jazz-tools/react";
+import { createInviteLink, useCoStateWithSelector } from "jazz-tools/react";
 import { useParams } from "react-router";
 import { Playlist } from "./1_schema";
 import { uploadMusicTracks } from "./4_actions";
@@ -32,25 +32,30 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
 
   const params = useParams<{ playlistId: string }>();
   const playlistId = useAccountSelector({
-    select: (me) => params.playlistId ?? me.root.$jazz.refs.rootPlaylist.id,
+    select: (me) =>
+      params.playlistId ??
+      (me.$isLoaded ? me.root.$jazz.refs.rootPlaylist.id : undefined),
   });
 
-  const playlist = useCoState(Playlist, playlistId, {
+  const playlist = useCoStateWithSelector(Playlist, playlistId, {
     resolve: {
       tracks: {
         $each: true,
       },
     },
+    select: (playlist) => (playlist.$isLoaded ? playlist : undefined),
+  });
+
+  const isPlaylistOwner = useAccountSelector({
+    select: (me) => playlist && me.$isLoaded && me.canAdmin(playlist),
+  });
+  const isActivePlaylist = useAccountSelector({
+    select: (me) =>
+      me.$isLoaded && playlistId === me.root.activePlaylist?.$jazz.id,
   });
 
   const membersIds = playlist?.$jazz.owner.members.map((member) => member.id);
   const isRootPlaylist = !params.playlistId;
-  const isPlaylistOwner = useAccountSelector({
-    select: (me) => Boolean(playlist && me.canAdmin(playlist)),
-  });
-  const isActivePlaylist = useAccountSelector({
-    select: (me) => playlistId === me.root.activePlaylist?.$jazz.id,
-  });
 
   const handlePlaylistShareClick = async () => {
     if (!isPlaylistOwner || !playlist) return;
