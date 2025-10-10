@@ -424,7 +424,7 @@ describe("Inbox", () => {
     const node = await LocalNode.withLoadedAccount({
       accountID: accountId as any,
       accountSecret: accountSecret,
-      peersToLoadFrom: [getPeerConnectedToTestSyncServer()],
+      peers: [getPeerConnectedToTestSyncServer()],
       crypto: receiver.$jazz.localNode.crypto,
       sessionID: sessionID,
     });
@@ -495,7 +495,7 @@ describe("Inbox", () => {
     const node = await LocalNode.withLoadedAccount({
       accountID: accountId as any,
       accountSecret: accountSecret,
-      peersToLoadFrom: [getPeerConnectedToTestSyncServer()],
+      peers: [getPeerConnectedToTestSyncServer()],
       crypto: receiver.$jazz.localNode.crypto,
       sessionID: sessionID,
     });

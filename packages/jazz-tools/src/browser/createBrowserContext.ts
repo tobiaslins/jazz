@@ -53,7 +53,7 @@ async function setupPeers(options: BaseBrowserContextOptions) {
 
   const { useIndexedDB } = getStorageOptions(options.storage);
 
-  const peersToLoadFrom: Peer[] = [];
+  const peers: Peer[] = [];
 
   const storage = useIndexedDB ? await getIndexedDBStorage() : undefined;
 
@@ -62,7 +62,7 @@ async function setupPeers(options: BaseBrowserContextOptions) {
       addConnectionListener: () => () => {},
       connected: () => false,
       toggleNetwork: () => {},
-      peersToLoadFrom,
+      peers,
       storage,
       setNode: () => {},
       crypto,
@@ -76,11 +76,11 @@ async function setupPeers(options: BaseBrowserContextOptions) {
       if (node) {
         node.syncManager.addPeer(peer);
       } else {
-        peersToLoadFrom.push(peer);
+        peers.push(peer);
       }
     },
     removePeer: (peer) => {
-      peersToLoadFrom.splice(peersToLoadFrom.indexOf(peer), 1);
+      peers.splice(peers.indexOf(peer), 1);
     },
   });
 
@@ -112,7 +112,7 @@ async function setupPeers(options: BaseBrowserContextOptions) {
     connected() {
       return wsPeer.connected;
     },
-    peersToLoadFrom,
+    peers,
     storage,
     setNode,
     crypto,
@@ -124,7 +124,7 @@ export async function createJazzBrowserGuestContext(
 ) {
   const {
     toggleNetwork,
-    peersToLoadFrom,
+    peers,
     setNode,
     crypto,
     storage,
@@ -134,7 +134,7 @@ export async function createJazzBrowserGuestContext(
 
   const context = await createAnonymousJazzContext({
     crypto,
-    peersToLoadFrom,
+    peers,
     storage,
   });
 
@@ -176,7 +176,7 @@ export async function createJazzBrowserContext<
 >(options: BrowserContextOptions<S>) {
   const {
     toggleNetwork,
-    peersToLoadFrom,
+    peers,
     setNode,
     crypto,
     storage,
@@ -205,7 +205,7 @@ export async function createJazzBrowserContext<
   const context = await createJazzContext({
     credentials: options.credentials,
     newAccountProps: options.newAccountProps,
-    peersToLoadFrom,
+    peers,
     storage,
     crypto,
     defaultProfileName: options.defaultProfileName,

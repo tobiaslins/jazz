@@ -5,7 +5,7 @@ import { createAnonymousJazzContext } from "jazz-tools";
 export function createSSRJazzAgent(opts: { peer: string }) {
   const ssrNode = createAnonymousJazzContext({
     crypto: new PureJSCrypto(),
-    peersToLoadFrom: [],
+    peers: [],
   });
 
   const wsPeer = new WebSocketPeerWithReconnection({

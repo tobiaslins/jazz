@@ -20,7 +20,7 @@ export async function createAccount() {
     crypto: await WasmCrypto.create(),
     sessionProvider: randomSessionProvider,
     authSecretStorage: new AuthSecretStorage(),
-    peersToLoadFrom: [
+    peers: [
       createWebSocketPeer({
         id: "upstream",
         role: "server",
