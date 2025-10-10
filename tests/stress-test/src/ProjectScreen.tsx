@@ -20,9 +20,10 @@ export function ProjectScreen() {
     },
   });
 
+  const profilingEnabled = me.$isLoaded && me.root.profilingEnabled;
   const firstRenderMarker = useRef(false);
   if (!firstRenderMarker.current) {
-    if (me?.root.profilingEnabled) {
+    if (profilingEnabled) {
       console.profile(projectId);
     }
 
@@ -41,7 +42,7 @@ export function ProjectScreen() {
         `${projectId}-loaded`,
       ),
     );
-    if (me?.root.profilingEnabled) {
+    if (profilingEnabled) {
       console.profileEnd(project.$jazz.id);
     }
   }
@@ -49,7 +50,7 @@ export function ProjectScreen() {
   const [visibleTasks, setVisibleTasks] = useState(20);
   const navigate = useNavigate();
 
-  if (!project) return null;
+  if (!project.$isLoaded) return null;
 
   return (
     <div

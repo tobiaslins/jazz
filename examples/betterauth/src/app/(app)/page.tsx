@@ -14,7 +14,7 @@ import Image from "next/image";
 export default function Home() {
   const { me } = useAccount(Account, { resolve: { profile: {} } });
 
-  if (!me) {
+  if (!me.$isLoaded) {
     return null;
   }
 

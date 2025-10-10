@@ -99,10 +99,7 @@ export default function RouteComponent() {
     },
   });
 
-  const isPlayer1 = game?.player1?.account?.isMe;
-  const player = isPlayer1 ? "player1" : "player2";
-
-  if (!game) {
+  if (!game.$isLoaded) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
         <div className="animate-pulse">
@@ -111,6 +108,9 @@ export default function RouteComponent() {
       </div>
     );
   }
+
+  const isPlayer1 = game.player1.account.isMe;
+  const player = isPlayer1 ? "player1" : "player2";
 
   const gameComplete = game.outcome !== undefined;
 
@@ -125,7 +125,7 @@ export default function RouteComponent() {
   const opponentHasSelected = Boolean(opponentPlayer.$jazz.refs.playSelection);
 
   const handleSelection = (selection: "rock" | "paper" | "scissors") => {
-    if (!currentPlayerState) return;
+    if (!currentPlayerState.$isLoaded) return;
     if (currentPlayerState.submitted) return;
 
     currentPlayerState.$jazz.set("currentSelection", selection);
@@ -135,7 +135,7 @@ export default function RouteComponent() {
     playSelection: "rock" | "paper" | "scissors" | undefined,
   ) => {
     if (!playSelection) return;
-    if (!currentPlayerState) return;
+    if (!currentPlayerState.$isLoaded) return;
 
     currentPlayerState.$jazz.set("submitted", true);
 
@@ -156,7 +156,7 @@ export default function RouteComponent() {
   };
 
   const handleNewGame = async () => {
-    if (!currentPlayerState) return;
+    if (!currentPlayerState.$isLoaded) return;
 
     currentPlayerState.$jazz.set("resetRequested", true);
 
@@ -176,10 +176,14 @@ export default function RouteComponent() {
     }
   };
 
-  const playSelection = currentPlayerState?.currentSelection;
+  const playSelection = currentPlayerState.$isLoaded
+    ? currentPlayerState.currentSelection
+    : undefined;
 
   const submitDisabled =
-    !currentPlayerState?.currentSelection || currentPlayerState?.submitted;
+    !currentPlayerState.$isLoaded ||
+    !currentPlayerState.currentSelection ||
+    currentPlayerState.submitted;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8 px-4">
@@ -235,7 +239,11 @@ export default function RouteComponent() {
                 </h2>
               </div>
               <Button
-                disabled={currentPlayerState?.resetRequested}
+                disabled={
+                  currentPlayerState.$isLoaded
+                    ? currentPlayerState.resetRequested
+                    : false
+                }
                 onClick={handleNewGame}
                 className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white"
                 size="lg"
@@ -318,7 +326,8 @@ export default function RouteComponent() {
                     className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-3 text-lg"
                     size="lg"
                   >
-                    {currentPlayerState?.submitted ? (
+                    {currentPlayerState.$isLoaded &&
+                    currentPlayerState.submitted ? (
                       <>
                         <CheckCircle className="w-5 h-5 mr-2" />
                         Selection Made!
@@ -343,9 +352,9 @@ export default function RouteComponent() {
               </CardTitle>
             </CardHeader>
             <CardContent className="text-center">
-              {opponentSelection && (
+              {opponentSelection?.$isLoaded && (
                 <div className="mb-6">
-                  {playIcon(opponentSelection?.value, "lg")}
+                  {playIcon(opponentSelection.value, "lg")}
                 </div>
               )}
 

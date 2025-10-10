@@ -11,6 +11,7 @@ import {
 } from "../index.js";
 import {
   Account,
+  CoList,
   Loaded,
   MaybeLoaded,
   Unloaded2,
@@ -1099,6 +1100,37 @@ test("should not throw when calling ensureLoaded a record with a deleted ref", a
   expect(value.profile).toBeUndefined();
 
   unsub();
+});
+
+test("deep loaded CoList nested inside a CoMap can be iterated over", async () => {
+  const TestMap = co.map({ list: co.list(z.number()) });
+
+  const me = await Account.create({
+    creationProps: { name: "Hermes Puggington" },
+    crypto: Crypto,
+  });
+
+  const map = TestMap.create({ list: [1, 2, 3] }, { owner: me });
+
+  const loadedMap = await TestMap.load(map.$jazz.id, {
+    resolve: {
+      list: true,
+    },
+    loadAs: me,
+  });
+  assertLoaded(loadedMap);
+
+  const list = loadedMap.list;
+
+  let expectedValue = 1;
+  // @ts-expect-error TODO: fix type inference
+  // Adding an explicit type annotation with the SAME type that's being inferred
+  // works, for some reason:
+  // const list: CoList<number> & { $isLoaded: true } = loadedMap.list;
+  for (const item of list) {
+    expect(item).toEqual(expectedValue);
+    expectedValue++;
+  }
 });
 
 describe("$isLoaded", async () => {

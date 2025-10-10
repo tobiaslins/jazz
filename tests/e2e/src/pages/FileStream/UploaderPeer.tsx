@@ -20,7 +20,7 @@ export function UploaderPeer() {
   const testFile = useCoState(UploadedFile, uploadedFileId, {});
 
   async function uploadTestFile() {
-    if (!account.me) return;
+    if (!account.me.$isLoaded) return;
 
     setUploadedFileId(undefined);
     setSynced(false);
@@ -88,7 +88,7 @@ export function UploaderPeer() {
           Two way sync completed: {String(Boolean(syncDuration))}
         </div>
       )}
-      {testFile?.coMapDownloaded && (
+      {testFile.$isLoaded && testFile.coMapDownloaded && (
         <div data-testid="co-map-downloaded">CoMap synced!</div>
       )}
     </>

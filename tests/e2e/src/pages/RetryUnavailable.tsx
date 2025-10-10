@@ -25,7 +25,7 @@ export function RetryUnavailable() {
   }, [id]);
 
   const createCoMap = () => {
-    if (!me || id) return;
+    if (!me.$isLoaded || id) return;
 
     const group = Group.create({ owner: me });
 
@@ -40,7 +40,7 @@ export function RetryUnavailable() {
   return (
     <div>
       <h1>Retry Unavailable</h1>
-      <p data-testid="id">{coMap?.$jazz.id}</p>
+      <p data-testid="id">{coMap.$jazz.id}</p>
       <button onClick={createCoMap}>Create a new value!</button>
     </div>
   );
