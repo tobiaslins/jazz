@@ -153,10 +153,11 @@ const { worker } = await startWorker({
 
 ### On Next.js
 
-To use Node-API (native crypto) with Next.js on the server (for example, in a Vercel Function), you need to tell Next.js to 
-include the required native modules. Add them to the [`serverExternalPackages`](https://nextjs.org/docs/app/api-reference/config/next-config-js/serverExternalPackages) array in your `next.config.js`. 
+In order to use Node-API with Next.js, you need to tell Next.js to bundle the native modules in your build.
 
-This step is necessary for Next.js to bundle and deploy the Node-API implementation correctly. As example:
+You can do this by adding the required packages to the [`serverExternalPackages`](https://nextjs.org/docs/app/api-reference/config/next-config-js/serverExternalPackages) array in your `next.config.js`. 
+
+**Note**: if you're deploying to Vercel, be sure to use the `nodejs` runtime!
 
 <CodeGroup>
 ```ts
