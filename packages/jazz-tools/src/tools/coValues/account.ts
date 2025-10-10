@@ -212,7 +212,7 @@ export class Account extends CoValueBase implements CoValue {
     options: {
       creationProps: { name: string };
       initialAgentSecret?: AgentSecret;
-      peersToLoadFrom?: Peer[];
+      peers?: Peer[];
       crypto: CryptoProvider;
     },
   ): Promise<A> {
@@ -256,7 +256,7 @@ export class Account extends CoValueBase implements CoValue {
     const account = await this.create<A>({
       creationProps: options.creationProps,
       crypto: as.$jazz.localNode.crypto,
-      peersToLoadFrom: [connectedPeers[0]],
+      peers: [connectedPeers[0]],
     });
 
     await account.$jazz.waitForAllCoValuesSync();

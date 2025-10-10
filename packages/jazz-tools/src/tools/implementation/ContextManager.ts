@@ -45,7 +45,7 @@ type PlatformSpecificContext<Acc extends Account> =
 
 function getAnonymousFallback() {
   const context = createAnonymousJazzContext({
-    peersToLoadFrom: [],
+    peers: [],
     crypto: new PureJSCrypto(),
   });
 

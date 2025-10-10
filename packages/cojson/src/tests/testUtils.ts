@@ -100,7 +100,7 @@ export async function createNConnectedNodes(...nodeRoles: Peer["role"][]) {
   const nodes = await Promise.all(
     Array.from({ length: nodeRoles.length }, async (_, i) => {
       return LocalNode.withNewlyCreatedAccount({
-        peersToLoadFrom: [],
+        peers: [],
         crypto: Crypto,
         creationProps: { name: `Node ${i + 1}` },
       });
@@ -551,7 +551,7 @@ export async function setupTestAccount(
   } = {},
 ) {
   const ctx = await LocalNode.withNewlyCreatedAccount({
-    peersToLoadFrom: [],
+    peers: [],
     crypto: Crypto,
     creationProps: { name: "Client" },
     storage: opts.storage,

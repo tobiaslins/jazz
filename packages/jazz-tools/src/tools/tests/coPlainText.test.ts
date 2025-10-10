@@ -205,7 +205,7 @@ describe("CoPlainText", () => {
             secret: me.$jazz.localNode.getCurrentAgent().agentSecret,
           },
           sessionProvider: randomSessionProvider,
-          peersToLoadFrom: [initialAsPeer],
+          peers: [initialAsPeer],
           crypto: Crypto,
           asActiveAccount: true,
         });
@@ -237,7 +237,7 @@ describe("CoPlainText", () => {
           secret: me.$jazz.localNode.getCurrentAgent().agentSecret,
         },
         sessionProvider: randomSessionProvider,
-        peersToLoadFrom: [initialAsPeer],
+        peers: [initialAsPeer],
         crypto: Crypto,
         asActiveAccount: true,
       });

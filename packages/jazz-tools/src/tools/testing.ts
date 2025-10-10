@@ -112,7 +112,7 @@ export async function createJazzTestAccount<
     },
     initialAgentSecret: crypto.agentSecretFromSecretSeed(secretSeed),
     crypto,
-    peersToLoadFrom: peers,
+    peers: peers,
     migration: async (rawAccount, _node, creationProps) => {
       if (isMigrationActive) {
         throw new Error(
@@ -185,7 +185,7 @@ export function runWithoutActiveAccount<Result>(
 export async function createJazzTestGuest() {
   const ctx = await createAnonymousJazzContext({
     crypto: await PureJSCrypto.create(),
-    peersToLoadFrom: [],
+    peers: [],
   });
 
   return {
@@ -318,7 +318,7 @@ export class TestJazzContextManager<
       credentials: authProps?.credentials,
       defaultProfileName: props.defaultProfileName,
       newAccountProps: authProps?.newAccountProps,
-      peersToLoadFrom: [getPeerConnectedToTestSyncServer()],
+      peers: [getPeerConnectedToTestSyncServer()],
       crypto: await TestJSCrypto.create(),
       sessionProvider: randomSessionProvider,
       authSecretStorage: this.getAuthSecretStorage(),
