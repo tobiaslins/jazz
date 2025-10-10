@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     description: metaTags.description,
     images: [
       {
-        url: `${metaTags.url}/opengraph-image`,
+        url: `${metaTags.url}/api/opengraph-image?title=${encodeURIComponent(metaTags.title)}`,
         height: 630,
         alt: metaTags.title,
       },
