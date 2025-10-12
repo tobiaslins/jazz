@@ -3,13 +3,13 @@ export const docNavigationItems = [
   {
     // welcome to jazz
     name: "Getting started",
+    href: '/docs',
     items: [
       {
         // what is jazz, supported environments, where to start (guide, examples, project setup)
-        name: "Introduction",
+        name: "Overview",
         href: "/docs",
         done: 100,
-        excludeFromNavigation: true,
       }, {
         name: "Quickstart",
         href: "/docs/getting-started/quickstart",
@@ -120,7 +120,6 @@ export const docNavigationItems = [
   },
   {
     name: "Core Concepts",
-    href: '/docs',
     done: 100,
     items: [
       {
@@ -360,7 +359,7 @@ export const docNavigationItems = [
           href: "/docs/inspector",
           done: 100,
         }, {
-          name: "AI tools",
+          name: "AI tools (llms.txt)",
           href: "/docs/ai-tools",
           done: 100,
         }]

@@ -57,6 +57,15 @@ export type Role =
   | "readerInvite"
   | "writeOnlyInvite";
 
+export function isAccountRole(role?: Role): role is AccountRole {
+  return (
+    role === "admin" ||
+    role === "writer" ||
+    role === "reader" ||
+    role === "writeOnly"
+  );
+}
+
 type ValidTransactionsResult = { txID: TransactionID; tx: Transaction };
 type MemberState = { [agent: RawAccountID | AgentID]: Role; [EVERYONE]?: Role };
 

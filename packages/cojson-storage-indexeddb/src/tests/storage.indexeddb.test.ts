@@ -576,7 +576,7 @@ test("should sync and load accounts from storage", async () => {
     crypto: Crypto,
     accountSecret: agentSecret,
     accountID,
-    peersToLoadFrom: [],
+    peers: [],
     storage: await getIndexedDBStorage(),
     sessionID: Crypto.newRandomSessionID(Crypto.getAgentID(agentSecret)),
   });
