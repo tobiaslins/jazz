@@ -141,8 +141,7 @@ export class VerifiedTransaction {
   // If this is a merged transaction, the madeAt is the time when the transaction has been merged
   get madeAt() {
     if (this.mergedTransactionMadeAt) {
-      // Using Math.min to avoid the case where the user might exploit the mergedTransactionMadeAt to make changes after the access revocation
-      return Math.min(this.mergedTransactionMadeAt, this.originalMadeAt);
+      return this.mergedTransactionMadeAt;
     }
 
     return this.originalMadeAt;
@@ -972,9 +971,18 @@ export class CoValueCore {
       const sessionID = meta.s ?? previousTransaction?.txID.sessionID;
 
       if (meta.t) {
-        transaction.mergedTransactionMadeAt = transaction.madeAt - meta.t;
+        transaction.mergedTransactionMadeAt =
+          transaction.originalMadeAt - meta.t;
       } else if (previousTransaction) {
         transaction.mergedTransactionMadeAt = previousTransaction.madeAt;
+      }
+
+      // Check against tampering of the meta.t value to write transaction after the access revocation
+      if (
+        transaction.mergedTransactionMadeAt &&
+        transaction.mergedTransactionMadeAt > transaction.originalMadeAt
+      ) {
+        transaction.isValid = false;
       }
 
       if (sessionID) {
