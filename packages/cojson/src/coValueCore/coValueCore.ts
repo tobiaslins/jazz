@@ -72,9 +72,9 @@ export type VerifiedTransaction = {
   madeAt: number;
   // The unmodified madeAt that refers to the time when the transaction was made
   // When merging branches, the madeAt will differ from the originalMadeAt because the madeAt is modified by the merge meta to show the madeAt of the transaction before the merge
-  // We do this override because the originalMadeAt is necessary for the permissions checks, and the madeAt is required to keep the conflict resolution the same we had before the merge.
+  // We do this override because the originalMadeAt is necessary for the permissions checks, and the madeAt is required to keep the conflict resolution the same as we had before the merge.
   originalMadeAt: number;
-  // Whether the transaction has been validated, used to track if determinedValidTransactions needs to be check this
+  // Whether the transaction has been validated, used to track if determinedValidTransactions needs to check this
   isValidated: boolean;
   // The decoded changes of the transaction
   changes: JsonValue[] | undefined;
