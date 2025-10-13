@@ -58,7 +58,7 @@ export function idforHeader(
   return `co_z${hash.slice("shortHash_z".length)}`;
 }
 
-export type VerifiedTransaction = {
+export class VerifiedTransaction {
   // The account or agent that made the transaction
   author: RawAccountID | AgentID;
   // An object containing the session ID and the transaction index
@@ -69,11 +69,9 @@ export type VerifiedTransaction = {
   originalTxID: TransactionID;
   tx: Transaction;
   // The Unix time when the transaction was made
-  madeAt: number;
-  // The unmodified madeAt that refers to the time when the transaction was made
-  // When merging branches, the madeAt will differ from the originalMadeAt because the madeAt is modified by the merge meta to show the madeAt of the transaction before the merge
-  // We do this override because the originalMadeAt is necessary for the permissions checks, and the madeAt is required to keep the conflict resolution the same as we had before the merge.
-  originalMadeAt: number;
+  #madeAt: number;
+  // If this is a merged transaction, the madeAt of the source transaction
+  sourceTransactionMadeAt: number | undefined;
   // Whether the transaction has been validated, used to track if determinedValidTransactions needs to check this
   isValidated: boolean;
   // The decoded changes of the transaction
@@ -94,14 +92,74 @@ export type VerifiedTransaction = {
 
   // The previous verified transaction for the same session
   previous: VerifiedTransaction | undefined;
-};
 
-export type DecryptedTransaction = {
-  txID: TransactionID;
+  constructor(
+    sessionID: SessionID,
+    txIndex: number,
+    tx: Transaction,
+    branchId: RawCoID | undefined,
+    parsingCache:
+      | { changes: JsonValue[]; meta: JsonObject | undefined }
+      | undefined,
+    previous: VerifiedTransaction | undefined,
+  ) {
+    this.author = accountOrAgentIDfromSessionID(sessionID);
+
+    const txID = branchId
+      ? {
+          sessionID,
+          txIndex,
+          branch: branchId,
+        }
+      : {
+          sessionID,
+          txIndex,
+        };
+
+    this.txID = txID;
+    this.originalTxID = txID;
+    this.tx = tx;
+    this.#madeAt = tx.madeAt;
+    this.sourceTransactionMadeAt = undefined;
+    this.isValidated = false;
+
+    this.changes = parsingCache?.changes;
+    this.meta = parsingCache?.meta;
+
+    this.isValid = false;
+    this.hasInvalidChanges = false;
+    this.hasInvalidMeta = false;
+    this.hasMetaBeenParsed = false;
+    this.previous = previous;
+  }
+
+  // The madeAt that refers to the time when the transaction was made
+  // If this is a merged transaction, the madeAt is the time when the transaction has been merged
+  get madeAt() {
+    if (this.sourceTransactionMadeAt) {
+      return Math.min(this.sourceTransactionMadeAt, this.#madeAt);
+    }
+
+    return this.#madeAt;
+  }
+
+  // The unmodified madeAt that refers to the time when the transaction was made
+  // If this is a merged transaction, the originalMadeAt is the time when the transaction has been merged
+  // This is used for permissions checks, because we want to validate the time of the merge instead of the transaction time
+  get originalMadeAt() {
+    return this.#madeAt;
+  }
+
+  isValidTransactionWithChanges(): this is {
+    changes: JsonValue[];
+    isValid: true;
+  } {
+    return Boolean(this.isValid && this.changes);
+  }
+}
+
+export type DecryptedTransaction = Omit<VerifiedTransaction, "changes"> & {
   changes: JsonValue[];
-  madeAt: number;
-  originalMadeAt: number;
-  tx: Transaction;
 };
 
 export type AvailableCoValueCore = CoValueCore & { verified: VerifiedState };
@@ -824,38 +882,19 @@ export class CoValueCore {
           continue;
         }
 
-        const txID = isBranched
-          ? {
-              sessionID,
-              txIndex,
-              branch: this.id,
-            }
-          : {
-              sessionID,
-              txIndex,
-            };
-
         const cache = this.parsingCache.get(tx);
         if (cache) {
           this.parsingCache.delete(tx);
         }
 
-        const verifiedTransaction = {
-          author: accountOrAgentIDfromSessionID(sessionID),
-          txID,
-          originalTxID: txID,
-          originalMadeAt: tx.madeAt,
-          madeAt: tx.madeAt,
-          isValidated: false,
-          isValid: false,
-          changes: cache?.changes,
-          meta: cache?.meta,
-          hasInvalidChanges: false,
-          hasInvalidMeta: false,
-          hasMetaBeenParsed: false,
+        const verifiedTransaction = new VerifiedTransaction(
+          sessionID,
+          txIndex,
           tx,
-          previous: this.lastVerifiedTransactionBySessionID[sessionID],
-        };
+          isBranched ? this.id : undefined,
+          cache,
+          this.lastVerifiedTransactionBySessionID[sessionID],
+        );
 
         if (verifiedTransaction.madeAt > this.latestTxMadeAt) {
           this.latestTxMadeAt = verifiedTransaction.madeAt;
@@ -935,9 +974,9 @@ export class CoValueCore {
       const sessionID = meta.s ?? previousTransaction?.txID.sessionID;
 
       if (meta.t) {
-        transaction.madeAt = transaction.madeAt - meta.t;
+        transaction.sourceTransactionMadeAt = transaction.madeAt - meta.t;
       } else if (previousTransaction) {
-        transaction.madeAt = previousTransaction.madeAt;
+        transaction.sourceTransactionMadeAt = previousTransaction.madeAt;
       }
 
       if (sessionID) {
@@ -949,7 +988,7 @@ export class CoValueCore {
       } else {
         logger.error("Merge commit without session ID", {
           txID: transaction.txID,
-          prev: previousTransaction ?? null,
+          prevTxID: previousTransaction?.txID ?? null,
         });
       }
     }
@@ -1005,7 +1044,7 @@ export class CoValueCore {
     const source = getBranchSource(this);
 
     for (const transaction of this.verifiedTransactions) {
-      if (!isValidTransactionWithChanges(transaction)) {
+      if (!transaction.isValidTransactionWithChanges()) {
         continue;
       }
 
@@ -1140,11 +1179,14 @@ export class CoValueCore {
   }
 
   compareTransactions(
-    a: Pick<DecryptedTransaction, "madeAt" | "txID">,
-    b: Pick<DecryptedTransaction, "madeAt" | "txID">,
+    a: Pick<VerifiedTransaction, "madeAt" | "txID" | "sourceTransactionMadeAt">,
+    b: Pick<VerifiedTransaction, "madeAt" | "txID" | "sourceTransactionMadeAt">,
   ) {
-    if (a.madeAt !== b.madeAt) {
-      return a.madeAt - b.madeAt;
+    const aMadeAt = a.sourceTransactionMadeAt ?? a.madeAt;
+    const bMadeAt = b.sourceTransactionMadeAt ?? b.madeAt;
+
+    if (aMadeAt !== bMadeAt) {
+      return aMadeAt - bMadeAt;
     }
 
     if (a.txID.sessionID === b.txID.sessionID) {
@@ -1388,9 +1430,3 @@ export type TryAddTransactionsError =
   | ResolveAccountAgentError
   | InvalidHashError
   | InvalidSignatureError;
-
-function isValidTransactionWithChanges(
-  transaction: VerifiedTransaction,
-): transaction is VerifiedTransaction & { changes: JsonValue[] } {
-  return Boolean(transaction.isValid && transaction.changes);
-}
