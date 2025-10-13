@@ -526,6 +526,17 @@ describe("Branching Logic", () => {
         );
       });
 
+      // The set to 3 should be valid, but the timestamp is capped to the time of merge
+      const lastBranchChange = branch.core
+        .getValidSortedTransactions()
+        .findLast((tx) => tx.changes.length > 0);
+      const lastMapChange = map.core
+        .getValidTransactions()
+        .findLast((tx) => tx.changes.length > 0);
+
+      expect(lastBranchChange?.txID).toEqual(lastMapChange?.txID);
+      expect(lastMapChange?.isValid).toBe(true);
+
       expect(expectMap(map.core.getCurrentContent()).get("value")).toBe(2);
     });
   });
