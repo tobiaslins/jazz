@@ -246,6 +246,7 @@
     "@op-engineering/op-sqlite": "*",
     "@react-native-community/netinfo": "*",
     "better-auth": "^1.3.2",
+    "expo-image-manipulator": "*",
     "expo-file-system": "*",
     "expo-secure-store": "*",
     "expo-sqlite": "*",
@@ -270,6 +271,9 @@
       "optional": true
     },
     "better-auth": {
+      "optional": true
+    },
+    "expo-image-manipulator": {
       "optional": true
     },
     "expo-file-system": {
