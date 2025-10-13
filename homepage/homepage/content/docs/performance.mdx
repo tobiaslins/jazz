@@ -18,9 +18,9 @@ Check particularly if you are running Jazz in an environment which supports Node
 
 ## Minimise group extensions
 
-Group extensions are very powerful for cascading permissions and are performant enough for the vast majority of use cases. However, if huge numbers of parent groups need to be loaded as part of the dependency chain, there can be a performance impact. 
-
-You can optimise performance by manually creating groups, reusing groups where the permissions will be the same on both CoValues throughout the lifetime of the CoValue.
+Group extensions make it easy to cascade permissions and they’re fast enough for most cases.
+However, performance can slow down when many parent groups need to load in the dependency chain.
+To avoid this, create and reuse groups manually when their permissions stay the same for both CoValues over time.
 
 **Note**: Implicit CoValue creation extends groups automatically. Be careful about how you create nested CoValues if you are likely to build long dependency chains.
 
