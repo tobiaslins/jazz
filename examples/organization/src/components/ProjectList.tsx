@@ -3,7 +3,7 @@ import { useOrganizationSelector } from "./OrganizationProvider.ts";
 export function ProjectList() {
   const projects = useOrganizationSelector({
     select: (organization) => {
-      return organization.projects;
+      return organization.$isLoaded ? organization.projects : [];
     },
   });
 

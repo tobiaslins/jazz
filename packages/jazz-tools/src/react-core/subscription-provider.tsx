@@ -4,6 +4,7 @@ import {
   AccountClass,
   AnyAccountSchema,
   CoValueClassOrSchema,
+  CoValueLoadingState,
   Loaded,
   MaybeLoaded,
   ResolveQuery,
@@ -43,15 +44,16 @@ export function createCoValueSubscriptionContext<
         resolve: resolve,
       });
 
-      const loadState = useSubscriptionSelector(subscription, {
-        select: (value) => (!value ? value : true),
-      });
+      const loadState = useSubscriptionSelector(subscription);
 
-      if (loadState === undefined) {
+      if (loadState.$jazzState === CoValueLoadingState.UNLOADED) {
         return loadingFallback ?? null;
       }
 
-      if (loadState === null) {
+      if (
+        loadState.$jazzState === CoValueLoadingState.UNAUTHORIZED ||
+        loadState.$jazzState === CoValueLoadingState.UNAVAILABLE
+      ) {
         return unavailableFallback ?? null;
       }
 
@@ -59,8 +61,8 @@ export function createCoValueSubscriptionContext<
         <Context.Provider value={subscription}>{children}</Context.Provider>
       );
     },
-    useSelector: <TSelectorReturn = Loaded<S, R>>(options?: {
-      select?: (value: Loaded<S, R>) => TSelectorReturn;
+    useSelector: <TSelectorReturn = MaybeLoaded<Loaded<S, R>>>(options?: {
+      select?: (value: MaybeLoaded<Loaded<S, R>>) => TSelectorReturn;
       equalityFn?: (a: TSelectorReturn, b: TSelectorReturn) => boolean;
     }) => {
       const subscription = React.useContext(Context);
@@ -106,15 +108,16 @@ export function createAccountSubscriptionContext<
         resolve: resolve,
       });
 
-      const loadState = useSubscriptionSelector(subscription, {
-        select: (value) => (!value ? value : true),
-      });
+      const loadState = useSubscriptionSelector(subscription);
 
-      if (loadState === undefined) {
+      if (loadState.$jazzState === CoValueLoadingState.UNLOADED) {
         return loadingFallback ?? null;
       }
 
-      if (loadState === null) {
+      if (
+        loadState.$jazzState === CoValueLoadingState.UNAUTHORIZED ||
+        loadState.$jazzState === CoValueLoadingState.UNAVAILABLE
+      ) {
         return unavailableFallback ?? null;
       }
 
