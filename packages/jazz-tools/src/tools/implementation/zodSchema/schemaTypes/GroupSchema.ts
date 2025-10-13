@@ -14,6 +14,7 @@ import {
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 import { coOptionalDefiner } from "../zodCo.js";
 import { CoOptionalSchema } from "./CoOptionalSchema.js";
+import type { AccountRole, InviteSecret } from "cojson";
 
 export interface CoreGroupSchema extends CoreCoValueSchema {
   builtin: "Group";
@@ -51,7 +52,12 @@ export class GroupSchema implements CoreGroupSchema {
   ): Promise<Group | null> {
     return Group.load(id, options);
   }
-
+  createInvite<G extends Group>(
+    id: ID<G>,
+    options?: { role?: AccountRole; loadAs?: Account },
+  ): Promise<InviteSecret> {
+    return Group.createInvite(id, options);
+  }
   subscribe<G extends Group, const R extends RefsToResolve<G>>(
     id: ID<G>,
     listener: (value: Resolved<G, R>, unsubscribe: () => void) => void,
