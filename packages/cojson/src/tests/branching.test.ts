@@ -12,6 +12,7 @@ import {
   setupTestNode,
   loadCoValueOrFail,
   setupTestAccount,
+  waitFor,
 } from "./testUtils.js";
 import { expectList, expectMap, expectPlainText } from "../coValue.js";
 import { RawAccount, RawCoMap } from "../exports.js";
@@ -466,6 +467,66 @@ describe("Branching Logic", () => {
 
       // The merge should be successful
       expect(expectMap(mergeResult.getCurrentContent()).get("value")).toBe(2);
+    });
+
+    test("should reject edits from kicked out member even with timestamp manipulation", async () => {
+      const alice = setupTestNode({
+        connected: true,
+      });
+      const bob = await setupTestAccount({
+        connected: true,
+      });
+      const group = alice.node.createGroup();
+      const map = group.createMap();
+
+      group.addMember(
+        await loadCoValueOrFail(alice.node, bob.accountID),
+        "writer",
+      );
+      const timeOnInvitation = Date.now();
+
+      const bobMap = await loadCoValueOrFail(bob.node, map.id);
+
+      bobMap.set("value", 1, "trusting");
+
+      await bobMap.core.waitForSync();
+
+      const bobGroup = bob.node.createGroup();
+      const branch = expectMap(
+        bobMap.core
+          .createBranch("feature-branch", bobGroup.id)
+          .getCurrentContent(),
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, 5));
+
+      // Alice sets value to 2 and downgrade bob to reader
+      map.set("value", 2, "trusting");
+      group.addMember(
+        await loadCoValueOrFail(alice.node, bob.accountID),
+        "reader",
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, 5));
+
+      branch.set("value", 3, "trusting");
+
+      // Bob attempts to make an edit after being kicked out by modifying the merge time
+      const dateNowMock = vi.spyOn(Date, "now");
+      dateNowMock.mockReturnValue(timeOnInvitation + 1);
+
+      const mergeResult = branch.core.mergeBranch();
+
+      dateNowMock.mockRestore();
+
+      // Wait for the full sync to complete
+      await waitFor(() => {
+        expect(mergeResult.knownState().sessions).toEqual(
+          map.core.knownState().sessions,
+        );
+      });
+
+      expect(expectMap(map.core.getCurrentContent()).get("value")).toBe(2);
     });
   });
 
