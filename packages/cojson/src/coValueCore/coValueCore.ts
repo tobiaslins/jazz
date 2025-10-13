@@ -63,13 +63,13 @@ export class VerifiedTransaction {
   author: RawAccountID | AgentID;
   // An object containing the session ID and the transaction index
   originalTxID: TransactionID;
-  // If this is a merged transaction, the TxID of the source transaction
-  sourceTxID: TransactionID | undefined;
+  // If this is a merged transaction, the TxID of the merged transaction
+  mergedTxID: TransactionID | undefined;
   tx: Transaction;
   // The Unix time when the transaction was made
   originalMadeAt: number;
-  // If this is a merged transaction, the madeAt of the source transaction
-  sourceTransactionMadeAt: number | undefined;
+  // If this is a merged transaction, the madeAt of the merged transaction
+  mergedTransactionMadeAt: number | undefined;
   // Whether the transaction has been validated, used to track if determinedValidTransactions needs to check this
   isValidated: boolean;
   // The decoded changes of the transaction
@@ -115,10 +115,10 @@ export class VerifiedTransaction {
         };
 
     this.originalTxID = txID;
-    this.sourceTxID = undefined;
+    this.mergedTxID = undefined;
     this.tx = tx;
     this.originalMadeAt = tx.madeAt;
-    this.sourceTransactionMadeAt = undefined;
+    this.mergedTransactionMadeAt = undefined;
     this.isValidated = false;
 
     this.changes = parsingCache?.changes;
@@ -134,15 +134,15 @@ export class VerifiedTransaction {
   // The TxID that refers to the current position in the session map
   // If this is a merged transaction, the txID is the TxID of the merged transaction
   get txID() {
-    return this.sourceTxID ?? this.originalTxID;
+    return this.mergedTxID ?? this.originalTxID;
   }
 
   // The madeAt that refers to the time when the transaction was made
   // If this is a merged transaction, the madeAt is the time when the transaction has been merged
   get madeAt() {
-    if (this.sourceTransactionMadeAt) {
-      // Using Math.min to avoid the case where the user might exploit the sourceTransactionMadeAt to make changes after the access revocation
-      return Math.min(this.sourceTransactionMadeAt, this.originalMadeAt);
+    if (this.mergedTransactionMadeAt) {
+      // Using Math.min to avoid the case where the user might exploit the mergedTransactionMadeAt to make changes after the access revocation
+      return Math.min(this.mergedTransactionMadeAt, this.originalMadeAt);
     }
 
     return this.originalMadeAt;
@@ -972,13 +972,13 @@ export class CoValueCore {
       const sessionID = meta.s ?? previousTransaction?.txID.sessionID;
 
       if (meta.t) {
-        transaction.sourceTransactionMadeAt = transaction.madeAt - meta.t;
+        transaction.mergedTransactionMadeAt = transaction.madeAt - meta.t;
       } else if (previousTransaction) {
-        transaction.sourceTransactionMadeAt = previousTransaction.madeAt;
+        transaction.mergedTransactionMadeAt = previousTransaction.madeAt;
       }
 
       if (sessionID) {
-        transaction.sourceTxID = {
+        transaction.mergedTxID = {
           sessionID,
           txIndex: meta.mi,
           branch: meta.b ?? previousTransaction?.txID.branch,
@@ -1177,11 +1177,11 @@ export class CoValueCore {
   }
 
   compareTransactions(
-    a: Pick<VerifiedTransaction, "madeAt" | "txID" | "sourceTransactionMadeAt">,
-    b: Pick<VerifiedTransaction, "madeAt" | "txID" | "sourceTransactionMadeAt">,
+    a: Pick<VerifiedTransaction, "madeAt" | "txID" | "mergedTransactionMadeAt">,
+    b: Pick<VerifiedTransaction, "madeAt" | "txID" | "mergedTransactionMadeAt">,
   ) {
-    const aMadeAt = a.sourceTransactionMadeAt ?? a.madeAt;
-    const bMadeAt = b.sourceTransactionMadeAt ?? b.madeAt;
+    const aMadeAt = a.mergedTransactionMadeAt ?? a.madeAt;
+    const bMadeAt = b.mergedTransactionMadeAt ?? b.madeAt;
 
     if (aMadeAt !== bMadeAt) {
       return aMadeAt - bMadeAt;
