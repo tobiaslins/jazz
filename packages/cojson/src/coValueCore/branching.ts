@@ -143,6 +143,17 @@ export function createBranch(
     return coValue;
   }
 
+  const myRole = coValue.safeGetGroup()?.myRole();
+
+  // We allow branch creation to accounts with at least read access to the source group
+  if (!myRole || (myRole === "reader" && !ownerId)) {
+    return coValue;
+  }
+
+  // Accounts without write access store the branch pointer unencrypted to make it possible to handle it as a special case
+  // in the permissions checks
+  const privacy = myRole === "reader" ? "trusting" : "private";
+
   const header = getBranchHeader({
     type: coValue.verified.header.type,
     branchName: name,
@@ -159,7 +170,7 @@ export function createBranch(
   } satisfies BranchStartCommit);
 
   // Create a branch pointer, to identify that we created a branch
-  coValue.makeTransaction([], "private", {
+  coValue.makeTransaction([], privacy, {
     branch: name,
     ownerId,
   } satisfies BranchPointerCommit);

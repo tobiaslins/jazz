@@ -135,6 +135,21 @@ export function determineValidTransactions(coValue: CoValueCore) {
         groupAtTime.roleOfInternal(effectiveTransactor);
 
       if (
+        transactorRoleAtTxTime === "reader" &&
+        tx.meta?.branch &&
+        tx.meta?.ownerId
+      ) {
+        // Force the changes and meta to only contain the branch pointer information
+        tx.meta = {
+          branch: tx.meta.branch,
+          ownerId: tx.meta.ownerId,
+        };
+        tx.changes = [];
+        tx.isValid = true;
+        continue;
+      }
+
+      if (
         transactorRoleAtTxTime !== "admin" &&
         transactorRoleAtTxTime !== "writer" &&
         transactorRoleAtTxTime !== "writeOnly"
@@ -246,20 +261,10 @@ function determineValidTransactionsForGroup(
       }
     }
 
-    let changes = transaction.changes;
+    const changes = transaction.changes;
 
     if (!changes) {
-      try {
-        changes = parseJSON(tx.changes);
-        transaction.changes = changes;
-      } catch (e) {
-        logPermissionError("Invalid JSON in transaction", {
-          id: coValue.id,
-          tx,
-        });
-        transaction.hasInvalidChanges = true;
-        continue;
-      }
+      continue;
     }
 
     const change = changes[0] as

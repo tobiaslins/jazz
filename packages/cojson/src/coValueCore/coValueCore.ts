@@ -47,8 +47,9 @@ import {
   BranchStartCommit,
 } from "./branching.js";
 import { type RawAccountID } from "../coValues/account.js";
-import { decodeTransactionChangesAndMeta } from "./decodeTransactionChangesAndMeta.js";
+import { decryptTransactionChangesAndMeta } from "./decryptTransactionChangesAndMeta.js";
 import { combineKnownStateSessions } from "../knownState.js";
+import { safeParseJSON } from "../jsonStringify.js";
 
 export function idforHeader(
   header: CoValueHeader,
@@ -70,24 +71,18 @@ export class VerifiedTransaction {
   originalMadeAt: number;
   // If this is a merged transaction, the madeAt of the merged transaction
   mergedTransactionMadeAt: number | undefined;
-  // Whether the transaction has been validated, used to track if determinedValidTransactions needs to check this
-  isValidated: boolean;
   // The decoded changes of the transaction
   changes: JsonValue[] | undefined;
   // The decoded meta information of the transaction
   meta: JsonObject | undefined;
-
   // Whether the transaction is valid, as per membership rules
-  isValid: boolean;
-
-  // True if we encountered an error while decoding the changes
-  hasInvalidChanges: boolean;
-  // True if we encountered an error while parsing the meta
-  hasInvalidMeta: boolean;
-
+  isValid: boolean = false;
+  // Whether the transaction has been validated, used to track if determinedValidTransactions needs to check this
+  isValidated: boolean = false;
+  // True if the transaction has been decrypted
+  isDecrypted: boolean = false;
   // True if the meta information has been parsed and loaded in the CoValueCore
-  hasMetaBeenParsed: boolean;
-
+  hasMetaBeenParsed: boolean = false;
   // The previous verified transaction for the same session
   previous: VerifiedTransaction | undefined;
 
@@ -115,20 +110,21 @@ export class VerifiedTransaction {
         };
 
     this.originalTxID = txID;
-    this.mergedTxID = undefined;
     this.tx = tx;
     this.originalMadeAt = tx.madeAt;
-    this.mergedTransactionMadeAt = undefined;
-    this.isValidated = false;
 
     this.changes = parsingCache?.changes;
     this.meta = parsingCache?.meta;
-
-    this.isValid = false;
-    this.hasInvalidChanges = false;
-    this.hasInvalidMeta = false;
-    this.hasMetaBeenParsed = false;
     this.previous = previous;
+
+    // Decoding the trusting transactions here because they might be useful in the permissions checks
+    if (this.tx.privacy === "trusting") {
+      this.changes = safeParseJSON(this.tx.changes);
+
+      if (this.tx.meta) {
+        this.meta = safeParseJSON(this.tx.meta);
+      }
+    }
   }
 
   // The TxID that refers to the current position in the session map
@@ -1015,7 +1011,7 @@ export class CoValueCore {
     this.determineValidTransactions();
 
     for (const transaction of this.verifiedTransactions) {
-      decodeTransactionChangesAndMeta(
+      decryptTransactionChangesAndMeta(
         this,
         transaction,
         ignorePrivateTransactions,
@@ -1259,7 +1255,7 @@ export class CoValueCore {
     }
   }
 
-  getGroup(): RawGroup {
+  safeGetGroup(): RawGroup | undefined {
     if (!this.verified) {
       throw new Error(
         "CoValueCore: getGroup called on coValue without verified state",
@@ -1267,7 +1263,7 @@ export class CoValueCore {
     }
 
     if (this.verified.header.ruleset.type !== "ownedByGroup") {
-      throw new Error("Only values owned by groups have groups");
+      return undefined;
     }
 
     return expectGroup(
@@ -1275,6 +1271,16 @@ export class CoValueCore {
         .expectCoValueLoaded(this.verified.header.ruleset.group)
         .getCurrentContent(),
     );
+  }
+
+  getGroup(): RawGroup {
+    const group = this.safeGetGroup();
+
+    if (!group) {
+      throw new Error("Only values owned by groups have groups");
+    }
+
+    return group;
   }
 
   getTx(txID: TransactionID): Transaction | undefined {
