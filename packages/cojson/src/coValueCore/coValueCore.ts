@@ -62,14 +62,12 @@ export class VerifiedTransaction {
   // The account or agent that made the transaction
   author: RawAccountID | AgentID;
   // An object containing the session ID and the transaction index
-  txID: TransactionID;
-  // The unmodified TxID that refers to the current position in the session map
-  // When merging branches, the txID will differ from the originalTxID because the txID is modified by the merge meta to show the original transaction id before the merge
-  // We do this override to keep the txID consistent after the merge because it is used by CoList operations.
   originalTxID: TransactionID;
+  // If this is a merged transaction, the TxID of the source transaction
+  sourceTxID: TransactionID | undefined;
   tx: Transaction;
   // The Unix time when the transaction was made
-  #madeAt: number;
+  originalMadeAt: number;
   // If this is a merged transaction, the madeAt of the source transaction
   sourceTransactionMadeAt: number | undefined;
   // Whether the transaction has been validated, used to track if determinedValidTransactions needs to check this
@@ -116,10 +114,10 @@ export class VerifiedTransaction {
           txIndex,
         };
 
-    this.txID = txID;
     this.originalTxID = txID;
+    this.sourceTxID = undefined;
     this.tx = tx;
-    this.#madeAt = tx.madeAt;
+    this.originalMadeAt = tx.madeAt;
     this.sourceTransactionMadeAt = undefined;
     this.isValidated = false;
 
@@ -133,21 +131,20 @@ export class VerifiedTransaction {
     this.previous = previous;
   }
 
+  // The TxID that refers to the current position in the session map
+  // If this is a merged transaction, the txID is the TxID of the merged transaction
+  get txID() {
+    return this.sourceTxID ?? this.originalTxID;
+  }
+
   // The madeAt that refers to the time when the transaction was made
   // If this is a merged transaction, the madeAt is the time when the transaction has been merged
   get madeAt() {
     if (this.sourceTransactionMadeAt) {
-      return Math.min(this.sourceTransactionMadeAt, this.#madeAt);
+      return Math.min(this.sourceTransactionMadeAt, this.originalMadeAt);
     }
 
-    return this.#madeAt;
-  }
-
-  // The unmodified madeAt that refers to the time when the transaction was made
-  // If this is a merged transaction, the originalMadeAt is the time when the transaction has been merged
-  // This is used for permissions checks, because we want to validate the time of the merge instead of the transaction time
-  get originalMadeAt() {
-    return this.#madeAt;
+    return this.originalMadeAt;
   }
 
   isValidTransactionWithChanges(): this is {
@@ -980,7 +977,7 @@ export class CoValueCore {
       }
 
       if (sessionID) {
-        transaction.txID = {
+        transaction.sourceTxID = {
           sessionID,
           txIndex: meta.mi,
           branch: meta.b ?? previousTransaction?.txID.branch,
