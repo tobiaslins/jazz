@@ -1177,14 +1177,11 @@ export class CoValueCore {
   }
 
   compareTransactions(
-    a: Pick<VerifiedTransaction, "madeAt" | "txID" | "mergedTransactionMadeAt">,
-    b: Pick<VerifiedTransaction, "madeAt" | "txID" | "mergedTransactionMadeAt">,
+    a: Pick<VerifiedTransaction, "madeAt" | "txID">,
+    b: Pick<VerifiedTransaction, "madeAt" | "txID">,
   ) {
-    const aMadeAt = a.mergedTransactionMadeAt ?? a.madeAt;
-    const bMadeAt = b.mergedTransactionMadeAt ?? b.madeAt;
-
-    if (aMadeAt !== bMadeAt) {
-      return aMadeAt - bMadeAt;
+    if (a.madeAt !== b.madeAt) {
+      return a.madeAt - b.madeAt;
     }
 
     if (a.txID.sessionID === b.txID.sessionID) {
