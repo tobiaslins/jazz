@@ -141,6 +141,7 @@ export class VerifiedTransaction {
   // If this is a merged transaction, the madeAt is the time when the transaction has been merged
   get madeAt() {
     if (this.sourceTransactionMadeAt) {
+      // Using Math.min to avoid the case where the user might exploit the sourceTransactionMadeAt to make changes after the access revocation
       return Math.min(this.sourceTransactionMadeAt, this.originalMadeAt);
     }
 
