@@ -29,7 +29,12 @@ function App() {
         <div className="text-center">
           <h1>
             Welcome
-            {me.$isLoaded ? <>, {me.profile.firstName}</> : ""}!
+            {me.$isLoaded && me.profile.firstName ? (
+              <>, {me.profile.firstName}</>
+            ) : (
+              ""
+            )}
+            !
           </h1>
           {me.$isLoaded && (
             <p>As of today, you are {getUserAge(me.root)} years old.</p>

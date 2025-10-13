@@ -27,18 +27,22 @@ function TestLogoutComponent({ onLogout }: { onLogout?: () => void }) {
     },
   });
 
-  const root = useCoState(TestAccount.shape.root, me?.root?.$jazz.id, {
-    resolve: {
-      count: true,
+  const root = useCoState(
+    TestAccount.shape.root,
+    me.$isLoaded ? me.root.$jazz.id : undefined,
+    {
+      resolve: {
+        count: true,
+      },
     },
-  });
+  );
 
   const handleLogout = () => {
     logOut();
     onLogout?.();
   };
 
-  if (me && root) {
+  if (me.$isLoaded && root.$isLoaded) {
     return (
       <div>
         <p data-testid="user-name">Welcome, {me.profile.name}</p>

@@ -121,7 +121,9 @@ export default function RouteComponent() {
 
   const currentPlayerState = game[isPlayer1 ? "player1State" : "player2State"];
 
-  const opponentSelection = opponentPlayer?.playSelection;
+  const opponentSelection = opponentPlayer?.playSelection?.$isLoaded
+    ? opponentPlayer.playSelection
+    : undefined;
   const opponentHasSelected = Boolean(opponentPlayer.$jazz.refs.playSelection);
 
   const handleSelection = (selection: "rock" | "paper" | "scissors") => {

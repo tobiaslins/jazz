@@ -48,7 +48,7 @@ export function Sharing() {
       if (
         member.account &&
         member.role !== "admin" &&
-        member.account.$jazz.id !== me?.$jazz.id
+        member.account.$jazz.id !== me.$jazz.id
       ) {
         coMapGroup.removeMember(member.account);
       }
@@ -82,7 +82,7 @@ export function Sharing() {
         )}
       </pre>
       {!id && <button onClick={createCoMap}>Create the root</button>}
-      {coMap && <button onClick={revokeAccess}>Revoke access</button>}
+      {coMap.$isLoaded && <button onClick={revokeAccess}>Revoke access</button>}
       <button onClick={() => setRevealLevels(revealLevels + 1)}>
         Reveal next level
       </button>
@@ -121,7 +121,7 @@ function SharedCoMapWithChildren(props: {
       if (!child.$isLoaded) {
         break;
       }
-      const childGroup = node.$jazz.owner as Group;
+      const childGroup = child.$jazz.owner as Group;
       childGroup.addMember(parentGroup);
       node = child;
     }
