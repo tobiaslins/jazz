@@ -64,10 +64,15 @@ export type VerifiedTransaction = {
   // An object containing the session ID and the transaction index
   txID: TransactionID;
   // The unmodified TxID that refers to the current position in the session map
-  orginalTxID: TransactionID;
+  // When merging branches, the txID will differ from the originalTxID because the txID is modified by the merge meta to show the original transaction id before the merge
+  // We do this override to keep the txID consistent after the merge because it is used by CoList operations.
+  originalTxID: TransactionID;
   tx: Transaction;
   // The Unix time when the transaction was made
   madeAt: number;
+  // The unmodified madeAt that refers to the time when the transaction was made
+  // When merging branches, the madeAt will differ from the originalMadeAt because the madeAt is modified by the merge meta to show the madeAt of the transaction before the merge
+  // We do this override because the originalMadeAt is necessary for the permissions checks, and the madeAt is required to keep the conflict resolution the same we had before the merge.
   originalMadeAt: number;
   // Whether the transaction has been validated, used to track if determinedValidTransactions needs to be check this
   isValidated: boolean;
@@ -838,7 +843,7 @@ export class CoValueCore {
         const verifiedTransaction = {
           author: accountOrAgentIDfromSessionID(sessionID),
           txID,
-          orginalTxID: txID,
+          originalTxID: txID,
           originalMadeAt: tx.madeAt,
           madeAt: tx.madeAt,
           isValidated: false,
@@ -1010,8 +1015,8 @@ export class CoValueCore {
 
       options?.knownTransactions?.add(transaction.tx);
 
-      // Using the orginalTxID to filter the transactions, because the TxID is modified by the merge meta
-      const txID = transaction.orginalTxID;
+      // Using the originalTxID to filter the transactions, because the TxID is modified by the merge meta
+      const txID = transaction.originalTxID;
 
       const from = options?.from?.[txID.sessionID] ?? -1;
 

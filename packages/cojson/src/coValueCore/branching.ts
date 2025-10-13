@@ -27,7 +27,7 @@ export type BranchPointerCommit = {
  */
 export type MergedTransactionMetadata = {
   mi: number; // Transaction index and marker of a merge commit
-  t?: number;
+  t?: number; // The difference between the current time and the madeAt value of the original transaction. Used to calculate the original madeAt of the transaction, stored this way to reduce the size of the meta information.
   s?: SessionID;
   b?: RawCoID;
 };
