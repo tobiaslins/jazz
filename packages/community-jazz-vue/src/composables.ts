@@ -92,19 +92,6 @@ export function useAuthSecretStorage() {
   return context;
 }
 
-const unloadedCoValueCache = new Map<string, Unloaded<CoValue>>();
-function unavailableCoValue(id: string, jazzState: CoValueUnloadedState) {
-  const coValueId = id ?? "";
-  const cacheKey = `${id}-${jazzState}`;
-  const cachedUnloadedCoValue = unloadedCoValueCache.get(cacheKey);
-  if (cachedUnloadedCoValue) {
-    return cachedUnloadedCoValue;
-  }
-  const unloadedCoValue = createUnloadedCoValue(coValueId, jazzState);
-  unloadedCoValueCache.set(cacheKey, unloadedCoValue);
-  return unloadedCoValue;
-}
-
 export function useAccount<
   A extends AccountClass<Account> | AnyAccountSchema = typeof Account,
   R extends ResolveQuery<A> = true,
@@ -164,7 +151,7 @@ export function useCoState<
   options?: { resolve?: ResolveQueryStrict<S, R> },
 ): Ref<MaybeLoaded<Loaded<S, R>>> {
   const state: ShallowRef<MaybeLoaded<Loaded<S, R>>> = shallowRef(
-    unavailableCoValue(id ?? "", CoValueLoadingState.UNLOADED),
+    createUnloadedCoValue(id ?? "", CoValueLoadingState.UNLOADED),
   );
   const context = useJazzContext();
 
@@ -173,6 +160,13 @@ export function useCoState<
   }
 
   let unsubscribe: (() => void) | undefined;
+
+  const updateState = (value: MaybeLoaded<Loaded<S, R>>) => {
+    if (shouldSkipUpdate(value, state.value)) return;
+    // Use markRaw to prevent Vue from making Jazz objects reactive
+    // but still allow property access and mutations
+    state.value = markRaw(value);
+  };
 
   watch(
     [() => id, context],
@@ -183,9 +177,11 @@ export function useCoState<
       }
 
       if (!currentId || !currentContext) {
-        state.value = unavailableCoValue(
-          currentId ?? "",
-          CoValueLoadingState.UNAVAILABLE,
+        updateState(
+          createUnloadedCoValue(
+            currentId ?? "",
+            CoValueLoadingState.UNAVAILABLE,
+          ),
         );
         return;
       }
@@ -193,9 +189,8 @@ export function useCoState<
       const loadAsAgent =
         "me" in currentContext ? currentContext.me : currentContext.guest;
       if (!loadAsAgent) {
-        state.value = unavailableCoValue(
-          currentId,
-          CoValueLoadingState.UNAVAILABLE,
+        updateState(
+          createUnloadedCoValue(currentId, CoValueLoadingState.UNAVAILABLE),
         );
         return;
       }
@@ -210,30 +205,31 @@ export function useCoState<
             resolve: options?.resolve as any,
             loadAs: safeLoadAsAgent,
             onUnavailable: () => {
-              state.value = unavailableCoValue(
-                currentId,
-                CoValueLoadingState.UNAVAILABLE,
+              updateState(
+                createUnloadedCoValue(
+                  currentId,
+                  CoValueLoadingState.UNAVAILABLE,
+                ),
               );
             },
             onUnauthorized: () => {
-              state.value = unavailableCoValue(
-                currentId,
-                CoValueLoadingState.UNAUTHORIZED,
+              updateState(
+                createUnloadedCoValue(
+                  currentId,
+                  CoValueLoadingState.UNAUTHORIZED,
+                ),
               );
             },
             syncResolution: true,
           },
           (value: any) => {
-            // Use markRaw to prevent Vue from making Jazz objects reactive
-            // but still allow property access and mutations
-            state.value = value ? markRaw(value) : value;
+            updateState(value);
           },
         );
       } catch (error) {
         console.error("Error in useCoState subscription:", error);
-        state.value = unavailableCoValue(
-          currentId,
-          CoValueLoadingState.UNAVAILABLE,
+        updateState(
+          createUnloadedCoValue(currentId, CoValueLoadingState.UNAVAILABLE),
         );
       }
     },
@@ -358,3 +354,17 @@ export function experimental_useInboxSender<
 // It has been merged into useAccount which now handles both authenticated and guest scenarios.
 // This change maintains 1:1 API compatibility with the React Jazz library.
 // If you were using useAccountOrGuest, please migrate to useAccount.
+
+function shouldSkipUpdate(
+  newValue: MaybeLoaded<CoValue>,
+  previousValue: MaybeLoaded<CoValue>,
+) {
+  if (previousValue === newValue) return true;
+  // Avoid re-renders if the value is not loaded and didn't change
+  return (
+    previousValue.$jazz.id === newValue.$jazz.id &&
+    !previousValue.$isLoaded &&
+    !newValue.$isLoaded &&
+    previousValue.$jazz.loadingState === newValue.$jazz.loadingState
+  );
+}

@@ -169,32 +169,40 @@ export function useCoValueSubscription<
   return subscription.subscription as CoValueSubscription<S, R>;
 }
 
-const unloadedCoValueCache = new Map<string, Unloaded<CoValue>>();
-function unavailableCoValue(
-  coValueId: string,
-  jazzState: CoValueUnloadedState,
-) {
-  const cacheKey = `${coValueId}-${jazzState}`;
-  const cachedUnloadedCoValue = unloadedCoValueCache.get(cacheKey);
-  if (cachedUnloadedCoValue) {
-    return cachedUnloadedCoValue;
-  }
-  const unloadedCoValue = createUnloadedCoValue(coValueId, jazzState);
-  unloadedCoValueCache.set(cacheKey, unloadedCoValue);
-  return unloadedCoValue;
-}
-
-function getCurrentValue<C extends CoValue>(
+function getSubscriptionValue<C extends CoValue>(
   subscription: SubscriptionScope<C> | null,
 ): MaybeLoaded<C> {
   if (!subscription) {
-    return unavailableCoValue("", CoValueLoadingState.UNAVAILABLE);
+    return createUnloadedCoValue("", CoValueLoadingState.UNAVAILABLE);
   }
   const value = subscription.getCurrentValue();
   if (typeof value === "string") {
-    return unavailableCoValue(subscription.id, value);
+    return createUnloadedCoValue(subscription.id, value);
   }
   return value;
+}
+
+function useGetCurrentValue<C extends CoValue>(
+  subscription: SubscriptionScope<C> | null,
+) {
+  const previousValue = useRef<MaybeLoaded<CoValue> | undefined>(undefined);
+
+  return useCallback(() => {
+    const currentValue = getSubscriptionValue(subscription);
+    // Avoid re-renders if the value is not loaded and didn't change
+    if (
+      previousValue.current !== undefined &&
+      previousValue.current.$jazz.id === currentValue.$jazz.id &&
+      !previousValue.current.$isLoaded &&
+      !currentValue.$isLoaded &&
+      previousValue.current.$jazz.loadingState ===
+        currentValue.$jazz.loadingState
+    ) {
+      return previousValue.current as MaybeLoaded<C>;
+    }
+    previousValue.current = currentValue;
+    return currentValue;
+  }, [subscription]);
 }
 
 /**
@@ -313,6 +321,7 @@ export function useCoState<
   },
 ): MaybeLoaded<Loaded<S, R>> {
   const subscription = useCoValueSubscription(Schema, id, options);
+  const getCurrentValue = useGetCurrentValue(subscription);
 
   const value = React.useSyncExternalStore<MaybeLoaded<Loaded<S, R>>>(
     React.useCallback(
@@ -325,8 +334,8 @@ export function useCoState<
       },
       [subscription],
     ),
-    () => getCurrentValue(subscription),
-    () => getCurrentValue(subscription),
+    getCurrentValue,
+    getCurrentValue,
   );
 
   return value;
@@ -487,6 +496,7 @@ export function useCoStateWithSelector<
   },
 ): TSelectorReturn {
   const subscription = useCoValueSubscription(Schema, id, options);
+  const getCurrentValue = useGetCurrentValue(subscription);
 
   return useSyncExternalStoreWithSelector<
     MaybeLoaded<Loaded<S, R>>,
@@ -502,8 +512,8 @@ export function useCoStateWithSelector<
       },
       [subscription],
     ),
-    () => getCurrentValue(subscription),
-    () => getCurrentValue(subscription),
+    getCurrentValue,
+    getCurrentValue,
     options.select,
     options.equalityFn ?? Object.is,
   );
@@ -520,6 +530,8 @@ export function useSubscriptionSelector<
     equalityFn?: (a: TSelectorReturn, b: TSelectorReturn) => boolean;
   },
 ) {
+  const getCurrentValue = useGetCurrentValue(subscription);
+
   return useSyncExternalStoreWithSelector<
     MaybeLoaded<Loaded<S, R>>,
     TSelectorReturn
@@ -534,8 +546,8 @@ export function useSubscriptionSelector<
       },
       [subscription],
     ),
-    () => getCurrentValue(subscription),
-    () => getCurrentValue(subscription),
+    getCurrentValue,
+    getCurrentValue,
     options?.select ?? ((value) => value as TSelectorReturn),
     options?.equalityFn ?? Object.is,
   );
@@ -700,6 +712,7 @@ export function useAccount<
 } {
   const contextManager = useJazzContextManager<InstanceOfSchema<A>>();
   const subscription = useAccountSubscription(AccountSchema, options);
+  const getCurrentValue = useGetCurrentValue(subscription);
 
   const agent = getCurrentAccountFromContextManager(contextManager);
 
@@ -714,8 +727,8 @@ export function useAccount<
       },
       [subscription],
     ),
-    () => getCurrentValue(subscription),
-    () => getCurrentValue(subscription),
+    getCurrentValue,
+    getCurrentValue,
   );
 
   return {
@@ -803,6 +816,7 @@ export function useAccountWithSelector<
   },
 ): TSelectorReturn {
   const subscription = useAccountSubscription(AccountSchema, options);
+  const getCurrentValue = useGetCurrentValue(subscription);
 
   return useSyncExternalStoreWithSelector<
     MaybeLoaded<Loaded<A, R>>,
@@ -818,8 +832,8 @@ export function useAccountWithSelector<
       },
       [subscription],
     ),
-    () => getCurrentValue(subscription),
-    () => getCurrentValue(subscription),
+    getCurrentValue,
+    getCurrentValue,
     options.select,
     options.equalityFn ?? Object.is,
   );

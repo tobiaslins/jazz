@@ -50,27 +50,15 @@ type CoStateOptions<
 
 type CoStateId = string | undefined | null;
 
-const unloadedCoValueCache = new Map<string, Unloaded<CoValue>>();
-function unavailableCoValue(id: string, jazzState: CoValueUnloadedState) {
-  const coValueId = id ?? "";
-  const cacheKey = `${id}-${jazzState}`;
-  const cachedUnloadedCoValue = unloadedCoValueCache.get(cacheKey);
-  if (cachedUnloadedCoValue) {
-    return cachedUnloadedCoValue;
-  }
-  const unloadedCoValue = createUnloadedCoValue(coValueId, jazzState);
-  unloadedCoValueCache.set(cacheKey, unloadedCoValue);
-  return unloadedCoValue;
-}
-
 export class CoState<
   V extends CoValueClassOrSchema,
   R extends ResolveQuery<V> = true,
 > {
-  #value: MaybeLoaded<Loaded<V, R>> = unavailableCoValue(
+  #value: MaybeLoaded<Loaded<V, R>> = createUnloadedCoValue(
     "",
     CoValueLoadingState.UNLOADED,
   );
+  #previousValue: MaybeLoaded<CoValue> | undefined = undefined;
   #ctx = getJazzContext<InstanceOfSchema<AccountClass<Account>>>();
   #id: CoStateId;
   #subscribe: () => void;
@@ -99,7 +87,7 @@ export class CoState<
       return untrack(() => {
         if (!ctx || !id) {
           return this.update(
-            unavailableCoValue(id ?? "", CoValueLoadingState.UNAVAILABLE),
+            createUnloadedCoValue(id ?? "", CoValueLoadingState.UNAVAILABLE),
           );
         }
         const agent = "me" in ctx ? ctx.me : ctx.guest;
@@ -113,12 +101,12 @@ export class CoState<
             loadAs: agent,
             onUnavailable: () => {
               this.update(
-                unavailableCoValue(id, CoValueLoadingState.UNAVAILABLE),
+                createUnloadedCoValue(id, CoValueLoadingState.UNAVAILABLE),
               );
             },
             onUnauthorized: () => {
               this.update(
-                unavailableCoValue(id, CoValueLoadingState.UNAUTHORIZED),
+                createUnloadedCoValue(id, CoValueLoadingState.UNAUTHORIZED),
               );
             },
             syncResolution: true,
@@ -137,7 +125,10 @@ export class CoState<
   }
 
   update(value: MaybeLoaded<Loaded<V, R>>) {
-    if (this.#value === value) return;
+    if (shouldSkipUpdate(value, this.#value)) {
+      return;
+    }
+    this.#previousValue = value;
     this.#value = value;
     this.#update();
   }
@@ -154,7 +145,7 @@ export class AccountCoState<
     | AnyAccountSchema,
   R extends ResolveQuery<A> = true,
 > {
-  #value: MaybeLoaded<Loaded<A, R>> = unavailableCoValue(
+  #value: MaybeLoaded<Loaded<A, R>> = createUnloadedCoValue(
     "",
     CoValueLoadingState.UNLOADED,
   );
@@ -182,7 +173,7 @@ export class AccountCoState<
       return untrack(() => {
         if (!ctx || !("me" in ctx)) {
           return this.update(
-            unavailableCoValue("", CoValueLoadingState.UNAVAILABLE),
+            createUnloadedCoValue("", CoValueLoadingState.UNAVAILABLE),
           );
         }
 
@@ -197,7 +188,7 @@ export class AccountCoState<
             loadAs: me,
             onUnavailable: () => {
               this.update(
-                unavailableCoValue(
+                createUnloadedCoValue(
                   me.$jazz.id,
                   CoValueLoadingState.UNAVAILABLE,
                 ),
@@ -205,7 +196,7 @@ export class AccountCoState<
             },
             onUnauthorized: () => {
               this.update(
-                unavailableCoValue(
+                createUnloadedCoValue(
                   me.$jazz.id,
                   CoValueLoadingState.UNAUTHORIZED,
                 ),
@@ -227,7 +218,7 @@ export class AccountCoState<
   }
 
   update(value: MaybeLoaded<Loaded<A, R>>) {
-    if (this.#value === value) return;
+    if (shouldSkipUpdate(value, this.#value)) return;
     this.#value = value;
     this.#update();
   }
@@ -257,6 +248,20 @@ export class AccountCoState<
   get isAuthenticated() {
     return this.#isAuthenticated.current;
   }
+}
+
+function shouldSkipUpdate(
+  newValue: MaybeLoaded<CoValue>,
+  previousValue: MaybeLoaded<CoValue>,
+) {
+  if (previousValue === newValue) return true;
+  // Avoid re-renders if the value is not loaded and didn't change
+  return (
+    previousValue.$jazz.id === newValue.$jazz.id &&
+    !previousValue.$isLoaded &&
+    !newValue.$isLoaded &&
+    previousValue.$jazz.loadingState === newValue.$jazz.loadingState
+  );
 }
 
 /**
