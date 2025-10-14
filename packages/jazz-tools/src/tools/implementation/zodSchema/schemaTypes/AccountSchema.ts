@@ -78,7 +78,7 @@ export interface AccountSchema<
     },
   ) => Promise<void>;
 
-  getMe: () => AccountInstanceCoValuesMaybeLoaded<Shape>;
+  getMe: () => Loaded<this, true>;
 
   withMigration(
     migration: (
@@ -174,12 +174,4 @@ export interface CoreAccountSchema<
 
 export type AccountInstance<Shape extends z.core.$ZodLooseShape> = {
   readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchema<Shape[key]>;
-} & Account;
-
-export type AccountInstanceCoValuesMaybeLoaded<
-  Shape extends z.core.$ZodLooseShape,
-> = {
-  readonly [key in keyof Shape]: InstanceOrPrimitiveOfSchemaCoValuesMaybeLoaded<
-    Shape[key]
-  >;
 } & Account;
