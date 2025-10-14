@@ -2,8 +2,7 @@ export const metadata = {
   description: "Learn how to set up Jazz in your React Native application."
 };
 
-import { CodeGroup } from "@/components/forMdx";
-import { Alert } from "@garden-co/design-system/src/components/atoms/Alert";
+import { Alert, CodeGroup } from "@/components/forMdx";
 
 # React Native Installation and Setup
 
@@ -67,7 +66,7 @@ const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
 
 const config = {
   resolver: {
-    sourceExts: ["mjs", "js", "json", "ts", "tsx"],
+    sourceExts: ["mjs", "js", "json", "ts", "tsx", "cjs"],
     requireCycleIgnorePatterns: [/(^|\/|\\)node_modules($|\/|\\)/]
   }
 };
@@ -111,7 +110,7 @@ module.exports = makeMetroConfig({
     resolveRequest: MetroSymlinksResolver(),
     extraNodeModules,
     nodeModulesPaths,
-    sourceExts: ["mjs", "js", "json", "ts", "tsx"],
+    sourceExts: ["mjs", "js", "json", "ts", "tsx", "cjs"],
   },
   watchFolders,
 });

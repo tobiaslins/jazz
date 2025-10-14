@@ -10,6 +10,7 @@ import {
   SubscribeListenerOptions,
   SubscribeRestArgs,
   TypeSym,
+  unstable_mergeBranch,
   parseCoValueCreateOptions,
 } from "../internal.js";
 import {
@@ -226,10 +227,6 @@ export class CoTextJazzApi<T extends CoPlainText> extends CoValueJazzApi<T> {
     super(coText);
   }
 
-  get id(): ID<T> {
-    return this.raw.id;
-  }
-
   get owner(): Group {
     return getCoValueOwner(this.coText);
   }
@@ -249,6 +246,13 @@ export class CoTextJazzApi<T extends CoPlainText> extends CoValueJazzApi<T> {
     // Calculate the diff on grapheme arrays
     const patches = [...calcPatch(currentGraphemes, otherGraphemes)];
 
+    if (patches.length === 0) {
+      return;
+    }
+
+    // Turns off updates in the middle of applyDiff to improve the performance
+    this.raw.core.pauseNotifyUpdate();
+
     // Apply patches in reverse order to avoid index shifting issues
     for (const [from, to, insert] of patches.reverse()) {
       if (to > from) {
@@ -259,6 +263,8 @@ export class CoTextJazzApi<T extends CoPlainText> extends CoValueJazzApi<T> {
         this.coText.insertBefore(from, this.raw.fromGraphemes(insert));
       }
     }
+
+    this.raw.core.resumeNotifyUpdate();
   }
 
   /**

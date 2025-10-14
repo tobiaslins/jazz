@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from "vitest";
+import { assert, beforeEach, describe, expect, test } from "vitest";
 
 import { expectList, expectMap } from "../coValue";
 import { WasmCrypto } from "../crypto/WasmCrypto";
@@ -10,6 +10,7 @@ import {
   waitFor,
 } from "./testUtils";
 import { determineValidTransactions } from "../permissions";
+import { RawCoMap } from "../coValues/coMap";
 
 // We want to simulate a real world communication that happens asynchronously
 TEST_NODE_CONFIG.withAsyncPeers = true;
@@ -92,11 +93,11 @@ describe("client to server upload", () => {
         "server -> client | CONTENT Map header: true new: After: 0 New: 2",
         "client -> server | KNOWN Group sessions: header/5",
         "client -> server | KNOWN Map sessions: header/2",
-        "client -> server | LOAD Branch sessions: empty",
-        "server -> client | KNOWN Branch sessions: empty",
         "client -> server | CONTENT Branch header: true new: After: 0 New: 1",
+        "client -> server | CONTENT Map header: false new: After: 0 New: 1",
         "client -> server | CONTENT Branch header: false new: After: 1 New: 1",
         "server -> client | KNOWN Branch sessions: header/1",
+        "server -> client | KNOWN Map sessions: header/3",
         "server -> client | KNOWN Branch sessions: header/2",
       ]
     `);
@@ -444,5 +445,31 @@ describe("client to server upload", () => {
         "client -> server | KNOWN Map sessions: header/1024",
       ]
     `);
+  });
+
+  test("uploading a coValue with a non-matching header", async () => {
+    const client = setupTestNode({
+      connected: false,
+    });
+
+    const coValue = client.node.createCoValue({
+      type: "comap",
+      ruleset: { type: "unsafeAllowAll" },
+      meta: null,
+      ...Crypto.createdNowUnique(),
+    });
+
+    const map = coValue.getCurrentContent() as RawCoMap;
+    map.set("hello", "world", "trusting");
+
+    const content = map.core.verified.newContentSince(undefined)?.[0];
+    assert(content);
+
+    // Simulate a mismatch between the header and the coValue id
+    content.id = "co_ztest123";
+
+    jazzCloud.node.syncManager.handleNewContent(content, "import");
+
+    expect(jazzCloud.node.getCoValue(content.id).isAvailable()).toBe(false);
   });
 });

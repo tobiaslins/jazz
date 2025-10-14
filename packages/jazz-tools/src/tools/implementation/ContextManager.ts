@@ -26,6 +26,8 @@ type PlatformSpecificAuthContext<Acc extends Account> = {
   node: LocalNode;
   logOut: () => Promise<void>;
   done: () => void;
+  addConnectionListener: (listener: (connected: boolean) => void) => () => void;
+  connected: () => boolean;
 };
 
 type PlatformSpecificGuestContext = {
@@ -33,6 +35,8 @@ type PlatformSpecificGuestContext = {
   node: LocalNode;
   logOut: () => Promise<void>;
   done: () => void;
+  addConnectionListener: (listener: (connected: boolean) => void) => () => void;
+  connected: () => boolean;
 };
 
 type PlatformSpecificContext<Acc extends Account> =
@@ -41,7 +45,7 @@ type PlatformSpecificContext<Acc extends Account> =
 
 function getAnonymousFallback() {
   const context = createAnonymousJazzContext({
-    peersToLoadFrom: [],
+    peers: [],
     crypto: new PureJSCrypto(),
   });
 
@@ -52,6 +56,8 @@ function getAnonymousFallback() {
     logOut: async () => {},
     isAuthenticated: false,
     authenticate: async () => {},
+    addConnectionListener: () => () => {},
+    connected: () => false,
     register: async () => {
       throw new Error("Not implemented");
     },
@@ -65,14 +71,17 @@ export class JazzContextManager<
   protected value: JazzContextType<Acc> | undefined;
   protected context: PlatformSpecificContext<Acc> | undefined;
   protected props: P | undefined;
-  protected authSecretStorage = new AuthSecretStorage();
+  protected authSecretStorage;
   protected keepContextOpen = false;
   contextPromise: Promise<void> | undefined;
+  protected authenticatingAccountID: string | null = null;
 
   constructor(opts?: {
     useAnonymousFallback?: boolean;
+    authSecretStorageKey?: string;
   }) {
     KvStoreContext.getInstance().initialize(this.getKvStore());
+    this.authSecretStorage = new AuthSecretStorage(opts?.authSecretStorageKey);
 
     if (opts?.useAnonymousFallback) {
       this.value = getAnonymousFallback();
@@ -135,6 +144,8 @@ export class JazzContextManager<
       authenticate: this.authenticate,
       register: this.register,
       logOut: this.logOut,
+      addConnectionListener: context.addConnectionListener,
+      connected: context.connected,
     };
 
     if (authProps?.credentials) {
@@ -163,10 +174,16 @@ export class JazzContextManager<
     return this.authSecretStorage;
   }
 
+  getAuthenticatingAccountID() {
+    return this.authenticatingAccountID;
+  }
+
   logOut = async () => {
     if (!this.context || !this.props) {
       return;
     }
+
+    this.authenticatingAccountID = null;
 
     await this.props.onLogOut?.();
 
@@ -206,17 +223,44 @@ export class JazzContextManager<
       throw new Error("Props required");
     }
 
-    const prevContext = this.context;
-    const migratingAnonymousAccount =
-      await this.shouldMigrateAnonymousAccount();
+    if (
+      this.authenticatingAccountID &&
+      this.authenticatingAccountID === credentials.accountID
+    ) {
+      console.info(
+        "Authentication already in progress for account",
+        credentials.accountID,
+        "skipping duplicate request",
+      );
+      return;
+    }
 
-    this.keepContextOpen = migratingAnonymousAccount;
-    await this.createContext(this.props, { credentials }).finally(() => {
-      this.keepContextOpen = false;
-    });
+    if (
+      this.authenticatingAccountID &&
+      this.authenticatingAccountID !== credentials.accountID
+    ) {
+      throw new Error(
+        `Authentication already in progress for different account (${this.authenticatingAccountID}), cannot authenticate ${credentials.accountID}`,
+      );
+    }
 
-    if (migratingAnonymousAccount) {
-      await this.handleAnonymousAccountMigration(prevContext);
+    this.authenticatingAccountID = credentials.accountID;
+
+    try {
+      const prevContext = this.context;
+      const migratingAnonymousAccount =
+        await this.shouldMigrateAnonymousAccount();
+
+      this.keepContextOpen = migratingAnonymousAccount;
+      await this.createContext(this.props, { credentials }).finally(() => {
+        this.keepContextOpen = false;
+      });
+
+      if (migratingAnonymousAccount) {
+        await this.handleAnonymousAccountMigration(prevContext);
+      }
+    } finally {
+      this.authenticatingAccountID = null;
     }
   };
 
@@ -228,29 +272,40 @@ export class JazzContextManager<
       throw new Error("Props required");
     }
 
-    const prevContext = this.context;
-    const migratingAnonymousAccount =
-      await this.shouldMigrateAnonymousAccount();
-
-    this.keepContextOpen = migratingAnonymousAccount;
-    await this.createContext(this.props, {
-      newAccountProps: {
-        secret: accountSecret,
-        creationProps,
-      },
-    }).finally(() => {
-      this.keepContextOpen = false;
-    });
-
-    if (migratingAnonymousAccount) {
-      await this.handleAnonymousAccountMigration(prevContext);
+    if (this.authenticatingAccountID) {
+      throw new Error("Authentication already in progress");
     }
 
-    if (this.context && "me" in this.context) {
-      return this.context.me.$jazz.id;
-    }
+    // For registration, we don't know the account ID yet, so we'll set it to "register"
+    this.authenticatingAccountID = "register";
 
-    throw new Error("The registration hasn't created a new account");
+    try {
+      const prevContext = this.context;
+      const migratingAnonymousAccount =
+        await this.shouldMigrateAnonymousAccount();
+
+      this.keepContextOpen = migratingAnonymousAccount;
+      await this.createContext(this.props, {
+        newAccountProps: {
+          secret: accountSecret,
+          creationProps,
+        },
+      }).finally(() => {
+        this.keepContextOpen = false;
+      });
+
+      if (migratingAnonymousAccount) {
+        await this.handleAnonymousAccountMigration(prevContext);
+      }
+
+      if (this.context && "me" in this.context) {
+        return this.context.me.$jazz.id;
+      }
+
+      throw new Error("The registration hasn't created a new account");
+    } finally {
+      this.authenticatingAccountID = null;
+    }
   };
 
   private async handleAnonymousAccountMigration(

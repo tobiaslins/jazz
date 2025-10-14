@@ -1,10 +1,27 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Group, Inbox, InboxSender, z } from "../exports";
-import { Loaded, co, coValueClassFromCoValueClassOrSchema } from "../internal";
+import {
+  Account,
+  Loaded,
+  co,
+  coValueClassFromCoValueClassOrSchema,
+} from "../internal";
 import { setupTwoNodes, waitFor } from "./utils";
+import {
+  createJazzTestAccount,
+  getPeerConnectedToTestSyncServer,
+  setupJazzTestSync,
+} from "../testing";
+import { cojsonInternals, LocalNode } from "cojson";
+import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 
 const Message = co.map({
   text: z.string(),
+});
+
+beforeEach(async () => {
+  await setupJazzTestSync();
+  vi.useRealTimers();
 });
 
 describe("Inbox", () => {
@@ -211,10 +228,7 @@ describe("Inbox", () => {
 
     unsubscribe();
 
-    expect(errorLogSpy).toHaveBeenCalledWith(
-      "Error processing inbox message",
-      expect.any(Error),
-    );
+    expect(errorLogSpy).toHaveBeenCalledWith(new Error("Failed"));
 
     errorLogSpy.mockRestore();
   });
@@ -298,7 +312,7 @@ describe("Inbox", () => {
     expect(receivedMessages[0]?.text).toBe("Hello");
   });
 
-  it("should retry failed messages", async () => {
+  it("should not retry failed messages", async () => {
     const { clientAccount: sender, serverAccount: receiver } =
       await setupTwoNodes();
 
@@ -320,25 +334,18 @@ describe("Inbox", () => {
     let failures = 0;
 
     // Subscribe to inbox messages
-    const unsubscribe = receiverInbox.subscribe(
-      Message,
-      async () => {
-        failures++;
-        throw new Error("Failed");
-      },
-      { retries: 2 },
-    );
+    const unsubscribe = receiverInbox.subscribe(Message, async () => {
+      failures++;
+      throw new Error("Failed");
+    });
 
     await expect(promise).rejects.toThrow();
-    expect(failures).toBe(3);
+    expect(failures).toBe(1);
     const [failed] = Object.values(receiverInbox.failed.items).flat();
-    expect(failed?.value.errors.length).toBe(3);
+    expect(failed?.value.errors.length).toBe(1);
     unsubscribe();
 
-    expect(errorLogSpy).toHaveBeenCalledWith(
-      "Error processing inbox message",
-      expect.any(Error),
-    );
+    expect(errorLogSpy).toHaveBeenCalledWith(new Error("Failed"));
 
     errorLogSpy.mockRestore();
   });
@@ -357,28 +364,283 @@ describe("Inbox", () => {
     const errorLogSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     // Subscribe to inbox messages
-    const unsubscribe = receiverInbox.subscribe(
-      Message,
-      async () => {
-        spy();
-      },
-      { retries: 2 },
-    );
+    const unsubscribe = receiverInbox.subscribe(Message, async () => {
+      spy();
+    });
 
     await waitFor(() => {
       const [failed] = Object.values(receiverInbox.failed.items).flat();
 
-      expect(failed?.value.errors.length).toBe(3);
+      expect(failed?.value.errors.length).toBe(1);
     });
 
     expect(spy).not.toHaveBeenCalled();
     unsubscribe();
 
     expect(errorLogSpy).toHaveBeenCalledWith(
-      "Error processing inbox message",
-      expect.any(Error),
+      new Error("Inbox: message co_z123234 is unavailable"),
     );
 
     errorLogSpy.mockRestore();
+  });
+
+  it("should skip processed messages when a large inbox is restarted", async () => {
+    cojsonInternals.setMaxRecommendedTxSize(100);
+
+    const sender = await createJazzTestAccount();
+    const receiver = await createJazzTestAccount();
+
+    await receiver.$jazz.waitForAllCoValuesSync();
+
+    const receiverInbox = await Inbox.load(receiver);
+    const inboxSender = await InboxSender.load(receiver.$jazz.id, sender);
+
+    const group = Group.create({ owner: receiver });
+
+    // This generates 4 chunks on the processed stream
+    for (let i = 0; i < 5; i++) {
+      inboxSender.sendMessage(Message.create({ text: `Hello ${i}` }, group));
+    }
+
+    inboxSender.sendMessage(Message.create({ text: `done` }, group));
+
+    await new Promise((resolve) => {
+      const unsubscribe = receiverInbox.subscribe(Message, async (message) => {
+        if (message.text === "done") {
+          resolve(true);
+          unsubscribe();
+        }
+      });
+    });
+
+    const accountId = receiver.$jazz.id;
+    const accountSecret =
+      receiver.$jazz.localNode.getCurrentAgent().agentSecret;
+    const sessionID = receiver.$jazz.localNode.currentSessionID;
+
+    await receiver.$jazz.waitForAllCoValuesSync();
+    await receiver.$jazz.localNode.gracefulShutdown();
+
+    const node = await LocalNode.withLoadedAccount({
+      accountID: accountId as any,
+      accountSecret: accountSecret,
+      peers: [getPeerConnectedToTestSyncServer()],
+      crypto: receiver.$jazz.localNode.crypto,
+      sessionID: sessionID,
+    });
+
+    const reloadedInbox = await Inbox.load(Account.fromNode(node));
+
+    const subscribeEmitted = await new Promise((resolve) => {
+      const unsubscribe = reloadedInbox.subscribe(Message, async (message) => {
+        // Got a message
+        resolve(true);
+      });
+      setTimeout(() => {
+        resolve(false);
+        unsubscribe();
+      }, 100);
+    });
+
+    expect(subscribeEmitted).toBe(false);
+  });
+
+  it("should skip failed messages when a large inbox is restarted", async () => {
+    cojsonInternals.setMaxRecommendedTxSize(100);
+
+    const sender = await createJazzTestAccount();
+    const receiver = await createJazzTestAccount();
+
+    await receiver.$jazz.waitForAllCoValuesSync();
+
+    const receiverInbox = await Inbox.load(receiver);
+    const inboxSender = await InboxSender.load(receiver.$jazz.id, sender);
+
+    const group = Group.create({ owner: receiver });
+
+    // This generates 4 chunks on the processed stream
+    for (let i = 0; i < 5; i++) {
+      inboxSender
+        .sendMessage(Message.create({ text: `Hello ${i}` }, group))
+        .catch(() => {});
+    }
+
+    inboxSender
+      .sendMessage(Message.create({ text: `done` }, group))
+      .catch(() => {});
+
+    await new Promise((resolve) => {
+      const unsubscribe = receiverInbox.subscribe(Message, async (message) => {
+        if (message.text === "done") {
+          resolve(true);
+          unsubscribe();
+        }
+
+        throw new Error("Failed");
+      });
+    });
+
+    await waitFor(() => {
+      expect(Object.values(receiverInbox.processed.items).length).toBe(1);
+    });
+
+    const accountId = receiver.$jazz.id;
+    const accountSecret =
+      receiver.$jazz.localNode.getCurrentAgent().agentSecret;
+    const sessionID = receiver.$jazz.localNode.currentSessionID;
+
+    await receiver.$jazz.waitForAllCoValuesSync();
+    await receiver.$jazz.localNode.gracefulShutdown();
+
+    const node = await LocalNode.withLoadedAccount({
+      accountID: accountId as any,
+      accountSecret: accountSecret,
+      peers: [getPeerConnectedToTestSyncServer()],
+      crypto: receiver.$jazz.localNode.crypto,
+      sessionID: sessionID,
+    });
+
+    const reloadedInbox = await Inbox.load(Account.fromNode(node));
+
+    const subscribeEmitted = await new Promise((resolve) => {
+      const unsubscribe = reloadedInbox.subscribe(Message, async (message) => {
+        // Got a message
+        resolve(true);
+      });
+      setTimeout(() => {
+        resolve(false);
+        unsubscribe();
+      }, 100);
+    });
+
+    expect(subscribeEmitted).toBe(false);
+  });
+
+  describe("Concurrency control", () => {
+    it("should respect concurrency limit of 1", async () => {
+      const { clientAccount: sender, serverAccount: receiver } =
+        await setupTwoNodes();
+
+      const receiverInbox = await Inbox.load(receiver);
+      const inboxSender = await InboxSender.load(receiver.$jazz.id, sender);
+
+      const group = Group.create({ owner: sender });
+
+      const processingOrder: string[] = [];
+
+      const Message = co.map({
+        text: z.string(),
+        value: z.number(),
+      });
+
+      // Create messages that take time to process
+      const messages = Array.from({ length: 5 }, (_, i) =>
+        Message.create({ text: `Message ${i}`, value: i }, group),
+      );
+
+      // Subscribe with concurrency limit of 1
+      const unsubscribe = receiverInbox.subscribe(
+        Message,
+        async (message) => {
+          const messageText = message.text;
+          processingOrder.push(`start-${messageText}`);
+
+          // Simulate processing time
+          await new Promise((resolve) =>
+            setTimeout(resolve, 20 - message.value * 10),
+          );
+
+          processingOrder.push(`end-${messageText}`);
+        },
+        { concurrencyLimit: 1 },
+      );
+
+      // Send all messages at once
+      messages.forEach((message) => {
+        inboxSender.sendMessage(message);
+      });
+
+      // Wait for all messages to be processed
+      await waitFor(() => processingOrder.length === 10); // 5 start + 5 end
+
+      expect(processingOrder).toMatchInlineSnapshot(`
+        [
+          "start-Message 0",
+          "end-Message 0",
+          "start-Message 1",
+          "end-Message 1",
+          "start-Message 2",
+          "end-Message 2",
+          "start-Message 3",
+          "end-Message 3",
+          "start-Message 4",
+          "end-Message 4",
+        ]
+      `);
+      unsubscribe();
+    });
+
+    it("should allow concurrent processing with higher concurrency limit", async () => {
+      const { clientAccount: sender, serverAccount: receiver } =
+        await setupTwoNodes();
+
+      const receiverInbox = await Inbox.load(receiver);
+      const inboxSender = await InboxSender.load(receiver.$jazz.id, sender);
+
+      const group = Group.create({ owner: sender });
+
+      // Track processing order and timing
+      const processingOrder: string[] = [];
+
+      const Message = co.map({
+        text: z.string(),
+        value: z.number(),
+      });
+
+      // Create messages that take time to process
+      const messages = Array.from({ length: 5 }, (_, i) =>
+        Message.create({ text: `Message ${i}`, value: i }, group),
+      );
+
+      // Subscribe with concurrency limit of 1
+      const unsubscribe = receiverInbox.subscribe(
+        Message,
+        async (message) => {
+          const messageText = message.text;
+          processingOrder.push(`start-${messageText}`);
+
+          // Simulate processing time
+          await new Promise((resolve) =>
+            setTimeout(resolve, 20 - message.value * 10),
+          );
+
+          processingOrder.push(`end-${messageText}`);
+        },
+        { concurrencyLimit: 3 },
+      );
+
+      // Send all messages at once
+      messages.forEach((message) => {
+        inboxSender.sendMessage(message);
+      });
+
+      await waitFor(() => processingOrder.length === 10);
+
+      expect(processingOrder).toMatchInlineSnapshot(`
+        [
+          "start-Message 0",
+          "start-Message 1",
+          "start-Message 2",
+          "end-Message 2",
+          "start-Message 3",
+          "end-Message 3",
+          "start-Message 4",
+          "end-Message 4",
+          "end-Message 1",
+          "end-Message 0",
+        ]
+      `);
+      unsubscribe();
+    });
   });
 });

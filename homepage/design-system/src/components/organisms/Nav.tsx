@@ -352,7 +352,11 @@ export function Nav(props: NavProps) {
     <>
       <div className="w-full border-b py-2 sticky top-0 z-50 bg-white dark:bg-stone-950 hidden md:block">
         <PopoverGroup className="flex flex-wrap items-center max-sm:justify-between md:gap-2 container w-full">
-          <Link href="/" className="flex items-center">
+          <Link
+            href="/"
+            className="flex items-center"
+            aria-label="Go to Homepage"
+          >
             {mainLogo}
           </Link>
 
@@ -368,6 +372,7 @@ export function Nav(props: NavProps) {
 
           <SocialLinks
             {...props.socials}
+            hideBlueSkyOnMDViewport
             className={
               !items.find((item) => item.firstOnRight) ? "ml-auto" : ""
             }

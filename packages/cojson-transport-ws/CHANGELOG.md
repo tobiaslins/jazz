@@ -1,5 +1,158 @@
 # cojson-transport-nodejs-ws
 
+## 0.18.25
+
+### Patch Changes
+
+- Updated dependencies [4036737]
+  - cojson@0.18.25
+
+## 0.18.24
+
+### Patch Changes
+
+- Updated dependencies [b09785e]
+  - cojson@0.18.24
+
+## 0.18.23
+
+### Patch Changes
+
+- cojson@0.18.23
+
+## 0.18.22
+
+### Patch Changes
+
+- Updated dependencies [1e20db6]
+  - cojson@0.18.22
+
+## 0.18.21
+
+### Patch Changes
+
+- cojson@0.18.21
+
+## 0.18.20
+
+### Patch Changes
+
+- Updated dependencies [e75b3d6]
+- Updated dependencies [ecf4967]
+- Updated dependencies [d0e2210]
+  - cojson@0.18.20
+
+## 0.18.19
+
+### Patch Changes
+
+- cojson@0.18.19
+
+## 0.18.18
+
+### Patch Changes
+
+- Updated dependencies [ed7e353]
+  - cojson@0.18.18
+
+## 0.18.17
+
+### Patch Changes
+
+- Updated dependencies [925da72]
+  - cojson@0.18.17
+
+## 0.18.16
+
+### Patch Changes
+
+- cojson@0.18.16
+
+## 0.18.15
+
+### Patch Changes
+
+- Updated dependencies [a584ab3]
+  - cojson@0.18.15
+
+## 0.18.14
+
+### Patch Changes
+
+- cojson@0.18.14
+
+## 0.18.13
+
+### Patch Changes
+
+- Updated dependencies [48837f2]
+- Updated dependencies [2ddf4d9]
+  - cojson@0.18.13
+
+## 0.18.12
+
+### Patch Changes
+
+- cojson@0.18.12
+
+## 0.18.11
+
+### Patch Changes
+
+- Updated dependencies [a4a9a1e]
+  - cojson@0.18.11
+
+## 0.18.10
+
+### Patch Changes
+
+- 95cc9af: Downgrade the ping timeout logs to warning
+  - cojson@0.18.10
+
+## 0.18.9
+
+### Patch Changes
+
+- Updated dependencies [f058875]
+  - cojson@0.18.9
+
+## 0.18.8
+
+### Patch Changes
+
+- Updated dependencies [9a4caf2]
+  - cojson@0.18.8
+
+## 0.18.7
+
+### Patch Changes
+
+- Updated dependencies [c2d8bf7]
+- Updated dependencies [dccb464]
+- Updated dependencies [a3cd9c8]
+- Updated dependencies [e8e7bf8]
+- Updated dependencies [51d3558]
+  - cojson@0.18.7
+
+## 0.18.6
+
+### Patch Changes
+
+- Updated dependencies [9e792c7]
+  - cojson@0.18.6
+
+## 0.18.5
+
+### Patch Changes
+
+- cojson@0.18.5
+
+## 0.18.4
+
+### Patch Changes
+
+- cojson@0.18.4
+
 ## 0.18.3
 
 ### Patch Changes

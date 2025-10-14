@@ -94,6 +94,7 @@ export {
   type AuthResult,
   type Credentials,
   type JazzContextWithAccount,
+  type BranchDefinition,
 } from "./internal.js";
 
 export type * from "./types.js";
@@ -117,3 +118,5 @@ export {
   isJazzRequestError,
   type HttpRoute,
 } from "./coValues/request.js";
+
+export * from "./ssr/index.js";

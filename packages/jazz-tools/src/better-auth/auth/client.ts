@@ -1,11 +1,18 @@
 import type { BetterAuthClientPlugin } from "better-auth";
 import type {
+  Account,
   AuthSecretStorage,
   AuthSetPayload,
-  Account,
   JazzContextType,
 } from "jazz-tools";
 import type { jazzPlugin } from "./server.js";
+
+const SIGNUP_URLS = [
+  "/sign-up",
+  "/sign-in/social",
+  "/sign-in/oauth2",
+  "/email-otp/send-verification-otp",
+];
 
 /**
  * @example
@@ -83,8 +90,7 @@ export const jazzPluginClient = () => {
         hooks: {
           async onRequest(context) {
             if (
-              context.url.toString().includes("/sign-up") ||
-              context.url.toString().includes("/sign-in/social")
+              SIGNUP_URLS.some((url) => context.url.toString().includes(url))
             ) {
               const credentials = await authSecretStorage.get();
 
@@ -116,9 +122,10 @@ export const jazzPluginClient = () => {
             if (context.request.url.toString().includes("/get-session")) {
               if (context.data === null) {
                 if (authSecretStorage.isAuthenticated === true) {
-                  console.warn(
-                    "Jazz is authenticated, but the session is null",
+                  console.info(
+                    "Jazz is authenticated, but the session is null. Logging out",
                   );
+                  await jazzContext.logOut();
                 }
                 return;
               }

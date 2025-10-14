@@ -7,8 +7,7 @@ import {
   test,
   vi,
 } from "vitest";
-import { CoValueCore } from "../coValueCore/coValueCore.js";
-import { Transaction } from "../coValueCore/verifiedState.js";
+import { CoValueCore, idforHeader } from "../coValueCore/coValueCore.js";
 import { WasmCrypto } from "../crypto/WasmCrypto.js";
 import { stableStringify } from "../jsonStringify.js";
 import { LocalNode } from "../localNode.js";
@@ -22,9 +21,10 @@ import {
   randomAgentAndSessionID,
   setupTestNode,
   tearDownTestMetricReader,
+  waitFor,
 } from "./testUtils.js";
 import { CO_VALUE_PRIORITY } from "../priority.js";
-import { determineValidTransactions } from "../permissions.js";
+import { setMaxTxSizeBytes } from "../config.js";
 
 const Crypto = await WasmCrypto.create();
 
@@ -57,6 +57,7 @@ test("transactions with wrong signature are rejected", () => {
       node.getCurrentAgent(),
       [{ hello: "world" }],
       undefined,
+      Date.now(),
     );
 
   transaction.madeAt = Date.now() + 1000;
@@ -85,6 +86,66 @@ test("transactions with wrong signature are rejected", () => {
 
   expect(result.isErr()).toBe(true);
   expect(newEntry.getValidSortedTransactions().length).toBe(0);
+});
+
+describe("transactions that exceed the byte size limit are rejected", () => {
+  beforeEach(() => {
+    setMaxTxSizeBytes(1 * 1024);
+  });
+
+  afterEach(() => {
+    setMaxTxSizeBytes(1 * 1024 * 1024);
+  });
+
+  test("makeTransaction should throw error when transaction exceeds byte size limit", () => {
+    const [agent, sessionID] = randomAgentAndSessionID();
+    const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+
+    const coValue = node.createCoValue({
+      type: "costream",
+      ruleset: { type: "unsafeAllowAll" },
+      meta: null,
+      ...Crypto.createdNowUnique(),
+    });
+
+    const largeBinaryData = "x".repeat(1024 + 100);
+
+    expect(() => {
+      coValue.makeTransaction(
+        [
+          {
+            data: largeBinaryData,
+          },
+        ],
+        "trusting",
+      );
+    }).toThrow(/Transaction is too large to be synced/);
+  });
+
+  test("makeTransaction should work for transactions under byte size limit", () => {
+    const [agent, sessionID] = randomAgentAndSessionID();
+    const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+
+    const coValue = node.createCoValue({
+      type: "costream",
+      ruleset: { type: "unsafeAllowAll" },
+      meta: null,
+      ...Crypto.createdNowUnique(),
+    });
+
+    const smallData = "Hello, world!";
+
+    const success = coValue.makeTransaction(
+      [
+        {
+          data: smallData,
+        },
+      ],
+      "trusting",
+    );
+
+    expect(success).toBe(true);
+  });
 });
 
 test("New transactions in a group correctly update owned values, including subscriptions", async () => {
@@ -129,7 +190,9 @@ test("New transactions in a group correctly update owned values, including subsc
   expect(group.get(agent.id)).toBe("revoked");
   dateNowMock.mockReset();
 
-  expect(listener).toHaveBeenCalledTimes(2);
+  // Group invalidation updates are async
+  await waitFor(() => expect(listener).toHaveBeenCalledTimes(2));
+
   expect(listener).toHaveBeenLastCalledWith(undefined);
   expect(map.core.getValidSortedTransactions().length).toBe(0);
 });
@@ -459,10 +522,46 @@ describe("markErrored and isErroredInPeer", () => {
     // Mark peer as unavailable
     coValue.markNotFoundInPeer(peerId);
     expect(coValue.isErroredInPeer(peerId)).toBe(false);
+  });
 
-    // Mark peer as available
-    coValue.provideHeader({} as any, peerId);
-    expect(coValue.isErroredInPeer(peerId)).toBe(false);
+  test("provideHeader should work", () => {
+    const [agent, sessionID] = randomAgentAndSessionID();
+    const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+
+    const header = {
+      type: "costream",
+      ruleset: { type: "unsafeAllowAll" },
+      meta: null,
+      ...Crypto.createdNowUnique(),
+    } as const;
+
+    const coValue = node.getCoValue(idforHeader(header, Crypto));
+
+    expect(coValue.isAvailable()).toBe(false);
+
+    const success = coValue.provideHeader(header);
+    expect(success).toBe(true);
+    expect(coValue.isAvailable()).toBe(true);
+  });
+
+  test("provideHeader should return false if the header hash doesn't match the coValue id", () => {
+    const [agent, sessionID] = randomAgentAndSessionID();
+    const node = new LocalNode(agent.agentSecret, sessionID, Crypto);
+
+    const header = {
+      type: "costream",
+      ruleset: { type: "unsafeAllowAll" },
+      meta: null,
+      ...Crypto.createdNowUnique(),
+    } as const;
+
+    const coValue = node.getCoValue("co_ztest123");
+
+    expect(coValue.isAvailable()).toBe(false);
+
+    const success = coValue.provideHeader(header);
+    expect(success).toBe(false);
+    expect(coValue.isAvailable()).toBe(false);
   });
 
   test("markErrored should work with multiple peers", () => {

@@ -11,6 +11,7 @@ import {
   CoValueFromRaw,
   Inbox,
   InstanceOfSchema,
+  Loaded,
   createJazzContextFromExistingCredentials,
   randomSessionProvider,
 } from "jazz-tools";
@@ -26,6 +27,14 @@ type WorkerOptions<
   WebSocket?: AnyWebSocketConstructor;
   AccountSchema?: S;
   crypto?: CryptoProvider;
+  /**
+   * If true, the inbox will not be loaded.
+   */
+  skipInboxLoad?: boolean;
+  /**
+   * If false, the worker will not set in the global account context
+   */
+  asActiveAccount?: boolean;
 };
 
 /** @category Context Creation */
@@ -39,11 +48,13 @@ export async function startWorker<
     accountSecret = process.env.JAZZ_WORKER_SECRET,
     syncServer = "wss://cloud.jazz.tools",
     AccountSchema = Account as unknown as S,
+    skipInboxLoad = false,
+    asActiveAccount = true,
   } = options;
 
   let node: LocalNode | undefined = undefined;
 
-  const peersToLoadFrom: Peer[] = [];
+  const peers: Peer[] = [];
 
   const wsPeer = new WebSocketPeerWithReconnection({
     peer: syncServer,
@@ -52,7 +63,7 @@ export async function startWorker<
       if (node) {
         node.syncManager.addPeer(peer);
       } else {
-        peersToLoadFrom.push(peer);
+        peers.push(peer);
       }
     },
     removePeer: () => {},
@@ -80,10 +91,10 @@ export async function startWorker<
       secret: accountSecret as AgentSecret,
     },
     AccountSchema,
-    // TODO: locked sessions similar to browser
     sessionProvider: randomSessionProvider,
-    peersToLoadFrom,
+    peers,
     crypto: options.crypto ?? (await WasmCrypto.create()),
+    asActiveAccount,
   });
 
   const account = context.account as InstanceOfSchema<S>;
@@ -93,7 +104,7 @@ export async function startWorker<
     throw new Error("Account has no profile");
   }
 
-  const inbox = await Inbox.load(account);
+  const inbox = skipInboxLoad ? undefined : await Inbox.load(account);
 
   async function done() {
     await context.account.$jazz.waitForAllCoValuesSync();
@@ -102,15 +113,32 @@ export async function startWorker<
     context.done();
   }
 
-  const inboxPublicApi = {
-    subscribe: inbox.subscribe.bind(inbox) as Inbox["subscribe"],
-  };
+  const inboxPublicApi = inbox
+    ? {
+        subscribe: inbox.subscribe.bind(inbox) as Inbox["subscribe"],
+      }
+    : {
+        subscribe: () => {},
+      };
 
   return {
-    worker: context.account as InstanceOfSchema<S>,
+    /**
+     * The worker account instance.
+     */
+    worker: context.account as Loaded<S>,
     experimental: {
+      /**
+       * API to subscribe to the inbox messages.
+       *
+       * More info on the Inbox API: https://jazz.tools/docs/react/server-side/inbox
+       */
       inbox: inboxPublicApi,
     },
+    /**
+     * Wait for the connection to the sync server to be established.
+     *
+     * If already connected, it will resolve immediately.
+     */
     waitForConnection() {
       return wsPeer.waitUntilConnected();
     },
@@ -121,6 +149,21 @@ export async function startWorker<
         wsPeer.unsubscribe(listener);
       };
     },
+    /**
+     * Waits for all CoValues to sync and then shuts down the worker.
+     *
+     * To only wait for sync use worker.$jazz.waitForAllCoValuesSync()
+     *
+     * @deprecated Use shutdownWorker
+     */
     done,
+    /**
+     * Waits for all CoValues to sync and then shuts down the worker.
+     *
+     * To only wait for sync use worker.$jazz.waitForAllCoValuesSync()
+     */
+    shutdownWorker() {
+      return done();
+    },
   };
 }

@@ -17,8 +17,13 @@ import {
   z,
 } from "../index.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
-import { setupTwoNodes } from "./utils.js";
-import { CoFeed, ControlledAccount, TypeSym } from "../internal.js";
+import { setupTwoNodes, waitFor } from "./utils.js";
+import {
+  CoFeed,
+  CoFeedInstanceCoValuesNullable,
+  ControlledAccount,
+  TypeSym,
+} from "../internal.js";
 
 const Crypto = await WasmCrypto.create();
 
@@ -103,6 +108,15 @@ describe("Simple CoFeed operations", async () => {
 
     expect(stream.perAccount[me.$jazz.id]?.value).toEqual("milk");
     expect(stream.perSession[me.$jazz.sessionID]?.value).toEqual("milk");
+  });
+
+  test("toJSON", () => {
+    expect(stream.toJSON()).toEqual({
+      $jazz: { id: stream.$jazz.id },
+      in: {
+        [me.$jazz.sessionID]: stream.perSession[me.$jazz.sessionID]?.value,
+      },
+    });
   });
 
   describe("Mutation", () => {
@@ -194,7 +208,7 @@ describe("CoFeed resolution", async () => {
 
     assert(myStream);
 
-    expect(myStream.value).toBeTruthy();
+    await waitFor(() => expect(myStream.value).toBeTruthy());
 
     assert(myStream.value);
 
@@ -202,7 +216,7 @@ describe("CoFeed resolution", async () => {
 
     assert(loadedNestedStreamByMe);
 
-    expect(loadedNestedStreamByMe.value).toBeTruthy();
+    await waitFor(() => expect(loadedNestedStreamByMe.value).toBeTruthy());
 
     assert(loadedNestedStreamByMe.value);
 
@@ -211,7 +225,7 @@ describe("CoFeed resolution", async () => {
 
     assert(loadedTwiceNestedStreamByMe);
 
-    expect(loadedTwiceNestedStreamByMe.value).toBe("milk");
+    await waitFor(() => expect(loadedTwiceNestedStreamByMe.value).toBe("milk"));
 
     assert(loadedTwiceNestedStreamByMe.value);
   });
@@ -222,21 +236,24 @@ describe("CoFeed resolution", async () => {
 
     const anotherAccount = await createJazzTestAccount();
 
-    const queue = new Channel();
+    let result: CoFeedInstanceCoValuesNullable<co.Feed<co.Feed<z.z.ZodString>>>;
 
     TestStream.subscribe(
       stream.$jazz.id,
       { loadAs: anotherAccount },
       (subscribedStream) => {
-        void queue.push(subscribedStream);
+        result = subscribedStream;
       },
     );
 
-    const update1 = (await queue.next()).value;
-    expect(
-      update1.perAccount[accountId]?.value?.perAccount[accountId]?.value
-        ?.perAccount[accountId]?.value,
-    ).toBe("milk");
+    await waitFor(() => expect(result).toBeDefined());
+
+    await waitFor(() => {
+      expect(
+        result.perAccount[accountId]?.value?.perAccount[accountId]?.value
+          ?.perAccount[accountId]?.value,
+      ).toBe("milk");
+    });
 
     // When assigning a new nested stream, we get an update
     const newTwiceNested = TwiceNestedStream.create(["butter"], {
@@ -249,19 +266,22 @@ describe("CoFeed resolution", async () => {
 
     stream.$jazz.push(newNested);
 
-    const update2 = (await queue.next()).value;
-    expect(
-      update2.perAccount[me.$jazz.id]?.value?.perAccount[me.$jazz.id]?.value
-        ?.perAccount[me.$jazz.id]?.value,
-    ).toBe("butter");
+    await waitFor(() => {
+      expect(
+        result.perAccount[accountId]?.value?.perAccount[accountId]?.value
+          ?.perAccount[accountId]?.value,
+      ).toBe("butter");
+    });
 
     // we get updates when the new nested stream changes
     newTwiceNested.$jazz.push("jam");
-    const update3 = (await queue.next()).value;
-    expect(
-      update3.perAccount[me.$jazz.id]?.value?.perAccount[me.$jazz.id]?.value
-        ?.perAccount[me.$jazz.id]?.value,
-    ).toBe("jam");
+
+    await waitFor(() => {
+      expect(
+        result.perAccount[accountId]?.value?.perAccount[accountId]?.value
+          ?.perAccount[accountId]?.value,
+      ).toBe("jam");
+    });
   });
 
   test("Subscription without options", async () => {
@@ -302,6 +322,22 @@ describe("Simple FileStream operations", async () => {
   describe("FileStream", () => {
     test("Construction", () => {
       expect(stream.getChunks()).toBe(undefined);
+    });
+
+    test("toJSON", () => {
+      stream.start({ mimeType: "text/plain" });
+      stream.push(new Uint8Array([1, 2, 3]));
+      stream.push(new Uint8Array([4, 5, 6]));
+      stream.end();
+
+      expect(stream.toJSON()).toEqual({
+        $jazz: { id: stream.$jazz.id },
+        mimeType: "text/plain",
+        chunks: [new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])],
+        filename: undefined,
+        finished: true,
+        totalSizeBytes: undefined,
+      });
     });
 
     test("Mutation", () => {

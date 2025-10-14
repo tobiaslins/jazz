@@ -14,12 +14,15 @@ import { getDbPath } from "./testStorage";
 // We want to simulate a real world communication that happens asynchronously
 TEST_NODE_CONFIG.withAsyncPeers = true;
 
+beforeEach(async () => {
+  setMaxRecommendedTxSize(100 * 1024);
+});
+
 describe("client with storage syncs with server", () => {
   let jazzCloud: ReturnType<typeof setupTestNode>;
 
   beforeEach(async () => {
     vi.resetAllMocks();
-    setMaxRecommendedTxSize(100 * 1024);
     SyncMessagesLog.clear();
     jazzCloud = setupTestNode({
       isSyncServer: true,
@@ -434,6 +437,8 @@ describe("client syncs with a server with storage", () => {
   });
 
   test("large coValue streaming from cold server", async () => {
+    setMaxRecommendedTxSize(1000);
+
     const server = setupTestNode({
       isSyncServer: true,
     });
@@ -470,8 +475,6 @@ describe("client syncs with a server with storage", () => {
 
     await largeMap.core.waitForSync();
 
-    SyncMessagesLog.clear();
-
     server.restart();
 
     server.addStorage({
@@ -491,9 +494,10 @@ describe("client syncs with a server with storage", () => {
       storage,
     });
 
-    const mapOnClient2 = await loadCoValueOrFail(client.node, largeMap.id);
+    SyncMessagesLog.clear();
 
-    await mapOnClient2.core.waitForSync();
+    const mapOnClient2 = await loadCoValueOrFail(client.node, largeMap.id);
+    await mapOnClient2.core.waitForFullStreaming();
 
     expect(
       SyncMessagesLog.getMessages({
@@ -516,13 +520,6 @@ describe("client syncs with a server with storage", () => {
         "storage -> client | CONTENT Map header: true new: After: 7 New: 1",
         "storage -> client | CONTENT Map header: true new: After: 8 New: 1",
         "storage -> client | CONTENT Map header: true new: After: 9 New: 1",
-        "storage -> client | CONTENT Map header: true new: After: 10 New: 0",
-        "server -> storage | LOAD Group sessions: empty",
-        "storage -> server | CONTENT Group header: true new: After: 0 New: 5",
-        "server -> client | KNOWN Group sessions: header/5",
-        "server -> storage | LOAD Map sessions: empty",
-        "storage -> server | CONTENT Map header: true new: After: 0 New: 1 expectContentUntil: header/10",
-        "server -> client | KNOWN Map sessions: header/10",
       ]
     `);
   });

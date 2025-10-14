@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 
 mkdirSync("./public", { recursive: true });
 
@@ -17,6 +17,8 @@ const glueJs = readFileSync("./pkg/cojson_core_wasm.js", "utf8").replace(
   "module_or_path = new URL('cojson_core_wasm_bg.wasm', import.meta.url);",
   "throw new Error();",
 );
+
+cpSync("./pkg/cojson_core_wasm_bg.wasm", "./public/cojson_core_wasm.wasm");
 
 writeFileSync("./public/cojson_core_wasm.js", glueJs);
 

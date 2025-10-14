@@ -1,13 +1,11 @@
 export const metadata = {
   description: "Integrate Better Auth with your Jazz app to authenticate users."
 };
-import { CodeGroup, ContentByFramework } from "@/components/forMdx";
-import { Alert } from "@garden-co/design-system/src/components/atoms/Alert";
-
+import { Alert, CodeGroup, ContentByFramework } from "@/components/forMdx";
 
 # Better Auth authentication
 
-[Better Auth](https://better-auth.com/) is a self-hosted, framework-agnostic authentication and authorisation framework for TypeScript. 
+[Better Auth](https://better-auth.com/) is a self-hosted, framework-agnostic authentication and authorisation framework for TypeScript.
 
 You can integrate Better Auth with your Jazz app, allowing your Jazz user's account keys to be saved with the corresponding Better Auth user.
 
@@ -59,7 +57,7 @@ Better Auth supports several authentication methods and plugins. The Jazz plugin
     </tr>
     <tr>
       <td>Email OTP</td>
-      <td>❓</td>
+      <td>✅</td>
     </tr>
     <tr>
       <td>Passkey</td>
@@ -161,6 +159,11 @@ export function App() {
 }
 ```
 </CodeGroup>
+
+<Alert variant="warning" className="mt-4" title="Important">
+  The AuthProvider component uses the `better-auth/client` package, not `better-auth/react`.
+  To verify the authentication state in your app, see <a href="#authentication-states" aria-label="Jump to Authentication states section">Authentication states</a>.
+</Alert>
 
 </ContentByFramework>
 

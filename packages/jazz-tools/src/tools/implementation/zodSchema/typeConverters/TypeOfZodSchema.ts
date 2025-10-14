@@ -1,5 +1,4 @@
 import { JsonValue } from "cojson";
-import { PartialOnUndefined } from "../../../internal.js";
 import { z } from "../zodReExport.js";
 
 // Copied from https://github.com/colinhacks/zod/blob/7e7e3461aceecf3633e158df50d6bc852e7cdf45/packages/zod/src/v4/core/schemas.ts#L1591,
@@ -72,8 +71,13 @@ export type TypeOfZodSchema<S extends z.core.$ZodType> =
                                       infer Default extends z.core.$ZodType
                                     >
                                   ? TypeOfZodSchema<Default>
-                                  : S extends z.core.$ZodCatch<
-                                        infer Catch extends z.core.$ZodType
+                                  : S extends z.core.$ZodCodec<
+                                        any,
+                                        infer Out extends z.core.$ZodType
                                       >
-                                    ? TypeOfZodSchema<Catch>
-                                    : never;
+                                    ? Out["_zod"]["output"]
+                                    : S extends z.core.$ZodCatch<
+                                          infer Catch extends z.core.$ZodType
+                                        >
+                                      ? TypeOfZodSchema<Catch>
+                                      : never;

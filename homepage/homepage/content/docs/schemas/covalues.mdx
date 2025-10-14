@@ -2,8 +2,7 @@ export const metadata = {
   description: "CoValues are the core abstraction of Jazz. They're your bread-and-butter datastructures that you use to represent everything in your app.",
 };
 
-import { CodeGroup, ComingSoon } from "@/components/forMdx";
-import { Alert } from "@garden-co/design-system/src/components/atoms/Alert";
+import { Alert, CodeGroup } from "@/components/forMdx";
 
 # Defining schemas: CoValues
 
@@ -377,7 +376,7 @@ const Person = co.map({
 
 #### Recursive References
 
-You can refer to the same schema from within itself using getters:
+You can wrap references in getters. This allows you to defer evaluation until the property is accessed. This technique is particularly useful for defining circular references, including recursive (self-referencing) schemas, or mutually recursive schemas. 
 
 <CodeGroup>
 ```ts twoslash
@@ -410,6 +409,8 @@ const ListOfPeople = co.list(Person);
 ```
 
 </CodeGroup>
+
+If you try to reference `ListOfPeople` in `Person` without using a getter, you'll run into a `ReferenceError` because of the [temporal dead zone](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let#temporal_dead_zone_tdz).
 
 ### Helper methods
 

@@ -113,10 +113,14 @@ export class StorageApiSync implements StorageAPI {
 
       let idx = 0;
 
-      signatures.push({
-        idx: sessionRow.lastIdx,
-        signature: sessionRow.lastSignature,
-      });
+      const lastSignature = signatures[signatures.length - 1];
+
+      if (lastSignature?.signature !== sessionRow.lastSignature) {
+        signatures.push({
+          idx: sessionRow.lastIdx,
+          signature: sessionRow.lastSignature,
+        });
+      }
 
       for (const signature of signatures) {
         const newTxsInSession = this.dbClient.getNewTransactionInSession(

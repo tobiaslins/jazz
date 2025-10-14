@@ -20,6 +20,7 @@ import {
   setupJazzTestSync,
 } from "../testing.js";
 import { setupAccount, waitFor } from "./utils.js";
+import { getSubscriptionScope } from "../subscribe/index.js";
 
 cojsonInternals.setCoValueLoadingRetryDelay(300);
 
@@ -559,10 +560,7 @@ describe("subscribeToCoValue", () => {
     assert(result);
 
     expect(result[0]?.value).toBe("1");
-
-    // expect(updateFn).toHaveBeenCalledTimes(1);
-    // TODO: Getting an extra update here due to https://github.com/garden-co/jazz/issues/2117
-    expect(updateFn).toHaveBeenCalledTimes(2);
+    expect(updateFn).toHaveBeenCalledTimes(1);
   });
 
   it("should handle undefined values in lists with required refs", async () => {
@@ -1279,5 +1277,45 @@ describe("subscribeToCoValue", () => {
     expect(updateFn).toHaveBeenCalledTimes(1);
     expect(result.data.length).toBe(chunks + 1);
     expect(result.data[chunks]).toBe("new entry");
+  });
+});
+
+describe("getSubscriptionScope", () => {
+  const Person = co.map({
+    name: z.string(),
+  });
+  let person: co.output<typeof Person>;
+
+  beforeEach(async () => {
+    await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+      creationProps: { name: "Hermes Puggington" },
+    });
+
+    person = Person.create({ name: "John" });
+  });
+
+  describe("when the coValue doesn't have a subscription scope", () => {
+    it("creates a new subscription scope", () => {
+      expect(person.$jazz._subscriptionScope).toBeUndefined();
+      const subscriptionScope = getSubscriptionScope(person);
+      expect(subscriptionScope).toBeDefined();
+    });
+
+    it("updates the subscription scope in the coValue", () => {
+      const subscriptionScope = getSubscriptionScope(person);
+      expect(person.$jazz._subscriptionScope).toBeDefined();
+      expect(person.$jazz._subscriptionScope).toBe(subscriptionScope);
+    });
+  });
+
+  describe("when the coValue already has a subscription scope", () => {
+    it("returns that subscription scope", async () => {
+      const loadedPerson = await Person.load(person.$jazz.id);
+      assert(loadedPerson);
+      const subscriptionScope = loadedPerson.$jazz._subscriptionScope;
+      expect(subscriptionScope).toBeDefined();
+      expect(getSubscriptionScope(loadedPerson)).toBe(subscriptionScope);
+    });
   });
 });

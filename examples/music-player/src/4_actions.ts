@@ -152,7 +152,6 @@ export async function updateActivePlaylist(playlist?: Playlist) {
   const { root } = await MusicaAccount.getMe().$jazz.ensureLoaded({
     resolve: {
       root: {
-        activePlaylist: true,
         rootPlaylist: true,
       },
     },

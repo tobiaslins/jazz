@@ -19,6 +19,23 @@ describe("CoList", () => {
       matches(list);
     });
 
+    test("co.input returns the type for the init payload", () => {
+      const ListSchema = co.list(
+        co.map({
+          name: z.string(),
+          age: z.number(),
+          address: co.map({
+            street: z.string(),
+            city: z.string(),
+          }),
+        }),
+      );
+
+      const init: co.input<typeof ListSchema> = [];
+
+      ListSchema.create(init);
+    });
+
     test("has the owner property", () => {
       const StringList = co.list(z.string());
 

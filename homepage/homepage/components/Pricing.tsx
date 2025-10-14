@@ -3,17 +3,14 @@ import { clsx } from "clsx";
 import {
   CircleCheckIcon,
   LucideBuilding2,
-  LucideChevronUp,
   LucideChevronsUp,
   LucideCloudDownload,
   LucideDatabase,
   LucideHandshake,
   LucideIcon,
-  LucideInfinity,
   LucideServer,
   LucideUsers,
 } from "lucide-react";
-import { FakeGetStartedButton } from "./FakeGetStartedButton";
 import { IndieTierLogo, ProTierLogo, StarterTierLogo } from "./TierLogos";
 
 export function ListItem({
@@ -88,7 +85,14 @@ export function Pricing() {
             </ul>
           </div>
 
-          <FakeGetStartedButton tier="starter" />
+          <Button
+            href="https://dashboard.jazz.tools?utm_source=cloud_cta_starter"
+            newTab
+            variant="outline"
+            intent="primary"
+          >
+            Get Starter API key
+          </Button>
 
           <p className="text-sm">No credit card required. Takes 20s.</p>
         </div>
@@ -128,13 +132,18 @@ export function Pricing() {
                 <span className="tabular-nums">20</span> GB egress/mo incl.{" "}
                 <span className="text-sm">(then $0.1 per GB)</span>
               </ListItem>
-              <hr className="my-2 border" />
-              <ListItem icon={LucideChevronsUp}>High-priority sync</ListItem>
+                <li aria-hidden="true" className="my-2 border-t-2 list-none" />
+                <ListItem icon={LucideChevronsUp}>High-priority sync</ListItem>
             </ul>
           </div>
 
-          <FakeGetStartedButton tier="indie" />
-
+          <Button
+            href="https://dashboard.jazz.tools?utm_source=cloud_cta_indie"
+            newTab
+            intent="primary"
+          >
+            Get Indie API key
+          </Button>
           <p className="text-sm">
             One month free trial. Unlimited projects. Takes 1min.
           </p>
@@ -167,9 +176,9 @@ export function Pricing() {
               </ListItem>
               <ListItem icon={LucideDatabase}>Custom storage</ListItem>
               <ListItem icon={LucideCloudDownload}>Custom egress/mo</ListItem>
-              <hr className="my-2 border" />
+              <li aria-hidden="true" className="my-2 border-t-2 list-none" />
               <ListItem icon={LucideHandshake}>
-                Rapid integration & premium onboarding
+                Rapid integration &amp premium onboarding
               </ListItem>
               <ListItem icon={LucideBuilding2}>
                 SLAs, certifications, dedicated support

@@ -45,6 +45,21 @@ describe("CoMap", async () => {
       matches(john);
     });
 
+    test("co.input returns the type for the init payload", () => {
+      const Person = co.map({
+        name: z.string(),
+        age: z.number(),
+        address: co.map({
+          street: z.string(),
+          city: z.string(),
+        }),
+      });
+
+      const init = {} as co.input<typeof Person>;
+
+      Person.create(init);
+    });
+
     test("has the owner property", () => {
       const Person = co.map({
         name: z.string(),

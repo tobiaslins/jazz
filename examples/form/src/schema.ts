@@ -15,28 +15,26 @@ export const BubbleTeaBaseTeaTypes = [
   "Thai",
 ] as const;
 
-export const ListOfBubbleTeaAddOns = co.list(
-  z.literal([...BubbleTeaAddOnTypes]),
-);
+export const ListOfBubbleTeaAddOns = co.list(z.literal(BubbleTeaAddOnTypes));
 export type ListOfBubbleTeaAddOns = co.loaded<typeof ListOfBubbleTeaAddOns>;
-
-function hasAddOnsChanges(list?: ListOfBubbleTeaAddOns | null) {
-  return list && Object.entries(list.$jazz.raw.insertions).length > 0;
-}
 
 export const BubbleTeaOrder = co.map({
   baseTea: z.literal([...BubbleTeaBaseTeaTypes]),
   addOns: ListOfBubbleTeaAddOns,
   deliveryDate: z.date(),
   withMilk: z.boolean(),
-  instructions: co.optional(co.plainText()),
+  instructions: co.plainText(),
 });
 export type BubbleTeaOrder = co.loaded<typeof BubbleTeaOrder>;
 
-export const DraftBubbleTeaOrder = BubbleTeaOrder.partial();
-export type DraftBubbleTeaOrder = co.loaded<typeof DraftBubbleTeaOrder>;
+export const PartialBubbleTeaOrder = BubbleTeaOrder.partial({
+  baseTea: true,
+  deliveryDate: true,
+  withMilk: true,
+});
+export type PartialBubbleTeaOrder = co.loaded<typeof PartialBubbleTeaOrder>;
 
-export function validateDraftOrder(order: DraftBubbleTeaOrder) {
+export function validatePartialBubbleTeaOrder(order: PartialBubbleTeaOrder) {
   const errors: string[] = [];
 
   if (!order.baseTea) {
@@ -49,20 +47,12 @@ export function validateDraftOrder(order: DraftBubbleTeaOrder) {
   return { errors };
 }
 
-export function hasChanges(order?: DraftBubbleTeaOrder | null) {
-  return (
-    !!order &&
-    (Object.keys(order.$jazz.getEdits()).length > 1 ||
-      hasAddOnsChanges(order.addOns))
-  );
-}
-
 /** The root is an app-specific per-user private `CoMap`
  *  where you can store top-level objects for that user */
 export const AccountRoot = co.map({
-  draft: DraftBubbleTeaOrder,
   orders: co.list(BubbleTeaOrder),
 });
+export type AccountRoot = co.loaded<typeof AccountRoot>;
 
 export const JazzAccount = co
   .account({
@@ -70,9 +60,8 @@ export const JazzAccount = co
     profile: co.profile(),
   })
   .withMigration((account) => {
-    if (!account.root) {
+    if (!account.$jazz.has("root")) {
       account.$jazz.set("root", {
-        draft: { addOns: [], instructions: "" },
         orders: [],
       });
     }

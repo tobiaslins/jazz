@@ -1,37 +1,42 @@
 import { useIframeHashRouter } from "hash-slash";
-import { useAccount, useCoState } from "jazz-tools/react";
+import { useAccountWithSelector, useCoState } from "jazz-tools/react";
 import { useState } from "react";
 import { Errors } from "./Errors.tsx";
 import { LinkToHome } from "./LinkToHome.tsx";
 import { OrderForm } from "./OrderForm.tsx";
 import {
   BubbleTeaOrder,
-  DraftBubbleTeaOrder,
   JazzAccount,
-  validateDraftOrder,
+  PartialBubbleTeaOrder,
+  validatePartialBubbleTeaOrder,
 } from "./schema.ts";
 
-export function CreateOrder() {
-  const { me } = useAccount(JazzAccount, {
-    resolve: { root: { draft: true, orders: true } },
+export function CreateOrder(props: { id: string }) {
+  const orders = useAccountWithSelector(JazzAccount, {
+    resolve: { root: { orders: true } },
+    select: (account) => account?.root.orders,
   });
   const router = useIframeHashRouter();
   const [errors, setErrors] = useState<string[]>([]);
 
-  if (!me?.root) return;
+  const newOrder = useCoState(PartialBubbleTeaOrder, props.id, {
+    resolve: { addOns: true, instructions: true },
+  });
 
-  const onSave = (draft: DraftBubbleTeaOrder) => {
-    const validation = validateDraftOrder(draft);
+  if (!newOrder) return;
+
+  const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!orders) return;
+
+    const validation = validatePartialBubbleTeaOrder(newOrder);
     setErrors(validation.errors);
     if (validation.errors.length > 0) {
       return;
     }
 
     // turn the draft into a real order
-    me.root.orders.$jazz.push(draft as BubbleTeaOrder);
-
-    // reset the draft
-    me.root.$jazz.set("draft", { addOns: [] });
+    orders.$jazz.push(newOrder as BubbleTeaOrder);
 
     router.navigate("/");
   };
@@ -45,29 +50,7 @@ export function CreateOrder() {
       </h1>
 
       <Errors errors={errors} />
-
-      <CreateOrderForm id={me?.root?.draft.$jazz.id} onSave={onSave} />
+      <OrderForm order={newOrder} onSave={handleSave} />
     </>
   );
-}
-
-function CreateOrderForm({
-  id,
-  onSave,
-}: {
-  id: string;
-  onSave: (draft: DraftBubbleTeaOrder) => void;
-}) {
-  const draft = useCoState(DraftBubbleTeaOrder, id, {
-    resolve: { addOns: true, instructions: true },
-  });
-
-  if (!draft) return;
-
-  const addOrder = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    onSave(draft);
-  };
-
-  return <OrderForm order={draft} onSave={addOrder} />;
 }

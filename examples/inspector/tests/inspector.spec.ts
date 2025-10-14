@@ -78,18 +78,19 @@ test("should inspect CoValue", async ({ page }) => {
   const issue = organization.projects[0].issues[0];
 
   // Test if table is displaying the Issue data correctly
-  await expect(row.getByRole("cell").nth(0)).toHaveText(issue.title);
-  await expect(row.getByRole("cell").nth(1)).toHaveText(issue.status);
+  await expect(row.getByRole("cell").nth(0)).toHaveText(issue.$jazz.id);
+  await expect(row.getByRole("cell").nth(1)).toHaveText(issue.title);
+  await expect(row.getByRole("cell").nth(2)).toHaveText(issue.status);
   await expect(
     row
       .getByRole("cell")
-      .nth(2)
+      .nth(3)
       .getByRole("button", { name: issue.labels.$jazz.id }),
   ).toBeVisible();
   await expect(
     row
       .getByRole("cell")
-      .nth(3)
+      .nth(4)
       .getByRole("button", { name: issue.reactions.$jazz.id }),
   ).toBeVisible();
 
@@ -97,7 +98,7 @@ test("should inspect CoValue", async ({ page }) => {
     await expect(
       row
         .getByRole("cell")
-        .nth(4)
+        .nth(5)
         .getByRole("button", { name: issue.file.$jazz.id }),
     ).toBeVisible();
   }
@@ -106,7 +107,7 @@ test("should inspect CoValue", async ({ page }) => {
     await expect(
       row
         .getByRole("cell")
-        .nth(5)
+        .nth(6)
         .getByRole("button", { name: issue.image.$jazz.id }),
     ).toBeVisible();
   }

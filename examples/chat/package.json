@@ -17,8 +17,7 @@
     "jazz-tools": "workspace:*",
     "lucide-react": "^0.536.0",
     "react": "catalog:react",
-    "react-dom": "catalog:react",
-    "zod": "3.25.76"
+    "react-dom": "catalog:react"
   },
   "devDependencies": {
     "@playwright/test": "^1.50.1",

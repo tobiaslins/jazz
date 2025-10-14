@@ -55,8 +55,9 @@ describe("Deep loading with depth arg", async () => {
         secret: me.$jazz.localNode.getCurrentAgent().agentSecret,
       },
       sessionProvider: randomSessionProvider,
-      peersToLoadFrom: [initialAsPeer],
+      peers: [initialAsPeer],
       crypto: Crypto,
+      asActiveAccount: true,
     });
 
   const ownership = { owner: me };
@@ -285,8 +286,9 @@ test("Deep loading a record-like coMap", async () => {
         secret: me.$jazz.localNode.getCurrentAgent().agentSecret,
       },
       sessionProvider: randomSessionProvider,
-      peersToLoadFrom: [initialAsPeer],
+      peers: [initialAsPeer],
       crypto: Crypto,
+      asActiveAccount: true,
     });
 
   const record = RecordLike.create(

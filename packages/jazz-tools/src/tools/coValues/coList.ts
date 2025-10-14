@@ -10,6 +10,7 @@ import {
   getCoValueOwner,
   Group,
   ID,
+  unstable_mergeBranch,
   RefEncoded,
   RefsToResolve,
   RefsToResolveStrict,
@@ -19,6 +20,7 @@ import {
   SubscribeListenerOptions,
   SubscribeRestArgs,
   TypeSym,
+  BranchDefinition,
 } from "../internal.js";
 import {
   AnonymousJazzAgent,
@@ -514,14 +516,6 @@ export class CoListJazzApi<L extends CoList> extends CoValueJazzApi<L> {
     super(coList);
   }
 
-  /**
-   * The ID of this `CoList`
-   * @category Content
-   */
-  get id(): ID<L> {
-    return this.raw.id;
-  }
-
   /** @category Collaboration */
   get owner(): Group {
     return getCoValueOwner(this.coList);
@@ -745,9 +739,20 @@ export class CoListJazzApi<L extends CoList> extends CoValueJazzApi<L> {
       : undefined;
 
     const patches = [...calcPatch(current, result, comparator)];
+
+    if (patches.length === 0) {
+      return this.coList;
+    }
+
+    // Turns off updates in the middle of applyDiff to improve the performance
+    this.raw.core.pauseNotifyUpdate();
+
     for (const [from, to, insert] of patches.reverse()) {
       this.splice(from, to - from, ...insert);
     }
+
+    this.raw.core.resumeNotifyUpdate();
+
     return this.coList;
   }
 
@@ -760,7 +765,10 @@ export class CoListJazzApi<L extends CoList> extends CoValueJazzApi<L> {
    */
   ensureLoaded<L extends CoList, const R extends RefsToResolve<L>>(
     this: CoListJazzApi<L>,
-    options: { resolve: RefsToResolveStrict<L, R> },
+    options: {
+      resolve: RefsToResolveStrict<L, R>;
+      unstable_branch?: BranchDefinition;
+    },
   ): Promise<Resolved<L, R>> {
     return ensureCoValueLoaded(this.coList, options);
   }
@@ -780,7 +788,10 @@ export class CoListJazzApi<L extends CoList> extends CoValueJazzApi<L> {
   ): () => void;
   subscribe<L extends CoList, const R extends RefsToResolve<L> = true>(
     this: CoListJazzApi<L>,
-    options: { resolve?: RefsToResolveStrict<L, R> },
+    options: {
+      resolve?: RefsToResolveStrict<L, R>;
+      unstable_branch?: BranchDefinition;
+    },
     listener: (value: Resolved<L, R>, unsubscribe: () => void) => void,
   ): () => void;
   subscribe<L extends CoList, const R extends RefsToResolve<L>>(
@@ -969,6 +980,41 @@ const CoListProxyHandler: ProxyHandler<CoList> = {
       return Number(key) < target.$jazz.raw.entries().length;
     } else {
       return Reflect.has(target, key);
+    }
+  },
+  ownKeys(target) {
+    const keys = Reflect.ownKeys(target);
+    // Add numeric indices for all entries in the list
+    const indexKeys = target.$jazz.raw.entries().map((_entry, i) => String(i));
+    keys.push(...indexKeys);
+    return keys;
+  },
+  getOwnPropertyDescriptor(target, key) {
+    if (key === TypeSym) {
+      // Make TypeSym non-enumerable so it doesn't show up in Object.keys()
+      return {
+        enumerable: false,
+        configurable: true,
+        writable: false,
+        value: target[TypeSym],
+      };
+    } else if (key in target) {
+      return Reflect.getOwnPropertyDescriptor(target, key);
+    } else if (typeof key === "string" && !isNaN(+key)) {
+      const index = Number(key);
+      if (index >= 0 && index < target.$jazz.raw.entries().length) {
+        return {
+          enumerable: true,
+          configurable: true,
+          writable: true,
+        };
+      }
+    } else if (key === "length") {
+      return {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+      };
     }
   },
 };

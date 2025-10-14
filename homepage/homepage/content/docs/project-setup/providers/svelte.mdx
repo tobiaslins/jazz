@@ -3,7 +3,8 @@ export const metadata = {
     "Configure your JazzSvelteProvider - the core component that connects your app to Jazz, handling sync, storage, account schema, and auth.",
 };
 
-import { CodeGroup } from "@/components/forMdx";
+import { Alert, CodeGroup } from "@/components/forMdx";
+import GetAPIKey from "@/components/docs/snippets/GetAPIKey.mdx";
 
 # Providers
 
@@ -39,6 +40,9 @@ The `<JazzSvelteProvider />` accepts several configuration options:
 </JazzSvelteProvider>
 ```
 </CodeGroup>
+<Alert className="mt-4" variant="info" title="Tip">
+<GetAPIKey hideFileName={true} hideCodeGroup={true} />
+</Alert> 
 
 ## Provider Options
 
@@ -88,7 +92,7 @@ The `AccountSchema` property defines your application's account structure:
 </JazzSvelteProvider>
 ```
 </CodeGroup>
-
+  
 ### Additional Options
 
 The provider accepts these additional options:
@@ -100,13 +104,16 @@ The provider accepts these additional options:
   import { JazzSvelteProvider } from "jazz-tools/svelte";
   import { syncConfig } from "$lib/syncConfig";
   let { children } = $props();
-  
+
   // Enable guest mode for account-less access
-  const guestMode = false; 
-  
+  const guestMode = false;
+
   // Default name for new user profiles
-  const defaultProfileName = "New User"; 
-  
+  const defaultProfileName = "New User";
+
+  // Override the default storage key
+  const authSecretStorageKey = "jazz-logged-in-secret";
+
   // Handle user logout
   const onLogOut = () => {
     console.log("User logged out");
@@ -126,6 +133,7 @@ The provider accepts these additional options:
   {defaultProfileName}
   {onLogOut}
   {onAnonymousAccountDiscarded}
+  {authSecretStorageKey}
 >
   {@render children}
 </JazzSvelteProvider>

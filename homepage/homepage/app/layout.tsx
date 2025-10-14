@@ -31,6 +31,13 @@ export const metadata: Metadata = {
     description: metaTags.description,
     url: metaTags.url,
     siteName: "Jazz",
+    images: [
+      {
+        url: `${metaTags.url}/api/opengraph-image?title=${encodeURIComponent(metaTags.title)}`,
+        height: 630,
+        alt: metaTags.title,
+      },
+    ],
   },
 };
 
@@ -41,7 +48,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="h-full" suppressHydrationWarning>
-      <body
+       <body
         className={[
           ...fontClasses,
           "min-h-full flex flex-col items-center [&_*]:scroll-mt-[5rem]",
@@ -55,12 +62,12 @@ export default function RootLayout({
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
-        >
+        > 
           {children}
           <JazzFooter />
           <PagefindSearch />
         </ThemeProvider>
-      </body>
+      </body> 
     </html>
   );
 }

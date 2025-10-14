@@ -1,5 +1,4 @@
-import { CodeGroup, ContentByFramework } from '@/components/forMdx'
-import { JazzIcon } from "@garden-co/design-system/src/components/atoms/logos/JazzIcon";
+import { CodeGroup, ContentByFramework, JazzIcon } from '@/components/forMdx'
 
 export const metadata = {
   description: "Visually inspect a Jazz account and other CoValues using their ID."
@@ -17,7 +16,7 @@ Alternatively, you can pass the Account ID and Account Secret separately.
 [https://inspector.jazz.tools](https://inspector.jazz.tools)
 
 <ContentByFramework framework={["react", "svelte", "vue", "vanilla"]}>
-## Exporting current account to Inspector from your app [!framework=react,svelte,vue,vanilla]
+## Exporting current account to Inspector from your app
 
 In development mode, you can launch the Inspector from your Jazz app to inspect your account by pressing `Cmd+J`.
 
@@ -90,7 +89,7 @@ For example:
 <div className="bg-stone-200 flex items-center justify-center h-72 relative dark:bg-stone-900 mt-5">
   <span>Your app</span>
 
-  <button className="size-10 p-1.5 border rounded-lg left-4 bottom-4 absolute bg-white shadow-sm" type="button">
+  <button className="size-10 p-1.5 border rounded-lg left-4 bottom-4 absolute bg-white shadow-sm" type="button" aria-label="Open Jazz Inspector">
     <JazzIcon className="w-full h-auto"/>
   </button>
 </div>

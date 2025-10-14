@@ -49,6 +49,7 @@ const features = [
           <img
             src="/leaves.jpg"
             className="w-32 h-auto blur-md scale-125 opacity-90"
+            alt="Leaves image demonstrating progressive loading"
           />
           <p className="absolute h-full w-full text-center flex items-center justify-center text-sm z-10 text-stone-100 left-0 top-0">
             400x300
@@ -57,6 +58,7 @@ const features = [
         <img
           src="/leaves.jpg"
           className="z-20 w-32 shadow-xl h-auto rounded-md mt-10 -ml-4"
+          alt="Leaves image demonstrating progressive loading"
         />
       </>
     ),
@@ -122,10 +124,12 @@ export function FeaturesSection() {
             <img
               src="/api/latencyMap?spacing=2&dark=false"
               className="w-full dark:hidden"
+              alt=""
             />
             <img
               src="/api/latencyMap?spacing=2&dark=true"
               className="w-full hidden dark:block"
+              alt=""
             />
           </div>
 

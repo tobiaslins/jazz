@@ -132,6 +132,62 @@ describe("loading coValues from server", () => {
     `);
   });
 
+  test("new dependencies coming from updates should be pushed", async () => {
+    const client = setupTestNode({
+      connected: true,
+    });
+    const client2 = setupTestNode();
+
+    client2.connectToSyncServer({
+      ourName: "client2",
+    });
+
+    const group = client.node.createGroup();
+    group.addMember("everyone", "reader");
+    const map = group.createMap();
+    map.set("hello", "world", "trusting");
+
+    await map.core.waitForSync();
+
+    await loadCoValueOrFail(client2.node, map.id);
+
+    const parentGroup = client.node.createGroup();
+    group.extend(parentGroup);
+
+    await group.core.waitForSync();
+    await jazzCloud.node.syncManager.waitForAllCoValuesSync();
+
+    const messagesLog = SyncMessagesLog.getMessages({
+      ParentGroup: parentGroup.core,
+      Group: group.core,
+      Map: map.core,
+    });
+
+    expect(messagesLog).toMatchInlineSnapshot(`
+      [
+        "client -> server | CONTENT Group header: true new: After: 0 New: 5",
+        "client -> server | CONTENT Map header: true new: After: 0 New: 1",
+        "server -> client | KNOWN Group sessions: header/5",
+        "server -> client | KNOWN Map sessions: header/1",
+        "client2 -> server | LOAD Map sessions: empty",
+        "server -> client2 | CONTENT Group header: true new: After: 0 New: 5",
+        "server -> client2 | CONTENT Map header: true new: After: 0 New: 1",
+        "client2 -> server | KNOWN Group sessions: header/5",
+        "client2 -> server | KNOWN Map sessions: header/1",
+        "client -> server | CONTENT ParentGroup header: true new: After: 0 New: 4",
+        "client -> server | CONTENT Group header: false new: After: 5 New: 2",
+        "server -> client | KNOWN ParentGroup sessions: header/4",
+        "server -> client | KNOWN Group sessions: header/7",
+        "server -> client2 | CONTENT ParentGroup header: true new: After: 0 New: 4",
+        "server -> client2 | CONTENT Group header: false new: After: 5 New: 2",
+        "client2 -> server | KNOWN ParentGroup sessions: header/4",
+        "client2 -> server | KNOWN Group sessions: header/7",
+      ]
+    `);
+
+    expect(client2.node.expectCoValueLoaded(parentGroup.id)).toBeTruthy();
+  });
+
   test("loading a branch", async () => {
     const client = setupTestNode({
       connected: true,
@@ -171,10 +227,10 @@ describe("loading coValues from server", () => {
       [
         "client -> server | LOAD Branch sessions: empty",
         "server -> client | CONTENT Group header: true new: After: 0 New: 5",
-        "server -> client | CONTENT Map header: true new: After: 0 New: 2",
+        "server -> client | CONTENT Map header: true new: After: 0 New: 3",
         "server -> client | CONTENT Branch header: true new: After: 0 New: 2",
         "client -> server | KNOWN Group sessions: header/5",
-        "client -> server | KNOWN Map sessions: header/2",
+        "client -> server | KNOWN Map sessions: header/3",
         "client -> server | KNOWN Branch sessions: header/2",
       ]
     `);
@@ -507,9 +563,9 @@ describe("loading coValues from server", () => {
       connected: true,
     });
 
-    await loadCoValueOrFail(client.node, largeMap.id);
+    const mapOnClient = await loadCoValueOrFail(client.node, largeMap.id);
 
-    await largeMap.core.waitForSync();
+    await mapOnClient.core.waitForFullStreaming();
 
     expect(
       SyncMessagesLog.getMessages({
@@ -686,9 +742,9 @@ describe("loading coValues from server", () => {
         "server -> client | CONTENT Map header: true new: After: 0 New: 1",
         "client -> server | KNOWN ParentGroup sessions: header/6",
         "client -> server | LOAD Group sessions: empty",
-        "client -> server | KNOWN Map sessions: header/1",
         "server -> client | CONTENT Group header: true new: After: 0 New: 5",
         "client -> server | KNOWN Group sessions: header/5",
+        "client -> server | KNOWN Map sessions: header/1",
       ]
     `);
 
@@ -729,10 +785,12 @@ describe("loading coValues from server", () => {
         "server -> client | CONTENT Group header: true new: After: 0 New: 5",
         "server -> client | CONTENT Map header: true new: After: 0 New: 1",
         "client -> server | LOAD ParentGroup sessions: empty",
+        "client -> server | LOAD Group sessions: empty",
+        "server -> client | CONTENT ParentGroup header: true new: After: 0 New: 6",
+        "server -> client | CONTENT Group header: true new: After: 0 New: 5",
+        "client -> server | KNOWN ParentGroup sessions: header/6",
         "client -> server | KNOWN Group sessions: header/5",
         "client -> server | KNOWN Map sessions: header/1",
-        "server -> client | CONTENT ParentGroup header: true new: After: 0 New: 6",
-        "client -> server | KNOWN ParentGroup sessions: header/6",
       ]
     `);
 
@@ -775,9 +833,9 @@ describe("loading coValues from server", () => {
         "server -> client | CONTENT Group header: true new: After: 0 New: 5",
         "server -> client | CONTENT Map header: true new: After: 0 New: 1",
         "client -> server | LOAD Account sessions: empty",
-        "client -> server | KNOWN Group sessions: header/0",
-        "client -> server | KNOWN Map sessions: header/0",
+        "client -> server | LOAD Group sessions: empty",
         "server -> client | CONTENT Account header: true new: After: 0 New: 4",
+        "server -> client | CONTENT Group header: true new: After: 0 New: 5",
         "client -> server | KNOWN Account sessions: header/4",
         "client -> server | KNOWN Group sessions: header/5",
         "client -> server | KNOWN Map sessions: header/1",
@@ -839,7 +897,6 @@ describe("loading coValues from server", () => {
         "server -> client | CONTENT Map header: true new: After: 0 New: 1 | After: 0 New: 1",
         "client -> server | KNOWN Group sessions: header/5",
         "client -> server | LOAD Account sessions: empty",
-        "client -> server | KNOWN Map sessions: header/1",
         "server -> client | CONTENT Account header: true new: After: 0 New: 4",
         "client -> server | KNOWN Account sessions: header/4",
         "client -> server | KNOWN Map sessions: header/2",
@@ -903,11 +960,12 @@ describe("loading coValues from server", () => {
         "server -> client | CONTENT Group header: true new: After: 0 New: 5",
         "server -> client | CONTENT Map header: true new: After: 0 New: 1",
         "client -> server | LOAD Account sessions: empty",
-        "client -> server | KNOWN Group sessions: header/0",
-        "client -> server | KNOWN Map sessions: header/0",
+        "client -> server | LOAD Group sessions: empty",
+        "server -> client | CONTENT Group header: true new: After: 0 New: 5",
         "server -> client | CONTENT Account header: true new: After: 0 New: 4",
         "server -> client | CONTENT Account header: true new: After: 0 New: 4",
         "client -> server | KNOWN Account sessions: header/4",
+        "client -> server | KNOWN Group sessions: header/5",
         "client -> server | KNOWN Group sessions: header/5",
         "client -> server | KNOWN Map sessions: header/1",
       ]
@@ -974,13 +1032,254 @@ describe("loading coValues from server", () => {
         "client -> server | LOAD Map sessions: empty",
         "server -> client | CONTENT Map header: true new: After: 0 New: 1",
         "client -> server | LOAD Account sessions: empty",
-        "client -> server | KNOWN Map sessions: header/0",
         "server -> client | CONTENT Account header: true new: After: 0 New: 4",
         "server -> client | CONTENT Account header: true new: After: 0 New: 4",
         "client -> server | KNOWN Account sessions: header/4",
         "client -> server | KNOWN Map sessions: header/1",
       ]
     `);
+  });
+
+  test("edge servers should wait for all the dependencies to be available before sending the content", async () => {
+    const coreServer = await setupTestAccount();
+    coreServer.node.syncManager.disableTransactionVerification();
+
+    const edgeServer = await setupTestNode({ isSyncServer: true });
+
+    const { peerOnServer } = edgeServer.connectToSyncServer({
+      syncServer: coreServer.node,
+      ourName: "edge",
+      syncServerName: "core",
+    });
+
+    const client = setupTestNode();
+
+    client.connectToSyncServer({
+      ourName: "client",
+      syncServerName: "edge",
+      syncServer: edgeServer.node,
+    });
+
+    const group = coreServer.node.createGroup();
+    group.addMember("everyone", "writer");
+    const accountBlocker = blockMessageTypeOnOutgoingPeer(
+      peerOnServer,
+      "content",
+      {
+        id: coreServer.accountID,
+        once: true,
+      },
+    );
+    const groupBlocker = blockMessageTypeOnOutgoingPeer(
+      peerOnServer,
+      "content",
+      {
+        id: group.id,
+        once: true,
+      },
+    );
+
+    const account = coreServer.node.expectCurrentAccount(coreServer.accountID);
+
+    const map = group.createMap();
+    map.set("hello", "world");
+
+    const mapOnClient = await loadCoValueOrFail(client.node, map.id);
+    expect(mapOnClient.get("hello")).toEqual("world");
+
+    expect(
+      SyncMessagesLog.getMessages({
+        Account: account.core,
+        Group: group.core,
+        Map: map.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "client -> edge | LOAD Map sessions: empty",
+        "edge -> core | LOAD Map sessions: empty",
+        "core -> edge | CONTENT Map header: true new: After: 0 New: 1",
+        "edge -> core | LOAD Group sessions: empty",
+        "edge -> core | LOAD Account sessions: empty",
+        "core -> edge | CONTENT Group header: true new: After: 0 New: 5",
+        "core -> edge | CONTENT Account header: true new: After: 0 New: 4",
+        "edge -> core | KNOWN Account sessions: header/4",
+        "edge -> core | KNOWN Group sessions: header/5",
+        "edge -> core | KNOWN Map sessions: header/1",
+        "edge -> client | CONTENT Account header: true new: After: 0 New: 4",
+        "edge -> client | CONTENT Group header: true new: After: 0 New: 5",
+        "edge -> client | CONTENT Map header: true new: After: 0 New: 1",
+        "client -> edge | KNOWN Account sessions: header/4",
+        "client -> edge | KNOWN Group sessions: header/5",
+        "client -> edge | KNOWN Map sessions: header/1",
+      ]
+    `);
+
+    accountBlocker.unblock();
+    groupBlocker.unblock();
+  });
+
+  test("edge servers should wait for all the dependencies to be available before sending an update", async () => {
+    // Create a core -> edge -> client network
+    const coreServer = setupTestNode({ isSyncServer: true });
+
+    const edgeServer = setupTestNode({ isSyncServer: true });
+    const { peerOnServer: coreToEdgePeer } = edgeServer.connectToSyncServer({
+      syncServer: coreServer.node,
+      ourName: "edge",
+      syncServerName: "core",
+    });
+
+    const client = setupTestNode();
+    client.connectToSyncServer({
+      ourName: "client",
+      syncServerName: "edge",
+    });
+
+    // Create the group on the client
+    const group = client.node.createGroup();
+
+    // Connect a new session and link it directly to the core
+    const newSession = client.spawnNewSession();
+    newSession.connectToSyncServer({
+      syncServer: coreServer.node,
+      ourName: "newSession",
+      syncServerName: "core",
+    });
+
+    // Load the group on the new client
+    const groupOnNewSession = await loadCoValueOrFail(
+      newSession.node,
+      group.id,
+    );
+
+    SyncMessagesLog.clear();
+
+    const parentGroup = newSession.node.createGroup();
+    groupOnNewSession.extend(parentGroup);
+
+    // Block the content message from the core peer to simulate the situation where we won't push the dependency
+    const blocker = blockMessageTypeOnOutgoingPeer(coreToEdgePeer, "content", {
+      id: parentGroup.id,
+      once: true,
+    });
+
+    // Wait for the parent group to be available on client
+    await waitFor(() => {
+      expect(client.node.getCoValue(parentGroup.id).isAvailable()).toBe(true);
+    });
+
+    // The edge server should wait for the parent group to be available before sending the group update
+    expect(
+      SyncMessagesLog.getMessages({
+        ParentGroup: parentGroup.core,
+        Group: group.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "newSession -> core | CONTENT ParentGroup header: true new: After: 0 New: 4",
+        "newSession -> core | CONTENT Group header: false new: After: 0 New: 2",
+        "core -> newSession | KNOWN ParentGroup sessions: header/4",
+        "core -> newSession | KNOWN Group sessions: header/5",
+        "core -> edge | CONTENT Group header: false new: After: 0 New: 2",
+        "edge -> core | LOAD ParentGroup sessions: empty",
+        "core -> edge | CONTENT ParentGroup header: true new: After: 0 New: 4",
+        "edge -> core | KNOWN ParentGroup sessions: header/4",
+        "edge -> core | KNOWN Group sessions: header/5",
+        "edge -> client | CONTENT ParentGroup header: true new: After: 0 New: 4",
+        "edge -> client | CONTENT Group header: false new: After: 0 New: 2",
+        "client -> edge | KNOWN ParentGroup sessions: header/4",
+        "client -> edge | KNOWN Group sessions: header/5",
+      ]
+    `);
+
+    blocker.unblock();
+  });
+
+  test("edge servers should wait for all the session dependencies to be available before sending an update", async () => {
+    // Create a core -> edge -> client network
+    const coreServer = setupTestNode({ isSyncServer: true });
+
+    const edgeServer = setupTestNode({ isSyncServer: true });
+    const { peerOnServer: coreToEdgePeer } = edgeServer.connectToSyncServer({
+      syncServer: coreServer.node,
+      ourName: "edge",
+      syncServerName: "core",
+    });
+
+    const client = setupTestNode();
+    client.connectToSyncServer({
+      ourName: "client",
+      syncServerName: "edge",
+    });
+
+    // Create the map on the client
+    const group = client.node.createGroup();
+    group.addMember("everyone", "writer");
+
+    const map = group.createMap();
+    map.set("hello", "world");
+
+    // Connect a new client that uses an account and link it directly to the core
+    const newAccountClient = await setupTestAccount();
+    newAccountClient.connectToSyncServer({
+      syncServer: coreServer.node,
+      ourName: "newAccountClient",
+      syncServerName: "core",
+    });
+    await newAccountClient.node.syncManager.waitForAllCoValuesSync();
+
+    // Load the map on the new client
+    const mapOnNewAccountClient = await loadCoValueOrFail(
+      newAccountClient.node,
+      map.id,
+    );
+    const account = newAccountClient.node.expectCurrentAccount(
+      newAccountClient.accountID,
+    );
+
+    SyncMessagesLog.clear();
+
+    // Update the map on the new client, creating a new session
+    mapOnNewAccountClient.set("newAccountClient", true);
+
+    // Block the content message from the core peer to simulate the situation where we won't push the dependency
+    const blocker = blockMessageTypeOnOutgoingPeer(coreToEdgePeer, "content", {
+      id: account.id,
+      once: true,
+    });
+
+    // Wait for the update to arrive on the initial client
+    await waitFor(() => {
+      const mapOnClient = expectMap(
+        client.node.getCoValue(map.core.id).getCurrentContent(),
+      );
+      expect(mapOnClient.get("newAccountClient")).toBe(true);
+    });
+
+    // The edge server should wait for the new Account to be available before sending the Map update
+    expect(
+      SyncMessagesLog.getMessages({
+        Account: account.core,
+        Group: group.core,
+        Map: map.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "newAccountClient -> core | CONTENT Map header: false new: After: 0 New: 1",
+        "core -> newAccountClient | KNOWN Map sessions: header/2",
+        "core -> edge | CONTENT Map header: false new: After: 0 New: 1",
+        "edge -> core | LOAD Account sessions: empty",
+        "core -> edge | CONTENT Account header: true new: After: 0 New: 4",
+        "edge -> core | KNOWN Account sessions: header/4",
+        "edge -> core | KNOWN Map sessions: header/2",
+        "edge -> client | CONTENT Account header: true new: After: 0 New: 4",
+        "edge -> client | CONTENT Map header: false new: After: 0 New: 1",
+        "client -> edge | KNOWN Account sessions: header/4",
+        "client -> edge | KNOWN Map sessions: header/2",
+      ]
+    `);
+
+    blocker.unblock();
   });
 
   test("coValue with circular deps loading", async () => {
@@ -1133,5 +1432,22 @@ describe("loading coValues from server", () => {
     // Verify the map is available on the server (transaction was accepted)
     const mapOnServerCore = await syncServer.node.loadCoValueCore(map.core.id);
     expect(mapOnServerCore.isAvailable()).toBe(true);
+  });
+
+  test("unknown coValues are ignored if ignoreUnrequestedCoValues is true", async () => {
+    const group = jazzCloud.node.createGroup();
+    const map = group.createMap();
+    map.set("hello", "world", "trusting");
+
+    const { node: shardedCoreNode } = setupTestNode({
+      connected: true,
+    });
+    shardedCoreNode.syncManager.disableTransactionVerification();
+    shardedCoreNode.syncManager.ignoreUnknownCoValuesFromServers();
+
+    await shardedCoreNode.loadCoValueCore(map.id);
+
+    expect(shardedCoreNode.hasCoValue(map.id)).toBe(true);
+    expect(shardedCoreNode.hasCoValue(group.id)).toBe(false);
   });
 });

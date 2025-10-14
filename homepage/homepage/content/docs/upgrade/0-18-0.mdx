@@ -1,5 +1,4 @@
-import { CodeGroup } from '@/components/forMdx'
-import { Alert } from "@garden-co/design-system/src/components/atoms/Alert";
+import { Alert, CodeGroup } from '@/components/forMdx'
 
 # Jazz 0.18.0 - New `$jazz` field in CoValues
 
@@ -181,8 +180,9 @@ Accounts as CoValue owners will be phased out in a future release.
 The `castAs()` method has been completely removed as it was an unsafe operation that bypassed type checking and enabled using CoValues in unsupported ways.
 
 #### toJSON() Changes
-The `id` and `_type` fields have been removed from `toJSON()` output for Account, CoMap, CoFeed, and FileStream classes. This aligns with the idea
-of viewing CoValues as JSON objects.
+The `_type` fields has been removed from `toJSON()` output for Account, CoMap, CoFeed, and FileStream classes, and the `id` field has been moved to the `$jazz` namespace.
+
+Note: before `0.18.4`, the `id` field was also removed from the `toJSON()` output. This has since been reverted.
 
 #### Group Property Removal
 The `root` and `profile` fields have been removed from the Group class. These fields were not documented and were not intended to be used by users.

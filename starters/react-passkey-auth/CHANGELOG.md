@@ -1,5 +1,191 @@
 # jazz-react-tailwind-starter
 
+## 0.0.184
+
+### Patch Changes
+
+- Updated dependencies [4036737]
+- Updated dependencies [8ae7d71]
+- Updated dependencies [b1d0081]
+- Updated dependencies [36a5c58]
+- Updated dependencies [94e7d89]
+  - jazz-tools@0.18.25
+
+## 0.0.183
+
+### Patch Changes
+
+- Updated dependencies [f4c4ee9]
+- Updated dependencies [a15e2ba]
+  - jazz-tools@0.18.24
+
+## 0.0.182
+
+### Patch Changes
+
+- Updated dependencies [a0c8a2d]
+  - jazz-tools@0.18.23
+
+## 0.0.181
+
+### Patch Changes
+
+- Updated dependencies [22200ac]
+- Updated dependencies [1e20db6]
+  - jazz-tools@0.18.22
+
+## 0.0.180
+
+### Patch Changes
+
+- Updated dependencies [6819f20]
+  - jazz-tools@0.18.21
+
+## 0.0.179
+
+### Patch Changes
+
+- Updated dependencies [c34a793]
+- Updated dependencies [2c01529]
+- Updated dependencies [7b0facc]
+- Updated dependencies [47c7dd3]
+- Updated dependencies [d0e2210]
+  - jazz-tools@0.18.20
+
+## 0.0.178
+
+### Patch Changes
+
+- Updated dependencies [f88db5f]
+- Updated dependencies [8eac2fc]
+- Updated dependencies [08b6c03]
+  - jazz-tools@0.18.19
+
+## 0.0.177
+
+### Patch Changes
+
+- Updated dependencies [f2f478a]
+- Updated dependencies [ed7e353]
+- Updated dependencies [1698d41]
+  - jazz-tools@0.18.18
+
+## 0.0.176
+
+### Patch Changes
+
+- Updated dependencies [75d1afa]
+- Updated dependencies [8aa4acd]
+  - jazz-tools@0.18.17
+
+## 0.0.175
+
+### Patch Changes
+
+- Updated dependencies [67b95b7]
+  - jazz-tools@0.18.16
+
+## 0.0.174
+
+### Patch Changes
+
+- Updated dependencies [a584ab3]
+  - jazz-tools@0.18.15
+
+## 0.0.173
+
+### Patch Changes
+
+- Updated dependencies [a04435e]
+  - jazz-tools@0.18.14
+
+## 0.0.172
+
+### Patch Changes
+
+- Updated dependencies [2ddf4d9]
+- Updated dependencies [45981cf]
+  - jazz-tools@0.18.13
+
+## 0.0.171
+
+### Patch Changes
+
+- Updated dependencies [c16ce4b]
+- Updated dependencies [0b1b050]
+  - jazz-tools@0.18.12
+
+## 0.0.170
+
+### Patch Changes
+
+- Updated dependencies [06b4617]
+- Updated dependencies [70eb465]
+  - jazz-tools@0.18.11
+
+## 0.0.169
+
+### Patch Changes
+
+- jazz-tools@0.18.10
+
+## 0.0.168
+
+### Patch Changes
+
+- Updated dependencies [c8167de]
+- Updated dependencies [910b8d6]
+  - jazz-tools@0.18.9
+
+## 0.0.167
+
+### Patch Changes
+
+- Updated dependencies [700fe46]
+- Updated dependencies [aba0d55]
+  - jazz-tools@0.18.8
+
+## 0.0.166
+
+### Patch Changes
+
+- Updated dependencies [cf26739]
+- Updated dependencies [a3cd9c8]
+- Updated dependencies [ca5cd26]
+- Updated dependencies [32d1444]
+  - jazz-tools@0.18.7
+
+## 0.0.165
+
+### Patch Changes
+
+- Updated dependencies [975d1c3]
+- Updated dependencies [ccbb795]
+- Updated dependencies [0dae338]
+- Updated dependencies [934679c]
+- Updated dependencies [28defd0]
+- Updated dependencies [e0f17ed]
+- Updated dependencies [88ef339]
+  - jazz-tools@0.18.6
+
+## 0.0.164
+
+### Patch Changes
+
+- Updated dependencies [ff35d8c]
+- Updated dependencies [f23a7a7]
+- Updated dependencies [f5d8424]
+- Updated dependencies [4e976b8]
+  - jazz-tools@0.18.5
+
+## 0.0.163
+
+### Patch Changes
+
+- Updated dependencies [84313aa]
+- Updated dependencies [89aab7b]
+  - jazz-tools@0.18.4
+
 ## 0.0.162
 
 ### Patch Changes

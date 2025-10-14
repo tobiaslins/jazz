@@ -98,59 +98,6 @@ const pureJSCrypto = await PureJSCrypto.create();
     );
   });
 
-  test(`Encryption for transactions round-trips [${name}]`, () => {
-    const { secret } = crypto.newRandomKeySecret();
-
-    const encrypted1 = crypto.encryptForTransaction({ a: "hello" }, secret, {
-      in: "co_zTEST",
-      tx: { sessionID: "co_zTEST_session_zTEST" as SessionID, txIndex: 0 },
-    });
-
-    const encrypted2 = crypto.encryptForTransaction({ b: "world" }, secret, {
-      in: "co_zTEST",
-      tx: { sessionID: "co_zTEST_session_zTEST" as SessionID, txIndex: 1 },
-    });
-
-    const decrypted1 = crypto.decryptForTransaction(encrypted1, secret, {
-      in: "co_zTEST",
-      tx: { sessionID: "co_zTEST_session_zTEST" as SessionID, txIndex: 0 },
-    });
-
-    const decrypted2 = crypto.decryptForTransaction(encrypted2, secret, {
-      in: "co_zTEST",
-      tx: { sessionID: "co_zTEST_session_zTEST" as SessionID, txIndex: 1 },
-    });
-
-    expect([decrypted1, decrypted2]).toEqual([{ a: "hello" }, { b: "world" }]);
-  });
-
-  test(`Encryption for transactions doesn't decrypt with a wrong key [${name}]`, () => {
-    const { secret } = crypto.newRandomKeySecret();
-    const { secret: secret2 } = crypto.newRandomKeySecret();
-
-    const encrypted1 = crypto.encryptForTransaction({ a: "hello" }, secret, {
-      in: "co_zTEST",
-      tx: { sessionID: "co_zTEST_session_zTEST" as SessionID, txIndex: 0 },
-    });
-
-    const encrypted2 = crypto.encryptForTransaction({ b: "world" }, secret, {
-      in: "co_zTEST",
-      tx: { sessionID: "co_zTEST_session_zTEST" as SessionID, txIndex: 1 },
-    });
-
-    const decrypted1 = crypto.decryptForTransaction(encrypted1, secret2, {
-      in: "co_zTEST",
-      tx: { sessionID: "co_zTEST_session_zTEST" as SessionID, txIndex: 0 },
-    });
-
-    const decrypted2 = crypto.decryptForTransaction(encrypted2, secret2, {
-      in: "co_zTEST",
-      tx: { sessionID: "co_zTEST_session_zTEST" as SessionID, txIndex: 1 },
-    });
-
-    expect([decrypted1, decrypted2]).toEqual([undefined, undefined]);
-  });
-
   test(`Encryption of keySecrets round-trips [${name}]`, () => {
     const toEncrypt = crypto.newRandomKeySecret();
     const encrypting = crypto.newRandomKeySecret();

@@ -16,6 +16,7 @@ export default defineConfig([
     entry: {
       index: "src/index.ts",
       testing: "src/testing.ts",
+      "tools/ssr": "src/tools/ssr/index.ts",
     },
     outDir: "dist",
   },
@@ -48,7 +49,7 @@ export default defineConfig([
   {
     ...cfg,
     entry: {
-      index: "src/inspector/index.ts",
+      index: "src/inspector/index.tsx",
     },
     outDir: "dist/inspector",
     esbuildOptions: (options) => {
@@ -76,15 +77,9 @@ export default defineConfig([
   {
     ...cfg,
     entry: {
-      ssr: "src/react/ssr.ts",
-    },
-    outDir: "dist/react",
-  },
-  {
-    ...cfg,
-    entry: {
       index: "src/react/index.ts",
       testing: "src/react/testing.tsx",
+      ssr: "src/react/ssr.ts",
     },
     outDir: "dist/react",
     esbuildOptions: (options) => {
@@ -135,6 +130,8 @@ export default defineConfig([
     ...cfg,
     entry: {
       index: "src/worker/index.ts",
+      "edge-wasm": "src/worker/edge-wasm.ts",
+      "napi-crypto": "src/worker/napi-crypto.ts",
     },
     outDir: "dist/worker",
   },
@@ -146,5 +143,12 @@ export default defineConfig([
       react: "src/better-auth/auth/react.tsx",
     },
     outDir: "dist/better-auth/auth",
+  },
+  {
+    ...cfg,
+    entry: {
+      index: "src/better-auth/database-adapter/index.ts",
+    },
+    outDir: "dist/better-auth/database-adapter",
   },
 ]);

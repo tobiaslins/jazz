@@ -1,23 +1,27 @@
-import { Page, expect } from "@playwright/test";
+import { type Locator, type Page, expect } from "@playwright/test";
 
 export class HomePage {
-  constructor(public page: Page) {}
+  page: Page;
+  newPlaylistButton: Locator;
+  playlistTitleInput: Locator;
+  loginButton: Locator;
+  logoutButton: Locator;
 
-  newPlaylistButton = this.page.getByRole("button", {
-    name: "New Playlist",
-  });
-
-  playlistTitleInput = this.page.getByRole("textbox", {
-    name: "Playlist title",
-  });
-
-  loginButton = this.page.getByRole("button", {
-    name: "Sign up",
-  });
-
-  logoutButton = this.page.getByRole("button", {
-    name: "Sign out",
-  });
+  constructor(page: Page) {
+    this.page = page;
+    this.newPlaylistButton = this.page.getByRole("button", {
+      name: "New Playlist",
+    });
+    this.playlistTitleInput = this.page.getByRole("textbox", {
+      name: "Playlist title",
+    });
+    this.loginButton = this.page.getByRole("button", {
+      name: "Sign up",
+    });
+    this.logoutButton = this.page.getByRole("button", {
+      name: "Sign out",
+    });
+  }
 
   async fillUsername(username: string) {
     await this.page.getByRole("textbox", { name: "Username" }).fill(username);

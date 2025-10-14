@@ -1,12 +1,15 @@
-import type {
-  AccountRole,
-  AgentID,
-  Everyone,
-  RawAccountID,
-  RawGroup,
-  Role,
+import {
+  RawAccount,
+  type AccountRole,
+  type AgentID,
+  type Everyone,
+  type InviteSecret,
+  type RawAccountID,
+  type RawGroup,
+  type Role,
 } from "cojson";
 import {
+  BranchDefinition,
   CoValue,
   CoValueClass,
   ID,
@@ -111,7 +114,7 @@ export class Group extends CoValueBase implements CoValue {
     member: Group | Everyone | Account,
     role?: AccountRole | "inherit",
   ) {
-    if (member !== "everyone" && member[TypeSym] === "Group") {
+    if (isGroupValue(member)) {
       if (role === "writeOnly")
         throw new Error("Cannot add group as member with write-only role");
       this.$jazz.raw.extend(member.$jazz.raw, role);
@@ -130,7 +133,7 @@ export class Group extends CoValueBase implements CoValue {
    */
   removeMember(member: Group): void;
   removeMember(member: Group | Everyone | Account) {
-    if (member !== "everyone" && member[TypeSym] === "Group") {
+    if (isGroupValue(member)) {
       this.$jazz.raw.revokeExtend(member.$jazz.raw);
     } else {
       return this.$jazz.raw.removeMember(
@@ -262,7 +265,10 @@ export class Group extends CoValueBase implements CoValue {
     return this;
   }
 
-  /** @category Subscription & Loading */
+  /** @category Subscription & Loading
+   *
+   * @deprecated Use `co.group(...).load` instead.
+   */
   static load<G extends Group, const R extends RefsToResolve<G>>(
     this: CoValueClass<G>,
     id: ID<G>,
@@ -271,7 +277,10 @@ export class Group extends CoValueBase implements CoValue {
     return loadCoValueWithoutMe(this, id, options);
   }
 
-  /** @category Subscription & Loading */
+  /** @category Subscription & Loading
+   *
+   * @deprecated Use `co.group(...).subscribe` instead.
+   */
   static subscribe<G extends Group, const R extends RefsToResolve<G>>(
     this: CoValueClass<G>,
     id: ID<G>,
@@ -290,6 +299,29 @@ export class Group extends CoValueBase implements CoValue {
   ): () => void {
     const { options, listener } = parseSubscribeRestArgs(args);
     return subscribeToCoValueWithoutMe<G, R>(this, id, options, listener);
+  }
+
+  /** @category Invites
+   * Creates a group invite
+   * @param id The ID of the group to create an invite for
+   * @param options Optional configuration
+   * @param options.role The role to grant to the accepter of the invite. Defaults to 'reader'
+   * @param options.loadAs The account to use when loading the group. Defaults to the current account
+   * @returns An invite secret, (a string starting with "inviteSecret_"). Can be
+   * accepted using `Account.acceptInvite()`
+   */
+  static async createInvite<G extends Group>(
+    this: CoValueClass<G>,
+    id: ID<G>,
+    options?: { role?: AccountRole; loadAs?: Account },
+  ): Promise<InviteSecret> {
+    const group = await loadCoValueWithoutMe(this, id, {
+      loadAs: options?.loadAs,
+    });
+    if (!group) {
+      throw new Error(`Group with id ${id} not found`);
+    }
+    return group.$jazz.createInvite(options?.role ?? "reader");
   }
 }
 
@@ -343,6 +375,15 @@ export class GroupJazzApi<G extends Group> extends CoValueJazzApi<G> {
   }
 
   /**
+   * Create an invite to this group
+   *
+   * @category Invites
+   */
+  createInvite(role: AccountRole = "reader"): InviteSecret {
+    return this.raw.createInvite(role);
+  }
+
+  /**
    * Wait for the `Group` to be uploaded to the other peers.
    *
    * @category Subscription & Loading
@@ -367,4 +408,8 @@ export function getCoValueOwner(coValue: CoValue): Group {
     throw new Error("CoValue has no owner");
   }
   return group;
+}
+
+function isGroupValue(value: Group | Everyone | Account): value is Group {
+  return value !== "everyone" && !(value.$jazz.raw instanceof RawAccount);
 }

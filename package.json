@@ -6,15 +6,16 @@
     "packages/*",
     "examples/*",
     "starters/*",
-    "crates/*"
+    "crates/*",
+    "crates/cojson-core-napi/npm/*"
   ],
-  "packageManager": "pnpm@9.15.0+sha512.76e2379760a4328ec4415815bcd6628dee727af3779aaa4c914e3944156c4299921a89f976381ee107d41f12cfa4b66681ca9c718f0668fa0831ed4c6d8ba56c",
+  "packageManager": "pnpm@10.16.1",
   "engines": {
     "node": ">=22.0.0"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:default",
-    "@changesets/cli": "^2.27.10",
+    "@changesets/cli": "^2.29.7",
     "@playwright/test": "^1.50.1",
     "@vitejs/plugin-react": "^4.5.1",
     "@vitest/browser": "catalog:default",
@@ -23,8 +24,8 @@
     "@vitest/ui": "catalog:default",
     "happy-dom": "^17.4.4",
     "jazz-run": "workspace:*",
-    "jazz-tools-codemod-0-18": "workspace:*",
     "jazz-tools": "workspace:*",
+    "jazz-tools-codemod-0-18": "workspace:*",
     "lefthook": "^1.8.2",
     "pkg-pr-new": "^0.0.39",
     "playwright": "^1.50.1",
@@ -37,15 +38,17 @@
     "dev": "turbo dev",
     "build": "turbo build && cd homepage/homepage && turbo build",
     "build:packages": "turbo build --filter='./packages/*'",
+    "build:napi": "turbo build:napi --",
     "lint": "turbo lint && cd homepage/homepage && pnpm run lint",
-    "test": "vitest",
+    "test": "vitest --project=!cojson-core-napi",
     "test:ci": "vitest run --watch=false",
     "test:coverage": "vitest --ui --coverage.enabled=true",
+    "test:napi": "vitest --project=cojson-core-napi",
     "format-and-lint": "biome check .",
     "format-and-lint:fix": "biome check . --write",
     "changeset": "changeset",
     "changeset-version": "changeset version && pnpm i --no-frozen-lockfile",
-    "release": "turbo run build --filter='./packages/*' && pnpm changeset publish && git push --follow-tags",
+    "release": "turbo run build:napi && turbo run build --filter='./packages/*' && pnpm changeset publish && git push --follow-tags",
     "release:backports": "turbo run build --filter='./packages/*' && pnpm changeset publish --tag backport && git push --follow-tags",
     "clean": "rm -rf ./packages/*/dist && rm -rf ./packages/*/node_modules && rm -rf ./examples/*/node_modules && rm -rf ./examples/*/dist",
     "postinstall": "lefthook install"
@@ -66,6 +69,25 @@
       "react-dom": "catalog:react",
       "vite": "catalog:default",
       "esbuild": "0.24.0"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "@biomejs/biome",
+      "@clerk/shared",
+      "@parcel/watcher",
+      "@swc/core",
+      "@tailwindcss/oxide",
+      "better-sqlite3",
+      "browser-tabs-lock",
+      "core-js",
+      "edgedriver",
+      "esbuild",
+      "geckodriver",
+      "lefthook",
+      "msw",
+      "react-native-nitro-modules",
+      "sharp",
+      "wasm-pack",
+      "workerd"
+    ]
   }
 }

@@ -2,8 +2,7 @@ export const metadata = {
   description: "Use Jazz server-side through Server Workers which act like Jazz accounts."
 };
 
-import { CodeGroup } from "@/components/forMdx";
-import { Alert } from "@garden-co/design-system/src/components/atoms/Alert";
+import { Alert, CodeGroup } from "@/components/forMdx";
 
 # Running Jazz on the server
 
@@ -34,8 +33,8 @@ npx jazz-run account create --name "My Server Worker"
 
 The name will be put in the public profile of the Server Worker's `Account`, which can be helpful when inspecting metadata of CoValue edits that the Server Worker has done.
 
-<Alert variant="info" className="mt-4">
-  **Note**: By default the account will be stored in Jazz Cloud. You can use the `--peer` flag to store the account on a different sync server.
+<Alert variant="info" className="mt-4" title="Note">
+  By default the account will be stored in Jazz Cloud. You can use the `--peer` flag to store the account on a different sync server.
 </Alert>
 
 ## Running a server worker
@@ -53,12 +52,20 @@ import { co } from "jazz-tools";
 const MyWorkerAccount = co.account();
 type MyWorkerAccount = co.loaded<typeof MyWorkerAccount>;
 
+/**
+ * Use your email as a temporary key, or get a free
+ * API Key at dashboard.jazz.tools for higher limits.
+ * 
+ * @link https://dashboard.jazz.tools
+*/
+const apiKey = "you@example.com";
+
 // ---cut---
 import { startWorker } from 'jazz-tools/worker';
 
 const { worker } = await startWorker({
   AccountSchema: MyWorkerAccount,
-  syncServer: 'wss://cloud.jazz.tools/?key=you@example.com',
+  syncServer: `wss://cloud.jazz.tools/?key=${apiKey}`,
   accountID: process.env.JAZZ_WORKER_ACCOUNT,
   accountSecret: process.env.JAZZ_WORKER_SECRET,
 });
@@ -71,8 +78,100 @@ It will implicitly become the current account, and you can avoid mentioning it i
 
 For this reason we also recommend running a single worker instance per server, because it makes your code much more predictable.
 
+In case you want to avoid setting the current account, you can pass `asActiveAccount: false` to `startWorker`.
+
 ## Storing & providing credentials
 
 Server Worker credentials are typically stored and provided as environment variables.
 
 **Take extra care with the Account Secret &mdash; handle it like any other secret environment variable such as a DB password.**
+
+## Wasm on Edge runtimes
+
+To maximize compatibility, Jazz falls back to a slower, JavaScript crypto implementation if the faster WASM implementation is not available.
+
+On some edge platforms, such as Cloudflare Workers or Vercel Edge Functions, environment security restrictions may trigger this fallback unnecessarily.
+
+You can ensure that Jazz uses the faster WASM implementation by importing the WASM loader before using Jazz. For example:
+
+<CodeGroup>
+```ts
+import "jazz-tools/load-edge-wasm"
+// Other Jazz Imports
+
+export default {
+  async fetch(request, env, ctx) {
+    // Jazz application logic
+    return new Response("Hello from Jazz on Cloudflare!");
+  },
+};
+```
+</CodeGroup>
+
+Currently, the Jazz Loader is tested on the following edge environments:
+- Cloudflare Workers 
+- Vercel Functions
+
+### Requirements
+
+- Edge runtime environment that supports WebAssembly
+- `jazz-tools/load-edge-wasm` must be imported before any Jazz import
+
+
+## Node-API
+Jazz uses a WASM-based crypto implementation that provides near-native performance while ensuring full compatibility across a wide variety of environments.
+
+For even higher performance on Node.js or Deno, you can enable the native crypto (Node-API) implementation. Node-API is Node.js's native API for building modules in Native Code (Rust/C++) 
+that interact directly with the underlying system, allowing for true native execution speed.
+
+You can use it as follows:
+
+<CodeGroup>
+```ts
+import { startWorker } from "jazz-tools/worker";
+import { NapiCrypto } from "jazz-tools/napi";
+
+const { worker } = await startWorker({
+  syncServer: `wss://cloud.jazz.tools/?key=${apiKey}`,
+  accountID: process.env.JAZZ_WORKER_ACCOUNT,
+  accountSecret: process.env.JAZZ_WORKER_SECRET,
+  crypto: await NapiCrypto.create(),
+});
+
+```
+</CodeGroup>
+
+<Alert variant="info" className="mt-4" title="Note">
+  The Node-API implementation is not available on all platforms. It is only available on Node.js 20.x and higher.
+  The supported platforms are:
+  - macOS (x64, ARM64)
+  - Linux (x64, ARM64, ARM, musl)
+
+  It does not work in edge runtimes.
+</Alert>
+
+### On Next.js
+
+In order to use Node-API with Next.js, you need to tell Next.js to bundle the native modules in your build.
+
+You can do this by adding the required packages to the [`serverExternalPackages`](https://nextjs.org/docs/app/api-reference/config/next-config-js/serverExternalPackages) array in your `next.config.js`. 
+
+**Note**: if you're deploying to Vercel, be sure to use the `nodejs` runtime!
+
+<CodeGroup>
+```ts
+// next.config.js
+module.exports = {
+    serverExternalPackages: [
+        "cojson-core-napi",
+        "cojson-core-napi-linux-x64-gnu",
+        "cojson-core-napi-linux-x64-musl",
+        "cojson-core-napi-linux-arm64-gnu",
+        "cojson-core-napi-linux-arm64-musl",
+        "cojson-core-napi-darwin-x64",
+        "cojson-core-napi-darwin-arm64"
+        "cojson-core-napi-linux-arm-gnueabihf",
+    ],
+};
+```
+</CodeGroup>

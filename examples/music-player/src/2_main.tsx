@@ -13,10 +13,14 @@ import "./index.css";
 import { MusicaAccount } from "@/1_schema";
 import { apiKey } from "@/apiKey.ts";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { JazzReactProvider, useAccount } from "jazz-tools/react";
+import { JazzReactProvider } from "jazz-tools/react";
 import { onAnonymousAccountDiscarded } from "./4_actions";
 import { KeyboardListener } from "./components/PlayerControls";
 import { usePrepareAppState } from "./lib/usePrepareAppState";
+import {
+  AccountProvider,
+  useAccountSelector,
+} from "@/components/AccountProvider.tsx";
 
 /**
  * Walkthrough: The top-level provider `<JazzReactProvider/>`
@@ -28,20 +32,19 @@ import { usePrepareAppState } from "./lib/usePrepareAppState";
  *
  * `<JazzReactProvider/>` also runs our account migration
  */
-
 function AppContent({
   mediaPlayer,
 }: {
   mediaPlayer: ReturnType<typeof useMediaPlayer>;
 }) {
-  const { me } = useAccount(MusicaAccount, {
-    resolve: { root: true },
+  const showWelcomeScreen = useAccountSelector({
+    select: (me) => !me.root.accountSetupCompleted,
   });
 
   const isReady = usePrepareAppState(mediaPlayer);
 
   // Show welcome screen if account setup is not completed
-  if (me && !me.root.accountSetupCompleted) {
+  if (showWelcomeScreen) {
     return <WelcomeScreen />;
   }
 
@@ -96,10 +99,13 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       storage="indexedDB"
       AccountSchema={MusicaAccount}
       defaultProfileName="Anonymous unicorn"
+      authSecretStorageKey="examples/music-player"
       onAnonymousAccountDiscarded={onAnonymousAccountDiscarded}
     >
       <SidebarProvider>
-        <Main />
+        <AccountProvider>
+          <Main />
+        </AccountProvider>
         <JazzInspector />
       </SidebarProvider>
     </JazzReactProvider>

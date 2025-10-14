@@ -1,12 +1,12 @@
 import React, { useState, useRef } from "react";
-import { Image, useAccount } from "jazz-tools/react";
+import { Image } from "jazz-tools/react";
 import { createImage } from "jazz-tools/media";
-import { MusicaAccount } from "../1_schema";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Separator } from "./ui/separator";
 import { Group } from "jazz-tools";
+import { useAccountSelector } from "@/components/AccountProvider.tsx";
 
 interface ProfileFormProps {
   onSubmit?: (data: { username: string; avatar?: any }) => void;
@@ -33,17 +33,17 @@ export function ProfileForm({
   cancelButtonText = "Cancel",
   className = "",
 }: ProfileFormProps) {
-  const { me } = useAccount(MusicaAccount, {
-    resolve: { profile: true, root: true },
+  const profile = useAccountSelector({
+    select: (me) => me.profile,
   });
 
   const [username, setUsername] = useState(
-    initialUsername || me?.profile?.name || "",
+    initialUsername || profile?.name || "",
   );
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  if (!me) return null;
+  if (!profile) return null;
 
   const handleAvatarUpload = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -62,7 +62,7 @@ export function ProfileForm({
       });
 
       // Update the profile with the new avatar
-      me.profile.$jazz.set("avatar", image);
+      profile.$jazz.set("avatar", image);
     } catch (error) {
       console.error("Failed to upload avatar:", error);
     } finally {
@@ -76,15 +76,15 @@ export function ProfileForm({
     if (!username.trim()) return;
 
     // Update username
-    me.profile.$jazz.set("name", username.trim());
+    profile.$jazz.set("name", username.trim());
 
     // Call custom onSubmit if provided
     if (onSubmit) {
-      onSubmit({ username: username.trim(), avatar: me.profile.avatar });
+      onSubmit({ username: username.trim(), avatar: profile.avatar });
     }
   };
 
-  const currentAvatar = me.profile.avatar;
+  const currentAvatar = profile.avatar;
   const canSubmit = username.trim();
 
   return (

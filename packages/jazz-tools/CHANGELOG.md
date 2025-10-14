@@ -1,5 +1,267 @@
 # jazz-tools
 
+## 0.18.25
+
+### Patch Changes
+
+- 4036737: "peersToLoadFrom" renamed to only "peers"
+- 8ae7d71: feat: AuthSecretStorage's key is now configurable to handle multiple Jazz's apps on the same origin
+- b1d0081: Simplified getting invite secrets for groups
+- 36a5c58: Don't log unavailable errors when `loadUnique` or `upsertUnique` are used
+- 94e7d89: Added more options to the create-jazz-app tool
+- Updated dependencies [4036737]
+  - cojson@0.18.25
+  - cojson-storage-indexeddb@0.18.25
+  - cojson-transport-ws@0.18.25
+
+## 0.18.24
+
+### Patch Changes
+
+- f4c4ee9: fix: Account.create() type now accepts peersToLoadFrom and initialAgentSecret"
+- a15e2ba: Expose subscription scope react hooks and new `createCoValueSubscriptionContext` and `createAccountSubscriptionContext` helper functions
+- Updated dependencies [b09785e]
+  - cojson@0.18.24
+  - cojson-storage-indexeddb@0.18.24
+  - cojson-transport-ws@0.18.24
+
+## 0.18.23
+
+### Patch Changes
+
+- a0c8a2d: fix napi crypto export
+  - cojson@0.18.23
+  - cojson-storage-indexeddb@0.18.23
+  - cojson-transport-ws@0.18.23
+
+## 0.18.22
+
+### Patch Changes
+
+- 22200ac: Inspector now shows the CoID of list items and handles unavailable items correctly
+- 1e20db6: Added cojson-core-napi
+- Updated dependencies [1e20db6]
+  - cojson@0.18.22
+  - cojson-storage-indexeddb@0.18.22
+  - cojson-transport-ws@0.18.22
+
+## 0.18.21
+
+### Patch Changes
+
+- 6819f20: Implements SSR options for SvelteKit
+  - cojson@0.18.21
+  - cojson-storage-indexeddb@0.18.21
+  - cojson-transport-ws@0.18.21
+
+## 0.18.20
+
+### Patch Changes
+
+- c34a793: Allow usage of z.codec with custom encoders in CoValues
+- 2c01529: Increased passkey challenge length to improve compatibility with KeePassXC
+- 7b0facc: Upgrade Zod to 4.1
+- 47c7dd3: fix: regenerate InboxSender when active account changes
+- d0e2210: Batch subscribe updates during the applyDiff execution
+- Updated dependencies [e75b3d6]
+- Updated dependencies [ecf4967]
+- Updated dependencies [d0e2210]
+  - cojson@0.18.20
+  - cojson-storage-indexeddb@0.18.20
+  - cojson-transport-ws@0.18.20
+
+## 0.18.19
+
+### Patch Changes
+
+- f88db5f: Ensure subscription scope is cached for each CoValue
+- 8eac2fc: Fix refs in partially loaded CoMaps being incorrectly marked as optional
+- 08b6c03: fix: keep sync between Better Auth's session and Jazz's
+  - cojson@0.18.19
+  - cojson-storage-indexeddb@0.18.19
+  - cojson-transport-ws@0.18.19
+
+## 0.18.18
+
+### Patch Changes
+
+- f2f478a: Add connection status API for React and Svelte
+
+  - **React**: Added `useSyncConnectionStatus()` hook that returns the current connection status to the Jazz sync server
+  - **Svelte**: Added `SyncConnectionStatus` class that provides reactive connection status monitoring
+
+- ed7e353: Bugfix: wait for full streaming before triggering migrations on comap
+- 1698d41: Add `unstable_branch` option to useAccountWithSelector
+- Updated dependencies [ed7e353]
+  - cojson@0.18.18
+  - cojson-storage-indexeddb@0.18.18
+  - cojson-transport-ws@0.18.18
+
+## 0.18.17
+
+### Patch Changes
+
+- 75d1afa: Fix an issue where a flash of alt text displays while an image definition is loading from storage
+- 8aa4acd: Optimized the inactive subscriptions, improving performance of updates on created and loaded values by 2.5x
+- Updated dependencies [925da72]
+  - cojson@0.18.17
+  - cojson-storage-indexeddb@0.18.17
+  - cojson-transport-ws@0.18.17
+
+## 0.18.16
+
+### Patch Changes
+
+- 67b95b7: Introduced new Better Auth database adapter based on Jazz
+  - cojson@0.18.16
+  - cojson-storage-indexeddb@0.18.16
+  - cojson-transport-ws@0.18.16
+
+## 0.18.15
+
+### Patch Changes
+
+- a584ab3: Add WasmCrypto support for Cloudflare Workers and edge runtimes by importing `jazz-tools/load-edge-wasm`.
+
+  - Enable WasmCrypto functionality by initializing the WebAssembly environment with the import: `import "jazz-tools/load-edge-wasm"` in edge runtimes.
+  - Guarantee compatibility across Cloudflare Workers and other edge runtime environments.
+
+- Updated dependencies [a584ab3]
+  - cojson@0.18.15
+  - cojson-storage-indexeddb@0.18.15
+  - cojson-transport-ws@0.18.15
+
+## 0.18.14
+
+### Patch Changes
+
+- a04435e: Optimized updates on large subscriptions
+  - cojson@0.18.14
+  - cojson-storage-indexeddb@0.18.14
+  - cojson-transport-ws@0.18.14
+
+## 0.18.13
+
+### Patch Changes
+
+- 2ddf4d9: Introducing version control APIs, unstable_branch and unstable_merge
+
+  Flagged as unstable because branch & merge scope & propagation needs to be validated.
+
+- 45981cf: Add co.group schema definer
+- Updated dependencies [48837f2]
+- Updated dependencies [2ddf4d9]
+  - cojson@0.18.13
+  - cojson-storage-indexeddb@0.18.13
+  - cojson-transport-ws@0.18.13
+
+## 0.18.12
+
+### Patch Changes
+
+- c16ce4b: Fix addMember with account owners, by detecting the accounts from their raw value
+- 0b1b050: Export ReactNativeContextManager from react-native-core
+  - cojson@0.18.12
+  - cojson-storage-indexeddb@0.18.12
+  - cojson-transport-ws@0.18.12
+
+## 0.18.11
+
+### Patch Changes
+
+- 06b4617: Update the Svelte InviteListener to listen to hash change events
+- 70eb465: Add docs to the worker API and deprecate done in favor of shutdownWorker
+- Updated dependencies [a4a9a1e]
+  - cojson@0.18.11
+  - cojson-storage-indexeddb@0.18.11
+  - cojson-transport-ws@0.18.11
+
+## 0.18.10
+
+### Patch Changes
+
+- Updated dependencies [95cc9af]
+  - cojson-transport-ws@0.18.10
+  - cojson@0.18.10
+  - cojson-storage-indexeddb@0.18.10
+
+## 0.18.9
+
+### Patch Changes
+
+- c8167de: fix: improve handling of concurrent authentication attempts in ContextManager
+- 910b8d6: Added useAccountWithSelector hook for granular account data selection with custom equality checking
+- Updated dependencies [f058875]
+  - cojson@0.18.9
+  - cojson-storage-indexeddb@0.18.9
+  - cojson-transport-ws@0.18.9
+
+## 0.18.8
+
+### Patch Changes
+
+- 700fe46: fix: in 32d1444 was used the wrong Better Auth internal function to delete old verification codes
+- aba0d55: Support the selection of a subset of keys to make optional in `co.map().partial()`
+- Updated dependencies [9a4caf2]
+  - cojson@0.18.8
+  - cojson-storage-indexeddb@0.18.8
+  - cojson-transport-ws@0.18.8
+
+## 0.18.7
+
+### Patch Changes
+
+- cf26739: Add `useCoStateWithSelector` for granular reactivity
+- a3cd9c8: Add lastUpdatedAt & createdAt properties to $jazz in all the coValue types
+- ca5cd26: Make CoLists structurally equal to arrays
+- 32d1444: fix: ensure better-auth email-otp verification uniqueness
+- Updated dependencies [c2d8bf7]
+- Updated dependencies [dccb464]
+- Updated dependencies [a3cd9c8]
+- Updated dependencies [e8e7bf8]
+- Updated dependencies [51d3558]
+  - cojson@0.18.7
+  - cojson-storage-indexeddb@0.18.7
+  - cojson-transport-ws@0.18.7
+
+## 0.18.6
+
+### Patch Changes
+
+- 975d1c3: Fixed the startWorker type to return a shallowly-loaded worker account.
+- ccbb795: Add skipInboxLoad option to startWorker
+- 0dae338: Add concurrency limit on the Inbox subscribe, and simplify the failed messages management
+- 934679c: feat: Better Auth EmailOTP plugin is now supported
+- 28defd0: Fix peer role to be client when connecting the test accounts to the test sync server
+- e0f17ed: Fix the react dependency error when loading the inspector as custom element
+- 88ef339: fix: removed unwanted browser dependency in order to make better-auth provider works on react-native
+- Updated dependencies [9e792c7]
+  - cojson@0.18.6
+  - cojson-storage-indexeddb@0.18.6
+  - cojson-transport-ws@0.18.6
+
+## 0.18.5
+
+### Patch Changes
+
+- ff35d8c: fix: accountID property presence on typescript for Better Auth user's shape
+- f23a7a7: fix: Jazz credentials were not properly retrieved during SSO flows in Better Auth
+- f5d8424: Fallback to random session when running Jazz in a browser without navigator.lock support
+- 4e976b8: Added the co.input convenience type, to easily extract the create payload type.
+  - cojson@0.18.5
+  - cojson-storage-indexeddb@0.18.5
+  - cojson-transport-ws@0.18.5
+
+## 0.18.4
+
+### Patch Changes
+
+- 84313aa: Add `$jazz.id` to `toJSON` in Account, CoMap, CoFeed & FileStream
+- 89aab7b: Deprecate `co.map().catchall`. Use a `co.record` nested inside a `co.map` if you need to store key-value properties.
+  - cojson@0.18.4
+  - cojson-storage-indexeddb@0.18.4
+  - cojson-transport-ws@0.18.4
+
 ## 0.18.3
 
 ### Patch Changes

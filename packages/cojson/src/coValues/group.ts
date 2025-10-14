@@ -24,7 +24,12 @@ import {
 } from "../ids.js";
 import { JsonObject } from "../jsonValue.js";
 import { logger } from "../logger.js";
-import { AccountRole, Role, isKeyForKeyField } from "../permissions.js";
+import {
+  AccountRole,
+  Role,
+  isAccountRole,
+  isKeyForKeyField,
+} from "../permissions.js";
 import { accountOrAgentIDfromSessionID } from "../typeUtils/accountOrAgentIDfromSessionID.js";
 import { expectGroup } from "../typeUtils/expectGroup.js";
 import { isAccountID } from "../typeUtils/isAccountID.js";
@@ -361,8 +366,9 @@ export class RawGroup<
     /**
      * WriteOnly members can only see their own changes.
      *
-     * We don't want to reveal the readKey to them so we create a new one specifically for them and also reveal it to everyone else with a reader or higher-capability role (but crucially not to other writer-only members)
-     * to everyone else.
+     * We don't want to reveal the readKey to them so we create a new one specifically for them
+     * and also reveal it to everyone else with a reader or higher-capability role
+     * (but crucially not to other writer-only members).
      *
      * To never reveal the readKey to writeOnly members we also create a dedicated writeKey for the
      * invite.
@@ -429,10 +435,10 @@ export class RawGroup<
     }
   }
 
-  internalCreateWriteOnlyKeyForMember(
+  private internalCreateWriteOnlyKeyForMember(
     memberKey: RawAccountID | AgentID,
     agent: AgentID,
-  ) {
+  ): KeyID {
     const writeKeyForNewMember = this.crypto.newRandomKeySecret();
 
     this.set(`writeKeyFor_${memberKey}`, writeKeyForNewMember.id, "trusting");
@@ -444,6 +450,7 @@ export class RawGroup<
       writeKeyForNewMember.secret,
     );
 
+    // Reveal the new writeOnly key to Account members
     for (const otherMemberKey of this.getMemberKeys()) {
       const memberRole = this.get(otherMemberKey);
 
@@ -470,6 +477,18 @@ export class RawGroup<
         );
       }
     }
+
+    // Reveal the new writeOnly key to parent groups
+    for (const parentGroup of this.getParentGroups()) {
+      this.revealReadKeyToParentGroup(
+        parentGroup,
+        writeKeyForNewMember.id,
+        writeKeyForNewMember.secret,
+        { revealAllWriteOnlyKeys: false },
+      );
+    }
+
+    return writeKeyForNewMember.id;
   }
 
   private storeKeyRevelationForMember(
@@ -489,6 +508,28 @@ export class RawGroup<
           tx: this.core.nextTransactionID(),
         },
       }),
+      "trusting",
+    );
+  }
+
+  private storeKeyRevelationForParentGroup(
+    parentReadKeyID: KeyID,
+    parentReadKeySecret: KeySecret,
+    childReadKeyID: KeyID,
+    childReadKeySecret: KeySecret,
+  ) {
+    this.set(
+      `${childReadKeyID}_for_${parentReadKeyID}`,
+      this.crypto.encryptKeySecret({
+        encrypting: {
+          id: parentReadKeyID,
+          secret: parentReadKeySecret,
+        },
+        toEncrypt: {
+          id: childReadKeyID,
+          secret: childReadKeySecret,
+        },
+      }).encrypted,
       "trusting",
     );
   }
@@ -551,7 +592,7 @@ export class RawGroup<
     });
   }
 
-  getAllMemberKeysSet() {
+  getAllMemberKeysSet(): Set<RawAccountID | AgentID> {
     const memberKeys = new Set(this.getMemberKeys());
 
     for (const group of this.getParentGroups()) {
@@ -693,7 +734,7 @@ export class RawGroup<
     return undefined;
   }
 
-  findValidParentKeys(keyID: KeyID, parentGroup: CoValueCore) {
+  private findValidParentKeys(keyID: KeyID, parentGroup: CoValueCore) {
     const validParentKeys: { id: KeyID; secret: KeySecret }[] = [];
 
     for (const co of this.keys()) {
@@ -806,6 +847,15 @@ export class RawGroup<
           writeOnlyKey.secret,
         );
       }
+
+      for (const parentGroup of this.getParentGroups()) {
+        this.revealReadKeyToParentGroup(
+          parentGroup,
+          writeOnlyKey.id,
+          writeOnlyKey.secret,
+          { revealAllWriteOnlyKeys: false },
+        );
+      }
     }
 
     this.set(
@@ -837,16 +887,11 @@ export class RawGroup<
         continue;
       }
 
-      this.set(
-        `${newReadKey.id}_for_${parentReadKeyID}`,
-        this.crypto.encryptKeySecret({
-          encrypting: {
-            id: parentReadKeyID,
-            secret: parentReadKeySecret,
-          },
-          toEncrypt: newReadKey,
-        }).encrypted,
-        "trusting",
+      this.storeKeyRevelationForParentGroup(
+        parentReadKeyID,
+        parentReadKeySecret,
+        newReadKey.id,
+        newReadKey.secret,
       );
     }
 
@@ -932,14 +977,31 @@ export class RawGroup<
     parent.set(`child_${this.id}`, "extend", "trusting");
     this.set(`parent_${parent.id}`, value, "trusting");
 
-    if (
-      parent.myRole() !== "admin" &&
-      parent.myRole() !== "writer" &&
-      parent.myRole() !== "reader" &&
-      parent.myRole() !== "writeOnly"
-    ) {
+    const { id: childReadKeyID, secret: childReadKeySecret } =
+      this.getCurrentReadKey();
+    if (childReadKeySecret === undefined) {
+      throw new Error("Can't extend group without child read key secret");
+    }
+
+    this.revealReadKeyToParentGroup(
+      parent,
+      childReadKeyID,
+      childReadKeySecret,
+      { revealAllWriteOnlyKeys: true },
+    );
+  }
+
+  private revealReadKeyToParentGroup(
+    parent: RawGroup,
+    readKeyId: KeyID,
+    readKeySecret: KeySecret,
+    { revealAllWriteOnlyKeys }: { revealAllWriteOnlyKeys: boolean },
+  ) {
+    let writeOnlyKeyID: KeyID | undefined;
+
+    if (!isAccountRole(parent.myRole())) {
       // Create a writeOnly key in the parent group to be able to reveal the current child key to the parent group
-      parent.internalCreateWriteOnlyKeyForMember(
+      writeOnlyKeyID = parent.internalCreateWriteOnlyKeyForMember(
         this.core.node.getCurrentAgent().id,
         this.core.node.getCurrentAgent().currentAgentID(),
       );
@@ -952,26 +1014,35 @@ export class RawGroup<
       throw new Error("Can't extend group without parent read key secret");
     }
 
-    const { id: childReadKeyID, secret: childReadKeySecret } =
-      this.getCurrentReadKey();
-    if (!childReadKeySecret) {
-      throw new Error("Can't extend group without child read key secret");
-    }
-
-    this.set(
-      `${childReadKeyID}_for_${parentReadKeyID}`,
-      this.crypto.encryptKeySecret({
-        encrypting: {
-          id: parentReadKeyID,
-          secret: parentReadKeySecret,
-        },
-        toEncrypt: {
-          id: childReadKeyID,
-          secret: childReadKeySecret,
-        },
-      }).encrypted,
-      "trusting",
+    this.storeKeyRevelationForParentGroup(
+      parentReadKeyID,
+      parentReadKeySecret,
+      readKeyId,
+      readKeySecret,
     );
+
+    if (revealAllWriteOnlyKeys) {
+      for (const keyID of this.getWriteOnlyKeys()) {
+        // If there's a new writeOnly key, it's already been revealed
+        if (keyID === writeOnlyKeyID) {
+          continue;
+        }
+
+        const secret = this.core.getReadKey(keyID);
+
+        if (!secret) {
+          logger.error("Can't find key " + keyID);
+          continue;
+        }
+
+        this.storeKeyRevelationForParentGroup(
+          parentReadKeyID,
+          parentReadKeySecret,
+          keyID,
+          secret,
+        );
+      }
+    }
   }
 
   revokeExtend(parent: RawGroup) {
@@ -981,12 +1052,7 @@ export class RawGroup<
       );
     }
 
-    if (
-      parent.myRole() !== "admin" &&
-      parent.myRole() !== "writer" &&
-      parent.myRole() !== "reader" &&
-      parent.myRole() !== "writeOnly"
-    ) {
+    if (!isAccountRole(parent.myRole())) {
       throw new Error(
         "To unextend a group, the current account must be a member of the parent group",
       );
@@ -1070,6 +1136,9 @@ export class RawGroup<
 
     if (init) {
       map.assign(init, initPrivacy);
+    } else if (!uniqueness.createdAt) {
+      // If the createdAt is not set, we need to make a trusting transaction to set the createdAt
+      map.core.makeTransaction([], "trusting");
     }
 
     return map;
@@ -1101,6 +1170,9 @@ export class RawGroup<
 
     if (init?.length) {
       list.appendItems(init, undefined, initPrivacy);
+    } else if (!uniqueness.createdAt) {
+      // If the createdAt is not set, we need to make a trusting transaction to set the createdAt
+      list.core.makeTransaction([], "trusting");
     }
 
     return list;
@@ -1141,7 +1213,7 @@ export class RawGroup<
     meta?: C["headerMeta"],
     uniqueness: CoValueUniqueness = this.crypto.createdNowUnique(),
   ): C {
-    return this.core.node
+    const stream = this.core.node
       .createCoValue({
         type: "costream",
         ruleset: {
@@ -1152,6 +1224,13 @@ export class RawGroup<
         ...uniqueness,
       })
       .getCurrentContent() as C;
+
+    if (!uniqueness.createdAt) {
+      // If the createdAt is not set, we need to make a trusting transaction to set the createdAt
+      stream.core.makeTransaction([], "trusting");
+    }
+
+    return stream;
   }
 
   /** @category 3. Value creation */
