@@ -14,12 +14,11 @@ import {
   CoList,
   Loaded,
   MaybeLoaded,
-  Unloaded2,
+  Unloaded,
   co,
   randomSessionProvider,
   CoValueLoadingState,
   CoValueUnloadedState,
-  createUnloadedCoValue,
 } from "../internal.js";
 import { createJazzTestAccount, linkAccounts } from "../testing.js";
 import { assertLoaded, waitFor } from "./utils.js";
@@ -1190,7 +1189,7 @@ describe("$isLoaded", async () => {
         CoValueLoadingState.UNAVAILABLE,
       );
       expect(unloadedMap.$jazz.id).toBe(map.$jazz.id);
-      // @ts-expect-error - list should not be accessible on Unloaded2
+      // @ts-expect-error - list should not be accessible on Unloaded
       unloadedMap.list;
     } else {
       expectTypeOf(unloadedMap.$jazz.loadingState).toEqualTypeOf<

@@ -22,13 +22,12 @@ type IsUnion<T, U = T> = (T extends any ? (x: T) => void : never) extends (
  */
 // T should extend CoValue. We can't enforce this because it would introduce circularity
 // into the definition of CoValues.
-export type MaybeLoaded<T> = T | Unloaded2<T>;
+export type MaybeLoaded<T> = T | Unloaded<T>;
 
 /**
  * A CoValue that is not loaded.
  */
-// TODO rename to Unloaded
-export type Unloaded2<T> = {
+export type Unloaded<T> = {
   $jazz: {
     id: ID<T>;
     loadingState:
@@ -130,7 +129,7 @@ export type Resolved<
 > = DeeplyLoaded<T, R, 10, []>;
 
 type onErrorNullEnabled<V, Depth> = Depth extends { $onError: null }
-  ? Unloaded2<V>
+  ? Unloaded<V>
   : never;
 
 type CoMapLikeLoaded<

@@ -22,7 +22,7 @@ import {
   SubscriptionScope,
   type SubscriptionValue,
   TypeSym,
-  Unloaded2,
+  Unloaded,
   activeAccountContext,
   coValueClassFromCoValueClassOrSchema,
   getSubscriptionScope,
@@ -66,7 +66,7 @@ export interface CoValue {
     unstable_merge: () => void;
   };
   /**
-   * Whether the CoValue is loaded. Can be used to distinguish between loaded and {@link Unloaded2} CoValues.
+   * Whether the CoValue is loaded. Can be used to distinguish between loaded and {@link Unloaded} CoValues.
    * For more information about the CoValue's loading state, use {@link $jazz.loadingState}.
    */
   $isLoaded: true;
@@ -108,7 +108,7 @@ export type ID<T> = string;
 export function createUnloadedCoValue<T extends CoValue>(
   id: ID<T>,
   loadingState: CoValueUnloadedState,
-): Unloaded2<T> {
+): Unloaded<T> {
   return {
     $jazz: { id, loadingState },
     $isLoaded: false,

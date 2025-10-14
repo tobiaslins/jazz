@@ -21,7 +21,7 @@ import {
   JazzContextType,
   Loaded,
   MaybeLoaded,
-  Unloaded2,
+  Unloaded,
   ResolveQuery,
   ResolveQueryStrict,
   SubscriptionScope,
@@ -169,10 +169,12 @@ export function useCoValueSubscription<
   return subscription.subscription as CoValueSubscription<S, R>;
 }
 
-const unloadedCoValueCache = new Map<string, Unloaded2<CoValue>>();
-function unavailableCoValue(id: string, jazzState: CoValueUnloadedState) {
-  const coValueId = id ?? "";
-  const cacheKey = `${id}-${jazzState}`;
+const unloadedCoValueCache = new Map<string, Unloaded<CoValue>>();
+function unavailableCoValue(
+  coValueId: string,
+  jazzState: CoValueUnloadedState,
+) {
+  const cacheKey = `${coValueId}-${jazzState}`;
   const cachedUnloadedCoValue = unloadedCoValueCache.get(cacheKey);
   if (cachedUnloadedCoValue) {
     return cachedUnloadedCoValue;

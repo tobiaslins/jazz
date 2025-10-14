@@ -41,7 +41,7 @@ export type SubscriptionValue<D extends CoValue, R extends RefsToResolve<D>> =
       id: string;
     }
   | JazzError;
-export type Unloaded = {
+export type SubscriptionValueUnloaded = {
   type: typeof CoValueLoadingState.UNLOADED;
   id: string;
 };

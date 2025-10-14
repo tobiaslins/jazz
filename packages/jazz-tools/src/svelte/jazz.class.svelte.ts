@@ -10,7 +10,7 @@ import type {
   InstanceOfSchema,
   Loaded,
   MaybeLoaded,
-  Unloaded2,
+  Unloaded,
   ResolveQuery,
   ResolveQueryStrict,
 } from "jazz-tools";
@@ -50,7 +50,7 @@ type CoStateOptions<
 
 type CoStateId = string | undefined | null;
 
-const unloadedCoValueCache = new Map<string, Unloaded2<CoValue>>();
+const unloadedCoValueCache = new Map<string, Unloaded<CoValue>>();
 function unavailableCoValue(id: string, jazzState: CoValueUnloadedState) {
   const coValueId = id ?? "";
   const cacheKey = `${id}-${jazzState}`;

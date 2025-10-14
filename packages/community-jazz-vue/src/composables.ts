@@ -13,7 +13,7 @@ import {
   type JazzContextType,
   type Loaded,
   type MaybeLoaded,
-  type Unloaded2,
+  type Unloaded,
   type CoValueUnloadedState,
   CoValueLoadingState,
   type ResolveQuery,
@@ -92,7 +92,7 @@ export function useAuthSecretStorage() {
   return context;
 }
 
-const unloadedCoValueCache = new Map<string, Unloaded2<CoValue>>();
+const unloadedCoValueCache = new Map<string, Unloaded<CoValue>>();
 function unavailableCoValue(id: string, jazzState: CoValueUnloadedState) {
   const coValueId = id ?? "";
   const cacheKey = `${id}-${jazzState}`;
