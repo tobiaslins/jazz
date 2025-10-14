@@ -354,8 +354,7 @@ describe("Group inheritance", () => {
       assertLoaded(boardAsWriter);
       expect(boardAsWriter.title).toEqual("My board");
       const taskAsWriter = await Task.load(task.$jazz.id, { loadAs: me });
-      // TODO check why assertLoaded is not being required here
-      expect(taskAsWriter?.toString()).toEqual("Task 1.1");
+      expect(taskAsWriter.toString()).toEqual("Task 1.1");
     });
 
     test("nested CoValues inherit permissions from the referencing CoValue", async () => {

@@ -41,7 +41,6 @@ export type Unloaded<T> = {
 /**
  * Narrows a maybe-loaded, optional CoValue to a loaded and required CoValue.
  */
-// TODO is this adding $isLoaded to non-CoValues?
 export type LoadedAndRequired<T> = Exclude<T, undefined> & {
   $isLoaded: true;
 };
