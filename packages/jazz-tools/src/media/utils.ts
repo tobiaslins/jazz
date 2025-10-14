@@ -162,12 +162,12 @@ export async function loadImageBySize(
   wantedHeight: number,
 ): Promise<{ width: number; height: number; image: FileStream } | null> {
   // @ts-expect-error The resolved type for CoMap does not include catchall properties
-  const image: ImageDefinition | null =
+  const image: MaybeLoaded<ImageDefinition> =
     typeof imageOrId === "string"
       ? await ImageDefinition.load(imageOrId)
       : imageOrId;
 
-  if (image === null) {
+  if (image.$isLoaded === false) {
     return null;
   }
 
