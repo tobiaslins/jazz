@@ -140,11 +140,7 @@ export class VerifiedTransaction {
   // The madeAt that refers to the time when the transaction was made
   // If this is a merged transaction, the madeAt is the time when the transaction has been made in the branch
   get madeAt() {
-    if (this.mergedTransactionMadeAt) {
-      return this.mergedTransactionMadeAt;
-    }
-
-    return this.originalMadeAt;
+    return this.mergedTransactionMadeAt ?? this.originalMadeAt;
   }
 
   isValidTransactionWithChanges(): this is {
