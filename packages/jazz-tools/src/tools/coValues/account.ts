@@ -86,7 +86,6 @@ export class Account extends CoValueBase implements CoValue {
     } satisfies RefEncoded<CoMap>,
   };
 
-  // TODO make profile and root optional?
   declare readonly profile: MaybeLoaded<Profile>;
   declare readonly root: MaybeLoaded<CoMap>;
 

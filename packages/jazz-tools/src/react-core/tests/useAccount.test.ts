@@ -49,22 +49,17 @@ describe("useAccount", () => {
 
     const { result } = renderHook(
       () =>
-        useAccount<typeof AccountSchema, RefsToResolve<{ root: true }>>(
-          AccountSchema,
-          {
-            resolve: {
-              root: true,
-            },
+        useAccount(AccountSchema, {
+          resolve: {
+            root: true,
           },
-        ),
+        }),
       {
         account,
       },
     );
 
     assertLoaded(result.current.me);
-    // @ts-expect-error TODO fix: profile and root are marked as MaybeLoaded in Account, and thus not narrowed
-    // down by deep loading
     expect(result.current.me.root.value).toBe("123");
   });
 
