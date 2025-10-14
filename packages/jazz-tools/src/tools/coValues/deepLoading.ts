@@ -58,6 +58,9 @@ export type AsLoaded<T> = LoadedAndRequired<T> extends CoValue
  * By default, if a nested CoValue is not loaded, the parent CoValue will not be loaded either.
  * When `$onError: "catch"` is used, the parent CoValue will always be loaded, and an {@link Unloaded}
  * value will be returned for the nested CoValue if it cannot be loaded.
+ *
+ * Use `$onError` to handle cases where some data you have requested is inaccessible,
+ * similar to a `try...catch` block in your query.
  */
 type OnError = { $onError?: "catch" };
 
