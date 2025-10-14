@@ -49,5 +49,8 @@ export function decryptTransactionChangesAndMeta(
     }
   }
 
+  // We mark the transaction as decrypted even if the changes or meta have failed to be decrypted
+  // This is because, if we successfully extracted the readKey and the decrypt failed once it will always fail
+  // so better to log the error (we already do that) and mark the transaction as decrypted
   transaction.isDecrypted = true;
 }
