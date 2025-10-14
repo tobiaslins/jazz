@@ -1178,7 +1178,7 @@ describe("CoList subscription", async () => {
     const bob = await createJazzTestAccount();
 
     const loadedPerson = await Person.load(person.$jazz.id, {
-      resolve: { dogs: { $onError: null } },
+      resolve: { dogs: { $onError: "catch" } },
       loadAs: bob,
     });
 

@@ -6,7 +6,7 @@ import { JazzAccount } from "../schema.ts";
 
 export function OrganizationSelector({ className }: { className?: string }) {
   const { me } = useAccount(JazzAccount, {
-    resolve: { root: { organizations: { $each: { $onError: null } } } },
+    resolve: { root: { organizations: { $each: { $onError: "catch" } } } },
   });
 
   const navigate = useNavigate();

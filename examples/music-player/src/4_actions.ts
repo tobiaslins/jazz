@@ -123,7 +123,7 @@ export async function removeTrackFromAllPlaylists(track: MusicTrack) {
       root: {
         playlists: {
           $each: {
-            $onError: null,
+            $onError: "catch",
           },
         },
       },

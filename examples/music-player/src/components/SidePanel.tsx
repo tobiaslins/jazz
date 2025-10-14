@@ -23,7 +23,7 @@ export function SidePanel() {
   const { playlistId } = useParams();
   const navigate = useNavigate();
   const playlists = useAccountWithSelector(MusicaAccount, {
-    resolve: { root: { playlists: { $each: { $onError: null } } } },
+    resolve: { root: { playlists: { $each: { $onError: "catch" } } } },
     select: (me) => (me.$isLoaded ? me.root.playlists : undefined),
   });
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);

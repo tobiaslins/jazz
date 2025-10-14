@@ -720,7 +720,7 @@ describe("Deep loading with unauthorized account", async () => {
     );
 
     const friendsOnAlice = await Friends.load(map.$jazz.id, {
-      resolve: { $each: { $onError: null } },
+      resolve: { $each: { $onError: "catch" } },
       loadAs: alice,
     });
 
@@ -760,7 +760,7 @@ describe("Deep loading with unauthorized account", async () => {
     );
 
     const user = await User.load(map.$jazz.id, {
-      resolve: { friends: { $each: { $onError: null } } },
+      resolve: { friends: { $each: { $onError: "catch" } } },
       loadAs: alice,
     });
 
@@ -815,7 +815,7 @@ describe("Deep loading with unauthorized account", async () => {
     );
 
     const user = await User.load(map.$jazz.id, {
-      resolve: { friends: { $each: { dog: true, $onError: null } } },
+      resolve: { friends: { $each: { dog: true, $onError: "catch" } } },
       loadAs: alice,
     });
 
@@ -838,7 +838,7 @@ describe("Deep loading with unauthorized account", async () => {
         return co.optional(Friends);
       },
     });
-    const Friends: co.List<typeof Person> = co.list(Person); // TODO: annoying that we have to annotate
+    const Friends = co.list(Person);
 
     const list = Friends.create(
       [
@@ -869,7 +869,7 @@ describe("Deep loading with unauthorized account", async () => {
     // The error List -> Jane -> Bob should be propagated to the list element Jane
     // and we should have [null, Alice]
     const listOnAlice = await Friends.load(list.$jazz.id, {
-      resolve: { $each: { friends: { $each: true }, $onError: null } },
+      resolve: { $each: { friends: { $each: true }, $onError: "catch" } },
       loadAs: alice,
     });
 
@@ -900,7 +900,7 @@ describe("Deep loading with unauthorized account", async () => {
     );
 
     const friendsOnAlice = await Friend.load(map.$jazz.id, {
-      resolve: { $each: { $onError: null } },
+      resolve: { $each: { $onError: "catch" } },
       loadAs: alice,
     });
 
@@ -955,7 +955,7 @@ describe("Deep loading with unauthorized account", async () => {
     );
 
     const user = await User.load(map.$jazz.id, {
-      resolve: { friends: { $each: { dog: { $onError: null } } } },
+      resolve: { friends: { $each: { dog: { $onError: "catch" } } } },
       loadAs: alice,
     });
 
@@ -979,7 +979,7 @@ describe("Deep loading with unauthorized account", async () => {
 
     const map = Person.create({ name: "John" }, onlyBob);
     const user = await Person.load(map.$jazz.id, {
-      resolve: { $onError: null },
+      resolve: { $onError: "catch" },
       loadAs: alice,
     });
 

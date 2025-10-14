@@ -656,7 +656,7 @@ describe("CoMap resolution", async () => {
     const loadedPerson = await Person.load(person.$jazz.id, {
       resolve: {
         dog1: true,
-        dog2: { $onError: null },
+        dog2: { $onError: "catch" },
       },
     });
 

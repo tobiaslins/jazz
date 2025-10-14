@@ -45,7 +45,7 @@ export function MusicTrackRow({
 
   const playlists = useAccountWithSelector(MusicaAccount, {
     resolve: {
-      root: { playlists: { $onError: null, $each: { tracks: true } } },
+      root: { playlists: { $onError: "catch", $each: { tracks: true } } },
     },
     select: (account) =>
       account.$isLoaded && account.root.playlists.$isLoaded

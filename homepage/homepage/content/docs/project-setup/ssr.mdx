@@ -157,7 +157,7 @@ export default async function ServerSidePage(props: {
     loadAs: jazzSSR,
     resolve: {
       $each: {
-        $onError: null,
+        $onError: 'catch',
       },
     },
   });
@@ -190,7 +190,7 @@ export default async function ServerSidePage(props: {
     loadAs: jazzSSR,
     resolve: {
       $each: {
-        $onError: null,
+        $onError: 'catch',
       },
     },
   }));

@@ -712,7 +712,7 @@ export class SubscriptionScope<D extends CoValue> {
       this.autoloaded.add(id);
     }
 
-    const skipInvalid = typeof query === "object" && query.$onError === null;
+    const skipInvalid = typeof query === "object" && query.$onError === "catch";
 
     if (skipInvalid) {
       if (key) {

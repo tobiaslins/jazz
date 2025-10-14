@@ -229,7 +229,7 @@ describe("CoList", () => {
 
       const loadedList = await DogList.load(list.$jazz.id, {
         resolve: {
-          $each: { $onError: null },
+          $each: { $onError: "catch" },
         },
       });
 
@@ -308,7 +308,7 @@ describe("CoList", () => {
       });
 
       const loadedPerson = await Person.load(person.$jazz.id, {
-        resolve: { dogs: { $onError: null } },
+        resolve: { dogs: { $onError: "catch" } },
       });
 
       type ExpectedType = MaybeLoaded<

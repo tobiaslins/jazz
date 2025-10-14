@@ -136,7 +136,7 @@ const JazzAccount = co.account({
 // ---cut---
 export function AcceptInvitePage() {
   const { me } = useAccount(JazzAccount, {
-    resolve: { root: { organizations: { $each: { $onError: null } } } },
+    resolve: { root: { organizations: { $each: { $onError: 'catch' } } } },
   });
 
   const onAccept = (organizationId: string) => {

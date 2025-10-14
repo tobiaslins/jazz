@@ -23,7 +23,7 @@ async function loadInitialData(mediaPlayer: MediaPlayer) {
   const me = await MusicaAccount.getMe().$jazz.ensureLoaded({
     resolve: {
       root: {
-        activeTrack: { $onError: null },
+        activeTrack: { $onError: "catch" },
       },
     },
   });

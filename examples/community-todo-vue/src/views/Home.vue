@@ -26,7 +26,7 @@ import NewProjectForm from "../components/NewProjectForm.vue";
 import { TodoAccount } from "../schema";
 
 const { me } = useAccount(TodoAccount, {
-  resolve: { root: { projects: { $each: { $onError: null } } } },
+  resolve: { root: { projects: { $each: { $onError: "catch" } } } },
 });
 
 const router = useRouter();

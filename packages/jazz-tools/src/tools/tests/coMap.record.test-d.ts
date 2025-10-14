@@ -245,7 +245,7 @@ describe("CoMap.Record", () => {
           [userId]: true,
           pet2: true,
           [userId2]: {
-            $onError: null,
+            $onError: "catch",
           },
         },
       });
@@ -313,7 +313,7 @@ describe("CoMap.Record", () => {
 
       const loadedPerson = await Person.load(person.$jazz.id, {
         resolve: {
-          $each: { $onError: null },
+          $each: { $onError: "catch" },
         },
       });
 

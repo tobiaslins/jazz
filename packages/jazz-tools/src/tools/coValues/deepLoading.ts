@@ -54,6 +54,13 @@ export type AsLoaded<T> = LoadedAndRequired<T> extends CoValue
     : LoadedAndRequired<T>
   : T;
 
+/**
+ * By default, if a nested CoValue is not loaded, the parent CoValue will not be loaded either.
+ * When `$onError: "catch"` is used, the parent CoValue will always be loaded, and an {@link Unloaded}
+ * value will be returned for the nested CoValue if it cannot be loaded.
+ */
+type OnError = { $onError?: "catch" };
+
 export type RefsToResolve<
   V,
   DepthLimit extends number = 10,
@@ -68,14 +75,13 @@ export type RefsToResolve<
         : // Basically V extends CoList - but if we used that we'd introduce circularity into the definition of CoList itself
           V extends ReadonlyArray<infer Item>
           ?
-              | {
+              | ({
                   $each?: RefsToResolve<
                     AsLoaded<Item>,
                     DepthLimit,
                     [0, ...CurrentDepth]
                   >;
-                  $onError?: null;
-                }
+                } & OnError)
               | boolean
           : // Basically V extends CoMap | Group | Account - but if we used that we'd introduce circularity into the definition of CoMap itself
             V extends { [TypeSym]: "CoMap" | "Group" | "Account" }
@@ -90,7 +96,7 @@ export type RefsToResolve<
                       DepthLimit,
                       [0, ...CurrentDepth]
                     >;
-                  } & { $onError?: null })
+                  } & OnError)
                 | (ItemsSym extends keyof V
                     ? {
                         $each: RefsToResolve<
@@ -98,8 +104,7 @@ export type RefsToResolve<
                           DepthLimit,
                           [0, ...CurrentDepth]
                         >;
-                        $onError?: null;
-                      }
+                      } & OnError
                     : never)
                 | boolean
             : V extends {
@@ -107,14 +112,13 @@ export type RefsToResolve<
                   byMe: CoFeedEntry<infer Item> | undefined;
                 }
               ?
-                  | {
+                  | ({
                       $each: RefsToResolve<
                         AsLoaded<Item>,
                         DepthLimit,
                         [0, ...CurrentDepth]
                       >;
-                      $onError?: null;
-                    }
+                    } & OnError)
                   | boolean
               : boolean);
 
@@ -127,7 +131,12 @@ export type Resolved<
   R extends RefsToResolve<T> | undefined = true,
 > = DeeplyLoaded<T, R, 10, []>;
 
-type onErrorNullEnabled<V, Depth> = Depth extends { $onError: null }
+/**
+ * If the resolve query contains `$onError: "catch"`, we return an unloaded value for this nested CoValue.
+ * Otherwise, the whole load operation returns an unloaded value.
+ */
+// Checking against string instead of 'catch' because the inference from RefsToResolveStrict transforms 'catch' into string
+type OnErrorResolvedValue<V, Depth> = Depth extends { $onError: string }
   ? Unloaded<V>
   : never;
 
@@ -147,7 +156,7 @@ type CoMapLikeLoaded<
               [0, ...CurrentDepth]
             >
           | (undefined extends V[Key] ? undefined : never)
-          | onErrorNullEnabled<V[Key], Depth[Key]>
+          | OnErrorResolvedValue<V[Key], Depth[Key]>
       : never
     : never;
 } & V;
@@ -175,7 +184,7 @@ export type DeeplyLoaded<
                   DepthLimit,
                   [0, ...CurrentDepth]
                 >
-              | onErrorNullEnabled<AsLoaded<Item>, Depth["$each"]>
+              | OnErrorResolvedValue<AsLoaded<Item>, Depth["$each"]>
             > &
               V // the CoList base type needs to be intersected after so that built-in methods return the correct narrowed array type
           : never
@@ -187,7 +196,7 @@ export type DeeplyLoaded<
           ? V
           : // 1. Record-like CoMap
             ItemsSym extends keyof V
-            ? // 1.1. Deeply loaded Record-like CoMap with { $each: true | {$onError: null} }
+            ? // 1.1. Deeply loaded Record-like CoMap with { $each: true | { $onError: 'catch' } }
               Depth extends { $each: infer ItemDepth }
               ? {
                   readonly [key: string]:
@@ -197,7 +206,7 @@ export type DeeplyLoaded<
                         DepthLimit,
                         [0, ...CurrentDepth]
                       >
-                    | onErrorNullEnabled<
+                    | OnErrorResolvedValue<
                         LoadedAndRequired<V[ItemsSym]>,
                         Depth["$each"]
                       >;

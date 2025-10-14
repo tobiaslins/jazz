@@ -9,7 +9,7 @@ export function HomePage() {
     resolve: {
       root: {
         organizations: {
-          $each: { $onError: null },
+          $each: { $onError: "catch" },
         },
       },
     },

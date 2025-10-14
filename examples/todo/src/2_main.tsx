@@ -118,7 +118,7 @@ export default function App() {
 
 function HomeScreen() {
   const { me } = useAccount(TodoAccount, {
-    resolve: { root: { projects: { $each: { $onError: null } } } },
+    resolve: { root: { projects: { $each: { $onError: "catch" } } } },
   });
   const navigate = useNavigate();
 

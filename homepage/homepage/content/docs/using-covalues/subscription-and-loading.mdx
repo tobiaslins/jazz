@@ -363,12 +363,12 @@ For example, in case of a `project` (which the user can access) with three `task
 
 #### Scenario 1: Skip Inaccessible List Items
 
-If some of your list items may not be accessible, you can skip loading them by specifying `$onError: null`, and inaccessible items will be `null`, while accessible items load properly.
+If some of your list items may not be accessible, you can skip loading them by specifying `$onError: 'catch'`, and inaccessible items will be `null`, while accessible items load properly.
 <CodeGroup preferWrap>
 ```ts
 // Inaccessible tasks will be null, but the project will be loaded
 const project = await Project.load(projectId, {
-	resolve: { tasks: { $each: true, $onError: null } }
+	resolve: { tasks: { $each: true, $onError: 'catch' } }
 });
 if (!project) throw new Error("Project not found or not accessible");
 if (!project.tasks) throw new Error("Project's task list not found or not accessible");
@@ -390,7 +390,7 @@ This load will fail, because the `$onError` is defined only for the `task.descri
 const project = await Project.load(projectId, {
 	resolve: {
 		tasks: {
-			$each: { description: true, $onError: null },
+			$each: { description: true, $onError: 'catch' },
 		}
 	}
 });
@@ -408,9 +408,9 @@ const project = await Project.load(projectId, {
 		tasks: {
 			$each: { 
 				description: true, 
-				$onError: null // catch errors loading task descriptions
+				$onError: 'catch' // catch errors loading task descriptions
 			},
-			$onError: null // catch errors loading tasks too
+			$onError: 'catch' // catch errors loading tasks too
 		}
 	}
 });

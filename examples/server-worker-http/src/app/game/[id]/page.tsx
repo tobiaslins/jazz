@@ -79,21 +79,21 @@ export default function RouteComponent() {
   const game = useCoState(Game, params.id, {
     resolve: {
       player1State: {
-        $onError: null,
+        $onError: "catch",
       },
       player2State: {
-        $onError: null,
+        $onError: "catch",
       },
       player1: {
         account: true,
         playSelection: {
-          $onError: null,
+          $onError: "catch",
         },
       },
       player2: {
         account: true,
         playSelection: {
-          $onError: null,
+          $onError: "catch",
         },
       },
     },

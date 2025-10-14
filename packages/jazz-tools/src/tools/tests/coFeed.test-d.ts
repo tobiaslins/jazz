@@ -174,7 +174,7 @@ describe("CoFeed", () => {
       ]);
 
       const loadedFeed = await DogFeed.load(feed.$jazz.id, {
-        resolve: { $each: { $onError: null } },
+        resolve: { $each: { $onError: "catch" } },
       });
 
       type ExpectedType = MaybeLoaded<Loaded<typeof Dog>> | undefined;

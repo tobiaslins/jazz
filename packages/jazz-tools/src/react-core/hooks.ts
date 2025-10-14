@@ -264,7 +264,7 @@ function useGetCurrentValue<C extends CoValue>(
  *   const task = useCoState(Task, taskId, {
  *     resolve: {
  *       assignee: true,
- *       subtasks: { $each: { $onError: null } },
+ *       subtasks: { $each: { $onError: 'catch' } },
  *     },
  *   });
  *
