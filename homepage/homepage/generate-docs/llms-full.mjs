@@ -155,9 +155,23 @@ async function readMdxContent(url, framework = null) {
       const stats = await fs.stat(fullPath);
       if (stats.isDirectory()) {
         const files = await fs.readdir(fullPath);
-        const mdxFiles = files.filter(
+        let mdxFiles = files.filter(
           (f) => f.endsWith(".mdx") && !EXCLUDE_PATTERNS.some((p) => p.test(f))
         );
+        
+        // Filter framework-specific files
+        mdxFiles = mdxFiles.filter((file) => {
+          const fileBasename = path.basename(file, ".mdx");
+          const isFrameworkFile = FRAMEWORKS.includes(fileBasename);
+          
+          if (framework) {
+            // Include if: matches current framework OR not a framework-specific file
+            return fileBasename === framework || !isFrameworkFile;
+          } else {
+            // Generic case: exclude all framework-specific files
+            return !isFrameworkFile;
+          }
+        });
         
         if (mdxFiles.length === 0) return null;
 
