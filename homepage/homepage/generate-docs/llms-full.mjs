@@ -207,7 +207,8 @@ async function generateDocs() {
     for (const page of section.pages) {
       if (!page.url) continue;
       output.push(`### ${page.title}`);
-      const content = await readMdxContent(page.url);
+      const content = await readMdxContent(page.url); 
+      // TODO: we're 3 heading levels down already. Most pages start with an H1, so our docs are going H1, H2, H3, H1 in almost every case.
       if (content) {
         output.push(content);
       }
