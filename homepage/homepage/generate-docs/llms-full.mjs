@@ -35,8 +35,6 @@ async function generateMarkdownFiles() {
 
   console.log(`${mdxFiles.length} source files`);
 
-  let indexContent = null;
-
   for (const { fullPath, relativePath } of mdxFiles) {
     try {
       const filename = path.basename(relativePath, ".mdx");
@@ -47,7 +45,7 @@ async function generateMarkdownFiles() {
         // Framework-specific file: project-setup/providers/react.mdx
         // Output: react/project-setup/providers.md
         const framework = filename;
-        const content = await mdxToMd(fullPath);
+        const content = await mdxToMd(fullPath, framework);
         
         const outputPath = path.join(
           CWD,
@@ -67,12 +65,9 @@ async function generateMarkdownFiles() {
         // If I don't do this redundant file generation, I need to do routing
         // Which results in extremely long compilation times because we're
         // adding hundreds of extra routes
-        const content = await mdxToMd(fullPath);
         
-        // Handle index separately
-        if (relativePath === "index.mdx") {
-          indexContent = content;
-        }
+        // Generate generic version (no framework filtering)
+        const genericContent = await mdxToMd(fullPath);
 
         const genericPath = path.join(
           CWD,
@@ -80,9 +75,12 @@ async function generateMarkdownFiles() {
           relativePath.replace(/\.mdx$/, ".md")
         );
         await fs.mkdir(path.dirname(genericPath), { recursive: true });
-        await fs.writeFile(genericPath, content);
+        await fs.writeFile(genericPath, genericContent);
 
+        // Generate framework-specific versions with filtering
         for (const framework of FRAMEWORKS) {
+          const frameworkContent = await mdxToMd(fullPath, framework);
+          
           const frameworkPath = path.join(
             CWD,
             "public/docs",
@@ -91,7 +89,7 @@ async function generateMarkdownFiles() {
           );
 
           await fs.mkdir(path.dirname(frameworkPath), { recursive: true });
-          await fs.writeFile(frameworkPath, content);
+          await fs.writeFile(frameworkPath, frameworkContent);
         }
       }
     } catch (error) {
@@ -99,18 +97,22 @@ async function generateMarkdownFiles() {
     }
   }
 
-  // Handle the intro page
-  if (indexContent) {
+  // Handle the intro page - need to regenerate with framework context
+  const indexPath = path.join(CWD, "content/docs/index.mdx");
+  try {
     for (const framework of FRAMEWORKS) {
+      const frameworkIndexContent = await mdxToMd(indexPath, framework);
       const frameworkIndexPath = path.join(
         CWD,
         "public/docs",
         `${framework}.md`
       );
 
-      await fs.writeFile(frameworkIndexPath, indexContent);
+      await fs.writeFile(frameworkIndexPath, frameworkIndexContent);
       console.log(`Generated: ${path.relative(CWD, frameworkIndexPath)}`);
     }
+  } catch (error) {
+    console.warn(`Error generating framework index files:`, error.message);
   }
 }
 

@@ -52,6 +52,11 @@ export async function mdxToMd(filePath, framework) {
         ...(options.alias || {}),
         "@/components/forMdx": mockMdxComponentsPath,
       };
+      // Define CURRENT_FRAMEWORK as a build-time constant
+      options.define = {
+        ...(options.define || {}),
+        'CURRENT_FRAMEWORK': framework ? `"${framework}"` : 'null',
+      };
       return options;
     },
     globals: {
