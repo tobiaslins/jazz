@@ -41,5 +41,5 @@ codeSamples
 .env
 
 # LLM docs
-public/llms*.txt
+public/**/llms*.txt
 public/docs
