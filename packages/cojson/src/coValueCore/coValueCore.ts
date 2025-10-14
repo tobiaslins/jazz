@@ -62,14 +62,14 @@ export class VerifiedTransaction {
   // The account or agent that made the transaction
   author: RawAccountID | AgentID;
   // An object containing the session ID and the transaction index
-  originalTxID: TransactionID;
-  // If this is a merged transaction, the TxID of the merged transaction
-  mergedTxID: TransactionID | undefined;
+  currentTxID: TransactionID;
+  // If this is a merged transaction, the TxID of the transaction inside the original branch
+  sourceTxID: TransactionID | undefined;
   tx: Transaction;
   // The Unix time when the transaction was made
-  originalMadeAt: number;
-  // If this is a merged transaction, the madeAt of the merged transaction
-  mergedTransactionMadeAt: number | undefined;
+  currentMadeAt: number;
+  // If this is a merged transaction, the madeAt of the transaction inside the original branch
+  sourceTxMadeAt: number | undefined;
   // Whether the transaction has been validated, used to track if determinedValidTransactions needs to check this
   isValidated: boolean;
   // The decoded changes of the transaction
@@ -114,11 +114,11 @@ export class VerifiedTransaction {
           txIndex,
         };
 
-    this.originalTxID = txID;
-    this.mergedTxID = undefined;
+    this.currentTxID = txID;
+    this.sourceTxID = undefined;
     this.tx = tx;
-    this.originalMadeAt = tx.madeAt;
-    this.mergedTransactionMadeAt = undefined;
+    this.currentMadeAt = tx.madeAt;
+    this.sourceTxMadeAt = undefined;
     this.isValidated = false;
 
     this.changes = parsingCache?.changes;
@@ -134,13 +134,13 @@ export class VerifiedTransaction {
   // The TxID that refers to the current position in the session map
   // If this is a merged transaction, the txID is the TxID of the merged transaction
   get txID() {
-    return this.mergedTxID ?? this.originalTxID;
+    return this.sourceTxID ?? this.currentTxID;
   }
 
   // The madeAt that refers to the time when the transaction was made
   // If this is a merged transaction, the madeAt is the time when the transaction has been made in the branch
   get madeAt() {
-    return this.mergedTransactionMadeAt ?? this.originalMadeAt;
+    return this.sourceTxMadeAt ?? this.currentMadeAt;
   }
 
   isValidTransactionWithChanges(): this is {
@@ -967,22 +967,21 @@ export class CoValueCore {
       const sessionID = meta.s ?? previousTransaction?.txID.sessionID;
 
       if (meta.t) {
-        transaction.mergedTransactionMadeAt =
-          transaction.originalMadeAt - meta.t;
+        transaction.sourceTxMadeAt = transaction.currentMadeAt - meta.t;
       } else if (previousTransaction) {
-        transaction.mergedTransactionMadeAt = previousTransaction.madeAt;
+        transaction.sourceTxMadeAt = previousTransaction.madeAt;
       }
 
       // Check against tampering of the meta.t value to write transaction after the access revocation
       if (
-        transaction.mergedTransactionMadeAt &&
-        transaction.mergedTransactionMadeAt > transaction.originalMadeAt
+        transaction.sourceTxMadeAt &&
+        transaction.sourceTxMadeAt > transaction.currentMadeAt
       ) {
         transaction.isValid = false;
       }
 
       if (sessionID) {
-        transaction.mergedTxID = {
+        transaction.sourceTxID = {
           sessionID,
           txIndex: meta.mi,
           branch: meta.b ?? previousTransaction?.txID.branch,
@@ -1056,8 +1055,8 @@ export class CoValueCore {
 
       options?.knownTransactions?.add(transaction.tx);
 
-      // Using the originalTxID to filter the transactions, because the TxID is modified by the merge meta
-      const txID = transaction.originalTxID;
+      // Using the currentTxID to filter the transactions, because the TxID is modified by the merge meta
+      const txID = transaction.currentTxID;
 
       const from = options?.from?.[txID.sessionID] ?? -1;
 

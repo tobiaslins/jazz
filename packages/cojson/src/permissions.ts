@@ -120,7 +120,7 @@ export function determineValidTransactions(coValue: CoValueCore) {
       tx.isValidated = true;
       // We use the original made at to get the group at the original time when the transaction was made
       // madeAt might be changed by the meta field (e.g. merged transactions), and so can't be used for permissions checks
-      const groupAtTime = groupContent.atTime(tx.originalMadeAt);
+      const groupAtTime = groupContent.atTime(tx.currentMadeAt);
       const effectiveTransactor = agentInAccountOrMemberInGroup(
         tx.author,
         groupAtTime,

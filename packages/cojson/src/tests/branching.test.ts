@@ -386,7 +386,7 @@ describe("Branching Logic", () => {
         .getValidSortedTransactions()
         .findLast((tx) => tx.txID.branch === branch.id);
 
-      expect(lastMapTransaction?.originalMadeAt).not.toBe(
+      expect(lastMapTransaction?.currentMadeAt).not.toBe(
         lastMapTransaction?.madeAt,
       );
 
@@ -422,14 +422,14 @@ describe("Branching Logic", () => {
         .getValidSortedTransactions()
         .at(-1);
       expect(lastBranchTransaction?.madeAt).toBe(
-        lastBranchTransaction?.originalMadeAt,
+        lastBranchTransaction?.currentMadeAt,
       );
 
       const lastMapTransaction = result
         .getValidSortedTransactions()
         .findLast((tx) => tx.txID.branch === branch.id);
       expect(lastMapTransaction?.madeAt).not.toBe(
-        lastMapTransaction?.originalMadeAt,
+        lastMapTransaction?.currentMadeAt,
       );
     });
 
@@ -813,7 +813,7 @@ describe("Branching Logic", () => {
       .getCurrentContent() as RawCoMap;
     branch.set("branchKey", "branchValue");
 
-    const originalTxID = branch.core
+    const currentTxID = branch.core
       .getValidTransactions({
         skipBranchSource: true,
         ignorePrivateTransactions: false,
@@ -835,7 +835,7 @@ describe("Branching Logic", () => {
       undefined,
     );
     expect(validSortedTransactions[mergedTransactionIdx]?.txID).toEqual(
-      originalTxID,
+      currentTxID,
     );
     expect(validSortedTransactions[mergedTransactionIdx + 1]?.txID.branch).toBe(
       undefined,
