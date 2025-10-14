@@ -87,7 +87,9 @@ describe("subscribeToCoValue", () => {
     });
 
     expect(result?.$jazz.id).toBe(chatRoom.$jazz.id);
-    expect(result?.messages.$jazzState).toEqual(CoValueLoadingState.UNLOADED);
+    expect(result?.messages.$jazz.loadingState).toEqual(
+      CoValueLoadingState.UNLOADED,
+    );
     expect(result?.name).toBe("General");
 
     updateFn.mockClear();
@@ -992,7 +994,7 @@ describe("subscribeToCoValue", () => {
     });
 
     assert(result);
-    expect(result[0]?.$jazzState).toBe(CoValueLoadingState.UNLOADED);
+    expect(result[0]?.$jazz.loadingState).toBe(CoValueLoadingState.UNLOADED);
 
     updateFn.mockClear();
 
@@ -1095,7 +1097,7 @@ describe("subscribeToCoValue", () => {
     list[0]!.$jazz.set("dog", Dog.create({ name: "Ninja" }));
 
     await waitFor(() => {
-      expect(result?.[0]?.dog.$jazzState).toBe(
+      expect(result?.[0]?.dog.$jazz.loadingState).toBe(
         CoValueLoadingState.UNAUTHORIZED,
       );
     });

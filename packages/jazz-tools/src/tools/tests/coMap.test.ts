@@ -850,7 +850,9 @@ describe("CoMap", async () => {
 
       assertLoaded(loadedPerson);
       expect(loadedPerson.$jazz.has("name")).toBe(true);
-      expect(loadedPerson.name.$jazzState).toBe(CoValueLoadingState.UNLOADED);
+      expect(loadedPerson.name.$jazz.loadingState).toBe(
+        CoValueLoadingState.UNLOADED,
+      );
     });
 
     test("should return true even if the viewer doesn't have access to the referenced CoValue", async () => {
@@ -874,7 +876,9 @@ describe("CoMap", async () => {
 
       assertLoaded(loadedPerson);
       expect(loadedPerson.$jazz.has("name")).toBe(true);
-      expect(loadedPerson.name.$jazzState).toBe(CoValueLoadingState.UNLOADED);
+      expect(loadedPerson.name.$jazz.loadingState).toBe(
+        CoValueLoadingState.UNLOADED,
+      );
     });
   });
 
@@ -1086,7 +1090,9 @@ describe("CoMap resolution", async () => {
       skipRetry: true,
     });
 
-    expect(loadedPerson.$jazzState).toBe(CoValueLoadingState.UNAVAILABLE);
+    expect(loadedPerson.$jazz.loadingState).toBe(
+      CoValueLoadingState.UNAVAILABLE,
+    );
   });
 
   test("loading a remotely available map with skipRetry set to false", async () => {

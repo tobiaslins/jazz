@@ -1184,7 +1184,9 @@ describe("CoList subscription", async () => {
 
     assertLoaded(loadedPerson);
     expect(loadedPerson.name).toBe("John");
-    expect(loadedPerson.dogs.$jazzState).toBe(CoValueLoadingState.UNAUTHORIZED);
+    expect(loadedPerson.dogs.$jazz.loadingState).toBe(
+      CoValueLoadingState.UNAUTHORIZED,
+    );
   });
 });
 
@@ -1210,7 +1212,7 @@ describe("CoList unique methods", () => {
     const group = Group.create();
 
     const foundList = await ItemList.loadUnique("non-existent", group.$jazz.id);
-    expect(foundList.$jazzState).toBe(CoValueLoadingState.UNAVAILABLE);
+    expect(foundList.$jazz.loadingState).toBe(CoValueLoadingState.UNAVAILABLE);
   });
 
   test("upsertUnique creates new list when none exists", async () => {

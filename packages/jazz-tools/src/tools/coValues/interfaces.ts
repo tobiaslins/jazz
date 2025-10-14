@@ -51,6 +51,8 @@ export interface CoValue {
   $jazz: {
     /** @category Content */
     readonly id: ID<CoValue>;
+    /** @category Content */
+    loadingState: typeof CoValueLoadingState.LOADED;
     /** @category Collaboration */
     owner?: Group;
     /** @internal */
@@ -64,11 +66,8 @@ export interface CoValue {
     unstable_merge: () => void;
   };
   /**
-   * CoValue loading state. Can be used to distinguish between loaded and {@link Unloaded2} CoValues.
-   */
-  $jazzState: typeof CoValueLoadingState.LOADED;
-  /**
    * Whether the CoValue is loaded. Can be used to distinguish between loaded and {@link Unloaded2} CoValues.
+   * For more information about the CoValue's loading state, use {@link $jazz.loadingState}.
    */
   $isLoaded: true;
 
@@ -108,11 +107,10 @@ export type ID<T> = string;
 
 export function createUnloadedCoValue<T extends CoValue>(
   id: ID<T>,
-  jazzState: CoValueUnloadedState,
+  loadingState: CoValueUnloadedState,
 ): Unloaded2<T> {
   return {
-    $jazz: { id },
-    $jazzState: jazzState,
+    $jazz: { id, loadingState },
     $isLoaded: false,
   };
 }

@@ -29,20 +29,22 @@ export type MaybeLoaded<T> = T | Unloaded2<T>;
  */
 // TODO rename to Unloaded
 export type Unloaded2<T> = {
-  $jazzState:
-    | typeof CoValueLoadingState.UNLOADED
-    | typeof CoValueLoadingState.UNAVAILABLE
-    | typeof CoValueLoadingState.UNAUTHORIZED;
-  $jazz: { id: ID<T> };
+  $jazz: {
+    id: ID<T>;
+    loadingState:
+      | typeof CoValueLoadingState.UNLOADED
+      | typeof CoValueLoadingState.UNAVAILABLE
+      | typeof CoValueLoadingState.UNAUTHORIZED;
+  };
   $isLoaded: false;
 };
 
 /**
  * Narrows a maybe-loaded, optional CoValue to a loaded and required CoValue.
  */
-// TODO is this adding $jazzState to non-CoValues?
+// TODO is this adding $isLoaded to non-CoValues?
 export type LoadedAndRequired<T> = Exclude<T, undefined> & {
-  $jazzState: typeof CoValueLoadingState.LOADED;
+  $isLoaded: true;
 };
 
 /**

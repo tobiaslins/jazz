@@ -239,7 +239,9 @@ describe("Request to join", () => {
         loadAs: user1,
       });
 
-    expect(projectsOnUser.$jazzState).toBe(CoValueLoadingState.UNAUTHORIZED);
+    expect(projectsOnUser.$jazz.loadingState).toBe(
+      CoValueLoadingState.UNAUTHORIZED,
+    );
   });
 
   test("admin2 can see the status of the requests", async () => {
@@ -273,6 +275,8 @@ describe("Request to join", () => {
 
     // With the writeOnly permission, the user can download the request
     // but not its content
-    expect(requestOnUser2.$jazzState).toBe(CoValueLoadingState.UNAUTHORIZED);
+    expect(requestOnUser2.$jazz.loadingState).toBe(
+      CoValueLoadingState.UNAUTHORIZED,
+    );
   });
 });

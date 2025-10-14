@@ -89,10 +89,14 @@ describe("useSubscriptionSelector", () => {
       return useSubscriptionSelector(subscription);
     });
 
-    expect(result.current.$jazzState).toBe(CoValueLoadingState.UNLOADED);
+    expect(result.current.$jazz.loadingState).toBe(
+      CoValueLoadingState.UNLOADED,
+    );
 
     await waitFor(() => {
-      expect(result.current.$jazzState).toBe(CoValueLoadingState.UNAVAILABLE);
+      expect(result.current.$jazz.loadingState).toBe(
+        CoValueLoadingState.UNAVAILABLE,
+      );
     });
   });
 

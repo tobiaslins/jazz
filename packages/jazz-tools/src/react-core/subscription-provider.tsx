@@ -46,13 +46,13 @@ export function createCoValueSubscriptionContext<
 
       const loadState = useSubscriptionSelector(subscription);
 
-      if (loadState.$jazzState === CoValueLoadingState.UNLOADED) {
+      if (loadState.$jazz.loadingState === CoValueLoadingState.UNLOADED) {
         return loadingFallback ?? null;
       }
 
       if (
-        loadState.$jazzState === CoValueLoadingState.UNAUTHORIZED ||
-        loadState.$jazzState === CoValueLoadingState.UNAVAILABLE
+        loadState.$jazz.loadingState === CoValueLoadingState.UNAUTHORIZED ||
+        loadState.$jazz.loadingState === CoValueLoadingState.UNAVAILABLE
       ) {
         return unavailableFallback ?? null;
       }
@@ -110,13 +110,13 @@ export function createAccountSubscriptionContext<
 
       const loadState = useSubscriptionSelector(subscription);
 
-      if (loadState.$jazzState === CoValueLoadingState.UNLOADED) {
+      if (loadState.$jazz.loadingState === CoValueLoadingState.UNLOADED) {
         return loadingFallback ?? null;
       }
 
       if (
-        loadState.$jazzState === CoValueLoadingState.UNAUTHORIZED ||
-        loadState.$jazzState === CoValueLoadingState.UNAVAILABLE
+        loadState.$jazz.loadingState === CoValueLoadingState.UNAUTHORIZED ||
+        loadState.$jazz.loadingState === CoValueLoadingState.UNAVAILABLE
       ) {
         return unavailableFallback ?? null;
       }

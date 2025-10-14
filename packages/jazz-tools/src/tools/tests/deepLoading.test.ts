@@ -100,7 +100,7 @@ describe("Deep loading with depth arg", async () => {
 
     assertLoaded(map1);
 
-    expect(map1.list.$jazzState).toBe(CoValueLoadingState.UNLOADED);
+    expect(map1.list.$jazz.loadingState).toBe(CoValueLoadingState.UNLOADED);
   });
 
   test("load with resolve { list: true }", async () => {
@@ -117,7 +117,7 @@ describe("Deep loading with depth arg", async () => {
     >();
     assertLoaded(map2);
     assertLoaded(map2.list);
-    expect(map2.list[0]?.$jazzState).toBe(CoValueLoadingState.UNLOADED);
+    expect(map2.list[0]?.$jazz.loadingState).toBe(CoValueLoadingState.UNLOADED);
   });
 
   test("load with resolve { list: { $each: true } }", async () => {
@@ -135,7 +135,9 @@ describe("Deep loading with depth arg", async () => {
     // >();
     assertLoaded(map3);
     assert(map3.list[0]);
-    expect(map3.list[0].stream.$jazzState).toBe(CoValueLoadingState.UNLOADED);
+    expect(map3.list[0].stream.$jazz.loadingState).toBe(
+      CoValueLoadingState.UNLOADED,
+    );
   });
 
   test("load with resolve { optionalRef: true }", async () => {
@@ -173,7 +175,7 @@ describe("Deep loading with depth arg", async () => {
     assertLoaded(map4);
     expect(map4.list[0]?.stream).toBeTruthy();
     expect(map4.list[0]?.stream?.perAccount[me.$jazz.id]).toBeTruthy();
-    expect(map4.list[0]?.stream?.byMe?.value.$jazzState).toBe(
+    expect(map4.list[0]?.stream?.byMe?.value.$jazz.loadingState).toBe(
       CoValueLoadingState.UNLOADED,
     );
   });
@@ -480,7 +482,9 @@ describe("Deep loading with unauthorized account", async () => {
 
     const mapOnAlice = await TestMap.load(map.$jazz.id, { loadAs: alice });
 
-    expect(mapOnAlice.$jazzState).toBe(CoValueLoadingState.UNAUTHORIZED);
+    expect(mapOnAlice.$jazz.loadingState).toBe(
+      CoValueLoadingState.UNAUTHORIZED,
+    );
 
     expect(errorSpy).toHaveBeenCalledWith(
       `The current user (${alice.$jazz.id}) is not authorized to access this value from ${map.$jazz.id}`,
@@ -502,7 +506,7 @@ describe("Deep loading with unauthorized account", async () => {
       loadAs: alice,
     });
 
-    expect(mapWithListOnAlice.$jazzState).toBe(
+    expect(mapWithListOnAlice.$jazz.loadingState).toBe(
       CoValueLoadingState.UNAUTHORIZED,
     );
 
@@ -538,7 +542,9 @@ describe("Deep loading with unauthorized account", async () => {
       loadAs: alice,
     });
 
-    expect(mapOnAlice.$jazzState).toBe(CoValueLoadingState.UNAUTHORIZED);
+    expect(mapOnAlice.$jazz.loadingState).toBe(
+      CoValueLoadingState.UNAUTHORIZED,
+    );
 
     expect(errorSpy).toHaveBeenCalledWith(
       `The current user (${alice.$jazz.id}) is not authorized to access this value from ${map.$jazz.id} on path list.0`,
@@ -562,7 +568,9 @@ describe("Deep loading with unauthorized account", async () => {
       loadAs: alice,
       resolve: { optionalRef: true } as const,
     });
-    expect(mapOnAlice.$jazzState).toBe(CoValueLoadingState.UNAUTHORIZED);
+    expect(mapOnAlice.$jazz.loadingState).toBe(
+      CoValueLoadingState.UNAUTHORIZED,
+    );
     expect(errorSpy).toHaveBeenCalledWith(
       `The current user (${alice.$jazz.id}) is not authorized to access this value from ${map.$jazz.id} on path optionalRef`,
     );
@@ -594,7 +602,7 @@ describe("Deep loading with unauthorized account", async () => {
         });
       });
 
-    expect(result?.$jazzState).toBe(CoValueLoadingState.UNAUTHORIZED);
+    expect(result?.$jazz.loadingState).toBe(CoValueLoadingState.UNAUTHORIZED);
   });
 
   test("unaccessible stream", async () => {
@@ -621,7 +629,9 @@ describe("Deep loading with unauthorized account", async () => {
       loadAs: alice,
     });
 
-    expect(mapOnAlice.$jazzState).toBe(CoValueLoadingState.UNAUTHORIZED);
+    expect(mapOnAlice.$jazz.loadingState).toBe(
+      CoValueLoadingState.UNAUTHORIZED,
+    );
 
     expect(errorSpy).toHaveBeenCalledWith(
       `The current user (${alice.$jazz.id}) is not authorized to access this value from ${map.$jazz.id} on path list.0.stream`,
@@ -657,7 +667,9 @@ describe("Deep loading with unauthorized account", async () => {
       loadAs: alice,
     });
 
-    expect(mapOnAlice.$jazzState).toBe(CoValueLoadingState.UNAUTHORIZED);
+    expect(mapOnAlice.$jazz.loadingState).toBe(
+      CoValueLoadingState.UNAUTHORIZED,
+    );
 
     expect(errorSpy).toHaveBeenCalledWith(
       `The current user (${alice.$jazz.id}) is not authorized to access this value from ${map.$jazz.id} on path list.0.stream.${value.$jazz.id}`,
@@ -715,7 +727,7 @@ describe("Deep loading with unauthorized account", async () => {
 
     assertLoaded(friendsOnAlice);
 
-    expect(friendsOnAlice.jane?.$jazzState).toBe(
+    expect(friendsOnAlice.jane?.$jazz.loadingState).toBe(
       CoValueLoadingState.UNAUTHORIZED,
     );
     assert(friendsOnAlice.alice);
@@ -755,7 +767,7 @@ describe("Deep loading with unauthorized account", async () => {
 
     assertLoaded(user);
 
-    expect(user.friends.jane?.$jazzState).toBe(
+    expect(user.friends.jane?.$jazz.loadingState).toBe(
       CoValueLoadingState.UNAUTHORIZED,
     );
     assert(user.friends.alice);
@@ -811,7 +823,7 @@ describe("Deep loading with unauthorized account", async () => {
     assertLoaded(user);
 
     // jane is unloaded because her dog is inaccessible
-    expect(user.friends.jane?.$jazzState).toBe(
+    expect(user.friends.jane?.$jazz.loadingState).toBe(
       CoValueLoadingState.UNAUTHORIZED,
     );
     // alice is loaded because we have read access to her and her dog
@@ -864,7 +876,9 @@ describe("Deep loading with unauthorized account", async () => {
 
     assertLoaded(listOnAlice);
 
-    expect(listOnAlice[0]?.$jazzState).toBe(CoValueLoadingState.UNAUTHORIZED);
+    expect(listOnAlice[0]?.$jazz.loadingState).toBe(
+      CoValueLoadingState.UNAUTHORIZED,
+    );
     assert(listOnAlice[1]);
     assertLoaded(listOnAlice[1]);
     expect(listOnAlice[1].name).toBe("Alice");
@@ -893,7 +907,7 @@ describe("Deep loading with unauthorized account", async () => {
 
     assertLoaded(friendsOnAlice);
 
-    expect(friendsOnAlice.jane?.$jazzState).toBe(
+    expect(friendsOnAlice.jane?.$jazz.loadingState).toBe(
       CoValueLoadingState.UNAUTHORIZED,
     );
     assert(friendsOnAlice.alice);
@@ -949,7 +963,7 @@ describe("Deep loading with unauthorized account", async () => {
     assertLoaded(user);
 
     // jane's dog is unloaded because it is inaccessible
-    expect(user.friends.jane?.dog.$jazzState).toBe(
+    expect(user.friends.jane?.dog.$jazz.loadingState).toBe(
       CoValueLoadingState.UNAUTHORIZED,
     );
     // we have read access to alice and her dog
@@ -970,7 +984,7 @@ describe("Deep loading with unauthorized account", async () => {
       loadAs: alice,
     });
 
-    expect(user.$jazzState).toBe(CoValueLoadingState.UNAUTHORIZED);
+    expect(user.$jazz.loadingState).toBe(CoValueLoadingState.UNAUTHORIZED);
   });
 });
 
@@ -1148,12 +1162,14 @@ describe("$isLoaded", async () => {
 
     expect(maybeLoadedMap.$isLoaded).toBe(true);
     if (maybeLoadedMap.$isLoaded) {
-      expect(maybeLoadedMap.$jazzState).toBe(CoValueLoadingState.LOADED);
+      expect(maybeLoadedMap.$jazz.loadingState).toBe(
+        CoValueLoadingState.LOADED,
+      );
       expect(maybeLoadedMap.$jazz.id).toBe(map.$jazz.id);
       expect(maybeLoadedMap.list).toEqual([]);
     } else {
       expectTypeOf(
-        maybeLoadedMap.$jazzState,
+        maybeLoadedMap.$jazz.loadingState,
       ).toEqualTypeOf<CoValueUnloadedState>();
     }
   });
@@ -1170,12 +1186,14 @@ describe("$isLoaded", async () => {
 
     expect(unloadedMap.$isLoaded).toBe(false);
     if (!unloadedMap.$isLoaded) {
-      expect(unloadedMap.$jazzState).toBe(CoValueLoadingState.UNAVAILABLE);
+      expect(unloadedMap.$jazz.loadingState).toBe(
+        CoValueLoadingState.UNAVAILABLE,
+      );
       expect(unloadedMap.$jazz.id).toBe(map.$jazz.id);
       // @ts-expect-error - list should not be accessible on Unloaded2
       unloadedMap.list;
     } else {
-      expectTypeOf(unloadedMap.$jazzState).toEqualTypeOf<
+      expectTypeOf(unloadedMap.$jazz.loadingState).toEqualTypeOf<
         typeof CoValueLoadingState.LOADED
       >();
     }

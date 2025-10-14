@@ -11,7 +11,6 @@ import {
   TypeSym,
   instantiateRefEncodedFromRaw,
   isRefEncoded,
-  createUnloadedCoValue,
 } from "../internal.js";
 import { applyCoValueMigrations } from "../lib/migration.js";
 import { CoValueCoreSubscription } from "./CoValueCoreSubscription.js";

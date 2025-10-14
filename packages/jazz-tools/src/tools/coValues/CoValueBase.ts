@@ -19,12 +19,10 @@ export abstract class CoValueBase implements CoValue {
   declare [TypeSym]: string;
 
   declare abstract $jazz: CoValueJazzApi<this>;
-  declare $jazzState: typeof CoValueLoadingState.LOADED;
   declare $isLoaded: true;
 
   constructor() {
     Object.defineProperties(this, {
-      $jazzState: { value: CoValueLoadingState.LOADED, enumerable: false },
       $isLoaded: { value: true, enumerable: false },
     });
   }
@@ -68,6 +66,10 @@ export abstract class CoValueJazzApi<V extends CoValue> {
     }
 
     return this.raw.id;
+  }
+
+  get loadingState(): typeof CoValueLoadingState.LOADED {
+    return CoValueLoadingState.LOADED;
   }
 
   abstract get raw(): RawCoValue;

@@ -83,7 +83,7 @@ export const Image = forwardRef<HTMLImageElement, ImageProps>(function Image(
     select: (image) => {
       if (image.$isLoaded) {
         return image;
-      } else if (image.$jazzState === CoValueLoadingState.UNLOADED) {
+      } else if (image.$jazz.loadingState === CoValueLoadingState.UNLOADED) {
         return undefined;
       } else return null;
     },

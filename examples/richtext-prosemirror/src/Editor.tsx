@@ -52,7 +52,7 @@ export function Editor() {
     return () => {
       view.destroy();
     };
-  }, [bioId, bio.$jazzState, bioBranchName]); // Only recreate if the loaded bio or the branch change
+  }, [bioId, bio.$jazz.loadingState, bioBranchName]); // Only recreate if the loaded bio or the branch change
 
   if (!bio.$isLoaded) return null;
 

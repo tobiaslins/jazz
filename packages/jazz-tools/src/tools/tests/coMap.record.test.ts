@@ -263,7 +263,9 @@ describe("CoMap.Record", async () => {
         },
       });
 
-      expect(loadedPerson.$jazzState).toBe(CoValueLoadingState.UNAVAILABLE);
+      expect(loadedPerson.$jazz.loadingState).toBe(
+        CoValueLoadingState.UNAVAILABLE,
+      );
     });
 
     test("loading a locally available record using autoload for the refs", async () => {
@@ -502,7 +504,9 @@ describe("CoRecord unique methods", () => {
       "non-existent",
       group.$jazz.id,
     );
-    expect(foundRecord.$jazzState).toBe(CoValueLoadingState.UNAVAILABLE);
+    expect(foundRecord.$jazz.loadingState).toBe(
+      CoValueLoadingState.UNAVAILABLE,
+    );
   });
 
   test("upsertUnique creates new record when none exists", async () => {

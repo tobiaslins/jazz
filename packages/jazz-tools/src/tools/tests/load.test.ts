@@ -41,7 +41,7 @@ test("return 'unavailable' if id is invalid", async () => {
   });
 
   const john = await Person.load("test");
-  expect(john.$jazzState).toBe(CoValueLoadingState.UNAVAILABLE);
+  expect(john.$jazz.loadingState).toBe(CoValueLoadingState.UNAVAILABLE);
 });
 
 test("load a missing optional value (co.optional)", async () => {
@@ -184,7 +184,7 @@ test("returns 'unavailable' if the value is unavailable after retries", async ()
 
   const john = await Person.load(map.$jazz.id, { loadAs: alice });
 
-  expect(john.$jazzState).toBe(CoValueLoadingState.UNAVAILABLE);
+  expect(john.$jazz.loadingState).toBe(CoValueLoadingState.UNAVAILABLE);
 });
 
 test("load works even when the coValue access is granted after the creation", async () => {

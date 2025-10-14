@@ -220,7 +220,9 @@ describe("useAccount", () => {
       },
     );
 
-    expect(result.current.me.$jazzState).toBe(CoValueLoadingState.UNAVAILABLE);
+    expect(result.current.me.$jazz.loadingState).toBe(
+      CoValueLoadingState.UNAVAILABLE,
+    );
     expect(result.current.agent).toBe(account.guest);
   });
 

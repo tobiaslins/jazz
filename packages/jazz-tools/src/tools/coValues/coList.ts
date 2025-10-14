@@ -72,7 +72,6 @@ export class CoList<out Item = any>
   implements ReadonlyArray<Item>, CoValue
 {
   declare $jazz: CoListJazzApi<this>;
-  declare $jazzState: typeof CoValueLoadingState.LOADED;
   declare $isLoaded: true;
 
   /**
@@ -131,7 +130,6 @@ export class CoList<out Item = any>
           value: new CoListJazzApi(proxy, () => options.fromRaw),
           enumerable: false,
         },
-        $jazzState: { value: CoValueLoadingState.LOADED, enumerable: false },
         $isLoaded: { value: true, enumerable: false },
       });
     }
@@ -180,7 +178,6 @@ export class CoList<out Item = any>
         value: new CoListJazzApi(instance, () => raw),
         enumerable: false,
       },
-      $jazzState: { value: CoValueLoadingState.LOADED, enumerable: false },
       $isLoaded: { value: true, enumerable: false },
     });
 

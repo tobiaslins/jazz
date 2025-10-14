@@ -122,7 +122,7 @@ describe("Group inheritance", () => {
       const mapAsReaderAfterUpdate = await TestMap.load(mapInChild.$jazz.id, {
         loadAs: reader,
       });
-      expect(mapAsReaderAfterUpdate.$jazzState).toBe(
+      expect(mapAsReaderAfterUpdate.$jazz.loadingState).toBe(
         CoValueLoadingState.UNAUTHORIZED,
       );
     });
@@ -170,7 +170,7 @@ describe("Group inheritance", () => {
         loadAs: reader,
       },
     );
-    expect(mapAsReaderAfterUpdate.$jazzState).toBe(
+    expect(mapAsReaderAfterUpdate.$jazz.loadingState).toBe(
       CoValueLoadingState.UNAUTHORIZED,
     );
   });
@@ -373,7 +373,9 @@ describe("Group inheritance", () => {
       const boardAsReader = await Board.load(board.$jazz.id, {
         loadAs: reader,
       });
-      expect(boardAsReader.$jazzState).toBe(CoValueLoadingState.UNAUTHORIZED);
+      expect(boardAsReader.$jazz.loadingState).toBe(
+        CoValueLoadingState.UNAUTHORIZED,
+      );
     });
   });
 });

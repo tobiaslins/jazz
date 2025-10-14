@@ -64,10 +64,14 @@ describe("useCoState", () => {
       account,
     });
 
-    expect(result.current.$jazzState).toBe(CoValueLoadingState.UNLOADED);
+    expect(result.current.$jazz.loadingState).toBe(
+      CoValueLoadingState.UNLOADED,
+    );
 
     await waitFor(() => {
-      expect(result.current.$jazzState).toBe(CoValueLoadingState.UNAVAILABLE);
+      expect(result.current.$jazz.loadingState).toBe(
+        CoValueLoadingState.UNAVAILABLE,
+      );
     });
   });
 
@@ -189,7 +193,9 @@ describe("useCoState", () => {
     });
 
     await waitFor(() => {
-      expect(result.current.$jazzState).toBe(CoValueLoadingState.UNAVAILABLE);
+      expect(result.current.$jazz.loadingState).toBe(
+        CoValueLoadingState.UNAVAILABLE,
+      );
     });
   });
 
@@ -218,7 +224,9 @@ describe("useCoState", () => {
     });
 
     await waitFor(() => {
-      expect(result.current.$jazzState).toBe(CoValueLoadingState.UNAUTHORIZED);
+      expect(result.current.$jazz.loadingState).toBe(
+        CoValueLoadingState.UNAUTHORIZED,
+      );
     });
   });
 
@@ -282,13 +290,15 @@ describe("useCoState", () => {
     });
 
     await waitFor(() => {
-      expect(result.current.$jazzState).toBe(CoValueLoadingState.UNAUTHORIZED);
+      expect(result.current.$jazz.loadingState).toBe(
+        CoValueLoadingState.UNAUTHORIZED,
+      );
     });
 
     group.addMember("everyone", "reader");
 
     await waitFor(() => {
-      expect(result.current.$jazzState).not.toBe(
+      expect(result.current.$jazz.loadingState).not.toBe(
         CoValueLoadingState.UNAUTHORIZED,
       );
     });
@@ -334,7 +344,9 @@ describe("useCoState", () => {
     group.removeMember(account);
 
     await waitFor(() => {
-      expect(result.current.$jazzState).toBe(CoValueLoadingState.UNAUTHORIZED);
+      expect(result.current.$jazz.loadingState).toBe(
+        CoValueLoadingState.UNAUTHORIZED,
+      );
     });
   });
 
@@ -345,7 +357,9 @@ describe("useCoState", () => {
 
     const { result } = renderHook(() => useCoState(TestMap, undefined));
 
-    expect(result.current.$jazzState).toBe(CoValueLoadingState.UNAVAILABLE);
+    expect(result.current.$jazz.loadingState).toBe(
+      CoValueLoadingState.UNAVAILABLE,
+    );
   });
 
   it("should update when an inner coValue is updated", async () => {
@@ -394,7 +408,9 @@ describe("useCoState", () => {
     );
 
     await waitFor(() => {
-      expect(result.current.$jazzState).toBe(CoValueLoadingState.UNAUTHORIZED);
+      expect(result.current.$jazz.loadingState).toBe(
+        CoValueLoadingState.UNAUTHORIZED,
+      );
     });
 
     group.addMember("everyone", "reader");
@@ -444,7 +460,9 @@ describe("useCoState", () => {
 
     rerender({ id: undefined });
 
-    expect(result.current.$jazzState).toBe(CoValueLoadingState.UNAVAILABLE);
+    expect(result.current.$jazz.loadingState).toBe(
+      CoValueLoadingState.UNAVAILABLE,
+    );
   });
 
   it("should only render once when loading a list of values", async () => {
