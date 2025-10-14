@@ -113,16 +113,19 @@ export class VerifiedTransaction {
     this.tx = tx;
     this.originalMadeAt = tx.madeAt;
 
-    this.changes = parsingCache?.changes;
-    this.meta = parsingCache?.meta;
     this.previous = previous;
 
-    // Decoding the trusting transactions here because they might be useful in the permissions checks
-    if (this.tx.privacy === "trusting") {
-      this.changes = safeParseJSON(this.tx.changes);
+    if (parsingCache) {
+      this.changes = parsingCache.changes;
+      this.meta = parsingCache.meta;
+    } else {
+      // Decoding the trusting transactions here because they might be useful in the permissions checks
+      if (this.tx.privacy === "trusting") {
+        this.changes = safeParseJSON(this.tx.changes);
 
-      if (this.tx.meta) {
-        this.meta = safeParseJSON(this.tx.meta);
+        if (this.tx.meta) {
+          this.meta = safeParseJSON(this.tx.meta);
+        }
       }
     }
   }
@@ -1011,11 +1014,10 @@ export class CoValueCore {
     this.determineValidTransactions();
 
     for (const transaction of this.verifiedTransactions) {
-      decryptTransactionChangesAndMeta(
-        this,
-        transaction,
-        ignorePrivateTransactions,
-      );
+      if (!ignorePrivateTransactions) {
+        decryptTransactionChangesAndMeta(this, transaction);
+      }
+
       this.parseMetaInformation(transaction);
     }
   }

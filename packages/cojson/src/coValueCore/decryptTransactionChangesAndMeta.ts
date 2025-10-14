@@ -3,13 +3,11 @@ import { AvailableCoValueCore, VerifiedTransaction } from "./coValueCore.js";
 export function decryptTransactionChangesAndMeta(
   coValue: AvailableCoValueCore,
   transaction: VerifiedTransaction,
-  ignorePrivateTransactions: boolean,
 ) {
   if (
     !transaction.isValid ||
     transaction.isDecrypted ||
-    transaction.tx.privacy !== "private" ||
-    ignorePrivateTransactions
+    transaction.tx.privacy === "trusting" // Trusting transactions are already decrypted
   ) {
     return;
   }

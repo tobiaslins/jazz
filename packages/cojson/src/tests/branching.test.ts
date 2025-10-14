@@ -615,6 +615,45 @@ describe("Branching Logic", () => {
       expect(branch.get("key")).toBe("bob");
     });
 
+    test("an account with write access to the source and read access to the branch should be able to merge a branch created by a reader", async () => {
+      const alice = await setupTestAccount({
+        connected: true,
+      });
+      const bob = await setupTestAccount({
+        connected: true,
+      });
+      const group = alice.node.createGroup();
+      group.addMember(
+        await loadCoValueOrFail(alice.node, bob.accountID),
+        "reader",
+      );
+      const map = group.createMap();
+      map.set("key", "alice");
+
+      const bobGroup = bob.node.createGroup();
+      bobGroup.addMember(
+        await loadCoValueOrFail(bob.node, alice.accountID),
+        "reader",
+      );
+
+      const mapOnBob = await loadCoValueOrFail(bob.node, map.id);
+
+      const branch = expectMap(
+        mapOnBob.core
+          .createBranch("feature-branch", bobGroup.id)
+          .getCurrentContent(),
+      );
+
+      branch.set("key", "bob");
+
+      expect(branch.get("key")).toBe("bob");
+
+      const branchOnAlice = await loadCoValueOrFail(alice.node, branch.id);
+      branchOnAlice.core.mergeBranch();
+
+      expect(map.get("key")).toBe("bob");
+    });
+
     test("should not allow the creation of branches to accounts with read access", async () => {
       const alice = setupTestNode({
         connected: true,
