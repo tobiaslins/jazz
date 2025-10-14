@@ -135,7 +135,7 @@ export function OrderForm({
 export function EditOrder(props: { id: string }) {
   const order = useCoState(BubbleTeaOrder, props.id);
 
-  if (!order) return;
+  if (!order.$isLoaded) return;
 
   return <OrderForm order={order} />;
 }
@@ -203,12 +203,12 @@ export function OrderForm({
 export function CreateOrder(props: { id: string }) {
   const orders = useAccountWithSelector(JazzAccount, {
     resolve: { root: { orders: true } },
-    select: (account) => account?.root.orders,
+    select: (account) => account.$isLoaded ? account.root.orders : undefined,
   });
 
-const newOrder = useCoState(PartialBubbleTeaOrder, props.id);
+  const newOrder = useCoState(PartialBubbleTeaOrder, props.id);
 
-  if (!newOrder || !orders) return;
+  if (!newOrder.$isLoaded || !orders) return;
 
   const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -254,7 +254,7 @@ export function EditOrderWithSave(props: { id: string }) {
 
   function handleSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!order) return;
+    if (!order.$isLoaded) return;
 
     // Merge the branch back to the original
     order.$jazz.unstable_merge();
@@ -265,7 +265,7 @@ export function EditOrderWithSave(props: { id: string }) {
     // Navigate away without saving - the branch will be discarded
   }
 
-  if (!order) return;
+  if (!order.$isLoaded) return;
 
   return <OrderForm order={order} onSave={handleSave} onCancel={handleCancel} />;
 }
