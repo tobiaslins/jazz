@@ -122,7 +122,7 @@ export type RefsToResolve<
                   | boolean
               : boolean);
 
-export type RefsToResolveStrict<T, V> = V extends RefsToResolve<T>
+export type RefsToResolveStrict<T, V> = [V] extends [RefsToResolve<T>]
   ? RefsToResolve<T>
   : V;
 
@@ -135,8 +135,7 @@ export type Resolved<
  * If the resolve query contains `$onError: "catch"`, we return an unloaded value for this nested CoValue.
  * Otherwise, the whole load operation returns an unloaded value.
  */
-// Checking against string instead of 'catch' because the inference from RefsToResolveStrict transforms 'catch' into string
-type OnErrorResolvedValue<V, Depth> = Depth extends { $onError: string }
+type OnErrorResolvedValue<V, Depth> = Depth extends { $onError: "catch" }
   ? Unloaded<V>
   : never;
 
@@ -168,7 +167,7 @@ export type DeeplyLoaded<
   CurrentDepth extends number[] = [],
 > = DepthLimit extends CurrentDepth["length"]
   ? V
-  : Depth extends boolean | undefined // Checking against boolean instead of true because the inference from RefsToResolveStrict transforms true into boolean
+  : Depth extends true | undefined
     ? V
     : // Basically V extends CoList - but if we used that we'd introduce circularity into the definition of CoList itself
       [V] extends [ReadonlyArray<infer Item>]
