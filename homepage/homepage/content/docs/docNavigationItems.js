@@ -254,11 +254,11 @@ export const docNavigationItems = [
           href: "/docs/authentication/better-auth",
           done: 100,
         },
-        //{
-        //  name: "Writing your own",
-        //  href: "/docs/authentication/writing-your-own",
-        //  done: 0,
-        //},
+        {
+          name: "Better Auth Database Adapter",
+          href: "/docs/authentication/better-auth-database-adapter",
+          done: 100,
+        },
       ]
     }, {
       name: "Permissions & sharing",
