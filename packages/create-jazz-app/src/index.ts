@@ -30,6 +30,7 @@ type ScaffoldOptions = {
   template: FrameworkAuthPair | string;
   projectName: string;
   packageManager: PackageManager;
+  framework: Framework;
   apiKey?: string;
   git?: boolean;
 };
@@ -117,6 +118,7 @@ async function scaffoldProject({
   packageManager,
   apiKey,
   git,
+  framework,
 }: ScaffoldOptions): Promise<void> {
   const starterConfig = frameworkToAuthExamples[
     template as FrameworkAuthPair
@@ -127,7 +129,6 @@ async function scaffoldProject({
   };
 
   let devCommand = "dev";
-
   if (!starterConfig.repo) {
     throw new Error(
       `Starter template ${starterConfig.name} is not yet implemented`,
@@ -369,7 +370,9 @@ module.exports = mergeConfig(getDefaultConfig(__dirname), config);`;
     // Clean up temp directory
     fs.rmSync(tempDocsDir, { recursive: true, force: true });
     // Fetch the latest llms-full.txt from the web
-    const response = await fetch("https://jazz.tools/llms-full.txt");
+    const response = await fetch(
+      `https://jazz.tools/${framework === "nextjs" ? "react" : framework}/llms-full.txt`,
+    );
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const text = await response.text();
     fs.writeFileSync(`${projectName}/.cursor/docs/llms-full.md`, text, "utf-8");
@@ -454,6 +457,7 @@ async function promptUser(
   console.log(chalk.blue.bold("Let's create your Jazz app! 🎷\n"));
 
   const questions = [];
+  let framework: Framework = partialOptions.framework ?? "react";
 
   if (
     partialOptions.framework &&
@@ -469,8 +473,6 @@ async function promptUser(
   }
 
   if (!partialOptions.example && !partialOptions.starter) {
-    let framework = partialOptions.framework;
-
     if (!partialOptions.framework) {
       const answers = await inquirer.prompt([
         {
@@ -550,6 +552,7 @@ async function promptUser(
   return {
     ...answers,
     ...partialOptions,
+    framework,
     template:
       answers.starter || partialOptions.starter || partialOptions.example,
   } as ScaffoldOptions;
