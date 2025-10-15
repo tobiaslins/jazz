@@ -1,5 +1,15 @@
 # jazz-tools
 
+## 0.18.26
+
+### Patch Changes
+
+- 4e0ea26: Added new CoVector type of CoValue
+- Updated dependencies [f956cd3]
+  - cojson@0.18.26
+  - cojson-storage-indexeddb@0.18.26
+  - cojson-transport-ws@0.18.26
+
 ## 0.18.25
 
 ### Patch Changes
