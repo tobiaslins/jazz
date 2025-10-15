@@ -6,6 +6,7 @@ import {
   loadCoValueOrFail,
   setupTestAccount,
   setupTestNode,
+  waitFor,
 } from "./testUtils.js";
 
 setCoValueLoadingRetryDelay(10);
@@ -98,9 +99,14 @@ describe("Group.removeMember", () => {
       const loadedGroup = await loadCoValueOrFail(client.node, group.id);
       expect(loadedGroup.myRole()).toEqual(member);
 
-      await loadedGroup.removeMember(client.node.expectCurrentAccount(member));
+      loadedGroup.removeMember(client.node.expectCurrentAccount(member));
 
       expect(loadedGroup.myRole()).toEqual(undefined);
+
+      await loadedGroup.core.waitForSync();
+      await waitFor(() => {
+        expect(group.roleOf(client.accountID)).toEqual(undefined);
+      });
     });
   }
 
