@@ -8,9 +8,163 @@ import { Alert, CodeGroup } from "@/components/forMdx";
 
 HTTP requests are the easiest way to communicate with Server Workers in Jazz. They work well with any framework or runtime that supports standard Request and Response objects, can be scaled horizontally, and put clients and workers in direct communication.
 
-## Setting up HTTP requests
+## Simple requests
 
-### Defining request schemas
+If you only need to authenticate requests, and don't need any of the advanced features of [Jazz-managed requests](#jazz-managed-requests), you can use the `generateAuthToken` to generate an authentication token that can be used to authenticate the request using the `authenticateRequest` function.
+
+### Creating a Request
+
+You can use any method to create a request, but the most common way is to use the `fetch` function.
+By default, the token is expected to be in the `Authorization` header in the form of `Jazz <token>`.
+
+<CodeGroup>
+```ts
+import { generateAuthToken } from "jazz-tools";
+
+const response = await fetch('https://example.com', {
+  headers: {
+    Authorization: `Jazz ${generateAuthToken()}`,
+  },
+});
+```
+</CodeGroup>
+
+### Authenticating requests
+
+You can use the `authenticateRequest` function to authenticate requests.
+
+Note that attempting to authenticate a request without a token will not return an error, but an `undefined` account. If you need to restrict access to reseources that should be accessible only to authenticated users, you should check for the `account` being `undefined`, on top of any additional permission checks you might need.
+
+<CodeGroup>
+```ts
+import { authenticateRequest } from "jazz-tools";
+import { startWorker } from "jazz-tools/worker";
+
+export async function GET(request: Request) {
+  const worker = await startWorker({
+    syncServer: "wss://cloud.jazz.tools/?key=your-api-key",
+    accountID: process.env.JAZZ_WORKER_ACCOUNT,
+    accountSecret: process.env.JAZZ_WORKER_SECRET,
+    asActiveAccount: true,
+  });
+
+  const { account, error } = await authenticateRequest(request);
+
+  // There was an error validating the token. I.e. the token is invalid or expired
+  if (error) {
+    return new Response(JSON.stringify(error), { status: 401 });
+  }
+
+  if (!account) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
+  return new Response(JSON.stringify({
+    message: `The request was made by ${account.$jazz.id}`
+  }));
+}
+```
+</CodeGroup>
+
+### Multi-accounts environments
+
+If you are using multiple accounts in your environment, or in general if you need to send and  authenticate requests as a specific accounts you can specify the account to use when generating the token or when authenticating the request.
+
+#### Making a request as a specific account
+
+`generateAuthToken` accepts an optional account parameter, so you can generate a token for a specific account.
+
+<CodeGroup>
+```ts
+import { generateAuthToken } from "jazz-tools";
+
+const response = await fetch('https://example.com', {
+  headers: {
+    Authorization: `Jazz ${generateAuthToken(account)}`,
+  },
+});
+```
+</CodeGroup>
+
+#### Authenticating a request as a specific account
+
+Similarly, you can specify the account to verify the token with by using the `loadAs` option:
+
+<CodeGroup>
+```ts twoslash
+import { authenticateRequest } from "jazz-tools";
+import { startWorker } from "jazz-tools/worker";
+
+export async function GET(request: Request) {
+  const { worker } = await startWorker({
+    syncServer: "wss://cloud.jazz.tools/?key=your-api-key",
+    accountID: process.env.JAZZ_WORKER_ACCOUNT,
+    accountSecret: process.env.JAZZ_WORKER_SECRET,
+  });
+
+  const { account, error } = await authenticateRequest(request, { loadAs: worker });
+}
+  ```
+</CodeGroup>
+
+### Custom token expiration
+
+You can specify the expiration time of the token using the `expiration` option. The default expiration time is 1 minute.
+
+<CodeGroup>
+```ts
+import { authenticateRequest } from "jazz-tools";
+
+export async function GET(request: Request) {
+  const { account, error } = await authenticateRequest(request, {
+    expiration: 1000 * 60 * 60 * 24 // 24 hours
+  });
+}
+```
+</CodeGroup>
+
+### Custom token location
+
+While using the `Authorization` header is the most common way to send the token, you can provide the token in any other way you want.
+
+For example, you can send the token in the `x-jazz-auth-token` header:
+
+<CodeGroup>
+```ts
+import { generateAuthToken } from "jazz-tools";
+
+const token = generateAuthToken();
+
+const response = await fetch('https://example.com', {
+  headers: {
+    "x-jazz-auth-token": token,
+  },
+});
+```
+</CodeGroup>
+
+Then you can specify the location of the token using the `getToken` option:
+
+<CodeGroup>
+```ts
+import { authenticateRequest } from "jazz-tools";
+
+
+export async function GET(request: Request) {
+  const { account, error } = await authenticateRequest(request, {
+    getToken: (request) => request.headers.get("x-jazz-auth-token"),
+  });
+}
+```
+</CodeGroup>
+
+## Jazz-managed requests
+
+Jazz-managed requests are a more advanced way to make requests. See the [Security](#security-safeguards-provided-by-jazz) section for more details on the benefits and guarantees they provide compared to regular HTTP requests.
+
+### Setting up HTTP requests
+
+#### Defining request schemas
 
 Use `experimental_defineRequest` to define your API schema:
 
@@ -46,7 +200,7 @@ export const bookEventTicket = experimental_defineRequest({
 ```
 </CodeGroup>
 
-### Setting up the Server Worker
+#### Setting up the Server Worker
 
 We need to start a Server Worker instance that will be able to sync data with the sync server, and handle the requests.
 
@@ -62,9 +216,9 @@ export const jazzServer = await startWorker({
 ```
 </CodeGroup>
 
-## Handling requests on the server
+### Handling requests on the server
 
-### Creating API routes
+#### Creating API routes
 
 Create API routes to handle the defined requests. Here's an example using Next.js API routes:
 
@@ -99,9 +253,9 @@ export async function POST(request: Request) {
 ```
 </CodeGroup>
 
-## Making requests from the client
+### Making requests from the client
 
-### Using the defined API
+#### Using the defined API
 
 Make requests from the client using the defined API:
 
@@ -118,9 +272,9 @@ export async function sendEventBookingRequest(event: Event) {
 ```
 </CodeGroup>
 
-## Error handling
+### Error handling
 
-### Server-side error handling
+#### Server-side error handling
 
 Use `JazzRequestError` to return proper HTTP error responses:
 
@@ -163,11 +317,11 @@ export async function POST(request: Request) {
 
 <Alert variant="info" className="mt-4" title="Note">
   To ensure that the limit is correctly enforced, the handler should be deployed in a single worker instance (e.g. a single Cloudflare DurableObject).
-  
+
   Details on how to deploy a single instance Worker are available in the [Deployments & Transactionality](#deployments--transactionality) section.
 </Alert>
 
-### Client-side error handling
+#### Client-side error handling
 
 Handle errors on the client side:
 
@@ -196,29 +350,29 @@ export async function sendEventBookingRequest(event: Event) {
   The `experimental_defineRequest` API is still experimental and may change in future versions. For production applications, consider the stability implications.
 </Alert>
 
-## Security safeguards provided by Jazz
+### Security safeguards provided by Jazz
 
 Jazz HTTP requests include several built-in security measures to protect against common attacks:
 
-### Cryptographic Authentication
+#### Cryptographic Authentication
 - **Digital Signatures**: Each request is cryptographically signed using the sender's private key
 - **Signature Verification**: The server verifies the signature using the sender's public key to ensure message authenticity and to identify the sender account
 - **Tamper Protection**: Any modification to the request payload will invalidate the signature
 
-### Replay Attack Prevention
+#### Replay Attack Prevention
 - **Unique Message IDs**: Each request has a unique identifier (`co_z${string}`)
 - **Duplicate Detection**: incoming messages ids are tracked to prevent replay attacks
 - **Message Expiration**: Requests expire after 60 seconds to provide additional protection
 
 These safeguards ensure that HTTP requests in Jazz are secure, authenticated, and protected against common attack vectors while maintaining the simplicity of standard HTTP communication.
 
-## Deployments & Transactionality
+### Deployments & Transactionality
 
-### Single Instance Requirements
+#### Single Instance Requirements
 
 Some operations need to happen one at a time and in the same place, otherwise the data can get out of sync.
 
-For example, if you are checking capacity for an event and creating tickets, you must ensure only one server is doing it. 
+For example, if you are checking capacity for an event and creating tickets, you must ensure only one server is doing it.
 If multiple servers check at the same time, they might all think there is space and allow too many tickets.
 
 Jazz uses eventual consistency (data takes a moment to sync between regions), so this problem is worse if you run multiple server copies in different locations.
@@ -240,7 +394,7 @@ Single servers are necessary to enforce invariants or provide a consistent view 
 
 As a rule of thumb, when the output of the request depends on the state of the database, you should probably deploy on a single instance.
 
-### Multi-Region Deployment
+#### Multi-Region Deployment
 
 If your code doesn’t need strict rules to keep data in sync (no counters, no limits, no “check‑then‑update” logic), you can run your workers in many regions at the same time.
 
