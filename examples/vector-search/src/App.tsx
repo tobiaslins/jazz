@@ -30,11 +30,11 @@ function App() {
   // 2) Load a CoList and sort the results by similarity to the query embedding
   const journalEntries = useCoStateWithSelector(
     JournalEntryList,
-    me?.root.journalEntries?.$jazz.id,
+    me.$isLoaded ? me.root.journalEntries?.$jazz.id : undefined,
     {
       resolve: { $each: { embedding: true } },
       select(journalEntries) {
-        if (!journalEntries) return;
+        if (!journalEntries.$isLoaded) return;
 
         // If no query embedding, return all entries
         if (!queryEmbedding) return journalEntries.map((value) => ({ value }));
@@ -74,14 +74,14 @@ function App() {
     progress: seedingProgress,
   } = useJournalSeed({
     createEmbedding,
-    journalEntries: me?.root.journalEntries,
+    journalEntries: me.$isLoaded ? me.root.journalEntries : undefined,
   });
   const { isCreatingEntry, promptNewEntry } = useCreateEntry({
     createEmbedding,
-    journalEntries: me?.root.journalEntries,
+    journalEntries: me.$isLoaded ? me.root.journalEntries : undefined,
   });
   const { deleteEntries } = useDeleteEntries({
-    journalEntries: me?.root.journalEntries,
+    journalEntries: me.$isLoaded ? me.root.journalEntries : undefined,
   });
 
   return (

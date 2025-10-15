@@ -13,6 +13,8 @@ import {
   CoreCoListSchema,
   CoreCoMapSchema,
   CoreCoRecordSchema,
+  CoreCoVectorSchema,
+  CoVector,
   FileStream,
   Group,
   MaybeLoaded,
@@ -78,15 +80,19 @@ export type InstanceOfSchemaCoValuesMaybeLoaded<
                   ? MaybeLoaded<CoRichText>
                   : S extends CoreFileStreamSchema
                     ? MaybeLoaded<FileStream>
-                    : S extends CoreCoOptionalSchema<infer Inner>
-                      ?
-                          | InstanceOrPrimitiveOfSchemaCoValuesMaybeLoaded<Inner>
-                          | undefined
-                      : S extends CoreCoDiscriminatedUnionSchema<infer Members>
-                        ? InstanceOrPrimitiveOfSchemaCoValuesMaybeLoaded<
-                            Members[number]
-                          >
-                        : never
+                    : S extends CoreCoVectorSchema
+                      ? MaybeLoaded<Readonly<CoVector>>
+                      : S extends CoreCoOptionalSchema<infer Inner>
+                        ?
+                            | InstanceOrPrimitiveOfSchemaCoValuesMaybeLoaded<Inner>
+                            | undefined
+                        : S extends CoreCoDiscriminatedUnionSchema<
+                              infer Members
+                            >
+                          ? InstanceOrPrimitiveOfSchemaCoValuesMaybeLoaded<
+                              Members[number]
+                            >
+                          : never
   : S extends CoValueClass
     ? MaybeLoaded<InstanceType<S>>
     : never;
