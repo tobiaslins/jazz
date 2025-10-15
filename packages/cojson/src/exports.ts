@@ -65,9 +65,9 @@ import type { Peer, SyncMessage } from "./sync.js";
 import {
   DisconnectedError,
   SyncManager,
-  emptyKnownState,
   hwrServerPeerSelector,
 } from "./sync.js";
+import { emptyKnownState } from "./knownState.js";
 
 import {
   getContentMessageSize,
@@ -189,7 +189,7 @@ export * from "./storage/index.js";
 // biome-ignore format: off
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace CojsonInternalTypes {
-  export type CoValueKnownState = import("./sync.js").CoValueKnownState;
+  export type CoValueKnownState = import("./knownState.js").CoValueKnownState;
   export type CoJsonValue<T> = import("./jsonValue.js").CoJsonValue<T>;
   export type DoneMessage = import("./sync.js").DoneMessage;
   export type Encrypted<T extends JsonValue, N extends JsonValue> = import("./crypto/crypto.js").Encrypted<T, N>;

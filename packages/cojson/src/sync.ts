@@ -16,20 +16,11 @@ import { logger } from "./logger.js";
 import { CoValuePriority } from "./priority.js";
 import { IncomingMessagesQueue } from "./queue/IncomingMessagesQueue.js";
 import { LocalTransactionsSyncQueue } from "./queue/LocalTransactionsSyncQueue.js";
-
-export type CoValueKnownState = {
-  id: RawCoID;
-  header: boolean;
-  sessions: { [sessionID: SessionID]: number };
-};
-
-export function emptyKnownState(id: RawCoID): CoValueKnownState {
-  return {
-    id,
-    header: false,
-    sessions: {},
-  };
-}
+import {
+  CoValueKnownState,
+  knownStateFrom,
+  KnownStateSessions,
+} from "./knownState.js";
 
 export type SyncMessage =
   | LoadMessage
@@ -55,9 +46,7 @@ export type NewContentMessage = {
   new: {
     [sessionID: SessionID]: SessionNewContent;
   };
-  expectContentUntil?: {
-    [sessionID: SessionID]: number;
-  };
+  expectContentUntil?: KnownStateSessions;
 };
 
 export type SessionNewContent = {
@@ -95,31 +84,6 @@ export interface Peer {
   role: "server" | "client";
   priority?: number;
   persistent?: boolean;
-}
-
-export function combinedKnownStates(
-  stateA: CoValueKnownState,
-  stateB: CoValueKnownState,
-): CoValueKnownState {
-  const sessionStates: CoValueKnownState["sessions"] = {};
-
-  const allSessions = new Set([
-    ...Object.keys(stateA.sessions),
-    ...Object.keys(stateB.sessions),
-  ] as SessionID[]);
-
-  for (const sessionID of allSessions) {
-    const stateAValue = stateA.sessions[sessionID];
-    const stateBValue = stateB.sessions[sessionID];
-
-    sessionStates[sessionID] = Math.max(stateAValue || 0, stateBValue || 0);
-  }
-
-  return {
-    id: stateA.id,
-    header: stateA.header || stateB.header,
-    sessions: sessionStates,
-  };
 }
 
 export type ServerPeerSelector = (
@@ -446,7 +410,7 @@ export class SyncManager {
      * This way we can track part of the data loss that may occur when the other peer is restarted
      *
      */
-    peer.setKnownState(msg.id, knownStateIn(msg));
+    peer.setKnownState(msg.id, knownStateFrom(msg));
     const coValue = this.local.getCoValue(msg.id);
 
     if (coValue.isAvailable()) {
@@ -482,7 +446,7 @@ export class SyncManager {
   handleKnownState(msg: KnownStateMessage, peer: PeerState) {
     const coValue = this.local.getCoValue(msg.id);
 
-    peer.combineWith(msg.id, knownStateIn(msg));
+    peer.combineWith(msg.id, knownStateFrom(msg));
 
     // The header is a boolean value that tells us if the other peer do have information about the header.
     // If it's false in this point it means that the coValue is unavailable on the other peer.
@@ -706,12 +670,10 @@ export class SyncManager {
         contentToStore.new[sessionID] = newContentForSession;
       }
 
-      peer?.updateSessionCounter(
-        msg.id,
-        sessionID,
+      const transactionsCount =
         newContentForSession.after +
-          newContentForSession.newTransactions.length,
-      );
+        newContentForSession.newTransactions.length;
+      peer?.updateSessionCounter(msg.id, sessionID, transactionsCount);
     }
 
     /**
@@ -804,7 +766,7 @@ export class SyncManager {
   }
 
   handleCorrection(msg: KnownStateMessage, peer: PeerState) {
-    peer.setKnownState(msg.id, knownStateIn(msg));
+    peer.setKnownState(msg.id, knownStateFrom(msg));
 
     return this.sendNewContent(msg.id, peer);
   }
@@ -950,14 +912,6 @@ export class SyncManager {
       peer.gracefulShutdown();
     }
   }
-}
-
-function knownStateIn(msg: LoadMessage | KnownStateMessage) {
-  return {
-    id: msg.id,
-    header: msg.header,
-    sessions: msg.sessions,
-  };
 }
 
 /**

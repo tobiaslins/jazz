@@ -20,12 +20,7 @@ import { JsonObject, JsonValue } from "../jsonValue.js";
 import { LocalNode, ResolveAccountAgentError } from "../localNode.js";
 import { logger } from "../logger.js";
 import { determineValidTransactions } from "../permissions.js";
-import {
-  CoValueKnownState,
-  NewContentMessage,
-  PeerID,
-  emptyKnownState,
-} from "../sync.js";
+import { NewContentMessage, PeerID } from "../sync.js";
 import { accountOrAgentIDfromSessionID } from "../typeUtils/accountOrAgentIDfromSessionID.js";
 import { expectGroup } from "../typeUtils/expectGroup.js";
 import {
@@ -48,7 +43,12 @@ import {
 } from "./branching.js";
 import { type RawAccountID } from "../coValues/account.js";
 import { decodeTransactionChangesAndMeta } from "./decodeTransactionChangesAndMeta.js";
-import { combineKnownStateSessions } from "../knownState.js";
+import {
+  combineKnownStateSessions,
+  CoValueKnownState,
+  emptyKnownState,
+  KnownStateSessions,
+} from "../knownState.js";
 
 export function idforHeader(
   header: CoValueHeader,
@@ -378,7 +378,7 @@ export class CoValueCore {
 
   provideHeader(
     header: CoValueHeader,
-    streamingKnownState?: CoValueKnownState["sessions"],
+    streamingKnownState?: KnownStateSessions,
     skipVerify?: boolean,
   ) {
     if (!skipVerify) {
@@ -400,8 +400,7 @@ export class CoValueCore {
       this.id,
       this.node.crypto,
       header,
-      new SessionMap(this.id, this.node.crypto),
-      streamingKnownState,
+      new SessionMap(this.id, this.node.crypto, streamingKnownState),
     );
 
     return true;

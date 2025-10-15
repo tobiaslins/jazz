@@ -20,7 +20,6 @@ import {
   waitFor,
 } from "./testUtils";
 import { stableStringify } from "../jsonStringify";
-import { determineValidTransactions } from "../permissions";
 
 // We want to simulate a real world communication that happens asynchronously
 TEST_NODE_CONFIG.withAsyncPeers = true;

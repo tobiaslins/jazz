@@ -15,15 +15,12 @@ import {
   AgentID,
   ParentGroupReference,
   RawCoID,
-  SessionID,
   TransactionID,
   getParentGroupId,
 } from "./ids.js";
 import { parseJSON } from "./jsonStringify.js";
 import { JsonValue } from "./jsonValue.js";
 import { logger } from "./logger.js";
-import { CoValueKnownState } from "./sync.js";
-import { accountOrAgentIDfromSessionID } from "./typeUtils/accountOrAgentIDfromSessionID.js";
 import { expectGroup } from "./typeUtils/expectGroup.js";
 
 export type PermissionsDef =
