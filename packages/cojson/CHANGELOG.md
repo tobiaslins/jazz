@@ -1,5 +1,13 @@
 # cojson
 
+## 0.18.26
+
+### Patch Changes
+
+- f956cd3: Fix validation for self-revocation in groups. Now self-revocation will be considered as valid also by other accounts.
+  - cojson-core-wasm@0.18.26
+  - cojson-core-napi@0.18.26
+
 ## 0.18.25
 
 ### Patch Changes
