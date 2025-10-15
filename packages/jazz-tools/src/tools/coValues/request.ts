@@ -636,7 +636,12 @@ async function loadWorkerAccountOrGroup(id: string, loadAs: Account) {
 }
 
 function defaultGetToken(request: Request) {
-  return request.headers.get("Authorization")?.replace("Jazz ", "");
+  const headerValue = request.headers.get("Authorization");
+  if (headerValue?.startsWith("Jazz ")) {
+    return headerValue.replace("Jazz ", "");
+  }
+
+  return undefined;
 }
 
 /**

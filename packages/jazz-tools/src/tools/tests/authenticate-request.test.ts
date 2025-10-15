@@ -23,7 +23,7 @@ describe("authenticateRequest", () => {
   });
 
   it("should not return an account if no token is provided", async () => {
-    const me = await createJazzTestAccount({
+    await createJazzTestAccount({
       isCurrentActiveAccount: true,
     });
 
@@ -72,7 +72,7 @@ describe("authenticateRequest", () => {
   });
 
   it("should be resilient to tampering", async () => {
-    const me = await createJazzTestAccount({
+    await createJazzTestAccount({
       isCurrentActiveAccount: true,
     });
 
@@ -98,7 +98,7 @@ describe("authenticateRequest", () => {
   });
 
   it("should return an error if the token is expired", async () => {
-    const me = await createJazzTestAccount({
+    await createJazzTestAccount({
       isCurrentActiveAccount: true,
     });
 
@@ -121,6 +121,25 @@ describe("authenticateRequest", () => {
       }),
     );
     expect(account).toBeUndefined();
+  });
+
+  it("should treat the request as unauthenticated if the token is not in the default format, even if present.", async () => {
+    await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+    });
+
+    const token = generateAuthToken();
+
+    const { account, error } = await authenticateRequest(
+      new Request("https://api.example.com/api/user", {
+        headers: {
+          Authorization: `${token}`,
+        },
+      }),
+    );
+
+    expect(account).toBeUndefined();
+    expect(error).toBeUndefined();
   });
 
   it("should correctly validate a request when the token is in a non standard location", async () => {
