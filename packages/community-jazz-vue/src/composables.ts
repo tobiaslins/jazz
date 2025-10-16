@@ -102,22 +102,17 @@ export function useAccount<
   },
 ): {
   me: ComputedRef<MaybeLoaded<Loaded<A, R>>>;
-  agent: AnonymousJazzAgent | Loaded<A, true>;
 } {
   const context = useJazzContext();
-  const contextManager = useJazzContextManager<InstanceOfSchema<A>>();
 
   if (!context.value) {
     throw new Error("useAccount must be used within a JazzProvider");
   }
 
-  const agent = getCurrentAccountFromContextManager(contextManager.value);
-
   // Handle guest mode - return null for me and the guest agent
   if (!("me" in context.value)) {
     return {
       me: computed(() => null) as any,
-      agent: agent,
     };
   }
 
@@ -135,7 +130,6 @@ export function useAccount<
         options?.resolve === undefined ? me.value || contextMe : me.value;
       return value ? markRaw(value) : value;
     }) as any,
-    agent: agent,
   };
 }
 
@@ -148,6 +142,23 @@ export function useLogOut(): () => void {
     throw new Error("useLogOut must be used within a JazzProvider");
   }
   return context.value.logOut;
+}
+
+/**
+ * Hook for accessing the current agent. An agent can either be:
+ * - an Authenticated Account, if the user is logged in
+ * - an Anonymous Account, if the user didn't log in
+ * - or an anonymous agent, if in guest mode
+ *
+ * The agent can be used as the `loadAs` parameter for load and subscribe methods.
+ */
+export function useAgent<A extends AccountClass<Account> | AnyAccountSchema>(
+  /** The account schema to use. Defaults to the base Account schema */
+  AccountSchema: A = Account as unknown as A,
+): AnonymousJazzAgent | Loaded<A, true> {
+  const contextManager = useJazzContextManager<InstanceOfSchema<A>>();
+  const agent = getCurrentAccountFromContextManager(contextManager.value);
+  return agent;
 }
 
 export function useCoState<
