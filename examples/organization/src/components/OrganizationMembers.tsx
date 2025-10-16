@@ -4,13 +4,12 @@ import { useOrganizationSelector } from "./OrganizationProvider.ts";
 
 export function OrganizationMembers() {
   const group = useOrganizationSelector({
-    select: (organization) =>
-      organization.$isLoaded ? organization.$jazz.owner : null,
+    select: (organization) => organization.$jazz.owner,
   });
 
   return (
     <>
-      {group?.members.map((member) => (
+      {group.members.map((member) => (
         <MemberItem
           key={member.id}
           account={member.account}

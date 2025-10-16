@@ -19,7 +19,6 @@ export function InviteLink() {
   }, [copyCount]);
 
   const copyUrl = () => {
-    if (!organization.$isLoaded) return;
     const inviteLink = createInviteLink(organization, "writer");
     navigator.clipboard.writeText(inviteLink).then(() => {
       setCopyCount((count) => count + 1);

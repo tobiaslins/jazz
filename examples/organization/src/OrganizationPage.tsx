@@ -38,12 +38,11 @@ export function OrganizationPage() {
 
 function OrganizationPageContent() {
   const organizationName = useOrganizationSelector({
-    select: (organization) => (organization.$isLoaded ? organization.name : ""),
+    select: (organization) => organization.name,
   });
 
   const isOrganizationAdmin = useOrganizationSelector({
-    select: (organization) =>
-      organization.$isLoaded && organization.$jazz.owner.myRole() === "admin",
+    select: (organization) => organization.$jazz.owner?.myRole() === "admin",
   });
 
   return (

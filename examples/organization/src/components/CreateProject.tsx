@@ -4,13 +4,11 @@ import { useOrganizationSelector } from "./OrganizationProvider.ts";
 
 export function CreateProject() {
   const organizationOwner = useOrganizationSelector({
-    select: (organization) =>
-      organization.$isLoaded ? organization.$jazz.owner : null,
+    select: (organization) => organization.$jazz.owner,
   });
 
   const projects = useOrganizationSelector({
-    select: (organization) =>
-      organization.$isLoaded ? organization.projects : null,
+    select: (organization) => organization.projects,
   });
 
   const [name, setName] = useState<string>("");
@@ -18,7 +16,7 @@ export function CreateProject() {
   const onSave = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (projects && organizationOwner && name.length > 0) {
+    if (name.length > 0) {
       const project = Project.create({ name }, { owner: organizationOwner });
 
       projects.$jazz.push(project);
