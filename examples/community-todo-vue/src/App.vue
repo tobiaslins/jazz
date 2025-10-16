@@ -72,7 +72,7 @@ import { useAcceptInvite, useAccount, useLogOut } from "community-jazz-vue";
 import { useRouter } from "vue-router";
 import { TodoProject } from "./schema";
 
-const { me } = useAccount();
+const me = useAccount();
 const logOut = useLogOut();
 const router = useRouter();
 

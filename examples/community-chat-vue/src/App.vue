@@ -14,7 +14,7 @@ import { useRouter } from "vue-router";
 import AppContainer from "./components/AppContainer.vue";
 import TopBar from "./components/TopBar.vue";
 
-const { me } = useAccount();
+const me = useAccount();
 const logOut = useLogOut();
 const router = useRouter();
 

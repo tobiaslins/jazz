@@ -100,20 +100,16 @@ export function useAccount<
   options?: {
     resolve?: ResolveQueryStrict<A, R>;
   },
-): {
-  me: ComputedRef<MaybeLoaded<Loaded<A, R>>>;
-} {
+): ComputedRef<MaybeLoaded<Loaded<A, R>>> {
   const context = useJazzContext();
 
   if (!context.value) {
     throw new Error("useAccount must be used within a JazzProvider");
   }
 
-  // Handle guest mode - return null for me and the guest agent
+  // Handle guest mode - return null for the account data
   if (!("me" in context.value)) {
-    return {
-      me: computed(() => null) as any,
-    };
+    return computed(() => null) as any;
   }
 
   const contextMe = context.value.me as InstanceOfSchema<A>;
@@ -124,13 +120,11 @@ export function useAccount<
     options as any,
   );
 
-  return {
-    me: computed(() => {
-      const value =
-        options?.resolve === undefined ? me.value || contextMe : me.value;
-      return value ? markRaw(value) : value;
-    }) as any,
-  };
+  return computed(() => {
+    const value =
+      options?.resolve === undefined ? me.value || contextMe : me.value;
+    return value ? markRaw(value) : value;
+  }) as any;
 }
 
 /**
