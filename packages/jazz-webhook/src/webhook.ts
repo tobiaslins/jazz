@@ -168,9 +168,8 @@ export class WebhookRegistry {
  */
 class WebhookEmitter {
   successMap: Promise<co.loaded<typeof SuccessMap, { $each: true }>>;
-  knownState: CojsonInternalTypes.CoValueKnownState;
   pending = new Map<
-    CojsonInternalTypes.TransactionID,
+    string, // stringified TransactionID
     { nRetries: number; timeout: NodeJS.Timeout }
   >();
   unsubscribe: () => void;
@@ -182,9 +181,6 @@ class WebhookEmitter {
     this.successMap = webhook.$jazz
       .ensureLoaded({ resolve: { successMap: { $each: true } } })
       .then((loaded) => loaded.successMap);
-    this.knownState = emptyKnownState(
-      this.webhook.coValueId as `co_z${string}`,
-    );
     this.unsubscribe = this.webhook.$jazz.localNode.subscribe(
       this.webhook.coValueId as CoID<RawCoValue>,
       async (value) => {
@@ -199,7 +195,7 @@ class WebhookEmitter {
         );
         console.log("todo", todo);
         for (const txID of todo) {
-          if (!this.pending.has(txID)) {
+          if (!this.pending.has(`${txID.sessionID}:${txID.txIndex}`)) {
             this.makeAttempt(txID);
           }
         }
@@ -216,7 +212,7 @@ class WebhookEmitter {
   }
 
   makeAttempt(txID: CojsonInternalTypes.TransactionID) {
-    const entry = this.pending.get(txID);
+    const entry = this.pending.get(`${txID.sessionID}:${txID.txIndex}`);
 
     console.log("makeAttempt", this.webhook.coValueId, txID, entry?.nRetries);
 
@@ -225,7 +221,7 @@ class WebhookEmitter {
       entry.nRetries >=
         (this.options.maxRetries || DEFAULT_JazzWebhookOptions.maxRetries)
     ) {
-      this.pending.delete(txID);
+      this.pending.delete(`${txID.sessionID}:${txID.txIndex}`);
       clearTimeout(entry.timeout);
       return;
     }
@@ -243,7 +239,10 @@ class WebhookEmitter {
       clearTimeout(entry.timeout);
       entry.timeout = timeout;
     } else {
-      this.pending.set(txID, { nRetries: 0, timeout });
+      this.pending.set(`${txID.sessionID}:${txID.txIndex}`, {
+        nRetries: 0,
+        timeout,
+      });
     }
 
     fetch(this.webhook.webhookUrl, {
@@ -259,7 +258,7 @@ class WebhookEmitter {
       .then(async (response) => {
         if (response.ok) {
           markSuccessful(await this.successMap, txID);
-          this.pending.delete(txID);
+          this.pending.delete(`${txID.sessionID}:${txID.txIndex}`);
           clearTimeout(timeout);
           return;
         } else {
