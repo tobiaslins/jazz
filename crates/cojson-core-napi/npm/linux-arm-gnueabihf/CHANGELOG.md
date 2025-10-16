@@ -1,5 +1,7 @@
 # cojson-core-napi-linux-arm-gnueabihf
 
+## 0.18.27
+
 ## 0.18.26
 
 ## 0.18.25
