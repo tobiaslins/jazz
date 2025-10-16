@@ -1,7 +1,8 @@
 import { PeerKnownStates, ReadonlyPeerKnownStates } from "./PeerKnownStates.js";
 import { RawCoID, SessionID } from "./ids.js";
+import { CoValueKnownState } from "./knownState.js";
 import { logger } from "./logger.js";
-import { CoValueKnownState, Peer, SyncMessage } from "./sync.js";
+import { Peer, SyncMessage } from "./sync.js";
 
 export class PeerState {
   constructor(

@@ -2,8 +2,10 @@ import type { CoValueCore } from "../exports.js";
 import type { RawCoID, SessionID } from "../ids.js";
 import { type AvailableCoValueCore, idforHeader } from "./coValueCore.js";
 import type { CoValueHeader } from "./verifiedState.js";
-import type { CoValueKnownState } from "../sync.js";
-import { combineKnownStateSessions } from "../knownState.js";
+import {
+  combineKnownStateSessions,
+  KnownStateSessions,
+} from "../knownState.js";
 
 /**
  * Commit to identify the starting point of the branch
@@ -11,7 +13,7 @@ import { combineKnownStateSessions } from "../knownState.js";
  * In case of clonflicts, the first commit of this kind is considered the source of truth
  */
 export type BranchStartCommit = {
-  from: CoValueKnownState["sessions"];
+  from: KnownStateSessions;
 };
 
 /**
@@ -35,7 +37,7 @@ export type MergedTransactionMetadata = {
  * Merge commit located in a branch to track how many transactions have already been merged
  */
 export type MergeCommit = {
-  merged: CoValueKnownState["sessions"];
+  merged: KnownStateSessions;
   branch: RawCoID;
 };
 
@@ -213,13 +215,10 @@ export function mergeBranch(branch: CoValueCore): CoValueCore {
 
   // Look for previous merge commits, to see which transactions needs to be merged
   // Done mostly for performance reasons, as we could merge all the transactions every time and nothing would change
-  let mergedTransactions = {} as CoValueKnownState["sessions"];
+  let mergedTransactions = {} as KnownStateSessions;
   for (const item of target.getMergeCommits()) {
     if (item.branch === branch.id) {
-      mergedTransactions = combineKnownStateSessions(
-        mergedTransactions,
-        item.merged,
-      );
+      combineKnownStateSessions(mergedTransactions, item.merged);
     }
   }
 
@@ -265,7 +264,7 @@ export function mergeBranch(branch: CoValueCore): CoValueCore {
   // Store only the diff of sessions between the branch and already merged transactions
   const currentSessions = branch.knownState().sessions;
   const prevMergedSessions = mergedTransactions;
-  const diff = {} as CoValueKnownState["sessions"];
+  const diff = {} as KnownStateSessions;
 
   for (const [sessionId, count] of Object.entries(currentSessions) as [
     SessionID,

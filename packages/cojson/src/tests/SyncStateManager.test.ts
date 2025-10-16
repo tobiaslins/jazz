@@ -4,7 +4,7 @@ import {
   PeerSyncStateListenerCallback,
 } from "../SyncStateManager.js";
 import { connectedPeers } from "../streamUtils.js";
-import { emptyKnownState } from "../sync.js";
+import { emptyKnownState } from "../exports.js";
 import {
   SyncMessagesLog,
   loadCoValueOrFail,

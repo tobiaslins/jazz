@@ -12,12 +12,11 @@ import {
   type AgentSecret,
   type CoID,
   type CoValueCore,
-  CryptoProvider,
   type RawAccount,
   type RawCoValue,
   StorageAPI,
 } from "../exports.js";
-import type { RawCoID, SessionID } from "../ids.js";
+import type { SessionID } from "../ids.js";
 import { LocalNode } from "../localNode.js";
 import { connectedPeers } from "../streamUtils.js";
 import type { Peer, SyncMessage } from "../sync.js";

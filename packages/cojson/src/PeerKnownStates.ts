@@ -1,41 +1,51 @@
 import { RawCoID, SessionID } from "./ids.js";
 import {
+  cloneKnownState,
+  combineKnownStates,
   CoValueKnownState,
-  combinedKnownStates,
   emptyKnownState,
-} from "./sync.js";
+  updateSessionCounter,
+} from "./knownState.js";
 
 export class PeerKnownStates {
   private coValues = new Map<RawCoID, CoValueKnownState>();
 
+  getKnownState(id: RawCoID) {
+    const knownState = this.coValues.get(id);
+
+    if (!knownState) {
+      const knownState = emptyKnownState(id);
+      this.coValues.set(id, knownState);
+      return knownState;
+    }
+
+    return knownState;
+  }
+
   updateHeader(id: RawCoID, header: boolean) {
-    const knownState = this.coValues.get(id) ?? emptyKnownState(id);
+    const knownState = this.getKnownState(id);
     knownState.header = header;
-    this.coValues.set(id, knownState);
-    this.triggerUpdate(id);
+    this.triggerUpdate(id, knownState);
   }
 
   combineWith(id: RawCoID, value: CoValueKnownState) {
-    const knownState = this.coValues.get(id) ?? emptyKnownState(id);
-    this.coValues.set(id, combinedKnownStates(knownState, value));
-    this.triggerUpdate(id);
+    const knownState = this.getKnownState(id);
+    combineKnownStates(knownState, value);
+    this.triggerUpdate(id, knownState);
   }
 
   updateSessionCounter(id: RawCoID, sessionId: SessionID, value: number) {
-    const knownState = this.coValues.get(id) ?? emptyKnownState(id);
-    const currentValue = knownState.sessions[sessionId] || 0;
-    knownState.sessions[sessionId] = Math.max(currentValue, value);
+    const knownState = this.getKnownState(id);
+    updateSessionCounter(knownState.sessions, sessionId, value);
 
-    this.coValues.set(id, knownState);
-    this.triggerUpdate(id);
+    this.triggerUpdate(id, knownState);
   }
 
-  set(id: RawCoID, knownState: CoValueKnownState | "empty") {
-    this.coValues.set(
-      id,
-      knownState === "empty" ? emptyKnownState(id) : knownState,
-    );
-    this.triggerUpdate(id);
+  set(id: RawCoID, payload: CoValueKnownState | "empty") {
+    const knownState =
+      payload === "empty" ? emptyKnownState(id) : cloneKnownState(payload);
+    this.coValues.set(id, knownState);
+    this.triggerUpdate(id, knownState);
   }
 
   get(id: RawCoID) {
@@ -48,14 +58,18 @@ export class PeerKnownStates {
 
   clone() {
     const clone = new PeerKnownStates();
-    clone.coValues = new Map(this.coValues);
+
+    for (const [id, knownState] of this.coValues) {
+      clone.coValues.set(id, cloneKnownState(knownState));
+    }
+
     return clone;
   }
 
   listeners = new Set<(id: RawCoID, knownState: CoValueKnownState) => void>();
 
-  triggerUpdate(id: RawCoID) {
-    this.trigger(id, this.coValues.get(id) ?? emptyKnownState(id));
+  private triggerUpdate(id: RawCoID, knownState: CoValueKnownState) {
+    this.trigger(id, knownState);
   }
 
   private trigger(id: RawCoID, knownState: CoValueKnownState) {

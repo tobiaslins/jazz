@@ -17,11 +17,11 @@ import { RawCoID, SessionID, TransactionID } from "../ids.js";
 import { Stringified } from "../jsonStringify.js";
 import { JsonObject, JsonValue } from "../jsonValue.js";
 import { PermissionsDef as RulesetDef } from "../permissions.js";
-import { CoValueKnownState, NewContentMessage } from "../sync.js";
+import { NewContentMessage } from "../sync.js";
 import { TryAddTransactionsError } from "./coValueCore.js";
 import { SessionLog, SessionMap } from "./SessionMap.js";
 import { ControlledAccountOrAgent } from "../coValues/account.js";
-import { logger } from "../logger.js";
+import { cloneKnownState, CoValueKnownState } from "../knownState.js";
 
 export type CoValueHeader = {
   type: AnyRawCoValue["type"];
@@ -56,8 +56,8 @@ export class VerifiedState {
   readonly header: CoValueHeader;
   readonly sessions: SessionMap;
   private _cachedKnownState?: CoValueKnownState;
+  private _cachedKnownStateWithStreaming?: CoValueKnownState;
   private _cachedNewContentSinceEmpty: NewContentMessage[] | undefined;
-  private streamingKnownState?: CoValueKnownState["sessions"];
   public lastAccessed: number | undefined;
   public branchSourceId?: RawCoID;
   public branchName?: string;
@@ -67,15 +67,11 @@ export class VerifiedState {
     crypto: CryptoProvider,
     header: CoValueHeader,
     sessions?: SessionMap,
-    streamingKnownState?: CoValueKnownState["sessions"],
   ) {
     this.id = id;
     this.crypto = crypto;
     this.header = header;
     this.sessions = sessions ?? new SessionMap(id, crypto);
-    this.streamingKnownState = streamingKnownState
-      ? { ...streamingKnownState }
-      : undefined;
     this.branchSourceId = header.meta?.source as RawCoID | undefined;
     this.branchName = header.meta?.branch as string | undefined;
   }
@@ -86,7 +82,6 @@ export class VerifiedState {
       this.crypto,
       this.header,
       this.sessions.clone(),
-      this.streamingKnownState ? { ...this.streamingKnownState } : undefined,
     );
   }
 
@@ -108,6 +103,7 @@ export class VerifiedState {
     if (result.isOk()) {
       this._cachedNewContentSinceEmpty = undefined;
       this._cachedKnownState = undefined;
+      this._cachedKnownStateWithStreaming = undefined;
     }
 
     return result;
@@ -130,6 +126,7 @@ export class VerifiedState {
 
     this._cachedNewContentSinceEmpty = undefined;
     this._cachedKnownState = undefined;
+    this._cachedKnownStateWithStreaming = undefined;
 
     return result;
   }
@@ -155,6 +152,7 @@ export class VerifiedState {
 
     this._cachedNewContentSinceEmpty = undefined;
     this._cachedKnownState = undefined;
+    this._cachedKnownStateWithStreaming = undefined;
 
     return result;
   }
@@ -289,72 +287,42 @@ export class VerifiedState {
   }
 
   /**
+   * Returns the known state of the CoValue
+   *
+   * The return value identity is going to be stable as long as the CoValue is not modified.
+   *
+   * On change the knownState is invalidated and a new object is returned.
+   */
+  knownState() {
+    if (this._cachedKnownState) {
+      return this._cachedKnownState;
+    }
+    this._cachedKnownState = cloneKnownState(this.sessions.knownState);
+    return this._cachedKnownState;
+  }
+
+  /**
    * Returns the known state considering the known state of the streaming source
    *
    * Used to correctly manage the content & subscriptions during the content streaming process
    */
-  knownStateWithStreaming(): CoValueKnownState {
-    const knownState = this.knownState();
-
-    if (this.streamingKnownState) {
-      const newSessions: CoValueKnownState["sessions"] = {};
-      const entries = Object.entries(this.streamingKnownState);
-
-      for (const [sessionID, txs] of entries) {
-        newSessions[sessionID as SessionID] = txs;
-        if ((knownState.sessions[sessionID as SessionID] ?? 0) < txs) {
-          newSessions[sessionID as SessionID] = txs;
-        } else {
-          newSessions[sessionID as SessionID] = txs;
-          delete this.streamingKnownState[sessionID as SessionID];
-        }
-      }
-
-      if (Object.keys(this.streamingKnownState).length === 0) {
-        this.streamingKnownState = undefined;
-        return knownState;
-      } else {
-        return {
-          id: knownState.id,
-          header: knownState.header,
-          sessions: newSessions,
-        };
-      }
+  knownStateWithStreaming() {
+    if (!this.sessions.knownStateWithStreaming) {
+      return this.knownState();
     }
 
-    return knownState;
+    if (this._cachedKnownStateWithStreaming) {
+      return this._cachedKnownStateWithStreaming;
+    }
+    this._cachedKnownStateWithStreaming = cloneKnownState(
+      this.sessions.knownStateWithStreaming,
+    );
+
+    return this._cachedKnownStateWithStreaming;
   }
 
   isStreaming(): boolean {
-    // Call knownStateWithStreaming to delete the streamingKnownState when it matches the current knownState
-    this.knownStateWithStreaming();
-
-    return this.streamingKnownState !== undefined;
-  }
-
-  knownState(): CoValueKnownState {
-    if (this._cachedKnownState) {
-      return this._cachedKnownState;
-    } else {
-      const knownState = this.knownStateUncached();
-      this._cachedKnownState = knownState;
-      return knownState;
-    }
-  }
-
-  /** @internal */
-  knownStateUncached(): CoValueKnownState {
-    const sessions: CoValueKnownState["sessions"] = {};
-
-    for (const [sessionID, sessionLog] of this.sessions.entries()) {
-      sessions[sessionID] = sessionLog.transactions.length;
-    }
-
-    return {
-      id: this.id,
-      header: true,
-      sessions,
-    };
+    return Boolean(this.sessions.knownStateWithStreaming);
   }
 
   decryptTransaction(
