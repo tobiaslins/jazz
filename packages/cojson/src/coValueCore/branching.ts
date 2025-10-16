@@ -1,4 +1,4 @@
-import type { CoValueCore } from "../exports.js";
+import { logger, type CoValueCore } from "../exports.js";
 import type { RawCoID, SessionID } from "../ids.js";
 import { type AvailableCoValueCore, idforHeader } from "./coValueCore.js";
 import type { CoValueHeader } from "./verifiedState.js";
@@ -147,6 +147,9 @@ export function createBranch(
 
   // We allow branch creation to accounts with at least read access to the source group
   if (!myRole || (myRole === "reader" && !ownerId)) {
+    logger.warn(
+      "Trying to create a branch without enough access rights, returning the source coValue",
+    );
     return coValue;
   }
 
