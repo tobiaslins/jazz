@@ -94,9 +94,11 @@ export function Festival() {
 </script>
 
 <ul>
-  {#each me.current.$isLoaded ? me.current.root.myFestival : [] as band}
-    <li>{band.name}</li>
-  {/each}
+  {#if me.current.$isLoaded}
+    {#each me.current.root.myFestival as band}
+      <li>{band.name}</li>
+    {/each}
+  {/if}
 </ul>
 
 <input type="text" bind:value={inviteLink} readonly />
@@ -200,9 +202,11 @@ export function Festival() {
 </script>
 
 <ul>
-  {#each me.current.$isLoaded ? me.current.root.myFestival : [] as band}
-    <li>{band.name}</li>
-  {/each}
+  {#if me.current.$isLoaded}
+    {#each me.current.root.myFestival as band}
+      <li>{band.name}</li>
+    {/each}
+  {/if}
 </ul>
 
 <input type="text" bind:value={inviteLink} readonly />
@@ -397,12 +401,14 @@ export function Festival({id}: {id?: string}) {
 </script>
 
 <ul>
-  <!-- [!code --:1] -->
-  {#each me.current.$isLoaded ? me.current.root.myFestival : [] as band}
-  <!-- [!code ++:1] -->
-  {#each festival.current.$isLoaded ? festival.current : [] as band}
-    <li>{band.$isLoaded ? band.name : null}</li>
-  {/each}
+  {#if me.current.$isLoaded}
+    <!-- [!code --:1] -->
+    {#each me.current.root.myFestival as band}
+    <!-- [!code ++:1] -->
+    {#each festival.current as band}
+      <li>{band.$isLoaded ? band.name : null}</li>
+    {/each}
+  {/if}
 </ul>
 
 {#if me.current?.canAdmin(festival.current)}
