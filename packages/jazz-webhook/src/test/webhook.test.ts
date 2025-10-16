@@ -6,8 +6,8 @@ import {
   WebhookRegistry,
   WebhookRegistration,
   RegistryState,
-  isTxSuccessful,
 } from "../webhook.js";
+import { isTxSuccessful } from "../successMap.js";
 import { CojsonInternalTypes } from "cojson";
 
 // Define test schemas

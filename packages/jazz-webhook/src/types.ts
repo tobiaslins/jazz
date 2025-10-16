@@ -27,7 +27,7 @@ export interface WebhookInfo {
   active: boolean;
   successMap: {
     [sessionID: string]: {
-      continouslySuccessfulUpTo: number;
+      nContinouslySuccessful: number;
       laterSuccessfulTransactions: number[];
     };
   };

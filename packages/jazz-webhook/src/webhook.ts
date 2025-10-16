@@ -1,19 +1,11 @@
 import { co, z, Account, Group } from "jazz-tools";
+import { CojsonInternalTypes, CoID, RawCoValue } from "cojson";
 import {
-  CojsonInternalTypes,
-  emptyKnownState,
-  SessionID,
-  CoID,
-  RawCoValue,
-} from "cojson";
-
-export const SuccessMap = co.record(
-  z.string(), // sessionID
-  z.object({
-    continouslySuccessfulUpTo: z.number(),
-    laterSuccessfulTransactions: z.array(z.number()),
-  }),
-);
+  getTransactionsToRetry,
+  isTxSuccessful,
+  markSuccessful,
+  SuccessMap,
+} from "./successMap.js";
 
 export const WebhookRegistration = co.map({
   webhookUrl: z.string(),
@@ -35,7 +27,7 @@ export interface JazzWebhookOptions {
 
 export const DEFAULT_JazzWebhookOptions: Required<JazzWebhookOptions> = {
   maxRetries: 3,
-  baseDelayMs: 1000,
+  baseDelayMs: 20_000,
 };
 
 export class WebhookRegistry {
@@ -325,73 +317,3 @@ export const registerWebhook = async (
 
   return registration.$jazz.id;
 };
-
-function markSuccessful(
-  successMap: co.loaded<typeof SuccessMap, { $each: true }>,
-  txID: CojsonInternalTypes.TransactionID,
-) {
-  let entry = successMap[txID.sessionID];
-  if (!entry) {
-    entry = {
-      continouslySuccessfulUpTo: 0,
-      laterSuccessfulTransactions: [],
-    };
-    successMap.$jazz.set(txID.sessionID, entry);
-  }
-
-  let newContinouslySuccessfulUpTo = entry.continouslySuccessfulUpTo;
-  let newLaterSuccessfulTransactions = [
-    ...entry.laterSuccessfulTransactions,
-    txID.txIndex,
-  ];
-
-  while (
-    newLaterSuccessfulTransactions.length > 0 &&
-    newLaterSuccessfulTransactions[0] === newContinouslySuccessfulUpTo + 1
-  ) {
-    newContinouslySuccessfulUpTo++;
-    newLaterSuccessfulTransactions.shift();
-  }
-
-  successMap.$jazz.set(txID.sessionID, {
-    continouslySuccessfulUpTo: newContinouslySuccessfulUpTo,
-    laterSuccessfulTransactions: newLaterSuccessfulTransactions,
-  });
-}
-
-function* getTransactionsToRetry(
-  successMap: co.loaded<typeof SuccessMap, { $each: true }>,
-  knownState: CojsonInternalTypes.CoValueKnownState,
-) {
-  for (const [sessionID, knownTxCount] of Object.entries(knownState.sessions)) {
-    const entry = successMap[sessionID];
-
-    console.log("entry", sessionID, entry);
-
-    const start = entry ? entry.continouslySuccessfulUpTo + 1 : 0;
-    const end = knownTxCount;
-
-    for (let txIndex = start; txIndex < end; txIndex++) {
-      if (!entry?.laterSuccessfulTransactions.includes(txIndex)) {
-        yield {
-          sessionID: sessionID as SessionID,
-          txIndex: txIndex,
-        } satisfies CojsonInternalTypes.TransactionID;
-      }
-    }
-  }
-}
-
-export function isTxSuccessful(
-  successMap: co.loaded<typeof SuccessMap, { $each: true }>,
-  txID: CojsonInternalTypes.TransactionID,
-) {
-  const entry = successMap[txID.sessionID];
-  if (!entry) {
-    return false;
-  }
-  return (
-    entry.continouslySuccessfulUpTo >= txID.txIndex ||
-    entry.laterSuccessfulTransactions.includes(txID.txIndex)
-  );
-}
