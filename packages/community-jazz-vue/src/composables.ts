@@ -103,7 +103,6 @@ export function useAccount<
 ): {
   me: ComputedRef<MaybeLoaded<Loaded<A, R>>>;
   agent: AnonymousJazzAgent | Loaded<A, true>;
-  logOut: () => void;
 } {
   const context = useJazzContext();
   const contextManager = useJazzContextManager<InstanceOfSchema<A>>();
@@ -119,7 +118,6 @@ export function useAccount<
     return {
       me: computed(() => null) as any,
       agent: agent,
-      logOut: context.value.logOut,
     };
   }
 
@@ -138,8 +136,18 @@ export function useAccount<
       return value ? markRaw(value) : value;
     }) as any,
     agent: agent,
-    logOut: context.value.logOut,
   };
+}
+
+/**
+ * Returns a function for logging out the current account.
+ */
+export function useLogOut(): () => void {
+  const context = useJazzContext();
+  if (!context.value) {
+    throw new Error("useLogOut must be used within a JazzProvider");
+  }
+  return context.value.logOut;
 }
 
 export function useCoState<
