@@ -533,16 +533,15 @@ export function useAccountSubscription<
 
 /**
  * React hook for accessing the current user's account and authentication state.
- * 
+ *
  * This hook provides access to the current user's account profile and root data,
  * along with authentication utilities. It automatically handles subscription to
  * the user's account data and provides a logout function.
- * 
+ *
  * @returns An object containing:
  * - `me`: The account data, or an {@link Unloaded} value. Use `$isLoaded` to check whether the
  * CoValue is loaded, or use {@link MaybeLoaded.$jazz.loadingState} to get the detailed loading state.
- * - `logOut`: Function to log out the current user
-
+ *
  * @example
  * ```tsx
  * // Deep loading with resolve queries
@@ -559,7 +558,7 @@ export function useAccountSubscription<
  *       },
  *     },
  *   });
- * 
+ *
  *   if (!me.$isLoaded) {
  *     switch (me.$jazz.loadingState) {
  *       case "unauthorized":
@@ -570,7 +569,7 @@ export function useAccountSubscription<
  *         return "Loading account...";
  *     }
  *   }
- * 
+ *
  *   return (
  *     <div>
  *       <h1>{me.profile.name}'s projects</h1>
@@ -585,7 +584,7 @@ export function useAccountSubscription<
  *   );
  * }
  * ```
- * 
+ *
  */
 export function useAccount<
   A extends AccountClass<Account> | AnyAccountSchema,
@@ -641,6 +640,14 @@ export function useAccount<
     me: value,
     logOut: contextManager.logOut,
   };
+}
+
+/**
+ * Returns a function for logging out the current account.
+ */
+export function useLogOut(): () => void {
+  const contextManager = useJazzContextManager();
+  return contextManager.logOut;
 }
 
 /**

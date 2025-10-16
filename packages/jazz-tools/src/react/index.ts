@@ -9,6 +9,7 @@ export {
   useAuthSecretStorage,
   useAccountWithSelector,
   useAgent,
+  useLogOut,
   useSyncConnectionStatus,
   useCoValueSubscription,
   useAccountSubscription,

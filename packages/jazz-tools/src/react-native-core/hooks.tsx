@@ -15,6 +15,7 @@ export {
   useAccount,
   useAccountWithSelector,
   useAgent,
+  useLogOut,
   useSyncConnectionStatus,
   useCoValueSubscription,
   useAccountSubscription,
