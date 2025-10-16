@@ -49,7 +49,7 @@ export function Festival() {
   const { me } = useAccount(JazzFestAccount, { 
     resolve: { root: { myFestival: { $each: true } } } 
   });
-  if (!me.$isLoaded) return null; // not loaded yet
+  if (!me.$isLoaded) return null;
   // [!code ++:4]
   const inviteLinkClickHandler = () => {
     const link = createInviteLink(me.root.myFestival, "writer")
@@ -87,7 +87,7 @@ export function Festival() {
   let inviteLink = $state<string | null>(null);
 
   function inviteLinkClickHandler() {
-    if (!me.current.$isLoaded) return; // not loaded yet
+    if (!me.current.$isLoaded) return;
     const link = createInviteLink(me.current?.root.myFestival, "writer")
     inviteLink = link;
   }
@@ -148,7 +148,7 @@ export function Festival() {
       router.push(`/festival/${festivalID}`);
     },
   });
-  if (!me.$isLoaded) return null; // not loaded yet
+  if (!me.$isLoaded) return null;
 
   const inviteLinkClickHandler = () => {
     const link = createInviteLink(me.root.myFestival, "writer")
@@ -193,7 +193,7 @@ export function Festival() {
 	});
 
   function inviteLinkClickHandler() {
-    if (!me.current.$isLoaded) return; // not loaded yet
+    if (!me.current.$isLoaded) return;
     const link = createInviteLink(me.current?.root.myFestival, "writer")
     inviteLink = link;
   }
@@ -256,7 +256,7 @@ export function Festival({id}: {id?: string}) {
   
   const festivalId = id ?? me?.root.myFestival.$jazz.id;
   const festival = useCoState(FestivalSchema, festivalId);
-  if (!festival.$isLoaded) return null; // not loaded yet
+  if (!festival.$isLoaded) return null;
   const inviteLinkClickHandler = () => {
     const link = createInviteLink(festival, "writer");
     setInviteLink(link);
@@ -331,9 +331,9 @@ export function Festival({id}: {id?: string}) {
   const festivalId = id ?? (me.$isLoaded ? me.root.myFestival.$jazz.id : undefined);
   const festival = useCoState(FestivalSchema, festivalId);
   // [!code --:1]
-  if (!me.$isLoaded) return null; // not loaded yet
+  if (!me.$isLoaded) return null;
   // [!code ++:1]
-  if (!festival.$isLoaded) return null; // not loaded yet
+  if (!festival.$isLoaded) return null;
   const inviteLinkClickHandler = () => {
     // [!code --:1]
     const link = createInviteLink(me.root.myFestival, "writer");
@@ -390,7 +390,7 @@ export function Festival({id}: {id?: string}) {
 	});
 
   function inviteLinkClickHandler() {
-    if (!me.current.$isLoaded) return; // not loaded yet
+    if (!me.current.$isLoaded) return;
     const link = createInviteLink(me.current?.root.myFestival, "writer")
     inviteLink = link;
   }
@@ -454,10 +454,10 @@ export function NewBand({ id }: { id?: string }) {
   
   const handleSave = () => {
     // [!code --:2]
-    if (!me.$isLoaded) return; // not loaded yet
+    if (!me.$isLoaded) return;
     me.root.myFestival.$jazz.push({ name });
     // [!code ++:2]
-    if (!festival.$isLoaded) return; // not loaded yet
+    if (!festival.$isLoaded) return;
     festival.$jazz.push({ name });
     setName("");
   };
@@ -498,10 +498,10 @@ export function NewBand({ id }: { id?: string }) {
 
   function handleSave() {
     // [!code --:2]
-    if (!me.current.$isLoaded) return; // not loaded yet
+    if (!me.current.$isLoaded) return;
     me.current.root.myFestival.$jazz.push({ name });
     // [!code ++:2]
-    if (!festival.current.$isLoaded) return; // not loaded yet
+    if (!festival.current.$isLoaded) return;
     festival.current.$jazz.push({ name });
     name = "";
   }

@@ -236,7 +236,7 @@ export function NewBand() {
   const [name, setName] = useState("");
 
   const handleSave = () => {
-    if (!me.$isLoaded) return; // not loaded yet
+    if (!me.$isLoaded) return;
     me.root.myFestival.$jazz.push({ name });
     setName("");
   };
@@ -267,7 +267,7 @@ export function NewBand() {
   let name = $state("");
 
   function handleSave() {
-    if (!me.current.$isLoaded) return; // not loaded yet
+    if (!me.current.$isLoaded) return;
     me.current.root.myFestival.$jazz.push({ name });
     name = "";
   }
@@ -302,7 +302,7 @@ export function Festival() {
   const { me } = useAccount(JazzFestAccount, { 
     resolve: { root: { myFestival: { $each: true } } } 
   });
-  if (!me.$isLoaded) return null; // not loaded yet
+  if (!me.$isLoaded) return null;
   return (
     <ul>
       {me.root.myFestival.map((band) => <li key={band.$jazz.id}>{band.name}</li>)}

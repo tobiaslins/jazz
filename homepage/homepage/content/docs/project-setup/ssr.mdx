@@ -244,7 +244,7 @@ export function Festival() {
   const { me } = useAccount(JazzFestAccount, {
     resolve: { root: { myFestival: { $each: true } } },
   });
-  if (!me.$isLoaded) return null; // not loaded yet
+  if (!me.$isLoaded) return null; 
   return (
     <>
       <ul>
