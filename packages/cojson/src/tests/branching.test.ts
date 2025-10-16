@@ -654,7 +654,7 @@ describe("Branching Logic", () => {
       expect(map.get("key")).toBe("bob");
     });
 
-    test("should not allow the creation of branches to accounts with read access", async () => {
+    test("should not allow the creation of public branches to accounts with read access", async () => {
       const alice = setupTestNode({
         connected: true,
       });
