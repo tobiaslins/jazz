@@ -6,7 +6,7 @@ import {
   LastAndAllCoMapEdits,
   Loaded,
 } from "jazz-tools";
-import { useAccount, useCoState } from "jazz-tools/react-native";
+import { useAccount, useCoState, useLogOut } from "jazz-tools/react-native";
 import { useEffect, useState } from "react";
 import {
   Button,
@@ -22,7 +22,8 @@ import {
 import { Chat, Message } from "./schema";
 
 export function ChatScreen({ navigation }: { navigation: any }) {
-  const { me, logOut } = useAccount();
+  const { me } = useAccount();
+  const logOut = useLogOut();
   const [chatId, setChatId] = useState<string>();
   const [chatIdInput, setChatIdInput] = useState<string>();
   const loadedChat = useCoState(Chat, chatId, {
