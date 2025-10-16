@@ -13,7 +13,6 @@ export {
   useAuthSecretStorage,
   useIsAuthenticated,
   useAccount,
-  useCoStateWithSelector,
   useAccountWithSelector,
   useSyncConnectionStatus,
   useCoValueSubscription,

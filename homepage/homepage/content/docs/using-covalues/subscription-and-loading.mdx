@@ -536,20 +536,19 @@ unsubscribe();
 <ContentByFramework framework={["react", "react-native", "react-native-expo"]}>
 
 ## Selectors [!framework=react,react-native,react-native-expo]
-Sometimes, you only need to react to changes in specific parts of a CoValue. In those cases, you can use the `useCoStateWithSelector` hook to specify what data you are interested in.
-
-When you use `useCoStateWithSelector` , in addition to `resolve` you can also add a `select` and optionally an `equalityFn` option. 
+Sometimes, you only need to react to changes in specific parts of a CoValue. In those cases, you can provide a `select` function to specify what data you are interested in,
+and an optional `equalityFn` option to control re-renders. 
 
 - `select`: extract the fields you care about
 - `equalityFn`: (optional) control when data should be considered equal
 
 <CodeGroup>
 ```tsx
-import { useCoStateWithSelector } from "jazz-tools/react";
+import { useCoState } from "jazz-tools/react";
 
 function ProjectView({ projectId }: { projectId: string }) {
   // Subscribe to a project
-  const project = useCoStateWithSelector(Project, projectId, {
+  const project = useCoState(Project, projectId, {
     resolve: {
       tasks: true
     },

@@ -2,7 +2,7 @@ import { FileStream, ImageDefinition } from "jazz-tools";
 import { highestResAvailable } from "jazz-tools/media";
 import { forwardRef, useEffect, useMemo, useState } from "react";
 import { Image as RNImage, ImageProps as RNImageProps } from "react-native";
-import { useCoStateWithSelector } from "../hooks.js";
+import { useCoState } from "../hooks.js";
 
 export type ImageProps = Omit<RNImageProps, "width" | "height" | "source"> & {
   /** The ID of the ImageDefinition to display */
@@ -68,7 +68,7 @@ export const Image = forwardRef<RNImage, ImageProps>(function Image(
   { imageId, width, height, ...props },
   ref,
 ) {
-  const image = useCoStateWithSelector(ImageDefinition, imageId, {
+  const image = useCoState(ImageDefinition, imageId, {
     select: (image) => (image.$isLoaded ? image : null),
   });
   const [src, setSrc] = useState<string | undefined>(

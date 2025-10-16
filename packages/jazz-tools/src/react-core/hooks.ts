@@ -233,7 +233,7 @@ function useGetCurrentValue<C extends CoValue>(
  *
  * function ProjectTitle({ projectId }: { projectId: string }) {
  *   // Only re-render when the project name changes, not other fields
- *   const projectName = useCoStateWithSelector(
+ *   const projectName = useCoState(
  *     Project,
  *     projectId,
  *     {
@@ -335,7 +335,7 @@ function useGetCurrentValue<C extends CoValue>(
  * const TaskList = co.list(Task);
  *
  * function TaskCount({ listId }: { listId: string }) {
- *   const taskStats = useCoStateWithSelector(
+ *   const taskStats = useCoState(
  *     TaskList,
  *     listId,
  *     {
@@ -422,8 +422,6 @@ export function useCoState<
 
   return value;
 }
-
-export const useCoStateWithSelector = useCoState;
 
 export function useSubscriptionSelector<
   S extends CoValueClassOrSchema,

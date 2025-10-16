@@ -50,7 +50,6 @@ export {
   experimental_useInboxSender,
   useJazzContext,
   useAccount,
-  useCoStateWithSelector,
   useAccountWithSelector,
   useSyncConnectionStatus,
   useCoValueSubscription,
