@@ -17,7 +17,7 @@ const htmlToMarkdown = new NodeHtmlMarkdown();
 
 const mockMdxComponentsPath = path.resolve(__dirname, "mock-mdx-components.mjs");
 
-export async function mdxToMd(filePath) {
+export async function mdxToMd(filePath, framework) {
   const source = await fs.readFile(filePath, "utf-8");
   const mockComponentsContent = await fs.readFile(mockMdxComponentsPath, "utf-8");
 
@@ -51,6 +51,11 @@ export async function mdxToMd(filePath) {
       options.alias = {
         ...(options.alias || {}),
         "@/components/forMdx": mockMdxComponentsPath,
+      };
+      // Define CURRENT_FRAMEWORK as a build-time constant
+      options.define = {
+        ...(options.define || {}),
+        'CURRENT_FRAMEWORK': framework ? `"${framework}"` : 'null',
       };
       return options;
     },
