@@ -532,14 +532,49 @@ export function useAccountSubscription<
 }
 
 /**
- * React hook for accessing the current user's account and authentication state.
+ * React hook for accessing the current user's account.
  *
- * This hook provides access to the current user's account profile and root data,
- * along with authentication utilities. It automatically handles subscription to
- * the user's account data and provides a logout function.
+ * This hook provides access to the current user's account profile and root data.
+ * It automatically handles the subscription lifecycle and supports deep loading of nested
+ * CoValues through resolve queries.
+ *
+ * The {@param options.select} function allows returning only specific parts of the account data,
+ * which helps reduce unnecessary re-renders by narrowing down the returned data.
+ * Additionally, you can provide a custom {@param options.equalityFn} to further optimize
+ * performance by controlling when the component should re-render based on the selected data.
  *
  * @returns The account data, or an {@link Unloaded} value. Use `$isLoaded` to check whether the
  * CoValue is loaded, or use {@link MaybeLoaded.$jazz.loadingState} to get the detailed loading state.
+ * If a selector function is provided, returns the result of the selector function.
+ *
+ * @example
+ * ```tsx
+ * // Select only specific fields to reduce re-renders
+ * const MyAppAccount = co.account({
+ *   profile: co.profile(),
+ *   root: co.map({
+ *     name: z.string(),
+ *     email: z.string(),
+ *     lastLogin: z.date(),
+ *   }),
+ * });
+ *
+ * function UserProfile({ accountId }: { accountId: string }) {
+ *   // Only re-render when the profile name changes, not other fields
+ *   const profileName = useAccountWithSelector(
+ *     MyAppAccount,
+ *     {
+ *       resolve: {
+ *         profile: true,
+ *         root: true,
+ *       },
+ *       select: (account) => account.$isLoaded ? account.profile.name : "Loading...",
+ *     }
+ *   );
+ *
+ *   return <h1>{profileName}</h1>;
+ * }
+ * ```
  *
  * @example
  * ```tsx
@@ -588,6 +623,7 @@ export function useAccountSubscription<
 export function useAccount<
   A extends AccountClass<Account> | AnyAccountSchema,
   R extends ResolveQuery<A> = true,
+  TSelectorReturn = MaybeLoaded<Loaded<A, R>>,
 >(
   /** The account schema to use. Defaults to the base Account schema */
   AccountSchema: A = Account as unknown as A,
@@ -595,127 +631,8 @@ export function useAccount<
   options?: {
     /** Resolve query to specify which nested CoValues to load from the account */
     resolve?: ResolveQueryStrict<A, R>;
-    /**
-     * Create or load a branch for isolated editing.
-     *
-     * Branching lets you take a snapshot of the current state and start modifying it without affecting the canonical/shared version.
-     * It's a fork of your data graph: the same schema, but with diverging values.
-     *
-     * The checkout of the branch is applied on all the resolved values.
-     *
-     * @param name - A unique name for the branch. This identifies the branch
-     *   and can be used to switch between different branches of the same CoValue.
-     * @param owner - The owner of the branch. Determines who can access and modify
-     *   the branch. If not provided, the branch is owned by the current user.
-     *
-     * For more info see the [branching](https://jazz.tools/docs/react/using-covalues/version-control) documentation.
-     */
-    unstable_branch?: BranchDefinition;
-  },
-): MaybeLoaded<Loaded<A, R>> {
-  const subscription = useAccountSubscription(AccountSchema, options);
-  const getCurrentValue = useGetCurrentValue(subscription);
-
-  const value = React.useSyncExternalStore<MaybeLoaded<Loaded<A, R>>>(
-    React.useCallback(
-      (callback) => {
-        if (!subscription) {
-          return () => {};
-        }
-
-        return subscription.subscribe(callback);
-      },
-      [subscription],
-    ),
-    getCurrentValue,
-    getCurrentValue,
-  );
-
-  return value;
-}
-
-/**
- * Returns a function for logging out the current account.
- */
-export function useLogOut(): () => void {
-  const contextManager = useJazzContextManager();
-  return contextManager.logOut;
-}
-
-/**
- * React hook for accessing the current agent. An agent can either be:
- * - an Authenticated Account, if the user is logged in
- * - an Anonymous Account, if the user didn't log in
- * - or an anonymous agent, if in guest mode
- *
- * The agent can be used as the `loadAs` parameter for load and subscribe methods.
- */
-export function useAgent<A extends AccountClass<Account> | AnyAccountSchema>(
-  /** The account schema to use. Defaults to the base Account schema */
-  AccountSchema: A = Account as unknown as A,
-): AnonymousJazzAgent | Loaded<A, true> {
-  const contextManager = useJazzContextManager<InstanceOfSchema<A>>();
-  const agent = getCurrentAccountFromContextManager(contextManager);
-  return agent;
-}
-
-/**
- * React hook for accessing the current user's account with selective data extraction and custom equality checking.
- *
- * This hook extends `useAccount` by allowing you to select only specific parts of the account data
- * through a selector function, which helps reduce unnecessary re-renders by narrowing down the
- * returned data. Additionally, you can provide a custom equality function to further optimize
- * performance by controlling when the component should re-render based on the selected data.
- *
- * The hook automatically handles the subscription lifecycle and supports deep loading of nested
- * CoValues through resolve queries, just like `useAccount`.
- *
- * @returns The result of the selector function applied to the loaded account data
- *
- * @example
- * ```tsx
- * // Select only specific fields to reduce re-renders
- * const MyAppAccount = co.account({
- *   profile: co.profile(),
- *   root: co.map({
- *     name: z.string(),
- *     email: z.string(),
- *     lastLogin: z.date(),
- *   }),
- * });
- *
- * function UserProfile({ accountId }: { accountId: string }) {
- *   // Only re-render when the profile name changes, not other fields
- *   const profileName = useAccountWithSelector(
- *     MyAppAccount,
- *     {
- *       resolve: {
- *         profile: true,
- *         root: true,
- *       },
- *       select: (account) => account.$isLoaded ? account.profile.name : "Loading...",
- *     }
- *   );
- *
- *   return <h1>{profileName}</h1>;
- * }
- * ```
- *
- * For more examples, see the [subscription and deep loading](https://jazz.tools/docs/react/using-covalues/subscription-and-loading) documentation.
- */
-export function useAccountWithSelector<
-  A extends AccountClass<Account> | AnyAccountSchema,
-  TSelectorReturn,
-  R extends ResolveQuery<A> = true,
->(
-  /** The account schema to use. Defaults to the base Account schema */
-  AccountSchema: A = Account as unknown as A,
-  /** Configuration for the subscription and selection */
-  options: {
-    /** Resolve query to specify which nested CoValues to load from the account */
-    resolve?: ResolveQueryStrict<A, R>;
     /** Select which value to return from the account data */
-    select: (account: MaybeLoaded<Loaded<A, R>>) => TSelectorReturn;
+    select?: (account: MaybeLoaded<Loaded<A, R>>) => TSelectorReturn;
     /** Equality function to determine if the selected value has changed, defaults to `Object.is` */
     equalityFn?: (a: TSelectorReturn, b: TSelectorReturn) => boolean;
     /**
@@ -755,10 +672,37 @@ export function useAccountWithSelector<
     ),
     getCurrentValue,
     getCurrentValue,
-    options.select,
-    options.equalityFn ?? Object.is,
+    options?.select ?? ((value) => value as TSelectorReturn),
+    options?.equalityFn ?? Object.is,
   );
 }
+
+/**
+ * Returns a function for logging out the current account.
+ */
+export function useLogOut(): () => void {
+  const contextManager = useJazzContextManager();
+  return contextManager.logOut;
+}
+
+/**
+ * React hook for accessing the current agent. An agent can either be:
+ * - an Authenticated Account, if the user is logged in
+ * - an Anonymous Account, if the user didn't log in
+ * - or an anonymous agent, if in guest mode
+ *
+ * The agent can be used as the `loadAs` parameter for load and subscribe methods.
+ */
+export function useAgent<A extends AccountClass<Account> | AnyAccountSchema>(
+  /** The account schema to use. Defaults to the base Account schema */
+  AccountSchema: A = Account as unknown as A,
+): AnonymousJazzAgent | Loaded<A, true> {
+  const contextManager = useJazzContextManager<InstanceOfSchema<A>>();
+  const agent = getCurrentAccountFromContextManager(contextManager);
+  return agent;
+}
+
+export const useAccountWithSelector = useAccount;
 
 export function experimental_useInboxSender<
   I extends CoValue,
