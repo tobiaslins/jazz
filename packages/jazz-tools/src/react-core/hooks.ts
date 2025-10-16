@@ -541,7 +541,6 @@ export function useAccountSubscription<
  * @returns An object containing:
  * - `me`: The account data, or an {@link Unloaded} value. Use `$isLoaded` to check whether the
  * CoValue is loaded, or use {@link MaybeLoaded.$jazz.loadingState} to get the detailed loading state.
- * - `agent`: The current agent (anonymous or authenticated user). Can be used as `loadAs` parameter for load and subscribe methods.
  * - `logOut`: Function to log out the current user
 
  * @example
@@ -617,14 +616,11 @@ export function useAccount<
   },
 ): {
   me: MaybeLoaded<Loaded<A, R>>;
-  agent: AnonymousJazzAgent | Loaded<A, true>;
   logOut: () => void;
 } {
   const contextManager = useJazzContextManager<InstanceOfSchema<A>>();
   const subscription = useAccountSubscription(AccountSchema, options);
   const getCurrentValue = useGetCurrentValue(subscription);
-
-  const agent = getCurrentAccountFromContextManager(contextManager);
 
   const value = React.useSyncExternalStore<MaybeLoaded<Loaded<A, R>>>(
     React.useCallback(
@@ -643,7 +639,6 @@ export function useAccount<
 
   return {
     me: value,
-    agent,
     logOut: contextManager.logOut,
   };
 }
@@ -653,6 +648,8 @@ export function useAccount<
  * - an Authenticated Account, if the user is logged in
  * - an Anonymous Account, if the user didn't log in
  * - or an anonymous agent, if in guest mode
+ *
+ * The agent can be used as the `loadAs` parameter for load and subscribe methods.
  */
 export function useAgent<A extends AccountClass<Account> | AnyAccountSchema>(
   /** The account schema to use. Defaults to the base Account schema */

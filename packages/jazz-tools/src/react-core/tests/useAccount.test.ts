@@ -3,7 +3,7 @@
 import { CoValueLoadingState, Group, RefsToResolve, co, z } from "jazz-tools";
 import { assertLoaded } from "jazz-tools/testing";
 import { assert, beforeEach, describe, expect, it } from "vitest";
-import { useAccount, useJazzContextManager } from "../hooks.js";
+import { useAccount, useAgent, useJazzContextManager } from "../hooks.js";
 import { useIsAuthenticated } from "../index.js";
 import {
   createJazzTestAccount,
@@ -204,18 +204,21 @@ describe("useAccount", () => {
     const account = await createJazzTestGuest();
 
     const { result } = renderHook(
-      () =>
-        useAccount(AccountSchema, {
+      () => {
+        const { me } = useAccount(AccountSchema, {
           resolve: {
             root: true,
           },
-        }),
+        });
+        const agent = useAgent();
+        return { account: me, agent };
+      },
       {
         account,
       },
     );
 
-    expect(result.current.me.$jazz.loadingState).toBe(
+    expect(result.current.account.$jazz.loadingState).toBe(
       CoValueLoadingState.UNAVAILABLE,
     );
     expect(result.current.agent).toBe(account.guest);
