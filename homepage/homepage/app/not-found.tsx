@@ -1,15 +1,13 @@
 "use client";
-import { SideNavLayout } from "@/components/SideNavLayout";
 import { HelpLinks } from "@/components/docs/HelpLinks";
 import { JazzMobileNav } from "@/components/nav";
-import { DocProse } from "@/lib/docMdxContent";
-import { Icon404 } from "@garden-co/design-system/src/components/atoms/icons/404";
+import { Heading } from "@/components/docs/DocHeading";
 import { usePathname } from "next/navigation";
 import { JazzNav } from "@/components/nav";
-
+import { SearchBoxWithResults } from '@/components/SearchBoxWithResults';
+import { DocProse } from "@/lib/docMdxContent";
 
 export default function NotFound() {
-  const text = "Don't Worry 'Bout Me";
   const path = usePathname();
 
   return (
@@ -17,8 +15,14 @@ export default function NotFound() {
       <div className="w-full">
         <JazzNav />
         <DocProse>
-          <h1>Couldn't find that page</h1>
-          <Icon404 className="w-[30%]" />
+          <div className="p-2">
+            <Heading tag="h1">Page Not Found</Heading>
+            <p>
+              Either the link you followed is broken or the content has moved.
+            </p>
+            <p>Were you looking for...</p>
+            <SearchBoxWithResults searchTerms={path.replace('/docs', '').split('/').join(' ').trim()} />
+          </div>
         </DocProse>
       </div>
 
