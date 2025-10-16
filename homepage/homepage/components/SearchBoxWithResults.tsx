@@ -233,20 +233,19 @@ export function SearchBoxWithResults({ searchTerms }: { searchTerms: string }) {
                   <ul>
                     {result.sub_results?.map((subResult) =>
                       subResult.anchor?.element === "h1" ? null : (
-                        <a href={processUrl(subResult.url)}>
-                          <li
-                            key={subResult.id}
-                            className="group cursor-pointer group data-[focus]:bg-stone-100 rounded-lg p-2 dark:data-[focus]:bg-stone-900"
-                          >
-                            <div>
-                              <p className="text-sm text-highlight font-bold">
-                                {subResult.title?.replace("#", "") ||
-                                  "No title"}
-                              </p>
-                              <HighlightedText text={subResult.excerpt || ""} />
-                            </div>
-                          </li>
-                        </a>
+                        <li
+                          key={subResult.id}
+                          className="group cursor-pointer group data-[focus]:bg-stone-100 rounded-lg p-2 dark:data-[focus]:bg-stone-900"
+                        >
+                          <a href={processUrl(subResult.url)}>
+                            <p className="text-sm text-highlight font-bold">
+                              {subResult.title?.replace("#", "") ||
+                                "No title"}
+                            </p>
+                            <HighlightedText text={subResult.excerpt || ""} />
+                          </a>
+                        </li>
+
                       ),
                     )}
                   </ul>
@@ -255,10 +254,10 @@ export function SearchBoxWithResults({ searchTerms }: { searchTerms: string }) {
             </ul>
             <Pagination pages={Math.ceil(results.length / PAGE_LENGTH)} page={page} setPage={setPage} />
           </>
-        ) : query && <div><p className="mt-2">
+        ) : query && <p className="mt-2">
           Sorry, no results for "{query}".
         </p>
-        </div>}
+        }
       </div>
     </>
   );

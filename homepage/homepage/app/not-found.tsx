@@ -22,9 +22,6 @@ export default function NotFound() {
             <p className="text-lg text-pretty leading-relaxed max-w-3xl dark:text-stone-200 md:text-xl">
               Either the link you followed is broken or the content has moved.</p>
           </hgroup>
-          <p className="mb-4">
-
-          </p>
           <label htmlFor="search-in-searchbox" className="font-medium">Were you looking for...</label>
           <SearchBoxWithResults searchTerms={path.replace('/docs', '').split('/').join(' ').trim()} />
 
