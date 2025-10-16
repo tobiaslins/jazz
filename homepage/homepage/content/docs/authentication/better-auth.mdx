@@ -203,7 +203,7 @@ await betterAuthClient.signUp.email(
     onSuccess: async () => {
       // Don't forget to update the profile's name. It's not done automatically.
       if (account?.me?.profile) {
-        account.me.profile.name = "John Doe";
+        account.me.profile.$jazz.set("name", "John Doe");
       }
     },
   }
