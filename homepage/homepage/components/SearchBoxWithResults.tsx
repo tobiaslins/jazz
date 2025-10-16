@@ -5,7 +5,6 @@ import { useFramework } from "@/lib/use-framework";
 import { Input } from "quint-ui";
 import React, { useState, useEffect } from "react";
 import Pagination from "./Pagination";
-import Link from "next/link";
 
 // Types
 interface PagefindResult {
@@ -198,9 +197,9 @@ export function SearchBoxWithResults({ searchTerms }: { searchTerms: string }) {
   if (loading) return null;
   return (
     <>
-      <Input value={query} onChange={(e) => handleSearch(e.target.value)} placeholder="Search" />
+      <Input value={query} onChange={(e) => handleSearch(e.target.value)} placeholder="Search" id="search-in-searchbox" />
 
-      <div className="not-prose">
+      <div className="mt-4">
         {results.length > 0 ? (
           <>
             <small>Page {page + 1} of {Math.ceil(results.length / PAGE_LENGTH)}</small>
@@ -256,10 +255,10 @@ export function SearchBoxWithResults({ searchTerms }: { searchTerms: string }) {
             </ul>
             <Pagination pages={Math.ceil(results.length / PAGE_LENGTH)} page={page} setPage={setPage} />
           </>
-        ) : <div><p className="mt-2">
+        ) : query && <div><p className="mt-2">
           Sorry, no results for "{query}".
         </p>
-          <Link href="/" className="underline">Go home &rarr;</Link></div>}
+        </div>}
       </div>
     </>
   );
