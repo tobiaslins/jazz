@@ -678,7 +678,7 @@ export function useAccount<
 }
 
 /**
- * Returns a function for logging out the current account.
+ * Returns a function for logging out of the current account.
  */
 export function useLogOut(): () => void {
   const contextManager = useJazzContextManager();
