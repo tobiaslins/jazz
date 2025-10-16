@@ -31,7 +31,7 @@ export function SignupForm({ providers }: Props) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const account = useAccount(Account, { resolve: { profile: true } });
+  const { me } = useAccount(Account, { resolve: { profile: true } });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -51,8 +51,8 @@ export function SignupForm({ providers }: Props) {
       },
       {
         onSuccess: async () => {
-          if (account.me.$isLoaded) {
-            account.me.profile.$jazz.set("name", name);
+          if (me.$isLoaded) {
+            me.profile.$jazz.set("name", name);
           }
           router.push("/");
         },

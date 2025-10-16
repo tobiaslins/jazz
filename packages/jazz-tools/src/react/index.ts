@@ -8,6 +8,7 @@ export {
   useJazzContext,
   useAuthSecretStorage,
   useAccountWithSelector,
+  useAgent,
   useSyncConnectionStatus,
   useCoValueSubscription,
   useAccountSubscription,

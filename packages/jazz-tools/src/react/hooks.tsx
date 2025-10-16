@@ -51,6 +51,7 @@ export {
   useJazzContext,
   useAccount,
   useAccountWithSelector,
+  useAgent,
   useSyncConnectionStatus,
   useCoValueSubscription,
   useAccountSubscription,

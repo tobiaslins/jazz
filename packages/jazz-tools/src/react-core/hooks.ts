@@ -649,6 +649,21 @@ export function useAccount<
 }
 
 /**
+ * React hook for accessing the current agent. An agent can either be:
+ * - an Authenticated Account, if the user is logged in
+ * - an Anonymous Account, if the user didn't log in
+ * - or an anonymous agent, if in guest mode
+ */
+export function useAgent<A extends AccountClass<Account> | AnyAccountSchema>(
+  /** The account schema to use. Defaults to the base Account schema */
+  AccountSchema: A = Account as unknown as A,
+): AnonymousJazzAgent | Loaded<A, true> {
+  const contextManager = useJazzContextManager<InstanceOfSchema<A>>();
+  const agent = getCurrentAccountFromContextManager(contextManager);
+  return agent;
+}
+
+/**
  * React hook for accessing the current user's account with selective data extraction and custom equality checking.
  *
  * This hook extends `useAccount` by allowing you to select only specific parts of the account data

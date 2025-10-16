@@ -14,6 +14,7 @@ export {
   useIsAuthenticated,
   useAccount,
   useAccountWithSelector,
+  useAgent,
   useSyncConnectionStatus,
   useCoValueSubscription,
   useAccountSubscription,
