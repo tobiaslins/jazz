@@ -25,7 +25,12 @@ export interface WebhookInfo {
   webhookUrl: string;
   coValueId: string;
   active: boolean;
-  updates: number;
+  successMap: {
+    [sessionID: string]: {
+      continouslySuccessfulUpTo: number;
+      laterSuccessfulTransactions: number[];
+    };
+  };
 }
 
 export interface RegisterWebhookResponse {

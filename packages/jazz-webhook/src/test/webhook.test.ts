@@ -6,7 +6,9 @@ import {
   WebhookRegistry,
   WebhookRegistration,
   RegistryState,
+  isTxSuccessful,
 } from "../webhook.js";
+import { CojsonInternalTypes } from "cojson";
 
 // Define test schemas
 const TestCoMap = co.map({
@@ -68,7 +70,7 @@ async function setupTest(): Promise<TestContext> {
   await webhookServer.start();
   const registryState = account.root.webhookRegistry;
   const webhookRegistry = new WebhookRegistry(registryState, {
-    baseDelayMs: 1,
+    baseDelayMs: 10,
   });
   webhookRegistry.start();
 
@@ -104,7 +106,7 @@ describe("jazz-webhook", () => {
       expect(registryState[webhookId]!.webhookUrl).toBe(webhookServer.getUrl());
       expect(registryState[webhookId]!.coValueId).toBe("co_z1234567890abcdef");
       expect(registryState[webhookId]!.active).toBe(true);
-      expect(registryState[webhookId]!.lastSuccessfulEmit?.v).toBe(-1);
+      expect(Object.keys(registryState[webhookId]!.successMap!).length).toBe(0);
     });
 
     test("should throw error for invalid callback URL", async () => {
@@ -213,14 +215,15 @@ describe("jazz-webhook", () => {
 
       // Make a change to trigger webhook
       testMap.$jazz.set("value", "changed");
+      const txID = testMap.$jazz.raw.lastEditAt("value")?.tx;
 
       // Wait for webhook to be emitted
-      const requests = await webhookServer.waitForRequests(1, 3000);
+      const requests = await webhookServer.waitForRequests(2, 3000);
 
-      expect(requests.length).toBeGreaterThanOrEqual(1);
+      expect(requests.length).toBe(2);
       const lastRequest = webhookServer.getLastRequest();
       expect(lastRequest.coValueId).toBe(coValueId);
-      expect(lastRequest.updates).toBeDefined();
+      expect(lastRequest.txID).toEqual(txID);
     });
 
     test("should queue multiple changes and emit only the latest", async () => {
@@ -274,7 +277,7 @@ describe("jazz-webhook", () => {
 
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      expect(webhook!.lastSuccessfulEmit!.v).toBe(lastRequest.updates);
+      expect(isTxSuccessful(webhook!.successMap!, lastRequest.txID)).toBe(true);
     });
 
     test("should retry failed webhooks with exponential backoff", async () => {
@@ -355,49 +358,6 @@ describe("jazz-webhook", () => {
       expect(request.coValueId).toBe(coValueId);
     });
 
-    test("should batch subsequent updates", async () => {
-      const { account, webhookServer, webhookRegistry } = await setupTest();
-
-      const testMap = TestCoMap.create({ value: "initial" }, account.root);
-      const coValueId = testMap.$jazz.id as `co_z${string}`;
-
-      // Set up server with slow response
-      webhookServer.setResponse(0, 200, "Success", 50);
-      webhookServer.setResponse(1, 200, "Success", 50);
-      webhookServer.setResponse(2, 200, "Success", 50);
-      webhookServer.setResponse(3, 200, "Success", 50);
-
-      const webhookId = await webhookRegistry.register(
-        webhookServer.getUrl(),
-        coValueId,
-      );
-
-      const hash = await getWebhookUpdates(webhookId);
-
-      testMap.$jazz.set("value", "changed1");
-
-      const hash2 = await waitForWebhookEmitted(webhookId, hash);
-      await webhookServer.waitForRequests(1, 5000);
-
-      // It should run the first one and enqueue the last one
-      testMap.$jazz.set("value", "changed2");
-      testMap.$jazz.set("value", "changed3");
-      testMap.$jazz.set("value", "changed4");
-      testMap.$jazz.set("value", "changed5");
-      testMap.$jazz.set("value", "changed6");
-      testMap.$jazz.set("value", "changed7");
-      testMap.$jazz.set("value", "changed8");
-      testMap.$jazz.set("value", "changed9");
-      testMap.$jazz.set("value", "changed10");
-
-      await waitForWebhookEmitted(webhookId, hash2);
-      await webhookServer.waitForRequests(3, 5000);
-
-      const requests = webhookServer.requests;
-
-      expect(requests.length).toBe(3);
-    });
-
     test("should handle webhook unregistration cleanup", async () => {
       const { account, webhookServer, webhookRegistry } = await setupTest();
 
@@ -411,12 +371,15 @@ describe("jazz-webhook", () => {
 
       // Make initial change
       testMap.$jazz.set("value", "changed");
-      await webhookServer.waitForRequests(1, 3000);
+      await webhookServer.waitForRequests(2, 3000);
 
       const initialRequestCount = webhookServer.requests.length;
 
       // Unregister webhook
       webhookRegistry.unregister(webhookId);
+
+      // Wait a bit to ensure the unregistration is processed
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Make another change - should not trigger webhook
       testMap.$jazz.set("value", "changed_again");
@@ -465,7 +428,7 @@ describe("jazz-webhook", () => {
 
       // Wait for webhooks to be emitted
       // TODO: why are we getting two requests for webhook1
-      const requests = await webhookServer.waitForRequests(3, 3000);
+      const requests = await webhookServer.waitForRequests(4, 3000);
 
       expect(requests.length).toBeGreaterThanOrEqual(2);
 
@@ -479,7 +442,9 @@ describe("jazz-webhook", () => {
       const { account, webhookServer, webhookRegistry } = await setupTest();
 
       const testMap1 = TestCoMap.create({ value: "initial1" }, account.root);
+      const initialTxID1 = testMap1.$jazz.raw.lastEditAt("value")!.tx;
       const testMap2 = TestCoMap.create({ value: "initial2" }, account.root);
+      const initialTxID2 = testMap2.$jazz.raw.lastEditAt("value")!.tx;
       const coValueId1 = testMap1.$jazz.id as `co_z${string}`;
       const coValueId2 = testMap2.$jazz.id as `co_z${string}`;
 
@@ -493,22 +458,20 @@ describe("jazz-webhook", () => {
         coValueId2,
       );
 
-      const hash1 = await waitForWebhookEmitted(webhookId1, -1);
-      const finalHash2 = await waitForWebhookEmitted(webhookId2, -1);
+      await waitForWebhookEmitted(webhookId1, initialTxID1);
+      await waitForWebhookEmitted(webhookId2, initialTxID2);
 
       webhookRegistry.shutdown();
 
       testMap1.$jazz.set("value", "changed");
+      const changedTxID1 = testMap1.$jazz.raw.lastEditAt("value")!.tx;
 
       webhookRegistry.start();
 
-      const finalHash1 = await waitForWebhookEmitted(webhookId1, hash1);
+      await waitForWebhookEmitted(webhookId1, changedTxID1);
 
       // Wait some extra time to ensure that we have only one extra request
       await new Promise((resolve) => setTimeout(resolve, 100));
-
-      expect(await getWebhookUpdates(webhookId1)).toBe(finalHash1);
-      expect(await getWebhookUpdates(webhookId2)).toBe(finalHash2);
 
       // The two initial updates, plus the one we made before restarting
       expect(webhookServer.getRequestCount()).toBe(3);
@@ -551,30 +514,31 @@ describe("jazz-webhook", () => {
   });
 });
 
-async function getWebhookUpdates(id: string) {
+async function getWebhookSuccessMap(id: string) {
   const webhook = await WebhookRegistration.load(id, {
     resolve: {
-      lastSuccessfulEmit: true,
+      successMap: { $each: true },
     },
   });
   assert(webhook);
-  return webhook.lastSuccessfulEmit.v;
+  return webhook.successMap;
 }
 
-async function waitForWebhookEmitted(id: string, hash: number) {
+async function waitForWebhookEmitted(
+  id: string,
+  txID: CojsonInternalTypes.TransactionID,
+) {
   const webhook = await WebhookRegistration.load(id, {
     resolve: {
-      lastSuccessfulEmit: true,
+      successMap: { $each: true },
     },
   });
 
   assert(webhook);
 
-  await waitFor(() => {
-    expect(webhook.lastSuccessfulEmit.v).not.toBe(hash);
+  return waitFor(() => {
+    expect(isTxSuccessful(webhook.successMap!, txID)).toBe(true);
   });
-
-  return webhook.lastSuccessfulEmit.v;
 }
 
 function waitFor(callback: () => boolean | void | Promise<boolean | void>) {

@@ -1,10 +1,11 @@
 import { createServer, IncomingMessage, ServerResponse, Server } from "http";
 import { AddressInfo } from "net";
 import { EventEmitter } from "events";
+import { CojsonInternalTypes } from "cojson";
 
 export interface WebhookRequest {
   coValueId: string;
-  updates: number;
+  txID: CojsonInternalTypes.TransactionID;
   timestamp: number;
 }
 
@@ -72,6 +73,8 @@ export class WebhookTestServer {
 
         const webhookData: WebhookRequest = JSON.parse(body);
         this.requests.push(webhookData);
+
+        console.log("request " + this.requests.length, webhookData);
 
         this.emitRequest();
       });

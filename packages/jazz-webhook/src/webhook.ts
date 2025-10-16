@@ -1,15 +1,25 @@
 import { co, z, Account, Group } from "jazz-tools";
+import {
+  CojsonInternalTypes,
+  emptyKnownState,
+  SessionID,
+  CoID,
+  RawCoValue,
+} from "cojson";
 
-export const LastSuccessfulEmit = co.map({
-  v: z.number(),
-});
-export type LastSuccessfulEmit = co.loaded<typeof LastSuccessfulEmit>;
+export const SuccessMap = co.record(
+  z.string(), // sessionID
+  z.object({
+    continouslySuccessfulUpTo: z.number(),
+    laterSuccessfulTransactions: z.array(z.number()),
+  }),
+);
 
 export const WebhookRegistration = co.map({
   webhookUrl: z.string(),
   coValueId: z.string(),
   active: z.boolean(),
-  lastSuccessfulEmit: LastSuccessfulEmit,
+  successMap: SuccessMap,
 });
 export type WebhookRegistration = co.loaded<typeof WebhookRegistration>;
 
@@ -22,6 +32,11 @@ export interface JazzWebhookOptions {
   /** Base delay in milliseconds for exponential backoff (default: 1000ms) */
   baseDelayMs?: number;
 }
+
+export const DEFAULT_JazzWebhookOptions: Required<JazzWebhookOptions> = {
+  maxRetries: 3,
+  baseDelayMs: 1000,
+};
 
 export class WebhookRegistry {
   public state: RegistryState;
@@ -86,36 +101,9 @@ export class WebhookRegistry {
    * @param webhookId - The ID of the webhook to start monitoring
    */
   private subscribe(webhook: WebhookRegistration) {
-    const coValueId = webhook.coValueId as `co_z${string}`;
-
-    if (!coValueId.startsWith("co_z")) {
-      return;
-    }
-
-    const localNode = webhook.$jazz.localNode;
-    const coValue = localNode.getCoValue(coValueId);
-
-    if (!coValue.isAvailable()) {
-      localNode.loadCoValueCore(coValueId);
-    }
-
     const emitter = new WebhookEmitter(webhook, this.options);
 
-    const unsubscribe = coValue.subscribe(() => {
-      if (!coValue.isAvailable()) return;
-
-      const updates = Object.values(coValue.knownState().sessions).reduce(
-        (acc, tx) => {
-          return acc + tx;
-        },
-        0,
-      );
-
-      emitter.schedule(updates);
-    });
-
     this.activeSubscriptions.set(webhook.$jazz.id, () => {
-      unsubscribe();
       emitter.stop();
       this.activeSubscriptions.delete(webhook.$jazz.id);
     });
@@ -154,7 +142,9 @@ export class WebhookRegistry {
 
     this.rootUnsubscribe = this.state.$jazz.subscribe(
       {
-        resolve: { $each: true },
+        resolve: {
+          $each: true,
+        },
       },
       createAndDeleteSubscriptions,
     );
@@ -175,189 +165,113 @@ export class WebhookRegistry {
  * The WebhookEmitter handles sending HTTP POST requests to webhook callbacks when
  * a CoValue changes. It implements several key behaviors:
  *
- * - **Queuing**: If a webhook is already being sent, new changes are queued and
- *   only the latest hash is emitted (older hashes are discarded)
- * - **Retry Logic**: Failed webhooks are retried up to 5 times with exponential
- *   backoff (1s, 2s, 4s, 8s, 16s delays)
- * - **State Tracking**: Successfully emitted hashes are stored in lastSuccessfulEmit
- * - **Graceful Shutdown**: Can be stopped to clean up timers and prevent new emissions
  */
 class WebhookEmitter {
-  /** The next hash to be emitted, null if no queued emissions */
-  private nextSchedule: number | null = null;
-  /** Whether a webhook is currently being sent */
-  private running: boolean = false;
-  /** Timeout ID for retry scheduling, null if no retry scheduled */
-  private retryTimeoutId: NodeJS.Timeout | null = null;
+  successMap: Promise<co.loaded<typeof SuccessMap, { $each: true }>>;
+  knownState: CojsonInternalTypes.CoValueKnownState;
+  pending = new Map<
+    CojsonInternalTypes.TransactionID,
+    { nRetries: number; timeout: NodeJS.Timeout }
+  >();
+  unsubscribe: () => void;
 
   constructor(
     private webhook: WebhookRegistration,
     private options: JazzWebhookOptions = {},
   ) {
-    this.initialize();
-  }
-
-  /** Last successful emit hash */
-  private lastSuccessfulEmit: LastSuccessfulEmit | null = null;
-
-  async initialize() {
-    const { lastSuccessfulEmit } = await this.webhook.$jazz.ensureLoaded({
-      resolve: {
-        lastSuccessfulEmit: true,
+    this.successMap = webhook.$jazz
+      .ensureLoaded({ resolve: { successMap: { $each: true } } })
+      .then((loaded) => loaded.successMap);
+    this.knownState = emptyKnownState(
+      this.webhook.coValueId as `co_z${string}`,
+    );
+    this.unsubscribe = this.webhook.$jazz.localNode.subscribe(
+      this.webhook.coValueId as CoID<RawCoValue>,
+      async (value) => {
+        if (value === "unavailable") {
+          return;
+        }
+        const todo = Array.from(
+          getTransactionsToRetry(
+            await this.successMap,
+            value.core.knownState(),
+          ),
+        );
+        console.log("todo", todo);
+        for (const txID of todo) {
+          if (!this.pending.has(txID)) {
+            this.makeAttempt(txID);
+          }
+        }
       },
-    });
-
-    this.lastSuccessfulEmit = lastSuccessfulEmit;
-
-    this.runNextSchedule();
+    );
   }
 
-  /** Number of consecutive failures for the current webhook attempt */
-  failures = 0;
-  /** Maximum number of retry attempts before giving up */
-  private readonly maxRetries = this.options.maxRetries ?? 5;
-  /** Base delay in milliseconds for exponential backoff (1000ms = 1 second) */
-  private readonly baseDelayMs = this.options.baseDelayMs ?? 1000;
-
-  /**
-   * Schedules a webhook emission for the given hash.
-   *
-   * If a webhook is already being sent, the new hash is queued and will replace
-   * any previously queued hash. Only the most recent hash is emitted to avoid
-   * overwhelming the webhook endpoint with outdated notifications.
-   *
-   * @param hash - The CoValue state hash to emit in the webhook payload
-   */
-  schedule(updates: number) {
-    this.nextSchedule = updates;
-
-    if (this.running) {
-      return;
-    }
-
-    this.runNextSchedule();
-  }
-
-  /**
-   * Sends the webhook HTTP request for the given hash.
-   *
-   * Makes a POST request to the webhook callback URL with the CoValue ID, hash,
-   * and timestamp. On success, updates the lastSuccessfulEmit and processes any
-   * queued emissions. On failure, increments the failure count and schedules a retry.
-   *
-   * @param hash - The CoValue state hash to send in the webhook payload
-   */
-  private async emitWebhook(updates: number): Promise<void> {
-    try {
-      const response = await fetch(this.webhook.webhookUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          coValueId: this.webhook.coValueId,
-          updates: updates,
-        }),
-      });
-
-      if (response.ok) {
-        this.trackSuccess(updates);
-        this.runNextSchedule();
-      } else {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-    } catch (error) {
-      this.failures++;
-      console.error(
-        `Webhook emission failed (attempt ${this.failures}):`,
-        error,
-      );
-
-      if (!this.nextSchedule) {
-        this.nextSchedule = updates;
-      }
-      this.scheduleRetry();
-    }
-  }
-
-  /**
-   * Schedules a retry with exponential backoff delay.
-   *
-   * Uses exponential backoff with the formula: baseDelayMs * 2^(failures-1)
-   * This results in delays of: 1s, 2s, 4s, 8s, 16s for attempts 1-5.
-   * After maxRetries attempts, gives up and logs an error.
-   */
-  private scheduleRetry() {
-    if (this.failures >= this.maxRetries) {
-      console.error(
-        `Webhook emission failed after ${this.maxRetries} attempts, giving up`,
-      );
-      return;
-    }
-
-    const delay = this.baseDelayMs * Math.pow(2, this.failures - 1);
-    console.log(`Scheduling retry ${this.failures} in ${delay}ms`);
-
-    this.retryTimeoutId = setTimeout(() => {
-      this.retryTimeoutId = null;
-      this.runNextSchedule();
-    }, delay);
-  }
-
-  trackSuccess(updates: number) {
-    if (!this.lastSuccessfulEmit) {
-      throw new Error("Last successful emit not initialized");
-    }
-
-    this.failures = 0;
-    this.lastSuccessfulEmit.$jazz.set("v", updates);
-  }
-
-  /**
-   * Processes the next queued hash emission.
-   *
-   * If there's a queued hash, emits it and clears the queue. If no hash is queued,
-   * sets the emitter to not running, allowing new emissions to proceed immediately.
-   *
-   * @private
-   */
-  private runNextSchedule() {
-    if (!this.nextSchedule) {
-      this.running = false;
-      return;
-    }
-
-    if (!this.lastSuccessfulEmit) {
-      return;
-    }
-
-    if (this.lastSuccessfulEmit.v === this.nextSchedule) {
-      this.nextSchedule = null;
-      this.running = false;
-      return;
-    }
-
-    const next = this.nextSchedule;
-    this.nextSchedule = null;
-    this.running = true;
-    this.emitWebhook(next);
-  }
-
-  /**
-   * Stops the webhook emitter and cleans up resources.
-   *
-   * Cancels any pending retry timers, clears the emission queue, and sets the
-   * emitter to not running. After calling stop(), no new webhooks will be emitted
-   * and any queued emissions are discarded.
-   */
   stop() {
-    if (this.retryTimeoutId) {
-      clearTimeout(this.retryTimeoutId);
-      this.retryTimeoutId = null;
+    this.pending.forEach((entry) => {
+      clearTimeout(entry.timeout);
+    });
+    this.pending.clear();
+    this.unsubscribe();
+  }
+
+  makeAttempt(txID: CojsonInternalTypes.TransactionID) {
+    const entry = this.pending.get(txID);
+
+    console.log("makeAttempt", this.webhook.coValueId, txID, entry?.nRetries);
+
+    if (
+      entry &&
+      entry.nRetries >=
+        (this.options.maxRetries || DEFAULT_JazzWebhookOptions.maxRetries)
+    ) {
+      this.pending.delete(txID);
+      clearTimeout(entry.timeout);
+      return;
     }
 
-    this.running = false;
-    this.nextSchedule = null;
+    const timeout = setTimeout(
+      () => {
+        this.makeAttempt(txID);
+      },
+      (this.options.baseDelayMs || DEFAULT_JazzWebhookOptions.baseDelayMs) *
+        2 ** (entry?.nRetries || 0),
+    );
+
+    if (entry) {
+      entry.nRetries++;
+      clearTimeout(entry.timeout);
+      entry.timeout = timeout;
+    } else {
+      this.pending.set(txID, { nRetries: 0, timeout });
+    }
+
+    fetch(this.webhook.webhookUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        coValueId: this.webhook.coValueId,
+        txID: txID,
+      }),
+    })
+      .then(async (response) => {
+        if (response.ok) {
+          markSuccessful(await this.successMap, txID);
+          this.pending.delete(txID);
+          clearTimeout(timeout);
+          return;
+        } else {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+      })
+      .catch((error) => {
+        console.error(
+          `Webhook request failed (attempt ${entry?.nRetries || 0}):`,
+          error,
+        );
+      });
   }
 }
 
@@ -395,10 +309,7 @@ export const registerWebhook = async (
       webhookUrl,
       coValueId,
       active: true,
-      lastSuccessfulEmit: LastSuccessfulEmit.create(
-        { v: -1 },
-        registry.$jazz.owner,
-      ),
+      successMap: SuccessMap.create({}, registry.$jazz.owner),
     },
     registry.$jazz.owner,
   );
@@ -407,3 +318,71 @@ export const registerWebhook = async (
 
   return registration.$jazz.id;
 };
+
+function markSuccessful(
+  successMap: co.loaded<typeof SuccessMap, { $each: true }>,
+  txID: CojsonInternalTypes.TransactionID,
+) {
+  let entry = successMap[txID.sessionID];
+  if (!entry) {
+    entry = {
+      continouslySuccessfulUpTo: 0,
+      laterSuccessfulTransactions: [],
+    };
+    successMap.$jazz.set(txID.sessionID, entry);
+  }
+
+  let newContinouslySuccessfulUpTo = entry.continouslySuccessfulUpTo;
+  let newLaterSuccessfulTransactions = [
+    ...entry.laterSuccessfulTransactions,
+    txID.txIndex,
+  ];
+
+  while (
+    newLaterSuccessfulTransactions.length > 0 &&
+    newLaterSuccessfulTransactions[0] === newContinouslySuccessfulUpTo + 1
+  ) {
+    newContinouslySuccessfulUpTo++;
+    newLaterSuccessfulTransactions.shift();
+  }
+
+  successMap.$jazz.set(txID.sessionID, {
+    continouslySuccessfulUpTo: newContinouslySuccessfulUpTo,
+    laterSuccessfulTransactions: newLaterSuccessfulTransactions,
+  });
+}
+
+function* getTransactionsToRetry(
+  successMap: co.loaded<typeof SuccessMap, { $each: true }>,
+  knownState: CojsonInternalTypes.CoValueKnownState,
+) {
+  for (const [sessionID, knownTxCount] of Object.entries(knownState.sessions)) {
+    const entry = successMap[sessionID];
+
+    const start = entry ? entry.continouslySuccessfulUpTo + 1 : 0;
+    const end = knownTxCount;
+
+    for (let txIndex = start; txIndex <= end; txIndex++) {
+      if (!entry?.laterSuccessfulTransactions.includes(txIndex)) {
+        yield {
+          sessionID: sessionID as SessionID,
+          txIndex: txIndex,
+        } satisfies CojsonInternalTypes.TransactionID;
+      }
+    }
+  }
+}
+
+export function isTxSuccessful(
+  successMap: co.loaded<typeof SuccessMap, { $each: true }>,
+  txID: CojsonInternalTypes.TransactionID,
+) {
+  const entry = successMap[txID.sessionID];
+  if (!entry) {
+    return false;
+  }
+  return (
+    entry.continouslySuccessfulUpTo >= txID.txIndex ||
+    entry.laterSuccessfulTransactions.includes(txID.txIndex)
+  );
+}

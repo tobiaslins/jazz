@@ -48,7 +48,7 @@ export function startWebhookService(
             webhookId,
             {
               resolve: {
-                lastSuccessfulEmit: true,
+                successMap: { $each: true },
               },
             },
           );
@@ -67,7 +67,7 @@ export function startWebhookService(
             webhookUrl: webhookRegistration.webhookUrl,
             coValueId: webhookRegistration.coValueId,
             active: webhookRegistration.active,
-            updates: webhookRegistration.lastSuccessfulEmit.v,
+            successMap: webhookRegistration.successMap,
           };
 
           const successResponse: WebhookServiceResponses["WebhookInfoSuccess"] =
