@@ -9,7 +9,7 @@ import { getDownloaderPeerUrl } from "./lib/getDownloaderPeerUrl";
 import { getDefaultFileSize, getIsAutoUpload } from "./lib/searchParams";
 import { UploadedFile } from "./schema";
 export function UploaderPeer() {
-  const { me } = useAccount();
+  const me = useAccount();
   const [uploadedFileId, setUploadedFileId] = useState<string | undefined>(
     undefined,
   );

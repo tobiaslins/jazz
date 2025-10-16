@@ -23,7 +23,7 @@ declare module "@tanstack/react-router" {
 }
 
 export function App() {
-  const { me } = useAccount();
+  const me = useAccount();
 
   if (!me.$isLoaded) {
     return <div>Loading...</div>;

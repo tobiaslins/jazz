@@ -12,7 +12,7 @@ import { ThemeProvider } from "./themeProvider.tsx";
 import { AppContainer, TopBar } from "./ui.tsx";
 
 export function App() {
-  const { me } = useAccount(undefined, {
+  const me = useAccount(undefined, {
     resolve: {
       profile: true,
     },

@@ -4,7 +4,7 @@ import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { JazzAccount } from "./schema";
 
 export default function ImageUpload() {
-  const { me } = useAccount(JazzAccount, { resolve: { profile: true } });
+  const me = useAccount(JazzAccount, { resolve: { profile: true } });
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 

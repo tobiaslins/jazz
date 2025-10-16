@@ -24,10 +24,10 @@ We're introducing a new resolve API for deep loading, more friendly to TypeScrip
 
 <CodeGroup>
 ```tsx
-const { me } = useAccount({ root: { friends: [] } }); // [!code --]
+const me = useAccount({ root: { friends: [] } }); // [!code --]
 
 // After
-const { me } = useAccount({ // [!code ++]
+const me = useAccount({ // [!code ++]
   resolve: { root: { friends: true } } // [!code ++]
 }); // [!code ++]
 ```

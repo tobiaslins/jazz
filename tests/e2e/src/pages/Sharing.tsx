@@ -9,7 +9,7 @@ class SharedCoMap extends CoMap {
 }
 
 export function Sharing() {
-  const { me } = useAccount();
+  const me = useAccount();
   const [id, setId] = useState<ID<SharedCoMap> | undefined>(undefined);
   const [revealLevels, setRevealLevels] = useState(1);
   const [inviteLinks, setInviteLinks] = useState<Record<string, string>>({});

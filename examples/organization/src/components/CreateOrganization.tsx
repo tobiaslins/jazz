@@ -12,7 +12,7 @@ import { Errors } from "./Errors.tsx";
 import { OrganizationForm } from "./OrganizationForm.tsx";
 
 export function CreateOrganization() {
-  const { me } = useAccount(JazzAccount, {
+  const me = useAccount(JazzAccount, {
     resolve: { root: { draftOrganization: true, organizations: true } },
   });
   const [errors, setErrors] = useState<string[]>([]);

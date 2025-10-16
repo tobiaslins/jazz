@@ -4,7 +4,7 @@ import { IssueComponent } from "./Issue.tsx";
 import { Issue, Project } from "./schema.ts";
 
 export function ProjectComponent({ projectID }: { projectID: string }) {
-  const { me } = useAccount();
+  const me = useAccount();
   const project = useCoState(Project, projectID, {
     resolve: { issues: { $each: true } },
   });

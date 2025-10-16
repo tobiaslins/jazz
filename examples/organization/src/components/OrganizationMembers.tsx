@@ -30,7 +30,7 @@ function MemberItem({
   role: string;
   group: Group;
 }) {
-  const { me } = useAccount();
+  const me = useAccount();
 
   const canRemoveMember =
     group.myRole() === "admin" && account.$jazz.id !== me?.$jazz.id;

@@ -46,7 +46,7 @@ import { JazzFestAccount } from "@/app/schema";
 export function Festival() {
   // [!code ++:1]
   const [inviteLink, setInviteLink] = useState<string>("");
-  const { me } = useAccount(JazzFestAccount, { 
+  const me = useAccount(JazzFestAccount, { 
     resolve: { root: { myFestival: { $each: true } } } 
   });
   if (!me.$isLoaded) return null;
@@ -139,7 +139,7 @@ import { Festival as FestivalSchema, JazzFestAccount } from "@/app/schema";
 
 export function Festival() {
   const [inviteLink, setInviteLink] = useState<string>("");
-  const { me } = useAccount(JazzFestAccount, { 
+  const me = useAccount(JazzFestAccount, { 
     resolve: { root: { myFestival: { $each: true } } } 
   });
   // [!code ++:7]
@@ -242,7 +242,7 @@ export function Festival({id}: {id?: string}) {
   const [inviteLink, setInviteLink] = useState<string>("");
   // [!code ++:1]
   const agent = useAgent();
-  const { me } = useAccount(JazzFestAccount, {
+  const me = useAccount(JazzFestAccount, {
     resolve: { root: { myFestival: true } },
   });
   const router = useRouter();
@@ -321,7 +321,7 @@ export function Festival() {
 // [!code ++:1]
 export function Festival({id}: {id?: string}) {
   const [inviteLink, setInviteLink] = useState<string>("");
-  const { me } = useAccount(JazzFestAccount, {
+  const me = useAccount(JazzFestAccount, {
     resolve: { root: { myFestival: true } },
   });
   const router = useRouter();
@@ -449,7 +449,7 @@ import { JazzFestAccount, Festival } from "@/app/schema";
 export function NewBand() {
 // [!code ++:1]
 export function NewBand({ id }: { id?: string }) {
-  const { me } = useAccount(JazzFestAccount, {
+  const me = useAccount(JazzFestAccount, {
       resolve: { root: { myFestival: true } }
     });
   const [name, setName] = useState("");

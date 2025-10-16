@@ -31,7 +31,7 @@ export function SignupForm({ providers }: Props) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const { me } = useAccount(Account, { resolve: { profile: true } });
+  const me = useAccount(Account, { resolve: { profile: true } });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

@@ -24,7 +24,7 @@ export function ChatScreen(props: { chatID: string }) {
       $each: true,
     },
   });
-  const { me } = useAccount();
+  const me = useAccount();
   const [showNLastMessages, setShowNLastMessages] = useState(
     INITIAL_MESSAGES_TO_SHOW,
   );

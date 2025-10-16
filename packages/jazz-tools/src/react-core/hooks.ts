@@ -538,15 +538,14 @@ export function useAccountSubscription<
  * along with authentication utilities. It automatically handles subscription to
  * the user's account data and provides a logout function.
  *
- * @returns An object containing:
- * - `me`: The account data, or an {@link Unloaded} value. Use `$isLoaded` to check whether the
+ * @returns The account data, or an {@link Unloaded} value. Use `$isLoaded` to check whether the
  * CoValue is loaded, or use {@link MaybeLoaded.$jazz.loadingState} to get the detailed loading state.
  *
  * @example
  * ```tsx
  * // Deep loading with resolve queries
  * function ProjectListWithDetails() {
- *   const { me } = useAccount(MyAppAccount, {
+ *   const me = useAccount(MyAppAccount, {
  *     resolve: {
  *       profile: true,
  *       root: {
@@ -613,9 +612,7 @@ export function useAccount<
      */
     unstable_branch?: BranchDefinition;
   },
-): {
-  me: MaybeLoaded<Loaded<A, R>>;
-} {
+): MaybeLoaded<Loaded<A, R>> {
   const subscription = useAccountSubscription(AccountSchema, options);
   const getCurrentValue = useGetCurrentValue(subscription);
 
@@ -634,9 +631,7 @@ export function useAccount<
     getCurrentValue,
   );
 
-  return {
-    me: value,
-  };
+  return value;
 }
 
 /**

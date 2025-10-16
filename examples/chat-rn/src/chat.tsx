@@ -22,7 +22,7 @@ import {
 import { Chat, Message } from "./schema";
 
 export function ChatScreen({ navigation }: { navigation: any }) {
-  const { me } = useAccount();
+  const me = useAccount();
   const logOut = useLogOut();
   const [chatId, setChatId] = useState<string>();
   const [chatIdInput, setChatIdInput] = useState<string>();

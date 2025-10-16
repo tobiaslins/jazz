@@ -10,7 +10,7 @@ export function FileWidget() {
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const { me } = useAccount(JazzAccount, { resolve: { profile: true } });
+  const me = useAccount(JazzAccount, { resolve: { profile: true } });
 
   if (!me.$isLoaded) {
     return (

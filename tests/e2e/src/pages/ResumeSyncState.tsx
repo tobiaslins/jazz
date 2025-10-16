@@ -14,7 +14,7 @@ function getIdParam() {
 export function ResumeSyncState() {
   const [id, setId] = useState(getIdParam);
   const coMap = useCoState(ResumeSyncCoMap, id);
-  const { me } = useAccount();
+  const me = useAccount();
 
   useEffect(() => {
     if (id) {

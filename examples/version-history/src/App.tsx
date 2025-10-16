@@ -6,7 +6,7 @@ import { IssueVersionHistory } from "./IssueVersionHistory.tsx";
 import { Issue } from "./schema";
 
 function App() {
-  const { me } = useAccount(Account, {
+  const me = useAccount(Account, {
     resolve: {
       profile: true,
     },

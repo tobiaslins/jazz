@@ -5,7 +5,7 @@ import { useNavigate, useParams } from "react-router";
 import { JazzAccount } from "../schema.ts";
 
 export function OrganizationSelector({ className }: { className?: string }) {
-  const { me } = useAccount(JazzAccount, {
+  const me = useAccount(JazzAccount, {
     resolve: { root: { organizations: { $each: { $onError: "catch" } } } },
   });
 

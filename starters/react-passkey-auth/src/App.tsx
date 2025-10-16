@@ -5,7 +5,7 @@ import { Logo } from "./Logo.tsx";
 import { JazzAccount, getUserAge } from "./schema.ts";
 
 function App() {
-  const { me } = useAccount(JazzAccount, {
+  const me = useAccount(JazzAccount, {
     resolve: { profile: true, root: true },
   });
 

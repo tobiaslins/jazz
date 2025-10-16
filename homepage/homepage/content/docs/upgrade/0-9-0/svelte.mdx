@@ -63,7 +63,7 @@ So we decided to remove `createJazzApp` step and to provide the types through na
   import { useAccount } from '$lib/jazz'; // [!code --]
   import { useAccount } from 'jazz-svelte'; // [!code ++]
 
-  const { me } = useAccount();
+  const me = useAccount();
 </script>
 
 <div>

@@ -9,7 +9,7 @@ export class InputTestCoMap extends CoMap {
 export function TestInput() {
   const [id, setId] = useState<ID<InputTestCoMap> | undefined>(undefined);
   const coMap = useCoState(InputTestCoMap, id);
-  const { me } = useAccount();
+  const me = useAccount();
 
   useEffect(() => {
     if (!me.$isLoaded || id) return;

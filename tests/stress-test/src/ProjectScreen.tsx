@@ -14,7 +14,7 @@ export function ProjectScreen() {
       },
     },
   });
-  const { me } = useAccount(TodoAccount, {
+  const me = useAccount(TodoAccount, {
     resolve: {
       root: true,
     },

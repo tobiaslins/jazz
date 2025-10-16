@@ -3,7 +3,7 @@ import { Account } from "jazz-tools";
 import { useAccount, useIsAuthenticated } from "jazz-tools/react";
 
 function App() {
-  const { me } = useAccount(Account, { resolve: { profile: true } });
+  const me = useAccount(Account, { resolve: { profile: true } });
 
   const isAuthenticated = useIsAuthenticated();
 

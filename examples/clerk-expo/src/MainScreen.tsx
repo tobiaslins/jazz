@@ -4,7 +4,7 @@ import { useAccount } from "jazz-tools/expo";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export function MainScreen() {
-  const { me } = useAccount(Account, { resolve: { profile: true } });
+  const me = useAccount(Account, { resolve: { profile: true } });
   const { signOut } = useClerk();
 
   const handleSignOut = async () => {

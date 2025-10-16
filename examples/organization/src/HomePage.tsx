@@ -5,7 +5,7 @@ import { Heading } from "./components/Heading.tsx";
 import { JazzAccount } from "./schema";
 
 export function HomePage() {
-  const { me } = useAccount(JazzAccount, {
+  const me = useAccount(JazzAccount, {
     resolve: {
       root: {
         organizations: {

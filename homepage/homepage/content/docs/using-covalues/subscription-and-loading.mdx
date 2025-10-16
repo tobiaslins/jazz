@@ -114,7 +114,7 @@ function ProjectView({ projectId }: { projectId: string }) {
 import { useAccount } from "jazz-tools/react";
 
 function ProjectList() {
-  const { me } = useAccount(MyAppAccount, {
+  const me = useAccount(MyAppAccount, {
     resolve: { profile: true }
   })
 

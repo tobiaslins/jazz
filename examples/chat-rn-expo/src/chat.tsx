@@ -18,7 +18,7 @@ import { useAccount, useCoState, useLogOut } from "jazz-tools/expo";
 import { Chat, Message } from "./schema";
 
 export default function ChatScreen() {
-  const { me } = useAccount(Account, { resolve: { profile: true } });
+  const me = useAccount(Account, { resolve: { profile: true } });
   const logOut = useLogOut();
   const [chatId, setChatId] = useState<string>();
   const [chatIdInput, setChatIdInput] = useState<string>();

@@ -5,7 +5,7 @@ import { ReactionsScreen } from "./ReactionsScreen.tsx";
 import { Reactions } from "./schema.ts";
 
 function App() {
-  const { me } = useAccount(Account, {
+  const me = useAccount(Account, {
     resolve: {
       profile: true,
     },

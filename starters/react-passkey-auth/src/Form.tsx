@@ -2,7 +2,7 @@ import { useAccount } from "jazz-tools/react";
 import { JazzAccount } from "./schema";
 
 export function Form() {
-  const { me } = useAccount(JazzAccount, {
+  const me = useAccount(JazzAccount, {
     resolve: { profile: true, root: true },
   });
 

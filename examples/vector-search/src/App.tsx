@@ -16,7 +16,7 @@ import { useCreateEntry } from "./helpers/use-create-entry";
 import { useDeleteEntries } from "./helpers/use-delete-entries";
 
 function App() {
-  const { me } = useAccount(JazzAccount, {
+  const me = useAccount(JazzAccount, {
     resolve: { root: { journalEntries: true } },
   });
 

@@ -4,7 +4,7 @@ import { JazzAccount, Organization } from "./schema.ts";
 
 export function AcceptInvitePage() {
   const navigate = useNavigate();
-  const { me } = useAccount(JazzAccount, {
+  const me = useAccount(JazzAccount, {
     resolve: { root: { organizations: true } },
   });
 
