@@ -615,9 +615,7 @@ export function useAccount<
   },
 ): {
   me: MaybeLoaded<Loaded<A, R>>;
-  logOut: () => void;
 } {
-  const contextManager = useJazzContextManager<InstanceOfSchema<A>>();
   const subscription = useAccountSubscription(AccountSchema, options);
   const getCurrentValue = useGetCurrentValue(subscription);
 
@@ -638,7 +636,6 @@ export function useAccount<
 
   return {
     me: value,
-    logOut: contextManager.logOut,
   };
 }
 
