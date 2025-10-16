@@ -118,6 +118,7 @@ export {
   isJazzRequestError,
   authenticateRequest,
   generateAuthToken,
+  parseAuthToken,
   type HttpRoute,
 } from "./coValues/request.js";
 

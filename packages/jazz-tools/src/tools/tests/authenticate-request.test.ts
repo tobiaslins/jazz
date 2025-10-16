@@ -1,6 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { authenticateRequest, generateAuthToken } from "../coValues/request.js";
 import { createJazzTestAccount } from "../testing.js";
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe("authenticateRequest", () => {
   it("should correctly authenticate a request", async () => {
@@ -124,6 +128,7 @@ describe("authenticateRequest", () => {
   });
 
   it("should treat the request as unauthenticated if the token is not in the default format, even if present.", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
     await createJazzTestAccount({
       isCurrentActiveAccount: true,
     });
@@ -138,6 +143,7 @@ describe("authenticateRequest", () => {
       }),
     );
 
+    expect(console.warn).toHaveBeenCalled();
     expect(account).toBeUndefined();
     expect(error).toBeUndefined();
   });

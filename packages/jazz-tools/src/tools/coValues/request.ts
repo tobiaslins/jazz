@@ -641,6 +641,12 @@ function defaultGetToken(request: Request) {
     return headerValue.replace("Jazz ", "");
   }
 
+  if (headerValue) {
+    console.warn(
+      "An Authorization header was found, but it did not start with 'Jazz '. If this is intentional, you can specify the location of the token using the `getToken` option.",
+    );
+  }
+
   return undefined;
 }
 
@@ -742,7 +748,7 @@ export function generateAuthToken(as?: Account) {
   return `${authToken}~${account.$jazz.id}~${createdAt}`;
 }
 
-async function parseAuthToken(
+export async function parseAuthToken(
   authToken: string,
   options?: { loadAs?: Account; expiration?: number },
 ): Promise<
