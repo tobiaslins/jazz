@@ -186,7 +186,7 @@ export const docNavigationItems = [
           href: "/docs/using-covalues/schemaunions",
           done: 100,
         }]
-      }, 
+      },
     {
       name: "Subscriptions & Deep Loading",
       href: "/docs/using-covalues/subscription-and-loading",
@@ -219,7 +219,7 @@ export const docNavigationItems = [
           href: "/docs/authentication/quickstart",
           done: 100,
         },
-        
+
         {
           name: "Authentication States",
           href: "/docs/authentication/authentication-states",
@@ -313,6 +313,11 @@ export const docNavigationItems = [
       startClosed: true,
       collapse: true,
       items: [{
+        name: "JazzRPC",
+        href: "/docs/server-side/jazz-rpc",
+        done: 100,
+      },
+      {
         name: "HTTP requests",
         href: "/docs/server-side/http-requests",
         done: 100,
@@ -363,17 +368,17 @@ export const docNavigationItems = [
           href: "/docs/ai-tools",
           done: 100,
         }]
-      }, 
+      },
     {
         name: "Reference",
         items: [{
           name: "Encryption",
           href: "/docs/resources/encryption",
           done: 100,
-        }, { 
-          name: "FAQs", 
-          href: "/docs/faq", 
-          done: 100 
+        }, {
+          name: "FAQs",
+          href: "/docs/faq",
+          done: 100
         }, {
           name: "Performance tips",
           href: "/docs/performance",
