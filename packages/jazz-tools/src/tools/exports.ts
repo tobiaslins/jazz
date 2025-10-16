@@ -33,6 +33,7 @@ export type {
   CoMapInit_DEPRECATED as CoMapInit,
   CoMapEdit,
   CoMapEdits,
+  LastAndAllCoMapEdits,
   CoFeedEntry,
   TextPos,
   AccountClass,

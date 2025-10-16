@@ -1,12 +1,10 @@
 import Clipboard from "@react-native-clipboard/clipboard";
 import {
-  CoMapEdit,
   CoPlainText,
   Group,
   ID,
+  LastAndAllCoMapEdits,
   Loaded,
-  MaybeLoaded,
-  Profile,
 } from "jazz-tools";
 import { useAccount, useCoState } from "jazz-tools/react-native";
 import { useEffect, useState } from "react";
@@ -215,7 +213,9 @@ export function ChatScreen({ navigation }: { navigation: any }) {
   );
 }
 
-function getEditorName(edit?: CoMapEdit<unknown>): string | undefined {
+function getEditorName(
+  edit?: LastAndAllCoMapEdits<CoPlainText>,
+): string | undefined {
   if (!edit?.by?.profile || !edit.by.profile.$isLoaded) {
     return;
   }

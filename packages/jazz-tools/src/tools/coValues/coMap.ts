@@ -62,7 +62,7 @@ export type CoMapEdit<V> = {
   key?: string;
 };
 
-type LastAndAllCoMapEdits<V> = CoMapEdit<V> & { all: CoMapEdit<V>[] };
+export type LastAndAllCoMapEdits<V> = CoMapEdit<V> & { all: CoMapEdit<V>[] };
 
 export type CoMapEdits<M extends CoMap> = {
   [Key in CoKeys<M>]?: LastAndAllCoMapEdits<M[Key]>;
