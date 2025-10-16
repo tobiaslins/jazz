@@ -693,10 +693,9 @@ export function useLogOut(): () => void {
  *
  * The agent can be used as the `loadAs` parameter for load and subscribe methods.
  */
-export function useAgent<A extends AccountClass<Account> | AnyAccountSchema>(
-  /** The account schema to use. Defaults to the base Account schema */
-  AccountSchema: A = Account as unknown as A,
-): AnonymousJazzAgent | Loaded<A, true> {
+export function useAgent<
+  A extends AccountClass<Account> | AnyAccountSchema = typeof Account,
+>(): AnonymousJazzAgent | Loaded<A, true> {
   const contextManager = useJazzContextManager<InstanceOfSchema<A>>();
   const agent = getCurrentAccountFromContextManager(contextManager);
   return agent;
