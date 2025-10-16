@@ -168,6 +168,7 @@ export class WebhookRegistry {
  */
 class WebhookEmitter {
   successMap: Promise<co.loaded<typeof SuccessMap, { $each: true }>>;
+  loadedSuccessMap: co.loaded<typeof SuccessMap, { $each: true }> | undefined;
   pending = new Map<
     string, // stringified TransactionID
     { nRetries: number; timeout: NodeJS.Timeout }
@@ -180,7 +181,10 @@ class WebhookEmitter {
   ) {
     this.successMap = webhook.$jazz
       .ensureLoaded({ resolve: { successMap: { $each: true } } })
-      .then((loaded) => loaded.successMap);
+      .then((loaded) => {
+        this.loadedSuccessMap = loaded.successMap;
+        return loaded.successMap;
+      });
     this.unsubscribe = this.webhook.$jazz.localNode.subscribe(
       this.webhook.coValueId as CoID<RawCoValue>,
       async (value) => {
@@ -214,7 +218,11 @@ class WebhookEmitter {
   makeAttempt(txID: CojsonInternalTypes.TransactionID) {
     const entry = this.pending.get(`${txID.sessionID}:${txID.txIndex}`);
 
-    console.log("makeAttempt", this.webhook.coValueId, txID, entry?.nRetries);
+    console.log("makeAttempt", this.webhook.coValueId, txID, {
+      nRetries: entry?.nRetries,
+      successful:
+        this.loadedSuccessMap && isTxSuccessful(this.loadedSuccessMap, txID),
+    });
 
     if (
       entry &&
@@ -358,10 +366,12 @@ function* getTransactionsToRetry(
   for (const [sessionID, knownTxCount] of Object.entries(knownState.sessions)) {
     const entry = successMap[sessionID];
 
+    console.log("entry", sessionID, entry);
+
     const start = entry ? entry.continouslySuccessfulUpTo + 1 : 0;
     const end = knownTxCount;
 
-    for (let txIndex = start; txIndex <= end; txIndex++) {
+    for (let txIndex = start; txIndex < end; txIndex++) {
       if (!entry?.laterSuccessfulTransactions.includes(txIndex)) {
         yield {
           sessionID: sessionID as SessionID,
