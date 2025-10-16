@@ -50,7 +50,6 @@ export {
   experimental_useInboxSender,
   useJazzContext,
   useAccount,
-  useAccountWithSelector,
   useAgent,
   useLogOut,
   useSyncConnectionStatus,

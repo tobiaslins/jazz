@@ -12,7 +12,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { useAccountWithSelector } from "jazz-tools/react";
+import { useAccount } from "jazz-tools/react";
 import { Home, Music, Plus, Trash2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
 import { useState } from "react";
@@ -22,7 +22,7 @@ import { CreatePlaylistModal } from "./CreatePlaylistModal";
 export function SidePanel() {
   const { playlistId } = useParams();
   const navigate = useNavigate();
-  const playlists = useAccountWithSelector(MusicaAccount, {
+  const playlists = useAccount(MusicaAccount, {
     resolve: { root: { playlists: { $each: { $onError: "catch" } } } },
     select: (me) => (me.$isLoaded ? me.root.playlists : undefined),
   });

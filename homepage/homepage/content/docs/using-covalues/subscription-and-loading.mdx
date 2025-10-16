@@ -587,15 +587,15 @@ function ProjectView({ projectId }: { projectId: string }) {
 
 By default, the return values of the select function will be compared using `Object.is`, but you can use the `equalityFn` to add your own logic.
 
-You can also use `useAccountWithSelector` in the same way, to subscribe to only the changes in a user's account you are interested in.
+You can also use `useAccount` in the same way, to subscribe to only the changes in a user's account you are interested in.
 
 <CodeGroup>
 ```tsx
-import { useAccountWithSelector } from "jazz-tools/react";
+import { useAccount } from "jazz-tools/react";
 
 function ProfileName() {
   // Only re-renders when the profile name changes
-    const profileName = useAccountWithSelector(MyAppAccount, {
+    const profileName = useAccount(MyAppAccount, {
     resolve: {
       profile: true,
     },

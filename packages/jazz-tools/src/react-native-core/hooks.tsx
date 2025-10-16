@@ -13,7 +13,6 @@ export {
   useAuthSecretStorage,
   useIsAuthenticated,
   useAccount,
-  useAccountWithSelector,
   useAgent,
   useLogOut,
   useSyncConnectionStatus,

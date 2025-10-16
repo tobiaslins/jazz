@@ -1,5 +1,5 @@
 import { createJazzPlugin } from "jazz-tools/prosemirror";
-import { useAccountWithSelector, useCoState } from "jazz-tools/react";
+import { useAccount, useCoState } from "jazz-tools/react";
 import { exampleSetup } from "prosemirror-example-setup";
 import { Schema } from "prosemirror-model";
 import { schema as basicSchema } from "prosemirror-schema-basic";
@@ -11,14 +11,14 @@ import { JazzAccount, JazzProfile } from "./schema";
 import { BranchManagement } from "./BranchManagement";
 
 export function Editor() {
-  const bioId = useAccountWithSelector(JazzAccount, {
+  const bioId = useAccount(JazzAccount, {
     resolve: { profile: true },
     select: (me) => (me.$isLoaded ? me.profile.$jazz.refs.bio.id : undefined),
   });
   const editorRef = useRef<HTMLDivElement>(null);
 
   const [branch, setBranch] = useState<string | undefined>(undefined);
-  const selectedBranch = useAccountWithSelector(JazzAccount, {
+  const selectedBranch = useAccount(JazzAccount, {
     select: (me) =>
       branch && me.$isLoaded ? { name: branch, owner: me } : undefined,
   });

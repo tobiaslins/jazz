@@ -561,7 +561,7 @@ export function useAccountSubscription<
  *
  * function UserProfile({ accountId }: { accountId: string }) {
  *   // Only re-render when the profile name changes, not other fields
- *   const profileName = useAccountWithSelector(
+ *   const profileName = useAccount(
  *     MyAppAccount,
  *     {
  *       resolve: {
@@ -701,8 +701,6 @@ export function useAgent<A extends AccountClass<Account> | AnyAccountSchema>(
   const agent = getCurrentAccountFromContextManager(contextManager);
   return agent;
 }
-
-export const useAccountWithSelector = useAccount;
 
 export function experimental_useInboxSender<
   I extends CoValue,

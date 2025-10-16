@@ -6,7 +6,7 @@ import { describe, bench } from "vitest";
 import {
   useAccountSubscription,
   useSubscriptionSelector,
-  useAccountWithSelector,
+  useAccount,
   CoValueSubscription,
 } from "../index.js";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing.js";
@@ -23,7 +23,7 @@ await createJazzTestAccount({
 const AccountSchema = co.account();
 
 const AccountName = () => {
-  const name = useAccountWithSelector(AccountSchema, {
+  const name = useAccount(AccountSchema, {
     resolve: {
       profile: true,
     },
@@ -279,7 +279,7 @@ describe("deeply resolved coMaps", async () => {
   }: {
     taskListType: "tasks" | "draftTasks" | "deletedTasks";
   }) => {
-    const subscription = useAccountWithSelector(AccountSchema, {
+    const subscription = useAccount(AccountSchema, {
       resolve: {
         root: {
           organizations: {

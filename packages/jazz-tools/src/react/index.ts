@@ -7,7 +7,6 @@ export {
   experimental_useInboxSender,
   useJazzContext,
   useAuthSecretStorage,
-  useAccountWithSelector,
   useAgent,
   useLogOut,
   useSyncConnectionStatus,
