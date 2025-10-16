@@ -1,4 +1,4 @@
-import { CoMapEdit, MaybeLoaded } from "jazz-tools";
+import { CoMapEdit } from "jazz-tools";
 import { useCoState } from "jazz-tools/react";
 import { useEffect, useState } from "react";
 import { Issue } from "./schema.ts";
@@ -114,9 +114,7 @@ export function IssueVersionHistory({ id }: { id: string }) {
   );
 }
 
-function getEditorName(
-  edit: CoMapEdit<MaybeLoaded<unknown>>,
-): string | undefined {
+function getEditorName(edit: CoMapEdit<unknown>): string | undefined {
   const maybeProfile = edit.by?.profile;
   if (!maybeProfile || !maybeProfile.$isLoaded) {
     return undefined;

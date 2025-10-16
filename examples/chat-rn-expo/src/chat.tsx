@@ -1,5 +1,5 @@
 import * as Clipboard from "expo-clipboard";
-import { Account, CoMapEdit, Group, MaybeLoaded } from "jazz-tools";
+import { Account, CoMapEdit, Group } from "jazz-tools";
 import { useState } from "react";
 import React, {
   Button,
@@ -204,9 +204,7 @@ export default function ChatScreen() {
   );
 }
 
-function getEditorName(
-  edit?: CoMapEdit<MaybeLoaded<unknown>>,
-): string | undefined {
+function getEditorName(edit?: CoMapEdit<unknown>): string | undefined {
   if (!edit?.by?.profile || !edit.by.profile.$isLoaded) {
     return;
   }
