@@ -528,6 +528,157 @@ describe("Branching Logic", () => {
 
       expect(expectMap(map.core.getCurrentContent()).get("value")).toBe(2);
     });
+
+    test("should alias the txID when a transaction comes from a merge", async () => {
+      const client = setupTestNode({
+        connected: true,
+      });
+      const group = client.node.createGroup();
+      const map = group.createMap();
+
+      map.set("key", "value");
+
+      const branch = map.core
+        .createBranch("feature-branch", group.id)
+        .getCurrentContent() as RawCoMap;
+      branch.set("branchKey", "branchValue");
+
+      const originalTxID = branch.core
+        .getValidTransactions({
+          skipBranchSource: true,
+          ignorePrivateTransactions: false,
+        })
+        .at(-1)?.txID;
+
+      branch.core.mergeBranch();
+
+      map.set("key2", "value2");
+
+      const validSortedTransactions = map.core.getValidSortedTransactions();
+
+      // Only the merged transaction should have the txId changed
+      const mergedTransactionIdx = validSortedTransactions.findIndex(
+        (tx) => tx.txID.branch,
+      );
+
+      expect(
+        validSortedTransactions[mergedTransactionIdx - 1]?.txID.branch,
+      ).toBe(undefined);
+      expect(validSortedTransactions[mergedTransactionIdx]?.txID).toEqual(
+        originalTxID,
+      );
+      expect(
+        validSortedTransactions[mergedTransactionIdx + 1]?.txID.branch,
+      ).toBe(undefined);
+    });
+  });
+
+  describe("Branching permissions", () => {
+    test("should allow the creation of private branches to accounts with read access to the source group", async () => {
+      const alice = setupTestNode({
+        connected: true,
+      });
+      const bob = await setupTestAccount({
+        connected: true,
+      });
+      const group = alice.node.createGroup();
+      group.addMember(
+        await loadCoValueOrFail(alice.node, bob.accountID),
+        "reader",
+      );
+      const map = group.createMap();
+      map.set("key", "alice");
+
+      const bobGroup = bob.node.createGroup();
+
+      const mapOnBob = await loadCoValueOrFail(bob.node, map.id);
+
+      const branch = expectMap(
+        mapOnBob.core
+          .createBranch("feature-branch", bobGroup.id)
+          .getCurrentContent(),
+      );
+
+      expect(mapOnBob.core.branches).toEqual([
+        {
+          branch: "feature-branch",
+          ownerId: bobGroup.id,
+        },
+      ]);
+
+      expect(branch.id).not.toBe(map.id);
+      expect(branch.get("key")).toBe("alice");
+      expect(branch.core.getGroup().id).toBe(bobGroup.id);
+      expect(branch.core.getGroup().myRole()).toBe("admin");
+      branch.set("key", "bob");
+
+      expect(branch.get("key")).toBe("bob");
+    });
+
+    test("an account with write access to the source and read access to the branch should be able to merge a branch created by a reader", async () => {
+      const alice = await setupTestAccount({
+        connected: true,
+      });
+      const bob = await setupTestAccount({
+        connected: true,
+      });
+      const group = alice.node.createGroup();
+      group.addMember(
+        await loadCoValueOrFail(alice.node, bob.accountID),
+        "reader",
+      );
+      const map = group.createMap();
+      map.set("key", "alice");
+
+      const bobGroup = bob.node.createGroup();
+      bobGroup.addMember(
+        await loadCoValueOrFail(bob.node, alice.accountID),
+        "reader",
+      );
+
+      const mapOnBob = await loadCoValueOrFail(bob.node, map.id);
+
+      const branch = expectMap(
+        mapOnBob.core
+          .createBranch("feature-branch", bobGroup.id)
+          .getCurrentContent(),
+      );
+
+      branch.set("key", "bob");
+
+      expect(branch.get("key")).toBe("bob");
+
+      const branchOnAlice = await loadCoValueOrFail(alice.node, branch.id);
+      branchOnAlice.core.mergeBranch();
+
+      expect(map.get("key")).toBe("bob");
+    });
+
+    test("should not allow the creation of public branches to accounts with read access", async () => {
+      const alice = setupTestNode({
+        connected: true,
+      });
+      const bob = await setupTestAccount({
+        connected: true,
+      });
+      const group = alice.node.createGroup();
+      group.addMember(
+        await loadCoValueOrFail(alice.node, bob.accountID),
+        "reader",
+      );
+      const map = group.createMap();
+      map.set("key", "alice");
+
+      const mapOnBob = await loadCoValueOrFail(bob.node, map.id);
+
+      const branch = expectMap(
+        mapOnBob.core.createBranch("feature-branch").getCurrentContent(),
+      );
+
+      expect(mapOnBob.core.branches).toEqual([]);
+
+      expect(branch.id).toBe(map.id);
+    });
   });
 
   describe("Branch Loading and Checkout", () => {
@@ -797,49 +948,6 @@ describe("Branching Logic", () => {
 
       expect(aliceBranch.core.branchStart).toEqual(bobBranch.core.branchStart);
     });
-  });
-
-  test("should alias the txID when a transaction comes from a merge", async () => {
-    const client = setupTestNode({
-      connected: true,
-    });
-    const group = client.node.createGroup();
-    const map = group.createMap();
-
-    map.set("key", "value");
-
-    const branch = map.core
-      .createBranch("feature-branch", group.id)
-      .getCurrentContent() as RawCoMap;
-    branch.set("branchKey", "branchValue");
-
-    const currentTxID = branch.core
-      .getValidTransactions({
-        skipBranchSource: true,
-        ignorePrivateTransactions: false,
-      })
-      .at(-1)?.txID;
-
-    branch.core.mergeBranch();
-
-    map.set("key2", "value2");
-
-    const validSortedTransactions = map.core.getValidSortedTransactions();
-
-    // Only the merged transaction should have the txId changed
-    const mergedTransactionIdx = validSortedTransactions.findIndex(
-      (tx) => tx.txID.branch,
-    );
-
-    expect(validSortedTransactions[mergedTransactionIdx - 1]?.txID.branch).toBe(
-      undefined,
-    );
-    expect(validSortedTransactions[mergedTransactionIdx]?.txID).toEqual(
-      currentTxID,
-    );
-    expect(validSortedTransactions[mergedTransactionIdx + 1]?.txID.branch).toBe(
-      undefined,
-    );
   });
 
   describe("hasBranch", () => {

@@ -1,4 +1,4 @@
-import type { CoValueCore } from "../exports.js";
+import { logger, type CoValueCore } from "../exports.js";
 import type { RawCoID, SessionID } from "../ids.js";
 import { type AvailableCoValueCore, idforHeader } from "./coValueCore.js";
 import type { CoValueHeader } from "./verifiedState.js";
@@ -145,6 +145,20 @@ export function createBranch(
     return coValue;
   }
 
+  const myRole = coValue.safeGetGroup()?.myRole();
+
+  // We allow branch creation to accounts with at least read access to the source group
+  if (!myRole || (myRole === "reader" && !ownerId)) {
+    logger.warn(
+      "Trying to create a branch without enough access rights, returning the source coValue",
+    );
+    return coValue;
+  }
+
+  // Accounts without write access store the branch pointer unencrypted to make it possible to handle it as a special case
+  // in the permissions checks
+  const privacy = myRole === "reader" ? "trusting" : "private";
+
   const header = getBranchHeader({
     type: coValue.verified.header.type,
     branchName: name,
@@ -161,7 +175,7 @@ export function createBranch(
   } satisfies BranchStartCommit);
 
   // Create a branch pointer, to identify that we created a branch
-  coValue.makeTransaction([], "private", {
+  coValue.makeTransaction([], privacy, {
     branch: name,
     ownerId,
   } satisfies BranchPointerCommit);
