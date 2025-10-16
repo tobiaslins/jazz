@@ -1,5 +1,16 @@
 # jazz-tools
 
+## 0.18.27
+
+### Patch Changes
+
+- 6c6eb35: feat: enabled the usage of "expo-image-manipulator" as resize engine in react-native
+- 6ca0b59: feat: Add generateAuthToken and authenticateRequest
+- 88c5f1c: fix: createImage return type now has the original image already loaded
+  - cojson@0.18.27
+  - cojson-storage-indexeddb@0.18.27
+  - cojson-transport-ws@0.18.27
+
 ## 0.18.26
 
 ### Patch Changes
