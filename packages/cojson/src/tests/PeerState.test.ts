@@ -1,9 +1,8 @@
 import { describe, expect, test, vi } from "vitest";
 import { PeerState } from "../PeerState.js";
-import { CO_VALUE_PRIORITY } from "../priority.js";
 import { ConnectedPeerChannel } from "../streamUtils.js";
-import { CoValueKnownState, Peer, SyncMessage } from "../sync.js";
-import { waitFor } from "./testUtils.js";
+import { Peer, SyncMessage } from "../sync.js";
+import { CoValueKnownState, KnownStateSessions } from "../knownState.js";
 
 function setup() {
   const mockPeer: Peer = {
@@ -78,6 +77,33 @@ describe("PeerState", () => {
 
     expect(knownStatesSpy).toHaveBeenCalledWith("co_z1", state);
     expect(optimisticKnownStatesSpy).toHaveBeenCalledWith("co_z1", state);
+  });
+
+  test("dispatching an optimistic update should not affect the known states", () => {
+    const { peerState } = setup();
+
+    const state: CoValueKnownState = {
+      id: "co_z1",
+      header: false,
+      sessions: {},
+    };
+
+    peerState.setKnownState("co_z1", state);
+
+    const optimisticState: CoValueKnownState = {
+      id: "co_z1",
+      header: false,
+      sessions: {
+        "session-1": 1,
+      } as KnownStateSessions,
+    };
+
+    peerState.combineOptimisticWith("co_z1", optimisticState);
+
+    expect(peerState.knownStates.get("co_z1")).not.toEqual(optimisticState);
+    expect(peerState.optimisticKnownStates.get("co_z1")).toEqual(
+      optimisticState,
+    );
   });
 
   test("should use separate references for knownStates and optimisticKnownStates for non-storage peers", () => {

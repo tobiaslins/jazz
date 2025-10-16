@@ -1,12 +1,13 @@
 export type Environment = "browser" | "mobile";
 export type Engine = "browser" | "mobile" | "nodejs" | "deno" | "bun";
-export type Framework = "react" | "svelte" | "rn";
+export type Framework = "react" | "svelte" | "rn" | "expo" | "nextjs";
 export type AuthMethod =
   | "minimal"
   | "passkey"
   | "passphrase"
   | "clerk"
-  | "keypair";
+  | "betterauth"
+  | "multi";
 
 export type EngineConfig = {
   [K in Engine]?: {
@@ -21,12 +22,20 @@ export const frameworks: {
   value: Framework;
 }[] = [
   {
-    name: "React",
+    name: "React (Vite)",
     value: "react",
+  },
+  {
+    name: "React (Next.js)",
+    value: "nextjs",
   },
   {
     name: "React Native",
     value: "rn",
+  },
+  {
+    name: "React Native (Expo)",
+    value: "expo",
   },
   {
     name: "Svelte",
@@ -56,11 +65,13 @@ export const configMap: ConfigStructure = {
     browser: {
       react: { auth: ["minimal", "passkey", "passphrase", "clerk"] },
       svelte: { auth: ["passkey"] },
+      nextjs: { auth: ["minimal"] },
     },
   },
   mobile: {
     mobile: {
       rn: { auth: ["minimal"] },
+      expo: { auth: ["minimal"] },
     },
   },
 };
@@ -88,9 +99,29 @@ export const frameworkToAuthExamples: Partial<
     repo: "garden-co/jazz/starters/react-passkey-auth",
     platform: PLATFORM.WEB,
   },
+  "react-passphrase-auth": {
+    name: "Passphrase auth",
+    repo: "garden-co/jazz/examples/passphrase",
+    platform: PLATFORM.WEB,
+  },
   "react-clerk-auth": {
     name: "Clerk auth",
     repo: "garden-co/jazz/examples/clerk",
+    platform: PLATFORM.WEB,
+  },
+  "react-multi-auth": {
+    name: "Multi auth",
+    repo: "garden-co/jazz/examples/multiauth",
+    platform: PLATFORM.WEB,
+  },
+  "nextjs-betterauth-auth": {
+    name: "BetterAuth",
+    repo: "garden-co/jazz/examples/betterauth",
+    platform: PLATFORM.WEB,
+  },
+  "nextjs-minimal-auth": {
+    name: "Anonymous Auth",
+    repo: "garden-co/jazz/examples/jazz-nextjs",
     platform: PLATFORM.WEB,
   },
   "svelte-passkey-auth": {
@@ -98,7 +129,17 @@ export const frameworkToAuthExamples: Partial<
     repo: "garden-co/jazz/starters/svelte-passkey-auth",
     platform: PLATFORM.WEB,
   },
+  "svelte-minimal-auth": {
+    name: "Anonymous Auth with SvelteKit",
+    repo: "garden-co/jazz/examples/jazz-sveltekit",
+    platform: PLATFORM.WEB,
+  },
   "rn-minimal-auth": {
+    name: "Anonymous auth",
+    repo: "garden-co/jazz/examples/chat-rn",
+    platform: PLATFORM.REACT_NATIVE,
+  },
+  "expo-minimal-auth": {
     name: "Anonymous auth",
     repo: "garden-co/jazz/examples/chat-rn-expo",
     platform: PLATFORM.REACT_NATIVE,

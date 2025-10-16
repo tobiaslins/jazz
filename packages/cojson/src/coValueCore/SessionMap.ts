@@ -2,7 +2,6 @@ import { Result, err, ok } from "neverthrow";
 import { ControlledAccountOrAgent } from "../coValues/account.js";
 import type {
   CryptoProvider,
-  Hash,
   KeyID,
   KeySecret,
   SessionLogImpl,
@@ -10,12 +9,17 @@ import type {
   SignerID,
 } from "../crypto/crypto.js";
 import { RawCoID, SessionID } from "../ids.js";
-import { parseJSON, stableStringify, Stringified } from "../jsonStringify.js";
+import { parseJSON, Stringified } from "../jsonStringify.js";
 import { JsonObject, JsonValue } from "../jsonValue.js";
-import { CoValueKnownState } from "../sync.js";
 import { TryAddTransactionsError } from "./coValueCore.js";
 import { Transaction } from "./verifiedState.js";
 import { exceedsRecommendedSize } from "../coValueContentMessage.js";
+import {
+  CoValueKnownState,
+  KnownStateSessions,
+  updateSessionCounter,
+  cloneKnownState,
+} from "../knownState.js";
 
 export type SessionLog = {
   signerID?: SignerID;
@@ -24,15 +28,31 @@ export type SessionLog = {
   lastSignature: Signature | undefined;
   signatureAfter: { [txIdx: number]: Signature | undefined };
   txSizeSinceLastInbetweenSignature: number;
+  sessionID: SessionID;
 };
 
 export class SessionMap {
   sessions: Map<SessionID, SessionLog> = new Map();
 
+  // Known state related properies, mutated when adding transactions to the session map
+  knownState: CoValueKnownState = { id: this.id, header: true, sessions: {} };
+  knownStateWithStreaming: CoValueKnownState | undefined;
+  streamingKnownState?: KnownStateSessions;
+
   constructor(
     private readonly id: RawCoID,
     private readonly crypto: CryptoProvider,
-  ) {}
+    streamingKnownState?: KnownStateSessions,
+  ) {
+    if (streamingKnownState) {
+      this.streamingKnownState = { ...streamingKnownState };
+      this.knownStateWithStreaming = {
+        id: this.id,
+        header: true,
+        sessions: { ...streamingKnownState },
+      };
+    }
+  }
 
   get(sessionID: SessionID): SessionLog | undefined {
     return this.sessions.get(sessionID);
@@ -51,6 +71,7 @@ export class SessionMap {
         lastSignature: undefined,
         signatureAfter: {},
         txSizeSinceLastInbetweenSignature: 0,
+        sessionID,
       };
       this.sessions.set(sessionID, sessionLog);
     }
@@ -164,18 +185,43 @@ export class SessionMap {
       0,
     );
 
+    const transactionsCount = sessionLog.transactions.length;
+
     if (exceedsRecommendedSize(sessionLog.txSizeSinceLastInbetweenSignature)) {
-      sessionLog.signatureAfter[sessionLog.transactions.length - 1] = signature;
+      sessionLog.signatureAfter[transactionsCount - 1] = signature;
       sessionLog.txSizeSinceLastInbetweenSignature = 0;
     }
-  }
 
-  knownState(): CoValueKnownState {
-    const sessions: CoValueKnownState["sessions"] = {};
-    for (const [sessionID, sessionLog] of this.sessions.entries()) {
-      sessions[sessionID] = sessionLog.transactions.length;
+    // Update the known state with the new transactions count
+    updateSessionCounter(
+      this.knownState.sessions,
+      sessionLog.sessionID,
+      transactionsCount,
+    );
+
+    // Check if the updated session matched the streaming state
+    // If so, we can delete the session from the streaming state to mark it as synced
+    if (this.streamingKnownState) {
+      const streamingCount = this.streamingKnownState[sessionLog.sessionID];
+      if (streamingCount && streamingCount <= transactionsCount) {
+        delete this.streamingKnownState[sessionLog.sessionID];
+
+        if (Object.keys(this.streamingKnownState).length === 0) {
+          // Mark the streaming as done by deleting the streaming statuses
+          this.streamingKnownState = undefined;
+          this.knownStateWithStreaming = undefined;
+        }
+      }
     }
-    return { id: this.id, header: true, sessions };
+
+    if (this.knownStateWithStreaming) {
+      // Update the streaming known state with the new transactions count
+      updateSessionCounter(
+        this.knownStateWithStreaming.sessions,
+        sessionLog.sessionID,
+        transactionsCount,
+      );
+    }
   }
 
   decryptTransaction(
@@ -244,8 +290,17 @@ export class SessionMap {
         txSizeSinceLastInbetweenSignature:
           sessionLog.txSizeSinceLastInbetweenSignature,
         signerID: sessionLog.signerID,
+        sessionID,
       });
     }
+
+    clone.streamingKnownState = this.streamingKnownState
+      ? { ...this.streamingKnownState }
+      : undefined;
+    clone.knownState = cloneKnownState(this.knownState);
+    clone.knownStateWithStreaming = this.knownStateWithStreaming
+      ? cloneKnownState(this.knownStateWithStreaming)
+      : undefined;
 
     return clone;
   }

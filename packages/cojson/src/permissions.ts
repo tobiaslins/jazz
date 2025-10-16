@@ -15,15 +15,12 @@ import {
   AgentID,
   ParentGroupReference,
   RawCoID,
-  SessionID,
   TransactionID,
   getParentGroupId,
 } from "./ids.js";
 import { parseJSON } from "./jsonStringify.js";
 import { JsonValue } from "./jsonValue.js";
 import { logger } from "./logger.js";
-import { CoValueKnownState } from "./sync.js";
-import { accountOrAgentIDfromSessionID } from "./typeUtils/accountOrAgentIDfromSessionID.js";
 import { expectGroup } from "./typeUtils/expectGroup.js";
 
 export type PermissionsDef =
@@ -443,12 +440,8 @@ function determineValidTransactionsForGroup(
       change.key === transactor &&
       change.value === "admin";
 
-    const currentAccountId = coValue.node.getCurrentAccountOrAgentID();
-
     const isSelfRevoke =
-      currentAccountId === change.key &&
-      transactor === currentAccountId &&
-      change.value === "revoked";
+      transactor === change.key && change.value === "revoked";
 
     if (!isFirstSelfAppointment && !isSelfRevoke) {
       if (memberState[transactor] === "admin") {

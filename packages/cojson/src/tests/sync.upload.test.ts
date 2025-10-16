@@ -9,7 +9,6 @@ import {
   setupTestNode,
   waitFor,
 } from "./testUtils";
-import { determineValidTransactions } from "../permissions";
 import { RawCoMap } from "../coValues/coMap";
 
 // We want to simulate a real world communication that happens asynchronously

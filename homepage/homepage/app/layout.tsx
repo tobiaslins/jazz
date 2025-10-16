@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     siteName: "Jazz",
     images: [
       {
-        url: `${metaTags.url}/opengraph-image`,
+        url: `${metaTags.url}/api/opengraph-image?title=${encodeURIComponent(metaTags.title)}`,
         height: 630,
         alt: metaTags.title,
       },

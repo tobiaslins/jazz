@@ -4,7 +4,6 @@ import {
   setCurrentTestCryptoProvider,
   setupTestNode,
   setupTestAccount,
-  randomAgentAndSessionID,
 } from "./testUtils";
 import { PureJSCrypto } from "../crypto/PureJSCrypto";
 import { stableStringify } from "../jsonStringify";

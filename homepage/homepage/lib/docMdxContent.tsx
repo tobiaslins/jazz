@@ -182,7 +182,7 @@ export function generateOGMetadata(
   const { title, description, image, topic, subtopic } = docMeta;
   const baseUrl = "https://jazz.tools";
   const imageUrl = image
-    ? `${baseUrl}/opengraph-image?title=${encodeURIComponent(title)}&framework=${encodeURIComponent(
+    ? `${baseUrl}/api/opengraph-image?title=${encodeURIComponent(title)}&framework=${encodeURIComponent(
         framework
       )}${topic ? `&topic=${encodeURIComponent(topic)}` : ""}${subtopic ? `&subtopic=${encodeURIComponent(subtopic)}` : ""}`
     : "/jazz-logo.png";
