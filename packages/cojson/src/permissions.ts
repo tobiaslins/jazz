@@ -488,9 +488,7 @@ function determineValidTransactionsForGroup(
     }
 
     // if I'm self revoking, it is always valid
-    if (
-      transactor === change.key && change.value === "revoked"
-    ) {
+    if (transactor === change.key && change.value === "revoked") {
       markTransactionSetRoleAsValid(change);
       continue;
     }
@@ -535,6 +533,10 @@ function determineValidTransactionsForGroup(
         markTransactionAsInvalid("Managers can't invite admins.");
         continue;
       }
+      if (change.value === "managerInvite") {
+        markTransactionAsInvalid("Managers can't invite managers.");
+        continue;
+      }
 
       markTransactionSetRoleAsValid(change);
       continue;
@@ -548,33 +550,28 @@ function determineValidTransactionsForGroup(
       }
     } else if (transactorRole === "managerInvite") {
       if (change.value !== "manager") {
-        logPermissionError("managerInvite can only create super-admins.");
-        transaction.isValid = false;
+        markTransactionAsInvalid("managerInvite can only create managers.");
         continue;
       }
     } else if (transactorRole === "writerInvite") {
       if (change.value !== "writer") {
-        logPermissionError("WriterInvites can only create writers.");
-        transaction.isValid = false;
+        markTransactionAsInvalid("WriterInvites can only create writers.");
         continue;
       }
     } else if (transactorRole === "readerInvite") {
       if (change.value !== "reader") {
-        logPermissionError("ReaderInvites can only create reader.");
-        transaction.isValid = false;
+        markTransactionAsInvalid("ReaderInvites can only create reader.");
         continue;
       }
     } else if (transactorRole === "writeOnlyInvite") {
       if (change.value !== "writeOnly") {
-        logPermissionError("WriteOnlyInvites can only create writeOnly.");
-        transaction.isValid = false;
+        markTransactionAsInvalid("WriteOnlyInvites can only create writeOnly.");
         continue;
       }
     } else {
-      logPermissionError(
+      markTransactionAsInvalid(
         "Group transaction must be made by current admin, manager, or invite",
       );
-      transaction.isValid = false;
       continue;
     }
 

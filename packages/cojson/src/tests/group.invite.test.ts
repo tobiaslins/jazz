@@ -17,17 +17,17 @@ beforeEach(async () => {
 
 // [fromRole, toRole, canCreateInvite]
 const CAN_CREATE_INVITE_MATRIX: [AccountRole, AccountRole, boolean][] = [
-  ["manager", "admin", false],
-  ["manager", "manager", true],
-  ["manager", "writer", true],
-  ["manager", "reader", true],
-  ["manager", "writeOnly", true],
-
   ["admin", "admin", true],
   ["admin", "manager", true],
   ["admin", "writer", true],
   ["admin", "reader", true],
   ["admin", "writeOnly", true],
+
+  ["manager", "admin", false],
+  ["manager", "manager", false],
+  ["manager", "writer", true],
+  ["manager", "reader", true],
+  ["manager", "writeOnly", true],
 
   ["writer", "admin", false],
   ["writer", "manager", false],

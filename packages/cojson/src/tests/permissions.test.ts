@@ -15,6 +15,7 @@ import {
   newGroupHighLevel,
   waitFor,
 } from "./testUtils.js";
+import { Role } from "../permissions.js";
 
 const Crypto = await WasmCrypto.create();
 
@@ -1325,7 +1326,33 @@ test("Admins can create a readerInvite, which can add a reader (high-level)", as
   expect(groupAsInvitedReader.core.getCurrentReadKey().secret).toBeDefined();
 });
 
-test("WriterInvites can not invite admins", async () => {
+test.each([
+  // [inviteRole, finalRole]
+  ["adminInvite", "manager"],
+  ["adminInvite", "writer"],
+  ["adminInvite", "reader"],
+  ["adminInvite", "writeOnly"],
+
+  ["managerInvite", "admin"],
+  ["managerInvite", "writer"],
+  ["managerInvite", "reader"],
+  ["managerInvite", "writeOnly"],
+
+  ["writerInvite", "admin"],
+  ["writerInvite", "reader"],
+  ["writerInvite", "manager"],
+  ["writerInvite", "writeOnly"],
+
+  ["readerInvite", "admin"],
+  ["readerInvite", "writer"],
+  ["readerInvite", "manager"],
+  ["readerInvite", "writeOnly"],
+
+  ["writeOnlyInvite", "admin"],
+  ["writeOnlyInvite", "manager"],
+  ["writeOnlyInvite", "writer"],
+  ["writeOnlyInvite", "reader"],
+] as [Role, Role][])("%s can not invite %s", async (inviteRole, finalRole) => {
   const { groupCore, admin } = newGroup();
 
   const inviteSecret = Crypto.newRandomAgentSecret();
@@ -1347,9 +1374,9 @@ test("WriterInvites can not invite admins", async () => {
   group.set(`${readKeyID}_for_${admin.id}`, revelation, "trusting");
   group.set("readKey", readKeyID, "trusting");
 
-  group.set(inviteID, "writerInvite", "trusting");
+  group.set(inviteID, inviteRole, "trusting");
 
-  expect(group.get(inviteID)).toEqual("writerInvite");
+  expect(group.get(inviteID)).toEqual(inviteRole);
 
   const revelationForInvite = Crypto.seal({
     message: readKey,
@@ -1372,11 +1399,18 @@ test("WriterInvites can not invite admins", async () => {
   const invitedAdminSecret = Crypto.newRandomAgentSecret();
   const invitedAdminID = Crypto.getAgentID(invitedAdminSecret);
 
-  groupAsInvite.set(invitedAdminID, "admin", "trusting");
+  groupAsInvite.set(invitedAdminID, finalRole, "trusting");
   expect(groupAsInvite.get(invitedAdminID)).toBeUndefined();
 });
 
-test("ReaderInvites can not invite admins", async () => {
+test.each([
+  // [inviteRole, finalRole]
+  ["adminInvite", "admin"],
+  ["managerInvite", "manager"],
+  ["writerInvite", "writer"],
+  ["readerInvite", "reader"],
+  ["writeOnlyInvite", "writeOnly"],
+] as [Role, Role][])("%s can invite %s", async (inviteRole, finalRole) => {
   const { groupCore, admin } = newGroup();
 
   const inviteSecret = Crypto.newRandomAgentSecret();
@@ -1398,9 +1432,9 @@ test("ReaderInvites can not invite admins", async () => {
   group.set(`${readKeyID}_for_${admin.id}`, revelation, "trusting");
   group.set("readKey", readKeyID, "trusting");
 
-  group.set(inviteID, "readerInvite", "trusting");
+  group.set(inviteID, inviteRole, "trusting");
 
-  expect(group.get(inviteID)).toEqual("readerInvite");
+  expect(group.get(inviteID)).toEqual(inviteRole);
 
   const revelationForInvite = Crypto.seal({
     message: readKey,
@@ -1423,212 +1457,8 @@ test("ReaderInvites can not invite admins", async () => {
   const invitedAdminSecret = Crypto.newRandomAgentSecret();
   const invitedAdminID = Crypto.getAgentID(invitedAdminSecret);
 
-  groupAsInvite.set(invitedAdminID, "admin", "trusting");
-  expect(groupAsInvite.get(invitedAdminID)).toBeUndefined();
-});
-
-test("ReaderInvites can not invite writers", async () => {
-  const { groupCore, admin } = newGroup();
-
-  const inviteSecret = Crypto.newRandomAgentSecret();
-  const inviteID = Crypto.getAgentID(inviteSecret);
-
-  const group = expectGroup(groupCore.getCurrentContent());
-
-  const { secret: readKey, id: readKeyID } = Crypto.newRandomKeySecret();
-  const revelation = Crypto.seal({
-    message: readKey,
-    from: admin.currentSealerSecret(),
-    to: admin.currentSealerID(),
-    nOnceMaterial: {
-      in: groupCore.id,
-      tx: groupCore.nextTransactionID(),
-    },
-  });
-
-  group.set(`${readKeyID}_for_${admin.id}`, revelation, "trusting");
-  group.set("readKey", readKeyID, "trusting");
-
-  group.set(inviteID, "readerInvite", "trusting");
-
-  expect(group.get(inviteID)).toEqual("readerInvite");
-
-  const revelationForInvite = Crypto.seal({
-    message: readKey,
-    from: admin.currentSealerSecret(),
-    to: Crypto.getAgentSealerID(inviteID),
-    nOnceMaterial: {
-      in: groupCore.id,
-      tx: groupCore.nextTransactionID(),
-    },
-  });
-
-  group.set(`${readKeyID}_for_${inviteID}`, revelationForInvite, "trusting");
-
-  const groupAsInvite = expectGroup(
-    await groupCore.contentInClonedNodeWithDifferentAccount(
-      new ControlledAgent(inviteSecret, Crypto),
-    ),
-  );
-
-  const invitedWriterSecret = Crypto.newRandomAgentSecret();
-  const invitedWriterID = Crypto.getAgentID(invitedWriterSecret);
-
-  groupAsInvite.set(invitedWriterID, "writer", "trusting");
-  expect(groupAsInvite.get(invitedWriterID)).toBeUndefined();
-});
-
-test("WriteOnlyInvites can not invite writers", async () => {
-  const { groupCore, admin } = newGroup();
-
-  const inviteSecret = Crypto.newRandomAgentSecret();
-  const inviteID = Crypto.getAgentID(inviteSecret);
-
-  const group = expectGroup(groupCore.getCurrentContent());
-
-  const { secret: readKey, id: readKeyID } = Crypto.newRandomKeySecret();
-  const revelation = Crypto.seal({
-    message: readKey,
-    from: admin.currentSealerSecret(),
-    to: admin.currentSealerID(),
-    nOnceMaterial: {
-      in: groupCore.id,
-      tx: groupCore.nextTransactionID(),
-    },
-  });
-
-  group.set(`${readKeyID}_for_${admin.id}`, revelation, "trusting");
-  group.set("readKey", readKeyID, "trusting");
-
-  group.set(inviteID, "writeOnlyInvite", "trusting");
-
-  expect(group.get(inviteID)).toEqual("writeOnlyInvite");
-
-  const revelationForInvite = Crypto.seal({
-    message: readKey,
-    from: admin.currentSealerSecret(),
-    to: Crypto.getAgentSealerID(inviteID),
-    nOnceMaterial: {
-      in: groupCore.id,
-      tx: groupCore.nextTransactionID(),
-    },
-  });
-
-  group.set(`${readKeyID}_for_${inviteID}`, revelationForInvite, "trusting");
-
-  const groupAsInvite = expectGroup(
-    await groupCore.contentInClonedNodeWithDifferentAccount(
-      new ControlledAgent(inviteSecret, Crypto),
-    ),
-  );
-
-  const invitedWriterSecret = Crypto.newRandomAgentSecret();
-  const invitedWriterID = Crypto.getAgentID(invitedWriterSecret);
-
-  groupAsInvite.set(invitedWriterID, "writer", "trusting");
-  expect(groupAsInvite.get(invitedWriterID)).toBeUndefined();
-});
-
-test("WriteOnlyInvites can not invite admins", async () => {
-  const { groupCore, admin } = newGroup();
-
-  const inviteSecret = Crypto.newRandomAgentSecret();
-  const inviteID = Crypto.getAgentID(inviteSecret);
-
-  const group = expectGroup(groupCore.getCurrentContent());
-
-  const { secret: readKey, id: readKeyID } = Crypto.newRandomKeySecret();
-  const revelation = Crypto.seal({
-    message: readKey,
-    from: admin.currentSealerSecret(),
-    to: admin.currentSealerID(),
-    nOnceMaterial: {
-      in: groupCore.id,
-      tx: groupCore.nextTransactionID(),
-    },
-  });
-
-  group.set(`${readKeyID}_for_${admin.id}`, revelation, "trusting");
-  group.set("readKey", readKeyID, "trusting");
-
-  group.set(inviteID, "writeOnlyInvite", "trusting");
-
-  expect(group.get(inviteID)).toEqual("writeOnlyInvite");
-
-  const revelationForInvite = Crypto.seal({
-    message: readKey,
-    from: admin.currentSealerSecret(),
-    to: Crypto.getAgentSealerID(inviteID),
-    nOnceMaterial: {
-      in: groupCore.id,
-      tx: groupCore.nextTransactionID(),
-    },
-  });
-
-  group.set(`${readKeyID}_for_${inviteID}`, revelationForInvite, "trusting");
-
-  const groupAsInvite = expectGroup(
-    await groupCore.contentInClonedNodeWithDifferentAccount(
-      new ControlledAgent(inviteSecret, Crypto),
-    ),
-  );
-
-  const invitedWriterSecret = Crypto.newRandomAgentSecret();
-  const invitedWriterID = Crypto.getAgentID(invitedWriterSecret);
-
-  groupAsInvite.set(invitedWriterID, "admin", "trusting");
-  expect(groupAsInvite.get(invitedWriterID)).toBeUndefined();
-});
-
-test("WriteOnlyInvites can invite writeOnly", async () => {
-  const { groupCore, admin } = newGroup();
-
-  const inviteSecret = Crypto.newRandomAgentSecret();
-  const inviteID = Crypto.getAgentID(inviteSecret);
-
-  const group = expectGroup(groupCore.getCurrentContent());
-
-  const { secret: readKey, id: readKeyID } = Crypto.newRandomKeySecret();
-  const revelation = Crypto.seal({
-    message: readKey,
-    from: admin.currentSealerSecret(),
-    to: admin.currentSealerID(),
-    nOnceMaterial: {
-      in: groupCore.id,
-      tx: groupCore.nextTransactionID(),
-    },
-  });
-
-  group.set(`${readKeyID}_for_${admin.id}`, revelation, "trusting");
-  group.set("readKey", readKeyID, "trusting");
-
-  group.set(inviteID, "writeOnlyInvite", "trusting");
-
-  expect(group.get(inviteID)).toEqual("writeOnlyInvite");
-
-  const revelationForInvite = Crypto.seal({
-    message: readKey,
-    from: admin.currentSealerSecret(),
-    to: Crypto.getAgentSealerID(inviteID),
-    nOnceMaterial: {
-      in: groupCore.id,
-      tx: groupCore.nextTransactionID(),
-    },
-  });
-
-  group.set(`${readKeyID}_for_${inviteID}`, revelationForInvite, "trusting");
-
-  const groupAsInvite = expectGroup(
-    await groupCore.contentInClonedNodeWithDifferentAccount(
-      new ControlledAgent(inviteSecret, Crypto),
-    ),
-  );
-
-  const invitedWriterSecret = Crypto.newRandomAgentSecret();
-  const invitedWriterID = Crypto.getAgentID(invitedWriterSecret);
-
-  groupAsInvite.set(invitedWriterID, "writeOnly", "trusting");
-  expect(groupAsInvite.get(invitedWriterID)).toEqual("writeOnly");
+  groupAsInvite.set(invitedAdminID, finalRole, "trusting");
+  expect(groupAsInvite.get(invitedAdminID)).toEqual(finalRole);
 });
 
 test("WriteOnlyInvites can set writeKeys", async () => {
