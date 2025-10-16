@@ -301,7 +301,10 @@ export function subscribeToCoValue<
     if (value.type === "unavailable") {
       options.onUnavailable?.();
 
-      console.error(value.toString());
+      // Don't log unavailable errors when `loadUnique` or `upsertUnique` are used
+      if (!options.skipRetry) {
+        console.error(value.toString());
+      }
     } else if (value.type === "unauthorized") {
       options.onUnauthorized?.();
 

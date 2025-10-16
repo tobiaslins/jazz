@@ -3,13 +3,13 @@ export const docNavigationItems = [
   {
     // welcome to jazz
     name: "Getting started",
+    href: '/docs',
     items: [
       {
         // what is jazz, supported environments, where to start (guide, examples, project setup)
-        name: "Introduction",
+        name: "Overview",
         href: "/docs",
         done: 100,
-        excludeFromNavigation: true,
       }, {
         name: "Quickstart",
         href: "/docs/getting-started/quickstart",
@@ -120,7 +120,6 @@ export const docNavigationItems = [
   },
   {
     name: "Core Concepts",
-    href: '/docs',
     done: 100,
     items: [
       {
@@ -158,6 +157,11 @@ export const docNavigationItems = [
           done: 80,
         },
         {
+          name: "CoVectors",
+          href: "/docs/using-covalues/covectors",
+          done: 100,
+        },
+        {
           name: "ImageDefinitions",
           href: "/docs/using-covalues/imagedef",
           done: {
@@ -187,7 +191,7 @@ export const docNavigationItems = [
           href: "/docs/using-covalues/schemaunions",
           done: 100,
         }]
-      }, 
+      },
     {
       name: "Subscriptions & Deep Loading",
       href: "/docs/using-covalues/subscription-and-loading",
@@ -220,7 +224,7 @@ export const docNavigationItems = [
           href: "/docs/authentication/quickstart",
           done: 100,
         },
-        
+
         {
           name: "Authentication States",
           href: "/docs/authentication/authentication-states",
@@ -255,11 +259,11 @@ export const docNavigationItems = [
           href: "/docs/authentication/better-auth",
           done: 100,
         },
-        //{
-        //  name: "Writing your own",
-        //  href: "/docs/authentication/writing-your-own",
-        //  done: 0,
-        //},
+        {
+          name: "Better Auth Database Adapter",
+          href: "/docs/authentication/better-auth-database-adapter",
+          done: 100,
+        },
       ]
     }, {
       name: "Permissions & sharing",
@@ -314,6 +318,11 @@ export const docNavigationItems = [
       startClosed: true,
       collapse: true,
       items: [{
+        name: "JazzRPC",
+        href: "/docs/server-side/jazz-rpc",
+        done: 100,
+      },
+      {
         name: "HTTP requests",
         href: "/docs/server-side/http-requests",
         done: 100,
@@ -360,18 +369,26 @@ export const docNavigationItems = [
           href: "/docs/inspector",
           done: 100,
         }, {
-          name: "AI tools",
+          name: "AI tools (llms.txt)",
           href: "/docs/ai-tools",
           done: 100,
         }]
-      }, 
+      },
     {
         name: "Reference",
         items: [{
           name: "Encryption",
           href: "/docs/resources/encryption",
           done: 100,
-        }, { name: "FAQs", href: "/docs/faq", done: 100 }, {
+        }, {
+          name: "FAQs",
+          href: "/docs/faq",
+          done: 100
+        }, {
+          name: "Performance tips",
+          href: "/docs/performance",
+          done: 100,
+        }, {
           name: "Design patterns",
           collapse: true,
           items: [

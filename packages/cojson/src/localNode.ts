@@ -178,13 +178,13 @@ export class LocalNode {
   static internalCreateAccount(opts: {
     crypto: CryptoProvider;
     initialAgentSecret?: AgentSecret;
-    peersToLoadFrom?: Peer[];
+    peers?: Peer[];
     storage?: StorageAPI;
   }): RawAccount {
     const {
       crypto,
       initialAgentSecret = crypto.newRandomAgentSecret(),
-      peersToLoadFrom = [],
+      peers = [],
     } = opts;
     const accountHeader = accountHeaderForInitialAgentSecret(
       initialAgentSecret,
@@ -202,7 +202,7 @@ export class LocalNode {
       node.setStorage(opts.storage);
     }
 
-    for (const peer of peersToLoadFrom) {
+    for (const peer of peers) {
       node.syncManager.addPeer(peer);
     }
 
@@ -236,14 +236,14 @@ export class LocalNode {
   /** @category 2. Node Creation */
   static async withNewlyCreatedAccount({
     creationProps,
-    peersToLoadFrom,
+    peers,
     migration,
     crypto,
     initialAgentSecret = crypto.newRandomAgentSecret(),
     storage,
   }: {
     creationProps: { name: string };
-    peersToLoadFrom?: Peer[];
+    peers?: Peer[];
     migration?: RawAccountMigration<AccountMeta>;
     crypto: CryptoProvider;
     initialAgentSecret?: AgentSecret;
@@ -257,7 +257,7 @@ export class LocalNode {
     const account = LocalNode.internalCreateAccount({
       crypto,
       initialAgentSecret,
-      peersToLoadFrom,
+      peers,
       storage,
     });
     const node = account.core.node;
@@ -299,7 +299,7 @@ export class LocalNode {
     accountID,
     accountSecret,
     sessionID,
-    peersToLoadFrom,
+    peers,
     crypto,
     migration,
     storage,
@@ -307,7 +307,7 @@ export class LocalNode {
     accountID: RawAccountID;
     accountSecret: AgentSecret;
     sessionID: SessionID | undefined;
-    peersToLoadFrom: Peer[];
+    peers: Peer[];
     crypto: CryptoProvider;
     migration?: RawAccountMigration<AccountMeta>;
     storage?: StorageAPI;
@@ -323,7 +323,7 @@ export class LocalNode {
         node.setStorage(storage);
       }
 
-      for (const peer of peersToLoadFrom) {
+      for (const peer of peers) {
         node.syncManager.addPeer(peer);
       }
 

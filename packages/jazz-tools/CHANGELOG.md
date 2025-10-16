@@ -1,5 +1,71 @@
 # jazz-tools
 
+## 0.18.27
+
+### Patch Changes
+
+- 6c6eb35: feat: enabled the usage of "expo-image-manipulator" as resize engine in react-native
+- 6ca0b59: feat: Add generateAuthToken and authenticateRequest
+- 88c5f1c: fix: createImage return type now has the original image already loaded
+  - cojson@0.18.27
+  - cojson-storage-indexeddb@0.18.27
+  - cojson-transport-ws@0.18.27
+
+## 0.18.26
+
+### Patch Changes
+
+- 4e0ea26: Added new CoVector type of CoValue
+- Updated dependencies [f956cd3]
+  - cojson@0.18.26
+  - cojson-storage-indexeddb@0.18.26
+  - cojson-transport-ws@0.18.26
+
+## 0.18.25
+
+### Patch Changes
+
+- 4036737: "peersToLoadFrom" renamed to only "peers"
+- 8ae7d71: feat: AuthSecretStorage's key is now configurable to handle multiple Jazz's apps on the same origin
+- b1d0081: Simplified getting invite secrets for groups
+- 36a5c58: Don't log unavailable errors when `loadUnique` or `upsertUnique` are used
+- 94e7d89: Added more options to the create-jazz-app tool
+- Updated dependencies [4036737]
+  - cojson@0.18.25
+  - cojson-storage-indexeddb@0.18.25
+  - cojson-transport-ws@0.18.25
+
+## 0.18.24
+
+### Patch Changes
+
+- f4c4ee9: fix: Account.create() type now accepts peersToLoadFrom and initialAgentSecret"
+- a15e2ba: Expose subscription scope react hooks and new `createCoValueSubscriptionContext` and `createAccountSubscriptionContext` helper functions
+- Updated dependencies [b09785e]
+  - cojson@0.18.24
+  - cojson-storage-indexeddb@0.18.24
+  - cojson-transport-ws@0.18.24
+
+## 0.18.23
+
+### Patch Changes
+
+- a0c8a2d: fix napi crypto export
+  - cojson@0.18.23
+  - cojson-storage-indexeddb@0.18.23
+  - cojson-transport-ws@0.18.23
+
+## 0.18.22
+
+### Patch Changes
+
+- 22200ac: Inspector now shows the CoID of list items and handles unavailable items correctly
+- 1e20db6: Added cojson-core-napi
+- Updated dependencies [1e20db6]
+  - cojson@0.18.22
+  - cojson-storage-indexeddb@0.18.22
+  - cojson-transport-ws@0.18.22
+
 ## 0.18.21
 
 ### Patch Changes

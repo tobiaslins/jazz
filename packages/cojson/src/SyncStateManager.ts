@@ -1,10 +1,10 @@
 import { RawCoID } from "./ids.js";
 import {
   CoValueKnownState,
-  PeerID,
-  SyncManager,
   emptyKnownState,
-} from "./sync.js";
+  areLocalSessionsUploaded,
+} from "./knownState.js";
+import { PeerID, SyncManager } from "./sync.js";
 
 export type SyncState = {
   uploaded: boolean;
@@ -135,19 +135,6 @@ export class SyncStateManager {
       return false;
     }
 
-    return getIsUploaded(sessions.coValue, sessions.peer);
+    return areLocalSessionsUploaded(sessions.coValue, sessions.peer);
   }
-}
-
-export function getIsUploaded(
-  from: Record<string, number>,
-  to: Record<string, number>,
-) {
-  for (const sessionId of Object.keys(from)) {
-    if (from[sessionId] !== to[sessionId]) {
-      return false;
-    }
-  }
-
-  return true;
 }

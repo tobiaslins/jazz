@@ -90,26 +90,6 @@ containingGroup.addMember(addedGroup);
 ```
 </CodeGroup>
 
-To add a group to another group:
-
-1. The current account must be an admin in the containing group
-2. The current account must be a member of the added group
-
-<CodeGroup>
-```ts twoslash
-import { co, Group } from "jazz-tools";
-const group = Group.create();
-const Company = co.map({});
-const company = Company.create({ owner: group });
-// ---cut---
-const companyGroup = company.$jazz.owner;
-const teamGroup = Group.create();
-
-// Works only if I'm a member of `companyGroup`
-teamGroup.addMember(companyGroup);
-```
-</CodeGroup>
-
 ### Overriding the added group's roles
 
 In some cases you might want to inherit all members from an added group but override their roles to the same specific role in the containing group. You can do so by passing an "override role" as a second argument to `addMember`:

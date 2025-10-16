@@ -2,8 +2,7 @@ export const metadata = {
   description: "Learn how to set up Jazz in your React Native Expo application."
 };
 
-import { CodeGroup } from "@/components/forMdx";
-import { Alert } from "@garden-co/design-system/src/components/atoms/Alert";
+import { Alert, CodeGroup } from "@/components/forMdx";
 
 # React Native (Expo) Installation and Setup
 
@@ -40,7 +39,7 @@ npx expo prebuild
 <CodeGroup>
 ```bash
 # Expo dependencies
-npx expo install expo-linking expo-secure-store expo-sqlite expo-file-system @react-native-community/netinfo @bam.tech/react-native-image-resizer
+npx expo install expo-linking expo-secure-store expo-sqlite expo-file-system @react-native-community/netinfo expo-image-manipulator
 
 # React Native polyfills
 npm i -S @azure/core-asynciterator-polyfill react-native-url-polyfill readable-stream react-native-get-random-values @bacons/text-decoder

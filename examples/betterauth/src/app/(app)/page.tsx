@@ -67,12 +67,12 @@ export default function Home() {
       <footer className="flex gap-4 py-8">
         <Button asChild variant="ghost">
           <a
-            href="https://jazz.tools/api-reference"
+            href="https://jazz.tools/docs"
             target="_blank"
             rel="noopener noreferrer"
           >
             <FileTextIcon className="size-4" />
-            API reference
+            Docs
           </a>
         </Button>
         <Button asChild variant="ghost">

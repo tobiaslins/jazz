@@ -38,6 +38,7 @@ export function Footer({
           <div className="col-span-full sm:col-span-6 md:col-span-8">
             <Link href="https://garden.co" target="_blank">
               {logo}
+              <span className="sr-only">Garden Computing Homepage</span>
             </Link>
           </div>
           <p className="col-span-full sm:col-span-6 md:col-span-4 text-sm sm:text-base">

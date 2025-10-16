@@ -46,6 +46,7 @@ export function CopyButton({
         });
         onCopy?.();
       }}
+      aria-label="copy to clipboard"
     >
       <span
         aria-hidden={copied}

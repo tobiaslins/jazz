@@ -1,5 +1,52 @@
 # cojson
 
+## 0.18.27
+
+### Patch Changes
+
+- cojson-core-wasm@0.18.27
+- cojson-core-napi@0.18.27
+
+## 0.18.26
+
+### Patch Changes
+
+- f956cd3: Fix validation for self-revocation in groups. Now self-revocation will be considered as valid also by other accounts.
+  - cojson-core-wasm@0.18.26
+  - cojson-core-napi@0.18.26
+
+## 0.18.25
+
+### Patch Changes
+
+- 4036737: "peersToLoadFrom" renamed to only "peers"
+  - cojson-core-wasm@0.18.25
+  - cojson-core-napi@0.18.25
+
+## 0.18.24
+
+### Patch Changes
+
+- b09785e: fix: reveal child groups' writeOnly keys to parent groups
+  - cojson-core-wasm@0.18.24
+  - cojson-core-napi@0.18.24
+
+## 0.18.23
+
+### Patch Changes
+
+- cojson-core-wasm@0.18.23
+- cojson-core-napi@0.18.23
+
+## 0.18.22
+
+### Patch Changes
+
+- 1e20db6: Added cojson-core-napi
+- Updated dependencies [1e20db6]
+  - cojson-core-napi@0.18.22
+  - cojson-core-wasm@0.18.22
+
 ## 0.18.21
 
 ### Patch Changes

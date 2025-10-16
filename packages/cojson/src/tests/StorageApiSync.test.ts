@@ -6,11 +6,8 @@ import { describe, expect, onTestFinished, test, vi } from "vitest";
 import { WasmCrypto } from "../crypto/WasmCrypto.js";
 import { CoID, LocalNode, RawCoID, RawCoMap, logger } from "../exports.js";
 import { CoValueCore } from "../exports.js";
-import {
-  CoValueKnownState,
-  NewContentMessage,
-  emptyKnownState,
-} from "../sync.js";
+import { NewContentMessage } from "../sync.js";
+import { CoValueKnownState, emptyKnownState } from "../knownState.js";
 import { createSyncStorage } from "./testStorage.js";
 import { loadCoValueOrFail, randomAgentAndSessionID } from "./testUtils.js";
 
@@ -240,7 +237,6 @@ describe("StorageApiSync", () => {
 
       // Create a real group and add a member to create transactions
       const group = fixturesNode.createGroup();
-      const knownState = group.core.verified.knownState();
 
       group.addMember("everyone", "reader");
 

@@ -3,6 +3,7 @@ import {
   type AccountRole,
   type AgentID,
   type Everyone,
+  type InviteSecret,
   type RawAccountID,
   type RawGroup,
   type Role,
@@ -299,6 +300,29 @@ export class Group extends CoValueBase implements CoValue {
     const { options, listener } = parseSubscribeRestArgs(args);
     return subscribeToCoValueWithoutMe<G, R>(this, id, options, listener);
   }
+
+  /** @category Invites
+   * Creates a group invite
+   * @param id The ID of the group to create an invite for
+   * @param options Optional configuration
+   * @param options.role The role to grant to the accepter of the invite. Defaults to 'reader'
+   * @param options.loadAs The account to use when loading the group. Defaults to the current account
+   * @returns An invite secret, (a string starting with "inviteSecret_"). Can be
+   * accepted using `Account.acceptInvite()`
+   */
+  static async createInvite<G extends Group>(
+    this: CoValueClass<G>,
+    id: ID<G>,
+    options?: { role?: AccountRole; loadAs?: Account },
+  ): Promise<InviteSecret> {
+    const group = await loadCoValueWithoutMe(this, id, {
+      loadAs: options?.loadAs,
+    });
+    if (!group) {
+      throw new Error(`Group with id ${id} not found`);
+    }
+    return group.$jazz.createInvite(options?.role ?? "reader");
+  }
 }
 
 export class GroupJazzApi<G extends Group> extends CoValueJazzApi<G> {
@@ -348,6 +372,15 @@ export class GroupJazzApi<G extends Group> extends CoValueJazzApi<G> {
   ): () => void {
     const { options, listener } = parseSubscribeRestArgs(args);
     return subscribeToExistingCoValue(this.group, options, listener);
+  }
+
+  /**
+   * Create an invite to this group
+   *
+   * @category Invites
+   */
+  createInvite(role: AccountRole = "reader"): InviteSecret {
+    return this.raw.createInvite(role);
   }
 
   /**

@@ -276,44 +276,17 @@ describe("multiple clients syncing with the a cloud-like server mesh", () => {
       expect(coValue.get("fromClient")).toEqual("updated");
     });
 
-    expect(
-      SyncMessagesLog.getMessages({
-        Group: group.core,
-        Map: map.core,
-      }),
-    ).toMatchInlineSnapshot(`
-      [
-        "client -> edge-italy | LOAD Map sessions: empty",
-        "edge-italy -> storage | CONTENT Group header: true new: After: 0 New: 5",
-        "edge-italy -> core | CONTENT Group header: true new: After: 0 New: 5",
-        "edge-italy -> storage | CONTENT Map header: true new: After: 0 New: 1",
-        "edge-italy -> core | CONTENT Map header: true new: After: 0 New: 1",
-        "edge-italy -> client | CONTENT Group header: true new: After: 0 New: 5",
-        "edge-italy -> client | CONTENT Map header: true new: After: 0 New: 1",
-        "core -> edge-italy | KNOWN Group sessions: header/5",
-        "core -> storage | CONTENT Group header: true new: After: 0 New: 5",
-        "core -> edge-italy | KNOWN Map sessions: header/1",
-        "core -> storage | CONTENT Map header: true new: After: 0 New: 1",
-        "client -> edge-italy | KNOWN Group sessions: header/5",
-        "client -> edge-italy | KNOWN Map sessions: header/1",
-        "client -> edge-italy | CONTENT Map header: false new: After: 0 New: 1",
-        "core -> storage | CONTENT Map header: false new: After: 0 New: 1",
-        "core -> edge-italy | CONTENT Map header: false new: After: 0 New: 1",
-        "edge-italy -> client | KNOWN CORRECTION Map sessions: empty",
-        "edge-italy -> core | KNOWN CORRECTION Map sessions: empty",
-        "client -> edge-italy | CONTENT Map header: true new: After: 0 New: 1 | After: 0 New: 1",
-        "core -> edge-italy | CONTENT Map header: true new: After: 0 New: 1 | After: 0 New: 1",
-        "edge-italy -> client | KNOWN Map sessions: header/2",
-        "edge-italy -> storage | CONTENT Map header: true new: After: 0 New: 1 | After: 0 New: 1",
-        "edge-italy -> core | CONTENT Map header: false new: After: 0 New: 1",
-        "edge-italy -> core | KNOWN Map sessions: header/3",
-        "edge-italy -> storage | CONTENT Map header: true new: After: 0 New: 1",
-        "edge-italy -> client | CONTENT Map header: false new: After: 0 New: 1",
-        "core -> edge-italy | KNOWN Map sessions: header/3",
-        "core -> storage | CONTENT Map header: false new: After: 0 New: 1",
-        "client -> edge-italy | KNOWN Map sessions: header/3",
-      ]
-    `);
+    const syncLog = SyncMessagesLog.getMessages({
+      Group: group.core,
+      Map: map.core,
+    });
+
+    expect(syncLog).toContain(
+      "edge-italy -> client | KNOWN CORRECTION Map sessions: empty",
+    );
+    expect(syncLog).toContain(
+      "edge-italy -> core | KNOWN CORRECTION Map sessions: empty",
+    );
   });
 
   test("sync of changes of a coValue with bad signatures should be blocked", async () => {

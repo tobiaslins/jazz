@@ -1,8 +1,9 @@
+"use client";
 import { SideNavItem } from "@/components/SideNavItem";
 import { DoneStatus } from "@/content/docs/docNavigationItemsTypes";
 import { clsx } from "clsx";
 import Link from "next/link";
-import React from "react";
+import { useEffect, useRef, useState } from "react";
 import { SideNavSection } from "./SideNavSection";
 
 export interface SideNavItem {
@@ -15,6 +16,7 @@ export interface SideNavItem {
   excludeFromNavigation?: boolean;
   startClosed?: boolean;
 }
+
 export function SideNav({
   children,
   className,
@@ -23,7 +25,9 @@ export function SideNav({
   children?: React.ReactNode;
 }) {
   return (
-    <div className={clsx(className, "text-sm h-full flex flex-col gap-4 px-2")}>
+    <div
+      className={clsx(className, "text-sm h-full flex flex-col gap-4 px-2 overflow-y-auto")}
+    >
       {children}
     </div>
   );
@@ -70,10 +74,29 @@ export function SideNavSectionList({ items }: { items?: SideNavItem[] }) {
 }
 
 export function SideNavBody({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex-1 relative overflow-y-auto px-2 -mx-2">
-      {children}
+  const ref = useRef<HTMLDivElement>(null);
+  const [extraPadding, setExtraPadding] = useState(false);
 
+  useEffect(() => {
+    const div = ref.current;
+    if (!div) return;
+
+    const updatePadding = () => {
+      const scrollbarWidth = div.offsetWidth - div.clientWidth;
+      // If we're dealing with overlay scroll bars, then we'll set extra padding
+      setExtraPadding(scrollbarWidth === 0)
+    };
+
+    updatePadding();
+    window.addEventListener("resize", updatePadding);
+    return () => window.removeEventListener("resize", updatePadding);
+  }, []);
+
+  return (
+
+    <div ref={ref}
+      className={clsx("flex-1 relative overflow-y-auto -mx-2", extraPadding ? 'px-2 pr-4' : 'px-2')}>
+      {children}
       <div
         aria-hidden
         className={clsx(

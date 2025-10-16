@@ -120,13 +120,13 @@ export class Account extends CoValueBase implements CoValue {
    *
    * @param valueID The ID of the `CoValue` or `Group` to accept the invite to.
    * @param inviteSecret The secret of the invite to accept.
-   * @param coValueClass The class of the `CoValue` or `Group` to accept the invite to.
+   * @param coValueClass [Group] The class of the `CoValue` or `Group` to accept the invite to.
    * @returns The loaded `CoValue` or `Group`.
    */
   async acceptInvite<S extends CoValueClassOrSchema>(
     valueID: string,
     inviteSecret: InviteSecret,
-    coValueClass: S,
+    coValueClass?: S,
   ): Promise<Resolved<InstanceOrPrimitiveOfSchema<S>, true> | null> {
     if (!this.$jazz.isLocalNodeOwner) {
       throw new Error("Only a controlled account can accept invites");
@@ -138,7 +138,7 @@ export class Account extends CoValueBase implements CoValue {
     );
 
     return loadCoValue(
-      coValueClassFromCoValueClassOrSchema(coValueClass),
+      coValueClassFromCoValueClassOrSchema(coValueClass ?? Group),
       valueID,
       {
         loadAs: this,
@@ -212,7 +212,7 @@ export class Account extends CoValueBase implements CoValue {
     options: {
       creationProps: { name: string };
       initialAgentSecret?: AgentSecret;
-      peersToLoadFrom?: Peer[];
+      peers?: Peer[];
       crypto: CryptoProvider;
     },
   ): Promise<A> {
@@ -256,7 +256,7 @@ export class Account extends CoValueBase implements CoValue {
     const account = await this.create<A>({
       creationProps: options.creationProps,
       crypto: as.$jazz.localNode.crypto,
-      peersToLoadFrom: [connectedPeers[0]],
+      peers: [connectedPeers[0]],
     });
 
     await account.$jazz.waitForAllCoValuesSync();

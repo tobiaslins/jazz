@@ -46,7 +46,7 @@ async function setupPeers(options: BaseReactNativeContextOptions) {
   const crypto = await CryptoProvider.create();
   let node: LocalNode | undefined = undefined;
 
-  const peersToLoadFrom: Peer[] = [];
+  const peers: Peer[] = [];
 
   const storage =
     options.storage && options.storage !== "disabled"
@@ -58,7 +58,7 @@ async function setupPeers(options: BaseReactNativeContextOptions) {
       toggleNetwork: () => {},
       addConnectionListener: () => () => {},
       connected: () => false,
-      peersToLoadFrom,
+      peers,
       setNode: () => {},
       crypto,
       storage,
@@ -72,11 +72,11 @@ async function setupPeers(options: BaseReactNativeContextOptions) {
       if (node) {
         node.syncManager.addPeer(peer);
       } else {
-        peersToLoadFrom.push(peer);
+        peers.push(peer);
       }
     },
     removePeer: (peer) => {
-      peersToLoadFrom.splice(peersToLoadFrom.indexOf(peer), 1);
+      peers.splice(peers.indexOf(peer), 1);
     },
   });
 
@@ -106,7 +106,7 @@ async function setupPeers(options: BaseReactNativeContextOptions) {
       };
     },
     connected: () => wsPeer.connected,
-    peersToLoadFrom,
+    peers,
     setNode,
     crypto,
     storage,
@@ -118,7 +118,7 @@ export async function createJazzReactNativeGuestContext(
 ) {
   const {
     toggleNetwork,
-    peersToLoadFrom,
+    peers,
     setNode,
     crypto,
     storage,
@@ -128,7 +128,7 @@ export async function createJazzReactNativeGuestContext(
 
   const context = createAnonymousJazzContext({
     crypto,
-    peersToLoadFrom,
+    peers,
     storage,
   });
 
@@ -170,7 +170,7 @@ export async function createJazzReactNativeContext<
 >(options: ReactNativeContextOptions<S>) {
   const {
     toggleNetwork,
-    peersToLoadFrom,
+    peers,
     setNode,
     crypto,
     storage,
@@ -202,7 +202,7 @@ export async function createJazzReactNativeContext<
   const context = await createJazzContext({
     credentials: options.credentials,
     newAccountProps: options.newAccountProps,
-    peersToLoadFrom,
+    peers,
     crypto,
     defaultProfileName: options.defaultProfileName,
     AccountSchema: options.AccountSchema,

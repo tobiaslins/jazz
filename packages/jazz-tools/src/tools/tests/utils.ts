@@ -38,7 +38,7 @@ export async function setupAccount() {
         secret: me.$jazz.localNode.getCurrentAgent().agentSecret,
       },
       sessionProvider: randomSessionProvider,
-      peersToLoadFrom: [initialAsPeer],
+      peers: [initialAsPeer],
       crypto: Crypto,
       asActiveAccount: true,
     });
@@ -61,7 +61,7 @@ export async function setupTwoNodes(options?: {
   );
 
   const client = await LocalNode.withNewlyCreatedAccount({
-    peersToLoadFrom: [serverAsPeer],
+    peers: [serverAsPeer],
     crypto: Crypto,
     creationProps: { name: "Client" },
     migration: async (rawAccount, _node, creationProps) => {
@@ -74,7 +74,7 @@ export async function setupTwoNodes(options?: {
   });
 
   const server = await LocalNode.withNewlyCreatedAccount({
-    peersToLoadFrom: [clientAsPeer],
+    peers: [clientAsPeer],
     crypto: Crypto,
     creationProps: { name: "Server" },
     migration: async (rawAccount, _node, creationProps) => {

@@ -56,6 +56,7 @@ createRoot(document.getElementById("root")!).render(
   <ThemeProvider>
     <StrictMode>
       <JazzReactProvider
+        authSecretStorageKey="examples/chat"
         sync={{
           peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
         }}

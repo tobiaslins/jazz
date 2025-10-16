@@ -409,3 +409,19 @@ describe("account.toJSON", () => {
     });
   });
 });
+
+describe("accepting invites", () => {
+  test("accepting an invite to a Group", async () => {
+    const account = await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+    });
+    const group = co.group().create();
+    const invite = group.$jazz.createInvite("reader");
+    const newAccount = await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+    });
+    expect(group.getRoleOf(newAccount.$jazz.id)).toBeUndefined();
+    await newAccount.acceptInvite(group.$jazz.id, invite);
+    expect(group.getRoleOf(newAccount.$jazz.id)).toBe("reader");
+  });
+});

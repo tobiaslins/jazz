@@ -1,5 +1,17 @@
 # create-jazz-app
 
+## 0.2.0
+
+### Minor Changes
+
+- 94e7d89: Added more options to the create-jazz-app tool
+
+## 0.1.30
+
+### Patch Changes
+
+- 57450ea: Dynamically fetch the current llms-full.txt to add to context
+
 ## 0.1.29
 
 ### Patch Changes

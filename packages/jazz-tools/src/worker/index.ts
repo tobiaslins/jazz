@@ -54,7 +54,7 @@ export async function startWorker<
 
   let node: LocalNode | undefined = undefined;
 
-  const peersToLoadFrom: Peer[] = [];
+  const peers: Peer[] = [];
 
   const wsPeer = new WebSocketPeerWithReconnection({
     peer: syncServer,
@@ -63,7 +63,7 @@ export async function startWorker<
       if (node) {
         node.syncManager.addPeer(peer);
       } else {
-        peersToLoadFrom.push(peer);
+        peers.push(peer);
       }
     },
     removePeer: () => {},
@@ -92,7 +92,7 @@ export async function startWorker<
     },
     AccountSchema,
     sessionProvider: randomSessionProvider,
-    peersToLoadFrom,
+    peers,
     crypto: options.crypto ?? (await WasmCrypto.create()),
     asActiveAccount,
   });

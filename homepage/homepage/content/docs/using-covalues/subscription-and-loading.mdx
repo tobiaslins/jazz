@@ -1,7 +1,4 @@
-import { CodeGroup, ContentByFramework, TabbedCodeGroup, TabbedCodeGroupItem } from "@/components/forMdx";
-import { Alert } from "@garden-co/design-system/src/components/atoms/Alert";
-import { SvelteLogo } from "@/components/icons/SvelteLogo";
-import { ReactLogo } from "@/components/icons/ReactLogo";
+import { Alert, CodeGroup, ContentByFramework, ReactLogo, SvelteLogo, TabbedCodeGroup, TabbedCodeGroupItem } from "@/components/forMdx";
 
 export const metadata = {
   description: "Learn how to subscribe to CoValues, specify loading depths, and handle loading states and inaccessible data."
@@ -522,9 +519,8 @@ unsubscribe();
 ```
 </CodeGroup>
 
-<ContentByFramework framework="react">
-## Selectors
-
+<ContentByFramework framework={["react", "react-native", "react-native-expo"]}>
+## Selectors [!framework=react,react-native,react-native-expo]
 Sometimes, you only need to react to changes in specific parts of a CoValue. In those cases, you can use the `useCoStateWithSelector` hook to specify what data you are interested in.
 
 When you use `useCoStateWithSelector` , in addition to `resolve` you can also add a `select` and optionally an `equalityFn` option. 

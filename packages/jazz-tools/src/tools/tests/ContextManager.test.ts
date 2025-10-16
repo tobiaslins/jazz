@@ -56,7 +56,7 @@ class TestJazzContextManager<Acc extends Account> extends JazzContextManager<
       credentials: authProps?.credentials,
       defaultProfileName: props.defaultProfileName,
       newAccountProps: authProps?.newAccountProps,
-      peersToLoadFrom: [getPeerConnectedToTestSyncServer()],
+      peers: [getPeerConnectedToTestSyncServer()],
       crypto: Crypto,
       sessionProvider: randomSessionProvider,
       authSecretStorage: this.getAuthSecretStorage(),
@@ -539,6 +539,16 @@ describe("ContextManager", () => {
     await expect(
       manager.register(secret, { name: "Test User" }),
     ).rejects.toThrow("Props required");
+  });
+
+  describe("configurable storage key", () => {
+    test("uses the configured storage key", async () => {
+      const KEY = "test-auth-secret";
+      const manager = new TestJazzContextManager<Account>({
+        authSecretStorageKey: KEY,
+      });
+      expect(manager.getAuthSecretStorage().getStorageKey()).toBe(KEY);
+    });
   });
 
   describe("Race condition handling", () => {
