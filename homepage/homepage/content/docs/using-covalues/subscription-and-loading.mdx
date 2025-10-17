@@ -114,7 +114,7 @@ function ProjectView({ projectId }: { projectId: string }) {
 import { useAccount } from "jazz-tools/react";
 
 function ProjectList() {
-  const { me } = useAccount(MyAppAccount, {
+  const me = useAccount(MyAppAccount, {
     resolve: { profile: true }
   })
 
@@ -536,20 +536,19 @@ unsubscribe();
 <ContentByFramework framework={["react", "react-native", "react-native-expo"]}>
 
 ## Selectors [!framework=react,react-native,react-native-expo]
-Sometimes, you only need to react to changes in specific parts of a CoValue. In those cases, you can use the `useCoStateWithSelector` hook to specify what data you are interested in.
-
-When you use `useCoStateWithSelector` , in addition to `resolve` you can also add a `select` and optionally an `equalityFn` option. 
+Sometimes, you only need to react to changes in specific parts of a CoValue. In those cases, you can provide a `select` function to specify what data you are interested in,
+and an optional `equalityFn` option to control re-renders. 
 
 - `select`: extract the fields you care about
 - `equalityFn`: (optional) control when data should be considered equal
 
 <CodeGroup>
 ```tsx
-import { useCoStateWithSelector } from "jazz-tools/react";
+import { useCoState } from "jazz-tools/react";
 
 function ProjectView({ projectId }: { projectId: string }) {
   // Subscribe to a project
-  const project = useCoStateWithSelector(Project, projectId, {
+  const project = useCoState(Project, projectId, {
     resolve: {
       tasks: true
     },
@@ -588,15 +587,15 @@ function ProjectView({ projectId }: { projectId: string }) {
 
 By default, the return values of the select function will be compared using `Object.is`, but you can use the `equalityFn` to add your own logic.
 
-You can also use `useAccountWithSelector` in the same way, to subscribe to only the changes in a user's account you are interested in.
+You can also use `useAccount` in the same way, to subscribe to only the changes in a user's account you are interested in.
 
 <CodeGroup>
 ```tsx
-import { useAccountWithSelector } from "jazz-tools/react";
+import { useAccount } from "jazz-tools/react";
 
 function ProfileName() {
   // Only re-renders when the profile name changes
-    const profileName = useAccountWithSelector(MyAppAccount, {
+    const profileName = useAccount(MyAppAccount, {
     resolve: {
       profile: true,
     },

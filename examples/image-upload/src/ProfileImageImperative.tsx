@@ -9,7 +9,7 @@ import { JazzAccount } from "./schema";
 
 export default function ProfileImageImperative() {
   const [image, setImage] = useState<string | undefined>(undefined);
-  const { me } = useAccount(JazzAccount, {
+  const me = useAccount(JazzAccount, {
     resolve: { profile: { image: true } },
   });
 

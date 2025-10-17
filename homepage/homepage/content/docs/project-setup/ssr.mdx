@@ -241,7 +241,7 @@ import Link from "next/link";
 import { JazzFestAccount } from "@/app/schema";
 
 export function Festival() {
-  const { me } = useAccount(JazzFestAccount, {
+  const me = useAccount(JazzFestAccount, {
     resolve: { root: { myFestival: { $each: { $onError: 'catch' } } } },
   });
   if (!me.$isLoaded) return null; 

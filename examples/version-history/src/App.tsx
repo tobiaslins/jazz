@@ -1,16 +1,17 @@
 import { Account, CoPlainText, Group } from "jazz-tools";
-import { useAccount, useCoState } from "jazz-tools/react";
+import { useAccount, useCoState, useLogOut } from "jazz-tools/react";
 import { useState } from "react";
 import { IssueComponent } from "./Issue.tsx";
 import { IssueVersionHistory } from "./IssueVersionHistory.tsx";
 import { Issue } from "./schema";
 
 function App() {
-  const { me, logOut } = useAccount(Account, {
+  const me = useAccount(Account, {
     resolve: {
       profile: true,
     },
   });
+  const logOut = useLogOut();
   const [issueID, setIssueID] = useState<string | undefined>(
     window.location.search?.replace("?issue=", "") || undefined,
   );

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { Loaded } from "jazz-tools";
-import { useAccountWithSelector, useCoState } from "jazz-tools/react";
+import { useAccount, useCoState } from "jazz-tools/react";
 import { MoreHorizontal, Pause, Play } from "lucide-react";
 import { Fragment, useCallback, useState } from "react";
 import { EditTrackDialog } from "./RenameTrackDialog";
@@ -43,7 +43,7 @@ export function MusicTrackRow({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
-  const playlists = useAccountWithSelector(MusicaAccount, {
+  const playlists = useAccount(MusicaAccount, {
     resolve: {
       root: { playlists: { $onError: "catch", $each: { tracks: true } } },
     },

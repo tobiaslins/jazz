@@ -11,7 +11,7 @@ import { useNavigate } from "react-router";
 export function NewProjectForm() {
   // `me` represents the current user account, which will determine
   // access rights to CoValues. We get it from the top-level provider `<WithJazz/>`.
-  const { me } = useAccount(TodoAccount, {
+  const me = useAccount(TodoAccount, {
     resolve: { root: { projects: { $each: { $onError: "catch" } } } },
   });
   const navigate = useNavigate();

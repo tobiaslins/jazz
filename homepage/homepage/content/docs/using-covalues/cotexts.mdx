@@ -358,7 +358,7 @@ import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 
 function RichTextEditor() {
-  const { me } = useAccount(JazzAccount, { resolve: { profile: { bio: true} } });
+  const me = useAccount(JazzAccount, { resolve: { profile: { bio: true} } });
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
 

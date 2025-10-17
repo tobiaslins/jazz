@@ -2,7 +2,7 @@ import { Image, useAccount } from "jazz-tools/react";
 import { JazzAccount } from "./schema";
 
 export default function ProfileImage() {
-  const { me } = useAccount(JazzAccount, {
+  const me = useAccount(JazzAccount, {
     resolve: { profile: { image: true } },
   });
 

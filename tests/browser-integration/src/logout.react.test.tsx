@@ -1,7 +1,12 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { commands } from "@vitest/browser/context";
 import { AuthSecretStorage, co, z } from "jazz-tools";
-import { JazzReactProvider, useAccount, useCoState } from "jazz-tools/react";
+import {
+  JazzReactProvider,
+  useAccount,
+  useCoState,
+  useLogOut,
+} from "jazz-tools/react";
 import { afterAll, afterEach, describe, expect, test } from "vitest";
 import { createAccountContext, startSyncServer } from "./testUtils";
 
@@ -21,11 +26,12 @@ const TestAccount = co
 
 // React component that uses Jazz hooks for testing logout behavior
 function TestLogoutComponent({ onLogout }: { onLogout?: () => void }) {
-  const { logOut, me } = useAccount(TestAccount, {
+  const me = useAccount(TestAccount, {
     resolve: {
       profile: true,
     },
   });
+  const logOut = useLogOut();
 
   const root = useCoState(
     TestAccount.shape.root,

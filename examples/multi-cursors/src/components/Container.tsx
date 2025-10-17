@@ -34,7 +34,7 @@ function Avatar({
 
 /** A higher order component that wraps the canvas. */
 function Container({ cursorFeedID }: { cursorFeedID: string }) {
-  const { me } = useAccount(CursorAccount, { resolve: { profile: true } });
+  const me = useAccount(CursorAccount, { resolve: { profile: true } });
   const cursors = useCoState(CursorFeed, cursorFeedID, { resolve: true });
 
   const connected = useSyncConnectionStatus();

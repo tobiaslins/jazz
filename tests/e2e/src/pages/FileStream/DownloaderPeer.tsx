@@ -3,12 +3,12 @@ import { useAccount, useCoState } from "jazz-tools/react";
 import { useEffect, useState } from "react";
 import { UploadedFile } from "./schema";
 export function DownloaderPeer(props: { testCoMapId: string }) {
-  const account = useAccount();
+  const me = useAccount();
   const testCoMap = useCoState(UploadedFile, props.testCoMapId, {});
   const [synced, setSynced] = useState(false);
 
   useEffect(() => {
-    if (!account.me.$isLoaded) {
+    if (!me.$isLoaded) {
       return;
     }
 
@@ -34,7 +34,7 @@ export function DownloaderPeer(props: { testCoMapId: string }) {
       uploadedFile.$jazz.set("syncCompleted", true);
     }
 
-    run(account.me, props.testCoMapId);
+    run(me, props.testCoMapId);
   }, []);
 
   return (

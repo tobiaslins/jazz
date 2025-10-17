@@ -154,7 +154,7 @@ Here's how that looks like:
 <CodeGroup>
 ```tsx twoslash
 import { co, z } from "jazz-tools";
-import { useCoState, useAccountWithSelector } from "jazz-tools/react";
+import { useCoState, useAccount } from "jazz-tools/react";
 import * as React from "react";
 import { useState } from "react";
 
@@ -201,7 +201,7 @@ export function OrderForm({
 // ---cut---
 // CreateOrder.tsx
 export function CreateOrder(props: { id: string }) {
-  const orders = useAccountWithSelector(JazzAccount, {
+  const orders = useAccount(JazzAccount, {
     resolve: { root: { orders: true } },
     select: (account) => account.$isLoaded ? account.root.orders : undefined,
   });

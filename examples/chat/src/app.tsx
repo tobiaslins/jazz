@@ -3,7 +3,7 @@ import { getRandomUsername, inIframe, onChatLoad } from "@/util.ts";
 import { useIframeHashRouter } from "hash-slash";
 import { Group } from "jazz-tools";
 import { JazzInspector } from "jazz-tools/inspector";
-import { JazzReactProvider, useAccount } from "jazz-tools/react";
+import { JazzReactProvider, useAccount, useLogOut } from "jazz-tools/react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { ChatScreen } from "./chatScreen.tsx";
@@ -12,11 +12,12 @@ import { ThemeProvider } from "./themeProvider.tsx";
 import { AppContainer, TopBar } from "./ui.tsx";
 
 export function App() {
-  const { me, logOut } = useAccount(undefined, {
+  const me = useAccount(undefined, {
     resolve: {
       profile: true,
     },
   });
+  const logOut = useLogOut();
   const router = useIframeHashRouter();
 
   const profile = me.$isLoaded ? me.profile : undefined;

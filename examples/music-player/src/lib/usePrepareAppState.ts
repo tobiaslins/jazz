@@ -1,14 +1,14 @@
 import { MusicaAccount, MusicaAccountRoot } from "@/1_schema";
 import { MediaPlayer } from "@/5_useMediaPlayer";
 import { co } from "jazz-tools";
-import { useAccount } from "jazz-tools/react";
+import { useAgent } from "jazz-tools/react";
 import { useEffect, useState } from "react";
 import { uploadMusicTracks } from "../4_actions";
 
 export function usePrepareAppState(mediaPlayer: MediaPlayer) {
   const [isReady, setIsReady] = useState(false);
 
-  const { agent } = useAccount();
+  const agent = useAgent();
 
   useEffect(() => {
     loadInitialData(mediaPlayer).then(() => {

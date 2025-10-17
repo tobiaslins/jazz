@@ -133,7 +133,7 @@ class ContactPreview extends React.Component<{ contact: co.loaded<typeof MyAppAc
 import { useAccount } from "jazz-tools/react";
 
 function DashboardPageComponent() {
-  const { me } = useAccount(MyAppAccount, { resolve: {
+  const me = useAccount(MyAppAccount, { resolve: {
     profile: true,
     root: {
       myChats: { $each: true },

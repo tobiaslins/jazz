@@ -212,8 +212,38 @@ function useGetCurrentValue<C extends CoValue>(
  * handles the subscription lifecycle (subscribe on mount, unsubscribe on unmount).
  * It also supports deep loading of nested CoValues through resolve queries.
  *
+ * The {@param options.select} function allows returning only specific parts of the CoValue data,
+ * which helps reduce unnecessary re-renders by narrowing down the returned data.
+ * Additionally, you can provide a custom {@param options.equalityFn} to further optimize
+ * performance by controlling when the component should re-render based on the selected data.
+ *
  * @returns The loaded CoValue, or an {@link Unloaded} value. Use `$isLoaded` to check whether the
  * CoValue is loaded, or use {@link MaybeLoaded.$jazz.loadingState} to get the detailed loading state.
+ * If a selector function is provided, returns the result of the selector function.
+ *
+ * @example
+ * ```tsx
+ * // Select only specific fields to reduce re-renders
+ * const Project = co.map({
+ *   name: z.string(),
+ *   description: z.string(),
+ *   tasks: co.list(Task),
+ *   lastModified: z.date(),
+ * });
+ *
+ * function ProjectTitle({ projectId }: { projectId: string }) {
+ *   // Only re-render when the project name changes, not other fields
+ *   const projectName = useCoState(
+ *     Project,
+ *     projectId,
+ *     {
+ *       select: (project) => !project.$isLoading ? project.name : "Loading...",
+ *     }
+ *   );
+ *
+ *   return <h1>{projectName}</h1>;
+ * }
+ * ```
  *
  * @example
  * ```tsx
@@ -234,13 +264,13 @@ function useGetCurrentValue<C extends CoValue>(
  *
  *   if (!project.$isLoaded) {
  *     switch (project.$jazz.loadingState) {
-         case "unauthorized":
-           return "Project not accessible";
-         case "unavailable":
-           return "Project not found";
-         case "unloaded":
-           return "Loading project...";
-       }
+ *       case "unauthorized":
+ *         return "Project not accessible";
+ *       case "unavailable":
+ *         return "Project not found";
+ *       case "unloaded":
+ *         return "Loading project...";
+ *     }
  *   }
  *
  *   return (
@@ -299,103 +329,13 @@ function useGetCurrentValue<C extends CoValue>(
  * }
  * ```
  *
- * For more examples, see the [subscription and deep loading](https://jazz.tools/docs/react/using-covalues/subscription-and-loading) documentation.
- */
-export function useCoState<
-  S extends CoValueClassOrSchema,
-  const R extends ResolveQuery<S> = true,
->(
-  /** The CoValue schema or class constructor */
-  Schema: S,
-  /** The ID of the CoValue to subscribe to. If `undefined`, returns an `unavailable` value */
-  id: string | undefined,
-  /** Optional configuration for the subscription */
-  options?: {
-    /** Resolve query to specify which nested CoValues to load */
-    resolve?: ResolveQueryStrict<S, R>;
-    /**
-     * Create or load a branch for isolated editing.
-     *
-     * Branching lets you take a snapshot of the current state and start modifying it without affecting the canonical/shared version.
-     * It's a fork of your data graph: the same schema, but with diverging values.
-     *
-     * The checkout of the branch is applied on all the resolved values.
-     *
-     * @param name - A unique name for the branch. This identifies the branch
-     *   and can be used to switch between different branches of the same CoValue.
-     * @param owner - The owner of the branch. Determines who can access and modify
-     *   the branch. If not provided, the branch is owned by the current user.
-     *
-     * For more info see the [branching](https://jazz.tools/docs/react/using-covalues/version-control) documentation.
-     */
-    unstable_branch?: BranchDefinition;
-  },
-): MaybeLoaded<Loaded<S, R>> {
-  const subscription = useCoValueSubscription(Schema, id, options);
-  const getCurrentValue = useGetCurrentValue(subscription);
-
-  const value = React.useSyncExternalStore<MaybeLoaded<Loaded<S, R>>>(
-    React.useCallback(
-      (callback) => {
-        if (!subscription) {
-          return () => {};
-        }
-
-        return subscription.subscribe(callback);
-      },
-      [subscription],
-    ),
-    getCurrentValue,
-    getCurrentValue,
-  );
-
-  return value;
-}
-
-/**
- * React hook for subscribing to CoValues with selective data extraction and custom equality checking.
- *
- * This hook extends `useCoState` by allowing you to select only specific parts of the CoValue data
- * through a selector function, which helps reduce unnecessary re-renders by narrowing down the
- * returned data. Additionally, you can provide a custom equality function to further optimize
- * performance by controlling when the component should re-render based on the selected data.
- *
- * The hook automatically handles the subscription lifecycle and supports deep loading of nested
- * CoValues through resolve queries, just like `useCoState`.
- *
- * @returns The result of the selector function applied to the loaded CoValue data
- *
- * @example
- * ```tsx
- * // Select only specific fields to reduce re-renders
- * const Project = co.map({
- *   name: z.string(),
- *   description: z.string(),
- *   tasks: co.list(Task),
- *   lastModified: z.date(),
- * });
- *
- * function ProjectTitle({ projectId }: { projectId: string }) {
- *   // Only re-render when the project name changes, not other fields
- *   const projectName = useCoStateWithSelector(
- *     Project,
- *     projectId,
- *     {
- *       select: (project) => project?.name ?? "Loading...",
- *     }
- *   );
- *
- *   return <h1>{projectName}</h1>;
- * }
- * ```
- *
  * @example
  * ```tsx
  * // Use custom equality function for complex data structures
  * const TaskList = co.list(Task);
  *
  * function TaskCount({ listId }: { listId: string }) {
- *   const taskStats = useCoStateWithSelector(
+ *   const taskStats = useCoState(
  *     TaskList,
  *     listId,
  *     {
@@ -420,72 +360,23 @@ export function useCoState<
  * }
  * ```
  *
- * @example
- * ```tsx
- * // Combine with deep loading and complex selectors
- * const Team = co.map({
- *   name: z.string(),
- *   members: co.list(TeamMember),
- *   projects: co.list(Project),
- * });
- *
- * function TeamSummary({ teamId }: { teamId: string }) {
- *   const summary = useCoStateWithSelector(
- *     Team,
- *     teamId,
- *     {
- *       resolve: {
- *         members: { $each: true },
- *         projects: { $each: { tasks: { $each: true } } },
- *       },
- *       select: (team) => {
- *         if (!team.$isLoaded) return null;
- *
- *         const totalTasks = team.projects.reduce(
- *           (sum, project) => sum + project.tasks.length,
- *           0
- *         );
- *
- *         return {
- *           teamName: team.name,
- *           memberCount: team.members.length,
- *           projectCount: team.projects.length,
- *           totalTasks,
- *         };
- *       },
- *     }
- *   );
- *
- *   if (!summary) return <div>Loading team summary...</div>;
- *
- *   return (
- *     <div>
- *       <h2>{summary.teamName}</h2>
- *       <p>{summary.memberCount} members</p>
- *       <p>{summary.projectCount} projects</p>
- *       <p>{summary.totalTasks} total tasks</p>
- *     </div>
- *   );
- * }
- * ```
- *
  * For more examples, see the [subscription and deep loading](https://jazz.tools/docs/react/using-covalues/subscription-and-loading) documentation.
  */
-export function useCoStateWithSelector<
+export function useCoState<
   S extends CoValueClassOrSchema,
-  TSelectorReturn,
   const R extends ResolveQuery<S> = true,
+  TSelectorReturn = MaybeLoaded<Loaded<S, R>>,
 >(
   /** The CoValue schema or class constructor */
   Schema: S,
-  /** The ID of the CoValue to subscribe to. If `undefined`, returns the result of selector called with an `unavailable` value */
+  /** The ID of the CoValue to subscribe to. If `undefined`, returns an `unavailable` value */
   id: string | undefined,
   /** Optional configuration for the subscription */
-  options: {
+  options?: {
     /** Resolve query to specify which nested CoValues to load */
     resolve?: ResolveQueryStrict<S, R>;
     /** Select which value to return */
-    select: (value: MaybeLoaded<Loaded<S, R>>) => TSelectorReturn;
+    select?: (value: MaybeLoaded<Loaded<S, R>>) => TSelectorReturn;
     /** Equality function to determine if the selected value has changed, defaults to `Object.is` */
     equalityFn?: (a: TSelectorReturn, b: TSelectorReturn) => boolean;
     /**
@@ -509,7 +400,7 @@ export function useCoStateWithSelector<
   const subscription = useCoValueSubscription(Schema, id, options);
   const getCurrentValue = useGetCurrentValue(subscription);
 
-  return useSyncExternalStoreWithSelector<
+  const value = useSyncExternalStoreWithSelector<
     MaybeLoaded<Loaded<S, R>>,
     TSelectorReturn
   >(
@@ -525,9 +416,11 @@ export function useCoStateWithSelector<
     ),
     getCurrentValue,
     getCurrentValue,
-    options.select,
-    options.equalityFn ?? Object.is,
+    options?.select ?? ((value) => value as TSelectorReturn),
+    options?.equalityFn ?? Object.is,
   );
+
+  return value;
 }
 
 export function useSubscriptionSelector<
@@ -639,134 +532,20 @@ export function useAccountSubscription<
 }
 
 /**
- * React hook for accessing the current user's account and authentication state.
- * 
- * This hook provides access to the current user's account profile and root data,
- * along with authentication utilities. It automatically handles subscription to
- * the user's account data and provides a logout function.
- * 
- * @returns An object containing:
- * - `me`: The account data, or an {@link Unloaded} value. Use `$isLoaded` to check whether the
- * CoValue is loaded, or use {@link MaybeLoaded.$jazz.loadingState} to get the detailed loading state.
- * - `agent`: The current agent (anonymous or authenticated user). Can be used as `loadAs` parameter for load and subscribe methods.
- * - `logOut`: Function to log out the current user
-
- * @example
- * ```tsx
- * // Deep loading with resolve queries
- * function ProjectListWithDetails() {
- *   const { me } = useAccount(MyAppAccount, {
- *     resolve: {
- *       profile: true,
- *       root: {
- *         myProjects: {
- *           $each: {
- *             tasks: true,
- *           },
- *         },
- *       },
- *     },
- *   });
- * 
- *   if (!me.$isLoaded) {
- *     switch (me.$jazz.loadingState) {
- *       case "unauthorized":
- *         return "Account not accessible";
- *       case "unavailable":
- *         return "Account not found";
- *       case "unloaded":
- *         return "Loading account...";
- *     }
- *   }
- * 
- *   return (
- *     <div>
- *       <h1>{me.profile.name}'s projects</h1>
- *       <ul>
- *         {me.root.myProjects.map((project) => (
- *           <li key={project.id}>
- *             {project.name} ({project.tasks.length} tasks)
- *           </li>
- *         ))}
- *       </ul>
- *     </div>
- *   );
- * }
- * ```
- * 
- */
-export function useAccount<
-  A extends AccountClass<Account> | AnyAccountSchema,
-  R extends ResolveQuery<A> = true,
->(
-  /** The account schema to use. Defaults to the base Account schema */
-  AccountSchema: A = Account as unknown as A,
-  /** Optional configuration for the subscription */
-  options?: {
-    /** Resolve query to specify which nested CoValues to load from the account */
-    resolve?: ResolveQueryStrict<A, R>;
-    /**
-     * Create or load a branch for isolated editing.
-     *
-     * Branching lets you take a snapshot of the current state and start modifying it without affecting the canonical/shared version.
-     * It's a fork of your data graph: the same schema, but with diverging values.
-     *
-     * The checkout of the branch is applied on all the resolved values.
-     *
-     * @param name - A unique name for the branch. This identifies the branch
-     *   and can be used to switch between different branches of the same CoValue.
-     * @param owner - The owner of the branch. Determines who can access and modify
-     *   the branch. If not provided, the branch is owned by the current user.
-     *
-     * For more info see the [branching](https://jazz.tools/docs/react/using-covalues/version-control) documentation.
-     */
-    unstable_branch?: BranchDefinition;
-  },
-): {
-  me: MaybeLoaded<Loaded<A, R>>;
-  agent: AnonymousJazzAgent | Loaded<A, true>;
-  logOut: () => void;
-} {
-  const contextManager = useJazzContextManager<InstanceOfSchema<A>>();
-  const subscription = useAccountSubscription(AccountSchema, options);
-  const getCurrentValue = useGetCurrentValue(subscription);
-
-  const agent = getCurrentAccountFromContextManager(contextManager);
-
-  const value = React.useSyncExternalStore<MaybeLoaded<Loaded<A, R>>>(
-    React.useCallback(
-      (callback) => {
-        if (!subscription) {
-          return () => {};
-        }
-
-        return subscription.subscribe(callback);
-      },
-      [subscription],
-    ),
-    getCurrentValue,
-    getCurrentValue,
-  );
-
-  return {
-    me: value,
-    agent,
-    logOut: contextManager.logOut,
-  };
-}
-
-/**
- * React hook for accessing the current user's account with selective data extraction and custom equality checking.
+ * React hook for accessing the current user's account.
  *
- * This hook extends `useAccount` by allowing you to select only specific parts of the account data
- * through a selector function, which helps reduce unnecessary re-renders by narrowing down the
- * returned data. Additionally, you can provide a custom equality function to further optimize
+ * This hook provides access to the current user's account profile and root data.
+ * It automatically handles the subscription lifecycle and supports deep loading of nested
+ * CoValues through resolve queries.
+ *
+ * The {@param options.select} function allows returning only specific parts of the account data,
+ * which helps reduce unnecessary re-renders by narrowing down the returned data.
+ * Additionally, you can provide a custom {@param options.equalityFn} to further optimize
  * performance by controlling when the component should re-render based on the selected data.
  *
- * The hook automatically handles the subscription lifecycle and supports deep loading of nested
- * CoValues through resolve queries, just like `useAccount`.
- *
- * @returns The result of the selector function applied to the loaded account data
+ * @returns The account data, or an {@link Unloaded} value. Use `$isLoaded` to check whether the
+ * CoValue is loaded, or use {@link MaybeLoaded.$jazz.loadingState} to get the detailed loading state.
+ * If a selector function is provided, returns the result of the selector function.
  *
  * @example
  * ```tsx
@@ -782,7 +561,7 @@ export function useAccount<
  *
  * function UserProfile({ accountId }: { accountId: string }) {
  *   // Only re-render when the profile name changes, not other fields
- *   const profileName = useAccountWithSelector(
+ *   const profileName = useAccount(
  *     MyAppAccount,
  *     {
  *       resolve: {
@@ -797,21 +576,63 @@ export function useAccount<
  * }
  * ```
  *
- * For more examples, see the [subscription and deep loading](https://jazz.tools/docs/react/using-covalues/subscription-and-loading) documentation.
+ * @example
+ * ```tsx
+ * // Deep loading with resolve queries
+ * function ProjectListWithDetails() {
+ *   const me = useAccount(MyAppAccount, {
+ *     resolve: {
+ *       profile: true,
+ *       root: {
+ *         myProjects: {
+ *           $each: {
+ *             tasks: true,
+ *           },
+ *         },
+ *       },
+ *     },
+ *   });
+ *
+ *   if (!me.$isLoaded) {
+ *     switch (me.$jazz.loadingState) {
+ *       case "unauthorized":
+ *         return "Account not accessible";
+ *       case "unavailable":
+ *         return "Account not found";
+ *       case "unloaded":
+ *         return "Loading account...";
+ *     }
+ *   }
+ *
+ *   return (
+ *     <div>
+ *       <h1>{me.profile.name}'s projects</h1>
+ *       <ul>
+ *         {me.root.myProjects.map((project) => (
+ *           <li key={project.id}>
+ *             {project.name} ({project.tasks.length} tasks)
+ *           </li>
+ *         ))}
+ *       </ul>
+ *     </div>
+ *   );
+ * }
+ * ```
+ *
  */
-export function useAccountWithSelector<
+export function useAccount<
   A extends AccountClass<Account> | AnyAccountSchema,
-  TSelectorReturn,
   R extends ResolveQuery<A> = true,
+  TSelectorReturn = MaybeLoaded<Loaded<A, R>>,
 >(
   /** The account schema to use. Defaults to the base Account schema */
   AccountSchema: A = Account as unknown as A,
-  /** Configuration for the subscription and selection */
-  options: {
+  /** Optional configuration for the subscription */
+  options?: {
     /** Resolve query to specify which nested CoValues to load from the account */
     resolve?: ResolveQueryStrict<A, R>;
     /** Select which value to return from the account data */
-    select: (account: MaybeLoaded<Loaded<A, R>>) => TSelectorReturn;
+    select?: (account: MaybeLoaded<Loaded<A, R>>) => TSelectorReturn;
     /** Equality function to determine if the selected value has changed, defaults to `Object.is` */
     equalityFn?: (a: TSelectorReturn, b: TSelectorReturn) => boolean;
     /**
@@ -851,9 +672,33 @@ export function useAccountWithSelector<
     ),
     getCurrentValue,
     getCurrentValue,
-    options.select,
-    options.equalityFn ?? Object.is,
+    options?.select ?? ((value) => value as TSelectorReturn),
+    options?.equalityFn ?? Object.is,
   );
+}
+
+/**
+ * Returns a function for logging out of the current account.
+ */
+export function useLogOut(): () => void {
+  const contextManager = useJazzContextManager();
+  return contextManager.logOut;
+}
+
+/**
+ * React hook for accessing the current agent. An agent can either be:
+ * - an Authenticated Account, if the user is logged in
+ * - an Anonymous Account, if the user didn't log in
+ * - or an anonymous agent, if in guest mode
+ *
+ * The agent can be used as the `loadAs` parameter for load and subscribe methods.
+ */
+export function useAgent<
+  A extends AccountClass<Account> | AnyAccountSchema = typeof Account,
+>(): AnonymousJazzAgent | Loaded<A, true> {
+  const contextManager = useJazzContextManager<InstanceOfSchema<A>>();
+  const agent = getCurrentAccountFromContextManager(contextManager);
+  return agent as AnonymousJazzAgent | Loaded<A, true>;
 }
 
 export function experimental_useInboxSender<

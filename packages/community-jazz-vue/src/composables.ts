@@ -100,27 +100,16 @@ export function useAccount<
   options?: {
     resolve?: ResolveQueryStrict<A, R>;
   },
-): {
-  me: ComputedRef<MaybeLoaded<Loaded<A, R>>>;
-  agent: AnonymousJazzAgent | Loaded<A, true>;
-  logOut: () => void;
-} {
+): ComputedRef<MaybeLoaded<Loaded<A, R>>> {
   const context = useJazzContext();
-  const contextManager = useJazzContextManager<InstanceOfSchema<A>>();
 
   if (!context.value) {
     throw new Error("useAccount must be used within a JazzProvider");
   }
 
-  const agent = getCurrentAccountFromContextManager(contextManager.value);
-
-  // Handle guest mode - return null for me and the guest agent
+  // Handle guest mode - return null for the account data
   if (!("me" in context.value)) {
-    return {
-      me: computed(() => null) as any,
-      agent: agent,
-      logOut: context.value.logOut,
-    };
+    return computed(() => null) as any;
   }
 
   const contextMe = context.value.me as InstanceOfSchema<A>;
@@ -131,15 +120,38 @@ export function useAccount<
     options as any,
   );
 
-  return {
-    me: computed(() => {
-      const value =
-        options?.resolve === undefined ? me.value || contextMe : me.value;
-      return value ? markRaw(value) : value;
-    }) as any,
-    agent: agent,
-    logOut: context.value.logOut,
-  };
+  return computed(() => {
+    const value =
+      options?.resolve === undefined ? me.value || contextMe : me.value;
+    return value ? markRaw(value) : value;
+  }) as any;
+}
+
+/**
+ * Returns a function for logging out the current account.
+ */
+export function useLogOut(): () => void {
+  const context = useJazzContext();
+  if (!context.value) {
+    throw new Error("useLogOut must be used within a JazzProvider");
+  }
+  return context.value.logOut;
+}
+
+/**
+ * Hook for accessing the current agent. An agent can either be:
+ * - an Authenticated Account, if the user is logged in
+ * - an Anonymous Account, if the user didn't log in
+ * - or an anonymous agent, if in guest mode
+ *
+ * The agent can be used as the `loadAs` parameter for load and subscribe methods.
+ */
+export function useAgent<
+  A extends AccountClass<Account> | AnyAccountSchema = typeof Account,
+>(): AnonymousJazzAgent | Loaded<A, true> {
+  const contextManager = useJazzContextManager<InstanceOfSchema<A>>();
+  const agent = getCurrentAccountFromContextManager(contextManager.value);
+  return agent as AnonymousJazzAgent | Loaded<A, true>;
 }
 
 export function useCoState<

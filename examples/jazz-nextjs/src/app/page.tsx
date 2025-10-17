@@ -5,7 +5,7 @@ import { useAccount } from "jazz-tools/react";
 import Link from "next/link";
 
 export default function Home() {
-  const { me } = useAccount(Account, {
+  const me = useAccount(Account, {
     resolve: {
       profile: true,
     },

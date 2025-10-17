@@ -1,11 +1,12 @@
-import { useAccount } from "jazz-tools/react";
+import { useAccount, useLogOut } from "jazz-tools/react";
 import { UserIcon } from "lucide-react";
 import { JazzAccount } from "./schema";
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const { me, logOut } = useAccount(JazzAccount, {
+  const me = useAccount(JazzAccount, {
     resolve: { profile: true },
   });
+  const logOut = useLogOut();
 
   return (
     <>

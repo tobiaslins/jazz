@@ -19,7 +19,7 @@ function getIdParam() {
 
 export function InboxPage() {
   const [id] = useState(getIdParam);
-  const { me } = useAccount();
+  const me = useAccount();
   const [pingPong, setPingPong] = useState<PingPong | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 

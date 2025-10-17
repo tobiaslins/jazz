@@ -14,7 +14,7 @@ function getIdParam() {
 export function RetryUnavailable() {
   const [id, setId] = useState(getIdParam);
   const coMap = useCoState(RetryUnavailableCoMap, id);
-  const { me } = useAccount();
+  const me = useAccount();
 
   useEffect(() => {
     if (id) {

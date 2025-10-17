@@ -1,5 +1,5 @@
 import { useIframeHashRouter } from "hash-slash";
-import { useAccountWithSelector, useCoState } from "jazz-tools/react";
+import { useAccount, useCoState } from "jazz-tools/react";
 import { useState } from "react";
 import { Errors } from "./Errors.tsx";
 import { LinkToHome } from "./LinkToHome.tsx";
@@ -12,7 +12,7 @@ import {
 } from "./schema.ts";
 
 export function CreateOrder(props: { id: string }) {
-  const orders = useAccountWithSelector(JazzAccount, {
+  const orders = useAccount(JazzAccount, {
     resolve: { root: { orders: true } },
     select: (account) => {
       if (!account.$isLoaded) {

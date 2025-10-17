@@ -1,5 +1,5 @@
 import { useToast } from "@/hooks/use-toast";
-import { createInviteLink, useCoStateWithSelector } from "jazz-tools/react";
+import { createInviteLink, useCoState } from "jazz-tools/react";
 import { useParams } from "react-router";
 import { Playlist } from "./1_schema";
 import { uploadMusicTracks } from "./4_actions";
@@ -37,7 +37,7 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
       (me.$isLoaded ? me.root.$jazz.refs.rootPlaylist.id : undefined),
   });
 
-  const playlist = useCoStateWithSelector(Playlist, playlistId, {
+  const playlist = useCoState(Playlist, playlistId, {
     resolve: {
       tracks: {
         $each: true,

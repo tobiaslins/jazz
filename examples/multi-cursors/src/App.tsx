@@ -10,7 +10,7 @@ const cursorFeedIDToLoad = import.meta.env.VITE_CURSOR_FEED_ID;
 const groupIDToLoad = import.meta.env.VITE_GROUP_ID;
 
 function App() {
-  const { me } = useAccount(CursorAccount, { resolve: { profile: true } });
+  const me = useAccount(CursorAccount, { resolve: { profile: true } });
   const [loaded, setLoaded] = useState(false);
   const [cursorFeedID, setCursorFeedID] = useState<string | null>(null);
 

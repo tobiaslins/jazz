@@ -12,7 +12,7 @@ export function BranchManagement({
   onBranchChange,
   onBranchMerge,
 }: BranchManagementProps) {
-  const { me } = useAccount(JazzAccount, {
+  const me = useAccount(JazzAccount, {
     resolve: { profile: { branches: true } },
   });
 

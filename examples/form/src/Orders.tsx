@@ -1,4 +1,4 @@
-import { useAccountWithSelector } from "jazz-tools/react";
+import { useAccount } from "jazz-tools/react";
 import { OrderThumbnail } from "./OrderThumbnail.tsx";
 import { JazzAccount, PartialBubbleTeaOrder } from "./schema.ts";
 import { useHashRouter } from "hash-slash";
@@ -6,7 +6,7 @@ import { useHashRouter } from "hash-slash";
 export function Orders() {
   const router = useHashRouter();
 
-  const orders = useAccountWithSelector(JazzAccount, {
+  const orders = useAccount(JazzAccount, {
     resolve: {
       root: {
         orders: {

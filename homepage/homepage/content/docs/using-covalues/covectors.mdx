@@ -97,7 +97,7 @@ CoVectors cannot be changed after creation. Instead, create a new CoVector with 
 Semantic search lets you find data based on meaning, not just keywords. In Jazz, you can easily sort results by how similar they are to your search query.
 
 <ContentByFramework framework="react">
-Use the `useCoStateWithSelector` hook to load your data and sort it by similarity to your query embedding:
+Use the `useCoState` hook to load your data and sort it by similarity to your query embedding:
 </ContentByFramework>
 <ContentByFramework framework="vanilla">
 You can load your data using the `.load` method, then compute and sort the results by similarity to your query embedding:
@@ -123,11 +123,11 @@ const useCreateEmbedding: () => YourCustomHook =
   });
 
 // ---cut---
-import { useCoStateWithSelector } from "jazz-tools/react";
+import { useCoState } from "jazz-tools/react";
 
 const { queryEmbedding, createQueryEmbedding } = useCreateEmbedding();
 
-const foundDocuments = useCoStateWithSelector(
+const foundDocuments = useCoState(
   DocumentsList,
   documentsListId,
   {

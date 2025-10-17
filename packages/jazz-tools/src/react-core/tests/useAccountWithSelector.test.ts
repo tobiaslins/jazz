@@ -2,7 +2,7 @@
 
 import { Account, RefsToResolve, co, z, Group } from "jazz-tools";
 import { assert, beforeEach, describe, expect, it } from "vitest";
-import { useAccountWithSelector, useJazzContextManager } from "../hooks.js";
+import { useAccount, useJazzContextManager } from "../hooks.js";
 import { useIsAuthenticated } from "../index.js";
 import {
   createJazzTestAccount,
@@ -26,7 +26,7 @@ const useRenderCount = <T>(hook: () => T) => {
   };
 };
 
-describe("useAccountWithSelector", () => {
+describe("useAccount", () => {
   it("should return the correct selected value", async () => {
     const AccountRoot = co.map({
       value: z.string(),
@@ -49,7 +49,7 @@ describe("useAccountWithSelector", () => {
 
     const { result } = renderHook(
       () =>
-        useAccountWithSelector(AccountSchema, {
+        useAccount(AccountSchema, {
           resolve: {
             root: true,
           },
@@ -103,7 +103,7 @@ describe("useAccountWithSelector", () => {
 
     const { result } = renderHook(
       () =>
-        useAccountWithSelector(AccountSchema, {
+        useAccount(AccountSchema, {
           resolve: {
             root: {
               nested: true,
@@ -164,7 +164,7 @@ describe("useAccountWithSelector", () => {
     const { result } = renderHook(
       () =>
         useRenderCount(() =>
-          useAccountWithSelector(AccountSchema, {
+          useAccount(AccountSchema, {
             resolve: {
               root: {
                 nested: true,
@@ -233,7 +233,7 @@ describe("useAccountWithSelector", () => {
     const { result } = renderHook(
       () =>
         useRenderCount(() =>
-          useAccountWithSelector(AccountSchema, {
+          useAccount(AccountSchema, {
             resolve: {
               root: {
                 nested: true,
@@ -302,7 +302,7 @@ describe("useAccountWithSelector", () => {
     const { result } = renderHook(
       () =>
         useRenderCount(() =>
-          useAccountWithSelector(AccountSchema, {
+          useAccount(AccountSchema, {
             resolve: {
               root: {
                 nested: true,
@@ -352,7 +352,7 @@ describe("useAccountWithSelector", () => {
 
     const { result } = renderHook(
       () =>
-        useAccountWithSelector(AccountSchema, {
+        useAccount(AccountSchema, {
           resolve: {
             root: true,
           },
@@ -376,7 +376,7 @@ describe("useAccountWithSelector", () => {
 
     const { result } = renderHook(
       () =>
-        useAccountWithSelector(Account, {
+        useAccount(Account, {
           select: (account) => {
             if (!account.$isLoaded) {
               return "No account";
@@ -417,7 +417,7 @@ describe("useAccountWithSelector", () => {
     const { result, rerender } = renderHook(
       () =>
         useRenderCount(() =>
-          useAccountWithSelector(AccountSchema, {
+          useAccount(AccountSchema, {
             resolve: {
               root: true,
             },
@@ -478,7 +478,7 @@ describe("useAccountWithSelector", () => {
     group.addMember("everyone", "writer");
     const { result } = renderHook(
       () => {
-        const branchAccountRoot = useAccountWithSelector(AccountSchema, {
+        const branchAccountRoot = useAccount(AccountSchema, {
           resolve: {
             root: true,
           },
@@ -491,7 +491,7 @@ describe("useAccountWithSelector", () => {
           unstable_branch: { name: "feature-branch" },
         });
 
-        const mainAccountRoot = useAccountWithSelector(AccountSchema, {
+        const mainAccountRoot = useAccount(AccountSchema, {
           resolve: {
             root: true,
           },

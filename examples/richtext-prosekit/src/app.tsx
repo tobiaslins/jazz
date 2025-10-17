@@ -8,7 +8,7 @@ import { JazzAccount } from "./schema.ts";
 import Textarea from "./textarea.tsx";
 
 function App() {
-  const { me } = useAccount(JazzAccount, {
+  const me = useAccount(JazzAccount, {
     resolve: { profile: { bio: true }, root: true },
   });
 

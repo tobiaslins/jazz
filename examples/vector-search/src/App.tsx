@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { useAccount, useCoStateWithSelector } from "jazz-tools/react";
+import { useAccount, useCoState } from "jazz-tools/react";
 
 import { Header } from "./components/Header";
 import { EmptyState } from "./components/EmptyState";
@@ -16,7 +16,7 @@ import { useCreateEntry } from "./helpers/use-create-entry";
 import { useDeleteEntries } from "./helpers/use-delete-entries";
 
 function App() {
-  const { me } = useAccount(JazzAccount, {
+  const me = useAccount(JazzAccount, {
     resolve: { root: { journalEntries: true } },
   });
 
@@ -28,7 +28,7 @@ function App() {
     useCreateEmbedding({ createEmbedding });
 
   // 2) Load a CoList and sort the results by similarity to the query embedding
-  const journalEntries = useCoStateWithSelector(
+  const journalEntries = useCoState(
     JournalEntryList,
     me.$isLoaded ? me.root.journalEntries?.$jazz.id : undefined,
     {

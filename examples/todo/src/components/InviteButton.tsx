@@ -15,7 +15,7 @@ export function InviteButton<T extends CoValue>({
 }) {
   const [existingInviteLink, setExistingInviteLink] = useState<string>();
   const { toast } = useToast();
-  const { me } = useAccount();
+  const me = useAccount();
 
   return (
     value.$isLoaded &&
