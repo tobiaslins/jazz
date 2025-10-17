@@ -212,7 +212,8 @@ function useGetCurrentValue<C extends CoValue>(
  * handles the subscription lifecycle (subscribe on mount, unsubscribe on unmount).
  * It also supports deep loading of nested CoValues through resolve queries.
  *
- * @returns The loaded CoValue, or `undefined` if loading, or `null` if not found/not accessible
+ * @returns The loaded CoValue, or an {@link Unloaded} value. Use `$isLoaded` to check whether the
+ * CoValue is loaded, or use {@link MaybeLoaded.$jazz.loadingState} to get the detailed loading state.
  *
  * @example
  * ```tsx
@@ -231,10 +232,15 @@ function useGetCurrentValue<C extends CoValue>(
  *     },
  *   });
  *
- *   if (!project) {
- *     return project === null
- *       ? "Project not found or not accessible"
- *       : "Loading project...";
+ *   if (!project.$isLoaded) {
+ *     switch (project.$jazz.loadingState) {
+         case "unauthorized":
+           return "Project not accessible";
+         case "unavailable":
+           return "Project not found";
+         case "unloaded":
+           return "Loading project...";
+       }
  *   }
  *
  *   return (
@@ -268,10 +274,15 @@ function useGetCurrentValue<C extends CoValue>(
  *     },
  *   });
  *
- *   if (!task) {
- *     return task === null
- *       ? "Task not found or not accessible"
- *       : "Loading task...";
+ *   if (!task.$isLoaded) {
+ *     switch (task.$jazz.loadingState) {
+ *       case "unauthorized":
+ *         return "Task not accessible";
+ *       case "unavailable":
+ *         return "Task not found";
+ *       case "unloaded":
+ *         return "Loading task...";
+ *     }
  *   }
  *
  *   return (
@@ -280,7 +291,7 @@ function useGetCurrentValue<C extends CoValue>(
  *       {task.assignee && <p>Assigned to: {task.assignee.name}</p>}
  *       <ul>
  *         {task.subtasks.map((subtask, index) => (
- *           subtask ? <li key={subtask.id}>{subtask.title}</li> : <li key={index}>Inaccessible subtask</li>
+ *           subtask.$isLoaded ? <li key={subtask.id}>{subtask.title}</li> : <li key={index}>Inaccessible subtask</li>
  *         ))}
  *       </ul>
  *     </div>
@@ -296,7 +307,7 @@ export function useCoState<
 >(
   /** The CoValue schema or class constructor */
   Schema: S,
-  /** The ID of the CoValue to subscribe to. If `undefined`, returns `null` */
+  /** The ID of the CoValue to subscribe to. If `undefined`, returns an `unavailable` value */
   id: string | undefined,
   /** Optional configuration for the subscription */
   options?: {
@@ -390,7 +401,7 @@ export function useCoState<
  *     {
  *       resolve: { $each: true },
  *       select: (tasks) => {
- *         if (!tasks) return { total: 0, completed: 0 };
+ *         if (!tasks.$isLoaded) return { total: 0, completed: 0 };
  *         return {
  *           total: tasks.length,
  *           completed: tasks.filter(task => task.completed).length,
@@ -428,7 +439,7 @@ export function useCoState<
  *         projects: { $each: { tasks: { $each: true } } },
  *       },
  *       select: (team) => {
- *         if (!team) return null;
+ *         if (!team.$isLoaded) return null;
  *
  *         const totalTasks = team.projects.reduce(
  *           (sum, project) => sum + project.tasks.length,
@@ -467,7 +478,7 @@ export function useCoStateWithSelector<
 >(
   /** The CoValue schema or class constructor */
   Schema: S,
-  /** The ID of the CoValue to subscribe to. If `undefined`, returns the result of selector called with `null` */
+  /** The ID of the CoValue to subscribe to. If `undefined`, returns the result of selector called with an `unavailable` value */
   id: string | undefined,
   /** Optional configuration for the subscription */
   options: {
@@ -635,7 +646,8 @@ export function useAccountSubscription<
  * the user's account data and provides a logout function.
  * 
  * @returns An object containing:
- * - `me`: The loaded account data, or `undefined` if loading, or `null` if not authenticated
+ * - `me`: The account data, or an {@link Unloaded} value. Use `$isLoaded` to check whether the
+ * CoValue is loaded, or use {@link MaybeLoaded.$jazz.loadingState} to get the detailed loading state.
  * - `agent`: The current agent (anonymous or authenticated user). Can be used as `loadAs` parameter for load and subscribe methods.
  * - `logOut`: Function to log out the current user
 
@@ -656,10 +668,15 @@ export function useAccountSubscription<
  *     },
  *   });
  * 
- *   if (!me) {
- *     return me === null
- *       ? <div>Failed to load your projects</div>
- *       : <div>Loading...</div>;
+ *   if (!me.$isLoaded) {
+ *     switch (me.$jazz.loadingState) {
+ *       case "unauthorized":
+ *         return "Account not accessible";
+ *       case "unavailable":
+ *         return "Account not found";
+ *       case "unloaded":
+ *         return "Loading account...";
+ *     }
  *   }
  * 
  *   return (
@@ -772,7 +789,7 @@ export function useAccount<
  *         profile: true,
  *         root: true,
  *       },
- *       select: (account) => account?.profile?.name ?? "Loading...",
+ *       select: (account) => account.$isLoaded ? account.profile.name : "Loading...",
  *     }
  *   );
  *

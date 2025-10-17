@@ -355,7 +355,7 @@ export class CoList<out Item = any>
   /**
    * Given some data, updates an existing CoList or initialises a new one if none exists.
    *
-   * Note: This method respects resolve options, and thus can return `null` if the references cannot be resolved.
+   * Note: This method respects resolve options, and thus can return an unloaded value if the references cannot be resolved.
    *
    * @example
    * ```ts
@@ -419,7 +419,7 @@ export class CoList<out Item = any>
    * @param unique The unique identifier of the CoList to load.
    * @param ownerID The ID of the owner of the CoList.
    * @param options Additional options for loading the CoList.
-   * @returns The loaded CoList, or null if unavailable.
+   * @returns The loaded CoList, or an unloaded value if unavailable.
    */
   static loadUnique<L extends CoList, const R extends RefsToResolve<L> = true>(
     this: CoValueClass<L>,

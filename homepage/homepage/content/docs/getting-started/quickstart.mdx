@@ -236,7 +236,7 @@ export function NewBand() {
   const [name, setName] = useState("");
 
   const handleSave = () => {
-    if (!me) return; // not loaded yet
+    if (!me.$isLoaded) return;
     me.root.myFestival.$jazz.push({ name });
     setName("");
   };
@@ -267,7 +267,7 @@ export function NewBand() {
   let name = $state("");
 
   function handleSave() {
-    if (!me.current) return; // not loaded yet
+    if (!me.current.$isLoaded) return;
     me.current.root.myFestival.$jazz.push({ name });
     name = "";
   }
@@ -300,12 +300,12 @@ import { JazzFestAccount } from "@/app/schema";
 
 export function Festival() {
   const { me } = useAccount(JazzFestAccount, { 
-    resolve: { root: { myFestival: true } } 
+    resolve: { root: { myFestival: { $each: true } } } 
   });
-  if (!me) return null; // not loaded yet
+  if (!me.$isLoaded) return null;
   return (
     <ul>
-      {me?.root.myFestival.map((band) => band && <li key={band.$jazz.id}>{band.name}</li>)}
+      {me.root.myFestival.map((band) => <li key={band.$jazz.id}>{band.name}</li>)}
     </ul>
   );
 }
@@ -317,14 +317,16 @@ export function Festival() {
   import { AccountCoState } from "jazz-tools/svelte";
   import { JazzFestAccount } from "$lib/schema";
   const me = new AccountCoState(JazzFestAccount, { 
-    resolve: { root: { myFestival: true } } 
+    resolve: { root: { myFestival: { $each: true } } } 
   });
 </script>
 
 <ul>
-  {#each me.current?.root.myFestival || [] as band}
-    <li>{band?.name}</li>
-  {/each}
+  {#if me.current.$isLoaded}
+    {#each me.current.root.myFestival as band}
+      <li>{band.name}</li>
+    {/each}
+  {/if}
 </ul>
 ```
 </TabbedCodeGroupItem>

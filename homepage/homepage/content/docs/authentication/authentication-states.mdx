@@ -124,6 +124,7 @@ export async function onAnonymousAccountDiscarded(
     },
   });
 
+  // @ts-expect-error TODO: fix issue that prevents iterating CoLists inside loaded CoMaps 
   for (const track of anonymousAccountRoot.rootPlaylist.tracks) {
     if (track.isExampleTrack) continue;
 
