@@ -18,12 +18,7 @@ export const navigationItems: NavItemProps[] = [
   {
     title: "Blog",
     href: "https://garden.co/news",
-    firstOnRight: true,
     newTab: true,
-  },
-  {
-    href: "/status",
-    title: "Status",
   },
 ];
 

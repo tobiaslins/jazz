@@ -15,15 +15,12 @@ import {
   AgentID,
   ParentGroupReference,
   RawCoID,
-  SessionID,
   TransactionID,
   getParentGroupId,
 } from "./ids.js";
 import { parseJSON } from "./jsonStringify.js";
 import { JsonValue } from "./jsonValue.js";
 import { logger } from "./logger.js";
-import { CoValueKnownState } from "./sync.js";
-import { accountOrAgentIDfromSessionID } from "./typeUtils/accountOrAgentIDfromSessionID.js";
 import { expectGroup } from "./typeUtils/expectGroup.js";
 
 export type PermissionsDef =
@@ -118,9 +115,9 @@ export function determineValidTransactions(coValue: CoValueCore) {
       }
 
       tx.isValidated = true;
-      const wasValid = tx.isValid;
-
-      const groupAtTime = groupContent.atTime(tx.madeAt);
+      // We use the original made at to get the group at the original time when the transaction was made
+      // madeAt might be changed by the meta field (e.g. merged transactions), and so can't be used for permissions checks
+      const groupAtTime = groupContent.atTime(tx.currentMadeAt);
       const effectiveTransactor = agentInAccountOrMemberInGroup(
         tx.author,
         groupAtTime,
@@ -133,6 +130,21 @@ export function determineValidTransactions(coValue: CoValueCore) {
 
       const transactorRoleAtTxTime =
         groupAtTime.roleOfInternal(effectiveTransactor);
+
+      if (
+        transactorRoleAtTxTime === "reader" &&
+        tx.meta?.branch &&
+        tx.meta?.ownerId
+      ) {
+        // Force the changes and meta to only contain the branch pointer information
+        tx.meta = {
+          branch: tx.meta.branch,
+          ownerId: tx.meta.ownerId,
+        };
+        tx.changes = [];
+        tx.isValid = true;
+        continue;
+      }
 
       if (
         transactorRoleAtTxTime !== "admin" &&
@@ -220,13 +232,10 @@ function determineValidTransactionsForGroup(
   initialAdmin: RawAccountID | AgentID,
   extendChain?: Set<CoValueCore["id"]>,
 ): { memberState: MemberState } {
-  coValue.verifiedTransactions.sort((a, b) => {
-    return a.madeAt - b.madeAt;
-  });
+  coValue.verifiedTransactions.sort(coValue.compareTransactions);
 
   const memberState: MemberState = {};
   const writeOnlyKeys: Record<RawAccountID | AgentID, KeyID> = {};
-  const validTransactions: ValidTransactionsResult[] = [];
 
   const writeKeys = new Set<string>();
 
@@ -249,20 +258,10 @@ function determineValidTransactionsForGroup(
       }
     }
 
-    let changes = transaction.changes;
+    const changes = transaction.changes;
 
     if (!changes) {
-      try {
-        changes = parseJSON(tx.changes);
-        transaction.changes = changes;
-      } catch (e) {
-        logPermissionError("Invalid JSON in transaction", {
-          id: coValue.id,
-          tx,
-        });
-        transaction.hasInvalidChanges = true;
-        continue;
-      }
+      continue;
     }
 
     const change = changes[0] as

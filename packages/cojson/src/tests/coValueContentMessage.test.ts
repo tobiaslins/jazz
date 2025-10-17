@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { knownStateFromContent } from "../coValueContentMessage.js";
-import { emptyKnownState } from "../sync.js";
-import type { NewContentMessage } from "../sync.js";
+import { emptyKnownState } from "../knownState.js";
+import { NewContentMessage } from "../sync.js";
 import type { RawCoID, SessionID } from "../ids.js";
 import { stableStringify } from "../jsonStringify.js";
 import { CO_VALUE_PRIORITY } from "../priority.js";

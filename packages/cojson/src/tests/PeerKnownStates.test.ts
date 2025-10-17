@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 import { PeerKnownStates } from "../PeerKnownStates.js";
 import { RawCoID, SessionID } from "../ids.js";
-import { CoValueKnownState, emptyKnownState } from "../sync.js";
+import { CoValueKnownState, emptyKnownState } from "../knownState.js";
 
 describe("PeerKnownStates", () => {
   test("should set and get a known state", () => {

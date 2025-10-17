@@ -6,7 +6,7 @@ import { Prose } from "@garden-co/design-system/src/components/molecules/Prose";
 import { Toc } from "@stefanprobst/rehype-extract-toc";
 import { error } from "console";
 
-function DocProse({ children }: { children: React.ReactNode }) {
+export function DocProse({ children }: { children: React.ReactNode }) {
   return (
     <Prose className="overflow-hidden pb-8 pt-[calc(61px+2rem)] md:pt-8 md:max-w-3xl mx-auto">
       {children}
@@ -25,22 +25,22 @@ export async function getDocModule(framework: string, slug?: string[]) {
   if (slugPath) {
     try {
       return await import(`../content/docs/${slugPath}/${framework}.mdx`);
-    } catch {}
+    } catch { }
   }
 
   // Fallback to generic MDX
   if (slugPath) {
     try {
       return await import(`../content/docs/${slugPath}.mdx`);
-    } catch {}
+    } catch { }
   }
 
   // Top-level index fallback
   try {
     return await import(`../content/docs/index.mdx`);
-  } catch {}
+  } catch { }
 
-  return null; 
+  return null;
 }
 
 
@@ -183,8 +183,8 @@ export function generateOGMetadata(
   const baseUrl = "https://jazz.tools";
   const imageUrl = image
     ? `${baseUrl}/api/opengraph-image?title=${encodeURIComponent(title)}&framework=${encodeURIComponent(
-        framework
-      )}${topic ? `&topic=${encodeURIComponent(topic)}` : ""}${subtopic ? `&subtopic=${encodeURIComponent(subtopic)}` : ""}`
+      framework
+    )}${topic ? `&topic=${encodeURIComponent(topic)}` : ""}${subtopic ? `&subtopic=${encodeURIComponent(subtopic)}` : ""}`
     : "/jazz-logo.png";
 
   return {

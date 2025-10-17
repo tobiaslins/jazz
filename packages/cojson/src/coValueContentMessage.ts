@@ -3,8 +3,9 @@ import { TRANSACTION_CONFIG } from "./config.js";
 import { Signature } from "./crypto/crypto.js";
 import { RawCoID, SessionID } from "./ids.js";
 import { JsonValue } from "./jsonValue.js";
+import { emptyKnownState } from "./knownState.js";
 import { getPriorityFromHeader } from "./priority.js";
-import { NewContentMessage, emptyKnownState } from "./sync.js";
+import { NewContentMessage } from "./sync.js";
 
 export function createContentMessage(
   id: RawCoID,

@@ -1,13 +1,9 @@
 import { base64URLtoBytes, bytesToBase64url } from "../base64url.js";
 import { CoID, RawCoValue } from "../coValue.js";
-import {
-  AvailableCoValueCore,
-  CoValueCore,
-} from "../coValueCore/coValueCore.js";
+import { AvailableCoValueCore } from "../coValueCore/coValueCore.js";
 import { AgentID, SessionID, TransactionID } from "../ids.js";
 import { JsonObject, JsonValue } from "../jsonValue.js";
 import { logger } from "../logger.js";
-import { CoValueKnownState } from "../sync.js";
 import { accountOrAgentIDfromSessionID } from "../typeUtils/accountOrAgentIDfromSessionID.js";
 import { isAccountID } from "../typeUtils/isAccountID.js";
 import { isCoValue } from "../typeUtils/isCoValue.js";

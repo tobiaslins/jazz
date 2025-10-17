@@ -123,6 +123,9 @@ export {
   experimental_defineRequest,
   JazzRequestError,
   isJazzRequestError,
+  authenticateRequest,
+  generateAuthToken,
+  parseAuthToken,
   type HttpRoute,
 } from "./coValues/request.js";
 
