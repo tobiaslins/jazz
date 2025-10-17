@@ -1,5 +1,10 @@
 export type Environment = "browser" | "mobile";
 export type Engine = "browser" | "mobile" | "nodejs" | "deno" | "bun";
+export type DocsFrameworks =
+  | "react"
+  | "svelte"
+  | "react-native"
+  | "react-native-expo";
 export type Framework = "react" | "svelte" | "rn" | "expo" | "nextjs";
 export type AuthMethod =
   | "minimal"
@@ -20,26 +25,32 @@ export type EngineConfig = {
 export const frameworks: {
   name: string;
   value: Framework;
+  docs: DocsFrameworks;
 }[] = [
   {
     name: "React (Vite)",
     value: "react",
+    docs: "react",
   },
   {
     name: "React (Next.js)",
     value: "nextjs",
+    docs: "react",
   },
   {
     name: "React Native",
     value: "rn",
+    docs: "react-native",
   },
   {
     name: "React Native (Expo)",
     value: "expo",
+    docs: "react-native-expo",
   },
   {
     name: "Svelte",
     value: "svelte",
+    docs: "svelte",
   },
 ];
 
