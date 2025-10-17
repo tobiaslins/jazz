@@ -13,6 +13,7 @@ export interface WebhookResponse {
   statusCode: number;
   body?: string;
   delay?: number;
+  headers?: Record<string, string>;
 }
 
 export class WebhookTestServer {
@@ -64,6 +65,11 @@ export class WebhookTestServer {
 
           res.statusCode = response.statusCode;
           res.setHeader("Content-Type", "application/json");
+          if (response.headers) {
+            for (const [key, value] of Object.entries(response.headers)) {
+              res.setHeader(key, value);
+            }
+          }
           res.end(response.body || JSON.stringify({ received: true }));
         } catch (error) {
           res.statusCode = 400;
@@ -132,8 +138,9 @@ export class WebhookTestServer {
     statusCode: number,
     body?: string,
     delay?: number,
+    headers?: Record<string, string>,
   ): void {
-    this.responses[index] = { statusCode, body, delay };
+    this.responses[index] = { statusCode, body, delay, headers };
   }
 
   /**

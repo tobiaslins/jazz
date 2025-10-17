@@ -6,6 +6,7 @@ import {
   WebhookRegistry,
   WebhookRegistration,
   RegistryState,
+  JazzWebhookOptions,
 } from "../webhook.js";
 import { isTxSuccessful } from "../successMap.js";
 import { CojsonInternalTypes } from "cojson";
@@ -60,7 +61,7 @@ interface TestContext {
   webhookRegistry: WebhookRegistry;
 }
 
-async function setupTest(): Promise<TestContext> {
+async function setupTest(options?: JazzWebhookOptions): Promise<TestContext> {
   const account = await createJazzTestAccount({
     AccountSchema: TestAccount,
     isCurrentActiveAccount: true,
@@ -69,9 +70,12 @@ async function setupTest(): Promise<TestContext> {
   const webhookServer = new WebhookTestServer();
   await webhookServer.start();
   const registryState = account.root.webhookRegistry;
-  const webhookRegistry = new WebhookRegistry(registryState, {
-    baseDelayMs: 10,
-  });
+  const webhookRegistry = new WebhookRegistry(
+    registryState,
+    options || {
+      baseDelayMs: 10,
+    },
+  );
   webhookRegistry.start();
 
   // Set up cleanup for this test
@@ -301,6 +305,40 @@ describe("jazz-webhook", () => {
 
       // Should eventually succeed after retries
       const requests = await webhookServer.waitForRequests(3, 10000);
+
+      expect(requests).toHaveLength(3);
+      expect(requests[0]!.coValueId).toBe(coValueId);
+      expect(requests[1]!.coValueId).toBe(coValueId);
+      expect(requests[2]!.coValueId).toBe(coValueId);
+    });
+
+    test("should respect Retry-After response header", async () => {
+      const {
+        account,
+        webhookServer,
+        webhookRegistry: webhookManager,
+      } = await setupTest({
+        baseDelayMs: 100000, // Really long default delay, we expect this to be overridden by the Retry-After header
+      });
+
+      const testMap = TestCoMap.create({ value: "initial" }, account.root);
+      const coValueId = testMap.$jazz.id as `co_z${string}`;
+
+      // Set up server to fail with Retry-After header
+      webhookServer.setResponse(0, 500, "Server Error", undefined, {
+        "Retry-After": "0.05",
+      }); // 50ms
+      webhookServer.setResponse(1, 500, "Server Error", undefined, {
+        "Retry-After": "0.05",
+      }); // 50ms
+      webhookServer.setResponse(2, 200, "Success");
+
+      webhookManager.register(webhookServer.getUrl(), coValueId);
+
+      testMap.$jazz.set("value", "changed");
+
+      // Should eventually succeed after retry
+      const requests = await webhookServer.waitForRequests(3, 1000);
 
       expect(requests).toHaveLength(3);
       expect(requests[0]!.coValueId).toBe(coValueId);

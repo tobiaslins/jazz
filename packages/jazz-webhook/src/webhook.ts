@@ -151,6 +151,15 @@ export class WebhookRegistry {
   }
 }
 
+class WebhookError extends Error {
+  constructor(
+    message: string,
+    public readonly retryAfterMs?: number,
+  ) {
+    super(message);
+  }
+}
+
 /**
  * Manages webhook emission with queuing, retry logic, and exponential backoff.
  *
@@ -163,7 +172,7 @@ class WebhookEmitter {
   loadedSuccessMap: co.loaded<typeof SuccessMap, { $each: true }> | undefined;
   pending = new Map<
     string, // stringified TransactionID
-    { nRetries: number; timeout: NodeJS.Timeout }
+    { nRetries: number; timeout?: NodeJS.Timeout }
   >();
   unsubscribe: () => void;
 
@@ -208,7 +217,7 @@ class WebhookEmitter {
   }
 
   makeAttempt(txID: CojsonInternalTypes.TransactionID) {
-    const entry = this.pending.get(`${txID.sessionID}:${txID.txIndex}`);
+    let entry = this.pending.get(`${txID.sessionID}:${txID.txIndex}`);
 
     console.log("makeAttempt", this.webhook.coValueId, txID, {
       nRetries: entry?.nRetries,
@@ -226,24 +235,26 @@ class WebhookEmitter {
       return;
     }
 
-    const timeout = setTimeout(
-      () => {
-        this.makeAttempt(txID);
-      },
-      (this.options.baseDelayMs || DEFAULT_JazzWebhookOptions.baseDelayMs) *
-        2 ** (entry?.nRetries || 0),
-    );
-
     if (entry) {
       entry.nRetries++;
       clearTimeout(entry.timeout);
-      entry.timeout = timeout;
     } else {
-      this.pending.set(`${txID.sessionID}:${txID.txIndex}`, {
-        nRetries: 0,
-        timeout,
-      });
+      entry = { nRetries: 0 };
+      this.pending.set(`${txID.sessionID}:${txID.txIndex}`, entry);
     }
+
+    const scheduleRetry = (delayMs?: number) => {
+      const delay =
+        (delayMs ||
+          this.options.baseDelayMs ||
+          DEFAULT_JazzWebhookOptions.baseDelayMs) *
+        2 ** (entry?.nRetries || 0);
+      console.log(`Will retry ${this.webhook.webhookUrl} in ${delay}ms...`);
+
+      entry.timeout = setTimeout(() => {
+        this.makeAttempt(txID);
+      }, delay);
+    };
 
     fetch(this.webhook.webhookUrl, {
       method: "POST",
@@ -259,16 +270,33 @@ class WebhookEmitter {
         if (response.ok) {
           markSuccessful(await this.successMap, txID);
           this.pending.delete(`${txID.sessionID}:${txID.txIndex}`);
-          clearTimeout(timeout);
+          clearTimeout(entry.timeout);
           return;
-        } else {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
+
+        let retryAfterMs: number | undefined;
+        if (response.headers.has("Retry-After")) {
+          try {
+            retryAfterMs =
+              parseFloat(response.headers.get("Retry-After")!) * 1000;
+          } catch {
+            console.warn(
+              `Invalid Retry-After header: ${response.headers.get("Retry-After")}`,
+            );
+          }
+        }
+        throw new WebhookError(
+          `HTTP ${response.status}: ${response.statusText}`,
+          retryAfterMs,
+        );
       })
       .catch((error) => {
         console.error(
           `Webhook request failed (attempt ${entry?.nRetries || 0}):`,
           error,
+        );
+        scheduleRetry(
+          error instanceof WebhookError ? error.retryAfterMs : undefined,
         );
       });
   }
