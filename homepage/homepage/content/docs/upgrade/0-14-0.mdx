@@ -260,7 +260,7 @@ import { useAccount } from "jazz-react";
 import { MyAccount } from "./schema";
 
 function MyComponent() {
-  const me = useAccount(MyAccount, {
+  const { me } = useAccount(MyAccount, {
     resolve: {
       profile: true,
     },

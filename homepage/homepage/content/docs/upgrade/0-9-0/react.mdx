@@ -67,7 +67,7 @@ This change improves IDE intellisense support and simplifies imports:
     import { useAccount } from "jazz-react"; // [!code ++]
 
     export function Hello() {
-        const me = useAccount();
+        const { me } = useAccount();
 
         return (
             <>
