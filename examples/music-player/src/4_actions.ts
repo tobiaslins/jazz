@@ -132,7 +132,7 @@ export async function removeTrackFromAllPlaylists(track: MusicTrack) {
 
   const playlists = root.playlists;
 
-  // @ts-expect-error TODO: fix type inference
+  // @ts-expect-error - https://github.com/microsoft/TypeScript/issues/62621
   for (const playlist of playlists) {
     if (!playlist.$isLoaded) continue;
 
@@ -196,7 +196,7 @@ export async function onAnonymousAccountDiscarded(
     },
   });
 
-  // @ts-expect-error TODO: fix type inference
+  // @ts-expect-error - https://github.com/microsoft/TypeScript/issues/62621
   for (const track of anonymousAccountRoot.rootPlaylist.tracks) {
     if (track.isExampleTrack) continue;
 

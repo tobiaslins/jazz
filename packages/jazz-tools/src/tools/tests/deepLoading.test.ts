@@ -1152,10 +1152,7 @@ test("deep loaded CoList nested inside another CoValue can be iterated over", as
   const list = loadedMap.list;
 
   let expectedValue = 1;
-  // @ts-expect-error TODO: fix type inference
-  // Adding an explicit type annotation with the SAME type that's being inferred
-  // works, for some reason:
-  // const list: CoList<number> = loadedMap.list;
+  // @ts-expect-error - https://github.com/microsoft/TypeScript/issues/62621
   for (const item of list) {
     expect(item).toEqual(expectedValue);
     expectedValue++;

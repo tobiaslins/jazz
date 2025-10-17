@@ -41,18 +41,12 @@ export type Unloaded<T> = {
 /**
  * Narrows a maybe-loaded, optional CoValue to a loaded and required CoValue.
  */
-export type LoadedAndRequired<T> = T extends { $isLoaded: true }
-  ? Exclude<T, undefined>
-  : Exclude<T, undefined> & { $isLoaded: true };
+export type LoadedAndRequired<T> = Exclude<T, Unloaded<T> | undefined>;
 
 /**
  * Narrows a maybe-loaded, optional CoValue to a loaded and optional CoValue
  */
-export type AsLoaded<T> = LoadedAndRequired<T> extends CoValue
-  ? T extends undefined
-    ? LoadedAndRequired<T> | undefined
-    : LoadedAndRequired<T>
-  : T;
+export type AsLoaded<T> = Exclude<T, Unloaded<T>>;
 
 /**
  * By default, if a nested CoValue is not loaded, the parent CoValue will not be loaded either.

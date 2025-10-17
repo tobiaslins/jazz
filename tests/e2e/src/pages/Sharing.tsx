@@ -1,12 +1,16 @@
-import { CoMap, Group, ID, coField } from "jazz-tools";
+import { Group, ID, co, z } from "jazz-tools";
 import { createInviteLink } from "jazz-tools/react";
 import { useAcceptInvite, useAccount, useCoState } from "jazz-tools/react";
 import { useState } from "react";
 
-class SharedCoMap extends CoMap {
-  value = coField.string;
-  child = coField.optional.ref(SharedCoMap);
-}
+const SharedCoMap = co.map({
+  value: z.string(),
+  get child() {
+    return co.optional(SharedCoMap);
+  },
+});
+
+type SharedCoMap = co.loaded<typeof SharedCoMap, true>;
 
 export function Sharing() {
   const me = useAccount();
