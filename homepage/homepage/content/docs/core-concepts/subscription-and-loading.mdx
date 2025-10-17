@@ -6,7 +6,7 @@ export const metadata = {
 
 # Subscriptions & Deep Loading
 
-Jazz's Collaborative Values (such as [CoMaps](/docs/using-covalues/comaps) or [CoLists](/docs/using-covalues/colists)) are reactive. You can subscribe to them to automatically receive updates whenever they change, either locally or remotely.
+Jazz's Collaborative Values (such as [CoMaps](/docs/core-concepts/covalues/comaps) or [CoLists](/docs/core-concepts/covalues/colists)) are reactive. You can subscribe to them to automatically receive updates whenever they change, either locally or remotely.
 
 You can also use subscriptions to load CoValues *deeply* by resolving nested values. You can specify exactly how much data you want to resolve and handle loading states and errors.
 
@@ -92,13 +92,13 @@ function ProjectView({ projectId }: { projectId: string }) {
 ### Subscribe to the current user's account
 
 <ContentByFramework framework="react">
-`useAccount` is similar to `useCoState`, but it returns the current user's account. You can use this at the top level of your app to subscribe to the current user's [account profile and root](/docs/schemas/accounts-and-migrations#covalues-as-a-graph-of-data-rooted-in-accounts).
+`useAccount` is similar to `useCoState`, but it returns the current user's account. You can use this at the top level of your app to subscribe to the current user's [account profile and root](/docs/core-concepts/schemas/accounts-and-migrations#covalues-as-a-graph-of-data-rooted-in-accounts).
 </ContentByFramework>
 <ContentByFramework framework="svelte">
-`AccountCoState` is similar to `CoState`, but it returns the current user's account. You can use this at the top level of your app to subscribe to the current user's [account profile and root](/docs/schemas/accounts-and-migrations#covalues-as-a-graph-of-data-rooted-in-accounts).
+`AccountCoState` is similar to `CoState`, but it returns the current user's account. You can use this at the top level of your app to subscribe to the current user's [account profile and root](/docs/core-concepts/schemas/accounts-and-migrations#covalues-as-a-graph-of-data-rooted-in-accounts).
 </ContentByFramework>
 
-<TabbedCodeGroup id="usecostate" default="react" savedPreferenceKey="framework">
+<TabbedCodeGroup id="useaccount" default="react" savedPreferenceKey="framework">
 <TabbedCodeGroupItem label="React" value="react" icon={<ReactLogo />} preferWrap>
 ```tsx
 import { useAccount } from "jazz-tools/react";
@@ -155,7 +155,7 @@ Check the examples above for practical demonstrations of how to handle these thr
 
 When you're working with related CoValues (like tasks in a project), you often need to load nested references as well as the top-level CoValue. 
 
-This is particularly the case when working with [CoMaps](https://jazz.tools/docs/react/using-covalues/comaps) that refer to other CoValues or [CoLists](https://jazz.tools/docs/react/using-covalues/colists) of CoValues. You can use `resolve` queries to tell Jazz what data you need to use.
+This is particularly the case when working with [CoMaps](/docs/core-concepts/covalues/comaps) that refer to other CoValues or [CoLists](/docs/core-concepts/covalues/colists) of CoValues. You can use `resolve` queries to tell Jazz what data you need to use.
 
 ### Using Resolve Queries
 

@@ -13,7 +13,7 @@ Use FileStreams when you need to:
 - Store audio or video files
 - Sync any binary data between users
 
-**Note:** For images specifically, Jazz provides the higher-level `ImageDefinition` abstraction which manages multiple image resolutions - see the [ImageDefinition documentation](/docs/using-covalues/imagedef) for details.
+**Note:** For images specifically, Jazz provides the higher-level `ImageDefinition` abstraction which manages multiple image resolutions - see the [ImageDefinition documentation](/docs/core-concepts/covalues/imagedef) for details.
 
 FileStreams provide automatic chunking when using the `createFromBlob` method, track upload progress, and handle MIME types and metadata.
 
@@ -72,7 +72,7 @@ fileInput.addEventListener('change', async () => {
 
 ### Creating Empty FileStreams
 
-Create an empty FileStream when you want to manually [add binary data in chunks](/docs/using-covalues/filestreams#writing-to-filestreams):
+Create an empty FileStream when you want to manually [add binary data in chunks](#writing-to-filestreams):
 
 <CodeGroup>
 ```ts twoslash
@@ -105,7 +105,7 @@ const teamFileStream = FileStream.create({ owner: teamGroup });
 ```
 </CodeGroup>
 
- See [Groups as permission scopes](/docs/groups/intro) for more information on how to use groups to control access to FileStreams.
+ See [Groups as permission scopes](/docs/permissions-and-sharing/overview) for more information on how to use groups to control access to FileStreams.
 
 ## Reading from FileStreams
 

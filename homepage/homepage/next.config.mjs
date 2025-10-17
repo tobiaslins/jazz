@@ -7,6 +7,9 @@ import { highlightPlugin } from "./remark-plugins/highlight-plugin.mjs";
 import { withSlugAndHeadingsFrameworkVisibility } from "./rehype-plugins/with-slug-and-framework-visibility.mjs";
 import { withTocAndFrameworkHeadingsVisibilityExport } from "./rehype-plugins/with-toc-and-framework-visibility-export.mjs";
 
+// Keep in sync with content/framework.ts
+const frameworks = ["react", "react-native", "react-native-expo", "svelte", "vanilla"];
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Configure `pageExtensions`` to include MDX files
@@ -29,10 +32,18 @@ const config = {
   ...withMDX(nextConfig),
   output: "standalone",
   redirects: async () => {
+    // Check if the first segment after /docs/ is not a valid framework
+    const frameworkPattern = frameworks.map(f => `${f}(?:/|$)`).join('|');
+    
     return [
       {
         source: "/docs",
         destination: "/docs/react",
+        permanent: false,
+      },
+      {
+        source: `/docs/:slug((?!${frameworkPattern}).*)`,
+        destination: "/docs/react/:slug*",
         permanent: false,
       },
     ];

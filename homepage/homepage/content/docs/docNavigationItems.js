@@ -130,7 +130,7 @@ export const docNavigationItems = [
         startClosed: true,
         items: [{
           name: "Overview",
-          href: '/docs/core-concepts/overview',
+          href: '/docs/core-concepts/covalues/overview',
           done: 100,
         }, {
           name: "CoMaps",
@@ -178,17 +178,17 @@ export const docNavigationItems = [
         collapse: true,
         items: [{
           name: "Connecting CoValues",
-          href: "/docs/schemas/connecting-covalues",
+          href: "/docs/core-concepts/schemas/connecting-covalues",
           done: 100,
         },
         {
           name: "Accounts & migrations",
-          href: "/docs/schemas/accounts-and-migrations",
+          href: "/docs/core-concepts/schemas/accounts-and-migrations",
           done: 20,
         },
         {
           name: "Schema Unions",
-          href: "/docs/schemas/schemaunions",
+          href: "/docs/core-concepts/schemas/schemaunions",
           done: 100,
         }]
       },
@@ -226,7 +226,7 @@ export const docNavigationItems = [
 
         {
           name: "Authentication States",
-          href: "/docs/key-features/authentication/key-features/authentication-states",
+          href: "/docs/key-features/authentication/authentication-states",
           done: 100,
         },
         {

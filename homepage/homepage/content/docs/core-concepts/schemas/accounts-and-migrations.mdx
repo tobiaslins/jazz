@@ -11,7 +11,7 @@ import { Alert, CodeGroup, ComingSoon, ContentByFramework } from "@/components/f
 Compared to traditional relational databases with tables and foreign keys,
 Jazz is more like a graph database, or GraphQL APIs &mdash;
 where CoValues can arbitrarily refer to each other and you can resolve references without having to do a join.
-(See [Subscribing & deep loading](/docs/using-covalues/subscription-and-loading)).
+(See [Subscribing & deep loading](/docs/core-concepts/subscription-and-loading)).
 
 To find all data related to a user, the account acts as a root node from where you can resolve all the data they have access to.
 These root references are modeled explicitly in your schema, distinguishing between data that is typically public
@@ -107,7 +107,7 @@ export const MyAppAccount = co.account({
 ## Resolving CoValues starting at `profile` or `root`
 
 <ContentByFramework framework="react">
-To use per-user data in your app, you typically use `useAccount` somewhere in a high-level component, pass it your custom Account schema and specify which references to resolve using a resolve query (see [Subscribing & deep loading](/docs/using-covalues/subscription-and-loading)).
+To use per-user data in your app, you typically use `useAccount` somewhere in a high-level component, pass it your custom Account schema and specify which references to resolve using a resolve query (see [Subscribing & deep loading](/docs/core-concepts/subscription-and-loading)).
 
 <CodeGroup>
 ```tsx twoslash
@@ -264,9 +264,7 @@ export const MyAppAccount = co.account({
     resolve: { root: true }
   });
 
-  // we specifically need to check for undefined,
-  // because myBookmarks might simply be not loaded (`null`) yet
-  if (root.myBookmarks === undefined) { // [!code ++:3]
+  if (!root.$jazz.has('myBookmarks')) { // [!code ++:3]
     root.$jazz.set("myBookmarks", co.list(Bookmark).create([], Group.create()));
   }
 });

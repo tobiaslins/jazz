@@ -1,7 +1,4 @@
-import { CodeGroup, ContentByFramework, TabbedCodeGroup, TabbedCodeGroupItem } from "@/components/forMdx";
-import { JavascriptLogo } from "@/components/icons/JavascriptLogo";
-import { SvelteLogo } from "@/components/icons/SvelteLogo";
-import { ReactLogo } from "@/components/icons/ReactLogo";
+import { CodeGroup, ContentByFramework, TabbedCodeGroup, TabbedCodeGroupItem, ReactLogo, SvelteLogo, VanillaLogo } from "@/components/forMdx";
 
 
 export const metadata = {
@@ -85,7 +82,7 @@ const teamList = co.vector(384).create(vector, { owner: teamGroup });
 ```
 </CodeGroup>
 
-See [Groups as permission scopes](/docs/groups/intro) for more information on how to use groups to control access to CoVectors.
+See [Groups as permission scopes](/docs/permissions-and-sharing/overview) for more information on how to use groups to control access to CoVectors.
 
 ### Immutability
 
@@ -104,7 +101,7 @@ You can load your data using the `.load` method, then compute and sort the resul
 </ContentByFramework>
 
 <TabbedCodeGroup id="vectorsearch" default="react" savedPreferenceKey="framework">
-<TabbedCodeGroupItem label="React" value="react" className="[&_span]:[tab-size:2]" icon={<ReactLogo />} preferWrap>
+<TabbedCodeGroupItem label="React" value="react" icon={<ReactLogo />} preferWrap>
 ```ts twoslash
 import { co, z } from "jazz-tools";
 const Document = co.map({
@@ -152,7 +149,7 @@ const foundDocuments = useCoStateWithSelector(
 );
 ```
 </TabbedCodeGroupItem>
-<TabbedCodeGroupItem label="VanillaJS" value="vanilla" className="[&_span]:[tab-size:2]" icon={<JavascriptLogo />} preferWrap>
+<TabbedCodeGroupItem label="VanillaJS" value="vanilla" icon={<VanillaLogo />} preferWrap>
 ```ts twoslash
 import { co, z } from "jazz-tools";
 const Document = co.map({

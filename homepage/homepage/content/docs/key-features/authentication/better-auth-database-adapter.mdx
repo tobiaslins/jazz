@@ -2,13 +2,13 @@ import { Alert, CodeGroup } from "@/components/forMdx";
 
 # Jazz database adapter for Better Auth
 
-The package `jazz-tools/better-auth/database-adapter` is a database adapter for Better Auth based on Jazz. Better Auth's data will be stored in CoValues encrypted by [Server Worker](../server-side/setup), synced on our distributed [cloud infrastructure](/cloud).
+The package `jazz-tools/better-auth/database-adapter` is a database adapter for Better Auth based on Jazz. Better Auth's data will be stored in CoValues encrypted by [Server Worker](/docs/server-side/setup), synced on our distributed [cloud infrastructure](/cloud).
 
 ## Getting started
 
 1. Install and configure [Better Auth](https://www.better-auth.com/docs/installation)
 2. Install Jazz package `pnpm jazz-tools`
-3. Generate a [worker's credentials](/docs/react/server-side/setup#generating-credentials)
+3. Generate a [worker's credentials](/docs/server-side/setup#generating-credentials)
 
   <CodeGroup>
   ```bash
@@ -155,7 +155,7 @@ db.group.$jazz.removeMember(worker);
 
 
 <Alert variant="warning" className="mt-4" title="Security">
-  Rotating keys means that data stored from that point forward will be encrypted with the new key, but the old worker's secret can still read data written up until the rotation. Read more about encryption in [Server Worker](../resources/encryption).
+  Rotating keys means that data stored from that point forward will be encrypted with the new key, but the old worker's secret can still read data written up until the rotation. Read more about encryption in [Server Worker](/docs/reference/encryption).
 </Alert>
 
 ## Compatibility

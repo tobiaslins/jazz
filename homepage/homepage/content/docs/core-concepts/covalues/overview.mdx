@@ -14,7 +14,7 @@ As their name suggests, CoValues are inherently collaborative, meaning **multipl
 
 - CoValues keep their full edit histories, from which they derive their "current state".
 - The fact that this happens in an eventually-consistent way makes them [CRDTs](https://en.wikipedia.org/wiki/Conflict-free_replicated_data_type).
-- Having the full history also means that you often don't need explicit timestamps and author info - you get this for free as part of a CoValue's [edit metadata](/docs/using-covalues/history).
+- Having the full history also means that you often don't need explicit timestamps and author info - you get this for free as part of a CoValue's [edit metadata](/docs/key-features/history).
 
 CoValues model JSON with CoMaps and CoLists, but also offer CoFeeds for simple per-user value feeds, and let you represent binary data with FileStreams.
 
@@ -111,7 +111,7 @@ const project = TodoProject.create({
 
 <Alert variant="info" className="flex gap-2 items-center my-4">
 To learn more about how permissions work when creating nested CoValues with plain JSON objects,
-refer to [Ownership on implicit CoValue creation](/docs/groups/inheritance#ownership-on-implicit-covalue-creation).
+refer to [Ownership on implicit CoValue creation](/docs/permissions-and-sharing/cascading-permissions#ownership-on-implicit-covalue-creation).
 </Alert>
 
 ## Types of CoValues
@@ -153,10 +153,10 @@ const ColorToFruit = co.record(z.string(), Fruit);
 </CodeGroup>
 
 
-See the corresponding sections for [creating](/docs/using-covalues/comaps#creating-comaps),
-[subscribing/loading](/docs/using-covalues/subscription-and-loading),
-[reading from](/docs/using-covalues/comaps#reading-from-comaps) and
-[updating](/docs/using-covalues/comaps#updating-comaps) CoMaps.
+See the corresponding sections for [creating](/docs/core-concepts/covalues/comaps#creating-comaps),
+[subscribing/loading](/docs/core-concepts/subscription-and-loading),
+[reading from](/docs/core-concepts/covalues/comaps#reading-from-comaps) and
+[updating](/docs/core-concepts/covalues/comaps#updating-comaps) CoMaps.
 
 ### `CoList` (declaration)
 
@@ -178,10 +178,10 @@ const ListOfTasks = co.list(Task);
 
 </CodeGroup>
 
-See the corresponding sections for [creating](/docs/using-covalues/colists#creating-colists),
-[subscribing/loading](/docs/using-covalues/subscription-and-loading),
-[reading from](/docs/using-covalues/colists#reading-from-colists) and
-[updating](/docs/using-covalues/colists#updating-colists) CoLists.
+See the corresponding sections for [creating](/docs/core-concepts/covalues/colists#creating-colists),
+[subscribing/loading](/docs/core-concepts/subscription-and-loading),
+[reading from](/docs/core-concepts/covalues/colists#reading-from-colists) and
+[updating](/docs/core-concepts/covalues/colists#updating-colists) CoLists.
 
 ### `CoFeed` (declaration)
 
@@ -203,10 +203,10 @@ const FeedOfTasks = co.feed(Task);
 ```
 </CodeGroup>
 
-See the corresponding sections for [creating](/docs/using-covalues/cofeeds#creating-cofeeds),
-[subscribing/loading](/docs/using-covalues/subscription-and-loading),
-[reading from](/docs/using-covalues/cofeeds#reading-from-cofeeds) and
-[writing to](/docs/using-covalues/cofeeds#writing-to-cofeeds) CoFeeds.
+See the corresponding sections for [creating](/docs/core-concepts/covalues/overview#creating-cofeeds),
+[subscribing/loading](/docs/core-concepts/subscription-and-loading),
+[reading from](/docs/core-concepts/covalues/cofeeds#reading-from-cofeeds) and
+[writing to](/docs/core-concepts/covalues/cofeeds#writing-to-cofeeds) CoFeeds.
 
 ### `FileStream` (declaration)
 
@@ -227,12 +227,12 @@ const Document = co.map({
 ```
 </CodeGroup>
 
-See the corresponding sections for [creating](/docs/using-covalues/filestreams#creating-filestreams),
-[subscribing/loading](/docs/using-covalues/subscription-and-loading),
-[reading from](/docs/using-covalues/filestreams#reading-from-filestreams) and
-[writing to](/docs/using-covalues/filestreams#writing-to-filestreams) FileStreams.
+See the corresponding sections for [creating](/docs/core-concepts/covalues/filestreams#creating-filestreams),
+[subscribing/loading](/docs/core-concepts/subscription-and-loading),
+[reading from](/docs/core-concepts/covalues/filestreams#reading-from-filestreams) and
+[writing to](/docs/core-concepts/covalues/filestreams#writing-to-filestreams) FileStreams.
 
-**Note: For images, we have a special, higher-level `co.image()` helper, see [ImageDefinition](/docs/using-covalues/imagedef).**
+**Note: For images, we have a special, higher-level `co.image()` helper, see [ImageDefinition](/docs/core-concepts/covalues/imagedef).**
 
 ### Unions of CoMaps (declaration)
 
@@ -258,9 +258,9 @@ const WidgetUnion = co.discriminatedUnion("type", [ButtonWidget, SliderWidget]);
 ```
 </CodeGroup>
 
-See the corresponding sections for [creating](/docs/using-covalues/schemaunions#creating-schema-unions),
-[subscribing/loading](/docs/using-covalues/subscription-and-loading) and
-[narrowing](/docs/using-covalues/schemaunions#narrowing-unions) schema unions.
+See the corresponding sections for [creating](/docs/core-concepts/schemas/schemaunions#creating-schema-unions),
+[subscribing/loading](/docs/core-concepts/subscription-and-loading) and
+[narrowing](/docs/core-concepts/schemas/schemaunions#narrowing-unions) schema unions.
 
 ## CoValue field/item types
 
@@ -330,7 +330,7 @@ To represent complex structured data with Jazz, you form trees or graphs of CoVa
 
 Internally, this is represented by storing the IDs of the referenced CoValues in the corresponding fields, but Jazz abstracts this away, making it look like nested CoValues you can get or assign/insert.
 
-The important caveat here is that **a referenced CoValue might or might not be loaded yet,** but we'll see what exactly that means in [Subscribing and Deep Loading](/docs/using-covalues/subscription-and-loading).
+The important caveat here is that **a referenced CoValue might or might not be loaded yet,** but we'll see what exactly that means in [Subscribing and Deep Loading](/docs/core-concepts/subscription-and-loading).
 
 In Schemas, you declare references by just using the schema of the referenced CoValue:
 

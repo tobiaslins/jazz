@@ -10,7 +10,7 @@ CoMaps are key-value objects that work like JavaScript objects. You can access p
 
 ## Creating CoMaps
 
-CoMaps are typically defined with `co.map()` and specifying primitive fields using `z` (see [Defining schemas: CoValues](/docs/schemas/covalues) for more details on primitive fields):
+CoMaps are typically defined with `co.map()` and specifying primitive fields using `z` (see [Defining schemas: CoValues](/docs/core-concepts/covalues/overview) for more details on primitive fields):
 
 <CodeGroup>
 ```ts twoslash
@@ -117,7 +117,7 @@ const communityProject = Project.create(
 ```
 </CodeGroup>
 
-See [Groups as permission scopes](/docs/groups/intro) for more information on how to use groups to control access to CoMaps.
+See [Groups as permission scopes](/docs/permissions-and-sharing/overview) for more information on how to use groups to control access to CoMaps.
 
 ## Reading from CoMaps
 
@@ -362,7 +362,7 @@ person.$jazz.set("dog", { name: "Fido" });
 
 When providing a JSON object, Jazz will automatically create the CoValues for you.
 To learn more about how permissions work in this case, refer to
-[Ownership on implicit CoValue creation](/docs/groups/inheritance#ownership-on-implicit-covalue-creation).
+[Ownership on implicit CoValue creation](/docs/permissions-and-sharing/cascading-permissions#ownership-on-implicit-covalue-creation).
 
 ### Type Safety
 
@@ -455,7 +455,7 @@ project.$jazz.set("coordinator", undefined);  // Remove the reference
 
 ## Running migrations on CoMaps
 
-Migrations are functions that run when a CoMap is loaded, allowing you to update existing data to match new schema versions. Use them when you need to modify the structure of CoMaps that already exist in your app. Unlike [Account migrations](/docs/schemas/accounts-and-migrations#when-migrations-run), CoMap migrations are not run when a CoMap is created.
+Migrations are functions that run when a CoMap is loaded, allowing you to update existing data to match new schema versions. Use them when you need to modify the structure of CoMaps that already exist in your app. Unlike [Account migrations](/docs/core-concepts/schemas/accounts-and-migrations#when-migrations-run), CoMap migrations are not run when a CoMap is created.
 
 **Note:** Migrations are run synchronously and cannot be run asynchronously.
 
