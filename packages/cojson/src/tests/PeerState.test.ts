@@ -60,7 +60,7 @@ describe("PeerState", () => {
       } as KnownStateSessions,
     });
 
-    const newPeerState = peerState.clone(mockPeer);
+    const newPeerState = peerState.newStateFrom(mockPeer);
 
     expect(newPeerState.getKnownState("co_z1")).toEqual(
       peerState.getKnownState("co_z1"),

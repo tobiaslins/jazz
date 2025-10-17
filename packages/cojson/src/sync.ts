@@ -342,13 +342,10 @@ export class SyncManager {
   addPeer(peer: Peer, skipReconciliation: boolean = false) {
     const prevPeer = this.peers[peer.id];
 
-    if (prevPeer && !prevPeer.closed) {
-      prevPeer.gracefulShutdown();
-    }
-
     const peerState = prevPeer
-      ? prevPeer.clone(peer)
+      ? prevPeer.newStateFrom(peer)
       : new PeerState(peer, undefined);
+
     this.peers[peer.id] = peerState;
 
     this.peersCounter.add(1, { role: peer.role });

@@ -10,17 +10,13 @@ export class PeerState {
    *
    * This can be used to safely track the sync state of a coValue in a given peer.
    */
-  private _knownStates: Map<RawCoID, PeerKnownState> = new Map();
+  private readonly _knownStates: Map<RawCoID, PeerKnownState>;
 
   constructor(
     private peer: Peer,
     knownStates: Map<RawCoID, PeerKnownState> | undefined,
   ) {
-    if (knownStates) {
-      for (const [id, knownState] of knownStates) {
-        this._knownStates.set(id, knownState.clone());
-      }
-    }
+    this._knownStates = knownStates ?? new Map();
   }
 
   getKnownState(id: RawCoID) {
@@ -35,7 +31,17 @@ export class PeerState {
     return this._knownStates.has(id);
   }
 
-  clone(peer: Peer) {
+  newStateFrom(peer: Peer) {
+    if (!this.closed) {
+      this.gracefulShutdown();
+    }
+
+    // On reconnect, we reset all the optimistic known states
+    // because we can't know if those syncs were successful or not
+    for (const knownState of this._knownStates.values()) {
+      knownState.resetOptimisticState();
+    }
+
     return new PeerState(peer, this._knownStates);
   }
 
@@ -55,7 +61,7 @@ export class PeerState {
     let knownState = this._knownStates.get(id);
 
     if (!knownState) {
-      knownState = new PeerKnownState(id);
+      knownState = new PeerKnownState(id, this.peer.id);
       this._knownStates.set(id, knownState);
     }
 

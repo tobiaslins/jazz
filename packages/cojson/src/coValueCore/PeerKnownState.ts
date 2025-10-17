@@ -6,16 +6,16 @@ import {
   updateSessionCounter,
   emptyKnownState,
 } from "../knownState.js";
+import { PeerID } from "../sync.js";
 
 export class PeerKnownState {
-  readonly id: RawCoID;
+  readonly peerId: PeerID;
   private knownState: CoValueKnownState;
   private optimisticKnownState?: CoValueKnownState;
 
-  constructor(id: RawCoID, value?: CoValueKnownState) {
-    this.id = id;
-    this.id = id;
-    this.knownState = value ? cloneKnownState(value) : emptyKnownState(id);
+  constructor(id: RawCoID, peerId: PeerID) {
+    this.peerId = peerId;
+    this.knownState = emptyKnownState(id);
   }
 
   updateHeader(header: boolean) {
@@ -77,7 +77,7 @@ export class PeerKnownState {
     return this.optimisticKnownState ?? this.knownState;
   }
 
-  clone() {
-    return new PeerKnownState(this.knownState.id, this.knownState);
+  resetOptimisticState() {
+    this.optimisticKnownState = undefined;
   }
 }

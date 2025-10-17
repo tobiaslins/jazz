@@ -661,36 +661,6 @@ describe("SyncManager - knownStates vs optimisticKnownStates", () => {
 });
 
 describe("SyncManager.addPeer", () => {
-  test("new peer gets a copy of previous peer's knownStates when replacing it", async () => {
-    const client = await setupTestAccount();
-
-    const { peerState: firstPeerState, getCurrentPeerState } =
-      client.connectToSyncServer();
-
-    // Create test data
-    const group = client.node.createGroup();
-    const map = group.createMap();
-    map.set("key1", "value1", "trusting");
-
-    // Wait for initial sync
-    await map.core.waitForSync();
-
-    // Store the initial known states
-    const initialMapKnownState = firstPeerState.getKnownState(map.core.id);
-
-    // Create new connection with same ID
-    client.connectToSyncServer();
-
-    // Wait for the new peer to be added
-    await waitFor(() => expect(getCurrentPeerState()).not.toBe(firstPeerState));
-
-    // Verify that the new peer has a copy of the previous known states
-    const newMapKnownState = getCurrentPeerState().getKnownState(map.core.id);
-
-    expect(newMapKnownState).not.toBe(initialMapKnownState); // Should be a different instance
-    expect(newMapKnownState).toEqual(initialMapKnownState);
-  });
-
   test("new peer with new ID starts with empty knownStates", async () => {
     const client = await setupTestAccount({
       connected: true,
