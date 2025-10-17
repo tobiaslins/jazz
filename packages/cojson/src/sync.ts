@@ -229,7 +229,7 @@ export class SyncManager {
     }
 
     const newContentPieces = coValue.verified.newContentSince(
-      peer.optimisticKnownStates.get(id),
+      peer.getOptimisticKnownState(id),
     );
 
     if (newContentPieces) {
@@ -306,8 +306,8 @@ export class SyncManager {
       }
 
       // Fill the missing known states with empty known states
-      if (!peer.optimisticKnownStates.has(coValue.id)) {
-        peer.setOptimisticKnownState(coValue.id, "empty");
+      if (!peer.getKnownState(coValue.id)) {
+        peer.setKnownState(coValue.id, "empty");
       }
     }
 
@@ -346,16 +346,17 @@ export class SyncManager {
       prevPeer.gracefulShutdown();
     }
 
-    const peerState = new PeerState(peer, prevPeer?.knownStates);
+    const peerState = prevPeer
+      ? prevPeer.clone(peer)
+      : new PeerState(peer, undefined);
     this.peers[peer.id] = peerState;
 
     this.peersCounter.add(1, { role: peer.role });
 
-    const unsubscribeFromKnownStatesUpdates = peerState.knownStates.subscribe(
-      (id) => {
+    const unsubscribeFromKnownStatesUpdates =
+      peerState.subscribeToKnownStatesUpdates((id) => {
         this.syncState.triggerUpdate(peer.id, id);
-      },
-    );
+      });
 
     if (!skipReconciliation && peerState.role === "server") {
       void this.startPeerReconciliation(peerState);
@@ -450,7 +451,7 @@ export class SyncManager {
 
     // The header is a boolean value that tells us if the other peer do have information about the header.
     // If it's false in this point it means that the coValue is unavailable on the other peer.
-    const availableOnPeer = peer.optimisticKnownStates.get(msg.id)?.header;
+    const availableOnPeer = peer.getOptimisticKnownState(msg.id)?.header;
 
     if (!availableOnPeer) {
       coValue.markNotFoundInPeer(peer.id);
@@ -733,7 +734,7 @@ export class SyncManager {
       if (coValue.isErroredInPeer(peer.id)) continue;
 
       // We directly forward the new content to peers that have an active subscription
-      if (peer.optimisticKnownStates.has(coValue.id)) {
+      if (peer.isCoValueSubscribedToPeer(coValue.id)) {
         this.sendNewContent(coValue.id, peer);
         syncedPeers.push(peer);
       } else if (
@@ -792,7 +793,7 @@ export class SyncManager {
       // Only subscribed CoValues are synced to clients
       if (
         peer.role === "client" &&
-        !peer.optimisticKnownStates.has(coValue.id)
+        !peer.isCoValueSubscribedToPeer(coValue.id)
       ) {
         continue;
       }
@@ -856,7 +857,7 @@ export class SyncManager {
     // The client isn't subscribed to the coValue, so we won't sync it
     if (
       peerState.role === "client" &&
-      !peerState.optimisticKnownStates.has(id)
+      !peerState.isCoValueSubscribedToPeer(id)
     ) {
       return;
     }
