@@ -16,7 +16,11 @@ import {
   frameworkToAuthExamples,
   frameworks,
 } from "./config.js";
-import { type PackageManager, getPkgManager } from "./utils.js";
+import {
+  type PackageManager,
+  getFrameworkSpecificDocsUrl,
+  getPkgManager,
+} from "./utils.js";
 import { parseCatalogDefinitions, resolveCatalogVersion } from "./catalog.js";
 
 // Handle SIGINT (Ctrl+C) gracefully
@@ -369,10 +373,8 @@ module.exports = mergeConfig(getDefaultConfig(__dirname), config);`;
 
     // Clean up temp directory
     fs.rmSync(tempDocsDir, { recursive: true, force: true });
-    // Fetch the latest llms-full.txt from the web
-    const response = await fetch(
-      `https://jazz.tools/${framework === "nextjs" ? "react" : framework}/llms-full.txt`,
-    );
+    const urlToFetch = getFrameworkSpecificDocsUrl(framework);
+    const response = await fetch(urlToFetch);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const text = await response.text();
     fs.writeFileSync(`${projectName}/.cursor/docs/llms-full.md`, text, "utf-8");
