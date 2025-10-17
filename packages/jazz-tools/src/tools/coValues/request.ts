@@ -784,7 +784,7 @@ export async function parseAuthToken(
 
   const account = await Account.load(id, { loadAs: options?.loadAs });
 
-  if (!account) {
+  if (!account.$isLoaded) {
     return {
       error: {
         message: "Failed to load account",
