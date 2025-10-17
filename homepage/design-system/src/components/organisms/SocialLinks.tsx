@@ -43,7 +43,6 @@ const socials = [
 export function SocialLinks(
   props: SocialLinksProps & {
     className?: string;
-    hideBlueSkyOnMDViewport?: boolean;
   },
 ) {
   return (
@@ -61,12 +60,7 @@ export function SocialLinks(
               href={props[social.key as keyof SocialLinksProps]}
               target="_blank"
               rel="noreferrer"
-              className={clsx(
-                "flex hover:text-stone-900 hover:dark:text-white",
-                props.hideBlueSkyOnMDViewport &&
-                  social.key === "bluesky" &&
-                  "md:hidden lg:block",
-              )}
+              className="flex hover:text-stone-900 hover:dark:text-white"
             >
               <social.icon size={social.size} />
               <span className="sr-only">{social.name}</span>

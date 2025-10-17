@@ -370,7 +370,7 @@ export function Nav(props: NavProps) {
 
           {cta}
 
-          <SocialLinks {...props.socials} hideBlueSkyOnMDViewport />
+          <SocialLinks {...props.socials} />
         </PopoverGroup>
       </header>
       {!hideMobileNav && <MobileNav {...props} />}
