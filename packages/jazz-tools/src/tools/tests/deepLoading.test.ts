@@ -1129,7 +1129,9 @@ test("should not throw when calling ensureLoaded a record with a deleted ref", a
   unsub();
 });
 
-test("deep loaded CoList nested inside a CoMap can be iterated over", async () => {
+// This was a regression that ocurred when we migrated `DeeplyLoaded` to use explicit loading states.
+// Keeping this test to prevent it from happening again.
+test("deep loaded CoList nested inside another CoValue can be iterated over", async () => {
   const TestMap = co.map({ list: co.list(z.number()) });
 
   const me = await Account.create({
@@ -1153,7 +1155,7 @@ test("deep loaded CoList nested inside a CoMap can be iterated over", async () =
   // @ts-expect-error TODO: fix type inference
   // Adding an explicit type annotation with the SAME type that's being inferred
   // works, for some reason:
-  // const list: CoList<number> & { $isLoaded: true } = loadedMap.list;
+  // const list: CoList<number> = loadedMap.list;
   for (const item of list) {
     expect(item).toEqual(expectedValue);
     expectedValue++;

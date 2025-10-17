@@ -151,7 +151,7 @@ export function useAgent<
 >(): AnonymousJazzAgent | Loaded<A, true> {
   const contextManager = useJazzContextManager<InstanceOfSchema<A>>();
   const agent = getCurrentAccountFromContextManager(contextManager.value);
-  return agent;
+  return agent as AnonymousJazzAgent | Loaded<A, true>;
 }
 
 export function useCoState<
