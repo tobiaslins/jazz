@@ -71,7 +71,6 @@ function NavItem({
         className={clsx(
           className,
           "text-sm px-2 lg:px-4 py-3",
-          firstOnRight && "ml-auto",
           active ? "text-highlight" : "",
         )}
         {...item}
@@ -350,14 +349,15 @@ export function Nav(props: NavProps) {
   const { mainLogo, items, cta, hideMobileNav } = props;
   return (
     <>
-      <div className="w-full border-b py-2 sticky top-0 z-50 bg-white dark:bg-stone-950 hidden md:block">
-        <PopoverGroup className="flex flex-wrap items-center max-sm:justify-between md:gap-2 container w-full">
-          <Link
-            href="/"
-            className="flex items-center"
-            aria-label="Go to Homepage"
-          >
+      <header className="w-full border-b py-2 sticky top-0 z-50 bg-white dark:bg-stone-950 hidden md:block">
+        <PopoverGroup
+          as="nav"
+          role="navigation"
+          className="flex flex-wrap items-center max-sm:justify-between md:gap-2 container w-full"
+        >
+          <Link href="/">
             {mainLogo}
+            <span className="sr-only">Go to Homepage</span>
           </Link>
 
           {items.map((item, i) => (
@@ -370,15 +370,9 @@ export function Nav(props: NavProps) {
 
           {cta}
 
-          <SocialLinks
-            {...props.socials}
-            hideBlueSkyOnMDViewport
-            className={
-              !items.find((item) => item.firstOnRight) ? "ml-auto" : ""
-            }
-          />
+          <SocialLinks {...props.socials} />
         </PopoverGroup>
-      </div>
+      </header>
       {!hideMobileNav && <MobileNav {...props} />}
     </>
   );
