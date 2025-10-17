@@ -464,7 +464,7 @@ export class CoMap extends CoValueBase implements CoValue {
   /**
    * Given some data, updates an existing CoMap or initialises a new one if none exists.
    *
-   * Note: This method respects resolve options, and thus can return an unloaded value if the references cannot be resolved.
+   * Note: This method respects resolve options, and thus can return a not-loaded value if the references cannot be resolved.
    *
    * @example
    * ```ts
@@ -534,7 +534,7 @@ export class CoMap extends CoValueBase implements CoValue {
    * @param unique The unique identifier of the CoMap to load.
    * @param ownerID The ID of the owner of the CoMap.
    * @param options Additional options for loading the CoMap.
-   * @returns The loaded CoMap, or an unloaded value if unavailable.
+   * @returns The loaded CoMap, or an not-loaded value if unavailable.
    *
    * @deprecated Use `co.map(...).loadUnique` instead.
    */

@@ -14,7 +14,7 @@ import {
   CoList,
   Loaded,
   MaybeLoaded,
-  Unloaded,
+  NotLoaded,
   co,
   randomSessionProvider,
   CoValueLoadingState,
@@ -835,7 +835,7 @@ describe("Deep loading with unauthorized account", async () => {
 
     assertLoaded(user);
 
-    // jane is unloaded because her dog is inaccessible
+    // jane is not loaded because her dog is inaccessible
     expect(user.friends.jane?.$jazz.loadingState).toBe(
       CoValueLoadingState.UNAUTHORIZED,
     );
@@ -975,7 +975,7 @@ describe("Deep loading with unauthorized account", async () => {
 
     assertLoaded(user);
 
-    // jane's dog is unloaded because it is inaccessible
+    // jane's dog is not loaded because it is inaccessible
     expect(user.friends.jane?.dog.$jazz.loadingState).toBe(
       CoValueLoadingState.UNAUTHORIZED,
     );
@@ -1186,7 +1186,7 @@ describe("$isLoaded", async () => {
     }
   });
 
-  test("$isLoaded narrows MaybeLoaded to unloaded CoValue", async () => {
+  test("$isLoaded narrows MaybeLoaded to not loaded CoValue", async () => {
     const otherAccount = await Account.create({
       creationProps: { name: "Other Account" },
       crypto: Crypto,
@@ -1202,7 +1202,7 @@ describe("$isLoaded", async () => {
         CoValueLoadingState.UNAVAILABLE,
       );
       expect(unloadedMap.$jazz.id).toBe(map.$jazz.id);
-      // @ts-expect-error - list should not be accessible on Unloaded
+      // @ts-expect-error - list should not be accessible on NotLoaded
       unloadedMap.list;
     } else {
       expectTypeOf(unloadedMap.$jazz.loadingState).toEqualTypeOf<

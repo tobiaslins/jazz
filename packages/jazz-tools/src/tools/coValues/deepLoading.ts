@@ -22,12 +22,12 @@ type IsUnion<T, U = T> = (T extends any ? (x: T) => void : never) extends (
  */
 // T should extend CoValue. We can't enforce this because it would introduce circularity
 // into the definition of CoValues.
-export type MaybeLoaded<T> = T | Unloaded<T>;
+export type MaybeLoaded<T> = T | NotLoaded<T>;
 
 /**
  * A CoValue that is not loaded.
  */
-export type Unloaded<T> = {
+export type NotLoaded<T> = {
   $jazz: {
     id: ID<T>;
     loadingState:
@@ -41,16 +41,16 @@ export type Unloaded<T> = {
 /**
  * Narrows a maybe-loaded, optional CoValue to a loaded and required CoValue.
  */
-export type LoadedAndRequired<T> = Exclude<T, Unloaded<T> | undefined>;
+export type LoadedAndRequired<T> = Exclude<T, NotLoaded<T> | undefined>;
 
 /**
  * Narrows a maybe-loaded, optional CoValue to a loaded and optional CoValue
  */
-export type AsLoaded<T> = Exclude<T, Unloaded<T>>;
+export type AsLoaded<T> = Exclude<T, NotLoaded<T>>;
 
 /**
  * By default, if a nested CoValue is not loaded, the parent CoValue will not be loaded either.
- * When `$onError: "catch"` is used, the parent CoValue will always be loaded, and an {@link Unloaded}
+ * When `$onError: "catch"` is used, the parent CoValue will always be loaded, and an {@link NotLoaded}
  * value will be returned for the nested CoValue if it cannot be loaded.
  *
  * Use `$onError` to handle cases where some data you have requested is inaccessible,
@@ -129,11 +129,11 @@ export type Resolved<
 > = DeeplyLoaded<T, R, 10, []>;
 
 /**
- * If the resolve query contains `$onError: "catch"`, we return an unloaded value for this nested CoValue.
- * Otherwise, the whole load operation returns an unloaded value.
+ * If the resolve query contains `$onError: "catch"`, we return a not loaded value for this nested CoValue.
+ * Otherwise, the whole load operation returns a not-loaded value.
  */
 type OnErrorResolvedValue<V, Depth> = Depth extends { $onError: "catch" }
-  ? Unloaded<V>
+  ? NotLoaded<V>
   : never;
 
 type CoMapLikeLoaded<

@@ -111,7 +111,7 @@ export {
   CoValueLoadingState,
   CoValueUnloadedState,
   type MaybeLoaded,
-  type Unloaded,
+  type NotLoaded,
   type Loaded,
   type BaseAccountShape,
   type DefaultAccountShape,

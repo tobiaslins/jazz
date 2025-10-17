@@ -10,7 +10,7 @@ import type {
   InstanceOfSchema,
   Loaded,
   MaybeLoaded,
-  Unloaded,
+  NotLoaded,
   ResolveQuery,
   ResolveQueryStrict,
 } from "jazz-tools";

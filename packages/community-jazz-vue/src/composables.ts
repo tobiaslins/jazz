@@ -13,7 +13,7 @@ import {
   type JazzContextType,
   type Loaded,
   type MaybeLoaded,
-  type Unloaded,
+  type NotLoaded,
   type CoValueUnloadedState,
   CoValueLoadingState,
   type ResolveQuery,

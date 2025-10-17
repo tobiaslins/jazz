@@ -21,7 +21,7 @@ import {
   JazzContextType,
   Loaded,
   MaybeLoaded,
-  Unloaded,
+  NotLoaded,
   ResolveQuery,
   ResolveQueryStrict,
   SubscriptionScope,
@@ -217,7 +217,7 @@ function useGetCurrentValue<C extends CoValue>(
  * Additionally, you can provide a custom {@param options.equalityFn} to further optimize
  * performance by controlling when the component should re-render based on the selected data.
  *
- * @returns The loaded CoValue, or an {@link Unloaded} value. Use `$isLoaded` to check whether the
+ * @returns The loaded CoValue, or an {@link NotLoaded} value. Use `$isLoaded` to check whether the
  * CoValue is loaded, or use {@link MaybeLoaded.$jazz.loadingState} to get the detailed loading state.
  * If a selector function is provided, returns the result of the selector function.
  *
@@ -543,7 +543,7 @@ export function useAccountSubscription<
  * Additionally, you can provide a custom {@param options.equalityFn} to further optimize
  * performance by controlling when the component should re-render based on the selected data.
  *
- * @returns The account data, or an {@link Unloaded} value. Use `$isLoaded` to check whether the
+ * @returns The account data, or an {@link NotLoaded} value. Use `$isLoaded` to check whether the
  * CoValue is loaded, or use {@link MaybeLoaded.$jazz.loadingState} to get the detailed loading state.
  * If a selector function is provided, returns the result of the selector function.
  *

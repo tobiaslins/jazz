@@ -196,7 +196,7 @@ if (!project.$isLoaded) throw new Error("Project not found or not accessible");
 project.name; // string
 
 // This *may not be loaded*, and *may not be accessible*
-project.tasks; // ListOfTasks | Unloaded<ListOfTasks>
+project.tasks; // ListOfTasks | NotLoaded<ListOfTasks>
 
 const projectWithTasksShallow = await Project.load(projectId, {
   resolve: {
@@ -210,7 +210,7 @@ projectWithTasksShallow.tasks; // ListOfTasks
 // We can access the properties of the shallowly loaded list
 projectWithTasksShallow.tasks.length; // number
 // This *may not be loaded*, and *may not be accessible*
-projectWithTasksShallow.tasks[0]; // Task | Unloaded<Task>
+projectWithTasksShallow.tasks[0]; // Task | NotLoaded<Task>
 ```
 </CodeGroup>
 
@@ -232,9 +232,9 @@ projectWithTasks.tasks[0]; // Task
 // Primitive fields are always loaded
 projectWithTasks.tasks[0].title; // string
 // References on the Task may not be loaded
-projectWithTasks.tasks[0].subtasks; // ListOfTasks | Unloaded<ListOfTasks>
+projectWithTasks.tasks[0].subtasks; // ListOfTasks | NotLoaded<ListOfTasks>
 // CoTexts are CoValues too
-projectWithTasks.tasks[0].description; // CoPlainText | Unloaded<CoPlainText>
+projectWithTasks.tasks[0].description; // CoPlainText | NotLoaded<CoPlainText>
 ```
 </CodeGroup>
 We can also build a query that *deeply resolves* to multiple levels:
@@ -301,7 +301,7 @@ const projectWithTasksShallow = useCoState(Project, projectId, {
 
 ## Loading Errors
 
-A load operation will be successful **only** if all references requested (both optional and required) could be successfully loaded. If any reference cannot be loaded, the entire load operation will return an unloaded CoValue to avoid potential inconsistencies.
+A load operation will be successful **only** if all references requested (both optional and required) could be successfully loaded. If any reference cannot be loaded, the entire load operation will return a not-loaded CoValue to avoid potential inconsistencies.
 
 <CodeGroup preferWrap>
 ```ts
@@ -380,10 +380,10 @@ For example, in case of a `project` (which the user can access) with three `task
 
 #### Scenario 1: Skip Inaccessible List Items
 
-If some of your list items may not be accessible, you can skip loading them by specifying `$onError: 'catch'`. Inaccessible items will be unloaded CoValues, while accessible items load properly.
+If some of your list items may not be accessible, you can skip loading them by specifying `$onError: 'catch'`. Inaccessible items will be not-loaded CoValues, while accessible items load properly.
 <CodeGroup preferWrap>
 ```ts
-// Inaccessible tasks will be unloaded, but the project will be loaded
+// Inaccessible tasks will not be loaded, but the project will
 const project = await Project.load(projectId, {
 	resolve: { tasks: { $each: { $onError: 'catch' } } }
 });
