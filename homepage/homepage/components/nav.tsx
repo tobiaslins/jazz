@@ -1,7 +1,7 @@
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { QuickSearch } from "@/components/quick-search";
 import { navigationItems } from "@/content/navigation-items";
-import { socials } from "@/content/socials";
+import { socialsHeader } from "@/content/socials";
 import { Button } from "@garden-co/design-system/src/components/atoms/Button";
 import { JazzLogo } from "@garden-co/design-system/src/components/atoms/logos/JazzLogo";
 import {
@@ -20,9 +20,9 @@ export function JazzNav({
       mainLogo={<JazzLogo className="w-20 md:w-24" />}
       themeToggle={ThemeToggle}
       items={navigationItems}
-      socials={socials}
+      socials={socialsHeader}
       hideMobileNav={hideMobileNav}
-      cta={<div className="flex items-center gap-3 md:mr-2">
+      cta={<div className="flex items-center gap-3 md:mr-2 md:ml-auto">
         <QuickSearch />
         <Button
           intent="primary"
@@ -45,7 +45,7 @@ export function JazzMobileNav({ sections }: { sections?: NavSection[] }) {
       mainLogo={<JazzLogo className="w-20 md:w-24" />}
       themeToggle={ThemeToggle}
       items={navigationItems}
-      socials={socials}
+      socials={socialsHeader}
       cta={<div className="flex items-center gap-2">
         <QuickSearch />
         <Button
