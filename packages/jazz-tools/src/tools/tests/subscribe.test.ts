@@ -88,7 +88,7 @@ describe("subscribeToCoValue", () => {
 
     expect(result?.$jazz.id).toBe(chatRoom.$jazz.id);
     expect(result?.messages.$jazz.loadingState).toEqual(
-      CoValueLoadingState.UNLOADED,
+      CoValueLoadingState.LOADING,
     );
     expect(result?.name).toBe("General");
 
@@ -994,7 +994,7 @@ describe("subscribeToCoValue", () => {
     });
 
     assert(result);
-    expect(result[0]?.$jazz.loadingState).toBe(CoValueLoadingState.UNLOADED);
+    expect(result[0]?.$jazz.loadingState).toBe(CoValueLoadingState.LOADING);
 
     updateFn.mockClear();
 

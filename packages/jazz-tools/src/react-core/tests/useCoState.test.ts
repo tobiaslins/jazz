@@ -64,9 +64,7 @@ describe("useCoState", () => {
       account,
     });
 
-    expect(result.current.$jazz.loadingState).toBe(
-      CoValueLoadingState.UNLOADED,
-    );
+    expect(result.current.$jazz.loadingState).toBe(CoValueLoadingState.LOADING);
 
     await waitFor(() => {
       expect(result.current.$jazz.loadingState).toBe(

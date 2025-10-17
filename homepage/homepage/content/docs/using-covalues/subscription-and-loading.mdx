@@ -44,7 +44,7 @@ function ProjectView({ projectId }: { projectId: string }) {
         return "Project not accessible";
       case "unavailable":
         return "Project not found";
-      case "unloaded":
+      case "loading":
         return "Loading project...";
     }
   }
@@ -81,7 +81,7 @@ function ProjectView({ projectId }: { projectId: string }) {
       return "Project not accessible";
     case "unavailable":
       return "Project not found";
-    case "unloaded":
+    case "loading":
       return "Loading project...";
   }
 {:else}
@@ -160,7 +160,7 @@ When you load or subscribe to a CoValue through a hook (or directly), it can be 
 
 You can use the `$isLoaded` field to check whether a CoValue is loaded. For more detailed information about why a CoValue is not loaded, you can check `$jazz.loadingState`:
 
-- `"unloaded"` → The CoValue is still being fetched
+- `"loading"` → The CoValue is still being fetched
 - `"unauthorized"` → The current user doesn't have permission to access this CoValue
 - `"unavailable"` → The CoValue couldn't be found or an error (e.g. a network timeout) occurred while loading
 
@@ -570,7 +570,7 @@ function ProjectView({ projectId }: { projectId: string }) {
         return "Project not accessible";
       case "unavailable":
         return "Project not found";
-      case "unloaded":
+      case "loading":
         return "Loading...";
     }
   }

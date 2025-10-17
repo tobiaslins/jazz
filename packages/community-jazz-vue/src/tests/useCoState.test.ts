@@ -173,7 +173,7 @@ describe("useCoState", () => {
       useCoState(TestMap, "co_z123" as ID<co.loaded<typeof TestMap>>, {}),
     );
 
-    expect(result.value.$jazz.loadingState).toBe(CoValueLoadingState.UNLOADED);
+    expect(result.value.$jazz.loadingState).toBe(CoValueLoadingState.LOADING);
 
     await waitFor(() => {
       expect(result.value.$jazz.loadingState).toBe(

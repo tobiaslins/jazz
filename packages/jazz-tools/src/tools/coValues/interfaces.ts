@@ -9,7 +9,7 @@ import {
   AnonymousJazzAgent,
   CoValueClassOrSchema,
   CoValueLoadingState,
-  CoValueUnloadedState,
+  NotLoadedCoValueState,
   type Group,
   Loaded,
   MaybeLoaded,
@@ -107,7 +107,7 @@ export type ID<T> = string;
 
 export function createUnloadedCoValue<T extends CoValue>(
   id: ID<T>,
-  loadingState: CoValueUnloadedState,
+  loadingState: NotLoadedCoValueState,
 ): NotLoaded<T> {
   return {
     $jazz: { id, loadingState },

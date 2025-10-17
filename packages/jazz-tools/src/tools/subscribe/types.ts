@@ -13,9 +13,9 @@ export const CoValueLoadingState = {
    */
   LOADED: "loaded",
   /**
-   * The coValue has not been loaded yet.
+   * The coValue is being loaded.
    */
-  UNLOADED: "unloaded",
+  LOADING: "loading",
   /**
    * The coValue was loaded but the account is not authorized to access it.
    */
@@ -29,8 +29,8 @@ export const CoValueLoadingState = {
 export type CoValueLoadingState =
   (typeof CoValueLoadingState)[keyof typeof CoValueLoadingState];
 
-export type CoValueUnloadedState =
-  | typeof CoValueLoadingState.UNLOADED
+export type NotLoadedCoValueState =
+  | typeof CoValueLoadingState.LOADING
   | typeof CoValueLoadingState.UNAUTHORIZED
   | typeof CoValueLoadingState.UNAVAILABLE;
 
@@ -41,8 +41,8 @@ export type SubscriptionValue<D extends CoValue, R extends RefsToResolve<D>> =
       id: string;
     }
   | JazzError;
-export type SubscriptionValueUnloaded = {
-  type: typeof CoValueLoadingState.UNLOADED;
+export type SubscriptionValueLoading = {
+  type: typeof CoValueLoadingState.LOADING;
   id: string;
 };
 

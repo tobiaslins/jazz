@@ -48,7 +48,7 @@ export function createCoValueSubscriptionContext<
         select: (value) => value.$jazz.loadingState,
       });
 
-      if (loadState === CoValueLoadingState.UNLOADED) {
+      if (loadState === CoValueLoadingState.LOADING) {
         return loadingFallback ?? null;
       }
       if (
@@ -113,7 +113,7 @@ export function createAccountSubscriptionContext<
         select: (value) => value.$jazz.loadingState,
       });
 
-      if (loadState === CoValueLoadingState.UNLOADED) {
+      if (loadState === CoValueLoadingState.LOADING) {
         return loadingFallback ?? null;
       }
 

@@ -63,7 +63,7 @@ export function accessChildByKey<D extends CoValue>(
   } else {
     return createUnloadedCoValue(
       childId,
-      value?.type ?? CoValueLoadingState.UNLOADED,
+      value?.type ?? CoValueLoadingState.LOADING,
     );
   }
 }
@@ -92,7 +92,7 @@ export function accessChildById<D extends CoValue>(
   } else {
     return createUnloadedCoValue(
       childId,
-      value?.type ?? CoValueLoadingState.UNLOADED,
+      value?.type ?? CoValueLoadingState.LOADING,
     );
   }
 }

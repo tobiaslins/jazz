@@ -18,9 +18,9 @@ import { JazzError, type JazzErrorIssue } from "./JazzError.js";
 import type {
   BranchDefinition,
   SubscriptionValue,
-  SubscriptionValueUnloaded,
+  SubscriptionValueLoading,
 } from "./types.js";
-import { CoValueLoadingState, CoValueUnloadedState } from "./types.js";
+import { CoValueLoadingState, NotLoadedCoValueState } from "./types.js";
 import { createCoValue, myRoleForRawValue } from "./utils.js";
 
 export class SubscriptionScope<D extends CoValue> {
@@ -37,7 +37,7 @@ export class SubscriptionScope<D extends CoValue> {
    * Autoloaded child ids that are unloaded
    */
   pendingAutoloadedChildren: Set<string> = new Set();
-  value: SubscriptionValue<D, any> | SubscriptionValueUnloaded;
+  value: SubscriptionValue<D, any> | SubscriptionValueLoading;
   childErrors: Map<string, JazzError> = new Map();
   validationErrors: Map<string, JazzError> = new Map();
   errorFromChildren: JazzError | undefined;
@@ -65,7 +65,7 @@ export class SubscriptionScope<D extends CoValue> {
     public unstable_branch?: BranchDefinition,
   ) {
     this.resolve = resolve;
-    this.value = { type: CoValueLoadingState.UNLOADED, id };
+    this.value = { type: CoValueLoadingState.LOADING, id };
 
     let lastUpdate:
       | RawCoValue
@@ -122,7 +122,7 @@ export class SubscriptionScope<D extends CoValue> {
 
   handleUpdate(update: RawCoValue | typeof CoValueLoadingState.UNAVAILABLE) {
     if (update === CoValueLoadingState.UNAVAILABLE) {
-      if (this.value.type === CoValueLoadingState.UNLOADED) {
+      if (this.value.type === CoValueLoadingState.LOADING) {
         this.updateValue(
           new JazzError(this.id, CoValueLoadingState.UNAVAILABLE, [
             {
@@ -241,10 +241,10 @@ export class SubscriptionScope<D extends CoValue> {
 
   handleChildUpdate = (
     id: string,
-    value: SubscriptionValue<any, any> | SubscriptionValueUnloaded,
+    value: SubscriptionValue<any, any> | SubscriptionValueLoading,
     key?: string,
   ) => {
-    if (value.type === CoValueLoadingState.UNLOADED) {
+    if (value.type === CoValueLoadingState.LOADING) {
       return;
     }
 
@@ -279,7 +279,7 @@ export class SubscriptionScope<D extends CoValue> {
   };
 
   shouldSendUpdates() {
-    if (this.value.type === CoValueLoadingState.UNLOADED) return false;
+    if (this.value.type === CoValueLoadingState.LOADING) return false;
 
     // If the value is in error, we send the update regardless of the children statuses
     if (this.value.type !== CoValueLoadingState.LOADED) return true;
@@ -291,7 +291,7 @@ export class SubscriptionScope<D extends CoValue> {
     return this.pendingLoadedChildren.size === 0;
   }
 
-  getCurrentValue(): D | CoValueUnloadedState {
+  getCurrentValue(): D | NotLoadedCoValueState {
     if (
       this.value.type === CoValueLoadingState.UNAUTHORIZED ||
       this.value.type === CoValueLoadingState.UNAVAILABLE
@@ -301,7 +301,7 @@ export class SubscriptionScope<D extends CoValue> {
     }
 
     if (!this.shouldSendUpdates()) {
-      return CoValueLoadingState.UNLOADED;
+      return CoValueLoadingState.LOADING;
     }
 
     if (this.errorFromChildren) {
@@ -313,7 +313,7 @@ export class SubscriptionScope<D extends CoValue> {
       return this.value.value;
     }
 
-    return CoValueLoadingState.UNLOADED;
+    return CoValueLoadingState.LOADING;
   }
 
   isStreaming() {
@@ -345,7 +345,7 @@ export class SubscriptionScope<D extends CoValue> {
 
     if (error) {
       this.subscribers.forEach((listener) => listener(error));
-    } else if (value.type !== CoValueLoadingState.UNLOADED) {
+    } else if (value.type !== CoValueLoadingState.LOADING) {
       this.subscribers.forEach((listener) => listener(value));
     }
 

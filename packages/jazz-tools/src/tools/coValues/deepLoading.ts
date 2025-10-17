@@ -31,7 +31,7 @@ export type NotLoaded<T> = {
   $jazz: {
     id: ID<T>;
     loadingState:
-      | typeof CoValueLoadingState.UNLOADED
+      | typeof CoValueLoadingState.LOADING
       | typeof CoValueLoadingState.UNAVAILABLE
       | typeof CoValueLoadingState.UNAUTHORIZED;
   };

@@ -53,7 +53,7 @@ export class Ref<out V extends CoValue> {
     }
 
     if (!node) {
-      return createUnloadedCoValue(this.id, CoValueLoadingState.UNLOADED);
+      return createUnloadedCoValue(this.id, CoValueLoadingState.LOADING);
     }
 
     const value = node.value;

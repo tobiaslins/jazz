@@ -14,7 +14,6 @@ import {
   CoValue,
   CoValueClassOrSchema,
   CoValueLoadingState,
-  CoValueUnloadedState,
   InboxSender,
   InstanceOfSchema,
   JazzContextManager,
@@ -268,7 +267,7 @@ function useGetCurrentValue<C extends CoValue>(
  *         return "Project not accessible";
  *       case "unavailable":
  *         return "Project not found";
- *       case "unloaded":
+ *       case "loading":
  *         return "Loading project...";
  *     }
  *   }
@@ -310,7 +309,7 @@ function useGetCurrentValue<C extends CoValue>(
  *         return "Task not accessible";
  *       case "unavailable":
  *         return "Task not found";
- *       case "unloaded":
+ *       case "loading":
  *         return "Loading task...";
  *     }
  *   }
@@ -599,7 +598,7 @@ export function useAccountSubscription<
  *         return "Account not accessible";
  *       case "unavailable":
  *         return "Account not found";
- *       case "unloaded":
+ *       case "loading":
  *         return "Loading account...";
  *     }
  *   }

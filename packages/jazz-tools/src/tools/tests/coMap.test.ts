@@ -851,7 +851,7 @@ describe("CoMap", async () => {
       assertLoaded(loadedPerson);
       expect(loadedPerson.$jazz.has("name")).toBe(true);
       expect(loadedPerson.name.$jazz.loadingState).toBe(
-        CoValueLoadingState.UNLOADED,
+        CoValueLoadingState.LOADING,
       );
     });
 
@@ -877,7 +877,7 @@ describe("CoMap", async () => {
       assertLoaded(loadedPerson);
       expect(loadedPerson.$jazz.has("name")).toBe(true);
       expect(loadedPerson.name.$jazz.loadingState).toBe(
-        CoValueLoadingState.UNLOADED,
+        CoValueLoadingState.LOADING,
       );
     });
   });

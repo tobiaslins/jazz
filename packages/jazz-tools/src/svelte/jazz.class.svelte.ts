@@ -6,7 +6,6 @@ import type {
   CoValue,
   CoValueClassOrSchema,
   CoValueFromRaw,
-  CoValueUnloadedState,
   InstanceOfSchema,
   Loaded,
   MaybeLoaded,
@@ -56,7 +55,7 @@ export class CoState<
 > {
   #value: MaybeLoaded<Loaded<V, R>> = createUnloadedCoValue(
     "",
-    CoValueLoadingState.UNLOADED,
+    CoValueLoadingState.LOADING,
   );
   #previousValue: MaybeLoaded<CoValue> | undefined = undefined;
   #ctx = getJazzContext<InstanceOfSchema<AccountClass<Account>>>();
@@ -147,7 +146,7 @@ export class AccountCoState<
 > {
   #value: MaybeLoaded<Loaded<A, R>> = createUnloadedCoValue(
     "",
-    CoValueLoadingState.UNLOADED,
+    CoValueLoadingState.LOADING,
   );
   #ctx = getJazzContext<InstanceOfSchema<A>>();
   #subscribe: () => void;

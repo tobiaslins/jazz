@@ -13,8 +13,6 @@ import {
   type JazzContextType,
   type Loaded,
   type MaybeLoaded,
-  type NotLoaded,
-  type CoValueUnloadedState,
   CoValueLoadingState,
   type ResolveQuery,
   ResolveQueryStrict,
@@ -163,7 +161,7 @@ export function useCoState<
   options?: { resolve?: ResolveQueryStrict<S, R> },
 ): Ref<MaybeLoaded<Loaded<S, R>>> {
   const state: ShallowRef<MaybeLoaded<Loaded<S, R>>> = shallowRef(
-    createUnloadedCoValue(id ?? "", CoValueLoadingState.UNLOADED),
+    createUnloadedCoValue(id ?? "", CoValueLoadingState.LOADING),
   );
   const context = useJazzContext();
 

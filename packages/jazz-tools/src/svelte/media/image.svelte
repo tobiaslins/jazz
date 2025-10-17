@@ -69,7 +69,7 @@
     }
 
     const image = imageState.current;
-    if (image.$jazz.loadingState === CoValueLoadingState.UNLOADED)
+    if (image.$jazz.loadingState === CoValueLoadingState.LOADING)
       return "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==";
 
     if (!image.$isLoaded) return undefined;

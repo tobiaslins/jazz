@@ -18,7 +18,7 @@ import {
   co,
   randomSessionProvider,
   CoValueLoadingState,
-  CoValueUnloadedState,
+  NotLoadedCoValueState,
 } from "../internal.js";
 import { createJazzTestAccount, linkAccounts } from "../testing.js";
 import { assertLoaded, waitFor } from "./utils.js";
@@ -102,7 +102,7 @@ describe("Deep loading with depth arg", async () => {
 
     assertLoaded(map1);
 
-    expect(map1.list.$jazz.loadingState).toBe(CoValueLoadingState.UNLOADED);
+    expect(map1.list.$jazz.loadingState).toBe(CoValueLoadingState.LOADING);
   });
 
   test("load with resolve { list: true }", async () => {
@@ -121,7 +121,7 @@ describe("Deep loading with depth arg", async () => {
     matches(map2);
     assertLoaded(map2);
     assertLoaded(map2.list);
-    expect(map2.list[0]?.$jazz.loadingState).toBe(CoValueLoadingState.UNLOADED);
+    expect(map2.list[0]?.$jazz.loadingState).toBe(CoValueLoadingState.LOADING);
   });
 
   test("load with resolve { list: { $each: true } }", async () => {
@@ -142,7 +142,7 @@ describe("Deep loading with depth arg", async () => {
     assertLoaded(map3);
     assert(map3.list[0]);
     expect(map3.list[0].stream.$jazz.loadingState).toBe(
-      CoValueLoadingState.UNLOADED,
+      CoValueLoadingState.LOADING,
     );
   });
 
@@ -186,7 +186,7 @@ describe("Deep loading with depth arg", async () => {
     expect(map4.list[0]?.stream).toBeTruthy();
     expect(map4.list[0]?.stream?.perAccount[me.$jazz.id]).toBeTruthy();
     expect(map4.list[0]?.stream?.byMe?.value.$jazz.loadingState).toBe(
-      CoValueLoadingState.UNLOADED,
+      CoValueLoadingState.LOADING,
     );
   });
 
@@ -1182,7 +1182,7 @@ describe("$isLoaded", async () => {
     } else {
       expectTypeOf(
         maybeLoadedMap.$jazz.loadingState,
-      ).toEqualTypeOf<CoValueUnloadedState>();
+      ).toEqualTypeOf<NotLoadedCoValueState>();
     }
   });
 

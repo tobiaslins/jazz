@@ -109,7 +109,6 @@ export {
   type InstanceOfSchemaCoValuesMaybeLoaded,
   type CoValueClassOrSchema,
   CoValueLoadingState,
-  CoValueUnloadedState,
   type MaybeLoaded,
   type NotLoaded,
   type Loaded,
