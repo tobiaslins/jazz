@@ -436,7 +436,7 @@ describe("client syncs with a server with storage", () => {
     expect(streamingCounterDuringLoad).toBe(1);
 
     const mapOnClient2 = await promise;
-    await mapOnClient2.core.waitForSync();
+    await mapOnClient2.core.waitForFullStreaming();
 
     // Test streaming counter after loading is complete (should be 0)
     await waitFor(async () => {

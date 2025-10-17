@@ -754,13 +754,6 @@ export class SyncManager {
         }
       }
     }
-
-    /**
-     * Send an update to all the sync state listeners
-     */
-    for (const peer of syncedPeers) {
-      this.syncState.triggerUpdate(peer.id, coValue.id);
-    }
   }
 
   handleCorrection(msg: KnownStateMessage, peer: PeerState) {
@@ -800,10 +793,6 @@ export class SyncManager {
       this.trySendToPeer(peer, content);
       peer.combineOptimisticWith(coValue.id, contentKnownState);
       peer.trackToldKnownState(coValue.id);
-    }
-
-    for (const peer of this.getPeers(coValue.id)) {
-      this.syncState.triggerUpdate(peer.id, coValue.id);
     }
   }
 
