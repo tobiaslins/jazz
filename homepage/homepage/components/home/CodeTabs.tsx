@@ -38,17 +38,17 @@ function Code({ className }: { className?: string }) {
         className,
       )}
     >
-      <div className="flex gap-1 border-b overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <div className="flex gap-1 overflow-x-auto border-b [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {codeFiles.map((file, index) => (
           <button
             type="button"
             key={file.fileName}
             onClick={() => setActiveTab(index)}
             className={clsx(
-              "text-xs md:text-sm py-2 px-2 md:px-3 transition-colors whitespace-nowrap",
+              "whitespace-nowrap px-2 py-2 text-xs transition-colors md:px-3 md:text-sm",
               activeTab === index
-                ? "border-b-2 border-blue-400 text-blue-400"
-                : "text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100",
+                ? "border-blue-400 border-b-2 text-blue-400"
+                : "text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100",
             )}
           >
             {file.fileName}
@@ -56,7 +56,7 @@ function Code({ className }: { className?: string }) {
         ))}
       </div>
 
-      <pre className="text-xs md:text-sm p-1 pb-2 whitespace-pre-wrap break-words [&_code]:whitespace-pre-wrap [&_code]:break-words">
+      <pre className="whitespace-pre-wrap break-words p-1 pb-2 text-xs md:text-sm [&_code]:whitespace-pre-wrap [&_code]:break-words">
         <CodeComponent />
       </pre>
     </div>

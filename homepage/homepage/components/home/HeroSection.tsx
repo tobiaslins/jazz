@@ -15,7 +15,7 @@ import { track } from "@vercel/analytics";
 
 export function HeroSection() {
   return (
-    <section className="container my-12 grid md:grid-cols-12 items-start">
+    <section className="container grid min-h-[80vh] items-start py-12 md:grid-cols-12 md:py-24">
       <div className="md:col-span-5">
         <Kicker className="mb-6">Ship Better Apps, Faster.</Kicker>
         <H1>
@@ -45,14 +45,14 @@ export function HeroSection() {
           </p>
         </Prose>
 
-        <div className="flex gap-4 mt-8">
-          <div className="flex-1 text-sm md:text-base relative w-full col-span-2 lg:col-span-3 border-2 border-primary rounded-lg overflow-hidden">
+        <div className="mt-8 flex gap-4">
+          <div className="relative col-span-2 w-full flex-1 overflow-hidden rounded-lg border-2 border-primary text-sm md:text-base lg:col-span-3">
             <NpxCreateJazzApp />
             <CopyButton
               code="npx create-jazz-app@latest"
               size="sm"
               className={clsx(
-                "mt-0.5 mr-0.5 z-100 md:opacity-100 hidden md:block",
+                "z-100 mr-0.5 mt-0.5 hidden md:block md:opacity-100",
               )}
               onCopy={() => track("create-jazz-app command copied from hero")}
             />
@@ -62,7 +62,9 @@ export function HeroSection() {
           </Button>
         </div>
       </div>
-      <CodeTabs className="md:col-span-6 md:col-start-7 md:mt-10" />
+      <div className="md:col-span-6 md:col-start-7">
+        <CodeTabs className="mt-12" />
+      </div>
     </section>
   );
 }
