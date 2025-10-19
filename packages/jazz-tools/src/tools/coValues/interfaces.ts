@@ -477,6 +477,10 @@ export async function loadUnique<V extends CoValue, R extends RefsToResolve<V>>(
 
   const id = cojsonInternals.idforHeader(options.header, node.crypto);
 
+  // We first try to load the unique value without using resolve and without
+  // retrying failures
+  // This way when we want to upsert we are sure that, if the load failed
+  // it failed because the unique value was missing
   let result = await loadCoValueWithoutMe(cls, id, {
     skipRetry: true,
     loadAs,
@@ -484,7 +488,8 @@ export async function loadUnique<V extends CoValue, R extends RefsToResolve<V>>(
 
   if (options.onCreateWhenMissing) {
     // if load returns unavailable, we check the state in localNode
-    // to ward against race conditions when using unique values
+    // to ward against race conditions that would happen when
+    // running the same upsert unique concurrently
     if (!result && node.getCoValue(id).hasVerifiedContent()) {
       result = await loadCoValueWithoutMe(cls, id, {
         loadAs,
@@ -504,12 +509,16 @@ export async function loadUnique<V extends CoValue, R extends RefsToResolve<V>>(
   if (!result) return result;
 
   if (options.onUpdateWhenFound) {
+    // we deeply load the value, retrying any failures
     const loaded = await loadCoValueWithoutMe(cls, id, {
       loadAs,
       resolve: options.resolve,
     });
 
     if (loaded) {
+      // we don't return the update result because
+      // we want to run another load to backfill any possible partially loaded
+      // values that have been set in the update
       options.onUpdateWhenFound(loaded);
     } else {
       return loaded;
