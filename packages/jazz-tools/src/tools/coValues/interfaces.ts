@@ -1,4 +1,5 @@
 import {
+  cojsonInternals,
   type CoValueUniqueness,
   type CojsonInternalTypes,
   type RawCoValue,
@@ -25,6 +26,7 @@ import {
   inspect,
 } from "../internal.js";
 import type { BranchDefinition } from "../subscribe/types.js";
+import { CoValueHeader } from "cojson/dist/coValueCore/verifiedState.js";
 
 /** @category Abstract interfaces */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -444,6 +446,80 @@ export function parseGroupCreateOptions(
   return TypeSym in options && isAccountInstance(options)
     ? { owner: options }
     : { owner: options.owner ?? activeAccountContext.get() };
+}
+
+export function getIdFromHeader(
+  header: CoValueHeader,
+  loadAs?: Account | AnonymousJazzAgent | Group,
+) {
+  loadAs ||= activeAccountContext.get();
+
+  const node =
+    loadAs[TypeSym] === "Anonymous" ? loadAs.node : loadAs.$jazz.localNode;
+
+  return cojsonInternals.idforHeader(header, node.crypto);
+}
+
+export async function loadUnique<V extends CoValue, R extends RefsToResolve<V>>(
+  cls: CoValueClass<V>,
+  options: {
+    header: CoValueHeader;
+    onCreateWhenMissing?: () => void;
+    onUpdateWhenFound?: (value: Resolved<V, R>) => void;
+    owner: Account | Group;
+    resolve?: RefsToResolveStrict<V, R>;
+  },
+): Promise<Resolved<V, R> | null> {
+  const loadAs = options.owner.$jazz.loadedAs;
+
+  const node =
+    loadAs[TypeSym] === "Anonymous" ? loadAs.node : loadAs.$jazz.localNode;
+
+  const id = cojsonInternals.idforHeader(options.header, node.crypto);
+
+  let result = await loadCoValueWithoutMe(cls, id, {
+    skipRetry: true,
+    loadAs,
+  });
+
+  if (options.onCreateWhenMissing) {
+    // if load returns unavailable, we check the state in localNode
+    // to ward against race conditions when using unique values
+    if (!result && node.getCoValue(id).hasVerifiedContent()) {
+      result = await loadCoValueWithoutMe(cls, id, {
+        loadAs,
+      });
+    }
+
+    if (!result) {
+      options.onCreateWhenMissing();
+
+      return loadCoValueWithoutMe(cls, id, {
+        loadAs,
+        resolve: options.resolve,
+      });
+    }
+  }
+
+  if (!result) return result;
+
+  if (options.onUpdateWhenFound) {
+    const loaded = await loadCoValueWithoutMe(cls, id, {
+      loadAs,
+      resolve: options.resolve,
+    });
+
+    if (loaded) {
+      options.onUpdateWhenFound(loaded);
+    } else {
+      return loaded;
+    }
+  }
+
+  return loadCoValueWithoutMe(cls, id, {
+    loadAs,
+    resolve: options.resolve,
+  });
 }
 
 /**
