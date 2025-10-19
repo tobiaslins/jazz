@@ -92,6 +92,15 @@ export class PeerState {
     this.triggerUpdate(id);
   }
 
+  emitCoValueChange(id: RawCoID) {
+    if (this.peer.role === "client" && !this.isCoValueSubscribedToPeer(id)) {
+      return;
+    }
+
+    this.getOrCreateKnownState(id);
+    this.triggerUpdate(id);
+  }
+
   listeners = new Set<(id: RawCoID) => void>();
 
   private triggerUpdate(id: RawCoID) {

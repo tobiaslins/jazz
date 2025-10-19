@@ -726,8 +726,10 @@ export class SyncManager {
        * We sync the content against the source peer if it is a client or server peers
        * to upload any content that is available on the current node and not on the source peer.
        */
-      if (peer.closed) continue;
-      if (coValue.isErroredInPeer(peer.id)) continue;
+      if (peer.closed || coValue.isErroredInPeer(peer.id)) {
+        peer.emitCoValueChange(coValue.id);
+        continue;
+      }
 
       // We directly forward the new content to peers that have an active subscription
       if (peer.isCoValueSubscribedToPeer(coValue.id)) {
@@ -776,14 +778,16 @@ export class SyncManager {
     const contentKnownState = knownStateFromContent(content);
 
     for (const peer of this.getPeers(coValue.id)) {
-      if (peer.closed) continue;
-      if (coValue.isErroredInPeer(peer.id)) continue;
-
       // Only subscribed CoValues are synced to clients
       if (
         peer.role === "client" &&
         !peer.isCoValueSubscribedToPeer(coValue.id)
       ) {
+        continue;
+      }
+
+      if (peer.closed || coValue.isErroredInPeer(peer.id)) {
+        peer.emitCoValueChange(content.id);
         continue;
       }
 
