@@ -71,25 +71,25 @@ export class PeerState {
   updateHeader(id: RawCoID, header: boolean) {
     const knownState = this.getOrCreateKnownState(id);
     knownState.updateHeader(header);
-    this.triggerUpdate(id);
+    this.triggerUpdate(id, knownState);
   }
 
   combineWith(id: RawCoID, value: CoValueKnownState) {
     const knownState = this.getOrCreateKnownState(id);
     knownState.combineWith(value);
-    this.triggerUpdate(id);
+    this.triggerUpdate(id, knownState);
   }
 
   combineOptimisticWith(id: RawCoID, value: CoValueKnownState) {
     const knownState = this.getOrCreateKnownState(id);
     knownState.combineOptimisticWith(value);
-    this.triggerUpdate(id);
+    this.triggerUpdate(id, knownState);
   }
 
   setKnownState(id: RawCoID, payload: CoValueKnownState | "empty") {
     const knownState = this.getOrCreateKnownState(id);
     knownState.set(payload);
-    this.triggerUpdate(id);
+    this.triggerUpdate(id, knownState);
   }
 
   emitCoValueChange(id: RawCoID) {
@@ -97,19 +97,21 @@ export class PeerState {
       return;
     }
 
-    this.getOrCreateKnownState(id);
-    this.triggerUpdate(id);
+    const knownState = this.getOrCreateKnownState(id);
+    this.triggerUpdate(id, knownState);
   }
 
-  listeners = new Set<(id: RawCoID) => void>();
+  listeners = new Set<(id: RawCoID, value: PeerKnownState) => void>();
 
-  private triggerUpdate(id: RawCoID) {
+  private triggerUpdate(id: RawCoID, value: PeerKnownState) {
     for (const listener of this.listeners) {
-      listener(id);
+      listener(id, value);
     }
   }
 
-  subscribeToKnownStatesUpdates(listener: (id: RawCoID) => void) {
+  subscribeToKnownStatesUpdates(
+    listener: (id: RawCoID, value: PeerKnownState) => void,
+  ) {
     this.listeners.add(listener);
 
     return () => {

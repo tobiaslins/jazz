@@ -351,8 +351,8 @@ export class SyncManager {
     this.peersCounter.add(1, { role: peer.role });
 
     const unsubscribeFromKnownStatesUpdates =
-      peerState.subscribeToKnownStatesUpdates((id) => {
-        this.syncState.triggerUpdate(peer.id, id);
+      peerState.subscribeToKnownStatesUpdates((id, knownState) => {
+        this.syncState.triggerUpdate(peer.id, id, knownState.value());
       });
 
     if (!skipReconciliation && peerState.role === "server") {
@@ -827,15 +827,6 @@ export class SyncManager {
   }
 
   waitForSyncWithPeer(peerId: PeerID, id: RawCoID, timeout: number) {
-    const { syncState } = this;
-    const currentSyncState = syncState.getCurrentSyncState(peerId, id);
-
-    const isTheConditionAlreadyMet = currentSyncState.uploaded;
-
-    if (isTheConditionAlreadyMet) {
-      return;
-    }
-
     const peerState = this.peers[peerId];
 
     // The peer has been closed and is not persistent, so it isn't possible to sync
@@ -843,11 +834,14 @@ export class SyncManager {
       return;
     }
 
-    // The client isn't subscribed to the coValue, so we won't sync it
-    if (
-      peerState.role === "client" &&
-      !peerState.isCoValueSubscribedToPeer(id)
-    ) {
+    if (peerState.isCoValueSubscribedToPeer(id)) {
+      const isAlreadySynced = this.syncState.isSynced(peerState, id);
+
+      if (isAlreadySynced) {
+        return;
+      }
+    } else if (peerState.role === "client") {
+      // The client isn't subscribed to the coValue, so we won't sync it
       return;
     }
 

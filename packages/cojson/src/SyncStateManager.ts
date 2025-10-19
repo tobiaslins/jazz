@@ -1,9 +1,6 @@
 import { RawCoID } from "./ids.js";
-import {
-  CoValueKnownState,
-  emptyKnownState,
-  areLocalSessionsUploaded,
-} from "./knownState.js";
+import { CoValueKnownState, areLocalSessionsUploaded } from "./knownState.js";
+import { PeerState } from "./PeerState.js";
 import { PeerID, SyncManager } from "./sync.js";
 
 export type SyncState = {
@@ -55,28 +52,17 @@ export class SyncStateManager {
     };
   }
 
-  getCurrentSyncState(peerId: PeerID, id: RawCoID) {
-    return {
-      uploaded: this.getIsCoValueFullyUploadedIntoPeer(peerId, id),
-    };
-  }
-
-  triggerUpdate(peerId: PeerID, id: RawCoID) {
-    const peer = this.syncManager.peers[peerId];
-
-    if (!peer) {
-      return;
-    }
-
-    const peerListeners = this.listenersByPeers.get(peer.id);
+  triggerUpdate(peerId: PeerID, id: RawCoID, knownState: CoValueKnownState) {
+    const peerListeners = this.listenersByPeers.get(peerId);
 
     // If we don't have any active listeners do nothing
     if (!peerListeners?.size && !this.listeners.size) {
       return;
     }
 
-    const knownState = peer.getKnownState(id) ?? emptyKnownState(id);
-    const syncState = this.getCurrentSyncState(peerId, id);
+    const syncState = {
+      uploaded: this.getIsCoValueFullyUploadedIntoPeer(knownState, id),
+    };
 
     for (const listener of this.listeners) {
       listener(peerId, knownState, syncState);
@@ -89,27 +75,31 @@ export class SyncStateManager {
     }
   }
 
-  private getIsCoValueFullyUploadedIntoPeer(peerId: PeerID, id: RawCoID) {
-    const peer = this.syncManager.peers[peerId];
+  isSynced(peer: PeerState, id: RawCoID) {
+    const peerKnownState = peer.getKnownState(id);
 
-    if (!peer) {
-      return false;
-    }
+    if (!peerKnownState) return false;
 
-    const peerSessions = peer.getKnownState(id)?.sessions;
+    return this.getIsCoValueFullyUploadedIntoPeer(peerKnownState, id);
+  }
 
-    if (!peerSessions) {
-      return false;
-    }
-
+  private getIsCoValueFullyUploadedIntoPeer(
+    peerKnownState: CoValueKnownState,
+    id: RawCoID,
+  ) {
     const entry = this.syncManager.local.getCoValue(id);
 
-    if (!entry.isAvailable()) {
-      return false;
+    if (!entry.hasVerifiedContent()) {
+      return false; // TODO: Shall we return true?
     }
 
-    const coValueSessions = entry.knownState().sessions;
+    // Accessing verified knownState to skip the immutability
+    // applied on CoValueCore
+    const knownState = entry.verified.knownState();
 
-    return areLocalSessionsUploaded(coValueSessions, peerSessions);
+    return areLocalSessionsUploaded(
+      knownState.sessions,
+      peerKnownState.sessions,
+    );
   }
 }
