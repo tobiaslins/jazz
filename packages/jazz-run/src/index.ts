@@ -222,16 +222,15 @@ const webhookCreateRegistryCommand = Command.make(
   "create-registry",
   {
     peer: peerOption,
+    createRegisterer: Options.boolean("create-registerer").pipe(
+      Options.withDefault(true),
+    ),
   },
-  ({ peer }) => {
+  ({ peer, createRegisterer }) => {
     return Effect.gen(function* () {
       const { accountID, agentSecret } = yield* Effect.promise(() =>
         createWorkerAccount({ name: "Webhook Worker", peer }),
       );
-
-      yield* Console.log("# Credentials for Jazz webhook registry:");
-      yield* Console.log("JAZZ_WEBHOOK_ACCOUNT=" + accountID);
-      yield* Console.log("JAZZ_WEBHOOK_ACCOUNT_SECRET=" + agentSecret);
 
       const { worker, shutdownWorker } = yield* Effect.promise(() =>
         startWorker({
@@ -244,7 +243,44 @@ const webhookCreateRegistryCommand = Command.make(
       const registryGroup = co.group().create({ owner: worker });
       const registry = WebhookRegistry.createRegistry(registryGroup);
 
-      yield* Console.log("JAZZ_WEBHOOK_REGISTRY_ID=" + registry.$jazz.id);
+      yield* Console.log(
+        "# Credentials for *running* the Jazz webhook registry:",
+      );
+      yield* Console.log(
+        "JAZZ_WEBHOOK_REGISTRY_SECRET=" +
+          registry.$jazz.id +
+          "__" +
+          accountID +
+          "__" +
+          agentSecret,
+      );
+
+      if (createRegisterer) {
+        const { accountID: registererID, agentSecret: registererSecret } =
+          yield* Effect.promise(() =>
+            createWorkerAccount({ name: "Webhook Registerer", peer }),
+          );
+
+        const registererAsRegistry = yield* Effect.promise(() =>
+          co.account().load(registererID),
+        );
+
+        if (!registererAsRegistry) {
+          throw new Error("Registerer account not found");
+        }
+
+        registryGroup.addMember(registererAsRegistry, "writer");
+
+        yield* Console.log("# Credentials for *registering* webhooks:");
+        yield* Console.log(
+          "JAZZ_WEBHOOK_SECRET=" +
+            registry.$jazz.id +
+            "__" +
+            registererID +
+            "__" +
+            registererSecret,
+        );
+      }
       yield* Effect.promise(() => shutdownWorker());
     });
   },

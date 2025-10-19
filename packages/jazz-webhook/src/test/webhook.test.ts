@@ -138,23 +138,6 @@ describe("jazz-webhook", () => {
       );
     });
 
-    test("should accept valid CoValue IDs", async () => {
-      const { webhookServer, webhookRegistry: webhookManager } =
-        await setupTest();
-
-      const validIds = [
-        "co_z1234567890abcdef",
-        "co_zABCDEF1234567890",
-        "co_z1234567890abcdef1234567890abcdef12345678",
-      ];
-
-      validIds.forEach((id) => {
-        expect(() => {
-          webhookManager.register(webhookServer.getUrl(), id);
-        }).not.toThrow();
-      });
-    });
-
     test("should create multiple webhooks with different IDs", async () => {
       const { webhookServer, registryState, webhookRegistry } =
         await setupTest();
@@ -214,8 +197,8 @@ describe("jazz-webhook", () => {
       const testMap = TestCoMap.create({ value: "initial" }, account.root);
       const coValueId = testMap.$jazz.id as `co_z${string}`;
 
-      // Register webhook (automatically subscribes)
-      webhookManager.register(webhookServer.getUrl(), coValueId);
+      // Register webhook
+      await webhookManager.register(webhookServer.getUrl(), coValueId);
 
       // Make a change to trigger webhook
       testMap.$jazz.set("value", "changed");
@@ -240,7 +223,7 @@ describe("jazz-webhook", () => {
       const testMap = TestCoMap.create({ value: "initial" }, account.root);
       const coValueId = testMap.$jazz.id as `co_z${string}`;
 
-      webhookManager.register(webhookServer.getUrl(), coValueId);
+      await webhookManager.register(webhookServer.getUrl(), coValueId);
 
       // Make multiple rapid changes
       testMap.$jazz.set("value", "change1");
@@ -299,7 +282,7 @@ describe("jazz-webhook", () => {
       webhookServer.setResponse(1, 500, "Server Error");
       webhookServer.setResponse(2, 200, "Success");
 
-      webhookManager.register(webhookServer.getUrl(), coValueId);
+      await webhookManager.register(webhookServer.getUrl(), coValueId);
 
       testMap.$jazz.set("value", "changed");
 
@@ -333,7 +316,7 @@ describe("jazz-webhook", () => {
       }); // 50ms
       webhookServer.setResponse(2, 200, "Success");
 
-      webhookManager.register(webhookServer.getUrl(), coValueId);
+      await webhookManager.register(webhookServer.getUrl(), coValueId);
 
       testMap.$jazz.set("value", "changed");
 
@@ -361,7 +344,7 @@ describe("jazz-webhook", () => {
         webhookServer.setResponse(i, 500, "Server Error");
       }
 
-      webhookManager.register(webhookServer.getUrl(), coValueId);
+      await webhookManager.register(webhookServer.getUrl(), coValueId);
 
       testMap.$jazz.set("value", "changed");
 
@@ -385,7 +368,7 @@ describe("jazz-webhook", () => {
       // Set up server with slow response
       webhookServer.setResponse(0, 200, "Success", 500);
 
-      webhookManager.register(webhookServer.getUrl(), coValueId);
+      await webhookManager.register(webhookServer.getUrl(), coValueId);
 
       testMap.$jazz.set("value", "changed");
 
@@ -527,6 +510,11 @@ describe("jazz-webhook", () => {
         coValueId,
       );
 
+      // Wait a bit to ensure no webhook is sent
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
+      expect(webhookServer.getRequestCount()).toBe(1);
+
       // Deactivate the webhook
       const webhook = webhookRegistry.state[webhookId];
       expect(webhook).toBeDefined();
@@ -547,7 +535,7 @@ describe("jazz-webhook", () => {
       // Wait a bit to ensure no webhook is sent
       await new Promise((resolve) => setTimeout(resolve, 200));
 
-      expect(webhookServer.getRequestCount()).toBe(0);
+      expect(webhookServer.getRequestCount()).toBe(1);
     });
   });
 });

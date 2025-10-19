@@ -1,5 +1,14 @@
 import { co, z, Account, Group } from "jazz-tools";
-import { CojsonInternalTypes, CoID, RawCoValue } from "cojson";
+import {
+  CojsonInternalTypes,
+  CoID,
+  RawCoValue,
+  RawAccount,
+  cojsonInternals,
+  LocalNode,
+  RawAccountID,
+  AgentSecret,
+} from "cojson";
 import {
   getTransactionsToRetry,
   isTxSuccessful,
@@ -68,8 +77,22 @@ export class WebhookRegistry {
    * @param coValueId - The ID of the CoValue to monitor (must start with "co_z")
    * @returns The ID of the registered webhook
    */
-  register(webhookUrl: string, coValueId: string): Promise<string> {
-    return registerWebhook(this.state.$jazz.id, webhookUrl, coValueId);
+  async register(webhookUrl: string, coValueId: string): Promise<string> {
+    const registrationId = await registerWebhook({
+      webhookSecret: `${this.state.$jazz.id}__${this.state.$jazz.localNode.getCurrentAgent().id}__${this.state.$jazz.localNode.agentSecret}`,
+      webhookUrl,
+      coValueId,
+    });
+
+    // wait for registration to become visible in the registry
+    return new Promise((resolve) => {
+      this.state.$jazz.subscribe((state, unsubscribe) => {
+        if (state.$jazz.refs[registrationId]) {
+          resolve(registrationId);
+          unsubscribe();
+        }
+      });
+    });
   }
 
   /**
@@ -186,10 +209,16 @@ class WebhookEmitter {
         this.loadedSuccessMap = loaded.successMap;
         return loaded.successMap;
       });
-    this.unsubscribe = this.webhook.$jazz.localNode.subscribe(
+    const unsubscribeWebhook = this.webhook.$jazz.subscribe((webhook) => {
+      this.webhook = webhook;
+    });
+    const unsubscribeValue = this.webhook.$jazz.localNode.subscribe(
       this.webhook.coValueId as CoID<RawCoValue>,
       async (value) => {
         if (value === "unavailable") {
+          return;
+        }
+        if (!this.webhook.active) {
           return;
         }
         const todo = Array.from(
@@ -198,7 +227,6 @@ class WebhookEmitter {
             value.core.knownState(),
           ),
         );
-        console.log("todo", todo);
         for (const txID of todo) {
           if (!this.pending.has(`${txID.sessionID}:${txID.txIndex}`)) {
             this.makeAttempt(txID);
@@ -206,6 +234,11 @@ class WebhookEmitter {
         }
       },
     );
+
+    this.unsubscribe = () => {
+      unsubscribeWebhook();
+      unsubscribeValue();
+    };
   }
 
   stop() {
@@ -218,12 +251,6 @@ class WebhookEmitter {
 
   makeAttempt(txID: CojsonInternalTypes.TransactionID) {
     let entry = this.pending.get(`${txID.sessionID}:${txID.txIndex}`);
-
-    console.log("makeAttempt", this.webhook.coValueId, txID, {
-      nRetries: entry?.nRetries,
-      successful:
-        this.loadedSuccessMap && isTxSuccessful(this.loadedSuccessMap, txID),
-    });
 
     if (
       entry &&
@@ -302,11 +329,23 @@ class WebhookEmitter {
   }
 }
 
-export const registerWebhook = async (
-  registryId: string,
-  webhookUrl: string,
-  coValueId: string,
-): Promise<string> => {
+export const registerWebhook = async (options: {
+  webhookUrl: string;
+  coValueId: string;
+  webhookSecret?: string;
+}): Promise<string> => {
+  const { webhookUrl, coValueId, webhookSecret } = {
+    webhookSecret: process.env.JAZZ_WEBHOOK_SECRET,
+    ...options,
+  };
+
+  const [registryId, registererId, registererSecret] =
+    webhookSecret?.split("__") || [];
+
+  if (!registryId || !registererId || !registererSecret) {
+    throw new Error("Invalid webhook secret");
+  }
+
   try {
     new URL(webhookUrl);
   } catch {
@@ -325,7 +364,25 @@ export const registerWebhook = async (
     );
   }
 
-  const registry = await RegistryState.load(registryId);
+  const connectedPeers = cojsonInternals.connectedPeers(
+    "loadingAccount",
+    "loadedAccount",
+    { peer1role: "server", peer2role: "client" },
+  );
+
+  Account.getMe().$jazz.localNode.syncManager.addPeer(connectedPeers[1]);
+
+  const registerer = Account.fromNode(
+    await LocalNode.withLoadedAccount({
+      accountID: registererId as RawAccountID,
+      accountSecret: registererSecret as AgentSecret,
+      peers: [connectedPeers[0]],
+      crypto: Account.getMe().$jazz.localNode.crypto,
+      sessionID: Account.getMe().$jazz.localNode.currentSessionID,
+    }),
+  );
+
+  const registry = await RegistryState.load(registryId, { loadAs: registerer });
 
   if (!registry) {
     throw new Error(`Couldn't load registry with ID ${registryId}`);
@@ -342,6 +399,11 @@ export const registerWebhook = async (
   );
 
   registry.$jazz.set(registration.$jazz.id, registration);
+
+  await registerer.$jazz.waitForAllCoValuesSync();
+  await Account.getMe().$jazz.waitForAllCoValuesSync();
+
+  await registerer.$jazz.localNode.gracefulShutdown();
 
   return registration.$jazz.id;
 };
