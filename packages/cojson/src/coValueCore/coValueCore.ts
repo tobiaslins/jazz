@@ -44,6 +44,7 @@ import {
 import { type RawAccountID } from "../coValues/account.js";
 import { decryptTransactionChangesAndMeta } from "./decryptTransactionChangesAndMeta.js";
 import {
+  cloneKnownState,
   combineKnownStateSessions,
   CoValueKnownState,
   emptyKnownState,
@@ -451,6 +452,9 @@ export class CoValueCore {
       new SessionMap(this.id, this.node.crypto, streamingKnownState),
     );
 
+    this._cachedKnownState = undefined;
+    this._cachedKnownStateWithStreaming = undefined;
+
     return true;
   }
 
@@ -506,20 +510,46 @@ export class CoValueCore {
       .then((core) => core.getCurrentContent());
   }
 
+  private _cachedKnownStateWithStreaming?: CoValueKnownState;
+  /**
+   * Returns the known state considering the known state of the streaming source
+   *
+   * Used to correctly manage the content & subscriptions during the content streaming process
+   */
   knownStateWithStreaming(): CoValueKnownState {
-    if (this.verified) {
-      return this.verified.knownStateWithStreaming();
-    } else {
-      return emptyKnownState(this.id);
+    if (this._cachedKnownStateWithStreaming) {
+      return this._cachedKnownStateWithStreaming;
     }
+
+    const knownState = this.verified
+      ? cloneKnownState(this.verified.knownStateWithStreaming())
+      : emptyKnownState(this.id);
+
+    this._cachedKnownStateWithStreaming = knownState;
+
+    return knownState;
   }
 
+  private _cachedKnownState?: CoValueKnownState;
+  /**
+   * Returns the known state of the CoValue
+   *
+   * The return value identity is going to be stable as long as the CoValue is not modified.
+   *
+   * On change the knownState is invalidated and a new object is returned.
+   */
   knownState(): CoValueKnownState {
-    if (this.verified) {
-      return this.verified.knownState();
-    } else {
-      return emptyKnownState(this.id);
+    if (this._cachedKnownState) {
+      return this._cachedKnownState;
     }
+
+    const knownState = this.verified
+      ? cloneKnownState(this.verified.knownState())
+      : emptyKnownState(this.id);
+
+    this._cachedKnownState = knownState;
+
+    return knownState;
   }
 
   get meta(): JsonValue {
@@ -594,6 +624,8 @@ export class CoValueCore {
       );
 
       if (result.isOk()) {
+        this._cachedKnownState = undefined;
+        this._cachedKnownStateWithStreaming = undefined;
         this.processNewTransactions();
         this.scheduleNotifyUpdate();
       }
@@ -749,6 +781,8 @@ export class CoValueCore {
     const session = this.verified.sessions.get(sessionID);
     const txIdx = session ? session.transactions.length - 1 : 0;
 
+    this._cachedKnownState = undefined;
+    this._cachedKnownStateWithStreaming = undefined;
     this.processNewTransactions();
     this.addDependenciesFromNewTransaction(transaction);
 
