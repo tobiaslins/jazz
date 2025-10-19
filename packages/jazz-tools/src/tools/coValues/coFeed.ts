@@ -3,9 +3,11 @@ import type {
   AgentID,
   BinaryStreamInfo,
   CojsonInternalTypes,
+  CoValueUniqueness,
   JsonValue,
   RawAccountID,
   RawBinaryCoStream,
+  RawCoID,
   RawCoStream,
   SessionID,
 } from "cojson";
@@ -28,6 +30,7 @@ import {
   SubscribeRestArgs,
   TypeSym,
   BranchDefinition,
+  loadUnique,
 } from "../internal.js";
 import {
   Account,
@@ -317,6 +320,57 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
   ): () => void {
     const { options, listener } = parseSubscribeRestArgs(args);
     return subscribeToCoValueWithoutMe<F, R>(this, id, options, listener);
+  }
+
+  /** @internal */
+  static _getUniqueHeader(
+    unique: CoValueUniqueness["uniqueness"],
+    ownerID: ID<Account> | ID<Group>,
+  ) {
+    return {
+      type: "costream" as const,
+      ruleset: {
+        type: "ownedByGroup" as const,
+        group: ownerID as RawCoID,
+      },
+      meta: null,
+      uniqueness: unique,
+    };
+  }
+
+  static async upsertUnique<
+    S extends CoFeed,
+    const R extends RefsToResolve<S> = true,
+  >(
+    this: CoValueClass<S>,
+    options: {
+      value: S extends CoFeed<infer Item> ? Item[] : never;
+      unique: CoValueUniqueness["uniqueness"];
+      owner: Account | Group;
+      resolve?: RefsToResolveStrict<S, R>;
+    },
+  ): Promise<Resolved<S, R> | null> {
+    const header = CoFeed._getUniqueHeader(
+      options.unique,
+      options.owner.$jazz.id,
+    );
+
+    return loadUnique(this, {
+      header,
+      owner: options.owner,
+      resolve: options.resolve,
+      onCreateWhenMissing: () => {
+        (this as any).create(options.value, {
+          owner: options.owner,
+          unique: options.unique,
+        });
+      },
+      onUpdateWhenFound(value) {
+        for (const item of options.value) {
+          value.$jazz.push(item);
+        }
+      },
+    });
   }
 }
 
