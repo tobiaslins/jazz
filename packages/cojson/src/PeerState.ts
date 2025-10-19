@@ -86,12 +86,6 @@ export class PeerState {
     this.triggerUpdate(id);
   }
 
-  updateSessionCounter(id: RawCoID, sessionId: SessionID, value: number) {
-    const knownState = this.getOrCreateKnownState(id);
-    knownState.updateSessionCounter(sessionId, value);
-    this.triggerUpdate(id);
-  }
-
   setKnownState(id: RawCoID, payload: CoValueKnownState | "empty") {
     const knownState = this.getOrCreateKnownState(id);
     knownState.set(payload);

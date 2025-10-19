@@ -3,7 +3,6 @@ import {
   cloneKnownState,
   combineKnownStates,
   CoValueKnownState,
-  updateSessionCounter,
   emptyKnownState,
 } from "../knownState.js";
 import { PeerID } from "../sync.js";
@@ -23,18 +22,6 @@ export class PeerKnownState {
 
     if (this.optimisticKnownState) {
       this.optimisticKnownState.header = header;
-    }
-  }
-
-  updateSessionCounter(sessionId: SessionID, value: number) {
-    updateSessionCounter(this.knownState.sessions, sessionId, value);
-
-    if (this.optimisticKnownState) {
-      updateSessionCounter(
-        this.optimisticKnownState.sessions,
-        sessionId,
-        value,
-      );
     }
   }
 

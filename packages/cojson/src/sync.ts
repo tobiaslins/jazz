@@ -596,7 +596,7 @@ export class SyncManager {
 
     let invalidStateAssumed = false;
 
-    const contentToStore: NewContentMessage = {
+    const validNewContent: NewContentMessage = {
       action: "content",
       id: msg.id,
       priority: msg.priority,
@@ -665,13 +665,12 @@ export class SyncManager {
 
       // The new content for this session has been verified, so we can store it
       if (result.value) {
-        contentToStore.new[sessionID] = newContentForSession;
+        validNewContent.new[sessionID] = newContentForSession;
       }
+    }
 
-      const transactionsCount =
-        newContentForSession.after +
-        newContentForSession.newTransactions.length;
-      peer?.updateSessionCounter(msg.id, sessionID, transactionsCount);
+    if (peer) {
+      peer.combineWith(msg.id, knownStateFromContent(validNewContent));
     }
 
     /**
@@ -716,10 +715,10 @@ export class SyncManager {
      * Store the content and propagate it to the server peers and the subscribed client peers
      */
     const hasNewContent =
-      contentToStore.header || Object.keys(contentToStore.new).length > 0;
+      validNewContent.header || Object.keys(validNewContent.new).length > 0;
 
     if (from !== "storage" && hasNewContent) {
-      this.storeContent(contentToStore);
+      this.storeContent(validNewContent);
     }
 
     for (const peer of this.getPeers(coValue.id)) {
