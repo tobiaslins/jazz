@@ -792,6 +792,14 @@ export function useAccountWithSelector<
   );
 }
 
+/**
+ * Returns a function for logging out of the current account.
+ */
+export function useLogOut(): () => void {
+  const contextManager = useJazzContextManager();
+  return contextManager.logOut;
+}
+
 export function experimental_useInboxSender<
   I extends CoValue,
   O extends CoValue | undefined,

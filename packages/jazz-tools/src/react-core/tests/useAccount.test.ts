@@ -64,7 +64,67 @@ describe("useAccount", () => {
     expect(result.current?.me?.root?.value).toBe("123");
   });
 
-  it("should be in sync with useIsAuthenticated when logOut is called", async () => {
+  it("should be in sync with useIsAuthenticated when logOut (from useAccount.logOut) is called", async () => {
+    const account = await createJazzTestAccount({});
+
+    const accounts: string[] = [];
+    const updates: { isAuthenticated: boolean; accountIndex: number }[] = [];
+
+    const { result } = renderHook(
+      () => {
+        const isAuthenticated = useIsAuthenticated();
+        const account = useAccount();
+
+        if (account.me) {
+          if (!accounts.includes(account.me.$jazz.id)) {
+            accounts.push(account.me.$jazz.id);
+          }
+
+          updates.push({
+            isAuthenticated,
+            accountIndex: accounts.indexOf(account.me.$jazz.id),
+          });
+        }
+
+        return { isAuthenticated, account };
+      },
+      {
+        account,
+        isAuthenticated: true,
+      },
+    );
+
+    expect(result.current?.isAuthenticated).toBe(true);
+    expect(result.current?.account?.me).toBeDefined();
+
+    const id = result.current?.account?.me?.$jazz.id;
+
+    await act(async () => {
+      await result.current?.account?.logOut();
+    });
+
+    expect(result.current?.isAuthenticated).toBe(false);
+    expect(result.current?.account?.me?.$jazz.id).not.toBe(id);
+
+    expect(updates).toMatchInlineSnapshot(`
+      [
+        {
+          "accountIndex": 0,
+          "isAuthenticated": true,
+        },
+        {
+          "accountIndex": 0,
+          "isAuthenticated": false,
+        },
+        {
+          "accountIndex": 1,
+          "isAuthenticated": false,
+        },
+      ]
+    `);
+  });
+
+  it("should be in sync with useIsAuthenticated when logOut (from useLogOut) is called", async () => {
     const account = await createJazzTestAccount({});
 
     const accounts: string[] = [];
