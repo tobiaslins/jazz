@@ -24,9 +24,8 @@ describe("successMap", () => {
       txIndex: 0,
     };
     markSuccessful(successMap, transactionID);
-    expect(successMap[transactionID.sessionID]).toStrictEqual({
-      nContinouslySuccessful: 1,
-      laterSuccessfulTransactions: [],
+    expect(successMap).toEqual({
+      "co_z123_session_z123:0": true,
     });
     expect(isTxSuccessful(successMap, transactionID)).toBe(true);
   });
@@ -43,9 +42,9 @@ describe("successMap", () => {
     };
     markSuccessful(successMap, transactionID0);
     markSuccessful(successMap, transactionID1);
-    expect(successMap[transactionID0.sessionID]).toStrictEqual({
-      nContinouslySuccessful: 2,
-      laterSuccessfulTransactions: [],
+    expect(successMap).toEqual({
+      "co_z123_session_z123:0": true,
+      "co_z123_session_z123:1": true,
     });
     expect(isTxSuccessful(successMap, transactionID0)).toBe(true);
     expect(isTxSuccessful(successMap, transactionID1)).toBe(true);
@@ -69,9 +68,9 @@ describe("successMap", () => {
     };
     markSuccessful(successMap, transactionID0);
     markSuccessful(successMap, transactionID2);
-    expect(successMap[transactionID0.sessionID]).toStrictEqual({
-      nContinouslySuccessful: 1,
-      laterSuccessfulTransactions: [2],
+    expect(successMap).toEqual({
+      "co_z123_session_z123:0": true,
+      "co_z123_session_z123:2": true,
     });
     expect(isTxSuccessful(successMap, transactionID0)).toBe(true);
     expect(
@@ -101,9 +100,9 @@ describe("successMap", () => {
     };
     markSuccessful(successMap, transactionID0);
     markSuccessful(successMap, transactionID2);
-    expect(successMap[transactionID0.sessionID]).toStrictEqual({
-      nContinouslySuccessful: 1,
-      laterSuccessfulTransactions: [2],
+    expect(successMap).toEqual({
+      "co_z123_session_z123:0": true,
+      "co_z123_session_z123:2": true,
     });
     expect(isTxSuccessful(successMap, transactionID0)).toBe(true);
     expect(isTxSuccessful(successMap, transactionID2)).toBe(true);
@@ -124,9 +123,10 @@ describe("successMap", () => {
       sessionID: transactionID0.sessionID,
       txIndex: 1,
     });
-    expect(successMap[transactionID0.sessionID]).toStrictEqual({
-      nContinouslySuccessful: 3,
-      laterSuccessfulTransactions: [],
+    expect(successMap).toEqual({
+      "co_z123_session_z123:0": true,
+      "co_z123_session_z123:1": true,
+      "co_z123_session_z123:2": true,
     });
     expect(isTxSuccessful(successMap, transactionID0)).toBe(true);
     expect(isTxSuccessful(successMap, transactionID2)).toBe(true);
@@ -145,12 +145,7 @@ describe("successMap", () => {
   });
 
   it("should get transactions to retry", async () => {
-    const map1 = SuccessMap.create({
-      co_z123_session_z123: {
-        nContinouslySuccessful: 0,
-        laterSuccessfulTransactions: [],
-      },
-    });
+    const map1 = SuccessMap.create({});
 
     expect(
       Array.from(
@@ -162,7 +157,7 @@ describe("successMap", () => {
           },
         }),
       ),
-    ).toStrictEqual([
+    ).toEqual([
       {
         sessionID: "co_z123_session_z123",
         txIndex: 0,
@@ -178,10 +173,8 @@ describe("successMap", () => {
     ]);
 
     const map2 = SuccessMap.create({
-      co_z123_session_z123: {
-        nContinouslySuccessful: 1,
-        laterSuccessfulTransactions: [2],
-      },
+      "co_z123_session_z123:0": true,
+      "co_z123_session_z123:2": true,
     });
 
     expect(
@@ -194,7 +187,7 @@ describe("successMap", () => {
           },
         }),
       ),
-    ).toStrictEqual([
+    ).toEqual([
       {
         sessionID: "co_z123_session_z123",
         txIndex: 1,
@@ -202,10 +195,9 @@ describe("successMap", () => {
     ]);
 
     const map3 = SuccessMap.create({
-      co_z123_session_z123: {
-        nContinouslySuccessful: 3,
-        laterSuccessfulTransactions: [],
-      },
+      "co_z123_session_z123:0": true,
+      "co_z123_session_z123:1": true,
+      "co_z123_session_z123:2": true,
     });
 
     expect(
@@ -218,6 +210,6 @@ describe("successMap", () => {
           },
         }),
       ),
-    ).toStrictEqual([]);
+    ).toEqual([]);
   });
 });

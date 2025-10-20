@@ -48,7 +48,7 @@ export function startWebhookService(
             webhookId,
             {
               resolve: {
-                successMap: { $each: true },
+                successMap: true,
               },
             },
           );

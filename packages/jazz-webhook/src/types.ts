@@ -26,10 +26,7 @@ export interface WebhookInfo {
   coValueId: string;
   active: boolean;
   successMap: {
-    [sessionID: string]: {
-      nContinouslySuccessful: number;
-      laterSuccessfulTransactions: number[];
-    };
+    [transactionID: string]: boolean;
   };
 }
 
