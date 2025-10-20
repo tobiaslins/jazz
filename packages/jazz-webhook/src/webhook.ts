@@ -79,7 +79,7 @@ export class WebhookRegistry {
    */
   async register(webhookUrl: string, coValueId: string): Promise<string> {
     const registrationId = await registerWebhook({
-      webhookSecret: `${this.state.$jazz.id}__${this.state.$jazz.localNode.getCurrentAgent().id}__${this.state.$jazz.localNode.agentSecret}`,
+      registryId: this.state.$jazz.id,
       webhookUrl,
       coValueId,
     });
@@ -332,17 +332,14 @@ class WebhookEmitter {
 export const registerWebhook = async (options: {
   webhookUrl: string;
   coValueId: string;
-  webhookSecret?: string;
+  registryId?: string;
 }): Promise<string> => {
-  const { webhookUrl, coValueId, webhookSecret } = {
-    webhookSecret: process.env.JAZZ_WEBHOOK_SECRET,
+  const { webhookUrl, coValueId, registryId } = {
+    registryId: process.env.JAZZ_WEBHOOK_REGISTRY_ID,
     ...options,
   };
 
-  const [registryId, registererId, registererSecret] =
-    webhookSecret?.split("__") || [];
-
-  if (!registryId || !registererId || !registererSecret) {
+  if (!registryId) {
     throw new Error("Invalid webhook secret");
   }
 
@@ -364,25 +361,7 @@ export const registerWebhook = async (options: {
     );
   }
 
-  const connectedPeers = cojsonInternals.connectedPeers(
-    "loadingAccount",
-    "loadedAccount",
-    { peer1role: "server", peer2role: "client" },
-  );
-
-  Account.getMe().$jazz.localNode.syncManager.addPeer(connectedPeers[1]);
-
-  const registerer = Account.fromNode(
-    await LocalNode.withLoadedAccount({
-      accountID: registererId as RawAccountID,
-      accountSecret: registererSecret as AgentSecret,
-      peers: [connectedPeers[0]],
-      crypto: Account.getMe().$jazz.localNode.crypto,
-      sessionID: Account.getMe().$jazz.localNode.currentSessionID,
-    }),
-  );
-
-  const registry = await RegistryState.load(registryId, { loadAs: registerer });
+  const registry = await RegistryState.load(registryId);
 
   if (!registry) {
     throw new Error(`Couldn't load registry with ID ${registryId}`);
@@ -400,10 +379,6 @@ export const registerWebhook = async (options: {
 
   registry.$jazz.set(registration.$jazz.id, registration);
 
-  await registerer.$jazz.waitForAllCoValuesSync();
   await Account.getMe().$jazz.waitForAllCoValuesSync();
-
-  await registerer.$jazz.localNode.gracefulShutdown();
-
   return registration.$jazz.id;
 };

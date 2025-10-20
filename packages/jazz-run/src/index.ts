@@ -230,11 +230,8 @@ const webhookCreateRegistryCommand = Command.make(
   "create-registry",
   {
     peer: peerOption,
-    createRegisterer: Options.boolean("create-registerer").pipe(
-      Options.withDefault(true),
-    ),
   },
-  ({ peer, createRegisterer }) => {
+  ({ peer }) => {
     return Effect.gen(function* () {
       const { accountID, agentSecret } = yield* Effect.promise(() =>
         createWorkerAccount({ name: "Webhook Worker", peer }),
@@ -262,33 +259,9 @@ const webhookCreateRegistryCommand = Command.make(
           "__" +
           agentSecret,
       );
+      yield* Console.log("# Registry ID for *registering* webhooks:");
+      yield* Console.log("JAZZ_WEBHOOK_REGISTRY_ID=" + registry.$jazz.id);
 
-      if (createRegisterer) {
-        const { accountID: registererID, agentSecret: registererSecret } =
-          yield* Effect.promise(() =>
-            createWorkerAccount({ name: "Webhook Registerer", peer }),
-          );
-
-        const registererAsRegistry = yield* Effect.promise(() =>
-          co.account().load(registererID),
-        );
-
-        if (!registererAsRegistry) {
-          throw new Error("Registerer account not found");
-        }
-
-        registryGroup.addMember(registererAsRegistry, "writer");
-
-        yield* Console.log("# Credentials for *registering* webhooks:");
-        yield* Console.log(
-          "JAZZ_WEBHOOK_SECRET=" +
-            registry.$jazz.id +
-            "__" +
-            registererID +
-            "__" +
-            registererSecret,
-        );
-      }
       yield* Effect.promise(() => shutdownWorker());
     });
   },
