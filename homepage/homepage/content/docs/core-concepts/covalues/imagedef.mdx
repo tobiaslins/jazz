@@ -44,7 +44,7 @@ The easiest way to create and use images in your Jazz application is with the `c
 <TabbedCodeGroup id="create-image" default="react" savedPreferenceKey="framework">
 <TabbedCodeGroupItem label="React" icon={<ReactLogo />} value="react" preferWrap>
 ```ts twoslash
-import { Account, Group, ImageDefinition } from "jazz-tools";
+import { type Account, type Group, type ImageDefinition } from "jazz-tools";
 
 declare const me: {
   $jazz: {
@@ -128,7 +128,6 @@ declare const me: {
 // ---cut---
 import { launchImageLibrary } from 'react-native-image-picker';
 import { createImage } from "jazz-tools/media";
-
 
 async function handleImagePicker() {
   // Use your favorite image picker library to get the image URI
@@ -324,17 +323,16 @@ To use the stored ImageDefinition, there are two ways: declaratively, using the 
 ### `<Image>` component [!framework=react,svelte,react-native,react-native-expo]
 <TabbedCodeGroup id="image-component" default="react" savedPreferenceKey="framework">
 <TabbedCodeGroupItem label="React" icon={<ReactLogo />} value="react" preferWrap>
-```tsx
+```tsx twoslash
 import * as React from "react";
-import { co } from "jazz-tools";
-const ImageDef = co.image();
-// ---cut---
+import { co, ImageDefinition } from "jazz-tools";
+//---cut---
 import { Image } from "jazz-tools/react";
 
-function GalleryView({ image }: { image: co.loaded<typeof ImageDef> }) {
+function GalleryView({ image }: { image: co.loaded<typeof ImageDefinition> }) {
   return (
     <div className="image-container">
-      <Image imageId={image.id} alt="Profile" width={600} />
+      <Image imageId={image.$jazz.id} alt="Profile" width={600} />
     </div>
   );
 }
@@ -343,9 +341,9 @@ function GalleryView({ image }: { image: co.loaded<typeof ImageDef> }) {
 <TabbedCodeGroupItem label="Svelte" icon={<SvelteLogo />} value="svelte" preferWrap>
 ```svelte twoslash
 <script lang="ts">
-  import { ImageDefinition, type Loaded } from 'jazz-tools';
+  import { ImageDefinition, co } from 'jazz-tools';
   import { Image } from 'jazz-tools/svelte';
-  let { image }: { image: Loaded<typeof ImageDefinition> } = $props();
+  let { image }: { image: co.loaded<typeof ImageDefinition> } = $props();
 </script>
 
 <Image
@@ -358,7 +356,7 @@ function GalleryView({ image }: { image: co.loaded<typeof ImageDef> }) {
 </TabbedCodeGroupItem>
 <TabbedCodeGroupItem label="React Native" icon={<RNLogo />} value="react-native" preferWrap>
 ```tsx twoslash
-import React from 'react';
+import * as React from 'react';
 import { co, ImageDefinition } from 'jazz-tools';
 
 // ---cut---
@@ -389,13 +387,16 @@ const styles = StyleSheet.create({
 </TabbedCodeGroupItem>
 <TabbedCodeGroupItem label="React Native (Expo)" icon={<ExpoLogo />} value="react-native-expo" preferWrap>
 ```tsx twoslash
+import * as React from "react";
+import { co, ImageDefinition } from "jazz-tools";
+// ---cut---
 import { Image } from "jazz-tools/expo";
 import { StyleSheet } from "react-native";
 
-function GalleryView({ image }) {
+function GalleryView({ image }: { image: co.loaded<typeof ImageDefinition> }) {
   return (
     <Image
-      imageId={image.id}
+      imageId={image.$jazz.id}
       style={styles.galleryImage}
       width={400}
       resizeMode="cover"
