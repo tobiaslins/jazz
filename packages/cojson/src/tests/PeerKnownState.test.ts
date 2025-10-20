@@ -382,55 +382,6 @@ describe("PeerKnownState", () => {
     });
   });
 
-  describe("resetOptimisticState", () => {
-    test("should clear optimisticKnownState", () => {
-      const peerKnownState = new PeerKnownState(testId, testPeerId);
-
-      // Create optimistic state
-      peerKnownState.combineOptimisticWith({
-        id: testId,
-        header: true,
-        sessions: { [session1]: 5 },
-      });
-
-      const optimisticStateRef = peerKnownState.optimisticValue();
-      expect(optimisticStateRef).not.toBe(peerKnownState.value());
-
-      peerKnownState.resetOptimisticState();
-
-      // After reset, optimisticValue should return knownState (because optimisticKnownState is undefined)
-      expect(peerKnownState.optimisticValue()).toBe(peerKnownState.value());
-      // And the optimistic value should be different from the previous optimistic state
-      expect(peerKnownState.optimisticValue()).not.toBe(optimisticStateRef);
-    });
-
-    test("should not affect knownState", () => {
-      const peerKnownState = new PeerKnownState(testId, testPeerId);
-
-      peerKnownState.combineWith({
-        id: testId,
-        header: true,
-        sessions: { [session1]: 5 },
-      });
-
-      const knownStateAfterUpdate = peerKnownState.value();
-      peerKnownState.combineOptimisticWith({
-        id: testId,
-        header: false,
-        sessions: { [session2]: 10 },
-      });
-
-      peerKnownState.resetOptimisticState();
-
-      expect(peerKnownState.value()).toBe(knownStateAfterUpdate); // Reference preserved
-      expect(peerKnownState.value()).toEqual({
-        id: testId,
-        header: true,
-        sessions: { [session1]: 5 },
-      });
-    });
-  });
-
   describe("integration scenarios", () => {
     test("should handle complex workflow maintaining references", () => {
       const peerKnownState = new PeerKnownState(testId, testPeerId);
@@ -470,16 +421,6 @@ describe("PeerKnownState", () => {
       });
       expect(peerKnownState.value()).toBe(originalKnownState);
       expect(peerKnownState.optimisticValue()).toBe(peerKnownState.value()); // Should return knownState when optimistic is cleared
-
-      // Reset should not affect known state reference
-      peerKnownState.combineOptimisticWith({
-        id: testId,
-        header: false,
-        sessions: { [session2]: 30 },
-      });
-
-      peerKnownState.resetOptimisticState();
-      expect(peerKnownState.value()).toBe(originalKnownState);
     });
   });
 });

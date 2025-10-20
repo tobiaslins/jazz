@@ -46,7 +46,7 @@ export class PeerState {
     // On reconnect, we reset all the optimistic known states
     // because we can't know if those syncs were successful or not
     for (const knownState of this._knownStates.values()) {
-      knownStates.set(knownState.id, knownState.clone());
+      knownStates.set(knownState.id, knownState.cloneWithoutOptimistic());
     }
 
     return new PeerState(peer, knownStates);

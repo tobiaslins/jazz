@@ -19,7 +19,7 @@ export class PeerKnownState {
     this.knownState = emptyKnownState(id);
   }
 
-  clone() {
+  cloneWithoutOptimistic() {
     const clone = new PeerKnownState(this.id, this.peerId);
     clone.set(this.knownState);
     return clone;
@@ -70,9 +70,5 @@ export class PeerKnownState {
 
   optimisticValue() {
     return this.optimisticKnownState ?? this.knownState;
-  }
-
-  resetOptimisticState() {
-    this.optimisticKnownState = undefined;
   }
 }
