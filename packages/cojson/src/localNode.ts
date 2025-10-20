@@ -116,7 +116,7 @@ export class LocalNode {
     let entry = this.coValues.get(id);
 
     if (!entry) {
-      entry = CoValueCore.fromID(id, this);
+      entry = new CoValueCore(id, this);
       this.coValues.set(id, entry);
     }
 
