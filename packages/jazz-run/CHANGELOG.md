@@ -1,5 +1,22 @@
 # jazz-run
 
+## 0.18.28
+
+### Patch Changes
+
+- 52c8c89: Add webhook registries and the ability to run and create them with jazz-run
+- Updated dependencies [52c8c89]
+- Updated dependencies [8cbbe0e]
+- Updated dependencies [14806c8]
+- Updated dependencies [e8880dc]
+- Updated dependencies [d83b5e3]
+- Updated dependencies [5320349]
+  - jazz-webhook@0.18.28
+  - jazz-tools@0.18.28
+  - cojson@0.18.28
+  - cojson-storage-sqlite@0.18.28
+  - cojson-transport-ws@0.18.28
+
 ## 0.18.27
 
 ### Patch Changes

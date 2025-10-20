@@ -1,5 +1,15 @@
 # cojson
 
+## 0.18.28
+
+### Patch Changes
+
+- e8880dc: Fix write permissions checks on merged transactions by checking membership on merge time instead of original transaction time
+- d83b5e3: Allow the creation of branch pointers to accounts with reader access
+- 5320349: Fix concurrent loading from storage
+  - cojson-core-wasm@0.18.28
+  - cojson-core-napi@0.18.28
+
 ## 0.18.27
 
 ### Patch Changes
