@@ -116,11 +116,24 @@ const webhookRunCommand = Command.make(
   },
   ({ peer }) => {
     return Effect.gen(function* () {
+      const webhookSecret = process.env.JAZZ_WEBHOOK_SECRET;
+
+      if (!webhookSecret) {
+        throw new Error("JAZZ_WEBHOOK_SECRET is not set");
+      }
+
+      const [registryID, registererAccountID, registererAccountSecret] =
+        webhookSecret.split("__");
+
+      if (!registryID || !registererAccountID || !registererAccountSecret) {
+        throw new Error("Invalid JAZZ_WEBHOOK_SECRET");
+      }
+
       const { worker, shutdownWorker } = yield* Effect.promise(() =>
         startWorker({
           syncServer: peer,
-          accountID: process.env.JAZZ_WEBHOOK_ACCOUNT,
-          accountSecret: process.env.JAZZ_WEBHOOK_ACCOUNT_SECRET,
+          accountID: registererAccountID,
+          accountSecret: registererAccountSecret,
         }),
       );
 
@@ -151,31 +164,26 @@ const webhookGrantCommand = Command.make(
   },
   ({ peer, accountID }) => {
     return Effect.gen(function* () {
-      const webhookAccountID = process.env.JAZZ_WEBHOOK_ACCOUNT;
+      const webhookRegistrySecret = process.env.JAZZ_WEBHOOK_REGISTRY_SECRET;
 
-      if (!webhookAccountID) {
-        throw new Error("JAZZ_WEBHOOK_ACCOUNT is not set");
+      if (!webhookRegistrySecret) {
+        throw new Error("JAZZ_WEBHOOK_REGISTRY_SECRET is not set");
       }
 
-      const webhookAccountSecret = process.env.JAZZ_WEBHOOK_ACCOUNT_SECRET;
+      const [registryID, registryAccountID, registryAccountSecret] =
+        webhookRegistrySecret.split("__");
 
-      if (!webhookAccountSecret) {
-        throw new Error("JAZZ_WEBHOOK_ACCOUNT_SECRET is not set");
+      if (!registryID || !registryAccountID || !registryAccountSecret) {
+        throw new Error("Invalid JAZZ_WEBHOOK_REGISTRY_SECRET");
       }
 
       const { worker, shutdownWorker } = yield* Effect.promise(() =>
         startWorker({
           syncServer: peer,
-          accountID: webhookAccountID,
-          accountSecret: webhookAccountSecret,
+          accountID: registryAccountID,
+          accountSecret: registryAccountSecret,
         }),
       );
-
-      const registryID = process.env.JAZZ_WEBHOOK_REGISTRY_ID;
-
-      if (!registryID) {
-        throw new Error("JAZZ_WEBHOOK_REGISTRY_ID is not set");
-      }
 
       const registry = yield* Effect.promise(() =>
         RegistryState.load(registryID),
