@@ -202,11 +202,12 @@ const grantRegistrationRights = ({
 
     registry.$jazz.owner.addMember(account, "writer");
 
-    yield* Console.log(
+    yield* Console.error(
       "Webhook registration rights granted to " +
         accountID +
         " for registry " +
-        registryID,
+        registryID +
+        " ✅",
     );
 
     yield* Effect.promise(() => shutdownWorker());
