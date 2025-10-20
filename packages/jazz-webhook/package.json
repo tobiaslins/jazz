@@ -18,20 +18,13 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    },
-    "./client": {
-      "types": "./dist/client.d.ts",
-      "default": "./dist/client.js"
     }
   },
   "dependencies": {
     "cojson": "workspace:*",
     "cojson-storage-sqlite": "workspace:*",
     "cojson-transport-ws": "workspace:*",
-    "jazz-tools": "workspace:*",
-    "hono": "^4.6.12",
-    "@hono/zod-validator": "^0.7.3",
-    "zod": "3.25.76"
+    "jazz-tools": "workspace:*"
   },
   "devDependencies": {
     "@types/ws": "8.5.10",

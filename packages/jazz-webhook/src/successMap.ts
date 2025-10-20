@@ -5,38 +5,51 @@ export const SuccessMap = co.record(
   z.string(), // stringified transaction ID
   z.boolean(),
 );
+export type SuccessMap = co.loaded<typeof SuccessMap>;
+
+export type TxIdKey = `${SessionID}:${number}`;
+
+export function getTxIdKey(txID: {
+  sessionID: SessionID;
+  txIndex: number;
+}): TxIdKey {
+  return `${txID.sessionID}:${txID.txIndex}`;
+}
 
 export function markSuccessful(
-  successMap: co.loaded<typeof SuccessMap, { $each: true }>,
+  successMap: SuccessMap,
   txID: CojsonInternalTypes.TransactionID,
 ) {
-  let success = successMap[`${txID.sessionID}:${txID.txIndex}`];
+  let success = successMap[getTxIdKey(txID)];
   if (!success) {
-    successMap.$jazz.set(`${txID.sessionID}:${txID.txIndex}`, true);
+    successMap.$jazz.set(getTxIdKey(txID), true);
   }
 }
 
-export function* getTransactionsToRetry(
-  successMap: co.loaded<typeof SuccessMap, { $each: true }>,
+export function getTransactionsToTry(
+  successMap: SuccessMap,
   knownState: CojsonInternalTypes.CoValueKnownState,
 ) {
+  const result: CojsonInternalTypes.TransactionID[] = [];
   // TODO: optimisation: we can likely avoid even constructing a CoMap view
   // and just get/set raw transactions from the CoValueCore of SuccessMap
   for (const [sessionID, knownTxCount] of Object.entries(knownState.sessions)) {
     for (let txIndex = 0; txIndex < knownTxCount; txIndex++) {
       if (!successMap[`${sessionID}:${txIndex}`]) {
-        yield {
+        result.push({
           sessionID: sessionID as SessionID,
           txIndex: txIndex,
-        } satisfies CojsonInternalTypes.TransactionID;
+        });
       }
     }
   }
+
+  return result;
 }
 
 export function isTxSuccessful(
-  successMap: co.loaded<typeof SuccessMap, { $each: true }>,
+  successMap: SuccessMap,
   txID: CojsonInternalTypes.TransactionID,
 ) {
-  return successMap[`${txID.sessionID}:${txID.txIndex}`] ?? false;
+  return successMap[getTxIdKey(txID)] ?? false;
 }

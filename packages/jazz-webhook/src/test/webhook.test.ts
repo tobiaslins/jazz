@@ -540,16 +540,6 @@ describe("jazz-webhook", () => {
   });
 });
 
-async function getWebhookSuccessMap(id: string) {
-  const webhook = await WebhookRegistration.load(id, {
-    resolve: {
-      successMap: { $each: true },
-    },
-  });
-  assert(webhook);
-  return webhook.successMap;
-}
-
 async function waitForWebhookEmitted(
   id: string,
   txID: CojsonInternalTypes.TransactionID,

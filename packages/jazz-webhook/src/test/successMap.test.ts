@@ -1,6 +1,6 @@
 import { SessionID } from "cojson";
 import {
-  getTransactionsToRetry,
+  getTransactionsToTry,
   isTxSuccessful,
   markSuccessful,
   SuccessMap,
@@ -149,7 +149,7 @@ describe("successMap", () => {
 
     expect(
       Array.from(
-        getTransactionsToRetry(map1, {
+        getTransactionsToTry(map1, {
           id: "co_z123",
           header: false,
           sessions: {
@@ -179,7 +179,7 @@ describe("successMap", () => {
 
     expect(
       Array.from(
-        getTransactionsToRetry(map2, {
+        getTransactionsToTry(map2, {
           id: "co_z123",
           header: false,
           sessions: {
@@ -202,7 +202,7 @@ describe("successMap", () => {
 
     expect(
       Array.from(
-        getTransactionsToRetry(map3, {
+        getTransactionsToTry(map3, {
           id: "co_z123",
           header: false,
           sessions: {

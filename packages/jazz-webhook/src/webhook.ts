@@ -1,9 +1,11 @@
 import { co, z, Account, Group } from "jazz-tools";
 import { CojsonInternalTypes, CoID, RawCoValue } from "cojson";
 import {
-  getTransactionsToRetry,
+  getTransactionsToTry,
+  getTxIdKey,
   markSuccessful,
   SuccessMap,
+  TxIdKey,
 } from "./successMap.js";
 
 export const WebhookRegistration = co.map({
@@ -181,11 +183,11 @@ class WebhookError extends Error {
  *
  */
 class WebhookEmitter {
-  successMap: Promise<co.loaded<typeof SuccessMap, { $each: true }>>;
-  loadedSuccessMap: co.loaded<typeof SuccessMap, { $each: true }> | undefined;
+  successMap: Promise<SuccessMap> | undefined;
+  loadedSuccessMap: SuccessMap | undefined;
   pending = new Map<
-    string, // stringified TransactionID
-    { nRetries: number; timeout?: NodeJS.Timeout }
+    TxIdKey,
+    { nRetries: number; timeout?: ReturnType<typeof setTimeout> }
   >();
   unsubscribe: () => void;
 
@@ -193,12 +195,6 @@ class WebhookEmitter {
     private webhook: WebhookRegistration,
     private options: JazzWebhookOptions = {},
   ) {
-    this.successMap = webhook.$jazz
-      .ensureLoaded({ resolve: { successMap: { $each: true } } })
-      .then((loaded) => {
-        this.loadedSuccessMap = loaded.successMap;
-        return loaded.successMap;
-      });
     const unsubscribeWebhook = this.webhook.$jazz.subscribe((webhook) => {
       this.webhook = webhook;
     });
@@ -211,14 +207,12 @@ class WebhookEmitter {
         if (!this.webhook.active) {
           return;
         }
-        const todo = Array.from(
-          getTransactionsToRetry(
-            await this.successMap,
-            value.core.knownState(),
-          ),
+        const todo = getTransactionsToTry(
+          await this.loadSuccessMap(),
+          value.core.knownState(),
         );
         for (const txID of todo) {
-          if (!this.pending.has(`${txID.sessionID}:${txID.txIndex}`)) {
+          if (!this.pending.has(getTxIdKey(txID))) {
             this.makeAttempt(txID);
           }
         }
@@ -231,6 +225,32 @@ class WebhookEmitter {
     };
   }
 
+  async loadSuccessMap() {
+    if (this.loadedSuccessMap) {
+      return this.loadedSuccessMap;
+    }
+
+    if (!this.successMap) {
+      this.successMap = this.webhook.$jazz
+        .ensureLoaded({ resolve: { successMap: true } })
+        .then((loaded) => loaded.successMap);
+    }
+
+    this.loadedSuccessMap = await this.successMap;
+    return this.loadedSuccessMap;
+  }
+
+  getRetryDelay(nRetries: number) {
+    const baseDelayMs =
+      this.options.baseDelayMs || DEFAULT_JazzWebhookOptions.baseDelayMs;
+
+    return baseDelayMs * 2 ** nRetries;
+  }
+
+  getMaxRetries() {
+    return this.options.maxRetries || DEFAULT_JazzWebhookOptions.maxRetries;
+  }
+
   stop() {
     this.pending.forEach((entry) => {
       clearTimeout(entry.timeout);
@@ -240,15 +260,15 @@ class WebhookEmitter {
   }
 
   makeAttempt(txID: CojsonInternalTypes.TransactionID) {
-    let entry = this.pending.get(`${txID.sessionID}:${txID.txIndex}`);
+    const txIdKey = getTxIdKey(txID);
+    let entry = this.pending.get(txIdKey);
 
-    if (
-      entry &&
-      entry.nRetries >=
-        (this.options.maxRetries || DEFAULT_JazzWebhookOptions.maxRetries)
-    ) {
-      this.pending.delete(`${txID.sessionID}:${txID.txIndex}`);
+    if (entry && entry.nRetries >= this.getMaxRetries()) {
+      this.pending.delete(txIdKey);
       clearTimeout(entry.timeout);
+      console.error(
+        `Max retries reached for txID: ${txIdKey} on webhook: ${this.webhook.$jazz.id}`,
+      );
       return;
     }
 
@@ -257,15 +277,11 @@ class WebhookEmitter {
       clearTimeout(entry.timeout);
     } else {
       entry = { nRetries: 0 };
-      this.pending.set(`${txID.sessionID}:${txID.txIndex}`, entry);
+      this.pending.set(txIdKey, entry);
     }
 
     const scheduleRetry = (delayMs?: number) => {
-      const delay =
-        delayMs ??
-        (this.options.baseDelayMs || DEFAULT_JazzWebhookOptions.baseDelayMs) *
-          2 ** (entry?.nRetries || 0);
-      console.log(`Will retry ${this.webhook.webhookUrl} in ${delay}ms...`);
+      const delay = delayMs ?? this.getRetryDelay(entry?.nRetries || 0);
 
       entry.timeout = setTimeout(() => {
         this.makeAttempt(txID);
@@ -284,8 +300,9 @@ class WebhookEmitter {
     })
       .then(async (response) => {
         if (response.ok) {
-          markSuccessful(await this.successMap, txID);
-          this.pending.delete(`${txID.sessionID}:${txID.txIndex}`);
+          const successMap = await this.loadSuccessMap();
+          markSuccessful(successMap, txID);
+          this.pending.delete(txIdKey);
           clearTimeout(entry.timeout);
           return;
         }
@@ -307,10 +324,6 @@ class WebhookEmitter {
         );
       })
       .catch((error) => {
-        console.error(
-          `Webhook request failed (attempt ${entry?.nRetries || 0}):`,
-          error,
-        );
         scheduleRetry(
           error instanceof WebhookError ? error.retryAfterMs : undefined,
         );
