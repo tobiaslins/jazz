@@ -116,36 +116,36 @@ const webhookRunCommand = Command.make(
   },
   ({ peer }) => {
     return Effect.gen(function* () {
-      const webhookSecret = process.env.JAZZ_WEBHOOK_SECRET;
+      const webhookRegistrySecret = process.env.JAZZ_WEBHOOK_REGISTRY_SECRET;
 
-      if (!webhookSecret) {
-        throw new Error("JAZZ_WEBHOOK_SECRET is not set");
+      if (!webhookRegistrySecret) {
+        throw new Error("JAZZ_WEBHOOK_REGISTRY_SECRET is not set");
       }
 
-      const [registryID, registererAccountID, registererAccountSecret] =
-        webhookSecret.split("__");
+      const [registryID, registryAccountID, registryAccountSecret] =
+        webhookRegistrySecret.split("__");
 
-      if (!registryID || !registererAccountID || !registererAccountSecret) {
-        throw new Error("Invalid JAZZ_WEBHOOK_SECRET");
+      if (!registryID || !registryAccountID || !registryAccountSecret) {
+        throw new Error("Invalid JAZZ_WEBHOOK_REGISTRY_SECRET");
       }
 
       const { worker, shutdownWorker } = yield* Effect.promise(() =>
         startWorker({
           syncServer: peer,
-          accountID: registererAccountID,
-          accountSecret: registererAccountSecret,
+          accountID: registryAccountID,
+          accountSecret: registryAccountSecret,
         }),
       );
 
       const webhook = yield* Effect.promise(() =>
-        WebhookRegistry.loadAndStart(process.env.JAZZ_WEBHOOK_REGISTRY_ID!),
+        WebhookRegistry.loadAndStart(registryID),
       );
 
       yield* Effect.addFinalizer(() => Effect.sync(() => webhook.shutdown()));
       yield* Effect.addFinalizer(() => Effect.promise(() => shutdownWorker()));
 
       yield* Console.log(
-        `Webhook registry ${process.env.JAZZ_WEBHOOK_REGISTRY_ID} running as ${process.env.JAZZ_WEBHOOK_ACCOUNT}`,
+        `Webhook registry ${registryID} running as ${registryAccountID}`,
       );
 
       // Wait until interrupt
