@@ -101,7 +101,7 @@ describe("Image", async () => {
       expect(img!.src).toBe(placeholderDataUrl);
     });
 
-    it("should render a custom placeholder if one is provided", async () => {
+    it("should not override actual placeholders", async () => {
       const placeholderDataUrl =
         "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
       const customPlaceholder =
@@ -127,7 +127,7 @@ describe("Image", async () => {
         <Image
           imageId={im.$jazz.id}
           alt="test"
-          customPlaceholder={customPlaceholder}
+          placeholder={customPlaceholder}
         />,
         {
           account,
@@ -136,7 +136,7 @@ describe("Image", async () => {
 
       const img = container.querySelector("img");
       expect(img).toBeDefined();
-      expect(img!.src).toBe(customPlaceholder);
+      expect(img!.src).toBe(placeholderDataUrl);
     });
 
     it("should show custom placeholder while loading and replace with loaded image", async () => {
@@ -172,7 +172,7 @@ describe("Image", async () => {
         <Image
           imageId={im.$jazz.id}
           alt="test-loading-custom-placeholder"
-          customPlaceholder={customPlaceholder}
+          placeholder={customPlaceholder}
         />,
         { account },
       );
