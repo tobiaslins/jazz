@@ -29,7 +29,7 @@ import {
   TypeSym,
   BranchDefinition,
   getIdFromHeader,
-  loadUnique,
+  unstable_loadUnique,
 } from "../internal.js";
 import {
   Account,
@@ -500,7 +500,7 @@ export class CoMap extends CoValueBase implements CoValue {
       options.owner.$jazz.id,
     );
 
-    return loadUnique(this, {
+    return unstable_loadUnique(this, {
       header,
       owner: options.owner,
       resolve: options.resolve,
@@ -545,7 +545,7 @@ export class CoMap extends CoValueBase implements CoValue {
 
     if (!owner) return owner;
 
-    return loadUnique(this, {
+    return unstable_loadUnique(this, {
       header,
       owner,
       resolve: options?.resolve,

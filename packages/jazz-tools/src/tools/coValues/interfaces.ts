@@ -460,7 +460,10 @@ export function getIdFromHeader(
   return cojsonInternals.idforHeader(header, node.crypto);
 }
 
-export async function loadUnique<V extends CoValue, R extends RefsToResolve<V>>(
+export async function unstable_loadUnique<
+  V extends CoValue,
+  R extends RefsToResolve<V>,
+>(
   cls: CoValueClass<V>,
   options: {
     header: CoValueHeader;
