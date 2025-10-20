@@ -1,4 +1,4 @@
-import type { RawCoID, SessionID } from "../ids.js";
+import type { RawCoID } from "../ids.js";
 import {
   cloneKnownState,
   combineKnownStates,
