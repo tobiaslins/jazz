@@ -16,11 +16,11 @@ import { track } from "@vercel/analytics";
 
 export function HeroSection() {
   return (
-    <section className="container grid min-h-[80vh] items-start py-12 md:grid-cols-12 md:py-16">
+    <section className="container grid min-h-[80vh] items-start gap-8 py-12 md:grid-cols-12 md:gap-0 md:py-16">
       <div className="md:col-span-4">
         <Kicker className="mb-6">Ship Better Apps, Faster.</Kicker>
         <H1>
-          <JazzSyncs className="max-w-full" />
+          <JazzSyncs className="max-w-96 md:max-w-full" />
           <span className="sr-only">{marketingCopy.headline}</span>
         </H1>
         <Prose
@@ -50,7 +50,7 @@ export function HeroSection() {
         </Prose>
 
         <div className="mt-8 grid gap-4">
-          <div className="relative col-span-2 w-full flex-1 overflow-hidden rounded-lg border border-2 text-sm md:text-base lg:col-span-3">
+          <div className="relative col-span-2 w-full flex-1 overflow-hidden rounded-lg border-2 text-sm md:text-base lg:col-span-3">
             <NpxCreateJazzApp />
 
             <CopyButton
@@ -68,17 +68,15 @@ export function HeroSection() {
           </Button>
         </div>
       </div>
-      <div className="grid gap-8 md:col-span-7 md:col-start-6">
-        <div>
-          <p className="mb-4 text-sm">
-            A chat app with image upload in ~300 lines of{" "}
-            <Link href="https://github.com/garden-co/jazz/tree/main/examples/chat">
-              client-side code.
-            </Link>
-          </p>
+      <div className="md:col-span-7 md:col-start-6">
+        <p className="mb-4 text-sm">
+          A chat app with image upload in ~300 lines of{" "}
+          <Link href="https://github.com/garden-co/jazz/tree/main/examples/chat">
+            client-side code.
+          </Link>
+        </p>
 
-          <CodeTabs />
-        </div>
+        <CodeTabs />
       </div>
     </section>
   );
