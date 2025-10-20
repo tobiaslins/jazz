@@ -219,8 +219,26 @@ describe("CoList unique methods", () => {
     expect(result?.[0]?.category?.title).toBe("Category 1");
   });
 
-  test.todo("concurrently upserting the same value");
-  test.todo("upsert on an existing CoValue with unavailable childs");
-  test.todo("loadUnique should retry missing childs");
-  test.todo("upsertUnique should retry missing childs");
+  test("concurrently upserting the same value", async () => {
+    const ItemList = co.list(z.string());
+
+    const owner = Group.create();
+
+    const promises = Array.from({ length: 3 }, (_, i) =>
+      ItemList.upsertUnique({
+        owner,
+        unique: "concurrent",
+        value: [`Item ${i}`, `Second ${i}`],
+      }),
+    );
+
+    await Promise.all(promises);
+
+    const result = await ItemList.loadUnique("concurrent", owner.$jazz.id);
+    assert(result);
+
+    expect(result.length).toBe(2);
+    expect(result[0]).toBe(`Item 2`);
+    expect(result[1]).toBe(`Second 2`);
+  });
 });

@@ -471,8 +471,4 @@ describe("Creating and finding unique CoMaps", async () => {
 
     expect(result.name).toBe(`Project 2`);
   });
-
-  test.todo("upsert on an existing CoValue with unavailable childs");
-  test.todo("loadUnique should retry missing childs");
-  test.todo("upsertUnique should retry missing childs");
 });
